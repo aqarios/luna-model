@@ -1,0 +1,23 @@
+[project]
+name = "aq-models"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Jonas Blenninger", email = "jonas.blenninger@aqarios.com" },
+    { name = "David Bucher", email = "david.bucher@aqarios.com" }
+]
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+aq-models = "aq_models:main"
+
+[tool.maturin]
+module-name = "aq_models._core"
+python-packages = ["aq-models"]
+python-source = "src"
+
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
