@@ -1,7 +1,6 @@
 // Rust module
 pub mod core;
 pub mod prelude;
-pub mod test;
 pub mod translator;
 
 pub use core::Model;
