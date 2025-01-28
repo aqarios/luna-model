@@ -1,4 +1,11 @@
-use super::{exceptions::VariableExistsError, storage::VariableStorage, varref::VarRef, Variable};
+use std::collections::HashMap;
+
+use super::{
+    exceptions::VariableExistsError,
+    storage::VariableStorage,
+    varref::{VarId, VarRef},
+    Variable,
+};
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
@@ -6,7 +13,7 @@ use pyo3::prelude::*;
 #[cfg_attr(feature = "py", pyclass)]
 pub struct Environment {
     pub variables: VariableStorage,
-    // pub variables: Vec<Variable>,
+    pub variables_lookup: HashMap<String, VarId>,
     pub varcount: u32, // should be enough information for all vars
                        // maybe need additional metadata
 }
@@ -16,6 +23,7 @@ impl Environment {
         Self {
             // variables: VariableStorage::empty(),
             variables: VariableStorage::new(),
+            variables_lookup: HashMap::new(),
             varcount: 0,
         }
     }
@@ -27,15 +35,19 @@ impl Environment {
 
         // todo: iterating is required here to check if any
         // of the variables is equal to the one being added.
-        // this might be enhanceable.
-        for v in self.variables.iter() {
-            if v.name == *name {
-                return Err(VariableExistsError);
-            }
+        // this might not be the best way to approach this actually.
+        // for v in self.variables.iter() {
+        //     if v.name == *name {
+        //         return Err(VariableExistsError);
+        //     }
+        // }
+        if self.variables_lookup.contains_key(name) == true {
+            return Err(VariableExistsError);
         }
 
         let varref = VarRef::new(self.varcount);
         self.variables.push(var);
+        self.variables_lookup.insert(name.to_string(), varref.id);
         self.varcount += 1;
         Ok(varref)
     }
