@@ -1,5 +1,6 @@
 pub mod constraint;
 pub mod environment;
+pub mod exceptions;
 pub mod expression;
 pub mod model;
 pub mod storage;

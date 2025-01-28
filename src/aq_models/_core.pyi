@@ -2,6 +2,9 @@ from typing import overload
 
 # from enum import Enum
 
+class VariableExistsException(Exception):
+    def __str__(self) -> str: ...
+
 class Expression:
     # @overload
     def __new__(cls) -> Expression: ...

@@ -1,5 +1,8 @@
 from typing import overload
 
+class VariableExistsException(Exception):
+    def __str__(self) -> str: ...
+
 class Expression:
     # addition
     @overload

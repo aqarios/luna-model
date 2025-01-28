@@ -1,4 +1,4 @@
-from aq_models import Variable
+from aq_models import Variable, VariableExistsException
 
 # from aq_models import Variable, Model, Vtype, Expression
 
@@ -7,6 +7,12 @@ x = Variable("x")
 y = Variable("y")
 print(x)
 print(y)
+
+print("Creating a variable that already exists")
+try:
+    x = Variable("x")
+except VariableExistsException as e:
+    print(f"threw error which is expceted: {e}")
 
 print("Adding a scaler to the 'x' variable")
 expr_x = x + 1

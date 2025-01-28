@@ -5,7 +5,9 @@ use pyo3::exceptions::PyRuntimeError;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
-use super::{environment::Environment, expression::Expression};
+use super::{
+    environment::Environment, exceptions::VariableExistsException, expression::Expression,
+};
 
 pub type VarId = u32;
 
@@ -73,7 +75,12 @@ impl VarRef {
     #[new]
     #[pyo3(signature=(name, environment))]
     fn py_new(name: String, environment: &mut Environment) -> PyResult<VarRef> {
-        Ok(environment.add_var(name))
+        environment.add_var(&name).map_err(|e| {
+            VariableExistsException::new_err(format!(
+                "variable with name '{}' already exists",
+                name
+            ))
+        })
     }
 
     fn name(&self, environment: &Environment) -> String {

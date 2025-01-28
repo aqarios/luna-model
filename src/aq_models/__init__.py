@@ -1,5 +1,6 @@
 from ._core import Environment
 from ._core import Expression
+from ._core import VariableExistsException
 from ._core import Variable as Var
 
 
@@ -15,5 +16,6 @@ __all__ = [
     "Variable",
     "Environment",
     "Expression",
+    "VariableExistsException",
     "GLOBAL_ENV",
 ]

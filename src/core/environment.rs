@@ -1,4 +1,4 @@
-use super::{storage::VariableStorage, varref::VarRef, Variable};
+use super::{exceptions::VariableExistsError, storage::VariableStorage, varref::VarRef, Variable};
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
@@ -22,12 +22,22 @@ impl Environment {
 
     // todo: other params AND CHECK IF A VARIABLE WITH THIS NAME IS ALREADY CONTAINED, IF SO THROW
     // ERROR
-    pub fn add_var(&mut self, name: String) -> VarRef {
-        let var = Variable::new(name);
+    pub fn add_var(&mut self, name: &String) -> Result<VarRef, VariableExistsError> {
+        let var = Variable::new(name.to_string());
+
+        // todo: iterating is required here to check if any
+        // of the variables is equal to the one being added.
+        // this might be enhanceable.
+        for v in self.variables.iter() {
+            if v.name == *name {
+                return Err(VariableExistsError);
+            }
+        }
+
         let varref = VarRef::new(self.varcount);
         self.variables.push(var);
         self.varcount += 1;
-        varref
+        Ok(varref)
     }
 
     pub fn get_var(&self, id: u32) -> &Variable {
