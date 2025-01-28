@@ -2,7 +2,7 @@
 use pyo3::prelude::*;
 
 #[cfg_attr(feature = "py", pyclass)]
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Quadratic {
     v: u8,
 }

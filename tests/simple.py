@@ -2,28 +2,74 @@ from aq_models import Variable
 
 # from aq_models import Variable, Model, Vtype, Expression
 
-v = Variable("my_variable")
-v2 = Variable("my_other")
-v3 = Variable("my_third")
+print("Creating two variables (x and y)")
+x = Variable("x")
+y = Variable("y")
+print(x)
+print(y)
 
-e = v * 1
-print(f"{e=}")
-e2 = v2 + 2
-print(f"{e2=}")
-e3 = v3 - 2.0
-print(f"{e3=}")
-ep3 = e + 3
-print(f"e + 3 = {ep3=}")
-e2p2 = e2 + 2
-print(f"e2 + 2 = {e2p2=}")
-# print(f"{type(e2)=}")
-ee2 = e + e2
-print(f"e + e2 = {ee2=}")
+print("Adding a scaler to the 'x' variable")
+expr_x = x + 1
+print(expr_x)
+expr_xr = 1 + x
+print(expr_xr)
+print(expr_x == expr_xr, expr_xr == expr_x)
 
-e += e2
-print(f"e + e2 = {e=}")
+print("Multiplying a scaler with the 'y' variable")
+expr_y = y * 1
+print(expr_y)
+expr_yr = 1 * y
+print(expr_yr)
+print(expr_y == expr_yr, expr_yr == expr_y)
+
+print("Adding two expressions (resulting in a new expression)")
+expr_xy = expr_x + expr_y
+print(expr_xy)
+expr_yx = expr_y + expr_x
+print(expr_yx)
+print(expr_xy == expr_yx, expr_yx == expr_xy)
+
+print("Adding one expressions to the other (x += y)")
+expr_x += expr_y
+print(expr_x)
+print(expr_x == expr_xy, expr_xy == expr_x)
+
+print("Substracting one expressions from the other (x -= y)")
+expr_x -= expr_y
+print(expr_x)
+print(expr_x == expr_xr, expr_xr == expr_x)
+
+print("Adding one expressions to the other (y += x)")
+expr_y += expr_x
+print(expr_y)
+print(expr_y == expr_yx, expr_yx == expr_y)
+
+print("Substracting one expressions from the other (y -= x)")
+expr_y -= expr_x
+print(expr_y)
+print(expr_y == expr_yr, expr_yr == expr_y)
+
+print("Multiplying the expressions")
+expr_xy = expr_x * expr_y
 
 
+# print(f"{e=}")
+# e2 = v2 + 2
+# print(f"{e2=}")
+# e3 = v3 - 2.0
+# print(f"{e3=}")
+# ep3 = e + 3
+# print(f"e + 3 = {ep3=}")
+# e2p2 = e2 + 2
+# print(f"e2 + 2 = {e2p2=}")
+# # print(f"{type(e2)=}")
+# ee2 = e + e2
+# print(f"e + e2 = {ee2=}")
+#
+# e += e2
+# print(f"e + e2 = {e=}")
+#
+#
 # e = v + 4.0
 # print(f"add scaler to variable: {e}")
 # e2 = v * 2.0

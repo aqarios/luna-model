@@ -4,7 +4,7 @@ use std::u8;
 use pyo3::prelude::*;
 
 #[cfg_attr(feature = "py", pyclass)]
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct HigherOrder {
     v: u8,
 }

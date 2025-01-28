@@ -1,13 +1,13 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Mul, MulAssign, SubAssign},
+    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
 };
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
 #[cfg_attr(feature = "py", pyclass)]
-#[derive(Clone)]
+#[derive(Clone, Copy, PartialEq, PartialOrd)]
 pub struct Number {
     pub value: f64,
 }
@@ -56,6 +56,20 @@ impl Add for Number {
     }
 }
 
+impl Sub for Number {
+    type Output = Number;
+    fn sub(self, rhs: Self) -> Self::Output {
+        Number::new(self.value - rhs.value)
+    }
+}
+
+impl Sub<&Number> for &Number {
+    type Output = Number;
+    fn sub(self, rhs: &Number) -> Self::Output {
+        Number::new(self.value - rhs.value)
+    }
+}
+
 impl Add<&Number> for &Number {
     type Output = Number;
 
@@ -91,6 +105,18 @@ impl AddAssign<Number> for Number {
 impl SubAssign<f64> for Number {
     fn sub_assign(&mut self, rhs: f64) {
         self.value -= rhs
+    }
+}
+
+impl SubAssign for Number {
+    fn sub_assign(&mut self, rhs: Number) {
+        self.value -= rhs.value
+    }
+}
+
+impl SubAssign<&Number> for Number {
+    fn sub_assign(&mut self, rhs: &Number) {
+        self.value -= rhs.value
     }
 }
 

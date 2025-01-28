@@ -10,6 +10,7 @@ use super::{environment::Environment, expression::Expression};
 pub type VarId = u32;
 
 #[cfg_attr(feature = "py", pyclass(name = "Variable", subclass))]
+#[derive(Clone)]
 pub struct VarRef {
     pub id: VarId,
 }
@@ -20,17 +21,33 @@ impl VarRef {
     }
 }
 
-// impl Add<f64> for VarRef {
-//     type Output = Expression;
-//
-//     fn add(self, rhs: f64) -> Self::Output {}
-// }
-
 impl Add<f64> for &VarRef {
     type Output = Expression;
 
     fn add(self, rhs: f64) -> Self::Output {
         Expression::new_with_constant(self.id, rhs)
+    }
+}
+
+impl Add<VarRef> for &VarRef {
+    type Output = Expression;
+
+    fn add(self, rhs: VarRef) -> Self::Output {
+        let mut expr = Expression::empty();
+        expr.linear += self;
+        expr.linear += rhs;
+        expr
+    }
+}
+
+impl Add<&VarRef> for &VarRef {
+    type Output = Expression;
+
+    fn add(self, rhs: &VarRef) -> Self::Output {
+        let mut expr = Expression::empty();
+        expr.linear += self;
+        expr.linear += rhs;
+        expr
     }
 }
 
@@ -64,12 +81,19 @@ impl VarRef {
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
-        if let Ok(value) = other.extract::<f64>(py) {
+        if let Ok(value) = &other.extract::<VarRef>(py) {
+            let expr = self + value;
+            Ok(expr)
+        } else if let Ok(value) = other.extract::<f64>(py) {
             let expr = self + value;
             Ok(expr)
         } else {
             Err(PyRuntimeError::new_err("other type not recognized"))
         }
+    }
+
+    fn __radd__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
+        self.__add__(py, other)
     }
 
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
@@ -79,6 +103,10 @@ impl VarRef {
         } else {
             Err(PyRuntimeError::new_err("other type not recognized"))
         }
+    }
+
+    fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
+        self.__mul__(py, other)
     }
 
     fn __sub__(&self, py: Python, other: PyObject) -> PyResult<Expression> {

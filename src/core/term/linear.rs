@@ -1,10 +1,10 @@
-use crate::core::varref::VarId;
+use crate::core::varref::{VarId, VarRef};
 
 use super::number::Number;
 use std::{
     collections::HashMap,
     fmt::Display,
-    ops::{Add, AddAssign},
+    ops::{Add, AddAssign, Sub, SubAssign},
 };
 
 #[cfg(feature = "py")]
@@ -13,7 +13,7 @@ use pyo3::prelude::*;
 // type VariableKey = usize;
 
 #[cfg_attr(feature = "py", pyclass)]
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Linear {
     pub variables: HashMap<VarId, Number>,
 }
@@ -115,6 +115,144 @@ impl AddAssign<Linear> for Linear {
     }
 }
 
+impl AddAssign<VarRef> for Linear {
+    fn add_assign(&mut self, rhs: VarRef) {
+        match self.variables.get_mut(&rhs.id) {
+            Some(e) => *e += 1.0,
+            None => {
+                _ = self.variables.insert(rhs.id, Number::new(1.0));
+                ()
+            }
+        }
+    }
+}
+
+impl AddAssign<&VarRef> for Linear {
+    fn add_assign(&mut self, rhs: &VarRef) {
+        match self.variables.get_mut(&rhs.id) {
+            Some(e) => *e += 1.0,
+            None => {
+                _ = self.variables.insert(rhs.id, Number::new(1.0));
+                ()
+            }
+        }
+    }
+}
+
+impl Sub<Linear> for Linear {
+    type Output = Linear;
+    fn sub(self, rhs: Linear) -> Self::Output {
+        let mut lin = Linear::from(&self);
+
+        for (k, v) in rhs.variables.iter() {
+            match lin.variables.get_mut(k) {
+                Some(e) => *e -= v.value,
+                None => {
+                    _ = lin.variables.insert(*k, Number::new(-v.value));
+                    ()
+                }
+            }
+        }
+
+        lin
+    }
+}
+
+impl Sub<&Linear> for &Linear {
+    type Output = Linear;
+    fn sub(self, rhs: &Linear) -> Self::Output {
+        let mut lin = Linear::from(&self);
+
+        for (k, v) in rhs.variables.iter() {
+            match lin.variables.get_mut(k) {
+                Some(e) => {
+                    *e -= v.value;
+                    if *e == 0.0 {
+                        lin.variables.remove(k);
+                    }
+                }
+                None => {
+                    _ = lin.variables.insert(*k, Number::new(-v.value));
+                    ()
+                }
+            }
+        }
+
+        lin
+    }
+}
+
+impl SubAssign<VarRef> for Linear {
+    fn sub_assign(&mut self, rhs: VarRef) {
+        match self.variables.get_mut(&rhs.id) {
+            Some(e) => {
+                *e -= 1.0;
+                if *e == 0.0 {
+                    self.variables.remove(&rhs.id);
+                }
+            }
+            None => {
+                _ = self.variables.insert(rhs.id, Number::new(-1.0));
+                ()
+            }
+        }
+    }
+}
+
+impl SubAssign<&VarRef> for Linear {
+    fn sub_assign(&mut self, rhs: &VarRef) {
+        match self.variables.get_mut(&rhs.id) {
+            Some(e) => {
+                *e -= 1.0;
+                if *e == 0.0 {
+                    self.variables.remove(&rhs.id);
+                }
+            }
+            None => {
+                _ = self.variables.insert(rhs.id, Number::new(-1.0));
+                ()
+            }
+        }
+    }
+}
+
+impl SubAssign<Linear> for Linear {
+    fn sub_assign(&mut self, rhs: Linear) {
+        for (k, v) in rhs.variables.iter() {
+            match self.variables.get_mut(k) {
+                Some(e) => {
+                    *e -= v.value;
+                    if *e == 0.0 {
+                        self.variables.remove(k);
+                    }
+                }
+                None => {
+                    _ = self.variables.insert(*k, Number::new(-v.value));
+                    ()
+                }
+            }
+        }
+    }
+}
+
+impl SubAssign<&Linear> for Linear {
+    fn sub_assign(&mut self, rhs: &Linear) {
+        for (k, v) in rhs.variables.iter() {
+            match self.variables.get_mut(k) {
+                Some(e) => {
+                    *e -= v.value;
+                    if *e == 0.0 {
+                        self.variables.remove(k);
+                    }
+                }
+                None => {
+                    _ = self.variables.insert(*k, Number::new(-v.value));
+                    ()
+                }
+            }
+        }
+    }
+}
 // impl AddAssign<Variable> for Linear {
 //     fn add_assign(&mut self, rhs: Variable) {
 //         let varkey = rhs.key();
