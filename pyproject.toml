@@ -13,7 +13,14 @@ dependencies = [
 ]
 
 [project.scripts]
-aq-models = "aq_models:main"
+# aq-models = "aq_models:main"
+
+[tool.uv]
+cache-keys = [
+  { file = "pyproject.toml" },
+  { file = "Cargo.toml" },
+  { file = "**/*.rs" },
+]
 
 [tool.maturin]
 module-name = "aq_models._core"
