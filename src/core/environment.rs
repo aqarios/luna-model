@@ -14,8 +14,8 @@ use pyo3::prelude::*;
 pub struct Environment {
     pub variables: VariableStorage,
     pub variables_lookup: HashMap<String, VarId>,
-    pub varcount: u32, // should be enough information for all vars
-                       // maybe need additional metadata
+    pub varcount: u32,
+    // u32 should be by far enough information for all vars (4_294_967_295)
 }
 
 impl Environment {
