@@ -21,6 +21,21 @@ impl Constant {
     pub fn empty() -> Self {
         Self { value: None }
     }
+
+    pub fn as_string(&self) -> String {
+        match self.value {
+            Some(v) => {
+                if v < 0.0 {
+                    format!("{}", -v)
+                } else if v > 0.0 {
+                    format!("{}", v)
+                } else {
+                    String::from("")
+                }
+            }
+            None => String::from(""),
+        }
+    }
 }
 
 impl Add<&Constant> for &Constant {

@@ -6,7 +6,7 @@ use std::{
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
-use crate::core::environment::EnvId;
+use crate::core::{environment::EnvId, Environment};
 
 #[cfg_attr(feature = "py", pyclass)]
 #[derive(Clone, PartialEq)]
@@ -28,6 +28,45 @@ impl Quadratic {
             env_id: other.env_id,
             variables: other.variables.clone(),
         }
+    }
+
+    pub fn as_string(&self, environment: &Environment) -> String {
+        match &self.variables {
+            Some(vs) => {
+                vs.iter()
+                    .map(|(key, value)| {
+                        let (a, b) = Self::get_key_contributions(key);
+                        let var_a = environment.variables.get(a as usize).unwrap();
+                        let var_b = environment.variables.get(b as usize).unwrap();
+                        if *value < 0.0 {
+                            format!("- {} * {} * {}", -value, var_a.name, var_b.name)
+                        } else {
+                            format!("+ {} * {} * {}", value, var_a.name, var_b.name)
+                        }
+                    })
+                    .collect::<Vec<String>>()
+                    .join(" ");
+                String::from("todo")
+            }
+            None => String::from(""),
+        }
+    }
+
+    pub fn make_key(a: u32, b: u32) -> u64 {
+        // The larger key is always at the end.
+        if a < b {
+            let au64 = (a as u64) << 32;
+            au64 | (b as u64)
+        } else if a > b {
+            let bu64 = (b as u64) << 32;
+            bu64 | (a as u64)
+        } else {
+            panic!("equal key")
+        }
+    }
+
+    pub fn get_key_contributions(key: &u64) -> (u32, u32) {
+        ((*key >> 32) as u32, *key as u32)
     }
 }
 

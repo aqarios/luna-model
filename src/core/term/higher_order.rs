@@ -6,7 +6,10 @@ use std::{
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
-use crate::core::environment::EnvId;
+use crate::core::{
+    environment::{self, EnvId},
+    Environment,
+};
 
 #[cfg_attr(feature = "py", pyclass)]
 #[derive(Clone, PartialEq)]
@@ -28,6 +31,10 @@ impl HigherOrder {
             env_id: other.env_id,
             variables: other.variables.clone(),
         }
+    }
+
+    pub fn as_string(&self, _environment: &Environment) -> String {
+        String::from("")
     }
 }
 

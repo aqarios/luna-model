@@ -7,7 +7,10 @@ use std::{
 use pyo3::prelude::*;
 
 use crate::core::{
-    environment::EnvId, exceptions::VariablesFromDifferentEnvsError, variable::VarId, VarRef,
+    environment::{self, EnvId},
+    exceptions::VariablesFromDifferentEnvsError,
+    variable::VarId,
+    Environment, VarRef,
 };
 
 #[cfg_attr(feature = "py", pyclass)]
@@ -70,6 +73,26 @@ impl Linear {
             // variables,
             env_id: a_ref.env_id,
         })
+    }
+
+    pub fn as_string(&self, environment: &Environment) -> String {
+        match &self.variables {
+            Some(vs) => vs
+                .iter()
+                .map(|(key, value)| {
+                    let var = environment.get(key);
+                    if *value == 1.0 {
+                        format!("{}", var.name)
+                    } else if *value < 0.0 {
+                        format!("{} * {}", -value, var.name)
+                    } else {
+                        format!("{} * {}", value, var.name)
+                    }
+                })
+                .collect::<Vec<String>>()
+                .join(" + "),
+            None => String::from(""),
+        }
     }
 }
 

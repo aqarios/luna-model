@@ -1,6 +1,9 @@
 from typing import overload
 from enum import Enum
 
+class Expression:
+    def to_string(self, environment: Environment) -> str: ...
+
 class Vtype(Enum):
     Real = ...
     Integer = ...

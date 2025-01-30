@@ -52,6 +52,10 @@ impl Environment {
         self.variables_lookup.insert(name.to_string(), varref.id);
         Ok(varref)
     }
+
+    pub fn get(&self, key: &VarId) -> &Variable {
+        self.variables.get((key - 1) as usize).unwrap()
+    }
 }
 
 #[cfg(feature = "py")]

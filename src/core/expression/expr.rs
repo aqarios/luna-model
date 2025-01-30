@@ -8,6 +8,7 @@ use crate::core::{
     environment::EnvId,
     exceptions::{DifferentEnvsError, DifferentEnvsException},
     term::{Constant, HigherOrder, Linear, Quadratic},
+    Environment,
 };
 
 #[cfg_attr(feature = "py", pyclass(subclass))]
@@ -105,6 +106,17 @@ impl Expression {
         } else {
             Ok(())
         }
+    }
+
+    fn as_string(&self, environment: &Environment) -> String {
+        let mut strings = vec![
+            self.higher_order.as_string(environment),
+            self.quadratic.as_string(environment),
+            self.linear.as_string(environment),
+            self.constant.as_string(),
+        ];
+        strings.retain(|s| s.chars().count() != 0);
+        strings.join(" + ")
     }
 }
 
@@ -204,6 +216,10 @@ impl Expression {
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
+    }
+
+    fn to_string(&self, environment: &Environment) -> String {
+        self.as_string(environment)
     }
 
     // fn __mul__(&self, py: Python, other: PyObject) -> PyResult<Expression> {

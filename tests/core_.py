@@ -1,4 +1,4 @@
-from aq_models import Variable, VariableExistsException, Vtype, Bounds
+from aq_models import Variable, VariableExistsException, Vtype, Bounds, pprint
 
 # from aq_models import Variable, Model, Vtype, Expression
 
@@ -16,59 +16,67 @@ except VariableExistsException as e:
 
 print("Adding a scaler to the 'x' variable")
 expr_x = x + 1
-print(f"{expr_x=}")
+print("expr_x = ", end="")
+pprint(expr_x)
 expr_xr = 1 + x
-print(f"{expr_xr=}")
+print("expr_xr = ", end="")
+pprint(expr_xr)
 print(expr_x == expr_xr, expr_xr == expr_x)
 
 print("Multiplying a scaler with the 'y' variable")
-expr_y = y * 1
-print(f"{expr_y=}")
-expr_yr = 1 * y
-print(f"{expr_yr=}")
+expr_y = y * 2
+print("expr_y = ", end="")
+pprint(expr_y)
+expr_yr = 2 * y
+print("expr_yr = ", end="")
+pprint(expr_yr)
 print(expr_y == expr_yr, expr_yr == expr_y)
 
 print("Adding two expressions (resulting in a new expression)")
 expr_xy = expr_x + expr_y
-print(f"{expr_xy=}")
+print("expr_xy = ", end="")
+pprint(expr_xy)
 expr_yx = expr_y + expr_x
-print(f"{expr_yx=}")
+print("expr_yx = ", end="")
+pprint(expr_yx)
 print(expr_xy == expr_yx, expr_yx == expr_xy)
 
 print("Adding one expressions to the other (x += y)")
 expr_x += expr_y
-print(f"expr_x += expr_y = {expr_x}")
-print("should be = 1 * 0 + 1 * 1 + 1")
+print(f"expr_x += expr_y = ", end="")
+pprint(expr_x)
+# print("should be = 1 * 0 + 1 * 1 + 1")
 print(expr_x == expr_xy, expr_xy == expr_x)
 
 print("Substracting one expressions from the other (x -= y)")
 expr_x -= expr_y
-print(f"expr_x -= expr_y = {expr_x}")
-print("should be = 1 * 0 + 1")
+print(f"expr_x -= expr_y = ", end="")
+pprint(expr_x)
+# print("should be = 1 * 0 + 1")
 print(expr_x == expr_xr, expr_xr == expr_x)
 
 print("Adding one expressions to the other (y += x)")
 expr_y += expr_x
-print(expr_y)
+pprint(expr_y)
 print(expr_y == expr_yx, expr_yx == expr_y)
 
 print("Substracting one expressions from the other (y -= x)")
 expr_y -= expr_x
-print(expr_y)
+pprint(expr_y)
 print(expr_y == expr_yr, expr_yr == expr_y)
 
 print("Multiplying an expressions with a float")
 expr_mf = expr_xy * 2
 truth = (2 * x) + (2 * y) + 2
 truth2 = (2 * y) + (2 * x) + 2
-print(expr_mf)
+pprint(expr_mf)
 print(expr_mf == truth, truth == expr_mf, expr_mf == truth2, truth2 == expr_mf)
 
 print("Multiplying two variables")
 expr_m2v = x * y
 
 # truth = x * y + 0
-print(expr_m2v)
+pprint(expr_m2v)
 # print(expr_mf == truth, truth == expr_mf, expr_mf == truth2, truth2 == expr_mf)
 
 
