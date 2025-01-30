@@ -1,5 +1,5 @@
 // maybe change to `use crate::prelude::*` later
-use crate::core::{Bounds, Environment, VarRef, VariableExistsException, Vtype};
+use crate::core::{Bounds, Environment, Expression, VarRef, VariableExistsException, Vtype};
 use pyo3::prelude::*;
 
 /// A Python module implemented in Rust. The name of this function must match
@@ -15,6 +15,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<VarRef>()?;
     m.add_class::<Bounds>()?;
     m.add_class::<Vtype>()?;
+    m.add_class::<Expression>()?;
     // Adding the exceptions
     m.add(
         "VariableExistsException",
