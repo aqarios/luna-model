@@ -5,5 +5,5 @@ mod quadratic;
 
 pub use constant::Constant;
 pub use higher_order::HigherOrder;
-pub use linear::{Linear, OptionalLinear};
+pub use linear::Linear;
 pub use quadratic::Quadratic;

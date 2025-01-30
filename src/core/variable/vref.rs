@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 use crate::core::{
     environment::EnvId,
     exceptions::{
-        DifferentEnvsError, VariableExistsException, VariablesFromDifferentEnvsError,
+        VariableExistsException, VariablesFromDifferentEnvsError,
         VariablesFromDifferentEnvsException,
     },
     expression::Expression,

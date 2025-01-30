@@ -13,8 +13,6 @@ use crate::core::{
 #[cfg_attr(feature = "py", pyclass(subclass))]
 #[derive(Clone, PartialEq)]
 pub struct Expression {
-    // optional to enhance the performance for lean moedls, i.e., only
-    // linear models etc. as the other data does not needlessly be copied/cloned.
     pub env_id: EnvId,
     pub constant: Constant,
     pub linear: Linear,
@@ -46,10 +44,6 @@ impl Expression {
             linear,
             quadratic,
             higher_order,
-            // constant: constant.unwrap_or(Constant::empty()),
-            // linear: linear.unwrap_or(Linear::empty()),
-            // quadratic: quadratic.unwrap_or(Quadratic::empty()),
-            // higher_order: higher_order.unwrap_or(HigherOrder::empty()),
         })
     }
 
@@ -103,19 +97,6 @@ impl Expression {
         } else {
             Err(DifferentEnvsError)
         }
-        // let ok: bool;
-        // match (linear, quadratic, higher_order) {
-        //     (l, Some(q), None) => ok = l.env_id == q.env_id,
-        //     (l, None, Some(h)) => ok = l.env_id == h.env_id,
-        //     (l, Some(q), Some(h)) => ok = l.env_id == q.env_id && q.env_id == h.env_id,
-        //     (_, _, _) => ok = true,
-        // };
-
-        // if ok {
-        //     Ok(())
-        // } else {
-        //     Err(DifferentEnvsError)
-        // }
     }
 
     fn check_env_id(&self, other: &Expression) -> Result<(), DifferentEnvsError> {

@@ -17,9 +17,6 @@ pub struct Linear {
     pub variables: Option<HashMap<VarId, f64>>,
 }
 
-#[derive(Clone, PartialEq)]
-pub struct OptionalLinear(Option<Linear>);
-
 /// methods used to create a linear term efficiently.
 impl Linear {
     pub fn empty(env_id: EnvId) -> Self {
