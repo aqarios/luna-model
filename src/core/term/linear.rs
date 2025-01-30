@@ -1,328 +1,234 @@
-use crate::core::varref::{VarId, VarRef};
-
-use super::number::Number;
 use std::{
     collections::HashMap,
-    fmt::Display,
-    ops::{Add, AddAssign, Sub, SubAssign},
+    ops::{Add, AddAssign, MulAssign, Sub, SubAssign},
 };
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
-// type VariableKey = usize;
+use crate::core::{
+    environment::EnvId, exceptions::VariablesFromDifferentEnvsError, variable::VarId, VarRef,
+};
 
 #[cfg_attr(feature = "py", pyclass)]
 #[derive(Clone, PartialEq)]
 pub struct Linear {
-    pub variables: HashMap<VarId, Number>,
+    pub env_id: EnvId,
+    pub variables: Option<HashMap<VarId, f64>>,
 }
 
-impl Linear {
-    pub fn new(varid: VarId, value: Option<f64>) -> Self {
-        let mut lin = Self::empty();
-        lin.variables
-            .insert(varid, Number::new(value.unwrap_or(1.0)));
-        lin
-    }
+#[derive(Clone, PartialEq)]
+pub struct OptionalLinear(Option<Linear>);
 
-    pub fn empty() -> Self {
+/// methods used to create a linear term efficiently.
+impl Linear {
+    pub fn empty(env_id: EnvId) -> Self {
         Self {
-            variables: HashMap::new(),
+            env_id,
+            variables: None,
         }
     }
 
-    fn from(other: &Self) -> Self {
+    pub fn new_from_other(other: &Self) -> Self {
         Self {
+            env_id: other.env_id,
             variables: other.variables.clone(),
         }
     }
 
-    // pub fn mul_var(&mut self, var: &Variable, value: f64) {
-    //     let varkey = var.key();
-    //     match self.variables.get_mut(varkey) {
-    //         Some(e) => *e *= value,
-    //         None => {
-    //             _ = self
-    //                 .variables
-    //                 .insert(varkey.to_string(), Number::new(value));
-    //             ()
-    //         }
-    //     }
-    // }
+    /// Efficient production of linear term for a single value.
+    pub fn new(a: (&VarRef, f64)) -> Self {
+        let (a_ref, av) = a;
+        let mut variables = HashMap::new();
+        variables.insert(a_ref.id, av);
+        Self {
+            // variables,
+            variables: Some(variables),
+            env_id: a_ref.env_id,
+        }
+    }
+    /// Linear terms are created when two variables are added or subtracted.
+    /// This generates either `a + b` or `a - b`
+    /// What if a and b are equal? Then the sum of the passed values are stored.
+    pub fn new_from_vars(
+        a: (&VarRef, f64),
+        b: (&VarRef, f64),
+    ) -> Result<Self, VariablesFromDifferentEnvsError> {
+        let (a_ref, av) = a;
+        let (b_ref, bv) = b;
 
-    // pub fn add_var(&mut self, var: &Variable) {
-    //     let varkey = var.key();
-    //     match self.variables.get_mut(varkey) {
-    //         Some(e) => *e += 1.0,
-    //         None => {
-    //             _ = self.variables.insert(varkey.to_string(), Number::new(1.0));
-    //             ()
-    //         }
-    //     }
-    // }
-}
-
-impl Add<Linear> for Linear {
-    type Output = Linear;
-    fn add(self, rhs: Linear) -> Self::Output {
-        let mut lin = Linear::from(&self);
-
-        for (k, v) in rhs.variables.iter() {
-            match lin.variables.get_mut(k) {
-                Some(e) => *e += v.value,
-                None => {
-                    _ = lin.variables.insert(*k, Number::new(v.value));
-                    ()
-                }
-            }
+        if a_ref.env_id != b_ref.env_id {
+            return Err(VariablesFromDifferentEnvsError);
         }
 
-        lin
+        let mut variables = HashMap::new();
+        if a_ref.id == b_ref.id {
+            variables.insert(a_ref.id, av + bv);
+        } else {
+            variables.insert(a_ref.id, av);
+            variables.insert(b_ref.id, bv);
+        }
+        Ok(Self {
+            variables: Some(variables),
+            // variables,
+            env_id: a_ref.env_id,
+        })
     }
 }
 
 impl Add<&Linear> for &Linear {
     type Output = Linear;
+
     fn add(self, rhs: &Linear) -> Self::Output {
-        let mut lin = Linear::from(&self);
-
-        for (k, v) in rhs.variables.iter() {
-            match lin.variables.get_mut(k) {
-                Some(e) => *e += v.value,
-                None => {
-                    _ = lin.variables.insert(*k, Number::new(v.value));
-                    ()
+        // If the `self` variables are not present we can directly return a copy
+        // of the `rhs` variables as a new linear term.
+        if self.variables.is_none() {
+            return Linear::new_from_other(&rhs);
+        }
+        // From here, we know that `self` contains values.
+        // If the `rhs` variables are not present we can directly return a copy
+        // of the `self` variables as a new linear term.
+        if rhs.variables.is_none() {
+            return Linear::new_from_other(&self);
+        }
+        // Now both `self.variables` and `rhs.variables` have values.
+        // So we can start from either the `self` or the `rhs` term.
+        // We choose the `self` term here.
+        let mut out = Linear::new_from_other(&self);
+        let out_vars = out.variables.as_mut().unwrap();
+        // We can now insert the values from `rhs`.
+        for (key, value) in rhs.variables.as_ref().unwrap().iter() {
+            match out_vars.get_mut(key) {
+                Some(e) => {
+                    e.add_assign(value);
+                    if *e == 0.0 {
+                        out_vars.remove(key);
+                    }
                 }
+                None => _ = out_vars.insert(*key, *value),
             }
         }
-
-        lin
+        out
     }
 }
 
-impl AddAssign<Linear> for Linear {
-    fn add_assign(&mut self, rhs: Linear) {
-        for (k, v) in rhs.variables.iter() {
-            match self.variables.get_mut(k) {
-                Some(e) => *e += v.value,
-                None => {
-                    _ = self.variables.insert(*k, Number::new(v.value));
-                    ()
+impl AddAssign<&Linear> for Linear {
+    fn add_assign(&mut self, rhs: &Linear) {
+        // If other value does not contain variables than we do not need
+        // to do anything. Current linear term stays as is.
+        if rhs.variables.is_none() {
+            return;
+        }
+
+        // We need to insert the rhs variables into self and the
+        // current self does not contain any values itself.
+        if self.variables.is_none() {
+            let vars = rhs.variables.as_ref().unwrap();
+            let _ = self.variables.insert(vars.clone());
+            return;
+        }
+        // Now we know that both `self.variables` and `rhs.variables`
+        // contain values. We need to merge them using the add operation.
+        // mutable variables of self (mutable reference).
+        let selfvars = self.variables.as_mut().unwrap();
+        for (key, value) in rhs.variables.as_ref().unwrap().iter() {
+            match selfvars.get_mut(key) {
+                Some(e) => {
+                    e.add_assign(value);
+                    if *e == 0.0 {
+                        selfvars.remove(key);
+                    }
                 }
+                None => _ = selfvars.insert(*key, *value),
             }
         }
-    }
-}
-
-impl AddAssign<VarRef> for Linear {
-    fn add_assign(&mut self, rhs: VarRef) {
-        match self.variables.get_mut(&rhs.id) {
-            Some(e) => *e += 1.0,
-            None => {
-                _ = self.variables.insert(rhs.id, Number::new(1.0));
-                ()
-            }
-        }
-    }
-}
-
-impl AddAssign<&VarRef> for Linear {
-    fn add_assign(&mut self, rhs: &VarRef) {
-        match self.variables.get_mut(&rhs.id) {
-            Some(e) => *e += 1.0,
-            None => {
-                _ = self.variables.insert(rhs.id, Number::new(1.0));
-                ()
-            }
-        }
-    }
-}
-
-impl Sub<Linear> for Linear {
-    type Output = Linear;
-    fn sub(self, rhs: Linear) -> Self::Output {
-        let mut lin = Linear::from(&self);
-
-        for (k, v) in rhs.variables.iter() {
-            match lin.variables.get_mut(k) {
-                Some(e) => *e -= v.value,
-                None => {
-                    _ = lin.variables.insert(*k, Number::new(-v.value));
-                    ()
-                }
-            }
-        }
-
-        lin
     }
 }
 
 impl Sub<&Linear> for &Linear {
     type Output = Linear;
+
     fn sub(self, rhs: &Linear) -> Self::Output {
-        let mut lin = Linear::from(&self);
-
-        for (k, v) in rhs.variables.iter() {
-            match lin.variables.get_mut(k) {
+        // If the `self` variables are not present we can directly return a copy
+        // of the `rhs` variables as a new linear term.
+        // We subtract the current (`self`) linear term for `0`. Thus we need the
+        // sign flipped for all values.
+        if self.variables.is_none() {
+            let mut out = Linear::new_from_other(&rhs);
+            // We subtract the current (`self`) linear term for `0`. Thus we need the
+            // sign flipped for all values, i.e., multiply each value by `-1`.
+            // todo: is there something faster/better to achieve this??
+            out.variables
+                .as_mut()
+                .unwrap()
+                .iter_mut()
+                .for_each(|(_, value)| {
+                    value.mul_assign(-1.0);
+                });
+        }
+        // From here, we know that `self` contains values.
+        // If the `rhs` variables are not present we can directly return a copy
+        // of the `self` variables as a new linear term.
+        // Basically we subtract `0` from the current (`self`) linear term.
+        if rhs.variables.is_none() {
+            return Linear::new_from_other(&self);
+        }
+        // Now both `self.variables` and `rhs.variables` have values.
+        // So we can start from either the `self` or the `rhs` term.
+        // We choose the `self` term here.
+        // self - rhs
+        let mut out = Linear::new_from_other(&self);
+        let out_vars = out.variables.as_mut().unwrap();
+        // We can now insert the values from `rhs`.
+        for (key, value) in rhs.variables.as_ref().unwrap().iter() {
+            match out_vars.get_mut(key) {
                 Some(e) => {
-                    *e -= v.value;
+                    e.sub_assign(value);
                     if *e == 0.0 {
-                        lin.variables.remove(k);
+                        out_vars.remove(key);
                     }
                 }
-                None => {
-                    _ = lin.variables.insert(*k, Number::new(-v.value));
-                    ()
-                }
+                None => _ = out_vars.insert(*key, *value),
             }
         }
-
-        lin
-    }
-}
-
-impl SubAssign<VarRef> for Linear {
-    fn sub_assign(&mut self, rhs: VarRef) {
-        match self.variables.get_mut(&rhs.id) {
-            Some(e) => {
-                *e -= 1.0;
-                if *e == 0.0 {
-                    self.variables.remove(&rhs.id);
-                }
-            }
-            None => {
-                _ = self.variables.insert(rhs.id, Number::new(-1.0));
-                ()
-            }
-        }
-    }
-}
-
-impl SubAssign<&VarRef> for Linear {
-    fn sub_assign(&mut self, rhs: &VarRef) {
-        match self.variables.get_mut(&rhs.id) {
-            Some(e) => {
-                *e -= 1.0;
-                if *e == 0.0 {
-                    self.variables.remove(&rhs.id);
-                }
-            }
-            None => {
-                _ = self.variables.insert(rhs.id, Number::new(-1.0));
-                ()
-            }
-        }
-    }
-}
-
-impl SubAssign<Linear> for Linear {
-    fn sub_assign(&mut self, rhs: Linear) {
-        for (k, v) in rhs.variables.iter() {
-            match self.variables.get_mut(k) {
-                Some(e) => {
-                    *e -= v.value;
-                    if *e == 0.0 {
-                        self.variables.remove(k);
-                    }
-                }
-                None => {
-                    _ = self.variables.insert(*k, Number::new(-v.value));
-                    ()
-                }
-            }
-        }
+        out
     }
 }
 
 impl SubAssign<&Linear> for Linear {
     fn sub_assign(&mut self, rhs: &Linear) {
-        for (k, v) in rhs.variables.iter() {
-            match self.variables.get_mut(k) {
+        // If other value does not contain variables than we do not need
+        // to do anything. Current linear term stays as is.
+        // self - rhs = self - 0 = self
+        if rhs.variables.is_none() {
+            return;
+        }
+
+        // We need to insert the rhs variables into self and the
+        // current self does not contain any values itself.
+        // self - rhs = 0 - rhs = - rhs;
+        if self.variables.is_none() {
+            let vars = rhs.variables.as_ref().unwrap();
+            let selfvars = self.variables.insert(vars.clone());
+            selfvars.iter_mut().for_each(|(_, value)| {
+                value.mul_assign(-1.0);
+            });
+            return;
+        }
+        // Now we know that both `self.variables` and `rhs.variables`
+        // contain values. We need to merge them using the add operation.
+        // mutable variables of self (mutable reference).
+        let selfvars = self.variables.as_mut().unwrap();
+        for (key, value) in rhs.variables.as_ref().unwrap().iter() {
+            match selfvars.get_mut(key) {
                 Some(e) => {
-                    *e -= v.value;
+                    e.sub_assign(value);
                     if *e == 0.0 {
-                        self.variables.remove(k);
+                        selfvars.remove(key);
                     }
                 }
-                None => {
-                    _ = self.variables.insert(*k, Number::new(-v.value));
-                    ()
-                }
+                None => _ = selfvars.insert(*key, *value),
             }
         }
     }
 }
-// impl AddAssign<Variable> for Linear {
-//     fn add_assign(&mut self, rhs: Variable) {
-//         let varkey = rhs.key();
-//         let is_contained = self.variables.contains_key(&varkey);
-//         match is_contained {
-//             true => unimplemented!(),
-//             false => self.variables.insert(varkey, Number::new(1.0)),
-//         };
-//     }
-// }
-//
-// impl AddAssign<&Variable> for Linear {
-//     fn add_assign(&mut self, rhs: &Variable) {
-//         let varkey = rhs.key();
-//         let is_contained = self.variables.contains_key(&varkey);
-//         match is_contained {
-//             true => unimplemented!(),
-//             false => self.variables.insert(varkey, Number::new(1.0)),
-//         };
-//     }
-// }
-
-impl Display for Linear {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let output = self
-            .variables
-            .iter()
-            .map(|(k, v)| format!("{} * {}", v, k))
-            .collect::<Vec<String>>()
-            .join(" + ");
-
-        write!(f, "{}", output)
-    }
-}
-
-// impl<'py> FromPyObject<'py> for Linear {
-//     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-//         println!("in extract for linear");
-//         let variables: HashMap<VarId, Number> = ob.extract()?;
-//         Ok(Self { variables })
-//     }
-// }
-
-// impl Add for Linear {
-//     type Output = Self;
-//     fn add(self, rhs: Self) -> Self::Output {
-//         Self {}
-//     }
-// }
-//
-// impl Add<Constant> for Linear {
-//     type Output = Self;
-//
-//     fn add(self, rhs: Constant) -> Self::Output {
-//         Self {}
-//     }
-// }
-//
-// impl Mul<Constant> for Linear {
-//     type Output = Self;
-//
-//     fn mul(self, rhs: Constant) -> Self::Output {
-//         Self {}
-//     }
-// }
-//
-// impl Sub for Linear {
-//     type Output = Self;
-//
-//     fn sub(self, rhs: Self) -> Self::Output {
-//         Self {}
-//     }
-// }

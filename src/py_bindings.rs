@@ -1,8 +1,5 @@
 // maybe change to `use crate::prelude::*` later
-use crate::core::{
-    environment::Environment, exceptions::VariableExistsException, expression::Expression,
-    varref::VarRef,
-};
+use crate::core::{Bounds, Environment, VarRef, VariableExistsException, Vtype};
 use pyo3::prelude::*;
 
 /// A Python module implemented in Rust. The name of this function must match
@@ -13,9 +10,11 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Add version information to the python module
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     // Adding the functions
+    // m.add_class::<Expression>()?;
     m.add_class::<Environment>()?;
-    m.add_class::<Expression>()?;
     m.add_class::<VarRef>()?;
+    m.add_class::<Bounds>()?;
+    m.add_class::<Vtype>()?;
     // Adding the exceptions
     m.add(
         "VariableExistsException",

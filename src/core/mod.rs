@@ -1,13 +1,21 @@
-pub mod constraint;
-pub mod environment;
-pub mod exceptions;
-pub mod expression;
-pub mod model;
-pub mod storage;
-pub mod term;
-pub mod utils;
-pub mod variable;
-pub mod varref;
+mod exceptions;
+mod model;
+mod utils;
 
-pub use model::Model;
-pub use variable::Variable;
+// mod term;
+// pub mod expression;
+// pub mod varref;
+// pub use model::Model;
+
+// new stuff that is cleaner.
+mod environment;
+mod expression;
+mod operations;
+mod term;
+mod variable;
+
+pub use environment::Environment;
+pub use exceptions::VariableExistsException;
+pub use variable::Bounds;
+pub use variable::VarRef;
+pub use variable::Vtype;

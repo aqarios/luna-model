@@ -1,10 +1,12 @@
 use std::{
     fmt::Display,
-    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
+    ops::{Add, Sub},
 };
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
+
+use super::{TermAddition, TermMultiplication, TermSubtraction};
 
 #[cfg_attr(feature = "py", pyclass)]
 #[derive(Clone, Copy, PartialEq, PartialOrd)]
@@ -43,6 +45,36 @@ impl PartialOrd<f64> for Number {
 
     fn partial_cmp(&self, other: &f64) -> Option<std::cmp::Ordering> {
         Some(self.value.partial_cmp(other))?
+    }
+}
+
+impl TermAddition<f64> for Number {
+    fn add_assign(&mut self, rhs: &f64) {
+        self.value += rhs
+    }
+}
+
+impl TermAddition<Number> for Number {
+    fn add_assign(&mut self, rhs: &Number) {
+        self.value += rhs.value
+    }
+}
+
+impl TermSubtraction<f64> for Number {
+    fn sub_assign(&mut self, rhs: &f64) {
+        self.value -= rhs
+    }
+}
+
+impl TermSubtraction<Number> for Number {
+    fn sub_assign(&mut self, rhs: &Number) {
+        self.value -= rhs.value
+    }
+}
+
+impl TermMultiplication<f64> for Number {
+    fn mul_assign(&mut self, rhs: &f64) {
+        self.value *= rhs
     }
 }
 
@@ -90,48 +122,54 @@ impl Add<f64> for Number {
     }
 }
 
-impl AddAssign<f64> for Number {
-    fn add_assign(&mut self, rhs: f64) {
-        self.value += rhs
-    }
-}
+// impl AddAssign<f64> for Number {
+//     fn add_assign(&mut self, rhs: f64) {
+//         self.value += rhs
+//     }
+// }
 
-impl AddAssign<Number> for Number {
-    fn add_assign(&mut self, rhs: Number) {
-        self.value += rhs.value
-    }
-}
+// impl AddAssign<f64> for Number {
+//     fn add_assign(&mut self, rhs: f64) {
+//         self.value += rhs
+//     }
+// }
 
-impl SubAssign<f64> for Number {
-    fn sub_assign(&mut self, rhs: f64) {
-        self.value -= rhs
-    }
-}
+// impl AddAssign<Number> for Number {
+//     fn add_assign(&mut self, rhs: Number) {
+//         self.value += rhs.value
+//     }
+// }
 
-impl SubAssign for Number {
-    fn sub_assign(&mut self, rhs: Number) {
-        self.value -= rhs.value
-    }
-}
+// impl SubAssign<f64> for Number {
+//     fn sub_assign(&mut self, rhs: f64) {
+//         self.value -= rhs
+//     }
+// }
 
-impl SubAssign<&Number> for Number {
-    fn sub_assign(&mut self, rhs: &Number) {
-        self.value -= rhs.value
-    }
-}
+// impl SubAssign for Number {
+//     fn sub_assign(&mut self, rhs: Number) {
+//         self.value -= rhs.value
+//     }
+// }
+//
+// impl SubAssign<&Number> for Number {
+//     fn sub_assign(&mut self, rhs: &Number) {
+//         self.value -= rhs.value
+//     }
+// }
 
-impl Mul<f64> for Number {
-    type Output = f64;
-    fn mul(self, rhs: f64) -> Self::Output {
-        self.value * rhs
-    }
-}
-
-impl MulAssign<f64> for Number {
-    fn mul_assign(&mut self, rhs: f64) {
-        self.value *= rhs
-    }
-}
+// impl Mul<f64> for Number {
+//     type Output = f64;
+//     fn mul(self, rhs: f64) -> Self::Output {
+//         self.value * rhs
+//     }
+// }
+//
+// impl MulAssign<f64> for Number {
+//     fn mul_assign(&mut self, rhs: f64) {
+//         self.value *= rhs
+//     }
+// }
 
 impl Display for Number {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
