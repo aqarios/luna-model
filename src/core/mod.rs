@@ -2,6 +2,7 @@ mod environment;
 mod exceptions;
 mod expression;
 mod model;
+mod operations;
 mod term;
 mod utils;
 mod variable;

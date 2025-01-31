@@ -1,3 +1,4 @@
+use crate::core::operations::{TermAddition, TermSubtraction};
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 use pyo3::exceptions::PyRuntimeError;
