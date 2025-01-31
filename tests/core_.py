@@ -8,76 +8,79 @@ y = Variable("y")
 print(x)
 print(y)
 
-print("Creating a variable that already exists")
-try:
-    x = Variable("x")
-except VariableExistsException as e:
-    print(f"threw error which is expceted: {e}")
-
-print("Adding a scaler to the 'x' variable")
-expr_x = x + 1
-print("expr_x = ", end="")
-pprint(expr_x)
-expr_xr = 1 + x
-print("expr_xr = ", end="")
-pprint(expr_xr)
-print(expr_x == expr_xr, expr_xr == expr_x)
-
-print("Multiplying a scaler with the 'y' variable")
-expr_y = y * 2
-print("expr_y = ", end="")
-pprint(expr_y)
-expr_yr = 2 * y
-print("expr_yr = ", end="")
-pprint(expr_yr)
-print(expr_y == expr_yr, expr_yr == expr_y)
-
-print("Adding two expressions (resulting in a new expression)")
-expr_xy = expr_x + expr_y
-print("expr_xy = ", end="")
-pprint(expr_xy)
-expr_yx = expr_y + expr_x
-print("expr_yx = ", end="")
-pprint(expr_yx)
-print(expr_xy == expr_yx, expr_yx == expr_xy)
-
-print("Adding one expressions to the other (x += y)")
-expr_x += expr_y
-print(f"expr_x += expr_y = ", end="")
-pprint(expr_x)
-# print("should be = 1 * 0 + 1 * 1 + 1")
-print(expr_x == expr_xy, expr_xy == expr_x)
-
-print("Substracting one expressions from the other (x -= y)")
-expr_x -= expr_y
-print(f"expr_x -= expr_y = ", end="")
-pprint(expr_x)
-# print("should be = 1 * 0 + 1")
-print(expr_x == expr_xr, expr_xr == expr_x)
-
-print("Adding one expressions to the other (y += x)")
-expr_y += expr_x
-pprint(expr_y)
-print(expr_y == expr_yx, expr_yx == expr_y)
-
-print("Substracting one expressions from the other (y -= x)")
-expr_y -= expr_x
-pprint(expr_y)
-print(expr_y == expr_yr, expr_yr == expr_y)
-
-print("Multiplying an expressions with a float")
-expr_mf = expr_xy * 2
-truth = (2 * x) + (2 * y) + 2
-truth2 = (2 * y) + (2 * x) + 2
-pprint(expr_mf)
-print(expr_mf == truth, truth == expr_mf, expr_mf == truth2, truth2 == expr_mf)
-
+# print("Creating a variable that already exists")
+# try:
+#     x = Variable("x")
+# except VariableExistsException as e:
+#     print(f"threw error which is expceted: {e}")
+#
+# print("Adding a scaler to the 'x' variable")
+# expr_x = x + 1
+# print("expr_x = ", end="")
+# pprint(expr_x)
+# expr_xr = 1 + x
+# print("expr_xr = ", end="")
+# pprint(expr_xr)
+# print(expr_x == expr_xr, expr_xr == expr_x)
+#
+# print("Multiplying a scaler with the 'y' variable")
+# expr_y = y * 2
+# print("expr_y = ", end="")
+# pprint(expr_y)
+# expr_yr = 2 * y
+# print("expr_yr = ", end="")
+# pprint(expr_yr)
+# print(expr_y == expr_yr, expr_yr == expr_y)
+#
+# print("Adding two expressions (resulting in a new expression)")
+# expr_xy = expr_x + expr_y
+# print("expr_xy = ", end="")
+# pprint(expr_xy)
+# expr_yx = expr_y + expr_x
+# print("expr_yx = ", end="")
+# pprint(expr_yx)
+# print(expr_xy == expr_yx, expr_yx == expr_xy)
+#
+# print("Adding one expressions to the other (x += y)")
+# expr_x += expr_y
+# print(f"expr_x += expr_y = ", end="")
+# pprint(expr_x)
+# # print("should be = 1 * 0 + 1 * 1 + 1")
+# print(expr_x == expr_xy, expr_xy == expr_x)
+#
+# print("Substracting one expressions from the other (x -= y)")
+# expr_x -= expr_y
+# print(f"expr_x -= expr_y = ", end="")
+# pprint(expr_x)
+# # print("should be = 1 * 0 + 1")
+# print(expr_x == expr_xr, expr_xr == expr_x)
+#
+# print("Adding one expressions to the other (y += x)")
+# expr_y += expr_x
+# pprint(expr_y)
+# print(expr_y == expr_yx, expr_yx == expr_y)
+#
+# print("Substracting one expressions from the other (y -= x)")
+# expr_y -= expr_x
+# pprint(expr_y)
+# print(expr_y == expr_yr, expr_yr == expr_y)
+#
+# print("Multiplying an expressions with a float")
+# expr_mf = expr_xy * 2
+# truth = (2 * x) + (2 * y) + 2
+# truth2 = (2 * y) + (2 * x) + 2
+# pprint(expr_mf)
+# print(expr_mf == truth, truth == expr_mf, expr_mf == truth2, truth2 == expr_mf)
+#
 print("Multiplying two variables")
 expr_m2v = x * y
-
 # truth = x * y + 0
 pprint(expr_m2v)
 # print(expr_mf == truth, truth == expr_mf, expr_mf == truth2, truth2 == expr_mf)
+print("Multiplying two variables and value")
+expr_m2v = x * y * 2
+# truth = x * y + 0
+pprint(expr_m2v)
 
 
 # print(f"{e=}")

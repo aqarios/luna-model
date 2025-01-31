@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 
 use crate::core::{
     environment::EnvId,
-    operations::{Term, TermAddition, TermSubtraction},
+    operations::{Term, TermAddition, TermFloatMultiplication, TermSubtraction},
     Environment,
 };
 
@@ -30,6 +30,10 @@ impl HigherOrder {
 }
 
 impl Term<u64> for HigherOrder {
+    fn reset(&mut self) {
+        self.variables = None
+    }
+
     fn new_from_other(other: &Self) -> Self {
         Self {
             env_id: other.env_id,
@@ -56,3 +60,4 @@ impl Term<u64> for HigherOrder {
 
 impl TermAddition<u64> for HigherOrder {}
 impl TermSubtraction<u64> for HigherOrder {}
+impl TermFloatMultiplication<u64> for HigherOrder {}

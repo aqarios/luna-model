@@ -1,7 +1,7 @@
 use crate::core::{
     environment::EnvId,
     exceptions::VariablesFromDifferentEnvsError,
-    operations::{Term, TermAddition, TermSubtraction},
+    operations::{Term, TermAddition, TermFloatMultiplication, TermSubtraction},
     variable::VarId,
     Environment, VarRef,
 };
@@ -88,10 +88,20 @@ impl Linear {
 
 impl Term<VarId> for Linear {
     fn new_from_other(other: &Self) -> Self {
-        Self {
-            env_id: other.env_id,
-            variables: other.variables.clone(),
+        match &other.variables {
+            Some(v) => Self {
+                env_id: other.env_id,
+                variables: Some(v.clone()),
+            },
+            None => Self {
+                env_id: other.env_id,
+                variables: None,
+            },
         }
+    }
+
+    fn reset(&mut self) {
+        self.variables = None
     }
 
     fn has_variables(&self) -> bool {
@@ -113,3 +123,4 @@ impl Term<VarId> for Linear {
 
 impl TermAddition<VarId> for Linear {}
 impl TermSubtraction<VarId> for Linear {}
+impl TermFloatMultiplication<VarId> for Linear {}

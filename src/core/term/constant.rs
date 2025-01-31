@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Neg, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
@@ -12,6 +12,10 @@ pub struct Constant {
 impl Constant {
     pub fn new(value: f64) -> Self {
         Self { value: Some(value) }
+    }
+
+    pub fn reset(&mut self) {
+        self.value = None
     }
 
     pub fn new_from_option(value: Option<f64>) -> Self {
@@ -34,6 +38,69 @@ impl Constant {
                 }
             }
             None => String::from(""),
+        }
+    }
+}
+
+impl Mul<f64> for &Constant {
+    type Output = Constant;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        let new_value = match self.value {
+            Some(v) => v * rhs,
+            None => 0.0,
+        };
+        Constant::new_from_option(Some(new_value))
+    }
+}
+
+impl Add<f64> for &Constant {
+    type Output = Constant;
+
+    fn add(self, rhs: f64) -> Self::Output {
+        let new_value = match self.value {
+            Some(v) => v + rhs,
+            None => rhs,
+        };
+        Constant::new_from_option(Some(new_value))
+    }
+}
+
+impl Sub<f64> for &Constant {
+    type Output = Constant;
+
+    fn sub(self, rhs: f64) -> Self::Output {
+        let new_value = match self.value {
+            Some(v) => v - rhs,
+            None => -rhs,
+        };
+        Constant::new_from_option(Some(new_value))
+    }
+}
+
+impl AddAssign<f64> for Constant {
+    fn add_assign(&mut self, rhs: f64) {
+        match self.value {
+            Some(v) => _ = self.value.insert(v + rhs),
+            None => _ = self.value.insert(rhs),
+        }
+    }
+}
+
+impl SubAssign<f64> for Constant {
+    fn sub_assign(&mut self, rhs: f64) {
+        match self.value {
+            Some(v) => _ = self.value.insert(v - rhs),
+            None => _ = self.value.insert(-rhs),
+        }
+    }
+}
+
+impl MulAssign<f64> for Constant {
+    fn mul_assign(&mut self, rhs: f64) {
+        match self.value {
+            Some(v) => _ = self.value.insert(v * rhs),
+            None => (),
         }
     }
 }

@@ -1,5 +1,8 @@
-use crate::core::operations::{TermAddition, TermSubtraction};
-use std::ops::{Add, AddAssign, Sub, SubAssign};
+use crate::core::{
+    operations::{Term, TermAddition, TermFloatMultiplication, TermSubtraction},
+    VarRef,
+};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
 use pyo3::exceptions::PyRuntimeError;
 #[cfg(feature = "py")]
@@ -47,6 +50,22 @@ impl Expression {
             quadratic,
             higher_order,
         })
+    }
+
+    pub fn new_unchecked(
+        env_id: EnvId,
+        constant: Constant,
+        linear: Linear,
+        quadratic: Quadratic,
+        higher_order: HigherOrder,
+    ) -> Self {
+        Self {
+            env_id,
+            constant,
+            linear,
+            quadratic,
+            higher_order,
+        }
     }
 
     pub fn new_from_linear_with_constant(linear: Linear, constant: Constant) -> Self {
@@ -121,6 +140,68 @@ impl Expression {
     }
 }
 
+impl Add<f64> for &Expression {
+    type Output = Expression;
+
+    fn add(self, rhs: f64) -> Self::Output {
+        Expression::new_unchecked(
+            self.env_id,
+            self.constant.add(rhs),
+            self.linear.clone(),
+            self.quadratic.clone(),
+            self.higher_order.clone(),
+        )
+    }
+}
+
+impl Sub<f64> for &Expression {
+    type Output = Expression;
+
+    fn sub(self, rhs: f64) -> Self::Output {
+        Expression::new_unchecked(
+            self.env_id,
+            self.constant.sub(rhs),
+            self.linear.clone(),
+            self.quadratic.clone(),
+            self.higher_order.clone(),
+        )
+    }
+}
+
+impl Mul<f64> for &Expression {
+    type Output = Expression;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        if rhs == 0.0 {
+            Expression::empty(self.env_id)
+        } else {
+            Expression::new_unchecked(
+                self.env_id,
+                self.constant.mul(rhs),
+                self.linear.mul(rhs),
+                self.quadratic.mul(rhs),
+                self.higher_order.mul(rhs),
+            )
+        }
+    }
+}
+
+impl MulAssign<f64> for Expression {
+    fn mul_assign(&mut self, rhs: f64) {
+        if rhs == 0.0 {
+            self.constant.reset();
+            self.linear.reset();
+            self.quadratic.reset();
+            self.higher_order.reset();
+        } else {
+            self.constant.mul_assign(rhs);
+            self.linear.mul_assign(rhs);
+            self.quadratic.mul_assign(rhs);
+            self.higher_order.mul_assign(rhs);
+        }
+    }
+}
+
 impl Add<&Expression> for &Expression {
     type Output = Result<Expression, DifferentEnvsError>;
 
@@ -136,11 +217,11 @@ impl Add<&Expression> for &Expression {
     }
 }
 
-pub trait Addition<T> {
+pub trait FailableAddAssign<T> {
     fn add_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
 }
 
-impl Addition<&Expression> for Expression {
+impl FailableAddAssign<&Expression> for Expression {
     fn add_assign(&mut self, rhs: &Expression) -> Result<(), DifferentEnvsError> {
         self.check_env_id(rhs)?;
         self.constant.add_assign(&rhs.constant);
@@ -148,6 +229,12 @@ impl Addition<&Expression> for Expression {
         self.quadratic.add_assign(&rhs.quadratic);
         self.higher_order.add_assign(&rhs.higher_order);
         Ok(())
+    }
+}
+
+impl AddAssign<f64> for Expression {
+    fn add_assign(&mut self, rhs: f64) {
+        self.constant.add_assign(rhs);
     }
 }
 
@@ -166,11 +253,11 @@ impl Sub<&Expression> for &Expression {
     }
 }
 
-pub trait Subtraction<T> {
+pub trait FailableSubAssign<T> {
     fn sub_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
 }
 
-impl Subtraction<&Expression> for Expression {
+impl FailableSubAssign<&Expression> for Expression {
     fn sub_assign(&mut self, rhs: &Expression) -> Result<(), DifferentEnvsError> {
         self.check_env_id(rhs)?;
         self.constant.sub_assign(&rhs.constant);
@@ -181,10 +268,18 @@ impl Subtraction<&Expression> for Expression {
     }
 }
 
+impl SubAssign<f64> for Expression {
+    fn sub_assign(&mut self, rhs: f64) {
+        self.constant.sub_assign(rhs);
+    }
+}
+
 #[pymethods]
 impl Expression {
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
-        if let Ok(v) = &other.extract::<Expression>(py) {
+        if let Ok(v) = other.extract::<f64>(py) {
+            Ok(self.add(v))
+        } else if let Ok(v) = &other.extract::<Expression>(py) {
             self.add(v)
                 .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
         } else {
@@ -193,8 +288,10 @@ impl Expression {
     }
 
     fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
-        if let Ok(v) = &other.extract::<Expression>(py) {
-            self.add_assign(v)
+        if let Ok(v) = other.extract::<f64>(py) {
+            Ok(AddAssign::add_assign(self, v))
+        } else if let Ok(v) = &other.extract::<Expression>(py) {
+            FailableAddAssign::add_assign(self, v)
                 .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
@@ -202,7 +299,9 @@ impl Expression {
     }
 
     fn __sub__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
-        if let Ok(v) = &other.extract::<Expression>(py) {
+        if let Ok(v) = other.extract::<f64>(py) {
+            Ok(self.sub(v))
+        } else if let Ok(v) = &other.extract::<Expression>(py) {
             self.sub(v)
                 .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
         } else {
@@ -211,8 +310,10 @@ impl Expression {
     }
 
     fn __isub__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
-        if let Ok(v) = &other.extract::<Expression>(py) {
-            self.sub_assign(v)
+        if let Ok(v) = other.extract::<f64>(py) {
+            Ok(SubAssign::sub_assign(self, v))
+        } else if let Ok(v) = &other.extract::<Expression>(py) {
+            FailableSubAssign::sub_assign(self, v)
                 .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
@@ -223,12 +324,15 @@ impl Expression {
         self.as_string(environment)
     }
 
-    // fn __mul__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
-    //     if let Ok(v) = &other.extract::<f64>(py) {
-    //         self.mul(v)
-    //             .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
-    //     } else {
-    //         Err(PyRuntimeError::new_err("unsopported type for operation"))
-    //     }
-    // }
+    fn __mul__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
+        if let Ok(v) = other.extract::<f64>(py) {
+            Ok(self.mul(v))
+        } else if let Ok(_) = &other.extract::<VarRef>(py) {
+            unimplemented!()
+        } else if let Ok(_) = &other.extract::<Expression>(py) {
+            unimplemented!()
+        } else {
+            Err(PyRuntimeError::new_err("unsopported type for operation"))
+        }
+    }
 }

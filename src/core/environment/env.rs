@@ -46,6 +46,7 @@ impl Environment {
         }
 
         self.varcount += 1;
+        // println!("adding variable '{}' with key '{}'", name, self.varcount);
         let var = Variable::new(name.to_string(), vtype, bounds, self.id);
         let varref = VarRef::new(self.varcount, self.id);
         self.variables.push(var);
@@ -54,6 +55,7 @@ impl Environment {
     }
 
     pub fn get(&self, key: &VarId) -> &Variable {
+        // println!("getting variable for key: '{}'", key);
         self.variables.get((key - 1) as usize).unwrap()
     }
 }

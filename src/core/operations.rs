@@ -30,8 +30,9 @@ pub trait Key: Eq + Hash + Copy {}
 impl<T: Eq + Hash + Copy> Key for T {}
 
 pub trait Term<T: Key> {
-    fn has_variables(&self) -> bool;
+    fn reset(&mut self);
     fn new_from_other(other: &Self) -> Self;
+    fn has_variables(&self) -> bool;
     fn mutable_variables(&mut self) -> &mut HashMap<T, f64>;
     fn variables(&self) -> &HashMap<T, f64>;
     fn fill_variables(&mut self, variables: HashMap<T, f64>) -> &mut HashMap<T, f64>;
@@ -185,6 +186,33 @@ where
                 }
                 None => _ = selfvars.insert(*key, *value),
             }
+        }
+    }
+}
+
+pub trait TermFloatMultiplication<T: Key>
+where
+    Self: Term<T> + Sized,
+{
+    fn mul(&self, rhs: f64) -> Self {
+        let mut out = Self::new_from_other(&self);
+        if rhs == 1.0 || !out.has_variables() {
+            return out;
+        }
+        let outvars = out.mutable_variables();
+        for (_, value) in outvars.iter_mut() {
+            value.mul_assign(rhs);
+        }
+        out
+    }
+
+    fn mul_assign(&mut self, rhs: f64) {
+        if rhs == 1.0 || !self.has_variables() {
+            return;
+        }
+        let selfvars = self.mutable_variables();
+        for (_, value) in selfvars.iter_mut() {
+            value.mul_assign(rhs);
         }
     }
 }

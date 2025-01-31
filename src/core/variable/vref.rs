@@ -12,7 +12,7 @@ use crate::core::{
         VariablesFromDifferentEnvsException,
     },
     expression::Expression,
-    term::{Constant, Linear},
+    term::{Constant, Linear, Quadratic},
     Environment,
 };
 
@@ -58,6 +58,15 @@ impl Mul<&f64> for &VarRef {
     }
 }
 
+impl Mul<&VarRef> for &VarRef {
+    type Output = Result<Expression, VariablesFromDifferentEnvsError>;
+
+    fn mul(self, rhs: &VarRef) -> Self::Output {
+        let quadratic = Quadratic::new_from_vars(self, rhs)?;
+        Ok(Expression::new_from_quadratic(quadratic))
+    }
+}
+
 #[cfg(feature = "py")]
 #[pymethods]
 impl VarRef {
@@ -92,6 +101,9 @@ impl VarRef {
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
         if let Ok(v) = &other.extract::<f64>(py) {
             Ok(self.mul(v))
+        } else if let Ok(v) = &other.extract::<VarRef>(py) {
+            self.mul(v)
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
