@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use crate::core::environment::EnvId;
 
 #[cfg_attr(feature = "py", pyclass(eq, eq_int))]
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Vtype {
     Real,
     Integer,

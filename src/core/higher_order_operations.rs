@@ -1,35 +1,38 @@
-use super::{exceptions::DifferentEnvsError, Environment, VarRef};
+use super::{
+    operations::{Key, Term},
+    Environment, VarRef,
+};
 use std::{
     collections::HashMap,
     hash::Hash,
     ops::{AddAssign, MulAssign, SubAssign},
 };
 
-pub trait Addition<T> {
-    type Output;
+// pub trait Addition<T> {
+//     type Output;
+//
+//     fn add(self, rhs: T) -> Self::Output;
+//     fn add_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
+// }
+//
+// pub trait Subtraction<T> {
+//     type Output;
+//
+//     fn sub(self, rhs: T) -> Self::Output;
+//     fn sub_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
+// }
+//
+// pub trait Multiplication<T> {
+//     type Output;
+//
+//     fn mul(self, rhs: T) -> Self::Output;
+//     fn mul_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
+// }
 
-    fn add(self, rhs: T) -> Self::Output;
-    fn add_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-}
+pub trait CloneableKey: Eq + Hash + Clone {}
+impl<T: Eq + Hash + Clone> CloneableKey for T {}
 
-pub trait Subtraction<T> {
-    type Output;
-
-    fn sub(self, rhs: T) -> Self::Output;
-    fn sub_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-}
-
-pub trait Multiplication<T> {
-    type Output;
-
-    fn mul(self, rhs: T) -> Self::Output;
-    fn mul_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-}
-
-pub trait Key: Eq + Hash + Copy {}
-impl<T: Eq + Hash + Copy> Key for T {}
-
-pub trait Term<T: Key> {
+pub trait TermC<T: CloneableKey> {
     fn reset(&mut self);
     fn new_from_other(other: &Self) -> Self;
     fn has_variables(&self) -> bool;
@@ -40,9 +43,9 @@ pub trait Term<T: Key> {
     // fn get_vtype(&self, key: &T, environment: &Environment) -> Vtype;
 }
 
-pub trait TermAddition<T: Key>
+pub trait TermAdditionC<T: CloneableKey>
 where
-    Self: Term<T> + Sized,
+    Self: TermC<T> + Sized,
 {
     fn add(&self, rhs: &Self) -> Self {
         // If the `self` variables are not present we can directly return a copy
@@ -71,7 +74,7 @@ where
                         out_vars.remove(key);
                     }
                 }
-                None => _ = out_vars.insert(*key, *value),
+                None => _ = out_vars.insert(key.clone(), *value),
             }
         }
         out
@@ -102,15 +105,15 @@ where
                         selfvars.remove(key);
                     }
                 }
-                None => _ = selfvars.insert(*key, *value),
+                None => _ = selfvars.insert(key.clone(), *value),
             }
         }
     }
 }
 
-pub trait TermSubtraction<T: Key>
+pub trait TermSubtractionC<T: CloneableKey>
 where
-    Self: Term<T> + Sized,
+    Self: TermC<T> + Sized,
 {
     fn sub(&self, rhs: &Self) -> Self {
         // If the `self` variables are not present we can directly return a copy
@@ -150,7 +153,7 @@ where
                         out_vars.remove(key);
                     }
                 }
-                None => _ = out_vars.insert(*key, *value),
+                None => _ = out_vars.insert(key.clone(), *value),
             }
         }
         out
@@ -186,15 +189,15 @@ where
                         selfvars.remove(key);
                     }
                 }
-                None => _ = selfvars.insert(*key, *value),
+                None => _ = selfvars.insert(key.clone(), *value),
             }
         }
     }
 }
 
-pub trait TermFloatMultiplication<T: Key>
+pub trait TermFloatMultiplicationC<T: CloneableKey>
 where
-    Self: Term<T> + Sized,
+    Self: TermC<T> + Sized,
 {
     fn mul(&self, rhs: f64) -> Self {
         let mut out = Self::new_from_other(&self);
@@ -219,37 +222,13 @@ where
     }
 }
 
-pub trait TermVarMultiplication<T: Key, A: Term<V> + Sized, V: Key>
+pub trait TermVarMultiplicationC<T: Key, A: TermC<V> + Sized, V: CloneableKey>
 where
     Self: Term<T> + Sized,
 {
     fn mul(&self, rhs: &VarRef, environment: &Environment) -> (Self, Option<A>);
-    // {
-    // let mut out = Self::new_from_other(&self);
-    // let outvars = out.mutable_variables();
+}
 
-    // for (key, value) in outvars.iter_mut() {
-    //     let curr_vtype = self.get_vtype(key, environment);
-    //     let var_vtype = environment.get(&rhs.id).vtype;
-
-    //     if self.contains_variable(key, rhs.id) {
-    //         // The variable which is multiplied with is contained in the current
-    //         // entry. For linear terms this means the variables are identical.
-    //         // For quadratic and higher order terms means that the variable is an
-    //         // element of the term.
-    //         match (curr_vtype, var_vtype) {
-    //             (Vtype::Binary, Vtype::Binary) => {
-    //                 unimplemented!()
-    //             }
-    //             _ => {
-    //                 // Vtype is Real or Float.
-    //                 // Thus, a quadratic element is produced by the term.
-    //             }
-    //         }
-    //     } else {
-    //     }
-    // }
-
-    // out
-    // }
+pub trait TermMultiplicationC<T> {
+    fn mul(&self, var: T, environment: &Environment) -> Self;
 }

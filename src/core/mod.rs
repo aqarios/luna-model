@@ -1,6 +1,7 @@
 mod environment;
 mod exceptions;
 mod expression;
+mod higher_order_operations;
 mod model;
 mod operations;
 mod term;

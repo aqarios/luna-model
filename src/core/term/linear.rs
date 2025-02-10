@@ -1,14 +1,18 @@
 use crate::core::{
     environment::EnvId,
     exceptions::VariablesFromDifferentEnvsError,
-    operations::{Term, TermAddition, TermFloatMultiplication, TermSubtraction},
+    operations::{
+        Term, TermAddition, TermFloatMultiplication, TermSubtraction, TermVarMultiplication,
+    },
     variable::VarId,
-    Environment, VarRef,
+    Environment, VarRef, Vtype,
 };
 use std::collections::HashMap;
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
+
+use super::Quadratic;
 
 #[cfg_attr(feature = "py", pyclass)]
 #[derive(Clone, PartialEq)]
@@ -84,6 +88,28 @@ impl Linear {
             None => String::from(""),
         }
     }
+
+    pub fn append_variable(&mut self, var: &VarRef, value: Option<f64>) {
+        match value {
+            None => (),
+            Some(v) => {
+                if v == 0.0 {
+                    return;
+                }
+                match self.has_variables() {
+                    true => {
+                        let vars = self.mutable_variables();
+                        vars.insert(var.id, v);
+                    }
+                    false => {
+                        let mut new = HashMap::new();
+                        new.insert(var.id, v);
+                        self.variables = Some(new);
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl Term<VarId> for Linear {
@@ -119,8 +145,85 @@ impl Term<VarId> for Linear {
     fn fill_variables(&mut self, variables: HashMap<VarId, f64>) -> &mut HashMap<VarId, f64> {
         self.variables.insert(variables)
     }
+
+    // fn get_vtype(&self, key: &VarId, environment: &Environment) -> Vtype {
+    //     // todo: can we remove this clone?
+    //     environment.get(key).vtype.clone()
+    // }
 }
 
 impl TermAddition<VarId> for Linear {}
 impl TermSubtraction<VarId> for Linear {}
 impl TermFloatMultiplication<VarId> for Linear {}
+
+impl TermVarMultiplication<VarId, Quadratic, u64> for Linear {
+    fn mul(&self, rhs: &VarRef, environment: &Environment) -> (Self, Option<Quadratic>) {
+        if !self.has_variables() {
+            return (Linear::empty(self.env_id), None);
+        }
+        // We are dealing if a trivial variable here in the sense that it does not have a
+        // factor associated yet, i.e., the factor of the variable is 1.0. Thus we can
+        // take a lot of shortcuts here that are not directly applicable to the multiplication
+        // with a variable from another expression, where the facctor of the variable can be
+        // anything.
+        //
+        // This method is esentially only checking if a new quadratic term is created by
+        // the multiplication.
+        let mut out = Self::new_from_other(&self);
+        let outvars = out.mutable_variables();
+
+        let mut quadratic: Option<Quadratic> = None;
+
+        for (key, value) in self.variables().iter() {
+            let cur_vtype = environment.get(key).vtype;
+
+            if *key == rhs.id {
+                // The two variables are equal.
+                //
+                // We need to check the variable types. If Binary or Spin
+                // it remains linear after multiplication, else it will
+                // be quadratic.
+                //
+                // We can just look at a single vtype.
+                match cur_vtype {
+                    Vtype::Binary => (),
+                    Vtype::Spin => (),
+                    _ => {
+                        // creating the new quadratic expression;
+                        let new_quadratic =
+                            Some(Quadratic::new_from_vars_with_value(key, rhs, *value));
+
+                        if quadratic.is_none() {
+                            quadratic = new_quadratic;
+                        } else {
+                            quadratic.as_mut().unwrap().append(new_quadratic);
+                        }
+                        // match quadratic {
+                        //     None => quadratic = Some(new_quadratic),
+                        //     Some(q) => q.append(&new_quadratic),
+                        // }
+                        // The current key can be removed from the output.
+                        outvars.remove(key);
+                    }
+                }
+            } else {
+                // The two variables are not equal. Always result in a new
+                // quadratic term.
+                let new_quadratic = Some(Quadratic::new_from_vars_with_value(key, rhs, *value));
+                if quadratic.is_none() {
+                    quadratic = new_quadratic;
+                } else {
+                    quadratic.as_mut().unwrap().append(new_quadratic);
+                }
+                // match &quadratic {
+                //     None => quadratic = Some(new_quadratic),
+                //     Some(q) => q.append(&new_quadratic),
+                // }
+                // The current key can be removed from the output.
+                outvars.remove(key);
+            }
+        }
+
+        (out, quadratic)
+    }
+}

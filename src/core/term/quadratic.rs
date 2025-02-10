@@ -1,19 +1,24 @@
 use crate::core::{
     environment::EnvId,
     exceptions::VariablesFromDifferentEnvsError,
+    higher_order_operations::TermVarMultiplicationC,
     operations::{Term, TermAddition, TermFloatMultiplication, TermSubtraction},
-    Environment, VarRef,
+    Environment, VarRef, Vtype,
 };
 use std::collections::HashMap;
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
+use super::{higher_order::HigherOrderKey, HigherOrder};
+
+pub type QuadraticKey = u64;
+
 #[cfg_attr(feature = "py", pyclass)]
 #[derive(Clone, PartialEq)]
 pub struct Quadratic {
     pub env_id: EnvId,
-    variables: Option<HashMap<u64, f64>>,
+    variables: Option<HashMap<QuadraticKey, f64>>,
 }
 
 impl Quadratic {
@@ -37,13 +42,22 @@ impl Quadratic {
         }
 
         let key = Self::make_key(a.id, b.id);
-        // println!("key = {}", key);
         let mut variables = HashMap::new();
         variables.insert(key, 1.0);
         Ok(Self {
             env_id: a.env_id,
             variables: Some(variables),
         })
+    }
+
+    pub fn new_from_vars_with_value(a: &u32, b: &VarRef, value: f64) -> Self {
+        let key = Self::make_key(*a, b.id);
+        let mut variables = HashMap::new();
+        variables.insert(key, value);
+        Self {
+            env_id: b.env_id,
+            variables: Some(variables),
+        }
     }
 
     pub fn as_string(&self, environment: &Environment) -> String {
@@ -63,31 +77,53 @@ impl Quadratic {
                     }
                 })
                 .collect::<Vec<String>>()
-                .join(" "),
+                .join(" + "),
             None => String::from(""),
         }
     }
 
-    pub fn make_key(a: u32, b: u32) -> u64 {
+    pub fn make_key(a: u32, b: u32) -> QuadraticKey {
         // println!("keygen: a = {} and b = {}", a, b);
         // The larger key is always at the end.
         if a < b {
             let au64 = (a as u64) << 32;
             au64 | (b as u64)
-        } else if a > b {
+        } else {
             let bu64 = (b as u64) << 32;
             bu64 | (a as u64)
-        } else {
-            panic!("equal key")
         }
+        // if a < b {
+        //     let au64 = (a as u64) << 32;
+        //     au64 | (b as u64)
+        // } else if a > b {
+        //     let bu64 = (b as u64) << 32;
+        //     bu64 | (a as u64)
+        // } else {
+        //     panic!("equal key")
+        // }
     }
 
-    pub fn get_key_contributions(key: &u64) -> (u32, u32) {
+    pub fn get_key_contributions(key: &QuadraticKey) -> (u32, u32) {
         ((*key >> 32) as u32, *key as u32)
+    }
+
+    pub fn append(&mut self, other: Option<Self>) {
+        match other {
+            None => (),
+            Some(q) => match self.has_variables() {
+                true => {
+                    let selfvars = self.mutable_variables();
+                    for (key, value) in q.variables().iter() {
+                        selfvars.insert(*key, *value);
+                    }
+                }
+                false => self.variables = q.variables.clone(),
+            },
+        }
     }
 }
 
-impl Term<u64> for Quadratic {
+impl Term<QuadraticKey> for Quadratic {
     fn reset(&mut self) {
         self.variables = None
     }
@@ -116,6 +152,68 @@ impl Term<u64> for Quadratic {
     }
 }
 
-impl TermAddition<u64> for Quadratic {}
-impl TermSubtraction<u64> for Quadratic {}
-impl TermFloatMultiplication<u64> for Quadratic {}
+impl TermAddition<QuadraticKey> for Quadratic {}
+impl TermSubtraction<QuadraticKey> for Quadratic {}
+impl TermFloatMultiplication<QuadraticKey> for Quadratic {}
+
+impl TermVarMultiplicationC<QuadraticKey, HigherOrder, HigherOrderKey> for Quadratic {
+    fn mul(&self, var: &VarRef, environment: &Environment) -> (Self, Option<HigherOrder>) {
+        if !self.has_variables() {
+            return (Self::empty(self.env_id), None);
+        }
+        // We are dealing if a trivial variable here in the sense that it does not have a
+        // factor associated yet, i.e., the factor of the variable is 1.0. Thus we can
+        // take a lot of shortcuts here that are not directly applicable to the multiplication
+        // with a variable from another expression, where the facctor of the variable can be
+        // anything.
+        //
+        // This method is esentially only checking if a new quadratic term is created by
+        // the multiplication.
+        let mut out = Self::new_from_other(&self);
+        let outvars = out.mutable_variables();
+
+        let mut higher_order: Option<HigherOrder> = None;
+
+        for (key, value) in self.variables().iter() {
+            let (a_id, b_id) = Quadratic::get_key_contributions(key);
+            // let a_vtype = environment.get(&a_id).vtype;
+            // let b_vtype = environment.get(&b_id).vtype;
+
+            let v_vtype = environment.get(&var.id).vtype;
+
+            if a_id == var.id || b_id == var.id {
+                // We don't care here which other variable is binary, i.e., we don't care if a or b
+                // is the matching binary variable. We know that it remains a and b in the
+                // quadratic term and the value does not change as the multiplied variable's factor
+                // is 1.0.
+                match v_vtype {
+                    Vtype::Binary => (),
+                    Vtype::Spin => (),
+                    _ => {
+                        let new_higher_order = Some(HigherOrder::new_from_vars_with_value(
+                            a_id, b_id, var, *value,
+                        ));
+                        if higher_order.is_none() {
+                            higher_order = new_higher_order;
+                        } else {
+                            higher_order.as_mut().unwrap().append(new_higher_order);
+                        }
+                        outvars.remove(key);
+                    }
+                }
+            } else {
+                let new_higher_order = Some(HigherOrder::new_from_vars_with_value(
+                    a_id, b_id, var, *value,
+                ));
+                if higher_order.is_none() {
+                    higher_order = new_higher_order;
+                } else {
+                    higher_order.as_mut().unwrap().append(new_higher_order);
+                }
+                outvars.remove(key);
+            }
+        }
+
+        (out, higher_order)
+    }
+}

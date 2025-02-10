@@ -1,5 +1,11 @@
 use crate::core::{
-    operations::{Term, TermAddition, TermFloatMultiplication, TermSubtraction},
+    higher_order_operations::{
+        TermAdditionC, TermC, TermFloatMultiplicationC, TermMultiplicationC, TermSubtractionC,
+        TermVarMultiplicationC,
+    },
+    operations::{
+        Term, TermAddition, TermFloatMultiplication, TermSubtraction, TermVarMultiplication,
+    },
     VarRef,
 };
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
@@ -18,6 +24,11 @@ use crate::core::{
 #[cfg_attr(feature = "py", pyclass(subclass))]
 #[derive(Clone, PartialEq)]
 pub struct Expression {
+    //  (team) - 10.02.2025
+    // A size could increase processing speeds for two expressions.
+    // The larger expression is edited or cloned and the smaller expression
+    // is iterated. This should decrease the required runtime. Furhter, thoughts
+    // have to be invested tho.
     pub env_id: EnvId,
     pub constant: Constant,
     pub linear: Linear,
@@ -128,15 +139,42 @@ impl Expression {
         }
     }
 
+    fn check_env_id_var(&self, other: &VarRef) -> Result<(), DifferentEnvsError> {
+        if self.env_id != other.env_id {
+            Err(DifferentEnvsError)
+        } else {
+            Ok(())
+        }
+    }
+
     fn as_string(&self, environment: &Environment) -> String {
-        let mut strings = vec![
-            self.higher_order.as_string(environment),
-            self.quadratic.as_string(environment),
-            self.linear.as_string(environment),
+        // let mut strings = vec![
+        //     self.higher_order.as_string(environment),
+        //     self.quadratic.as_string(environment),
+        //     self.linear.as_string(environment),
+        //     self.constant.as_string(),
+        // ];
+        // strings.retain(|s| s.chars().count() != 0);
+        // strings.join(" + ")
+        format!(
+            "constant: {}\nlinear: {}\nquadratic: {}\nhigher order: {}",
             self.constant.as_string(),
-        ];
-        strings.retain(|s| s.chars().count() != 0);
-        strings.join(" + ")
+            self.linear.as_string(environment),
+            self.quadratic.as_string(environment),
+            self.higher_order.as_string(environment)
+        )
+        // let mut out = String::new();
+        // out.push_str(&format!("constant: {}\n", self.constant.as_string()));
+        // out.push_str(&format!("linear: {}\n", self.linear.as_string(environment)));
+        // out.push_str(&format!(
+        //     "quadratic: {}\n",
+        //     self.quadratic.as_string(environment)
+        // ));
+        // out.push_str(&format!(
+        //     "higher order: {}\n",
+        //     self.higher_order.as_string(environment)
+        // ));
+        // out
     }
 }
 
@@ -178,11 +216,44 @@ impl Mul<f64> for &Expression {
             Expression::new_unchecked(
                 self.env_id,
                 self.constant.mul(rhs),
-                self.linear.mul(rhs),
-                self.quadratic.mul(rhs),
-                self.higher_order.mul(rhs),
+                TermFloatMultiplication::mul(&self.linear, rhs),
+                TermFloatMultiplication::mul(&self.quadratic, rhs),
+                TermFloatMultiplicationC::mul(&self.higher_order, rhs),
             )
         }
+    }
+}
+
+impl Mul<(&VarRef, &Environment)> for &Expression {
+    type Output = Result<Expression, DifferentEnvsError>;
+
+    fn mul(self, rhs: (&VarRef, &Environment)) -> Self::Output {
+        let (var, env) = rhs;
+        self.check_env_id_var(var)?;
+        // There is a new empty constant term, as the current constant is multiplied with
+        // the passed variable. Thus, we can directly create a new empty constant term (0.0).
+        let new_constant = Constant::empty();
+
+        // Multiplying a variable to a linear term MIGHT result in a new
+        // quadratic expression.
+        let (mut new_linear, additional_quadratic) =
+            TermVarMultiplication::mul(&self.linear, var, env);
+        new_linear.append_variable(var, self.constant.value);
+
+        let (mut new_quadratic, additional_higher_order) =
+            TermVarMultiplicationC::mul(&self.quadratic, var, env);
+        new_quadratic.append(additional_quadratic);
+
+        let mut new_higher_order = TermMultiplicationC::mul(&self.higher_order, var, env);
+        new_higher_order.append(additional_higher_order);
+
+        Ok(Expression::new_unchecked(
+            self.env_id,
+            new_constant,
+            new_linear,
+            new_quadratic,
+            new_higher_order,
+        ))
     }
 }
 
@@ -324,12 +395,33 @@ impl Expression {
         self.as_string(environment)
     }
 
-    fn __mul__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
-        if let Ok(v) = other.extract::<f64>(py) {
+    // todo: for multiplications we require the environment, except for
+    // multiplication with a scaler value. => Change the input to default
+    // to a tuple containing the environment as the second element.
+    // On the Python side we need to change the implementation such that
+    // the environment is an optional parameter and is injected by default
+    // with the global default environment.
+    // fn __mul__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
+    //     let (unkown, env) = other;
+    //     if let Ok(v) = unkown.extract::<f64>(py) {
+    //         Ok(self.mul(v))
+    //     } else if let Ok(v) = &unkown.extract::<VarRef>(py) {
+    //         self.mul((v, env))
+    //             .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
+    //     } else if let Ok(_) = &unkown.extract::<Expression>(py) {
+    //         unimplemented!()
+    //     } else {
+    //         Err(PyRuntimeError::new_err("unsopported type for operation"))
+    //     }
+    // }
+
+    fn multiply(&self, py: Python, value: PyObject, env: &Environment) -> PyResult<Expression> {
+        if let Ok(v) = value.extract::<f64>(py) {
             Ok(self.mul(v))
-        } else if let Ok(_) = &other.extract::<VarRef>(py) {
-            unimplemented!()
-        } else if let Ok(_) = &other.extract::<Expression>(py) {
+        } else if let Ok(v) = &value.extract::<VarRef>(py) {
+            self.mul((v, env))
+                .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
+        } else if let Ok(_) = &value.extract::<Expression>(py) {
             unimplemented!()
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
