@@ -1,10 +1,11 @@
 use crate::core::{
     higher_order_operations::{
-        TermAdditionC, TermC, TermFloatMultiplicationC, TermMultiplicationC, TermSubtractionC,
-        TermVarMultiplicationC,
+        TermAdditionC, TermC, TermConstantMultiplicationC, TermFloatMultiplicationC,
+        TermMultiplicationC, TermMultiplicationCC, TermSubtractionC, TermVarMultiplicationC,
     },
     operations::{
-        Term, TermAddition, TermFloatMultiplication, TermSubtraction, TermVarMultiplication,
+        Term, TermAddition, TermConstantMultiplication, TermFloatMultiplication,
+        TermLinearMultiplication, TermMultiplication, TermSubtraction, TermVarMultiplication,
     },
     VarRef,
 };
@@ -163,18 +164,6 @@ impl Expression {
             self.quadratic.as_string(environment),
             self.higher_order.as_string(environment)
         )
-        // let mut out = String::new();
-        // out.push_str(&format!("constant: {}\n", self.constant.as_string()));
-        // out.push_str(&format!("linear: {}\n", self.linear.as_string(environment)));
-        // out.push_str(&format!(
-        //     "quadratic: {}\n",
-        //     self.quadratic.as_string(environment)
-        // ));
-        // out.push_str(&format!(
-        //     "higher order: {}\n",
-        //     self.higher_order.as_string(environment)
-        // ));
-        // out
     }
 }
 
@@ -254,6 +243,65 @@ impl Mul<(&VarRef, &Environment)> for &Expression {
             new_quadratic,
             new_higher_order,
         ))
+    }
+}
+
+impl Mul<(&Expression, &Environment)> for &Expression {
+    type Output = Result<Expression, DifferentEnvsError>;
+
+    fn mul(self, rhs: (&Expression, &Environment)) -> Self::Output {
+        let (other, env) = rhs;
+        self.check_env_id(other)?;
+
+        // We need to multiply each element of self with each element of other.
+        // self.constant * ...
+        // self.constant x other.constant
+        let c1: Constant = self.constant.mul(&other.constant);
+        // self.constant x other.linear
+        let c2: Linear = TermConstantMultiplication::mul(&other.linear, &self.constant);
+        // self.constant x other.quadratic
+        let c3: Quadratic = TermConstantMultiplication::mul(&other.quadratic, &self.constant);
+        // self.constant x other.higher_order
+        let c4: HigherOrder = TermConstantMultiplicationC::mul(&other.higher_order, &self.constant);
+        // self.linear * ...
+        // self.linear x other.constant
+        let l1: Linear = TermConstantMultiplication::mul(&self.linear, &other.constant);
+        // self.linear x other.linear
+        let (l2, lq2): (Linear, Option<Quadratic>) =
+            TermMultiplication::mul(&self.linear, &other.linear, env);
+
+        println!("l2 = {}", l2.as_string(env));
+        match lq2 {
+            None => println!("lq2 = None"),
+            Some(v) => println!("lq2 = {}", v.as_string(env)),
+        }
+        // self.linear x other.quadratic
+        let (l3, lq3, lh3): (Linear, Option<Quadratic>, Option<HigherOrder>) =
+            TermMultiplicationCC::mul(&self.linear, &other.quadratic, env);
+        // // self.linear x other.higher_order
+        // let (l4, lh4): (Linear, HigherOrder) = self.linear.mul(&other.higher_order); // quadratic
+        // possible?
+
+        // // // self.quadratic * ...
+        // // // self.quadratic x other.constant
+        // // let q1: Quadratic = self.quadratic.mul(&other.constant);
+        // // // self.quadratic x other.linear
+        // // let (q2, ql2): (Quadratic, Linear) = self.quadratic.mul(&other.linear);
+        // // // self.quadratic x other.quadratic
+        // // let (q3, qq3): (Quadratic, HigherOrder) = self.quadratic.mul(&other.quadratic);
+        // // // self.quadratic x other.higher_order
+        // // let (q4, qh4): (Quadratic, HigherOrder) = self.quadratic.mul(&other.higher_order);
+        // // // self.higher_order * ...
+        // // // self.higher_order x other.constant
+        // // let h1: HigherOrder = self.higher_order.mul(&other.constant);
+        // // // self.higher_order x other.linear
+        // // let (h2, hl2): (HigherOrder, Linear) = self.higher_order.mul(&other.linear);
+        // // // self.higher_order x other.quadratic
+        // // let (h3, hq3): (HigherOrder, Quadratic) = self.higher_order.mul(&other.quadratic);
+        // // // self.higher_order x other.higher_order
+        // // let h4: HigherOrder = self.higher_order.mul(&other.higher_order);
+
+        unimplemented!()
     }
 }
 
@@ -421,8 +469,9 @@ impl Expression {
         } else if let Ok(v) = &value.extract::<VarRef>(py) {
             self.mul((v, env))
                 .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
-        } else if let Ok(_) = &value.extract::<Expression>(py) {
-            unimplemented!()
+        } else if let Ok(expr) = &value.extract::<Expression>(py) {
+            self.mul((expr, env))
+                .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }

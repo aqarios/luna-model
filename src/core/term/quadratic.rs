@@ -2,7 +2,9 @@ use crate::core::{
     environment::EnvId,
     exceptions::VariablesFromDifferentEnvsError,
     higher_order_operations::TermVarMultiplicationC,
-    operations::{Term, TermAddition, TermFloatMultiplication, TermSubtraction},
+    operations::{
+        Term, TermAddition, TermConstantMultiplication, TermFloatMultiplication, TermSubtraction,
+    },
     Environment, VarRef, Vtype,
 };
 use std::collections::HashMap;
@@ -60,6 +62,16 @@ impl Quadratic {
         }
     }
 
+    pub fn new_from_keys_with_value(env_id: EnvId, a: &u32, b: &u32, value: f64) -> Self {
+        let key = Self::make_key(*a, *b);
+        let mut variables = HashMap::new();
+        variables.insert(key, value);
+        Self {
+            env_id,
+            variables: Some(variables),
+        }
+    }
+
     pub fn as_string(&self, environment: &Environment) -> String {
         match &self.variables {
             Some(vs) => vs
@@ -83,7 +95,6 @@ impl Quadratic {
     }
 
     pub fn make_key(a: u32, b: u32) -> QuadraticKey {
-        // println!("keygen: a = {} and b = {}", a, b);
         // The larger key is always at the end.
         if a < b {
             let au64 = (a as u64) << 32;
@@ -92,15 +103,6 @@ impl Quadratic {
             let bu64 = (b as u64) << 32;
             bu64 | (a as u64)
         }
-        // if a < b {
-        //     let au64 = (a as u64) << 32;
-        //     au64 | (b as u64)
-        // } else if a > b {
-        //     let bu64 = (b as u64) << 32;
-        //     bu64 | (a as u64)
-        // } else {
-        //     panic!("equal key")
-        // }
     }
 
     pub fn get_key_contributions(key: &QuadraticKey) -> (u32, u32) {
@@ -119,6 +121,20 @@ impl Quadratic {
                 }
                 false => self.variables = q.variables.clone(),
             },
+        }
+    }
+
+    pub fn append_elem(&mut self, key_a: &u32, key_b: &u32, value: f64) {
+        let key = Self::make_key(*key_a, *key_b);
+        match self.has_variables() {
+            false => {
+                let mut nh = HashMap::new();
+                nh.insert(key, value);
+                self.variables = Some(nh);
+            }
+            true => {
+                self.mutable_variables().insert(key, value);
+            }
         }
     }
 }
@@ -155,6 +171,7 @@ impl Term<QuadraticKey> for Quadratic {
 impl TermAddition<QuadraticKey> for Quadratic {}
 impl TermSubtraction<QuadraticKey> for Quadratic {}
 impl TermFloatMultiplication<QuadraticKey> for Quadratic {}
+impl TermConstantMultiplication<QuadraticKey> for Quadratic {}
 
 impl TermVarMultiplicationC<QuadraticKey, HigherOrder, HigherOrderKey> for Quadratic {
     fn mul(&self, var: &VarRef, environment: &Environment) -> (Self, Option<HigherOrder>) {

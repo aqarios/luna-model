@@ -46,11 +46,21 @@ impl Mul<f64> for &Constant {
     type Output = Constant;
 
     fn mul(self, rhs: f64) -> Self::Output {
-        let new_value = match self.value {
-            Some(v) => v * rhs,
-            None => 0.0,
-        };
-        Constant::new_from_option(Some(new_value))
+        match self.value {
+            Some(v) => Constant::new(v * rhs),
+            None => Constant::empty(),
+        }
+    }
+}
+
+impl Mul<&Constant> for &Constant {
+    type Output = Constant;
+
+    fn mul(self, rhs: &Constant) -> Self::Output {
+        match (self.value, rhs.value) {
+            (Some(l), Some(r)) => Constant::new(l * r),
+            (_, _) => Constant::empty(),
+        }
     }
 }
 

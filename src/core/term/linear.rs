@@ -1,18 +1,22 @@
 use crate::core::{
-    environment::EnvId,
+    environment::{self, EnvId},
     exceptions::VariablesFromDifferentEnvsError,
+    higher_order_operations::TermMultiplicationCC,
     operations::{
-        Term, TermAddition, TermFloatMultiplication, TermSubtraction, TermVarMultiplication,
+        Term, TermAddition, TermConstantMultiplication, TermFloatMultiplication,
+        TermLinearMultiplication, TermMultiplication, TermSubtraction, TermVarMultiplication,
     },
     variable::VarId,
     Environment, VarRef, Vtype,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::MulAssign};
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
-use super::Quadratic;
+use super::{
+    higher_order::HigherOrderKey, quadratic::QuadraticKey, Constant, HigherOrder, Quadratic,
+};
 
 #[cfg_attr(feature = "py", pyclass)]
 #[derive(Clone, PartialEq)]
@@ -155,8 +159,9 @@ impl Term<VarId> for Linear {
 impl TermAddition<VarId> for Linear {}
 impl TermSubtraction<VarId> for Linear {}
 impl TermFloatMultiplication<VarId> for Linear {}
+impl TermConstantMultiplication<VarId> for Linear {}
 
-impl TermVarMultiplication<VarId, Quadratic, u64> for Linear {
+impl TermVarMultiplication<VarId, Quadratic, QuadraticKey> for Linear {
     fn mul(&self, rhs: &VarRef, environment: &Environment) -> (Self, Option<Quadratic>) {
         if !self.has_variables() {
             return (Linear::empty(self.env_id), None);
@@ -190,13 +195,13 @@ impl TermVarMultiplication<VarId, Quadratic, u64> for Linear {
                     Vtype::Spin => (),
                     _ => {
                         // creating the new quadratic expression;
-                        let new_quadratic =
-                            Some(Quadratic::new_from_vars_with_value(key, rhs, *value));
-
                         if quadratic.is_none() {
-                            quadratic = new_quadratic;
+                            quadratic = Some(Quadratic::new_from_vars_with_value(key, rhs, *value));
                         } else {
-                            quadratic.as_mut().unwrap().append(new_quadratic);
+                            quadratic
+                                .as_mut()
+                                .unwrap()
+                                .append_elem(key, &rhs.id, *value);
                         }
                         // match quadratic {
                         //     None => quadratic = Some(new_quadratic),
@@ -209,11 +214,13 @@ impl TermVarMultiplication<VarId, Quadratic, u64> for Linear {
             } else {
                 // The two variables are not equal. Always result in a new
                 // quadratic term.
-                let new_quadratic = Some(Quadratic::new_from_vars_with_value(key, rhs, *value));
                 if quadratic.is_none() {
-                    quadratic = new_quadratic;
+                    quadratic = Some(Quadratic::new_from_vars_with_value(key, rhs, *value));
                 } else {
-                    quadratic.as_mut().unwrap().append(new_quadratic);
+                    quadratic
+                        .as_mut()
+                        .unwrap()
+                        .append_elem(key, &rhs.id, *value);
                 }
                 // match &quadratic {
                 //     None => quadratic = Some(new_quadratic),
@@ -225,5 +232,162 @@ impl TermVarMultiplication<VarId, Quadratic, u64> for Linear {
         }
 
         (out, quadratic)
+    }
+}
+
+impl TermMultiplication<VarId, Linear, Quadratic, QuadraticKey> for Linear {
+    fn mul(&self, rhs: &Linear, environment: &Environment) -> (Self, Option<Quadratic>) {
+        if !self.has_variables() {
+            return (Self::empty(self.env_id), None);
+        }
+        // let res = match (self.has_variables(), rhs.has_variables()) {
+        //     (false, false) => Some(Self::empty(self.env_id)),
+        //     (false, true) => Some(Self::empty(rhs.env_id)),
+        //     (true, false) => Some(Self::new_from_other(&self)),
+        //     (true, true) => None,
+        // };
+        // if res.is_some() {
+        //     return (res.unwrap(), None);
+        // }
+
+        let mut out = Self::new_from_other(&self);
+        let outvars = out.mutable_variables();
+
+        let mut quadratic: Option<Quadratic> = None;
+
+        for (key_a, value_a) in self.variables().iter() {
+            for (key_b, value_b) in rhs.variables().iter() {
+                if key_a == key_b {
+                    // Same key, we need to check if it's Binary or Spin.
+                    let vtype = environment.get(key_a).vtype;
+                    if vtype == Vtype::Binary || vtype == Vtype::Spin {
+                        // Alright. here we need to do some work on the value.
+                        match outvars.get_mut(key_a) {
+                            Some(e) => e.mul_assign(value_b),
+                            None => (),
+                        }
+                    } else {
+                        // A quadratic contribution is generated.
+                        let newval = value_a * value_b;
+                        if quadratic.is_none() {
+                            quadratic = Some(Quadratic::new_from_keys_with_value(
+                                self.env_id,
+                                key_a,
+                                key_b,
+                                newval,
+                            ))
+                        } else {
+                            quadratic
+                                .as_mut()
+                                .unwrap()
+                                .append_elem(key_a, key_b, newval);
+                        }
+                        outvars.remove(key_a);
+                    }
+                } else {
+                    // A quadratic contribution is generated.
+                    let newval = value_a * value_b;
+                    if quadratic.is_none() {
+                        quadratic = Some(Quadratic::new_from_keys_with_value(
+                            self.env_id,
+                            key_a,
+                            key_b,
+                            newval,
+                        ))
+                    } else {
+                        quadratic
+                            .as_mut()
+                            .unwrap()
+                            .append_elem(key_a, key_b, newval);
+                    }
+                    outvars.remove(key_a);
+                }
+            }
+        }
+
+        (out, quadratic)
+    }
+}
+
+impl TermMultiplicationCC<VarId, QuadraticKey, Quadratic, HigherOrderKey, HigherOrder> for Linear {
+    fn mul(
+        &self,
+        rhs: &Quadratic,
+        environment: &Environment,
+    ) -> (Self, Option<Quadratic>, Option<HigherOrder>) {
+        if !self.has_variables() {
+            return (Self::empty(self.env_id), None, None);
+        }
+
+        let mut lin = Self::new_from_other(&self);
+        let linvars = lin.mutable_variables();
+
+        let mut quad = Quadratic::new_from_other(&rhs);
+        let quadvars = quad.mutable_variables();
+
+        let mut higherorder: Option<HigherOrder> = None;
+
+        for (linkey, linval) in self.variables().iter() {
+            for (quadkey, quadval) in rhs.variables().iter() {
+                // do something.
+                let (quad_contrib_a, quad_contrib_b) = Quadratic::get_key_contributions(quadkey);
+
+                if quad_contrib_a == *linkey || quad_contrib_b == *linkey {
+                    // Check if Binary or Spin.
+                    let vtype = environment.get(linkey).vtype;
+                    if vtype == Vtype::Binary || vtype == Vtype::Spin {
+                        match quadvars.get_mut(quadkey) {
+                            None => (),
+                            Some(e) => e.mul_assign(linval),
+                        }
+                        linvars.remove(linkey);
+                    } else {
+                        // A higher order contribution is generated.
+                        let newval = linval * quadval;
+                        if higherorder.is_none() {
+                            higherorder = Some(HigherOrder::new_from_keys_with_value(
+                                self.env_id,
+                                *linkey,
+                                quad_contrib_a,
+                                quad_contrib_b,
+                                newval,
+                            ))
+                        } else {
+                            higherorder.as_mut().unwrap().append_elem(
+                                *linkey,
+                                quad_contrib_a,
+                                quad_contrib_b,
+                                newval,
+                            )
+                        }
+                        linvars.remove(linkey);
+                        quadvars.remove(quadkey);
+                    }
+                } else {
+                    // A higher order contribution is generated.
+                    let newval = linval * quadval;
+                    if higherorder.is_none() {
+                        higherorder = Some(HigherOrder::new_from_keys_with_value(
+                            self.env_id,
+                            *linkey,
+                            quad_contrib_a,
+                            quad_contrib_b,
+                            newval,
+                        ))
+                    } else {
+                        higherorder.as_mut().unwrap().append_elem(
+                            *linkey,
+                            quad_contrib_a,
+                            quad_contrib_b,
+                            newval,
+                        )
+                    }
+                    linvars.remove(linkey);
+                    quadvars.remove(quadkey);
+                }
+            }
+        }
+
+        (lin, Some(quad), higherorder)
     }
 }

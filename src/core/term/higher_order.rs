@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Mul};
+use std::collections::HashMap;
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
@@ -6,11 +6,15 @@ use pyo3::prelude::*;
 use crate::core::{
     environment::EnvId,
     higher_order_operations::{
-        TermAdditionC, TermC, TermFloatMultiplicationC, TermMultiplicationC, TermSubtractionC,
+        TermAdditionC, TermC, TermConstantMultiplicationC, TermFloatMultiplicationC,
+        TermMultiplicationC, TermSubtractionC,
     },
+    operations::TermLinearMultiplication,
     variable::VarId,
     Environment, VarRef, Vtype,
 };
+
+use super::{Linear, Quadratic};
 
 pub type HigherOrderKey = String;
 static DELIMITER: &str = "-";
@@ -31,11 +35,29 @@ impl HigherOrder {
     }
 
     pub fn new_from_vars_with_value(var_a: u32, var_b: u32, var_c: &VarRef, value: f64) -> Self {
-        let key = Self::make_key(vec![var_a, var_b, var_c.id]);
+        let mut keys = vec![var_a, var_b, var_c.id];
+        let key = Self::make_key(&mut keys);
         let mut variables = HashMap::new();
         variables.insert(key, value);
         Self {
             env_id: var_c.env_id,
+            variables: Some(variables),
+        }
+    }
+
+    pub fn new_from_keys_with_value(
+        env_id: EnvId,
+        var_a: u32,
+        var_b: u32,
+        var_c: u32,
+        value: f64,
+    ) -> Self {
+        let mut keys = vec![var_a, var_b, var_c];
+        let key = Self::make_key(&mut keys);
+        let mut variables = HashMap::new();
+        variables.insert(key, value);
+        Self {
+            env_id,
             variables: Some(variables),
         }
     }
@@ -67,7 +89,8 @@ impl HigherOrder {
         }
     }
 
-    pub fn make_key(ids: Vec<VarId>) -> HigherOrderKey {
+    pub fn make_key(ids: &mut Vec<VarId>) -> HigherOrderKey {
+        ids.sort();
         ids.iter()
             .map(|id| id.to_string())
             .collect::<Vec<String>>()
@@ -77,7 +100,7 @@ impl HigherOrder {
     pub fn update_key(key: HigherOrderKey, new: VarId) -> HigherOrderKey {
         let mut vec = Self::get_key_contributions(key);
         vec.push(new);
-        Self::make_key(vec)
+        Self::make_key(&mut vec)
     }
 
     pub fn get_key_contributions(key: HigherOrderKey) -> Vec<VarId> {
@@ -98,6 +121,21 @@ impl HigherOrder {
                 }
                 false => self.variables = h.variables.clone(),
             },
+        }
+    }
+
+    pub fn append_elem(&mut self, key_a: u32, key_b: u32, key_c: u32, value: f64) {
+        let mut keys = vec![key_a, key_b, key_c];
+        let key = Self::make_key(&mut keys);
+        match self.has_variables() {
+            false => {
+                let mut nh = HashMap::new();
+                nh.insert(key, value);
+                self.variables = Some(nh);
+            }
+            true => {
+                self.mutable_variables().insert(key, value);
+            }
         }
     }
 }
@@ -137,6 +175,7 @@ impl TermC<HigherOrderKey> for HigherOrder {
 impl TermAdditionC<HigherOrderKey> for HigherOrder {}
 impl TermSubtractionC<HigherOrderKey> for HigherOrder {}
 impl TermFloatMultiplicationC<HigherOrderKey> for HigherOrder {}
+impl TermConstantMultiplicationC<HigherOrderKey> for HigherOrder {}
 
 impl TermMultiplicationC<&VarRef> for HigherOrder {
     fn mul(&self, var: &VarRef, environment: &Environment) -> Self {

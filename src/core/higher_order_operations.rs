@@ -1,5 +1,6 @@
 use super::{
     operations::{Key, Term},
+    term::Constant,
     Environment, VarRef,
 };
 use std::{
@@ -222,6 +223,32 @@ where
     }
 }
 
+pub trait TermConstantMultiplicationC<T: CloneableKey>
+where
+    Self: TermC<T> + Sized,
+{
+    fn mul(&self, rhs: &Constant) -> Self {
+        let mut out = Self::new_from_other(&self);
+
+        if !self.has_variables() {
+            return out;
+        }
+
+        let vars = out.mutable_variables();
+
+        match rhs.value {
+            None => (),
+            Some(v) => {
+                for (_, value) in vars.iter_mut() {
+                    *value *= v;
+                }
+            }
+        };
+
+        out
+    }
+}
+
 pub trait TermVarMultiplicationC<T: Key, A: TermC<V> + Sized, V: CloneableKey>
 where
     Self: Term<T> + Sized,
@@ -231,4 +258,16 @@ where
 
 pub trait TermMultiplicationC<T> {
     fn mul(&self, var: T, environment: &Environment) -> Self;
+}
+
+pub trait TermMultiplicationCC<
+    T: Key,
+    V: Key,
+    A: Term<V> + Sized,
+    K: CloneableKey,
+    B: TermC<K> + Sized,
+> where
+    Self: Term<T> + Sized,
+{
+    fn mul(&self, rhs: &A, environment: &Environment) -> (Self, Option<A>, Option<B>);
 }

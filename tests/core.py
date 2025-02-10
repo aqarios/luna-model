@@ -79,49 +79,54 @@ print(y)
 # pprint(expr_mf)
 # print(expr_mf == truth, truth == expr_mf, expr_mf == truth2, truth2 == expr_mf)
 #
-print("Multiplying two variables")
-expr_m2v = x * y
-# truth = x * y + 0
-pprint(expr_m2v)
-# print(expr_mf == truth, truth == expr_mf, expr_mf == truth2, truth2 == expr_mf)
-print("Multiplying two variables and a scaler value")
-xy2 = (x * y).multiply(2, GLOBAL_ENV)
-pprint(xy2)
-print("Multiplying a binary variable to an expression")
-xy2x = xy2.multiply(x, GLOBAL_ENV)
-pprint(xy2x)
-print("Multiplying a Real variable to an expression")
-xy2y = xy2.multiply(y, GLOBAL_ENV)
-pprint(xy2y)
-
-
+# print("Multiplying two variables")
+# expr_m2v = x * y
+# # truth = x * y + 0
+# pprint(expr_m2v)
+# # print(expr_mf == truth, truth == expr_mf, expr_mf == truth2, truth2 == expr_mf)
+# print("Multiplying two variables and a scaler value")
+# xy2 = (x * y).multiply(2, GLOBAL_ENV)
+# pprint(xy2)
+# print("Multiplying a binary variable to an expression")
+# xy2x = xy2.multiply(x, GLOBAL_ENV)
+# pprint(xy2x)
+# print("Multiplying a Real variable to an expression")
+# xy2y = xy2.multiply(y, GLOBAL_ENV)
+# pprint(xy2y)
+#
+#
 print("LA")
 la = 1 * x
 pprint(la)
 print("LB")
 lb = 2 * y
 pprint(lb)
+#
+# print("LA + LB")
+# lalb = la + lb
+# pprint(lalb)
+#
+# print("(LA + LB) * x")
+# lalb_x = lalb.multiply(x, GLOBAL_ENV)
+# pprint(lalb_x)
+#
+#
+# print("(LA + LB) * y")
+# lalb_y = lalb.multiply(y, GLOBAL_ENV)
+# pprint(lalb_y)
+#
+# print("((LA + LB) * x) * x")
+# lalb_xx = lalb_x.multiply(x, GLOBAL_ENV)
+# pprint(lalb_xx)
+#
+# print("((LA + LB) * y) * y")
+# lalb_yy = lalb_y.multiply(y, GLOBAL_ENV)
+# pprint(lalb_yy)
 
-print("LA + LB")
-lalb = la + lb
+
+print("LA * LB")
+lalb = la.multiply(lb, GLOBAL_ENV)
 pprint(lalb)
-
-print("(LA + LB) * x")
-lalb_x = lalb.multiply(x, GLOBAL_ENV)
-pprint(lalb_x)
-
-
-print("(LA + LB) * y")
-lalb_y = lalb.multiply(y, GLOBAL_ENV)
-pprint(lalb_y)
-
-print("((LA + LB) * x) * x")
-lalb_xx = lalb_x.multiply(x, GLOBAL_ENV)
-pprint(lalb_xx)
-
-print("((LA + LB) * y) * y")
-lalb_yy = lalb_y.multiply(y, GLOBAL_ENV)
-pprint(lalb_yy)
 # expr_m2v = x * y * 2
 # truth = x * y + 0
 # pprint(expr_m2v)
