@@ -1,10 +1,12 @@
 use crate::core::{
-    environment::{self, EnvId},
+    environment::EnvId,
     exceptions::VariablesFromDifferentEnvsError,
-    higher_order_operations::TermMultiplicationCC,
+    higher_order_operations::{
+        TermC, TermMultiplication2, TermMultiplication3, TermVarMultiplicationC,
+    },
     operations::{
         Term, TermAddition, TermConstantMultiplication, TermFloatMultiplication,
-        TermLinearMultiplication, TermMultiplication, TermSubtraction, TermVarMultiplication,
+        TermMultiplication, TermSubtraction, TermVarMultiplication,
     },
     variable::VarId,
     Environment, VarRef, Vtype,
@@ -14,9 +16,7 @@ use std::{collections::HashMap, ops::MulAssign};
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
-use super::{
-    higher_order::HigherOrderKey, quadratic::QuadraticKey, Constant, HigherOrder, Quadratic,
-};
+use super::{higher_order::HigherOrderKey, quadratic::QuadraticKey, HigherOrder, Quadratic};
 
 #[cfg_attr(feature = "py", pyclass)]
 #[derive(Clone, PartialEq)]
@@ -114,9 +114,47 @@ impl Linear {
             }
         }
     }
+
+    pub fn append_elem(&mut self, key: u32, value: f64) {
+        match self.has_variables() {
+            false => {
+                let mut nh = HashMap::new();
+                nh.insert(key, value);
+                self.variables = Some(nh);
+            }
+            true => {
+                self.mutable_variables().insert(key, value);
+            }
+        }
+    }
+
+    pub fn append(&mut self, other: Option<Self>) {
+        match other {
+            None => (),
+            Some(l) => match self.has_variables() {
+                true => match l.has_variables() {
+                    true => {
+                        let selfvars = self.mutable_variables();
+                        for (key, value) in l.variables().iter() {
+                            selfvars.insert(*key, *value);
+                        }
+                    }
+                    false => (),
+                },
+                false => self.variables = l.variables.clone(),
+            },
+        }
+    }
 }
 
 impl Term<VarId> for Linear {
+    fn empty(env_id: EnvId) -> Self {
+        Self {
+            env_id,
+            variables: None,
+        }
+    }
+
     fn new_from_other(other: &Self) -> Self {
         match &other.variables {
             Some(v) => Self {
@@ -148,6 +186,10 @@ impl Term<VarId> for Linear {
 
     fn fill_variables(&mut self, variables: HashMap<VarId, f64>) -> &mut HashMap<VarId, f64> {
         self.variables.insert(variables)
+    }
+
+    fn env_id(&self) -> EnvId {
+        self.env_id
     }
 
     // fn get_vtype(&self, key: &VarId, environment: &Environment) -> Vtype {
@@ -309,7 +351,7 @@ impl TermMultiplication<VarId, Linear, Quadratic, QuadraticKey> for Linear {
     }
 }
 
-impl TermMultiplicationCC<VarId, QuadraticKey, Quadratic, HigherOrderKey, HigherOrder> for Linear {
+impl TermMultiplication3<VarId, QuadraticKey, Quadratic, HigherOrderKey, HigherOrder> for Linear {
     fn mul(
         &self,
         rhs: &Quadratic,
@@ -321,6 +363,10 @@ impl TermMultiplicationCC<VarId, QuadraticKey, Quadratic, HigherOrderKey, Higher
 
         let mut lin = Self::new_from_other(&self);
         let linvars = lin.mutable_variables();
+
+        if !rhs.has_variables() {
+            return (lin, None, None);
+        }
 
         let mut quad = Quadratic::new_from_other(&rhs);
         let quadvars = quad.mutable_variables();
@@ -389,5 +435,57 @@ impl TermMultiplicationCC<VarId, QuadraticKey, Quadratic, HigherOrderKey, Higher
         }
 
         (lin, Some(quad), higherorder)
+    }
+}
+
+impl TermMultiplication2<VarId, HigherOrderKey, HigherOrder> for Linear {
+    fn mul(&self, rhs: &HigherOrder, environment: &Environment) -> (Self, Option<HigherOrder>) {
+        if !self.has_variables() {
+            return (Self::empty(self.env_id), None);
+        }
+
+        let mut lin = Self::new_from_other(&self);
+        let linvars = lin.mutable_variables();
+
+        if !rhs.has_variables() {
+            return (lin, None);
+        }
+
+        let mut ho = HigherOrder::new_from_other(&rhs);
+        let hovars = ho.mutable_variables();
+
+        for (linkey, linval) in self.variables().iter() {
+            for (hokey, hoval) in rhs.variables().iter() {
+                let hocontribs = HigherOrder::get_key_contributions(hokey.to_string());
+
+                let mut is_key_contained: bool = false;
+                for hocontrib in hocontribs.iter() {
+                    if !is_key_contained && hocontrib == linkey {
+                        is_key_contained = true;
+                    }
+                }
+
+                let vtype = environment.get(linkey).vtype;
+                if is_key_contained && (vtype == Vtype::Binary || vtype == Vtype::Spin) {
+                    // We just need to update the value in the higher order term and remove
+                    // it from the linear term.
+                    match hovars.get_mut(hokey) {
+                        None => (),
+                        Some(e) => e.mul_assign(linval),
+                    }
+                    linvars.remove(linkey);
+                } else {
+                    // A new higher order entry is generated.
+                    let newval = linval * hoval;
+                    let newkey = HigherOrder::update_key(hokey.to_string(), *linkey);
+                    hovars.insert(newkey, newval);
+
+                    hovars.remove(hokey);
+                    linvars.remove(linkey);
+                }
+            }
+        }
+
+        (lin, Some(ho))
     }
 }

@@ -249,6 +249,10 @@ where
     }
 }
 
+pub trait TermMultiplicationC<T> {
+    fn mul(&self, var: T, environment: &Environment) -> Self;
+}
+
 pub trait TermVarMultiplicationC<T: Key, A: TermC<V> + Sized, V: CloneableKey>
 where
     Self: Term<T> + Sized,
@@ -256,11 +260,14 @@ where
     fn mul(&self, rhs: &VarRef, environment: &Environment) -> (Self, Option<A>);
 }
 
-pub trait TermMultiplicationC<T> {
-    fn mul(&self, var: T, environment: &Environment) -> Self;
+pub trait TermMultiplication2<T: Key, K: CloneableKey, B: TermC<K> + Sized>
+where
+    Self: Term<T> + Sized,
+{
+    fn mul(&self, rhs: &B, environment: &Environment) -> (Self, Option<B>);
 }
 
-pub trait TermMultiplicationCC<
+pub trait TermMultiplication3<
     T: Key,
     V: Key,
     A: Term<V> + Sized,

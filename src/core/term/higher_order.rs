@@ -9,12 +9,9 @@ use crate::core::{
         TermAdditionC, TermC, TermConstantMultiplicationC, TermFloatMultiplicationC,
         TermMultiplicationC, TermSubtractionC,
     },
-    operations::TermLinearMultiplication,
     variable::VarId,
     Environment, VarRef, Vtype,
 };
-
-use super::{Linear, Quadratic};
 
 pub type HigherOrderKey = String;
 static DELIMITER: &str = "-";
@@ -54,6 +51,17 @@ impl HigherOrder {
     ) -> Self {
         let mut keys = vec![var_a, var_b, var_c];
         let key = Self::make_key(&mut keys);
+        let mut variables = HashMap::new();
+        variables.insert(key, value);
+        Self {
+            env_id,
+            variables: Some(variables),
+        }
+    }
+
+    pub fn new_from_multi_keys_with_value(env_id: EnvId, keys: Vec<VarId>, value: f64) -> Self {
+        let mut mutkeys = keys.clone();
+        let key = Self::make_key(&mut mutkeys);
         let mut variables = HashMap::new();
         variables.insert(key, value);
         Self {
@@ -103,6 +111,15 @@ impl HigherOrder {
         Self::make_key(&mut vec)
     }
 
+    pub fn key_contains_other(key_elements: Vec<VarId>, other: VarId) -> bool {
+        for key in key_elements.iter() {
+            if *key == other {
+                return true;
+            }
+        }
+        return false;
+    }
+
     pub fn get_key_contributions(key: HigherOrderKey) -> Vec<VarId> {
         key.split(DELIMITER)
             .map(|s| s.parse::<VarId>().unwrap())
@@ -113,20 +130,51 @@ impl HigherOrder {
         match other {
             None => (),
             Some(h) => match self.has_variables() {
-                true => {
-                    let selfvars = self.mutable_variables();
-                    for (key, value) in h.variables().iter() {
-                        selfvars.insert(key.clone(), *value);
+                true => match h.has_variables() {
+                    true => {
+                        let selfvars = self.mutable_variables();
+                        for (key, value) in h.variables().iter() {
+                            selfvars.insert(key.clone(), *value);
+                        }
                     }
-                }
+                    false => (),
+                },
                 false => self.variables = h.variables.clone(),
             },
+        }
+    }
+
+    pub fn append_kv(&mut self, key: HigherOrderKey, value: f64) {
+        match self.has_variables() {
+            false => {
+                let mut nh = HashMap::new();
+                nh.insert(key, value);
+                self.variables = Some(nh);
+            }
+            true => {
+                self.mutable_variables().insert(key, value);
+            }
         }
     }
 
     pub fn append_elem(&mut self, key_a: u32, key_b: u32, key_c: u32, value: f64) {
         let mut keys = vec![key_a, key_b, key_c];
         let key = Self::make_key(&mut keys);
+        match self.has_variables() {
+            false => {
+                let mut nh = HashMap::new();
+                nh.insert(key, value);
+                self.variables = Some(nh);
+            }
+            true => {
+                self.mutable_variables().insert(key, value);
+            }
+        }
+    }
+
+    pub fn append_multi(&mut self, keys: Vec<VarId>, value: f64) {
+        let mut mutkeys = keys.clone();
+        let key = Self::make_key(&mut mutkeys);
         match self.has_variables() {
             false => {
                 let mut nh = HashMap::new();

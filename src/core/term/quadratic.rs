@@ -113,12 +113,15 @@ impl Quadratic {
         match other {
             None => (),
             Some(q) => match self.has_variables() {
-                true => {
-                    let selfvars = self.mutable_variables();
-                    for (key, value) in q.variables().iter() {
-                        selfvars.insert(*key, *value);
+                true => match q.has_variables() {
+                    true => {
+                        let selfvars = self.mutable_variables();
+                        for (key, value) in q.variables().iter() {
+                            selfvars.insert(*key, *value);
+                        }
                     }
-                }
+                    false => (),
+                },
                 false => self.variables = q.variables.clone(),
             },
         }
@@ -140,6 +143,12 @@ impl Quadratic {
 }
 
 impl Term<QuadraticKey> for Quadratic {
+    fn empty(env_id: EnvId) -> Self {
+        Self {
+            env_id,
+            variables: None,
+        }
+    }
     fn reset(&mut self) {
         self.variables = None
     }
@@ -165,6 +174,10 @@ impl Term<QuadraticKey> for Quadratic {
 
     fn fill_variables(&mut self, variables: HashMap<u64, f64>) -> &mut HashMap<u64, f64> {
         self.variables.insert(variables)
+    }
+
+    fn env_id(&self) -> EnvId {
+        self.env_id
     }
 }
 

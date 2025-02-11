@@ -1,7 +1,14 @@
 use crate::core::{
+    expression::multiplications::{
+        constant_times_constant, constant_times_higher_order, constant_times_term,
+        higher_order_times_higher_order, higher_order_times_linear, linear_times_higher_order,
+        linear_times_linear, linear_times_quadratic, quadratic_times_higher_order,
+        quadratic_times_linear, quadratic_times_quadratic,
+    },
     higher_order_operations::{
         TermAdditionC, TermC, TermConstantMultiplicationC, TermFloatMultiplicationC,
-        TermMultiplicationC, TermMultiplicationCC, TermSubtractionC, TermVarMultiplicationC,
+        TermMultiplication2, TermMultiplication3, TermMultiplicationC, TermSubtractionC,
+        TermVarMultiplicationC,
     },
     operations::{
         Term, TermAddition, TermConstantMultiplication, TermFloatMultiplication,
@@ -21,6 +28,8 @@ use crate::core::{
     term::{Constant, HigherOrder, Linear, Quadratic},
     Environment,
 };
+
+use super::multiplications::higher_order_times_quadratic;
 
 #[cfg_attr(feature = "py", pyclass(subclass))]
 #[derive(Clone, PartialEq)]
@@ -253,55 +262,60 @@ impl Mul<(&Expression, &Environment)> for &Expression {
         let (other, env) = rhs;
         self.check_env_id(other)?;
 
-        // We need to multiply each element of self with each element of other.
-        // self.constant * ...
-        // self.constant x other.constant
-        let c1: Constant = self.constant.mul(&other.constant);
-        // self.constant x other.linear
-        let c2: Linear = TermConstantMultiplication::mul(&other.linear, &self.constant);
-        // self.constant x other.quadratic
-        let c3: Quadratic = TermConstantMultiplication::mul(&other.quadratic, &self.constant);
-        // self.constant x other.higher_order
-        let c4: HigherOrder = TermConstantMultiplicationC::mul(&other.higher_order, &self.constant);
-        // self.linear * ...
-        // self.linear x other.constant
-        let l1: Linear = TermConstantMultiplication::mul(&self.linear, &other.constant);
-        // self.linear x other.linear
-        let (l2, lq2): (Linear, Option<Quadratic>) =
-            TermMultiplication::mul(&self.linear, &other.linear, env);
+        // self.constant x other.*
+        let cc: Constant = constant_times_constant(&self.constant, &other.constant);
+        let mut cl: Linear = constant_times_term(&self.constant, &other.linear);
+        let mut cq: Quadratic = constant_times_term(&self.constant, &other.quadratic);
+        let mut ch: HigherOrder = constant_times_higher_order(&self.constant, &other.higher_order);
 
-        println!("l2 = {}", l2.as_string(env));
-        match lq2 {
-            None => println!("lq2 = None"),
-            Some(v) => println!("lq2 = {}", v.as_string(env)),
-        }
-        // self.linear x other.quadratic
-        let (l3, lq3, lh3): (Linear, Option<Quadratic>, Option<HigherOrder>) =
-            TermMultiplicationCC::mul(&self.linear, &other.quadratic, env);
-        // // self.linear x other.higher_order
-        // let (l4, lh4): (Linear, HigherOrder) = self.linear.mul(&other.higher_order); // quadratic
-        // possible?
+        // // self.linear x other.*
+        let lc: Linear = constant_times_term(&other.constant, &self.linear); // const x term = term x const
+        let (ll, llq): (Linear, Option<Quadratic>) =
+            linear_times_linear(&self.linear, &other.linear, env);
 
-        // // // self.quadratic * ...
-        // // // self.quadratic x other.constant
-        // // let q1: Quadratic = self.quadratic.mul(&other.constant);
-        // // // self.quadratic x other.linear
-        // // let (q2, ql2): (Quadratic, Linear) = self.quadratic.mul(&other.linear);
-        // // // self.quadratic x other.quadratic
-        // // let (q3, qq3): (Quadratic, HigherOrder) = self.quadratic.mul(&other.quadratic);
-        // // // self.quadratic x other.higher_order
-        // // let (q4, qh4): (Quadratic, HigherOrder) = self.quadratic.mul(&other.higher_order);
-        // // // self.higher_order * ...
-        // // // self.higher_order x other.constant
-        // // let h1: HigherOrder = self.higher_order.mul(&other.constant);
-        // // // self.higher_order x other.linear
-        // // let (h2, hl2): (HigherOrder, Linear) = self.higher_order.mul(&other.linear);
-        // // // self.higher_order x other.quadratic
-        // // let (h3, hq3): (HigherOrder, Quadratic) = self.higher_order.mul(&other.quadratic);
-        // // // self.higher_order x other.higher_order
-        // // let h4: HigherOrder = self.higher_order.mul(&other.higher_order);
+        let (lq, lqh): (Quadratic, Option<HigherOrder>) =
+            linear_times_quadratic(&self.linear, &other.quadratic, env);
+        let lh: HigherOrder = linear_times_higher_order(&self.linear, &other.higher_order, env);
 
-        unimplemented!()
+        // self.quadratic x other.*
+        let qc: Quadratic = constant_times_term(&other.constant, &self.quadratic); // con x term = term x con
+
+        let (ql, qlh): (Quadratic, Option<HigherOrder>) =
+            quadratic_times_linear(&self.quadratic, &other.linear, env);
+        let (qq, qqh): (Quadratic, Option<HigherOrder>) =
+            quadratic_times_quadratic(&self.quadratic, &other.quadratic, env);
+        let qh: HigherOrder =
+            quadratic_times_higher_order(&self.quadratic, &other.higher_order, env);
+
+        // self.higher_order x other.*
+        let hc: HigherOrder = constant_times_higher_order(&other.constant, &self.higher_order); // c x t = t x c
+        let hl: HigherOrder = higher_order_times_linear(&self.higher_order, &other.linear, env);
+        let hq: HigherOrder =
+            higher_order_times_quadratic(&self.higher_order, &other.quadratic, env);
+        let hh: HigherOrder =
+            higher_order_times_higher_order(&self.higher_order, &other.higher_order, env);
+
+        cl.append(Some(lc));
+        cl.append(Some(ll));
+
+        cq.append(llq);
+        cq.append(Some(lq));
+        cq.append(Some(qc));
+        cq.append(Some(ql));
+        cq.append(Some(qq));
+
+        ch.append(lqh);
+        ch.append(Some(lh));
+        ch.append(qlh);
+        ch.append(qqh);
+        ch.append(Some(qh));
+        ch.append(Some(hc));
+        ch.append(Some(hl));
+        ch.append(Some(hq));
+        ch.append(Some(hh));
+
+        // todo: combine all the results.
+        Ok(Expression::new_unchecked(self.env_id, cc, cl, cq, ch))
     }
 }
 

@@ -1,4 +1,4 @@
 mod expr;
-mod operations;
+mod multiplications;
 
 pub use expr::Expression;

@@ -35,12 +35,14 @@ pub trait Key: Eq + Hash + Copy {}
 impl<T: Eq + Hash + Copy> Key for T {}
 
 pub trait Term<T: Key> {
+    fn empty(env_id: EnvId) -> Self;
     fn reset(&mut self);
     fn new_from_other(other: &Self) -> Self;
     fn has_variables(&self) -> bool;
     fn mutable_variables(&mut self) -> &mut HashMap<T, f64>;
     fn variables(&self) -> &HashMap<T, f64>;
     fn fill_variables(&mut self, variables: HashMap<T, f64>) -> &mut HashMap<T, f64>;
+    fn env_id(&self) -> EnvId;
 
     // fn get_vtype(&self, key: &T, environment: &Environment) -> Vtype;
 }
