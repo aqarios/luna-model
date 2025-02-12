@@ -2,6 +2,8 @@ from ._core import Environment
 from ._core import Vtype
 from ._core import Bounds
 from ._core import Expression
+# from ._core import Model
+from ._core import MatrixTranslator
 
 # from ._core import Expression
 from ._core import VariableExistsException
@@ -34,6 +36,7 @@ __all__ = [
     "Bounds",
     "Environment",
     "Expression",
+    "MatrixTranslator",
     "VariableExistsException",
     "GLOBAL_ENV",
     "pprint",

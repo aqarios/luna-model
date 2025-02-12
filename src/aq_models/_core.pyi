@@ -1,5 +1,16 @@
 from typing import overload
 from enum import Enum
+from numpy.typing import NDArray
+
+class Model: ...
+
+class MatrixTranslator:
+    @overload
+    @staticmethod
+    def to_model(qubo: NDArray): ...
+    @overload
+    @staticmethod
+    def to_model(qubo: NDArray, name: str): ...
 
 class Expression:
     def to_string(self, environment: Environment) -> str: ...

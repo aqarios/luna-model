@@ -9,6 +9,7 @@ mod variable;
 
 pub use environment::Environment;
 pub use expression::Expression;
+pub use model::Model;
 pub use variable::Bounds;
 pub use variable::VarRef;
 pub use variable::Vtype;

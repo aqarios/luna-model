@@ -18,6 +18,10 @@ impl Constant {
         self.value = None
     }
 
+    pub fn set(&mut self, other: &Constant) {
+        self.value = other.value
+    }
+
     pub fn new_from_option(value: Option<f64>) -> Self {
         Self { value }
     }

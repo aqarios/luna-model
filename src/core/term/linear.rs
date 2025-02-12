@@ -106,6 +106,10 @@ impl Linear {
             }
         }
     }
+
+    pub fn set(&mut self, other: &Self) {
+        self.variables = other.variables.clone()
+    }
 }
 
 impl Term<VarId> for Linear {

@@ -148,6 +148,10 @@ impl HigherOrder {
         let key = Self::make_key(&mut mutkeys);
         self.add_kv(key, value);
     }
+
+    pub fn set(&mut self, other: &Self) {
+        self.variables = other.variables.clone()
+    }
 }
 
 impl TermC<HigherOrderKey> for HigherOrder {

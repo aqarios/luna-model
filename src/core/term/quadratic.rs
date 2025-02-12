@@ -99,6 +99,10 @@ impl Quadratic {
         }
     }
 
+    pub fn set(&mut self, other: &Self) {
+        self.variables = other.variables.clone()
+    }
+
     pub fn as_string(&self, environment: &Environment) -> String {
         match &self.variables {
             Some(vs) => vs

@@ -144,7 +144,7 @@ impl Expression {
     }
 
     #[cfg(feature = "py")]
-    fn as_string(&self, environment: &Environment) -> String {
+    pub fn as_string(&self, environment: &Environment) -> String {
         // let mut strings = vec![
         //     self.higher_order.as_string(environment),
         //     self.quadratic.as_string(environment),
@@ -259,6 +259,18 @@ impl MulAssign<f64> for Expression {
     }
 }
 
+impl MulAssign<(&Expression, &Environment)> for Expression {
+    fn mul_assign(&mut self, rhs: (&Expression, &Environment)) {
+        let new = self.mul(rhs).unwrap();
+        self.constant.set(&new.constant);
+        self.linear.set(&new.linear);
+        self.quadratic.set(&new.quadratic);
+        self.higher_order.set(&new.higher_order);
+        // We cannot mul_assign directly on `self` as we need to reuse
+        // the elements of self repeadately.
+    }
+}
+
 impl Add<&Expression> for &Expression {
     type Output = Result<Expression, DifferentEnvsError>;
 
@@ -272,6 +284,24 @@ impl Add<&Expression> for &Expression {
             self.higher_order.add(&rhs.higher_order),
         )?)
     }
+}
+
+impl AddAssign<&Expression> for Expression {
+    fn add_assign(&mut self, rhs: &Expression) {
+        self.constant.add_assign(&rhs.constant);
+        self.linear.add_assign(&rhs.linear);
+        self.quadratic.add_assign(&rhs.quadratic);
+        self.higher_order.add_assign(&rhs.higher_order);
+    }
+    // (self, rhs: &Expression) -> Self::Output {
+    //         Ok(Expression::new(
+    //             self.env_id,
+    //             self.constant.add(&rhs.constant),
+    //             self.linear.add(&rhs.linear),
+    //             self.quadratic.add(&rhs.quadratic),
+    //             self.higher_order.add(&rhs.higher_order),
+    //         )?)
+    //     }
 }
 
 #[cfg(feature = "py")]

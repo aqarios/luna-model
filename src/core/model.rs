@@ -1,31 +1,42 @@
 // use pyo3::exceptions::PyRuntimeError;
-// #[cfg(feature = "py")]
-// use pyo3::prelude::*;
-//
-// use super::{
-//     constraint::Constraints,
-//     expression::{Addition, Expression, Multiplication, Subtraction},
-// };
-//
-// #[cfg_attr(feature = "py", pyclass)]
-// pub struct Model {
-//     pub name: String,
-//     pub objective: Expression,
-//     pub constraints: Constraints,
-//     // pub variables: VariableStorage,
-// }
-//
-// impl Model {
-//     fn new(name: Option<String>) -> Self {
-//         Self {
-//             name: name.unwrap_or(String::from("unnamed")),
-//             constraints: Constraints::empty(),
-//             objective: Expression::empty(),
-//             // variables: VariableStorage::empty(),
-//         }
-//     }
-// }
-//
+#[cfg(feature = "py")]
+use pyo3::prelude::*;
+
+use super::{Environment, Expression};
+
+#[cfg_attr(feature = "py", pyclass)]
+pub struct Model {
+    pub name: String,
+    pub objective: Expression,
+    // a model has it's own environment. This allows us to define
+    // the operations more easily on the model. Getting rid of the
+    // problems involving environment passing for multiplication etc.
+    pub environment: Environment,
+    // pub constraints: Constraints,
+    // pub variables: VariableStorage,
+}
+
+impl Model {
+    pub fn new(name: Option<String>) -> Self {
+        let environment = Environment::new();
+        Self {
+            name: name.unwrap_or(String::from("unnamed")),
+            objective: Expression::empty(environment.id),
+            environment,
+            // constraints: Constraints::empty(),
+            // variables: VariableStorage::empty(),
+        }
+    }
+}
+
+#[cfg(feature = "py")]
+#[pymethods]
+impl Model {
+    fn __str__(&self) -> String {
+        self.objective.as_string(&self.environment)
+    }
+}
+
 // impl Addition<f64> for Model {
 //     fn add_assign(&mut self, rhs: &f64) {
 //         self.objective.add_assign(rhs);

@@ -61,6 +61,14 @@ impl Mul<&f64> for &VarRef {
     }
 }
 
+impl Mul<&f64> for VarRef {
+    type Output = Expression;
+
+    fn mul(self, rhs: &f64) -> Self::Output {
+        Expression::new_from_linear(Linear::new((&self, *rhs)))
+    }
+}
+
 impl Mul<&VarRef> for &VarRef {
     type Output = Result<Expression, VariablesFromDifferentEnvsError>;
 
@@ -69,6 +77,18 @@ impl Mul<&VarRef> for &VarRef {
         Ok(Expression::new_from_quadratic(quadratic))
     }
 }
+
+// impl Mul<VarRef> for VarRef {
+//     type Output = Expression;
+//
+//     fn mul(self, rhs: VarRef) -> Self::Output {
+//         // If the same variable is used and it is binary we have a linear.
+//         // If the same variable and we have spin we have constant.
+//         // else we have quadratic
+//         let quadratic = Quadratic::new_from_vars(self, rhs)?;
+//         Expression::new_from_quadratic(quadratic)
+//     }
+// }
 
 #[cfg(feature = "py")]
 #[pymethods]
