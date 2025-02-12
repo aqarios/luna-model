@@ -1,4 +1,5 @@
 mod expr;
-mod multiplications;
+mod multiplication;
+pub mod multiplications;
 
 pub use expr::Expression;

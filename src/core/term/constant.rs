@@ -40,6 +40,10 @@ impl Constant {
             None => String::from(""),
         }
     }
+
+    pub fn has_value(&self) -> bool {
+        self.value.is_some()
+    }
 }
 
 impl Mul<f64> for &Constant {

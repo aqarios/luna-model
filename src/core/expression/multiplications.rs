@@ -1,11 +1,11 @@
+use crate::core::term::higher_order::HigherOrderKeyContains;
 use crate::core::{
-    environment,
     higher_order_operations::TermC,
     operations::{Key, Term},
     term::{Constant, HigherOrder, Linear, Quadratic},
+    variable::VarId,
     Environment, Vtype,
 };
-
 // Constant
 pub fn constant_times_constant(lhs: &Constant, rhs: &Constant) -> Constant {
     match (lhs.value, rhs.value) {
@@ -141,7 +141,7 @@ pub fn linear_times_linear(
             if lhskey == rhskey && (vtype == Vtype::Binary || vtype == Vtype::Spin) {
                 // If the two keys are equal and have type Binary or Spin, it results in a linear entry
                 // We can choose any of the two keys as the new key.
-                linout.append_elem(*lhskey, newvalue);
+                linout.add_elem(*lhskey, newvalue);
             } else {
                 // Otherwise, a quadratic entry is produced.
                 if quadout.is_none() {
@@ -151,10 +151,7 @@ pub fn linear_times_linear(
                     ));
                 } else {
                     // We need to add the new entry to the quadratic term
-                    quadout
-                        .as_mut()
-                        .unwrap()
-                        .append_elem(lhskey, rhskey, newvalue);
+                    quadout.as_mut().unwrap().add_elem(lhskey, rhskey, newvalue);
                 }
             }
         }
@@ -197,7 +194,7 @@ pub fn linear_times_quadratic(
             {
                 // The linkey is contained in the quadkey and we have binary or spin type.
                 // Thus we generate a quadratic entry.
-                quadout.append_elem(&quadcontrib_a, &quadcontrib_b, newvalue);
+                quadout.add_elem(&quadcontrib_a, &quadcontrib_b, newvalue);
             } else {
                 // linkey is not contained or not of type Binary or Spin.
                 // Thus we generate a new higher order entry.
@@ -212,7 +209,7 @@ pub fn linear_times_quadratic(
                     ))
                 } else {
                     // We need to update the current higher order term with the new entry.
-                    hoout.as_mut().unwrap().append_elem(
+                    hoout.as_mut().unwrap().add_elem(
                         *linkey,
                         quadcontrib_a,
                         quadcontrib_b,
@@ -259,11 +256,11 @@ pub fn linear_times_higher_order(lin: &Linear, ho: &HigherOrder, env: &Environme
                 && (vtype == Vtype::Binary || vtype == Vtype::Spin)
             {
                 // We can safely update/insert with the newvalue for the current ho key.
-                hoout.append_kv(hokey.to_string(), newvalue);
+                hoout.add_kv(hokey.to_string(), newvalue);
             } else {
                 // A new higher order entry is generated.
                 let newkey = HigherOrder::update_key(hokey.to_string(), *linkey);
-                hoout.append_kv(newkey, newvalue);
+                hoout.add_kv(newkey, newvalue);
             }
         }
     }
@@ -328,7 +325,7 @@ pub fn quadratic_times_quadratic(
             match (aaeq, abeq, baeq, bbeq) {
                 (false, false, false, false) => {
                     // No variables match. Can directly create a higher order term.
-                    hoout.append_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
+                    hoout.add_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
                 }
                 // lhs_a * lhs_b * rhs_a
                 (false, true, false, false) | (false, false, false, true) => {
@@ -340,9 +337,9 @@ pub fn quadratic_times_quadratic(
                     // = lhs_a * lhs_b * rhs_a
                     // ^^^^ IF BINARY OR SPING ^^^^
                     if vtype_lhs_a == Vtype::Binary || vtype_lhs_a == Vtype::Spin {
-                        hoout.append_elem(lhs_a, lhs_b, rhs_a, newvalue);
+                        hoout.add_elem(lhs_a, lhs_b, rhs_a, newvalue);
                     } else {
-                        hoout.append_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
+                        hoout.add_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
                     }
                 }
                 // (false, false, false, true) => {
@@ -388,10 +385,10 @@ pub fn quadratic_times_quadratic(
                         // thus we have the following variables.
                         // lhs_a, lhs_b, rhs_b
                         // as lhs_b == rhs_a && lhs_b * lhs_b = lhs_b
-                        hoout.append_elem(lhs_a, lhs_b, rhs_b, newvalue);
+                        hoout.add_elem(lhs_a, lhs_b, rhs_b, newvalue);
                     } else {
                         // We have a higher order term with all four variables.
-                        hoout.append_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
+                        hoout.add_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
                     }
                 }
                 // (true, false, false, false) => {
@@ -428,10 +425,10 @@ pub fn quadratic_times_quadratic(
                     if vtype_lhs_b == Vtype::Binary || vtype_lhs_b == Vtype::Spin {
                         // lhs_b == rhs_a == rhs_b
                         // thus quadratic part with lhs_a and lhs_b
-                        quadout.append_elem(&lhs_a, &lhs_b, newvalue);
+                        quadout.add_elem(&lhs_a, &lhs_b, newvalue);
                     } else {
                         // We have a higher order term with all four variables.
-                        hoout.append_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
+                        hoout.add_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
                     }
                 }
                 // (true, false, false, true) => {
@@ -478,10 +475,10 @@ pub fn quadratic_times_quadratic(
                     // ^^^^ IF BINARY OR SPING ^^^^
                     if vtype_lhs_a == Vtype::Binary || vtype_lhs_a == Vtype::Spin {
                         // thus quadratic part with lhs_a and rhs_a
-                        quadout.append_elem(&lhs_a, &rhs_a, newvalue);
+                        quadout.add_elem(&lhs_a, &rhs_a, newvalue);
                     } else {
                         // We have a higher order term with all four variables.
-                        hoout.append_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
+                        hoout.add_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
                     }
                 }
                 // lhs_a * rhs_b
@@ -495,10 +492,10 @@ pub fn quadratic_times_quadratic(
                     // ^^^^ IF BINARY OR SPING ^^^^
                     if vtype_lhs_a == Vtype::Binary || vtype_lhs_a == Vtype::Spin {
                         // thus quadratic part with lhs_a and rhs_b
-                        quadout.append_elem(&lhs_a, &rhs_b, newvalue);
+                        quadout.add_elem(&lhs_a, &rhs_b, newvalue);
                     } else {
                         // We have a higher order term with all four variables.
-                        hoout.append_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
+                        hoout.add_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
                     }
                 }
                 (false, true, true, false) => {
@@ -572,94 +569,6 @@ pub fn quadratic_times_quadratic(
                     panic!("contradiction in equalities... this should have never been possible. The path is '(true, true, true, false)'");
                 }
             }
-
-            // // If the quad keys are equal we know that the corresponding variables are equal.
-            // if lhskey == rhskey {
-            //     // Variables match (quadkey has fixed order).
-            //     // Thus we know that the first part of the key (in the following denoted with a)
-            //     // is equal for both quadratic terms. We also know that the second part of the key
-            //     // denoted with b is equal.
-            //     // As both a and b parts have equal keys we KNOW that the vtype has to be equal as
-            //     // well.
-            //     // Thus it is sufficient to only check the variable types for one of the two
-            //     // quadratic elements. We choose to do the work on the lhs part.
-            //     // Need to check vtypes.
-            //     // let (lhs_a, lhs_b) = Quadratic::get_key_contributions(lhskey);
-            //     let lhs_a_vtype = env.get(&lhs_a).vtype;
-            //     let lhs_b_vtype = env.get(&lhs_b).vtype;
-            //     let lhs_a_bos = lhs_a_vtype == Vtype::Binary || lhs_a_vtype == Vtype::Spin;
-            //     let lhs_b_bos = lhs_b_vtype == Vtype::Binary || lhs_b_vtype == Vtype::Spin;
-
-            //     match (lhs_a_bos, lhs_b_bos) {
-            //         (true, true) => {
-            //             // All variables are binary or spin and match => quadratic.
-            //             // Can choose any of the two quadkeys.
-            //             quadoutvars.insert(*lhskey, newvalue);
-            //         }
-            //         (true, false) => {
-            //             // Only the left side is binary or quadratic. The right side is not.
-            //             // Thus we have a higher order term. With three variables, i.e., the left
-            //             // side plus the right side twice.
-            //             if hoout.is_none() {
-            //                 hoout = Some(HigherOrder::new_from_keys_with_value(
-            //                     lhs.env_id, lhs_a, lhs_b, lhs_b, newvalue,
-            //                 ))
-            //             } else {
-            //                 hoout
-            //                     .as_mut()
-            //                     .unwrap()
-            //                     .append_elem(lhs_a, lhs_b, lhs_b, newvalue);
-            //             }
-            //         }
-            //         (false, true) => {
-            //             // Only the right side is binary or quadratic. The left side is not.
-            //             // We have a new higher order term with three variables.
-            //             // Twice the left side and once the right side.
-            //             if hoout.is_none() {
-            //                 hoout = Some(HigherOrder::new_from_keys_with_value(
-            //                     lhs.env_id, lhs_b, lhs_a, lhs_a, newvalue,
-            //                 ))
-            //             } else {
-            //                 hoout
-            //                     .as_mut()
-            //                     .unwrap()
-            //                     .append_elem(lhs_b, lhs_a, lhs_a, newvalue);
-            //             }
-            //         }
-            //         (false, false) => {
-            //             // No side is binary or quadratic.
-            //             // New higher order element with four variables.
-            //             // Twice the left side and twice the right side.
-            //             if hoout.is_none() {
-            //                 hoout = Some(HigherOrder::new_from_multi_keys_with_value(
-            //                     lhs.env_id,
-            //                     vec![lhs_a, lhs_a, lhs_b, lhs_b],
-            //                     newvalue,
-            //                 ))
-            //             } else {
-            //                 hoout
-            //                     .as_mut()
-            //                     .unwrap()
-            //                     .append_multi(vec![lhs_a, lhs_a, lhs_b, lhs_b], newvalue);
-            //             }
-            //         }
-            //     }
-            // } else {
-            //     // New higher order element with four variables.
-            //     // Twice the left side and twice the right side.
-            //     if hoout.is_none() {
-            //         hoout = Some(HigherOrder::new_from_multi_keys_with_value(
-            //             lhs.env_id,
-            //             vec![lhs_a, lhs_b, rhs_a, rhs_b],
-            //             newvalue,
-            //         ))
-            //     } else {
-            //         hoout
-            //             .as_mut()
-            //             .unwrap()
-            //             .append_multi(vec![lhs_a, lhs_b, rhs_a, rhs_b], newvalue);
-            //     }
-            // }
         }
     }
 
@@ -682,9 +591,81 @@ pub fn quadratic_times_higher_order(
 
     for (quadkey, quadval) in quad.variables().iter() {
         for (hokey, hoval) in ho.variables().iter() {
-            // do work.
-            // todo
-            unimplemented!()
+            let newvalue = quadval * hoval;
+            if newvalue == 0.0 {
+                // We can skip this contribution safely.
+                continue;
+            }
+            // Need to do some work.
+            let (quadcontrib_a, quadcontrib_b) = Quadratic::get_key_contributions(quadkey);
+            let hocontribs = HigherOrder::get_key_contributions(hokey.to_string());
+            let a_in_ho = hocontribs.contains(&quadcontrib_a);
+            let b_in_ho = hocontribs.contains(&quadcontrib_b);
+
+            let vtype_b = env.get(&quadcontrib_b).vtype;
+            let vtype_a = env.get(&quadcontrib_a).vtype;
+
+            match (a_in_ho, b_in_ho) {
+                (false, false) => {
+                    let mut newkeys = vec![quadcontrib_a, quadcontrib_b];
+                    newkeys.extend(hocontribs);
+                    hoout.add_multi(newkeys, newvalue);
+                }
+                (false, true) => {
+                    // Need to check variable type of `b`
+                    if vtype_b == Vtype::Binary || vtype_b == Vtype::Spin {
+                        // Just a in the update key.
+                        let newkey = HigherOrder::update_key(hokey.to_string(), quadcontrib_a);
+                        hoout.add_kv(newkey, newvalue);
+                    } else {
+                        // Both in the updated key.
+                        let mut newkeys = vec![quadcontrib_a, quadcontrib_b];
+                        newkeys.extend(hocontribs);
+                        hoout.add_multi(newkeys, newvalue);
+                    }
+                }
+                (true, false) => {
+                    // Need to check variable type of `a`
+                    if vtype_a == Vtype::Binary || vtype_a == Vtype::Spin {
+                        // Just b in the update key.
+                        let newkey = HigherOrder::update_key(hokey.to_string(), quadcontrib_b);
+                        hoout.add_kv(newkey, newvalue);
+                    } else {
+                        // Both in the updated key.
+                        let mut newkeys = vec![quadcontrib_a, quadcontrib_b];
+                        newkeys.extend(hocontribs);
+                        hoout.add_multi(newkeys, newvalue);
+                    }
+                }
+                (true, true) => {
+                    // Need to check variable type of `a` AND `b`
+                    let a_bos: bool = vtype_a == Vtype::Binary || vtype_a == Vtype::Spin;
+                    let b_bos: bool = vtype_b == Vtype::Binary || vtype_b == Vtype::Spin;
+
+                    match (a_bos, b_bos) {
+                        (false, false) => {
+                            // Both in the updated key.
+                            let mut newkeys = vec![quadcontrib_a, quadcontrib_b];
+                            newkeys.extend(hocontribs);
+                            hoout.add_multi(newkeys, newvalue);
+                        }
+                        (false, true) => {
+                            // Just a in the updated key.
+                            let newkey = HigherOrder::update_key(hokey.to_string(), quadcontrib_a);
+                            hoout.add_kv(newkey, newvalue);
+                        }
+                        (true, false) => {
+                            // Just b in the updated key.
+                            let newkey = HigherOrder::update_key(hokey.to_string(), quadcontrib_b);
+                            hoout.add_kv(newkey, newvalue);
+                        }
+                        (true, true) => {
+                            // None in the updated key.
+                            hoout.add_kv(hokey.to_string(), newvalue);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -699,19 +680,43 @@ pub fn higher_order_times_linear(ho: &HigherOrder, lin: &Linear, env: &Environme
     if !ho.has_variables() || !lin.has_variables() {
         return HigherOrder::empty(ho.env_id);
     }
-    // todo
-    unimplemented!()
+    let mut hoout = HigherOrder::empty(ho.env_id);
+
+    for (linkey, linval) in lin.variables().iter() {
+        for (hokey, hoval) in ho.variables().iter() {
+            let newvalue = linval * hoval;
+            if newvalue == 0.0 {
+                // We can skip this contribution safely.
+                continue;
+            }
+            // Need to do some work.
+            let hocontribs = HigherOrder::get_key_contributions(hokey.to_string());
+            let linkey_in_hokeys = hocontribs.contains(&linkey);
+
+            if linkey_in_hokeys {
+                let lin_vtype = env.get(linkey).vtype;
+                if lin_vtype == Vtype::Binary || lin_vtype == Vtype::Spin {
+                    hoout.add_kv(hokey.to_string(), newvalue);
+                } else {
+                    let newkey = HigherOrder::update_key(hokey.to_string(), *linkey);
+                    hoout.add_kv(newkey, newvalue);
+                }
+            } else {
+                let newkey = HigherOrder::update_key(hokey.to_string(), *linkey);
+                hoout.add_kv(newkey, newvalue);
+            }
+        }
+    }
+
+    hoout
 }
 pub fn higher_order_times_quadratic(
     ho: &HigherOrder,
     quad: &Quadratic,
     env: &Environment,
 ) -> HigherOrder {
-    if !ho.has_variables() || !quad.has_variables() {
-        return HigherOrder::empty(ho.env_id);
-    }
-    // todo
-    unimplemented!()
+    // ho x quad = quad x ho
+    quadratic_times_higher_order(quad, ho, env)
 }
 pub fn higher_order_times_higher_order(
     lhs: &HigherOrder,
@@ -721,6 +726,41 @@ pub fn higher_order_times_higher_order(
     if !lhs.has_variables() || !rhs.has_variables() {
         return HigherOrder::empty(lhs.env_id);
     }
-    // todo
-    unimplemented!()
+
+    let mut hoout = HigherOrder::empty(lhs.env_id);
+
+    for (lhskey, lhsval) in lhs.variables().iter() {
+        for (rhskey, rhsval) in rhs.variables().iter() {
+            let newvalue = lhsval * rhsval;
+            if newvalue == 0.0 {
+                // We can skip this contribution safely.
+                continue;
+            }
+            // Need to do some work.
+            let lhskeys = HigherOrder::get_key_contributions(lhskey.to_string());
+            let rhskeys = HigherOrder::get_key_contributions(rhskey.to_string());
+
+            let lhs_contrib: Option<Vec<VarId>> = rhskey.get_contained(lhskey.to_string());
+            if lhs_contrib.is_none() {
+                let mut newkeys = Vec::new();
+                newkeys.extend(lhskeys);
+                newkeys.extend(rhskeys);
+                hoout.add_multi(newkeys, newvalue);
+            } else {
+                let mut keys_to_add: Vec<VarId> = Vec::new();
+                // Only keys that are not binary or spin are added.
+                for contrib in lhs_contrib.unwrap().iter() {
+                    let vtype = env.get(contrib).vtype;
+                    if vtype == Vtype::Binary || vtype == Vtype::Spin {
+                        // do nothing; key is not added as remains the key for quadratic.
+                        continue;
+                    } else {
+                        keys_to_add.push(*contrib);
+                    }
+                }
+            }
+        }
+    }
+
+    hoout
 }

@@ -1,35 +1,30 @@
-use super::{
-    environment::EnvId,
-    exceptions::DifferentEnvsError,
-    term::{Constant, Linear, Quadratic},
-    Environment, VarRef,
-};
+use super::{environment::EnvId, Environment, VarRef};
 use std::{
     collections::HashMap,
     hash::Hash,
     ops::{AddAssign, MulAssign, SubAssign},
 };
 
-pub trait Addition<T> {
-    type Output;
-
-    fn add(self, rhs: T) -> Self::Output;
-    fn add_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-}
-
-pub trait Subtraction<T> {
-    type Output;
-
-    fn sub(self, rhs: T) -> Self::Output;
-    fn sub_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-}
-
-pub trait Multiplication<T> {
-    type Output;
-
-    fn mul(self, rhs: T) -> Self::Output;
-    fn mul_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-}
+// pub trait Addition<T> {
+//     type Output;
+//
+//     fn add(self, rhs: T) -> Self::Output;
+//     fn add_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
+// }
+//
+// pub trait Subtraction<T> {
+//     type Output;
+//
+//     fn sub(self, rhs: T) -> Self::Output;
+//     fn sub_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
+// }
+//
+// pub trait Multiplication<T> {
+//     type Output;
+//
+//     fn mul(self, rhs: T) -> Self::Output;
+//     fn mul_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
+// }
 
 pub trait Key: Eq + Hash + Copy {}
 impl<T: Eq + Hash + Copy> Key for T {}
@@ -43,8 +38,6 @@ pub trait Term<T: Key> {
     fn variables(&self) -> &HashMap<T, f64>;
     fn fill_variables(&mut self, variables: HashMap<T, f64>) -> &mut HashMap<T, f64>;
     fn env_id(&self) -> EnvId;
-
-    // fn get_vtype(&self, key: &T, environment: &Environment) -> Vtype;
 }
 
 pub trait TermAddition<T: Key>
@@ -226,77 +219,49 @@ where
     }
 }
 
-pub trait TermConstantMultiplication<T: Key>
-where
-    Self: Term<T> + Sized,
-{
-    fn mul(&self, rhs: &Constant) -> Self {
-        let mut out = Self::new_from_other(&self);
-
-        if !self.has_variables() {
-            return out;
-        }
-
-        let vars = out.mutable_variables();
-
-        match rhs.value {
-            None => (),
-            Some(v) => {
-                for (_, value) in vars.iter_mut() {
-                    *value *= v;
-                }
-            }
-        };
-
-        out
-    }
-}
-
-pub trait TermLinearMultiplication<T: Key, A: Term<V> + Sized, V: Key>
-where
-    Self: Term<T> + Sized,
-{
-    fn mul(&self, rhs: &Linear, environment: &Environment) -> (Self, Option<A>);
-}
-
-pub trait TermMultiplication<T: Key, O: Term<T> + Sized, A: Term<V> + Sized, V: Key>
-where
-    Self: Term<T> + Sized,
-{
-    fn mul(&self, rhs: &O, environment: &Environment) -> (O, Option<A>);
-}
+// pub trait TermConstantMultiplication<T: Key>
+// where
+//     Self: Term<T> + Sized,
+// {
+//     fn mul(&self, rhs: &Constant) -> Self {
+//         let mut out = Self::new_from_other(&self);
+//
+//         if !self.has_variables() {
+//             return out;
+//         }
+//
+//         let vars = out.mutable_variables();
+//
+//         match rhs.value {
+//             None => (),
+//             Some(v) => {
+//                 for (_, value) in vars.iter_mut() {
+//                     *value *= v;
+//                 }
+//             }
+//         };
+//
+//         out
+//     }
+// }
+//
+// pub trait TermLinearMultiplication<T: Key, A: Term<V> + Sized, V: Key>
+// where
+//     Self: Term<T> + Sized,
+// {
+//     fn mul(&self, rhs: &Linear, environment: &Environment) -> (Self, Option<A>);
+// }
+//
+// pub trait TermMultiplication<T: Key, O: Term<T> + Sized, A: Term<V> + Sized, V: Key>
+// where
+//     Self: Term<T> + Sized,
+// {
+//     fn mul(&self, rhs: &O, environment: &Environment) -> (O, Option<A>);
+// }
 
 pub trait TermVarMultiplication<T: Key, A: Term<V> + Sized, V: Key>
 where
     Self: Term<T> + Sized,
 {
     fn mul(&self, rhs: &VarRef, environment: &Environment) -> (Self, Option<A>);
-    // {
-    // let mut out = Self::new_from_other(&self);
-    // let outvars = out.mutable_variables();
-
-    // for (key, value) in outvars.iter_mut() {
-    //     let curr_vtype = self.get_vtype(key, environment);
-    //     let var_vtype = environment.get(&rhs.id).vtype;
-
-    //     if self.contains_variable(key, rhs.id) {
-    //         // The variable which is multiplied with is contained in the current
-    //         // entry. For linear terms this means the variables are identical.
-    //         // For quadratic and higher order terms means that the variable is an
-    //         // element of the term.
-    //         match (curr_vtype, var_vtype) {
-    //             (Vtype::Binary, Vtype::Binary) => {
-    //                 unimplemented!()
-    //             }
-    //             _ => {
-    //                 // Vtype is Real or Float.
-    //                 // Thus, a quadratic element is produced by the term.
-    //             }
-    //         }
-    //     } else {
-    //     }
-    // }
-
-    // out
-    // }
 }

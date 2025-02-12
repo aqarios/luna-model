@@ -1,18 +1,17 @@
 use crate::core::{
-    expression::multiplications::{
-        constant_times_constant, constant_times_higher_order, constant_times_term,
-        higher_order_times_higher_order, higher_order_times_linear, linear_times_higher_order,
-        linear_times_linear, linear_times_quadratic, quadratic_times_higher_order,
-        quadratic_times_linear, quadratic_times_quadratic,
-    },
     higher_order_operations::{
-        TermAdditionC, TermC, TermConstantMultiplicationC, TermFloatMultiplicationC,
-        TermMultiplication2, TermMultiplication3, TermMultiplicationC, TermSubtractionC,
-        TermVarMultiplicationC,
+        TermAdditionC,
+        TermC,
+        TermFloatMultiplicationC,
+        // TermMultiplicationC,
+        TermSubtractionC,
+        // TermVarMultiplicationC,
     },
     operations::{
-        Term, TermAddition, TermConstantMultiplication, TermFloatMultiplication,
-        TermLinearMultiplication, TermMultiplication, TermSubtraction, TermVarMultiplication,
+        Term,
+        TermAddition,
+        TermFloatMultiplication,
+        TermSubtraction, // TermVarMultiplication,
     },
     VarRef,
 };
@@ -29,7 +28,10 @@ use crate::core::{
     Environment,
 };
 
-use super::multiplications::higher_order_times_quadratic;
+use super::multiplication::{
+    constant_times_expression, higher_order_times_expression, linear_times_expression,
+    quadratic_times_expression,
+};
 
 #[cfg_attr(feature = "py", pyclass(subclass))]
 #[derive(Clone, PartialEq)]
@@ -222,38 +224,38 @@ impl Mul<f64> for &Expression {
     }
 }
 
-impl Mul<(&VarRef, &Environment)> for &Expression {
-    type Output = Result<Expression, DifferentEnvsError>;
-
-    fn mul(self, rhs: (&VarRef, &Environment)) -> Self::Output {
-        let (var, env) = rhs;
-        self.check_env_id_var(var)?;
-        // There is a new empty constant term, as the current constant is multiplied with
-        // the passed variable. Thus, we can directly create a new empty constant term (0.0).
-        let new_constant = Constant::empty();
-
-        // Multiplying a variable to a linear term MIGHT result in a new
-        // quadratic expression.
-        let (mut new_linear, additional_quadratic) =
-            TermVarMultiplication::mul(&self.linear, var, env);
-        new_linear.append_variable(var, self.constant.value);
-
-        let (mut new_quadratic, additional_higher_order) =
-            TermVarMultiplicationC::mul(&self.quadratic, var, env);
-        new_quadratic.append(additional_quadratic);
-
-        let mut new_higher_order = TermMultiplicationC::mul(&self.higher_order, var, env);
-        new_higher_order.append(additional_higher_order);
-
-        Ok(Expression::new_unchecked(
-            self.env_id,
-            new_constant,
-            new_linear,
-            new_quadratic,
-            new_higher_order,
-        ))
-    }
-}
+// impl Mul<(&VarRef, &Environment)> for &Expression {
+//     type Output = Result<Expression, DifferentEnvsError>;
+//
+//     fn mul(self, rhs: (&VarRef, &Environment)) -> Self::Output {
+//         let (var, env) = rhs;
+//         self.check_env_id_var(var)?;
+//         // There is a new empty constant term, as the current constant is multiplied with
+//         // the passed variable. Thus, we can directly create a new empty constant term (0.0).
+//         let new_constant = Constant::empty();
+//
+//         // Multiplying a variable to a linear term MIGHT result in a new
+//         // quadratic expression.
+//         let (mut new_linear, additional_quadratic) =
+//             TermVarMultiplication::mul(&self.linear, var, env);
+//         new_linear.append_variable(var, self.constant.value);
+//
+//         let (mut new_quadratic, additional_higher_order) =
+//             TermVarMultiplicationC::mul(&self.quadratic, var, env);
+//         new_quadratic.append(additional_quadratic);
+//
+//         let mut new_higher_order = TermMultiplicationC::mul(&self.higher_order, var, env);
+//         new_higher_order.append(additional_higher_order);
+//
+//         Ok(Expression::new_unchecked(
+//             self.env_id,
+//             new_constant,
+//             new_linear,
+//             new_quadratic,
+//             new_higher_order,
+//         ))
+//     }
+// }
 
 impl Mul<(&Expression, &Environment)> for &Expression {
     type Output = Result<Expression, DifferentEnvsError>;
@@ -262,60 +264,12 @@ impl Mul<(&Expression, &Environment)> for &Expression {
         let (other, env) = rhs;
         self.check_env_id(other)?;
 
-        // self.constant x other.*
-        let cc: Constant = constant_times_constant(&self.constant, &other.constant);
-        let mut cl: Linear = constant_times_term(&self.constant, &other.linear);
-        let mut cq: Quadratic = constant_times_term(&self.constant, &other.quadratic);
-        let mut ch: HigherOrder = constant_times_higher_order(&self.constant, &other.higher_order);
-
-        // // self.linear x other.*
-        let lc: Linear = constant_times_term(&other.constant, &self.linear); // const x term = term x const
-        let (ll, llq): (Linear, Option<Quadratic>) =
-            linear_times_linear(&self.linear, &other.linear, env);
-
-        let (lq, lqh): (Quadratic, Option<HigherOrder>) =
-            linear_times_quadratic(&self.linear, &other.quadratic, env);
-        let lh: HigherOrder = linear_times_higher_order(&self.linear, &other.higher_order, env);
-
-        // self.quadratic x other.*
-        let qc: Quadratic = constant_times_term(&other.constant, &self.quadratic); // con x term = term x con
-
-        let (ql, qlh): (Quadratic, Option<HigherOrder>) =
-            quadratic_times_linear(&self.quadratic, &other.linear, env);
-        let (qq, qqh): (Quadratic, Option<HigherOrder>) =
-            quadratic_times_quadratic(&self.quadratic, &other.quadratic, env);
-        let qh: HigherOrder =
-            quadratic_times_higher_order(&self.quadratic, &other.higher_order, env);
-
-        // self.higher_order x other.*
-        let hc: HigherOrder = constant_times_higher_order(&other.constant, &self.higher_order); // c x t = t x c
-        let hl: HigherOrder = higher_order_times_linear(&self.higher_order, &other.linear, env);
-        let hq: HigherOrder =
-            higher_order_times_quadratic(&self.higher_order, &other.quadratic, env);
-        let hh: HigherOrder =
-            higher_order_times_higher_order(&self.higher_order, &other.higher_order, env);
-
-        cl.append(Some(lc));
-        cl.append(Some(ll));
-
-        cq.append(llq);
-        cq.append(Some(lq));
-        cq.append(Some(qc));
-        cq.append(Some(ql));
-        cq.append(Some(qq));
-
-        ch.append(lqh);
-        ch.append(Some(lh));
-        ch.append(qlh);
-        ch.append(qqh);
-        ch.append(Some(qh));
-        ch.append(Some(hc));
-        ch.append(Some(hl));
-        ch.append(Some(hq));
-        ch.append(Some(hh));
-
-        // todo: combine all the results.
-        Ok(Expression::new_unchecked(self.env_id, cc, cl, cq, ch))
+        let mut outexpr = Expression::empty(self.env_id);
+        constant_times_expression(&self.constant, other, &mut outexpr);
+        linear_times_expression(&self.linear, other, env, &mut outexpr);
+        quadratic_times_expression(&self.quadratic, other, env, &mut outexpr);
+        higher_order_times_expression(&self.higher_order, other, env, &mut outexpr);
+        Ok(outexpr)
     }
 }
 
