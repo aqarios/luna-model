@@ -1,34 +1,8 @@
-use super::{
-    operations::{Key, Term},
-    term::Constant,
-    Environment, VarRef,
-};
 use std::{
     collections::HashMap,
     hash::Hash,
     ops::{AddAssign, MulAssign, SubAssign},
 };
-
-// pub trait Addition<T> {
-//     type Output;
-//
-//     fn add(self, rhs: T) -> Self::Output;
-//     fn add_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-// }
-//
-// pub trait Subtraction<T> {
-//     type Output;
-//
-//     fn sub(self, rhs: T) -> Self::Output;
-//     fn sub_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-// }
-//
-// pub trait Multiplication<T> {
-//     type Output;
-//
-//     fn mul(self, rhs: T) -> Self::Output;
-//     fn mul_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-// }
 
 pub trait CloneableKey: Eq + Hash + Clone {}
 impl<T: Eq + Hash + Clone> CloneableKey for T {}
@@ -40,8 +14,6 @@ pub trait TermC<T: CloneableKey> {
     fn mutable_variables(&mut self) -> &mut HashMap<T, f64>;
     fn variables(&self) -> &HashMap<T, f64>;
     fn fill_variables(&mut self, variables: HashMap<T, f64>) -> &mut HashMap<T, f64>;
-
-    // fn get_vtype(&self, key: &T, environment: &Environment) -> Vtype;
 }
 
 pub trait TermAdditionC<T: CloneableKey>
@@ -221,60 +193,4 @@ where
             value.mul_assign(rhs);
         }
     }
-}
-
-pub trait TermConstantMultiplicationC<T: CloneableKey>
-where
-    Self: TermC<T> + Sized,
-{
-    fn mul(&self, rhs: &Constant) -> Self {
-        let mut out = Self::new_from_other(&self);
-
-        if !self.has_variables() {
-            return out;
-        }
-
-        let vars = out.mutable_variables();
-
-        match rhs.value {
-            None => (),
-            Some(v) => {
-                for (_, value) in vars.iter_mut() {
-                    *value *= v;
-                }
-            }
-        };
-
-        out
-    }
-}
-
-pub trait TermMultiplicationC<T> {
-    fn mul(&self, var: T, environment: &Environment) -> Self;
-}
-
-pub trait TermVarMultiplicationC<T: Key, A: TermC<V> + Sized, V: CloneableKey>
-where
-    Self: Term<T> + Sized,
-{
-    fn mul(&self, rhs: &VarRef, environment: &Environment) -> (Self, Option<A>);
-}
-
-pub trait TermMultiplication2<T: Key, K: CloneableKey, B: TermC<K> + Sized>
-where
-    Self: Term<T> + Sized,
-{
-    fn mul(&self, rhs: &B, environment: &Environment) -> (Self, Option<B>);
-}
-
-pub trait TermMultiplication3<
-    T: Key,
-    V: Key,
-    A: Term<V> + Sized,
-    K: CloneableKey,
-    B: TermC<K> + Sized,
-> where
-    Self: Term<T> + Sized,
-{
-    fn mul(&self, rhs: &A, environment: &Environment) -> (Self, Option<A>, Option<B>);
 }

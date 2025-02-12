@@ -24,6 +24,7 @@ impl fmt::Display for VariableExistsError {
     }
 }
 
+#[cfg(feature = "py")]
 impl std::convert::From<VariableExistsError> for PyErr {
     fn from(err: VariableExistsError) -> PyErr {
         PyRuntimeError::new_err(err.to_string())
@@ -44,6 +45,7 @@ impl fmt::Display for VariablesFromDifferentEnvsError {
     }
 }
 
+#[cfg(feature = "py")]
 impl std::convert::From<VariablesFromDifferentEnvsError> for PyErr {
     fn from(err: VariablesFromDifferentEnvsError) -> PyErr {
         PyRuntimeError::new_err(err.to_string())
@@ -64,6 +66,7 @@ impl fmt::Display for DifferentEnvsError {
     }
 }
 
+#[cfg(feature = "py")]
 impl std::convert::From<DifferentEnvsError> for PyErr {
     fn from(err: DifferentEnvsError) -> PyErr {
         PyRuntimeError::new_err(err.to_string())

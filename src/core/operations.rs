@@ -1,43 +1,19 @@
-use super::{environment::EnvId, Environment, VarRef};
 use std::{
     collections::HashMap,
     hash::Hash,
     ops::{AddAssign, MulAssign, SubAssign},
 };
 
-// pub trait Addition<T> {
-//     type Output;
-//
-//     fn add(self, rhs: T) -> Self::Output;
-//     fn add_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-// }
-//
-// pub trait Subtraction<T> {
-//     type Output;
-//
-//     fn sub(self, rhs: T) -> Self::Output;
-//     fn sub_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-// }
-//
-// pub trait Multiplication<T> {
-//     type Output;
-//
-//     fn mul(self, rhs: T) -> Self::Output;
-//     fn mul_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-// }
-
 pub trait Key: Eq + Hash + Copy {}
 impl<T: Eq + Hash + Copy> Key for T {}
 
 pub trait Term<T: Key> {
-    fn empty(env_id: EnvId) -> Self;
     fn reset(&mut self);
     fn new_from_other(other: &Self) -> Self;
     fn has_variables(&self) -> bool;
     fn mutable_variables(&mut self) -> &mut HashMap<T, f64>;
     fn variables(&self) -> &HashMap<T, f64>;
     fn fill_variables(&mut self, variables: HashMap<T, f64>) -> &mut HashMap<T, f64>;
-    fn env_id(&self) -> EnvId;
 }
 
 pub trait TermAddition<T: Key>
@@ -217,51 +193,4 @@ where
             value.mul_assign(rhs);
         }
     }
-}
-
-// pub trait TermConstantMultiplication<T: Key>
-// where
-//     Self: Term<T> + Sized,
-// {
-//     fn mul(&self, rhs: &Constant) -> Self {
-//         let mut out = Self::new_from_other(&self);
-//
-//         if !self.has_variables() {
-//             return out;
-//         }
-//
-//         let vars = out.mutable_variables();
-//
-//         match rhs.value {
-//             None => (),
-//             Some(v) => {
-//                 for (_, value) in vars.iter_mut() {
-//                     *value *= v;
-//                 }
-//             }
-//         };
-//
-//         out
-//     }
-// }
-//
-// pub trait TermLinearMultiplication<T: Key, A: Term<V> + Sized, V: Key>
-// where
-//     Self: Term<T> + Sized,
-// {
-//     fn mul(&self, rhs: &Linear, environment: &Environment) -> (Self, Option<A>);
-// }
-//
-// pub trait TermMultiplication<T: Key, O: Term<T> + Sized, A: Term<V> + Sized, V: Key>
-// where
-//     Self: Term<T> + Sized,
-// {
-//     fn mul(&self, rhs: &O, environment: &Environment) -> (O, Option<A>);
-// }
-
-pub trait TermVarMultiplication<T: Key, A: Term<V> + Sized, V: Key>
-where
-    Self: Term<T> + Sized,
-{
-    fn mul(&self, rhs: &VarRef, environment: &Environment) -> (Self, Option<A>);
 }

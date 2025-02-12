@@ -110,12 +110,6 @@ impl HigherOrder {
 
     pub fn key_contains_other(key_elements: Vec<VarId>, other: VarId) -> bool {
         key_elements.contains(&other)
-        // for key in key_elements.iter() {
-        //     if *key == other {
-        //         return true;
-        //     }
-        // }
-        // return false;
     }
 
     pub fn get_key_contributions(key: HigherOrderKey) -> Vec<VarId> {
@@ -123,24 +117,6 @@ impl HigherOrder {
             .map(|s| s.parse::<VarId>().unwrap())
             .collect()
     }
-
-    // pub fn append(&mut self, other: Option<HigherOrder>) {
-    //     match other {
-    //         None => (),
-    //         Some(h) => match self.has_variables() {
-    //             true => match h.has_variables() {
-    //                 true => {
-    //                     let selfvars = self.mutable_variables();
-    //                     for (key, value) in h.variables().iter() {
-    //                         selfvars.insert(key.clone(), *value);
-    //                     }
-    //                 }
-    //                 false => (),
-    //             },
-    //             false => self.variables = h.variables.clone(),
-    //         },
-    //     }
-    // }
 
     pub fn add_kv(&mut self, key: HigherOrderKey, value: f64) {
         match self.has_variables() {
@@ -171,32 +147,6 @@ impl HigherOrder {
         let mut mutkeys = keys.clone();
         let key = Self::make_key(&mut mutkeys);
         self.add_kv(key, value);
-    }
-}
-
-pub trait HigherOrderKeyContains {
-    fn get_contained(&self, other: Self) -> Option<Vec<VarId>>;
-}
-
-impl HigherOrderKeyContains for HigherOrderKey {
-    fn get_contained(&self, other: Self) -> Option<Vec<VarId>> {
-        let selfkeys = HigherOrder::get_key_contributions(self.to_string());
-        let otherkeys = HigherOrder::get_key_contributions(other.to_string());
-
-        let mut contained_keys = Vec::new();
-        for key in selfkeys.iter() {
-            for other in otherkeys.iter() {
-                if key == other {
-                    contained_keys.push(*key);
-                }
-            }
-        }
-
-        if contained_keys.is_empty() {
-            None
-        } else {
-            Some(contained_keys)
-        }
     }
 }
 
@@ -235,52 +185,3 @@ impl TermC<HigherOrderKey> for HigherOrder {
 impl TermAdditionC<HigherOrderKey> for HigherOrder {}
 impl TermSubtractionC<HigherOrderKey> for HigherOrder {}
 impl TermFloatMultiplicationC<HigherOrderKey> for HigherOrder {}
-
-// impl TermConstantMultiplicationC<HigherOrderKey> for HigherOrder {}
-//
-// impl TermMultiplicationC<&VarRef> for HigherOrder {
-//     fn mul(&self, var: &VarRef, environment: &Environment) -> Self {
-//         if !self.has_variables() {
-//             return HigherOrder::empty(self.env_id);
-//         }
-//         let mut out = Self::new_from_other(&self);
-//         let outvars = out.mutable_variables();
-//
-//         for (key, value) in self.variables().iter() {
-//             let var_vtype = environment.get(&var.id).vtype;
-//             let variables = Self::get_key_contributions(key.to_string());
-//
-//             let mut found_equal: bool = false;
-//             for varid in variables {
-//                 if varid == var.id {
-//                     found_equal = true;
-//                     break;
-//                 }
-//             }
-//
-//             if found_equal {
-//                 // Similar to the quadratic case, we don't care which key was matching we only
-//                 // care if any variable contained is Binary or Spin type. If so, we can safely
-//                 // ignore the multiplication with 1.0. In all other cases we register a new
-//                 // higher order entry and remove the old one.
-//                 match var_vtype {
-//                     Vtype::Binary => (),
-//                     Vtype::Spin => (),
-//                     _ => {
-//                         // We create a new entry with the current varaible and remove the
-//                         // old one.
-//                         let new_key = Self::update_key(key.to_string(), var.id);
-//                         outvars.insert(new_key, *value);
-//                         outvars.remove(key);
-//                     }
-//                 }
-//             } else {
-//                 let new_key = Self::update_key(key.to_string(), var.id);
-//                 outvars.insert(new_key, *value);
-//                 outvars.remove(key);
-//             }
-//         }
-//
-//         out
-//     }
-// }

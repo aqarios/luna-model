@@ -7,15 +7,18 @@ use pyo3::prelude::*;
 
 use crate::core::{
     environment::EnvId,
-    exceptions::{
-        VariableExistsException, VariablesFromDifferentEnvsError,
-        VariablesFromDifferentEnvsException,
-    },
+    exceptions::VariablesFromDifferentEnvsError,
     expression::Expression,
     term::{Constant, Linear, Quadratic},
-    Environment,
 };
 
+#[cfg(feature = "py")]
+use crate::core::exceptions::{VariableExistsException, VariablesFromDifferentEnvsException};
+
+#[cfg(feature = "py")]
+use crate::core::Environment;
+
+#[cfg(feature = "py")]
 use super::{Bounds, Vtype};
 
 pub type VarId = u32;

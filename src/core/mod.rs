@@ -1,16 +1,17 @@
 mod environment;
 mod exceptions;
 mod expression;
-mod higher_order_operations;
+pub mod higher_order_operations;
 mod model;
-mod operations;
+pub mod operations;
 mod term;
-mod utils;
 mod variable;
 
 pub use environment::Environment;
-pub use exceptions::VariableExistsException;
 pub use expression::Expression;
 pub use variable::Bounds;
 pub use variable::VarRef;
 pub use variable::Vtype;
+
+#[cfg(feature = "py")]
+pub use exceptions::VariableExistsException;

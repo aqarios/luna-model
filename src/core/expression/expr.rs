@@ -1,32 +1,24 @@
 use crate::core::{
-    higher_order_operations::{
-        TermAdditionC,
-        TermC,
-        TermFloatMultiplicationC,
-        // TermMultiplicationC,
-        TermSubtractionC,
-        // TermVarMultiplicationC,
-    },
-    operations::{
-        Term,
-        TermAddition,
-        TermFloatMultiplication,
-        TermSubtraction, // TermVarMultiplication,
-    },
+    higher_order_operations::{TermAdditionC, TermC, TermFloatMultiplicationC, TermSubtractionC},
+    operations::{Term, TermAddition, TermFloatMultiplication, TermSubtraction},
     VarRef,
 };
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
 
+#[cfg(feature = "py")]
 use pyo3::exceptions::PyRuntimeError;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
 use crate::core::{
     environment::EnvId,
-    exceptions::{DifferentEnvsError, DifferentEnvsException},
+    exceptions::DifferentEnvsError,
     term::{Constant, HigherOrder, Linear, Quadratic},
     Environment,
 };
+
+#[cfg(feature = "py")]
+use crate::core::exceptions::DifferentEnvsException;
 
 use super::multiplication::{
     constant_times_expression, higher_order_times_expression, linear_times_expression,
@@ -151,14 +143,7 @@ impl Expression {
         }
     }
 
-    fn check_env_id_var(&self, other: &VarRef) -> Result<(), DifferentEnvsError> {
-        if self.env_id != other.env_id {
-            Err(DifferentEnvsError)
-        } else {
-            Ok(())
-        }
-    }
-
+    #[cfg(feature = "py")]
     fn as_string(&self, environment: &Environment) -> String {
         // let mut strings = vec![
         //     self.higher_order.as_string(environment),
@@ -224,38 +209,23 @@ impl Mul<f64> for &Expression {
     }
 }
 
-// impl Mul<(&VarRef, &Environment)> for &Expression {
-//     type Output = Result<Expression, DifferentEnvsError>;
-//
-//     fn mul(self, rhs: (&VarRef, &Environment)) -> Self::Output {
-//         let (var, env) = rhs;
-//         self.check_env_id_var(var)?;
-//         // There is a new empty constant term, as the current constant is multiplied with
-//         // the passed variable. Thus, we can directly create a new empty constant term (0.0).
-//         let new_constant = Constant::empty();
-//
-//         // Multiplying a variable to a linear term MIGHT result in a new
-//         // quadratic expression.
-//         let (mut new_linear, additional_quadratic) =
-//             TermVarMultiplication::mul(&self.linear, var, env);
-//         new_linear.append_variable(var, self.constant.value);
-//
-//         let (mut new_quadratic, additional_higher_order) =
-//             TermVarMultiplicationC::mul(&self.quadratic, var, env);
-//         new_quadratic.append(additional_quadratic);
-//
-//         let mut new_higher_order = TermMultiplicationC::mul(&self.higher_order, var, env);
-//         new_higher_order.append(additional_higher_order);
-//
-//         Ok(Expression::new_unchecked(
-//             self.env_id,
-//             new_constant,
-//             new_linear,
-//             new_quadratic,
-//             new_higher_order,
-//         ))
-//     }
-// }
+impl Mul<(&VarRef, &Environment)> for &Expression {
+    type Output = Result<Expression, DifferentEnvsError>;
+
+    fn mul(self, rhs: (&VarRef, &Environment)) -> Self::Output {
+        // We can use a little trick here to reuse the multiplication logic.
+        // No worries, nothing is computed that is not required.
+        // Multiplying an expression with a variable is the same as multiplication
+        // of the expression with a linear term, i.e., x = 1 * x, where 1 * x is the linear term.
+        // So let's create an empty expression with just a linear term that contains just the
+        // variable.
+        // We can then multiply self with this temporary other expression containing just the
+        // linear term which is just the variable...
+        let (varref, env) = rhs;
+        let linear_expression = Expression::new_from_linear(Linear::new((varref, 1.0)));
+        self.mul((&linear_expression, env))
+    }
+}
 
 impl Mul<(&Expression, &Environment)> for &Expression {
     type Output = Result<Expression, DifferentEnvsError>;
@@ -304,10 +274,12 @@ impl Add<&Expression> for &Expression {
     }
 }
 
+#[cfg(feature = "py")]
 pub trait FailableAddAssign<T> {
     fn add_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
 }
 
+#[cfg(feature = "py")]
 impl FailableAddAssign<&Expression> for Expression {
     fn add_assign(&mut self, rhs: &Expression) -> Result<(), DifferentEnvsError> {
         self.check_env_id(rhs)?;
@@ -340,10 +312,12 @@ impl Sub<&Expression> for &Expression {
     }
 }
 
+#[cfg(feature = "py")]
 pub trait FailableSubAssign<T> {
     fn sub_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
 }
 
+#[cfg(feature = "py")]
 impl FailableSubAssign<&Expression> for Expression {
     fn sub_assign(&mut self, rhs: &Expression) -> Result<(), DifferentEnvsError> {
         self.check_env_id(rhs)?;
@@ -361,6 +335,7 @@ impl SubAssign<f64> for Expression {
     }
 }
 
+#[cfg(feature = "py")]
 #[pymethods]
 impl Expression {
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
