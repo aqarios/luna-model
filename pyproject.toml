@@ -9,6 +9,8 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "dimod>=0.12.18",
+    "memory-profiler>=0.61.0",
     "numpy>=2.2.2",
     "scipy>=1.15.1",
 ]

@@ -5,16 +5,20 @@ use crate::core::{
     variable::VarId,
     Environment, VarRef,
 };
-use std::{collections::HashMap, ops::AddAssign};
+use std::ops::AddAssign;
 
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
+
+use super::{variable_storage::variables_with_capacity, Variables};
+
+type LinearVariables = Variables<VarId>;
 
 #[cfg_attr(feature = "py", pyclass)]
 #[derive(Clone, PartialEq)]
 pub struct Linear {
     pub env_id: EnvId,
-    pub variables: Option<HashMap<VarId, f64>>,
+    pub variables: Option<LinearVariables>,
 }
 
 /// methods used to create a linear term efficiently.
@@ -29,7 +33,7 @@ impl Linear {
     /// Efficient production of linear term for a single value.
     pub fn new(a: (&VarRef, f64)) -> Self {
         let (a_ref, av) = a;
-        let mut variables = HashMap::new();
+        let mut variables = LinearVariables::default();
         variables.insert(a_ref.id, av);
         Self {
             // variables,
@@ -51,7 +55,7 @@ impl Linear {
             return Err(VariablesFromDifferentEnvsError);
         }
 
-        let mut variables = HashMap::new();
+        let mut variables = LinearVariables::default();
         if a_ref.id == b_ref.id {
             variables.insert(a_ref.id, av + bv);
         } else {
@@ -85,10 +89,19 @@ impl Linear {
         }
     }
 
+    pub fn add_linear(&mut self, var: &VarRef, value: f64) {
+        self.add_elem(var.id, value);
+    }
+
+    #[inline]
+    pub fn insert_linear(&mut self, var: &VarRef, value: f64) {
+        self.mutable_variables().insert(var.id, value);
+    }
+
     pub fn add_elem(&mut self, key: u32, value: f64) {
         match self.has_variables() {
             false => {
-                let mut nh = HashMap::new();
+                let mut nh = LinearVariables::default();
                 nh.insert(key, value);
                 self.variables = Some(nh);
             }
@@ -110,6 +123,17 @@ impl Linear {
     pub fn set(&mut self, other: &Self) {
         self.variables = other.variables.clone()
     }
+
+    pub fn allocate(&mut self, size: usize) {
+        match self.has_variables() {
+            true => self.mutable_variables().reserve(size),
+            false => {
+                // let vars = LinearVariables::with_capacity(size);
+                let vars = variables_with_capacity(size);
+                self.variables = Some(vars);
+            }
+        }
+    }
 }
 
 impl Term<VarId> for Linear {
@@ -126,23 +150,28 @@ impl Term<VarId> for Linear {
         }
     }
 
+    #[inline]
     fn reset(&mut self) {
         self.variables = None
     }
 
+    #[inline]
     fn has_variables(&self) -> bool {
         self.variables.is_some()
     }
 
-    fn mutable_variables(&mut self) -> &mut HashMap<VarId, f64> {
+    #[inline]
+    fn mutable_variables(&mut self) -> &mut LinearVariables {
         self.variables.as_mut().unwrap()
     }
 
-    fn variables(&self) -> &HashMap<VarId, f64> {
+    #[inline]
+    fn variables(&self) -> &LinearVariables {
         self.variables.as_ref().unwrap()
     }
 
-    fn fill_variables(&mut self, variables: HashMap<VarId, f64>) -> &mut HashMap<VarId, f64> {
+    #[inline]
+    fn fill_variables(&mut self, variables: LinearVariables) -> &mut LinearVariables {
         self.variables.insert(variables)
     }
 }

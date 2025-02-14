@@ -1,10 +1,14 @@
-mod constant;
-pub mod higher_order;
-mod linear;
-mod quadratic;
+mod hashmap;
+mod vecs;
 
-pub use constant::Constant;
-pub use higher_order::HigherOrder;
-pub use linear::Linear;
-pub use quadratic::Quadratic;
-pub use quadratic::QuadraticKeyContains;
+pub use hashmap::constant::Constant;
+pub use hashmap::higher_order::HigherOrder;
+pub use hashmap::linear::Linear;
+pub use hashmap::quadratic::Quadratic;
+pub use hashmap::quadratic::QuadraticKeyContains;
+
+pub use hashmap::variable_storage::Variables;
+
+// QuadraticModel specialized
+// pub use vecs::QuadraticModel;
+pub use vecs::QuadraticModelBase;

@@ -1,4 +1,7 @@
-use std::ops::{Add, Mul};
+use std::{
+    fmt::Display,
+    ops::{Add, Mul},
+};
 
 #[cfg(feature = "py")]
 use pyo3::exceptions::PyRuntimeError;
@@ -33,6 +36,10 @@ pub struct VarRef {
 impl VarRef {
     pub fn new(id: VarId, env_id: EnvId) -> Self {
         Self { id, env_id }
+    }
+
+    pub fn key(&self) -> u64 {
+        self.id as u64
     }
 }
 

@@ -1,5 +1,5 @@
 import sys
-from aq_models import MatrixTranslator
+from aq_models import MatrixTranslatorV2
 import numpy as np
 import scipy.sparse as sp
 import time
@@ -13,7 +13,7 @@ def bench(s: int, d: float, rep: int):
         qubo = qubo + qubo.T
 
         a = time.perf_counter()
-        _ = MatrixTranslator.to_model(qubo)
+        _ = MatrixTranslatorV2.to_model(qubo)
         b = time.perf_counter()
         timings_a.append(b - a)
 
@@ -21,7 +21,6 @@ def bench(s: int, d: float, rep: int):
     return ta
 
 
-rep = 1
 # sizes = [100, 200, 400, 600, 800, 1000, 2000, 4000]
 # sizes = [100, 200, 400, 600, 800, 1000, 2000]
 # sizes = [100, 200, 400, 600]
@@ -33,6 +32,7 @@ rep = 1
 #         print(f"| {s:4d} |    {int(d*100):3d}% | {ta:7.4f}s |")
 #     print("|------+---------+----------|")
 
+rep = 1
 s = int(sys.argv[1])
 d = float(sys.argv[2])
 ta = bench(s, d, rep)

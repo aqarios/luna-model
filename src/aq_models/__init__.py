@@ -4,6 +4,7 @@ from ._core import Bounds
 from ._core import Expression
 # from ._core import Model
 from ._core import MatrixTranslator
+from ._core import MatrixTranslatorV2
 
 # from ._core import Expression
 from ._core import VariableExistsException

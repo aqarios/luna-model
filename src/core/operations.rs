@@ -1,19 +1,25 @@
 use std::{
-    collections::HashMap,
     hash::Hash,
     ops::{AddAssign, MulAssign, SubAssign},
 };
 
-pub trait Key: Eq + Hash + Copy {}
-impl<T: Eq + Hash + Copy> Key for T {}
+use nohash::IsEnabled;
 
-pub trait Term<T: Key> {
+use super::term::Variables;
+
+pub trait Key: IsEnabled + Eq + Hash + Ord + Copy {}
+impl<K: IsEnabled + Eq + Hash + Ord + Copy> Key for K {}
+
+pub trait Term<K: Key> {
     fn reset(&mut self);
     fn new_from_other(other: &Self) -> Self;
     fn has_variables(&self) -> bool;
-    fn mutable_variables(&mut self) -> &mut HashMap<T, f64>;
-    fn variables(&self) -> &HashMap<T, f64>;
-    fn fill_variables(&mut self, variables: HashMap<T, f64>) -> &mut HashMap<T, f64>;
+    fn mutable_variables(&mut self) -> &mut Variables<K>;
+    fn variables(&self) -> &Variables<K>;
+    fn fill_variables(&mut self, variables: Variables<K>) -> &mut Variables<K>;
+    // fn mutable_variables(&mut self) -> &mut Variables<K>;
+    // fn variables(&self) -> &Variables<K>;
+    // fn fill_variables(&mut self, variables: Variables<K>) -> &mut Variables<K>;
 }
 
 pub trait TermAddition<T: Key>
@@ -62,6 +68,7 @@ where
         // We need to insert the rhs variables into self and the
         // current self does not contain any values itself.
         if !self.has_variables() {
+            // println!("self does not have variables");
             let vars = rhs.variables();
             let _ = self.fill_variables(vars.clone());
             return;
@@ -69,18 +76,40 @@ where
         // Now we know that both `self.variables` and `rhs.variables`
         // contain values. We need to merge them using the add operation.
         // mutable variables of self (mutable reference).
+
         let selfvars = self.mutable_variables();
+
+        // println!("Num. entries: {}", selfvars.len());
+        // println!("Num. entries in rhs: {}", rhs.variables().len());
+        // println!("Capacity: {}", selfvars.capacity());
+        // Naive trial reserving extra size beforehand.
+        // if selfvars.len() + 1 >= selfvars.capacity() {
+        //     // println!("in here");
+        //     selfvars.reserve(10_000);
+        // }
+
+        // let iter_start = Instant::now();
         for (key, value) in rhs.variables().iter() {
+            // if *value == 0.0 {
+            //     // don't need to do anything...
+            //     continue;
+            // }
             match selfvars.get_mut(key) {
                 Some(e) => {
+                    // println!("Rhs is contained");
                     e.add_assign(value);
                     if *e == 0.0 {
                         selfvars.remove(key);
                     }
                 }
-                None => _ = selfvars.insert(*key, *value),
+                None => {
+                    // println!("Rhs not contained, key is {}", key);
+                    _ = selfvars.insert(*key, *value);
+                }
             }
         }
+        // let iter_elapsed = iter_start.elapsed();
+        // println!("Insertion took: {:?}\n-----", iter_elapsed);
     }
 }
 

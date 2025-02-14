@@ -2,6 +2,7 @@
 use crate::{
     core::{Bounds, Environment, Expression, VarRef, VariableExistsException, Vtype},
     translator::matrix_translator::MatrixTranslator,
+    translator::matrix_translator_v2::MatrixTranslatorV2,
 };
 use pyo3::prelude::*;
 
@@ -15,6 +16,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Adding the functions
     // m.add_class::<Expression>()?;
     m.add_class::<MatrixTranslator>()?;
+    m.add_class::<MatrixTranslatorV2>()?;
     m.add_class::<Environment>()?;
     m.add_class::<VarRef>()?;
     m.add_class::<Bounds>()?;

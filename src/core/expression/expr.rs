@@ -3,7 +3,10 @@ use crate::core::{
     operations::{Term, TermAddition, TermFloatMultiplication, TermSubtraction},
     VarRef,
 };
-use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign};
+use std::{
+    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
+    time::Instant,
+};
 
 #[cfg(feature = "py")]
 use pyo3::exceptions::PyRuntimeError;
@@ -288,10 +291,23 @@ impl Add<&Expression> for &Expression {
 
 impl AddAssign<&Expression> for Expression {
     fn add_assign(&mut self, rhs: &Expression) {
+        // println!("Adding two expressions");
+        // let const_start = Instant::now();
         self.constant.add_assign(&rhs.constant);
+        // let const_elapsed = const_start.elapsed();
+        // println!("Adding two Constants: {:?}", const_elapsed);
+        // let linear_start = Instant::now();
         self.linear.add_assign(&rhs.linear);
+        // let linear_elapsed = linear_start.elapsed();
+        // println!("Adding two Linears: {:?}", linear_elapsed);
+        // let quad_start = Instant::now();
         self.quadratic.add_assign(&rhs.quadratic);
+        // let quad_elapsed = quad_start.elapsed();
+        // println!("Adding two Quadratics: {:?}", quad_elapsed);
+        // let ho_start = Instant::now();
         self.higher_order.add_assign(&rhs.higher_order);
+        // let ho_elapsed = ho_start.elapsed();
+        // println!("Adding two HigherOrders: {:?}", ho_elapsed);
     }
     // (self, rhs: &Expression) -> Self::Output {
     //         Ok(Expression::new(

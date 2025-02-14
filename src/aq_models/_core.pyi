@@ -12,6 +12,14 @@ class MatrixTranslator:
     @staticmethod
     def to_model(qubo: NDArray, name: str): ...
 
+class MatrixTranslatorV2:
+    @overload
+    @staticmethod
+    def to_model(qubo: NDArray): ...
+    @overload
+    @staticmethod
+    def to_model(qubo: NDArray, name: str): ...
+
 class Expression:
     def to_string(self, environment: Environment) -> str: ...
 
