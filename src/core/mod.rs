@@ -14,7 +14,6 @@ pub use variable::Bounds;
 pub use variable::VarRef;
 pub use variable::Vtype;
 
-pub use term::QuadraticModel;
 pub use term::QuadraticModelBase;
 pub use term::{Linear, Quadratic};
 
