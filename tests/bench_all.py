@@ -1,5 +1,5 @@
 from aq_models import MatrixTranslator
-from aq_models import MatrixTranslatorV2
+# from aq_models import MatrixTranslatorV2
 import numpy as np
 import scipy.sparse as sp
 import time
@@ -17,7 +17,7 @@ def ours(qubo) -> float:
 
 def oursv2(qubo) -> float:
     a = time.perf_counter()
-    _ = MatrixTranslatorV2.to_model(qubo)
+    # _ = MatrixTranslatorV2.to_model(qubo)
     b = time.perf_counter()
     return b - a
 

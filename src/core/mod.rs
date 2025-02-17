@@ -1,9 +1,9 @@
 mod environment;
 mod exceptions;
 mod expression;
-pub mod higher_order_operations;
+// pub mod higher_order_operations;
 mod model;
-pub mod operations;
+// pub mod operations;
 mod term;
 mod variable;
 
@@ -11,11 +11,14 @@ pub use environment::Environment;
 pub use expression::Expression;
 pub use model::Model;
 pub use variable::Bounds;
+pub use variable::VarId;
 pub use variable::VarRef;
 pub use variable::Vtype;
 
-pub use term::QuadraticModelBase;
-pub use term::{Linear, Quadratic};
+// pub use term::QuadraticExpression;
+// pub use term::QuadraticExpressionBase;
+// pub use term::QuadraticExpressionBaseInternal;
+// pub use term::{Linear, Quadratic};
 
 #[cfg(feature = "py")]
 pub use exceptions::VariableExistsException;

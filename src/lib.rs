@@ -8,4 +8,4 @@ pub mod translator;
 
 // Python bindings to rust module
 #[cfg(feature = "py")]
-pub mod py_bindings;
+mod py_bindings;

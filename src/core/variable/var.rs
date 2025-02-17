@@ -1,9 +1,9 @@
-#[cfg(feature = "py")]
-use pyo3::prelude::*;
+// #[cfg(feature = "py")]
+// use pyo3::prelude::*;
 
 use crate::core::environment::EnvId;
 
-#[cfg_attr(feature = "py", pyclass(eq, eq_int))]
+// #[cfg_attr(feature = "py", pyclass(eq, eq_int))]
 #[derive(PartialEq, Clone, Copy)]
 pub enum Vtype {
     Real,
@@ -12,8 +12,8 @@ pub enum Vtype {
     Spin,
 }
 
-#[cfg_attr(feature = "py", pyclass)]
-#[derive(Clone)]
+// #[cfg_attr(feature = "py", pyclass)]
+#[derive(Clone, Copy)]
 pub struct Bounds {
     pub lower: Option<f64>,
     pub upper: Option<f64>,
@@ -50,10 +50,16 @@ pub struct Variable {
 }
 
 impl Variable {
-    pub fn new(name: String, vtype: Option<Vtype>, bounds: Option<Bounds>, env_id: EnvId) -> Self {
-        let vtype = vtype.unwrap_or(Vtype::default());
+    pub fn new(
+        name: String,
+        vtype: Option<&Vtype>,
+        bounds: Option<&Bounds>,
+        env_id: EnvId,
+    ) -> Self {
+        let vtype = vtype.map_or(Vtype::default(), |e| *e);
+        let bounds = bounds.map_or(Bounds::default(&vtype), |e| *e);
         Self {
-            bounds: bounds.unwrap_or(Bounds::default(&vtype)),
+            bounds,
             name,
             vtype,
             env_id,
@@ -61,12 +67,12 @@ impl Variable {
     }
 }
 
-#[cfg(feature = "py")]
-#[pymethods]
-impl Bounds {
-    #[new]
-    #[pyo3(signature=(lower, upper))]
-    fn py_new(lower: f64, upper: f64) -> PyResult<Bounds> {
-        Ok(Bounds::new(Some(lower), Some(upper)))
-    }
-}
+// #[cfg(feature = "py")]
+// #[pymethods]
+// impl Bounds {
+//     #[new]
+//     #[pyo3(signature=(lower, upper))]
+//     fn py_new(lower: f64, upper: f64) -> PyResult<Bounds> {
+//         Ok(Bounds::new(Some(lower), Some(upper)))
+//     }
+// }

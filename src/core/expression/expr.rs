@@ -1,468 +1,307 @@
-use crate::core::{
-    higher_order_operations::{TermAdditionC, TermC, TermFloatMultiplicationC, TermSubtractionC},
-    operations::{Term, TermAddition, TermFloatMultiplication, TermSubtraction},
-    VarRef,
-};
-use std::{
-    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
-    time::Instant,
-};
+use std::cmp::Ordering;
+use std::rc::Rc;
 
-#[cfg(feature = "py")]
-use pyo3::exceptions::PyRuntimeError;
-#[cfg(feature = "py")]
-use pyo3::prelude::*;
+use crate::core::term::types::{OneVarTerm, OneVarTermConstruction};
+use crate::core::term::{HigherOrder, Linear, Quadratic};
+use crate::core::{Environment, Vtype};
 
-use crate::core::{
-    environment::EnvId,
-    exceptions::DifferentEnvsError,
-    term::{Constant, HigherOrder, Linear, Quadratic},
-    Environment,
+use super::base::{
+    BiasConstraints, ExpressionBase, ExpressionBaseInternal, IndexConstraints, SizeType,
 };
 
-#[cfg(feature = "py")]
-use crate::core::exceptions::DifferentEnvsException;
-
-use super::multiplication::{
-    constant_times_expression, higher_order_times_expression, linear_times_expression,
-    quadratic_times_expression,
-};
-
-#[cfg_attr(feature = "py", pyclass(subclass))]
-#[derive(Clone, PartialEq)]
-pub struct Expression {
-    //  (team) - 10.02.2025
-    // A size could increase processing speeds for two expressions.
-    // The larger expression is edited or cloned and the smaller expression
-    // is iterated. This should decrease the required runtime. Furhter, thoughts
-    // have to be invested tho.
-    pub env_id: EnvId,
-    pub constant: Constant,
-    pub linear: Linear,
-    pub quadratic: Quadratic,
-    pub higher_order: HigherOrder,
+pub struct Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    pub env: Rc<Environment>,
+    pub offset: Bias,
+    pub linear: Linear<Bias>,
+    pub quadratic: Option<Quadratic<Index, Bias>>,
+    // pub higher_order: Option<HigherOrder<Index, Bias>>,
 }
 
-impl Expression {
-    pub fn empty(env_id: EnvId) -> Self {
+impl<Index, Bias> Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+}
+
+impl<Index, Bias> ExpressionBaseInternal<Index, Bias> for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn new(env: Rc<Environment>) -> Self {
         Self {
-            env_id,
-            constant: Constant::empty(),
-            linear: Linear::empty(env_id),
-            quadratic: Quadratic::empty(env_id),
-            higher_order: HigherOrder::empty(env_id),
+            env,
+            offset: Bias::default(),
+            linear: Linear::default(),
+            quadratic: None,
+            // higher_order: None,
         }
     }
-    pub fn new(
-        env_id: EnvId,
-        constant: Constant,
-        linear: Linear,
-        quadratic: Quadratic,
-        higher_order: HigherOrder,
-    ) -> Result<Self, DifferentEnvsError> {
-        Self::check_env_ids(&linear, &quadratic, &higher_order)?;
-        Ok(Self {
-            env_id,
-            constant,
-            linear,
-            quadratic,
-            higher_order,
-        })
-    }
 
-    pub fn new_unchecked(
-        env_id: EnvId,
-        constant: Constant,
-        linear: Linear,
-        quadratic: Quadratic,
-        higher_order: HigherOrder,
-    ) -> Self {
+    fn new_linear(env: Rc<Environment>, linear_biases: &Vec<Bias>) -> Self {
         Self {
-            env_id,
-            constant,
-            linear,
-            quadratic,
-            higher_order,
+            env,
+            offset: Bias::default(),
+            linear: Linear::from(linear_biases),
+            quadratic: None,
+            // higher_order: None,
         }
     }
 
-    pub fn new_from_linear_with_constant(linear: Linear, constant: Constant) -> Self {
-        Self {
-            env_id: linear.env_id,
-            quadratic: Quadratic::empty(linear.env_id),
-            higher_order: HigherOrder::empty(linear.env_id),
-            constant,
-            linear,
-        }
-    }
-
-    pub fn new_from_linear(linear: Linear) -> Self {
-        Self {
-            env_id: linear.env_id,
-            constant: Constant::empty(),
-            quadratic: Quadratic::empty(linear.env_id),
-            higher_order: HigherOrder::empty(linear.env_id),
-            linear,
-        }
-    }
-
-    pub fn new_from_quadratic(quadratic: Quadratic) -> Self {
-        Self {
-            env_id: quadratic.env_id,
-            constant: Constant::empty(),
-            linear: Linear::empty(quadratic.env_id),
-            higher_order: HigherOrder::empty(quadratic.env_id),
-            quadratic,
-        }
-    }
-
-    pub fn new_from_higher_order(higher_order: HigherOrder) -> Self {
-        Self {
-            env_id: higher_order.env_id,
-            constant: Constant::empty(),
-            linear: Linear::empty(higher_order.env_id),
-            quadratic: Quadratic::empty(higher_order.env_id),
-            higher_order,
-        }
-    }
-
-    fn check_env_ids(
-        linear: &Linear,
-        quadratic: &Quadratic,
-        higher_order: &HigherOrder,
-    ) -> Result<(), DifferentEnvsError> {
-        if linear.env_id == quadratic.env_id && quadratic.env_id == higher_order.env_id {
-            Ok(())
-        } else {
-            Err(DifferentEnvsError)
-        }
-    }
-
-    fn check_env_id(&self, other: &Expression) -> Result<(), DifferentEnvsError> {
-        if self.env_id != other.env_id {
-            Err(DifferentEnvsError)
-        } else {
-            Ok(())
-        }
-    }
-
-    #[cfg(feature = "py")]
-    pub fn as_string(&self, environment: &Environment) -> String {
-        // let mut strings = vec![
-        //     self.higher_order.as_string(environment),
-        //     self.quadratic.as_string(environment),
-        //     self.linear.as_string(environment),
-        //     self.constant.as_string(),
-        // ];
-        // strings.retain(|s| s.chars().count() != 0);
-        // strings.join(" + ")
-        format!(
-            "constant: {}\nlinear: {}\nquadratic: {}\nhigher order: {}",
-            self.constant.as_string(),
-            self.linear.as_string(environment),
-            self.quadratic.as_string(environment),
-            self.higher_order.as_string(environment)
-        )
-    }
-}
-
-impl Add<f64> for &Expression {
-    type Output = Expression;
-
-    fn add(self, rhs: f64) -> Self::Output {
-        Expression::new_unchecked(
-            self.env_id,
-            self.constant.add(rhs),
-            self.linear.clone(),
-            self.quadratic.clone(),
-            self.higher_order.clone(),
-        )
-    }
-}
-
-impl Sub<f64> for &Expression {
-    type Output = Expression;
-
-    fn sub(self, rhs: f64) -> Self::Output {
-        Expression::new_unchecked(
-            self.env_id,
-            self.constant.sub(rhs),
-            self.linear.clone(),
-            self.quadratic.clone(),
-            self.higher_order.clone(),
-        )
-    }
-}
-
-impl Mul<f64> for &Expression {
-    type Output = Expression;
-
-    fn mul(self, rhs: f64) -> Self::Output {
-        if rhs == 0.0 {
-            Expression::empty(self.env_id)
-        } else {
-            Expression::new_unchecked(
-                self.env_id,
-                self.constant.mul(rhs),
-                TermFloatMultiplication::mul(&self.linear, rhs),
-                TermFloatMultiplication::mul(&self.quadratic, rhs),
-                TermFloatMultiplicationC::mul(&self.higher_order, rhs),
-            )
-        }
-    }
-}
-
-impl Mul<(&VarRef, &Environment)> for &Expression {
-    type Output = Result<Expression, DifferentEnvsError>;
-
-    fn mul(self, rhs: (&VarRef, &Environment)) -> Self::Output {
-        // We can use a little trick here to reuse the multiplication logic.
-        // No worries, nothing is computed that is not required.
-        // Multiplying an expression with a variable is the same as multiplication
-        // of the expression with a linear term, i.e., x = 1 * x, where 1 * x is the linear term.
-        // So let's create an empty expression with just a linear term that contains just the
-        // variable.
-        // We can then multiply self with this temporary other expression containing just the
-        // linear term which is just the variable...
-        let (varref, env) = rhs;
-        let linear_expression = Expression::new_from_linear(Linear::new((varref, 1.0)));
-        self.mul((&linear_expression, env))
-    }
-}
-
-impl Mul<(&Expression, &Environment)> for &Expression {
-    type Output = Result<Expression, DifferentEnvsError>;
-
-    fn mul(self, rhs: (&Expression, &Environment)) -> Self::Output {
-        let (other, env) = rhs;
-        self.check_env_id(other)?;
-
-        let mut outexpr = Expression::empty(self.env_id);
-        constant_times_expression(&self.constant, other, &mut outexpr);
-        linear_times_expression(&self.linear, other, env, &mut outexpr);
-        quadratic_times_expression(&self.quadratic, other, env, &mut outexpr);
-        higher_order_times_expression(&self.higher_order, other, env, &mut outexpr);
-        Ok(outexpr)
-    }
-}
-
-impl MulAssign<f64> for Expression {
-    fn mul_assign(&mut self, rhs: f64) {
-        if rhs == 0.0 {
-            self.constant.reset();
-            self.linear.reset();
-            self.quadratic.reset();
-            self.higher_order.reset();
-        } else {
-            self.constant.mul_assign(rhs);
-            self.linear.mul_assign(rhs);
-            self.quadratic.mul_assign(rhs);
-            self.higher_order.mul_assign(rhs);
-        }
-    }
-}
-
-impl MulAssign<(&Expression, &Environment)> for Expression {
-    fn mul_assign(&mut self, rhs: (&Expression, &Environment)) {
-        let new = self.mul(rhs).unwrap();
-        self.constant.set(&new.constant);
-        self.linear.set(&new.linear);
-        self.quadratic.set(&new.quadratic);
-        self.higher_order.set(&new.higher_order);
-        // We cannot mul_assign directly on `self` as we need to reuse
-        // the elements of self repeadately.
-    }
-}
-
-impl Add<&Expression> for &Expression {
-    type Output = Result<Expression, DifferentEnvsError>;
-
-    fn add(self, rhs: &Expression) -> Self::Output {
-        self.check_env_id(rhs)?;
-        Ok(Expression::new(
-            self.env_id,
-            self.constant.add(&rhs.constant),
-            self.linear.add(&rhs.linear),
-            self.quadratic.add(&rhs.quadratic),
-            self.higher_order.add(&rhs.higher_order),
-        )?)
-    }
-}
-
-impl AddAssign<&Expression> for Expression {
-    fn add_assign(&mut self, rhs: &Expression) {
-        // println!("Adding two expressions");
-        // let const_start = Instant::now();
-        self.constant.add_assign(&rhs.constant);
-        // let const_elapsed = const_start.elapsed();
-        // println!("Adding two Constants: {:?}", const_elapsed);
-        // let linear_start = Instant::now();
-        self.linear.add_assign(&rhs.linear);
-        // let linear_elapsed = linear_start.elapsed();
-        // println!("Adding two Linears: {:?}", linear_elapsed);
-        // let quad_start = Instant::now();
-        self.quadratic.add_assign(&rhs.quadratic);
-        // let quad_elapsed = quad_start.elapsed();
-        // println!("Adding two Quadratics: {:?}", quad_elapsed);
-        // let ho_start = Instant::now();
-        self.higher_order.add_assign(&rhs.higher_order);
-        // let ho_elapsed = ho_start.elapsed();
-        // println!("Adding two HigherOrders: {:?}", ho_elapsed);
-    }
-    // (self, rhs: &Expression) -> Self::Output {
-    //         Ok(Expression::new(
-    //             self.env_id,
-    //             self.constant.add(&rhs.constant),
-    //             self.linear.add(&rhs.linear),
-    //             self.quadratic.add(&rhs.quadratic),
-    //             self.higher_order.add(&rhs.higher_order),
-    //         )?)
-    //     }
-}
-
-#[cfg(feature = "py")]
-pub trait FailableAddAssign<T> {
-    fn add_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-}
-
-#[cfg(feature = "py")]
-impl FailableAddAssign<&Expression> for Expression {
-    fn add_assign(&mut self, rhs: &Expression) -> Result<(), DifferentEnvsError> {
-        self.check_env_id(rhs)?;
-        self.constant.add_assign(&rhs.constant);
-        self.linear.add_assign(&rhs.linear);
-        self.quadratic.add_assign(&rhs.quadratic);
-        self.higher_order.add_assign(&rhs.higher_order);
-        Ok(())
-    }
-}
-
-impl AddAssign<f64> for Expression {
-    fn add_assign(&mut self, rhs: f64) {
-        self.constant.add_assign(rhs);
-    }
-}
-
-impl Sub<&Expression> for &Expression {
-    type Output = Result<Expression, DifferentEnvsError>;
-
-    fn sub(self, rhs: &Expression) -> Self::Output {
-        self.check_env_id(rhs)?;
-        Ok(Expression::new(
-            self.env_id,
-            self.constant.sub(&rhs.constant),
-            self.linear.sub(&rhs.linear),
-            self.quadratic.sub(&rhs.quadratic),
-            self.higher_order.sub(&rhs.higher_order),
-        )?)
-    }
-}
-
-#[cfg(feature = "py")]
-pub trait FailableSubAssign<T> {
-    fn sub_assign(&mut self, rhs: T) -> Result<(), DifferentEnvsError>;
-}
-
-#[cfg(feature = "py")]
-impl FailableSubAssign<&Expression> for Expression {
-    fn sub_assign(&mut self, rhs: &Expression) -> Result<(), DifferentEnvsError> {
-        self.check_env_id(rhs)?;
-        self.constant.sub_assign(&rhs.constant);
-        self.linear.sub_assign(&rhs.linear);
-        self.quadratic.sub_assign(&rhs.quadratic);
-        self.higher_order.sub_assign(&rhs.higher_order);
-        Ok(())
-    }
-}
-
-impl SubAssign<f64> for Expression {
-    fn sub_assign(&mut self, rhs: f64) {
-        self.constant.sub_assign(rhs);
-    }
-}
-
-#[cfg(feature = "py")]
-#[pymethods]
-impl Expression {
-    fn __add__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
-        if let Ok(v) = other.extract::<f64>(py) {
-            Ok(self.add(v))
-        } else if let Ok(v) = &other.extract::<Expression>(py) {
-            self.add(v)
-                .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
-        } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
-        }
-    }
-
-    fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
-        if let Ok(v) = other.extract::<f64>(py) {
-            Ok(AddAssign::add_assign(self, v))
-        } else if let Ok(v) = &other.extract::<Expression>(py) {
-            FailableAddAssign::add_assign(self, v)
-                .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
-        } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
-        }
-    }
-
-    fn __sub__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
-        if let Ok(v) = other.extract::<f64>(py) {
-            Ok(self.sub(v))
-        } else if let Ok(v) = &other.extract::<Expression>(py) {
-            self.sub(v)
-                .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
-        } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
-        }
-    }
-
-    fn __isub__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
-        if let Ok(v) = other.extract::<f64>(py) {
-            Ok(SubAssign::sub_assign(self, v))
-        } else if let Ok(v) = &other.extract::<Expression>(py) {
-            FailableSubAssign::sub_assign(self, v)
-                .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
-        } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
-        }
-    }
-
-    fn to_string(&self, environment: &Environment) -> String {
-        self.as_string(environment)
-    }
-
-    // todo: for multiplications we require the environment, except for
-    // multiplication with a scaler value. => Change the input to default
-    // to a tuple containing the environment as the second element.
-    // On the Python side we need to change the implementation such that
-    // the environment is an optional parameter and is injected by default
-    // with the global default environment.
-    // fn __mul__(&self, py: Python, other: PyObject) -> PyResult<Expression> {
-    //     let (unkown, env) = other;
-    //     if let Ok(v) = unkown.extract::<f64>(py) {
-    //         Ok(self.mul(v))
-    //     } else if let Ok(v) = &unkown.extract::<VarRef>(py) {
-    //         self.mul((v, env))
-    //             .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
-    //     } else if let Ok(_) = &unkown.extract::<Expression>(py) {
-    //         unimplemented!()
-    //     } else {
-    //         Err(PyRuntimeError::new_err("unsopported type for operation"))
-    //     }
+    // fn add_variable(&mut self) -> Index {
+    //     self.add_variables(1.into())
     // }
 
-    fn multiply(&self, py: Python, value: PyObject, env: &Environment) -> PyResult<Expression> {
-        if let Ok(v) = value.extract::<f64>(py) {
-            Ok(self.mul(v))
-        } else if let Ok(v) = &value.extract::<VarRef>(py) {
-            self.mul((v, env))
-                .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
-        } else if let Ok(expr) = &value.extract::<Expression>(py) {
-            self.mul((expr, env))
-                .map_err(|e| DifferentEnvsException::new_err(e.to_string()))
-        } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+    // fn add_variables(&mut self, n: Index) -> Index {
+    //     let size = self.num_variables();
+    //     self.linear_biases.resize(size + n.into(), Bias::default());
+
+    //     if self.has_adj() {
+    //         let adj = self.adj.as_mut().unwrap();
+    //         adj.resize(size + n.into(), Vec::new());
+    //     }
+
+    //     size.into()
+    // }
+    fn resize(&mut self, n: Index) {
+        if self.has_quadratic() {
+            if n.into() < self.num_variables() {
+                let quadratic = self.quadratic.as_mut().unwrap();
+                for neighborhood in quadratic {
+                    if let Ok(pos) = neighborhood.binary_search_by(|term| term.index.cmp(&n)) {
+                        neighborhood.truncate(pos);
+                    }
+                }
+            }
+            self.quadratic.as_mut().unwrap().resize(n.into());
         }
+
+        self.linear.resize(n.into());
+
+        assert!(
+            !self.has_quadratic() || self.linear.len() == self.quadratic.as_ref().unwrap().len()
+        );
+    }
+
+    // fn vartype_(&self, v: Index) -> Vtype {
+    //     unimplemented!()
+    // }
+}
+
+impl<Index, Bias> ExpressionBase<Index, Bias> for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    // fn add_linear(&mut self, v: Index, bias: Bias) {
+    //     let v_idx = v.into();
+    //     assert!(v_idx < self.num_variables(), "v is out of range");
+    //     self.linear_biases[v_idx] += bias;
+    // }
+
+    // fn add_offset(&mut self, bias: Bias) {
+    //     self.offset += bias
+    // }
+
+    fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias) {
+        let u_idx = u.into();
+        let v_idx = v.into();
+
+        assert!(u_idx < self.num_variables(), "u is out of range");
+        assert!(v_idx < self.num_variables(), "u is out of range");
+        self.enforce_quadratic();
+
+        if u_idx == v_idx {
+            match self.vartype(u) {
+                Vtype::Binary => {
+                    // 1*1 == 1 and 0*0 == 0 so this is linear
+                    self.linear[u_idx] += bias;
+                }
+                Vtype::Spin => {
+                    // -1*-1 == +1*+1 == 1 so this is constant offset
+                    self.offset += bias;
+                }
+                _ => {
+                    // self-loop
+                    // dereferencing is perfectly fine here, zero-cost at runtime
+                    // only affects access in compile time, does not introduce any extra copy or
+                    // allocation.
+                    *self.asymmetric_quadratic_ref(u, u) += bias;
+                }
+            }
+        } else {
+            // We only store the upper right triangle matrix. Thus we need to check
+            // which index is smaller. This index is used for the outer access.
+            // The larger index is used for the smaller index's neighborhood.
+            if u_idx < v_idx {
+                *self.asymmetric_quadratic_ref(u, v) += bias;
+            } else {
+                *self.asymmetric_quadratic_ref(v, u) += bias;
+            }
+        }
+    }
+
+    fn add_quadratic_back(&mut self, u: Index, v: Index, bias: Bias) {
+        let u_idx = u.into();
+        let v_idx = v.into();
+
+        assert!(u_idx < self.num_variables(), "u is out of range");
+        assert!(v_idx < self.num_variables(), "u is out of range");
+        self.enforce_quadratic();
+
+        // Safe unwrap since we know it exists. due to the enforce_quadratic call.
+        let quadratic = self.quadratic.as_ref().unwrap();
+
+        assert!(
+            quadratic[v_idx].is_empty() || quadratic[v_idx].last().unwrap().index <= u,
+            "Index out of order: last index > u"
+        );
+        assert!(
+            quadratic[u_idx].is_empty() || quadratic[u_idx].last().unwrap().index <= v,
+            "Index out of order: last index > v"
+        );
+
+        if u_idx == v_idx {
+            match self.vartype(u) {
+                Vtype::Binary => {
+                    // 1*1 == 1 and 0*0 == 0 so this is linear
+                    // self.add_linear(u, bias);
+                    self.linear[u_idx] += bias;
+                }
+                Vtype::Spin => {
+                    // -1*-1 == +1*+1 == 1 so this is a constant offset
+                    self.offset += bias;
+                }
+                _ => {
+                    // self-loop
+                    self.quadratic.as_mut().unwrap()[u_idx].push(OneVarTerm::new(v, bias));
+                }
+            }
+        } else {
+            let quadratic = self.quadratic.as_mut().unwrap();
+            // We only store the upper right triangle matrix. Thus we need to check
+            // which index is smaller. This index is used for the outer access.
+            // The larger index is used for the smaller index's neighborhood.
+            if u_idx < v_idx {
+                quadratic[u_idx].push(OneVarTerm::new(v, bias));
+            } else {
+                quadratic[v_idx].push(OneVarTerm::new(u, bias));
+            }
+        }
+    }
+
+    fn add_quadratic_from_dense(&mut self, dense: &[Bias], num_variables: Index) {
+        let nvars = num_variables.into();
+
+        // assert!(0 <= nvars, "no variables");
+        assert!(
+            self.num_variables() <= nvars,
+            "more variables than in model"
+        );
+        self.enforce_quadratic();
+
+        if self.is_linear() {
+            for u in 0..nvars {
+                // diagonal
+                self.add_quadratic_back(u.into(), u.into(), dense[u * (nvars + 1)]);
+
+                // off-diagonal
+                for v in (u + 1)..nvars {
+                    let qbias = dense[u * nvars + v] + dense[v * nvars + u];
+
+                    if qbias != Bias::default() {
+                        self.add_quadratic_back(u.into(), v.into(), qbias);
+                    }
+                }
+            }
+        } else {
+            // we cannot rely on the ordering
+            for u in 0..nvars {
+                // diagonal
+                self.add_quadratic(u.into(), u.into(), dense[u * (nvars + 1)]);
+
+                // off-diagonal
+                for v in (u + 1)..nvars {
+                    let qbias = dense[u * nvars + v] + dense[v * nvars + u];
+
+                    if qbias != Bias::default() {
+                        self.add_quadratic(u.into(), v.into(), qbias);
+                    }
+                }
+            }
+        }
+    }
+
+    fn is_linear(&self) -> bool {
+        let quadratic = self.quadratic.as_ref().unwrap();
+        if self.has_quadratic() {
+            for n in quadratic {
+                if !n.is_empty() {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    fn num_variables(&self) -> SizeType {
+        self.linear.len()
+    }
+
+    // fn vartype(&self, v: Index) -> Vtype {
+    //     // self.env.as_ref().get()
+    // }
+}
+
+impl<Index, Bias> Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    /// Assumes quadratic exists!
+    /// Creates the bias if it doesn't already exist
+    fn asymmetric_quadratic_ref(&mut self, u: Index, v: Index) -> &mut Bias {
+        // fn asymmetric_quadratic_ref(&mut self, u: Index, v: Index) -> QuadraticModelResult<&mut Bias> {
+        let u_idx = u.into();
+        let v_idx = v.into();
+
+        assert!(u_idx < self.num_variables(), "u is out of range");
+        assert!(v_idx < self.num_variables(), "u is out of range");
+        assert!(self.has_quadratic(), "quadratic is not initialized");
+
+        let neighborhood: &mut Vec<OneVarTerm<Index, Bias>> = self
+            .quadratic
+            .as_mut()
+            .and_then(|quadratic| quadratic.get_mut(u_idx))
+            .expect("neighborhood should exist for the given index");
+
+        // Find the position where v should be inserted
+        let pos = neighborhood
+            .binary_search_by(|term| term.index.partial_cmp(&v).unwrap_or(Ordering::Equal))
+            .unwrap_or_else(|insert_pos| insert_pos);
+
+        if pos == neighborhood.len() || neighborhood[pos].index != v {
+            neighborhood.insert(pos, OneVarTerm::new_default(v));
+        }
+
+        &mut neighborhood[pos].bias
+    }
+
+    /// Create the quadraticacency structure if it doesn't already exist.
+    fn enforce_quadratic(&mut self) {
+        if !self.has_quadratic() {
+            self.quadratic = Some(Quadratic::new(self.num_variables()))
+        }
+    }
+
+    #[inline]
+    /// Return true if the model's quadraticacency structure exists.
+    fn has_quadratic(&self) -> bool {
+        self.quadratic.is_some()
     }
 }

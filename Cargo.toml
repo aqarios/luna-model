@@ -9,6 +9,7 @@ name = "_core"
 crate-type = ["cdylib"]
 
 [dependencies]
+derive_more = { version = "2.0.1", features = ["deref", "deref_mut"] }
 global_counter = "0.2.2"
 hashbrown = "0.15.2"
 nohash = "0.2.0"

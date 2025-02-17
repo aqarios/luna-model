@@ -1,41 +1,53 @@
-// use pyo3::exceptions::PyRuntimeError;
-#[cfg(feature = "py")]
-use pyo3::prelude::*;
+use std::rc::Rc;
 
-use super::{Environment, Expression};
+use super::expression::{ExpressionBase, ExpressionBaseInternal};
+use super::{variable::VarId, Environment, Expression};
 
-#[cfg_attr(feature = "py", pyclass)]
 pub struct Model {
     pub name: String,
-    pub objective: Expression,
+    pub objective: Expression<VarId, f64>,
     // a model has it's own environment. This allows us to define
     // the operations more easily on the model. Getting rid of the
     // problems involving environment passing for multiplication etc.
-    pub environment: Environment,
+    pub environment: Rc<Environment>,
     // pub constraints: Constraints,
     // pub variables: VariableStorage,
 }
 
 impl Model {
     pub fn new(name: Option<String>) -> Self {
-        let environment = Environment::new();
+        let rcenv = Rc::new(Environment::new());
         Self {
             name: name.unwrap_or(String::from("unnamed")),
-            objective: Expression::empty(environment.id),
-            environment,
-            // constraints: Constraints::empty(),
-            // variables: VariableStorage::empty(),
+            objective: Expression::new(rcenv.clone()),
+            environment: rcenv,
         }
+    }
+
+    pub fn new_from_dense(name: Option<String>, dense: &[f64], num_variables: VarId) -> Self {
+        let mut model = Model::new(name);
+        model.objective.resize(num_variables);
+        model
+            .objective
+            .add_quadratic_from_dense(dense, num_variables);
+        model
     }
 }
 
-#[cfg(feature = "py")]
-#[pymethods]
-impl Model {
-    fn __str__(&self) -> String {
-        self.objective.as_string(&self.environment)
-    }
-}
+// impl PyModel {
+//     pub fn new_from_dense(name: Option<String>, dense: &[f64], num_variables: VarId) -> Self {
+//         let inner = Model::new_from_dense(name, dense, num_variables);
+//         PyModel { inner }
+//     }
+// }
+
+// #[cfg(feature = "py")]
+// #[pymethods]
+// impl PyModel {
+//     // fn __str__(&self) -> String {
+//     //     self.objective.as_string(&self.environment)
+//     // }
+// }
 
 // impl Addition<f64> for Model {
 //     fn add_assign(&mut self, rhs: &f64) {
