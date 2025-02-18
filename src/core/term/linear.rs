@@ -1,4 +1,7 @@
-use std::ops::{Index, IndexMut};
+use std::{
+    cmp::max,
+    ops::{AddAssign, Index, IndexMut},
+};
 
 pub struct Linear<Bias> {
     biases: Vec<Bias>,
@@ -7,7 +10,7 @@ pub struct Linear<Bias> {
 impl<Bias> Linear<Bias>
 where
     // Idx: Into<SizeType>,
-    Bias: Default + Clone,
+    Bias: Default + Clone + Copy + AddAssign,
 {
     pub fn default() -> Self {
         Self { biases: Vec::new() }
@@ -15,7 +18,14 @@ where
 
     pub fn new_from_weighted_variable(var: usize, bias: Bias) -> Self {
         let mut out = Self::default();
-        out.biases.insert(var, bias);
+        out.biases.insert(var.into(), bias);
+        out
+    }
+
+    pub fn new_from_variables(lhs: usize, rhs: usize, bias: Bias) -> Self {
+        let mut out = Self::default();
+        out.biases.insert(lhs, bias);
+        out.biases.insert(rhs, bias);
         out
     }
 

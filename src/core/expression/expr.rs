@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::cmp::Ordering;
+use std::cmp::{max, Ordering};
 use std::rc::Rc;
 
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
@@ -42,11 +42,25 @@ where
         }
     }
 
-    fn new_from_weighted_variable(env: Rc<RefCell<Environment>>, var: Index, weight: Bias) -> Self {
+    fn new_from_weighted_variable(env: Rc<RefCell<Environment>>, var: Index, bias: Bias) -> Self {
         Self {
             env,
             offset: Bias::default(),
-            linear: Linear::new_from_weighted_variable(var.into(), weight),
+            linear: Linear::new_from_weighted_variable(var.into(), bias),
+            quadratic: None,
+        }
+    }
+
+    fn new_linear_from_variables(
+        env: Rc<RefCell<Environment>>,
+        lhs: Index,
+        rhs: Index,
+        bias: Bias,
+    ) -> Self {
+        Self {
+            env,
+            offset: Bias::default(),
+            linear: Linear::new_from_variables(lhs.into(), rhs.into(), bias),
             quadratic: None,
         }
     }
@@ -61,21 +75,22 @@ where
         }
     }
 
-    // fn add_variable(&mut self) -> Index {
-    //     self.add_variables(1.into())
-    // }
+    fn add_variable(&mut self) -> Index {
+        self.add_variables(1.into())
+    }
 
-    // fn add_variables(&mut self, n: Index) -> Index {
-    //     let size = self.num_variables();
-    //     self.linear_biases.resize(size + n.into(), Bias::default());
+    fn add_variables(&mut self, n: Index) -> Index {
+        let size = self.num_variables();
+        self.linear.resize(size + n.into());
 
-    //     if self.has_adj() {
-    //         let adj = self.adj.as_mut().unwrap();
-    //         adj.resize(size + n.into(), Vec::new());
-    //     }
+        if self.has_quadratic() {
+            let adj = self.quadratic.as_mut().unwrap();
+            adj.resize(size + n.into());
+        }
 
-    //     size.into()
-    // }
+        size.into()
+    }
+
     fn resize(&mut self, n: Index) {
         if self.has_quadratic() {
             if n.into() < self.num_variables() {
@@ -106,22 +121,28 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    // fn add_linear(&mut self, v: Index, bias: Bias) {
-    //     let v_idx = v.into();
-    //     assert!(v_idx < self.num_variables(), "v is out of range");
-    //     self.linear_biases[v_idx] += bias;
-    // }
+    fn add_linear(&mut self, v: Index, bias: Bias) {
+        let v_idx = v.into();
+        assert!(v_idx < self.num_variables(), "v is out of range");
+        self.linear[v_idx] += bias;
+    }
 
-    // fn add_offset(&mut self, bias: Bias) {
-    //     self.offset += bias
-    // }
+    fn add_offset(&mut self, bias: Bias) {
+        self.offset += bias
+    }
+
+    fn linear(&self, v: Index) -> Bias {
+        let v_idx = v.into();
+        assert!(v_idx < self.num_variables(), "v is out of range");
+        self.linear[v_idx]
+    }
 
     fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias) {
         let u_idx = u.into();
         let v_idx = v.into();
 
         assert!(u_idx < self.num_variables(), "u is out of range");
-        assert!(v_idx < self.num_variables(), "u is out of range");
+        assert!(v_idx < self.num_variables(), "v is out of range");
         self.enforce_quadratic();
 
         if u_idx == v_idx {

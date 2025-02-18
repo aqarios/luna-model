@@ -22,10 +22,10 @@ pub trait ExpressionBase<Index, Bias> {
     // - // todo: neighborhood iterators, start and end/ check if we really need this in rust
     // - // for linear and quadratic.
 
-    // - /// Add linear bias to variable `v`.
-    // - fn add_linear(&mut self, v: Index, bias: Bias);
-    // - /// Add offset.
-    // - fn add_offset(&mut self, bias: Bias);
+    /// Add linear bias to variable `v`.
+    fn add_linear(&mut self, v: Index, bias: Bias);
+    /// Add offset.
+    fn add_offset(&mut self, bias: Bias);
     /// Add interaction between variables `v` and `u`.
     fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias);
     /// Add quadratic bias for the given variables at the end of each other's neighborhoods.
@@ -75,8 +75,8 @@ pub trait ExpressionBase<Index, Bias> {
     // - // -     I: IndexConstraints;
     /// Test whether the model has no quadratic biases.
     fn is_linear(&self) -> bool;
-    // - // - /// The linear bias of variable `v`.
-    // - // - fn linear(&self, v: Index) -> Bias;
+    /// The linear bias of variable `v`.
+    fn linear(&self, v: Index) -> Bias;
     // - // - /// Return the number of interactions in the quadratic model.
     // - // - fn num_interactions(&self) -> SizeType;
     // - // - /// Return the number of other variables that `v` interacts with.
@@ -167,12 +167,18 @@ pub trait ExpressionBaseInternal<Index, Bias>: ExpressionBase<Index, Bias> {
     fn new(env: Rc<RefCell<Environment>>) -> Self;
     fn new_linear(env: Rc<RefCell<Environment>>, linear_biases: &Vec<Bias>) -> Self;
     fn new_from_weighted_variable(env: Rc<RefCell<Environment>>, var: Index, weight: Bias) -> Self;
-    // // fn new_linear_single(n: Index) -> Self;
-    // /// Increase the size of the model by one. Returns the index of the new variable.
-    // fn add_variable(&mut self) -> Index;
-    // /// Increase the size of the model by `n`. Returns the index of the first variable
-    // /// added.
-    // fn add_variables(&mut self, n: Index) -> Index;
+    fn new_linear_from_variables(
+        env: Rc<RefCell<Environment>>,
+        lhs: Index,
+        rhs: Index,
+        bias: Bias,
+    ) -> Self;
+    // fn new_linear_single(n: Index) -> Self;
+    /// Increase the size of the model by one. Returns the index of the new variable.
+    fn add_variable(&mut self) -> Index;
+    /// Increase the size of the model by `n`. Returns the index of the first variable
+    /// added.
+    fn add_variables(&mut self, n: Index) -> Index;
     // // todo: make this rusty -> makes sense to return a & here??
     // /// Return an empty neighborhood; useful when a variable does not have an adjacency.
     // // fn empty_neighborhood(&self) -> &Vec<OneVarTerm<Index, Bias>>;

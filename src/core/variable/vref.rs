@@ -53,7 +53,7 @@ impl Display for VarId {
 }
 
 // #[cfg_attr(feature = "py", pyclass(name = "Variable", subclass))]
-// #[derive(Clone)]
+#[derive(Clone)]
 pub struct VarRef {
     pub id: VarId,
     pub env: Rc<RefCell<Environment>>,
@@ -76,7 +76,7 @@ impl VarRef {
 
 impl Drop for VarRef {
     fn drop(&mut self) {
-        self.env.borrow_mut().drop_var(self.id)
+        self.env.borrow_mut().delete_var(self.id)
     }
 }
 

@@ -22,5 +22,8 @@ pub use variable::Vtype;
 // pub use term::QuadraticExpressionBaseInternal;
 // pub use term::{Linear, Quadratic};
 
+// todo: move the python exceptions to the py_bindings module
 #[cfg(feature = "py")]
 pub use exceptions::VariableExistsException;
+#[cfg(feature = "py")]
+pub use exceptions::VariablesFromDifferentEnvsException;

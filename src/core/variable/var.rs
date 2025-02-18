@@ -4,7 +4,7 @@
 use crate::core::environment::EnvId;
 
 // #[cfg_attr(feature = "py", pyclass(eq, eq_int))]
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Vtype {
     Real,
     Integer,
@@ -13,7 +13,7 @@ pub enum Vtype {
 }
 
 // #[cfg_attr(feature = "py", pyclass)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Bounds {
     pub lower: Option<f64>,
     pub upper: Option<f64>,
@@ -42,6 +42,7 @@ impl Vtype {
     }
 }
 
+#[derive(Debug)]
 pub struct Variable {
     pub name: String,
     pub vtype: Vtype,

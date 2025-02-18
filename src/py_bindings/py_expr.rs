@@ -1,14 +1,27 @@
-use crate::core::{Expression, VarId};
+use std::rc::Rc;
+
+use crate::core::{Expression, ExpressionBase, VarId};
 
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
 
+use super::py_var::PyVariable;
+
 #[pyclass(unsendable, name = "Expression")]
-#[derive(Deref, DerefMut)]
-pub struct PyExpression(pub Expression<VarId, f64>);
+#[derive(Deref, DerefMut, Clone)]
+pub struct PyExpression(pub Rc<Expression<VarId, f64>>);
 
 #[pymethods]
 impl PyExpression {
+    fn get_linear(&self, var: &PyVariable) -> f64 {
+        self.linear(var.id)
+    }
+
+    #[pyo3(name = "num_variables")]
+    fn get_num_variables(&self) -> usize {
+        self.num_variables()
+    }
+
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         todo!()
     }
@@ -27,10 +40,6 @@ impl PyExpression {
     fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         todo!()
     }
-    // check
-    // fn __pow__(&self, other: usize) -> PyResult<PyExpression> {
-    //     todo!()
-    // }
     // In place assignment
     fn __iadd__(&mut self, py: Python, other: PyObject) {
         todo!()
@@ -41,9 +50,6 @@ impl PyExpression {
     fn __imul__(&mut self, py: Python, other: PyObject) {
         todo!()
     }
-    // fn __ipow__(&mut self, other: usize) {
-    //     todo!()
-    // }
     // Unary operations
     fn __pos__(&mut self) {
         todo!()
