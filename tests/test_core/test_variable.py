@@ -5,16 +5,16 @@ from aq_models import Environment
 from aq_models import Expression
 
 
-# @pytest.mark.variable
-# def test_create_variable_default_environment():
-#     _ = Variable("x")
-#
-#
-# @pytest.mark.variable
-# def test_create_variable_del_create():
-#     x = Variable("x")
-#     del x
-#     _ = Variable("x")
+@pytest.mark.variable
+def test_create_variable_default_environment():
+    _ = Variable("x")
+
+
+@pytest.mark.variable
+def test_create_variable_del_create():
+    x = Variable("x")
+    del x
+    _ = Variable("x")
 
 
 @pytest.mark.variable
