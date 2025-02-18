@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use super::expression::{ExpressionBase, ExpressionBaseInternal};
@@ -9,14 +10,14 @@ pub struct Model {
     // a model has it's own environment. This allows us to define
     // the operations more easily on the model. Getting rid of the
     // problems involving environment passing for multiplication etc.
-    pub environment: Rc<Environment>,
+    pub environment: Rc<RefCell<Environment>>,
     // pub constraints: Constraints,
     // pub variables: VariableStorage,
 }
 
 impl Model {
     pub fn new(name: Option<String>) -> Self {
-        let rcenv = Rc::new(Environment::new());
+        let rcenv = Rc::new(RefCell::new(Environment::new()));
         Self {
             name: name.unwrap_or(String::from("unnamed")),
             objective: Expression::new(rcenv.clone()),

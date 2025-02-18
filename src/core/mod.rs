@@ -1,4 +1,4 @@
-mod environment;
+pub mod environment;
 mod exceptions;
 mod expression;
 // pub mod higher_order_operations;
@@ -9,6 +9,8 @@ mod variable;
 
 pub use environment::Environment;
 pub use expression::Expression;
+pub use expression::ExpressionBase;
+pub use expression::ExpressionBaseInternal;
 pub use model::Model;
 pub use variable::Bounds;
 pub use variable::VarId;

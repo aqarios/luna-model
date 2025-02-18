@@ -1,6 +1,6 @@
 // use std::ops::{Add, Mul};
 
-use std::fmt::Display;
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 // #[cfg(feature = "py")]
 // use pyo3::exceptions::PyRuntimeError;
@@ -8,7 +8,7 @@ use std::fmt::Display;
 // use pyo3::prelude::*;
 
 use crate::core::{
-    environment::EnvId,
+    Environment,
     // exceptions::VariablesFromDifferentEnvsError,
     // expression::Expression,
     // term::{Constant, Linear, Quadratic},
@@ -25,7 +25,7 @@ use crate::core::{
 // use super::{Bounds, Vtype};
 
 #[derive(Clone, Copy, Default, Eq, Ord, PartialEq, PartialOrd, Hash)]
-pub struct VarId(u32);
+pub struct VarId(pub u32);
 
 impl Into<usize> for VarId {
     fn into(self) -> usize {
@@ -56,23 +56,27 @@ impl Display for VarId {
 // #[derive(Clone)]
 pub struct VarRef {
     pub id: VarId,
-    pub env_id: EnvId,
+    pub env: Rc<RefCell<Environment>>,
+    // pub env_id: EnvId,
 }
 
 impl VarRef {
-    pub fn new(id: u32, env_id: EnvId) -> Self {
-        Self {
-            id: VarId(id),
-            env_id,
-        }
+    pub fn new(id: u32, env: Rc<RefCell<Environment>>) -> Self {
+        Self { id: VarId(id), env }
     }
 
-    pub fn new_from_id(id: VarId, env_id: EnvId) -> Self {
-        Self { id, env_id }
+    pub fn new_from_id(id: VarId, env: Rc<RefCell<Environment>>) -> Self {
+        Self { id, env }
     }
 
     pub fn key(&self) -> u64 {
         self.id.into()
+    }
+}
+
+impl Drop for VarRef {
+    fn drop(&mut self) {
+        self.env.borrow_mut().drop_var(self.id)
     }
 }
 

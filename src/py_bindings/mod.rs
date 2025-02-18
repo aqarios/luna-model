@@ -5,6 +5,7 @@ mod py_matrix_translator;
 mod py_model;
 mod py_var;
 mod py_vtype;
+mod utils;
 
 use pyo3::prelude::*;
 

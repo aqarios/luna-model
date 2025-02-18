@@ -4,6 +4,8 @@ pub struct OneVarTerm<Index, Bias> {
     pub bias: Bias,
 }
 
+pub type SizeType = usize;
+
 pub trait OneVarTermConstruction<Index, Bias> {
     fn new(index: Index, bias: Bias) -> Self;
     fn new_default(index: Index) -> Self;

@@ -5,9 +5,7 @@ use pyo3::prelude::*;
 
 #[pyclass(unsendable, name = "Expression")]
 #[derive(Deref, DerefMut)]
-pub struct PyExpression {
-    inner: Expression<VarId, f64>,
-}
+pub struct PyExpression(pub Expression<VarId, f64>);
 
 #[pymethods]
 impl PyExpression {

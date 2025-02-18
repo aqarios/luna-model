@@ -1,20 +1,19 @@
+use std::cell::RefCell;
 use std::cmp::Ordering;
 use std::rc::Rc;
 
-use crate::core::term::types::{OneVarTerm, OneVarTermConstruction};
+use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::{Environment, Vtype};
 
-use super::base::{
-    BiasConstraints, ExpressionBase, ExpressionBaseInternal, IndexConstraints, SizeType,
-};
+use super::base::{BiasConstraints, ExpressionBase, ExpressionBaseInternal, IndexConstraints};
 
 pub struct Expression<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    pub env: Rc<Environment>,
+    pub env: Rc<RefCell<Environment>>,
     pub offset: Bias,
     pub linear: Linear<Bias>,
     pub quadratic: Option<Quadratic<Index, Bias>>,
@@ -33,7 +32,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn new(env: Rc<Environment>) -> Self {
+    fn new(env: Rc<RefCell<Environment>>) -> Self {
         Self {
             env,
             offset: Bias::default(),
@@ -43,7 +42,16 @@ where
         }
     }
 
-    fn new_linear(env: Rc<Environment>, linear_biases: &Vec<Bias>) -> Self {
+    fn new_from_weighted_variable(env: Rc<RefCell<Environment>>, var: Index, weight: Bias) -> Self {
+        Self {
+            env,
+            offset: Bias::default(),
+            linear: Linear::new_from_weighted_variable(var.into(), weight),
+            quadratic: None,
+        }
+    }
+
+    fn new_linear(env: Rc<RefCell<Environment>>, linear_biases: &Vec<Bias>) -> Self {
         Self {
             env,
             offset: Bias::default(),

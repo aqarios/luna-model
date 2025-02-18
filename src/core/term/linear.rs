@@ -6,10 +6,17 @@ pub struct Linear<Bias> {
 
 impl<Bias> Linear<Bias>
 where
+    // Idx: Into<SizeType>,
     Bias: Default + Clone,
 {
     pub fn default() -> Self {
         Self { biases: Vec::new() }
+    }
+
+    pub fn new_from_weighted_variable(var: usize, bias: Bias) -> Self {
+        let mut out = Self::default();
+        out.biases.insert(var, bias);
+        out
     }
 
     pub fn len(&self) -> usize {

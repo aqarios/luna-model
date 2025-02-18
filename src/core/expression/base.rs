@@ -1,10 +1,9 @@
+use std::cell::RefCell;
 use std::ops::{Add, AddAssign};
 use std::rc::Rc;
 
-use crate::core::term::types::ExpressionResult;
+use crate::core::term::types::SizeType;
 use crate::core::{Environment, Vtype};
-
-pub type SizeType = usize;
 
 pub trait IndexConstraints:
     Copy + Default + PartialOrd + Ord + Into<SizeType> + From<SizeType>
@@ -165,8 +164,9 @@ pub trait ExpressionBase<Index, Bias> {
 
 // todo: needs a better name.
 pub trait ExpressionBaseInternal<Index, Bias>: ExpressionBase<Index, Bias> {
-    fn new(env: Rc<Environment>) -> Self;
-    fn new_linear(env: Rc<Environment>, linear_biases: &Vec<Bias>) -> Self;
+    fn new(env: Rc<RefCell<Environment>>) -> Self;
+    fn new_linear(env: Rc<RefCell<Environment>>, linear_biases: &Vec<Bias>) -> Self;
+    fn new_from_weighted_variable(env: Rc<RefCell<Environment>>, var: Index, weight: Bias) -> Self;
     // // fn new_linear_single(n: Index) -> Self;
     // /// Increase the size of the model by one. Returns the index of the new variable.
     // fn add_variable(&mut self) -> Index;
