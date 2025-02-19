@@ -1,7 +1,4 @@
-use std::{
-    cmp::max,
-    ops::{AddAssign, Index, IndexMut},
-};
+use std::ops::{AddAssign, Index, IndexMut};
 
 pub struct Linear<Bias> {
     biases: Vec<Bias>,
