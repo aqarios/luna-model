@@ -19,7 +19,7 @@ use crate::core::{
 fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Add version information to the python module
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    // Add components.
+    // Add core components.
     m.add_class::<py_env::PyEnvironment>()?;
     m.add_class::<py_expr::PyExpression>()?;
     m.add_class::<py_matrix_translator::PyMatrixTranslator>()?;
@@ -27,9 +27,6 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_var::PyVariable>()?;
     m.add_class::<py_vtype::PyVtype>()?;
     m.add_class::<py_bounds::PyBounds>()?;
-
-    // m.add_class::<Bounds>()?;
-    // m.add_class::<Vtype>()?;
     // Adding the exceptions
     m.add(
         "VariableExistsException",
