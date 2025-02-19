@@ -1,5 +1,6 @@
 use std::ops::{AddAssign, Index, IndexMut};
 
+#[derive(Clone)]
 pub struct Linear<Bias> {
     biases: Vec<Bias>,
 }

@@ -2,6 +2,7 @@ use std::ops::{Index, IndexMut};
 
 use super::types::OneVarTerm;
 
+#[derive(Clone)]
 pub struct Quadratic<Index, Bias> {
     adj: Vec<Vec<OneVarTerm<Index, Bias>>>,
 }

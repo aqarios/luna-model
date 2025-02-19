@@ -43,41 +43,57 @@ def test_create_variable_in_double_context():
                 _ = Variable("x")
 
 
-# @pytest.mark.variable
-# def test_create_variable_with_same_name_different_evironment():
-#     _ = Variable("x")
-#     _ = Variable("x", env=Environment())
-#
-#
-# @pytest.mark.variable
-# def test_add_variable_and_float():
-#     x = Variable("x")
-#     result = x + 1
-#     assert type(result) == Expression
-#     assert result.num_variables() == 1
-#     assert result.get_linear(x) == 1
-#
-#
-# @pytest.mark.variable
-# def test_add_two_variables():
-#     x = Variable("x")
-#     y = Variable("y")
-#     result = x + y
-#     assert type(result) == Expression
-#     assert result.num_variables() == 2
-#     assert result.get_linear(x) == 1
-#     assert result.get_linear(y) == 1
-#
-#
-# @pytest.mark.variable
-# def test_expression_add_variable():
-#     x, y, z = Variable("x"), Variable("y"), Variable("z")
-#     expr = x + y
-#     expr2 = expr + z
-#
-#
-# @pytest.mark.variable
-# def test_variable_add_expression():
-#     x, y, z = Variable("x"), Variable("y"), Variable("z")
-#     expr = x + y
-#     expr2 = z + expr
+@pytest.mark.variable
+def test_create_variable_with_same_name_different_evironment():
+    env1 = Environment()
+    env2 = Environment()
+    _ = Variable("x", env1)
+    _ = Variable("x", env2)
+
+
+@pytest.mark.variable
+def test_create_variable_with_same_name_different_evironment_context():
+    with Environment():
+        _ = Variable("x")
+    with Environment():
+        _ = Variable("x")
+
+
+@pytest.mark.variable
+def test_add_variable_and_float():
+    with Environment():
+        x = Variable("x")
+
+    result = x + 1
+    assert type(result) == Expression
+    assert result.num_variables() == 1
+    assert result.get_linear(x) == 1
+
+
+@pytest.mark.variable
+def test_add_two_variables():
+    with Environment():
+        x = Variable("x")
+        y = Variable("y")
+
+    result = x + y
+    assert type(result) == Expression
+    assert result.num_variables() == 2
+    assert result.get_linear(x) == 1
+    assert result.get_linear(y) == 1
+
+
+@pytest.mark.variable
+def test_variable_add_expression():
+    with Environment():
+        x, y, z = Variable("x"), Variable("y"), Variable("z")
+    expr = x + y
+    expr2 = z + expr
+
+
+@pytest.mark.variable
+def test_expression_add_variable():
+    with Environment():
+        x, y, z = Variable("x"), Variable("y"), Variable("z")
+    expr = x + y
+    expr2 = expr + z

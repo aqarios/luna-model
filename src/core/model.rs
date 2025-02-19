@@ -1,21 +1,31 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use super::expression::{ExpressionBase, ExpressionBaseInternal};
-use super::{variable::VarId, Environment, Expression};
+use super::expression::{
+    BiasConstraints, ExpressionBase, ExpressionBaseInternal, IndexConstraints,
+};
+use super::{Environment, Expression};
 
-pub struct Model {
+pub struct Model<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
     pub name: String,
-    pub objective: Expression<VarId, f64>,
+    pub objective: Expression<Index, Bias>,
     // a model has it's own environment. This allows us to define
     // the operations more easily on the model. Getting rid of the
     // problems involving environment passing for multiplication etc.
-    pub environment: Rc<RefCell<Environment>>,
+    pub environment: Rc<RefCell<Environment<Index>>>,
     // pub constraints: Constraints,
     // pub variables: VariableStorage,
 }
 
-impl Model {
+impl<Index, Bias> Model<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
     pub fn new(name: Option<String>) -> Self {
         let rcenv = Rc::new(RefCell::new(Environment::new()));
         Self {
@@ -25,7 +35,7 @@ impl Model {
         }
     }
 
-    pub fn new_from_dense(name: Option<String>, dense: &[f64], num_variables: VarId) -> Self {
+    pub fn new_from_dense(name: Option<String>, dense: &[Bias], num_variables: Index) -> Self {
         let mut model = Model::new(name);
         model.objective.resize(num_variables);
         model

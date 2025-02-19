@@ -5,17 +5,30 @@ use std::rc::Rc;
 use crate::core::term::types::SizeType;
 use crate::core::{Environment, Vtype};
 
+pub trait One {
+    fn one() -> Self;
+}
+
 pub trait IndexConstraints:
-    Copy + Default + PartialOrd + Ord + Into<SizeType> + From<SizeType>
+    Copy + Default + PartialOrd + Ord + Into<SizeType> + From<SizeType> + AddAssign + One
 {
 }
-impl<T: Copy + Default + PartialOrd + Ord + Into<SizeType> + From<SizeType>> IndexConstraints
-    for T
+impl<T: Copy + Default + PartialOrd + Ord + Into<SizeType> + From<SizeType> + AddAssign + One>
+    IndexConstraints for T
 {
 }
 
-pub trait BiasConstraints: Copy + Default + AddAssign + Add<Output = Self> + PartialEq {}
-impl<T: Copy + Default + AddAssign + Add<Output = T> + PartialEq> BiasConstraints for T {}
+pub trait BiasConstraints:
+    Copy + Default + AddAssign + Add<Output = Self> + PartialEq + One
+{
+}
+impl<T: Copy + Default + AddAssign + Add<Output = T> + PartialEq + One> BiasConstraints for T {}
+
+impl One for f64 {
+    fn one() -> Self {
+        1.0
+    }
+}
 
 pub trait ExpressionBase<Index, Bias> {
     // - // todo: add_quadratic for row, col (arrays) and row, col iterators. (2 extra fns)
@@ -163,12 +176,21 @@ pub trait ExpressionBase<Index, Bias> {
 }
 
 // todo: needs a better name.
-pub trait ExpressionBaseInternal<Index, Bias>: ExpressionBase<Index, Bias> {
-    fn new(env: Rc<RefCell<Environment>>) -> Self;
-    fn new_linear(env: Rc<RefCell<Environment>>, linear_biases: &Vec<Bias>) -> Self;
-    fn new_from_weighted_variable(env: Rc<RefCell<Environment>>, var: Index, weight: Bias) -> Self;
+pub trait ExpressionBaseInternal<Index, Bias>: ExpressionBase<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn new(env: Rc<RefCell<Environment<Index>>>) -> Self;
+    fn new_from(other: &Self) -> Self;
+    fn new_linear(env: Rc<RefCell<Environment<Index>>>, linear_biases: &Vec<Bias>) -> Self;
+    fn new_from_weighted_variable(
+        env: Rc<RefCell<Environment<Index>>>,
+        var: Index,
+        weight: Bias,
+    ) -> Self;
     fn new_linear_from_variables(
-        env: Rc<RefCell<Environment>>,
+        env: Rc<RefCell<Environment<Index>>>,
         lhs: Index,
         rhs: Index,
         bias: Bias,

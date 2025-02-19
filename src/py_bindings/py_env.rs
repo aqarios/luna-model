@@ -1,13 +1,13 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::core::{Environment, MultipleActiveEnvironmentsException};
+use crate::core::{Environment, MultipleActiveEnvironmentsException, VarId};
 
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
 
 #[pyclass(unsendable, name = "Environment")]
 #[derive(Deref, DerefMut, Clone)]
-pub struct PyEnvironment(pub Rc<RefCell<Environment>>);
+pub struct PyEnvironment(pub Rc<RefCell<Environment<VarId>>>);
 
 impl PyEnvironment {
     fn new() -> Self {

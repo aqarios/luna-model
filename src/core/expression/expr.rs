@@ -1,10 +1,13 @@
 use std::cell::RefCell;
-use std::cmp::{max, Ordering};
+use std::cmp::Ordering;
+use std::ops::Add;
 use std::rc::Rc;
 
+use crate::core::exceptions::VariablesFromDifferentEnvsError;
+use crate::core::operations::AddToExpression;
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
-use crate::core::{Environment, Vtype};
+use crate::core::{Environment, VarRef, Vtype};
 
 use super::base::{BiasConstraints, ExpressionBase, ExpressionBaseInternal, IndexConstraints};
 
@@ -13,7 +16,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    pub env: Rc<RefCell<Environment>>,
+    pub env: Rc<RefCell<Environment<Index>>>,
     pub offset: Bias,
     pub linear: Linear<Bias>,
     pub quadratic: Option<Quadratic<Index, Bias>>,
@@ -27,12 +30,62 @@ where
 {
 }
 
+impl<Index, Bias> AddToExpression<Index, Bias, Bias> for &Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Expression<Index, Bias>;
+    fn add(self, rhs: Bias) -> Self::Output {
+        let mut out = Expression::new_from(&self);
+        out.add_offset(rhs);
+        out
+    }
+}
+
+impl<Index, Bias> AddToExpression<Index, Bias, &VarRef<Index>> for &Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    fn add(self, rhs: &VarRef<Index>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            let mut out = Expression::new_from(&self);
+            out.add_linear(rhs.id, Bias::one());
+            Ok(out)
+        }
+    }
+}
+
+impl<Index, Bias> AddToExpression<Index, Bias, &Expression<Index, Bias>>
+    for &Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    fn add(self, rhs: &Expression<Index, Bias>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            todo!()
+            // let mut out = Expression::new_from(&self);
+            // out.add_linear_from(rhs.linear);
+            // out.add_quadratic_from(rhs.quadratic);
+            // Ok(out)
+        }
+    }
+}
+
 impl<Index, Bias> ExpressionBaseInternal<Index, Bias> for Expression<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn new(env: Rc<RefCell<Environment>>) -> Self {
+    fn new(env: Rc<RefCell<Environment<Index>>>) -> Self {
         Self {
             env,
             offset: Bias::default(),
@@ -42,7 +95,20 @@ where
         }
     }
 
-    fn new_from_weighted_variable(env: Rc<RefCell<Environment>>, var: Index, bias: Bias) -> Self {
+    fn new_from(other: &Self) -> Self {
+        Self {
+            env: other.env.clone(),
+            offset: other.offset,
+            linear: other.linear.clone(),
+            quadratic: other.quadratic.clone(),
+        }
+    }
+
+    fn new_from_weighted_variable(
+        env: Rc<RefCell<Environment<Index>>>,
+        var: Index,
+        bias: Bias,
+    ) -> Self {
         Self {
             env,
             offset: Bias::default(),
@@ -52,7 +118,7 @@ where
     }
 
     fn new_linear_from_variables(
-        env: Rc<RefCell<Environment>>,
+        env: Rc<RefCell<Environment<Index>>>,
         lhs: Index,
         rhs: Index,
         bias: Bias,
@@ -65,7 +131,7 @@ where
         }
     }
 
-    fn new_linear(env: Rc<RefCell<Environment>>, linear_biases: &Vec<Bias>) -> Self {
+    fn new_linear(env: Rc<RefCell<Environment<Index>>>, linear_biases: &Vec<Bias>) -> Self {
         Self {
             env,
             offset: Bias::default(),
@@ -76,10 +142,15 @@ where
     }
 
     fn add_variable(&mut self) -> Index {
-        self.add_variables(1.into())
+        self.add_variables(Index::one())
     }
 
     fn add_variables(&mut self, n: Index) -> Index {
+        if n == Index::default() {
+            // the index is 0.
+            self.add_variable();
+        }
+
         let size = self.num_variables();
         self.linear.resize(size + n.into());
 
@@ -123,6 +194,10 @@ where
 {
     fn add_linear(&mut self, v: Index, bias: Bias) {
         let v_idx = v.into();
+
+        // Instead of panic, if the variable is not in the current expression, we add
+        // it
+        self.add_variables(v);
         assert!(v_idx < self.num_variables(), "v is out of range");
         self.linear[v_idx] += bias;
     }

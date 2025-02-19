@@ -1,9 +1,9 @@
 pub mod environment;
 mod exceptions;
-mod expression;
+pub mod expression;
 // pub mod higher_order_operations;
 mod model;
-// pub mod operations;
+pub mod operations;
 mod term;
 mod variable;
 

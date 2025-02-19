@@ -1,10 +1,11 @@
 use crate::core::{
     exceptions::VariableExistsError,
-    variable::{Bounds, VarId, VarRef, Variable, Vtype},
+    expression::IndexConstraints,
+    variable::{Bounds, VarRef, Variable, Vtype},
 };
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
-use std::{cell::RefCell, rc::Rc, usize};
+use std::{cell::RefCell, rc::Rc};
 
 pub type EnvId = u8;
 
@@ -52,11 +53,11 @@ static ENV_COUNTER: CounterU8 = CounterU8::new(0);
 //     }
 // }
 
-pub struct Environment {
+pub struct Environment<Index> {
     pub id: EnvId,
     pub variables: Vec<Variable>,
-    pub variables_lookup: HashMap<String, VarId>,
-    pub varcount: u32,
+    pub variables_lookup: HashMap<String, Index>,
+    pub varcount: Index,
     // u32 should be by far enough information for all vars (4_294_967_295)
     // Stuff to track variables for deletion logic.
     // pub deadcount: u32,
@@ -64,13 +65,16 @@ pub struct Environment {
     // pub deadvars: Vec<VarId>,
 }
 
-impl Environment {
+impl<Index> Environment<Index>
+where
+    Index: IndexConstraints,
+{
     pub fn new() -> Self {
         Self {
             id: ENV_COUNTER.get(),
             variables: Vec::new(),
             variables_lookup: HashMap::new(),
-            varcount: 0,
+            varcount: Index::default(),
             // deadvars: Vec::new(),
             // deadcount: 0,
             // largest_dead: 0,
@@ -180,12 +184,12 @@ impl Environment {
 //     }
 // }
 
-pub fn add_varibale(
-    env: Rc<RefCell<Environment>>,
+pub fn add_varibale<Index: IndexConstraints>(
+    env: Rc<RefCell<Environment<Index>>>,
     name: &String,
     vtype: Option<&Vtype>,
     bounds: Option<&Bounds>,
-) -> Result<VarRef, VariableExistsError> {
+) -> Result<VarRef<Index>, VariableExistsError> {
     let mut mutable_env = env.borrow_mut();
     if mutable_env.variables_lookup.contains_key(name) == true {
         return Err(VariableExistsError);
@@ -208,13 +212,11 @@ pub fn add_varibale(
     //     mutable_env.variables.push(var);
     // }
 
-    let varid = mutable_env.varcount;
+    let id = mutable_env.varcount;
     mutable_env.variables.push(var);
-    mutable_env
-        .variables_lookup
-        .insert(name.to_string(), VarId(varid));
-    mutable_env.varcount += 1;
-    Ok(VarRef::new(varid, env.clone()))
+    mutable_env.variables_lookup.insert(name.to_string(), id);
+    mutable_env.varcount += Index::one();
+    Ok(VarRef::new(id, env.clone()))
 }
 
 // impl Environment {

@@ -1,15 +1,26 @@
-use std::rc::Rc;
+use std::{ops::Add, rc::Rc};
 
-use crate::core::{Expression, ExpressionBase, VarId};
+use crate::core::{
+    operations::AddToExpression, Expression, ExpressionBase, VarId,
+    VariablesFromDifferentEnvsException,
+};
 
 use derive_more::{Deref, DerefMut};
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyRuntimeError, prelude::*};
 
 use super::py_var::PyVariable;
 
+type Expr = Expression<VarId, f64>;
+
 #[pyclass(unsendable, name = "Expression")]
 #[derive(Deref, DerefMut, Clone)]
-pub struct PyExpression(pub Rc<Expression<VarId, f64>>);
+pub struct PyExpression(pub Rc<Expr>);
+
+impl PyExpression {
+    pub fn new(expression: Expr) -> Self {
+        Self(Rc::new(expression))
+    }
+}
 
 #[pymethods]
 impl PyExpression {
@@ -23,7 +34,19 @@ impl PyExpression {
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        todo!()
+        if let Ok(rhs) = other.extract::<f64>(py) {
+            Ok(PyExpression::new(self.add(rhs)))
+        } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
+            self.add(rhs.as_ref())
+                .map(|e| PyExpression::new(e))
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
+            self.add(rhs.as_ref())
+                .map(|e| PyExpression::new(e))
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else {
+            Err(PyRuntimeError::new_err("unsopported type for operation"))
+        }
     }
     fn __radd__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         todo!()
