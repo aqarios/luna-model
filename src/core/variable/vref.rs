@@ -74,11 +74,11 @@ impl VarRef {
     }
 }
 
-impl Drop for VarRef {
-    fn drop(&mut self) {
-        self.env.borrow_mut().delete_var(self.id)
-    }
-}
+// impl Drop for VarRef {
+//     fn drop(&mut self) {
+//         self.env.borrow_mut().delete_var(self.id)
+//     }
+// }
 
 // impl Add<&VarRef> for &VarRef {
 //     type Output = Result<Expression, VariablesFromDifferentEnvsError>;

@@ -5,9 +5,12 @@ mod py_matrix_translator;
 mod py_model;
 mod py_var;
 mod py_vtype;
-mod utils;
 
 use pyo3::prelude::*;
+
+use crate::core::{
+    MultipleActiveEnvironmentsException, NoActiveEnvironmentFoundException, VariableExistsException,
+};
 
 /// A Python module implemented in Rust. The name of this function must match
 /// the `lib.name` setting in the `Cargo.toml`, else Python will not be able to
@@ -28,9 +31,17 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // m.add_class::<Bounds>()?;
     // m.add_class::<Vtype>()?;
     // Adding the exceptions
-    // m.add(
-    //     "VariableExistsException",
-    //     m.py().get_type::<VariableExistsException>(),
-    // )?;
+    m.add(
+        "VariableExistsException",
+        m.py().get_type::<VariableExistsException>(),
+    )?;
+    m.add(
+        "NoActiveEnvironmentFoundException",
+        m.py().get_type::<NoActiveEnvironmentFoundException>(),
+    )?;
+    m.add(
+        "MultipleActiveEnvironmentsException",
+        m.py().get_type::<MultipleActiveEnvironmentsException>(),
+    )?;
     Ok(())
 }

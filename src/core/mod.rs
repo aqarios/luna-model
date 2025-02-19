@@ -24,6 +24,10 @@ pub use variable::Vtype;
 
 // todo: move the python exceptions to the py_bindings module
 #[cfg(feature = "py")]
+pub use exceptions::MultipleActiveEnvironmentsException;
+#[cfg(feature = "py")]
+pub use exceptions::NoActiveEnvironmentFoundException;
+#[cfg(feature = "py")]
 pub use exceptions::VariableExistsException;
 #[cfg(feature = "py")]
 pub use exceptions::VariablesFromDifferentEnvsException;

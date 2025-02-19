@@ -1,11 +1,11 @@
 use std::rc::Rc;
 
-use super::py_env::PyEnvironment;
+use super::py_env::{PyEnvironment, CURRENT_ENV};
 use super::py_vtype::PyVtype;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::{
-    environment, Expression, ExpressionBaseInternal, VarRef, VariableExistsException,
-    VariablesFromDifferentEnvsException,
+    environment, Expression, ExpressionBaseInternal, NoActiveEnvironmentFoundException, VarRef,
+    VariableExistsException, VariablesFromDifferentEnvsException,
 };
 
 use derive_more::{Deref, DerefMut};
@@ -19,14 +19,23 @@ pub struct PyVariable(Rc<VarRef>);
 #[pymethods]
 impl PyVariable {
     #[new]
-    #[pyo3(signature=(name, env, vtype=None, bounds=None))]
+    #[pyo3(signature=(name, env=None, vtype=None, bounds=None))]
     fn new(
         name: String,
-        env: &mut PyEnvironment,
+        env: Option<&mut PyEnvironment>,
         vtype: Option<PyVtype>,
         bounds: Option<PyBounds>,
     ) -> PyResult<Self> {
-        environment::add_varibale(env.clone(), &name, vtype.as_deref(), bounds.as_deref())
+        let env: PyEnvironment = match env {
+            Some(env) => env.clone(),
+            None => CURRENT_ENV.with(|current| {
+                current.borrow().clone().ok_or_else(|| {
+                    NoActiveEnvironmentFoundException::new_err("no active environment found.")
+                })
+            })?,
+        };
+
+        environment::add_varibale(env.0, &name, vtype.as_deref(), bounds.as_deref())
             .map(|v| PyVariable(Rc::new(v)))
             .map_err(|e| VariableExistsException::new_err(format!("{}: {}", e.to_string(), name)))
     }

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import overload
+from typing import Any, overload
 from numpy.typing import NDArray
 
 class Vtype(Enum):
@@ -20,15 +20,10 @@ class Expression:
     # def __add__(self, other: float) -> Expression: ...
 
 class Variable:
-    @overload
-    def __init__(
-        self, name: str, vtype: Vtype | None = ..., bounds: Bounds | None = ...
-    ) -> None: ...
-    @overload
     def __init__(
         self,
         name: str,
-        env: Environment,
+        env: Environment | None = ...,
         vtype: Vtype | None = ...,
         bounds: Bounds | None = ...,
     ) -> None: ...
@@ -51,9 +46,22 @@ class Variable:
     @overload
     def __add__(self, other: float) -> Expression: ...
 
-class Environment: ...
+class Environment:
+    def __init__(self) -> None: ...
+    def __enter__(self) -> Any: ...
+    def __exit__(self, exc_type, exc_value, exc_traceback) -> None: ...
+
 class Model: ...
 
 class MatrixTranslator:
     @staticmethod
     def to_model(qubo: NDArray, name: str | None = ...) -> Model: ...
+
+class VariableExistsException(Exception):
+    def __str__(self) -> str: ...
+
+class NoActiveEnvironmentFoundException(Exception):
+    def __str__(self) -> str: ...
+
+class MultipleActiveEnvironmentsException(Exception):
+    def __str__(self) -> str: ...

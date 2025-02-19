@@ -12,6 +12,10 @@ create_exception!(aq_models, VariableExistsException, PyException);
 create_exception!(aq_models, VariablesFromDifferentEnvsException, PyException);
 #[cfg(feature = "py")]
 create_exception!(aq_models, DifferentEnvsException, PyException);
+#[cfg(feature = "py")]
+create_exception!(aq_models, NoActiveEnvironmentFoundException, PyException);
+#[cfg(feature = "py")]
+create_exception!(aq_models, MultipleActiveEnvironmentsException, PyException);
 
 #[derive(Debug, Clone)]
 pub struct VariableExistsError;
