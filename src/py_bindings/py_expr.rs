@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::core::{
-    operations::{AddAssignToExpression, AddToExpression},
+    operations::{AddAssignToExpression, AddToExpression, MulToExpression},
     Expression, ExpressionBase, VarId, VariablesFromDifferentEnvsException,
 };
 
@@ -36,6 +36,12 @@ impl PyExpression {
         self.borrow().quadratic(u.id, v.id)
     }
 
+    fn get_higher_order(&self, vars: Vec<PyVariable>) -> f64 {
+        // todo: optimize the iter away...
+        self.borrow()
+            .higher_order(&vars.iter().map(|v| v.id).collect())
+    }
+
     #[pyo3(name = "num_variables")]
     fn get_num_variables(&self) -> usize {
         self.borrow().num_variables()
@@ -68,7 +74,23 @@ impl PyExpression {
         todo!()
     }
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        todo!()
+        if let Ok(rhs) = other.extract::<f64>(py) {
+            Ok(PyExpression::new(self.borrow().mul(rhs)))
+        } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
+            todo!()
+            // self.borrow()
+            //     .mul(rhs.as_ref())
+            //     .map(|e| PyExpression::new(e))
+            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
+            todo!()
+            // self.borrow()
+            //     .mul(rhs.borrow())
+            //     .map(|e| PyExpression::new(e))
+            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else {
+            Err(PyRuntimeError::new_err("unsopported type for operation"))
+        }
     }
     fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         todo!()

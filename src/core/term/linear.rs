@@ -1,9 +1,11 @@
 use std::{
     cmp::max,
     iter::Enumerate,
-    ops::{AddAssign, Index, IndexMut},
+    ops::{AddAssign, Index, IndexMut, MulAssign},
     slice::{Iter, IterMut},
 };
+
+use crate::core::expression::BiasConstraints;
 
 // todo: we need a Linear trait to allow for better interchangeability...
 // Currently the expression traits use the structs directly. I don't like this...
@@ -56,6 +58,17 @@ where
 
     pub fn resize(&mut self, new_len: usize) {
         self.biases.resize(new_len, Bias::default());
+    }
+}
+
+impl<Bias> MulAssign<Bias> for Linear<Bias>
+where
+    Bias: BiasConstraints,
+{
+    fn mul_assign(&mut self, rhs: Bias) {
+        for b in self.biases.iter_mut() {
+            *b *= rhs;
+        }
     }
 }
 

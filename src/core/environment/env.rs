@@ -53,6 +53,7 @@ static ENV_COUNTER: CounterU8 = CounterU8::new(0);
 //     }
 // }
 
+#[derive(Debug)]
 pub struct Environment<Index> {
     pub id: EnvId,
     pub variables: Vec<Variable>,

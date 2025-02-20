@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use std::rc::Rc;
 
 use crate::core::exceptions::VariablesFromDifferentEnvsError;
-use crate::core::operations::{AddAssignToExpression, AddToExpression};
+use crate::core::operations::{AddAssignToExpression, AddToExpression, MulToExpression};
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::{Environment, VarRef, Vtype};
@@ -38,6 +38,27 @@ where
     fn add(self, rhs: Bias) -> Self::Output {
         let mut out = Expression::new_from(&self);
         out.add_offset(rhs);
+        out
+    }
+}
+
+impl<Index, Bias> MulToExpression<Index, Bias, Bias> for &Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Expression<Index, Bias>;
+
+    fn mul(self, rhs: Bias) -> Self::Output {
+        let mut out = Expression::new_from(&self);
+        out.offset *= rhs;
+        out.linear *= rhs;
+        if out.has_quadratic() {
+            *out.quadratic.as_mut().unwrap() *= rhs;
+        }
+        if out.has_higher_order() {
+            *out.higher_order.as_mut().unwrap() *= rhs;
+        }
         out
     }
 }
@@ -407,6 +428,15 @@ where
         match pos {
             Ok(p) => neighborhood[p].bias,
             Err(_) => Bias::default(),
+        }
+    }
+
+    fn higher_order(&self, indices: &Vec<Index>) -> Bias {
+        if self.has_higher_order() {
+            let ho = self.higher_order.as_ref().unwrap();
+            ho[indices]
+        } else {
+            Bias::default()
         }
     }
 

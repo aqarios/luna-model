@@ -56,7 +56,7 @@ impl Into<u64> for VarId {
 //     }
 // }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct VarRef<Index> {
     pub id: Index,
     pub env: Rc<RefCell<Environment<Index>>>,

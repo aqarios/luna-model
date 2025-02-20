@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::fmt::Debug;
-use std::ops::{Add, AddAssign};
+use std::ops::{Add, AddAssign, MulAssign};
 use std::rc::Rc;
 
 use crate::core::term::types::SizeType;
@@ -40,11 +40,11 @@ impl<
 }
 
 pub trait BiasConstraints:
-    Debug + Copy + Default + AddAssign + Add<Output = Self> + PartialEq + One
+    Debug + Copy + Default + AddAssign + Add<Output = Self> + PartialEq + One + MulAssign
 {
 }
-impl<T: Debug + Copy + Default + AddAssign + Add<Output = T> + PartialEq + One> BiasConstraints
-    for T
+impl<T: Debug + Copy + Default + AddAssign + Add<Output = T> + PartialEq + One + MulAssign>
+    BiasConstraints for T
 {
 }
 
@@ -138,7 +138,12 @@ pub trait ExpressionBase<Index, Bias> {
     ///
     /// Note that this function does not return a reference because
     /// each quadratic bias is stored twice.
+    /// // todo: we might be able to change this, as we store it just once.
     fn quadratic(&self, u: Index, v: Index) -> Bias;
+    /// Return the higher order bias associated with the indices
+    ///
+    /// If indices do not have a quadratic bias, return 0;
+    fn higher_order(&self, indices: &Vec<Index>) -> Bias;
     // - /// return the quadratic bias associated with `u` and `v`.
     // - ///
     // - /// Note that this function does not return a reference because

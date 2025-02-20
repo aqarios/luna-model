@@ -1,6 +1,6 @@
 use std::{
     marker::PhantomData,
-    ops::{Index, IndexMut},
+    ops::{Index, IndexMut, MulAssign},
 };
 
 use hashbrown::{hash_map::Iter, HashMap};
@@ -38,6 +38,18 @@ where
 
     pub fn iter(&self) -> Iter<String, Bias> {
         self.biases.iter()
+    }
+}
+
+impl<Index, Bias> MulAssign<Bias> for HigherOrder<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn mul_assign(&mut self, rhs: Bias) {
+        for (_, value) in self.biases.iter_mut() {
+            *value *= rhs;
+        }
     }
 }
 

@@ -1,8 +1,10 @@
 use std::{
     iter::Enumerate,
-    ops::{Index, IndexMut},
+    ops::{Index, IndexMut, MulAssign},
     slice::Iter,
 };
+
+use crate::core::expression::BiasConstraints;
 
 use super::types::OneVarTerm;
 
@@ -49,6 +51,19 @@ where
 //         todo!()
 //     }
 // }
+//
+impl<Index, Bias> MulAssign<Bias> for Quadratic<Index, Bias>
+where
+    Bias: BiasConstraints,
+{
+    fn mul_assign(&mut self, rhs: Bias) {
+        for neighborhood in self.adj.iter_mut() {
+            for term in neighborhood.iter_mut() {
+                term.bias *= rhs;
+            }
+        }
+    }
+}
 
 // Iterator struct
 pub struct QuadraticIter<'a, Index, Bias> {

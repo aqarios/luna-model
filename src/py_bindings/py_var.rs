@@ -13,7 +13,7 @@ use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 
 #[pyclass(unsendable, subclass, name = "Variable")]
-#[derive(Deref, DerefMut, Clone)]
+#[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyVariable(pub Rc<VarRef<VarId>>);
 
 impl PyVariable {
