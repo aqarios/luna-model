@@ -3,7 +3,7 @@ use std::rc::Rc;
 use super::py_env::{PyEnvironment, CURRENT_ENV};
 use super::py_vtype::PyVtype;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
-use crate::core::operations::AddToExpression;
+use crate::core::operations::{AddToExpression, MulToExpression};
 use crate::core::{
     environment, NoActiveEnvironmentFoundException, VarId, VarRef, VariableExistsException,
     VariablesFromDifferentEnvsException,
@@ -64,20 +64,22 @@ impl PyVariable {
         }
     }
 
-    // fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-    //     if let Ok(rhs) = other.extract::<f64>(py) {
-    //         Ok(PyExpression::new(self.mul(rhs)))
-    //     } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-    //         self.mul(rhs.as_ref())
-    //             .map(|e| PyExpression::new(e))
-    //             .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
-    //     } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-    //         rhs.borrow()
-    //             .mul(self.as_ref())
-    //             .map(|e| PyExpression::new(e))
-    //             .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
-    //     } else {
-    //         Err(PyRuntimeError::new_err("unsopported type for operation"))
-    //     }
-    // }
+    fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        if let Ok(rhs) = other.extract::<f64>(py) {
+            Ok(PyExpression::new(self.mul(rhs)))
+        } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
+            todo!()
+            // self.mul(rhs.as_ref())
+            //     .map(|e| PyExpression::new(e))
+            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
+            todo!()
+            // rhs.borrow()
+            //     .mul(self.as_ref())
+            //     .map(|e| PyExpression::new(e))
+            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else {
+            Err(PyRuntimeError::new_err("unsopported type for operation"))
+        }
+    }
 }

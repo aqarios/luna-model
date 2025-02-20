@@ -217,7 +217,7 @@ where
         }
     }
 
-    fn new_from_weighted_variable(
+    fn new_linear_from_weighted_variable(
         env: Rc<RefCell<Environment<Index>>>,
         var: Index,
         bias: Bias,

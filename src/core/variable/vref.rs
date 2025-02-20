@@ -4,7 +4,7 @@ use crate::core::{
     // exceptions::VariablesFromDifferentEnvsError,
     exceptions::VariablesFromDifferentEnvsError,
     expression::{BiasConstraints, IndexConstraints, One},
-    operations::AddToExpression,
+    operations::{AddToExpression, MulToExpression},
     Environment,
     Expression,
     ExpressionBaseInternal,
@@ -83,7 +83,7 @@ where
     type Output = Expression<Index, Bias>;
 
     fn add(self, rhs: Bias) -> Self::Output {
-        Expression::new_from_weighted_variable(self.env.clone(), self.id, rhs)
+        Expression::new_linear_from_weighted_variable(self.env.clone(), self.id, rhs)
     }
 }
 
@@ -105,6 +105,18 @@ where
                 Bias::one(),
             ))
         }
+    }
+}
+
+impl<Index, Bias> MulToExpression<Index, Bias, Bias> for &VarRef<Index>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Expression<Index, Bias>;
+
+    fn mul(self, rhs: Bias) -> Self::Output {
+        Expression::new_linear_from_weighted_variable(self.env.clone(), self.id, rhs)
     }
 }
 

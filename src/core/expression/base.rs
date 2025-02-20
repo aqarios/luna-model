@@ -204,7 +204,7 @@ where
     fn new(env: Rc<RefCell<Environment<Index>>>) -> Self;
     fn new_from(other: &Self) -> Self;
     fn new_linear(env: Rc<RefCell<Environment<Index>>>, linear_biases: &Vec<Bias>) -> Self;
-    fn new_from_weighted_variable(
+    fn new_linear_from_weighted_variable(
         env: Rc<RefCell<Environment<Index>>>,
         var: Index,
         weight: Bias,
