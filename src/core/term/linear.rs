@@ -1,4 +1,5 @@
 use std::{
+    cmp::max,
     iter::Enumerate,
     ops::{AddAssign, Index, IndexMut},
     slice::{Iter, IterMut},
@@ -21,6 +22,12 @@ where
         Self { biases: Vec::new() }
     }
 
+    pub fn with_size(size: usize) -> Self {
+        let mut biases = Vec::with_capacity(size);
+        biases.resize(size, Bias::default());
+        Self { biases }
+    }
+
     pub fn new_from_weighted_variable(var: usize, bias: Bias) -> Self {
         let mut out = Self::default();
         out.biases.insert(var.into(), bias);
@@ -28,9 +35,9 @@ where
     }
 
     pub fn new_from_variables(lhs: usize, rhs: usize, bias: Bias) -> Self {
-        let mut out = Self::default();
-        out.biases.insert(lhs, bias);
-        out.biases.insert(rhs, bias);
+        let mut out = Self::with_size(max(lhs, rhs) + 1);
+        out[lhs] += bias;
+        out[rhs] += bias;
         out
     }
 

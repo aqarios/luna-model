@@ -1,0 +1,92 @@
+import pytest
+
+from typing import Tuple
+
+from aq_models import Variable
+from aq_models import Environment
+from aq_models import Expression
+
+
+@pytest.fixture
+def variables(request) -> Tuple[Variable, ...]:
+    with Environment():
+        variables = [Variable(f"{i}") for i in range(request.param)]
+    return tuple(variables)
+
+
+@pytest.mark.variable
+@pytest.mark.parametrize("variables", [3], indirect=True)
+def test_expression_add_variable(variables):
+    x, y, z = variables
+
+    expr = x + y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    result = expr + z
+    assert type(result) == Expression
+    assert result.num_variables() == 3
+    assert result.get_linear(x) == 1
+    assert result.get_linear(y) == 1
+    assert result.get_linear(z) == 1
+
+
+@pytest.mark.variable
+@pytest.mark.parametrize("variables", [3], indirect=True)
+def test_expression_instanceadd_variable(variables):
+    x, y, z = variables
+
+    expr = x + y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    expr += z
+    assert type(expr) == Expression
+    assert expr.num_variables() == 3
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+    assert expr.get_linear(z) == 1
+
+
+@pytest.mark.variable
+@pytest.mark.parametrize("variables", [3], indirect=True)
+def test_expression_instanceadd_variable_twice(variables):
+    x, y, z = variables
+
+    expr = x + y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    expr += z
+    expr += z
+    assert type(expr) == Expression
+    assert expr.num_variables() == 3
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+    assert expr.get_linear(z) == 2
+
+
+@pytest.mark.variable
+@pytest.mark.parametrize("variables", [3], indirect=True)
+def test_expression_add_float(variables):
+    x, y, z = variables
+
+    expr = x + y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    expr += z
+    expr += z
+    assert type(expr) == Expression
+    assert expr.num_variables() == 3
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+    assert expr.get_linear(z) == 2
