@@ -339,6 +339,10 @@ where
         self.offset += bias
     }
 
+    fn offset(&self) -> Bias {
+        self.offset
+    }
+
     fn add_linear(&mut self, v: Index, bias: Bias) {
         let v_idx = v.into();
 

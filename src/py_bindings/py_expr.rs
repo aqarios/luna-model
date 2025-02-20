@@ -28,6 +28,10 @@ impl PyExpression {
         self.borrow().linear(var.id)
     }
 
+    fn get_offset(&self) -> f64 {
+        self.borrow().offset()
+    }
+
     #[pyo3(name = "num_variables")]
     fn get_num_variables(&self) -> usize {
         self.borrow().num_variables()

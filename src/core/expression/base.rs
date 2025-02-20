@@ -116,8 +116,8 @@ pub trait ExpressionBase<Index, Bias> {
     // - // - fn num_interactions_variable(&self, v: Index) -> SizeType;
     /// Return the number of variables in the quadratic model.
     fn num_variables(&self) -> SizeType;
-    // - /// Return the offset.
-    // - fn offset(&self) -> Bias;
+    /// Return the offset.
+    fn offset(&self) -> Bias;
     // - /// Return the quadratic bias associated with `u` and `v`.
     // - ///
     // - /// If `u` and `v` do not have a quadratic bias, return 0;

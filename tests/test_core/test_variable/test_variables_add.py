@@ -6,14 +6,15 @@ from aq_models import Expression
 
 
 @pytest.mark.variable
-def test_add_variable_and_float():
+@pytest.mark.parametrize("scalar", [1, 2, 3])
+def test_add_variable_and_number(scalar: int):
     with Environment():
         x = Variable("x")
 
-    result = x + 1
+    result = x + scalar
     assert type(result) == Expression
     assert result.num_variables() == 1
-    assert result.get_linear(x) == 1
+    assert result.get_linear(x) == scalar
 
 
 @pytest.mark.variable

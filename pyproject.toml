@@ -27,7 +27,8 @@ cache-keys = [
 
 [tool.pytest.ini_options]
 markers = [
-  "variable"
+  "variable",
+  "expression"
 ]
 
 [tool.maturin]

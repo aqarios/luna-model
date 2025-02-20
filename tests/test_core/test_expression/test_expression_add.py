@@ -14,7 +14,20 @@ def variables(request) -> Tuple[Variable, ...]:
     return tuple(variables)
 
 
-@pytest.mark.variable
+@pytest.fixture
+def variable() -> Variable:
+    with Environment():
+        return Variable("variable")
+
+
+@pytest.fixture
+def expression() -> Expression:
+    with Environment():
+        a, b = Variable("expression_a"), Variable("expression_b")
+    return a + b
+
+
+@pytest.mark.expression
 @pytest.mark.parametrize("variables", [3], indirect=True)
 def test_expression_add_variable(variables):
     x, y, z = variables
@@ -33,7 +46,26 @@ def test_expression_add_variable(variables):
     assert result.get_linear(z) == 1
 
 
-@pytest.mark.variable
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [2], indirect=True)
+def test_expression_add_number(variables):
+    x, y = variables
+
+    expr = x + y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    expr = expr + 2
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_offset() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+
+@pytest.mark.expression
 @pytest.mark.parametrize("variables", [3], indirect=True)
 def test_expression_instanceadd_variable(variables):
     x, y, z = variables
@@ -52,7 +84,7 @@ def test_expression_instanceadd_variable(variables):
     assert expr.get_linear(z) == 1
 
 
-@pytest.mark.variable
+@pytest.mark.expression
 @pytest.mark.parametrize("variables", [3], indirect=True)
 def test_expression_instanceadd_variable_twice(variables):
     x, y, z = variables
@@ -72,10 +104,10 @@ def test_expression_instanceadd_variable_twice(variables):
     assert expr.get_linear(z) == 2
 
 
-@pytest.mark.variable
-@pytest.mark.parametrize("variables", [3], indirect=True)
-def test_expression_add_float(variables):
-    x, y, z = variables
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [2], indirect=True)
+def test_expression_instanceadd_number(variables):
+    x, y = variables
 
     expr = x + y
     assert type(expr) == Expression
@@ -83,10 +115,8 @@ def test_expression_add_float(variables):
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
-    expr += z
-    expr += z
+    expr += 2
     assert type(expr) == Expression
-    assert expr.num_variables() == 3
+    assert expr.num_variables() == 2
+    assert expr.get_offset() == 2
     assert expr.get_linear(x) == 1
-    assert expr.get_linear(y) == 1
-    assert expr.get_linear(z) == 2
