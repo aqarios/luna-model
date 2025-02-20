@@ -3,6 +3,7 @@ use std::ops::{Add, AddAssign};
 use std::rc::Rc;
 
 use crate::core::term::types::SizeType;
+use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::{Environment, Vtype};
 
 pub trait One {
@@ -10,11 +11,20 @@ pub trait One {
 }
 
 pub trait IndexConstraints:
-    Copy + Default + PartialOrd + Ord + Into<SizeType> + From<SizeType> + AddAssign + One
+    Copy + Default + PartialOrd + Ord + Into<SizeType> + From<SizeType> + AddAssign + One + ToString
 {
 }
-impl<T: Copy + Default + PartialOrd + Ord + Into<SizeType> + From<SizeType> + AddAssign + One>
-    IndexConstraints for T
+impl<
+        T: Copy
+            + Default
+            + PartialOrd
+            + Ord
+            + Into<SizeType>
+            + From<SizeType>
+            + AddAssign
+            + One
+            + ToString,
+    > IndexConstraints for T
 {
 }
 
@@ -35,12 +45,22 @@ pub trait ExpressionBase<Index, Bias> {
     // - // todo: neighborhood iterators, start and end/ check if we really need this in rust
     // - // for linear and quadratic.
 
-    /// Add linear bias to variable `v`.
-    fn add_linear(&mut self, v: Index, bias: Bias);
     /// Add offset.
     fn add_offset(&mut self, bias: Bias);
+    /// Add linear bias to variable `v`.
+    fn add_linear(&mut self, v: Index, bias: Bias);
+    /// Add linear biases from another linear term.
+    fn add_linear_from(&mut self, other: &Linear<Bias>);
     /// Add interaction between variables `v` and `u`.
     fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias);
+    /// Add quadratic biases from another quadratic term.
+    fn add_quadratic_from(&mut self, other: &Quadratic<Index, Bias>);
+    /// Add interaction between variables in `indices`.
+    fn add_higher_order_direct(&mut self, index: &String, bias: Bias);
+    /// Add interaction between variables in `indices`.
+    fn add_higher_order(&mut self, indices: &Vec<Index>, bias: Bias);
+    /// Add higher order biases from another higher order term.
+    fn add_higher_order_from(&mut self, other: &HigherOrder<Index, Bias>);
     /// Add quadratic bias for the given variables at the end of each other's neighborhoods.
     ///
     /// # Arguments

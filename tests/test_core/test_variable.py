@@ -88,7 +88,17 @@ def test_variable_add_expression():
     with Environment():
         x, y, z = Variable("x"), Variable("y"), Variable("z")
     expr = x + y
-    expr2 = z + expr
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    result = z + expr
+    assert type(result) == Expression
+    assert result.num_variables() == 3
+    assert result.get_linear(x) == 1
+    assert result.get_linear(y) == 1
+    assert result.get_linear(z) == 1
 
 
 @pytest.mark.variable
@@ -96,4 +106,70 @@ def test_expression_add_variable():
     with Environment():
         x, y, z = Variable("x"), Variable("y"), Variable("z")
     expr = x + y
-    expr2 = expr + z
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    result = expr + z
+    assert type(result) == Expression
+    assert result.num_variables() == 3
+    assert result.get_linear(x) == 1
+    assert result.get_linear(y) == 1
+    assert result.get_linear(z) == 1
+
+
+@pytest.mark.variable
+def test_expression_add_variable_twice():
+    with Environment():
+        x, y, z = Variable("x"), Variable("y"), Variable("z")
+    expr = x + y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    result = expr + z
+    result = result + z
+    assert type(result) == Expression
+    assert result.num_variables() == 3
+    assert result.get_linear(x) == 1
+    assert result.get_linear(y) == 1
+    assert result.get_linear(z) == 2
+
+
+@pytest.mark.variable
+def test_expression_instanceadd_variable():
+    with Environment():
+        x, y, z = Variable("x"), Variable("y"), Variable("z")
+    expr = x + y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    expr += z
+    assert type(expr) == Expression
+    assert expr.num_variables() == 3
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+    assert expr.get_linear(z) == 1
+
+
+@pytest.mark.variable
+def test_expression_instanceadd_variable_twice():
+    with Environment():
+        x, y, z = Variable("x"), Variable("y"), Variable("z")
+    expr = x + y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    expr += z
+    expr += z
+    assert type(expr) == Expression
+    assert expr.num_variables() == 3
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+    assert expr.get_linear(z) == 2

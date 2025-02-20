@@ -25,6 +25,12 @@ impl AddAssign<VarId> for VarId {
     }
 }
 
+impl ToString for VarId {
+    fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+}
+
 impl Into<usize> for VarId {
     fn into(self) -> usize {
         self.0 as usize
@@ -44,11 +50,11 @@ impl Into<u64> for VarId {
     }
 }
 
-impl Display for VarId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
+// impl Display for VarId {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(f, "{}", self.0)
+//     }
+// }
 
 #[derive(Clone)]
 pub struct VarRef<Index> {

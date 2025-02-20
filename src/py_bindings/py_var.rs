@@ -55,7 +55,8 @@ impl PyVariable {
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            rhs.add(self.as_ref())
+            rhs.borrow()
+                .add(self.as_ref())
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {

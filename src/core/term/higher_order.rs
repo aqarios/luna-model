@@ -1,5 +1,89 @@
-use hashbrown::HashMap;
+use std::{
+    marker::PhantomData,
+    ops::{Index, IndexMut},
+};
 
+use hashbrown::{hash_map::Iter, HashMap};
+
+use crate::core::expression::{BiasConstraints, IndexConstraints};
+
+static DELIMITER: &str = "-";
+
+#[derive(Clone)]
 pub struct HigherOrder<Index, Bias> {
-    biases: HashMap<Index, Bias>,
+    biases: HashMap<String, Bias>,
+    phantom_data: PhantomData<Index>, // required for compiler to acknowledge the Index
+}
+
+impl<Index, Bias> HigherOrder<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    pub fn default() -> Self {
+        Self {
+            biases: HashMap::default(),
+            phantom_data: PhantomData,
+        }
+    }
+    fn make_key(index: &Vec<Index>) -> String {
+        let mut indices = index.clone();
+        indices.sort();
+        indices
+            .into_iter()
+            .map(|i| i.to_string())
+            .collect::<Vec<String>>()
+            .join(DELIMITER)
+    }
+
+    pub fn iter(&self) -> Iter<String, Bias> {
+        self.biases.iter()
+    }
+}
+
+impl<Idx, Bias> Index<&Vec<Idx>> for HigherOrder<Idx, Bias>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Bias;
+    fn index(&self, index: &Vec<Idx>) -> &Self::Output {
+        let key = Self::make_key(index);
+        // todo: Should handle the unwrap better...
+        self.biases.get(&key).unwrap()
+    }
+}
+
+impl<Idx, Bias> IndexMut<&Vec<Idx>> for HigherOrder<Idx, Bias>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn index_mut(&mut self, index: &Vec<Idx>) -> &mut Self::Output {
+        let key = Self::make_key(index);
+        // todo: Should handle the unwrap better...
+        self.biases.get_mut(&key).unwrap()
+    }
+}
+
+impl<Idx, Bias> Index<&String> for HigherOrder<Idx, Bias>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Bias;
+
+    fn index(&self, index: &String) -> &Self::Output {
+        self.biases.get(index).unwrap()
+    }
+}
+
+impl<Idx, Bias> IndexMut<&String> for HigherOrder<Idx, Bias>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn index_mut(&mut self, index: &String) -> &mut Self::Output {
+        self.biases.get_mut(index).unwrap()
+    }
 }

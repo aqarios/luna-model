@@ -1,4 +1,8 @@
-use std::ops::{Index, IndexMut};
+use std::{
+    iter::Enumerate,
+    ops::{Index, IndexMut},
+    slice::Iter,
+};
 
 use super::types::OneVarTerm;
 
@@ -28,7 +32,23 @@ where
     pub fn get_mut(&mut self, idx: usize) -> Option<&mut Vec<OneVarTerm<Index, Bias>>> {
         self.adj.get_mut(idx)
     }
+
+    pub fn iter(&self) -> Enumerate<Iter<Vec<OneVarTerm<Index, Bias>>>> {
+        self.adj.iter().enumerate()
+    }
+
+    // pub fn iter_mut(&mut self) -> IterMut<(Index, Index, Bias)> {
+    //     unimplemented!()
+    // }
 }
+
+// impl<Index, Bias> Iterator for Quadratic<Index, Bias> {
+//     type Item = (Index, Index, Bias);
+//
+//     fn next(&mut self) -> Option<Self::Item> {
+//         todo!()
+//     }
+// }
 
 // Iterator struct
 pub struct QuadraticIter<'a, Index, Bias> {

@@ -1,8 +1,8 @@
-use std::{ops::Add, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::core::{
-    operations::AddToExpression, Expression, ExpressionBase, VarId,
-    VariablesFromDifferentEnvsException,
+    operations::{AddAssignToExpression, AddToExpression},
+    Expression, ExpressionBase, VarId, VariablesFromDifferentEnvsException,
 };
 
 use derive_more::{Deref, DerefMut};
@@ -14,34 +14,36 @@ type Expr = Expression<VarId, f64>;
 
 #[pyclass(unsendable, name = "Expression")]
 #[derive(Deref, DerefMut, Clone)]
-pub struct PyExpression(pub Rc<Expr>);
+pub struct PyExpression(pub Rc<RefCell<Expr>>);
 
 impl PyExpression {
     pub fn new(expression: Expr) -> Self {
-        Self(Rc::new(expression))
+        Self(Rc::new(RefCell::new(expression)))
     }
 }
 
 #[pymethods]
 impl PyExpression {
     fn get_linear(&self, var: &PyVariable) -> f64 {
-        self.linear(var.id)
+        self.borrow().linear(var.id)
     }
 
     #[pyo3(name = "num_variables")]
     fn get_num_variables(&self) -> usize {
-        self.num_variables()
+        self.borrow().num_variables()
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         if let Ok(rhs) = other.extract::<f64>(py) {
-            Ok(PyExpression::new(self.add(rhs)))
+            Ok(PyExpression::new(self.borrow().add(rhs)))
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            self.add(rhs.as_ref())
+            self.borrow()
+                .add(rhs.as_ref())
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            self.add(rhs.as_ref())
+            self.borrow()
+                .add(rhs.borrow())
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
@@ -64,8 +66,20 @@ impl PyExpression {
         todo!()
     }
     // In place assignment
-    fn __iadd__(&mut self, py: Python, other: PyObject) {
-        todo!()
+    fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
+        if let Ok(rhs) = other.extract::<f64>(py) {
+            Ok(self.borrow_mut().add_assign(rhs))
+        } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
+            self.borrow_mut()
+                .add_assign(rhs.as_ref())
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
+            self.borrow_mut()
+                .add_assign(rhs.borrow())
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else {
+            Err(PyRuntimeError::new_err("unsopported type for operation"))
+        }
     }
     fn __isub__(&mut self, py: Python, other: PyObject) {
         todo!()

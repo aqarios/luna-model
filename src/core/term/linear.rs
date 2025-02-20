@@ -1,4 +1,11 @@
-use std::ops::{AddAssign, Index, IndexMut};
+use std::{
+    iter::Enumerate,
+    ops::{AddAssign, Index, IndexMut},
+    slice::{Iter, IterMut},
+};
+
+// todo: we need a Linear trait to allow for better interchangeability...
+// Currently the expression traits use the structs directly. I don't like this...
 
 #[derive(Clone)]
 pub struct Linear<Bias> {
@@ -25,6 +32,15 @@ where
         out.biases.insert(lhs, bias);
         out.biases.insert(rhs, bias);
         out
+    }
+
+    pub fn iter(&self) -> Enumerate<Iter<Bias>> {
+        self.biases.iter().enumerate()
+    }
+
+    pub fn iter_mut(&mut self) -> Enumerate<IterMut<Bias>> {
+        let mutvec: &mut Vec<Bias> = self.biases.as_mut();
+        mutvec.iter_mut().enumerate()
     }
 
     pub fn len(&self) -> usize {

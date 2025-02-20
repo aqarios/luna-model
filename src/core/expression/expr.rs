@@ -1,10 +1,9 @@
-use std::cell::RefCell;
-use std::cmp::Ordering;
-use std::ops::Add;
+use std::cell::{Ref, RefCell};
+use std::cmp::{max, Ordering};
 use std::rc::Rc;
 
 use crate::core::exceptions::VariablesFromDifferentEnvsError;
-use crate::core::operations::AddToExpression;
+use crate::core::operations::{AddAssignToExpression, AddToExpression};
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::{Environment, VarRef, Vtype};
@@ -20,7 +19,7 @@ where
     pub offset: Bias,
     pub linear: Linear<Bias>,
     pub quadratic: Option<Quadratic<Index, Bias>>,
-    // pub higher_order: Option<HigherOrder<Index, Bias>>,
+    pub higher_order: Option<HigherOrder<Index, Bias>>,
 }
 
 impl<Index, Bias> Expression<Index, Bias>
@@ -43,6 +42,34 @@ where
     }
 }
 
+impl<Index, Bias> AddAssignToExpression<Index, Bias, Bias> for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = ();
+
+    fn add_assign(&mut self, rhs: Bias) -> Self::Output {
+        self.add_offset(rhs)
+    }
+}
+
+impl<Index, Bias> AddAssignToExpression<Index, Bias, &VarRef<Index>> for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<(), VariablesFromDifferentEnvsError>;
+
+    fn add_assign(&mut self, rhs: &VarRef<Index>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            Ok(self.add_linear(rhs.id, Bias::one()))
+        }
+    }
+}
+
 impl<Index, Bias> AddToExpression<Index, Bias, &VarRef<Index>> for &Expression<Index, Bias>
 where
     Index: IndexConstraints,
@@ -60,6 +87,76 @@ where
     }
 }
 
+impl<Index, Bias> AddToExpression<Index, Bias, Ref<'_, Expression<Index, Bias>>>
+    for &Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    fn add(self, rhs: Ref<'_, Expression<Index, Bias>>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            let mut out = Expression::new_from(&self);
+            // We know that both expressions have the same environment
+            // so we just need to check if the sizes of the two expression matches, i.e.
+            // if both expressions have the same number of variables.
+            // If rhs has more variables than self, we need to resize the out to
+            // allow the other variables to be added safely.
+            if out.num_variables() < rhs.num_variables() {
+                out.resize(rhs.num_variables().into());
+            }
+            // Now we can perform all additions safely.
+            out.add_offset(rhs.offset);
+            out.add_linear_from(&rhs.linear);
+
+            if rhs.quadratic.is_some() {
+                out.add_quadratic_from(rhs.quadratic.as_ref().unwrap());
+            }
+            if rhs.higher_order.is_some() {
+                out.add_higher_order_from(rhs.higher_order.as_ref().unwrap());
+            }
+            Ok(out)
+        }
+    }
+}
+
+impl<Index, Bias> AddAssignToExpression<Index, Bias, Ref<'_, Expression<Index, Bias>>>
+    for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<(), VariablesFromDifferentEnvsError>;
+    fn add_assign(&mut self, rhs: Ref<'_, Expression<Index, Bias>>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            let mut out = Expression::new_from(&self);
+            // We know that both expressions have the same environment
+            // so we just need to check if the sizes of the two expression matches, i.e.
+            // if both expressions have the same number of variables.
+            // If rhs has more variables than self, we need to resize the out to
+            // allow the other variables to be added safely.
+            if out.num_variables() < rhs.num_variables() {
+                out.resize(rhs.num_variables().into());
+            }
+            // Now we can perform all additions safely.
+            out.add_offset(rhs.offset);
+            out.add_linear_from(&rhs.linear);
+
+            if rhs.quadratic.is_some() {
+                out.add_quadratic_from(rhs.quadratic.as_ref().unwrap());
+            }
+            if rhs.higher_order.is_some() {
+                out.add_higher_order_from(rhs.higher_order.as_ref().unwrap());
+            }
+            Ok(())
+        }
+    }
+}
+
 impl<Index, Bias> AddToExpression<Index, Bias, &Expression<Index, Bias>>
     for &Expression<Index, Bias>
 where
@@ -71,11 +168,26 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            todo!()
-            // let mut out = Expression::new_from(&self);
-            // out.add_linear_from(rhs.linear);
-            // out.add_quadratic_from(rhs.quadratic);
-            // Ok(out)
+            let mut out = Expression::new_from(&self);
+            // We know that both expressions have the same environment
+            // so we just need to check if the sizes of the two expression matches, i.e.
+            // if both expressions have the same number of variables.
+            // If rhs has more variables than self, we need to resize the out to
+            // allow the other variables to be added safely.
+            if out.num_variables() < rhs.num_variables() {
+                out.resize(rhs.num_variables().into());
+            }
+            // Now we can perform all additions safely.
+            out.add_offset(rhs.offset);
+            out.add_linear_from(&rhs.linear);
+
+            if rhs.quadratic.is_some() {
+                out.add_quadratic_from(rhs.quadratic.as_ref().unwrap());
+            }
+            if rhs.higher_order.is_some() {
+                out.add_higher_order_from(rhs.higher_order.as_ref().unwrap());
+            }
+            Ok(out)
         }
     }
 }
@@ -91,7 +203,7 @@ where
             offset: Bias::default(),
             linear: Linear::default(),
             quadratic: None,
-            // higher_order: None,
+            higher_order: None,
         }
     }
 
@@ -101,6 +213,7 @@ where
             offset: other.offset,
             linear: other.linear.clone(),
             quadratic: other.quadratic.clone(),
+            higher_order: other.higher_order.clone(),
         }
     }
 
@@ -114,6 +227,7 @@ where
             offset: Bias::default(),
             linear: Linear::new_from_weighted_variable(var.into(), bias),
             quadratic: None,
+            higher_order: None,
         }
     }
 
@@ -128,6 +242,7 @@ where
             offset: Bias::default(),
             linear: Linear::new_from_variables(lhs.into(), rhs.into(), bias),
             quadratic: None,
+            higher_order: None,
         }
     }
 
@@ -137,7 +252,7 @@ where
             offset: Bias::default(),
             linear: Linear::from(linear_biases),
             quadratic: None,
-            // higher_order: None,
+            higher_order: None,
         }
     }
 
@@ -146,12 +261,35 @@ where
     }
 
     fn add_variables(&mut self, n: Index) -> Index {
+        // If no variable is in the current expression yet
         if n == Index::default() {
             // the index is 0.
             self.add_variable();
         }
 
         let size = self.num_variables();
+        // if the variable is equal to the size, we need to add just a single
+        // variable entry to the expression.
+        if n.into() == size {
+            self.linear.resize(size + 1);
+            if self.has_quadratic() {
+                let adj = self.quadratic.as_mut().unwrap();
+                adj.resize(size + 1);
+            }
+            return size.into();
+        }
+
+        // we need to check if the variable was already added once.
+        // this needs to be optimized at some point.
+        if n.into() < size {
+            // The variable is already represented in the expression. Thus we don't
+            // need to do anything.
+            // Does this make sense? Maybe we need to move away from the tedious
+            // dimod implementation...while keeping the same internal structures.
+            // Must not affect performance.
+            return size.into();
+        }
+
         self.linear.resize(size + n.into());
 
         if self.has_quadratic() {
@@ -159,6 +297,9 @@ where
             adj.resize(size + n.into());
         }
 
+        // Higher order terms are an abstraction over a HashMap.
+        // Thus, we don't need to do anything here, as it dynamically
+        // resizes on insertion.
         size.into()
     }
 
@@ -177,14 +318,16 @@ where
 
         self.linear.resize(n.into());
 
+        // Again, higher order terms do not need to be resized, see `add_variables`
+
         assert!(
             !self.has_quadratic() || self.linear.len() == self.quadratic.as_ref().unwrap().len()
         );
     }
 
-    // fn vartype_(&self, v: Index) -> Vtype {
-    //     unimplemented!()
-    // }
+    fn vartype_(&self, v: Index) -> Vtype {
+        self.env.borrow().get_vtype(v)
+    }
 }
 
 impl<Index, Bias> ExpressionBase<Index, Bias> for Expression<Index, Bias>
@@ -192,18 +335,25 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
+    fn add_offset(&mut self, bias: Bias) {
+        self.offset += bias
+    }
+
     fn add_linear(&mut self, v: Index, bias: Bias) {
         let v_idx = v.into();
 
         // Instead of panic, if the variable is not in the current expression, we add
         // it
         self.add_variables(v);
+        // Sanity check.
         assert!(v_idx < self.num_variables(), "v is out of range");
         self.linear[v_idx] += bias;
     }
 
-    fn add_offset(&mut self, bias: Bias) {
-        self.offset += bias
+    fn add_linear_from(&mut self, other: &Linear<Bias>) {
+        for (idx, bias) in other.iter() {
+            self.linear[idx] += *bias;
+        }
     }
 
     fn linear(&self, v: Index) -> Bias {
@@ -216,8 +366,14 @@ where
         let u_idx = u.into();
         let v_idx = v.into();
 
+        // Add the variables dynamically, if not existing.
+        // It is sufficient to add the larger variable, the smaller one is
+        // automatically created.
+        self.add_variables(max(u, v));
+
         assert!(u_idx < self.num_variables(), "u is out of range");
         assert!(v_idx < self.num_variables(), "v is out of range");
+
         self.enforce_quadratic();
 
         if u_idx == v_idx {
@@ -247,6 +403,36 @@ where
             } else {
                 *self.asymmetric_quadratic_ref(v, u) += bias;
             }
+        }
+    }
+
+    fn add_quadratic_from(&mut self, other: &Quadratic<Index, Bias>) {
+        for (u, neighborhood) in other.iter() {
+            for item in neighborhood.iter() {
+                self.add_quadratic(u.into(), item.index, item.bias);
+            }
+        }
+    }
+
+    fn add_higher_order_direct(&mut self, index: &String, bias: Bias) {
+        // We need to check that each variable is in the model.
+        self.enforce_higher_order();
+        let ho = self.higher_order.as_mut().unwrap();
+        ho[index] += bias
+    }
+
+    fn add_higher_order(&mut self, indices: &Vec<Index>, bias: Bias) {
+        // We need to check that each variable is in the model.
+        let max_index = indices.iter().max().unwrap();
+        self.add_variables(*max_index);
+        self.enforce_higher_order();
+        let ho = self.higher_order.as_mut().unwrap();
+        ho[indices] += bias
+    }
+
+    fn add_higher_order_from(&mut self, other: &HigherOrder<Index, Bias>) {
+        for (key, bias) in other.iter() {
+            self.add_higher_order_direct(key, *bias);
         }
     }
 
@@ -403,9 +589,22 @@ where
         }
     }
 
+    /// Create the higher order structure if it doesn't already exist.
+    fn enforce_higher_order(&mut self) {
+        if !self.has_higher_order() {
+            self.higher_order = Some(HigherOrder::default())
+        }
+    }
+
     #[inline]
     /// Return true if the model's quadraticacency structure exists.
     fn has_quadratic(&self) -> bool {
         self.quadratic.is_some()
+    }
+
+    #[inline]
+    /// Return true if the model's higher order structure exists.
+    fn has_higher_order(&self) -> bool {
+        self.higher_order.is_some()
     }
 }

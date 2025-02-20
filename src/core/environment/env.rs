@@ -5,7 +5,7 @@ use crate::core::{
 };
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, ops::Index, rc::Rc};
 
 pub type EnvId = u8;
 
@@ -79,6 +79,22 @@ where
             // deadcount: 0,
             // largest_dead: 0,
         }
+    }
+
+    /// Alias for self[id].vtype
+    pub fn get_vtype(&self, id: Index) -> Vtype {
+        self[id].vtype
+    }
+}
+
+impl<Idx> Index<Idx> for Environment<Idx>
+where
+    Idx: IndexConstraints,
+{
+    type Output = Variable;
+
+    fn index(&self, index: Idx) -> &Self::Output {
+        &self.variables[index.into()]
     }
 }
 
