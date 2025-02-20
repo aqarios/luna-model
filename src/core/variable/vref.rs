@@ -10,7 +10,7 @@ use crate::core::{
     ExpressionBaseInternal,
 };
 
-#[derive(Clone, Copy, Default, Eq, Ord, PartialEq, PartialOrd, Hash)]
+#[derive(Debug, Clone, Copy, Default, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub struct VarId(pub u32);
 
 impl One for VarId {
@@ -117,6 +117,27 @@ where
 
     fn mul(self, rhs: Bias) -> Self::Output {
         Expression::new_linear_from_weighted_variable(self.env.clone(), self.id, rhs)
+    }
+}
+
+impl<Index, Bias> MulToExpression<Index, Bias, &VarRef<Index>> for &VarRef<Index>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+
+    fn mul(self, rhs: &VarRef<Index>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            Ok(Expression::new_quadratic_from_variables(
+                self.env.clone(),
+                self.id,
+                rhs.id,
+                Bias::one(),
+            ))
+        }
     }
 }
 

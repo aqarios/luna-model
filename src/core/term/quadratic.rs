@@ -6,7 +6,7 @@ use std::{
 
 use super::types::OneVarTerm;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Quadratic<Index, Bias> {
     adj: Vec<Vec<OneVarTerm<Index, Bias>>>,
 }

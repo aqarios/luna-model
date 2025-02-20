@@ -32,6 +32,10 @@ impl PyExpression {
         self.borrow().offset()
     }
 
+    fn get_quadratic(&self, u: &PyVariable, v: &PyVariable) -> f64 {
+        self.borrow().quadratic(u.id, v.id)
+    }
+
     #[pyo3(name = "num_variables")]
     fn get_num_variables(&self) -> usize {
         self.borrow().num_variables()

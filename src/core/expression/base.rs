@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::fmt::Debug;
 use std::ops::{Add, AddAssign};
 use std::rc::Rc;
 
@@ -11,11 +12,21 @@ pub trait One {
 }
 
 pub trait IndexConstraints:
-    Copy + Default + PartialOrd + Ord + Into<SizeType> + From<SizeType> + AddAssign + One + ToString
+    Copy
+    + Debug
+    + Default
+    + PartialOrd
+    + Ord
+    + Into<SizeType>
+    + From<SizeType>
+    + AddAssign
+    + One
+    + ToString
 {
 }
 impl<
         T: Copy
+            + Debug
             + Default
             + PartialOrd
             + Ord
@@ -29,10 +40,13 @@ impl<
 }
 
 pub trait BiasConstraints:
-    Copy + Default + AddAssign + Add<Output = Self> + PartialEq + One
+    Debug + Copy + Default + AddAssign + Add<Output = Self> + PartialEq + One
 {
 }
-impl<T: Copy + Default + AddAssign + Add<Output = T> + PartialEq + One> BiasConstraints for T {}
+impl<T: Debug + Copy + Default + AddAssign + Add<Output = T> + PartialEq + One> BiasConstraints
+    for T
+{
+}
 
 impl One for f64 {
     fn one() -> Self {
@@ -118,13 +132,13 @@ pub trait ExpressionBase<Index, Bias> {
     fn num_variables(&self) -> SizeType;
     /// Return the offset.
     fn offset(&self) -> Bias;
-    // - /// Return the quadratic bias associated with `u` and `v`.
-    // - ///
-    // - /// If `u` and `v` do not have a quadratic bias, return 0;
-    // - ///
-    // - /// Note that this function does not return a reference because
-    // - /// each quadratic bias is stored twice.
-    // - fn quadratic(&self, u: Index, v: Index) -> Bias;
+    /// Return the quadratic bias associated with `u` and `v`.
+    ///
+    /// If `u` and `v` do not have a quadratic bias, return 0;
+    ///
+    /// Note that this function does not return a reference because
+    /// each quadratic bias is stored twice.
+    fn quadratic(&self, u: Index, v: Index) -> Bias;
     // - /// return the quadratic bias associated with `u` and `v`.
     // - ///
     // - /// Note that this function does not return a reference because
@@ -210,6 +224,12 @@ where
         weight: Bias,
     ) -> Self;
     fn new_linear_from_variables(
+        env: Rc<RefCell<Environment<Index>>>,
+        lhs: Index,
+        rhs: Index,
+        bias: Bias,
+    ) -> Self;
+    fn new_quadratic_from_variables(
         env: Rc<RefCell<Environment<Index>>>,
         lhs: Index,
         rhs: Index,

@@ -1,12 +1,11 @@
 use std::rc::Rc;
 
 use super::py_env::{PyEnvironment, CURRENT_ENV};
-use super::py_vtype::PyVtype;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::operations::{AddToExpression, MulToExpression};
 use crate::core::{
     environment, NoActiveEnvironmentFoundException, VarId, VarRef, VariableExistsException,
-    VariablesFromDifferentEnvsException,
+    VariablesFromDifferentEnvsException, Vtype,
 };
 
 use derive_more::{Deref, DerefMut};
@@ -30,7 +29,7 @@ impl PyVariable {
     fn py_new(
         name: String,
         env: Option<&mut PyEnvironment>,
-        vtype: Option<PyVtype>,
+        vtype: Option<Vtype>,
         bounds: Option<PyBounds>,
     ) -> PyResult<Self> {
         let env: PyEnvironment = match env {
@@ -42,7 +41,7 @@ impl PyVariable {
             })?,
         };
 
-        environment::add_varibale(env.0, &name, vtype.as_deref(), bounds.as_deref())
+        environment::add_varibale(env.0, &name, vtype.as_ref(), bounds.as_deref())
             .map(|v| PyVariable::new(v))
             .map_err(|e| VariableExistsException::new_err(format!("{}: {}", e.to_string(), name)))
     }
@@ -68,10 +67,9 @@ impl PyVariable {
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.mul(rhs)))
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            todo!()
-            // self.mul(rhs.as_ref())
-            //     .map(|e| PyExpression::new(e))
-            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            self.mul(rhs.as_ref())
+                .map(|e| PyExpression::new(e))
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             todo!()
             // rhs.borrow()

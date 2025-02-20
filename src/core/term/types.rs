@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct OneVarTerm<Index, Bias> {
     pub index: Index,
     pub bias: Bias,

@@ -1,10 +1,10 @@
-// #[cfg(feature = "py")]
-// use pyo3::prelude::*;
+#[cfg(feature = "py")]
+use pyo3::prelude::*;
 
 use crate::core::environment::EnvId;
 
-// #[cfg_attr(feature = "py", pyclass(eq, eq_int))]
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[cfg_attr(feature = "py", pyclass(eq, eq_int))]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Vtype {
     Real,
     Integer,

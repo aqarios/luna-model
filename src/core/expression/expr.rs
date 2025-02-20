@@ -1,5 +1,5 @@
 use std::cell::{Ref, RefCell};
-use std::cmp::{max, Ordering};
+use std::cmp::Ordering;
 use std::rc::Rc;
 
 use crate::core::exceptions::VariablesFromDifferentEnvsError;
@@ -255,19 +255,35 @@ where
             higher_order: None,
         }
     }
+    fn new_quadratic_from_variables(
+        env: Rc<RefCell<Environment<Index>>>,
+        u: Index,
+        v: Index,
+        bias: Bias,
+    ) -> Self {
+        let mut out = Self {
+            env,
+            offset: Bias::default(),
+            linear: Linear::default(),
+            quadratic: None,
+            higher_order: None,
+        };
+        out.add_quadratic(u, v, bias);
+        out
+    }
 
     fn add_variable(&mut self) -> Index {
         self.add_variables(Index::one())
     }
 
     fn add_variables(&mut self, n: Index) -> Index {
+        let size = self.num_variables();
         // If no variable is in the current expression yet
-        if n == Index::default() {
+        if n == Index::default() && size == 0 {
             // the index is 0.
-            self.add_variable();
+            return self.add_variable();
         }
 
-        let size = self.num_variables();
         // if the variable is equal to the size, we need to add just a single
         // variable entry to the expression.
         if n.into() == size {
@@ -366,6 +382,34 @@ where
         self.linear[v_idx]
     }
 
+    fn quadratic(&self, u: Index, v: Index) -> Bias {
+        let u_idx = u.into();
+        let v_idx = v.into();
+        assert!(u_idx < self.num_variables(), "u is out of range");
+        assert!(v_idx < self.num_variables(), "v is out of range");
+
+        // if u_idx == v_idx {
+        //     todo!("special logic required??")
+        // }
+
+        let outer: Index;
+        let inner: Index;
+        if u_idx < v_idx {
+            outer = u;
+            inner = v;
+        } else {
+            outer = v;
+            inner = u;
+        }
+        let neighborhood = &self.quadratic.as_ref().unwrap()[outer.into()];
+        let pos = neighborhood
+            .binary_search_by(|term| term.index.partial_cmp(&inner).unwrap_or(Ordering::Equal));
+        match pos {
+            Ok(p) => neighborhood[p].bias,
+            Err(_) => Bias::default(),
+        }
+    }
+
     fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias) {
         let u_idx = u.into();
         let v_idx = v.into();
@@ -373,10 +417,19 @@ where
         // Add the variables dynamically, if not existing.
         // It is sufficient to add the larger variable, the smaller one is
         // automatically created.
-        self.add_variables(max(u, v));
+        self.add_variables(u);
+        self.add_variables(v);
 
-        assert!(u_idx < self.num_variables(), "u is out of range");
-        assert!(v_idx < self.num_variables(), "v is out of range");
+        assert!(
+            u_idx < self.num_variables(),
+            "add_quadratic: u is out of range (is {})",
+            u.to_string()
+        );
+        assert!(
+            v_idx < self.num_variables(),
+            "add_quadratic: v is out of range (is {})",
+            v.to_string()
+        );
 
         self.enforce_quadratic();
 
@@ -547,9 +600,9 @@ where
         self.linear.len()
     }
 
-    // fn vartype(&self, v: Index) -> Vtype {
-    //     // self.env.as_ref().get()
-    // }
+    fn vartype(&self, v: Index) -> Vtype {
+        self.env.borrow().get_vtype(v)
+    }
 }
 
 impl<Index, Bias> Expression<Index, Bias>

@@ -9,7 +9,8 @@ mod py_vtype;
 use pyo3::prelude::*;
 
 use crate::core::{
-    MultipleActiveEnvironmentsException, NoActiveEnvironmentFoundException, VariableExistsException,
+    MultipleActiveEnvironmentsException, NoActiveEnvironmentFoundException,
+    VariableExistsException, Vtype,
 };
 
 /// A Python module implemented in Rust. The name of this function must match
@@ -19,13 +20,14 @@ use crate::core::{
 fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Add version information to the python module
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    // Add core components.
+    // Add core components not as wrappers, required for e.g. enums
+    m.add_class::<Vtype>()?;
+    // Add core components as wrappers.
     m.add_class::<py_env::PyEnvironment>()?;
     m.add_class::<py_expr::PyExpression>()?;
     m.add_class::<py_matrix_translator::PyMatrixTranslator>()?;
     m.add_class::<py_model::PyModel>()?;
     m.add_class::<py_var::PyVariable>()?;
-    m.add_class::<py_vtype::PyVtype>()?;
     m.add_class::<py_bounds::PyBounds>()?;
     // Adding the exceptions
     m.add(
