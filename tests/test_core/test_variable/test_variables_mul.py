@@ -7,7 +7,7 @@ from aq_models import Vtype
 
 
 @pytest.mark.variable
-@pytest.mark.parametrize("scalar", [1, 2, 3])
+@pytest.mark.parametrize("scalar", [1, 2, 3, 1.0, 2.0, 3.0])
 def test_mul_variable_and_number(scalar: int):
     with Environment():
         x = Variable("x")
