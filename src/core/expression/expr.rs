@@ -3,7 +3,9 @@ use std::cmp::Ordering;
 use std::rc::Rc;
 
 use crate::core::exceptions::VariablesFromDifferentEnvsError;
-use crate::core::operations::{AddAssignToExpression, AddToExpression, MulToExpression};
+use crate::core::operations::{
+    AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
+};
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::{Environment, VarRef, Vtype};
@@ -107,6 +109,76 @@ where
         }
     }
 }
+
+impl<Index, Bias> MulToExpression<Index, Bias, &VarRef<Index>> for &Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+
+    fn mul(self, rhs: &VarRef<Index>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            let mut out = Expression::new(self.env.clone());
+            out.mul_with_offset(self.offset, rhs.id, Bias::one());
+            out.mul_with_linear(&self.linear, rhs.id, Bias::one());
+            if self.has_quadratic() {
+                // Don't need to do anything if the quadratic term is empty (is 0)
+                out.mul_with_quadratic(&self.quadratic.as_ref().unwrap(), rhs.id, Bias::one());
+            }
+            if self.has_higher_order() {
+                // Don't need to do anything if the higher order term is empty (is 0)
+                out.mul_with_higher_order(
+                    &self.higher_order.as_ref().unwrap(),
+                    rhs.id,
+                    Bias::one(),
+                );
+            }
+            Ok(out)
+        }
+    }
+}
+
+impl<Index, Bias> MulToExpression<Index, Bias, Ref<'_, Expression<Index, Bias>>>
+    for &Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+
+    fn mul(self, rhs: Ref<'_, Expression<Index, Bias>>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            todo!();
+            let mut out = Expression::new_from(&self);
+            Ok(out)
+        }
+    }
+}
+
+// impl<Index, Bias> MulAssignToExpression<Index, Bias, &Linear<Bias>> for &Expression<Index, Bias>
+// where
+//     Index: IndexConstraints,
+//     Bias: BiasConstraints,
+// {
+//     type Output = ();
+//
+//     fn mul_assign(&mut self, rhs: &Linear<Bias>) -> Self::Output {}
+// }
+//
+// impl<Index, Bias> MulAssignToExpression<Index, Bias, Bias> for &Expression<Index, Bias>
+// where
+//     Index: IndexConstraints,
+//     Bias: BiasConstraints,
+// {
+//     type Output = ();
+//
+//     fn mul_assign(&mut self, rhs: Bias) -> Self::Output {}
+// }
 
 impl<Index, Bias> AddToExpression<Index, Bias, Ref<'_, Expression<Index, Bias>>>
     for &Expression<Index, Bias>
@@ -403,6 +475,45 @@ where
         self.linear[v_idx]
     }
 
+    fn mul_with_offset(&mut self, other_offset: Bias, v: Index, bias: Bias) {
+        // Multiplying the offset with a variable creates a new linear term that is
+        // added to the linear part of the expression. Thus we can reuse the add_linear
+        // here.
+        self.add_linear(v, bias * other_offset);
+    }
+
+    fn mul_with_linear(&mut self, linear: &Linear<Bias>, v: Index, bias: Bias) {
+        // Multiplying the linear part of the expression with a variable can produce
+        // different results. For binary, this updates the linear term by multipliction
+        // of the bias.
+        // For spin, a new constant offset is created and the spin variable is removed
+        // from the linear part.
+
+        // Next, we itrate over all elements in the linear term and adjust the value
+        // based on the logic.
+        for (u_idx, u_bias) in linear.iter() {
+            // We need to iterate over all elements, as we need to adjust the values,
+            // in all cases.
+            // However, we can make use of the logic already implemented in the
+            // add_quadratic case. Which checks the logic based on the variable type.
+            self.add_quadratic(u_idx.into(), v, *u_bias * bias);
+        }
+    }
+
+    fn mul_with_quadratic(&mut self, quadratic: &Quadratic<Index, Bias>, v: Index, bias: Bias) {
+        // Multiply the quadratic part with a variable.
+        todo!()
+    }
+
+    fn mul_with_higher_order(
+        &mut self,
+        higher_order: &HigherOrder<Index, Bias>,
+        v: Index,
+        bias: Bias,
+    ) {
+        todo!()
+    }
+
     fn quadratic(&self, u: Index, v: Index) -> Bias {
         let u_idx = u.into();
         let v_idx = v.into();
@@ -509,12 +620,43 @@ where
     }
 
     fn add_higher_order(&mut self, indices: &Vec<Index>, bias: Bias) {
+        todo!();
         // We need to check that each variable is in the model.
         let max_index = indices.iter().max().unwrap();
         self.add_variables(*max_index);
         self.enforce_higher_order();
-        let ho = self.higher_order.as_mut().unwrap();
-        ho[indices] += bias
+
+        // We have a multiplicative interaction between multiple variables here,
+        // similar to the case for quadratic. So we need to check the interactions
+        // for each combination...
+        // We need to efficiently check if indices exist more than once in the list
+        // and if it is the case, we need to retrieve which indices are repeated, and
+        // how often they are repeated.
+        let contribs = self.reduce_higher_order_vars(indices);
+
+        // Based on the actual contributions collected in `contribs` we can now
+        // determine the type of contribution based on the variable lengths.
+        // This is already the minimal amount of variables based on the types.
+        match contribs.len() {
+            0 => {
+                // We have no variables left, this can for example be the case for
+                // four times the spin variable.
+                self.add_offset(bias);
+            }
+            1 => {
+                // single variable means single linear term
+                self.add_linear(contribs[0], bias);
+            }
+            2 => {
+                // two variables make a new quadratic contrib
+                self.add_quadratic(contribs[0], contribs[1], bias);
+            }
+            _ => {
+                // Now we can add to the new contribs
+                let ho = self.higher_order.as_mut().unwrap();
+                ho[&contribs] += bias
+            }
+        }
     }
 
     fn add_higher_order_from(&mut self, other: &HigherOrder<Index, Bias>) {
@@ -693,5 +835,71 @@ where
     /// Return true if the model's higher order structure exists.
     fn has_higher_order(&self) -> bool {
         self.higher_order.is_some()
+    }
+
+    fn reduce_higher_order_vars(&self, indices: &Vec<Index>) -> Vec<Index> {
+        // We have a multiplicative interaction between multiple variables here,
+        // similar to the case for quadratic. So we need to check the interactions
+        // for each combination...
+        // We need to efficiently check if indices exist more than once in the list
+        // and if it is the case, we need to retrieve which indices are repeated, and
+        // how often they are repeated.
+        let ocurrences = indices
+            .iter()
+            .map(|v| indices.iter().filter(|u| *u == v).count())
+            .collect::<Vec<usize>>();
+
+        let mut contribs: Vec<Index> = Vec::new();
+        for (idx, count) in ocurrences.iter().enumerate() {
+            if *count > 1 {
+                // The variable is contained more than once, we need to check the type.
+                match self.vartype(idx.into()) {
+                    Vtype::Binary => {
+                        // Binary variables cancel out to a single binary variable.
+                        // Thus we can just add it once.
+                        contribs.push(idx.into());
+                    }
+                    Vtype::Spin => {
+                        // Depending on the count, we have different behaviour.
+                        // Two spins will result in an offset.
+                        // So if we have exactly two spins, we just get the offset.
+                        // If we have three spins, it's offset + a single variable remaining
+                        // and thus contributing.
+                        // If we have four, it's offset once
+                        // s * s * s * s = (s * s) * (s * s) = 1 * 1 = 1
+                        // if we have five we have a single variable contributing
+                        //
+                        // thus in general, for an even number of contributions, we have
+                        // a single contrubution to the offset.
+                        // If we have an uneven number we have a offset contribution
+                        // plus a single variable contribution to the term.
+                        if count % 2 == 0 {
+                            // actually, no offset I suppose, think:
+                            // 4 * a * b * s * s
+                            // Then it is actually
+                            // 4 * a * b * 1
+                            // 4 * ab
+                            // self.add_offset(bias);
+                            // So we decide later on wether to add an offset a linear
+                            // or a quadratic or a higher order element
+                            // Here we just know that we can ignore it safely.
+                        }
+                        if count % 2 == 1 {
+                            // We know it's unenven, so we can add the variable once.
+                            // All others cancel out.
+                            contribs.push(idx.into());
+                        }
+                    }
+                    _ => {
+                        // we need to add the variable `count` number of times.
+                        for _ in 0..*count {
+                            contribs.push(idx.into());
+                        }
+                    }
+                }
+            }
+        }
+
+        contribs
     }
 }

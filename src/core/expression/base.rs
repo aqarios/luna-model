@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::fmt::Debug;
-use std::ops::{Add, AddAssign, MulAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign};
 use std::rc::Rc;
 
 use crate::core::term::types::SizeType;
@@ -40,11 +40,28 @@ impl<
 }
 
 pub trait BiasConstraints:
-    Debug + Copy + Default + AddAssign + Add<Output = Self> + PartialEq + One + MulAssign
+    Debug
+    + Copy
+    + Default
+    + AddAssign
+    + Add<Output = Self>
+    + PartialEq
+    + One
+    + MulAssign
+    + Mul<Output = Self>
 {
 }
-impl<T: Debug + Copy + Default + AddAssign + Add<Output = T> + PartialEq + One + MulAssign>
-    BiasConstraints for T
+impl<
+        T: Debug
+            + Copy
+            + Default
+            + AddAssign
+            + Add<Output = T>
+            + PartialEq
+            + One
+            + MulAssign
+            + Mul<Output = T>,
+    > BiasConstraints for T
 {
 }
 
@@ -75,6 +92,23 @@ pub trait ExpressionBase<Index, Bias> {
     fn add_higher_order(&mut self, indices: &Vec<Index>, bias: Bias);
     /// Add higher order biases from another higher order term.
     fn add_higher_order_from(&mut self, other: &HigherOrder<Index, Bias>);
+    /// Mul the variable `v` to the offset, producing a new linear entry.
+    /// This function edits self, based on the information from offset and the rest.
+    fn mul_with_offset(&mut self, offset: Bias, v: Index, bias: Bias);
+    /// Mul the variable `v` to the linear term.
+    /// This function edits self, based on the information from linear and the rest.
+    fn mul_with_linear(&mut self, linear: &Linear<Bias>, v: Index, bias: Bias);
+    /// Mul the variable `v` to the quadratic term.
+    /// This function edits self, based on the information from quadratic and the rest.
+    fn mul_with_quadratic(&mut self, quadratic: &Quadratic<Index, Bias>, v: Index, bias: Bias);
+    /// Mul the variable `v` to the higher order term.
+    /// This function edits self, based on the information from higher_order and the rest.
+    fn mul_with_higher_order(
+        &mut self,
+        higher_order: &HigherOrder<Index, Bias>,
+        v: Index,
+        bias: Bias,
+    );
     /// Add quadratic bias for the given variables at the end of each other's neighborhoods.
     ///
     /// # Arguments

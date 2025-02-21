@@ -77,17 +77,15 @@ impl PyExpression {
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.borrow().mul(rhs)))
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            todo!()
-            // self.borrow()
-            //     .mul(rhs.as_ref())
-            //     .map(|e| PyExpression::new(e))
-            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            self.borrow()
+                .mul(rhs.as_ref())
+                .map(|e| PyExpression::new(e))
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            todo!()
-            // self.borrow()
-            //     .mul(rhs.borrow())
-            //     .map(|e| PyExpression::new(e))
-            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            self.borrow()
+                .mul(rhs.borrow())
+                .map(|e| PyExpression::new(e))
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
