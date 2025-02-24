@@ -9,7 +9,7 @@ use crate::core::expression::{BiasConstraints, IndexConstraints};
 
 static DELIMITER: &str = "-";
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct HigherOrder<Index, Bias> {
     biases: HashMap<String, Bias>,
     phantom_data: PhantomData<Index>, // required for compiler to acknowledge the Index
@@ -26,6 +26,7 @@ where
             phantom_data: PhantomData,
         }
     }
+
     fn make_key(index: &Vec<Index>) -> String {
         let mut indices = index.clone();
         indices.sort();
@@ -36,8 +37,22 @@ where
             .join(DELIMITER)
     }
 
+    fn key_contributions(key: &String) -> Vec<Index> {
+        key.split(DELIMITER)
+            .map(|s| Index::from_str(s).ok().unwrap())
+            .collect()
+        // ok().unwrap() instead of unwrap() to get rid of the error for now. needs
+        // fixing
+    }
+
     pub fn iter(&self) -> Iter<String, Bias> {
         self.biases.iter()
+    }
+
+    pub fn iter_contrib(&self) -> impl Iterator<Item = (Vec<Index>, &Bias)> {
+        self.biases
+            .iter()
+            .map(|(key, bias)| (HigherOrder::<Index, Bias>::key_contributions(&key), bias))
     }
 }
 
@@ -73,7 +88,9 @@ where
 {
     fn index_mut(&mut self, index: &Vec<Idx>) -> &mut Self::Output {
         let key = Self::make_key(index);
-        // todo: Should handle the unwrap better...
+        if !self.biases.contains_key(&key) {
+            self.biases.insert(key.to_string(), Bias::default());
+        }
         self.biases.get_mut(&key).unwrap()
     }
 }

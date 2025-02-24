@@ -1,5 +1,5 @@
 pub mod environment;
-mod exceptions;
+pub mod exceptions;
 pub mod expression;
 // pub mod higher_order_operations;
 mod model;

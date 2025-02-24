@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Mul, MulAssign};
 use std::rc::Rc;
+use std::str::FromStr;
 
 use crate::core::term::types::SizeType;
 use crate::core::term::{HigherOrder, Linear, Quadratic};
@@ -22,6 +23,7 @@ pub trait IndexConstraints:
     + AddAssign
     + One
     + ToString
+    + FromStr
 {
 }
 impl<
@@ -34,7 +36,8 @@ impl<
             + From<SizeType>
             + AddAssign
             + One
-            + ToString,
+            + ToString
+            + FromStr,
     > IndexConstraints for T
 {
 }
@@ -90,6 +93,8 @@ pub trait ExpressionBase<Index, Bias> {
     fn add_higher_order_direct(&mut self, index: &String, bias: Bias);
     /// Add interaction between variables in `indices`.
     fn add_higher_order(&mut self, indices: &Vec<Index>, bias: Bias);
+    /// Add interaction between variables in `indices` overwriting an existing element.
+    fn add_higher_order_overwrite(&mut self, indices: &Vec<Index>, bias: Bias);
     /// Add higher order biases from another higher order term.
     fn add_higher_order_from(&mut self, other: &HigherOrder<Index, Bias>);
     /// Mul the variable `v` to the offset, producing a new linear entry.

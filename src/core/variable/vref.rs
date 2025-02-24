@@ -1,8 +1,10 @@
-use std::{cell::RefCell, fmt::Display, ops::AddAssign, rc::Rc};
+use std::{
+    cell::RefCell, ffi::IntoStringError, fmt::Display, ops::AddAssign, rc::Rc, str::FromStr,
+};
 
 use crate::core::{
     // exceptions::VariablesFromDifferentEnvsError,
-    exceptions::VariablesFromDifferentEnvsError,
+    exceptions::{ParseFromStringError, VariablesFromDifferentEnvsError},
     expression::{BiasConstraints, IndexConstraints, One},
     operations::{AddToExpression, MulToExpression},
     Environment,
@@ -28,6 +30,16 @@ impl AddAssign<VarId> for VarId {
 impl ToString for VarId {
     fn to_string(&self) -> String {
         self.0.to_string()
+    }
+}
+
+impl FromStr for VarId {
+    type Err = ParseFromStringError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse::<u32>()
+            .map(VarId)
+            .map_err(|e| ParseFromStringError(e.to_string()))
     }
 }
 

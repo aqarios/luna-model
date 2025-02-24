@@ -76,3 +76,14 @@ impl std::convert::From<DifferentEnvsError> for PyErr {
         PyRuntimeError::new_err(err.to_string())
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct ParseFromStringError(pub String);
+
+impl std::error::Error for ParseFromStringError {}
+
+impl fmt::Display for ParseFromStringError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "could not parse to string: {}", self.0)
+    }
+}

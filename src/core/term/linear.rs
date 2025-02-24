@@ -10,7 +10,7 @@ use crate::core::expression::BiasConstraints;
 // todo: we need a Linear trait to allow for better interchangeability...
 // Currently the expression traits use the structs directly. I don't like this...
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Linear<Bias> {
     biases: Vec<Bias>,
 }
