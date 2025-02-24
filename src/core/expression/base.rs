@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::fmt::Debug;
+use std::hash::Hash;
 use std::ops::{Add, AddAssign, Mul, MulAssign};
 use std::rc::Rc;
 use std::str::FromStr;
@@ -24,6 +25,7 @@ pub trait IndexConstraints:
     + One
     + ToString
     + FromStr
+    + Hash
 {
 }
 impl<
@@ -37,7 +39,8 @@ impl<
             + AddAssign
             + One
             + ToString
-            + FromStr,
+            + FromStr
+            + Hash,
     > IndexConstraints for T
 {
 }
@@ -100,12 +103,18 @@ pub trait ExpressionBase<Index, Bias> {
     /// Mul the variable `v` to the offset, producing a new linear entry.
     /// This function edits self, based on the information from offset and the rest.
     fn mul_with_offset(&mut self, offset: Bias, v: Index, bias: Bias);
+    /// Multiply two offset and add to self.
+    fn mul_offset(&mut self, lhs: Bias, rhs: Bias);
     /// Mul the variable `v` to the linear term.
     /// This function edits self, based on the information from linear and the rest.
     fn mul_with_linear(&mut self, linear: &Linear<Bias>, v: Index, bias: Bias);
+    /// Multiply two linear terms and add to self.
+    fn mul_linear(&mut self, lhs: &Linear<Bias>, rhs: &Linear<Bias>);
     /// Mul the variable `v` to the quadratic term.
     /// This function edits self, based on the information from quadratic and the rest.
     fn mul_with_quadratic(&mut self, quadratic: &Quadratic<Index, Bias>, v: Index, bias: Bias);
+    /// Multiply two quadratic terms and add to self.
+    fn mul_quadratic(&mut self, lhs: &Quadratic<Index, Bias>, rhs: &Quadratic<Index, Bias>);
     /// Mul the variable `v` to the higher order term.
     /// This function edits self, based on the information from higher_order and the rest.
     fn mul_with_higher_order(
@@ -114,6 +123,8 @@ pub trait ExpressionBase<Index, Bias> {
         v: Index,
         bias: Bias,
     );
+    /// Multiply two higher order terms and add to self.
+    fn mul_higher_order(&mut self, lhs: &HigherOrder<Index, Bias>, rhs: &HigherOrder<Index, Bias>);
     /// Add quadratic bias for the given variables at the end of each other's neighborhoods.
     ///
     /// # Arguments

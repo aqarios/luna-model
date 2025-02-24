@@ -1,15 +1,10 @@
-use std::{
-    cell::RefCell, ffi::IntoStringError, fmt::Display, ops::AddAssign, rc::Rc, str::FromStr,
-};
+use std::{cell::RefCell, ops::AddAssign, rc::Rc, str::FromStr};
 
 use crate::core::{
-    // exceptions::VariablesFromDifferentEnvsError,
     exceptions::{ParseFromStringError, VariablesFromDifferentEnvsError},
     expression::{BiasConstraints, IndexConstraints, One},
     operations::{AddToExpression, MulToExpression},
-    Environment,
-    Expression,
-    ExpressionBaseInternal,
+    Environment, Expression, ExpressionBaseInternal,
 };
 
 #[derive(Debug, Clone, Copy, Default, Eq, Ord, PartialEq, PartialOrd, Hash)]

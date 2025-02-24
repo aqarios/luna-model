@@ -2,6 +2,8 @@ use std::cell::{Ref, RefCell};
 use std::cmp::Ordering;
 use std::rc::Rc;
 
+use hashbrown::HashMap;
+
 use crate::core::exceptions::VariablesFromDifferentEnvsError;
 use crate::core::operations::{
     AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
@@ -216,6 +218,25 @@ where
     }
 }
 
+impl<Index, Bias> MulAssignToExpression<Index, Bias, Bias> for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = ();
+
+    fn mul_assign(&mut self, rhs: Bias) -> Self::Output {
+        self.offset *= rhs;
+        self.linear *= rhs;
+        if self.has_quadratic() {
+            *self.quadratic.as_mut().unwrap() *= rhs;
+        }
+        if self.has_higher_order() {
+            *self.higher_order.as_mut().unwrap() *= rhs;
+        }
+    }
+}
+
 impl<Index, Bias> MulToExpression<Index, Bias, &VarRef<Index>> for &Expression<Index, Bias>
 where
     Index: IndexConstraints,
@@ -229,7 +250,6 @@ where
         } else {
             let mut out = Expression::new(self.env.clone());
             out.add_variables(self.num_variables().into());
-
             out.mul_with_offset(self.offset, rhs.id, Bias::one());
             out.mul_with_linear(&self.linear, rhs.id, Bias::one());
             if self.has_quadratic() {
@@ -251,6 +271,32 @@ where
     }
 }
 
+impl<Index, Bias> MulAssignToExpression<Index, Bias, &VarRef<Index>> for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<(), VariablesFromDifferentEnvsError>;
+
+    fn mul_assign(&mut self, rhs: &VarRef<Index>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            // We use the `mul` implementation as we need the temporary expression.
+            // We cannot simply just mutiply to itsel as some unforseeable changes
+            // might be applied to the self expression. This needs to be checked
+            // however, further performance improvements might be possible.
+            let result = self.mul(rhs);
+            match result {
+                Ok(expr) => *self = expr,
+                Err(e) => return Err(e),
+            };
+
+            Ok(())
+        }
+    }
+}
+
 impl<Index, Bias> MulToExpression<Index, Bias, Ref<'_, Expression<Index, Bias>>>
     for &Expression<Index, Bias>
 where
@@ -263,32 +309,49 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            todo!();
-            let mut out = Expression::new_from(&self);
+            let mut out = Expression::new(self.env.clone());
+            out.add_variables(self.num_variables().into());
+            out.mul_offset(self.offset, rhs.offset);
+            out.mul_linear(&self.linear, &rhs.linear);
+            if self.has_quadratic() && rhs.has_quadratic() {
+                // Only if both expressions have quadratic terms, we need to multiply
+                // otherwise the result is always 0.
+                out.mul_quadratic(
+                    self.quadratic.as_ref().unwrap(),
+                    rhs.quadratic.as_ref().unwrap(),
+                );
+            }
+            if self.has_higher_order() && rhs.has_higher_order() {
+                // Only if both expressions have higher order terms, we need to multiply
+                // otherwise the result is always 0.
+                out.mul_higher_order(
+                    self.higher_order.as_ref().unwrap(),
+                    rhs.higher_order.as_ref().unwrap(),
+                );
+            }
             Ok(out)
         }
     }
 }
 
-// impl<Index, Bias> MulAssignToExpression<Index, Bias, &Linear<Bias>> for &Expression<Index, Bias>
-// where
-//     Index: IndexConstraints,
-//     Bias: BiasConstraints,
-// {
-//     type Output = ();
-//
-//     fn mul_assign(&mut self, rhs: &Linear<Bias>) -> Self::Output {}
-// }
-//
-// impl<Index, Bias> MulAssignToExpression<Index, Bias, Bias> for &Expression<Index, Bias>
-// where
-//     Index: IndexConstraints,
-//     Bias: BiasConstraints,
-// {
-//     type Output = ();
-//
-//     fn mul_assign(&mut self, rhs: Bias) -> Self::Output {}
-// }
+impl<Index, Bias> MulAssignToExpression<Index, Bias, Ref<'_, Expression<Index, Bias>>>
+    for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<(), VariablesFromDifferentEnvsError>;
+
+    fn mul_assign(&mut self, rhs: Ref<'_, Expression<Index, Bias>>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            todo!();
+
+            Ok(())
+        }
+    }
+}
 
 impl<Index, Bias> ExpressionBaseInternal<Index, Bias> for Expression<Index, Bias>
 where
@@ -374,6 +437,12 @@ where
         self.add_variables(Index::one())
     }
 
+    // todo: this method has a slight problem.
+    // Let's say we multiply two variables that are not index 0 and 1
+    // but 1 and 2...
+    // Currently, we are adding all previous variables as well.
+    // Which makes sense at some point in the logic. But not in some special
+    // cases.
     fn add_variables(&mut self, n: Index) -> Index {
         let size = self.num_variables();
         // If no variable is in the current expression yet
@@ -487,6 +556,10 @@ where
         self.add_linear(v, bias * other_offset);
     }
 
+    fn mul_offset(&mut self, lhs: Bias, rhs: Bias) {
+        self.offset += lhs * rhs;
+    }
+
     fn mul_with_linear(&mut self, linear: &Linear<Bias>, v: Index, bias: Bias) {
         // Multiplying the linear part of the expression with a variable can produce
         // different results. For binary, this updates the linear term by multipliction
@@ -505,11 +578,27 @@ where
         }
     }
 
+    fn mul_linear(&mut self, lhs: &Linear<Bias>, rhs: &Linear<Bias>) {
+        for (u_idx, u_bias) in lhs.iter() {
+            for (v_idx, v_bias) in rhs.iter() {
+                self.add_quadratic(u_idx.into(), v_idx.into(), *u_bias * *v_bias);
+            }
+        }
+    }
+
     fn mul_with_quadratic(&mut self, quadratic: &Quadratic<Index, Bias>, v: Index, bias: Bias) {
         // Multiply the quadratic part with a variable.
         for (u, neighborhood) in quadratic.iter() {
             for term in neighborhood.iter() {
                 self.add_higher_order(&vec![u.into(), term.index, v], term.bias * bias);
+            }
+        }
+    }
+
+    fn mul_quadratic(&mut self, lhs: &Quadratic<Index, Bias>, rhs: &Quadratic<Index, Bias>) {
+        for (lhs_u, lhs_v, lhs_bias) in lhs.iter_flat() {
+            for (rhs_u, rhs_v, rhs_bias) in rhs.iter_flat() {
+                self.add_higher_order(&vec![lhs_u, lhs_v, rhs_u, rhs_v], lhs_bias * rhs_bias);
             }
         }
     }
@@ -521,9 +610,19 @@ where
         bias: Bias,
     ) {
         for (indices, ho_bias) in higher_order.iter_contrib() {
-            let mut new_inidices = vec![v];
-            new_inidices.extend(indices);
-            self.add_higher_order_overwrite(&new_inidices, *ho_bias * bias);
+            let mut new_indices = vec![v];
+            new_indices.extend(indices);
+            self.add_higher_order_overwrite(&new_indices, *ho_bias * bias);
+        }
+    }
+
+    fn mul_higher_order(&mut self, lhs: &HigherOrder<Index, Bias>, rhs: &HigherOrder<Index, Bias>) {
+        for (lhs_ind, lhs_bias) in lhs.iter_contrib() {
+            for (rhs_ind, rhs_bias) in rhs.iter_contrib() {
+                let mut new_indices = lhs_ind.clone();
+                new_indices.extend(rhs_ind);
+                self.add_higher_order_overwrite(&new_indices, *lhs_bias * *rhs_bias);
+            }
         }
     }
 
@@ -899,20 +998,25 @@ where
         // We need to efficiently check if indices exist more than once in the list
         // and if it is the case, we need to retrieve which indices are repeated, and
         // how often they are repeated.
-        let ocurrences = indices
-            .iter()
-            .map(|v| indices.iter().filter(|u| *u == v).count())
-            .collect::<Vec<usize>>();
-
+        let mut ocurrences: HashMap<Index, usize> = HashMap::new();
+        for index in indices.iter() {
+            let value = ocurrences.get_mut(index);
+            match value {
+                Some(v) => *v += 1,
+                None => {
+                    let _ = ocurrences.insert(*index, 1);
+                }
+            }
+        }
         let mut contribs: Vec<Index> = Vec::new();
-        for (idx, count) in ocurrences.iter().enumerate() {
+        for (idx, count) in ocurrences.iter() {
             if *count > 1 {
                 // The variable is contained more than once, we need to check the type.
-                match self.vartype(idx.into()) {
+                match self.vartype(*idx) {
                     Vtype::Binary => {
                         // Binary variables cancel out to a single binary variable.
                         // Thus we can just add it once.
-                        contribs.push(idx.into());
+                        contribs.push(*idx)
                     }
                     Vtype::Spin => {
                         // Depending on the count, we have different behaviour.
@@ -942,18 +1046,18 @@ where
                         if count % 2 == 1 {
                             // We know it's unenven, so we can add the variable once.
                             // All others cancel out.
-                            contribs.push(idx.into());
+                            contribs.push(*idx);
                         }
                     }
                     _ => {
                         // we need to add the variable `count` number of times.
                         for _ in 0..*count {
-                            contribs.push(idx.into());
+                            contribs.push(*idx);
                         }
                     }
                 }
             } else {
-                contribs.push(idx.into());
+                contribs.push(*idx);
             }
         }
 

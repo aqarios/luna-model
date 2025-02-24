@@ -41,7 +41,7 @@ impl PyVariable {
             })?,
         };
 
-        environment::add_varibale(env.0, &name, vtype.as_ref(), bounds.as_deref())
+        environment::add_variable(env.0, &name, vtype.as_ref(), bounds.as_deref())
             .map(|v| PyVariable::new(v))
             .map_err(|e| VariableExistsException::new_err(format!("{}: {}", e.to_string(), name)))
     }
@@ -67,15 +67,15 @@ impl PyVariable {
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.mul(rhs)))
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
+            println!("in here");
             self.mul(rhs.as_ref())
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            todo!()
-            // rhs.borrow()
-            //     .mul(self.as_ref())
-            //     .map(|e| PyExpression::new(e))
-            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            rhs.borrow()
+                .mul(self.as_ref())
+                .map(|e| PyExpression::new(e))
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }

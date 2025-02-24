@@ -1,10 +1,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use super::environment::add_variable;
 use super::expression::{
     BiasConstraints, ExpressionBase, ExpressionBaseInternal, IndexConstraints,
 };
-use super::{Environment, Expression};
+use super::{Environment, Expression, Vtype};
 
 pub struct Model<Index, Bias>
 where
@@ -35,8 +36,23 @@ where
         }
     }
 
-    pub fn new_from_dense(name: Option<String>, dense: &[Bias], num_variables: Index) -> Self {
+    pub fn new_from_dense(
+        name: Option<String>,
+        dense: &[Bias],
+        num_variables: Index,
+        vtype: Vtype,
+    ) -> Self {
         let mut model = Model::new(name);
+        // We also need to add the varaibles to the model...
+        (0..num_variables.into()).into_iter().for_each(|idx| {
+            let _ = add_variable(
+                model.environment.clone(),
+                &idx.to_string(),
+                Some(&vtype),
+                None,
+            );
+        });
+
         model.objective.resize(num_variables);
         model
             .objective

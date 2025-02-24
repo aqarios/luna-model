@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::core::{
-    operations::{AddAssignToExpression, AddToExpression, MulToExpression},
+    operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
     Expression, ExpressionBase, VarId, VariablesFromDifferentEnvsException,
 };
 
@@ -112,8 +112,21 @@ impl PyExpression {
     fn __isub__(&mut self, py: Python, other: PyObject) {
         todo!()
     }
-    fn __imul__(&mut self, py: Python, other: PyObject) {
-        todo!()
+    fn __imul__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
+        if let Ok(rhs) = other.extract::<f64>(py) {
+            Ok(self.borrow_mut().mul_assign(rhs))
+        } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
+            self.borrow_mut()
+                .mul_assign(rhs.as_ref())
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
+            todo!()
+            // self.borrow_mut()
+            //     .mul_assign(rhs.borrow())
+            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else {
+            Err(PyRuntimeError::new_err("unsopported type for operation"))
+        }
     }
     // Unary operations
     fn __pos__(&mut self) {

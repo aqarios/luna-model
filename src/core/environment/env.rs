@@ -201,7 +201,7 @@ where
 //     }
 // }
 
-pub fn add_varibale<Index: IndexConstraints>(
+pub fn add_variable<Index: IndexConstraints>(
     env: Rc<RefCell<Environment<Index>>>,
     name: &String,
     vtype: Option<&Vtype>,
