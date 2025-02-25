@@ -552,13 +552,13 @@ where
     ) -> Result<(), IndexOutOfOrderError> {
         let quadratic = self.quadratic.as_ref().unwrap();
 
-        if quadratic[v].is_empty() || quadratic[v].last().unwrap().index <= u.into() {
+        if !(quadratic[v].is_empty() || quadratic[v].last().unwrap().index <= u.into()) {
             return Err(IndexOutOfOrderError(
                 u,
                 quadratic[v].last().unwrap().index.into(),
             ));
         }
-        if quadratic[u].is_empty() || quadratic[u].last().unwrap().index <= v.into() {
+        if !(quadratic[u].is_empty() || quadratic[u].last().unwrap().index <= v.into()) {
             return Err(IndexOutOfOrderError(
                 v,
                 quadratic[u].last().unwrap().index.into(),
