@@ -1,5 +1,4 @@
 use crate::core::{Model, VarId};
-
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
 

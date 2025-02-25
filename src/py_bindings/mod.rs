@@ -1,5 +1,6 @@
 mod py_bounds;
 mod py_env;
+mod py_exceptions;
 mod py_expr;
 mod py_matrix_translator;
 mod py_model;

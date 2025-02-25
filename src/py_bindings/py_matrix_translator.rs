@@ -1,8 +1,7 @@
-use numpy::{PyReadonlyArray2, PyUntypedArrayMethods};
-use pyo3::prelude::*;
-
 use super::py_model::PyModel;
 use crate::{core::Vtype, translator::matrix_translator::MatrixTranslator};
+use numpy::{PyReadonlyArray2, PyUntypedArrayMethods};
+use pyo3::prelude::*;
 
 #[pyclass(unsendable, name = "MatrixTranslator")]
 pub struct PyMatrixTranslator {}

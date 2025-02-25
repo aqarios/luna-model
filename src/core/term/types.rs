@@ -26,17 +26,3 @@ where
         }
     }
 }
-
-// #[derive(Debug, Clone)]
-// pub struct OutOfRangeError(String);
-//
-// #[derive(Debug, Clone)]
-// pub struct NoInteractionError(String);
-
-pub enum ExpressionError<'a> {
-    OutOfRange(&'a str),
-    NoInteraction(&'a str),
-    NoAdjacency(&'a str),
-}
-
-pub type ExpressionResult<'a, T> = Result<T, ExpressionError<'a>>;

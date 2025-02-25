@@ -1,5 +1,5 @@
 use std::{
-    iter::{Enumerate, FlatMap},
+    iter::Enumerate,
     ops::{Index, IndexMut, MulAssign},
     slice::Iter,
 };
@@ -32,8 +32,17 @@ where
         self.adj.len()
     }
 
-    pub fn get_mut(&mut self, idx: usize) -> Option<&mut Vec<OneVarTerm<Index, Bias>>> {
-        self.adj.get_mut(idx)
+    pub fn is_empty(&self) -> bool {
+        for neighborhood in self.adj.iter() {
+            if !neighborhood.is_empty() {
+                return false;
+            }
+        }
+        true
+    }
+
+    pub fn get_mut(&mut self, idx: Index) -> Option<&mut Vec<OneVarTerm<Index, Bias>>> {
+        self.adj.get_mut(idx.into())
     }
 
     pub fn iter(&self) -> Enumerate<Iter<Vec<OneVarTerm<Index, Bias>>>> {
@@ -50,20 +59,8 @@ where
                     .map(move |term| (u_idx.into(), term.index, term.bias))
             })
     }
-
-    // pub fn iter_mut(&mut self) -> IterMut<(Index, Index, Bias)> {
-    //     unimplemented!()
-    // }
 }
 
-// impl<Index, Bias> Iterator for Quadratic<Index, Bias> {
-//     type Item = (Index, Index, Bias);
-//
-//     fn next(&mut self) -> Option<Self::Item> {
-//         todo!()
-//     }
-// }
-//
 impl<Index, Bias> MulAssign<Bias> for Quadratic<Index, Bias>
 where
     Bias: BiasConstraints,

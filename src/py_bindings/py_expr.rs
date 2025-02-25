@@ -1,14 +1,11 @@
-use std::{cell::RefCell, rc::Rc};
-
+use super::py_var::PyVariable;
 use crate::core::{
     operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
     Expression, ExpressionBase, VarId, VariablesFromDifferentEnvsException,
 };
-
 use derive_more::{Deref, DerefMut};
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
-
-use super::py_var::PyVariable;
+use std::{cell::RefCell, rc::Rc};
 
 type Expr = Expression<VarId, f64>;
 
@@ -24,22 +21,23 @@ impl PyExpression {
 
 #[pymethods]
 impl PyExpression {
-    fn get_linear(&self, var: &PyVariable) -> f64 {
-        self.borrow().linear(var.id)
+    fn get_linear(&self, var: &PyVariable) -> PyResult<f64> {
+        Ok(self.borrow().linear(var.id)?)
     }
 
     fn get_offset(&self) -> f64 {
         self.borrow().offset()
     }
 
-    fn get_quadratic(&self, u: &PyVariable, v: &PyVariable) -> f64 {
-        self.borrow().quadratic(u.id, v.id)
+    fn get_quadratic(&self, u: &PyVariable, v: &PyVariable) -> PyResult<f64> {
+        Ok(self.borrow().quadratic(u.id, v.id)?)
     }
 
-    fn get_higher_order(&self, vars: Vec<PyVariable>) -> f64 {
+    fn get_higher_order(&self, vars: Vec<PyVariable>) -> PyResult<f64> {
         // todo: optimize the iter away...
-        self.borrow()
-            .higher_order(&vars.iter().map(|v| v.id).collect())
+        Ok(self
+            .borrow()
+            .higher_order(&vars.iter().map(|v| v.id).collect())?)
     }
 
     #[pyo3(name = "num_variables")]

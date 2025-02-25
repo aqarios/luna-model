@@ -2,9 +2,9 @@ use std::{cell::RefCell, ops::AddAssign, rc::Rc, str::FromStr};
 
 use crate::core::{
     exceptions::{ParseFromStringError, VariablesFromDifferentEnvsError},
-    expression::{BiasConstraints, IndexConstraints, One},
+    expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints, One},
     operations::{AddToExpression, MulToExpression},
-    Environment, Expression, ExpressionBaseInternal,
+    Environment, Expression,
 };
 
 #[derive(Debug, Clone, Copy, Default, Eq, Ord, PartialEq, PartialOrd, Hash)]
@@ -57,12 +57,6 @@ impl Into<u64> for VarId {
     }
 }
 
-// impl Display for VarId {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "{}", self.0)
-//     }
-// }
-
 #[derive(Debug, Clone)]
 pub struct VarRef<Index> {
     pub id: Index,
@@ -90,7 +84,7 @@ where
     type Output = Expression<Index, Bias>;
 
     fn add(self, rhs: Bias) -> Self::Output {
-        Expression::new_linear_from_weighted_variable(self.env.clone(), self.id, rhs)
+        Expression::new_linear_single(self.env.clone(), self.id, rhs)
     }
 }
 
@@ -105,7 +99,7 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            Ok(Expression::new_linear_from_variables(
+            Ok(Expression::new_linear(
                 self.env.clone(),
                 self.id,
                 rhs.id,
@@ -123,7 +117,7 @@ where
     type Output = Expression<Index, Bias>;
 
     fn mul(self, rhs: Bias) -> Self::Output {
-        Expression::new_linear_from_weighted_variable(self.env.clone(), self.id, rhs)
+        Expression::new_linear_single(self.env.clone(), self.id, rhs)
     }
 }
 
@@ -138,7 +132,7 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            Ok(Expression::new_quadratic_from_variables(
+            Ok(Expression::new_quadratic(
                 self.env.clone(),
                 self.id,
                 rhs.id,
@@ -147,27 +141,3 @@ where
         }
     }
 }
-
-// impl<Index, Bias> Add<VarRef<Index>> for &VarRef<Index>
-// where
-//     Index: IndexConstraints,
-//     Bias: BiasConstraints,
-// {
-//     type Output = Expression<Index, Bias>;
-//
-//     fn add(
-//         self,
-//         rhs: &VarRef<Index>,
-//     ) -> Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError> {
-//         if self.env.borrow().id != rhs.env.borrow().id {
-//             Err(VariablesFromDifferentEnvsError)
-//         } else {
-//             Ok(Expression::new_linear_from_variables(
-//                 self.env.clone(),
-//                 self.id,
-//                 rhs.id,
-//                 Bias::one(),
-//             ))
-//         }
-//     }
-// }

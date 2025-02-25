@@ -45,6 +45,10 @@ where
         // fixing
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.biases.len() == 0
+    }
+
     pub fn iter(&self) -> Iter<String, Bias> {
         self.biases.iter()
     }

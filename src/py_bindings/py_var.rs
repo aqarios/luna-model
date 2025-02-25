@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use super::py_env::{PyEnvironment, CURRENT_ENV};
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::operations::{AddToExpression, MulToExpression};
@@ -7,10 +5,10 @@ use crate::core::{
     environment, NoActiveEnvironmentFoundException, VarId, VarRef, VariableExistsException,
     VariablesFromDifferentEnvsException, Vtype,
 };
-
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
+use std::rc::Rc;
 
 #[pyclass(unsendable, subclass, name = "Variable")]
 #[derive(Debug, Deref, DerefMut, Clone)]
