@@ -37,6 +37,7 @@ where
             Err(VariablesFromDifferentEnvsError.into())
         } else {
             let mut out = Expression::new_from_other(&self);
+            out.add_variables(rhs.id);
             out.add_linear(rhs.id, Bias::one()).map_err(|e| e.into())?;
             Ok(out)
         }
@@ -137,6 +138,7 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError.into())
         } else {
+            self.add_variables(rhs.id);
             self.add_linear(rhs.id, Bias::one()).map_err(|e| e.into())
         }
     }

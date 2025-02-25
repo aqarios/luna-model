@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::cmp::Ordering;
+use std::cmp::{max, Ordering};
 use std::rc::Rc;
 
 use hashbrown::HashMap;
@@ -80,7 +80,9 @@ where
             quadratic: None,
             higher_order: None,
         };
-        out.add_quadratic(u, v, bias);
+        out.add_variables((max(u, v).into() + 1).into());
+        out.add_quadratic(u, v, bias)
+            .expect("variables not in the expression");
         out
     }
     fn new_from_other(other: &Self) -> Self {
@@ -100,15 +102,72 @@ where
     Bias: BiasConstraints,
 {
     fn add_variable(&mut self) -> Index {
-        todo!()
+        self.add_variables(Index::one())
     }
 
     fn add_variables(&mut self, n: Index) -> Index {
-        todo!()
+        let size = self.num_variables();
+        // If no variable is in the current expression yet
+        if n == Index::default() && size == 0 {
+            // the index is 0.
+            return self.add_variable();
+        }
+
+        // if the variable is equal to the size, we need to add just a single
+        // variable entry to the expression.
+        if n.into() == size {
+            self.linear.resize(size + 1);
+            if self.has_quadratic() {
+                let adj = self.quadratic.as_mut().unwrap();
+                adj.resize(size + 1);
+            }
+            return size.into();
+        }
+
+        // we need to check if the variable was already added once.
+        // this needs to be optimized at some point.
+        if n.into() < size {
+            // The variable is already represented in the expression. Thus we don't
+            // need to do anything.
+            // Does this make sense? Maybe we need to move away from the tedious
+            // dimod implementation...while keeping the same internal structures.
+            // Must not affect performance.
+            return n;
+        }
+
+        self.linear.resize(size + n.into());
+
+        if self.has_quadratic() {
+            let adj = self.quadratic.as_mut().unwrap();
+            adj.resize(size + n.into());
+        }
+
+        // Higher order terms are an abstraction over a HashMap.
+        // Thus, we don't need to do anything here, as it dynamically
+        // resizes on insertion.
+        size.into()
     }
 
     fn resize(&mut self, n: Index) {
-        todo!()
+        if self.has_quadratic() {
+            if n.into() < self.num_variables() {
+                let quadratic = self.quadratic.as_mut().unwrap();
+                for neighborhood in quadratic {
+                    if let Ok(pos) = neighborhood.binary_search_by(|term| term.index.cmp(&n)) {
+                        neighborhood.truncate(pos);
+                    }
+                }
+            }
+            self.quadratic.as_mut().unwrap().resize(n.into());
+        }
+
+        self.linear.resize(n.into());
+
+        // Again, higher order terms do not need to be resized, see `add_variables`
+
+        assert!(
+            !self.has_quadratic() || self.linear.len() == self.quadratic.as_ref().unwrap().len()
+        );
     }
 }
 
@@ -131,8 +190,7 @@ where
         self.check_and_get(v)?;
         let mut bias = Bias::default();
         match self.has_quadratic() {
-            true => (),
-            false => {
+            true => {
                 let mut outer = u;
                 let mut inner = v;
                 if u > v {
@@ -152,6 +210,7 @@ where
                     Err(_) => (),
                 }
             }
+            false => (),
         }
         Ok(bias)
     }

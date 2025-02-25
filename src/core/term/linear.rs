@@ -1,11 +1,11 @@
 use std::{
     cmp::max,
     iter::Enumerate,
-    ops::{AddAssign, Index, IndexMut, MulAssign},
+    ops::{Index, IndexMut, MulAssign},
     slice::{Iter, IterMut},
 };
 
-use crate::core::expression::BiasConstraints;
+use crate::core::expression::{BiasConstraints, IndexConstraints};
 
 // todo: we need a Linear trait to allow for better interchangeability...
 // Currently the expression traits use the structs directly. I don't like this...
@@ -17,8 +17,7 @@ pub struct Linear<Bias> {
 
 impl<Bias> Linear<Bias>
 where
-    // Idx: Into<SizeType>,
-    Bias: Default + Clone + Copy + AddAssign,
+    Bias: BiasConstraints,
 {
     pub fn default() -> Self {
         Self { biases: Vec::new() }

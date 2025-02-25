@@ -58,6 +58,8 @@ where
             .iter()
             .map(|(key, bias)| (HigherOrder::<Index, Bias>::key_contributions(&key), bias))
     }
+
+    pub fn resize(&mut self, _: usize) {}
 }
 
 impl<Index, Bias> MulAssign<Bias> for HigherOrder<Index, Bias>

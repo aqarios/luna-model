@@ -48,6 +48,8 @@ where
         } else {
             let mut out = Expression::new(self.env.clone());
             out.add_variables(self.num_variables().into());
+            out.add_variables(rhs.id);
+
             out.mul_with_offset(self.offset, rhs.id, Bias::one())
                 .map_err(|e| e.into())?;
             out.mul_with_linear(&self.linear, rhs.id, Bias::one())
@@ -87,6 +89,8 @@ where
         } else {
             let mut out = Expression::new(self.env.clone());
             out.add_variables(self.num_variables().into());
+            out.add_variables(rhs.num_variables().into());
+
             out.mul_offset(self.offset, rhs.offset);
             out.mul_linear(&self.linear, &rhs.linear);
             if self.has_quadratic() && rhs.has_quadratic() {

@@ -107,12 +107,8 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    // fn new_linear_single(n: Index) -> Self;
-    /// Increase the size of the model by one. Returns the index of the new variable.
     fn add_variable(&mut self) -> Index;
-    /// Increase the size of the model by `n`. Returns the index of the first variable
-    /// added.
-    fn add_variables(&mut self, n: Index) -> Index;
+    fn add_variables(&mut self, v: Index) -> Index;
     // // todo: make this rusty -> makes sense to return a & here??
     // /// Return an empty neighborhood; useful when a variable does not have an adjacency.
     // // fn empty_neighborhood(&self) -> &Vec<OneVarTerm<Index, Bias>>;
