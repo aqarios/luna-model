@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::cmp::{max, Ordering};
+use std::cmp::Ordering;
 use std::rc::Rc;
 
 use hashbrown::HashMap;
@@ -26,6 +26,10 @@ where
     pub linear: Linear<Bias>,
     pub quadratic: Option<Quadratic<Index, Bias>>,
     pub higher_order: Option<HigherOrder<Index, Bias>>,
+    /// Mirror of the linear array that tracks which variables are already
+    /// contained in the expression. 1 indicates already added 0 indicating floating.
+    active: Vec<bool>,
+    num_variables: SizeType,
 }
 
 impl<Index, Bias> ExpressionBaseTypes for Expression<Index, Bias>
@@ -52,24 +56,43 @@ where
             linear: Linear::default(),
             quadratic: None,
             higher_order: None,
+            active: Vec::default(),
+            num_variables: 0,
         }
     }
     fn new_linear_single(env: Rc<RefCell<Environment<Index>>>, v: Index, bias: Bias) -> Self {
+        let linear = Linear::new_from_weighted_variable(v.into(), bias);
+        // todo: make this it's own struct similar to linear.
+        let mut active = Vec::new();
+        active.resize(linear.len(), false);
+        active[v.into()] = true;
+
         Self {
             env,
             offset: Bias::default(),
-            linear: Linear::new_from_weighted_variable(v.into(), bias),
+            linear,
             quadratic: None,
             higher_order: None,
+            active,
+            num_variables: 1,
         }
     }
     fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self {
+        let linear = Linear::new_from_variables(u.into(), v.into(), bias);
+        // todo: make this it's own struct similar to linear.
+        let mut active = Vec::new();
+        active.resize(linear.len(), false);
+        active[u.into()] = true;
+        active[v.into()] = true;
+
         Self {
             env,
             offset: Bias::default(),
-            linear: Linear::new_from_variables(u.into(), v.into(), bias),
+            linear,
             quadratic: None,
             higher_order: None,
+            active,
+            num_variables: 2,
         }
     }
     fn new_quadratic(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self {
@@ -79,10 +102,10 @@ where
             linear: Linear::default(),
             quadratic: None,
             higher_order: None,
+            active: Vec::default(),
+            num_variables: 0,
         };
-        out.add_variables((max(u, v).into() + 1).into());
-        out.add_quadratic(u, v, bias)
-            .expect("variables not in the expression");
+        out.add_quadratic(u, v, bias);
         out
     }
     fn new_from_other(other: &Self) -> Self {
@@ -92,6 +115,8 @@ where
             linear: other.linear.clone(),
             quadratic: other.quadratic.clone(),
             higher_order: other.higher_order.clone(),
+            active: other.active.clone(),
+            num_variables: other.num_variables,
         }
     }
 }
@@ -101,56 +126,68 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn add_variable(&mut self) -> Index {
-        self.add_variables(Index::one())
+    fn add_variable(&mut self, v: Index) -> SizeType {
+        // First, we need to check if the variable is larger or equal to the current
+        // size of the linear terms.
+        let size = self.linear.len();
+        if v.into() >= size {
+            // We can simply resize the linear term and the active tracker.
+            self.linear.resize(v.into() + 1);
+            self.active.resize(v.into() + 1, false);
+            // We also need to resize the quadratic term if this expression has one.
+            if self.has_quadratic() {
+                self.quadratic.as_mut().unwrap().resize(v.into() + 1);
+            }
+            // We do not need to resize the higher order term as in this implementation
+            // it grows dynamically.
+            // ...
+            // Now we set the currently added variable as active.
+            self.active[v.into()] = true;
+            // And incresae the variable counter by one.
+            self.num_variables += 1;
+        } else {
+            // v < size
+            // We do not need to do any resizing.
+            // And can directly check if the variable is active.
+            let active = self.active[v.into()];
+            // If the variable is already activated we need to do nothing.
+            // This means the variable was already added at some point.
+            // Otherwise, we need to activate it and increase the var counter by one.
+            if !active {
+                self.active[v.into()] = true;
+                self.num_variables += 1;
+            }
+        }
+
+        v.into()
     }
 
-    fn add_variables(&mut self, n: Index) -> Index {
-        let size = self.num_variables();
-        // If no variable is in the current expression yet
-        if n == Index::default() && size == 0 {
-            // the index is 0.
-            return self.add_variable();
-        }
-
-        // if the variable is equal to the size, we need to add just a single
-        // variable entry to the expression.
-        if n.into() == size {
-            self.linear.resize(size + 1);
-            if self.has_quadratic() {
-                let adj = self.quadratic.as_mut().unwrap();
-                adj.resize(size + 1);
+    fn add_variables(&mut self, vars: &Vec<Index>) {
+        // We only need to call the add_variable for the largest index.
+        // This will automatically allocate memory for all others.
+        let max_index = vars.iter().max().unwrap();
+        self.add_variable(*max_index);
+        // Now we need to set each variable as active and increase the variable counter
+        // if the variable has not been added before.
+        for v in vars {
+            let active = self.active[(*v).into()];
+            if !active {
+                self.active[(*v).into()] = true;
+                self.num_variables += 1;
             }
-            return size.into();
         }
+    }
 
-        // we need to check if the variable was already added once.
-        // this needs to be optimized at some point.
-        if n.into() < size {
-            // The variable is already represented in the expression. Thus we don't
-            // need to do anything.
-            // Does this make sense? Maybe we need to move away from the tedious
-            // dimod implementation...while keeping the same internal structures.
-            // Must not affect performance.
-            return n;
-        }
-
-        self.linear.resize(size + n.into());
-
-        if self.has_quadratic() {
-            let adj = self.quadratic.as_mut().unwrap();
-            adj.resize(size + n.into());
-        }
-
-        // Higher order terms are an abstraction over a HashMap.
-        // Thus, we don't need to do anything here, as it dynamically
-        // resizes on insertion.
-        size.into()
+    fn add_active_variables(&mut self, n: Index) {
+        self.add_variable(n);
+        // Maybe something more efficient?
+        self.active = Vec::new();
+        self.active.resize(n.into(), true);
     }
 
     fn resize(&mut self, n: Index) {
         if self.has_quadratic() {
-            if n.into() < self.num_variables() {
+            if n.into() < self.linear.len() {
                 let quadratic = self.quadratic.as_mut().unwrap();
                 for neighborhood in quadratic {
                     if let Ok(pos) = neighborhood.binary_search_by(|term| term.index.cmp(&n)) {
@@ -225,7 +262,7 @@ where
     }
 
     fn num_variables(&self) -> SizeType {
-        self.linear.len()
+        self.num_variables
     }
 
     fn vartype(&self, v: Index) -> Vtype {
@@ -253,19 +290,16 @@ where
     fn add_offset(&mut self, bias: Bias) {
         self.offset += bias
     }
-    fn add_linear(&mut self, v: Index, bias: Bias) -> Result<(), VariableOutOfRangeError> {
-        let v_idx = self.check_and_get(v)?;
-        self.linear[v_idx] += bias;
-        Ok(())
+    fn add_linear(&mut self, v: Index, bias: Bias) {
+        self.add_variable(v);
+        self.linear[v.into()] += bias;
     }
-    fn add_quadratic(
-        &mut self,
-        u: Index,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError> {
-        let u_idx = self.check_and_get(u)?;
-        let v_idx = self.check_and_get(v)?;
+
+    fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias) {
+        self.add_variable(u);
+        self.add_variable(v);
+        let u_idx = u.into();
+        let v_idx = v.into();
         self.enforce_quadratic();
 
         match (u_idx == v_idx, self.vartype(u)) {
@@ -273,25 +307,19 @@ where
             (true, Vtype::Spin) => self.offset += bias,
             // 1*1 == 1 and 0*0 == 0 so this is linear
             (true, Vtype::Binary) => self.linear[u_idx] += bias,
-            (_, _) => *self.asymmetric_quadratic_ref(u, v)? += bias,
+            (_, _) => *self.asymmetric_quadratic_ref(u, v) += bias,
         }
-        Ok(())
     }
-    fn add_higher_order(
-        &mut self,
-        vars: &Vec<Index>,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError> {
-        self.check_multi(vars)?;
+    fn add_higher_order(&mut self, vars: &Vec<Index>, bias: Bias) {
+        self.add_variables(vars);
         self.enforce_higher_order();
         let contributions = self.reduce_higher_order_vars(vars);
         match contributions.len() {
             0 => self.add_offset(bias),
-            1 => self.add_linear(contributions[0], bias)?,
-            2 => self.add_quadratic(contributions[0], contributions[1], bias)?,
+            1 => self.add_linear(contributions[0], bias),
+            2 => self.add_quadratic(contributions[0], contributions[1], bias),
             _ => self.higher_order.as_mut().unwrap()[&contributions] += bias,
         }
-        Ok(())
     }
 
     fn add_higher_order_direct(&mut self, key: &Self::HigherOrderKey, bias: Bias) {
@@ -301,7 +329,7 @@ where
 
     fn add_linear_from(&mut self, other: &Self::LinearType) {
         for (u, bias) in other.iter() {
-            self.linear[u] += *bias
+            self.add_linear(u.into(), *bias);
         }
     }
     fn add_quadratic_from(&mut self, other: &Self::QuadraticType) {
@@ -315,14 +343,9 @@ where
         }
     }
 
-    fn add_quadratic_back(
-        &mut self,
-        u: Index,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError> {
-        let u_idx = self.check_and_get(u)?;
-        let v_idx = self.check_and_get(v)?;
+    fn add_quadratic_back(&mut self, u: Index, v: Index, bias: Bias) {
+        let u_idx = self.add_variable(u);
+        let v_idx = self.add_variable(u);
         self.enforce_quadratic();
         self.check_quadratic_dimensions(u_idx, v_idx);
         match (u_idx == v_idx, self.vartype(u)) {
@@ -340,14 +363,9 @@ where
                 quadratic[insertion_idx].push(OneVarTerm::new(v, bias));
             }
         }
-        Ok(())
     }
-    fn add_quadratic_from_dense(
-        &mut self,
-        dense: &[Bias],
-        num_variables: Index,
-    ) -> Result<(), VariableOutOfRangeError> {
-        self.check_size(num_variables)?;
+    fn add_quadratic_from_dense(&mut self, dense: &[Bias], num_variables: Index) {
+        self.add_active_variables(num_variables);
         self.enforce_quadratic();
         let f_add_quadratic = match self.is_linear() {
             true => Self::add_quadratic_back,
@@ -366,8 +384,6 @@ where
                 }
             }
         }
-
-        Ok(())
     }
 }
 
@@ -376,21 +392,16 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn set_higher_order(
-        &mut self,
-        vars: &Vec<Index>,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError> {
-        self.check_multi(vars)?;
+    fn set_higher_order(&mut self, vars: &Vec<Index>, bias: Bias) {
+        self.add_variables(vars);
         self.enforce_higher_order();
         let contributions = self.reduce_higher_order_vars(vars);
         match contributions.len() {
             0 => self.add_offset(bias),
-            1 => self.add_linear(contributions[0], bias)?,
-            2 => self.add_quadratic(contributions[0], contributions[1], bias)?,
+            1 => self.add_linear(contributions[0], bias),
+            2 => self.add_quadratic(contributions[0], contributions[1], bias),
             _ => self.higher_order.as_mut().unwrap()[&contributions] = bias,
         }
-        Ok(())
     }
 }
 
@@ -435,24 +446,14 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn mul_with_offset(
-        &mut self,
-        offset: Bias,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError> {
+    fn mul_with_offset(&mut self, offset: Bias, v: Index, bias: Bias) {
         // Multiplying the offset with a variable creates a new linear term that is
         // added to the linear part of the expression. Thus we can reuse the add_linear
         // here.
         self.add_linear(v, bias * offset)
     }
 
-    fn mul_with_linear(
-        &mut self,
-        linear: &Self::LinearType,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError> {
+    fn mul_with_linear(&mut self, linear: &Self::LinearType, v: Index, bias: Bias) {
         // Multiplying the linear part of the expression with a variable can produce
         // different results. For binary, this updates the linear term by multipliction
         // of the bias.
@@ -466,24 +467,17 @@ where
             // in all cases.
             // However, we can make use of the logic already implemented in the
             // add_quadratic case. Which checks the logic based on the variable type.
-            self.add_quadratic(u_idx.into(), v, *u_bias * bias)?
+            self.add_quadratic(u_idx.into(), v, *u_bias * bias)
         }
-        Ok(())
     }
 
-    fn mul_with_quadratic(
-        &mut self,
-        quadratic: &Self::QuadraticType,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError> {
+    fn mul_with_quadratic(&mut self, quadratic: &Self::QuadraticType, v: Index, bias: Bias) {
         // Multiply the quadratic part with a variable.
         for (u, neighborhood) in quadratic.iter() {
             for term in neighborhood.iter() {
-                self.add_higher_order(&vec![u.into(), term.index, v], term.bias * bias)?
+                self.add_higher_order(&vec![u.into(), term.index, v], term.bias * bias)
             }
         }
-        Ok(())
     }
 
     fn mul_with_higher_order(
@@ -491,13 +485,12 @@ where
         higher_order: &Self::HigherOrderType,
         v: Index,
         bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError> {
+    ) {
         for (indices, ho_bias) in higher_order.iter_contrib() {
             let mut new_indices = vec![v];
             new_indices.extend(indices);
-            self.set_higher_order(&new_indices, *ho_bias * bias)?
+            self.set_higher_order(&new_indices, *ho_bias * bias)
         }
-        Ok(())
     }
 }
 
@@ -507,39 +500,32 @@ where
     Bias: BiasConstraints,
 {
     fn check_and_get(&self, v: Index) -> Result<usize, VariableOutOfRangeError> {
-        let v_idx = v.into();
-        match v_idx < self.num_variables() {
-            true => Ok(v_idx),
-            false => Err(VariableOutOfRangeError(v.to_string())),
+        match self.active[v.into()] {
+            true => Ok(v.into()),
+            false => Err(VariableOutOfRangeError(v.into())),
         }
     }
+
     fn check(&self, v: Index) -> Result<(), VariableOutOfRangeError> {
-        match v.into() < self.num_variables() {
+        match self.active[v.into()] {
             true => Ok(()),
-            false => Err(VariableOutOfRangeError(v.to_string())),
+            false => Err(VariableOutOfRangeError(v.into())),
         }
     }
 
     fn check_multi(&self, vars: &Vec<Index>) -> Result<(), VariableOutOfRangeError> {
         for v in vars {
             let v_idx: usize = (*v).into();
-            if v_idx >= self.num_variables() {
-                return Err(VariableOutOfRangeError(v.to_string()));
+            if self.active[v_idx] {
+                return Err(VariableOutOfRangeError(v_idx));
             }
         }
         Ok(())
     }
 
-    fn check_size(&self, n: Index) -> Result<(), VariableOutOfRangeError> {
-        match self.num_variables() <= n.into() {
-            true => Ok(()),
-            false => Err(VariableOutOfRangeError(n.to_string())),
-        }
-    }
-
     pub fn enforce_quadratic(&mut self) {
         if !self.has_quadratic() {
-            self.quadratic = Some(Quadratic::new(self.num_variables()))
+            self.quadratic = Some(Quadratic::new(self.linear.len()))
         }
     }
 
@@ -584,16 +570,8 @@ where
 
     /// Assumes quadratic exists!
     /// Creates the bias if it doesn't already exist
-    pub fn asymmetric_quadratic_ref(
-        &mut self,
-        u: Index,
-        v: Index,
-    ) -> Result<&mut Bias, VariableOutOfRangeError> {
+    pub fn asymmetric_quadratic_ref(&mut self, u: Index, v: Index) -> &mut Bias {
         assert!(self.has_quadratic(), "quadratic is not initialized");
-
-        self.check(u)?;
-        self.check(v)?;
-
         let neighborhood: &mut Vec<OneVarTerm<Index, Bias>> = self
             .quadratic
             .as_mut()
@@ -607,7 +585,7 @@ where
             neighborhood.insert(pos, OneVarTerm::new_default(v));
         }
 
-        Ok(&mut neighborhood[pos].bias)
+        &mut neighborhood[pos].bias
     }
 
     fn reduce_higher_order_vars(&self, indices: &Vec<Index>) -> Vec<Index> {

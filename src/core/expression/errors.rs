@@ -4,7 +4,7 @@ use crate::core::exceptions::VariablesFromDifferentEnvsError;
 
 // VariableOutOfRangeError
 #[derive(Debug, Clone)]
-pub struct VariableOutOfRangeError(pub String);
+pub struct VariableOutOfRangeError(pub usize);
 
 impl std::error::Error for VariableOutOfRangeError {}
 

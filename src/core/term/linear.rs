@@ -5,7 +5,7 @@ use std::{
     slice::{Iter, IterMut},
 };
 
-use crate::core::expression::{BiasConstraints, IndexConstraints};
+use crate::core::expression::BiasConstraints;
 
 // todo: we need a Linear trait to allow for better interchangeability...
 // Currently the expression traits use the structs directly. I don't like this...
@@ -25,13 +25,13 @@ where
 
     pub fn with_size(size: usize) -> Self {
         let mut biases = Vec::with_capacity(size);
-        biases.resize(size, Bias::default());
+        biases.resize_with(size, Bias::default);
         Self { biases }
     }
 
     pub fn new_from_weighted_variable(var: usize, bias: Bias) -> Self {
-        let mut out = Self::default();
-        out.biases.insert(var.into(), bias);
+        let mut out = Self::with_size(var + 1);
+        out[var] += bias;
         out
     }
 
@@ -56,7 +56,7 @@ where
     }
 
     pub fn resize(&mut self, new_len: usize) {
-        self.biases.resize(new_len, Bias::default());
+        self.biases.resize_with(new_len, Bias::default);
     }
 }
 

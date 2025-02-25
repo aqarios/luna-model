@@ -107,8 +107,9 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn add_variable(&mut self) -> Index;
-    fn add_variables(&mut self, v: Index) -> Index;
+    fn add_variable(&mut self, v: Index) -> SizeType;
+    fn add_variables(&mut self, vars: &Vec<Index>);
+    fn add_active_variables(&mut self, n: Index);
     // // todo: make this rusty -> makes sense to return a & here??
     // /// Return an empty neighborhood; useful when a variable does not have an adjacency.
     // // fn empty_neighborhood(&self) -> &Vec<OneVarTerm<Index, Bias>>;
@@ -128,11 +129,7 @@ where
     // -- /// Add interaction between variables `v` and `u`.
     // -- fn set_quadratic(&mut self, u: Index, v: Index, bias: Bias);
     /// Add interaction between variables in `indices`.
-    fn set_higher_order(
-        &mut self,
-        vars: &Vec<Index>,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError>;
+    fn set_higher_order(&mut self, vars: &Vec<Index>, bias: Bias);
 }
 
 pub trait ExpressionBase<Index, Bias> {
@@ -266,20 +263,11 @@ where
     /// Add offset.
     fn add_offset(&mut self, bias: Bias);
     /// Add linear bias to variable `v`.
-    fn add_linear(&mut self, v: Index, bias: Bias) -> Result<(), VariableOutOfRangeError>;
+    fn add_linear(&mut self, v: Index, bias: Bias);
     /// Add interaction between variables `v` and `u`.
-    fn add_quadratic(
-        &mut self,
-        u: Index,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError>;
+    fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias);
     /// Add interaction between variables in `indices`.
-    fn add_higher_order(
-        &mut self,
-        vars: &Vec<Index>,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError>;
+    fn add_higher_order(&mut self, vars: &Vec<Index>, bias: Bias);
     /// Add interaction between variables in `indices`.
     /// This is the same as `add_higher_order` but operates on the key used in the
     /// higher order representation directly.
@@ -304,12 +292,7 @@ where
     /// `v` is less than the largest neighbor in `u`'s neighborhood, or either
     /// `u` or `v` is greater than `num_variables()` then the behavior of
     /// this method is undefined.
-    fn add_quadratic_back(
-        &mut self,
-        u: Index,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError>;
+    fn add_quadratic_back(&mut self, u: Index, v: Index, bias: Bias);
     /// Add quadratic biases from a dense matrix.
     ///
     /// `dense` must be an array of length `num_variables^2`.
@@ -320,11 +303,7 @@ where
     /// # Exceptions
     /// The behavior of this method is undefined when the model has fewer than
     /// `num_variables` variables.
-    fn add_quadratic_from_dense(
-        &mut self,
-        dense: &[Bias],
-        num_variables: Index,
-    ) -> Result<(), VariableOutOfRangeError>;
+    fn add_quadratic_from_dense(&mut self, dense: &[Bias], num_variables: Index);
 }
 
 /// Implements multiplication of variables, biases (scalars) and terms to `self`.
@@ -362,34 +341,14 @@ where
 {
     /// Mul the variable `v` to the offset, producing a new linear entry.
     /// This function edits self, based on the information from offset and the rest.
-    fn mul_with_offset(
-        &mut self,
-        offset: Bias,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError>;
+    fn mul_with_offset(&mut self, offset: Bias, v: Index, bias: Bias);
     /// Mul the variable `v` to the linear term.
     /// This function edits self, based on the information from linear and the rest.
-    fn mul_with_linear(
-        &mut self,
-        linear: &Self::LinearType,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError>;
+    fn mul_with_linear(&mut self, linear: &Self::LinearType, v: Index, bias: Bias);
     /// Mul the variable `v` to the quadratic term.
     /// This function edits self, based on the information from quadratic and the rest.
-    fn mul_with_quadratic(
-        &mut self,
-        quadratic: &Self::QuadraticType,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError>;
+    fn mul_with_quadratic(&mut self, quadratic: &Self::QuadraticType, v: Index, bias: Bias);
     /// Mul the variable `v` to the higher order term.
     /// This function edits self, based on the information from higher_order and the rest.
-    fn mul_with_higher_order(
-        &mut self,
-        higher_order: &Self::HigherOrderType,
-        v: Index,
-        bias: Bias,
-    ) -> Result<(), VariableOutOfRangeError>;
+    fn mul_with_higher_order(&mut self, higher_order: &Self::HigherOrderType, v: Index, bias: Bias);
 }

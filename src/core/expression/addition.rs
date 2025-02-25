@@ -3,7 +3,6 @@ use super::{
         BiasConstraints, ExpressionBase, ExpressionBaseAdd, ExpressionBaseAdjustment,
         ExpressionBaseCreation, IndexConstraints,
     },
-    errors::VariableError,
     Expression,
 };
 use crate::core::exceptions::VariablesFromDifferentEnvsError;
@@ -31,14 +30,13 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariableError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
     fn add(self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError.into())
+            Err(VariablesFromDifferentEnvsError)
         } else {
             let mut out = Expression::new_from_other(&self);
-            out.add_variables(rhs.id);
-            out.add_linear(rhs.id, Bias::one()).map_err(|e| e.into())?;
+            out.add_linear(rhs.id, Bias::one());
             Ok(out)
         }
     }
@@ -132,14 +130,13 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<(), VariableError>;
+    type Output = Result<(), VariablesFromDifferentEnvsError>;
 
     fn add_assign(&mut self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError.into())
+            Err(VariablesFromDifferentEnvsError)
         } else {
-            self.add_variables(rhs.id);
-            self.add_linear(rhs.id, Bias::one()).map_err(|e| e.into())
+            Ok(self.add_linear(rhs.id, Bias::one()))
         }
     }
 }

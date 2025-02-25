@@ -337,34 +337,34 @@ def test_expression_instancemul_expression(variables):
     assert type(expr_rhs) == Expression
     assert expr_rhs.num_variables() == 2
     assert expr_rhs.get_offset() == 0
-    assert expr_rhs.get_linear(w) == 0
-    assert expr_rhs.get_linear(x) == 0
-    assert expr_rhs.get_quadratic(w, x) == 1
-    assert expr_rhs.get_quadratic(w, x) == expr_rhs.get_quadratic(x, w)
+    assert expr_rhs.get_linear(y) == 0
+    assert expr_rhs.get_linear(z) == 0
+    assert expr_rhs.get_quadratic(y, z) == 1
+    assert expr_rhs.get_quadratic(y, z) == expr_rhs.get_quadratic(z, y)
 
-    # assert id_expr_lhs != id_expr_rhs
+    assert id_expr_lhs != id_expr_rhs
 
-    # # ACTUAL TEST
-    # expr_lhs *= expr_rhs
-    # id_expr_lhs_after = id(expr_lhs)
+    # ACTUAL TEST
+    expr_lhs *= expr_rhs
+    id_expr_lhs_after = id(expr_lhs)
 
-    # assert id_expr_lhs == id_expr_lhs_after
+    assert id_expr_lhs == id_expr_lhs_after
 
-    # assert type(expr_lhs) == Expression
-    # assert expr_lhs.num_variables() == 3
-    # assert expr_lhs.get_offset() == 0
-    # assert expr_lhs.get_linear(x) == 0
-    # assert expr_lhs.get_linear(y) == 0
-    # assert expr_lhs.get_linear(z) == 0
-    # assert expr_lhs.get_quadratic(x, y) == 0
-    # assert expr_lhs.get_quadratic(x, y) == expr_lhs.get_quadratic(y, x)
-    # assert expr_lhs.get_quadratic(x, z) == 0
-    # assert expr_lhs.get_quadratic(x, z) == expr_lhs.get_quadratic(z, x)
-    # assert expr_lhs.get_quadratic(y, z) == 0
-    # assert expr_lhs.get_quadratic(y, z) == expr_lhs.get_quadratic(z, y)
-    # assert expr_lhs.get_higher_order((x, y, z)) == 1
-    # assert expr_lhs.get_higher_order((x, z, y)) == 1
-    # assert expr_lhs.get_higher_order((y, x, z)) == 1
-    # assert expr_lhs.get_higher_order((y, z, x)) == 1
-    # assert expr_lhs.get_higher_order((z, x, y)) == 1
-    # assert expr_lhs.get_higher_order((z, y, x)) == 1
+    assert type(expr_lhs) == Expression
+    assert expr_lhs.num_variables() == 3
+    assert expr_lhs.get_offset() == 0
+    assert expr_lhs.get_linear(x) == 0
+    assert expr_lhs.get_linear(y) == 0
+    assert expr_lhs.get_linear(z) == 0
+    assert expr_lhs.get_quadratic(x, y) == 0
+    assert expr_lhs.get_quadratic(x, y) == expr_lhs.get_quadratic(y, x)
+    assert expr_lhs.get_quadratic(x, z) == 0
+    assert expr_lhs.get_quadratic(x, z) == expr_lhs.get_quadratic(z, x)
+    assert expr_lhs.get_quadratic(y, z) == 0
+    assert expr_lhs.get_quadratic(y, z) == expr_lhs.get_quadratic(z, y)
+    assert expr_lhs.get_higher_order((x, y, z)) == 1
+    assert expr_lhs.get_higher_order((x, z, y)) == 1
+    assert expr_lhs.get_higher_order((y, x, z)) == 1
+    assert expr_lhs.get_higher_order((y, z, x)) == 1
+    assert expr_lhs.get_higher_order((z, x, y)) == 1
+    assert expr_lhs.get_higher_order((z, y, x)) == 1

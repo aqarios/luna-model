@@ -1,9 +1,8 @@
 use super::{
     base::{
-        BiasConstraints, ExpressionBase, ExpressionBaseAdjustment, ExpressionBaseCreation,
-        ExpressionBaseMul, ExpressionBaseMulDirect, IndexConstraints,
+        BiasConstraints, ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulDirect,
+        IndexConstraints,
     },
-    errors::VariableError,
     Expression,
 };
 use crate::core::exceptions::VariablesFromDifferentEnvsError;
@@ -40,25 +39,19 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariableError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
 
     fn mul(self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError.into())
+            Err(VariablesFromDifferentEnvsError)
         } else {
             let mut out = Expression::new(self.env.clone());
-            out.add_variables(self.num_variables().into());
-            out.add_variables(rhs.id);
-
-            out.mul_with_offset(self.offset, rhs.id, Bias::one())
-                .map_err(|e| e.into())?;
-            out.mul_with_linear(&self.linear, rhs.id, Bias::one())
-                .map_err(|e| e.into())?;
+            out.mul_with_offset(self.offset, rhs.id, Bias::one());
+            out.mul_with_linear(&self.linear, rhs.id, Bias::one());
             if self.has_quadratic() {
                 // Don't need to do anything if the quadratic term is empty (is 0)
                 out.enforce_quadratic();
-                out.mul_with_quadratic(&self.quadratic.as_ref().unwrap(), rhs.id, Bias::one())
-                    .map_err(|e| e.into())?;
+                out.mul_with_quadratic(&self.quadratic.as_ref().unwrap(), rhs.id, Bias::one());
             }
             if self.has_higher_order() {
                 // Don't need to do anything if the higher order term is empty (is 0)
@@ -67,8 +60,7 @@ where
                     &self.higher_order.as_ref().unwrap(),
                     rhs.id,
                     Bias::one(),
-                )
-                .map_err(|e| e.into())?;
+                );
             }
             Ok(out)
         }
@@ -88,9 +80,6 @@ where
             Err(VariablesFromDifferentEnvsError)
         } else {
             let mut out = Expression::new(self.env.clone());
-            out.add_variables(self.num_variables().into());
-            out.add_variables(rhs.num_variables().into());
-
             out.mul_offset(self.offset, rhs.offset);
             out.mul_linear(&self.linear, &rhs.linear);
             if self.has_quadratic() && rhs.has_quadratic() {
@@ -140,11 +129,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<(), VariableError>;
+    type Output = Result<(), VariablesFromDifferentEnvsError>;
 
     fn mul_assign(&mut self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError.into())
+            Err(VariablesFromDifferentEnvsError)
         } else {
             // We use the `mul` implementation as we need the temporary expression.
             // We cannot simply just mutiply to itsel as some unforseeable changes
