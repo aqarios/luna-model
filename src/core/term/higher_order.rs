@@ -13,6 +13,7 @@ static DELIMITER: &str = "-";
 pub struct HigherOrder<Index, Bias> {
     biases: HashMap<String, Bias>,
     phantom_data: PhantomData<Index>, // required for compiler to acknowledge the Index
+    default_bias: Bias,
 }
 
 impl<Index, Bias> HigherOrder<Index, Bias>
@@ -24,6 +25,7 @@ where
         Self {
             biases: HashMap::default(),
             phantom_data: PhantomData,
+            default_bias: Bias::default(),
         }
     }
 
@@ -42,7 +44,7 @@ where
             .map(|s| Index::from_str(s).ok().unwrap())
             .collect()
         // ok().unwrap() instead of unwrap() to get rid of the error for now. needs
-        // fixing
+        // fixing ??
     }
 
     pub fn is_empty(&self) -> bool {
@@ -82,10 +84,7 @@ where
     type Output = Bias;
     fn index(&self, index: &Vec<Idx>) -> &Self::Output {
         let key = Self::make_key(index);
-        // todo@benjamin: Only if the key exists we get it otherwise
-        // default value.
-        // see IndexMut, but no Insertion use the Option of get
-        self.biases.get(&key).unwrap()
+        self.biases.get(&key).unwrap_or(&self.default_bias)
     }
 }
 

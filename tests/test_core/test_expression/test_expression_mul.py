@@ -1,6 +1,7 @@
 import pytest
 
 from typing import Tuple
+from itertools import permutations
 
 from aq_models import Variable
 from aq_models import Vtype
@@ -35,6 +36,35 @@ def expression() -> Expression:
     return a * b
 
 
+def check_equality(variables, p, f, value):
+    permuts = permutations(variables, p)
+    base = next(permuts)
+    base_value = f(base)
+    assert base_value == value
+    for permut in permuts:
+        assert f(permut) == base_value
+
+
+def assert_linear(expr, variables, value):
+    check_equality(variables, 1, lambda v: expr.get_linear(v[0]), value)
+
+
+def assert_quadratic(expr, variables, value):
+    check_equality(variables, 2, lambda v: expr.get_quadratic(*v), value)
+
+
+def assert_higher_order(expr, variables, value, p_size=None):
+    if not p_size:
+        check_equality(variables, len(variables), expr.get_higher_order, value)
+    else:
+        check_equality(variables, p_size, expr.get_higher_order, value)
+
+
+def assert_higher_order_all(expr, variables, value):
+    for p_size in range(3, len(variables) + 1):
+        check_equality(variables, p_size, expr.get_higher_order, value)
+
+
 @pytest.mark.expression
 @pytest.mark.parametrize("variables", [3], indirect=True)
 def test_expression_mul_binary_variables(variables):
@@ -44,10 +74,9 @@ def test_expression_mul_binary_variables(variables):
     assert type(expr) == Expression
     assert expr.num_variables() == 2
     assert expr.get_offset() == 0
-    assert expr.get_linear(x) == 0
-    assert expr.get_linear(y) == 0
-    assert expr.get_quadratic(x, y) == 1
-    assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
+    assert_linear(expr, (x, y), 0)
+    assert_quadratic(expr, (x, y), 1)
+    assert_higher_order_all(expr, (x, y), 0)
 
     result = expr * z
 
@@ -55,21 +84,10 @@ def test_expression_mul_binary_variables(variables):
     assert type(result) == Expression
     assert result.num_variables() == 3
     assert result.get_offset() == 0
-    assert result.get_linear(x) == 0
-    assert result.get_linear(y) == 0
-    assert result.get_linear(z) == 0
-    assert result.get_quadratic(x, y) == 0
-    assert result.get_quadratic(x, y) == result.get_quadratic(y, x)
-    assert result.get_quadratic(x, z) == 0
-    assert result.get_quadratic(x, z) == result.get_quadratic(z, x)
-    assert result.get_quadratic(y, z) == 0
-    assert result.get_quadratic(y, z) == result.get_quadratic(z, y)
-    assert result.get_higher_order((x, y, z)) == 1
-    assert result.get_higher_order((x, z, y)) == 1
-    assert result.get_higher_order((y, x, z)) == 1
-    assert result.get_higher_order((y, z, x)) == 1
-    assert result.get_higher_order((z, x, y)) == 1
-    assert result.get_higher_order((z, y, x)) == 1
+    assert_linear(result, variables, 0)
+    assert_quadratic(result, variables, 0)
+    assert_higher_order(result, variables, 0, 2)
+    assert_higher_order(result, variables, 1)
 
 
 @pytest.mark.expression
@@ -81,10 +99,9 @@ def test_expression_mul_spin_variables(variables):
     assert type(expr) == Expression
     assert expr.num_variables() == 2
     assert expr.get_offset() == 0
-    assert expr.get_linear(x) == 0
-    assert expr.get_linear(y) == 0
-    assert expr.get_quadratic(x, y) == 1
-    assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
+    assert_linear(expr, (x, y), 0)
+    assert_quadratic(expr, (x, y), 1)
+    assert_higher_order_all(expr, (x, y), 0)
 
     result = expr * z
 
@@ -92,21 +109,11 @@ def test_expression_mul_spin_variables(variables):
     assert type(result) == Expression
     assert result.num_variables() == 3
     assert result.get_offset() == 0
-    assert result.get_linear(x) == 0
-    assert result.get_linear(y) == 0
-    assert result.get_linear(z) == 0
-    assert result.get_quadratic(x, y) == 0
-    assert result.get_quadratic(x, y) == result.get_quadratic(y, x)
-    assert result.get_quadratic(x, z) == 0
-    assert result.get_quadratic(x, z) == result.get_quadratic(z, x)
-    assert result.get_quadratic(y, z) == 0
-    assert result.get_quadratic(y, z) == result.get_quadratic(z, y)
-    assert result.get_higher_order((x, y, z)) == 1
-    assert result.get_higher_order((x, z, y)) == 1
-    assert result.get_higher_order((y, x, z)) == 1
-    assert result.get_higher_order((y, z, x)) == 1
-    assert result.get_higher_order((z, x, y)) == 1
-    assert result.get_higher_order((z, y, x)) == 1
+
+    assert_linear(result, variables, 0)
+    assert_quadratic(result, variables, 0)
+    assert_higher_order(result, variables, 0, 2)
+    assert_higher_order(result, variables, 1)
 
 
 @pytest.mark.expression
@@ -163,306 +170,232 @@ def test_expression_mul_same_spin_variable_larger_index(variables):
     assert result.get_quadratic(x, y) == expr.get_quadratic(y, x)
 
 
-# @pytest.mark.expression
-# @pytest.mark.parametrize("variables", [3], indirect=True)
-# def test_expression_mul_binary_variable_twice(variables):
-#     x, y, z = variables
-#
-#     expr = x * y
-#     assert type(expr) == Expression
-#     assert expr.num_variables() == 2
-#     assert expr.get_offset() == 0
-#     assert expr.get_linear(x) == 0
-#     assert expr.get_linear(y) == 0
-#     assert expr.get_quadratic(x, y) == 1
-#     assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
-#
-#     result = expr * z
-#
-#     assert id(expr) != id(result)
-#     assert type(result) == Expression
-#     assert result.num_variables() == 3
-#     assert result.get_offset() == 0
-#     assert result.get_linear(x) == 0
-#     assert result.get_linear(y) == 0
-#     assert result.get_linear(z) == 0
-#     assert result.get_quadratic(x, y) == 0
-#     assert result.get_quadratic(x, y) == result.get_quadratic(y, x)
-#     assert result.get_quadratic(x, z) == 0
-#     assert result.get_quadratic(x, z) == result.get_quadratic(z, x)
-#     assert result.get_quadratic(y, z) == 0
-#     assert result.get_quadratic(y, z) == result.get_quadratic(z, y)
-#     assert result.get_higher_order((x, y, z)) == 1
-#     assert result.get_higher_order((x, z, y)) == 1
-#     assert result.get_higher_order((y, x, z)) == 1
-#     assert result.get_higher_order((y, z, x)) == 1
-#     assert result.get_higher_order((z, x, y)) == 1
-#     assert result.get_higher_order((z, y, x)) == 1
-#
-#     result = result * z
-#
-#     assert id(expr) != id(result)
-#     assert type(result) == Expression
-#     assert result.num_variables() == 3
-#     assert result.get_offset() == 0
-#     assert result.get_linear(x) == 0
-#     assert result.get_linear(y) == 0
-#     assert result.get_linear(z) == 0
-#     assert result.get_quadratic(x, y) == 0
-#     assert result.get_quadratic(x, y) == result.get_quadratic(y, x)
-#     assert result.get_quadratic(x, z) == 0
-#     assert result.get_quadratic(x, z) == result.get_quadratic(z, x)
-#     assert result.get_quadratic(y, z) == 0
-#     assert result.get_quadratic(y, z) == result.get_quadratic(z, y)
-#     assert result.get_higher_order((x, y, z)) == 1
-#     assert result.get_higher_order((x, z, y)) == 1
-#     assert result.get_higher_order((y, x, z)) == 1
-#     assert result.get_higher_order((y, z, x)) == 1
-#     assert result.get_higher_order((z, x, y)) == 1
-#     assert result.get_higher_order((z, y, x)) == 1
-#
-#
-# @pytest.mark.expression
-# @pytest.mark.parametrize("variables", [2], indirect=True)
-# def test_expression_mul_number(variables):
-#     x, y = variables
-#
-#     expr = x * y
-#     assert type(expr) == Expression
-#     assert expr.num_variables() == 2
-#     assert expr.get_offset() == 0
-#     assert expr.get_linear(x) == 0
-#     assert expr.get_linear(y) == 0
-#     assert expr.get_quadratic(x, y) == 1
-#     assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
-#
-#     id_expr_before = id(expr)
-#     expr = expr * 2
-#     id_expr_after = id(expr)
-#
-#     assert id_expr_before != id_expr_after
-#     assert type(expr) == Expression
-#     assert expr.num_variables() == 2
-#     assert expr.get_offset() == 0
-#     assert expr.get_linear(x) == 0
-#     assert expr.get_linear(y) == 0
-#     assert expr.get_quadratic(x, y) == 2
-#     assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
-#
-#
-# @pytest.mark.expression
-# @pytest.mark.parametrize("variables", [3], indirect=True)
-# def test_expression_instancemul_variable(variables):
-#     x, y, z = variables
-#
-#     expr = x * y
-#     assert type(expr) == Expression
-#     assert expr.num_variables() == 2
-#     assert expr.get_offset() == 0
-#     assert expr.get_linear(x) == 0
-#     assert expr.get_linear(y) == 0
-#     assert expr.get_quadratic(x, y) == 1
-#     assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
-#
-#     id_expr_before = id(expr)
-#     expr *= z
-#     id_expr_after = id(expr)
-#
-#     assert id_expr_before == id_expr_after
-#     assert type(expr) == Expression
-#     assert expr.num_variables() == 3
-#     assert expr.get_offset() == 0
-#     assert expr.get_linear(x) == 0
-#     assert expr.get_linear(y) == 0
-#     assert expr.get_linear(z) == 0
-#     assert expr.get_quadratic(x, y) == 0
-#     assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
-#     assert expr.get_quadratic(x, z) == 0
-#     assert expr.get_quadratic(x, z) == expr.get_quadratic(z, x)
-#     assert expr.get_quadratic(y, z) == 0
-#     assert expr.get_quadratic(y, z) == expr.get_quadratic(z, y)
-#     assert expr.get_higher_order((x, y, z)) == 1
-#     assert expr.get_higher_order((x, z, y)) == 1
-#     assert expr.get_higher_order((y, x, z)) == 1
-#     assert expr.get_higher_order((y, z, x)) == 1
-#     assert expr.get_higher_order((z, x, y)) == 1
-#     assert expr.get_higher_order((z, y, x)) == 1
-#
-#
-# @pytest.mark.expression
-# @pytest.mark.parametrize("variables", [2], indirect=True)
-# def test_expression_instancemul_number(variables):
-#     x, y = variables
-#
-#     expr = x * y
-#     assert type(expr) == Expression
-#     assert expr.num_variables() == 2
-#     assert expr.get_offset() == 0
-#     assert expr.get_linear(x) == 0
-#     assert expr.get_linear(y) == 0
-#     assert expr.get_quadratic(x, y) == 1
-#     assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
-#
-#     id_expr_before = id(expr)
-#     expr *= 2
-#     id_expr_after = id(expr)
-#
-#     assert id_expr_before == id_expr_after
-#     assert type(expr) == Expression
-#     assert expr.num_variables() == 2
-#     assert expr.get_offset() == 0
-#     assert expr.get_linear(x) == 0
-#     assert expr.get_linear(y) == 0
-#     assert expr.get_quadratic(x, y) == 2
-#     assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
-#
-#
-# @pytest.mark.expression
-# @pytest.mark.parametrize("variables", [3], indirect=True)
-# def test_expression_instancemul_binary_variable_twice(variables):
-#     x, y, z = variables
-#
-#     expr = x * y
-#     assert type(expr) == Expression
-#     assert expr.num_variables() == 2
-#     assert expr.get_offset() == 0
-#     assert expr.get_linear(x) == 0
-#     assert expr.get_linear(y) == 0
-#     assert expr.get_quadratic(x, y) == 1
-#     assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
-#
-#     id_expr_before = id(expr)
-#     expr *= z
-#     expr *= z
-#     id_expr_after = id(expr)
-#
-#     assert id_expr_before == id_expr_after
-#     assert type(expr) == Expression
-#     assert expr.num_variables() == 3
-#     assert expr.get_offset() == 0
-#     assert expr.get_linear(x) == 0
-#     assert expr.get_linear(y) == 0
-#     assert expr.get_linear(z) == 0
-#     assert expr.get_quadratic(x, y) == 0
-#     assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
-#     assert expr.get_quadratic(x, z) == 0
-#     assert expr.get_quadratic(x, z) == expr.get_quadratic(z, x)
-#     assert expr.get_quadratic(y, z) == 0
-#     assert expr.get_quadratic(y, z) == expr.get_quadratic(z, y)
-#     assert expr.get_higher_order((x, y, z)) == 1
-#     assert expr.get_higher_order((x, z, y)) == 1
-#     assert expr.get_higher_order((y, x, z)) == 1
-#     assert expr.get_higher_order((y, z, x)) == 1
-#     assert expr.get_higher_order((z, x, y)) == 1
-#     assert expr.get_higher_order((z, y, x)) == 1
-#
-#
-# @pytest.mark.expression
-# @pytest.mark.parametrize("variables", [4], indirect=True)
-# def test_expression_mul_expression(variables):
-#     w, x, y, z = variables
-#
-#     expr_lhs = w * x
-#     id_expr_lhs = id(expr_lhs)
-#
-#     assert type(expr_lhs) == Expression
-#     assert expr_lhs.num_variables() == 2
-#     assert expr_lhs.get_offset() == 0
-#     assert expr_lhs.get_linear(w) == 0
-#     assert expr_lhs.get_linear(x) == 0
-#     assert expr_lhs.get_quadratic(w, x) == 1
-#     assert expr_lhs.get_quadratic(w, x) == expr_lhs.get_quadratic(x, w)
-#
-#     expr_rhs = y * z
-#     id_expr_rhs = id(expr_rhs)
-#
-#     assert type(expr_rhs) == Expression
-#     assert expr_rhs.num_variables() == 2
-#     assert expr_rhs.get_offset() == 0
-#     assert expr_rhs.get_linear(w) == 0
-#     assert expr_rhs.get_linear(x) == 0
-#     assert expr_rhs.get_quadratic(w, x) == 1
-#     assert expr_rhs.get_quadratic(w, x) == expr_rhs.get_quadratic(x, w)
-#
-#     assert id_expr_lhs != id_expr_rhs
-#
-#     # ACTUAL TEST
-#     expr = expr_lhs * expr_rhs
-#     id_expr = id(expr)
-#
-#     assert id_expr != id_expr_lhs
-#     assert id_expr != id_expr_rhs
-#
-#     assert type(expr) == Expression
-#     assert expr.num_variables() == 3
-#     assert expr.get_offset() == 0
-#     assert expr.get_linear(x) == 0
-#     assert expr.get_linear(y) == 0
-#     assert expr.get_linear(z) == 0
-#     assert expr.get_quadratic(x, y) == 0
-#     assert expr.get_quadratic(x, y) == expr.get_quadratic(y, x)
-#     assert expr.get_quadratic(x, z) == 0
-#     assert expr.get_quadratic(x, z) == expr.get_quadratic(z, x)
-#     assert expr.get_quadratic(y, z) == 0
-#     assert expr.get_quadratic(y, z) == expr.get_quadratic(z, y)
-#     assert expr.get_higher_order((x, y, z)) == 1
-#     assert expr.get_higher_order((x, z, y)) == 1
-#     assert expr.get_higher_order((y, x, z)) == 1
-#     assert expr.get_higher_order((y, z, x)) == 1
-#     assert expr.get_higher_order((z, x, y)) == 1
-#     assert expr.get_higher_order((z, y, x)) == 1
-#
-#
-# @pytest.mark.expression
-# @pytest.mark.parametrize("variables", [4], indirect=True)
-# def test_expression_instancemul_expression(variables):
-#     w, x, y, z = variables
-#
-#     expr_lhs = w * x
-#     id_expr_lhs = id(expr_lhs)
-#
-#     assert type(expr_lhs) == Expression
-#     assert expr_lhs.num_variables() == 2
-#     assert expr_lhs.get_offset() == 0
-#     assert expr_lhs.get_linear(w) == 0
-#     assert expr_lhs.get_linear(x) == 0
-#     assert expr_lhs.get_quadratic(w, x) == 1
-#     assert expr_lhs.get_quadratic(w, x) == expr_lhs.get_quadratic(x, w)
-#
-#     expr_rhs = y * z
-#     id_expr_rhs = id(expr_rhs)
-#
-#     assert type(expr_rhs) == Expression
-#     assert expr_rhs.num_variables() == 2
-#     assert expr_rhs.get_offset() == 0
-#     assert expr_rhs.get_linear(y) == 0
-#     assert expr_rhs.get_linear(z) == 0
-#     assert expr_rhs.get_quadratic(y, z) == 1
-#     assert expr_rhs.get_quadratic(y, z) == expr_rhs.get_quadratic(z, y)
-#
-#     assert id_expr_lhs != id_expr_rhs
-#
-#     # ACTUAL TEST
-#     expr_lhs *= expr_rhs
-#     id_expr_lhs_after = id(expr_lhs)
-#
-#     assert id_expr_lhs == id_expr_lhs_after
-#
-#     assert type(expr_lhs) == Expression
-#     assert expr_lhs.num_variables() == 3
-#     assert expr_lhs.get_offset() == 0
-#     assert expr_lhs.get_linear(x) == 0
-#     assert expr_lhs.get_linear(y) == 0
-#     assert expr_lhs.get_linear(z) == 0
-#     assert expr_lhs.get_quadratic(x, y) == 0
-#     assert expr_lhs.get_quadratic(x, y) == expr_lhs.get_quadratic(y, x)
-#     assert expr_lhs.get_quadratic(x, z) == 0
-#     assert expr_lhs.get_quadratic(x, z) == expr_lhs.get_quadratic(z, x)
-#     assert expr_lhs.get_quadratic(y, z) == 0
-#     assert expr_lhs.get_quadratic(y, z) == expr_lhs.get_quadratic(z, y)
-#     assert expr_lhs.get_higher_order((x, y, z)) == 1
-#     assert expr_lhs.get_higher_order((x, z, y)) == 1
-#     assert expr_lhs.get_higher_order((y, x, z)) == 1
-#     assert expr_lhs.get_higher_order((y, z, x)) == 1
-#     assert expr_lhs.get_higher_order((z, x, y)) == 1
-#     assert expr_lhs.get_higher_order((z, y, x)) == 1
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [3], indirect=True)
+def test_expression_mul_binary_variable_twice(variables):
+    x, y, z = variables
+
+    expr = x * y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_offset() == 0
+    assert_linear(expr, (x, y), 0)
+    assert_quadratic(expr, (x, y), 1)
+    assert_higher_order_all(expr, (x, y), 0)
+
+    result = expr * z
+
+    assert id(expr) != id(result)
+    assert type(result) == Expression
+    assert result.num_variables() == 3
+    assert result.get_offset() == 0
+    assert_linear(result, variables, 0)
+    assert_quadratic(result, variables, 0)
+    assert_higher_order(result, variables, 0, 2)
+    assert_higher_order(result, variables, 1)
+
+    result = result * z
+
+    assert id(expr) != id(result)
+    assert type(result) == Expression
+    assert result.num_variables() == 3
+    assert result.get_offset() == 0
+    assert_linear(result, variables, 0)
+    assert_quadratic(result, variables, 0)
+    assert_higher_order(result, variables, 0, 2)
+    assert_higher_order(result, variables, 1)
+
+
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [2], indirect=True)
+def test_expression_mul_number(variables):
+    x, y = variables
+
+    expr = x * y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_offset() == 0
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 1)
+    assert_higher_order_all(expr, variables, 0)
+
+    id_expr_before = id(expr)
+    expr = expr * 2
+    id_expr_after = id(expr)
+
+    assert id_expr_before != id_expr_after
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_offset() == 0
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 2)
+    assert_higher_order_all(expr, variables, 0)
+
+
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [3], indirect=True)
+def test_expression_instancemul_variable(variables):
+    x, y, z = variables
+
+    expr = x * y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_offset() == 0
+    assert_linear(expr, (x, y), 0)
+    assert_quadratic(expr, (x, y), 1)
+    assert_higher_order_all(expr, (x, y), 0)
+
+    id_expr_before = id(expr)
+    expr *= z
+    id_expr_after = id(expr)
+
+    assert id_expr_before == id_expr_after
+    assert type(expr) == Expression
+    assert expr.num_variables() == 3
+    assert expr.get_offset() == 0
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 0)
+    assert_higher_order(expr, variables, 0, 2)
+    assert_higher_order(expr, variables, 1)
+
+
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [2], indirect=True)
+def test_expression_instancemul_number(variables):
+    x, y = variables
+
+    expr = x * y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_offset() == 0
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 1)
+    assert_higher_order_all(expr, variables, 0)
+
+    id_expr_before = id(expr)
+    expr *= 2
+    id_expr_after = id(expr)
+
+    assert id_expr_before == id_expr_after
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_offset() == 0
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 2)
+    assert_higher_order_all(expr, variables, 0)
+
+
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [3], indirect=True)
+def test_expression_instancemul_binary_variable_twice(variables):
+    x, y, z = variables
+
+    expr = x * y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_offset() == 0
+    assert_linear(expr, (x, y), 0)
+    assert_quadratic(expr, (x, y), 1)
+    assert_higher_order_all(expr, (x, y), 0)
+
+    id_expr_before = id(expr)
+    expr *= z
+    expr *= z
+    id_expr_after = id(expr)
+
+    assert id_expr_before == id_expr_after
+    assert type(expr) == Expression
+    assert expr.num_variables() == 3
+    assert expr.get_offset() == 0
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 0)
+    assert_higher_order(expr, variables, 0, 2)
+    assert_higher_order(expr, variables, 1)
+
+
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [4], indirect=True)
+def test_expression_mul_expression(variables):
+    w, x, y, z = variables
+    lhs_variables = (w, x)
+    rhs_variables = (y, z)
+
+    expr_lhs = w * x
+    id_expr_lhs = id(expr_lhs)
+
+    assert type(expr_lhs) == Expression
+    assert expr_lhs.num_variables() == 2
+    assert expr_lhs.get_offset() == 0
+    assert_linear(expr_lhs, lhs_variables, 0)
+    assert_quadratic(expr_lhs, lhs_variables, 1)
+    assert_higher_order_all(expr_lhs, lhs_variables, 0)
+
+    expr_rhs = y * z
+    id_expr_rhs = id(expr_rhs)
+
+    assert type(expr_rhs) == Expression
+    assert expr_rhs.num_variables() == 2
+    assert_linear(expr_rhs, rhs_variables, 0)
+    assert_quadratic(expr_rhs, rhs_variables, 1)
+    assert_higher_order_all(expr_rhs, rhs_variables, 0)
+
+    assert id_expr_lhs != id_expr_rhs
+
+    # ACTUAL TEST
+    expr = expr_lhs * expr_rhs
+    id_expr = id(expr)
+
+    assert id_expr != id_expr_lhs
+    assert id_expr != id_expr_rhs
+
+    assert type(expr) == Expression
+    assert expr.num_variables() == 4
+    assert expr.get_offset() == 0
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 0)
+    assert_higher_order(expr, variables, 0, 2)
+    assert_higher_order(expr, variables, 0, 3)
+    assert_higher_order(expr, variables, 1, 4)
+
+
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [4], indirect=True)
+def test_expression_instancemul_expression(variables):
+    w, x, y, z = variables
+    lhs_variables = (w, x)
+    rhs_variables = (y, z)
+
+    expr_lhs = w * x
+    id_expr_lhs = id(expr_lhs)
+
+    assert type(expr_lhs) == Expression
+    assert expr_lhs.num_variables() == 2
+    assert expr_lhs.get_offset() == 0
+    assert_linear(expr_lhs, lhs_variables, 0)
+    assert_quadratic(expr_lhs, lhs_variables, 1)
+    assert_higher_order_all(expr_lhs, lhs_variables, 0)
+
+    expr = y * z
+    id_expr_rhs = id(expr)
+
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert_linear(expr, rhs_variables, 0)
+    assert_quadratic(expr, rhs_variables, 1)
+    assert_higher_order_all(expr, rhs_variables, 0)
+
+    assert id_expr_lhs != id_expr_rhs
+
+    # ACTUAL TEST
+    expr *= expr_lhs
+    id_expr = id(expr)
+
+    assert id_expr == id_expr_rhs
+    assert type(expr) == Expression
+    assert expr.num_variables() == 4
+    assert expr.get_offset() == 0
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 0)
+    assert_higher_order(expr, variables, 0, 2)
+    assert_higher_order(expr, variables, 0, 3)
+    assert_higher_order(expr, variables, 1, 4)

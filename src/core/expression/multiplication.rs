@@ -62,7 +62,7 @@ where
                     Bias::one(),
                 );
             }
-            println!("out data:\n  active = {:?}\n  offset = {:?}\n  linear = {:?}\n  quadratic = {:?}\n  higher order = {:?}", out.active, out.offset, out.linear, out.quadratic, out.higher_order);
+            // println!("out data:\n  active = {:?}\n  offset = {:?}\n  linear = {:?}\n  quadratic = {:?}\n  higher order = {:?}", out.active, out.offset, out.linear, out.quadratic, out.higher_order);
             Ok(out)
         }
     }
@@ -142,11 +142,9 @@ where
             // however, further performance improvements might be possible.
             let result = self.mul(rhs);
             match result {
-                Ok(expr) => *self = expr,
-                Err(e) => return Err(e.into()),
-            };
-
-            Ok(())
+                Ok(expr) => Ok(*self = expr),
+                Err(e) => Err(e.into()),
+            }
         }
     }
 }
@@ -163,9 +161,11 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            todo!();
-
-            Ok(())
+            let result = self.mul(rhs);
+            match result {
+                Ok(expr) => Ok(*self = expr),
+                Err(e) => Err(e.into()),
+            }
         }
     }
 }

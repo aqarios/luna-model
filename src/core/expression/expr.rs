@@ -429,7 +429,8 @@ where
     fn mul_quadratic(&mut self, lhs: &Self::QuadraticType, rhs: &Self::QuadraticType) {
         for (lhs_u, lhs_v, lhs_bias) in lhs.iter_flat() {
             for (rhs_u, rhs_v, rhs_bias) in rhs.iter_flat() {
-                self.add_higher_order(&vec![lhs_u, lhs_v, rhs_u, rhs_v], lhs_bias * rhs_bias);
+                let vec = vec![lhs_u, lhs_v, rhs_u, rhs_v];
+                self.add_higher_order(&vec, lhs_bias * rhs_bias);
             }
         }
     }
