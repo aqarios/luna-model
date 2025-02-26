@@ -238,6 +238,9 @@ where
                 // TODO@benjamin: move the indexing to the quadratic term,
                 // similar to how it's done for the higher order access
                 // see `fn higher_order(&self, ...) -> ...` function.
+                //
+                // let adj = self.quadratic.as_ref().unwrap();
+                // let out = adj[(u, v)];
                 let neighborhood = &self.quadratic.as_ref().unwrap()[outer.into()];
                 let pos = neighborhood.binary_search_by(|term| {
                     term.index.partial_cmp(&inner).unwrap_or(Ordering::Equal)
@@ -265,6 +268,7 @@ where
         self.num_variables
     }
 
+    #[inline]
     fn vartype(&self, v: Index) -> Vtype {
         self.env.borrow().get_vtype(v)
     }
@@ -290,6 +294,7 @@ where
     fn add_offset(&mut self, bias: Bias) {
         self.offset += bias
     }
+
     fn add_linear(&mut self, v: Index, bias: Bias) {
         self.add_variable(v);
         self.linear[v.into()] += bias;
@@ -298,18 +303,17 @@ where
     fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias) {
         self.add_variable(u);
         self.add_variable(v);
-        let u_idx = u.into();
-        let v_idx = v.into();
         self.enforce_quadratic();
 
-        match (u_idx == v_idx, self.vartype(u)) {
+        match (u == v, self.vartype(u)) {
             // -1*-1 == +1*+1 == 1 so this is constant offset
             (true, Vtype::Spin) => self.offset += bias,
             // 1*1 == 1 and 0*0 == 0 so this is linear
-            (true, Vtype::Binary) => self.linear[u_idx] += bias,
+            (true, Vtype::Binary) => self.linear[u.into()] += bias,
             (_, _) => *self.asymmetric_quadratic_ref(u, v) += bias,
         }
     }
+
     fn add_higher_order(&mut self, vars: &Vec<Index>, bias: Bias) {
         self.add_variables(vars);
         self.enforce_higher_order();
@@ -435,7 +439,8 @@ where
             for (rhs_ind, rhs_bias) in rhs.iter_contrib() {
                 let mut new_indices = lhs_ind.clone();
                 new_indices.extend(rhs_ind);
-                self.set_higher_order(&new_indices, *lhs_bias * *rhs_bias);
+                // todo(team): check if set makes sense... set or add?
+                self.add_higher_order(&new_indices, *lhs_bias * *rhs_bias);
             }
         }
     }
@@ -571,6 +576,7 @@ where
     /// Assumes quadratic exists!
     /// Creates the bias if it doesn't already exist
     pub fn asymmetric_quadratic_ref(&mut self, u: Index, v: Index) -> &mut Bias {
+        // todo(team): check smaller u and v for correct indexing.
         assert!(self.has_quadratic(), "quadratic is not initialized");
         let neighborhood: &mut Vec<OneVarTerm<Index, Bias>> = self
             .quadratic

@@ -70,10 +70,6 @@ where
     pub fn new(id: Index, env: Rc<RefCell<Environment<Index>>>) -> Self {
         Self { id, env }
     }
-
-    pub fn new_from_id(id: Index, env: Rc<RefCell<Environment<Index>>>) -> Self {
-        Self { id, env }
-    }
 }
 
 impl<Index, Bias> AddToExpression<Index, Bias, Bias> for &VarRef<Index>

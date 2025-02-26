@@ -34,6 +34,7 @@ where
     }
 
     /// Alias for self[id].vtype
+    #[inline]
     pub fn get_vtype(&self, id: Index) -> Vtype {
         self[id].vtype
     }

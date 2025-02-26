@@ -82,7 +82,9 @@ where
     type Output = Bias;
     fn index(&self, index: &Vec<Idx>) -> &Self::Output {
         let key = Self::make_key(index);
-        // todo: Should handle the unwrap better...
+        // todo@benjamin: Only if the key exists we get it otherwise
+        // default value.
+        // see IndexMut, but no Insertion use the Option of get
         self.biases.get(&key).unwrap()
     }
 }

@@ -82,6 +82,7 @@ where
     }
 }
 
+// todo@benjamin: add the indexing functionality for 'Index' generic.
 impl<Bias> Index<usize> for Linear<Bias> {
     type Output = Bias;
 
