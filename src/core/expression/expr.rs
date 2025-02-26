@@ -13,7 +13,6 @@ use super::base::{
     ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulDirect, ExpressionBaseSet,
     ExpressionBaseTypes, IndexConstraints,
 };
-use super::errors::IndexOutOfOrderError;
 use super::VariableOutOfRangeError;
 
 pub struct Expression<Index, Bias>

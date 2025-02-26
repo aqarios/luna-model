@@ -137,3 +137,13 @@ impl<Idx, Bias> IndexMut<usize> for Quadratic<Idx, Bias> {
         &mut self.adj[index]
     }
 }
+
+impl<Index, Bias> PartialEq for Quadratic<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.adj == other.adj
+    }
+}

@@ -123,3 +123,13 @@ where
         self.biases.get_mut(index).unwrap()
     }
 }
+
+impl<Index, Bias> PartialEq for HigherOrder<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.biases == other.biases
+    }
+}

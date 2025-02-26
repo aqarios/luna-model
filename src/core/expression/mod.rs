@@ -1,5 +1,6 @@
 mod addition;
 mod base;
+mod equality;
 mod errors;
 mod expr;
 mod multiplication;

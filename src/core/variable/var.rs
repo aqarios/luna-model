@@ -29,8 +29,8 @@ impl Bounds {
         match vtype {
             Vtype::Real => Self::new(None, None),
             Vtype::Integer => Self::new(None, None),
-            Vtype::Binary => Self::new(Some(1.0), Some(1.0)),
-            Vtype::Spin => Self::new(Some(1.0), Some(1.0)),
+            Vtype::Binary => Self::new(Some(0.0), Some(1.0)),
+            Vtype::Spin => Self::new(Some(-1.0), Some(1.0)),
         }
     }
 }

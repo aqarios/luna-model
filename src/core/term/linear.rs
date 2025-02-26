@@ -96,3 +96,12 @@ impl<Bias> IndexMut<usize> for Linear<Bias> {
         &mut self.biases[index]
     }
 }
+
+impl<Bias> PartialEq for Linear<Bias>
+where
+    Bias: BiasConstraints,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.biases == other.biases
+    }
+}

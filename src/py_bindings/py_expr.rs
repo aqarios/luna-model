@@ -1,13 +1,11 @@
-use super::py_var::PyVariable;
+use super::{py_var::PyVariable, types::Expr};
 use crate::core::{
     operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
-    Expression, ExpressionBase, VarId, VariablesFromDifferentEnvsException,
+    ExpressionBase, VariablesFromDifferentEnvsException,
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
 use std::{cell::RefCell, rc::Rc};
-
-type Expr = Expression<VarId, f64>;
 
 #[pyclass(unsendable, name = "Expression")]
 #[derive(Deref, DerefMut, Clone)]
@@ -134,9 +132,10 @@ impl PyExpression {
     }
     // Comparison
     fn __eq__(&self, other: &Self) -> bool {
-        todo!()
+        *self.borrow() == *other.borrow()
     }
+
     fn __ne__(&self, other: &Self) -> bool {
-        todo!()
+        *self.borrow() == *other.borrow()
     }
 }
