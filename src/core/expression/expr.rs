@@ -28,7 +28,7 @@ where
     pub higher_order: Option<HigherOrder<Index, Bias>>,
     /// Mirror of the linear array that tracks which variables are already
     /// contained in the expression. 1 indicates already added 0 indicating floating.
-    active: Vec<bool>,
+    pub active: Vec<bool>,
     num_variables: SizeType,
 }
 
@@ -472,7 +472,11 @@ where
             // in all cases.
             // However, we can make use of the logic already implemented in the
             // add_quadratic case. Which checks the logic based on the variable type.
-            self.add_quadratic(u_idx.into(), v, *u_bias * bias)
+
+            // But we should only do it if the variable is active...
+            if self.active[u_idx] {
+                self.add_quadratic(u_idx.into(), v, *u_bias * bias)
+            }
         }
     }
 
@@ -505,15 +509,8 @@ where
     Bias: BiasConstraints,
 {
     fn check_and_get(&self, v: Index) -> Result<usize, VariableOutOfRangeError> {
-        match self.active[v.into()] {
+        match v.into() <= self.active.len() {
             true => Ok(v.into()),
-            false => Err(VariableOutOfRangeError(v.into())),
-        }
-    }
-
-    fn check(&self, v: Index) -> Result<(), VariableOutOfRangeError> {
-        match self.active[v.into()] {
-            true => Ok(()),
             false => Err(VariableOutOfRangeError(v.into())),
         }
     }
@@ -521,7 +518,7 @@ where
     fn check_multi(&self, vars: &Vec<Index>) -> Result<(), VariableOutOfRangeError> {
         for v in vars {
             let v_idx: usize = (*v).into();
-            if self.active[v_idx] {
+            if !self.active[v_idx] {
                 return Err(VariableOutOfRangeError(v_idx));
             }
         }
@@ -550,27 +547,21 @@ where
         self.higher_order.is_some()
     }
 
-    pub fn check_quadratic_dimensions(
-        &self,
-        u: usize,
-        v: usize,
-    ) -> Result<(), IndexOutOfOrderError> {
+    pub fn check_quadratic_dimensions(&self, u: usize, v: usize) {
         let quadratic = self.quadratic.as_ref().unwrap();
+        assert!(
+            quadratic[v].is_empty() || quadratic[v].last().unwrap().index <= u.into(),
+            "Index out of oder: last index <= {} (is {})",
+            u,
+            quadratic[v].last().unwrap().index.into()
+        );
 
-        if !(quadratic[v].is_empty() || quadratic[v].last().unwrap().index <= u.into()) {
-            return Err(IndexOutOfOrderError(
-                u,
-                quadratic[v].last().unwrap().index.into(),
-            ));
-        }
-        if !(quadratic[u].is_empty() || quadratic[u].last().unwrap().index <= v.into()) {
-            return Err(IndexOutOfOrderError(
-                v,
-                quadratic[u].last().unwrap().index.into(),
-            ));
-        }
-
-        Ok(())
+        assert!(
+            quadratic[u].is_empty() || quadratic[u].last().unwrap().index <= v.into(),
+            "Index out of oder: last index <= {} (is {})",
+            v,
+            quadratic[u].last().unwrap().index.into()
+        );
     }
 
     /// Assumes quadratic exists!

@@ -62,6 +62,7 @@ where
                     Bias::one(),
                 );
             }
+            println!("out data:\n  active = {:?}\n  offset = {:?}\n  linear = {:?}\n  quadratic = {:?}\n  higher order = {:?}", out.active, out.offset, out.linear, out.quadratic, out.higher_order);
             Ok(out)
         }
     }
