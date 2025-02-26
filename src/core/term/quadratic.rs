@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering,
     iter::Enumerate,
     ops::{Index, IndexMut, MulAssign},
     slice::Iter,
@@ -11,6 +12,7 @@ use super::types::OneVarTerm;
 #[derive(Debug, Clone)]
 pub struct Quadratic<Index, Bias> {
     adj: Vec<Vec<OneVarTerm<Index, Bias>>>,
+    default_bias: Bias,
 }
 
 impl<Index, Bias> Quadratic<Index, Bias>
@@ -21,7 +23,10 @@ where
 {
     pub fn new(num_variables: usize) -> Self {
         let adj = vec![Vec::new(); num_variables];
-        Self { adj }
+        Self {
+            adj,
+            default_bias: Bias::default(),
+        }
     }
 
     pub fn resize(&mut self, n: usize) {
@@ -138,12 +143,65 @@ impl<Idx, Bias> IndexMut<usize> for Quadratic<Idx, Bias> {
     }
 }
 
+impl<Idx, Bias> Index<(usize, usize)> for Quadratic<Idx, Bias>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Bias;
+
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        let mut outer = index.0;
+        let mut inner = index.1;
+        if outer > inner {
+            outer = index.1;
+            inner = index.0;
+        }
+
+        let neighborhood: &Vec<OneVarTerm<Idx, Bias>> = &self.adj[outer];
+        let pos = neighborhood.binary_search_by(|term| {
+            term.index
+                .partial_cmp(&inner.into())
+                .unwrap_or(Ordering::Equal)
+        });
+
+        match pos {
+            Ok(p) => &neighborhood[p].bias,
+            Err(_) => &self.default_bias,
+        }
+    }
+}
+
 impl<Index, Bias> PartialEq for Quadratic<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.adj == other.adj
+        // This basic check is no gurantee for actual equality.
+        // As if this is not equal it might be due to different representations,
+        // e.g., in one expression the interaction between two variables can be explicitly
+        // contained as 0.0, while in an other expression this interaction is not
+        // represented directly. The value of the interaction is still 0.0.
+        // Thus they are equal... This is not handled by the below trivial comparison.
+        //
+        // self.adj == other.adj
+        if self.adj.len() != other.adj.len() {
+            // Quick check if they have the same number of variables.
+            return false;
+        }
+        for u_idx in 0..self.adj.len() {
+            for v_idx in u_idx..self.adj.len() {
+                // We iterate over the upper triangular matrix and check for each
+                // possible combination if they are equal in both.
+                let self_bias = self[(u_idx, v_idx)];
+                let other_bias = other[(u_idx, v_idx)];
+                if self_bias != other_bias {
+                    return false;
+                }
+            }
+        }
+
+        true
     }
 }
