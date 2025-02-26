@@ -1,5 +1,4 @@
 use crate::core::Bounds;
-
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
 

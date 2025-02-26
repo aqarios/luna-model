@@ -1,22 +1,23 @@
 use std::{
     cmp::max,
     iter::Enumerate,
-    ops::{AddAssign, Index, IndexMut},
+    ops::{Index, IndexMut, MulAssign},
     slice::{Iter, IterMut},
 };
+
+use crate::core::expression::BiasConstraints;
 
 // todo: we need a Linear trait to allow for better interchangeability...
 // Currently the expression traits use the structs directly. I don't like this...
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Linear<Bias> {
     biases: Vec<Bias>,
 }
 
 impl<Bias> Linear<Bias>
 where
-    // Idx: Into<SizeType>,
-    Bias: Default + Clone + Copy + AddAssign,
+    Bias: BiasConstraints,
 {
     pub fn default() -> Self {
         Self { biases: Vec::new() }
@@ -24,13 +25,13 @@ where
 
     pub fn with_size(size: usize) -> Self {
         let mut biases = Vec::with_capacity(size);
-        biases.resize(size, Bias::default());
+        biases.resize_with(size, Bias::default);
         Self { biases }
     }
 
     pub fn new_from_weighted_variable(var: usize, bias: Bias) -> Self {
-        let mut out = Self::default();
-        out.biases.insert(var.into(), bias);
+        let mut out = Self::with_size(var + 1);
+        out[var] += bias;
         out
     }
 
@@ -55,7 +56,18 @@ where
     }
 
     pub fn resize(&mut self, new_len: usize) {
-        self.biases.resize(new_len, Bias::default());
+        self.biases.resize_with(new_len, Bias::default);
+    }
+}
+
+impl<Bias> MulAssign<Bias> for Linear<Bias>
+where
+    Bias: BiasConstraints,
+{
+    fn mul_assign(&mut self, rhs: Bias) {
+        for b in self.biases.iter_mut() {
+            *b *= rhs;
+        }
     }
 }
 
@@ -70,6 +82,7 @@ where
     }
 }
 
+// todo@benjamin: add the indexing functionality for 'Index' generic.
 impl<Bias> Index<usize> for Linear<Bias> {
     type Output = Bias;
 

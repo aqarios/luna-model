@@ -1,13 +1,10 @@
-use std::{cell::RefCell, fmt::Display, ops::AddAssign, rc::Rc};
+use std::{cell::RefCell, ops::AddAssign, rc::Rc, str::FromStr};
 
 use crate::core::{
-    // exceptions::VariablesFromDifferentEnvsError,
-    exceptions::VariablesFromDifferentEnvsError,
-    expression::{BiasConstraints, IndexConstraints, One},
+    exceptions::{ParseFromStringError, VariablesFromDifferentEnvsError},
+    expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints, One},
     operations::{AddToExpression, MulToExpression},
-    Environment,
-    Expression,
-    ExpressionBaseInternal,
+    Environment, Expression,
 };
 
 #[derive(Debug, Clone, Copy, Default, Eq, Ord, PartialEq, PartialOrd, Hash)]
@@ -31,6 +28,16 @@ impl ToString for VarId {
     }
 }
 
+impl FromStr for VarId {
+    type Err = ParseFromStringError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse::<u32>()
+            .map(VarId)
+            .map_err(|e| ParseFromStringError(e.to_string()))
+    }
+}
+
 impl Into<usize> for VarId {
     fn into(self) -> usize {
         self.0 as usize
@@ -50,13 +57,7 @@ impl Into<u64> for VarId {
     }
 }
 
-// impl Display for VarId {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "{}", self.0)
-//     }
-// }
-
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct VarRef<Index> {
     pub id: Index,
     pub env: Rc<RefCell<Environment<Index>>>,
@@ -69,10 +70,6 @@ where
     pub fn new(id: Index, env: Rc<RefCell<Environment<Index>>>) -> Self {
         Self { id, env }
     }
-
-    pub fn new_from_id(id: Index, env: Rc<RefCell<Environment<Index>>>) -> Self {
-        Self { id, env }
-    }
 }
 
 impl<Index, Bias> AddToExpression<Index, Bias, Bias> for &VarRef<Index>
@@ -83,7 +80,7 @@ where
     type Output = Expression<Index, Bias>;
 
     fn add(self, rhs: Bias) -> Self::Output {
-        Expression::new_linear_from_weighted_variable(self.env.clone(), self.id, rhs)
+        Expression::new_linear_single(self.env.clone(), self.id, rhs)
     }
 }
 
@@ -98,7 +95,7 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            Ok(Expression::new_linear_from_variables(
+            Ok(Expression::new_linear(
                 self.env.clone(),
                 self.id,
                 rhs.id,
@@ -116,7 +113,7 @@ where
     type Output = Expression<Index, Bias>;
 
     fn mul(self, rhs: Bias) -> Self::Output {
-        Expression::new_linear_from_weighted_variable(self.env.clone(), self.id, rhs)
+        Expression::new_linear_single(self.env.clone(), self.id, rhs)
     }
 }
 
@@ -131,7 +128,7 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            Ok(Expression::new_quadratic_from_variables(
+            Ok(Expression::new_quadratic(
                 self.env.clone(),
                 self.id,
                 rhs.id,
@@ -140,27 +137,3 @@ where
         }
     }
 }
-
-// impl<Index, Bias> Add<VarRef<Index>> for &VarRef<Index>
-// where
-//     Index: IndexConstraints,
-//     Bias: BiasConstraints,
-// {
-//     type Output = Expression<Index, Bias>;
-//
-//     fn add(
-//         self,
-//         rhs: &VarRef<Index>,
-//     ) -> Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError> {
-//         if self.env.borrow().id != rhs.env.borrow().id {
-//             Err(VariablesFromDifferentEnvsError)
-//         } else {
-//             Ok(Expression::new_linear_from_variables(
-//                 self.env.clone(),
-//                 self.id,
-//                 rhs.id,
-//                 Bias::one(),
-//             ))
-//         }
-//     }
-// }

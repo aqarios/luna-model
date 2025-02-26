@@ -1,6 +1,6 @@
 use std::{
     marker::PhantomData,
-    ops::{Index, IndexMut},
+    ops::{Index, IndexMut, MulAssign},
 };
 
 use hashbrown::{hash_map::Iter, HashMap};
@@ -9,10 +9,11 @@ use crate::core::expression::{BiasConstraints, IndexConstraints};
 
 static DELIMITER: &str = "-";
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct HigherOrder<Index, Bias> {
     biases: HashMap<String, Bias>,
     phantom_data: PhantomData<Index>, // required for compiler to acknowledge the Index
+    default_bias: Bias,
 }
 
 impl<Index, Bias> HigherOrder<Index, Bias>
@@ -24,8 +25,10 @@ where
         Self {
             biases: HashMap::default(),
             phantom_data: PhantomData,
+            default_bias: Bias::default(),
         }
     }
+
     fn make_key(index: &Vec<Index>) -> String {
         let mut indices = index.clone();
         indices.sort();
@@ -36,8 +39,40 @@ where
             .join(DELIMITER)
     }
 
+    fn key_contributions(key: &String) -> Vec<Index> {
+        key.split(DELIMITER)
+            .map(|s| Index::from_str(s).ok().unwrap())
+            .collect()
+        // ok().unwrap() instead of unwrap() to get rid of the error for now. needs
+        // fixing ??
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.biases.len() == 0
+    }
+
     pub fn iter(&self) -> Iter<String, Bias> {
         self.biases.iter()
+    }
+
+    pub fn iter_contrib(&self) -> impl Iterator<Item = (Vec<Index>, &Bias)> {
+        self.biases
+            .iter()
+            .map(|(key, bias)| (HigherOrder::<Index, Bias>::key_contributions(&key), bias))
+    }
+
+    pub fn resize(&mut self, _: usize) {}
+}
+
+impl<Index, Bias> MulAssign<Bias> for HigherOrder<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn mul_assign(&mut self, rhs: Bias) {
+        for (_, value) in self.biases.iter_mut() {
+            *value *= rhs;
+        }
     }
 }
 
@@ -49,8 +84,7 @@ where
     type Output = Bias;
     fn index(&self, index: &Vec<Idx>) -> &Self::Output {
         let key = Self::make_key(index);
-        // todo: Should handle the unwrap better...
-        self.biases.get(&key).unwrap()
+        self.biases.get(&key).unwrap_or(&self.default_bias)
     }
 }
 
@@ -61,7 +95,9 @@ where
 {
     fn index_mut(&mut self, index: &Vec<Idx>) -> &mut Self::Output {
         let key = Self::make_key(index);
-        // todo: Should handle the unwrap better...
+        if !self.biases.contains_key(&key) {
+            self.biases.insert(key.to_string(), Bias::default());
+        }
         self.biases.get_mut(&key).unwrap()
     }
 }

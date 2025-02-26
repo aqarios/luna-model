@@ -1,9 +1,7 @@
-use std::{cell::RefCell, rc::Rc};
-
 use crate::core::{Environment, MultipleActiveEnvironmentsException, VarId};
-
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
+use std::{cell::RefCell, rc::Rc};
 
 #[pyclass(unsendable, name = "Environment")]
 #[derive(Deref, DerefMut, Clone)]

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use super::py_env::{PyEnvironment, CURRENT_ENV};
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::operations::{AddToExpression, MulToExpression};
@@ -7,13 +5,13 @@ use crate::core::{
     environment, NoActiveEnvironmentFoundException, VarId, VarRef, VariableExistsException,
     VariablesFromDifferentEnvsException, Vtype,
 };
-
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
+use std::rc::Rc;
 
 #[pyclass(unsendable, subclass, name = "Variable")]
-#[derive(Deref, DerefMut, Clone)]
+#[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyVariable(pub Rc<VarRef<VarId>>);
 
 impl PyVariable {
@@ -41,7 +39,7 @@ impl PyVariable {
             })?,
         };
 
-        environment::add_varibale(env.0, &name, vtype.as_ref(), bounds.as_deref())
+        environment::add_variable(env.0, &name, vtype.as_ref(), bounds.as_deref())
             .map(|v| PyVariable::new(v))
             .map_err(|e| VariableExistsException::new_err(format!("{}: {}", e.to_string(), name)))
     }
@@ -71,11 +69,10 @@ impl PyVariable {
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            todo!()
-            // rhs.borrow()
-            //     .mul(self.as_ref())
-            //     .map(|e| PyExpression::new(e))
-            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            rhs.borrow()
+                .mul(self.as_ref())
+                .map(|e| PyExpression::new(e))
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }

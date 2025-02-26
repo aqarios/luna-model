@@ -12,7 +12,6 @@ pub enum Vtype {
     Spin,
 }
 
-// #[cfg_attr(feature = "py", pyclass)]
 #[derive(Debug, Clone, Copy)]
 pub struct Bounds {
     pub lower: Option<f64>,
@@ -67,13 +66,3 @@ impl Variable {
         }
     }
 }
-
-// #[cfg(feature = "py")]
-// #[pymethods]
-// impl Bounds {
-//     #[new]
-//     #[pyo3(signature=(lower, upper))]
-//     fn py_new(lower: f64, upper: f64) -> PyResult<Bounds> {
-//         Ok(Bounds::new(Some(lower), Some(upper)))
-//     }
-// }

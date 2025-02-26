@@ -1,10 +1,10 @@
 mod py_bounds;
 mod py_env;
+mod py_exceptions;
 mod py_expr;
 mod py_matrix_translator;
 mod py_model;
 mod py_var;
-mod py_vtype;
 
 use pyo3::prelude::*;
 

@@ -1,11 +1,14 @@
 use std::cell::RefCell;
 use std::fmt::Debug;
-use std::ops::{Add, AddAssign};
+use std::hash::Hash;
+use std::ops::{Add, AddAssign, Mul, MulAssign};
 use std::rc::Rc;
+use std::str::FromStr;
 
 use crate::core::term::types::SizeType;
-use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::{Environment, Vtype};
+
+use super::errors::VariableOutOfRangeError;
 
 pub trait One {
     fn one() -> Self;
@@ -22,6 +25,8 @@ pub trait IndexConstraints:
     + AddAssign
     + One
     + ToString
+    + FromStr
+    + Hash
 {
 }
 impl<
@@ -34,17 +39,36 @@ impl<
             + From<SizeType>
             + AddAssign
             + One
-            + ToString,
+            + ToString
+            + FromStr
+            + Hash,
     > IndexConstraints for T
 {
 }
 
 pub trait BiasConstraints:
-    Debug + Copy + Default + AddAssign + Add<Output = Self> + PartialEq + One
+    Debug
+    + Copy
+    + Default
+    + AddAssign
+    + Add<Output = Self>
+    + PartialEq
+    + One
+    + MulAssign
+    + Mul<Output = Self>
 {
 }
-impl<T: Debug + Copy + Default + AddAssign + Add<Output = T> + PartialEq + One> BiasConstraints
-    for T
+impl<
+        T: Debug
+            + Copy
+            + Default
+            + AddAssign
+            + Add<Output = T>
+            + PartialEq
+            + One
+            + MulAssign
+            + Mul<Output = T>,
+    > BiasConstraints for T
 {
 }
 
@@ -54,52 +78,69 @@ impl One for f64 {
     }
 }
 
+pub trait ExpressionBaseTypes {
+    /// The key used by higher order terms. This is implementation dependent.
+    /// Thus we cannot fix it to some value here.
+    type HigherOrderKey;
+    /// The type of the linear terms used by the expression implementation.
+    type LinearType;
+    /// The type of the quadratic terms used by the expression implementation.
+    type QuadraticType;
+    /// The type of the higher order terms used by the expression implementation.
+    type HigherOrderType;
+}
+
+pub trait ExpressionBaseCreation<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn new(env: Rc<RefCell<Environment<Index>>>) -> Self;
+    fn new_from_other(other: &Self) -> Self;
+    fn new_linear_single(env: Rc<RefCell<Environment<Index>>>, v: Index, bias: Bias) -> Self;
+    fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self;
+    fn new_quadratic(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self;
+}
+
+pub trait ExpressionBaseAdjustment<Index, Bias>: ExpressionBase<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn add_variable(&mut self, v: Index) -> SizeType;
+    fn add_variables(&mut self, vars: &Vec<Index>);
+    fn add_active_variables(&mut self, n: Index);
+    // // todo: make this rusty -> makes sense to return a & here??
+    // /// Return an empty neighborhood; useful when a variable does not have an adjacency.
+    // // fn empty_neighborhood(&self) -> &Vec<OneVarTerm<Index, Bias>>;
+    /// Resize the model to contain `n` variables.
+    fn resize(&mut self, n: Index);
+}
+
+pub trait ExpressionBaseSet<Index, Bias>: ExpressionBaseTypes
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    // -- /// Set offset.
+    // -- fn set_offset(&mut self, bias: Bias);
+    // -- /// Add linear bias to variable `v`.
+    // -- fn set_linear(&mut self, v: Index, bias: Bias) -> Result<(), VariableOutOfRangeError>;
+    // -- /// Add interaction between variables `v` and `u`.
+    // -- fn set_quadratic(&mut self, u: Index, v: Index, bias: Bias);
+    /// Add interaction between variables in `indices`.
+    fn set_higher_order(&mut self, vars: &Vec<Index>, bias: Bias);
+}
+
 pub trait ExpressionBase<Index, Bias> {
     // - // todo: add_quadratic for row, col (arrays) and row, col iterators. (2 extra fns)
     // - // todo: neighborhood iterators, start and end/ check if we really need this in rust
     // - // for linear and quadratic.
 
-    /// Add offset.
-    fn add_offset(&mut self, bias: Bias);
-    /// Add linear bias to variable `v`.
-    fn add_linear(&mut self, v: Index, bias: Bias);
-    /// Add linear biases from another linear term.
-    fn add_linear_from(&mut self, other: &Linear<Bias>);
-    /// Add interaction between variables `v` and `u`.
-    fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias);
-    /// Add quadratic biases from another quadratic term.
-    fn add_quadratic_from(&mut self, other: &Quadratic<Index, Bias>);
-    /// Add interaction between variables in `indices`.
-    fn add_higher_order_direct(&mut self, index: &String, bias: Bias);
-    /// Add interaction between variables in `indices`.
-    fn add_higher_order(&mut self, indices: &Vec<Index>, bias: Bias);
-    /// Add higher order biases from another higher order term.
-    fn add_higher_order_from(&mut self, other: &HigherOrder<Index, Bias>);
-    /// Add quadratic bias for the given variables at the end of each other's neighborhoods.
-    ///
-    /// # Arguments
-    ///
-    /// * `u` - A variable
-    /// * `v` - A variable
-    /// * `bias` - the quadratic bias associated with `u` and `v`
-    ///
-    /// # Exceptions
-    /// When `u` is less than the largest neighbor in `v`'s neighborhood,
-    /// `v` is less than the largest neighbor in `u`'s neighborhood, or either
-    /// `u` or `v` is greater than `num_variables()` then the behavior of
-    /// this method is undefined.
-    fn add_quadratic_back(&mut self, u: Index, v: Index, bias: Bias);
-    /// Add quadratic biases from a dense matrix.
-    ///
-    /// `dense` must be an array of length `num_variables^2`.
-    ///
-    /// Values on the diagonal are treated differently depending on the variable
-    /// type.
-    ///
-    /// # Exceptions
-    /// The behavior of this method is undefined when the model has fewer than
-    /// `num_variables` variables.
-    fn add_quadratic_from_dense(&mut self, dense: &[Bias], num_variables: Index);
+    // removed as it's the same as using add
+    // /// Add interaction between variables in `indices` overwriting an existing element.
+    // fn add_higher_order_overwrite(&mut self, indices: &Vec<Index>, bias: Bias);
+
     // - // - /// Return the energy of the given sample.
     // - // - ///
     // - // - /// The `sample_start` must be a random access iterator pointing to the
@@ -120,25 +161,30 @@ pub trait ExpressionBase<Index, Bias> {
     // - // - where
     // - // -     B: BiasConstraints,
     // - // -     I: IndexConstraints;
-    /// Test whether the model has no quadratic biases.
-    fn is_linear(&self) -> bool;
-    /// The linear bias of variable `v`.
-    fn linear(&self, v: Index) -> Bias;
-    // - // - /// Return the number of interactions in the quadratic model.
-    // - // - fn num_interactions(&self) -> SizeType;
-    // - // - /// Return the number of other variables that `v` interacts with.
-    // - // - fn num_interactions_variable(&self, v: Index) -> SizeType;
-    /// Return the number of variables in the quadratic model.
-    fn num_variables(&self) -> SizeType;
     /// Return the offset.
     fn offset(&self) -> Bias;
+    /// The linear bias of variable `v`.
+    fn linear(&self, v: Index) -> Result<Bias, VariableOutOfRangeError>;
     /// Return the quadratic bias associated with `u` and `v`.
     ///
     /// If `u` and `v` do not have a quadratic bias, return 0;
     ///
     /// Note that this function does not return a reference because
     /// each quadratic bias is stored twice.
-    fn quadratic(&self, u: Index, v: Index) -> Bias;
+    /// // todo: we might be able to change this, as we store it just once.
+    fn quadratic(&self, u: Index, v: Index) -> Result<Bias, VariableOutOfRangeError>;
+    /// Return the higher order bias associated with the indices
+    ///
+    /// If indices do not have a quadratic bias, return 0;
+    fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeError>;
+    /// Test whether the model has no quadratic biases.
+    fn is_linear(&self) -> bool;
+    // - // - /// Return the number of interactions in the quadratic model.
+    // - // - fn num_interactions(&self) -> SizeType;
+    // - // - /// Return the number of other variables that `v` interacts with.
+    // - // - fn num_interactions_variable(&self, v: Index) -> SizeType;
+    /// Return the number of variables in the quadratic model.
+    fn num_variables(&self) -> SizeType;
     // - /// return the quadratic bias associated with `u` and `v`.
     // - ///
     // - /// Note that this function does not return a reference because
@@ -194,9 +240,7 @@ pub trait ExpressionBase<Index, Bias> {
     // -     Bias::default()
     // - }
     /// Return the variable type of variable `v`.
-    fn vartype(&self, _v: Index) -> Vtype {
-        Vtype::default()
-    }
+    fn vartype(&self, _v: Index) -> Vtype;
     // - /// Total bytes consumed by the biases and indices.
     // - ///
     // - /// If `capacity` is true, use the capacity of the underlying vectors rather
@@ -209,47 +253,102 @@ pub trait ExpressionBase<Index, Bias> {
     // - }
 }
 
-// todo: needs a better name.
-pub trait ExpressionBaseInternal<Index, Bias>: ExpressionBase<Index, Bias>
+/// Implements addition of variables, biases (scalars) and terms to `self`.
+/// This basically implements AddAssign directly operating on the expression level.
+pub trait ExpressionBaseAdd<Index, Bias>: ExpressionBaseTypes
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn new(env: Rc<RefCell<Environment<Index>>>) -> Self;
-    fn new_from(other: &Self) -> Self;
-    fn new_linear(env: Rc<RefCell<Environment<Index>>>, linear_biases: &Vec<Bias>) -> Self;
-    fn new_linear_from_weighted_variable(
-        env: Rc<RefCell<Environment<Index>>>,
-        var: Index,
-        weight: Bias,
-    ) -> Self;
-    fn new_linear_from_variables(
-        env: Rc<RefCell<Environment<Index>>>,
-        lhs: Index,
-        rhs: Index,
-        bias: Bias,
-    ) -> Self;
-    fn new_quadratic_from_variables(
-        env: Rc<RefCell<Environment<Index>>>,
-        lhs: Index,
-        rhs: Index,
-        bias: Bias,
-    ) -> Self;
-    // fn new_linear_single(n: Index) -> Self;
-    /// Increase the size of the model by one. Returns the index of the new variable.
-    fn add_variable(&mut self) -> Index;
-    /// Increase the size of the model by `n`. Returns the index of the first variable
-    /// added.
-    fn add_variables(&mut self, n: Index) -> Index;
-    // // todo: make this rusty -> makes sense to return a & here??
-    // /// Return an empty neighborhood; useful when a variable does not have an adjacency.
-    // // fn empty_neighborhood(&self) -> &Vec<OneVarTerm<Index, Bias>>;
-    /// Resize the model to contain `n` variables.
-    fn resize(&mut self, n: Index);
-    /// Hidden version of vartype() that allows users to distinguish between the
-    /// `vartype_` called by mixin functions and the public API one.
-    /// By default they are the same.
-    fn vartype_(&self, v: Index) -> Vtype {
-        self.vartype(v)
-    }
+    /// Add offset.
+    fn add_offset(&mut self, bias: Bias);
+    /// Add linear bias to variable `v`.
+    fn add_linear(&mut self, v: Index, bias: Bias);
+    /// Add interaction between variables `v` and `u`.
+    fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias);
+    /// Add interaction between variables in `indices`.
+    fn add_higher_order(&mut self, vars: &Vec<Index>, bias: Bias);
+    /// Add interaction between variables in `indices`.
+    /// This is the same as `add_higher_order` but operates on the key used in the
+    /// higher order representation directly.
+    fn add_higher_order_direct(&mut self, key: &Self::HigherOrderKey, bias: Bias);
+
+    /// Add linear biases from another linear term.
+    fn add_linear_from(&mut self, other: &Self::LinearType);
+    /// Add quadratic biases from another quadratic term.
+    fn add_quadratic_from(&mut self, other: &Self::QuadraticType);
+    /// Add higher order biases from another higher order term.
+    fn add_higher_order_from(&mut self, other: &Self::HigherOrderType);
+    /// Add quadratic bias for the given variables at the end of each other's neighborhoods.
+    ///
+    /// # Arguments
+    ///
+    /// * `u` - A variable
+    /// * `v` - A variable
+    /// * `bias` - the quadratic bias associated with `u` and `v`
+    ///
+    /// # Exceptions
+    /// When `u` is less than the largest neighbor in `v`'s neighborhood,
+    /// `v` is less than the largest neighbor in `u`'s neighborhood, or either
+    /// `u` or `v` is greater than `num_variables()` then the behavior of
+    /// this method is undefined.
+    fn add_quadratic_back(&mut self, u: Index, v: Index, bias: Bias);
+    /// Add quadratic biases from a dense matrix.
+    ///
+    /// `dense` must be an array of length `num_variables^2`.
+    ///
+    /// Values on the diagonal are treated differently depending on the variable
+    /// type.
+    ///
+    /// # Exceptions
+    /// The behavior of this method is undefined when the model has fewer than
+    /// `num_variables` variables.
+    fn add_quadratic_from_dense(&mut self, dense: &[Bias], num_variables: Index);
+}
+
+/// Implements multiplication of variables, biases (scalars) and terms to `self`.
+/// This basically implements MulAssign directly operating on the expression level.
+pub trait ExpressionBaseMul<Index, Bias>: ExpressionBaseTypes
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    /// Multiply two offset and add to self.
+    fn mul_offset(&mut self, lhs: Bias, rhs: Bias);
+    /// Multiply two linear terms and add to self.
+    fn mul_linear(&mut self, lhs: &Self::LinearType, rhs: &Self::LinearType);
+    /// Multiply two quadratic terms and add to self.
+    fn mul_quadratic(&mut self, lhs: &Self::QuadraticType, rhs: &Self::QuadraticType);
+    /// Multiply two higher order terms and add to self.
+    fn mul_higher_order(&mut self, lhs: &Self::HigherOrderType, rhs: &Self::HigherOrderType);
+}
+
+/// Implements multiplication of variables, biases (scalars) and terms to `self`.
+/// This basically implements MulAssign directly operating on the expression level.
+///
+/// In contrast to the methods defined in `ExpressionBaseMulAssign` the methods defined
+/// in this trait use the information on a variable / bias (scalar) level without the
+/// representation as a linear, quadratic or higher oder term. In theory one could
+/// also create the terms based on the variable, and then use the other trait.
+/// However, this introduces additional memory and access required to implement the
+/// operation which is undesired regarding performance optimizations.
+///
+/// The results are written to `self`
+pub trait ExpressionBaseMulDirect<Index, Bias>: ExpressionBaseTypes
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    /// Mul the variable `v` to the offset, producing a new linear entry.
+    /// This function edits self, based on the information from offset and the rest.
+    fn mul_with_offset(&mut self, offset: Bias, v: Index, bias: Bias);
+    /// Mul the variable `v` to the linear term.
+    /// This function edits self, based on the information from linear and the rest.
+    fn mul_with_linear(&mut self, linear: &Self::LinearType, v: Index, bias: Bias);
+    /// Mul the variable `v` to the quadratic term.
+    /// This function edits self, based on the information from quadratic and the rest.
+    fn mul_with_quadratic(&mut self, quadratic: &Self::QuadraticType, v: Index, bias: Bias);
+    /// Mul the variable `v` to the higher order term.
+    /// This function edits self, based on the information from higher_order and the rest.
+    fn mul_with_higher_order(&mut self, higher_order: &Self::HigherOrderType, v: Index, bias: Bias);
 }

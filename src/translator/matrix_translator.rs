@@ -1,6 +1,6 @@
 use crate::core::{
     expression::{BiasConstraints, IndexConstraints},
-    Model,
+    Model, Vtype,
 };
 
 pub struct MatrixTranslator {}
@@ -10,11 +10,12 @@ impl MatrixTranslator {
         name: Option<String>,
         dense: &[Bias],
         num_variables: Index,
+        vtype: Vtype,
     ) -> Model<Index, Bias>
     where
         Index: IndexConstraints,
         Bias: BiasConstraints,
     {
-        Model::new_from_dense(name, dense, num_variables)
+        Model::new_from_dense(name, dense, num_variables, vtype)
     }
 }

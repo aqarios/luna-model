@@ -1,10 +1,18 @@
+mod addition;
 mod base;
+mod errors;
 mod expr;
+mod multiplication;
 
 pub use base::BiasConstraints;
 pub use base::ExpressionBase;
-pub use base::ExpressionBaseInternal;
+pub use base::ExpressionBaseAdd;
+pub use base::ExpressionBaseAdjustment;
+pub use base::ExpressionBaseCreation;
 pub use base::IndexConstraints;
+
 pub use base::One;
 
 pub use expr::Expression;
+
+pub use errors::VariableOutOfRangeError;

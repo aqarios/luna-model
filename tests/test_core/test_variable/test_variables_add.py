@@ -53,7 +53,7 @@ def test_add_last_two_variables():
 
     result = y + x
     assert type(result) == Expression
-    assert result.num_variables() == 4
+    assert result.num_variables() == 2
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
 
@@ -68,7 +68,7 @@ def test_add_any_and_last_variables():
 
     result = y + x
     assert type(result) == Expression
-    assert result.num_variables() == 4
+    assert result.num_variables() == 2
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
 
