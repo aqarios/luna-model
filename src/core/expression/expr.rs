@@ -227,34 +227,10 @@ where
     fn quadratic(&self, u: Index, v: Index) -> Result<Bias, VariableOutOfRangeError> {
         self.check_and_get(u)?;
         self.check_and_get(v)?;
-        let mut bias = Bias::default();
-        match self.has_quadratic() {
-            true => {
-                let mut outer = u;
-                let mut inner = v;
-                if u > v {
-                    outer = v;
-                    inner = u;
-                }
-
-                // TODO@benjamin: move the indexing to the quadratic term,
-                // similar to how it's done for the higher order access
-                // see `fn higher_order(&self, ...) -> ...` function.
-                //
-                // let adj = self.quadratic.as_ref().unwrap();
-                // let out = adj[(u, v)];
-                let neighborhood = &self.quadratic.as_ref().unwrap()[outer.into()];
-                let pos = neighborhood.binary_search_by(|term| {
-                    term.index.partial_cmp(&inner).unwrap_or(Ordering::Equal)
-                });
-                match pos {
-                    Ok(p) => bias = neighborhood[p].bias,
-                    Err(_) => (),
-                }
-            }
-            false => (),
-        }
-        Ok(bias)
+        Ok(self
+            .quadratic
+            .as_ref()
+            .map_or_else(Bias::default, |q| q[(u, v)]))
     }
 
     fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeError> {

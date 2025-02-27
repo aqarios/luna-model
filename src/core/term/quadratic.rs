@@ -180,21 +180,7 @@ where
     type Output = Bias;
 
     fn index(&self, index: (Idx, Idx)) -> &Self::Output {
-        let mut outer = index.0;
-        let mut inner = index.1;
-        if outer > inner {
-            outer = index.1;
-            inner = index.0;
-        }
-
-        let neighborhood: &Vec<OneVarTerm<Idx, Bias>> = &self.adj[outer.into()];
-        let pos = neighborhood
-            .binary_search_by(|term| term.index.partial_cmp(&inner).unwrap_or(Ordering::Equal));
-
-        match pos {
-            Ok(p) => &neighborhood[p].bias,
-            Err(_) => &self.default_bias,
-        }
+        &self[(index.0.into(), index.1.into())]
     }
 }
 
