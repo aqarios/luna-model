@@ -9,7 +9,7 @@ use crate::{
     py_bindings::types::Constr,
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{basic::CompareOp, exceptions::PyRuntimeError, prelude::*, types::PyBool};
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBool};
 use std::{cell::RefCell, rc::Rc};
 
 #[pyclass(unsendable, name = "Expression")]

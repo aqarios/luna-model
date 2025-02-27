@@ -32,6 +32,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_var::PyVariable>()?;
     m.add_class::<py_bounds::PyBounds>()?;
     m.add_class::<py_constr::PyConstraint>()?;
+    m.add_class::<py_constr::PyConstraints>()?;
     // Adding the exceptions
     m.add(
         "VariableExistsException",

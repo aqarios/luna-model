@@ -21,12 +21,12 @@ def test_constraint_creation_eq(expression: Expression):
 
 
 @pytest.mark.constraint
-def test_constraint_creation_leq(expression: Expression):
+def test_constraint_creation_le(expression: Expression):
     constr = expression <= 0.0
     assert type(constr) == Constraint
 
 
 @pytest.mark.constraint
-def test_constraint_creation_geq(expression: Expression):
+def test_constraint_creation_ge(expression: Expression):
     constr = expression >= 0
     assert type(constr) == Constraint

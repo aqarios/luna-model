@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{
     core::{Model, NoActiveEnvironmentFoundException, VarId},
     py_bindings::py_env::CURRENT_ENV,
@@ -5,7 +7,7 @@ use crate::{
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
 
-use super::{py_env::PyEnvironment, py_expr::PyExpression};
+use super::{py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression};
 
 #[pyclass(unsendable, name = "Model", subclass)]
 #[derive(Deref, DerefMut)]
@@ -35,6 +37,20 @@ impl PyModel {
     #[setter]
     fn set_objective(&mut self, other: &PyExpression) {
         self.objective = other.0.clone()
+    }
+
+    #[getter]
+    fn get_constraints(&self) -> PyConstraints {
+        PyConstraints(Rc::clone(&self.constraints))
+    }
+
+    #[setter]
+    fn set_constraints(&mut self, other: &PyConstraints) {
+        self.constraints = other.0.clone()
+    }
+
+    fn num_constraints(&self) -> usize {
+        self.constraints.borrow().len()
     }
 
     #[getter]

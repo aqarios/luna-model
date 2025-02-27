@@ -1,5 +1,5 @@
 use std::{
-    cell::RefCell,
+    cell::{Ref, RefCell},
     ops::{Add, AddAssign},
     rc::Rc,
 };
@@ -9,14 +9,14 @@ use crate::core::{
     Expression,
 };
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Comparator {
     Eq,
     Leq,
     Geq,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Constraint<Index, Bias>
 where
     Index: IndexConstraints,
@@ -46,7 +46,7 @@ where
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Constraints<Index, Bias>
 where
     Index: IndexConstraints,
@@ -60,16 +60,20 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    // pub fn default() -> Self {
-    //     Self {
-    //         constraints: Vec::new(),
-    //     }
-    // }
+    pub fn default() -> Self {
+        Self {
+            constraints: Vec::new(),
+        }
+    }
 
     pub fn new_from(other: &Self) -> Self {
         Self {
             constraints: other.constraints.clone(),
         }
+    }
+
+    pub fn len(&self) -> usize {
+        self.constraints.len()
     }
 }
 
@@ -94,5 +98,55 @@ where
         let mut out = Constraints::new_from(&self);
         out += rhs;
         out
+    }
+}
+
+impl<Index, Bias> AddAssign<Ref<'_, Constraint<Index, Bias>>> for Constraints<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn add_assign(&mut self, rhs: Ref<'_, Constraint<Index, Bias>>) {
+        self.constraints.push(rhs.clone());
+    }
+}
+
+impl<Index, Bias> Add<Ref<'_, Constraint<Index, Bias>>> for &Constraints<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Constraints<Index, Bias>;
+
+    fn add(self, rhs: Ref<'_, Constraint<Index, Bias>>) -> Self::Output {
+        let mut out = Constraints::new_from(&self);
+        out += rhs;
+        out
+    }
+}
+
+impl<Index, Bias> PartialEq for Constraint<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.comparator == other.comparator && self.rhs == other.rhs && self.lhs == other.lhs
+    }
+}
+
+impl<Index, Bias> PartialEq for Constraints<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn eq(&self, other: &Self) -> bool {
+        let mut num_matches = 0;
+        for lhs in self.constraints.iter() {
+            for rhs in other.constraints.iter() {
+                num_matches += (lhs == rhs) as usize;
+            }
+        }
+        num_matches >= self.constraints.len()
     }
 }
