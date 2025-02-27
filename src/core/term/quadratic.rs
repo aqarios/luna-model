@@ -7,7 +7,7 @@ use std::{
 
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 
-use super::types::OneVarTerm;
+use super::types::{OneVarTerm, OneVarTermConstruction};
 
 #[derive(Debug, Clone)]
 pub struct Quadratic<Index, Bias> {
@@ -169,6 +169,64 @@ where
             Ok(p) => &neighborhood[p].bias,
             Err(_) => &self.default_bias,
         }
+    }
+}
+
+impl<Idx, Bias> Index<(Idx, Idx)> for Quadratic<Idx, Bias>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Bias;
+
+    fn index(&self, index: (Idx, Idx)) -> &Self::Output {
+        let mut outer = index.0;
+        let mut inner = index.1;
+        if outer > inner {
+            outer = index.1;
+            inner = index.0;
+        }
+
+        let neighborhood: &Vec<OneVarTerm<Idx, Bias>> = &self.adj[outer.into()];
+        let pos = neighborhood
+            .binary_search_by(|term| term.index.partial_cmp(&inner).unwrap_or(Ordering::Equal));
+
+        match pos {
+            Ok(p) => &neighborhood[p].bias,
+            Err(_) => &self.default_bias,
+        }
+    }
+}
+
+impl<Idx, Bias> IndexMut<(Idx, Idx)> for Quadratic<Idx, Bias>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    /// Assumes quadratic exists!
+    /// Creates the bias if it doesn't already exist
+    fn index_mut(&mut self, index: (Idx, Idx)) -> &mut Self::Output {
+        let mut outer = index.0;
+        let mut inner = index.1;
+        if outer > inner {
+            outer = index.1;
+            inner = index.0;
+        }
+
+        let neighborhood: &mut Vec<OneVarTerm<Idx, Bias>> = self
+            .adj
+            .get_mut(outer.into())
+            .expect("neighborhood should exist for the given index");
+        let pos = neighborhood
+            .binary_search_by(|term| term.index.partial_cmp(&inner).unwrap_or(Ordering::Equal))
+            .unwrap_or_else(|insert_pos| insert_pos);
+        if pos == neighborhood.len() {
+            neighborhood.push(OneVarTerm::new_default(inner))
+        } else if neighborhood[pos].index != inner {
+            neighborhood.insert(pos, OneVarTerm::new_default(inner));
+        }
+
+        &mut neighborhood[pos].bias
     }
 }
 

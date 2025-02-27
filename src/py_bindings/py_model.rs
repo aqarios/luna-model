@@ -41,4 +41,8 @@ impl PyModel {
     fn environment(&self) -> PyEnvironment {
         PyEnvironment(self.environment.clone())
     }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
 }

@@ -1,4 +1,4 @@
-use super::{BiasConstraints, Expression, IndexConstraints};
+use super::{BiasConstraints, Expression, ExpressionBase, IndexConstraints};
 
 impl<Index, Bias> PartialEq for Expression<Index, Bias>
 where
@@ -8,6 +8,10 @@ where
     fn eq(&self, other: &Self) -> bool {
         if self.env.borrow().id != other.env.borrow().id {
             // Non-equal envs directly implicate non-equal expressions.
+            return false;
+        }
+        if self.num_variables() != other.num_variables() {
+            // Non-equal number of active variables, cannot be identical.
             return false;
         }
         if self.linear != other.linear {

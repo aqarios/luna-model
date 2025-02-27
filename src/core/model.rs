@@ -70,3 +70,15 @@ where
         model
     }
 }
+
+impl<Index, Bias> PartialEq for Model<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.environment.borrow().id == other.environment.borrow().id
+            && self.objective == other.objective
+    }
+}
