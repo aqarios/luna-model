@@ -28,8 +28,13 @@ impl PyModel {
     }
 
     #[getter]
-    fn objective(&self) -> PyExpression {
+    fn get_objective(&self) -> PyExpression {
         PyExpression(self.objective.clone())
+    }
+
+    #[setter]
+    fn set_objective(&mut self, other: &PyExpression) {
+        self.objective = other.0.clone()
     }
 
     #[getter]
