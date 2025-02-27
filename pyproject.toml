@@ -29,7 +29,8 @@ cache-keys = [
 markers = [
   "variable",
   "expression",
-  "model"
+  "model",
+  "constraint"
 ]
 
 [tool.maturin]
