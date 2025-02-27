@@ -13,7 +13,6 @@ use super::base::{
     ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulDirect, ExpressionBaseSet,
     ExpressionBaseTypes, IndexConstraints,
 };
-use super::errors::IndexOutOfOrderError;
 use super::VariableOutOfRangeError;
 
 pub struct Expression<Index, Bias>
@@ -199,11 +198,14 @@ where
         }
 
         self.linear.resize(n.into());
+        self.active.resize(n.into(), false);
 
         // Again, higher order terms do not need to be resized, see `add_variables`
 
         assert!(
-            !self.has_quadratic() || self.linear.len() == self.quadratic.as_ref().unwrap().len()
+            !self.has_quadratic()
+                || self.linear.len() == self.quadratic.as_ref().unwrap().len()
+                || self.linear.len() == self.active.len()
         );
     }
 }
@@ -568,22 +570,8 @@ where
     /// Assumes quadratic exists!
     /// Creates the bias if it doesn't already exist
     pub fn asymmetric_quadratic_ref(&mut self, u: Index, v: Index) -> &mut Bias {
-        // todo(team): check smaller u and v for correct indexing.
         assert!(self.has_quadratic(), "quadratic is not initialized");
-        let neighborhood: &mut Vec<OneVarTerm<Index, Bias>> = self
-            .quadratic
-            .as_mut()
-            .and_then(|quadratic| quadratic.get_mut(u))
-            .expect("neighborhood should exist for the given index");
-        // Find the position where v should be inserted
-        let pos = neighborhood
-            .binary_search_by(|term| term.index.partial_cmp(&v).unwrap_or(Ordering::Equal))
-            .unwrap_or_else(|insert_pos| insert_pos);
-        if pos == neighborhood.len() || neighborhood[pos].index != v {
-            neighborhood.insert(pos, OneVarTerm::new_default(v));
-        }
-
-        &mut neighborhood[pos].bias
+        &mut self.quadratic.as_mut().unwrap()[(u, v)]
     }
 
     fn reduce_higher_order_vars(&self, indices: &Vec<Index>) -> Vec<Index> {

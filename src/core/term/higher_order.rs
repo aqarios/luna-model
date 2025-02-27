@@ -110,7 +110,7 @@ where
     type Output = Bias;
 
     fn index(&self, index: &String) -> &Self::Output {
-        self.biases.get(index).unwrap()
+        self.biases.get(index).unwrap_or(&self.default_bias)
     }
 }
 
@@ -120,6 +120,35 @@ where
     Bias: BiasConstraints,
 {
     fn index_mut(&mut self, index: &String) -> &mut Self::Output {
+        if !self.biases.contains_key(index) {
+            self.biases.insert(index.to_string(), Bias::default());
+        }
         self.biases.get_mut(index).unwrap()
+    }
+}
+
+impl<Index, Bias> PartialEq for HigherOrder<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn eq(&self, other: &Self) -> bool {
+        // This basic check is no gurantee for actual equality.
+        // As if this is not equal it might be due to different representations,
+        // e.g., in one expression the interaction between two variables can be explicitly
+        // contained as 0.0, while in an other expression this interaction is not
+        // represented directly. The value of the interaction is still 0.0.
+        // Thus they are equal... This is not handled by the below trivial comparison.
+        //
+        // self.biases == other.biases
+        for lhs_idx in self.biases.keys() {
+            for rhs_idx in other.biases.keys() {
+                if self[lhs_idx] != other[rhs_idx] {
+                    return false;
+                }
+            }
+        }
+
+        true
     }
 }

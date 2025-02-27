@@ -1,3 +1,18 @@
 # Aq-Models (Rust)
 
 The rust based `aq-models` implementation.
+
+## TODOs
+
+- [x] Equality of Expressions
+- [x] Equality of Models (uses expressions eq + some more checks)
+- [ ] Model Constraints (lhs is an expression and rhs is a single value and an equality type: Leq, Eq, Geq)
+- [ ] Model evaluation (takes solution object and computes value)
+- [ ] Solution object gives variables values
+- [ ] Model serialization and deserialization (versioned)
+- [ ] Variable fixing
+- [ ] Variable substitution
+- [ ] From any to all others (types)
+- [ ] Transformations (common ones required for initial release)
+- [ ] String representation of expressions
+- [ ] String representation of models

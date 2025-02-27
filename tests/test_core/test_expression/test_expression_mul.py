@@ -1,12 +1,19 @@
 import pytest
 
 from typing import Tuple
-from itertools import permutations
 
 from aq_models import Variable
 from aq_models import Vtype
 from aq_models import Environment
 from aq_models import Expression
+
+from ..utils import (
+    assert_offset,
+    assert_linear,
+    assert_quadratic,
+    assert_higher_order,
+    assert_higher_order_all,
+)
 
 
 @pytest.fixture
@@ -36,35 +43,6 @@ def expression() -> Expression:
     return a * b
 
 
-def check_equality(variables, p, f, value):
-    permuts = permutations(variables, p)
-    base = next(permuts)
-    base_value = f(base)
-    assert base_value == value
-    for permut in permuts:
-        assert f(permut) == base_value
-
-
-def assert_linear(expr, variables, value):
-    check_equality(variables, 1, lambda v: expr.get_linear(v[0]), value)
-
-
-def assert_quadratic(expr, variables, value):
-    check_equality(variables, 2, lambda v: expr.get_quadratic(*v), value)
-
-
-def assert_higher_order(expr, variables, value, p_size=None):
-    if not p_size:
-        check_equality(variables, len(variables), expr.get_higher_order, value)
-    else:
-        check_equality(variables, p_size, expr.get_higher_order, value)
-
-
-def assert_higher_order_all(expr, variables, value):
-    for p_size in range(3, len(variables) + 1):
-        check_equality(variables, p_size, expr.get_higher_order, value)
-
-
 @pytest.mark.expression
 @pytest.mark.parametrize("variables", [3], indirect=True)
 def test_expression_mul_binary_variables(variables):
@@ -73,7 +51,7 @@ def test_expression_mul_binary_variables(variables):
     expr = x * y
     assert type(expr) == Expression
     assert expr.num_variables() == 2
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
     assert_quadratic(expr, (x, y), 1)
     assert_higher_order_all(expr, (x, y), 0)
@@ -98,7 +76,7 @@ def test_expression_mul_spin_variables(variables):
     expr = x * y
     assert type(expr) == Expression
     assert expr.num_variables() == 2
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
     assert_quadratic(expr, (x, y), 1)
     assert_higher_order_all(expr, (x, y), 0)
@@ -178,7 +156,7 @@ def test_expression_mul_binary_variable_twice(variables):
     expr = x * y
     assert type(expr) == Expression
     assert expr.num_variables() == 2
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
     assert_quadratic(expr, (x, y), 1)
     assert_higher_order_all(expr, (x, y), 0)
@@ -214,7 +192,7 @@ def test_expression_mul_number(variables):
     expr = x * y
     assert type(expr) == Expression
     assert expr.num_variables() == 2
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
     assert_quadratic(expr, variables, 1)
     assert_higher_order_all(expr, variables, 0)
@@ -226,7 +204,7 @@ def test_expression_mul_number(variables):
     assert id_expr_before != id_expr_after
     assert type(expr) == Expression
     assert expr.num_variables() == 2
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
     assert_quadratic(expr, variables, 2)
     assert_higher_order_all(expr, variables, 0)
@@ -240,7 +218,7 @@ def test_expression_instancemul_variable(variables):
     expr = x * y
     assert type(expr) == Expression
     assert expr.num_variables() == 2
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
     assert_quadratic(expr, (x, y), 1)
     assert_higher_order_all(expr, (x, y), 0)
@@ -252,7 +230,7 @@ def test_expression_instancemul_variable(variables):
     assert id_expr_before == id_expr_after
     assert type(expr) == Expression
     assert expr.num_variables() == 3
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
     assert_quadratic(expr, variables, 0)
     assert_higher_order(expr, variables, 0, 2)
@@ -267,7 +245,7 @@ def test_expression_instancemul_number(variables):
     expr = x * y
     assert type(expr) == Expression
     assert expr.num_variables() == 2
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
     assert_quadratic(expr, variables, 1)
     assert_higher_order_all(expr, variables, 0)
@@ -279,7 +257,7 @@ def test_expression_instancemul_number(variables):
     assert id_expr_before == id_expr_after
     assert type(expr) == Expression
     assert expr.num_variables() == 2
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
     assert_quadratic(expr, variables, 2)
     assert_higher_order_all(expr, variables, 0)
@@ -293,7 +271,7 @@ def test_expression_instancemul_binary_variable_twice(variables):
     expr = x * y
     assert type(expr) == Expression
     assert expr.num_variables() == 2
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
     assert_quadratic(expr, (x, y), 1)
     assert_higher_order_all(expr, (x, y), 0)
@@ -306,7 +284,7 @@ def test_expression_instancemul_binary_variable_twice(variables):
     assert id_expr_before == id_expr_after
     assert type(expr) == Expression
     assert expr.num_variables() == 3
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
     assert_quadratic(expr, variables, 0)
     assert_higher_order(expr, variables, 0, 2)
@@ -350,7 +328,7 @@ def test_expression_mul_expression(variables):
 
     assert type(expr) == Expression
     assert expr.num_variables() == 4
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
     assert_quadratic(expr, variables, 0)
     assert_higher_order(expr, variables, 0, 2)
@@ -393,7 +371,7 @@ def test_expression_instancemul_expression(variables):
     assert id_expr == id_expr_rhs
     assert type(expr) == Expression
     assert expr.num_variables() == 4
-    assert expr.get_offset() == 0
+    assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
     assert_quadratic(expr, variables, 0)
     assert_higher_order(expr, variables, 0, 2)
