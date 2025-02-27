@@ -25,3 +25,4 @@ def test_access_objective(model: Model):
     assert type(objective_a) == Expression
     assert type(objective_b) == Expression
     assert objective_a == objective_b
+    assert model == model
