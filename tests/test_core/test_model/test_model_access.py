@@ -8,13 +8,18 @@ from aq_models import Expression
 from ..utils import (
     assert_linear,
     assert_offset,
+    assert_quadratic,
 )
+
+
+def make_model() -> Model:
+    with Environment():
+        return Model()
 
 
 @pytest.fixture
 def model() -> Model:
-    with Environment():
-        return Model()
+    return make_model()
 
 
 @pytest.mark.model
@@ -35,17 +40,44 @@ def test_access_objective(model: Model):
 
 
 @pytest.mark.model
-def test_use_model_environment(model: Model):
+def test_use_model_environment():
+    model = make_model()
     with model.environment:
         _ = Variable("x")
 
 
 @pytest.mark.model
-def test_use_instanceadd_to_model(model: Model):
+def test_use_instanceadd_bias_to_model():
+    model = make_model()
+    with model.environment:
+        _ = Variable("x")
+
+    model.objective += 1
+    assert_offset(model.objective, 1)
+    assert model.objective == model.objective
+
+
+@pytest.mark.model
+def test_use_instanceadd_variable_to_model():
+    model = make_model()
     with model.environment:
         x = Variable("x")
 
     model.objective += x
     assert_offset(model.objective, 0)
     assert_linear(model.objective, (x,), 1)
+    assert model.objective == model.objective
+
+
+@pytest.mark.model
+def test_use_instanceadd_expression_to_model():
+    model = make_model()
+    with model.environment:
+        x = Variable("x")
+        y = Variable("y")
+
+    model.objective += x * y
+    assert_offset(model.objective, 0)
+    assert_linear(model.objective, (x,), 0)
+    assert_quadratic(model.objective, (x, y), 1)
     assert model.objective == model.objective

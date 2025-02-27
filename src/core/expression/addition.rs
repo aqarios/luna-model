@@ -66,10 +66,10 @@ where
             out.add_offset(rhs.offset);
             out.add_linear_from(&rhs.linear);
 
-            if rhs.quadratic.is_some() {
+            if rhs.has_quadratic() {
                 out.add_quadratic_from(rhs.quadratic.as_ref().unwrap());
             }
-            if rhs.higher_order.is_some() {
+            if rhs.has_higher_order() {
                 out.add_higher_order_from(rhs.higher_order.as_ref().unwrap());
             }
             Ok(out)
@@ -152,26 +152,11 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            let mut out = Expression::new_from_other(&self);
-            // We know that both expressions have the same environment
-            // so we just need to check if the sizes of the two expression matches, i.e.
-            // if both expressions have the same number of variables.
-            // If rhs has more variables than self, we need to resize the out to
-            // allow the other variables to be added safely.
-            if out.num_variables() < rhs.num_variables() {
-                out.resize(rhs.num_variables().into());
+            let result = self.add(rhs);
+            match result {
+                Ok(expr) => Ok(*self = expr),
+                Err(e) => Err(e.into()),
             }
-            // Now we can perform all additions safely.
-            out.add_offset(rhs.offset);
-            out.add_linear_from(&rhs.linear);
-
-            if rhs.quadratic.is_some() {
-                out.add_quadratic_from(rhs.quadratic.as_ref().unwrap());
-            }
-            if rhs.higher_order.is_some() {
-                out.add_higher_order_from(rhs.higher_order.as_ref().unwrap());
-            }
-            Ok(())
         }
     }
 }

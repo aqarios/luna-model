@@ -198,11 +198,14 @@ where
         }
 
         self.linear.resize(n.into());
+        self.active.resize(n.into(), false);
 
         // Again, higher order terms do not need to be resized, see `add_variables`
 
         assert!(
-            !self.has_quadratic() || self.linear.len() == self.quadratic.as_ref().unwrap().len()
+            !self.has_quadratic()
+                || self.linear.len() == self.quadratic.as_ref().unwrap().len()
+                || self.linear.len() == self.active.len()
         );
     }
 }
