@@ -9,11 +9,29 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "dimod>=0.12.18",
+    "memory-profiler>=0.61.0",
     "numpy>=2.2.2",
+    "scipy>=1.15.1",
 ]
 
 [project.scripts]
-aq-models = "aq_models:main"
+# aq-models = "aq_models:main"
+
+[tool.uv]
+cache-keys = [
+  { file = "pyproject.toml" },
+  { file = "Cargo.toml" },
+  { file = "**/*.rs" },
+]
+
+[tool.pytest.ini_options]
+markers = [
+  "variable",
+  "expression",
+  "model",
+  "constraint"
+]
 
 [tool.maturin]
 module-name = "aq_models._core"
@@ -24,3 +42,8 @@ features = ["py"]
 [build-system]
 requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+]
