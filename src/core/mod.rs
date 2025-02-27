@@ -1,3 +1,4 @@
+pub mod constraints;
 pub mod environment;
 pub mod exceptions;
 pub mod expression;
@@ -6,6 +7,8 @@ pub mod operations;
 mod term;
 mod variable;
 
+pub use constraints::Comparator;
+pub use constraints::Constraint;
 pub use environment::Environment;
 pub use expression::Expression;
 pub use expression::ExpressionBase;

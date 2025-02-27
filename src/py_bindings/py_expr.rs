@@ -1,10 +1,15 @@
-use super::{py_var::PyVariable, types::Expr};
-use crate::core::{
-    operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
-    ExpressionBase, VariablesFromDifferentEnvsException,
+use super::{py_constr::PyConstraint, py_var::PyVariable, types::Expr};
+use crate::{
+    core::{
+        operations::{
+            AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
+        },
+        Comparator, ExpressionBase, VariablesFromDifferentEnvsException,
+    },
+    py_bindings::types::Constr,
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*};
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBool};
 use std::{cell::RefCell, rc::Rc};
 
 #[pyclass(unsendable, name = "Expression")]
@@ -131,11 +136,31 @@ impl PyExpression {
         todo!()
     }
     // Comparison
-    fn __eq__(&self, other: &Self) -> bool {
-        *self.borrow() == *other.borrow()
+    fn __eq__(&self, py: Python, other: PyObject) -> PyResult<PyObject> {
+        if let Ok(rhs) = other.extract::<PyExpression>(py) {
+            // Actual equality check.
+            let result = *self.borrow() == *rhs.borrow();
+            Ok(PyBool::new(py, result).to_owned().into())
+        } else if let Ok(rhs) = other.extract::<f64>(py) {
+            // Creates a new constraint.
+            let constraint = Constr::new(Rc::clone(&self.0), rhs, Comparator::Eq);
+            // todo: this is depreated... change to the new way
+            // but for now this works as intended
+            Ok(PyConstraint::new(constraint).into_py(py))
+        } else {
+            Err(PyRuntimeError::new_err("unsopported type for operation"))
+        }
+    }
+
+    fn __le__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
+        PyConstraint::new_py(&self, py, other, Comparator::Leq)
+    }
+
+    fn __ge__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
+        PyConstraint::new_py(&self, py, other, Comparator::Geq)
     }
 
     fn __ne__(&self, other: &Self) -> bool {
-        *self.borrow() == *other.borrow()
+        *self.borrow() != *other.borrow()
     }
 }
