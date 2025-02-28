@@ -7,6 +7,12 @@ use std::{cell::RefCell, rc::Rc};
 #[derive(Deref, DerefMut, Clone)]
 pub struct PyEnvironment(pub Rc<RefCell<Environment<VarId>>>);
 
+impl Into<Rc<RefCell<Environment<VarId>>>> for PyEnvironment {
+    fn into(self) -> Rc<RefCell<Environment<VarId>>> {
+        self.0
+    }
+}
+
 impl PyEnvironment {
     fn new() -> Self {
         Self(Rc::new(RefCell::new(Environment::new())))

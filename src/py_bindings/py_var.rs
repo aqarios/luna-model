@@ -39,9 +39,14 @@ impl PyVariable {
             })?,
         };
 
-        environment::add_variable(env.0, &name, vtype.as_ref(), bounds.as_deref())
-            .map(|v| PyVariable::new(v))
-            .map_err(|e| VariableExistsException::new_err(format!("{}: {}", e.to_string(), name)))
+        environment::add_variable(
+            env.into(),
+            &name,
+            vtype.as_ref(),
+            bounds.map(|pb| pb.into()),
+        )
+        .map(|v| PyVariable::new(v))
+        .map_err(|e| VariableExistsException::new_err(format!("{}: {}", e.to_string(), name)))
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {

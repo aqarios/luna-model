@@ -29,6 +29,13 @@ where
         }
     }
 
+    pub fn new_from(adj: Vec<Vec<OneVarTerm<Index, Bias>>>) -> Self {
+        Self {
+            adj,
+            default_bias: Bias::default(),
+        }
+    }
+
     pub fn resize(&mut self, n: usize) {
         self.adj.resize(n, Vec::new());
     }
@@ -62,6 +69,20 @@ where
                 neighborhood
                     .iter()
                     .map(move |term| (u_idx.into(), term.index, term.bias))
+            })
+    }
+
+    pub fn iter_flat_positioned(
+        &self,
+    ) -> impl Iterator<Item = ((usize, usize), Index, Index, Bias)> + '_ {
+        self.adj
+            .iter()
+            .enumerate()
+            .flat_map(|(u_idx, neighborhood)| {
+                neighborhood
+                    .iter()
+                    .enumerate()
+                    .map(move |(v_idx, term)| ((u_idx, v_idx), u_idx.into(), term.index, term.bias))
             })
     }
 }
