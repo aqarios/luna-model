@@ -155,9 +155,14 @@ impl SerializableExpression {
             }
             None => None,
         };
-        expr.higher_order = match &self.higher_order.len() {
-            0 => None,
-            _ => todo!(),
+        match &self.higher_order.len() {
+            0 => expr.higher_order = None,
+            _ => {
+                expr.enforce_higher_order();
+                self.higher_order.iter().for_each(|h| {
+                    expr.higher_order.as_mut().unwrap()[&h.key] = h.bias;
+                })
+            }
         };
         expr
     }
