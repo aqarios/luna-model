@@ -1,4 +1,4 @@
-use super::types::OneVarTerm;
+use super::types::{OneVarTerm, OneVarTermConstruction};
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::Environment;
 use std::cell::Ref;
@@ -8,10 +8,6 @@ use std::{
     ops::{Index, IndexMut, MulAssign},
     slice::Iter,
 };
-
-use crate::core::expression::{BiasConstraints, IndexConstraints};
-
-use super::types::{OneVarTerm, OneVarTermConstruction};
 
 #[derive(Debug, Clone)]
 pub struct Quadratic<Index, Bias> {

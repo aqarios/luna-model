@@ -108,6 +108,6 @@ where
     Bias: BiasConstraints,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Model {}:\n\t{}", self.name, self.objective)
+        write!(f, "Model {}:\n\t{}", self.name, self.objective.borrow())
     }
 }

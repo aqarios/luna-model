@@ -15,7 +15,7 @@ use super::base::{
 };
 use super::VariableOutOfRangeError;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Expression<Index, Bias>
 where
     Index: IndexConstraints,
