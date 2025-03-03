@@ -20,17 +20,18 @@ dependencies = [
 
 [tool.uv]
 cache-keys = [
-  { file = "pyproject.toml" },
-  { file = "Cargo.toml" },
-  { file = "**/*.rs" },
+    { file = "pyproject.toml" },
+    { file = "Cargo.toml" },
+    { file = "**/*.rs" },
 ]
 
 [tool.pytest.ini_options]
 markers = [
-  "variable",
-  "expression",
-  "model",
-  "constraint"
+    "variable",
+    "expression",
+    "model",
+    "constraint",
+    "str_repr"
 ]
 
 [tool.maturin]

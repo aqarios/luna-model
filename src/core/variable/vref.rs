@@ -146,11 +146,7 @@ where
         let env = self.env.borrow();
         let v = &env.variables[self.id.into()];
 
-        f.debug_struct("VarRef")
-            .field("id", &self.id)
-            .field("environment_id", &env.id)
-            .field("variable", v)
-            .finish()
+        write!(f, "{v:?}")
     }
 }
 
