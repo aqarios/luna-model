@@ -4,16 +4,20 @@ from ._core import Bounds
 from ._core import Environment
 from ._core import MatrixTranslator
 from ._core import Variable
+from ._core import Model
+from ._core import Constraint
+from ._core import Constraints
 
 from ._core import VariableExistsException
 from ._core import NoActiveEnvironmentFoundException
 from ._core import MultipleActiveEnvironmentsException
 
-# from .variable import Variable
-
 
 __all__ = [
+    "Model",
     "Expression",
+    "Constraint",
+    "Constraints",
     "Variable",
     "Environment",
     "Vtype",

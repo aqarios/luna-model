@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::cmp::Ordering;
 use std::fmt::{Debug, Display, Formatter};
 use std::rc::Rc;
 
@@ -14,9 +13,9 @@ use super::base::{
     ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulDirect, ExpressionBaseSet,
     ExpressionBaseTypes, IndexConstraints,
 };
-use super::errors::IndexOutOfOrderError;
 use super::VariableOutOfRangeError;
 
+#[derive(Debug, Clone)]
 pub struct Expression<Index, Bias>
 where
     Index: IndexConstraints,
@@ -29,7 +28,7 @@ where
     pub higher_order: Option<HigherOrder<Index, Bias>>,
     /// Mirror of the linear array that tracks which variables are already
     /// contained in the expression. 1 indicates already added 0 indicating floating.
-    active: Vec<bool>,
+    pub active: Vec<bool>,
     num_variables: SizeType,
 }
 
@@ -200,11 +199,14 @@ where
         }
 
         self.linear.resize(n.into());
+        self.active.resize(n.into(), false);
 
         // Again, higher order terms do not need to be resized, see `add_variables`
 
         assert!(
-            !self.has_quadratic() || self.linear.len() == self.quadratic.as_ref().unwrap().len()
+            !self.has_quadratic()
+                || self.linear.len() == self.quadratic.as_ref().unwrap().len()
+                || self.linear.len() == self.active.len()
         );
     }
 }
@@ -226,34 +228,10 @@ where
     fn quadratic(&self, u: Index, v: Index) -> Result<Bias, VariableOutOfRangeError> {
         self.check_and_get(u)?;
         self.check_and_get(v)?;
-        let mut bias = Bias::default();
-        match self.has_quadratic() {
-            true => {
-                let mut outer = u;
-                let mut inner = v;
-                if u > v {
-                    outer = v;
-                    inner = u;
-                }
-
-                // TODO@benjamin: move the indexing to the quadratic term,
-                // similar to how it's done for the higher order access
-                // see `fn higher_order(&self, ...) -> ...` function.
-                //
-                // let adj = self.quadratic.as_ref().unwrap();
-                // let out = adj[(u, v)];
-                let neighborhood = &self.quadratic.as_ref().unwrap()[outer.into()];
-                let pos = neighborhood.binary_search_by(|term| {
-                    term.index.partial_cmp(&inner).unwrap_or(Ordering::Equal)
-                });
-                match pos {
-                    Ok(p) => bias = neighborhood[p].bias,
-                    Err(_) => (),
-                }
-            }
-            false => (),
-        }
-        Ok(bias)
+        Ok(self
+            .quadratic
+            .as_ref()
+            .map_or_else(Bias::default, |q| q[(u, v)]))
     }
 
     fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeError> {
@@ -430,7 +408,8 @@ where
     fn mul_quadratic(&mut self, lhs: &Self::QuadraticType, rhs: &Self::QuadraticType) {
         for (lhs_u, lhs_v, lhs_bias) in lhs.iter_flat() {
             for (rhs_u, rhs_v, rhs_bias) in rhs.iter_flat() {
-                self.add_higher_order(&vec![lhs_u, lhs_v, rhs_u, rhs_v], lhs_bias * rhs_bias);
+                let vec = vec![lhs_u, lhs_v, rhs_u, rhs_v];
+                self.add_higher_order(&vec, lhs_bias * rhs_bias);
             }
         }
     }
@@ -473,7 +452,11 @@ where
             // in all cases.
             // However, we can make use of the logic already implemented in the
             // add_quadratic case. Which checks the logic based on the variable type.
-            self.add_quadratic(u_idx.into(), v, *u_bias * bias)
+
+            // But we should only do it if the variable is active...
+            if self.active[u_idx] {
+                self.add_quadratic(u_idx.into(), v, *u_bias * bias)
+            }
         }
     }
 
@@ -506,15 +489,8 @@ where
     Bias: BiasConstraints,
 {
     fn check_and_get(&self, v: Index) -> Result<usize, VariableOutOfRangeError> {
-        match self.active[v.into()] {
+        match v.into() <= self.active.len() {
             true => Ok(v.into()),
-            false => Err(VariableOutOfRangeError(v.into())),
-        }
-    }
-
-    fn check(&self, v: Index) -> Result<(), VariableOutOfRangeError> {
-        match self.active[v.into()] {
-            true => Ok(()),
             false => Err(VariableOutOfRangeError(v.into())),
         }
     }
@@ -522,7 +498,7 @@ where
     fn check_multi(&self, vars: &Vec<Index>) -> Result<(), VariableOutOfRangeError> {
         for v in vars {
             let v_idx: usize = (*v).into();
-            if self.active[v_idx] {
+            if !self.active[v_idx] {
                 return Err(VariableOutOfRangeError(v_idx));
             }
         }
@@ -551,48 +527,28 @@ where
         self.higher_order.is_some()
     }
 
-    pub fn check_quadratic_dimensions(
-        &self,
-        u: usize,
-        v: usize,
-    ) -> Result<(), IndexOutOfOrderError> {
+    pub fn check_quadratic_dimensions(&self, u: usize, v: usize) {
         let quadratic = self.quadratic.as_ref().unwrap();
+        assert!(
+            quadratic[v].is_empty() || quadratic[v].last().unwrap().index <= u.into(),
+            "Index out of oder: last index <= {} (is {})",
+            u,
+            quadratic[v].last().unwrap().index.into()
+        );
 
-        if !(quadratic[v].is_empty() || quadratic[v].last().unwrap().index <= u.into()) {
-            return Err(IndexOutOfOrderError(
-                u,
-                quadratic[v].last().unwrap().index.into(),
-            ));
-        }
-        if !(quadratic[u].is_empty() || quadratic[u].last().unwrap().index <= v.into()) {
-            return Err(IndexOutOfOrderError(
-                v,
-                quadratic[u].last().unwrap().index.into(),
-            ));
-        }
-
-        Ok(())
+        assert!(
+            quadratic[u].is_empty() || quadratic[u].last().unwrap().index <= v.into(),
+            "Index out of oder: last index <= {} (is {})",
+            v,
+            quadratic[u].last().unwrap().index.into()
+        );
     }
 
     /// Assumes quadratic exists!
     /// Creates the bias if it doesn't already exist
     pub fn asymmetric_quadratic_ref(&mut self, u: Index, v: Index) -> &mut Bias {
-        // todo(team): check smaller u and v for correct indexing.
         assert!(self.has_quadratic(), "quadratic is not initialized");
-        let neighborhood: &mut Vec<OneVarTerm<Index, Bias>> = self
-            .quadratic
-            .as_mut()
-            .and_then(|quadratic| quadratic.get_mut(u))
-            .expect("neighborhood should exist for the given index");
-        // Find the position where v should be inserted
-        let pos = neighborhood
-            .binary_search_by(|term| term.index.partial_cmp(&v).unwrap_or(Ordering::Equal))
-            .unwrap_or_else(|insert_pos| insert_pos);
-        if pos == neighborhood.len() || neighborhood[pos].index != v {
-            neighborhood.insert(pos, OneVarTerm::new_default(v));
-        }
-
-        &mut neighborhood[pos].bias
+        &mut self.quadratic.as_mut().unwrap()[(u, v)]
     }
 
     fn reduce_higher_order_vars(&self, indices: &Vec<Index>) -> Vec<Index> {

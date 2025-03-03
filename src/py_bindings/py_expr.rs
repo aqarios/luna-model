@@ -1,13 +1,16 @@
-use super::py_var::PyVariable;
-use crate::core::{
-    operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
-    Expression, ExpressionBase, VarId, VariablesFromDifferentEnvsException,
+use super::{py_constr::PyConstraint, py_var::PyVariable, types::Expr};
+use crate::{
+    core::{
+        operations::{
+            AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
+        },
+        Comparator, ExpressionBase, VariablesFromDifferentEnvsException,
+    },
+    py_bindings::types::Constr,
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*};
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBool};
 use std::{cell::RefCell, rc::Rc};
-
-type Expr = Expression<VarId, f64>;
 
 #[pyclass(unsendable, name = "Expression")]
 #[derive(Deref, DerefMut, Clone)]
@@ -118,10 +121,9 @@ impl PyExpression {
                 .mul_assign(rhs.as_ref())
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            todo!()
-            // self.borrow_mut()
-            //     .mul_assign(rhs.borrow())
-            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            self.borrow_mut()
+                .mul_assign(rhs.borrow())
+                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
@@ -134,11 +136,32 @@ impl PyExpression {
         todo!()
     }
     // Comparison
-    fn __eq__(&self, other: &Self) -> bool {
-        todo!()
+    fn __eq__(&self, py: Python, other: PyObject) -> PyResult<PyObject> {
+        if let Ok(rhs) = other.extract::<PyExpression>(py) {
+            // Actual equality check.
+            let result = *self.borrow() == *rhs.borrow();
+            Ok(PyBool::new(py, result).to_owned().into())
+        } else if let Ok(rhs) = other.extract::<f64>(py) {
+            // Creates a new constraint.
+            let constraint = Constr::new(Rc::clone(&self.0), rhs, Comparator::Eq);
+            // todo: this is depreated... change to the new way
+            // but for now this works as intended
+            Ok(PyConstraint::new(constraint).into_py(py))
+        } else {
+            Err(PyRuntimeError::new_err("unsopported type for operation"))
+        }
     }
+
+    fn __le__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
+        PyConstraint::new_py(&self, py, other, Comparator::Leq)
+    }
+
+    fn __ge__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
+        PyConstraint::new_py(&self, py, other, Comparator::Geq)
+    }
+
     fn __ne__(&self, other: &Self) -> bool {
-        todo!()
+        *self.borrow() != *other.borrow()
     }
 
     fn __str__(&self) -> String {
