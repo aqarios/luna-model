@@ -7,4 +7,12 @@ use pyo3::prelude::*;
 pub struct PyModel(pub Model<VarId, f64>);
 
 #[pymethods]
-impl PyModel {}
+impl PyModel {
+    fn __str__(&self) -> String {
+        self.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+}

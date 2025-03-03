@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::cmp::Ordering;
+use std::fmt::{Debug, Display, Formatter};
 use std::rc::Rc;
 
 use hashbrown::HashMap;
@@ -645,4 +646,72 @@ where
         }
         contribs
     }
+}
+
+// /// Mirror of the linear array that tracks which variables are already
+// /// contained in the expression. 1 indicates already added 0 indicating floating.
+// active: Vec<bool>,
+// num_variables: SizeType,
+
+impl<Index, Bias> Debug for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let linear = no_space_or_plus(self.linear.display(self.env.borrow()));
+        let quadratic = if let Some(q) = &self.quadratic {
+            no_space_or_plus(q.display(self.env.borrow()))
+        } else {
+            String::from("None")
+        };
+        let higher_order = if let Some(ho) = &self.higher_order {
+            no_space_or_plus(ho.display(self.env.borrow()))
+        } else {
+            String::from("None")
+        };
+        struct CustomDebug<'a>(&'a str);
+
+        impl<'a> Debug for CustomDebug<'a> {
+            fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+                // Just write the string directly without quotes
+                write!(f, "{}", self.0)
+            }
+        }
+        f.debug_struct("Expression")
+            .field("environment_id", &self.env.borrow().id)
+            .field("offset", &self.offset)
+            .field("linear", &format_args!("{linear}"))
+            .field("quadratic", &format_args!("{quadratic}"))
+            .field("higher_order", &format_args!("{higher_order}"))
+            .field("active", &self.active)
+            .field("num_variables", &self.num_variables)
+            .finish()
+    }
+}
+
+impl<Index, Bias> Display for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut out = String::new();
+        if let Some(ho) = &self.higher_order {
+            out += &ho.display(self.env.borrow());
+        }
+        if let Some(q) = &self.quadratic {
+            out += &q.display(self.env.borrow())
+        }
+        out += &self.linear.display(self.env.borrow());
+        if self.offset != Bias::zero() {
+            out += &self.offset.to_offset_string();
+        }
+
+        write!(f, "{}", no_space_or_plus(out))
+    }
+}
+
+fn no_space_or_plus(s: String) -> String {
+    s.trim_start_matches(|x| x == ' ' || x == '+').to_string()
 }

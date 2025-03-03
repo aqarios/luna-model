@@ -1,11 +1,11 @@
-import pytest
-
 from typing import Tuple
 
-from aq_models import Variable
-from aq_models import Vtype
+import pytest
+
 from aq_models import Environment
 from aq_models import Expression
+from aq_models import Variable
+from aq_models import Vtype
 
 
 @pytest.fixture

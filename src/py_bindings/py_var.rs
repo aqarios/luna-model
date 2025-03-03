@@ -65,7 +65,6 @@ impl PyVariable {
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.mul(rhs)))
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            println!("in here");
             self.mul(rhs.as_ref())
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
@@ -77,5 +76,24 @@ impl PyVariable {
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
+    }
+
+    fn __str__(&self) -> String {
+        self.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+}
+
+#[pymethods]
+impl Vtype {
+    fn __str__(&self) -> String {
+        self.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self:?}")
     }
 }

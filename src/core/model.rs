@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::fmt::{Debug, Display, Formatter};
 use std::rc::Rc;
 
 use super::environment::add_variable;
@@ -15,7 +16,7 @@ where
 {
     pub name: String,
     pub objective: Expression<Index, Bias>,
-    // a model has it's own environment. This allows us to define
+    // a model has its own environment. This allows us to define
     // the operations more easily on the model. Getting rid of the
     // problems involving environment passing for multiplication etc.
     pub environment: Rc<RefCell<Environment<Index>>>,
@@ -59,5 +60,29 @@ where
             .objective
             .add_quadratic_from_dense(dense, num_variables);
         model
+    }
+}
+
+impl<Index, Bias> Debug for Model<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Model")
+            .field("name", &self.name)
+            .field("objective", &self.objective)
+            .field("environment_id", &self.environment.borrow().id)
+            .finish()
+    }
+}
+
+impl<Index, Bias> Display for Model<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Model {}:\n\t{}", self.name, self.objective)
     }
 }

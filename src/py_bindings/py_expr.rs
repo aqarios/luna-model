@@ -140,4 +140,12 @@ impl PyExpression {
     fn __ne__(&self, other: &Self) -> bool {
         todo!()
     }
+
+    fn __str__(&self) -> String {
+        self.borrow().to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.borrow())
+    }
 }

@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::ops::{Add, AddAssign, Mul, MulAssign};
 use std::rc::Rc;
@@ -10,8 +10,19 @@ use crate::core::{Environment, Vtype};
 
 use super::errors::VariableOutOfRangeError;
 
+pub trait Zero {
+    fn zero() -> Self;
+}
+
 pub trait One {
     fn one() -> Self;
+}
+
+pub trait NegativeOne {
+    // return Option, s.t. unsigned Biases can return None
+    fn negative_one() -> Option<Self>
+    where
+        Self: Sized;
 }
 
 pub trait IndexConstraints:
@@ -48,33 +59,71 @@ impl<
 
 pub trait BiasConstraints:
     Debug
+    + Display
     + Copy
     + Default
     + AddAssign
     + Add<Output = Self>
     + PartialEq
+    + PartialOrd
+    + Zero
     + One
+    + NegativeOne
     + MulAssign
     + Mul<Output = Self>
 {
+    fn to_offset_string(&self) -> String {
+        if *self < Self::zero() {
+            format!(" - {}", &self.to_string()[1..])
+        } else {
+            format!(" + {}", &self.to_string())
+        }
+    }
+    fn to_bias_string(&self) -> String {
+        if *self == Self::one() {
+            String::from("+")
+        } else if Some(self) == Self::negative_one().as_ref() {
+            String::from("-")
+        } else if *self < Self::zero() {
+            format!("- {} *", &self.to_string()[1..])
+        } else {
+            format!("+ {} *", &self.to_string())
+        }
+    }
 }
 impl<
         T: Debug
+            + Display
             + Copy
             + Default
             + AddAssign
             + Add<Output = T>
             + PartialEq
+            + PartialOrd
+            + Zero
             + One
+            + NegativeOne
             + MulAssign
             + Mul<Output = T>,
     > BiasConstraints for T
 {
 }
 
+impl Zero for f64 {
+    fn zero() -> Self {
+        0.0
+    }
+}
+
 impl One for f64 {
     fn one() -> Self {
         1.0
+    }
+}
+
+impl NegativeOne for f64 {
+    fn negative_one() -> Option<Self> {
+        Some(-1.0)
     }
 }
 

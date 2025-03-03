@@ -5,6 +5,7 @@ use crate::core::{
 };
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
+use std::fmt::{Display, Formatter};
 use std::{cell::RefCell, ops::Index, rc::Rc};
 
 pub type EnvId = u8;
@@ -48,6 +49,31 @@ where
 
     fn index(&self, index: Idx) -> &Self::Output {
         &self.variables[index.into()]
+    }
+}
+
+impl<Index> Display for Environment<Index>
+where
+    Index: IndexConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        // This would be nice, but it doesn't seem to work without cloning the strings.
+        // let variables: Vec<_> = self.variables.iter().map(|x| &x.name).collect();
+        // let vnames = variables.join(", ");
+
+        let mut vnames = String::new();
+        for (i, var) in self.variables.iter().enumerate() {
+            if i > 0 {
+                vnames += ", ";
+            }
+            vnames += &var.name;
+        }
+
+        write!(
+            f,
+            "Environment {{ id: {}, variables: [{vnames}] }}",
+            self.id
+        )
     }
 }
 

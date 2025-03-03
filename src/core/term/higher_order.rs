@@ -1,11 +1,12 @@
+use crate::core::expression::{BiasConstraints, IndexConstraints};
+use crate::core::Environment;
+use hashbrown::{hash_map::Iter, HashMap};
+use std::cell::Ref;
+use std::io::BufRead;
 use std::{
     marker::PhantomData,
     ops::{Index, IndexMut, MulAssign},
 };
-
-use hashbrown::{hash_map::Iter, HashMap};
-
-use crate::core::expression::{BiasConstraints, IndexConstraints};
 
 static DELIMITER: &str = "-";
 
@@ -60,6 +61,30 @@ where
     }
 
     pub fn resize(&mut self, _: usize) {}
+
+    pub fn display(&self, env: Ref<Environment<Index>>) -> String {
+        let mut out = String::new();
+        for (indices, bias) in self.iter_contrib() {
+            if *bias != Bias::zero() {
+                // This would be nice, but it doesn't seem to work without cloning the strings.
+                // let vnames: Vec<_> = indices
+                //     .iter()
+                //     .map(|&idx| &env.variables[idx.into()].name)
+                //     .collect();
+
+                let mut vnames = String::new();
+                for idx in indices.iter() {
+                    let i = (*idx).into();
+                    if i > 0 {
+                        vnames += " * ";
+                    }
+                    vnames += &env.variables[i].name;
+                }
+                out += &format!(" {} {vnames}", bias.to_bias_string());
+            }
+        }
+        out
+    }
 }
 
 impl<Index, Bias> MulAssign<Bias> for HigherOrder<Index, Bias>
