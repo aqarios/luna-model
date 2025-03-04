@@ -615,14 +615,14 @@ where
     Bias: BiasConstraints,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let linear = no_space_or_plus(self.linear.display(self.env.borrow()));
+        let linear = trim_start(self.linear.display(self.env.borrow()));
         let quadratic = if let Some(q) = &self.quadratic {
-            no_space_or_plus(q.display(self.env.borrow()))
+            trim_start(q.display(self.env.borrow()))
         } else {
             String::from("None")
         };
         let higher_order = if let Some(ho) = &self.higher_order {
-            no_space_or_plus(ho.display(self.env.borrow()))
+            trim_start(ho.display(self.env.borrow()))
         } else {
             String::from("None")
         };
@@ -664,10 +664,15 @@ where
             out += &self.offset.to_offset_string();
         }
 
-        write!(f, "{}", no_space_or_plus(out))
+        write!(f, "{}", trim_start(out))
     }
 }
 
-fn no_space_or_plus(s: String) -> String {
-    s.trim_start_matches(|x| x == ' ' || x == '+').to_string()
+fn trim_start(s: String) -> String {
+    let out = s.trim_start_matches(|x| x == ' ' || x == '+').to_string();
+    if out.starts_with("- ") {
+        format!("-{}", &out[2..])
+    } else {
+        out
+    }
 }
