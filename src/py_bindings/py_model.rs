@@ -84,7 +84,7 @@ impl PyModel {
     }
 
     #[staticmethod]
-    fn deserializie(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         let bytes: &[u8] = data.as_bytes(py);
         let model_res = decode_model(bytes);
         match model_res {
@@ -95,6 +95,6 @@ impl PyModel {
 
     #[staticmethod]
     fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Self::deserializie(py, data)
+        Self::deserialize(py, data)
     }
 }
