@@ -19,3 +19,8 @@ def get_serialized_size_mb(data: bytes | str) -> float:  # type: ignore
     size_bytes = sys.getsizeof(data)
     size_mb = size_bytes / (1024**2)
     return size_mb
+
+
+def get_serialized_size_bytes(data: bytes | str) -> float:  # type: ignore
+    size_bytes = sys.getsizeof(data)
+    return size_bytes

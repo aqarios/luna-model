@@ -1,3 +1,5 @@
+from pathlib import Path
+from typing import IO
 from numpy.typing import NDArray
 from tqdm import tqdm  # type: ignore[import-untyped]
 
@@ -18,7 +20,7 @@ def _dmd(qubo: NDArray):
     _ = dimod.BinaryQuadraticModel(qubo, "BINARY")
 
 
-def bench_read_dense_qubo():
+def bench_read_dense_qubo(file: IO | None):
     result = BenchResult("Read Dense Qubo to Model")
 
     for size in tqdm(SIZES, desc="Num. Variables", leave=False):
@@ -32,7 +34,7 @@ def bench_read_dense_qubo():
         result.aqmodels.append(aqm_for_size)  # type: ignore
         result.dimod.append(dmd_for_size)  # type: ignore
 
-    result.meta.extend([SIZES, DENSITIES])
-    result.meta_labels.extend(["Size", "Density"])
+    # result.meta.extend([SIZES, DENSITIES])
+    # result.meta_labels.extend(["Size", "Density"])
 
-    format_result(result)
+    format_result(result, file)

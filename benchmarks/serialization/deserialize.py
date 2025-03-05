@@ -1,5 +1,5 @@
 import json
-from typing import Any
+from typing import IO, Any
 from tqdm import tqdm  # type: ignore
 
 from aq_models import Model, Vtype, MatrixTranslator
@@ -21,7 +21,7 @@ def _deserialize_dmd(data: Any):
     _ = dimod.BinaryQuadraticModel.from_serializable(data_dict)
 
 
-def bench_deserialize_bqm():
+def bench_deserialize_bqm(file: IO | None):
     result = BenchResult("Deserialize Binary Quadratic Model")
 
     for size in tqdm(SIZES, desc="Num. Variables", leave=False):
@@ -43,7 +43,7 @@ def bench_deserialize_bqm():
         result.aqmodels.append(aqm_for_size)  # type: ignore
         result.dimod.append(dmd_for_size)  # type: ignore
 
-    result.meta.extend([SIZES, DENSITIES])
-    result.meta_labels.extend(["Size", "Density"])
+    # result.meta.extend([SIZES, DENSITIES])
+    # result.meta_labels.extend(["Size", "Density"])
 
-    format_result(result)
+    format_result(result, file=file)
