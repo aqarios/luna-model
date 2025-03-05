@@ -25,9 +25,32 @@ if report_file_name:
     report_file_write = report_file.open("w")
     report_file_append = report_file.open("a")
 
-bench_read_dense_qubo(report_file_write)
+
+def header():
+    if report_file_write:
+        report_file_write.write("```")
+
+
+def footer():
+    if report_file_append:
+        report_file_append.write("```")
+
+
+header()
+bench_read_dense_qubo(report_file_append)
+footer()
+footer()
 bench_serialize_bqm(report_file_append)
+footer()
+footer()
 bench_deserialize_bqm(report_file_append)
+footer()
+footer()
 bench_serialize_bqm_size(report_file_append)
+footer()
+footer()
 bench_serialize_aqm_xl(report_file_append)
+footer()
+footer()
 bench_read_dense_qubo_memory(report_file_append)
+footer()
