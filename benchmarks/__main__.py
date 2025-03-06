@@ -1,5 +1,10 @@
 from pathlib import Path
 import sys
+import os
+import platform
+import subprocess
+import re
+import datetime
 from typing import IO
 from benchmarks.translator.read_dense_qubo import bench_read_dense_qubo
 from benchmarks.serialization.serialize import (
@@ -15,40 +20,77 @@ from benchmarks.serialization.serialize_extralarge import (
 
 from benchmarks.translator.read_dense_qubo_memory import bench_read_dense_qubo_memory
 
-report_file_name = sys.argv[1] if len(sys.argv) == 2 else None
-
-report_file_write: IO | None = None
-report_file_append: IO | None = None
-if report_file_name:
-    report_file = Path(report_file_name)
-    report_file.touch()
-    report_file_write = report_file.open("w")
-    report_file_append = report_file.open("a")
-
-
-def header():
-    if report_file_write:
-        report_file_write.write("```")
+TASKS = [
+    bench_read_dense_qubo,
+    bench_serialize_bqm,
+    bench_serialize_bqm_size,
+    bench_deserialize_bqm,
+    bench_serialize_aqm_xl,
+    bench_read_dense_qubo_memory,
+]
 
 
-def footer(n: int = 1):
-    if report_file_append:
-        report_file_append.write("```")
-        rem: int = n - 1
-        for _ in range(rem):
-            report_file_append.write("\n")
+def get_processor_name():
+    name = ""
+    if platform.system() == "Windows":
+        name = platform.processor()
+    elif platform.system() == "Darwin":
+        os.environ["PATH"] = os.environ["PATH"] + os.pathsep + "/usr/sbin"
+        command = "sysctl -n machdep.cpu.brand_string"
+        name = subprocess.check_output(command).strip()
+    elif platform.system() == "Linux":
+        command = "cat /proc/cpuinfo"
+        all_info = subprocess.check_output(command, shell=True).decode().strip()
+        for line in all_info.split("\n"):
+            if "model name" in line:
+                name = re.sub(".*model name.*:", "", line, 1)
+    name = name.strip()
+    return name
 
 
-header()
-bench_read_dense_qubo(report_file_append)
-footer(2)
-bench_serialize_bqm(report_file_append)
-footer(2)
-bench_deserialize_bqm(report_file_append)
-footer(2)
-bench_serialize_bqm_size(report_file_append)
-footer(2)
-bench_serialize_aqm_xl(report_file_append)
-footer(2)
-bench_read_dense_qubo_memory(report_file_append)
-footer()
+def header(dt) -> str:
+    title = f"Benchmarks on {dt}"
+    processor_name = get_processor_name()
+
+    return f"## {title}\n\nCPU: {processor_name}\n"
+
+
+def code_block(fun, file: IO | None = None):
+    if file:
+        file.write("```\n")
+
+    fun(file)
+
+    if file:
+        file.write("```\n\n")
+
+
+def add_report_entry(dt):
+    report_collection = Path("__file__").parent.parent / "report.md"
+    if report_collection.exists():
+        with report_collection.open("a") as f:
+            f.write(header(dt))
+            f.write(
+                f"Detailed benchmarks can be found [here](./bench_reports/bench_{dt}.md)\n"
+            )
+
+
+def main():
+    # report_file_name = sys.argv[1] if len(sys.argv) == 2 else None
+    now = datetime.datetime.now().isoformat()
+    add_report_entry(now)
+
+    detailed_file = Path(f"./bench_reports/bench_{now}.md")
+    detailed_file.touch()
+
+    with detailed_file.open("a") as f:
+        code_block(bench_read_dense_qubo, f)
+        code_block(bench_serialize_bqm, f)
+        code_block(bench_deserialize_bqm, f)
+        code_block(bench_serialize_bqm_size, f)
+        code_block(bench_serialize_aqm_xl, f)
+        code_block(bench_read_dense_qubo_memory, f)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
