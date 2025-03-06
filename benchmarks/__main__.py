@@ -71,7 +71,7 @@ def add_report_entry(dt):
         with report_collection.open("a") as f:
             f.write(header(dt))
             f.write(
-                f"Detailed benchmarks can be found [here](./bench_reports/bench_{dt}.md)\n"
+                f"Detailed benchmarks can be found [here](./bench_reports/bench_{dt}.md)\n\n"
             )
 
 
