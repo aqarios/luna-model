@@ -52,7 +52,7 @@ def header(dt) -> str:
     title = f"Benchmarks on {dt}"
     processor_name = get_processor_name()
 
-    return f"## {title}\n\nCPU: {processor_name}\n"
+    return f"## {title}\n\nCPU: {processor_name}\n\n"
 
 
 def code_block(fun, file: IO | None = None):
