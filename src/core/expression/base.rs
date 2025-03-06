@@ -72,24 +72,6 @@ pub trait BiasConstraints:
     + MulAssign
     + Mul<Output = Self>
 {
-    fn to_offset_string(&self) -> String {
-        if *self < Self::zero() {
-            format!(" - {}", &self.to_string()[1..])
-        } else {
-            format!(" + {}", &self.to_string())
-        }
-    }
-    fn to_bias_string(&self) -> String {
-        if *self == Self::one() {
-            String::from("+")
-        } else if Some(self) == Self::negative_one().as_ref() {
-            String::from("-")
-        } else if *self < Self::zero() {
-            format!("- {} *", &self.to_string()[1..])
-        } else {
-            format!("+ {} *", &self.to_string())
-        }
-    }
 }
 impl<
         T: Debug

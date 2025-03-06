@@ -1,7 +1,3 @@
-use std::cell::RefCell;
-use std::fmt::{Debug, Display, Formatter};
-use std::rc::Rc;
-
 use super::constraints::Constraints;
 use super::environment::add_variable;
 use super::expression::{
@@ -9,6 +5,10 @@ use super::expression::{
     IndexConstraints,
 };
 use super::{Environment, Expression, Vtype};
+use crate::core::utils::ModelWriter;
+use std::cell::RefCell;
+use std::fmt::{Debug, Display, Formatter};
+use std::rc::Rc;
 
 static DEFAULT_MODEL_NAME: &str = "unnamed";
 
@@ -96,7 +96,8 @@ where
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Model")
             .field("name", &self.name)
-            .field("objective", &self.objective)
+            .field("objective", &self.objective.borrow())
+            .field("constraints", &self.constraints.borrow())
             .field("environment_id", &self.environment.borrow().id)
             .finish()
     }
@@ -108,11 +109,8 @@ where
     Bias: BiasConstraints,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Model {{ name: {}, objective: {} }}",
-            self.name,
-            self.objective.borrow()
-        )
+        let mut writer = ModelWriter::new();
+        writer.write_model(&self);
+        f.write_str(&writer.to_string())
     }
 }

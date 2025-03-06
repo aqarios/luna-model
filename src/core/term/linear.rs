@@ -1,6 +1,4 @@
-use crate::core::expression::{BiasConstraints, IndexConstraints};
-use crate::core::Environment;
-use std::cell::Ref;
+use crate::core::expression::BiasConstraints;
 use std::{
     cmp::max,
     iter::Enumerate,
@@ -57,20 +55,6 @@ where
 
     pub fn resize(&mut self, new_len: usize) {
         self.biases.resize_with(new_len, Bias::default);
-    }
-
-    pub fn display<Index>(&self, env: Ref<Environment<Index>>) -> String
-    where
-        Index: IndexConstraints,
-    {
-        let mut out = String::new();
-        for (i, bias) in self.iter() {
-            if *bias != Bias::zero() {
-                let vname = &env.variables[i].name;
-                out += &format!(" {} {vname}", bias.to_bias_string());
-            }
-        }
-        out
     }
 }
 

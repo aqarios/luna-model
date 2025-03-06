@@ -5,6 +5,7 @@ pub mod expression;
 mod model;
 pub mod operations;
 mod term;
+mod utils;
 mod variable;
 
 pub use constraints::Comparator;

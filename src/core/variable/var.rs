@@ -1,11 +1,10 @@
+use crate::core::environment::EnvId;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 use std::fmt::{Debug, Display, Formatter};
 
-use crate::core::environment::EnvId;
-
 #[cfg_attr(feature = "py", pyclass(eq, eq_int))]
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Vtype {
     Real,
     Integer,
@@ -64,21 +63,21 @@ impl Vtype {
     pub fn default() -> Self {
         Vtype::Binary
     }
+
+    pub fn iter() -> impl Iterator<Item = Vtype> {
+        [Vtype::Binary, Vtype::Spin, Vtype::Integer, Vtype::Real]
+            .iter()
+            .copied()
+    }
 }
 
 impl Display for Vtype {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let out = match self {
-            Vtype::Real => "real",
-            Vtype::Integer => "int",
-            Vtype::Binary => "binary",
-            Vtype::Spin => "spin",
-        };
-        write!(f, "{out}")
+        write!(f, "{self:?}")
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Variable {
     pub name: String,
     pub vtype: Vtype,

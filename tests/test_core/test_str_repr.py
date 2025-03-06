@@ -3,22 +3,62 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from aq_models import Variable, Environment, Vtype, Bounds, Expression
+from aq_models import Variable, Environment, Vtype, Bounds, Expression, Model
+
+_model_str_1 = """Model: TestModel
+Minimize
+  x0
+Bounds
+  0 <= x0 <= 1
+Binary
+  x0"""
+_model_str_2 = """Model: TestModel
+Minimize
+  -x0 * x1 + x0
+Bounds
+  0 <= x0 <= 1
+  x1 unbounded
+Binary
+  x0
+Real
+  x1"""
+_model_str_3 = """Model: TestModel
+Minimize
+  12.213 * x0 * x1 * x2 - x0 * x1 - 3 * x0 * x2 + 1848482 * x0 * x3 
+  + 0.5 * x1 * x2 + x1 * x4 + x0 + 1
+Subject To
+  c0: x0 + x2 <= 1
+Bounds
+  0 <= x0 <= 1
+  x1 unbounded
+  0 <= x2 <= 1
+  0 <= x3 <= 30
+  -1 <= x4 <= 1
+Binary
+  x0 x2
+Spin
+  x4
+Integer
+  x3
+Real
+  x1"""
 
 
 @pytest.fixture
 def variables(request) -> tuple[Variable, ...]:
     with Environment():
-        variables = [Variable(f"{string.ascii_lowercase[i]}") for i in range(request.param)]
+        variables = [
+            Variable(f"{string.ascii_lowercase[i]}") for i in range(request.param)
+        ]
     return tuple(variables)
 
 
 @pytest.mark.str_repr
 def test_vtype():
-    assert str(Vtype.Real) == "real"
-    assert str(Vtype.Binary) == "binary"
-    assert str(Vtype.Spin) == "spin"
-    assert str(Vtype.Integer) == "int"
+    assert str(Vtype.Real) == "Real"
+    assert str(Vtype.Binary) == "Binary"
+    assert str(Vtype.Spin) == "Spin"
+    assert str(Vtype.Integer) == "Integer"
 
     with does_not_raise():
         repr(Vtype.Real)
@@ -32,17 +72,17 @@ def test_variable():
     with Environment():
         # TODO: test cases where only one bound is specified once the functionality is implemented
         a = Variable("a")
-        assert str(a) == "a: binary"
+        assert str(a) == "a: Binary"
         b = Variable("b", vtype=Vtype.Spin)
-        assert str(b) == "b: spin"
+        assert str(b) == "b: Spin"
         c = Variable("c", vtype=Vtype.Integer)
-        assert str(c) == "c: int"
+        assert str(c) == "c: Integer"
         d = Variable("d", vtype=Vtype.Integer, bounds=Bounds(lower=0, upper=10))
-        assert str(d) == "d: int { lower: 0, upper: 10 }"
+        assert str(d) == "d: Integer { lower: 0, upper: 10 }"
         e = Variable("e", vtype=Vtype.Real)
-        assert str(e) == "e: real"
+        assert str(e) == "e: Real"
         f = Variable("f", vtype=Vtype.Real, bounds=Bounds(lower=-1.5, upper=1))
-        assert str(f) == "f: real { lower: -1.5, upper: 1 }"
+        assert str(f) == "f: Real { lower: -1.5, upper: 1 }"
 
         with does_not_raise():
             repr(a)
@@ -63,16 +103,6 @@ def test_bounds():
     with does_not_raise():
         repr(bounds_1)
         repr(bounds_2)
-
-
-@pytest.mark.str_repr
-def test_model():
-    ...
-
-
-@pytest.mark.str_repr
-def test_environment():
-    ...
 
 
 @pytest.mark.str_repr
@@ -131,3 +161,57 @@ def test_expression(variables: tuple[Variable, ...]):
     with does_not_raise():
         for expr in expressions:
             repr(expr)
+
+
+@pytest.mark.str_repr
+@pytest.mark.parametrize("variables", [2], indirect=True)
+def test_constraints(variables: tuple[Variable, ...]):
+    a, b = variables
+    c1 = a * 1 == 0
+    assert str(c1) == "a == 0"
+    c2 = a + b <= 10
+    assert str(c2) == "a + b <= 10"
+    c3 = a * b * 2 + 1 >= -1
+    assert str(c3) == "2 * a * b + 1 >= -1"
+
+    with does_not_raise():
+        repr(c1)
+        repr(c2)
+        repr(c3)
+
+
+@pytest.mark.str_repr
+def test_environment():
+    with Environment() as env:
+        _ = Variable("a")
+        _ = Variable("b", vtype=Vtype.Integer)
+        _ = Variable("c")
+        assert str(env) == "Environment 0\n  a, b, c"
+
+
+@pytest.mark.str_repr
+def test_model():
+    with Environment():
+        x0 = Variable("x0")
+        m = Model(name="TestModel")
+        m.objective = x0 * 1
+        assert str(m) == _model_str_1
+        x1 = Variable("x1", vtype=Vtype.Real)
+        m.objective += x0 * x1 * -1
+        assert str(m) == _model_str_2
+        x2 = Variable("x2")
+        x3 = Variable("x3", vtype=Vtype.Integer, bounds=Bounds(0, 30))
+        x4 = Variable("x4", vtype=Vtype.Spin)
+        m.objective += (
+            x0 * x1 * x2 * 12.213
+            + x1 * x2 * 0.5
+            + x0 * x2 * -3
+            + 1
+            + x0 * x3 * 1848482
+            + x1 * x4
+        )
+        m.constraints.add_constraint(x0 + x2 <= 1)
+        assert str(m) == _model_str_3
+
+    with does_not_raise():
+        repr(m)

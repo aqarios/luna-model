@@ -1,7 +1,5 @@
 use super::types::{OneVarTerm, OneVarTermConstruction};
 use crate::core::expression::{BiasConstraints, IndexConstraints};
-use crate::core::Environment;
-use std::cell::Ref;
 use std::{
     cmp::Ordering,
     iter::Enumerate,
@@ -63,18 +61,6 @@ where
                     .iter()
                     .map(move |term| (u_idx.into(), term.index, term.bias))
             })
-    }
-
-    pub fn display(&self, env: Ref<Environment<Index>>) -> String {
-        let mut out = String::new();
-        for (i, j, bias) in self.iter_flat() {
-            if bias != Bias::zero() {
-                let vname_i = &env.variables[i.into()].name;
-                let vname_j = &env.variables[j.into()].name;
-                out += &format!(" {} {vname_i} * {vname_j}", bias.to_bias_string());
-            }
-        }
-        out
     }
 }
 

@@ -156,6 +156,6 @@ where
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let v = &self.env.borrow().variables[self.id.into()];
-        write!(f, "{v}")
+        f.write_str(&v.to_string())
     }
 }

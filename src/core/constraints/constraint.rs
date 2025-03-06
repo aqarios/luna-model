@@ -1,12 +1,14 @@
+use crate::core::utils::ModelWriter;
+use crate::core::{
+    expression::{BiasConstraints, IndexConstraints},
+    Expression,
+};
+use std::fmt::{Debug, Display, Formatter, Write};
+use std::slice::Iter;
 use std::{
     cell::{Ref, RefCell},
     ops::{Add, AddAssign},
     rc::Rc,
-};
-
-use crate::core::{
-    expression::{BiasConstraints, IndexConstraints},
-    Expression,
 };
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -14,6 +16,17 @@ pub enum Comparator {
     Eq,
     Leq,
     Geq,
+}
+
+impl Display for Comparator {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Comparator::Eq => "==",
+            Comparator::Leq => "<=",
+            Comparator::Geq => ">=",
+        };
+        f.write_str(s)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -46,6 +59,18 @@ where
     }
 }
 
+impl<Index, Bias> Display for Constraint<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut writer = ModelWriter::new();
+        writer.write_constraint(&self);
+        f.write_str(&writer.to_string())
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Constraints<Index, Bias>
 where
@@ -74,6 +99,10 @@ where
 
     pub fn len(&self) -> usize {
         self.constraints.len()
+    }
+
+    pub fn iter(&self) -> Iter<'_, Constraint<Index, Bias>> {
+        self.constraints.iter()
     }
 }
 
@@ -148,5 +177,17 @@ where
             }
         }
         num_matches >= self.constraints.len()
+    }
+}
+
+impl<Index, Bias> Display for Constraints<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut writer = ModelWriter::new();
+        writer.write_constraints(&self);
+        f.write_str(&writer.to_string())
     }
 }

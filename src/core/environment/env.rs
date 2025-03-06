@@ -1,3 +1,4 @@
+use crate::core::utils::LineLengthRestrictor;
 use crate::core::{
     exceptions::VariableExistsError,
     expression::IndexConstraints,
@@ -6,6 +7,7 @@ use crate::core::{
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
+use std::slice::Iter;
 use std::{cell::RefCell, ops::Index, rc::Rc};
 
 pub type EnvId = u8;
@@ -39,6 +41,10 @@ where
     pub fn get_vtype(&self, id: Index) -> Vtype {
         self[id].vtype
     }
+
+    pub fn iter(&self) -> Iter<'_, Variable> {
+        self.variables.iter()
+    }
 }
 
 impl<Idx> Index<Idx> for Environment<Idx>
@@ -57,23 +63,19 @@ where
     Index: IndexConstraints,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        // This would be nice, but it doesn't seem to work without cloning the strings.
-        // let variables: Vec<_> = self.variables.iter().map(|x| &x.name).collect();
-        // let vnames = variables.join(", ");
-
-        let mut vnames = String::new();
-        for (i, var) in self.variables.iter().enumerate() {
+        let variables: Vec<_> = self.variables.iter().map(|x| x.name.clone()).collect();
+        let mut writer = LineLengthRestrictor::new(0);
+        writer.write(&format!("Environment {}", self.id));
+        writer.increase_indent();
+        writer.new_line();
+        for (i, var) in variables.iter().enumerate() {
             if i > 0 {
-                vnames += ", ";
+                writer.write(",");
+                writer.space();
             }
-            vnames += &var.name;
+            writer.write(var);
         }
-
-        write!(
-            f,
-            "Environment {{ id: {}, variables: [{vnames}] }}",
-            self.id
-        )
+        f.write_str(&writer.to_string())
     }
 }
 

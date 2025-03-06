@@ -4,16 +4,16 @@ use std::rc::Rc;
 
 use hashbrown::HashMap;
 
-use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
-use crate::core::term::{HigherOrder, Linear, Quadratic};
-use crate::core::{Environment, Vtype};
-
 use super::base::{
     BiasConstraints, ExpressionBase, ExpressionBaseAdd, ExpressionBaseAdjustment,
     ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulDirect, ExpressionBaseSet,
     ExpressionBaseTypes, IndexConstraints,
 };
 use super::VariableOutOfRangeError;
+use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
+use crate::core::term::{HigherOrder, Linear, Quadratic};
+use crate::core::utils::ModelWriter;
+use crate::core::{Environment, Vtype};
 
 #[derive(Clone)]
 pub struct Expression<Index, Bias>
@@ -615,31 +615,28 @@ where
     Bias: BiasConstraints,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let linear = trim_start(self.linear.display(self.env.borrow()));
+        let mut linear_writer = ModelWriter::new();
+        linear_writer.write_linear(self.env.borrow(), &self.linear);
         let quadratic = if let Some(q) = &self.quadratic {
-            trim_start(q.display(self.env.borrow()))
+            let mut quadratic_writer = ModelWriter::new();
+            quadratic_writer.write_quadratic(self.env.borrow(), q);
+            quadratic_writer.to_string()
         } else {
             String::from("None")
         };
         let higher_order = if let Some(ho) = &self.higher_order {
-            trim_start(ho.display(self.env.borrow()))
+            let mut higher_order_writer = ModelWriter::new();
+            higher_order_writer.write_higher_order(self.env.borrow(), ho);
+            higher_order_writer.to_string()
         } else {
             String::from("None")
         };
-        struct CustomDebug<'a>(&'a str);
-
-        impl<'a> Debug for CustomDebug<'a> {
-            fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-                // Just write the string directly without quotes
-                write!(f, "{}", self.0)
-            }
-        }
         f.debug_struct("Expression")
             .field("environment_id", &self.env.borrow().id)
             .field("offset", &self.offset)
-            .field("linear", &format_args!("{linear}"))
-            .field("quadratic", &format_args!("{quadratic}"))
-            .field("higher_order", &format_args!("{higher_order}"))
+            .field("linear", &linear_writer.to_string())
+            .field("quadratic", &quadratic)
+            .field("higher_order", &higher_order)
             .field("active", &self.active)
             .field("num_variables", &self.num_variables)
             .finish()
@@ -652,27 +649,8 @@ where
     Bias: BiasConstraints,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut out = String::new();
-        if let Some(ho) = &self.higher_order {
-            out += &ho.display(self.env.borrow());
-        }
-        if let Some(q) = &self.quadratic {
-            out += &q.display(self.env.borrow())
-        }
-        out += &self.linear.display(self.env.borrow());
-        if self.offset != Bias::zero() {
-            out += &self.offset.to_offset_string();
-        }
-
-        write!(f, "{}", trim_start(out))
-    }
-}
-
-fn trim_start(s: String) -> String {
-    let out = s.trim_start_matches(|x| x == ' ' || x == '+').to_string();
-    if out.starts_with("- ") {
-        format!("-{}", &out[2..])
-    } else {
-        out
+        let mut writer = ModelWriter::new();
+        writer.write_expression(&self);
+        f.write_str(&writer.to_string())
     }
 }
