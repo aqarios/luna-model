@@ -1,6 +1,5 @@
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use hashbrown::{hash_map::Iter, HashMap};
-use std::io::BufRead;
 use std::{
     marker::PhantomData,
     ops::{Index, IndexMut, MulAssign},

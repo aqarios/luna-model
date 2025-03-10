@@ -604,37 +604,33 @@ where
     }
 }
 
-// /// Mirror of the linear array that tracks which variables are already
-// /// contained in the expression. 1 indicates already added 0 indicating floating.
-// active: Vec<bool>,
-// num_variables: SizeType,
-
 impl<Index, Bias> Debug for Expression<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut linear_writer = ModelWriter::new();
-        linear_writer.write_linear(self.env.borrow(), &self.linear);
+        let linear = ModelWriter::new()
+            .write_linear(self.env.borrow(), &self.linear)
+            .to_string();
         let quadratic = if let Some(q) = &self.quadratic {
-            let mut quadratic_writer = ModelWriter::new();
-            quadratic_writer.write_quadratic(self.env.borrow(), q);
-            quadratic_writer.to_string()
+            ModelWriter::new()
+                .write_quadratic(self.env.borrow(), q)
+                .to_string()
         } else {
             String::from("None")
         };
         let higher_order = if let Some(ho) = &self.higher_order {
-            let mut higher_order_writer = ModelWriter::new();
-            higher_order_writer.write_higher_order(self.env.borrow(), ho);
-            higher_order_writer.to_string()
+            ModelWriter::new()
+                .write_higher_order(self.env.borrow(), ho)
+                .to_string()
         } else {
             String::from("None")
         };
         f.debug_struct("Expression")
             .field("environment_id", &self.env.borrow().id)
             .field("offset", &self.offset)
-            .field("linear", &linear_writer.to_string())
+            .field("linear", &linear)
             .field("quadratic", &quadratic)
             .field("higher_order", &higher_order)
             .field("active", &self.active)
@@ -649,8 +645,7 @@ where
     Bias: BiasConstraints,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut writer = ModelWriter::new();
-        writer.write_expression(&self);
-        f.write_str(&writer.to_string())
+        let s = ModelWriter::new().write_expression(&self).to_string();
+        f.write_str(&s)
     }
 }

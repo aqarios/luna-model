@@ -65,13 +65,13 @@ where
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let variables: Vec<_> = self.variables.iter().map(|x| x.name.clone()).collect();
         let mut writer = LineLengthRestrictor::new(0);
-        writer.write(&format!("Environment {}", self.id));
-        writer.increase_indent();
-        writer.new_line();
+        writer
+            .write(&format!("Environment {}", self.id))
+            .increase_indent()
+            .new_line();
         for (i, var) in variables.iter().enumerate() {
             if i > 0 {
-                writer.write(",");
-                writer.space();
+                writer.write(",").space();
             }
             writer.write(var);
         }

@@ -65,9 +65,8 @@ where
     Bias: BiasConstraints,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut writer = ModelWriter::new();
-        writer.write_constraint(&self);
-        f.write_str(&writer.to_string())
+        let s = ModelWriter::new().write_constraint(&self).to_string();
+        f.write_str(&s)
     }
 }
 
@@ -186,8 +185,7 @@ where
     Bias: BiasConstraints,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut writer = ModelWriter::new();
-        writer.write_constraints(&self);
-        f.write_str(&writer.to_string())
+        let s = ModelWriter::new().write_constraints(&self).to_string();
+        f.write_str(&s)
     }
 }
