@@ -174,4 +174,12 @@ impl PyExpression {
     fn __ne__(&self, other: &Self) -> bool {
         *self.borrow() != *other.borrow()
     }
+
+    fn __str__(&self) -> String {
+        self.borrow().to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.borrow())
+    }
 }

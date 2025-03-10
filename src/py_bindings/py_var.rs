@@ -127,4 +127,23 @@ impl PyVariable {
     fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         self.__mul__(py, other)
     }
+
+    fn __str__(&self) -> String {
+        self.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+}
+
+#[pymethods]
+impl Vtype {
+    fn __str__(&self) -> String {
+        self.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self:?}")
+    }
 }

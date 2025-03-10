@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use super::{py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression};
+use crate::core::expression::One;
 use crate::{
     core::{Model, NoActiveEnvironmentFoundException, VarId},
     py_bindings::py_env::CURRENT_ENV,
@@ -8,7 +10,11 @@ use crate::{
 use derive_more::{Deref, DerefMut};
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 
-use super::{py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression};
+impl One for f64 {
+    fn one() -> Self {
+        1.0
+    }
+}
 
 #[pyclass(unsendable, name = "Model", subclass)]
 #[derive(Deref, DerefMut)]
@@ -72,6 +78,14 @@ impl PyModel {
 
     fn __eq__(&self, other: &Self) -> bool {
         self.0 == other.0
+    }
+
+    fn __str__(&self) -> String {
+        self.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
     }
 
     fn serialize(&self, py: Python) -> PyObject {

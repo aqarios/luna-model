@@ -1,18 +1,25 @@
+use crate::core::utils::ModelWriter;
+use crate::core::{
+    expression::{BiasConstraints, IndexConstraints},
+    Expression,
+};
+use std::fmt::{Debug, Display, Formatter, Write};
+use std::slice::Iter;
+use std::string::ToString;
 use std::{
     cell::{Ref, RefCell},
     ops::{Add, AddAssign},
     rc::Rc,
 };
+use strum_macros::Display;
 
-use crate::core::{
-    expression::{BiasConstraints, IndexConstraints},
-    Expression,
-};
-
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {
+    #[strum(to_string = "==")]
     Eq,
+    #[strum(to_string = "<=")]
     Leq,
+    #[strum(to_string = ">=")]
     Geq,
 }
 
@@ -43,6 +50,17 @@ where
             rhs,
             comparator,
         }
+    }
+}
+
+impl<Index, Bias> Display for Constraint<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = ModelWriter::new().write_constraint(&self).to_string();
+        f.write_str(&s)
     }
 }
 
@@ -78,6 +96,10 @@ where
 
     pub fn len(&self) -> usize {
         self.constraints.len()
+    }
+
+    pub fn iter(&self) -> Iter<'_, Constraint<Index, Bias>> {
+        self.constraints.iter()
     }
 }
 
@@ -152,5 +174,16 @@ where
             }
         }
         num_matches >= self.constraints.len()
+    }
+}
+
+impl<Index, Bias> Display for Constraints<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = ModelWriter::new().write_constraints(&self).to_string();
+        f.write_str(&s)
     }
 }

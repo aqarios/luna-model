@@ -1,6 +1,3 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use super::constraints::Constraints;
 use super::environment::add_variable;
 use super::expression::{
@@ -8,6 +5,10 @@ use super::expression::{
     IndexConstraints,
 };
 use super::{Environment, Expression, Vtype};
+use crate::core::utils::ModelWriter;
+use std::cell::RefCell;
+use std::fmt::{Debug, Display, Formatter};
+use std::rc::Rc;
 
 static DEFAULT_MODEL_NAME: &str = "unnamed";
 
@@ -18,7 +19,7 @@ where
 {
     pub name: String,
     pub objective: Rc<RefCell<Expression<Index, Bias>>>,
-    // a model has it's own environment. This allows us to define
+    // a model has its own environment. This allows us to define
     // the operations more easily on the model. Getting rid of the
     // problems involving environment passing for multiplication etc.
     pub environment: Rc<RefCell<Environment<Index>>>,
@@ -86,5 +87,31 @@ where
         self.name == other.name
             && self.environment.borrow().id == other.environment.borrow().id
             && self.objective == other.objective
+    }
+}
+
+impl<Index, Bias> Debug for Model<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Model")
+            .field("name", &self.name)
+            .field("objective", &self.objective.borrow())
+            .field("constraints", &self.constraints.borrow())
+            .field("environment_id", &self.environment.borrow().id)
+            .finish()
+    }
+}
+
+impl<Index, Bias> Display for Model<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = ModelWriter::new().write_model(&self).to_string();
+        f.write_str(&s)
     }
 }

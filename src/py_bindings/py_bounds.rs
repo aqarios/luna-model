@@ -28,4 +28,12 @@ impl PyBounds {
     fn py_new(lower: f64, upper: f64) -> PyResult<Self> {
         Ok(PyBounds(Bounds::new(Some(lower), Some(upper))))
     }
+
+    fn __str__(&self) -> String {
+        self.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
+    }
 }

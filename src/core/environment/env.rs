@@ -1,3 +1,4 @@
+use crate::core::utils::LineLengthRestrictor;
 use crate::core::{
     exceptions::VariableExistsError,
     expression::IndexConstraints,
@@ -5,6 +6,8 @@ use crate::core::{
 };
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
+use std::fmt::{Display, Formatter};
+use std::slice::Iter;
 use std::{cell::RefCell, ops::Index, rc::Rc};
 
 pub type EnvId = u8;
@@ -42,6 +45,10 @@ where
     pub fn get_vtype(&self, id: Index) -> Vtype {
         self[id].vtype
     }
+
+    pub fn iter(&self) -> Iter<'_, Variable> {
+        self.variables.iter()
+    }
 }
 
 impl<Idx> Index<Idx> for Environment<Idx>
@@ -52,6 +59,27 @@ where
 
     fn index(&self, index: Idx) -> &Self::Output {
         &self.variables[index.into()]
+    }
+}
+
+impl<Index> Display for Environment<Index>
+where
+    Index: IndexConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let variables: Vec<_> = self.variables.iter().map(|x| x.name.clone()).collect();
+        let mut writer = LineLengthRestrictor::new(0);
+        writer
+            .write(&format!("Environment {}", self.id))
+            .increase_indent()
+            .new_line();
+        for (i, var) in variables.iter().enumerate() {
+            if i > 0 {
+                writer.write(",").space();
+            }
+            writer.write(var);
+        }
+        f.write_str(&writer.to_string())
     }
 }
 

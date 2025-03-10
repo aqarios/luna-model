@@ -1,13 +1,11 @@
+use super::types::{OneVarTerm, OneVarTermConstruction};
+use crate::core::expression::{BiasConstraints, IndexConstraints};
 use std::{
     cmp::Ordering,
     iter::Enumerate,
     ops::{Index, IndexMut, MulAssign},
     slice::Iter,
 };
-
-use crate::core::expression::{BiasConstraints, IndexConstraints};
-
-use super::types::{OneVarTerm, OneVarTermConstruction};
 
 #[derive(Debug, Clone)]
 pub struct Quadratic<Index, Bias> {
