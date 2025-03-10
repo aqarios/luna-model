@@ -69,6 +69,31 @@ def test_expression_mul_binary_variables(variables):
 
 
 @pytest.mark.expression
+@pytest.mark.parametrize("variables", [3], indirect=True)
+def test_expression_rmul_binary_variables(variables):
+    x, y, z = variables
+
+    expr = x * y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert_offset(expr, 0)
+    assert_linear(expr, (x, y), 0)
+    assert_quadratic(expr, (x, y), 1)
+    assert_higher_order_all(expr, (x, y), 0)
+
+    result = z * expr
+
+    assert id(expr) != id(result)
+    assert type(result) == Expression
+    assert result.num_variables() == 3
+    assert result.get_offset() == 0
+    assert_linear(result, variables, 0)
+    assert_quadratic(result, variables, 0)
+    assert_higher_order(result, variables, 0, 2)
+    assert_higher_order(result, variables, 1)
+
+
+@pytest.mark.expression
 @pytest.mark.parametrize("variables", [(3, Vtype.Spin)], indirect=True)
 def test_expression_mul_spin_variables(variables):
     x, y, z = variables
@@ -82,6 +107,32 @@ def test_expression_mul_spin_variables(variables):
     assert_higher_order_all(expr, (x, y), 0)
 
     result = expr * z
+
+    assert id(expr) != id(result)
+    assert type(result) == Expression
+    assert result.num_variables() == 3
+    assert result.get_offset() == 0
+
+    assert_linear(result, variables, 0)
+    assert_quadratic(result, variables, 0)
+    assert_higher_order(result, variables, 0, 2)
+    assert_higher_order(result, variables, 1)
+
+
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [(3, Vtype.Spin)], indirect=True)
+def test_expression_rmul_spin_variables(variables):
+    x, y, z = variables
+
+    expr = x * y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert_offset(expr, 0)
+    assert_linear(expr, (x, y), 0)
+    assert_quadratic(expr, (x, y), 1)
+    assert_higher_order_all(expr, (x, y), 0)
+
+    result = z * expr
 
     assert id(expr) != id(result)
     assert type(result) == Expression
@@ -199,6 +250,32 @@ def test_expression_mul_number(variables):
 
     id_expr_before = id(expr)
     expr = expr * 2
+    id_expr_after = id(expr)
+
+    assert id_expr_before != id_expr_after
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert_offset(expr, 0)
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 2)
+    assert_higher_order_all(expr, variables, 0)
+
+
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [2], indirect=True)
+def test_expression_rmul_number(variables):
+    x, y = variables
+
+    expr = x * y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert_offset(expr, 0)
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 1)
+    assert_higher_order_all(expr, variables, 0)
+
+    id_expr_before = id(expr)
+    expr = 2 * expr
     id_expr_after = id(expr)
 
     assert id_expr_before != id_expr_after

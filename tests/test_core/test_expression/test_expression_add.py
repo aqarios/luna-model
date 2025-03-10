@@ -66,6 +66,25 @@ def test_expression_add_number(variables):
 
 
 @pytest.mark.expression
+@pytest.mark.parametrize("variables", [2], indirect=True)
+def test_expression_radd_number(variables):
+    x, y = variables
+
+    expr = x + y
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+    expr = 2 + expr
+    assert type(expr) == Expression
+    assert expr.num_variables() == 2
+    assert expr.get_offset() == 2
+    assert expr.get_linear(x) == 1
+    assert expr.get_linear(y) == 1
+
+
+@pytest.mark.expression
 @pytest.mark.parametrize("variables", [3], indirect=True)
 def test_expression_instanceadd_variable(variables):
     x, y, z = variables

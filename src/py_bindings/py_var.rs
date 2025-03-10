@@ -66,6 +66,10 @@ impl PyVariable {
         }
     }
 
+    fn __radd__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        self.__add__(py, other)
+    }
+
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.mul(rhs)))
@@ -81,5 +85,9 @@ impl PyVariable {
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
+    }
+
+    fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        self.__mul__(py, other)
     }
 }
