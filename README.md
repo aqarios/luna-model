@@ -14,8 +14,8 @@ The rust based `aq-models` implementation.
 - [ ] Variable substitution
 - [ ] From any to all others (types)
 - [ ] Transformations (common ones required for initial release, to/from qubo, to/from lp, to/from dimod)
-- [ ] String representation of expressions
-- [ ] String representation of models
+- [x] String representation of expressions
+- [x] String representation of models
 
 
 ## Benchmarks
