@@ -166,8 +166,9 @@ where
                 (rhs.id, -Bias::one()),
             ))
         }
+    }
+}
 
-      
 impl<Index> Debug for VarRef<Index>
 where
     Index: IndexConstraints,
