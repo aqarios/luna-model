@@ -2,10 +2,10 @@ use crate::core::environment::EnvId;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 use std::fmt::{Debug, Display, Formatter};
-use strum_macros::EnumIter;
+use strum_macros::{Display, EnumIter};
 
 #[cfg_attr(feature = "py", pyclass(eq, eq_int))]
-#[derive(Debug, Copy, Clone, PartialEq, EnumIter)]
+#[derive(Debug, Copy, Clone, PartialEq, EnumIter, Display)]
 pub enum Vtype {
     Binary,
     Spin,
@@ -63,12 +63,6 @@ fn display_bound(bound: &Option<f64>) -> String {
 impl Vtype {
     pub fn default() -> Self {
         Vtype::Binary
-    }
-}
-
-impl Display for Vtype {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
     }
 }
 

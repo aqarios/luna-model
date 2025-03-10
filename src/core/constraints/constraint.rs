@@ -5,28 +5,22 @@ use crate::core::{
 };
 use std::fmt::{Debug, Display, Formatter, Write};
 use std::slice::Iter;
+use std::string::ToString;
 use std::{
     cell::{Ref, RefCell},
     ops::{Add, AddAssign},
     rc::Rc,
 };
+use strum_macros::Display;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {
+    #[strum(to_string = "==")]
     Eq,
+    #[strum(to_string = "<=")]
     Leq,
+    #[strum(to_string = ">=")]
     Geq,
-}
-
-impl Display for Comparator {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let s = match self {
-            Comparator::Eq => "==",
-            Comparator::Leq => "<=",
-            Comparator::Geq => ">=",
-        };
-        f.write_str(s)
-    }
 }
 
 #[derive(Debug, Clone)]
