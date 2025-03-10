@@ -1,12 +1,10 @@
+use crate::core::expression::BiasConstraints;
 use std::{
     cmp::max,
     iter::Enumerate,
     ops::{Index, IndexMut, MulAssign},
     slice::{Iter, IterMut},
 };
-
-use crate::core::expression::BiasConstraints;
-
 // todo: we need a Linear trait to allow for better interchangeability...
 // Currently the expression traits use the structs directly. I don't like this...
 
@@ -21,6 +19,10 @@ where
 {
     pub fn default() -> Self {
         Self { biases: Vec::new() }
+    }
+
+    pub fn new(biases: Vec<Bias>) -> Self {
+        Self { biases }
     }
 
     pub fn with_size(size: usize) -> Self {
@@ -40,6 +42,10 @@ where
         out[lhs] += bias;
         out[rhs] += bias;
         out
+    }
+
+    pub fn to_vec(&self) -> &Vec<Bias> {
+        &self.biases
     }
 
     pub fn iter(&self) -> Enumerate<Iter<Bias>> {

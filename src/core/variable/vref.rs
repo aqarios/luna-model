@@ -1,11 +1,11 @@
-use std::{cell::RefCell, ops::AddAssign, rc::Rc, str::FromStr};
-
 use crate::core::{
     exceptions::{ParseFromStringError, VariablesFromDifferentEnvsError},
     expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints, One},
     operations::{AddToExpression, MulToExpression},
     Environment, Expression,
 };
+use std::fmt::{Debug, Display, Formatter};
+use std::{cell::RefCell, ops::AddAssign, rc::Rc, str::FromStr};
 
 #[derive(Debug, Clone, Copy, Default, Eq, Ord, PartialEq, PartialOrd, Hash)]
 pub struct VarId(pub u32);
@@ -57,7 +57,7 @@ impl Into<u64> for VarId {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct VarRef<Index> {
     pub id: Index,
     pub env: Rc<RefCell<Environment<Index>>>,
@@ -135,5 +135,27 @@ where
                 Bias::one(),
             ))
         }
+    }
+}
+
+impl<Index> Debug for VarRef<Index>
+where
+    Index: IndexConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let env = self.env.borrow();
+        let v = &env.variables[self.id.into()];
+
+        write!(f, "{v:?}")
+    }
+}
+
+impl<Index> Display for VarRef<Index>
+where
+    Index: IndexConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let v = &self.env.borrow().variables[self.id.into()];
+        f.write_str(&v.to_string())
     }
 }

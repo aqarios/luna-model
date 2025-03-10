@@ -1,13 +1,11 @@
+use super::types::{OneVarTerm, OneVarTermConstruction};
+use crate::core::expression::{BiasConstraints, IndexConstraints};
 use std::{
     cmp::Ordering,
     iter::Enumerate,
     ops::{Index, IndexMut, MulAssign},
     slice::Iter,
 };
-
-use crate::core::expression::{BiasConstraints, IndexConstraints};
-
-use super::types::{OneVarTerm, OneVarTermConstruction};
 
 #[derive(Debug, Clone)]
 pub struct Quadratic<Index, Bias> {
@@ -23,6 +21,13 @@ where
 {
     pub fn new(num_variables: usize) -> Self {
         let adj = vec![Vec::new(); num_variables];
+        Self {
+            adj,
+            default_bias: Bias::default(),
+        }
+    }
+
+    pub fn new_from(adj: Vec<Vec<OneVarTerm<Index, Bias>>>) -> Self {
         Self {
             adj,
             default_bias: Bias::default(),
@@ -62,6 +67,20 @@ where
                 neighborhood
                     .iter()
                     .map(move |term| (u_idx.into(), term.index, term.bias))
+            })
+    }
+
+    pub fn iter_flat_positioned(
+        &self,
+    ) -> impl Iterator<Item = ((usize, usize), Index, Index, Bias)> + '_ {
+        self.adj
+            .iter()
+            .enumerate()
+            .flat_map(|(u_idx, neighborhood)| {
+                neighborhood
+                    .iter()
+                    .enumerate()
+                    .map(move |(v_idx, term)| ((u_idx, v_idx), u_idx.into(), term.index, term.bias))
             })
     }
 }

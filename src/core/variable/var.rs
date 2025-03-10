@@ -1,18 +1,19 @@
+use crate::core::environment::EnvId;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
-
-use crate::core::environment::EnvId;
+use std::fmt::{Debug, Display, Formatter};
+use strum_macros::{Display, EnumIter};
 
 #[cfg_attr(feature = "py", pyclass(eq, eq_int))]
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, EnumIter, Display)]
 pub enum Vtype {
-    Real,
-    Integer,
     Binary,
     Spin,
+    Integer,
+    Real,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Bounds {
     pub lower: Option<f64>,
     pub upper: Option<f64>,
@@ -22,9 +23,7 @@ impl Bounds {
     pub fn new(lower: Option<f64>, upper: Option<f64>) -> Self {
         Self { lower, upper }
     }
-}
 
-impl Bounds {
     pub fn default(vtype: &Vtype) -> Self {
         match vtype {
             Vtype::Real => Self::new(None, None),
@@ -35,13 +34,39 @@ impl Bounds {
     }
 }
 
+impl Debug for Bounds {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let lower = display_bound(&self.lower);
+        let upper = display_bound(&self.upper);
+        f.debug_struct("Bounds")
+            .field("lower", &format_args!("{lower}"))
+            .field("upper", &format_args!("{upper}"))
+            .finish()
+    }
+}
+
+impl Display for Bounds {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let lower = display_bound(&self.lower);
+        let upper = display_bound(&self.upper);
+        write!(f, "{{ lower: {lower}, upper: {upper} }}")
+    }
+}
+
+fn display_bound(bound: &Option<f64>) -> String {
+    match bound {
+        None => String::from("unlimited"),
+        Some(val) => val.to_string(),
+    }
+}
+
 impl Vtype {
     pub fn default() -> Self {
         Vtype::Binary
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Variable {
     pub name: String,
     pub vtype: Vtype,
@@ -50,19 +75,40 @@ pub struct Variable {
 }
 
 impl Variable {
-    pub fn new(
-        name: String,
-        vtype: Option<&Vtype>,
-        bounds: Option<&Bounds>,
-        env_id: EnvId,
-    ) -> Self {
+    pub fn new(name: String, vtype: Option<&Vtype>, bounds: Option<Bounds>, env_id: EnvId) -> Self {
         let vtype = vtype.map_or(Vtype::default(), |e| *e);
-        let bounds = bounds.map_or(Bounds::default(&vtype), |e| *e);
+        let bounds = bounds.map_or(Bounds::default(&vtype), |e| e);
         Self {
             bounds,
             name,
             vtype,
             env_id,
         }
+    }
+
+    fn format_bounds(&self) -> String {
+        let mut out = String::new();
+        if matches!(self.vtype, Vtype::Integer | Vtype::Real) {
+            let default = Bounds::default(&self.vtype);
+            let has_lower = self.bounds.lower != default.lower;
+            let has_upper = self.bounds.upper != default.upper;
+            if has_lower || has_upper {
+                let mut bounds = vec![];
+                if has_lower {
+                    bounds.push(format!("lower: {}", display_bound(&self.bounds.lower)));
+                }
+                if has_upper {
+                    bounds.push(format!("upper: {}", display_bound(&self.bounds.upper)));
+                }
+                out += &format!(" {{ {} }}", bounds.join(", "));
+            }
+        }
+        out
+    }
+}
+
+impl Display for Variable {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}: {}{}", self.name, self.vtype, self.format_bounds())
     }
 }

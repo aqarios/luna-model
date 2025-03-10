@@ -1,3 +1,4 @@
+use crate::core::utils::LineLengthRestrictor;
 use crate::core::{
     exceptions::VariableExistsError,
     expression::IndexConstraints,
@@ -5,6 +6,8 @@ use crate::core::{
 };
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
+use std::fmt::{Display, Formatter};
+use std::slice::Iter;
 use std::{cell::RefCell, ops::Index, rc::Rc};
 
 pub type EnvId = u8;
@@ -25,8 +28,12 @@ where
     Index: IndexConstraints,
 {
     pub fn new() -> Self {
+        Self::new_for(ENV_COUNTER.get())
+    }
+
+    pub fn new_for(id: EnvId) -> Self {
         Self {
-            id: ENV_COUNTER.get(),
+            id,
             variables: Vec::new(),
             variables_lookup: HashMap::new(),
             varcount: Index::default(),
@@ -37,6 +44,10 @@ where
     #[inline]
     pub fn get_vtype(&self, id: Index) -> Vtype {
         self[id].vtype
+    }
+
+    pub fn iter(&self) -> Iter<'_, Variable> {
+        self.variables.iter()
     }
 }
 
@@ -51,11 +62,32 @@ where
     }
 }
 
+impl<Index> Display for Environment<Index>
+where
+    Index: IndexConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let variables: Vec<_> = self.variables.iter().map(|x| x.name.clone()).collect();
+        let mut writer = LineLengthRestrictor::new(0);
+        writer
+            .write(&format!("Environment {}", self.id))
+            .increase_indent()
+            .new_line();
+        for (i, var) in variables.iter().enumerate() {
+            if i > 0 {
+                writer.write(",").space();
+            }
+            writer.write(var);
+        }
+        f.write_str(&writer.to_string())
+    }
+}
+
 pub fn add_variable<Index: IndexConstraints>(
     env: Rc<RefCell<Environment<Index>>>,
     name: &String,
     vtype: Option<&Vtype>,
-    bounds: Option<&Bounds>,
+    bounds: Option<Bounds>,
 ) -> Result<VarRef<Index>, VariableExistsError> {
     let mut mutable_env = env.borrow_mut();
     if mutable_env.variables_lookup.contains_key(name) == true {

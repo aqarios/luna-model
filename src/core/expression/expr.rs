@@ -1,11 +1,8 @@
 use std::cell::RefCell;
+use std::fmt::{Debug, Display, Formatter};
 use std::rc::Rc;
 
 use hashbrown::HashMap;
-
-use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
-use crate::core::term::{HigherOrder, Linear, Quadratic};
-use crate::core::{Environment, Vtype};
 
 use super::base::{
     BiasConstraints, ExpressionBase, ExpressionBaseAdd, ExpressionBaseAdjustment,
@@ -13,8 +10,12 @@ use super::base::{
     ExpressionBaseTypes, IndexConstraints,
 };
 use super::VariableOutOfRangeError;
+use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
+use crate::core::term::{HigherOrder, Linear, Quadratic};
+use crate::core::utils::ModelWriter;
+use crate::core::{Environment, Vtype};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Expression<Index, Bias>
 where
     Index: IndexConstraints,
@@ -28,7 +29,7 @@ where
     /// Mirror of the linear array that tracks which variables are already
     /// contained in the expression. 1 indicates already added 0 indicating floating.
     pub active: Vec<bool>,
-    num_variables: SizeType,
+    pub num_variables: SizeType,
 }
 
 impl<Index, Bias> ExpressionBaseTypes for Expression<Index, Bias>
@@ -600,5 +601,51 @@ where
             }
         }
         contribs
+    }
+}
+
+impl<Index, Bias> Debug for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let linear = ModelWriter::new()
+            .write_linear(self.env.borrow(), &self.linear)
+            .to_string();
+        let quadratic = if let Some(q) = &self.quadratic {
+            ModelWriter::new()
+                .write_quadratic(self.env.borrow(), q)
+                .to_string()
+        } else {
+            String::from("None")
+        };
+        let higher_order = if let Some(ho) = &self.higher_order {
+            ModelWriter::new()
+                .write_higher_order(self.env.borrow(), ho)
+                .to_string()
+        } else {
+            String::from("None")
+        };
+        f.debug_struct("Expression")
+            .field("environment_id", &self.env.borrow().id)
+            .field("offset", &self.offset)
+            .field("linear", &linear)
+            .field("quadratic", &quadratic)
+            .field("higher_order", &higher_order)
+            .field("active", &self.active)
+            .field("num_variables", &self.num_variables)
+            .finish()
+    }
+}
+
+impl<Index, Bias> Display for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = ModelWriter::new().write_expression(&self).to_string();
+        f.write_str(&s)
     }
 }

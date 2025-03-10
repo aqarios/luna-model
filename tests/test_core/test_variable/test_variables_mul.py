@@ -19,6 +19,18 @@ def test_mul_variable_and_number(scalar: int):
 
 
 @pytest.mark.variable
+@pytest.mark.parametrize("scalar", [1, 2, 3, 1.0, 2.0, 3.0])
+def test_rmul_variable_and_number(scalar: int):
+    with Environment():
+        x = Variable("x")
+
+    result = scalar * x
+    assert type(result) == Expression
+    assert result.num_variables() == 1
+    assert result.get_linear(x) == scalar
+
+
+@pytest.mark.variable
 def test_mul_variables():
     with Environment():
         x = Variable("x")

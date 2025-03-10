@@ -1,7 +1,7 @@
 use std::cell::RefCell;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Mul, MulAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
 use std::rc::Rc;
 use std::str::FromStr;
 
@@ -48,34 +48,34 @@ impl<
 
 pub trait BiasConstraints:
     Debug
+    + Display
     + Copy
     + Default
     + AddAssign
     + Add<Output = Self>
     + PartialEq
+    + PartialOrd
     + One
     + MulAssign
     + Mul<Output = Self>
+    + Neg<Output = Self>
 {
 }
 impl<
         T: Debug
+            + Display
             + Copy
             + Default
             + AddAssign
             + Add<Output = T>
             + PartialEq
+            + PartialOrd
             + One
             + MulAssign
-            + Mul<Output = T>,
+            + Mul<Output = T>
+            + Neg<Output = T>,
     > BiasConstraints for T
 {
-}
-
-impl One for f64 {
-    fn one() -> Self {
-        1.0
-    }
 }
 
 pub trait ExpressionBaseTypes {

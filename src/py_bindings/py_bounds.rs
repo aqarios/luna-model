@@ -6,6 +6,12 @@ use pyo3::prelude::*;
 #[derive(Clone, Copy, Deref, DerefMut)]
 pub struct PyBounds(Bounds);
 
+impl Into<Bounds> for PyBounds {
+    fn into(self) -> Bounds {
+        self.0
+    }
+}
+
 // impl PyBounds {
 //     pub fn map_option(b: Option<Self>) -> Option<Bounds> {
 //         match b {
@@ -21,5 +27,13 @@ impl PyBounds {
     #[pyo3(signature=(lower, upper))]
     fn py_new(lower: f64, upper: f64) -> PyResult<Self> {
         Ok(PyBounds(Bounds::new(Some(lower), Some(upper))))
+    }
+
+    fn __str__(&self) -> String {
+        self.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
     }
 }
