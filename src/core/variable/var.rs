@@ -2,14 +2,15 @@ use crate::core::environment::EnvId;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 use std::fmt::{Debug, Display, Formatter};
+use strum_macros::EnumIter;
 
 #[cfg_attr(feature = "py", pyclass(eq, eq_int))]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, EnumIter)]
 pub enum Vtype {
-    Real,
-    Integer,
     Binary,
     Spin,
+    Integer,
+    Real,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -62,12 +63,6 @@ pub fn display_bound(bound: &Option<f64>) -> String {
 impl Vtype {
     pub fn default() -> Self {
         Vtype::Binary
-    }
-
-    pub fn iter() -> impl Iterator<Item = Vtype> {
-        [Vtype::Binary, Vtype::Spin, Vtype::Integer, Vtype::Real]
-            .iter()
-            .copied()
     }
 }
 

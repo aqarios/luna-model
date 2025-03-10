@@ -6,6 +6,7 @@ use hashbrown::HashMap;
 use std::cell::Ref;
 use std::fmt::{Display, Formatter, Write};
 use std::marker::PhantomData;
+use strum::IntoEnumIterator;
 
 const MAX_LINE_LENGTH: usize = 80;
 const INDENTATION: usize = 2;
@@ -279,12 +280,12 @@ where
         let mut var_map = HashMap::new();
         for var in env.iter() {
             var_map
-                .entry(var.vtype)
+                .entry(var.vtype.to_string())
                 .or_insert(vec![])
                 .push(var.name.clone());
         }
         for vtype in Vtype::iter() {
-            if let Some(var_names) = var_map.remove(&vtype) {
+            if let Some(var_names) = var_map.remove(&vtype.to_string()) {
                 self.writer
                     .with_new_line(&vtype.to_string())
                     .increase_indent()
