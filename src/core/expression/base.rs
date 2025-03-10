@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg};
 use std::rc::Rc;
 use std::str::FromStr;
 
@@ -58,6 +58,7 @@ pub trait BiasConstraints:
     + One
     + MulAssign
     + Mul<Output = Self>
+    + Mul<f64, Output = Self>
     + Neg<Output = Self>
 {
 }
@@ -73,6 +74,7 @@ impl<
             + One
             + MulAssign
             + Mul<Output = T>
+            + Mul<f64, Output = Self>
             + Neg<Output = T>,
     > BiasConstraints for T
 {
@@ -116,7 +118,7 @@ where
 {
     fn add_variable(&mut self, v: Index) -> SizeType;
     fn add_variables(&mut self, vars: &Vec<Index>);
-    fn add_active_variables(&mut self, n: Index);
+    // fn add_active_variables(&mut self, n: Index);
     // // todo: make this rusty -> makes sense to return a & here??
     // /// Return an empty neighborhood; useful when a variable does not have an adjacency.
     // // fn empty_neighborhood(&self) -> &Vec<OneVarTerm<Index, Bias>>;

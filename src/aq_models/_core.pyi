@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enu
 from typing import Any, Tuple, overload
 
 from numpy.typing import NDArray
@@ -195,6 +195,8 @@ class MatrixTranslator:
     def to_model(
         qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
     ) -> Model: ...
+    @staticmethod
+    def to_dense(model: Model) -> NDArray: ...
 
 class VariableExistsException(Exception):
     def __str__(self) -> str: ...

@@ -207,13 +207,6 @@ where
         }
     }
 
-    fn add_active_variables(&mut self, n: Index) {
-        self.add_variable(n);
-        // Maybe something more efficient?
-        self.active = Vec::new();
-        self.active.resize(n.into(), true);
-    }
-
     fn resize(&mut self, n: Index) {
         if self.has_quadratic() {
             if n.into() < self.linear.len() {
@@ -357,7 +350,7 @@ where
 
     fn add_quadratic_back(&mut self, u: Index, v: Index, bias: Bias) {
         let u_idx = self.add_variable(u);
-        let v_idx = self.add_variable(u);
+        let v_idx = self.add_variable(v);
         self.enforce_quadratic();
         self.check_quadratic_dimensions(u_idx, v_idx);
         match (u_idx == v_idx, self.vartype(u)) {
@@ -377,7 +370,6 @@ where
         }
     }
     fn add_quadratic_from_dense(&mut self, dense: &[Bias], num_variables: Index) {
-        self.add_active_variables(num_variables);
         self.enforce_quadratic();
         let f_add_quadratic = match self.is_linear() {
             true => Self::add_quadratic_back,
