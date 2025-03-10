@@ -28,8 +28,12 @@ where
     Index: IndexConstraints,
 {
     pub fn new() -> Self {
+        Self::new_for(ENV_COUNTER.get())
+    }
+
+    pub fn new_for(id: EnvId) -> Self {
         Self {
-            id: ENV_COUNTER.get(),
+            id,
             variables: Vec::new(),
             variables_lookup: HashMap::new(),
             varcount: Index::default(),
@@ -83,7 +87,7 @@ pub fn add_variable<Index: IndexConstraints>(
     env: Rc<RefCell<Environment<Index>>>,
     name: &String,
     vtype: Option<&Vtype>,
-    bounds: Option<&Bounds>,
+    bounds: Option<Bounds>,
 ) -> Result<VarRef<Index>, VariableExistsError> {
     let mut mutable_env = env.borrow_mut();
     if mutable_env.variables_lookup.contains_key(name) == true {

@@ -76,7 +76,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    constraints: Vec<Constraint<Index, Bias>>,
+    pub constraints: Vec<Constraint<Index, Bias>>,
 }
 
 impl<Index, Bias> Constraints<Index, Bias>
@@ -94,6 +94,10 @@ where
         Self {
             constraints: other.constraints.clone(),
         }
+    }
+
+    pub fn new_from_vec(constraints: Vec<Constraint<Index, Bias>>) -> Self {
+        Self { constraints }
     }
 
     pub fn len(&self) -> usize {

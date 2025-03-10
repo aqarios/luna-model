@@ -81,14 +81,9 @@ pub struct Variable {
 }
 
 impl Variable {
-    pub fn new(
-        name: String,
-        vtype: Option<&Vtype>,
-        bounds: Option<&Bounds>,
-        env_id: EnvId,
-    ) -> Self {
+    pub fn new(name: String, vtype: Option<&Vtype>, bounds: Option<Bounds>, env_id: EnvId) -> Self {
         let vtype = vtype.map_or(Vtype::default(), |e| *e);
-        let bounds = bounds.map_or(Bounds::default(&vtype), |e| *e);
+        let bounds = bounds.map_or(Bounds::default(&vtype), |e| e);
         Self {
             bounds,
             name,

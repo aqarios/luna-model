@@ -1,6 +1,7 @@
 // Rust module
 pub mod core;
 pub mod prelude;
+pub mod serialization;
 pub mod translator;
 
 // Python bindings to rust module

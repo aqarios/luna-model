@@ -21,6 +21,10 @@ where
         Self { biases: Vec::new() }
     }
 
+    pub fn new(biases: Vec<Bias>) -> Self {
+        Self { biases }
+    }
+
     pub fn with_size(size: usize) -> Self {
         let mut biases = Vec::with_capacity(size);
         biases.resize_with(size, Bias::default);
@@ -38,6 +42,10 @@ where
         out[lhs] += bias;
         out[rhs] += bias;
         out
+    }
+
+    pub fn to_vec(&self) -> &Vec<Bias> {
+        &self.biases
     }
 
     pub fn iter(&self) -> Enumerate<Iter<Bias>> {

@@ -39,9 +39,14 @@ impl PyVariable {
             })?,
         };
 
-        environment::add_variable(env.0, &name, vtype.as_ref(), bounds.as_deref())
-            .map(|v| PyVariable::new(v))
-            .map_err(|e| VariableExistsException::new_err(format!("{}: {}", e.to_string(), name)))
+        environment::add_variable(
+            env.into(),
+            &name,
+            vtype.as_ref(),
+            bounds.map(|pb| pb.into()),
+        )
+        .map(|v| PyVariable::new(v))
+        .map_err(|e| VariableExistsException::new_err(format!("{}: {}", e.to_string(), name)))
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
@@ -61,6 +66,10 @@ impl PyVariable {
         }
     }
 
+    fn __radd__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        self.__add__(py, other)
+    }
+
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.mul(rhs)))
@@ -76,6 +85,10 @@ impl PyVariable {
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
+    }
+
+    fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        self.__mul__(py, other)
     }
 
     fn __str__(&self) -> String {

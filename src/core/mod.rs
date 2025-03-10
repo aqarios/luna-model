@@ -4,12 +4,13 @@ pub mod exceptions;
 pub mod expression;
 mod model;
 pub mod operations;
-mod term;
+pub mod term;
 mod utils;
 mod variable;
 
 pub use constraints::Comparator;
 pub use constraints::Constraint;
+pub use constraints::Constraints;
 pub use environment::Environment;
 pub use expression::Expression;
 pub use expression::ExpressionBase;
@@ -17,6 +18,7 @@ pub use model::Model;
 pub use variable::Bounds;
 pub use variable::VarId;
 pub use variable::VarRef;
+pub use variable::Variable;
 pub use variable::Vtype;
 
 // todo: move the python exceptions to the py_bindings module

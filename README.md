@@ -9,10 +9,15 @@ The rust based `aq-models` implementation.
 - [x] Model Constraints (lhs is an expression and rhs is a single value and an equality type: Leq, Eq, Geq)
 - [ ] Model evaluation (takes solution object and computes value)
 - [ ] Solution object gives variables values
-- [ ] Model serialization and deserialization (versioned)
+- [x] Model serialization and deserialization (versioned)
 - [ ] Variable fixing
 - [ ] Variable substitution
 - [ ] From any to all others (types)
 - [ ] Transformations (common ones required for initial release, to/from qubo, to/from lp, to/from dimod)
 - [ ] String representation of expressions
 - [ ] String representation of models
+
+
+## Benchmarks
+
+See [here](./report.md)

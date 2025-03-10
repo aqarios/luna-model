@@ -6,6 +6,12 @@ use pyo3::prelude::*;
 #[derive(Clone, Copy, Deref, DerefMut)]
 pub struct PyBounds(Bounds);
 
+impl Into<Bounds> for PyBounds {
+    fn into(self) -> Bounds {
+        self.0
+    }
+}
+
 // impl PyBounds {
 //     pub fn map_option(b: Option<Self>) -> Option<Bounds> {
 //         match b {

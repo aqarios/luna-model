@@ -82,6 +82,8 @@ where
     Bias: BiasConstraints,
 {
     fn eq(&self, other: &Self) -> bool {
+        // Add contraints
+        // Remove name and environment
         self.name == other.name
             && self.environment.borrow().id == other.environment.borrow().id
             && self.objective == other.objective

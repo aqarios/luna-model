@@ -5,9 +5,10 @@ use crate::core::expression::One;
 use crate::{
     core::{Model, NoActiveEnvironmentFoundException, VarId},
     py_bindings::py_env::CURRENT_ENV,
+    serialization::{decode_model, encode_model},
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 
 impl One for f64 {
     fn one() -> Self {
@@ -18,6 +19,12 @@ impl One for f64 {
 #[pyclass(unsendable, name = "Model", subclass)]
 #[derive(Deref, DerefMut)]
 pub struct PyModel(pub Model<VarId, f64>);
+
+impl Into<Model<VarId, f64>> for PyModel {
+    fn into(self) -> Model<VarId, f64> {
+        self.0
+    }
+}
 
 #[pymethods]
 impl PyModel {
@@ -79,5 +86,29 @@ impl PyModel {
 
     fn __repr__(&self) -> String {
         format!("{:?}", self.0)
+    }
+
+    fn serialize(&self, py: Python) -> PyObject {
+        PyBytes::new(py, &encode_model(&self.0)).into()
+    }
+
+    /// Alias for serialize
+    fn encode(&self, py: Python) -> PyObject {
+        self.serialize(py)
+    }
+
+    #[staticmethod]
+    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        let bytes: &[u8] = data.as_bytes(py);
+        let model_res = decode_model(bytes);
+        match model_res {
+            Ok(model) => Ok(PyModel(model)),
+            Err(e) => Err(PyRuntimeError::new_err(e.to_string())),
+        }
+    }
+
+    #[staticmethod]
+    fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::deserialize(py, data)
     }
 }

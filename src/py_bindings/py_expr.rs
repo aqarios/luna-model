@@ -65,15 +65,19 @@ impl PyExpression {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
     }
+
     fn __radd__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        todo!()
+        self.__add__(py, other)
     }
+
     fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         todo!()
     }
+
     fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         todo!()
     }
+
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.borrow().mul(rhs)))
@@ -91,9 +95,11 @@ impl PyExpression {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
     }
+
     fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        todo!()
+        self.__mul__(py, other)
     }
+
     // In place assignment
     fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
@@ -110,9 +116,11 @@ impl PyExpression {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
     }
+
     fn __isub__(&mut self, py: Python, other: PyObject) {
         todo!()
     }
+
     fn __imul__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(self.borrow_mut().mul_assign(rhs))
@@ -128,13 +136,16 @@ impl PyExpression {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
     }
+
     // Unary operations
-    fn __pos__(&mut self) {
-        todo!()
-    }
-    fn __new__(&mut self) {
-        todo!()
-    }
+    // fn __pos__(&mut self) {
+    //     todo!()
+    // }
+
+    // fn __new__(&mut self) {
+    //     todo!()
+    // }
+
     // Comparison
     fn __eq__(&self, py: Python, other: PyObject) -> PyResult<PyObject> {
         if let Ok(rhs) = other.extract::<PyExpression>(py) {

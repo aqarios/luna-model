@@ -29,7 +29,7 @@ where
     /// Mirror of the linear array that tracks which variables are already
     /// contained in the expression. 1 indicates already added 0 indicating floating.
     pub active: Vec<bool>,
-    num_variables: SizeType,
+    pub num_variables: SizeType,
 }
 
 impl<Index, Bias> ExpressionBaseTypes for Expression<Index, Bias>
