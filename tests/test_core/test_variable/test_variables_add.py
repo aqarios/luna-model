@@ -14,7 +14,8 @@ def test_add_variable_and_number(scalar: int):
     result = x + scalar
     assert type(result) == Expression
     assert result.num_variables() == 1
-    assert result.get_linear(x) == scalar
+    assert result.get_linear(x) == 1
+    assert result.get_offset() == scalar
 
 
 @pytest.mark.variable
@@ -26,7 +27,8 @@ def test_radd_variable_and_number(scalar: int):
     result = scalar + x
     assert type(result) == Expression
     assert result.num_variables() == 1
-    assert result.get_linear(x) == scalar
+    assert result.get_linear(x) == 1
+    assert result.get_offset() == scalar
 
 
 @pytest.mark.variable

@@ -59,6 +59,7 @@ where
             num_variables: 0,
         }
     }
+
     fn new_linear_single(env: Rc<RefCell<Environment<Index>>>, v: Index, bias: Bias) -> Self {
         let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
@@ -76,13 +77,41 @@ where
             num_variables: 1,
         }
     }
-    fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self {
-        let linear = Linear::new_from_variables(u.into(), v.into(), bias);
+
+    fn new_linear_and_offset(
+        env: Rc<RefCell<Environment<Index>>>,
+        v: Index,
+        bias: Bias,
+        offset: Bias,
+    ) -> Self {
+        let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
         let mut active = Vec::new();
         active.resize(linear.len(), false);
-        active[u.into()] = true;
         active[v.into()] = true;
+
+        Self {
+            env,
+            offset,
+            linear,
+            quadratic: None,
+            higher_order: None,
+            active,
+            num_variables: 1,
+        }
+    }
+
+    fn new_linear(
+        env: Rc<RefCell<Environment<Index>>>,
+        u: (Index, Bias),
+        v: (Index, Bias),
+    ) -> Self {
+        let linear = Linear::new_from_variables((u.0.into(), u.1), (v.0.into(), v.1));
+        // todo: make this it's own struct similar to linear.
+        let mut active = Vec::new();
+        active.resize(linear.len(), false);
+        active[u.0.into()] = true;
+        active[v.0.into()] = true;
 
         Self {
             env,

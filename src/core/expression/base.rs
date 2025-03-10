@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Mul, MulAssign};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
 use std::rc::Rc;
 use std::str::FromStr;
 
@@ -56,6 +56,7 @@ pub trait BiasConstraints:
     + One
     + MulAssign
     + Mul<Output = Self>
+    + Neg<Output = Self>
 {
 }
 impl<
@@ -67,7 +68,8 @@ impl<
             + PartialEq
             + One
             + MulAssign
-            + Mul<Output = T>,
+            + Mul<Output = T>
+            + Neg<Output = T>,
     > BiasConstraints for T
 {
 }
@@ -98,7 +100,14 @@ where
     fn new(env: Rc<RefCell<Environment<Index>>>) -> Self;
     fn new_from_other(other: &Self) -> Self;
     fn new_linear_single(env: Rc<RefCell<Environment<Index>>>, v: Index, bias: Bias) -> Self;
-    fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self;
+    fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: (Index, Bias), v: (Index, Bias))
+        -> Self;
+    fn new_linear_and_offset(
+        env: Rc<RefCell<Environment<Index>>>,
+        v: Index,
+        bias: Bias,
+        offset: Bias,
+    ) -> Self;
     fn new_quadratic(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self;
 }
 

@@ -4,6 +4,18 @@ pub trait AddToExpression<Index, Bias, Other> {
     fn add(self, rhs: Other) -> Self::Output;
 }
 
+pub trait SubToExpression<Index, Bias, Other> {
+    type Output;
+
+    fn sub(self, rhs: Other) -> Self::Output;
+}
+
+pub trait RSubToExpression<Index, Bias, Other> {
+    type Output;
+
+    fn rsub(self, rhs: Other) -> Self::Output;
+}
+
 pub trait AddAssignToExpression<Index, Bias, Other> {
     type Output;
 
