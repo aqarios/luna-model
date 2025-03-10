@@ -5,7 +5,7 @@ use std::fmt::{Debug, Display, Formatter};
 use strum_macros::EnumIter;
 
 #[cfg_attr(feature = "py", pyclass(eq, eq_int))]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, EnumIter)]
+#[derive(Debug, Copy, Clone, PartialEq, EnumIter)]
 pub enum Vtype {
     Binary,
     Spin,
@@ -53,7 +53,7 @@ impl Display for Bounds {
     }
 }
 
-pub fn display_bound(bound: &Option<f64>) -> String {
+fn display_bound(bound: &Option<f64>) -> String {
     match bound {
         None => String::from("unlimited"),
         Some(val) => val.to_string(),
@@ -96,6 +96,7 @@ impl Variable {
             env_id,
         }
     }
+
     fn format_bounds(&self) -> String {
         let mut out = String::new();
         if matches!(self.vtype, Vtype::Integer | Vtype::Real) {

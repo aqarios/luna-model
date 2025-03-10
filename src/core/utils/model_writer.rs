@@ -131,7 +131,7 @@ where
             self.write_quadratic(expr.env.borrow(), quadratic);
         }
         self.write_linear(expr.env.borrow(), &expr.linear);
-        if expr.offset != Bias::zero() {
+        if expr.offset != Bias::default() {
             self.write_offset(&expr.offset);
         }
         self.is_first = true;
@@ -144,7 +144,7 @@ where
         higher_order: &HigherOrder<Index, Bias>,
     ) -> &mut Self {
         for (indices, bias) in higher_order.iter_contrib() {
-            if *bias != Bias::zero() {
+            if *bias != Bias::default() {
                 let vnames = indices
                     .iter()
                     .map(|&idx| env.variables[idx.into()].name.clone())
@@ -167,7 +167,7 @@ where
         quadratic: &Quadratic<Index, Bias>,
     ) -> &mut Self {
         for (i, j, bias) in quadratic.iter_flat() {
-            if bias != Bias::zero() {
+            if bias != Bias::default() {
                 let v_i = env.variables[i.into()].name.clone();
                 let v_j = env.variables[j.into()].name.clone();
                 if !self.is_first {
@@ -187,7 +187,7 @@ where
         linear: &Linear<Bias>,
     ) -> &mut Self {
         for (i, bias) in linear.iter() {
-            if *bias != Bias::zero() {
+            if *bias != Bias::default() {
                 if !self.is_first {
                     self.writer.space();
                 }
@@ -203,7 +203,7 @@ where
         let bias_string = bias.to_string();
         if self.is_first {
             self.writer.write(&bias_string);
-        } else if *bias < Bias::zero() {
+        } else if *bias < Bias::default() {
             self.writer
                 .space()
                 .write(&format!("- {}", &bias_string[1..]));
@@ -216,9 +216,9 @@ where
     fn show_bias(&mut self, bias: &Bias) -> String {
         if *bias == Bias::one() {
             String::from(if self.is_first { "" } else { "+ " })
-        } else if Some(bias) == Bias::negative_one().as_ref() {
+        } else if *bias == -Bias::one() {
             String::from(if self.is_first { "-" } else { "- " })
-        } else if *bias < Bias::zero() {
+        } else if *bias < Bias::default() {
             let bias_string = bias.to_string();
             if self.is_first {
                 format!("{bias_string} * ")
