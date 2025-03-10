@@ -37,10 +37,10 @@ where
         out
     }
 
-    pub fn new_from_variables(lhs: usize, rhs: usize, bias: Bias) -> Self {
-        let mut out = Self::with_size(max(lhs, rhs) + 1);
-        out[lhs] += bias;
-        out[rhs] += bias;
+    pub fn new_from_variables(lhs: (usize, Bias), rhs: (usize, Bias)) -> Self {
+        let mut out = Self::with_size(max(lhs.0, rhs.0) + 1);
+        out[lhs.0] += lhs.1;
+        out[rhs.0] += rhs.1;
         out
     }
 

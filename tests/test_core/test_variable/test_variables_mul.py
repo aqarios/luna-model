@@ -16,6 +16,7 @@ def test_mul_variable_and_number(scalar: int):
     assert type(result) == Expression
     assert result.num_variables() == 1
     assert result.get_linear(x) == scalar
+    assert result.get_offset() == 0
 
 
 @pytest.mark.variable
@@ -28,6 +29,7 @@ def test_rmul_variable_and_number(scalar: int):
     assert type(result) == Expression
     assert result.num_variables() == 1
     assert result.get_linear(x) == scalar
+    assert result.get_offset() == 0
 
 
 @pytest.mark.variable
@@ -39,6 +41,7 @@ def test_mul_variables():
     result = x * y
     assert type(result) == Expression
     assert result.num_variables() == 2
+    assert result.get_offset() == 0
     assert result.get_linear(x) == 0
     assert result.get_linear(y) == 0
     assert result.get_quadratic(x, y) == 1

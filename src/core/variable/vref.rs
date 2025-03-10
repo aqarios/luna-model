@@ -1,7 +1,7 @@
 use crate::core::{
     exceptions::{ParseFromStringError, VariablesFromDifferentEnvsError},
     expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints, One},
-    operations::{AddToExpression, MulToExpression},
+    operations::{AddToExpression, MulToExpression, RSubToExpression, SubToExpression},
     Environment, Expression,
 };
 use std::fmt::{Debug, Display, Formatter};
@@ -80,7 +80,7 @@ where
     type Output = Expression<Index, Bias>;
 
     fn add(self, rhs: Bias) -> Self::Output {
-        Expression::new_linear_single(self.env.clone(), self.id, rhs)
+        Expression::new_linear_and_offset(Rc::clone(&self.env), self.id, Bias::one(), rhs)
     }
 }
 
@@ -96,10 +96,9 @@ where
             Err(VariablesFromDifferentEnvsError)
         } else {
             Ok(Expression::new_linear(
-                self.env.clone(),
-                self.id,
-                rhs.id,
-                Bias::one(),
+                Rc::clone(&self.env),
+                (self.id, Bias::one()),
+                (rhs.id, Bias::one()),
             ))
         }
     }
@@ -113,7 +112,7 @@ where
     type Output = Expression<Index, Bias>;
 
     fn mul(self, rhs: Bias) -> Self::Output {
-        Expression::new_linear_single(self.env.clone(), self.id, rhs)
+        Expression::new_linear_single(Rc::clone(&self.env), self.id, rhs)
     }
 }
 
@@ -129,10 +128,42 @@ where
             Err(VariablesFromDifferentEnvsError)
         } else {
             Ok(Expression::new_quadratic(
-                self.env.clone(),
+                Rc::clone(&self.env),
                 self.id,
                 rhs.id,
                 Bias::one(),
+            ))
+        }
+    }
+}
+
+impl<Index, Bias> RSubToExpression<Index, Bias, Bias> for &VarRef<Index>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Expression<Index, Bias>;
+
+    fn rsub(self, rhs: Bias) -> Self::Output {
+        Expression::new_linear_and_offset(Rc::clone(&self.env), self.id, -Bias::one(), rhs)
+    }
+}
+
+impl<Index, Bias> SubToExpression<Index, Bias, &VarRef<Index>> for &VarRef<Index>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+
+    fn sub(self, rhs: &VarRef<Index>) -> Self::Output {
+        if self.env.borrow().id != rhs.env.borrow().id {
+            Err(VariablesFromDifferentEnvsError)
+        } else {
+            Ok(Expression::new_linear(
+                Rc::clone(&self.env),
+                (self.id, Bias::one()),
+                (rhs.id, -Bias::one()),
             ))
         }
     }

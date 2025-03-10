@@ -98,7 +98,14 @@ where
     fn new(env: Rc<RefCell<Environment<Index>>>) -> Self;
     fn new_from_other(other: &Self) -> Self;
     fn new_linear_single(env: Rc<RefCell<Environment<Index>>>, v: Index, bias: Bias) -> Self;
-    fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self;
+    fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: (Index, Bias), v: (Index, Bias))
+        -> Self;
+    fn new_linear_and_offset(
+        env: Rc<RefCell<Environment<Index>>>,
+        v: Index,
+        bias: Bias,
+        offset: Bias,
+    ) -> Self;
     fn new_quadratic(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self;
 }
 
