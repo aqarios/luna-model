@@ -7,8 +7,7 @@ use crate::{
         Comparator, ExpressionBase, VariablesFromDifferentEnvsException,
     },
     py_bindings::types::Constr,
-    serialization::{decode_expression as de, encode_expression as ee},
-    serialization_v2::{decode_expression, encode_expression},
+    serialization::{decode_expression, encode_expression},
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{
@@ -87,20 +86,6 @@ impl PyExpression {
     #[staticmethod]
     fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Self::deserialize(py, data)
-    }
-
-    fn serialize_old(&self, py: Python) -> PyObject {
-        PyBytes::new(py, &ee(&self.borrow())).into()
-    }
-
-    #[staticmethod]
-    fn deserialize_old(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        let bytes: &[u8] = data.as_bytes(py);
-        let expr = de(bytes);
-        match expr {
-            Ok(expr) => Ok(PyExpression::new(expr)),
-            Err(e) => Err(PyRuntimeError::new_err(e.to_string())),
-        }
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {

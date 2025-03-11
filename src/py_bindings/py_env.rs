@@ -1,6 +1,6 @@
 use crate::{
     core::{Environment, MultipleActiveEnvironmentsException, VarId},
-    serialization_v2::{decode_environment, encode_environment},
+    serialization::{decode_environment, encode_environment},
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};

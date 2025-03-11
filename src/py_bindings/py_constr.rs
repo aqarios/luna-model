@@ -5,7 +5,7 @@ use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 
 use crate::{
     core::Comparator,
-    serialization_v2::{decode_constraints, encode_constraints},
+    serialization::{decode_constraints, encode_constraints},
 };
 
 use super::{

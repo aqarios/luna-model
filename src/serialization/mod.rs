@@ -1,21 +1,12 @@
-// This module is responsible for serialization and deserialization
-// of all objects used in the aqmodels library using the `prost!` library.
-// The cool thing with protobuf is that it has automatic verioning, nevertheless, we
-// use our own wrapper that includes a version, just to be sure and make the versions
-// declerative. However, using plain protobuf nothing would break.
-
-mod ser_constr;
-mod ser_env;
-mod ser_expression;
-// mod ser_expression_v2;
-mod ser_model;
+mod compression;
+mod constraint;
+mod environment;
+mod expression;
+mod model;
+mod utils;
 mod versioned;
 
-mod decoder;
-mod encoder;
-
-pub use decoder::decode_model;
-pub use encoder::encode_model;
-
-pub use ser_expression::decode_expression;
-pub use ser_expression::encode_expression;
+pub use constraint::{decode_constraints, encode_constraints};
+pub use environment::{decode_environment, encode_environment};
+pub use expression::{decode_expression, encode_expression};
+pub use model::{decode_model, encode_model};

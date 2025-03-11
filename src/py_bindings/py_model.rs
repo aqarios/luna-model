@@ -5,7 +5,7 @@ use crate::core::expression::One;
 use crate::{
     core::{Model, NoActiveEnvironmentFoundException, VarId},
     py_bindings::py_env::CURRENT_ENV,
-    serialization_v2::{decode_model, encode_model},
+    serialization::{decode_model, encode_model},
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
