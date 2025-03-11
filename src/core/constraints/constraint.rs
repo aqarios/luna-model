@@ -64,7 +64,7 @@ where
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Constraints<Index, Bias>
 where
     Index: IndexConstraints,
@@ -161,21 +161,21 @@ where
     }
 }
 
-impl<Index, Bias> PartialEq for Constraints<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn eq(&self, other: &Self) -> bool {
-        let mut num_matches = 0;
-        for lhs in self.constraints.iter() {
-            for rhs in other.constraints.iter() {
-                num_matches += (lhs == rhs) as usize;
-            }
-        }
-        num_matches >= self.constraints.len()
-    }
-}
+// impl<Index, Bias> PartialEq for Constraints<Index, Bias>
+// where
+//     Index: IndexConstraints,
+//     Bias: BiasConstraints,
+// {
+//     fn eq(&self, other: &Self) -> bool {
+//         let mut num_matches = 0;
+//         for lhs in self.constraints.iter() {
+//             for rhs in other.constraints.iter() {
+//                 num_matches += (lhs == rhs) as usize;
+//             }
+//         }
+//         num_matches >= self.constraints.len()
+//     }
+// }
 
 impl<Index, Bias> Display for Constraints<Index, Bias>
 where

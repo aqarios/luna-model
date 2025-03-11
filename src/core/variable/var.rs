@@ -26,11 +26,24 @@ impl Bounds {
 
     pub fn default(vtype: &Vtype) -> Self {
         match vtype {
-            Vtype::Real => Self::new(None, None),
-            Vtype::Integer => Self::new(None, None),
+            Vtype::Real => Self::real(),
+            Vtype::Integer => Self::integer(),
             Vtype::Binary => Self::new(Some(0.0), Some(1.0)),
             Vtype::Spin => Self::new(Some(-1.0), Some(1.0)),
         }
+    }
+
+    pub fn binary() -> Self {
+        Self::new(Some(0.0), Some(1.0))
+    }
+    pub fn spin() -> Self {
+        Self::new(Some(-1.0), Some(1.0))
+    }
+    pub fn integer() -> Self {
+        Self::new(None, None)
+    }
+    pub fn real() -> Self {
+        Self::new(None, None)
     }
 }
 
@@ -66,7 +79,7 @@ impl Vtype {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Variable {
     pub name: String,
     pub vtype: Vtype,
@@ -75,6 +88,14 @@ pub struct Variable {
 }
 
 impl Variable {
+    pub fn default() -> Self {
+        Self {
+            name: String::from(""),
+            vtype: Vtype::Binary,
+            bounds: Bounds::binary(),
+            env_id: 0,
+        }
+    }
     pub fn new(name: String, vtype: Option<&Vtype>, bounds: Option<Bounds>, env_id: EnvId) -> Self {
         let vtype = vtype.map_or(Vtype::default(), |e| *e);
         let bounds = bounds.map_or(Bounds::default(&vtype), |e| e);

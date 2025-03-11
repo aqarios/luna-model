@@ -1,4 +1,4 @@
-use super::{py_constr::PyConstraint, py_var::PyVariable, types::Expr};
+use super::{py_constr::PyConstraint, py_env::PyEnvironment, py_var::PyVariable, types::Expr};
 use crate::{
     core::{
         operations::{
@@ -7,9 +7,15 @@ use crate::{
         Comparator, ExpressionBase, VariablesFromDifferentEnvsException,
     },
     py_bindings::types::Constr,
+    serialization::{decode_expression as de, encode_expression as ee},
+    serialization_v2::{decode_expression, encode_expression},
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBool};
+use pyo3::{
+    exceptions::PyRuntimeError,
+    prelude::*,
+    types::{PyBool, PyBytes},
+};
 use std::{cell::RefCell, rc::Rc};
 
 #[pyclass(unsendable, name = "Expression")]
@@ -46,6 +52,55 @@ impl PyExpression {
     #[pyo3(name = "num_variables")]
     fn get_num_variables(&self) -> usize {
         self.borrow().num_variables()
+    }
+
+    #[pyo3(signature=(compress=None, level=None))]
+    fn serialize(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<PyObject> {
+        Ok(PyBytes::new(
+            py,
+            &encode_expression(&self.borrow(), compress.unwrap_or(level.is_some()), level)?,
+        )
+        .into())
+    }
+
+    #[pyo3(signature=(compress=None, level=None))]
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+        self.serialize(py, compress, level)
+    }
+
+    #[staticmethod]
+    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        // todo, handle env
+        let bytes: &[u8] = data.as_bytes(py);
+        let expr = decode_expression(bytes, Rc::clone(&PyEnvironment::new().0));
+        match expr {
+            Ok(expr) => Ok(PyExpression::new(expr)),
+            Err(e) => Err(PyRuntimeError::new_err(e.to_string())),
+        }
+    }
+
+    #[staticmethod]
+    fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::deserialize(py, data)
+    }
+
+    fn serialize_old(&self, py: Python) -> PyObject {
+        PyBytes::new(py, &ee(&self.borrow())).into()
+    }
+
+    #[staticmethod]
+    fn deserialize_old(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        let bytes: &[u8] = data.as_bytes(py);
+        let expr = de(bytes);
+        match expr {
+            Ok(expr) => Ok(PyExpression::new(expr)),
+            Err(e) => Err(PyRuntimeError::new_err(e.to_string())),
+        }
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {

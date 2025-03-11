@@ -6,7 +6,7 @@ import dimod
 
 
 def serialize_aqm(model: Model) -> bytes:
-    return model.serialize()
+    return model.serialize(compress=True)
 
 
 def serialize_bqm(model: dimod.BinaryQuadraticModel) -> str:

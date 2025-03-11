@@ -90,7 +90,7 @@ impl SerializableConstraints {
             .iter()
             .map(|constr| {
                 SerializableConstraint::new(
-                    Some(SerializableExpression::new(constr.lhs.borrow())),
+                    Some(SerializableExpression::new(&constr.lhs.borrow())),
                     constr.rhs,
                     constr.comparator.into(),
                 )

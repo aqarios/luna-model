@@ -23,7 +23,7 @@ pub struct SerializableModel {
 
 impl SerializableModel {
     pub fn new(model: &Model<VarId, f64>) -> Self {
-        let objective = Some(SerializableExpression::new(model.objective.borrow()));
+        let objective = Some(SerializableExpression::new(&model.objective.borrow()));
 
         let constraints: Option<SerializableConstraints>;
         if model.constraints.borrow().len() != 0 {

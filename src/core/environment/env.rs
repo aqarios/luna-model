@@ -15,7 +15,7 @@ pub type EnvId = u8;
 // already thread safe.
 static ENV_COUNTER: CounterU8 = CounterU8::new(0);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Environment<Index> {
     pub id: EnvId,
     pub variables: Vec<Variable>,

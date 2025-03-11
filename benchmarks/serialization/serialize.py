@@ -7,7 +7,6 @@ import dimod
 from benchmarks.serialization.utils import (
     get_serialized_size_bytes,
     serialize_aqm,
-    serialize_bqm,
     serialize_cqm,
 )
 from benchmarks.setting import DENSITIES, REPETITIONS, SIZES

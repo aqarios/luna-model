@@ -5,7 +5,7 @@ use crate::core::expression::One;
 use crate::{
     core::{Model, NoActiveEnvironmentFoundException, VarId},
     py_bindings::py_env::CURRENT_ENV,
-    serialization::{decode_model, encode_model},
+    serialization_v2::{decode_model, encode_model},
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
@@ -88,19 +88,29 @@ impl PyModel {
         format!("{:?}", self.0)
     }
 
-    fn serialize(&self, py: Python) -> PyObject {
-        PyBytes::new(py, &encode_model(&self.0)).into()
+    #[pyo3(signature=(compress=None, level=None))]
+    fn serialize(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<PyObject> {
+        Ok(PyBytes::new(
+            py,
+            &encode_model(&self.0, compress.unwrap_or(level.is_some()), level)?,
+        )
+        .into())
     }
 
     /// Alias for serialize
-    fn encode(&self, py: Python) -> PyObject {
-        self.serialize(py)
+    #[pyo3(signature=(compress=None, level=None))]
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+        self.serialize(py, compress, level)
     }
 
     #[staticmethod]
     fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        let bytes: &[u8] = data.as_bytes(py);
-        let model_res = decode_model(bytes);
+        let model_res = decode_model(data.as_bytes(py));
         match model_res {
             Ok(model) => Ok(PyModel(model)),
             Err(e) => Err(PyRuntimeError::new_err(e.to_string())),

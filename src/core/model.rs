@@ -6,7 +6,6 @@ use super::expression::{
 };
 use super::{Environment, Expression, Vtype};
 use crate::core::utils::ModelWriter;
-use crate::core::ExpressionBase;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 use std::rc::Rc;

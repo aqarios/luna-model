@@ -16,3 +16,6 @@ mod encoder;
 
 pub use decoder::decode_model;
 pub use encoder::encode_model;
+
+pub use ser_expression::decode_expression;
+pub use ser_expression::encode_expression;

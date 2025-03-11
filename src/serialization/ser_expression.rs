@@ -1,9 +1,6 @@
-use std::{
-    cell::{Ref, RefCell},
-    rc::Rc,
-};
+use std::{cell::RefCell, rc::Rc};
 
-use prost::Message;
+use prost::{DecodeError, Message};
 
 use crate::core::{
     expression::ExpressionBaseCreation,
@@ -97,7 +94,7 @@ pub struct SerializableExpression {
 }
 
 impl SerializableExpression {
-    pub fn new(expression: Ref<'_, Expression<VarId, f64>>) -> Self {
+    pub fn new(expression: &Expression<VarId, f64>) -> Self {
         Self {
             offset: expression.offset,
             linear: expression.linear.to_vec().clone(),
@@ -108,9 +105,7 @@ impl SerializableExpression {
         }
     }
 
-    fn build_quadratic(
-        expression: &Ref<'_, Expression<VarId, f64>>,
-    ) -> Option<SerializableQuadratic> {
+    fn build_quadratic(expression: &Expression<VarId, f64>) -> Option<SerializableQuadratic> {
         expression
             .quadratic
             .as_ref()
@@ -124,7 +119,7 @@ impl SerializableExpression {
             .map_or(None, |e| Some(SerializableQuadratic::new(e)))
     }
 
-    fn build_higher_order(expression: &Ref<'_, Expression<VarId, f64>>) -> Vec<HigherOrderElement> {
+    fn build_higher_order(expression: &Expression<VarId, f64>) -> Vec<HigherOrderElement> {
         expression
             .higher_order
             .as_ref()
@@ -166,4 +161,17 @@ impl SerializableExpression {
         };
         expr
     }
+}
+
+pub fn encode_expression(expression: &Expression<VarId, f64>) -> Vec<u8> {
+    SerializableExpression::new(expression).encode_to_vec()
+}
+
+pub fn decode_expression(
+    data: &[u8],
+    // env: &Environment<VarId>,
+) -> Result<Expression<VarId, f64>, DecodeError> {
+    // todo!
+    let env = Rc::new(RefCell::new(Environment::new()));
+    Ok(SerializableExpression::decode(data)?.extract(env))
 }

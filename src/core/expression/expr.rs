@@ -15,7 +15,7 @@ use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::utils::ModelWriter;
 use crate::core::{Environment, Vtype};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Expression<Index, Bias>
 where
     Index: IndexConstraints,
@@ -625,40 +625,41 @@ where
     }
 }
 
-impl<Index, Bias> Debug for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let linear = ModelWriter::new()
-            .write_linear(self.env.borrow(), &self.linear)
-            .to_string();
-        let quadratic = if let Some(q) = &self.quadratic {
-            ModelWriter::new()
-                .write_quadratic(self.env.borrow(), q)
-                .to_string()
-        } else {
-            String::from("None")
-        };
-        let higher_order = if let Some(ho) = &self.higher_order {
-            ModelWriter::new()
-                .write_higher_order(self.env.borrow(), ho)
-                .to_string()
-        } else {
-            String::from("None")
-        };
-        f.debug_struct("Expression")
-            .field("environment_id", &self.env.borrow().id)
-            .field("offset", &self.offset)
-            .field("linear", &linear)
-            .field("quadratic", &quadratic)
-            .field("higher_order", &higher_order)
-            .field("active", &self.active)
-            .field("num_variables", &self.num_variables)
-            .finish()
-    }
-}
+// Buggy
+// impl<Index, Bias> Debug for Expression<Index, Bias>
+// where
+//     Index: IndexConstraints,
+//     Bias: BiasConstraints,
+// {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+//         let linear = ModelWriter::new()
+//             .write_linear(self.env.borrow(), &self.linear)
+//             .to_string();
+//         let quadratic = if let Some(q) = &self.quadratic {
+//             ModelWriter::new()
+//                 .write_quadratic(self.env.borrow(), q)
+//                 .to_string()
+//         } else {
+//             String::from("None")
+//         };
+//         let higher_order = if let Some(ho) = &self.higher_order {
+//             ModelWriter::new()
+//                 .write_higher_order(self.env.borrow(), ho)
+//                 .to_string()
+//         } else {
+//             String::from("None")
+//         };
+//         f.debug_struct("Expression")
+//             .field("environment_id", &self.env.borrow().id)
+//             .field("offset", &self.offset)
+//             .field("linear", &linear)
+//             .field("quadratic", &quadratic)
+//             .field("higher_order", &higher_order)
+//             .field("active", &self.active)
+//             .field("num_variables", &self.num_variables)
+//             .finish()
+//     }
+// }
 
 impl<Index, Bias> Display for Expression<Index, Bias>
 where
