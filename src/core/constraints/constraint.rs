@@ -3,7 +3,7 @@ use crate::core::{
     expression::{BiasConstraints, IndexConstraints},
     Expression,
 };
-use std::fmt::{Debug, Display, Formatter, Write};
+use std::fmt::{Debug, Display, Formatter};
 use std::slice::Iter;
 use std::string::ToString;
 use std::{

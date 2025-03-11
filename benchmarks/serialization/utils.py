@@ -15,6 +15,11 @@ def serialize_bqm(model: dimod.BinaryQuadraticModel) -> str:
     return o_json
 
 
+def serialize_cqm(model: dimod.ConstrainedQuadraticModel) -> bytes:
+    o = model.to_file().read()
+    return o
+
+
 def get_serialized_size_mb(data: bytes | str) -> float:  # type: ignore
     size_bytes = sys.getsizeof(data)
     size_mb = size_bytes / (1024**2)
@@ -22,5 +27,6 @@ def get_serialized_size_mb(data: bytes | str) -> float:  # type: ignore
 
 
 def get_serialized_size_bytes(data: bytes | str) -> float:  # type: ignore
-    size_bytes = sys.getsizeof(data)
-    return size_bytes
+    # size_bytes = sys.getsizeof(data)
+    # return size_bytes
+    return len(data)
