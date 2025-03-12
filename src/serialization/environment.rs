@@ -160,13 +160,15 @@ impl SerEnvironment {
         for (i, v) in self.binary.iter().enumerate() {
             let name = self.binary_names[i].clone();
             env.variables[*v as usize] =
-                Variable::new(name.clone(), Some(&Vtype::Binary), None, env.id);
+                Variable::new(name.clone(), Some(&Vtype::Binary), None, env.id)
+                    .expect("binary variable creation failed during deserialization");
             env.variables_lookup.insert(name, VarId(*v));
         }
         for (i, v) in self.spin.iter().enumerate() {
             let name = self.spin_names[i].clone();
             env.variables[*v as usize] =
-                Variable::new(name.clone(), Some(&Vtype::Spin), None, env.id);
+                Variable::new(name.clone(), Some(&Vtype::Spin), None, env.id)
+                    .expect("spin variable creation failed during deserialization");
             env.variables_lookup.insert(name, VarId(*v));
         }
         let dint = Bounds::integer();
@@ -193,7 +195,8 @@ impl SerEnvironment {
                 Some(&Vtype::Integer),
                 Some(Bounds::new(lower, upper)),
                 env.id,
-            );
+            )
+            .expect("integer variable creation failed during deserialization");
             env.variables_lookup.insert(name, VarId(*v));
         }
 
@@ -221,7 +224,8 @@ impl SerEnvironment {
                 Some(&Vtype::Real),
                 Some(Bounds::new(lower, upper)),
                 env.id,
-            );
+            )
+            .expect("real variable creation failed during deserialization");
             env.variables_lookup.insert(name, VarId(*v));
         }
 

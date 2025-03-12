@@ -5,9 +5,9 @@ use super::{
     },
     Expression,
 };
-use crate::core::exceptions::VariablesFromDifferentEnvsError;
 use crate::core::operations::{MulAssignToExpression, MulToExpression};
 use crate::core::VarRef;
+use crate::core::{exceptions::VariablesFromDifferentEnvsError, ExpressionBase};
 use std::cell::Ref;
 
 // MULTIPLICATION
@@ -45,7 +45,10 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            let mut out = Expression::new(self.env.clone());
+            let mut out =
+                Expression::new(self.env.clone(), self.active.clone(), self.num_variables());
+            out.active = self.active.clone();
+            out.num_variables = self.num_variables;
             out.mul_with_offset(self.offset, rhs.id, Bias::one());
             out.mul_with_linear(&self.linear, rhs.id, Bias::one());
             if self.has_quadratic() {
@@ -62,7 +65,6 @@ where
                     Bias::one(),
                 );
             }
-            // println!("out data:\n  active = {:?}\n  offset = {:?}\n  linear = {:?}\n  quadratic = {:?}\n  higher order = {:?}", out.active, out.offset, out.linear, out.quadratic, out.higher_order);
             Ok(out)
         }
     }
@@ -80,7 +82,7 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            let mut out = Expression::new(self.env.clone());
+            let mut out = Expression::empty(self.env.clone());
             out.mul_offset(self.offset, rhs.offset);
             out.mul_linear(&self.linear, &rhs.linear);
             if self.has_quadratic() && rhs.has_quadratic() {

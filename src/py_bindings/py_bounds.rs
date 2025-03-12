@@ -24,9 +24,9 @@ impl Into<Bounds> for PyBounds {
 #[pymethods]
 impl PyBounds {
     #[new]
-    #[pyo3(signature=(lower, upper))]
-    fn py_new(lower: f64, upper: f64) -> PyResult<Self> {
-        Ok(PyBounds(Bounds::new(Some(lower), Some(upper))))
+    #[pyo3(signature=(lower=None, upper=None))]
+    fn py_new(lower: Option<f64>, upper: Option<f64>) -> PyResult<Self> {
+        Ok(PyBounds(Bounds::new(lower, upper)))
     }
 
     fn __str__(&self) -> String {

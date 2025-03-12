@@ -1,10 +1,17 @@
-use super::{py_constr::PyConstraint, py_env::PyEnvironment, py_var::PyVariable, types::Expr};
+use super::{
+    py_constr::PyConstraint,
+    py_env::{PyEnvironment, CURRENT_ENV},
+    py_var::PyVariable,
+    types::Expr,
+};
+use crate::core::expression::ExpressionBaseCreation;
 use crate::{
     core::{
         operations::{
             AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
         },
-        Comparator, ExpressionBase, VariablesFromDifferentEnvsException,
+        Comparator, ExpressionBase, NoActiveEnvironmentFoundException,
+        VariablesFromDifferentEnvsException,
     },
     py_bindings::types::Constr,
     serialization::{decode_expression, encode_expression},
@@ -29,6 +36,20 @@ impl PyExpression {
 
 #[pymethods]
 impl PyExpression {
+    #[new]
+    #[pyo3(signature=(env=None))]
+    fn py_new(env: Option<&mut PyEnvironment>) -> PyResult<Self> {
+        let env: PyEnvironment = match env {
+            Some(env) => env.clone(),
+            None => CURRENT_ENV.with(|current| {
+                current.borrow().clone().ok_or_else(|| {
+                    NoActiveEnvironmentFoundException::new_err("no active environment found.")
+                })
+            })?,
+        };
+        Ok(PyExpression::new(Expr::empty(env.0)))
+    }
+
     fn get_linear(&self, var: &PyVariable) -> PyResult<f64> {
         Ok(self.borrow().linear(var.id)?)
     }

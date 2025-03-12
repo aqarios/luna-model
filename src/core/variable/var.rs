@@ -1,4 +1,4 @@
-use crate::core::environment::EnvId;
+use crate::core::{environment::EnvId, exceptions::VariableCreationError};
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 use std::fmt::{Debug, Display, Formatter};
@@ -96,15 +96,32 @@ impl Variable {
             env_id: 0,
         }
     }
-    pub fn new(name: String, vtype: Option<&Vtype>, bounds: Option<Bounds>, env_id: EnvId) -> Self {
-        let vtype = vtype.map_or(Vtype::default(), |e| *e);
-        let bounds = bounds.map_or(Bounds::default(&vtype), |e| e);
-        Self {
+    pub fn new(
+        name: String,
+        vtype: Option<&Vtype>,
+        bounds: Option<Bounds>,
+        env_id: EnvId,
+    ) -> Result<Self, VariableCreationError> {
+        let vtype = vtype.map_or(Vtype::default(), |t| *t);
+        match (vtype, bounds.is_some()) {
+            (Vtype::Binary, true) | (Vtype::Spin, true) => Err(VariableCreationError::new(
+                format!("bounds cannot be set for variable of type {}.", vtype),
+            )),
+            _ => Ok(()),
+        }?;
+        let default_bounds = Bounds::default(&vtype);
+        let bounds = bounds.map_or(default_bounds, |b| match (b.lower, b.upper) {
+            (Some(_), Some(_)) => b,
+            (Some(l), None) => Bounds::new(Some(l), default_bounds.upper),
+            (None, Some(u)) => Bounds::new(default_bounds.lower, Some(u)),
+            (None, None) => default_bounds,
+        });
+        Ok(Self {
             bounds,
             name,
             vtype,
             env_id,
-        }
+        })
     }
 
     fn format_bounds(&self) -> String {

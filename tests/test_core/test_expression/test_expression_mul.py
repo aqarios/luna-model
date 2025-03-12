@@ -454,3 +454,30 @@ def test_expression_instancemul_expression(variables):
     assert_higher_order(expr, variables, 0, 2)
     assert_higher_order(expr, variables, 0, 3)
     assert_higher_order(expr, variables, 1, 4)
+
+
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [3], indirect=True)
+def test_unordered_mul_to_expression(variables):
+    x, y, z = variables
+    expr = x * z * y
+
+    assert type(expr) == Expression
+    assert expr.num_variables() == 3
+    assert_offset(expr, 0)
+    assert_linear(expr, variables, 0)
+    assert_quadratic(expr, variables, 0)
+    assert_higher_order(expr, variables, 0, 2)
+    assert_higher_order(expr, variables, 1, 3)
+
+
+@pytest.mark.expression
+@pytest.mark.parametrize("variables", [(1, Vtype.Spin)], indirect=True)
+def test_mul_multispins(variables):
+    x = variables[0]
+    expr = x * x * x
+
+    assert type(expr) == Expression
+    assert expr.num_variables() == 1
+    assert_offset(expr, 0)
+    assert_linear(expr, variables, 1)

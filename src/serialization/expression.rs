@@ -205,7 +205,7 @@ impl SerExpression {
     }
 
     fn extract(&self, env: Rc<RefCell<Environment<VarId>>>) -> Expression<VarId, f64> {
-        let mut expr = Expression::new(Rc::clone(&env));
+        let mut expr = Expression::empty(Rc::clone(&env));
         expr.num_variables = self.num_variables as usize;
         expr.active = self.active.clone();
         expr.offset = self.offset;

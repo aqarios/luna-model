@@ -11,7 +11,7 @@ def check_equality(variables, p, f, value):
 
 
 def assert_offset(expr, value):
-    assert expr.get_offset() == value
+    assert expr.get_offset() == value, f"offset != {value}, is {expr.get_offset()}"
 
 
 def assert_linear(expr, variables, value):

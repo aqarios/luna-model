@@ -34,7 +34,7 @@ where
     pub fn new_with_env(name: Option<String>, env: Rc<RefCell<Environment<Index>>>) -> Self {
         Self {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
-            objective: Rc::new(RefCell::new(Expression::new(env.clone()))),
+            objective: Rc::new(RefCell::new(Expression::empty(env.clone()))),
             environment: env,
             constraints: Rc::new(RefCell::new(Constraints::default())),
         }
@@ -44,7 +44,7 @@ where
         let rcenv = Rc::new(RefCell::new(Environment::new()));
         Self {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
-            objective: Rc::new(RefCell::new(Expression::new(rcenv.clone()))),
+            objective: Rc::new(RefCell::new(Expression::empty(rcenv.clone()))),
             environment: rcenv,
             constraints: Rc::new(RefCell::new(Constraints::default())),
         }

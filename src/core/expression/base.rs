@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
 use std::rc::Rc;
 use std::str::FromStr;
 
@@ -97,7 +97,8 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn new(env: Rc<RefCell<Environment<Index>>>) -> Self;
+    fn empty(env: Rc<RefCell<Environment<Index>>>) -> Self;
+    fn new(env: Rc<RefCell<Environment<Index>>>, active: Vec<bool>, num_variables: usize) -> Self;
     fn new_from_other(other: &Self) -> Self;
     fn new_linear_single(env: Rc<RefCell<Environment<Index>>>, v: Index, bias: Bias) -> Self;
     fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: (Index, Bias), v: (Index, Bias))
