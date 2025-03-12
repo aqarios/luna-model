@@ -1,12 +1,12 @@
 mod compression;
 mod constraint;
+pub mod decoder;
+pub mod encoder;
 mod environment;
 mod expression;
 mod model;
 mod utils;
 mod versioned;
 
-pub use constraint::{decode_constraints, encode_constraints};
-pub use environment::{decode_environment, encode_environment};
-pub use expression::{decode_expression, encode_expression};
-pub use model::{decode_model, encode_model};
+pub use decoder::{decode_constraints, decode_environment, decode_expression, decode_model};
+pub use encoder::{encode_constraints, encode_environment, encode_expression, encode_model};

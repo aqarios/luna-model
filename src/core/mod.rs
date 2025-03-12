@@ -2,6 +2,7 @@ pub mod constraints;
 pub mod environment;
 pub mod exceptions;
 pub mod expression;
+mod extras;
 mod model;
 pub mod operations;
 pub mod term;

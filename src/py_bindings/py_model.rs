@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
 use super::{py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression};
-use crate::core::expression::One;
 use crate::{
     core::{Model, NoActiveEnvironmentFoundException, VarId},
     py_bindings::py_env::CURRENT_ENV,
@@ -9,12 +8,6 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
-
-impl One for f64 {
-    fn one() -> Self {
-        1.0
-    }
-}
 
 #[pyclass(unsendable, name = "Model", subclass)]
 #[derive(Deref, DerefMut)]

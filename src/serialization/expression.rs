@@ -1,7 +1,4 @@
-use super::{
-    compression::{compress, decompress},
-    utils::force_u32,
-};
+use super::utils::force_u32;
 use crate::core::{
     expression::ExpressionBaseCreation,
     term::{
@@ -10,7 +7,7 @@ use crate::core::{
     },
     Environment, Expression, ExpressionBase, VarId,
 };
-use prost::{DecodeError, Message};
+use prost::Message;
 use std::{cell::RefCell, rc::Rc};
 
 struct Quad {
@@ -204,7 +201,7 @@ impl SerExpression {
         Some(ho)
     }
 
-    fn extract(&self, env: Rc<RefCell<Environment<VarId>>>) -> Expression<VarId, f64> {
+    pub fn extract(&self, env: Rc<RefCell<Environment<VarId>>>) -> Expression<VarId, f64> {
         let mut expr = Expression::empty(Rc::clone(&env));
         expr.num_variables = self.num_variables as usize;
         expr.active = self.active.clone();
@@ -214,23 +211,4 @@ impl SerExpression {
         expr.higher_order = self.decode_higher_order();
         expr
     }
-}
-
-pub fn encode_expression(
-    expression: &Expression<VarId, f64>,
-    use_compression: bool,
-    level: Option<i32>,
-) -> Result<Vec<u8>, std::io::Error> {
-    compress(
-        SerExpression::new(expression).encode_to_vec(),
-        use_compression,
-        level,
-    )
-}
-
-pub fn decode_expression(
-    data: &[u8],
-    env: Rc<RefCell<Environment<VarId>>>,
-) -> Result<Expression<VarId, f64>, DecodeError> {
-    Ok(SerExpression::decode(decompress(data)?.as_slice())?.extract(env))
 }

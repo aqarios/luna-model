@@ -1,13 +1,6 @@
-use std::io;
-
-use prost::{DecodeError, Message};
-
+use super::utils::{force_u32, force_u8};
 use crate::core::{Bounds, Environment, VarId, Variable, Vtype};
-
-use super::{
-    compression::{compress, decompress},
-    utils::{force_u32, force_u8},
-};
+use prost::Message;
 
 #[derive(Clone, PartialEq, Message)]
 pub struct SerEnvironment {
@@ -150,7 +143,7 @@ impl SerEnvironment {
         out
     }
 
-    fn extract(&self) -> Environment<VarId> {
+    pub fn extract(&self) -> Environment<VarId> {
         let mut env = Environment::new_for(force_u8(self.id));
         env.varcount = VarId(self.varcount);
         env.variables = Vec::with_capacity(self.varcount as usize);
@@ -231,20 +224,4 @@ impl SerEnvironment {
 
         env
     }
-}
-
-pub fn encode_environment(
-    environment: &Environment<VarId>,
-    use_compression: bool,
-    level: Option<i32>,
-) -> Result<Vec<u8>, io::Error> {
-    compress(
-        SerEnvironment::new(environment).encode_to_vec(),
-        use_compression,
-        level,
-    )
-}
-
-pub fn decode_environment(data: &[u8]) -> Result<Environment<VarId>, DecodeError> {
-    Ok(SerEnvironment::decode(decompress(data)?.as_slice())?.extract())
 }
