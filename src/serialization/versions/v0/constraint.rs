@@ -1,23 +1,19 @@
-use std::{cell::RefCell, io, rc::Rc};
-
+use crate::serialization::encodable::BytesDecodable;
 use crate::{
     core::{Comparator, Constraint, Constraints, Environment, VarId},
     serialization::{
-        encodable::{BytesEncodable, Creatable},
-        Encodable,
+        encodable::{BytesEncodable, Creatable, DecodeError},
+        Decodable, Encodable,
     },
 };
-use prost::{DecodeError, Message};
+use prost::Message;
+use std::{cell::RefCell, rc::Rc};
 
 #[derive(Clone, PartialEq, Message)]
 pub struct SerConstraints {
     /// All serialized lhs (expressions) as concatenated bytes.
     #[prost(bytes, repeated, tag = "1")]
     lhsides: Vec<Vec<u8>>,
-    // /// The lengths for each of the encoded expressions. The length of this
-    // /// array is equal to the number of constraints.
-    // #[prost(uint64, repeated, tag = "2")]
-    // lhsides_lens: Vec<u64>,
     /// The rhs for each constraint. This length is equal to the number of constraints.
     #[prost(double, repeated, tag = "2")]
     rhsides: Vec<f64>,
@@ -32,54 +28,50 @@ impl BytesEncodable for SerConstraints {
     }
 }
 
+type RefEnv = Rc<RefCell<Environment<VarId>>>;
+
+impl BytesDecodable<Constraints<VarId, f64>, RefEnv> for SerConstraints {
+    fn decode_from_bytes(
+        bytes: &[u8],
+        payload: RefEnv,
+    ) -> Result<Constraints<VarId, f64>, DecodeError> {
+        Self::decode(bytes)?.extract(payload)
+    }
+}
+
 impl Creatable<Constraints<VarId, f64>> for SerConstraints {
-    fn new(value: &Constraints<VarId, f64>) -> Self {}
+    fn new(value: &Constraints<VarId, f64>) -> Self {
+        Self::default().fill(value)
+    }
 }
 
 impl SerConstraints {
-    pub fn new(
-        constraints: &Constraints<VarId, f64>,
-        use_compression: bool,
-        level: Option<i32>,
-    ) -> Result<Self, io::Error> {
-        Self::default().fill(constraints, use_compression, level)
-    }
-
     fn default() -> Self {
         Self {
             lhsides: Vec::new(),
-            // lhsides_lens: Vec::new(),
             rhsides: Vec::new(),
             comparators: Vec::new(),
         }
     }
 
-    fn fill(
-        mut self,
-        constraints: &Constraints<VarId, f64>,
-        use_compression: bool,
-        level: Option<i32>,
-    ) -> Result<Self, io::Error> {
+    fn fill(mut self, constraints: &Constraints<VarId, f64>) -> Self {
         for c in &constraints.constraints {
-            let lhs_bytes = c.lhs.borrow().encode(use_compression, level)?;
+            let lhs_bytes = c.lhs.borrow().encode();
+
             let comparator = match c.comparator {
                 Comparator::Leq => 0,
                 Comparator::Eq => 1,
                 Comparator::Geq => 2,
             };
-            // self.lhsides_lens.push(lhs_bytes.len() as u64);
             self.lhsides.push(lhs_bytes);
             self.rhsides.push(c.rhs);
             self.comparators.push(comparator);
         }
 
-        Ok(self)
+        self
     }
 
-    pub fn extract(
-        &self,
-        env: Rc<RefCell<Environment<VarId>>>,
-    ) -> Result<Constraints<VarId, f64>, DecodeError> {
+    pub fn extract(&self, env: RefEnv) -> Result<Constraints<VarId, f64>, DecodeError> {
         let mut constraints = Vec::new();
 
         for ((lhs, rhs), comp) in self
@@ -88,7 +80,7 @@ impl SerConstraints {
             .zip(&self.rhsides)
             .zip(&self.comparators)
         {
-            let lhs_base = decode_expression(lhs, Rc::clone(&env))?;
+            let lhs_base = lhs.decode(Rc::clone(&env))?;
             let lhs = Rc::new(RefCell::new(lhs_base));
             let comparator = match comp {
                 0 => Comparator::Leq,

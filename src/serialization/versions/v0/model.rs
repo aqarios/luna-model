@@ -1,10 +1,12 @@
-use super::{
-    decoder::{decode_constraints, decode_environment, decode_expression},
-    encoder::{encode_constraints, encode_environment, encode_expression},
+use crate::{
+    core::{Model, VarId},
+    serialization::{
+        encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
+        Decodable, Encodable,
+    },
 };
-use crate::core::{Model, VarId};
-use prost::{DecodeError, Message};
-use std::{cell::RefCell, io, rc::Rc};
+use prost::Message;
+use std::{cell::RefCell, ops::Deref, rc::Rc};
 
 #[derive(Clone, PartialEq, Message)]
 pub struct SerModel {
@@ -22,15 +24,25 @@ pub struct SerModel {
     name: String,
 }
 
-impl SerModel {
-    pub fn new(
-        model: &Model<VarId, f64>,
-        use_compression: bool,
-        level: Option<i32>,
-    ) -> Result<Self, io::Error> {
-        Self::empty(model.name.clone()).fill(&model, use_compression, level)
+impl BytesEncodable for SerModel {
+    fn encode_to_bytes(&self) -> Vec<u8> {
+        self.encode_to_vec()
     }
+}
 
+impl BytesDecodable<Model<VarId, f64>> for SerModel {
+    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<Model<VarId, f64>, DecodeError> {
+        Self::decode(bytes)?.extract()
+    }
+}
+
+impl Creatable<Model<VarId, f64>> for SerModel {
+    fn new(value: &Model<VarId, f64>) -> Self {
+        Self::empty(value.name.clone()).fill(&value)
+    }
+}
+
+impl SerModel {
     fn empty(name: String) -> Self {
         Self {
             objective: Vec::new(),
@@ -40,31 +52,22 @@ impl SerModel {
         }
     }
 
-    fn fill(
-        mut self,
-        model: &Model<VarId, f64>,
-        use_compression: bool,
-        level: Option<i32>,
-    ) -> Result<Self, io::Error> {
-        self.objective = encode_expression(&model.objective.borrow(), use_compression, level)?;
-        self.constraints = encode_constraints(&model.constraints.borrow(), use_compression, level)?;
-        self.environment = encode_environment(&model.environment.borrow(), use_compression, level)?;
-        Ok(self)
+    fn fill(mut self, model: &Model<VarId, f64>) -> Self {
+        self.objective = model.objective.borrow().deref().encode();
+        self.constraints = model.constraints.borrow().deref().encode();
+        self.environment = model.environment.borrow().deref().encode();
+        self
     }
 
     pub fn extract(&self) -> Result<Model<VarId, f64>, DecodeError> {
         let mut model = Model::new(Some(self.name.clone()));
-        model.environment = Rc::new(RefCell::new(decode_environment(
-            self.environment.as_slice(),
-        )?));
-        model.objective = Rc::new(RefCell::new(decode_expression(
-            self.objective.as_slice(),
-            Rc::clone(&model.environment),
-        )?));
-        model.constraints = Rc::new(RefCell::new(decode_constraints(
-            self.constraints.as_slice(),
-            Rc::clone(&model.environment),
-        )?));
+        model.environment = Rc::new(RefCell::new(self.environment.decode(())?));
+        model.objective = Rc::new(RefCell::new(
+            self.objective.decode(Rc::clone(&model.environment))?,
+        ));
+        model.constraints = Rc::new(RefCell::new(
+            self.constraints.decode(Rc::clone(&model.environment))?,
+        ));
         Ok(model)
     }
 }

@@ -6,7 +6,9 @@ use super::{
 };
 use crate::{
     core::expression::ExpressionBaseCreation,
-    serialization::{Encodable, Version},
+    serialization::{
+        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
+    },
 };
 use crate::{
     core::{
@@ -17,7 +19,6 @@ use crate::{
         VariablesFromDifferentEnvsException,
     },
     py_bindings::types::Constr,
-    serialization::decode_expression,
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{
@@ -78,42 +79,43 @@ impl PyExpression {
     }
 
     #[pyo3(signature=(compress=None, level=None))]
-    fn serialize(
-        &self,
-        py: Python,
-        compress: Option<bool>,
-        level: Option<i32>,
-    ) -> PyResult<PyObject> {
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
             py,
             &self
                 .borrow()
                 .deref()
-                .versionized(compress, level, Some(Version::latest()))?,
+                .encode()
+                .maybe_compress(compress, level)?
+                .versionize(),
         )
         .into())
     }
 
     #[pyo3(signature=(compress=None, level=None))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        self.serialize(py, compress, level)
+    fn serialize(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<PyObject> {
+        self.encode(py, compress, level)
     }
 
     #[staticmethod]
-    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        // todo, handle env
-        let bytes: &[u8] = data.as_bytes(py);
-        let expr = decode_expression(bytes, Rc::clone(&PyEnvironment::new().0));
-        match expr {
-            Ok(expr) => Ok(PyExpression::new(expr)),
-            Err(e) => Err(PyRuntimeError::new_err(e.to_string())),
-        }
+    fn decode(py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
+        Ok(PyExpression::new(
+            data.as_bytes(py)
+                .unversionize()
+                .decompress()?
+                .decode(env.0)?,
+        ))
     }
 
     #[staticmethod]
-    fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Self::deserialize(py, data)
+    fn deserialize(py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
+        Self::decode(py, data, env)
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {

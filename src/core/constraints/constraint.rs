@@ -29,7 +29,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    // hmm, expression in constraint should be immutable...
+    // todo, expression in constraint should be immutable...
     pub lhs: Rc<RefCell<Expression<Index, Bias>>>,
     pub rhs: Bias,
     pub comparator: Comparator,

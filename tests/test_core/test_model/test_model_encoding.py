@@ -9,7 +9,7 @@ from aq_models import Environment
 def assert_encode_decode(model: Model):
     encoded_model = model.encode()
     decoded_model = Model.decode(encoded_model)
-    assert decoded_model == model
+    assert decoded_model == model, f"\n{decoded_model=}\n{model=}"
 
     encoded_model_b64 = base64.encodebytes(encoded_model)
     decoded_model_bytes = base64.decodebytes(encoded_model_b64)

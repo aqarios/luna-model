@@ -4,10 +4,12 @@ use super::{py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpressi
 use crate::{
     core::{Model, NoActiveEnvironmentFoundException, VarId},
     py_bindings::py_env::CURRENT_ENV,
-    serialization::{decode_model, encode_model},
+    serialization::{
+        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
+    },
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
+use pyo3::{prelude::*, types::PyBytes};
 
 #[pyclass(unsendable, name = "Model", subclass)]
 #[derive(Deref, DerefMut)]
@@ -82,36 +84,39 @@ impl PyModel {
     }
 
     #[pyo3(signature=(compress=None, level=None))]
-    fn serialize(
-        &self,
-        py: Python,
-        compress: Option<bool>,
-        level: Option<i32>,
-    ) -> PyResult<PyObject> {
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+        let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
             py,
-            &encode_model(&self.0, compress.unwrap_or(level.is_some()), level)?,
+            &self
+                .0
+                .encode()
+                .maybe_compress(compress, level)?
+                .versionize(),
         )
         .into())
     }
 
     /// Alias for serialize
     #[pyo3(signature=(compress=None, level=None))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        self.serialize(py, compress, level)
-    }
-
-    #[staticmethod]
-    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        let model_res = decode_model(data.as_bytes(py));
-        match model_res {
-            Ok(model) => Ok(PyModel(model)),
-            Err(e) => Err(PyRuntimeError::new_err(e.to_string())),
-        }
+    fn serialize(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<PyObject> {
+        self.encode(py, compress, level)
     }
 
     #[staticmethod]
     fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Self::deserialize(py, data)
+        Ok(PyModel(
+            data.as_bytes(py).unversionize().decompress()?.decode(())?,
+        ))
+    }
+
+    #[staticmethod]
+    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::decode(py, data)
     }
 }

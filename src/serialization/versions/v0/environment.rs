@@ -1,5 +1,10 @@
-use super::utils::{force_u32, force_u8};
-use crate::core::{Bounds, Environment, VarId, Variable, Vtype};
+use crate::{
+    core::{Bounds, Environment, VarId, Variable, Vtype},
+    serialization::{
+        encodable::{BytesDecodable, BytesEncodable, Creatable},
+        utils::{force_u32, force_u8},
+    },
+};
 use prost::Message;
 
 #[derive(Clone, PartialEq, Message)]
@@ -64,31 +69,23 @@ pub struct SerEnvironment {
     real_bounds_upper: Vec<f64>,
 }
 
-impl SerEnvironment {
-    fn base(id: u8, varcount: u32) -> Self {
-        Self {
-            id: id as u32,
-            varcount,
-            binary: Vec::new(),
-            spin: Vec::new(),
-            integer: Vec::new(),
-            real: Vec::new(),
-            binary_names: Vec::new(),
-            spin_names: Vec::new(),
-            integer_names: Vec::new(),
-            real_names: Vec::new(),
-            integer_bounds_non_default_lower: Vec::new(),
-            integer_bounds_non_default_upper: Vec::new(),
-            integer_bounds_lower: Vec::new(),
-            integer_bounds_upper: Vec::new(),
-            real_bounds_non_default_lower: Vec::new(),
-            real_bounds_non_default_upper: Vec::new(),
-            real_bounds_lower: Vec::new(),
-            real_bounds_upper: Vec::new(),
-        }
+impl BytesEncodable for SerEnvironment {
+    fn encode_to_bytes(&self) -> Vec<u8> {
+        self.encode_to_vec()
     }
+}
 
-    pub fn new(environment: &Environment<VarId>) -> Self {
+impl BytesDecodable<Environment<VarId>> for SerEnvironment {
+    fn decode_from_bytes(
+        bytes: &[u8],
+        _payload: (),
+    ) -> Result<Environment<VarId>, crate::serialization::encodable::DecodeError> {
+        Ok(Self::decode(bytes)?.extract())
+    }
+}
+
+impl Creatable<Environment<VarId>> for SerEnvironment {
+    fn new(environment: &Environment<VarId>) -> Self {
         let mut out = Self::base(environment.id, environment.varcount.0);
 
         let dint = Bounds::integer();
@@ -141,6 +138,31 @@ impl SerEnvironment {
         }
 
         out
+    }
+}
+
+impl SerEnvironment {
+    fn base(id: u8, varcount: u32) -> Self {
+        Self {
+            id: id as u32,
+            varcount,
+            binary: Vec::new(),
+            spin: Vec::new(),
+            integer: Vec::new(),
+            real: Vec::new(),
+            binary_names: Vec::new(),
+            spin_names: Vec::new(),
+            integer_names: Vec::new(),
+            real_names: Vec::new(),
+            integer_bounds_non_default_lower: Vec::new(),
+            integer_bounds_non_default_upper: Vec::new(),
+            integer_bounds_lower: Vec::new(),
+            integer_bounds_upper: Vec::new(),
+            real_bounds_non_default_lower: Vec::new(),
+            real_bounds_non_default_upper: Vec::new(),
+            real_bounds_lower: Vec::new(),
+            real_bounds_upper: Vec::new(),
+        }
     }
 
     pub fn extract(&self) -> Environment<VarId> {

@@ -15,6 +15,7 @@ pub use constraints::Constraints;
 pub use environment::Environment;
 pub use expression::Expression;
 pub use expression::ExpressionBase;
+pub use expression::ExpressionBaseAdjustment;
 pub use model::Model;
 pub use variable::Bounds;
 pub use variable::VarId;

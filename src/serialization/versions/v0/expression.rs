@@ -8,15 +8,12 @@ use crate::{
         Environment, Expression, ExpressionBase, VarId,
     },
     serialization::{
-        encodable::{BytesEncodable, Creatable},
+        encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
         utils::force_u32,
     },
 };
 use prost::Message;
-use std::{
-    cell::{Ref, RefCell},
-    rc::Rc,
-};
+use std::{cell::RefCell, rc::Rc};
 
 struct Quad {
     /// If quadratic is some
@@ -109,6 +106,17 @@ pub struct SerExpression {
 impl BytesEncodable for SerExpression {
     fn encode_to_bytes(&self) -> Vec<u8> {
         self.encode_to_vec()
+    }
+}
+
+type RefEnv = Rc<RefCell<Environment<VarId>>>;
+
+impl BytesDecodable<Expression<VarId, f64>, RefEnv> for SerExpression {
+    fn decode_from_bytes(
+        bytes: &[u8],
+        payload: Rc<RefCell<Environment<VarId>>>,
+    ) -> Result<Expression<VarId, f64>, DecodeError> {
+        Ok(Self::decode(bytes)?.extract(payload))
     }
 }
 
@@ -218,7 +226,7 @@ impl SerExpression {
     }
 
     pub fn extract(&self, env: Rc<RefCell<Environment<VarId>>>) -> Expression<VarId, f64> {
-        let mut expr = Expression::empty(Rc::clone(&env));
+        let mut expr = Expression::empty(env);
         expr.num_variables = self.num_variables as usize;
         expr.active = self.active.clone();
         expr.offset = self.offset;

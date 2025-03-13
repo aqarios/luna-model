@@ -1,10 +1,12 @@
 use crate::{
     core::{Environment, MultipleActiveEnvironmentsException, VarId},
-    serialization::{decode_environment, encode_environment},
+    serialization::{
+        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
+    },
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
-use std::{cell::RefCell, rc::Rc};
+use pyo3::{prelude::*, types::PyBytes};
+use std::{cell::RefCell, ops::Deref, rc::Rc};
 
 #[pyclass(unsendable, name = "Environment")]
 #[derive(Deref, DerefMut, Clone)]
@@ -17,8 +19,8 @@ impl Into<Rc<RefCell<Environment<VarId>>>> for PyEnvironment {
 }
 
 impl PyEnvironment {
-    pub fn new() -> Self {
-        Self(Rc::new(RefCell::new(Environment::new())))
+    pub fn new(env: Environment<VarId>) -> Self {
+        Self(Rc::new(RefCell::new(env)))
     }
 }
 
@@ -30,7 +32,7 @@ thread_local! {
 impl PyEnvironment {
     #[new]
     fn py_new() -> PyResult<Self> {
-        Ok(PyEnvironment::new())
+        Ok(PyEnvironment::new(Environment::new()))
     }
 
     fn __enter__(&self) -> PyResult<Self> {
@@ -68,38 +70,40 @@ impl PyEnvironment {
     }
 
     #[pyo3(signature=(compress=None, level=None))]
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+        let compress = compress.unwrap_or(level.is_some());
+        Ok(PyBytes::new(
+            py,
+            &self
+                .borrow()
+                .deref()
+                .encode()
+                .maybe_compress(compress, level)?
+                .versionize(),
+        )
+        .into())
+    }
+
+    #[pyo3(signature=(compress=None, level=None))]
     fn serialize(
         &self,
         py: Python,
         compress: Option<bool>,
         level: Option<i32>,
     ) -> PyResult<PyObject> {
-        Ok(PyBytes::new(
-            py,
-            &encode_environment(&self.borrow(), compress.unwrap_or(level.is_some()), level)?,
-        )
-        .into())
-    }
-
-    #[pyo3(signature=(compress=None, level=None))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        self.serialize(py, compress, level)
-    }
-
-    #[staticmethod]
-    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        // todo, handle env
-        let bytes: &[u8] = data.as_bytes(py);
-        let env = decode_environment(bytes);
-        match env {
-            Ok(env) => Ok(PyEnvironment(Rc::new(RefCell::new(env)))),
-            Err(e) => Err(PyRuntimeError::new_err(e.to_string())),
-        }
+        self.encode(py, compress, level)
     }
 
     #[staticmethod]
     fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Self::deserialize(py, data)
+        Ok(PyEnvironment::new(
+            data.as_bytes(py).unversionize().decompress()?.decode(())?,
+        ))
+    }
+
+    #[staticmethod]
+    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::decode(py, data)
     }
 
     fn __eq__(&self, other: &PyEnvironment) -> bool {

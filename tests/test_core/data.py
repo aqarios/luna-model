@@ -25,7 +25,7 @@ class T(Protocol):
     def deserialize(*args, **kwargs) -> T: ...
 
 
-def serializeable_objects(items: list[type[T]]) -> list[T]:
+def serializable_objects(items: list[type[T]]) -> list[T]:
     data: list[T] = list()
     for item in items:
         data.extend(TO_SER_OBJECTS[item]())
@@ -36,6 +36,15 @@ def serialized_objects(items: list[type[T]]) -> list[tuple[T, bytes, type[T]]]:
     data: list[tuple[T, bytes, type[T]]] = list()
     for item in items:
         data.extend(SER_OBJECTS[item]())
+    return data
+
+
+def serialized_objects_with_env(
+    items: list[type[T]],
+) -> list[tuple[T, bytes, type[T], Environment]]:
+    data: list[tuple[T, bytes, type[T], Environment]] = list()
+    for item in items:
+        data.extend(SER_WITH_ENV_OBJECTS[item]())
     return data
 
 
@@ -115,6 +124,14 @@ def expressions(
     return [*items, *item_cominations]
 
 
+def expressions_with_env(
+    params: tuple[Environment, list[Variable]] | None = None,
+) -> tuple[list[Expression], Environment]:
+    if not params:
+        params = make_env_with_vars()
+    return expressions(params), params[0]
+
+
 def constant_expression(env: Environment, _: list[Variable]) -> Expression:
     """ """
     return Expression(env) + random()
@@ -187,6 +204,14 @@ def constraints(
             constraints_collection.append(constraints)
 
     return constraints_collection
+
+
+def constraints_with_env(
+    params: tuple[Environment, list[Variable]] | None = None,
+) -> tuple[list[Constraints], Environment]:
+    if not params:
+        params = make_env_with_vars()
+    return constraints(params), params[0]
 
 
 def linear_constraint_le(env: Environment, variables: list[Variable]) -> Constraint:
@@ -275,6 +300,13 @@ def to_serialized(
     return [(e, e.encode(), t) for e in f()]
 
 
+def to_serialized_with_env(
+    f: Callable[[], tuple[Sequence[T], Environment]], t: type[T]
+) -> list[tuple[T, bytes, type[T], Environment]]:
+    items, env = f()
+    return [(e, e.encode(), t, env) for e in items]
+
+
 TO_SER_OBJECTS: dict[type[T], Callable[[], Sequence[T]]] = {
     Expression: expressions,
     Constraints: constraints,
@@ -283,8 +315,13 @@ TO_SER_OBJECTS: dict[type[T], Callable[[], Sequence[T]]] = {
 }
 
 SER_OBJECTS: dict[type[T], Callable[[], Sequence[tuple[T, bytes, type[T]]]]] = {
-    Expression: lambda: to_serialized(expressions, Expression),
-    Constraints: lambda: to_serialized(constraints, Constraints),
     Model: lambda: to_serialized(models, Model),
     Environment: lambda: to_serialized(environments, Environment),
+}
+
+SER_WITH_ENV_OBJECTS: dict[
+    type[T], Callable[[], Sequence[tuple[T, bytes, type[T], Environment]]]
+] = {
+    Expression: lambda: to_serialized_with_env(expressions_with_env, Expression),
+    Constraints: lambda: to_serialized_with_env(constraints_with_env, Constraints),
 }
