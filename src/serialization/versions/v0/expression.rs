@@ -1,14 +1,22 @@
-use super::utils::force_u32;
-use crate::core::{
-    expression::ExpressionBaseCreation,
-    term::{
-        types::{OneVarTerm, OneVarTermConstruction},
-        HigherOrder, Linear, Quadratic,
+use crate::{
+    core::{
+        expression::ExpressionBaseCreation,
+        term::{
+            types::{OneVarTerm, OneVarTermConstruction},
+            HigherOrder, Linear, Quadratic,
+        },
+        Environment, Expression, ExpressionBase, VarId,
     },
-    Environment, Expression, ExpressionBase, VarId,
+    serialization::{
+        encodable::{BytesEncodable, Creatable},
+        utils::force_u32,
+    },
 };
 use prost::Message;
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::{Ref, RefCell},
+    rc::Rc,
+};
 
 struct Quad {
     /// If quadratic is some
@@ -98,8 +106,14 @@ pub struct SerExpression {
     ho_lens: Vec<u32>,
 }
 
-impl SerExpression {
-    pub fn new(expression: &Expression<VarId, f64>) -> Self {
+impl BytesEncodable for SerExpression {
+    fn encode_to_bytes(&self) -> Vec<u8> {
+        self.encode_to_vec()
+    }
+}
+
+impl Creatable<Expression<VarId, f64>> for SerExpression {
+    fn new(expression: &Expression<VarId, f64>) -> Self {
         let quad = Self::encode_quadratic(&expression.quadratic);
         let ho = Self::encode_higher_order(&expression.higher_order);
         Self {
@@ -118,7 +132,9 @@ impl SerExpression {
             ho_lens: ho.lens,
         }
     }
+}
 
+impl SerExpression {
     fn encode_quadratic(quadratic: &Option<Quadratic<VarId, f64>>) -> Quad {
         let mut out = Quad::default();
         if let Some(quad) = &quadratic {

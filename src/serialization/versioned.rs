@@ -5,6 +5,12 @@ pub enum Version {
     V0 = 0,
 }
 
+impl Version {
+    pub fn latest() -> Self {
+        Version::V0
+    }
+}
+
 #[derive(Message)]
 pub struct Versioned {
     #[prost(uint32, tag = "1")]

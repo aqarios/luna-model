@@ -4,7 +4,10 @@ use super::{
     py_var::PyVariable,
     types::Expr,
 };
-use crate::core::expression::ExpressionBaseCreation;
+use crate::{
+    core::expression::ExpressionBaseCreation,
+    serialization::{Encodable, Version},
+};
 use crate::{
     core::{
         operations::{
@@ -14,7 +17,7 @@ use crate::{
         VariablesFromDifferentEnvsException,
     },
     py_bindings::types::Constr,
-    serialization::{decode_expression, encode_expression},
+    serialization::decode_expression,
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{
@@ -22,7 +25,7 @@ use pyo3::{
     prelude::*,
     types::{PyBool, PyBytes},
 };
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, ops::Deref, rc::Rc};
 
 #[pyclass(unsendable, name = "Expression")]
 #[derive(Deref, DerefMut, Clone)]
@@ -81,9 +84,13 @@ impl PyExpression {
         compress: Option<bool>,
         level: Option<i32>,
     ) -> PyResult<PyObject> {
+        let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
             py,
-            &encode_expression(&self.borrow(), compress.unwrap_or(level.is_some()), level)?,
+            &self
+                .borrow()
+                .deref()
+                .versionized(compress, level, Some(Version::latest()))?,
         )
         .into())
     }

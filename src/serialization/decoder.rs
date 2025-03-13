@@ -9,7 +9,7 @@ use super::{
     versioned::{unversionize, Version},
 };
 use crate::core::{Constraints, Environment, Expression, Model, VarId};
-use prost::{DecodeError, Message};
+use prost::DecodeError;
 
 pub fn decode_expression(
     data: &[u8],

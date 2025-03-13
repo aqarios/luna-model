@@ -1,9 +1,13 @@
 use std::{cell::RefCell, io, rc::Rc};
 
-use crate::core::{Comparator, Constraint, Constraints, Environment, VarId};
+use crate::{
+    core::{Comparator, Constraint, Constraints, Environment, VarId},
+    serialization::{
+        encodable::{BytesEncodable, Creatable},
+        Encodable,
+    },
+};
 use prost::{DecodeError, Message};
-
-use super::{decoder::decode_expression, encoder::encode_expression};
 
 #[derive(Clone, PartialEq, Message)]
 pub struct SerConstraints {
@@ -20,6 +24,16 @@ pub struct SerConstraints {
     /// The comparator for each constraint used. Equal to number of constraints.
     #[prost(uint32, repeated, tag = "3")]
     comparators: Vec<u32>,
+}
+
+impl BytesEncodable for SerConstraints {
+    fn encode_to_bytes(&self) -> Vec<u8> {
+        self.encode_to_vec()
+    }
+}
+
+impl Creatable<Constraints<VarId, f64>> for SerConstraints {
+    fn new(value: &Constraints<VarId, f64>) -> Self {}
 }
 
 impl SerConstraints {
@@ -47,7 +61,7 @@ impl SerConstraints {
         level: Option<i32>,
     ) -> Result<Self, io::Error> {
         for c in &constraints.constraints {
-            let lhs_bytes = encode_expression(&c.lhs.borrow(), use_compression, level)?;
+            let lhs_bytes = c.lhs.borrow().encode(use_compression, level)?;
             let comparator = match c.comparator {
                 Comparator::Leq => 0,
                 Comparator::Eq => 1,
