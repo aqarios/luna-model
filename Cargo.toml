@@ -1,12 +1,12 @@
 [package]
-name = "aq-models"
+name = "aqmodels"
 version = "0.1.0"
 edition = "2021"
 
-[lib]
-name = "_core"
-# "cdylib" is necessary to produce a shared library for Python to import from.
-crate-type = ["cdylib"]
+# [lib]
+# name = "aqmodels"
+# # "cdylib" is necessary to produce a shared library for Python to import from.
+# crate-type = ["cdylib"]
 
 [dependencies]
 derive_more = { version = "2.0.1", features = ["deref", "deref_mut"] }

@@ -430,10 +430,12 @@ where
         self.offset += lhs + rhs
     }
 
-    fn mul_linear(&mut self, lhs: &Self::LinearType, rhs: &Self::LinearType) {
-        for (u_idx, u_bias) in lhs.iter() {
-            for (v_idx, v_bias) in rhs.iter() {
-                self.add_quadratic(u_idx.into(), v_idx.into(), *u_bias * *v_bias);
+    fn mul_linear(&mut self, lhs: &Self, rhs: &Self) {
+        for (u_idx, u_bias) in lhs.linear.iter() {
+            for (v_idx, v_bias) in rhs.linear.iter() {
+                if lhs.active[u_idx] && rhs.active[v_idx] {
+                    self.add_quadratic(u_idx.into(), v_idx.into(), *u_bias * *v_bias);
+                }
             }
         }
     }

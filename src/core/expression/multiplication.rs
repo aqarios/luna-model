@@ -83,7 +83,7 @@ where
         } else {
             let mut out = Expression::empty(self.env.clone());
             out.mul_offset(self.offset, rhs.offset);
-            out.mul_linear(&self.linear, &rhs.linear);
+            out.mul_linear(&self, &rhs);
             if self.has_quadratic() && rhs.has_quadratic() {
                 // Only if both expressions have quadratic terms, we need to multiply
                 // otherwise the result is always 0.

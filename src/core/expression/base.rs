@@ -326,7 +326,7 @@ where
     /// Multiply two offset and add to self.
     fn mul_offset(&mut self, lhs: Bias, rhs: Bias);
     /// Multiply two linear terms and add to self.
-    fn mul_linear(&mut self, lhs: &Self::LinearType, rhs: &Self::LinearType);
+    fn mul_linear(&mut self, lhs: &Self, rhs: &Self);
     /// Multiply two quadratic terms and add to self.
     fn mul_quadratic(&mut self, lhs: &Self::QuadraticType, rhs: &Self::QuadraticType);
     /// Multiply two higher order terms and add to self.
