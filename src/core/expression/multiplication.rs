@@ -81,7 +81,20 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            todo!("this method has missing multiplication logic.");
+            eprintln!(
+                "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+The multiplication of two Expressions has missing multiplication logic.
+
+    We need to implement the multiplication between one and all others, not just between the same
+    terms of the two expressions, which is what is done currently.
+    
+    Missing: offset * linear, offset * quadratic, offset * higher_order
+             linear * quadratic, linear * higher_order
+             quadratic * higher_order
+    
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            );
             let mut out = Expression::empty(self.env.clone());
             out.mul_offset(self.offset, rhs.offset);
             out.mul_linear(&self, &rhs);
