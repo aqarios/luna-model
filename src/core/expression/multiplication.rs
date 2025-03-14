@@ -81,6 +81,7 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
+            todo!("this method has missing multiplication logic.");
             let mut out = Expression::empty(self.env.clone());
             out.mul_offset(self.offset, rhs.offset);
             out.mul_linear(&self, &rhs);
