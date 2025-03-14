@@ -128,7 +128,7 @@ impl PyExpression {
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow()
-                .add(rhs.borrow())
+                .add(rhs.borrow().deref())
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
@@ -140,11 +140,11 @@ impl PyExpression {
         self.__add__(py, other)
     }
 
-    fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __sub__(&self, _py: Python, _other: PyObject) -> PyResult<PyExpression> {
         todo!()
     }
 
-    fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __rsub__(&self, _py: Python, _other: PyObject) -> PyResult<PyExpression> {
         todo!()
     }
 
@@ -158,7 +158,7 @@ impl PyExpression {
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow()
-                .mul(rhs.borrow())
+                .mul(rhs.borrow().deref())
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
@@ -180,14 +180,14 @@ impl PyExpression {
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow_mut()
-                .add_assign(rhs.borrow())
+                .add_assign(rhs.borrow().deref())
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
     }
 
-    fn __isub__(&mut self, py: Python, other: PyObject) {
+    fn __isub__(&mut self, _py: Python, _other: PyObject) {
         todo!()
     }
 
@@ -200,7 +200,7 @@ impl PyExpression {
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow_mut()
-                .mul_assign(rhs.borrow())
+                .mul_assign(rhs.borrow().deref())
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))

@@ -8,7 +8,6 @@ use super::{
 use crate::core::operations::{MulAssignToExpression, MulToExpression};
 use crate::core::VarRef;
 use crate::core::{exceptions::VariablesFromDifferentEnvsError, ExpressionBase};
-use std::cell::Ref;
 
 // MULTIPLICATION
 
@@ -70,7 +69,7 @@ where
     }
 }
 
-impl<Index, Bias> MulToExpression<Index, Bias, Ref<'_, Expression<Index, Bias>>>
+impl<Index, Bias> MulToExpression<Index, Bias, &Expression<Index, Bias>>
     for &Expression<Index, Bias>
 where
     Index: IndexConstraints,
@@ -78,7 +77,7 @@ where
 {
     type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
 
-    fn mul(self, rhs: Ref<'_, Expression<Index, Bias>>) -> Self::Output {
+    fn mul(self, rhs: &Expression<Index, Bias>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
@@ -151,7 +150,7 @@ where
     }
 }
 
-impl<Index, Bias> MulAssignToExpression<Index, Bias, Ref<'_, Expression<Index, Bias>>>
+impl<Index, Bias> MulAssignToExpression<Index, Bias, &Expression<Index, Bias>>
     for Expression<Index, Bias>
 where
     Index: IndexConstraints,
@@ -159,7 +158,7 @@ where
 {
     type Output = Result<(), VariablesFromDifferentEnvsError>;
 
-    fn mul_assign(&mut self, rhs: Ref<'_, Expression<Index, Bias>>) -> Self::Output {
+    fn mul_assign(&mut self, rhs: &Expression<Index, Bias>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {

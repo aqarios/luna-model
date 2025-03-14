@@ -7,7 +7,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::slice::Iter;
 use std::string::ToString;
 use std::{
-    cell::{Ref, RefCell},
+    cell::RefCell,
     ops::{Add, AddAssign},
     rc::Rc,
 };
@@ -127,24 +127,24 @@ where
     }
 }
 
-impl<Index, Bias> AddAssign<Ref<'_, Constraint<Index, Bias>>> for Constraints<Index, Bias>
+impl<Index, Bias> AddAssign<&Constraint<Index, Bias>> for Constraints<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn add_assign(&mut self, rhs: Ref<'_, Constraint<Index, Bias>>) {
+    fn add_assign(&mut self, rhs: &Constraint<Index, Bias>) {
         self.constraints.push(rhs.clone());
     }
 }
 
-impl<Index, Bias> Add<Ref<'_, Constraint<Index, Bias>>> for &Constraints<Index, Bias>
+impl<Index, Bias> Add<&Constraint<Index, Bias>> for &Constraints<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
     type Output = Constraints<Index, Bias>;
 
-    fn add(self, rhs: Ref<'_, Constraint<Index, Bias>>) -> Self::Output {
+    fn add(self, rhs: &Constraint<Index, Bias>) -> Self::Output {
         let mut out = Constraints::new_from(&self);
         out += rhs;
         out
@@ -160,22 +160,6 @@ where
         self.comparator == other.comparator && self.rhs == other.rhs && self.lhs == other.lhs
     }
 }
-
-// impl<Index, Bias> PartialEq for Constraints<Index, Bias>
-// where
-//     Index: IndexConstraints,
-//     Bias: BiasConstraints,
-// {
-//     fn eq(&self, other: &Self) -> bool {
-//         let mut num_matches = 0;
-//         for lhs in self.constraints.iter() {
-//             for rhs in other.constraints.iter() {
-//                 num_matches += (lhs == rhs) as usize;
-//             }
-//         }
-//         num_matches >= self.constraints.len()
-//     }
-// }
 
 impl<Index, Bias> Display for Constraints<Index, Bias>
 where

@@ -12,15 +12,6 @@ impl Into<Bounds> for PyBounds {
     }
 }
 
-// impl PyBounds {
-//     pub fn map_option(b: Option<Self>) -> Option<Bounds> {
-//         match b {
-//             Some(e) => Some(e.0),
-//             None => None,
-//         }
-//     }
-// }
-
 #[pymethods]
 impl PyBounds {
     #[new]

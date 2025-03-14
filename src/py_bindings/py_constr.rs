@@ -84,7 +84,7 @@ impl PyConstraints {
     }
 
     fn add_constraint(&mut self, other: PyConstraint) {
-        self.borrow_mut().add_assign(other.borrow());
+        self.borrow_mut().add_assign(other.borrow().deref());
     }
 
     fn __eq__(&self, other: Self) -> bool {
