@@ -3,12 +3,25 @@ use std::io;
 use prost::Message;
 
 use super::{
-    compression::Compressed as SerCompressed,
     utils::{Slicable, Vectorizeable},
     versionizable::Finalize,
 };
 
 pub static DEFAULT_COMPRESSION_LEVEL: i32 = 3;
+
+#[derive(Clone, PartialEq, Message)]
+pub struct SerCompressed {
+    #[prost(bool, tag = "1")]
+    pub compressed: bool,
+    #[prost(bytes, tag = "2")]
+    pub data: Vec<u8>,
+}
+
+impl SerCompressed {
+    fn new(compressed: bool, data: Vec<u8>) -> Self {
+        Self { compressed, data }
+    }
+}
 
 pub trait Compressable
 where

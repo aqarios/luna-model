@@ -82,9 +82,3 @@ where
         Self::Latest::decoder(self.as_slice(), payload)
     }
 }
-
-// impl<S: Decoder<E>, E: Encodable<S>> Decodable<S, E> for &Vec<u8> {
-//     fn decode(&self) -> Result<E, DecodeError> {
-//         S::decoder(&self)
-//     }
-// }
