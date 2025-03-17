@@ -81,40 +81,9 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            eprintln!(
-                "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-The multiplication of two Expressions has missing multiplication logic.
-
-    We need to implement the multiplication between one and all others, not just between the same
-    terms of the two expressions, which is what is done currently.
-    
-    Missing: offset * linear, offset * quadratic, offset * higher_order
-             linear * quadratic, linear * higher_order
-             quadratic * higher_order
-    
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-            );
-            let mut out = Expression::empty(self.env.clone());
-            out.mul_offset(self.offset, rhs.offset);
-            out.mul_linear(&self, &rhs);
-            if self.has_quadratic() && rhs.has_quadratic() {
-                // Only if both expressions have quadratic terms, we need to multiply
-                // otherwise the result is always 0.
-                out.mul_quadratic(
-                    self.quadratic.as_ref().unwrap(),
-                    rhs.quadratic.as_ref().unwrap(),
-                );
-            }
-            if self.has_higher_order() && rhs.has_higher_order() {
-                // Only if both expressions have higher order terms, we need to multiply
-                // otherwise the result is always 0.
-                out.mul_higher_order(
-                    self.higher_order.as_ref().unwrap(),
-                    rhs.higher_order.as_ref().unwrap(),
-                );
-            }
-            Ok(out)
+            let mut result = Expression::empty(self.env.clone());
+            Expression::multiply(&self, &rhs, &mut result);
+            Ok(result)
         }
     }
 }

@@ -1,7 +1,7 @@
-// mod binary_test;
-// mod integer_test;
-// mod real_test;
-// mod spin_test;
+mod binary_test;
+mod integer_test;
+mod real_test;
+mod spin_test;
 
 use hashbrown::HashMap;
 use std::rc::Rc;
@@ -9,7 +9,7 @@ use std::rc::Rc;
 use aqmodels::core::{
     environment::add_variable,
     operations::{MulAssignToExpression, MulToExpression},
-    term::HigherOrder,
+    term::{types::OneVarTerm, HigherOrder},
     VarId, Vtype,
 };
 
@@ -42,6 +42,8 @@ fn higher_order_expression_base(vtype: Vtype, n: usize) {
         &expr.higher_order.as_ref().unwrap().biases
     );
 
+    let expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![vec![]; biases.len() + 2];
+
     let mut expected_higher_order: HashMap<String, f64> = HashMap::with_capacity(biases.len());
     for (var, bias) in vars.iter().zip(&biases) {
         let key = HigherOrder::<VarId, f64>::make_key(&vec![var.id, ma.id, mb.id]);
@@ -55,10 +57,9 @@ fn higher_order_expression_base(vtype: Vtype, n: usize) {
         &vec![f64::default(); biases.len() + 2],
         "linear parts are not equal"
     );
-    assert_eq!(
-        expr.quadratic, None,
-        "quadratic must be None after multiplications"
-    );
+    if expr.has_quadratic() {
+        assert_eq!(expr.quadratic.as_ref().unwrap().adj, expected_quadratic,);
+    }
     assert_ne!(expr.higher_order, None, "higher order should be None");
     assert_eq!(
         expr.higher_order.unwrap().biases,
