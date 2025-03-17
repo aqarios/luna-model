@@ -15,56 +15,10 @@ use crate::{
 use prost::Message;
 use std::{cell::RefCell, rc::Rc};
 
-struct Quad {
-    /// If quadratic is some
-    size: u32,
-    /// the indices of the neighbors as a vector.
-    neighborhood_indices: Vec<u32>,
-    /// the neighboring indices as a vector.
-    neighborhoods: Vec<u32>,
-    /// the values of the neighborhood as a vector.
-    neighborhoods_values: Vec<f64>,
-    /// the length of the neighborhoods as a vector.
-    neighborhoods_len: Vec<u32>,
-}
-
-impl Quad {
-    fn default() -> Self {
-        Self {
-            size: 0,
-            neighborhood_indices: Vec::new(),
-            neighborhoods: Vec::new(),
-            neighborhoods_values: Vec::new(),
-            neighborhoods_len: Vec::new(),
-        }
-    }
-}
-
-struct Ho {
-    size: usize,
-    /// Higher Order values stored in the hashmap.
-    values: Vec<f64>,
-    /// Higher Order indices stored in the hashmap concatenated.
-    indices: Vec<u32>,
-    /// Number of keys per higher order entry
-    lens: Vec<u32>,
-}
-
-impl Ho {
-    fn default() -> Self {
-        Self {
-            size: 0,
-            values: Vec::new(),
-            indices: Vec::new(),
-            lens: Vec::new(),
-        }
-    }
-}
-
 #[derive(Clone, PartialEq, Message)]
 pub struct SerExpression {
-    #[prost(uint64, tag = "1")]
-    num_variables: u64,
+    #[prost(uint32, tag = "1")]
+    num_variables: u32,
     #[prost(bool, repeated, tag = "2")]
     active: Vec<bool>,
 
@@ -90,8 +44,8 @@ pub struct SerExpression {
     quad_neighborhoods_len: Vec<u32>,
 
     /// If the expression has a quadratic term or not
-    #[prost(uint64, tag = "10")]
-    ho_size: u64,
+    #[prost(uint32, tag = "10")]
+    ho_size: u32,
     /// Higher Order values stored in the hashmap.
     #[prost(double, repeated, tag = "11")]
     ho_values: Vec<f64>,
@@ -121,46 +75,106 @@ impl BytesDecodable<Expression<VarId, f64>, RefEnv> for SerExpression {
 }
 
 impl Creatable<Expression<VarId, f64>> for SerExpression {
-    fn new(expression: &Expression<VarId, f64>) -> Self {
-        let quad = Self::encode_quadratic(&expression.quadratic);
-        let ho = Self::encode_higher_order(&expression.higher_order);
-        Self {
-            num_variables: expression.num_variables() as u64,
-            active: expression.active.clone(),
-            offset: expression.offset,
-            linear: expression.linear.to_vec().clone(),
-            quad_size: quad.size,
-            quad_neighborhood_indices: quad.neighborhood_indices,
-            quad_neighborhoods: quad.neighborhoods,
-            quad_neighborhoods_values: quad.neighborhoods_values,
-            quad_neighborhoods_len: quad.neighborhoods_len,
-            ho_size: ho.size as u64,
-            ho_values: ho.values,
-            ho_indices: ho.indices,
-            ho_lens: ho.lens,
-        }
+    fn new(value: &Expression<VarId, f64>) -> Self {
+        Self::empty().fill(&value)
     }
+
+    // fn new(expression: &Expression<VarId, f64>) -> Self {
+    //     let quad = Self::encode_quadratic(&expression.quadratic);
+    //     let ho = Self::encode_higher_order(&expression.higher_order);
+    //     Self {
+    //         num_variables: expression.num_variables() as u64,
+    //         active: expression.active.clone(),
+    //         offset: expression.offset,
+    //         linear: expression.linear.to_vec().clone(),
+    //         quad_size: quad.size,
+    //         quad_neighborhood_indices: quad.neighborhood_indices,
+    //         quad_neighborhoods: quad.neighborhoods,
+    //         quad_neighborhoods_values: quad.neighborhoods_values,
+    //         quad_neighborhoods_len: quad.neighborhoods_len,
+    //         ho_size: ho.size as u64,
+    //         ho_values: ho.values,
+    //         ho_indices: ho.indices,
+    //         ho_lens: ho.lens,
+    //     }
+    // }
 }
 
 impl SerExpression {
-    fn encode_quadratic(quadratic: &Option<Quadratic<VarId, f64>>) -> Quad {
-        let mut out = Quad::default();
-        if let Some(quad) = &quadratic {
-            out.size = force_u32(quad.len());
+    fn empty() -> Self {
+        Self {
+            num_variables: u32::default(),
+            active: Vec::new(),
+            offset: f64::default(),
+            linear: Vec::new(),
+            quad_size: u32::default(),
+            quad_neighborhood_indices: Vec::new(),
+            quad_neighborhoods: Vec::new(),
+            quad_neighborhoods_values: Vec::new(),
+            quad_neighborhoods_len: Vec::new(),
+            ho_size: u32::default(),
+            ho_values: Vec::new(),
+            ho_indices: Vec::new(),
+            ho_lens: Vec::new(),
+        }
+    }
+
+    fn fill(mut self, expression: &Expression<VarId, f64>) -> Self {
+        self.num_variables = force_u32(expression.num_variables());
+        self.active.resize(expression.active.len(), false);
+        self.active.copy_from_slice(&expression.active);
+        self.offset = expression.offset;
+        self.linear.resize(expression.linear.len(), f64::default());
+        self.linear.copy_from_slice(expression.linear.to_vec());
+
+        if let Some(quad) = &expression.quadratic {
+            self.quad_size = force_u32(quad.len());
             for (u, neighborhood) in quad.iter() {
                 if !neighborhood.is_empty() {
                     // only store data if the neighborhood is not empty.
-                    out.neighborhood_indices.push(force_u32(u));
-                    out.neighborhoods_len.push(force_u32(neighborhood.len()));
+                    self.quad_neighborhood_indices.push(force_u32(u));
+                    self.quad_neighborhoods_len
+                        .push(force_u32(neighborhood.len()));
                     neighborhood.iter().for_each(|e| {
-                        out.neighborhoods.push(e.index.0);
-                        out.neighborhoods_values.push(e.bias);
+                        self.quad_neighborhoods.push(e.index.0);
+                        self.quad_neighborhoods_values.push(e.bias);
                     });
                 }
             }
         }
-        out
+
+        if let Some(ho) = &expression.higher_order {
+            self.ho_size = force_u32(ho.len());
+            for (ids, bias) in ho.iter_contrib() {
+                self.ho_lens.push(force_u32(ids.len()));
+                self.ho_values.push(*bias);
+                ids.iter().for_each(|id| {
+                    self.ho_indices.push(id.0);
+                });
+            }
+        }
+
+        self
     }
+
+    // fn encode_quadratic(quadratic: &Option<Quadratic<VarId, f64>>) -> Quad {
+    //     let mut out = Quad::default();
+    //     if let Some(quad) = &quadratic {
+    //         out.size = force_u32(quad.len());
+    //         for (u, neighborhood) in quad.iter() {
+    //             if !neighborhood.is_empty() {
+    //                 // only store data if the neighborhood is not empty.
+    //                 out.neighborhood_indices.push(force_u32(u));
+    //                 out.neighborhoods_len.push(force_u32(neighborhood.len()));
+    //                 neighborhood.iter().for_each(|e| {
+    //                     out.neighborhoods.push(e.index.0);
+    //                     out.neighborhoods_values.push(e.bias);
+    //                 });
+    //             }
+    //         }
+    //     }
+    //     out
+    // }
 
     fn decode_quadratic(&self) -> Option<Quadratic<VarId, f64>> {
         if self.quad_size == 0 {
@@ -186,23 +200,23 @@ impl SerExpression {
         Some(quad)
     }
 
-    fn encode_higher_order(higher_order: &Option<HigherOrder<VarId, f64>>) -> Ho {
-        if higher_order.is_none() {
-            return Ho::default();
-        }
+    // fn encode_higher_order(higher_order: &Option<HigherOrder<VarId, f64>>) -> Ho {
+    //     if higher_order.is_none() {
+    //         return Ho::default();
+    //     }
 
-        let highero = higher_order.as_ref().unwrap();
-        let mut ho = Ho::default();
-        ho.size = highero.len();
-        for (ids, bias) in highero.iter_contrib() {
-            ho.lens.push(force_u32(ids.len()));
-            ho.values.push(*bias);
-            ids.iter().for_each(|id| {
-                ho.indices.push(id.0);
-            });
-        }
-        ho
-    }
+    //     let highero = higher_order.as_ref().unwrap();
+    //     let mut ho = Ho::default();
+    //     ho.size = highero.len();
+    //     for (ids, bias) in highero.iter_contrib() {
+    //         ho.lens.push(force_u32(ids.len()));
+    //         ho.values.push(*bias);
+    //         ids.iter().for_each(|id| {
+    //             ho.indices.push(id.0);
+    //         });
+    //     }
+    //     ho
+    // }
 
     fn decode_higher_order(&self) -> Option<HigherOrder<VarId, f64>> {
         if self.ho_size == 0 {
