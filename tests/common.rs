@@ -27,12 +27,6 @@ where
     (0..n).map(|_| rng.random()).collect()
 }
 
-// pub fn create_binary_linear_expression<I: IndexConstraints, B: BiasConstraints>(
-//     env: Rc<RefCell<Environment<I>>>,
-//     biases: &Vec<B>,
-// ) -> Expression<I, B> {
-//     create_linear_expression(env, biases, Vtype::Binary)
-// }
 pub fn create_linear_expression_with_vars<I: IndexConstraints, B: BiasConstraints>(
     env: Rc<RefCell<Environment<I>>>,
     biases: &Vec<B>,

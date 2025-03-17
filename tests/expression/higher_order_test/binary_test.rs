@@ -2,14 +2,17 @@ use std::rc::Rc;
 
 use aqmodels::core::{
     operations::{MulAssignToExpression, MulToExpression},
-    term::types::{OneVarTerm, OneVarTermConstruction},
+    term::{
+        types::{OneVarTerm, OneVarTermConstruction},
+        HigherOrder,
+    },
     VarId, Vtype,
 };
 
 use crate::common::*;
 
 #[test]
-fn quadratic_expression_equal_binaries_varref() {
+fn higher_order_expression_equal_binaries_varref() {
     let n = 100;
 
     let env = package(create_env::<VarId>());
@@ -18,6 +21,7 @@ fn quadratic_expression_equal_binaries_varref() {
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Binary);
 
     let multiplier = &vars[0];
+    expr.mul_assign(multiplier).unwrap();
     expr.mul_assign(multiplier).unwrap();
 
     let mut expected_linear: Vec<f64> = vec![biases[0]];
@@ -33,6 +37,8 @@ fn quadratic_expression_equal_binaries_varref() {
         .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b))
         .collect()];
     expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
+
+    let expected_higher_order: HigherOrder<VarId, f64> = HigherOrder::default();
 
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, f64::default(), "offset is wrong");
@@ -50,7 +56,11 @@ fn quadratic_expression_equal_binaries_varref() {
         expected_quadratic,
         "the quadratic term is not the expected structure"
     );
-    assert_eq!(expr.higher_order, None, "higher order should be None");
+    assert_eq!(
+        expr.higher_order,
+        Some(expected_higher_order),
+        "higher order should be None"
+    );
     assert_eq!(
         expr.active.len(),
         biases.len(),
@@ -69,7 +79,7 @@ fn quadratic_expression_equal_binaries_varref() {
 }
 
 #[test]
-fn quadratic_expression_equal_binaries_expr() {
+fn higher_order_expression_equal_binaries_expr() {
     let n = 100;
 
     let env = package(create_env::<VarId>());
@@ -78,9 +88,12 @@ fn quadratic_expression_equal_binaries_expr() {
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Binary);
 
     let multiplier = &vars[0];
-    expr.mul_assign(&multiplier.mul(1.0)).unwrap();
+    expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
+    expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
 
-    let mut expected_linear: Vec<f64> = vec![biases[0]];
+    let expected_offset = f64::default();
+
+    let mut expected_linear: Vec<f64> = vec![biases[0] * biases[0] * biases[0]];
     expected_linear.append(&mut vec![f64::default(); biases.len() - 1]);
 
     // Here, the creation of the quadratic variable is a bit more tricky.
@@ -90,12 +103,14 @@ fn quadratic_expression_equal_binaries_expr() {
     let mut expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![biases[1..]
         .iter()
         .enumerate()
-        .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b))
+        .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b * biases[0] * biases[0]))
         .collect()];
     expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
 
+    let expected_higher_order: HigherOrder<VarId, f64> = HigherOrder::default();
+
     assert_eq!(expr.env, env, "envs is wrong");
-    assert_eq!(expr.offset, f64::default(), "offset is wrong");
+    assert_eq!(expr.offset, expected_offset, "offset is wrong");
     assert_eq!(
         expr.linear.to_vec(),
         &expected_linear,
@@ -110,7 +125,11 @@ fn quadratic_expression_equal_binaries_expr() {
         expected_quadratic,
         "the quadratic term is not the expected structure"
     );
-    assert_eq!(expr.higher_order, None, "higher order should be None");
+    assert_eq!(
+        expr.higher_order,
+        Some(expected_higher_order),
+        "higher order should be None"
+    );
     assert_eq!(
         expr.active.len(),
         biases.len(),

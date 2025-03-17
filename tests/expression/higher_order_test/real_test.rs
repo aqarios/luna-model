@@ -2,14 +2,15 @@ use std::rc::Rc;
 
 use aqmodels::core::{
     operations::{MulAssignToExpression, MulToExpression},
-    term::types::{OneVarTerm, OneVarTermConstruction},
+    term::{types::OneVarTerm, HigherOrder},
     VarId, Vtype,
 };
+use hashbrown::HashMap;
 
 use crate::common::*;
 
 #[test]
-fn quadratic_expression_equal_real_varref() {
+fn higher_order_expression_equal_real_varref() {
     let n = 100;
 
     let env = package(create_env::<VarId>());
@@ -19,14 +20,16 @@ fn quadratic_expression_equal_real_varref() {
 
     let multiplier = &vars[0];
     expr.mul_assign(multiplier).unwrap();
+    expr.mul_assign(multiplier).unwrap();
 
     let expected_linear: Vec<f64> = vec![f64::default(); biases.len()];
-    let mut expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![biases
-        .iter()
-        .enumerate()
-        .map(|(i, b)| OneVarTerm::new(i.into(), *b))
-        .collect()];
-    expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
+    let expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![vec![]; biases.len()];
+
+    let mut expected_higher_order: HashMap<String, f64> = HashMap::with_capacity(biases.len());
+    for (var, bias) in vars.iter().zip(&biases) {
+        let key = HigherOrder::<VarId, f64>::make_key(&vec![var.id, multiplier.id, multiplier.id]);
+        expected_higher_order.insert(key, *bias);
+    }
 
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, f64::default(), "offset is wrong");
@@ -44,7 +47,13 @@ fn quadratic_expression_equal_real_varref() {
         expected_quadratic,
         "the quadratic term is not the expected structure"
     );
-    assert_eq!(expr.higher_order, None, "higher order should be None");
+    assert_ne!(expr.higher_order, None, "higher order should NOT be None");
+
+    assert_eq!(
+        expr.higher_order.as_ref().unwrap().biases,
+        expected_higher_order,
+        "higher order is incorrect"
+    );
     assert_eq!(
         expr.active.len(),
         biases.len(),
@@ -63,7 +72,7 @@ fn quadratic_expression_equal_real_varref() {
 }
 
 #[test]
-fn quadratic_expression_equal_real_expr() {
+fn higher_order_expression_equal_real_expr() {
     let n = 100;
 
     let env = package(create_env::<VarId>());
@@ -72,15 +81,17 @@ fn quadratic_expression_equal_real_expr() {
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Real);
 
     let multiplier = &vars[0];
-    expr.mul_assign(&multiplier.mul(1.0)).unwrap();
+    expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
+    expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
 
     let expected_linear: Vec<f64> = vec![f64::default(); biases.len()];
-    let mut expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![biases
-        .iter()
-        .enumerate()
-        .map(|(i, b)| OneVarTerm::new(i.into(), *b))
-        .collect()];
-    expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
+    let expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![vec![]; biases.len()];
+
+    let mut expected_higher_order: HashMap<String, f64> = HashMap::with_capacity(biases.len());
+    for (var, bias) in vars.iter().zip(&biases) {
+        let key = HigherOrder::<VarId, f64>::make_key(&vec![var.id, multiplier.id, multiplier.id]);
+        expected_higher_order.insert(key, *bias * biases[0] * biases[0]);
+    }
 
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, f64::default(), "offset is wrong");
@@ -98,7 +109,11 @@ fn quadratic_expression_equal_real_expr() {
         expected_quadratic,
         "the quadratic term is not the expected structure"
     );
-    assert_eq!(expr.higher_order, None, "higher order should be None");
+    assert_eq!(
+        expr.higher_order.as_ref().unwrap().biases,
+        expected_higher_order,
+        "higher order does not have expected values"
+    );
     assert_eq!(
         expr.active.len(),
         biases.len(),

@@ -65,7 +65,7 @@ fn quadratic_expression_base(vtype: Vtype, n: usize) {
 
 #[test]
 fn quadratic_expression() {
-    let n = 4;
+    let n = 100;
     quadratic_expression_base(Vtype::Binary, n);
     quadratic_expression_base(Vtype::Spin, n);
     quadratic_expression_base(Vtype::Integer, n);

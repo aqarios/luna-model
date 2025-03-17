@@ -2,15 +2,15 @@ use std::rc::Rc;
 
 use aqmodels::core::{
     operations::{MulAssignToExpression, MulToExpression},
-    term::types::{OneVarTerm, OneVarTermConstruction},
+    term::{types::OneVarTerm, HigherOrder},
     VarId, Vtype,
 };
 
 use crate::common::*;
 
 #[test]
-fn quadratic_expression_equal_spins_varref() {
-    let n = 100;
+fn higher_order_expression_equal_spins_varref() {
+    let n = 4;
 
     let env = package(create_env::<VarId>());
     let biases = random_biases::<f64>(n);
@@ -19,22 +19,15 @@ fn quadratic_expression_equal_spins_varref() {
 
     let multiplier = &vars[0];
     expr.mul_assign(multiplier).unwrap();
+    expr.mul_assign(multiplier).unwrap();
 
-    let expected_offset = biases[0];
+    let expected_offset = f64::default();
 
-    let mut expected_linear: Vec<f64> = vec![0.0];
-    expected_linear.append(&mut vec![f64::default(); biases.len() - 1]);
+    let mut expected_linear: Vec<f64> = biases.clone();
+    expected_linear[multiplier.id.0 as usize] = biases[0];
 
-    // Here, the creation of the quadratic variable is a bit more tricky.
-    // As the smaller value will always contain the interaction.
-    // In this case, we multiply with the variable with the smallest index,
-    // so we know that all interactions will be located at this position.
-    let mut expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![biases[1..]
-        .iter()
-        .enumerate()
-        .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b))
-        .collect()];
-    expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
+    let expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![vec![]; biases.len()];
+    let expected_higher_order: HigherOrder<VarId, f64> = HigherOrder::default();
 
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, expected_offset, "offset is wrong");
@@ -52,7 +45,11 @@ fn quadratic_expression_equal_spins_varref() {
         expected_quadratic,
         "the quadratic term is not the expected structure"
     );
-    assert_eq!(expr.higher_order, None, "higher order should be None");
+    assert_eq!(
+        expr.higher_order,
+        Some(expected_higher_order),
+        "higher order should be None"
+    );
     assert_eq!(
         expr.active.len(),
         biases.len(),
@@ -71,7 +68,7 @@ fn quadratic_expression_equal_spins_varref() {
 }
 
 #[test]
-fn quadratic_expression_equal_spins_expr() {
+fn higher_order_expression_equal_spins_expr() {
     let n = 100;
 
     let env = package(create_env::<VarId>());
@@ -80,23 +77,16 @@ fn quadratic_expression_equal_spins_expr() {
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Spin);
 
     let multiplier = &vars[0];
-    expr.mul_assign(&multiplier.mul(1.0)).unwrap();
+    expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
+    expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
 
-    let expected_offset = biases[0];
+    let expected_offset = f64::default();
 
-    let mut expected_linear: Vec<f64> = vec![0.0];
-    expected_linear.append(&mut vec![f64::default(); biases.len() - 1]);
+    let mut expected_linear: Vec<f64> = biases.iter().map(|b| b * biases[0] * biases[0]).collect();
+    expected_linear[multiplier.id.0 as usize] = biases[0] * biases[0] * biases[0];
 
-    // Here, the creation of the quadratic variable is a bit more tricky.
-    // As the smaller value will always contain the interaction.
-    // In this case, we multiply with the variable with the smallest index,
-    // so we know that all interactions will be located at this position.
-    let mut expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![biases[1..]
-        .iter()
-        .enumerate()
-        .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b))
-        .collect()];
-    expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
+    let expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![vec![]; biases.len()];
+    let expected_higher_order: HigherOrder<VarId, f64> = HigherOrder::default();
 
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, expected_offset, "offset is wrong");
@@ -114,7 +104,11 @@ fn quadratic_expression_equal_spins_expr() {
         expected_quadratic,
         "the quadratic term is not the expected structure"
     );
-    assert_eq!(expr.higher_order, None, "higher order should be None");
+    assert_eq!(
+        expr.higher_order,
+        Some(expected_higher_order),
+        "higher order should be None"
+    );
     assert_eq!(
         expr.active.len(),
         biases.len(),
