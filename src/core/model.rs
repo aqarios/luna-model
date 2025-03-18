@@ -76,14 +76,13 @@ where
         model
     }
 
-    fn evaluate<Assign>(&self, sol: &mut Solution<Assign, Bias>) -> &mut Solution<Assign, Bias>
+    fn evaluate<Assign>(&self, _sol: &mut Solution<Assign, Bias>) -> &mut Solution<Assign, Bias>
     where
         Assign: AssignmentConstraints,
     {
         // Here, duplicate samples are already removed, i.e., each element of sol.samples is unique
 
-        // TODO: implement actual logic
-        sol
+        todo!("Implement evaluation logic")
     }
 }
 

@@ -1,3 +1,4 @@
+import numpy as np
 from dimod import SampleSet, BinaryQuadraticModel, Vartype
 from dwave.samplers import SimulatedAnnealingSampler
 
@@ -45,13 +46,17 @@ def test_from_dimod_2():
     sampleset: SampleSet = sampler.sample(bqm, num_reads=5, seed=42)
 
     sol = SampleSetTranslator.from_dimod_sample_set(sampleset)
-    # print(sol)
-    assert sol.samples == [[0.0, 1.0, 0.0]]
-    assert sol.num_occurrences == [5]
+    np.allclose(sol.samples, np.array([[0.0, 1.0, 0.0]]))
+    assert np.allclose(sol.num_occurrences, np.array([5]))
 
     # print(sol.results[0])
     print(sol)
-    # print(sol.results)
+    print(f"{len(sol.results) = }")
+    print(sol.results[0].sample)
+    print(sol.results[0].num_occurrences)
+    print(sol.results[0].obj_value)
+    print(sol.results[0].feasible)
+    print(sol.results[0].constraint_satisfaction)
 
-    print(sampleset.info)
+    # print(sampleset.info)
     raise Exception

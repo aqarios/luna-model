@@ -9,7 +9,7 @@ impl SampleSetTranslator {
         shape: &[usize],
     ) -> Solution<f64, f64>
 where {
-        let mut sol = Solution::new();
+        let mut sol = Solution::default();
         for i in 0..shape[0] {
             let start_idx = i * shape[1];
             let sample = samples[start_idx..start_idx + shape[1]]

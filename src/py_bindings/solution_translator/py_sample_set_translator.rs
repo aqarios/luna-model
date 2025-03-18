@@ -1,6 +1,6 @@
 use crate::core::SampleSetTranslator;
 use crate::py_bindings::py_sol::PySolution;
-use numpy::{PyArrayMethods, PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
+use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{pyclass, pymethods, PyResult};
 
 #[pyclass(unsendable, name = "SampleSetTranslator")]

@@ -18,7 +18,6 @@ pub use expression::Expression;
 pub use expression::ExpressionBase;
 pub use expression::ExpressionBaseAdjustment;
 pub use model::Model;
-pub use solution::ConstraintMetadata;
 pub use solution::Res;
 pub use solution::Runtime;
 pub use solution::SampleSetTranslator;
