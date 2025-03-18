@@ -15,56 +15,76 @@ use crate::{
 use prost::Message;
 use std::{cell::RefCell, rc::Rc};
 
+/// Representation of a bytes encodable/decodable Expression.
 #[derive(Clone, PartialEq, Message)]
 pub struct SerExpression {
+    /// The number of variables in the expression.
     #[prost(uint32, tag = "1")]
     num_variables: u32,
+    /// A vector of booleans indicating which variables are active in the expression
+    /// and which are not.
     #[prost(bool, repeated, tag = "2")]
     active: Vec<bool>,
 
+    /// The constant offset of the expression.
     #[prost(double, tag = "3")]
     offset: f64,
+    /// The linear term of the expression.
     #[prost(double, repeated, tag = "4")]
     linear: Vec<f64>,
 
-    /// If the expression has a quadratic term or not
+    /// The size of the quadratic term. This is either 0 or equal to the number of
+    /// variables in the expression.
     #[prost(uint32, tag = "5")]
     quad_size: u32,
-    /// Which indices actually have a neighborhood.
+    /// The variable indices with a non-empty neighborhood, i.e., the variable indices
+    /// which have at least one quadratic interaction.
     #[prost(uint32, repeated, tag = "6")]
     quad_neighborhood_indices: Vec<u32>,
-    /// the indices of the neighbors as a vector.
+    /// The indices of all variables in any neighborhood as a single concatenated vector.
     #[prost(uint32, repeated, tag = "7")]
     quad_neighborhoods: Vec<u32>,
-    /// the values of the neighborhood as a vector.
+    /// The biases for all quadratic interactions as a single concatenated vector.
+    /// This vector's length is equal to the length og the `quad_neighborhoods` vector.
     #[prost(double, repeated, tag = "8")]
     quad_neighborhoods_values: Vec<f64>,
-    /// the length of the neighborhoods as a vector.
+    /// The size of the neighborhood for each variable in the `quad_neighborhood_indices`
+    /// vector. Required to recover the neighborhoods for all variables during decoding.
     #[prost(uint32, repeated, tag = "9")]
     quad_neighborhoods_len: Vec<u32>,
 
-    /// If the expression has a quadratic term or not
+    /// The size of the higher order term, i.e., how many elements the higher order
+    /// term consists of. This is especially useful during decoding, as the appropriate
+    /// sized HashMap can be created improving write performances significantly.
     #[prost(uint32, tag = "10")]
     ho_size: u32,
-    /// Higher Order values stored in the hashmap.
+    /// All biases in the higher order term concatenated to a single vector.
     #[prost(double, repeated, tag = "11")]
     ho_values: Vec<f64>,
-    /// Higher Order indices stored in the hashmap concatenated.
+    /// All variable inidices of all higher order interactions stored in the higher
+    /// order term represented as a single concatenated vector.
     #[prost(uint32, repeated, tag = "12")]
     ho_indices: Vec<u32>,
-    /// Number of keys per higher order entry
+    /// The number of elements in each of the higher order terms as a single concatenated
+    /// vector. The length of this vector is equal to the `ho_size` variable. This vector
+    /// is required to recover the correct higher order term during decoding. Each value
+    /// indicates how many variables interact for each element in the term. The sum of
+    /// all elements has to be equal to the length of the ho_indices vector.
     #[prost(uint32, repeated, tag = "13")]
     ho_lens: Vec<u32>,
 }
 
+/// Makes the SerExpression conform with the requirements for it to be an Encodable.
 impl BytesEncodable for SerExpression {
     fn encode_to_bytes(&self) -> Vec<u8> {
         self.encode_to_vec()
     }
 }
 
+/// Shorthand type to reduce the dependent type signatures.
 type RefEnv = Rc<RefCell<Environment<VarId>>>;
 
+/// Makes the SerExpression conform with the requirements for it to be a Decodable.
 impl BytesDecodable<Expression<VarId, f64>, RefEnv> for SerExpression {
     fn decode_from_bytes(
         bytes: &[u8],
@@ -74,34 +94,16 @@ impl BytesDecodable<Expression<VarId, f64>, RefEnv> for SerExpression {
     }
 }
 
+/// Makes the SerExpression conform with the requirements for it to be an Encodable.
 impl Creatable<Expression<VarId, f64>> for SerExpression {
     fn new(value: &Expression<VarId, f64>) -> Self {
-        Self::empty().fill(&value)
+        Self::default().fill(&value)
     }
-
-    // fn new(expression: &Expression<VarId, f64>) -> Self {
-    //     let quad = Self::encode_quadratic(&expression.quadratic);
-    //     let ho = Self::encode_higher_order(&expression.higher_order);
-    //     Self {
-    //         num_variables: expression.num_variables() as u64,
-    //         active: expression.active.clone(),
-    //         offset: expression.offset,
-    //         linear: expression.linear.to_vec().clone(),
-    //         quad_size: quad.size,
-    //         quad_neighborhood_indices: quad.neighborhood_indices,
-    //         quad_neighborhoods: quad.neighborhoods,
-    //         quad_neighborhoods_values: quad.neighborhoods_values,
-    //         quad_neighborhoods_len: quad.neighborhoods_len,
-    //         ho_size: ho.size as u64,
-    //         ho_values: ho.values,
-    //         ho_indices: ho.indices,
-    //         ho_lens: ho.lens,
-    //     }
-    // }
 }
 
 impl SerExpression {
-    fn empty() -> Self {
+    /// Creates an empty serializable expression struct.
+    fn default() -> Self {
         Self {
             num_variables: u32::default(),
             active: Vec::new(),
@@ -119,6 +121,7 @@ impl SerExpression {
         }
     }
 
+    /// Fills the serializable expression based on an instance of Expression.
     fn fill(mut self, expression: &Expression<VarId, f64>) -> Self {
         self.num_variables = force_u32(expression.num_variables());
         self.active.resize(expression.active.len(), false);
@@ -157,25 +160,6 @@ impl SerExpression {
         self
     }
 
-    // fn encode_quadratic(quadratic: &Option<Quadratic<VarId, f64>>) -> Quad {
-    //     let mut out = Quad::default();
-    //     if let Some(quad) = &quadratic {
-    //         out.size = force_u32(quad.len());
-    //         for (u, neighborhood) in quad.iter() {
-    //             if !neighborhood.is_empty() {
-    //                 // only store data if the neighborhood is not empty.
-    //                 out.neighborhood_indices.push(force_u32(u));
-    //                 out.neighborhoods_len.push(force_u32(neighborhood.len()));
-    //                 neighborhood.iter().for_each(|e| {
-    //                     out.neighborhoods.push(e.index.0);
-    //                     out.neighborhoods_values.push(e.bias);
-    //                 });
-    //             }
-    //         }
-    //     }
-    //     out
-    // }
-
     fn decode_quadratic(&self) -> Option<Quadratic<VarId, f64>> {
         if self.quad_size == 0 {
             return None;
@@ -200,24 +184,6 @@ impl SerExpression {
         Some(quad)
     }
 
-    // fn encode_higher_order(higher_order: &Option<HigherOrder<VarId, f64>>) -> Ho {
-    //     if higher_order.is_none() {
-    //         return Ho::default();
-    //     }
-
-    //     let highero = higher_order.as_ref().unwrap();
-    //     let mut ho = Ho::default();
-    //     ho.size = highero.len();
-    //     for (ids, bias) in highero.iter_contrib() {
-    //         ho.lens.push(force_u32(ids.len()));
-    //         ho.values.push(*bias);
-    //         ids.iter().for_each(|id| {
-    //             ho.indices.push(id.0);
-    //         });
-    //     }
-    //     ho
-    // }
-
     fn decode_higher_order(&self) -> Option<HigherOrder<VarId, f64>> {
         if self.ho_size == 0 {
             return None;
@@ -239,12 +205,14 @@ impl SerExpression {
         Some(ho)
     }
 
+    /// Extracts the data from self to and instance of Expression with Index VarId and
+    /// Bias f64.
     pub fn extract(&self, env: Rc<RefCell<Environment<VarId>>>) -> Expression<VarId, f64> {
         let mut expr = Expression::empty(env);
         expr.num_variables = self.num_variables as usize;
         expr.active = self.active.clone();
         expr.offset = self.offset;
-        expr.linear = Linear::new(self.linear.clone()); // might be optimizable with mem copies.
+        expr.linear = Linear::new(self.linear.clone()); // todo(team): might be optimizable with mem copies. See somewhere in code where I do something similar.
         expr.quadratic = self.decode_quadratic();
         expr.higher_order = self.decode_higher_order();
         expr

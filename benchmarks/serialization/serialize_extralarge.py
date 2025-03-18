@@ -5,7 +5,6 @@ from aq_models import Vtype, MatrixTranslator
 
 from benchmarks.serialization.utils import (
     get_serialized_size_bytes,
-    get_serialized_size_mb,
     serialize_aqm,
 )
 from benchmarks.setting import SIZES

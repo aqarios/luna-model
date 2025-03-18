@@ -1,13 +1,14 @@
+mod extras;
+mod model;
+mod utils;
+mod variable;
+
 pub mod constraints;
 pub mod environment;
 pub mod exceptions;
 pub mod expression;
-mod extras;
-mod model;
 pub mod operations;
 pub mod term;
-mod utils;
-mod variable;
 
 pub use constraints::Comparator;
 pub use constraints::Constraint;
@@ -22,13 +23,3 @@ pub use variable::VarId;
 pub use variable::VarRef;
 pub use variable::Variable;
 pub use variable::Vtype;
-
-// todo: move the python exceptions to the py_bindings module
-#[cfg(feature = "py")]
-pub use exceptions::MultipleActiveEnvironmentsException;
-#[cfg(feature = "py")]
-pub use exceptions::NoActiveEnvironmentFoundException;
-#[cfg(feature = "py")]
-pub use exceptions::VariableExistsException;
-#[cfg(feature = "py")]
-pub use exceptions::VariablesFromDifferentEnvsException;

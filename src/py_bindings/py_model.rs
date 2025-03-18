@@ -1,8 +1,11 @@
 use std::rc::Rc;
 
-use super::{py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression};
+use super::{
+    py_constr::PyConstraints, py_env::PyEnvironment,
+    py_exceptions::NoActiveEnvironmentFoundException, py_expr::PyExpression,
+};
 use crate::{
-    core::{Model, NoActiveEnvironmentFoundException, VarId},
+    core::{Model, VarId},
     py_bindings::py_env::CURRENT_ENV,
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,

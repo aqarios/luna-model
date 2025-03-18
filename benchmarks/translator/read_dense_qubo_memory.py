@@ -1,6 +1,6 @@
 import os
 from collections import defaultdict
-from typing import IO, Any, Callable, DefaultDict, Dict, Iterable, Optional, Set
+from typing import IO, DefaultDict, Dict, Iterable, Optional, Set
 from dataclasses import dataclass
 from numpy.typing import NDArray
 from tqdm import tqdm  # type: ignore[import-untyped]
@@ -8,7 +8,6 @@ import memray
 import uuid
 
 from rich import print as rprint
-from rich.markup import escape
 from rich.table import Column
 from rich.table import Table
 

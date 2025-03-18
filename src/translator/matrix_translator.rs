@@ -17,9 +17,12 @@ impl fmt::Display for ModelNotQuadraticError {
     }
 }
 
+/// A translator used to read a Quadratic Unconstrained Binary Optimization (QUBO) problem
+/// and create an AQM.
 pub struct MatrixTranslator {}
 
 impl MatrixTranslator {
+    /// Translates a QUBO to an AQM.
     pub fn model_from_dense<Index, Bias>(
         name: Option<String>,
         dense: &[Bias],
@@ -33,6 +36,12 @@ impl MatrixTranslator {
         Model::new_from_dense(name, dense, num_variables, vtype)
     }
 
+    /// Back(translate) an AQM to a QUBO.
+    ///
+    /// This method is required for interactions with solvers that require the optimization
+    /// problem to be expressed in a QUBO. We can use the AQM to define our model and send
+    /// the information between workers efficiently. The solving process can then use this function
+    /// to express the optimization problem in the expected format.
     pub fn model_to_dense<Index, Bias>(
         model: &Model<Index, Bias>,
     ) -> Result<(Vec<Bias>, usize), ModelNotQuadraticError>

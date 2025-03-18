@@ -1,12 +1,11 @@
 use super::py_env::{PyEnvironment, CURRENT_ENV};
+use super::py_exceptions::NoActiveEnvironmentFoundException;
+use super::types::Expr;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::operations::{
     AddToExpression, MulToExpression, RSubToExpression, SubToExpression,
 };
-use crate::core::{
-    environment, NoActiveEnvironmentFoundException, VarId, VarRef, VariableExistsException,
-    VariablesFromDifferentEnvsException, Vtype,
-};
+use crate::core::{environment, VarId, VarRef, Vtype};
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
@@ -41,31 +40,26 @@ impl PyVariable {
             })?,
         };
 
-        environment::add_variable(
+        Ok(PyVariable::new(environment::add_variable(
             env.into(),
             &name,
             vtype.as_ref(),
             bounds.map(|pb| pb.into()),
-        )
-        .map(|v| PyVariable::new(v))
-        .map_err(|e| VariableExistsException::new_err(format!("{}: {}", e.to_string(), name)))
+        )?))
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        let expr: Expr;
         if let Ok(rhs) = other.extract::<f64>(py) {
-            Ok(PyExpression::new(self.add(rhs)))
+            expr = self.add(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            self.add(rhs.as_ref())
-                .map(|e| PyExpression::new(e))
-                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            expr = self.add(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            rhs.borrow()
-                .add(self.as_ref())
-                .map(|e| PyExpression::new(e))
-                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            expr = rhs.borrow().add(self.as_ref())?;
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            return Err(PyRuntimeError::new_err("unsopported type for operation"));
         }
+        Ok(PyExpression::new(expr))
     }
 
     fn __radd__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
@@ -73,20 +67,21 @@ impl PyVariable {
     }
 
     fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        let expr: Expr;
         if let Ok(rhs) = other.extract::<f64>(py) {
-            Ok(PyExpression::new(self.add(-rhs)))
+            expr = self.add(-rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            self.sub(rhs.as_ref())
-                .map(|e| PyExpression::new(e))
-                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            expr = self.sub(rhs.as_ref())?;
         // } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
         //     rhs.borrow()
         //         .add(self.as_ref())
         //         .map(|e| PyExpression::new(e))
         //         .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            return Err(PyRuntimeError::new_err("unsopported type for operation"));
         }
+
+        Ok(PyExpression::new(expr))
     }
 
     fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
@@ -108,20 +103,18 @@ impl PyVariable {
     }
 
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        let expr: Expr;
         if let Ok(rhs) = other.extract::<f64>(py) {
-            Ok(PyExpression::new(self.mul(rhs)))
+            expr = self.mul(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            self.mul(rhs.as_ref())
-                .map(|e| PyExpression::new(e))
-                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            expr = self.mul(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            rhs.borrow()
-                .mul(self.as_ref())
-                .map(|e| PyExpression::new(e))
-                .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            expr = rhs.borrow().mul(self.as_ref())?;
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            return Err(PyRuntimeError::new_err("unsopported type for operation"));
         }
+
+        Ok(PyExpression::new(expr))
     }
 
     fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {

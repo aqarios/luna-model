@@ -1,3 +1,4 @@
+/// Serializable structs for version 0 based encodings.
 mod constraint;
 mod environment;
 mod expression;

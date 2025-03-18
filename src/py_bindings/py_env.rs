@@ -1,5 +1,5 @@
 use crate::{
-    core::{Environment, MultipleActiveEnvironmentsException, VarId},
+    core::{Environment, VarId},
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
@@ -7,6 +7,8 @@ use crate::{
 use derive_more::{Deref, DerefMut};
 use pyo3::{prelude::*, types::PyBytes};
 use std::{cell::RefCell, ops::Deref, rc::Rc};
+
+use super::py_exceptions::MultipleActiveEnvironmentsException;
 
 #[pyclass(unsendable, name = "Environment")]
 #[derive(Deref, DerefMut, Clone)]

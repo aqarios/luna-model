@@ -7,12 +7,13 @@ use crate::{
 };
 use prost::Message;
 
+/// Representation of a bytes encodable/decodable environment.
 #[derive(Clone, PartialEq, Message)]
 pub struct SerEnvironment {
     /// The environment id.
     #[prost(uint32, tag = "1")]
     id: u32,
-    /// The number of variables
+    /// The number of variables registered in the environment.
     #[prost(uint32, tag = "2")]
     varcount: u32,
 
@@ -69,12 +70,14 @@ pub struct SerEnvironment {
     real_bounds_upper: Vec<f64>,
 }
 
+/// Makes the SerEnvironment conform with the requirements for it to be an Encodable.
 impl BytesEncodable for SerEnvironment {
     fn encode_to_bytes(&self) -> Vec<u8> {
         self.encode_to_vec()
     }
 }
 
+/// Makes the SerEnvironment conform with the requirements for it to be a Decodable.
 impl BytesDecodable<Environment<VarId>> for SerEnvironment {
     fn decode_from_bytes(
         bytes: &[u8],
@@ -84,7 +87,10 @@ impl BytesDecodable<Environment<VarId>> for SerEnvironment {
     }
 }
 
+/// Makes the SerEnvironment conform with the requirements for it to be an Encodable.
 impl Creatable<Environment<VarId>> for SerEnvironment {
+    /// Creates a new instance of a serializabl environment and fills it based on an
+    /// instance of Environment.
     fn new(environment: &Environment<VarId>) -> Self {
         let mut out = Self::base(environment.id, environment.varcount.0);
 
@@ -142,6 +148,7 @@ impl Creatable<Environment<VarId>> for SerEnvironment {
 }
 
 impl SerEnvironment {
+    /// Creates an empty serializable environment.
     fn base(id: u8, varcount: u32) -> Self {
         Self {
             id: id as u32,
@@ -165,6 +172,7 @@ impl SerEnvironment {
         }
     }
 
+    /// Extracts the data from self to and instance of Environment with Index VarId.
     pub fn extract(&self) -> Environment<VarId> {
         let mut env = Environment::new_for(force_u8(self.id));
         env.varcount = VarId(self.varcount);
