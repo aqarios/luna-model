@@ -1,11 +1,21 @@
-use std::{cell::RefCell, ops::AddAssign, rc::Rc};
+use std::{
+    cell::RefCell,
+    ops::{AddAssign, Deref},
+    rc::Rc,
+};
 
 use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*};
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 
-use crate::core::Comparator;
+use crate::{
+    core::Comparator,
+    serialization::{
+        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
+    },
+};
 
 use super::{
+    py_env::PyEnvironment,
     py_expr::PyExpression,
     types::{Constr, Constrs},
 };
@@ -64,12 +74,17 @@ impl PyConstraint {
 
 #[pymethods]
 impl PyConstraints {
+    #[new]
+    fn py_new() -> Self {
+        PyConstraints::new(Constrs::default())
+    }
+
     fn __iadd__(&mut self, other: PyConstraint) {
         self.add_constraint(other);
     }
 
     fn add_constraint(&mut self, other: PyConstraint) {
-        self.borrow_mut().add_assign(other.borrow());
+        self.borrow_mut().add_assign(other.borrow().deref());
     }
 
     fn __eq__(&self, other: Self) -> bool {
@@ -82,5 +97,45 @@ impl PyConstraints {
 
     fn __repr__(&self) -> String {
         format!("{:?}", self.borrow())
+    }
+
+    #[pyo3(signature=(compress=None, level=None))]
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+        let compress = compress.unwrap_or(level.is_some());
+        Ok(PyBytes::new(
+            py,
+            &self
+                .borrow()
+                .deref()
+                .encode()
+                .maybe_compress(compress, level)?
+                .versionize(),
+        )
+        .into())
+    }
+
+    #[pyo3(signature=(compress=None, level=None))]
+    fn serialize(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<PyObject> {
+        self.encode(py, compress, level)
+    }
+
+    #[staticmethod]
+    fn decode(py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
+        Ok(PyConstraints::new(
+            data.as_bytes(py)
+                .unversionize()
+                .decompress()?
+                .decode(env.0)?,
+        ))
+    }
+
+    #[staticmethod]
+    fn deserialize(py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
+        Self::decode(py, data, env)
     }
 }

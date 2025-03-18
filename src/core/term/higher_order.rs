@@ -9,7 +9,7 @@ static DELIMITER: &str = "-";
 
 #[derive(Clone, Debug)]
 pub struct HigherOrder<Index, Bias> {
-    biases: HashMap<String, Bias>,
+    pub biases: HashMap<String, Bias>,
     phantom_data: PhantomData<Index>, // required for compiler to acknowledge the Index
     default_bias: Bias,
 }
@@ -27,7 +27,19 @@ where
         }
     }
 
-    fn make_key(index: &Vec<Index>) -> String {
+    pub fn with_size(size: usize) -> Self {
+        Self {
+            biases: HashMap::with_capacity(size),
+            phantom_data: PhantomData,
+            default_bias: Bias::default(),
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.biases.len()
+    }
+
+    pub fn make_key(index: &Vec<Index>) -> String {
         let mut indices = index.clone();
         indices.sort();
         indices

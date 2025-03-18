@@ -1,3 +1,4 @@
+use crate::core::exceptions::VariableCreationError;
 use crate::core::utils::LineLengthRestrictor;
 use crate::core::{
     exceptions::VariableExistsError,
@@ -15,7 +16,7 @@ pub type EnvId = u8;
 // already thread safe.
 static ENV_COUNTER: CounterU8 = CounterU8::new(0);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Environment<Index> {
     pub id: EnvId,
     pub variables: Vec<Variable>,
@@ -88,13 +89,13 @@ pub fn add_variable<Index: IndexConstraints>(
     name: &String,
     vtype: Option<&Vtype>,
     bounds: Option<Bounds>,
-) -> Result<VarRef<Index>, VariableExistsError> {
+) -> Result<VarRef<Index>, VariableCreationError> {
     let mut mutable_env = env.borrow_mut();
     if mutable_env.variables_lookup.contains_key(name) == true {
-        return Err(VariableExistsError);
+        return Err(VariableCreationError::new(VariableExistsError.to_string()));
     }
 
-    let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id);
+    let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id)?;
     let id = mutable_env.varcount;
     mutable_env.variables.push(var);
     mutable_env.variables_lookup.insert(name.to_string(), id);

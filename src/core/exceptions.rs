@@ -36,6 +36,32 @@ impl std::convert::From<VariableExistsError> for PyErr {
 }
 
 #[derive(Debug, Clone)]
+pub struct VariableCreationError {
+    msg: String,
+}
+
+impl VariableCreationError {
+    pub fn new(msg: String) -> Self {
+        Self { msg }
+    }
+}
+
+impl std::error::Error for VariableCreationError {}
+
+impl fmt::Display for VariableCreationError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "variable creation failed: {}", self.msg)
+    }
+}
+
+#[cfg(feature = "py")]
+impl std::convert::From<VariableCreationError> for PyErr {
+    fn from(err: VariableCreationError) -> PyErr {
+        PyRuntimeError::new_err(err.to_string())
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct VariablesFromDifferentEnvsError;
 
 impl std::error::Error for VariablesFromDifferentEnvsError {}

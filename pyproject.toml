@@ -34,6 +34,8 @@ markers = [
     "model",
     "constraint",
     "str_repr",
+    "translator",
+    "str_repr",
     "solution",
     "solution_translation",
 ]

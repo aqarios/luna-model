@@ -5,10 +5,9 @@ use super::{
     },
     Expression,
 };
-use crate::core::exceptions::VariablesFromDifferentEnvsError;
 use crate::core::operations::{MulAssignToExpression, MulToExpression};
 use crate::core::VarRef;
-use std::cell::Ref;
+use crate::core::{exceptions::VariablesFromDifferentEnvsError, ExpressionBase};
 
 // MULTIPLICATION
 
@@ -45,7 +44,10 @@ where
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            let mut out = Expression::new(self.env.clone());
+            let mut out =
+                Expression::new(self.env.clone(), self.active.clone(), self.num_variables());
+            out.active = self.active.clone();
+            out.num_variables = self.num_variables;
             out.mul_with_offset(self.offset, rhs.id, Bias::one());
             out.mul_with_linear(&self.linear, rhs.id, Bias::one());
             if self.has_quadratic() {
@@ -62,13 +64,12 @@ where
                     Bias::one(),
                 );
             }
-            // println!("out data:\n  active = {:?}\n  offset = {:?}\n  linear = {:?}\n  quadratic = {:?}\n  higher order = {:?}", out.active, out.offset, out.linear, out.quadratic, out.higher_order);
             Ok(out)
         }
     }
 }
 
-impl<Index, Bias> MulToExpression<Index, Bias, Ref<'_, Expression<Index, Bias>>>
+impl<Index, Bias> MulToExpression<Index, Bias, &Expression<Index, Bias>>
     for &Expression<Index, Bias>
 where
     Index: IndexConstraints,
@@ -76,30 +77,13 @@ where
 {
     type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
 
-    fn mul(self, rhs: Ref<'_, Expression<Index, Bias>>) -> Self::Output {
+    fn mul(self, rhs: &Expression<Index, Bias>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {
-            let mut out = Expression::new(self.env.clone());
-            out.mul_offset(self.offset, rhs.offset);
-            out.mul_linear(&self.linear, &rhs.linear);
-            if self.has_quadratic() && rhs.has_quadratic() {
-                // Only if both expressions have quadratic terms, we need to multiply
-                // otherwise the result is always 0.
-                out.mul_quadratic(
-                    self.quadratic.as_ref().unwrap(),
-                    rhs.quadratic.as_ref().unwrap(),
-                );
-            }
-            if self.has_higher_order() && rhs.has_higher_order() {
-                // Only if both expressions have higher order terms, we need to multiply
-                // otherwise the result is always 0.
-                out.mul_higher_order(
-                    self.higher_order.as_ref().unwrap(),
-                    rhs.higher_order.as_ref().unwrap(),
-                );
-            }
-            Ok(out)
+            let mut result = Expression::empty(self.env.clone());
+            Expression::multiply(&self, &rhs, &mut result);
+            Ok(result)
         }
     }
 }
@@ -149,7 +133,7 @@ where
     }
 }
 
-impl<Index, Bias> MulAssignToExpression<Index, Bias, Ref<'_, Expression<Index, Bias>>>
+impl<Index, Bias> MulAssignToExpression<Index, Bias, &Expression<Index, Bias>>
     for Expression<Index, Bias>
 where
     Index: IndexConstraints,
@@ -157,7 +141,7 @@ where
 {
     type Output = Result<(), VariablesFromDifferentEnvsError>;
 
-    fn mul_assign(&mut self, rhs: Ref<'_, Expression<Index, Bias>>) -> Self::Output {
+    fn mul_assign(&mut self, rhs: &Expression<Index, Bias>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsError)
         } else {

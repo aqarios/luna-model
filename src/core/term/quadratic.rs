@@ -9,7 +9,7 @@ use std::{
 
 #[derive(Debug, Clone)]
 pub struct Quadratic<Index, Bias> {
-    adj: Vec<Vec<OneVarTerm<Index, Bias>>>,
+    pub adj: Vec<Vec<OneVarTerm<Index, Bias>>>,
     default_bias: Bias,
 }
 

@@ -1,16 +1,32 @@
-use super::{py_constr::PyConstraint, py_var::PyVariable, types::Expr};
+use super::{
+    py_constr::PyConstraint,
+    py_env::{PyEnvironment, CURRENT_ENV},
+    py_var::PyVariable,
+    types::Expr,
+};
+use crate::{
+    core::expression::ExpressionBaseCreation,
+    serialization::{
+        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
+    },
+};
 use crate::{
     core::{
         operations::{
             AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
         },
-        Comparator, ExpressionBase, VariablesFromDifferentEnvsException,
+        Comparator, ExpressionBase, NoActiveEnvironmentFoundException,
+        VariablesFromDifferentEnvsException,
     },
     py_bindings::types::Constr,
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBool};
-use std::{cell::RefCell, rc::Rc};
+use pyo3::{
+    exceptions::PyRuntimeError,
+    prelude::*,
+    types::{PyBool, PyBytes},
+};
+use std::{cell::RefCell, ops::Deref, rc::Rc};
 
 #[pyclass(unsendable, name = "Expression")]
 #[derive(Deref, DerefMut, Clone)]
@@ -24,6 +40,20 @@ impl PyExpression {
 
 #[pymethods]
 impl PyExpression {
+    #[new]
+    #[pyo3(signature=(env=None))]
+    fn py_new(env: Option<&mut PyEnvironment>) -> PyResult<Self> {
+        let env: PyEnvironment = match env {
+            Some(env) => env.clone(),
+            None => CURRENT_ENV.with(|current| {
+                current.borrow().clone().ok_or_else(|| {
+                    NoActiveEnvironmentFoundException::new_err("no active environment found.")
+                })
+            })?,
+        };
+        Ok(PyExpression::new(Expr::empty(env.0)))
+    }
+
     fn get_linear(&self, var: &PyVariable) -> PyResult<f64> {
         Ok(self.borrow().linear(var.id)?)
     }
@@ -48,6 +78,46 @@ impl PyExpression {
         self.borrow().num_variables()
     }
 
+    #[pyo3(signature=(compress=None, level=None))]
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+        let compress = compress.unwrap_or(level.is_some());
+        Ok(PyBytes::new(
+            py,
+            &self
+                .borrow()
+                .deref()
+                .encode()
+                .maybe_compress(compress, level)?
+                .versionize(),
+        )
+        .into())
+    }
+
+    #[pyo3(signature=(compress=None, level=None))]
+    fn serialize(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<PyObject> {
+        self.encode(py, compress, level)
+    }
+
+    #[staticmethod]
+    fn decode(py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
+        Ok(PyExpression::new(
+            data.as_bytes(py)
+                .unversionize()
+                .decompress()?
+                .decode(env.0)?,
+        ))
+    }
+
+    #[staticmethod]
+    fn deserialize(py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
+        Self::decode(py, data, env)
+    }
+
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.borrow().add(rhs)))
@@ -58,7 +128,7 @@ impl PyExpression {
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow()
-                .add(rhs.borrow())
+                .add(rhs.borrow().deref())
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
@@ -70,11 +140,11 @@ impl PyExpression {
         self.__add__(py, other)
     }
 
-    fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __sub__(&self, _py: Python, _other: PyObject) -> PyResult<PyExpression> {
         todo!()
     }
 
-    fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __rsub__(&self, _py: Python, _other: PyObject) -> PyResult<PyExpression> {
         todo!()
     }
 
@@ -88,7 +158,7 @@ impl PyExpression {
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow()
-                .mul(rhs.borrow())
+                .mul(rhs.borrow().deref())
                 .map(|e| PyExpression::new(e))
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
@@ -110,14 +180,14 @@ impl PyExpression {
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow_mut()
-                .add_assign(rhs.borrow())
+                .add_assign(rhs.borrow().deref())
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
     }
 
-    fn __isub__(&mut self, py: Python, other: PyObject) {
+    fn __isub__(&mut self, _py: Python, _other: PyObject) {
         todo!()
     }
 
@@ -130,7 +200,7 @@ impl PyExpression {
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow_mut()
-                .mul_assign(rhs.borrow())
+                .mul_assign(rhs.borrow().deref())
                 .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))

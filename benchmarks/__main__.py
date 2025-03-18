@@ -36,15 +36,21 @@ def get_processor_name():
         name = platform.processor()
     elif platform.system() == "Darwin":
         os.environ["PATH"] = os.environ["PATH"] + os.pathsep + "/usr/sbin"
-        command = "sysctl -n machdep.cpu.brand_string"
-        name = subprocess.check_output(command).strip()
+        command = ["sysctl", "-n", "machdep.cpu.brand_string"]
+        name = (
+            str(subprocess.check_output(command))
+            .strip()
+            .replace("b", "")
+            .replace("'", "")
+        )
     elif platform.system() == "Linux":
         command = "cat /proc/cpuinfo"
         all_info = subprocess.check_output(command, shell=True).decode().strip()
         for line in all_info.split("\n"):
             if "model name" in line:
-                name = re.sub(".*model name.*:", "", line, 1)
+                name = re.sub(".*model name.*:", "", line, count=1)
     name = name.strip()
+    name = name.replace(r"\n", "")
     return name
 
 
