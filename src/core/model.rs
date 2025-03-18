@@ -1,10 +1,11 @@
 use super::constraints::Constraints;
 use super::environment::add_variable;
 use super::expression::{
-    BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation,
-    IndexConstraints,
+    AssignmentConstraints, BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment,
+    ExpressionBaseCreation, IndexConstraints,
 };
 use super::{Environment, Expression, Vtype};
+use crate::core::solution::Solution;
 use crate::core::utils::ModelWriter;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
@@ -73,6 +74,16 @@ where
             .borrow_mut()
             .add_quadratic_from_dense(dense, num_variables);
         model
+    }
+
+    fn evaluate<Assign>(&self, sol: &mut Solution<Assign, Bias>) -> &mut Solution<Assign, Bias>
+    where
+        Assign: AssignmentConstraints,
+    {
+        // Here, duplicate samples are already removed, i.e., each element of sol.samples is unique
+
+        // TODO: implement actual logic
+        sol
     }
 }
 

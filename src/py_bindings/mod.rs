@@ -5,7 +5,9 @@ mod py_exceptions;
 mod py_expr;
 mod py_matrix_translator;
 mod py_model;
+mod py_sol;
 mod py_var;
+mod solution_translator;
 mod types;
 
 use pyo3::prelude::*;
@@ -33,6 +35,10 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_bounds::PyBounds>()?;
     m.add_class::<py_constr::PyConstraint>()?;
     m.add_class::<py_constr::PyConstraints>()?;
+    m.add_class::<py_sol::PyRuntime>()?;
+    m.add_class::<py_sol::PyRes>()?;
+    m.add_class::<py_sol::PySolution>()?;
+    m.add_class::<solution_translator::PySampleSetTranslator>()?;
     // Adding the exceptions
     m.add(
         "VariableExistsException",

@@ -11,11 +11,14 @@ print("---")
 # x0 0,  1,  0
 # x1 1,  0,  1
 # x2 0,  1,  0
-qubo = np.array([
-    [0, 1, 0],
-    [1, 0, 1],
-    [0, 1, 0],
-], dtype=np.float64)
+qubo = np.array(
+    [
+        [0, 1, 0],
+        [1, 0, 1],
+        [0, 1, 0],
+    ],
+    dtype=np.float64,
+)
 
 model = MatrixTranslator.to_model(qubo)
 print(str(model))
@@ -27,11 +30,14 @@ print("---")
 # x0 1,  0,  0
 # x1 0,  2,  0
 # x2 0,  0,  3
-qubo = np.array([
-    [1, 0, 0],
-    [0, 2, 0],
-    [0, 0, 3],
-], dtype=np.float64)
+qubo = np.array(
+    [
+        [1, 0, 0],
+        [0, 2, 0],
+        [0, 0, 3],
+    ],
+    dtype=np.float64,
+)
 
 model = MatrixTranslator.to_model(qubo)
 print(str(model))
@@ -42,12 +48,14 @@ print("---")
 # x0 1,  1,  0
 # x1 1,  2,  0
 # x2 0,  0,  3
-qubo = np.array([
-    [1, 1, 0],
-    [1, 2, 0],
-    [0, 0, 3],
-], dtype=np.float64)
+qubo = np.array(
+    [
+        [1, 1, 0],
+        [1, 2, 0],
+        [0, 0, 3],
+    ],
+    dtype=np.float64,
+)
 
 model = MatrixTranslator.to_model(qubo)
 print(str(model))
-

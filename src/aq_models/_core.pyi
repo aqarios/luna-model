@@ -1,7 +1,9 @@
 from enum import Enum
 from typing import Any, Tuple, overload
 
+from dimod import SampleSet
 from numpy.typing import NDArray
+
 
 class Vtype(Enum):
     Real = ...
@@ -10,197 +12,306 @@ class Vtype(Enum):
     Spin = ...
 
     def __str__(self) -> str: ...
+
     def __repr__(self) -> str: ...
+
 
 class Bounds:
     def __init__(self, lower: float, upper: float) -> None: ...
+
     def __str__(self) -> str: ...
+
     def __repr__(self) -> str: ...
+
 
 class Constraint:
     def __str__(self) -> str: ...
+
     def __repr__(self) -> str: ...
+
 
 class Constraints:
     def __iadd__(self, constraint: Constraint): ...
+
     def add_constraint(self, constraint: Constraint): ...
+
     def __str__(self) -> str: ...
+
     def __repr__(self) -> str: ...
+
 
 class Expression:
     def get_offset(self) -> float: ...
+
     def get_linear(self, variable: Variable) -> float: ...
+
     def get_higher_order(self, variables: Tuple[Variable, ...]) -> float: ...
+
     def get_quadratic(self, u: Variable, v: Variable) -> float: ...
+
     def num_variables(self) -> int: ...
 
     # addition
     @overload
     def __add__(self, other: Expression) -> Expression: ...
+
     @overload
     def __add__(self, other: Variable) -> Expression: ...
+
     @overload
     def __add__(self, other: int) -> Expression: ...
+
     @overload
     def __add__(self, other: float) -> Expression: ...
+
     @overload
     def __radd__(self, other: Expression) -> Expression: ...
+
     @overload
     def __radd__(self, other: Variable) -> Expression: ...
+
     @overload
     def __radd__(self, other: int) -> Expression: ...
+
     @overload
     def __radd__(self, other: float) -> Expression: ...
+
     # Instance addition
     @overload
     def __iadd__(self, other: Expression) -> Expression: ...
+
     @overload
     def __iadd__(self, other: Variable) -> Expression: ...
+
     @overload
     def __iadd__(self, other: int) -> Expression: ...
+
     @overload
     def __iadd__(self, other: float) -> Expression: ...
 
     # Multiplication
     @overload
     def __mul__(self, other: Expression) -> Expression: ...
+
     @overload
     def __mul__(self, other: Variable) -> Expression: ...
+
     @overload
     def __mul__(self, other: int) -> Expression: ...
+
     @overload
     def __mul__(self, other: float) -> Expression: ...
+
     @overload
     def __rmul__(self, other: int) -> Expression: ...
+
     @overload
     def __rmul__(self, other: float) -> Expression: ...
+
     # Instance multiplication
     @overload
     def __imul__(self, other: Expression) -> Expression: ...
+
     @overload
     def __imul__(self, other: Variable) -> Expression: ...
+
     @overload
     def __imul__(self, other: int) -> Expression: ...
+
     @overload
     def __imul__(self, other: float) -> Expression: ...
 
     # Constraint creation
     @overload  # type: ignore
     def __eq__(self, value: Expression) -> bool: ...  # type: ignore
+
     @overload
     def __eq__(self, value: int) -> Constraint: ...  # type: ignore
+
     @overload
     def __eq__(self, value: float) -> Constraint: ...  # type: ignore
+
     @overload
     def __le__(self, other: int) -> Constraint: ...
+
     @overload
     def __le__(self, other: float) -> Constraint: ...
+
     @overload
     def __ge__(self, other: int) -> Constraint: ...
+
     @overload
     def __ge__(self, other: float) -> Constraint: ...
+
     def __str__(self) -> str: ...
+
     def __repr__(self) -> str: ...
+
 
 class Variable:
     def __init__(
-        self,
-        name: str,
-        env: Environment | None = ...,
-        vtype: Vtype | None = ...,
-        bounds: Bounds | None = ...,
+            self,
+            name: str,
+            env: Environment | None = ...,
+            vtype: Vtype | None = ...,
+            bounds: Bounds | None = ...,
     ) -> None: ...
+
     @overload
     def __new__(
-        cls, name: str, vtype: Vtype | None = ..., bounds: Bounds | None = ...
+            cls, name: str, vtype: Vtype | None = ..., bounds: Bounds | None = ...
     ) -> Variable: ...
+
     @overload
     def __new__(
-        cls,
-        name: str,
-        env: Environment,
-        vtype: Vtype | None = ...,
-        bounds: Bounds | None = ...,
+            cls,
+            name: str,
+            env: Environment,
+            vtype: Vtype | None = ...,
+            bounds: Bounds | None = ...,
     ) -> Variable: ...
 
     # addition
     @overload
     def __add__(self, other: Variable) -> Expression: ...
+
     @overload
     def __add__(self, other: Expression) -> Expression: ...
+
     @overload
     def __add__(self, other: int) -> Expression: ...
+
     @overload
     def __add__(self, other: float) -> Expression: ...
+
     @overload
     def __radd__(self, other: int) -> Expression: ...
+
     @overload
     def __radd__(self, other: float) -> Expression: ...
+
     # subtraction
     @overload
     def __sub__(self, other: Variable) -> Expression: ...
+
     @overload
     def __sub__(self, other: int) -> Expression: ...
+
     @overload
     def __sub__(self, other: float) -> Expression: ...
+
     @overload
     def __rsub__(self, other: int) -> Expression: ...
+
     @overload
     def __rsub__(self, other: float) -> Expression: ...
+
     # multiplication
     @overload
     def __mul__(self, other: Expression) -> Expression: ...
+
     @overload
     def __mul__(self, other: Variable) -> Expression: ...
+
     @overload
     def __mul__(self, other: int) -> Expression: ...
+
     @overload
     def __mul__(self, other: float) -> Expression: ...
+
     @overload
     def __rmul__(self, other: int) -> Expression: ...
+
     @overload
     def __rmul__(self, other: float) -> Expression: ...
+
     def __str__(self) -> str: ...
+
     def __repr__(self) -> str: ...
+
 
 class Environment:
     def __init__(self) -> None: ...
+
     def __enter__(self) -> Any: ...
+
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None: ...
+
     def __str__(self) -> str: ...
+
     def __repr__(self) -> str: ...
+
 
 class Model:
     def __init__(
-        self,
-        env: Environment | None = ...,
-        name: str | None = ...,
+            self,
+            env: Environment | None = ...,
+            name: str | None = ...,
     ) -> None: ...
+
     @property
     def name(self) -> str: ...
+
     @property
     def objective(self) -> Expression: ...
+
     @objective.setter
     def objective(self, value: Expression): ...
+
     @property
     def constraints(self) -> Constraints: ...
+
     @constraints.setter
     def constraints(self, value: Constraints): ...
+
     @property
     def environment(self) -> Environment: ...
+
     def num_constraints(self) -> int: ...
+
+
+class Result:
+    @property
+    def sample(self) -> list[float]: ...
+
+
+class Solution:
+    def __str__(self) -> str: ...
+
+    def __repr__(self) -> str: ...
+
+    @property
+    def samples(self) -> list[list[float]]: ...
+
+    @property
+    def obj_values(self) -> list[float]: ...
+
+    @property
+    def num_occurrences(self) -> list[int]: ...
+
+    @property
+    def results(self) -> list[Result]: ...
+
+
+class SampleSetTranslator:
+    @staticmethod
+    def from_dimod_sample_set(sample_set: SampleSet) -> Solution: ...
+
 
 class MatrixTranslator:
     @staticmethod
     def to_model(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+            qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
     ) -> Model: ...
+
 
 class VariableExistsException(Exception):
     def __str__(self) -> str: ...
 
+
 class NoActiveEnvironmentFoundException(Exception):
     def __str__(self) -> str: ...
+
 
 class MultipleActiveEnvironmentsException(Exception):
     def __str__(self) -> str: ...

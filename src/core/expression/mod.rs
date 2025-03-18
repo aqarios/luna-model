@@ -6,6 +6,7 @@ mod expr;
 mod multiplication;
 mod subtraction;
 
+pub use base::AssignmentConstraints;
 pub use base::BiasConstraints;
 pub use base::ExpressionBase;
 pub use base::ExpressionBaseAdd;

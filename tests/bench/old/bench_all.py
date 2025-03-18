@@ -47,7 +47,7 @@ print("|======================================|")
 for s in sizes:
     for d in [0.1, 0.5, 1]:
         ta, tb = bench(s, d, rep)
-        print(f"| {s:4d} |    {int(d*100):3d}% | {ta:7.4f}s | {tb:7.4f}s |")
+        print(f"| {s:4d} |    {int(d * 100):3d}% | {ta:7.4f}s | {tb:7.4f}s |")
         # print(
         #     f"| {s:4d} |    {int(d*100):3d}% | {ta:7.4f}s | {tb:7.4f}s | {tc:7.4f}s |"
         # )

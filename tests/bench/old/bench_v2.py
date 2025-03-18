@@ -36,4 +36,4 @@ rep = 1
 s = int(sys.argv[1])
 d = float(sys.argv[2])
 ta = bench(s, d, rep)
-print(f"| {s:4d} |    {int(d*100):3d}% | {ta:7.4f}s |")
+print(f"| {s:4d} |    {int(d * 100):3d}% | {ta:7.4f}s |")

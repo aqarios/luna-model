@@ -165,7 +165,7 @@ def get_peek_memory(
 def format_row_entries(size: int, density: float) -> tuple[str, str]:
     return (
         f"{size:4d}",
-        f"{int(density*100):3d}%",
+        f"{int(density * 100):3d}%",
     )
 
 
