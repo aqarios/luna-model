@@ -6,7 +6,6 @@ mod py_expr;
 mod py_matrix_translator;
 mod py_model;
 mod py_var;
-mod types;
 
 use py_exceptions::{
     MultipleActiveEnvironmentsException, NoActiveEnvironmentFoundException, VariableExistsException,

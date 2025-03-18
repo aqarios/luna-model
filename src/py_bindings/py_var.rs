@@ -1,23 +1,21 @@
 use super::py_env::{PyEnvironment, CURRENT_ENV};
 use super::py_exceptions::NoActiveEnvironmentFoundException;
-use super::types::Expr;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::operations::{
     AddToExpression, MulToExpression, RSubToExpression, SubToExpression,
 };
-use crate::core::{environment, VarId, VarRef, Vtype};
+use crate::core::{environment, ConcreteExpression, ConcreteVarRef, RcVarRef, Vtype};
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
-use std::rc::Rc;
 
 #[pyclass(unsendable, subclass, name = "Variable")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyVariable(pub Rc<VarRef<VarId>>);
+pub struct PyVariable(pub RcVarRef);
 
 impl PyVariable {
-    fn new(varref: VarRef<VarId>) -> Self {
-        Self(Rc::new(varref))
+    fn new(varref: ConcreteVarRef) -> Self {
+        Self(varref.into())
     }
 }
 
@@ -49,7 +47,7 @@ impl PyVariable {
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: Expr;
+        let expr: ConcreteExpression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.add(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
@@ -67,7 +65,7 @@ impl PyVariable {
     }
 
     fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: Expr;
+        let expr: ConcreteExpression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.add(-rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
@@ -103,7 +101,7 @@ impl PyVariable {
     }
 
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: Expr;
+        let expr: ConcreteExpression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.mul(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {

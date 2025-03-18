@@ -8,34 +8,33 @@ use derive_more::{Deref, DerefMut};
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 
 use crate::{
-    core::Comparator,
+    core::{
+        Comparator, ConcreteConstraint, ConcreteConstraints, Create, MutRcConstraint,
+        MutRcConstraints,
+    },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
 
-use super::{
-    py_env::PyEnvironment,
-    py_expr::PyExpression,
-    types::{Constr, Constrs},
-};
+use super::{py_env::PyEnvironment, py_expr::PyExpression};
 
 #[pyclass(unsendable, name = "Constraints")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyConstraints(pub Rc<RefCell<Constrs>>);
+pub struct PyConstraints(pub MutRcConstraints);
 
 impl PyConstraints {
-    pub fn new(constrs: Constrs) -> Self {
-        Self(Rc::new(RefCell::new(constrs)))
+    pub fn new(constrs: ConcreteConstraints) -> Self {
+        Self(constrs.into())
     }
 }
 
 #[pyclass(unsendable, name = "Constraint")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyConstraint(pub Rc<RefCell<Constr>>);
+pub struct PyConstraint(pub MutRcConstraint);
 
 impl PyConstraint {
-    pub fn new(constraint: Constr) -> Self {
+    pub fn new(constraint: ConcreteConstraint) -> Self {
         Self(Rc::new(RefCell::new(constraint)))
     }
 
@@ -46,7 +45,7 @@ impl PyConstraint {
         comparator: Comparator,
     ) -> PyResult<PyConstraint> {
         if let Ok(rhs) = other.extract::<f64>(py) {
-            Ok(PyConstraint::new(Constr::new(
+            Ok(PyConstraint::new(ConcreteConstraint::new(
                 Rc::clone(&expr.0),
                 rhs,
                 comparator,
@@ -76,7 +75,7 @@ impl PyConstraint {
 impl PyConstraints {
     #[new]
     fn py_new() -> Self {
-        PyConstraints::new(Constrs::default())
+        PyConstraints(MutRcConstraints::create())
     }
 
     fn __iadd__(&mut self, other: PyConstraint) {

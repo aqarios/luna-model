@@ -5,7 +5,7 @@ use super::{
     py_exceptions::NoActiveEnvironmentFoundException, py_expr::PyExpression,
 };
 use crate::{
-    core::{Model, VarId},
+    core::{ConcreteModel, Model},
     py_bindings::py_env::CURRENT_ENV,
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -16,10 +16,10 @@ use pyo3::{prelude::*, types::PyBytes};
 
 #[pyclass(unsendable, name = "Model", subclass)]
 #[derive(Deref, DerefMut)]
-pub struct PyModel(pub Model<VarId, f64>);
+pub struct PyModel(pub ConcreteModel);
 
-impl Into<Model<VarId, f64>> for PyModel {
-    fn into(self) -> Model<VarId, f64> {
+impl Into<ConcreteModel> for PyModel {
+    fn into(self) -> ConcreteModel {
         self.0
     }
 }

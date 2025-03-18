@@ -3,7 +3,11 @@ use super::{
     py_env::{PyEnvironment, CURRENT_ENV},
     py_exceptions::NoActiveEnvironmentFoundException,
     py_var::PyVariable,
-    types::Expr,
+};
+use crate::core::{
+    operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
+    Comparator, ConcreteConstraint, ConcreteExpression, Expression, ExpressionBase,
+    MutRcExpression,
 };
 use crate::{
     core::expression::ExpressionBaseCreation,
@@ -11,30 +15,21 @@ use crate::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
-use crate::{
-    core::{
-        operations::{
-            AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
-        },
-        Comparator, ExpressionBase,
-    },
-    py_bindings::types::Constr,
-};
 use derive_more::{Deref, DerefMut};
 use pyo3::{
     exceptions::PyRuntimeError,
     prelude::*,
     types::{PyBool, PyBytes},
 };
-use std::{cell::RefCell, ops::Deref, rc::Rc};
+use std::{ops::Deref, rc::Rc};
 
 #[pyclass(unsendable, name = "Expression")]
 #[derive(Deref, DerefMut, Clone)]
-pub struct PyExpression(pub Rc<RefCell<Expr>>);
+pub struct PyExpression(pub MutRcExpression);
 
 impl PyExpression {
-    pub fn new(expression: Expr) -> Self {
-        Self(Rc::new(RefCell::new(expression)))
+    pub fn new(expression: ConcreteExpression) -> Self {
+        Self(expression.into())
     }
 }
 
@@ -51,7 +46,7 @@ impl PyExpression {
                 })
             })?,
         };
-        Ok(PyExpression::new(Expr::empty(env.0)))
+        Ok(PyExpression::new(Expression::empty(env.0)))
     }
 
     fn get_linear(&self, var: &PyVariable) -> PyResult<f64> {
@@ -119,7 +114,7 @@ impl PyExpression {
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: Expr;
+        let expr: ConcreteExpression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.borrow().add(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
@@ -146,7 +141,7 @@ impl PyExpression {
     }
 
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: Expr;
+        let expr: ConcreteExpression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.borrow().mul(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
@@ -212,7 +207,7 @@ impl PyExpression {
             Ok(PyBool::new(py, result).to_owned().into())
         } else if let Ok(rhs) = other.extract::<f64>(py) {
             // Creates a new constraint.
-            let constraint = Constr::new(Rc::clone(&self.0), rhs, Comparator::Eq);
+            let constraint = ConcreteConstraint::new(Rc::clone(&self.0), rhs, Comparator::Eq);
             // todo: this is depreated... change to the new way
             // but for now this works as intended
             Ok(PyConstraint::new(constraint).into_py(py))

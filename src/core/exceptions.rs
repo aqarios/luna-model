@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, num::ParseIntError};
 
 #[derive(Debug, Clone)]
 pub struct VariableExistsError;
@@ -55,5 +55,10 @@ impl std::error::Error for ParseFromStringError {}
 impl fmt::Display for ParseFromStringError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "could not parse to string: {}", self.0)
+    }
+}
+impl From<ParseIntError> for ParseFromStringError {
+    fn from(err: ParseIntError) -> Self {
+        ParseFromStringError(err.to_string())
     }
 }
