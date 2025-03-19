@@ -1,5 +1,4 @@
 use std::{
-    cell::RefCell,
     ops::{AddAssign, Deref},
     rc::Rc,
 };
@@ -9,8 +8,8 @@ use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 
 use crate::{
     core::{
-        Comparator, ConcreteConstraint, ConcreteConstraints, Create, MutRcConstraint,
-        MutRcConstraints,
+        Comparator, ConcreteConstraint, ConcreteConstraints, ConcreteMutRcConstraint,
+        ConcreteMutRcConstraints, Create,
     },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -21,7 +20,7 @@ use super::{py_env::PyEnvironment, py_expr::PyExpression};
 
 #[pyclass(unsendable, name = "Constraints")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyConstraints(pub MutRcConstraints);
+pub struct PyConstraints(pub ConcreteMutRcConstraints);
 
 impl PyConstraints {
     pub fn new(constrs: ConcreteConstraints) -> Self {
@@ -31,11 +30,11 @@ impl PyConstraints {
 
 #[pyclass(unsendable, name = "Constraint")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyConstraint(pub MutRcConstraint);
+pub struct PyConstraint(pub ConcreteMutRcConstraint);
 
 impl PyConstraint {
     pub fn new(constraint: ConcreteConstraint) -> Self {
-        Self(Rc::new(RefCell::new(constraint)))
+        Self(constraint.into())
     }
 
     pub fn new_py(
@@ -75,7 +74,7 @@ impl PyConstraint {
 impl PyConstraints {
     #[new]
     fn py_new() -> Self {
-        PyConstraints(MutRcConstraints::create())
+        PyConstraints(ConcreteMutRcConstraints::create())
     }
 
     fn __iadd__(&mut self, other: PyConstraint) {

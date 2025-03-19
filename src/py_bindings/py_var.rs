@@ -4,14 +4,14 @@ use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::operations::{
     AddToExpression, MulToExpression, RSubToExpression, SubToExpression,
 };
-use crate::core::{environment, ConcreteExpression, ConcreteVarRef, RcVarRef, Vtype};
+use crate::core::{environment, ConcreteExpression, ConcreteRcVarRef, ConcreteVarRef, Vtype};
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 
 #[pyclass(unsendable, subclass, name = "Variable")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyVariable(pub RcVarRef);
+pub struct PyVariable(pub ConcreteRcVarRef);
 
 impl PyVariable {
     fn new(varref: ConcreteVarRef) -> Self {

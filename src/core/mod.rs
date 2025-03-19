@@ -1,7 +1,7 @@
+mod common;
 mod concrete;
 mod extras;
 mod model;
-mod types;
 mod utils;
 mod variable;
 
@@ -12,7 +12,12 @@ pub mod expression;
 pub mod operations;
 pub mod term;
 
-pub use types::MutRcEnvironment;
+pub use common::MutRcConstraint;
+pub use common::MutRcConstraints;
+pub use common::MutRcEnvironment;
+pub use common::MutRcExpression;
+pub use common::MutRcModel;
+pub use common::RcVarRef;
 
 pub use concrete::ConcreteBias;
 pub use concrete::ConcreteConstraint;
@@ -20,6 +25,7 @@ pub use concrete::ConcreteConstraints;
 pub use concrete::ConcreteEnvId;
 pub use concrete::ConcreteEnvironment;
 pub use concrete::ConcreteExpression;
+pub use concrete::ConcreteHigherOrder;
 pub use concrete::ConcreteId;
 pub use concrete::ConcreteIndex;
 pub use concrete::ConcreteModel;
@@ -28,9 +34,10 @@ pub use concrete::ConcreteMutRcConstraints;
 pub use concrete::ConcreteMutRcEnvironment;
 pub use concrete::ConcreteMutRcExpression;
 pub use concrete::ConcreteMutRcModel;
+pub use concrete::ConcreteQuadratic;
+pub use concrete::ConcreteRcVarRef;
 pub use concrete::ConcreteVarRef;
 pub use concrete::Create;
-pub use concrete::RcVarRef;
 
 pub use constraints::Comparator;
 pub use constraints::Constraint;

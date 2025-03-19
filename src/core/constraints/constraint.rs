@@ -1,16 +1,10 @@
+use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::utils::ModelWriter;
-use crate::core::{
-    expression::{BiasConstraints, IndexConstraints},
-    Expression,
-};
+use crate::core::MutRcExpression;
 use std::fmt::{Debug, Display, Formatter};
+use std::ops::{Add, AddAssign};
 use std::slice::Iter;
 use std::string::ToString;
-use std::{
-    cell::RefCell,
-    ops::{Add, AddAssign},
-    rc::Rc,
-};
 use strum_macros::Display;
 
 #[derive(Debug, Copy, Clone, PartialEq, Display)]
@@ -30,7 +24,7 @@ where
     Bias: BiasConstraints,
 {
     // todo, expression in constraint should be immutable...
-    pub lhs: Rc<RefCell<Expression<Index, Bias>>>,
+    pub lhs: MutRcExpression<Index, Bias>,
     pub rhs: Bias,
     pub comparator: Comparator,
 }
@@ -40,11 +34,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    pub fn new(
-        lhs: Rc<RefCell<Expression<Index, Bias>>>,
-        rhs: Bias,
-        comparator: Comparator,
-    ) -> Self {
+    pub fn new(lhs: MutRcExpression<Index, Bias>, rhs: Bias, comparator: Comparator) -> Self {
         Self {
             lhs,
             rhs,

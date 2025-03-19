@@ -1,6 +1,7 @@
+use crate::core::{ConcreteConstraints, ConcreteMutRcEnvironment, Constraint, Constraints};
 use crate::serialization::encodable::BytesDecodable;
 use crate::{
-    core::{Comparator, Constraint, Constraints, Environment, VarId},
+    core::Comparator,
     serialization::{
         encodable::{BytesEncodable, Creatable, DecodeError},
         Decodable, Encodable,
@@ -34,23 +35,20 @@ impl BytesEncodable for SerConstraints {
     }
 }
 
-/// Shorthand type to reduce the dependent type signatures.
-type RefEnv = Rc<RefCell<Environment<VarId>>>;
-
 /// Makes the SerConstraints conform with the requirements for it to be a Decodable.
 /// The result is a Constraints<VarId, f64> instance.
-impl BytesDecodable<Constraints<VarId, f64>, RefEnv> for SerConstraints {
+impl BytesDecodable<ConcreteConstraints, ConcreteMutRcEnvironment> for SerConstraints {
     fn decode_from_bytes(
         bytes: &[u8],
-        payload: RefEnv,
-    ) -> Result<Constraints<VarId, f64>, DecodeError> {
+        payload: ConcreteMutRcEnvironment,
+    ) -> Result<ConcreteConstraints, DecodeError> {
         Self::decode(bytes)?.extract(payload)
     }
 }
 
 /// Makes the SerConstraints conform with the requirements for it to be an Encodable.
-impl Creatable<Constraints<VarId, f64>> for SerConstraints {
-    fn new(value: &Constraints<VarId, f64>) -> Self {
+impl Creatable<ConcreteConstraints> for SerConstraints {
+    fn new(value: &ConcreteConstraints) -> Self {
         Self::default().fill(value)
     }
 }
@@ -66,7 +64,7 @@ impl SerConstraints {
     }
 
     /// Fills the serializable constraints based on an instance of constraints.
-    fn fill(mut self, constraints: &Constraints<VarId, f64>) -> Self {
+    fn fill(mut self, constraints: &ConcreteConstraints) -> Self {
         for c in &constraints.constraints {
             let lhs_bytes = c.lhs.borrow().encode();
 
@@ -85,7 +83,10 @@ impl SerConstraints {
 
     /// Extracts the data from self to an instance of Constraints with Index VarId and
     /// Bias f64.
-    pub fn extract(&self, env: RefEnv) -> Result<Constraints<VarId, f64>, DecodeError> {
+    pub fn extract(
+        &self,
+        env: ConcreteMutRcEnvironment,
+    ) -> Result<ConcreteConstraints, DecodeError> {
         let mut constraints = Vec::new();
 
         for ((lhs, rhs), comp) in self

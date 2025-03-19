@@ -1,5 +1,5 @@
 use crate::{
-    core::{Bounds, Environment, VarId, Variable, Vtype},
+    core::{Bounds, ConcreteEnvironment, Environment, VarId, Variable, Vtype},
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable},
         utils::{force_u32, force_u8},
@@ -78,20 +78,20 @@ impl BytesEncodable for SerEnvironment {
 }
 
 /// Makes the SerEnvironment conform with the requirements for it to be a Decodable.
-impl BytesDecodable<Environment<VarId>> for SerEnvironment {
+impl BytesDecodable<ConcreteEnvironment> for SerEnvironment {
     fn decode_from_bytes(
         bytes: &[u8],
         _payload: (),
-    ) -> Result<Environment<VarId>, crate::serialization::encodable::DecodeError> {
+    ) -> Result<ConcreteEnvironment, crate::serialization::encodable::DecodeError> {
         Ok(Self::decode(bytes)?.extract())
     }
 }
 
 /// Makes the SerEnvironment conform with the requirements for it to be an Encodable.
-impl Creatable<Environment<VarId>> for SerEnvironment {
+impl Creatable<ConcreteEnvironment> for SerEnvironment {
     /// Creates a new instance of a serializabl environment and fills it based on an
     /// instance of Environment.
-    fn new(environment: &Environment<VarId>) -> Self {
+    fn new(environment: &ConcreteEnvironment) -> Self {
         let mut out = Self::base(environment.id, environment.varcount.0);
 
         let dint = Bounds::integer();
@@ -173,7 +173,7 @@ impl SerEnvironment {
     }
 
     /// Extracts the data from self to and instance of Environment with Index VarId.
-    pub fn extract(&self) -> Environment<VarId> {
+    pub fn extract(&self) -> ConcreteEnvironment {
         let mut env = Environment::new_for(force_u8(self.id));
         env.varcount = VarId(self.varcount);
         env.variables = Vec::with_capacity(self.varcount as usize);

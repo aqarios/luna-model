@@ -6,8 +6,8 @@ use super::{
 };
 use crate::core::{
     operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
-    Comparator, ConcreteConstraint, ConcreteExpression, Expression, ExpressionBase,
-    MutRcExpression,
+    Comparator, ConcreteConstraint, ConcreteExpression, ConcreteMutRcExpression, Expression,
+    ExpressionBase,
 };
 use crate::{
     core::expression::ExpressionBaseCreation,
@@ -25,7 +25,7 @@ use std::{ops::Deref, rc::Rc};
 
 #[pyclass(unsendable, name = "Expression")]
 #[derive(Deref, DerefMut, Clone)]
-pub struct PyExpression(pub MutRcExpression);
+pub struct PyExpression(pub ConcreteMutRcExpression);
 
 impl PyExpression {
     pub fn new(expression: ConcreteExpression) -> Self {

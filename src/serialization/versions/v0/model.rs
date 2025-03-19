@@ -1,5 +1,5 @@
 use crate::{
-    core::{Model, VarId},
+    core::{ConcreteModel, Model},
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
         Decodable, Encodable,
@@ -33,15 +33,15 @@ impl BytesEncodable for SerModel {
 }
 
 /// Makes the SerModel conform with the requirements for it to be an Decodable.
-impl BytesDecodable<Model<VarId, f64>> for SerModel {
-    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<Model<VarId, f64>, DecodeError> {
+impl BytesDecodable<ConcreteModel> for SerModel {
+    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<ConcreteModel, DecodeError> {
         Self::decode(bytes)?.extract()
     }
 }
 
 /// Makes the SerModel conform with the requirements for it to be an Encodable.
-impl Creatable<Model<VarId, f64>> for SerModel {
-    fn new(value: &Model<VarId, f64>) -> Self {
+impl Creatable<ConcreteModel> for SerModel {
+    fn new(value: &ConcreteModel) -> Self {
         Self::empty(value.name.clone()).fill(&value)
     }
 }
@@ -58,7 +58,7 @@ impl SerModel {
     }
 
     /// Fills the serializable model based on an instance of Model.
-    fn fill(mut self, model: &Model<VarId, f64>) -> Self {
+    fn fill(mut self, model: &ConcreteModel) -> Self {
         self.objective = model.objective.borrow().deref().encode();
         self.constraints = model.constraints.borrow().deref().encode();
         self.environment = model.environment.borrow().deref().encode();
@@ -67,7 +67,7 @@ impl SerModel {
 
     /// Extracts the data from self to an instance of Model with Index VarId and
     /// Bias f64.
-    pub fn extract(&self) -> Result<Model<VarId, f64>, DecodeError> {
+    pub fn extract(&self) -> Result<ConcreteModel, DecodeError> {
         let mut model = Model::new(Some(self.name.clone()));
         model.environment = Rc::new(RefCell::new(self.environment.decode(())?));
         model.objective = Rc::new(RefCell::new(

@@ -2,23 +2,25 @@ use crate::core::{
     exceptions::VariablesFromDifferentEnvsError,
     expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints},
     operations::{AddToExpression, MulToExpression, RSubToExpression, SubToExpression},
-    Environment, Expression,
+    Expression, MutRcEnvironment,
 };
-use std::fmt::{Debug, Display, Formatter};
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    fmt::{Debug, Display, Formatter},
+    rc::Rc,
+};
 
 /// A reference to a variable.
 #[derive(Clone)]
 pub struct VarRef<Index> {
     pub id: Index,
-    pub env: Rc<RefCell<Environment<Index>>>,
+    pub env: MutRcEnvironment<Index>,
 }
 
 impl<Index> VarRef<Index>
 where
     Index: IndexConstraints,
 {
-    pub fn new(id: Index, env: Rc<RefCell<Environment<Index>>>) -> Self {
+    pub fn new(id: Index, env: MutRcEnvironment<Index>) -> Self {
         Self { id, env }
     }
 }
