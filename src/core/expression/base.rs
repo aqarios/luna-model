@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
+use std::ops::{Add, AddAssign, Index, Mul, MulAssign, Neg};
 use std::str::FromStr;
 
 use crate::core::term::types::SizeType;
@@ -406,4 +406,14 @@ where
     /// Mul the variable `v` to the higher order term.
     /// This function edits self, based on the information from higher_order and the rest.
     fn mul_with_higher_order(&mut self, higher_order: &Self::HigherOrderType, v: Index, bias: Bias);
+}
+
+pub trait ExpressionEvaluation<Idx, Bias>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn evaluate<Elem: Copy, Sample: Index<Idx, Output = Elem>>(&self, sample: &Sample) -> Bias
+    where
+        Bias: Mul<Elem, Output = Bias>;
 }
