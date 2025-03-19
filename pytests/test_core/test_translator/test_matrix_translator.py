@@ -20,6 +20,14 @@ def qubo(request) -> NDArray:
 
 
 @pytest.fixture
+def asymmetric_qubo(request) -> NDArray:
+    size, density = request.param
+    np.random.seed(make_seed())
+    out = sp.random(size, size, density).todense()
+    return np.triu(out)
+
+
+@pytest.fixture
 def linear_qubo(request) -> NDArray:
     size, density = request.param
     np.random.seed(make_seed())
@@ -95,3 +103,16 @@ def test_translate_from_non_fitting_higher_order(qubo: NDArray):
 
     with pytest.raises(ModelNotQuadraticException):
         _ = MatrixTranslator.to_dense(model)
+
+
+@pytest.mark.translator
+@pytest.mark.parametrize(
+    "asymmetric_qubo",
+    list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
+    indirect=True,
+)
+def test_translator_symmetricizes(asymmetric_qubo: NDArray):
+    model = MatrixTranslator.to_model(asymmetric_qubo)
+    back = MatrixTranslator.to_dense(model)
+    sym = (asymmetric_qubo + asymmetric_qubo.T) / 2
+    assert np.allclose(sym, back)
