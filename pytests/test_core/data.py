@@ -220,57 +220,6 @@ def constraints_with_env(
     return constraints(params), params[0]
 
 
-def linear_constraint_le(env: Environment, variables: list[Variable]) -> Constraint:
-    """ """
-    return linear_expression(env, variables) <= random()
-
-
-def linear_constraint_eq(env: Environment, variables: list[Variable]) -> Constraint:
-    """ """
-    return linear_expression(env, variables) == random()
-
-
-def linear_constraint_ge(env: Environment, variables: list[Variable]) -> Constraint:
-    """ """
-    return linear_expression(env, variables) >= random()
-
-
-def quadratic_constraint_le(env: Environment, variables: list[Variable]) -> Constraint:
-    """ """
-    return quadratic_expression(env, variables) <= random()
-
-
-def quadratic_constraint_eq(env: Environment, variables: list[Variable]) -> Constraint:
-    """ """
-    return quadratic_expression(env, variables) == random()
-
-
-def quadratic_constraint_ge(env: Environment, variables: list[Variable]) -> Constraint:
-    """ """
-    return quadratic_expression(env, variables) >= random()
-
-
-def higher_order_constraint_le(
-    env: Environment, variables: list[Variable]
-) -> Constraint:
-    """ """
-    return higher_order_expression(env, variables) <= random()
-
-
-def higher_order_constraint_eq(
-    env: Environment, variables: list[Variable]
-) -> Constraint:
-    """ """
-    return higher_order_expression(env, variables) == random()
-
-
-def higher_order_constraint_ge(
-    env: Environment, variables: list[Variable]
-) -> Constraint:
-    """ """
-    return higher_order_expression(env, variables) >= random()
-
-
 def models() -> list[Model]:
     """ """
     params = make_env_with_vars()
