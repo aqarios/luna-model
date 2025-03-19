@@ -16,14 +16,15 @@ use aqmodels::core::{
 use crate::common::*;
 
 fn higher_order_expression_base(vtype: Vtype, n: usize) {
+    let seed = make_seed();
     let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n);
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let (mut expr, vars) = create_linear_expression_with_vars(Rc::clone(&env), &biases, vtype);
 
     let ma = add_variable(Rc::clone(&env), &"ma".to_string(), Some(&vtype), None).unwrap();
     let mb = add_variable(Rc::clone(&env), &"mb".to_string(), Some(&vtype), None).unwrap();
-    let ma_scalar = random_bias::<ConcreteBias>();
-    let mb_scalar = random_bias::<ConcreteBias>();
+    let ma_scalar = random_bias::<ConcreteBias>(seed);
+    let mb_scalar = random_bias::<ConcreteBias>(seed);
 
     expr.mul_assign(&ma.mul(ma_scalar)).unwrap();
     println!("expr.linear after first mul {:?}", &expr.linear.to_vec());

@@ -15,12 +15,13 @@ use aqmodels::core::{
 use crate::common::*;
 
 fn quadratic_expression_base(vtype: Vtype, n: usize) {
+    let seed = make_seed();
     let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n);
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let mut expr = create_linear_expression(Rc::clone(&env), &biases, vtype);
 
     let multiplier = add_variable(Rc::clone(&env), &"m".to_string(), Some(&vtype), None).unwrap();
-    let mscalar = random_bias::<ConcreteBias>();
+    let mscalar = random_bias::<ConcreteBias>(seed);
     expr.mul_assign(&multiplier.mul(mscalar)).unwrap();
 
     let mut quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> = biases

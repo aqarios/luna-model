@@ -8,22 +8,36 @@ use aqmodels::core::{
 };
 use rand::{
     distr::{Distribution, StandardUniform},
-    Rng,
+    rngs::StdRng,
+    Rng, RngCore, SeedableRng,
 };
 
-pub fn random_bias<B>() -> B
+pub fn make_seed() -> u64 {
+    let seed: u64 = rand::rng().next_u64();
+    eprintln!(
+        "
+**********************************
+Random Seed = {}
+**********************************
+    ",
+        seed
+    );
+    seed
+}
+
+pub fn random_bias<B>(seed: u64) -> B
 where
     StandardUniform: Distribution<B>,
 {
-    let mut rng = rand::rng();
+    let mut rng = StdRng::seed_from_u64(seed);
     rng.random()
 }
 
-pub fn random_biases<B: Copy>(n: usize) -> Vec<B>
+pub fn random_biases<B: Copy>(n: usize, seed: u64) -> Vec<B>
 where
     StandardUniform: Distribution<B>,
 {
-    let mut rng = rand::rng();
+    let mut rng = StdRng::seed_from_u64(seed);
     (0..n).map(|_| rng.random()).collect()
 }
 

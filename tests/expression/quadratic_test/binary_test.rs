@@ -10,10 +10,11 @@ use crate::common::*;
 
 #[test]
 fn quadratic_expression_equal_binaries_varref() {
+    let seed = make_seed();
     let n = 100;
 
     let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n);
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let (mut expr, vars) =
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Binary);
 
@@ -71,10 +72,11 @@ fn quadratic_expression_equal_binaries_varref() {
 
 #[test]
 fn quadratic_expression_equal_binaries_expr() {
+    let seed = make_seed();
     let n = 100;
 
     let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n);
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let (mut expr, vars) =
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Binary);
 

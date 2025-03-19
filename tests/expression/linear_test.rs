@@ -5,8 +5,9 @@ use aqmodels::core::{ConcreteBias, ConcreteIndex, Vtype};
 use crate::common::*;
 
 fn linear_expression_base(vtype: Vtype, n: usize) {
+    let seed = make_seed();
     let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n);
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let expr = create_linear_expression(Rc::clone(&env), &biases, vtype);
 
     assert_eq!(expr.env, env);
