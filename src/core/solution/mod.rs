@@ -1,8 +1,10 @@
 mod metadata;
 mod sol;
+mod timing;
 mod translator;
 
-pub use sol::Res;
-pub use sol::Runtime;
+pub use sol::ResView;
 pub use sol::Solution;
+pub use timing::Timer;
+pub use timing::Timing;
 pub use translator::SampleSetTranslator;

@@ -1,17 +1,9 @@
 use crate::core::expression::{AssignmentConstraints, BiasConstraints};
+use crate::core::solution::timing::Timing;
 
-// #[derive(Debug, Clone)]
-// pub struct ConstraintMetadata<Bias>
-// where
-//     Bias: BiasConstraints,
-// {
-//     lhs_eval: Bias,
-//     // ... extend with more metadata
-// }
-
-/// A result is a view into a certain sample of a solution and its corresponding metadata.
+/// A view into a certain sample of a solution and its corresponding metadata.
 #[derive(Debug, Clone)]
-pub struct Res<'a, Assignment, Bias>
+pub struct ResView<'a, Assignment, Bias>
 where
     Assignment: AssignmentConstraints,
     Bias: BiasConstraints,
@@ -29,7 +21,7 @@ where
     pub feasible: Option<bool>,
 }
 
-impl<'a, Assignment, Bias> Res<'a, Assignment, Bias>
+impl<'a, Assignment, Bias> ResView<'a, Assignment, Bias>
 where
     Assignment: AssignmentConstraints,
     Bias: BiasConstraints,
@@ -40,7 +32,6 @@ where
         obj_value: Option<Bias>,
         constraint_satisfaction: Option<&'a Vec<bool>>,
         feasible: Option<bool>,
-        // constraint_metadata: &Option<ConstraintMetadata<Bias>>,
     ) -> Self {
         Self {
             sample,
@@ -48,23 +39,20 @@ where
             obj_value,
             constraint_satisfaction,
             feasible,
-            // constraint_metadata,
         }
     }
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct Runtime {
-    /// The solver's or algorithm's total runtime in seconds.
-    pub total: Option<f64>,
-    /// The qpu usage time in seconds.
-    pub qpu: Option<f64>,
-}
-
-impl Runtime {
-    pub fn new(total: Option<f64>, qpu: Option<f64>) -> Self {
-        Self { total, qpu }
-    }
+pub struct Res<Assignment, Bias> {
+    /// The solution bitstring.
+    pub sample: Vec<Assignment>,
+    /// The objective value computed from an AqModel. If not present, a raw value from the solver
+    /// may be used. None, if none of these are present.
+    pub obj_value: Option<Bias>,
+    /// Boolean flag for each single constraint whether it's satisfied.
+    pub constraint_satisfaction: Option<Vec<bool>>,
+    /// Whether all constraints are satisfied.
+    pub feasible: Option<bool>,
 }
 
 /// The solutions object for AQMs. It doesn't have any knowledge about the corresponding AQM or
@@ -100,13 +88,9 @@ where
     feasible: Vec<bool>,
     // /// Metadata that may be useful for explaining why a constraint is not satisfied, e.g., the eval
     // /// of a lhs.
-    // /// TODO: we need a Vec<Vec<_>> instead of a Vec<_> as each constraint needs these metadata.
-    // constraint_metadata: Vec<Option<ConstraintMetadata<Bias>>>,
-    /// The index of the sample with the lowest objective value or, if not present, of the sample
-    /// with the lowes raw energy. None, if none of these values are present.
     best_sample_idx: Option<usize>,
     /// Runtime metrics of the solution.
-    pub runtime: Runtime,
+    pub timing: Option<Timing>,
 }
 
 impl<Assignment, Bias> Solution<Assignment, Bias>
@@ -142,11 +126,13 @@ where
     }
 
     /// Iterate over the single results of the solution
-    pub fn iter(&self) -> impl Iterator<Item = Res<Assignment, Bias>> + use<'_, Assignment, Bias> {
+    pub fn iter(
+        &self,
+    ) -> impl Iterator<Item = ResView<Assignment, Bias>> + use<'_, Assignment, Bias> {
         (0..self.samples.len()).map(|i| self.get_result(i).unwrap())
     }
 
-    pub fn get_result(&self, index: usize) -> Option<Res<Assignment, Bias>> {
+    pub fn get_result(&self, index: usize) -> Option<ResView<Assignment, Bias>> {
         if index >= self.samples.len() {
             return None;
         }
@@ -161,17 +147,12 @@ where
             Some(&feas) => Some(feas),
         };
 
-        Some(Res::new(
+        Some(ResView::new(
             &self.samples[index],
             self.num_occurrences[index],
             obj_value,
             constraints,
             feasible,
         ))
-    }
-
-    /// Get a vec of all results
-    pub fn as_results_vec(&self) -> Vec<Res<Assignment, Bias>> {
-        self.iter().collect()
     }
 }

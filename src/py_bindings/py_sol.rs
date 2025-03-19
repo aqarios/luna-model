@@ -1,11 +1,8 @@
-use crate::core::{Res, Runtime, Solution};
+use crate::core::{ResView, Solution};
+use crate::py_bindings::py_timing::PyTiming;
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, PyArray2, ToPyArray};
 use pyo3::prelude::*;
-
-#[pyclass(unsendable, name = "Runtime")]
-#[derive(Clone, Deref, DerefMut)]
-pub struct PyRuntime(pub Runtime);
 
 #[pyclass(unsendable, name = "Result")]
 pub struct PyRes {
@@ -25,12 +22,6 @@ pub struct PyResults {
 #[pyclass(unsendable, name = "Solution")]
 #[derive(Deref, DerefMut)]
 pub struct PySolution(pub Solution<f64, f64>);
-
-impl Into<Runtime> for PyRuntime {
-    fn into(self) -> Runtime {
-        self.0
-    }
-}
 
 impl Into<Solution<f64, f64>> for PySolution {
     fn into(self) -> Solution<f64, f64> {
@@ -56,6 +47,10 @@ impl PySolution {
     fn num_occurrences<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
         self.num_occurrences.to_pyarray(py)
     }
+    #[getter]
+    fn runtime(&self) -> Option<PyTiming> {
+        self.timing.map(|t| PyTiming(t))
+    }
 
     fn __str__(&self) -> String {
         format!("{:?}", self.0)
@@ -72,7 +67,7 @@ impl PySolution {
 }
 
 impl PyRes {
-    fn from_res<'a>(res: Res<'a, f64, f64>, py: Python<'a>) -> Self {
+    fn from_res<'a>(res: ResView<'a, f64, f64>, py: Python<'a>) -> Self {
         let constr_sat = match res.constraint_satisfaction {
             None => None,
             Some(c) => Some(c.to_pyarray(py).unbind()),
@@ -141,14 +136,5 @@ impl PyResults {
 
     fn __next__(mut slf: PyRefMut<'_, Self>, py: Python) -> Option<PyRes> {
         slf.next(py)
-    }
-}
-
-#[pymethods]
-impl PyRuntime {
-    #[new]
-    #[pyo3(signature = (total=None, qpu=None))]
-    fn py_new(total: Option<f64>, qpu: Option<f64>) -> PyResult<Self> {
-        Ok(PyRuntime(Runtime::new(total, qpu)))
     }
 }

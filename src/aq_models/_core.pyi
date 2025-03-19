@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Tuple, overload
 
@@ -420,7 +421,7 @@ class Solution:
     def __repr__(self) -> str: ...
 
     @property
-    def results(self) -> list[Result]: ...
+    def results(self) -> Results: ...
 
     @property
     def samples(self) -> NDArray: ...
@@ -431,21 +432,46 @@ class Solution:
     @property
     def num_occurrences(self) -> NDArray: ...
 
+    @property
+    def runtime(self) -> Timing: ...
+
     def __iter__(self) -> Results: ...
 
 
-class Runtime:
-    total: float | None = None
-    qpu: float | None = None
+class Timing:
+    @property
+    def start(self) -> datetime: ...
 
-    def __init__(
-            self, total: float | None = None, qpu: float | None = None
-    ) -> Runtime: ...
+    @property
+    def end(self) -> datetime: ...
+
+    @property
+    def total(self) -> timedelta: ...
+
+    @property
+    def total_seconds(self) -> float: ...
+
+    @property
+    def qpu(self) -> float | None: ...
+
+    @qpu.setter
+    def qpu(self, value: float | None): ...
+
+    def add_qpu(self, value: float): ...
+
+
+class Timer:
+    @staticmethod
+    def start(cls) -> Timer: ...
+
+    def stop(self) -> Timing: ...
 
 
 class SampleSetTranslator:
     @staticmethod
-    def from_dimod_sample_set(sample_set: SampleSet, timing: Runtime) -> Solution: ...
+    def from_dimod_sample_set(
+            sample_set: SampleSet, timing: Timing | None = None
+    ) -> Solution: ...
 
 
 class MatrixTranslator:
