@@ -54,7 +54,6 @@ def test_use_instanceadd_bias_to_model():
 
     model.objective += 1
     assert_offset(model.objective, 1)
-    assert model.objective == model.objective
 
 
 @pytest.mark.model
@@ -66,7 +65,6 @@ def test_use_instanceadd_variable_to_model():
     model.objective += x
     assert_offset(model.objective, 0)
     assert_linear(model.objective, (x,), 1)
-    assert model.objective == model.objective
 
 
 @pytest.mark.model
@@ -80,4 +78,3 @@ def test_use_instanceadd_expression_to_model():
     assert_offset(model.objective, 0)
     assert_linear(model.objective, (x,), 0)
     assert_quadratic(model.objective, (x, y), 1)
-    assert model.objective == model.objective

@@ -2,7 +2,7 @@ from __future__ import annotations
 from math import prod
 from typing import Callable, Protocol, Sequence
 from itertools import combinations, product
-from random import random
+from .utils import make_seed, random
 
 from aq_models import (
     Model,
@@ -107,11 +107,15 @@ def environments() -> list[Environment]:
 
 
 def expressions(
-    params: tuple[Environment, list[Variable]] | None = None,
+    params: tuple[Environment, list[Variable]] | None = None, seed: int | None = None
 ) -> list[Expression]:
+    if not seed:
+        seed = make_seed()
+
     if not params:
         params = make_env_with_vars()
-    const = constant_expression(*params)
+
+    const = constant_expression(*params, seed)
     linear = linear_expression(*params)
     quadratic = quadratic_expression(*params)
     higher_order = higher_order_expression(*params)
@@ -120,22 +124,24 @@ def expressions(
     item_cominations: list[Expression] = list()
     for r in range(2, len(items) + 1):
         combs = combinations(items, r)
-        item_cominations.extend([sum([random() * v for v in comb]) for comb in combs])  # type: ignore
+        item_cominations.extend([sum([random(seed) * v for v in comb]) for comb in combs])  # type: ignore
 
     return [*items, *item_cominations]
 
 
 def expressions_with_env(
-    params: tuple[Environment, list[Variable]] | None = None,
+    params: tuple[Environment, list[Variable]] | None = None, seed: int | None = None
 ) -> tuple[list[Expression], Environment]:
+    if not seed:
+        seed = make_seed()
     if not params:
         params = make_env_with_vars()
-    return expressions(params), params[0]
+    return expressions(params, seed), params[0]
 
 
-def constant_expression(env: Environment, _: list[Variable]) -> Expression:
+def constant_expression(env: Environment, _: list[Variable], seed: int) -> Expression:
     """ """
-    return Expression(env) + random()
+    return Expression(env) + random(seed)
 
 
 def linear_expression(_: Environment, variables: list[Variable]) -> Expression:
@@ -169,7 +175,10 @@ def higher_order_expression(env: Environment, variables: list[Variable]) -> Expr
 
 def constraints(
     params: tuple[Environment, list[Variable]] | None = None,
+    seed: int | None = None,
 ) -> list[Constraints]:
+    if not seed:
+        seed = make_seed()
     if not params:
         params = make_env_with_vars()
 
@@ -179,21 +188,21 @@ def constraints(
     ho_expr = lambda: higher_order_expression(env, variables)
 
     linears = [
-        Constraint(lin_expr(), random(), Comparator.Leq),
-        Constraint(lin_expr(), random(), Comparator.Eq),
-        Constraint(lin_expr(), random(), Comparator.Geq),
+        Constraint(lin_expr(), random(seed), Comparator.Leq),
+        Constraint(lin_expr(), random(seed), Comparator.Eq),
+        Constraint(lin_expr(), random(seed), Comparator.Geq),
     ]
 
     quadratics = [
-        Constraint(quad_expr(), random(), Comparator.Leq),
-        Constraint(quad_expr(), random(), Comparator.Eq),
-        Constraint(quad_expr(), random(), Comparator.Geq),
+        Constraint(quad_expr(), random(seed), Comparator.Leq),
+        Constraint(quad_expr(), random(seed), Comparator.Eq),
+        Constraint(quad_expr(), random(seed), Comparator.Geq),
     ]
 
     higher_orders = [
-        Constraint(ho_expr(), random(), Comparator.Leq),
-        Constraint(ho_expr(), random(), Comparator.Eq),
-        Constraint(ho_expr(), random(), Comparator.Geq),
+        Constraint(ho_expr(), random(seed), Comparator.Leq),
+        Constraint(ho_expr(), random(seed), Comparator.Eq),
+        Constraint(ho_expr(), random(seed), Comparator.Geq),
     ]
 
     items: list[list[Constraint]] = [linears, quadratics, higher_orders]
@@ -214,17 +223,21 @@ def constraints(
 
 def constraints_with_env(
     params: tuple[Environment, list[Variable]] | None = None,
+    seed: int | None = None,
 ) -> tuple[list[Constraints], Environment]:
+    if not seed:
+        seed = make_seed()
     if not params:
         params = make_env_with_vars()
-    return constraints(params), params[0]
+    return constraints(params, seed), params[0]
 
 
 def models() -> list[Model]:
     """ """
+    seed = make_seed()
     params = make_env_with_vars()
-    expression_collection = expressions(params)
-    constraints_collection = constraints(params)
+    expression_collection = expressions(params, seed)
+    constraints_collection = constraints(params, seed)
 
     model_collection: list[Model] = list()
 

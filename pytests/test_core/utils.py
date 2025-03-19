@@ -1,4 +1,24 @@
+import sys
+import random as r
 from itertools import permutations
+
+
+def make_seed() -> int:
+    seed = r.randint(0, 2**32 - 1)
+    print(
+        f"""
+************************
+Random Seed = {seed}
+************************
+""",
+        file=sys.stderr,
+    )
+    return seed
+
+
+def random(seed: int) -> float:
+    rand = r.Random(seed)
+    return rand.random()
 
 
 def check_equality(variables, p, f, value):
