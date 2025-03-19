@@ -6,6 +6,7 @@ use aqmodels::core::{
     operations::{AddToExpression, MulToExpression},
     Environment, Expression, VarRef, Vtype,
 };
+use num::abs;
 use rand::{
     distr::{Distribution, StandardUniform},
     rngs::StdRng,
@@ -71,4 +72,16 @@ pub fn create_env<I: IndexConstraints>() -> Environment<I> {
 
 pub fn package<T>(value: T) -> Rc<RefCell<T>> {
     Rc::new(RefCell::new(value))
+}
+
+pub fn almost_equal(a: f64, b: f64, epsilon: Option<f64>, abs_th: Option<f64>) -> bool {
+    let epsilon = epsilon.unwrap_or(128_f64 * f64::EPSILON);
+    let abs_th = abs_th.unwrap_or(f64::MIN_POSITIVE);
+
+    assert!(f64::EPSILON <= epsilon);
+    assert!(epsilon < 1_f64);
+
+    let diff = (a - b).abs();
+    let norm = (abs(a) + abs(b)).min(f64::MAX);
+    diff < abs_th.max(epsilon * norm)
 }

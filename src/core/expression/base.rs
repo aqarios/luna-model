@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Index, Mul, MulAssign, Neg};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
 use std::str::FromStr;
 
 use crate::core::term::types::SizeType;
@@ -413,7 +413,22 @@ where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn evaluate<Elem: Copy, Sample: Index<Idx, Output = Elem>>(&self, sample: &Sample) -> Bias
+    fn evaluate_sample<'a, Elem: 'a, Sample: std::ops::Index<Idx, Output = Elem>>(
+        &self,
+        sample: &'a Sample,
+    ) -> Bias
     where
-        Bias: Mul<Elem, Output = Bias>;
+        Bias: Mul<&'a Elem, Output = Bias>;
+
+    fn evaluate_sampleset<
+        'a,
+        Elem: 'a,
+        Sample: std::ops::Index<Idx, Output = Elem> + 'a,
+        SampleSet: Iterator<Item = &'a Sample> + Copy,
+    >(
+        &self,
+        sampleset: &'a SampleSet,
+    ) -> Vec<Bias>
+    where
+        Bias: Mul<&'a Elem, Output = Bias>;
 }
