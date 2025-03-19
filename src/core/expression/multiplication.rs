@@ -6,8 +6,9 @@ use super::{
     Expression,
 };
 use crate::core::operations::{MulAssignToExpression, MulToExpression};
+use crate::core::ExpressionBase;
 use crate::core::VarRef;
-use crate::core::{exceptions::VariablesFromDifferentEnvsError, ExpressionBase};
+use crate::errors::VariablesFromDifferentEnvsError;
 
 // MULTIPLICATION
 

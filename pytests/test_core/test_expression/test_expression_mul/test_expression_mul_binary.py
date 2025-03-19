@@ -1,8 +1,8 @@
 import pytest
 
-from aq_models import Expression
+from aq_models import Expression, Vtype
 
-from .common import *
+from .common import *  # noqa: F403
 from ...utils import (
     assert_offset,
     assert_linear,
@@ -18,7 +18,7 @@ def test_expression_mul_binary_variables(variables):
     x, y, z = variables
 
     expr = x * y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
@@ -28,7 +28,7 @@ def test_expression_mul_binary_variables(variables):
     result = expr * z
 
     assert id(expr) != id(result)
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 3
     assert result.get_offset() == 0
     assert_linear(result, variables, 0)
@@ -43,7 +43,7 @@ def test_expression_rmul_binary_variables(variables):
     x, y, z = variables
 
     expr = x * y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
@@ -53,7 +53,7 @@ def test_expression_rmul_binary_variables(variables):
     result = z * expr
 
     assert id(expr) != id(result)
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 3
     assert result.get_offset() == 0
     assert_linear(result, variables, 0)
@@ -68,7 +68,7 @@ def test_expression_mul_binary_variable_twice(variables):
     x, y, z = variables
 
     expr = x * y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
@@ -78,7 +78,7 @@ def test_expression_mul_binary_variable_twice(variables):
     result = expr * z
 
     assert id(expr) != id(result)
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 3
     assert result.get_offset() == 0
     assert_linear(result, variables, 0)
@@ -89,7 +89,7 @@ def test_expression_mul_binary_variable_twice(variables):
     result = result * z
 
     assert id(expr) != id(result)
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 3
     assert result.get_offset() == 0
     assert_linear(result, variables, 0)
@@ -104,7 +104,7 @@ def test_expression_instancemul_binary_variable_twice(variables):
     x, y, z = variables
 
     expr = x * y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
@@ -117,7 +117,7 @@ def test_expression_instancemul_binary_variable_twice(variables):
     id_expr_after = id(expr)
 
     assert id_expr_before == id_expr_after
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 3
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)

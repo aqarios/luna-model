@@ -1,6 +1,8 @@
 /// The core component of the library. This includes everyting related to defining and
-/// working with an AQ Model (AQM) and an AQ Solution (AQS).
+/// working with an AQ Model (AQ/M) and an AQ Solution (AQ/S).
 pub mod core;
+/// Collection of all errors that can be returned by this library.
+mod errors;
 /// Module for importing commonly used structs and functions when working with this library.
 pub mod prelude;
 /// Everything related to the serialization of all structures that need to be sendable between

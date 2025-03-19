@@ -33,13 +33,13 @@ def test_expression_add_variable(variables):
     x, y, z = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     result = expr + z
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 3
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
@@ -52,13 +52,13 @@ def test_expression_add_number(variables):
     x, y = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     expr = expr + 2
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_offset() == 2
     assert expr.get_linear(x) == 1
@@ -71,13 +71,13 @@ def test_expression_radd_number(variables):
     x, y = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     expr = 2 + expr
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_offset() == 2
     assert expr.get_linear(x) == 1
@@ -90,13 +90,13 @@ def test_expression_instanceadd_variable(variables):
     x, y, z = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     expr += z
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 3
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
@@ -109,14 +109,14 @@ def test_expression_instanceadd_variable_twice(variables):
     x, y, z = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     expr += z
     expr += z
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 3
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
@@ -129,13 +129,13 @@ def test_expression_instanceadd_number(variables):
     x, y = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     expr += 2
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_offset() == 2
     assert expr.get_linear(x) == 1

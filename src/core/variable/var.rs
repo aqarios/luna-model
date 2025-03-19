@@ -1,4 +1,4 @@
-use crate::core::{exceptions::VariableCreationError, ConcreteEnvId};
+use crate::{core::ConcreteEnvId, errors::VariableCreationError};
 use std::fmt::{Debug, Display, Formatter};
 
 use super::{bounds::display_bound, Bounds, Vtype};

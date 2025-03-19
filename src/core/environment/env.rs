@@ -1,11 +1,10 @@
-use crate::core::exceptions::VariableCreationError;
 use crate::core::utils::LineLengthRestrictor;
 use crate::core::ConcreteEnvId as EnvId;
 use crate::core::{
-    exceptions::VariableExistsError,
     expression::IndexConstraints,
     variable::{Bounds, VarRef, Variable, Vtype},
 };
+use crate::errors::{VariableCreationError, VariableExistsError};
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};

@@ -183,9 +183,15 @@ def constraints(
         params = make_env_with_vars()
 
     env, variables = params
-    lin_expr = lambda: linear_expression(env, variables)
-    quad_expr = lambda: quadratic_expression(env, variables)
-    ho_expr = lambda: higher_order_expression(env, variables)
+
+    def lin_expr():
+        return linear_expression(env, variables)
+
+    def quad_expr():
+        return quadratic_expression(env, variables)
+
+    def ho_expr():
+        return higher_order_expression(env, variables)
 
     linears = [
         Constraint(lin_expr(), random(seed), Comparator.Leq),

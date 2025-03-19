@@ -7,10 +7,14 @@ mod py_matrix_translator;
 mod py_model;
 mod py_var;
 
-use py_exceptions::{
-    MultipleActiveEnvironmentsException, NoActiveEnvironmentFoundException, VariableExistsException,
-};
 use pyo3::prelude::*;
+
+use py_exceptions::{
+    DecodeException, DifferentEnvsException, ModelNotQuadraticException,
+    ModelNotUnconstrainedException, MultipleActiveEnvironmentsException,
+    NoActiveEnvironmentFoundException, VariableExistsException, VariableOutOfRangeException,
+    VariablesFromDifferentEnvsException,
+};
 
 use crate::core::{Comparator, Vtype};
 
@@ -31,17 +35,39 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_constr::PyConstraint>()?;
     m.add_class::<py_constr::PyConstraints>()?;
     // Adding the exceptions
+    m.add("DecodeException", m.py().get_type::<DecodeException>())?;
     m.add(
-        "VariableExistsException",
-        m.py().get_type::<VariableExistsException>(),
+        "DifferentEnvsException",
+        m.py().get_type::<DifferentEnvsException>(),
+    )?;
+    m.add(
+        "ModelNotQuadraticException",
+        m.py().get_type::<ModelNotQuadraticException>(),
+    )?;
+    m.add(
+        "ModelNotUnconstrainedException",
+        m.py().get_type::<ModelNotUnconstrainedException>(),
+    )?;
+    m.add(
+        "MultipleActiveEnvironmentsException",
+        m.py().get_type::<MultipleActiveEnvironmentsException>(),
     )?;
     m.add(
         "NoActiveEnvironmentFoundException",
         m.py().get_type::<NoActiveEnvironmentFoundException>(),
     )?;
     m.add(
-        "MultipleActiveEnvironmentsException",
-        m.py().get_type::<MultipleActiveEnvironmentsException>(),
+        "VariableExistsException",
+        m.py().get_type::<VariableExistsException>(),
     )?;
+    m.add(
+        "VariableOutOfRangeException",
+        m.py().get_type::<VariableOutOfRangeException>(),
+    )?;
+    m.add(
+        "VariablesFromDifferentEnvsException",
+        m.py().get_type::<VariablesFromDifferentEnvsException>(),
+    )?;
+
     Ok(())
 }

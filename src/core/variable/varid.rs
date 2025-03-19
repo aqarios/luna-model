@@ -1,5 +1,6 @@
+use crate::core::expression::One;
 use crate::core::ConcreteId;
-use crate::core::{exceptions::ParseFromStringError, expression::One};
+use crate::errors::ParseFromStringError;
 use std::fmt::Debug;
 use std::{ops::AddAssign, str::FromStr};
 

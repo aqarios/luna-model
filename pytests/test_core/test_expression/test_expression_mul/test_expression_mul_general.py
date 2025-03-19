@@ -2,7 +2,7 @@ import pytest
 
 from aq_models import Expression, Vtype
 
-from .common import *
+from .common import *  # noqa: F403
 from ...utils import (
     assert_offset,
     assert_linear,
@@ -27,7 +27,7 @@ def test_expression_mul_number(variables):
     x, y = variables
 
     expr = x * y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
@@ -39,7 +39,7 @@ def test_expression_mul_number(variables):
     id_expr_after = id(expr)
 
     assert id_expr_before != id_expr_after
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
@@ -62,7 +62,7 @@ def test_expression_rmul_number(variables):
     x, y = variables
 
     expr = x * y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
@@ -74,7 +74,7 @@ def test_expression_rmul_number(variables):
     id_expr_after = id(expr)
 
     assert id_expr_before != id_expr_after
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
@@ -97,7 +97,7 @@ def test_expression_instancemul_variable(variables):
     x, y, z = variables
 
     expr = x * y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
@@ -109,7 +109,7 @@ def test_expression_instancemul_variable(variables):
     id_expr_after = id(expr)
 
     assert id_expr_before == id_expr_after
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 3
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
@@ -133,7 +133,7 @@ def test_expression_instancemul_number(variables):
     x, y = variables
 
     expr = x * y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
@@ -145,7 +145,7 @@ def test_expression_instancemul_number(variables):
     id_expr_after = id(expr)
 
     assert id_expr_before == id_expr_after
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
@@ -172,7 +172,7 @@ def test_expression_mul_expression(variables):
     expr_lhs = w * x
     id_expr_lhs = id(expr_lhs)
 
-    assert type(expr_lhs) == Expression
+    assert isinstance(expr_lhs, Expression)
     assert expr_lhs.num_variables() == 2
     assert expr_lhs.get_offset() == 0
     assert_linear(expr_lhs, lhs_variables, 0)
@@ -182,7 +182,7 @@ def test_expression_mul_expression(variables):
     expr_rhs = y * z
     id_expr_rhs = id(expr_rhs)
 
-    assert type(expr_rhs) == Expression
+    assert isinstance(expr_rhs, Expression)
     assert expr_rhs.num_variables() == 2
     assert_linear(expr_rhs, rhs_variables, 0)
     assert_quadratic(expr_rhs, rhs_variables, 1)
@@ -197,7 +197,7 @@ def test_expression_mul_expression(variables):
     assert id_expr != id_expr_lhs
     assert id_expr != id_expr_rhs
 
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 4
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
@@ -226,7 +226,7 @@ def test_expression_instancemul_expression(variables):
     expr_lhs = w * x
     id_expr_lhs = id(expr_lhs)
 
-    assert type(expr_lhs) == Expression
+    assert isinstance(expr_lhs, Expression)
     assert expr_lhs.num_variables() == 2
     assert expr_lhs.get_offset() == 0
     assert_linear(expr_lhs, lhs_variables, 0)
@@ -236,7 +236,7 @@ def test_expression_instancemul_expression(variables):
     expr = y * z
     id_expr_rhs = id(expr)
 
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert_linear(expr, rhs_variables, 0)
     assert_quadratic(expr, rhs_variables, 1)
@@ -249,7 +249,7 @@ def test_expression_instancemul_expression(variables):
     id_expr = id(expr)
 
     assert id_expr == id_expr_rhs
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 4
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
@@ -274,7 +274,7 @@ def test_unordered_mul_to_expression(variables):
     x, y, z = variables
     expr = x * z * y
 
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 3
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)

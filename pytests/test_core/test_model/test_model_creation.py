@@ -10,7 +10,7 @@ from aq_models import MultipleActiveEnvironmentsException
 def test_create_model_explicit():
     env = Environment()
     model = Model(env)
-    assert type(model) == Model
+    assert isinstance(model, Model)
 
 
 @pytest.mark.model

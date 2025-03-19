@@ -7,7 +7,6 @@ mod variable;
 
 pub mod constraints;
 pub mod environment;
-pub mod exceptions;
 pub mod expression;
 pub mod operations;
 pub mod term;

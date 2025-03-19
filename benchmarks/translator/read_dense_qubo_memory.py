@@ -180,7 +180,9 @@ def format_mem_row_entries(
     aqm_peek_own_color = "green" if aqm_peek_own < dmd_peek_own else None
     dmd_peek_own_color = "green" if dmd_peek_own < aqm_peek_own else None
 
-    size_fmt_target = lambda n: size_fmt(n, target="M")
+    def size_fmt_target(n):
+        size_fmt(n, target="M")
+
     aqm_peek_total_str_content = size_fmt_target(aqm_peek_total)
     aqm_peek_own_str_content = size_fmt_target(aqm_peek_own)
     dmd_peek_total_str_content = size_fmt_target(dmd_peek_total)

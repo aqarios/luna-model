@@ -25,7 +25,7 @@ def model() -> Model:
 @pytest.mark.model
 def test_access_name(model: Model):
     name = model.name
-    assert type(name) == str
+    assert isinstance(name, str)
     assert name == "unnamed"
 
 
@@ -33,8 +33,8 @@ def test_access_name(model: Model):
 def test_access_objective(model: Model):
     objective_a = model.objective
     objective_b = model.objective
-    assert type(objective_a) == Expression
-    assert type(objective_b) == Expression
+    assert isinstance(objective_a, Expression)
+    assert isinstance(objective_b, Expression)
     assert objective_a == objective_b
     assert model == model
 

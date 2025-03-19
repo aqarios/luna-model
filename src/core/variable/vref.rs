@@ -1,8 +1,10 @@
-use crate::core::{
-    exceptions::VariablesFromDifferentEnvsError,
-    expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints},
-    operations::{AddToExpression, MulToExpression, RSubToExpression, SubToExpression},
-    Expression, MutRcEnvironment,
+use crate::{
+    core::{
+        expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints},
+        operations::{AddToExpression, MulToExpression, RSubToExpression, SubToExpression},
+        Expression, MutRcEnvironment,
+    },
+    errors::VariablesFromDifferentEnvsError,
 };
 use std::{
     fmt::{Debug, Display, Formatter},

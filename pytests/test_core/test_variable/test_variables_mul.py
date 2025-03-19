@@ -13,7 +13,7 @@ def test_mul_variable_and_number(scalar: int):
         x = Variable("x")
 
     result = x * scalar
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 1
     assert result.get_linear(x) == scalar
     assert result.get_offset() == 0
@@ -26,7 +26,7 @@ def test_rmul_variable_and_number(scalar: int):
         x = Variable("x")
 
     result = scalar * x
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 1
     assert result.get_linear(x) == scalar
     assert result.get_offset() == 0
@@ -39,7 +39,7 @@ def test_mul_variables():
         y = Variable("y")
 
     result = x * y
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 2
     assert result.get_offset() == 0
     assert result.get_linear(x) == 0
@@ -54,7 +54,7 @@ def test_mul_same_variable_binary():
         x = Variable("x", vtype=Vtype.Binary)
 
     result = x * x
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 1
     assert result.get_offset() == 0
     assert result.get_linear(x) == 1
@@ -67,7 +67,7 @@ def test_mul_same_variable_spin():
         x = Variable("x", vtype=Vtype.Spin)
 
     result = x * x
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 1
     assert result.get_offset() == 1
     assert result.get_linear(x) == 0
@@ -80,7 +80,7 @@ def test_mul_same_variable_real():
         x = Variable("x", vtype=Vtype.Real)
 
     result = x * x
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 1
     assert result.get_offset() == 0
     assert result.get_linear(x) == 0
@@ -93,7 +93,7 @@ def test_mul_same_variable_integer():
         x = Variable("x", vtype=Vtype.Integer)
 
     result = x * x
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 1
     assert result.get_offset() == 0
     assert result.get_linear(x) == 0

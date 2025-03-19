@@ -95,6 +95,10 @@ where
     pub fn iter(&self) -> Iter<'_, Constraint<Index, Bias>> {
         self.constraints.iter()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 }
 
 impl<Index, Bias> AddAssign<Constraint<Index, Bias>> for Constraints<Index, Bias>
