@@ -3,7 +3,7 @@ use std::rc::Rc;
 use aqmodels::core::{
     operations::{MulAssignToExpression, MulToExpression},
     term::{types::OneVarTerm, HigherOrder},
-    VarId, Vtype,
+    ConcreteBias, ConcreteIndex, Vtype,
 };
 use hashbrown::HashMap;
 
@@ -13,8 +13,8 @@ use crate::common::*;
 fn higher_order_expression_equal_integer_varref() {
     let n = 100;
 
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(n);
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(n);
     let (mut expr, vars) =
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Integer);
 
@@ -22,17 +22,23 @@ fn higher_order_expression_equal_integer_varref() {
     expr.mul_assign(multiplier).unwrap();
     expr.mul_assign(multiplier).unwrap();
 
-    let expected_linear: Vec<f64> = vec![f64::default(); biases.len()];
-    let expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![vec![]; biases.len()];
+    let expected_linear: Vec<ConcreteBias> = vec![ConcreteBias::default(); biases.len()];
+    let expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> =
+        vec![vec![]; biases.len()];
 
-    let mut expected_higher_order: HashMap<String, f64> = HashMap::with_capacity(biases.len());
+    let mut expected_higher_order: HashMap<String, ConcreteBias> =
+        HashMap::with_capacity(biases.len());
     for (var, bias) in vars.iter().zip(&biases) {
-        let key = HigherOrder::<VarId, f64>::make_key(&vec![var.id, multiplier.id, multiplier.id]);
+        let key = HigherOrder::<ConcreteIndex, ConcreteBias>::make_key(&vec![
+            var.id,
+            multiplier.id,
+            multiplier.id,
+        ]);
         expected_higher_order.insert(key, *bias);
     }
 
     assert_eq!(expr.env, env, "envs is wrong");
-    assert_eq!(expr.offset, f64::default(), "offset is wrong");
+    assert_eq!(expr.offset, ConcreteBias::default(), "offset is wrong");
     assert_eq!(
         expr.linear.to_vec(),
         &expected_linear,
@@ -75,8 +81,8 @@ fn higher_order_expression_equal_integer_varref() {
 fn higher_order_expression_equal_integer_expr() {
     let n = 100;
 
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(n);
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(n);
     let (mut expr, vars) =
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Integer);
 
@@ -84,17 +90,23 @@ fn higher_order_expression_equal_integer_expr() {
     expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
     expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
 
-    let expected_linear: Vec<f64> = vec![f64::default(); biases.len()];
-    let expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![vec![]; biases.len()];
+    let expected_linear: Vec<ConcreteBias> = vec![ConcreteBias::default(); biases.len()];
+    let expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> =
+        vec![vec![]; biases.len()];
 
-    let mut expected_higher_order: HashMap<String, f64> = HashMap::with_capacity(biases.len());
+    let mut expected_higher_order: HashMap<String, ConcreteBias> =
+        HashMap::with_capacity(biases.len());
     for (var, bias) in vars.iter().zip(&biases) {
-        let key = HigherOrder::<VarId, f64>::make_key(&vec![var.id, multiplier.id, multiplier.id]);
+        let key = HigherOrder::<ConcreteIndex, ConcreteBias>::make_key(&vec![
+            var.id,
+            multiplier.id,
+            multiplier.id,
+        ]);
         expected_higher_order.insert(key, *bias * biases[0] * biases[0]);
     }
 
     assert_eq!(expr.env, env, "envs is wrong");
-    assert_eq!(expr.offset, f64::default(), "offset is wrong");
+    assert_eq!(expr.offset, ConcreteBias::default(), "offset is wrong");
     assert_eq!(
         expr.linear.to_vec(),
         &expected_linear,
