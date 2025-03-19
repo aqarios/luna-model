@@ -9,7 +9,7 @@ use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 use crate::{
     core::{
         Comparator, ConcreteConstraint, ConcreteConstraints, ConcreteMutRcConstraint,
-        ConcreteMutRcConstraints, Create,
+        ConcreteMutRcConstraints, Constraint, Create,
     },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -38,13 +38,13 @@ impl PyConstraint {
     }
 
     pub fn new_py(
-        expr: &PyExpression,
         py: Python,
+        expr: &PyExpression,
         other: PyObject,
         comparator: Comparator,
     ) -> PyResult<PyConstraint> {
         if let Ok(rhs) = other.extract::<f64>(py) {
-            Ok(PyConstraint::new(ConcreteConstraint::new(
+            Ok(PyConstraint::new(Constraint::new(
                 Rc::clone(&expr.0),
                 rhs,
                 comparator,
@@ -57,6 +57,11 @@ impl PyConstraint {
 
 #[pymethods]
 impl PyConstraint {
+    #[new]
+    fn py_new(lhs: PyExpression, rhs: f64, comparator: Comparator) -> Self {
+        PyConstraint::new(Constraint::new(lhs.0, rhs, comparator))
+    }
+
     fn __eq__(&self, other: Self) -> bool {
         *self.borrow() == *other.borrow()
     }
@@ -135,5 +140,16 @@ impl PyConstraints {
     #[staticmethod]
     fn deserialize(py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
         Self::decode(py, data, env)
+    }
+}
+
+#[pymethods]
+impl Comparator {
+    fn __str__(&self) -> String {
+        self.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self:?}")
     }
 }

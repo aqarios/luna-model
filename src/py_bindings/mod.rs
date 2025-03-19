@@ -12,7 +12,7 @@ use py_exceptions::{
 };
 use pyo3::prelude::*;
 
-use crate::core::Vtype;
+use crate::core::{Comparator, Vtype};
 
 #[pymodule]
 fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -20,6 +20,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     // Add core components not as wrappers, required for e.g. enums
     m.add_class::<Vtype>()?;
+    m.add_class::<Comparator>()?;
     // Add core components as wrappers.
     m.add_class::<py_env::PyEnvironment>()?;
     m.add_class::<py_expr::PyExpression>()?;

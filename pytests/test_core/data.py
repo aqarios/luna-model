@@ -10,6 +10,7 @@ from aq_models import (
     Environment,
     Constraints,
     Constraint,
+    Comparator,
     Variable,
     Vtype,
     Bounds,
@@ -172,22 +173,27 @@ def constraints(
     if not params:
         params = make_env_with_vars()
 
+    env, variables = params
+    lin_expr = lambda: linear_expression(env, variables)
+    quad_expr = lambda: quadratic_expression(env, variables)
+    ho_expr = lambda: higher_order_expression(env, variables)
+
     linears = [
-        linear_constraint_le(*params),
-        linear_constraint_eq(*params),
-        linear_constraint_ge(*params),
+        Constraint(lin_expr(), random(), Comparator.Leq),
+        Constraint(lin_expr(), random(), Comparator.Eq),
+        Constraint(lin_expr(), random(), Comparator.Geq),
     ]
 
     quadratics = [
-        quadratic_constraint_le(*params),
-        quadratic_constraint_eq(*params),
-        quadratic_constraint_ge(*params),
+        Constraint(quad_expr(), random(), Comparator.Leq),
+        Constraint(quad_expr(), random(), Comparator.Eq),
+        Constraint(quad_expr(), random(), Comparator.Geq),
     ]
 
     higher_orders = [
-        higher_order_constraint_le(*params),
-        higher_order_constraint_eq(*params),
-        higher_order_constraint_ge(*params),
+        Constraint(ho_expr(), random(), Comparator.Leq),
+        Constraint(ho_expr(), random(), Comparator.Eq),
+        Constraint(ho_expr(), random(), Comparator.Geq),
     ]
 
     items: list[list[Constraint]] = [linears, quadratics, higher_orders]

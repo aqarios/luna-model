@@ -217,11 +217,11 @@ impl PyExpression {
     }
 
     fn __le__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
-        PyConstraint::new_py(&self, py, other, Comparator::Leq)
+        PyConstraint::new_py(py, &self, other, Comparator::Leq)
     }
 
     fn __ge__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
-        PyConstraint::new_py(&self, py, other, Comparator::Geq)
+        PyConstraint::new_py(py, &self, other, Comparator::Geq)
     }
 
     fn __ne__(&self, other: &Self) -> bool {

@@ -23,7 +23,7 @@ def _serialize_dmd(model: dimod.ConstrainedQuadraticModel):
     serialize_cqm(model)
 
 
-def bench_serialize_bqm(file: IO | None):
+def bench_serialize_cqm(file: IO | None):
     result = BenchResult("Serialize Binary Quadratic Model")
 
     for size in tqdm(SIZES, desc="Num. Variables", leave=False):
@@ -33,7 +33,7 @@ def bench_serialize_bqm(file: IO | None):
             qubo = make_qubo(size, density)
 
             aqm = MatrixTranslator.to_model(qubo, vtype=Vtype.Binary)
-            dmd = dimod.ConstrainedQuadraticModel.from_bqm(
+            dmd = dimod.ConstrainedQuadraticModel.from_cqm(
                 dimod.BinaryQuadraticModel(qubo, "BINARY")
             )
 
@@ -46,7 +46,7 @@ def bench_serialize_bqm(file: IO | None):
     format_result(result, file=file)
 
 
-def bench_serialize_bqm_size(file: IO | None):
+def bench_serialize_cqm_size(file: IO | None):
     result = BenchResult("Size of Serialized Binary Quadratic Model")
     result.suffix = "MB"
 
@@ -57,7 +57,7 @@ def bench_serialize_bqm_size(file: IO | None):
             qubo = make_qubo(size, density)
 
             aqm = MatrixTranslator.to_model(qubo, vtype=Vtype.Binary)
-            dmd = dimod.ConstrainedQuadraticModel.from_bqm(
+            dmd = dimod.ConstrainedQuadraticModel.from_cqm(
                 dimod.BinaryQuadraticModel(qubo, "BINARY")
             )
 
