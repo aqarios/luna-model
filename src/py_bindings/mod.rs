@@ -37,6 +37,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_constr::PyConstraints>()?;
     m.add_class::<py_sol::PyRuntime>()?;
     m.add_class::<py_sol::PyRes>()?;
+    m.add_class::<py_sol::PyResults>()?;
     m.add_class::<py_sol::PySolution>()?;
     m.add_class::<solution_translator::PySampleSetTranslator>()?;
     // Adding the exceptions

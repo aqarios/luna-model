@@ -1,5 +1,5 @@
 use crate::core::SampleSetTranslator;
-use crate::py_bindings::py_sol::PySolution;
+use crate::py_bindings::py_sol::{PyRuntime, PySolution};
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{pyclass, pymethods, PyResult};
 
@@ -12,11 +12,13 @@ impl PySampleSetTranslator {
     fn from_dimod_sample_set(
         samples: PyReadonlyArray2<i64>,
         num_occurrences: PyReadonlyArray1<i64>,
+        runtime: PyRuntime,
     ) -> PyResult<PySolution> {
         Ok(PySolution(SampleSetTranslator::from_dimod_sample_set(
             samples.as_slice()?,
             num_occurrences.as_slice()?,
             samples.shape(),
+            runtime.into(),
         )))
     }
 }

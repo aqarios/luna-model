@@ -2,7 +2,7 @@ import numpy as np
 from dimod import SampleSet, BinaryQuadraticModel, Vartype
 from dwave.samplers import SimulatedAnnealingSampler
 
-from aq_models import SampleSetTranslator
+from aq_models import Runtime, SampleSetTranslator
 
 
 # @pytest.mark.solution_translation
@@ -44,9 +44,10 @@ def test_from_dimod_2():
 
     sampler = SimulatedAnnealingSampler()
     sampleset: SampleSet = sampler.sample(bqm, num_reads=5, seed=42)
+    runtime = Runtime(total=10.2)
 
-    sol = SampleSetTranslator.from_dimod_sample_set(sampleset)
-    np.allclose(sol.samples, np.array([[0.0, 1.0, 0.0]]))
+    sol = SampleSetTranslator.from_dimod_sample_set(sampleset, runtime)
+    assert np.allclose(sol.samples, np.array([[0.0, 1.0, 0.0]]))
     assert np.allclose(sol.num_occurrences, np.array([5]))
 
     # print(sol.results[0])
@@ -57,6 +58,12 @@ def test_from_dimod_2():
     print(sol.results[0].obj_value)
     print(sol.results[0].feasible)
     print(sol.results[0].constraint_satisfaction)
+
+    print("-" * 80)
+
+    for i, res in enumerate(sol):
+        print(i)
+        print(res.sample)
 
     # print(sampleset.info)
     raise Exception

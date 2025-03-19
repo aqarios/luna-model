@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import Any, Tuple, overload
 
@@ -406,8 +408,13 @@ class Result:
     def feasible(self) -> bool | None: ...
 
 
-class Solution:
+class Results:
+    def __iter__(self) -> Results: ...
 
+    def __next__(self) -> Result: ...
+
+
+class Solution:
     def __str__(self) -> str: ...
 
     def __repr__(self) -> str: ...
@@ -424,10 +431,21 @@ class Solution:
     @property
     def num_occurrences(self) -> NDArray: ...
 
+    def __iter__(self) -> Results: ...
+
+
+class Runtime:
+    total: float | None = None
+    qpu: float | None = None
+
+    def __init__(
+            self, total: float | None = None, qpu: float | None = None
+    ) -> Runtime: ...
+
 
 class SampleSetTranslator:
     @staticmethod
-    def from_dimod_sample_set(sample_set: SampleSet) -> Solution: ...
+    def from_dimod_sample_set(sample_set: SampleSet, timing: Runtime) -> Solution: ...
 
 
 class MatrixTranslator:

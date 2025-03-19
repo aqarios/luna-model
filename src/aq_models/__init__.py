@@ -13,6 +13,8 @@ from ._core import Model
 from ._core import MultipleActiveEnvironmentsException
 from ._core import NoActiveEnvironmentFoundException
 from ._core import Result
+from ._core import Results
+from ._core import Runtime
 from ._core import SampleSetTranslator
 from ._core import Solution
 from ._core import Variable
@@ -22,12 +24,17 @@ from ._core import Vtype
 
 def wrap_from_dimod_sample_set(f):
     @functools.wraps(SampleSetTranslator.from_dimod_sample_set)
-    def inner(sample_set: SampleSet) -> Solution:
+    def inner(sample_set: SampleSet, runtime: Runtime) -> Solution:
         sample_set = sample_set.aggregate()
         record = sample_set.record
         sample = record.sample.astype(np.int64, order="C")
         num_occurrences = record.num_occurrences.astype(np.int64, order="C")
-        return f(sample, num_occurrences)
+
+        return f(
+            sample,
+            num_occurrences,
+            runtime
+        )
 
     return inner
 
@@ -46,6 +53,8 @@ __all__ = [
     "Vtype",
     "Bounds",
     "Result",
+    "Results",
+    "Runtime",
     "Solution",
     "MatrixTranslator",
     "SampleSetTranslator",

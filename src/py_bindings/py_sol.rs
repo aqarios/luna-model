@@ -1,10 +1,10 @@
-use crate::core::{Runtime, Solution};
+use crate::core::{Res, Runtime, Solution};
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, PyArray2, ToPyArray};
 use pyo3::prelude::*;
 
 #[pyclass(unsendable, name = "Runtime")]
-#[derive(Deref, DerefMut)]
+#[derive(Clone, Deref, DerefMut)]
 pub struct PyRuntime(pub Runtime);
 
 #[pyclass(unsendable, name = "Result")]
@@ -16,9 +16,21 @@ pub struct PyRes {
     feasible: Option<bool>,
 }
 
+#[pyclass(unsendable, name = "Results")]
+pub struct PyResults {
+    solution: Solution<f64, f64>,
+    current_index: usize,
+}
+
 #[pyclass(unsendable, name = "Solution")]
 #[derive(Deref, DerefMut)]
 pub struct PySolution(pub Solution<f64, f64>);
+
+impl Into<Runtime> for PyRuntime {
+    fn into(self) -> Runtime {
+        self.0
+    }
+}
 
 impl Into<Solution<f64, f64>> for PySolution {
     fn into(self) -> Solution<f64, f64> {
@@ -30,21 +42,7 @@ impl Into<Solution<f64, f64>> for PySolution {
 impl PySolution {
     #[getter]
     fn results<'a>(&self, py: Python<'a>) -> Vec<PyRes> {
-        self.iter()
-            .map(|r| {
-                let constr_sat = match r.constraint_satisfaction {
-                    None => None,
-                    Some(c) => Some(c.to_pyarray(py).unbind()),
-                };
-                PyRes {
-                    sample: r.sample.to_pyarray(py).unbind(),
-                    num_occurrences: r.num_occurrences,
-                    obj_value: r.obj_value,
-                    constraint_satisfaction: constr_sat,
-                    feasible: r.feasible,
-                }
-            })
-            .collect()
+        self.iter().map(|r| PyRes::from_res(r, py)).collect()
     }
     #[getter]
     fn samples<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray2<f64>> {
@@ -65,6 +63,45 @@ impl PySolution {
 
     fn __repr__(&self) -> String {
         format!("{:?}", self.0)
+    }
+
+    fn __iter__(slf: PyRef<'_, Self>) -> PyResult<Py<PyResults>> {
+        let res_iter = PyResults::new(slf.clone());
+        Py::new(slf.py(), res_iter)
+    }
+}
+
+impl PyRes {
+    fn from_res<'a>(res: Res<'a, f64, f64>, py: Python<'a>) -> Self {
+        let constr_sat = match res.constraint_satisfaction {
+            None => None,
+            Some(c) => Some(c.to_pyarray(py).unbind()),
+        };
+        Self {
+            sample: res.sample.to_pyarray(py).unbind(),
+            num_occurrences: res.num_occurrences,
+            obj_value: res.obj_value,
+            constraint_satisfaction: constr_sat,
+            feasible: res.feasible,
+        }
+    }
+}
+
+impl PyResults {
+    fn new(solution: Solution<f64, f64>) -> Self {
+        Self {
+            solution,
+            current_index: 0,
+        }
+    }
+
+    fn next(&mut self, py: Python) -> Option<PyRes> {
+        let out = match self.solution.get_result(self.current_index) {
+            None => None,
+            Some(res) => Some(PyRes::from_res(res, py)),
+        };
+        self.current_index += 1;
+        out
     }
 }
 
@@ -93,5 +130,25 @@ impl PyRes {
     #[getter]
     fn feasible(&self) -> Option<bool> {
         self.feasible
+    }
+}
+
+#[pymethods]
+impl PyResults {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>, py: Python) -> Option<PyRes> {
+        slf.next(py)
+    }
+}
+
+#[pymethods]
+impl PyRuntime {
+    #[new]
+    #[pyo3(signature = (total=None, qpu=None))]
+    fn py_new(total: Option<f64>, qpu: Option<f64>) -> PyResult<Self> {
+        Ok(PyRuntime(Runtime::new(total, qpu)))
     }
 }

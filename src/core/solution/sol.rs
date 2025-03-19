@@ -53,10 +53,18 @@ where
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Runtime {
-    total: f64,
-    qpu: f64,
+    /// The solver's or algorithm's total runtime in seconds.
+    pub total: Option<f64>,
+    /// The qpu usage time in seconds.
+    pub qpu: Option<f64>,
+}
+
+impl Runtime {
+    pub fn new(total: Option<f64>, qpu: Option<f64>) -> Self {
+        Self { total, qpu }
+    }
 }
 
 /// The solutions object for AQMs. It doesn't have any knowledge about the corresponding AQM or
@@ -97,6 +105,8 @@ where
     /// The index of the sample with the lowest objective value or, if not present, of the sample
     /// with the lowes raw energy. None, if none of these values are present.
     best_sample_idx: Option<usize>,
+    /// Runtime metrics of the solution.
+    pub runtime: Runtime,
 }
 
 impl<Assignment, Bias> Solution<Assignment, Bias>
@@ -133,26 +143,31 @@ where
 
     /// Iterate over the single results of the solution
     pub fn iter(&self) -> impl Iterator<Item = Res<Assignment, Bias>> + use<'_, Assignment, Bias> {
-        (0..self.samples.len()).map(|i| {
-            let obj_value = match (self.obj_values.get(i), self.raw_energies.get(i)) {
-                (Some(&bias), _) => Some(bias),
-                (_, Some(&bias)) => Some(bias),
-                (_, _) => None,
-            };
-            let constraints = self.constraints.get(i);
-            let feasible = match &self.feasible.get(i) {
-                None => None,
-                Some(&feas) => Some(feas),
-            };
+        (0..self.samples.len()).map(|i| self.get_result(i).unwrap())
+    }
 
-            Res::new(
-                &self.samples[i],
-                self.num_occurrences[i],
-                obj_value,
-                constraints,
-                feasible,
-            )
-        })
+    pub fn get_result(&self, index: usize) -> Option<Res<Assignment, Bias>> {
+        if index >= self.samples.len() {
+            return None;
+        }
+        let obj_value = match (self.obj_values.get(index), self.raw_energies.get(index)) {
+            (Some(&bias), _) => Some(bias),
+            (_, Some(&bias)) => Some(bias),
+            (_, _) => None,
+        };
+        let constraints = self.constraints.get(index);
+        let feasible = match &self.feasible.get(index) {
+            None => None,
+            Some(&feas) => Some(feas),
+        };
+
+        Some(Res::new(
+            &self.samples[index],
+            self.num_occurrences[index],
+            obj_value,
+            constraints,
+            feasible,
+        ))
     }
 
     /// Get a vec of all results
