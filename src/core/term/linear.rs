@@ -2,7 +2,7 @@ use crate::core::expression::BiasConstraints;
 use std::{
     cmp::max,
     iter::Enumerate,
-    ops::{Index, IndexMut, MulAssign},
+    ops::{Index, IndexMut, MulAssign, Neg},
     slice::{Iter, IterMut},
 };
 // todo: we need a Linear trait to allow for better interchangeability...
@@ -112,5 +112,34 @@ where
             return false;
         }
         self.biases == other.biases
+    }
+}
+
+impl<Bias> Linear<Bias>
+where
+    Bias: BiasConstraints,
+{
+    fn negate(&self) -> Self {
+        Linear::new(self.biases.iter().map(|b| -*b).collect())
+    }
+}
+
+impl<Bias> Neg for Linear<Bias>
+where
+    Bias: BiasConstraints,
+{
+    type Output = Linear<Bias>;
+    fn neg(self) -> Self::Output {
+        self.negate()
+    }
+}
+
+impl<Bias> Neg for &Linear<Bias>
+where
+    Bias: BiasConstraints,
+{
+    type Output = Linear<Bias>;
+    fn neg(self) -> Self::Output {
+        self.negate()
     }
 }

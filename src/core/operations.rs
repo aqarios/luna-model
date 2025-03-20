@@ -25,6 +25,13 @@ pub trait SubToExpression<Index, Bias, Other> {
     fn sub(self, rhs: Other) -> Self::Output;
 }
 
+/// Custom SubAssign to result in an Expression for a more fine grained control.
+pub trait SubAssignToExpression<Index, Bias, Other> {
+    type Output;
+
+    fn sub_assign(&mut self, rhs: Other) -> Self::Output;
+}
+
 /// Custom RSub to result in an Expression for a more fine grained control. This implements the
 /// specific case that self is located on the right hand side of a subtraction.
 pub trait RSubToExpression<Index, Bias, Other> {
@@ -48,3 +55,17 @@ pub trait MulAssignToExpression<Index, Bias, Other> {
 
     fn mul_assign(&mut self, rhs: Other) -> Self::Output;
 }
+
+/// Custom Sub to result in an Expression for a more fine grained control, especially
+/// regarding the Bias.
+pub trait NegToExpression<Index, Bias> {
+    type Output;
+
+    fn neg(self) -> Self::Output;
+}
+
+// /// Custom Sub to result in an Expression for a more fine grained control, especially
+// /// regarding the Bias.
+// pub trait NegAssignToExpression<Index, Bias> {
+//     fn neg_assign(self);
+// }
