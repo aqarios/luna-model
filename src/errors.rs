@@ -5,11 +5,18 @@ use std::{
 };
 
 #[derive(Debug, Clone)]
-pub struct VariableExistsError;
+pub struct VariableExistsError {
+    var: String,
+}
+impl VariableExistsError {
+    pub fn new(var: String) -> Self {
+        Self { var }
+    }
+}
 impl Error for VariableExistsError {}
 impl Display for VariableExistsError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "variable already exists in environment")
+        write!(f, "variable '{}' already exists in environment", self.var)
     }
 }
 

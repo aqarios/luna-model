@@ -26,18 +26,23 @@ Random Seed = {}
     seed
 }
 
-pub fn random_bias<B>(seed: u64) -> B
+pub fn random_bias<B: Default + std::ops::Add<f64, Output = B>>(seed: u64) -> B
 where
     StandardUniform: Distribution<B>,
 {
+    // B::default() + 0.5
     let mut rng = StdRng::seed_from_u64(seed);
     rng.random()
 }
 
-pub fn random_biases<B: Copy>(n: usize, seed: u64) -> Vec<B>
+pub fn random_biases<B: Copy + Default + std::ops::Add<f64, Output = B>>(
+    n: usize,
+    seed: u64,
+) -> Vec<B>
 where
     StandardUniform: Distribution<B>,
 {
+    // vec![B::default() + 0.5; n]
     let mut rng = StdRng::seed_from_u64(seed);
     (0..n).map(|_| rng.random()).collect()
 }
@@ -47,8 +52,22 @@ pub fn create_linear_expression_with_vars<I: IndexConstraints, B: BiasConstraint
     biases: &Vec<B>,
     vtype: Vtype,
 ) -> (Expression<I, B>, Vec<VarRef<I>>) {
+    let varname_prefix = match vtype {
+        Vtype::Binary => "b",
+        Vtype::Spin => "s",
+        Vtype::Integer => "i",
+        Vtype::Real => "r",
+    };
     let vars: Vec<VarRef<I>> = (0..biases.len())
-        .map(|i| add_variable(Rc::clone(&env), &format!("b{}", i), Some(&vtype), None).unwrap())
+        .map(|i| {
+            add_variable(
+                Rc::clone(&env),
+                &format!("{}{}", varname_prefix, i),
+                Some(&vtype),
+                None,
+            )
+            .unwrap()
+        })
         .collect();
     let mut expr = Expression::empty(Rc::clone(&env));
     for (v, b) in vars.iter().zip(biases) {
