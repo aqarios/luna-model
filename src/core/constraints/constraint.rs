@@ -31,6 +31,7 @@ where
     pub lhs: MutRcExpression<Index, Bias>,
     pub rhs: Bias,
     pub comparator: Comparator,
+    pub name: Option<String>,
 }
 
 impl<Index, Bias> Constraint<Index, Bias>
@@ -38,12 +39,22 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    pub fn new(lhs: MutRcExpression<Index, Bias>, rhs: Bias, comparator: Comparator) -> Self {
+    pub fn new(
+        lhs: MutRcExpression<Index, Bias>,
+        rhs: Bias,
+        comparator: Comparator,
+        name: Option<String>,
+    ) -> Self {
         Self {
             lhs,
             rhs,
             comparator,
+            name,
         }
+    }
+
+    pub fn set_name(&mut self, name: Option<String>) {
+        self.name = name
     }
 }
 

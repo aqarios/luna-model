@@ -19,7 +19,7 @@ use derive_more::{Deref, DerefMut};
 use pyo3::{
     exceptions::PyRuntimeError,
     prelude::*,
-    types::{PyBool, PyBytes},
+    types::{PyBool, PyBytes, PyTuple},
 };
 use std::{ops::Deref, rc::Rc};
 
@@ -207,7 +207,7 @@ impl PyExpression {
             Ok(PyBool::new(py, result).to_owned().into())
         } else if let Ok(rhs) = other.extract::<f64>(py) {
             // Creates a new constraint.
-            let constraint = ConcreteConstraint::new(Rc::clone(&self.0), rhs, Comparator::Eq);
+            let constraint = ConcreteConstraint::new(Rc::clone(&self.0), rhs, Comparator::Eq, None);
             // todo: this is depreated... change to the new way
             // but for now this works as intended
             Ok(PyConstraint::new(constraint).into_py(py))

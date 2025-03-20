@@ -10,6 +10,8 @@ use crate::{
 use prost::Message;
 use std::{cell::RefCell, rc::Rc};
 
+static PLACEHOLDER_NAME: &str = "<NN>";
+
 /// Representation of encodable constraints based on protocol buffers.
 #[derive(Clone, PartialEq, Message)]
 pub struct SerConstraints {
@@ -26,6 +28,9 @@ pub struct SerConstraints {
     /// implementation which is a u32.
     #[prost(uint32, repeated, tag = "3")]
     comparators: Vec<u32>,
+    /// Representation of the constraint names used for all constraints.
+    #[prost(string, repeated, tag = "4")]
+    names: Vec<String>,
 }
 
 /// Makes the SerConstraints conform with the requirements for it to be an Encodable.
@@ -60,6 +65,7 @@ impl SerConstraints {
             lhsides: Vec::new(),
             rhsides: Vec::new(),
             comparators: Vec::new(),
+            names: Vec::new(),
         }
     }
 
@@ -76,6 +82,8 @@ impl SerConstraints {
             self.lhsides.push(lhs_bytes);
             self.rhsides.push(c.rhs);
             self.comparators.push(comparator);
+            self.names
+                .push(c.name.clone().unwrap_or("<NN>".to_string()));
         }
 
         self
@@ -89,11 +97,12 @@ impl SerConstraints {
     ) -> Result<ConcreteConstraints, DecodeError> {
         let mut constraints = Vec::new();
 
-        for ((lhs, rhs), comp) in self
+        for (((lhs, rhs), comp), name) in self
             .lhsides
             .iter()
             .zip(&self.rhsides)
             .zip(&self.comparators)
+            .zip(&self.names)
         {
             let lhs_base = lhs.decode(Rc::clone(&env))?;
             let lhs = Rc::new(RefCell::new(lhs_base));
@@ -103,7 +112,12 @@ impl SerConstraints {
                 2 => Comparator::Geq,
                 _ => panic!("undefined comparator '{}'", comp),
             };
-            constraints.push(Constraint::new(lhs, *rhs, comparator));
+            let name = if name == PLACEHOLDER_NAME {
+                None
+            } else {
+                Some(name.clone())
+            };
+            constraints.push(Constraint::new(lhs, *rhs, comparator, name));
         }
 
         Ok(Constraints::new_from_vec(constraints))

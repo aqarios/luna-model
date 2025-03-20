@@ -240,7 +240,7 @@ where
                 self.writer.new_line();
             }
             self.writer
-                .write(&format!("c{i}: ")) // TODO: replace with constraint name
+                .write(&constr.name.clone().unwrap_or(format!("c{i}: ")))
                 .increase_indent();
             self.write_constraint(constr);
             self.writer.decrease_indent();
