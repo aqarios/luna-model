@@ -1,15 +1,28 @@
-use crate::core::{Environment, MultipleActiveEnvironmentsException, VarId};
+use crate::{
+    core::{ConcreteEnvironment, ConcreteMutRcEnvironment, Environment},
+    serialization::{
+        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
+    },
+};
 use derive_more::{Deref, DerefMut};
-use pyo3::prelude::*;
-use std::{cell::RefCell, rc::Rc};
+use pyo3::{prelude::*, types::PyBytes};
+use std::{cell::RefCell, ops::Deref};
+
+use super::py_exceptions::MultipleActiveEnvironmentsException;
 
 #[pyclass(unsendable, name = "Environment")]
 #[derive(Deref, DerefMut, Clone)]
-pub struct PyEnvironment(pub Rc<RefCell<Environment<VarId>>>);
+pub struct PyEnvironment(pub ConcreteMutRcEnvironment);
+
+impl Into<ConcreteMutRcEnvironment> for PyEnvironment {
+    fn into(self) -> ConcreteMutRcEnvironment {
+        self.0
+    }
+}
 
 impl PyEnvironment {
-    fn new() -> Self {
-        Self(Rc::new(RefCell::new(Environment::new())))
+    pub fn new(env: ConcreteEnvironment) -> Self {
+        Self(env.into())
     }
 }
 
@@ -21,7 +34,7 @@ thread_local! {
 impl PyEnvironment {
     #[new]
     fn py_new() -> PyResult<Self> {
-        Ok(PyEnvironment::new())
+        Ok(PyEnvironment::new(Environment::new()))
     }
 
     fn __enter__(&self) -> PyResult<Self> {
@@ -48,5 +61,54 @@ impl PyEnvironment {
             *current.borrow_mut() = None;
         });
         Ok(())
+    }
+
+    fn __str__(&self) -> String {
+        self.borrow().to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.borrow())
+    }
+
+    #[pyo3(signature=(compress=None, level=None))]
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+        let compress = compress.unwrap_or(level.is_some());
+        Ok(PyBytes::new(
+            py,
+            &self
+                .borrow()
+                .deref()
+                .encode()
+                .maybe_compress(compress, level)?
+                .versionize(),
+        )
+        .into())
+    }
+
+    #[pyo3(signature=(compress=None, level=None))]
+    fn serialize(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<PyObject> {
+        self.encode(py, compress, level)
+    }
+
+    #[staticmethod]
+    fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Ok(PyEnvironment::new(
+            data.as_bytes(py).unversionize().decompress()?.decode(())?,
+        ))
+    }
+
+    #[staticmethod]
+    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::decode(py, data)
+    }
+
+    fn __eq__(&self, other: &PyEnvironment) -> bool {
+        *self.borrow() == *other.borrow()
     }
 }

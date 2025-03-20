@@ -1,18 +1,23 @@
-use std::{
-    cell::{Ref, RefCell},
-    ops::{Add, AddAssign},
-    rc::Rc,
-};
+use crate::core::expression::{BiasConstraints, IndexConstraints};
+use crate::core::utils::ModelWriter;
+use crate::core::MutRcExpression;
+use std::fmt::{Debug, Display, Formatter};
+use std::ops::{Add, AddAssign};
+use std::slice::Iter;
+use std::string::ToString;
+use strum_macros::Display;
 
-use crate::core::{
-    expression::{BiasConstraints, IndexConstraints},
-    Expression,
-};
+#[cfg(feature = "py")]
+use pyo3::prelude::*;
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[cfg_attr(feature = "py", pyclass(eq, eq_int))] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
+#[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {
+    #[strum(to_string = "==")]
     Eq,
+    #[strum(to_string = "<=")]
     Leq,
+    #[strum(to_string = ">=")]
     Geq,
 }
 
@@ -22,8 +27,8 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    // hmm, expression in constraint should be immutable...
-    pub lhs: Rc<RefCell<Expression<Index, Bias>>>,
+    // todo, expression in constraint should be immutable...
+    pub lhs: MutRcExpression<Index, Bias>,
     pub rhs: Bias,
     pub comparator: Comparator,
 }
@@ -33,11 +38,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    pub fn new(
-        lhs: Rc<RefCell<Expression<Index, Bias>>>,
-        rhs: Bias,
-        comparator: Comparator,
-    ) -> Self {
+    pub fn new(lhs: MutRcExpression<Index, Bias>, rhs: Bias, comparator: Comparator) -> Self {
         Self {
             lhs,
             rhs,
@@ -46,13 +47,24 @@ where
     }
 }
 
-#[derive(Debug, Clone)]
+impl<Index, Bias> Display for Constraint<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = ModelWriter::new().write_constraint(&self).to_string();
+        f.write_str(&s)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Constraints<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    constraints: Vec<Constraint<Index, Bias>>,
+    pub constraints: Vec<Constraint<Index, Bias>>,
 }
 
 impl<Index, Bias> Constraints<Index, Bias>
@@ -72,8 +84,20 @@ where
         }
     }
 
+    pub fn new_from_vec(constraints: Vec<Constraint<Index, Bias>>) -> Self {
+        Self { constraints }
+    }
+
     pub fn len(&self) -> usize {
         self.constraints.len()
+    }
+
+    pub fn iter(&self) -> Iter<'_, Constraint<Index, Bias>> {
+        self.constraints.iter()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 
@@ -101,24 +125,24 @@ where
     }
 }
 
-impl<Index, Bias> AddAssign<Ref<'_, Constraint<Index, Bias>>> for Constraints<Index, Bias>
+impl<Index, Bias> AddAssign<&Constraint<Index, Bias>> for Constraints<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn add_assign(&mut self, rhs: Ref<'_, Constraint<Index, Bias>>) {
+    fn add_assign(&mut self, rhs: &Constraint<Index, Bias>) {
         self.constraints.push(rhs.clone());
     }
 }
 
-impl<Index, Bias> Add<Ref<'_, Constraint<Index, Bias>>> for &Constraints<Index, Bias>
+impl<Index, Bias> Add<&Constraint<Index, Bias>> for &Constraints<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
     type Output = Constraints<Index, Bias>;
 
-    fn add(self, rhs: Ref<'_, Constraint<Index, Bias>>) -> Self::Output {
+    fn add(self, rhs: &Constraint<Index, Bias>) -> Self::Output {
         let mut out = Constraints::new_from(&self);
         out += rhs;
         out
@@ -135,18 +159,13 @@ where
     }
 }
 
-impl<Index, Bias> PartialEq for Constraints<Index, Bias>
+impl<Index, Bias> Display for Constraints<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn eq(&self, other: &Self) -> bool {
-        let mut num_matches = 0;
-        for lhs in self.constraints.iter() {
-            for rhs in other.constraints.iter() {
-                num_matches += (lhs == rhs) as usize;
-            }
-        }
-        num_matches >= self.constraints.len()
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = ModelWriter::new().write_constraints(&self).to_string();
+        f.write_str(&s)
     }
 }

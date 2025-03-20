@@ -1,6 +1,6 @@
 use std::fmt::{Display, Result};
 
-use crate::core::exceptions::VariablesFromDifferentEnvsError;
+use crate::errors::VariablesFromDifferentEnvsError;
 
 // VariableOutOfRangeError
 #[derive(Debug, Clone)]

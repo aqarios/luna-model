@@ -1,26 +1,23 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-
-use hashbrown::HashMap;
-
-use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
-use crate::core::term::{HigherOrder, Linear, Quadratic};
-use crate::core::{Environment, Vtype};
-
 use super::base::{
     BiasConstraints, ExpressionBase, ExpressionBaseAdd, ExpressionBaseAdjustment,
-    ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulDirect, ExpressionBaseSet,
-    ExpressionBaseTypes, IndexConstraints,
+    ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulComponents,
+    ExpressionBaseMulDirect, ExpressionBaseSet, ExpressionBaseTypes, IndexConstraints,
 };
 use super::VariableOutOfRangeError;
+use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
+use crate::core::term::{HigherOrder, Linear, Quadratic};
+use crate::core::utils::ModelWriter;
+use crate::core::{MutRcEnvironment, Vtype};
+use hashbrown::HashMap;
+use std::fmt::{Debug, Display, Formatter};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Expression<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    pub env: Rc<RefCell<Environment<Index>>>,
+    pub env: MutRcEnvironment<Index>,
     pub offset: Bias,
     pub linear: Linear<Bias>,
     pub quadratic: Option<Quadratic<Index, Bias>>,
@@ -28,7 +25,7 @@ where
     /// Mirror of the linear array that tracks which variables are already
     /// contained in the expression. 1 indicates already added 0 indicating floating.
     pub active: Vec<bool>,
-    num_variables: SizeType,
+    pub num_variables: SizeType,
 }
 
 impl<Index, Bias> ExpressionBaseTypes for Expression<Index, Bias>
@@ -48,7 +45,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn new(env: Rc<RefCell<Environment<Index>>>) -> Self {
+    fn empty(env: MutRcEnvironment<Index>) -> Self {
         Self {
             env,
             offset: Bias::default(),
@@ -59,7 +56,20 @@ where
             num_variables: 0,
         }
     }
-    fn new_linear_single(env: Rc<RefCell<Environment<Index>>>, v: Index, bias: Bias) -> Self {
+
+    fn new(env: MutRcEnvironment<Index>, active: Vec<bool>, num_variables: usize) -> Self {
+        Self {
+            env,
+            offset: Bias::default(),
+            linear: Linear::with_size(active.len()),
+            quadratic: None,
+            higher_order: None,
+            active,
+            num_variables,
+        }
+    }
+
+    fn new_linear_single(env: MutRcEnvironment<Index>, v: Index, bias: Bias) -> Self {
         let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
         let mut active = Vec::new();
@@ -76,13 +86,37 @@ where
             num_variables: 1,
         }
     }
-    fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self {
-        let linear = Linear::new_from_variables(u.into(), v.into(), bias);
+
+    fn new_linear_and_offset(
+        env: MutRcEnvironment<Index>,
+        v: Index,
+        bias: Bias,
+        offset: Bias,
+    ) -> Self {
+        let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
         let mut active = Vec::new();
         active.resize(linear.len(), false);
-        active[u.into()] = true;
         active[v.into()] = true;
+
+        Self {
+            env,
+            offset,
+            linear,
+            quadratic: None,
+            higher_order: None,
+            active,
+            num_variables: 1,
+        }
+    }
+
+    fn new_linear(env: MutRcEnvironment<Index>, u: (Index, Bias), v: (Index, Bias)) -> Self {
+        let linear = Linear::new_from_variables((u.0.into(), u.1), (v.0.into(), v.1));
+        // todo: make this it's own struct similar to linear.
+        let mut active = Vec::new();
+        active.resize(linear.len(), false);
+        active[u.0.into()] = true;
+        active[v.0.into()] = true;
 
         Self {
             env,
@@ -94,7 +128,7 @@ where
             num_variables: 2,
         }
     }
-    fn new_quadratic(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self {
+    fn new_quadratic(env: MutRcEnvironment<Index>, u: Index, v: Index, bias: Bias) -> Self {
         let mut out = Self {
             env,
             offset: Bias::default(),
@@ -175,13 +209,6 @@ where
                 self.num_variables += 1;
             }
         }
-    }
-
-    fn add_active_variables(&mut self, n: Index) {
-        self.add_variable(n);
-        // Maybe something more efficient?
-        self.active = Vec::new();
-        self.active.resize(n.into(), true);
     }
 
     fn resize(&mut self, n: Index) {
@@ -287,8 +314,14 @@ where
             // -1*-1 == +1*+1 == 1 so this is constant offset
             (true, Vtype::Spin) => self.offset += bias,
             // 1*1 == 1 and 0*0 == 0 so this is linear
-            (true, Vtype::Binary) => self.linear[u.into()] += bias,
-            (_, _) => *self.asymmetric_quadratic_ref(u, v) += bias,
+            (true, Vtype::Binary) => {
+                self.linear[u.into()] += bias;
+            }
+            (_, _) => {
+                if bias != Bias::default() {
+                    *self.asymmetric_quadratic_ref(u, v) += bias;
+                }
+            }
         }
     }
 
@@ -327,7 +360,7 @@ where
 
     fn add_quadratic_back(&mut self, u: Index, v: Index, bias: Bias) {
         let u_idx = self.add_variable(u);
-        let v_idx = self.add_variable(u);
+        let v_idx = self.add_variable(v);
         self.enforce_quadratic();
         self.check_quadratic_dimensions(u_idx, v_idx);
         match (u_idx == v_idx, self.vartype(u)) {
@@ -347,7 +380,6 @@ where
         }
     }
     fn add_quadratic_from_dense(&mut self, dense: &[Bias], num_variables: Index) {
-        self.add_active_variables(num_variables);
         self.enforce_quadratic();
         let f_add_quadratic = match self.is_linear() {
             true => Self::add_quadratic_back,
@@ -392,34 +424,188 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn mul_offset(&mut self, lhs: Bias, rhs: Bias) {
-        self.offset += lhs + rhs
+    fn multiply(lhs: &Self, rhs: &Self, result: &mut Self) {
+        // First, we need to get the shared active variables for both
+        // lhs and rhs.
+        // This is required to determine which variables are actually to be
+        // multiplied with eachother.
+        // Let's say, we have the variables a, b, c, d, e, f
+        // where a, b, f are used in expression 1.
+        // and c, d, e are used in expression 2.
+        //
+        // Then, for expr1 the active variables vec is: [1, 1, 0, 0, 0, 1]
+        // And, for expr2 the active variables vec is:  [0, 0, 1, 1, 1, 0]
+        // Now, if we multiply the two linear terms. only the multiplications
+        // where both are equal to one are used. So that we do not multiply a located
+        // in expr1 with a located in expr2 which has 0 values as it is inactive.
+        //
+        // Also this is only important for linear. In the quadratic or higher order
+        // should never be inactive variables.
+        //
+        let lhs_linear_actives: Vec<(Index, Bias)> = lhs
+            .linear
+            .iter()
+            .filter(|(idx, _)| lhs.active[*idx])
+            .map(|(idx, bias)| (idx.into(), *bias))
+            .collect();
+
+        let rhs_linear_actives: Vec<(Index, Bias)> = rhs
+            .linear
+            .iter()
+            .filter(|(idx, _)| rhs.active[*idx])
+            .map(|(idx, bias)| (idx.into(), *bias))
+            .collect();
+
+        // lhs      rhs
+        // offset * offset              = rhs.offset * lhs.offset
+        result.mul_offsets(&rhs.offset, &lhs.offset);
+        // offset * linear              = rhs.linear * lhs.offset
+        result.mul_linear_with_offset(&rhs_linear_actives, &lhs.offset);
+        // linear * offset              = lhs.linear * rhs.offset
+        result.mul_linear_with_offset(&lhs_linear_actives, &rhs.offset);
+        // linear * linear              = lhs.linear * rhs.linear
+        result.mul_linears(&lhs_linear_actives, &rhs_linear_actives);
+
+        if lhs.has_quadratic() {
+            let lhs_quad = lhs.quadratic.as_ref().unwrap();
+            // quadratic * offset           = lhs.quadratic * rhs.offset
+            result.mul_quadratic_with_offset(&lhs_quad, &rhs.offset);
+            // quadratic * linear           = lhs.quadratic * rhs.linear
+            result.mul_quadratic_with_linear(&lhs_quad, &rhs_linear_actives);
+
+            if rhs.has_quadratic() {
+                let rhs_quad = rhs.quadratic.as_ref().unwrap();
+                // quadratic * quadratic        = lhs.quadratic * rhs.quadratic
+                result.mul_quadratics(&lhs_quad, &rhs_quad);
+            }
+
+            if rhs.has_higher_order() {
+                let rhs_ho = rhs.higher_order.as_ref().unwrap();
+                // quadratic * higher_order     = rhs.higher_order * lhs.quadratic
+                result.mul_higher_order_with_quadratic(&rhs_ho, &lhs_quad);
+            }
+        }
+
+        if rhs.has_quadratic() {
+            let rhs_quad = rhs.quadratic.as_ref().unwrap();
+            // offset * quadratic           = rhs.quadratic * lhs.offset
+            result.mul_quadratic_with_offset(&rhs_quad, &lhs.offset);
+            // linear * quadratic           = rhs.quadratic * lhs.linear
+            result.mul_quadratic_with_linear(&rhs_quad, &lhs_linear_actives);
+
+            if lhs.has_higher_order() {
+                let lhs_ho = lhs.higher_order.as_ref().unwrap();
+                // higher_order * quadratic     = lhs.higher_order * rhs.quadratic
+                result.mul_higher_order_with_quadratic(&lhs_ho, &rhs_quad);
+            }
+        }
+
+        if lhs.has_higher_order() {
+            let lhs_ho = lhs.higher_order.as_ref().unwrap();
+            // higher_order * offset        = lhs.higher_order * rhs.offset
+            result.mul_higher_order_with_offset(&lhs_ho, &rhs.offset);
+            // higher_order * linear        = lhs.higher_order * rhs.linear
+            result.mul_higher_order_with_linear(&lhs_ho, &rhs_linear_actives);
+
+            if lhs.has_higher_order() && rhs.has_higher_order() {
+                let rhs_ho = rhs.higher_order.as_ref().unwrap();
+                // higher_order * higher_order  = lhs.higher_order * rhs.higher_order
+                result.mul_higher_orders(&lhs_ho, &rhs_ho);
+            }
+        }
+
+        if rhs.has_higher_order() {
+            let rhs_ho = rhs.higher_order.as_ref().unwrap();
+            // offset * higher_order        = rhs.higher_order * lhs.offset
+            result.mul_higher_order_with_offset(&rhs_ho, &lhs.offset);
+            // linear * higher_order        = rhs.higher_order * lhs.linear
+            result.mul_higher_order_with_linear(&rhs_ho, &lhs_linear_actives);
+        }
+    }
+}
+impl<Index, Bias> ExpressionBaseMulComponents<Index, Bias> for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn mul_offsets(&mut self, lhs: &Bias, rhs: &Bias) {
+        self.add_offset(*lhs * *rhs);
     }
 
-    fn mul_linear(&mut self, lhs: &Self::LinearType, rhs: &Self::LinearType) {
-        for (u_idx, u_bias) in lhs.iter() {
-            for (v_idx, v_bias) in rhs.iter() {
-                self.add_quadratic(u_idx.into(), v_idx.into(), *u_bias * *v_bias);
+    fn mul_linear_with_offset(&mut self, linear: &Vec<(Index, Bias)>, offset: &Bias) {
+        for (idx, bias) in linear.iter() {
+            self.add_linear(*idx, *bias * *offset);
+        }
+    }
+
+    fn mul_linears(&mut self, lhs: &Vec<(Index, Bias)>, rhs: &Vec<(Index, Bias)>) {
+        for (u, u_bias) in lhs.iter() {
+            for (v, v_bias) in rhs.iter() {
+                self.add_quadratic(*u, *v, *u_bias * *v_bias);
             }
         }
     }
 
-    fn mul_quadratic(&mut self, lhs: &Self::QuadraticType, rhs: &Self::QuadraticType) {
-        for (lhs_u, lhs_v, lhs_bias) in lhs.iter_flat() {
-            for (rhs_u, rhs_v, rhs_bias) in rhs.iter_flat() {
-                let vec = vec![lhs_u, lhs_v, rhs_u, rhs_v];
-                self.add_higher_order(&vec, lhs_bias * rhs_bias);
+    fn mul_quadratic_with_offset(&mut self, lhs: &Self::QuadraticType, offset: &Bias) {
+        for (u, v, bias) in lhs.iter_flat() {
+            self.add_quadratic(u, v, *offset * bias);
+        }
+    }
+
+    fn mul_quadratic_with_linear(&mut self, lhs: &Self::QuadraticType, rhs: &Vec<(Index, Bias)>) {
+        for (l, lbias) in rhs.iter() {
+            for (u, v, qbias) in lhs.iter_flat() {
+                self.add_higher_order(&vec![u, v, *l], *lbias * qbias);
             }
         }
     }
 
-    fn mul_higher_order(&mut self, lhs: &Self::HigherOrderType, rhs: &Self::HigherOrderType) {
-        for (lhs_ind, lhs_bias) in lhs.iter_contrib() {
-            for (rhs_ind, rhs_bias) in rhs.iter_contrib() {
-                let mut new_indices = lhs_ind.clone();
-                new_indices.extend(rhs_ind);
-                // todo(team): check if set makes sense... set or add?
-                self.add_higher_order(&new_indices, *lhs_bias * *rhs_bias);
+    fn mul_quadratics(&mut self, lhs: &Self::QuadraticType, rhs: &Self::QuadraticType) {
+        for (lu, lv, lbias) in lhs.iter_flat() {
+            for (ru, rv, rbias) in rhs.iter_flat() {
+                self.add_higher_order(&vec![lu, lv, ru, rv], lbias * rbias);
+            }
+        }
+    }
+
+    fn mul_higher_order_with_offset(&mut self, lhs: &Self::HigherOrderType, offset: &Bias) {
+        for (key, bias) in lhs.iter() {
+            self.add_higher_order_direct(key, *bias * *offset);
+        }
+    }
+
+    fn mul_higher_order_with_linear(
+        &mut self,
+        lhs: &Self::HigherOrderType,
+        rhs: &Vec<(Index, Bias)>,
+    ) {
+        for (mut contribs, hbias) in lhs.iter_contrib() {
+            for (l, bias) in rhs.iter() {
+                contribs.push(*l);
+                self.add_higher_order(&contribs, *bias * *hbias);
+            }
+        }
+    }
+
+    fn mul_higher_order_with_quadratic(
+        &mut self,
+        lhs: &Self::HigherOrderType,
+        rhs: &Self::QuadraticType,
+    ) {
+        for (mut contribs, hbias) in lhs.iter_contrib() {
+            for (u, v, qbias) in rhs.iter_flat() {
+                contribs.push(u);
+                contribs.push(v);
+                self.add_higher_order(&contribs, qbias * *hbias);
+            }
+        }
+    }
+
+    fn mul_higher_orders(&mut self, lhs: &Self::HigherOrderType, rhs: &Self::HigherOrderType) {
+        for (mut lhs_contribs, lhs_bias) in lhs.iter_contrib() {
+            for (mut rhs_contribs, rhs_bias) in rhs.iter_contrib() {
+                lhs_contribs.append(&mut rhs_contribs);
+                self.add_higher_order(&lhs_contribs, *lhs_bias * *rhs_bias);
             }
         }
     }
@@ -451,8 +637,6 @@ where
             // in all cases.
             // However, we can make use of the logic already implemented in the
             // add_quadratic case. Which checks the logic based on the variable type.
-
-            // But we should only do it if the variable is active...
             if self.active[u_idx] {
                 self.add_quadratic(u_idx.into(), v, *u_bias * bias)
             }
@@ -600,5 +784,51 @@ where
             }
         }
         contribs
+    }
+}
+
+impl<Index, Bias> Debug for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let linear = ModelWriter::new()
+            .write_linear(self.env.borrow(), &self.linear)
+            .to_string();
+        let quadratic = if let Some(q) = &self.quadratic {
+            ModelWriter::new()
+                .write_quadratic(self.env.borrow(), q)
+                .to_string()
+        } else {
+            String::from("None")
+        };
+        let higher_order = if let Some(ho) = &self.higher_order {
+            ModelWriter::new()
+                .write_higher_order(self.env.borrow(), ho)
+                .to_string()
+        } else {
+            String::from("None")
+        };
+        f.debug_struct("Expression")
+            .field("environment_id", &self.env.borrow().id)
+            .field("offset", &self.offset)
+            .field("linear", &linear)
+            .field("quadratic", &quadratic)
+            .field("higher_order", &higher_order)
+            .field("active", &self.active)
+            .field("num_variables", &self.num_variables)
+            .finish()
+    }
+}
+
+impl<Index, Bias> Display for Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = ModelWriter::new().write_expression(&self).to_string();
+        f.write_str(&s)
     }
 }

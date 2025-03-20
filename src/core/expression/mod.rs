@@ -4,6 +4,7 @@ mod equality;
 mod errors;
 mod expr;
 mod multiplication;
+mod subtraction;
 
 pub use base::BiasConstraints;
 pub use base::ExpressionBase;
