@@ -33,7 +33,7 @@ def bench_serialize_cqm(file: IO | None):
             qubo = make_qubo(size, density)
 
             aqm = MatrixTranslator.to_model(qubo, vtype=Vtype.Binary)
-            dmd = dimod.ConstrainedQuadraticModel.from_cqm(
+            dmd = dimod.ConstrainedQuadraticModel.from_bqm(
                 dimod.BinaryQuadraticModel(qubo, "BINARY")
             )
 
@@ -57,7 +57,7 @@ def bench_serialize_cqm_size(file: IO | None):
             qubo = make_qubo(size, density)
 
             aqm = MatrixTranslator.to_model(qubo, vtype=Vtype.Binary)
-            dmd = dimod.ConstrainedQuadraticModel.from_cqm(
+            dmd = dimod.ConstrainedQuadraticModel.from_bqm(
                 dimod.BinaryQuadraticModel(qubo, "BINARY")
             )
 
