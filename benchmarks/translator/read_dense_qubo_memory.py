@@ -1,6 +1,6 @@
 import os
 from collections import defaultdict
-from typing import IO, Any, Callable, DefaultDict, Dict, Iterable, Optional, Set
+from typing import IO, DefaultDict, Dict, Iterable, Optional, Set
 from dataclasses import dataclass
 from numpy.typing import NDArray
 from tqdm import tqdm  # type: ignore[import-untyped]
@@ -8,7 +8,6 @@ import memray
 import uuid
 
 from rich import print as rprint
-from rich.markup import escape
 from rich.table import Column
 from rich.table import Table
 
@@ -181,7 +180,9 @@ def format_mem_row_entries(
     aqm_peek_own_color = "green" if aqm_peek_own < dmd_peek_own else None
     dmd_peek_own_color = "green" if dmd_peek_own < aqm_peek_own else None
 
-    size_fmt_target = lambda n: size_fmt(n, target="M")
+    def size_fmt_target(n):
+        size_fmt(n, target="M")
+
     aqm_peek_total_str_content = size_fmt_target(aqm_peek_total)
     aqm_peek_own_str_content = size_fmt_target(aqm_peek_own)
     dmd_peek_total_str_content = size_fmt_target(dmd_peek_total)

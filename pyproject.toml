@@ -32,7 +32,8 @@ markers = [
     "expression",
     "model",
     "constraint",
-    "str_repr"
+    "str_repr",
+    "translator"
 ]
 
 [tool.maturin]

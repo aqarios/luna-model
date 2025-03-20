@@ -1,6 +1,6 @@
 use super::py_model::PyModel;
 use crate::{core::Vtype, translator::matrix_translator::MatrixTranslator};
-use numpy::{PyReadonlyArray2, PyUntypedArrayMethods};
+use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::prelude::*;
 
 #[pyclass(unsendable, name = "MatrixTranslator")]
@@ -22,5 +22,12 @@ impl PyMatrixTranslator {
             qubo.shape()[0].into(),
             vtype.unwrap_or(Vtype::Binary),
         ))
+    }
+
+    #[staticmethod]
+    #[pyo3(signature=(model))]
+    fn to_dense<'a>(py: Python<'a>, model: &PyModel) -> PyResult<Bound<'a, PyArray2<f64>>> {
+        let (vec, nvars) = MatrixTranslator::model_to_dense(&model.0)?;
+        Ok(vec.to_pyarray(py).reshape((nvars, nvars))?)
     }
 }

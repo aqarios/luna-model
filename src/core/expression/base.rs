@@ -1,12 +1,10 @@
-use std::cell::RefCell;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
-use std::rc::Rc;
 use std::str::FromStr;
 
 use crate::core::term::types::SizeType;
-use crate::core::{Environment, Vtype};
+use crate::core::{ConcreteBias, MutRcEnvironment, Vtype};
 
 use super::errors::VariableOutOfRangeError;
 
@@ -58,6 +56,7 @@ pub trait BiasConstraints:
     + One
     + MulAssign
     + Mul<Output = Self>
+    + Mul<ConcreteBias, Output = Self>
     + Neg<Output = Self>
 {
 }
@@ -73,6 +72,7 @@ impl<
             + One
             + MulAssign
             + Mul<Output = T>
+            + Mul<ConcreteBias, Output = Self>
             + Neg<Output = T>,
     > BiasConstraints for T
 {
@@ -95,18 +95,18 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn new(env: Rc<RefCell<Environment<Index>>>) -> Self;
+    fn empty(env: MutRcEnvironment<Index>) -> Self;
+    fn new(env: MutRcEnvironment<Index>, active: Vec<bool>, num_variables: usize) -> Self;
     fn new_from_other(other: &Self) -> Self;
-    fn new_linear_single(env: Rc<RefCell<Environment<Index>>>, v: Index, bias: Bias) -> Self;
-    fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: (Index, Bias), v: (Index, Bias))
-        -> Self;
+    fn new_linear_single(env: MutRcEnvironment<Index>, v: Index, bias: Bias) -> Self;
+    fn new_linear(env: MutRcEnvironment<Index>, u: (Index, Bias), v: (Index, Bias)) -> Self;
     fn new_linear_and_offset(
-        env: Rc<RefCell<Environment<Index>>>,
+        env: MutRcEnvironment<Index>,
         v: Index,
         bias: Bias,
         offset: Bias,
     ) -> Self;
-    fn new_quadratic(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self;
+    fn new_quadratic(env: MutRcEnvironment<Index>, u: Index, v: Index, bias: Bias) -> Self;
 }
 
 pub trait ExpressionBaseAdjustment<Index, Bias>: ExpressionBase<Index, Bias>
@@ -116,7 +116,7 @@ where
 {
     fn add_variable(&mut self, v: Index) -> SizeType;
     fn add_variables(&mut self, vars: &Vec<Index>);
-    fn add_active_variables(&mut self, n: Index);
+    // fn add_active_variables(&mut self, n: Index);
     // // todo: make this rusty -> makes sense to return a & here??
     // /// Return an empty neighborhood; useful when a variable does not have an adjacency.
     // // fn empty_neighborhood(&self) -> &Vec<OneVarTerm<Index, Bias>>;
@@ -316,18 +316,66 @@ where
 /// Implements multiplication of variables, biases (scalars) and terms to `self`.
 /// This basically implements MulAssign directly operating on the expression level.
 pub trait ExpressionBaseMul<Index, Bias>: ExpressionBaseTypes
+// + ExpressionBaseMulComponents<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    /// Multiply two offset and add to self.
-    fn mul_offset(&mut self, lhs: Bias, rhs: Bias);
-    /// Multiply two linear terms and add to self.
-    fn mul_linear(&mut self, lhs: &Self::LinearType, rhs: &Self::LinearType);
-    /// Multiply two quadratic terms and add to self.
-    fn mul_quadratic(&mut self, lhs: &Self::QuadraticType, rhs: &Self::QuadraticType);
-    /// Multiply two higher order terms and add to self.
-    fn mul_higher_order(&mut self, lhs: &Self::HigherOrderType, rhs: &Self::HigherOrderType);
+    fn multiply(lhs: &Self, rhs: &Self, result: &mut Self);
+    // /// Multiply two offset and add to self.
+    // fn mul_offset(&mut self, lhs: Bias, rhs: Bias);
+    // /// Multiply an offset with a linear term.
+    // fn mul_offset_linear(&mut self, lhs: &Bias, rhs: &Self);
+    // /// Multiply an offset with a quadratic term.
+    // fn mul_offset_quadratic(&mut self, lhs: &Bias, rhs: &Self::QuadraticType);
+    // /// Multiply an offset with a higher order term.
+    // fn mul_offset_higher_order(&mut self, lhs: &Bias, rhs: &Self::HigherOrderType);
+
+    // /// Multiply two linear terms and add to self.
+    // fn mul_linear(&mut self, lhs: &Self, rhs: &Self);
+    // /// Multiply a linear term with a quadratic term.
+    // fn mul_linear_quadratic(&mut self, lhs: &Self, rhs: &Self::QuadraticType);
+    // /// Multiply a linear with a higher order term.
+    // fn mul_linear_higher_order(&mut self, lhs: &Self, rhs: &Self);
+
+    // /// Multiply two quadratic terms and add to self.
+    // fn mul_quadratic(&mut self, lhs: &Self::QuadraticType, rhs: &Self::QuadraticType);
+    // /// Multiply a quadratic with a higher order term.
+    // fn mul_quadratic_higher_order(
+    //     &mut self,
+    //     lhs: &Self::QuadraticType,
+    //     rhs: &Self::HigherOrderType,
+    // );
+
+    // /// Multiply two higher order terms and add to self.
+    // fn mul_higher_order(&mut self, lhs: &Self::HigherOrderType, rhs: &Self::HigherOrderType);
+}
+
+pub trait ExpressionBaseMulComponents<Index, Bias>: ExpressionBaseTypes
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn mul_offsets(&mut self, lhs: &Bias, rhs: &Bias);
+
+    fn mul_linear_with_offset(&mut self, linear: &Vec<(Index, Bias)>, offset: &Bias);
+    fn mul_linears(&mut self, lhs: &Vec<(Index, Bias)>, rhs: &Vec<(Index, Bias)>);
+    fn mul_quadratic_with_offset(&mut self, lhs: &Self::QuadraticType, offset: &Bias);
+    fn mul_quadratic_with_linear(&mut self, lhs: &Self::QuadraticType, rhs: &Vec<(Index, Bias)>);
+    fn mul_quadratics(&mut self, lhs: &Self::QuadraticType, rhs: &Self::QuadraticType);
+
+    fn mul_higher_order_with_offset(&mut self, lhs: &Self::HigherOrderType, offset: &Bias);
+    fn mul_higher_order_with_linear(
+        &mut self,
+        lhs: &Self::HigherOrderType,
+        rhs: &Vec<(Index, Bias)>,
+    );
+    fn mul_higher_order_with_quadratic(
+        &mut self,
+        lhs: &Self::HigherOrderType,
+        rhs: &Self::QuadraticType,
+    );
+    fn mul_higher_orders(&mut self, lhs: &Self::HigherOrderType, rhs: &Self::HigherOrderType);
 }
 
 /// Implements multiplication of variables, biases (scalars) and terms to `self`.

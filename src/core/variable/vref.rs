@@ -1,73 +1,28 @@
-use crate::core::{
-    exceptions::{ParseFromStringError, VariablesFromDifferentEnvsError},
-    expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints, One},
-    operations::{AddToExpression, MulToExpression, RSubToExpression, SubToExpression},
-    Environment, Expression,
+use crate::{
+    core::{
+        expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints},
+        operations::{AddToExpression, MulToExpression, RSubToExpression, SubToExpression},
+        Expression, MutRcEnvironment,
+    },
+    errors::VariablesFromDifferentEnvsError,
 };
-use std::fmt::{Debug, Display, Formatter};
-use std::{cell::RefCell, ops::AddAssign, rc::Rc, str::FromStr};
+use std::{
+    fmt::{Debug, Display, Formatter},
+    rc::Rc,
+};
 
-#[derive(Debug, Clone, Copy, Default, Eq, Ord, PartialEq, PartialOrd, Hash)]
-pub struct VarId(pub u32);
-
-impl One for VarId {
-    fn one() -> Self {
-        VarId(1)
-    }
-}
-
-impl AddAssign<VarId> for VarId {
-    fn add_assign(&mut self, rhs: VarId) {
-        self.0 += rhs.0
-    }
-}
-
-impl ToString for VarId {
-    fn to_string(&self) -> String {
-        self.0.to_string()
-    }
-}
-
-impl FromStr for VarId {
-    type Err = ParseFromStringError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.parse::<u32>()
-            .map(VarId)
-            .map_err(|e| ParseFromStringError(e.to_string()))
-    }
-}
-
-impl Into<usize> for VarId {
-    fn into(self) -> usize {
-        self.0 as usize
-    }
-}
-
-impl From<usize> for VarId {
-    fn from(value: usize) -> Self {
-        assert!(value <= u32::MAX as usize, "value out of range for u32");
-        VarId(value as u32)
-    }
-}
-
-impl Into<u64> for VarId {
-    fn into(self) -> u64 {
-        self.0 as u64
-    }
-}
-
+/// A reference to a variable.
 #[derive(Clone)]
 pub struct VarRef<Index> {
     pub id: Index,
-    pub env: Rc<RefCell<Environment<Index>>>,
+    pub env: MutRcEnvironment<Index>,
 }
 
 impl<Index> VarRef<Index>
 where
     Index: IndexConstraints,
 {
-    pub fn new(id: Index, env: Rc<RefCell<Environment<Index>>>) -> Self {
+    pub fn new(id: Index, env: MutRcEnvironment<Index>) -> Self {
         Self { id, env }
     }
 }

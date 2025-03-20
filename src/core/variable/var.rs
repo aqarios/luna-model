@@ -1,89 +1,58 @@
-use crate::core::environment::EnvId;
-#[cfg(feature = "py")]
-use pyo3::prelude::*;
+use crate::{core::ConcreteEnvId, errors::VariableCreationError};
 use std::fmt::{Debug, Display, Formatter};
-use strum_macros::{Display, EnumIter};
 
-#[cfg_attr(feature = "py", pyclass(eq, eq_int))]
-#[derive(Debug, Copy, Clone, PartialEq, EnumIter, Display)]
-pub enum Vtype {
-    Binary,
-    Spin,
-    Integer,
-    Real,
-}
+use super::{bounds::display_bound, Bounds, Vtype};
 
-#[derive(Clone, Copy, PartialEq)]
-pub struct Bounds {
-    pub lower: Option<f64>,
-    pub upper: Option<f64>,
-}
-
-impl Bounds {
-    pub fn new(lower: Option<f64>, upper: Option<f64>) -> Self {
-        Self { lower, upper }
-    }
-
-    pub fn default(vtype: &Vtype) -> Self {
-        match vtype {
-            Vtype::Real => Self::new(None, None),
-            Vtype::Integer => Self::new(None, None),
-            Vtype::Binary => Self::new(Some(0.0), Some(1.0)),
-            Vtype::Spin => Self::new(Some(-1.0), Some(1.0)),
-        }
-    }
-}
-
-impl Debug for Bounds {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let lower = display_bound(&self.lower);
-        let upper = display_bound(&self.upper);
-        f.debug_struct("Bounds")
-            .field("lower", &format_args!("{lower}"))
-            .field("upper", &format_args!("{upper}"))
-            .finish()
-    }
-}
-
-impl Display for Bounds {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let lower = display_bound(&self.lower);
-        let upper = display_bound(&self.upper);
-        write!(f, "{{ lower: {lower}, upper: {upper} }}")
-    }
-}
-
-fn display_bound(bound: &Option<f64>) -> String {
-    match bound {
-        None => String::from("unlimited"),
-        Some(val) => val.to_string(),
-    }
-}
-
-impl Vtype {
-    pub fn default() -> Self {
-        Vtype::Binary
-    }
-}
-
-#[derive(Debug, Clone)]
+/// The variable of a model containing it's name, type, bounds and the environment association.
+#[derive(Debug, Clone, PartialEq)]
 pub struct Variable {
     pub name: String,
     pub vtype: Vtype,
     pub bounds: Bounds,
-    pub env_id: EnvId,
+    pub env_id: ConcreteEnvId,
 }
 
 impl Variable {
-    pub fn new(name: String, vtype: Option<&Vtype>, bounds: Option<Bounds>, env_id: EnvId) -> Self {
-        let vtype = vtype.map_or(Vtype::default(), |e| *e);
-        let bounds = bounds.map_or(Bounds::default(&vtype), |e| e);
+    /// Create a default variable.
+    ///
+    /// Currently, this creates an unnamed binary variable.
+    /// Should not be used directly and should merely act as a placeholder.
+    pub fn default() -> Self {
         Self {
+            name: String::from(""),
+            vtype: Vtype::default(),
+            bounds: Bounds::default(&Vtype::default()),
+            env_id: ConcreteEnvId::default(),
+        }
+    }
+    /// Create a new variable based on the name, optional type and bounds and an environment
+    /// id.
+    pub fn new(
+        name: String,
+        vtype: Option<&Vtype>,
+        bounds: Option<Bounds>,
+        env_id: ConcreteEnvId,
+    ) -> Result<Self, VariableCreationError> {
+        let vtype = vtype.map_or(Vtype::default(), |t| *t);
+        match (vtype, bounds.is_some()) {
+            (Vtype::Binary, true) | (Vtype::Spin, true) => Err(VariableCreationError::new(
+                format!("bounds cannot be set for variable of type {}.", vtype),
+            )),
+            _ => Ok(()),
+        }?;
+        let default_bounds = Bounds::default(&vtype);
+        let bounds = bounds.map_or(default_bounds, |b| match (b.lower, b.upper) {
+            (Some(_), Some(_)) => b,
+            (Some(l), None) => Bounds::new(Some(l), default_bounds.upper),
+            (None, Some(u)) => Bounds::new(default_bounds.lower, Some(u)),
+            (None, None) => default_bounds,
+        });
+        Ok(Self {
             bounds,
             name,
             vtype,
             env_id,
-        }
+        })
     }
 
     fn format_bounds(&self) -> String {

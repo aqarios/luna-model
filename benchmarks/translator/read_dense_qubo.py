@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import IO
 from numpy.typing import NDArray
 from tqdm import tqdm  # type: ignore[import-untyped]

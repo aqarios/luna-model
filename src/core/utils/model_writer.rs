@@ -4,7 +4,7 @@ use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::{Constraint, Environment, Expression, Model, Vtype};
 use hashbrown::HashMap;
 use std::cell::Ref;
-use std::fmt::{Display, Formatter, Write};
+use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
 use strum::IntoEnumIterator;
 
