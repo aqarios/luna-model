@@ -3,7 +3,7 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from aq_models import Variable, Environment, Vtype, Bounds, Expression, Model
+from aqmodels import Variable, Environment, Vtype, Bounds, Expression, Model
 
 _model_str_1 = """Model: TestModel
 Minimize

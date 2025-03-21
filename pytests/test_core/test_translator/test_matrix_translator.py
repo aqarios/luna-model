@@ -5,8 +5,8 @@ import numpy as np
 import scipy.sparse as sp  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 
-from aq_models import MatrixTranslator, Variable, Vtype
-from aq_models._core import ModelNotQuadraticException, ModelNotUnconstrainedException
+from aqmodels import MatrixTranslator, Variable, Vtype
+from aqmodels import ModelNotQuadraticException, ModelNotUnconstrainedException
 from ..utils import make_seed
 
 

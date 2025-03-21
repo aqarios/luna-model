@@ -1,5 +1,5 @@
 [project]
-name = "aq-models"
+name = "aqmodels"
 dynamic = ["version"]
 description = "Rust based implementation of aq-models"
 readme = "README.md"
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-# aq-models = "aq_models:main"
+# aq-models = "aqmodels:main"
 
 [tool.uv]
 package = true
@@ -37,8 +37,8 @@ markers = [
 ]
 
 [tool.maturin]
-module-name = "aq_models._core"
-python-packages = ["aq_models"]
+module-name = "aqmodels._core"
+python-packages = ["aqmodels"]
 python-source = "src"
 features = ["py"]
 

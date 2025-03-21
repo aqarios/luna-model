@@ -1,9 +1,9 @@
 import pytest
 
-from aq_models import Model
-from aq_models import Environment
-from aq_models import NoActiveEnvironmentFoundException
-from aq_models import MultipleActiveEnvironmentsException
+from aqmodels import Model
+from aqmodels import Environment
+from aqmodels import NoActiveEnvironmentFoundException
+from aqmodels import MultipleActiveEnvironmentsException
 
 
 @pytest.mark.model

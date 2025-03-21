@@ -1,9 +1,9 @@
 import pytest
 import base64
 
-from aq_models import Model
-from aq_models import Variable
-from aq_models import Environment
+from aqmodels import Model
+from aqmodels import Variable
+from aqmodels import Environment
 
 
 def assert_encode_decode(model: Model):

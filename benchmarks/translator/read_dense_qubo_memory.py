@@ -11,7 +11,7 @@ from rich import print as rprint
 from rich.table import Column
 from rich.table import Table
 
-from aq_models import MatrixTranslator, Vtype
+from aqmodels import MatrixTranslator, Vtype
 import dimod
 
 from benchmarks.setting import DENSITIES, SIZES

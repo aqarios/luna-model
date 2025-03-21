@@ -4,7 +4,7 @@ from typing import Callable, Protocol, Sequence
 from itertools import combinations, product
 from .utils import make_seed, random
 
-from aq_models import (
+from aqmodels import (
     Model,
     Expression,
     Environment,
