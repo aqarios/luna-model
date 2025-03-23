@@ -1,10 +1,10 @@
 import json
 from typing import IO, Any
+
+import dimod
 from tqdm import tqdm  # type: ignore
 
-from aq_models import Model, Vtype, MatrixTranslator
-import dimod
-
+from aq_models import MatrixTranslator, Model, Vtype
 from benchmarks.serialization.utils import serialize_aqm, serialize_bqm
 from benchmarks.setting import DENSITIES, REPETITIONS, SIZES
 from benchmarks.utils import BenchResult, format_result, make_qubo, timeit

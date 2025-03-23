@@ -5,9 +5,9 @@ use super::{
     },
     Expression,
 };
-use crate::core::exceptions::VariablesFromDifferentEnvsError;
 use crate::core::operations::{AddAssignToExpression, AddToExpression};
 use crate::core::VarRef;
+use crate::errors::VariablesFromDifferentEnvsError;
 
 // ADDITION
 

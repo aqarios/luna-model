@@ -1,8 +1,11 @@
+mod bounds;
 mod var;
+mod varid;
 mod vref;
+mod vtype;
 
-pub use var::Bounds;
+pub use bounds::Bounds;
 pub use var::Variable;
-pub use var::Vtype;
-pub use vref::VarId;
+pub use varid::VarId;
 pub use vref::VarRef;
+pub use vtype::Vtype;

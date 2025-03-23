@@ -1,23 +1,23 @@
-from pathlib import Path
-import sys
+import datetime
 import os
 import platform
-import subprocess
 import re
-import datetime
+import subprocess
+import sys
+from pathlib import Path
 from typing import IO
-from benchmarks.translator.read_dense_qubo import bench_read_dense_qubo
+
+from benchmarks.serialization.deserialize import (
+    bench_deserialize_bqm,
+)
 from benchmarks.serialization.serialize import (
     bench_serialize_bqm,
     bench_serialize_bqm_size,
 )
-from benchmarks.serialization.deserialize import (
-    bench_deserialize_bqm,
-)
 from benchmarks.serialization.serialize_extralarge import (
     bench_serialize_aqm_xl,
 )
-
+from benchmarks.translator.read_dense_qubo import bench_read_dense_qubo
 from benchmarks.translator.read_dense_qubo_memory import bench_read_dense_qubo_memory
 
 TASKS = [

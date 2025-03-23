@@ -1,17 +1,15 @@
-use crate::core::exceptions::VariableCreationError;
 use crate::core::utils::LineLengthRestrictor;
+use crate::core::ConcreteEnvId as EnvId;
 use crate::core::{
-    exceptions::VariableExistsError,
     expression::IndexConstraints,
     variable::{Bounds, VarRef, Variable, Vtype},
 };
+use crate::errors::{VariableCreationError, VariableExistsError};
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
 use std::slice::Iter;
 use std::{cell::RefCell, ops::Index, rc::Rc};
-
-pub type EnvId = u8;
 
 // already thread safe.
 static ENV_COUNTER: CounterU8 = CounterU8::new(0);

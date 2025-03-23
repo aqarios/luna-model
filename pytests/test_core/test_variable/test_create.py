@@ -1,10 +1,12 @@
 import pytest
 
-from aq_models import Variable
-from aq_models import Environment
-from aq_models import VariableExistsException
-from aq_models import NoActiveEnvironmentFoundException
-from aq_models import MultipleActiveEnvironmentsException
+from aq_models import (
+    Environment,
+    MultipleActiveEnvironmentsException,
+    NoActiveEnvironmentFoundException,
+    Variable,
+    VariableExistsException,
+)
 
 
 @pytest.mark.variable

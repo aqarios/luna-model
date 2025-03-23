@@ -1,12 +1,10 @@
-use std::cell::RefCell;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
-use std::rc::Rc;
 use std::str::FromStr;
 
 use crate::core::term::types::SizeType;
-use crate::core::{Environment, Vtype};
+use crate::core::{ConcreteBias, MutRcEnvironment, Vtype};
 
 use super::errors::VariableOutOfRangeError;
 
@@ -58,7 +56,7 @@ pub trait BiasConstraints:
     + One
     + MulAssign
     + Mul<Output = Self>
-    + Mul<f64, Output = Self>
+    + Mul<ConcreteBias, Output = Self>
     + Neg<Output = Self>
 {
 }
@@ -74,7 +72,7 @@ impl<
             + One
             + MulAssign
             + Mul<Output = T>
-            + Mul<f64, Output = Self>
+            + Mul<ConcreteBias, Output = Self>
             + Neg<Output = T>,
     > BiasConstraints for T
 {
@@ -100,19 +98,18 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn empty(env: Rc<RefCell<Environment<Index>>>) -> Self;
-    fn new(env: Rc<RefCell<Environment<Index>>>, active: Vec<bool>, num_variables: usize) -> Self;
+    fn empty(env: MutRcEnvironment<Index>) -> Self;
+    fn new(env: MutRcEnvironment<Index>, active: Vec<bool>, num_variables: usize) -> Self;
     fn new_from_other(other: &Self) -> Self;
-    fn new_linear_single(env: Rc<RefCell<Environment<Index>>>, v: Index, bias: Bias) -> Self;
-    fn new_linear(env: Rc<RefCell<Environment<Index>>>, u: (Index, Bias), v: (Index, Bias))
-        -> Self;
+    fn new_linear_single(env: MutRcEnvironment<Index>, v: Index, bias: Bias) -> Self;
+    fn new_linear(env: MutRcEnvironment<Index>, u: (Index, Bias), v: (Index, Bias)) -> Self;
     fn new_linear_and_offset(
-        env: Rc<RefCell<Environment<Index>>>,
+        env: MutRcEnvironment<Index>,
         v: Index,
         bias: Bias,
         offset: Bias,
     ) -> Self;
-    fn new_quadratic(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self;
+    fn new_quadratic(env: MutRcEnvironment<Index>, u: Index, v: Index, bias: Bias) -> Self;
 }
 
 pub trait ExpressionBaseAdjustment<Index, Bias>: ExpressionBase<Index, Bias>

@@ -3,24 +3,33 @@ import functools
 import numpy as np
 from dimod import SampleSet
 
-from ._core import Bounds
-from ._core import Constraint
-from ._core import Constraints
-from ._core import Environment
-from ._core import Expression
-from ._core import MatrixTranslator
-from ._core import Model
-from ._core import MultipleActiveEnvironmentsException
-from ._core import NoActiveEnvironmentFoundException
-from ._core import Result
-from ._core import Results
-from ._core import SampleSetTranslator
-from ._core import Solution
-from ._core import Timer
-from ._core import Timing
-from ._core import Variable
-from ._core import VariableExistsException
-from ._core import Vtype
+from ._core import (
+    Bounds,
+    Comparator,
+    Constraint,
+    Constraints,
+    DecodeException,
+    DifferentEnvsException,
+    Environment,
+    Expression,
+    MatrixTranslator,
+    Model,
+    ModelNotQuadraticException,
+    ModelNotUnconstrainedException,
+    MultipleActiveEnvironmentsException,
+    NoActiveEnvironmentFoundException,
+    Result,
+    Results,
+    SampleSetTranslator,
+    Solution,
+    Timer,
+    Timing,
+    Variable,
+    VariableExistsException,
+    VariableOutOfRangeException,
+    VariablesFromDifferentEnvsException,
+    Vtype,
+)
 
 
 def wrap_from_dimod_sample_set(f):
@@ -45,6 +54,7 @@ __all__ = [
     "Expression",
     "Constraint",
     "Constraints",
+    "Comparator",
     "Variable",
     "Environment",
     "Vtype",
@@ -55,8 +65,14 @@ __all__ = [
     "Timing",
     "Timer",
     "MatrixTranslator",
+    "VariableOutOfRangeException",
     "SampleSetTranslator",
     "VariableExistsException",
+    "VariablesFromDifferentEnvsException",
+    "DifferentEnvsException",
     "NoActiveEnvironmentFoundException",
     "MultipleActiveEnvironmentsException",
+    "DecodeException",
+    "ModelNotQuadraticException",
+    "ModelNotUnconstrainedException",
 ]

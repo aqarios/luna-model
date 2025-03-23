@@ -1,16 +1,17 @@
-import sys
 import json
+import sys
+
+import dimod
 
 from aq_models import Model
-import dimod
 
 
 def serialize_aqm(model: Model) -> bytes:
     return model.serialize(compress=True)
 
 
-def serialize_bqm(model: dimod.BinaryQuadraticModel) -> str:
-    o = model.to_serializable()
+def serialize_bqm(model: dimod.BinaryQuadraticModel, use_bytes: bool = False) -> str:
+    o = model.to_serializable(use_bytes=use_bytes)
     o_json = json.dumps(o)
     return o_json
 

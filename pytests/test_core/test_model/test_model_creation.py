@@ -1,16 +1,18 @@
 import pytest
 
-from aq_models import Model
-from aq_models import Environment
-from aq_models import NoActiveEnvironmentFoundException
-from aq_models import MultipleActiveEnvironmentsException
+from aq_models import (
+    Environment,
+    Model,
+    MultipleActiveEnvironmentsException,
+    NoActiveEnvironmentFoundException,
+)
 
 
 @pytest.mark.model
 def test_create_model_explicit():
     env = Environment()
     model = Model(env)
-    assert type(model) == Model
+    assert isinstance(model, Model)
 
 
 @pytest.mark.model

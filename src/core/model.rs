@@ -11,19 +11,25 @@ use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 use std::rc::Rc;
 
+/// The default name for a model.
 static DEFAULT_MODEL_NAME: &str = "unnamed";
 
+/// A model describing some function to be optimized (objective) and restrictions
+/// on this objective (constraints).
 pub struct Model<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
+    /// The name of the model.
     pub name: String,
-    pub objective: Rc<RefCell<Expression<Index, Bias>>>,
-    // a model has its own environment. This allows us to define
-    // the operations more easily on the model. Getting rid of the
-    // problems involving environment passing for multiplication etc.
+    /// The environment of the model, constaining the information for each variable
+    /// used in both the objective and it's constraints.
     pub environment: Rc<RefCell<Environment<Index>>>,
+    /// The objective of the model describing some optimization problem. The objective
+    /// is an expression that can be linear, quadratic or higher order.
+    pub objective: Rc<RefCell<Expression<Index, Bias>>>,
+    /// The constraints of the model describing the restrictions on the model.
     pub constraints: Rc<RefCell<Constraints<Index, Bias>>>,
 }
 
@@ -32,6 +38,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
+    /// Create a new Model using a specifc environment.
     pub fn new_with_env(name: Option<String>, env: Rc<RefCell<Environment<Index>>>) -> Self {
         Self {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
@@ -41,6 +48,7 @@ where
         }
     }
 
+    /// Create a new Model with a new environment created just for this model.
     pub fn new(name: Option<String>) -> Self {
         let rcenv = Rc::new(RefCell::new(Environment::new()));
         Self {
@@ -51,6 +59,9 @@ where
         }
     }
 
+    /// Create a new Model based on a Quadratic Unconstrained Binary Optimization (QUBO)
+    /// problem represented as a continuous slice of all values. A new environment is
+    /// created based on the size of the QUBO.
     pub fn new_from_dense(
         name: Option<String>,
         dense: &[Bias],
@@ -92,11 +103,10 @@ where
     Bias: BiasConstraints,
 {
     fn eq(&self, other: &Self) -> bool {
-        // Add contraints
-        // Remove name and environment
         self.name == other.name
             && self.environment.borrow().id == other.environment.borrow().id
             && self.objective == other.objective
+            && self.constraints == other.constraints
     }
 }
 

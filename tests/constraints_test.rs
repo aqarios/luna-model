@@ -1,16 +1,17 @@
 use std::{ops::Deref, rc::Rc};
 
-use aqmodels::core::{Comparator, Constraint, Constraints, VarId, Vtype};
+use aqmodels::core::{Comparator, ConcreteBias, ConcreteIndex, Constraint, Constraints, Vtype};
 
 mod common;
 use common::*;
 
 #[test]
 fn linear_constraint_eq() {
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(2);
+    let seed = make_seed();
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(2, seed);
     let expr = package(create_linear_expression(env, &biases, Vtype::Binary));
-    let rhs = random_bias();
+    let rhs = random_bias(seed);
 
     let constr = Constraint::new(expr, rhs, Comparator::Eq);
     let binding = constr.lhs.borrow();
@@ -26,10 +27,11 @@ fn linear_constraint_eq() {
 
 #[test]
 fn linear_constraint_le() {
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(2);
+    let seed = make_seed();
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(2, seed);
     let expr = package(create_linear_expression(env, &biases, Vtype::Binary));
-    let rhs = random_bias();
+    let rhs = random_bias(seed);
 
     let constr = Constraint::new(expr, rhs, Comparator::Leq);
     let binding = constr.lhs.borrow();
@@ -45,10 +47,11 @@ fn linear_constraint_le() {
 
 #[test]
 fn linear_constraint_ge() {
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(2);
+    let seed = make_seed();
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(2, seed);
     let expr = package(create_linear_expression(env, &biases, Vtype::Binary));
-    let rhs = random_bias();
+    let rhs = random_bias(seed);
 
     let constr = Constraint::new(expr, rhs, Comparator::Geq);
     let binding = constr.lhs.borrow();
@@ -64,13 +67,14 @@ fn linear_constraint_ge() {
 
 #[test]
 fn linear_constraints() {
-    let env = package(create_env::<VarId>());
+    let seed = make_seed();
+    let env = package(create_env::<ConcreteIndex>());
     let expr = package(create_linear_expression(
         Rc::clone(&env),
-        &random_biases::<f64>(2),
+        &random_biases::<ConcreteBias>(2, seed),
         Vtype::Binary,
     ));
-    let rhs = random_bias();
+    let rhs = random_bias(seed);
 
     let constr_a = Constraint::new(Rc::clone(&expr), rhs, Comparator::Leq);
     let constr_b = Constraint::new(Rc::clone(&expr), rhs, Comparator::Eq);

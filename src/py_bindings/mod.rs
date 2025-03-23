@@ -9,24 +9,25 @@ mod py_sol;
 mod py_timing;
 mod py_var;
 mod solution_translator;
-mod types;
 
 use pyo3::prelude::*;
 
-use crate::core::{
-    MultipleActiveEnvironmentsException, NoActiveEnvironmentFoundException,
-    VariableExistsException, Vtype,
+use py_exceptions::{
+    DecodeException, DifferentEnvsException, ModelNotQuadraticException,
+    ModelNotUnconstrainedException, MultipleActiveEnvironmentsException,
+    NoActiveEnvironmentFoundException, VariableExistsException, VariableOutOfRangeException,
+    VariablesFromDifferentEnvsException,
 };
 
-/// A Python module implemented in Rust. The name of this function must match
-/// the `lib.name` setting in the `Cargo.toml`, else Python will not be able to
-/// import the module.
+use crate::core::{Comparator, Vtype};
+
 #[pymodule]
 fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Add version information to the python module
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     // Add core components not as wrappers, required for e.g. enums
     m.add_class::<Vtype>()?;
+    m.add_class::<Comparator>()?;
     // Add core components as wrappers.
     m.add_class::<py_env::PyEnvironment>()?;
     m.add_class::<py_expr::PyExpression>()?;
@@ -43,17 +44,39 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_sol::PySolution>()?;
     m.add_class::<solution_translator::PySampleSetTranslator>()?;
     // Adding the exceptions
+    m.add("DecodeException", m.py().get_type::<DecodeException>())?;
     m.add(
-        "VariableExistsException",
-        m.py().get_type::<VariableExistsException>(),
+        "DifferentEnvsException",
+        m.py().get_type::<DifferentEnvsException>(),
+    )?;
+    m.add(
+        "ModelNotQuadraticException",
+        m.py().get_type::<ModelNotQuadraticException>(),
+    )?;
+    m.add(
+        "ModelNotUnconstrainedException",
+        m.py().get_type::<ModelNotUnconstrainedException>(),
+    )?;
+    m.add(
+        "MultipleActiveEnvironmentsException",
+        m.py().get_type::<MultipleActiveEnvironmentsException>(),
     )?;
     m.add(
         "NoActiveEnvironmentFoundException",
         m.py().get_type::<NoActiveEnvironmentFoundException>(),
     )?;
     m.add(
-        "MultipleActiveEnvironmentsException",
-        m.py().get_type::<MultipleActiveEnvironmentsException>(),
+        "VariableExistsException",
+        m.py().get_type::<VariableExistsException>(),
     )?;
+    m.add(
+        "VariableOutOfRangeException",
+        m.py().get_type::<VariableOutOfRangeException>(),
+    )?;
+    m.add(
+        "VariablesFromDifferentEnvsException",
+        m.py().get_type::<VariablesFromDifferentEnvsException>(),
+    )?;
+
     Ok(())
 }

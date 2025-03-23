@@ -1,5 +1,4 @@
 use std::{
-    cell::RefCell,
     ops::{AddAssign, Deref},
     rc::Rc,
 };
@@ -8,45 +7,44 @@ use derive_more::{Deref, DerefMut};
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 
 use crate::{
-    core::Comparator,
+    core::{
+        Comparator, ConcreteConstraint, ConcreteConstraints, ConcreteMutRcConstraint,
+        ConcreteMutRcConstraints, Constraint, Create,
+    },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
 
-use super::{
-    py_env::PyEnvironment,
-    py_expr::PyExpression,
-    types::{Constr, Constrs},
-};
+use super::{py_env::PyEnvironment, py_expr::PyExpression};
 
 #[pyclass(unsendable, name = "Constraints")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyConstraints(pub Rc<RefCell<Constrs>>);
+pub struct PyConstraints(pub ConcreteMutRcConstraints);
 
 impl PyConstraints {
-    pub fn new(constrs: Constrs) -> Self {
-        Self(Rc::new(RefCell::new(constrs)))
+    pub fn new(constrs: ConcreteConstraints) -> Self {
+        Self(constrs.into())
     }
 }
 
 #[pyclass(unsendable, name = "Constraint")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyConstraint(pub Rc<RefCell<Constr>>);
+pub struct PyConstraint(pub ConcreteMutRcConstraint);
 
 impl PyConstraint {
-    pub fn new(constraint: Constr) -> Self {
-        Self(Rc::new(RefCell::new(constraint)))
+    pub fn new(constraint: ConcreteConstraint) -> Self {
+        Self(constraint.into())
     }
 
     pub fn new_py(
-        expr: &PyExpression,
         py: Python,
+        expr: &PyExpression,
         other: PyObject,
         comparator: Comparator,
     ) -> PyResult<PyConstraint> {
         if let Ok(rhs) = other.extract::<f64>(py) {
-            Ok(PyConstraint::new(Constr::new(
+            Ok(PyConstraint::new(Constraint::new(
                 Rc::clone(&expr.0),
                 rhs,
                 comparator,
@@ -59,6 +57,11 @@ impl PyConstraint {
 
 #[pymethods]
 impl PyConstraint {
+    #[new]
+    fn py_new(lhs: PyExpression, rhs: f64, comparator: Comparator) -> Self {
+        PyConstraint::new(Constraint::new(lhs.0, rhs, comparator))
+    }
+
     fn __eq__(&self, other: Self) -> bool {
         *self.borrow() == *other.borrow()
     }
@@ -76,7 +79,7 @@ impl PyConstraint {
 impl PyConstraints {
     #[new]
     fn py_new() -> Self {
-        PyConstraints::new(Constrs::default())
+        PyConstraints(ConcreteMutRcConstraints::create())
     }
 
     fn __iadd__(&mut self, other: PyConstraint) {
@@ -137,5 +140,16 @@ impl PyConstraints {
     #[staticmethod]
     fn deserialize(py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
         Self::decode(py, data, env)
+    }
+}
+
+#[pymethods]
+impl Comparator {
+    fn __str__(&self) -> String {
+        self.to_string()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self:?}")
     }
 }

@@ -3,17 +3,18 @@ use std::rc::Rc;
 use aqmodels::core::{
     operations::{MulAssignToExpression, MulToExpression},
     term::types::{OneVarTerm, OneVarTermConstruction},
-    VarId, Vtype,
+    ConcreteBias, ConcreteIndex, Vtype,
 };
 
 use crate::common::*;
 
 #[test]
 fn quadratic_expression_equal_spins_varref() {
+    let seed = make_seed();
     let n = 100;
 
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(n);
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let (mut expr, vars) =
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Spin);
 
@@ -22,14 +23,15 @@ fn quadratic_expression_equal_spins_varref() {
 
     let expected_offset = biases[0];
 
-    let mut expected_linear: Vec<f64> = vec![0.0];
-    expected_linear.append(&mut vec![f64::default(); biases.len() - 1]);
+    let mut expected_linear: Vec<ConcreteBias> = vec![0.0];
+    expected_linear.append(&mut vec![ConcreteBias::default(); biases.len() - 1]);
 
     // Here, the creation of the quadratic variable is a bit more tricky.
     // As the smaller value will always contain the interaction.
     // In this case, we multiply with the variable with the smallest index,
     // so we know that all interactions will be located at this position.
-    let mut expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![biases[1..]
+    let mut expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> = vec![biases
+        [1..]
         .iter()
         .enumerate()
         .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b))
@@ -72,10 +74,11 @@ fn quadratic_expression_equal_spins_varref() {
 
 #[test]
 fn quadratic_expression_equal_spins_expr() {
+    let seed = make_seed();
     let n = 100;
 
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(n);
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let (mut expr, vars) =
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Spin);
 
@@ -84,14 +87,15 @@ fn quadratic_expression_equal_spins_expr() {
 
     let expected_offset = biases[0];
 
-    let mut expected_linear: Vec<f64> = vec![0.0];
-    expected_linear.append(&mut vec![f64::default(); biases.len() - 1]);
+    let mut expected_linear: Vec<ConcreteBias> = vec![0.0];
+    expected_linear.append(&mut vec![ConcreteBias::default(); biases.len() - 1]);
 
     // Here, the creation of the quadratic variable is a bit more tricky.
     // As the smaller value will always contain the interaction.
     // In this case, we multiply with the variable with the smallest index,
     // so we know that all interactions will be located at this position.
-    let mut expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![biases[1..]
+    let mut expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> = vec![biases
+        [1..]
         .iter()
         .enumerate()
         .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b))

@@ -1,9 +1,3 @@
-use std::cell::RefCell;
-use std::fmt::{Debug, Display, Formatter};
-use std::rc::Rc;
-
-use hashbrown::HashMap;
-
 use super::base::{
     BiasConstraints, ExpressionBase, ExpressionBaseAdd, ExpressionBaseAdjustment,
     ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulComponents,
@@ -13,7 +7,9 @@ use super::VariableOutOfRangeError;
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::utils::ModelWriter;
-use crate::core::{Environment, Vtype};
+use crate::core::{MutRcEnvironment, Vtype};
+use hashbrown::HashMap;
+use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Clone)]
 pub struct Expression<Index, Bias>
@@ -21,7 +17,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    pub env: Rc<RefCell<Environment<Index>>>,
+    pub env: MutRcEnvironment<Index>,
     pub offset: Bias,
     pub linear: Linear<Bias>,
     pub quadratic: Option<Quadratic<Index, Bias>>,
@@ -49,7 +45,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn empty(env: Rc<RefCell<Environment<Index>>>) -> Self {
+    fn empty(env: MutRcEnvironment<Index>) -> Self {
         Self {
             env,
             offset: Bias::default(),
@@ -61,7 +57,7 @@ where
         }
     }
 
-    fn new(env: Rc<RefCell<Environment<Index>>>, active: Vec<bool>, num_variables: usize) -> Self {
+    fn new(env: MutRcEnvironment<Index>, active: Vec<bool>, num_variables: usize) -> Self {
         Self {
             env,
             offset: Bias::default(),
@@ -73,7 +69,7 @@ where
         }
     }
 
-    fn new_linear_single(env: Rc<RefCell<Environment<Index>>>, v: Index, bias: Bias) -> Self {
+    fn new_linear_single(env: MutRcEnvironment<Index>, v: Index, bias: Bias) -> Self {
         let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
         let mut active = Vec::new();
@@ -92,7 +88,7 @@ where
     }
 
     fn new_linear_and_offset(
-        env: Rc<RefCell<Environment<Index>>>,
+        env: MutRcEnvironment<Index>,
         v: Index,
         bias: Bias,
         offset: Bias,
@@ -114,11 +110,7 @@ where
         }
     }
 
-    fn new_linear(
-        env: Rc<RefCell<Environment<Index>>>,
-        u: (Index, Bias),
-        v: (Index, Bias),
-    ) -> Self {
+    fn new_linear(env: MutRcEnvironment<Index>, u: (Index, Bias), v: (Index, Bias)) -> Self {
         let linear = Linear::new_from_variables((u.0.into(), u.1), (v.0.into(), v.1));
         // todo: make this it's own struct similar to linear.
         let mut active = Vec::new();
@@ -136,7 +128,7 @@ where
             num_variables: 2,
         }
     }
-    fn new_quadratic(env: Rc<RefCell<Environment<Index>>>, u: Index, v: Index, bias: Bias) -> Self {
+    fn new_quadratic(env: MutRcEnvironment<Index>, u: Index, v: Index, bias: Bias) -> Self {
         let mut out = Self {
             env,
             offset: Bias::default(),

@@ -1,7 +1,7 @@
 import dimod
 import numpy as np
 import pytest
-from dimod import SampleSet, BinaryQuadraticModel, Vartype, as_samples
+from dimod import BinaryQuadraticModel, SampleSet, Vartype, as_samples
 from dwave.samplers import SimulatedAnnealingSampler
 
 from aq_models import SampleSetTranslator, Timer
@@ -68,6 +68,7 @@ def test_from_dimod_2():
     # bqm2 = generate_bqm()
     # print(bqm2.to_qubo())
     raise Exception
+
 
 # def test_iterableeeeess():
 #     bqm = BinaryQuadraticModel(vartype=Vartype.BINARY)

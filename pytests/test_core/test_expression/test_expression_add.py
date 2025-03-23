@@ -1,45 +1,36 @@
-import pytest
-
+from itertools import product
 from typing import Tuple
 
-from aq_models import Variable
-from aq_models import Environment
-from aq_models import Expression
+import pytest
+
+from aq_models import Environment, Expression, Variable, Vtype
 
 
 @pytest.fixture
 def variables(request) -> Tuple[Variable, ...]:
+    n, vtype = request.param
     with Environment():
-        variables = [Variable(f"{i}") for i in range(request.param)]
+        variables = [Variable(f"{i}", vtype=vtype) for i in range(n)]
     return tuple(variables)
 
 
-@pytest.fixture
-def variable() -> Variable:
-    with Environment():
-        return Variable("variable")
-
-
-@pytest.fixture
-def expression() -> Expression:
-    with Environment():
-        a, b = Variable("expression_a"), Variable("expression_b")
-    return a + b
-
-
 @pytest.mark.expression
-@pytest.mark.parametrize("variables", [3], indirect=True)
+@pytest.mark.parametrize(
+    "variables",
+    product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    indirect=True,
+)
 def test_expression_add_variable(variables):
     x, y, z = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     result = expr + z
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 3
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
@@ -47,18 +38,22 @@ def test_expression_add_variable(variables):
 
 
 @pytest.mark.expression
-@pytest.mark.parametrize("variables", [2], indirect=True)
+@pytest.mark.parametrize(
+    "variables",
+    product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    indirect=True,
+)
 def test_expression_add_number(variables):
     x, y = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     expr = expr + 2
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_offset() == 2
     assert expr.get_linear(x) == 1
@@ -66,18 +61,22 @@ def test_expression_add_number(variables):
 
 
 @pytest.mark.expression
-@pytest.mark.parametrize("variables", [2], indirect=True)
+@pytest.mark.parametrize(
+    "variables",
+    product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    indirect=True,
+)
 def test_expression_radd_number(variables):
     x, y = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     expr = 2 + expr
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_offset() == 2
     assert expr.get_linear(x) == 1
@@ -85,18 +84,22 @@ def test_expression_radd_number(variables):
 
 
 @pytest.mark.expression
-@pytest.mark.parametrize("variables", [3], indirect=True)
+@pytest.mark.parametrize(
+    "variables",
+    product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    indirect=True,
+)
 def test_expression_instanceadd_variable(variables):
     x, y, z = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     expr += z
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 3
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
@@ -104,19 +107,23 @@ def test_expression_instanceadd_variable(variables):
 
 
 @pytest.mark.expression
-@pytest.mark.parametrize("variables", [3], indirect=True)
+@pytest.mark.parametrize(
+    "variables",
+    product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    indirect=True,
+)
 def test_expression_instanceadd_variable_twice(variables):
     x, y, z = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     expr += z
     expr += z
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 3
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
@@ -124,18 +131,22 @@ def test_expression_instanceadd_variable_twice(variables):
 
 
 @pytest.mark.expression
-@pytest.mark.parametrize("variables", [2], indirect=True)
+@pytest.mark.parametrize(
+    "variables",
+    product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    indirect=True,
+)
 def test_expression_instanceadd_number(variables):
     x, y = variables
 
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     expr += 2
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_offset() == 2
     assert expr.get_linear(x) == 1

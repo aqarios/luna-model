@@ -1,8 +1,6 @@
 import pytest
 
-from aq_models import Variable
-from aq_models import Environment
-from aq_models import Expression
+from aq_models import Environment, Expression, Variable
 
 
 @pytest.mark.variable
@@ -12,7 +10,7 @@ def test_add_variable_and_number(scalar: int):
         x = Variable("x")
 
     result = x + scalar
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 1
     assert result.get_linear(x) == 1
     assert result.get_offset() == scalar
@@ -25,7 +23,7 @@ def test_radd_variable_and_number(scalar: int):
         x = Variable("x")
 
     result = scalar + x
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 1
     assert result.get_linear(x) == 1
     assert result.get_offset() == scalar
@@ -38,7 +36,7 @@ def test_add_two_variables():
         y = Variable("y")
 
     result = x + y
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 2
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
@@ -51,7 +49,7 @@ def test_add_two_variables_unordered():
         y = Variable("y")
 
     result = y + x
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 2
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
@@ -66,7 +64,7 @@ def test_add_last_two_variables():
         y = Variable("y")
 
     result = y + x
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 2
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
@@ -81,7 +79,7 @@ def test_add_any_and_last_variables():
         y = Variable("y")
 
     result = y + x
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 2
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
@@ -92,13 +90,13 @@ def test_variable_add_expression():
     with Environment():
         x, y, z = Variable("x"), Variable("y"), Variable("z")
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     result = z + expr
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 3
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
@@ -110,13 +108,13 @@ def test_variable_radd_expression():
     with Environment():
         x, y, z = Variable("x"), Variable("y"), Variable("z")
     expr = x + y
-    assert type(expr) == Expression
+    assert isinstance(expr, Expression)
     assert expr.num_variables() == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     result = expr + z
-    assert type(result) == Expression
+    assert isinstance(result, Expression)
     assert result.num_variables() == 3
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1

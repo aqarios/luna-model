@@ -3,25 +3,26 @@ use std::rc::Rc;
 use aqmodels::core::{
     operations::{MulAssignToExpression, MulToExpression},
     term::types::{OneVarTerm, OneVarTermConstruction},
-    VarId, Vtype,
+    ConcreteBias, ConcreteIndex, Vtype,
 };
 
 use crate::common::*;
 
 #[test]
 fn quadratic_expression_equal_integer_varref() {
+    let seed = make_seed();
     let n = 100;
 
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(n);
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let (mut expr, vars) =
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Integer);
 
     let multiplier = &vars[0];
     expr.mul_assign(multiplier).unwrap();
 
-    let expected_linear: Vec<f64> = vec![f64::default(); biases.len()];
-    let mut expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![biases
+    let expected_linear: Vec<ConcreteBias> = vec![ConcreteBias::default(); biases.len()];
+    let mut expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> = vec![biases
         .iter()
         .enumerate()
         .map(|(i, b)| OneVarTerm::new(i.into(), *b))
@@ -29,7 +30,7 @@ fn quadratic_expression_equal_integer_varref() {
     expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
 
     assert_eq!(expr.env, env, "envs is wrong");
-    assert_eq!(expr.offset, f64::default(), "offset is wrong");
+    assert_eq!(expr.offset, ConcreteBias::default(), "offset is wrong");
     assert_eq!(
         expr.linear.to_vec(),
         &expected_linear,
@@ -64,18 +65,19 @@ fn quadratic_expression_equal_integer_varref() {
 
 #[test]
 fn quadratic_expression_equal_integer_expr() {
+    let seed = make_seed();
     let n = 100;
 
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(n);
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let (mut expr, vars) =
         create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Integer);
 
     let multiplier = &vars[0];
     expr.mul_assign(&multiplier.mul(1.0)).unwrap();
 
-    let expected_linear: Vec<f64> = vec![f64::default(); biases.len()];
-    let mut expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![biases
+    let expected_linear: Vec<ConcreteBias> = vec![ConcreteBias::default(); biases.len()];
+    let mut expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> = vec![biases
         .iter()
         .enumerate()
         .map(|(i, b)| OneVarTerm::new(i.into(), *b))
@@ -83,7 +85,7 @@ fn quadratic_expression_equal_integer_expr() {
     expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
 
     assert_eq!(expr.env, env, "envs is wrong");
-    assert_eq!(expr.offset, f64::default(), "offset is wrong");
+    assert_eq!(expr.offset, ConcreteBias::default(), "offset is wrong");
     assert_eq!(
         expr.linear.to_vec(),
         &expected_linear,

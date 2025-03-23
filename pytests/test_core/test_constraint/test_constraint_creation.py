@@ -1,9 +1,6 @@
 import pytest
 
-from aq_models import Variable
-from aq_models import Environment
-from aq_models import Expression
-from aq_models import Constraint
+from aq_models import Constraint, Environment, Expression, Variable
 
 
 @pytest.fixture
@@ -17,16 +14,16 @@ def expression() -> Expression:
 @pytest.mark.constraint
 def test_constraint_creation_eq(expression: Expression):
     constr = expression == 0
-    assert type(constr) == Constraint
+    assert isinstance(constr, Constraint)
 
 
 @pytest.mark.constraint
 def test_constraint_creation_le(expression: Expression):
     constr = expression <= 0.0
-    assert type(constr) == Constraint
+    assert isinstance(constr, Constraint)
 
 
 @pytest.mark.constraint
 def test_constraint_creation_ge(expression: Expression):
     constr = expression >= 0
-    assert type(constr) == Constraint
+    assert isinstance(constr, Constraint)

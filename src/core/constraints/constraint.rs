@@ -1,18 +1,16 @@
+use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::utils::ModelWriter;
-use crate::core::{
-    expression::{BiasConstraints, IndexConstraints},
-    Expression,
-};
+use crate::core::MutRcExpression;
 use std::fmt::{Debug, Display, Formatter};
+use std::ops::{Add, AddAssign};
 use std::slice::Iter;
 use std::string::ToString;
-use std::{
-    cell::RefCell,
-    ops::{Add, AddAssign},
-    rc::Rc,
-};
 use strum_macros::Display;
 
+#[cfg(feature = "py")]
+use pyo3::prelude::*;
+
+#[cfg_attr(feature = "py", pyclass(eq, eq_int))] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {
     #[strum(to_string = "==")]
@@ -30,7 +28,7 @@ where
     Bias: BiasConstraints,
 {
     // todo, expression in constraint should be immutable...
-    pub lhs: Rc<RefCell<Expression<Index, Bias>>>,
+    pub lhs: MutRcExpression<Index, Bias>,
     pub rhs: Bias,
     pub comparator: Comparator,
 }
@@ -40,11 +38,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    pub fn new(
-        lhs: Rc<RefCell<Expression<Index, Bias>>>,
-        rhs: Bias,
-        comparator: Comparator,
-    ) -> Self {
+    pub fn new(lhs: MutRcExpression<Index, Bias>, rhs: Bias, comparator: Comparator) -> Self {
         Self {
             lhs,
             rhs,
@@ -100,6 +94,10 @@ where
 
     pub fn iter(&self) -> Iter<'_, Constraint<Index, Bias>> {
         self.constraints.iter()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 }
 

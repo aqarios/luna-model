@@ -1,26 +1,28 @@
 use crate::{
-    core::{Environment, MultipleActiveEnvironmentsException, VarId},
+    core::{ConcreteEnvironment, ConcreteMutRcEnvironment, Environment},
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{prelude::*, types::PyBytes};
-use std::{cell::RefCell, ops::Deref, rc::Rc};
+use std::{cell::RefCell, ops::Deref};
+
+use super::py_exceptions::MultipleActiveEnvironmentsException;
 
 #[pyclass(unsendable, name = "Environment")]
 #[derive(Deref, DerefMut, Clone)]
-pub struct PyEnvironment(pub Rc<RefCell<Environment<VarId>>>);
+pub struct PyEnvironment(pub ConcreteMutRcEnvironment);
 
-impl Into<Rc<RefCell<Environment<VarId>>>> for PyEnvironment {
-    fn into(self) -> Rc<RefCell<Environment<VarId>>> {
+impl Into<ConcreteMutRcEnvironment> for PyEnvironment {
+    fn into(self) -> ConcreteMutRcEnvironment {
         self.0
     }
 }
 
 impl PyEnvironment {
-    pub fn new(env: Environment<VarId>) -> Self {
-        Self(Rc::new(RefCell::new(env)))
+    pub fn new(env: ConcreteEnvironment) -> Self {
+        Self(env.into())
     }
 }
 

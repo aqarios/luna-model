@@ -10,20 +10,21 @@ use aqmodels::core::{
     environment::add_variable,
     operations::{MulAssignToExpression, MulToExpression},
     term::{types::OneVarTerm, HigherOrder},
-    VarId, Vtype,
+    ConcreteBias, ConcreteIndex, Vtype,
 };
 
 use crate::common::*;
 
 fn higher_order_expression_base(vtype: Vtype, n: usize) {
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(n);
+    let seed = make_seed();
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let (mut expr, vars) = create_linear_expression_with_vars(Rc::clone(&env), &biases, vtype);
 
     let ma = add_variable(Rc::clone(&env), &"ma".to_string(), Some(&vtype), None).unwrap();
     let mb = add_variable(Rc::clone(&env), &"mb".to_string(), Some(&vtype), None).unwrap();
-    let ma_scalar = random_bias::<f64>();
-    let mb_scalar = random_bias::<f64>();
+    let ma_scalar = random_bias::<ConcreteBias>(seed);
+    let mb_scalar = random_bias::<ConcreteBias>(seed);
 
     expr.mul_assign(&ma.mul(ma_scalar)).unwrap();
     println!("expr.linear after first mul {:?}", &expr.linear.to_vec());
@@ -42,19 +43,21 @@ fn higher_order_expression_base(vtype: Vtype, n: usize) {
         &expr.higher_order.as_ref().unwrap().biases
     );
 
-    let expected_quadratic: Vec<Vec<OneVarTerm<VarId, f64>>> = vec![vec![]; biases.len() + 2];
+    let expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> =
+        vec![vec![]; biases.len() + 2];
 
-    let mut expected_higher_order: HashMap<String, f64> = HashMap::with_capacity(biases.len());
+    let mut expected_higher_order: HashMap<String, ConcreteBias> =
+        HashMap::with_capacity(biases.len());
     for (var, bias) in vars.iter().zip(&biases) {
-        let key = HigherOrder::<VarId, f64>::make_key(&vec![var.id, ma.id, mb.id]);
+        let key = HigherOrder::<ConcreteIndex, ConcreteBias>::make_key(&vec![var.id, ma.id, mb.id]);
         expected_higher_order.insert(key, *bias * ma_scalar * mb_scalar);
     }
 
     assert_eq!(expr.env, env, "envs is wrong");
-    assert_eq!(expr.offset, f64::default(), "offset is wrong");
+    assert_eq!(expr.offset, ConcreteBias::default(), "offset is wrong");
     assert_eq!(
         expr.linear.to_vec(),
-        &vec![f64::default(); biases.len() + 2],
+        &vec![ConcreteBias::default(); biases.len() + 2],
         "linear parts are not equal"
     );
     if expr.has_quadratic() {

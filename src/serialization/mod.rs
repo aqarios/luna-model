@@ -7,6 +7,6 @@ mod encodable;
 mod versionizable;
 
 pub use compressable::{Compressable, Decompressable};
-pub use encodable::{Decodable, Encodable};
+pub use encodable::{Decodable, DecodeError, Encodable};
 
 pub use versionizable::{Unversionizable, Version, Versionizable};

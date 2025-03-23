@@ -1,16 +1,17 @@
 use std::rc::Rc;
 
-use aqmodels::core::{VarId, Vtype};
+use aqmodels::core::{ConcreteBias, ConcreteIndex, Vtype};
 
 use crate::common::*;
 
 fn linear_expression_base(vtype: Vtype, n: usize) {
-    let env = package(create_env::<VarId>());
-    let biases = random_biases::<f64>(n);
+    let seed = make_seed();
+    let env = package(create_env::<ConcreteIndex>());
+    let biases = random_biases::<ConcreteBias>(n, seed);
     let expr = create_linear_expression(Rc::clone(&env), &biases, vtype);
 
     assert_eq!(expr.env, env);
-    assert_eq!(expr.offset, f64::default());
+    assert_eq!(expr.offset, ConcreteBias::default());
     assert_eq!(expr.linear.len(), biases.len());
     assert_eq!(expr.linear.to_vec(), &biases);
     assert_eq!(expr.quadratic, None);
