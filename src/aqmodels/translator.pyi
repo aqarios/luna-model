@@ -1,5 +1,5 @@
 from numpy.typing import NDArray
-from .core import Model, Vtype
+from ._core import Model, Vtype
 
 class MatrixTranslator:
     @staticmethod

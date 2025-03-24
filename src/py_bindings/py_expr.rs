@@ -23,7 +23,7 @@ use pyo3::{
 };
 use std::{ops::Deref, rc::Rc};
 
-#[pyclass(unsendable, name = "Expression")]
+#[pyclass(unsendable, name = "Expression", module = "aqmodels")]
 #[derive(Deref, DerefMut, Clone)]
 pub struct PyExpression(pub ConcreteMutRcExpression);
 

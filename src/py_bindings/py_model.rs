@@ -14,7 +14,7 @@ use crate::{
 use derive_more::{Deref, DerefMut};
 use pyo3::{prelude::*, types::PyBytes};
 
-#[pyclass(unsendable, name = "Model", subclass)]
+#[pyclass(unsendable, subclass, name = "Model", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
 pub struct PyModel(pub ConcreteModel);
 

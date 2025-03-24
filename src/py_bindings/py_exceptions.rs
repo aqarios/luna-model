@@ -8,15 +8,35 @@ use pyo3::exceptions::PyException;
 use pyo3::{create_exception, PyErr};
 use std::convert::From;
 
-create_exception!(aqmodels, VariableOutOfRangeException, PyException);
-create_exception!(aqmodels, VariableExistsException, PyException);
-create_exception!(aqmodels, VariablesFromDifferentEnvsException, PyException);
-create_exception!(aqmodels, DifferentEnvsException, PyException);
-create_exception!(aqmodels, NoActiveEnvironmentFoundException, PyException);
-create_exception!(aqmodels, MultipleActiveEnvironmentsException, PyException);
-create_exception!(aqmodels, DecodeException, PyException);
-create_exception!(aqmodels, ModelNotQuadraticException, PyException);
-create_exception!(aqmodels, ModelNotUnconstrainedException, PyException);
+create_exception!(
+    aqmodels.exceptions,
+    VariableOutOfRangeException,
+    PyException
+);
+create_exception!(aqmodels.exceptions, VariableExistsException, PyException);
+create_exception!(
+    aqmodels.exceptions,
+    VariablesFromDifferentEnvsException,
+    PyException
+);
+create_exception!(aqmodels.exceptions, DifferentEnvsException, PyException);
+create_exception!(
+    aqmodels.exceptions,
+    NoActiveEnvironmentFoundException,
+    PyException
+);
+create_exception!(
+    aqmodels.exceptions,
+    MultipleActiveEnvironmentsException,
+    PyException
+);
+create_exception!(aqmodels.exceptions, DecodeException, PyException);
+create_exception!(aqmodels.exceptions, ModelNotQuadraticException, PyException);
+create_exception!(
+    aqmodels.exceptions,
+    ModelNotUnconstrainedException,
+    PyException
+);
 
 impl From<VariableOutOfRangeError> for PyErr {
     fn from(value: VariableOutOfRangeError) -> Self {

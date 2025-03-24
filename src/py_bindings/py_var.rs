@@ -9,7 +9,7 @@ use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 
-#[pyclass(unsendable, subclass, name = "Variable")]
+#[pyclass(unsendable, subclass, name = "Variable", module = "aqmodels")]
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyVariable(pub ConcreteRcVarRef);
 

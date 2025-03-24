@@ -10,7 +10,10 @@ use strum_macros::Display;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
-#[cfg_attr(feature = "py", pyclass(eq, eq_int))] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
+#[cfg_attr(
+    feature = "py",
+    pyclass(eq, eq_int, name = "Comparator", module = "aqmodels")
+)] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {
     #[strum(to_string = "==")]

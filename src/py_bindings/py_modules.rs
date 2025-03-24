@@ -24,53 +24,62 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-pub fn register_translator(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // let tm = PyModule::new(m.py(), "translator")?;
+pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
+    let m = PyModule::new(pm.py(), "aqmodels.translator")?;
     m.add_class::<py_matrix_translator::PyMatrixTranslator>()?;
-    // m.add_submodule(&tm)?;
+    pm.add_submodule(&m)?;
+    pm.py()
+        .import("sys")?
+        .getattr("modules")?
+        .set_item("aqmodels.translator", m)?;
     Ok(())
 }
 
-pub fn register_exceptions(em: &Bound<'_, PyModule>) -> PyResult<()> {
-    // let em = PyModule::new(m.py(), "exceptions")?;
-    em.add(
+pub fn register_exceptions(pm: &Bound<'_, PyModule>) -> PyResult<()> {
+    let m = PyModule::new(pm.py(), "aqmodels.exceptions")?;
+    m.add(
         pyexc::DecodeException::NAME,
-        em.py().get_type::<pyexc::DecodeException>(),
+        m.py().get_type::<pyexc::DecodeException>(),
     )?;
-    em.add(
+    m.add(
         pyexc::DifferentEnvsException::NAME,
-        em.py().get_type::<pyexc::DifferentEnvsException>(),
+        m.py().get_type::<pyexc::DifferentEnvsException>(),
     )?;
-    em.add(
+    m.add(
         pyexc::ModelNotQuadraticException::NAME,
-        em.py().get_type::<pyexc::ModelNotQuadraticException>(),
+        m.py().get_type::<pyexc::ModelNotQuadraticException>(),
     )?;
-    em.add(
+    m.add(
         pyexc::ModelNotUnconstrainedException::NAME,
-        em.py().get_type::<pyexc::ModelNotUnconstrainedException>(),
+        m.py().get_type::<pyexc::ModelNotUnconstrainedException>(),
     )?;
-    em.add(
+    m.add(
         pyexc::MultipleActiveEnvironmentsException::NAME,
-        em.py()
+        m.py()
             .get_type::<pyexc::MultipleActiveEnvironmentsException>(),
     )?;
-    em.add(
+    m.add(
         pyexc::NoActiveEnvironmentFoundException::NAME,
-        em.py()
+        m.py()
             .get_type::<pyexc::NoActiveEnvironmentFoundException>(),
     )?;
-    em.add(
+    m.add(
         pyexc::VariableExistsException::NAME,
-        em.py().get_type::<pyexc::VariableExistsException>(),
+        m.py().get_type::<pyexc::VariableExistsException>(),
     )?;
-    em.add(
+    m.add(
         pyexc::VariableOutOfRangeException::NAME,
-        em.py().get_type::<pyexc::VariableOutOfRangeException>(),
+        m.py().get_type::<pyexc::VariableOutOfRangeException>(),
     )?;
-    em.add(
+    m.add(
         pyexc::VariablesFromDifferentEnvsException::NAME,
-        em.py()
+        m.py()
             .get_type::<pyexc::VariablesFromDifferentEnvsException>(),
     )?;
+    pm.add_submodule(&m)?;
+    pm.py()
+        .import("sys")?
+        .getattr("modules")?
+        .set_item("aqmodels.exceptions", m)?;
     Ok(())
 }

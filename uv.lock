@@ -2,7 +2,7 @@ version = 1
 requires-python = ">=3.11"
 
 [[package]]
-name = "aq-models"
+name = "aqmodels"
 source = { editable = "." }
 dependencies = [
     { name = "dimod" },

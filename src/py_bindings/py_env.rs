@@ -10,7 +10,7 @@ use std::{cell::RefCell, ops::Deref};
 
 use super::py_exceptions::MultipleActiveEnvironmentsException;
 
-#[pyclass(unsendable, name = "Environment")]
+#[pyclass(unsendable, name = "Environment", module = "aqmodels")]
 #[derive(Deref, DerefMut, Clone)]
 pub struct PyEnvironment(pub ConcreteMutRcEnvironment);
 
