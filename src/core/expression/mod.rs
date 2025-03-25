@@ -17,4 +17,4 @@ pub use base::One;
 
 pub use expr::Expression;
 
-pub use errors::VariableOutOfRangeError;
+pub use errors::VariableOutOfRangeErr;

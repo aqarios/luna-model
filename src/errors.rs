@@ -5,34 +5,34 @@ use std::{
 };
 
 #[derive(Debug, Clone)]
-pub struct VariableExistsError;
-impl Error for VariableExistsError {}
-impl Display for VariableExistsError {
+pub struct VariableExistsErr;
+impl Error for VariableExistsErr {}
+impl Display for VariableExistsErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "variable already exists in environment")
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct VariableCreationError {
+pub struct VariableCreationErr {
     msg: String,
 }
-impl VariableCreationError {
+impl VariableCreationErr {
     pub fn new(msg: String) -> Self {
         Self { msg }
     }
 }
-impl Error for VariableCreationError {}
-impl Display for VariableCreationError {
+impl Error for VariableCreationErr {}
+impl Display for VariableCreationErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "variable creation failed: {}", self.msg)
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct VariablesFromDifferentEnvsError;
-impl Error for VariablesFromDifferentEnvsError {}
-impl Display for VariablesFromDifferentEnvsError {
+pub struct VariablesFromDifferentEnvsErr;
+impl Error for VariablesFromDifferentEnvsErr {}
+impl Display for VariablesFromDifferentEnvsErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
@@ -42,9 +42,9 @@ impl Display for VariablesFromDifferentEnvsError {
 }
 
 #[derive(Debug, Clone)]
-pub struct DifferentEnvsError;
-impl Error for DifferentEnvsError {}
-impl Display for DifferentEnvsError {
+pub struct DifferentEnvsErr;
+impl Error for DifferentEnvsErr {}
+impl Display for DifferentEnvsErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
@@ -68,9 +68,9 @@ impl From<ParseIntError> for ParseFromStringError {
 }
 
 #[derive(Debug, Clone)]
-pub struct ModelNotQuadraticError;
-impl Error for ModelNotQuadraticError {}
-impl Display for ModelNotQuadraticError {
+pub struct ModelNotQuadraticErr;
+impl Error for ModelNotQuadraticErr {}
+impl Display for ModelNotQuadraticErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
@@ -80,36 +80,36 @@ impl Display for ModelNotQuadraticError {
 }
 
 #[derive(Debug, Clone)]
-pub struct ModelNotUnconstrainedError;
-impl Error for ModelNotUnconstrainedError {}
-impl Display for ModelNotUnconstrainedError {
+pub struct ModelNotUnconstrainedErr;
+impl Error for ModelNotUnconstrainedErr {}
+impl Display for ModelNotUnconstrainedErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "the model is not unconstrained")
     }
 }
 
 #[derive(Debug, Clone)]
-pub enum MatrixTranslatorError {
-    Constrained(ModelNotUnconstrainedError),
-    HigherOrder(ModelNotQuadraticError),
+pub enum MatrixTranslatorErr {
+    Constrained(ModelNotUnconstrainedErr),
+    HigherOrder(ModelNotQuadraticErr),
 }
-impl Error for MatrixTranslatorError {}
-impl Display for MatrixTranslatorError {
+impl Error for MatrixTranslatorErr {}
+impl Display for MatrixTranslatorErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match &self {
-            MatrixTranslatorError::Constrained(err) => err.fmt(f),
-            MatrixTranslatorError::HigherOrder(err) => err.fmt(f),
+            MatrixTranslatorErr::Constrained(err) => err.fmt(f),
+            MatrixTranslatorErr::HigherOrder(err) => err.fmt(f),
         }
     }
 }
 
-impl From<ModelNotQuadraticError> for MatrixTranslatorError {
-    fn from(value: ModelNotQuadraticError) -> Self {
+impl From<ModelNotQuadraticErr> for MatrixTranslatorErr {
+    fn from(value: ModelNotQuadraticErr) -> Self {
         Self::HigherOrder(value)
     }
 }
-impl From<ModelNotUnconstrainedError> for MatrixTranslatorError {
-    fn from(value: ModelNotUnconstrainedError) -> Self {
+impl From<ModelNotUnconstrainedErr> for MatrixTranslatorErr {
+    fn from(value: ModelNotUnconstrainedErr) -> Self {
         Self::Constrained(value)
     }
 }

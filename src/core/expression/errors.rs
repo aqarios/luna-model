@@ -1,14 +1,14 @@
 use std::fmt::{Display, Result};
 
-use crate::errors::VariablesFromDifferentEnvsError;
+use crate::errors::VariablesFromDifferentEnvsErr;
 
 // VariableOutOfRangeError
 #[derive(Debug, Clone)]
-pub struct VariableOutOfRangeError(pub usize);
+pub struct VariableOutOfRangeErr(pub usize);
 
-impl std::error::Error for VariableOutOfRangeError {}
+impl std::error::Error for VariableOutOfRangeErr {}
 
-impl Display for VariableOutOfRangeError {
+impl Display for VariableOutOfRangeErr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result {
         write!(f, "variable is out of range (is {})", self.0)
     }
@@ -33,8 +33,8 @@ impl Display for IndexOutOfOrderError {
 // VariableOutOfRangeError
 #[derive(Debug, Clone)]
 pub enum VariableError {
-    VariableFromDifferentEnvs(VariablesFromDifferentEnvsError),
-    VariableOutOfRangeError(VariableOutOfRangeError),
+    VariableFromDifferentEnvs(VariablesFromDifferentEnvsErr),
+    VariableOutOfRangeError(VariableOutOfRangeErr),
 }
 
 impl std::error::Error for VariableError {}
@@ -48,13 +48,13 @@ impl Display for VariableError {
     }
 }
 
-impl Into<VariableError> for VariablesFromDifferentEnvsError {
+impl Into<VariableError> for VariablesFromDifferentEnvsErr {
     fn into(self) -> VariableError {
         VariableError::VariableFromDifferentEnvs(self)
     }
 }
 
-impl Into<VariableError> for VariableOutOfRangeError {
+impl Into<VariableError> for VariableOutOfRangeErr {
     fn into(self) -> VariableError {
         VariableError::VariableOutOfRangeError(self)
     }

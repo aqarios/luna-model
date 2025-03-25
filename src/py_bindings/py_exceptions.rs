@@ -1,96 +1,88 @@
-use crate::core::expression::VariableOutOfRangeError;
+use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
-    DifferentEnvsError, MatrixTranslatorError, ModelNotQuadraticError, ModelNotUnconstrainedError,
-    VariableCreationError, VariableExistsError, VariablesFromDifferentEnvsError,
+    DifferentEnvsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr,
+    VariableCreationErr, VariableExistsErr, VariablesFromDifferentEnvsErr,
 };
-use crate::serialization::DecodeError;
+use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::PyException;
 use pyo3::{create_exception, PyErr};
 use std::convert::From;
 
+create_exception!(aqmodels.exceptions, VariableOutOfRangeError, PyException);
+create_exception!(aqmodels.exceptions, VariableExistsError, PyException);
 create_exception!(
     aqmodels.exceptions,
-    VariableOutOfRangeException,
+    VariablesFromDifferentEnvsError,
     PyException
 );
-create_exception!(aqmodels.exceptions, VariableExistsException, PyException);
+create_exception!(aqmodels.exceptions, DifferentEnvsError, PyException);
 create_exception!(
     aqmodels.exceptions,
-    VariablesFromDifferentEnvsException,
-    PyException
-);
-create_exception!(aqmodels.exceptions, DifferentEnvsException, PyException);
-create_exception!(
-    aqmodels.exceptions,
-    NoActiveEnvironmentFoundException,
+    NoActiveEnvironmentFoundError,
     PyException
 );
 create_exception!(
     aqmodels.exceptions,
-    MultipleActiveEnvironmentsException,
+    MultipleActiveEnvironmentsError,
     PyException
 );
-create_exception!(aqmodels.exceptions, DecodeException, PyException);
-create_exception!(aqmodels.exceptions, ModelNotQuadraticException, PyException);
-create_exception!(
-    aqmodels.exceptions,
-    ModelNotUnconstrainedException,
-    PyException
-);
+create_exception!(aqmodels.exceptions, DecodeError, PyException);
+create_exception!(aqmodels.exceptions, ModelNotQuadraticError, PyException);
+create_exception!(aqmodels.exceptions, ModelNotUnconstrainedError, PyException);
 
-impl From<VariableOutOfRangeError> for PyErr {
-    fn from(value: VariableOutOfRangeError) -> Self {
-        VariableOutOfRangeException::new_err(value.to_string())
+impl From<VariableOutOfRangeErr> for PyErr {
+    fn from(value: VariableOutOfRangeErr) -> Self {
+        VariableOutOfRangeError::new_err(value.to_string())
     }
 }
 
-impl From<VariableExistsError> for PyErr {
-    fn from(err: VariableExistsError) -> PyErr {
-        VariableExistsException::new_err(err.to_string())
+impl From<VariableExistsErr> for PyErr {
+    fn from(err: VariableExistsErr) -> PyErr {
+        VariableExistsError::new_err(err.to_string())
     }
 }
 
-impl From<VariableCreationError> for PyErr {
-    fn from(err: VariableCreationError) -> PyErr {
-        VariableExistsException::new_err(err.to_string())
+impl From<VariableCreationErr> for PyErr {
+    fn from(err: VariableCreationErr) -> PyErr {
+        VariableExistsError::new_err(err.to_string())
     }
 }
 
-impl From<VariablesFromDifferentEnvsError> for PyErr {
-    fn from(err: VariablesFromDifferentEnvsError) -> PyErr {
-        VariablesFromDifferentEnvsException::new_err(err.to_string())
+impl From<VariablesFromDifferentEnvsErr> for PyErr {
+    fn from(err: VariablesFromDifferentEnvsErr) -> PyErr {
+        VariablesFromDifferentEnvsError::new_err(err.to_string())
     }
 }
 
-impl From<DifferentEnvsError> for PyErr {
-    fn from(err: DifferentEnvsError) -> PyErr {
-        DifferentEnvsException::new_err(err.to_string())
+impl From<DifferentEnvsErr> for PyErr {
+    fn from(err: DifferentEnvsErr) -> PyErr {
+        DifferentEnvsError::new_err(err.to_string())
     }
 }
 
-impl From<DecodeError> for PyErr {
-    fn from(err: DecodeError) -> PyErr {
-        DecodeException::new_err(err.to_string())
+impl From<DecodeErr> for PyErr {
+    fn from(err: DecodeErr) -> PyErr {
+        DecodeError::new_err(err.to_string())
     }
 }
 
-impl From<ModelNotQuadraticError> for PyErr {
-    fn from(err: ModelNotQuadraticError) -> Self {
-        ModelNotQuadraticException::new_err(err.to_string())
+impl From<ModelNotQuadraticErr> for PyErr {
+    fn from(err: ModelNotQuadraticErr) -> Self {
+        ModelNotQuadraticError::new_err(err.to_string())
     }
 }
 
-impl From<ModelNotUnconstrainedError> for PyErr {
-    fn from(err: ModelNotUnconstrainedError) -> Self {
-        ModelNotUnconstrainedException::new_err(err.to_string())
+impl From<ModelNotUnconstrainedErr> for PyErr {
+    fn from(err: ModelNotUnconstrainedErr) -> Self {
+        ModelNotUnconstrainedError::new_err(err.to_string())
     }
 }
 
-impl From<MatrixTranslatorError> for PyErr {
-    fn from(err: MatrixTranslatorError) -> Self {
+impl From<MatrixTranslatorErr> for PyErr {
+    fn from(err: MatrixTranslatorErr) -> Self {
         match err {
-            MatrixTranslatorError::Constrained(err) => err.into(),
-            MatrixTranslatorError::HigherOrder(err) => err.into(),
+            MatrixTranslatorErr::Constrained(err) => err.into(),
+            MatrixTranslatorErr::HigherOrder(err) => err.into(),
         }
     }
 }

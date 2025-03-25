@@ -1,8 +1,6 @@
 [project]
 name = "aqmodels"
-dynamic = ["version"]
-description = "Rust based implementation of aq-models"
-readme = "README.md"
+dynamic = ["version", "description", "readme"]
 authors = [
     { name = "Jonas Blenninger", email = "jonas.blenninger@aqarios.com" },
     { name = "David Bucher", email = "david.bucher@aqarios.com" }
@@ -12,6 +10,7 @@ dependencies = [
     "dimod>=0.12.18",
     "memory-profiler>=0.61.0",
     "numpy>=2.2.2",
+    "rustworkx>=0.16.0",
     "scipy>=1.15.1",
 ]
 
@@ -24,6 +23,8 @@ cache-keys = [
     { file = "pyproject.toml" },
     { file = "Cargo.toml" },
     { file = "**/*.rs" },
+    { file = "src/aqmodels/**/*.pyi" },
+    { file = "src/aqmodels/**/*.py" },
 ]
 
 [tool.pytest.ini_options]
@@ -42,10 +43,17 @@ module-name = "aqmodels._core"
 python-packages = ["aqmodels"]
 python-source = "src"
 features = ["py"]
+include = [
+  "src/aqmodels/**/*.pyi", 
+  "src/aqmodels/**/*.py", 
+  "src/aqmodels/py.typed",
+]
 
 [build-system]
-requires = ["maturin>=1.0,<2.0"]
+requires = [ "maturin>=1.0,<2.0" ]
 build-backend = "maturin"
+# requires = ["maturin>=1.0,<2.0", "ruff>=0.11.2"]
+# build-backend = "build_backend"
 
 [dependency-groups]
 dev = [

@@ -1,7 +1,7 @@
 use super::{
     py_constr::PyConstraint,
     py_env::{PyEnvironment, CURRENT_ENV},
-    py_exceptions::NoActiveEnvironmentFoundException,
+    py_exceptions::NoActiveEnvironmentFoundError,
     py_var::PyVariable,
 };
 use crate::core::{
@@ -42,7 +42,7 @@ impl PyExpression {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|current| {
                 current.borrow().clone().ok_or_else(|| {
-                    NoActiveEnvironmentFoundException::new_err("no active environment found.")
+                    NoActiveEnvironmentFoundError::new_err("no active environment found.")
                 })
             })?,
         };

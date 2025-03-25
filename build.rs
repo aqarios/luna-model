@@ -1,0 +1,15 @@
+use std::process::Command;
+
+fn main() {
+    // Run the Python script to generate stubs
+    let status = Command::new("python")
+        .args(&["tools/gen_stubs.py"])
+        .status()
+        .expect("Failed to execute stub generation script");
+
+    if !status.success() {
+        panic!("Stub generation script failed");
+    }
+
+    // Add other build logic here if necessary
+}

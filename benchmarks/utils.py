@@ -56,7 +56,7 @@ def make_qubo(size: int, density: float) -> NDArray:
 def format_row_entries(size: int, density: float) -> tuple[str, str]:
     return (
         f"{size:4d}",
-        f"{int(density*100):3d}%",
+        f"{int(density * 100):3d}%",
     )
 
 
@@ -95,7 +95,6 @@ def colorize(content, color: str | None = None) -> str:
 
 
 def format_result(result: BenchResult, file: IO | None = None, comp: str = "le"):
-
     table = Table(
         Column("Size", ratio=1, justify="right"),
         Column("Density", ratio=1, justify="right"),
@@ -111,7 +110,6 @@ def format_result(result: BenchResult, file: IO | None = None, comp: str = "le")
 
     for size, aqm_res, dmd_res in zip(SIZES, result.aqmodels, result.dimod):
         for density, aqm_value, dmd_value in zip(DENSITIES, aqm_res, dmd_res):
-
             aqm_value_col: str | None
             dmd_value_col: str | None
             if comp == "le":
@@ -152,7 +150,7 @@ def format_float(rt: float) -> str:
 
 
 def format_density(d: float) -> str:
-    return f"{int(d*100):3d}%"
+    return f"{int(d * 100):3d}%"
 
 
 def format_size(s: float) -> str:

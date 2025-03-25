@@ -4,7 +4,7 @@ use crate::{
         operations::{AddToExpression, MulToExpression, RSubToExpression, SubToExpression},
         Expression, MutRcEnvironment,
     },
-    errors::VariablesFromDifferentEnvsError,
+    errors::VariablesFromDifferentEnvsErr,
 };
 use std::{
     fmt::{Debug, Display, Formatter},
@@ -44,11 +44,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
 
     fn add(self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(Expression::new_linear(
                 Rc::clone(&self.env),
@@ -76,11 +76,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
 
     fn mul(self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(Expression::new_quadratic(
                 Rc::clone(&self.env),
@@ -109,11 +109,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
 
     fn sub(self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(Expression::new_linear(
                 Rc::clone(&self.env),

@@ -38,43 +38,40 @@ pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
 pub fn register_exceptions(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "aqmodels.exceptions")?;
     m.add(
-        pyexc::DecodeException::NAME,
-        m.py().get_type::<pyexc::DecodeException>(),
+        pyexc::DecodeError::NAME,
+        m.py().get_type::<pyexc::DecodeError>(),
     )?;
     m.add(
-        pyexc::DifferentEnvsException::NAME,
-        m.py().get_type::<pyexc::DifferentEnvsException>(),
+        pyexc::DifferentEnvsError::NAME,
+        m.py().get_type::<pyexc::DifferentEnvsError>(),
     )?;
     m.add(
-        pyexc::ModelNotQuadraticException::NAME,
-        m.py().get_type::<pyexc::ModelNotQuadraticException>(),
+        pyexc::ModelNotQuadraticError::NAME,
+        m.py().get_type::<pyexc::ModelNotQuadraticError>(),
     )?;
     m.add(
-        pyexc::ModelNotUnconstrainedException::NAME,
-        m.py().get_type::<pyexc::ModelNotUnconstrainedException>(),
+        pyexc::ModelNotUnconstrainedError::NAME,
+        m.py().get_type::<pyexc::ModelNotUnconstrainedError>(),
     )?;
     m.add(
-        pyexc::MultipleActiveEnvironmentsException::NAME,
-        m.py()
-            .get_type::<pyexc::MultipleActiveEnvironmentsException>(),
+        pyexc::MultipleActiveEnvironmentsError::NAME,
+        m.py().get_type::<pyexc::MultipleActiveEnvironmentsError>(),
     )?;
     m.add(
-        pyexc::NoActiveEnvironmentFoundException::NAME,
-        m.py()
-            .get_type::<pyexc::NoActiveEnvironmentFoundException>(),
+        pyexc::NoActiveEnvironmentFoundError::NAME,
+        m.py().get_type::<pyexc::NoActiveEnvironmentFoundError>(),
     )?;
     m.add(
-        pyexc::VariableExistsException::NAME,
-        m.py().get_type::<pyexc::VariableExistsException>(),
+        pyexc::VariableExistsError::NAME,
+        m.py().get_type::<pyexc::VariableExistsError>(),
     )?;
     m.add(
-        pyexc::VariableOutOfRangeException::NAME,
-        m.py().get_type::<pyexc::VariableOutOfRangeException>(),
+        pyexc::VariableOutOfRangeError::NAME,
+        m.py().get_type::<pyexc::VariableOutOfRangeError>(),
     )?;
     m.add(
-        pyexc::VariablesFromDifferentEnvsException::NAME,
-        m.py()
-            .get_type::<pyexc::VariablesFromDifferentEnvsException>(),
+        pyexc::VariablesFromDifferentEnvsError::NAME,
+        m.py().get_type::<pyexc::VariablesFromDifferentEnvsError>(),
     )?;
     pm.add_submodule(&m)?;
     pm.py()

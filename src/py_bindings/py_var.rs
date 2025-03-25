@@ -1,5 +1,5 @@
 use super::py_env::{PyEnvironment, CURRENT_ENV};
-use super::py_exceptions::NoActiveEnvironmentFoundException;
+use super::py_exceptions::NoActiveEnvironmentFoundError;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::operations::{
     AddToExpression, MulToExpression, RSubToExpression, SubToExpression,
@@ -33,7 +33,7 @@ impl PyVariable {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|current| {
                 current.borrow().clone().ok_or_else(|| {
-                    NoActiveEnvironmentFoundException::new_err("no active environment found.")
+                    NoActiveEnvironmentFoundError::new_err("no active environment found.")
                 })
             })?,
         };

@@ -124,7 +124,9 @@ def expressions(
     item_cominations: list[Expression] = list()
     for r in range(2, len(items) + 1):
         combs = combinations(items, r)
-        item_cominations.extend([sum([random(seed) * v for v in comb]) for comb in combs])  # type: ignore
+        item_cominations.extend(
+            [sum([random(seed) * v for v in comb]) for comb in combs]
+        )  # type: ignore
 
     return [*items, *item_cominations]
 

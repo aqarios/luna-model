@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
 use super::{
-    py_constr::PyConstraints, py_env::PyEnvironment,
-    py_exceptions::NoActiveEnvironmentFoundException, py_expr::PyExpression,
+    py_constr::PyConstraints, py_env::PyEnvironment, py_exceptions::NoActiveEnvironmentFoundError,
+    py_expr::PyExpression,
 };
 use crate::{
     core::{ConcreteModel, Model},
@@ -33,7 +33,7 @@ impl PyModel {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|curr| {
                 curr.borrow().clone().ok_or_else(|| {
-                    NoActiveEnvironmentFoundException::new_err("no active environment found.")
+                    NoActiveEnvironmentFoundError::new_err("no active environment found.")
                 })
             })?,
         };
