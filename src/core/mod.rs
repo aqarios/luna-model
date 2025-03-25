@@ -51,7 +51,7 @@ pub use expression::ExpressionBaseAdjustment;
 
 pub use model::Model;
 
-pub use solution::ResView;
+pub use solution::ResultView;
 pub use solution::SampleSetTranslator;
 pub use solution::Solution;
 pub use solution::Timer;

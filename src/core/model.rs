@@ -5,7 +5,7 @@ use super::expression::{
     ExpressionBaseCreation, IndexConstraints,
 };
 use super::{Environment, Expression, Vtype};
-use crate::core::solution::Solution;
+use crate::core::solution::{OwnedResult, Solution};
 use crate::core::utils::ModelWriter;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
@@ -87,12 +87,25 @@ where
         model
     }
 
-    fn evaluate<Assign>(&self, _sol: &mut Solution<Assign, Bias>) -> &mut Solution<Assign, Bias>
+    fn evaluate<Assignment>(
+        &self,
+        _sol: &mut Solution<Assignment, Bias>,
+    ) -> &mut Solution<Assignment, Bias>
     where
-        Assign: AssignmentConstraints,
+        Assignment: AssignmentConstraints,
     {
         // Here, duplicate samples are already removed, i.e., each element of sol.samples is unique
 
+        todo!("Implement evaluation logic")
+    }
+
+    fn evaluate_result<Assignment>(
+        &self,
+        _res: &mut Vec<Assignment>,
+    ) -> &mut OwnedResult<Assignment, Bias>
+    where
+        Assignment: AssignmentConstraints,
+    {
         todo!("Implement evaluation logic")
     }
 }

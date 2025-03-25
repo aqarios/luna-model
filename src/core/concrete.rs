@@ -28,6 +28,11 @@ pub type ConcreteMutRcConstraints = MutRcConstraints<ConcreteIndex, ConcreteBias
 pub type ConcreteMutRcModel = MutRcModel<ConcreteIndex, ConcreteBias>;
 pub type ConcreteRcVarRef = RcVarRef<ConcreteIndex>;
 
+pub type ConcreteBinaryType = bool;
+pub type ConcreteSpinType = bool;
+pub type ConcreteIntegerType = i64;
+pub type ConcreteRealType = f64;
+
 pub trait Create {
     fn create() -> Self;
 }

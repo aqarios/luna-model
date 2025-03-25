@@ -1,73 +1,154 @@
-use crate::core::expression::{AssignmentConstraints, BiasConstraints};
+use crate::core::expression::BiasConstraints;
+use crate::core::solution::base::{AssignmentBaseTypes, AssignmentConstraints};
+use crate::core::solution::res::ResultView;
 use crate::core::solution::timing::Timing;
+use crate::core::ConcreteBias;
+use std::fmt::Binary;
+use std::ops::Mul;
 
-/// A view into a certain sample of a solution and its corresponding metadata.
-#[derive(Debug, Clone)]
-pub struct ResView<'a, Assignment, Bias>
+#[derive(Debug, Clone, Copy)]
+pub enum VarAssignment<Assignment>
 where
-    Assignment: AssignmentConstraints,
-    Bias: BiasConstraints,
+    Assignment: AssignmentBaseTypes,
 {
-    /// The solution bitstring.
-    pub sample: &'a Vec<Assignment>,
-    /// How often this result's sample occurred in the solution.
-    pub num_occurrences: usize,
-    /// The objective value computed from an AqModel. If not present, a raw value from the solver
-    /// may be used. None, if none of these are present.
-    pub obj_value: Option<Bias>,
-    /// Boolean flag for each single constraint whether it's satisfied.
-    pub constraint_satisfaction: Option<&'a Vec<bool>>,
-    /// Whether all constraints are satisfied.
-    pub feasible: Option<bool>,
+    Binary(Assignment::BinaryType),
+    Spin(Assignment::SpinType),
+    Integer(Assignment::IntegerType),
+    Real(Assignment::RealType),
 }
 
-impl<'a, Assignment, Bias> ResView<'a, Assignment, Bias>
+impl<Assignment> VarAssignment<Assignment>
 where
-    Assignment: AssignmentConstraints,
-    Bias: BiasConstraints,
+    Assignment: AssignmentBaseTypes,
 {
-    pub fn new(
-        sample: &'a Vec<Assignment>,
-        num_occurrences: usize,
-        obj_value: Option<Bias>,
-        constraint_satisfaction: Option<&'a Vec<bool>>,
-        feasible: Option<bool>,
-    ) -> Self {
-        Self {
-            sample,
-            num_occurrences,
-            obj_value,
-            constraint_satisfaction,
-            feasible,
+    #[inline]
+    fn extract_inner(&self) -> &dyn AssignmentConstraints {
+        match self {
+            VarAssignment::Binary(x) => x,
+            VarAssignment::Spin(x) => x,
+            VarAssignment::Integer(x) => x,
+            VarAssignment::Real(x) => x,
         }
     }
 }
 
-pub struct Res<Assignment, Bias> {
-    /// The solution bitstring.
-    pub sample: Vec<Assignment>,
-    /// The objective value computed from an AqModel. If not present, a raw value from the solver
-    /// may be used. None, if none of these are present.
-    pub obj_value: Option<Bias>,
-    /// Boolean flag for each single constraint whether it's satisfied.
-    pub constraint_satisfaction: Option<Vec<bool>>,
-    /// Whether all constraints are satisfied.
-    pub feasible: Option<bool>,
+impl<Assignment> Mul for VarAssignment<Assignment>
+where
+    Assignment: AssignmentBaseTypes,
+{
+    type Output = ConcreteBias;
+
+    fn mul(self, rhs: ConcreteBias) -> Self::Output {
+        match self {
+            VarAssignment::Binary(x) => x.into() * rhs,
+            VarAssignment::Spin(x) => x.into() * rhs,
+            VarAssignment::Integer(x) => x.into() * rhs,
+            VarAssignment::Real(x) => x.into() * rhs,
+        }
+    }
+}
+
+pub type Sample<Assignment: AssignmentBaseTypes> = Vec<VarAssignment<Assignment>>;
+
+/// The different assignments to a variable in the single samples
+#[derive(Debug, Clone)]
+pub enum VarAssignments<Assignment>
+where
+    Assignment: AssignmentBaseTypes,
+{
+    Binaries(Vec<Assignment::BinaryType>),
+    Spins(Vec<Assignment::SpinType>),
+    Integers(Vec<Assignment::IntegerType>),
+    Reals(Vec<Assignment::RealType>),
+}
+
+impl<Assignment: AssignmentBaseTypes> VarAssignments<Assignment> {
+    pub fn push(&mut self, assignment: VarAssignment<Assignment>) -> Result<(), ()> {
+        match (self, assignment) {
+            (VarAssignments::Binaries(xs), VarAssignment::Binary(x)) => {
+                xs.push(x);
+                Ok(())
+            }
+            (VarAssignments::Spins(xs), VarAssignment::Spin(x)) => {
+                xs.push(x);
+                Ok(())
+            }
+            (VarAssignments::Integers(xs), VarAssignment::Integer(x)) => {
+                xs.push(x);
+                Ok(())
+            }
+            (VarAssignments::Reals(xs), VarAssignment::Real(x)) => {
+                xs.push(x);
+                Ok(())
+            }
+            (_, _) => Err(()),
+        }
+    }
+    pub fn push2(&mut self, assignment: VarAssignment<Assignment>) -> Result<(), ()> {
+        todo!()
+    }
+
+    #[inline]
+    fn extract_inner(&self) -> &Vec<dyn AssignmentConstraints> {
+        match self {
+            VarAssignments::Binaries(xs) => xs,
+            VarAssignments::Spins(xs) => xs,
+            VarAssignments::Integers(xs) => xs,
+            VarAssignments::Reals(xs) => xs,
+        }
+    }
+
+    #[inline]
+    fn map_to_var_assignment(&self, x: &dyn AssignmentConstraints) -> VarAssignment<Assignment> {
+        match self {
+            VarAssignments::Binaries(_) => VarAssignment::Binary(x),
+            VarAssignments::Spins(_) => VarAssignment::Spin(x),
+            VarAssignments::Integers(_) => VarAssignment::Integer(x),
+            VarAssignments::Reals(_) => VarAssignment::Real(x),
+        }
+    }
+
+    // pub fn get(&self, index: usize) -> Option<VarAssignment<Assignment>> {
+    //     match self {
+    //         VarAssignments::Binaries(xs) => match xs.get(index) {
+    //             None => None,
+    //             Some(&x) => Some(VarAssignment::Binary(x)),
+    //         },
+    //         VarAssignments::Spins(xs) => match xs.get(index) {
+    //             None => None,
+    //             Some(&x) => Some(VarAssignment::Spin(x)),
+    //         },
+    //         VarAssignments::Integers(xs) => match xs.get(index) {
+    //             None => None,
+    //             Some(&x) => Some(VarAssignment::Integer(x)),
+    //         },
+    //         VarAssignments::Reals(xs) => match xs.get(index) {
+    //             None => None,
+    //             Some(&x) => Some(VarAssignment::Real(x)),
+    //         },
+    //     }
+    // }
+
+    pub fn get(&self, index: usize) -> Option<VarAssignment<Assignment>> {
+        self.extract_inner()
+            .get(index)
+            .map(|&x| self.map_to_var_assignment(x))
+    }
 }
 
 /// The solutions object for AQMs. It doesn't have any knowledge about the corresponding AQM or
 /// about the environment the model was created in. Instead, for each sample, we expect the indices
 /// of the solution to be aligned with the variable indices of the model's environment.
 #[derive(Debug, Clone, Default)]
-pub struct Solution<Assignment, Bias>
+pub struct Solution<Bias, Assignment>
 where
-    Assignment: AssignmentConstraints,
     Bias: BiasConstraints,
+    Assignment: AssignmentBaseTypes,
 {
-    /// A collection of samples. Each inner vec corresponds to a single sample, i.e., an assignment
-    /// of a value to each model variable. `samples.len()` can be expected to always correspond
-    /// exactly to the number of results available in the solution.
-    pub samples: Vec<Vec<Assignment>>,
+    /// A collection of samples. Each inner vec corresponds to all assignments to a single variable
+    /// across different samples. `samples.len()` can be expected to always correspond exactly to
+    /// the number of results available in the solution.
+    pub samples: Vec<VarAssignments<Assignment>>,
     /// How often each result occurs in the solution. `num_occurrences.len()` can be expected to
     /// always be equal to `samples.len()`
     pub num_occurrences: Vec<usize>,
@@ -91,68 +172,80 @@ where
     best_sample_idx: Option<usize>,
     /// Runtime metrics of the solution.
     pub timing: Option<Timing>,
+    /// Private attribute to keep track of the current number of samples
+    n_samples: usize,
 }
 
-impl<Assignment, Bias> Solution<Assignment, Bias>
+impl<Bias, Assignment> Solution<Bias, Assignment>
 where
-    Assignment: AssignmentConstraints,
     Bias: BiasConstraints,
+    Assignment: AssignmentBaseTypes,
 {
-    pub fn position(&self, sample: &Vec<Assignment>) -> Option<usize> {
-        // TODO: find out whether this check is efficient enough or there's sth better
+    pub fn position(&self, sample: &Sample<Assignment>) -> Option<usize> {
+        // TODO: check whether this approach is more efficient than creating a temp HashMap
         self.samples.iter().position(|x| x == sample)
     }
 
     /// Extend a solution with a sample, without computing any objective values or similar.
-    /// `num_occurrences` means how often this value occurs.
-    pub fn extend(&mut self, sample: Vec<Assignment>, num_occurrences: usize) -> &mut Self {
+    pub fn extend(
+        &mut self,
+        sample: Sample<Assignment>,
+        num_occurrences: usize,
+    ) -> Result<&mut Self, ()> {
         if let Some(idx) = self.position(&sample) {
             self.num_occurrences[idx] += num_occurrences;
         } else {
-            self.samples.push(sample);
+            self.add_sample(sample)?;
             self.num_occurrences.push(num_occurrences);
         }
-        self
+        Ok(self)
     }
 
     /// Extend a solution with a sample, without computing any objective values or similar.
-    /// `num_occurrences` means how often this value occurs.
     /// In contrast to `extend`, this method does not check whether the sample is already part of
     /// the solution.
-    pub fn extend_no_agg(&mut self, sample: Vec<Assignment>, num_occurrences: usize) -> &mut Self {
-        self.samples.push(sample);
+    pub fn extend_no_agg(
+        &mut self,
+        sample: Sample<Assignment>,
+        num_occurrences: usize,
+    ) -> Result<&mut Self, ()> {
+        self.add_sample(sample)?;
         self.num_occurrences.push(num_occurrences);
-        self
+        Ok(self)
+    }
+
+    fn add_sample(&mut self, sample: Sample<Assignment>) -> Result<(), ()> {
+        if sample.len() != self.samples.len() {
+            Err(())
+        } else {
+            for (i, a) in sample.iter().enumerate() {
+                self.samples[i].push(*a);
+            }
+            Ok(())
+        }
     }
 
     /// Iterate over the single results of the solution
     pub fn iter(
         &self,
-    ) -> impl Iterator<Item = ResView<Assignment, Bias>> + use<'_, Assignment, Bias> {
+    ) -> impl Iterator<Item = ResultView<Assignment, Bias>> + use<'_, Assignment, Bias> {
         (0..self.samples.len()).map(|i| self.get_result(i).unwrap())
     }
 
-    pub fn get_result(&self, index: usize) -> Option<ResView<Assignment, Bias>> {
-        if index >= self.samples.len() {
+    pub fn get_result(&self, index: usize) -> Option<ResultView<Assignment, Bias>> {
+        if index >= self.n_samples {
             return None;
         }
+        let sample: Sample<_> = self.samples.iter().map(|x| x.get(index).unwrap()).collect();
+
         let obj_value = match (self.obj_values.get(index), self.raw_energies.get(index)) {
             (Some(&bias), _) => Some(bias),
             (_, Some(&bias)) => Some(bias),
             (_, _) => None,
         };
         let constraints = self.constraints.get(index);
-        let feasible = match &self.feasible.get(index) {
-            None => None,
-            Some(&feas) => Some(feas),
-        };
+        let feasible = self.feasible.get(index).map(|&b| b);
 
-        Some(ResView::new(
-            &self.samples[index],
-            self.num_occurrences[index],
-            obj_value,
-            constraints,
-            feasible,
-        ))
+        Some(ResultView::new(sample, obj_value, constraints, feasible))
     }
 }

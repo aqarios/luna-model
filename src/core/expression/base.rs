@@ -78,9 +78,6 @@ impl<
 {
 }
 
-pub trait AssignmentConstraints: Debug + Display + Copy + Default + PartialEq + PartialOrd {}
-impl<T: Debug + Display + Copy + Default + PartialEq + PartialOrd> AssignmentConstraints for T {}
-
 pub trait ExpressionBaseTypes {
     /// The key used by higher order terms. This is implementation dependent.
     /// Thus we cannot fix it to some value here.

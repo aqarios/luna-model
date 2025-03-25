@@ -1,4 +1,4 @@
-use crate::core::{ResView, Solution};
+use crate::core::{ResultView, Solution};
 use crate::py_bindings::py_timing::PyTiming;
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, PyArray2, ToPyArray};
@@ -67,7 +67,7 @@ impl PySolution {
 }
 
 impl PyRes {
-    fn from_res<'a>(res: ResView<'a, f64, f64>, py: Python<'a>) -> Self {
+    fn from_res<'a>(res: ResultView<'a, f64, f64>, py: Python<'a>) -> Self {
         let constr_sat = match res.constraint_satisfaction {
             None => None,
             Some(c) => Some(c.to_pyarray(py).unbind()),
