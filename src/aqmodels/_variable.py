@@ -1,9 +1,10 @@
 from __future__ import annotations
 from enum import Enum
 from aqmodels._expression import Expression
+from aqmodels._api_utils import export
 
 
-# @export
+@export
 class Vtype(Enum):
     """This is the vtype"""
 
@@ -29,7 +30,7 @@ class Vtype(Enum):
         ...
 
 
-# @export
+@export
 class Variable:
     """
     This is a variable

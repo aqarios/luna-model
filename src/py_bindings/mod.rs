@@ -17,6 +17,6 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     py_modules::register_core(m)?;
     py_modules::register_translator(m)?;
-    py_modules::register_exceptions(m)?;
+    py_modules::register_errors(m)?;
     Ok(())
 }

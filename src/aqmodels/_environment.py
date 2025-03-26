@@ -1,9 +1,10 @@
 from __future__ import annotations
 from typing import Any
 from aqmodels._expression import Expression
+from aqmodels._api_utils import export
 
 
-# @export
+@export
 class Environment:
     """
     Documentation of Environment

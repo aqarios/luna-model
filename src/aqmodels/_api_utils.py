@@ -1,30 +1,22 @@
-import functools
-from types import FunctionType
 from typing import TypeVar
+from typing import overload, Callable, TypeVar
 
-T = TypeVar("T")
-
-
-def attach_doc(from_obj: object, to_obj: T) -> T:
-    """Attach docstring and module from one object to another."""
-    to_obj.__doc__ = getattr(from_obj, "__doc__", None)
-    to_obj.__module__ = getattr(from_obj, "__module__", to_obj.__module__)
-    return to_obj
+T = TypeVar("T", bound=type)
 
 
-def bind(real: T, doc_source: object) -> T:
-    """Alias `real` and attach docstring from `doc_source`."""
-    return attach_doc(doc_source, real)
+@overload
+def export(cls: T) -> T: ...
+@overload
+def export(*targets: str) -> Callable[[T], T]: ...
 
 
-def doc_forward(func: FunctionType):
-    """
-    Decorator that forwards a method call to its super() implementation,
-    but allows attaching a docstring and signature.
-    """
+def export(*args):  # type: ignore[inconsistentOverload]
+    """Decorator used to mark symbols for export by the generator."""
+    if len(args) == 1 and isinstance(args[0], type):
+        # Used as @export
+        return args[0]
 
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        return getattr(super(self.__class__, self), func.__name__)(*args, **kwargs)
+    def wrapper(cls):
+        return cls
 
     return wrapper

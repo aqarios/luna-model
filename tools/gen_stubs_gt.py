@@ -20,7 +20,7 @@ def extract_class_block(text: str, name: str) -> str:
                     break
     if not class_lines:
         raise ValueError(f"Class {name} not found")
-    return "\n".join(class_lines).rstrip()
+    return "\n".join(class_lines).rstrip() + "\n"
 
 
 def extract_imports(text: str, defined_symbols: set) -> list[str]:
@@ -47,7 +47,6 @@ def generate_stub_file(target_path: Path, symbols: list[dict]):
     symbol_blocks = []
     exported_names = set()
     defined_symbols = {sym["class_name"] for sym in symbols}
-    public_submodules = set()
 
     for sym in symbols:
         path = LIB_ROOT / f"{sym['module_path']}.pyi"
@@ -57,24 +56,14 @@ def generate_stub_file(target_path: Path, symbols: list[dict]):
         exported_names.add(sym["class_name"])
         import_set.update(extract_imports(text, defined_symbols))
 
-        if Path(LIB_ROOT / sym["module_path"].parts[0]).is_dir() and not sym[
-            "module_path"
-        ].parts[0].startswith("_"):
-            public_submodules.add(sym["module_path"].parts[0])
-
     if import_set:
         lines.extend(sorted(import_set))
         lines.append("")
 
-    for mod in sorted(public_submodules):
-        lines.append(f"from . import {mod}")
-    if public_submodules:
-        lines.append("")
-
     lines.extend(symbol_blocks)
-    lines.append("")
+    # lines.append("")
     lines.append("__all__ = [")
-    for name in sorted(exported_names.union(public_submodules)):
+    for name in sorted(exported_names):
         lines.append(f'    "{name}",')
     lines.append("]")
 

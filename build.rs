@@ -11,5 +11,14 @@ fn main() {
         panic!("Stub generation script failed");
     }
 
+    let status = Command::new("python")
+        .args(&["tools/gen_init.py"])
+        .status()
+        .expect("Failed to execute init generation script");
+
+    if !status.success() {
+        panic!("Init generation script failed");
+    }
+
     // Add other build logic here if necessary
 }

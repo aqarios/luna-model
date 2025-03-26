@@ -25,7 +25,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
 }
 
 pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
-    let m = PyModule::new(pm.py(), "aqmodels.translator")?;
+    let m = PyModule::new(pm.py(), "translator")?;
     m.add_class::<py_matrix_translator::PyMatrixTranslator>()?;
     pm.add_submodule(&m)?;
     pm.py()
@@ -35,8 +35,8 @@ pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-pub fn register_exceptions(pm: &Bound<'_, PyModule>) -> PyResult<()> {
-    let m = PyModule::new(pm.py(), "aqmodels.exceptions")?;
+pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
+    let m = PyModule::new(pm.py(), "errors")?;
     m.add(
         pyexc::DecodeError::NAME,
         m.py().get_type::<pyexc::DecodeError>(),
