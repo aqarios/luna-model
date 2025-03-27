@@ -5,7 +5,7 @@ use super::{
     py_expr::PyExpression,
 };
 use crate::{
-    core::{ConcreteModel, Model},
+    core::{ConcreteModel, Environment, Model},
     py_bindings::py_env::CURRENT_ENV,
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -32,10 +32,17 @@ impl PyModel {
         let env: PyEnvironment = match env {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|curr| {
-                curr.borrow().clone().ok_or_else(|| {
-                    NoActiveEnvironmentFoundError::new_err("no active environment found.")
-                })
-            })?,
+                curr.borrow()
+                    .clone()
+                    .unwrap_or_else(|| PyEnvironment::new(Environment::new()))
+            }),
+            // If it show throw an error. But probably shouldn't so we create a new
+            // env if not in the context.
+            // None => CURRENT_ENV.with(|curr| {
+            //     curr.borrow().clone().ok_or_else(|| {
+            //         NoActiveEnvironmentFoundError::new_err("no active environment found.")
+            //     })
+            // })?,
         };
         Ok(Self(Model::new_with_env(name, env.0)))
     }

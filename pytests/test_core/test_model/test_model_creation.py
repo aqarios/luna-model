@@ -2,7 +2,6 @@ import pytest
 
 from aqmodels import Model
 from aqmodels import Environment
-from aqmodels import NoActiveEnvironmentFoundError
 from aqmodels import MultipleActiveEnvironmentsError
 
 
@@ -15,14 +14,8 @@ def test_create_model_explicit():
 
 @pytest.mark.model
 def test_create_model_no_env():
-    with pytest.raises(NoActiveEnvironmentFoundError):
-        _ = Model()
-
-
-@pytest.mark.model
-def test_create_model_in_context():
-    with pytest.raises(NoActiveEnvironmentFoundError):
-        _ = Model()
+    model = Model()
+    assert isinstance(model, Model)
 
 
 @pytest.mark.model
