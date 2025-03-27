@@ -4,7 +4,11 @@ use std::{
 };
 
 use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
+use pyo3::{
+    exceptions::PyRuntimeError,
+    prelude::*,
+    types::{PyBytes, PyTuple},
+};
 
 use crate::{
     core::{
@@ -48,6 +52,7 @@ impl PyConstraint {
                 Rc::clone(&expr.0),
                 rhs,
                 comparator,
+                None,
             )))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
@@ -58,8 +63,9 @@ impl PyConstraint {
 #[pymethods]
 impl PyConstraint {
     #[new]
-    fn py_new(lhs: PyExpression, rhs: f64, comparator: Comparator) -> Self {
-        PyConstraint::new(Constraint::new(lhs.0, rhs, comparator))
+    #[pyo3(signature=(lhs, rhs, comparator, name=None))]
+    fn py_new(lhs: PyExpression, rhs: f64, comparator: Comparator, name: Option<String>) -> Self {
+        PyConstraint::new(Constraint::new(lhs.0, rhs, comparator, name))
     }
 
     fn __eq__(&self, other: Self) -> bool {
@@ -73,6 +79,11 @@ impl PyConstraint {
     fn __repr__(&self) -> String {
         format!("{:?}", self.borrow())
     }
+
+    #[getter]
+    fn name(&self) -> Option<String> {
+        self.borrow().name.clone()
+    }
 }
 
 #[pymethods]
@@ -82,12 +93,26 @@ impl PyConstraints {
         PyConstraints(ConcreteMutRcConstraints::create())
     }
 
-    fn __iadd__(&mut self, other: PyConstraint) {
-        self.add_constraint(other);
+    fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
+        if let Ok((constr, name)) = other.extract::<(PyConstraint, String)>(py) {
+            Ok(self.add_constraint(constr, Some(name)))
+        } else if let Ok(constr) = other.extract::<PyConstraint>(py) {
+            Ok(self.add_constraint(constr, None))
+        } else {
+            Err(PyRuntimeError::new_err("unsopported type for operation"))
+        }
     }
 
-    fn add_constraint(&mut self, other: PyConstraint) {
-        self.borrow_mut().add_assign(other.borrow().deref());
+    #[pyo3(signature=(constraint, name=None))]
+    fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) {
+        constraint.borrow_mut().set_name(name);
+        self.borrow_mut().add_assign(constraint.borrow().deref());
+    }
+
+    fn __getitem__(&self, n: usize) -> PyConstraint {
+        // todo: can we remove the clone here? acceptable for now. Make it more like
+        // a view.
+        PyConstraint::new(self.borrow().constraints[n].clone())
     }
 
     fn __eq__(&self, other: Self) -> bool {
