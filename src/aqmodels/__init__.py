@@ -9,9 +9,9 @@ from ._expression import Expression
 from ._environment import Environment
 from ._core import (
   Expression as __Expression,
-  Environment as __Environment,
   Vtype as __Vtype,
-  Variable as __Variable
+  Variable as __Variable,
+  Environment as __Environment
 )
 from . import (
   errors,
@@ -19,12 +19,12 @@ from . import (
 )
 
 Expression = __Expression  # type: ignore[misc,assignment]
-Environment = __Environment  # type: ignore[misc,assignment]
 Vtype = __Vtype  # type: ignore[misc,assignment]
 Variable = __Variable  # type: ignore[misc,assignment]
-MatrixTranslator = translator.MatrixTranslator
+Environment = __Environment  # type: ignore[misc,assignment]
 VariableOutOfRangeError = errors.VariableOutOfRangeError
 VariableExistsError = errors.VariableExistsError
+MatrixTranslator = translator.MatrixTranslator
 
 __all__ = [
     "Environment",

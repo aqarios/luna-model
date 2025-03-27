@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 from collections import defaultdict
-from gen_common import LIB_NAME, LIB_ROOT, PROJECT_ROOT, AUTOGEN_HEADER, collect_exports
+from gen_common import LIB_ROOT, PROJECT_ROOT, AUTOGEN_HEADER, collect_exports
 
 
 def extract_class_block(text: str, name: str) -> str:
@@ -20,7 +20,7 @@ def extract_class_block(text: str, name: str) -> str:
                     break
     if not class_lines:
         raise ValueError(f"Class {name} not found")
-    return "\n".join(class_lines).rstrip()
+    return "\n".join(class_lines).rstrip() + "\n"
 
 
 def extract_imports(text: str, defined_symbols: set) -> list[str]:
@@ -87,6 +87,7 @@ def main():
     exports = collect_exports(LIB_ROOT)
     top_level_exports = [e for e in exports if "__init__" in e["targets"]]
     generate_stub_file(LIB_ROOT / "__init__.pyi", top_level_exports)
+    generate_stub_file(LIB_ROOT / "_core.pyi", top_level_exports)
 
     sub_exports = defaultdict(list)
     for e in exports:

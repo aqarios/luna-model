@@ -1,8 +1,11 @@
 import re
 from pathlib import Path
 from collections import defaultdict
-from gen_common import LIB_NAME, LIB_ROOT, PROJECT_ROOT, AUTOGEN_HEADER, collect_exports
-from itertools import groupby
+from gen_common import LIB_ROOT, PROJECT_ROOT, AUTOGEN_HEADER, collect_exports
+
+_ANNOTATIONS = {
+    "_core": "# type: ignore[reportAttributeAccessIssue,attr-defined]",
+}
 
 
 def extract_existing_docstring(init_path: Path) -> str:
@@ -21,6 +24,8 @@ def format_imports(import_entries):
         else:
             mod, expr = imp.split(" import ", 1)
             grouped[mod.strip()].append(expr.strip())
+
+    print(grouped)
 
     formatted = []
     for mod in sorted(grouped, reverse=True):

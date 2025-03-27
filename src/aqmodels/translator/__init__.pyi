@@ -6,6 +6,7 @@ from . import translator
 class MatrixTranslator:
     def __init__(self) -> None: ...
 
+
 __all__ = [
     "MatrixTranslator",
     "translator",

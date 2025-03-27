@@ -5,10 +5,13 @@ from . import errors
 
 class VariableOutOfRangeError(Exception):
     def __str__(self) -> str: ...
+
 class VariableExistsError(Exception):
     def __str__(self) -> str: ...
+
 class VariablesFromDifferentEnvsError(Exception):
     def __str__(self) -> str: ...
+
 
 __all__ = [
     "VariableExistsError",

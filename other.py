@@ -1,7 +1,6 @@
 import aqmodels
 import aqmodels as aqm
 
-
 # with aqm.Environment():
 #     v = aqmodels.Variable("v")
 #
