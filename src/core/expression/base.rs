@@ -6,7 +6,7 @@ use std::str::FromStr;
 use crate::core::term::types::SizeType;
 use crate::core::{ConcreteBias, MutRcEnvironment, Vtype};
 
-use super::errors::VariableOutOfRangeError;
+use super::errors::VariableOutOfRangeErr;
 
 pub trait One {
     fn one() -> Self;
@@ -173,7 +173,7 @@ pub trait ExpressionBase<Index, Bias> {
     /// Return the offset.
     fn offset(&self) -> Bias;
     /// The linear bias of variable `v`.
-    fn linear(&self, v: Index) -> Result<Bias, VariableOutOfRangeError>;
+    fn linear(&self, v: Index) -> Result<Bias, VariableOutOfRangeErr>;
     /// Return the quadratic bias associated with `u` and `v`.
     ///
     /// If `u` and `v` do not have a quadratic bias, return 0;
@@ -181,11 +181,11 @@ pub trait ExpressionBase<Index, Bias> {
     /// Note that this function does not return a reference because
     /// each quadratic bias is stored twice.
     /// // todo: we might be able to change this, as we store it just once.
-    fn quadratic(&self, u: Index, v: Index) -> Result<Bias, VariableOutOfRangeError>;
+    fn quadratic(&self, u: Index, v: Index) -> Result<Bias, VariableOutOfRangeErr>;
     /// Return the higher order bias associated with the indices
     ///
     /// If indices do not have a quadratic bias, return 0;
-    fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeError>;
+    fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeErr>;
     /// Test whether the model has no quadratic biases.
     fn is_linear(&self) -> bool;
     // - // - /// Return the number of interactions in the quadratic model.

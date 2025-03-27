@@ -1,6 +1,6 @@
 import pytest
 
-from aq_models import Expression, Vtype
+from aqmodels import Expression, Vtype
 
 from .common import *  # noqa: F403
 from ...utils import (

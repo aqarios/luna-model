@@ -22,7 +22,7 @@ use crate::{
 
 use super::{py_env::PyEnvironment, py_expr::PyExpression};
 
-#[pyclass(unsendable, name = "Constraints")]
+#[pyclass(unsendable, name = "Constraints", module = "aqmodels")]
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyConstraints(pub ConcreteMutRcConstraints);
 
@@ -32,7 +32,7 @@ impl PyConstraints {
     }
 }
 
-#[pyclass(unsendable, name = "Constraint")]
+#[pyclass(unsendable, name = "Constraint", module = "aqmodels")]
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyConstraint(pub ConcreteMutRcConstraint);
 

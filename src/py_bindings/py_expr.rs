@@ -1,7 +1,7 @@
 use super::{
     py_constr::PyConstraint,
     py_env::{PyEnvironment, CURRENT_ENV},
-    py_exceptions::NoActiveEnvironmentFoundException,
+    py_exceptions::NoActiveEnvironmentFoundError,
     py_var::PyVariable,
 };
 use crate::core::{
@@ -26,7 +26,7 @@ use pyo3::{
 };
 use std::{ops::Deref, rc::Rc};
 
-#[pyclass(unsendable, name = "Expression")]
+#[pyclass(unsendable, name = "Expression", module = "aqmodels")]
 #[derive(Deref, DerefMut, Clone)]
 pub struct PyExpression(pub ConcreteMutRcExpression);
 
@@ -45,7 +45,7 @@ impl PyExpression {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|current| {
                 current.borrow().clone().ok_or_else(|| {
-                    NoActiveEnvironmentFoundException::new_err("no active environment found.")
+                    NoActiveEnvironmentFoundError::new_err("no active environment found.")
                 })
             })?,
         };

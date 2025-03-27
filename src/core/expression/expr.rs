@@ -3,7 +3,7 @@ use super::base::{
     ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulComponents,
     ExpressionBaseMulDirect, ExpressionBaseSet, ExpressionBaseTypes, IndexConstraints,
 };
-use super::VariableOutOfRangeError;
+use super::VariableOutOfRangeErr;
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::utils::ModelWriter;
@@ -246,12 +246,12 @@ where
         self.offset
     }
 
-    fn linear(&self, v: Index) -> Result<Bias, VariableOutOfRangeError> {
+    fn linear(&self, v: Index) -> Result<Bias, VariableOutOfRangeErr> {
         let v_idx = self.check_and_get(v)?;
         Ok(self.linear[v_idx])
     }
 
-    fn quadratic(&self, u: Index, v: Index) -> Result<Bias, VariableOutOfRangeError> {
+    fn quadratic(&self, u: Index, v: Index) -> Result<Bias, VariableOutOfRangeErr> {
         self.check_and_get(u)?;
         self.check_and_get(v)?;
         Ok(self
@@ -260,7 +260,7 @@ where
             .map_or_else(Bias::default, |q| q[(u, v)]))
     }
 
-    fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeError> {
+    fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeErr> {
         self.check_multi(indices)?;
         let res = match self.has_higher_order() {
             true => self.higher_order.as_ref().unwrap()[indices],
@@ -671,18 +671,18 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn check_and_get(&self, v: Index) -> Result<usize, VariableOutOfRangeError> {
+    fn check_and_get(&self, v: Index) -> Result<usize, VariableOutOfRangeErr> {
         match v.into() <= self.active.len() {
             true => Ok(v.into()),
-            false => Err(VariableOutOfRangeError(v.into())),
+            false => Err(VariableOutOfRangeErr(v.into())),
         }
     }
 
-    fn check_multi(&self, vars: &Vec<Index>) -> Result<(), VariableOutOfRangeError> {
+    fn check_multi(&self, vars: &Vec<Index>) -> Result<(), VariableOutOfRangeErr> {
         for v in vars {
             let v_idx: usize = (*v).into();
             if !self.active[v_idx] {
-                return Err(VariableOutOfRangeError(v_idx));
+                return Err(VariableOutOfRangeErr(v_idx));
             }
         }
         Ok(())

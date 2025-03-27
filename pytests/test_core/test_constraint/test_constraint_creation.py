@@ -1,10 +1,10 @@
 import pytest
 
-from aq_models import Variable
-from aq_models import Environment
-from aq_models import Expression
-from aq_models import Constraint
-from aq_models import Constraints
+from aqmodels import Variable
+from aqmodels import Environment
+from aqmodels import Expression
+from aqmodels import Constraint
+from aqmodels import Constraints
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::utils::ModelWriter;
 use crate::core::MutRcExpression;
-use crate::errors::IndexOutOfBoundsError;
+use crate::errors::IndexOutOfBoundsErr;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, AddAssign};
 use std::slice::Iter;
@@ -11,7 +11,10 @@ use strum_macros::Display;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
-#[cfg_attr(feature = "py", pyclass(eq, eq_int))] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
+#[cfg_attr(
+    feature = "py",
+    pyclass(eq, eq_int, name = "Comparator", module = "aqmodels")
+)] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {
     #[strum(to_string = "==")]
@@ -115,9 +118,9 @@ where
     pub fn get_constraint(
         &self,
         index: usize,
-    ) -> Result<&Constraint<Index, Bias>, IndexOutOfBoundsError> {
+    ) -> Result<&Constraint<Index, Bias>, IndexOutOfBoundsErr> {
         if index >= self.len() {
-            return Err(IndexOutOfBoundsError::new(index, self.len()));
+            return Err(IndexOutOfBoundsErr::new(index, self.len()));
         }
         Ok(&self.constraints[index])
     }

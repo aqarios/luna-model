@@ -1,7 +1,7 @@
 from typing import IO
 from tqdm import tqdm  # type: ignore
 
-from aq_models import Model, Vtype, MatrixTranslator
+from aqmodels import Model, Vtype, MatrixTranslator
 import dimod
 
 from benchmarks.serialization.utils import (

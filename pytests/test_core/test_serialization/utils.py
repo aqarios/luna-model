@@ -3,7 +3,7 @@ from ..data import (
     serialized_objects,
     serialized_objects_with_env,
 )
-from aq_models import Expression, Constraints, Model, Environment
+from aqmodels import Expression, Constraints, Model, Environment
 
 
 def create_serializable_objects():

@@ -1,42 +1,41 @@
 version = 1
+revision = 1
 requires-python = ">=3.11"
 
 [[package]]
-name = "aq-models"
+name = "aqmodels"
 source = { editable = "." }
 dependencies = [
-    { name = "dimod" },
-    { name = "memory-profiler" },
     { name = "numpy" },
-    { name = "scipy" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "colorama" },
+    { name = "dimod" },
+    { name = "memory-profiler" },
     { name = "memray" },
     { name = "pytest" },
     { name = "rich" },
     { name = "ruff" },
+    { name = "scipy" },
     { name = "tabulate" },
     { name = "tqdm" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "dimod", specifier = ">=0.12.18" },
-    { name = "memory-profiler", specifier = ">=0.61.0" },
-    { name = "numpy", specifier = ">=2.2.2" },
-    { name = "scipy", specifier = ">=1.15.1" },
-]
+requires-dist = [{ name = "numpy", specifier = ">=2.2.2" }]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "colorama", specifier = ">=0.4.6" },
+    { name = "dimod", specifier = ">=0.12.18" },
+    { name = "memory-profiler", specifier = ">=0.61.0" },
     { name = "memray", specifier = ">=1.15.0" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "rich", specifier = ">=13.9.4" },
     { name = "ruff", specifier = ">=0.9.9" },
+    { name = "scipy", specifier = ">=1.15.2" },
     { name = "tabulate", specifier = ">=0.9.0" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]

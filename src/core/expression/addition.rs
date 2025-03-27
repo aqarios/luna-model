@@ -9,7 +9,7 @@ use crate::core::operations::{
     AddAssignToExpression, AddToExpression, SubAssignToExpression, SubToExpression,
 };
 use crate::core::VarRef;
-use crate::errors::VariablesFromDifferentEnvsError;
+use crate::errors::VariablesFromDifferentEnvsErr;
 
 // ADDITION
 
@@ -31,10 +31,10 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
     fn add(self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut out = Expression::new_from_other(&self);
             out.add_linear(rhs.id, Bias::one());
@@ -49,10 +49,10 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
     fn add(self, rhs: &Expression<Index, Bias>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut out = Expression::new_from_other(&self);
             // We know that both expressions have the same environment
@@ -96,11 +96,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<(), VariablesFromDifferentEnvsError>;
+    type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
     fn add_assign(&mut self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(self.add_linear(rhs.id, Bias::one()))
         }
@@ -113,10 +113,10 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<(), VariablesFromDifferentEnvsError>;
+    type Output = Result<(), VariablesFromDifferentEnvsErr>;
     fn add_assign(&mut self, rhs: &Expression<Index, Bias>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             let result = self.add(rhs);
             match result {
@@ -145,10 +145,10 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
     fn sub(self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut out = Expression::new_from_other(&self);
             out.add_linear(rhs.id, -Bias::one());
@@ -163,10 +163,10 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
     fn sub(self, rhs: &Expression<Index, Bias>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut out = Expression::new_from_other(&self);
             // We know that both expressions have the same environment
@@ -211,11 +211,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<(), VariablesFromDifferentEnvsError>;
+    type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
     fn sub_assign(&mut self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(self.add_linear(rhs.id, -Bias::one()))
         }
@@ -228,11 +228,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<(), VariablesFromDifferentEnvsError>;
+    type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
     fn sub_assign(&mut self, rhs: &Expression<Index, Bias>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             let result = self.add(&-rhs);
             match result {

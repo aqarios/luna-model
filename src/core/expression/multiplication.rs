@@ -8,7 +8,7 @@ use super::{
 use crate::core::operations::{MulAssignToExpression, MulToExpression};
 use crate::core::ExpressionBase;
 use crate::core::VarRef;
-use crate::errors::VariablesFromDifferentEnvsError;
+use crate::errors::VariablesFromDifferentEnvsErr;
 
 // MULTIPLICATION
 
@@ -39,11 +39,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
 
     fn mul(self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut out =
                 Expression::new(self.env.clone(), self.active.clone(), self.num_variables());
@@ -76,11 +76,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsError>;
+    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
 
     fn mul(self, rhs: &Expression<Index, Bias>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut result = Expression::empty(self.env.clone());
             Expression::multiply(&self, &rhs, &mut result);
@@ -115,11 +115,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<(), VariablesFromDifferentEnvsError>;
+    type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
     fn mul_assign(&mut self, rhs: &VarRef<Index>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             // We use the `mul` implementation as we need the temporary expression.
             // We cannot simply just mutiply to itsel as some unforseeable changes
@@ -140,11 +140,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Result<(), VariablesFromDifferentEnvsError>;
+    type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
     fn mul_assign(&mut self, rhs: &Expression<Index, Bias>) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
-            Err(VariablesFromDifferentEnvsError)
+            Err(VariablesFromDifferentEnvsErr)
         } else {
             let result = self.mul(rhs);
             match result {

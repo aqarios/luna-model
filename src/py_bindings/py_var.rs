@@ -1,5 +1,5 @@
 use super::py_env::{PyEnvironment, CURRENT_ENV};
-use super::py_exceptions::NoActiveEnvironmentFoundException;
+use super::py_exceptions::NoActiveEnvironmentFoundError;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::operations::{
     AddToExpression, MulToExpression, NegToExpression, RSubToExpression, SubToExpression,
@@ -9,7 +9,7 @@ use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 
-#[pyclass(unsendable, subclass, name = "Variable")]
+#[pyclass(unsendable, subclass, name = "Variable", module = "aqmodels")]
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyVariable(pub ConcreteRcVarRef);
 
@@ -33,7 +33,7 @@ impl PyVariable {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|current| {
                 current.borrow().clone().ok_or_else(|| {
-                    NoActiveEnvironmentFoundException::new_err("no active environment found.")
+                    NoActiveEnvironmentFoundError::new_err("no active environment found.")
                 })
             })?,
         };

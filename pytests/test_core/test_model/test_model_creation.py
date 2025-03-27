@@ -1,9 +1,9 @@
 import pytest
 
-from aq_models import Model
-from aq_models import Environment
-from aq_models import NoActiveEnvironmentFoundException
-from aq_models import MultipleActiveEnvironmentsException
+from aqmodels import Model
+from aqmodels import Environment
+from aqmodels import NoActiveEnvironmentFoundError
+from aqmodels import MultipleActiveEnvironmentsError
 
 
 @pytest.mark.model
@@ -15,19 +15,19 @@ def test_create_model_explicit():
 
 @pytest.mark.model
 def test_create_model_no_env():
-    with pytest.raises(NoActiveEnvironmentFoundException):
+    with pytest.raises(NoActiveEnvironmentFoundError):
         _ = Model()
 
 
 @pytest.mark.model
 def test_create_model_in_context():
-    with pytest.raises(NoActiveEnvironmentFoundException):
+    with pytest.raises(NoActiveEnvironmentFoundError):
         _ = Model()
 
 
 @pytest.mark.model
 def test_create_model_in_double_context():
-    with pytest.raises(MultipleActiveEnvironmentsException):
+    with pytest.raises(MultipleActiveEnvironmentsError):
         with Environment():
             with Environment():
                 _ = Model()

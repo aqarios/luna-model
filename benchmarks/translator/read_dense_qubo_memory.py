@@ -11,7 +11,7 @@ from rich import print as rprint
 from rich.table import Column
 from rich.table import Table
 
-from aq_models import MatrixTranslator, Vtype
+from aqmodels import MatrixTranslator, Vtype
 import dimod
 
 from benchmarks.setting import DENSITIES, SIZES
@@ -164,7 +164,7 @@ def get_peek_memory(
 def format_row_entries(size: int, density: float) -> tuple[str, str]:
     return (
         f"{size:4d}",
-        f"{int(density*100):3d}%",
+        f"{int(density * 100):3d}%",
     )
 
 

@@ -1,22 +1,15 @@
 [project]
-name = "aq-models"
-dynamic = ["version"]
-description = "Rust based implementation of aq-models"
-readme = "README.md"
+name = "aqmodels"
+dynamic = ["version", "description", "readme"]
 authors = [
     { name = "Jonas Blenninger", email = "jonas.blenninger@aqarios.com" },
-    { name = "David Bucher", email = "david.bucher@aqarios.com" }
+    { name = "David Bucher", email = "david.bucher@aqarios.com" },
+    { name = "Benjamin Suehling", email = "benjamin.suehling@aqarios.com" }
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "dimod>=0.12.18",
-    "memory-profiler>=0.61.0",
     "numpy>=2.2.2",
-    "scipy>=1.15.1",
 ]
-
-[project.scripts]
-# aq-models = "aq_models:main"
 
 [tool.uv]
 package = true
@@ -24,6 +17,8 @@ cache-keys = [
     { file = "pyproject.toml" },
     { file = "Cargo.toml" },
     { file = "**/*.rs" },
+    { file = "src/aqmodels/**/*.pyi" },
+    { file = "src/aqmodels/**/*.py" },
 ]
 
 [tool.pytest.ini_options]
@@ -33,17 +28,23 @@ markers = [
     "model",
     "constraint",
     "str_repr",
-    "translator"
+    "translator",
+    "imports"
 ]
 
 [tool.maturin]
-module-name = "aq_models._core"
-python-packages = ["aq_models"]
+module-name = "aqmodels._core"
+python-packages = ["aqmodels"]
 python-source = "src"
 features = ["py"]
+include = [
+  "src/aqmodels/**/*.pyi", 
+  "src/aqmodels/**/*.py", 
+  "src/aqmodels/py.typed",
+]
 
 [build-system]
-requires = ["maturin>=1.0,<2.0"]
+requires = [ "maturin>=1.0,<2.0" ]
 build-backend = "maturin"
 
 [dependency-groups]
@@ -55,4 +56,7 @@ dev = [
     "rich>=13.9.4",
     "tabulate>=0.9.0",
     "tqdm>=4.67.1",
+    "scipy>=1.15.2",
+    "memory-profiler>=0.61.0",
+    "dimod>=0.12.18",
 ]
