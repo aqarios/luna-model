@@ -144,5 +144,144 @@ class Variable:
         Initialize a new Variable.
 
         See class-level docstring for full usage.
+
+        Raises
+        ------
+        NoActiveEnvironmentFoundError
+            If no active environment is found and none is explicitly provided.
+        VariableExistsError
+            If a variable with the same name already exists in the environment.
         """
         return name, env, vtype, bounds
+
+    @dispatched
+    def __add__(self, other):
+        """
+        Add this variable to another value.
+
+        Parameters
+        ----------
+        other : Variable, Expression, int, or float
+
+        Returns
+        -------
+        Expression
+            The resulting symbolic expression.
+
+        Raises
+        ------
+        VariablesFromDifferentEnvsError
+            If the operands belong to different environments.
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __radd__(self, other):
+        """
+        Right-hand addition for scalars.
+
+        Parameters
+        ----------
+        other : int or float
+
+        Returns
+        -------
+        Expression
+            The resulting symbolic expression.
+
+        Raises
+        ------
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __sub__(self, other):
+        """
+        Subtract a value from this variable.
+
+        Parameters
+        ----------
+        other : Variable, int, or float
+
+        Returns
+        -------
+        Expression
+            The resulting symbolic expression.
+
+        Raises
+        ------
+        VariablesFromDifferentEnvsError
+            If the operands belong to different environments.
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __rsub__(self, other):
+        """
+        Subtract this variable from a scalar (right-hand subtraction).
+
+        Parameters
+        ----------
+        other : int or float
+
+        Returns
+        -------
+        Expression
+            The resulting symbolic expression.
+
+        Raises
+        ------
+        RuntimeError
+            Always raised (unsupported operation).
+        """
+        return other
+
+    @dispatched
+    def __mul__(self, other):
+        """
+        Multiply this variable by another value.
+
+        Parameters
+        ----------
+        other : Variable, Expression, int, or float
+
+        Returns
+        -------
+        Expression
+            The resulting symbolic expression.
+
+        Raises
+        ------
+        VariablesFromDifferentEnvsError
+            If the operands belong to different environments.
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __rmul__(self, other):
+        """
+        Right-hand multiplication for scalars.
+
+        Parameters
+        ----------
+        other : int or float
+
+        Returns
+        -------
+        Expression
+            The resulting symbolic expression.
+
+        Raises
+        ------
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other

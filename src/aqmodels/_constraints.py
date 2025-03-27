@@ -73,9 +73,21 @@ class Constraint:
     @dispatched
     def __init__(self, lhs, rhs, comparator):
         """
-        Construct a symbolic constraint.
+        Construct a new symbolic constraint.
 
-        See class docstring for full usage.
+        Parameters
+        ----------
+        lhs : Expression
+            Left-hand side symbolic expression.
+        rhs : float
+            Scalar right-hand side constant.
+        comparator : Comparator
+            Relational operator (e.g., Comparator.Eq, Comparator.Leq).
+
+        Raises
+        ------
+        RuntimeError
+            If lhs is not an Expression or rhs is not a scalar float.
         """
         return lhs, rhs, comparator
 
@@ -142,6 +154,11 @@ class Constraints:
         -------
         bytes
             Encoded representation of the constraints.
+
+        Raises
+        ------
+        IOError
+            If serialization fails.
         """
         return compress, level
 
@@ -169,6 +186,11 @@ class Constraints:
         -------
         Expression
             Expression reconstructed from the constraint context.
+
+        Raises
+        ------
+        DecodeError
+            If decoding fails due to corruption or incompatibility.
         """
         return data
 
@@ -181,3 +203,25 @@ class Constraints:
         See `decode()` for usage.
         """
         return data
+
+    @dispatched
+    def __iadd__(self, constraint):
+        """
+        In-place constraint addition using `+=`.
+
+        Parameters
+        ----------
+        constraint : Constraint
+            The constraint to add.
+
+        Returns
+        -------
+        Constraints
+            The updated collection.
+
+        Raises
+        ------
+        RuntimeError
+            If the value is not a `Constraint` or valid symbolic comparison.
+        """
+        return constraint

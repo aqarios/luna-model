@@ -99,12 +99,17 @@ class Expression:
     @dispatched
     def __init__(self, env):
         """
-        Create a new empty expression scoped to an environment.
+         Create a new empty expression scoped to an environment.
 
-        Parameters
-        ----------
-        env : Environment
-            The environment to which this expression is bound.
+         Parameters
+         ----------
+         env : Environment
+             The environment to which this expression is bound.
+
+        Raises
+         ------
+         NoActiveEnvironmentFoundError
+             If no environment is provided and none is active in the context.
         """
         return env
 
@@ -134,25 +139,13 @@ class Expression:
         -------
         float
             The coefficient, or 0.0 if the variable is not present.
+
+        Raises
+        ------
+        VariableOutOfRangeError
+            If the variable index is not valid in this expression's environment.
         """
         return variable
-
-    @dispatched
-    def get_higher_order(self, variables):
-        """
-        Get the coefficient for a higher-order term (degree ≥ 3).
-
-        Parameters
-        ----------
-        variables : tuple of Variable
-            A tuple of variables specifying the term.
-
-        Returns
-        -------
-        float
-            The coefficient, or 0.0 if not present.
-        """
-        return variables
 
     @dispatched
     def get_quadratic(self, u, v):
@@ -168,8 +161,35 @@ class Expression:
         -------
         float
             The coefficient, or 0.0 if not present.
+
+        Raises
+        ------
+        VariableOutOfRangeError
+            If either variable is out of bounds for the expression's environment.
         """
         return u, v
+
+    @dispatched
+    def get_higher_order(self, variables):
+        """
+        Get the coefficient for a higher-order term (degree ≥ 3).
+
+        Parameters
+        ----------
+        variables : tuple of Variable
+            A tuple of variables specifying the term.
+
+        Returns
+        -------
+        float
+            The coefficient, or 0.0 if not present.
+
+        Raises
+        ------
+        VariableOutOfRangeError
+            If any variable is out of bounds for the environment.
+        """
+        return variables
 
     @dispatched
     def num_variables(self):
@@ -199,6 +219,11 @@ class Expression:
         -------
         bytes
             Encoded representation of the expression.
+
+        Raises
+        ------
+        IOError
+            If serialization fails.
         """
         return compress, level
 
@@ -226,6 +251,11 @@ class Expression:
         -------
         Expression
             Deserialized expression object.
+
+        Raises
+        ------
+        DecodeError
+            If decoding fails due to corruption or incompatibility.
         """
         return data
 
@@ -238,3 +268,233 @@ class Expression:
         See `decode()` for full documentation.
         """
         return data
+
+    @dispatched
+    def __add__(self, other):
+        """
+        Add another expression, variable, or scalar.
+
+        Parameters
+        ----------
+        other : Expression, Variable, int, or float
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        VariablesFromDifferentEnvsError
+            If operands are from different environments.
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __radd__(self, other):
+        """
+        Add this expression to a scalar or variable.
+
+        Parameters
+        ----------
+        other : int, float, or Variable
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __sub__(self, other):
+        """
+        Subtract another expression, variable, or scalar.
+
+        Parameters
+        ----------
+        other : Expression, Variable, int, or float
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        VariablesFromDifferentEnvsError
+            If operands are from different environments.
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __rsub__(self, other):
+        """
+        Subtract this expression from a scalar or variable.
+
+        Parameters
+        ----------
+        other : int, float, or Variable
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __mul__(self, other):
+        """
+        Multiply this expression by another value.
+
+        Parameters
+        ----------
+        other : Expression, Variable, int, or float
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        VariablesFromDifferentEnvsError
+            If operands are from different environments.
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __rmul__(self, other):
+        """
+        Right-hand multiplication.
+
+        Parameters
+        ----------
+        other : int or float
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __iadd__(self, other):
+        """
+        In-place addition.
+
+        Parameters
+        ----------
+        other : Expression, Variable, int, or float
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        VariablesFromDifferentEnvsError
+            If operands are from different environments.
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __imul__(self, other):
+        """
+        In-place multiplication.
+
+        Parameters
+        ----------
+        other : Expression, Variable, int, or float
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        VariablesFromDifferentEnvsError
+            If operands are from different environments.
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __eq__(self, other):
+        """
+        Create a constraint: expression == scalar.
+
+        Parameters
+        ----------
+        other : float or int
+
+        Returns
+        -------
+        Constraint
+
+        Raises
+        ------
+        RuntimeError
+            If the right-hand side is not a scalar.
+        """
+        return other
+
+    @dispatched
+    def __le__(self, other):
+        """
+        Create a constraint: expression <= scalar.
+
+        Parameters
+        ----------
+        other : float or int
+
+        Returns
+        -------
+        Constraint
+
+        Raises
+        ------
+        RuntimeError
+            If the right-hand side is not a scalar.
+        """
+        return other
+
+    @dispatched
+    def __ge__(self, other):
+        """
+        Create a constraint: expression >= scalar.
+
+        Parameters
+        ----------
+        other : float or int
+
+        Returns
+        -------
+        Constraint
+
+        Raises
+        ------
+        RuntimeError
+            If the right-hand side is not a scalar.
+        """
+        return other

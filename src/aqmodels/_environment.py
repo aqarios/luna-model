@@ -12,6 +12,9 @@ class Environment:
     The environment does **not** store constraints or expressions — it only facilitates
     their creation by acting as a context manager and anchor for `Variable` instances.
 
+    Environments are best used with `with` blocks, but can also be passed manually
+    to models or variables.
+
     Examples
     --------
     Create variables inside an environment:
@@ -61,6 +64,11 @@ class Environment:
         -------
         bytes
             Encoded binary representation of the environment.
+
+        Raises
+        ------
+        IOError
+            If serialization fails.
         """
         return compress, level
 
@@ -88,6 +96,11 @@ class Environment:
         -------
         Expression
             The reconstructed symbolic expression.
+
+        Raises
+        ------
+        DecodeError
+            If decoding fails due to corruption or incompatibility.
         """
         return data
 
@@ -100,3 +113,29 @@ class Environment:
         See `decode()` for full usage details.
         """
         return data
+
+    @dispatched
+    def __enter__(self):
+        """
+        Activate this environment for variable creation.
+
+        Returns
+        -------
+        Environment
+            The current environment (self).
+
+        Raises
+        ------
+        MultipleActiveEnvironmentsError
+            If another environment is already active.
+        """
+        return self
+
+    @dispatched
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Deactivate this environment.
+
+        Called automatically at the end of a `with` block.
+        """
+        return exc_type, exc_value, traceback

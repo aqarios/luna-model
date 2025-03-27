@@ -139,6 +139,11 @@ class Model:
         -------
         bytes
             Encoded model representation.
+
+        Raises
+        ------
+        IOError
+            If serialization fails.
         """
         return compress, level
 
@@ -162,6 +167,11 @@ class Model:
         -------
         Model
             The reconstructed model.
+
+        Raises
+        ------
+        DecodeError
+            If decoding fails due to corruption or incompatibility.
         """
         return data
 

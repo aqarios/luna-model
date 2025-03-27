@@ -1,9 +1,6 @@
 use std::rc::Rc;
 
-use super::{
-    py_constr::PyConstraints, py_env::PyEnvironment, py_exceptions::NoActiveEnvironmentFoundError,
-    py_expr::PyExpression,
-};
+use super::{py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression};
 use crate::{
     core::{ConcreteModel, Environment, Model},
     py_bindings::py_env::CURRENT_ENV,
@@ -28,7 +25,7 @@ impl Into<ConcreteModel> for PyModel {
 impl PyModel {
     #[new]
     #[pyo3(signature=(env=None, name=None))]
-    fn py_new(env: Option<PyEnvironment>, name: Option<String>) -> PyResult<Self> {
+    fn py_new(env: Option<PyEnvironment>, name: Option<String>) -> Self {
         let env: PyEnvironment = match env {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|curr| {
@@ -44,7 +41,7 @@ impl PyModel {
             //     })
             // })?,
         };
-        Ok(Self(Model::new_with_env(name, env.0)))
+        Self(Model::new_with_env(name, env.0))
     }
 
     #[getter]
