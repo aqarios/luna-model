@@ -18,7 +18,6 @@ from ._core import MultipleActiveEnvironmentsException
 from ._core import DecodeException
 from ._core import ModelNotQuadraticException
 from ._core import ModelNotUnconstrainedException
-from ._core import IndexOutOfBoundsException
 
 
 __all__ = [
@@ -41,5 +40,4 @@ __all__ = [
     "DecodeException",
     "ModelNotQuadraticException",
     "ModelNotUnconstrainedException",
-    "IndexOutOfBoundsException",
 ]

@@ -5,7 +5,6 @@ from aq_models import Environment
 from aq_models import Expression
 from aq_models import Constraint
 from aq_models import Constraints
-from aq_models import IndexOutOfBoundsException
 
 
 @pytest.fixture
@@ -41,5 +40,5 @@ def test_constraint_creation_ge(expression: Expression):
 def test_constraints_out_of_bounds_access(expression: Expression):
     constr = Constraints()
     constr += expression <= 2
-    with pytest.raises(IndexOutOfBoundsException):
+    with pytest.raises(IndexError):
         _ = constr[3]

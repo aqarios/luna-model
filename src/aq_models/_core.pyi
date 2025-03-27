@@ -369,6 +369,3 @@ class ModelNotQuadraticException(Exception):
 
 class ModelNotUnconstrainedException(Exception):
     def __str__(self) -> str: ...
-
-class IndexOutOfBoundsException(Exception):
-    def __str__(self) -> str: ...
