@@ -4,15 +4,11 @@ use std::{
 };
 
 use derive_more::{Deref, DerefMut};
-use pyo3::{
-    exceptions::PyRuntimeError,
-    prelude::*,
-    types::{PyBytes, PyTuple},
-};
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 
 use crate::{
     core::{
-        constraints, Comparator, ConcreteConstraint, ConcreteConstraints, ConcreteMutRcConstraint,
+        Comparator, ConcreteConstraint, ConcreteConstraints, ConcreteMutRcConstraint,
         ConcreteMutRcConstraints, Constraint, Create,
     },
     serialization::{
