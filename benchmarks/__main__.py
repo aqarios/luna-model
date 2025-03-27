@@ -92,13 +92,6 @@ def main():
     with detailed_file.open("a") as f:
         for task in TASKS:
             code_block(task, f)
-        # code_block(bench_read_dense_qubo, f)
-        # code_block(bench_serialize_cqm, f)
-        # code_block(bench_deserialize_bqm, f)
-        # code_block(bench_serialize_cqm_size, f)
-        # code_block(bench_serialize_aqm_xl, f)
-        # code_block(bench_read_dense_qubo_memory, f)
-
 
 if __name__ == "__main__":
     sys.exit(main())
