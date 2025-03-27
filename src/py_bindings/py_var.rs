@@ -2,7 +2,7 @@ use super::py_env::{PyEnvironment, CURRENT_ENV};
 use super::py_exceptions::NoActiveEnvironmentFoundError;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::operations::{
-    AddToExpression, MulToExpression, RSubToExpression, SubToExpression,
+    AddToExpression, MulToExpression, NegToExpression, RSubToExpression, SubToExpression,
 };
 use crate::core::{environment, ConcreteExpression, ConcreteRcVarRef, ConcreteVarRef, Vtype};
 use derive_more::{Deref, DerefMut};
@@ -125,6 +125,10 @@ impl PyVariable {
 
     fn __repr__(&self) -> String {
         format!("{:?}", self.0)
+    }
+
+    fn __neg__(&self) -> PyExpression {
+        PyExpression::new(self.0.neg())
     }
 }
 

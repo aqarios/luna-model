@@ -113,3 +113,24 @@ impl From<ModelNotUnconstrainedErr> for MatrixTranslatorErr {
         Self::Constrained(value)
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct IndexOutOfBoundsErr {
+    idx: usize,
+    len: usize,
+}
+impl IndexOutOfBoundsErr {
+    pub fn new(idx: usize, len: usize) -> Self {
+        Self { idx, len }
+    }
+}
+impl Error for IndexOutOfBoundsErr {}
+impl Display for IndexOutOfBoundsErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(
+            f,
+            "index '{}' out of bounds for constraints of len {}",
+            self.idx, self.len
+        )
+    }
+}

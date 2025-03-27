@@ -2,7 +2,7 @@ use crate::core::expression::{BiasConstraints, IndexConstraints};
 use hashbrown::{hash_map::Iter, HashMap};
 use std::{
     marker::PhantomData,
-    ops::{Index, IndexMut, MulAssign},
+    ops::{Index, IndexMut, MulAssign, Neg},
 };
 
 static DELIMITER: &str = "-";
@@ -22,6 +22,14 @@ where
     pub fn default() -> Self {
         Self {
             biases: HashMap::default(),
+            phantom_data: PhantomData,
+            default_bias: Bias::default(),
+        }
+    }
+
+    pub fn new(biases: HashMap<String, Bias>) -> Self {
+        Self {
+            biases,
             phantom_data: PhantomData,
             default_bias: Bias::default(),
         }
@@ -160,5 +168,44 @@ where
         }
 
         true
+    }
+}
+
+impl<Index, Bias> HigherOrder<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn negate(&self) -> Self {
+        HigherOrder::new(
+            self.biases
+                .iter()
+                .map(|(key, value)| (key.clone(), -*value))
+                .collect(),
+        )
+    }
+}
+
+impl<Index, Bias> Neg for HigherOrder<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = HigherOrder<Index, Bias>;
+
+    fn neg(self) -> Self::Output {
+        self.negate()
+    }
+}
+
+impl<Index, Bias> Neg for &HigherOrder<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = HigherOrder<Index, Bias>;
+
+    fn neg(self) -> Self::Output {
+        self.negate()
     }
 }
