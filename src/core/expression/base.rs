@@ -407,3 +407,30 @@ where
     /// This function edits self, based on the information from higher_order and the rest.
     fn mul_with_higher_order(&mut self, higher_order: &Self::HigherOrderType, v: Index, bias: Bias);
 }
+
+pub trait ExpressionEvaluation<Idx, Bias>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn evaluate_sample<'a, Elem: 'a, Sample: std::ops::Index<Idx, Output = Elem>>(
+        &self,
+        sample: &'a Sample,
+    ) -> Bias
+    where
+        &'a Elem: Mul<Bias, Output = Bias> + Mul<&'a Elem, Output = Elem>,
+        Elem: Mul<Bias, Output = Bias>;
+
+    fn evaluate_sampleset<
+        'a,
+        Elem: 'a,
+        Sample: std::ops::Index<Idx, Output = Elem> + 'a,
+        SampleSet: Iterator<Item = &'a Sample> + Copy,
+    >(
+        &self,
+        sampleset: &'a SampleSet,
+    ) -> Vec<Bias>
+    where
+        &'a Elem: Mul<Bias, Output = Bias> + Mul<&'a Elem, Output = Elem>,
+        Elem: Mul<Bias, Output = Bias>;
+}

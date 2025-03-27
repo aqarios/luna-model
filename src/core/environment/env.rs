@@ -90,7 +90,9 @@ pub fn add_variable<Index: IndexConstraints>(
 ) -> Result<VarRef<Index>, VariableCreationError> {
     let mut mutable_env = env.borrow_mut();
     if mutable_env.variables_lookup.contains_key(name) == true {
-        return Err(VariableCreationError::new(VariableExistsError.to_string()));
+        return Err(VariableCreationError::new(
+            VariableExistsError::new(name.clone()).to_string(),
+        ));
     }
 
     let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id)?;

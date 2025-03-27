@@ -6,6 +6,7 @@ use aqmodels::core::{
     operations::{AddToExpression, MulToExpression},
     Environment, Expression, VarRef, Vtype,
 };
+use num::abs;
 use rand::{
     distr::{Distribution, StandardUniform},
     rngs::StdRng,
@@ -25,18 +26,23 @@ Random Seed = {}
     seed
 }
 
-pub fn random_bias<B>(seed: u64) -> B
+pub fn random_bias<B: Default + std::ops::Add<f64, Output = B>>(seed: u64) -> B
 where
     StandardUniform: Distribution<B>,
 {
+    // B::default() + 0.5
     let mut rng = StdRng::seed_from_u64(seed);
     rng.random()
 }
 
-pub fn random_biases<B: Copy>(n: usize, seed: u64) -> Vec<B>
+pub fn random_biases<B: Copy + Default + std::ops::Add<f64, Output = B>>(
+    n: usize,
+    seed: u64,
+) -> Vec<B>
 where
     StandardUniform: Distribution<B>,
 {
+    // vec![B::default() + 0.5; n]
     let mut rng = StdRng::seed_from_u64(seed);
     (0..n).map(|_| rng.random()).collect()
 }
@@ -46,8 +52,22 @@ pub fn create_linear_expression_with_vars<I: IndexConstraints, B: BiasConstraint
     biases: &Vec<B>,
     vtype: Vtype,
 ) -> (Expression<I, B>, Vec<VarRef<I>>) {
+    let varname_prefix = match vtype {
+        Vtype::Binary => "b",
+        Vtype::Spin => "s",
+        Vtype::Integer => "i",
+        Vtype::Real => "r",
+    };
     let vars: Vec<VarRef<I>> = (0..biases.len())
-        .map(|i| add_variable(Rc::clone(&env), &format!("b{}", i), Some(&vtype), None).unwrap())
+        .map(|i| {
+            add_variable(
+                Rc::clone(&env),
+                &format!("{}{}", varname_prefix, i),
+                Some(&vtype),
+                None,
+            )
+            .unwrap()
+        })
         .collect();
     let mut expr = Expression::empty(Rc::clone(&env));
     for (v, b) in vars.iter().zip(biases) {
@@ -71,4 +91,16 @@ pub fn create_env<I: IndexConstraints>() -> Environment<I> {
 
 pub fn package<T>(value: T) -> Rc<RefCell<T>> {
     Rc::new(RefCell::new(value))
+}
+
+pub fn almost_equal(a: f64, b: f64, epsilon: Option<f64>, abs_th: Option<f64>) -> bool {
+    let epsilon = epsilon.unwrap_or(128_f64 * f64::EPSILON);
+    let abs_th = abs_th.unwrap_or(f64::MIN_POSITIVE);
+
+    assert!(f64::EPSILON <= epsilon);
+    assert!(epsilon < 1_f64);
+
+    let diff = (a - b).abs();
+    let norm = (abs(a) + abs(b)).min(f64::MAX);
+    diff < abs_th.max(epsilon * norm)
 }
