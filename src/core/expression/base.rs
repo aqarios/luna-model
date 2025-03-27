@@ -418,7 +418,8 @@ where
         sample: &'a Sample,
     ) -> Bias
     where
-        Bias: Mul<&'a Elem, Output = Bias>;
+        &'a Elem: Mul<Bias, Output = Bias> + Mul<&'a Elem, Output = Elem>,
+        Elem: Mul<Bias, Output = Bias>;
 
     fn evaluate_sampleset<
         'a,
@@ -430,5 +431,6 @@ where
         sampleset: &'a SampleSet,
     ) -> Vec<Bias>
     where
-        Bias: Mul<&'a Elem, Output = Bias>;
+        &'a Elem: Mul<Bias, Output = Bias> + Mul<&'a Elem, Output = Elem>,
+        Elem: Mul<Bias, Output = Bias>;
 }
