@@ -12,7 +12,7 @@ use pyo3::{
 
 use crate::{
     core::{
-        Comparator, ConcreteConstraint, ConcreteConstraints, ConcreteMutRcConstraint,
+        constraints, Comparator, ConcreteConstraint, ConcreteConstraints, ConcreteMutRcConstraint,
         ConcreteMutRcConstraints, Constraint, Create,
     },
     serialization::{
@@ -109,10 +109,10 @@ impl PyConstraints {
         self.borrow_mut().add_assign(constraint.borrow().deref());
     }
 
-    fn __getitem__(&self, n: usize) -> PyConstraint {
+    fn __getitem__(&self, n: usize) -> PyResult<PyConstraint> {
         // todo: can we remove the clone here? acceptable for now. Make it more like
         // a view.
-        PyConstraint::new(self.borrow().constraints[n].clone())
+        Ok(PyConstraint::new(self.borrow().get_constraint(n)?.clone()))
     }
 
     fn __eq__(&self, other: Self) -> bool {

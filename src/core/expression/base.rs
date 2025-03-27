@@ -46,6 +46,7 @@ impl<
 
 pub trait BiasConstraints:
     Debug
+    + Neg<Output = Self>
     + Display
     + Copy
     + Default
@@ -62,6 +63,7 @@ pub trait BiasConstraints:
 }
 impl<
         T: Debug
+            + Neg<Output = Self>
             + Display
             + Copy
             + Default
