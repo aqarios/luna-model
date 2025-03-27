@@ -240,7 +240,10 @@ where
                 self.writer.new_line();
             }
             self.writer
-                .write(&constr.name.clone().unwrap_or(format!("c{i}: ")))
+                .write(&format!(
+                    "{}: ",
+                    constr.name.clone().unwrap_or(format!("c{i}"))
+                ))
                 .increase_indent();
             self.write_constraint(constr);
             self.writer.decrease_indent();

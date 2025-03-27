@@ -1,6 +1,7 @@
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::utils::ModelWriter;
 use crate::core::MutRcExpression;
+use crate::errors::IndexOutOfBoundsError;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, AddAssign};
 use std::slice::Iter;
@@ -109,6 +110,16 @@ where
 
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+
+    pub fn get_constraint(
+        &self,
+        index: usize,
+    ) -> Result<&Constraint<Index, Bias>, IndexOutOfBoundsError> {
+        if index >= self.len() {
+            return Err(IndexOutOfBoundsError::new(index, self.len()));
+        }
+        Ok(&self.constraints[index])
     }
 }
 

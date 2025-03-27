@@ -10,7 +10,7 @@ mod py_var;
 use pyo3::prelude::*;
 
 use py_exceptions::{
-    DecodeException, DifferentEnvsException, ModelNotQuadraticException,
+    DecodeException, DifferentEnvsException, IndexOutOfBoundsException, ModelNotQuadraticException,
     ModelNotUnconstrainedException, MultipleActiveEnvironmentsException,
     NoActiveEnvironmentFoundException, VariableExistsException, VariableOutOfRangeException,
     VariablesFromDifferentEnvsException,
@@ -67,6 +67,10 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add(
         "VariablesFromDifferentEnvsException",
         m.py().get_type::<VariablesFromDifferentEnvsException>(),
+    )?;
+    m.add(
+        "IndexOutOfBoundsException",
+        m.py().get_type::<IndexOutOfBoundsException>(),
     )?;
 
     Ok(())

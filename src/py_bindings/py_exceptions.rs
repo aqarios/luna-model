@@ -1,7 +1,8 @@
 use crate::core::expression::VariableOutOfRangeError;
 use crate::errors::{
-    DifferentEnvsError, MatrixTranslatorError, ModelNotQuadraticError, ModelNotUnconstrainedError,
-    VariableCreationError, VariableExistsError, VariablesFromDifferentEnvsError,
+    DifferentEnvsError, IndexOutOfBoundsError, MatrixTranslatorError, ModelNotQuadraticError,
+    ModelNotUnconstrainedError, VariableCreationError, VariableExistsError,
+    VariablesFromDifferentEnvsError,
 };
 use crate::serialization::DecodeError;
 use pyo3::exceptions::PyException;
@@ -17,6 +18,7 @@ create_exception!(aq_models, MultipleActiveEnvironmentsException, PyException);
 create_exception!(aq_models, DecodeException, PyException);
 create_exception!(aq_models, ModelNotQuadraticException, PyException);
 create_exception!(aq_models, ModelNotUnconstrainedException, PyException);
+create_exception!(aq_models, IndexOutOfBoundsException, PyException);
 
 impl From<VariableOutOfRangeError> for PyErr {
     fn from(value: VariableOutOfRangeError) -> Self {
@@ -63,6 +65,12 @@ impl From<ModelNotQuadraticError> for PyErr {
 impl From<ModelNotUnconstrainedError> for PyErr {
     fn from(err: ModelNotUnconstrainedError) -> Self {
         ModelNotUnconstrainedException::new_err(err.to_string())
+    }
+}
+
+impl From<IndexOutOfBoundsError> for PyErr {
+    fn from(value: IndexOutOfBoundsError) -> Self {
+        IndexOutOfBoundsException::new_err(value.to_string())
     }
 }
 

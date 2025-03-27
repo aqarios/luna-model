@@ -49,6 +49,27 @@ impl Display for VariablesFromDifferentEnvsError {
 }
 
 #[derive(Debug, Clone)]
+pub struct IndexOutOfBoundsError {
+    idx: usize,
+    len: usize,
+}
+impl IndexOutOfBoundsError {
+    pub fn new(idx: usize, len: usize) -> Self {
+        Self { idx, len }
+    }
+}
+impl Error for IndexOutOfBoundsError {}
+impl Display for IndexOutOfBoundsError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(
+            f,
+            "index '{}' out of bounds for constraints of len {}",
+            self.idx, self.len
+        )
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct DifferentEnvsError;
 impl Error for DifferentEnvsError {}
 impl Display for DifferentEnvsError {
