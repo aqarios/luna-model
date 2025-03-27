@@ -1,6 +1,7 @@
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::utils::ModelWriter;
 use crate::core::MutRcExpression;
+use crate::errors::IndexOutOfBoundsErr;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, AddAssign};
 use std::slice::Iter;
@@ -10,7 +11,10 @@ use strum_macros::Display;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
-#[cfg_attr(feature = "py", pyclass(eq, eq_int))] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
+#[cfg_attr(
+    feature = "py",
+    pyclass(eq, eq_int, name = "Comparator", module = "aqmodels")
+)] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {
     #[strum(to_string = "==")]
@@ -31,6 +35,7 @@ where
     pub lhs: MutRcExpression<Index, Bias>,
     pub rhs: Bias,
     pub comparator: Comparator,
+    pub name: Option<String>,
 }
 
 impl<Index, Bias> Constraint<Index, Bias>
@@ -38,12 +43,22 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    pub fn new(lhs: MutRcExpression<Index, Bias>, rhs: Bias, comparator: Comparator) -> Self {
+    pub fn new(
+        lhs: MutRcExpression<Index, Bias>,
+        rhs: Bias,
+        comparator: Comparator,
+        name: Option<String>,
+    ) -> Self {
         Self {
             lhs,
             rhs,
             comparator,
+            name,
         }
+    }
+
+    pub fn set_name(&mut self, name: Option<String>) {
+        self.name = name
     }
 }
 
@@ -98,6 +113,16 @@ where
 
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+
+    pub fn get_constraint(
+        &self,
+        index: usize,
+    ) -> Result<&Constraint<Index, Bias>, IndexOutOfBoundsErr> {
+        if index >= self.len() {
+            return Err(IndexOutOfBoundsErr::new(index, self.len()));
+        }
+        Ok(&self.constraints[index])
     }
 }
 

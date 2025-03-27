@@ -1,7 +1,7 @@
 import sys
 import json
 
-from aq_models import Model
+from aqmodels import Model
 import dimod
 
 

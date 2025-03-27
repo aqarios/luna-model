@@ -1,4 +1,4 @@
-use crate::{core::ConcreteEnvId, errors::VariableCreationError};
+use crate::{core::ConcreteEnvId, errors::VariableCreationErr};
 use std::fmt::{Debug, Display, Formatter};
 
 use super::{bounds::display_bound, Bounds, Vtype};
@@ -32,12 +32,13 @@ impl Variable {
         vtype: Option<&Vtype>,
         bounds: Option<Bounds>,
         env_id: ConcreteEnvId,
-    ) -> Result<Self, VariableCreationError> {
+    ) -> Result<Self, VariableCreationErr> {
         let vtype = vtype.map_or(Vtype::default(), |t| *t);
         match (vtype, bounds.is_some()) {
-            (Vtype::Binary, true) | (Vtype::Spin, true) => Err(VariableCreationError::new(
-                format!("bounds cannot be set for variable of type {}.", vtype),
-            )),
+            (Vtype::Binary, true) | (Vtype::Spin, true) => Err(VariableCreationErr::new(format!(
+                "bounds cannot be set for variable of type {}.",
+                vtype
+            ))),
             _ => Ok(()),
         }?;
         let default_bounds = Bounds::default(&vtype);

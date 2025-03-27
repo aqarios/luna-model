@@ -1,9 +1,9 @@
 import pytest
 
-from aq_models import Model
-from aq_models import Variable
-from aq_models import Environment
-from aq_models import Expression
+from aqmodels import Model
+from aqmodels import Variable
+from aqmodels import Environment
+from aqmodels import Expression
 
 from ..utils import (
     assert_linear,

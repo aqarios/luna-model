@@ -1,0 +1,45 @@
+# This file is auto-generated.
+# Do not edit manually.
+
+from . import errors
+
+class VariableOutOfRangeError(Exception):
+    def __str__(self) -> str: ...
+
+class VariableExistsError(Exception):
+    def __str__(self) -> str: ...
+
+class VariablesFromDifferentEnvsError(Exception):
+    def __str__(self) -> str: ...
+
+class DifferentEnvsError(Exception):
+    def __str__(self) -> str: ...
+
+class NoActiveEnvironmentFoundError(Exception):
+    def __str__(self) -> str: ...
+
+class MultipleActiveEnvironmentsError(Exception):
+    def __str__(self) -> str: ...
+
+class DecodeError(Exception):
+    def __str__(self) -> str: ...
+
+class ModelNotQuadraticError(Exception):
+    def __str__(self) -> str: ...
+
+class ModelNotUnconstrainedError(Exception):
+    def __str__(self) -> str: ...
+
+
+__all__ = [
+    "DecodeError",
+    "DifferentEnvsError",
+    "ModelNotQuadraticError",
+    "ModelNotUnconstrainedError",
+    "MultipleActiveEnvironmentsError",
+    "NoActiveEnvironmentFoundError",
+    "VariableExistsError",
+    "VariableOutOfRangeError",
+    "VariablesFromDifferentEnvsError",
+    "errors",
+]

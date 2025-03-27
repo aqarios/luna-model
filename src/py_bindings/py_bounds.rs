@@ -2,7 +2,11 @@ use crate::core::Bounds;
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
 
-#[pyclass(name = "Bounds")]
+/// The Bounds of a Variable. This is dependent on the type of the variable.
+/// E.g., Spin and Binary variables do not accept explicit bounds setting.
+/// Trying to do so will result in an error. Only Integer and Real types variables
+/// are allowed to receive bounds.
+#[pyclass(name = "Bounds", module = "aqmodels")]
 #[derive(Clone, Copy, Deref, DerefMut)]
 pub struct PyBounds(Bounds);
 

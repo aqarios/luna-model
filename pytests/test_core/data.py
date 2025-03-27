@@ -4,7 +4,7 @@ from typing import Callable, Protocol, Sequence
 from itertools import combinations, product
 from .utils import make_seed, random
 
-from aq_models import (
+from aqmodels import (
     Model,
     Expression,
     Environment,
@@ -124,7 +124,9 @@ def expressions(
     item_cominations: list[Expression] = list()
     for r in range(2, len(items) + 1):
         combs = combinations(items, r)
-        item_cominations.extend([sum([random(seed) * v for v in comb]) for comb in combs])  # type: ignore
+        item_cominations.extend(
+            [sum([random(seed) * v for v in comb]) for comb in combs]
+        )  # type: ignore
 
     return [*items, *item_cominations]
 

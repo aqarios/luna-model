@@ -2,7 +2,7 @@ from typing import IO
 from numpy.typing import NDArray
 from tqdm import tqdm  # type: ignore[import-untyped]
 
-from aq_models import MatrixTranslator, Vtype
+from aqmodels import MatrixTranslator, Vtype
 import dimod
 
 from benchmarks.setting import DENSITIES, REPETITIONS, SIZES

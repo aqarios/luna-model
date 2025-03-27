@@ -3,7 +3,7 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from aq_models import Variable, Environment, Vtype, Bounds, Expression, Model
+from aqmodels import Variable, Environment, Vtype, Bounds, Expression, Model
 
 _model_str_1 = """Model: TestModel
 Minimize
@@ -28,6 +28,27 @@ Minimize
   + 0.5 * x1 * x2 + x1 * x4 + x0 + 1
 Subject To
   c0: x0 + x2 <= 1
+Bounds
+  0 <= x0 <= 1
+  x1 unbounded
+  0 <= x2 <= 1
+  0 <= x3 <= 30
+  -1 <= x4 <= 1
+Binary
+  x0 x2
+Spin
+  x4
+Integer
+  x3
+Real
+  x1"""
+_model_str_4 = """Model: TestModel
+Minimize
+  12.213 * x0 * x1 * x2 - x0 * x1 - 3 * x0 * x2 + 1848482 * x0 * x3 
+  + 0.5 * x1 * x2 + x1 * x4 + x0 + 1
+Subject To
+  c0: x0 + x2 <= 1
+  my_constraint: x0 + x2 <= 1
 Bounds
   0 <= x0 <= 1
   x1 unbounded
@@ -212,6 +233,8 @@ def test_model():
         )
         m.constraints.add_constraint(x0 + x2 <= 1)
         assert str(m) == _model_str_3
+        m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")
+        assert str(m) == _model_str_4
 
     with does_not_raise():
         repr(m)
