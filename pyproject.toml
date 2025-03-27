@@ -7,11 +7,7 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "dimod>=0.12.18",
-    "memory-profiler>=0.61.0",
     "numpy>=2.2.2",
-    "rustworkx>=0.16.0",
-    "scipy>=1.15.1",
 ]
 
 [project.scripts]
@@ -64,4 +60,7 @@ dev = [
     "rich>=13.9.4",
     "tabulate>=0.9.0",
     "tqdm>=4.67.1",
+    "scipy>=1.15.2",
+    "memory-profiler>=0.61.0",
+    "dimod>=0.12.18",
 ]
