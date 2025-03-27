@@ -3,7 +3,7 @@ name = "aqmodels"
 dynamic = ["version", "description", "readme"]
 authors = [
     { name = "Jonas Blenninger", email = "jonas.blenninger@aqarios.com" },
-    { name = "David Bucher", email = "david.bucher@aqarios.com" }
+    { name = "David Bucher", email = "david.bucher@aqarios.com" },
     { name = "Benjamin Suehling", email = "benjamin.suehling@aqarios.com" }
 ]
 requires-python = ">=3.11"
