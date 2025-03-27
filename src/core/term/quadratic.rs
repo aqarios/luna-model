@@ -3,7 +3,7 @@ use crate::core::expression::{BiasConstraints, IndexConstraints};
 use std::{
     cmp::Ordering,
     iter::Enumerate,
-    ops::{Index, IndexMut, MulAssign},
+    ops::{Index, IndexMut, MulAssign, Neg},
     slice::Iter,
 };
 
@@ -266,5 +266,49 @@ where
         }
 
         true
+    }
+}
+
+impl<Index, Bias> Quadratic<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn negate(&self) -> Self {
+        Quadratic::new_from(
+            self.adj
+                .iter()
+                .map(|neighborhood| {
+                    neighborhood
+                        .iter()
+                        .map(|term| OneVarTerm::new(term.index, -term.bias))
+                        .collect()
+                })
+                .collect(),
+        )
+    }
+}
+
+impl<Index, Bias> Neg for Quadratic<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Quadratic<Index, Bias>;
+
+    fn neg(self) -> Self::Output {
+        self.negate()
+    }
+}
+
+impl<Index, Bias> Neg for &Quadratic<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    type Output = Quadratic<Index, Bias>;
+
+    fn neg(self) -> Self::Output {
+        self.negate()
     }
 }

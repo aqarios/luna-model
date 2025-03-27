@@ -6,7 +6,7 @@ use std::str::FromStr;
 use crate::core::term::types::SizeType;
 use crate::core::{ConcreteBias, MutRcEnvironment, Vtype};
 
-use super::errors::VariableOutOfRangeError;
+use super::errors::VariableOutOfRangeErr;
 
 pub trait One {
     fn one() -> Self;
@@ -46,6 +46,7 @@ impl<
 
 pub trait BiasConstraints:
     Debug
+    + Neg<Output = Self>
     + Display
     + Copy
     + Default
@@ -62,6 +63,7 @@ pub trait BiasConstraints:
 }
 impl<
         T: Debug
+            + Neg<Output = Self>
             + Display
             + Copy
             + Default
@@ -171,7 +173,7 @@ pub trait ExpressionBase<Index, Bias> {
     /// Return the offset.
     fn offset(&self) -> Bias;
     /// The linear bias of variable `v`.
-    fn linear(&self, v: Index) -> Result<Bias, VariableOutOfRangeError>;
+    fn linear(&self, v: Index) -> Result<Bias, VariableOutOfRangeErr>;
     /// Return the quadratic bias associated with `u` and `v`.
     ///
     /// If `u` and `v` do not have a quadratic bias, return 0;
@@ -179,11 +181,11 @@ pub trait ExpressionBase<Index, Bias> {
     /// Note that this function does not return a reference because
     /// each quadratic bias is stored twice.
     /// // todo: we might be able to change this, as we store it just once.
-    fn quadratic(&self, u: Index, v: Index) -> Result<Bias, VariableOutOfRangeError>;
+    fn quadratic(&self, u: Index, v: Index) -> Result<Bias, VariableOutOfRangeErr>;
     /// Return the higher order bias associated with the indices
     ///
     /// If indices do not have a quadratic bias, return 0;
-    fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeError>;
+    fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeErr>;
     /// Test whether the model has no quadratic biases.
     fn is_linear(&self) -> bool;
     // - // - /// Return the number of interactions in the quadratic model.
@@ -406,4 +408,31 @@ where
     /// Mul the variable `v` to the higher order term.
     /// This function edits self, based on the information from higher_order and the rest.
     fn mul_with_higher_order(&mut self, higher_order: &Self::HigherOrderType, v: Index, bias: Bias);
+}
+
+pub trait ExpressionEvaluation<Idx, Bias>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    fn evaluate_sample<'a, Elem: 'a, Sample: std::ops::Index<Idx, Output = Elem>>(
+        &self,
+        sample: &'a Sample,
+    ) -> Bias
+    where
+        &'a Elem: Mul<Bias, Output = Bias> + Mul<&'a Elem, Output = Elem>,
+        Elem: Mul<Bias, Output = Bias>;
+
+    fn evaluate_sampleset<
+        'a,
+        Elem: 'a,
+        Sample: std::ops::Index<Idx, Output = Elem> + 'a,
+        SampleSet: Iterator<Item = &'a Sample> + Copy,
+    >(
+        &self,
+        sampleset: &'a SampleSet,
+    ) -> Vec<Bias>
+    where
+        &'a Elem: Mul<Bias, Output = Bias> + Mul<&'a Elem, Output = Elem>,
+        Elem: Mul<Bias, Output = Bias>;
 }

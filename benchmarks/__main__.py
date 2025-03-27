@@ -8,8 +8,8 @@ import datetime
 from typing import IO
 from benchmarks.translator.read_dense_qubo import bench_read_dense_qubo
 from benchmarks.serialization.serialize import (
-    bench_serialize_bqm,
-    bench_serialize_bqm_size,
+    bench_serialize_cqm,
+    bench_serialize_cqm_size,
 )
 from benchmarks.serialization.deserialize import (
     bench_deserialize_bqm,
@@ -22,8 +22,8 @@ from benchmarks.translator.read_dense_qubo_memory import bench_read_dense_qubo_m
 
 TASKS = [
     bench_read_dense_qubo,
-    bench_serialize_bqm,
-    bench_serialize_bqm_size,
+    bench_serialize_cqm,
+    bench_serialize_cqm_size,
     bench_deserialize_bqm,
     bench_serialize_aqm_xl,
     bench_read_dense_qubo_memory,
@@ -90,13 +90,8 @@ def main():
     detailed_file.touch()
 
     with detailed_file.open("a") as f:
-        code_block(bench_read_dense_qubo, f)
-        code_block(bench_serialize_bqm, f)
-        code_block(bench_deserialize_bqm, f)
-        code_block(bench_serialize_bqm_size, f)
-        code_block(bench_serialize_aqm_xl, f)
-        code_block(bench_read_dense_qubo_memory, f)
-
+        for task in TASKS:
+            code_block(task, f)
 
 if __name__ == "__main__":
     sys.exit(main())

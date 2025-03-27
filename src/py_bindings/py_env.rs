@@ -8,9 +8,9 @@ use derive_more::{Deref, DerefMut};
 use pyo3::{prelude::*, types::PyBytes};
 use std::{cell::RefCell, ops::Deref};
 
-use super::py_exceptions::MultipleActiveEnvironmentsException;
+use super::py_exceptions::MultipleActiveEnvironmentsError;
 
-#[pyclass(unsendable, name = "Environment")]
+#[pyclass(unsendable, name = "Environment", module = "aqmodels")]
 #[derive(Deref, DerefMut, Clone)]
 pub struct PyEnvironment(pub ConcreteMutRcEnvironment);
 
@@ -41,7 +41,7 @@ impl PyEnvironment {
         CURRENT_ENV.with(|current| {
             let mut mut_curr = current.borrow_mut();
             if mut_curr.is_some() {
-                return Err(MultipleActiveEnvironmentsException::new_err(
+                return Err(MultipleActiveEnvironmentsError::new_err(
                     "multiple active environments are not allowed",
                 ));
             }
