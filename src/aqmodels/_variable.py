@@ -31,6 +31,11 @@ class Vtype(Enum):
 
 
 @export
+class Bounds:
+    """"""
+
+
+@export
 class Variable:
     """
     This is a variable

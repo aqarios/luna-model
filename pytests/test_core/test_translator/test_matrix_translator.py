@@ -6,7 +6,7 @@ import scipy.sparse as sp  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 
 from aqmodels import MatrixTranslator, Variable, Vtype
-from aqmodels import ModelNotQuadraticException, ModelNotUnconstrainedException
+from aqmodels import ModelNotQuadraticError, ModelNotUnconstrainedError
 from ..utils import make_seed
 
 
@@ -85,7 +85,7 @@ def test_translate_from_non_fitting_constrained(qubo: NDArray):
         model.constraints += b * s == 3
         model.constraints += b * i * r >= 3
 
-    with pytest.raises(ModelNotUnconstrainedException):
+    with pytest.raises(ModelNotUnconstrainedError):
         _ = MatrixTranslator.to_dense(model)
 
 
@@ -101,7 +101,7 @@ def test_translate_from_non_fitting_higher_order(qubo: NDArray):
         b = Variable("b", vtype=Vtype.Binary)
         model.objective *= b
 
-    with pytest.raises(ModelNotQuadraticException):
+    with pytest.raises(ModelNotQuadraticError):
         _ = MatrixTranslator.to_dense(model)
 
 

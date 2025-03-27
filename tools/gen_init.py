@@ -3,17 +3,16 @@ from pathlib import Path
 from collections import defaultdict
 from gen_common import LIB_ROOT, PROJECT_ROOT, AUTOGEN_HEADER, collect_exports
 
-_ANNOTATIONS = {
-    "_core": "# type: ignore[reportAttributeAccessIssue,attr-defined]",
-}
-
 
 def extract_existing_docstring(init_path: Path) -> str:
     if not init_path.exists():
         return ""
     text = init_path.read_text(encoding="utf-8")
-    match = re.match(r'^[\s\n]*(""".*?"""|\'\'\'.*?\'\'\')', text, re.DOTALL)
-    return match.group(1).strip() if match else ""
+    # Remove autogen header if present
+    if AUTOGEN_HEADER.strip() in text:
+        text = text.split(AUTOGEN_HEADER.strip(), 1)[-1]
+    match = re.search(r'(?:^|\n)[ \t]*(["\']{3})(.*?)\1', text, re.DOTALL)
+    return f'"""\n{match.group(2).strip()}\n"""' if match else ""
 
 
 def format_imports(import_entries):
@@ -24,8 +23,6 @@ def format_imports(import_entries):
         else:
             mod, expr = imp.split(" import ", 1)
             grouped[mod.strip()].append(expr.strip())
-
-    print(grouped)
 
     formatted = []
     for mod in sorted(grouped, reverse=True):

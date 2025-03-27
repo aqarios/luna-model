@@ -3,7 +3,7 @@ import pytest
 
 AQM_MODULE_NAME: str = "aqmodels"
 TRANSLATOR_MODULE_NAME: str = "aqmodels.translator"
-EXCEPTIONS_MODULE_NAME: str = "aqmodels.exceptions"
+ERRORS_MODULE_NAME: str = "aqmodels.errors"
 
 
 @pytest.mark.imports
@@ -134,382 +134,296 @@ def test_import_matrix_translator():
 def test_import_variable_out_of_range_exception():
     import aqmodels
     import aqmodels as aqm
-    from aqmodels import exceptions  # the true way to do it.
-    from aqmodels.exceptions import VariableOutOfRangeException as ID
-    from aqmodels import VariableOutOfRangeException as D
+    from aqmodels import errors  # the true way to do it.
+    from aqmodels.errors import VariableOutOfRangeError as ID
+    from aqmodels import VariableOutOfRangeError as D
 
-    # The true path is the exceptions.VariableOutOfRangeException
-    # The aqmodels/aqm.exceptions is hacked into the bindings.
-    # So we check again the exceptions.VariableOutOfRangeException with the import from
+    # The true path is the errors.VariableOutOfRangeError
+    # The aqmodels/aqm.errors is hacked into the bindings.
+    # So we check again the errors.VariableOutOfRangeError with the import from
     # aqmodels
-    assert aqm.VariableOutOfRangeException == exceptions.VariableOutOfRangeException
-    assert (
-        aqmodels.VariableOutOfRangeException == exceptions.VariableOutOfRangeException
-    )
-    assert (
-        aqmodels.exceptions.VariableOutOfRangeException
-        == exceptions.VariableOutOfRangeException
-    )
-    assert (
-        aqm.exceptions.VariableOutOfRangeException
-        == exceptions.VariableOutOfRangeException
-    )
-    assert ID == exceptions.VariableOutOfRangeException
-    assert D == exceptions.VariableOutOfRangeException
+    assert aqm.VariableOutOfRangeError == errors.VariableOutOfRangeError
+    assert aqmodels.VariableOutOfRangeError == errors.VariableOutOfRangeError
+    assert aqmodels.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
+    assert aqm.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
+    assert ID == errors.VariableOutOfRangeError
+    assert D == errors.VariableOutOfRangeError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.VariableOutOfRangeException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert aqmodels.VariableOutOfRangeException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert (
-        aqm.exceptions.VariableOutOfRangeException.__module__ == EXCEPTIONS_MODULE_NAME
-    )
-    assert (
-        aqmodels.exceptions.VariableOutOfRangeException
-        == exceptions.VariableOutOfRangeException
-    )
-    assert ID.__module__ == EXCEPTIONS_MODULE_NAME
-    assert D.__module__ == EXCEPTIONS_MODULE_NAME
-    assert exceptions.VariableOutOfRangeException.__module__ == EXCEPTIONS_MODULE_NAME
+    assert aqm.VariableOutOfRangeError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.VariableOutOfRangeError.__module__ == ERRORS_MODULE_NAME
+    assert aqm.errors.VariableOutOfRangeError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
+    assert ID.__module__ == ERRORS_MODULE_NAME
+    assert D.__module__ == ERRORS_MODULE_NAME
+    assert errors.VariableOutOfRangeError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_variable_exists_exception():
     import aqmodels
     import aqmodels as aqm
-    from aqmodels import exceptions  # the true way to do it.
-    from aqmodels.exceptions import VariableExistsException as ID
-    from aqmodels import VariableExistsException as D
+    from aqmodels import errors  # the true way to do it.
+    from aqmodels.errors import VariableExistsError as ID
+    from aqmodels import VariableExistsError as D
 
-    # The true path is the exceptions.VariableExistsException
-    # The aqmodels/aqm.exceptions is hacked into the bindings.
-    # So we check again the exceptions.VariableExistsException with the import from
+    # The true path is the errors.VariableExistsError
+    # The aqmodels/aqm.errors is hacked into the bindings.
+    # So we check again the errors.VariableExistsError with the import from
     # aqmodels
-    assert aqm.VariableExistsException == exceptions.VariableExistsException
-    assert aqmodels.VariableExistsException == exceptions.VariableExistsException
-    assert (
-        aqmodels.exceptions.VariableExistsException
-        == exceptions.VariableExistsException
-    )
-    assert aqm.exceptions.VariableExistsException == exceptions.VariableExistsException
-    assert ID == exceptions.VariableExistsException
-    assert D == exceptions.VariableExistsException
+    assert aqm.VariableExistsError == errors.VariableExistsError
+    assert aqmodels.VariableExistsError == errors.VariableExistsError
+    assert aqmodels.errors.VariableExistsError == errors.VariableExistsError
+    assert aqm.errors.VariableExistsError == errors.VariableExistsError
+    assert ID == errors.VariableExistsError
+    assert D == errors.VariableExistsError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.VariableExistsException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert aqmodels.VariableExistsException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert aqm.exceptions.VariableExistsException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert (
-        aqmodels.exceptions.VariableExistsException
-        == exceptions.VariableExistsException
-    )
-    assert ID.__module__ == EXCEPTIONS_MODULE_NAME
-    assert D.__module__ == EXCEPTIONS_MODULE_NAME
-    assert exceptions.VariableExistsException.__module__ == EXCEPTIONS_MODULE_NAME
+    assert aqm.VariableExistsError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.VariableExistsError.__module__ == ERRORS_MODULE_NAME
+    assert aqm.errors.VariableExistsError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.errors.VariableExistsError == errors.VariableExistsError
+    assert ID.__module__ == ERRORS_MODULE_NAME
+    assert D.__module__ == ERRORS_MODULE_NAME
+    assert errors.VariableExistsError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_variable_from_different_envs_exception():
     import aqmodels
     import aqmodels as aqm
-    from aqmodels import exceptions  # the true way to do it.
-    from aqmodels.exceptions import VariablesFromDifferentEnvsException as ID
-    from aqmodels import VariablesFromDifferentEnvsException as D
+    from aqmodels import errors  # the true way to do it.
+    from aqmodels.errors import VariablesFromDifferentEnvsError as ID
+    from aqmodels import VariablesFromDifferentEnvsError as D
 
-    # The true path is the exceptions.VariablesFromDifferentEnvsException
-    # The aqmodels/aqm.exceptions is hacked into the bindings.
-    # So we check again the exceptions.VariablesFromDifferentEnvsException with the import from
+    # The true path is the errors.VariablesFromDifferentEnvsError
+    # The aqmodels/aqm.errors is hacked into the bindings.
+    # So we check again the errors.VariablesFromDifferentEnvsError with the import from
     # aqmodels
+    assert aqm.VariablesFromDifferentEnvsError == errors.VariablesFromDifferentEnvsError
     assert (
-        aqm.VariablesFromDifferentEnvsException
-        == exceptions.VariablesFromDifferentEnvsException
+        aqmodels.VariablesFromDifferentEnvsError
+        == errors.VariablesFromDifferentEnvsError
     )
     assert (
-        aqmodels.VariablesFromDifferentEnvsException
-        == exceptions.VariablesFromDifferentEnvsException
+        aqmodels.errors.VariablesFromDifferentEnvsError
+        == errors.VariablesFromDifferentEnvsError
     )
     assert (
-        aqmodels.exceptions.VariablesFromDifferentEnvsException
-        == exceptions.VariablesFromDifferentEnvsException
+        aqm.errors.VariablesFromDifferentEnvsError
+        == errors.VariablesFromDifferentEnvsError
     )
-    assert (
-        aqm.exceptions.VariablesFromDifferentEnvsException
-        == exceptions.VariablesFromDifferentEnvsException
-    )
-    assert ID == exceptions.VariablesFromDifferentEnvsException
-    assert D == exceptions.VariablesFromDifferentEnvsException
+    assert ID == errors.VariablesFromDifferentEnvsError
+    assert D == errors.VariablesFromDifferentEnvsError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.VariablesFromDifferentEnvsException.__module__ == EXCEPTIONS_MODULE_NAME
+    assert aqm.VariablesFromDifferentEnvsError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.VariablesFromDifferentEnvsError.__module__ == ERRORS_MODULE_NAME
+    assert aqm.errors.VariablesFromDifferentEnvsError.__module__ == ERRORS_MODULE_NAME
     assert (
-        aqmodels.VariablesFromDifferentEnvsException.__module__
-        == EXCEPTIONS_MODULE_NAME
+        aqmodels.errors.VariablesFromDifferentEnvsError
+        == errors.VariablesFromDifferentEnvsError
     )
-    assert (
-        aqm.exceptions.VariablesFromDifferentEnvsException.__module__
-        == EXCEPTIONS_MODULE_NAME
-    )
-    assert (
-        aqmodels.exceptions.VariablesFromDifferentEnvsException
-        == exceptions.VariablesFromDifferentEnvsException
-    )
-    assert ID.__module__ == EXCEPTIONS_MODULE_NAME
-    assert D.__module__ == EXCEPTIONS_MODULE_NAME
-    assert (
-        exceptions.VariablesFromDifferentEnvsException.__module__
-        == EXCEPTIONS_MODULE_NAME
-    )
+    assert ID.__module__ == ERRORS_MODULE_NAME
+    assert D.__module__ == ERRORS_MODULE_NAME
+    assert errors.VariablesFromDifferentEnvsError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_different_envs_exception():
     import aqmodels
     import aqmodels as aqm
-    from aqmodels import exceptions  # the true way to do it.
-    from aqmodels.exceptions import DifferentEnvsException as ID
-    from aqmodels import DifferentEnvsException as D
+    from aqmodels import errors  # the true way to do it.
+    from aqmodels.errors import DifferentEnvsError as ID
+    from aqmodels import DifferentEnvsError as D
 
-    # The true path is the exceptions.DifferentEnvsException
-    # The aqmodels/aqm.exceptions is hacked into the bindings.
-    # So we check again the exceptions.DifferentEnvsException with the import from
+    # The true path is the errors.DifferentEnvsError
+    # The aqmodels/aqm.errors is hacked into the bindings.
+    # So we check again the errors.DifferentEnvsError with the import from
     # aqmodels
-    assert aqm.DifferentEnvsException == exceptions.DifferentEnvsException
-    assert aqmodels.DifferentEnvsException == exceptions.DifferentEnvsException
-    assert (
-        aqmodels.exceptions.DifferentEnvsException == exceptions.DifferentEnvsException
-    )
-    assert aqm.exceptions.DifferentEnvsException == exceptions.DifferentEnvsException
-    assert ID == exceptions.DifferentEnvsException
-    assert D == exceptions.DifferentEnvsException
+    assert aqm.DifferentEnvsError == errors.DifferentEnvsError
+    assert aqmodels.DifferentEnvsError == errors.DifferentEnvsError
+    assert aqmodels.errors.DifferentEnvsError == errors.DifferentEnvsError
+    assert aqm.errors.DifferentEnvsError == errors.DifferentEnvsError
+    assert ID == errors.DifferentEnvsError
+    assert D == errors.DifferentEnvsError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.DifferentEnvsException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert aqmodels.DifferentEnvsException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert aqm.exceptions.DifferentEnvsException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert (
-        aqmodels.exceptions.DifferentEnvsException == exceptions.DifferentEnvsException
-    )
-    assert ID.__module__ == EXCEPTIONS_MODULE_NAME
-    assert D.__module__ == EXCEPTIONS_MODULE_NAME
-    assert exceptions.DifferentEnvsException.__module__ == EXCEPTIONS_MODULE_NAME
+    assert aqm.DifferentEnvsError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.DifferentEnvsError.__module__ == ERRORS_MODULE_NAME
+    assert aqm.errors.DifferentEnvsError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.errors.DifferentEnvsError == errors.DifferentEnvsError
+    assert ID.__module__ == ERRORS_MODULE_NAME
+    assert D.__module__ == ERRORS_MODULE_NAME
+    assert errors.DifferentEnvsError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_no_active_environment_found_exception():
     import aqmodels
     import aqmodels as aqm
-    from aqmodels import exceptions  # the true way to do it.
-    from aqmodels.exceptions import NoActiveEnvironmentFoundException as ID
-    from aqmodels import NoActiveEnvironmentFoundException as D
+    from aqmodels import errors  # the true way to do it.
+    from aqmodels.errors import NoActiveEnvironmentFoundError as ID
+    from aqmodels import NoActiveEnvironmentFoundError as D
 
-    # The true path is the exceptions.NoActiveEnvironmentFoundException
-    # The aqmodels/aqm.exceptions is hacked into the bindings.
-    # So we check again the exceptions.NoActiveEnvironmentFoundException with the import from
+    # The true path is the errors.NoActiveEnvironmentFoundError
+    # The aqmodels/aqm.errors is hacked into the bindings.
+    # So we check again the errors.NoActiveEnvironmentFoundError with the import from
     # aqmodels
+    assert aqm.NoActiveEnvironmentFoundError == errors.NoActiveEnvironmentFoundError
     assert (
-        aqm.NoActiveEnvironmentFoundException
-        == exceptions.NoActiveEnvironmentFoundException
+        aqmodels.NoActiveEnvironmentFoundError == errors.NoActiveEnvironmentFoundError
     )
     assert (
-        aqmodels.NoActiveEnvironmentFoundException
-        == exceptions.NoActiveEnvironmentFoundException
+        aqmodels.errors.NoActiveEnvironmentFoundError
+        == errors.NoActiveEnvironmentFoundError
     )
     assert (
-        aqmodels.exceptions.NoActiveEnvironmentFoundException
-        == exceptions.NoActiveEnvironmentFoundException
+        aqm.errors.NoActiveEnvironmentFoundError == errors.NoActiveEnvironmentFoundError
     )
-    assert (
-        aqm.exceptions.NoActiveEnvironmentFoundException
-        == exceptions.NoActiveEnvironmentFoundException
-    )
-    assert ID == exceptions.NoActiveEnvironmentFoundException
-    assert D == exceptions.NoActiveEnvironmentFoundException
+    assert ID == errors.NoActiveEnvironmentFoundError
+    assert D == errors.NoActiveEnvironmentFoundError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.NoActiveEnvironmentFoundException.__module__ == EXCEPTIONS_MODULE_NAME
+    assert aqm.NoActiveEnvironmentFoundError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.NoActiveEnvironmentFoundError.__module__ == ERRORS_MODULE_NAME
+    assert aqm.errors.NoActiveEnvironmentFoundError.__module__ == ERRORS_MODULE_NAME
     assert (
-        aqmodels.NoActiveEnvironmentFoundException.__module__ == EXCEPTIONS_MODULE_NAME
+        aqmodels.errors.NoActiveEnvironmentFoundError
+        == errors.NoActiveEnvironmentFoundError
     )
-    assert (
-        aqm.exceptions.NoActiveEnvironmentFoundException.__module__
-        == EXCEPTIONS_MODULE_NAME
-    )
-    assert (
-        aqmodels.exceptions.NoActiveEnvironmentFoundException
-        == exceptions.NoActiveEnvironmentFoundException
-    )
-    assert ID.__module__ == EXCEPTIONS_MODULE_NAME
-    assert D.__module__ == EXCEPTIONS_MODULE_NAME
-    assert (
-        exceptions.NoActiveEnvironmentFoundException.__module__
-        == EXCEPTIONS_MODULE_NAME
-    )
+    assert ID.__module__ == ERRORS_MODULE_NAME
+    assert D.__module__ == ERRORS_MODULE_NAME
+    assert errors.NoActiveEnvironmentFoundError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_multiple_active_environments_exception():
     import aqmodels
     import aqmodels as aqm
-    from aqmodels import exceptions  # the true way to do it.
-    from aqmodels.exceptions import MultipleActiveEnvironmentsException as ID
-    from aqmodels import MultipleActiveEnvironmentsException as D
+    from aqmodels import errors  # the true way to do it.
+    from aqmodels.errors import MultipleActiveEnvironmentsError as ID
+    from aqmodels import MultipleActiveEnvironmentsError as D
 
-    # The true path is the exceptions.MultipleActiveEnvironmentsException
-    # The aqmodels/aqm.exceptions is hacked into the bindings.
-    # So we check again the exceptions.MultipleActiveEnvironmentsException with the import from
+    # The true path is the errors.MultipleActiveEnvironmentsError
+    # The aqmodels/aqm.errors is hacked into the bindings.
+    # So we check again the errors.MultipleActiveEnvironmentsError with the import from
     # aqmodels
+    assert aqm.MultipleActiveEnvironmentsError == errors.MultipleActiveEnvironmentsError
     assert (
-        aqm.MultipleActiveEnvironmentsException
-        == exceptions.MultipleActiveEnvironmentsException
+        aqmodels.MultipleActiveEnvironmentsError
+        == errors.MultipleActiveEnvironmentsError
     )
     assert (
-        aqmodels.MultipleActiveEnvironmentsException
-        == exceptions.MultipleActiveEnvironmentsException
+        aqmodels.errors.MultipleActiveEnvironmentsError
+        == errors.MultipleActiveEnvironmentsError
     )
     assert (
-        aqmodels.exceptions.MultipleActiveEnvironmentsException
-        == exceptions.MultipleActiveEnvironmentsException
+        aqm.errors.MultipleActiveEnvironmentsError
+        == errors.MultipleActiveEnvironmentsError
     )
-    assert (
-        aqm.exceptions.MultipleActiveEnvironmentsException
-        == exceptions.MultipleActiveEnvironmentsException
-    )
-    assert ID == exceptions.MultipleActiveEnvironmentsException
-    assert D == exceptions.MultipleActiveEnvironmentsException
+    assert ID == errors.MultipleActiveEnvironmentsError
+    assert D == errors.MultipleActiveEnvironmentsError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.MultipleActiveEnvironmentsException.__module__ == EXCEPTIONS_MODULE_NAME
+    assert aqm.MultipleActiveEnvironmentsError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.MultipleActiveEnvironmentsError.__module__ == ERRORS_MODULE_NAME
+    assert aqm.errors.MultipleActiveEnvironmentsError.__module__ == ERRORS_MODULE_NAME
     assert (
-        aqmodels.MultipleActiveEnvironmentsException.__module__
-        == EXCEPTIONS_MODULE_NAME
+        aqmodels.errors.MultipleActiveEnvironmentsError
+        == errors.MultipleActiveEnvironmentsError
     )
-    assert (
-        aqm.exceptions.MultipleActiveEnvironmentsException.__module__
-        == EXCEPTIONS_MODULE_NAME
-    )
-    assert (
-        aqmodels.exceptions.MultipleActiveEnvironmentsException
-        == exceptions.MultipleActiveEnvironmentsException
-    )
-    assert ID.__module__ == EXCEPTIONS_MODULE_NAME
-    assert D.__module__ == EXCEPTIONS_MODULE_NAME
-    assert (
-        exceptions.MultipleActiveEnvironmentsException.__module__
-        == EXCEPTIONS_MODULE_NAME
-    )
+    assert ID.__module__ == ERRORS_MODULE_NAME
+    assert D.__module__ == ERRORS_MODULE_NAME
+    assert errors.MultipleActiveEnvironmentsError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_decode_exception():
     import aqmodels
     import aqmodels as aqm
-    from aqmodels import exceptions  # the true way to do it.
-    from aqmodels.exceptions import DecodeException as ID
-    from aqmodels import DecodeException as D
+    from aqmodels import errors  # the true way to do it.
+    from aqmodels.errors import DecodeError as ID
+    from aqmodels import DecodeError as D
 
-    # The true path is the exceptions.DecodeException
-    # The aqmodels/aqm.exceptions is hacked into the bindings.
-    # So we check again the exceptions.DecodeException with the import from
+    # The true path is the errors.DecodeError
+    # The aqmodels/aqm.errors is hacked into the bindings.
+    # So we check again the errors.DecodeError with the import from
     # aqmodels
-    assert aqm.DecodeException == exceptions.DecodeException
-    assert aqmodels.DecodeException == exceptions.DecodeException
-    assert aqmodels.exceptions.DecodeException == exceptions.DecodeException
-    assert aqm.exceptions.DecodeException == exceptions.DecodeException
-    assert ID == exceptions.DecodeException
-    assert D == exceptions.DecodeException
+    assert aqm.DecodeError == errors.DecodeError
+    assert aqmodels.DecodeError == errors.DecodeError
+    assert aqmodels.errors.DecodeError == errors.DecodeError
+    assert aqm.errors.DecodeError == errors.DecodeError
+    assert ID == errors.DecodeError
+    assert D == errors.DecodeError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.DecodeException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert aqmodels.DecodeException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert aqm.exceptions.DecodeException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert aqmodels.exceptions.DecodeException == exceptions.DecodeException
-    assert ID.__module__ == EXCEPTIONS_MODULE_NAME
-    assert D.__module__ == EXCEPTIONS_MODULE_NAME
-    assert exceptions.DecodeException.__module__ == EXCEPTIONS_MODULE_NAME
+    assert aqm.DecodeError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.DecodeError.__module__ == ERRORS_MODULE_NAME
+    assert aqm.errors.DecodeError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.errors.DecodeError == errors.DecodeError
+    assert ID.__module__ == ERRORS_MODULE_NAME
+    assert D.__module__ == ERRORS_MODULE_NAME
+    assert errors.DecodeError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_model_not_quadratic_exception():
     import aqmodels
     import aqmodels as aqm
-    from aqmodels import exceptions  # the true way to do it.
-    from aqmodels.exceptions import ModelNotQuadraticException as ID
-    from aqmodels import ModelNotQuadraticException as D
+    from aqmodels import errors  # the true way to do it.
+    from aqmodels.errors import ModelNotQuadraticError as ID
+    from aqmodels import ModelNotQuadraticError as D
 
-    # The true path is the exceptions.ModelNotQuadraticException
-    # The aqmodels/aqm.exceptions is hacked into the bindings.
-    # So we check again the exceptions.ModelNotQuadraticException with the import from
+    # The true path is the errors.ModelNotQuadraticError
+    # The aqmodels/aqm.errors is hacked into the bindings.
+    # So we check again the errors.ModelNotQuadraticError with the import from
     # aqmodels
-    assert aqm.ModelNotQuadraticException == exceptions.ModelNotQuadraticException
-    assert aqmodels.ModelNotQuadraticException == exceptions.ModelNotQuadraticException
-    assert (
-        aqmodels.exceptions.ModelNotQuadraticException
-        == exceptions.ModelNotQuadraticException
-    )
-    assert (
-        aqm.exceptions.ModelNotQuadraticException
-        == exceptions.ModelNotQuadraticException
-    )
-    assert ID == exceptions.ModelNotQuadraticException
-    assert D == exceptions.ModelNotQuadraticException
+    assert aqm.ModelNotQuadraticError == errors.ModelNotQuadraticError
+    assert aqmodels.ModelNotQuadraticError == errors.ModelNotQuadraticError
+    assert aqmodels.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
+    assert aqm.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
+    assert ID == errors.ModelNotQuadraticError
+    assert D == errors.ModelNotQuadraticError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.ModelNotQuadraticException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert aqmodels.ModelNotQuadraticException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert (
-        aqm.exceptions.ModelNotQuadraticException.__module__ == EXCEPTIONS_MODULE_NAME
-    )
-    assert (
-        aqmodels.exceptions.ModelNotQuadraticException
-        == exceptions.ModelNotQuadraticException
-    )
-    assert ID.__module__ == EXCEPTIONS_MODULE_NAME
-    assert D.__module__ == EXCEPTIONS_MODULE_NAME
-    assert exceptions.ModelNotQuadraticException.__module__ == EXCEPTIONS_MODULE_NAME
+    assert aqm.ModelNotQuadraticError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.ModelNotQuadraticError.__module__ == ERRORS_MODULE_NAME
+    assert aqm.errors.ModelNotQuadraticError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
+    assert ID.__module__ == ERRORS_MODULE_NAME
+    assert D.__module__ == ERRORS_MODULE_NAME
+    assert errors.ModelNotQuadraticError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_model_not_unconstrained_exception():
     import aqmodels
     import aqmodels as aqm
-    from aqmodels import exceptions  # the true way to do it.
-    from aqmodels.exceptions import ModelNotUnconstrainedException as ID
-    from aqmodels import ModelNotUnconstrainedException as D
+    from aqmodels import errors  # the true way to do it.
+    from aqmodels.errors import ModelNotUnconstrainedError as ID
+    from aqmodels import ModelNotUnconstrainedError as D
 
-    # The true path is the exceptions.ModelNotUnconstrainedException
-    # The aqmodels/aqm.exceptions is hacked into the bindings.
-    # So we check again the exceptions.ModelNotUnconstrainedException with the import from
+    # The true path is the errors.ModelNotUnconstrainedError
+    # The aqmodels/aqm.errors is hacked into the bindings.
+    # So we check again the errors.ModelNotUnconstrainedError with the import from
     # aqmodels
+    assert aqm.ModelNotUnconstrainedError == errors.ModelNotUnconstrainedError
+    assert aqmodels.ModelNotUnconstrainedError == errors.ModelNotUnconstrainedError
     assert (
-        aqm.ModelNotUnconstrainedException == exceptions.ModelNotUnconstrainedException
+        aqmodels.errors.ModelNotUnconstrainedError == errors.ModelNotUnconstrainedError
     )
-    assert (
-        aqmodels.ModelNotUnconstrainedException
-        == exceptions.ModelNotUnconstrainedException
-    )
-    assert (
-        aqmodels.exceptions.ModelNotUnconstrainedException
-        == exceptions.ModelNotUnconstrainedException
-    )
-    assert (
-        aqm.exceptions.ModelNotUnconstrainedException
-        == exceptions.ModelNotUnconstrainedException
-    )
-    assert ID == exceptions.ModelNotUnconstrainedException
-    assert D == exceptions.ModelNotUnconstrainedException
+    assert aqm.errors.ModelNotUnconstrainedError == errors.ModelNotUnconstrainedError
+    assert ID == errors.ModelNotUnconstrainedError
+    assert D == errors.ModelNotUnconstrainedError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.ModelNotUnconstrainedException.__module__ == EXCEPTIONS_MODULE_NAME
-    assert aqmodels.ModelNotUnconstrainedException.__module__ == EXCEPTIONS_MODULE_NAME
+    assert aqm.ModelNotUnconstrainedError.__module__ == ERRORS_MODULE_NAME
+    assert aqmodels.ModelNotUnconstrainedError.__module__ == ERRORS_MODULE_NAME
+    assert aqm.errors.ModelNotUnconstrainedError.__module__ == ERRORS_MODULE_NAME
     assert (
-        aqm.exceptions.ModelNotUnconstrainedException.__module__
-        == EXCEPTIONS_MODULE_NAME
+        aqmodels.errors.ModelNotUnconstrainedError == errors.ModelNotUnconstrainedError
     )
-    assert (
-        aqmodels.exceptions.ModelNotUnconstrainedException
-        == exceptions.ModelNotUnconstrainedException
-    )
-    assert ID.__module__ == EXCEPTIONS_MODULE_NAME
-    assert D.__module__ == EXCEPTIONS_MODULE_NAME
-    assert (
-        exceptions.ModelNotUnconstrainedException.__module__ == EXCEPTIONS_MODULE_NAME
-    )
+    assert ID.__module__ == ERRORS_MODULE_NAME
+    assert D.__module__ == ERRORS_MODULE_NAME
+    assert errors.ModelNotUnconstrainedError.__module__ == ERRORS_MODULE_NAME

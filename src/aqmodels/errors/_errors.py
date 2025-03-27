@@ -3,74 +3,44 @@ from aqmodels._api_utils import export
 
 @export("top", "errors")
 class VariableOutOfRangeError(Exception):
-    """
-    VariableOutOfRangeError doc
-    """
-
-    ...
+    """ """
 
 
 @export("top", "errors")
 class VariableExistsError(Exception):
-    """
-    VariableOutOfRangeError doc
-    """
-
-    ...
+    """ """
 
 
-@export("errors")
+@export("top", "errors")
 class VariablesFromDifferentEnvsError(Exception):
-    """
-    VariableOutOfRangeError doc
-    """
-
-    ...
+    """ """
 
 
+@export("top", "errors")
 class DifferentEnvsError(Exception):
-    """
-    VariableOutOfRangeError doc
-    """
-
-    ...
+    """ """
 
 
+@export("top", "errors")
 class NoActiveEnvironmentFoundError(Exception):
-    """
-    VariableOutOfRangeError doc
-    """
-
-    ...
+    """ """
 
 
+@export("top", "errors")
 class MultipleActiveEnvironmentsError(Exception):
-    """
-    VariableOutOfRangeError doc
-    """
-
-    ...
+    """ """
 
 
+@export("top", "errors")
 class DecodeError(Exception):
-    """
-    VariableOutOfRangeError doc
-    """
-
-    ...
+    """ """
 
 
+@export("top", "errors")
 class ModelNotQuadraticError(Exception):
-    """
-    VariableOutOfRangeError doc
-    """
-
-    ...
+    """ """
 
 
+@export("top", "errors")
 class ModelNotUnconstrainedError(Exception):
-    """
-    VariableOutOfRangeError doc
-    """
-
-    ...
+    """ """
