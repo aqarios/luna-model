@@ -1,4 +1,4 @@
-# 🧠 aqmodels
+# 🧠 AqModels
 
 > A high-performance symbolic modeling library for optimization, powered by Rust and exposed in Python.
 
@@ -23,14 +23,16 @@ Built on a modern Rust core and exposed via `PyO3`, it bridges the performance o
 ## 📦 Installation
 
 ```bash
-uv pip install aqmodels
+pip install git+https://github.com/aqarios/aq-models-rs.git@release
+# or with ssh
+pip install git+ssh://git@github.com/aqarios/aq-models-rs.git@release
 ```
 
 Or clone and build locally (requires Rust):
 
 ```bash
-git clone https://github.com/your-org/aqmodels.git
-cd aqmodels
+git clone https://github.com/aqarios/aq-models-rs.git
+cd aq-models-rs
 uv sync
 uv build
 ```
@@ -215,4 +217,3 @@ For roadmap ideas, check out [issues](https://github.com/your-org/aqmodels/issue
 ---
 
 > © Aqarios GmbH / Jonas Blenninger 2024-present. Built with ❤️ and Rust.
-```
