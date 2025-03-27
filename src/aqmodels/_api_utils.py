@@ -20,3 +20,8 @@ def export(*args):  # type: ignore[inconsistentOverload]
         return cls
 
     return wrapper
+
+
+def dispatched(func):
+    """Marks a function as dispatched to external (Rust) implementation."""
+    return func

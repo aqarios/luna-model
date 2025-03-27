@@ -1,7 +1,5 @@
 from __future__ import annotations
-from typing import Any
-from aqmodels._expression import Expression
-from aqmodels._api_utils import export
+from aqmodels._api_utils import export, dispatched
 
 
 @export
@@ -10,58 +8,39 @@ class Environment:
     Documentation of Environment
     """
 
-    def __init__(self) -> None:
+    @dispatched
+    def __init__(self):
         """
         Documentation of init
         """
-        ...
+        return
 
-    def encode(self, compress, level) -> bytes:
+    @dispatched
+    def encode(self, compress, level):
         """
         Documentation of encode
         """
-        ...
+        return compress, level
 
-    def serialize(self, compress, level) -> bytes:
+    @dispatched
+    def serialize(self, compress, level):
         """
         Documentation of serialize
         """
-        ...
+        return compress, level
 
-    def __enter__(self) -> Any:
-        """
-        Documentation of __enter__
-        """
-        ...
-
-    def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
-        """
-        Documentation of __exit__
-        """
-        ...
-
-    def __str__(self) -> str:
-        """
-        Description of `__str__`
-        """
-        ...
-
-    def __repr__(self) -> str:
-        """
-        Description of `__repr__`
-        """
-        ...
-
+    @dispatched
     @staticmethod
-    def decode(data) -> Expression:
+    def decode(data):
         """
         Documentation of add_constraint
         """
-        ...
+        return data
 
+    @dispatched
     @staticmethod
-    def deserialize(data) -> Expression:
+    def deserialize(data):
         """
         Documentation of deserialize
         """
-        ...
+        return data

@@ -1,16 +1,17 @@
 import aqmodels
 import aqmodels as aqm
 
-# with aqm.Environment():
-#     v = aqmodels.Variable("v")
-#
-#
-# print(v)
+with aqm.Environment():
+    v = aqmodels.Variable("v")
+    e = v * 2
+
+
+print(v)
 
 # aqm.translator.MatrixTranslator
 
 
-from aqmodels import MatrixTranslator
+from aqmodels import Expression, MatrixTranslator
 from aqmodels import translator as _b
 from aqmodels.translator import MatrixTranslator as _c
 
@@ -25,6 +26,13 @@ print(aqmodels.translator.MatrixTranslator)
 
 print(aqm.translator.MatrixTranslator)
 aqm.translator.MatrixTranslator
+
+
+aqm.Vtype.Binary
+aqm.Model
+
+
+Expression.decode
 
 
 # print(MatrixTranslator)
