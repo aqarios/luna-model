@@ -10,7 +10,7 @@ pub struct ResultView<Idx, Bias, AssignmentTypes>
 where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     /// The solution this result view corresponds to
     sol: Rc<Solution<Bias, AssignmentTypes>>,
@@ -24,7 +24,7 @@ pub struct ResultIterator<Idx, Bias, AssignmentTypes>
 where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     /// The solution this result view corresponds to
     sol: Rc<Solution<Bias, AssignmentTypes>>,
@@ -38,7 +38,7 @@ pub struct SampleIterator<Idx, Bias, AssignmentTypes>
 where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     /// The solution this result view corresponds to
     sol: Rc<Solution<Bias, AssignmentTypes>>,
@@ -52,7 +52,7 @@ impl<Idx, Bias, AssignmentTypes> ResultView<Idx, Bias, AssignmentTypes>
 where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>, row_idx: Idx) -> Self {
         Self { sol, row_idx }
@@ -83,7 +83,7 @@ impl<Idx, Bias, AssignmentTypes> ResultIterator<Idx, Bias, AssignmentTypes>
 where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>) -> Self {
         Self {
@@ -97,7 +97,7 @@ impl<Idx, Bias, AssignmentTypes> SampleIterator<Idx, Bias, AssignmentTypes>
 where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>, row_idx: Idx) -> Self {
         Self {
@@ -112,7 +112,7 @@ impl<Idx, Bias, AssignmentTypes> Iterator for ResultIterator<Idx, Bias, Assignme
 where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     type Item = ResultView<Idx, Bias, AssignmentTypes>;
 
@@ -131,9 +131,9 @@ impl<Idx, Bias, AssignmentTypes> Iterator for SampleIterator<Idx, Bias, Assignme
 where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
-    type Item = VarAssignment<Bias, AssignmentTypes>;
+    type Item = VarAssignment<AssignmentTypes>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let out = self.sol.get_assignment(self.row_idx, self.next_col);

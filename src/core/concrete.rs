@@ -40,7 +40,7 @@ pub type ConcreteAssignmentType = f64;
 #[derive(Debug, Clone, Copy)]
 pub struct ConcreteAssignmentTypes {}
 
-impl AssignmentBaseTypes<ConcreteBias> for ConcreteAssignmentTypes {
+impl AssignmentBaseTypes for ConcreteAssignmentTypes {
     type BinaryType = ConcreteBinaryType;
     type SpinType = ConcreteSpinType;
     type IntegerType = ConcreteIntegerType;

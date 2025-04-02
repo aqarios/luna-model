@@ -92,7 +92,7 @@ where
         _sol: &mut Solution<Bias, AssignmentTypes>,
     ) -> &mut Solution<Bias, AssignmentTypes>
     where
-        AssignmentTypes: AssignmentBaseTypes<Bias>,
+        AssignmentTypes: AssignmentBaseTypes,
     {
         // Here, duplicate samples are already removed, i.e., each element of sol.samples is unique
 

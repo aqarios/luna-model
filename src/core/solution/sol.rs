@@ -6,10 +6,9 @@ use num::NumCast;
 use std::ops::Mul;
 
 #[derive(Debug, Clone, Copy)]
-pub enum VarAssignment<Bias, AssignmentTypes>
+pub enum VarAssignment<AssignmentTypes>
 where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     Binary(AssignmentTypes::BinaryType),
     Spin(AssignmentTypes::SpinType),
@@ -19,10 +18,9 @@ where
 
 /// The different assignments to a variable in the single samples
 #[derive(Debug, Clone)]
-pub enum SampleCol<Bias, AssignmentTypes>
+pub enum SampleCol<AssignmentTypes>
 where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     Binary(Vec<AssignmentTypes::BinaryType>),
     Spin(Vec<AssignmentTypes::SpinType>),
@@ -30,10 +28,10 @@ where
     Real(Vec<AssignmentTypes::RealType>),
 }
 
-impl<Bias, AssignmentTypes> Mul<Bias> for VarAssignment<Bias, AssignmentTypes>
+impl<Bias, AssignmentTypes> Mul<Bias> for VarAssignment<AssignmentTypes>
 where
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     type Output = Bias;
 
@@ -47,10 +45,9 @@ where
     }
 }
 
-impl<Bias, AssignmentTypes> SampleCol<Bias, AssignmentTypes>
+impl<AssignmentTypes> SampleCol<AssignmentTypes>
 where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     pub fn push<N: NumCast>(&mut self, assignment: N) -> Result<(), ()> {
         match self {
@@ -58,7 +55,7 @@ where
                 // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
                 // xs.push(assignment.into());
                 xs.push(
-                    <<AssignmentTypes as AssignmentBaseTypes<Bias>>::BinaryType as NumCast>::from(
+                    <<AssignmentTypes as AssignmentBaseTypes>::BinaryType as NumCast>::from(
                         assignment,
                     )
                     .unwrap(),
@@ -68,7 +65,7 @@ where
             Self::Spin(xs) => {
                 // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
                 xs.push(
-                    <<AssignmentTypes as AssignmentBaseTypes<Bias>>::SpinType as NumCast>::from(
+                    <<AssignmentTypes as AssignmentBaseTypes>::SpinType as NumCast>::from(
                         assignment,
                     )
                     .unwrap(),
@@ -78,7 +75,7 @@ where
             Self::Integer(xs) => {
                 // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
                 xs.push(
-                    <<AssignmentTypes as AssignmentBaseTypes<Bias>>::IntegerType as NumCast>::from(
+                    <<AssignmentTypes as AssignmentBaseTypes>::IntegerType as NumCast>::from(
                         assignment,
                     )
                     .unwrap(),
@@ -88,7 +85,7 @@ where
             Self::Real(xs) => {
                 // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
                 xs.push(
-                    <<AssignmentTypes as AssignmentBaseTypes<Bias>>::RealType as NumCast>::from(
+                    <<AssignmentTypes as AssignmentBaseTypes>::RealType as NumCast>::from(
                         assignment,
                     )
                     .unwrap(),
@@ -98,7 +95,10 @@ where
         }
     }
 
-    pub fn get(&self, index: usize) -> Option<VarAssignment<Bias, AssignmentTypes>> {
+    pub fn get<Bias: BiasConstraints>(
+        &self,
+        index: usize,
+    ) -> Option<VarAssignment<AssignmentTypes>> {
         match self {
             Self::Binary(col) => col.get(index).map(|&x| VarAssignment::Binary(x)),
             Self::Spin(col) => col.get(index).map(|&x| VarAssignment::Spin(x)),
@@ -115,12 +115,12 @@ where
 pub struct Solution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     /// A collection of samples. Each inner vec corresponds to all assignments to a single variable
     /// across different samples. `samples.len()` can be expected to always correspond exactly to
     /// the number of results available in the solution.
-    pub samples: Vec<SampleCol<Bias, AssignmentTypes>>,
+    pub samples: Vec<SampleCol<AssignmentTypes>>,
     /// How often each result occurs in the solution. `num_occurrences.len()` can be expected to
     /// always be equal to `samples.len()`
     pub num_occurrences: Vec<usize>,
@@ -151,7 +151,7 @@ where
 impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes<Bias>,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     // pub fn position<Assignment: AssignmentConstraints>(
     //     &self,
@@ -207,16 +207,12 @@ where
         }
     }
 
-    pub fn get_assignment<Idx>(
-        &self,
-        row: Idx,
-        col: Idx,
-    ) -> Option<VarAssignment<Bias, AssignmentTypes>>
+    pub fn get_assignment<Idx>(&self, row: Idx, col: Idx) -> Option<VarAssignment<AssignmentTypes>>
     where
         Idx: IndexConstraints,
     {
         self.samples
             .get(col.into())
-            .and_then(|col| col.get(row.into()))
+            .and_then(|col| col.get::<Bias>(row.into()))
     }
 }

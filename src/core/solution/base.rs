@@ -1,8 +1,7 @@
-use crate::core::expression::BiasConstraints;
 use num::NumCast;
 use std::fmt::{Debug, Display};
 
-pub trait AssignmentBaseTypes<Bias: BiasConstraints>: Debug + Clone + Copy {
+pub trait AssignmentBaseTypes: Debug + Clone + Copy {
     /// The type of binary variable assignments in solutions
     type BinaryType: AssignmentConstraints;
     /// The type of spin variable assignments in solutions
@@ -22,13 +21,3 @@ impl<T: Debug + Clone + Display + Copy + Default + PartialEq + PartialOrd + NumC
     AssignmentConstraints for T
 {
 }
-
-// pub trait GeneralAssignmentTypeConstraints:
-//     Debug + Clone + Display + Copy + Default + PartialEq + PartialOrd + NumCast
-// {
-// }
-//
-// impl<T: Debug + Clone + Display + Copy + Default + PartialEq + PartialOrd + NumCast>
-//     GeneralAssignmentTypeConstraints for T
-// {
-// }
