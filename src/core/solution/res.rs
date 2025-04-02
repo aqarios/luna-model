@@ -144,18 +144,18 @@ where
     }
 }
 
-// pub struct OwnedResult<Assignment, Bias>
-// where
-//     Assignment: AssignmentBaseTypes,
-//     Bias: BiasConstraints,
-// {
-//     /// The vector of variable assignments.
-//     pub sample: Sample<Assignment>,
-//     /// The objective value computed from an AqModel. If not present, a raw value from the solver
-//     /// may be used. None, if none of these are present.
-//     pub obj_value: Option<Bias>,
-//     /// Boolean flag for each single constraint whether it's satisfied.
-//     pub constraint_satisfaction: Option<Vec<bool>>,
-//     /// Whether all constraints are satisfied.
-//     pub feasible: Option<bool>,
-// }
+pub struct OwnedResult<Assignment, Bias>
+where
+    Assignment: AssignmentBaseTypes,
+    Bias: BiasConstraints,
+{
+    /// The vector of variable assignments.
+    pub sample: Vec<VarAssignment<Assignment>>,
+    /// The objective value computed from an AqModel. If not present, a raw value from the solver
+    /// may be used. None, if none of these are present.
+    pub obj_value: Option<Bias>,
+    /// Boolean flag for each single constraint whether it's satisfied.
+    pub constraint_satisfaction: Option<Vec<bool>>,
+    /// Whether all constraints are satisfied.
+    pub feasible: Option<bool>,
+}

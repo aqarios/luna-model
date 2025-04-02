@@ -1,8 +1,7 @@
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
-use crate::core::solution::AssignmentConstraints;
-use num::NumCast;
+use num::{NumCast, ToPrimitive};
 use std::ops::Mul;
 
 #[derive(Debug, Clone, Copy)]
@@ -49,47 +48,22 @@ impl<AssignmentTypes> SampleCol<AssignmentTypes>
 where
     AssignmentTypes: AssignmentBaseTypes,
 {
-    pub fn push<N: NumCast>(&mut self, assignment: N) -> Result<(), ()> {
+    pub fn push<N: ToPrimitive>(&mut self, assignment: N) -> Result<(), ()> {
         match self {
             Self::Binary(xs) => {
-                // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
-                // xs.push(assignment.into());
-                xs.push(
-                    <<AssignmentTypes as AssignmentBaseTypes>::BinaryType as NumCast>::from(
-                        assignment,
-                    )
-                    .unwrap(),
-                );
+                xs.push(<AssignmentTypes::BinaryType as NumCast>::from(assignment).unwrap());
                 Ok(())
             }
             Self::Spin(xs) => {
-                // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
-                xs.push(
-                    <<AssignmentTypes as AssignmentBaseTypes>::SpinType as NumCast>::from(
-                        assignment,
-                    )
-                    .unwrap(),
-                );
+                xs.push(<AssignmentTypes::SpinType as NumCast>::from(assignment).unwrap());
                 Ok(())
             }
             Self::Integer(xs) => {
-                // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
-                xs.push(
-                    <<AssignmentTypes as AssignmentBaseTypes>::IntegerType as NumCast>::from(
-                        assignment,
-                    )
-                    .unwrap(),
-                );
+                xs.push(<AssignmentTypes::IntegerType as NumCast>::from(assignment).unwrap());
                 Ok(())
             }
             Self::Real(xs) => {
-                // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
-                xs.push(
-                    <<AssignmentTypes as AssignmentBaseTypes>::RealType as NumCast>::from(
-                        assignment,
-                    )
-                    .unwrap(),
-                );
+                xs.push(<AssignmentTypes::RealType as NumCast>::from(assignment).unwrap());
                 Ok(())
             }
         }
@@ -141,7 +115,7 @@ where
     pub feasible: Vec<bool>,
     // /// Metadata that may be useful for explaining why a constraint is not satisfied, e.g., the eval
     // /// of a lhs.
-    best_sample_idx: Option<usize>,
+    pub best_sample_idx: Option<usize>,
     /// Runtime metrics of the solution.
     pub timing: Option<Timing>,
     /// Private attribute to keep track of the current number of samples
@@ -153,39 +127,16 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    // pub fn position<Assignment: AssignmentConstraints>(
-    //     &self,
-    //     sample: &Vec<Assignment>,
-    // ) -> Option<usize> {
-    //     // TODO: check whether this approach is more efficient than creating a temp HashMap
-    //     self.samples.iter().position(|x| x == sample)
-    // }
-
     pub fn len(&self) -> usize {
         self.n_samples
     }
 
-    // /// Extend a solution with a sample, without computing any objective values or similar.
-    // pub fn extend<Assignment: AssignmentConstraints>(
-    //     &mut self,
-    //     sample: Vec<Assignment>,
-    //     num_occurrences: usize,
-    // ) -> Result<&mut Self, ()> {
-    //     if let Some(idx) = self.position(&sample) {
-    //         self.num_occurrences[idx] += num_occurrences;
-    //     } else {
-    //         self.add_sample(sample)?;
-    //         self.num_occurrences.push(num_occurrences);
-    //     }
-    //     Ok(self)
-    // }
-
     /// Extend a solution with a sample, without computing any objective values or similar.
-    /// In contrast to `extend`, this method does not check whether the sample is already part of
-    /// the solution.
-    pub fn extend_no_agg<Assignment: AssignmentConstraints>(
+    /// This method does not check whether the sample is already part of the solution as for now the
+    /// solution translator is expected to do the aggregation.
+    pub fn extend<T: Copy + NumCast>(
         &mut self,
-        sample: Vec<Assignment>,
+        sample: Vec<T>,
         num_occurrences: usize,
     ) -> Result<&mut Self, ()> {
         self.add_sample(sample)?;
@@ -193,10 +144,7 @@ where
         Ok(self)
     }
 
-    fn add_sample<Assignment: AssignmentConstraints>(
-        &mut self,
-        sample: Vec<Assignment>,
-    ) -> Result<(), ()> {
+    fn add_sample<T: Copy + NumCast>(&mut self, sample: Vec<T>) -> Result<(), ()> {
         if sample.len() != self.samples.len() {
             Err(())
         } else {

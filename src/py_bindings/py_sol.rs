@@ -84,6 +84,11 @@ impl PySolution {
         self.timing.map(|t| PyTiming(t))
     }
 
+    #[getter]
+    fn best_sample_idx(&self) -> Option<usize> {
+        self.0.best_sample_idx
+    }
+
     // TODO: implement human-readable solution representation
     fn __str__(&self) -> String {
         format!("{:?}", self.0)
@@ -112,10 +117,7 @@ impl PyResultView {
 
     #[getter]
     fn constraint_satisfaction<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
-        match self.0.constraint_satisfaction() {
-            None => None,
-            Some(c) => Some(c.to_pyarray(py)),
-        }
+        self.0.constraint_satisfaction().map(|c| c.to_pyarray(py))
     }
 
     #[getter]

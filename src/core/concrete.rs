@@ -37,7 +37,7 @@ pub type ConcreteIntegerType = i64;
 pub type ConcreteRealType = f64;
 pub type ConcreteAssignmentType = f64;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct ConcreteAssignmentTypes {}
 
 impl AssignmentBaseTypes for ConcreteAssignmentTypes {

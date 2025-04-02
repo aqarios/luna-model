@@ -1,7 +1,7 @@
 use num::NumCast;
 use std::fmt::{Debug, Display};
 
-pub trait AssignmentBaseTypes: Debug + Clone + Copy {
+pub trait AssignmentBaseTypes: Debug + Clone + Copy + Default {
     /// The type of binary variable assignments in solutions
     type BinaryType: AssignmentConstraints;
     /// The type of spin variable assignments in solutions
