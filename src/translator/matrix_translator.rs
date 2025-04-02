@@ -3,7 +3,7 @@ use crate::{
         expression::{BiasConstraints, IndexConstraints},
         ExpressionBase, Model, Vtype,
     },
-    errors::{MatrixTranslatorError, ModelNotQuadraticError, ModelNotUnconstrainedError},
+    errors::{MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr},
 };
 
 /// A translator used to read a Quadratic Unconstrained Binary Optimization (QUBO) problem
@@ -33,18 +33,18 @@ impl MatrixTranslator {
     /// to express the optimization problem in the expected format.
     pub fn model_to_dense<Index, Bias>(
         model: &Model<Index, Bias>,
-    ) -> Result<(Vec<Bias>, usize), MatrixTranslatorError>
+    ) -> Result<(Vec<Bias>, usize), MatrixTranslatorErr>
     where
         Index: IndexConstraints,
         Bias: BiasConstraints,
     {
         let obj = model.objective.borrow();
         if obj.has_higher_order() {
-            return Err(ModelNotQuadraticError)?;
+            return Err(ModelNotQuadraticErr)?;
         }
 
         if !model.constraints.borrow().is_empty() {
-            return Err(ModelNotUnconstrainedError)?;
+            return Err(ModelNotUnconstrainedErr)?;
         }
 
         let nvars = obj.num_variables();

@@ -2,7 +2,7 @@ from typing import Tuple
 
 import pytest
 
-from aq_models import Environment, Expression, Variable
+from aqmodels import Environment, Expression, Variable
 
 
 @pytest.fixture

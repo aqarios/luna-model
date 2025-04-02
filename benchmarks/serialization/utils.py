@@ -1,9 +1,8 @@
 import json
 import sys
 
+from aqmodels import Model
 import dimod
-
-from aq_models import Model
 
 
 def serialize_aqm(model: Model) -> bytes:

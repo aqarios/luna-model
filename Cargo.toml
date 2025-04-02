@@ -2,6 +2,15 @@
 name = "aqmodels"
 version = "0.1.0"
 edition = "2021"
+description = "Rust based implementation of aq-models"
+readme = "README.md"
+license = "Copyright"
+homepage = "https://github.com/aqarios/aq-models-rs"
+exclude = [
+  "pytests",
+  "bench_reports",
+  "benchmarks"
+]
 
 # [lib]
 # name = "_core"

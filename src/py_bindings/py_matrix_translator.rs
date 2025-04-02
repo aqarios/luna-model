@@ -3,7 +3,7 @@ use crate::{core::Vtype, translator::matrix_translator::MatrixTranslator};
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::prelude::*;
 
-#[pyclass(unsendable, name = "MatrixTranslator")]
+#[pyclass(unsendable, name = "MatrixTranslator", module = "aqmodels.translator")]
 pub struct PyMatrixTranslator {}
 
 #[pymethods]

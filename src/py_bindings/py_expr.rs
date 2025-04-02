@@ -1,11 +1,14 @@
 use super::{
     py_constr::PyConstraint,
     py_env::{PyEnvironment, CURRENT_ENV},
-    py_exceptions::NoActiveEnvironmentFoundException,
+    py_exceptions::NoActiveEnvironmentFoundError,
     py_var::PyVariable,
 };
 use crate::core::{
-    operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
+    operations::{
+        AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
+        SubAssignToExpression, SubToExpression,
+    },
     Comparator, ConcreteConstraint, ConcreteExpression, ConcreteMutRcExpression, Expression,
     ExpressionBase,
 };
@@ -23,7 +26,7 @@ use pyo3::{
 };
 use std::{ops::Deref, rc::Rc};
 
-#[pyclass(unsendable, name = "Expression")]
+#[pyclass(unsendable, name = "Expression", module = "aqmodels")]
 #[derive(Deref, DerefMut, Clone)]
 pub struct PyExpression(pub ConcreteMutRcExpression);
 
@@ -42,7 +45,7 @@ impl PyExpression {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|current| {
                 current.borrow().clone().ok_or_else(|| {
-                    NoActiveEnvironmentFoundException::new_err("no active environment found.")
+                    NoActiveEnvironmentFoundError::new_err("no active environment found.")
                 })
             })?,
         };
@@ -132,12 +135,24 @@ impl PyExpression {
         self.__add__(py, other)
     }
 
-    fn __sub__(&self, _py: Python, _other: PyObject) -> PyResult<PyExpression> {
-        todo!()
+    fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        let expr: ConcreteExpression;
+        if let Ok(rhs) = other.extract::<f64>(py) {
+            expr = self.borrow().sub(rhs);
+        } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
+            expr = self.borrow().sub(rhs.as_ref())?;
+        } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
+            expr = self.borrow().sub(rhs.borrow().deref())?;
+        } else {
+            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+        }
+
+        Ok(PyExpression::new(expr))
     }
 
-    fn __rsub__(&self, _py: Python, _other: PyObject) -> PyResult<PyExpression> {
+    fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         todo!()
+        // self.__sub__(py, other)
     }
 
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
@@ -173,8 +188,18 @@ impl PyExpression {
         Ok(())
     }
 
-    fn __isub__(&mut self, _py: Python, _other: PyObject) {
-        todo!()
+    fn __isub__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
+        if let Ok(rhs) = other.extract::<f64>(py) {
+            self.borrow_mut().sub_assign(rhs)
+        } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
+            self.borrow_mut().sub_assign(rhs.as_ref())?
+        } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
+            self.borrow_mut().sub_assign(rhs.borrow().deref())?
+        } else {
+            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+        }
+
+        Ok(())
     }
 
     fn __imul__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
@@ -207,7 +232,7 @@ impl PyExpression {
             Ok(PyBool::new(py, result).to_owned().into())
         } else if let Ok(rhs) = other.extract::<f64>(py) {
             // Creates a new constraint.
-            let constraint = ConcreteConstraint::new(Rc::clone(&self.0), rhs, Comparator::Eq);
+            let constraint = ConcreteConstraint::new(Rc::clone(&self.0), rhs, Comparator::Eq, None);
             // todo: this is depreated... change to the new way
             // but for now this works as intended
             Ok(PyConstraint::new(constraint).into_py(py))
@@ -222,6 +247,10 @@ impl PyExpression {
 
     fn __ge__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
         PyConstraint::new_py(py, &self, other, Comparator::Geq)
+    }
+
+    fn __neg__(&self) -> PyExpression {
+        PyExpression::new(-self.borrow().deref())
     }
 
     fn __ne__(&self, other: &Self) -> bool {

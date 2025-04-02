@@ -11,7 +11,7 @@ from rich import print as rprint
 from rich.table import Column, Table
 from tqdm import tqdm  # type: ignore[import-untyped]
 
-from aq_models import MatrixTranslator, Vtype
+from aqmodels import MatrixTranslator, Vtype
 from benchmarks.setting import DENSITIES, SIZES
 from benchmarks.utils import BenchResult, make_qubo
 
