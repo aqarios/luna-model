@@ -1,138 +1,110 @@
-use crate::core::expression::BiasConstraints;
-use crate::core::solution::base::{AssignmentBaseTypes, AssignmentConstraints};
-use crate::core::solution::res::ResultView;
+use crate::core::expression::{BiasConstraints, IndexConstraints};
+use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
-use crate::core::ConcreteBias;
-use std::fmt::Binary;
+use crate::core::solution::AssignmentConstraints;
+use num::NumCast;
 use std::ops::Mul;
 
 #[derive(Debug, Clone, Copy)]
-pub enum VarAssignment<Assignment>
+pub enum VarAssignment<Bias, AssignmentTypes>
 where
-    Assignment: AssignmentBaseTypes,
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes<Bias>,
 {
-    Binary(Assignment::BinaryType),
-    Spin(Assignment::SpinType),
-    Integer(Assignment::IntegerType),
-    Real(Assignment::RealType),
+    Binary(AssignmentTypes::BinaryType),
+    Spin(AssignmentTypes::SpinType),
+    Integer(AssignmentTypes::IntegerType),
+    Real(AssignmentTypes::RealType),
 }
-
-impl<Assignment> VarAssignment<Assignment>
-where
-    Assignment: AssignmentBaseTypes,
-{
-    #[inline]
-    fn extract_inner(&self) -> &dyn AssignmentConstraints {
-        match self {
-            VarAssignment::Binary(x) => x,
-            VarAssignment::Spin(x) => x,
-            VarAssignment::Integer(x) => x,
-            VarAssignment::Real(x) => x,
-        }
-    }
-}
-
-impl<Assignment> Mul for VarAssignment<Assignment>
-where
-    Assignment: AssignmentBaseTypes,
-{
-    type Output = ConcreteBias;
-
-    fn mul(self, rhs: ConcreteBias) -> Self::Output {
-        match self {
-            VarAssignment::Binary(x) => x.into() * rhs,
-            VarAssignment::Spin(x) => x.into() * rhs,
-            VarAssignment::Integer(x) => x.into() * rhs,
-            VarAssignment::Real(x) => x.into() * rhs,
-        }
-    }
-}
-
-pub type Sample<Assignment: AssignmentBaseTypes> = Vec<VarAssignment<Assignment>>;
 
 /// The different assignments to a variable in the single samples
 #[derive(Debug, Clone)]
-pub enum VarAssignments<Assignment>
+pub enum SampleCol<Bias, AssignmentTypes>
 where
-    Assignment: AssignmentBaseTypes,
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes<Bias>,
 {
-    Binaries(Vec<Assignment::BinaryType>),
-    Spins(Vec<Assignment::SpinType>),
-    Integers(Vec<Assignment::IntegerType>),
-    Reals(Vec<Assignment::RealType>),
+    Binary(Vec<AssignmentTypes::BinaryType>),
+    Spin(Vec<AssignmentTypes::SpinType>),
+    Integer(Vec<AssignmentTypes::IntegerType>),
+    Real(Vec<AssignmentTypes::RealType>),
 }
 
-impl<Assignment: AssignmentBaseTypes> VarAssignments<Assignment> {
-    pub fn push(&mut self, assignment: VarAssignment<Assignment>) -> Result<(), ()> {
-        match (self, assignment) {
-            (VarAssignments::Binaries(xs), VarAssignment::Binary(x)) => {
-                xs.push(x);
-                Ok(())
-            }
-            (VarAssignments::Spins(xs), VarAssignment::Spin(x)) => {
-                xs.push(x);
-                Ok(())
-            }
-            (VarAssignments::Integers(xs), VarAssignment::Integer(x)) => {
-                xs.push(x);
-                Ok(())
-            }
-            (VarAssignments::Reals(xs), VarAssignment::Real(x)) => {
-                xs.push(x);
-                Ok(())
-            }
-            (_, _) => Err(()),
-        }
-    }
-    pub fn push2(&mut self, assignment: VarAssignment<Assignment>) -> Result<(), ()> {
-        todo!()
-    }
+impl<Bias, AssignmentTypes> Mul<Bias> for VarAssignment<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes<Bias>,
+{
+    type Output = Bias;
 
-    #[inline]
-    fn extract_inner(&self) -> &Vec<dyn AssignmentConstraints> {
+    fn mul(self, rhs: Bias) -> Self::Output {
         match self {
-            VarAssignments::Binaries(xs) => xs,
-            VarAssignments::Spins(xs) => xs,
-            VarAssignments::Integers(xs) => xs,
-            VarAssignments::Reals(xs) => xs,
+            VarAssignment::Binary(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
+            VarAssignment::Spin(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
+            VarAssignment::Integer(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
+            VarAssignment::Real(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
         }
     }
+}
 
-    #[inline]
-    fn map_to_var_assignment(&self, x: &dyn AssignmentConstraints) -> VarAssignment<Assignment> {
+impl<Bias, AssignmentTypes> SampleCol<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes<Bias>,
+{
+    pub fn push<N: NumCast>(&mut self, assignment: N) -> Result<(), ()> {
         match self {
-            VarAssignments::Binaries(_) => VarAssignment::Binary(x),
-            VarAssignments::Spins(_) => VarAssignment::Spin(x),
-            VarAssignments::Integers(_) => VarAssignment::Integer(x),
-            VarAssignments::Reals(_) => VarAssignment::Real(x),
+            Self::Binary(xs) => {
+                // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
+                // xs.push(assignment.into());
+                xs.push(
+                    <<AssignmentTypes as AssignmentBaseTypes<Bias>>::BinaryType as NumCast>::from(
+                        assignment,
+                    )
+                    .unwrap(),
+                );
+                Ok(())
+            }
+            Self::Spin(xs) => {
+                // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
+                xs.push(
+                    <<AssignmentTypes as AssignmentBaseTypes<Bias>>::SpinType as NumCast>::from(
+                        assignment,
+                    )
+                    .unwrap(),
+                );
+                Ok(())
+            }
+            Self::Integer(xs) => {
+                // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
+                xs.push(
+                    <<AssignmentTypes as AssignmentBaseTypes<Bias>>::IntegerType as NumCast>::from(
+                        assignment,
+                    )
+                    .unwrap(),
+                );
+                Ok(())
+            }
+            Self::Real(xs) => {
+                // xs.push(assignment.into().unwrap_or_else(|_| panic!()));
+                xs.push(
+                    <<AssignmentTypes as AssignmentBaseTypes<Bias>>::RealType as NumCast>::from(
+                        assignment,
+                    )
+                    .unwrap(),
+                );
+                Ok(())
+            }
         }
     }
 
-    // pub fn get(&self, index: usize) -> Option<VarAssignment<Assignment>> {
-    //     match self {
-    //         VarAssignments::Binaries(xs) => match xs.get(index) {
-    //             None => None,
-    //             Some(&x) => Some(VarAssignment::Binary(x)),
-    //         },
-    //         VarAssignments::Spins(xs) => match xs.get(index) {
-    //             None => None,
-    //             Some(&x) => Some(VarAssignment::Spin(x)),
-    //         },
-    //         VarAssignments::Integers(xs) => match xs.get(index) {
-    //             None => None,
-    //             Some(&x) => Some(VarAssignment::Integer(x)),
-    //         },
-    //         VarAssignments::Reals(xs) => match xs.get(index) {
-    //             None => None,
-    //             Some(&x) => Some(VarAssignment::Real(x)),
-    //         },
-    //     }
-    // }
-
-    pub fn get(&self, index: usize) -> Option<VarAssignment<Assignment>> {
-        self.extract_inner()
-            .get(index)
-            .map(|&x| self.map_to_var_assignment(x))
+    pub fn get(&self, index: usize) -> Option<VarAssignment<Bias, AssignmentTypes>> {
+        match self {
+            Self::Binary(col) => col.get(index).map(|&x| VarAssignment::Binary(x)),
+            Self::Spin(col) => col.get(index).map(|&x| VarAssignment::Spin(x)),
+            Self::Integer(col) => col.get(index).map(|&x| VarAssignment::Integer(x)),
+            Self::Real(col) => col.get(index).map(|&x| VarAssignment::Real(x)),
+        }
     }
 }
 
@@ -140,15 +112,15 @@ impl<Assignment: AssignmentBaseTypes> VarAssignments<Assignment> {
 /// about the environment the model was created in. Instead, for each sample, we expect the indices
 /// of the solution to be aligned with the variable indices of the model's environment.
 #[derive(Debug, Clone, Default)]
-pub struct Solution<Bias, Assignment>
+pub struct Solution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
-    Assignment: AssignmentBaseTypes,
+    AssignmentTypes: AssignmentBaseTypes<Bias>,
 {
     /// A collection of samples. Each inner vec corresponds to all assignments to a single variable
     /// across different samples. `samples.len()` can be expected to always correspond exactly to
     /// the number of results available in the solution.
-    pub samples: Vec<VarAssignments<Assignment>>,
+    pub samples: Vec<SampleCol<Bias, AssignmentTypes>>,
     /// How often each result occurs in the solution. `num_occurrences.len()` can be expected to
     /// always be equal to `samples.len()`
     pub num_occurrences: Vec<usize>,
@@ -162,11 +134,11 @@ where
     /// Boolean flag for each single constraint whether it's satisfied. Each inner vec corresponds
     /// to one sample, i.e., `constraints[i]` corresponds to `samples[0]`. May be empty for
     /// solutions that haven't yet been evaluated.
-    constraints: Vec<Vec<bool>>,
+    pub constraints: Vec<Vec<bool>>,
     /// Boolean flag for each sample whether it's feasible, i.e., whether all constraints are
     /// satisfied. In other words, `feasible[i]` iff. `all(constraints[i])`. May be empty for
     /// solutions that haven't yet been evaluated.
-    feasible: Vec<bool>,
+    pub feasible: Vec<bool>,
     // /// Metadata that may be useful for explaining why a constraint is not satisfied, e.g., the eval
     // /// of a lhs.
     best_sample_idx: Option<usize>,
@@ -176,37 +148,44 @@ where
     n_samples: usize,
 }
 
-impl<Bias, Assignment> Solution<Bias, Assignment>
+impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
-    Assignment: AssignmentBaseTypes,
+    AssignmentTypes: AssignmentBaseTypes<Bias>,
 {
-    pub fn position(&self, sample: &Sample<Assignment>) -> Option<usize> {
-        // TODO: check whether this approach is more efficient than creating a temp HashMap
-        self.samples.iter().position(|x| x == sample)
+    // pub fn position<Assignment: AssignmentConstraints>(
+    //     &self,
+    //     sample: &Vec<Assignment>,
+    // ) -> Option<usize> {
+    //     // TODO: check whether this approach is more efficient than creating a temp HashMap
+    //     self.samples.iter().position(|x| x == sample)
+    // }
+
+    pub fn len(&self) -> usize {
+        self.n_samples
     }
 
-    /// Extend a solution with a sample, without computing any objective values or similar.
-    pub fn extend(
-        &mut self,
-        sample: Sample<Assignment>,
-        num_occurrences: usize,
-    ) -> Result<&mut Self, ()> {
-        if let Some(idx) = self.position(&sample) {
-            self.num_occurrences[idx] += num_occurrences;
-        } else {
-            self.add_sample(sample)?;
-            self.num_occurrences.push(num_occurrences);
-        }
-        Ok(self)
-    }
+    // /// Extend a solution with a sample, without computing any objective values or similar.
+    // pub fn extend<Assignment: AssignmentConstraints>(
+    //     &mut self,
+    //     sample: Vec<Assignment>,
+    //     num_occurrences: usize,
+    // ) -> Result<&mut Self, ()> {
+    //     if let Some(idx) = self.position(&sample) {
+    //         self.num_occurrences[idx] += num_occurrences;
+    //     } else {
+    //         self.add_sample(sample)?;
+    //         self.num_occurrences.push(num_occurrences);
+    //     }
+    //     Ok(self)
+    // }
 
     /// Extend a solution with a sample, without computing any objective values or similar.
     /// In contrast to `extend`, this method does not check whether the sample is already part of
     /// the solution.
-    pub fn extend_no_agg(
+    pub fn extend_no_agg<Assignment: AssignmentConstraints>(
         &mut self,
-        sample: Sample<Assignment>,
+        sample: Vec<Assignment>,
         num_occurrences: usize,
     ) -> Result<&mut Self, ()> {
         self.add_sample(sample)?;
@@ -214,38 +193,30 @@ where
         Ok(self)
     }
 
-    fn add_sample(&mut self, sample: Sample<Assignment>) -> Result<(), ()> {
+    fn add_sample<Assignment: AssignmentConstraints>(
+        &mut self,
+        sample: Vec<Assignment>,
+    ) -> Result<(), ()> {
         if sample.len() != self.samples.len() {
             Err(())
         } else {
-            for (i, a) in sample.iter().enumerate() {
-                self.samples[i].push(*a);
+            for (i, &a) in sample.iter().enumerate() {
+                self.samples[i].push(a)?;
             }
             Ok(())
         }
     }
 
-    /// Iterate over the single results of the solution
-    pub fn iter(
+    pub fn get_assignment<Idx>(
         &self,
-    ) -> impl Iterator<Item = ResultView<Assignment, Bias>> + use<'_, Assignment, Bias> {
-        (0..self.samples.len()).map(|i| self.get_result(i).unwrap())
-    }
-
-    pub fn get_result(&self, index: usize) -> Option<ResultView<Assignment, Bias>> {
-        if index >= self.n_samples {
-            return None;
-        }
-        let sample: Sample<_> = self.samples.iter().map(|x| x.get(index).unwrap()).collect();
-
-        let obj_value = match (self.obj_values.get(index), self.raw_energies.get(index)) {
-            (Some(&bias), _) => Some(bias),
-            (_, Some(&bias)) => Some(bias),
-            (_, _) => None,
-        };
-        let constraints = self.constraints.get(index);
-        let feasible = self.feasible.get(index).map(|&b| b);
-
-        Some(ResultView::new(sample, obj_value, constraints, feasible))
+        row: Idx,
+        col: Idx,
+    ) -> Option<VarAssignment<Bias, AssignmentTypes>>
+    where
+        Idx: IndexConstraints,
+    {
+        self.samples
+            .get(col.into())
+            .and_then(|col| col.get(row.into()))
     }
 }

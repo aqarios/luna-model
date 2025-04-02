@@ -39,8 +39,10 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_constr::PyConstraints>()?;
     m.add_class::<py_timing::PyTiming>()?;
     m.add_class::<py_timing::PyTimer>()?;
-    m.add_class::<py_sol::PyRes>()?;
-    m.add_class::<py_sol::PyResults>()?;
+    m.add_class::<py_sol::PyVarAssignment>()?;
+    m.add_class::<py_sol::PyResultView>()?;
+    m.add_class::<py_sol::PyResultIterator>()?;
+    m.add_class::<py_sol::PySampleIterator>()?;
     m.add_class::<py_sol::PySolution>()?;
     m.add_class::<solution_translator::PySampleSetTranslator>()?;
     // Adding the exceptions

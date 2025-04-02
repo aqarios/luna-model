@@ -19,7 +19,9 @@ pub use common::MutRcExpression;
 pub use common::MutRcModel;
 pub use common::RcVarRef;
 
+pub use concrete::ConcreteAssignmentTypes;
 pub use concrete::ConcreteBias;
+pub use concrete::ConcreteBinaryType;
 pub use concrete::ConcreteConstraint;
 pub use concrete::ConcreteConstraints;
 pub use concrete::ConcreteEnvId;
@@ -28,6 +30,7 @@ pub use concrete::ConcreteExpression;
 pub use concrete::ConcreteHigherOrder;
 pub use concrete::ConcreteId;
 pub use concrete::ConcreteIndex;
+pub use concrete::ConcreteIntegerType;
 pub use concrete::ConcreteModel;
 pub use concrete::ConcreteMutRcConstraint;
 pub use concrete::ConcreteMutRcConstraints;
@@ -36,6 +39,9 @@ pub use concrete::ConcreteMutRcExpression;
 pub use concrete::ConcreteMutRcModel;
 pub use concrete::ConcreteQuadratic;
 pub use concrete::ConcreteRcVarRef;
+pub use concrete::ConcreteRealType;
+pub use concrete::ConcreteSolution;
+pub use concrete::ConcreteSpinType;
 pub use concrete::ConcreteVarRef;
 pub use concrete::Create;
 
@@ -51,11 +57,14 @@ pub use expression::ExpressionBaseAdjustment;
 
 pub use model::Model;
 
+pub use solution::ResultIterator;
 pub use solution::ResultView;
+pub use solution::SampleIterator;
 pub use solution::SampleSetTranslator;
 pub use solution::Solution;
 pub use solution::Timer;
 pub use solution::Timing;
+pub use solution::VarAssignment;
 
 pub use variable::Bounds;
 pub use variable::VarId;

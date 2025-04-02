@@ -1,11 +1,11 @@
 use super::constraints::Constraints;
 use super::environment::add_variable;
 use super::expression::{
-    AssignmentConstraints, BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment,
-    ExpressionBaseCreation, IndexConstraints,
+    BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation,
+    IndexConstraints,
 };
 use super::{Environment, Expression, Vtype};
-use crate::core::solution::{OwnedResult, Solution};
+use crate::core::solution::{AssignmentBaseTypes, Solution};
 use crate::core::utils::ModelWriter;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
@@ -87,27 +87,27 @@ where
         model
     }
 
-    fn evaluate<Assignment>(
+    fn evaluate<AssignmentTypes>(
         &self,
-        _sol: &mut Solution<Assignment, Bias>,
-    ) -> &mut Solution<Assignment, Bias>
+        _sol: &mut Solution<Bias, AssignmentTypes>,
+    ) -> &mut Solution<Bias, AssignmentTypes>
     where
-        Assignment: AssignmentConstraints,
+        AssignmentTypes: AssignmentBaseTypes<Bias>,
     {
         // Here, duplicate samples are already removed, i.e., each element of sol.samples is unique
 
         todo!("Implement evaluation logic")
     }
 
-    fn evaluate_result<Assignment>(
-        &self,
-        _res: &mut Vec<Assignment>,
-    ) -> &mut OwnedResult<Assignment, Bias>
-    where
-        Assignment: AssignmentConstraints,
-    {
-        todo!("Implement evaluation logic")
-    }
+    // fn evaluate_result<Assignment>(
+    //     &self,
+    //     _res: &mut Vec<Assignment>,
+    // ) -> &mut OwnedResult<Assignment, Bias>
+    // where
+    //     Assignment: AssignmentConstraints,
+    // {
+    //     todo!("Implement evaluation logic")
+    // }
 }
 
 impl<Index, Bias> PartialEq for Model<Index, Bias>

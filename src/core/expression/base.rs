@@ -1,10 +1,10 @@
+use crate::core::term::types::SizeType;
+use crate::core::{ConcreteBias, MutRcEnvironment, Vtype};
+use num::NumCast;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
 use std::str::FromStr;
-
-use crate::core::term::types::SizeType;
-use crate::core::{ConcreteBias, MutRcEnvironment, Vtype};
 
 use super::errors::VariableOutOfRangeError;
 
@@ -58,6 +58,7 @@ pub trait BiasConstraints:
     + Mul<Output = Self>
     + Mul<ConcreteBias, Output = Self>
     + Neg<Output = Self>
+    + NumCast
 {
 }
 impl<
@@ -73,7 +74,8 @@ impl<
             + MulAssign
             + Mul<Output = T>
             + Mul<ConcreteBias, Output = Self>
-            + Neg<Output = T>,
+            + Neg<Output = T>
+            + NumCast,
     > BiasConstraints for T
 {
 }

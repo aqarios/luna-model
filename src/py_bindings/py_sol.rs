@@ -1,57 +1,90 @@
-use crate::core::{ResultView, Solution};
+use crate::core::{
+    ConcreteAssignmentTypes, ConcreteBias, ConcreteIndex, ResultIterator, ResultView,
+    SampleIterator, Solution, VarAssignment,
+};
 use crate::py_bindings::py_timing::PyTiming;
 use derive_more::{Deref, DerefMut};
-use numpy::{PyArray1, PyArray2, ToPyArray};
+use numpy::{PyArray1, ToPyArray};
 use pyo3::prelude::*;
+use std::rc::Rc;
 
-#[pyclass(unsendable, name = "Result")]
-pub struct PyRes {
-    sample: Py<PyArray1<f64>>,
-    num_occurrences: usize,
-    obj_value: Option<f64>,
-    constraint_satisfaction: Option<Py<PyArray1<bool>>>,
-    feasible: Option<bool>,
-}
+#[pyclass(unsendable, name = "Assignment")]
+#[derive(Deref, DerefMut)]
+pub struct PyVarAssignment(VarAssignment<ConcreteAssignmentTypes>);
+
+#[pyclass(unsendable, name = "ResultView")]
+#[derive(Deref, DerefMut)]
+pub struct PyResultView(ResultView<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>);
 
 #[pyclass(unsendable, name = "Results")]
-pub struct PyResults {
-    solution: Solution<f64, f64>,
-    current_index: usize,
-}
+#[derive(Deref, DerefMut)]
+pub struct PyResultIterator(ResultIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>);
+
+#[pyclass(unsendable, name = "Sample")]
+#[derive(Deref, DerefMut)]
+pub struct PySampleIterator(SampleIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>);
 
 #[pyclass(unsendable, name = "Solution")]
 #[derive(Deref, DerefMut)]
-pub struct PySolution(pub Solution<f64, f64>);
+pub struct PySolution(pub Rc<Solution<ConcreteBias, ConcreteAssignmentTypes>>);
 
-impl Into<Solution<f64, f64>> for PySolution {
-    fn into(self) -> Solution<f64, f64> {
+impl Into<ResultView<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>> for PyResultView {
+    fn into(self) -> ResultView<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes> {
         self.0
+    }
+}
+
+impl Into<ResultIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>>
+    for PyResultIterator
+{
+    fn into(self) -> ResultIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes> {
+        self.0
+    }
+}
+
+impl Into<SampleIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>>
+    for PySampleIterator
+{
+    fn into(self) -> SampleIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes> {
+        self.0
+    }
+}
+
+impl Into<Solution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
+    fn into(self) -> Rc<Solution<ConcreteBias, ConcreteAssignmentTypes>> {
+        self.0
+    }
+}
+
+impl PySolution {
+    pub fn iter<Idx>(&self) -> PyResultIterator {
+        PyResultIterator(ResultIterator::new(Rc::clone(&self)))
     }
 }
 
 #[pymethods]
 impl PySolution {
     #[getter]
-    fn results<'a>(&self, py: Python<'a>) -> Vec<PyRes> {
-        self.iter().map(|r| PyRes::from_res(r, py)).collect()
+    fn results<'a>(&self) -> PyResultIterator {
+        self.iter::<ConcreteIndex>()
     }
+
     #[getter]
-    fn samples<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray2<f64>> {
-        PyArray2::from_vec2(py, &self.samples).unwrap()
-    }
-    #[getter]
-    fn obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<f64>> {
+    fn obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<ConcreteBias>> {
         self.obj_values.to_pyarray(py)
     }
+
     #[getter]
     fn num_occurrences<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
         self.num_occurrences.to_pyarray(py)
     }
+
     #[getter]
     fn runtime(&self) -> Option<PyTiming> {
         self.timing.map(|t| PyTiming(t))
     }
 
+    // TODO: implement human-readable solution representation
     fn __str__(&self) -> String {
         format!("{:?}", self.0)
     }
@@ -60,81 +93,55 @@ impl PySolution {
         format!("{:?}", self.0)
     }
 
-    fn __iter__(slf: PyRef<'_, Self>) -> PyResult<Py<PyResults>> {
-        let res_iter = PyResults::new(slf.clone());
-        Py::new(slf.py(), res_iter)
-    }
-}
-
-impl PyRes {
-    fn from_res<'a>(res: ResultView<'a, f64, f64>, py: Python<'a>) -> Self {
-        let constr_sat = match res.constraint_satisfaction {
-            None => None,
-            Some(c) => Some(c.to_pyarray(py).unbind()),
-        };
-        Self {
-            sample: res.sample.to_pyarray(py).unbind(),
-            num_occurrences: res.num_occurrences,
-            obj_value: res.obj_value,
-            constraint_satisfaction: constr_sat,
-            feasible: res.feasible,
-        }
-    }
-}
-
-impl PyResults {
-    fn new(solution: Solution<f64, f64>) -> Self {
-        Self {
-            solution,
-            current_index: 0,
-        }
-    }
-
-    fn next(&mut self, py: Python) -> Option<PyRes> {
-        let out = match self.solution.get_result(self.current_index) {
-            None => None,
-            Some(res) => Some(PyRes::from_res(res, py)),
-        };
-        self.current_index += 1;
-        out
+    fn __iter__(slf: PyRef<'_, Self>) -> PyResultIterator {
+        slf.iter::<ConcreteIndex>()
     }
 }
 
 #[pymethods]
-impl PyRes {
+impl PyResultView {
     #[getter]
-    fn sample(&self) -> &Py<PyArray1<f64>> {
-        &self.sample
+    fn sample(&self) -> PySampleIterator {
+        PySampleIterator(self.iter())
     }
 
     #[getter]
-    fn num_occurrences(&self) -> usize {
-        self.num_occurrences
+    fn obj_value(&self) -> Option<ConcreteBias> {
+        self.0.obj_value()
     }
 
     #[getter]
-    fn obj_value(&self) -> Option<f64> {
-        self.obj_value
-    }
-
-    #[getter]
-    fn constraint_satisfaction(&self) -> &Option<Py<PyArray1<bool>>> {
-        &self.constraint_satisfaction
+    fn constraint_satisfaction<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
+        match self.0.constraint_satisfaction() {
+            None => None,
+            Some(c) => Some(c.to_pyarray(py)),
+        }
     }
 
     #[getter]
     fn feasible(&self) -> Option<bool> {
-        self.feasible
+        self.0.feasible()
     }
 }
 
 #[pymethods]
-impl PyResults {
+impl PySampleIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
 
-    fn __next__(mut slf: PyRefMut<'_, Self>, py: Python) -> Option<PyRes> {
-        slf.next(py)
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyVarAssignment> {
+        slf.next().map(|res| PyVarAssignment(res))
+    }
+}
+
+#[pymethods]
+impl PyResultIterator {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyResultView> {
+        slf.next().map(|res| PyResultView(res))
     }
 }
