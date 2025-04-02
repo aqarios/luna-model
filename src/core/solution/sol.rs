@@ -1,8 +1,9 @@
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
+use crate::core::VarAssignment::Binary;
 use num::{NumCast, ToPrimitive};
-use std::ops::Mul;
+use std::ops::{Index, Mul};
 
 #[derive(Debug, Clone, Copy)]
 pub enum VarAssignment<AssignmentTypes>
@@ -13,6 +14,15 @@ where
     Spin(AssignmentTypes::SpinType),
     Integer(AssignmentTypes::IntegerType),
     Real(AssignmentTypes::RealType),
+}
+
+impl<AssignmentTypes> Default for VarAssignment<AssignmentTypes>
+where
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    fn default() -> Self {
+        Binary(AssignmentTypes::BinaryType::default())
+    }
 }
 
 /// The different assignments to a variable in the single samples

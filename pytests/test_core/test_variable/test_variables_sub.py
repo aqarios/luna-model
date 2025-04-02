@@ -1,6 +1,6 @@
 import pytest
 
-from aq_models import Environment, Expression, Variable
+from aqmodels import Environment, Expression, Variable
 
 
 @pytest.mark.variable
@@ -86,7 +86,6 @@ def test_sub_any_and_last_variables():
     assert result.get_offset() == 0
     assert result.get_linear(x) == -1
     assert result.get_linear(y) == 1
-
 
 # @pytest.mark.variable
 # def test_variable_sub_expression():

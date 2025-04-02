@@ -8,7 +8,6 @@ use numpy::{PyArray1, ToPyArray};
 use pyo3::prelude::*;
 use std::rc::Rc;
 
-#[pyclass(unsendable, name = "Assignment")]
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(VarAssignment<ConcreteAssignmentTypes>);
 
@@ -50,7 +49,7 @@ impl Into<SampleIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>>
     }
 }
 
-impl Into<Solution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
+impl Into<Rc<Solution<ConcreteBias, ConcreteAssignmentTypes>>> for PySolution {
     fn into(self) -> Rc<Solution<ConcreteBias, ConcreteAssignmentTypes>> {
         self.0
     }
@@ -116,8 +115,8 @@ impl PyResultView {
     }
 
     #[getter]
-    fn constraint_satisfaction<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
-        self.0.constraint_satisfaction().map(|c| c.to_pyarray(py))
+    fn constraints<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
+        self.constraint_satisfaction().map(|c| c.to_pyarray(py))
     }
 
     #[getter]
@@ -145,5 +144,20 @@ impl PyResultIterator {
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyResultView> {
         slf.next().map(|res| PyResultView(res))
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PyVarAssignment {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = std::convert::Infallible;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self.0 {
+            VarAssignment::Binary(x) => Ok(x.into_py(py).into_bound(py)),
+            VarAssignment::Spin(x) => Ok(x.into_py(py).into_bound(py)),
+            VarAssignment::Integer(x) => Ok(x.into_py(py).into_bound(py)),
+            VarAssignment::Real(x) => Ok(x.into_py(py).into_bound(py)),
+        }
     }
 }

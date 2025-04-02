@@ -1,11 +1,11 @@
 import pytest
 
-from aq_models import (
+from aqmodels import (
     Environment,
-    MultipleActiveEnvironmentsException,
-    NoActiveEnvironmentFoundException,
+    MultipleActiveEnvironmentsError,
+    NoActiveEnvironmentFoundError,
     Variable,
-    VariableExistsException,
+    VariableExistsError,
 )
 
 

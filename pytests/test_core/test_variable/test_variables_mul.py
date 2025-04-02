@@ -1,6 +1,6 @@
 import pytest
 
-from aq_models import Environment, Expression, Variable, Vtype
+from aqmodels import Environment, Expression, Variable, Vtype
 
 
 @pytest.mark.variable

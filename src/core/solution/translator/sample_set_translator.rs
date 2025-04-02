@@ -12,7 +12,7 @@ impl SampleSetTranslator {
     ) -> Result<ConcreteSolution, ()>
     where
         S: Copy + NumCast,
-        N: Copy + Into<usize>,
+        N: Copy + NumCast,
     {
         let mut sol = Solution::default();
         sol.timing = timing;
@@ -22,7 +22,10 @@ impl SampleSetTranslator {
                 .iter()
                 .map(|&x| x)
                 .collect();
-            sol.extend(sample, num_occurrences[i].into())?;
+            sol.extend(
+                sample,
+                <usize as NumCast>::from(num_occurrences[i]).unwrap(),
+            )?;
         }
         Ok(sol)
     }

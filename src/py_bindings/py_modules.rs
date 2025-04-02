@@ -4,7 +4,7 @@ use crate::core::{Comparator, Vtype};
 
 use super::{
     py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_matrix_translator, py_model,
-    py_var,
+    py_sol, py_timing, py_var, solution_translator,
 };
 
 // #[pymodule]
@@ -20,6 +20,13 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_bounds::PyBounds>()?;
     m.add_class::<py_constr::PyConstraint>()?;
     m.add_class::<py_constr::PyConstraints>()?;
+    m.add_class::<py_timing::PyTiming>()?;
+    m.add_class::<py_timing::PyTimer>()?;
+    m.add_class::<py_sol::PyResultView>()?;
+    m.add_class::<py_sol::PyResultIterator>()?;
+    m.add_class::<py_sol::PySampleIterator>()?;
+    m.add_class::<py_sol::PySolution>()?;
+    m.add_class::<solution_translator::PySampleSetTranslator>()?;
 
     Ok(())
 }

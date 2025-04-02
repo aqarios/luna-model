@@ -11,6 +11,7 @@ pub mod expression;
 pub mod operations;
 mod solution;
 pub mod term;
+mod traits;
 
 pub use common::MutRcConstraint;
 pub use common::MutRcConstraints;
@@ -71,3 +72,5 @@ pub use variable::VarId;
 pub use variable::VarRef;
 pub use variable::Variable;
 pub use variable::Vtype;
+
+pub use traits::IndexCopy;

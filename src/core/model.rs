@@ -5,7 +5,7 @@ use super::expression::{
     IndexConstraints,
 };
 use super::{Environment, Expression, Vtype};
-use crate::core::solution::{AssignmentBaseTypes, Solution};
+use crate::core::solution::{AssignmentBaseTypes, OwnedResult, Solution};
 use crate::core::utils::ModelWriter;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
@@ -87,10 +87,10 @@ where
         model
     }
 
-    fn evaluate<AssignmentTypes>(
+    fn evaluate_solution<AssignmentTypes>(
         &self,
-        _sol: &mut Solution<Bias, AssignmentTypes>,
-    ) -> &mut Solution<Bias, AssignmentTypes>
+        _sol: Rc<Solution<Bias, AssignmentTypes>>,
+    ) -> Rc<Solution<Bias, AssignmentTypes>>
     where
         AssignmentTypes: AssignmentBaseTypes,
     {
@@ -99,15 +99,15 @@ where
         todo!("Implement evaluation logic")
     }
 
-    // fn evaluate_result<Assignment>(
-    //     &self,
-    //     _res: &mut Vec<Assignment>,
-    // ) -> &mut OwnedResult<Assignment, Bias>
-    // where
-    //     Assignment: AssignmentConstraints,
-    // {
-    //     todo!("Implement evaluation logic")
-    // }
+    fn evaluate_sample<AssignmentTypes>(
+        &self,
+        _res: &Vec<AssignmentTypes>,
+    ) -> OwnedResult<Bias, AssignmentTypes>
+    where
+        AssignmentTypes: AssignmentBaseTypes,
+    {
+        todo!("Implement evaluation logic")
+    }
 }
 
 impl<Index, Bias> PartialEq for Model<Index, Bias>

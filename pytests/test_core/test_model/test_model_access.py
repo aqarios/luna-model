@@ -1,7 +1,6 @@
 import pytest
 
-from aq_models import Environment, Expression, Model, Variable
-
+from aqmodels import Environment, Expression, Model, Variable
 from ..utils import (
     assert_linear,
     assert_offset,

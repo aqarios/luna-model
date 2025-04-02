@@ -1,6 +1,6 @@
 import pytest
 
-from aq_models import Constraint, Constraints, Environment, Expression, Variable
+from aqmodels import Constraint, Constraints, Environment, Expression, Variable
 
 
 @pytest.fixture

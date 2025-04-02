@@ -1,4 +1,4 @@
-from aq_models import Constraints, Environment, Expression, Model
+from aqmodels import Constraints, Environment, Expression, Model
 
 from ..data import (
     serializable_objects,

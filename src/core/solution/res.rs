@@ -1,7 +1,8 @@
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::sol::VarAssignment;
-use crate::core::Solution;
+use crate::core::{IndexCopy, Solution};
+use std::ops::Index;
 use std::rc::Rc;
 
 /// A view into a certain sample of a solution and its corresponding metadata.
@@ -79,6 +80,19 @@ where
     }
 }
 
+impl<Idx, Bias, AssignmentTypes> IndexCopy<Idx> for ResultView<Idx, Bias, AssignmentTypes>
+where
+    Idx: IndexConstraints,
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    type Output = VarAssignment<AssignmentTypes>;
+
+    fn index_copy(&self, index: Idx) -> Self::Output {
+        self.sol.get_assignment(self.row_idx, index).unwrap()
+    }
+}
+
 impl<Idx, Bias, AssignmentTypes> ResultIterator<Idx, Bias, AssignmentTypes>
 where
     Idx: IndexConstraints,
@@ -144,10 +158,10 @@ where
     }
 }
 
-pub struct OwnedResult<Assignment, Bias>
+pub struct OwnedResult<Bias, Assignment>
 where
-    Assignment: AssignmentBaseTypes,
     Bias: BiasConstraints,
+    Assignment: AssignmentBaseTypes,
 {
     /// The vector of variable assignments.
     pub sample: Vec<VarAssignment<Assignment>>,

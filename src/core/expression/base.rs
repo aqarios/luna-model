@@ -1,5 +1,5 @@
 use crate::core::term::types::SizeType;
-use crate::core::{ConcreteBias, MutRcEnvironment, Vtype};
+use crate::core::{ConcreteBias, IndexCopy, MutRcEnvironment, Vtype};
 use num::NumCast;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
@@ -320,24 +320,24 @@ where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn evaluate_sample<'a, Elem: 'a, Sample: std::ops::Index<Idx, Output = Elem>>(
+    fn evaluate_sample<'a, Elem: 'a, Sample: IndexCopy<Idx, Output = Elem>>(
         &self,
         sample: &'a Sample,
     ) -> Bias
     where
-        &'a Elem: Mul<Bias, Output = Bias> + Mul<&'a Elem, Output = Elem>,
+        &'a Elem: Mul<Bias, Output = Bias>,
         Elem: Mul<Bias, Output = Bias>;
 
     fn evaluate_sampleset<
         'a,
         Elem: 'a,
-        Sample: std::ops::Index<Idx, Output = Elem> + 'a,
+        Sample: IndexCopy<Idx, Output = Elem> + 'a,
         SampleSet: Iterator<Item = &'a Sample> + Copy,
     >(
         &self,
         sampleset: &'a SampleSet,
     ) -> Vec<Bias>
     where
-        &'a Elem: Mul<Bias, Output = Bias> + Mul<&'a Elem, Output = Elem>,
+        &'a Elem: Mul<Bias, Output = Bias>,
         Elem: Mul<Bias, Output = Bias>;
 }
