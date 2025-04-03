@@ -1,20 +1,33 @@
-use crate::core::{ConcreteSolution, Solution, Timing};
+use crate::core::expression::IndexConstraints;
+use crate::core::solution::sol::SampleCol;
+use crate::core::{ConcreteSolution, MutRcEnvironment, Solution, Timing, Vtype};
+use crate::errors::SampleIncorrectLengthError;
 use num::NumCast;
 
 pub struct SampleSetTranslator {}
 
 impl SampleSetTranslator {
-    pub fn from_dimod_sample_set<S, N>(
+    pub fn from_dimod_sample_set<S, N, Idx>(
         samples: &[S],
         num_occurrences: &[N],
         shape: &[usize],
         timing: Option<Timing>,
-    ) -> Result<ConcreteSolution, ()>
+        env: MutRcEnvironment<Idx>,
+    ) -> Result<ConcreteSolution, SampleIncorrectLengthError>
     where
         S: Copy + NumCast,
         N: Copy + NumCast,
+        Idx: IndexConstraints,
     {
         let mut sol = Solution::default();
+        for v in env.borrow().variables.iter() {
+            match v.vtype {
+                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(shape[0]))),
+                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(shape[0]))),
+                Vtype::Integer => sol.add_column(SampleCol::Integer(Vec::with_capacity(shape[0]))),
+                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(shape[0]))),
+            }
+        }
         sol.timing = timing;
         for i in 0..shape[0] {
             let start_idx = i * shape[1];

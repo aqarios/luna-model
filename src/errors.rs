@@ -134,3 +134,17 @@ impl Display for IndexOutOfBoundsErr {
         )
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct SampleIncorrectLengthError;
+
+impl Error for SampleIncorrectLengthError {}
+
+impl Display for SampleIncorrectLengthError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(
+            f,
+            "Sample has a length different from the other samples in the solution"
+        )
+    }
+}

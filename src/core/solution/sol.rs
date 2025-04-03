@@ -2,6 +2,7 @@ use crate::core::expression::BiasConstraints;
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
 use crate::core::ResultView;
+use crate::errors::SampleIncorrectLengthError;
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
 use std::ops::{Index, Mul};
@@ -60,23 +61,19 @@ impl<AssignmentTypes> SampleCol<AssignmentTypes>
 where
     AssignmentTypes: AssignmentBaseTypes,
 {
-    pub fn push<N: ToPrimitive>(&mut self, assignment: N) -> Result<(), ()> {
+    pub fn push<N: ToPrimitive>(&mut self, assignment: N) {
         match self {
             Self::Binary(xs) => {
                 xs.push(<AssignmentTypes::BinaryType as NumCast>::from(assignment).unwrap());
-                Ok(())
             }
             Self::Spin(xs) => {
                 xs.push(<AssignmentTypes::SpinType as NumCast>::from(assignment).unwrap());
-                Ok(())
             }
             Self::Integer(xs) => {
                 xs.push(<AssignmentTypes::IntegerType as NumCast>::from(assignment).unwrap());
-                Ok(())
             }
             Self::Real(xs) => {
                 xs.push(<AssignmentTypes::RealType as NumCast>::from(assignment).unwrap());
-                Ok(())
             }
         }
     }
@@ -143,6 +140,10 @@ where
         self.n_samples
     }
 
+    pub fn add_column(&mut self, col: SampleCol<AssignmentTypes>) {
+        self.samples.push(col);
+    }
+
     /// Extend a solution with a sample, without computing any objective values or similar.
     /// This method does not check whether the sample is already part of the solution as for now the
     /// solution translator is expected to do the aggregation.
@@ -150,7 +151,7 @@ where
         &mut self,
         sample: Vec<T>,
         num_occurrences: usize,
-    ) -> Result<&mut Self, ()> {
+    ) -> Result<&mut Self, SampleIncorrectLengthError> {
         self.add_sample(sample)?;
         self.num_occurrences.push(num_occurrences);
         self.obj_values.push(None);
@@ -159,12 +160,15 @@ where
         Ok(self)
     }
 
-    fn add_sample<T: Copy + NumCast>(&mut self, sample: Vec<T>) -> Result<(), ()> {
+    fn add_sample<T: Copy + NumCast>(
+        &mut self,
+        sample: Vec<T>,
+    ) -> Result<(), SampleIncorrectLengthError> {
         if sample.len() != self.samples.len() {
-            Err(())
+            Err(SampleIncorrectLengthError)
         } else {
             for (i, &a) in sample.iter().enumerate() {
-                self.samples[i].push(a)?;
+                self.samples[i].push(a);
             }
             Ok(())
         }
