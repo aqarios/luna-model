@@ -88,6 +88,7 @@ from ._constraints import (
 )
 from . import (
   errors,
+  solution_translator,
   translator
 )
 
@@ -107,6 +108,7 @@ Timer = __Timer  # type: ignore[misc,assignment]
 Environment = __Environment  # type: ignore[misc,assignment]
 Expression = __Expression  # type: ignore[misc,assignment]
 MatrixTranslator = translator.MatrixTranslator
+SampleSetTranslator = solution_translator.SampleSetTranslator
 VariableOutOfRangeError = errors.VariableOutOfRangeError
 VariableExistsError = errors.VariableExistsError
 VariablesFromDifferentEnvsError = errors.VariablesFromDifferentEnvsError
@@ -135,6 +137,7 @@ __all__ = [
     "ResultView",
     "Results",
     "Sample",
+    "SampleSetTranslator",
     "Solution",
     "Timer",
     "Timing",
@@ -144,5 +147,6 @@ __all__ = [
     "VariablesFromDifferentEnvsError",
     "Vtype",
     "errors",
+    "solution_translator",
     "translator",
 ]

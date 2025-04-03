@@ -185,7 +185,7 @@ where
     }
 }
 
-#[derive(Deref, DerefMut)]
+#[derive(Debug, Deref, DerefMut)]
 pub struct RcSolution<Bias, AssignmentTypes>(Rc<Solution<Bias, AssignmentTypes>>)
 where
     Bias: BiasConstraints,
@@ -205,7 +205,10 @@ where
     }
 }
 
-impl<Bias, AssignmentTypes> Clone for RcSolution<Bias, AssignmentTypes> {
+impl<Bias, AssignmentTypes> Clone for RcSolution<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes, {
     fn clone(&self) -> Self {
         RcSolution(Rc::clone(&self.0))
     }

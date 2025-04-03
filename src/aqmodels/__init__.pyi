@@ -2,6 +2,7 @@
 # Do not edit manually.
 
 from datetime import datetime, timedelta
+from dimod import SampleSet
 from enum import Enum
 from numpy.typing import NDArray
 from typing import Any
@@ -9,6 +10,7 @@ from typing import overload
 from typing_extensions import overload
 
 from . import errors
+from . import solution_translator
 from . import translator
 
 class Comparator(Enum):
@@ -405,6 +407,14 @@ class MatrixTranslator:
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
 
+class SampleSetTranslator:
+    @staticmethod
+    def from_dimod_sample_set(
+            sample_set: SampleSet,
+            timing: Timing | None = None,
+            env: Environment | None = None,
+    ) -> Solution: ...
+
 class VariableOutOfRangeError(Exception):
     def __str__(self) -> str: ...
 
@@ -451,6 +461,7 @@ __all__ = [
     "ResultView",
     "Results",
     "Sample",
+    "SampleSetTranslator",
     "Solution",
     "Timer",
     "Timing",
@@ -460,5 +471,6 @@ __all__ = [
     "VariablesFromDifferentEnvsError",
     "Vtype",
     "errors",
+    "solution_translator",
     "translator",
 ]
