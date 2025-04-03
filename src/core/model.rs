@@ -4,8 +4,8 @@ use super::expression::{
     BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation,
     IndexConstraints,
 };
-use super::{Environment, Expression, Vtype};
-use crate::core::solution::{AssignmentBaseTypes, OwnedResult, Solution};
+use super::{Environment, Expression, RcSolution, Vtype};
+use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::utils::ModelWriter;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
@@ -89,8 +89,8 @@ where
 
     fn evaluate_solution<AssignmentTypes>(
         &self,
-        _sol: Rc<Solution<Bias, AssignmentTypes>>,
-    ) -> Rc<Solution<Bias, AssignmentTypes>>
+        _sol: RcSolution<Bias, AssignmentTypes>,
+    ) -> RcSolution<Bias, AssignmentTypes>
     where
         AssignmentTypes: AssignmentBaseTypes,
     {

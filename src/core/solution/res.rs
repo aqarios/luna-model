@@ -1,9 +1,8 @@
 use crate::core::expression::BiasConstraints;
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::sol::VarAssignment;
-use crate::core::{IndexByValue, Solution};
+use crate::core::{IndexByValue, RcSolution};
 use std::ops::Index;
-use std::rc::Rc;
 
 /// A view into a certain sample of a solution and its corresponding metadata.
 #[derive(Debug, Clone)]
@@ -13,7 +12,7 @@ where
     AssignmentTypes: AssignmentBaseTypes,
 {
     /// The solution this result view corresponds to
-    sol: Rc<Solution<Bias, AssignmentTypes>>,
+    sol: RcSolution<Bias, AssignmentTypes>,
     /// Index of the row of the sample within the solution
     row_idx: usize,
 }
@@ -26,7 +25,7 @@ where
     AssignmentTypes: AssignmentBaseTypes,
 {
     /// The solution this result view corresponds to
-    sol: Rc<Solution<Bias, AssignmentTypes>>,
+    sol: RcSolution<Bias, AssignmentTypes>,
     /// Index of the next row of the sample within the solution
     next_row: usize,
 }
@@ -39,7 +38,7 @@ where
     AssignmentTypes: AssignmentBaseTypes,
 {
     /// The solution this result view corresponds to
-    sol: Rc<Solution<Bias, AssignmentTypes>>,
+    sol: RcSolution<Bias, AssignmentTypes>,
     /// Index of the row of the sample within the solution
     row_idx: usize,
     /// Index of the next row of the sample within the solution
@@ -51,12 +50,12 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>, row_idx: usize) -> Self {
+    pub fn new(sol: RcSolution<Bias, AssignmentTypes>, row_idx: usize) -> Self {
         Self { sol, row_idx }
     }
 
     pub fn iter(&self) -> SampleIterator<Bias, AssignmentTypes> {
-        SampleIterator::new(Rc::clone(&self.sol), self.row_idx)
+        SampleIterator::new(RcSolution::clone(&self.sol), self.row_idx)
     }
 
     pub fn obj_value(&self) -> Option<Bias> {
@@ -93,7 +92,7 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>) -> Self {
+    pub fn new(sol: RcSolution<Bias, AssignmentTypes>) -> Self {
         Self { sol, next_row: 0 }
     }
 }
@@ -103,7 +102,7 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>, row_idx: usize) -> Self {
+    pub fn new(sol: RcSolution<Bias, AssignmentTypes>, row_idx: usize) -> Self {
         Self {
             sol,
             row_idx,
@@ -123,7 +122,7 @@ where
         if self.next_row >= self.sol.len() {
             None
         } else {
-            let res_view = Some(ResultView::new(Rc::clone(&self.sol), self.next_row));
+            let res_view = Some(ResultView::new(RcSolution::clone(&self.sol), self.next_row));
             self.next_row += 1;
             res_view
         }

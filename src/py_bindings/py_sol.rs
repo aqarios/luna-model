@@ -7,7 +7,6 @@ use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError};
 use pyo3::prelude::*;
-use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(VarAssignment<ConcreteAssignmentTypes>);
@@ -54,7 +53,7 @@ impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
 
 impl PySolution {
     pub fn iter<Idx>(&self) -> PyResultIterator {
-        PyResultIterator(ResultIterator::new(Rc::clone(&self)))
+        PyResultIterator(ResultIterator::new(RcSolution::clone(&self.0)))
     }
 }
 
@@ -66,7 +65,7 @@ impl PySolution {
     }
 
     #[getter]
-    fn obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<ConcreteBias>> {
+    fn obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<Option<ConcreteBias>>> {
         self.obj_values.to_pyarray(py)
     }
 
@@ -133,7 +132,10 @@ impl PyResultView {
 
     #[getter]
     fn constraints<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
-        self.constraint_satisfaction().map(|c| c.to_pyarray(py))
+        match &self.constraint_satisfaction() {
+            None => None,
+            Some(cs) => cs.map(|c| c.to_pyarray(py)),
+        }
     }
 
     #[getter]

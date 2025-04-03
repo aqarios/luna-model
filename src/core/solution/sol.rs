@@ -200,8 +200,14 @@ where
         if row_idx >= self.0.n_samples {
             None
         } else {
-            Some(ResultView::new(Rc::clone(&self), row_idx))
+            Some(ResultView::new(self.clone(), row_idx))
         }
+    }
+}
+
+impl<Bias, AssignmentTypes> Clone for RcSolution<Bias, AssignmentTypes> {
+    fn clone(&self) -> Self {
+        RcSolution(Rc::clone(&self.0))
     }
 }
 
