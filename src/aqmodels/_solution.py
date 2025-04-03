@@ -14,6 +14,10 @@ class Sample:
 
 @export
 class ResultView:
+    @dispatched
+    def __getitem__(self, item):
+        return item
+
     @property
     @dispatched
     def sample(self):
@@ -64,6 +68,10 @@ class Solution:
     @dispatched
     def __iter__(self):
         return
+
+    @dispatched
+    def __getitem__(self, item):
+        return item
 
     @property
     @dispatched
@@ -142,3 +150,20 @@ class Timer:
     @dispatched
     def stop(self):
         return
+
+# def wrap_from_dimod_sample_set(f):
+#     @functools.wraps(SampleSetTranslator.from_dimod_sample_set)
+#     def inner(sample_set: SampleSet, timing: Timing | None = None) -> Solution:
+#         sample_set = sample_set.aggregate()
+#         record = sample_set.record
+#         sample = record.sample.astype(np.int64, order="C")
+#         num_occurrences = record.num_occurrences.astype(np.int64, order="C")
+#
+#         return f(sample, num_occurrences, timing)
+#
+#     return inner
+#
+#
+# SampleSetTranslator.from_dimod_sample_set = wrap_from_dimod_sample_set(
+#     SampleSetTranslator.from_dimod_sample_set
+# )

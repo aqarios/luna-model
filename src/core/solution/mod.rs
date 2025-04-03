@@ -11,6 +11,7 @@ pub use res::OwnedResult;
 pub use res::ResultIterator;
 pub use res::ResultView;
 pub use res::SampleIterator;
+pub use sol::RcSolution;
 pub use sol::Solution;
 pub use sol::VarAssignment;
 pub use timing::Timer;

@@ -58,6 +58,7 @@ pub use expression::ExpressionBaseAdjustment;
 
 pub use model::Model;
 
+pub use solution::RcSolution;
 pub use solution::ResultIterator;
 pub use solution::ResultView;
 pub use solution::SampleIterator;
@@ -73,4 +74,4 @@ pub use variable::VarRef;
 pub use variable::Variable;
 pub use variable::Vtype;
 
-pub use traits::IndexCopy;
+pub use traits::IndexByValue;

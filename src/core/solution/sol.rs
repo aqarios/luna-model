@@ -1,9 +1,11 @@
-use crate::core::expression::{BiasConstraints, IndexConstraints};
+use crate::core::expression::BiasConstraints;
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
-use crate::core::VarAssignment::Binary;
+use crate::core::ResultView;
+use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
 use std::ops::{Index, Mul};
+use std::rc::Rc;
 
 #[derive(Debug, Clone, Copy)]
 pub enum VarAssignment<AssignmentTypes>
@@ -21,7 +23,7 @@ where
     AssignmentTypes: AssignmentBaseTypes,
 {
     fn default() -> Self {
-        Binary(AssignmentTypes::BinaryType::default())
+        VarAssignment::Binary(AssignmentTypes::BinaryType::default())
     }
 }
 
@@ -132,6 +134,12 @@ where
     n_samples: usize,
 }
 
+#[derive(Deref, DerefMut)]
+pub struct RcSolution<Bias, AssignmentTypes>(Rc<Solution<Bias, AssignmentTypes>>)
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes;
+
 impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
@@ -165,12 +173,38 @@ where
         }
     }
 
-    pub fn get_assignment<Idx>(&self, row: Idx, col: Idx) -> Option<VarAssignment<AssignmentTypes>>
-    where
-        Idx: IndexConstraints,
-    {
+    pub fn get_assignment(
+        &self,
+        row_idx: usize,
+        col_idx: usize,
+    ) -> Option<VarAssignment<AssignmentTypes>> {
         self.samples
-            .get(col.into())
-            .and_then(|col| col.get::<Bias>(row.into()))
+            .get(col_idx)
+            .and_then(|col| col.get::<Bias>(row_idx))
+    }
+}
+
+impl<Bias, AssignmentTypes> RcSolution<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    pub fn get_result_view(&self, row_idx: usize) -> Option<ResultView<Bias, AssignmentTypes>> {
+        if row_idx >= self.0.n_samples {
+            None
+        } else {
+            Some(ResultView::new(Rc::clone(&self), row_idx))
+        }
+    }
+}
+
+impl<Bias, AssignmentTypes> Into<Rc<Solution<Bias, AssignmentTypes>>>
+    for RcSolution<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    fn into(self) -> Rc<Solution<Bias, AssignmentTypes>> {
+        self.0
     }
 }

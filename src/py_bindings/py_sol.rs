@@ -1,56 +1,53 @@
 use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, ConcreteIndex, ResultIterator, ResultView,
-    SampleIterator, Solution, VarAssignment,
+    ConcreteAssignmentTypes, ConcreteBias, ConcreteIndex, IndexByValue, RcSolution, ResultIterator,
+    ResultView, SampleIterator, VarAssignment,
 };
 use crate::py_bindings::py_timing::PyTiming;
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
+use pyo3::exceptions::{PyIndexError, PyRuntimeError};
 use pyo3::prelude::*;
 use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(VarAssignment<ConcreteAssignmentTypes>);
 
-#[pyclass(unsendable, name = "ResultView")]
-#[derive(Deref, DerefMut)]
-pub struct PyResultView(ResultView<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>);
+#[pyclass(unsendable, name = "ResultView", module = "aqmodels")]
+#[derive(Deref, DerefMut, IntoPyObject)]
+pub struct PyResultView(ResultView<ConcreteBias, ConcreteAssignmentTypes>);
 
-#[pyclass(unsendable, name = "Results")]
+#[pyclass(unsendable, name = "Results", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PyResultIterator(ResultIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PyResultIterator(ResultIterator<ConcreteBias, ConcreteAssignmentTypes>);
 
-#[pyclass(unsendable, name = "Sample")]
+#[pyclass(unsendable, name = "Sample", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySampleIterator(SampleIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySampleIterator(SampleIterator<ConcreteBias, ConcreteAssignmentTypes>);
 
-#[pyclass(unsendable, name = "Solution")]
+#[pyclass(unsendable, name = "Solution", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySolution(pub Rc<Solution<ConcreteBias, ConcreteAssignmentTypes>>);
+pub struct PySolution(pub RcSolution<ConcreteBias, ConcreteAssignmentTypes>);
 
-impl Into<ResultView<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>> for PyResultView {
-    fn into(self) -> ResultView<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<ResultView<ConcreteBias, ConcreteAssignmentTypes>> for PyResultView {
+    fn into(self) -> ResultView<ConcreteBias, ConcreteAssignmentTypes> {
         self.0
     }
 }
 
-impl Into<ResultIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>>
-    for PyResultIterator
-{
-    fn into(self) -> ResultIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<ResultIterator<ConcreteBias, ConcreteAssignmentTypes>> for PyResultIterator {
+    fn into(self) -> ResultIterator<ConcreteBias, ConcreteAssignmentTypes> {
         self.0
     }
 }
 
-impl Into<SampleIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>>
-    for PySampleIterator
-{
-    fn into(self) -> SampleIterator<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<SampleIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySampleIterator {
+    fn into(self) -> SampleIterator<ConcreteBias, ConcreteAssignmentTypes> {
         self.0
     }
 }
 
-impl Into<Rc<Solution<ConcreteBias, ConcreteAssignmentTypes>>> for PySolution {
-    fn into(self) -> Rc<Solution<ConcreteBias, ConcreteAssignmentTypes>> {
+impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
+    fn into(self) -> RcSolution<ConcreteBias, ConcreteAssignmentTypes> {
         self.0
     }
 }
@@ -100,6 +97,26 @@ impl PySolution {
     fn __iter__(slf: PyRef<'_, Self>) -> PyResultIterator {
         slf.iter::<ConcreteIndex>()
     }
+
+    fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyObject> {
+        if let Ok(res_idx) = index.extract::<usize>(py) {
+            match self.get_result_view(res_idx) {
+                None => Err(PyIndexError::new_err(format!(
+                    "Index {res_idx} out of bounds"
+                ))),
+                Some(r) => PyResultView(r).into_pyobject(py),
+            }
+        } else if let Ok((res_idx, var_idx)) = index.extract::<(usize, usize)>(py) {
+            match self.get_assignment(res_idx.into(), var_idx.into()) {
+                None => Err(PyIndexError::new_err(format!(
+                    "Index ({res_idx}, {var_idx}) out of bounds"
+                ))),
+                Some(v) => Ok(PyVarAssignment(v).into_pyobject(py)?.unbind()),
+            }
+        } else {
+            Err(PyRuntimeError::new_err("unsupported type for indexing"))
+        }
+    }
 }
 
 #[pymethods]
@@ -122,6 +139,19 @@ impl PyResultView {
     #[getter]
     fn feasible(&self) -> Option<bool> {
         self.0.feasible()
+    }
+
+    fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyVarAssignment> {
+        if let Ok(var_idx) = index.extract::<usize>(py) {
+            match self.get_assignment(var_idx) {
+                None => Err(PyIndexError::new_err(format!(
+                    "Index {res_idx} out of bounds"
+                ))),
+                Some(r) => Ok(PyVarAssignment(r)),
+            }
+        } else {
+            Err(PyRuntimeError::new_err("unsupported type for indexing"))
+        }
     }
 }
 

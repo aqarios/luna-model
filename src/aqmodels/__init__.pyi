@@ -6,6 +6,7 @@ from enum import Enum
 from numpy.typing import NDArray
 from typing import Any
 from typing import overload
+from typing_extensions import overload
 
 from . import errors
 from . import translator
@@ -186,6 +187,8 @@ class Sample:
     def __next__(self) -> int | float | None: ...
 
 class ResultView:
+    def __getitem__(self, item: int) -> int | float: ...
+
     @property
     def sample(self) -> Sample: ...
 
@@ -212,6 +215,12 @@ class Solution:
     def __repr__(self) -> str: ...
 
     def __iter__(self) -> Results: ...
+
+    @overload
+    def __getitem__(self, item: int) -> ResultView: ...
+
+    @overload
+    def __getitem__(self, item: tuple[int, int]) -> int | float: ...
 
     @property
     def results(self) -> Results: ...

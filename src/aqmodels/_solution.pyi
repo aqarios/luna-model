@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from numpy.typing import NDArray
+from typing_extensions import overload
 
 
 class Sample:
@@ -10,6 +11,8 @@ class Sample:
 
 
 class ResultView:
+    def __getitem__(self, item: int) -> int | float: ...
+
     @property
     def sample(self) -> Sample: ...
 
@@ -38,6 +41,12 @@ class Solution:
     def __repr__(self) -> str: ...
 
     def __iter__(self) -> Results: ...
+
+    @overload
+    def __getitem__(self, item: int) -> ResultView: ...
+
+    @overload
+    def __getitem__(self, item: tuple[int, int]) -> int | float: ...
 
     @property
     def results(self) -> Results: ...

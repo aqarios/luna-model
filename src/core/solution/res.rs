@@ -1,149 +1,141 @@
-use crate::core::expression::{BiasConstraints, IndexConstraints};
+use crate::core::expression::BiasConstraints;
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::sol::VarAssignment;
-use crate::core::{IndexCopy, Solution};
+use crate::core::{IndexByValue, Solution};
 use std::ops::Index;
 use std::rc::Rc;
 
 /// A view into a certain sample of a solution and its corresponding metadata.
 #[derive(Debug, Clone)]
-pub struct ResultView<Idx, Bias, AssignmentTypes>
+pub struct ResultView<Bias, AssignmentTypes>
 where
-    Idx: IndexConstraints,
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
     /// The solution this result view corresponds to
     sol: Rc<Solution<Bias, AssignmentTypes>>,
     /// Index of the row of the sample within the solution
-    row_idx: Idx,
+    row_idx: usize,
 }
 
 /// Iterates over the single results of a solution
 #[derive(Debug, Clone)]
-pub struct ResultIterator<Idx, Bias, AssignmentTypes>
+pub struct ResultIterator<Bias, AssignmentTypes>
 where
-    Idx: IndexConstraints,
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
     /// The solution this result view corresponds to
     sol: Rc<Solution<Bias, AssignmentTypes>>,
     /// Index of the next row of the sample within the solution
-    next_row: Idx,
+    next_row: usize,
 }
 
 /// Iterates over the single variable assignments of a result
 #[derive(Debug, Clone)]
-pub struct SampleIterator<Idx, Bias, AssignmentTypes>
+pub struct SampleIterator<Bias, AssignmentTypes>
 where
-    Idx: IndexConstraints,
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
     /// The solution this result view corresponds to
     sol: Rc<Solution<Bias, AssignmentTypes>>,
     /// Index of the row of the sample within the solution
-    row_idx: Idx,
+    row_idx: usize,
     /// Index of the next row of the sample within the solution
-    next_col: Idx,
+    next_col: usize,
 }
 
-impl<Idx, Bias, AssignmentTypes> ResultView<Idx, Bias, AssignmentTypes>
+impl<Bias, AssignmentTypes> ResultView<Bias, AssignmentTypes>
 where
-    Idx: IndexConstraints,
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>, row_idx: Idx) -> Self {
+    pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>, row_idx: usize) -> Self {
         Self { sol, row_idx }
     }
 
-    pub fn iter(&self) -> SampleIterator<Idx, Bias, AssignmentTypes> {
+    pub fn iter(&self) -> SampleIterator<Bias, AssignmentTypes> {
         SampleIterator::new(Rc::clone(&self.sol), self.row_idx)
     }
 
     pub fn obj_value(&self) -> Option<Bias> {
         self.sol
             .obj_values
-            .get(self.row_idx.into())
+            .get(self.row_idx)
             .map(|&b| b)
-            .or_else(|| self.sol.raw_energies.get(self.row_idx.into()).map(|&x| x))
+            .or_else(|| self.sol.raw_energies.get(self.row_idx).map(|&x| x))
     }
 
     pub fn constraint_satisfaction(&self) -> Option<&Vec<bool>> {
-        self.sol.constraints.get(self.row_idx.into())
+        self.sol.constraints.get(self.row_idx)
     }
 
     pub fn feasible(&self) -> Option<bool> {
-        self.sol.feasible.get(self.row_idx.into()).map(|&b| b)
+        self.sol.feasible.get(self.row_idx).map(|&b| b)
+    }
+
+    pub fn get_assignment(&self, col_idx: usize) -> Option<VarAssignment<AssignmentTypes>> {
+        self.sol.get_assignment(self.row_idx, col_idx)
     }
 }
 
-impl<Idx, Bias, AssignmentTypes> IndexCopy<Idx> for ResultView<Idx, Bias, AssignmentTypes>
+impl<Bias, AssignmentTypes> IndexByValue<usize> for ResultView<Bias, AssignmentTypes>
 where
-    Idx: IndexConstraints,
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
     type Output = VarAssignment<AssignmentTypes>;
 
-    fn index_copy(&self, index: Idx) -> Self::Output {
+    fn index_by_value(&self, index: usize) -> Self::Output {
         self.sol.get_assignment(self.row_idx, index).unwrap()
     }
 }
 
-impl<Idx, Bias, AssignmentTypes> ResultIterator<Idx, Bias, AssignmentTypes>
+impl<Bias, AssignmentTypes> ResultIterator<Bias, AssignmentTypes>
 where
-    Idx: IndexConstraints,
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
     pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>) -> Self {
-        Self {
-            sol,
-            next_row: Idx::default(),
-        }
+        Self { sol, next_row: 0 }
     }
 }
 
-impl<Idx, Bias, AssignmentTypes> SampleIterator<Idx, Bias, AssignmentTypes>
+impl<Bias, AssignmentTypes> SampleIterator<Bias, AssignmentTypes>
 where
-    Idx: IndexConstraints,
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>, row_idx: Idx) -> Self {
+    pub fn new(sol: Rc<Solution<Bias, AssignmentTypes>>, row_idx: usize) -> Self {
         Self {
             sol,
             row_idx,
-            next_col: Idx::default(),
+            next_col: 0,
         }
     }
 }
 
-impl<Idx, Bias, AssignmentTypes> Iterator for ResultIterator<Idx, Bias, AssignmentTypes>
+impl<Bias, AssignmentTypes> Iterator for ResultIterator<Bias, AssignmentTypes>
 where
-    Idx: IndexConstraints,
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    type Item = ResultView<Idx, Bias, AssignmentTypes>;
+    type Item = ResultView<Bias, AssignmentTypes>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.next_row.into() >= self.sol.len() {
+        if self.next_row >= self.sol.len() {
             None
         } else {
             let res_view = Some(ResultView::new(Rc::clone(&self.sol), self.next_row));
-            self.next_row += Idx::one();
+            self.next_row += 1;
             res_view
         }
     }
 }
 
-impl<Idx, Bias, AssignmentTypes> Iterator for SampleIterator<Idx, Bias, AssignmentTypes>
+impl<Bias, AssignmentTypes> Iterator for SampleIterator<Bias, AssignmentTypes>
 where
-    Idx: IndexConstraints,
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
@@ -152,7 +144,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let out = self.sol.get_assignment(self.row_idx, self.next_col);
         if let Some(_) = out {
-            self.next_col += Idx::one();
+            self.next_col += 1;
         }
         out
     }
