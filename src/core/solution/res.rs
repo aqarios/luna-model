@@ -60,19 +60,15 @@ where
     }
 
     pub fn obj_value(&self) -> Option<Bias> {
-        self.sol
-            .obj_values
-            .get(self.row_idx)
-            .map(|&b| b)
-            .or_else(|| self.sol.raw_energies.get(self.row_idx).map(|&x| x))
+        self.sol.obj_values[self.row_idx].or_else(|| self.sol.raw_energies[self.row_idx])
     }
 
-    pub fn constraint_satisfaction(&self) -> Option<&Vec<bool>> {
-        self.sol.constraints.get(self.row_idx)
+    pub fn constraint_satisfaction(&self) -> &Option<Vec<bool>> {
+        &self.sol.constraints[self.row_idx]
     }
 
     pub fn feasible(&self) -> Option<bool> {
-        self.sol.feasible.get(self.row_idx).map(|&b| b)
+        self.sol.feasible[self.row_idx]
     }
 
     pub fn get_assignment(&self, col_idx: usize) -> Option<VarAssignment<AssignmentTypes>> {

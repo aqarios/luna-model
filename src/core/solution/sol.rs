@@ -112,19 +112,19 @@ where
     pub num_occurrences: Vec<usize>,
     /// Objetive values as computed by the corresponding AQM. May be empty for solutions that
     /// haven't yet been evaluated.
-    pub obj_values: Vec<Bias>,
+    pub obj_values: Vec<Option<Bias>>,
     /// Objetive values as computed by the solver. May be empty if the solver does not provide
     /// energies in its solution format. May be different from `obj_values`, e.g., because an offset
     /// was neglected, or the AQM was transformed before being solved.
-    pub raw_energies: Vec<Bias>,
+    pub raw_energies: Vec<Option<Bias>>,
     /// Boolean flag for each single constraint whether it's satisfied. Each inner vec corresponds
     /// to one sample, i.e., `constraints[i]` corresponds to `samples[0]`. May be empty for
     /// solutions that haven't yet been evaluated.
-    pub constraints: Vec<Vec<bool>>,
+    pub constraints: Vec<Option<Vec<bool>>>,
     /// Boolean flag for each sample whether it's feasible, i.e., whether all constraints are
     /// satisfied. In other words, `feasible[i]` iff. `all(constraints[i])`. May be empty for
     /// solutions that haven't yet been evaluated.
-    pub feasible: Vec<bool>,
+    pub feasible: Vec<Option<bool>>,
     // /// Metadata that may be useful for explaining why a constraint is not satisfied, e.g., the eval
     // /// of a lhs.
     pub best_sample_idx: Option<usize>,
@@ -133,12 +133,6 @@ where
     /// Private attribute to keep track of the current number of samples
     n_samples: usize,
 }
-
-#[derive(Deref, DerefMut)]
-pub struct RcSolution<Bias, AssignmentTypes>(Rc<Solution<Bias, AssignmentTypes>>)
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes;
 
 impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
 where
@@ -159,6 +153,9 @@ where
     ) -> Result<&mut Self, ()> {
         self.add_sample(sample)?;
         self.num_occurrences.push(num_occurrences);
+        self.obj_values.push(None);
+        self.raw_energies.push(None);
+        self.feasible.push(None);
         Ok(self)
     }
 
@@ -183,6 +180,12 @@ where
             .and_then(|col| col.get::<Bias>(row_idx))
     }
 }
+
+#[derive(Deref, DerefMut)]
+pub struct RcSolution<Bias, AssignmentTypes>(Rc<Solution<Bias, AssignmentTypes>>)
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes;
 
 impl<Bias, AssignmentTypes> RcSolution<Bias, AssignmentTypes>
 where

@@ -1,5 +1,4 @@
 mod base;
-mod metadata;
 mod res;
 mod sol;
 mod timing;
