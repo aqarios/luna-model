@@ -2,15 +2,26 @@ from aqmodels._api_utils import export, dispatched
 
 
 @export
-class Sample:
+class ResultIterator:
+    @dispatched
+    def __iter__(self):
+        return
+
+    @dispatched
+    def __next__(self):
+        return
+
+
+@export
+class SampleIterator:
     """
     An iterator over the variable assignments of a solution's sample.
 
     Examples
     --------
-    >>> from aqmodels import Sample, Solution
+    >>> from aqmodels import SampleIterator, Solution
     >>> solution: Solution = <...>
-    >>> sample: Sample = list(solution.samples)[0]
+    >>> sample: SampleIterator = list(solution.samples)[0]
     >>> for var in sample:
     ...     str(var)
     '1'
@@ -23,6 +34,56 @@ class Sample:
 
     @dispatched
     def __next__(self):
+        return
+
+
+class Samples:
+    @dispatched
+    def __str__(self):
+        return
+
+    @dispatched
+    def __getitem__(self, item):
+        return item
+
+
+class Sample:
+    @dispatched
+    def __str__(self):
+        return
+
+    @dispatched
+    def __getitem__(self, item):
+        return item
+
+
+class Result:
+    @dispatched
+    def __str__(self):
+        return
+
+    @dispatched
+    def __repr__(self):
+        return
+
+    @property
+    @dispatched
+    def sample(self):
+        return
+
+    @property
+    @dispatched
+    def obj_value(self):
+        return
+
+    @property
+    @dispatched
+    def constraints(self):
+        return
+
+    @property
+    @dispatched
+    def feasible(self):
         return
 
 
@@ -43,6 +104,14 @@ class ResultView:
     >>> str(res.feasible)
     'True'
     """
+
+    @dispatched
+    def __str__(self):
+        return
+
+    @dispatched
+    def __repr__(self):
+        return
 
     @dispatched
     def __getitem__(self, item):
@@ -85,17 +154,6 @@ class ResultView:
         Return whether all constraints of the model the solution was created for are
         feasible.
         """
-        return
-
-
-@export
-class Results:
-    @dispatched
-    def __iter__(self):
-        return
-
-    @dispatched
-    def __next__(self):
         return
 
 
@@ -194,20 +252,3 @@ class Timer:
     @dispatched
     def stop(self):
         return
-
-# def wrap_from_dimod_sample_set(f):
-#     @functools.wraps(SampleSetTranslator.from_dimod_sample_set)
-#     def inner(sample_set: SampleSet, timing: Timing | None = None) -> Solution:
-#         sample_set = sample_set.aggregate()
-#         record = sample_set.record
-#         sample = record.sample.astype(np.int64, order="C")
-#         num_occurrences = record.num_occurrences.astype(np.int64, order="C")
-#
-#         return f(sample, num_occurrences, timing)
-#
-#     return inner
-#
-#
-# SampleSetTranslator.from_dimod_sample_set = wrap_from_dimod_sample_set(
-#     SampleSetTranslator.from_dimod_sample_set
-# )

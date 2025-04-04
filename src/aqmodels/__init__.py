@@ -54,9 +54,9 @@ from ._variable import (
   Variable
 )
 from ._solution import (
-  Sample,
+  ResultIterator,
+  SampleIterator,
   ResultView,
-  Results,
   Solution,
   Timing,
   Timer
@@ -72,9 +72,9 @@ from ._core import (
   Bounds as __Bounds,
   Variable as __Variable,
   Model as __Model,
-  Sample as __Sample,
+  ResultIterator as __ResultIterator,
+  SampleIterator as __SampleIterator,
   ResultView as __ResultView,
-  Results as __Results,
   Solution as __Solution,
   Timing as __Timing,
   Timer as __Timer,
@@ -99,9 +99,9 @@ Vtype = __Vtype  # type: ignore[misc,assignment]
 Bounds = __Bounds  # type: ignore[misc,assignment]
 Variable = __Variable  # type: ignore[misc,assignment]
 Model = __Model  # type: ignore[misc,assignment]
-Sample = __Sample  # type: ignore[misc,assignment]
+ResultIterator = __ResultIterator  # type: ignore[misc,assignment]
+SampleIterator = __SampleIterator  # type: ignore[misc,assignment]
 ResultView = __ResultView  # type: ignore[misc,assignment]
-Results = __Results  # type: ignore[misc,assignment]
 Solution = __Solution  # type: ignore[misc,assignment]
 Timing = __Timing  # type: ignore[misc,assignment]
 Timer = __Timer  # type: ignore[misc,assignment]
@@ -134,9 +134,9 @@ __all__ = [
     "ModelNotUnconstrainedError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
+    "ResultIterator",
     "ResultView",
-    "Results",
-    "Sample",
+    "SampleIterator",
     "SampleSetTranslator",
     "Solution",
     "Timer",

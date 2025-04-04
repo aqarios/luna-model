@@ -1,27 +1,42 @@
 use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, ConcreteIndex, IndexByValue, RcSolution, ResultIterator,
-    ResultView, SampleIterator, VarAssignment,
+    ConcreteAssignmentTypes, ConcreteBias, ConcreteIndex, OwnedResult, RcSolution, ResultIterator,
+    ResultView, Sample, SampleIterator, Samples, VarAssignment,
 };
 use crate::py_bindings::py_timing::PyTiming;
 use derive_more::{Deref, DerefMut};
+use either::Either;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError};
 use pyo3::prelude::*;
+use pyo3::IntoPyObjectExt;
+use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(VarAssignment<ConcreteAssignmentTypes>);
 
 #[pyclass(unsendable, name = "ResultView", module = "aqmodels")]
-#[derive(Deref, DerefMut, IntoPyObject)]
+#[derive(Deref, DerefMut)]
 pub struct PyResultView(ResultView<ConcreteBias, ConcreteAssignmentTypes>);
 
-#[pyclass(unsendable, name = "Results", module = "aqmodels")]
+#[pyclass(unsendable, name = "Result", module = "aqmodels")]
+#[derive(Deref, DerefMut)]
+pub struct PyOwnedResult(OwnedResult<ConcreteBias, ConcreteAssignmentTypes>);
+
+#[pyclass(unsendable, name = "ResultIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
 pub struct PyResultIterator(ResultIterator<ConcreteBias, ConcreteAssignmentTypes>);
 
-#[pyclass(unsendable, name = "Sample", module = "aqmodels")]
+#[pyclass(unsendable, name = "SampleIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
 pub struct PySampleIterator(SampleIterator<ConcreteBias, ConcreteAssignmentTypes>);
+
+#[pyclass(unsendable, name = "Samples", module = "aqmodels")]
+#[derive(Deref, DerefMut)]
+pub struct PySamples(Samples<ConcreteBias, ConcreteAssignmentTypes>);
+
+#[pyclass(unsendable, name = "Sample", module = "aqmodels")]
+#[derive(Deref, DerefMut)]
+pub struct PySample(Sample<ConcreteBias, ConcreteAssignmentTypes>);
 
 #[pyclass(unsendable, name = "Solution", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
@@ -29,6 +44,12 @@ pub struct PySolution(pub RcSolution<ConcreteBias, ConcreteAssignmentTypes>);
 
 impl Into<ResultView<ConcreteBias, ConcreteAssignmentTypes>> for PyResultView {
     fn into(self) -> ResultView<ConcreteBias, ConcreteAssignmentTypes> {
+        self.0
+    }
+}
+
+impl Into<OwnedResult<ConcreteBias, ConcreteAssignmentTypes>> for PyOwnedResult {
+    fn into(self) -> OwnedResult<ConcreteBias, ConcreteAssignmentTypes> {
         self.0
     }
 }
@@ -65,8 +86,17 @@ impl PySolution {
     }
 
     #[getter]
-    fn obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<Option<ConcreteBias>>> {
-        self.obj_values.to_pyarray(py)
+    fn samples(&self) -> PySamples {
+        PySamples(Samples(RcSolution::clone(&self)))
+    }
+
+    #[getter]
+    fn obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
+        self.obj_values
+            .iter()
+            .map(|x| x.into_py_any(py).unwrap())
+            .collect::<Vec<_>>()
+            .to_pyarray(py)
     }
 
     #[getter]
@@ -97,16 +127,110 @@ impl PySolution {
         slf.iter::<ConcreteIndex>()
     }
 
-    fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyObject> {
+    fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyResultView> {
         if let Ok(res_idx) = index.extract::<usize>(py) {
             match self.get_result_view(res_idx) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
                 ))),
-                Some(r) => PyResultView(r).into_pyobject(py),
+                Some(r) => Ok(PyResultView(r)),
+            }
+        } else {
+            Err(PyRuntimeError::new_err("unsupported type for indexing"))
+        }
+    }
+}
+
+#[pymethods]
+impl PyResultView {
+    // TODO: implement human-readable solution representation
+    fn __str__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+
+    #[getter]
+    fn sample(&self) -> PySample {
+        PySample(self.get_sample())
+    }
+
+    #[getter]
+    fn num_occurrences(&self) -> usize {
+        self.sol.num_occurrences[self.row_idx]
+    }
+
+    #[getter]
+    fn obj_value(&self) -> Option<ConcreteBias> {
+        self.0.obj_value()
+    }
+
+    #[getter]
+    fn constraints<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
+        self.constraint_satisfaction()
+            .as_ref()
+            .map(|c| c.to_pyarray(py))
+    }
+
+    #[getter]
+    fn feasible(&self) -> Option<bool> {
+        self.0.feasible()
+    }
+}
+
+#[pymethods]
+impl PyOwnedResult {
+    #[getter]
+    fn sample(&self) -> PySample {
+        PySample(self.get_sample())
+    }
+
+    #[getter]
+    fn obj_value(&self) -> Option<ConcreteBias> {
+        self.obj_value
+    }
+
+    #[getter]
+    fn constraints<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
+        self.constraint_satisfaction
+            .as_ref()
+            .map(|c| c.to_pyarray(py))
+    }
+
+    #[getter]
+    fn feasible(&self) -> Option<bool> {
+        self.feasible
+    }
+
+    // TODO: implement human-readable solution representation
+    fn __str__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+}
+
+#[pymethods]
+impl PySamples {
+    // TODO: implement human-readable solution representation
+    fn __str__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+
+    fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyObject> {
+        if let Ok(res_idx) = index.extract::<usize>(py) {
+            match self.get_sample(res_idx) {
+                None => Err(PyIndexError::new_err(format!(
+                    "Index {res_idx} out of bounds"
+                ))),
+                Some(r) => PySample(r).into_pyobject(py)?.into_py_any(py),
             }
         } else if let Ok((res_idx, var_idx)) = index.extract::<(usize, usize)>(py) {
-            match self.get_assignment(res_idx.into(), var_idx.into()) {
+            match self.get_assignment(res_idx, var_idx) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index ({res_idx}, {var_idx}) out of bounds"
                 ))),
@@ -119,40 +243,29 @@ impl PySolution {
 }
 
 #[pymethods]
-impl PyResultView {
-    #[getter]
-    fn sample(&self) -> PySampleIterator {
-        PySampleIterator(self.iter())
-    }
-
-    #[getter]
-    fn obj_value(&self) -> Option<ConcreteBias> {
-        self.0.obj_value()
-    }
-
-    #[getter]
-    fn constraints<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
-        match &self.constraint_satisfaction() {
-            None => None,
-            Some(cs) => cs.map(|c| c.to_pyarray(py)),
-        }
-    }
-
-    #[getter]
-    fn feasible(&self) -> Option<bool> {
-        self.0.feasible()
+impl PySample {
+    // TODO: implement human-readable solution representation
+    fn __str__(&self) -> String {
+        format!("{:?}", self.0)
     }
 
     fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyVarAssignment> {
         if let Ok(var_idx) = index.extract::<usize>(py) {
             match self.get_assignment(var_idx) {
                 None => Err(PyIndexError::new_err(format!(
-                    "Index {res_idx} out of bounds"
+                    "Index {var_idx} out of bounds"
                 ))),
-                Some(r) => Ok(PyVarAssignment(r)),
+                Some(v) => Ok(PyVarAssignment(v)),
             }
         } else {
             Err(PyRuntimeError::new_err("unsupported type for indexing"))
+        }
+    }
+
+    fn __iter__(slf: PyRef<'_, Self>) -> PySampleIterator {
+        match &slf.0.0 {
+            Either::Left(r) => PySampleIterator(SampleIterator::from_res_view(&r)),
+            Either::Right(r) => PySampleIterator(SampleIterator::from_sample_vec(Rc::clone(r))),
         }
     }
 }
@@ -182,14 +295,14 @@ impl PyResultIterator {
 impl<'py> IntoPyObject<'py> for PyVarAssignment {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
-    type Error = std::convert::Infallible;
+    type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         match self.0 {
-            VarAssignment::Binary(x) => Ok(x.into_py(py).into_bound(py)),
-            VarAssignment::Spin(x) => Ok(x.into_py(py).into_bound(py)),
-            VarAssignment::Integer(x) => Ok(x.into_py(py).into_bound(py)),
-            VarAssignment::Real(x) => Ok(x.into_py(py).into_bound(py)),
+            VarAssignment::Binary(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+            VarAssignment::Spin(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+            VarAssignment::Integer(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+            VarAssignment::Real(x) => Ok(x.into_py_any(py)?.into_bound(py)),
         }
     }
 }

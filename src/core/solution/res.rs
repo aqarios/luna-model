@@ -2,7 +2,9 @@ use crate::core::expression::BiasConstraints;
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::sol::VarAssignment;
 use crate::core::{IndexByValue, RcSolution};
-use std::ops::Index;
+use derive_more::{Deref, DerefMut};
+use either::{Either, Left, Right};
+use std::rc::Rc;
 
 /// A view into a certain sample of a solution and its corresponding metadata.
 #[derive(Debug, Clone)]
@@ -12,10 +14,24 @@ where
     AssignmentTypes: AssignmentBaseTypes,
 {
     /// The solution this result view corresponds to
-    sol: RcSolution<Bias, AssignmentTypes>,
+    pub sol: RcSolution<Bias, AssignmentTypes>,
     /// Index of the row of the sample within the solution
-    row_idx: usize,
+    pub row_idx: usize,
 }
+
+#[derive(Debug, Clone, Deref, DerefMut)]
+pub struct Samples<Bias, AssignmentTypes>(pub RcSolution<Bias, AssignmentTypes>)
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes;
+
+#[derive(Debug, Clone, Deref, DerefMut)]
+pub struct Sample<Bias, AssignmentTypes>(
+    pub Either<ResultView<Bias, AssignmentTypes>, Rc<Vec<VarAssignment<AssignmentTypes>>>>,
+)
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes;
 
 /// Iterates over the single results of a solution
 #[derive(Debug, Clone)]
@@ -37,12 +53,9 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    /// The solution this result view corresponds to
-    sol: RcSolution<Bias, AssignmentTypes>,
-    /// Index of the row of the sample within the solution
-    row_idx: usize,
+    res: Either<ResultView<Bias, AssignmentTypes>, Rc<Vec<VarAssignment<AssignmentTypes>>>>,
     /// Index of the next row of the sample within the solution
-    next_col: usize,
+    next_col_idx: usize,
 }
 
 impl<Bias, AssignmentTypes> ResultView<Bias, AssignmentTypes>
@@ -55,7 +68,7 @@ where
     }
 
     pub fn iter(&self) -> SampleIterator<Bias, AssignmentTypes> {
-        SampleIterator::new(RcSolution::clone(&self.sol), self.row_idx)
+        SampleIterator::from_res_view(&self)
     }
 
     pub fn obj_value(&self) -> Option<Bias> {
@@ -72,6 +85,11 @@ where
 
     pub fn get_assignment(&self, col_idx: usize) -> Option<VarAssignment<AssignmentTypes>> {
         self.sol.get_assignment(self.row_idx, col_idx)
+    }
+
+    pub fn get_sample(&self) -> Sample<Bias, AssignmentTypes> {
+        // Cloning is fine here as only usize and Rc are cloned.
+        Sample(Left(self.clone()))
     }
 }
 
@@ -102,11 +120,47 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    pub fn new(sol: RcSolution<Bias, AssignmentTypes>, row_idx: usize) -> Self {
+    pub fn from_res_view(res: &ResultView<Bias, AssignmentTypes>) -> Self {
         Self {
-            sol,
-            row_idx,
-            next_col: 0,
+            res: Left(res.clone()),
+            next_col_idx: 0,
+        }
+    }
+    pub fn from_sample_vec(res: Rc<Vec<VarAssignment<AssignmentTypes>>>) -> Self {
+        Self {
+            res: Right(res),
+            next_col_idx: 0,
+        }
+    }
+}
+
+impl<Bias, AssignmentTypes> Samples<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    pub fn get_sample(&self, row_idx: usize) -> Option<Sample<Bias, AssignmentTypes>> {
+        self.get_result_view(row_idx).map(|x| Sample(Left(x)))
+    }
+
+    pub fn get_assignment(
+        &self,
+        row_idx: usize,
+        col_idx: usize,
+    ) -> Option<VarAssignment<AssignmentTypes>> {
+        self.0.get_assignment(row_idx, col_idx)
+    }
+}
+
+impl<Bias, AssignmentTypes> Sample<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    pub fn get_assignment(&self, col_idx: usize) -> Option<VarAssignment<AssignmentTypes>> {
+        match &self.0 {
+            Left(r) => r.get_assignment(col_idx),
+            Right(r) => r.get(col_idx).map(|&x| x)
         }
     }
 }
@@ -137,21 +191,25 @@ where
     type Item = VarAssignment<AssignmentTypes>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let out = self.sol.get_assignment(self.row_idx, self.next_col);
+        let out = match &self.res {
+            Left(r) => { r.get_sample().get_assignment(self.next_col_idx) }
+            Right(r) => r.get(self.next_col_idx).map(|&x| x)
+        };
         if let Some(_) = out {
-            self.next_col += 1;
+            self.next_col_idx += 1;
         }
         out
     }
 }
 
-pub struct OwnedResult<Bias, Assignment>
+#[derive(Debug, Clone)]
+pub struct OwnedResult<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
-    Assignment: AssignmentBaseTypes,
+    AssignmentTypes: AssignmentBaseTypes,
 {
     /// The vector of variable assignments.
-    pub sample: Vec<VarAssignment<Assignment>>,
+    pub sample: Rc<Vec<VarAssignment<AssignmentTypes>>>,
     /// The objective value computed from an AqModel. If not present, a raw value from the solver
     /// may be used. None, if none of these are present.
     pub obj_value: Option<Bias>,
@@ -159,4 +217,18 @@ where
     pub constraint_satisfaction: Option<Vec<bool>>,
     /// Whether all constraints are satisfied.
     pub feasible: Option<bool>,
+}
+
+impl<Bias, AssignmentTypes> OwnedResult<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    pub fn get_sample(&self) -> Sample<Bias, AssignmentTypes> {
+        Sample(Right(Rc::clone(&self.sample)))
+    }
+
+    pub fn iter(&self) -> SampleIterator<Bias, AssignmentTypes> {
+        SampleIterator::from_sample_vec(Rc::clone(&self.sample))
+    }
 }

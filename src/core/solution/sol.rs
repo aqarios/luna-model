@@ -5,7 +5,7 @@ use crate::core::ResultView;
 use crate::errors::SampleIncorrectLengthError;
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
-use std::ops::{Index, Mul};
+use std::ops::Mul;
 use std::rc::Rc;
 
 #[derive(Debug, Clone, Copy)]
@@ -186,7 +186,7 @@ where
 }
 
 #[derive(Debug, Deref, DerefMut)]
-pub struct RcSolution<Bias, AssignmentTypes>(Rc<Solution<Bias, AssignmentTypes>>)
+pub struct RcSolution<Bias, AssignmentTypes>(pub Rc<Solution<Bias, AssignmentTypes>>)
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes;
@@ -208,7 +208,8 @@ where
 impl<Bias, AssignmentTypes> Clone for RcSolution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes, {
+    AssignmentTypes: AssignmentBaseTypes,
+{
     fn clone(&self) -> Self {
         RcSolution(Rc::clone(&self.0))
     }

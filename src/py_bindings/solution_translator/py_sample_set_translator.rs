@@ -5,7 +5,6 @@ use crate::py_bindings::py_sol::PySolution;
 use crate::py_bindings::py_timing::PyTiming;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::prelude::*;
-use std::rc::Rc;
 
 #[pyclass(unsendable, name = "SampleSetTranslator")]
 pub struct PySampleSetTranslator(pub SampleSetTranslator);
@@ -28,7 +27,7 @@ impl PySampleSetTranslator {
                 })
             })?,
         };
-        Ok(PySolution(Rc::new(
+        Ok(PySolution(
             SampleSetTranslator::from_dimod_sample_set(
                 samples.as_slice()?,
                 num_occurrences.as_slice()?,
@@ -36,7 +35,6 @@ impl PySampleSetTranslator {
                 timing.map(|t| t.into()),
                 environment.into(),
             )
-            .unwrap(),
-        )))
+                .unwrap(), ))
     }
 }

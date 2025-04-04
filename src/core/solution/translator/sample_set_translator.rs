@@ -1,8 +1,9 @@
 use crate::core::expression::IndexConstraints;
 use crate::core::solution::sol::SampleCol;
-use crate::core::{ConcreteSolution, MutRcEnvironment, Solution, Timing, Vtype};
+use crate::core::{ConcreteSolution, MutRcEnvironment, RcSolution, Solution, Timing, Vtype};
 use crate::errors::SampleIncorrectLengthError;
 use num::NumCast;
+use std::rc::Rc;
 
 pub struct SampleSetTranslator {}
 
@@ -40,6 +41,7 @@ impl SampleSetTranslator {
                 <usize as NumCast>::from(num_occurrences[i]).unwrap(),
             )?;
         }
-        Ok(sol)
+        Ok(RcSolution(Rc::new(sol)))
     }
 }
+

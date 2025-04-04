@@ -19,6 +19,7 @@ name = "aqmodels"
 version = "0.1.0"
 dependencies = [
  "derive_more",
+ "either",
  "global_counter",
  "hashbrown",
  "nohash",

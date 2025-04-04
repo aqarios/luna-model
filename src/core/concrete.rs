@@ -1,9 +1,4 @@
-use super::{
-    common::{MutRcConstraint, MutRcConstraints, MutRcExpression, MutRcModel, RcVarRef},
-    term::{HigherOrder, Quadratic},
-    Constraint, Constraints, Environment, Expression, Model, MutRcEnvironment, Solution, VarId,
-    VarRef,
-};
+use super::{common::{MutRcConstraint, MutRcConstraints, MutRcExpression, MutRcModel, RcVarRef}, term::{HigherOrder, Quadratic}, Constraint, Constraints, Environment, Expression, Model, MutRcEnvironment, RcSolution, VarId, VarRef};
 use crate::core::solution::AssignmentBaseTypes;
 use std::{cell::RefCell, rc::Rc};
 
@@ -29,13 +24,12 @@ pub type ConcreteMutRcConstraints = MutRcConstraints<ConcreteIndex, ConcreteBias
 pub type ConcreteMutRcModel = MutRcModel<ConcreteIndex, ConcreteBias>;
 pub type ConcreteRcVarRef = RcVarRef<ConcreteIndex>;
 
-pub type ConcreteSolution = Solution<ConcreteBias, ConcreteAssignmentTypes>;
+pub type ConcreteSolution = RcSolution<ConcreteBias, ConcreteAssignmentTypes>;
 
 pub type ConcreteBinaryType = u8;
 pub type ConcreteSpinType = i8;
 pub type ConcreteIntegerType = i64;
 pub type ConcreteRealType = f64;
-pub type ConcreteAssignmentType = f64;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ConcreteAssignmentTypes {}
