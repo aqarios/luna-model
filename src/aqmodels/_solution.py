@@ -160,11 +160,11 @@ class ResultView:
 @export
 class Solution:
     @dispatched
-    def __str__(self):
+    def __str__(self):  # type: ignore[reportIncompatibleMethodOverride]
         return
 
     @dispatched
-    def __repr__(self):
+    def __repr__(self):  # type: ignore[reportIncompatibleMethodOverride]
         return
 
     @dispatched
@@ -202,7 +202,8 @@ class Solution:
 
     @property
     @dispatched
-    def best_sample_idx(self): return
+    def best_sample_idx(self):
+        return
 
 
 @export

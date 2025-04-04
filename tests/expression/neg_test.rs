@@ -174,7 +174,6 @@ fn evaluate_mixed_order_mixed_vtype_expression_neg(n: usize) {
     expr.add_assign(&ho_int).unwrap();
     expr.add_assign(&ho_real).unwrap();
 
-    // eprintln!("Expression =\n\n{:?}", expr);
     let expr = -expr;
 
     // Expected evaluated value

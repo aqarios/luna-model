@@ -3,8 +3,8 @@ use pyo3::{prelude::*, PyTypeCheck};
 use crate::core::{Comparator, Vtype};
 
 use super::{
-    py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_matrix_translator, py_model,
-    py_sol, py_timing, py_var, solution_translator,
+    py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_sol, py_timing,
+    py_translator, py_var,
 };
 
 // #[pymodule]
@@ -26,14 +26,13 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_sol::PyResultIterator>()?;
     m.add_class::<py_sol::PySampleIterator>()?;
     m.add_class::<py_sol::PySolution>()?;
-    m.add_class::<solution_translator::PySampleSetTranslator>()?;
-
     Ok(())
 }
 
 pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "translator")?;
-    m.add_class::<py_matrix_translator::PyMatrixTranslator>()?;
+    m.add_class::<py_translator::PyMatrixTranslator>()?;
+    m.add_class::<py_translator::PySampleSetTranslator>()?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?

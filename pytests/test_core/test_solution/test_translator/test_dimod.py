@@ -4,7 +4,7 @@ import pytest
 from dimod import BinaryQuadraticModel, SampleSet, Vartype, as_samples
 from dwave.samplers import SimulatedAnnealingSampler
 
-from aqmodels import SampleSetTranslator, Timer
+from aqmodels import Environment, SampleSetTranslator, Timer, Variable
 
 
 def generate_bqm():
@@ -54,7 +54,12 @@ def test_from_dimod_2():
     print(timing.total_seconds)
     print(timing.total.total_seconds())
 
-    sol = SampleSetTranslator.from_dimod_sample_set(sampleset, timing)
+    env = Environment()
+    with env:
+        for v in bqm.variables:
+            _ = Variable(str(v))
+
+    sol = SampleSetTranslator.from_dimod_sample_set(sampleset, timing, env)
     assert sol.samples.tolist() == [[0.0, 1.0, 0.0]]
     assert sol.num_occurrences.tolist() == [5]
     assert sol.runtime.total.total_seconds() > 0
@@ -68,6 +73,7 @@ def test_from_dimod_2():
     # bqm2 = generate_bqm()
     # print(bqm2.to_qubo())
     raise Exception
+
 
 # def test_iterableeeeess():
 #     bqm = BinaryQuadraticModel(vartype=Vartype.BINARY)

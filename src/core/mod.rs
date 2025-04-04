@@ -9,7 +9,7 @@ pub mod constraints;
 pub mod environment;
 pub mod expression;
 pub mod operations;
-mod solution;
+pub mod solution;
 pub mod term;
 mod traits;
 
@@ -64,7 +64,6 @@ pub use solution::ResultIterator;
 pub use solution::ResultView;
 pub use solution::Sample;
 pub use solution::SampleIterator;
-pub use solution::SampleSetTranslator;
 pub use solution::Samples;
 pub use solution::Solution;
 pub use solution::Timer;

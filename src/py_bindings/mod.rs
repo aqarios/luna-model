@@ -3,13 +3,12 @@ mod py_constr;
 mod py_env;
 mod py_exceptions;
 mod py_expr;
-mod py_matrix_translator;
 mod py_model;
 mod py_modules;
 mod py_sol;
 mod py_timing;
+mod py_translator;
 mod py_var;
-mod solution_translator;
 
 use pyo3::prelude::*;
 

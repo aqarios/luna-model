@@ -39,7 +39,7 @@ pub struct PySamples(Samples<ConcreteBias, ConcreteAssignmentTypes>);
 pub struct PySample(Sample<ConcreteBias, ConcreteAssignmentTypes>);
 
 #[pyclass(unsendable, name = "Solution", module = "aqmodels")]
-#[derive(Deref, DerefMut)]
+#[derive(Deref, DerefMut, Debug)]
 pub struct PySolution(pub RcSolution<ConcreteBias, ConcreteAssignmentTypes>);
 
 impl Into<ResultView<ConcreteBias, ConcreteAssignmentTypes>> for PyResultView {

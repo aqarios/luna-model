@@ -1,8 +1,8 @@
 mod base;
 mod res;
-mod sol;
 mod timing;
-mod translator;
+
+pub mod sol;
 
 pub use base::AssignmentBaseTypes;
 pub use res::OwnedResult;
@@ -16,4 +16,3 @@ pub use sol::Solution;
 pub use sol::VarAssignment;
 pub use timing::Timer;
 pub use timing::Timing;
-pub use translator::SampleSetTranslator;

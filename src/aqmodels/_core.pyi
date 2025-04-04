@@ -10,7 +10,6 @@ from typing import overload
 from typing_extensions import overload
 
 from . import errors
-from . import solution_translator
 from . import translator
 
 class Comparator(Enum):
@@ -397,6 +396,14 @@ class Expression:
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
 
+class SampleSetTranslator:
+    @staticmethod
+    def from_dimod_sample_set(
+        sample_set: SampleSet,
+        timing: Timing | None = None,
+        env: Environment | None = None,
+    ) -> Solution: ...
+
 class MatrixTranslator:
     @staticmethod
     def to_model(
@@ -404,14 +411,6 @@ class MatrixTranslator:
     ) -> Model: ...
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
-
-class SampleSetTranslator:
-    @staticmethod
-    def from_dimod_sample_set(
-            sample_set: SampleSet,
-            timing: Timing | None = None,
-            env: Environment | None = None,
-    ) -> Solution: ...
 
 class VariableOutOfRangeError(Exception):
     def __str__(self) -> str: ...
@@ -469,6 +468,5 @@ __all__ = [
     "VariablesFromDifferentEnvsError",
     "Vtype",
     "errors",
-    "solution_translator",
     "translator",
 ]

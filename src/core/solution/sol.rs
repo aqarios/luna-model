@@ -136,6 +136,14 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
+    // pub fn new(num_variables: usize, timing: Option<Timing>) -> Self {
+    //     // (team): check logic
+    //     let mut out = Self::default();
+    //     out.samples = vec![SampleCol::default(); num_variables];
+    //     out.timing = timing;
+    //     out
+    // }
+
     pub fn len(&self) -> usize {
         self.n_samples
     }
@@ -164,6 +172,10 @@ where
         &mut self,
         sample: Vec<T>,
     ) -> Result<(), SampleIncorrectLengthError> {
+        // (team): check logic
+        // self.samples is never initialized with actual values...
+        // also we cannot create a `SampleCol` here as the environment is missing.
+        // We require it to determine the variable type for each column here.
         if sample.len() != self.samples.len() {
             Err(SampleIncorrectLengthError)
         } else {

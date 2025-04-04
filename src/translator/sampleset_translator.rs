@@ -3,6 +3,7 @@ use crate::core::solution::sol::SampleCol;
 use crate::core::{ConcreteSolution, MutRcEnvironment, RcSolution, Solution, Timing, Vtype};
 use crate::errors::SampleIncorrectLengthError;
 use num::NumCast;
+use std::fmt::Debug;
 use std::rc::Rc;
 
 pub struct SampleSetTranslator {}
@@ -16,8 +17,8 @@ impl SampleSetTranslator {
         env: MutRcEnvironment<Idx>,
     ) -> Result<ConcreteSolution, SampleIncorrectLengthError>
     where
-        S: Copy + NumCast,
-        N: Copy + NumCast,
+        S: Copy + NumCast + Debug,
+        N: Copy + NumCast + Debug,
         Idx: IndexConstraints,
     {
         let mut sol = Solution::default();

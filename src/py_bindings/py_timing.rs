@@ -5,7 +5,7 @@ use pyo3::{pyclass, pymethods, PyResult};
 use std::time::{Duration, SystemTime};
 
 #[pyclass(unsendable, name = "Timing")]
-#[derive(Clone, Deref, DerefMut)]
+#[derive(Clone, Deref, DerefMut, Debug)]
 pub struct PyTiming(pub Timing);
 
 #[pyclass(unsendable, name = "Timer")]
