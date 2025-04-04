@@ -25,6 +25,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_sol::PyResultView>()?;
     m.add_class::<py_sol::PyOwnedResult>()?;
     m.add_class::<py_sol::PyResultIterator>()?;
+    m.add_class::<py_sol::PySamplesIterator>()?;
     m.add_class::<py_sol::PySampleIterator>()?;
     m.add_class::<py_sol::PySamples>()?;
     m.add_class::<py_sol::PySample>()?;

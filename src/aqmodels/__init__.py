@@ -55,6 +55,7 @@ from ._variable import (
 )
 from ._solution import (
   ResultIterator,
+  SamplesIterator,
   SampleIterator,
   Samples,
   Sample,
@@ -76,6 +77,7 @@ from ._core import (
   Variable as __Variable,
   Model as __Model,
   ResultIterator as __ResultIterator,
+  SamplesIterator as __SamplesIterator,
   SampleIterator as __SampleIterator,
   Samples as __Samples,
   Sample as __Sample,
@@ -105,6 +107,7 @@ Bounds = __Bounds  # type: ignore[misc,assignment]
 Variable = __Variable  # type: ignore[misc,assignment]
 Model = __Model  # type: ignore[misc,assignment]
 ResultIterator = __ResultIterator  # type: ignore[misc,assignment]
+SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment]
 SampleIterator = __SampleIterator  # type: ignore[misc,assignment]
 Samples = __Samples  # type: ignore[misc,assignment]
 Sample = __Sample  # type: ignore[misc,assignment]
@@ -149,6 +152,7 @@ __all__ = [
     "SampleIterator",
     "SampleSetTranslator",
     "Samples",
+    "SamplesIterator",
     "Solution",
     "Timer",
     "Timing",

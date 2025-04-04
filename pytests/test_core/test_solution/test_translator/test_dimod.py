@@ -28,7 +28,7 @@ def test_from_dimod():
             _ = Variable(str(v))
         sol = SampleSetTranslator.from_dimod_sample_set(sampleset)
 
-    # assert sol.samples.tolist() == samples
+    assert sol.samples.tolist() == samples
     assert sol.num_occurrences.tolist() == num_occurrences
     results = list(sol.results)
     assert len(results) == 3
@@ -64,12 +64,10 @@ def test_from_dimod_2():
             _ = Variable(str(v))
 
     sol = SampleSetTranslator.from_dimod_sample_set(sampleset, timing, env)
-    # assert sol.samples.tolist() == [[0.0, 1.0, 0.0]]
+    assert sol.samples.tolist() == [[0.0, 1.0, 0.0]]
     print(sol.samples)
     sample = sol.samples[0]
-    assert sample[0] == 0.0
-    assert sample[1] == 1.0
-    assert sample[2] == 0.0
+    assert list(sample) == [0.0, 1.0, 0.0]
     assert sol.num_occurrences.tolist() == [5]
     assert sol.runtime.total.total_seconds() > 0
     assert sol.runtime.total_seconds > 0
@@ -78,9 +76,7 @@ def test_from_dimod_2():
     results = list(sol.results)
     assert len(results) == 1
     sample = results[0].sample
-    assert sample[0] == 0.0
-    assert sample[1] == 1.0
-    assert sample[2] == 0.0
+    assert list(sample) == [0.0, 1.0, 0.0]
 
     # bqm2 = generate_bqm()
     # print(bqm2.to_qubo())

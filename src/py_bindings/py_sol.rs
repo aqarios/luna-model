@@ -1,10 +1,10 @@
 use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, ConcreteIndex, OwnedResult, RcSolution, ResultIterator,
-    ResultView, Sample, SampleIterator, Samples, VarAssignment,
+    ConcreteAssignmentTypes, ConcreteBias, OwnedResult, RcSolution, ResultIterator, ResultView,
+    Sample, SampleIterator, Samples, VarAssignment,
 };
 use crate::py_bindings::py_timing::PyTiming;
 use derive_more::{Deref, DerefMut};
-use either::Either;
+use either::{Either, Left};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError};
 use pyo3::prelude::*;
@@ -25,6 +25,10 @@ pub struct PyOwnedResult(OwnedResult<ConcreteBias, ConcreteAssignmentTypes>);
 #[pyclass(unsendable, name = "ResultIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
 pub struct PyResultIterator(ResultIterator<ConcreteBias, ConcreteAssignmentTypes>);
+
+#[pyclass(unsendable, name = "SamplesIterator", module = "aqmodels")]
+#[derive(Deref, DerefMut)]
+pub struct PySamplesIterator(ResultIterator<ConcreteBias, ConcreteAssignmentTypes>);
 
 #[pyclass(unsendable, name = "SampleIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
@@ -60,6 +64,12 @@ impl Into<ResultIterator<ConcreteBias, ConcreteAssignmentTypes>> for PyResultIte
     }
 }
 
+impl Into<ResultIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySamplesIterator {
+    fn into(self) -> ResultIterator<ConcreteBias, ConcreteAssignmentTypes> {
+        self.0
+    }
+}
+
 impl Into<SampleIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySampleIterator {
     fn into(self) -> SampleIterator<ConcreteBias, ConcreteAssignmentTypes> {
         self.0
@@ -73,8 +83,17 @@ impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
 }
 
 impl PySolution {
-    pub fn iter<Idx>(&self) -> PyResultIterator {
+    pub fn iter(&self) -> PyResultIterator {
         PyResultIterator(ResultIterator::new(RcSolution::clone(&self.0)))
+    }
+}
+
+impl PySample {
+    pub fn iter(&self) -> PySampleIterator {
+        match &self.0 .0 {
+            Either::Left(r) => PySampleIterator(SampleIterator::from_res_view(&r)),
+            Either::Right(r) => PySampleIterator(SampleIterator::from_sample_vec(Rc::clone(r))),
+        }
     }
 }
 
@@ -82,7 +101,7 @@ impl PySolution {
 impl PySolution {
     #[getter]
     fn results<'a>(&self) -> PyResultIterator {
-        self.iter::<ConcreteIndex>()
+        self.iter()
     }
 
     #[getter]
@@ -124,7 +143,7 @@ impl PySolution {
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> PyResultIterator {
-        slf.iter::<ConcreteIndex>()
+        slf.iter()
     }
 
     fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyResultView> {
@@ -216,6 +235,18 @@ impl PyOwnedResult {
 
 #[pymethods]
 impl PySamples {
+    fn tolist(&self, py: Python) -> Vec<Vec<PyObject>> {
+        ResultIterator::new(RcSolution::clone(&self))
+            .into_iter()
+            .map(|r| {
+                SampleIterator::from_res_view(&r)
+                    .into_iter()
+                    .map(|v| PyVarAssignment(v).into_pyobject(py).unwrap().unbind())
+                    .collect()
+            })
+            .collect()
+    }
+
     // TODO: implement human-readable solution representation
     fn __str__(&self) -> String {
         format!("{:?}", self.0)
@@ -240,6 +271,14 @@ impl PySamples {
             Err(PyRuntimeError::new_err("unsupported type for indexing"))
         }
     }
+
+    fn __len__(&self) -> usize {
+        self.n_samples
+    }
+
+    fn __iter__(&self) -> PySamplesIterator {
+        PySamplesIterator(ResultIterator::new(RcSolution::clone(&self)))
+    }
 }
 
 #[pymethods]
@@ -262,11 +301,15 @@ impl PySample {
         }
     }
 
-    fn __iter__(slf: PyRef<'_, Self>) -> PySampleIterator {
-        match &slf.0.0 {
-            Either::Left(r) => PySampleIterator(SampleIterator::from_res_view(&r)),
-            Either::Right(r) => PySampleIterator(SampleIterator::from_sample_vec(Rc::clone(r))),
+    fn __len__(&self) -> usize {
+        match &self.0 .0 {
+            Left(r) => r.sol.samples.len(),
+            Either::Right(r) => r.len(),
         }
+    }
+
+    fn __iter__(slf: PyRef<'_, Self>) -> PySampleIterator {
+        slf.iter()
     }
 }
 
@@ -278,6 +321,17 @@ impl PySampleIterator {
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyVarAssignment> {
         slf.next().map(|res| PyVarAssignment(res))
+    }
+}
+
+#[pymethods]
+impl PySamplesIterator {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PySample> {
+        slf.next().map(|res| PySample(Sample(Left(res.clone()))))
     }
 }
 

@@ -13,6 +13,17 @@ class ResultIterator:
 
 
 @export
+class SamplesIterator:
+    @dispatched
+    def __iter__(self):
+        return
+
+    @dispatched
+    def __next__(self):
+        return
+
+
+@export
 class SampleIterator:
     """
     An iterator over the variable assignments of a solution's sample.
@@ -51,12 +62,24 @@ class Samples:
 @export
 class Sample:
     @dispatched
+    def tolist(self):
+        return
+
+    @dispatched
     def __str__(self):
         return
 
     @dispatched
     def __getitem__(self, item):
         return item
+
+    @dispatched
+    def __len__(self):
+        return
+
+    @dispatched
+    def __iter__(self):
+        return
 
 
 @export

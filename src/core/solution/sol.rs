@@ -127,8 +127,8 @@ where
     pub best_sample_idx: Option<usize>,
     /// Runtime metrics of the solution.
     pub timing: Option<Timing>,
-    /// Private attribute to keep track of the current number of samples
-    n_samples: usize,
+    /// Keeps track of the current number of samples.
+    pub n_samples: usize,
 }
 
 impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
