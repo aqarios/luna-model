@@ -192,6 +192,37 @@ class SampleIterator:
 
     def __next__(self) -> int | float | None: ...
 
+class Samples:
+    def __str__(self) -> str: ...
+
+    @overload
+    def __getitem__(self, item: int) -> Sample: ...
+
+    @overload
+    def __getitem__(self, item: tuple[int, int]) -> int | float: ...
+
+class Sample:
+    def __str__(self) -> str: ...
+
+    def __getitem__(self, item: int) -> int | float: ...
+
+class Result:
+    def __str__(self) -> str: ...
+
+    def __repr__(self) -> str: ...
+
+    @property
+    def sample(self) -> Sample: ...
+
+    @property
+    def obj_value(self) -> float | None: ...
+
+    @property
+    def constraints(self) -> NDArray | None: ...
+
+    @property
+    def feasible(self) -> bool | None: ...
+
 class ResultView:
     def __str__(self) -> str: ...
 
@@ -455,10 +486,13 @@ __all__ = [
     "ModelNotUnconstrainedError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
+    "Result",
     "ResultIterator",
     "ResultView",
+    "Sample",
     "SampleIterator",
     "SampleSetTranslator",
+    "Samples",
     "Solution",
     "Timer",
     "Timing",

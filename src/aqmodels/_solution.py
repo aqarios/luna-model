@@ -37,6 +37,7 @@ class SampleIterator:
         return
 
 
+@export
 class Samples:
     @dispatched
     def __str__(self):
@@ -47,6 +48,7 @@ class Samples:
         return item
 
 
+@export
 class Sample:
     @dispatched
     def __str__(self):
@@ -57,6 +59,7 @@ class Sample:
         return item
 
 
+@export
 class Result:
     @dispatched
     def __str__(self):

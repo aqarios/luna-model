@@ -165,6 +165,7 @@ where
         self.obj_values.push(None);
         self.raw_energies.push(None);
         self.feasible.push(None);
+        self.n_samples += 1;
         Ok(self)
     }
 
@@ -172,10 +173,6 @@ where
         &mut self,
         sample: Vec<T>,
     ) -> Result<(), SampleIncorrectLengthError> {
-        // (team): check logic
-        // self.samples is never initialized with actual values...
-        // also we cannot create a `SampleCol` here as the environment is missing.
-        // We require it to determine the variable type for each column here.
         if sample.len() != self.samples.len() {
             Err(SampleIncorrectLengthError)
         } else {
@@ -228,7 +225,7 @@ where
 }
 
 impl<Bias, AssignmentTypes> Into<Rc<Solution<Bias, AssignmentTypes>>>
-    for RcSolution<Bias, AssignmentTypes>
+for RcSolution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
