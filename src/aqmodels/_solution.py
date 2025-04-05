@@ -58,13 +58,21 @@ class Samples:
     def __getitem__(self, item):
         return item
 
+    @dispatched
+    def __len__(self):
+        return
 
-@export
-class Sample:
+    @dispatched
+    def __iter__(self):
+        return
+
     @dispatched
     def tolist(self):
         return
 
+
+@export
+class Sample:
     @dispatched
     def __str__(self):
         return
@@ -159,9 +167,17 @@ class ResultView:
     @dispatched
     def obj_value(self):
         """
-        Get the objective value of this sample. If present, this is the value computed
-        by the corresponding AqModel, otherwise a raw energy returned by the solver. If
-        none of these values are present, return None.
+        Get the objective value of this sample if present. This is the value computed
+        by the corresponding AqModel.
+        """
+        return
+
+    @property
+    @dispatched
+    def raw_energy(self):
+        """
+        Get the raw energy returned by the solver if present. This value is not
+        guaranteed to be accurate under consideration of the corresponding AqModel.
         """
         return
 
@@ -214,6 +230,11 @@ class Solution:
     @property
     @dispatched
     def obj_values(self):
+        return
+
+    @property
+    @dispatched
+    def raw_energies(self):
         return
 
     @property
@@ -273,7 +294,7 @@ class Timing:
 class Timer:
     @dispatched
     @staticmethod
-    def start(cls):
+    def start():
         return
 
     @dispatched

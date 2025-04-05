@@ -76,7 +76,6 @@ impl PyTiming {
 impl PyTimer {
     #[staticmethod]
     fn start() -> Self {
-        // Get an abstract attribute (presumably) declared on a subclass of this class.
         Self(Timer::start())
     }
 

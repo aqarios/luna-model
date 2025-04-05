@@ -155,15 +155,16 @@ where
     /// Extend a solution with a sample, without computing any objective values or similar.
     /// This method does not check whether the sample is already part of the solution as for now the
     /// solution translator is expected to do the aggregation.
-    pub fn extend<T: Copy + NumCast>(
+    pub fn extend<S: Copy + NumCast, E: Copy + NumCast>(
         &mut self,
-        sample: Vec<T>,
+        sample: Vec<S>,
         num_occurrences: usize,
+        energy: Option<E>,
     ) -> Result<&mut Self, SampleIncorrectLengthError> {
         self.add_sample(sample)?;
         self.num_occurrences.push(num_occurrences);
+        self.raw_energies.push(energy.and_then(|e| <Bias as NumCast>::from(e)));
         self.obj_values.push(None);
-        self.raw_energies.push(None);
         self.feasible.push(None);
         self.n_samples += 1;
         Ok(self)

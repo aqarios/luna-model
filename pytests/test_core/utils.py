@@ -21,6 +21,10 @@ def random(seed: int) -> float:
     return rand.random()
 
 
+def random_int(rand: r.Random):
+    return rand.randint(0, 2**16 - 1)
+
+
 def check_equality(variables, p, f, value):
     permuts = permutations(variables, p)
     base = next(permuts)

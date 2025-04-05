@@ -90,7 +90,7 @@ impl PySolution {
 
 impl PySample {
     pub fn iter(&self) -> PySampleIterator {
-        match &self.0 .0 {
+        match &self.0.0 {
             Either::Left(r) => PySampleIterator(SampleIterator::from_res_view(&r)),
             Either::Right(r) => PySampleIterator(SampleIterator::from_sample_vec(Rc::clone(r))),
         }
@@ -112,6 +112,15 @@ impl PySolution {
     #[getter]
     fn obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
         self.obj_values
+            .iter()
+            .map(|x| x.into_py_any(py).unwrap())
+            .collect::<Vec<_>>()
+            .to_pyarray(py)
+    }
+
+    #[getter]
+    fn raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
+        self.raw_energies
             .iter()
             .map(|x| x.into_py_any(py).unwrap())
             .collect::<Vec<_>>()
@@ -184,6 +193,11 @@ impl PyResultView {
     #[getter]
     fn obj_value(&self) -> Option<ConcreteBias> {
         self.0.obj_value()
+    }
+
+    #[getter]
+    fn raw_energy(&self) -> Option<ConcreteBias> {
+        self.0.raw_energy()
     }
 
     #[getter]
@@ -302,7 +316,7 @@ impl PySample {
     }
 
     fn __len__(&self) -> usize {
-        match &self.0 .0 {
+        match &self.0.0 {
             Left(r) => r.sol.samples.len(),
             Either::Right(r) => r.len(),
         }

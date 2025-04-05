@@ -3,22 +3,23 @@ use crate::core::solution::sol::SampleCol;
 use crate::core::{ConcreteSolution, MutRcEnvironment, RcSolution, Solution, Timing, Vtype};
 use crate::errors::SampleIncorrectLengthError;
 use num::NumCast;
-use std::fmt::Debug;
 use std::rc::Rc;
 
 pub struct SampleSetTranslator {}
 
 impl SampleSetTranslator {
-    pub fn from_dimod_sample_set<S, N, Idx>(
+    pub fn from_dimod_sample_set<S, N, E, Idx>(
         samples: &[S],
         num_occurrences: &[N],
+        energy: &[E],
         shape: &[usize],
         timing: Option<Timing>,
         env: MutRcEnvironment<Idx>,
     ) -> Result<ConcreteSolution, SampleIncorrectLengthError>
     where
-        S: Copy + NumCast + Debug,
-        N: Copy + NumCast + Debug,
+        S: Copy + NumCast,
+        N: Copy + NumCast,
+        E: Copy + NumCast,
         Idx: IndexConstraints,
     {
         let mut sol = Solution::default();
@@ -40,9 +41,9 @@ impl SampleSetTranslator {
             sol.extend(
                 sample,
                 <usize as NumCast>::from(num_occurrences[i]).unwrap(),
+                Some(energy[i]),
             )?;
         }
         Ok(RcSolution(Rc::new(sol)))
     }
 }
-

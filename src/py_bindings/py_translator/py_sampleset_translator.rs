@@ -16,10 +16,11 @@ pub struct PySampleSetTranslator(pub SampleSetTranslator);
 #[pymethods]
 impl PySampleSetTranslator {
     #[staticmethod]
-    #[pyo3(signature=(samples, num_occurrences, timing=None, env=None))]
+    #[pyo3(signature=(samples, num_occurrences, energy, timing=None, env=None))]
     fn translate(
         samples: PyReadonlyArray2<i64>,
         num_occurrences: PyReadonlyArray1<i64>,
+        energy: PyReadonlyArray1<f64>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PySolution> {
@@ -35,6 +36,7 @@ impl PySampleSetTranslator {
             SampleSetTranslator::from_dimod_sample_set(
                 samples.as_slice()?,
                 num_occurrences.as_slice()?,
+                energy.as_slice()?,
                 samples.shape(),
                 timing.map(|t| t.into()),
                 environment.into(),
@@ -62,8 +64,10 @@ def extract(sampleset, timing, env):
     record = sampleset.record
     sample = record.sample.astype(np.int64, order='C')
     num_occurrences = record.num_occurrences.astype(np.int64, order='C')
-    # return sample, num_occurrences, timing
-    return translator.SampleSetTranslator.translate(sample, num_occurrences, timing, env)"
+    energy = record.energy.astype(np.float64, order='C')
+    return translator.SampleSetTranslator.translate(
+        sample, num_occurrences, energy, timing, env
+    )"
             ),
             c_str!(""),
             c_str!(""),

@@ -72,7 +72,11 @@ where
     }
 
     pub fn obj_value(&self) -> Option<Bias> {
-        self.sol.obj_values[self.row_idx].or_else(|| self.sol.raw_energies[self.row_idx])
+        self.sol.obj_values[self.row_idx]
+    }
+    
+    pub fn raw_energy(&self) -> Option<Bias> {
+        self.sol.raw_energies[self.row_idx]
     }
 
     pub fn constraint_satisfaction(&self) -> &Option<Vec<bool>> {
