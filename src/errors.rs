@@ -148,3 +148,35 @@ impl Display for SampleIncorrectLengthError {
         )
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct IncorrectVtypeError;
+
+impl Error for IncorrectVtypeError {}
+
+impl Display for IncorrectVtypeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "Found variable assignment of incorrect vtype.")
+    }
+}
+
+#[derive(Debug)]
+pub struct SolutionCreatorErr(pub String);
+
+impl Error for SolutionCreatorErr {}
+
+impl Display for SolutionCreatorErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl From<SampleIncorrectLengthError> for SolutionCreatorErr {
+    fn from(value: SampleIncorrectLengthError) -> Self {
+        SolutionCreatorErr(value.to_string())
+    }
+}
+impl From<IncorrectVtypeError> for SolutionCreatorErr {
+    fn from(value: IncorrectVtypeError) -> Self {
+        SolutionCreatorErr(value.to_string())
+    }
+}

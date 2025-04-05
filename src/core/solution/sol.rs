@@ -2,7 +2,7 @@ use crate::core::expression::BiasConstraints;
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
 use crate::core::ResultView;
-use crate::errors::SampleIncorrectLengthError;
+use crate::errors::{IncorrectVtypeError, SampleIncorrectLengthError, SolutionCreatorErr};
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
 use std::ops::Mul;
@@ -61,21 +61,42 @@ impl<AssignmentTypes> SampleCol<AssignmentTypes>
 where
     AssignmentTypes: AssignmentBaseTypes,
 {
-    pub fn push<N: ToPrimitive>(&mut self, assignment: N) {
+    pub fn push<N: ToPrimitive>(&mut self, assignment: N) -> Result<(), IncorrectVtypeError> {
         match self {
             Self::Binary(xs) => {
-                xs.push(<AssignmentTypes::BinaryType as NumCast>::from(assignment).unwrap());
+                match <AssignmentTypes::BinaryType as NumCast>::from(assignment) {
+                    None => { return Err(IncorrectVtypeError) }
+                    Some(x) => {
+                        xs.push(x);
+                    }
+                }
             }
             Self::Spin(xs) => {
-                xs.push(<AssignmentTypes::SpinType as NumCast>::from(assignment).unwrap());
+                match <AssignmentTypes::SpinType as NumCast>::from(assignment) {
+                    None => { return Err(IncorrectVtypeError) }
+                    Some(x) => {
+                        xs.push(x);
+                    }
+                }
             }
             Self::Integer(xs) => {
-                xs.push(<AssignmentTypes::IntegerType as NumCast>::from(assignment).unwrap());
+                match <AssignmentTypes::IntegerType as NumCast>::from(assignment) {
+                    None => { return Err(IncorrectVtypeError) }
+                    Some(x) => {
+                        xs.push(x);
+                    }
+                }
             }
             Self::Real(xs) => {
-                xs.push(<AssignmentTypes::RealType as NumCast>::from(assignment).unwrap());
+                match <AssignmentTypes::RealType as NumCast>::from(assignment) {
+                    None => { return Err(IncorrectVtypeError) }
+                    Some(x) => {
+                        xs.push(x);
+                    }
+                }
             }
-        }
+        };
+        Ok(())
     }
 
     pub fn get<Bias: BiasConstraints>(
@@ -160,11 +181,12 @@ where
         sample: Vec<S>,
         num_occurrences: usize,
         energy: Option<E>,
-    ) -> Result<&mut Self, SampleIncorrectLengthError> {
+    ) -> Result<&mut Self, SolutionCreatorErr> {
         self.add_sample(sample)?;
         self.num_occurrences.push(num_occurrences);
         self.raw_energies.push(energy.and_then(|e| <Bias as NumCast>::from(e)));
         self.obj_values.push(None);
+        self.constraints.push(None);
         self.feasible.push(None);
         self.n_samples += 1;
         Ok(self)
@@ -173,12 +195,12 @@ where
     fn add_sample<T: Copy + NumCast>(
         &mut self,
         sample: Vec<T>,
-    ) -> Result<(), SampleIncorrectLengthError> {
+    ) -> Result<(), SolutionCreatorErr> {
         if sample.len() != self.samples.len() {
-            Err(SampleIncorrectLengthError)
+            Err(SampleIncorrectLengthError)?
         } else {
             for (i, &a) in sample.iter().enumerate() {
-                self.samples[i].push(a);
+                self.samples[i].push(a)?;
             }
             Ok(())
         }

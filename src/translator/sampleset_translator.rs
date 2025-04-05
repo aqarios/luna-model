@@ -1,7 +1,7 @@
 use crate::core::expression::IndexConstraints;
 use crate::core::solution::sol::SampleCol;
 use crate::core::{ConcreteSolution, MutRcEnvironment, RcSolution, Solution, Timing, Vtype};
-use crate::errors::SampleIncorrectLengthError;
+use crate::errors::SolutionCreatorErr;
 use num::NumCast;
 use std::rc::Rc;
 
@@ -15,7 +15,7 @@ impl SampleSetTranslator {
         shape: &[usize],
         timing: Option<Timing>,
         env: MutRcEnvironment<Idx>,
-    ) -> Result<ConcreteSolution, SampleIncorrectLengthError>
+    ) -> Result<ConcreteSolution, SolutionCreatorErr>
     where
         S: Copy + NumCast,
         N: Copy + NumCast,

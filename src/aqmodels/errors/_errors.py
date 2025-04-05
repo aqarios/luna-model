@@ -95,3 +95,14 @@ class ModelNotUnconstrainedError(Exception):
     Some solution methods may only work on unconstrained models, such as when
     transforming a symbolic model to a low-level format.
     """
+
+
+@export("top", "errors")
+class SolutionCreationError(Exception):
+    """
+    Raised when something goes wrong during the creation of a solution.
+
+    This may happen during the translation to an AqSolution from a different solution
+    format, e.g., when the samples have different lengths or the variable types are not
+    consistent with the model the solution is created for.
+    """

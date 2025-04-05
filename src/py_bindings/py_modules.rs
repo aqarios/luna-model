@@ -83,6 +83,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::VariablesFromDifferentEnvsError::NAME,
         m.py().get_type::<pyexc::VariablesFromDifferentEnvsError>(),
     )?;
+    m.add(
+        pyexc::SolutionCreationError::NAME,
+        m.py().get_type::<pyexc::SolutionCreationError>(),
+    )?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?

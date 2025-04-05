@@ -24,3 +24,6 @@ class ModelNotQuadraticError(Exception):
 
 class ModelNotUnconstrainedError(Exception):
     def __str__(self) -> str: ...
+
+class SolutionCreationError(Exception):
+    def __str__(self) -> str: ...

@@ -451,6 +451,9 @@ class ModelNotQuadraticError(Exception):
 class ModelNotUnconstrainedError(Exception):
     def __str__(self) -> str: ...
 
+class SolutionCreationError(Exception):
+    def __str__(self) -> str: ...
+
 
 __all__ = [
     "Bounds",
@@ -476,6 +479,7 @@ __all__ = [
     "Samples",
     "SamplesIterator",
     "Solution",
+    "SolutionCreationError",
     "Timer",
     "Timing",
     "Variable",

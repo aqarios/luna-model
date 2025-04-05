@@ -129,6 +129,7 @@ MultipleActiveEnvironmentsError = errors.MultipleActiveEnvironmentsError
 DecodeError = errors.DecodeError
 ModelNotQuadraticError = errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
+SolutionCreationError = errors.SolutionCreationError
 
 __all__ = [
     "Bounds",
@@ -154,6 +155,7 @@ __all__ = [
     "Samples",
     "SamplesIterator",
     "Solution",
+    "SolutionCreationError",
     "Timer",
     "Timing",
     "Variable",

@@ -10,9 +10,11 @@ from ._errors import (
   MultipleActiveEnvironmentsError,
   DecodeError,
   ModelNotQuadraticError,
-  ModelNotUnconstrainedError
+  ModelNotUnconstrainedError,
+  SolutionCreationError
 )
 from .._core import (
+  errors as __errors,
   errors as __errors,
   errors as __errors,
   errors as __errors,
@@ -33,6 +35,7 @@ MultipleActiveEnvironmentsError = __errors.MultipleActiveEnvironmentsError
 DecodeError = __errors.DecodeError
 ModelNotQuadraticError = __errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = __errors.ModelNotUnconstrainedError
+SolutionCreationError = __errors.SolutionCreationError
 
 __all__ = [
     "DecodeError",
@@ -41,6 +44,7 @@ __all__ = [
     "ModelNotUnconstrainedError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
+    "SolutionCreationError",
     "VariableExistsError",
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",

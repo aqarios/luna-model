@@ -6,7 +6,14 @@ import pytest
 from dimod import BinaryQuadraticModel, SampleSet, Vartype, as_samples
 from dwave.samplers import SimulatedAnnealingSampler
 
-from aqmodels import Environment, SampleSetTranslator, Timer, Variable, Vtype
+from aqmodels import (
+    Environment,
+    SampleSetTranslator,
+    Timer,
+    Variable,
+    Vtype,
+    SolutionCreationError,
+)
 from pytests.test_core.utils import make_seed, random_int
 
 
@@ -29,9 +36,8 @@ def generate_bqms(
     return out
 
 
-def mock_env(n_variables: int, vartype: Vartype = Vartype.BINARY) -> Environment:
+def mock_env(n_variables: int, vtype: Vtype = Vtype.Binary) -> Environment:
     env = Environment()
-    vtype = Vtype.Binary if vartype == Vartype.BINARY else Vtype.Spin
     with env:
         for i in range(n_variables):
             _ = Variable(str(f"x{i}"), vtype=vtype)
@@ -39,7 +45,7 @@ def mock_env(n_variables: int, vartype: Vartype = Vartype.BINARY) -> Environment
 
 
 @pytest.mark.solution_translation
-def test_from_dimod_constructed():
+def test_sampleset_translator_constructed():
     samples = [[0, 1, 1], [0, 0, 1], [0, 1, 0]]
     num_occurrences = [1, 2, 3]
     energy = [-1, 0, 1]
@@ -50,57 +56,25 @@ def test_from_dimod_constructed():
         num_occurrences=np.array(num_occurrences),
     )
 
-    with Environment():
-        for v in range(3):
-            _ = Variable(str(v))
+    with mock_env(3):
         sol = SampleSetTranslator.from_dimod_sample_set(sampleset)
 
     assert sol.samples.tolist() == samples
     assert sol.num_occurrences.tolist() == num_occurrences
-    results = list(sol.results)
-    assert len(results) == 3
     assert sol.obj_values.tolist() == [None, None, None]
     assert sol.raw_energies.tolist() == energy
+    assert sol.runtime is None
 
-
-def test_from_dimod_sa():
-    bqm = BinaryQuadraticModel(vartype=Vartype.BINARY)
-    bqm.add_variable("x1")
-    bqm.add_variable("x2")
-    bqm.add_variable("x3")
-    bqm.add_linear("x1", 1)
-    bqm.add_linear("x2", -2)
-    bqm.add_linear("x3", -1)
-    bqm.add_quadratic("x1", "x2", 5)
-    bqm.add_quadratic("x1", "x3", -1)
-    bqm.add_quadratic("x2", "x3", 2)
-
-    timer = Timer.start()
-    sampler = SimulatedAnnealingSampler()
-    sampleset: SampleSet = sampler.sample(bqm, num_reads=5, seed=42)
-    timing = timer.stop()
-    assert timing.start.timestamp() < timing.end.timestamp()
-    assert timing.qpu is None
-    assert timing.total.total_seconds() > 0
-    assert timing.total_seconds > 0
-
-    env = mock_env(bqm.num_variables)
-    sol = SampleSetTranslator.from_dimod_sample_set(sampleset, timing, env)
-    assert sol.samples.tolist() == [[0.0, 1.0, 0.0]]
-    assert sol.num_occurrences.tolist() == [5]
-    assert sol.runtime.total.total_seconds() > 0
-    assert sol.runtime.total_seconds > 0
-    assert sol.runtime.qpu is None
-    assert sol.obj_values.tolist() == [None]
-    assert sol.raw_energies.tolist() == [-2.0]
+    for result in sol.results:
+        assert result.constraints is None
+        assert result.feasible is None
 
     results = list(sol.results)
-    assert len(results) == 1
-    sample = results[0].sample
-    assert list(sample) == [0.0, 1.0, 0.0]
+    assert len(results) == 3
 
 
-def test_from_dimod_sa_random_models():
+@pytest.mark.solution_translation
+def test_sampleset_translator_sa_random_models():
     rand = Random(make_seed())
     bqms = generate_bqms(20, rand)
     for bqm in bqms:
@@ -108,13 +82,46 @@ def test_from_dimod_sa_random_models():
         sampler = SimulatedAnnealingSampler()
         sampleset: SampleSet = sampler.sample(bqm, num_reads=128, seed=random_int(rand))
         timing = timer.stop()
-        env = mock_env(bqm.num_variables, vartype=bqm.vartype)
+        vtype = Vtype.Binary if bqm.vartype == Vartype.BINARY else Vtype.Spin
+        env = mock_env(bqm.num_variables, vtype=vtype)
         sol = SampleSetTranslator.from_dimod_sample_set(sampleset, timing, env)
 
-        assert len(sol.samples) > 0
+        sampleset_agg = sampleset.aggregate()
+        assert len(sol.samples) == len(sampleset_agg.record.sample)
+        assert sol.samples.tolist() == sampleset_agg.record.sample.tolist()
+        assert (
+            sol.num_occurrences.tolist()
+            == sampleset_agg.record.num_occurrences.tolist()
+        )
         assert len(sol.num_occurrences) == len(sol.samples)
         assert sol.runtime.total.total_seconds() > 0
         assert sol.runtime.total_seconds > 0
         assert sol.runtime.qpu is None
         assert sol.obj_values.tolist() == [None] * len(sol.samples)
-        assert len(sol.raw_energies) > 0
+        assert sol.raw_energies.tolist() == sampleset_agg.record.energy.tolist()
+
+        results = list(sol.results)
+        assert len(results) == len(sol.samples)
+        for i, result in enumerate(results):
+            assert result.num_occurrences == sol.num_occurrences.tolist()[i]
+            assert list(result.sample) == list(sol.samples[i])
+            assert result.obj_value == None
+            assert result.raw_energy == sol.raw_energies.tolist()[i]
+            assert result.constraints is None
+            assert result.feasible is None
+
+
+@pytest.mark.solution_translation
+def test_sampleset_translator_error_handling():
+    samples = [[-1, 1, 1]]
+    energy = [-5]
+    sampleset = SampleSet.from_samples(as_samples(np.array(samples)), "SPIN", energy)
+
+    env = mock_env(3)
+    with pytest.raises(SolutionCreationError):
+        _ = SampleSetTranslator.from_dimod_sample_set(sampleset, env=env)
+
+    env = mock_env(3, vtype=Vtype.Spin)
+    sol = SampleSetTranslator.from_dimod_sample_set(sampleset, env=env)
+    with pytest.raises(IndexError):
+        _ = sol.samples[1]

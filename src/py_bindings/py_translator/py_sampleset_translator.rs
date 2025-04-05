@@ -32,15 +32,14 @@ impl PySampleSetTranslator {
                 })
             })?,
         };
-        Ok(PySolution(
-            SampleSetTranslator::from_dimod_sample_set(
-                samples.as_slice()?,
-                num_occurrences.as_slice()?,
-                energy.as_slice()?,
-                samples.shape(),
-                timing.map(|t| t.into()),
-                environment.into(),
-            ).unwrap()))
+        Ok(PySolution(SampleSetTranslator::from_dimod_sample_set(
+            samples.as_slice()?,
+            num_occurrences.as_slice()?,
+            energy.as_slice()?,
+            samples.shape(),
+            timing.map(|t| t.into()),
+            environment.into(),
+        )?))
     }
 
     #[staticmethod]
