@@ -63,38 +63,32 @@ where
 {
     pub fn push<N: ToPrimitive>(&mut self, assignment: N) -> Result<(), IncorrectVtypeError> {
         match self {
-            Self::Binary(xs) => {
-                match <AssignmentTypes::BinaryType as NumCast>::from(assignment) {
-                    None => { return Err(IncorrectVtypeError) }
-                    Some(x) => {
-                        xs.push(x);
-                    }
+            Self::Binary(xs) => match <AssignmentTypes::BinaryType as NumCast>::from(assignment) {
+                None => return Err(IncorrectVtypeError),
+                Some(x) => {
+                    xs.push(x);
                 }
-            }
-            Self::Spin(xs) => {
-                match <AssignmentTypes::SpinType as NumCast>::from(assignment) {
-                    None => { return Err(IncorrectVtypeError) }
-                    Some(x) => {
-                        xs.push(x);
-                    }
+            },
+            Self::Spin(xs) => match <AssignmentTypes::SpinType as NumCast>::from(assignment) {
+                None => return Err(IncorrectVtypeError),
+                Some(x) => {
+                    xs.push(x);
                 }
-            }
+            },
             Self::Integer(xs) => {
                 match <AssignmentTypes::IntegerType as NumCast>::from(assignment) {
-                    None => { return Err(IncorrectVtypeError) }
+                    None => return Err(IncorrectVtypeError),
                     Some(x) => {
                         xs.push(x);
                     }
                 }
             }
-            Self::Real(xs) => {
-                match <AssignmentTypes::RealType as NumCast>::from(assignment) {
-                    None => { return Err(IncorrectVtypeError) }
-                    Some(x) => {
-                        xs.push(x);
-                    }
+            Self::Real(xs) => match <AssignmentTypes::RealType as NumCast>::from(assignment) {
+                None => return Err(IncorrectVtypeError),
+                Some(x) => {
+                    xs.push(x);
                 }
-            }
+            },
         };
         Ok(())
     }
@@ -176,7 +170,8 @@ where
     ) -> Result<&mut Self, SolutionCreatorErr> {
         self.add_sample(sample)?;
         self.num_occurrences.push(num_occurrences);
-        self.raw_energies.push(energy.and_then(|e| <Bias as NumCast>::from(e)));
+        self.raw_energies
+            .push(energy.and_then(|e| <Bias as NumCast>::from(e)));
         self.obj_values.push(None);
         self.constraints.push(None);
         self.feasible.push(None);
@@ -184,10 +179,7 @@ where
         Ok(self)
     }
 
-    fn add_sample<T: Copy + NumCast>(
-        &mut self,
-        sample: Vec<T>,
-    ) -> Result<(), SolutionCreatorErr> {
+    fn add_sample<T: Copy + NumCast>(&mut self, sample: Vec<T>) -> Result<(), SolutionCreatorErr> {
         if sample.len() != self.samples.len() {
             Err(SampleIncorrectLengthError)?
         } else {
@@ -195,6 +187,30 @@ where
                 self.samples[i].push(a)?;
             }
             Ok(())
+        }
+    }
+
+    pub fn add_sample_evaluation(
+        &mut self,
+        sample_idx: usize,
+        obj_value: Option<Bias>,
+        constraints: Option<Vec<bool>>,
+        sense_is_minimize: bool,
+    ) {
+        // (team) Method is still untested, but it's meant to be used in the evaluation process.
+        self.obj_values[sample_idx] = obj_value;
+        self.feasible[sample_idx] = constraints.as_ref().map(|x| x.iter().all(|&b| b));
+        self.constraints[sample_idx] = constraints;
+        match self.best_sample_idx {
+            None => {}
+            Some(i) => match (self.obj_values[i], obj_value) {
+                (Some(old), Some(new)) => {
+                    if new < old && sense_is_minimize || new > old && !sense_is_minimize {
+                        self.best_sample_idx = Some(sample_idx);
+                    }
+                }
+                _ => {}
+            },
         }
     }
 
