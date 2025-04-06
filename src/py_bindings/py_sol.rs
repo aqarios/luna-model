@@ -1,13 +1,11 @@
-use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, OwnedResult, RcSolution, ResultIterator, ResultView,
-    Sample, SampleIterator, Samples, VarAssignment,
-};
+use crate::core::{ConcreteAssignmentTypes, ConcreteBias, OwnedResult, RcSolution, ResultIterator, ResultView, Sample, SampleIterator, Samples, Solution, VarAssignment};
 use crate::py_bindings::py_timing::PyTiming;
 use derive_more::{Deref, DerefMut};
 use either::{Either, Left};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError};
 use pyo3::prelude::*;
+use pyo3::types::PyBytes;
 use pyo3::IntoPyObjectExt;
 use std::rc::Rc;
 
@@ -140,6 +138,36 @@ impl PySolution {
     #[getter]
     fn best_sample_idx(&self) -> Option<usize> {
         self.0.best_sample_idx
+    }
+
+    #[pyo3(signature=(compress=None, level=None))]
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+        let _compress = compress.unwrap_or(level.is_some());
+        // TODO: implement actual compression logic then update this method
+        Ok(PyBytes::new(py, &Vec::new().as_slice()).into())
+    }
+
+    #[pyo3(signature=(compress=None, level=None))]
+    fn serialize(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<PyObject> {
+        self.encode(py, compress, level)
+    }
+
+    #[staticmethod]
+    fn decode(_py: Python, _data: Py<PyBytes>) -> PyResult<Self> {
+        // TODO: implement actual compression logic then update this method
+        Ok(PySolution(
+            RcSolution(Rc::new(Solution::default()))
+        ))
+    }
+
+    #[staticmethod]
+    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::decode(py, data)
     }
 
     // TODO: implement human-readable solution representation

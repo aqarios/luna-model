@@ -49,7 +49,6 @@ impl PySampleSetTranslator {
         sampleset: PyObject,
         timing: Option<PyObject>,
         env: Option<PyEnvironment>,
-        // ) -> PyResult<PySolution> {
     ) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(
             py,

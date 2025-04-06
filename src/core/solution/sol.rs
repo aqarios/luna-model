@@ -157,14 +157,6 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    // pub fn new(num_variables: usize, timing: Option<Timing>) -> Self {
-    //     // (team): check logic
-    //     let mut out = Self::default();
-    //     out.samples = vec![SampleCol::default(); num_variables];
-    //     out.timing = timing;
-    //     out
-    // }
-
     pub fn len(&self) -> usize {
         self.n_samples
     }
