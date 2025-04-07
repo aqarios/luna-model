@@ -11,6 +11,7 @@ pub use res::ResultView;
 pub use res::Sample;
 pub use res::SampleIterator;
 pub use res::Samples;
+pub use res::SamplesIterator;
 pub use sol::RcSolution;
 pub use sol::Solution;
 pub use sol::VarAssignment;

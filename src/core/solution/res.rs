@@ -46,14 +46,27 @@ where
     next_row: usize,
 }
 
-/// Iterates over the single variable assignments of a result
+/// Iterates over the sample rows of a solution
+#[derive(Debug, Clone)]
+pub struct SamplesIterator<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    /// The solution this result view corresponds to
+    sol: RcSolution<Bias, AssignmentTypes>,
+    /// Index of the next row of the sample within the solution
+    next_row: usize,
+}
+
+/// Iterates over the single variable assignments of a solution row
 #[derive(Debug, Clone)]
 pub struct SampleIterator<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    res: Either<ResultView<Bias, AssignmentTypes>, Rc<Vec<VarAssignment<AssignmentTypes>>>>,
+    sample: Either<ResultView<Bias, AssignmentTypes>, Rc<Vec<VarAssignment<AssignmentTypes>>>>,
     /// Index of the next row of the sample within the solution
     next_col_idx: usize,
 }
@@ -74,7 +87,7 @@ where
     pub fn obj_value(&self) -> Option<Bias> {
         self.sol.obj_values[self.row_idx]
     }
-    
+
     pub fn raw_energy(&self) -> Option<Bias> {
         self.sol.raw_energies[self.row_idx]
     }
@@ -119,20 +132,39 @@ where
     }
 }
 
+impl<Bias, AssignmentTypes> SamplesIterator<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    pub fn new(sol: RcSolution<Bias, AssignmentTypes>) -> Self {
+        Self { sol, next_row: 0 }
+    }
+}
+
 impl<Bias, AssignmentTypes> SampleIterator<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
+    pub fn new(
+        sample: Either<ResultView<Bias, AssignmentTypes>, Rc<Vec<VarAssignment<AssignmentTypes>>>>,
+    ) -> SampleIterator<Bias, AssignmentTypes> {
+        Self {
+            sample,
+            next_col_idx: 0,
+        }
+    }
+
     pub fn from_res_view(res: &ResultView<Bias, AssignmentTypes>) -> Self {
         Self {
-            res: Left(res.clone()),
+            sample: Left(res.clone()),
             next_col_idx: 0,
         }
     }
     pub fn from_sample_vec(res: Rc<Vec<VarAssignment<AssignmentTypes>>>) -> Self {
         Self {
-            res: Right(res),
+            sample: Right(res),
             next_col_idx: 0,
         }
     }
@@ -154,6 +186,10 @@ where
     ) -> Option<VarAssignment<AssignmentTypes>> {
         self.0.get_assignment(row_idx, col_idx)
     }
+
+    pub fn iter(&self) -> SamplesIterator<Bias, AssignmentTypes> {
+        SamplesIterator::new(RcSolution::clone(&self.0))
+    }
 }
 
 impl<Bias, AssignmentTypes> Sample<Bias, AssignmentTypes>
@@ -164,8 +200,12 @@ where
     pub fn get_assignment(&self, col_idx: usize) -> Option<VarAssignment<AssignmentTypes>> {
         match &self.0 {
             Left(r) => r.get_assignment(col_idx),
-            Right(r) => r.get(col_idx).map(|&x| x)
+            Right(r) => r.get(col_idx).map(|&x| x),
         }
+    }
+
+    pub fn iter(&self) -> SampleIterator<Bias, AssignmentTypes> {
+        SampleIterator::new(self.0.clone())
     }
 }
 
@@ -187,6 +227,27 @@ where
     }
 }
 
+impl<Bias, AssignmentTypes> Iterator for SamplesIterator<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    type Item = Sample<Bias, AssignmentTypes>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.next_row >= self.sol.len() {
+            None
+        } else {
+            let sample = Some(Sample(Left(ResultView::new(
+                RcSolution::clone(&self.sol),
+                self.next_row,
+            ))));
+            self.next_row += 1;
+            sample
+        }
+    }
+}
+
 impl<Bias, AssignmentTypes> Iterator for SampleIterator<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
@@ -195,9 +256,9 @@ where
     type Item = VarAssignment<AssignmentTypes>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let out = match &self.res {
-            Left(r) => { r.get_sample().get_assignment(self.next_col_idx) }
-            Right(r) => r.get(self.next_col_idx).map(|&x| x)
+        let out = match &self.sample {
+            Left(r) => r.get_sample().get_assignment(self.next_col_idx),
+            Right(r) => r.get(self.next_col_idx).map(|&x| x),
         };
         if let Some(_) = out {
             self.next_col_idx += 1;

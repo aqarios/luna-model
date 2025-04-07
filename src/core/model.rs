@@ -4,7 +4,7 @@ use super::expression::{
     BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation,
     IndexConstraints,
 };
-use super::{Environment, Expression, RcSolution, Vtype};
+use super::{Environment, Expression, RcSolution, VarAssignment, Vtype};
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::utils::ModelWriter;
 use std::cell::RefCell;
@@ -99,11 +99,9 @@ where
         todo!("Implement evaluation logic")
     }
 
-    fn evaluate_sample<AssignmentTypes>(
-        &self,
-        _res: &Vec<AssignmentTypes>,
-    ) -> OwnedResult<Bias, AssignmentTypes>
+    fn evaluate_sample<I, AssignmentTypes>(&self, _sample: &I) -> OwnedResult<Bias, AssignmentTypes>
     where
+        I: Iterator<Item=VarAssignment<AssignmentTypes>>,
         AssignmentTypes: AssignmentBaseTypes,
     {
         todo!("Implement evaluation logic")

@@ -1,7 +1,7 @@
 use crate::core::expression::BiasConstraints;
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
-use crate::core::ResultView;
+use crate::core::{ResultIterator, ResultView, Samples};
 use crate::errors::{IncorrectVtypeError, SampleIncorrectLengthError, SolutionCreatorErr};
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
@@ -242,6 +242,14 @@ where
         } else {
             Some(ResultView::new(self.clone(), row_idx))
         }
+    }
+
+    pub fn iter_results(&self) -> ResultIterator<Bias, AssignmentTypes> {
+        ResultIterator::new(RcSolution::clone(&self))
+    }
+
+    pub fn iter_samples(&self) -> Samples<Bias, AssignmentTypes> {
+        Samples(RcSolution::clone(&self))
     }
 }
 
