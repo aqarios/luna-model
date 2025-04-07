@@ -4,11 +4,12 @@ use super::expression::{
     BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation,
     IndexConstraints,
 };
-use super::{Environment, Expression, RcSolution, VarAssignment, Vtype};
+use super::{Environment, Expression, IndexByValue, RcSolution, Vtype};
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::utils::ModelWriter;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
+use std::ops::Mul;
 use std::rc::Rc;
 
 /// The default name for a model.
@@ -99,10 +100,14 @@ where
         todo!("Implement evaluation logic")
     }
 
-    fn evaluate_sample<I, AssignmentTypes>(&self, _sample: &I) -> OwnedResult<Bias, AssignmentTypes>
+    fn evaluate_sample<'a, AssignmentTypes, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
+        &self,
+        _sample: &'a Sample,
+    ) -> OwnedResult<Bias, AssignmentTypes>
     where
-        I: Iterator<Item=VarAssignment<AssignmentTypes>>,
         AssignmentTypes: AssignmentBaseTypes,
+        &'a Elem: Mul<Bias, Output = Bias>,
+        Elem: Mul<Bias, Output = Bias>,
     {
         todo!("Implement evaluation logic")
     }
