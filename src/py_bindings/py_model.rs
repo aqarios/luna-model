@@ -1,6 +1,8 @@
 use std::rc::Rc;
 
-use super::{py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression};
+use super::{
+    py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
+};
 use crate::{
     core::{ConcreteModel, Environment, Model},
     py_bindings::py_env::CURRENT_ENV,
@@ -125,5 +127,9 @@ impl PyModel {
     #[staticmethod]
     fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Self::decode(py, data)
+    }
+
+    fn evaluate(&self, _py: Python, other: &PySolution) -> PySolution {
+        PySolution(self.evaluate_solution(crate::core::RcSolution(Rc::clone(&other.0))))
     }
 }

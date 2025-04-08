@@ -1,9 +1,9 @@
-use crate::core::expression::{BiasConstraints, IndexConstraints};
+use crate::core::expression::{BiasConstraints, ExpressionEvaluation, IndexConstraints};
 use crate::core::utils::ModelWriter;
-use crate::core::MutRcExpression;
+use crate::core::{IndexByValue, MutRcExpression};
 use crate::errors::IndexOutOfBoundsErr;
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Add, AddAssign};
+use std::ops::{Add, AddAssign, Mul};
 use std::slice::Iter;
 use std::string::ToString;
 use strum_macros::Display;
@@ -23,6 +23,16 @@ pub enum Comparator {
     Leq,
     #[strum(to_string = ">=")]
     Geq,
+}
+
+impl Comparator {
+    pub fn evaluate<Bias: BiasConstraints>(&self, lhs: Bias, rhs: Bias) -> bool {
+        match self {
+            Self::Eq => lhs == rhs,
+            Self::Leq => lhs <= rhs,
+            Self::Geq => lhs >= rhs,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -59,6 +69,17 @@ where
 
     pub fn set_name(&mut self, name: Option<String>) {
         self.name = name
+    }
+
+    pub fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
+        &self,
+        sample: &'a Sample,
+    ) -> bool
+    where
+        Elem: Mul<Bias, Output = Bias>,
+    {
+        let val = self.lhs.borrow().evaluate_sample(sample);
+        self.comparator.evaluate(val, self.rhs)
     }
 }
 

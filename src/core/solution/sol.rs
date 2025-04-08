@@ -1,7 +1,7 @@
-use crate::core::expression::BiasConstraints;
+use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
-use crate::core::ResultView;
+use crate::core::{IndexByValue, ResultView};
 use crate::errors::{IncorrectVtypeError, SampleIncorrectLengthError, SolutionCreatorErr};
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
@@ -130,7 +130,7 @@ where
     /// was neglected, or the AQM was transformed before being solved.
     pub raw_energies: Vec<Option<Bias>>,
     /// Boolean flag for each single constraint whether it's satisfied. Each inner vec corresponds
-    /// to one sample, i.e., `constraints[i]` corresponds to `samples[0]`. May be empty for
+    /// to one sample, i.e., `constraints[i]` corresponds to `samples[i]`. May be empty for
     /// solutions that haven't yet been evaluated.
     pub constraints: Vec<Option<Vec<bool>>>,
     /// Boolean flag for each sample whether it's feasible, i.e., whether all constraints are
@@ -223,6 +223,29 @@ where
             .get(col_idx)
             .and_then(|col| col.get::<Bias>(row_idx))
     }
+
+    pub fn get_sample(&self, row_idx: usize) -> Vec<VarAssignment<AssignmentTypes>> {
+        self.samples
+            .iter()
+            .map(|sample_col| sample_col.get::<Bias>(row_idx).unwrap())
+            .collect()
+    }
+
+    pub fn rows(&self) -> Vec<Vec<VarAssignment<AssignmentTypes>>> {
+        (0..self.n_samples).map(|i| self.get_sample(i)).collect()
+    }
+}
+
+impl<Index, AssignmentTypes> IndexByValue<Index> for Vec<VarAssignment<AssignmentTypes>>
+where
+    Index: IndexConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    type Output = VarAssignment<AssignmentTypes>;
+
+    fn index_by_value(&self, index: Index) -> Self::Output {
+        self[index.into()]
+    }
 }
 
 #[derive(Debug, Deref, DerefMut)]
@@ -256,7 +279,7 @@ where
 }
 
 impl<Bias, AssignmentTypes> Into<Rc<Solution<Bias, AssignmentTypes>>>
-for RcSolution<Bias, AssignmentTypes>
+    for RcSolution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,

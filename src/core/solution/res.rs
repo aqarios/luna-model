@@ -74,7 +74,7 @@ where
     pub fn obj_value(&self) -> Option<Bias> {
         self.sol.obj_values[self.row_idx]
     }
-    
+
     pub fn raw_energy(&self) -> Option<Bias> {
         self.sol.raw_energies[self.row_idx]
     }
@@ -164,7 +164,7 @@ where
     pub fn get_assignment(&self, col_idx: usize) -> Option<VarAssignment<AssignmentTypes>> {
         match &self.0 {
             Left(r) => r.get_assignment(col_idx),
-            Right(r) => r.get(col_idx).map(|&x| x)
+            Right(r) => r.get(col_idx).map(|&x| x),
         }
     }
 }
@@ -196,8 +196,8 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         let out = match &self.res {
-            Left(r) => { r.get_sample().get_assignment(self.next_col_idx) }
-            Right(r) => r.get(self.next_col_idx).map(|&x| x)
+            Left(r) => r.get_sample().get_assignment(self.next_col_idx),
+            Right(r) => r.get(self.next_col_idx).map(|&x| x),
         };
         if let Some(_) = out {
             self.next_col_idx += 1;
@@ -228,6 +228,20 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
+    pub fn new(
+        sample: Rc<Vec<VarAssignment<AssignmentTypes>>>,
+        obj_value: Bias,
+        constraint_satisfaction: Vec<bool>,
+        feasible: bool,
+    ) -> Self {
+        Self {
+            sample,
+            obj_value: Some(obj_value),
+            constraint_satisfaction: Some(constraint_satisfaction),
+            feasible: Some(feasible),
+        }
+    }
+
     pub fn get_sample(&self) -> Sample<Bias, AssignmentTypes> {
         Sample(Right(Rc::clone(&self.sample)))
     }
