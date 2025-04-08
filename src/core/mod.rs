@@ -65,6 +65,7 @@ pub use solution::ResultView;
 pub use solution::Sample;
 pub use solution::SampleIterator;
 pub use solution::Samples;
+pub use solution::SamplesIterator;
 pub use solution::Solution;
 pub use solution::Timer;
 pub use solution::Timing;

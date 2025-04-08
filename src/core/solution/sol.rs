@@ -1,7 +1,7 @@
-use crate::core::expression::{BiasConstraints, IndexConstraints};
+use crate::core::expression::BiasConstraints;
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
-use crate::core::{IndexByValue, ResultView};
+use crate::core::{ResultIterator, ResultView, Samples};
 use crate::errors::{IncorrectVtypeError, SampleIncorrectLengthError, SolutionCreatorErr};
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
@@ -223,30 +223,30 @@ where
             .get(col_idx)
             .and_then(|col| col.get::<Bias>(row_idx))
     }
-
-    pub fn get_sample(&self, row_idx: usize) -> Vec<VarAssignment<AssignmentTypes>> {
-        self.samples
-            .iter()
-            .map(|sample_col| sample_col.get::<Bias>(row_idx).unwrap())
-            .collect()
-    }
-
-    pub fn rows(&self) -> Vec<Vec<VarAssignment<AssignmentTypes>>> {
-        (0..self.n_samples).map(|i| self.get_sample(i)).collect()
-    }
+    //
+    //     pub fn get_sample(&self, row_idx: usize) -> Vec<VarAssignment<AssignmentTypes>> {
+    //         self.samples
+    //             .iter()
+    //             .map(|sample_col| sample_col.get::<Bias>(row_idx).unwrap())
+    //             .collect()
+    //     }
+    //
+    //     pub fn rows(&self) -> Vec<Vec<VarAssignment<AssignmentTypes>>> {
+    //         (0..self.n_samples).map(|i| self.get_sample(i)).collect()
+    //     }
 }
-
-impl<Index, AssignmentTypes> IndexByValue<Index> for Vec<VarAssignment<AssignmentTypes>>
-where
-    Index: IndexConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
-    type Output = VarAssignment<AssignmentTypes>;
-
-    fn index_by_value(&self, index: Index) -> Self::Output {
-        self[index.into()]
-    }
-}
+//
+// impl<Index, AssignmentTypes> IndexByValue<Index> for Vec<VarAssignment<AssignmentTypes>>
+// where
+//     Index: IndexConstraints,
+//     AssignmentTypes: AssignmentBaseTypes,
+// {
+//     type Output = VarAssignment<AssignmentTypes>;
+//
+//     fn index_by_value(&self, index: Index) -> Self::Output {
+//         self[index.into()]
+//     }
+// }
 
 #[derive(Debug, Deref, DerefMut)]
 pub struct RcSolution<Bias, AssignmentTypes>(pub Rc<Solution<Bias, AssignmentTypes>>)
@@ -265,6 +265,14 @@ where
         } else {
             Some(ResultView::new(self.clone(), row_idx))
         }
+    }
+
+    pub fn iter_results(&self) -> ResultIterator<Bias, AssignmentTypes> {
+        ResultIterator::new(RcSolution::clone(&self))
+    }
+
+    pub fn iter_samples(&self) -> Samples<Bias, AssignmentTypes> {
+        Samples(RcSolution::clone(&self))
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::core::{
     ConcreteAssignmentTypes, ConcreteBias, OwnedResult, RcSolution, ResultIterator, ResultView,
-    Sample, SampleIterator, Samples, Solution, VarAssignment,
+    Sample, SampleIterator, Samples, SamplesIterator, Solution, VarAssignment,
 };
 use crate::py_bindings::py_timing::PyTiming;
 use derive_more::{Deref, DerefMut};
@@ -29,7 +29,7 @@ pub struct PyResultIterator(ResultIterator<ConcreteBias, ConcreteAssignmentTypes
 
 #[pyclass(unsendable, name = "SamplesIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySamplesIterator(ResultIterator<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySamplesIterator(SamplesIterator<ConcreteBias, ConcreteAssignmentTypes>);
 
 #[pyclass(unsendable, name = "SampleIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
@@ -65,8 +65,8 @@ impl Into<ResultIterator<ConcreteBias, ConcreteAssignmentTypes>> for PyResultIte
     }
 }
 
-impl Into<ResultIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySamplesIterator {
-    fn into(self) -> ResultIterator<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<SamplesIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySamplesIterator {
+    fn into(self) -> SamplesIterator<ConcreteBias, ConcreteAssignmentTypes> {
         self.0
     }
 }
@@ -320,7 +320,7 @@ impl PySamples {
     }
 
     fn __iter__(&self) -> PySamplesIterator {
-        PySamplesIterator(ResultIterator::new(RcSolution::clone(&self)))
+        PySamplesIterator(SamplesIterator::new(RcSolution::clone(&self)))
     }
 }
 
@@ -374,7 +374,7 @@ impl PySamplesIterator {
     }
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PySample> {
-        slf.next().map(|res| PySample(Sample(Left(res.clone()))))
+        slf.next().map(|s| PySample(s))
     }
 }
 

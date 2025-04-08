@@ -4,13 +4,14 @@ use super::expression::{
     BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation,
     IndexConstraints,
 };
-use super::{Environment, Expression, RcSolution, Vtype};
+use super::{Environment, Expression, IndexByValue, RcSolution, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::utils::ModelWriter;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
+use std::ops::Mul;
 use std::rc::Rc;
 
 /// The default name for a model.
@@ -117,8 +118,9 @@ where
     {
         let mut newsol = sol.0.deref().clone();
         // Here, duplicate samples are already removed, i.e., each element of sol.samples is unique
-        for (i, sample) in sol.rows().iter().enumerate() {
-            let obj_val = self.objective.borrow().evaluate_sample(sample);
+        for (i, sample) in sol.iter_samples().iter().enumerate() {
+            //.rows().iter().enumerate() {
+            let obj_val = self.objective.borrow().evaluate_sample(&sample);
             let constraints = self
                 .constraints
                 .borrow()
@@ -130,12 +132,14 @@ where
         RcSolution(newsol.into())
     }
 
-    fn evaluate_sample<AssignmentTypes>(
+    fn evaluate_sample<'a, AssignmentTypes, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
         &self,
-        _res: &Vec<AssignmentTypes>,
+        _sample: &'a Sample,
     ) -> OwnedResult<Bias, AssignmentTypes>
     where
         AssignmentTypes: AssignmentBaseTypes,
+        &'a Elem: Mul<Bias, Output = Bias>,
+        Elem: Mul<Bias, Output = Bias>,
     {
         // // Evaluate expression for sample
         // let ov = self.objective.borrow().evaluate_sample(res);
