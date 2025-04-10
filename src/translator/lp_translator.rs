@@ -1,15 +1,23 @@
+use hashbrown::{hash_map::Iter, HashMap};
 use strum_macros::Display;
-
-use crate::core::{
-    expression::{BiasConstraints, IndexConstraints},
-    Model,
-};
+use regex::Regex;
+use crate::{core::{
+    environment::add_variable, expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints}, operations::AddAssignToExpression, Bounds, Comparator, Constraint, Expression, Model, VarRef, Vtype
+}, errors::{TranslationErr, VariablesFromDifferentEnvsErr}, translator::exprtree::{evaluate_expr_tree, optimize_expr_tree, parse_expr_string, EvalContext, ExprTree}};
 
 use super::base::{BackTranslator, Translator};
-use std::{fs::File, io::Read, marker::PhantomData, path::PathBuf};
+use std::{cell::RefCell, fs::File, hash::Hash, io::Read, marker::PhantomData, ops::AddAssign, path::PathBuf, rc::Rc};
 
-#[derive(Debug, Copy, Clone, PartialEq, Display)]
+#[derive(Hash, Eq, PartialEq, Clone, Debug)]
+enum Sense {
+    Min,
+    Max,
+}
+
+#[derive(Debug, Clone, PartialEq, Display, Eq, Hash)]
 enum Section {
+    /// Placeholder
+    Placeholder,
     /// Single-Objective Case
     ///
     /// Let us consider single-objective models first, where this header is followed by
@@ -42,9 +50,7 @@ enum Section {
     /// Minimize
     ///   obj: 3.1 x + 4.5 y + 10 z + [ x ^ 2 + 2 x * y + 3 y ^ 2 ] / 2
     ///
-    Objective,
-    // /// NOT SUPPORTED RIGHT NOW.
-    // MultiObjective,
+    Objective(Sense),
     /// The next section is the constraints section. It begins with one of the following
     /// headers, on its own line: subject to, such that, st, or s.t..
     /// Capitalization is ignored.
@@ -84,10 +90,6 @@ enum Section {
     ///
     /// Every LP format file must have a constraints section.
     Constraints,
-    // /// NOT SUPPORTED RIGHT NOW.
-    // LazyConstraints,
-    // /// NOT SUPPORTED RIGHT NOW.
-    // UserCuts,
     /// Bounds Section
     /// The next section is the bounds section. It begins with the word Bounds, on its
     /// own line, and is followed by a list of variable bounds. Each line specifies the
@@ -128,31 +130,244 @@ enum Section {
     ///
     /// The variable types section is optional. By default, variables are assumed to be
     /// continuous.
-    VariableType,
-    // /// SOS Section (NOT SUPPORTED)
-    // /// An LP file can contain a section that captures SOS constraints of type 1 or
-    // /// type 2. The SOS section begins with the SOS header on its own line
-    // /// (capitalization isn’t important). An arbitrary number of SOS constraints can
-    // /// follow. An SOS constraint starts with a name, followed by a colon
-    // /// (unlike linear constraints, the name is not optional here). Next comes the SOS
-    // /// type, which can be either S1 or S2. The type is followed by a pair of colons.
-    // ///
-    // /// Next come the members of the SOS set, along with their weights. Each member is
-    // /// captured using the variable name, followed by a colon, followed by the associated
-    // /// weight. Spaces can optionally be placed before and after the colon.
-    // /// An SOS constraint must end with a line break.
-    // ///
-    // /// Here’s an example of an SOS section containing two SOS constraints:
-    // ///
-    // /// SOS
-    // ///   sos1: S1 :: x1 : 1  x2 : 2  x3 : 3
-    // ///   sos2: S2 :: x4:8.5  x5:10.2  x6:18.3
-    // ///
-    // /// The SOS section is optional.
-    // SOS,
-    /// End Statement
-    /// The last line in an LP format file should be an `End` statement.
-    End,
+    VariableType(VariableType),
+}
+
+#[derive(Debug)]
+struct SectionsHolder<Index, Bias> {
+    variable_sections: HashMap<VariableType, Vec<String>>,
+    sections: HashMap<Section, Vec<String>>,
+    _pi: PhantomData<Index>,
+    _pb: PhantomData<Bias>,
+}
+
+impl<Index, Bias> SectionsHolder<Index, Bias> where Index: IndexConstraints, Bias: BiasConstraints{
+    fn new() -> Self {
+        Self { sections: HashMap::new(), variable_sections: HashMap::new(), _pb: PhantomData, _pi: PhantomData }
+    }
+
+    fn put(&mut self, section: &Section) {
+        match section {
+            Section::VariableType(VariableType::Binary) => self.put_variable_section(VariableType::Binary),
+            Section::VariableType(VariableType::General) => self.put_variable_section(VariableType::General),
+            Section::VariableType(VariableType::Semi) => self.put_variable_section(VariableType::Semi),
+            _ => self.put_section(section.clone()),
+        }
+    }
+
+    fn put_section(&mut self, section: Section) {
+        self.sections.insert(section, Vec::new());
+    }
+
+    fn put_variable_section(&mut self, vtype: VariableType) {
+        self.variable_sections.insert(vtype, Vec::new());
+    }
+
+    fn push(&mut self, section: &Section, value: String) {
+        match section {
+            Section::VariableType(VariableType::Binary) => self.push_variable_section(VariableType::Binary, value),
+            Section::VariableType(VariableType::General) => self.push_variable_section(VariableType::General, value),
+            Section::VariableType(VariableType::Semi) => self.push_variable_section(VariableType::Semi, value),
+            _ => self.push_section(section, value),
+        }
+    }
+
+    fn push_section(&mut self, section: &Section, value: String) {
+        match self.sections.get_mut(section) {
+            Some(item) => item.push(value),
+            None => {let _ = self.sections.insert(section.clone(), vec![value]);}
+        }
+    }
+
+    fn push_variable_section(&mut self, vtype: VariableType, value: String) {
+        let vals = value.split_whitespace();
+        for val in vals {
+            match self.variable_sections.get_mut(&vtype) {
+                Some(item) => item.push(val.to_string()),
+                None => {let _ = self.variable_sections.insert(vtype.clone(), vec![val.to_string()]);}
+            }
+        }
+    }
+
+    fn get(&self, section: Section) -> Option<&Vec<String>> {
+        self.sections.get(&section)
+    }
+
+    fn iter_variables(&self) -> Iter<VariableType, Vec<String>> {
+        self.variable_sections.iter()
+    }
+
+    fn extract_bounds(&self) -> Option<HashMap<String, (Option<f64>, Option<f64>)>> {
+        if let Some(bounds) = self.get(Section::Bounds) {
+            let mut boundsmap: HashMap<String, (Option<f64>, Option<f64>)> = HashMap::new();
+            for entry in bounds.iter() {
+                // Begins with the word Bounds, on its own line, and is followed by a 
+                // list of variable bounds. Each line specifies the lower bound, the 
+                // upper bound, or both for a single variable. 
+                // The keywords inf or infinity can be used in the bounds section to 
+                // specify infinite bounds. A bound line can also indicate that a 
+                // variable is free, meaning that it is unbounded in either direction.
+                // 
+                // Here are examples of valid bound lines:
+                // 
+                // Bounds
+                //   0 <= x0 <= 1
+                //   x1 <= 1.2
+                //   x2 >= 3
+                //   x3 free
+                //   x2 >= -Inf
+                // 
+                // It is not necessary to specify bounds for all variables; by default,
+                // each variable has a lower bound of 0 and an infinite upper bound. 
+                // In fact, the entire bounds section is optional.
+                if entry.contains("free") {
+                    let var = entry.replace("free", "").trim().to_string();
+                    boundsmap.insert(var, (None, None));
+                    continue;
+                }
+                let parts: Vec<&str> = entry.split_whitespace().collect();
+                match parts.as_slice() {
+                    // Format: _ <= var <= _
+                    [lower, "<=", var, "<=", upper] => {
+                        boundsmap.insert(var.to_string(), (parse_bound_value(lower), parse_bound_value(upper)));
+                    }
+                    // Format: var <= upper
+                    [var, "<=", upper] => {
+                        boundsmap.insert(var.to_string(), (None, parse_bound_value(upper)));
+                    }
+                    // Format: var >= lower
+                    [var, ">=", lower] => {
+                        boundsmap.insert(var.to_string(), (parse_bound_value(lower), None));
+                    }
+                    _ => (),
+                }
+            }
+            Some(boundsmap)
+        } else {
+            None
+        }
+    }
+
+    fn make_variables(&self, model: &mut Model<Index, Bias>) -> Result<HashMap<String, VarRef<Index>>, TranslationErr> {
+        let mut varlookup = HashMap::new();
+        let boundsmap = self.extract_bounds();
+        for (vtype, vars) in self.iter_variables() {
+            let vtype = match vtype {
+                VariableType::Binary => Vtype::Binary,
+                VariableType::Semi => Vtype::Integer,
+                VariableType::General => Vtype::Real
+            };
+            for var in vars {
+                let bounds: Option<Bounds> = match boundsmap {
+                    Some(ref bm) => match bm.get(var) {
+                        Some((l, u)) => Some(Bounds::new(*l, *u)),
+                        None => None
+                    }
+                    None => None
+                };
+                let vref = add_variable(Rc::clone(&model.environment), var, Some(&vtype), bounds).map_err(|e| TranslationErr::new(e.to_string()))?;
+                varlookup.insert(var.to_string(), vref);
+            }
+        }
+        Ok(varlookup)
+    }
+
+    fn make_objective(&self, model: &mut Model<Index, Bias>, vars: &HashMap<String, VarRef<Index>>) -> Result<(), TranslationErr> {
+        // MINIMIZE CASE
+        let min_obj = self.get(Section::Objective(Sense::Min));
+        // MAXIMIZE CASE
+        let max_obj = self.get(Section::Objective(Sense::Max));
+        let (sense, obj): (Sense, &Vec<String>) = match (min_obj, max_obj) {
+            (Some(_), Some(_)) => return Err(TranslationErr::new(String::from("cannot have multiple objectives in model"))),
+            (None, None) => return Err(TranslationErr::new(String::from("must have an objective in model"))),
+            (Some(o), None) => (Sense::Min, o),
+            (None, Some(o)) => (Sense::Max, o)
+        };
+        // todo(team) add sense once merged from other branch.
+        // model.sense = ...;
+        // model.objective.borrow_mut().add_assign(&self.make_expression(obj, Rc::clone(&model.environment))?).map_err(|e| TranslationErr::new(e.to_string()))?;
+        let all = obj.concat();
+        Self::add_to_expression(&mut model.objective.borrow_mut(), &all, &vars)?;
+        Ok(())
+    }
+
+    fn make_constraints(&self, model: &mut Model<Index, Bias>, vars: &HashMap<String, VarRef<Index>>) -> Result<(), TranslationErr> {
+        if let Some(constrs) = self.get(Section::Constraints) {
+            for entry in constrs {
+                let (name, constr) = entry.split_once(":").unwrap();
+                if let Some((lhs_str, comp, rhs_str)) = Self::split_constraint_expression(&constr) {
+                    // println!("name = {}, parts = {:?}", name, (lhs_str, comp, rhs_str));
+                    let mut lhs: Expression<Index, Bias> = Expression::new(
+                        Rc::clone(&model.environment),
+                        vec![false; model.objective.borrow().active.len()],
+                        model.objective.borrow().num_variables);
+                    Self::add_to_expression(&mut lhs, &lhs_str, &vars)?;
+                    let rhs = rhs_str.parse::<Bias>().map_err(|_| TranslationErr::new(format!("cannot convert rhs to f64: {}", rhs_str)))?;
+                    let c = match comp {
+                        "=" => Constraint::new(Rc::new(RefCell::new(lhs)), rhs, Comparator::Eq, Some(name.to_string())),
+                        "<=" => Constraint::new(Rc::new(RefCell::new(lhs)), rhs, Comparator::Leq, Some(name.to_string())),
+                        ">=" => Constraint::new(Rc::new(RefCell::new(lhs)), rhs, Comparator::Geq, Some(name.to_string())),
+                        _ => return Err(TranslationErr::new(format!("unknown comparator '{}' for constraint '{}'", comp, name)))
+                    };
+                    model.constraints.borrow_mut().add_assign(c);
+                } else { 
+                    return Err(TranslationErr::new(format!("malformed constraint: {}", name)));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn add_to_expression(expr: &mut Expression<Index, Bias>, expr_str: &str, vars: &HashMap<String, VarRef<Index>>) -> Result<(), TranslationErr> {
+        let exp: ExprTree<Bias>= optimize_expr_tree(parse_expr_string(&expr_str));
+        let o = evaluate_expr_tree(&exp, &EvalContext::new(|n| vars.get(n).unwrap().clone(), Rc::clone(&expr.env)))?;
+        // println!("exp = {:#?}", exp);
+        // println!("expr = {:?}", expr_str);
+        // println!("o = {:#?}", o);
+        expr.add_assign(&o)?;
+        Ok(())
+    }
+
+    fn split_constraint_expression(expr: &str) -> Option<(&str, &str, &str)> {
+       // Matches <=, >=, or = with optional surrounding spaces
+       let re = Regex::new(r"^(.*?)\s*(<=|>=|=)\s*(.*)$").unwrap();
+       re.captures(expr).map(|caps| {
+        (
+                  caps.get(1).unwrap().as_str().trim(),
+                  caps.get(2).unwrap().as_str().trim(),
+                  caps.get(3).unwrap().as_str().trim(),
+              )
+            }
+       )
+    }
+}
+
+impl From<VariablesFromDifferentEnvsErr> for TranslationErr {
+    fn from(value: VariablesFromDifferentEnvsErr) -> Self {
+        TranslationErr::new(value.to_string())
+    }
+}
+
+
+fn parse_bound_value(s: &str) -> Option<f64> {
+    match s {
+        "inf" | "infinity" => None,
+        "-inf" | "-infinity" => None,
+        _ => s.parse::<f64>().ok()
+    }
+}
+
+
+#[derive(Display)]
+enum CommentKeywords {
+    #[strum(to_string = "\\")]
+    Backslash,
+}
+
+impl CommentKeywords {
+    fn all() -> Vec<String> {
+        vec![Self::Backslash.to_string()]
+    }
 }
 
 #[derive(Display)]
@@ -171,6 +386,125 @@ enum ObjectiveKeywords {
     Max,
 }
 
+impl ObjectiveKeywords {
+    fn all_min() -> Vec<String> {
+        vec![
+            Self::Minimize.to_string(),
+            Self::Minimum.to_string(),
+            Self::Min.to_string(),
+        ]
+    }
+    fn all_max() -> Vec<String> {
+        vec![
+            Self::Maximize.to_string(),
+            Self::Maximum.to_string(),
+            Self::Max.to_string(),
+        ]
+    }
+}
+
+#[derive(Display)]
+enum ConstraintsKeywords {
+    #[strum(to_string = "subject to")]
+    SubjectTo,
+    #[strum(to_string = "such that")]
+    SuchThat,
+    #[strum(to_string = "st")]
+    St,
+    #[strum(to_string = "s.t.")]
+    Sdtd,
+}
+
+impl ConstraintsKeywords {
+    fn all() -> Vec<String> {
+        vec![
+            Self::SubjectTo.to_string(),
+            Self::SuchThat.to_string(),
+            Self::St.to_string(),
+            Self::Sdtd.to_string(),
+        ]
+    }
+}
+
+#[derive(Display)]
+enum BoundsKeywords {
+    #[strum(to_string = "bounds")]
+    Bounds,
+}
+
+impl BoundsKeywords {
+    fn all() -> Vec<String> {
+        vec![Self::Bounds.to_string()]
+    }
+}
+
+#[derive(Display)]
+enum VariableTypeKeywords {
+    #[strum(to_string = "binary")]
+    Binary,
+    #[strum(to_string = "binaries")]
+    Binaries,
+    #[strum(to_string = "bin")]
+    Bin,
+    #[strum(to_string = "general")]
+    General,
+    #[strum(to_string = "generals")]
+    Generals,
+    #[strum(to_string = "gen")]
+    Gen,
+    #[strum(to_string = "semi-continuous")]
+    SemiContinuous,
+    #[strum(to_string = "semis")]
+    Semis,
+    #[strum(to_string = "semi")]
+    Semi,
+}
+
+impl VariableTypeKeywords {
+    fn all_bin() -> Vec<String> {
+        vec![
+            Self::Binary.to_string(),
+            Self::Binaries.to_string(),
+            Self::Bin.to_string(),
+        ]
+    }
+    fn all_gen() -> Vec<String> {
+        vec![
+            Self::General.to_string(),
+            Self::Generals.to_string(),
+            Self::Gen.to_string(),
+        ]
+
+    }
+    fn all_semi() -> Vec<String> {
+        vec![
+            Self::SemiContinuous.to_string(),
+            Self::Semis.to_string(),
+            Self::Semi.to_string(),
+        ]
+
+    }
+}
+
+#[derive(Display, Hash, Eq, PartialEq, Clone, Debug)]
+enum VariableType {
+    Binary,
+    General,
+    Semi,
+}
+
+#[derive(Display)]
+enum EndKeywords {
+    #[strum(to_string = "end")]
+    End,
+}
+
+impl EndKeywords {
+    fn all() -> Vec<String> {
+        vec![Self::End.to_string()]
+    }
+}
+
 pub struct LPTranslator<Index, Bias> {
     _phantom_index: PhantomData<Index>,
     _phantom_bias: PhantomData<Bias>,
@@ -182,22 +516,88 @@ where
     Bias: BiasConstraints,
 {
     type TranslateIn = PathBuf;
-    type TranslateOut = Model<Index, Bias>;
+    type TranslateOut = Result<Model<Index, Bias>, TranslationErr>;
 
     fn translate(filepath: Self::TranslateIn) -> Self::TranslateOut {
         let display = filepath.display();
         let mut file = match File::open(&filepath) {
-            Err(why) => panic!("couldn't open {}: {}", display, why),
+            Err(why) => return Err(TranslationErr::new(format!("couldn't open {}: {}", display, why))),
             Ok(file) => file,
         };
         let mut s = String::new();
-        match file.read_to_string(&mut s) {
-            Err(why) => panic!("couldn't read {}: {}", display, why),
-            Ok(_) => print!("{} contains:\n{}", display, s),
+        file.read_to_string(&mut s).map_err(|why| {
+            TranslationErr::new(format!("couldn't read {}: {}", display, why))
+        })?;
+
+
+        let mut sections: SectionsHolder<Index, Bias> = SectionsHolder::new();
+        let mut last_section = Section::Placeholder;
+        // for (i, line) in s.lines().enumerate() {
+        for line in s.lines() {
+            // println!("{}: {}", i, line);
+            if is_comment(line) { // Skip empty or commented lines.
+                continue;
+            }
+            if is_end(line) { // Excape after `End` keyword is reached.
+                break;
+            }
+            match detect_section(line) {
+                (Some(sec), None) => {
+                    sections.put(&sec);
+                    last_section = sec;
+                }
+                (None, Some(content)) => {
+                    sections.push(&last_section, content.to_string());
+                }
+                _ => return Err(TranslationErr::new(String::from("unknown section detected")))
+            }
+
         }
-        // println!("In LP comment is marked with: {}", Section::Comment);
-        todo!()
+        // println!("sections = {:?}", sections);
+
+        let model_name = None;
+        let mut model = Model::new(model_name);
+        let vl = sections.make_variables(&mut model)?;
+        sections.make_objective(&mut model, &vl)?;
+        sections.make_constraints(&mut model, &vl)?;
+
+        // println!("model = {:?}", model);
+        // println!("model.environment = {:?}", model.environment);
+
+        Ok(model)
     }
+}
+
+fn starts_with_any(s: &str, prefixes: &Vec<String>) -> bool {
+    prefixes.iter().any(|prefix| s.to_lowercase().starts_with(prefix))
+}
+
+fn detect_section(line: &str) -> (Option<Section>, Option<&str>) {
+    if starts_with_any(line, &ObjectiveKeywords::all_min()) {
+        (Some(Section::Objective(Sense::Min)), None)
+    } else if starts_with_any(line, &ObjectiveKeywords::all_max()) {
+        (Some(Section::Objective(Sense::Max)), None)
+    } else if starts_with_any(line, &ConstraintsKeywords::all()) {
+        (Some(Section::Constraints), None)
+    } else if starts_with_any(line, &BoundsKeywords::all()) {
+        (Some(Section::Bounds), None)
+    } else if starts_with_any(line, &VariableTypeKeywords::all_bin()) {
+        (Some(Section::VariableType(VariableType::Binary)), None)
+    } else if starts_with_any(line, &VariableTypeKeywords::all_gen()) {
+        (Some(Section::VariableType(VariableType::General)), None)
+    } else if starts_with_any(line, &VariableTypeKeywords::all_semi()) {
+        (Some(Section::VariableType(VariableType::Semi)), None)
+    } else {
+        (None, Some(line.trim()))
+    }
+}
+
+fn is_comment(line: &str) -> bool {
+    line.trim().is_empty() || starts_with_any(line, &CommentKeywords::all())
+}
+
+fn is_end(line: &str) -> bool {
+    line.trim().is_empty() || starts_with_any(line, &EndKeywords::all())
 }
 
 impl<Index, Bias> BackTranslator for LPTranslator<Index, Bias>

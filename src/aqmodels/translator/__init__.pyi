@@ -19,6 +19,12 @@ class SampleSetTranslator:
         env: Environment | None = None,
     ) -> Solution: ...
 
+class LpTranslator:
+    @staticmethod
+    def to_model(filepath: Path) -> Model: ...
+    @staticmethod
+    def to_file(model: Model) -> str: ...
+
 class MatrixTranslator:
     @staticmethod
     def to_model(
@@ -26,12 +32,6 @@ class MatrixTranslator:
     ) -> Model: ...
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
-
-class LpTranslator:
-    @staticmethod
-    def to_model(filepath: Path) -> Model: ...
-    @staticmethod
-    def to_file(model: Model) -> str: ...
 
 
 __all__ = [

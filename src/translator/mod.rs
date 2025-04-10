@@ -1,3 +1,5 @@
+mod exprtree;
+
 pub mod base;
 pub mod lp_translator;
 pub mod matrix_translator;

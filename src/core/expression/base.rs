@@ -1,9 +1,10 @@
 use crate::core::term::types::SizeType;
 use crate::core::{ConcreteBias, IndexByValue, MutRcEnvironment, Vtype};
+use num::pow::Pow;
 use num::NumCast;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub};
 use std::str::FromStr;
 
 use super::errors::VariableOutOfRangeErr;
@@ -52,6 +53,8 @@ pub trait BiasConstraints:
     + Default
     + AddAssign
     + Add<Output = Self>
+    + Sub<Output = Self>
+    + Pow<Self, Output = Self>
     + PartialEq
     + PartialOrd
     + One
@@ -60,6 +63,7 @@ pub trait BiasConstraints:
     + Mul<ConcreteBias, Output = Self>
     + Neg<Output = Self>
     + NumCast
+    + FromStr
 {
 }
 impl<
@@ -70,6 +74,8 @@ impl<
             + Default
             + AddAssign
             + Add<Output = T>
+            + Sub<Output = T>
+            + Pow<T, Output = T>
             + PartialEq
             + PartialOrd
             + One
@@ -77,7 +83,8 @@ impl<
             + Mul<Output = T>
             + Mul<ConcreteBias, Output = Self>
             + Neg<Output = T>
-            + NumCast,
+            + NumCast
+            + FromStr,
     > BiasConstraints for T
 {
 }

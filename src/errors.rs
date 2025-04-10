@@ -14,6 +14,22 @@ impl Display for VariableExistsErr {
 }
 
 #[derive(Debug, Clone)]
+pub struct TranslationErr {
+    msg: String
+}
+impl TranslationErr {
+    pub fn new(msg: String) -> Self {
+        Self { msg }
+    }
+}
+impl Error for TranslationErr {}
+impl Display for TranslationErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "error encountered during translation: {}", self.msg)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct VariableCreationErr {
     msg: String,
 }

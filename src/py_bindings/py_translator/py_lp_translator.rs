@@ -10,7 +10,7 @@ pub struct PyLpTranslator {}
 impl PyLpTranslator {
     #[staticmethod]
     #[pyo3(signature=(filepath))]
-    fn to_model(filepath: PathBuf) -> PyModel {
-        PyModel(LPTranslator::translate(filepath))
+    fn to_model(filepath: PathBuf) -> PyResult<PyModel> {
+        Ok(PyModel(LPTranslator::translate(filepath)?))
     }
 }
