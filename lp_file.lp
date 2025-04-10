@@ -2,6 +2,8 @@
 
 Maximize
   x + y + z
+  + x + y + z +
+  x * x
 Subject To
   c0: x + y = 1
   c1: x + 5 y + 2 z <= 10

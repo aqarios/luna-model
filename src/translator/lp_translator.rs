@@ -254,8 +254,8 @@ impl<Index, Bias> SectionsHolder<Index, Bias> where Index: IndexConstraints, Bia
         for (vtype, vars) in self.iter_variables() {
             let vtype = match vtype {
                 VariableType::Binary => Vtype::Binary,
-                VariableType::Semi => Vtype::Integer,
-                VariableType::General => Vtype::Real
+                VariableType::Semi => Vtype::Real,
+                VariableType::General => Vtype::Integer
             };
             for var in vars {
                 let bounds: Option<Bounds> = match boundsmap {
