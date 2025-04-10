@@ -36,12 +36,12 @@ zstd = "0.13.3"
 either = "1.15.0"
 regex = "1.11.1"
 [dependencies.pyo3]
-version = "0.23.4"
+version = "0.24.1"
 features = ["extension-module", "abi3-py311"]
 optional = true
 
 [dependencies.numpy]
-version = "0.23.0"
+version = "0.24.0"
 optional = true
 
 [features]
