@@ -37,6 +37,7 @@ pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "translator")?;
     m.add_class::<py_translator::PyMatrixTranslator>()?;
     m.add_class::<py_translator::PySampleSetTranslator>()?;
+    m.add_class::<py_translator::PyLpTranslator>()?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?

@@ -69,13 +69,6 @@ from ._model import Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-  Comparator as __Comparator,
-  Constraint as __Constraint,
-  Constraints as __Constraints,
-  Vtype as __Vtype,
-  Bounds as __Bounds,
-  Variable as __Variable,
-  Model as __Model,
   ResultIterator as __ResultIterator,
   SamplesIterator as __SamplesIterator,
   SampleIterator as __SampleIterator,
@@ -86,8 +79,15 @@ from ._core import (
   Solution as __Solution,
   Timing as __Timing,
   Timer as __Timer,
+  Expression as __Expression,
   Environment as __Environment,
-  Expression as __Expression
+  Vtype as __Vtype,
+  Bounds as __Bounds,
+  Variable as __Variable,
+  Comparator as __Comparator,
+  Constraint as __Constraint,
+  Constraints as __Constraints,
+  Model as __Model
 )
 from ._constraints import (
   Comparator,
@@ -99,13 +99,6 @@ from . import (
   translator
 )
 
-Comparator = __Comparator  # type: ignore[misc,assignment]
-Constraint = __Constraint  # type: ignore[misc,assignment]
-Constraints = __Constraints  # type: ignore[misc,assignment]
-Vtype = __Vtype  # type: ignore[misc,assignment]
-Bounds = __Bounds  # type: ignore[misc,assignment]
-Variable = __Variable  # type: ignore[misc,assignment]
-Model = __Model  # type: ignore[misc,assignment]
 ResultIterator = __ResultIterator  # type: ignore[misc,assignment]
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment]
 SampleIterator = __SampleIterator  # type: ignore[misc,assignment]
@@ -116,10 +109,18 @@ ResultView = __ResultView  # type: ignore[misc,assignment]
 Solution = __Solution  # type: ignore[misc,assignment]
 Timing = __Timing  # type: ignore[misc,assignment]
 Timer = __Timer  # type: ignore[misc,assignment]
-Environment = __Environment  # type: ignore[misc,assignment]
 Expression = __Expression  # type: ignore[misc,assignment]
+Environment = __Environment  # type: ignore[misc,assignment]
+Vtype = __Vtype  # type: ignore[misc,assignment]
+Bounds = __Bounds  # type: ignore[misc,assignment]
+Variable = __Variable  # type: ignore[misc,assignment]
+Comparator = __Comparator  # type: ignore[misc,assignment]
+Constraint = __Constraint  # type: ignore[misc,assignment]
+Constraints = __Constraints  # type: ignore[misc,assignment]
+Model = __Model  # type: ignore[misc,assignment]
 SampleSetTranslator = translator.SampleSetTranslator
 MatrixTranslator = translator.MatrixTranslator
+LpTranslator = translator.LpTranslator
 VariableOutOfRangeError = errors.VariableOutOfRangeError
 VariableExistsError = errors.VariableExistsError
 VariablesFromDifferentEnvsError = errors.VariablesFromDifferentEnvsError
@@ -140,6 +141,7 @@ __all__ = [
     "DifferentEnvsError",
     "Environment",
     "Expression",
+    "LpTranslator",
     "MatrixTranslator",
     "Model",
     "ModelNotQuadraticError",

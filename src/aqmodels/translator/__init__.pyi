@@ -7,6 +7,7 @@ from aqmodels._solution import Solution, Timing
 from aqmodels._variable import Vtype
 from dimod import SampleSet
 from numpy.typing import NDArray
+from pathlib import Path
 
 from . import translator
 
@@ -26,8 +27,15 @@ class MatrixTranslator:
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
 
+class LpTranslator:
+    @staticmethod
+    def to_model(filepath: Path) -> Model: ...
+    @staticmethod
+    def to_file(model: Model) -> str: ...
+
 
 __all__ = [
+    "LpTranslator",
     "MatrixTranslator",
     "SampleSetTranslator",
     "translator",
