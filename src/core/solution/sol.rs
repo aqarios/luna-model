@@ -197,7 +197,6 @@ where
         constraints: Option<Vec<bool>>,
         sense_is_minimize: bool,
     ) {
-        // (team) Method is still untested, but it's meant to be used in the evaluation process.
         self.obj_values[sample_idx] = obj_value;
         self.feasible[sample_idx] = constraints.as_ref().map(|x| x.iter().all(|&b| b));
         self.constraints[sample_idx] = constraints;
@@ -223,30 +222,7 @@ where
             .get(col_idx)
             .and_then(|col| col.get::<Bias>(row_idx))
     }
-    //
-    //     pub fn get_sample(&self, row_idx: usize) -> Vec<VarAssignment<AssignmentTypes>> {
-    //         self.samples
-    //             .iter()
-    //             .map(|sample_col| sample_col.get::<Bias>(row_idx).unwrap())
-    //             .collect()
-    //     }
-    //
-    //     pub fn rows(&self) -> Vec<Vec<VarAssignment<AssignmentTypes>>> {
-    //         (0..self.n_samples).map(|i| self.get_sample(i)).collect()
-    //     }
 }
-//
-// impl<Index, AssignmentTypes> IndexByValue<Index> for Vec<VarAssignment<AssignmentTypes>>
-// where
-//     Index: IndexConstraints,
-//     AssignmentTypes: AssignmentBaseTypes,
-// {
-//     type Output = VarAssignment<AssignmentTypes>;
-//
-//     fn index_by_value(&self, index: Index) -> Self::Output {
-//         self[index.into()]
-//     }
-// }
 
 #[derive(Debug, Deref, DerefMut)]
 pub struct RcSolution<Bias, AssignmentTypes>(pub Rc<Solution<Bias, AssignmentTypes>>)
@@ -271,7 +247,7 @@ where
         ResultIterator::new(RcSolution::clone(&self))
     }
 
-    pub fn iter_samples(&self) -> Samples<Bias, AssignmentTypes> {
+    pub fn samples(&self) -> Samples<Bias, AssignmentTypes> {
         Samples(RcSolution::clone(&self))
     }
 }
@@ -287,7 +263,7 @@ where
 }
 
 impl<Bias, AssignmentTypes> Into<Rc<Solution<Bias, AssignmentTypes>>>
-    for RcSolution<Bias, AssignmentTypes>
+for RcSolution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,

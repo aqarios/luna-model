@@ -3,6 +3,9 @@ use std::rc::Rc;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
+use crate::core::RcSolution;
+use crate::py_bindings::py_res::PyOwnedResult;
+use crate::py_bindings::py_sample::PySample;
 use crate::{
     core::{ConcreteModel, Environment, Model},
     py_bindings::py_env::CURRENT_ENV,
@@ -103,7 +106,7 @@ impl PyModel {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
     /// Alias for serialize
@@ -129,7 +132,11 @@ impl PyModel {
         Self::decode(py, data)
     }
 
-    fn evaluate(&self, _py: Python, other: &PySolution) -> PySolution {
-        PySolution(self.evaluate_solution(crate::core::RcSolution(Rc::clone(&other.0))))
+    fn evaluate(&self, solution: &PySolution) -> PySolution {
+        PySolution(self.evaluate_solution(RcSolution::clone(&solution.0)))
+    }
+
+    fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
+        PyOwnedResult(self.0.evaluate_sample(&sample.0))
     }
 }

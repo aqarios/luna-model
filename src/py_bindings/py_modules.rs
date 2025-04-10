@@ -3,8 +3,8 @@ use pyo3::{prelude::*, PyTypeCheck};
 use crate::core::{Comparator, Vtype};
 
 use super::{
-    py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_sol, py_timing,
-    py_translator, py_var,
+    py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_res, py_sample,
+    py_sol, py_timing, py_translator, py_var,
 };
 
 // #[pymodule]
@@ -20,16 +20,16 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_bounds::PyBounds>()?;
     m.add_class::<py_constr::PyConstraint>()?;
     m.add_class::<py_constr::PyConstraints>()?;
+    m.add_class::<py_res::PyResultView>()?;
+    m.add_class::<py_res::PyOwnedResult>()?;
+    m.add_class::<py_res::PyResultIterator>()?;
+    m.add_class::<py_sample::PySamplesIterator>()?;
+    m.add_class::<py_sample::PySampleIterator>()?;
+    m.add_class::<py_sample::PySamples>()?;
+    m.add_class::<py_sample::PySample>()?;
+    m.add_class::<py_sol::PySolution>()?;
     m.add_class::<py_timing::PyTiming>()?;
     m.add_class::<py_timing::PyTimer>()?;
-    m.add_class::<py_sol::PyResultView>()?;
-    m.add_class::<py_sol::PyOwnedResult>()?;
-    m.add_class::<py_sol::PyResultIterator>()?;
-    m.add_class::<py_sol::PySamplesIterator>()?;
-    m.add_class::<py_sol::PySampleIterator>()?;
-    m.add_class::<py_sol::PySamples>()?;
-    m.add_class::<py_sol::PySample>()?;
-    m.add_class::<py_sol::PySolution>()?;
     Ok(())
 }
 

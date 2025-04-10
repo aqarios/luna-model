@@ -53,41 +53,45 @@ from ._variable import (
   Bounds,
   Variable
 )
-from ._solution import (
-  ResultIterator,
+from ._timing import (
+  Timing,
+  Timer
+)
+from ._solution import Solution
+from ._sample import (
   SamplesIterator,
   SampleIterator,
   Samples,
-  Sample,
+  Sample
+)
+from ._result import (
+  ResultIterator,
   Result,
-  ResultView,
-  Solution,
-  Timing,
-  Timer
+  ResultView
 )
 from ._model import Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
+  Comparator as __Comparator,
+  Constraint as __Constraint,
+  Constraints as __Constraints,
+  Vtype as __Vtype,
+  Bounds as __Bounds,
+  Variable as __Variable,
+  Timing as __Timing,
+  Timer as __Timer,
+  Model as __Model,
   ResultIterator as __ResultIterator,
+  Result as __Result,
+  ResultView as __ResultView,
+  Solution as __Solution,
+  Environment as __Environment,
   SamplesIterator as __SamplesIterator,
   SampleIterator as __SampleIterator,
   Samples as __Samples,
   Sample as __Sample,
-  Result as __Result,
-  ResultView as __ResultView,
-  Solution as __Solution,
-  Timing as __Timing,
-  Timer as __Timer,
-  Expression as __Expression,
-  Environment as __Environment,
-  Vtype as __Vtype,
-  Bounds as __Bounds,
-  Variable as __Variable,
-  Comparator as __Comparator,
-  Constraint as __Constraint,
-  Constraints as __Constraints,
-  Model as __Model
+  Expression as __Expression
 )
 from ._constraints import (
   Comparator,
@@ -99,25 +103,25 @@ from . import (
   translator
 )
 
+Comparator = __Comparator  # type: ignore[misc,assignment]
+Constraint = __Constraint  # type: ignore[misc,assignment]
+Constraints = __Constraints  # type: ignore[misc,assignment]
+Vtype = __Vtype  # type: ignore[misc,assignment]
+Bounds = __Bounds  # type: ignore[misc,assignment]
+Variable = __Variable  # type: ignore[misc,assignment]
+Timing = __Timing  # type: ignore[misc,assignment]
+Timer = __Timer  # type: ignore[misc,assignment]
+Model = __Model  # type: ignore[misc,assignment]
 ResultIterator = __ResultIterator  # type: ignore[misc,assignment]
+Result = __Result  # type: ignore[misc,assignment]
+ResultView = __ResultView  # type: ignore[misc,assignment]
+Solution = __Solution  # type: ignore[misc,assignment]
+Environment = __Environment  # type: ignore[misc,assignment]
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment]
 SampleIterator = __SampleIterator  # type: ignore[misc,assignment]
 Samples = __Samples  # type: ignore[misc,assignment]
 Sample = __Sample  # type: ignore[misc,assignment]
-Result = __Result  # type: ignore[misc,assignment]
-ResultView = __ResultView  # type: ignore[misc,assignment]
-Solution = __Solution  # type: ignore[misc,assignment]
-Timing = __Timing  # type: ignore[misc,assignment]
-Timer = __Timer  # type: ignore[misc,assignment]
 Expression = __Expression  # type: ignore[misc,assignment]
-Environment = __Environment  # type: ignore[misc,assignment]
-Vtype = __Vtype  # type: ignore[misc,assignment]
-Bounds = __Bounds  # type: ignore[misc,assignment]
-Variable = __Variable  # type: ignore[misc,assignment]
-Comparator = __Comparator  # type: ignore[misc,assignment]
-Constraint = __Constraint  # type: ignore[misc,assignment]
-Constraints = __Constraints  # type: ignore[misc,assignment]
-Model = __Model  # type: ignore[misc,assignment]
 SampleSetTranslator = translator.SampleSetTranslator
 MatrixTranslator = translator.MatrixTranslator
 VariableOutOfRangeError = errors.VariableOutOfRangeError

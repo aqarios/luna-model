@@ -4,14 +4,13 @@ use super::expression::{
     BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation,
     IndexConstraints,
 };
-use super::{Environment, Expression, IndexByValue, RcSolution, Vtype};
+use super::{Environment, Expression, RcSolution, Sample, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::utils::ModelWriter;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
-use std::ops::Mul;
 use std::rc::Rc;
 
 /// The default name for a model.
@@ -117,43 +116,39 @@ where
         AssignmentTypes: AssignmentBaseTypes,
     {
         let mut newsol = sol.0.deref().clone();
-        // Here, duplicate samples are already removed, i.e., each element of sol.samples is unique
-        for (i, sample) in sol.iter_samples().iter().enumerate() {
-            //.rows().iter().enumerate() {
+        for (i, sample) in sol.samples().iter().enumerate() {
             let obj_val = self.objective.borrow().evaluate_sample(&sample);
             let constraints = self
                 .constraints
                 .borrow()
                 .iter()
-                .map(|constr| constr.evaluate_sample(sample))
+                .map(|constr| constr.evaluate_sample(&sample))
                 .collect();
             newsol.add_sample_evaluation(i, Some(obj_val), Some(constraints), self.sense.is_min());
         }
         RcSolution(newsol.into())
     }
 
-    fn evaluate_sample<'a, AssignmentTypes, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
+    pub fn evaluate_sample<'a, AssignmentTypes>(
         &self,
-        _sample: &'a Sample,
+        sample: &Sample<Bias, AssignmentTypes>,
     ) -> OwnedResult<Bias, AssignmentTypes>
     where
         AssignmentTypes: AssignmentBaseTypes,
-        &'a Elem: Mul<Bias, Output = Bias>,
-        Elem: Mul<Bias, Output = Bias>,
     {
-        // // Evaluate expression for sample
-        // let ov = self.objective.borrow().evaluate_sample(res);
-        todo!("Implement evaluation logic for sample")
-        // let cf = self
-        //     .constraints
-        //     .borrow()
-        //     .iter()
-        //     .map(|constraint| {
-        //         let v = constraint.lhs.borrow().evaluate_sample(res);
-        //         constraint.comparator.evaluate(v, constraint.rhs)
-        //     })
-        //     .collect();
-        // OwnedResult::new(res, ov, cf, f)
+        let obj_val = self.objective.borrow().evaluate_sample(sample);
+        let cf: Vec<_> = self
+            .constraints
+            .borrow()
+            .iter()
+            .map(|constraint| {
+                let v = constraint.lhs.borrow().evaluate_sample(sample);
+                constraint.comparator.evaluate(v, constraint.rhs)
+            })
+            .collect();
+        let feasible = cf.iter().all(|&b| b);
+        let owned_sample = Rc::new(sample.iter().collect());
+        OwnedResult::new(owned_sample, obj_val, cf, feasible)
     }
 }
 
