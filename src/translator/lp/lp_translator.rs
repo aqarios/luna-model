@@ -10,7 +10,12 @@ use crate::{
     },
     errors::TranslationErr,
 };
-use std::{fs::File, io::Read, marker::PhantomData, path::PathBuf};
+use std::{
+    fs::File,
+    io::{Read, Write},
+    marker::PhantomData,
+    path::PathBuf,
+};
 
 pub struct LPTranslator<Index, Bias> {
     _phantom_index: PhantomData<Index>,
@@ -38,6 +43,14 @@ where
         file.read_to_string(&mut s)
             .map_err(|why| TranslationErr::new(format!("couldn't read {}: {}", display, why)))?;
         Ok(s)
+    }
+
+    fn write_file(data: String, filepath: PathBuf) -> Result<(), TranslationErr> {
+        let mut file =
+            File::create(&filepath).map_err(|why| TranslationErr::new(why.to_string()))?;
+        file.write_all(data.as_bytes())
+            .map_err(|why| TranslationErr::new(why.to_string()))?;
+        Ok(())
     }
 
     fn parse_sections(contents: String) -> Result<SectionsHolder<Index, Bias>, TranslationErr> {
@@ -82,6 +95,16 @@ where
         sections.make_constraints(&mut model, &vl)?;
         Ok(model)
     }
+
+    fn build_sections(
+        model: Model<Index, Bias>,
+    ) -> Result<SectionsHolder<Index, Bias>, TranslationErr> {
+        todo!()
+    }
+
+    fn build_string(sections: SectionsHolder<Index, Bias>) -> Result<String, TranslationErr> {
+        todo!()
+    }
 }
 
 impl<Index, Bias> Translator for LPTranslator<Index, Bias>
@@ -107,8 +130,11 @@ where
     type BackTranslateIn = (Model<Index, Bias>, PathBuf);
     type BackTranslateOut = Result<(), TranslationErr>;
 
-    fn back_translate(_data: Self::BackTranslateIn) -> Self::BackTranslateOut {
-        // let (model, pathbuf) = data;
-        todo!()
+    fn back_translate(data: Self::BackTranslateIn) -> Self::BackTranslateOut {
+        let (model, pathbuf) = data;
+        let sections = Self::build_sections(model)?;
+        let lp_str = Self::build_string(sections)?;
+        Self::write_file(lp_str, pathbuf)?;
+        Ok(())
     }
 }

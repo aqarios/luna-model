@@ -258,25 +258,6 @@ where
         if let Some(bounds) = self.get(Section::Bounds) {
             let mut boundsmap: HashMap<String, (Option<f64>, Option<f64>)> = HashMap::new();
             for entry in bounds.iter() {
-                // Begins with the word Bounds, on its own line, and is followed by a
-                // list of variable bounds. Each line specifies the lower bound, the
-                // upper bound, or both for a single variable.
-                // The keywords inf or infinity can be used in the bounds section to
-                // specify infinite bounds. A bound line can also indicate that a
-                // variable is free, meaning that it is unbounded in either direction.
-                //
-                // Here are examples of valid bound lines:
-                //
-                // Bounds
-                //   0 <= x0 <= 1
-                //   x1 <= 1.2
-                //   x2 >= 3
-                //   x3 free
-                //   x2 >= -Inf
-                //
-                // It is not necessary to specify bounds for all variables; by default,
-                // each variable has a lower bound of 0 and an infinite upper bound.
-                // In fact, the entire bounds section is optional.
                 if entry.contains("free") {
                     let var = entry.replace("free", "").trim().to_string();
                     boundsmap.insert(var, (None, None));
