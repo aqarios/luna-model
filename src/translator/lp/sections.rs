@@ -6,6 +6,7 @@ use super::{
     keywords::VariableType,
     util::starts_with_any,
 };
+use crate::core::Sense;
 use crate::{
     core::{
         environment::add_variable,
@@ -20,12 +21,6 @@ use regex::Regex;
 use strum_macros::Display;
 
 use std::{cell::RefCell, hash::Hash, marker::PhantomData, ops::AddAssign, rc::Rc};
-
-#[derive(Hash, Eq, PartialEq, Clone, Debug)]
-pub enum Sense {
-    Min,
-    Max,
-}
 
 #[derive(Debug, Clone, PartialEq, Display, Eq, Hash)]
 pub enum Section {
@@ -346,9 +341,7 @@ where
         model: &mut Model<Index, Bias>,
         vars: &HashMap<String, VarRef<Index>>,
     ) -> Result<(), TranslationErr> {
-        // MINIMIZE CASE
         let min_obj = self.get(Section::Objective(Sense::Min));
-        // MAXIMIZE CASE
         let max_obj = self.get(Section::Objective(Sense::Max));
         let (sense, obj): (Sense, &Vec<String>) = match (min_obj, max_obj) {
             (Some(_), Some(_)) => {
@@ -364,9 +357,7 @@ where
             (Some(o), None) => (Sense::Min, o),
             (None, Some(o)) => (Sense::Max, o),
         };
-        // todo(team) add sense once merged from other branch.
-        // model.sense = ...;
-        // model.objective.borrow_mut().add_assign(&self.make_expression(obj, Rc::clone(&model.environment))?).map_err(|e| TranslationErr::new(e.to_string()))?;
+        model.set_sense(sense);
         let all = obj.concat();
         Self::add_to_expression(&mut model.objective.borrow_mut(), &all, &vars)?;
         Ok(())
@@ -381,7 +372,6 @@ where
             for entry in constrs {
                 let (name, constr) = entry.split_once(":").unwrap();
                 if let Some((lhs_str, comp, rhs_str)) = Self::split_constraint_expression(&constr) {
-                    // println!("name = {}, parts = {:?}", name, (lhs_str, comp, rhs_str));
                     let mut lhs: Expression<Index, Bias> = Expression::new(
                         Rc::clone(&model.environment),
                         vec![false; model.objective.borrow().active.len()],

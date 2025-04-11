@@ -57,6 +57,7 @@ pub use expression::ExpressionBase;
 pub use expression::ExpressionBaseAdjustment;
 
 pub use model::Model;
+pub use model::Sense;
 
 pub use solution::OwnedResult;
 pub use solution::RcSolution;

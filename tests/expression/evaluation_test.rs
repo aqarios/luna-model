@@ -4,7 +4,7 @@ use aqmodels::core::{
     environment::add_variable,
     expression::ExpressionEvaluation,
     operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
-    ConcreteBias, ConcreteId, ConcreteIndex, IndexByValue, Vtype,
+    ConcreteBias, ConcreteIndex, IndexByValue, Vtype,
 };
 
 use crate::common::{

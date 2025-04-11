@@ -17,7 +17,7 @@ use std::rc::Rc;
 static DEFAULT_MODEL_NAME: &str = "unnamed";
 
 /// The optimization sense, i.e., the direction to be optimized towards.
-#[derive(PartialEq)]
+#[derive(PartialEq, Hash, Clone, Debug, Eq)]
 pub enum Sense {
     Min,
     Max,
