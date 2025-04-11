@@ -2,6 +2,7 @@
 # Do not edit manually.
 
 from datetime import datetime, timedelta
+from dimod import BinaryQuadraticModel
 from dimod import SampleSet
 from enum import Enum
 from numpy.typing import NDArray
@@ -503,6 +504,15 @@ class Expression:
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
 
+class BqmTranslator:
+    @staticmethod
+    def to_model(
+            bqm: BinaryQuadraticModel, name: str | None = None
+    ) -> Model: ...
+
+    @staticmethod
+    def to_bqm(model: Model) -> BinaryQuadraticModel: ...
+
 class SampleSetTranslator:
     @staticmethod
     def from_dimod_sample_set(
@@ -552,6 +562,7 @@ class SolutionCreationError(Exception):
 
 __all__ = [
     "Bounds",
+    "BqmTranslator",
     "Comparator",
     "Constraint",
     "Constraints",

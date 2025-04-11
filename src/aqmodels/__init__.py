@@ -122,6 +122,7 @@ SampleIterator = __SampleIterator  # type: ignore[misc,assignment]
 Samples = __Samples  # type: ignore[misc,assignment]
 Sample = __Sample  # type: ignore[misc,assignment]
 Expression = __Expression  # type: ignore[misc,assignment]
+BqmTranslator = translator.BqmTranslator
 SampleSetTranslator = translator.SampleSetTranslator
 MatrixTranslator = translator.MatrixTranslator
 VariableOutOfRangeError = errors.VariableOutOfRangeError
@@ -137,6 +138,7 @@ SolutionCreationError = errors.SolutionCreationError
 
 __all__ = [
     "Bounds",
+    "BqmTranslator",
     "Comparator",
     "Constraint",
     "Constraints",

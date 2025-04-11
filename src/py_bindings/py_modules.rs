@@ -36,6 +36,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
 pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "translator")?;
     m.add_class::<py_translator::PyMatrixTranslator>()?;
+    m.add_class::<py_translator::PyBqmTranslator>()?;
     m.add_class::<py_translator::PySampleSetTranslator>()?;
     pm.add_submodule(&m)?;
     pm.py()
@@ -62,6 +63,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add(
         pyexc::ModelNotUnconstrainedError::NAME,
         m.py().get_type::<pyexc::ModelNotUnconstrainedError>(),
+    )?;
+    m.add(
+        pyexc::ModelVtypeError::NAME,
+        m.py().get_type::<pyexc::ModelVtypeError>(),
     )?;
     m.add(
         pyexc::MultipleActiveEnvironmentsError::NAME,

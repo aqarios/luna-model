@@ -5,10 +5,20 @@ from aqmodels._environment import Environment
 from aqmodels._model import Model
 from aqmodels._solution import Solution, Timing
 from aqmodels._variable import Vtype
+from dimod import BinaryQuadraticModel
 from dimod import SampleSet
 from numpy.typing import NDArray
 
 from . import translator
+
+class BqmTranslator:
+    @staticmethod
+    def to_model(
+            bqm: BinaryQuadraticModel, name: str | None = None
+    ) -> Model: ...
+
+    @staticmethod
+    def to_bqm(model: Model) -> BinaryQuadraticModel: ...
 
 class SampleSetTranslator:
     @staticmethod
@@ -28,6 +38,7 @@ class MatrixTranslator:
 
 
 __all__ = [
+    "BqmTranslator",
     "MatrixTranslator",
     "SampleSetTranslator",
     "translator",

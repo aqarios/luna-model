@@ -1,9 +1,8 @@
 from random import Random
 
-import dimod
 import numpy as np
 import pytest
-from dimod import BinaryQuadraticModel, SampleSet, Vartype, as_samples
+from dimod import SampleSet, Vartype, as_samples
 from dwave.samplers import SimulatedAnnealingSampler
 
 from aqmodels import (
@@ -14,26 +13,7 @@ from aqmodels import (
     Vtype,
     SolutionCreationError,
 )
-from pytests.test_core.utils import make_seed, random_int
-
-
-def generate_bqms(
-    n_models: int, rand: Random, n_vars_max: int = 100
-) -> list[BinaryQuadraticModel]:
-    out = []
-    for _ in range(n_models):
-        n_vars = rand.randint(1, n_vars_max)
-        density = rand.random() * (1 - 1 / n_vars)
-        num_interactions = int(density * n_vars**2 / 2)
-        vartype = Vartype.BINARY if rand.randint(0, 1) == 0 else Vartype.SPIN
-        bqm = dimod.generators.gnm_random_bqm(
-            [f"x{i}" for i in range(n_vars)],
-            num_interactions,
-            vartype,
-            random_state=random_int(rand),
-        )
-        out.append(bqm)
-    return out
+from pytests.test_core.utils import make_seed, random_int, generate_bqms
 
 
 def mock_env(n_variables: int, vtype: Vtype = Vtype.Binary) -> Environment:
@@ -90,8 +70,8 @@ def test_sampleset_translator_sa_random_models():
         assert len(sol.samples) == len(sampleset_agg.record.sample)
         assert sol.samples.tolist() == sampleset_agg.record.sample.tolist()
         assert (
-            sol.num_occurrences.tolist()
-            == sampleset_agg.record.num_occurrences.tolist()
+                sol.num_occurrences.tolist()
+                == sampleset_agg.record.num_occurrences.tolist()
         )
         assert len(sol.num_occurrences) == len(sol.samples)
         assert sol.runtime.total.total_seconds() > 0
@@ -105,7 +85,7 @@ def test_sampleset_translator_sa_random_models():
         for i, result in enumerate(results):
             assert result.num_occurrences == sol.num_occurrences.tolist()[i]
             assert list(result.sample) == list(sol.samples[i])
-            assert result.obj_value == None
+            assert result.obj_value is None
             assert result.raw_energy == sol.raw_energies.tolist()[i]
             assert result.constraints is None
             assert result.feasible is None
