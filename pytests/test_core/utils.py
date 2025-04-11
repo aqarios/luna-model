@@ -3,7 +3,7 @@ import sys
 from itertools import permutations
 
 import dimod
-from dimod import BinaryQuadraticModel, Vartype
+from dimod import BinaryQuadraticModel, Vartype, ConstrainedQuadraticModel
 
 
 def make_seed() -> int:
@@ -77,4 +77,17 @@ def generate_bqms(
             random_state=random_int(rand),
         )
         out.append(bqm)
+    return out
+
+
+def generate_cqms(
+        n_models: int, rand: r.Random
+) -> list[ConstrainedQuadraticModel]:
+    out = []
+    for _ in range(n_models):
+        n_items = rand.randint(1, 20)
+        cqm = dimod.generators.random_knapsack(
+            n_items, seed=random_int(rand)
+        )
+        out.append(cqm)
     return out
