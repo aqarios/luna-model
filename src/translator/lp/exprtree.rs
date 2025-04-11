@@ -241,6 +241,63 @@ pub fn parse_expr_string<Bias: BiasConstraints>(input: &str) -> ExprTree<Bias> {
     parser.parse_expression()
 }
 
+pub fn optimize_expr_tree<Bias>(expr: ExprTree<Bias>) -> ExprTree<Bias>
+where
+    Bias: BiasConstraints,
+{
+    use ExprTree::*;
+
+    match expr {
+        Add(lhs, rhs) => {
+            let lhs = optimize_expr_tree(*lhs);
+            let rhs = optimize_expr_tree(*rhs);
+
+            match (&lhs, &rhs) {
+                (Number(a), Number(b)) => Number(*a + *b),
+                (Number(z), e) | (e, Number(z)) if is_zero(z) => e.clone(),
+                _ => Add(Box::new(lhs), Box::new(rhs)),
+            }
+        }
+
+        Sub(lhs, rhs) => {
+            let lhs = optimize_expr_tree(*lhs);
+            let rhs = optimize_expr_tree(*rhs);
+
+            match (&lhs, &rhs) {
+                (Number(a), Number(b)) => Number(*a - *b),
+                (e, Number(z)) if is_zero(z) => e.clone(),
+                _ => Sub(Box::new(lhs), Box::new(rhs)),
+            }
+        }
+
+        Mul(lhs, rhs) => {
+            let lhs = optimize_expr_tree(*lhs);
+            let rhs = optimize_expr_tree(*rhs);
+
+            match (&lhs, &rhs) {
+                (Number(a), Number(b)) => Number(*a * *b),
+                (Number(z), _) | (_, Number(z)) if is_zero(z) => Number(z.clone()),
+                (Number(o), e) | (e, Number(o)) if is_one(o) => e.clone(),
+                _ => Mul(Box::new(lhs), Box::new(rhs)),
+            }
+        }
+
+        Pow(base, exp) => {
+            let base = optimize_expr_tree(*base);
+            let exp = optimize_expr_tree(*exp);
+
+            match (&base, &exp) {
+                (_, Number(z)) if is_zero(z) => Number(Bias::one()), // x^0 = 1
+                (e, Number(o)) if is_one(o) => e.clone(),            // x^1 = x
+                (Number(a), Number(b)) => Number(a.pow(*b)),         // const^const
+                _ => Pow(Box::new(base), Box::new(exp)),
+            }
+        }
+
+        _ => expr,
+    }
+}
+
 // Evaluation of expression
 pub fn evaluate_expr_tree<Index, Bias, F>(
     expr: &ExprTree<Bias>,
@@ -296,63 +353,6 @@ where
             }
             _ => panic!("Pow is only supported for Variable ^ Number"),
         },
-    }
-}
-
-pub fn optimize_expr_tree<Bias>(expr: ExprTree<Bias>) -> ExprTree<Bias>
-where
-    Bias: BiasConstraints,
-{
-    use ExprTree::*;
-
-    match expr {
-        Add(lhs, rhs) => {
-            let lhs = optimize_expr_tree(*lhs);
-            let rhs = optimize_expr_tree(*rhs);
-
-            match (&lhs, &rhs) {
-                (Number(a), Number(b)) => Number(*a + *b),
-                (Number(z), e) | (e, Number(z)) if is_zero(z) => e.clone(),
-                _ => Add(Box::new(lhs), Box::new(rhs)),
-            }
-        }
-
-        Sub(lhs, rhs) => {
-            let lhs = optimize_expr_tree(*lhs);
-            let rhs = optimize_expr_tree(*rhs);
-
-            match (&lhs, &rhs) {
-                (Number(a), Number(b)) => Number(*a - *b),
-                (e, Number(z)) if is_zero(z) => e.clone(),
-                _ => Sub(Box::new(lhs), Box::new(rhs)),
-            }
-        }
-
-        Mul(lhs, rhs) => {
-            let lhs = optimize_expr_tree(*lhs);
-            let rhs = optimize_expr_tree(*rhs);
-
-            match (&lhs, &rhs) {
-                (Number(a), Number(b)) => Number(*a * *b),
-                (Number(z), _) | (_, Number(z)) if is_zero(z) => Number(z.clone()),
-                (Number(o), e) | (e, Number(o)) if is_one(o) => e.clone(),
-                _ => Mul(Box::new(lhs), Box::new(rhs)),
-            }
-        }
-
-        Pow(base, exp) => {
-            let base = optimize_expr_tree(*base);
-            let exp = optimize_expr_tree(*exp);
-
-            match (&base, &exp) {
-                (_, Number(z)) if is_zero(z) => Number(Bias::one()), // x^0 = 1
-                (e, Number(o)) if is_one(o) => e.clone(),            // x^1 = x
-                (Number(a), Number(b)) => Number(a.pow(*b)),         // const^const
-                _ => Pow(Box::new(base), Box::new(exp)),
-            }
-        }
-
-        _ => expr,
     }
 }
 
