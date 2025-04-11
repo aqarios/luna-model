@@ -252,11 +252,6 @@ impl<Index, Bias> SectionsHolder<Index, Bias> where Index: IndexConstraints, Bia
         let mut varlookup = HashMap::new();
         let boundsmap = self.extract_bounds();
         for (vtype, vars) in self.iter_variables() {
-            let vtype = match vtype {
-                VariableType::Binary => Vtype::Binary,
-                VariableType::Semi => Vtype::Real,
-                VariableType::General => Vtype::Integer
-            };
             for var in vars {
                 let bounds: Option<Bounds> = match boundsmap {
                     Some(ref bm) => match bm.get(var) {
@@ -265,7 +260,7 @@ impl<Index, Bias> SectionsHolder<Index, Bias> where Index: IndexConstraints, Bia
                     }
                     None => None
                 };
-                let vref = add_variable(Rc::clone(&model.environment), var, Some(&vtype), bounds).map_err(|e| TranslationErr::new(e.to_string()))?;
+                let vref = add_variable(Rc::clone(&model.environment), var, Some(&(*vtype).into()), bounds).map_err(|e| TranslationErr::new(e.to_string()))?;
                 varlookup.insert(var.to_string(), vref);
             }
         }
@@ -486,11 +481,21 @@ impl VariableTypeKeywords {
     }
 }
 
-#[derive(Display, Hash, Eq, PartialEq, Clone, Debug)]
+#[derive(Copy, Display, Hash, Eq, PartialEq, Clone, Debug)]
 enum VariableType {
     Binary,
     General,
     Semi,
+}
+
+impl Into<Vtype> for VariableType {
+    fn into(self) -> Vtype {
+        match self {
+            Self::Binary => Vtype::Binary,
+            Self::Semi => Vtype::Real,
+            Self::General => Vtype::Integer
+        }
+    }
 }
 
 #[derive(Display)]
