@@ -1,4 +1,9 @@
-use super::{common::{MutRcConstraint, MutRcConstraints, MutRcExpression, MutRcModel, RcVarRef}, term::{HigherOrder, Quadratic}, Constraint, Constraints, Environment, Expression, Model, MutRcEnvironment, RcSolution, VarId, VarRef};
+use super::{
+    common::{MutRcConstraint, MutRcConstraints, MutRcExpression, MutRcModel, RcVarRef},
+    term::{HigherOrder, Quadratic},
+    Constraint, Constraints, Environment, Expression, Model, MutRcEnvironment, RcSolution, VarId,
+    VarRef,
+};
 use crate::core::solution::AssignmentBaseTypes;
 use std::{cell::RefCell, rc::Rc};
 

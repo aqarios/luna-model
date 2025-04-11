@@ -1,4 +1,7 @@
-use crate::core::{ConcreteAssignmentTypes, ConcreteBias, OwnedResult, RcSolution, ResultIterator, ResultView, Sample, SampleIterator, Samples, SamplesIterator, Solution, VarAssignment};
+use crate::core::{
+    ConcreteAssignmentTypes, ConcreteBias, OwnedResult, RcSolution, ResultIterator, ResultView,
+    Sample, SampleIterator, Samples, SamplesIterator, Solution, VarAssignment,
+};
 use crate::py_bindings::py_timing::PyTiming;
 use derive_more::{Deref, DerefMut};
 use either::{Either, Left};
@@ -88,7 +91,7 @@ impl PySolution {
 
 impl PySample {
     pub fn iter(&self) -> PySampleIterator {
-        match &self.0.0 {
+        match &self.0 .0 {
             Either::Left(r) => PySampleIterator(SampleIterator::from_res_view(&r)),
             Either::Right(r) => PySampleIterator(SampleIterator::from_sample_vec(Rc::clone(r))),
         }
@@ -160,9 +163,7 @@ impl PySolution {
     #[staticmethod]
     fn decode(_py: Python, _data: Py<PyBytes>) -> PyResult<Self> {
         // TODO: implement actual compression logic then update this method
-        Ok(PySolution(
-            RcSolution(Rc::new(Solution::default()))
-        ))
+        Ok(PySolution(RcSolution(Rc::new(Solution::default()))))
     }
 
     #[staticmethod]
@@ -344,7 +345,7 @@ impl PySample {
     }
 
     fn __len__(&self) -> usize {
-        match &self.0.0 {
+        match &self.0 .0 {
             Left(r) => r.sol.samples.len(),
             Either::Right(r) => r.len(),
         }

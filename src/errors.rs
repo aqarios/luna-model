@@ -15,7 +15,7 @@ impl Display for VariableExistsErr {
 
 #[derive(Debug, Clone)]
 pub struct TranslationErr {
-    msg: String
+    msg: String,
 }
 impl TranslationErr {
     pub fn new(msg: String) -> Self {

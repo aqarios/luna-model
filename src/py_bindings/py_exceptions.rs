@@ -1,5 +1,9 @@
 use crate::core::expression::VariableOutOfRangeErr;
-use crate::errors::{DifferentEnvsErr, IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, SolutionCreatorErr, VariableCreationErr, VariableExistsErr, VariablesFromDifferentEnvsErr, TranslationErr};
+use crate::errors::{
+    DifferentEnvsErr, IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr,
+    ModelNotUnconstrainedErr, SolutionCreatorErr, TranslationErr, VariableCreationErr,
+    VariableExistsErr, VariablesFromDifferentEnvsErr,
+};
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
 use pyo3::{create_exception, PyErr};
