@@ -9,9 +9,10 @@ impl From<VariablesFromDifferentEnvsErr> for TranslationErr {
 }
 
 pub fn starts_with_any(s: &str, prefixes: &Vec<String>) -> bool {
-    prefixes.iter().any(|prefix| s.to_lowercase().starts_with(prefix))
+    prefixes
+        .iter()
+        .any(|prefix| s.to_lowercase().starts_with(prefix))
 }
-
 
 pub fn is_comment(line: &str) -> bool {
     line.trim().is_empty() || starts_with_any(line, &CommentKeywords::all())

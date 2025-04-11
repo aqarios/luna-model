@@ -1,6 +1,15 @@
 use std::{marker::PhantomData, rc::Rc};
 
-use crate::{core::{expression::{BiasConstraints, ExpressionBaseAdd, ExpressionBaseCreation, IndexConstraints}, operations::{AddToExpression, MulAssignToExpression, MulToExpression, SubToExpression}, Expression, MutRcEnvironment, VarRef}, errors::TranslationErr};
+use crate::{
+    core::{
+        expression::{
+            BiasConstraints, ExpressionBaseAdd, ExpressionBaseCreation, IndexConstraints,
+        },
+        operations::{AddToExpression, MulAssignToExpression, MulToExpression, SubToExpression},
+        Expression, MutRcEnvironment, VarRef,
+    },
+    errors::TranslationErr,
+};
 
 // ExprTree AST
 #[derive(Debug, Clone)]
@@ -64,15 +73,41 @@ fn tokenize(input: &str) -> Vec<Token> {
 
     while let Some(&c) = chars.peek() {
         match c {
-            ' ' => { chars.next(); },
-            '+' => { tokens.push(Token::Plus); chars.next(); },
-            '-' => { tokens.push(Token::Minus); chars.next(); },
-            '*' => { tokens.push(Token::Star); chars.next(); },
-            '^' => { tokens.push(Token::Caret); chars.next(); },
-            '(' => { tokens.push(Token::LParen); chars.next(); },
-            ')' => { tokens.push(Token::RParen); chars.next(); },
-            '[' => { tokens.push(Token::LParen); chars.next(); },
-            ']' => { tokens.push(Token::RParen); chars.next(); },
+            ' ' => {
+                chars.next();
+            }
+            '+' => {
+                tokens.push(Token::Plus);
+                chars.next();
+            }
+            '-' => {
+                tokens.push(Token::Minus);
+                chars.next();
+            }
+            '*' => {
+                tokens.push(Token::Star);
+                chars.next();
+            }
+            '^' => {
+                tokens.push(Token::Caret);
+                chars.next();
+            }
+            '(' => {
+                tokens.push(Token::LParen);
+                chars.next();
+            }
+            ')' => {
+                tokens.push(Token::RParen);
+                chars.next();
+            }
+            '[' => {
+                tokens.push(Token::LParen);
+                chars.next();
+            }
+            ']' => {
+                tokens.push(Token::RParen);
+                chars.next();
+            }
             c if c.is_ascii_digit() || c == '.' => {
                 let mut num = String::new();
                 while let Some(&d) = chars.peek() {
@@ -113,7 +148,11 @@ struct Parser<Bias: BiasConstraints> {
 
 impl<Bias: BiasConstraints> Parser<Bias> {
     fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens, pos: 0, _phantom: PhantomData }
+        Self {
+            tokens,
+            pos: 0,
+            _phantom: PhantomData,
+        }
     }
 
     fn current(&self) -> Option<&Token> {
@@ -144,24 +183,24 @@ impl<Bias: BiasConstraints> Parser<Bias> {
 
     fn parse_term(&mut self) -> ExprTree<Bias> {
         let mut expr = self.parse_factor();
-    
+
         while let Some(token) = self.current() {
             match token {
                 Token::Star => {
                     self.advance();
                     expr = ExprTree::Mul(Box::new(expr), Box::new(self.parse_factor()));
                 }
-    
+
                 // Handle implicit multiplication
                 Token::Variable(_) | Token::Number(_) | Token::LParen => {
                     let rhs = self.parse_factor();
                     expr = ExprTree::Mul(Box::new(expr), Box::new(rhs));
                 }
-    
+
                 _ => break,
             }
         }
-    
+
         expr
     }
 
@@ -223,7 +262,11 @@ where
         }
         Variable(name) => {
             let var = (ctx.resolve_variable)(name);
-            Ok(Expression::new_linear_single(Rc::clone(&ctx.env), var.id, Bias::one()))
+            Ok(Expression::new_linear_single(
+                Rc::clone(&ctx.env),
+                var.id,
+                Bias::one(),
+            ))
         }
         Add(lhs, rhs) => {
             let l = evaluate_expr_tree(lhs, ctx)?;
@@ -246,7 +289,8 @@ where
                     let var = (ctx.resolve_variable)(name);
                     // let mut expr = Expression::Variable(var.clone());
                     // for _ in 1..exponent { expr = Expression::Mul(Box::new(expr), Box::new(Expression::Variable(var.clone()))) }
-                    let mut base = Expression::new_linear_single(Rc::clone(&ctx.env), var.id, Bias::one());
+                    let mut base =
+                        Expression::new_linear_single(Rc::clone(&ctx.env), var.id, Bias::one());
                     let mut count = Bias::one();
                     while count < *bias {
                         base.mul_assign(&var)?;
@@ -306,9 +350,9 @@ where
             let exp = optimize_expr_tree(*exp);
 
             match (&base, &exp) {
-                (_, Number(z)) if is_zero(z) => Number(Bias::one()),   // x^0 = 1
-                (e, Number(o)) if is_one(o) => e.clone(),             // x^1 = x
-                (Number(a), Number(b)) => Number(a.pow(*b)),     // const^const
+                (_, Number(z)) if is_zero(z) => Number(Bias::one()), // x^0 = 1
+                (e, Number(o)) if is_one(o) => e.clone(),            // x^1 = x
+                (Number(a), Number(b)) => Number(a.pow(*b)),         // const^const
                 _ => Pow(Box::new(base), Box::new(exp)),
             }
         }

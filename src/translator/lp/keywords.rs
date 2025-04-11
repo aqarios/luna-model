@@ -118,7 +118,6 @@ impl VariableTypeKeywords {
             Self::Generals.to_string(),
             Self::Gen.to_string(),
         ]
-
     }
     pub fn all_semi() -> Vec<String> {
         vec![
@@ -126,7 +125,6 @@ impl VariableTypeKeywords {
             Self::Semis.to_string(),
             Self::Semi.to_string(),
         ]
-
     }
 }
 
@@ -142,7 +140,7 @@ impl Into<Vtype> for VariableType {
         match self {
             Self::Binary => Vtype::Binary,
             Self::Semi => Vtype::Real,
-            Self::General => Vtype::Integer
+            Self::General => Vtype::Integer,
         }
     }
 }
@@ -158,4 +156,3 @@ impl EndKeywords {
         vec![Self::End.to_string()]
     }
 }
-

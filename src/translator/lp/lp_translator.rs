@@ -1,26 +1,42 @@
-use crate::{core::{
-    expression::{BiasConstraints, IndexConstraints}, Model
-}, errors::TranslationErr};
+use super::{
+    sections::{Section, SectionsHolder},
+    util::{is_comment, is_end},
+};
 use crate::translator::base::{BackTranslator, Translator};
+use crate::{
+    core::{
+        expression::{BiasConstraints, IndexConstraints},
+        Model,
+    },
+    errors::TranslationErr,
+};
 use std::{fs::File, io::Read, marker::PhantomData, path::PathBuf};
-use super::{sections::{Section, SectionsHolder}, util::{is_comment, is_end}};
 
 pub struct LPTranslator<Index, Bias> {
     _phantom_index: PhantomData<Index>,
     _phantom_bias: PhantomData<Bias>,
 }
 
-impl<Index, Bias> LPTranslator<Index, Bias> where Self: Translator, Index: IndexConstraints, Bias: BiasConstraints {
+impl<Index, Bias> LPTranslator<Index, Bias>
+where
+    Self: Translator,
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
     fn read_file(filepath: PathBuf) -> Result<String, TranslationErr> {
         let display = filepath.display();
         let mut file = match File::open(&filepath) {
-            Err(why) => return Err(TranslationErr::new(format!("couldn't open {}: {}", display, why))),
+            Err(why) => {
+                return Err(TranslationErr::new(format!(
+                    "couldn't open {}: {}",
+                    display, why
+                )))
+            }
             Ok(file) => file,
         };
         let mut s = String::new();
-        file.read_to_string(&mut s).map_err(|why| {
-            TranslationErr::new(format!("couldn't read {}: {}", display, why))
-        })?;
+        file.read_to_string(&mut s)
+            .map_err(|why| TranslationErr::new(format!("couldn't read {}: {}", display, why)))?;
         Ok(s)
     }
 
@@ -28,10 +44,12 @@ impl<Index, Bias> LPTranslator<Index, Bias> where Self: Translator, Index: Index
         let mut sections: SectionsHolder<Index, Bias> = SectionsHolder::new();
         let mut last_section = Section::Placeholder;
         for line in contents.lines() {
-            if is_comment(line) { // Skip empty or commented lines.
+            if is_comment(line) {
+                // Skip empty or commented lines.
                 continue;
             }
-            if is_end(line) { // Excape after `End` keyword is reached.
+            if is_end(line) {
+                // Excape after `End` keyword is reached.
                 break;
             }
             match Section::detect(line) {
@@ -44,14 +62,19 @@ impl<Index, Bias> LPTranslator<Index, Bias> where Self: Translator, Index: Index
                 (None, Some(content)) => {
                     sections.push(&last_section, content.to_string());
                 }
-                _ => return Err(TranslationErr::new(String::from("unknown section detected")))
+                _ => {
+                    return Err(TranslationErr::new(String::from(
+                        "unknown section detected",
+                    )))
+                }
             }
-
         }
         Ok(sections)
     }
 
-    fn build_model(sections: SectionsHolder<Index, Bias>) -> Result<Model<Index, Bias>, TranslationErr> {
+    fn build_model(
+        sections: SectionsHolder<Index, Bias>,
+    ) -> Result<Model<Index, Bias>, TranslationErr> {
         let model_name = None;
         let mut model = Model::new(model_name);
         let vl = sections.make_variables(&mut model)?;
