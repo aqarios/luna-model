@@ -43,7 +43,6 @@ where
     Bias: BiasConstraints,
     F: Fn(&str) -> VarRef<Index>,
 {
-    // pub fn new(resolve_variable: F) -> Self {
     pub fn new(resolve_variable: F, env: MutRcEnvironment<Index>) -> Self {
         Self {
             resolve_variable,
@@ -283,24 +282,20 @@ where
             let r = evaluate_expr_tree(rhs, ctx)?;
             Ok(l.mul(&r)?)
         }
-        Pow(base, exp) => {
-            match (&**base, &**exp) {
-                (Variable(name), Number(bias)) => {
-                    let var = (ctx.resolve_variable)(name);
-                    // let mut expr = Expression::Variable(var.clone());
-                    // for _ in 1..exponent { expr = Expression::Mul(Box::new(expr), Box::new(Expression::Variable(var.clone()))) }
-                    let mut base =
-                        Expression::new_linear_single(Rc::clone(&ctx.env), var.id, Bias::one());
-                    let mut count = Bias::one();
-                    while count < *bias {
-                        base.mul_assign(&var)?;
-                        count.add_assign(Bias::one());
-                    }
-                    Ok(base)
+        Pow(base, exp) => match (&**base, &**exp) {
+            (Variable(name), Number(bias)) => {
+                let var = (ctx.resolve_variable)(name);
+                let mut base =
+                    Expression::new_linear_single(Rc::clone(&ctx.env), var.id, Bias::one());
+                let mut count = Bias::one();
+                while count < *bias {
+                    base.mul_assign(&var)?;
+                    count.add_assign(Bias::one());
                 }
-                _ => panic!("Pow is only supported for Variable ^ Number"),
+                Ok(base)
             }
-        }
+            _ => panic!("Pow is only supported for Variable ^ Number"),
+        },
     }
 }
 
