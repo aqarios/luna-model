@@ -1,21 +1,23 @@
+use super::keywords::{BoundsKeywords, ConstraintsKeywords, ObjectiveKeywords, VariableTypeKeywords};
 use hashbrown::{hash_map::Iter, HashMap};
 use strum_macros::Display;
 use regex::Regex;
 use crate::{core::{
-    environment::add_variable, expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints}, operations::AddAssignToExpression, Bounds, Comparator, Constraint, Expression, Model, VarRef, Vtype
-}, errors::{TranslationErr, VariablesFromDifferentEnvsErr}, translator::exprtree::{evaluate_expr_tree, optimize_expr_tree, parse_expr_string, EvalContext, ExprTree}};
+    environment::add_variable, expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints}, operations::AddAssignToExpression, Bounds, Comparator, Constraint, Expression, Model, VarRef
+}, errors::TranslationErr};
+use super::{exprtree::{evaluate_expr_tree, optimize_expr_tree, parse_expr_string, EvalContext, ExprTree}, keywords::VariableType, util::starts_with_any};
 
-use super::base::{BackTranslator, Translator};
-use std::{cell::RefCell, fs::File, hash::Hash, io::Read, marker::PhantomData, ops::AddAssign, path::PathBuf, rc::Rc};
+use std::{cell::RefCell, hash::Hash, marker::PhantomData, ops::AddAssign, rc::Rc};
+
 
 #[derive(Hash, Eq, PartialEq, Clone, Debug)]
-enum Sense {
+pub enum Sense {
     Min,
     Max,
 }
 
 #[derive(Debug, Clone, PartialEq, Display, Eq, Hash)]
-enum Section {
+pub enum Section {
     /// Placeholder
     Placeholder,
     /// Single-Objective Case
@@ -133,8 +135,30 @@ enum Section {
     VariableType(VariableType),
 }
 
+impl Section {
+    pub fn detect(line: &str) -> (Option<Section>, Option<&str>) {
+        if starts_with_any(line, &ObjectiveKeywords::all_min()) {
+            (Some(Section::Objective(Sense::Min)), None)
+        } else if starts_with_any(line, &ObjectiveKeywords::all_max()) {
+            (Some(Section::Objective(Sense::Max)), None)
+        } else if starts_with_any(line, &ConstraintsKeywords::all()) {
+            (Some(Section::Constraints), None)
+        } else if starts_with_any(line, &BoundsKeywords::all()) {
+            (Some(Section::Bounds), None)
+        } else if starts_with_any(line, &VariableTypeKeywords::all_bin()) {
+            (Some(Section::VariableType(VariableType::Binary)), None)
+        } else if starts_with_any(line, &VariableTypeKeywords::all_gen()) {
+            (Some(Section::VariableType(VariableType::General)), None)
+        } else if starts_with_any(line, &VariableTypeKeywords::all_semi()) {
+            (Some(Section::VariableType(VariableType::Semi)), None)
+        } else {
+            (None, Some(line.trim()))
+        }
+    }
+}
+
 #[derive(Debug)]
-struct SectionsHolder<Index, Bias> {
+pub struct SectionsHolder<Index, Bias> {
     variable_sections: HashMap<VariableType, Vec<String>>,
     sections: HashMap<Section, Vec<String>>,
     _pi: PhantomData<Index>,
@@ -142,11 +166,11 @@ struct SectionsHolder<Index, Bias> {
 }
 
 impl<Index, Bias> SectionsHolder<Index, Bias> where Index: IndexConstraints, Bias: BiasConstraints{
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self { sections: HashMap::new(), variable_sections: HashMap::new(), _pb: PhantomData, _pi: PhantomData }
     }
 
-    fn put(&mut self, section: &Section) {
+    pub fn put(&mut self, section: &Section) {
         match section {
             Section::VariableType(VariableType::Binary) => self.put_variable_section(VariableType::Binary),
             Section::VariableType(VariableType::General) => self.put_variable_section(VariableType::General),
@@ -163,7 +187,7 @@ impl<Index, Bias> SectionsHolder<Index, Bias> where Index: IndexConstraints, Bia
         self.variable_sections.insert(vtype, Vec::new());
     }
 
-    fn push(&mut self, section: &Section, value: String) {
+    pub fn push(&mut self, section: &Section, value: String) {
         match section {
             Section::VariableType(VariableType::Binary) => self.push_variable_section(VariableType::Binary, value),
             Section::VariableType(VariableType::General) => self.push_variable_section(VariableType::General, value),
@@ -248,7 +272,7 @@ impl<Index, Bias> SectionsHolder<Index, Bias> where Index: IndexConstraints, Bia
         }
     }
 
-    fn make_variables(&self, model: &mut Model<Index, Bias>) -> Result<HashMap<String, VarRef<Index>>, TranslationErr> {
+    pub fn make_variables(&self, model: &mut Model<Index, Bias>) -> Result<HashMap<String, VarRef<Index>>, TranslationErr> {
         let mut varlookup = HashMap::new();
         let boundsmap = self.extract_bounds();
         for (vtype, vars) in self.iter_variables() {
@@ -267,7 +291,7 @@ impl<Index, Bias> SectionsHolder<Index, Bias> where Index: IndexConstraints, Bia
         Ok(varlookup)
     }
 
-    fn make_objective(&self, model: &mut Model<Index, Bias>, vars: &HashMap<String, VarRef<Index>>) -> Result<(), TranslationErr> {
+    pub fn make_objective(&self, model: &mut Model<Index, Bias>, vars: &HashMap<String, VarRef<Index>>) -> Result<(), TranslationErr> {
         // MINIMIZE CASE
         let min_obj = self.get(Section::Objective(Sense::Min));
         // MAXIMIZE CASE
@@ -286,7 +310,7 @@ impl<Index, Bias> SectionsHolder<Index, Bias> where Index: IndexConstraints, Bia
         Ok(())
     }
 
-    fn make_constraints(&self, model: &mut Model<Index, Bias>, vars: &HashMap<String, VarRef<Index>>) -> Result<(), TranslationErr> {
+    pub fn make_constraints(&self, model: &mut Model<Index, Bias>, vars: &HashMap<String, VarRef<Index>>) -> Result<(), TranslationErr> {
         if let Some(constrs) = self.get(Section::Constraints) {
             for entry in constrs {
                 let (name, constr) = entry.split_once(":").unwrap();
@@ -337,13 +361,6 @@ impl<Index, Bias> SectionsHolder<Index, Bias> where Index: IndexConstraints, Bia
     }
 }
 
-impl From<VariablesFromDifferentEnvsErr> for TranslationErr {
-    fn from(value: VariablesFromDifferentEnvsErr) -> Self {
-        TranslationErr::new(value.to_string())
-    }
-}
-
-
 fn parse_bound_value(s: &str) -> Option<f64> {
     match s {
         "inf" | "infinity" => None,
@@ -352,265 +369,3 @@ fn parse_bound_value(s: &str) -> Option<f64> {
     }
 }
 
-
-#[derive(Display)]
-enum CommentKeywords {
-    #[strum(to_string = "\\")]
-    Backslash,
-}
-
-impl CommentKeywords {
-    fn all() -> Vec<String> {
-        vec![Self::Backslash.to_string()]
-    }
-}
-
-#[derive(Display)]
-enum ObjectiveKeywords {
-    #[strum(to_string = "minimize")]
-    Minimize,
-    #[strum(to_string = "maximize")]
-    Maximize,
-    #[strum(to_string = "minimum")]
-    Minimum,
-    #[strum(to_string = "maximum")]
-    Maximum,
-    #[strum(to_string = "min")]
-    Min,
-    #[strum(to_string = "max")]
-    Max,
-}
-
-impl ObjectiveKeywords {
-    fn all_min() -> Vec<String> {
-        vec![
-            Self::Minimize.to_string(),
-            Self::Minimum.to_string(),
-            Self::Min.to_string(),
-        ]
-    }
-    fn all_max() -> Vec<String> {
-        vec![
-            Self::Maximize.to_string(),
-            Self::Maximum.to_string(),
-            Self::Max.to_string(),
-        ]
-    }
-}
-
-#[derive(Display)]
-enum ConstraintsKeywords {
-    #[strum(to_string = "subject to")]
-    SubjectTo,
-    #[strum(to_string = "such that")]
-    SuchThat,
-    #[strum(to_string = "st")]
-    St,
-    #[strum(to_string = "s.t.")]
-    Sdtd,
-}
-
-impl ConstraintsKeywords {
-    fn all() -> Vec<String> {
-        vec![
-            Self::SubjectTo.to_string(),
-            Self::SuchThat.to_string(),
-            Self::St.to_string(),
-            Self::Sdtd.to_string(),
-        ]
-    }
-}
-
-#[derive(Display)]
-enum BoundsKeywords {
-    #[strum(to_string = "bounds")]
-    Bounds,
-}
-
-impl BoundsKeywords {
-    fn all() -> Vec<String> {
-        vec![Self::Bounds.to_string()]
-    }
-}
-
-#[derive(Display)]
-enum VariableTypeKeywords {
-    #[strum(to_string = "binary")]
-    Binary,
-    #[strum(to_string = "binaries")]
-    Binaries,
-    #[strum(to_string = "bin")]
-    Bin,
-    #[strum(to_string = "general")]
-    General,
-    #[strum(to_string = "generals")]
-    Generals,
-    #[strum(to_string = "gen")]
-    Gen,
-    #[strum(to_string = "semi-continuous")]
-    SemiContinuous,
-    #[strum(to_string = "semis")]
-    Semis,
-    #[strum(to_string = "semi")]
-    Semi,
-}
-
-impl VariableTypeKeywords {
-    fn all_bin() -> Vec<String> {
-        vec![
-            Self::Binary.to_string(),
-            Self::Binaries.to_string(),
-            Self::Bin.to_string(),
-        ]
-    }
-    fn all_gen() -> Vec<String> {
-        vec![
-            Self::General.to_string(),
-            Self::Generals.to_string(),
-            Self::Gen.to_string(),
-        ]
-
-    }
-    fn all_semi() -> Vec<String> {
-        vec![
-            Self::SemiContinuous.to_string(),
-            Self::Semis.to_string(),
-            Self::Semi.to_string(),
-        ]
-
-    }
-}
-
-#[derive(Copy, Display, Hash, Eq, PartialEq, Clone, Debug)]
-enum VariableType {
-    Binary,
-    General,
-    Semi,
-}
-
-impl Into<Vtype> for VariableType {
-    fn into(self) -> Vtype {
-        match self {
-            Self::Binary => Vtype::Binary,
-            Self::Semi => Vtype::Real,
-            Self::General => Vtype::Integer
-        }
-    }
-}
-
-#[derive(Display)]
-enum EndKeywords {
-    #[strum(to_string = "end")]
-    End,
-}
-
-impl EndKeywords {
-    fn all() -> Vec<String> {
-        vec![Self::End.to_string()]
-    }
-}
-
-pub struct LPTranslator<Index, Bias> {
-    _phantom_index: PhantomData<Index>,
-    _phantom_bias: PhantomData<Bias>,
-}
-
-impl<Index, Bias> Translator for LPTranslator<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type TranslateIn = PathBuf;
-    type TranslateOut = Result<Model<Index, Bias>, TranslationErr>;
-
-    fn translate(filepath: Self::TranslateIn) -> Self::TranslateOut {
-        let display = filepath.display();
-        let mut file = match File::open(&filepath) {
-            Err(why) => return Err(TranslationErr::new(format!("couldn't open {}: {}", display, why))),
-            Ok(file) => file,
-        };
-        let mut s = String::new();
-        file.read_to_string(&mut s).map_err(|why| {
-            TranslationErr::new(format!("couldn't read {}: {}", display, why))
-        })?;
-
-
-        let mut sections: SectionsHolder<Index, Bias> = SectionsHolder::new();
-        let mut last_section = Section::Placeholder;
-        // for (i, line) in s.lines().enumerate() {
-        for line in s.lines() {
-            // println!("{}: {}", i, line);
-            if is_comment(line) { // Skip empty or commented lines.
-                continue;
-            }
-            if is_end(line) { // Excape after `End` keyword is reached.
-                break;
-            }
-            match detect_section(line) {
-                (Some(sec), None) => {
-                    sections.put(&sec);
-                    last_section = sec;
-                }
-                (None, Some(content)) => {
-                    sections.push(&last_section, content.to_string());
-                }
-                _ => return Err(TranslationErr::new(String::from("unknown section detected")))
-            }
-
-        }
-        // println!("sections = {:?}", sections);
-
-        let model_name = None;
-        let mut model = Model::new(model_name);
-        let vl = sections.make_variables(&mut model)?;
-        sections.make_objective(&mut model, &vl)?;
-        sections.make_constraints(&mut model, &vl)?;
-
-        // println!("model = {:?}", model);
-        // println!("model.environment = {:?}", model.environment);
-
-        Ok(model)
-    }
-}
-
-fn starts_with_any(s: &str, prefixes: &Vec<String>) -> bool {
-    prefixes.iter().any(|prefix| s.to_lowercase().starts_with(prefix))
-}
-
-fn detect_section(line: &str) -> (Option<Section>, Option<&str>) {
-    if starts_with_any(line, &ObjectiveKeywords::all_min()) {
-        (Some(Section::Objective(Sense::Min)), None)
-    } else if starts_with_any(line, &ObjectiveKeywords::all_max()) {
-        (Some(Section::Objective(Sense::Max)), None)
-    } else if starts_with_any(line, &ConstraintsKeywords::all()) {
-        (Some(Section::Constraints), None)
-    } else if starts_with_any(line, &BoundsKeywords::all()) {
-        (Some(Section::Bounds), None)
-    } else if starts_with_any(line, &VariableTypeKeywords::all_bin()) {
-        (Some(Section::VariableType(VariableType::Binary)), None)
-    } else if starts_with_any(line, &VariableTypeKeywords::all_gen()) {
-        (Some(Section::VariableType(VariableType::General)), None)
-    } else if starts_with_any(line, &VariableTypeKeywords::all_semi()) {
-        (Some(Section::VariableType(VariableType::Semi)), None)
-    } else {
-        (None, Some(line.trim()))
-    }
-}
-
-fn is_comment(line: &str) -> bool {
-    line.trim().is_empty() || starts_with_any(line, &CommentKeywords::all())
-}
-
-fn is_end(line: &str) -> bool {
-    line.trim().is_empty() || starts_with_any(line, &EndKeywords::all())
-}
-
-impl<Index, Bias> BackTranslator for LPTranslator<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn back_translate(data: Self::TranslateOut) -> Self::TranslateIn {
-        todo!()
-    }
-}
