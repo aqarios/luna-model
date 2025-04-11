@@ -130,7 +130,7 @@ where
     /// was neglected, or the AQM was transformed before being solved.
     pub raw_energies: Vec<Option<Bias>>,
     /// Boolean flag for each single constraint whether it's satisfied. Each inner vec corresponds
-    /// to one sample, i.e., `constraints[i]` corresponds to `samples[0]`. May be empty for
+    /// to one sample, i.e., `constraints[i]` corresponds to `samples[i]`. May be empty for
     /// solutions that haven't yet been evaluated.
     pub constraints: Vec<Option<Vec<bool>>>,
     /// Boolean flag for each sample whether it's feasible, i.e., whether all constraints are
@@ -197,7 +197,6 @@ where
         constraints: Option<Vec<bool>>,
         sense_is_minimize: bool,
     ) {
-        // (team) Method is still untested, but it's meant to be used in the evaluation process.
         self.obj_values[sample_idx] = obj_value;
         self.feasible[sample_idx] = constraints.as_ref().map(|x| x.iter().all(|&b| b));
         self.constraints[sample_idx] = constraints;
@@ -248,7 +247,7 @@ where
         ResultIterator::new(RcSolution::clone(&self))
     }
 
-    pub fn iter_samples(&self) -> Samples<Bias, AssignmentTypes> {
+    pub fn samples(&self) -> Samples<Bias, AssignmentTypes> {
         Samples(RcSolution::clone(&self))
     }
 }

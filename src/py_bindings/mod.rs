@@ -9,6 +9,8 @@ mod py_sol;
 mod py_timing;
 mod py_translator;
 mod py_var;
+mod py_res;
+mod py_sample;
 
 use pyo3::prelude::*;
 

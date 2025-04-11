@@ -12,7 +12,7 @@ where
         sample: &'a Sample,
     ) -> Bias
     where
-        &'a Elem: Mul<Bias, Output = Bias>,
+        // &'a Elem: Mul<Bias, Output = Bias>,
         Elem: Mul<Bias, Output = Bias>,
     {
         let mut value = self.offset;
@@ -48,7 +48,7 @@ where
         sampleset: &'a SampleSet,
     ) -> Vec<Bias>
     where
-        &'a Elem: Mul<Bias, Output = Bias>,
+        // &'a Elem: Mul<Bias, Output = Bias>,
         Elem: Mul<Bias, Output = Bias>,
     {
         sampleset

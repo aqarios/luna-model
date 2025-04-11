@@ -4,16 +4,31 @@ use super::expression::{
     BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation,
     IndexConstraints,
 };
-use super::{Environment, Expression, IndexByValue, RcSolution, Vtype};
+use super::{Environment, Expression, RcSolution, Sample, Vtype};
+use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::utils::ModelWriter;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::Mul;
+use std::ops::Deref;
 use std::rc::Rc;
 
 /// The default name for a model.
 static DEFAULT_MODEL_NAME: &str = "unnamed";
+
+/// The optimization sense, i.e., the direction to be optimized towards.
+#[derive(PartialEq)]
+pub enum Sense {
+    Min,
+    Max,
+}
+
+impl Sense {
+    /// Convenience function to check if the sense is `Sense::Min`.
+    pub fn is_min(&self) -> bool {
+        self == &Self::Min
+    }
+}
 
 /// A model describing some function to be optimized (objective) and restrictions
 /// on this objective (constraints).
@@ -32,6 +47,9 @@ where
     pub objective: Rc<RefCell<Expression<Index, Bias>>>,
     /// The constraints of the model describing the restrictions on the model.
     pub constraints: Rc<RefCell<Constraints<Index, Bias>>>,
+    /// The sense of the model, i.e., the direction to be optimized at.
+    /// By default is set to `Sense::Min`.
+    pub sense: Sense,
 }
 
 impl<Index, Bias> Model<Index, Bias>
@@ -46,6 +64,7 @@ where
             objective: Rc::new(RefCell::new(Expression::empty(env.clone()))),
             environment: env,
             constraints: Rc::new(RefCell::new(Constraints::default())),
+            sense: Sense::Min,
         }
     }
 
@@ -57,6 +76,7 @@ where
             objective: Rc::new(RefCell::new(Expression::empty(rcenv.clone()))),
             environment: rcenv,
             constraints: Rc::new(RefCell::new(Constraints::default())),
+            sense: Sense::Min,
         }
     }
 
@@ -88,28 +108,52 @@ where
         model
     }
 
-    fn evaluate_solution<AssignmentTypes>(
+    pub fn evaluate_solution<AssignmentTypes>(
         &self,
-        _sol: RcSolution<Bias, AssignmentTypes>,
+        sol: RcSolution<Bias, AssignmentTypes>,
     ) -> RcSolution<Bias, AssignmentTypes>
     where
         AssignmentTypes: AssignmentBaseTypes,
     {
-        // Here, duplicate samples are already removed, i.e., each element of sol.samples is unique
-
-        todo!("Implement evaluation logic")
+        let mut newsol = sol.0.deref().clone();
+        for (i, sample) in sol.samples().iter().enumerate() {
+            let obj_val = self.objective.borrow().evaluate_sample(&sample);
+            let constraints = self
+                .constraints
+                .borrow()
+                .iter()
+                .map(|constr| constr.evaluate_sample(&sample))
+                .collect();
+            newsol.add_sample_evaluation(i, Some(obj_val), Some(constraints), self.sense.is_min());
+        }
+        RcSolution(newsol.into())
     }
 
-    fn evaluate_sample<'a, AssignmentTypes, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
+    pub fn evaluate_sample<'a, AssignmentTypes>(
         &self,
-        _sample: &'a Sample,
+        sample: &Sample<Bias, AssignmentTypes>,
     ) -> OwnedResult<Bias, AssignmentTypes>
     where
         AssignmentTypes: AssignmentBaseTypes,
-        &'a Elem: Mul<Bias, Output = Bias>,
-        Elem: Mul<Bias, Output = Bias>,
     {
-        todo!("Implement evaluation logic")
+        let obj_val = self.objective.borrow().evaluate_sample(sample);
+        let cf: Vec<_> = self
+            .constraints
+            .borrow()
+            .iter()
+            .map(|constraint| {
+                let v = constraint.lhs.borrow().evaluate_sample(sample);
+                constraint.comparator.evaluate(v, constraint.rhs)
+            })
+            .collect();
+        let feasible = cf.iter().all(|&b| b);
+        let owned_sample = Rc::new(sample.iter().collect());
+        OwnedResult::new(owned_sample, obj_val, cf, feasible)
+    }
+
+    pub fn set_sense(&mut self, sense: Sense) -> &mut Self {
+        self.sense = sense;
+        self
     }
 }
 
