@@ -25,8 +25,8 @@ class Model:
     @overload
     def __init__(
             self,
-            env: Environment | None = ...,
             name: str | None = ...,
+            env: Environment | None = ...,
     ) -> None: ...
 
     @property
@@ -546,7 +546,7 @@ class LpTranslator:
     @staticmethod
     def to_model(filepath: Path) -> Model: ...
     @staticmethod
-    def to_file(model: Model) -> str: ...
+    def from_model(model: Model, filepath: Path): ...
 
 class MatrixTranslator:
     @staticmethod

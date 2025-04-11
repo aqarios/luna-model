@@ -5,7 +5,7 @@ pub trait Translator {
     fn translate(data: Self::TranslateIn) -> Self::TranslateOut;
 }
 
-pub trait BackTranslator {
+pub trait BackTranslator<'a> {
     type BackTranslateIn;
     type BackTranslateOut;
 

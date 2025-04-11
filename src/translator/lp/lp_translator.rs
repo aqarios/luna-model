@@ -45,9 +45,9 @@ where
         Ok(s)
     }
 
-    fn write_file(data: String, filepath: PathBuf) -> Result<(), TranslationErr> {
+    fn write_file(data: String, filepath: &PathBuf) -> Result<(), TranslationErr> {
         let mut file =
-            File::create(&filepath).map_err(|why| TranslationErr::new(why.to_string()))?;
+            File::create(filepath).map_err(|why| TranslationErr::new(why.to_string()))?;
         file.write_all(data.as_bytes())
             .map_err(|why| TranslationErr::new(why.to_string()))?;
         Ok(())
@@ -56,7 +56,8 @@ where
     fn parse_sections(contents: String) -> Result<SectionsHolder<Index, Bias>, TranslationErr> {
         let mut sections: SectionsHolder<Index, Bias> = SectionsHolder::new();
         let mut last_section = Section::Placeholder;
-        for line in contents.lines() {
+        for (i, line) in contents.lines().enumerate() {
+            println!("{}: {}", i, line);
             if is_comment(line) {
                 // Skip empty or commented lines.
                 continue;
@@ -96,14 +97,9 @@ where
         Ok(model)
     }
 
-    fn build_sections(
-        model: Model<Index, Bias>,
-    ) -> Result<SectionsHolder<Index, Bias>, TranslationErr> {
-        todo!()
-    }
-
-    fn build_string(sections: SectionsHolder<Index, Bias>) -> Result<String, TranslationErr> {
-        todo!()
+    fn build_string(model: &Model<Index, Bias>) -> Result<String, TranslationErr> {
+        let sections = SectionsHolder::from_model(&model)?;
+        todo!("implement build string")
     }
 }
 
@@ -116,25 +112,20 @@ where
     type TranslateOut = Result<Model<Index, Bias>, TranslationErr>;
 
     fn translate(filepath: Self::TranslateIn) -> Self::TranslateOut {
-        let contents = Self::read_file(filepath)?;
-        let sections = Self::parse_sections(contents)?;
-        Self::build_model(sections)
+        Self::build_model(Self::parse_sections(Self::read_file(filepath)?)?)
     }
 }
 
-impl<Index, Bias> BackTranslator for LPTranslator<Index, Bias>
+impl<'a, Index, Bias> BackTranslator<'a> for LPTranslator<Index, Bias>
 where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
+    Index: IndexConstraints + 'a,
+    Bias: BiasConstraints + 'a,
 {
-    type BackTranslateIn = (Model<Index, Bias>, PathBuf);
+    type BackTranslateIn = (&'a Model<Index, Bias>, PathBuf);
     type BackTranslateOut = Result<(), TranslationErr>;
 
     fn back_translate(data: Self::BackTranslateIn) -> Self::BackTranslateOut {
         let (model, pathbuf) = data;
-        let sections = Self::build_sections(model)?;
-        let lp_str = Self::build_string(sections)?;
-        Self::write_file(lp_str, pathbuf)?;
-        Ok(())
+        Self::write_file(Self::build_string(model)?, &pathbuf)
     }
 }

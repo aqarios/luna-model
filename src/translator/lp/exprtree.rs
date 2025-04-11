@@ -235,6 +235,29 @@ impl<Bias: BiasConstraints> Parser<Bias> {
     }
 }
 
+pub struct ExprTreeTuple<Bias>
+where
+    Bias: BiasConstraints,
+{
+    lin: ExprTree<Bias>,
+    quad: Option<ExprTree<Bias>>,
+}
+
+impl<Bias> ExprTreeTuple<Bias>
+where
+    Bias: BiasConstraints,
+{
+    fn new(lin: ExprTree<Bias>, quad: Option<ExprTree<Bias>>) -> Self {
+        Self { lin, quad }
+    }
+
+    pub fn optimize(&mut self) -> &mut Self {
+        self.lin = self.lin.optimize();
+        self.quad = self.quad.as_mut().and_then(|e| Some(e.optimize()));
+        self
+    }
+}
+
 impl<Bias> ExprTree<Bias>
 where
     Bias: BiasConstraints,
@@ -245,7 +268,63 @@ where
         parser.parse_expression()
     }
 
-    pub fn optimize(&mut self) -> Self {
+    pub fn from_expression<Index>(
+        expr: &Expression<Index, Bias>,
+    ) -> Result<ExprTreeTuple<Bias>, TranslationErr>
+    where
+        Index: IndexConstraints,
+    {
+        // Linear terms
+        let mut lintree = ExprTree::Number(expr.offset);
+        for (u, bias) in expr.linear.iter() {
+            let vname = expr.env.borrow()[u.into()].name.clone();
+            let mul = ExprTree::Mul(
+                Box::new(ExprTree::Variable(vname)),
+                Box::new(ExprTree::Number(*bias)),
+            );
+            lintree = ExprTree::Add(Box::new(lintree), Box::new(mul));
+        }
+        // Quadratic terms
+        let quadtree = if let Some(q) = &expr.quadratic {
+            let mut quadtree = ExprTree::Number(Bias::default());
+            for (u, v, bias) in q.iter_flat() {
+                if u == v {
+                    // Pow
+                    let u_name = expr.env.borrow()[u].name.clone();
+                    let pow = ExprTree::Pow(
+                        Box::new(ExprTree::Variable(u_name)),
+                        Box::new(ExprTree::Number(Bias::one() * 2.0)),
+                    );
+                    quadtree = ExprTree::Add(Box::new(quadtree), Box::new(pow));
+                } else {
+                    // Mul
+                    let u_name = expr.env.borrow()[u].name.clone();
+                    let v_name = expr.env.borrow()[v].name.clone();
+                    let vmul = ExprTree::Mul(
+                        Box::new(ExprTree::Variable(u_name)),
+                        Box::new(ExprTree::Variable(v_name)),
+                    );
+                    let mul = ExprTree::Mul(Box::new(vmul), Box::new(ExprTree::Number(bias)));
+                    quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
+                }
+            }
+            Some(quadtree)
+        } else {
+            None
+        };
+        // HigherOrder terms
+        if expr.has_higher_order() {
+            return Err(TranslationErr::new(
+                "cannot create an LP file from a model with higher order terms".to_string(),
+            ));
+        }
+        Ok(ExprTreeTuple::new(lintree, quadtree))
+    }
+
+    pub fn optimize(&self) -> Self
+    where
+        Bias: BiasConstraints,
+    {
         use ExprTree::*;
 
         match self {
@@ -255,8 +334,16 @@ where
 
                 match (&lhs, &rhs) {
                     (Number(a), Number(b)) => Number(*a + *b),
-                    (Number(z), e) | (e, Number(z)) if is_zero(z) => e.clone(),
-                    _ => Add(Box::new(lhs), Box::new(rhs)),
+                    (Number(z), e) | (e, Number(z)) if is_zero(z) => e.optimize(),
+                    _ => {
+                        if is_zero_expr(&lhs) {
+                            rhs
+                        } else if is_zero_expr(&rhs) {
+                            lhs
+                        } else {
+                            Add(Box::new(lhs), Box::new(rhs))
+                        }
+                    }
                 }
             }
 
@@ -266,8 +353,14 @@ where
 
                 match (&lhs, &rhs) {
                     (Number(a), Number(b)) => Number(*a - *b),
-                    (e, Number(z)) if is_zero(z) => e.clone(),
-                    _ => Sub(Box::new(lhs), Box::new(rhs)),
+                    (e, Number(z)) if is_zero(z) => e.optimize(),
+                    _ => {
+                        if is_zero_expr(&rhs) {
+                            lhs
+                        } else {
+                            Sub(Box::new(lhs), Box::new(rhs))
+                        }
+                    }
                 }
             }
 
@@ -277,8 +370,8 @@ where
 
                 match (&lhs, &rhs) {
                     (Number(a), Number(b)) => Number(*a * *b),
-                    (Number(z), _) | (_, Number(z)) if is_zero(z) => Number(z.clone()),
-                    (Number(o), e) | (e, Number(o)) if is_one(o) => e.clone(),
+                    (Number(z), _) | (_, Number(z)) if is_zero(z) => Number(*z),
+                    (Number(o), e) | (e, Number(o)) if is_one(o) => e.optimize(),
                     _ => Mul(Box::new(lhs), Box::new(rhs)),
                 }
             }
@@ -289,11 +382,13 @@ where
 
                 match (&base, &exp) {
                     (_, Number(z)) if is_zero(z) => Number(Bias::one()), // x^0 = 1
-                    (e, Number(o)) if is_one(o) => e.clone(),            // x^1 = x
-                    (Number(a), Number(b)) => Number(a.pow(*b)),         // const^const
+                    (e, Number(o)) if is_one(o) => e.optimize(),         // x^1 = x
+                    (Number(a), Number(b)) => Number(a.pow(*b)),
                     _ => Pow(Box::new(base), Box::new(exp)),
                 }
             }
+
+            Number(bias) if *bias == Bias::default() => Number(Bias::default()),
 
             _ => self.clone(),
         }
@@ -357,8 +452,66 @@ where
     }
 }
 
+impl<Bias> ToString for ExprTree<Bias>
+where
+    Bias: BiasConstraints,
+{
+    fn to_string(&self) -> String {
+        // println!("{:#?}", self);
+        // // todo!("to_string for ExprTree<Bias>")
+        // "todo".to_string()
+        use ExprTree::*;
+
+        match self {
+            Number(b) => b.to_string(),
+
+            Variable(name) => name.clone(),
+
+            Add(lhs, rhs) => {
+                format!("{} + {}", lhs.to_string(), rhs.to_string())
+            }
+
+            Sub(lhs, rhs) => {
+                format!("{} - {}", lhs.to_string(), rhs.to_string())
+            }
+
+            Mul(lhs, rhs) => match (&**lhs, &**rhs) {
+                (Number(b), Variable(v)) => format!("{} {}", b.to_string(), v),
+                (Variable(v), Number(b)) => format!("{} {}", b.to_string(), v),
+                _ => {
+                    format!("{} * {}", lhs.to_string(), rhs.to_string())
+                }
+            },
+
+            Pow(base, exp) => {
+                format!("{} ^ {}", base.to_string(), exp.to_string())
+            }
+        }
+    }
+}
+
+impl<Bias> ToString for ExprTreeTuple<Bias>
+where
+    Bias: BiasConstraints,
+{
+    fn to_string(&self) -> String {
+        let mut linstr = self.lin.to_string();
+        let quadstr = self.quad.as_ref().and_then(|q| Some(q.to_string()));
+        if let Some(qs) = quadstr {
+            linstr.push_str(" + [ ");
+            linstr.push_str(&qs);
+            linstr.push_str(" ] / 2");
+        }
+        linstr
+    }
+}
+
 fn is_zero<B: BiasConstraints>(b: &B) -> bool {
     *b == B::default()
+}
+
+fn is_zero_expr<Bias: BiasConstraints>(e: &ExprTree<Bias>) -> bool {
+    matches!(e, ExprTree::Number(b) if is_zero(b))
 }
 
 fn is_one<B: BiasConstraints>(b: &B) -> bool {

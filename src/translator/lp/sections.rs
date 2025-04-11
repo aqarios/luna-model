@@ -6,7 +6,7 @@ use super::{
     keywords::VariableType,
     util::starts_with_any,
 };
-use crate::core::Sense;
+use crate::core::{Sense, Vtype};
 use crate::{
     core::{
         environment::add_variable,
@@ -185,17 +185,47 @@ where
         }
     }
 
+    pub fn from_model(model: &Model<Index, Bias>) -> Result<Self, TranslationErr> {
+        let mut sections = Self::new();
+        for v in model.environment.borrow().iter() {
+            match v.vtype {
+                Vtype::Binary => {
+                    sections.push(&Section::VariableType(VariableType::Binary), v.name.clone())
+                }
+                Vtype::Spin => {
+                    return Err(TranslationErr::new(
+                        "LP files cannot contain variables of type SPIN".to_string(),
+                    ))
+                }
+                Vtype::Integer => sections.push(
+                    &Section::VariableType(VariableType::General),
+                    v.name.clone(),
+                ),
+                Vtype::Real => {
+                    sections.push(&Section::VariableType(VariableType::Semi), v.name.clone())
+                }
+            }
+            sections.push(&Section::Bounds, v.bounds.to_string());
+        }
+        sections.push(
+            &Section::Objective(model.sense),
+            ExprTree::from_expression(&model.objective.borrow())?
+                .optimize()
+                .to_string(),
+        );
+        // objective
+        // directly construct the expression tree, build the string and create sections
+        // based on maximum line length
+
+        // constraints
+        // end
+        println!("{:#?}", sections);
+        Ok(sections)
+    }
+
     pub fn put(&mut self, section: &Section) {
         match section {
-            Section::VariableType(VariableType::Binary) => {
-                self.put_variable_section(VariableType::Binary)
-            }
-            Section::VariableType(VariableType::General) => {
-                self.put_variable_section(VariableType::General)
-            }
-            Section::VariableType(VariableType::Semi) => {
-                self.put_variable_section(VariableType::Semi)
-            }
+            Section::VariableType(vt) => self.put_variable_section(*vt),
             _ => self.put_section(section.clone()),
         }
     }
@@ -210,15 +240,7 @@ where
 
     pub fn push(&mut self, section: &Section, value: String) {
         match section {
-            Section::VariableType(VariableType::Binary) => {
-                self.push_variable_section(VariableType::Binary, value)
-            }
-            Section::VariableType(VariableType::General) => {
-                self.push_variable_section(VariableType::General, value)
-            }
-            Section::VariableType(VariableType::Semi) => {
-                self.push_variable_section(VariableType::Semi, value)
-            }
+            Section::VariableType(vt) => self.push_variable_section(*vt, value),
             _ => self.push_section(section, value),
         }
     }

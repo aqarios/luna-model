@@ -19,8 +19,8 @@ class Model:
     @overload
     def __init__(
             self,
-            env: Environment | None = ...,
             name: str | None = ...,
+            env: Environment | None = ...,
     ) -> None: ...
 
     @property

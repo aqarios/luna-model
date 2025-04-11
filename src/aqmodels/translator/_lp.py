@@ -46,7 +46,7 @@ class LpTranslator:
 
     @dispatched
     @staticmethod
-    def to_file(model):
+    def from_model(model, filepath):
         """
         Convert a symbolic model to a lp file representation.
 
@@ -54,10 +54,7 @@ class LpTranslator:
         ----------
         model : Model
             The symbolic model to convert.
-
-        Returns
-        -------
-        File
-            The contents of the generated lp file
+        filepath : Path
+            The filepath to write the model contents to.
         """
-        return model
+        return model, filepath

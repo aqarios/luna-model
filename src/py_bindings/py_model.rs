@@ -29,8 +29,8 @@ impl Into<ConcreteModel> for PyModel {
 #[pymethods]
 impl PyModel {
     #[new]
-    #[pyo3(signature=(env=None, name=None))]
-    fn py_new(env: Option<PyEnvironment>, name: Option<String>) -> Self {
+    #[pyo3(signature=(name=None, env=None))]
+    fn py_new(name: Option<String>, env: Option<PyEnvironment>) -> Self {
         let env: PyEnvironment = match env {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|curr| {
@@ -106,7 +106,7 @@ impl PyModel {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-            .into())
+        .into())
     }
 
     /// Alias for serialize
