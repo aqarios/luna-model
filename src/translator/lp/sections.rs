@@ -2,7 +2,7 @@ use super::keywords::{
     BoundsKeywords, ConstraintsKeywords, ObjectiveKeywords, VariableTypeKeywords,
 };
 use super::{
-    exprtree::{evaluate_expr_tree, optimize_expr_tree, parse_expr_string, EvalContext, ExprTree},
+    exprtree::{EvalContext, ExprTree},
     keywords::VariableType,
     util::starts_with_any,
 };
@@ -424,15 +424,17 @@ where
         expr_str: &str,
         vars: &HashMap<String, VarRef<Index>>,
     ) -> Result<(), TranslationErr> {
-        let exp: ExprTree<Bias> = optimize_expr_tree(parse_expr_string(&expr_str));
-        let o = evaluate_expr_tree(
-            &exp,
-            &EvalContext::new(|n| vars.get(n).unwrap().clone(), Rc::clone(&expr.env)),
-        )?;
+        let expression = ExprTree::build(&expr_str)
+            .optimize()
+            .evaluate(&EvalContext::new(
+                |n| vars.get(n).unwrap().clone(),
+                Rc::clone(&expr.env),
+            ))?;
+        // let o = evaluate_expr_tree(&exp)?;
         // println!("exp = {:#?}", exp);
         // println!("expr = {:?}", expr_str);
         // println!("o = {:#?}", o);
-        expr.add_assign(&o)?;
+        expr.add_assign(&expression)?;
         Ok(())
     }
 

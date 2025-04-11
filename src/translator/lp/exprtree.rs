@@ -235,124 +235,125 @@ impl<Bias: BiasConstraints> Parser<Bias> {
     }
 }
 
-pub fn parse_expr_string<Bias: BiasConstraints>(input: &str) -> ExprTree<Bias> {
-    let tokens = tokenize(input);
-    let mut parser = Parser::<Bias>::new(tokens);
-    parser.parse_expression()
-}
-
-pub fn optimize_expr_tree<Bias>(expr: ExprTree<Bias>) -> ExprTree<Bias>
+impl<Bias> ExprTree<Bias>
 where
     Bias: BiasConstraints,
 {
-    use ExprTree::*;
-
-    match expr {
-        Add(lhs, rhs) => {
-            let lhs = optimize_expr_tree(*lhs);
-            let rhs = optimize_expr_tree(*rhs);
-
-            match (&lhs, &rhs) {
-                (Number(a), Number(b)) => Number(*a + *b),
-                (Number(z), e) | (e, Number(z)) if is_zero(z) => e.clone(),
-                _ => Add(Box::new(lhs), Box::new(rhs)),
-            }
-        }
-
-        Sub(lhs, rhs) => {
-            let lhs = optimize_expr_tree(*lhs);
-            let rhs = optimize_expr_tree(*rhs);
-
-            match (&lhs, &rhs) {
-                (Number(a), Number(b)) => Number(*a - *b),
-                (e, Number(z)) if is_zero(z) => e.clone(),
-                _ => Sub(Box::new(lhs), Box::new(rhs)),
-            }
-        }
-
-        Mul(lhs, rhs) => {
-            let lhs = optimize_expr_tree(*lhs);
-            let rhs = optimize_expr_tree(*rhs);
-
-            match (&lhs, &rhs) {
-                (Number(a), Number(b)) => Number(*a * *b),
-                (Number(z), _) | (_, Number(z)) if is_zero(z) => Number(z.clone()),
-                (Number(o), e) | (e, Number(o)) if is_one(o) => e.clone(),
-                _ => Mul(Box::new(lhs), Box::new(rhs)),
-            }
-        }
-
-        Pow(base, exp) => {
-            let base = optimize_expr_tree(*base);
-            let exp = optimize_expr_tree(*exp);
-
-            match (&base, &exp) {
-                (_, Number(z)) if is_zero(z) => Number(Bias::one()), // x^0 = 1
-                (e, Number(o)) if is_one(o) => e.clone(),            // x^1 = x
-                (Number(a), Number(b)) => Number(a.pow(*b)),         // const^const
-                _ => Pow(Box::new(base), Box::new(exp)),
-            }
-        }
-
-        _ => expr,
+    pub fn build(input: &str) -> Self {
+        let tokens = tokenize(input);
+        let mut parser = Parser::<Bias>::new(tokens);
+        parser.parse_expression()
     }
-}
 
-// Evaluation of expression
-pub fn evaluate_expr_tree<Index, Bias, F>(
-    expr: &ExprTree<Bias>,
-    ctx: &EvalContext<Index, Bias, F>,
-) -> Result<Expression<Index, Bias>, TranslationErr>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-    F: Fn(&str) -> VarRef<Index>,
-{
-    use ExprTree::*;
+    pub fn optimize(&mut self) -> Self {
+        use ExprTree::*;
 
-    match expr {
-        Number(bias) => {
-            let mut out = Expression::empty(Rc::clone(&ctx.env));
-            out.add_offset(*bias);
-            Ok(out)
-        }
-        Variable(name) => {
-            let var = (ctx.resolve_variable)(name);
-            Ok(Expression::new_linear_single(
-                Rc::clone(&ctx.env),
-                var.id,
-                Bias::one(),
-            ))
-        }
-        Add(lhs, rhs) => {
-            let l = evaluate_expr_tree(lhs, ctx)?;
-            let r = evaluate_expr_tree(rhs, ctx)?;
-            Ok(l.add(&r)?)
-        }
-        Sub(lhs, rhs) => {
-            let l = evaluate_expr_tree(lhs, ctx)?;
-            let r = evaluate_expr_tree(rhs, ctx)?;
-            Ok(l.sub(&r)?)
-        }
-        Mul(lhs, rhs) => {
-            let l = evaluate_expr_tree(lhs, ctx)?;
-            let r = evaluate_expr_tree(rhs, ctx)?;
-            Ok(l.mul(&r)?)
-        }
-        Pow(base, exp) => match (&**base, &**exp) {
-            (Variable(name), Number(bias)) => {
-                let var = (ctx.resolve_variable)(name);
-                let mut base =
-                    Expression::new_linear_single(Rc::clone(&ctx.env), var.id, Bias::one());
-                let mut count = Bias::one();
-                while count < *bias {
-                    base.mul_assign(&var)?;
-                    count.add_assign(Bias::one());
+        match self {
+            Add(lhs, rhs) => {
+                let lhs = lhs.optimize();
+                let rhs = rhs.optimize();
+
+                match (&lhs, &rhs) {
+                    (Number(a), Number(b)) => Number(*a + *b),
+                    (Number(z), e) | (e, Number(z)) if is_zero(z) => e.clone(),
+                    _ => Add(Box::new(lhs), Box::new(rhs)),
                 }
-                Ok(base)
             }
-            _ => panic!("Pow is only supported for Variable ^ Number"),
-        },
+
+            Sub(lhs, rhs) => {
+                let lhs = lhs.optimize();
+                let rhs = rhs.optimize();
+
+                match (&lhs, &rhs) {
+                    (Number(a), Number(b)) => Number(*a - *b),
+                    (e, Number(z)) if is_zero(z) => e.clone(),
+                    _ => Sub(Box::new(lhs), Box::new(rhs)),
+                }
+            }
+
+            Mul(lhs, rhs) => {
+                let lhs = lhs.optimize();
+                let rhs = rhs.optimize();
+
+                match (&lhs, &rhs) {
+                    (Number(a), Number(b)) => Number(*a * *b),
+                    (Number(z), _) | (_, Number(z)) if is_zero(z) => Number(z.clone()),
+                    (Number(o), e) | (e, Number(o)) if is_one(o) => e.clone(),
+                    _ => Mul(Box::new(lhs), Box::new(rhs)),
+                }
+            }
+
+            Pow(base, exp) => {
+                let base = base.optimize();
+                let exp = exp.optimize();
+
+                match (&base, &exp) {
+                    (_, Number(z)) if is_zero(z) => Number(Bias::one()), // x^0 = 1
+                    (e, Number(o)) if is_one(o) => e.clone(),            // x^1 = x
+                    (Number(a), Number(b)) => Number(a.pow(*b)),         // const^const
+                    _ => Pow(Box::new(base), Box::new(exp)),
+                }
+            }
+
+            _ => self.clone(),
+        }
+    }
+
+    pub fn evaluate<Index, F>(
+        self: &Self,
+        ctx: &EvalContext<Index, Bias, F>,
+    ) -> Result<Expression<Index, Bias>, TranslationErr>
+    where
+        Index: IndexConstraints,
+        Bias: BiasConstraints,
+        F: Fn(&str) -> VarRef<Index>,
+    {
+        use ExprTree::*;
+
+        match self {
+            Number(bias) => {
+                let mut out = Expression::empty(Rc::clone(&ctx.env));
+                out.add_offset(*bias);
+                Ok(out)
+            }
+            Variable(name) => {
+                let var = (ctx.resolve_variable)(name);
+                Ok(Expression::new_linear_single(
+                    Rc::clone(&ctx.env),
+                    var.id,
+                    Bias::one(),
+                ))
+            }
+            Add(lhs, rhs) => {
+                let l = lhs.evaluate(ctx)?;
+                let r = rhs.evaluate(ctx)?;
+                Ok(l.add(&r)?)
+            }
+            Sub(lhs, rhs) => {
+                let l = lhs.evaluate(ctx)?;
+                let r = rhs.evaluate(ctx)?;
+                Ok(l.sub(&r)?)
+            }
+            Mul(lhs, rhs) => {
+                let l = lhs.evaluate(ctx)?;
+                let r = rhs.evaluate(ctx)?;
+                Ok(l.mul(&r)?)
+            }
+            Pow(base, exp) => match (&**base, &**exp) {
+                (Variable(name), Number(bias)) => {
+                    let var = (ctx.resolve_variable)(name);
+                    let mut base =
+                        Expression::new_linear_single(Rc::clone(&ctx.env), var.id, Bias::one());
+                    let mut count = Bias::one();
+                    while count < *bias {
+                        base.mul_assign(&var)?;
+                        count.add_assign(Bias::one());
+                    }
+                    Ok(base)
+                }
+                _ => panic!("Pow is only supported for Variable ^ Number"),
+            },
+        }
     }
 }
 
