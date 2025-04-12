@@ -30,6 +30,9 @@ class ModelNotQuadraticError(Exception):
 class ModelNotUnconstrainedError(Exception):
     def __str__(self) -> str: ...
 
+class ModelVtypeError(Exception):
+    def __str__(self) -> str: ...
+
 class SolutionCreationError(Exception):
     def __str__(self) -> str: ...
 
@@ -39,6 +42,7 @@ __all__ = [
     "DifferentEnvsError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "SolutionCreationError",

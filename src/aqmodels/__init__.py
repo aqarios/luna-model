@@ -134,6 +134,7 @@ MultipleActiveEnvironmentsError = errors.MultipleActiveEnvironmentsError
 DecodeError = errors.DecodeError
 ModelNotQuadraticError = errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
+ModelVtypeError = errors.ModelVtypeError
 SolutionCreationError = errors.SolutionCreationError
 
 __all__ = [
@@ -150,6 +151,7 @@ __all__ = [
     "Model",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "Result",
