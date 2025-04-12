@@ -98,6 +98,17 @@ class ModelNotUnconstrainedError(Exception):
 
 
 @export("top", "errors")
+class ModelVtypeError(Exception):
+    """
+    Raised when an operation has certain constraints on a model's variable types that
+    are violated.
+
+    Some solution methods may only work on models where all variables have the same
+    type, or where only certain variable types are permitted.
+    """
+
+
+@export("top", "errors")
 class SolutionCreationError(Exception):
     """
     Raised when something goes wrong during the creation of a solution.
