@@ -16,17 +16,17 @@ impl CommentKeywords {
 
 #[derive(Display)]
 pub enum ObjectiveKeywords {
-    #[strum(to_string = "minimize")]
+    #[strum(to_string = "Minimize")]
     Minimize,
-    #[strum(to_string = "maximize")]
+    #[strum(to_string = "Maximize")]
     Maximize,
-    #[strum(to_string = "minimum")]
+    #[strum(to_string = "Minimum")]
     Minimum,
-    #[strum(to_string = "maximum")]
+    #[strum(to_string = "Maximum")]
     Maximum,
-    #[strum(to_string = "min")]
+    #[strum(to_string = "Min")]
     Min,
-    #[strum(to_string = "max")]
+    #[strum(to_string = "Max")]
     Max,
 }
 
@@ -49,9 +49,9 @@ impl ObjectiveKeywords {
 
 #[derive(Display)]
 pub enum ConstraintsKeywords {
-    #[strum(to_string = "subject to")]
+    #[strum(to_string = "Subject To")]
     SubjectTo,
-    #[strum(to_string = "such that")]
+    #[strum(to_string = "Such That")]
     SuchThat,
     #[strum(to_string = "st")]
     St,
@@ -72,7 +72,7 @@ impl ConstraintsKeywords {
 
 #[derive(Display)]
 pub enum BoundsKeywords {
-    #[strum(to_string = "bounds")]
+    #[strum(to_string = "Bounds")]
     Bounds,
 }
 
@@ -84,23 +84,23 @@ impl BoundsKeywords {
 
 #[derive(Display)]
 pub enum VariableTypeKeywords {
-    #[strum(to_string = "binary")]
+    #[strum(to_string = "Binary")]
     Binary,
-    #[strum(to_string = "binaries")]
+    #[strum(to_string = "Binaries")]
     Binaries,
-    #[strum(to_string = "bin")]
+    #[strum(to_string = "Bin")]
     Bin,
-    #[strum(to_string = "general")]
+    #[strum(to_string = "General")]
     General,
-    #[strum(to_string = "generals")]
+    #[strum(to_string = "Generals")]
     Generals,
-    #[strum(to_string = "gen")]
+    #[strum(to_string = "Gen")]
     Gen,
-    #[strum(to_string = "semi-continuous")]
+    #[strum(to_string = "Semi-Continuous")]
     SemiContinuous,
-    #[strum(to_string = "semis")]
+    #[strum(to_string = "Semis")]
     Semis,
-    #[strum(to_string = "semi")]
+    #[strum(to_string = "Semi")]
     Semi,
 }
 
@@ -147,7 +147,7 @@ impl Into<Vtype> for VariableType {
 
 #[derive(Display)]
 pub enum EndKeywords {
-    #[strum(to_string = "end")]
+    #[strum(to_string = "End")]
     End,
 }
 

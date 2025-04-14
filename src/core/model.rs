@@ -1,3 +1,5 @@
+use strum_macros::Display;
+
 use super::constraints::Constraints;
 use super::environment::add_variable;
 use super::expression::{
@@ -17,9 +19,11 @@ use std::rc::Rc;
 static DEFAULT_MODEL_NAME: &str = "unnamed";
 
 /// The optimization sense, i.e., the direction to be optimized towards.
-#[derive(Copy, PartialEq, Hash, Clone, Debug, Eq)]
+#[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq)]
 pub enum Sense {
+    #[strum(to_string = "Minimize")]
     Min,
+    #[strum(to_string = "Maximize")]
     Max,
 }
 

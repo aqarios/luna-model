@@ -1,7 +1,16 @@
 from pathlib import Path
 from aqmodels.translator import LpTranslator
 
+in_file = Path("./lp_file.lp")
+out_file = Path("./out.lp")
 
-model = LpTranslator.to_model(Path("./lp_file.lp"))
+model = LpTranslator.to_model(in_file)
+print("-----")
 print(model)
-LpTranslator.from_model(model, Path("./out.lp"))
+print("-----")
+LpTranslator.from_model(model, out_file)
+print(out_file.read_text())
+model2 = LpTranslator.to_model(out_file)
+print("-----")
+print(model)
+print("-----")

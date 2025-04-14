@@ -185,8 +185,19 @@ where
         }
     }
 
+    pub fn get_objective_str(&self) -> Result<(String, &Vec<String>), TranslationErr> {
+        let min_obj = self.get(Section::Objective(Sense::Min));
+        let max_obj = self.get(Section::Objective(Sense::Max));
+        match (min_obj, max_obj) {
+            (None, Some(max_obj)) => Ok((ObjectiveKeywords::Maximize.to_string(), max_obj)),
+            (Some(min_obj), None) => Ok((ObjectiveKeywords::Minimize.to_string(), min_obj)),
+            _ => Err(TranslationErr::new(format!("unexpected objectives stored"))),
+        }
+    }
+
     pub fn from_model(model: &Model<Index, Bias>) -> Result<Self, TranslationErr> {
         let mut sections = Self::new();
+        // variables & bounds
         for v in model.environment.borrow().iter() {
             match v.vtype {
                 Vtype::Binary => {
@@ -205,21 +216,37 @@ where
                     sections.push(&Section::VariableType(VariableType::Semi), v.name.clone())
                 }
             }
-            sections.push(&Section::Bounds, v.bounds.to_string());
+            sections.push(&Section::Bounds, parse_bounds(&v.name, &v.bounds));
         }
+        // objective
         sections.push(
             &Section::Objective(model.sense),
             ExprTree::from_expression(&model.objective.borrow())?
                 .optimize()
-                .to_string(),
+                .to_string(true),
         );
-        // objective
-        // directly construct the expression tree, build the string and create sections
-        // based on maximum line length
-
         // constraints
+        for (i, constraint) in model.constraints.borrow().iter().enumerate() {
+            let lhs_str = ExprTree::from_expression(&constraint.lhs.borrow())?
+                .optimize()
+                .to_string(false);
+            let comparator = match constraint.comparator {
+                Comparator::Eq => "=",
+                Comparator::Leq => "<=",
+                Comparator::Geq => ">=",
+            };
+            sections.push(
+                &Section::Constraints,
+                format!(
+                    "{}: {} {} {}",
+                    constraint.name.clone().unwrap_or(i.to_string()),
+                    lhs_str,
+                    comparator,
+                    constraint.rhs
+                ),
+            );
+        }
         // end
-        println!("{:#?}", sections);
         Ok(sections)
     }
 
@@ -268,11 +295,11 @@ where
         }
     }
 
-    fn get(&self, section: Section) -> Option<&Vec<String>> {
+    pub fn get(&self, section: Section) -> Option<&Vec<String>> {
         self.sections.get(&section)
     }
 
-    fn iter_variables(&self) -> Iter<VariableType, Vec<String>> {
+    pub fn iter_variables(&self) -> Iter<VariableType, Vec<String>> {
         self.variable_sections.iter()
     }
 
@@ -433,10 +460,6 @@ where
                 |n| vars.get(n).unwrap().clone(),
                 Rc::clone(&expr.env),
             ))?;
-        // let o = evaluate_expr_tree(&exp)?;
-        // println!("exp = {:#?}", exp);
-        // println!("expr = {:?}", expr_str);
-        // println!("o = {:#?}", o);
         expr.add_assign(&expression)?;
         Ok(())
     }
@@ -459,5 +482,14 @@ fn parse_bound_value(s: &str) -> Option<f64> {
         "inf" | "infinity" => None,
         "-inf" | "-infinity" => None,
         _ => s.parse::<f64>().ok(),
+    }
+}
+
+fn parse_bounds(v: &str, bounds: &Bounds) -> String {
+    match (bounds.lower, bounds.upper) {
+        (None, None) => format!("{} free", v),
+        (Some(lower), None) => format!("{} >= {}", v, lower),
+        (None, Some(upper)) => format!("{} <= {}", v, upper),
+        (Some(lower), Some(upper)) => format!("{} <= {} <= {}", lower, v, upper),
     }
 }

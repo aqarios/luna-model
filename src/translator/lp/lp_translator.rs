@@ -1,4 +1,5 @@
 use super::{
+    keywords::{BoundsKeywords, ConstraintsKeywords, EndKeywords},
     sections::{Section, SectionsHolder},
     util::{is_comment, is_end},
 };
@@ -56,8 +57,7 @@ where
     fn parse_sections(contents: String) -> Result<SectionsHolder<Index, Bias>, TranslationErr> {
         let mut sections: SectionsHolder<Index, Bias> = SectionsHolder::new();
         let mut last_section = Section::Placeholder;
-        for (i, line) in contents.lines().enumerate() {
-            println!("{}: {}", i, line);
+        for line in contents.lines() {
             if is_comment(line) {
                 // Skip empty or commented lines.
                 continue;
@@ -99,7 +99,34 @@ where
 
     fn build_string(model: &Model<Index, Bias>) -> Result<String, TranslationErr> {
         let sections = SectionsHolder::from_model(&model)?;
-        todo!("implement build string")
+        let mut out = String::new();
+
+        out.push_str(&format!("\\ {}", model.name));
+        out.push_str("\n\n");
+        let (keyword, data) = sections.get_objective_str()?;
+        out.push_str(&format!("{}\n", keyword));
+        for row in data.iter() {
+            out.push_str(&format!("  {}\n", row));
+        }
+        if let Some(data) = sections.get(Section::Constraints) {
+            out.push_str(&format!("{}\n", ConstraintsKeywords::SubjectTo));
+            for constraint in data {
+                out.push_str(&format!("  {}\n", constraint));
+            }
+        }
+        if let Some(data) = sections.get(Section::Bounds) {
+            out.push_str(&format!("{}\n", BoundsKeywords::Bounds));
+            for bound in data {
+                out.push_str(&format!("  {}\n", bound));
+            }
+        }
+        for (vt, data) in sections.iter_variables() {
+            out.push_str(&format!("{}\n", vt.to_string()));
+            out.push_str(&format!("  {}", data.join(" ")));
+        }
+        out.push_str("\n");
+        out.push_str(&EndKeywords::End.to_string());
+        Ok(out)
     }
 }
 

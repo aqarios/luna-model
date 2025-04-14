@@ -67,6 +67,8 @@ enum Token {
 
 // Tokenizer function
 fn tokenize(input: &str) -> Vec<Token> {
+    // Clean input from `\ 2` in objective definition.
+    let input = input.replace("] / 2", "]");
     let mut tokens = Vec::new();
     let mut chars = input.chars().peekable();
 
@@ -279,8 +281,8 @@ where
         for (u, bias) in expr.linear.iter() {
             let vname = expr.env.borrow()[u.into()].name.clone();
             let mul = ExprTree::Mul(
-                Box::new(ExprTree::Variable(vname)),
                 Box::new(ExprTree::Number(*bias)),
+                Box::new(ExprTree::Variable(vname)),
             );
             lintree = ExprTree::Add(Box::new(lintree), Box::new(mul));
         }
@@ -295,7 +297,8 @@ where
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Number(Bias::one() * 2.0)),
                     );
-                    quadtree = ExprTree::Add(Box::new(quadtree), Box::new(pow));
+                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(bias)), Box::new(pow));
+                    quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
                 } else {
                     // Mul
                     let u_name = expr.env.borrow()[u].name.clone();
@@ -304,7 +307,7 @@ where
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Variable(v_name)),
                     );
-                    let mul = ExprTree::Mul(Box::new(vmul), Box::new(ExprTree::Number(bias)));
+                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(bias)), Box::new(vmul));
                     quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
                 }
             }
@@ -457,9 +460,6 @@ where
     Bias: BiasConstraints,
 {
     fn to_string(&self) -> String {
-        // println!("{:#?}", self);
-        // // todo!("to_string for ExprTree<Bias>")
-        // "todo".to_string()
         use ExprTree::*;
 
         match self {
@@ -468,7 +468,9 @@ where
             Variable(name) => name.clone(),
 
             Add(lhs, rhs) => {
-                format!("{} + {}", lhs.to_string(), rhs.to_string())
+                let tmp = format!("{} + {}", lhs.to_string(), rhs.to_string());
+                // todo: dirty fix for now.
+                tmp.replace("+ -", "- ")
             }
 
             Sub(lhs, rhs) => {
@@ -478,6 +480,23 @@ where
             Mul(lhs, rhs) => match (&**lhs, &**rhs) {
                 (Number(b), Variable(v)) => format!("{} {}", b.to_string(), v),
                 (Variable(v), Number(b)) => format!("{} {}", b.to_string(), v),
+                (Number(b), Pow(base, exp)) => format!(
+                    "{} {} ^ {}",
+                    b.to_string(),
+                    base.to_string(),
+                    exp.to_string()
+                ),
+                (Number(b), Mul(lhs, rhs)) => match &**lhs {
+                    Variable(v) => {
+                        format!("{} {} * {}", b.to_string(), v.to_string(), rhs.to_string())
+                    }
+                    _ => format!(
+                        "{} * {} * {}",
+                        b.to_string(),
+                        lhs.to_string(),
+                        rhs.to_string()
+                    ),
+                },
                 _ => {
                     format!("{} * {}", lhs.to_string(), rhs.to_string())
                 }
@@ -490,17 +509,20 @@ where
     }
 }
 
-impl<Bias> ToString for ExprTreeTuple<Bias>
+impl<Bias> ExprTreeTuple<Bias>
 where
     Bias: BiasConstraints,
 {
-    fn to_string(&self) -> String {
+    pub fn to_string(&self, is_obj: bool) -> String {
         let mut linstr = self.lin.to_string();
         let quadstr = self.quad.as_ref().and_then(|q| Some(q.to_string()));
         if let Some(qs) = quadstr {
             linstr.push_str(" + [ ");
             linstr.push_str(&qs);
-            linstr.push_str(" ] / 2");
+            linstr.push_str(" ]");
+            if is_obj {
+                linstr.push_str(" / 2");
+            }
         }
         linstr
     }
