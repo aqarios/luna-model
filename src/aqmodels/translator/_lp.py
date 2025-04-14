@@ -28,25 +28,26 @@ class LpTranslator:
 
     @dispatched
     @staticmethod
-    def to_model(filepath):
+    def to_model(file):
         """
         Convert a LP file into a symbolic `Model`.
 
         Parameters
         ----------
-        filepath: Path
-            A LP file representing a symbolic model.
+        file: Path | String
+            A LP file representing a symbolic model, either given as a
+            path to the LP file or it's contents as a string.
 
         Returns
         -------
         Model
             A symbolic model representing the given lp file structure.
         """
-        return filepath
+        return file
 
     @dispatched
     @staticmethod
-    def from_model(model, filepath):
+    def from_model(model, file):
         """
         Convert a symbolic model to a lp file representation.
 
@@ -54,7 +55,12 @@ class LpTranslator:
         ----------
         model : Model
             The symbolic model to convert.
-        filepath : Path
+        file : Path, optional
             The filepath to write the model contents to.
+
+        Returns
+        -------
+        str
+            If no file to write to is given, i.e., the file is None.
         """
-        return model, filepath
+        return model, file
