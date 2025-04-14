@@ -273,11 +273,44 @@ where
     }
 
     fn push_section(&mut self, section: &Section, value: String) {
-        match self.sections.get_mut(section) {
-            Some(item) => item.push(value),
-            None => {
-                let _ = self.sections.insert(section.clone(), vec![value]);
+        match &section {
+            Section::Objective(Sense::Min) | Section::Objective(Sense::Max) => {
+                // something
+                match self.sections.get_mut(section) {
+                    Some(item) => match item.first_mut() {
+                        Some(v) => v.push_str(&value),
+                        None => item.push(value),
+                    },
+                    None => {
+                        let _ = self.sections.insert(section.clone(), vec![value.clone()]);
+                    }
+                }
             }
+            Section::Constraints => {
+                if value.contains(":") {
+                    // new constraint overwrites old constraints
+                    match self.sections.get_mut(section) {
+                        Some(item) => item.push(value),
+                        None => {
+                            let _ = self.sections.insert(section.clone(), vec![value]);
+                        }
+                    }
+                } else {
+                    // new line of last constraint
+                    self.sections
+                        .get_mut(section)
+                        .unwrap()
+                        .last_mut()
+                        .unwrap()
+                        .push_str(&value);
+                }
+            }
+            _ => match self.sections.get_mut(section) {
+                Some(item) => item.push(value),
+                None => {
+                    let _ = self.sections.insert(section.clone(), vec![value]);
+                }
+            },
         }
     }
 

@@ -11,8 +11,8 @@ from .._core import (
 )
 
 SampleSetTranslator = __translator.SampleSetTranslator
-LpTranslator = __translator.LpTranslator
 MatrixTranslator = __translator.MatrixTranslator
+LpTranslator = __translator.LpTranslator
 
 __all__ = [
     "LpTranslator",

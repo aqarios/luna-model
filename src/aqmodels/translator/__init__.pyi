@@ -8,6 +8,7 @@ from aqmodels._variable import Vtype
 from dimod import SampleSet
 from numpy.typing import NDArray
 from pathlib import Path
+from typing import overload
 
 from . import translator
 
@@ -19,12 +20,6 @@ class SampleSetTranslator:
         env: Environment | None = None,
     ) -> Solution: ...
 
-class LpTranslator:
-    @staticmethod
-    def to_model(filepath: Path) -> Model: ...
-    @staticmethod
-    def from_model(model: Model, filepath: Path): ...
-
 class MatrixTranslator:
     @staticmethod
     def to_model(
@@ -32,6 +27,20 @@ class MatrixTranslator:
     ) -> Model: ...
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
+
+class LpTranslator:
+    @overload
+    @staticmethod
+    def to_model(file: Path) -> Model: ...
+    @overload
+    @staticmethod
+    def to_model(file: str) -> Model: ...
+    @overload
+    @staticmethod
+    def from_model(model: Model) -> str: ...
+    @overload
+    @staticmethod
+    def from_model(model: Model, filepath: Path) -> None: ...
 
 
 __all__ = [

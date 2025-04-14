@@ -124,7 +124,7 @@ fn tokenize(input: &str) -> Vec<Token> {
             c if c.is_alphabetic() => {
                 let mut name = String::new();
                 while let Some(&d) = chars.peek() {
-                    if d.is_alphanumeric() {
+                    if d.is_alphanumeric() || d == '_' {
                         name.push(d);
                         chars.next();
                     } else {
@@ -216,6 +216,18 @@ impl<Bias: BiasConstraints> Parser<Bias> {
 
     fn parse_atom(&mut self) -> ExprTree<Bias> {
         match self.current() {
+            Some(Token::Plus) => {
+                self.advance(); // skip '+'
+                self.parse_atom() // unary plus, just pass through
+            }
+            Some(Token::Minus) => {
+                self.advance(); // skip '-'
+                let expr = self.parse_atom();
+                ExprTree::Mul(
+                    Box::new(ExprTree::Number(Bias::one() * -1.0)),
+                    Box::new(expr),
+                )
+            }
             Some(Token::Number(n)) => {
                 let bias = Bias::from(*n).unwrap();
                 self.advance();

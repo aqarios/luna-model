@@ -1,7 +1,7 @@
 use super::{
     keywords::{BoundsKeywords, ConstraintsKeywords, EndKeywords},
     sections::{Section, SectionsHolder},
-    util::{is_comment, is_end},
+    util::{chunks, is_comment, is_end},
 };
 use crate::translator::base::{BackTranslator, Translator};
 use crate::{
@@ -18,6 +18,8 @@ use std::{
     path::PathBuf,
 };
 
+static MAX_LINE_LENGTH: usize = 80;
+
 pub struct LPTranslator<Index, Bias> {
     _phantom_index: PhantomData<Index>,
     _phantom_bias: PhantomData<Bias>,
@@ -29,7 +31,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn read_file(filepath: PathBuf) -> Result<String, TranslationErr> {
+    pub fn read_file(filepath: PathBuf) -> Result<String, TranslationErr> {
         let display = filepath.display();
         let mut file = match File::open(&filepath) {
             Err(why) => {
@@ -57,7 +59,8 @@ where
     fn parse_sections(contents: String) -> Result<SectionsHolder<Index, Bias>, TranslationErr> {
         let mut sections: SectionsHolder<Index, Bias> = SectionsHolder::new();
         let mut last_section = Section::Placeholder;
-        for line in contents.lines() {
+        for (_i, line) in contents.lines().enumerate() {
+            // println!("{}: {}", i, line);
             if is_comment(line) {
                 // Skip empty or commented lines.
                 continue;
@@ -66,6 +69,7 @@ where
                 // Excape after `End` keyword is reached.
                 break;
             }
+            let line = &line.replace("obj: ", "");
             match Section::detect(line) {
                 // Header Section
                 (Some(sec), None) => {
@@ -83,6 +87,7 @@ where
                 }
             }
         }
+        // println!("{:#?}", sections);
         Ok(sections)
     }
 
@@ -106,23 +111,36 @@ where
         let (keyword, data) = sections.get_objective_str()?;
         out.push_str(&format!("{}\n", keyword));
         for row in data.iter() {
-            out.push_str(&format!("  {}\n", row));
+            let chunks = chunks(row, MAX_LINE_LENGTH);
+            for chunk in chunks {
+                out.push_str(&format!("  {}\n", chunk));
+            }
         }
         if let Some(data) = sections.get(Section::Constraints) {
             out.push_str(&format!("{}\n", ConstraintsKeywords::SubjectTo));
             for constraint in data {
-                out.push_str(&format!("  {}\n", constraint));
+                let chunks = chunks(constraint, MAX_LINE_LENGTH);
+                for chunk in chunks {
+                    out.push_str(&format!("  {}\n", chunk));
+                }
             }
         }
         if let Some(data) = sections.get(Section::Bounds) {
             out.push_str(&format!("{}\n", BoundsKeywords::Bounds));
             for bound in data {
-                out.push_str(&format!("  {}\n", bound));
+                let chunks = chunks(bound, MAX_LINE_LENGTH);
+                for chunk in chunks {
+                    out.push_str(&format!("  {}\n", chunk));
+                }
             }
         }
         for (vt, data) in sections.iter_variables() {
             out.push_str(&format!("{}\n", vt.to_string()));
-            out.push_str(&format!("  {}", data.join(" ")));
+            let data_str = data.join(" ");
+            let chunks = chunks(&data_str, MAX_LINE_LENGTH);
+            for chunk in chunks {
+                out.push_str(&format!("  {}\n", chunk));
+            }
         }
         out.push_str("\n");
         out.push_str(&EndKeywords::End.to_string());
@@ -135,11 +153,11 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type TranslateIn = PathBuf;
+    type TranslateIn = String;
     type TranslateOut = Result<Model<Index, Bias>, TranslationErr>;
 
-    fn translate(filepath: Self::TranslateIn) -> Self::TranslateOut {
-        Self::build_model(Self::parse_sections(Self::read_file(filepath)?)?)
+    fn translate(file: Self::TranslateIn) -> Self::TranslateOut {
+        Self::build_model(Self::parse_sections(file)?)
     }
 }
 
@@ -148,11 +166,17 @@ where
     Index: IndexConstraints + 'a,
     Bias: BiasConstraints + 'a,
 {
-    type BackTranslateIn = (&'a Model<Index, Bias>, PathBuf);
-    type BackTranslateOut = Result<(), TranslationErr>;
+    type BackTranslateIn = (&'a Model<Index, Bias>, Option<PathBuf>);
+    type BackTranslateOut = Result<Option<String>, TranslationErr>;
 
     fn back_translate(data: Self::BackTranslateIn) -> Self::BackTranslateOut {
         let (model, pathbuf) = data;
-        Self::write_file(Self::build_string(model)?, &pathbuf)
+        let lpstr = Self::build_string(model)?;
+        if let Some(pb) = pathbuf {
+            Self::write_file(lpstr, &pb)?;
+            Ok(None)
+        } else {
+            Ok(Some(lpstr))
+        }
     }
 }
