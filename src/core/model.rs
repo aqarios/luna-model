@@ -16,7 +16,7 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 /// The default name for a model.
-static DEFAULT_MODEL_NAME: &str = "unnamed";
+pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 
 /// The optimization sense, i.e., the direction to be optimized towards.
 #[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq)]

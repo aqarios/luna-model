@@ -6,7 +6,7 @@ use super::{
     keywords::VariableType,
     util::starts_with_any,
 };
-use crate::core::{Sense, Vtype};
+use crate::core::{Sense, Vtype, DEFAULT_MODEL_NAME};
 use crate::{
     core::{
         environment::add_variable,
@@ -167,6 +167,7 @@ impl Section {
 pub struct SectionsHolder<Index, Bias> {
     variable_sections: HashMap<VariableType, Vec<String>>,
     sections: HashMap<Section, Vec<String>>,
+    pub model_name: Option<String>,
     _pi: PhantomData<Index>,
     _pb: PhantomData<Bias>,
 }
@@ -180,6 +181,7 @@ where
         Self {
             sections: HashMap::new(),
             variable_sections: HashMap::new(),
+            model_name: None,
             _pb: PhantomData,
             _pi: PhantomData,
         }
@@ -197,6 +199,9 @@ where
 
     pub fn from_model(model: &Model<Index, Bias>) -> Result<Self, TranslationErr> {
         let mut sections = Self::new();
+        if model.name != DEFAULT_MODEL_NAME {
+            sections.model_name = Some(model.name.clone());
+        }
         // variables & bounds
         for v in model.environment.borrow().iter() {
             match v.vtype {
@@ -216,7 +221,10 @@ where
                     sections.push(&Section::VariableType(VariableType::Semi), v.name.clone())
                 }
             }
-            sections.push(&Section::Bounds, parse_bounds(&v.name, &v.bounds));
+            if v.vtype != Vtype::Binary {
+                // Binary bounds are fixed...does not make sense to change them.
+                sections.push(&Section::Bounds, parse_bounds(&v.name, &v.bounds));
+            }
         }
         // objective
         sections.push(
@@ -381,7 +389,13 @@ where
             for var in vars {
                 let bounds: Option<Bounds> = match boundsmap {
                     Some(ref bm) => match bm.get(var) {
-                        Some((l, u)) => Some(Bounds::new(*l, *u)),
+                        Some((l, u)) => match vtype {
+                            // We ignore the set bounds for the case of binary variables
+                            // as we do not allow setting the bounds in case of Binary
+                            // or string
+                            VariableType::Binary => None,
+                            _ => Some(Bounds::new(*l, *u)),
+                        },
                         None => None,
                     },
                     None => None,

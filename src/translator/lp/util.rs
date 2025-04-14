@@ -88,7 +88,6 @@ fn next_token(chars: &mut Peekable<Chars>) -> String {
         // If it's a symbol, include that symbol and maybe more up to the next whitespace (smart chunk)
         else {
             let split_before = ['*', '+', '-', '[', '('];
-            let split_after = [')', ']'];
 
             token.push(c);
             chars.next();

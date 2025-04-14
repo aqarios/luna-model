@@ -1,6 +1,9 @@
 import random as r
 import sys
+import dimod
+
 from itertools import permutations
+from dimod import ConstrainedQuadraticModel
 
 
 def make_seed() -> int:
@@ -56,3 +59,16 @@ def assert_higher_order(expr, variables, value, p_size=None):
 def assert_higher_order_all(expr, variables, value):
     for p_size in range(3, len(variables) + 1):
         check_equality(variables, p_size, expr.get_higher_order, value)
+
+
+def generate_cqms(
+        n_models: int, rand: r.Random
+) -> list[ConstrainedQuadraticModel]:
+    out = []
+    for _ in range(n_models):
+        n_items = rand.randint(1, 20)
+        cqm = dimod.generators.random_knapsack(
+            n_items, seed=random_int(rand)
+        )
+        out.append(cqm)
+    return out

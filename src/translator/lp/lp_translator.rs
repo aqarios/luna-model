@@ -3,7 +3,10 @@ use super::{
     sections::{Section, SectionsHolder},
     util::{chunks, is_comment, is_end},
 };
-use crate::translator::base::{BackTranslator, Translator};
+use crate::{
+    core::Sense,
+    translator::base::{BackTranslator, Translator},
+};
 use crate::{
     core::{
         expression::{BiasConstraints, IndexConstraints},
@@ -19,6 +22,7 @@ use std::{
 };
 
 static MAX_LINE_LENGTH: usize = 80;
+static INDENT: &str = "  ";
 
 pub struct LPTranslator<Index, Bias> {
     _phantom_index: PhantomData<Index>,
@@ -62,6 +66,16 @@ where
         for (_i, line) in contents.lines().enumerate() {
             // println!("{}: {}", i, line);
             if is_comment(line) {
+                // Check if the Comment contains "Model" and use the rest after as the model name.
+                if line.contains("Model") {
+                    let name = line.split_once("Model").unwrap().1.trim();
+                    sections.model_name = Some(name.to_string());
+                }
+                // Check if the Comment contains "Problem name:" and use the rest after as the model name.
+                else if line.contains("Problem name:") {
+                    let name = line.split_once("Problem name:").unwrap().1.trim();
+                    sections.model_name = Some(name.to_string());
+                }
                 // Skip empty or commented lines.
                 continue;
             }
@@ -69,7 +83,6 @@ where
                 // Excape after `End` keyword is reached.
                 break;
             }
-            let line = &line.replace("obj: ", "");
             match Section::detect(line) {
                 // Header Section
                 (Some(sec), None) => {
@@ -77,9 +90,17 @@ where
                     last_section = sec;
                 }
                 // Content Section
-                (None, Some(content)) => {
-                    sections.push(&last_section, content.to_string());
-                }
+                (None, Some(content)) => match &last_section {
+                    Section::Objective(Sense::Min) | Section::Objective(Sense::Max) => {
+                        if let Some((_name, rest)) = content.split_once(":") {
+                            // sections.model_name = Some(name.to_string());
+                            sections.push(&last_section, rest.to_string())
+                        } else {
+                            sections.push(&last_section, content.to_string())
+                        }
+                    }
+                    _ => sections.push(&last_section, content.to_string()),
+                },
                 _ => {
                     return Err(TranslationErr::new(String::from(
                         "unknown section detected",
@@ -94,8 +115,8 @@ where
     fn build_model(
         sections: SectionsHolder<Index, Bias>,
     ) -> Result<Model<Index, Bias>, TranslationErr> {
-        let model_name = None;
-        let mut model = Model::new(model_name);
+        let model_name = &sections.model_name;
+        let mut model = Model::new(model_name.clone());
         let vl = sections.make_variables(&mut model)?;
         sections.make_objective(&mut model, &vl)?;
         sections.make_constraints(&mut model, &vl)?;
@@ -106,14 +127,17 @@ where
         let sections = SectionsHolder::from_model(&model)?;
         let mut out = String::new();
 
-        out.push_str(&format!("\\ {}", model.name));
-        out.push_str("\n\n");
+        out.push_str(&format!("\\ Model {}\n", model.name));
+        out.push_str(&format!("\\ Problem name: {}\n", model.name));
+        out.push_str("\n");
         let (keyword, data) = sections.get_objective_str()?;
-        out.push_str(&format!("{}\n", keyword));
+        out.push_str(&format!("{keyword}\n"));
+        // the obj: prefix
+        out.push_str(&format!("{INDENT}obj:"));
         for row in data.iter() {
             let chunks = chunks(row, MAX_LINE_LENGTH);
             for chunk in chunks {
-                out.push_str(&format!("  {}\n", chunk));
+                out.push_str(&format!("{INDENT}{chunk}\n"));
             }
         }
         if let Some(data) = sections.get(Section::Constraints) {
@@ -121,7 +145,7 @@ where
             for constraint in data {
                 let chunks = chunks(constraint, MAX_LINE_LENGTH);
                 for chunk in chunks {
-                    out.push_str(&format!("  {}\n", chunk));
+                    out.push_str(&format!("{INDENT}{chunk}\n"));
                 }
             }
         }
@@ -130,7 +154,7 @@ where
             for bound in data {
                 let chunks = chunks(bound, MAX_LINE_LENGTH);
                 for chunk in chunks {
-                    out.push_str(&format!("  {}\n", chunk));
+                    out.push_str(&format!("{INDENT}{chunk}\n"));
                 }
             }
         }
@@ -139,10 +163,9 @@ where
             let data_str = data.join(" ");
             let chunks = chunks(&data_str, MAX_LINE_LENGTH);
             for chunk in chunks {
-                out.push_str(&format!("  {}\n", chunk));
+                out.push_str(&format!("{INDENT}{chunk}\n"));
             }
         }
-        out.push_str("\n");
         out.push_str(&EndKeywords::End.to_string());
         Ok(out)
     }
