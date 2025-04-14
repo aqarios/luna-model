@@ -20,14 +20,6 @@ class SampleSetTranslator:
         env: Environment | None = None,
     ) -> Solution: ...
 
-class MatrixTranslator:
-    @staticmethod
-    def to_model(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
-    @staticmethod
-    def to_dense(model: Model) -> NDArray: ...
-
 class LpTranslator:
     @overload
     @staticmethod
@@ -41,6 +33,14 @@ class LpTranslator:
     @overload
     @staticmethod
     def from_model(model: Model, file: Path) -> None: ...
+
+class MatrixTranslator:
+    @staticmethod
+    def to_model(
+        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+    ) -> Model: ...
+    @staticmethod
+    def to_dense(model: Model) -> NDArray: ...
 
 
 __all__ = [
