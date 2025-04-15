@@ -21,44 +21,39 @@ impl AltBqmTranslator {
         vtype: Vtype,
         offset: Bias,
         linear: &[Bias],
+        linear_indices: &[u64],
         quadratic: &[Bias],
+        quadratic_rows: &[u64],
+        quadratic_cols: &[u64],
         name: Option<String>,
     ) -> Model<Index, Bias>
     where
         Index: IndexConstraints,
         Bias: BiasConstraints,
     {
-        // println!("linear passed is: {:?}", linear);
-        // println!("quadratic passed is: {:?}", quadratic);
-        // println!("quadratic.len() is: {:?}", quadratic.len());
         let model = Model::new(name);
         for var in vars.iter() {
             _ = add_variable(Rc::clone(&model.environment), var, Some(&vtype), None);
         }
         model.objective.borrow_mut().resize(vars.len().into());
         model.objective.borrow_mut().add_offset(offset);
-        for (i, &bias) in linear.iter().enumerate() {
-            model.objective.borrow_mut().add_linear(i.into(), bias);
-        }
-        model.objective.borrow_mut().resize(vars.len().into());
-        if quadratic.len() > 0 {
-            model.objective.borrow_mut().enforce_quadratic();
+        for (&i, &bias) in linear_indices.iter().zip(linear) {
             model
                 .objective
                 .borrow_mut()
-                .add_quadratic_from_dense(quadratic, vars.len().into());
+                .add_linear((i as usize).into(), bias);
         }
-
-        // for (i, &bias) in quadratic.iter().enumerate() {
-
-        //     // model.objective.borrow_mut().add_quadratic(
-        //     //     (quadratic_head[i] as usize).into(),
-        //     //     (quadratic_tail[i] as usize).into(),
-        //     //     bias,
-        //     // );
-        // }
-        // println!("linear: {:?}", model.objective.borrow().linear);
-        // println!("quadratic: {:?}", model.objective.borrow().quadratic);
+        for ((&u, &v), &bias) in quadratic_rows
+            .iter()
+            .zip(quadratic_cols.iter())
+            .zip(quadratic)
+        {
+            model.objective.borrow_mut().add_quadratic(
+                (u as usize).into(),
+                (v as usize).into(),
+                bias,
+            );
+        }
         model
     }
 
