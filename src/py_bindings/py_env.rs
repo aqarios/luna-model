@@ -1,14 +1,16 @@
 use crate::{
-    core::{ConcreteEnvironment, ConcreteMutRcEnvironment, Environment},
+    core::{
+        environment::get_vref_by_name, ConcreteEnvironment, ConcreteMutRcEnvironment, Environment,
+    },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{prelude::*, types::PyBytes};
-use std::{cell::RefCell, ops::Deref};
+use std::{cell::RefCell, ops::Deref, rc::Rc};
 
-use super::py_exceptions::MultipleActiveEnvironmentsError;
+use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
 
 #[pyclass(unsendable, name = "Environment", module = "aqmodels")]
 #[derive(Deref, DerefMut, Clone)]
@@ -69,6 +71,13 @@ impl PyEnvironment {
 
     fn __repr__(&self) -> String {
         format!("{:?}", self.borrow())
+    }
+
+    fn get_variable(&self, name: String) -> PyResult<PyVariable> {
+        Ok(PyVariable(Rc::new(get_vref_by_name(
+            &name,
+            Rc::clone(&self.0),
+        )?)))
     }
 
     #[pyo3(signature=(compress=None, level=None))]

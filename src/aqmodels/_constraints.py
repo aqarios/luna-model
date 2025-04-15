@@ -1,4 +1,5 @@
 from enum import Enum
+
 from aqmodels._api_utils import dispatched, export
 
 
@@ -225,3 +226,6 @@ class Constraints:
             If the value is not a `Constraint` or valid symbolic comparison.
         """
         return constraint
+
+    def __getitem__(self, item):
+        return item

@@ -1,20 +1,22 @@
 from __future__ import annotations
+
+from itertools import combinations, product
 from math import prod
 from typing import Callable, Protocol, Sequence
-from itertools import combinations, product
-from .utils import make_seed, random
 
 from aqmodels import (
-    Model,
-    Expression,
-    Environment,
-    Constraints,
-    Constraint,
+    Bounds,
     Comparator,
+    Constraint,
+    Constraints,
+    Environment,
+    Expression,
+    Model,
     Variable,
     Vtype,
-    Bounds,
 )
+
+from .utils import make_seed, random
 
 
 class T(Protocol):

@@ -9,6 +9,8 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "numpy>=2.2.2",
+    "scipy>=1.15.1",
+    "dwave-hybrid>=0.6.13"
 ]
 
 [tool.uv]
@@ -17,8 +19,37 @@ cache-keys = [
     { file = "pyproject.toml" },
     { file = "Cargo.toml" },
     { file = "**/*.rs" },
-    { file = "src/aqmodels/**/*.pyi" },
-    { file = "src/aqmodels/**/*.py" },
+    # { file = "src/aqmodels/**/*.pyi" },
+    # { file = "src/aqmodels/**/*.py" },
+    { file = "src/aqmodels/_api_utils.py" },
+    { file = "src/aqmodels/_constraints.py" },
+    { file = "src/aqmodels/_constraints.pyi" },
+    { file = "src/aqmodels/_environment.py" },
+    { file = "src/aqmodels/_environment.pyi" },
+    { file = "src/aqmodels/_expression.py" },
+    { file = "src/aqmodels/_expression.pyi" },
+    { file = "src/aqmodels/_model.py" },
+    { file = "src/aqmodels/_model.pyi" },
+    { file = "src/aqmodels/_result.py" },
+    { file = "src/aqmodels/_result.pyi" },
+    { file = "src/aqmodels/_sample.py" },
+    { file = "src/aqmodels/_sample.pyi" },
+    { file = "src/aqmodels/_solution.py" },
+    { file = "src/aqmodels/_solution.pyi" },
+    { file = "src/aqmodels/_timing.py" },
+    { file = "src/aqmodels/_timing.pyi" },
+    { file = "src/aqmodels/_variable.py" },
+    { file = "src/aqmodels/_variable.pyi" },
+    { file = "src/aqmodels/errors/_errors.py" },
+    { file = "src/aqmodels/errors/_errors.pyi" },
+    { file = "src/aqmodels/translator/_bqm.py" },
+    { file = "src/aqmodels/translator/_bqm.pyi" },
+    { file = "src/aqmodels/translator/_lp.py" },
+    { file = "src/aqmodels/translator/_lp.pyi" },
+    { file = "src/aqmodels/translator/_matrix.py" },
+    { file = "src/aqmodels/translator/_matrix.pyi" },
+    { file = "src/aqmodels/translator/_sample_set.py" },
+    { file = "src/aqmodels/translator/_sample_set.pyi" },
 ]
 
 [tool.pytest.ini_options]
@@ -29,17 +60,19 @@ markers = [
     "constraint",
     "str_repr",
     "translator",
-    "imports"
+    "imports",
+    "solution",
+    "solution_translation",
 ]
 
 [tool.maturin]
 module-name = "aqmodels._core"
 python-packages = ["aqmodels"]
 python-source = "src"
-features = ["py"]
+features = ["py", "gen"]
 include = [
-  "src/aqmodels/**/*.pyi", 
-  "src/aqmodels/**/*.py", 
+  "src/aqmodels/**/*.pyi",
+  "src/aqmodels/**/*.py",
   "src/aqmodels/py.typed",
 ]
 
@@ -60,4 +93,7 @@ dev = [
     "memory-profiler>=0.61.0",
     "dimod>=0.12.18",
     "ipython>=9.0.2",
+    "pytest-cov>=6.1.1",
+    "gurobipy>=12.0.1",
+    "cplex>=22.1.2.0",
 ]

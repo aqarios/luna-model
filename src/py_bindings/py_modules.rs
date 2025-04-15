@@ -3,8 +3,8 @@ use pyo3::{prelude::*, PyTypeCheck};
 use crate::core::{Comparator, Vtype};
 
 use super::{
-    py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_matrix_translator, py_model,
-    py_var,
+    py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_res, py_sample,
+    py_sol, py_timing, py_translator, py_var,
 };
 
 // #[pymodule]
@@ -20,13 +20,25 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_bounds::PyBounds>()?;
     m.add_class::<py_constr::PyConstraint>()?;
     m.add_class::<py_constr::PyConstraints>()?;
-
+    m.add_class::<py_res::PyResultView>()?;
+    m.add_class::<py_res::PyOwnedResult>()?;
+    m.add_class::<py_res::PyResultIterator>()?;
+    m.add_class::<py_sample::PySamplesIterator>()?;
+    m.add_class::<py_sample::PySampleIterator>()?;
+    m.add_class::<py_sample::PySamples>()?;
+    m.add_class::<py_sample::PySample>()?;
+    m.add_class::<py_sol::PySolution>()?;
+    m.add_class::<py_timing::PyTiming>()?;
+    m.add_class::<py_timing::PyTimer>()?;
     Ok(())
 }
 
 pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "translator")?;
-    m.add_class::<py_matrix_translator::PyMatrixTranslator>()?;
+    m.add_class::<py_translator::PyMatrixTranslator>()?;
+    m.add_class::<py_translator::PyBqmTranslator>()?;
+    m.add_class::<py_translator::PySampleSetTranslator>()?;
+    m.add_class::<py_translator::PyLpTranslator>()?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?
@@ -54,6 +66,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         m.py().get_type::<pyexc::ModelNotUnconstrainedError>(),
     )?;
     m.add(
+        pyexc::ModelVtypeError::NAME,
+        m.py().get_type::<pyexc::ModelVtypeError>(),
+    )?;
+    m.add(
         pyexc::MultipleActiveEnvironmentsError::NAME,
         m.py().get_type::<pyexc::MultipleActiveEnvironmentsError>(),
     )?;
@@ -66,12 +82,20 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         m.py().get_type::<pyexc::VariableExistsError>(),
     )?;
     m.add(
+        pyexc::VariableNotExistingError::NAME,
+        m.py().get_type::<pyexc::VariableNotExistingError>(),
+    )?;
+    m.add(
         pyexc::VariableOutOfRangeError::NAME,
         m.py().get_type::<pyexc::VariableOutOfRangeError>(),
     )?;
     m.add(
         pyexc::VariablesFromDifferentEnvsError::NAME,
         m.py().get_type::<pyexc::VariablesFromDifferentEnvsError>(),
+    )?;
+    m.add(
+        pyexc::SolutionCreationError::NAME,
+        m.py().get_type::<pyexc::SolutionCreationError>(),
     )?;
     pm.add_submodule(&m)?;
     pm.py()

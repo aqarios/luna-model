@@ -26,6 +26,12 @@ class VariableExistsError(Exception):
     a variable with the same name will raise this exception.
     """
 
+@export("top", "errors")
+class VariableNotExistingError(Exception):
+    """
+    Raised when trying to get a variable with a name that does not exist.
+    """
+
 
 @export("top", "errors")
 class VariablesFromDifferentEnvsError(Exception):
@@ -94,4 +100,26 @@ class ModelNotUnconstrainedError(Exception):
 
     Some solution methods may only work on unconstrained models, such as when
     transforming a symbolic model to a low-level format.
+    """
+
+
+@export("top", "errors")
+class ModelVtypeError(Exception):
+    """
+    Raised when an operation has certain constraints on a model's variable types that
+    are violated.
+
+    Some solution methods may only work on models where all variables have the same
+    type, or where only certain variable types are permitted.
+    """
+
+
+@export("top", "errors")
+class SolutionCreationError(Exception):
+    """
+    Raised when something goes wrong during the creation of a solution.
+
+    This may happen during the translation to an AqSolution from a different solution
+    format, e.g., when the samples have different lengths or the variable types are not
+    consistent with the model the solution is created for.
     """

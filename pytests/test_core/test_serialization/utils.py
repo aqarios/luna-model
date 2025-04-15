@@ -1,9 +1,10 @@
+from aqmodels import Constraints, Environment, Expression, Model
+
 from ..data import (
     serializable_objects,
     serialized_objects,
     serialized_objects_with_env,
 )
-from aqmodels import Expression, Constraints, Model, Environment
 
 
 def create_serializable_objects():

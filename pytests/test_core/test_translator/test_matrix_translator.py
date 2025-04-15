@@ -1,7 +1,7 @@
-import pytest
 from itertools import product
 
 import numpy as np
+import pytest
 import scipy.sparse as sp  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 

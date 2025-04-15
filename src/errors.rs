@@ -14,6 +14,31 @@ impl Display for VariableExistsErr {
 }
 
 #[derive(Debug, Clone)]
+pub struct VariableNotExistingErr;
+impl Error for VariableNotExistingErr {}
+impl Display for VariableNotExistingErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "variable does not exists in environment")
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TranslationErr {
+    msg: String,
+}
+impl TranslationErr {
+    pub fn new(msg: String) -> Self {
+        Self { msg }
+    }
+}
+impl Error for TranslationErr {}
+impl Display for TranslationErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "error encountered during translation: {}", self.msg)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct VariableCreationErr {
     msg: String,
 }
@@ -89,6 +114,15 @@ impl Display for ModelNotUnconstrainedErr {
 }
 
 #[derive(Debug, Clone)]
+pub struct ModelVtypeErr(pub String);
+impl Error for ModelVtypeErr {}
+impl Display for ModelVtypeErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", &self.0)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum MatrixTranslatorErr {
     Constrained(ModelNotUnconstrainedErr),
     HigherOrder(ModelNotQuadraticErr),
@@ -115,6 +149,39 @@ impl From<ModelNotUnconstrainedErr> for MatrixTranslatorErr {
 }
 
 #[derive(Debug, Clone)]
+pub enum BqmTranslatorErr {
+    Constrained(ModelNotUnconstrainedErr),
+    HigherOrder(ModelNotQuadraticErr),
+    Vtype(ModelVtypeErr),
+}
+impl Error for BqmTranslatorErr {}
+impl Display for BqmTranslatorErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match &self {
+            BqmTranslatorErr::Constrained(err) => err.fmt(f),
+            BqmTranslatorErr::HigherOrder(err) => err.fmt(f),
+            BqmTranslatorErr::Vtype(err) => err.fmt(f),
+        }
+    }
+}
+
+impl From<ModelNotQuadraticErr> for BqmTranslatorErr {
+    fn from(value: ModelNotQuadraticErr) -> Self {
+        Self::HigherOrder(value)
+    }
+}
+impl From<ModelNotUnconstrainedErr> for BqmTranslatorErr {
+    fn from(value: ModelNotUnconstrainedErr) -> Self {
+        Self::Constrained(value)
+    }
+}
+impl From<ModelVtypeErr> for BqmTranslatorErr {
+    fn from(value: ModelVtypeErr) -> Self {
+        Self::Vtype(value)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct IndexOutOfBoundsErr {
     idx: usize,
     len: usize,
@@ -132,5 +199,51 @@ impl Display for IndexOutOfBoundsErr {
             "index '{}' out of bounds for constraints of len {}",
             self.idx, self.len
         )
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SampleIncorrectLengthError;
+
+impl Error for SampleIncorrectLengthError {}
+
+impl Display for SampleIncorrectLengthError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(
+            f,
+            "Sample has a length different from the other samples in the solution"
+        )
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct IncorrectVtypeError;
+
+impl Error for IncorrectVtypeError {}
+
+impl Display for IncorrectVtypeError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "Found variable assignment of incorrect vtype.")
+    }
+}
+
+#[derive(Debug)]
+pub struct SolutionCreatorErr(pub String);
+
+impl Error for SolutionCreatorErr {}
+
+impl Display for SolutionCreatorErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", self.0)
+    }
+}
+impl From<SampleIncorrectLengthError> for SolutionCreatorErr {
+    fn from(value: SampleIncorrectLengthError) -> Self {
+        SolutionCreatorErr(value.to_string())
+    }
+}
+impl From<IncorrectVtypeError> for SolutionCreatorErr {
+    fn from(value: IncorrectVtypeError) -> Self {
+        SolutionCreatorErr(value.to_string())
     }
 }

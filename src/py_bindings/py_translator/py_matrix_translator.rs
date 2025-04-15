@@ -1,5 +1,5 @@
-use super::py_model::PyModel;
-use crate::{core::Vtype, translator::matrix_translator::MatrixTranslator};
+use crate::py_bindings::py_model::PyModel;
+use crate::{core::Vtype, translator::MatrixTranslator};
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::prelude::*;
 

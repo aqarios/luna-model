@@ -1,8 +1,6 @@
 import pytest
 
-from aqmodels import Model
-from aqmodels import Variable
-from aqmodels import Environment
+from aqmodels import Environment, Model, Variable
 
 
 def model_iadd(request) -> Model:

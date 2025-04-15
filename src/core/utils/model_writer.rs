@@ -100,7 +100,7 @@ where
     pub fn write_model(&mut self, model: &Model<Index, Bias>) -> &mut Self {
         self.writer
             .write(&format!("Model: {}", model.name))
-            .with_new_line("Minimize") // TODO: replace with model.sense
+            .with_new_line(&model.sense.to_string()) // TODO: replace with model.sense
             .increase_indent()
             .new_line();
         self.write_expression(&model.objective.borrow());

@@ -5,10 +5,8 @@ from typing import IO, Any, Callable
 import numpy as np
 import scipy.sparse as sp  # type: ignore[import-untyped]
 from numpy.typing import NDArray
-
-from rich.table import Table
-from rich.table import Column
 from rich import print as rprint
+from rich.table import Column, Table
 
 from benchmarks.setting import DENSITIES, SIZES
 

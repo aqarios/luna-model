@@ -14,7 +14,7 @@ use pyo3::prelude::*;
 pub struct PyVariable(pub ConcreteRcVarRef);
 
 impl PyVariable {
-    fn new(varref: ConcreteVarRef) -> Self {
+    pub fn new(varref: ConcreteVarRef) -> Self {
         Self(varref.into())
     }
 }

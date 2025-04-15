@@ -7,9 +7,9 @@ readme = "README.md"
 license = "Copyright"
 homepage = "https://github.com/aqarios/aq-models-rs"
 exclude = [
-  "pytests",
-  "bench_reports",
-  "benchmarks"
+    "pytests",
+    "bench_reports",
+    "benchmarks"
 ]
 
 # [lib]
@@ -33,14 +33,20 @@ zstd = "0.13.3"
 # "extension-module" tells pyo3 we want to build an extension module (skips linking against libpython.so)
 # "abi3-py39" tells pyo3 (and maturin) to build using the stable ABI with minimum Python version 3.9
 # pyo3 = { version = "0.23.4", features = ["extension-module", "abi3-py39"] }
+either = "1.15.0"
+regex = "1.11.1"
 [dependencies.pyo3]
-version = "0.23.4"
+version = "0.24.1"
 features = ["extension-module", "abi3-py311"]
 optional = true
 
 [dependencies.numpy]
-version = "0.23.0"
+version = "0.24.0"
 optional = true
 
 [features]
 py = ["pyo3", "numpy"]
+gen = ["py"]
+
+[dev-dependencies]
+cargo-tarpaulin = "0.32.3"

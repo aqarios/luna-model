@@ -1,10 +1,11 @@
+use crate::core::term::types::SizeType;
+use crate::core::{ConcreteBias, IndexByValue, MutRcEnvironment, Vtype};
+use num::pow::Pow;
+use num::NumCast;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub};
 use std::str::FromStr;
-
-use crate::core::term::types::SizeType;
-use crate::core::{ConcreteBias, MutRcEnvironment, Vtype};
 
 use super::errors::VariableOutOfRangeErr;
 
@@ -52,6 +53,8 @@ pub trait BiasConstraints:
     + Default
     + AddAssign
     + Add<Output = Self>
+    + Sub<Output = Self>
+    + Pow<Self, Output = Self>
     + PartialEq
     + PartialOrd
     + One
@@ -59,6 +62,8 @@ pub trait BiasConstraints:
     + Mul<Output = Self>
     + Mul<ConcreteBias, Output = Self>
     + Neg<Output = Self>
+    + NumCast
+    + FromStr
 {
 }
 impl<
@@ -69,13 +74,17 @@ impl<
             + Default
             + AddAssign
             + Add<Output = T>
+            + Sub<Output = T>
+            + Pow<T, Output = T>
             + PartialEq
             + PartialOrd
             + One
             + MulAssign
             + Mul<Output = T>
             + Mul<ConcreteBias, Output = Self>
-            + Neg<Output = T>,
+            + Neg<Output = T>
+            + NumCast
+            + FromStr,
     > BiasConstraints for T
 {
 }
@@ -318,24 +327,24 @@ where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn evaluate_sample<'a, Elem: 'a, Sample: std::ops::Index<Idx, Output = Elem>>(
+    fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Idx, Output = Elem>>(
         &self,
         sample: &'a Sample,
     ) -> Bias
     where
-        &'a Elem: Mul<Bias, Output = Bias> + Mul<&'a Elem, Output = Elem>,
+        // &'a Elem: Mul<Bias, Output = Bias>,
         Elem: Mul<Bias, Output = Bias>;
 
     fn evaluate_sampleset<
         'a,
         Elem: 'a,
-        Sample: std::ops::Index<Idx, Output = Elem> + 'a,
+        Sample: IndexByValue<Idx, Output = Elem> + 'a,
         SampleSet: Iterator<Item = &'a Sample> + Copy,
     >(
         &self,
         sampleset: &'a SampleSet,
     ) -> Vec<Bias>
     where
-        &'a Elem: Mul<Bias, Output = Bias> + Mul<&'a Elem, Output = Elem>,
+        // &'a Elem: Mul<Bias, Output = Bias>,
         Elem: Mul<Bias, Output = Bias>;
 }
