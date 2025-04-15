@@ -41,7 +41,7 @@ class Model:
 
     >>> from aqmodels import Environment
     >>> env = Environment()
-    >>> model = Model(env, "ScopedModel")
+    >>> model = Model("ScopedModel", env)
     >>> with env:
     ...     x = Variable("x")
     ...     model.objective = x * x
@@ -61,17 +61,17 @@ class Model:
     """
 
     @dispatched
-    def __init__(self, env, name):
+    def __init__(self, name, env):
         """
         Initialize a new symbolic model.
 
         Parameters
         ----------
+        name : str, optional
+            An optional name for the model.
         env : Environment, optional
             The environment in which the model operates. If not provided, a new
             environment will be created or inferred from context.
-        name : str, optional
-            An optional name for the model.
         """
         return env, name
 

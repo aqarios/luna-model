@@ -1,11 +1,25 @@
 # This file is auto-generated.
 # Do not edit manually.
 
+from ._sample_set import SampleSetTranslator
 from ._matrix import MatrixTranslator
-from .._core import translator as __translator
+from ._lp import LpTranslator
+from ._bqm import BqmTranslator
+from .._core import (
+  translator as __translator,
+  translator as __translator,
+  translator as __translator,
+  translator as __translator
+)
 
+BqmTranslator = __translator.BqmTranslator
+SampleSetTranslator = __translator.SampleSetTranslator
+LpTranslator = __translator.LpTranslator
 MatrixTranslator = __translator.MatrixTranslator
 
 __all__ = [
+    "BqmTranslator",
+    "LpTranslator",
     "MatrixTranslator",
+    "SampleSetTranslator",
 ]

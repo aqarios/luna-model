@@ -4,7 +4,7 @@ use aqmodels::core::{
     environment::add_variable,
     expression::ExpressionEvaluation,
     operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
-    ConcreteBias, ConcreteIndex, Vtype,
+    ConcreteBias, ConcreteIndex, IndexByValue, Vtype,
 };
 
 use crate::common::{
@@ -19,6 +19,14 @@ struct DSample {
 impl DSample {
     fn new(values: Vec<ConcreteBias>) -> Self {
         Self { values }
+    }
+}
+
+impl IndexByValue<ConcreteIndex> for DSample {
+    type Output = ConcreteBias;
+
+    fn index_by_value(&self, index: ConcreteIndex) -> Self::Output {
+        self.values[index.0 as usize]
     }
 }
 
@@ -168,8 +176,6 @@ fn evaluate_mixed_order_mixed_vtype_expression(n: usize) {
     expr.add_assign(&ho_spin).unwrap();
     expr.add_assign(&ho_int).unwrap();
     expr.add_assign(&ho_real).unwrap();
-
-    // eprintln!("Expression =\n\n{:?}", expr);
 
     // Expected evaluated value
     let mut expected: ConcreteBias = ConcreteBias::default();

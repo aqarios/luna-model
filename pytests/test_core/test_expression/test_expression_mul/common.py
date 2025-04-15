@@ -1,8 +1,8 @@
-import pytest
-
 from typing import Tuple
 
-from aqmodels import Variable, Environment, Expression
+import pytest
+
+from aqmodels import Environment, Expression, Variable
 
 
 @pytest.fixture

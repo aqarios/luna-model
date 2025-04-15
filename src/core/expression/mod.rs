@@ -15,9 +15,8 @@ pub use base::ExpressionBaseAdjustment;
 pub use base::ExpressionBaseCreation;
 pub use base::ExpressionEvaluation;
 pub use base::IndexConstraints;
-
 pub use base::One;
 
-pub use expr::Expression;
-
 pub use errors::VariableOutOfRangeErr;
+
+pub use expr::Expression;

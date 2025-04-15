@@ -1,19 +1,17 @@
 import os
-from collections import defaultdict
-from typing import IO, DefaultDict, Dict, Iterable, Optional, Set
-from dataclasses import dataclass
-from numpy.typing import NDArray
-from tqdm import tqdm  # type: ignore[import-untyped]
-import memray
 import uuid
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import IO, DefaultDict, Dict, Iterable, Optional, Set
 
+import dimod
+import memray
+from numpy.typing import NDArray
 from rich import print as rprint
-from rich.table import Column
-from rich.table import Table
+from rich.table import Column, Table
+from tqdm import tqdm  # type: ignore[import-untyped]
 
 from aqmodels import MatrixTranslator, Vtype
-import dimod
-
 from benchmarks.setting import DENSITIES, SIZES
 from benchmarks.utils import BenchResult, make_qubo
 

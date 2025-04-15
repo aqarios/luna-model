@@ -1,23 +1,23 @@
-from pathlib import Path
-import sys
+import datetime
 import os
 import platform
-import subprocess
 import re
-import datetime
+import subprocess
+import sys
+from pathlib import Path
 from typing import IO
-from benchmarks.translator.read_dense_qubo import bench_read_dense_qubo
+
+from benchmarks.serialization.deserialize import (
+    bench_deserialize_bqm,
+)
 from benchmarks.serialization.serialize import (
     bench_serialize_cqm,
     bench_serialize_cqm_size,
 )
-from benchmarks.serialization.deserialize import (
-    bench_deserialize_bqm,
-)
 from benchmarks.serialization.serialize_extralarge import (
     bench_serialize_aqm_xl,
 )
-
+from benchmarks.translator.read_dense_qubo import bench_read_dense_qubo
 from benchmarks.translator.read_dense_qubo_memory import bench_read_dense_qubo_memory
 
 TASKS = [
@@ -92,6 +92,7 @@ def main():
     with detailed_file.open("a") as f:
         for task in TASKS:
             code_block(task, f)
+
 
 if __name__ == "__main__":
     sys.exit(main())

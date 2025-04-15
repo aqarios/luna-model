@@ -47,6 +47,29 @@ class Environment:
         return
 
     @dispatched
+    def get_variable(self, label):
+        """
+        Get a variable by it's label (name).
+
+        Parameters
+        ----------
+        label : str
+            The name/label of the variable
+
+        Returns
+        -------
+        Variable
+            The variable with the specified label/name.
+
+        Raises
+        ------
+        VariableNotExistingError
+            If no variable with the specified name is registered.
+        """
+        return label
+
+
+    @dispatched
     def encode(self, compress=True, level=3):
         """
         Serialize the environment into a compact binary format.

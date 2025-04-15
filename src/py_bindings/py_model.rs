@@ -1,6 +1,12 @@
 use std::rc::Rc;
 
-use super::{py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression};
+use super::py_var::PyVariable;
+use super::{
+    py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
+};
+use crate::core::RcSolution;
+use crate::py_bindings::py_res::PyOwnedResult;
+use crate::py_bindings::py_sample::PySample;
 use crate::{
     core::{ConcreteModel, Environment, Model},
     py_bindings::py_env::CURRENT_ENV,
@@ -24,8 +30,8 @@ impl Into<ConcreteModel> for PyModel {
 #[pymethods]
 impl PyModel {
     #[new]
-    #[pyo3(signature=(env=None, name=None))]
-    fn py_new(env: Option<PyEnvironment>, name: Option<String>) -> Self {
+    #[pyo3(signature=(name=None, env=None))]
+    fn py_new(name: Option<String>, env: Option<PyEnvironment>) -> Self {
         let env: PyEnvironment = match env {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|curr| {
@@ -125,5 +131,13 @@ impl PyModel {
     #[staticmethod]
     fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Self::decode(py, data)
+    }
+
+    fn evaluate(&self, solution: &PySolution) -> PySolution {
+        PySolution(self.evaluate_solution(RcSolution::clone(&solution.0)))
+    }
+
+    fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
+        PyOwnedResult(self.0.evaluate_sample(&sample.0))
     }
 }
