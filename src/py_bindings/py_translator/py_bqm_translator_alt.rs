@@ -1,6 +1,6 @@
 use crate::core::Vtype;
 use crate::py_bindings::py_model::PyModel;
-use crate::translator::{AltBqmTranslator, BqmTranslator};
+use crate::translator::AltBqmTranslator;
 use numpy::{PyReadonlyArray1, ToPyArray};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
@@ -11,13 +11,16 @@ pub struct PyBqmTranslator {}
 #[pymethods]
 impl PyBqmTranslator {
     #[staticmethod]
-    #[pyo3(signature=(vars, offset, linears, quads, vartype, name=None))]
+    #[pyo3(signature=(vars, offset, linears, linear_indices, quads, quads_rows, quads_cols, vartype, name=None))]
     fn translate(
         py: Python,
         vars: PyObject,
         offset: f64,
         linears: PyReadonlyArray1<f64>,
+        linear_indices: PyReadonlyArray1<u64>,
         quads: PyReadonlyArray1<f64>,
+        quads_rows: PyReadonlyArray1<u64>,
+        quads_cols: PyReadonlyArray1<u64>,
         vartype: String,
         name: Option<String>,
     ) -> PyResult<PyModel> {
@@ -27,24 +30,17 @@ impl PyBqmTranslator {
             Vtype::Binary
         };
 
-        // let linear_biases: PyReadonlyArray1<f64> = bqm.getattr(py, "linear_biases")?.extract(py)?;
-        // let quadratic = bqm.getattr(py, "quadratic")?;
-        // let quadratic_biases: PyReadonlyArray1<f64> =
-        //     quadratic.getattr(py, "biases")?.extract(py)?;
-        // let col_indices: PyReadonlyArray1<i32> =
-        //     quadratic.getattr(py, "col_indices")?.extract(py)?;
-        // let row_indices: PyReadonlyArray1<i32> =
-        //     quadratic.getattr(py, "row_indices")?.extract(py)?;
-        // let offset = bqm.getattr(py, "offset")?;
-
         Ok(PyModel(AltBqmTranslator::model_from_bqm(
             vars.extract(py)?,
             vtype,
             offset,
             linears.as_slice().expect("failed to convert to slice"),
+            linear_indices
+                .as_slice()
+                .expect("failed to convert to slice"),
             quads.as_slice().expect("failed to convert to slice"),
-            // col_indices.as_slice().expect("failed to convert to slice"),
-            // row_indices.as_slice().expect("failed to convert to slice"),
+            quads_rows.as_slice().expect("failed to convert to slice"),
+            quads_cols.as_slice().expect("failed to convert to slice"),
             name,
         )))
     }
@@ -53,7 +49,7 @@ impl PyBqmTranslator {
     #[pyo3(signature=(model))]
     fn to_bqm<'a>(py: Python<'a>, model: &PyModel) -> PyResult<PyObject> {
         let (offset, linear, quad, rows, cols, vtype, vars) =
-            BqmTranslator::model_to_bqm(&model.0)?;
+            AltBqmTranslator::model_to_bqm(&model.0)?;
         let linear_py = linear.to_pyarray(py);
         let quadratic_py = quad.to_pyarray(py);
         let rows_py = rows.to_pyarray(py);
@@ -109,10 +105,27 @@ def extract(bqm, name):
         raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
     vars = np.array(bqm.variables.to_serializable())
     linears = np.array([bqm.get_linear(v) for v in vars])
-    quads = np.array([bqm.get_quadratic(u, v, default=0) / 2 if u != v else 0 for u in vars for v in vars])
+    linear_indices, linears = tuple(zip(*[(i, v) for i, v in enumerate(linears) if v != 0]))
+    intermediate = [
+        (ui, vi, bqm.get_quadratic(vars[ui], vars[vi], default=0))
+        for ui in range(len(vars))
+        for vi in range(ui + 1, len(vars))
+        if bqm.get_quadratic(vars[ui], vars[vi], default=0) != 0
+    ]
+    quads_rows, quads_cols, quads = tuple(zip(*intermediate)) if len(intermediate) > 0 else (np.array([]), np.array([]), np.array([]))
     vartype = bqm.vartype.name
     offset = float(bqm.offset)
-    return translator.BqmTranslator.translate(vars, offset, linears, quads, vartype, name)"
+    return translator.BqmTranslator.translate(
+        vars, 
+        offset, 
+        np.array(linears, dtype=np.float64), 
+        np.array(linear_indices, dtype=np.uint64), 
+        np.array(quads, dtype=np.float64), 
+        np.array(quads_rows, dtype=np.uint64), 
+        np.array(quads_cols, dtype=np.uint64), 
+        vartype, 
+        name
+    )"
             ),
             c_str!(""),
             c_str!(""),
