@@ -68,7 +68,7 @@ enum Token {
 // Tokenizer function
 fn tokenize(input: &str) -> Vec<Token> {
     // Clean input from `\ 2` in objective definition.
-    let input = input.replace("] / 2", "]");
+    let input = input.replace("] / 2", "]").replace("]/2", "]");
     let mut tokens = Vec::new();
     let mut chars = input.chars().peekable();
 

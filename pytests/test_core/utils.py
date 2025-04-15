@@ -1,9 +1,11 @@
 import random as r
 import sys
 import dimod
+import numpy as np
 
 from itertools import permutations
 from dimod import ConstrainedQuadraticModel
+from dimod import generators
 
 import dimod
 from dimod import BinaryQuadraticModel, Vartype, ConstrainedQuadraticModel
@@ -73,7 +75,7 @@ def generate_bqms(
         density = rand.random() * (1 - 1 / n_vars)
         num_interactions = int(density * n_vars ** 2 / 2)
         vartype = Vartype.BINARY if rand.randint(0, 1) == 0 else Vartype.SPIN
-        bqm = dimod.generators.gnm_random_bqm(
+        bqm = generators.gnm_random_bqm(
             [f"x{i}" for i in range(n_vars)],
             num_interactions,
             vartype,
@@ -86,10 +88,27 @@ def generate_cqms(
         n_models: int, rand: r.Random
 ) -> list[ConstrainedQuadraticModel]:
     out = []
-    for _ in range(n_models):
+    # LINEAR
+    n_lin = n_models // 2
+    n_quad = n_models - n_lin
+    for _ in range(n_lin):
         n_items = rand.randint(1, 20)
-        cqm = dimod.generators.random_knapsack(
+        cqm = generators.random_knapsack(
             n_items, seed=random_int(rand)
         )
+        out.append(cqm)
+    # QUADRATIC
+    for _ in range(n_quad):
+        num_items = rand.randint(1, 10)
+        values = [rand.randint(1, 10) for _ in range(num_items)]
+        weights = [rand.randint(1, 10) for _ in range(num_items)]
+
+        # Generate a symmetric profit matrix with zeros on the diagonal
+        profits = np.array([[rand.randint(0, 5) for _ in range(num_items)] for _ in range(num_items)])
+        profits = np.triu(profits, 1)
+        profits += profits.T
+        profits = profits
+        capacity = int(0.5 * sum(weights))
+        cqm = generators.quadratic_knapsack(values, weights, profits, capacity)
         out.append(cqm)
     return out

@@ -130,8 +130,11 @@ impl VariableTypeKeywords {
 
 #[derive(Copy, Display, Hash, Eq, PartialEq, Clone, Debug)]
 pub enum VariableType {
+    #[strum(to_string = "Binaries")]
     Binary,
+    #[strum(to_string = "Generals")]
     General,
+    #[strum(to_string = "Semi-Continuous")]
     Semi,
 }
 
