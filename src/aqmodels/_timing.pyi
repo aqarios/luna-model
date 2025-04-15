@@ -1,0 +1,30 @@
+from datetime import datetime, timedelta
+
+
+class Timing:
+    @property
+    def start(self) -> datetime: ...
+
+    @property
+    def end(self) -> datetime: ...
+
+    @property
+    def total(self) -> timedelta: ...
+
+    @property
+    def total_seconds(self) -> float: ...
+
+    @property
+    def qpu(self) -> float | None: ...
+
+    @qpu.setter
+    def qpu(self, value: float | None): ...
+
+    def add_qpu(self, value: float): ...
+
+
+class Timer:
+    @staticmethod
+    def start() -> Timer: ...
+
+    def stop(self) -> Timing: ...

@@ -150,7 +150,7 @@ impl PyExpression {
         Ok(PyExpression::new(expr))
     }
 
-    fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __rsub__(&self, _py: Python, _other: PyObject) -> PyResult<PyExpression> {
         todo!()
         // self.__sub__(py, other)
     }
@@ -235,6 +235,7 @@ impl PyExpression {
             let constraint = ConcreteConstraint::new(Rc::clone(&self.0), rhs, Comparator::Eq, None);
             // todo: this is depreated... change to the new way
             // but for now this works as intended
+            #[allow(deprecated)]
             Ok(PyConstraint::new(constraint).into_py(py))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))

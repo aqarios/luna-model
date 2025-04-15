@@ -1,8 +1,8 @@
 from typing import IO
-from tqdm import tqdm  # type: ignore
 
 from aqmodels import Model, Vtype, MatrixTranslator
 import dimod
+from tqdm import tqdm  # type: ignore
 
 from benchmarks.serialization.utils import (
     get_serialized_size_bytes,

@@ -1,9 +1,9 @@
 from itertools import product
-import pytest
-
 from typing import Tuple
 
-from aqmodels import Variable, Environment, Expression, Vtype
+import pytest
+
+from aqmodels import Environment, Expression, Variable, Vtype
 
 
 @pytest.fixture

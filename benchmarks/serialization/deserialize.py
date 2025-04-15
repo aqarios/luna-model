@@ -1,9 +1,9 @@
 import json
 from typing import IO, Any
-from tqdm import tqdm  # type: ignore
 
 from aqmodels import Model, Vtype, MatrixTranslator
 import dimod
+from tqdm import tqdm  # type: ignore
 
 from benchmarks.serialization.utils import serialize_aqm, serialize_bqm
 from benchmarks.setting import DENSITIES, REPETITIONS, SIZES

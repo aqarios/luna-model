@@ -1,5 +1,5 @@
-import sys
 import json
+import sys
 
 from aqmodels import Model
 import dimod
