@@ -21,8 +21,8 @@ use std::{
     path::PathBuf,
 };
 
-static MAX_LINE_LENGTH: usize = 80;
-static INDENT: &str = "  ";
+static MAX_LINE_LENGTH: usize = 88;
+static INDENT: &str = " ";
 
 pub struct LPTranslator<Index, Bias> {
     _phantom_index: PhantomData<Index>,
@@ -143,14 +143,15 @@ where
         if let Some(data) = sections.get(Section::Constraints) {
             out.push_str(&format!("{}\n", ConstraintsKeywords::SubjectTo));
             for constraint in data {
-                let chunks = chunks(constraint, MAX_LINE_LENGTH);
-                for chunk in chunks {
-                    out.push_str(&format!("{INDENT}{chunk}\n"));
-                }
+                out.push_str(&format!("{INDENT}{constraint}\n"));
+                // let chunks = chunks(constraint, MAX_LINE_LENGTH);
+                // for chunk in chunks {
+                //     out.push_str(&format!("{INDENT}{chunk}\n"));
+                // }
             }
         }
+        out.push_str(&format!("{}\n", BoundsKeywords::Bounds));
         if let Some(data) = sections.get(Section::Bounds) {
-            out.push_str(&format!("{}\n", BoundsKeywords::Bounds));
             for bound in data {
                 let chunks = chunks(bound, MAX_LINE_LENGTH);
                 for chunk in chunks {
