@@ -4,6 +4,9 @@ use crate::core::{
 use crate::py_bindings::py_res::{PyResultIterator, PyResultView};
 use crate::py_bindings::py_sample::PySamples;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::serialization::{
+    Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
+};
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError};
@@ -72,9 +75,16 @@ impl PySolution {
 
     #[pyo3(signature=(compress=None, level=None))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        let _compress = compress.unwrap_or(level.is_some());
-        // TODO: implement actual compression logic then update this method
-        Ok(PyBytes::new(py, &Vec::new().as_slice()).into())
+        let compress = compress.unwrap_or(level.is_some());
+        Ok(PyBytes::new(
+            py,
+            &self
+                .0
+                .encode()
+                .maybe_compress(compress, level)?
+                .versionize(),
+        )
+        .into())
     }
 
     #[pyo3(signature=(compress=None, level=None))]
@@ -88,9 +98,10 @@ impl PySolution {
     }
 
     #[staticmethod]
-    fn decode(_py: Python, _data: Py<PyBytes>) -> PyResult<Self> {
-        // TODO: implement actual compression logic then update this method
-        Ok(PySolution(RcSolution(Rc::new(Solution::default()))))
+    fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Ok(PySolution(
+            data.as_bytes(py).unversionize().decompress()?.decode(())?,
+        ))
     }
 
     #[staticmethod]
@@ -122,6 +133,11 @@ impl PySolution {
         } else {
             Err(PyRuntimeError::new_err("unsupported type for indexing"))
         }
+    }
+
+    #[staticmethod]
+    fn empty() -> Self {
+        PySolution(RcSolution(Rc::new(Solution::default())))
     }
 }
 
