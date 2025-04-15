@@ -1,10 +1,10 @@
 use crate::core::utils::LineLengthRestrictor;
-use crate::core::ConcreteEnvId as EnvId;
 use crate::core::{
     expression::IndexConstraints,
     variable::{Bounds, VarRef, Variable, Vtype},
 };
-use crate::errors::{VariableCreationErr, VariableExistsErr};
+use crate::core::{ConcreteEnvId as EnvId, MutRcEnvironment};
+use crate::errors::{VariableCreationErr, VariableExistsErr, VariableNotExistingErr};
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
@@ -47,6 +47,13 @@ where
 
     pub fn iter(&self) -> Iter<'_, Variable> {
         self.variables.iter()
+    }
+
+    pub fn get(&self, name: &String) -> Result<Index, VariableNotExistingErr> {
+        Ok(*(self
+            .variables_lookup
+            .get(name)
+            .ok_or_else(|| VariableNotExistingErr)?))
     }
 }
 
@@ -99,4 +106,14 @@ pub fn add_variable<Index: IndexConstraints>(
     mutable_env.variables_lookup.insert(name.to_string(), id);
     mutable_env.varcount += Index::one();
     Ok(VarRef::new(id, env.clone()))
+}
+
+pub fn get_vref_by_name<Index: IndexConstraints>(
+    name: &String,
+    env: MutRcEnvironment<Index>,
+) -> Result<VarRef<Index>, VariableNotExistingErr> {
+    let index = env.borrow().get(name)?;
+    // As we don't store the VarRefs here we need to create a new one based on the info
+    // we have.
+    Ok(VarRef::new(index, Rc::clone(&env)))
 }

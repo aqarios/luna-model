@@ -77,6 +77,7 @@ Timer = __Timer  # type: ignore[misc,assignment]
 Solution = __Solution  # type: ignore[misc,assignment]
 VariableOutOfRangeError = errors.VariableOutOfRangeError
 VariableExistsError = errors.VariableExistsError
+VariableNotExistingError = errors.VariableNotExistingError
 VariablesFromDifferentEnvsError = errors.VariablesFromDifferentEnvsError
 DifferentEnvsError = errors.DifferentEnvsError
 NoActiveEnvironmentFoundError = errors.NoActiveEnvironmentFoundError
@@ -84,13 +85,16 @@ MultipleActiveEnvironmentsError = errors.MultipleActiveEnvironmentsError
 DecodeError = errors.DecodeError
 ModelNotQuadraticError = errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
+ModelVtypeError = errors.ModelVtypeError
 SolutionCreationError = errors.SolutionCreationError
+BqmTranslator = translator.BqmTranslator
 SampleSetTranslator = translator.SampleSetTranslator
 LpTranslator = translator.LpTranslator
 MatrixTranslator = translator.MatrixTranslator
 
 __all__ = [
     "Bounds",
+    "BqmTranslator",
     "Comparator",
     "Constraint",
     "Constraints",
@@ -103,6 +107,7 @@ __all__ = [
     "Model",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "Result",
@@ -119,6 +124,7 @@ __all__ = [
     "Timing",
     "Variable",
     "VariableExistsError",
+    "VariableNotExistingError",
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",
     "Vtype",

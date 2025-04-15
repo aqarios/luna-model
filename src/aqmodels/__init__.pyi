@@ -2,6 +2,7 @@
 # Do not edit manually.
 
 from datetime import datetime, timedelta
+from dimod import BinaryQuadraticModel
 from dimod import SampleSet
 from enum import Enum
 from numpy.typing import NDArray
@@ -192,40 +193,58 @@ class Comparator(Enum):
     Geq = ...
 
     def __str__(self) -> str: ...
+
     def __repr__(self) -> str: ...
 
 class Constraint:
     def __init__(self, lhs: Expression, rhs: float, comparator: Comparator) -> None: ...
+
     def __str__(self) -> str: ...
+
     def __repr__(self) -> str: ...
 
 class Constraints:
     def add_constraint(self, constraint: Constraint): ...
+
     @overload
     def encode(self) -> bytes: ...
+
     @overload
     def encode(self, compress: bool | None = ...) -> bytes: ...
+
     @overload
     def encode(self, level: int | None = ...) -> bytes: ...
+
     @overload
     def encode(self, compress: bool | None = ..., level: int | None = ...) -> bytes: ...
+
     @overload
     def serialize(self) -> bytes: ...
+
     @overload
     def serialize(self, compress: bool | None = ...) -> bytes: ...
+
     @overload
     def serialize(self, level: int | None = ...) -> bytes: ...
+
     @overload
     def serialize(
-        self, compress: bool | None = ..., level: int | None = ...
+            self, compress: bool | None = ..., level: int | None = ...
     ) -> bytes: ...
+
     @staticmethod
     def decode(data: bytes) -> Expression: ...
+
     @staticmethod
     def deserialize(data: bytes) -> Expression: ...
+
     def __iadd__(self, constraint: Constraint): ...
+
     def __str__(self) -> str: ...
+
     def __repr__(self) -> str: ...
+
+    def __getitem__(self, item: int) -> Constraint: ...
 
 class ResultIterator:
     def __iter__(self) -> ResultIterator: ...
@@ -392,6 +411,7 @@ class Environment:
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
+    def get_variable(self, name: str) -> Variable: ...
     @overload
     def serialize(self) -> bytes: ...
     @overload
@@ -510,6 +530,9 @@ class VariableOutOfRangeError(Exception):
 class VariableExistsError(Exception):
     def __str__(self) -> str: ...
 
+class VariableNotExistingError(Exception):
+    def __str__(self) -> str: ...
+
 class VariablesFromDifferentEnvsError(Exception):
     def __str__(self) -> str: ...
 
@@ -531,8 +554,20 @@ class ModelNotQuadraticError(Exception):
 class ModelNotUnconstrainedError(Exception):
     def __str__(self) -> str: ...
 
+class ModelVtypeError(Exception):
+    def __str__(self) -> str: ...
+
 class SolutionCreationError(Exception):
     def __str__(self) -> str: ...
+
+class BqmTranslator:
+    @staticmethod
+    def to_model(
+            bqm: BinaryQuadraticModel, name: str | None = None
+    ) -> Model: ...
+
+    @staticmethod
+    def to_bqm(model: Model) -> BinaryQuadraticModel: ...
 
 class SampleSetTranslator:
     @staticmethod
@@ -567,6 +602,7 @@ class MatrixTranslator:
 
 __all__ = [
     "Bounds",
+    "BqmTranslator",
     "Comparator",
     "Constraint",
     "Constraints",
@@ -579,6 +615,7 @@ __all__ = [
     "Model",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "Result",
@@ -595,6 +632,7 @@ __all__ = [
     "Timing",
     "Variable",
     "VariableExistsError",
+    "VariableNotExistingError",
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",
     "Vtype",

@@ -21,8 +21,6 @@ fn py() {
     if !status.success() {
         panic!("Init generation script failed");
     }
-
-    // Add other build logic here if necessary
 }
 fn main() {
     #[cfg(feature = "gen")]

@@ -5,9 +5,12 @@ import dimod
 from itertools import permutations
 from dimod import ConstrainedQuadraticModel
 
+import dimod
+from dimod import BinaryQuadraticModel, Vartype, ConstrainedQuadraticModel
+
 
 def make_seed() -> int:
-    seed = r.randint(0, 2**32 - 1)
+    seed = r.randint(0, 2 ** 32 - 1)
     print(
         f"""
 ************************
@@ -25,7 +28,7 @@ def random(seed: int) -> float:
 
 
 def random_int(rand: r.Random):
-    return rand.randint(0, 2**16 - 1)
+    return rand.randint(0, 2 ** 16 - 1)
 
 
 def check_equality(variables, p, f, value):
@@ -60,6 +63,24 @@ def assert_higher_order_all(expr, variables, value):
     for p_size in range(3, len(variables) + 1):
         check_equality(variables, p_size, expr.get_higher_order, value)
 
+
+def generate_bqms(
+        n_models: int, rand: r.Random, n_vars_max: int = 100
+) -> list[BinaryQuadraticModel]:
+    out = []
+    for _ in range(n_models):
+        n_vars = rand.randint(1, n_vars_max)
+        density = rand.random() * (1 - 1 / n_vars)
+        num_interactions = int(density * n_vars ** 2 / 2)
+        vartype = Vartype.BINARY if rand.randint(0, 1) == 0 else Vartype.SPIN
+        bqm = dimod.generators.gnm_random_bqm(
+            [f"x{i}" for i in range(n_vars)],
+            num_interactions,
+            vartype,
+            random_state=random_int(rand),
+        )
+        out.append(bqm)
+    return out
 
 def generate_cqms(
         n_models: int, rand: r.Random

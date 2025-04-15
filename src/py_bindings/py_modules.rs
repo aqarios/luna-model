@@ -36,6 +36,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
 pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "translator")?;
     m.add_class::<py_translator::PyMatrixTranslator>()?;
+    m.add_class::<py_translator::PyBqmTranslator>()?;
     m.add_class::<py_translator::PySampleSetTranslator>()?;
     m.add_class::<py_translator::PyLpTranslator>()?;
     pm.add_submodule(&m)?;
@@ -65,6 +66,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         m.py().get_type::<pyexc::ModelNotUnconstrainedError>(),
     )?;
     m.add(
+        pyexc::ModelVtypeError::NAME,
+        m.py().get_type::<pyexc::ModelVtypeError>(),
+    )?;
+    m.add(
         pyexc::MultipleActiveEnvironmentsError::NAME,
         m.py().get_type::<pyexc::MultipleActiveEnvironmentsError>(),
     )?;
@@ -75,6 +80,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add(
         pyexc::VariableExistsError::NAME,
         m.py().get_type::<pyexc::VariableExistsError>(),
+    )?;
+    m.add(
+        pyexc::VariableNotExistingError::NAME,
+        m.py().get_type::<pyexc::VariableNotExistingError>(),
     )?;
     m.add(
         pyexc::VariableOutOfRangeError::NAME,

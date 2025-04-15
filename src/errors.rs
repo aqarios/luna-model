@@ -14,6 +14,15 @@ impl Display for VariableExistsErr {
 }
 
 #[derive(Debug, Clone)]
+pub struct VariableNotExistingErr;
+impl Error for VariableNotExistingErr {}
+impl Display for VariableNotExistingErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "variable does not exists in environment")
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct TranslationErr {
     msg: String,
 }
@@ -105,6 +114,15 @@ impl Display for ModelNotUnconstrainedErr {
 }
 
 #[derive(Debug, Clone)]
+pub struct ModelVtypeErr(pub String);
+impl Error for ModelVtypeErr {}
+impl Display for ModelVtypeErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", &self.0)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum MatrixTranslatorErr {
     Constrained(ModelNotUnconstrainedErr),
     HigherOrder(ModelNotQuadraticErr),
@@ -127,6 +145,39 @@ impl From<ModelNotQuadraticErr> for MatrixTranslatorErr {
 impl From<ModelNotUnconstrainedErr> for MatrixTranslatorErr {
     fn from(value: ModelNotUnconstrainedErr) -> Self {
         Self::Constrained(value)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum BqmTranslatorErr {
+    Constrained(ModelNotUnconstrainedErr),
+    HigherOrder(ModelNotQuadraticErr),
+    Vtype(ModelVtypeErr),
+}
+impl Error for BqmTranslatorErr {}
+impl Display for BqmTranslatorErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        match &self {
+            BqmTranslatorErr::Constrained(err) => err.fmt(f),
+            BqmTranslatorErr::HigherOrder(err) => err.fmt(f),
+            BqmTranslatorErr::Vtype(err) => err.fmt(f),
+        }
+    }
+}
+
+impl From<ModelNotQuadraticErr> for BqmTranslatorErr {
+    fn from(value: ModelNotQuadraticErr) -> Self {
+        Self::HigherOrder(value)
+    }
+}
+impl From<ModelNotUnconstrainedErr> for BqmTranslatorErr {
+    fn from(value: ModelNotUnconstrainedErr) -> Self {
+        Self::Constrained(value)
+    }
+}
+impl From<ModelVtypeErr> for BqmTranslatorErr {
+    fn from(value: ModelVtypeErr) -> Self {
+        Self::Vtype(value)
     }
 }
 

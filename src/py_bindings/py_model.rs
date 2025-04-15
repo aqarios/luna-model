@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use super::py_var::PyVariable;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };

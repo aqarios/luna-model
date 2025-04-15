@@ -9,6 +9,9 @@ class VariableOutOfRangeError(Exception):
 class VariableExistsError(Exception):
     def __str__(self) -> str: ...
 
+class VariableNotExistingError(Exception):
+    def __str__(self) -> str: ...
+
 class VariablesFromDifferentEnvsError(Exception):
     def __str__(self) -> str: ...
 
@@ -30,6 +33,9 @@ class ModelNotQuadraticError(Exception):
 class ModelNotUnconstrainedError(Exception):
     def __str__(self) -> str: ...
 
+class ModelVtypeError(Exception):
+    def __str__(self) -> str: ...
+
 class SolutionCreationError(Exception):
     def __str__(self) -> str: ...
 
@@ -39,10 +45,12 @@ __all__ = [
     "DifferentEnvsError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "SolutionCreationError",
     "VariableExistsError",
+    "VariableNotExistingError",
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",
     "errors",

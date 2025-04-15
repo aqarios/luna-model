@@ -1,8 +1,9 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
-    DifferentEnvsErr, IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr,
-    ModelNotUnconstrainedErr, SolutionCreatorErr, TranslationErr, VariableCreationErr,
-    VariableExistsErr, VariablesFromDifferentEnvsErr,
+    BqmTranslatorErr, DifferentEnvsErr, IndexOutOfBoundsErr, MatrixTranslatorErr,
+    ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelVtypeErr, SolutionCreatorErr,
+    TranslationErr, VariableCreationErr, VariableExistsErr, VariableNotExistingErr,
+    VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
@@ -11,6 +12,7 @@ use std::convert::From;
 
 create_exception!(aqmodels.errors, VariableOutOfRangeError, PyException);
 create_exception!(aqmodels.errors, VariableExistsError, PyException);
+create_exception!(aqmodels.errors, VariableNotExistingError, PyException);
 create_exception!(
     aqmodels.errors,
     VariablesFromDifferentEnvsError,
@@ -26,6 +28,7 @@ create_exception!(
 create_exception!(aqmodels.errors, DecodeError, PyException);
 create_exception!(aqmodels.errors, ModelNotQuadraticError, PyException);
 create_exception!(aqmodels.errors, ModelNotUnconstrainedError, PyException);
+create_exception!(aqmodels.errors, ModelVtypeError, PyException);
 create_exception!(aqmodels.errors, SolutionCreationError, PyException);
 create_exception!(aqmodels.errors, TranslationError, PyException);
 
@@ -38,6 +41,12 @@ impl From<VariableOutOfRangeErr> for PyErr {
 impl From<VariableExistsErr> for PyErr {
     fn from(err: VariableExistsErr) -> PyErr {
         VariableExistsError::new_err(err.to_string())
+    }
+}
+
+impl From<VariableNotExistingErr> for PyErr {
+    fn from(err: VariableNotExistingErr) -> PyErr {
+        VariableNotExistingError::new_err(err.to_string())
     }
 }
 
@@ -77,6 +86,12 @@ impl From<ModelNotUnconstrainedErr> for PyErr {
     }
 }
 
+impl From<ModelVtypeErr> for PyErr {
+    fn from(err: ModelVtypeErr) -> Self {
+        ModelVtypeError::new_err(err.to_string())
+    }
+}
+
 impl From<IndexOutOfBoundsErr> for PyErr {
     fn from(value: IndexOutOfBoundsErr) -> Self {
         PyIndexError::new_err(value.to_string())
@@ -88,6 +103,16 @@ impl From<MatrixTranslatorErr> for PyErr {
         match err {
             MatrixTranslatorErr::Constrained(err) => err.into(),
             MatrixTranslatorErr::HigherOrder(err) => err.into(),
+        }
+    }
+}
+
+impl From<BqmTranslatorErr> for PyErr {
+    fn from(err: BqmTranslatorErr) -> Self {
+        match err {
+            BqmTranslatorErr::Constrained(err) => err.into(),
+            BqmTranslatorErr::HigherOrder(err) => err.into(),
+            BqmTranslatorErr::Vtype(err) => err.into(),
         }
     }
 }
