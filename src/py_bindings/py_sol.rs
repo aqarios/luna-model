@@ -1,5 +1,6 @@
+use crate::core::solution::sol::SampleCol;
 use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, RcSolution, Samples, Solution, VarAssignment,
+    ConcreteAssignmentTypes, ConcreteBias, RcSolution, Samples, Solution, VarAssignment, Vtype,
 };
 use crate::py_bindings::py_res::{PyResultIterator, PyResultView};
 use crate::py_bindings::py_sample::PySamples;
@@ -30,6 +31,64 @@ impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
 
 #[pymethods]
 impl PySolution {
+    #[new]
+    #[pyo3(signature=(num_occurrences, component_types, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None))]
+    //, obj_values=None, raw_energies=None, constraints=None, feasible=None, timing=None))]
+    fn py_new(
+        // sample_len: usize,
+        num_occurrences: Vec<usize>,
+        component_types: Vec<Vtype>,
+        binary_cols: Option<Vec<Vec<u8>>>,
+        spin_cols: Option<Vec<Vec<i8>>>,
+        int_cols: Option<Vec<Vec<i64>>>,
+        real_cols: Option<Vec<Vec<f64>>>,
+        raw_energies: Option<Vec<Option<f64>>>,
+        timing: Option<PyTiming>,
+        // obj_values: Option<Vec<f64>>,
+        // constraints: Option<Vec<Option<Vec<bool>>>>,
+        // feasible: Vec<Option<bool>>,
+    ) -> PyResult<Self> {
+        // todo! move further down in rust code.
+        let mut sol = Solution::default();
+        sol.n_samples = num_occurrences.len();
+        sol.num_occurrences = num_occurrences;
+
+        let (mut lb, mut ls, mut li, mut lr) = (0, 0, 0, 0);
+        let binary_cols = binary_cols.unwrap_or(Vec::new());
+        let spin_cols = spin_cols.unwrap_or(Vec::new());
+        let int_cols = int_cols.unwrap_or(Vec::new());
+        let real_cols = real_cols.unwrap_or(Vec::new());
+
+        for ct in component_types.iter() {
+            match ct {
+                Vtype::Binary => {
+                    sol.add_column(SampleCol::Binary(binary_cols[lb].clone()));
+                    lb += 1;
+                }
+                Vtype::Spin => {
+                    sol.add_column(SampleCol::Spin(spin_cols[ls].clone()));
+                    ls += 1;
+                }
+                Vtype::Integer => {
+                    sol.add_column(SampleCol::Integer(int_cols[li].clone()));
+                    li += 1;
+                }
+                Vtype::Real => {
+                    sol.add_column(SampleCol::Real(real_cols[lr].clone()));
+                    lr += 1;
+                }
+            }
+        }
+        if let Some(re) = raw_energies {
+            sol.raw_energies = re;
+        } else {
+            sol.raw_energies = vec![None; sol.n_samples];
+        }
+        sol.obj_values = vec![None; sol.n_samples];
+        sol.timing = timing.and_then(|t| Some(t.0));
+        Ok(PySolution(RcSolution(Rc::new(sol))))
+    }
+
     #[getter]
     fn results<'a>(&self) -> PyResultIterator {
         PyResultIterator(self.0.iter_results())

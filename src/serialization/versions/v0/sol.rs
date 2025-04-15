@@ -4,9 +4,13 @@ use prost::Message;
 
 use crate::{
     core::{
-        solution::sol::SampleCol, ConcreteSolution, RcSolution, Solution, VarAssignment, Vtype,
+        solution::sol::SampleCol, ConcreteAssignmentTypes, ConcreteSolution, RcSolution, Solution,
+        VarAssignment, Vtype,
     },
-    serialization::encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
+    serialization::{
+        encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
+        utils::force_i8,
+    },
 };
 
 fn assignment_type_to_u8(vtype: Vtype) -> u8 {
@@ -44,32 +48,28 @@ pub struct SerSolution {
 
     #[prost(bytes, tag = 110)]
     bins: Vec<u8>,
-    #[prost(uint64, repeated, tag = 111)]
-    bins_pos: Vec<u64>,
-    #[prost(uint64, repeated, tag = 112)]
-    bin_sample_association: Vec<u64>,
-
+    // #[prost(uint64, repeated, tag = 111)]
+    // bins_pos: Vec<u64>,
+    // #[prost(uint64, repeated, tag = 112)]
+    // bin_sample_association: Vec<u64>,
     #[prost(int32, repeated, tag = 120)]
     spins: Vec<i32>,
-    #[prost(uint64, repeated, tag = 121)]
-    spins_pos: Vec<u64>,
-    #[prost(uint64, repeated, tag = 122)]
-    spin_sample_association: Vec<u64>,
-
+    // #[prost(uint64, repeated, tag = 121)]
+    // spins_pos: Vec<u64>,
+    // #[prost(uint64, repeated, tag = 122)]
+    // spin_sample_association: Vec<u64>,
     #[prost(int64, repeated, tag = 130)]
     ints: Vec<i64>,
-    #[prost(uint64, repeated, tag = 131)]
-    ints_pos: Vec<u64>,
-    #[prost(uint64, repeated, tag = 132)]
-    int_sample_association: Vec<u64>,
-
+    // #[prost(uint64, repeated, tag = 131)]
+    // ints_pos: Vec<u64>,
+    // #[prost(uint64, repeated, tag = 132)]
+    // int_sample_association: Vec<u64>,
     #[prost(double, repeated, tag = 140)]
     reals: Vec<f64>,
-    #[prost(uint64, repeated, tag = 141)]
-    reals_pos: Vec<u64>,
-    #[prost(uint64, repeated, tag = 142)]
-    real_sample_association: Vec<u64>,
-
+    // #[prost(uint64, repeated, tag = 141)]
+    // reals_pos: Vec<u64>,
+    // #[prost(uint64, repeated, tag = 142)]
+    // real_sample_association: Vec<u64>,
     /// The number of occurences for each sample in the solution.
     #[prost(uint64, repeated, tag = 30)]
     num_occurrences: Vec<u64>,
@@ -128,33 +128,45 @@ impl SerSolution {
             .enumerate()
             .zip(&solution.num_occurrences)
         {
-            let mut sample_len: u32 = 0;
-            for (pos, a) in sample.iter().enumerate() {
-                sample_len += 1;
+            // for (pos, a) in sample.iter().enumerate() {
+            for a in sample.iter() {
                 match a {
                     VarAssignment::Binary(v) => {
                         self.bins.push(v);
-                        self.bins_pos.push(pos as u64);
-                        self.bin_sample_association.push(i as u64);
+                        // self.bins_pos.push(pos as u64);
+                        // self.bin_sample_association.push(i as u64);
                     }
                     VarAssignment::Spin(v) => {
                         self.spins.push(v as i32);
-                        self.spins_pos.push(pos as u64);
-                        self.spin_sample_association.push(i as u64);
+                        // self.spins_pos.push(pos as u64);
+                        // self.spin_sample_association.push(i as u64);
                     }
                     VarAssignment::Integer(v) => {
                         self.ints.push(v);
-                        self.ints_pos.push(pos as u64);
-                        self.int_sample_association.push(i as u64);
+                        // self.ints_pos.push(pos as u64);
+                        // self.int_sample_association.push(i as u64);
                     }
                     VarAssignment::Real(v) => {
                         self.reals.push(v);
-                        self.reals_pos.push(pos as u64);
-                        self.real_sample_association.push(i as u64);
+                        // self.reals_pos.push(pos as u64);
+                        // self.real_sample_association.push(i as u64);
                     }
                 };
             }
-            self.sample_len = sample_len as u32;
+            self.sample_types = if solution.len() > 0 {
+                let s = solution.samples().get_sample(0).unwrap();
+                s.iter()
+                    .map(|a| match a {
+                        VarAssignment::Binary(_) => assignment_type_to_u8(Vtype::Binary),
+                        VarAssignment::Spin(_) => assignment_type_to_u8(Vtype::Spin),
+                        VarAssignment::Integer(_) => assignment_type_to_u8(Vtype::Integer),
+                        VarAssignment::Real(_) => assignment_type_to_u8(Vtype::Real),
+                    })
+                    .collect()
+            } else {
+                Vec::new()
+            };
+            self.sample_len = solution.samples.len() as u32;
             self.num_occurrences.push(occ as u64);
 
             if let Some(res) = solution.get_result_view(i) {
@@ -185,7 +197,10 @@ impl SerSolution {
     pub fn extract(&self) -> ConcreteSolution {
         let mut sol = Solution::default();
 
+        println!("{self:#?}");
+
         let num_samples = self.num_samples as usize;
+        let mut type_per_pos: Vec<Vtype> = Vec::new();
         for &st in self.sample_types.iter() {
             let vt = u8_to_assignment_type(st);
             match vt {
@@ -196,9 +211,67 @@ impl SerSolution {
                 }
                 Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(num_samples))),
             }
+            type_per_pos.push(vt);
         }
 
-        // todo!();
+        sol.num_occurrences = self.num_occurrences.iter().map(|&v| v as usize).collect();
+        sol.n_samples = self.num_samples as usize;
+
+        println!("{type_per_pos:?}");
+        let (mut lb, mut ls, mut li, mut lr) = (0, 0, 0, 0);
+        let sample_len = self.sample_len as usize;
+        for _ in 0..num_samples {
+            for j in 0..sample_len {
+                // let pos = i * num_samples + j;
+                // println!("{pos}");
+                match &type_per_pos[j] {
+                    Vtype::Binary => {
+                        sol.samples[j]
+                            .push(self.bins[lb])
+                            .expect("something went wrong");
+                        lb += 1;
+                    }
+                    Vtype::Spin => {
+                        sol.samples[j]
+                            .push(force_i8(self.spins[ls]))
+                            .expect("something went wrong");
+                        ls += 1;
+                    }
+                    Vtype::Integer => {
+                        sol.samples[j]
+                            .push(self.ints[li])
+                            .expect("something went wrong");
+                        li += 1;
+                    }
+                    Vtype::Real => {
+                        sol.samples[j]
+                            .push(self.reals[lr])
+                            .expect("something went wrong");
+                        lr += 1;
+                    }
+                };
+            }
+        }
+        sol.obj_values = vec![None; num_samples];
+        if !self.obj_values.is_empty() {
+            let mut idx = 0;
+            for (i, &has_val) in self.has_obj_value.iter().enumerate() {
+                if has_val {
+                    sol.obj_values[i] = Some(self.obj_values[idx]);
+                    idx += 1;
+                }
+            }
+        }
+        sol.raw_energies = vec![None; num_samples];
+        if !self.raw_energies.is_empty() {
+            let mut idx = 0;
+            for (i, &has_val) in self.has_raw_energy.iter().enumerate() {
+                if has_val {
+                    sol.raw_energies[i] = Some(self.raw_energies[idx]);
+                    idx += 1;
+                }
+            }
+        }
 
         RcSolution(Rc::new(sol))
     }

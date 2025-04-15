@@ -16,6 +16,11 @@ pub fn force_u8(n: u32) -> u8 {
     n.try_into().unwrap()
 }
 
+/// Force translation of a `i32` to a `i8`. Used heavily in serialization tasks.
+pub fn force_i8(n: i32) -> i8 {
+    n.try_into().unwrap()
+}
+
 /// Implementation of this trait on any type ensures that the respective type can be expressed
 /// as a slice of bytes.
 pub trait Slicable {
