@@ -1,4 +1,4 @@
-mod py_bqm_translator;
+// mod py_bqm_translator;
 mod py_bqm_translator_alt;
 mod py_lp_translator;
 mod py_matrix_translator;
