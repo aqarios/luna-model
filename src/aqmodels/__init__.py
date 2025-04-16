@@ -2,9 +2,9 @@
 # Do not edit manually.
 
 from ._variable import (
-  Variable,
   Vtype,
-  Bounds
+  Bounds,
+  Variable
 )
 from ._timing import (
   Timer,
@@ -13,42 +13,42 @@ from ._timing import (
 from ._solution import Solution
 from ._sample import (
   Sample,
-  SampleIterator,
+  Samples,
   SamplesIterator,
-  Samples
+  SampleIterator
 )
 from ._result import (
-  ResultIterator,
+  Result,
   ResultView,
-  Result
+  ResultIterator
 )
 from ._model import Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-  Constraint as __Constraint,
-  Vtype as __Vtype,
-  Timer as __Timer,
-  ResultView as __ResultView,
-  Comparator as __Comparator,
-  SampleIterator as __SampleIterator,
-  Solution as __Solution,
-  Constraints as __Constraints,
-  Timing as __Timing,
   SamplesIterator as __SamplesIterator,
-  Variable as __Variable,
-  Bounds as __Bounds,
   Expression as __Expression,
-  Samples as __Samples,
-  Result as __Result,
+  Constraints as __Constraints,
+  ResultView as __ResultView,
   Sample as __Sample,
-  Environment as __Environment,
+  Bounds as __Bounds,
+  Result as __Result,
+  Vtype as __Vtype,
+  ResultIterator as __ResultIterator,
+  Comparator as __Comparator,
+  Timing as __Timing,
+  Solution as __Solution,
+  Samples as __Samples,
+  Variable as __Variable,
+  SampleIterator as __SampleIterator,
+  Timer as __Timer,
   Model as __Model,
-  ResultIterator as __ResultIterator
+  Environment as __Environment,
+  Constraint as __Constraint
 )
 from ._constraints import (
-  Constraint,
   Constraints,
+  Constraint,
   Comparator
 )
 from . import (
