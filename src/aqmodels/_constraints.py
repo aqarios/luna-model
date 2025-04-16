@@ -91,6 +91,18 @@ class Constraint:
             If lhs is not an Expression or rhs is not a scalar float.
         """
         return lhs, rhs, comparator
+    
+    @dispatched
+    @property
+    def name(self):
+        """
+        Get the name of the constraint.
+
+        Returns
+        -------
+        str, optional
+            Returns the name of the constraint as a string or None if it is unnamed.
+        """
 
 
 @export

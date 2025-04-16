@@ -2,9 +2,9 @@
 # Do not edit manually.
 
 from ._variable import (
-  Vtype,
   Bounds,
-  Variable
+  Variable,
+  Vtype
 )
 from ._timing import (
   Timer,
@@ -12,39 +12,39 @@ from ._timing import (
 )
 from ._solution import Solution
 from ._sample import (
-  Sample,
   Samples,
-  SamplesIterator,
-  SampleIterator
+  SampleIterator,
+  Sample,
+  SamplesIterator
 )
 from ._result import (
   Result,
-  ResultView,
-  ResultIterator
+  ResultIterator,
+  ResultView
 )
 from ._model import Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-  SamplesIterator as __SamplesIterator,
-  Expression as __Expression,
   Constraints as __Constraints,
-  ResultView as __ResultView,
-  Sample as __Sample,
-  Bounds as __Bounds,
-  Result as __Result,
-  Vtype as __Vtype,
-  ResultIterator as __ResultIterator,
-  Comparator as __Comparator,
+  Expression as __Expression,
+  SampleIterator as __SampleIterator,
   Timing as __Timing,
-  Solution as __Solution,
+  Environment as __Environment,
   Samples as __Samples,
   Variable as __Variable,
-  SampleIterator as __SampleIterator,
+  Solution as __Solution,
+  Constraint as __Constraint,
+  SamplesIterator as __SamplesIterator,
+  ResultIterator as __ResultIterator,
+  Bounds as __Bounds,
+  Result as __Result,
+  Sample as __Sample,
   Timer as __Timer,
   Model as __Model,
-  Environment as __Environment,
-  Constraint as __Constraint
+  ResultView as __ResultView,
+  Vtype as __Vtype,
+  Comparator as __Comparator
 )
 from ._constraints import (
   Constraints,
@@ -52,8 +52,8 @@ from ._constraints import (
   Comparator
 )
 from . import (
-  translator,
-  errors
+  errors,
+  translator
 )
 
 Model = __Model  # type: ignore[misc,assignment] # noqa: F811

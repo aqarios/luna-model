@@ -285,3 +285,64 @@ class Variable:
             If the operand type is unsupported.
         """
         return other
+    @dispatched
+    def __eq__(self, value):
+        """
+        Generate an equality constraint for a variable.
+
+        Parameters
+        ----------
+        value : int or float
+
+        Returns
+        -------
+        Constraint
+            The resulting constraint.
+
+        Raises
+        ------
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return value
+
+    @dispatched
+    def __le__(self, value):
+        """
+        Generate a less equal constraint for a variable.
+
+        Parameters
+        ----------
+        value : int or float
+
+        Returns
+        -------
+        Constraint
+            The resulting constraint.
+
+        Raises
+        ------
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return value
+    @dispatched
+    def __ge__(self, value):
+        """
+        Generate a greater equal constraint for a variable.
+
+        Parameters
+        ----------
+        value : int or float
+
+        Returns
+        -------
+        Constraint
+            The resulting constraint.
+
+        Raises
+        ------
+        RuntimeError
+            If the operand type is unsupported.
+        """
+        return value
