@@ -1,10 +1,18 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use super::py_constr::PyConstraint;
 use super::py_env::{PyEnvironment, CURRENT_ENV};
 use super::py_exceptions::NoActiveEnvironmentFoundError;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
+use crate::core::expression::ExpressionBaseCreation;
 use crate::core::operations::{
     AddToExpression, MulToExpression, NegToExpression, RSubToExpression, SubToExpression,
 };
-use crate::core::{environment, ConcreteExpression, ConcreteRcVarRef, ConcreteVarRef, Vtype};
+use crate::core::{
+    environment, Comparator, ConcreteConstraint, ConcreteExpression, ConcreteRcVarRef,
+    ConcreteVarRef, Expression, Vtype,
+};
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
@@ -129,6 +137,36 @@ impl PyVariable {
 
     fn __neg__(&self) -> PyExpression {
         PyExpression::new(self.0.neg())
+    }
+
+    fn __eq__(&self, other: f64) -> PyResult<PyConstraint> {
+        let expr = self.0.mul(1.0);
+        Ok(PyConstraint::new(ConcreteConstraint::new(
+            Rc::new(RefCell::new(expr)),
+            other,
+            Comparator::Eq,
+            None,
+        )))
+    }
+
+    fn __le__(&self, other: f64) -> PyResult<PyConstraint> {
+        let expr = self.0.mul(1.0);
+        Ok(PyConstraint::new(ConcreteConstraint::new(
+            Rc::new(RefCell::new(expr)),
+            other,
+            Comparator::Le,
+            None,
+        )))
+    }
+
+    fn __ge__(&self, other: f64) -> PyResult<PyConstraint> {
+        let expr = Expression::new_linear_single(Rc::clone(&self.env), self.id, 1.0);
+        Ok(PyConstraint::new(ConcreteConstraint::new(
+            Rc::new(RefCell::new(expr)),
+            other,
+            Comparator::Ge,
+            None,
+        )))
     }
 }
 

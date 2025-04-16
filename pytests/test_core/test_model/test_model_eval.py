@@ -1,6 +1,7 @@
 import pytest
 from aqmodels import Solution, Variable, Vtype, Model
 
+
 @pytest.fixture
 def solution() -> Solution:
     return Solution.build(
@@ -17,6 +18,7 @@ def solution() -> Solution:
         raw_energies=[6.0, 5.0, 2.0],
     )
 
+
 @pytest.fixture
 def model_wo_constraint() -> Model:
     model = Model("test_model")
@@ -27,6 +29,7 @@ def model_wo_constraint() -> Model:
         r = Variable("r", vtype=Vtype.Real)
     model.objective = b + s + i + r
     return model
+
 
 @pytest.fixture
 def model_w_constraint() -> Model:
@@ -41,6 +44,7 @@ def model_w_constraint() -> Model:
     model.constraints += b + s + i + r <= 10.0
     return model
 
+
 @pytest.fixture
 def model_w_constraint_infeasible() -> Model:
     model = Model("test_model")
@@ -54,10 +58,12 @@ def model_w_constraint_infeasible() -> Model:
     model.constraints += b + s + i + r <= 0.0
     return model
 
+
 def test_model_eval_wo_constraint(model_wo_constraint: Model, solution: Solution):
     new_sol = model_wo_constraint.evaluate(solution)
     assert all(new_sol.raw_energies == solution.raw_energies)
     assert all(new_sol.obj_values == solution.raw_energies)
+
 
 def test_model_eval_w_constraint(model_w_constraint: Model, solution: Solution):
     new_sol = model_w_constraint.evaluate(solution)
@@ -70,7 +76,10 @@ def test_model_eval_w_constraint(model_w_constraint: Model, solution: Solution):
         assert res.feasible is not None
         assert res.feasible
 
-def test_model_eval_w_constraint_infeasible(model_w_constraint_infeasible: Model, solution: Solution):
+
+def test_model_eval_w_constraint_infeasible(
+    model_w_constraint_infeasible: Model, solution: Solution
+):
     new_sol = model_w_constraint_infeasible.evaluate(solution)
     assert all(new_sol.raw_energies == solution.raw_energies)
     assert all(new_sol.obj_values == solution.raw_energies)
@@ -80,4 +89,3 @@ def test_model_eval_w_constraint_infeasible(model_w_constraint_infeasible: Model
             assert not constr
         assert res.feasible is not None
         assert not res.feasible
-

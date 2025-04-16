@@ -1,7 +1,13 @@
 import re
 from pathlib import Path
 from collections import defaultdict
-from gen_common import LIB_ROOT, PROJECT_ROOT, AUTOGEN_HEADER, collect_exports
+from gen_common import (
+    LIB_ROOT,
+    PROJECT_ROOT,
+    AUTOGEN_HEADER,
+    collect_exports,
+    format as ruff,
+)
 
 
 def extract_class_block(text: str, name: str) -> str:
@@ -102,3 +108,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    ruff()

@@ -75,9 +75,9 @@ impl SerConstraints {
             let lhs_bytes = c.lhs.borrow().encode();
 
             let comparator = match c.comparator {
-                Comparator::Leq => 0,
+                Comparator::Le => 0,
                 Comparator::Eq => 1,
-                Comparator::Geq => 2,
+                Comparator::Ge => 2,
             };
             self.lhsides.push(lhs_bytes);
             self.rhsides.push(c.rhs);
@@ -107,9 +107,9 @@ impl SerConstraints {
             let lhs_base = lhs.decode(Rc::clone(&env))?;
             let lhs = Rc::new(RefCell::new(lhs_base));
             let comparator = match comp {
-                0 => Comparator::Leq,
+                0 => Comparator::Le,
                 1 => Comparator::Eq,
-                2 => Comparator::Geq,
+                2 => Comparator::Ge,
                 _ => panic!("undefined comparator '{}'", comp),
             };
             let name = if name == PLACEHOLDER_NAME {
