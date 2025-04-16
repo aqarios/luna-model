@@ -519,7 +519,6 @@ class MatrixTranslator:
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
 
-
 __all__ = [
     "Bounds",
     "BqmTranslator",
