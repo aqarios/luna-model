@@ -198,8 +198,16 @@ where
         sense_is_minimize: bool,
     ) {
         self.obj_values[sample_idx] = obj_value;
-        self.feasible[sample_idx] = constraints.as_ref().map(|x| x.iter().all(|&b| b));
-        self.constraints[sample_idx] = constraints;
+        if let Some(constr) = constraints.as_ref() {
+            if self.feasible.len() != self.n_samples {
+                self.feasible = vec![None; self.n_samples]
+            }
+            if self.constraints.len() != self.n_samples {
+                self.constraints = vec![None; self.n_samples]
+            }
+            self.feasible[sample_idx] = Some(constr.iter().all(|&b| b));
+            self.constraints[sample_idx] = Some(constr.clone());
+        }
         match self.best_sample_idx {
             None => {}
             Some(i) => match (self.obj_values[i], obj_value) {

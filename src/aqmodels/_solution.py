@@ -251,23 +251,23 @@ class Solution:
         ----------
         component_types : list[Vtype]
            The variable type each element in a sample encodes.
-        binary_cols : list[list[int]] | None
+        binary_cols : list[list[int]], optional
            The data of all binary valued columns. Each inner list encodes a single binary valued column.
            Required if any element in the `component_types` is `Vtype.Binary`.
-        spin_cols : list[list[int]] | None
+        spin_cols : list[list[int]], optional
            The data of all spin valued columns. Each inner list encodes a single spin valued column.
            Required if any element in the `component_types` is `Vtype.Spin`.
-        int_cols : list[list[int]] | None
+        int_cols : list[list[int]], optional
            The data of all integer valued columns. Each inner list encodes a single integer valued column.
            Required if any element in the `component_types` is `Vtype.Integer`.
-        real_cols : list[list[int]] | None
+        real_cols : list[list[float]], optional
            The data of all real valued columns. Each inner list encodes a single real valued column.
            Required if any element in the `component_types` is `Vtype.Real`.
-        raw_energies : list[float | None] | None
+        raw_energies : list[float, optional], optional
            The data of all real valued columns. Each inner list encodes a single real valued column.
-        timing : Timing | None
+        timing : Timing, optional
            The timing data.
-        num_occurrences : list[int] | None
+        num_occurrences : list[int], optional
            The number each sample in the solution has occurred. By default 1 for all samples.
 
         Returns

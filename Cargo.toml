@@ -37,7 +37,7 @@ either = "1.15.0"
 regex = "1.11.1"
 [dependencies.pyo3]
 version = "0.24.1"
-features = ["extension-module", "abi3-py311"]
+features = ["extension-module"]
 optional = true
 
 [dependencies.numpy]

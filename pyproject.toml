@@ -75,6 +75,7 @@ include = [
   "src/aqmodels/**/*.py",
   "src/aqmodels/py.typed",
 ]
+compatibility = "linux"
 
 [build-system]
 requires = [ "maturin>=1.0,<2.0" ]

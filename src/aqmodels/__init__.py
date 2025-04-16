@@ -1,37 +1,60 @@
 # This file is auto-generated.
 # Do not edit manually.
 
-from ._variable import Variable, Vtype, Bounds
-from ._timing import Timing, Timer
+from ._variable import (
+  Variable,
+  Vtype,
+  Bounds
+)
+from ._timing import (
+  Timer,
+  Timing
+)
 from ._solution import Solution
-from ._sample import Samples, Sample, SampleIterator, SamplesIterator
-from ._result import ResultIterator, ResultView, Result
+from ._sample import (
+  Sample,
+  SampleIterator,
+  SamplesIterator,
+  Samples
+)
+from ._result import (
+  ResultIterator,
+  ResultView,
+  Result
+)
 from ._model import Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Expression as __Expression,
-    Timing as __Timing,
-    Model as __Model,
-    Samples as __Samples,
-    ResultIterator as __ResultIterator,
-    Constraints as __Constraints,
-    SampleIterator as __SampleIterator,
-    Environment as __Environment,
-    Sample as __Sample,
-    Vtype as __Vtype,
-    Variable as __Variable,
-    Constraint as __Constraint,
-    Bounds as __Bounds,
-    Result as __Result,
-    Solution as __Solution,
-    SamplesIterator as __SamplesIterator,
-    ResultView as __ResultView,
-    Timer as __Timer,
-    Comparator as __Comparator,
+  Constraint as __Constraint,
+  Vtype as __Vtype,
+  Timer as __Timer,
+  ResultView as __ResultView,
+  Comparator as __Comparator,
+  SampleIterator as __SampleIterator,
+  Solution as __Solution,
+  Constraints as __Constraints,
+  Timing as __Timing,
+  SamplesIterator as __SamplesIterator,
+  Variable as __Variable,
+  Bounds as __Bounds,
+  Expression as __Expression,
+  Samples as __Samples,
+  Result as __Result,
+  Sample as __Sample,
+  Environment as __Environment,
+  Model as __Model,
+  ResultIterator as __ResultIterator
 )
-from ._constraints import Constraints, Constraint, Comparator
-from . import errors, translator
+from ._constraints import (
+  Constraint,
+  Constraints,
+  Comparator
+)
+from . import (
+  translator,
+  errors
+)
 
 Model = __Model  # type: ignore[misc,assignment] # noqa: F811
 Expression = __Expression  # type: ignore[misc,assignment] # noqa: F811

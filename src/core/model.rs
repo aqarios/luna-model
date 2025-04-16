@@ -122,13 +122,18 @@ where
         let mut newsol = sol.0.deref().clone();
         for (i, sample) in sol.samples().iter().enumerate() {
             let obj_val = self.objective.borrow().evaluate_sample(&sample);
-            let constraints = self
-                .constraints
-                .borrow()
-                .iter()
-                .map(|constr| constr.evaluate_sample(&sample))
-                .collect();
-            newsol.add_sample_evaluation(i, Some(obj_val), Some(constraints), self.sense.is_min());
+            let constraints = if self.constraints.borrow().is_empty() {
+                None
+            } else {
+                Some(
+                    self.constraints
+                        .borrow()
+                        .iter()
+                        .map(|constr| constr.evaluate_sample(&sample))
+                        .collect(),
+                )
+            };
+            newsol.add_sample_evaluation(i, Some(obj_val), constraints, self.sense.is_min());
         }
         RcSolution(newsol.into())
     }

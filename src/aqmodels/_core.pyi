@@ -442,7 +442,7 @@ class Solution:
         binary_cols: list[list[int]] | None = ...,
         spin_cols: list[list[int]] | None = ...,
         int_cols: list[list[int]] | None = ...,
-        real_cols: list[list[int]] | None = ...,
+        real_cols: list[list[float]] | None = ...,
         raw_energies: list[float | None] | None = ...,
         timing: Timing | None = ...,
     ) -> Solution: ...
@@ -518,6 +518,7 @@ class MatrixTranslator:
     ) -> Model: ...
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
+
 
 __all__ = [
     "Bounds",

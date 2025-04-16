@@ -75,6 +75,40 @@ class Model:
         """
         return env, name
 
+    @dispatched
+    def evaluate(self, solution):
+        """
+        Evaluate the model given a solution.
+
+        Parameters
+        ----------
+        solution : Solution
+            The solution used to evaluate the model with.
+
+        Returns
+        -------
+        Solution
+            A new solution object with filled out information.
+        """
+        return solution
+
+    @dispatched
+    def evaluate_sample(self, sample):
+        """
+        Evaluate the model given a single sample.
+
+        Parameters
+        ----------
+        sample : Sample
+            The sample used to evaluate the model with.
+
+        Returns
+        -------
+        Result
+            A result object containing the information from the evaluation process.
+        """
+        return sample
+
     @property
     @dispatched
     def name(self):
