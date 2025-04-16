@@ -1,24 +1,38 @@
+import sys
 import pytest
 import tempfile
 import gurobipy as gp
-import cplex
-
 from random import Random
 from aqmodels import LpTranslator
 from dimod import lp as dimod_lp
 from pytests.test_core.utils import generate_cqms, make_seed
 
+NOT_RUN_CPLEX = False
+try:
+    import cplex
+except ImportError as _:
+    print(
+        "Cplex is not installed and thus, the CPLEX tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_CPLEX = True
+
+
 NUM_CQMS: int = 100
 
-def check_dimod_expr(cqm, cqm_back):
-        assert cqm.offset == cqm_back.offset
-        for u in cqm.variables:
-            assert cqm.get_linear(u) == cqm_back.get_linear(u), f"linear not equal for '{u}'"
-            for v in cqm.variables:
-                if u == v:
-                    continue
-                assert cqm.get_quadratic(u, v, default=0) == cqm_back.get_quadratic(u, v, default=0), f"quadratic not equal for '{u=}' and '{v=}'"
 
+def check_dimod_expr(cqm, cqm_back):
+    assert cqm.offset == cqm_back.offset
+    for u in cqm.variables:
+        assert cqm.get_linear(u) == cqm_back.get_linear(u), (
+            f"linear not equal for '{u}'"
+        )
+        for v in cqm.variables:
+            if u == v:
+                continue
+            assert cqm.get_quadratic(u, v, default=0) == cqm_back.get_quadratic(
+                u, v, default=0
+            ), f"quadratic not equal for '{u=}' and '{v=}'"
 
 
 def lin_expr_equal(e1, e2):
@@ -26,6 +40,7 @@ def lin_expr_equal(e1, e2):
     terms1 = sorted([(e1.getVar(i).VarName, e1.getCoeff(i)) for i in range(e1.size())])
     terms2 = sorted([(e2.getVar(i).VarName, e2.getCoeff(i)) for i in range(e2.size())])
     return terms1 == terms2
+
 
 def quad_expr_equal(e1: gp.QuadExpr, e2: gp.QuadExpr):
     """Compare full quadratic expressions (linear + quadratic parts)."""
@@ -41,15 +56,26 @@ def quad_expr_equal(e1: gp.QuadExpr, e2: gp.QuadExpr):
     # if not isinstance(e1, gp.QuadExpr) or not isinstance(e2, gp.QuadExpr):
     #     return False  # one has quadratic, one doesn't
 
-    quad1 = sorted([
-        tuple(sorted((e1.getVar1(i).VarName, e1.getVar2(i).VarName)) + [e1.getCoeff(i)])
-        for i in range(e1.size())
-    ])
-    quad2 = sorted([
-        tuple(sorted((e2.getVar1(i).VarName, e2.getVar2(i).VarName)) + [e2.getCoeff(i)])
-        for i in range(e2.size())
-    ])
+    quad1 = sorted(
+        [
+            tuple(
+                sorted((e1.getVar1(i).VarName, e1.getVar2(i).VarName))
+                + [e1.getCoeff(i)]
+            )
+            for i in range(e1.size())
+        ]
+    )
+    quad2 = sorted(
+        [
+            tuple(
+                sorted((e2.getVar1(i).VarName, e2.getVar2(i).VarName))
+                + [e2.getCoeff(i)]
+            )
+            for i in range(e2.size())
+        ]
+    )
     return quad1 == quad2
+
 
 def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
     # Compare model sense
@@ -63,21 +89,29 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
         return False
     for v1, v2 in zip(v1s, v2s):
         if not (
-            v1.VarName == v2.VarName and
-            abs(v1.LB - v2.LB) < 1e-6 and
-            abs(v1.UB - v2.UB) < 1e-6 and
-            v1.VType == v2.VType
+            v1.VarName == v2.VarName
+            and abs(v1.LB - v2.LB) < 1e-6
+            and abs(v1.UB - v2.UB) < 1e-6
+            and v1.VType == v2.VType
         ):
             return False
 
     # Compare objective
     m1_obj = m1.getObjective()
     m2_obj = m2.getObjective()
-    if type(m1_obj) != type(m2_obj):
+    if type(m1_obj) is not type(m2_obj):
         return False
-    if isinstance(m1_obj, gp.QuadExpr) and isinstance(m2_obj, gp.QuadExpr) and not quad_expr_equal(m1_obj, m2_obj):
+    if (
+        isinstance(m1_obj, gp.QuadExpr)
+        and isinstance(m2_obj, gp.QuadExpr)
+        and not quad_expr_equal(m1_obj, m2_obj)
+    ):
         return False
-    if isinstance(m1_obj, gp.LinExpr) and isinstance(m2_obj, gp.LinExpr) and not lin_expr_equal(m1_obj, m2_obj):
+    if (
+        isinstance(m1_obj, gp.LinExpr)
+        and isinstance(m2_obj, gp.LinExpr)
+        and not lin_expr_equal(m1_obj, m2_obj)
+    ):
         return False
 
     # Compare constraints
@@ -95,6 +129,7 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
             return False
 
     return True
+
 
 @pytest.mark.translator
 def test_cqm_to_model_to_cqm():
@@ -117,7 +152,8 @@ def test_cqm_to_model_to_cqm():
             constr_back = cqm_back.constraints[name]
             check_dimod_expr(constr.lhs, constr_back.lhs)
             assert constr.rhs == constr_back.rhs
-            assert type(constr) == type(constr_back)
+            assert type(constr) is type(constr_back)
+
 
 @pytest.mark.translator
 def test_gurobi_to_model_to_gurobi():
@@ -127,7 +163,7 @@ def test_gurobi_to_model_to_gurobi():
         # We use CQM's assuming the LP file is correctly formatted for Gurobi.
         # SETUP
         tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
-        dimod_lp.dump(cqm, tmp_lp.file) # type: ignore
+        dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
         tmp_lp.flush()
         gp_model = gp.read(tmp_lp.name)
         # ACTUAL
@@ -151,6 +187,8 @@ def test_gurobi_to_model_to_gurobi():
         gp_model_back = gp.read(tmp_lp.name)
         assert gp_models_are_equal(gp_model, gp_model_back)
 
+
+@pytest.mark.skipif(NOT_RUN_CPLEX, reason="CPLEX is required for test")
 @pytest.mark.translator
 def test_cplex_to_model_to_cplex():
     rand = Random(make_seed())
@@ -160,7 +198,7 @@ def test_cplex_to_model_to_cplex():
         # SETUP
         tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
         tmp_mps = tempfile.NamedTemporaryFile(mode="w+", suffix=".mps")
-        dimod_lp.dump(cqm, tmp_lp.file) # type: ignore
+        dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
         tmp_lp.flush()
         tmp_lp.seek(0)
         cpx_model = cplex.Cplex(tmp_lp.name)

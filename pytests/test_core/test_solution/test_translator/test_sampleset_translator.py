@@ -70,8 +70,8 @@ def test_sampleset_translator_sa_random_models():
         assert len(sol.samples) == len(sampleset_agg.record.sample)
         assert sol.samples.tolist() == sampleset_agg.record.sample.tolist()
         assert (
-                sol.num_occurrences.tolist()
-                == sampleset_agg.record.num_occurrences.tolist()
+            sol.num_occurrences.tolist()
+            == sampleset_agg.record.num_occurrences.tolist()
         )
         assert len(sol.num_occurrences) == len(sol.samples)
         assert sol.runtime.total.total_seconds() > 0

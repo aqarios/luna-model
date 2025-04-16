@@ -4,79 +4,56 @@ from numpy.typing import NDArray
 
 from aqmodels import Timing, ResultIterator, ResultView, Samples, Vtype
 
-
 class Solution:
     def __str__(self) -> str: ...
-
     def __repr__(self) -> str: ...
-
     def __iter__(self) -> ResultIterator: ...
-
     def __getitem__(self, item: int) -> ResultView: ...
-
-    def __eq__(self, other: Solution) -> bool: ... # type: ignore
-
+    def __eq__(self, other: Solution) -> bool: ...  # type: ignore
     @property
     def results(self) -> ResultIterator: ...
-
     @property
     def samples(self) -> Samples: ...
-
     @property
     def obj_values(self) -> NDArray: ...
-
     @property
     def raw_energies(self) -> NDArray: ...
-
     @property
     def num_occurrences(self) -> NDArray: ...
-
     @property
     def runtime(self) -> Timing | None: ...
-
     @property
     def best_sample_idx(self) -> int | None: ...
-
     @overload
     def serialize(self) -> bytes: ...
-
     @overload
     def serialize(self, compress: bool | None = ...) -> bytes: ...
-
     @overload
     def serialize(self, level: int | None = ...) -> bytes: ...
-
     @overload
     def serialize(
-            self, compress: bool | None = ..., level: int | None = ...
+        self, compress: bool | None = ..., level: int | None = ...
     ) -> bytes: ...
-
     @overload
     def encode(self) -> bytes: ...
-
     @overload
     def encode(self, compress: bool | None = ...) -> bytes: ...
-
     @overload
     def encode(self, level: int | None = ...) -> bytes: ...
-
     @overload
     def encode(self, compress: bool | None = ..., level: int | None = ...) -> bytes: ...
-
     @staticmethod
     def deserialize(data: bytes) -> Solution: ...
-
     @staticmethod
     def decode(data: bytes) -> Solution: ...
-
     @staticmethod
     def build(
-        component_types: list[Vtype], 
-        num_occurrences: list[int] | None = ..., 
+        component_types: list[Vtype],
+        num_occurrences: list[int] | None = ...,
         binary_cols: list[list[int]] | None = ...,
         spin_cols: list[list[int]] | None = ...,
         int_cols: list[list[int]] | None = ...,
         real_cols: list[list[int]] | None = ...,
         raw_energies: list[float | None] | None = ...,
-        timing: Timing | None = ...
+        timing: Timing | None = ...,
     ) -> Solution: ...

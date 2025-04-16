@@ -16,6 +16,7 @@ def extract_existing_docstring(init_path: Path) -> str:
 
 
 def format_imports(import_entries):
+    import_entries = list(set(import_entries))
     grouped = defaultdict(list)
     for imp in import_entries:
         if " import " not in imp:
@@ -70,7 +71,7 @@ def generate_module_init(
                 )
                 raw_import_lines.append(f"from .{mod_base} import {sym_name}")
                 assign_lines.append(
-                    f"{sym_name} = __{sym_name}  # type: ignore[misc,assignment]"
+                    f"{sym_name} = __{sym_name}  # type: ignore[misc,assignment] # noqa: F811"
                 )
             else:
                 raw_import_lines.append(
@@ -79,7 +80,9 @@ def generate_module_init(
                 raw_import_lines.append(
                     f"from .{sym['module_path'].name} import {sym_name}"
                 )
-                assign_lines.append(f"{sym_name} = __{mod_base}.{sym_name}")
+                assign_lines.append(
+                    f"{sym_name} = __{mod_base}.{sym_name} # noqa: F811"
+                )
 
         all_exports.append(sym_name)
 
