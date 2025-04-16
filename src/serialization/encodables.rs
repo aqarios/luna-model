@@ -4,10 +4,11 @@ use super::versions::v0::SerConstraints as SerConstrV0;
 use super::versions::v0::SerEnvironment as SerEnvV0;
 use super::versions::v0::SerExpression as SerExprV0;
 use super::versions::v0::SerModel as SerModelV0;
+use super::versions::v0::SerSolution as SerSolutionV0;
 use super::Version;
 use crate::core::{
     ConcreteConstraints, ConcreteEnvironment, ConcreteExpression, ConcreteModel,
-    ConcreteMutRcEnvironment,
+    ConcreteMutRcEnvironment, ConcreteSolution,
 };
 
 /// Helper type to ensure easier version updates to a new serialization implementation
@@ -30,6 +31,11 @@ type SerEnvLatest = SerEnvV0;
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
 type SerModelLatest = SerModelV0;
+/// Helper type to ensure easier version updates to a new serialization implementation
+/// of a Solution. In case a new serialization format is defined update this value
+/// to ensure all uses of serialization throught the entire library use the most recent
+/// serialization implementation.
+type SerSolutionLatest = SerSolutionV0;
 
 /// Makes an Expression with Index = VarId and Bias = f64 encodable.
 impl Encodable<SerExprV0> for ConcreteExpression {}
@@ -39,6 +45,8 @@ impl Encodable<SerConstrV0> for ConcreteConstraints {}
 impl Encodable<SerEnvV0> for ConcreteEnvironment {}
 /// Makes a Model with Index = VarId and Bias = f64 encodable.
 impl Encodable<SerModelV0> for ConcreteModel {}
+/// Makes a Solution encodable.
+impl Encodable<SerSolutionV0> for ConcreteSolution {}
 
 /// Default implementation to make a bytes vector deserializable to an Expression.
 /// For the decoding of a bytes vector to an Expression a reference counted pointer to
@@ -116,6 +124,24 @@ impl Decodable<ConcreteModel> for Versioned<Vec<u8>> {
         match self.version {
             Some(Version::V0) => SerModelV0::decoder(self.data.as_slice(), payload),
             None => SerModelLatest::decoder(self.data.as_slice(), payload),
+        }
+    }
+}
+
+/// Default implementation to make a bytes vector deserializable to a Solution.
+impl Decodable<ConcreteSolution> for Vec<u8> {
+    type Latest = SerSolutionLatest;
+    type Payload = ();
+}
+/// Makes a versionized representation of the Model decodable.
+impl Decodable<ConcreteSolution> for Versioned<Vec<u8>> {
+    type Latest = SerSolutionLatest;
+    type Payload = ();
+
+    fn decode(&self, payload: Self::Payload) -> Result<ConcreteSolution, DecodeError> {
+        match self.version {
+            Some(Version::V0) => SerSolutionV0::decoder(self.data.as_slice(), payload),
+            None => SerSolutionLatest::decoder(self.data.as_slice(), payload),
         }
     }
 }

@@ -29,7 +29,7 @@ where
 }
 
 /// The different assignments to a variable in the single samples
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SampleCol<AssignmentTypes>
 where
     AssignmentTypes: AssignmentBaseTypes,
@@ -270,5 +270,26 @@ where
 {
     fn into(self) -> Rc<Solution<Bias, AssignmentTypes>> {
         self.0
+    }
+}
+
+impl<Bias, AssignmentTypes> PartialEq for RcSolution<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes + PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        let lhs = &self.0;
+        let rhs = &other.0;
+
+        lhs.samples == rhs.samples
+            && lhs.num_occurrences == rhs.num_occurrences
+            && lhs.obj_values == rhs.obj_values
+            && lhs.raw_energies == rhs.raw_energies
+            && lhs.constraints == rhs.constraints
+            && lhs.feasible == rhs.feasible
+            && lhs.best_sample_idx == rhs.best_sample_idx
+            && lhs.timing == rhs.timing
+            && lhs.n_samples == rhs.n_samples
     }
 }

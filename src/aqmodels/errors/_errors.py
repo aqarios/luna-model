@@ -26,6 +26,7 @@ class VariableExistsError(Exception):
     a variable with the same name will raise this exception.
     """
 
+
 @export("top", "errors")
 class VariableNotExistingError(Exception):
     """

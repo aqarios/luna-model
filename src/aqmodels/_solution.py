@@ -67,6 +67,10 @@ class Solution:
     def __getitem__(self, item):
         return item
 
+    @dispatched
+    def __eq__(self, item):
+        return item
+
     @property
     @dispatched
     def results(self):
@@ -168,3 +172,116 @@ class Solution:
     def deserialize(data):
         """Alias for ``decode()``."""
         return data
+
+    @staticmethod
+    def build(
+        num_occurrences,
+        component_types,
+        binary_cols,
+        spin_cols,
+        int_cols,
+        real_cols,
+        raw_energies,
+        timing,
+    ):
+        """
+        Build a Solution based on the provided input data. The solution is constructed
+        based on a column layout of the solution. Let's take the following sample-set with three
+        samples as an example:
+
+            [ 0  1  -1  3  2.2  1 ]
+            [ 1  0  -1  6  3.8  0 ]
+            [ 1  1  +1  2  2.4  0 ]
+
+        Each row encodes a single sample. However, the variable types vary, the first, second and last
+        columns all represent a Binary variable (index 0, 1, 5). The third column represents a variable
+        of type Spin (index 2). The fourth column (index 3) a variable of type Integer and the fith column
+        (index 4) a real valued variable.
+
+        Thus, the `component_types` list is:
+
+            >>> component_types = [Vtype.Binary, Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real, Vtype.Binary]
+
+        Now we can extract all columns for a binary valued variable and append them to a new list:
+
+            >>> binary_cols = [[0, 1, 1], [1, 0, 1], [1, 0, 0]]
+
+        where the first element in the list represents the first column, the second element the second
+        column and the third element the fith column.
+        We do the same for the remaning variable types:
+
+            >>> spin_cols = [[-1, -1, +1]]
+            >>> int_cols = [[3, 6, 2]]
+            >>> real_cols = [[2.2, 3.8, 2.4]]
+
+        If we know the raw energies we can construct them as well:
+
+            >>> raw_energies = [-200, -100, +300]
+
+        And finally call the `build` function:
+
+            >>> sol = Solution.build(
+            ...     component_types,
+            ...     binary_cols,
+            ...     spin_cols,
+            ...     int_cols,
+            ...     real_cols,
+            ...     raw_energies,
+            ...     timing,
+            ...     num_occurrences=[1, 1, 1]
+            ... )
+            >>> sol
+
+        In this example, we could also neglect the `num_occurrences` as it defaults to `1`
+        for all samples if not set:
+
+            >>> sol = Solution.build(
+            ...     component_types,
+            ...     binary_cols,
+            ...     spin_cols,
+            ...     int_cols,
+            ...     real_cols,
+            ...     raw_energies,
+            ...     timing
+            ... )
+            >>> sol
+
+
+        Parameters
+        ----------
+        component_types : list[Vtype]
+           The variable type each element in a sample encodes.
+        binary_cols : list[list[int]] | None
+           The data of all binary valued columns. Each inner list encodes a single binary valued column.
+           Required if any element in the `component_types` is `Vtype.Binary`.
+        spin_cols : list[list[int]] | None
+           The data of all spin valued columns. Each inner list encodes a single spin valued column.
+           Required if any element in the `component_types` is `Vtype.Spin`.
+        int_cols : list[list[int]] | None
+           The data of all integer valued columns. Each inner list encodes a single integer valued column.
+           Required if any element in the `component_types` is `Vtype.Integer`.
+        real_cols : list[list[int]] | None
+           The data of all real valued columns. Each inner list encodes a single real valued column.
+           Required if any element in the `component_types` is `Vtype.Real`.
+        raw_energies : list[float | None] | None
+           The data of all real valued columns. Each inner list encodes a single real valued column.
+        timing : Timing | None
+           The timing data.
+        num_occurrences : list[int] | None
+           The number each sample in the solution has occurred. By default 1 for all samples.
+
+        Returns
+        -------
+        Solution
+            The constructed solution
+        """
+        return (
+            num_occurrences,
+            component_types,
+            binary_cols,
+            spin_cols,
+            int_cols,
+            real_cols,
+            raw_energies,
+            timing,
+        )

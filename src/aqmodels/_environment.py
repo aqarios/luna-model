@@ -68,7 +68,6 @@ class Environment:
         """
         return label
 
-
     @dispatched
     def encode(self, compress=True, level=3):
         """

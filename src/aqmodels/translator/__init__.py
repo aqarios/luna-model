@@ -5,17 +5,12 @@ from ._sample_set import SampleSetTranslator
 from ._matrix import MatrixTranslator
 from ._lp import LpTranslator
 from ._bqm import BqmTranslator
-from .._core import (
-  translator as __translator,
-  translator as __translator,
-  translator as __translator,
-  translator as __translator
-)
+from .._core import translator as __translator
 
-BqmTranslator = __translator.BqmTranslator
-SampleSetTranslator = __translator.SampleSetTranslator
-LpTranslator = __translator.LpTranslator
-MatrixTranslator = __translator.MatrixTranslator
+BqmTranslator = __translator.BqmTranslator  # noqa: F811
+SampleSetTranslator = __translator.SampleSetTranslator  # noqa: F811
+LpTranslator = __translator.LpTranslator  # noqa: F811
+MatrixTranslator = __translator.MatrixTranslator  # noqa: F811
 
 __all__ = [
     "BqmTranslator",

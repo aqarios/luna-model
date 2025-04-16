@@ -43,5 +43,9 @@ def test_bqm_to_model_to_bqm():
         assert np.isclose(bqm_np.offset, bqm_back_np.offset)
         assert np.allclose(bqm_np.linear_biases, bqm_back_np.linear_biases)
         assert np.allclose(bqm_np.quadratic.biases, bqm_back_np.quadratic.biases)
-        assert np.allclose(bqm_np.quadratic.row_indices, bqm_back_np.quadratic.row_indices)
-        assert np.allclose(bqm_np.quadratic.col_indices, bqm_back_np.quadratic.col_indices)
+        assert np.allclose(
+            bqm_np.quadratic.row_indices, bqm_back_np.quadratic.row_indices
+        )
+        assert np.allclose(
+            bqm_np.quadratic.col_indices, bqm_back_np.quadratic.col_indices
+        )
