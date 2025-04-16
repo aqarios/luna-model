@@ -1,4 +1,3 @@
-import sys
 import ast
 import re
 from pathlib import Path

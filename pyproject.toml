@@ -95,5 +95,5 @@ dev = [
     "ipython>=9.0.2",
     "pytest-cov>=6.1.1",
     "gurobipy>=12.0.1",
-    "cplex>=22.1.2.0",
+    "cplex>=22.1.2.0; sys_platform == 'linux'",
 ]
