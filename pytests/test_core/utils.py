@@ -1,13 +1,12 @@
 import random as r
 import sys
-import dimod
+import pytest
 import numpy as np
 
 from itertools import permutations
 from dimod import ConstrainedQuadraticModel
 from dimod import generators
 
-import dimod
 from dimod import BinaryQuadraticModel, Vartype, ConstrainedQuadraticModel
 
 
@@ -112,3 +111,6 @@ def generate_cqms(
         cqm = generators.quadratic_knapsack(values, weights, profits, capacity)
         out.append(cqm)
     return out
+
+def requires_cplex(has_cplex):
+    return pytest.mark.skipif(skip_cplex_test, reason=f"CPLEX is required for test")

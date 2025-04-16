@@ -3,12 +3,12 @@ import pytest
 import tempfile
 import gurobipy as gp
 
-RUN_CPLEX = True
+NOT_RUN_CPLEX = False
 try:
     import cplex
 except ImportError as e:
     print("Cplex is not installed and thus, the CPLEX tests will not be executed", file=sys.stdout)
-    RUN_CPLEX = False
+    NOT_RUN_CPLEX = True
 
 from random import Random
 from aqmodels import LpTranslator
@@ -158,42 +158,42 @@ def test_gurobi_to_model_to_gurobi():
         gp_model_back = gp.read(tmp_lp.name)
         assert gp_models_are_equal(gp_model, gp_model_back)
 
+@pytest.mark.skipif(NOT_RUN_CPLEX, reason=f"CPLEX is required for test")
 @pytest.mark.translator
 def test_cplex_to_model_to_cplex():
-    if RUN_CPLEX:
-        rand = Random(make_seed())
-        cqms = generate_cqms(NUM_CQMS, rand)
-        for cqm in cqms:
-            # We use CQM's assuming the LP file is correctly formatted for Gurobi.
-            # SETUP
-            tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
-            tmp_mps = tempfile.NamedTemporaryFile(mode="w+", suffix=".mps")
-            dimod_lp.dump(cqm, tmp_lp.file) # type: ignore
-            tmp_lp.flush()
-            tmp_lp.seek(0)
-            cpx_model = cplex.Cplex(tmp_lp.name)
-            cpx_model.set_log_stream(None)
-            # ACTUAL
-            # build cplex base model (ground truth)
-            tmp_lp.seek(0)
-            cpx_model.write(tmp_lp.name)
-            # store the mps file string from the base
-            cpx_model.write(tmp_mps.name)
-            tmp_mps.seek(0)
-            cpx_mps_str = tmp_mps.read()
-            # build aqmodel
-            tmp_lp.seek(0)
-            aqmodel = LpTranslator.to_model(tmp_lp.file.read())
-            lp_str = LpTranslator.from_model(aqmodel)
-            # write to lp file
-            tmp_lp.seek(0)
-            tmp_lp.write(lp_str)
-            tmp_lp.seek(0)
-            # build cplex model back
-            cpx_model_back = cplex.Cplex(tmp_lp.name)
-            # store the mps file string from the back
-            cpx_model_back.write(tmp_mps.name)
-            tmp_mps.seek(0)
-            cpx_back_mps_str = tmp_mps.read()
-            # compare the two MPS strings
-            assert cpx_mps_str == cpx_back_mps_str
+    rand = Random(make_seed())
+    cqms = generate_cqms(NUM_CQMS, rand)
+    for cqm in cqms:
+        # We use CQM's assuming the LP file is correctly formatted for Gurobi.
+        # SETUP
+        tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
+        tmp_mps = tempfile.NamedTemporaryFile(mode="w+", suffix=".mps")
+        dimod_lp.dump(cqm, tmp_lp.file) # type: ignore
+        tmp_lp.flush()
+        tmp_lp.seek(0)
+        cpx_model = cplex.Cplex(tmp_lp.name)
+        cpx_model.set_log_stream(None)
+        # ACTUAL
+        # build cplex base model (ground truth)
+        tmp_lp.seek(0)
+        cpx_model.write(tmp_lp.name)
+        # store the mps file string from the base
+        cpx_model.write(tmp_mps.name)
+        tmp_mps.seek(0)
+        cpx_mps_str = tmp_mps.read()
+        # build aqmodel
+        tmp_lp.seek(0)
+        aqmodel = LpTranslator.to_model(tmp_lp.file.read())
+        lp_str = LpTranslator.from_model(aqmodel)
+        # write to lp file
+        tmp_lp.seek(0)
+        tmp_lp.write(lp_str)
+        tmp_lp.seek(0)
+        # build cplex model back
+        cpx_model_back = cplex.Cplex(tmp_lp.name)
+        # store the mps file string from the back
+        cpx_model_back.write(tmp_mps.name)
+        tmp_mps.seek(0)
+        cpx_back_mps_str = tmp_mps.read()
+        # compare the two MPS strings
+        assert cpx_mps_str == cpx_back_mps_str
