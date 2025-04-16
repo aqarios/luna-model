@@ -36,7 +36,7 @@ pub type ConcreteSpinType = i8;
 pub type ConcreteIntegerType = i64;
 pub type ConcreteRealType = f64;
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct ConcreteAssignmentTypes {}
 
 impl AssignmentBaseTypes for ConcreteAssignmentTypes {

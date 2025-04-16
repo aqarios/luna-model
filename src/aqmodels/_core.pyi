@@ -471,6 +471,8 @@ class Solution:
 
     def __getitem__(self, item: int) -> ResultView: ...
 
+    def __eq__(self, other: Solution) -> bool: ... # type: ignore
+
     @property
     def results(self) -> ResultIterator: ...
 
@@ -523,6 +525,18 @@ class Solution:
 
     @staticmethod
     def decode(data: bytes) -> Solution: ...
+
+    @staticmethod
+    def build(
+        component_types: list[Vtype], 
+        num_occurrences: list[int] | None = ..., 
+        binary_cols: list[list[int]] | None = ...,
+        spin_cols: list[list[int]] | None = ...,
+        int_cols: list[list[int]] | None = ...,
+        real_cols: list[list[int]] | None = ...,
+        raw_energies: list[float | None] | None = ...,
+        timing: Timing | None = ...
+    ) -> Solution: ...
 
 class VariableOutOfRangeError(Exception):
     def __str__(self) -> str: ...

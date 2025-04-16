@@ -1,6 +1,6 @@
 use std::time::{Duration, SystemTime};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Timing {
     /// The time at which the algorithm started.
     pub start: SystemTime,

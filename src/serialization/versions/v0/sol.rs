@@ -4,8 +4,7 @@ use prost::Message;
 
 use crate::{
     core::{
-        solution::sol::SampleCol, ConcreteAssignmentTypes, ConcreteSolution, RcSolution, Solution,
-        VarAssignment, Vtype,
+        solution::sol::SampleCol, ConcreteSolution, RcSolution, Solution, VarAssignment, Vtype,
     },
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
@@ -196,9 +195,6 @@ impl SerSolution {
 
     pub fn extract(&self) -> ConcreteSolution {
         let mut sol = Solution::default();
-
-        println!("{self:#?}");
-
         let num_samples = self.num_samples as usize;
         let mut type_per_pos: Vec<Vtype> = Vec::new();
         for &st in self.sample_types.iter() {
@@ -217,7 +213,6 @@ impl SerSolution {
         sol.num_occurrences = self.num_occurrences.iter().map(|&v| v as usize).collect();
         sol.n_samples = self.num_samples as usize;
 
-        println!("{type_per_pos:?}");
         let (mut lb, mut ls, mut li, mut lr) = (0, 0, 0, 0);
         let sample_len = self.sample_len as usize;
         for _ in 0..num_samples {
