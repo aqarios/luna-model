@@ -1,17 +1,13 @@
 import random as r
 import sys
-import pytest
 import numpy as np
 
 from itertools import permutations
-from dimod import ConstrainedQuadraticModel
-from dimod import generators
-
-from dimod import BinaryQuadraticModel, Vartype, ConstrainedQuadraticModel
+from dimod import generators, BinaryQuadraticModel, Vartype, ConstrainedQuadraticModel
 
 
 def make_seed() -> int:
-    seed = r.randint(0, 2 ** 32 - 1)
+    seed = r.randint(0, 2**32 - 1)
     print(
         f"""
 ************************
@@ -29,7 +25,7 @@ def random(seed: int) -> float:
 
 
 def random_int(rand: r.Random):
-    return rand.randint(0, 2 ** 16 - 1)
+    return rand.randint(0, 2**16 - 1)
 
 
 def check_equality(variables, p, f, value):
@@ -66,13 +62,13 @@ def assert_higher_order_all(expr, variables, value):
 
 
 def generate_bqms(
-        n_models: int, rand: r.Random, n_vars_max: int = 100
+    n_models: int, rand: r.Random, n_vars_max: int = 100
 ) -> list[BinaryQuadraticModel]:
     out = []
     for _ in range(n_models):
         n_vars = rand.randint(1, n_vars_max)
         density = rand.random() * (1 - 1 / n_vars)
-        num_interactions = int(density * n_vars ** 2 / 2)
+        num_interactions = int(density * n_vars**2 / 2)
         vartype = Vartype.BINARY if rand.randint(0, 1) == 0 else Vartype.SPIN
         bqm = generators.gnm_random_bqm(
             [f"x{i}" for i in range(n_vars)],
@@ -83,18 +79,15 @@ def generate_bqms(
         out.append(bqm)
     return out
 
-def generate_cqms(
-        n_models: int, rand: r.Random
-) -> list[ConstrainedQuadraticModel]:
+
+def generate_cqms(n_models: int, rand: r.Random) -> list[ConstrainedQuadraticModel]:
     out = []
     # LINEAR
     n_lin = n_models // 2
     n_quad = n_models - n_lin
     for _ in range(n_lin):
         n_items = rand.randint(1, 20)
-        cqm = generators.random_knapsack(
-            n_items, seed=random_int(rand)
-        )
+        cqm = generators.random_knapsack(n_items, seed=random_int(rand))
         out.append(cqm)
     # QUADRATIC
     for _ in range(n_quad):
@@ -103,7 +96,9 @@ def generate_cqms(
         weights = [rand.randint(1, 10) for _ in range(num_items)]
 
         # Generate a symmetric profit matrix with zeros on the diagonal
-        profits = np.array([[rand.randint(0, 5) for _ in range(num_items)] for _ in range(num_items)])
+        profits = np.array(
+            [[rand.randint(0, 5) for _ in range(num_items)] for _ in range(num_items)]
+        )
         profits = np.triu(profits, 1)
         profits += profits.T
         profits = profits
@@ -111,6 +106,3 @@ def generate_cqms(
         cqm = generators.quadratic_knapsack(values, weights, profits, capacity)
         out.append(cqm)
     return out
-
-def requires_cplex(has_cplex):
-    return pytest.mark.skipif(skip_cplex_test, reason=f"CPLEX is required for test")

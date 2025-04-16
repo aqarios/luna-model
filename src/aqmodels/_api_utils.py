@@ -1,4 +1,3 @@
-from typing import TypeVar
 from typing import overload, Callable, TypeVar
 
 T = TypeVar("T", bound=type)

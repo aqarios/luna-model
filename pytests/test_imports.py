@@ -8,7 +8,7 @@ ERRORS_MODULE_NAME: str = "aqmodels.errors"
 
 @pytest.mark.imports
 def test_import_aqmodels():
-    import aqmodels as _
+    import aqmodels as _  # noqa: F401
 
 
 @pytest.mark.imports

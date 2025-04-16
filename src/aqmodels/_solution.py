@@ -173,7 +173,6 @@ class Solution:
         """Alias for ``decode()``."""
         return data
 
-
     @staticmethod
     def build(
         num_occurrences,
@@ -199,7 +198,7 @@ class Solution:
         of type Spin (index 2). The fourth column (index 3) a variable of type Integer and the fith column
         (index 4) a real valued variable.
 
-        Thus, the `component_types` list is: 
+        Thus, the `component_types` list is:
 
             >>> component_types = [Vtype.Binary, Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real, Vtype.Binary]
 
@@ -276,4 +275,13 @@ class Solution:
         Solution
             The constructed solution
         """
-        return num_occurrences, component_types, binary_cols, spin_cols, int_cols, real_cols, raw_energies, timing
+        return (
+            num_occurrences,
+            component_types,
+            binary_cols,
+            spin_cols,
+            int_cols,
+            real_cols,
+            raw_energies,
+            timing,
+        )
