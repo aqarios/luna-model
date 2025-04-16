@@ -50,6 +50,7 @@ cache-keys = [
     { file = "src/aqmodels/translator/_matrix.pyi" },
     { file = "src/aqmodels/translator/_sample_set.py" },
     { file = "src/aqmodels/translator/_sample_set.pyi" },
+    { file = "tools/*.py" },
 ]
 
 [tool.pytest.ini_options]

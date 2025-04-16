@@ -285,6 +285,7 @@ class Variable:
             If the operand type is unsupported.
         """
         return other
+
     @dispatched
     def __eq__(self, value):
         """
@@ -326,6 +327,7 @@ class Variable:
             If the operand type is unsupported.
         """
         return value
+
     @dispatched
     def __ge__(self, value):
         """

@@ -33,7 +33,7 @@ fn linear_constraint_le() {
     let expr = package(create_linear_expression(env, &biases, Vtype::Binary));
     let rhs = random_bias(seed);
 
-    let constr = Constraint::new(expr, rhs, Comparator::Leq, None);
+    let constr = Constraint::new(expr, rhs, Comparator::Le, None);
     let binding = constr.lhs.borrow();
     let lhs = binding.deref();
 
@@ -42,7 +42,7 @@ fn linear_constraint_le() {
     assert_eq!(lhs.quadratic, None);
     assert_eq!(lhs.higher_order, None);
     assert_eq!(constr.rhs, rhs);
-    assert_eq!(constr.comparator, Comparator::Leq);
+    assert_eq!(constr.comparator, Comparator::Le);
 }
 
 #[test]
@@ -53,7 +53,7 @@ fn linear_constraint_ge() {
     let expr = package(create_linear_expression(env, &biases, Vtype::Binary));
     let rhs = random_bias(seed);
 
-    let constr = Constraint::new(expr, rhs, Comparator::Geq, Some("constr".to_string()));
+    let constr = Constraint::new(expr, rhs, Comparator::Ge, Some("constr".to_string()));
     let binding = constr.lhs.borrow();
     let lhs = binding.deref();
 
@@ -62,7 +62,7 @@ fn linear_constraint_ge() {
     assert_eq!(lhs.quadratic, None);
     assert_eq!(lhs.higher_order, None);
     assert_eq!(constr.rhs, rhs);
-    assert_eq!(constr.comparator, Comparator::Geq);
+    assert_eq!(constr.comparator, Comparator::Ge);
 }
 
 #[test]
@@ -76,14 +76,14 @@ fn linear_constraints() {
     ));
     let rhs = random_bias(seed);
 
-    let constr_a = Constraint::new(Rc::clone(&expr), rhs, Comparator::Leq, None);
+    let constr_a = Constraint::new(Rc::clone(&expr), rhs, Comparator::Le, None);
     let constr_b = Constraint::new(
         Rc::clone(&expr),
         rhs,
         Comparator::Eq,
         Some("constr".to_string()),
     );
-    let constr_c = Constraint::new(Rc::clone(&expr), rhs, Comparator::Geq, None);
+    let constr_c = Constraint::new(Rc::clone(&expr), rhs, Comparator::Ge, None);
     let original_constraints = vec![&constr_a, &constr_b, &constr_c];
 
     let mut constrs = Constraints::default();

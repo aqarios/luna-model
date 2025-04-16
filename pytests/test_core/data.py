@@ -198,21 +198,21 @@ def constraints(
         return higher_order_expression(env, variables)
 
     linears = [
-        Constraint(lin_expr(), random(seed), Comparator.Leq),
+        Constraint(lin_expr(), random(seed), Comparator.Le),
         Constraint(lin_expr(), random(seed), Comparator.Eq),
-        Constraint(lin_expr(), random(seed), Comparator.Geq),
+        Constraint(lin_expr(), random(seed), Comparator.Ge),
     ]
 
     quadratics = [
-        Constraint(quad_expr(), random(seed), Comparator.Leq),
+        Constraint(quad_expr(), random(seed), Comparator.Le),
         Constraint(quad_expr(), random(seed), Comparator.Eq),
-        Constraint(quad_expr(), random(seed), Comparator.Geq),
+        Constraint(quad_expr(), random(seed), Comparator.Ge),
     ]
 
     higher_orders = [
-        Constraint(ho_expr(), random(seed), Comparator.Leq),
+        Constraint(ho_expr(), random(seed), Comparator.Le),
         Constraint(ho_expr(), random(seed), Comparator.Eq),
-        Constraint(ho_expr(), random(seed), Comparator.Geq),
+        Constraint(ho_expr(), random(seed), Comparator.Ge),
     ]
 
     items: list[list[Constraint]] = [linears, quadratics, higher_orders]

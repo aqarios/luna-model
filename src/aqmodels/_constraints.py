@@ -15,9 +15,9 @@ class Comparator(Enum):
     ----------
     Eq : Comparator
         Equality constraint (==).
-    Leq : Comparator
+    Le : Comparator
         Less-than-or-equal constraint (<=).
-    Geq : Comparator
+    Ge : Comparator
         Greater-than-or-equal constraint (>=).
 
     Examples
@@ -30,10 +30,10 @@ class Comparator(Enum):
     Eq = ...
     """Equality (==)"""
 
-    Leq = ...
+    Le = ...
     """Less-than or equal (<=)"""
 
-    Geq = ...
+    Ge = ...
     """Greater-than or equal (>=)"""
 
 
@@ -72,26 +72,28 @@ class Constraint:
     """
 
     @dispatched
-    def __init__(self, lhs, rhs, comparator):
+    def __init__(self, lhs, rhs, comparator, name):
         """
         Construct a new symbolic constraint.
 
         Parameters
         ----------
-        lhs : Expression
-            Left-hand side symbolic expression.
+        lhs : Expression | Variable
+            Left-hand side symbolic expression or variable.
         rhs : float
             Scalar right-hand side constant.
         comparator : Comparator
-            Relational operator (e.g., Comparator.Eq, Comparator.Leq).
+            Relational operator (e.g., Comparator.Eq, Comparator.Le).
+        name : str
+            The name of the constraint
 
         Raises
         ------
         RuntimeError
             If lhs is not an Expression or rhs is not a scalar float.
         """
-        return lhs, rhs, comparator
-    
+        return lhs, rhs, comparator, name
+
     @dispatched
     @property
     def name(self):
@@ -121,7 +123,7 @@ class Constraints:
     >>> from aqmodels import Constraints, Constraint, Environment, Variable
     >>> with Environment():
     ...     x = Variable("x")
-    ...     c = Constraint(x + 1, 0.0, Comparator.Leq)
+    ...     c = Constraint(x + 1, 0.0, Comparator.Le)
 
     >>> cs = Constraints()
     >>> cs.add_constraint(c)
@@ -140,7 +142,7 @@ class Constraints:
     """
 
     @dispatched
-    def add_constraint(self, constraint):
+    def add_constraint(self, constraint, name):
         """
         Add a constraint to the collection.
 
@@ -148,8 +150,10 @@ class Constraints:
         ----------
         constraint : Constraint
             The constraint to be added.
+        name : str, optional
+            The name of the constraint to be added.
         """
-        return constraint
+        return constraint, name
 
     @dispatched
     def encode(self, compress=True, level=3):
@@ -224,7 +228,7 @@ class Constraints:
 
         Parameters
         ----------
-        constraint : Constraint
+        constraint : Constraint | tuple[Constraint, str]
             The constraint to add.
 
         Returns

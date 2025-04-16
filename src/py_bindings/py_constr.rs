@@ -1,4 +1,5 @@
 use std::{
+    cell::RefCell,
     ops::{AddAssign, Deref},
     rc::Rc,
 };
@@ -8,15 +9,15 @@ use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 
 use crate::{
     core::{
-        Comparator, ConcreteConstraint, ConcreteConstraints, ConcreteMutRcConstraint,
-        ConcreteMutRcConstraints, Constraint, Create,
+        expression::ExpressionBaseCreation, Comparator, ConcreteConstraint, ConcreteConstraints,
+        ConcreteMutRcConstraint, ConcreteMutRcConstraints, Constraint, Create, Expression,
     },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
 
-use super::{py_env::PyEnvironment, py_expr::PyExpression};
+use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 
 #[pyclass(unsendable, name = "Constraints", module = "aqmodels")]
 #[derive(Debug, Deref, DerefMut, Clone)]
@@ -60,8 +61,28 @@ impl PyConstraint {
 impl PyConstraint {
     #[new]
     #[pyo3(signature=(lhs, rhs, comparator, name=None))]
-    fn py_new(lhs: PyExpression, rhs: f64, comparator: Comparator, name: Option<String>) -> Self {
-        PyConstraint::new(Constraint::new(lhs.0, rhs, comparator, name))
+    fn py_new(
+        py: Python,
+        lhs: PyObject,
+        rhs: f64,
+        comparator: Comparator,
+        name: Option<String>,
+    ) -> PyResult<Self> {
+        if let Ok(expr) = lhs.extract::<PyExpression>(py) {
+            Ok(PyConstraint::new(Constraint::new(
+                expr.0, rhs, comparator, name,
+            )))
+        } else if let Ok(var) = lhs.extract::<PyVariable>(py) {
+            let expr = Expression::new_linear_single(Rc::clone(&var.env), var.id, 1.0);
+            Ok(PyConstraint::new(ConcreteConstraint::new(
+                Rc::new(RefCell::new(expr)),
+                rhs,
+                comparator,
+                name,
+            )))
+        } else {
+            Err(PyRuntimeError::new_err("unsopported type for operation"))
+        }
     }
 
     fn __eq__(&self, other: Self) -> bool {

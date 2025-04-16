@@ -5,12 +5,13 @@ use super::py_constr::PyConstraint;
 use super::py_env::{PyEnvironment, CURRENT_ENV};
 use super::py_exceptions::NoActiveEnvironmentFoundError;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
+use crate::core::expression::ExpressionBaseCreation;
 use crate::core::operations::{
     AddToExpression, MulToExpression, NegToExpression, RSubToExpression, SubToExpression,
 };
 use crate::core::{
     environment, Comparator, ConcreteConstraint, ConcreteExpression, ConcreteRcVarRef,
-    ConcreteVarRef, Vtype,
+    ConcreteVarRef, Expression, Vtype,
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
@@ -153,17 +154,17 @@ impl PyVariable {
         Ok(PyConstraint::new(ConcreteConstraint::new(
             Rc::new(RefCell::new(expr)),
             other,
-            Comparator::Leq,
+            Comparator::Le,
             None,
         )))
     }
 
     fn __ge__(&self, other: f64) -> PyResult<PyConstraint> {
-        let expr = self.0.mul(1.0);
+        let expr = Expression::new_linear_single(Rc::clone(&self.env), self.id, 1.0);
         Ok(PyConstraint::new(ConcreteConstraint::new(
             Rc::new(RefCell::new(expr)),
             other,
-            Comparator::Geq,
+            Comparator::Ge,
             None,
         )))
     }
