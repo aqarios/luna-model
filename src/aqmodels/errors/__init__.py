@@ -2,18 +2,18 @@
 # Do not edit manually.
 
 from ._errors import (
-    VariableExistsError,
-    DecodeError,
-    ModelVtypeError,
+    VariableOutOfRangeError,
     ModelNotQuadraticError,
-    ModelNotUnconstrainedError,
+    ModelVtypeError,
+    VariableExistsError,
     DifferentEnvsError,
+    DecodeError,
+    ModelNotUnconstrainedError,
+    SolutionCreationError,
     NoActiveEnvironmentFoundError,
+    VariableNotExistingError,
     VariablesFromDifferentEnvsError,
     MultipleActiveEnvironmentsError,
-    SolutionCreationError,
-    VariableOutOfRangeError,
-    VariableNotExistingError,
 )
 from .._core import errors as __errors
 
