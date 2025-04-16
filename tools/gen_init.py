@@ -1,7 +1,13 @@
 import re
 from pathlib import Path
 from collections import defaultdict
-from gen_common import LIB_ROOT, PROJECT_ROOT, AUTOGEN_HEADER, collect_exports
+from gen_common import (
+    LIB_ROOT,
+    PROJECT_ROOT,
+    AUTOGEN_HEADER,
+    collect_exports,
+    format as ruff,
+)
 
 
 def extract_existing_docstring(init_path: Path) -> str:
@@ -126,3 +132,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    ruff()

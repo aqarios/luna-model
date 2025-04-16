@@ -240,8 +240,8 @@ where
                 .to_string(false);
             let comparator = match constraint.comparator {
                 Comparator::Eq => "=",
-                Comparator::Leq => "<=",
-                Comparator::Geq => ">=",
+                Comparator::Le => "<=",
+                Comparator::Ge => ">=",
             };
             sections.push(
                 &Section::Constraints,
@@ -468,13 +468,13 @@ where
                         "<=" => Constraint::new(
                             Rc::new(RefCell::new(lhs)),
                             rhs,
-                            Comparator::Leq,
+                            Comparator::Le,
                             Some(name.to_string()),
                         ),
                         ">=" => Constraint::new(
                             Rc::new(RefCell::new(lhs)),
                             rhs,
-                            Comparator::Geq,
+                            Comparator::Ge,
                             Some(name.to_string()),
                         ),
                         _ => {

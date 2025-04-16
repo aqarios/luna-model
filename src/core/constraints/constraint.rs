@@ -20,17 +20,17 @@ pub enum Comparator {
     #[strum(to_string = "==")]
     Eq,
     #[strum(to_string = "<=")]
-    Leq,
+    Le,
     #[strum(to_string = ">=")]
-    Geq,
+    Ge,
 }
 
 impl Comparator {
     pub fn evaluate<Bias: BiasConstraints>(&self, lhs: Bias, rhs: Bias) -> bool {
         match self {
             Self::Eq => lhs == rhs,
-            Self::Leq => lhs <= rhs,
-            Self::Geq => lhs >= rhs,
+            Self::Le => lhs <= rhs,
+            Self::Ge => lhs >= rhs,
         }
     }
 }

@@ -1,5 +1,6 @@
 import ast
 import re
+import subprocess
 from pathlib import Path
 
 # Shared configuration and helpers for all generators
@@ -138,3 +139,7 @@ def parse_exports_override(py_path: Path, lib_root: Path) -> list[dict]:
                     }
                 )
     return exports
+
+
+def format():
+    subprocess.run(["ruff", "format"])
