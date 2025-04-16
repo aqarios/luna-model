@@ -41,6 +41,18 @@ def model_w_constraint() -> Model:
     model.constraints += b + s + i + r <= 10.0
     return model
 
+@pytest.fixture
+def model_w_constraint_infeasible() -> Model:
+    model = Model("test_model")
+    with model.environment:
+        b = Variable("b", vtype=Vtype.Binary)
+        s = Variable("s", vtype=Vtype.Spin)
+        i = Variable("i", vtype=Vtype.Integer)
+        r = Variable("r", vtype=Vtype.Real)
+    model.objective = b + s + i + r
+    model.constraints += b + s + i + r <= 0.0
+    model.constraints += b + s + i + r <= 0.0
+    return model
 
 def test_model_eval_wo_constraint(model_wo_constraint: Model, solution: Solution):
     new_sol = model_wo_constraint.evaluate(solution)
@@ -51,4 +63,21 @@ def test_model_eval_w_constraint(model_w_constraint: Model, solution: Solution):
     new_sol = model_w_constraint.evaluate(solution)
     assert all(new_sol.raw_energies == solution.raw_energies)
     assert all(new_sol.obj_values == solution.raw_energies)
+    for res in new_sol.results:
+        assert res.constraints is not None
+        for constr in res.constraints:
+            assert constr
+        assert res.feasible is not None
+        assert res.feasible
+
+def test_model_eval_w_constraint_infeasible(model_w_constraint_infeasible: Model, solution: Solution):
+    new_sol = model_w_constraint_infeasible.evaluate(solution)
+    assert all(new_sol.raw_energies == solution.raw_energies)
+    assert all(new_sol.obj_values == solution.raw_energies)
+    for res in new_sol.results:
+        assert res.constraints is not None
+        for constr in res.constraints:
+            assert not constr
+        assert res.feasible is not None
+        assert not res.feasible
 
