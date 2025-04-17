@@ -8,7 +8,6 @@ from enum import Enum
 from numpy.typing import NDArray
 from pathlib import Path
 from typing import Any
-from typing import Any, overload
 from typing import overload
 
 from . import errors
@@ -573,7 +572,6 @@ class MatrixTranslator:
     ) -> Model: ...
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
-
 
 __all__ = [
     "Bounds",

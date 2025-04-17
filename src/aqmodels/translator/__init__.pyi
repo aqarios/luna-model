@@ -10,7 +10,7 @@ from dimod import BinaryQuadraticModel
 from dimod import SampleSet
 from numpy.typing import NDArray
 from pathlib import Path
-from typing import Any, overload
+from typing import Any
 from typing import overload
 
 from . import translator
@@ -82,7 +82,6 @@ class MatrixTranslator:
     ) -> Model: ...
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
-
 
 __all__ = [
     "BqmTranslator",
