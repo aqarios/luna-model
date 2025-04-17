@@ -1,3 +1,4 @@
+import sys
 import ast
 import re
 import subprocess
@@ -142,4 +143,7 @@ def parse_exports_override(py_path: Path, lib_root: Path) -> list[dict]:
 
 
 def format():
-    subprocess.run(["ruff", "format"])
+    try:
+        subprocess.run(["ruff", "format"])
+    except:  # noqa: E722
+        print("ruff not found, can not format.", file=sys.stderr)

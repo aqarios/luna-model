@@ -4,11 +4,13 @@
 from aqmodels._environment import Environment
 from aqmodels._model import Model
 from aqmodels._solution import Solution, Timing
+from aqmodels._variable import Variable
 from aqmodels._variable import Vtype
 from dimod import BinaryQuadraticModel
 from dimod import SampleSet
 from numpy.typing import NDArray
 from pathlib import Path
+from typing import Any, overload
 from typing import overload
 
 from . import translator
@@ -19,12 +21,44 @@ class BqmTranslator:
     @staticmethod
     def to_bqm(model: Model) -> BinaryQuadraticModel: ...
 
+class QctrlTranslator:
+    @overload
+    @staticmethod
+    def from_qctrl(result: dict[str, Any]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_qctrl(
+        result: dict[str, Any],
+        variable_list: list[Variable] | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_qctrl(
+        result: dict[str, Any],
+        timing: Timing | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_qctrl(
+        result: dict[str, Any],
+        variable_list: list[Variable] | None = ...,
+        timing: Timing | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_qctrl(
+        result: dict[str, Any],
+        variable_list: list[Variable] | None = ...,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class SampleSetTranslator:
     @staticmethod
     def from_dimod_sample_set(
         sample_set: SampleSet,
-        timing: Timing | None = None,
-        env: Environment | None = None,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
     ) -> Solution: ...
 
 class LpTranslator:
@@ -49,10 +83,12 @@ class MatrixTranslator:
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
 
+
 __all__ = [
     "BqmTranslator",
     "LpTranslator",
     "MatrixTranslator",
+    "QctrlTranslator",
     "SampleSetTranslator",
     "translator",
 ]

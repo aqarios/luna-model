@@ -6,6 +6,6 @@ class SampleSetTranslator:
     @staticmethod
     def from_dimod_sample_set(
         sample_set: SampleSet,
-        timing: Timing | None = None,
-        env: Environment | None = None,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
     ) -> Solution: ...
