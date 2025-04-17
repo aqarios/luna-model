@@ -48,37 +48,60 @@ transformers
     to a linear model.
 """
 
-from ._variable import Variable, Bounds, Vtype
-from ._timing import Timer, Timing
+from ._variable import (
+  Vtype,
+  Bounds,
+  Variable
+)
+from ._timing import (
+  Timer,
+  Timing
+)
 from ._solution import Solution
-from ._sample import Samples, SampleIterator, SamplesIterator, Sample
-from ._result import ResultIterator, ResultView, Result
+from ._sample import (
+  Samples,
+  SampleIterator,
+  Sample,
+  SamplesIterator
+)
+from ._result import (
+  Result,
+  ResultView,
+  ResultIterator
+)
 from ._model import Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Samples as __Samples,
-    Bounds as __Bounds,
-    Result as __Result,
-    Constraint as __Constraint,
-    Constraints as __Constraints,
-    Sample as __Sample,
-    ResultIterator as __ResultIterator,
-    Variable as __Variable,
-    Environment as __Environment,
-    Expression as __Expression,
-    SampleIterator as __SampleIterator,
-    Comparator as __Comparator,
-    Timing as __Timing,
-    Vtype as __Vtype,
-    ResultView as __ResultView,
-    Solution as __Solution,
-    SamplesIterator as __SamplesIterator,
-    Model as __Model,
-    Timer as __Timer,
+  SampleIterator as __SampleIterator,
+  ResultIterator as __ResultIterator,
+  Expression as __Expression,
+  Model as __Model,
+  Vtype as __Vtype,
+  Constraints as __Constraints,
+  Timing as __Timing,
+  Samples as __Samples,
+  Variable as __Variable,
+  ResultView as __ResultView,
+  Environment as __Environment,
+  Comparator as __Comparator,
+  SamplesIterator as __SamplesIterator,
+  Sample as __Sample,
+  Timer as __Timer,
+  Solution as __Solution,
+  Bounds as __Bounds,
+  Result as __Result,
+  Constraint as __Constraint
 )
-from ._constraints import Constraints, Comparator, Constraint
-from . import translator, errors
+from ._constraints import (
+  Constraints,
+  Comparator,
+  Constraint
+)
+from . import (
+  translator,
+  errors
+)
 
 Model = __Model  # type: ignore[misc,assignment] # noqa: F811
 Expression = __Expression  # type: ignore[misc,assignment] # noqa: F811
@@ -112,6 +135,7 @@ ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
 ModelVtypeError = errors.ModelVtypeError
 SolutionCreationError = errors.SolutionCreationError
 BqmTranslator = translator.BqmTranslator
+QctrlTranslator = translator.QctrlTranslator
 SampleSetTranslator = translator.SampleSetTranslator
 LpTranslator = translator.LpTranslator
 MatrixTranslator = translator.MatrixTranslator
@@ -134,6 +158,7 @@ __all__ = [
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
+    "QctrlTranslator",
     "Result",
     "ResultIterator",
     "ResultView",
