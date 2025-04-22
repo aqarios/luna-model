@@ -15,6 +15,14 @@ from typing import overload
 
 from . import translator
 
+class SampleSetTranslator:
+    @staticmethod
+    def from_dimod_sample_set(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class BqmTranslator:
     @staticmethod
     def to_model(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
@@ -53,13 +61,13 @@ class QctrlTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class SampleSetTranslator:
+class MatrixTranslator:
     @staticmethod
-    def from_dimod_sample_set(
-        sample_set: SampleSet,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
+    def to_model(
+        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+    ) -> Model: ...
+    @staticmethod
+    def to_dense(model: Model) -> NDArray: ...
 
 class LpTranslator:
     @overload
@@ -74,15 +82,6 @@ class LpTranslator:
     @overload
     @staticmethod
     def from_model(model: Model, file: Path) -> None: ...
-
-class MatrixTranslator:
-    @staticmethod
-    def to_model(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
-    @staticmethod
-    def to_dense(model: Model) -> NDArray: ...
-
 
 __all__ = [
     "BqmTranslator",
