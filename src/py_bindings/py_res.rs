@@ -36,9 +36,8 @@ impl Into<ResultIterator<ConcreteBias, ConcreteAssignmentTypes>> for PyResultIte
 
 #[pymethods]
 impl PyResultView {
-    // TODO: implement human-readable solution representation
     fn __str__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{}", self.0)
     }
 
     fn __repr__(&self) -> String {
@@ -102,9 +101,8 @@ impl PyOwnedResult {
         self.feasible
     }
 
-    // TODO: implement human-readable solution representation
     fn __str__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{}", self.0)
     }
 
     fn __repr__(&self) -> String {

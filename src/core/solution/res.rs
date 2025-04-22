@@ -1,8 +1,10 @@
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::sol::VarAssignment;
+use crate::core::writer::SolutionWriter;
 use crate::core::{IndexByValue, RcSolution, Sample, SampleIterator};
 use either::{Left, Right};
+use std::fmt::{Display, Formatter};
 use std::rc::Rc;
 
 /// A view into a certain sample of a solution and its corresponding metadata.
@@ -114,5 +116,31 @@ where
 
     pub fn iter(&self) -> SampleIterator<Bias, AssignmentTypes> {
         SampleIterator::from_sample_vec(Rc::clone(&self.sample))
+    }
+}
+
+impl<Bias, AssignmentTypes> Display for ResultView<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = SolutionWriter::new()
+            .write_sample(Sample(Left(self.clone())))
+            .to_string();
+        f.write_str(&s)
+    }
+}
+
+impl<Bias, AssignmentTypes> Display for OwnedResult<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = SolutionWriter::<Bias, AssignmentTypes>::new()
+            .write_sample(Sample(Right(Rc::clone(&self.sample))))
+            .to_string();
+        f.write_str(&s)
     }
 }

@@ -1,5 +1,5 @@
 use crate::core::expression::{BiasConstraints, ExpressionEvaluation, IndexConstraints};
-use crate::core::utils::ModelWriter;
+use crate::core::writer::ModelWriter;
 use crate::core::{IndexByValue, MutRcExpression};
 use crate::errors::IndexOutOfBoundsErr;
 use std::fmt::{Debug, Display, Formatter};
@@ -71,12 +71,12 @@ where
         self.name = name
     }
 
-    pub fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
+    pub fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Index, Output=Elem>>(
         &self,
         sample: &'a Sample,
     ) -> bool
     where
-        Elem: Mul<Bias, Output = Bias>,
+        Elem: Mul<Bias, Output=Bias>,
     {
         let val = self.lhs.borrow().evaluate_sample(sample);
         self.comparator.evaluate(val, self.rhs)

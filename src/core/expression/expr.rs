@@ -6,7 +6,7 @@ use super::base::{
 use super::VariableOutOfRangeErr;
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
-use crate::core::utils::ModelWriter;
+use crate::core::writer::ModelWriter;
 use crate::core::{MutRcEnvironment, Vtype};
 use hashbrown::HashMap;
 use std::fmt::{Debug, Display, Formatter};

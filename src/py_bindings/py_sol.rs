@@ -32,7 +32,8 @@ impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
 #[pymethods]
 impl PySolution {
     #[staticmethod]
-    #[pyo3(signature=(component_types, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, num_occurrences=None))]
+    #[pyo3(signature=(component_types, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, num_occurrences=None)
+    )]
     fn build(
         component_types: Vec<Vtype>,
         binary_cols: Option<Vec<Vec<u8>>>,
@@ -170,7 +171,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
     #[pyo3(signature=(compress=None, level=None))]
@@ -195,9 +196,8 @@ impl PySolution {
         Self::decode(py, data)
     }
 
-    // TODO: implement human-readable solution representation
     fn __str__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{}", self.0)
     }
 
     fn __repr__(&self) -> String {
