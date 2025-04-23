@@ -6,6 +6,10 @@ from itertools import permutations
 from dimod import generators, BinaryQuadraticModel, Vartype, ConstrainedQuadraticModel
 
 
+def todo(msg: str | None = None):
+    assert False, msg
+
+
 def make_seed() -> int:
     seed = r.randint(0, 2**32 - 1)
     print(

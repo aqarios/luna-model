@@ -2,19 +2,19 @@ use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_sol::PySolution;
 use crate::py_bindings::py_timing::PyTiming;
-use crate::translator::SampleSetTranslator;
+use crate::translator::solution::DimodTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{ffi::c_str, prelude::*};
 
 #[pyclass(
     unsendable,
-    name = "SampleSetTranslator",
+    name = "DimodTranslator",
     module = "aqmodels.translator"
 )]
-pub struct PySampleSetTranslator(pub SampleSetTranslator);
+pub struct PyDimodTranslator(pub DimodTranslator);
 
 #[pymethods]
-impl PySampleSetTranslator {
+impl PyDimodTranslator {
     #[staticmethod]
     #[pyo3(signature=(samples, num_occurrences, energy, timing=None, env=None))]
     fn translate(
@@ -32,7 +32,7 @@ impl PySampleSetTranslator {
                 })
             })?,
         };
-        Ok(PySolution(SampleSetTranslator::from_dimod_sample_set(
+        Ok(PySolution(DimodTranslator::from_dimod_sample_set(
             samples.as_slice()?,
             num_occurrences.as_slice()?,
             energy.as_slice()?,
@@ -63,7 +63,7 @@ def extract(sampleset, timing, env):
     sample = record.sample.astype(np.int64, order='C')
     num_occurrences = record.num_occurrences.astype(np.int64, order='C')
     energy = record.energy.astype(np.float64, order='C')
-    return translator.SampleSetTranslator.translate(
+    return translator.DimodTranslator.translate(
         sample, num_occurrences, energy, timing, env
     )"
             ),

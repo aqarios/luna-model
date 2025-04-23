@@ -12,9 +12,9 @@ use crate::{
 use std::rc::Rc;
 
 /// A translator used to read a Binary Quadratic Model (BQM) and create an AQM.
-pub struct AltBqmTranslator {}
+pub struct BqmTranslator {}
 
-impl AltBqmTranslator {
+impl BqmTranslator {
     /// Translates a BQM to an AQM.
     pub fn model_from_bqm<Index, Bias>(
         vars: Vec<String>,

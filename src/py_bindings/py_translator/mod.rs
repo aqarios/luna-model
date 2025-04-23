@@ -1,12 +1,10 @@
-// mod py_bqm_translator;
-mod py_bqm_translator_alt;
-mod py_lp_translator;
-mod py_matrix_translator;
-mod solution;
+pub mod solution;
+pub mod model;
 
-// pub use py_bqm_translator::PyBqmTranslator;
-pub use py_bqm_translator_alt::PyBqmTranslator;
-pub use py_lp_translator::PyLpTranslator;
-pub use py_matrix_translator::PyMatrixTranslator;
+pub use model::PyBqmTranslator;
+pub use model::PyLpTranslator;
+pub use model::PyMatrixTranslator;
+
 pub use solution::PyQctrlTranslator;
-pub use solution::PySampleSetTranslator;
+pub use solution::PyDimodTranslator;
+pub use solution::PyIbmTranslator;

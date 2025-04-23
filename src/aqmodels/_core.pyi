@@ -7,12 +7,17 @@ from dimod import SampleSet
 from enum import Enum
 from numpy.typing import NDArray
 from pathlib import Path
+from qiskit.primitives import PrimitiveResult, PubResult
+from qiskit_optimization import QuadraticProgram
 from typing import Any
-from typing import Any, overload
 from typing import overload
 
 from . import errors
 from . import translator
+
+class Sense(Enum):
+    Min = ...
+    Max = ...
 
 class Model:
     @overload
@@ -27,6 +32,7 @@ class Model:
         name: str | None = ...,
         env: Environment | None = ...,
     ) -> None: ...
+    def set_sense(self, sense: Sense) -> None: ...
     @property
     def name(self) -> str: ...
     @property
@@ -147,6 +153,8 @@ class Expression:
     def __imul__(self, other: int) -> Expression: ...
     @overload
     def __imul__(self, other: float) -> Expression: ...
+    # pow
+    def __pow__(self, other: int) -> Expression: ...
 
     # Constraint creation
     @overload  # type: ignore
@@ -360,6 +368,8 @@ class Variable:
     def __rmul__(self, other: int) -> Expression: ...
     @overload
     def __rmul__(self, other: float) -> Expression: ...
+    # pow
+    def __pow__(self, other: int) -> Expression: ...
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
     def __eq__(self, value: float) -> Constraint: ...  # type: ignore
@@ -544,10 +554,24 @@ class QctrlTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class SampleSetTranslator:
+class IbmTranslator:
+    @overload
     @staticmethod
-    def from_dimod_sample_set(
-        sample_set: SampleSet,
+    def from_ibm(
+        result: PrimitiveResult[PubResult], quadratic_program: QuadraticProgram
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_ibm(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
+        timing: Timing | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_ibm(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
@@ -566,6 +590,14 @@ class LpTranslator:
     @staticmethod
     def from_model(model: Model, file: Path) -> None: ...
 
+class DimodTranslator:
+    @staticmethod
+    def from_dimod_sample_set(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class MatrixTranslator:
     @staticmethod
     def to_model(
@@ -573,7 +605,6 @@ class MatrixTranslator:
     ) -> Model: ...
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
-
 
 __all__ = [
     "Bounds",
@@ -583,8 +614,10 @@ __all__ = [
     "Constraints",
     "DecodeError",
     "DifferentEnvsError",
+    "DimodTranslator",
     "Environment",
     "Expression",
+    "IbmTranslator",
     "LpTranslator",
     "MatrixTranslator",
     "Model",
@@ -599,9 +632,9 @@ __all__ = [
     "ResultView",
     "Sample",
     "SampleIterator",
-    "SampleSetTranslator",
     "Samples",
     "SamplesIterator",
+    "Sense",
     "Solution",
     "SolutionCreationError",
     "Timer",

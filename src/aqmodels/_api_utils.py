@@ -56,21 +56,3 @@ def extended_dispatch(base):
         return inner
 
     return decorator
-
-
-# def wrap_from_dimod_sample_set(f):
-#     @functools.wraps(SampleSetTranslator.from_dimod_sample_set)
-#     def inner(sample_set: SampleSet, timing: Timing | None = None) -> Solution:
-#         sample_set = sample_set.aggregate()
-#         record = sample_set.record
-#         sample = record.sample.astype(np.int64, order="C")
-#         num_occurrences = record.num_occurrences.astype(np.int64, order="C")
-#
-#         return f(sample, num_occurrences, timing)
-#
-#     return inner
-#
-#
-# SampleSetTranslator.from_dimod_sample_set = wrap_from_dimod_sample_set(
-#     SampleSetTranslator.from_dimod_sample_set
-# )
