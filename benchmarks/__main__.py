@@ -83,9 +83,8 @@ def add_report_entry(dt):
 
 def main():
     # report_file_name = sys.argv[1] if len(sys.argv) == 2 else None
-    now = datetime.datetime.now().isoformat()
+    now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
     add_report_entry(now)
-
     detailed_file = Path(f"./bench_reports/bench_{now}.md")
     detailed_file.touch()
 
