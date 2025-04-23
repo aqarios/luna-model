@@ -94,7 +94,7 @@ impl PyConstraint {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.borrow())
+        format!("{:#?}", self.borrow())
     }
 
     #[getter]
@@ -141,7 +141,7 @@ impl PyConstraints {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.borrow())
+        format!("{:#?}", self.borrow())
     }
 
     #[pyo3(signature=(compress=None, level=None))]
@@ -156,7 +156,7 @@ impl PyConstraints {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
     #[pyo3(signature=(compress=None, level=None))]
@@ -192,6 +192,6 @@ impl Comparator {
     }
 
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self:#?}")
     }
 }

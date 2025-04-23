@@ -92,7 +92,7 @@ impl PyModel {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{:#?}", self.0)
     }
 
     #[pyo3(signature=(compress=None, level=None))]

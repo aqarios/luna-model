@@ -51,34 +51,34 @@ transformers
 from ._variable import Vtype, Bounds, Variable
 from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import SampleIterator, Samples, Sample, SamplesIterator
-from ._result import ResultIterator, ResultView, Result
+from ._sample import Samples, Sample, SampleIterator, SamplesIterator
+from ._result import ResultIterator, Result, ResultView
 from ._model import Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
+    Samples as __Samples,
     Vtype as __Vtype,
-    Constraint as __Constraint,
+    Comparator as __Comparator,
+    ResultView as __ResultView,
+    Timer as __Timer,
     Variable as __Variable,
     Expression as __Expression,
-    Timer as __Timer,
-    Model as __Model,
-    Samples as __Samples,
     Environment as __Environment,
-    Comparator as __Comparator,
-    Bounds as __Bounds,
-    Result as __Result,
-    Constraints as __Constraints,
-    Sample as __Sample,
     SampleIterator as __SampleIterator,
-    Timing as __Timing,
-    ResultView as __ResultView,
+    Constraints as __Constraints,
     SamplesIterator as __SamplesIterator,
-    ResultIterator as __ResultIterator,
+    Constraint as __Constraint,
+    Bounds as __Bounds,
     Solution as __Solution,
+    ResultIterator as __ResultIterator,
+    Result as __Result,
+    Timing as __Timing,
+    Sample as __Sample,
+    Model as __Model,
 )
-from ._constraints import Constraints, Constraint, Comparator
-from . import translator, errors
+from ._constraints import Constraint, Constraints, Comparator
+from . import errors, translator
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811

@@ -31,7 +31,7 @@ def test_model():
         spin_cols=[[+1, -1, +1]],
         int_cols=[[2, 3, -4]],
         real_cols=[[2.0, 3.0, 4.23]],
-        num_occurrences=[1,2,3],
+        num_occurrences=[1, 2, 3],
         raw_energies=[6.0, 5.0, 2.0],
     )
     assert str(sol) == sol_str_1

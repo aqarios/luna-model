@@ -201,7 +201,7 @@ impl PySolution {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{:#?}", self.0)
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> PyResultIterator {

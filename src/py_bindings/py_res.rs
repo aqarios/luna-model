@@ -41,7 +41,7 @@ impl PyResultView {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{:#?}", self.0)
     }
 
     #[getter]
@@ -106,7 +106,7 @@ impl PyOwnedResult {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{:#?}", self.0)
     }
 }
 

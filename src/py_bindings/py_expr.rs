@@ -88,7 +88,7 @@ impl PyExpression {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
     #[pyo3(signature=(compress=None, level=None))]
@@ -263,6 +263,6 @@ impl PyExpression {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.borrow())
+        format!("{:#?}", self.borrow())
     }
 }
