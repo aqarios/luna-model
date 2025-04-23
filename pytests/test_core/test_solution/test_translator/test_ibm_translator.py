@@ -1,3 +1,4 @@
+import enum
 import pytest
 import numpy as np
 
@@ -5,7 +6,13 @@ from docplex.mp.model import Model as CPXModel
 from contextlib import nullcontext
 from qiskit import QuantumCircuit, generate_preset_pass_manager
 from qiskit.circuit.library import QAOAAnsatz
-from qiskit.primitives import PrimitiveResult, PubResult, StatevectorEstimator, StatevectorSampler
+from qiskit.primitives import (
+    BitArray,
+    PrimitiveResult,
+    PubResult,
+    StatevectorEstimator,
+    StatevectorSampler,
+)
 from qiskit.quantum_info import SparsePauliOp
 from qiskit.providers import BackendV2
 from qiskit_aer import AerSimulator
@@ -39,34 +46,35 @@ def rand_float_pos_or_neg(rand: Random) -> float:
 
 def controlled_qp() -> QuadraticProgram:
     qp = CPXModel("a_qp")
-    v = qp.binary_var(name="v")
-    w = qp.binary_var(name="w")
-    t = qp.integer_var(name="t", lb=0, ub=3)
-    # u = qp.continuous_var(name="u")
-    u = qp.integer_var(name="u", lb=0, ub=3)
+    x = qp.binary_var(name="x")
+    y = qp.binary_var(name="y")
 
-    qp.minimize(v + w + t + 5 * (u - 2) ** 2)
-    qp.add_constraint(v + 2 * w + t + u <= 3, "cons1")
-    qp.add_constraint(v + w + t >= 1, "cons2")
-    qp.add_constraint(v + w == 1, "cons3")
+    qp.minimize(1 * x + 2 * y + x * y - 3)
+    # qp.add_constraint(v + 2 * w + t + u <= 3, "cons1")
+    # qp.add_constraint(v + w + t >= 1, "cons2")
+    # qp.add_constraint(v + w == 1, "cons3")
     qp = from_docplex_mp(qp)
     return qp
+
 
 def controlled_aqm() -> Model:
     model = Model("a_aqm")
     with model.environment:
-        v = Variable("v", vtype=Vtype.Binary)
-        w = Variable("w", vtype=Vtype.Binary)
-        t = Variable("t", vtype=Vtype.Integer, bounds=Bounds(0, 3))
-        u = Variable("u", vtype=Vtype.Integer, bounds=Bounds(0, 3))
+        x = Variable("x", vtype=Vtype.Binary)
+        y = Variable("y", vtype=Vtype.Binary)
+        # v = Variable("v", vtype=Vtype.Binary)
+        # w = Variable("w", vtype=Vtype.Binary)
+        # t = Variable("t", vtype=Vtype.Binary)
+        # u = Variable("u", vtype=Vtype.Binary)
+        # t = Variable("t", vtype=Vtype.Integer, bounds=Bounds(0, 3))
+        # u = Variable("u", vtype=Vtype.Integer, bounds=Bounds(0, 3))
     model.set_sense(Sense.Min)
-    model.objective = v + w + t + 5 * (u - 2) ** 2 
-    model.constraints += v + 2 * w + t + u <= 3, "cons1"
-    model.constraints += v + w + t >= 1, "cons2"
-    model.constraints += v + w == 1, "cons3"
-
+    model.objective = 1 * x + 2 * y + x * y - 3
+    # model.objective = v + w + t + 5 * (u - 2) * w
+    # model.constraints += v + 2 * w + t + u <= 3, "cons1"
+    # model.constraints += v + w + t >= 1, "cons2"
+    # model.constraints += v + w == 1, "cons3"
     return model
-
 
 
 def get_backend() -> tuple[Backend, Sampler, Estimator, Session | nullcontext]:
@@ -76,13 +84,22 @@ def get_backend() -> tuple[Backend, Sampler, Estimator, Session | nullcontext]:
     session = nullcontext()
     return backend, sampler, estimator, session
 
-def cost_function(params: np.ndarray, ansatz: QuantumCircuit, hamiltonian: SparsePauliOp, estimator: Estimator):
+
+def cost_function(
+    params: np.ndarray,
+    ansatz: QuantumCircuit,
+    hamiltonian: SparsePauliOp,
+    estimator: Estimator,
+):
     pub = ansatz, [hamiltonian], [params]
-    result = estimator.run(pubs=[pub]).result() # type: ignore
-    cost = result[0].data.evs[0] # type: ignore
+    result = estimator.run(pubs=[pub]).result()  # type: ignore
+    cost = result[0].data.evs[0]  # type: ignore
     return cost
 
-def solve_ansatz(ansatz: QuantumCircuit, op: SparsePauliOp) -> PrimitiveResult[PubResult]:
+
+def solve_ansatz(
+    ansatz: QuantumCircuit, op: SparsePauliOp
+) -> PrimitiveResult[PubResult]:
     backend, sampler, estimator, session = get_backend()
     pass_manager = generate_preset_pass_manager(backend=backend)
     try:
@@ -98,11 +115,11 @@ def solve_ansatz(ansatz: QuantumCircuit, op: SparsePauliOp) -> PrimitiveResult[P
 
     with session:
         res = minimize(
-            cost_function, 
-            x0, 
+            cost_function,
+            x0,
             args=(isa_ansatz, hamiltonian, estimator),
             method="BFGS",
-            options={"maxiter": 10}
+            options={"maxiter": 10},
         )
         qc = ansatz.assign_parameters(res.x)
         qc.measure_all()
@@ -110,16 +127,17 @@ def solve_ansatz(ansatz: QuantumCircuit, op: SparsePauliOp) -> PrimitiveResult[P
         result = sampler.run([qc_isa]).result()
 
     assert result is not None
-    return result # type: ignore
+    return result  # type: ignore
 
 
 def compute_result(qp: QuadraticProgram) -> PrimitiveResult[PubResult]:
-    try:
-        op, _ = qp.to_ising()
-    except QiskitOptimizationError:
-        conv = QuadraticProgramToQubo()
-        qp_d = conv.convert(qp)
-        op, _ = qp_d.to_ising()
+    # try:
+    #     op, _ = qp.to_ising()
+    # except QiskitOptimizationError:
+    #     conv = QuadraticProgramToQubo()
+    #     qp_d = conv.convert(qp)
+    #     op, _ = qp_d.to_ising()
+    op, _ = qp.to_ising()
     ansatz = QAOAAnsatz(cost_operator=op, flatten=True)
     res = solve_ansatz(ansatz, op)
     return res
@@ -131,10 +149,45 @@ def test_ibm_solution_translator():
     np.random.seed(seed)
     _ = Random(seed)
 
+    aqm = controlled_aqm()
+
     timer = Timer.start()
     qp = controlled_qp()
     res = compute_result(qp)
     timing = timer.stop()
-    sol = IbmTranslator.from_ibm(res, qp, timing)
+
+    print(qp)
+    print(res)
+
+    # extract(res, qp, timing, aqm.environment)
+
+    sol = IbmTranslator.from_ibm(res, qp, timing, aqm.environment)
     print(sol)
 
+
+def extract(result, qp, timing, env):
+    meas: BitArray = result[0].data.meas
+    counts: dict[str, int] = meas.get_counts()
+
+    samples = []
+    orderings = []
+    energies = []
+    num_occurences = []
+
+    for bitstring, count in counts.items():
+        sample = []
+        order = []
+        for i, b in enumerate(bitstring):
+            sample.append(int(b))
+            order.append(qp.variables[i].name)
+
+        samples.append(sample)
+        orderings.append(order)
+        energies.append(float(qp.objective.evaluate(sample)))
+        num_occurences.append(count)
+
+        sample = {qp.variables[i].name: int(b) for i, b in enumerate(bitstring)}
+
+    return translator.IbmTranslator.translate(
+        samples, orderings, energies, num_occurences, timing, env
+    )

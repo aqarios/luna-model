@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Variable, Bounds
-from ._timing import Timer, Timing
+from ._variable import Bounds, Vtype, Variable
+from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import Samples, Sample, SampleIterator, SamplesIterator
-from ._result import ResultView, ResultIterator, Result
+from ._sample import Samples, Sample, SamplesIterator, SampleIterator
+from ._result import Result, ResultView, ResultIterator
 from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Model as __Model,
-    SamplesIterator as __SamplesIterator,
-    Comparator as __Comparator,
-    Samples as __Samples,
-    ResultView as __ResultView,
-    Environment as __Environment,
-    Variable as __Variable,
-    Sense as __Sense,
-    Timing as __Timing,
-    Timer as __Timer,
     Constraint as __Constraint,
-    Vtype as __Vtype,
-    SampleIterator as __SampleIterator,
-    ResultIterator as __ResultIterator,
-    Bounds as __Bounds,
+    ResultView as __ResultView,
+    Comparator as __Comparator,
+    Timing as __Timing,
+    Model as __Model,
     Expression as __Expression,
     Sample as __Sample,
-    Result as __Result,
-    Constraints as __Constraints,
+    Vtype as __Vtype,
+    Bounds as __Bounds,
+    Environment as __Environment,
+    ResultIterator as __ResultIterator,
+    SamplesIterator as __SamplesIterator,
     Solution as __Solution,
+    SampleIterator as __SampleIterator,
+    Samples as __Samples,
+    Result as __Result,
+    Variable as __Variable,
+    Sense as __Sense,
+    Constraints as __Constraints,
+    Timer as __Timer,
 )
-from ._constraints import Constraint, Comparator, Constraints
-from . import errors, translator
+from ._constraints import Constraint, Constraints, Comparator
+from . import translator, errors
 
 Sense = __Sense  # type: ignore[misc,assignment] # noqa: F811
 Model = __Model  # type: ignore[misc,assignment] # noqa: F811

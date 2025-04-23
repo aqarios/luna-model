@@ -23,7 +23,7 @@ pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 
 #[cfg_attr(
     feature = "py",
-    pyclass(eq, eq_int, name = "Vtype", module = "aqmodels")
+    pyclass(eq, eq_int, name = "Sense", module = "aqmodels")
 )] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq)]
 /// The optimization sense, i.e., the direction to be optimized towards.
