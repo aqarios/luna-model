@@ -7,6 +7,7 @@ from aqmodels._solution import Solution, Timing
 from aqmodels._variable import Variable
 from aqmodels._variable import Vtype
 from dimod import BinaryQuadraticModel
+from dimod import ConstrainedQuadraticModel
 from dimod import SampleSet
 from numpy.typing import NDArray
 from pathlib import Path
@@ -99,6 +100,12 @@ class DimodTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
+class CqmTranslator:
+    @staticmethod
+    def to_model(cqm: ConstrainedQuadraticModel) -> Model: ...
+    @staticmethod
+    def from_model(model: Model) -> ConstrainedQuadraticModel: ...
+
 class MatrixTranslator:
     @staticmethod
     def to_model(
@@ -109,6 +116,7 @@ class MatrixTranslator:
 
 __all__ = [
     "BqmTranslator",
+    "CqmTranslator",
     "DimodTranslator",
     "IbmTranslator",
     "LpTranslator",
