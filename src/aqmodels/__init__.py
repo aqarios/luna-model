@@ -49,33 +49,33 @@ transformers
 """
 
 from ._variable import Vtype, Variable, Bounds
-from ._timing import Timer, Timing
+from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import SamplesIterator, SampleIterator, Sample, Samples
-from ._result import ResultIterator, Result, ResultView
-from ._model import Model, Sense
+from ._sample import Sample, Samples, SampleIterator, SamplesIterator
+from ._result import Result, ResultView, ResultIterator
+from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Vtype as __Vtype,
     Comparator as __Comparator,
-    SamplesIterator as __SamplesIterator,
+    Model as __Model,
     Result as __Result,
-    Solution as __Solution,
-    Constraints as __Constraints,
-    Variable as __Variable,
-    ResultView as __ResultView,
     ResultIterator as __ResultIterator,
     Timer as __Timer,
-    Model as __Model,
-    Environment as __Environment,
+    Variable as __Variable,
     Expression as __Expression,
-    Sample as __Sample,
-    SampleIterator as __SampleIterator,
-    Samples as __Samples,
-    Sense as __Sense,
     Constraint as __Constraint,
     Bounds as __Bounds,
+    Solution as __Solution,
+    SampleIterator as __SampleIterator,
+    Sample as __Sample,
+    Samples as __Samples,
+    Vtype as __Vtype,
+    SamplesIterator as __SamplesIterator,
+    ResultView as __ResultView,
+    Environment as __Environment,
+    Sense as __Sense,
+    Constraints as __Constraints,
     Timing as __Timing,
 )
 from ._constraints import Constraints, Constraint, Comparator
