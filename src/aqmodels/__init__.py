@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Variable, Bounds
-from ._timing import Timing, Timer
+from ._variable import Bounds, Vtype, Variable
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import Sample, Samples, SampleIterator, SamplesIterator
-from ._result import Result, ResultView, ResultIterator
+from ._sample import Samples, SamplesIterator, Sample, SampleIterator
+from ._result import ResultView, Result, ResultIterator
 from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Comparator as __Comparator,
+    Environment as __Environment,
+    ResultIterator as __ResultIterator,
+    SampleIterator as __SampleIterator,
+    Samples as __Samples,
     Model as __Model,
     Result as __Result,
-    ResultIterator as __ResultIterator,
     Timer as __Timer,
+    Comparator as __Comparator,
+    Constraints as __Constraints,
     Variable as __Variable,
-    Expression as __Expression,
+    Sample as __Sample,
     Constraint as __Constraint,
     Bounds as __Bounds,
-    Solution as __Solution,
-    SampleIterator as __SampleIterator,
-    Sample as __Sample,
-    Samples as __Samples,
-    Vtype as __Vtype,
-    SamplesIterator as __SamplesIterator,
-    ResultView as __ResultView,
-    Environment as __Environment,
-    Sense as __Sense,
-    Constraints as __Constraints,
     Timing as __Timing,
+    Solution as __Solution,
+    ResultView as __ResultView,
+    SamplesIterator as __SamplesIterator,
+    Expression as __Expression,
+    Vtype as __Vtype,
+    Sense as __Sense,
 )
-from ._constraints import Constraints, Constraint, Comparator
-from . import translator, errors
+from ._constraints import Constraint, Constraints, Comparator
+from . import errors, translator
 
 Sense = __Sense  # type: ignore[misc,assignment] # noqa: F811
 Model = __Model  # type: ignore[misc,assignment] # noqa: F811
@@ -118,6 +118,7 @@ QctrlTranslator = translator.QctrlTranslator
 IbmTranslator = translator.IbmTranslator
 LpTranslator = translator.LpTranslator
 DimodTranslator = translator.DimodTranslator
+CqmTranslator = translator.CqmTranslator
 MatrixTranslator = translator.MatrixTranslator
 
 __all__ = [
@@ -126,6 +127,7 @@ __all__ = [
     "Comparator",
     "Constraint",
     "Constraints",
+    "CqmTranslator",
     "DecodeError",
     "DifferentEnvsError",
     "DimodTranslator",

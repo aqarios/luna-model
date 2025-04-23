@@ -6,6 +6,7 @@ from ._matrix import MatrixTranslator
 from ._lp import LpTranslator
 from ._ibm import IbmTranslator
 from ._dimod import DimodTranslator
+from ._cqm import CqmTranslator
 from ._bqm import BqmTranslator
 from .._core import translator as __translator
 
@@ -14,10 +15,12 @@ QctrlTranslator = __translator.QctrlTranslator  # noqa: F811
 IbmTranslator = __translator.IbmTranslator  # noqa: F811
 LpTranslator = __translator.LpTranslator  # noqa: F811
 DimodTranslator = __translator.DimodTranslator  # noqa: F811
+CqmTranslator = __translator.CqmTranslator  # noqa: F811
 MatrixTranslator = __translator.MatrixTranslator  # noqa: F811
 
 __all__ = [
     "BqmTranslator",
+    "CqmTranslator",
     "DimodTranslator",
     "IbmTranslator",
     "LpTranslator",

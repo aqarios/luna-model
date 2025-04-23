@@ -34,7 +34,6 @@ impl PyIbmTranslator {
                 })
             })?,
         };
-        let some = samples.as_slice();
         Ok(PySolution(IbmTranslator::from_ibm(
             &samples,
             &orderings

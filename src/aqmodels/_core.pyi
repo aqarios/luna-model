@@ -3,6 +3,7 @@
 
 from datetime import datetime, timedelta
 from dimod import BinaryQuadraticModel
+from dimod import ConstrainedQuadraticModel
 from dimod import SampleSet
 from enum import Enum
 from numpy.typing import NDArray
@@ -598,6 +599,12 @@ class DimodTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
+class CqmTranslator:
+    @staticmethod
+    def to_model(cqm: ConstrainedQuadraticModel) -> Model: ...
+    @staticmethod
+    def from_model(model: Model) -> ConstrainedQuadraticModel: ...
+
 class MatrixTranslator:
     @staticmethod
     def to_model(
@@ -612,6 +619,7 @@ __all__ = [
     "Comparator",
     "Constraint",
     "Constraints",
+    "CqmTranslator",
     "DecodeError",
     "DifferentEnvsError",
     "DimodTranslator",
