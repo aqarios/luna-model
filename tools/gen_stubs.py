@@ -86,7 +86,7 @@ def generate_stub_file(target_path: Path, symbols: list[dict]):
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text("\n".join(lines), encoding="utf-8")
-    print(f"✅ Wrote stub: {target_path.relative_to(PROJECT_ROOT)}")
+    print(f"Wrote stub: {target_path.relative_to(PROJECT_ROOT)}")
 
 
 def main():
