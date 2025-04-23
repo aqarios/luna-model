@@ -139,6 +139,7 @@ def extract(result, qp):
 
     return samples, energies, num_occurences
 
+
 @pytest.mark.solution_translation
 def test_ibm_solution_translator():
     warnings.filterwarnings("ignore")
@@ -171,10 +172,9 @@ def test_ibm_solution_translator():
     results = list(sol.results)
     assert len(results) == len(sol.samples)
     for i, result in enumerate(results):
-        assert result.num_occurrences == sol.num_occurrences.tolist()[i] # type: ignore
+        assert result.num_occurrences == sol.num_occurrences.tolist()[i]  # type: ignore
         assert list(result.sample) == list(sol.samples[i])
         assert result.obj_value is None
-        assert result.raw_energy == sol.raw_energies.tolist()[i] # type: ignore
+        assert result.raw_energy == sol.raw_energies.tolist()[i]  # type: ignore
         assert result.constraints is None
         assert result.feasible is None
-
