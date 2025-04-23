@@ -63,7 +63,7 @@ def extract(sampleset, timing, env):
     sample = record.sample.astype(np.int64, order='C')
     num_occurrences = record.num_occurrences.astype(np.int64, order='C')
     energy = record.energy.astype(np.float64, order='C')
-    return translator.SampleSetTranslator.translate(
+    return translator.DimodTranslator.translate(
         sample, num_occurrences, energy, timing, env
     )"
             ),
