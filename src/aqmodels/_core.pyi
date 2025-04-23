@@ -7,6 +7,8 @@ from dimod import SampleSet
 from enum import Enum
 from numpy.typing import NDArray
 from pathlib import Path
+from qiskit.primitives import PrimitiveResult, PubResult
+from qiskit_optimization import QuadraticProgram
 from typing import Any
 from typing import overload
 
@@ -555,17 +557,21 @@ class QctrlTranslator:
 class IbmTranslator:
     @overload
     @staticmethod
-    def from_ibm(result: Any, quadratic_program: Any) -> Solution: ...
-    @overload
-    @staticmethod
     def from_ibm(
-        result: Any, quadratic_program: Any, timing: Timing | None = ...
+        result: PrimitiveResult[PubResult], quadratic_program: QuadraticProgram
     ) -> Solution: ...
     @overload
     @staticmethod
     def from_ibm(
-        result: Any,
-        quadratic_program: Any,
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
+        timing: Timing | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_ibm(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
