@@ -1,13 +1,12 @@
-import enum
 import pytest
 import numpy as np
+import warnings
 
 from docplex.mp.model import Model as CPXModel
 from contextlib import nullcontext
 from qiskit import QuantumCircuit, generate_preset_pass_manager
 from qiskit.circuit.library import QAOAAnsatz
 from qiskit.primitives import (
-    BitArray,
     PrimitiveResult,
     PubResult,
     StatevectorEstimator,
@@ -16,8 +15,7 @@ from qiskit.primitives import (
 from qiskit.quantum_info import SparsePauliOp
 from qiskit.providers import BackendV2
 from qiskit_aer import AerSimulator
-from qiskit_optimization import QiskitOptimizationError, QuadraticProgram
-from qiskit_optimization.converters import QuadraticProgramToQubo
+from qiskit_optimization import QuadraticProgram
 from qiskit_ibm_runtime import EstimatorV2, SamplerV2, Session
 from qiskit_optimization.translators import from_docplex_mp
 from scipy.optimize import minimize
@@ -28,11 +26,11 @@ from aqmodels import (
     Timer,
     Variable,
     Vtype,
-    Bounds,
     Sense,
     Model,
 )
-from pytests.test_core.utils import make_seed, random, random_bool, random_int, todo
+from pytests.test_core.utils import make_seed, random_bool
+
 
 Backend = BackendV2 | AerSimulator | None
 Sampler = SamplerV2 | StatevectorSampler
@@ -48,11 +46,7 @@ def controlled_qp() -> QuadraticProgram:
     qp = CPXModel("a_qp")
     x = qp.binary_var(name="x")
     y = qp.binary_var(name="y")
-
     qp.minimize(1 * x + 2 * y + x * y - 3)
-    # qp.add_constraint(v + 2 * w + t + u <= 3, "cons1")
-    # qp.add_constraint(v + w + t >= 1, "cons2")
-    # qp.add_constraint(v + w == 1, "cons3")
     qp = from_docplex_mp(qp)
     return qp
 
@@ -62,18 +56,8 @@ def controlled_aqm() -> Model:
     with model.environment:
         x = Variable("x", vtype=Vtype.Binary)
         y = Variable("y", vtype=Vtype.Binary)
-        # v = Variable("v", vtype=Vtype.Binary)
-        # w = Variable("w", vtype=Vtype.Binary)
-        # t = Variable("t", vtype=Vtype.Binary)
-        # u = Variable("u", vtype=Vtype.Binary)
-        # t = Variable("t", vtype=Vtype.Integer, bounds=Bounds(0, 3))
-        # u = Variable("u", vtype=Vtype.Integer, bounds=Bounds(0, 3))
     model.set_sense(Sense.Min)
     model.objective = 1 * x + 2 * y + x * y - 3
-    # model.objective = v + w + t + 5 * (u - 2) * w
-    # model.constraints += v + 2 * w + t + u <= 3, "cons1"
-    # model.constraints += v + w + t >= 1, "cons2"
-    # model.constraints += v + w == 1, "cons3"
     return model
 
 
@@ -131,12 +115,6 @@ def solve_ansatz(
 
 
 def compute_result(qp: QuadraticProgram) -> PrimitiveResult[PubResult]:
-    # try:
-    #     op, _ = qp.to_ising()
-    # except QiskitOptimizationError:
-    #     conv = QuadraticProgramToQubo()
-    #     qp_d = conv.convert(qp)
-    #     op, _ = qp_d.to_ising()
     op, _ = qp.to_ising()
     ansatz = QAOAAnsatz(cost_operator=op, flatten=True)
     res = solve_ansatz(ansatz, op)
@@ -145,6 +123,7 @@ def compute_result(qp: QuadraticProgram) -> PrimitiveResult[PubResult]:
 
 @pytest.mark.solution_translation
 def test_ibm_solution_translator():
+    warnings.filterwarnings("ignore")
     seed = make_seed()
     np.random.seed(seed)
     _ = Random(seed)
@@ -155,39 +134,4 @@ def test_ibm_solution_translator():
     qp = controlled_qp()
     res = compute_result(qp)
     timing = timer.stop()
-
-    print(qp)
-    print(res)
-
-    # extract(res, qp, timing, aqm.environment)
-
     sol = IbmTranslator.from_ibm(res, qp, timing, aqm.environment)
-    print(sol)
-
-
-def extract(result, qp, timing, env):
-    meas: BitArray = result[0].data.meas
-    counts: dict[str, int] = meas.get_counts()
-
-    samples = []
-    orderings = []
-    energies = []
-    num_occurences = []
-
-    for bitstring, count in counts.items():
-        sample = []
-        order = []
-        for i, b in enumerate(bitstring):
-            sample.append(int(b))
-            order.append(qp.variables[i].name)
-
-        samples.append(sample)
-        orderings.append(order)
-        energies.append(float(qp.objective.evaluate(sample)))
-        num_occurences.append(count)
-
-        sample = {qp.variables[i].name: int(b) for i, b in enumerate(bitstring)}
-
-    return translator.IbmTranslator.translate(
-        samples, orderings, energies, num_occurences, timing, env
-    )

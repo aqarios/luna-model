@@ -23,12 +23,6 @@ impl IbmTranslator {
         E: Copy + NumCast + Debug,
         Index: IndexConstraints,
     {
-        println!("{samples:?}");
-        println!("{orderings:?}");
-        println!("{energies:?}");
-        println!("{num_occurences:?}");
-
-
         let mut sol = Solution::default();
         for v in env.borrow().variables.iter() {
             match v.vtype {
@@ -43,15 +37,13 @@ impl IbmTranslator {
         let index_list: Vec<Vec<usize>> = orderings.iter().map(|l| l.iter().map(|e| e.id.into()).collect()).collect();
         // For each sample:
         // Map the sample to the correct order.
-        for ((sample, indices), energy) in samples.iter().zip(index_list).zip(energies) {
+        for (((sample, indices), energy), occ) in samples.iter().zip(index_list).zip(energies).zip(num_occurences) {
             let mut s: Vec<S> = vec![S::default(); sample.len()];
             for (&idx, val) in indices.iter().zip(sample) {
-                println!("{idx} : {val}");
                 s[idx] = *val;
             }
-            sol.extend(s, 1, Some(*energy))?;
+            sol.extend(s, occ, Some(*energy))?;
         }
-        sol.num_occurrences = num_occurences;
         Ok(RcSolution(Rc::new(sol)))
     }
 }

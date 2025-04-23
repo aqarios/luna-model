@@ -3,17 +3,17 @@
 
 from ._errors import (
     NoActiveEnvironmentFoundError,
-    SolutionCreationError,
+    VariableNotExistingError,
+    ModelNotQuadraticError,
     VariableExistsError,
     ModelNotUnconstrainedError,
-    VariablesFromDifferentEnvsError,
     DecodeError,
-    ModelNotQuadraticError,
-    VariableNotExistingError,
+    VariableOutOfRangeError,
     MultipleActiveEnvironmentsError,
     ModelVtypeError,
+    SolutionCreationError,
     DifferentEnvsError,
-    VariableOutOfRangeError,
+    VariablesFromDifferentEnvsError,
 )
 from .._core import errors as __errors
 
