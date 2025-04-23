@@ -13,6 +13,7 @@ from pytests.test_core.utils import make_seed, random, random_bool, random_int
 REPS: int = 20
 MAX_VARS: int = 20
 
+
 def fake_qctrl_result(rand: Random, len: int, cost: float) -> dict[str, Any]:
     return {
         "solution_bitstring": [int(random_bool(rand)) for _ in range(len)],
@@ -20,7 +21,9 @@ def fake_qctrl_result(rand: Random, len: int, cost: float) -> dict[str, Any]:
     }
 
 
-def random_variable_list(rand: Random, vars: list[Variable] | list[tuple[int, Variable]]) -> list[Variable] | list[tuple[int, Variable]]:
+def random_variable_list(
+    rand: Random, vars: list[Variable] | list[tuple[int, Variable]]
+) -> list[Variable] | list[tuple[int, Variable]]:
     v = vars.copy()
     rand.shuffle(v)
     return v
@@ -52,6 +55,7 @@ def test_qctrl_translator_constructed():
 
         results = list(sol.results)
         assert len(results) == 1
+
 
 @pytest.mark.solution_translation
 def test_qctrl_translator_constructed_explicit_env():

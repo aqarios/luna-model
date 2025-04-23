@@ -7,7 +7,8 @@ use super::py_exceptions::NoActiveEnvironmentFoundError;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::expression::ExpressionBaseCreation;
 use crate::core::operations::{
-    AddToExpression, MulToExpression, NegToExpression, RSubToExpression, SubToExpression,
+    AddToExpression, MulAssignToExpression, MulToExpression, NegToExpression, RSubToExpression,
+    SubToExpression,
 };
 use crate::core::{
     environment, Comparator, ConcreteConstraint, ConcreteExpression, ConcreteRcVarRef,
@@ -78,11 +79,12 @@ impl PyVariable {
             expr = self.add(-rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = self.sub(rhs.as_ref())?;
-        // } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-        //     rhs.borrow()
-        //         .add(self.as_ref())
-        //         .map(|e| PyExpression::new(e))
-        //         .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+        } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
+            expr = (rhs.borrow().mul(-1.0)).add(self.as_ref())?;
+            // rhs.borrow()
+            //     .add(self.as_ref())
+            //     .map(|e| PyExpression::new(e))
+            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             return Err(PyRuntimeError::new_err("unsopported type for operation"));
         }
@@ -125,6 +127,27 @@ impl PyVariable {
 
     fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         self.__mul__(py, other)
+    }
+
+    fn __pow__(&self, other: usize, modparam: Option<usize>) -> PyResult<PyExpression> {
+        if modparam.is_some() {
+            return Err(PyRuntimeError::new_err(
+                "the parameter 'mod' is not supported.",
+            ));
+        }
+        let expr = match other {
+            0 => Expression::empty(Rc::clone(&self.env)).add(1.0),
+            1 => Expression::new_linear_single(Rc::clone(&self.env), self.id, 1.0),
+            2 => Expression::new_quadratic(Rc::clone(&self.env), self.id, self.id, 1.0),
+            _ => {
+                let mut base = Expression::new_linear_single(Rc::clone(&self.env), self.id, 1.0);
+                for _ in 1..other {
+                    base.mul_assign(self.as_ref())?;
+                }
+                base
+            }
+        };
+        Ok(PyExpression::new(expr))
     }
 
     fn __str__(&self) -> String {
