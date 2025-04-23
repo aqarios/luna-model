@@ -8,9 +8,10 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "dimod>=0.12.20",
     "numpy>=2.2.2",
-    "scipy>=1.15.1",
-    "dwave-hybrid>=0.6.13"
+    "qiskit>=1.4.2",
+    "qiskit-optimization>=0.6.1",
 ]
 
 [tool.uv]
@@ -19,8 +20,6 @@ cache-keys = [
     { file = "pyproject.toml" },
     { file = "Cargo.toml" },
     { file = "**/*.rs" },
-    # { file = "src/aqmodels/**/*.pyi" },
-    # { file = "src/aqmodels/**/*.py" },
     { file = "src/aqmodels/_api_utils.py" },
     { file = "src/aqmodels/_constraints.py" },
     { file = "src/aqmodels/_constraints.pyi" },
@@ -48,8 +47,8 @@ cache-keys = [
     { file = "src/aqmodels/translator/_lp.pyi" },
     { file = "src/aqmodels/translator/_matrix.py" },
     { file = "src/aqmodels/translator/_matrix.pyi" },
-    { file = "src/aqmodels/translator/_sample_set.py" },
-    { file = "src/aqmodels/translator/_sample_set.pyi" },
+    { file = "src/aqmodels/translator/_dimod.py" },
+    { file = "src/aqmodels/translator/_dimod.pyi" },
     { file = "tools/*.py" },
 ]
 
@@ -98,4 +97,10 @@ dev = [
     "pytest-cov>=6.1.1",
     "gurobipy>=12.0.1",
     "cplex>=22.1.2.0; sys_platform == 'linux'",
+    "qiskit[all]>=1.1.0,<2.0.0",
+    "dwave-hybrid>=0.6.13",
+    "scipy>=1.15.1",
+    "qiskit-optimization>=0.6.1",
+    "qiskit-ibm-runtime>=0.38.0",
+    "qiskit-aer>=0.17.0",
 ]

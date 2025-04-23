@@ -1,4 +1,21 @@
+from enum import Enum
 from aqmodels._api_utils import export, dispatched
+
+
+@export
+class Sense(Enum):
+    """
+    Enumeration of optimization senses supported by the optimization system.
+
+    This enum defines the type of a optimization used for a model. The type influences
+    the domain and behavior of the model during optimization.
+    """
+
+    Min = ...
+    """Indicate the objective function to be minimized."""
+
+    Max = ...
+    """Indicate the objective function to be maximized."""
 
 
 @export
@@ -74,6 +91,18 @@ class Model:
             environment will be created or inferred from context.
         """
         return env, name
+
+    @dispatched
+    def set_sense(self, sense):
+        """
+        Set the optimization sense of a model.
+
+        Parameters
+        ----------
+        sense : Sense
+            The sense of the model (minimization, maximization)
+        """
+        return sense
 
     @dispatched
     def evaluate(self, solution):

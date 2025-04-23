@@ -1,6 +1,6 @@
 use pyo3::{prelude::*, PyTypeCheck};
 
-use crate::core::{Comparator, Vtype};
+use crate::core::{Comparator, Vtype, Sense};
 
 use super::{
     py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_res, py_sample,
@@ -12,6 +12,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Add core components not as wrappers, required for e.g. enums
     m.add_class::<Vtype>()?;
     m.add_class::<Comparator>()?;
+    m.add_class::<Sense>()?;
     // Add core components as wrappers.
     m.add_class::<py_env::PyEnvironment>()?;
     m.add_class::<py_expr::PyExpression>()?;
@@ -37,9 +38,10 @@ pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "translator")?;
     m.add_class::<py_translator::PyMatrixTranslator>()?;
     m.add_class::<py_translator::PyBqmTranslator>()?;
-    m.add_class::<py_translator::PySampleSetTranslator>()?;
+    m.add_class::<py_translator::PyDimodTranslator>()?;
     m.add_class::<py_translator::PyQctrlTranslator>()?;
     m.add_class::<py_translator::PyLpTranslator>()?;
+    m.add_class::<py_translator::PyIbmTranslator>()?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?

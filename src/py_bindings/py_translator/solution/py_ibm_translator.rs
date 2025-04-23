@@ -10,14 +10,14 @@ pub struct PyIbmTranslator {}
 #[pymethods]
 impl PyIbmTranslator {
     #[staticmethod]
-    #[pyo3(signature=(samples, ordering, energies, num_occurences, timing=None, env=None))]
+    #[pyo3(signature=(samples, ordering, energies, num_occurences, _timing=None, _env=None))]
     fn translate(
         samples: Vec<Vec<i64>>,
         ordering: Vec<Vec<String>>,
         energies: Vec<f64>,
         num_occurences: Vec<i64>,
-        timing: Option<PyTiming>,
-        env: Option<PyEnvironment>,
+        _timing: Option<PyTiming>,
+        _env: Option<PyEnvironment>,
     ) -> PyResult<PySolution> {
         println!("{samples:?}");
         println!("{ordering:?}");

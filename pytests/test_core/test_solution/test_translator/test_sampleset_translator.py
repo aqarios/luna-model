@@ -7,7 +7,7 @@ from dwave.samplers import SimulatedAnnealingSampler
 
 from aqmodels import (
     Environment,
-    SampleSetTranslator,
+    DimodTranslator,
     Timer,
     Variable,
     Vtype,
@@ -37,7 +37,7 @@ def test_sampleset_translator_constructed():
     )
 
     with mock_env(3):
-        sol = SampleSetTranslator.from_dimod_sample_set(sampleset)
+        sol = DimodTranslator.from_dimod_sample_set(sampleset)
 
     assert sol.samples.tolist() == samples
     assert sol.num_occurrences.tolist() == num_occurrences
@@ -64,7 +64,7 @@ def test_sampleset_translator_sa_random_models():
         timing = timer.stop()
         vtype = Vtype.Binary if bqm.vartype == Vartype.BINARY else Vtype.Spin
         env = mock_env(bqm.num_variables, vtype=vtype)
-        sol = SampleSetTranslator.from_dimod_sample_set(sampleset, timing, env)
+        sol = DimodTranslator.from_dimod_sample_set(sampleset, timing, env)
 
         sampleset_agg = sampleset.aggregate()
         assert len(sol.samples) == len(sampleset_agg.record.sample)
@@ -99,9 +99,9 @@ def test_sampleset_translator_error_handling():
 
     env = mock_env(3)
     with pytest.raises(SolutionCreationError):
-        _ = SampleSetTranslator.from_dimod_sample_set(sampleset, env=env)
+        _ = DimodTranslator.from_dimod_sample_set(sampleset, env=env)
 
     env = mock_env(3, vtype=Vtype.Spin)
-    sol = SampleSetTranslator.from_dimod_sample_set(sampleset, env=env)
+    sol = DimodTranslator.from_dimod_sample_set(sampleset, env=env)
     with pytest.raises(IndexError):
         _ = sol.samples[1]

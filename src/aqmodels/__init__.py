@@ -48,38 +48,40 @@ transformers
     to a linear model.
 """
 
-from ._variable import Variable, Bounds, Vtype
-from ._timing import Timing, Timer
+from ._variable import Vtype, Variable, Bounds
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import SamplesIterator, Samples, SampleIterator, Sample
-from ._result import Result, ResultIterator, ResultView
-from ._model import Model
+from ._sample import Samples, Sample, SampleIterator, SamplesIterator
+from ._result import ResultView, ResultIterator, Result
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    ResultIterator as __ResultIterator,
-    Environment as __Environment,
-    Bounds as __Bounds,
-    Timing as __Timing,
-    SamplesIterator as __SamplesIterator,
-    Solution as __Solution,
     Model as __Model,
-    SampleIterator as __SampleIterator,
-    Expression as __Expression,
-    ResultView as __ResultView,
-    Sample as __Sample,
-    Constraints as __Constraints,
-    Result as __Result,
+    SamplesIterator as __SamplesIterator,
     Comparator as __Comparator,
-    Vtype as __Vtype,
-    Variable as __Variable,
     Samples as __Samples,
-    Constraint as __Constraint,
+    ResultView as __ResultView,
+    Environment as __Environment,
+    Variable as __Variable,
+    Sense as __Sense,
+    Timing as __Timing,
     Timer as __Timer,
+    Constraint as __Constraint,
+    Vtype as __Vtype,
+    SampleIterator as __SampleIterator,
+    ResultIterator as __ResultIterator,
+    Bounds as __Bounds,
+    Expression as __Expression,
+    Sample as __Sample,
+    Result as __Result,
+    Constraints as __Constraints,
+    Solution as __Solution,
 )
-from ._constraints import Constraints, Comparator, Constraint
-from . import translator, errors
+from ._constraints import Constraint, Comparator, Constraints
+from . import errors, translator
 
+Sense = __Sense  # type: ignore[misc,assignment] # noqa: F811
 Model = __Model  # type: ignore[misc,assignment] # noqa: F811
 Expression = __Expression  # type: ignore[misc,assignment] # noqa: F811
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
@@ -113,8 +115,9 @@ ModelVtypeError = errors.ModelVtypeError
 SolutionCreationError = errors.SolutionCreationError
 BqmTranslator = translator.BqmTranslator
 QctrlTranslator = translator.QctrlTranslator
-SampleSetTranslator = translator.SampleSetTranslator
+IbmTranslator = translator.IbmTranslator
 LpTranslator = translator.LpTranslator
+DimodTranslator = translator.DimodTranslator
 MatrixTranslator = translator.MatrixTranslator
 
 __all__ = [
@@ -125,8 +128,10 @@ __all__ = [
     "Constraints",
     "DecodeError",
     "DifferentEnvsError",
+    "DimodTranslator",
     "Environment",
     "Expression",
+    "IbmTranslator",
     "LpTranslator",
     "MatrixTranslator",
     "Model",
@@ -141,9 +146,9 @@ __all__ = [
     "ResultView",
     "Sample",
     "SampleIterator",
-    "SampleSetTranslator",
     "Samples",
     "SamplesIterator",
+    "Sense",
     "Solution",
     "SolutionCreationError",
     "Timer",

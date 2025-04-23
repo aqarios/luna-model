@@ -7,11 +7,17 @@ from dimod import SampleSet
 from enum import Enum
 from numpy.typing import NDArray
 from pathlib import Path
+from qiskit.primitives import PrimitiveResult, PubResult
+from qiskit_optimization import QuadraticProgram
 from typing import Any
 from typing import overload
 
 from . import errors
 from . import translator
+
+class Sense(Enum):
+    Min = ...
+    Max = ...
 
 class Model:
     @overload
@@ -26,6 +32,7 @@ class Model:
         name: str | None = ...,
         env: Environment | None = ...,
     ) -> None: ...
+    def set_sense(self, sense: Sense) -> None: ...
     @property
     def name(self) -> str: ...
     @property
@@ -543,10 +550,24 @@ class QctrlTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class SampleSetTranslator:
+class IbmTranslator:
+    @overload
     @staticmethod
-    def from_dimod_sample_set(
-        sample_set: SampleSet,
+    def from_ibm(
+        result: PrimitiveResult[PubResult], quadratic_program: QuadraticProgram
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_ibm(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
+        timing: Timing | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_ibm(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
@@ -565,6 +586,14 @@ class LpTranslator:
     @staticmethod
     def from_model(model: Model, file: Path) -> None: ...
 
+class DimodTranslator:
+    @staticmethod
+    def from_dimod_sample_set(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class MatrixTranslator:
     @staticmethod
     def to_model(
@@ -581,8 +610,10 @@ __all__ = [
     "Constraints",
     "DecodeError",
     "DifferentEnvsError",
+    "DimodTranslator",
     "Environment",
     "Expression",
+    "IbmTranslator",
     "LpTranslator",
     "MatrixTranslator",
     "Model",
@@ -597,9 +628,9 @@ __all__ = [
     "ResultView",
     "Sample",
     "SampleIterator",
-    "SampleSetTranslator",
     "Samples",
     "SamplesIterator",
+    "Sense",
     "Solution",
     "SolutionCreationError",
     "Timer",

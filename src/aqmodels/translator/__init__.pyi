@@ -10,6 +10,8 @@ from dimod import BinaryQuadraticModel
 from dimod import SampleSet
 from numpy.typing import NDArray
 from pathlib import Path
+from qiskit.primitives import PrimitiveResult, PubResult
+from qiskit_optimization import QuadraticProgram
 from typing import Any
 from typing import overload
 
@@ -53,10 +55,24 @@ class QctrlTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class SampleSetTranslator:
+class IbmTranslator:
+    @overload
     @staticmethod
-    def from_dimod_sample_set(
-        sample_set: SampleSet,
+    def from_ibm(
+        result: PrimitiveResult[PubResult], quadratic_program: QuadraticProgram
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_ibm(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
+        timing: Timing | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_ibm(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
@@ -75,6 +91,14 @@ class LpTranslator:
     @staticmethod
     def from_model(model: Model, file: Path) -> None: ...
 
+class DimodTranslator:
+    @staticmethod
+    def from_dimod_sample_set(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class MatrixTranslator:
     @staticmethod
     def to_model(
@@ -85,9 +109,10 @@ class MatrixTranslator:
 
 __all__ = [
     "BqmTranslator",
+    "DimodTranslator",
+    "IbmTranslator",
     "LpTranslator",
     "MatrixTranslator",
     "QctrlTranslator",
-    "SampleSetTranslator",
     "translator",
 ]

@@ -3,7 +3,7 @@ use std::rc::Rc;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
-use crate::core::RcSolution;
+use crate::core::{RcSolution, Sense};
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
 use crate::{
@@ -47,6 +47,11 @@ impl PyModel {
             // })?,
         };
         Self(Model::new_with_env(name, env.0))
+    }
+
+    #[pyo3(name="set_sense")]
+    fn set_sense_py(&mut self, sense: Sense) {
+        self.set_sense(sense);
     }
 
     #[getter]

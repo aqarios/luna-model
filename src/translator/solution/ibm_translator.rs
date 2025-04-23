@@ -1,9 +1,7 @@
 use std::rc::Rc;
 
-use num::NumCast;
-
 use crate::{
-    core::{expression::IndexConstraints, ConcreteSolution, RcSolution, Solution},
+    core::{ConcreteSolution, RcSolution, Solution},
     errors::SolutionCreatorErr,
 };
 
