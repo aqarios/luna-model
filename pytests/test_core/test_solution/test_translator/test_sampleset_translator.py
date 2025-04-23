@@ -74,6 +74,7 @@ def test_sampleset_translator_sa_random_models():
             == sampleset_agg.record.num_occurrences.tolist()
         )
         assert len(sol.num_occurrences) == len(sol.samples)
+        assert sol.runtime is not None
         assert sol.runtime.total.total_seconds() > 0
         assert sol.runtime.total_seconds > 0
         assert sol.runtime.qpu is None

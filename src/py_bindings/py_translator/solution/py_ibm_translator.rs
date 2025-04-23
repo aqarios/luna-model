@@ -85,8 +85,6 @@ def extract(result, qp, timing, env):
         energies.append(float(qp.objective.evaluate(sample)))
         num_occurences.append(count)
 
-        sample = {qp.variables[i].name: int(b) for i, b in enumerate(bitstring)}
-
     return translator.IbmTranslator.translate(
         samples, 
         orderings, 

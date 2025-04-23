@@ -7,6 +7,7 @@ from contextlib import nullcontext
 from qiskit import QuantumCircuit, generate_preset_pass_manager
 from qiskit.circuit.library import QAOAAnsatz
 from qiskit.primitives import (
+    BitArray,
     PrimitiveResult,
     PubResult,
     StatevectorEstimator,
@@ -23,6 +24,7 @@ from scipy.optimize import minimize
 from random import Random
 from aqmodels import (
     IbmTranslator,
+    Solution,
     Timer,
     Variable,
     Vtype,
@@ -121,6 +123,22 @@ def compute_result(qp: QuadraticProgram) -> PrimitiveResult[PubResult]:
     return res
 
 
+def extract(result, qp):
+    meas: BitArray = result[0].data.meas
+    counts: dict[str, int] = meas.get_counts()
+
+    samples = []
+    energies = []
+    num_occurences = []
+
+    for bitstring, count in counts.items():
+        sample = [int(b) for b in bitstring]
+        samples.append(sample)
+        energies.append(float(qp.objective.evaluate(sample)))
+        num_occurences.append(count)
+
+    return samples, energies, num_occurences
+
 @pytest.mark.solution_translation
 def test_ibm_solution_translator():
     warnings.filterwarnings("ignore")
@@ -134,4 +152,29 @@ def test_ibm_solution_translator():
     qp = controlled_qp()
     res = compute_result(qp)
     timing = timer.stop()
-    sol = IbmTranslator.from_ibm(res, qp, timing, aqm.environment)
+    sol: Solution = IbmTranslator.from_ibm(res, qp, timing, aqm.environment)
+
+    truth_samples, truth_energies, truth_num_occurences = extract(res, qp)
+    assert len(sol.samples) == len(truth_samples)
+    assert sol.samples.tolist() == truth_samples
+    assert len(sol.raw_energies) == len(truth_energies)
+    assert sol.raw_energies.tolist() == truth_energies
+    assert len(sol.num_occurrences) == len(truth_num_occurences)
+    assert sol.num_occurrences.tolist() == truth_num_occurences
+    assert len(sol.num_occurrences) == len(sol.samples)
+    assert sol.runtime is not None
+    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds)
+    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds())
+    assert sol.runtime.qpu is None
+    assert sol.obj_values.tolist() == [None] * len(sol.samples)
+
+    results = list(sol.results)
+    assert len(results) == len(sol.samples)
+    for i, result in enumerate(results):
+        assert result.num_occurrences == sol.num_occurrences.tolist()[i] # type: ignore
+        assert list(result.sample) == list(sol.samples[i])
+        assert result.obj_value is None
+        assert result.raw_energy == sol.raw_energies.tolist()[i] # type: ignore
+        assert result.constraints is None
+        assert result.feasible is None
+
