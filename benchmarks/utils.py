@@ -138,7 +138,7 @@ def format_result(result: BenchResult, file: IO | None = None, comp: str = "le")
             )
 
     if file:
-        rprint(table, file=file)
+        rprint(table, file=1)
     else:
         rprint(table)
 

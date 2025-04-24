@@ -110,7 +110,7 @@ def generate_module_init(
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines), encoding="utf-8")
-    print(f"✅ Wrote init: {path.relative_to(PROJECT_ROOT)}")
+    print(f"Wrote init: {path.relative_to(PROJECT_ROOT)}")
 
 
 def main():
