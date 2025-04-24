@@ -1,6 +1,6 @@
 use crate::core::Vtype;
 use crate::py_bindings::py_model::PyModel;
-use crate::translator::AltBqmTranslator;
+use crate::translator::model::BqmTranslator;
 use numpy::{PyReadonlyArray1, ToPyArray};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
@@ -30,7 +30,7 @@ impl PyBqmTranslator {
             Vtype::Binary
         };
 
-        Ok(PyModel(AltBqmTranslator::model_from_bqm(
+        Ok(PyModel(BqmTranslator::model_from_bqm(
             vars.extract(py)?,
             vtype,
             offset,
@@ -49,7 +49,7 @@ impl PyBqmTranslator {
     #[pyo3(signature=(model))]
     fn to_bqm<'a>(py: Python<'a>, model: &PyModel) -> PyResult<PyObject> {
         let (offset, linear, quad, rows, cols, vtype, vars) =
-            AltBqmTranslator::model_to_bqm(&model.0)?;
+            BqmTranslator::model_to_bqm(&model.0)?;
         let linear_py = linear.to_pyarray(py);
         let quadratic_py = quad.to_pyarray(py);
         let rows_py = rows.to_pyarray(py);

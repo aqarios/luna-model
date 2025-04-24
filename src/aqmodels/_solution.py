@@ -29,12 +29,12 @@ class Solution:
 
     When you have a ``dimod.Sampleset`` as raw solution format:
 
-    >>> from aqmodels.translator import BqmTranslator    >>> from aqmodels import Model, Solution, SampleSetTranslator
+    >>> from aqmodels.translator import BqmTranslator    >>> from aqmodels import Model, Solution, DimodTranslator
     >>> from dimod import SimulatedAnnealingSampler
     >>> model: Model = ...
     >>> bqm = BqmTranslator.to_bqm(model)
     >>> sampleset = SimulatedAnnealingSampler().sample(bqm)
-    >>> solution = SampleSetTranslator.from_dimod_sample_set(sampleset)
+    >>> solution = DimodTranslator.from_dimod_sample_set(sampleset)
     >>> solution.samples
     [[1, 0, 1], [0, 0, 1]]
 

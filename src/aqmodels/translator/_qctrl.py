@@ -6,10 +6,10 @@ class QctrlTranslator:
     """
     Utility class for converting between a QCTRL solution and an AqSolution (ours).
 
-    `DimodSolutionTranslator` provides mehtods to:
-    - Convert a Dimod-style solution into our solution `Solution`.
+    `QctrlTranslator` provides mehtods to:
+    - Convert a Qctrl-style solution into our solution `Solution`.
 
-    The conversions are especially required when interaction with external dimod solvers/samplers or libraries that operate on dimod-based problem solving/sampling.
+    The conversions are especially required when interaction with external qctrl solvers/samplers or libraries that operate on qctrl-based problem solving/sampling.
 
     Examples
     --------

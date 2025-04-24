@@ -48,61 +48,40 @@ transformers
     to a linear model.
 """
 
-from ._variable import (
-  Vtype,
-  Bounds,
-  Variable
-)
-from ._timing import (
-  Timer,
-  Timing
-)
+from ._variable import Bounds, Vtype, Variable
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import (
-  Samples,
-  SampleIterator,
-  Sample,
-  SamplesIterator
-)
-from ._result import (
-  Result,
-  ResultView,
-  ResultIterator
-)
-from ._model import Model
+from ._sample import Samples, SamplesIterator, Sample, SampleIterator
+from ._result import ResultView, Result, ResultIterator
+from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-  SampleIterator as __SampleIterator,
-  ResultIterator as __ResultIterator,
-  Expression as __Expression,
-  Model as __Model,
-  Vtype as __Vtype,
-  Constraints as __Constraints,
-  Timing as __Timing,
-  Samples as __Samples,
-  Variable as __Variable,
-  ResultView as __ResultView,
-  Environment as __Environment,
-  Comparator as __Comparator,
-  SamplesIterator as __SamplesIterator,
-  Sample as __Sample,
-  Timer as __Timer,
-  Solution as __Solution,
-  Bounds as __Bounds,
-  Result as __Result,
-  Constraint as __Constraint
+    Environment as __Environment,
+    ResultIterator as __ResultIterator,
+    SampleIterator as __SampleIterator,
+    Samples as __Samples,
+    Model as __Model,
+    Result as __Result,
+    Timer as __Timer,
+    Comparator as __Comparator,
+    Constraints as __Constraints,
+    Variable as __Variable,
+    Sample as __Sample,
+    Constraint as __Constraint,
+    Bounds as __Bounds,
+    Timing as __Timing,
+    Solution as __Solution,
+    ResultView as __ResultView,
+    SamplesIterator as __SamplesIterator,
+    Expression as __Expression,
+    Vtype as __Vtype,
+    Sense as __Sense,
 )
-from ._constraints import (
-  Constraints,
-  Comparator,
-  Constraint
-)
-from . import (
-  translator,
-  errors
-)
+from ._constraints import Constraint, Constraints, Comparator
+from . import errors, translator
 
+Sense = __Sense  # type: ignore[misc,assignment] # noqa: F811
 Model = __Model  # type: ignore[misc,assignment] # noqa: F811
 Expression = __Expression  # type: ignore[misc,assignment] # noqa: F811
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
@@ -136,8 +115,10 @@ ModelVtypeError = errors.ModelVtypeError
 SolutionCreationError = errors.SolutionCreationError
 BqmTranslator = translator.BqmTranslator
 QctrlTranslator = translator.QctrlTranslator
-SampleSetTranslator = translator.SampleSetTranslator
+IbmTranslator = translator.IbmTranslator
 LpTranslator = translator.LpTranslator
+DimodTranslator = translator.DimodTranslator
+CqmTranslator = translator.CqmTranslator
 MatrixTranslator = translator.MatrixTranslator
 
 __all__ = [
@@ -146,10 +127,13 @@ __all__ = [
     "Comparator",
     "Constraint",
     "Constraints",
+    "CqmTranslator",
     "DecodeError",
     "DifferentEnvsError",
+    "DimodTranslator",
     "Environment",
     "Expression",
+    "IbmTranslator",
     "LpTranslator",
     "MatrixTranslator",
     "Model",
@@ -164,9 +148,9 @@ __all__ = [
     "ResultView",
     "Sample",
     "SampleIterator",
-    "SampleSetTranslator",
     "Samples",
     "SamplesIterator",
+    "Sense",
     "Solution",
     "SolutionCreationError",
     "Timer",

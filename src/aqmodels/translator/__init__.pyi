@@ -7,10 +7,13 @@ from aqmodels._solution import Solution, Timing
 from aqmodels._variable import Variable
 from aqmodels._variable import Vtype
 from dimod import BinaryQuadraticModel
+from dimod import ConstrainedQuadraticModel
 from dimod import SampleSet
 from numpy.typing import NDArray
 from pathlib import Path
-from typing import Any, overload
+from qiskit.primitives import PrimitiveResult, PubResult
+from qiskit_optimization import QuadraticProgram
+from typing import Any
 from typing import overload
 
 from . import translator
@@ -53,10 +56,24 @@ class QctrlTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class SampleSetTranslator:
+class IbmTranslator:
+    @overload
     @staticmethod
-    def from_dimod_sample_set(
-        sample_set: SampleSet,
+    def from_ibm(
+        result: PrimitiveResult[PubResult], quadratic_program: QuadraticProgram
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_ibm(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
+        timing: Timing | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_ibm(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
@@ -75,6 +92,20 @@ class LpTranslator:
     @staticmethod
     def from_model(model: Model, file: Path) -> None: ...
 
+class DimodTranslator:
+    @staticmethod
+    def from_dimod_sample_set(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
+class CqmTranslator:
+    @staticmethod
+    def to_model(cqm: ConstrainedQuadraticModel) -> Model: ...
+    @staticmethod
+    def from_model(model: Model) -> ConstrainedQuadraticModel: ...
+
 class MatrixTranslator:
     @staticmethod
     def to_model(
@@ -83,12 +114,13 @@ class MatrixTranslator:
     @staticmethod
     def to_dense(model: Model) -> NDArray: ...
 
-
 __all__ = [
     "BqmTranslator",
+    "CqmTranslator",
+    "DimodTranslator",
+    "IbmTranslator",
     "LpTranslator",
     "MatrixTranslator",
     "QctrlTranslator",
-    "SampleSetTranslator",
     "translator",
 ]

@@ -2,7 +2,7 @@ from aqmodels._api_utils import dispatched, export
 
 
 @export("translator", "top")
-class SampleSetTranslator:
+class DimodTranslator:
     """
     Utility class for converting between a DIMOD solution and an AqSolution (ours).
 
@@ -16,7 +16,7 @@ class SampleSetTranslator:
     >>> import dimod
     >>> import aqmodels as aqm
     >>> dimod_samplset = ...
-    >>> aqs = aqm.translator.DimodSolutionTranslator.from_sampleset(dimod_sampleset)
+    >>> aqs = aqm.translator.DimodTranslator.from_sampleset(dimod_sampleset)
     """
 
     @dispatched
