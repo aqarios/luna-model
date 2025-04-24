@@ -215,6 +215,26 @@ impl PyExpression {
         Ok(())
     }
 
+    fn __pow__(&self, other: usize, modparam: Option<usize>) -> PyResult<PyExpression> {
+        if modparam.is_some() {
+            return Err(PyRuntimeError::new_err(
+                "the parameter 'mod' is not supported.",
+            ));
+        }
+        let expr = match other {
+            0 => Expression::empty(Rc::clone(&self.borrow().env)).add(1.0),
+            1 => self.0.borrow().deref().clone(),
+            _ => {
+                let mut base = Expression::empty(Rc::clone(&self.borrow().env)).add(1.0);
+                for _ in 0..other {
+                    base.mul_assign(self.borrow().deref())?;
+                }
+                base
+            }
+        };
+        Ok(PyExpression::new(expr))
+    }
+
     // Unary operations
     // fn __pos__(&mut self) {
     //     todo!()

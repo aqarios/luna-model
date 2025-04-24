@@ -1,9 +1,14 @@
+from enum import Enum
 from typing import overload
 
 from aqmodels import Solution, Sample, Result
 from aqmodels._constraints import Constraints
 from aqmodels._environment import Environment
 from aqmodels._expression import Expression
+
+class Sense(Enum):
+    Min = ...
+    Max = ...
 
 class Model:
     @overload
@@ -18,6 +23,7 @@ class Model:
         name: str | None = ...,
         env: Environment | None = ...,
     ) -> None: ...
+    def set_sense(self, sense: Sense) -> None: ...
     @property
     def name(self) -> str: ...
     @property

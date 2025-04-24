@@ -266,12 +266,12 @@ def test_model():
         x3 = Variable("x3", vtype=Vtype.Integer, bounds=Bounds(0, 30))
         x4 = Variable("x4", vtype=Vtype.Spin)
         m.objective += (
-                x0 * x1 * x2 * 12.213
-                + x1 * x2 * 0.5
-                + x0 * x2 * -3
-                + 1
-                + x0 * x3 * 1848482
-                + x1 * x4
+            x0 * x1 * x2 * 12.213
+            + x1 * x2 * 0.5
+            + x0 * x2 * -3
+            + 1
+            + x0 * x3 * 1848482
+            + x1 * x4
         )
         m.constraints.add_constraint(x0 + x2 <= 1)
         assert str(m) == _model_str_3

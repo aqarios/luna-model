@@ -15,11 +15,18 @@ use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
 use std::rc::Rc;
 
+#[cfg(feature = "py")]
+use pyo3::prelude::*;
+
 /// The default name for a model.
 pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 
-/// The optimization sense, i.e., the direction to be optimized towards.
+#[cfg_attr(
+    feature = "py",
+    pyclass(eq, eq_int, name = "Sense", module = "aqmodels")
+)] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq)]
+/// The optimization sense, i.e., the direction to be optimized towards.
 pub enum Sense {
     #[strum(to_string = "Minimize")]
     Min,

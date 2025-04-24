@@ -21,6 +21,104 @@ except ImportError as _:
 NUM_CQMS: int = 100
 
 
+@pytest.mark.translator
+def test_cqm_to_model_to_cqm():
+    rand = Random(make_seed())
+    cqms = generate_cqms(NUM_CQMS, rand)
+    for cqm in cqms:
+        cqm_lp = dimod_lp.dumps(cqm)
+        cqm = dimod_lp.loads(cqm_lp)
+        # print(f"cqm_lp =\n{cqm_lp}\n")
+        model = LpTranslator.to_model(cqm_lp)
+        cqm_lp_back = LpTranslator.from_model(model)
+        # print(f"cqm_lp_back =\n{cqm_lp_back}\n")
+        cqm_back = dimod_lp.loads(cqm_lp_back)
+        # this is ugly, but the constraints are weird in dimod.
+        # E.g. this: -29 * x_0 + 12 * x_2 <= 0.0
+        # will be translated to: x_0 + 12 * x_2 <= -29
+        # Also, we remove any 0 values, thus we need to check the actual contents.
+        check_dimod_expr(cqm.objective, cqm_back.objective)
+        for name, constr in cqm.constraints.items():
+            constr_back = cqm_back.constraints[name]
+            check_dimod_expr(constr.lhs, constr_back.lhs)
+            assert constr.rhs == constr_back.rhs
+            assert type(constr) is type(constr_back)
+
+
+@pytest.mark.translator
+def test_gurobi_to_model_to_gurobi():
+    rand = Random(make_seed())
+    cqms = generate_cqms(NUM_CQMS, rand)
+    for cqm in cqms:
+        # We use CQM's assuming the LP file is correctly formatted for Gurobi.
+        # SETUP
+        tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
+        dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
+        tmp_lp.flush()
+        gp_model = gp.read(tmp_lp.name)
+        # ACTUAL
+        # build cplex base model (ground truth)
+        tmp_lp.seek(0)
+        tmp_lp.truncate()
+        gp_model.write(tmp_lp.name)
+        tmp_lp.flush()
+        tmp_lp.seek(0)
+        # build aqmodel
+        tmp_lp.seek(0)
+        aqmodel = LpTranslator.to_model(tmp_lp.file.read())
+        lp_str = LpTranslator.from_model(aqmodel)
+        # write to lp file
+        tmp_lp.seek(0)
+        tmp_lp.truncate()
+        tmp_lp.write(lp_str)
+        tmp_lp.flush()
+        tmp_lp.seek(0)
+        # build cplex model back
+        gp_model_back = gp.read(tmp_lp.name)
+        assert gp_models_are_equal(gp_model, gp_model_back)
+
+
+@pytest.mark.skipif(NOT_RUN_CPLEX, reason="CPLEX is required for test")
+@pytest.mark.translator
+def test_cplex_to_model_to_cplex():
+    rand = Random(make_seed())
+    cqms = generate_cqms(NUM_CQMS, rand)
+    for cqm in cqms:
+        # We use CQM's assuming the LP file is correctly formatted for Gurobi.
+        # SETUP
+        tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
+        tmp_mps = tempfile.NamedTemporaryFile(mode="w+", suffix=".mps")
+        dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
+        tmp_lp.flush()
+        tmp_lp.seek(0)
+        cpx_model = cplex.Cplex(tmp_lp.name)
+        cpx_model.set_log_stream(None)
+        # ACTUAL
+        # build cplex base model (ground truth)
+        tmp_lp.seek(0)
+        cpx_model.write(tmp_lp.name)
+        # store the mps file string from the base
+        cpx_model.write(tmp_mps.name)
+        tmp_mps.seek(0)
+        cpx_mps_str = tmp_mps.read()
+        # build aqmodel
+        tmp_lp.seek(0)
+        aqmodel = LpTranslator.to_model(tmp_lp.file.read())
+        lp_str = LpTranslator.from_model(aqmodel)
+        # write to lp file
+        tmp_lp.seek(0)
+        tmp_lp.write(lp_str)
+        tmp_lp.seek(0)
+        # build cplex model back
+        cpx_model_back = cplex.Cplex(tmp_lp.name)
+        # store the mps file string from the back
+        cpx_model_back.write(tmp_mps.name)
+        tmp_mps.seek(0)
+        cpx_back_mps_str = tmp_mps.read()
+        # compare the two MPS strings
+        assert cpx_mps_str == cpx_back_mps_str
+
+
 def check_dimod_expr(cqm, cqm_back):
     assert cqm.offset == cqm_back.offset
     for u in cqm.variables:
@@ -129,101 +227,3 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
             return False
 
     return True
-
-
-@pytest.mark.translator
-def test_cqm_to_model_to_cqm():
-    rand = Random(make_seed())
-    cqms = generate_cqms(NUM_CQMS, rand)
-    for cqm in cqms:
-        cqm_lp = dimod_lp.dumps(cqm)
-        cqm = dimod_lp.loads(cqm_lp)
-        # print(f"cqm_lp =\n{cqm_lp}\n")
-        model = LpTranslator.to_model(cqm_lp)
-        cqm_lp_back = LpTranslator.from_model(model)
-        # print(f"cqm_lp_back =\n{cqm_lp_back}\n")
-        cqm_back = dimod_lp.loads(cqm_lp_back)
-        # this is ugly, but the constraints are weird in dimod.
-        # E.g. this: -29 * x_0 + 12 * x_2 <= 0.0
-        # will be translated to: x_0 + 12 * x_2 <= -29
-        # Also, we remove any 0 values, thus we need to check the actual contents.
-        check_dimod_expr(cqm.objective, cqm_back.objective)
-        for name, constr in cqm.constraints.items():
-            constr_back = cqm_back.constraints[name]
-            check_dimod_expr(constr.lhs, constr_back.lhs)
-            assert constr.rhs == constr_back.rhs
-            assert type(constr) is type(constr_back)
-
-
-@pytest.mark.translator
-def test_gurobi_to_model_to_gurobi():
-    rand = Random(make_seed())
-    cqms = generate_cqms(NUM_CQMS, rand)
-    for cqm in cqms:
-        # We use CQM's assuming the LP file is correctly formatted for Gurobi.
-        # SETUP
-        tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
-        dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
-        tmp_lp.flush()
-        gp_model = gp.read(tmp_lp.name)
-        # ACTUAL
-        # build cplex base model (ground truth)
-        tmp_lp.seek(0)
-        tmp_lp.truncate()
-        gp_model.write(tmp_lp.name)
-        tmp_lp.flush()
-        tmp_lp.seek(0)
-        # build aqmodel
-        tmp_lp.seek(0)
-        aqmodel = LpTranslator.to_model(tmp_lp.file.read())
-        lp_str = LpTranslator.from_model(aqmodel)
-        # write to lp file
-        tmp_lp.seek(0)
-        tmp_lp.truncate()
-        tmp_lp.write(lp_str)
-        tmp_lp.flush()
-        tmp_lp.seek(0)
-        # build cplex model back
-        gp_model_back = gp.read(tmp_lp.name)
-        assert gp_models_are_equal(gp_model, gp_model_back)
-
-
-@pytest.mark.skipif(NOT_RUN_CPLEX, reason="CPLEX is required for test")
-@pytest.mark.translator
-def test_cplex_to_model_to_cplex():
-    rand = Random(make_seed())
-    cqms = generate_cqms(NUM_CQMS, rand)
-    for cqm in cqms:
-        # We use CQM's assuming the LP file is correctly formatted for Gurobi.
-        # SETUP
-        tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
-        tmp_mps = tempfile.NamedTemporaryFile(mode="w+", suffix=".mps")
-        dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
-        tmp_lp.flush()
-        tmp_lp.seek(0)
-        cpx_model = cplex.Cplex(tmp_lp.name)
-        cpx_model.set_log_stream(None)
-        # ACTUAL
-        # build cplex base model (ground truth)
-        tmp_lp.seek(0)
-        cpx_model.write(tmp_lp.name)
-        # store the mps file string from the base
-        cpx_model.write(tmp_mps.name)
-        tmp_mps.seek(0)
-        cpx_mps_str = tmp_mps.read()
-        # build aqmodel
-        tmp_lp.seek(0)
-        aqmodel = LpTranslator.to_model(tmp_lp.file.read())
-        lp_str = LpTranslator.from_model(aqmodel)
-        # write to lp file
-        tmp_lp.seek(0)
-        tmp_lp.write(lp_str)
-        tmp_lp.seek(0)
-        # build cplex model back
-        cpx_model_back = cplex.Cplex(tmp_lp.name)
-        # store the mps file string from the back
-        cpx_model_back.write(tmp_mps.name)
-        tmp_mps.seek(0)
-        cpx_back_mps_str = tmp_mps.read()
-        # compare the two MPS strings
-        assert cpx_mps_str == cpx_back_mps_str

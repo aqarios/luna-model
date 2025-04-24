@@ -5,9 +5,9 @@ use crate::errors::SolutionCreatorErr;
 use num::NumCast;
 use std::rc::Rc;
 
-pub struct SampleSetTranslator {}
+pub struct DimodTranslator {}
 
-impl SampleSetTranslator {
+impl DimodTranslator {
     pub fn from_dimod_sample_set<S, N, E, Idx>(
         samples: &[S],
         num_occurrences: &[N],

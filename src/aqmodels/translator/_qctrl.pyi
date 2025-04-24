@@ -1,4 +1,5 @@
-from typing import Any, overload
+from typing import Any
+from typing import overload
 from aqmodels._solution import Solution, Timing
 from aqmodels._variable import Variable
 from aqmodels._environment import Environment
