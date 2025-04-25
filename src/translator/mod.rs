@@ -9,3 +9,4 @@ pub use model::MatrixTranslator;
 pub use solution::QctrlTranslator;
 pub use solution::DimodTranslator;
 pub use solution::IbmTranslator;
+pub use solution::ZibTranslator;
