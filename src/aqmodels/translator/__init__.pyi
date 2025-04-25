@@ -18,11 +18,25 @@ from typing import overload
 
 from . import translator
 
+class CqmTranslator:
+    @staticmethod
+    def to_model(cqm: ConstrainedQuadraticModel) -> Model: ...
+    @staticmethod
+    def from_model(model: Model) -> ConstrainedQuadraticModel: ...
+
 class BqmTranslator:
     @staticmethod
     def to_model(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
     @staticmethod
     def to_bqm(model: Model) -> BinaryQuadraticModel: ...
+
+class DimodTranslator:
+    @staticmethod
+    def from_dimod_sample_set(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
 
 class QctrlTranslator:
     @overload
@@ -78,6 +92,14 @@ class IbmTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
+class MatrixTranslator:
+    @staticmethod
+    def to_model(
+        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+    ) -> Model: ...
+    @staticmethod
+    def to_dense(model: Model) -> NDArray: ...
+
 class LpTranslator:
     @overload
     @staticmethod
@@ -92,27 +114,6 @@ class LpTranslator:
     @staticmethod
     def from_model(model: Model, file: Path) -> None: ...
 
-class DimodTranslator:
-    @staticmethod
-    def from_dimod_sample_set(
-        sample_set: SampleSet,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
-class CqmTranslator:
-    @staticmethod
-    def to_model(cqm: ConstrainedQuadraticModel) -> Model: ...
-    @staticmethod
-    def from_model(model: Model) -> ConstrainedQuadraticModel: ...
-
-class MatrixTranslator:
-    @staticmethod
-    def to_model(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
-    @staticmethod
-    def to_dense(model: Model) -> NDArray: ...
 
 __all__ = [
     "BqmTranslator",

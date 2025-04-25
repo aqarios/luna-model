@@ -1,3 +1,5 @@
+use crate::errors::IllegalConstraintNameErr;
+
 use super::utils::Slicable;
 
 /// An erorr returned on issues in the decoding/deserialization of data.
@@ -24,6 +26,12 @@ impl std::fmt::Display for DecodeError {
 impl std::convert::From<prost::DecodeError> for DecodeError {
     fn from(err: prost::DecodeError) -> DecodeError {
         DecodeError::new(err.to_string())
+    }
+}
+
+impl std::convert::From<IllegalConstraintNameErr> for DecodeError {
+    fn from(value: IllegalConstraintNameErr) -> Self {
+        DecodeError::new(value.0)
     }
 }
 

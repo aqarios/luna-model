@@ -1,7 +1,7 @@
 use crate::core::expression::{BiasConstraints, ExpressionEvaluation, IndexConstraints};
 use crate::core::utils::ModelWriter;
 use crate::core::{IndexByValue, MutRcExpression};
-use crate::errors::IndexOutOfBoundsErr;
+use crate::errors::{IllegalConstraintNameErr, IndexOutOfBoundsErr};
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, AddAssign, Mul};
 use std::slice::Iter;
@@ -58,13 +58,25 @@ where
         rhs: Bias,
         comparator: Comparator,
         name: Option<String>,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, IllegalConstraintNameErr> {
+        if let Some(name) = &name {
+            if name.is_empty() {
+                return Err(IllegalConstraintNameErr("constraint names cannot be empty".to_string()));
+            } 
+            let first_char = name.chars().next().unwrap();
+            let first_char_alpha = first_char.is_alphabetic();
+
+            if !first_char_alpha {
+                return Err(IllegalConstraintNameErr(format!("constraint names must start with an alphabetical character, is {}", first_char)));
+            }
+
+        }
+        Ok(Self {
             lhs,
             rhs,
             comparator,
             name,
-        }
+        })
     }
 
     pub fn set_name(&mut self, name: Option<String>) {

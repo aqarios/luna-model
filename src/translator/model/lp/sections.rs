@@ -247,7 +247,7 @@ where
                 &Section::Constraints,
                 format!(
                     "{}: {} {} {}",
-                    constraint.name.clone().unwrap_or(i.to_string()),
+                    constraint.name.clone().unwrap_or(format!("c{i}")),
                     lhs_str,
                     comparator,
                     constraint.rhs
@@ -464,19 +464,19 @@ where
                             rhs,
                             Comparator::Eq,
                             Some(name.to_string()),
-                        ),
+                        )?,
                         "<=" => Constraint::new(
                             Rc::new(RefCell::new(lhs)),
                             rhs,
                             Comparator::Le,
                             Some(name.to_string()),
-                        ),
+                        )?,
                         ">=" => Constraint::new(
                             Rc::new(RefCell::new(lhs)),
                             rhs,
                             Comparator::Ge,
                             Some(name.to_string()),
-                        ),
+                        )?,
                         _ => {
                             return Err(TranslationErr::new(format!(
                                 "unknown comparator '{}' for constraint '{}'",

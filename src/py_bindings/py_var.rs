@@ -169,7 +169,7 @@ impl PyVariable {
             other,
             Comparator::Eq,
             None,
-        )))
+        )?))
     }
 
     fn __le__(&self, other: f64) -> PyResult<PyConstraint> {
@@ -179,7 +179,7 @@ impl PyVariable {
             other,
             Comparator::Le,
             None,
-        )))
+        )?))
     }
 
     fn __ge__(&self, other: f64) -> PyResult<PyConstraint> {
@@ -189,7 +189,7 @@ impl PyVariable {
             other,
             Comparator::Ge,
             None,
-        )))
+        )?))
     }
 }
 

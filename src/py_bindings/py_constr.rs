@@ -50,7 +50,7 @@ impl PyConstraint {
                 rhs,
                 comparator,
                 None,
-            )))
+            )?))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
@@ -71,7 +71,7 @@ impl PyConstraint {
         if let Ok(expr) = lhs.extract::<PyExpression>(py) {
             Ok(PyConstraint::new(Constraint::new(
                 expr.0, rhs, comparator, name,
-            )))
+            )?))
         } else if let Ok(var) = lhs.extract::<PyVariable>(py) {
             let expr = Expression::new_linear_single(Rc::clone(&var.env), var.id, 1.0);
             Ok(PyConstraint::new(ConcreteConstraint::new(
@@ -79,7 +79,7 @@ impl PyConstraint {
                 rhs,
                 comparator,
                 name,
-            )))
+            )?))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }

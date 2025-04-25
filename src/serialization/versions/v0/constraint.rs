@@ -117,7 +117,7 @@ impl SerConstraints {
             } else {
                 Some(name.clone())
             };
-            constraints.push(Constraint::new(lhs, *rhs, comparator, name));
+            constraints.push(Constraint::new(lhs, *rhs, comparator, name)?);
         }
 
         Ok(Constraints::new_from_vec(constraints))
