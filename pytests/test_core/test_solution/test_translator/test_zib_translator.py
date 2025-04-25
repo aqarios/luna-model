@@ -42,3 +42,9 @@ def test_zib_translator(model: Model):
     scip_model.optimize()
 
     _ = ZibTranslator.from_zib(scip_model, timing=None, env=model.environment)
+
+
+@pytest.mark.solution_translation
+def test_read_coins():
+    lp_filepath = "./pytests/test_core/test_solution/test_translator/coins.lp"
+    _ = LpTranslator.to_model(lp_filepath)
