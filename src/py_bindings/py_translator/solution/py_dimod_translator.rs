@@ -2,16 +2,16 @@ use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_sol::PySolution;
 use crate::py_bindings::py_timing::PyTiming;
-use crate::translator::solution::DimodTranslator;
+use crate::translator::solution::DwaveTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{ffi::c_str, prelude::*};
 
 #[pyclass(
     unsendable,
-    name = "DimodTranslator",
+    name = "DwaveTranslator",
     module = "aqmodels.translator"
 )]
-pub struct PyDimodTranslator(pub DimodTranslator);
+pub struct PyDimodTranslator(pub DwaveTranslator);
 
 #[pymethods]
 impl PyDimodTranslator {
@@ -32,7 +32,7 @@ impl PyDimodTranslator {
                 })
             })?,
         };
-        Ok(PySolution(DimodTranslator::from_dimod_sample_set(
+        Ok(PySolution(DwaveTranslator::from_dimod_sample_set(
             samples.as_slice()?,
             num_occurrences.as_slice()?,
             energy.as_slice()?,
@@ -44,7 +44,7 @@ impl PyDimodTranslator {
 
     #[staticmethod]
     #[pyo3(signature = (sampleset, timing=None, env=None))]
-    fn from_dimod_sample_set(
+    fn to_aq(
         py: Python,
         sampleset: PyObject,
         timing: Option<PyObject>,
@@ -63,15 +63,15 @@ def extract(sampleset, timing, env):
     sample = record.sample.astype(np.int64, order='C')
     num_occurrences = record.num_occurrences.astype(np.int64, order='C')
     energy = record.energy.astype(np.float64, order='C')
-    return translator.DimodTranslator.translate(
+    return translator.DwaveTranslator.translate(
         sample, num_occurrences, energy, timing, env
     )"
             ),
             c_str!(""),
             c_str!(""),
         )?
-        .getattr("extract")?
-        .into();
+            .getattr("extract")?
+            .into();
         let args = (sampleset, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)

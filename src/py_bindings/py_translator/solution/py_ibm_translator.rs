@@ -49,7 +49,7 @@ impl PyIbmTranslator {
 
     #[staticmethod]
     #[pyo3(signature=(result, quadratic_program, timing=None, env=None))]
-    fn from_ibm(
+    fn to_aq(
         py: Python,
         result: PyObject,
         quadratic_program: PyObject,

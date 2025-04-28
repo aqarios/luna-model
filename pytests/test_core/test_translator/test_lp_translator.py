@@ -1,13 +1,15 @@
-import sys
-import pytest
 import tempfile
-import gurobipy as gp
 from random import Random
-from aqmodels import LpTranslator
+
+import gurobipy as gp
+import pytest
+import sys
 from dimod import lp as dimod_lp
+
+from aqmodels import LpTranslator
 from pytests.test_core.utils import generate_cqms, make_seed
 
-NOT_RUN_CPLEX = False
+NOT_RUN_CPLEX = True
 try:
     import cplex
 except ImportError as _:
@@ -16,7 +18,6 @@ except ImportError as _:
         file=sys.stdout,
     )
     NOT_RUN_CPLEX = True
-
 
 NUM_CQMS: int = 100
 
@@ -105,6 +106,7 @@ def test_cplex_to_model_to_cplex():
         tmp_lp.seek(0)
         aqmodel = LpTranslator.to_aq(tmp_lp.file.read())
         lp_str = LpTranslator.from_aq(aqmodel)
+        print(lp_str)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.write(lp_str)

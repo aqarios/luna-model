@@ -20,19 +20,29 @@ from typing import overload
 
 from . import translator
 
+class AwsTranslator:
+    @staticmethod
+    def to_aq(
+        result: dict[str, Any],
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class ZibTranslator:
     @staticmethod
-    def from_zib(
+    def to_aq(
         model: SciModel,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class CqmTranslator:
+class DwaveTranslator:
     @staticmethod
-    def to_aq(cqm: ConstrainedQuadraticModel) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
+    def to_aq(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
 
 class BqmTranslator:
     @staticmethod
@@ -40,83 +50,37 @@ class BqmTranslator:
     @staticmethod
     def from_aq(model: Model) -> BinaryQuadraticModel: ...
 
-class AwsTranslator:
-    @staticmethod
-    def from_aws_result(
-        result: dict[str, Any],
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
-class DimodTranslator:
-    @staticmethod
-    def from_dimod_sample_set(
-        sample_set: SampleSet,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
 class QctrlTranslator:
     @overload
     @staticmethod
-    def from_qctrl(result: dict[str, Any]) -> Solution: ...
+    def to_aq(result: dict[str, Any]) -> Solution: ...
     @overload
-    @staticmethod
-    def from_qctrl(
-        result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_qctrl(
-        result: dict[str, Any],
-        timing: Timing | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_qctrl(
-        result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
-        timing: Timing | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_qctrl(
-        result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
-class IbmTranslator:
-    @overload
-    @staticmethod
-    def from_ibm(
-        result: PrimitiveResult[PubResult], quadratic_program: QuadraticProgram
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_ibm(
-        result: PrimitiveResult[PubResult],
-        quadratic_program: QuadraticProgram,
-        timing: Timing | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_ibm(
-        result: PrimitiveResult[PubResult],
-        quadratic_program: QuadraticProgram,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
-class MatrixTranslator:
     @staticmethod
     def to_aq(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
+        result: dict[str, Any],
+        variable_list: list[Variable] | None = ...,
+    ) -> Solution: ...
+    @overload
     @staticmethod
-    def from_aq(model: Model) -> NDArray: ...
+    def to_aq(
+        result: dict[str, Any],
+        timing: Timing | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def to_aq(
+        result: dict[str, Any],
+        variable_list: list[Variable] | None = ...,
+        timing: Timing | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def to_aq(
+        result: dict[str, Any],
+        variable_list: list[Variable] | None = ...,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
 
 class LpTranslator:
     @overload
@@ -132,11 +96,47 @@ class LpTranslator:
     @staticmethod
     def from_aq(model: Model, file: Path) -> None: ...
 
+class MatrixTranslator:
+    @staticmethod
+    def to_aq(
+        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+    ) -> Model: ...
+    @staticmethod
+    def from_aq(model: Model) -> NDArray: ...
+
+class IbmTranslator:
+    @overload
+    @staticmethod
+    def to_aq(
+        result: PrimitiveResult[PubResult], quadratic_program: QuadraticProgram
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def to_aq(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
+        timing: Timing | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def to_aq(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
+class CqmTranslator:
+    @staticmethod
+    def to_aq(cqm: ConstrainedQuadraticModel) -> Model: ...
+    @staticmethod
+    def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
+
 __all__ = [
     "AwsTranslator",
     "BqmTranslator",
     "CqmTranslator",
-    "DimodTranslator",
+    "DwaveTranslator",
     "IbmTranslator",
     "LpTranslator",
     "MatrixTranslator",

@@ -5,9 +5,9 @@ use crate::errors::SolutionCreatorErr;
 use num::NumCast;
 use std::rc::Rc;
 
-pub struct DimodTranslator {}
+pub struct DwaveTranslator {}
 
-impl DimodTranslator {
+impl DwaveTranslator {
     pub fn from_dimod_sample_set<S, N, E, Idx>(
         samples: &[S],
         num_occurrences: &[N],

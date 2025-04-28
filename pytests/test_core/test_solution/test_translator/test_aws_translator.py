@@ -46,7 +46,7 @@ def aws_result():
 
 @pytest.mark.solution_translation
 def test_zib_translator(model: Model, aws_result: dict[str, NDArray]):
-    sol = AwsTranslator.from_aws_result(aws_result, env=model.environment)
+    sol = AwsTranslator.to_aq(aws_result, env=model.environment)
     print(aws_result)
     print(sol)
     print("-" * 80)

@@ -8,29 +8,29 @@ from aqmodels import Environment
 class QctrlTranslator:
     @overload
     @staticmethod
-    def from_qctrl(result: dict[str, Any]) -> Solution: ...
+    def to_aq(result: dict[str, Any]) -> Solution: ...
     @overload
     @staticmethod
-    def from_qctrl(
+    def to_aq(
         result: dict[str, Any],
         variable_list: list[Variable] | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_qctrl(
+    def to_aq(
         result: dict[str, Any],
         timing: Timing | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_qctrl(
+    def to_aq(
         result: dict[str, Any],
         variable_list: list[Variable] | None = ...,
         timing: Timing | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_qctrl(
+    def to_aq(
         result: dict[str, Any],
         variable_list: list[Variable] | None = ...,
         timing: Timing | None = ...,

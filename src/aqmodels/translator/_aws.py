@@ -15,10 +15,10 @@ class AwsTranslator:
     --------
     >>> import aqmodels as aqm
     >>> aws_result = ...
-    >>> aqs = aqm.translator.AwsTranslator.from_aws_result(aws_result)
+    >>> aqs = aqm.translator.AwsTranslator.to_aq(aws_result)
     """
 
     @dispatched
     @staticmethod
-    def from_aws_result(result, timing, env):
+    def to_aq(result, timing, env):
         return result, timing, env
