@@ -4,6 +4,7 @@ from dimod import lp as dimod_lp
 from pyscipopt import Model as ScipModel
 from aqmodels import Model, Variable, LpTranslator, Vtype, Bounds
 
+
 @pytest.fixture
 def model_lp_str_bin() -> str:
     m = Model(name="TestModel")
@@ -26,6 +27,7 @@ def model_lp_str_bin() -> str:
         m.constraints.add_constraint(x0 + x2 <= 1)
         m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")
     return LpTranslator.from_model(m)
+
 
 @pytest.fixture
 def model_lp_str_fancy() -> str:
