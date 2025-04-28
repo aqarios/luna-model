@@ -11,7 +11,7 @@ from benchmarks.utils import BenchResult, format_result, make_qubo, timeit
 
 @timeit(REPETITIONS)
 def _aqm(qubo: NDArray):
-    _ = MatrixTranslator.to_model(qubo, vtype=Vtype.Binary)
+    _ = MatrixTranslator.to_aq(qubo, vtype=Vtype.Binary)
 
 
 @timeit(REPETITIONS)

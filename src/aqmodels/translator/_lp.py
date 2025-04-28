@@ -19,7 +19,7 @@ class LpTranslator:
     >>> from aqmodels import LpTranslator
     >>> lp_filepath = Path("path/to/the/lp_file")
 
-    >>> model = LpTranslator.to_model(lp_filepath)
+    >>> model = LpTranslator.to_aq(lp_filepath)
 
     Convert it back to a LP file:
 
@@ -28,7 +28,7 @@ class LpTranslator:
 
     @dispatched
     @staticmethod
-    def to_model(file):
+    def to_aq(file):
         """
         Convert a LP file into a symbolic `Model`.
 
@@ -49,7 +49,7 @@ class LpTranslator:
 
     @dispatched
     @staticmethod
-    def from_model(model, file):
+    def from_aq(model, file):
         """
         Convert a symbolic model to a lp file representation.
 

@@ -21,17 +21,17 @@ class MatrixTranslator:
 
     Create a model from a matrix:
 
-    >>> model = MatrixTranslator.to_model(q, name="qubo_model", vtype=Vtype.Binary)
+    >>> model = MatrixTranslator.to_aq(q, name="qubo_model", vtype=Vtype.Binary)
 
     Convert it back to a dense matrix:
 
-    >>> recovered = MatrixTranslator.to_dense(model)
+    >>> recovered = MatrixTranslator.from_aq(model)
     >>> assert np.allclose(q, recovered)
     """
 
     @staticmethod
     @dispatched
-    def to_model(qubo, name, vtype):
+    def to_aq(qubo, name, vtype):
         """
         Convert a dense QUBO matrix into a symbolic `Model`.
 
@@ -55,7 +55,7 @@ class MatrixTranslator:
 
     @staticmethod
     @dispatched
-    def to_dense(model):
+    def from_aq(model):
         """
         Convert a symbolic model to a dense QUBO matrix representation.
 

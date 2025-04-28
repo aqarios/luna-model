@@ -35,7 +35,7 @@ def memit(f):
 
 @memit
 def _aqm(qubo: NDArray):
-    _ = MatrixTranslator.to_model(qubo, vtype=Vtype.Binary)
+    _ = MatrixTranslator.to_aq(qubo, vtype=Vtype.Binary)
 
 
 @memit

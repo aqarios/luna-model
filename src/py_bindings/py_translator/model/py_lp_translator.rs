@@ -13,7 +13,7 @@ pub struct PyLpTranslator {}
 impl PyLpTranslator {
     #[staticmethod]
     #[pyo3(signature=(file))]
-    fn to_model(py: Python, file: PyObject) -> PyResult<PyModel> {
+    fn to_aq(py: Python, file: PyObject) -> PyResult<PyModel> {
         if let Ok(file) = file.extract::<String>(py) {
             Ok(PyModel(LPTranslator::translate(file)?))
         } else if let Ok(filepath) = file.extract::<PathBuf>(py) {
@@ -28,7 +28,7 @@ impl PyLpTranslator {
 
     #[staticmethod]
     #[pyo3(signature=(model, filepath=None))]
-    fn from_model(model: &PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
+    fn from_aq(model: &PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
         Ok(LPTranslator::back_translate((&model.0, filepath))?)
     }
 }

@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Variable, Bounds
-from ._timing import Timing, Timer
+from ._variable import Vtype, Bounds, Variable
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import Sample, SampleIterator, SamplesIterator, Samples
-from ._result import ResultView, Result, ResultIterator
-from ._model import Sense, Model
+from ._sample import Sample, SamplesIterator, SampleIterator, Samples
+from ._result import Result, ResultIterator, ResultView
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Model as __Model,
-    Comparator as __Comparator,
-    Constraint as __Constraint,
-    Result as __Result,
-    Variable as __Variable,
-    Expression as __Expression,
-    Sense as __Sense,
-    Solution as __Solution,
-    Vtype as __Vtype,
-    Environment as __Environment,
-    Timing as __Timing,
-    Constraints as __Constraints,
-    ResultIterator as __ResultIterator,
     Bounds as __Bounds,
     Samples as __Samples,
+    Variable as __Variable,
     Sample as __Sample,
-    Timer as __Timer,
-    ResultView as __ResultView,
     SampleIterator as __SampleIterator,
+    Vtype as __Vtype,
+    Model as __Model,
     SamplesIterator as __SamplesIterator,
+    ResultView as __ResultView,
+    ResultIterator as __ResultIterator,
+    Constraints as __Constraints,
+    Comparator as __Comparator,
+    Result as __Result,
+    Constraint as __Constraint,
+    Sense as __Sense,
+    Expression as __Expression,
+    Solution as __Solution,
+    Timing as __Timing,
+    Timer as __Timer,
+    Environment as __Environment,
 )
-from ._constraints import Comparator, Constraints, Constraint
-from . import errors, translator
+from ._constraints import Constraints, Constraint, Comparator
+from . import translator, errors
 
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment] # noqa: F811
 SampleIterator = __SampleIterator  # type: ignore[misc,assignment] # noqa: F811

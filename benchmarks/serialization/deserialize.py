@@ -31,7 +31,7 @@ def bench_deserialize_bqm(file: IO | None):
         for density in tqdm(DENSITIES, desc="Density", leave=False):
             qubo = make_qubo(size, density)
 
-            aqm = MatrixTranslator.to_model(qubo, vtype=Vtype.Binary)
+            aqm = MatrixTranslator.to_aq(qubo, vtype=Vtype.Binary)
             dmd = dimod.BinaryQuadraticModel(qubo, "BINARY")
 
             ser_aqm = serialize_aqm(aqm)

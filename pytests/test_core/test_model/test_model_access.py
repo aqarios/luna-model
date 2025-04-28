@@ -43,7 +43,7 @@ def test_use_model_environment():
 
 
 @pytest.mark.model
-def test_use_instanceadd_bias_to_model():
+def test_use_instanceadd_bias_to_aq():
     model = make_model()
     with model.environment:
         _ = Variable("x")
@@ -53,7 +53,7 @@ def test_use_instanceadd_bias_to_model():
 
 
 @pytest.mark.model
-def test_use_instanceadd_variable_to_model():
+def test_use_instanceadd_variable_to_aq():
     model = make_model()
     with model.environment:
         x = Variable("x")
@@ -64,7 +64,7 @@ def test_use_instanceadd_variable_to_model():
 
 
 @pytest.mark.model
-def test_use_instanceadd_expression_to_model():
+def test_use_instanceadd_expression_to_aq():
     model = make_model()
     with model.environment:
         x = Variable("x")
