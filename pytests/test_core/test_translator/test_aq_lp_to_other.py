@@ -1,5 +1,7 @@
+from pathlib import Path
 import pytest
 from dimod import lp as dimod_lp
+from pyscipopt import Model as ScipModel
 from aqmodels import Model, Variable, LpTranslator, Vtype
 
 
@@ -19,3 +21,11 @@ def model_lp_str() -> str:
 @pytest.mark.translator
 def test_translate_to_cqm(model_lp_str: str):
     _ = dimod_lp.loads(model_lp_str)
+
+
+@pytest.mark.translator
+def test_translate_to_zib():
+    scip_model = ScipModel()
+    scip_model.hideOutput()
+    scip_model.readProblem(Path("./model.lp"))
+
