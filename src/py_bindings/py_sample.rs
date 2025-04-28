@@ -53,9 +53,8 @@ impl PySamples {
             .collect()
     }
 
-    // TODO: implement human-readable solution representation
     fn __str__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{}", self.0)
     }
 
     fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyObject> {
@@ -89,9 +88,8 @@ impl PySamples {
 
 #[pymethods]
 impl PySample {
-    // TODO: implement human-readable solution representation
     fn __str__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{}", self.0)
     }
 
     fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyVarAssignment> {
@@ -116,7 +114,7 @@ impl PySample {
     }
 
     fn __len__(&self) -> usize {
-        match &self.0 .0 {
+        match &self.0.0 {
             Either::Left(r) => r.sol.samples.len(),
             Either::Right(r) => r.len(),
         }

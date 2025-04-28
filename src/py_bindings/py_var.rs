@@ -155,7 +155,7 @@ impl PyVariable {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{:#?}", self.0)
     }
 
     fn __neg__(&self) -> PyExpression {
@@ -200,6 +200,6 @@ impl Vtype {
     }
 
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self:#?}")
     }
 }
