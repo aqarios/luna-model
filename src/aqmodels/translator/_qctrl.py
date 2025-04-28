@@ -16,12 +16,12 @@ class QctrlTranslator:
     >>> import aqmodels as aqm
     >>> ...
     >>> qctrl_result = ...
-    >>> aqs = aqm.translator.QctrlTranslator.from_qctrl(qctrl_result)
+    >>> aqs = aqm.translator.QctrlTranslator.to_aq(qctrl_result)
     """
 
     @dispatched
     @staticmethod
-    def from_qctrl(result, variable_list, timing, env):
+    def to_aq(result, variable_list, timing, env):
         """
         Convert a QCTRL result to an AqSolution.
 

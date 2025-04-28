@@ -6,8 +6,8 @@ pub use model::BqmTranslator;
 pub use model::LPTranslator;
 pub use model::MatrixTranslator;
 
-pub use solution::QctrlTranslator;
-pub use solution::DimodTranslator;
-pub use solution::IbmTranslator;
-pub use solution::ZibTranslator;
 pub use solution::AwsTranslator;
+pub use solution::DwaveTranslator;
+pub use solution::IbmTranslator;
+pub use solution::QctrlTranslator;
+pub use solution::ZibTranslator;

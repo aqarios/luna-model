@@ -17,12 +17,12 @@ class IbmTranslator:
     >>> import aqmodels as aqm
     >>> ...
     >>> qctrl_result = ...
-    >>> aqs = aqm.translator.IbmTranslator.from_ibm(ibm_result)
+    >>> aqs = aqm.translator.IbmTranslator.to_aq(ibm_result)
     """
 
     @dispatched
     @staticmethod
-    def from_ibm(result, quadratic_program, timing, env):
+    def to_aq(result, quadratic_program, timing, env):
         """
         Convert an IBM solution to an AqSolution.
 

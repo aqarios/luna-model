@@ -8,19 +8,19 @@ from aqmodels import Environment
 class IbmTranslator:
     @overload
     @staticmethod
-    def from_ibm(
+    def to_aq(
         result: PrimitiveResult[PubResult], quadratic_program: QuadraticProgram
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_ibm(
+    def to_aq(
         result: PrimitiveResult[PubResult],
         quadratic_program: QuadraticProgram,
         timing: Timing | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_ibm(
+    def to_aq(
         result: PrimitiveResult[PubResult],
         quadratic_program: QuadraticProgram,
         timing: Timing | None = ...,

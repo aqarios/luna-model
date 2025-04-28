@@ -43,7 +43,7 @@ impl PyAwsTranslator {
 
     #[staticmethod]
     #[pyo3(signature = (aws_result, timing=None, env=None))]
-    fn from_aws_result(
+    fn to_aq(
         py: Python,
         aws_result: PyObject,
         timing: Option<PyTiming>,

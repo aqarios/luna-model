@@ -7,9 +7,6 @@ from aqmodels import Solution
 from aqmodels import Timing
 from aqmodels import Variable
 from aqmodels import Vtype
-from aqmodels._environment import Environment
-from aqmodels._solution import Solution
-from aqmodels._timing import Timing
 from dimod import BinaryQuadraticModel
 from dimod import ConstrainedQuadraticModel
 from dimod import SampleSet
@@ -25,36 +22,36 @@ from . import translator
 
 class ZibTranslator:
     @staticmethod
-    def from_zib(
+    def to_aq(
         model: SciModel,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
+class DwaveTranslator:
+    @staticmethod
+    def to_aq(
+        sample_set: SampleSet,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
 
 class CqmTranslator:
     @staticmethod
-    def to_model(cqm: ConstrainedQuadraticModel) -> Model: ...
+    def to_aq(cqm: ConstrainedQuadraticModel) -> Model: ...
     @staticmethod
-    def from_model(model: Model) -> ConstrainedQuadraticModel: ...
+    def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
 
 class BqmTranslator:
     @staticmethod
-    def to_model(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
+    def to_aq(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
     @staticmethod
-    def to_bqm(model: Model) -> BinaryQuadraticModel: ...
+    def from_aq(model: Model) -> BinaryQuadraticModel: ...
 
 class AwsTranslator:
     @staticmethod
-    def from_aws_result(
+    def to_aq(
         result: dict[str, Any],
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
-class DimodTranslator:
-    @staticmethod
-    def from_dimod_sample_set(
-        sample_set: SampleSet,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
@@ -62,29 +59,29 @@ class DimodTranslator:
 class QctrlTranslator:
     @overload
     @staticmethod
-    def from_qctrl(result: dict[str, Any]) -> Solution: ...
+    def to_aq(result: dict[str, Any]) -> Solution: ...
     @overload
     @staticmethod
-    def from_qctrl(
+    def to_aq(
         result: dict[str, Any],
         variable_list: list[Variable] | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_qctrl(
+    def to_aq(
         result: dict[str, Any],
         timing: Timing | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_qctrl(
+    def to_aq(
         result: dict[str, Any],
         variable_list: list[Variable] | None = ...,
         timing: Timing | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_qctrl(
+    def to_aq(
         result: dict[str, Any],
         variable_list: list[Variable] | None = ...,
         timing: Timing | None = ...,
@@ -94,19 +91,19 @@ class QctrlTranslator:
 class IbmTranslator:
     @overload
     @staticmethod
-    def from_ibm(
+    def to_aq(
         result: PrimitiveResult[PubResult], quadratic_program: QuadraticProgram
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_ibm(
+    def to_aq(
         result: PrimitiveResult[PubResult],
         quadratic_program: QuadraticProgram,
         timing: Timing | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_ibm(
+    def to_aq(
         result: PrimitiveResult[PubResult],
         quadratic_program: QuadraticProgram,
         timing: Timing | None = ...,
@@ -115,31 +112,31 @@ class IbmTranslator:
 
 class MatrixTranslator:
     @staticmethod
-    def to_model(
+    def to_aq(
         qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
     ) -> Model: ...
     @staticmethod
-    def to_dense(model: Model) -> NDArray: ...
+    def from_aq(model: Model) -> NDArray: ...
 
 class LpTranslator:
     @overload
     @staticmethod
-    def to_model(file: Path) -> Model: ...
+    def to_aq(file: Path) -> Model: ...
     @overload
     @staticmethod
-    def to_model(file: str) -> Model: ...
+    def to_aq(file: str) -> Model: ...
     @overload
     @staticmethod
-    def from_model(model: Model) -> str: ...
+    def from_aq(model: Model) -> str: ...
     @overload
     @staticmethod
-    def from_model(model: Model, file: Path) -> None: ...
+    def from_aq(model: Model, file: Path) -> None: ...
 
 __all__ = [
     "AwsTranslator",
     "BqmTranslator",
     "CqmTranslator",
-    "DimodTranslator",
+    "DwaveTranslator",
     "IbmTranslator",
     "LpTranslator",
     "MatrixTranslator",

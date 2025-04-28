@@ -1,7 +1,9 @@
-from time import sleep
 from random import Random
 from typing import Any
+
 import pytest
+from time import sleep
+
 from aqmodels import (
     QctrlTranslator,
     Timer,
@@ -39,7 +41,7 @@ def test_qctrl_translator_constructed():
         env = Environment()
         with env:
             _ = [Variable(f"x{i}") for i in range(sample_len)]
-            sol = QctrlTranslator.from_qctrl(fake_result)
+            sol = QctrlTranslator.to_aq(fake_result)
 
         samples = sol.samples.tolist()
         assert len(samples) == 1
@@ -68,7 +70,7 @@ def test_qctrl_translator_constructed_explicit_env():
         with env:
             _ = [Variable(f"x{i}") for i in range(sample_len)]
 
-        sol = QctrlTranslator.from_qctrl(fake_result, env=env)
+        sol = QctrlTranslator.to_aq(fake_result, env=env)
 
         samples = sol.samples.tolist()
         assert len(samples) == 1
@@ -102,7 +104,7 @@ def test_qctrl_translator_constructed_with_time():
         env = Environment()
         with env:
             _ = [Variable(f"x{i}") for i in range(sample_len)]
-            sol = QctrlTranslator.from_qctrl(fake_result, None, timing)
+            sol = QctrlTranslator.to_aq(fake_result, None, timing)
 
         samples = sol.samples.tolist()
         assert len(samples) == 1
@@ -133,7 +135,7 @@ def test_qctrl_translator_constructed_vars():
         env = Environment()
         with env:
             vars = [Variable(f"x{i}") for i in range(sample_len)]
-            sol = QctrlTranslator.from_qctrl(fake_result, variable_list=vars)
+            sol = QctrlTranslator.to_aq(fake_result, variable_list=vars)
 
         samples = sol.samples.tolist()
         assert len(samples) == 1
@@ -171,7 +173,7 @@ def test_qctrl_translator_constructed_unordered_vars():
         for i, idx in enumerate(indices):
             expected_sol_bitstring[idx] = bs[i]
 
-        sol = QctrlTranslator.from_qctrl(fake_result, variable_list=vars, env=env)
+        sol = QctrlTranslator.to_aq(fake_result, variable_list=vars, env=env)
 
         samples = sol.samples.tolist()
         assert len(samples) == 1

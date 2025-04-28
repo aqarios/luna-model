@@ -475,7 +475,13 @@ where
         use ExprTree::*;
 
         match self {
-            Number(b) => b.to_string(),
+            Number(b) => {
+                if b <= &Bias::default() {
+                    b.to_string().replace("-", "- ")
+                } else {
+                    b.to_string()
+                }
+            }
 
             Variable(name) => name.clone(),
 
@@ -484,7 +490,6 @@ where
                     (Number(b), r) => format!("{} + {}", r.to_string(), b.to_string()),
                     (l, Number(b)) => format!("{} + {}", l.to_string(), b.to_string()),
                     (l, r) => format!("{} + {}", l.to_string(), r.to_string())
-
                 };
                 tmp.replace("+ -", "- ")
             }
@@ -546,7 +551,7 @@ where
         } else {
             result.push_str(&format!(" + {linstr}"));
         }
-        result
+        result.replace("+ -", "-").replace("+-", "-")
     }
 }
 

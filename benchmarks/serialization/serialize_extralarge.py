@@ -23,7 +23,7 @@ def bench_serialize_aqm_xl(file: IO | None):
         for density in densities:
             qubo = make_qubo(size, density)
 
-            aqm = MatrixTranslator.to_model(qubo, vtype=Vtype.Binary)
+            aqm = MatrixTranslator.to_aq(qubo, vtype=Vtype.Binary)
             serialized_aqm = serialize_aqm(aqm)
             aqm_for_size.append(get_serialized_size_bytes(serialized_aqm))
 

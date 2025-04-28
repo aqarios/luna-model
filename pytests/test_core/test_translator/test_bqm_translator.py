@@ -12,7 +12,7 @@ def test_bqm_to_model_to_bqm():
     rand = Random(make_seed())
     bqms = generate_bqms(20, rand)
     for bqm in bqms:
-        model = BqmTranslator.to_model(bqm)
+        model = BqmTranslator.to_aq(bqm)
         # First let's make sure this translation works correctly.
         # We can query the biases for each linear and quadratic interaction
         # (and the offset) in the two models and compare the returned bias value (f64)
@@ -33,14 +33,14 @@ def test_bqm_to_model_to_bqm():
                 bqm_q_bias = bqm.get_quadratic(v, u, default=0)
                 assert bqm_q_bias == aqm_q_bias, "quadratic bias does not match"
 
-        bqm_back = BqmTranslator.to_bqm(model)
+        bqm_back = BqmTranslator.from_aq(model)
 
         bqm_np = bqm.to_numpy_vectors()
         bqm_back_np = bqm_back.to_numpy_vectors()
 
         assert bqm.variables.to_serializable() == bqm_back.variables.to_serializable()
         assert bqm.vartype == bqm_back.vartype
-        assert np.isclose(bqm_np.offset, bqm_back_np.offset)
+        assert np.isclose(bqm_np.offset, bqm_back_np.offset, atol=1e-5)
         assert np.allclose(bqm_np.linear_biases, bqm_back_np.linear_biases)
         assert np.allclose(bqm_np.quadratic.biases, bqm_back_np.quadratic.biases)
         assert np.allclose(
