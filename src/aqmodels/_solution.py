@@ -32,7 +32,7 @@ class Solution:
     >>> from aqmodels.translator import BqmTranslator    >>> from aqmodels import Model, Solution, DwaveTranslator
     >>> from dimod import SimulatedAnnealingSampler
     >>> model: Model = ...
-    >>> bqm = BqmTranslator.to_bqm(model)
+    >>> bqm = BqmTranslator.from_aq(model)
     >>> sampleset = SimulatedAnnealingSampler().sample(bqm)
     >>> solution = DwaveTranslator.from_dimod_sample_set(sampleset)
     >>> solution.samples

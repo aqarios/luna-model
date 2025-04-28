@@ -23,16 +23,16 @@ class CqmTranslator:
 
     Create a model from a matrix:
 
-    >>> model = CqmTranslator.to_model(bqm, name="bqm_model")
+    >>> model = CqmTranslator.to_aq(bqm, name="bqm_model")
 
     Convert it back to a dense matrix:
 
-    >>> recovered = CqmTranslator.to_bqm(model)
+    >>> recovered = CqmTranslator.from_aq(model)
     """
 
     @staticmethod
     @dispatched
-    def to_model(bqm, name):
+    def to_aq(bqm, name):
         """
         Convert a CQM into a symbolic `Model`.
 
@@ -52,7 +52,7 @@ class CqmTranslator:
 
     @staticmethod
     @dispatched
-    def from_model(model):
+    def from_aq(model):
         """
         Convert a symbolic model to a dense QUBO matrix representation.
 

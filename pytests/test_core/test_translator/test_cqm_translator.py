@@ -10,13 +10,13 @@ NUM_CQMS: int = 100
 
 
 @pytest.mark.translator
-def test_cqm_to_model_to_cqm():
+def test_cqm_to_aq_to_cqm():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
     for cqm in cqms:
         cqm = dimod_lp.loads(dimod_lp.dumps(cqm))
-        model = CqmTranslator.to_model(cqm)
-        cqm_back = CqmTranslator.from_model(model)
+        model = CqmTranslator.to_aq(cqm)
+        cqm_back = CqmTranslator.from_aq(model)
         check_dimod_expr(cqm.objective, cqm_back.objective)
         for name, constr in cqm.constraints.items():
             constr_back = cqm_back.constraints[name]

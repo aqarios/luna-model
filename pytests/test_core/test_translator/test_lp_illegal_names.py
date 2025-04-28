@@ -23,4 +23,4 @@ def test_illegal_words(word: str):
     model.objective = x * y
     with pytest.raises(IllegalConstraintNameError):
         model.constraints.add_constraint(x + y * 3 <= 10, word)
-        _ = LpTranslator.from_model(model)
+        _ = LpTranslator.from_aq(model)
