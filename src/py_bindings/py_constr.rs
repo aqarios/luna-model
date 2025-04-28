@@ -112,18 +112,19 @@ impl PyConstraints {
 
     fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok((constr, name)) = other.extract::<(PyConstraint, String)>(py) {
-            Ok(self.add_constraint(constr, Some(name)))
+            Ok(self.add_constraint(constr, Some(name))?)
         } else if let Ok(constr) = other.extract::<PyConstraint>(py) {
-            Ok(self.add_constraint(constr, None))
+            Ok(self.add_constraint(constr, None)?)
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
     }
 
     #[pyo3(signature=(constraint, name=None))]
-    fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) {
-        constraint.borrow_mut().set_name(name);
+    fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
+        constraint.borrow_mut().set_name(name)?;
         self.borrow_mut().add_assign(constraint.borrow().deref());
+        Ok(())
     }
 
     fn __getitem__(&self, n: usize) -> PyResult<PyConstraint> {

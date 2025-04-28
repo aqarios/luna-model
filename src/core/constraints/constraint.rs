@@ -11,6 +11,14 @@ use strum_macros::Display;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
+const FAILABLE_CONSTRAINT_NAMES: [&str; 2] = ["inf", "nan"];
+
+fn starts_with_failable(s: &str) -> bool {
+    FAILABLE_CONSTRAINT_NAMES
+        .iter()
+        .any(|prefix| s.to_lowercase().starts_with(&prefix.to_lowercase()))
+}
+
 #[cfg_attr(
     feature = "py",
     pyclass(eq, eq_int, name = "Comparator", module = "aqmodels")
@@ -59,18 +67,7 @@ where
         comparator: Comparator,
         name: Option<String>,
     ) -> Result<Self, IllegalConstraintNameErr> {
-        if let Some(name) = &name {
-            if name.is_empty() {
-                return Err(IllegalConstraintNameErr("constraint names cannot be empty".to_string()));
-            } 
-            let first_char = name.chars().next().unwrap();
-            let first_char_alpha = first_char.is_alphabetic();
-
-            if !first_char_alpha {
-                return Err(IllegalConstraintNameErr(format!("constraint names must start with an alphabetical character, is {}", first_char)));
-            }
-
-        }
+        Self::validate_name(&name)?;
         Ok(Self {
             lhs,
             rhs,
@@ -79,8 +76,38 @@ where
         })
     }
 
-    pub fn set_name(&mut self, name: Option<String>) {
-        self.name = name
+    pub fn validate_name(name: &Option<String>) -> Result<(), IllegalConstraintNameErr> {
+        if let Some(name) = &name {
+            if name.is_empty() {
+                return Err(IllegalConstraintNameErr(
+                    "constraint names cannot be empty strings".to_string(),
+                ));
+            }
+            let first_char = name.chars().next().unwrap();
+            let first_char_alpha = first_char.is_alphabetic();
+
+            if !first_char_alpha {
+                return Err(IllegalConstraintNameErr(format!(
+                    "constraint names must start with an alphabetical character, is {}",
+                    first_char
+                )));
+            }
+
+            if starts_with_failable(name) {
+                return Err(IllegalConstraintNameErr(format!(
+                    "constraint names cannot start with one of '{}', is {}",
+                    FAILABLE_CONSTRAINT_NAMES.join(", "),
+                    name
+                )));
+            }
+        }
+        Ok(())
+    }
+
+    pub fn set_name(&mut self, name: Option<String>) -> Result<(), IllegalConstraintNameErr> {
+        Self::validate_name(&name)?;
+        self.name = name;
+        Ok(())
     }
 
     pub fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
