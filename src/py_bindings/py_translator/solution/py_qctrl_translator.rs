@@ -54,7 +54,7 @@ impl PyQctrlTranslator {
 
     #[staticmethod]
     #[pyo3(signature=(result, variable_list=None, timing=None, env=None))]
-    fn from_qctrl(
+    fn to_aq(
         py: Python,
         result: PyObject,
         variable_list: Option<Vec<PyVariable>>,

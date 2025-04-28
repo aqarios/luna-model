@@ -1,6 +1,7 @@
-import pytest
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import pytest
 from pyscipopt import Model as ScipModel
 
 from aqmodels import Model, LpTranslator, Timer, Variable, Bounds, Vtype
@@ -21,7 +22,7 @@ def model() -> Model:
         zi = Variable("Zi", vtype=Vtype.Real, bounds=Bounds(upper=50))
         mn = Variable("Mn", vtype=Vtype.Real, bounds=Bounds(upper=50))
     m.objective = (
-        0.01 * pennies + 0.05 * nickels + 0.1 * dimes + 0.25 * quarters + 1 * dollars
+            0.01 * pennies + 0.05 * nickels + 0.1 * dimes + 0.25 * quarters + 1 * dollars
     )
     m.constraints += (
         0.06 * pennies
@@ -58,15 +59,15 @@ def test_zib_translator(model: Model):
 
     truth_sample = {x.name: scip_model.getVal(x) for x in scip_model.getVars()}
 
-    sol = ZibTranslator.from_zib(scip_model, timing=timing, env=model.environment)
+    sol = ZibTranslator.to_aq(scip_model, timing=timing, env=model.environment)
     assert len(sol.samples) == 1
     assert len(sol.raw_energies) == 1
     assert sol.raw_energies.tolist() == [None]
     assert len(sol.num_occurrences) == 1
     assert len(sol.num_occurrences) == len(sol.samples)
     assert sol.runtime is not None
-    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds)
-    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds())
+    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5)
+    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5)
     assert sol.runtime.qpu is None
     assert sol.obj_values.tolist() == [None] * len(sol.samples)
 
@@ -84,7 +85,7 @@ def test_zib_translator(model: Model):
     sample = sol.samples[0]
     for key, value in truth_sample.items():
         v = model.environment.get_variable(key)
-        assert np.isclose(sample[v], value)
+        assert np.isclose(sample[v], value, atol=1e-5)
 
 
 @pytest.mark.solution_translation

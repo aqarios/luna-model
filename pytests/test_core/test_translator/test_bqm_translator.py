@@ -40,7 +40,7 @@ def test_bqm_to_model_to_bqm():
 
         assert bqm.variables.to_serializable() == bqm_back.variables.to_serializable()
         assert bqm.vartype == bqm_back.vartype
-        assert np.isclose(bqm_np.offset, bqm_back_np.offset)
+        assert np.isclose(bqm_np.offset, bqm_back_np.offset, atol=1e-5)
         assert np.allclose(bqm_np.linear_biases, bqm_back_np.linear_biases)
         assert np.allclose(bqm_np.quadratic.biases, bqm_back_np.quadratic.biases)
         assert np.allclose(

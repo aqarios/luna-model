@@ -44,7 +44,7 @@ impl PyDimodTranslator {
 
     #[staticmethod]
     #[pyo3(signature = (sampleset, timing=None, env=None))]
-    fn from_dimod_sample_set(
+    fn to_aq(
         py: Python,
         sampleset: PyObject,
         timing: Option<PyObject>,

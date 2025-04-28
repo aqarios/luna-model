@@ -6,7 +6,7 @@ from aqmodels._timing import Timing
 
 class AwsTranslator:
     @staticmethod
-    def from_aws_result(
+    def to_aq(
         result: dict[str, Any],
         timing: Timing | None = ...,
         env: Environment | None = ...,

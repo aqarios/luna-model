@@ -153,7 +153,7 @@ def test_ibm_solution_translator():
     qp = controlled_qp()
     res = compute_result(qp)
     timing = timer.stop()
-    sol: Solution = IbmTranslator.from_ibm(res, qp, timing, aqm.environment)
+    sol: Solution = IbmTranslator.to_aq(res, qp, timing, aqm.environment)
 
     truth_samples, truth_energies, truth_num_occurences = extract(res, qp)
     assert len(sol.samples) == len(truth_samples)

@@ -35,7 +35,8 @@ impl PyZibTranslator {
     }
 
     #[staticmethod]
-    fn from_zib(
+    #[pyo3(signature=(model, timing=None, env=None))]
+    fn to_aq(
         py: Python,
         model: PyObject,
         timing: Option<PyTiming>,

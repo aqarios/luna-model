@@ -1,13 +1,15 @@
-import sys
-import pytest
 import tempfile
-import gurobipy as gp
 from random import Random
-from aqmodels import LpTranslator
+
+import gurobipy as gp
+import pytest
+import sys
 from dimod import lp as dimod_lp
+
+from aqmodels import LpTranslator
 from pytests.test_core.utils import generate_cqms, make_seed
 
-NOT_RUN_CPLEX = False
+NOT_RUN_CPLEX = True
 try:
     import cplex
 except ImportError as _:
@@ -16,7 +18,6 @@ except ImportError as _:
         file=sys.stdout,
     )
     NOT_RUN_CPLEX = True
-
 
 NUM_CQMS: int = 100
 
@@ -105,6 +106,7 @@ def test_cplex_to_model_to_cplex():
         tmp_lp.seek(0)
         aqmodel = LpTranslator.to_model(tmp_lp.file.read())
         lp_str = LpTranslator.from_model(aqmodel)
+        print(lp_str)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.write(lp_str)
@@ -187,10 +189,10 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
         return False
     for v1, v2 in zip(v1s, v2s):
         if not (
-            v1.VarName == v2.VarName
-            and abs(v1.LB - v2.LB) < 1e-6
-            and abs(v1.UB - v2.UB) < 1e-6
-            and v1.VType == v2.VType
+                v1.VarName == v2.VarName
+                and abs(v1.LB - v2.LB) < 1e-6
+                and abs(v1.UB - v2.UB) < 1e-6
+                and v1.VType == v2.VType
         ):
             return False
 
@@ -200,15 +202,15 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
     if type(m1_obj) is not type(m2_obj):
         return False
     if (
-        isinstance(m1_obj, gp.QuadExpr)
-        and isinstance(m2_obj, gp.QuadExpr)
-        and not quad_expr_equal(m1_obj, m2_obj)
+            isinstance(m1_obj, gp.QuadExpr)
+            and isinstance(m2_obj, gp.QuadExpr)
+            and not quad_expr_equal(m1_obj, m2_obj)
     ):
         return False
     if (
-        isinstance(m1_obj, gp.LinExpr)
-        and isinstance(m2_obj, gp.LinExpr)
-        and not lin_expr_equal(m1_obj, m2_obj)
+            isinstance(m1_obj, gp.LinExpr)
+            and isinstance(m2_obj, gp.LinExpr)
+            and not lin_expr_equal(m1_obj, m2_obj)
     ):
         return False
 

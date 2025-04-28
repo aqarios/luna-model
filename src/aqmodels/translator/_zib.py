@@ -18,10 +18,10 @@ class ZibTranslator:
     >>> model = Model()
     >>> model.readProblem("./path/to/my/model.lp")
     >>> model.optimize()
-    >>> aqs = aqm.translator.ZibTranslator.from_zib(model)
+    >>> aqs = aqm.translator.ZibTranslator.to_aq(model)
     """
 
     @dispatched
     @staticmethod
-    def from_zib(model, timing, env):
+    def to_aq(model, timing, env):
         return model, timing, env
