@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Bounds, Variable, Vtype
+from ._variable import Vtype, Variable, Bounds
 from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import SampleIterator, Samples, Sample, SamplesIterator
-from ._result import Result, ResultView, ResultIterator
-from ._model import Model, Sense
+from ._sample import SampleIterator, Sample, SamplesIterator, Samples
+from ._result import Result, ResultIterator, ResultView
+from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
     Constraint as __Constraint,
-    Result as __Result,
-    ResultView as __ResultView,
-    SamplesIterator as __SamplesIterator,
-    Bounds as __Bounds,
-    Solution as __Solution,
-    SampleIterator as __SampleIterator,
-    Timer as __Timer,
-    Comparator as __Comparator,
-    Environment as __Environment,
-    Samples as __Samples,
-    Expression as __Expression,
     Constraints as __Constraints,
-    Model as __Model,
-    ResultIterator as __ResultIterator,
-    Variable as __Variable,
+    SampleIterator as __SampleIterator,
     Vtype as __Vtype,
     Sense as __Sense,
-    Sample as __Sample,
+    Variable as __Variable,
+    Samples as __Samples,
     Timing as __Timing,
+    Environment as __Environment,
+    Sample as __Sample,
+    Model as __Model,
+    Solution as __Solution,
+    Expression as __Expression,
+    SamplesIterator as __SamplesIterator,
+    Timer as __Timer,
+    Comparator as __Comparator,
+    ResultView as __ResultView,
+    Bounds as __Bounds,
+    Result as __Result,
+    ResultIterator as __ResultIterator,
 )
-from ._constraints import Comparator, Constraints, Constraint
-from . import translator, errors
+from ._constraints import Comparator, Constraint, Constraints
+from . import errors, translator
 
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment] # noqa: F811
 SampleIterator = __SampleIterator  # type: ignore[misc,assignment] # noqa: F811

@@ -2,17 +2,24 @@
 \ Problem name: TestModel
 
 Minimize
- obj: [ 11.213 x0 * x1 - 3 x0 * x2 + 1848482 x0 * x3 + 0.5 x1 * x2 + x1 * x4 ] / 2 + x0 + 1
+ obj: 0.01 Pennies + 0.05 Nickels + 0.1 Dimes + 0.25 Quarters + Dollars
 Subject To
- c0: x0 + x2 <= 1
- my_constraint: x0 + x2 <= 1
+ Copper: 0.06 Pennies + 3.8 Nickels + 2.1 Dimes + 5.2 Quarters + 7.2 Dollars - 1 Cu = 0
+ Nickel: 1.2 Nickels + 0.2 Dimes + 0.5 Quarters + 0.2 Dollars - 1 Ni = 0
+ Zinc: 2.4 Pennies + 0.5 Dollars - 1 Zi = 0
+ Manganese: 0.3 Dollars - 1 Mn = 0
 Bounds
- x1 >= 0
- 0 <= x3 <= 30
-Semi-Continuous
- x1
+ Pennies >= 1
+ Nickels >= 1
+ Dimes >= 1
+ Quarters >= 1
+ Dollars >= 1
+ 0 <= Cu <= 1000
+ 0 <= Ni <= 50
+ 0 <= Zi <= 50
+ 0 <= Mn <= 50
 Generals
- x3
-Binaries
- x0 x2 x4
+ Pennies Nickels Dimes Quarters Dollars
+Semi-Continuous
+ Cu Ni Zi Mn
 End
