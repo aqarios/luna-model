@@ -9,7 +9,7 @@ use super::expression::{
 use super::{Environment, Expression, RcSolution, Sample, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
-use crate::core::utils::ModelWriter;
+use crate::core::writer::ModelWriter;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;

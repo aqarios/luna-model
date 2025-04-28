@@ -56,6 +56,28 @@ class QctrlTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
+class LpTranslator:
+    @overload
+    @staticmethod
+    def to_model(file: Path) -> Model: ...
+    @overload
+    @staticmethod
+    def to_model(file: str) -> Model: ...
+    @overload
+    @staticmethod
+    def from_model(model: Model) -> str: ...
+    @overload
+    @staticmethod
+    def from_model(model: Model, file: Path) -> None: ...
+
+class MatrixTranslator:
+    @staticmethod
+    def to_model(
+        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+    ) -> Model: ...
+    @staticmethod
+    def to_dense(model: Model) -> NDArray: ...
+
 class IbmTranslator:
     @overload
     @staticmethod
@@ -78,20 +100,6 @@ class IbmTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class LpTranslator:
-    @overload
-    @staticmethod
-    def to_model(file: Path) -> Model: ...
-    @overload
-    @staticmethod
-    def to_model(file: str) -> Model: ...
-    @overload
-    @staticmethod
-    def from_model(model: Model) -> str: ...
-    @overload
-    @staticmethod
-    def from_model(model: Model, file: Path) -> None: ...
-
 class DimodTranslator:
     @staticmethod
     def from_dimod_sample_set(
@@ -105,14 +113,6 @@ class CqmTranslator:
     def to_model(cqm: ConstrainedQuadraticModel) -> Model: ...
     @staticmethod
     def from_model(model: Model) -> ConstrainedQuadraticModel: ...
-
-class MatrixTranslator:
-    @staticmethod
-    def to_model(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
-    @staticmethod
-    def to_dense(model: Model) -> NDArray: ...
 
 __all__ = [
     "BqmTranslator",

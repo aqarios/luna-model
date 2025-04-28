@@ -2,7 +2,7 @@ mod common;
 mod concrete;
 mod extras;
 mod model;
-mod utils;
+mod writer;
 mod variable;
 
 pub mod constraints;

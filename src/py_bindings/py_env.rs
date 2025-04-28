@@ -70,7 +70,7 @@ impl PyEnvironment {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.borrow())
+        format!("{:#?}", self.borrow())
     }
 
     fn get_variable(&self, name: String) -> PyResult<PyVariable> {

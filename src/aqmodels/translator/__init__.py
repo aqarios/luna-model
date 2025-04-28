@@ -12,11 +12,11 @@ from .._core import translator as __translator
 
 BqmTranslator = __translator.BqmTranslator  # noqa: F811
 QctrlTranslator = __translator.QctrlTranslator  # noqa: F811
-IbmTranslator = __translator.IbmTranslator  # noqa: F811
 LpTranslator = __translator.LpTranslator  # noqa: F811
+MatrixTranslator = __translator.MatrixTranslator  # noqa: F811
+IbmTranslator = __translator.IbmTranslator  # noqa: F811
 DimodTranslator = __translator.DimodTranslator  # noqa: F811
 CqmTranslator = __translator.CqmTranslator  # noqa: F811
-MatrixTranslator = __translator.MatrixTranslator  # noqa: F811
 
 __all__ = [
     "BqmTranslator",
