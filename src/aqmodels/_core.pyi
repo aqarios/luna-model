@@ -481,6 +481,14 @@ class Expression:
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
 
+class AwsTranslator:
+    @staticmethod
+    def from_aws_result(
+        result: dict[str, Any],
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class ZibTranslator:
     @staticmethod
     def from_zib(
@@ -622,6 +630,7 @@ class SolutionCreationError(Exception):
     def __str__(self) -> str: ...
 
 __all__ = [
+    "AwsTranslator",
     "Bounds",
     "BqmTranslator",
     "Comparator",

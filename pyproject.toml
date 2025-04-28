@@ -101,4 +101,6 @@ dev = [
     "qiskit-ibm-runtime>=0.38.0",
     "qiskit-aer>=0.17.0",
     "pyscipopt>=5.2.1",
+    "amazon-braket-sdk>=1.91.2",
+    "boto3>=1.38.3"
 ]

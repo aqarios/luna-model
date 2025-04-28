@@ -21,6 +21,14 @@ from typing import overload
 
 from . import translator
 
+class AwsTranslator:
+    @staticmethod
+    def from_aws_result(
+        result: dict[str, Any],
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class ZibTranslator:
     @staticmethod
     def from_zib(
@@ -126,6 +134,7 @@ class CqmTranslator:
     def from_model(model: Model) -> ConstrainedQuadraticModel: ...
 
 __all__ = [
+    "AwsTranslator",
     "BqmTranslator",
     "CqmTranslator",
     "DimodTranslator",

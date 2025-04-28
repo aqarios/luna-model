@@ -10,3 +10,5 @@ pub use solution::PyQctrlTranslator;
 pub use solution::PyDimodTranslator;
 pub use solution::PyIbmTranslator;
 pub use solution::PyZibTranslator;
+pub use solution::PyAwsTranslator;
+
