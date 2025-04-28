@@ -1,6 +1,6 @@
 from dimod import BinaryQuadraticModel
 
-from aqmodels._model import Model
+from aqmodels import Model
 
 class BqmTranslator:
     @staticmethod

@@ -1,5 +1,4 @@
 import pytest
-from dimod import lp as dimod_lp
 from aqmodels import Model, Variable, LpTranslator, IllegalConstraintNameError
 
 ILLEGAL_WORD_START = [

@@ -1,4 +1,4 @@
-from pyscipopt import Model
+from pyscipopt import Model as SciModel
 from aqmodels import Environment
 from aqmodels import Solution
 from aqmodels import Timing
@@ -6,7 +6,7 @@ from aqmodels import Timing
 class ZibTranslator:
     @staticmethod
     def from_zib(
-        model: Model,
+        model: SciModel,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...

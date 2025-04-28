@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import overload
 from aqmodels import Constraint
-from aqmodels._environment import Environment
-from aqmodels._expression import Expression
+from aqmodels import Environment
+from aqmodels import Expression
 
 class Vtype(Enum):
     Real = ...

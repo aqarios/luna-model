@@ -8,6 +8,7 @@ from dimod import SampleSet
 from enum import Enum
 from numpy.typing import NDArray
 from pathlib import Path
+from pyscipopt import Model as SciModel
 from qiskit.primitives import PrimitiveResult, PubResult
 from qiskit_optimization import QuadraticProgram
 from typing import Any
@@ -484,7 +485,7 @@ class Model:
 class ZibTranslator:
     @staticmethod
     def from_zib(
-        model: Model,
+        model: SciModel,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...

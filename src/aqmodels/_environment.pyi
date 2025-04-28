@@ -1,7 +1,7 @@
 from typing import Any
 from typing import overload
-from aqmodels._variable import Variable
-from aqmodels._expression import Expression
+from aqmodels import Variable
+from aqmodels import Expression
 
 class Environment:
     def __init__(self) -> None: ...

@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import overload
-from aqmodels._model import Model
+from aqmodels import Model
 
 class LpTranslator:
     @overload

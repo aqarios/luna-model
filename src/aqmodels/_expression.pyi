@@ -1,7 +1,7 @@
 from typing import overload
-from aqmodels._variable import Variable
-from aqmodels._environment import Environment
-from aqmodels._constraints import Constraint
+from aqmodels import Variable
+from aqmodels import Environment
+from aqmodels import Constraint
 
 class Expression:
     @overload

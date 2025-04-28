@@ -1,8 +1,9 @@
 from typing import overload
 from qiskit.primitives import PrimitiveResult, PubResult
 from qiskit_optimization import QuadraticProgram
-from aqmodels._solution import Solution, Timing
-from aqmodels._environment import Environment
+from aqmodels import Solution
+from aqmodels import Timing
+from aqmodels import Environment
 
 class IbmTranslator:
     @overload
