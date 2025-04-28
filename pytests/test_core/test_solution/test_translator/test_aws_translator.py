@@ -53,11 +53,10 @@ def test_zib_translator(model: Model, aws_result: dict[str, NDArray]):
     (sol_agg, indices, num_occ) = np.unique(
         aws_result["samples"], return_index=True, return_counts=True, axis=0
     )
-    
-    assert  sol.samples.tolist() == sol_agg.tolist()
+
+    assert sol.samples.tolist() == sol_agg.tolist()
     for i, result in enumerate(sol.results):
         assert result.raw_energy == aws_result["energies"][indices[i]]
         assert result.obj_value is None
         assert result.constraints is None
         assert result.feasible is None
-        

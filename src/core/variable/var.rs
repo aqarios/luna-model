@@ -59,9 +59,8 @@ impl Variable {
     fn format_bounds(&self) -> String {
         let mut out = String::new();
         if matches!(self.vtype, Vtype::Integer | Vtype::Real) {
-            let default = Bounds::default(&self.vtype);
-            let has_lower = self.bounds.lower != default.lower;
-            let has_upper = self.bounds.upper != default.upper;
+            let has_lower = self.bounds.lower != None;
+            let has_upper = self.bounds.upper != None;
             if has_lower || has_upper {
                 let mut bounds = vec![];
                 if has_lower {

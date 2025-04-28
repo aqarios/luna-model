@@ -1,15 +1,12 @@
-use crate::core::{ConcreteAssignmentTypes, ConcreteRcVarRef, RcSolution, Solution};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_sol::PySolution;
 use crate::py_bindings::py_timing::PyTiming;
-use crate::translator::{QctrlTranslator, ZibTranslator};
+use crate::translator::ZibTranslator;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::pyclass;
-use pyo3::types::PyDict;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 #[pyclass(unsendable, name = "ZibTranslator", module = "aqmodels.translator")]
 pub struct PyZibTranslator(pub ZibTranslator);

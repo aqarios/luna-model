@@ -35,9 +35,14 @@ def extract_imports(text: str, defined_symbols: set) -> list[str]:
         if line.strip().startswith("import ") or line.strip().startswith("from "):
             match = re.match(r"from\s+\S+\s+import\s+(.+)", line.strip())
             if match:
-                imported = [
-                    part.strip().split(" ")[0] for part in match.group(1).split(",")
-                ]
+                imported = []
+                for part in match.group(1).split(","):
+                    part = part.strip()
+                    if " as " in part:
+                        original, alias = part.split(" as ")
+                        imported.append(alias.strip())
+                    else:
+                        imported.append(part.strip())
                 if not any(symbol in defined_symbols for symbol in imported):
                     imports.append(line.strip())
             else:

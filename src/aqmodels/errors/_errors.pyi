@@ -33,3 +33,6 @@ class ModelVtypeError(Exception):
 
 class SolutionCreationError(Exception):
     def __str__(self) -> str: ...
+
+class IllegalConstraintNameError(Exception):
+    def __str__(self) -> str: ...

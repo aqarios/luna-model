@@ -2,18 +2,19 @@
 # Do not edit manually.
 
 from ._errors import (
+    DecodeError,
+    VariableExistsError,
+    ModelNotQuadraticError,
+    VariablesFromDifferentEnvsError,
+    MultipleActiveEnvironmentsError,
+    IllegalConstraintNameError,
+    VariableOutOfRangeError,
+    SolutionCreationError,
     VariableNotExistingError,
+    DifferentEnvsError,
     ModelNotUnconstrainedError,
     NoActiveEnvironmentFoundError,
-    VariableOutOfRangeError,
-    DifferentEnvsError,
     ModelVtypeError,
-    DecodeError,
-    MultipleActiveEnvironmentsError,
-    ModelNotQuadraticError,
-    SolutionCreationError,
-    VariablesFromDifferentEnvsError,
-    VariableExistsError,
 )
 from .._core import errors as __errors
 
@@ -29,10 +30,12 @@ ModelNotQuadraticError = __errors.ModelNotQuadraticError  # noqa: F811
 ModelNotUnconstrainedError = __errors.ModelNotUnconstrainedError  # noqa: F811
 ModelVtypeError = __errors.ModelVtypeError  # noqa: F811
 SolutionCreationError = __errors.SolutionCreationError  # noqa: F811
+IllegalConstraintNameError = __errors.IllegalConstraintNameError  # noqa: F811
 
 __all__ = [
     "DecodeError",
     "DifferentEnvsError",
+    "IllegalConstraintNameError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
     "ModelVtypeError",

@@ -1,10 +1,12 @@
 from enum import Enum
 from typing import overload
 
-from aqmodels import Solution, Sample, Result
-from aqmodels._constraints import Constraints
-from aqmodels._environment import Environment
-from aqmodels._expression import Expression
+from aqmodels import Solution
+from aqmodels import Sample
+from aqmodels import Result
+from aqmodels import Constraints
+from aqmodels import Environment
+from aqmodels import Expression
 
 class Sense(Enum):
     Min = ...

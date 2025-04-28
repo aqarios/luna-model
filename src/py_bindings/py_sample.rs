@@ -9,6 +9,8 @@ use pyo3::exceptions::{PyIndexError, PyRuntimeError};
 use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
 
+use super::py_var::PyVariable;
+
 #[pyclass(unsendable, name = "SamplesIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
 pub struct PySamplesIterator(pub SamplesIterator<ConcreteBias, ConcreteAssignmentTypes>);
@@ -51,9 +53,8 @@ impl PySamples {
             .collect()
     }
 
-    // TODO: implement human-readable solution representation
     fn __str__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{}", self.0)
     }
 
     fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyObject> {
@@ -87,13 +88,20 @@ impl PySamples {
 
 #[pymethods]
 impl PySample {
-    // TODO: implement human-readable solution representation
     fn __str__(&self) -> String {
-        format!("{:?}", self.0)
+        format!("{}", self.0)
     }
 
     fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyVarAssignment> {
-        if let Ok(var_idx) = index.extract::<usize>(py) {
+        if let Ok(var) = index.extract::<PyVariable>(py) {
+            match self.get_assignment(var.id.into()) {
+                None => Err(PyIndexError::new_err(format!(
+                    "Index {:?} out of bounds", var.id
+                ))),
+                Some(v) => Ok(PyVarAssignment(v)),
+            }
+        }
+        else if let Ok(var_idx) = index.extract::<usize>(py) {
             match self.get_assignment(var_idx) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {var_idx} out of bounds"
@@ -106,7 +114,7 @@ impl PySample {
     }
 
     fn __len__(&self) -> usize {
-        match &self.0 .0 {
+        match &self.0.0 {
             Either::Left(r) => r.sol.samples.len(),
             Either::Right(r) => r.len(),
         }

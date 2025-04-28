@@ -1,5 +1,5 @@
 Maximize
-  .01 Pennies + .05 Nickels + .1 Dimes + .25 Quarters + 1 Dollars
+  obj: .01 Pennies + .05 Nickels + .1 Dimes + .25 Quarters + 1 Dollars
 Subject To
   Copper: .06 Pennies + 3.8 Nickels + 2.1 Dimes + 5.2 Quarters + 7.2 Dollars -
      Cu = 0

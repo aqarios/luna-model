@@ -17,7 +17,7 @@ Minimize
   -x0 * x1 + x0
 Bounds
   0 <= x0 <= 1
-  x1 unbounded
+  0 <= x1
 Binary
   x0
 Real
@@ -30,7 +30,7 @@ Subject To
   c0: x0 + x2 <= 1
 Bounds
   0 <= x0 <= 1
-  x1 unbounded
+  0 <= x1
   0 <= x2 <= 1
   0 <= x3 <= 30
   -1 <= x4 <= 1
@@ -51,7 +51,7 @@ Subject To
   my_constraint: x0 + x2 <= 1
 Bounds
   0 <= x0 <= 1
-  x1 unbounded
+  0 <= x1
   0 <= x2 <= 1
   0 <= x3 <= 30
   -1 <= x4 <= 1
@@ -63,6 +63,44 @@ Integer
   x3
 Real
   x1"""
+_model_repr_1 = """Model {
+    name: "MyModel",
+    objective: Expression {
+        environment_id: 0,
+        offset: 0.0,
+        linear: a + 2 * b + 2 * c + 2 * d + 2 * e + 2 * f + 2 * g + 2 * h + 2 * i + 2 * j 
+        + 2 * k + 2 * l + 2 * m + 2 * n + 2 * o + 2 * p + 2 * q + 2 * r + 2 * s + 2 * t,
+        quadratic: None,
+        higher_order: None,
+        active: [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+        ],
+        num_variables: 20,
+    },
+    constraints: Constraints {
+        constraints: [],
+    },
+    environment_id: 0,
+}"""
 
 
 @pytest.fixture
@@ -97,11 +135,11 @@ def test_variable():
         b = Variable("b", vtype=Vtype.Spin)
         assert str(b) == "b: Spin"
         c = Variable("c", vtype=Vtype.Integer)
-        assert str(c) == "c: Integer"
+        assert str(c) == "c: Integer { lower: 0 }"
         d = Variable("d", vtype=Vtype.Integer, bounds=Bounds(lower=0, upper=10))
         assert str(d) == "d: Integer { lower: 0, upper: 10 }"
         e = Variable("e", vtype=Vtype.Real)
-        assert str(e) == "e: Real"
+        assert str(e) == "e: Real { lower: 0 }"
         f = Variable("f", vtype=Vtype.Real, bounds=Bounds(lower=-1.5, upper=1))
         assert str(f) == "f: Real { lower: -1.5, upper: 1 }"
 
@@ -183,6 +221,10 @@ def test_expression(variables: tuple[Variable, ...]):
         for expr in expressions:
             repr(expr)
 
+    # for expr in expressions:
+    #     print(repr(expr))
+    # raise  Exception
+
 
 @pytest.mark.str_repr
 @pytest.mark.parametrize("variables", [2], indirect=True)
@@ -238,3 +280,14 @@ def test_model():
 
     with does_not_raise():
         repr(m)
+
+
+@pytest.mark.str_repr
+@pytest.mark.parametrize("variables", [20], indirect=True)
+def test_expression_with_line_break(variables: tuple[Variable, ...]):
+    m = Model(name="MyModel")
+    m.objective = variables[0] * 1
+    for v in variables[1:]:
+        m.objective += v * 2
+
+    assert repr(m) == _model_repr_1

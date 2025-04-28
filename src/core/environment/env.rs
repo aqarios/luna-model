@@ -1,4 +1,4 @@
-use crate::core::utils::LineLengthRestrictor;
+use crate::core::writer::LineLengthRestrictor;
 use crate::core::{
     expression::IndexConstraints,
     variable::{Bounds, VarRef, Variable, Vtype},

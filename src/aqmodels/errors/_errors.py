@@ -124,3 +124,13 @@ class SolutionCreationError(Exception):
     format, e.g., when the samples have different lengths or the variable types are not
     consistent with the model the solution is created for.
     """
+
+
+@export("top", "errors")
+class IllegalConstraintNameError(Exception):
+    """
+    Raised when an illegal constraint name is used.
+
+    This may happen when a new constraint is added to the model that uses a disallowed
+    constraint name.
+    """

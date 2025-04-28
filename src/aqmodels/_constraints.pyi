@@ -2,7 +2,7 @@ from enum import Enum
 from typing import overload
 
 from aqmodels import Variable
-from aqmodels._expression import Expression
+from aqmodels import Expression
 
 class Comparator(Enum):
     Eq = ...

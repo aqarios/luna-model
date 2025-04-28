@@ -5,6 +5,15 @@ use std::{
 };
 
 #[derive(Debug, Clone)]
+pub struct IllegalConstraintNameErr(pub String);
+impl Error for IllegalConstraintNameErr {}
+impl Display for IllegalConstraintNameErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "Illegal constraint name: {}", self.0)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct VariableExistsErr;
 impl Error for VariableExistsErr {}
 impl Display for VariableExistsErr {
@@ -247,3 +256,10 @@ impl From<IncorrectVtypeError> for SolutionCreatorErr {
         SolutionCreatorErr(value.to_string())
     }
 }
+
+impl From<IllegalConstraintNameErr> for TranslationErr {
+    fn from(value: IllegalConstraintNameErr) -> Self {
+        TranslationErr::new(value.0)
+    }
+}
+

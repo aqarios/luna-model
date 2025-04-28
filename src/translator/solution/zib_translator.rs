@@ -32,7 +32,6 @@ impl ZibTranslator {
             .iter()
             .map(|x| *sample.get(&x.name).unwrap())
             .collect();
-        println!("{sample_vec:?}");
         sol.extend::<f64, f64>(sample_vec, 1, None)?;
         Ok(RcSolution(Rc::new(sol)))
     }

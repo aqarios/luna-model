@@ -50,7 +50,7 @@ impl PyConstraint {
                 rhs,
                 comparator,
                 None,
-            )))
+            )?))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
@@ -71,7 +71,7 @@ impl PyConstraint {
         if let Ok(expr) = lhs.extract::<PyExpression>(py) {
             Ok(PyConstraint::new(Constraint::new(
                 expr.0, rhs, comparator, name,
-            )))
+            )?))
         } else if let Ok(var) = lhs.extract::<PyVariable>(py) {
             let expr = Expression::new_linear_single(Rc::clone(&var.env), var.id, 1.0);
             Ok(PyConstraint::new(ConcreteConstraint::new(
@@ -79,7 +79,7 @@ impl PyConstraint {
                 rhs,
                 comparator,
                 name,
-            )))
+            )?))
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
@@ -94,7 +94,7 @@ impl PyConstraint {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.borrow())
+        format!("{:#?}", self.borrow())
     }
 
     #[getter]
@@ -112,18 +112,19 @@ impl PyConstraints {
 
     fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok((constr, name)) = other.extract::<(PyConstraint, String)>(py) {
-            Ok(self.add_constraint(constr, Some(name)))
+            Ok(self.add_constraint(constr, Some(name))?)
         } else if let Ok(constr) = other.extract::<PyConstraint>(py) {
-            Ok(self.add_constraint(constr, None))
+            Ok(self.add_constraint(constr, None)?)
         } else {
             Err(PyRuntimeError::new_err("unsopported type for operation"))
         }
     }
 
     #[pyo3(signature=(constraint, name=None))]
-    fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) {
-        constraint.borrow_mut().set_name(name);
+    fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
+        constraint.borrow_mut().set_name(name)?;
         self.borrow_mut().add_assign(constraint.borrow().deref());
+        Ok(())
     }
 
     fn __getitem__(&self, n: usize) -> PyResult<PyConstraint> {
@@ -141,7 +142,7 @@ impl PyConstraints {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.borrow())
+        format!("{:#?}", self.borrow())
     }
 
     #[pyo3(signature=(compress=None, level=None))]
@@ -156,7 +157,7 @@ impl PyConstraints {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
     #[pyo3(signature=(compress=None, level=None))]
@@ -192,6 +193,6 @@ impl Comparator {
     }
 
     fn __repr__(&self) -> String {
-        format!("{self:?}")
+        format!("{self:#?}")
     }
 }
