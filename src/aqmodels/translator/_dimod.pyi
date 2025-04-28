@@ -1,6 +1,7 @@
 from dimod import SampleSet
-from aqmodels._environment import Environment
-from aqmodels._solution import Solution, Timing
+from aqmodels import Environment
+from aqmodels import Solution
+from aqmodels import Timing
 
 class DimodTranslator:
     @staticmethod

@@ -2,7 +2,11 @@ from typing import overload
 
 from numpy.typing import NDArray
 
-from aqmodels import Timing, ResultIterator, ResultView, Samples, Vtype
+from aqmodels import Timing
+from aqmodels import ResultIterator
+from aqmodels import ResultView
+from aqmodels import Samples
+from aqmodels import Vtype
 
 class Solution:
     def __str__(self) -> str: ...

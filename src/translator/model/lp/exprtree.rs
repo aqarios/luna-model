@@ -480,8 +480,12 @@ where
             Variable(name) => name.clone(),
 
             Add(lhs, rhs) => {
-                let tmp = format!("{} + {}", lhs.to_string(), rhs.to_string());
-                // todo: dirty fix for now.
+                let tmp = match (&**lhs, &**rhs) {
+                    (Number(b), r) => format!("{} + {}", r.to_string(), b.to_string()),
+                    (l, Number(b)) => format!("{} + {}", l.to_string(), b.to_string()),
+                    (l, r) => format!("{} + {}", l.to_string(), r.to_string())
+
+                };
                 tmp.replace("+ -", "- ")
             }
 
@@ -526,17 +530,23 @@ where
     Bias: BiasConstraints,
 {
     pub fn to_string(&self, is_obj: bool) -> String {
-        let mut linstr = self.lin.to_string();
+        let mut result = String::new();
         let quadstr = self.quad.as_ref().and_then(|q| Some(q.to_string()));
-        if let Some(qs) = quadstr {
-            linstr.push_str(" + [ ");
-            linstr.push_str(&qs);
-            linstr.push_str(" ]");
+        if let Some(qs) = &quadstr {
+            result.push_str("[ ");
+            result.push_str(&qs);
+            result.push_str(" ]");
             if is_obj {
-                linstr.push_str(" / 2");
+                result.push_str(" / 2");
             }
         }
-        linstr
+        let linstr = self.lin.to_string();
+        if quadstr.is_none() {
+            result.push_str(&format!("{linstr}"));
+        } else {
+            result.push_str(&format!(" + {linstr}"));
+        }
+        result
     }
 }
 

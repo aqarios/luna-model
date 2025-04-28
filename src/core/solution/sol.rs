@@ -1,10 +1,12 @@
 use crate::core::expression::BiasConstraints;
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
+use crate::core::writer::SolutionWriter;
 use crate::core::{ResultIterator, ResultView, Samples};
 use crate::errors::{IncorrectVtypeError, SampleIncorrectLengthError, SolutionCreatorErr};
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
+use std::fmt::{Display, Formatter};
 use std::ops::Mul;
 use std::rc::Rc;
 
@@ -25,6 +27,20 @@ where
 {
     fn default() -> Self {
         VarAssignment::Binary(AssignmentTypes::BinaryType::default())
+    }
+}
+
+impl<AssignmentTypes> Display for VarAssignment<AssignmentTypes>
+where
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VarAssignment::Binary(x) => write!(f, "{x}"),
+            VarAssignment::Spin(x) => write!(f, "{x}"),
+            VarAssignment::Integer(x) => write!(f, "{x}"),
+            VarAssignment::Real(x) => write!(f, "{x:?}"),
+        }
     }
 }
 
@@ -137,8 +153,8 @@ where
     /// satisfied. In other words, `feasible[i]` iff. `all(constraints[i])`. May be empty for
     /// solutions that haven't yet been evaluated.
     pub feasible: Vec<Option<bool>>,
-    // /// Metadata that may be useful for explaining why a constraint is not satisfied, e.g., the eval
-    // /// of a lhs.
+    /// Metadata that may be useful for explaining why a constraint is not satisfied, e.g., the eval
+    /// of a lhs.
     pub best_sample_idx: Option<usize>,
     /// Runtime metrics of the solution.
     pub timing: Option<Timing>,
@@ -271,7 +287,7 @@ where
 }
 
 impl<Bias, AssignmentTypes> Into<Rc<Solution<Bias, AssignmentTypes>>>
-    for RcSolution<Bias, AssignmentTypes>
+for RcSolution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
@@ -299,5 +315,18 @@ where
             && lhs.best_sample_idx == rhs.best_sample_idx
             && lhs.timing == rhs.timing
             && lhs.n_samples == rhs.n_samples
+    }
+}
+
+impl<Bias, AssignmentTypes> Display for RcSolution<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = SolutionWriter::new()
+            .write_solution(RcSolution::clone(&self))
+            .to_string();
+        f.write_str(&s)
     }
 }

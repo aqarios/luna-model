@@ -35,9 +35,7 @@ impl DimodTranslator {
         for i in 0..shape[0] {
             let start_idx = i * shape[1];
             let sample = samples[start_idx..start_idx + shape[1]]
-                .iter()
-                .map(|&x| x)
-                .collect();
+                .to_vec();
             sol.extend(
                 sample,
                 <usize as NumCast>::from(num_occurrences[i]).unwrap(),

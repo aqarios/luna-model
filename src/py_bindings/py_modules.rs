@@ -43,6 +43,7 @@ pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_translator::PyQctrlTranslator>()?;
     m.add_class::<py_translator::PyLpTranslator>()?;
     m.add_class::<py_translator::PyIbmTranslator>()?;
+    m.add_class::<py_translator::PyZibTranslator>()?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?
@@ -100,6 +101,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add(
         pyexc::SolutionCreationError::NAME,
         m.py().get_type::<pyexc::SolutionCreationError>(),
+    )?;
+    m.add(
+        pyexc::IllegalConstraintNameError::NAME,
+        m.py().get_type::<pyexc::IllegalConstraintNameError>(),
     )?;
     pm.add_submodule(&m)?;
     pm.py()

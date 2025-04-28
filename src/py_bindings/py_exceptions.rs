@@ -3,7 +3,7 @@ use crate::errors::{
     BqmTranslatorErr, DifferentEnvsErr, IndexOutOfBoundsErr, MatrixTranslatorErr,
     ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelVtypeErr, SolutionCreatorErr,
     TranslationErr, VariableCreationErr, VariableExistsErr, VariableNotExistingErr,
-    VariablesFromDifferentEnvsErr,
+    VariablesFromDifferentEnvsErr, IllegalConstraintNameErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
@@ -31,6 +31,7 @@ create_exception!(aqmodels.errors, ModelNotUnconstrainedError, PyException);
 create_exception!(aqmodels.errors, ModelVtypeError, PyException);
 create_exception!(aqmodels.errors, SolutionCreationError, PyException);
 create_exception!(aqmodels.errors, TranslationError, PyException);
+create_exception!(aqmodels.errors, IllegalConstraintNameError, PyException);
 
 impl From<VariableOutOfRangeErr> for PyErr {
     fn from(value: VariableOutOfRangeErr) -> Self {
@@ -126,5 +127,11 @@ impl From<SolutionCreatorErr> for PyErr {
 impl From<TranslationErr> for PyErr {
     fn from(value: TranslationErr) -> Self {
         TranslationError::new_err(value.to_string())
+    }
+}
+
+impl From<IllegalConstraintNameErr> for PyErr {
+    fn from(value: IllegalConstraintNameErr) -> Self {
+        IllegalConstraintNameError::new_err(value.to_string())
     }
 }

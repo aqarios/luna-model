@@ -1,8 +1,10 @@
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::AssignmentBaseTypes;
+use crate::core::writer::SolutionWriter;
 use crate::core::{IndexByValue, RcSolution, ResultView, SampleIterator, SamplesIterator, VarAssignment};
 use derive_more::{Deref, DerefMut};
 use either::{Either, Left, Right};
+use std::fmt::{Display, Formatter};
 use std::rc::Rc;
 
 #[derive(Debug, Clone, Deref, DerefMut)]
@@ -84,5 +86,31 @@ where
 
     fn into_iter(self) -> Self::IntoIter {
         SampleIterator::new(self.0)
+    }
+}
+
+impl<Bias, AssignmentTypes> Display for Samples<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = SolutionWriter::new()
+            .write_samples(self.clone(), &self.num_occurrences)
+            .to_string();
+        f.write_str(&s)
+    }
+}
+
+impl<Bias, AssignmentTypes> Display for Sample<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let s = SolutionWriter::new()
+            .write_sample(self.clone())
+            .to_string();
+        f.write_str(&s)
     }
 }

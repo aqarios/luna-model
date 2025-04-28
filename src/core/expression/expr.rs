@@ -6,7 +6,7 @@ use super::base::{
 use super::VariableOutOfRangeErr;
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
-use crate::core::utils::ModelWriter;
+use crate::core::writer::ModelWriter;
 use crate::core::{MutRcEnvironment, Vtype};
 use hashbrown::HashMap;
 use std::fmt::{Debug, Display, Formatter};
@@ -813,9 +813,9 @@ where
         f.debug_struct("Expression")
             .field("environment_id", &self.env.borrow().id)
             .field("offset", &self.offset)
-            .field("linear", &linear)
-            .field("quadratic", &quadratic)
-            .field("higher_order", &higher_order)
+            .field("linear", &format_args!("{linear}"))
+            .field("quadratic", &format_args!("{quadratic}"))
+            .field("higher_order", &format_args!("{higher_order}"))
             .field("active", &self.active)
             .field("num_variables", &self.num_variables)
             .finish()

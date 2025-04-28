@@ -78,7 +78,7 @@ class Samples:
     """
 
     @dispatched
-    def __str__(self):
+    def __str__(self):  # type: ignore
         return
 
     @dispatched
