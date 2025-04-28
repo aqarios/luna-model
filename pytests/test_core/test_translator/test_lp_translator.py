@@ -29,8 +29,8 @@ def test_cqm_to_model_to_cqm():
         cqm_lp = dimod_lp.dumps(cqm)
         cqm = dimod_lp.loads(cqm_lp)
         # print(f"cqm_lp =\n{cqm_lp}\n")
-        model = LpTranslator.to_model(cqm_lp)
-        cqm_lp_back = LpTranslator.from_model(model)
+        model = LpTranslator.to_aq(cqm_lp)
+        cqm_lp_back = LpTranslator.from_aq(model)
         # print(f"cqm_lp_back =\n{cqm_lp_back}\n")
         cqm_back = dimod_lp.loads(cqm_lp_back)
         # this is ugly, but the constraints are weird in dimod.
@@ -65,8 +65,8 @@ def test_gurobi_to_model_to_gurobi():
         tmp_lp.seek(0)
         # build aqmodel
         tmp_lp.seek(0)
-        aqmodel = LpTranslator.to_model(tmp_lp.file.read())
-        lp_str = LpTranslator.from_model(aqmodel)
+        aqmodel = LpTranslator.to_aq(tmp_lp.file.read())
+        lp_str = LpTranslator.from_aq(aqmodel)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.truncate()
@@ -103,8 +103,8 @@ def test_cplex_to_model_to_cplex():
         cpx_mps_str = tmp_mps.read()
         # build aqmodel
         tmp_lp.seek(0)
-        aqmodel = LpTranslator.to_model(tmp_lp.file.read())
-        lp_str = LpTranslator.from_model(aqmodel)
+        aqmodel = LpTranslator.to_aq(tmp_lp.file.read())
+        lp_str = LpTranslator.from_aq(aqmodel)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.write(lp_str)

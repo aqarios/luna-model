@@ -44,7 +44,7 @@ def model() -> Model:
 
 @pytest.mark.solution_translation
 def test_zib_translator(model: Model):
-    lp_str = LpTranslator.from_model(model)
+    lp_str = LpTranslator.from_aq(model)
     lp_filepath = Path(__file__).parent / "model.lp"
     with open(lp_filepath, "w") as f:
         f.write(lp_str)
@@ -90,4 +90,4 @@ def test_zib_translator(model: Model):
 @pytest.mark.solution_translation
 def test_read_coins():
     lp_filepath = Path(__file__).parent / "coins.lp"
-    _ = LpTranslator.to_model(lp_filepath)
+    _ = LpTranslator.to_aq(lp_filepath)

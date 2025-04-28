@@ -8,7 +8,7 @@ pub struct PyCqmTranslator {}
 impl PyCqmTranslator {
     #[staticmethod]
     #[pyo3(signature=(model))]
-    fn from_model<'a>(py: Python<'a>, model: PyObject) -> PyResult<PyObject> {
+    fn from_aq<'a>(py: Python<'a>, model: PyObject) -> PyResult<PyObject> {
         let extractor: PyObject = PyModule::from_code(
             py,
             c_str!(
@@ -19,7 +19,7 @@ from dimod import lp as dimod_lp
 from aqmodels._core import translator
 
 def extract(model):
-    lp = translator.LpTranslator.from_model(model)
+    lp = translator.LpTranslator.from_aq(model)
     return dimod_lp.loads(lp)
 "
             ),
@@ -35,7 +35,7 @@ def extract(model):
 
     #[staticmethod]
     #[pyo3(signature=(cqm))]
-    fn to_model(py: Python, cqm: PyObject) -> PyResult<PyObject> {
+    fn to_aq(py: Python, cqm: PyObject) -> PyResult<PyObject> {
         let extractor: PyObject = PyModule::from_code(
             py,
             c_str!(
@@ -49,7 +49,7 @@ def extract(cqm):
     if not isinstance(cqm, ConstrainedQuadraticModel):
         raise TypeError(f'Expected cqm to be of type CQM, received: {type(cqm)}')
     cqm_lp = dimod_lp.dumps(cqm)
-    return translator.LpTranslator.to_model(cqm_lp)
+    return translator.LpTranslator.to_aq(cqm_lp)
 "
             ),
             c_str!(""),

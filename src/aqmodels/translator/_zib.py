@@ -4,12 +4,12 @@ from aqmodels._api_utils import dispatched, export
 @export("translator", "top")
 class ZibTranslator:
     """
-    Utility class for converting between a DIMOD solution and an AqSolution (ours).
+    Utility class for converting between a Zib solution and an AqSolution (ours).
 
-    `DimodSolutionTranslator` provides mehtods to:
-    - Convert a Dimod-style solution into our solution `Solution`.
+    `ZibTranslator` provides mehtods to:
+    - Convert a Zib-style solution into our solution `Solution`.
 
-    The conversions are especially required when interaction with external dimod solvers/samplers or libraries that operate on dimod-based problem solving/sampling.
+    The conversions are especially required when interaction with external zib solvers/samplers or libraries that operate on zib-based problem solving/sampling.
 
     Examples
     --------

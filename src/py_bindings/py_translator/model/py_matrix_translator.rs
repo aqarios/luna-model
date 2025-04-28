@@ -10,7 +10,7 @@ pub struct PyMatrixTranslator {}
 impl PyMatrixTranslator {
     #[staticmethod]
     #[pyo3(signature=(qubo, name=None, vtype=None))]
-    fn to_model(
+    fn to_aq(
         qubo: PyReadonlyArray2<f64>,
         name: Option<String>,
         vtype: Option<Vtype>,
@@ -26,7 +26,7 @@ impl PyMatrixTranslator {
 
     #[staticmethod]
     #[pyo3(signature=(model))]
-    fn to_dense<'a>(py: Python<'a>, model: &PyModel) -> PyResult<Bound<'a, PyArray2<f64>>> {
+    fn from_aq<'a>(py: Python<'a>, model: &PyModel) -> PyResult<Bound<'a, PyArray2<f64>>> {
         let (vec, nvars) = MatrixTranslator::model_to_dense(&model.0)?;
         Ok(vec.to_pyarray(py).reshape((nvars, nvars))?)
     }
