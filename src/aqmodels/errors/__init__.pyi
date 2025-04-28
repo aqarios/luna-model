@@ -42,6 +42,7 @@ class SolutionCreationError(Exception):
 class IllegalConstraintNameError(Exception):
     def __str__(self) -> str: ...
 
+
 __all__ = [
     "DecodeError",
     "DifferentEnvsError",
