@@ -6,6 +6,7 @@ use super::{
     keywords::VariableType,
     util::starts_with_any,
 };
+use crate::core::environment::get_vref_by_name;
 use crate::core::{Sense, Vtype, DEFAULT_MODEL_NAME};
 use crate::{
     core::{
@@ -247,7 +248,7 @@ where
                 &Section::Constraints,
                 format!(
                     "{}: {} {} {}",
-                    constraint.name.clone().unwrap_or(i.to_string()),
+                    constraint.name.clone().unwrap_or(format!("c{i}")),
                     lhs_str,
                     comparator,
                     constraint.rhs
@@ -421,6 +422,8 @@ where
         let min_obj = self.get(Section::Objective(Sense::Min));
         let max_obj = self.get(Section::Objective(Sense::Max));
         let (sense, obj): (Sense, &Vec<String>) = match (min_obj, max_obj) {
+            (Some(o), None) => (Sense::Min, o),
+            (None, Some(o)) => (Sense::Max, o),
             (Some(_), Some(_)) => {
                 return Err(TranslationErr::new(String::from(
                     "cannot have multiple objectives in model",
@@ -431,8 +434,6 @@ where
                     "must have an objective in model",
                 )))
             }
-            (Some(o), None) => (Sense::Min, o),
-            (None, Some(o)) => (Sense::Max, o),
         };
         model.set_sense(sense);
         let all = obj.concat();
@@ -464,19 +465,19 @@ where
                             rhs,
                             Comparator::Eq,
                             Some(name.to_string()),
-                        ),
+                        )?,
                         "<=" => Constraint::new(
                             Rc::new(RefCell::new(lhs)),
                             rhs,
                             Comparator::Le,
                             Some(name.to_string()),
-                        ),
+                        )?,
                         ">=" => Constraint::new(
                             Rc::new(RefCell::new(lhs)),
                             rhs,
                             Comparator::Ge,
                             Some(name.to_string()),
-                        ),
+                        )?,
                         _ => {
                             return Err(TranslationErr::new(format!(
                                 "unknown comparator '{}' for constraint '{}'",
@@ -504,7 +505,25 @@ where
         let expression = ExprTree::build(&expr_str)
             .optimize()
             .evaluate(&EvalContext::new(
-                |n| vars.get(n).unwrap().clone(),
+                |n| {
+                    let mut var: Option<VarRef<_>> = vars.get(n).cloned(); // .unwrap().clone()
+                    if var.is_none() {
+                        // Is it in the environment?
+                        let res = get_vref_by_name(&n.to_string(), Rc::clone(&expr.env));
+                        var = if let Ok(v) = res {
+                            Some(v)
+                        } else {
+                            add_variable(
+                                Rc::clone(&expr.env),
+                                &n.to_string(),
+                                Some(&Vtype::Real),
+                                None,
+                            )
+                            .ok()
+                        };
+                    }
+                    var.unwrap()
+                },
                 Rc::clone(&expr.env),
             ))?;
         expr.add_assign(&expression)?;

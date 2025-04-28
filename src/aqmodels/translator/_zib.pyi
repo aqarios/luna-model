@@ -1,12 +1,12 @@
-from dimod import SampleSet
+from pyscipopt import Model as SciModel
 from aqmodels import Environment
 from aqmodels import Solution
 from aqmodels import Timing
 
-class DimodTranslator:
+class ZibTranslator:
     @staticmethod
-    def from_dimod_sample_set(
-        sample_set: SampleSet,
+    def from_zib(
+        model: SciModel,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...

@@ -1,6 +1,6 @@
 from numpy.typing import NDArray
-from aqmodels._model import Model
-from aqmodels._variable import Vtype
+from aqmodels import Model
+from aqmodels import Vtype
 
 class MatrixTranslator:
     @staticmethod

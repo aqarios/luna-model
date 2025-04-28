@@ -9,3 +9,4 @@ pub use model::PyMatrixTranslator;
 pub use solution::PyQctrlTranslator;
 pub use solution::PyDimodTranslator;
 pub use solution::PyIbmTranslator;
+pub use solution::PyZibTranslator;

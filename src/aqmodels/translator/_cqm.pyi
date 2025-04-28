@@ -1,6 +1,6 @@
 from dimod import ConstrainedQuadraticModel
 
-from aqmodels._model import Model
+from aqmodels import Model
 
 class CqmTranslator:
     @staticmethod

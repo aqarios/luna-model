@@ -17,7 +17,7 @@ Minimize
   -x0 * x1 + x0
 Bounds
   0 <= x0 <= 1
-  x1 unbounded
+  0 <= x1
 Binary
   x0
 Real
@@ -30,7 +30,7 @@ Subject To
   c0: x0 + x2 <= 1
 Bounds
   0 <= x0 <= 1
-  x1 unbounded
+  0 <= x1
   0 <= x2 <= 1
   0 <= x3 <= 30
   -1 <= x4 <= 1
@@ -51,7 +51,7 @@ Subject To
   my_constraint: x0 + x2 <= 1
 Bounds
   0 <= x0 <= 1
-  x1 unbounded
+  0 <= x1
   0 <= x2 <= 1
   0 <= x3 <= 30
   -1 <= x4 <= 1
@@ -135,11 +135,11 @@ def test_variable():
         b = Variable("b", vtype=Vtype.Spin)
         assert str(b) == "b: Spin"
         c = Variable("c", vtype=Vtype.Integer)
-        assert str(c) == "c: Integer"
+        assert str(c) == "c: Integer { lower: 0 }"
         d = Variable("d", vtype=Vtype.Integer, bounds=Bounds(lower=0, upper=10))
         assert str(d) == "d: Integer { lower: 0, upper: 10 }"
         e = Variable("e", vtype=Vtype.Real)
-        assert str(e) == "e: Real"
+        assert str(e) == "e: Real { lower: 0 }"
         f = Variable("f", vtype=Vtype.Real, bounds=Bounds(lower=-1.5, upper=1))
         assert str(f) == "f: Real { lower: -1.5, upper: 1 }"
 
