@@ -36,7 +36,9 @@ class LpTranslator:
         ----------
         file: Path | String
             A LP file representing a symbolic model, either given as a
-            path to the LP file or it's contents as a string.
+            Path object to the LP file or it's contents as a string.
+            If you pass the path as a string it will be interpreted as a
+            model and thus fail to be parsed to a Model.
 
         Returns
         -------

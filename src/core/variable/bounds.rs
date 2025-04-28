@@ -37,11 +37,11 @@ impl Bounds {
     }
     /// The default bounds of an integer variable.
     pub fn integer() -> Self {
-        Self::new(None, None)
+        Self::new(Some(0.0), None)
     }
     /// The default bounds of a real variable.
     pub fn real() -> Self {
-        Self::new(None, None)
+        Self::new(Some(0.0), None)
     }
 }
 

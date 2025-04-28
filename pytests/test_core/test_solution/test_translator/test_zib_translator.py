@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 from pyscipopt import Model as ScipModel
 
 from aqmodels import Model, LpTranslator, Variable, Bounds, Vtype
@@ -32,7 +33,7 @@ def model() -> Model:
 @pytest.mark.solution_translation
 def test_zib_translator(model: Model):
     lp_str = LpTranslator.from_model(model)
-    lp_filepath = "./pytests/test_core/test_solution/test_translator/model.lp"
+    lp_filepath = Path(__file__).parent / "model.lp"
     with open(lp_filepath, "w") as f:
         f.write(lp_str)
 
@@ -46,5 +47,5 @@ def test_zib_translator(model: Model):
 
 @pytest.mark.solution_translation
 def test_read_coins():
-    lp_filepath = "./pytests/test_core/test_solution/test_translator/coins.lp"
+    lp_filepath = Path(__file__).parent / "coins.lp"
     _ = LpTranslator.to_model(lp_filepath)

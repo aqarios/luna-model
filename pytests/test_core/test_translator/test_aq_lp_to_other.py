@@ -14,7 +14,7 @@ def model_lp_str_bin() -> str:
         x1 = Variable("x1", vtype=Vtype.Binary)
         m.objective += x0 * x1 * -1
         x2 = Variable("x2")
-        x3 = Variable("x3", vtype=Vtype.Binary, bounds=Bounds(0, 30))
+        x3 = Variable("x3", vtype=Vtype.Binary)
         x4 = Variable("x4")
         m.objective += (
             x0 * x1 * 12.213
