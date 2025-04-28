@@ -9,10 +9,10 @@ Subject To
 Bounds
  x1 >= 0
  0 <= x3 <= 30
-Binaries
- x0 x2 x4
 Semi-Continuous
  x1
 Generals
  x3
+Binaries
+ x0 x2 x4
 End
