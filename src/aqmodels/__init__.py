@@ -51,34 +51,34 @@ transformers
 from ._variable import Vtype, Bounds, Variable
 from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import Sample, SampleIterator, SamplesIterator, Samples
-from ._result import Result, ResultView, ResultIterator
-from ._model import Sense, Model
+from ._sample import Sample, SamplesIterator, SampleIterator, Samples
+from ._result import Result, ResultIterator, ResultView
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Solution as __Solution,
-    Constraint as __Constraint,
+    Bounds as __Bounds,
     Samples as __Samples,
     Variable as __Variable,
-    Comparator as __Comparator,
-    Timing as __Timing,
-    Result as __Result,
-    ResultIterator as __ResultIterator,
-    Timer as __Timer,
-    Expression as __Expression,
-    Model as __Model,
-    ResultView as __ResultView,
-    Bounds as __Bounds,
-    Vtype as __Vtype,
-    SamplesIterator as __SamplesIterator,
-    Constraints as __Constraints,
-    Environment as __Environment,
-    SampleIterator as __SampleIterator,
     Sample as __Sample,
+    SampleIterator as __SampleIterator,
+    Vtype as __Vtype,
+    Model as __Model,
+    SamplesIterator as __SamplesIterator,
+    ResultView as __ResultView,
+    ResultIterator as __ResultIterator,
+    Constraints as __Constraints,
+    Comparator as __Comparator,
+    Result as __Result,
+    Constraint as __Constraint,
     Sense as __Sense,
+    Expression as __Expression,
+    Solution as __Solution,
+    Timing as __Timing,
+    Timer as __Timer,
+    Environment as __Environment,
 )
-from ._constraints import Constraints, Comparator, Constraint
+from ._constraints import Constraints, Constraint, Comparator
 from . import translator, errors
 
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment] # noqa: F811
