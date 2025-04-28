@@ -124,7 +124,6 @@ class LpTranslator:
     @staticmethod
     def from_model(model: Model, file: Path) -> None: ...
 
-
 __all__ = [
     "BqmTranslator",
     "CqmTranslator",
