@@ -189,10 +189,10 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
         return False
     for v1, v2 in zip(v1s, v2s):
         if not (
-                v1.VarName == v2.VarName
-                and abs(v1.LB - v2.LB) < 1e-6
-                and abs(v1.UB - v2.UB) < 1e-6
-                and v1.VType == v2.VType
+            v1.VarName == v2.VarName
+            and abs(v1.LB - v2.LB) < 1e-6
+            and abs(v1.UB - v2.UB) < 1e-6
+            and v1.VType == v2.VType
         ):
             return False
 
@@ -202,15 +202,15 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
     if type(m1_obj) is not type(m2_obj):
         return False
     if (
-            isinstance(m1_obj, gp.QuadExpr)
-            and isinstance(m2_obj, gp.QuadExpr)
-            and not quad_expr_equal(m1_obj, m2_obj)
+        isinstance(m1_obj, gp.QuadExpr)
+        and isinstance(m2_obj, gp.QuadExpr)
+        and not quad_expr_equal(m1_obj, m2_obj)
     ):
         return False
     if (
-            isinstance(m1_obj, gp.LinExpr)
-            and isinstance(m2_obj, gp.LinExpr)
-            and not lin_expr_equal(m1_obj, m2_obj)
+        isinstance(m1_obj, gp.LinExpr)
+        and isinstance(m2_obj, gp.LinExpr)
+        and not lin_expr_equal(m1_obj, m2_obj)
     ):
         return False
 

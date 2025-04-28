@@ -4,7 +4,7 @@ from aqmodels import Environment
 from aqmodels import Solution
 from aqmodels import Timing
 
-class DimodTranslator:
+class DwaveTranslator:
     @staticmethod
     def to_aq(
         sample_set: SampleSet,

@@ -2,7 +2,7 @@ from aqmodels._api_utils import dispatched, export
 
 
 @export("translator", "top")
-class DimodTranslator:
+class DwaveTranslator:
     """
     Utility class for converting between a DIMOD solution and an AqSolution (ours).
 
@@ -16,7 +16,7 @@ class DimodTranslator:
     >>> import dimod
     >>> import aqmodels as aqm
     >>> dimod_sampleset = ...
-    >>> aqs = aqm.translator.DimodTranslator.to_aq(dimod_sampleset)
+    >>> aqs = aqm.translator.DwaveTranslator.to_aq(dimod_sampleset)
     """
 
     @dispatched

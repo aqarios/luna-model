@@ -512,6 +512,14 @@ class ZibTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
+class DwaveTranslator:
+    @staticmethod
+    def to_aq(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class BqmTranslator:
     @staticmethod
     def to_model(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
@@ -594,14 +602,6 @@ class IbmTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class DimodTranslator:
-    @staticmethod
-    def to_aq(
-        sample_set: SampleSet,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
 class CqmTranslator:
     @staticmethod
     def to_model(cqm: ConstrainedQuadraticModel) -> Model: ...
@@ -657,7 +657,7 @@ __all__ = [
     "CqmTranslator",
     "DecodeError",
     "DifferentEnvsError",
-    "DimodTranslator",
+    "DwaveTranslator",
     "Environment",
     "Expression",
     "IbmTranslator",

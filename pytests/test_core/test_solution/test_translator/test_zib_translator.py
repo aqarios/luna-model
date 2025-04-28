@@ -22,7 +22,7 @@ def model() -> Model:
         zi = Variable("Zi", vtype=Vtype.Real, bounds=Bounds(upper=50))
         mn = Variable("Mn", vtype=Vtype.Real, bounds=Bounds(upper=50))
     m.objective = (
-            0.01 * pennies + 0.05 * nickels + 0.1 * dimes + 0.25 * quarters + 1 * dollars
+        0.01 * pennies + 0.05 * nickels + 0.1 * dimes + 0.25 * quarters + 1 * dollars
     )
     m.constraints += (
         0.06 * pennies
@@ -66,8 +66,12 @@ def test_zib_translator(model: Model):
     assert len(sol.num_occurrences) == 1
     assert len(sol.num_occurrences) == len(sol.samples)
     assert sol.runtime is not None
-    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5)
-    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5)
+    assert np.isclose(
+        sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5
+    )
+    assert np.isclose(
+        sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5
+    )
     assert sol.runtime.qpu is None
     assert sol.obj_values.tolist() == [None] * len(sol.samples)
 

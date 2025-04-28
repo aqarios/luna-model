@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Variable, Bounds
-from ._timing import Timer, Timing
+from ._variable import Bounds, Variable, Vtype
+from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import SamplesIterator, Samples, SampleIterator, Sample
-from ._result import ResultIterator, ResultView, Result
+from ._sample import Samples, SampleIterator, SamplesIterator, Sample
+from ._result import ResultView, ResultIterator, Result
 from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
+    Timer as __Timer,
+    Sample as __Sample,
+    Samples as __Samples,
+    Bounds as __Bounds,
     Comparator as __Comparator,
     ResultView as __ResultView,
-    ResultIterator as __ResultIterator,
-    Model as __Model,
-    Sense as __Sense,
-    SampleIterator as __SampleIterator,
-    SamplesIterator as __SamplesIterator,
-    Sample as __Sample,
-    Constraints as __Constraints,
-    Result as __Result,
-    Timer as __Timer,
     Solution as __Solution,
-    Bounds as __Bounds,
-    Constraint as __Constraint,
-    Samples as __Samples,
-    Variable as __Variable,
-    Vtype as __Vtype,
-    Environment as __Environment,
+    SamplesIterator as __SamplesIterator,
+    Result as __Result,
     Timing as __Timing,
+    Variable as __Variable,
+    Constraint as __Constraint,
+    Constraints as __Constraints,
+    SampleIterator as __SampleIterator,
+    ResultIterator as __ResultIterator,
     Expression as __Expression,
+    Model as __Model,
+    Vtype as __Vtype,
+    Sense as __Sense,
+    Environment as __Environment,
 )
-from ._constraints import Constraints, Constraint, Comparator
-from . import errors, translator
+from ._constraints import Constraint, Comparator, Constraints
+from . import translator, errors
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
@@ -103,12 +103,12 @@ Sample = __Sample  # type: ignore[misc,assignment] # noqa: F811
 Expression = __Expression  # type: ignore[misc,assignment] # noqa: F811
 AwsTranslator = translator.AwsTranslator
 ZibTranslator = translator.ZibTranslator
+DwaveTranslator = translator.DwaveTranslator
 BqmTranslator = translator.BqmTranslator
 QctrlTranslator = translator.QctrlTranslator
 LpTranslator = translator.LpTranslator
 MatrixTranslator = translator.MatrixTranslator
 IbmTranslator = translator.IbmTranslator
-DimodTranslator = translator.DimodTranslator
 CqmTranslator = translator.CqmTranslator
 VariableOutOfRangeError = errors.VariableOutOfRangeError
 VariableExistsError = errors.VariableExistsError
@@ -134,7 +134,7 @@ __all__ = [
     "CqmTranslator",
     "DecodeError",
     "DifferentEnvsError",
-    "DimodTranslator",
+    "DwaveTranslator",
     "Environment",
     "Expression",
     "IbmTranslator",
