@@ -68,14 +68,14 @@ python-packages = ["aqmodels"]
 python-source = "src"
 features = ["py", "gen"]
 include = [
-  "src/aqmodels/**/*.pyi",
-  "src/aqmodels/**/*.py",
-  "src/aqmodels/py.typed",
+    "src/aqmodels/**/*.pyi",
+    "src/aqmodels/**/*.py",
+    "src/aqmodels/py.typed",
 ]
 compatibility = "linux"
 
 [build-system]
-requires = [ "maturin>=1.0,<2.0" ]
+requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [dependency-groups]
@@ -100,4 +100,5 @@ dev = [
     "qiskit-optimization>=0.6.1",
     "qiskit-ibm-runtime>=0.38.0",
     "qiskit-aer>=0.17.0",
+    "pyscipopt>=5.2.1",
 ]

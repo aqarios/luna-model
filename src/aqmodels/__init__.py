@@ -48,37 +48,37 @@ transformers
     to a linear model.
 """
 
-from ._variable import Bounds, Variable, Vtype
-from ._timing import Timing, Timer
+from ._variable import Vtype, Bounds, Variable
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import SampleIterator, Samples, SamplesIterator, Sample
-from ._result import ResultIterator, ResultView, Result
-from ._model import Sense, Model
+from ._sample import Sample, SamplesIterator, SampleIterator, Samples
+from ._result import Result, ResultView, ResultIterator
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
+    SamplesIterator as __SamplesIterator,
+    Solution as __Solution,
+    Sample as __Sample,
+    Vtype as __Vtype,
+    Samples as __Samples,
+    ResultView as __ResultView,
+    Result as __Result,
+    Timing as __Timing,
+    Comparator as __Comparator,
+    SampleIterator as __SampleIterator,
+    Model as __Model,
+    Timer as __Timer,
     Sense as __Sense,
     ResultIterator as __ResultIterator,
-    Timer as __Timer,
-    Environment as __Environment,
-    Constraint as __Constraint,
-    Expression as __Expression,
-    Samples as __Samples,
-    SamplesIterator as __SamplesIterator,
-    Timing as __Timing,
-    Model as __Model,
-    Vtype as __Vtype,
-    ResultView as __ResultView,
-    Bounds as __Bounds,
     Variable as __Variable,
-    Sample as __Sample,
     Constraints as __Constraints,
-    Solution as __Solution,
-    SampleIterator as __SampleIterator,
-    Result as __Result,
-    Comparator as __Comparator,
+    Environment as __Environment,
+    Expression as __Expression,
+    Bounds as __Bounds,
+    Constraint as __Constraint,
 )
-from ._constraints import Constraints, Comparator, Constraint
+from ._constraints import Constraint, Comparator, Constraints
 from . import errors, translator
 
 Sense = __Sense  # type: ignore[misc,assignment] # noqa: F811
@@ -116,6 +116,7 @@ SolutionCreationError = errors.SolutionCreationError
 IllegalConstraintNameError = errors.IllegalConstraintNameError
 BqmTranslator = translator.BqmTranslator
 QctrlTranslator = translator.QctrlTranslator
+ZibTranslator = translator.ZibTranslator
 IbmTranslator = translator.IbmTranslator
 LpTranslator = translator.LpTranslator
 DimodTranslator = translator.DimodTranslator
@@ -163,6 +164,7 @@ __all__ = [
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",
     "Vtype",
+    "ZibTranslator",
     "errors",
     "translator",
 ]

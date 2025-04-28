@@ -558,6 +558,14 @@ class QctrlTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
+class ZibTranslator:
+    @staticmethod
+    def from_zib(
+        model: Model,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class IbmTranslator:
     @overload
     @staticmethod
@@ -657,6 +665,7 @@ __all__ = [
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",
     "Vtype",
+    "ZibTranslator",
     "errors",
     "translator",
 ]

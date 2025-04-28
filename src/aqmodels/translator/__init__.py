@@ -1,6 +1,7 @@
 # This file is auto-generated.
 # Do not edit manually.
 
+from ._zib import ZibTranslator
 from ._qctrl import QctrlTranslator
 from ._matrix import MatrixTranslator
 from ._lp import LpTranslator
@@ -12,6 +13,7 @@ from .._core import translator as __translator
 
 BqmTranslator = __translator.BqmTranslator  # noqa: F811
 QctrlTranslator = __translator.QctrlTranslator  # noqa: F811
+ZibTranslator = __translator.ZibTranslator  # noqa: F811
 IbmTranslator = __translator.IbmTranslator  # noqa: F811
 LpTranslator = __translator.LpTranslator  # noqa: F811
 DimodTranslator = __translator.DimodTranslator  # noqa: F811
@@ -26,4 +28,5 @@ __all__ = [
     "LpTranslator",
     "MatrixTranslator",
     "QctrlTranslator",
+    "ZibTranslator",
 ]

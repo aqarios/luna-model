@@ -3,7 +3,9 @@
 
 from aqmodels._environment import Environment
 from aqmodels._model import Model
+from aqmodels._solution import Solution
 from aqmodels._solution import Solution, Timing
+from aqmodels._timing import Timing
 from aqmodels._variable import Variable
 from aqmodels._variable import Vtype
 from dimod import BinaryQuadraticModel
@@ -11,6 +13,7 @@ from dimod import ConstrainedQuadraticModel
 from dimod import SampleSet
 from numpy.typing import NDArray
 from pathlib import Path
+from pyscipopt import Model
 from qiskit.primitives import PrimitiveResult, PubResult
 from qiskit_optimization import QuadraticProgram
 from typing import Any
@@ -52,6 +55,14 @@ class QctrlTranslator:
     def from_qctrl(
         result: dict[str, Any],
         variable_list: list[Variable] | None = ...,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
+class ZibTranslator:
+    @staticmethod
+    def from_zib(
+        model: Model,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
@@ -122,5 +133,6 @@ __all__ = [
     "LpTranslator",
     "MatrixTranslator",
     "QctrlTranslator",
+    "ZibTranslator",
     "translator",
 ]
