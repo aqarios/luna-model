@@ -20,14 +20,6 @@ from typing import overload
 
 from . import translator
 
-class AwsTranslator:
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
 class ZibTranslator:
     @staticmethod
     def to_aq(
@@ -44,11 +36,25 @@ class DwaveTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
+class CqmTranslator:
+    @staticmethod
+    def to_aq(cqm: ConstrainedQuadraticModel) -> Model: ...
+    @staticmethod
+    def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
+
 class BqmTranslator:
     @staticmethod
     def to_aq(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
     @staticmethod
     def from_aq(model: Model) -> BinaryQuadraticModel: ...
+
+class AwsTranslator:
+    @staticmethod
+    def to_aq(
+        result: dict[str, Any],
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
 
 class QctrlTranslator:
     @overload
@@ -82,28 +88,6 @@ class QctrlTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class LpTranslator:
-    @overload
-    @staticmethod
-    def to_aq(file: Path) -> Model: ...
-    @overload
-    @staticmethod
-    def to_aq(file: str) -> Model: ...
-    @overload
-    @staticmethod
-    def from_aq(model: Model) -> str: ...
-    @overload
-    @staticmethod
-    def from_aq(model: Model, file: Path) -> None: ...
-
-class MatrixTranslator:
-    @staticmethod
-    def to_aq(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> NDArray: ...
-
 class IbmTranslator:
     @overload
     @staticmethod
@@ -126,11 +110,27 @@ class IbmTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class CqmTranslator:
+class MatrixTranslator:
     @staticmethod
-    def to_aq(cqm: ConstrainedQuadraticModel) -> Model: ...
+    def to_aq(
+        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+    ) -> Model: ...
     @staticmethod
-    def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
+    def from_aq(model: Model) -> NDArray: ...
+
+class LpTranslator:
+    @overload
+    @staticmethod
+    def to_aq(file: Path) -> Model: ...
+    @overload
+    @staticmethod
+    def to_aq(file: str) -> Model: ...
+    @overload
+    @staticmethod
+    def from_aq(model: Model) -> str: ...
+    @overload
+    @staticmethod
+    def from_aq(model: Model, file: Path) -> None: ...
 
 __all__ = [
     "AwsTranslator",
