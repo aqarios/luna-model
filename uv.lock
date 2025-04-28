@@ -69,7 +69,7 @@ dev = [
     { name = "ipython", specifier = ">=9.0.2" },
     { name = "memory-profiler", specifier = ">=0.61.0" },
     { name = "memray", specifier = ">=1.15.0" },
-    { name = "pyscipopt", specifier = ">=5.2.1" },
+    { name = "pyscipopt", specifier = ">=5.4.1" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-cov", specifier = ">=6.1.1" },
     { name = "qiskit", extras = ["all"], specifier = ">=1.1.0,<2.0.0" },
