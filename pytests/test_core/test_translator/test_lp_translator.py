@@ -1,4 +1,5 @@
 import tempfile
+from pathlib import Path
 from random import Random
 
 import gurobipy as gp
@@ -20,6 +21,25 @@ except ImportError as _:
     NOT_RUN_CPLEX = True
 
 NUM_CQMS: int = 100
+
+
+@pytest.mark.translator
+def test_lp_file_str_path():
+    rand = Random(make_seed())
+    cqms = generate_cqms(NUM_CQMS, rand)
+    for cqm in cqms:
+        # SETUP
+        tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
+        dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
+        tmp_lp.flush()
+        tmp_lp.seek(0)
+
+        aqmodel_from_contents = LpTranslator.to_aq(tmp_lp.file.read())
+        aqmodel_from_path = LpTranslator.to_aq(Path(tmp_lp.file.name))
+        aqmodel_from_path_as_str = LpTranslator.to_aq(str(tmp_lp.file.name))
+
+        assert aqmodel_from_contents == aqmodel_from_path
+        assert aqmodel_from_path == aqmodel_from_path_as_str
 
 
 @pytest.mark.translator
@@ -56,6 +76,7 @@ def test_gurobi_to_model_to_gurobi():
         tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
         dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
         tmp_lp.flush()
+        tmp_lp.seek(0)
         gp_model = gp.read(tmp_lp.name)
         # ACTUAL
         # build cplex base model (ground truth)

@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Bounds, Vtype, Variable
+from ._variable import Vtype, Bounds, Variable
 from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import Samples, SampleIterator, Sample, SamplesIterator
-from ._result import ResultView, Result, ResultIterator
+from ._sample import Sample, Samples, SamplesIterator, SampleIterator
+from ._result import Result, ResultView, ResultIterator
 from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Constraint as __Constraint,
-    Expression as __Expression,
-    Variable as __Variable,
-    Vtype as __Vtype,
-    Constraints as __Constraints,
-    Timer as __Timer,
     Solution as __Solution,
-    Timing as __Timing,
-    Comparator as __Comparator,
-    ResultView as __ResultView,
-    ResultIterator as __ResultIterator,
-    SamplesIterator as __SamplesIterator,
-    Result as __Result,
-    Bounds as __Bounds,
-    SampleIterator as __SampleIterator,
-    Model as __Model,
-    Sample as __Sample,
-    Samples as __Samples,
-    Sense as __Sense,
     Environment as __Environment,
+    Result as __Result,
+    Vtype as __Vtype,
+    Timer as __Timer,
+    ResultIterator as __ResultIterator,
+    Timing as __Timing,
+    Constraint as __Constraint,
+    Comparator as __Comparator,
+    Sense as __Sense,
+    ResultView as __ResultView,
+    Samples as __Samples,
+    Bounds as __Bounds,
+    Expression as __Expression,
+    Constraints as __Constraints,
+    Sample as __Sample,
+    Variable as __Variable,
+    Model as __Model,
+    SamplesIterator as __SamplesIterator,
+    SampleIterator as __SampleIterator,
 )
-from ._constraints import Constraint, Constraints, Comparator
-from . import errors, translator
+from ._constraints import Comparator, Constraint, Constraints
+from . import translator, errors
 
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment] # noqa: F811
 SampleIterator = __SampleIterator  # type: ignore[misc,assignment] # noqa: F811
