@@ -157,6 +157,24 @@ impl From<ModelNotUnconstrainedErr> for MatrixTranslatorErr {
     }
 }
 
+// impl From<ModelNotUnconstrainedErr> for TranslationErr {
+//     fn from(value: ModelNotUnconstrainedErr) -> Self {
+//         MatrixTranslatorErr::Constrained(value).into()
+//     }
+// }
+// 
+// impl From<ModelNotQuadraticErr> for TranslationErr {
+//     fn from(value: ModelNotQuadraticErr) -> Self {
+//         MatrixTranslatorErr::HigherOrder(value).into()
+//     }
+// }
+// 
+// impl From<MatrixTranslatorErr> for TranslationErr {
+//     fn from(value: MatrixTranslatorErr) -> Self {
+//         TranslationErr::new(value.to_string())
+//     }
+// }
+
 #[derive(Debug, Clone)]
 pub enum BqmTranslatorErr {
     Constrained(ModelNotUnconstrainedErr),

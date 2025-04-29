@@ -27,12 +27,6 @@ class MultipleActiveEnvironmentsError(Exception):
 class DecodeError(Exception):
     def __str__(self) -> str: ...
 
-class ModelNotQuadraticError(Exception):
-    def __str__(self) -> str: ...
-
-class ModelNotUnconstrainedError(Exception):
-    def __str__(self) -> str: ...
-
 class ModelVtypeError(Exception):
     def __str__(self) -> str: ...
 
@@ -40,6 +34,15 @@ class SolutionCreationError(Exception):
     def __str__(self) -> str: ...
 
 class IllegalConstraintNameError(Exception):
+    def __str__(self) -> str: ...
+
+class TranslationError(Exception):
+    def __str__(self) -> str: ...
+
+class ModelNotQuadraticError(TranslationError):
+    def __str__(self) -> str: ...
+
+class ModelNotUnconstrainedError(TranslationError):
     def __str__(self) -> str: ...
 
 __all__ = [
@@ -52,6 +55,7 @@ __all__ = [
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "SolutionCreationError",
+    "TranslationError",
     "VariableExistsError",
     "VariableNotExistingError",
     "VariableOutOfRangeError",

@@ -107,6 +107,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::IllegalConstraintNameError::NAME,
         m.py().get_type::<pyexc::IllegalConstraintNameError>(),
     )?;
+    m.add(
+        pyexc::TranslationError::NAME,
+        m.py().get_type::<pyexc::TranslationError>(),
+    )?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?

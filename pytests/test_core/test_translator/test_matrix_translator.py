@@ -6,7 +6,11 @@ import scipy.sparse as sp  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 
 from aqmodels import MatrixTranslator, Variable, Vtype
-from aqmodels import ModelNotQuadraticError, ModelNotUnconstrainedError
+from aqmodels import (
+    ModelNotQuadraticError,
+    ModelNotUnconstrainedError,
+    TranslationError,
+)
 from ..utils import make_seed
 
 
@@ -88,6 +92,9 @@ def test_translate_from_non_fitting_constrained(qubo: NDArray):
     with pytest.raises(ModelNotUnconstrainedError):
         _ = MatrixTranslator.from_aq(model)
 
+    with pytest.raises(TranslationError):
+        _ = MatrixTranslator.from_aq(model)
+
 
 @pytest.mark.translator
 @pytest.mark.parametrize(
@@ -102,6 +109,9 @@ def test_translate_from_non_fitting_higher_order(qubo: NDArray):
         model.objective *= b
 
     with pytest.raises(ModelNotQuadraticError):
+        _ = MatrixTranslator.from_aq(model)
+
+    with pytest.raises(TranslationError):
         _ = MatrixTranslator.from_aq(model)
 
 

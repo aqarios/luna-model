@@ -85,26 +85,6 @@ class DecodeError(Exception):
 
 
 @export("top", "errors")
-class ModelNotQuadraticError(Exception):
-    """
-    Raised when a model is expected to be quadratic, but contains higher-order terms.
-
-    Some solvers or transformations require the model to have at most quadratic
-    expressions. This error signals that unsupported terms were detected.
-    """
-
-
-@export("top", "errors")
-class ModelNotUnconstrainedError(Exception):
-    """
-    Raised when an operation requires an unconstrained model, but constraints are present.
-
-    Some solution methods may only work on unconstrained models, such as when
-    transforming a symbolic model to a low-level format.
-    """
-
-
-@export("top", "errors")
 class ModelVtypeError(Exception):
     """
     Raised when an operation has certain constraints on a model's variable types that
@@ -133,4 +113,31 @@ class IllegalConstraintNameError(Exception):
 
     This may happen when a new constraint is added to the model that uses a disallowed
     constraint name.
+    """
+
+
+@export("top", "errors")
+class TranslationError(Exception):
+    """
+    Raised when an error occured during translation.
+    """
+
+
+@export("top", "errors")
+class ModelNotQuadraticError(TranslationError):
+    """
+    Raised when a model is expected to be quadratic, but contains higher-order terms.
+
+    Some solvers or transformations require the model to have at most quadratic
+    expressions. This error signals that unsupported terms were detected.
+    """
+
+
+@export("top", "errors")
+class ModelNotUnconstrainedError(TranslationError):
+    """
+    Raised when an operation requires an unconstrained model, but constraints are present.
+
+    Some solution methods may only work on unconstrained models, such as when
+    transforming a symbolic model to a low-level format.
     """

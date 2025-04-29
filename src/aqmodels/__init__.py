@@ -48,37 +48,37 @@ transformers
     to a linear model.
 """
 
-from ._variable import Variable, Vtype, Bounds
-from ._timing import Timing, Timer
+from ._variable import Variable, Bounds, Vtype
+from ._timing import Timer, Timing
 from ._solution import Solution
 from ._sample import Samples, Sample, SampleIterator, SamplesIterator
-from ._result import Result, ResultView, ResultIterator
-from ._model import Model, Sense
+from ._result import ResultIterator, Result, ResultView
+from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Variable as __Variable,
-    Samples as __Samples,
-    ResultView as __ResultView,
-    Sample as __Sample,
-    Model as __Model,
     Result as __Result,
-    Constraints as __Constraints,
-    Expression as __Expression,
-    Timing as __Timing,
-    Timer as __Timer,
-    SampleIterator as __SampleIterator,
     Environment as __Environment,
-    Constraint as __Constraint,
-    Sense as __Sense,
-    Solution as __Solution,
     Bounds as __Bounds,
-    Comparator as __Comparator,
+    Sample as __Sample,
+    SampleIterator as __SampleIterator,
+    Samples as __Samples,
+    Vtype as __Vtype,
+    Timing as __Timing,
+    Model as __Model,
+    ResultView as __ResultView,
+    Variable as __Variable,
+    Solution as __Solution,
+    Sense as __Sense,
+    Expression as __Expression,
+    Timer as __Timer,
+    Constraint as __Constraint,
     SamplesIterator as __SamplesIterator,
     ResultIterator as __ResultIterator,
-    Vtype as __Vtype,
+    Comparator as __Comparator,
+    Constraints as __Constraints,
 )
-from ._constraints import Constraints, Constraint, Comparator
+from ._constraints import Comparator, Constraints, Constraint
 from . import translator, errors
 
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment] # noqa: F811
@@ -118,11 +118,12 @@ DifferentEnvsError = errors.DifferentEnvsError
 NoActiveEnvironmentFoundError = errors.NoActiveEnvironmentFoundError
 MultipleActiveEnvironmentsError = errors.MultipleActiveEnvironmentsError
 DecodeError = errors.DecodeError
-ModelNotQuadraticError = errors.ModelNotQuadraticError
-ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
 ModelVtypeError = errors.ModelVtypeError
 SolutionCreationError = errors.SolutionCreationError
 IllegalConstraintNameError = errors.IllegalConstraintNameError
+TranslationError = errors.TranslationError
+ModelNotQuadraticError = errors.ModelNotQuadraticError
+ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
 
 __all__ = [
     "AwsTranslator",
@@ -160,6 +161,7 @@ __all__ = [
     "SolutionCreationError",
     "Timer",
     "Timing",
+    "TranslationError",
     "Variable",
     "VariableExistsError",
     "VariableNotExistingError",
