@@ -48,35 +48,35 @@ transformers
     to a linear model.
 """
 
-from ._variable import Variable, Bounds, Vtype
-from ._timing import Timer, Timing
+from ._variable import Bounds, Variable, Vtype
+from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import Samples, Sample, SampleIterator, SamplesIterator
-from ._result import ResultIterator, Result, ResultView
-from ._model import Sense, Model
+from ._sample import SampleIterator, SamplesIterator, Sample, Samples
+from ._result import Result, ResultIterator, ResultView
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Result as __Result,
-    Environment as __Environment,
-    Bounds as __Bounds,
-    Sample as __Sample,
-    SampleIterator as __SampleIterator,
-    Samples as __Samples,
-    Vtype as __Vtype,
-    Timing as __Timing,
-    Model as __Model,
-    ResultView as __ResultView,
-    Variable as __Variable,
-    Solution as __Solution,
-    Sense as __Sense,
-    Expression as __Expression,
-    Timer as __Timer,
-    Constraint as __Constraint,
     SamplesIterator as __SamplesIterator,
-    ResultIterator as __ResultIterator,
-    Comparator as __Comparator,
+    Sense as __Sense,
+    Timer as __Timer,
+    SampleIterator as __SampleIterator,
     Constraints as __Constraints,
+    Vtype as __Vtype,
+    Variable as __Variable,
+    ResultIterator as __ResultIterator,
+    Expression as __Expression,
+    Bounds as __Bounds,
+    Model as __Model,
+    Comparator as __Comparator,
+    Samples as __Samples,
+    ResultView as __ResultView,
+    Result as __Result,
+    Solution as __Solution,
+    Constraint as __Constraint,
+    Sample as __Sample,
+    Timing as __Timing,
+    Environment as __Environment,
 )
 from ._constraints import Comparator, Constraints, Constraint
 from . import translator, errors
