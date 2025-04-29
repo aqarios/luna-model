@@ -48,37 +48,37 @@ transformers
     to a linear model.
 """
 
-from ._variable import Bounds, Vtype, Variable
+from ._variable import Bounds, Variable, Vtype
 from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import Sample, SamplesIterator, SampleIterator, Samples
-from ._result import ResultIterator, Result, ResultView
+from ._sample import SampleIterator, Sample, Samples, SamplesIterator
+from ._result import Result, ResultIterator, ResultView
 from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
+    Vtype as __Vtype,
+    Comparator as __Comparator,
+    Sense as __Sense,
+    Timer as __Timer,
+    SamplesIterator as __SamplesIterator,
+    Sample as __Sample,
+    Constraints as __Constraints,
+    SampleIterator as __SampleIterator,
+    Expression as __Expression,
+    Samples as __Samples,
+    Bounds as __Bounds,
+    Environment as __Environment,
+    Constraint as __Constraint,
+    Timing as __Timing,
+    ResultIterator as __ResultIterator,
     Variable as __Variable,
     Solution as __Solution,
-    Timing as __Timing,
-    Bounds as __Bounds,
-    Constraint as __Constraint,
-    SamplesIterator as __SamplesIterator,
-    ResultView as __ResultView,
-    Vtype as __Vtype,
-    Constraints as __Constraints,
-    Sample as __Sample,
-    Result as __Result,
-    SampleIterator as __SampleIterator,
-    ResultIterator as __ResultIterator,
-    Expression as __Expression,
-    Sense as __Sense,
-    Comparator as __Comparator,
     Model as __Model,
-    Timer as __Timer,
-    Samples as __Samples,
-    Environment as __Environment,
+    ResultView as __ResultView,
+    Result as __Result,
 )
-from ._constraints import Constraint, Comparator, Constraints
+from ._constraints import Constraints, Constraint, Comparator
 from . import errors, translator
 
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment] # noqa: F811
