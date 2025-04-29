@@ -16,10 +16,10 @@ pub struct PyDimodTranslator(pub DwaveTranslator);
 #[pymethods]
 impl PyDimodTranslator {
     #[staticmethod]
-    #[pyo3(signature=(samples, num_occurrences, energy, timing=None, env=None))]
+    #[pyo3(signature=(samples, counts, energy, timing=None, env=None))]
     fn translate(
         samples: PyReadonlyArray2<i64>,
-        num_occurrences: PyReadonlyArray1<i64>,
+        counts: PyReadonlyArray1<i64>,
         energy: PyReadonlyArray1<f64>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
@@ -34,7 +34,7 @@ impl PyDimodTranslator {
         };
         Ok(PySolution(DwaveTranslator::from_dimod_sample_set(
             samples.as_slice()?,
-            num_occurrences.as_slice()?,
+            counts.as_slice()?,
             energy.as_slice()?,
             samples.shape(),
             timing.map(|t| t.into()),
@@ -61,10 +61,10 @@ def extract(sampleset, timing, env):
     sampleset = sampleset.aggregate()
     record = sampleset.record
     sample = record.sample.astype(np.int64, order='C')
-    num_occurrences = record.num_occurrences.astype(np.int64, order='C')
+    counts = record.num_occurrences.astype(np.int64, order='C')
     energy = record.energy.astype(np.float64, order='C')
     return translator.DwaveTranslator.translate(
-        sample, num_occurrences, energy, timing, env
+        sample, counts, energy, timing, env
     )"
             ),
             c_str!(""),

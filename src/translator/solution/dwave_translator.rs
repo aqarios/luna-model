@@ -10,7 +10,7 @@ pub struct DwaveTranslator {}
 impl DwaveTranslator {
     pub fn from_dimod_sample_set<S, N, E, Idx>(
         samples: &[S],
-        num_occurrences: &[N],
+        counts: &[N],
         energy: &[E],
         shape: &[usize],
         timing: Option<Timing>,
@@ -38,7 +38,7 @@ impl DwaveTranslator {
                 .to_vec();
             sol.extend(
                 sample,
-                <usize as NumCast>::from(num_occurrences[i]).unwrap(),
+                <usize as NumCast>::from(counts[i]).unwrap(),
                 Some(energy[i]),
             )?;
         }

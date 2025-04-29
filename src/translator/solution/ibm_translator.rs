@@ -14,7 +14,7 @@ impl IbmTranslator {
         samples: &Vec<Vec<S>>,
         orderings: &Vec<Vec<Rc<VarRef<Index>>>>,
         energies: &Vec<E>,
-        num_occurences: Vec<usize>,
+        counts: Vec<usize>,
         timing: Option<Timing>,
         env: MutRcEnvironment<Index>,
     ) -> Result<ConcreteSolution, SolutionCreatorErr>
@@ -37,7 +37,7 @@ impl IbmTranslator {
         let index_list: Vec<Vec<usize>> = orderings.iter().map(|l| l.iter().map(|e| e.id.into()).collect()).collect();
         // For each sample:
         // Map the sample to the correct order.
-        for (((sample, indices), energy), occ) in samples.iter().zip(index_list).zip(energies).zip(num_occurences) {
+        for (((sample, indices), energy), occ) in samples.iter().zip(index_list).zip(energies).zip(counts) {
             let mut s: Vec<S> = vec![S::default(); sample.len()];
             for (&idx, val) in indices.iter().zip(sample) {
                 s[idx] = *val;

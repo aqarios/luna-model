@@ -32,7 +32,7 @@ impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
 #[pymethods]
 impl PySolution {
     #[staticmethod]
-    #[pyo3(signature=(component_types, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, num_occurrences=None)
+    #[pyo3(signature=(component_types, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None)
     )]
     fn build(
         component_types: Vec<Vtype>,
@@ -42,7 +42,7 @@ impl PySolution {
         real_cols: Option<Vec<Vec<f64>>>,
         raw_energies: Option<Vec<Option<f64>>>,
         timing: Option<PyTiming>,
-        num_occurrences: Option<Vec<usize>>,
+        counts: Option<Vec<usize>>,
     ) -> PyResult<Self> {
         // todo! change to numpy arrays instead of vecs.
         // todo! move further down in rust code.
@@ -102,15 +102,15 @@ impl PySolution {
         } else {
             sol.raw_energies = vec![None; sol.n_samples];
         }
-        if let Some(no) = num_occurrences {
+        if let Some(no) = counts {
             if no.len() != sol.n_samples {
                 return Err(PyRuntimeError::new_err(
-                    "num_occurrences does not match the number of samples given.",
+                    "counts does not match the number of samples given.",
                 ));
             }
-            sol.num_occurrences = no;
+            sol.counts = no;
         } else {
-            sol.num_occurrences = vec![1; sol.n_samples];
+            sol.counts = vec![1; sol.n_samples];
         }
         sol.obj_values = vec![None; sol.n_samples];
         sol.timing = timing.and_then(|t| Some(t.0));
@@ -146,8 +146,8 @@ impl PySolution {
     }
 
     #[getter]
-    fn num_occurrences<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
-        self.num_occurrences.to_pyarray(py)
+    fn counts<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
+        self.counts.to_pyarray(py)
     }
 
     #[getter]

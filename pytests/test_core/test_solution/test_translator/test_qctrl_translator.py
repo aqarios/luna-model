@@ -47,7 +47,7 @@ def test_qctrl_translator_constructed():
         assert len(samples) == 1
         assert len(samples[0]) == sample_len
         assert samples[0] == fake_result["solution_bitstring"]
-        assert sol.num_occurrences.tolist() == [1]
+        assert sol.counts.tolist() == [1]
         assert sol.raw_energies.tolist() == [fake_result["final_aggregate_cost"]]
         assert sol.runtime is None
 
@@ -76,7 +76,7 @@ def test_qctrl_translator_constructed_explicit_env():
         assert len(samples) == 1
         assert len(samples[0]) == sample_len
         assert samples[0] == fake_result["solution_bitstring"]
-        assert sol.num_occurrences.tolist() == [1]
+        assert sol.counts.tolist() == [1]
         assert sol.raw_energies.tolist() == [fake_result["final_aggregate_cost"]]
         assert sol.runtime is None
 
@@ -84,7 +84,7 @@ def test_qctrl_translator_constructed_explicit_env():
             assert result.constraints is None
             assert result.feasible is None
             assert result.obj_value is None
-            assert result.num_occurrences == 1
+            assert result.counts == 1
             assert result.raw_energy == fake_result["final_aggregate_cost"]
 
         results = list(sol.results)
@@ -110,7 +110,7 @@ def test_qctrl_translator_constructed_with_time():
         assert len(samples) == 1
         assert len(samples[0]) == sample_len
         assert samples[0] == fake_result["solution_bitstring"]
-        assert sol.num_occurrences.tolist() == [1]
+        assert sol.counts.tolist() == [1]
         assert sol.raw_energies.tolist() == [fake_result["final_aggregate_cost"]]
         assert sol.runtime is not None
         assert round(sol.runtime.total.total_seconds(), 1) == 0.3
@@ -141,7 +141,7 @@ def test_qctrl_translator_constructed_vars():
         assert len(samples) == 1
         assert len(samples[0]) == sample_len
         assert samples[0] == fake_result["solution_bitstring"]
-        assert sol.num_occurrences.tolist() == [1]
+        assert sol.counts.tolist() == [1]
         assert sol.raw_energies.tolist() == [fake_result["final_aggregate_cost"]]
         assert sol.runtime is None
 
@@ -149,7 +149,7 @@ def test_qctrl_translator_constructed_vars():
             assert result.constraints is None
             assert result.feasible is None
             assert result.obj_value is None
-            assert result.num_occurrences == 1
+            assert result.counts == 1
             assert result.raw_energy == fake_result["final_aggregate_cost"]
 
         results = list(sol.results)
@@ -179,7 +179,7 @@ def test_qctrl_translator_constructed_unordered_vars():
         assert len(samples) == 1
         assert len(samples[0]) == sample_len
         assert samples[0] == expected_sol_bitstring
-        assert sol.num_occurrences.tolist() == [1]
+        assert sol.counts.tolist() == [1]
         assert sol.raw_energies.tolist() == [fake_result["final_aggregate_cost"]]
         assert sol.runtime is None
 
@@ -187,7 +187,7 @@ def test_qctrl_translator_constructed_unordered_vars():
             assert result.constraints is None
             assert result.feasible is None
             assert result.obj_value is None
-            assert result.num_occurrences == 1
+            assert result.counts == 1
             assert result.raw_energy == fake_result["final_aggregate_cost"]
 
         results = list(sol.results)
