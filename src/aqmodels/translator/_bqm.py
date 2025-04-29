@@ -7,7 +7,7 @@ class BqmTranslator:
     Utility class for converting between dimod.BianryQuadraticModel (BQM) and symbolic
     models.
 
-    `MatrixTranslator` provides methods to:
+    `BqmTranslator` provides methods to:
     - Convert a BQM into a symbolic `Model`
     - Convert a `Model` (with quadratic objective) into a BQM
 
@@ -18,7 +18,7 @@ class BqmTranslator:
     --------
     >>> import dimod
     >>> import numpy as np
-    >>> from aqmodels import MatrixTranslator, Vtype
+    >>> from aqmodels import BqmTranslator, Vtype
     >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 
     Create a model from a matrix:

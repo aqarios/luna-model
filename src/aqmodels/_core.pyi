@@ -518,6 +518,22 @@ class CqmTranslator:
     @staticmethod
     def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
 
+class Qubo:
+    @property
+    def offset(self) -> float: ...
+    @property
+    def matrix(self) -> NDArray: ...
+    @property
+    def variable_ordering(self) -> list[Variable]: ...
+
+class QuboTranslator:
+    @staticmethod
+    def to_aq(
+        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+    ) -> Model: ...
+    @staticmethod
+    def from_aq(model: Model) -> Qubo: ...
+
 class BqmTranslator:
     @staticmethod
     def to_aq(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
@@ -585,14 +601,6 @@ class IbmTranslator:
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
-
-class MatrixTranslator:
-    @staticmethod
-    def to_aq(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> NDArray: ...
 
 class LpTranslator:
     @overload
@@ -666,7 +674,6 @@ __all__ = [
     "IbmTranslator",
     "IllegalConstraintNameError",
     "LpTranslator",
-    "MatrixTranslator",
     "Model",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
@@ -674,6 +681,8 @@ __all__ = [
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "QctrlTranslator",
+    "Qubo",
+    "QuboTranslator",
     "Result",
     "ResultIterator",
     "ResultView",

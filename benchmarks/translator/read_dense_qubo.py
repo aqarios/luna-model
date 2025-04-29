@@ -4,14 +4,14 @@ import dimod
 from numpy.typing import NDArray
 from tqdm import tqdm  # type: ignore[import-untyped]
 
-from aqmodels import MatrixTranslator, Vtype
+from aqmodels import QuboTranslator, Vtype
 from benchmarks.setting import DENSITIES, REPETITIONS, SIZES
 from benchmarks.utils import BenchResult, format_result, make_qubo, timeit
 
 
 @timeit(REPETITIONS)
 def _aqm(qubo: NDArray):
-    _ = MatrixTranslator.to_aq(qubo, vtype=Vtype.Binary)
+    _ = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
 
 
 @timeit(REPETITIONS)

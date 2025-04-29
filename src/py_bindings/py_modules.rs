@@ -36,7 +36,8 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "translator")?;
-    m.add_class::<py_translator::PyMatrixTranslator>()?;
+    m.add_class::<py_translator::PyQubo>()?;
+    m.add_class::<py_translator::PyQuboTranslator>()?;
     m.add_class::<py_translator::PyBqmTranslator>()?;
     m.add_class::<py_translator::PyCqmTranslator>()?;
     m.add_class::<py_translator::PyDimodTranslator>()?;

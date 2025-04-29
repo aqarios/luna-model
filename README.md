@@ -128,14 +128,14 @@ model.constraints += expr >= 2.0
 <details>
 <summary><strong>📐 Translators</strong></summary>
 
-### `MatrixTranslator`
+### `QuboTranslator`
 
 ```python
-from aqmodels import MatrixTranslator
+from aqmodels import QuboTranslator
 
 qubo = np.array([[1.0, -1.0], [-1.0, 2.0]])
-model = MatrixTranslator.to_aq(qubo)
-q_dense = MatrixTranslator.from_aq(model)
+model = QuboTranslator.to_aq(qubo)
+q_dense = QuboTranslator.from_aq(model)
 ```
 
 - Bridges matrix-style QUBO ↔ symbolic `Model`

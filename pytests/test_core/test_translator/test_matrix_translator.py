@@ -5,7 +5,7 @@ import pytest
 import scipy.sparse as sp  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 
-from aqmodels import MatrixTranslator, Variable, Vtype
+from aqmodels import QuboTranslator, Variable, Vtype
 from aqmodels import (
     ModelNotQuadraticError,
     ModelNotUnconstrainedError,
@@ -47,16 +47,16 @@ def linear_qubo(request) -> NDArray:
     indirect=True,
 )
 def test_translate_with_dense(qubo: NDArray):
-    model = MatrixTranslator.to_aq(qubo)
-    back = MatrixTranslator.from_aq(model)
+    model = QuboTranslator.to_aq(qubo)
+    back = QuboTranslator.from_aq(model).matrix
     assert np.allclose(qubo, back)
 
 
 @pytest.mark.translator
 @pytest.mark.parametrize("qubo", list(product([0], [0])), indirect=True)
 def test_translate_with_dense_empty(qubo: NDArray):
-    model = MatrixTranslator.to_aq(qubo)
-    back = MatrixTranslator.from_aq(model)
+    model = QuboTranslator.to_aq(qubo)
+    back = QuboTranslator.from_aq(model).matrix
     assert np.allclose(qubo, back)
 
 
@@ -67,8 +67,8 @@ def test_translate_with_dense_empty(qubo: NDArray):
     indirect=True,
 )
 def test_translate_with_dense_linear(linear_qubo: NDArray):
-    model = MatrixTranslator.to_aq(linear_qubo)
-    back = MatrixTranslator.from_aq(model)
+    model = QuboTranslator.to_aq(linear_qubo)
+    back = QuboTranslator.from_aq(model).matrix
     assert np.allclose(linear_qubo, back)
 
 
@@ -79,7 +79,7 @@ def test_translate_with_dense_linear(linear_qubo: NDArray):
     indirect=True,
 )
 def test_translate_from_non_fitting_constrained(qubo: NDArray):
-    model = MatrixTranslator.to_aq(qubo)
+    model = QuboTranslator.to_aq(qubo)
     with model.environment:
         b = Variable("b", vtype=Vtype.Binary)
         s = Variable("s", vtype=Vtype.Spin)
@@ -90,10 +90,10 @@ def test_translate_from_non_fitting_constrained(qubo: NDArray):
         model.constraints += b * i * r >= 3
 
     with pytest.raises(ModelNotUnconstrainedError):
-        _ = MatrixTranslator.from_aq(model)
+        _ = QuboTranslator.from_aq(model)
 
     with pytest.raises(TranslationError):
-        _ = MatrixTranslator.from_aq(model)
+        _ = QuboTranslator.from_aq(model)
 
 
 @pytest.mark.translator
@@ -103,16 +103,16 @@ def test_translate_from_non_fitting_constrained(qubo: NDArray):
     indirect=True,
 )
 def test_translate_from_non_fitting_higher_order(qubo: NDArray):
-    model = MatrixTranslator.to_aq(qubo)
+    model = QuboTranslator.to_aq(qubo)
     with model.environment:
         b = Variable("b", vtype=Vtype.Binary)
         model.objective *= b
 
     with pytest.raises(ModelNotQuadraticError):
-        _ = MatrixTranslator.from_aq(model)
+        _ = QuboTranslator.from_aq(model)
 
     with pytest.raises(TranslationError):
-        _ = MatrixTranslator.from_aq(model)
+        _ = QuboTranslator.from_aq(model)
 
 
 @pytest.mark.translator
@@ -122,7 +122,7 @@ def test_translate_from_non_fitting_higher_order(qubo: NDArray):
     indirect=True,
 )
 def test_translator_symmetricizes(asymmetric_qubo: NDArray):
-    model = MatrixTranslator.to_aq(asymmetric_qubo)
-    back = MatrixTranslator.from_aq(model)
+    model = QuboTranslator.to_aq(asymmetric_qubo)
+    back = QuboTranslator.from_aq(model).matrix
     sym = (asymmetric_qubo + asymmetric_qubo.T) / 2
     assert np.allclose(sym, back)
