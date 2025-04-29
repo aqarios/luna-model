@@ -2,7 +2,7 @@
 # Do not edit manually.
 
 from ._zib import ZibTranslator
-from ._qubo import Qubo, QuboTranslator
+from ._qubo import QuboTranslator, Qubo
 from ._qctrl import QctrlTranslator
 from ._lp import LpTranslator
 from ._ibm import IbmTranslator
