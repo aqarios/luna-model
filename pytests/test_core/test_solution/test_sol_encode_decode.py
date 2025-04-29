@@ -20,7 +20,7 @@ def solution() -> Solution:
         int_cols=[[2, 3, -4]],
         real_cols=[[2.2, 3.3, -4.4]],
         raw_energies=[0.3, 1.2, -200],
-        num_occurrences=[1, 2, 3],
+        counts=[1, 2, 3],
     )
 
 

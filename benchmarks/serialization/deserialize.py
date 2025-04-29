@@ -1,7 +1,7 @@
 import json
 from typing import IO, Any
 
-from aqmodels import Model, Vtype, MatrixTranslator
+from aqmodels import Model, Vtype, QuboTranslator
 import dimod
 from tqdm import tqdm  # type: ignore
 
@@ -31,7 +31,7 @@ def bench_deserialize_bqm(file: IO | None):
         for density in tqdm(DENSITIES, desc="Density", leave=False):
             qubo = make_qubo(size, density)
 
-            aqm = MatrixTranslator.to_aq(qubo, vtype=Vtype.Binary)
+            aqm = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
             dmd = dimod.BinaryQuadraticModel(qubo, "BINARY")
 
             ser_aqm = serialize_aqm(aqm)

@@ -55,6 +55,13 @@ impl PyVariable {
         )?))
     }
 
+    #[getter(name)]
+    fn name(&self) -> String {
+        let idx: usize = self.id.into();
+        let name = &self.env.borrow().variables[idx].name;
+        name.clone()
+    }
+
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         let expr: ConcreteExpression;
         if let Ok(rhs) = other.extract::<f64>(py) {

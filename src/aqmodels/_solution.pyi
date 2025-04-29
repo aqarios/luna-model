@@ -23,7 +23,7 @@ class Solution:
     @property
     def raw_energies(self) -> NDArray: ...
     @property
-    def num_occurrences(self) -> NDArray: ...
+    def counts(self) -> NDArray: ...
     @property
     def runtime(self) -> Timing | None: ...
     @property
@@ -53,7 +53,7 @@ class Solution:
     @staticmethod
     def build(
         component_types: list[Vtype],
-        num_occurrences: list[int] | None = ...,
+        counts: list[int] | None = ...,
         binary_cols: list[list[int]] | None = ...,
         spin_cols: list[list[int]] | None = ...,
         int_cols: list[list[int]] | None = ...,

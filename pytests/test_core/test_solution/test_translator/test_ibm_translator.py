@@ -129,15 +129,15 @@ def extract(result, qp):
 
     samples = []
     energies = []
-    num_occurences = []
+    out_counts = []
 
     for bitstring, count in counts.items():
         sample = [int(b) for b in bitstring]
         samples.append(sample)
         energies.append(float(qp.objective.evaluate(sample)))
-        num_occurences.append(count)
+        out_counts.append(count)
 
-    return samples, energies, num_occurences
+    return samples, energies, out_counts
 
 
 @pytest.mark.solution_translation
@@ -155,14 +155,14 @@ def test_ibm_solution_translator():
     timing = timer.stop()
     sol: Solution = IbmTranslator.to_aq(res, qp, timing, aqm.environment)
 
-    truth_samples, truth_energies, truth_num_occurences = extract(res, qp)
+    truth_samples, truth_energies, truth_counts = extract(res, qp)
     assert len(sol.samples) == len(truth_samples)
     assert sol.samples.tolist() == truth_samples
     assert len(sol.raw_energies) == len(truth_energies)
     assert sol.raw_energies.tolist() == truth_energies
-    assert len(sol.num_occurrences) == len(truth_num_occurences)
-    assert sol.num_occurrences.tolist() == truth_num_occurences
-    assert len(sol.num_occurrences) == len(sol.samples)
+    assert len(sol.counts) == len(truth_counts)
+    assert sol.counts.tolist() == truth_counts
+    assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
     assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds)
     assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds())
@@ -172,7 +172,7 @@ def test_ibm_solution_translator():
     results = list(sol.results)
     assert len(results) == len(sol.samples)
     for i, result in enumerate(results):
-        assert result.num_occurrences == sol.num_occurrences.tolist()[i]  # type: ignore
+        assert result.counts == sol.counts.tolist()[i]  # type: ignore
         assert list(result.sample) == list(sol.samples[i])
         assert result.obj_value is None
         assert result.raw_energy == sol.raw_energies.tolist()[i]  # type: ignore

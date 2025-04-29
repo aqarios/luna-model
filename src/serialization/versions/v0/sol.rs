@@ -71,7 +71,7 @@ pub struct SerSolution {
     // real_sample_association: Vec<u64>,
     /// The number of occurences for each sample in the solution.
     #[prost(uint64, repeated, tag = 30)]
-    num_occurrences: Vec<u64>,
+    counts: Vec<u64>,
 
     /// The objective value for each sample in the solution
     #[prost(double, repeated, tag = 40)]
@@ -125,7 +125,7 @@ impl SerSolution {
             .samples()
             .iter()
             .enumerate()
-            .zip(&solution.num_occurrences)
+            .zip(&solution.counts)
         {
             // for (pos, a) in sample.iter().enumerate() {
             for a in sample.iter() {
@@ -166,7 +166,7 @@ impl SerSolution {
                 Vec::new()
             };
             self.sample_len = solution.samples.len() as u32;
-            self.num_occurrences.push(occ as u64);
+            self.counts.push(occ as u64);
 
             if let Some(res) = solution.get_result_view(i) {
                 if let Some(ov) = res.obj_value() {
@@ -210,7 +210,7 @@ impl SerSolution {
             type_per_pos.push(vt);
         }
 
-        sol.num_occurrences = self.num_occurrences.iter().map(|&v| v as usize).collect();
+        sol.counts = self.counts.iter().map(|&v| v as usize).collect();
         sol.n_samples = self.num_samples as usize;
 
         let (mut lb, mut ls, mut li, mut lr) = (0, 0, 0, 0);

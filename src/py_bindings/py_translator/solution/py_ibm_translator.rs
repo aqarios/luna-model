@@ -17,12 +17,12 @@ pub struct PyIbmTranslator {}
 #[pymethods]
 impl PyIbmTranslator {
     #[staticmethod]
-    #[pyo3(signature=(samples, orderings, energies, num_occurences, timing=None, env=None))]
+    #[pyo3(signature=(samples, orderings, energies, counts, timing=None, env=None))]
     fn translate(
         samples: Vec<Vec<i64>>,
         orderings: Vec<Vec<PyVariable>>,
         energies: Vec<f64>,
-        num_occurences: Vec<usize>,
+        counts: Vec<usize>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PySolution> {
@@ -41,7 +41,7 @@ impl PyIbmTranslator {
                 .map(|l| l.iter().map(|e| Rc::clone(&e.0)).collect())
                 .collect(),
             &energies,
-            num_occurences,
+            counts,
             timing.map(|t| t.into()),
             environment.into(),
         )?))
@@ -70,7 +70,7 @@ def extract(result, qp, timing, env):
     samples = []
     orderings = []
     energies = []
-    num_occurences = []
+    flat_counts = []
 
     for bitstring, count in counts.items():
         sample = []
@@ -82,13 +82,13 @@ def extract(result, qp, timing, env):
         samples.append(sample)
         orderings.append(order)
         energies.append(float(qp.objective.evaluate(sample)))
-        num_occurences.append(count)
+        flat_counts.append(count)
 
     return translator.IbmTranslator.translate(
         samples, 
         orderings, 
         energies, 
-        num_occurences, 
+        flat_counts, 
         timing, 
         env
     )

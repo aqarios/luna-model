@@ -2,11 +2,51 @@ from aqmodels._api_utils import dispatched, export
 
 
 @export("translator", "top")
-class MatrixTranslator:
+class Qubo:
+    @dispatched
+    @property
+    def offset(self):
+        """The constant offset of the original model passed to the QuboTranslator.
+
+        Returns
+        -------
+        float
+            The constant offset of the model.
+        """
+        return self
+
+    @dispatched
+    @property
+    def matrix(self):
+        """The actual QUBO matrix.
+
+        Returns
+        -------
+        NDArray
+            A square NumPy array representing the QUBO matrix derived from
+            the model's objective.
+        """
+        return self
+
+    @dispatched
+    @property
+    def variable_ordering(self):
+        """The order in which the variables appear in the QUBO matrix.
+
+        Returns
+        -------
+        list[Variable]
+            The variables in the order they appear in the QUBO.
+        """
+        return
+
+
+@export("translator", "top")
+class QuboTranslator:
     """
     Utility class for converting between dense QUBO matrices and symbolic models.
 
-    `MatrixTranslator` provides methods to:
+    `QuboTranslator` provides methods to:
     - Convert a NumPy-style QUBO matrix into a symbolic `Model`
     - Convert a `Model` (with quadratic objective) into a dense QUBO matrix
 
@@ -16,16 +56,16 @@ class MatrixTranslator:
     Examples
     --------
     >>> import numpy as np
-    >>> from aqmodels import MatrixTranslator, Vtype
+    >>> from aqmodels import QuboTranslator, Vtype
     >>> q = np.array([[1.0, -1.0], [-1.0, 2.0]])
 
     Create a model from a matrix:
 
-    >>> model = MatrixTranslator.to_aq(q, name="qubo_model", vtype=Vtype.Binary)
+    >>> model = QuboTranslator.to_aq(q, name="qubo_model", vtype=Vtype.Binary)
 
     Convert it back to a dense matrix:
 
-    >>> recovered = MatrixTranslator.from_aq(model)
+    >>> recovered = QuboTranslator.from_aq(model)
     >>> assert np.allclose(q, recovered)
     """
 
@@ -67,12 +107,17 @@ class MatrixTranslator:
 
         Returns
         -------
-        NDArray
-            A square NumPy array representing the QUBO matrix derived from
-            the model's objective.
+        Qubo
+            An object representing a QUBO with additional information additional
+            to the square NumPy array representing the QUBO matrix derived from
+            the model's objective. This object also include the `variable_ordering`
+            as well as the `offset` of the original model.
 
         Raises
         ------
+        TranslationError
+            Generally, if the translation fails. Might be specified by one of the
+            two following errors.
         ModelNotQuadraticError
             If the objective contains higher-order (non-quadratic) terms.
         ModelNotUnconstrainedError

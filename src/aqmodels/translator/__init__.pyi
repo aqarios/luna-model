@@ -42,6 +42,22 @@ class CqmTranslator:
     @staticmethod
     def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
 
+class Qubo:
+    @property
+    def offset(self) -> float: ...
+    @property
+    def matrix(self) -> NDArray: ...
+    @property
+    def variable_ordering(self) -> list[Variable]: ...
+
+class QuboTranslator:
+    @staticmethod
+    def to_aq(
+        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+    ) -> Model: ...
+    @staticmethod
+    def from_aq(model: Model) -> Qubo: ...
+
 class BqmTranslator:
     @staticmethod
     def to_aq(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
@@ -110,14 +126,6 @@ class IbmTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class MatrixTranslator:
-    @staticmethod
-    def to_aq(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> NDArray: ...
-
 class LpTranslator:
     @overload
     @staticmethod
@@ -139,8 +147,9 @@ __all__ = [
     "DwaveTranslator",
     "IbmTranslator",
     "LpTranslator",
-    "MatrixTranslator",
     "QctrlTranslator",
+    "Qubo",
+    "QuboTranslator",
     "ZibTranslator",
     "translator",
 ]

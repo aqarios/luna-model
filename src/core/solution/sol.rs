@@ -135,9 +135,9 @@ where
     /// across different samples. `samples.len()` can be expected to always correspond exactly to
     /// the number of results available in the solution.
     pub samples: Vec<SampleCol<AssignmentTypes>>,
-    /// How often each result occurs in the solution. `num_occurrences.len()` can be expected to
+    /// How often each result occurs in the solution. `counts.len()` can be expected to
     /// always be equal to `samples.len()`
-    pub num_occurrences: Vec<usize>,
+    pub counts: Vec<usize>,
     /// Objetive values as computed by the corresponding AQM. May be empty for solutions that
     /// haven't yet been evaluated.
     pub obj_values: Vec<Option<Bias>>,
@@ -181,11 +181,11 @@ where
     pub fn extend<S: Copy + NumCast, E: Copy + NumCast>(
         &mut self,
         sample: Vec<S>,
-        num_occurrences: usize,
+        counts: usize,
         energy: Option<E>,
     ) -> Result<&mut Self, SolutionCreatorErr> {
         self.add_sample(sample)?;
-        self.num_occurrences.push(num_occurrences);
+        self.counts.push(counts);
         self.raw_energies
             .push(energy.and_then(|e| <Bias as NumCast>::from(e)));
         self.obj_values.push(None);
@@ -307,7 +307,7 @@ where
         let rhs = &other.0;
 
         lhs.samples == rhs.samples
-            && lhs.num_occurrences == rhs.num_occurrences
+            && lhs.counts == rhs.counts
             && lhs.obj_values == rhs.obj_values
             && lhs.raw_energies == rhs.raw_energies
             && lhs.constraints == rhs.constraints

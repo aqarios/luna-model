@@ -99,7 +99,7 @@ class Solution:
 
     @property
     @dispatched
-    def num_occurrences(self):
+    def counts(self):
         """Get the number of how often each sample occurred in the solution."""
         return
 
@@ -175,7 +175,7 @@ class Solution:
 
     @staticmethod
     def build(
-        num_occurrences,
+        counts,
         component_types,
         binary_cols,
         spin_cols,
@@ -228,11 +228,11 @@ class Solution:
             ...     real_cols,
             ...     raw_energies,
             ...     timing,
-            ...     num_occurrences=[1, 1, 1]
+            ...     counts=[1, 1, 1]
             ... )
             >>> sol
 
-        In this example, we could also neglect the `num_occurrences` as it defaults to `1`
+        In this example, we could also neglect the `counts` as it defaults to `1`
         for all samples if not set:
 
             >>> sol = Solution.build(
@@ -267,7 +267,7 @@ class Solution:
            The data of all real valued columns. Each inner list encodes a single real valued column.
         timing : Timing, optional
            The timing data.
-        num_occurrences : list[int], optional
+        counts : list[int], optional
            The number each sample in the solution has occurred. By default 1 for all samples.
 
         Returns
@@ -276,7 +276,7 @@ class Solution:
             The constructed solution
         """
         return (
-            num_occurrences,
+            counts,
             component_types,
             binary_cols,
             spin_cols,

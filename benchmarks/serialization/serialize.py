@@ -1,6 +1,6 @@
 from typing import IO
 
-from aqmodels import Model, Vtype, MatrixTranslator
+from aqmodels import Model, Vtype, QuboTranslator
 import dimod
 from tqdm import tqdm  # type: ignore
 
@@ -32,7 +32,7 @@ def bench_serialize_cqm(file: IO | None):
         for density in tqdm(DENSITIES, desc="Density", leave=False):
             qubo = make_qubo(size, density)
 
-            aqm = MatrixTranslator.to_aq(qubo, vtype=Vtype.Binary)
+            aqm = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
             dmd = dimod.ConstrainedQuadraticModel.to_aq(
                 dimod.BinaryQuadraticModel(qubo, "BINARY")
             )
@@ -56,7 +56,7 @@ def bench_serialize_cqm_size(file: IO | None):
         for density in tqdm(DENSITIES, desc="Density", leave=False):
             qubo = make_qubo(size, density)
 
-            aqm = MatrixTranslator.to_aq(qubo, vtype=Vtype.Binary)
+            aqm = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
             dmd = dimod.ConstrainedQuadraticModel.to_aq(
                 dimod.BinaryQuadraticModel(qubo, "BINARY")
             )

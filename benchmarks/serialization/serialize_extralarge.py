@@ -2,7 +2,7 @@ from typing import IO
 
 from tqdm import tqdm  # type: ignore
 
-from aqmodels import MatrixTranslator, Vtype
+from aqmodels import QuboTranslator, Vtype
 from benchmarks.serialization.utils import (
     get_serialized_size_bytes,
     serialize_aqm,
@@ -23,7 +23,7 @@ def bench_serialize_aqm_xl(file: IO | None):
         for density in densities:
             qubo = make_qubo(size, density)
 
-            aqm = MatrixTranslator.to_aq(qubo, vtype=Vtype.Binary)
+            aqm = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
             serialized_aqm = serialize_aqm(aqm)
             aqm_for_size.append(get_serialized_size_bytes(serialized_aqm))
 

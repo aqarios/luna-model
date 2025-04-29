@@ -2,19 +2,20 @@
 # Do not edit manually.
 
 from ._errors import (
-    ModelNotQuadraticError,
-    ModelVtypeError,
-    VariableExistsError,
-    NoActiveEnvironmentFoundError,
+    VariableOutOfRangeError,
+    ModelNotUnconstrainedError,
     DifferentEnvsError,
     VariablesFromDifferentEnvsError,
-    MultipleActiveEnvironmentsError,
     DecodeError,
-    ModelNotUnconstrainedError,
-    VariableOutOfRangeError,
-    IllegalConstraintNameError,
+    TranslationError,
     VariableNotExistingError,
+    ModelVtypeError,
+    IllegalConstraintNameError,
+    NoActiveEnvironmentFoundError,
+    VariableExistsError,
     SolutionCreationError,
+    MultipleActiveEnvironmentsError,
+    ModelNotQuadraticError,
 )
 from .._core import errors as __errors
 
@@ -26,11 +27,12 @@ DifferentEnvsError = __errors.DifferentEnvsError  # noqa: F811
 NoActiveEnvironmentFoundError = __errors.NoActiveEnvironmentFoundError  # noqa: F811
 MultipleActiveEnvironmentsError = __errors.MultipleActiveEnvironmentsError  # noqa: F811
 DecodeError = __errors.DecodeError  # noqa: F811
-ModelNotQuadraticError = __errors.ModelNotQuadraticError  # noqa: F811
-ModelNotUnconstrainedError = __errors.ModelNotUnconstrainedError  # noqa: F811
 ModelVtypeError = __errors.ModelVtypeError  # noqa: F811
 SolutionCreationError = __errors.SolutionCreationError  # noqa: F811
 IllegalConstraintNameError = __errors.IllegalConstraintNameError  # noqa: F811
+TranslationError = __errors.TranslationError  # noqa: F811
+ModelNotQuadraticError = __errors.ModelNotQuadraticError  # noqa: F811
+ModelNotUnconstrainedError = __errors.ModelNotUnconstrainedError  # noqa: F811
 
 __all__ = [
     "DecodeError",
@@ -42,6 +44,7 @@ __all__ = [
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "SolutionCreationError",
+    "TranslationError",
     "VariableExistsError",
     "VariableNotExistingError",
     "VariableOutOfRangeError",

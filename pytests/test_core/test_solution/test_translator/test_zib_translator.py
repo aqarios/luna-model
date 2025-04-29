@@ -63,8 +63,8 @@ def test_zib_translator(model: Model):
     assert len(sol.samples) == 1
     assert len(sol.raw_energies) == 1
     assert sol.raw_energies.tolist() == [None]
-    assert len(sol.num_occurrences) == 1
-    assert len(sol.num_occurrences) == len(sol.samples)
+    assert len(sol.counts) == 1
+    assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
     assert np.isclose(
         sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5
@@ -78,7 +78,7 @@ def test_zib_translator(model: Model):
     results = list(sol.results)
     assert len(results) == len(sol.samples)
     for i, result in enumerate(results):
-        assert result.num_occurrences == sol.num_occurrences.tolist()[i]  # type: ignore
+        assert result.counts == sol.counts.tolist()[i]  # type: ignore
         assert list(result.sample) == list(sol.samples[i])
         assert result.obj_value is None
         assert result.raw_energy == sol.raw_energies.tolist()[i]  # type: ignore

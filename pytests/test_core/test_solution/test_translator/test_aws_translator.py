@@ -50,7 +50,7 @@ def test_zib_translator(model: Model, aws_result: dict[str, NDArray]):
     print(aws_result)
     print(sol)
     print("-" * 80)
-    (sol_agg, indices, num_occ) = np.unique(
+    (sol_agg, indices, num_counts) = np.unique(
         aws_result["samples"], return_index=True, return_counts=True, axis=0
     )
 

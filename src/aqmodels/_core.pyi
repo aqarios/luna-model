@@ -86,7 +86,7 @@ class ResultView:
     @property
     def sample(self) -> Sample: ...
     @property
-    def num_occurrences(self) -> int: ...
+    def counts(self) -> int: ...
     @property
     def obj_value(self) -> float | None: ...
     @property
@@ -111,7 +111,7 @@ class Solution:
     @property
     def raw_energies(self) -> NDArray: ...
     @property
-    def num_occurrences(self) -> NDArray: ...
+    def counts(self) -> NDArray: ...
     @property
     def runtime(self) -> Timing | None: ...
     @property
@@ -141,7 +141,7 @@ class Solution:
     @staticmethod
     def build(
         component_types: list[Vtype],
-        num_occurrences: list[int] | None = ...,
+        counts: list[int] | None = ...,
         binary_cols: list[list[int]] | None = ...,
         spin_cols: list[list[int]] | None = ...,
         int_cols: list[list[int]] | None = ...,
@@ -518,6 +518,22 @@ class CqmTranslator:
     @staticmethod
     def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
 
+class Qubo:
+    @property
+    def offset(self) -> float: ...
+    @property
+    def matrix(self) -> NDArray: ...
+    @property
+    def variable_ordering(self) -> list[Variable]: ...
+
+class QuboTranslator:
+    @staticmethod
+    def to_aq(
+        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+    ) -> Model: ...
+    @staticmethod
+    def from_aq(model: Model) -> Qubo: ...
+
 class BqmTranslator:
     @staticmethod
     def to_aq(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
@@ -586,14 +602,6 @@ class IbmTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class MatrixTranslator:
-    @staticmethod
-    def to_aq(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> NDArray: ...
-
 class LpTranslator:
     @overload
     @staticmethod
@@ -632,12 +640,6 @@ class MultipleActiveEnvironmentsError(Exception):
 class DecodeError(Exception):
     def __str__(self) -> str: ...
 
-class ModelNotQuadraticError(Exception):
-    def __str__(self) -> str: ...
-
-class ModelNotUnconstrainedError(Exception):
-    def __str__(self) -> str: ...
-
 class ModelVtypeError(Exception):
     def __str__(self) -> str: ...
 
@@ -645,6 +647,15 @@ class SolutionCreationError(Exception):
     def __str__(self) -> str: ...
 
 class IllegalConstraintNameError(Exception):
+    def __str__(self) -> str: ...
+
+class TranslationError(Exception):
+    def __str__(self) -> str: ...
+
+class ModelNotQuadraticError(TranslationError):
+    def __str__(self) -> str: ...
+
+class ModelNotUnconstrainedError(TranslationError):
     def __str__(self) -> str: ...
 
 __all__ = [
@@ -663,7 +674,6 @@ __all__ = [
     "IbmTranslator",
     "IllegalConstraintNameError",
     "LpTranslator",
-    "MatrixTranslator",
     "Model",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
@@ -671,6 +681,8 @@ __all__ = [
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "QctrlTranslator",
+    "Qubo",
+    "QuboTranslator",
     "Result",
     "ResultIterator",
     "ResultView",
@@ -683,6 +695,7 @@ __all__ = [
     "SolutionCreationError",
     "Timer",
     "Timing",
+    "TranslationError",
     "Variable",
     "VariableExistsError",
     "VariableNotExistingError",

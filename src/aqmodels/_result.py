@@ -137,7 +137,7 @@ class ResultView:
 
     @property
     @dispatched
-    def num_occurrences(self):
+    def counts(self):
         """Return how often this result appears in the solution."""
         return
 
