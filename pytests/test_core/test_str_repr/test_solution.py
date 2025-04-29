@@ -31,7 +31,7 @@ def solution(request) -> Solution:
         spin_cols=[[+1, -1, +1]],
         int_cols=[[2, 3, -4]],
         real_cols=[[2.0, 3.0, 4.23]],
-        num_occurrences=[1, 2, 3],
+        counts=[1, 2, 3],
         raw_energies=[6.0, 5.0, 2.0],
     )
 

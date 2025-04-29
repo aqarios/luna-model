@@ -35,16 +35,16 @@ where
         &mut self,
         sol: RcSolution<Bias, AssignmentTypes>,
     ) -> &mut Self {
-        self.write_samples(sol.samples(), &sol.num_occurrences)
+        self.write_samples(sol.samples(), &sol.counts)
     }
 
     pub fn write_samples(
         &mut self,
         samples: Samples<Bias, AssignmentTypes>,
-        num_occurrences: &Vec<usize>,
+        counts: &Vec<usize>,
     ) -> &mut Self {
         self.writer.write("{").increase_indent().new_line();
-        for (idx, (sample, n_occ)) in samples.iter().zip(num_occurrences).enumerate() {
+        for (idx, (sample, n_occ)) in samples.iter().zip(counts).enumerate() {
             if idx > 0 {
                 self.writer.new_line();
             }
@@ -64,11 +64,11 @@ where
     // pub fn write_samples_with_env(
     //     &mut self,
     //     samples: Samples<Bias, AssignmentTypes>,
-    //     num_occurrences: &Vec<usize>,
+    //     counts: &Vec<usize>,
     //     env: MutRcEnvironment<ConcreteIndex>,
     // ) -> &mut Self {
     //     self.writer.write("{").increase_indent().new_line();
-    //     for (idx,(sample, n_occ)) in samples.iter().zip(num_occurrences).enumerate() {
+    //     for (idx,(sample, n_occ)) in samples.iter().zip(counts).enumerate() {
     //         if idx > 0 {
     //             self.writer.new_line();
     //         }

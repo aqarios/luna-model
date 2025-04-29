@@ -50,8 +50,8 @@ impl PyResultView {
     }
 
     #[getter]
-    fn num_occurrences(&self) -> usize {
-        self.sol.num_occurrences[self.row_idx]
+    fn counts(&self) -> usize {
+        self.sol.counts[self.row_idx]
     }
 
     #[getter]

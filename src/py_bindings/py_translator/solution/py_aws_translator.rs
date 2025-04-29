@@ -16,7 +16,7 @@ impl PyAwsTranslator {
     fn translate(
         sol_agg: PyReadonlyArray2<f64>,
         indices: PyReadonlyArray1<usize>,
-        num_occ: PyReadonlyArray1<usize>,
+        counts: PyReadonlyArray1<usize>,
         energies: PyReadonlyArray1<f64>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
@@ -32,7 +32,7 @@ impl PyAwsTranslator {
         
         Ok(PySolution(AwsTranslator::from_aws_result(
             sol_agg.as_slice()?,
-            num_occ.as_slice()?,
+            counts.as_slice()?,
             indices.as_slice()?,
             energies.as_slice()?,
             sol_agg.shape(),

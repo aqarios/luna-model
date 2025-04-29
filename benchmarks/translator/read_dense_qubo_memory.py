@@ -11,7 +11,7 @@ from rich import print as rprint
 from rich.table import Column, Table
 from tqdm import tqdm  # type: ignore[import-untyped]
 
-from aqmodels import MatrixTranslator, Vtype
+from aqmodels import QuboTranslator, Vtype
 from benchmarks.setting import DENSITIES, SIZES
 from benchmarks.utils import BenchResult, make_qubo
 
@@ -35,7 +35,7 @@ def memit(f):
 
 @memit
 def _aqm(qubo: NDArray):
-    _ = MatrixTranslator.to_aq(qubo, vtype=Vtype.Binary)
+    _ = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
 
 
 @memit

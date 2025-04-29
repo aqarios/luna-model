@@ -10,7 +10,7 @@ pub struct AwsTranslator {}
 impl AwsTranslator {
     pub fn from_aws_result<S, N, E, Idx>(
         samples: &[S],
-        num_occurrences: &[N],
+        counts: &[N],
         indices: &[usize],
         energies: &[E],
         shape: &[usize],
@@ -39,7 +39,7 @@ impl AwsTranslator {
                 .to_vec();
             sol.extend(
                 sample,
-                <usize as NumCast>::from(num_occurrences[i]).unwrap(),
+                <usize as NumCast>::from(counts[i]).unwrap(),
                 Some(energies[indices[i]]),
             )?;
         }

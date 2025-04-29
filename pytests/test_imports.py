@@ -102,32 +102,32 @@ def test_import_constraints():
 
 
 @pytest.mark.imports
-def test_import_matrix_translator():
+def test_import_qubo_translator():
     import aqmodels
     import aqmodels as aqm
     from aqmodels import translator  # the true way to do it.
-    from aqmodels.translator import MatrixTranslator as MTID
-    from aqmodels import MatrixTranslator as MTD
+    from aqmodels.translator import QuboTranslator as MTID
+    from aqmodels import QuboTranslator as MTD
 
-    # The true path is the translator.MatrixTranslator
+    # The true path is the translator.QuboTranslator
     # The aqmodels/aqm.translator is hacked into the bindings.
-    # So we check again the translator.MatrixTranslator with the import from
+    # So we check again the translator.QuboTranslator with the import from
     # aqmodels
-    assert aqm.MatrixTranslator == translator.MatrixTranslator
-    assert aqmodels.MatrixTranslator == translator.MatrixTranslator
-    assert aqmodels.translator.MatrixTranslator == translator.MatrixTranslator
-    assert aqm.translator.MatrixTranslator == translator.MatrixTranslator
-    assert MTID == translator.MatrixTranslator
-    assert MTD == translator.MatrixTranslator
+    assert aqm.QuboTranslator == translator.QuboTranslator
+    assert aqmodels.QuboTranslator == translator.QuboTranslator
+    assert aqmodels.translator.QuboTranslator == translator.QuboTranslator
+    assert aqm.translator.QuboTranslator == translator.QuboTranslator
+    assert MTID == translator.QuboTranslator
+    assert MTD == translator.QuboTranslator
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.MatrixTranslator.__module__ == TRANSLATOR_MODULE_NAME
-    assert aqmodels.MatrixTranslator.__module__ == TRANSLATOR_MODULE_NAME
-    assert aqm.translator.MatrixTranslator.__module__ == TRANSLATOR_MODULE_NAME
-    assert aqmodels.translator.MatrixTranslator == translator.MatrixTranslator
+    assert aqm.QuboTranslator.__module__ == TRANSLATOR_MODULE_NAME
+    assert aqmodels.QuboTranslator.__module__ == TRANSLATOR_MODULE_NAME
+    assert aqm.translator.QuboTranslator.__module__ == TRANSLATOR_MODULE_NAME
+    assert aqmodels.translator.QuboTranslator == translator.QuboTranslator
     assert MTID.__module__ == TRANSLATOR_MODULE_NAME
     assert MTD.__module__ == TRANSLATOR_MODULE_NAME
-    assert translator.MatrixTranslator.__module__ == TRANSLATOR_MODULE_NAME
+    assert translator.QuboTranslator.__module__ == TRANSLATOR_MODULE_NAME
 
 
 @pytest.mark.imports

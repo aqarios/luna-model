@@ -27,20 +27,20 @@ def mock_env(n_variables: int, vtype: Vtype = Vtype.Binary) -> Environment:
 @pytest.mark.solution_translation
 def test_sampleset_translator_constructed():
     samples = [[0, 1, 1], [0, 0, 1], [0, 1, 0]]
-    num_occurrences = [1, 2, 3]
+    counts = [1, 2, 3]
     energy = [-1, 0, 1]
     sampleset = SampleSet.from_samples(
         as_samples(np.array(samples)),
         "BINARY",
         energy,
-        num_occurrences=np.array(num_occurrences),
+        num_occurrences=np.array(counts),
     )
 
     with mock_env(3):
         sol = DwaveTranslator.to_aq(sampleset)
 
     assert sol.samples.tolist() == samples
-    assert sol.num_occurrences.tolist() == num_occurrences
+    assert sol.counts.tolist() == counts
     assert sol.obj_values.tolist() == [None, None, None]
     assert sol.raw_energies.tolist() == energy
     assert sol.runtime is None
@@ -69,11 +69,8 @@ def test_sampleset_translator_sa_random_models():
         sampleset_agg = sampleset.aggregate()
         assert len(sol.samples) == len(sampleset_agg.record.sample)
         assert sol.samples.tolist() == sampleset_agg.record.sample.tolist()
-        assert (
-            sol.num_occurrences.tolist()
-            == sampleset_agg.record.num_occurrences.tolist()
-        )
-        assert len(sol.num_occurrences) == len(sol.samples)
+        assert sol.counts.tolist() == sampleset_agg.record.num_occurrences.tolist()
+        assert len(sol.counts) == len(sol.samples)
         assert sol.runtime is not None
         assert sol.runtime.total.total_seconds() > 0
         assert sol.runtime.total_seconds > 0
@@ -84,7 +81,7 @@ def test_sampleset_translator_sa_random_models():
         results = list(sol.results)
         assert len(results) == len(sol.samples)
         for i, result in enumerate(results):
-            assert result.num_occurrences == sol.num_occurrences.tolist()[i]
+            assert result.counts == sol.counts.tolist()[i]
             assert list(result.sample) == list(sol.samples[i])
             assert result.obj_value is None
             assert result.raw_energy == sol.raw_energies.tolist()[i]

@@ -96,7 +96,7 @@ where
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = SolutionWriter::new()
-            .write_samples(self.clone(), &self.num_occurrences)
+            .write_samples(self.clone(), &self.counts)
             .to_string();
         f.write_str(&s)
     }

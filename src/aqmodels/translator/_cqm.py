@@ -7,7 +7,7 @@ class CqmTranslator:
     Utility class for converting between dimod.BianryQuadraticModel (CQM) and symbolic
     models.
 
-    `MatrixTranslator` provides methods to:
+    `CqmTranslator` provides methods to:
     - Convert a CQM into a symbolic `Model`
     - Convert a `Model` (with quadratic objective) into a CQM
 
@@ -18,7 +18,7 @@ class CqmTranslator:
     --------
     >>> import dimod
     >>> import numpy as np
-    >>> from aqmodels import MatrixTranslator, Vtype
+    >>> from aqmodels import CqmTranslator, Vtype
     >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 
     Create a model from a matrix:
