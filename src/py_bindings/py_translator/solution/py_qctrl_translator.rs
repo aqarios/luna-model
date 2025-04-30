@@ -1,16 +1,12 @@
-use std::rc::Rc;
-
 use numpy::PyReadonlyArray1;
 use pyo3::{ffi::c_str, prelude::*};
 
 use crate::{
-    core::ConcreteRcVarRef,
     py_bindings::{
         py_env::{PyEnvironment, CURRENT_ENV},
         py_exceptions::NoActiveEnvironmentFoundError,
         py_sol::PySolution,
         py_timing::PyTiming,
-        py_var::PyVariable,
     },
     translator::QctrlTranslator,
 };

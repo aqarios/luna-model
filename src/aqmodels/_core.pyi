@@ -560,26 +560,12 @@ class QctrlTranslator:
     @staticmethod
     def to_aq(
         result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
         timing: Timing | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
     def to_aq(
         result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
-        timing: Timing | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
@@ -597,6 +583,15 @@ class LpTranslator:
     @overload
     @staticmethod
     def from_aq(model: Model, file: Path) -> None: ...
+
+class NumpyTranslator:
+    @staticmethod
+    def to_aq(
+        result: NDArray,
+        energies: NDArray,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
 
 class IbmTranslator:
     @overload
@@ -690,6 +685,7 @@ __all__ = [
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
+    "NumpyTranslator",
     "QctrlTranslator",
     "Qubo",
     "QuboTranslator",

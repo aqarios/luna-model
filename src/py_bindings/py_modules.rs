@@ -46,6 +46,7 @@ pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_translator::PyIbmTranslator>()?;
     m.add_class::<py_translator::PyZibTranslator>()?;
     m.add_class::<py_translator::PyAwsTranslator>()?;
+    m.add_class::<py_translator::PyNumpyTranslator>()?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?

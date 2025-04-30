@@ -2,8 +2,9 @@
 # Do not edit manually.
 
 from ._zib import ZibTranslator
-from ._qubo import QuboTranslator, Qubo
+from ._qubo import Qubo, QuboTranslator
 from ._qctrl import QctrlTranslator
+from ._numpy import NumpyTranslator
 from ._lp import LpTranslator
 from ._ibm import IbmTranslator
 from ._dwave import DwaveTranslator
@@ -20,6 +21,7 @@ DwaveTranslator = __translator.DwaveTranslator  # noqa: F811
 BqmTranslator = __translator.BqmTranslator  # noqa: F811
 QctrlTranslator = __translator.QctrlTranslator  # noqa: F811
 LpTranslator = __translator.LpTranslator  # noqa: F811
+NumpyTranslator = __translator.NumpyTranslator  # noqa: F811
 IbmTranslator = __translator.IbmTranslator  # noqa: F811
 CqmTranslator = __translator.CqmTranslator  # noqa: F811
 
@@ -30,6 +32,7 @@ __all__ = [
     "DwaveTranslator",
     "IbmTranslator",
     "LpTranslator",
+    "NumpyTranslator",
     "QctrlTranslator",
     "Qubo",
     "QuboTranslator",

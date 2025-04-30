@@ -1,15 +1,9 @@
-use crate::core::environment::{add_variable, get_vrefs_in_order};
-use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, ConcreteIndex, ConcreteRcVarRef, ConcreteVarRef, Qubo,
-    ResultView,
-};
+use crate::core::{ConcreteBias, ConcreteIndex, Qubo};
 use crate::py_bindings::py_model::PyModel;
-use crate::py_bindings::py_var::PyVariable;
 use crate::{core::Vtype, translator::MatrixTranslator};
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::prelude::*;
-use std::rc::Rc;
 
 #[pyclass(unsendable, name = "Qubo", module = "aqmodels.translator")]
 #[derive(Deref, DerefMut)]

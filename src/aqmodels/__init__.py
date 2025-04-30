@@ -52,34 +52,34 @@ from ._variable import Vtype, Bounds, Variable
 from ._timing import Timer, Timing
 from ._solution import Solution
 from ._sample import SamplesIterator, Sample, SampleIterator, Samples
-from ._result import ResultView, ResultIterator, Result
+from ._result import ResultIterator, ResultView, Result
 from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Variable as __Variable,
-    Environment as __Environment,
-    Solution as __Solution,
-    Constraint as __Constraint,
-    Expression as __Expression,
-    Timing as __Timing,
-    Sample as __Sample,
-    Model as __Model,
-    Bounds as __Bounds,
-    Result as __Result,
-    Constraints as __Constraints,
-    Timer as __Timer,
-    Comparator as __Comparator,
     SampleIterator as __SampleIterator,
     Sense as __Sense,
-    SamplesIterator as __SamplesIterator,
-    ResultIterator as __ResultIterator,
-    Vtype as __Vtype,
     ResultView as __ResultView,
     Samples as __Samples,
+    Environment as __Environment,
+    Sample as __Sample,
+    Expression as __Expression,
+    Bounds as __Bounds,
+    ResultIterator as __ResultIterator,
+    Model as __Model,
+    Variable as __Variable,
+    Solution as __Solution,
+    Result as __Result,
+    Timer as __Timer,
+    Vtype as __Vtype,
+    Comparator as __Comparator,
+    Timing as __Timing,
+    SamplesIterator as __SamplesIterator,
+    Constraints as __Constraints,
+    Constraint as __Constraint,
 )
 from ._constraints import Constraints, Comparator, Constraint
-from . import errors, translator
+from . import translator, errors
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
@@ -109,6 +109,7 @@ DwaveTranslator = translator.DwaveTranslator
 BqmTranslator = translator.BqmTranslator
 QctrlTranslator = translator.QctrlTranslator
 LpTranslator = translator.LpTranslator
+NumpyTranslator = translator.NumpyTranslator
 IbmTranslator = translator.IbmTranslator
 CqmTranslator = translator.CqmTranslator
 VariableOutOfRangeError = errors.VariableOutOfRangeError
@@ -148,6 +149,7 @@ __all__ = [
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
+    "NumpyTranslator",
     "QctrlTranslator",
     "Qubo",
     "QuboTranslator",
