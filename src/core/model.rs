@@ -96,17 +96,23 @@ where
     /// created based on the size of the QUBO.
     pub fn new_from_dense(
         name: Option<String>,
-        dense: &[Bias],
+        vtype: Option<Vtype>,
+        matrix_flat: &[Bias],
         num_variables: Index,
-        vtype: Vtype,
+        offset: Option<Bias>,
+        variable_names: Option<Vec<String>>,
     ) -> Self {
         let model = Model::new(name);
-        // We also need to add the varaibles to the model...
+        // We also need to add the variables to the model...
         (0..num_variables.into()).into_iter().for_each(|idx| {
+            let var_name = match &variable_names {
+                None => &idx.to_string(),
+                Some(names) => &names[idx],
+            };
             let _ = add_variable(
                 model.environment.clone(),
-                &idx.to_string(),
-                Some(&vtype),
+                &var_name,
+                Some(&vtype.unwrap_or(Vtype::Binary)),
                 None,
             );
         });
@@ -115,7 +121,10 @@ where
         model
             .objective
             .borrow_mut()
-            .add_quadratic_from_dense(dense, num_variables);
+            .add_quadratic_from_dense(matrix_flat, num_variables);
+        if let Some(off) = offset {
+            model.objective.borrow_mut().add_offset(off);
+        }
         model
     }
 

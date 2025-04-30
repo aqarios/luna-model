@@ -1,3 +1,5 @@
+use crate::core::Qubo;
+use crate::errors::ModelVtypeErr;
 use crate::{
     core::{
         expression::{BiasConstraints, IndexConstraints},
@@ -16,13 +18,15 @@ impl MatrixTranslator {
         name: Option<String>,
         dense: &[Bias],
         num_variables: Index,
-        vtype: Vtype,
+        vtype: Option<Vtype>,
+        offset: Option<Bias>,
+        variable_names: Option<Vec<String>>,
     ) -> Model<Index, Bias>
     where
         Index: IndexConstraints,
         Bias: BiasConstraints,
     {
-        Model::new_from_dense(name, dense, num_variables, vtype)
+        Model::new_from_dense(name, vtype, dense, num_variables, offset, variable_names)
     }
 
     /// Back(translate) an AQM to a QUBO.
@@ -33,7 +37,7 @@ impl MatrixTranslator {
     /// to express the optimization problem in the expected format.
     pub fn model_to_dense<Index, Bias>(
         model: &Model<Index, Bias>,
-    ) -> Result<(Vec<Bias>, usize), MatrixTranslatorErr>
+    ) -> Result<Qubo<Index, Bias>, MatrixTranslatorErr>
     where
         Index: IndexConstraints,
         Bias: BiasConstraints,
@@ -45,6 +49,29 @@ impl MatrixTranslator {
 
         if !model.constraints.borrow().is_empty() {
             return Err(ModelNotUnconstrainedErr)?;
+        }
+
+        let mut vtype = None;
+        let env = model.environment.borrow();
+        let mut variables = Vec::with_capacity(env.varcount.into());
+        for var in env.variables.iter() {
+            match vtype {
+                None => {
+                    if var.vtype == Vtype::Integer || var.vtype == Vtype::Real {
+                        return Err(ModelVtypeErr(String::from("vtype is not binary or spin")))?;
+                    } else {
+                        vtype = Some(var.vtype);
+                    }
+                }
+                Some(vt) => {
+                    if vt != var.vtype {
+                        return Err(ModelVtypeErr(String::from(
+                            "variables have different vtypes",
+                        )))?;
+                    }
+                }
+            }
+            variables.push(var.name.clone());
         }
 
         let nvars = obj.num_variables();
@@ -62,6 +89,15 @@ impl MatrixTranslator {
             }
         }
 
-        Ok((dense, nvars))
+        let qubo = Qubo {
+            name: model.name.clone(),
+            vtype: vtype.unwrap_or(Vtype::Binary),
+            matrix_flat: dense,
+            num_variables: nvars.into(),
+            offset: obj.offset,
+            variable_names: variables,
+        };
+
+        Ok(qubo)
     }
 }

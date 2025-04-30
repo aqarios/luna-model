@@ -348,3 +348,9 @@ class Variable:
             If the operand type is unsupported.
         """
         return value
+
+    @property
+    @dispatched
+    def name(self):
+        """Get the name of the variable."""
+        return

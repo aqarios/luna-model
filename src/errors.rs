@@ -135,6 +135,7 @@ impl Display for ModelVtypeErr {
 pub enum MatrixTranslatorErr {
     Constrained(ModelNotUnconstrainedErr),
     HigherOrder(ModelNotQuadraticErr),
+    Vtype(ModelVtypeErr),
 }
 impl Error for MatrixTranslatorErr {}
 impl Display for MatrixTranslatorErr {
@@ -142,6 +143,7 @@ impl Display for MatrixTranslatorErr {
         match &self {
             MatrixTranslatorErr::Constrained(err) => err.fmt(f),
             MatrixTranslatorErr::HigherOrder(err) => err.fmt(f),
+            MatrixTranslatorErr::Vtype(err) => err.fmt(f),
         }
     }
 }
@@ -154,6 +156,12 @@ impl From<ModelNotQuadraticErr> for MatrixTranslatorErr {
 impl From<ModelNotUnconstrainedErr> for MatrixTranslatorErr {
     fn from(value: ModelNotUnconstrainedErr) -> Self {
         Self::Constrained(value)
+    }
+}
+
+impl From<ModelVtypeErr> for MatrixTranslatorErr {
+    fn from(value: ModelVtypeErr) -> Self {
+        Self::Vtype(value)
     }
 }
 
@@ -179,11 +187,13 @@ impl From<ModelNotQuadraticErr> for BqmTranslatorErr {
         Self::HigherOrder(value)
     }
 }
+
 impl From<ModelNotUnconstrainedErr> for BqmTranslatorErr {
     fn from(value: ModelNotUnconstrainedErr) -> Self {
         Self::Constrained(value)
     }
 }
+
 impl From<ModelVtypeErr> for BqmTranslatorErr {
     fn from(value: ModelVtypeErr) -> Self {
         Self::Vtype(value)
