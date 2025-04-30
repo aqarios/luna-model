@@ -29,13 +29,13 @@ create_exception!(
 );
 
 create_exception!(aqmodels.errors, DecodeError, PyException);
-create_exception!(aqmodels.errors, ModelVtypeError, PyException);
 create_exception!(aqmodels.errors, SolutionCreationError, PyException);
 create_exception!(aqmodels.errors, IllegalConstraintNameError, PyException);
 
 create_exception!(aqmodels.errors, TranslationError, PyException);
 create_exception!(aqmodels.errors, ModelNotQuadraticError, TranslationError);
 create_exception!(aqmodels.errors, ModelNotUnconstrainedError, TranslationError);
+create_exception!(aqmodels.errors, ModelVtypeError, TranslationError);
 
 impl From<VariableOutOfRangeErr> for PyErr {
     fn from(value: VariableOutOfRangeErr) -> Self {
@@ -108,6 +108,7 @@ impl From<MatrixTranslatorErr> for PyErr {
         match err {
             MatrixTranslatorErr::Constrained(err) => err.into(),
             MatrixTranslatorErr::HigherOrder(err) => err.into(),
+            MatrixTranslatorErr::Vtype(err ) => err.into(),
         }
     }
 }

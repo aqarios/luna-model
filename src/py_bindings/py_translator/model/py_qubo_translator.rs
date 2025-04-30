@@ -1,34 +1,37 @@
-use std::rc::Rc;
-
-use crate::core::environment::get_vrefs_in_order;
-use crate::core::{ConcreteRcVarRef, ConcreteVarRef};
+use crate::core::{ConcreteBias, ConcreteIndex, Qubo};
 use crate::py_bindings::py_model::PyModel;
-use crate::py_bindings::py_var::PyVariable;
 use crate::{core::Vtype, translator::MatrixTranslator};
+use derive_more::{Deref, DerefMut};
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::prelude::*;
 
 #[pyclass(unsendable, name = "Qubo", module = "aqmodels.translator")]
-pub struct PyQubo {
-    matrix_flat: Vec<f64>,
-    vars_num: usize,
-    offset: f64,
-    variables: Vec<ConcreteRcVarRef>,
+#[derive(Deref, DerefMut)]
+pub struct PyQubo(pub Qubo<ConcreteIndex, ConcreteBias>);
+
+impl Into<Qubo<ConcreteIndex, ConcreteBias>> for PyQubo {
+    fn into(self) -> Qubo<ConcreteIndex, ConcreteBias> {
+        self.0
+    }
 }
 
 impl PyQubo {
     fn new(
+        name: String,
+        vtype: Vtype,
         matrix_flat: Vec<f64>,
-        vars_num: usize,
+        num_variables: usize,
         offset: f64,
-        variables: Vec<ConcreteVarRef>,
+        variable_names: Vec<String>,
     ) -> Self {
-        Self {
+        Self(Qubo {
+            name,
+            vtype,
             matrix_flat,
-            vars_num,
+            num_variables: num_variables.into(),
             offset,
-            variables: variables.into_iter().map(|v| Rc::new(v)).collect()
-        }
+            variable_names,
+        })
     }
 }
 
@@ -39,19 +42,27 @@ impl PyQubo {
         Ok(self
             .matrix_flat
             .to_pyarray(py)
-            .reshape((self.vars_num, self.vars_num))?)
+            .reshape((self.num_variables.into(), self.num_variables.into()))?)
     }
 
-    #[getter(variable_ordering)]
-    fn get_variable_ordering(&self) -> Vec<PyVariable> {
-        self.variables.iter().map(|vr| {
-            PyVariable(Rc::clone(vr))
-        }).collect()
+    #[getter(variable_names)]
+    fn get_variable_names(&self) -> Vec<String> {
+        self.variable_names.clone()
+    }
+
+    #[getter(name)]
+    fn get_name(&self) -> String {
+        self.name.clone()
     }
 
     #[getter(offset)]
     fn get_offset(&self) -> f64 {
         self.offset
+    }
+
+    #[getter(vtype)]
+    fn get_vtype(&self) -> Vtype {
+        self.vtype
     }
 }
 
@@ -61,26 +72,29 @@ pub struct PyQuboTranslator {}
 #[pymethods]
 impl PyQuboTranslator {
     #[staticmethod]
-    #[pyo3(signature=(qubo, name=None, vtype=None))]
-    fn to_aq(qubo: PyReadonlyArray2<f64>, name: Option<String>, vtype: Option<Vtype>) -> PyModel {
+    #[pyo3(signature=(qubo, offset=None, variable_names=None, name=None, vtype=None))]
+    fn to_aq(
+        qubo: PyReadonlyArray2<f64>,
+        offset: Option<f64>,
+        variable_names: Option<Vec<String>>,
+        name: Option<String>,
+        vtype: Option<Vtype>,
+    ) -> PyModel {
         let dense = qubo.as_slice().expect("failed to convert to slice");
         PyModel(MatrixTranslator::model_from_dense(
             name,
             dense,
             qubo.shape()[0].into(),
-            vtype.unwrap_or(Vtype::Binary),
+            vtype,
+            offset,
+            variable_names,
         ))
     }
 
     #[staticmethod]
     #[pyo3(signature=(model))]
     fn from_aq(model: &PyModel) -> PyResult<PyQubo> {
-        let (vec, nvars) = MatrixTranslator::model_to_dense(&model.0)?;
-        Ok(PyQubo::new(
-            vec,
-            nvars,
-            model.objective.borrow().offset,
-            get_vrefs_in_order(Rc::clone(&model.environment)),
-        ))
+        let qubo = MatrixTranslator::model_to_dense(&model.0)?;
+        Ok(PyQubo(qubo))
     }
 }

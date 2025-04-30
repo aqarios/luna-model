@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from aqmodels import Model, Variable, Bounds, Vtype, AwsTranslator
+from aqmodels import Model, Variable, Bounds, Vtype, NumpyTranslator
 
 
 @pytest.fixture
@@ -30,9 +30,9 @@ def model() -> Model:
 
 
 @pytest.fixture
-def aws_result() -> dict[str, NDArray]:
-    return {
-        "samples": np.array(
+def result() -> tuple[NDArray, NDArray]:
+    return (
+        np.array(
             [
                 [0, 1, 1, 0, 0],
                 [1, 0, 1, 0, 0],
@@ -40,20 +40,21 @@ def aws_result() -> dict[str, NDArray]:
                 [0, 0, 1, 0, 0],
             ]
         ),
-        "energies": np.array([-2.0, -1.0, -2.0, -1.0]),
-    }
+        np.array([-2.0, -1.0, -2.0, -1.0]),
+    )
 
 
 @pytest.mark.solution_translation
-def test_aws_translator(model: Model, aws_result: dict[str, NDArray]):
-    sol = AwsTranslator.to_aq(aws_result, env=model.environment)
+def test_zib_translator(model: Model, result: tuple[NDArray, NDArray]):
+    res, energies = result
+    sol = NumpyTranslator.to_aq(res, energies, env=model.environment)
     (sol_agg, indices, num_counts) = np.unique(
-        aws_result["samples"], return_index=True, return_counts=True, axis=0
+        res, return_index=True, return_counts=True, axis=0
     )
 
     assert sol.samples.tolist() == sol_agg.tolist()
     for i, result in enumerate(sol.results):
-        assert result.raw_energy == aws_result["energies"][indices[i]]
+        assert result.raw_energy == energies[indices[i]]
         assert result.obj_value is None
         assert result.constraints is None
         assert result.feasible is None

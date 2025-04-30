@@ -5,10 +5,10 @@ use crate::errors::SolutionCreatorErr;
 use num::NumCast;
 use std::rc::Rc;
 
-pub struct AwsTranslator {}
+pub struct NpArrayTranslator {}
 
-impl AwsTranslator {
-    pub fn from_aws_result<S, N, E, Idx>(
+impl NpArrayTranslator {
+    pub fn from_numpy_arrays<S, N, E, Idx>(
         samples: &[S],
         counts: &[N],
         indices: &[usize],
@@ -35,8 +35,7 @@ impl AwsTranslator {
         sol.timing = timing;
         for i in 0..shape[0] {
             let start_idx = i * shape[1];
-            let sample = samples[start_idx..start_idx + shape[1]]
-                .to_vec();
+            let sample = samples[start_idx..start_idx + shape[1]].to_vec();
             sol.extend(
                 sample,
                 <usize as NumCast>::from(counts[i]).unwrap(),

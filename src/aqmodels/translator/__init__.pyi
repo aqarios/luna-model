@@ -20,6 +20,38 @@ from typing import overload
 
 from . import translator
 
+class Qubo:
+    @property
+    def offset(self) -> float: ...
+    @property
+    def matrix(self) -> NDArray: ...
+    @property
+    def variable_names(self) -> list[str]: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def vtype(self) -> Vtype: ...
+
+class QuboTranslator:
+    @staticmethod
+    def to_aq(
+        qubo: NDArray,
+        offset: float | None = ...,
+        variable_names: list[str] | None = ...,
+        name: str | None = ...,
+        vtype: Vtype | None = ...,
+    ) -> Model: ...
+    @staticmethod
+    def from_aq(model: Model) -> Qubo: ...
+
+class AwsTranslator:
+    @staticmethod
+    def to_aq(
+        result: dict[str, Any],
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class ZibTranslator:
     @staticmethod
     def to_aq(
@@ -36,41 +68,11 @@ class DwaveTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class CqmTranslator:
-    @staticmethod
-    def to_aq(cqm: ConstrainedQuadraticModel) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
-
-class Qubo:
-    @property
-    def offset(self) -> float: ...
-    @property
-    def matrix(self) -> NDArray: ...
-    @property
-    def variable_ordering(self) -> list[Variable]: ...
-
-class QuboTranslator:
-    @staticmethod
-    def to_aq(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> Qubo: ...
-
 class BqmTranslator:
     @staticmethod
     def to_aq(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
     @staticmethod
     def from_aq(model: Model) -> BinaryQuadraticModel: ...
-
-class AwsTranslator:
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
 
 class QctrlTranslator:
     @overload
@@ -80,26 +82,35 @@ class QctrlTranslator:
     @staticmethod
     def to_aq(
         result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
         timing: Timing | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
     def to_aq(
         result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
         timing: Timing | None = ...,
+        env: Environment | None = ...,
     ) -> Solution: ...
+
+class LpTranslator:
     @overload
     @staticmethod
+    def to_aq(file: Path) -> Model: ...
+    @overload
+    @staticmethod
+    def to_aq(file: str) -> Model: ...
+    @overload
+    @staticmethod
+    def from_aq(model: Model) -> str: ...
+    @overload
+    @staticmethod
+    def from_aq(model: Model, file: Path) -> None: ...
+
+class NumpyTranslator:
+    @staticmethod
     def to_aq(
-        result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
+        result: NDArray,
+        energies: NDArray,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
@@ -126,19 +137,11 @@ class IbmTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class LpTranslator:
-    @overload
+class CqmTranslator:
     @staticmethod
-    def to_aq(file: Path) -> Model: ...
-    @overload
+    def to_aq(cqm: ConstrainedQuadraticModel) -> Model: ...
     @staticmethod
-    def to_aq(file: str) -> Model: ...
-    @overload
-    @staticmethod
-    def from_aq(model: Model) -> str: ...
-    @overload
-    @staticmethod
-    def from_aq(model: Model, file: Path) -> None: ...
+    def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
 
 __all__ = [
     "AwsTranslator",
@@ -147,6 +150,7 @@ __all__ = [
     "DwaveTranslator",
     "IbmTranslator",
     "LpTranslator",
+    "NumpyTranslator",
     "QctrlTranslator",
     "Qubo",
     "QuboTranslator",

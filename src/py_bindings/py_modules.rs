@@ -1,6 +1,6 @@
 use pyo3::{prelude::*, PyTypeCheck};
 
-use crate::core::{Comparator, Vtype, Sense};
+use crate::core::{Comparator, Sense, Vtype};
 
 use super::{
     py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_res, py_sample,
@@ -40,12 +40,13 @@ pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_translator::PyQuboTranslator>()?;
     m.add_class::<py_translator::PyBqmTranslator>()?;
     m.add_class::<py_translator::PyCqmTranslator>()?;
-    m.add_class::<py_translator::PyDimodTranslator>()?;
+    m.add_class::<py_translator::PyDwaveTranslator>()?;
     m.add_class::<py_translator::PyQctrlTranslator>()?;
     m.add_class::<py_translator::PyLpTranslator>()?;
     m.add_class::<py_translator::PyIbmTranslator>()?;
     m.add_class::<py_translator::PyZibTranslator>()?;
     m.add_class::<py_translator::PyAwsTranslator>()?;
+    m.add_class::<py_translator::PyNumpyTranslator>()?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?

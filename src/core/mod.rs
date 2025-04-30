@@ -12,6 +12,7 @@ pub mod operations;
 pub mod solution;
 pub mod term;
 mod traits;
+mod qubo;
 
 pub use common::MutRcConstraint;
 pub use common::MutRcConstraints;
@@ -59,6 +60,8 @@ pub use expression::ExpressionBaseAdjustment;
 pub use model::Model;
 pub use model::Sense;
 pub use model::DEFAULT_MODEL_NAME;
+
+pub use qubo::Qubo;
 
 pub use solution::OwnedResult;
 pub use solution::RcSolution;

@@ -11,10 +11,10 @@ use pyo3::{ffi::c_str, prelude::*};
     name = "DwaveTranslator",
     module = "aqmodels.translator"
 )]
-pub struct PyDimodTranslator(pub DwaveTranslator);
+pub struct PyDwaveTranslator(pub DwaveTranslator);
 
 #[pymethods]
-impl PyDimodTranslator {
+impl PyDwaveTranslator {
     #[staticmethod]
     #[pyo3(signature=(samples, counts, energy, timing=None, env=None))]
     fn translate(

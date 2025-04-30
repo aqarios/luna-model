@@ -7,11 +7,11 @@ use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 
-#[pyclass(unsendable, name = "AwsTranslator", module = "aqmodels.translator")]
-pub struct PyAwsTranslator(pub NpArrayTranslator);
+#[pyclass(unsendable, name = "NumpyTranslator", module = "aqmodels.translator")]
+pub struct PyNumpyTranslator {}
 
 #[pymethods]
-impl PyAwsTranslator {
+impl PyNumpyTranslator {
     #[staticmethod]
     fn translate(
         sol_agg: PyReadonlyArray2<f64>,
@@ -42,10 +42,11 @@ impl PyAwsTranslator {
     }
 
     #[staticmethod]
-    #[pyo3(signature = (aws_result, timing=None, env=None))]
+    #[pyo3(signature = (result, energies, timing=None, env=None))]
     fn to_aq(
         py: Python,
-        aws_result: PyObject,
+        result: PyObject,
+        energies: PyObject,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PyObject> {
@@ -56,11 +57,10 @@ impl PyAwsTranslator {
 import numpy as np
 from aqmodels._core import translator
 
-def extract(aws_result, timing, env):
+def extract(result, energies, timing, env):
     (sol_agg, indices, num_occ) = np.unique(
-        aws_result['samples'], return_index=True, return_counts=True, axis=0
+        result, return_index=True, return_counts=True, axis=0
     )
-    energies = aws_result['energies']
 
     sol_agg = sol_agg.astype(np.float64, order='C')
     indices = indices.astype(np.uint64, order='C')
@@ -77,7 +77,7 @@ def extract(aws_result, timing, env):
         )?
             .getattr("extract")?
             .into();
-        let args = (aws_result, timing, env);
+        let args = (result, energies, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)
     }
