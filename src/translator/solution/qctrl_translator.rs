@@ -5,7 +5,7 @@ use num::NumCast;
 use crate::{
     core::{
         expression::IndexConstraints, solution::sol::SampleCol, ConcreteSolution, MutRcEnvironment,
-        RcSolution, Solution, Timing, VarRef, Vtype,
+        RcSolution, Solution, Timing, Vtype,
     },
     errors::SolutionCreatorErr,
 };
@@ -16,7 +16,6 @@ impl QctrlTranslator {
     pub fn from_qctrl<S, E, Index>(
         sample: &[S],
         energy: E,
-        variable_list: Option<Vec<Rc<VarRef<Index>>>>,
         timing: Option<Timing>,
         env: MutRcEnvironment<Index>,
     ) -> Result<ConcreteSolution, SolutionCreatorErr>
@@ -35,22 +34,12 @@ impl QctrlTranslator {
             }
         }
         sol.timing = timing;
-        // used to determine the order of each assignment in the sample.
-        // if not specified by the parameter, we use the order in which the variables
-        // where created.
-        let index_list: Vec<usize> = variable_list
-            .and_then(|vl| Some(vl.iter().map(|e| e.id.into()).collect()))
-            .unwrap_or_else(|| Self::create_variable_list(env));
         // Map the sample to the correct order.
         let mut s: Vec<S> = vec![S::default(); sample.len()];
-        for (&idx, val) in index_list.iter().zip(sample) {
+        for (idx, val) in (0..env.borrow().varcount.into()).zip(sample) {
             s[idx] = *val;
         }
         sol.extend(s, 1, Some(energy))?;
         Ok(RcSolution(Rc::new(sol)))
-    }
-
-    fn create_variable_list<Index: IndexConstraints>(env: MutRcEnvironment<Index>) -> Vec<usize> {
-        (0..env.borrow().varcount.into()).collect()
     }
 }

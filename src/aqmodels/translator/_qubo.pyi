@@ -1,7 +1,6 @@
 from numpy.typing import NDArray
 
 from aqmodels import Model
-from aqmodels import Variable
 from aqmodels import Vtype
 
 class Qubo:
@@ -10,7 +9,7 @@ class Qubo:
     @property
     def matrix(self) -> NDArray: ...
     @property
-    def variable_names(self) -> list[Variable]: ...
+    def variable_names(self) -> list[str]: ...
     @property
     def name(self) -> str: ...
     @property

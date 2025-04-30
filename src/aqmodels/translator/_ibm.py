@@ -7,7 +7,7 @@ class IbmTranslator:
     Utility class for converting between an IBM solution and an AqSolution (ours).
 
 
-    `IbmTranslator` provides mehtods to:
+    `IbmTranslator` provides methods to:
     - Convert an IBM-style solution into our solution `Solution`.
 
     The conversions are especially required when interaction with external ibm solvers/samplers or libraries that operate on ibm-based problem solving/sampling.
