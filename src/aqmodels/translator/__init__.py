@@ -2,7 +2,7 @@
 # Do not edit manually.
 
 from ._zib import ZibTranslator
-from ._qubo import QuboTranslator, Qubo
+from ._qubo import Qubo, QuboTranslator
 from ._qctrl import QctrlTranslator
 from ._numpy import NumpyTranslator
 from ._lp import LpTranslator

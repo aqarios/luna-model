@@ -27,7 +27,7 @@ impl MatrixTranslator {
         Bias: BiasConstraints,
     {
         if let Some(names) = variable_names.as_ref() {
-            if names.len() == num_variables.into() {
+            if names.len() != num_variables.into() {
                 return Err(VarNamesErr(format!(
                     "Number of variable names must match the number of variables"
                 )))?;
