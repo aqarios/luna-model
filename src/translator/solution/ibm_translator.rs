@@ -1,9 +1,15 @@
-use std::{fmt::{Debug, Display}, rc::Rc};
+use std::{
+    fmt::{Debug, Display},
+    rc::Rc,
+};
 
 use num::NumCast;
 
 use crate::{
-    core::{expression::IndexConstraints, solution::sol::SampleCol, ConcreteSolution, MutRcEnvironment, RcSolution, Solution, Timing, VarRef, Vtype},
+    core::{
+        expression::IndexConstraints, solution::sol::SampleCol, ConcreteSolution, MutRcEnvironment,
+        RcSolution, Solution, Timing, VarRef, Vtype,
+    },
     errors::SolutionCreatorErr,
 };
 
@@ -34,10 +40,15 @@ impl IbmTranslator {
         }
         sol.timing = timing;
         // used to determine the order of each assignment in the sample.
-        let index_list: Vec<Vec<usize>> = orderings.iter().map(|l| l.iter().map(|e| e.id.into()).collect()).collect();
+        let index_list: Vec<Vec<usize>> = orderings
+            .iter()
+            .map(|l| l.iter().map(|e| e.id.into()).collect())
+            .collect();
         // For each sample:
         // Map the sample to the correct order.
-        for (((sample, indices), energy), occ) in samples.iter().zip(index_list).zip(energies).zip(counts) {
+        for (((sample, indices), energy), occ) in
+            samples.iter().zip(index_list).zip(energies).zip(counts)
+        {
             let mut s: Vec<S> = vec![S::default(); sample.len()];
             for (&idx, val) in indices.iter().zip(sample) {
                 s[idx] = *val;

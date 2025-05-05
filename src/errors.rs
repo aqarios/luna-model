@@ -132,10 +132,20 @@ impl Display for ModelVtypeErr {
 }
 
 #[derive(Debug, Clone)]
+pub struct VarNamesErr(pub String);
+impl Error for VarNamesErr {}
+impl Display for VarNamesErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", &self.0)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum MatrixTranslatorErr {
     Constrained(ModelNotUnconstrainedErr),
     HigherOrder(ModelNotQuadraticErr),
     Vtype(ModelVtypeErr),
+    VarNames(VarNamesErr),
 }
 impl Error for MatrixTranslatorErr {}
 impl Display for MatrixTranslatorErr {
@@ -144,6 +154,7 @@ impl Display for MatrixTranslatorErr {
             MatrixTranslatorErr::Constrained(err) => err.fmt(f),
             MatrixTranslatorErr::HigherOrder(err) => err.fmt(f),
             MatrixTranslatorErr::Vtype(err) => err.fmt(f),
+            MatrixTranslatorErr::VarNames(err) => err.fmt(f),
         }
     }
 }
@@ -162,6 +173,12 @@ impl From<ModelNotUnconstrainedErr> for MatrixTranslatorErr {
 impl From<ModelVtypeErr> for MatrixTranslatorErr {
     fn from(value: ModelVtypeErr) -> Self {
         Self::Vtype(value)
+    }
+}
+
+impl From<VarNamesErr> for MatrixTranslatorErr {
+    fn from(value: VarNamesErr) -> Self {
+        Self::VarNames(value)
     }
 }
 
@@ -272,4 +289,3 @@ impl From<IllegalConstraintNameErr> for TranslationErr {
         TranslationErr::new(value.0)
     }
 }
-

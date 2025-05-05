@@ -96,6 +96,17 @@ class ModelVtypeError(Exception):
 
 
 @export("top", "errors")
+class VariableNamesError(Exception):
+    """
+    Raised when the QuboTranslator tries to create a model from a QUBO matrix, but
+    the provided variable names are invalid.
+
+    If variable names are provided to the QuboTranslator, they have to be unique, and
+    the number of names has to match the number of variables in the QUBO matrix.
+    """
+
+
+@export("top", "errors")
 class SolutionCreationError(Exception):
     """
     Raised when something goes wrong during the creation of a solution.

@@ -88,7 +88,7 @@ impl PyExpression {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-            .into())
+        .into())
     }
 
     #[pyo3(signature=(compress=None, level=None))]
@@ -252,7 +252,8 @@ impl PyExpression {
             Ok(PyBool::new(py, result).to_owned().into())
         } else if let Ok(rhs) = other.extract::<f64>(py) {
             // Creates a new constraint.
-            let constraint = ConcreteConstraint::new(Rc::clone(&self.0), rhs, Comparator::Eq, None)?;
+            let constraint =
+                ConcreteConstraint::new(Rc::clone(&self.0), rhs, Comparator::Eq, None)?;
             // todo: this is depreated... change to the new way
             // but for now this works as intended
             #[allow(deprecated)]

@@ -15,7 +15,6 @@ where
     next_row: usize,
 }
 
-
 impl<Bias, AssignmentTypes> ResultIterator<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
@@ -25,7 +24,6 @@ where
         Self { sol, next_row: 0 }
     }
 }
-
 
 impl<Bias, AssignmentTypes> Iterator for ResultIterator<Bias, AssignmentTypes>
 where

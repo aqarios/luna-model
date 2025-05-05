@@ -121,12 +121,7 @@ impl SerSolution {
     /// Fills the serializable solution based on an instance of Solution.
     fn fill(mut self, solution: &ConcreteSolution) -> Self {
         let samples = solution.samples();
-        for ((i, sample), &occ) in solution
-            .samples()
-            .iter()
-            .enumerate()
-            .zip(&solution.counts)
-        {
+        for ((i, sample), &occ) in solution.samples().iter().enumerate().zip(&solution.counts) {
             // for (pos, a) in sample.iter().enumerate() {
             for a in sample.iter() {
                 match a {

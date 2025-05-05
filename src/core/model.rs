@@ -10,13 +10,13 @@ use super::{Environment, Expression, RcSolution, Sample, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::writer::ModelWriter;
+use crate::errors::VarNamesErr;
+#[cfg(feature = "py")]
+use pyo3::prelude::*;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
 use std::rc::Rc;
-
-#[cfg(feature = "py")]
-use pyo3::prelude::*;
 
 /// The default name for a model.
 pub static DEFAULT_MODEL_NAME: &str = "unnamed";
@@ -101,21 +101,29 @@ where
         num_variables: Index,
         offset: Option<Bias>,
         variable_names: Option<Vec<String>>,
-    ) -> Self {
+    ) -> Result<Self, VarNamesErr> {
         let model = Model::new(name);
-        // We also need to add the variables to the model...
-        (0..num_variables.into()).into_iter().for_each(|idx| {
+
+        for idx in (0..num_variables.into()).into_iter() {
             let var_name = match &variable_names {
-                None => &idx.to_string(),
-                Some(names) => &names[idx],
+                None => idx.to_string(),
+                Some(names) => names[idx].clone(),
             };
+            if model
+                .environment
+                .borrow()
+                .variables_lookup
+                .contains_key(&var_name)
+            {
+                return Err(VarNamesErr(format!("Duplicate variable name: {var_name}")));
+            }
             let _ = add_variable(
                 model.environment.clone(),
                 &var_name,
                 Some(&vtype.unwrap_or(Vtype::Binary)),
                 None,
             );
-        });
+        }
 
         model.objective.borrow_mut().resize(num_variables);
         model
@@ -125,7 +133,7 @@ where
         if let Some(off) = offset {
             model.objective.borrow_mut().add_offset(off);
         }
-        model
+        Ok(model)
     }
 
     pub fn evaluate_solution<AssignmentTypes>(

@@ -648,6 +648,9 @@ class DecodeError(Exception):
 class ModelVtypeError(Exception):
     def __str__(self) -> str: ...
 
+class VariableNamesError(Exception):
+    def __str__(self) -> str: ...
+
 class SolutionCreationError(Exception):
     def __str__(self) -> str: ...
 
@@ -704,6 +707,7 @@ __all__ = [
     "TranslationError",
     "Variable",
     "VariableExistsError",
+    "VariableNamesError",
     "VariableNotExistingError",
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",

@@ -48,37 +48,37 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Bounds, Variable
+from ._variable import Variable, Bounds, Vtype
 from ._timing import Timer, Timing
 from ._solution import Solution
 from ._sample import SamplesIterator, Sample, SampleIterator, Samples
-from ._result import ResultIterator, ResultView, Result
-from ._model import Model, Sense
+from ._result import Result, ResultView, ResultIterator
+from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    SampleIterator as __SampleIterator,
-    Sense as __Sense,
-    ResultView as __ResultView,
-    Samples as __Samples,
     Environment as __Environment,
     Sample as __Sample,
-    Expression as __Expression,
-    Bounds as __Bounds,
-    ResultIterator as __ResultIterator,
-    Model as __Model,
     Variable as __Variable,
-    Solution as __Solution,
-    Result as __Result,
-    Timer as __Timer,
+    ResultIterator as __ResultIterator,
     Vtype as __Vtype,
-    Comparator as __Comparator,
+    Result as __Result,
     Timing as __Timing,
-    SamplesIterator as __SamplesIterator,
     Constraints as __Constraints,
+    Bounds as __Bounds,
+    Sense as __Sense,
+    ResultView as __ResultView,
     Constraint as __Constraint,
+    Model as __Model,
+    Timer as __Timer,
+    Samples as __Samples,
+    SampleIterator as __SampleIterator,
+    Comparator as __Comparator,
+    Expression as __Expression,
+    SamplesIterator as __SamplesIterator,
+    Solution as __Solution,
 )
-from ._constraints import Constraints, Comparator, Constraint
+from ._constraints import Comparator, Constraint, Constraints
 from . import translator, errors
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
@@ -121,6 +121,7 @@ NoActiveEnvironmentFoundError = errors.NoActiveEnvironmentFoundError
 MultipleActiveEnvironmentsError = errors.MultipleActiveEnvironmentsError
 DecodeError = errors.DecodeError
 ModelVtypeError = errors.ModelVtypeError
+VariableNamesError = errors.VariableNamesError
 SolutionCreationError = errors.SolutionCreationError
 IllegalConstraintNameError = errors.IllegalConstraintNameError
 TranslationError = errors.TranslationError
@@ -168,6 +169,7 @@ __all__ = [
     "TranslationError",
     "Variable",
     "VariableExistsError",
+    "VariableNamesError",
     "VariableNotExistingError",
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",

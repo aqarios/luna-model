@@ -2,17 +2,17 @@ mod common;
 mod concrete;
 mod extras;
 mod model;
-mod writer;
 mod variable;
+mod writer;
 
 pub mod constraints;
 pub mod environment;
 pub mod expression;
 pub mod operations;
+mod qubo;
 pub mod solution;
 pub mod term;
 mod traits;
-mod qubo;
 
 pub use common::MutRcConstraint;
 pub use common::MutRcConstraints;

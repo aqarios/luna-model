@@ -13,7 +13,7 @@ fn linear_constraint_eq() {
     let expr = package(create_linear_expression(env, &biases, Vtype::Binary));
     let rhs = random_bias(seed);
 
-    let constr = Constraint::new(expr, rhs, Comparator::Eq, Some("constr".to_string()));
+    let constr = Constraint::new(expr, rhs, Comparator::Eq, Some("constr".to_string())).unwrap();
     let binding = constr.lhs.borrow();
     let lhs = binding.deref();
 
@@ -33,7 +33,7 @@ fn linear_constraint_le() {
     let expr = package(create_linear_expression(env, &biases, Vtype::Binary));
     let rhs = random_bias(seed);
 
-    let constr = Constraint::new(expr, rhs, Comparator::Le, None);
+    let constr = Constraint::new(expr, rhs, Comparator::Le, None).unwrap();
     let binding = constr.lhs.borrow();
     let lhs = binding.deref();
 
@@ -53,7 +53,7 @@ fn linear_constraint_ge() {
     let expr = package(create_linear_expression(env, &biases, Vtype::Binary));
     let rhs = random_bias(seed);
 
-    let constr = Constraint::new(expr, rhs, Comparator::Ge, Some("constr".to_string()));
+    let constr = Constraint::new(expr, rhs, Comparator::Ge, Some("constr".to_string())).unwrap();
     let binding = constr.lhs.borrow();
     let lhs = binding.deref();
 
@@ -76,14 +76,15 @@ fn linear_constraints() {
     ));
     let rhs = random_bias(seed);
 
-    let constr_a = Constraint::new(Rc::clone(&expr), rhs, Comparator::Le, None);
+    let constr_a = Constraint::new(Rc::clone(&expr), rhs, Comparator::Le, None).unwrap();
     let constr_b = Constraint::new(
         Rc::clone(&expr),
         rhs,
         Comparator::Eq,
         Some("constr".to_string()),
-    );
-    let constr_c = Constraint::new(Rc::clone(&expr), rhs, Comparator::Ge, None);
+    )
+    .unwrap();
+    let constr_c = Constraint::new(Rc::clone(&expr), rhs, Comparator::Ge, None).unwrap();
     let original_constraints = vec![&constr_a, &constr_b, &constr_c];
 
     let mut constrs = Constraints::default();

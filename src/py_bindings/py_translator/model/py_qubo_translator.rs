@@ -79,16 +79,16 @@ impl PyQuboTranslator {
         variable_names: Option<Vec<String>>,
         name: Option<String>,
         vtype: Option<Vtype>,
-    ) -> PyModel {
+    ) -> PyResult<PyModel> {
         let dense = qubo.as_slice().expect("failed to convert to slice");
-        PyModel(MatrixTranslator::model_from_dense(
+        Ok(PyModel(MatrixTranslator::model_from_dense(
             name,
             dense,
             qubo.shape()[0].into(),
             vtype,
             offset,
             variable_names,
-        ))
+        )?))
     }
 
     #[staticmethod]

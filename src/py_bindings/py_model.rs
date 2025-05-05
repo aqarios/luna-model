@@ -49,7 +49,7 @@ impl PyModel {
         Self(Model::new_with_env(name, env.0))
     }
 
-    #[pyo3(name="set_sense")]
+    #[pyo3(name = "set_sense")]
     fn set_sense_py(&mut self, sense: Sense) {
         self.set_sense(sense);
     }

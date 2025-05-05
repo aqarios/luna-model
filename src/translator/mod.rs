@@ -1,6 +1,6 @@
+pub mod base;
 pub mod model;
 pub mod solution;
-pub mod base;
 
 pub use model::BqmTranslator;
 pub use model::LPTranslator;

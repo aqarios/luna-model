@@ -1,16 +1,14 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
-    BqmTranslatorErr, DifferentEnvsErr, IndexOutOfBoundsErr, MatrixTranslatorErr,
-    ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelVtypeErr, SolutionCreatorErr,
-    TranslationErr, VariableCreationErr, VariableExistsErr, VariableNotExistingErr,
-    VariablesFromDifferentEnvsErr, IllegalConstraintNameErr,
+    BqmTranslatorErr, DifferentEnvsErr, IllegalConstraintNameErr, IndexOutOfBoundsErr,
+    MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelVtypeErr,
+    SolutionCreatorErr, TranslationErr, VarNamesErr, VariableCreationErr, VariableExistsErr,
+    VariableNotExistingErr, VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
 use pyo3::{create_exception, PyErr};
 use std::convert::From;
-
-
 
 create_exception!(aqmodels.errors, VariableOutOfRangeError, PyException);
 create_exception!(aqmodels.errors, VariableExistsError, PyException);
@@ -34,8 +32,13 @@ create_exception!(aqmodels.errors, IllegalConstraintNameError, PyException);
 
 create_exception!(aqmodels.errors, TranslationError, PyException);
 create_exception!(aqmodels.errors, ModelNotQuadraticError, TranslationError);
-create_exception!(aqmodels.errors, ModelNotUnconstrainedError, TranslationError);
+create_exception!(
+    aqmodels.errors,
+    ModelNotUnconstrainedError,
+    TranslationError
+);
 create_exception!(aqmodels.errors, ModelVtypeError, TranslationError);
+create_exception!(aqmodels.errors, VariableNamesError, TranslationError);
 
 impl From<VariableOutOfRangeErr> for PyErr {
     fn from(value: VariableOutOfRangeErr) -> Self {
@@ -103,12 +106,19 @@ impl From<IndexOutOfBoundsErr> for PyErr {
     }
 }
 
+impl From<VarNamesErr> for PyErr {
+    fn from(value: VarNamesErr) -> Self {
+        VariableNamesError::new_err(value.to_string())
+    }
+}
+
 impl From<MatrixTranslatorErr> for PyErr {
     fn from(err: MatrixTranslatorErr) -> Self {
         match err {
             MatrixTranslatorErr::Constrained(err) => err.into(),
             MatrixTranslatorErr::HigherOrder(err) => err.into(),
-            MatrixTranslatorErr::Vtype(err ) => err.into(),
+            MatrixTranslatorErr::Vtype(err) => err.into(),
+            MatrixTranslatorErr::VarNames(err) => err.into(),
         }
     }
 }

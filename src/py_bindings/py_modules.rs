@@ -78,6 +78,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         m.py().get_type::<pyexc::ModelVtypeError>(),
     )?;
     m.add(
+        pyexc::VariableNamesError::NAME,
+        m.py().get_type::<pyexc::VariableNamesError>(),
+    )?;
+    m.add(
         pyexc::MultipleActiveEnvironmentsError::NAME,
         m.py().get_type::<pyexc::MultipleActiveEnvironmentsError>(),
     )?;
