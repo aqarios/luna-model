@@ -114,6 +114,15 @@ class QuboTranslator:
         -------
         Model
             A symbolic model representing the given QUBO structure.
+
+        Raises
+        ------
+        TranslationError
+            Generally if the translation fails. Might be specified by the following
+            error.
+        VariableNamesError
+            If a list of variable names is provided but contains duplicates or has an
+            incorrect length.
         """
         return qubo, name, vtype
 
@@ -141,10 +150,13 @@ class QuboTranslator:
         ------
         TranslationError
             Generally if the translation fails. Might be specified by one of the
-            two following errors.
+            three following errors.
         ModelNotQuadraticError
             If the objective contains higher-order (non-quadratic) terms.
         ModelNotUnconstrainedError
             If the model contains any constraints.
+        ModelVtypeError
+            If the model contains different vtypes or vtypes other than binary and
+            spin.
         """
         return model

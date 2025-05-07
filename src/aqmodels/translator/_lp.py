@@ -36,14 +36,21 @@ class LpTranslator:
         ----------
         file: Path | String
             A LP file representing a symbolic model, either given as a
-            Path object to the LP file or it's contents as a string.
-            If you pass the path as a string it will be interpreted as a
+            Path object to the LP file or its contents as a string.
+            If you pass the path as a string, it will be interpreted as a
             model and thus fail to be parsed to a Model.
 
         Returns
         -------
         Model
             A symbolic model representing the given lp file structure.
+
+        Raises
+        ------
+        TypeError
+            If `file` is not of type `str` or `Path`.
+        TranslationError
+            If the translation fails for a different reason.
         """
         return file
 
@@ -64,5 +71,10 @@ class LpTranslator:
         -------
         str
             If no file to write to is given, i.e., the file is None.
+
+        Raises
+        ------
+        TranslationError
+            If the translation fails for some reason.
         """
         return model, file

@@ -22,9 +22,6 @@ class MultipleActiveEnvironmentsError(Exception):
 class DecodeError(Exception):
     def __str__(self) -> str: ...
 
-class ModelVtypeError(Exception):
-    def __str__(self) -> str: ...
-
 class VariableNamesError(Exception):
     def __str__(self) -> str: ...
 
@@ -38,6 +35,9 @@ class ModelNotQuadraticError(TranslationError):
     def __str__(self) -> str: ...
 
 class ModelNotUnconstrainedError(TranslationError):
+    def __str__(self) -> str: ...
+
+class ModelVtypeError(TranslationError):
     def __str__(self) -> str: ...
 
 class SolutionTranslationError(Exception):

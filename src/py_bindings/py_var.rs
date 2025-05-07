@@ -71,7 +71,7 @@ impl PyVariable {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = rhs.borrow().add(self.as_ref())?;
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyRuntimeError::new_err("unsupported type for operation"));
         }
         Ok(PyExpression::new(expr))
     }

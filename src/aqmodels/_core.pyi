@@ -645,7 +645,7 @@ class MultipleActiveEnvironmentsError(Exception):
 class DecodeError(Exception):
     def __str__(self) -> str: ...
 
-class ModelVtypeError(Exception):
+class ModelVtypeError(TranslationError):
     def __str__(self) -> str: ...
 
 class VariableNamesError(Exception):

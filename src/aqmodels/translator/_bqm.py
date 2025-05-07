@@ -69,6 +69,9 @@ class BqmTranslator:
 
         Raises
         ------
+        TranslationError
+            Generally if the translation fails. Might be specified by one of the
+            three following errors.
         ModelNotQuadraticError
             If the objective contains higher-order (non-quadratic) terms.
         ModelNotUnconstrainedError
