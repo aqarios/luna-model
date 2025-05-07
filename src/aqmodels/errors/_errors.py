@@ -107,37 +107,16 @@ class VariableNamesError(Exception):
 
 
 @export("top", "errors")
-class SolutionCreationError(Exception):
-    """
-    Raised when something goes wrong during the creation of a solution.
-
-    This may happen during the translation to an AqSolution from a different solution
-    format, e.g., when the samples have different lengths or the variable types are not
-    consistent with the model the solution is created for.
-    """
-
-
-@export("top", "errors")
-class IllegalConstraintNameError(Exception):
-    """
-    Raised when an illegal constraint name is used.
-
-    This may happen when a new constraint is added to the model that uses a disallowed
-    constraint name.
-    """
-
-
-@export("top", "errors")
 class TranslationError(Exception):
     """
-    Raised when an error occured during translation.
+    Raised when an error occurred during translation.
     """
 
 
 @export("top", "errors")
 class ModelNotQuadraticError(TranslationError):
     """
-    Raised when a model is expected to be quadratic, but contains higher-order terms.
+    Raised when a model is expected to be quadratic but contains higher-order terms.
 
     Some solvers or transformations require the model to have at most quadratic
     expressions. This error signals that unsupported terms were detected.
@@ -151,4 +130,41 @@ class ModelNotUnconstrainedError(TranslationError):
 
     Some solution methods may only work on unconstrained models, such as when
     transforming a symbolic model to a low-level format.
+    """
+
+
+@export("top", "errors")
+class SolutionTranslationError(Exception):
+    """
+    Raised when something goes wrong during the translation of a solution.
+
+    This may happen during the translation to an AqSolution from a different solution
+    format, e.g., when the samples have different lengths or the variable types are not
+    consistent with the model the solution is created for.
+    """
+
+
+@export("top", "errors")
+class SampleIncorrectLengthError(SolutionTranslationError):
+    """
+    Raised when a sample length is different from the number of model variables.
+
+    When an external solution format is translated to an AqSolution, the number of
+    variable assignments in the solution's sample has to exactly match the number of
+    variables in the model environment that is passed to the translator.
+    """
+
+
+@export("top", "errors")
+class SampleIncompatibleVtypeError(Exception):
+    """
+    Raised when a sample's assignments have variable types incompatible with the
+    model's variable types.
+
+    When an external solution format is translated to an AqSolution, the variable
+    assignments are tried to be converted into the model's corresponding variable type.
+    This may fail when the assignment types are incompatible.
+
+    Note that conversions with precision loss or truncation are admitted, but
+    conversions of variables outside the permitted range will fail.
     """

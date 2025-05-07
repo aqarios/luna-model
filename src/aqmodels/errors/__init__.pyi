@@ -33,12 +33,6 @@ class ModelVtypeError(Exception):
 class VariableNamesError(Exception):
     def __str__(self) -> str: ...
 
-class SolutionCreationError(Exception):
-    def __str__(self) -> str: ...
-
-class IllegalConstraintNameError(Exception):
-    def __str__(self) -> str: ...
-
 class TranslationError(Exception):
     def __str__(self) -> str: ...
 
@@ -48,16 +42,26 @@ class ModelNotQuadraticError(TranslationError):
 class ModelNotUnconstrainedError(TranslationError):
     def __str__(self) -> str: ...
 
+class SolutionTranslationError(Exception):
+    def __str__(self) -> str: ...
+
+class SampleIncorrectLengthError(SolutionTranslationError):
+    def __str__(self) -> str: ...
+
+class SampleIncompatibleVtypeError(SolutionTranslationError):
+    def __str__(self) -> str: ...
+
 __all__ = [
     "DecodeError",
     "DifferentEnvsError",
-    "IllegalConstraintNameError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
-    "SolutionCreationError",
+    "SampleIncompatibleVtypeError",
+    "SampleIncorrectLengthError",
+    "SolutionTranslationError",
     "TranslationError",
     "VariableExistsError",
     "VariableNamesError",

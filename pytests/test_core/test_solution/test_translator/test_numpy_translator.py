@@ -45,7 +45,7 @@ def result() -> tuple[NDArray, NDArray]:
 
 
 @pytest.mark.solution_translation
-def test_zib_translator(model: Model, result: tuple[NDArray, NDArray]):
+def test_numpy_translator(model: Model, result: tuple[NDArray, NDArray]):
     res, energies = result
     sol = NumpyTranslator.to_aq(res, energies, env=model.environment)
     (sol_agg, indices, num_counts) = np.unique(

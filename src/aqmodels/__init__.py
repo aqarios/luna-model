@@ -49,37 +49,37 @@ transformers
 """
 
 from ._variable import Bounds, Variable, Vtype
-from ._timing import Timer, Timing
+from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import SamplesIterator, Samples, Sample, SampleIterator
-from ._result import Result, ResultView, ResultIterator
+from ._sample import Samples, Sample, SamplesIterator, SampleIterator
+from ._result import ResultView, Result, ResultIterator
 from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Sense as __Sense,
-    Timing as __Timing,
-    ResultIterator as __ResultIterator,
-    Comparator as __Comparator,
-    Variable as __Variable,
-    Model as __Model,
-    Expression as __Expression,
-    SamplesIterator as __SamplesIterator,
-    ResultView as __ResultView,
-    SampleIterator as __SampleIterator,
-    Constraint as __Constraint,
-    Environment as __Environment,
     Bounds as __Bounds,
-    Timer as __Timer,
-    Samples as __Samples,
     Sample as __Sample,
-    Result as __Result,
-    Solution as __Solution,
-    Constraints as __Constraints,
+    Comparator as __Comparator,
+    Expression as __Expression,
+    Variable as __Variable,
     Vtype as __Vtype,
+    Result as __Result,
+    Timing as __Timing,
+    Environment as __Environment,
+    SamplesIterator as __SamplesIterator,
+    Constraint as __Constraint,
+    Model as __Model,
+    Timer as __Timer,
+    ResultIterator as __ResultIterator,
+    Samples as __Samples,
+    ResultView as __ResultView,
+    Sense as __Sense,
+    Constraints as __Constraints,
+    Solution as __Solution,
+    SampleIterator as __SampleIterator,
 )
-from ._constraints import Constraint, Comparator, Constraints
-from . import translator, errors
+from ._constraints import Comparator, Constraint, Constraints
+from . import errors, translator
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
@@ -122,11 +122,12 @@ MultipleActiveEnvironmentsError = errors.MultipleActiveEnvironmentsError
 DecodeError = errors.DecodeError
 ModelVtypeError = errors.ModelVtypeError
 VariableNamesError = errors.VariableNamesError
-SolutionCreationError = errors.SolutionCreationError
-IllegalConstraintNameError = errors.IllegalConstraintNameError
 TranslationError = errors.TranslationError
 ModelNotQuadraticError = errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
+SolutionTranslationError = errors.SolutionTranslationError
+SampleIncorrectLengthError = errors.SampleIncorrectLengthError
+SampleIncompatibleVtypeError = errors.SampleIncompatibleVtypeError
 
 __all__ = [
     "AwsTranslator",
@@ -142,7 +143,6 @@ __all__ = [
     "Environment",
     "Expression",
     "IbmTranslator",
-    "IllegalConstraintNameError",
     "LpTranslator",
     "Model",
     "ModelNotQuadraticError",
@@ -158,12 +158,14 @@ __all__ = [
     "ResultIterator",
     "ResultView",
     "Sample",
+    "SampleIncompatibleVtypeError",
+    "SampleIncorrectLengthError",
     "SampleIterator",
     "Samples",
     "SamplesIterator",
     "Sense",
     "Solution",
-    "SolutionCreationError",
+    "SolutionTranslationError",
     "Timer",
     "Timing",
     "TranslationError",

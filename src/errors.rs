@@ -239,48 +239,54 @@ impl Display for IndexOutOfBoundsErr {
 }
 
 #[derive(Debug, Clone)]
-pub struct SampleIncorrectLengthError;
+pub struct SampleIncorrectLengthErr;
 
-impl Error for SampleIncorrectLengthError {}
+impl Error for SampleIncorrectLengthErr {}
 
-impl Display for SampleIncorrectLengthError {
+impl Display for SampleIncorrectLengthErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
-            "Sample has a length different from the other samples in the solution"
+            "sample length is different from the number of variables in the environment"
         )
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct IncorrectVtypeError;
+pub struct SampleIncompatibleVtypeErr;
 
-impl Error for IncorrectVtypeError {}
+impl Error for SampleIncompatibleVtypeErr {}
 
-impl Display for IncorrectVtypeError {
+impl Display for SampleIncompatibleVtypeErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "Found variable assignment of incorrect vtype.")
+        write!(f, "sample contains variable assignments incompatible with the model's variable types.")
     }
 }
 
 #[derive(Debug)]
-pub struct SolutionCreatorErr(pub String);
+pub enum SolutionCreationErr {
+    SampleIncorrectLength(SampleIncorrectLengthErr),
+    SampleIncompatibleVtype(SampleIncompatibleVtypeErr),
+}
 
-impl Error for SolutionCreatorErr {}
+impl Error for SolutionCreationErr {}
 
-impl Display for SolutionCreatorErr {
+impl Display for SolutionCreationErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{}", self.0)
+        match self {
+            SolutionCreationErr::SampleIncorrectLength(err) => err.fmt(f),
+            SolutionCreationErr::SampleIncompatibleVtype(err) => err.fmt(f),
+        }
     }
 }
-impl From<SampleIncorrectLengthError> for SolutionCreatorErr {
-    fn from(value: SampleIncorrectLengthError) -> Self {
-        SolutionCreatorErr(value.to_string())
+impl From<SampleIncorrectLengthErr> for SolutionCreationErr {
+    fn from(value: SampleIncorrectLengthErr) -> Self {
+        SolutionCreationErr::SampleIncorrectLength(value)
     }
 }
-impl From<IncorrectVtypeError> for SolutionCreatorErr {
-    fn from(value: IncorrectVtypeError) -> Self {
-        SolutionCreatorErr(value.to_string())
+impl From<SampleIncompatibleVtypeErr> for SolutionCreationErr {
+    fn from(value: SampleIncompatibleVtypeErr) -> Self {
+        SolutionCreationErr::SampleIncompatibleVtype(value)
     }
 }
 

@@ -651,12 +651,6 @@ class ModelVtypeError(Exception):
 class VariableNamesError(Exception):
     def __str__(self) -> str: ...
 
-class SolutionCreationError(Exception):
-    def __str__(self) -> str: ...
-
-class IllegalConstraintNameError(Exception):
-    def __str__(self) -> str: ...
-
 class TranslationError(Exception):
     def __str__(self) -> str: ...
 
@@ -664,6 +658,15 @@ class ModelNotQuadraticError(TranslationError):
     def __str__(self) -> str: ...
 
 class ModelNotUnconstrainedError(TranslationError):
+    def __str__(self) -> str: ...
+
+class SolutionTranslationError(Exception):
+    def __str__(self) -> str: ...
+
+class SampleIncorrectLengthError(SolutionTranslationError):
+    def __str__(self) -> str: ...
+
+class SampleIncompatibleVtypeError(SolutionTranslationError):
     def __str__(self) -> str: ...
 
 __all__ = [
@@ -680,7 +683,6 @@ __all__ = [
     "Environment",
     "Expression",
     "IbmTranslator",
-    "IllegalConstraintNameError",
     "LpTranslator",
     "Model",
     "ModelNotQuadraticError",
@@ -696,12 +698,14 @@ __all__ = [
     "ResultIterator",
     "ResultView",
     "Sample",
+    "SampleIncompatibleVtypeError",
+    "SampleIncorrectLengthError",
     "SampleIterator",
     "Samples",
     "SamplesIterator",
     "Sense",
     "Solution",
-    "SolutionCreationError",
+    "SolutionTranslationError",
     "Timer",
     "Timing",
     "TranslationError",

@@ -106,8 +106,16 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         m.py().get_type::<pyexc::VariablesFromDifferentEnvsError>(),
     )?;
     m.add(
-        pyexc::SolutionCreationError::NAME,
-        m.py().get_type::<pyexc::SolutionCreationError>(),
+        pyexc::SolutionTranslationError::NAME,
+        m.py().get_type::<pyexc::SolutionTranslationError>(),
+    )?;
+    m.add(
+        pyexc::SampleIncorrectLengthError::NAME,
+        m.py().get_type::<pyexc::SampleIncorrectLengthError>(),
+    )?;
+    m.add(
+        pyexc::SampleIncompatibleVtypeError::NAME,
+        m.py().get_type::<pyexc::SampleIncompatibleVtypeError>(),
     )?;
     m.add(
         pyexc::IllegalConstraintNameError::NAME,

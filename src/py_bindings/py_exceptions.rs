@@ -2,8 +2,9 @@ use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
     BqmTranslatorErr, DifferentEnvsErr, IllegalConstraintNameErr, IndexOutOfBoundsErr,
     MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelVtypeErr,
-    SolutionCreatorErr, TranslationErr, VarNamesErr, VariableCreationErr, VariableExistsErr,
-    VariableNotExistingErr, VariablesFromDifferentEnvsErr,
+    SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr, TranslationErr,
+    VarNamesErr, VariableCreationErr, VariableExistsErr, VariableNotExistingErr,
+    VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
@@ -27,7 +28,6 @@ create_exception!(
 );
 
 create_exception!(aqmodels.errors, DecodeError, PyException);
-create_exception!(aqmodels.errors, SolutionCreationError, PyException);
 create_exception!(aqmodels.errors, IllegalConstraintNameError, PyException);
 
 create_exception!(aqmodels.errors, TranslationError, PyException);
@@ -39,6 +39,18 @@ create_exception!(
 );
 create_exception!(aqmodels.errors, ModelVtypeError, TranslationError);
 create_exception!(aqmodels.errors, VariableNamesError, TranslationError);
+
+create_exception!(aqmodels.errors, SolutionTranslationError, PyException);
+create_exception!(
+    aqmodels.errors,
+    SampleIncorrectLengthError,
+    SolutionTranslationError
+);
+create_exception!(
+    aqmodels.error,
+    SampleIncompatibleVtypeError,
+    SolutionTranslationError
+);
 
 impl From<VariableOutOfRangeErr> for PyErr {
     fn from(value: VariableOutOfRangeErr) -> Self {
@@ -133,9 +145,24 @@ impl From<BqmTranslatorErr> for PyErr {
     }
 }
 
-impl From<SolutionCreatorErr> for PyErr {
-    fn from(value: SolutionCreatorErr) -> Self {
-        SolutionCreationError::new_err(value.to_string())
+impl From<SolutionCreationErr> for PyErr {
+    fn from(value: SolutionCreationErr) -> Self {
+        match value {
+            SolutionCreationErr::SampleIncorrectLength(err) => err.into(),
+            SolutionCreationErr::SampleIncompatibleVtype(err) => err.into(),
+        }
+    }
+}
+
+impl From<SampleIncorrectLengthErr> for PyErr {
+    fn from(value: SampleIncorrectLengthErr) -> Self {
+        SampleIncorrectLengthError::new_err(value.to_string())
+    }
+}
+
+impl From<SampleIncompatibleVtypeErr> for PyErr {
+    fn from(value: SampleIncompatibleVtypeErr) -> Self {
+        SampleIncompatibleVtypeError::new_err(value.to_string())
     }
 }
 

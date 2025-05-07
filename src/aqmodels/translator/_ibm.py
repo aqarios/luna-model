@@ -36,5 +36,19 @@ class IbmTranslator:
             The timing object produced while generating the result.
         env : Environment, optional
             The environment of the model for which the result is produced.
+
+        Raises
+        ------
+        NoActiveEnvironmentFoundError
+            If no environment is passed to the method or available from the context.
+        SolutionTranslationError
+            Generally if the solution translation fails. Might be specified by one of the
+                two following errors.
+        SampleIncorrectLengthError
+            If a solution's sample has a different number of variables than the model
+            environment passed to the translator.
+        ModelVtypeError
+            If the result's variable types are incompatible with the model environment's
+            variable types.
         """
         return result, quadratic_program, timing, env

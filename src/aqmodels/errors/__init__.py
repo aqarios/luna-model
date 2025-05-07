@@ -2,21 +2,22 @@
 # Do not edit manually.
 
 from ._errors import (
-    SolutionCreationError,
-    VariableNotExistingError,
-    TranslationError,
-    NoActiveEnvironmentFoundError,
-    VariablesFromDifferentEnvsError,
-    VariableOutOfRangeError,
     DifferentEnvsError,
-    MultipleActiveEnvironmentsError,
-    IllegalConstraintNameError,
     VariableExistsError,
+    SampleIncorrectLengthError,
+    ModelNotQuadraticError,
+    NoActiveEnvironmentFoundError,
+    ModelVtypeError,
     VariableNamesError,
     ModelNotUnconstrainedError,
+    SolutionTranslationError,
+    SampleIncompatibleVtypeError,
+    MultipleActiveEnvironmentsError,
+    VariableNotExistingError,
     DecodeError,
-    ModelVtypeError,
-    ModelNotQuadraticError,
+    TranslationError,
+    VariableOutOfRangeError,
+    VariablesFromDifferentEnvsError,
 )
 from .._core import errors as __errors
 
@@ -30,22 +31,24 @@ MultipleActiveEnvironmentsError = __errors.MultipleActiveEnvironmentsError  # no
 DecodeError = __errors.DecodeError  # noqa: F811
 ModelVtypeError = __errors.ModelVtypeError  # noqa: F811
 VariableNamesError = __errors.VariableNamesError  # noqa: F811
-SolutionCreationError = __errors.SolutionCreationError  # noqa: F811
-IllegalConstraintNameError = __errors.IllegalConstraintNameError  # noqa: F811
 TranslationError = __errors.TranslationError  # noqa: F811
 ModelNotQuadraticError = __errors.ModelNotQuadraticError  # noqa: F811
 ModelNotUnconstrainedError = __errors.ModelNotUnconstrainedError  # noqa: F811
+SolutionTranslationError = __errors.SolutionTranslationError  # noqa: F811
+SampleIncorrectLengthError = __errors.SampleIncorrectLengthError  # noqa: F811
+SampleIncompatibleVtypeError = __errors.SampleIncompatibleVtypeError  # noqa: F811
 
 __all__ = [
     "DecodeError",
     "DifferentEnvsError",
-    "IllegalConstraintNameError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
-    "SolutionCreationError",
+    "SampleIncompatibleVtypeError",
+    "SampleIncorrectLengthError",
+    "SolutionTranslationError",
     "TranslationError",
     "VariableExistsError",
     "VariableNamesError",
