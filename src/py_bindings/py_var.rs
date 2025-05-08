@@ -15,7 +15,7 @@ use crate::core::{
     ConcreteVarRef, Expression, Vtype,
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::exceptions::PyRuntimeError;
+use pyo3::exceptions::{PyRuntimeError, PyTypeError};
 use pyo3::prelude::*;
 
 #[pyclass(unsendable, subclass, name = "Variable", module = "aqmodels")]
@@ -71,7 +71,7 @@ impl PyVariable {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = rhs.borrow().add(self.as_ref())?;
         } else {
-            return Err(PyRuntimeError::new_err("unsupported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
         Ok(PyExpression::new(expr))
     }
@@ -87,19 +87,20 @@ impl PyVariable {
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = self.sub(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            expr = (rhs.borrow().mul(-1.0)).add(self.as_ref())?;
+            expr = rhs.borrow().mul(-1.0).add(self.as_ref())?;
             // rhs.borrow()
             //     .add(self.as_ref())
             //     .map(|e| PyExpression::new(e))
             //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
 
         Ok(PyExpression::new(expr))
     }
 
     fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        // TODO (0.1.2): check whether we want to support Variable and Expression as `other`
         if let Ok(rhs) = other.extract::<f64>(py) {
             // scalar - variable
             Ok(PyExpression::new(self.rsub(rhs)))
@@ -113,7 +114,7 @@ impl PyVariable {
         //         .map(|e| PyExpression::new(e))
         //         .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            Err(PyTypeError::new_err("unsupported type for operation"))
         }
     }
 
@@ -126,7 +127,7 @@ impl PyVariable {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = rhs.borrow().mul(self.as_ref())?;
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
 
         Ok(PyExpression::new(expr))

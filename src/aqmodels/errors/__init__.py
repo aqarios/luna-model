@@ -2,27 +2,29 @@
 # Do not edit manually.
 
 from ._errors import (
-    VariableNotExistingError,
-    ModelVtypeError,
-    VariableExistsError,
-    MultipleActiveEnvironmentsError,
-    TranslationError,
-    VariableNamesError,
-    SampleIncompatibleVtypeError,
-    VariablesFromDifferentEnvsError,
-    ModelNotUnconstrainedError,
-    SampleIncorrectLengthError,
-    VariableOutOfRangeError,
-    DecodeError,
-    NoActiveEnvironmentFoundError,
-    ModelNotQuadraticError,
     SolutionTranslationError,
+    ModelNotQuadraticError,
+    ModelVtypeError,
+    SampleIncorrectLengthError,
     DifferentEnvsError,
+    TranslationError,
+    DecodeError,
+    SampleIncompatibleVtypeError,
+    VariableNotExistingError,
+    NoActiveEnvironmentFoundError,
+    VariableExistsError,
+    VariableOutOfRangeError,
+    MultipleActiveEnvironmentsError,
+    ModelNotUnconstrainedError,
+    VariablesFromDifferentEnvsError,
+    VariableCreationError,
+    VariableNamesError,
 )
 from .._core import errors as __errors
 
 VariableOutOfRangeError = __errors.VariableOutOfRangeError  # noqa: F811
 VariableExistsError = __errors.VariableExistsError  # noqa: F811
+VariableCreationError = __errors.VariableCreationError  # noqa: F811
 VariableNotExistingError = __errors.VariableNotExistingError  # noqa: F811
 VariablesFromDifferentEnvsError = __errors.VariablesFromDifferentEnvsError  # noqa: F811
 DifferentEnvsError = __errors.DifferentEnvsError  # noqa: F811
@@ -50,6 +52,7 @@ __all__ = [
     "SampleIncorrectLengthError",
     "SolutionTranslationError",
     "TranslationError",
+    "VariableCreationError",
     "VariableExistsError",
     "VariableNamesError",
     "VariableNotExistingError",

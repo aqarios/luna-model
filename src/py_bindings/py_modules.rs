@@ -9,7 +9,7 @@ use super::{
 
 // #[pymodule]
 pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // Add core components not as wrappers, required for e.g. enums
+    // Add core components not as wrappers, required for, e.g., enums
     m.add_class::<Vtype>()?;
     m.add_class::<Comparator>()?;
     m.add_class::<Sense>()?;
@@ -100,6 +100,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add(
         pyexc::VariableOutOfRangeError::NAME,
         m.py().get_type::<pyexc::VariableOutOfRangeError>(),
+    )?;
+    m.add(
+        pyexc::VariableCreationError::NAME,
+        m.py().get_type::<pyexc::VariableCreationError>(),
     )?;
     m.add(
         pyexc::VariablesFromDifferentEnvsError::NAME,

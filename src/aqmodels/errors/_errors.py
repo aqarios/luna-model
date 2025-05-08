@@ -28,6 +28,15 @@ class VariableExistsError(Exception):
 
 
 @export("top", "errors")
+class VariableCreationError(Exception):
+    """
+    Raised when an error occurs during the creation of a variable.
+
+    For example, binary and spin variables cannot be created with bounds.
+    """
+
+
+@export("top", "errors")
 class VariableNotExistingError(Exception):
     """
     Raised when trying to get a variable with a name that does not exist.

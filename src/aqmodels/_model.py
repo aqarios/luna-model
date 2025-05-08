@@ -1,4 +1,5 @@
 from enum import Enum
+
 from aqmodels._api_utils import export, dispatched
 
 
@@ -7,7 +8,7 @@ class Sense(Enum):
     """
     Enumeration of optimization senses supported by the optimization system.
 
-    This enum defines the type of a optimization used for a model. The type influences
+    This enum defines the type of optimization used for a model. The type influences
     the domain and behavior of the model during optimization.
     """
 
@@ -117,7 +118,7 @@ class Model:
         Returns
         -------
         Solution
-            A new solution object with filled out information.
+            A new solution object with filled-out information.
         """
         return solution
 
@@ -243,3 +244,18 @@ class Model:
     def deserialize(data):
         """Alias for `decode()`."""
         return data
+
+    @dispatched
+    def __eq__(self, other):
+        """
+        Check whether this model is equal to ``other``.
+
+        Parameters
+        ----------
+        other : Model
+
+        Returns
+        -------
+        bool
+        """
+        return other

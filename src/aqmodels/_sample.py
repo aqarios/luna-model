@@ -60,8 +60,8 @@ class SampleIterator:
 @export
 class Samples:
     """
-    A samples object is simply the set that contains every different sample of a
-    solution.
+    A samples object is simply a set-like object that contains every different sample
+    of a solution.
 
     The ``Samples`` class is readonly as it's merely a helper class for looking into a
     solution's different samples.
@@ -78,19 +78,49 @@ class Samples:
     """
 
     @dispatched
-    def __str__(self):  # type: ignore
+    def __str__(self):
         return
 
     @dispatched
     def __getitem__(self, item):
+        """
+        Extract a sample or variable assignment from the ``Samples`` object.
+        If ``item`` is an int, returns the sample in this row. If ``item`` is a tuple
+        of ints `(i, j)`, returns the variable assignment in row `i` and column `j`.
+
+        Returns
+        -------
+        Sample or int or float
+
+        Raises
+        ------
+        TypeError
+            If ``item`` has the wrong type.
+        IndexError
+            If the row or column index is out of bounds for the variable environment.
+        """
         return item
 
     @dispatched
     def __len__(self):
+        """
+        Get the number of samples present in this sample set.
+
+        Returns
+        -------
+        int
+        """
         return
 
     @dispatched
     def __iter__(self):
+        """
+        Iterate over all samples of this sample set.
+
+        Returns
+        -------
+        SamplesIterator
+        """
         return
 
     @dispatched
@@ -136,12 +166,40 @@ class Sample:
 
     @dispatched
     def __getitem__(self, item):
+        """
+        Extract a variable assignment from the ``Sample`` object.
+
+        Returns
+        -------
+        Sample or int or float
+
+        Raises
+        ------
+        TypeError
+            If ``item`` has the wrong type.
+        IndexError
+            If the row or column index is out of bounds for the variable environment.
+        """
         return item
 
     @dispatched
     def __len__(self):
+        """
+        Get the number of variables present in this sample.
+
+        Returns
+        -------
+        int
+        """
         return
 
     @dispatched
     def __iter__(self):
+        """
+        Iterate over all variable assignments of this sample.
+
+        Returns
+        -------
+        SampleIterator
+        """
         return

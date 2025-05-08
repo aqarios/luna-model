@@ -41,14 +41,28 @@ class Timing:
     @property
     @dispatched
     def total(self):
-        """The difference of the end and start time."""
+        """
+        The difference of the end and start time.
+
+        Raises
+        ------
+        RuntimeError
+            If total cannot be computed due to an inconsistent start or end time.
+        """
         return
 
     @property
     @dispatched
     def total_seconds(self):
-        """The total time in seconds an algorithm needed to run. Computed as the
-        difference of end and start time."""
+        """
+        The total time in seconds an algorithm needed to run. Computed as the
+        difference of end and start time.
+
+        Raises
+        ------
+        RuntimeError
+            If total_seconds cannot be computed due to an inconsistent start or end time.
+        """
         return
 
     @property
@@ -115,7 +129,7 @@ class Timer:
         Returns
         -------
         Timer
-            The timer
+            The timer.
         """
         return
 

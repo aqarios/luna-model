@@ -1,4 +1,5 @@
 from enum import Enum
+
 from aqmodels._api_utils import dispatched, export
 
 
@@ -151,6 +152,8 @@ class Variable:
             If no active environment is found and none is explicitly provided.
         VariableExistsError
             If a variable with the same name already exists in the environment.
+        VariableCreationError
+            If the variable is tried to be created with incompatible bounds.
         """
         return name, env, vtype, bounds
 
@@ -172,7 +175,7 @@ class Variable:
         ------
         VariablesFromDifferentEnvsError
             If the operands belong to different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -193,7 +196,7 @@ class Variable:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -216,7 +219,7 @@ class Variable:
         ------
         VariablesFromDifferentEnvsError
             If the operands belong to different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -237,8 +240,8 @@ class Variable:
 
         Raises
         ------
-        RuntimeError
-            Always raised (unsupported operation).
+        TypeError
+            If ``other`` is not a scalar.
         """
         return other
 
@@ -260,7 +263,7 @@ class Variable:
         ------
         VariablesFromDifferentEnvsError
             If the operands belong to different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -281,10 +284,40 @@ class Variable:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
+
+    def __pow__(self, other):
+        """
+        Raise the variable to the power specified by `other`.
+
+        Parameters
+        ----------
+        other : int
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        RuntimeError
+            If the param ``modulo`` usually supported for ``__pow__`` is specified.
+        """
+        return other
+
+    @dispatched
+    def __neg__(self):
+        """
+        Negate the variable, i.e., multiply it by `-1`.
+
+        Returns
+        -------
+        Expression
+        """
+        return
 
     @dispatched
     def __eq__(self, value):
@@ -302,7 +335,7 @@ class Variable:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return value
@@ -323,7 +356,7 @@ class Variable:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return value
@@ -344,7 +377,7 @@ class Variable:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return value

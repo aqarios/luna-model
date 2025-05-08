@@ -14,6 +14,7 @@ use std::convert::From;
 create_exception!(aqmodels.errors, VariableOutOfRangeError, PyException);
 create_exception!(aqmodels.errors, VariableExistsError, PyException);
 create_exception!(aqmodels.errors, VariableNotExistingError, PyException);
+create_exception!(aqmodels.errors, VariableCreationError, PyException);
 create_exception!(
     aqmodels.errors,
     VariablesFromDifferentEnvsError,
@@ -72,7 +73,7 @@ impl From<VariableNotExistingErr> for PyErr {
 
 impl From<VariableCreationErr> for PyErr {
     fn from(err: VariableCreationErr) -> PyErr {
-        VariableExistsError::new_err(err.to_string())
+        VariableCreationError::new_err(err.to_string())
     }
 }
 

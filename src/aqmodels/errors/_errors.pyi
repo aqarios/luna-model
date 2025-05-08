@@ -7,6 +7,9 @@ class VariableExistsError(Exception):
 class VariableNotExistingError(Exception):
     def __str__(self) -> str: ...
 
+class VariableCreationError(Exception):
+    def __str__(self) -> str: ...
+
 class VariablesFromDifferentEnvsError(Exception):
     def __str__(self) -> str: ...
 

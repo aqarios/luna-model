@@ -1,12 +1,12 @@
 from enum import Enum
 from typing import overload
 
-from aqmodels import Solution
-from aqmodels import Sample
-from aqmodels import Result
 from aqmodels import Constraints
 from aqmodels import Environment
 from aqmodels import Expression
+from aqmodels import Result
+from aqmodels import Sample
+from aqmodels import Solution
 
 class Sense(Enum):
     Min = ...
@@ -18,6 +18,7 @@ class Model:
     @overload
     def __init__(self, name: str) -> None: ...
     @overload
+    # TODO (0.1.2): don't we need a default for env? Not too familiar with pyi overloads tbh
     def __init__(self, env: Environment) -> None: ...
     @overload
     def __init__(
@@ -63,3 +64,6 @@ class Model:
     def deserialize(data: bytes) -> Model: ...
     @staticmethod
     def decode(data: bytes) -> Model: ...
+    def __eq__(self, other: Model) -> bool: ...
+    def __str__(self) -> str: ...
+    def __repr__(self) -> str: ...

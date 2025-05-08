@@ -9,6 +9,9 @@ class VariableOutOfRangeError(Exception):
 class VariableExistsError(Exception):
     def __str__(self) -> str: ...
 
+class VariableCreationError(Exception):
+    def __str__(self) -> str: ...
+
 class VariableNotExistingError(Exception):
     def __str__(self) -> str: ...
 
@@ -63,6 +66,7 @@ __all__ = [
     "SampleIncorrectLengthError",
     "SolutionTranslationError",
     "TranslationError",
+    "VariableCreationError",
     "VariableExistsError",
     "VariableNamesError",
     "VariableNotExistingError",

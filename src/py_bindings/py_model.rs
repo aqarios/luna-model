@@ -60,8 +60,8 @@ impl PyModel {
     }
 
     #[setter]
-    fn set_objective(&mut self, other: &PyExpression) {
-        self.objective = other.0.clone()
+    fn set_objective(&mut self, value: &PyExpression) {
+        self.objective = value.0.clone()
     }
 
     #[getter]
@@ -70,10 +70,11 @@ impl PyModel {
     }
 
     #[setter]
-    fn set_constraints(&mut self, other: &PyConstraints) {
-        self.constraints = other.0.clone()
+    fn set_constraints(&mut self, value: &PyConstraints) {
+        self.constraints = value.0.clone()
     }
 
+    // TODO (0.1.2): why not define as property?
     fn num_constraints(&self) -> usize {
         self.constraints.borrow().len()
     }

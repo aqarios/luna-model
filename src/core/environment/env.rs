@@ -113,7 +113,7 @@ pub fn get_vref_by_name<Index: IndexConstraints>(
     env: MutRcEnvironment<Index>,
 ) -> Result<VarRef<Index>, VariableNotExistingErr> {
     let index = env.borrow().get(name)?;
-    // As we don't store the VarRefs here we need to create a new one based on the info
+    // As we don't store the VarRefs here, we need to create a new one based on the info
     // we have.
     Ok(VarRef::new(index, Rc::clone(&env)))
 }

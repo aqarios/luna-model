@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from aqmodels._api_utils import export, dispatched
 
 
@@ -286,7 +287,7 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -306,7 +307,7 @@ class Expression:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -328,7 +329,7 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -348,7 +349,7 @@ class Expression:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -370,7 +371,7 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -390,7 +391,7 @@ class Expression:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -412,7 +413,29 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        RuntimeError
+        TypeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __isub__(self, other):
+        """
+        In-place subtraction.
+
+        Parameters
+        ----------
+        other : Expression, Variable, int, or float
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        VariablesFromDifferentEnvsError
+            If operands are from different environments.
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -434,7 +457,7 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -442,27 +465,46 @@ class Expression:
     @dispatched
     def __eq__(self, other):
         """
-        Create a constraint: expression == scalar.
+        Compare to a different expression or create a constraint ``expression == scalar``
 
         Parameters
         ----------
-        other : float or int
+        other : Expression or float or int
 
         Returns
         -------
-        Constraint
+        bool or Constraint
+
+        Raises
+        ------
+        TypeError
+            If the right-hand side is not an Expression or scalar.
+        """
+        return other
+
+    def __pow__(self, other):
+        """
+        Raise the expression to the power specified by `other`.
+
+        Parameters
+        ----------
+        other : int
+
+        Returns
+        -------
+        Expression
 
         Raises
         ------
         RuntimeError
-            If the right-hand side is not a scalar.
+            If the param ``modulo`` usually supported for ``__pow__`` is specified.
         """
         return other
 
     @dispatched
     def __le__(self, other):
         """
-        Create a constraint: expression <= scalar.
+        Create a constraint ``expression <= scalar``.
 
         Parameters
         ----------
@@ -474,7 +516,7 @@ class Expression:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the right-hand side is not a scalar.
         """
         return other
@@ -494,7 +536,33 @@ class Expression:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the right-hand side is not a scalar.
+        """
+        return other
+
+    @dispatched
+    def __neg__(self):
+        """
+        Negate the expression, i.e., multiply it by `-1`.
+
+        Returns
+        -------
+        Expression
+        """
+        return
+
+    @dispatched
+    def __ne__(self, other: Expression):
+        """
+        Check whether this expression is different from ``other``.
+
+        Parameters
+        ----------
+        other : Expression
+
+        Returns
+        -------
+        bool
         """
         return other

@@ -19,6 +19,7 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
+use pyo3::exceptions::PyTypeError;
 use pyo3::{
     exceptions::PyRuntimeError,
     prelude::*,
@@ -52,25 +53,26 @@ impl PyExpression {
         Ok(PyExpression::new(Expression::empty(env.0)))
     }
 
-    fn get_linear(&self, var: &PyVariable) -> PyResult<f64> {
-        Ok(self.borrow().linear(var.id)?)
-    }
-
     fn get_offset(&self) -> f64 {
         self.borrow().offset()
+    }
+
+    fn get_linear(&self, variable: &PyVariable) -> PyResult<f64> {
+        Ok(self.borrow().linear(variable.id)?)
     }
 
     fn get_quadratic(&self, u: &PyVariable, v: &PyVariable) -> PyResult<f64> {
         Ok(self.borrow().quadratic(u.id, v.id)?)
     }
 
-    fn get_higher_order(&self, vars: Vec<PyVariable>) -> PyResult<f64> {
+    fn get_higher_order(&self, variables: Vec<PyVariable>) -> PyResult<f64> {
         // todo: optimize the iter away...
         Ok(self
             .borrow()
-            .higher_order(&vars.iter().map(|v| v.id).collect())?)
+            .higher_order(&variables.iter().map(|v| v.id).collect())?)
     }
 
+    // TODO (0.1.2): why not define a property instead?
     #[pyo3(name = "num_variables")]
     fn get_num_variables(&self) -> usize {
         self.borrow().num_variables()
@@ -118,6 +120,7 @@ impl PyExpression {
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         let expr: ConcreteExpression;
+        // TODO (0.1.2): will this extract a float when an int is passed in python?
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.borrow().add(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
@@ -125,7 +128,7 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = self.borrow().add(rhs.borrow().deref())?;
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
 
         Ok(PyExpression::new(expr))
@@ -144,13 +147,14 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = self.borrow().sub(rhs.borrow().deref())?;
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
 
         Ok(PyExpression::new(expr))
     }
 
     fn __rsub__(&self, _py: Python, _other: PyObject) -> PyResult<PyExpression> {
+        // TODO (0.1.2): implement or remove ^^
         todo!()
         // self.__sub__(py, other)
     }
@@ -164,7 +168,7 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = self.borrow().mul(rhs.borrow().deref())?;
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
         Ok(PyExpression::new(expr))
     }
@@ -174,6 +178,7 @@ impl PyExpression {
     }
 
     // In place assignment
+    // TODO (0.1.2): why is the return type different from the .pyi file?
     fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             self.borrow_mut().add_assign(rhs)
@@ -182,7 +187,7 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow_mut().add_assign(rhs.borrow().deref())?
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
 
         Ok(())
@@ -196,7 +201,7 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow_mut().sub_assign(rhs.borrow().deref())?
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
 
         Ok(())
@@ -210,7 +215,7 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow_mut().mul_assign(rhs.borrow().deref())?
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
         Ok(())
     }
@@ -244,7 +249,7 @@ impl PyExpression {
     //     todo!()
     // }
 
-    // Comparison
+    // Comparison / constraint creation
     fn __eq__(&self, py: Python, other: PyObject) -> PyResult<PyObject> {
         if let Ok(rhs) = other.extract::<PyExpression>(py) {
             // Actual equality check.
@@ -254,12 +259,12 @@ impl PyExpression {
             // Creates a new constraint.
             let constraint =
                 ConcreteConstraint::new(Rc::clone(&self.0), rhs, Comparator::Eq, None)?;
-            // todo: this is depreated... change to the new way
+            // todo: this is deprecated... change to the new way
             // but for now this works as intended
             #[allow(deprecated)]
             Ok(PyConstraint::new(constraint).into_py(py))
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            Err(PyTypeError::new_err("unsupported type for operation"))
         }
     }
 

@@ -259,7 +259,10 @@ impl Error for SampleIncompatibleVtypeErr {}
 
 impl Display for SampleIncompatibleVtypeErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "sample contains variable assignments incompatible with the model's variable types.")
+        write!(
+            f,
+            "sample contains variable assignments incompatible with the model's variable types."
+        )
     }
 }
 

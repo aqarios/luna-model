@@ -4,9 +4,6 @@ use std::{
     rc::Rc,
 };
 
-use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
-
 use crate::{
     core::{
         expression::ExpressionBaseCreation, Comparator, ConcreteConstraint, ConcreteConstraints,
@@ -16,6 +13,9 @@ use crate::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
+use derive_more::{Deref, DerefMut};
+use pyo3::exceptions::PyTypeError;
+use pyo3::{prelude::*, types::PyBytes};
 
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 
@@ -52,7 +52,7 @@ impl PyConstraint {
                 None,
             )?))
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            Err(PyTypeError::new_err("unsupported type for operation"))
         }
     }
 }
@@ -81,7 +81,7 @@ impl PyConstraint {
                 name,
             )?))
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            Err(PyTypeError::new_err("unsupported type for operation"))
         }
     }
 
@@ -116,7 +116,7 @@ impl PyConstraints {
         } else if let Ok(constr) = other.extract::<PyConstraint>(py) {
             Ok(self.add_constraint(constr, None)?)
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            Err(PyTypeError::new_err("unsupported type for operation"))
         }
     }
 

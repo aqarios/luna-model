@@ -10,7 +10,7 @@ use crate::serialization::{
 };
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
-use pyo3::exceptions::{PyIndexError, PyRuntimeError};
+use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::IntoPyObjectExt;
@@ -208,8 +208,8 @@ impl PySolution {
         PyResultIterator(slf.0.iter_results())
     }
 
-    fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyResultView> {
-        if let Ok(res_idx) = index.extract::<usize>(py) {
+    fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyResultView> {
+        if let Ok(res_idx) = item.extract::<usize>(py) {
             match self.get_result_view(res_idx) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
@@ -217,7 +217,7 @@ impl PySolution {
                 Some(r) => Ok(PyResultView(r)),
             }
         } else {
-            Err(PyRuntimeError::new_err("unsupported type for indexing"))
+            Err(PyTypeError::new_err("unsupported type for indexing"))
         }
     }
 
