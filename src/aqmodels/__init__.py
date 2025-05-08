@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Bounds, Variable
-from ._timing import Timing, Timer
+from ._variable import Variable, Bounds, Vtype
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import SamplesIterator, Sample, SampleIterator, Samples
-from ._result import ResultView, ResultIterator, Result
-from ._model import Model, Sense
+from ._sample import Samples, SamplesIterator, Sample, SampleIterator
+from ._result import Result, ResultView, ResultIterator
+from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Timer as __Timer,
-    Variable as __Variable,
-    Constraints as __Constraints,
-    Samples as __Samples,
-    Vtype as __Vtype,
-    SampleIterator as __SampleIterator,
-    Expression as __Expression,
     Result as __Result,
-    Timing as __Timing,
-    Environment as __Environment,
-    ResultIterator as __ResultIterator,
-    ResultView as __ResultView,
-    Constraint as __Constraint,
-    SamplesIterator as __SamplesIterator,
-    Bounds as __Bounds,
-    Sample as __Sample,
     Comparator as __Comparator,
-    Model as __Model,
-    Sense as __Sense,
+    ResultView as __ResultView,
+    Bounds as __Bounds,
+    Timer as __Timer,
     Solution as __Solution,
+    Sense as __Sense,
+    Constraints as __Constraints,
+    Environment as __Environment,
+    Vtype as __Vtype,
+    Model as __Model,
+    Variable as __Variable,
+    SampleIterator as __SampleIterator,
+    Sample as __Sample,
+    SamplesIterator as __SamplesIterator,
+    Timing as __Timing,
+    Expression as __Expression,
+    ResultIterator as __ResultIterator,
+    Samples as __Samples,
+    Constraint as __Constraint,
 )
-from ._constraints import Constraints, Comparator, Constraint
-from . import errors, translator
+from ._constraints import Constraint, Comparator, Constraints
+from . import translator, errors
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
@@ -123,6 +123,7 @@ MultipleActiveEnvironmentsError = errors.MultipleActiveEnvironmentsError
 DecodeError = errors.DecodeError
 ModelVtypeError = errors.ModelVtypeError
 VariableNamesError = errors.VariableNamesError
+IllegalConstraintNameError = errors.IllegalConstraintNameError
 TranslationError = errors.TranslationError
 ModelNotQuadraticError = errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
@@ -144,6 +145,7 @@ __all__ = [
     "Environment",
     "Expression",
     "IbmTranslator",
+    "IllegalConstraintNameError",
     "LpTranslator",
     "Model",
     "ModelNotQuadraticError",

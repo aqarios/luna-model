@@ -689,6 +689,9 @@ class ModelVtypeError(TranslationError):
 class VariableNamesError(Exception):
     def __str__(self) -> str: ...
 
+class IllegalConstraintNameError(Exception):
+    def __str__(self) -> str: ...
+
 class TranslationError(Exception):
     def __str__(self) -> str: ...
 
@@ -721,6 +724,7 @@ __all__ = [
     "Environment",
     "Expression",
     "IbmTranslator",
+    "IllegalConstraintNameError",
     "LpTranslator",
     "Model",
     "ModelNotQuadraticError",

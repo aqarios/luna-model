@@ -116,6 +116,13 @@ class VariableNamesError(Exception):
 
 
 @export("top", "errors")
+class IllegalConstraintNameError(Exception):
+    """
+    Raised when a constraint is tried to be created with an illegal name.
+    """
+
+
+@export("top", "errors")
 class TranslationError(Exception):
     """
     Raised when an error occurred during translation.

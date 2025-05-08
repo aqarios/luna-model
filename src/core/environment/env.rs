@@ -4,7 +4,7 @@ use crate::core::{
     variable::{Bounds, VarRef, Variable, Vtype},
 };
 use crate::core::{ConcreteEnvId as EnvId, MutRcEnvironment};
-use crate::errors::{VariableCreationErr, VariableExistsErr, VariableNotExistingErr};
+use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
@@ -97,7 +97,7 @@ pub fn add_variable<Index: IndexConstraints>(
 ) -> Result<VarRef<Index>, VariableCreationErr> {
     let mut mutable_env = env.borrow_mut();
     if mutable_env.variables_lookup.contains_key(name) == true {
-        return Err(VariableCreationErr::new(VariableExistsErr.to_string()));
+        return Err(VariableCreationErr::VariableExists);
     }
 
     let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id)?;

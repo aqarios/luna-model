@@ -36,6 +36,9 @@ class ModelVtypeError(TranslationError):
 class VariableNamesError(Exception):
     def __str__(self) -> str: ...
 
+class IllegalConstraintNameError(Exception):
+    def __str__(self) -> str: ...
+
 class TranslationError(Exception):
     def __str__(self) -> str: ...
 
@@ -57,6 +60,7 @@ class SampleIncompatibleVtypeError(SolutionTranslationError):
 __all__ = [
     "DecodeError",
     "DifferentEnvsError",
+    "IllegalConstraintNameError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
     "ModelVtypeError",

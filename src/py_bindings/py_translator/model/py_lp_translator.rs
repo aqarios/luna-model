@@ -2,7 +2,7 @@ use crate::core::{ConcreteBias, ConcreteIndex};
 use crate::translator::base::BackTranslator;
 use crate::translator::LPTranslator;
 use crate::{py_bindings::py_model::PyModel, translator::base::Translator};
-use pyo3::exceptions::{PyRuntimeError, PyTypeError};
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use std::path::PathBuf;
 

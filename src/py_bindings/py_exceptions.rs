@@ -3,8 +3,7 @@ use crate::errors::{
     BqmTranslatorErr, DifferentEnvsErr, IllegalConstraintNameErr, IndexOutOfBoundsErr,
     MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelVtypeErr,
     SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr, TranslationErr,
-    VarNamesErr, VariableCreationErr, VariableExistsErr, VariableNotExistingErr,
-    VariablesFromDifferentEnvsErr,
+    VarNamesErr, VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
@@ -59,12 +58,6 @@ impl From<VariableOutOfRangeErr> for PyErr {
     }
 }
 
-impl From<VariableExistsErr> for PyErr {
-    fn from(err: VariableExistsErr) -> PyErr {
-        VariableExistsError::new_err(err.to_string())
-    }
-}
-
 impl From<VariableNotExistingErr> for PyErr {
     fn from(err: VariableNotExistingErr) -> PyErr {
         VariableNotExistingError::new_err(err.to_string())
@@ -73,7 +66,12 @@ impl From<VariableNotExistingErr> for PyErr {
 
 impl From<VariableCreationErr> for PyErr {
     fn from(err: VariableCreationErr) -> PyErr {
-        VariableCreationError::new_err(err.to_string())
+        match err {
+            VariableCreationErr::VariableExists => VariableExistsError::new_err(err.to_string()),
+            VariableCreationErr::InvalidBounds(_) => {
+                VariableCreationError::new_err(err.to_string())
+            }
+        }
     }
 }
 

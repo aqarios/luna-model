@@ -2,22 +2,23 @@
 # Do not edit manually.
 
 from ._errors import (
-    SolutionTranslationError,
-    ModelNotQuadraticError,
-    ModelVtypeError,
-    SampleIncorrectLengthError,
-    DifferentEnvsError,
-    TranslationError,
     DecodeError,
-    SampleIncompatibleVtypeError,
+    VariableOutOfRangeError,
+    ModelNotUnconstrainedError,
+    ModelVtypeError,
+    TranslationError,
+    ModelNotQuadraticError,
+    DifferentEnvsError,
     VariableNotExistingError,
     NoActiveEnvironmentFoundError,
-    VariableExistsError,
-    VariableOutOfRangeError,
-    MultipleActiveEnvironmentsError,
-    ModelNotUnconstrainedError,
-    VariablesFromDifferentEnvsError,
     VariableCreationError,
+    SampleIncompatibleVtypeError,
+    VariableExistsError,
+    SolutionTranslationError,
+    MultipleActiveEnvironmentsError,
+    VariablesFromDifferentEnvsError,
+    IllegalConstraintNameError,
+    SampleIncorrectLengthError,
     VariableNamesError,
 )
 from .._core import errors as __errors
@@ -33,6 +34,7 @@ MultipleActiveEnvironmentsError = __errors.MultipleActiveEnvironmentsError  # no
 DecodeError = __errors.DecodeError  # noqa: F811
 ModelVtypeError = __errors.ModelVtypeError  # noqa: F811
 VariableNamesError = __errors.VariableNamesError  # noqa: F811
+IllegalConstraintNameError = __errors.IllegalConstraintNameError  # noqa: F811
 TranslationError = __errors.TranslationError  # noqa: F811
 ModelNotQuadraticError = __errors.ModelNotQuadraticError  # noqa: F811
 ModelNotUnconstrainedError = __errors.ModelNotUnconstrainedError  # noqa: F811
@@ -43,6 +45,7 @@ SampleIncompatibleVtypeError = __errors.SampleIncompatibleVtypeError  # noqa: F8
 __all__ = [
     "DecodeError",
     "DifferentEnvsError",
+    "IllegalConstraintNameError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
     "ModelVtypeError",

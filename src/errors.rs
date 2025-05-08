@@ -1,3 +1,4 @@
+use crate::core::Vtype;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result},
@@ -10,15 +11,6 @@ impl Error for IllegalConstraintNameErr {}
 impl Display for IllegalConstraintNameErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "Illegal constraint name: {}", self.0)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct VariableExistsErr;
-impl Error for VariableExistsErr {}
-impl Display for VariableExistsErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "variable already exists in environment")
     }
 }
 
@@ -48,18 +40,22 @@ impl Display for TranslationErr {
 }
 
 #[derive(Debug, Clone)]
-pub struct VariableCreationErr {
-    msg: String,
-}
-impl VariableCreationErr {
-    pub fn new(msg: String) -> Self {
-        Self { msg }
-    }
+pub enum VariableCreationErr {
+    VariableExists,
+    InvalidBounds(Vtype),
 }
 impl Error for VariableCreationErr {}
 impl Display for VariableCreationErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "variable creation failed: {}", self.msg)
+        let msg = match self {
+            VariableCreationErr::VariableExists => {
+                format!("variable already exists in environment")
+            }
+            VariableCreationErr::InvalidBounds(vtype) => {
+                format!("bounds cannot be set for variable of type {vtype}.")
+            }
+        };
+        write!(f, "variable creation failed: {msg}")
     }
 }
 
