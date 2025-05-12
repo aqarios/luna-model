@@ -48,70 +48,70 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Bounds, Variable
-from ._timing import Timer, Timing
+from ._variable import Vtype, Variable, Bounds
+from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import SamplesIterator, Sample, SampleIterator, Samples
-from ._result import ResultIterator, ResultView, Result
+from ._sample import SamplesIterator, Sample, Samples, SampleIterator
+from ._result import Result, ResultView, ResultIterator
 from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
     SampleIterator as __SampleIterator,
-    Sense as __Sense,
-    ResultView as __ResultView,
-    Samples as __Samples,
-    Environment as __Environment,
-    Sample as __Sample,
-    Expression as __Expression,
-    Bounds as __Bounds,
-    ResultIterator as __ResultIterator,
-    Model as __Model,
-    Variable as __Variable,
     Solution as __Solution,
-    Result as __Result,
+    Expression as __Expression,
+    Variable as __Variable,
+    ResultView as __ResultView,
+    Constraint as __Constraint,
+    Sense as __Sense,
     Timer as __Timer,
-    Vtype as __Vtype,
-    Comparator as __Comparator,
+    Bounds as __Bounds,
     Timing as __Timing,
     SamplesIterator as __SamplesIterator,
+    Result as __Result,
+    Environment as __Environment,
+    Samples as __Samples,
+    Vtype as __Vtype,
+    Model as __Model,
+    Comparator as __Comparator,
+    Sample as __Sample,
+    ResultIterator as __ResultIterator,
     Constraints as __Constraints,
-    Constraint as __Constraint,
 )
-from ._constraints import Constraints, Comparator, Constraint
-from . import translator, errors
+from ._constraints import Comparator, Constraint, Constraints
+from . import errors, translator
 
-Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
-Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
-Constraints = __Constraints  # type: ignore[misc,assignment] # noqa: F811
-Vtype = __Vtype  # type: ignore[misc,assignment] # noqa: F811
-Bounds = __Bounds  # type: ignore[misc,assignment] # noqa: F811
-Variable = __Variable  # type: ignore[misc,assignment] # noqa: F811
-Timing = __Timing  # type: ignore[misc,assignment] # noqa: F811
-Timer = __Timer  # type: ignore[misc,assignment] # noqa: F811
-Sense = __Sense  # type: ignore[misc,assignment] # noqa: F811
-Model = __Model  # type: ignore[misc,assignment] # noqa: F811
-ResultIterator = __ResultIterator  # type: ignore[misc,assignment] # noqa: F811
-Result = __Result  # type: ignore[misc,assignment] # noqa: F811
-ResultView = __ResultView  # type: ignore[misc,assignment] # noqa: F811
-Solution = __Solution  # type: ignore[misc,assignment] # noqa: F811
-Environment = __Environment  # type: ignore[misc,assignment] # noqa: F811
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment] # noqa: F811
 SampleIterator = __SampleIterator  # type: ignore[misc,assignment] # noqa: F811
 Samples = __Samples  # type: ignore[misc,assignment] # noqa: F811
 Sample = __Sample  # type: ignore[misc,assignment] # noqa: F811
+Timing = __Timing  # type: ignore[misc,assignment] # noqa: F811
+Timer = __Timer  # type: ignore[misc,assignment] # noqa: F811
+ResultIterator = __ResultIterator  # type: ignore[misc,assignment] # noqa: F811
+Result = __Result  # type: ignore[misc,assignment] # noqa: F811
+ResultView = __ResultView  # type: ignore[misc,assignment] # noqa: F811
+Solution = __Solution  # type: ignore[misc,assignment] # noqa: F811
 Expression = __Expression  # type: ignore[misc,assignment] # noqa: F811
-Qubo = translator.Qubo
-QuboTranslator = translator.QuboTranslator
-AwsTranslator = translator.AwsTranslator
+Environment = __Environment  # type: ignore[misc,assignment] # noqa: F811
+Vtype = __Vtype  # type: ignore[misc,assignment] # noqa: F811
+Bounds = __Bounds  # type: ignore[misc,assignment] # noqa: F811
+Variable = __Variable  # type: ignore[misc,assignment] # noqa: F811
+Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
+Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
+Constraints = __Constraints  # type: ignore[misc,assignment] # noqa: F811
+Sense = __Sense  # type: ignore[misc,assignment] # noqa: F811
+Model = __Model  # type: ignore[misc,assignment] # noqa: F811
+NumpyTranslator = translator.NumpyTranslator
 ZibTranslator = translator.ZibTranslator
 DwaveTranslator = translator.DwaveTranslator
-BqmTranslator = translator.BqmTranslator
-QctrlTranslator = translator.QctrlTranslator
-LpTranslator = translator.LpTranslator
-NumpyTranslator = translator.NumpyTranslator
-IbmTranslator = translator.IbmTranslator
 CqmTranslator = translator.CqmTranslator
+Qubo = translator.Qubo
+QuboTranslator = translator.QuboTranslator
+BqmTranslator = translator.BqmTranslator
+AwsTranslator = translator.AwsTranslator
+QctrlTranslator = translator.QctrlTranslator
+IbmTranslator = translator.IbmTranslator
+LpTranslator = translator.LpTranslator
 VariableOutOfRangeError = errors.VariableOutOfRangeError
 VariableExistsError = errors.VariableExistsError
 VariableNotExistingError = errors.VariableNotExistingError
