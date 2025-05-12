@@ -331,6 +331,7 @@ class Variable:
         vtype: Vtype | None = ...,
         bounds: Bounds | None = ...,
     ) -> Variable: ...
+    def __hash__(self) -> int: ...
 
     # addition
     @overload
@@ -662,7 +663,6 @@ class ModelNotQuadraticError(TranslationError):
 
 class ModelNotUnconstrainedError(TranslationError):
     def __str__(self) -> str: ...
-
 
 __all__ = [
     "AwsTranslator",
