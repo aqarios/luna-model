@@ -119,7 +119,7 @@ fn tokenize(input: &str) -> Vec<Token> {
                         break;
                     }
                 }
-                tokens.push(Token::Number(num.parse().unwrap()));
+                tokens.push(Token::Number(num.parse::<f64>().unwrap() / 2.0));
             }
             c if c.is_alphabetic() => {
                 let mut name = String::new();
@@ -309,7 +309,7 @@ where
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Number(Bias::one() * 2.0)),
                     );
-                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(bias)), Box::new(pow));
+                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(bias * 2.0)), Box::new(pow));
                     quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
                 } else {
                     // Mul
@@ -319,7 +319,7 @@ where
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Variable(v_name)),
                     );
-                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(bias)), Box::new(vmul));
+                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(bias * 2.0)), Box::new(vmul));
                     quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
                 }
             }
