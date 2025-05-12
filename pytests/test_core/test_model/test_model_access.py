@@ -103,6 +103,7 @@ def test_use_set_expression_with_sense_min():
     assert_linear(model.objective, (x,), 0)
     assert_quadratic(model.objective, (x, y), 1)
 
+
 @pytest.mark.model
 def test_use_set_expression_with_sense_max():
     model = make_model()
