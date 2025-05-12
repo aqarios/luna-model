@@ -31,7 +31,7 @@ def test_access_objective(model: Model):
     objective_b = model.objective
     assert isinstance(objective_a, Expression)
     assert isinstance(objective_b, Expression)
-    assert objective_a == objective_b
+    assert objective_a.is_equal(objective_b)
     assert model == model
 
 
