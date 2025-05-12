@@ -175,6 +175,20 @@ class Model:
         return
 
     @dispatched
+    def add_constraint(self, constraint, name):
+        """
+        Add a constraint to the model's constraint collection.
+
+        Parameters
+        ----------
+        constraint : Constraint
+            The constraint to be added.
+        name : str, optional
+            The name of the constraint to be added.
+        """
+        return constraint, name
+
+    @dispatched
     def num_constraints(self):
         """
         Return the number of constraints defined in the model.

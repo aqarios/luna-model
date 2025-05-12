@@ -1,5 +1,7 @@
+use std::ops::{AddAssign, Deref};
 use std::rc::Rc;
 
+use super::py_constr::PyConstraint;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
@@ -14,6 +16,7 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
+use pyo3::exceptions::PyRuntimeError;
 use pyo3::{prelude::*, types::PyBytes};
 
 #[pyclass(unsendable, subclass, name = "Model", module = "aqmodels")]
@@ -49,7 +52,7 @@ impl PyModel {
         Self(Model::new_with_env(name, env.0))
     }
 
-    #[pyo3(name="set_sense")]
+    #[pyo3(name = "set_sense")]
     fn set_sense_py(&mut self, sense: Sense) {
         self.set_sense(sense);
     }
@@ -74,6 +77,13 @@ impl PyModel {
         self.constraints = other.0.clone()
     }
 
+    #[pyo3(signature=(constraint, name=None))]
+    fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
+        constraint.borrow_mut().set_name(name)?;
+        self.constraints.borrow_mut().add_assign(constraint.borrow().deref());
+        Ok(())
+    }
+
     fn num_constraints(&self) -> usize {
         self.constraints.borrow().len()
     }
@@ -86,6 +96,14 @@ impl PyModel {
     #[getter]
     fn environment(&self) -> PyEnvironment {
         PyEnvironment(self.environment.clone())
+    }
+
+    fn evaluate(&self, solution: &PySolution) -> PySolution {
+        PySolution(self.evaluate_solution(RcSolution::clone(&solution.0)))
+    }
+
+    fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
+        PyOwnedResult(self.0.evaluate_sample(&sample.0))
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -135,13 +153,5 @@ impl PyModel {
     #[staticmethod]
     fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Self::decode(py, data)
-    }
-
-    fn evaluate(&self, solution: &PySolution) -> PySolution {
-        PySolution(self.evaluate_solution(RcSolution::clone(&solution.0)))
-    }
-
-    fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
-        PyOwnedResult(self.0.evaluate_sample(&sample.0))
     }
 }
