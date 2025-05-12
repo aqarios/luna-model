@@ -5,6 +5,7 @@ use super::py_constr::PyConstraint;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
+use crate::core::operations::AddAssignToExpression;
 use crate::core::{RcSolution, Sense};
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
@@ -16,7 +17,6 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::exceptions::PyRuntimeError;
 use pyo3::{prelude::*, types::PyBytes};
 
 #[pyclass(unsendable, subclass, name = "Model", module = "aqmodels")]
@@ -58,6 +58,11 @@ impl PyModel {
     }
 
     #[getter]
+    fn get_sense(&mut self) -> Sense {
+        self.sense
+    }
+
+    #[getter]
     fn get_objective(&self) -> PyExpression {
         PyExpression(self.objective.clone())
     }
@@ -82,6 +87,16 @@ impl PyModel {
         constraint.borrow_mut().set_name(name)?;
         self.constraints.borrow_mut().add_assign(constraint.borrow().deref());
         Ok(())
+    }
+
+    #[pyo3(name = "set_objective", signature=(expression, sense=None))]
+    fn set_objective_direct(&mut self, expression: PyExpression, sense: Option<Sense>) -> () {
+        self.set_sense(sense.unwrap_or(Sense::Min));
+        self.objective = expression.0.clone();
+    }
+
+    fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {
+        Ok(self.objective.borrow_mut().add_assign(expression.borrow().deref())?)
     }
 
     fn num_constraints(&self) -> usize {

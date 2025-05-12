@@ -138,16 +138,24 @@ class Model:
         """
         return sample
 
-    @property
     @dispatched
+    @property
     def name(self):
         """Return the name of the model."""
         return
 
-    @property
     @dispatched
+    @property
     def objective(self):
         """Get the objective expression of the model."""
+        return
+
+    @dispatched
+    @property
+    def sense(self):
+        """
+        Get the sense of the model's objective.
+        """
         return
 
     @objective.setter
@@ -187,6 +195,20 @@ class Model:
             The name of the constraint to be added.
         """
         return constraint, name
+
+    @dispatched
+    def set_objective(self, expression, sense):
+        """
+        Set the model's objective to this expression.
+
+        Parameters
+        ----------
+        expression : Expression
+            The expression assigned to the model's objective.
+        sense : Sense, optional
+            The sense of the model for this objective, by default Sense.Min.
+        """
+        return expression, sense
 
     @dispatched
     def num_constraints(self):
