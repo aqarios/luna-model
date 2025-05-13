@@ -101,4 +101,5 @@ dev = [
     "qiskit-ibm-runtime>=0.38.0",
     "qiskit-aer>=0.17.0",
     "pyscipopt>=5.4.1",
+    "mypy>=1.15.0",
 ]
