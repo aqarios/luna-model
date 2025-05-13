@@ -55,6 +55,11 @@ impl PyModel {
     }
 
     #[getter]
+    fn get_sense(&self) -> Sense {
+        self.sense
+    }
+
+    #[getter]
     fn get_objective(&self) -> PyExpression {
         PyExpression(self.objective.clone())
     }

@@ -145,6 +145,18 @@ class Model:
         return
 
     @property
+    def sense(self):
+        """
+        Get the sense of the model
+
+        Returns
+        -------
+        Sense
+            The sense of the model (Min or Max).
+        """
+        return
+
+    @property
     @dispatched
     def objective(self):
         """Get the objective expression of the model."""

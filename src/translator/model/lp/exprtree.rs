@@ -66,74 +66,118 @@ enum Token {
 }
 
 // Tokenizer function
+// Tokenizer function with robust "/ 2" handling
 fn tokenize(input: &str) -> Vec<Token> {
-    // Clean input from `\ 2` in objective definition.
-    let input = input.replace("] / 2", "]").replace("]/2", "]");
     let mut tokens = Vec::new();
-    let mut chars = input.chars().peekable();
+    let chars: Vec<char> = input.chars().collect();
+    let mut i = 0;
 
-    while let Some(&c) = chars.peek() {
-        match c {
+    while i < chars.len() {
+        match chars[i] {
             ' ' => {
-                chars.next();
+                i += 1;
             }
             '+' => {
                 tokens.push(Token::Plus);
-                chars.next();
+                i += 1;
             }
             '-' => {
                 tokens.push(Token::Minus);
-                chars.next();
+                i += 1;
             }
             '*' => {
                 tokens.push(Token::Star);
-                chars.next();
+                i += 1;
             }
             '^' => {
                 tokens.push(Token::Caret);
-                chars.next();
+                i += 1;
             }
             '(' => {
                 tokens.push(Token::LParen);
-                chars.next();
+                i += 1;
             }
             ')' => {
                 tokens.push(Token::RParen);
-                chars.next();
+                i += 1;
             }
             '[' => {
+                // Capture content inside brackets
+                let mut bracket_content = String::new();
+                i += 1;
+                while i < chars.len() && chars[i] != ']' {
+                    bracket_content.push(chars[i]);
+                    i += 1;
+                }
+
+                // Skip closing ']'
+                i += 1;
+
+                // Check for optional "/ 2" with arbitrary spaces
+                let mut divide_by_two = false;
+                let mut j = i;
+
+                // Skip whitespace
+                while j < chars.len() && chars[j].is_whitespace() {
+                    j += 1;
+                }
+
+                // Expect '/'
+                if j < chars.len() && chars[j] == '/' {
+                    j += 1;
+
+                    // Skip whitespace after '/'
+                    while j < chars.len() && chars[j].is_whitespace() {
+                        j += 1;
+                    }
+
+                    // Expect '2'
+                    if j < chars.len() && chars[j] == '2' {
+                        divide_by_two = true;
+                        i = j + 1; // Advance past the full "/ 2"
+                    }
+                }
+
+                // Tokenize inside the brackets
+                let mut sub_tokens = tokenize(&bracket_content);
+
+                // Apply division if necessary
+                if divide_by_two {
+                    for token in &mut sub_tokens {
+                        if let Token::Number(ref mut n) = token {
+                            *n /= 2.0;
+                        }
+                    }
+                }
+
+                // Wrap in parentheses
                 tokens.push(Token::LParen);
-                chars.next();
+                tokens.extend(sub_tokens);
+                tokens.push(Token::RParen);
             }
             ']' => {
                 tokens.push(Token::RParen);
-                chars.next();
+                i += 1;
             }
             c if c.is_ascii_digit() || c == '.' => {
                 let mut num = String::new();
-                while let Some(&d) = chars.peek() {
-                    if d.is_ascii_digit() || d == '.' {
-                        num.push(d);
-                        chars.next();
-                    } else {
-                        break;
-                    }
+                while i < chars.len() && (chars[i].is_ascii_digit() || chars[i] == '.') {
+                    num.push(chars[i]);
+                    i += 1;
                 }
-                tokens.push(Token::Number(num.parse::<f64>().unwrap() / 2.0));
+                tokens.push(Token::Number(num.parse::<f64>().unwrap()));
             }
             c if c.is_alphabetic() => {
                 let mut name = String::new();
-                while let Some(&d) = chars.peek() {
-                    if d.is_alphanumeric() || d == '_' {
-                        name.push(d);
-                        chars.next();
-                    } else {
-                        break;
-                    }
+                while i < chars.len()
+                    && (chars[i].is_alphanumeric() || chars[i] == '_')
+                {
+                    name.push(chars[i]);
+                    i += 1;
                 }
                 tokens.push(Token::Variable(name));
             }
-            _ => panic!("Unexpected character: {}", c),
+            c => panic!("Unexpected character: {}", c),
         }
     }
 
