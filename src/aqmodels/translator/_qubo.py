@@ -141,10 +141,12 @@ class QuboTranslator:
         ------
         TranslationError
             Generally, if the translation fails. Might be specified by one of the
-            two following errors.
+            three following errors.
         ModelNotQuadraticError
             If the objective contains higher-order (non-quadratic) terms.
         ModelNotUnconstrainedError
             If the model contains any constraints.
+        ModelSenseNotMinimizeError
+            If the model's optimization sense is 'maximize'.
         """
         return model

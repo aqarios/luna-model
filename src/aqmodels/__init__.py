@@ -48,37 +48,37 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Bounds, Variable
+from ._variable import Variable, Vtype, Bounds
 from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import SamplesIterator, Sample, SampleIterator, Samples
-from ._result import ResultIterator, ResultView, Result
+from ._sample import Sample, Samples, SamplesIterator, SampleIterator
+from ._result import ResultIterator, Result, ResultView
 from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    SampleIterator as __SampleIterator,
-    Sense as __Sense,
-    ResultView as __ResultView,
-    Samples as __Samples,
-    Environment as __Environment,
-    Sample as __Sample,
-    Expression as __Expression,
-    Bounds as __Bounds,
-    ResultIterator as __ResultIterator,
-    Model as __Model,
-    Variable as __Variable,
-    Solution as __Solution,
-    Result as __Result,
     Timer as __Timer,
     Vtype as __Vtype,
-    Comparator as __Comparator,
-    Timing as __Timing,
+    Variable as __Variable,
     SamplesIterator as __SamplesIterator,
+    Comparator as __Comparator,
+    ResultView as __ResultView,
+    SampleIterator as __SampleIterator,
+    Sense as __Sense,
+    Environment as __Environment,
+    Sample as __Sample,
+    ResultIterator as __ResultIterator,
     Constraints as __Constraints,
+    Samples as __Samples,
+    Expression as __Expression,
+    Timing as __Timing,
+    Model as __Model,
     Constraint as __Constraint,
+    Bounds as __Bounds,
+    Result as __Result,
+    Solution as __Solution,
 )
-from ._constraints import Constraints, Comparator, Constraint
+from ._constraints import Comparator, Constraints, Constraint
 from . import translator, errors
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
@@ -126,6 +126,7 @@ IllegalConstraintNameError = errors.IllegalConstraintNameError
 TranslationError = errors.TranslationError
 ModelNotQuadraticError = errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
+ModelSenseNotMinimizeError = errors.ModelSenseNotMinimizeError
 
 __all__ = [
     "AwsTranslator",
@@ -146,6 +147,7 @@ __all__ = [
     "Model",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelSenseNotMinimizeError",
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",

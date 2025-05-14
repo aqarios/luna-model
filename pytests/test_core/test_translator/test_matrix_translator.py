@@ -8,6 +8,9 @@ from aqmodels import (
     ModelNotQuadraticError,
     ModelNotUnconstrainedError,
     TranslationError,
+    Model,
+    Sense,
+    ModelSenseNotMinimizeError,
 )
 from aqmodels import QuboTranslator, Variable, Vtype, ModelVtypeError
 from ..utils import make_seed
@@ -37,6 +40,19 @@ def linear_qubo(request) -> NDArray:
     mat = sp.random(size, size, density).todense()
     mat = np.diag(np.diag(mat))
     return mat
+
+
+@pytest.fixture
+def model() -> Model:
+    model = Model("test_model")
+    with model.environment:
+        x1 = Variable("x1")
+        x2 = Variable("x2")
+        x3 = Variable("x3")
+        x4 = Variable("x4")
+    model.objective = x1 + x2 + x3 - x4 + x1 * x2 - x3 * x4
+    model.set_sense(Sense.Max)
+    return model
 
 
 @pytest.mark.translator
@@ -150,12 +166,22 @@ def test_translate_from_non_fitting_vtype(qubo: NDArray):
     with pytest.raises(TranslationError):
         _ = QuboTranslator.from_aq(model)
 
-    model_2 = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
+    _ = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
+
     with model.environment:
         s = Variable("s", vtype=Vtype.Spin)
         model.objective += s
 
     with pytest.raises(ModelVtypeError):
+        _ = QuboTranslator.from_aq(model)
+
+    with pytest.raises(TranslationError):
+        _ = QuboTranslator.from_aq(model)
+
+
+@pytest.mark.translator
+def test_translate_from_maximization_sense(model: Model):
+    with pytest.raises(ModelSenseNotMinimizeError):
         _ = QuboTranslator.from_aq(model)
 
     with pytest.raises(TranslationError):
