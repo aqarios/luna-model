@@ -143,7 +143,6 @@ class CqmTranslator:
     @staticmethod
     def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
 
-
 __all__ = [
     "AwsTranslator",
     "BqmTranslator",
