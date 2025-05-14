@@ -43,6 +43,7 @@ class Variable:
         vtype: Vtype | None = ...,
         bounds: Bounds | None = ...,
     ) -> Variable: ...
+    def __hash__(self) -> int: ...
 
     # addition
     @overload
