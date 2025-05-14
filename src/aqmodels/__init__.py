@@ -48,38 +48,64 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Bounds, Variable
-from ._timing import Timer, Timing
+from ._variable import (
+  Bounds,
+  Variable,
+  Vtype
+)
+from ._timing import (
+  Timer,
+  Timing
+)
 from ._solution import Solution
-from ._sample import SamplesIterator, Sample, SampleIterator, Samples
-from ._result import ResultIterator, ResultView, Result
-from ._model import Model, Sense
+from ._sample import (
+  SamplesIterator,
+  SampleIterator,
+  Sample,
+  Samples
+)
+from ._result import (
+  Result,
+  ResultIterator,
+  ResultView
+)
+from ._model import (
+  Model,
+  Sense
+)
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    SampleIterator as __SampleIterator,
-    Sense as __Sense,
-    ResultView as __ResultView,
-    Samples as __Samples,
-    Environment as __Environment,
-    Sample as __Sample,
-    Expression as __Expression,
-    Bounds as __Bounds,
-    ResultIterator as __ResultIterator,
-    Model as __Model,
-    Variable as __Variable,
-    Solution as __Solution,
-    Result as __Result,
-    Timer as __Timer,
-    Vtype as __Vtype,
-    Comparator as __Comparator,
-    Timing as __Timing,
-    SamplesIterator as __SamplesIterator,
-    Constraints as __Constraints,
-    Constraint as __Constraint,
+  Constraints as __Constraints,
+  Model as __Model,
+  Sample as __Sample,
+  ResultView as __ResultView,
+  Variable as __Variable,
+  Comparator as __Comparator,
+  Timing as __Timing,
+  Result as __Result,
+  SampleIterator as __SampleIterator,
+  ResultIterator as __ResultIterator,
+  Bounds as __Bounds,
+  Sense as __Sense,
+  Expression as __Expression,
+  Timer as __Timer,
+  Solution as __Solution,
+  SamplesIterator as __SamplesIterator,
+  Constraint as __Constraint,
+  Samples as __Samples,
+  Vtype as __Vtype,
+  Environment as __Environment
 )
-from ._constraints import Constraints, Comparator, Constraint
-from . import translator, errors
+from ._constraints import (
+  Comparator,
+  Constraint,
+  Constraints
+)
+from . import (
+  errors,
+  translator
+)
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811

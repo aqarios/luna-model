@@ -2,22 +2,34 @@ use crate::core::solution::sol::SampleCol;
 use crate::core::{
     ConcreteAssignmentTypes, ConcreteBias, RcSolution, Samples, Solution, VarAssignment, Vtype,
 };
+use crate::py_bindings::py_env::PyEnvironment;
+use crate::py_bindings::py_model::PyModel;
 use crate::py_bindings::py_res::{PyResultIterator, PyResultView};
 use crate::py_bindings::py_sample::PySamples;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::py_bindings::py_var::PyVariable;
 use crate::serialization::{
     Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
 };
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
-use pyo3::exceptions::{PyIndexError, PyRuntimeError};
+use pyo3::conversion::FromPyObjectBound;
+use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError};
+use pyo3::impl_::extract_argument::PyFunctionArgument;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::IntoPyObjectExt;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(pub VarAssignment<ConcreteAssignmentTypes>);
+
+#[derive(Debug, Clone)]
+pub enum SampleKey {
+    Str(String),
+    Var(PyVariable),
+}
 
 #[pyclass(unsendable, name = "Solution", module = "aqmodels")]
 #[derive(Deref, DerefMut, Debug)]
@@ -115,6 +127,27 @@ impl PySolution {
         sol.obj_values = vec![None; sol.n_samples];
         sol.timing = timing.and_then(|t| Some(t.0));
         Ok(PySolution(RcSolution(Rc::new(sol))))
+    }
+
+    #[staticmethod]
+    #[pyo3(signature=(keys, values, env=None, model=None))]
+    fn from_dict_internal(
+        py: Python,
+        keys: PyObject,
+        values: PyObject,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+    ) {}
+
+    #[staticmethod]
+    fn from_dict(
+        py: Python,
+        data: PyObject,
+        env: Option<PyEnvironment>,
+        model: Option<PyObject>,
+    ) -> PyResult<PyObject> {
+        let sample = data.extract::<HashMap<SampleKey, f64>>(py);
+        todo!()
     }
 
     #[getter]
@@ -240,3 +273,34 @@ impl<'py> IntoPyObject<'py> for PyVarAssignment {
         }
     }
 }
+
+impl<'py> IntoPyObject<'py> for SampleKey {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self {
+            SampleKey::Str(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+            SampleKey::Var(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+        }
+    }
+}
+
+// impl<'py> FromPyObject<'py> for SampleKey {
+//     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+//         if let Ok(s) = ob.extract::<String>() {
+//             Ok(SampleKey::Str(s))
+//         } else if let Ok(v) = ob.extract::<PyVariable>() {
+//             Ok(SampleKey::Var(v))
+//         } else {
+//             Err(PyTypeError::new_err("keys have to be 'str' or 'Variable'"))
+//         }
+//     }
+// }
+
+// impl<'a, 'py> FromPyObjectBound<'a, 'py> for SampleKey {
+//     fn from_py_object_bound(ob: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
+//         todo!()
+//     }
+// }

@@ -489,7 +489,7 @@ where
                 let tmp = match (&**lhs, &**rhs) {
                     (Number(b), r) => format!("{} + {}", r.to_string(), b.to_string()),
                     (l, Number(b)) => format!("{} + {}", l.to_string(), b.to_string()),
-                    (l, r) => format!("{} + {}", l.to_string(), r.to_string())
+                    (l, r) => format!("{} + {}", l.to_string(), r.to_string()),
                 };
                 tmp.replace("+ -", "- ")
             }

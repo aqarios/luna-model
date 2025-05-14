@@ -272,4 +272,3 @@ impl From<IllegalConstraintNameErr> for TranslationErr {
         TranslationErr::new(value.0)
     }
 }
-

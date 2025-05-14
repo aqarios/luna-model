@@ -1,13 +1,14 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
-use crate::core::{RcSolution, Sense};
+use crate::core::{ConcreteModel, ConcreteMutRcModel, RcSolution, Sense};
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
 use crate::{
-    core::{ConcreteModel, Environment, Model},
+    core::{Environment, Model},
     py_bindings::py_env::CURRENT_ENV,
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -17,12 +18,18 @@ use derive_more::{Deref, DerefMut};
 use pyo3::{prelude::*, types::PyBytes};
 
 #[pyclass(unsendable, subclass, name = "Model", module = "aqmodels")]
-#[derive(Deref, DerefMut)]
-pub struct PyModel(pub ConcreteModel);
+#[derive(Clone, Deref, DerefMut)]
+pub struct PyModel(pub ConcreteMutRcModel);
 
-impl Into<ConcreteModel> for PyModel {
-    fn into(self) -> ConcreteModel {
+impl Into<ConcreteMutRcModel> for PyModel {
+    fn into(self) -> ConcreteMutRcModel {
         self.0
+    }
+}
+
+impl PyModel {
+    pub fn new(model: ConcreteModel) -> PyModel {
+        PyModel(Rc::new(RefCell::new(model)))
     }
 }
 
@@ -46,46 +53,46 @@ impl PyModel {
             //     })
             // })?,
         };
-        Self(Model::new_with_env(name, env.0))
+        Self::new(Model::new_with_env(name, env.0))
     }
 
-    #[pyo3(name="set_sense")]
+    #[pyo3(name = "set_sense")]
     fn set_sense_py(&mut self, sense: Sense) {
-        self.set_sense(sense);
+        self.borrow_mut().set_sense(sense);
     }
 
     #[getter]
     fn get_objective(&self) -> PyExpression {
-        PyExpression(self.objective.clone())
+        PyExpression(self.borrow().objective.clone())
     }
 
     #[setter]
     fn set_objective(&mut self, other: &PyExpression) {
-        self.objective = other.0.clone()
+        self.borrow_mut().objective = other.0.clone()
     }
 
     #[getter]
     fn get_constraints(&self) -> PyConstraints {
-        PyConstraints(Rc::clone(&self.constraints))
+        PyConstraints(Rc::clone(&self.borrow().constraints))
     }
 
     #[setter]
     fn set_constraints(&mut self, other: &PyConstraints) {
-        self.constraints = other.0.clone()
+        self.borrow_mut().constraints = other.0.clone()
     }
 
     fn num_constraints(&self) -> usize {
-        self.constraints.borrow().len()
+        self.borrow().constraints.borrow().len()
     }
 
     #[getter]
-    fn name(&self) -> &String {
-        &self.name
+    fn name(&self) -> String {
+        self.borrow().name.clone()
     }
 
     #[getter]
     fn environment(&self) -> PyEnvironment {
-        PyEnvironment(self.environment.clone())
+        PyEnvironment(self.borrow().environment.clone())
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -93,7 +100,7 @@ impl PyModel {
     }
 
     fn __str__(&self) -> String {
-        self.to_string()
+        self.borrow().to_string()
     }
 
     fn __repr__(&self) -> String {
@@ -106,7 +113,7 @@ impl PyModel {
         Ok(PyBytes::new(
             py,
             &self
-                .0
+                .borrow()
                 .encode()
                 .maybe_compress(compress, level)?
                 .versionize(),
@@ -127,7 +134,7 @@ impl PyModel {
 
     #[staticmethod]
     fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Ok(PyModel(
+        Ok(Self::new(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
         ))
     }
@@ -138,10 +145,13 @@ impl PyModel {
     }
 
     fn evaluate(&self, solution: &PySolution) -> PySolution {
-        PySolution(self.evaluate_solution(RcSolution::clone(&solution.0)))
+        PySolution(
+            self.borrow()
+                .evaluate_solution(RcSolution::clone(&solution.0)),
+        )
     }
 
     fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
-        PyOwnedResult(self.0.evaluate_sample(&sample.0))
+        PyOwnedResult(self.borrow().evaluate_sample(&sample.0))
     }
 }

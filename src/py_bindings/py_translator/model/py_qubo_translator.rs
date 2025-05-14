@@ -81,7 +81,7 @@ impl PyQuboTranslator {
         vtype: Option<Vtype>,
     ) -> PyModel {
         let dense = qubo.as_slice().expect("failed to convert to slice");
-        PyModel(MatrixTranslator::model_from_dense(
+        PyModel::new(MatrixTranslator::model_from_dense(
             name,
             dense,
             qubo.shape()[0].into(),
@@ -94,7 +94,7 @@ impl PyQuboTranslator {
     #[staticmethod]
     #[pyo3(signature=(model))]
     fn from_aq(model: &PyModel) -> PyResult<PyQubo> {
-        let qubo = MatrixTranslator::model_to_dense(&model.0)?;
+        let qubo = MatrixTranslator::model_to_dense(&model.borrow())?;
         Ok(PyQubo(qubo))
     }
 }

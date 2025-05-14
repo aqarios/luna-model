@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use crate::{
     py_bindings::{
         py_env::{PyEnvironment, CURRENT_ENV},
@@ -10,6 +9,7 @@ use crate::{
     translator::IbmTranslator,
 };
 use pyo3::{ffi::c_str, prelude::*};
+use std::rc::Rc;
 
 #[pyclass(unsendable, name = "IbmTranslator", module = "aqmodels.translator")]
 pub struct PyIbmTranslator {}

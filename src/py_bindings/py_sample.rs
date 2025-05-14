@@ -96,12 +96,12 @@ impl PySample {
         if let Ok(var) = index.extract::<PyVariable>(py) {
             match self.get_assignment(var.id.into()) {
                 None => Err(PyIndexError::new_err(format!(
-                    "Index {:?} out of bounds", var.id
+                    "Index {:?} out of bounds",
+                    var.id
                 ))),
                 Some(v) => Ok(PyVarAssignment(v)),
             }
-        }
-        else if let Ok(var_idx) = index.extract::<usize>(py) {
+        } else if let Ok(var_idx) = index.extract::<usize>(py) {
             match self.get_assignment(var_idx) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {var_idx} out of bounds"
@@ -114,7 +114,7 @@ impl PySample {
     }
 
     fn __len__(&self) -> usize {
-        match &self.0.0 {
+        match &self.0 .0 {
             Either::Left(r) => r.sol.samples.len(),
             Either::Right(r) => r.len(),
         }

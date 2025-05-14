@@ -6,11 +6,7 @@ use crate::translator::solution::DwaveTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{ffi::c_str, prelude::*};
 
-#[pyclass(
-    unsendable,
-    name = "DwaveTranslator",
-    module = "aqmodels.translator"
-)]
+#[pyclass(unsendable, name = "DwaveTranslator", module = "aqmodels.translator")]
 pub struct PyDwaveTranslator(pub DwaveTranslator);
 
 #[pymethods]

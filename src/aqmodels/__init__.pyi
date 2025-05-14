@@ -663,6 +663,7 @@ class ModelNotQuadraticError(TranslationError):
 class ModelNotUnconstrainedError(TranslationError):
     def __str__(self) -> str: ...
 
+
 __all__ = [
     "AwsTranslator",
     "Bounds",
