@@ -204,6 +204,23 @@ class Expression:
         return
 
     @dispatched
+    def is_equal(self, other):
+        """
+        Compare two expressions for equality.
+
+        Parameters
+        ----------
+        other : Expression
+            The expression to which `self` is compared to.
+
+        Returns
+        -------
+        bool
+            If the two expressions are equal.
+        """
+        return other
+
+    @dispatched
     def encode(self, compress=True, level=3):
         """
         Serialize the expression into a compact binary format.
@@ -440,13 +457,18 @@ class Expression:
         return other
 
     @dispatched
-    def __eq__(self, other):
+    def __eq__(self, rhs):
         """
         Create a constraint: expression == scalar.
 
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs == 0
+
         Parameters
         ----------
-        other : float or int
+        rhs : float, int, Variable or Expression
 
         Returns
         -------
@@ -455,18 +477,23 @@ class Expression:
         Raises
         ------
         RuntimeError
-            If the right-hand side is not a scalar.
+            If the right-hand side is not of type float, int, Variable or Expression.
         """
-        return other
+        return rhs
 
     @dispatched
-    def __le__(self, other):
+    def __le__(self, rhs):
         """
         Create a constraint: expression <= scalar.
 
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs <= 0
+
         Parameters
         ----------
-        other : float or int
+        rhs : float, int, Variable or Expression
 
         Returns
         -------
@@ -475,18 +502,23 @@ class Expression:
         Raises
         ------
         RuntimeError
-            If the right-hand side is not a scalar.
+            If the right-hand side is not of type float, int, Variable or Expression.
         """
-        return other
+        return rhs
 
     @dispatched
-    def __ge__(self, other):
+    def __ge__(self, rhs):
         """
         Create a constraint: expression >= scalar.
 
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs >= 0
+
         Parameters
         ----------
-        other : float or int
+        rhs : float, int, Variable or Expression
 
         Returns
         -------
@@ -495,6 +527,6 @@ class Expression:
         Raises
         ------
         RuntimeError
-            If the right-hand side is not a scalar.
+            If the right-hand side is not of type float, int, Variable or Expression.
         """
-        return other
+        return rhs
