@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Deref;
 use std::rc::Rc;
 
@@ -61,6 +62,12 @@ impl PyVariable {
         let idx: usize = self.id.into();
         let name = &self.env.borrow().variables[idx].name;
         name.clone()
+    }
+
+    fn __hash__(&self) -> u64 {
+        let mut s = DefaultHasher::new();
+        self.name().hash(&mut s);
+        s.finish()
     }
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
