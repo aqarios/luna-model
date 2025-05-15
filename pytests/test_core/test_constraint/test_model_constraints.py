@@ -71,14 +71,52 @@ def model_fadd_named(request) -> Model:
     return model
 
 
-@pytest.fixture
-def models(request) -> tuple[Model, Model]:
-    return (model_iadd(request), model_fadd(request))
+def model_direct_add(request) -> Model:
+    with Environment():
+        model = Model()
+        x = Variable("x")
+        y = Variable("y")
+
+    comp = request.param
+    if comp == "le":
+        model.add_constraint(x + y <= 1)
+    elif comp == "eq":
+        model.add_constraint(x + y == 1)
+    elif comp == "ge":
+        model.add_constraint(x + y >= 1)
+
+    return model
+
+
+def model_direct_add_named(request) -> Model:
+    with Environment():
+        model = Model()
+        x = Variable("x")
+        y = Variable("y")
+
+    comp = request.param
+    if comp == "le":
+        model.add_constraint(x + y <= 1, "constraint_le")
+    elif comp == "eq":
+        model.add_constraint(x + y == 1, "constraint_eq")
+    elif comp == "ge":
+        model.add_constraint(x + y >= 1, "constraint_ge")
+
+    return model
 
 
 @pytest.fixture
-def models_named(request) -> tuple[Model, Model]:
-    return (model_iadd_named(request), model_fadd_named(request))
+def models(request) -> tuple[Model, Model, Model]:
+    return (model_iadd(request), model_fadd(request), model_direct_add(request))
+
+
+@pytest.fixture
+def models_named(request) -> tuple[Model, Model, Model]:
+    return (
+        model_iadd_named(request),
+        model_fadd_named(request),
+        model_direct_add_named(request),
+    )
 
 
 @pytest.mark.constraint
@@ -152,13 +190,15 @@ def test_model_add_constraint_ge_named():
 
 @pytest.mark.constraint
 @pytest.mark.parametrize("models", ["le", "eq", "ge"], indirect=True)
-def test_model_add_constraint_same(models: tuple[Model, Model]):
-    model_a, model_b = models
+def test_model_add_constraint_same(models: tuple[Model, Model, Model]):
+    model_a, model_b, model_c = models
     assert model_a.constraints == model_b.constraints
+    assert model_b.constraints == model_c.constraints
 
 
 @pytest.mark.constraint
 @pytest.mark.parametrize("models_named", ["le", "eq", "ge"], indirect=True)
-def test_model_add_constraint_same_named(models_named: tuple[Model, Model]):
-    model_a, model_b = models_named
+def test_model_add_constraint_same_named(models_named: tuple[Model, Model, Model]):
+    model_a, model_b, model_c = models_named
     assert model_a.constraints == model_b.constraints
+    assert model_b.constraints == model_c.constraints

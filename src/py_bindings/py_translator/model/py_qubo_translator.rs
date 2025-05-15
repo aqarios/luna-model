@@ -65,19 +65,19 @@ impl PyQuboTranslator {
         variable_names: Option<Vec<String>>,
         name: Option<String>,
         vtype: Option<Vtype>,
-    ) -> PyModel {
+    ) -> PyResult<PyModel> {
         let (dense, var_num): (&[f64], usize) = match qubo {
             QuboType::F64(q) => (&q.as_slice().expect("failed to convert to slice").iter().map(|&v|v).collect::<Vec<f64>>(), q.shape()[0]),
             QuboType::I64(q) => (&q.as_slice().expect("failed to convert to slice").iter().map(|&v| v as f64).collect::<Vec<f64>>(), q.shape()[0]),
         };
-        PyModel(MatrixTranslator::model_from_dense(
+        Ok(PyModel(MatrixTranslator::model_from_dense(
             name,
             dense,
             var_num.into(),
             vtype,
             offset,
             variable_names,
-        ))
+        )?))
     }
 
     #[staticmethod]
