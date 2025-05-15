@@ -71,6 +71,36 @@ def test_constraints_out_of_bounds_access(expression: Expression):
         _ = constr[3]
 
 
+@pytest.mark.constraint
+def test_constraint_creation_neg_constant_to_rhs():
+    with Environment():
+        x = Variable("x")
+        y = Variable("y")
+
+    expr = x + y - 1
+    constr = expr == 0
+    assert isinstance(constr, Constraint)
+    assert constr.name is None
+    assert constr.lhs.is_equal(x + y)
+    assert constr.rhs == 1.0
+    assert constr.comparator == Comparator.Eq
+
+
+@pytest.mark.constraint
+def test_constraint_creation_pos_constant_to_rhs():
+    with Environment():
+        x = Variable("x")
+        y = Variable("y")
+
+    expr = x + y + 2
+    constr = expr == 0
+    assert isinstance(constr, Constraint)
+    assert constr.name is None
+    assert constr.lhs.is_equal(x + y)
+    assert constr.rhs == -2.0
+    assert constr.comparator == Comparator.Eq
+
+
 # LHS: EXPRESSION, RHS: FLOAT/INT
 
 

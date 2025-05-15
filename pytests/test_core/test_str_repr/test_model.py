@@ -246,7 +246,7 @@ def test_constraints(variables: tuple[Variable, ...]):
     c2 = a + b <= 10
     assert str(c2) == "a + b <= 10"
     c3 = a * b * 2 + 1 >= -1
-    assert str(c3) == "2 * a * b + 1 >= -1"
+    assert str(c3) == "2 * a * b >= -2"
 
     with does_not_raise():
         repr(c1)

@@ -30,7 +30,7 @@ impl PyBqmTranslator {
             Vtype::Binary
         };
 
-        Ok(PyModel(BqmTranslator::model_from_bqm(
+        Ok(PyModel::new(BqmTranslator::model_from_bqm(
             vars.extract(py)?,
             vtype,
             offset,
@@ -49,7 +49,7 @@ impl PyBqmTranslator {
     #[pyo3(signature=(model))]
     fn from_aq<'a>(py: Python<'a>, model: &PyModel) -> PyResult<PyObject> {
         let (offset, linear, quad, rows, cols, vtype, vars) =
-            BqmTranslator::model_to_bqm(&model.0)?;
+            BqmTranslator::model_to_bqm(&model.concrete_model)?;
         let linear_py = linear.to_pyarray(py);
         let quadratic_py = quad.to_pyarray(py);
         let rows_py = rows.to_pyarray(py);
