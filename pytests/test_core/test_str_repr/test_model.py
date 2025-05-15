@@ -129,7 +129,6 @@ def test_vtype():
 @pytest.mark.str_repr
 def test_variable():
     with Environment():
-        # TODO: test cases where only one bound is specified once the functionality is implemented
         a = Variable("a")
         assert str(a) == "a: Binary"
         b = Variable("b", vtype=Vtype.Spin)
@@ -138,10 +137,18 @@ def test_variable():
         assert str(c) == "c: Integer { lower: 0 }"
         d = Variable("d", vtype=Vtype.Integer, bounds=Bounds(lower=0, upper=10))
         assert str(d) == "d: Integer { lower: 0, upper: 10 }"
-        e = Variable("e", vtype=Vtype.Real)
-        assert str(e) == "e: Real { lower: 0 }"
-        f = Variable("f", vtype=Vtype.Real, bounds=Bounds(lower=-1.5, upper=1))
-        assert str(f) == "f: Real { lower: -1.5, upper: 1 }"
+        e = Variable("e", vtype=Vtype.Integer, bounds=Bounds(lower=3))
+        assert str(e) == "e: Integer { lower: 3 }"
+        f = Variable("f", vtype=Vtype.Integer, bounds=Bounds(upper=10))
+        assert str(f) == "f: Integer { lower: 0, upper: 10 }"
+        g = Variable("g", vtype=Vtype.Real)
+        assert str(g) == "g: Real { lower: 0 }"
+        h = Variable("h", vtype=Vtype.Real, bounds=Bounds(lower=-1.5, upper=1))
+        assert str(h) == "h: Real { lower: -1.5, upper: 1 }"
+        i = Variable("i", vtype=Vtype.Real, bounds=Bounds(lower=10))
+        assert str(i) == "i: Real { lower: 10 }"
+        j = Variable("j", vtype=Vtype.Real, bounds=Bounds(upper=3.8))
+        assert str(j) == "j: Real { lower: 0, upper: 3.8 }"
 
         with does_not_raise():
             repr(a)
@@ -150,6 +157,10 @@ def test_variable():
             repr(d)
             repr(e)
             repr(f)
+            repr(g)
+            repr(h)
+            repr(i)
+            repr(j)
 
 
 @pytest.mark.str_repr

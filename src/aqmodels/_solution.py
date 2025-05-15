@@ -313,7 +313,6 @@ class Solution:
         RuntimeError
             If a sample column has an incorrect number of samples or if ``counts`` has
             a length different from the number of samples given.
-        TODO: check for more possible raises
         """
         return (
             counts,
