@@ -106,10 +106,7 @@ pub struct ModelNotQuadraticErr;
 impl Error for ModelNotQuadraticErr {}
 impl Display for ModelNotQuadraticErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "the model is not linear or quadratic"
-        )
+        write!(f, "the model is not linear or quadratic")
     }
 }
 
@@ -118,10 +115,7 @@ pub struct ModelSenseNotMinimizeErr;
 impl Error for ModelSenseNotMinimizeErr {}
 impl Display for ModelSenseNotMinimizeErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "the model does not have the sense 'minimize'"
-        )
+        write!(f, "the model does not have the sense 'minimize'")
     }
 }
 
@@ -301,4 +295,3 @@ impl From<IllegalConstraintNameErr> for TranslationErr {
         TranslationErr::new(value.0)
     }
 }
-

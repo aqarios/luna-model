@@ -20,7 +20,6 @@ where
     pub row_idx: usize,
 }
 
-
 impl<Bias, AssignmentTypes> ResultView<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
@@ -72,7 +71,6 @@ where
         self.sol.get_assignment(self.row_idx, index.into()).unwrap()
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct OwnedResult<Bias, AssignmentTypes>

@@ -1,5 +1,5 @@
 use crate::core::Qubo;
-use crate::errors::{ModelSenseNotMinimizeErr, ModelVtypeErr};
+use crate::errors::{ModelSenseNotMinimizeErr, ModelVtypeErr, TranslationErr};
 use crate::{
     core::{
         expression::{BiasConstraints, IndexConstraints},
@@ -21,7 +21,7 @@ impl MatrixTranslator {
         vtype: Option<Vtype>,
         offset: Option<Bias>,
         variable_names: Option<Vec<String>>,
-    ) -> Model<Index, Bias>
+    ) -> Result<Model<Index, Bias>, TranslationErr>
     where
         Index: IndexConstraints,
         Bias: BiasConstraints,

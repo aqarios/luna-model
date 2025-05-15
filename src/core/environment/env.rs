@@ -118,9 +118,7 @@ pub fn get_vref_by_name<Index: IndexConstraints>(
     Ok(VarRef::new(index, Rc::clone(&env)))
 }
 
-pub fn get_vrefs_in_order<Index>(
-    env: MutRcEnvironment<Index>,
-) -> Vec<VarRef<Index>>
+pub fn get_vrefs_in_order<Index>(env: MutRcEnvironment<Index>) -> Vec<VarRef<Index>>
 where
     Index: IndexConstraints,
 {

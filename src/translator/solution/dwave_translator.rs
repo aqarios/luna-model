@@ -34,8 +34,7 @@ impl DwaveTranslator {
         sol.timing = timing;
         for i in 0..shape[0] {
             let start_idx = i * shape[1];
-            let sample = samples[start_idx..start_idx + shape[1]]
-                .to_vec();
+            let sample = samples[start_idx..start_idx + shape[1]].to_vec();
             sol.extend(
                 sample,
                 <usize as NumCast>::from(counts[i]).unwrap(),

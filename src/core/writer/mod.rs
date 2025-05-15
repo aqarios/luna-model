@@ -1,5 +1,5 @@
-mod model_writer;
 mod line_length_restrictor;
+mod model_writer;
 mod solution_writer;
 
 pub use line_length_restrictor::LineLengthRestrictor;
