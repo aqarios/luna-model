@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Bounds, Variable, Vtype
-from ._timing import Timing, Timer
+from ._variable import Variable, Vtype, Bounds
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import SampleIterator, Sample, Samples, SamplesIterator
-from ._result import Result, ResultView, ResultIterator
+from ._sample import Samples, SamplesIterator, Sample, SampleIterator
+from ._result import ResultView, Result, ResultIterator
 from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Comparator as __Comparator,
-    Constraints as __Constraints,
-    Solution as __Solution,
-    Constraint as __Constraint,
-    Result as __Result,
-    Expression as __Expression,
     SampleIterator as __SampleIterator,
-    ResultView as __ResultView,
-    Bounds as __Bounds,
-    ResultIterator as __ResultIterator,
     Sample as __Sample,
-    SamplesIterator as __SamplesIterator,
     Sense as __Sense,
-    Environment as __Environment,
-    Model as __Model,
     Timer as __Timer,
-    Variable as __Variable,
-    Timing as __Timing,
+    Solution as __Solution,
+    ResultView as __ResultView,
     Samples as __Samples,
+    Timing as __Timing,
     Vtype as __Vtype,
+    Variable as __Variable,
+    ResultIterator as __ResultIterator,
+    Expression as __Expression,
+    Bounds as __Bounds,
+    Model as __Model,
+    Environment as __Environment,
+    Constraint as __Constraint,
+    SamplesIterator as __SamplesIterator,
+    Comparator as __Comparator,
+    Result as __Result,
+    Constraints as __Constraints,
 )
-from ._constraints import Comparator, Constraint, Constraints
-from . import translator, errors
+from ._constraints import Constraint, Comparator, Constraints
+from . import errors, translator
 
 Sense = __Sense  # type: ignore[misc,assignment] # noqa: F811
 Model = __Model  # type: ignore[misc,assignment] # noqa: F811
@@ -115,6 +115,7 @@ IllegalConstraintNameError = errors.IllegalConstraintNameError
 TranslationError = errors.TranslationError
 ModelNotQuadraticError = errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
+ModelSenseNotMinimizeError = errors.ModelSenseNotMinimizeError
 BqmTranslator = translator.BqmTranslator
 QctrlTranslator = translator.QctrlTranslator
 ZibTranslator = translator.ZibTranslator
@@ -146,6 +147,7 @@ __all__ = [
     "Model",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelSenseNotMinimizeError",
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",

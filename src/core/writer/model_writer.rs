@@ -9,7 +9,6 @@ use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
 use strum::IntoEnumIterator;
 
-
 pub struct ModelWriter<Index, Bias> {
     writer: LineLengthRestrictor,
     is_first: bool,

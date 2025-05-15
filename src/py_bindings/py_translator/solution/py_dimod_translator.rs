@@ -6,11 +6,7 @@ use crate::translator::solution::DwaveTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{ffi::c_str, prelude::*};
 
-#[pyclass(
-    unsendable,
-    name = "DwaveTranslator",
-    module = "aqmodels.translator"
-)]
+#[pyclass(unsendable, name = "DwaveTranslator", module = "aqmodels.translator")]
 pub struct PyDwaveTranslator(pub DwaveTranslator);
 
 #[pymethods]
@@ -70,8 +66,8 @@ def extract(sampleset, timing, env):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("extract")?
-            .into();
+        .getattr("extract")?
+        .into();
         let args = (sampleset, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)

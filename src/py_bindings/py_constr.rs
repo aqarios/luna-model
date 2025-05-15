@@ -9,7 +9,9 @@ use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 
 use crate::{
     core::{
-        expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator, ConcreteConstraint, ConcreteConstraints, ConcreteExpression, ConcreteMutRcConstraint, ConcreteMutRcConstraints, Constraint, Create, Expression
+        expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
+        ConcreteConstraint, ConcreteConstraints, ConcreteExpression, ConcreteMutRcConstraint,
+        ConcreteMutRcConstraints, Constraint, Create, Expression,
     },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -78,9 +80,15 @@ impl PyConstraint {
         let lhs: PyResult<ConcreteExpression> = if let Ok(expr) = lhs.extract::<PyExpression>(py) {
             Ok(expr.0.borrow().deref().clone())
         } else if let Ok(var) = lhs.extract::<PyVariable>(py) {
-            Ok(Expression::new_linear_single(Rc::clone(&var.env), var.id, 1.0))
+            Ok(Expression::new_linear_single(
+                Rc::clone(&var.env),
+                var.id,
+                1.0,
+            ))
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for lhs in operation"))
+            Err(PyRuntimeError::new_err(
+                "unsopported type for lhs in operation",
+            ))
         };
         let mut lhs = lhs?;
         let bias = if let Ok(bias) = rhs.extract::<f64>(py) {
@@ -92,7 +100,9 @@ impl PyConstraint {
             lhs.sub_assign(expr.borrow().deref())?;
             Ok(0.0)
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for rhs in operation"))
+            Err(PyRuntimeError::new_err(
+                "unsopported type for rhs in operation",
+            ))
         };
         Ok(PyConstraint::new(ConcreteConstraint::new(
             Rc::new(RefCell::new(lhs)),
