@@ -133,7 +133,7 @@ def extract(result, qp):
 
     for bitstring, count in counts.items():
         sample = [int(b) for b in bitstring]
-        samples.append(sample)
+        samples.append(sample[::-1])
         energies.append(float(qp.objective.evaluate(sample)))
         out_counts.append(count)
 
