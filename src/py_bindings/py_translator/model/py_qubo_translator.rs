@@ -86,7 +86,7 @@ impl PyQuboTranslator {
                 q.shape()[0],
             ),
         };
-        Ok(PyModel(MatrixTranslator::model_from_dense(
+        Ok(PyModel::new(MatrixTranslator::model_from_dense(
             name,
             dense,
             var_num.into(),
@@ -99,7 +99,7 @@ impl PyQuboTranslator {
     #[staticmethod]
     #[pyo3(signature=(model))]
     fn from_aq(model: &PyModel) -> PyResult<PyQubo> {
-        let qubo = MatrixTranslator::model_to_dense(&model.0)?;
+        let qubo = MatrixTranslator::model_to_dense(&model.concrete_model)?;
         Ok(PyQubo(qubo))
     }
 }
