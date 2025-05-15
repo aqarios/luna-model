@@ -1,5 +1,5 @@
 use crate::core::Qubo;
-use crate::errors::{ModelVtypeErr, VarNamesErr};
+use crate::errors::{ModelSenseNotMinimizeErr, ModelVtypeErr, TranslationErr, VarNamesErr};
 use crate::{
     core::{
         expression::{BiasConstraints, IndexConstraints},
@@ -63,6 +63,10 @@ impl MatrixTranslator {
 
         if !model.constraints.borrow().is_empty() {
             return Err(ModelNotUnconstrainedErr)?;
+        }
+
+        if !model.sense.is_min() {
+            return Err(ModelSenseNotMinimizeErr)?;
         }
 
         let mut vtype = None;

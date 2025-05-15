@@ -48,37 +48,37 @@ transformers
     to a linear model.
 """
 
-from ._variable import Variable, Bounds, Vtype
+from ._variable import Vtype, Bounds, Variable
 from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import Samples, SamplesIterator, Sample, SampleIterator
-from ._result import Result, ResultView, ResultIterator
-from ._model import Sense, Model
+from ._sample import SampleIterator, Sample, SamplesIterator, Samples
+from ._result import ResultView, Result, ResultIterator
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Result as __Result,
-    Comparator as __Comparator,
-    ResultView as __ResultView,
-    Bounds as __Bounds,
-    Timer as __Timer,
-    Solution as __Solution,
-    Sense as __Sense,
-    Constraints as __Constraints,
-    Environment as __Environment,
-    Vtype as __Vtype,
-    Model as __Model,
-    Variable as __Variable,
-    SampleIterator as __SampleIterator,
     Sample as __Sample,
-    SamplesIterator as __SamplesIterator,
+    ResultIterator as __ResultIterator,
+    Sense as __Sense,
+    Comparator as __Comparator,
+    Bounds as __Bounds,
+    Samples as __Samples,
     Timing as __Timing,
     Expression as __Expression,
-    ResultIterator as __ResultIterator,
-    Samples as __Samples,
+    SampleIterator as __SampleIterator,
+    Model as __Model,
+    Constraints as __Constraints,
     Constraint as __Constraint,
+    SamplesIterator as __SamplesIterator,
+    Solution as __Solution,
+    Timer as __Timer,
+    Vtype as __Vtype,
+    Result as __Result,
+    ResultView as __ResultView,
+    Variable as __Variable,
+    Environment as __Environment,
 )
-from ._constraints import Constraint, Comparator, Constraints
+from ._constraints import Constraints, Comparator, Constraint
 from . import translator, errors
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
@@ -127,6 +127,7 @@ IllegalConstraintNameError = errors.IllegalConstraintNameError
 TranslationError = errors.TranslationError
 ModelNotQuadraticError = errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
+ModelSenseNotMinimizeError = errors.ModelSenseNotMinimizeError
 SolutionTranslationError = errors.SolutionTranslationError
 SampleIncorrectLengthError = errors.SampleIncorrectLengthError
 SampleIncompatibleVtypeError = errors.SampleIncompatibleVtypeError
@@ -150,6 +151,7 @@ __all__ = [
     "Model",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelSenseNotMinimizeError",
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",

@@ -14,12 +14,56 @@ class Comparator(Enum):
 
 class Constraint:
     @overload
+    def __init__(
+        self, lhs: Expression, rhs: Expression, comparator: Comparator
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, lhs: Expression, rhs: Variable, comparator: Comparator
+    ) -> None: ...
+    @overload
+    def __init__(self, lhs: Expression, rhs: int, comparator: Comparator) -> None: ...
+    @overload
     def __init__(self, lhs: Expression, rhs: float, comparator: Comparator) -> None: ...
+    @overload
+    def __init__(
+        self, lhs: Expression, rhs: Expression, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, lhs: Expression, rhs: Variable, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, lhs: Expression, rhs: int, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, lhs: Expression, rhs: float, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, lhs: Variable, rhs: Expression, comparator: Comparator
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, lhs: Variable, rhs: Variable, comparator: Comparator
+    ) -> None: ...
+    @overload
+    def __init__(self, lhs: Variable, rhs: int, comparator: Comparator) -> None: ...
     @overload
     def __init__(self, lhs: Variable, rhs: float, comparator: Comparator) -> None: ...
     @overload
     def __init__(
-        self, lhs: Expression, rhs: float, comparator: Comparator, name: str
+        self, lhs: Variable, rhs: Expression, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, lhs: Variable, rhs: Variable, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, lhs: Variable, rhs: int, comparator: Comparator, name: str
     ) -> None: ...
     @overload
     def __init__(
@@ -30,6 +74,12 @@ class Constraint:
     def __repr__(self) -> str: ...
     @property
     def name(self) -> str | None: ...
+    @property
+    def lhs(self) -> Expression: ...
+    @property
+    def rhs(self) -> float: ...
+    @property
+    def comparator(self) -> Comparator: ...
 
 class Constraints:
     def __init__(self) -> None: ...

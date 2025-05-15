@@ -158,6 +158,12 @@ class Variable:
         return name, env, vtype, bounds
 
     @dispatched
+    @property
+    def name(self):
+        """Get the name of the variable."""
+        return
+
+    @dispatched
     def __add__(self, other):
         """
         Add this variable to another value.
@@ -320,70 +326,76 @@ class Variable:
         return
 
     @dispatched
-    def __eq__(self, value):
+    def __eq__(self, rhs):
         """
-        Generate an equality constraint for a variable.
+        Create a constraint: expression == scalar.
+
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs == 0
 
         Parameters
         ----------
-        value : int or float
+        rhs : float, int, Variable or Expression
 
         Returns
         -------
         Constraint
-            The resulting constraint.
 
         Raises
         ------
         TypeError
-            If the operand type is unsupported.
+            If the right-hand side is not of type float, int, Variable or Expression.
         """
-        return value
+        return rhs
 
     @dispatched
-    def __le__(self, value):
+    def __le__(self, rhs):
         """
-        Generate a less equal constraint for a variable.
+        Create a constraint: expression <= scalar.
+
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs <= 0
 
         Parameters
         ----------
-        value : int or float
+        rhs : float, int, Variable or Expression
 
         Returns
         -------
         Constraint
-            The resulting constraint.
 
         Raises
         ------
         TypeError
-            If the operand type is unsupported.
+            If the right-hand side is not of type float, int, Variable or Expression.
         """
-        return value
+        return rhs
 
     @dispatched
-    def __ge__(self, value):
+    def __ge__(self, rhs):
         """
-        Generate a greater equal constraint for a variable.
+        Create a constraint: expression >= scalar.
+
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs >= 0
 
         Parameters
         ----------
-        value : int or float
+        rhs : float, int, Variable or Expression
 
         Returns
         -------
         Constraint
-            The resulting constraint.
 
         Raises
         ------
         TypeError
-            If the operand type is unsupported.
+            If the right-hand side is not of type float, int, Variable or Expression.
         """
-        return value
-
-    @property
-    @dispatched
-    def name(self):
-        """Get the name of the variable."""
-        return
+        return rhs

@@ -2,24 +2,25 @@
 # Do not edit manually.
 
 from ._errors import (
-    DecodeError,
-    VariableOutOfRangeError,
     ModelNotUnconstrainedError,
-    ModelVtypeError,
-    TranslationError,
-    ModelNotQuadraticError,
-    DifferentEnvsError,
+    MultipleActiveEnvironmentsError,
+    SampleIncorrectLengthError,
     VariableNotExistingError,
-    NoActiveEnvironmentFoundError,
+    ModelVtypeError,
+    ModelNotQuadraticError,
+    ModelSenseNotMinimizeError,
+    SolutionTranslationError,
+    VariableNamesError,
+    VariablesFromDifferentEnvsError,
+    VariableExistsError,
+    VariableOutOfRangeError,
+    DecodeError,
+    IllegalConstraintNameError,
     VariableCreationError,
     SampleIncompatibleVtypeError,
-    VariableExistsError,
-    SolutionTranslationError,
-    MultipleActiveEnvironmentsError,
-    VariablesFromDifferentEnvsError,
-    IllegalConstraintNameError,
-    SampleIncorrectLengthError,
-    VariableNamesError,
+    TranslationError,
+    NoActiveEnvironmentFoundError,
+    DifferentEnvsError,
 )
 from .._core import errors as __errors
 
@@ -38,6 +39,7 @@ IllegalConstraintNameError = __errors.IllegalConstraintNameError  # noqa: F811
 TranslationError = __errors.TranslationError  # noqa: F811
 ModelNotQuadraticError = __errors.ModelNotQuadraticError  # noqa: F811
 ModelNotUnconstrainedError = __errors.ModelNotUnconstrainedError  # noqa: F811
+ModelSenseNotMinimizeError = __errors.ModelSenseNotMinimizeError  # noqa: F811
 SolutionTranslationError = __errors.SolutionTranslationError  # noqa: F811
 SampleIncorrectLengthError = __errors.SampleIncorrectLengthError  # noqa: F811
 SampleIncompatibleVtypeError = __errors.SampleIncompatibleVtypeError  # noqa: F811
@@ -48,6 +50,7 @@ __all__ = [
     "IllegalConstraintNameError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelSenseNotMinimizeError",
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",

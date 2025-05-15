@@ -9,8 +9,7 @@ use crate::core::{
         AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
         SubAssignToExpression, SubToExpression,
     },
-    Comparator, ConcreteConstraint, ConcreteExpression, ConcreteMutRcExpression, Expression,
-    ExpressionBase,
+    Comparator, ConcreteExpression, ConcreteMutRcExpression, Expression, ExpressionBase,
 };
 use crate::{
     core::expression::ExpressionBaseCreation,
@@ -20,11 +19,7 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyTypeError;
-use pyo3::{
-    exceptions::PyRuntimeError,
-    prelude::*,
-    types::{PyBool, PyBytes},
-};
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 use std::{ops::Deref, rc::Rc};
 
 #[pyclass(unsendable, name = "Expression", module = "aqmodels")]
@@ -248,24 +243,14 @@ impl PyExpression {
     // fn __new__(&mut self) {
     //     todo!()
     // }
+    //
+    pub fn is_equal(&self, other: &PyExpression) -> bool {
+        *self.borrow() == *other.borrow()
+    }
 
-    // Comparison / constraint creation
-    fn __eq__(&self, py: Python, other: PyObject) -> PyResult<PyObject> {
-        if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            // Actual equality check.
-            let result = *self.borrow() == *rhs.borrow();
-            Ok(PyBool::new(py, result).to_owned().into())
-        } else if let Ok(rhs) = other.extract::<f64>(py) {
-            // Creates a new constraint.
-            let constraint =
-                ConcreteConstraint::new(Rc::clone(&self.0), rhs, Comparator::Eq, None)?;
-            // todo: this is deprecated... change to the new way
-            // but for now this works as intended
-            #[allow(deprecated)]
-            Ok(PyConstraint::new(constraint).into_py(py))
-        } else {
-            Err(PyTypeError::new_err("unsupported type for operation"))
-        }
+    // Comparison
+    fn __eq__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
+        PyConstraint::new_py(py, &self, other, Comparator::Eq)
     }
 
     fn __le__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {

@@ -150,6 +150,18 @@ class ModelNotUnconstrainedError(TranslationError):
 
 
 @export("top", "errors")
+class ModelSenseNotMinimizeError(TranslationError):
+    """
+    Raised when an operation requires a model with minimization sense, but has
+    maximization sense.
+
+    Some model formats only work with minimization sense. In this case, consider
+    setting the sense to `minimize` before the transformation, and multiplying the
+    objective by `-1` if necessary.
+    """
+
+
+@export("top", "errors")
 class SolutionTranslationError(Exception):
     """
     Raised when something goes wrong during the translation of a solution.

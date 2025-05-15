@@ -66,7 +66,7 @@ impl Display for VariablesFromDifferentEnvsErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
-            "operation on two variables from differeent environments is not supported"
+            "operation on two variables from different environments is not supported"
         )
     }
 }
@@ -78,7 +78,7 @@ impl Display for DifferentEnvsErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
-            "operation on two variables from differeent environments is not supported"
+            "operation on two variables from different environments is not supported"
         )
     }
 }
@@ -102,10 +102,16 @@ pub struct ModelNotQuadraticErr;
 impl Error for ModelNotQuadraticErr {}
 impl Display for ModelNotQuadraticErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "the model is not linear or quadratic, thus cannot be translated to a matrix."
-        )
+        write!(f, "the model is not linear or quadratic")
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ModelSenseNotMinimizeErr;
+impl Error for ModelSenseNotMinimizeErr {}
+impl Display for ModelSenseNotMinimizeErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "the model does not have the sense 'minimize'")
     }
 }
 
@@ -140,6 +146,7 @@ impl Display for VarNamesErr {
 pub enum MatrixTranslatorErr {
     Constrained(ModelNotUnconstrainedErr),
     HigherOrder(ModelNotQuadraticErr),
+    Maximize(ModelSenseNotMinimizeErr),
     Vtype(ModelVtypeErr),
     VarNames(VarNamesErr),
 }
@@ -149,6 +156,7 @@ impl Display for MatrixTranslatorErr {
         match &self {
             MatrixTranslatorErr::Constrained(err) => err.fmt(f),
             MatrixTranslatorErr::HigherOrder(err) => err.fmt(f),
+            MatrixTranslatorErr::Maximize(err) => err.fmt(f),
             MatrixTranslatorErr::Vtype(err) => err.fmt(f),
             MatrixTranslatorErr::VarNames(err) => err.fmt(f),
         }
@@ -160,9 +168,16 @@ impl From<ModelNotQuadraticErr> for MatrixTranslatorErr {
         Self::HigherOrder(value)
     }
 }
+
 impl From<ModelNotUnconstrainedErr> for MatrixTranslatorErr {
     fn from(value: ModelNotUnconstrainedErr) -> Self {
         Self::Constrained(value)
+    }
+}
+
+impl From<ModelSenseNotMinimizeErr> for MatrixTranslatorErr {
+    fn from(value: ModelSenseNotMinimizeErr) -> Self {
+        Self::Maximize(value)
     }
 }
 
@@ -182,6 +197,7 @@ impl From<VarNamesErr> for MatrixTranslatorErr {
 pub enum BqmTranslatorErr {
     Constrained(ModelNotUnconstrainedErr),
     HigherOrder(ModelNotQuadraticErr),
+    Maximize(ModelSenseNotMinimizeErr),
     Vtype(ModelVtypeErr),
 }
 impl Error for BqmTranslatorErr {}
@@ -190,6 +206,7 @@ impl Display for BqmTranslatorErr {
         match &self {
             BqmTranslatorErr::Constrained(err) => err.fmt(f),
             BqmTranslatorErr::HigherOrder(err) => err.fmt(f),
+            BqmTranslatorErr::Maximize(err) => err.fmt(f),
             BqmTranslatorErr::Vtype(err) => err.fmt(f),
         }
     }
@@ -204,6 +221,12 @@ impl From<ModelNotQuadraticErr> for BqmTranslatorErr {
 impl From<ModelNotUnconstrainedErr> for BqmTranslatorErr {
     fn from(value: ModelNotUnconstrainedErr) -> Self {
         Self::Constrained(value)
+    }
+}
+
+impl From<ModelSenseNotMinimizeErr> for BqmTranslatorErr {
+    fn from(value: ModelSenseNotMinimizeErr) -> Self {
+        Self::Maximize(value)
     }
 }
 

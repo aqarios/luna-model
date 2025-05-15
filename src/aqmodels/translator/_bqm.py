@@ -71,11 +71,13 @@ class BqmTranslator:
         ------
         TranslationError
             Generally if the translation fails. Might be specified by one of the
-            three following errors.
+            four following errors.
         ModelNotQuadraticError
             If the objective contains higher-order (non-quadratic) terms.
         ModelNotUnconstrainedError
             If the model contains any constraints.
+        ModelSenseNotMinimizeError
+            If the model's optimization sense is 'maximize'.
         ModelVtypeError
             If the model contains different vtypes or vtypes other than binary and
             spin.

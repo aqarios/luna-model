@@ -1,9 +1,10 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
     BqmTranslatorErr, DifferentEnvsErr, IllegalConstraintNameErr, IndexOutOfBoundsErr,
-    MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelVtypeErr,
-    SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr, TranslationErr,
-    VarNamesErr, VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr,
+    MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr,
+    ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr,
+    TranslationErr, VarNamesErr, VariableCreationErr, VariableNotExistingErr,
+    VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
@@ -35,6 +36,11 @@ create_exception!(aqmodels.errors, ModelNotQuadraticError, TranslationError);
 create_exception!(
     aqmodels.errors,
     ModelNotUnconstrainedError,
+    TranslationError
+);
+create_exception!(
+    aqmodels.errors,
+    ModelSenseNotMinimizeError,
     TranslationError
 );
 create_exception!(aqmodels.errors, ModelVtypeError, TranslationError);
@@ -105,6 +111,12 @@ impl From<ModelNotUnconstrainedErr> for PyErr {
     }
 }
 
+impl From<ModelSenseNotMinimizeErr> for PyErr {
+    fn from(err: ModelSenseNotMinimizeErr) -> Self {
+        ModelSenseNotMinimizeError::new_err(err.to_string())
+    }
+}
+
 impl From<ModelVtypeErr> for PyErr {
     fn from(err: ModelVtypeErr) -> Self {
         ModelVtypeError::new_err(err.to_string())
@@ -128,6 +140,7 @@ impl From<MatrixTranslatorErr> for PyErr {
         match err {
             MatrixTranslatorErr::Constrained(err) => err.into(),
             MatrixTranslatorErr::HigherOrder(err) => err.into(),
+            MatrixTranslatorErr::Maximize(err) => err.into(),
             MatrixTranslatorErr::Vtype(err) => err.into(),
             MatrixTranslatorErr::VarNames(err) => err.into(),
         }
@@ -139,6 +152,7 @@ impl From<BqmTranslatorErr> for PyErr {
         match err {
             BqmTranslatorErr::Constrained(err) => err.into(),
             BqmTranslatorErr::HigherOrder(err) => err.into(),
+            BqmTranslatorErr::Maximize(err) => err.into(),
             BqmTranslatorErr::Vtype(err) => err.into(),
         }
     }
