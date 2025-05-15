@@ -1,9 +1,10 @@
 use crate::core::expression::{BiasConstraints, ExpressionEvaluation, IndexConstraints};
+use crate::core::operations::{AddAssignToExpression, SubAssignToExpression};
 use crate::core::writer::ModelWriter;
-use crate::core::{IndexByValue, MutRcExpression};
+use crate::core::{ExpressionBase, IndexByValue, MutRcExpression};
 use crate::errors::{IllegalConstraintNameErr, IndexOutOfBoundsErr};
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Add, AddAssign, Mul};
+use std::ops::{Add, AddAssign, Deref, Mul};
 use std::slice::Iter;
 use std::string::ToString;
 use strum_macros::Display;
@@ -68,9 +69,12 @@ where
         name: Option<String>,
     ) -> Result<Self, IllegalConstraintNameErr> {
         Self::validate_name(&name)?;
+        let lhs_constant = lhs.borrow().offset();
+        let actual_rhs = rhs - lhs_constant;
+        lhs.borrow_mut().sub_assign(lhs_constant);
         Ok(Self {
             lhs,
-            rhs,
+            rhs: actual_rhs,
             comparator,
             name,
         })
