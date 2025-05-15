@@ -1,13 +1,12 @@
 use crate::core::solution::sol::SampleCol;
 use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, ConcreteBinaryType, ConcreteIntegerType,
-    ConcreteRealType, ConcreteSpinType, OwnedResult, RcSolution, Sample, Samples, Solution,
-    VarAssignment, Vtype,
+    ConcreteAssignmentTypes, ConcreteBias, RcSolution, Samples, Solution, VarAssignment, Vtype,
 };
+use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_model::PyModel;
-use crate::py_bindings::py_res::{PyOwnedResult, PyResultIterator, PyResultView};
+use crate::py_bindings::py_res::{PyResultIterator, PyResultView};
 use crate::py_bindings::py_sample::PySamples;
 use crate::py_bindings::py_timing::PyTiming;
 use crate::py_bindings::py_var::PyVariable;
@@ -15,7 +14,6 @@ use crate::serialization::{
     Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
 };
 use derive_more::{Deref, DerefMut};
-use either::Right;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
@@ -133,17 +131,18 @@ impl PySolution {
     }
 
     #[staticmethod]
+    #[pyo3(signature=(data, env=None, model=None)
+    )]
     fn from_dict(
         data: HashMap<SampleKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
-    ) -> PyResult<PyOwnedResult> {
+    ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
                 "either `env` or `model` has to be `None`",
             ));
         }
-
         let environment: PyEnvironment = if model.is_some() {
             PyEnvironment(Rc::clone(&model.as_ref().unwrap().borrow().environment))
         } else {
@@ -157,8 +156,18 @@ impl PySolution {
             }
         };
 
+        let mut sol = Solution::default();
+        for v in environment.borrow().variables.iter() {
+            match v.vtype {
+                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
+                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(1))),
+                Vtype::Integer => sol.add_column(SampleCol::Integer(Vec::with_capacity(1))),
+                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(1))),
+            }
+        }
+
         let n_vars = environment.borrow().varcount.into();
-        let mut sample = vec![VarAssignment::default(); n_vars];
+        let mut sample = vec![f64::default(); n_vars];
         let mut mask = vec![false; n_vars];
 
         for (k, &v) in data.iter() {
@@ -169,35 +178,27 @@ impl PySolution {
             let environ = environment.borrow();
             let maybe_var = environ.variables_lookup.get(var_name);
             if maybe_var.is_none() {
-                return Err(PyRuntimeError::new_err(""));
+                return Err(SampleUnexpectedVariableErr {
+                    var_name: var_name.clone(),
+                })?;
             }
             let var = maybe_var.unwrap().0 as usize;
-            let assignment: VarAssignment<ConcreteAssignmentTypes> =
-                match environ.variables[var].vtype {
-                    Vtype::Binary => VarAssignment::Binary(v as ConcreteBinaryType),
-                    Vtype::Spin => VarAssignment::Spin(v as ConcreteSpinType),
-                    Vtype::Integer => VarAssignment::Integer(v as ConcreteIntegerType),
-                    Vtype::Real => VarAssignment::Real(v as ConcreteRealType),
-                };
-            sample[var] = assignment;
+            sample[var] = v;
             mask[var] = true;
         }
 
-        if mask.iter().all(|x| !x) {
-            return Err(PyRuntimeError::new_err(""));
+        if !mask.iter().all(|&x| x) {
+            return Err(SampleIncorrectLengthErr)?;
         }
 
-        let res = if let Some(m) = model {
-            m.borrow().evaluate_sample(&Sample(Right(Rc::new(sample))))
-        } else {
-            OwnedResult {
-                sample: Rc::new(sample),
-                obj_value: None,
-                constraint_satisfaction: None,
-                feasible: None,
-            }
-        };
-        Ok(PyOwnedResult(res))
+        let energy: Option<f64> = None;
+        sol.extend(sample, 1, energy);
+        let mut sol_rc = RcSolution(Rc::new(sol));
+        if let Some(m) = model {
+            sol_rc = m.borrow().evaluate_solution(sol_rc);
+        }
+
+        Ok(PySolution(sol_rc))
     }
 
     #[getter]
@@ -254,7 +255,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
     #[pyo3(signature=(compress=true, level=3))]

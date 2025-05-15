@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Bounds, Variable
-from ._timing import Timer, Timing
+from ._variable import Bounds, Vtype, Variable
+from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import Sample, SamplesIterator, SampleIterator, Samples
-from ._result import ResultView, ResultIterator, Result
+from ._sample import Sample, SampleIterator, SamplesIterator, Samples
+from ._result import Result, ResultView, ResultIterator
 from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    ResultView as __ResultView,
-    Timing as __Timing,
     Sense as __Sense,
-    SampleIterator as __SampleIterator,
-    Constraints as __Constraints,
-    Variable as __Variable,
-    ResultIterator as __ResultIterator,
-    Sample as __Sample,
+    Solution as __Solution,
     Model as __Model,
+    Comparator as __Comparator,
+    Timer as __Timer,
+    Constraint as __Constraint,
+    Variable as __Variable,
+    Sample as __Sample,
     Vtype as __Vtype,
+    Result as __Result,
+    SampleIterator as __SampleIterator,
+    ResultView as __ResultView,
+    Constraints as __Constraints,
+    Timing as __Timing,
     Expression as __Expression,
     Environment as __Environment,
     Bounds as __Bounds,
-    Timer as __Timer,
-    Constraint as __Constraint,
-    Solution as __Solution,
-    Comparator as __Comparator,
-    SamplesIterator as __SamplesIterator,
-    Result as __Result,
     Samples as __Samples,
+    ResultIterator as __ResultIterator,
+    SamplesIterator as __SamplesIterator,
 )
-from ._constraints import Constraint, Comparator, Constraints
-from . import translator, errors
+from ._constraints import Comparator, Constraints, Constraint
+from . import errors, translator
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
@@ -130,6 +130,7 @@ ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
 ModelSenseNotMinimizeError = errors.ModelSenseNotMinimizeError
 SolutionTranslationError = errors.SolutionTranslationError
 SampleIncorrectLengthError = errors.SampleIncorrectLengthError
+SampleUnexpectedVariableError = errors.SampleUnexpectedVariableError
 SampleIncompatibleVtypeError = errors.SampleIncompatibleVtypeError
 
 __all__ = [
@@ -166,6 +167,7 @@ __all__ = [
     "SampleIncompatibleVtypeError",
     "SampleIncorrectLengthError",
     "SampleIterator",
+    "SampleUnexpectedVariableError",
     "Samples",
     "SamplesIterator",
     "Sense",

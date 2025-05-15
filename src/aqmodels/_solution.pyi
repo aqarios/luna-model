@@ -2,10 +2,10 @@ from typing import overload
 
 from numpy.typing import NDArray
 
-from aqmodels import Timing
 from aqmodels import ResultIterator
 from aqmodels import ResultView
 from aqmodels import Samples
+from aqmodels import Timing, Variable, Environment, Model
 from aqmodels import Vtype
 
 class Solution:
@@ -60,4 +60,18 @@ class Solution:
         raw_energies: list[float | None] | None = ...,
         timing: Timing | None = ...,
         counts: list[int] | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable | str, int | float]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable | str, int | float],
+        env: Environment | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable | str, int | float], /, *, model: Model
     ) -> Solution: ...

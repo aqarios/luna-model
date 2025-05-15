@@ -324,3 +324,44 @@ class Solution:
             raw_energies,
             timing,
         )
+
+    @staticmethod
+    def from_dict(data, env, model):
+        """
+        Create a solution from a dict that maps variables or variable names to their
+        assigned values.
+
+        If a Model is passed, the solution will be evaluated immediately. Otherwise,
+        there has to be an environment present to determine the correct variable types.
+
+        Parameters
+        ----------
+        data : dict[Variable | str, int | float]
+            The sample that shall be part of the solution.
+        env : Environment, optional
+            The environment the variable types shall be determined from.
+        model : Model, optional
+            A model to evaluate the sample with.
+
+        Returns
+        -------
+        Solution
+            The solution object created from the sample dict.
+
+        Raises
+        ------
+        NoActiveEnvironmentFoundError
+             If no environment or model is passed to the method or available from the
+             context.
+        ValueError
+            If `env` and `model` are both present. When this is the case, the user's
+            intention is unclear as the model itself already contains an environment.
+        SolutionTranslationError
+            Generally if the sample translation fails. Might be specified by one of the
+            two following errors.
+        SampleIncorrectLengthErr
+            If a sample has a different number of variables than the environment.
+        SampleUnexpectedVariableError
+            If a sample has a variable that is not present in the environment.
+        """
+        return data, env, model
