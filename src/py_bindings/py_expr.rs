@@ -67,13 +67,12 @@ impl PyExpression {
             .higher_order(&variables.iter().map(|v| v.id).collect())?)
     }
 
-    // TODO (0.1.2): why not define a property instead?
-    #[pyo3(name = "num_variables")]
+    #[getter]
     fn get_num_variables(&self) -> usize {
         self.borrow().num_variables()
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
@@ -88,7 +87,7 @@ impl PyExpression {
         .into())
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
         py: Python,
@@ -115,7 +114,6 @@ impl PyExpression {
 
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         let expr: ConcreteExpression;
-        // TODO (0.1.2): will this extract a float when an int is passed in python?
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.borrow().add(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
@@ -148,12 +146,6 @@ impl PyExpression {
         Ok(PyExpression::new(expr))
     }
 
-    fn __rsub__(&self, _py: Python, _other: PyObject) -> PyResult<PyExpression> {
-        // TODO (0.1.2): implement or remove ^^
-        todo!()
-        // self.__sub__(py, other)
-    }
-
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         let expr: ConcreteExpression;
         if let Ok(rhs) = other.extract::<f64>(py) {
@@ -172,8 +164,6 @@ impl PyExpression {
         self.__mul__(py, other)
     }
 
-    // In place assignment
-    // TODO (0.1.2): why is the return type different from the .pyi file?
     fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             self.borrow_mut().add_assign(rhs)

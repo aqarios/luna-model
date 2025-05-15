@@ -134,7 +134,7 @@ impl PyModel {
             .add_assign(expression.borrow().deref())?)
     }
 
-    // TODO (0.1.2): why not define as property?
+    #[getter]
     fn num_constraints(&self) -> usize {
         self.constraints.borrow().len()
     }
@@ -169,7 +169,7 @@ impl PyModel {
         format!("{:#?}", self.concrete_model)
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
@@ -184,7 +184,7 @@ impl PyModel {
     }
 
     /// Alias for serialize
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
         py: Python,

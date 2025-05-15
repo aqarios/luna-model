@@ -193,6 +193,7 @@ class Expression:
         return variables
 
     @dispatched
+    @property
     def num_variables(self):
         """
         Return the number of distinct variables in the expression.
@@ -346,26 +347,6 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        TypeError
-            If the operand type is unsupported.
-        """
-        return other
-
-    @dispatched
-    def __rsub__(self, other):
-        """
-        Subtract this expression from a scalar or variable.
-
-        Parameters
-        ----------
-        other : int, float, or Variable
-
-        Returns
-        -------
-        Expression
-
-        Raises
-        ------
         TypeError
             If the operand type is unsupported.
         """

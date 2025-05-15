@@ -224,6 +224,7 @@ class Model:
         return expression, sense
 
     @dispatched
+    @property
     def num_constraints(self):
         """
         Return the number of constraints defined in the model.

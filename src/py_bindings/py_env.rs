@@ -53,7 +53,6 @@ impl PyEnvironment {
         Ok(self.clone())
     }
 
-    // TODO (0.1.2): why do we return anything here? Seems to never return an Err
     fn __exit__(
         &self,
         _exc_type: &Bound<'_, PyAny>,
@@ -82,7 +81,7 @@ impl PyEnvironment {
     }
 
     // TODO (0.1.2): does default in signature have to match default in .py files?
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
@@ -97,7 +96,7 @@ impl PyEnvironment {
         .into())
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
         py: Python,

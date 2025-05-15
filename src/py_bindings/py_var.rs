@@ -108,19 +108,8 @@ impl PyVariable {
     }
 
     fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        // TODO (0.1.2): check whether we want to support Variable and Expression as `other`
         if let Ok(rhs) = other.extract::<f64>(py) {
-            // scalar - variable
             Ok(PyExpression::new(self.rsub(rhs)))
-        // } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-        //     self.sub(rhs.as_ref())
-        //         .map(|e| PyExpression::new(e))
-        //         .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
-        // } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-        //     rhs.borrow()
-        //         .add(self.as_ref())
-        //         .map(|e| PyExpression::new(e))
-        //         .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
         } else {
             Err(PyTypeError::new_err("unsupported type for operation"))
         }

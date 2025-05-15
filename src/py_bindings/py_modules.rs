@@ -3,8 +3,8 @@ use pyo3::{prelude::*, PyTypeCheck};
 use crate::core::{Comparator, Sense, Vtype};
 
 use super::{
-    py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_res, py_sample,
-    py_sol, py_timing, py_translator, py_var, py_model_metadata,
+    py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_model_metadata,
+    py_res, py_sample, py_sol, py_timing, py_translator, py_var,
 };
 
 // #[pymodule]

@@ -1,5 +1,5 @@
 use crate::core::Qubo;
-use crate::errors::{ModelSenseNotMinimizeErr, ModelVtypeErr, TranslationErr, VarNamesErr};
+use crate::errors::{ModelSenseNotMinimizeErr, ModelVtypeErr, VarNamesErr};
 use crate::{
     core::{
         expression::{BiasConstraints, IndexConstraints},

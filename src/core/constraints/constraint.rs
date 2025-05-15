@@ -1,10 +1,10 @@
 use crate::core::expression::{BiasConstraints, ExpressionEvaluation, IndexConstraints};
-use crate::core::operations::{AddAssignToExpression, SubAssignToExpression};
+use crate::core::operations::SubAssignToExpression;
 use crate::core::writer::ModelWriter;
 use crate::core::{ExpressionBase, IndexByValue, MutRcExpression};
 use crate::errors::{IllegalConstraintNameErr, IndexOutOfBoundsErr};
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Add, AddAssign, Deref, Mul};
+use std::ops::{Add, AddAssign, Mul};
 use std::slice::Iter;
 use std::string::ToString;
 use strum_macros::Display;

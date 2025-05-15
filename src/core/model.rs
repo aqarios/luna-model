@@ -10,7 +10,7 @@ use super::{Environment, Expression, RcSolution, Sample, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::writer::ModelWriter;
-use crate::errors::{TranslationErr, VarNamesErr};
+use crate::errors::VarNamesErr;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 use std::cell::RefCell;
