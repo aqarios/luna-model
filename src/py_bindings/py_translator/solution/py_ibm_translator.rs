@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use crate::{
     py_bindings::{
         py_env::{PyEnvironment, CURRENT_ENV},
@@ -10,6 +9,7 @@ use crate::{
     translator::IbmTranslator,
 };
 use pyo3::{ffi::c_str, prelude::*};
+use std::rc::Rc;
 
 #[pyclass(unsendable, name = "IbmTranslator", module = "aqmodels.translator")]
 pub struct PyIbmTranslator {}
@@ -20,7 +20,7 @@ impl PyIbmTranslator {
     #[pyo3(signature=(samples, orderings, energies, counts, timing=None, env=None))]
     fn translate(
         samples: Vec<Vec<i64>>,
-        orderings: Vec<Vec<PyVariable>>,
+        orderings: Vec<PyVariable>,
         energies: Vec<f64>,
         counts: Vec<usize>,
         timing: Option<PyTiming>,
@@ -36,10 +36,7 @@ impl PyIbmTranslator {
         };
         Ok(PySolution(IbmTranslator::from_ibm(
             &samples,
-            &orderings
-                .iter()
-                .map(|l| l.iter().map(|e| Rc::clone(&e.0)).collect())
-                .collect(),
+            &orderings.iter().map(|e| Rc::clone(&e.0)).collect(),
             &energies,
             counts,
             timing.map(|t| t.into()),
@@ -68,25 +65,26 @@ def extract(result, qp, timing, env):
     counts: dict[str, int] = meas.get_counts()
 
     samples = []
-    orderings = []
     energies = []
     flat_counts = []
 
-    for bitstring, count in counts.items():
+    ordering = []
+
+    for n, (bitstring, count) in enumerate(counts.items()):
         sample = []
-        order = []
         for i, b in enumerate(bitstring):
             sample.append(int(b))
-            order.append(env.get_variable(qp.variables[i].name))
+            
+            if n == 0:
+                ordering.append(env.get_variable(qp.variables[i].name))
 
-        samples.append(sample)
-        orderings.append(order)
         energies.append(float(qp.objective.evaluate(sample)))
+        samples.append(sample[::-1]) # reverse ordering for correct bitstrings.
         flat_counts.append(count)
 
     return translator.IbmTranslator.translate(
         samples, 
-        orderings, 
+        ordering, 
         energies, 
         flat_counts, 
         timing, 

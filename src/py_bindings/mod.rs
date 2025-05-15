@@ -4,13 +4,14 @@ mod py_env;
 mod py_exceptions;
 mod py_expr;
 mod py_model;
+mod py_model_metadata;
 mod py_modules;
+mod py_res;
+mod py_sample;
 mod py_sol;
 mod py_timing;
 mod py_translator;
 mod py_var;
-mod py_res;
-mod py_sample;
 
 use pyo3::prelude::*;
 

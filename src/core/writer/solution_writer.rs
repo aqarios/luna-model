@@ -5,10 +5,7 @@ use crate::core::{RcSolution, Sample, Samples};
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
 
-pub struct SolutionWriter<
-    Bias,
-    AssignmentTypes
->
+pub struct SolutionWriter<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
@@ -31,10 +28,7 @@ where
         }
     }
 
-    pub fn write_solution(
-        &mut self,
-        sol: RcSolution<Bias, AssignmentTypes>,
-    ) -> &mut Self {
+    pub fn write_solution(&mut self, sol: RcSolution<Bias, AssignmentTypes>) -> &mut Self {
         self.write_samples(sol.samples(), &sol.counts)
     }
 
@@ -50,10 +44,7 @@ where
             }
             self.writer.increase_indent();
             self.write_sample(sample);
-            self.writer
-                .write(":")
-                .space()
-                .write(&format!("{n_occ},"));
+            self.writer.write(":").space().write(&format!("{n_occ},"));
             self.writer.decrease_indent();
         }
         self.writer.decrease_indent().with_new_line("}");

@@ -30,13 +30,37 @@ class Qubo:
 
     @dispatched
     @property
-    def variable_ordering(self):
-        """The order in which the variables appear in the QUBO matrix.
+    def variable_names(self):
+        """The name of the variables in the same order as in the QUBO matrix.
 
         Returns
         -------
         list[Variable]
-            The variables in the order they appear in the QUBO.
+            The variable names in the order they appear in the QUBO.
+        """
+        return
+
+    @dispatched
+    @property
+    def name(self):
+        """The name of the model the QUBO matrix was generated from.
+
+        Returns
+        -------
+        str
+            The model name.
+        """
+        return
+
+    @dispatched
+    @property
+    def vtype(self):
+        """The type of the model variables. Can be `Binary` or `Spin`.
+
+        Returns
+        -------
+        Vtype
+            The variable type.
         """
         return
 
@@ -61,12 +85,12 @@ class QuboTranslator:
 
     Create a model from a matrix:
 
-    >>> model = QuboTranslator.to_aq(q, name="qubo_model", vtype=Vtype.Binary)
+    >>> model = QuboTranslator.to_aq(q, offset=4.2, name="qubo_model", vtype=Vtype.Binary)
 
     Convert it back to a dense matrix:
 
     >>> recovered = QuboTranslator.from_aq(model)
-    >>> assert np.allclose(q, recovered)
+    >>> assert np.allclose(q, recovered.matrix)
     """
 
     @staticmethod
@@ -117,10 +141,12 @@ class QuboTranslator:
         ------
         TranslationError
             Generally, if the translation fails. Might be specified by one of the
-            two following errors.
+            three following errors.
         ModelNotQuadraticError
             If the objective contains higher-order (non-quadratic) terms.
         ModelNotUnconstrainedError
             If the model contains any constraints.
+        ModelSenseNotMinimizeError
+            If the model's optimization sense is 'maximize'.
         """
         return model

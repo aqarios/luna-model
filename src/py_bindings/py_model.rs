@@ -1,8 +1,12 @@
+use std::ops::{AddAssign, Deref};
 use std::rc::Rc;
 
+use super::py_constr::PyConstraint;
+use super::py_model_metadata::PyModelMetadata;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
+use crate::core::operations::AddAssignToExpression;
 use crate::core::{RcSolution, Sense};
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
@@ -18,11 +22,28 @@ use pyo3::{prelude::*, types::PyBytes};
 
 #[pyclass(unsendable, subclass, name = "Model", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PyModel(pub ConcreteModel);
+pub struct PyModel {
+    #[deref]
+    #[deref_mut]
+    pub concrete_model: ConcreteModel,
+    #[deref(ignore)]
+    #[deref_mut(ignore)]
+    #[pyo3(get, set)]
+    pub _metadata: PyModelMetadata, // HashMap<String, PyObject>, // pub metadata: Option<PyDict>,
+}
+
+impl PyModel {
+    pub fn new(concrete_model: ConcreteModel) -> Self {
+        Self {
+            concrete_model,
+            _metadata: PyModelMetadata::new(),
+        }
+    }
+}
 
 impl Into<ConcreteModel> for PyModel {
     fn into(self) -> ConcreteModel {
-        self.0
+        self.concrete_model
     }
 }
 
@@ -46,12 +67,29 @@ impl PyModel {
             //     })
             // })?,
         };
-        Self(Model::new_with_env(name, env.0))
+        Self::new(Model::new_with_env(name, env.0))
     }
 
-    #[pyo3(name="set_sense")]
+    #[pyo3(name = "set_sense")]
     fn set_sense_py(&mut self, sense: Sense) {
         self.set_sense(sense);
+    }
+
+    // #[getter]
+    // #[pyo3(name = "_metadata")]
+    // fn get_metadata(&self) -> PyModelMetadata {
+    //     self.metadata.clone()
+    // }
+
+    // #[setter]
+    // #[pyo3(name = "_metadata")]
+    // fn set_metadata(&mut self, value: &PyModelMetadata) {
+    //     self.metadata = value.clone()
+    // }
+
+    #[getter]
+    fn get_sense(&self) -> Sense {
+        self.sense
     }
 
     #[getter]
@@ -74,6 +112,28 @@ impl PyModel {
         self.constraints = other.0.clone()
     }
 
+    #[pyo3(signature=(constraint, name=None))]
+    fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
+        constraint.borrow_mut().set_name(name)?;
+        self.constraints
+            .borrow_mut()
+            .add_assign(constraint.borrow().deref());
+        Ok(())
+    }
+
+    #[pyo3(name = "set_objective", signature=(expression, sense=None))]
+    fn set_objective_direct(&mut self, expression: PyExpression, sense: Option<Sense>) -> () {
+        self.set_sense(sense.unwrap_or(Sense::Min));
+        self.objective = expression.0.clone();
+    }
+
+    fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {
+        Ok(self
+            .objective
+            .borrow_mut()
+            .add_assign(expression.borrow().deref())?)
+    }
+
     fn num_constraints(&self) -> usize {
         self.constraints.borrow().len()
     }
@@ -88,8 +148,16 @@ impl PyModel {
         PyEnvironment(self.environment.clone())
     }
 
+    fn evaluate(&self, solution: &PySolution) -> PySolution {
+        PySolution(self.evaluate_solution(RcSolution::clone(&solution.0)))
+    }
+
+    fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
+        PyOwnedResult(self.concrete_model.evaluate_sample(&sample.0))
+    }
+
     fn __eq__(&self, other: &Self) -> bool {
-        self.0 == other.0
+        self.concrete_model == other.concrete_model
     }
 
     fn __str__(&self) -> String {
@@ -97,7 +165,7 @@ impl PyModel {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:#?}", self.0)
+        format!("{:#?}", self.concrete_model)
     }
 
     #[pyo3(signature=(compress=None, level=None))]
@@ -106,7 +174,7 @@ impl PyModel {
         Ok(PyBytes::new(
             py,
             &self
-                .0
+                .concrete_model
                 .encode()
                 .maybe_compress(compress, level)?
                 .versionize(),
@@ -127,7 +195,7 @@ impl PyModel {
 
     #[staticmethod]
     fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Ok(PyModel(
+        Ok(PyModel::new(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
         ))
     }
@@ -135,13 +203,5 @@ impl PyModel {
     #[staticmethod]
     fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Self::decode(py, data)
-    }
-
-    fn evaluate(&self, solution: &PySolution) -> PySolution {
-        PySolution(self.evaluate_solution(RcSolution::clone(&solution.0)))
-    }
-
-    fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
-        PyOwnedResult(self.0.evaluate_sample(&sample.0))
     }
 }

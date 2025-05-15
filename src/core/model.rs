@@ -10,6 +10,7 @@ use super::{Environment, Expression, RcSolution, Sample, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::writer::ModelWriter;
+use crate::errors::TranslationErr;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
@@ -96,27 +97,55 @@ where
     /// created based on the size of the QUBO.
     pub fn new_from_dense(
         name: Option<String>,
-        dense: &[Bias],
+        vtype: Option<Vtype>,
+        matrix_flat: &[Bias],
         num_variables: Index,
-        vtype: Vtype,
-    ) -> Self {
+        offset: Option<Bias>,
+        variable_names: Option<Vec<String>>,
+    ) -> Result<Self, TranslationErr> {
         let model = Model::new(name);
-        // We also need to add the varaibles to the model...
-        (0..num_variables.into()).into_iter().for_each(|idx| {
+        // We also need to add the variables to the model...
+        for idx in 0..num_variables.into() {
+            let var_name = match &variable_names {
+                None => &format!("x_{}", idx.to_string()),
+                Some(names) => {
+                    // Name needs to start with alpha.
+                    let name = &names[idx];
+                    if !name.starts_with(|c: char| c.is_alphabetic()) {
+                        return Err(TranslationErr::new(String::from(
+                            "Variable names must start with an alphabetic character.",
+                        )));
+                    }
+                    for c in name.chars() {
+                        // Check that the character is only alphanumeric or '_' or ','.
+                        if c.is_alphanumeric() || c == '_' || c == ',' {
+                            continue;
+                        } else {
+                            return Err(TranslationErr::new(String::from(
+                                "Variable names must only contain alphanumeric characters or '_' or ','."
+                            )));
+                        }
+                    }
+                    name
+                }
+            };
             let _ = add_variable(
                 model.environment.clone(),
-                &idx.to_string(),
-                Some(&vtype),
+                var_name,
+                Some(&vtype.unwrap_or(Vtype::Binary)),
                 None,
             );
-        });
+        }
 
         model.objective.borrow_mut().resize(num_variables);
         model
             .objective
             .borrow_mut()
-            .add_quadratic_from_dense(dense, num_variables);
-        model
+            .add_quadratic_from_dense(matrix_flat, num_variables);
+        if let Some(off) = offset {
+            model.objective.borrow_mut().add_offset(off);
+        }
+        Ok(model)
     }
 
     pub fn evaluate_solution<AssignmentTypes>(

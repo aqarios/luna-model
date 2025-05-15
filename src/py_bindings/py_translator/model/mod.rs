@@ -1,7 +1,7 @@
 mod py_bqm_translator;
+mod py_cqm_translator;
 mod py_lp_translator;
 mod py_qubo_translator;
-mod py_cqm_translator;
 
 pub use py_bqm_translator::PyBqmTranslator;
 pub use py_cqm_translator::PyCqmTranslator;

@@ -5,12 +5,15 @@ import pytest
 import scipy.sparse as sp  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 
-from aqmodels import QuboTranslator, Variable, Vtype
 from aqmodels import (
     ModelNotQuadraticError,
     ModelNotUnconstrainedError,
     TranslationError,
+    Model,
+    Sense,
+    ModelSenseNotMinimizeError,
 )
+from aqmodels import QuboTranslator, Variable, Vtype, ModelVtypeError
 from ..utils import make_seed
 
 
@@ -40,6 +43,19 @@ def linear_qubo(request) -> NDArray:
     return mat
 
 
+@pytest.fixture
+def model() -> Model:
+    model = Model("test_model")
+    with model.environment:
+        x1 = Variable("x1")
+        x2 = Variable("x2")
+        x3 = Variable("x3")
+        x4 = Variable("x4")
+    model.objective = x1 + x2 + x3 - x4 + x1 * x2 - x3 * x4
+    model.set_sense(Sense.Max)
+    return model
+
+
 @pytest.mark.translator
 @pytest.mark.parametrize(
     "qubo",
@@ -50,6 +66,81 @@ def test_translate_with_dense(qubo: NDArray):
     model = QuboTranslator.to_aq(qubo)
     back = QuboTranslator.from_aq(model).matrix
     assert np.allclose(qubo, back)
+
+
+@pytest.mark.translator
+@pytest.mark.parametrize(
+    "qubo",
+    list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
+    indirect=True,
+)
+def test_translate_with_dense_and_metadata(qubo: NDArray):
+    offset = 4.2
+    name = "test"
+    vtype = Vtype.Binary
+    model = QuboTranslator.to_aq(qubo, offset=offset, name=name, vtype=vtype)
+    back = QuboTranslator.from_aq(model)
+    assert np.allclose(qubo, back.matrix)
+    assert back.offset == offset
+    assert back.vtype == vtype
+    assert back.name == name
+    assert back.variable_names == [f"x_{x}" for x in range(len(qubo))]
+
+
+@pytest.mark.translator
+@pytest.mark.parametrize(
+    "qubo",
+    list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
+    indirect=True,
+)
+def test_translate_with_dense_and_valid_variable_names(qubo: NDArray):
+    offset = 4.2
+    name = "test"
+    vtype = Vtype.Binary
+    variable_names = [f"x_{i},y_{i}" for i in range(len(qubo))]
+    model = QuboTranslator.to_aq(
+        qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
+    )
+    back = QuboTranslator.from_aq(model)
+    assert np.allclose(qubo, back.matrix)
+    assert back.offset == offset
+    assert back.vtype == vtype
+    assert back.name == name
+    assert back.variable_names == variable_names
+
+
+@pytest.mark.translator
+@pytest.mark.parametrize(
+    "qubo",
+    list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
+    indirect=True,
+)
+def test_translate_with_dense_and_invalid_variable_names_non_alpha(qubo: NDArray):
+    offset = 4.2
+    name = "test"
+    vtype = Vtype.Binary
+    variable_names = [str(i) for i in range(len(qubo))]
+    with pytest.raises(TranslationError):
+        _ = QuboTranslator.to_aq(
+            qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
+        )
+
+
+@pytest.mark.translator
+@pytest.mark.parametrize(
+    "qubo",
+    list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
+    indirect=True,
+)
+def test_translate_with_dense_and_invalid_variable_names(qubo: NDArray):
+    offset = 4.2
+    name = "test"
+    vtype = Vtype.Binary
+    variable_names = [f"x_{i}+y_{i}" for i in range(len(qubo))]
+    with pytest.raises(TranslationError):
+        _ = QuboTranslator.to_aq(
+            qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
+        )
 
 
 @pytest.mark.translator
@@ -109,6 +200,45 @@ def test_translate_from_non_fitting_higher_order(qubo: NDArray):
         model.objective *= b
 
     with pytest.raises(ModelNotQuadraticError):
+        _ = QuboTranslator.from_aq(model)
+
+    with pytest.raises(TranslationError):
+        _ = QuboTranslator.from_aq(model) @ pytest.mark.translator
+
+
+@pytest.mark.parametrize(
+    "qubo",
+    [(100, 0.1)],
+    indirect=True,
+)
+def test_translate_from_non_fitting_vtype(qubo: NDArray):
+    model = QuboTranslator.to_aq(qubo)
+    with model.environment:
+        r = Variable("r", vtype=Vtype.Real)
+        model.objective += r
+
+    with pytest.raises(ModelVtypeError):
+        _ = QuboTranslator.from_aq(model)
+
+    with pytest.raises(TranslationError):
+        _ = QuboTranslator.from_aq(model)
+
+    model_2 = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
+
+    with model_2.environment:
+        s = Variable("s", vtype=Vtype.Spin)
+        model_2.objective += s
+
+    with pytest.raises(ModelVtypeError):
+        _ = QuboTranslator.from_aq(model_2)
+
+    with pytest.raises(TranslationError):
+        _ = QuboTranslator.from_aq(model_2)
+
+
+@pytest.mark.translator
+def test_translate_from_maximization_sense(model: Model):
+    with pytest.raises(ModelSenseNotMinimizeError):
         _ = QuboTranslator.from_aq(model)
 
     with pytest.raises(TranslationError):

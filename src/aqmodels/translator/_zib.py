@@ -6,8 +6,9 @@ class ZibTranslator:
     """
     Utility class for converting between a Zib solution and an AqSolution (ours).
 
-    `ZibTranslator` provides mehtods to:
-    - Convert a Zib-style solution into our solution `Solution`.
+    `ZibTranslator` provides methods to:
+
+        - Convert a Zib-style solution into our solution `Solution`.
 
     The conversions are especially required when interaction with external zib solvers/samplers or libraries that operate on zib-based problem solving/sampling.
 

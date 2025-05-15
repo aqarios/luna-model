@@ -2,13 +2,14 @@ mod common;
 mod concrete;
 mod extras;
 mod model;
-mod writer;
 mod variable;
+mod writer;
 
 pub mod constraints;
 pub mod environment;
 pub mod expression;
 pub mod operations;
+mod qubo;
 pub mod solution;
 pub mod term;
 mod traits;
@@ -59,6 +60,8 @@ pub use expression::ExpressionBaseAdjustment;
 pub use model::Model;
 pub use model::Sense;
 pub use model::DEFAULT_MODEL_NAME;
+
+pub use qubo::Qubo;
 
 pub use solution::OwnedResult;
 pub use solution::RcSolution;

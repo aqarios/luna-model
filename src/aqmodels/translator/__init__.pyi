@@ -5,7 +5,6 @@ from aqmodels import Environment
 from aqmodels import Model
 from aqmodels import Solution
 from aqmodels import Timing
-from aqmodels import Variable
 from aqmodels import Vtype
 from dimod import BinaryQuadraticModel
 from dimod import ConstrainedQuadraticModel
@@ -34,26 +33,12 @@ class QctrlTranslator:
     @staticmethod
     def to_aq(
         result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
         timing: Timing | None = ...,
     ) -> Solution: ...
     @overload
     @staticmethod
     def to_aq(
         result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
-        timing: Timing | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
-        variable_list: list[Variable] | None = ...,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
@@ -96,6 +81,15 @@ class IbmTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
+class NumpyTranslator:
+    @staticmethod
+    def to_aq(
+        result: NDArray,
+        energies: NDArray,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class DwaveTranslator:
     @staticmethod
     def to_aq(
@@ -124,12 +118,20 @@ class Qubo:
     @property
     def matrix(self) -> NDArray: ...
     @property
-    def variable_ordering(self) -> list[Variable]: ...
+    def variable_names(self) -> list[str]: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def vtype(self) -> Vtype: ...
 
 class QuboTranslator:
     @staticmethod
     def to_aq(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+        qubo: NDArray,
+        offset: float | None = ...,
+        variable_names: list[str] | None = ...,
+        name: str | None = ...,
+        vtype: Vtype | None = ...,
     ) -> Model: ...
     @staticmethod
     def from_aq(model: Model) -> Qubo: ...
@@ -147,6 +149,7 @@ __all__ = [
     "DwaveTranslator",
     "IbmTranslator",
     "LpTranslator",
+    "NumpyTranslator",
     "QctrlTranslator",
     "Qubo",
     "QuboTranslator",

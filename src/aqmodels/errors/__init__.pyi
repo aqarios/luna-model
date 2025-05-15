@@ -45,12 +45,16 @@ class ModelNotQuadraticError(TranslationError):
 class ModelNotUnconstrainedError(TranslationError):
     def __str__(self) -> str: ...
 
+class ModelSenseNotMinimizeError(TranslationError):
+    def __str__(self) -> str: ...
+
 __all__ = [
     "DecodeError",
     "DifferentEnvsError",
     "IllegalConstraintNameError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelSenseNotMinimizeError",
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",

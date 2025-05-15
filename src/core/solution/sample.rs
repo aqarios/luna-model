@@ -1,7 +1,9 @@
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::AssignmentBaseTypes;
 use crate::core::writer::SolutionWriter;
-use crate::core::{IndexByValue, RcSolution, ResultView, SampleIterator, SamplesIterator, VarAssignment};
+use crate::core::{
+    IndexByValue, RcSolution, ResultView, SampleIterator, SamplesIterator, VarAssignment,
+};
 use derive_more::{Deref, DerefMut};
 use either::{Either, Left, Right};
 use std::fmt::{Display, Formatter};
@@ -71,7 +73,7 @@ where
     fn index_by_value(&self, index: Index) -> Self::Output {
         match &self.0 {
             Left(r) => r.index_by_value(index),
-            Right(s) => { s[index.into()] }
+            Right(s) => s[index.into()],
         }
     }
 }
@@ -108,9 +110,7 @@ where
     AssignmentTypes: AssignmentBaseTypes,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let s = SolutionWriter::new()
-            .write_sample(self.clone())
-            .to_string();
+        let s = SolutionWriter::new().write_sample(self.clone()).to_string();
         f.write_str(&s)
     }
 }

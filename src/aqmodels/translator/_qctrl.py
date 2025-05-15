@@ -6,7 +6,7 @@ class QctrlTranslator:
     """
     Utility class for converting between a QCTRL solution and an AqSolution (ours).
 
-    `QctrlTranslator` provides mehtods to:
+    `QctrlTranslator` provides methods to:
     - Convert a Qctrl-style solution into our solution `Solution`.
 
     The conversions are especially required when interaction with external qctrl solvers/samplers or libraries that operate on qctrl-based problem solving/sampling.
@@ -21,7 +21,7 @@ class QctrlTranslator:
 
     @dispatched
     @staticmethod
-    def to_aq(result, variable_list, timing, env):
+    def to_aq(result, timing, env):
         """
         Convert a QCTRL result to an AqSolution.
 
@@ -29,11 +29,9 @@ class QctrlTranslator:
         ----------
         result : dict[str, Any]
             The qctrl result as a dictionary.
-        variable_list : list[Variable], optional
-            An optional list of variables to specify the ordering in the result sample.
         timing : Timing, optional
             The timing object produced while generating the result.
         env : Environment, optional
             The environment of the model for which the result is produced.
         """
-        return result, variable_list, timing, env
+        return result, timing, env

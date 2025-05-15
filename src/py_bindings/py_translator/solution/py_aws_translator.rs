@@ -2,13 +2,13 @@ use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_sol::PySolution;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::translator::NpArrayTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
-use crate::translator::AwsTranslator;
-use pyo3::prelude::*;
 use pyo3::ffi::c_str;
+use pyo3::prelude::*;
 
 #[pyclass(unsendable, name = "AwsTranslator", module = "aqmodels.translator")]
-pub struct PyAwsTranslator(pub AwsTranslator);
+pub struct PyAwsTranslator(pub NpArrayTranslator);
 
 #[pymethods]
 impl PyAwsTranslator {
@@ -29,8 +29,8 @@ impl PyAwsTranslator {
                 })
             })?,
         };
-        
-        Ok(PySolution(AwsTranslator::from_aws_result(
+
+        Ok(PySolution(NpArrayTranslator::from_numpy_arrays(
             sol_agg.as_slice()?,
             counts.as_slice()?,
             indices.as_slice()?,
@@ -75,8 +75,8 @@ def extract(aws_result, timing, env):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("extract")?
-            .into();
+        .getattr("extract")?
+        .into();
         let args = (aws_result, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)
