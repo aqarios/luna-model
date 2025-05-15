@@ -20,57 +20,11 @@ from typing import overload
 
 from . import translator
 
-class ZibTranslator:
-    @staticmethod
-    def to_aq(
-        model: SciModel,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
-class DwaveTranslator:
-    @staticmethod
-    def to_aq(
-        sample_set: SampleSet,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
-class CqmTranslator:
-    @staticmethod
-    def to_aq(cqm: ConstrainedQuadraticModel) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
-
-class Qubo:
-    @property
-    def offset(self) -> float: ...
-    @property
-    def matrix(self) -> NDArray: ...
-    @property
-    def variable_ordering(self) -> list[Variable]: ...
-
-class QuboTranslator:
-    @staticmethod
-    def to_aq(
-        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
-    ) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> Qubo: ...
-
 class BqmTranslator:
     @staticmethod
     def to_aq(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
     @staticmethod
     def from_aq(model: Model) -> BinaryQuadraticModel: ...
-
-class AwsTranslator:
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
 
 class QctrlTranslator:
     @overload
@@ -104,6 +58,22 @@ class QctrlTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
+class ZibTranslator:
+    @staticmethod
+    def to_aq(
+        model: SciModel,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
+class AwsTranslator:
+    @staticmethod
+    def to_aq(
+        result: dict[str, Any],
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class IbmTranslator:
     @overload
     @staticmethod
@@ -126,6 +96,14 @@ class IbmTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
+class DwaveTranslator:
+    @staticmethod
+    def to_aq(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class LpTranslator:
     @overload
     @staticmethod
@@ -139,6 +117,28 @@ class LpTranslator:
     @overload
     @staticmethod
     def from_aq(model: Model, file: Path) -> None: ...
+
+class Qubo:
+    @property
+    def offset(self) -> float: ...
+    @property
+    def matrix(self) -> NDArray: ...
+    @property
+    def variable_ordering(self) -> list[Variable]: ...
+
+class QuboTranslator:
+    @staticmethod
+    def to_aq(
+        qubo: NDArray, name: str | None = ..., vtype: Vtype | None = ...
+    ) -> Model: ...
+    @staticmethod
+    def from_aq(model: Model) -> Qubo: ...
+
+class CqmTranslator:
+    @staticmethod
+    def to_aq(cqm: ConstrainedQuadraticModel) -> Model: ...
+    @staticmethod
+    def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
 
 __all__ = [
     "AwsTranslator",
