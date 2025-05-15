@@ -67,7 +67,63 @@ def test_translate_with_dense_and_metadata(qubo: NDArray):
     assert back.offset == offset
     assert back.vtype == vtype
     assert back.name == name
-    assert back.variable_names == [str(x) for x in range(len(qubo))]
+    assert back.variable_names == [f"x_{x}" for x in range(len(qubo))]
+
+
+@pytest.mark.translator
+@pytest.mark.parametrize(
+    "qubo",
+    list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
+    indirect=True,
+)
+def test_translate_with_dense_and_valid_variable_names(qubo: NDArray):
+    offset = 4.2
+    name = "test"
+    vtype = Vtype.Binary
+    variable_names = [f"x_{i},y_{i}" for i in range(len(qubo))]
+    model = QuboTranslator.to_aq(
+        qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
+    )
+    back = QuboTranslator.from_aq(model)
+    assert np.allclose(qubo, back.matrix)
+    assert back.offset == offset
+    assert back.vtype == vtype
+    assert back.name == name
+    assert back.variable_names == variable_names
+
+
+@pytest.mark.translator
+@pytest.mark.parametrize(
+    "qubo",
+    list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
+    indirect=True,
+)
+def test_translate_with_dense_and_invalid_variable_names_non_alpha(qubo: NDArray):
+    offset = 4.2
+    name = "test"
+    vtype = Vtype.Binary
+    variable_names = [str(i) for i in range(len(qubo))]
+    with pytest.raises(TranslationError):
+        _ = QuboTranslator.to_aq(
+            qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
+        )
+
+
+@pytest.mark.translator
+@pytest.mark.parametrize(
+    "qubo",
+    list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
+    indirect=True,
+)
+def test_translate_with_dense_and_invalid_variable_names(qubo: NDArray):
+    offset = 4.2
+    name = "test"
+    vtype = Vtype.Binary
+    variable_names = [f"x_{i}+y_{i}" for i in range(len(qubo))]
+    with pytest.raises(TranslationError):
+        _ = QuboTranslator.to_aq(
+            qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
+        )
 
 
 @pytest.mark.translator

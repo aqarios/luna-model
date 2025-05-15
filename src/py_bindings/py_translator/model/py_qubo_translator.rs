@@ -15,26 +15,6 @@ impl Into<Qubo<ConcreteIndex, ConcreteBias>> for PyQubo {
     }
 }
 
-impl PyQubo {
-    fn new(
-        name: String,
-        vtype: Vtype,
-        matrix_flat: Vec<f64>,
-        num_variables: usize,
-        offset: f64,
-        variable_names: Vec<String>,
-    ) -> Self {
-        Self(Qubo {
-            name,
-            vtype,
-            matrix_flat,
-            num_variables: num_variables.into(),
-            offset,
-            variable_names,
-        })
-    }
-}
-
 #[pymethods]
 impl PyQubo {
     #[getter(matrix)]
@@ -79,16 +59,16 @@ impl PyQuboTranslator {
         variable_names: Option<Vec<String>>,
         name: Option<String>,
         vtype: Option<Vtype>,
-    ) -> PyModel {
+    ) -> PyResult<PyModel> {
         let dense = qubo.as_slice().expect("failed to convert to slice");
-        PyModel(MatrixTranslator::model_from_dense(
+        Ok(PyModel(MatrixTranslator::model_from_dense(
             name,
             dense,
             qubo.shape()[0].into(),
             vtype,
             offset,
             variable_names,
-        ))
+        )?))
     }
 
     #[staticmethod]
