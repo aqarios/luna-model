@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Bounds, Variable, Vtype
-from ._timing import Timing, Timer
+from ._variable import Vtype, Variable, Bounds
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import SamplesIterator, SampleIterator, Samples, Sample
+from ._sample import Sample, SamplesIterator, SampleIterator, Samples
 from ._result import ResultView, ResultIterator, Result
-from ._model import Model, Sense
+from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    ResultView as __ResultView,
-    Expression as __Expression,
-    Comparator as __Comparator,
-    Solution as __Solution,
-    Constraints as __Constraints,
-    SamplesIterator as __SamplesIterator,
-    SampleIterator as __SampleIterator,
-    Timing as __Timing,
-    Bounds as __Bounds,
-    ResultIterator as __ResultIterator,
-    Result as __Result,
-    Environment as __Environment,
-    Sample as __Sample,
-    Sense as __Sense,
-    Vtype as __Vtype,
-    Timer as __Timer,
     Constraint as __Constraint,
+    Sense as __Sense,
+    Timing as __Timing,
     Model as __Model,
+    ResultIterator as __ResultIterator,
+    Expression as __Expression,
+    Constraints as __Constraints,
     Samples as __Samples,
+    Result as __Result,
     Variable as __Variable,
+    SampleIterator as __SampleIterator,
+    Solution as __Solution,
+    Bounds as __Bounds,
+    SamplesIterator as __SamplesIterator,
+    Timer as __Timer,
+    Sample as __Sample,
+    ResultView as __ResultView,
+    Comparator as __Comparator,
+    Environment as __Environment,
+    Vtype as __Vtype,
 )
-from ._constraints import Constraints, Comparator, Constraint
-from . import errors, translator
+from ._constraints import Constraint, Constraints, Comparator
+from . import translator, errors
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
@@ -130,6 +130,7 @@ ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
 ModelSenseNotMinimizeError = errors.ModelSenseNotMinimizeError
 SolutionTranslationError = errors.SolutionTranslationError
 SampleIncorrectLengthError = errors.SampleIncorrectLengthError
+SampleUnexpectedVariableError = errors.SampleUnexpectedVariableError
 SampleIncompatibleVtypeError = errors.SampleIncompatibleVtypeError
 
 __all__ = [
@@ -166,6 +167,7 @@ __all__ = [
     "SampleIncompatibleVtypeError",
     "SampleIncorrectLengthError",
     "SampleIterator",
+    "SampleUnexpectedVariableError",
     "Samples",
     "SamplesIterator",
     "Sense",

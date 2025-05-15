@@ -272,6 +272,23 @@ impl Display for SampleIncorrectLengthErr {
 }
 
 #[derive(Debug, Clone)]
+pub struct SampleUnexpectedVariableErr {
+    pub var_name: String,
+}
+
+impl Error for SampleUnexpectedVariableErr {}
+
+impl Display for SampleUnexpectedVariableErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(
+            f,
+            "found unexpected variable in sample: '{}'",
+            self.var_name
+        )
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct SampleIncompatibleVtypeErr;
 
 impl Error for SampleIncompatibleVtypeErr {}
@@ -288,6 +305,7 @@ impl Display for SampleIncompatibleVtypeErr {
 #[derive(Debug)]
 pub enum SolutionCreationErr {
     SampleIncorrectLength(SampleIncorrectLengthErr),
+    SampleUnexpectedVariable(SampleUnexpectedVariableErr),
     SampleIncompatibleVtype(SampleIncompatibleVtypeErr),
 }
 
@@ -297,6 +315,7 @@ impl Display for SolutionCreationErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
             SolutionCreationErr::SampleIncorrectLength(err) => err.fmt(f),
+            SolutionCreationErr::SampleUnexpectedVariable(err) => err.fmt(f),
             SolutionCreationErr::SampleIncompatibleVtype(err) => err.fmt(f),
         }
     }

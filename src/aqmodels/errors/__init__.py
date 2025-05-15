@@ -3,24 +3,25 @@
 
 from ._errors import (
     SolutionTranslationError,
-    ModelVtypeError,
-    TranslationError,
     VariableNamesError,
+    MultipleActiveEnvironmentsError,
+    ModelVtypeError,
+    SampleUnexpectedVariableError,
+    SampleIncompatibleVtypeError,
     NoActiveEnvironmentFoundError,
+    IllegalConstraintNameError,
+    ModelNotQuadraticError,
+    TranslationError,
+    VariableExistsError,
+    DecodeError,
+    VariableOutOfRangeError,
+    DifferentEnvsError,
     VariableNotExistingError,
     VariableCreationError,
-    VariableOutOfRangeError,
-    ModelNotQuadraticError,
-    VariablesFromDifferentEnvsError,
-    MultipleActiveEnvironmentsError,
-    SampleIncompatibleVtypeError,
-    VariableExistsError,
-    DifferentEnvsError,
-    SampleIncorrectLengthError,
-    DecodeError,
-    IllegalConstraintNameError,
     ModelNotUnconstrainedError,
     ModelSenseNotMinimizeError,
+    SampleIncorrectLengthError,
+    VariablesFromDifferentEnvsError,
 )
 from .._core import errors as __errors
 
@@ -42,6 +43,7 @@ ModelNotUnconstrainedError = __errors.ModelNotUnconstrainedError  # noqa: F811
 ModelSenseNotMinimizeError = __errors.ModelSenseNotMinimizeError  # noqa: F811
 SolutionTranslationError = __errors.SolutionTranslationError  # noqa: F811
 SampleIncorrectLengthError = __errors.SampleIncorrectLengthError  # noqa: F811
+SampleUnexpectedVariableError = __errors.SampleUnexpectedVariableError  # noqa: F811
 SampleIncompatibleVtypeError = __errors.SampleIncompatibleVtypeError  # noqa: F811
 
 __all__ = [
@@ -56,6 +58,7 @@ __all__ = [
     "NoActiveEnvironmentFoundError",
     "SampleIncompatibleVtypeError",
     "SampleIncorrectLengthError",
+    "SampleUnexpectedVariableError",
     "SolutionTranslationError",
     "TranslationError",
     "VariableCreationError",

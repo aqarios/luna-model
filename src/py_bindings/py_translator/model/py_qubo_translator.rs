@@ -2,9 +2,7 @@ use crate::core::{ConcreteBias, ConcreteIndex, Qubo};
 use crate::py_bindings::py_model::PyModel;
 use crate::{core::Vtype, translator::MatrixTranslator};
 use derive_more::{Deref, DerefMut};
-use numpy::{
-    PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArray, PyUntypedArrayMethods, ToPyArray,
-};
+use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::prelude::*;
 
 #[pyclass(unsendable, name = "Qubo", module = "aqmodels.translator")]
@@ -99,7 +97,7 @@ impl PyQuboTranslator {
     #[staticmethod]
     #[pyo3(signature=(model))]
     fn from_aq(model: &PyModel) -> PyResult<PyQubo> {
-        let qubo = MatrixTranslator::model_to_dense(&model.concrete_model)?;
+        let qubo = MatrixTranslator::model_to_dense(&model.borrow())?;
         Ok(PyQubo(qubo))
     }
 }

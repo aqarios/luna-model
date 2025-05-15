@@ -184,6 +184,17 @@ class SampleIncorrectLengthError(SolutionTranslationError):
 
 
 @export("top", "errors")
+class SampleUnexpectedVariableError(SolutionTranslationError):
+    """
+    Raised when a sample contains a variable with a name that is not present in the
+    environment.
+
+    When a sample is translated to an AqResult, the currently active environment has to
+    contain the same variables as the sample.
+    """
+
+
+@export("top", "errors")
 class SampleIncompatibleVtypeError(Exception):
     """
     Raised when a sample's assignments have variable types incompatible with the

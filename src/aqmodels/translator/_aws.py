@@ -39,7 +39,7 @@ class AwsTranslator:
             If no environment is passed to the method or available from the context.
         SolutionTranslationError
             Generally if the solution translation fails. Might be specified by one of the
-                two following errors.
+            two following errors.
         SampleIncorrectLengthError
             If a solution's sample has a different number of variables than the model
             environment passed to the translator.

@@ -57,6 +57,9 @@ class SolutionTranslationError(Exception):
 class SampleIncorrectLengthError(SolutionTranslationError):
     def __str__(self) -> str: ...
 
+class SampleUnexpectedVariableError(SolutionTranslationError):
+    def __str__(self) -> str: ...
+
 class SampleIncompatibleVtypeError(SolutionTranslationError):
     def __str__(self) -> str: ...
 
@@ -72,6 +75,7 @@ __all__ = [
     "NoActiveEnvironmentFoundError",
     "SampleIncompatibleVtypeError",
     "SampleIncorrectLengthError",
+    "SampleUnexpectedVariableError",
     "SolutionTranslationError",
     "TranslationError",
     "VariableCreationError",

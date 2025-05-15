@@ -123,6 +123,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         m.py().get_type::<pyexc::SampleIncorrectLengthError>(),
     )?;
     m.add(
+        pyexc::SampleUnexpectedVariableError::NAME,
+        m.py().get_type::<pyexc::SampleUnexpectedVariableError>(),
+    )?;
+    m.add(
         pyexc::SampleIncompatibleVtypeError::NAME,
         m.py().get_type::<pyexc::SampleIncompatibleVtypeError>(),
     )?;

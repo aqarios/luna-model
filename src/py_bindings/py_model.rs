@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::ops::{AddAssign, Deref};
 use std::rc::Rc;
 
@@ -7,11 +8,11 @@ use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
 use crate::core::operations::AddAssignToExpression;
-use crate::core::{RcSolution, Sense};
+use crate::core::{ConcreteModel, ConcreteMutRcModel, RcSolution, Sense};
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
 use crate::{
-    core::{ConcreteModel, Environment, Model},
+    core::{Environment, Model},
     py_bindings::py_env::CURRENT_ENV,
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -21,11 +22,11 @@ use derive_more::{Deref, DerefMut};
 use pyo3::{prelude::*, types::PyBytes};
 
 #[pyclass(unsendable, subclass, name = "Model", module = "aqmodels")]
-#[derive(Deref, DerefMut)]
+#[derive(Clone, Deref, DerefMut)]
 pub struct PyModel {
     #[deref]
     #[deref_mut]
-    pub concrete_model: ConcreteModel,
+    pub concrete_model: ConcreteMutRcModel,
     #[deref(ignore)]
     #[deref_mut(ignore)]
     #[pyo3(get, set)]
@@ -33,16 +34,16 @@ pub struct PyModel {
 }
 
 impl PyModel {
-    pub fn new(concrete_model: ConcreteModel) -> Self {
+    pub fn new(model: ConcreteModel) -> Self {
         Self {
-            concrete_model,
+            concrete_model: Rc::new(RefCell::new(model)),
             _metadata: PyModelMetadata::new(),
         }
     }
 }
 
-impl Into<ConcreteModel> for PyModel {
-    fn into(self) -> ConcreteModel {
+impl Into<ConcreteMutRcModel> for PyModel {
+    fn into(self) -> ConcreteMutRcModel {
         self.concrete_model
     }
 }
@@ -72,7 +73,7 @@ impl PyModel {
 
     #[pyo3(name = "set_sense")]
     fn set_sense_py(&mut self, sense: Sense) {
-        self.set_sense(sense);
+        self.borrow_mut().set_sense(sense);
     }
 
     // #[getter]
@@ -89,33 +90,34 @@ impl PyModel {
 
     #[getter]
     fn get_sense(&self) -> Sense {
-        self.sense
+        self.borrow().sense
     }
 
     #[getter]
     fn get_objective(&self) -> PyExpression {
-        PyExpression(self.objective.clone())
+        PyExpression(self.borrow().objective.clone())
     }
 
     #[setter]
     fn set_objective(&mut self, value: &PyExpression) {
-        self.objective = value.0.clone()
+        self.borrow_mut().objective = value.0.clone()
     }
 
     #[getter]
     fn get_constraints(&self) -> PyConstraints {
-        PyConstraints(Rc::clone(&self.constraints))
+        PyConstraints(Rc::clone(&self.borrow().constraints))
     }
 
     #[setter]
     fn set_constraints(&mut self, value: &PyConstraints) {
-        self.constraints = value.0.clone()
+        self.borrow_mut().constraints = value.0.clone()
     }
 
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
         constraint.borrow_mut().set_name(name)?;
-        self.constraints
+        self.borrow()
+            .constraints
             .borrow_mut()
             .add_assign(constraint.borrow().deref());
         Ok(())
@@ -123,12 +125,13 @@ impl PyModel {
 
     #[pyo3(name = "set_objective", signature=(expression, sense=None))]
     fn set_objective_direct(&mut self, expression: PyExpression, sense: Option<Sense>) -> () {
-        self.set_sense(sense.unwrap_or(Sense::Min));
-        self.objective = expression.0.clone();
+        self.borrow_mut().set_sense(sense.unwrap_or(Sense::Min));
+        self.borrow_mut().objective = expression.0.clone();
     }
 
     fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {
         Ok(self
+            .borrow()
             .objective
             .borrow_mut()
             .add_assign(expression.borrow().deref())?)
@@ -136,25 +139,17 @@ impl PyModel {
 
     #[getter]
     fn num_constraints(&self) -> usize {
-        self.constraints.borrow().len()
+        self.borrow().constraints.borrow().len()
     }
 
     #[getter]
-    fn name(&self) -> &String {
-        &self.name
+    fn name(&self) -> String {
+        self.borrow().name.clone()
     }
 
     #[getter]
     fn environment(&self) -> PyEnvironment {
-        PyEnvironment(self.environment.clone())
-    }
-
-    fn evaluate(&self, solution: &PySolution) -> PySolution {
-        PySolution(self.evaluate_solution(RcSolution::clone(&solution.0)))
-    }
-
-    fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
-        PyOwnedResult(self.concrete_model.evaluate_sample(&sample.0))
+        PyEnvironment(self.borrow().environment.clone())
     }
 
     fn __eq__(&self, other: &Self) -> bool {
@@ -162,11 +157,11 @@ impl PyModel {
     }
 
     fn __str__(&self) -> String {
-        self.to_string()
+        self.borrow().to_string()
     }
 
     fn __repr__(&self) -> String {
-        format!("{:#?}", self.concrete_model)
+        format!("{:#?}", self.borrow())
     }
 
     #[pyo3(signature=(compress=true, level=3))]
@@ -175,7 +170,7 @@ impl PyModel {
         Ok(PyBytes::new(
             py,
             &self
-                .concrete_model
+                .borrow()
                 .encode()
                 .maybe_compress(compress, level)?
                 .versionize(),
@@ -196,7 +191,7 @@ impl PyModel {
 
     #[staticmethod]
     fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Ok(PyModel::new(
+        Ok(Self::new(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
         ))
     }
@@ -204,5 +199,16 @@ impl PyModel {
     #[staticmethod]
     fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Self::decode(py, data)
+    }
+
+    fn evaluate(&self, solution: &PySolution) -> PySolution {
+        PySolution(
+            self.borrow()
+                .evaluate_solution(RcSolution::clone(&solution.0)),
+        )
+    }
+
+    fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
+        PyOwnedResult(self.borrow().evaluate_sample(&sample.0))
     }
 }

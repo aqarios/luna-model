@@ -2,9 +2,9 @@ use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
     BqmTranslatorErr, DifferentEnvsErr, IllegalConstraintNameErr, IndexOutOfBoundsErr,
     MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr,
-    ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr,
-    TranslationErr, VarNamesErr, VariableCreationErr, VariableNotExistingErr,
-    VariablesFromDifferentEnvsErr,
+    ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
+    SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VarNamesErr,
+    VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
@@ -50,6 +50,11 @@ create_exception!(aqmodels.errors, SolutionTranslationError, PyException);
 create_exception!(
     aqmodels.errors,
     SampleIncorrectLengthError,
+    SolutionTranslationError
+);
+create_exception!(
+    aqmodels.error,
+    SampleUnexpectedVariableError,
     SolutionTranslationError
 );
 create_exception!(
@@ -162,6 +167,7 @@ impl From<SolutionCreationErr> for PyErr {
     fn from(value: SolutionCreationErr) -> Self {
         match value {
             SolutionCreationErr::SampleIncorrectLength(err) => err.into(),
+            SolutionCreationErr::SampleUnexpectedVariable(err) => err.into(),
             SolutionCreationErr::SampleIncompatibleVtype(err) => err.into(),
         }
     }
@@ -170,6 +176,12 @@ impl From<SolutionCreationErr> for PyErr {
 impl From<SampleIncorrectLengthErr> for PyErr {
     fn from(value: SampleIncorrectLengthErr) -> Self {
         SampleIncorrectLengthError::new_err(value.to_string())
+    }
+}
+
+impl From<SampleUnexpectedVariableErr> for PyErr {
+    fn from(value: SampleUnexpectedVariableErr) -> Self {
+        SampleUnexpectedVariableError::new_err(value.to_string())
     }
 }
 

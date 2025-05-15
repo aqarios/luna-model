@@ -2,22 +2,35 @@ use crate::core::solution::sol::SampleCol;
 use crate::core::{
     ConcreteAssignmentTypes, ConcreteBias, RcSolution, Samples, Solution, VarAssignment, Vtype,
 };
+use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
+use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
+use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
+use crate::py_bindings::py_model::PyModel;
 use crate::py_bindings::py_res::{PyResultIterator, PyResultView};
 use crate::py_bindings::py_sample::PySamples;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::py_bindings::py_var::PyVariable;
 use crate::serialization::{
     Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
 };
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
-use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError};
+use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::IntoPyObjectExt;
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(pub VarAssignment<ConcreteAssignmentTypes>);
+
+#[derive(Debug, Clone)]
+pub enum SampleKey {
+    Str(String),
+    Var(PyVariable),
+}
 
 #[pyclass(unsendable, name = "Solution", module = "aqmodels")]
 #[derive(Deref, DerefMut, Debug)]
@@ -117,6 +130,77 @@ impl PySolution {
         Ok(PySolution(RcSolution(Rc::new(sol))))
     }
 
+    #[staticmethod]
+    #[pyo3(signature=(data, env=None, model=None)
+    )]
+    fn from_dict(
+        data: HashMap<SampleKey, f64>,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+    ) -> PyResult<PySolution> {
+        if env.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `env` or `model` has to be `None`",
+            ));
+        }
+        let environment: PyEnvironment = if model.is_some() {
+            PyEnvironment(Rc::clone(&model.as_ref().unwrap().borrow().environment))
+        } else {
+            match env {
+                Some(env) => env.clone(),
+                None => CURRENT_ENV.with(|current| {
+                    current.borrow().clone().ok_or_else(|| {
+                        NoActiveEnvironmentFoundError::new_err("no active environment found.")
+                    })
+                })?,
+            }
+        };
+
+        let mut sol = Solution::default();
+        for v in environment.borrow().variables.iter() {
+            match v.vtype {
+                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
+                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(1))),
+                Vtype::Integer => sol.add_column(SampleCol::Integer(Vec::with_capacity(1))),
+                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(1))),
+            }
+        }
+
+        let n_vars = environment.borrow().varcount.into();
+        let mut sample = vec![f64::default(); n_vars];
+        let mut mask = vec![false; n_vars];
+
+        for (k, &v) in data.iter() {
+            let var_name = match k {
+                SampleKey::Str(s) => s,
+                SampleKey::Var(v) => &v.name(),
+            };
+            let environ = environment.borrow();
+            let maybe_var = environ.variables_lookup.get(var_name);
+            if maybe_var.is_none() {
+                return Err(SampleUnexpectedVariableErr {
+                    var_name: var_name.clone(),
+                })?;
+            }
+            let var = maybe_var.unwrap().0 as usize;
+            sample[var] = v;
+            mask[var] = true;
+        }
+
+        if !mask.iter().all(|&x| x) {
+            return Err(SampleIncorrectLengthErr)?;
+        }
+
+        let energy: Option<f64> = None;
+        sol.extend(sample, 1, energy);
+        let mut sol_rc = RcSolution(Rc::new(sol));
+        if let Some(m) = model {
+            sol_rc = m.borrow().evaluate_solution(sol_rc);
+        }
+
+        Ok(PySolution(sol_rc))
+    }
+
     #[getter]
     fn results<'a>(&self) -> PyResultIterator {
         PyResultIterator(self.0.iter_results())
@@ -171,7 +255,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
     #[pyo3(signature=(compress=true, level=3))]
@@ -240,3 +324,49 @@ impl<'py> IntoPyObject<'py> for PyVarAssignment {
         }
     }
 }
+
+impl<'py> IntoPyObject<'py> for SampleKey {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self {
+            SampleKey::Str(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+            SampleKey::Var(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+        }
+    }
+}
+
+impl<'py> FromPyObject<'py> for SampleKey {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        if let Ok(s) = ob.extract::<String>() {
+            Ok(SampleKey::Str(s))
+        } else if let Ok(v) = ob.extract::<PyVariable>() {
+            Ok(SampleKey::Var(v))
+        } else {
+            Err(PyTypeError::new_err("keys have to be 'str' or 'Variable'"))
+        }
+    }
+}
+
+impl Hash for SampleKey {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self {
+            SampleKey::Str(s) => s.hash(state),
+            SampleKey::Var(v) => v.hash(state),
+        }
+    }
+}
+
+impl PartialEq<Self> for SampleKey {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (SampleKey::Str(s1), SampleKey::Str(s2)) => s1 == s2,
+            (SampleKey::Var(v1), SampleKey::Var(v2)) => v1 == v2,
+            _ => false,
+        }
+    }
+}
+
+impl Eq for SampleKey {}

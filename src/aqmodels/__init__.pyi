@@ -429,6 +429,20 @@ class Solution:
         timing: Timing | None = ...,
         counts: list[int] | None = ...,
     ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable | str, int | float]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable | str, int | float],
+        env: Environment | None = ...,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable | str, int | float], /, *, model: Model
+    ) -> Solution: ...
 
 class Environment:
     def __init__(self) -> None: ...
@@ -803,6 +817,9 @@ class SolutionTranslationError(Exception):
 class SampleIncorrectLengthError(SolutionTranslationError):
     def __str__(self) -> str: ...
 
+class SampleUnexpectedVariableError(SolutionTranslationError):
+    def __str__(self) -> str: ...
+
 class SampleIncompatibleVtypeError(SolutionTranslationError):
     def __str__(self) -> str: ...
 
@@ -840,6 +857,7 @@ __all__ = [
     "SampleIncompatibleVtypeError",
     "SampleIncorrectLengthError",
     "SampleIterator",
+    "SampleUnexpectedVariableError",
     "Samples",
     "SamplesIterator",
     "Sense",
