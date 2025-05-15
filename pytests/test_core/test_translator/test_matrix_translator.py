@@ -207,9 +207,9 @@ def test_translate_from_non_fitting_vtype(qubo: NDArray):
         _ = QuboTranslator.from_aq(model)
 
     model_2 = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
-    with model.environment:
+    with model_2.environment:
         s = Variable("s", vtype=Vtype.Spin)
-        model.objective += s
+        model_2.objective += s
 
     with pytest.raises(ModelVtypeError):
         _ = QuboTranslator.from_aq(model)
