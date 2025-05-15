@@ -69,8 +69,8 @@ def extract(result, timing, env):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("extract")?
-            .into();
+        .getattr("extract")?
+        .into();
 
         let args = (result, timing, env);
         let result = extractor.call1(py, args)?;

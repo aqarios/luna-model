@@ -74,6 +74,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         m.py().get_type::<pyexc::ModelNotUnconstrainedError>(),
     )?;
     m.add(
+        pyexc::ModelSenseNotMinimizeError::NAME,
+        m.py().get_type::<pyexc::ModelSenseNotMinimizeError>(),
+    )?;
+    m.add(
         pyexc::ModelVtypeError::NAME,
         m.py().get_type::<pyexc::ModelVtypeError>(),
     )?;

@@ -1,5 +1,5 @@
-pub mod solution;
 pub mod model;
+pub mod solution;
 
 pub use model::PyBqmTranslator;
 pub use model::PyCqmTranslator;
@@ -12,4 +12,3 @@ pub use solution::PyIbmTranslator;
 pub use solution::PyNumpyTranslator;
 pub use solution::PyQctrlTranslator;
 pub use solution::PyZibTranslator;
-

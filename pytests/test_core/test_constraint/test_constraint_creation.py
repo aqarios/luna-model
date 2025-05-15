@@ -85,6 +85,7 @@ def test_constraint_creation_neg_constant_to_rhs():
     assert constr.rhs == 1.0
     assert constr.comparator == Comparator.Eq
 
+
 @pytest.mark.constraint
 def test_constraint_creation_pos_constant_to_rhs():
     with Environment():

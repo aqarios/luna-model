@@ -141,3 +141,15 @@ class ModelNotUnconstrainedError(TranslationError):
     Some solution methods may only work on unconstrained models, such as when
     transforming a symbolic model to a low-level format.
     """
+
+
+@export("top", "errors")
+class ModelSenseNotMinimizeError(TranslationError):
+    """
+    Raised when an operation requires a model with minimization sense, but has
+    maximization sense.
+
+    Some model formats only work with minimization sense. In this case, consider
+    setting the sense to `minimize` before the transformation, and multiplying the
+    objective by `-1` if necessary.
+    """

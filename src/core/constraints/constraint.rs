@@ -114,12 +114,12 @@ where
         Ok(())
     }
 
-    pub fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Index, Output=Elem>>(
+    pub fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
         &self,
         sample: &'a Sample,
     ) -> bool
     where
-        Elem: Mul<Bias, Output=Bias>,
+        Elem: Mul<Bias, Output = Bias>,
     {
         let val = self.lhs.borrow().evaluate_sample(sample);
         self.comparator.evaluate(val, self.rhs)

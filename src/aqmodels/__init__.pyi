@@ -635,6 +635,9 @@ class ModelNotQuadraticError(TranslationError):
 class ModelNotUnconstrainedError(TranslationError):
     def __str__(self) -> str: ...
 
+class ModelSenseNotMinimizeError(TranslationError):
+    def __str__(self) -> str: ...
+
 class BqmTranslator:
     @staticmethod
     def to_aq(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
@@ -777,6 +780,7 @@ __all__ = [
     "Model",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelSenseNotMinimizeError",
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",

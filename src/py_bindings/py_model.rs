@@ -85,7 +85,9 @@ impl PyModel {
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
         constraint.borrow_mut().set_name(name)?;
-        self.constraints.borrow_mut().add_assign(constraint.borrow().deref());
+        self.constraints
+            .borrow_mut()
+            .add_assign(constraint.borrow().deref());
         Ok(())
     }
 
@@ -96,7 +98,10 @@ impl PyModel {
     }
 
     fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {
-        Ok(self.objective.borrow_mut().add_assign(expression.borrow().deref())?)
+        Ok(self
+            .objective
+            .borrow_mut()
+            .add_assign(expression.borrow().deref())?)
     }
 
     fn num_constraints(&self) -> usize {

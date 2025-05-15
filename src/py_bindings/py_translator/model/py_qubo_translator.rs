@@ -2,7 +2,9 @@ use crate::core::{ConcreteBias, ConcreteIndex, Qubo};
 use crate::py_bindings::py_model::PyModel;
 use crate::{core::Vtype, translator::MatrixTranslator};
 use derive_more::{Deref, DerefMut};
-use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArray, PyUntypedArrayMethods, ToPyArray};
+use numpy::{
+    PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArray, PyUntypedArrayMethods, ToPyArray,
+};
 use pyo3::prelude::*;
 
 #[pyclass(unsendable, name = "Qubo", module = "aqmodels.translator")]
@@ -67,8 +69,22 @@ impl PyQuboTranslator {
         vtype: Option<Vtype>,
     ) -> PyResult<PyModel> {
         let (dense, var_num): (&[f64], usize) = match qubo {
-            QuboType::F64(q) => (&q.as_slice().expect("failed to convert to slice").iter().map(|&v|v).collect::<Vec<f64>>(), q.shape()[0]),
-            QuboType::I64(q) => (&q.as_slice().expect("failed to convert to slice").iter().map(|&v| v as f64).collect::<Vec<f64>>(), q.shape()[0]),
+            QuboType::F64(q) => (
+                &q.as_slice()
+                    .expect("failed to convert to slice")
+                    .iter()
+                    .map(|&v| v)
+                    .collect::<Vec<f64>>(),
+                q.shape()[0],
+            ),
+            QuboType::I64(q) => (
+                &q.as_slice()
+                    .expect("failed to convert to slice")
+                    .iter()
+                    .map(|&v| v as f64)
+                    .collect::<Vec<f64>>(),
+                q.shape()[0],
+            ),
         };
         Ok(PyModel(MatrixTranslator::model_from_dense(
             name,

@@ -2,9 +2,9 @@ mod base;
 mod res;
 mod timing;
 
-pub mod sol;
 mod iterators;
 mod sample;
+pub mod sol;
 
 pub use base::AssignmentBaseTypes;
 pub use iterators::ResultIterator;
