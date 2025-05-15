@@ -1,9 +1,15 @@
-use std::{fmt::{Debug, Display}, rc::Rc};
+use std::{
+    fmt::{Debug, Display},
+    rc::Rc,
+};
 
 use num::NumCast;
 
 use crate::{
-    core::{expression::IndexConstraints, solution::sol::SampleCol, ConcreteSolution, MutRcEnvironment, RcSolution, Solution, Timing, VarRef, Vtype},
+    core::{
+        expression::IndexConstraints, solution::sol::SampleCol, ConcreteSolution, MutRcEnvironment,
+        RcSolution, Solution, Timing, VarRef, Vtype,
+    },
     errors::SolutionCreatorErr,
 };
 

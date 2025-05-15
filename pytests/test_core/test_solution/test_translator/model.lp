@@ -18,8 +18,8 @@ Bounds
  0 <= Ni <= 50
  0 <= Zi <= 50
  0 <= Mn <= 50
-Semi-Continuous
- Cu Ni Zi Mn
 Generals
  Pennies Nickels Dimes Quarters Dollars
+Semi-Continuous
+ Cu Ni Zi Mn
 End

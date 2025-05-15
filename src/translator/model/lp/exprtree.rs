@@ -169,9 +169,7 @@ fn tokenize(input: &str) -> Vec<Token> {
             }
             c if c.is_alphabetic() => {
                 let mut name = String::new();
-                while i < chars.len()
-                    && (chars[i].is_alphanumeric() || chars[i] == '_')
-                {
+                while i < chars.len() && (chars[i].is_alphanumeric() || chars[i] == '_') {
                     name.push(chars[i]);
                     i += 1;
                 }
@@ -533,7 +531,7 @@ where
                 let tmp = match (&**lhs, &**rhs) {
                     (Number(b), r) => format!("{} + {}", r.to_string(), b.to_string()),
                     (l, Number(b)) => format!("{} + {}", l.to_string(), b.to_string()),
-                    (l, r) => format!("{} + {}", l.to_string(), r.to_string())
+                    (l, r) => format!("{} + {}", l.to_string(), r.to_string()),
                 };
                 tmp.replace("+ -", "- ")
             }

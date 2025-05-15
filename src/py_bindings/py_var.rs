@@ -9,8 +9,8 @@ use super::py_exceptions::NoActiveEnvironmentFoundError;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::expression::ExpressionBaseCreation;
 use crate::core::operations::{
-    AddToExpression, MulAssignToExpression, MulToExpression,
-    NegToExpression, RSubToExpression, SubAssignToExpression, SubToExpression,
+    AddToExpression, MulAssignToExpression, MulToExpression, NegToExpression, RSubToExpression,
+    SubAssignToExpression, SubToExpression,
 };
 use crate::core::{
     environment, Comparator, ConcreteConstraint, ConcreteExpression, ConcreteRcVarRef,

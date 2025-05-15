@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use crate::{
     py_bindings::{
         py_env::{PyEnvironment, CURRENT_ENV},
@@ -10,6 +9,7 @@ use crate::{
     translator::IbmTranslator,
 };
 use pyo3::{ffi::c_str, prelude::*};
+use std::rc::Rc;
 
 #[pyclass(unsendable, name = "IbmTranslator", module = "aqmodels.translator")]
 pub struct PyIbmTranslator {}
@@ -36,10 +36,7 @@ impl PyIbmTranslator {
         };
         Ok(PySolution(IbmTranslator::from_ibm(
             &samples,
-            &orderings
-                .iter()
-                .map(|e| Rc::clone(&e.0))
-                .collect(),
+            &orderings.iter().map(|e| Rc::clone(&e.0)).collect(),
             &energies,
             counts,
             timing.map(|t| t.into()),

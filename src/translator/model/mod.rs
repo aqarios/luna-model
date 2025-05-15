@@ -1,7 +1,7 @@
+mod bqm_translator;
 mod lp;
 mod matrix_translator;
-mod bqm_translator;
 
+pub use bqm_translator::BqmTranslator;
 pub use lp::LPTranslator;
 pub use matrix_translator::MatrixTranslator;
-pub use bqm_translator::BqmTranslator;

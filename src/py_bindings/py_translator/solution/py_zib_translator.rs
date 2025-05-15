@@ -29,7 +29,8 @@ impl PyZibTranslator {
             })?,
         };
         Ok(PySolution(ZibTranslator::from_zib(
-            sample, timing.map(|t| t.into()),
+            sample,
+            timing.map(|t| t.into()),
             environment.into(),
         )?))
     }
@@ -56,8 +57,8 @@ def extract(model, timing, env):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("extract")?
-            .into();
+        .getattr("extract")?
+        .into();
         let args = (model, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)
