@@ -208,7 +208,7 @@ impl PyVariable {
             lhs.sub_assign(expr.borrow().deref())?;
             Ok(0.0)
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            Err(PyTypeError::new_err("unsupported type for operation"))
         };
         Ok(PyConstraint::new(ConcreteConstraint::new(
             Rc::new(RefCell::new(lhs)),
