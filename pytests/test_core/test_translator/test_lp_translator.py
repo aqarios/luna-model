@@ -7,7 +7,7 @@ import pytest
 import sys
 from dimod import lp as dimod_lp
 
-from aqmodels import LpTranslator
+from aqmodels import LpTranslator, Sense
 from pytests.test_core.utils import generate_cqms, make_seed
 
 NOT_RUN_CPLEX = True
@@ -21,6 +21,8 @@ except ImportError as _:
     NOT_RUN_CPLEX = True
 
 NUM_CQMS: int = 100
+GP_SENSE_MIN: int = 1
+GP_SENSE_MAX: int = 0
 
 
 @pytest.mark.translator
@@ -100,6 +102,50 @@ def test_gurobi_to_model_to_gurobi():
         assert gp_models_are_equal(gp_model, gp_model_back)
 
 
+@pytest.mark.translator
+def test_gurobi_and_aq_lp_read_equality():
+    rand = Random(make_seed())
+    cqms = generate_cqms(NUM_CQMS, rand)
+    for cqm in cqms:
+        # We use CQM's assuming the LP file is correctly formatted for Gurobi.
+        # SETUP
+        tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
+        dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
+        tmp_lp.flush()
+        tmp_lp.seek(0)
+
+        gp_model = gp.read(tmp_lp.name)
+        tmp_lp.seek(0)
+        aq_model = LpTranslator.to_aq(tmp_lp.file.read())
+
+        # Check that the sense is equal
+        assert gp_model.ModelSense == GP_SENSE_MIN
+        assert aq_model.sense == Sense.Min
+
+        gp_objective = gp_model.getObjective()
+        if isinstance(gp_objective, gp.QuadExpr):
+            gp_lin_obj = gp_objective.getLinExpr()
+            print("----------- LINEAR -----------", file=sys.stderr)
+            for i in range(gp_lin_obj.size()):
+                v_name = gp_lin_obj.getVar(i).VarName
+                gp_coef = gp_lin_obj.getCoeff(i)
+                aq_coef = aq_model.objective.get_linear(
+                    aq_model.environment.get_variable(v_name)
+                )
+                assert gp_coef == aq_coef
+
+            print("----------- QUADRATIC -----------", file=sys.stderr)
+            for i in range(gp_objective.size()):
+                v_name_1 = gp_objective.getVar1(i).VarName
+                v_name_2 = gp_objective.getVar2(i).VarName
+                gp_coef = gp_objective.getCoeff(i)
+                aq_coef = aq_model.objective.get_quadratic(
+                    aq_model.environment.get_variable(v_name_1),
+                    aq_model.environment.get_variable(v_name_2),
+                )
+                assert gp_coef == aq_coef
+
+
 @pytest.mark.skipif(NOT_RUN_CPLEX, reason="CPLEX is required for test")
 @pytest.mark.translator
 def test_cplex_to_model_to_cplex():
@@ -166,10 +212,16 @@ def lin_expr_equal(e1, e2):
 def quad_expr_equal(e1: gp.QuadExpr, e2: gp.QuadExpr):
     """Compare full quadratic expressions (linear + quadratic parts)."""
     # Compare linear part
-    # lin1 = sorted([(e1.getVar1(i).VarName, e1.getCoeff(i)) for i in range(e1.size())])
-    # lin2 = sorted([(e2.getVar1(i).VarName, e2.getCoeff(i)) for i in range(e2.size())])
-    # if lin1 != lin2:
-    #     return False
+    e1_lin = e1.getLinExpr()
+    e2_lin = e2.getLinExpr()
+    lin1 = sorted(
+        [(e1_lin.getVar(i).VarName, e1_lin.getCoeff(i)) for i in range(e1_lin.size())]
+    )
+    lin2 = sorted(
+        [(e2_lin.getVar(i).VarName, e2_lin.getCoeff(i)) for i in range(e2_lin.size())]
+    )
+    if lin1 != lin2:
+        return False
 
     # Compare quadratic part
     # if not isinstance(e1, gp.QuadExpr) and not isinstance(e2, gp.QuadExpr):

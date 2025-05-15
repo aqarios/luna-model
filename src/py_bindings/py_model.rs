@@ -58,7 +58,7 @@ impl PyModel {
     }
 
     #[getter]
-    fn get_sense(&mut self) -> Sense {
+    fn get_sense(&self) -> Sense {
         self.sense
     }
 

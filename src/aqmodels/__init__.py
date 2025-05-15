@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Variable, Vtype, Bounds
+from ._variable import Bounds, Vtype, Variable
 from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import Sample, SampleIterator, SamplesIterator, Samples
-from ._result import Result, ResultIterator, ResultView
-from ._model import Model, Sense
+from ._sample import SamplesIterator, SampleIterator, Sample, Samples
+from ._result import ResultView, ResultIterator, Result
+from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    SamplesIterator as __SamplesIterator,
-    Expression as __Expression,
-    Sense as __Sense,
-    ResultIterator as __ResultIterator,
-    Comparator as __Comparator,
-    Timer as __Timer,
-    SampleIterator as __SampleIterator,
-    Constraint as __Constraint,
-    Vtype as __Vtype,
-    Sample as __Sample,
-    Variable as __Variable,
-    Environment as __Environment,
-    Constraints as __Constraints,
-    Timing as __Timing,
-    ResultView as __ResultView,
-    Samples as __Samples,
-    Bounds as __Bounds,
-    Result as __Result,
-    Model as __Model,
     Solution as __Solution,
+    Variable as __Variable,
+    Timing as __Timing,
+    Environment as __Environment,
+    ResultIterator as __ResultIterator,
+    ResultView as __ResultView,
+    Sense as __Sense,
+    Bounds as __Bounds,
+    SamplesIterator as __SamplesIterator,
+    Vtype as __Vtype,
+    Comparator as __Comparator,
+    Result as __Result,
+    SampleIterator as __SampleIterator,
+    Samples as __Samples,
+    Timer as __Timer,
+    Sample as __Sample,
+    Expression as __Expression,
+    Constraints as __Constraints,
+    Model as __Model,
+    Constraint as __Constraint,
 )
-from ._constraints import Comparator, Constraint, Constraints
-from . import translator, errors
+from ._constraints import Constraint, Constraints, Comparator
+from . import errors, translator
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
