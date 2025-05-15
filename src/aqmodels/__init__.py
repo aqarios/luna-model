@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Variable, Bounds, Vtype
+from ._variable import Bounds, Vtype, Variable
 from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import Samples, SamplesIterator, Sample, SampleIterator
-from ._result import ResultView, ResultIterator, Result
-from ._model import Sense, Model
+from ._sample import Samples, Sample, SampleIterator, SamplesIterator
+from ._result import Result, ResultView, ResultIterator
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Variable as __Variable,
-    Constraints as __Constraints,
-    Timing as __Timing,
-    Comparator as __Comparator,
-    SampleIterator as __SampleIterator,
-    Timer as __Timer,
-    ResultIterator as __ResultIterator,
-    Environment as __Environment,
-    Model as __Model,
-    Solution as __Solution,
-    Samples as __Samples,
-    Sample as __Sample,
-    SamplesIterator as __SamplesIterator,
-    ResultView as __ResultView,
-    Result as __Result,
     Vtype as __Vtype,
-    Bounds as __Bounds,
-    Sense as __Sense,
+    Variable as __Variable,
+    SampleIterator as __SampleIterator,
     Constraint as __Constraint,
+    Sense as __Sense,
+    ResultView as __ResultView,
+    Model as __Model,
+    Samples as __Samples,
+    Constraints as __Constraints,
+    ResultIterator as __ResultIterator,
+    Sample as __Sample,
+    Bounds as __Bounds,
+    Solution as __Solution,
     Expression as __Expression,
+    Result as __Result,
+    Comparator as __Comparator,
+    Timing as __Timing,
+    Environment as __Environment,
+    Timer as __Timer,
+    SamplesIterator as __SamplesIterator,
 )
-from ._constraints import Constraints, Constraint, Comparator
-from . import translator, errors
+from ._constraints import Constraint, Constraints, Comparator
+from . import errors, translator
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
