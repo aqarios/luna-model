@@ -1,10 +1,13 @@
 use crate::core::solution::sol::SampleCol;
 use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, RcSolution, Samples, Solution, VarAssignment, Vtype,
+    ConcreteAssignmentTypes, ConcreteBias, ConcreteBinaryType, ConcreteIntegerType,
+    ConcreteRealType, ConcreteSpinType, OwnedResult, RcSolution, Sample, Samples, Solution,
+    VarAssignment, Vtype,
 };
-use crate::py_bindings::py_env::PyEnvironment;
+use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
+use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_model::PyModel;
-use crate::py_bindings::py_res::{PyResultIterator, PyResultView};
+use crate::py_bindings::py_res::{PyOwnedResult, PyResultIterator, PyResultView};
 use crate::py_bindings::py_sample::PySamples;
 use crate::py_bindings::py_timing::PyTiming;
 use crate::py_bindings::py_var::PyVariable;
@@ -12,14 +15,15 @@ use crate::serialization::{
     Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
 };
 use derive_more::{Deref, DerefMut};
+use either::Right;
 use numpy::{PyArray1, ToPyArray};
-use pyo3::conversion::FromPyObjectBound;
-use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError};
+use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::impl_::extract_argument::PyFunctionArgument;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::IntoPyObjectExt;
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
@@ -130,24 +134,71 @@ impl PySolution {
     }
 
     #[staticmethod]
-    #[pyo3(signature=(keys, values, env=None, model=None))]
-    fn from_dict_internal(
-        py: Python,
-        keys: PyObject,
-        values: PyObject,
+    fn from_dict(
+        data: HashMap<SampleKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
-    ) {}
+    ) -> PyResult<PyOwnedResult> {
+        if env.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `env` or `model` has to be `None`",
+            ));
+        }
 
-    #[staticmethod]
-    fn from_dict(
-        py: Python,
-        data: PyObject,
-        env: Option<PyEnvironment>,
-        model: Option<PyObject>,
-    ) -> PyResult<PyObject> {
-        let sample = data.extract::<HashMap<SampleKey, f64>>(py);
-        todo!()
+        let environment: PyEnvironment = if model.is_some() {
+            PyEnvironment(Rc::clone(&model.as_ref().unwrap().borrow().environment))
+        } else {
+            match env {
+                Some(env) => env.clone(),
+                None => CURRENT_ENV.with(|current| {
+                    current.borrow().clone().ok_or_else(|| {
+                        NoActiveEnvironmentFoundError::new_err("no active environment found.")
+                    })
+                })?,
+            }
+        };
+
+        let n_vars = environment.borrow().varcount.into();
+        let mut sample = vec![VarAssignment::default(); n_vars];
+        let mut mask = vec![false; n_vars];
+
+        for (k, &v) in data.iter() {
+            let var_name = match k {
+                SampleKey::Str(s) => s,
+                SampleKey::Var(v) => &v.name(),
+            };
+            let environ = environment.borrow();
+            let maybe_var = environ.variables_lookup.get(var_name);
+            if maybe_var.is_none() {
+                return Err(PyRuntimeError::new_err(""));
+            }
+            let var = maybe_var.unwrap().0 as usize;
+            let assignment: VarAssignment<ConcreteAssignmentTypes> =
+                match environ.variables[var].vtype {
+                    Vtype::Binary => VarAssignment::Binary(v as ConcreteBinaryType),
+                    Vtype::Spin => VarAssignment::Spin(v as ConcreteSpinType),
+                    Vtype::Integer => VarAssignment::Integer(v as ConcreteIntegerType),
+                    Vtype::Real => VarAssignment::Real(v as ConcreteRealType),
+                };
+            sample[var] = assignment;
+            mask[var] = true;
+        }
+
+        if mask.iter().all(|x| !x) {
+            return Err(PyRuntimeError::new_err(""));
+        }
+
+        let res = if let Some(m) = model {
+            m.borrow().evaluate_sample(&Sample(Right(Rc::new(sample))))
+        } else {
+            OwnedResult {
+                sample: Rc::new(sample),
+                obj_value: None,
+                constraint_satisfaction: None,
+                feasible: None,
+            }
+        };
+        Ok(PyOwnedResult(res))
     }
 
     #[getter]
@@ -287,20 +338,35 @@ impl<'py> IntoPyObject<'py> for SampleKey {
     }
 }
 
-// impl<'py> FromPyObject<'py> for SampleKey {
-//     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-//         if let Ok(s) = ob.extract::<String>() {
-//             Ok(SampleKey::Str(s))
-//         } else if let Ok(v) = ob.extract::<PyVariable>() {
-//             Ok(SampleKey::Var(v))
-//         } else {
-//             Err(PyTypeError::new_err("keys have to be 'str' or 'Variable'"))
-//         }
-//     }
-// }
+impl<'py> FromPyObject<'py> for SampleKey {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        if let Ok(s) = ob.extract::<String>() {
+            Ok(SampleKey::Str(s))
+        } else if let Ok(v) = ob.extract::<PyVariable>() {
+            Ok(SampleKey::Var(v))
+        } else {
+            Err(PyTypeError::new_err("keys have to be 'str' or 'Variable'"))
+        }
+    }
+}
 
-// impl<'a, 'py> FromPyObjectBound<'a, 'py> for SampleKey {
-//     fn from_py_object_bound(ob: Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
-//         todo!()
-//     }
-// }
+impl Hash for SampleKey {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self {
+            SampleKey::Str(s) => s.hash(state),
+            SampleKey::Var(v) => v.hash(state),
+        }
+    }
+}
+
+impl PartialEq<Self> for SampleKey {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (SampleKey::Str(s1), SampleKey::Str(s2)) => s1 == s2,
+            (SampleKey::Var(v1), SampleKey::Var(v2)) => v1 == v2,
+            _ => false,
+        }
+    }
+}
+
+impl Eq for SampleKey {}

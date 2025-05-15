@@ -27,7 +27,29 @@ impl PyVariable {
     pub fn new(varref: ConcreteVarRef) -> Self {
         Self(varref.into())
     }
+
+    pub fn name(&self) -> String {
+        let idx: usize = self.id.into();
+        let name = &self.env.borrow().variables[idx].name;
+        name.clone()
+    }
 }
+
+impl Hash for PyVariable {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.name().hash(state)
+    }
+}
+
+impl PartialEq<Self> for PyVariable {
+    fn eq(&self, other: &Self) -> bool {
+        let self_idx: usize = self.id.into();
+        let other_idx: usize = other.id.into();
+        self.env.borrow().variables[self_idx] == other.env.borrow().variables[other_idx]
+    }
+}
+
+impl Eq for PyVariable {}
 
 #[pymethods]
 impl PyVariable {
@@ -56,11 +78,9 @@ impl PyVariable {
         )?))
     }
 
-    #[getter(name)]
-    fn name(&self) -> String {
-        let idx: usize = self.id.into();
-        let name = &self.env.borrow().variables[idx].name;
-        name.clone()
+    #[getter]
+    fn get_name(&self) -> String {
+        self.name()
     }
 
     fn __hash__(&self) -> u64 {
