@@ -19,7 +19,7 @@ def test_expression_mul_binary_variables(variables):
 
     expr = x * y
     assert isinstance(expr, Expression)
-    assert expr.num_variables() == 2
+    assert expr.num_variables == 2
     assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
     assert_quadratic(expr, (x, y), 1)
@@ -29,7 +29,7 @@ def test_expression_mul_binary_variables(variables):
 
     assert id(expr) != id(result)
     assert isinstance(result, Expression)
-    assert result.num_variables() == 3
+    assert result.num_variables == 3
     assert result.get_offset() == 0
     assert_linear(result, variables, 0)
     assert_quadratic(result, variables, 0)
@@ -44,7 +44,7 @@ def test_expression_rmul_binary_variables(variables):
 
     expr = x * y
     assert isinstance(expr, Expression)
-    assert expr.num_variables() == 2
+    assert expr.num_variables == 2
     assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
     assert_quadratic(expr, (x, y), 1)
@@ -54,7 +54,7 @@ def test_expression_rmul_binary_variables(variables):
 
     assert id(expr) != id(result)
     assert isinstance(result, Expression)
-    assert result.num_variables() == 3
+    assert result.num_variables == 3
     assert result.get_offset() == 0
     assert_linear(result, variables, 0)
     assert_quadratic(result, variables, 0)
@@ -69,7 +69,7 @@ def test_expression_mul_binary_variable_twice(variables):
 
     expr = x * y
     assert isinstance(expr, Expression)
-    assert expr.num_variables() == 2
+    assert expr.num_variables == 2
     assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
     assert_quadratic(expr, (x, y), 1)
@@ -79,7 +79,7 @@ def test_expression_mul_binary_variable_twice(variables):
 
     assert id(expr) != id(result)
     assert isinstance(result, Expression)
-    assert result.num_variables() == 3
+    assert result.num_variables == 3
     assert result.get_offset() == 0
     assert_linear(result, variables, 0)
     assert_quadratic(result, variables, 0)
@@ -90,7 +90,7 @@ def test_expression_mul_binary_variable_twice(variables):
 
     assert id(expr) != id(result)
     assert isinstance(result, Expression)
-    assert result.num_variables() == 3
+    assert result.num_variables == 3
     assert result.get_offset() == 0
     assert_linear(result, variables, 0)
     assert_quadratic(result, variables, 0)
@@ -105,7 +105,7 @@ def test_expression_instancemul_binary_variable_twice(variables):
 
     expr = x * y
     assert isinstance(expr, Expression)
-    assert expr.num_variables() == 2
+    assert expr.num_variables == 2
     assert_offset(expr, 0)
     assert_linear(expr, (x, y), 0)
     assert_quadratic(expr, (x, y), 1)
@@ -118,7 +118,7 @@ def test_expression_instancemul_binary_variable_twice(variables):
 
     assert id_expr_before == id_expr_after
     assert isinstance(expr, Expression)
-    assert expr.num_variables() == 3
+    assert expr.num_variables == 3
     assert_offset(expr, 0)
     assert_linear(expr, variables, 0)
     assert_quadratic(expr, variables, 0)

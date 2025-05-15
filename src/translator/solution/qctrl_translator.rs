@@ -7,7 +7,7 @@ use crate::{
         expression::IndexConstraints, solution::sol::SampleCol, ConcreteSolution, MutRcEnvironment,
         RcSolution, Solution, Timing, Vtype,
     },
-    errors::SolutionCreatorErr,
+    errors::SolutionCreationErr,
 };
 
 pub struct QctrlTranslator {}
@@ -18,7 +18,7 @@ impl QctrlTranslator {
         energy: E,
         timing: Option<Timing>,
         env: MutRcEnvironment<Index>,
-    ) -> Result<ConcreteSolution, SolutionCreatorErr>
+    ) -> Result<ConcreteSolution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default,
         E: Copy + NumCast,

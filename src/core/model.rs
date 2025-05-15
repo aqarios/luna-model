@@ -10,14 +10,13 @@ use super::{Environment, Expression, RcSolution, Sample, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::writer::ModelWriter;
-use crate::errors::TranslationErr;
+use crate::errors::VarNamesErr;
+#[cfg(feature = "py")]
+use pyo3::prelude::*;
 use std::cell::RefCell;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
 use std::rc::Rc;
-
-#[cfg(feature = "py")]
-use pyo3::prelude::*;
 
 /// The default name for a model.
 pub static DEFAULT_MODEL_NAME: &str = "unnamed";
@@ -102,9 +101,9 @@ where
         num_variables: Index,
         offset: Option<Bias>,
         variable_names: Option<Vec<String>>,
-    ) -> Result<Self, TranslationErr> {
+    ) -> Result<Self, VarNamesErr> {
         let model = Model::new(name);
-        // We also need to add the variables to the model...
+
         for idx in 0..num_variables.into() {
             let var_name = match &variable_names {
                 None => &format!("x_{}", idx.to_string()),
@@ -112,7 +111,7 @@ where
                     // Name needs to start with alpha.
                     let name = &names[idx];
                     if !name.starts_with(|c: char| c.is_alphabetic()) {
-                        return Err(TranslationErr::new(String::from(
+                        return Err(VarNamesErr(String::from(
                             "Variable names must start with an alphabetic character.",
                         )));
                     }
@@ -121,7 +120,7 @@ where
                         if c.is_alphanumeric() || c == '_' || c == ',' {
                             continue;
                         } else {
-                            return Err(TranslationErr::new(String::from(
+                            return Err(VarNamesErr(String::from(
                                 "Variable names must only contain alphanumeric characters or '_' or ','."
                             )));
                         }
@@ -129,6 +128,14 @@ where
                     name
                 }
             };
+            if model
+                .environment
+                .borrow()
+                .variables_lookup
+                .contains_key(var_name)
+            {
+                return Err(VarNamesErr(format!("Duplicate variable name: {var_name}")));
+            }
             let _ = add_variable(
                 model.environment.clone(),
                 var_name,

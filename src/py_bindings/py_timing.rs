@@ -36,7 +36,7 @@ impl PyTiming {
         self.end
     }
 
-    #[getter(total)]
+    #[getter]
     fn get_total(&self) -> PyResult<Duration> {
         self.total()
             .map_err(|_| PyRuntimeError::new_err("Solution timing could not be computed correctly"))
@@ -52,9 +52,9 @@ impl PyTiming {
         self.qpu
     }
 
-    #[setter(qpu)]
+    #[setter]
     fn set_qpu(&mut self, value: Option<f64>) -> PyResult<()> {
-        if value.unwrap_or_default() < 0f64 {
+        if value.unwrap_or_default() < 0.0 {
             Err(PyValueError::new_err("QPU time must not be negative."))
         } else {
             self.qpu = value;
@@ -63,7 +63,7 @@ impl PyTiming {
     }
 
     fn add_qpu(&mut self, value: f64) -> PyResult<()> {
-        if value < 0f64 {
+        if value < 0.0 {
             Err(PyValueError::new_err("QPU time must not be negative."))
         } else {
             self.qpu = Some(self.qpu.unwrap_or_default() + value);

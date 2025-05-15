@@ -127,7 +127,7 @@ def test_model_add_constraint_le():
         y = Variable("y")
 
     model.constraints += x + y <= 1
-    assert model.num_constraints() == 1
+    assert model.num_constraints == 1
 
 
 @pytest.mark.constraint
@@ -138,7 +138,7 @@ def test_model_add_constraint_eq():
         y = Variable("y")
 
     model.constraints += x + y == 0
-    assert model.num_constraints() == 1
+    assert model.num_constraints == 1
 
 
 @pytest.mark.constraint
@@ -149,7 +149,7 @@ def test_model_add_constraint_ge():
         y = Variable("y")
 
     model.constraints += x + y >= 1
-    assert model.num_constraints() == 1
+    assert model.num_constraints == 1
 
 
 @pytest.mark.constraint
@@ -160,7 +160,7 @@ def test_model_add_constraint_le_named():
         y = Variable("y")
 
     model.constraints += x + y <= 1, "constraint"
-    assert model.num_constraints() == 1
+    assert model.num_constraints == 1
     assert model.constraints[0].name == "constraint"
 
 
@@ -172,7 +172,7 @@ def test_model_add_constraint_eq_named():
         y = Variable("y")
 
     model.constraints += x + y == 0, "constraint"
-    assert model.num_constraints() == 1
+    assert model.num_constraints == 1
     assert model.constraints[0].name == "constraint"
 
 
@@ -184,7 +184,7 @@ def test_model_add_constraint_ge_named():
         y = Variable("y")
 
     model.constraints += x + y >= 1, "constraint"
-    assert model.num_constraints() == 1
+    assert model.num_constraints == 1
     assert model.constraints[0].name == "constraint"
 
 

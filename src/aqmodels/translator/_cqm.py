@@ -32,23 +32,28 @@ class CqmTranslator:
 
     @staticmethod
     @dispatched
-    def to_aq(bqm, name):
+    def to_aq(cqm):
         """
         Convert a CQM into a symbolic `Model`.
 
         Parameters
         ----------
-        bqm : BinaryQuadraticModel
+        cqm : ConstrainedQuadraticModel
             The CQM.
-        name : str, optional
-            An optional name to assign to the resulting model.
 
         Returns
         -------
         Model
             A symbolic model representing the given CQM.
+
+        Raises
+        ------
+        TypeError
+            If `cqm` is not of type `ConstrainedQuadraticModel`.
+        TranslationError
+            If the translation fails for some reason.
         """
-        return bqm, name
+        return cqm
 
     @staticmethod
     @dispatched
@@ -69,12 +74,7 @@ class CqmTranslator:
 
         Raises
         ------
-        ModelNotQuadraticError
-            If the objective contains higher-order (non-quadratic) terms.
-        ModelNotUnconstrainedError
-            If the model contains any constraints.
-        ModelVtypeError
-            If the model contains different vtypes or vtypes other than binary and
-            spin.
+        TranslationError
+            If the translation fails for some reason.
         """
         return model

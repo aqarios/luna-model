@@ -18,6 +18,7 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
+use pyo3::exceptions::PyTypeError;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 use std::{ops::Deref, rc::Rc};
 
@@ -47,31 +48,31 @@ impl PyExpression {
         Ok(PyExpression::new(Expression::empty(env.0)))
     }
 
-    fn get_linear(&self, var: &PyVariable) -> PyResult<f64> {
-        Ok(self.borrow().linear(var.id)?)
-    }
-
     fn get_offset(&self) -> f64 {
         self.borrow().offset()
+    }
+
+    fn get_linear(&self, variable: &PyVariable) -> PyResult<f64> {
+        Ok(self.borrow().linear(variable.id)?)
     }
 
     fn get_quadratic(&self, u: &PyVariable, v: &PyVariable) -> PyResult<f64> {
         Ok(self.borrow().quadratic(u.id, v.id)?)
     }
 
-    fn get_higher_order(&self, vars: Vec<PyVariable>) -> PyResult<f64> {
+    fn get_higher_order(&self, variables: Vec<PyVariable>) -> PyResult<f64> {
         // todo: optimize the iter away...
         Ok(self
             .borrow()
-            .higher_order(&vars.iter().map(|v| v.id).collect())?)
+            .higher_order(&variables.iter().map(|v| v.id).collect())?)
     }
 
-    #[pyo3(name = "num_variables")]
+    #[getter]
     fn get_num_variables(&self) -> usize {
         self.borrow().num_variables()
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
@@ -86,7 +87,7 @@ impl PyExpression {
         .into())
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
         py: Python,
@@ -120,7 +121,7 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = self.borrow().add(rhs.borrow().deref())?;
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
 
         Ok(PyExpression::new(expr))
@@ -139,15 +140,10 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = self.borrow().sub(rhs.borrow().deref())?;
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
 
         Ok(PyExpression::new(expr))
-    }
-
-    fn __rsub__(&self, _py: Python, _other: PyObject) -> PyResult<PyExpression> {
-        todo!()
-        // self.__sub__(py, other)
     }
 
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
@@ -159,7 +155,7 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = self.borrow().mul(rhs.borrow().deref())?;
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
         Ok(PyExpression::new(expr))
     }
@@ -168,7 +164,6 @@ impl PyExpression {
         self.__mul__(py, other)
     }
 
-    // In place assignment
     fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             self.borrow_mut().add_assign(rhs)
@@ -177,7 +172,7 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow_mut().add_assign(rhs.borrow().deref())?
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
 
         Ok(())
@@ -191,7 +186,7 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow_mut().sub_assign(rhs.borrow().deref())?
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
 
         Ok(())
@@ -205,7 +200,7 @@ impl PyExpression {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             self.borrow_mut().mul_assign(rhs.borrow().deref())?
         } else {
-            return Err(PyRuntimeError::new_err("unsopported type for operation"));
+            return Err(PyTypeError::new_err("unsupported type for operation"));
         }
         Ok(())
     }

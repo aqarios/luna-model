@@ -1,5 +1,5 @@
 use crate::core::Qubo;
-use crate::errors::{ModelSenseNotMinimizeErr, ModelVtypeErr, TranslationErr};
+use crate::errors::{ModelSenseNotMinimizeErr, ModelVtypeErr, VarNamesErr};
 use crate::{
     core::{
         expression::{BiasConstraints, IndexConstraints},
@@ -21,12 +21,26 @@ impl MatrixTranslator {
         vtype: Option<Vtype>,
         offset: Option<Bias>,
         variable_names: Option<Vec<String>>,
-    ) -> Result<Model<Index, Bias>, TranslationErr>
+    ) -> Result<Model<Index, Bias>, MatrixTranslatorErr>
     where
         Index: IndexConstraints,
         Bias: BiasConstraints,
     {
-        Model::new_from_dense(name, vtype, dense, num_variables, offset, variable_names)
+        if let Some(names) = variable_names.as_ref() {
+            if names.len() != num_variables.into() {
+                return Err(VarNamesErr(format!(
+                    "Number of variable names must match the number of variables"
+                )))?;
+            }
+        }
+        Ok(Model::new_from_dense(
+            name,
+            vtype,
+            dense,
+            num_variables,
+            offset,
+            variable_names,
+        )?)
     }
 
     /// Back(translate) an AQM to a QUBO.

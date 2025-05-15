@@ -10,7 +10,7 @@ use crate::{
         expression::IndexConstraints, solution::sol::SampleCol, ConcreteSolution, MutRcEnvironment,
         RcSolution, Solution, Timing, VarRef, Vtype,
     },
-    errors::SolutionCreatorErr,
+    errors::SolutionCreationErr,
 };
 
 pub struct IbmTranslator {}
@@ -23,7 +23,7 @@ impl IbmTranslator {
         counts: Vec<usize>,
         timing: Option<Timing>,
         env: MutRcEnvironment<Index>,
-    ) -> Result<ConcreteSolution, SolutionCreatorErr>
+    ) -> Result<ConcreteSolution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default + Display + Debug,
         E: Copy + NumCast + Debug,

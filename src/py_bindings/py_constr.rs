@@ -4,9 +4,6 @@ use std::{
     rc::Rc,
 };
 
-use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
-
 use crate::{
     core::{
         expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
@@ -17,6 +14,9 @@ use crate::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
+use derive_more::{Deref, DerefMut};
+use pyo3::exceptions::PyTypeError;
+use pyo3::{prelude::*, types::PyBytes};
 
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 
@@ -55,7 +55,7 @@ impl PyConstraint {
             lhs.sub_assign(expr.borrow().deref())?;
             Ok(0.0)
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            Err(PyTypeError::new_err("unsupported type for operation"))
         };
         Ok(PyConstraint::new(Constraint::new(
             Rc::new(RefCell::new(lhs)),
@@ -86,8 +86,8 @@ impl PyConstraint {
                 1.0,
             ))
         } else {
-            Err(PyRuntimeError::new_err(
-                "unsopported type for lhs in operation",
+            Err(PyTypeError::new_err(
+                "unsupported type for lhs in operation",
             ))
         };
         let mut lhs = lhs?;
@@ -100,8 +100,8 @@ impl PyConstraint {
             lhs.sub_assign(expr.borrow().deref())?;
             Ok(0.0)
         } else {
-            Err(PyRuntimeError::new_err(
-                "unsopported type for rhs in operation",
+            Err(PyTypeError::new_err(
+                "unsupported type for rhs in operation",
             ))
         };
         Ok(PyConstraint::new(ConcreteConstraint::new(
@@ -158,7 +158,7 @@ impl PyConstraints {
         } else if let Ok(constr) = other.extract::<PyConstraint>(py) {
             Ok(self.add_constraint(constr, None)?)
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            Err(PyTypeError::new_err("unsupported type for operation"))
         }
     }
 
@@ -187,7 +187,7 @@ impl PyConstraints {
         format!("{:#?}", self.borrow())
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
@@ -202,7 +202,7 @@ impl PyConstraints {
         .into())
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
         py: Python,

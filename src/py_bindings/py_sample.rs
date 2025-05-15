@@ -5,7 +5,7 @@ use crate::core::{
 use crate::py_bindings::py_sol::PyVarAssignment;
 use derive_more::{Deref, DerefMut};
 use either::Either;
-use pyo3::exceptions::{PyIndexError, PyRuntimeError};
+use pyo3::exceptions::{PyIndexError, PyTypeError};
 use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
 
@@ -57,15 +57,15 @@ impl PySamples {
         format!("{}", self.0)
     }
 
-    fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyObject> {
-        if let Ok(res_idx) = index.extract::<usize>(py) {
+    fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyObject> {
+        if let Ok(res_idx) = item.extract::<usize>(py) {
             match self.get_sample(res_idx) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
                 ))),
                 Some(r) => PySample(r).into_pyobject(py)?.into_py_any(py),
             }
-        } else if let Ok((res_idx, var_idx)) = index.extract::<(usize, usize)>(py) {
+        } else if let Ok((res_idx, var_idx)) = item.extract::<(usize, usize)>(py) {
             match self.get_assignment(res_idx, var_idx) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index ({res_idx}, {var_idx}) out of bounds"
@@ -73,7 +73,7 @@ impl PySamples {
                 Some(v) => Ok(PyVarAssignment(v).into_pyobject(py)?.unbind()),
             }
         } else {
-            Err(PyRuntimeError::new_err("unsupported type for indexing"))
+            Err(PyTypeError::new_err("unsupported type for indexing"))
         }
     }
 
@@ -92,8 +92,8 @@ impl PySample {
         format!("{}", self.0)
     }
 
-    fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyVarAssignment> {
-        if let Ok(var) = index.extract::<PyVariable>(py) {
+    fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyVarAssignment> {
+        if let Ok(var) = item.extract::<PyVariable>(py) {
             match self.get_assignment(var.id.into()) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {:?} out of bounds",
@@ -101,7 +101,7 @@ impl PySample {
                 ))),
                 Some(v) => Ok(PyVarAssignment(v)),
             }
-        } else if let Ok(var_idx) = index.extract::<usize>(py) {
+        } else if let Ok(var_idx) = item.extract::<usize>(py) {
             match self.get_assignment(var_idx) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {var_idx} out of bounds"
@@ -109,7 +109,7 @@ impl PySample {
                 Some(v) => Ok(PyVarAssignment(v)),
             }
         } else {
-            Err(PyRuntimeError::new_err("unsupported type for indexing"))
+            Err(PyTypeError::new_err("unsupported type for indexing"))
         }
     }
 

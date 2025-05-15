@@ -9,6 +9,9 @@ class VariableOutOfRangeError(Exception):
 class VariableExistsError(Exception):
     def __str__(self) -> str: ...
 
+class VariableCreationError(Exception):
+    def __str__(self) -> str: ...
+
 class VariableNotExistingError(Exception):
     def __str__(self) -> str: ...
 
@@ -27,10 +30,10 @@ class MultipleActiveEnvironmentsError(Exception):
 class DecodeError(Exception):
     def __str__(self) -> str: ...
 
-class ModelVtypeError(Exception):
+class ModelVtypeError(TranslationError):
     def __str__(self) -> str: ...
 
-class SolutionCreationError(Exception):
+class VariableNamesError(Exception):
     def __str__(self) -> str: ...
 
 class IllegalConstraintNameError(Exception):
@@ -48,6 +51,15 @@ class ModelNotUnconstrainedError(TranslationError):
 class ModelSenseNotMinimizeError(TranslationError):
     def __str__(self) -> str: ...
 
+class SolutionTranslationError(Exception):
+    def __str__(self) -> str: ...
+
+class SampleIncorrectLengthError(SolutionTranslationError):
+    def __str__(self) -> str: ...
+
+class SampleIncompatibleVtypeError(SolutionTranslationError):
+    def __str__(self) -> str: ...
+
 __all__ = [
     "DecodeError",
     "DifferentEnvsError",
@@ -58,9 +70,13 @@ __all__ = [
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
-    "SolutionCreationError",
+    "SampleIncompatibleVtypeError",
+    "SampleIncorrectLengthError",
+    "SolutionTranslationError",
     "TranslationError",
+    "VariableCreationError",
     "VariableExistsError",
+    "VariableNamesError",
     "VariableNotExistingError",
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",

@@ -89,8 +89,10 @@ class Constraint:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If lhs is not an Expression or rhs is not a scalar float.
+        IllegalConstraintNameError
+            If the constraint is tried to be created with an illegal name.
         """
         return lhs, rhs, comparator, name
 
@@ -277,10 +279,15 @@ class Constraints:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the value is not a `Constraint` or valid symbolic comparison.
         """
         return constraint
 
+    @dispatched
     def __getitem__(self, item):
         return item
+
+    @dispatched
+    def __eq__(self, other):
+        return other

@@ -11,7 +11,7 @@ def test_sub_variable_and_number(scalar: int):
 
     result = x - scalar
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_linear(x) == 1
     assert result.get_offset() == -scalar
 
@@ -24,7 +24,7 @@ def test_rsub_variable_and_number(scalar: int):
 
     result = scalar - x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_linear(x) == -1
     assert result.get_offset() == scalar
 
@@ -37,7 +37,7 @@ def test_sub_two_variables():
 
     result = x - y
     assert isinstance(result, Expression)
-    assert result.num_variables() == 2
+    assert result.num_variables == 2
     assert result.get_offset() == 0
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == -1
@@ -51,7 +51,7 @@ def test_sub_two_variables_unordered():
 
     result = y - x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 2
+    assert result.num_variables == 2
     assert result.get_offset() == 0
     assert result.get_linear(x) == -1
     assert result.get_linear(y) == 1
@@ -67,7 +67,7 @@ def test_sub_last_two_variables():
 
     result = y - x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 2
+    assert result.num_variables == 2
     assert result.get_linear(x) == -1
     assert result.get_linear(y) == 1
 
@@ -82,7 +82,7 @@ def test_sub_any_and_last_variables():
 
     result = y - x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 2
+    assert result.num_variables == 2
     assert result.get_offset() == 0
     assert result.get_linear(x) == -1
     assert result.get_linear(y) == 1
@@ -94,14 +94,14 @@ def test_sub_any_and_last_variables():
 #         x, y, z = Variable("x"), Variable("y"), Variable("z")
 #     expr = x - y
 #     assert isinstance(expr, Expression)
-#     assert expr.num_variables() == 2
+#     assert expr.num_variables == 2
 #     assert expr.get_offset() == 0
 #     assert expr.get_linear(x) == 1
 #     assert expr.get_linear(y) == -1
 #
 #     result = z - expr
 #     assert isinstance(result, Expression)
-#     assert result.num_variables() == 3
+#     assert result.num_variables == 3
 #     assert result.get_offset() == 0
 #     assert result.get_linear(x) == 1
 #     assert result.get_linear(y) == 1
@@ -114,14 +114,14 @@ def test_sub_any_and_last_variables():
 #         x, y, z = Variable("x"), Variable("y"), Variable("z")
 #     expr = x - y
 #     assert isinstance(expr, Expression)
-#     assert expr.num_variables() == 2
+#     assert expr.num_variables == 2
 #     assert expr.get_offset() == 0
 #     assert expr.get_linear(x) == 1
 #     assert expr.get_linear(y) == 1
 #
 #     result = expr - z
 #     assert isinstance(result, Expression)
-#     assert result.num_variables() == 3
+#     assert result.num_variables == 3
 #     assert result.get_offset() == 0
 #     assert result.get_linear(x) == 1
 #     assert result.get_linear(y) == 1

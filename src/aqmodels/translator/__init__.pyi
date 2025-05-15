@@ -19,6 +19,54 @@ from typing import overload
 
 from . import translator
 
+class Qubo:
+    @property
+    def offset(self) -> float: ...
+    @property
+    def matrix(self) -> NDArray: ...
+    @property
+    def variable_names(self) -> list[str]: ...
+    @property
+    def name(self) -> str: ...
+    @property
+    def vtype(self) -> Vtype: ...
+
+class QuboTranslator:
+    @staticmethod
+    def to_aq(
+        qubo: NDArray,
+        offset: float | None = ...,
+        variable_names: list[str] | None = ...,
+        name: str | None = ...,
+        vtype: Vtype | None = ...,
+    ) -> Model: ...
+    @staticmethod
+    def from_aq(model: Model) -> Qubo: ...
+
+class AwsTranslator:
+    @staticmethod
+    def to_aq(
+        result: dict[str, Any],
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
+class ZibTranslator:
+    @staticmethod
+    def to_aq(
+        model: SciModel,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
+class DwaveTranslator:
+    @staticmethod
+    def to_aq(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        env: Environment | None = ...,
+    ) -> Solution: ...
+
 class BqmTranslator:
     @staticmethod
     def to_aq(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
@@ -43,18 +91,25 @@ class QctrlTranslator:
         env: Environment | None = ...,
     ) -> Solution: ...
 
-class ZibTranslator:
+class LpTranslator:
+    @overload
     @staticmethod
-    def to_aq(
-        model: SciModel,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
+    def to_aq(file: Path) -> Model: ...
+    @overload
+    @staticmethod
+    def to_aq(file: str) -> Model: ...
+    @overload
+    @staticmethod
+    def from_aq(model: Model) -> str: ...
+    @overload
+    @staticmethod
+    def from_aq(model: Model, file: Path) -> None: ...
 
-class AwsTranslator:
+class NumpyTranslator:
     @staticmethod
     def to_aq(
-        result: dict[str, Any],
+        result: NDArray,
+        energies: NDArray,
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
@@ -80,61 +135,6 @@ class IbmTranslator:
         timing: Timing | None = ...,
         env: Environment | None = ...,
     ) -> Solution: ...
-
-class NumpyTranslator:
-    @staticmethod
-    def to_aq(
-        result: NDArray,
-        energies: NDArray,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
-class DwaveTranslator:
-    @staticmethod
-    def to_aq(
-        sample_set: SampleSet,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
-class LpTranslator:
-    @overload
-    @staticmethod
-    def to_aq(file: Path) -> Model: ...
-    @overload
-    @staticmethod
-    def to_aq(file: str) -> Model: ...
-    @overload
-    @staticmethod
-    def from_aq(model: Model) -> str: ...
-    @overload
-    @staticmethod
-    def from_aq(model: Model, file: Path) -> None: ...
-
-class Qubo:
-    @property
-    def offset(self) -> float: ...
-    @property
-    def matrix(self) -> NDArray: ...
-    @property
-    def variable_names(self) -> list[str]: ...
-    @property
-    def name(self) -> str: ...
-    @property
-    def vtype(self) -> Vtype: ...
-
-class QuboTranslator:
-    @staticmethod
-    def to_aq(
-        qubo: NDArray,
-        offset: float | None = ...,
-        variable_names: list[str] | None = ...,
-        name: str | None = ...,
-        vtype: Vtype | None = ...,
-    ) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> Qubo: ...
 
 class CqmTranslator:
     @staticmethod

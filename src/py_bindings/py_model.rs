@@ -98,8 +98,8 @@ impl PyModel {
     }
 
     #[setter]
-    fn set_objective(&mut self, other: &PyExpression) {
-        self.objective = other.0.clone()
+    fn set_objective(&mut self, value: &PyExpression) {
+        self.objective = value.0.clone()
     }
 
     #[getter]
@@ -108,8 +108,8 @@ impl PyModel {
     }
 
     #[setter]
-    fn set_constraints(&mut self, other: &PyConstraints) {
-        self.constraints = other.0.clone()
+    fn set_constraints(&mut self, value: &PyConstraints) {
+        self.constraints = value.0.clone()
     }
 
     #[pyo3(signature=(constraint, name=None))]
@@ -134,6 +134,7 @@ impl PyModel {
             .add_assign(expression.borrow().deref())?)
     }
 
+    #[getter]
     fn num_constraints(&self) -> usize {
         self.constraints.borrow().len()
     }
@@ -168,7 +169,7 @@ impl PyModel {
         format!("{:#?}", self.concrete_model)
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
@@ -183,7 +184,7 @@ impl PyModel {
     }
 
     /// Alias for serialize
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
         py: Python,

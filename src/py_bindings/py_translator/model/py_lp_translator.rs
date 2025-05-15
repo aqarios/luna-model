@@ -2,7 +2,7 @@ use crate::core::{ConcreteBias, ConcreteIndex};
 use crate::translator::base::BackTranslator;
 use crate::translator::LPTranslator;
 use crate::{py_bindings::py_model::PyModel, translator::base::Translator};
-use pyo3::exceptions::PyRuntimeError;
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use std::path::PathBuf;
 
@@ -32,7 +32,7 @@ impl PyLpTranslator {
             let file = LPTranslator::<ConcreteIndex, ConcreteBias>::read_file(filepath)?;
             Ok(PyModel::new(LPTranslator::translate(file)?))
         } else {
-            Err(PyRuntimeError::new_err(
+            Err(PyTypeError::new_err(
                 "file must be either a Path object or the LP String",
             ))
         }
@@ -41,6 +41,9 @@ impl PyLpTranslator {
     #[staticmethod]
     #[pyo3(signature=(model, filepath=None))]
     fn from_aq(model: &PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
-        Ok(LPTranslator::back_translate((&model.concrete_model, filepath))?)
+        Ok(LPTranslator::back_translate((
+            &model.concrete_model,
+            filepath,
+        ))?)
     }
 }

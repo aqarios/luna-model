@@ -1,3 +1,4 @@
+from contextlib import nullcontext as does_not_raise
 from random import Random
 
 import numpy as np
@@ -11,7 +12,7 @@ from aqmodels import (
     Timer,
     Variable,
     Vtype,
-    SolutionCreationError,
+    SampleIncompatibleVtypeError,
 )
 from pytests.test_core.utils import make_seed, random_int, generate_bqms
 
@@ -96,10 +97,24 @@ def test_sampleset_translator_error_handling():
     sampleset = SampleSet.from_samples(as_samples(np.array(samples)), "SPIN", energy)
 
     env = mock_env(3)
-    with pytest.raises(SolutionCreationError):
-        _ = DwaveTranslator.to_aq(sampleset, env=env)
+    with pytest.raises(
+        SampleIncompatibleVtypeError,
+        match="sample contains variable assignments incompatible",
+    ):
+        DwaveTranslator.to_aq(sampleset, env=env)
 
     env = mock_env(3, vtype=Vtype.Spin)
     sol = DwaveTranslator.to_aq(sampleset, env=env)
     with pytest.raises(IndexError):
         _ = sol.samples[1]
+
+    samples = [[0, 1, 1]]
+    sampleset = SampleSet.from_samples(as_samples(np.array(samples)), "BINARY", energy)
+    with does_not_raise():
+        DwaveTranslator.to_aq(sampleset, env=env)
+
+    samples = [[-10, 10, 6.43]]
+    env = mock_env(3, vtype=Vtype.Integer)
+    sampleset = SampleSet.from_samples(as_samples(np.array(samples)), "INTEGER", energy)
+    with does_not_raise():
+        DwaveTranslator.to_aq(sampleset, env=env)

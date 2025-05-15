@@ -11,7 +11,7 @@ def test_mul_variable_and_number(scalar: int):
 
     result = x * scalar
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_linear(x) == scalar
     assert result.get_offset() == 0
 
@@ -24,7 +24,7 @@ def test_rmul_variable_and_number(scalar: int):
 
     result = scalar * x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_linear(x) == scalar
     assert result.get_offset() == 0
 
@@ -37,7 +37,7 @@ def test_mul_variables():
 
     result = x * y
     assert isinstance(result, Expression)
-    assert result.num_variables() == 2
+    assert result.num_variables == 2
     assert result.get_offset() == 0
     assert result.get_linear(x) == 0
     assert result.get_linear(y) == 0
@@ -52,7 +52,7 @@ def test_mul_same_variable_binary():
 
     result = x * x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_offset() == 0
     assert result.get_linear(x) == 1
     assert result.get_quadratic(x, x) == 0
@@ -65,7 +65,7 @@ def test_mul_same_variable_spin():
 
     result = x * x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_offset() == 1
     assert result.get_linear(x) == 0
     assert result.get_quadratic(x, x) == 0
@@ -78,7 +78,7 @@ def test_mul_same_variable_real():
 
     result = x * x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_offset() == 0
     assert result.get_linear(x) == 0
     assert result.get_quadratic(x, x) == 1
@@ -91,7 +91,7 @@ def test_mul_same_variable_integer():
 
     result = x * x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_offset() == 0
     assert result.get_linear(x) == 0
     assert result.get_quadratic(x, x) == 1

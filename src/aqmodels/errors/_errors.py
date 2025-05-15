@@ -28,6 +28,15 @@ class VariableExistsError(Exception):
 
 
 @export("top", "errors")
+class VariableCreationError(Exception):
+    """
+    Raised when an error occurs during the creation of a variable.
+
+    For example, binary and spin variables cannot be created with bounds.
+    """
+
+
+@export("top", "errors")
 class VariableNotExistingError(Exception):
     """
     Raised when trying to get a variable with a name that does not exist.
@@ -96,37 +105,34 @@ class ModelVtypeError(Exception):
 
 
 @export("top", "errors")
-class SolutionCreationError(Exception):
+class VariableNamesError(Exception):
     """
-    Raised when something goes wrong during the creation of a solution.
+    Raised when the QuboTranslator tries to create a model from a QUBO matrix, but
+    the provided variable names are invalid.
 
-    This may happen during the translation to an AqSolution from a different solution
-    format, e.g., when the samples have different lengths or the variable types are not
-    consistent with the model the solution is created for.
+    If variable names are provided to the QuboTranslator, they have to be unique, and
+    the number of names has to match the number of variables in the QUBO matrix.
     """
 
 
 @export("top", "errors")
 class IllegalConstraintNameError(Exception):
     """
-    Raised when an illegal constraint name is used.
-
-    This may happen when a new constraint is added to the model that uses a disallowed
-    constraint name.
+    Raised when a constraint is tried to be created with an illegal name.
     """
 
 
 @export("top", "errors")
 class TranslationError(Exception):
     """
-    Raised when an error occured during translation.
+    Raised when an error occurred during translation.
     """
 
 
 @export("top", "errors")
 class ModelNotQuadraticError(TranslationError):
     """
-    Raised when a model is expected to be quadratic, but contains higher-order terms.
+    Raised when a model is expected to be quadratic but contains higher-order terms.
 
     Some solvers or transformations require the model to have at most quadratic
     expressions. This error signals that unsupported terms were detected.
@@ -152,4 +158,41 @@ class ModelSenseNotMinimizeError(TranslationError):
     Some model formats only work with minimization sense. In this case, consider
     setting the sense to `minimize` before the transformation, and multiplying the
     objective by `-1` if necessary.
+    """
+
+
+@export("top", "errors")
+class SolutionTranslationError(Exception):
+    """
+    Raised when something goes wrong during the translation of a solution.
+
+    This may happen during the translation to an AqSolution from a different solution
+    format, e.g., when the samples have different lengths or the variable types are not
+    consistent with the model the solution is created for.
+    """
+
+
+@export("top", "errors")
+class SampleIncorrectLengthError(SolutionTranslationError):
+    """
+    Raised when a sample length is different from the number of model variables.
+
+    When an external solution format is translated to an AqSolution, the number of
+    variable assignments in the solution's sample has to exactly match the number of
+    variables in the model environment that is passed to the translator.
+    """
+
+
+@export("top", "errors")
+class SampleIncompatibleVtypeError(Exception):
+    """
+    Raised when a sample's assignments have variable types incompatible with the
+    model's variable types.
+
+    When an external solution format is translated to an AqSolution, the variable
+    assignments are tried to be converted into the model's corresponding variable type.
+    This may fail when the assignment types are incompatible.
+
+    Note that conversions with precision loss or truncation are admitted, but
+    conversions of variables outside the permitted range will fail.
     """

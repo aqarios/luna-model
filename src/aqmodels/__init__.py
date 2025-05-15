@@ -48,61 +48,73 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Variable, Bounds
-from ._timing import Timer, Timing
+from ._variable import Bounds, Variable, Vtype
+from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import Samples, SampleIterator, SamplesIterator, Sample
+from ._sample import SamplesIterator, SampleIterator, Samples, Sample
 from ._result import ResultView, ResultIterator, Result
-from ._model import Sense, Model
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Samples as __Samples,
-    SampleIterator as __SampleIterator,
-    Bounds as __Bounds,
-    Variable as __Variable,
-    Environment as __Environment,
-    Solution as __Solution,
-    SamplesIterator as __SamplesIterator,
-    Comparator as __Comparator,
-    Constraint as __Constraint,
-    Model as __Model,
-    Result as __Result,
     ResultView as __ResultView,
-    Timer as __Timer,
+    Expression as __Expression,
+    Comparator as __Comparator,
+    Solution as __Solution,
     Constraints as __Constraints,
+    SamplesIterator as __SamplesIterator,
+    SampleIterator as __SampleIterator,
+    Timing as __Timing,
+    Bounds as __Bounds,
+    ResultIterator as __ResultIterator,
+    Result as __Result,
+    Environment as __Environment,
     Sample as __Sample,
     Sense as __Sense,
-    ResultIterator as __ResultIterator,
-    Expression as __Expression,
     Vtype as __Vtype,
-    Timing as __Timing,
+    Timer as __Timer,
+    Constraint as __Constraint,
+    Model as __Model,
+    Samples as __Samples,
+    Variable as __Variable,
 )
-from ._constraints import Comparator, Constraint, Constraints
+from ._constraints import Constraints, Comparator, Constraint
 from . import errors, translator
 
-Sense = __Sense  # type: ignore[misc,assignment] # noqa: F811
-Model = __Model  # type: ignore[misc,assignment] # noqa: F811
-Expression = __Expression  # type: ignore[misc,assignment] # noqa: F811
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811
 Constraints = __Constraints  # type: ignore[misc,assignment] # noqa: F811
+Vtype = __Vtype  # type: ignore[misc,assignment] # noqa: F811
+Bounds = __Bounds  # type: ignore[misc,assignment] # noqa: F811
+Variable = __Variable  # type: ignore[misc,assignment] # noqa: F811
+Timing = __Timing  # type: ignore[misc,assignment] # noqa: F811
+Timer = __Timer  # type: ignore[misc,assignment] # noqa: F811
+Sense = __Sense  # type: ignore[misc,assignment] # noqa: F811
+Model = __Model  # type: ignore[misc,assignment] # noqa: F811
 ResultIterator = __ResultIterator  # type: ignore[misc,assignment] # noqa: F811
 Result = __Result  # type: ignore[misc,assignment] # noqa: F811
 ResultView = __ResultView  # type: ignore[misc,assignment] # noqa: F811
+Solution = __Solution  # type: ignore[misc,assignment] # noqa: F811
+Environment = __Environment  # type: ignore[misc,assignment] # noqa: F811
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment] # noqa: F811
 SampleIterator = __SampleIterator  # type: ignore[misc,assignment] # noqa: F811
 Samples = __Samples  # type: ignore[misc,assignment] # noqa: F811
 Sample = __Sample  # type: ignore[misc,assignment] # noqa: F811
-Vtype = __Vtype  # type: ignore[misc,assignment] # noqa: F811
-Bounds = __Bounds  # type: ignore[misc,assignment] # noqa: F811
-Variable = __Variable  # type: ignore[misc,assignment] # noqa: F811
-Environment = __Environment  # type: ignore[misc,assignment] # noqa: F811
-Timing = __Timing  # type: ignore[misc,assignment] # noqa: F811
-Timer = __Timer  # type: ignore[misc,assignment] # noqa: F811
-Solution = __Solution  # type: ignore[misc,assignment] # noqa: F811
+Expression = __Expression  # type: ignore[misc,assignment] # noqa: F811
+Qubo = translator.Qubo
+QuboTranslator = translator.QuboTranslator
+AwsTranslator = translator.AwsTranslator
+ZibTranslator = translator.ZibTranslator
+DwaveTranslator = translator.DwaveTranslator
+BqmTranslator = translator.BqmTranslator
+QctrlTranslator = translator.QctrlTranslator
+LpTranslator = translator.LpTranslator
+NumpyTranslator = translator.NumpyTranslator
+IbmTranslator = translator.IbmTranslator
+CqmTranslator = translator.CqmTranslator
 VariableOutOfRangeError = errors.VariableOutOfRangeError
 VariableExistsError = errors.VariableExistsError
+VariableCreationError = errors.VariableCreationError
 VariableNotExistingError = errors.VariableNotExistingError
 VariablesFromDifferentEnvsError = errors.VariablesFromDifferentEnvsError
 DifferentEnvsError = errors.DifferentEnvsError
@@ -110,23 +122,15 @@ NoActiveEnvironmentFoundError = errors.NoActiveEnvironmentFoundError
 MultipleActiveEnvironmentsError = errors.MultipleActiveEnvironmentsError
 DecodeError = errors.DecodeError
 ModelVtypeError = errors.ModelVtypeError
-SolutionCreationError = errors.SolutionCreationError
+VariableNamesError = errors.VariableNamesError
 IllegalConstraintNameError = errors.IllegalConstraintNameError
 TranslationError = errors.TranslationError
 ModelNotQuadraticError = errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
 ModelSenseNotMinimizeError = errors.ModelSenseNotMinimizeError
-BqmTranslator = translator.BqmTranslator
-QctrlTranslator = translator.QctrlTranslator
-ZibTranslator = translator.ZibTranslator
-AwsTranslator = translator.AwsTranslator
-IbmTranslator = translator.IbmTranslator
-NumpyTranslator = translator.NumpyTranslator
-DwaveTranslator = translator.DwaveTranslator
-LpTranslator = translator.LpTranslator
-Qubo = translator.Qubo
-QuboTranslator = translator.QuboTranslator
-CqmTranslator = translator.CqmTranslator
+SolutionTranslationError = errors.SolutionTranslationError
+SampleIncorrectLengthError = errors.SampleIncorrectLengthError
+SampleIncompatibleVtypeError = errors.SampleIncompatibleVtypeError
 
 __all__ = [
     "AwsTranslator",
@@ -159,17 +163,21 @@ __all__ = [
     "ResultIterator",
     "ResultView",
     "Sample",
+    "SampleIncompatibleVtypeError",
+    "SampleIncorrectLengthError",
     "SampleIterator",
     "Samples",
     "SamplesIterator",
     "Sense",
     "Solution",
-    "SolutionCreationError",
+    "SolutionTranslationError",
     "Timer",
     "Timing",
     "TranslationError",
     "Variable",
+    "VariableCreationError",
     "VariableExistsError",
+    "VariableNamesError",
     "VariableNotExistingError",
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",

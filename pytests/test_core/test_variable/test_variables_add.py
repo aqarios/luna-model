@@ -11,7 +11,7 @@ def test_add_variable_and_number(scalar: int):
 
     result = x + scalar
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_linear(x) == 1
     assert result.get_offset() == scalar
 
@@ -24,7 +24,7 @@ def test_radd_variable_and_number(scalar: int):
 
     result = scalar + x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_linear(x) == 1
     assert result.get_offset() == scalar
 
@@ -37,7 +37,7 @@ def test_add_two_variables():
 
     result = x + y
     assert isinstance(result, Expression)
-    assert result.num_variables() == 2
+    assert result.num_variables == 2
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
 
@@ -50,7 +50,7 @@ def test_add_two_variables_unordered():
 
     result = y + x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 2
+    assert result.num_variables == 2
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
 
@@ -65,7 +65,7 @@ def test_add_last_two_variables():
 
     result = y + x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 2
+    assert result.num_variables == 2
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
 
@@ -80,7 +80,7 @@ def test_add_any_and_last_variables():
 
     result = y + x
     assert isinstance(result, Expression)
-    assert result.num_variables() == 2
+    assert result.num_variables == 2
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
 
@@ -91,13 +91,13 @@ def test_variable_add_expression():
         x, y, z = Variable("x"), Variable("y"), Variable("z")
     expr = x + y
     assert isinstance(expr, Expression)
-    assert expr.num_variables() == 2
+    assert expr.num_variables == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     result = z + expr
     assert isinstance(result, Expression)
-    assert result.num_variables() == 3
+    assert result.num_variables == 3
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
     assert result.get_linear(z) == 1
@@ -109,13 +109,13 @@ def test_variable_radd_expression():
         x, y, z = Variable("x"), Variable("y"), Variable("z")
     expr = x + y
     assert isinstance(expr, Expression)
-    assert expr.num_variables() == 2
+    assert expr.num_variables == 2
     assert expr.get_linear(x) == 1
     assert expr.get_linear(y) == 1
 
     result = expr + z
     assert isinstance(result, Expression)
-    assert result.num_variables() == 3
+    assert result.num_variables == 3
     assert result.get_linear(x) == 1
     assert result.get_linear(y) == 1
     assert result.get_linear(z) == 1

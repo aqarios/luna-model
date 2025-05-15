@@ -1,3 +1,4 @@
+from contextlib import nullcontext as does_not_raise
 from itertools import product
 
 import numpy as np
@@ -12,6 +13,7 @@ from aqmodels import (
     Model,
     Sense,
     ModelSenseNotMinimizeError,
+    VariableNamesError,
 )
 from aqmodels import QuboTranslator, Variable, Vtype, ModelVtypeError
 from ..utils import make_seed
@@ -256,3 +258,32 @@ def test_translator_symmetricizes(asymmetric_qubo: NDArray):
     back = QuboTranslator.from_aq(model).matrix
     sym = (asymmetric_qubo + asymmetric_qubo.T) / 2
     assert np.allclose(sym, back)
+
+
+@pytest.mark.translator
+@pytest.mark.parametrize("qubo", [(4, 0.2)], indirect=True)
+def test_variable_names_param(qubo: NDArray):
+    with does_not_raise():
+        _ = QuboTranslator.to_aq(qubo)
+
+    model_1 = QuboTranslator.to_aq(qubo, variable_names=["a", "b", "c", "d"])
+    assert model_1.environment.get_variable("a").name == "a"
+    assert model_1.environment.get_variable("b").name == "b"
+    assert model_1.environment.get_variable("c").name == "c"
+    assert model_1.environment.get_variable("d").name == "d"
+
+    num_vars_msg = "Number of variable names must match the number of variables"
+    with pytest.raises(VariableNamesError, match=num_vars_msg):
+        _ = QuboTranslator.to_aq(qubo, variable_names=[])
+    with pytest.raises(VariableNamesError, match=num_vars_msg):
+        _ = QuboTranslator.to_aq(qubo, variable_names=["a", "b", "c"])
+    with pytest.raises(VariableNamesError, match=num_vars_msg):
+        _ = QuboTranslator.to_aq(qubo, variable_names=["a", "b", "c", "d", "e"])
+    with pytest.raises(VariableNamesError, match=num_vars_msg):
+        _ = QuboTranslator.to_aq(qubo, variable_names=["a", "b", "c", "d", "a"])
+    with pytest.raises(VariableNamesError, match=num_vars_msg):
+        _ = QuboTranslator.to_aq(qubo, variable_names=["a", "a"])
+
+    duplicate_vars_msg = "Duplicate variable name: "
+    with pytest.raises(VariableNamesError, match=duplicate_vars_msg + "a"):
+        _ = QuboTranslator.to_aq(qubo, variable_names=["a", "a", "c", "d"])
