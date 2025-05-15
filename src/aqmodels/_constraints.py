@@ -80,7 +80,7 @@ class Constraint:
         ----------
         lhs : Expression | Variable
             Left-hand side symbolic expression or variable.
-        rhs : float
+        rhs : int | float | Expression | Variable
             Scalar right-hand side constant.
         comparator : Comparator
             Relational operator (e.g., Comparator.Eq, Comparator.Le).
@@ -105,6 +105,45 @@ class Constraint:
         str, optional
             Returns the name of the constraint as a string or None if it is unnamed.
         """
+        return
+
+    @dispatched
+    @property
+    def lhs(self):
+        """
+        Get the left-hand side of the constraint
+
+        Returns
+        -------
+        Expression
+            The left-hand side expression.
+        """
+        return
+
+    @dispatched
+    @property
+    def rhs(self):
+        """
+        Get the right-hand side of the constraint
+
+        Returns
+        -------
+        float
+            The right-hand side expression.
+        """
+        return
+
+    @property
+    def comparator(self):
+        """
+        Get the right-hand side of the constraint
+
+        Returns
+        -------
+        Comparator§
+            The comparator of the constraint.
+        """
+        return
 
 
 @export

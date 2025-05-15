@@ -25,7 +25,7 @@ def test_expression_pow(variables):
 
     expr = (x + y + z) ** 2
     expr_manual = (x + y + z) * (x + y + z)
-    assert expr == expr_manual
+    assert expr.is_equal(expr_manual)
 
 
 @pytest.mark.expression
