@@ -48,38 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import Bounds, Vtype, Variable
-from ._timing import Timing, Timer
+from ._variable import Vtype, Variable, Bounds
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import Sample, SampleIterator, SamplesIterator, Samples
-from ._result import Result, ResultView, ResultIterator
-from ._model import Model, Sense
+from ._sample import Sample, SamplesIterator, SampleIterator, Samples
+from ._result import ResultView, ResultIterator, Result
+from ._model import Sense, Model
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Sense as __Sense,
-    Solution as __Solution,
-    Model as __Model,
-    Comparator as __Comparator,
-    Timer as __Timer,
     Constraint as __Constraint,
-    Variable as __Variable,
-    Sample as __Sample,
-    Vtype as __Vtype,
-    Result as __Result,
-    SampleIterator as __SampleIterator,
-    ResultView as __ResultView,
-    Constraints as __Constraints,
+    Sense as __Sense,
     Timing as __Timing,
-    Expression as __Expression,
-    Environment as __Environment,
-    Bounds as __Bounds,
-    Samples as __Samples,
+    Model as __Model,
     ResultIterator as __ResultIterator,
+    Expression as __Expression,
+    Constraints as __Constraints,
+    Samples as __Samples,
+    Result as __Result,
+    Variable as __Variable,
+    SampleIterator as __SampleIterator,
+    Solution as __Solution,
+    Bounds as __Bounds,
     SamplesIterator as __SamplesIterator,
+    Timer as __Timer,
+    Sample as __Sample,
+    ResultView as __ResultView,
+    Comparator as __Comparator,
+    Environment as __Environment,
+    Vtype as __Vtype,
 )
-from ._constraints import Comparator, Constraints, Constraint
-from . import errors, translator
+from ._constraints import Constraint, Constraints, Comparator
+from . import translator, errors
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
 Constraint = __Constraint  # type: ignore[misc,assignment] # noqa: F811

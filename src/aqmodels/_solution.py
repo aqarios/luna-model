@@ -283,25 +283,25 @@ class Solution:
         Parameters
         ----------
         component_types : list[Vtype]
-           The variable type each element in a sample encodes.
+            The variable type each element in a sample encodes.
         binary_cols : list[list[int]], optional
-           The data of all binary valued columns. Each inner list encodes a single binary valued column.
-           Required if any element in the `component_types` is `Vtype.Binary`.
+            The data of all binary valued columns. Each inner list encodes a single binary valued column.
+            Required if any element in the `component_types` is `Vtype.Binary`.
         spin_cols : list[list[int]], optional
-           The data of all spin valued columns. Each inner list encodes a single spin valued column.
-           Required if any element in the `component_types` is `Vtype.Spin`.
+            The data of all spin valued columns. Each inner list encodes a single spin valued column.
+            Required if any element in the `component_types` is `Vtype.Spin`.
         int_cols : list[list[int]], optional
-           The data of all integer valued columns. Each inner list encodes a single integer valued column.
-           Required if any element in the `component_types` is `Vtype.Integer`.
+            The data of all integer valued columns. Each inner list encodes a single integer valued column.
+            Required if any element in the `component_types` is `Vtype.Integer`.
         real_cols : list[list[float]], optional
-           The data of all real valued columns. Each inner list encodes a single real valued column.
-           Required if any element in the `component_types` is `Vtype.Real`.
+            The data of all real valued columns. Each inner list encodes a single real valued column.
+            Required if any element in the `component_types` is `Vtype.Real`.
         raw_energies : list[float, optional], optional
-           The data of all real valued columns. Each inner list encodes a single real valued column.
+            The data of all real valued columns. Each inner list encodes a single real valued column.
         timing : Timing, optional
-           The timing data.
+            The timing data.
         counts : list[int], optional
-           The number each sample in the solution has occurred. By default 1 for all samples.
+            The number each sample in the solution has occurred. By default 1 for all samples.
 
         Returns
         -------
@@ -351,17 +351,20 @@ class Solution:
         Raises
         ------
         NoActiveEnvironmentFoundError
-             If no environment or model is passed to the method or available from the
-             context.
+            If no environment or model is passed to the method or available from the
+            context.
         ValueError
             If `env` and `model` are both present. When this is the case, the user's
             intention is unclear as the model itself already contains an environment.
         SolutionTranslationError
             Generally if the sample translation fails. Might be specified by one of the
-            two following errors.
+            three following errors.
         SampleIncorrectLengthErr
             If a sample has a different number of variables than the environment.
         SampleUnexpectedVariableError
             If a sample has a variable that is not present in the environment.
+        ModelVtypeError
+            If the result's variable types are incompatible with the model environment's
+            variable types.
         """
         return data, env, model
