@@ -114,6 +114,15 @@ class QuboTranslator:
         -------
         Model
             A symbolic model representing the given QUBO structure.
+
+        Raises
+        ------
+        TranslationError
+            Generally if the translation fails. Might be specified by the following
+            error.
+        VariableNamesError
+            If a list of variable names is provided but contains duplicates or has an
+            incorrect length.
         """
         return qubo, name, vtype
 
@@ -134,17 +143,22 @@ class QuboTranslator:
         Qubo
             An object representing a QUBO with additional information additional
             to the square NumPy array representing the QUBO matrix derived from
-            the model's objective. This object also include the `variable_ordering`
+            the model's objective. This object also includes the `variable_ordering`
             as well as the `offset` of the original model.
 
         Raises
         ------
         TranslationError
-            Generally, if the translation fails. Might be specified by one of the
-            two following errors.
+            Generally if the translation fails. Might be specified by one of the
+            four following errors.
         ModelNotQuadraticError
             If the objective contains higher-order (non-quadratic) terms.
         ModelNotUnconstrainedError
             If the model contains any constraints.
+        ModelSenseNotMinimizeError
+            If the model's optimization sense is 'maximize'.
+        ModelVtypeError
+            If the model contains different vtypes or vtypes other than binary and
+            spin.
         """
         return model

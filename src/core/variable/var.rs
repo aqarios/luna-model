@@ -35,10 +35,9 @@ impl Variable {
     ) -> Result<Self, VariableCreationErr> {
         let vtype = vtype.map_or(Vtype::default(), |t| *t);
         match (vtype, bounds.is_some()) {
-            (Vtype::Binary, true) | (Vtype::Spin, true) => Err(VariableCreationErr::new(format!(
-                "bounds cannot be set for variable of type {}.",
-                vtype
-            ))),
+            (Vtype::Binary, true) | (Vtype::Spin, true) => {
+                Err(VariableCreationErr::InvalidBounds(vtype))
+            }
             _ => Ok(()),
         }?;
         let default_bounds = Bounds::default(&vtype);

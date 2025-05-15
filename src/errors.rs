@@ -1,3 +1,4 @@
+use crate::core::Vtype;
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result},
@@ -10,15 +11,6 @@ impl Error for IllegalConstraintNameErr {}
 impl Display for IllegalConstraintNameErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "Illegal constraint name: {}", self.0)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct VariableExistsErr;
-impl Error for VariableExistsErr {}
-impl Display for VariableExistsErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "variable already exists in environment")
     }
 }
 
@@ -48,18 +40,22 @@ impl Display for TranslationErr {
 }
 
 #[derive(Debug, Clone)]
-pub struct VariableCreationErr {
-    msg: String,
-}
-impl VariableCreationErr {
-    pub fn new(msg: String) -> Self {
-        Self { msg }
-    }
+pub enum VariableCreationErr {
+    VariableExists,
+    InvalidBounds(Vtype),
 }
 impl Error for VariableCreationErr {}
 impl Display for VariableCreationErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "variable creation failed: {}", self.msg)
+        let msg = match self {
+            VariableCreationErr::VariableExists => {
+                format!("variable already exists in environment")
+            }
+            VariableCreationErr::InvalidBounds(vtype) => {
+                format!("bounds cannot be set for variable of type {vtype}.")
+            }
+        };
+        write!(f, "variable creation failed: {msg}")
     }
 }
 
@@ -70,7 +66,7 @@ impl Display for VariablesFromDifferentEnvsErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
-            "operation on two variables from differeent environments is not supported"
+            "operation on two variables from different environments is not supported"
         )
     }
 }
@@ -82,7 +78,7 @@ impl Display for DifferentEnvsErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
-            "operation on two variables from differeent environments is not supported"
+            "operation on two variables from different environments is not supported"
         )
     }
 }
@@ -106,10 +102,16 @@ pub struct ModelNotQuadraticErr;
 impl Error for ModelNotQuadraticErr {}
 impl Display for ModelNotQuadraticErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "the model is not linear or quadratic, thus cannot be translated to a matrix."
-        )
+        write!(f, "the model is not linear or quadratic")
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ModelSenseNotMinimizeErr;
+impl Error for ModelSenseNotMinimizeErr {}
+impl Display for ModelSenseNotMinimizeErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "the model does not have the sense 'minimize'")
     }
 }
 
@@ -132,10 +134,21 @@ impl Display for ModelVtypeErr {
 }
 
 #[derive(Debug, Clone)]
+pub struct VarNamesErr(pub String);
+impl Error for VarNamesErr {}
+impl Display for VarNamesErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{}", &self.0)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum MatrixTranslatorErr {
     Constrained(ModelNotUnconstrainedErr),
     HigherOrder(ModelNotQuadraticErr),
+    Maximize(ModelSenseNotMinimizeErr),
     Vtype(ModelVtypeErr),
+    VarNames(VarNamesErr),
 }
 impl Error for MatrixTranslatorErr {}
 impl Display for MatrixTranslatorErr {
@@ -143,7 +156,9 @@ impl Display for MatrixTranslatorErr {
         match &self {
             MatrixTranslatorErr::Constrained(err) => err.fmt(f),
             MatrixTranslatorErr::HigherOrder(err) => err.fmt(f),
+            MatrixTranslatorErr::Maximize(err) => err.fmt(f),
             MatrixTranslatorErr::Vtype(err) => err.fmt(f),
+            MatrixTranslatorErr::VarNames(err) => err.fmt(f),
         }
     }
 }
@@ -153,9 +168,16 @@ impl From<ModelNotQuadraticErr> for MatrixTranslatorErr {
         Self::HigherOrder(value)
     }
 }
+
 impl From<ModelNotUnconstrainedErr> for MatrixTranslatorErr {
     fn from(value: ModelNotUnconstrainedErr) -> Self {
         Self::Constrained(value)
+    }
+}
+
+impl From<ModelSenseNotMinimizeErr> for MatrixTranslatorErr {
+    fn from(value: ModelSenseNotMinimizeErr) -> Self {
+        Self::Maximize(value)
     }
 }
 
@@ -165,10 +187,17 @@ impl From<ModelVtypeErr> for MatrixTranslatorErr {
     }
 }
 
+impl From<VarNamesErr> for MatrixTranslatorErr {
+    fn from(value: VarNamesErr) -> Self {
+        Self::VarNames(value)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum BqmTranslatorErr {
     Constrained(ModelNotUnconstrainedErr),
     HigherOrder(ModelNotQuadraticErr),
+    Maximize(ModelSenseNotMinimizeErr),
     Vtype(ModelVtypeErr),
 }
 impl Error for BqmTranslatorErr {}
@@ -177,6 +206,7 @@ impl Display for BqmTranslatorErr {
         match &self {
             BqmTranslatorErr::Constrained(err) => err.fmt(f),
             BqmTranslatorErr::HigherOrder(err) => err.fmt(f),
+            BqmTranslatorErr::Maximize(err) => err.fmt(f),
             BqmTranslatorErr::Vtype(err) => err.fmt(f),
         }
     }
@@ -191,6 +221,12 @@ impl From<ModelNotQuadraticErr> for BqmTranslatorErr {
 impl From<ModelNotUnconstrainedErr> for BqmTranslatorErr {
     fn from(value: ModelNotUnconstrainedErr) -> Self {
         Self::Constrained(value)
+    }
+}
+
+impl From<ModelSenseNotMinimizeErr> for BqmTranslatorErr {
+    fn from(value: ModelSenseNotMinimizeErr) -> Self {
+        Self::Maximize(value)
     }
 }
 
@@ -222,48 +258,57 @@ impl Display for IndexOutOfBoundsErr {
 }
 
 #[derive(Debug, Clone)]
-pub struct SampleIncorrectLengthError;
+pub struct SampleIncorrectLengthErr;
 
-impl Error for SampleIncorrectLengthError {}
+impl Error for SampleIncorrectLengthErr {}
 
-impl Display for SampleIncorrectLengthError {
+impl Display for SampleIncorrectLengthErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
-            "Sample has a length different from the other samples in the solution"
+            "sample length is different from the number of variables in the environment"
         )
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct IncorrectVtypeError;
+pub struct SampleIncompatibleVtypeErr;
 
-impl Error for IncorrectVtypeError {}
+impl Error for SampleIncompatibleVtypeErr {}
 
-impl Display for IncorrectVtypeError {
+impl Display for SampleIncompatibleVtypeErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "Found variable assignment of incorrect vtype.")
+        write!(
+            f,
+            "sample contains variable assignments incompatible with the model's variable types."
+        )
     }
 }
 
 #[derive(Debug)]
-pub struct SolutionCreatorErr(pub String);
+pub enum SolutionCreationErr {
+    SampleIncorrectLength(SampleIncorrectLengthErr),
+    SampleIncompatibleVtype(SampleIncompatibleVtypeErr),
+}
 
-impl Error for SolutionCreatorErr {}
+impl Error for SolutionCreationErr {}
 
-impl Display for SolutionCreatorErr {
+impl Display for SolutionCreationErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{}", self.0)
+        match self {
+            SolutionCreationErr::SampleIncorrectLength(err) => err.fmt(f),
+            SolutionCreationErr::SampleIncompatibleVtype(err) => err.fmt(f),
+        }
     }
 }
-impl From<SampleIncorrectLengthError> for SolutionCreatorErr {
-    fn from(value: SampleIncorrectLengthError) -> Self {
-        SolutionCreatorErr(value.to_string())
+impl From<SampleIncorrectLengthErr> for SolutionCreationErr {
+    fn from(value: SampleIncorrectLengthErr) -> Self {
+        SolutionCreationErr::SampleIncorrectLength(value)
     }
 }
-impl From<IncorrectVtypeError> for SolutionCreatorErr {
-    fn from(value: IncorrectVtypeError) -> Self {
-        SolutionCreatorErr(value.to_string())
+impl From<SampleIncompatibleVtypeErr> for SolutionCreationErr {
+    fn from(value: SampleIncompatibleVtypeErr) -> Self {
+        SolutionCreationErr::SampleIncompatibleVtype(value)
     }
 }
 

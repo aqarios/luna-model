@@ -3,13 +3,13 @@ use pyo3::{prelude::*, PyTypeCheck};
 use crate::core::{Comparator, Sense, Vtype};
 
 use super::{
-    py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_res, py_sample,
-    py_sol, py_timing, py_translator, py_var,
+    py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_model_metadata,
+    py_res, py_sample, py_sol, py_timing, py_translator, py_var,
 };
 
 // #[pymodule]
 pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // Add core components not as wrappers, required for e.g. enums
+    // Add core components not as wrappers, required for, e.g., enums
     m.add_class::<Vtype>()?;
     m.add_class::<Comparator>()?;
     m.add_class::<Sense>()?;
@@ -17,6 +17,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_env::PyEnvironment>()?;
     m.add_class::<py_expr::PyExpression>()?;
     m.add_class::<py_model::PyModel>()?;
+    m.add_class::<py_model_metadata::PyModelMetadata>()?;
     m.add_class::<py_var::PyVariable>()?;
     m.add_class::<py_bounds::PyBounds>()?;
     m.add_class::<py_constr::PyConstraint>()?;
@@ -74,8 +75,16 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         m.py().get_type::<pyexc::ModelNotUnconstrainedError>(),
     )?;
     m.add(
+        pyexc::ModelSenseNotMinimizeError::NAME,
+        m.py().get_type::<pyexc::ModelSenseNotMinimizeError>(),
+    )?;
+    m.add(
         pyexc::ModelVtypeError::NAME,
         m.py().get_type::<pyexc::ModelVtypeError>(),
+    )?;
+    m.add(
+        pyexc::VariableNamesError::NAME,
+        m.py().get_type::<pyexc::VariableNamesError>(),
     )?;
     m.add(
         pyexc::MultipleActiveEnvironmentsError::NAME,
@@ -98,12 +107,24 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         m.py().get_type::<pyexc::VariableOutOfRangeError>(),
     )?;
     m.add(
+        pyexc::VariableCreationError::NAME,
+        m.py().get_type::<pyexc::VariableCreationError>(),
+    )?;
+    m.add(
         pyexc::VariablesFromDifferentEnvsError::NAME,
         m.py().get_type::<pyexc::VariablesFromDifferentEnvsError>(),
     )?;
     m.add(
-        pyexc::SolutionCreationError::NAME,
-        m.py().get_type::<pyexc::SolutionCreationError>(),
+        pyexc::SolutionTranslationError::NAME,
+        m.py().get_type::<pyexc::SolutionTranslationError>(),
+    )?;
+    m.add(
+        pyexc::SampleIncorrectLengthError::NAME,
+        m.py().get_type::<pyexc::SampleIncorrectLengthError>(),
+    )?;
+    m.add(
+        pyexc::SampleIncompatibleVtypeError::NAME,
+        m.py().get_type::<pyexc::SampleIncompatibleVtypeError>(),
     )?;
     m.add(
         pyexc::IllegalConstraintNameError::NAME,

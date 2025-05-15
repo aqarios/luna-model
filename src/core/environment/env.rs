@@ -4,7 +4,7 @@ use crate::core::{
     variable::{Bounds, VarRef, Variable, Vtype},
 };
 use crate::core::{ConcreteEnvId as EnvId, MutRcEnvironment};
-use crate::errors::{VariableCreationErr, VariableExistsErr, VariableNotExistingErr};
+use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
@@ -97,7 +97,7 @@ pub fn add_variable<Index: IndexConstraints>(
 ) -> Result<VarRef<Index>, VariableCreationErr> {
     let mut mutable_env = env.borrow_mut();
     if mutable_env.variables_lookup.contains_key(name) == true {
-        return Err(VariableCreationErr::new(VariableExistsErr.to_string()));
+        return Err(VariableCreationErr::VariableExists);
     }
 
     let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id)?;
@@ -113,7 +113,7 @@ pub fn get_vref_by_name<Index: IndexConstraints>(
     env: MutRcEnvironment<Index>,
 ) -> Result<VarRef<Index>, VariableNotExistingErr> {
     let index = env.borrow().get(name)?;
-    // As we don't store the VarRefs here we need to create a new one based on the info
+    // As we don't store the VarRefs here, we need to create a new one based on the info
     // we have.
     Ok(VarRef::new(index, Rc::clone(&env)))
 }

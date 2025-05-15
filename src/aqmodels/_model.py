@@ -1,4 +1,5 @@
 from enum import Enum
+
 from aqmodels._api_utils import export, dispatched
 
 
@@ -7,7 +8,7 @@ class Sense(Enum):
     """
     Enumeration of optimization senses supported by the optimization system.
 
-    This enum defines the type of a optimization used for a model. The type influences
+    This enum defines the type of optimization used for a model. The type influences
     the domain and behavior of the model during optimization.
     """
 
@@ -117,7 +118,7 @@ class Model:
         Returns
         -------
         Solution
-            A new solution object with filled out information.
+            A new solution object with filled-out information.
         """
         return solution
 
@@ -138,16 +139,36 @@ class Model:
         """
         return sample
 
-    @property
     @dispatched
+    @property
     def name(self):
         """Return the name of the model."""
         return
 
     @property
+    def sense(self):
+        """
+        Get the sense of the model
+
+        Returns
+        -------
+        Sense
+            The sense of the model (Min or Max).
+        """
+        return
+
     @dispatched
+    @property
     def objective(self):
         """Get the objective expression of the model."""
+        return
+
+    @dispatched
+    @property
+    def sense(self):
+        """
+        Get the sense of the model's objective.
+        """
         return
 
     @objective.setter
@@ -175,6 +196,35 @@ class Model:
         return
 
     @dispatched
+    def add_constraint(self, constraint, name):
+        """
+        Add a constraint to the model's constraint collection.
+
+        Parameters
+        ----------
+        constraint : Constraint
+            The constraint to be added.
+        name : str, optional
+            The name of the constraint to be added.
+        """
+        return constraint, name
+
+    @dispatched
+    def set_objective(self, expression, sense):
+        """
+        Set the model's objective to this expression.
+
+        Parameters
+        ----------
+        expression : Expression
+            The expression assigned to the model's objective.
+        sense : Sense, optional
+            The sense of the model for this objective, by default Sense.Min.
+        """
+        return expression, sense
+
+    @dispatched
+    @property
     def num_constraints(self):
         """
         Return the number of constraints defined in the model.
@@ -243,3 +293,18 @@ class Model:
     def deserialize(data):
         """Alias for `decode()`."""
         return data
+
+    @dispatched
+    def __eq__(self, other):
+        """
+        Check whether this model is equal to ``other``.
+
+        Parameters
+        ----------
+        other : Model
+
+        Returns
+        -------
+        bool
+        """
+        return other

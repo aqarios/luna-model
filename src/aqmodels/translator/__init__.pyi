@@ -5,7 +5,6 @@ from aqmodels import Environment
 from aqmodels import Model
 from aqmodels import Solution
 from aqmodels import Timing
-from aqmodels import Variable
 from aqmodels import Vtype
 from dimod import BinaryQuadraticModel
 from dimod import ConstrainedQuadraticModel

@@ -80,7 +80,7 @@ class Constraint:
         ----------
         lhs : Expression | Variable
             Left-hand side symbolic expression or variable.
-        rhs : float
+        rhs : int | float | Expression | Variable
             Scalar right-hand side constant.
         comparator : Comparator
             Relational operator (e.g., Comparator.Eq, Comparator.Le).
@@ -89,8 +89,10 @@ class Constraint:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If lhs is not an Expression or rhs is not a scalar float.
+        IllegalConstraintNameError
+            If the constraint is tried to be created with an illegal name.
         """
         return lhs, rhs, comparator, name
 
@@ -105,6 +107,45 @@ class Constraint:
         str, optional
             Returns the name of the constraint as a string or None if it is unnamed.
         """
+        return
+
+    @dispatched
+    @property
+    def lhs(self):
+        """
+        Get the left-hand side of the constraint
+
+        Returns
+        -------
+        Expression
+            The left-hand side expression.
+        """
+        return
+
+    @dispatched
+    @property
+    def rhs(self):
+        """
+        Get the right-hand side of the constraint
+
+        Returns
+        -------
+        float
+            The right-hand side expression.
+        """
+        return
+
+    @property
+    def comparator(self):
+        """
+        Get the right-hand side of the constraint
+
+        Returns
+        -------
+        Comparator§
+            The comparator of the constraint.
+        """
+        return
 
 
 @export
@@ -238,10 +279,15 @@ class Constraints:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the value is not a `Constraint` or valid symbolic comparison.
         """
         return constraint
 
+    @dispatched
     def __getitem__(self, item):
         return item
+
+    @dispatched
+    def __eq__(self, other):
+        return other

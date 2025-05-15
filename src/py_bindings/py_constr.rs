@@ -4,18 +4,19 @@ use std::{
     rc::Rc,
 };
 
-use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
-
 use crate::{
     core::{
-        expression::ExpressionBaseCreation, Comparator, ConcreteConstraint, ConcreteConstraints,
-        ConcreteMutRcConstraint, ConcreteMutRcConstraints, Constraint, Create, Expression,
+        expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
+        ConcreteConstraint, ConcreteConstraints, ConcreteExpression, ConcreteMutRcConstraint,
+        ConcreteMutRcConstraints, Constraint, Create, Expression,
     },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
+use derive_more::{Deref, DerefMut};
+use pyo3::exceptions::PyTypeError;
+use pyo3::{prelude::*, types::PyBytes};
 
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 
@@ -40,20 +41,28 @@ impl PyConstraint {
 
     pub fn new_py(
         py: Python,
-        expr: &PyExpression,
-        other: PyObject,
+        lhs: &PyExpression,
+        rhs: PyObject,
         comparator: Comparator,
     ) -> PyResult<PyConstraint> {
-        if let Ok(rhs) = other.extract::<f64>(py) {
-            Ok(PyConstraint::new(Constraint::new(
-                Rc::clone(&expr.0),
-                rhs,
-                comparator,
-                None,
-            )?))
+        let mut lhs = lhs.borrow().deref().clone();
+        let bias: PyResult<f64> = if let Ok(bias) = rhs.extract::<f64>(py) {
+            Ok(bias)
+        } else if let Ok(var) = rhs.extract::<PyVariable>(py) {
+            lhs.sub_assign(var.as_ref())?;
+            Ok(0.0)
+        } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
+            lhs.sub_assign(expr.borrow().deref())?;
+            Ok(0.0)
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
-        }
+            Err(PyTypeError::new_err("unsupported type for operation"))
+        };
+        Ok(PyConstraint::new(Constraint::new(
+            Rc::new(RefCell::new(lhs)),
+            bias?,
+            comparator,
+            None,
+        )?))
     }
 }
 
@@ -64,25 +73,43 @@ impl PyConstraint {
     fn py_new(
         py: Python,
         lhs: PyObject,
-        rhs: f64,
+        rhs: PyObject,
         comparator: Comparator,
         name: Option<String>,
     ) -> PyResult<Self> {
-        if let Ok(expr) = lhs.extract::<PyExpression>(py) {
-            Ok(PyConstraint::new(Constraint::new(
-                expr.0, rhs, comparator, name,
-            )?))
+        let lhs: PyResult<ConcreteExpression> = if let Ok(expr) = lhs.extract::<PyExpression>(py) {
+            Ok(expr.0.borrow().deref().clone())
         } else if let Ok(var) = lhs.extract::<PyVariable>(py) {
-            let expr = Expression::new_linear_single(Rc::clone(&var.env), var.id, 1.0);
-            Ok(PyConstraint::new(ConcreteConstraint::new(
-                Rc::new(RefCell::new(expr)),
-                rhs,
-                comparator,
-                name,
-            )?))
+            Ok(Expression::new_linear_single(
+                Rc::clone(&var.env),
+                var.id,
+                1.0,
+            ))
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
-        }
+            Err(PyTypeError::new_err(
+                "unsupported type for lhs in operation",
+            ))
+        };
+        let mut lhs = lhs?;
+        let bias = if let Ok(bias) = rhs.extract::<f64>(py) {
+            Ok(bias)
+        } else if let Ok(var) = rhs.extract::<PyVariable>(py) {
+            lhs.sub_assign(var.as_ref())?;
+            Ok(0.0)
+        } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
+            lhs.sub_assign(expr.borrow().deref())?;
+            Ok(0.0)
+        } else {
+            Err(PyTypeError::new_err(
+                "unsupported type for rhs in operation",
+            ))
+        };
+        Ok(PyConstraint::new(ConcreteConstraint::new(
+            Rc::new(RefCell::new(lhs)),
+            bias?,
+            comparator,
+            name,
+        )?))
     }
 
     fn __eq__(&self, other: Self) -> bool {
@@ -101,6 +128,21 @@ impl PyConstraint {
     fn name(&self) -> Option<String> {
         self.borrow().name.clone()
     }
+
+    #[getter]
+    fn lhs(&self) -> PyExpression {
+        PyExpression(Rc::clone(&self.borrow().lhs))
+    }
+
+    #[getter]
+    fn rhs(&self) -> f64 {
+        self.borrow().rhs
+    }
+
+    #[getter]
+    fn comparator(&self) -> Comparator {
+        self.borrow().comparator
+    }
 }
 
 #[pymethods]
@@ -116,7 +158,7 @@ impl PyConstraints {
         } else if let Ok(constr) = other.extract::<PyConstraint>(py) {
             Ok(self.add_constraint(constr, None)?)
         } else {
-            Err(PyRuntimeError::new_err("unsopported type for operation"))
+            Err(PyTypeError::new_err("unsupported type for operation"))
         }
     }
 
@@ -145,7 +187,7 @@ impl PyConstraints {
         format!("{:#?}", self.borrow())
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
@@ -160,7 +202,7 @@ impl PyConstraints {
         .into())
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
         py: Python,

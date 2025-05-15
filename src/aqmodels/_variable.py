@@ -1,4 +1,5 @@
 from enum import Enum
+
 from aqmodels._api_utils import dispatched, export
 
 
@@ -151,8 +152,16 @@ class Variable:
             If no active environment is found and none is explicitly provided.
         VariableExistsError
             If a variable with the same name already exists in the environment.
+        VariableCreationError
+            If the variable is tried to be created with incompatible bounds.
         """
         return name, env, vtype, bounds
+
+    @dispatched
+    @property
+    def name(self):
+        """Get the name of the variable."""
+        return
 
     @dispatched
     def __add__(self, other):
@@ -172,7 +181,7 @@ class Variable:
         ------
         VariablesFromDifferentEnvsError
             If the operands belong to different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -193,7 +202,7 @@ class Variable:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -216,7 +225,7 @@ class Variable:
         ------
         VariablesFromDifferentEnvsError
             If the operands belong to different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -237,8 +246,8 @@ class Variable:
 
         Raises
         ------
-        RuntimeError
-            Always raised (unsupported operation).
+        TypeError
+            If ``other`` is not a scalar.
         """
         return other
 
@@ -260,7 +269,7 @@ class Variable:
         ------
         VariablesFromDifferentEnvsError
             If the operands belong to different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -281,76 +290,112 @@ class Variable:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
 
-    @dispatched
-    def __eq__(self, value):
+    def __pow__(self, other):
         """
-        Generate an equality constraint for a variable.
+        Raise the variable to the power specified by `other`.
 
         Parameters
         ----------
-        value : int or float
+        other : int
 
         Returns
         -------
-        Constraint
-            The resulting constraint.
+        Expression
 
         Raises
         ------
         RuntimeError
-            If the operand type is unsupported.
+            If the param ``modulo`` usually supported for ``__pow__`` is specified.
         """
-        return value
+        return other
 
     @dispatched
-    def __le__(self, value):
+    def __neg__(self):
         """
-        Generate a less equal constraint for a variable.
-
-        Parameters
-        ----------
-        value : int or float
+        Negate the variable, i.e., multiply it by `-1`.
 
         Returns
         -------
-        Constraint
-            The resulting constraint.
-
-        Raises
-        ------
-        RuntimeError
-            If the operand type is unsupported.
+        Expression
         """
-        return value
-
-    @dispatched
-    def __ge__(self, value):
-        """
-        Generate a greater equal constraint for a variable.
-
-        Parameters
-        ----------
-        value : int or float
-
-        Returns
-        -------
-        Constraint
-            The resulting constraint.
-
-        Raises
-        ------
-        RuntimeError
-            If the operand type is unsupported.
-        """
-        return value
-
-    @property
-    @dispatched
-    def name(self):
-        """Get the name of the variable."""
         return
+
+    @dispatched
+    def __eq__(self, rhs):
+        """
+        Create a constraint: expression == scalar.
+
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs == 0
+
+        Parameters
+        ----------
+        rhs : float, int, Variable or Expression
+
+        Returns
+        -------
+        Constraint
+
+        Raises
+        ------
+        TypeError
+            If the right-hand side is not of type float, int, Variable or Expression.
+        """
+        return rhs
+
+    @dispatched
+    def __le__(self, rhs):
+        """
+        Create a constraint: expression <= scalar.
+
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs <= 0
+
+        Parameters
+        ----------
+        rhs : float, int, Variable or Expression
+
+        Returns
+        -------
+        Constraint
+
+        Raises
+        ------
+        TypeError
+            If the right-hand side is not of type float, int, Variable or Expression.
+        """
+        return rhs
+
+    @dispatched
+    def __ge__(self, rhs):
+        """
+        Create a constraint: expression >= scalar.
+
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs >= 0
+
+        Parameters
+        ----------
+        rhs : float, int, Variable or Expression
+
+        Returns
+        -------
+        Constraint
+
+        Raises
+        ------
+        TypeError
+            If the right-hand side is not of type float, int, Variable or Expression.
+        """
+        return rhs

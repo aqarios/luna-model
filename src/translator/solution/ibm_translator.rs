@@ -10,7 +10,7 @@ use crate::{
         expression::IndexConstraints, solution::sol::SampleCol, ConcreteSolution, MutRcEnvironment,
         RcSolution, Solution, Timing, VarRef, Vtype,
     },
-    errors::SolutionCreatorErr,
+    errors::SolutionCreationErr,
 };
 
 pub struct IbmTranslator {}
@@ -18,12 +18,12 @@ pub struct IbmTranslator {}
 impl IbmTranslator {
     pub fn from_ibm<S, E, Index>(
         samples: &Vec<Vec<S>>,
-        orderings: &Vec<Vec<Rc<VarRef<Index>>>>,
+        orderings: &Vec<Rc<VarRef<Index>>>,
         energies: &Vec<E>,
         counts: Vec<usize>,
         timing: Option<Timing>,
         env: MutRcEnvironment<Index>,
-    ) -> Result<ConcreteSolution, SolutionCreatorErr>
+    ) -> Result<ConcreteSolution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default + Display + Debug,
         E: Copy + NumCast + Debug,
@@ -40,17 +40,12 @@ impl IbmTranslator {
         }
         sol.timing = timing;
         // used to determine the order of each assignment in the sample.
-        let index_list: Vec<Vec<usize>> = orderings
-            .iter()
-            .map(|l| l.iter().map(|e| e.id.into()).collect())
-            .collect();
+        let index_list: Vec<usize> = orderings.iter().map(|e| e.id.into()).collect();
         // For each sample:
         // Map the sample to the correct order.
-        for (((sample, indices), energy), occ) in
-            samples.iter().zip(index_list).zip(energies).zip(counts)
-        {
+        for ((sample, energy), occ) in samples.iter().zip(energies).zip(counts) {
             let mut s: Vec<S> = vec![S::default(); sample.len()];
-            for (&idx, val) in indices.iter().zip(sample) {
+            for (&idx, val) in index_list.iter().zip(sample) {
                 s[idx] = *val;
             }
             sol.extend(s, occ, Some(*energy))?;

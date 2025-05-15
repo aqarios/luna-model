@@ -1,7 +1,7 @@
 use crate::core::expression::IndexConstraints;
 use crate::core::solution::sol::SampleCol;
 use crate::core::{ConcreteSolution, MutRcEnvironment, RcSolution, Solution, Timing, Vtype};
-use crate::errors::SolutionCreatorErr;
+use crate::errors::SolutionCreationErr;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -12,7 +12,7 @@ impl ZibTranslator {
         sample: HashMap<String, f64>,
         timing: Option<Timing>,
         env: MutRcEnvironment<Index>,
-    ) -> Result<ConcreteSolution, SolutionCreatorErr>
+    ) -> Result<ConcreteSolution, SolutionCreationErr>
     where
         Index: IndexConstraints,
     {

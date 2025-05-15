@@ -18,7 +18,6 @@ use derive_more::{Deref, DerefMut};
 use either::Right;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
-use pyo3::impl_::extract_argument::PyFunctionArgument;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::IntoPyObjectExt;
@@ -244,7 +243,7 @@ impl PySolution {
         self.0.best_sample_idx
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
         Ok(PyBytes::new(
@@ -258,7 +257,7 @@ impl PySolution {
         .into())
     }
 
-    #[pyo3(signature=(compress=None, level=None))]
+    #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
         py: Python,
@@ -292,8 +291,8 @@ impl PySolution {
         PyResultIterator(slf.0.iter_results())
     }
 
-    fn __getitem__(&self, py: Python, index: PyObject) -> PyResult<PyResultView> {
-        if let Ok(res_idx) = index.extract::<usize>(py) {
+    fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyResultView> {
+        if let Ok(res_idx) = item.extract::<usize>(py) {
             match self.get_result_view(res_idx) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
@@ -301,7 +300,7 @@ impl PySolution {
                 Some(r) => Ok(PyResultView(r)),
             }
         } else {
-            Err(PyRuntimeError::new_err("unsupported type for indexing"))
+            Err(PyTypeError::new_err("unsupported type for indexing"))
         }
     }
 

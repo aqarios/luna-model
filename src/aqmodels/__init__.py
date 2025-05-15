@@ -48,37 +48,37 @@ transformers
     to a linear model.
 """
 
-from ._variable import Variable, Vtype, Bounds
-from ._timing import Timing, Timer
+from ._variable import Vtype, Bounds, Variable
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import Samples, SampleIterator, Sample, SamplesIterator
-from ._result import ResultIterator, Result, ResultView
-from ._model import Sense, Model
+from ._sample import Sample, SamplesIterator, SampleIterator, Samples
+from ._result import ResultView, ResultIterator, Result
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Constraints as __Constraints,
     ResultView as __ResultView,
-    Model as __Model,
-    Solution as __Solution,
-    Expression as __Expression,
-    Samples as __Samples,
     Timing as __Timing,
-    Variable as __Variable,
-    Constraint as __Constraint,
-    Comparator as __Comparator,
-    Result as __Result,
-    ResultIterator as __ResultIterator,
-    Vtype as __Vtype,
-    Timer as __Timer,
-    Bounds as __Bounds,
-    Environment as __Environment,
-    Sample as __Sample,
-    SampleIterator as __SampleIterator,
     Sense as __Sense,
+    SampleIterator as __SampleIterator,
+    Constraints as __Constraints,
+    Variable as __Variable,
+    ResultIterator as __ResultIterator,
+    Sample as __Sample,
+    Model as __Model,
+    Vtype as __Vtype,
+    Expression as __Expression,
+    Environment as __Environment,
+    Bounds as __Bounds,
+    Timer as __Timer,
+    Constraint as __Constraint,
+    Solution as __Solution,
+    Comparator as __Comparator,
     SamplesIterator as __SamplesIterator,
+    Result as __Result,
+    Samples as __Samples,
 )
-from ._constraints import Comparator, Constraints, Constraint
+from ._constraints import Constraint, Comparator, Constraints
 from . import translator, errors
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811
@@ -114,6 +114,7 @@ IbmTranslator = translator.IbmTranslator
 CqmTranslator = translator.CqmTranslator
 VariableOutOfRangeError = errors.VariableOutOfRangeError
 VariableExistsError = errors.VariableExistsError
+VariableCreationError = errors.VariableCreationError
 VariableNotExistingError = errors.VariableNotExistingError
 VariablesFromDifferentEnvsError = errors.VariablesFromDifferentEnvsError
 DifferentEnvsError = errors.DifferentEnvsError
@@ -121,11 +122,15 @@ NoActiveEnvironmentFoundError = errors.NoActiveEnvironmentFoundError
 MultipleActiveEnvironmentsError = errors.MultipleActiveEnvironmentsError
 DecodeError = errors.DecodeError
 ModelVtypeError = errors.ModelVtypeError
-SolutionCreationError = errors.SolutionCreationError
+VariableNamesError = errors.VariableNamesError
 IllegalConstraintNameError = errors.IllegalConstraintNameError
 TranslationError = errors.TranslationError
 ModelNotQuadraticError = errors.ModelNotQuadraticError
 ModelNotUnconstrainedError = errors.ModelNotUnconstrainedError
+ModelSenseNotMinimizeError = errors.ModelSenseNotMinimizeError
+SolutionTranslationError = errors.SolutionTranslationError
+SampleIncorrectLengthError = errors.SampleIncorrectLengthError
+SampleIncompatibleVtypeError = errors.SampleIncompatibleVtypeError
 
 __all__ = [
     "AwsTranslator",
@@ -146,6 +151,7 @@ __all__ = [
     "Model",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
+    "ModelSenseNotMinimizeError",
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
@@ -157,17 +163,21 @@ __all__ = [
     "ResultIterator",
     "ResultView",
     "Sample",
+    "SampleIncompatibleVtypeError",
+    "SampleIncorrectLengthError",
     "SampleIterator",
     "Samples",
     "SamplesIterator",
     "Sense",
     "Solution",
-    "SolutionCreationError",
+    "SolutionTranslationError",
     "Timer",
     "Timing",
     "TranslationError",
     "Variable",
+    "VariableCreationError",
     "VariableExistsError",
+    "VariableNamesError",
     "VariableNotExistingError",
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",

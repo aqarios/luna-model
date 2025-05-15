@@ -2,7 +2,6 @@ from typing import Any
 from typing import overload
 from aqmodels import Solution
 from aqmodels import Timing
-from aqmodels import Variable
 from aqmodels import Environment
 
 class QctrlTranslator:

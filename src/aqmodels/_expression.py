@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from aqmodels._api_utils import export, dispatched
 
 
@@ -192,6 +193,7 @@ class Expression:
         return variables
 
     @dispatched
+    @property
     def num_variables(self):
         """
         Return the number of distinct variables in the expression.
@@ -202,6 +204,23 @@ class Expression:
             Number of variables with non-zero coefficients.
         """
         return
+
+    @dispatched
+    def is_equal(self, other):
+        """
+        Compare two expressions for equality.
+
+        Parameters
+        ----------
+        other : Expression
+            The expression to which `self` is compared to.
+
+        Returns
+        -------
+        bool
+            If the two expressions are equal.
+        """
+        return other
 
     @dispatched
     def encode(self, compress=True, level=3):
@@ -286,7 +305,7 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -306,7 +325,7 @@ class Expression:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -328,27 +347,7 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        RuntimeError
-            If the operand type is unsupported.
-        """
-        return other
-
-    @dispatched
-    def __rsub__(self, other):
-        """
-        Subtract this expression from a scalar or variable.
-
-        Parameters
-        ----------
-        other : int, float, or Variable
-
-        Returns
-        -------
-        Expression
-
-        Raises
-        ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -370,7 +369,7 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -390,7 +389,7 @@ class Expression:
 
         Raises
         ------
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -412,7 +411,29 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        RuntimeError
+        TypeError
+            If the operand type is unsupported.
+        """
+        return other
+
+    @dispatched
+    def __isub__(self, other):
+        """
+        In-place subtraction.
+
+        Parameters
+        ----------
+        other : Expression, Variable, int, or float
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        VariablesFromDifferentEnvsError
+            If operands are from different environments.
+        TypeError
             If the operand type is unsupported.
         """
         return other
@@ -434,19 +455,68 @@ class Expression:
         ------
         VariablesFromDifferentEnvsError
             If operands are from different environments.
-        RuntimeError
+        TypeError
             If the operand type is unsupported.
         """
         return other
 
     @dispatched
-    def __eq__(self, other):
+    def __eq__(self, rhs):
         """
-        Create a constraint: expression == scalar.
+        Compare to a different expression or create a constraint ``expression == scalar``
+
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs == 0
 
         Parameters
         ----------
-        other : float or int
+        rhs : Expression or float, int, Variable or Expression
+
+        Returns
+        -------
+        bool or Constraint
+
+        Raises
+        ------
+        TypeError
+            If the right-hand side is not an Expression or scalar.
+        """
+        return rhs
+
+    def __pow__(self, other):
+        """
+        Raise the expression to the power specified by `other`.
+
+        Parameters
+        ----------
+        other : int
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        RuntimeError
+            If the param ``modulo`` usually supported for ``__pow__`` is specified.
+        """
+        return other
+
+    @dispatched
+    def __le__(self, rhs):
+        """
+        Create a constraint ``expression <= scalar``.
+
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs <= 0
+
+        Parameters
+        ----------
+        rhs : float, int, Variable or Expression
 
         Returns
         -------
@@ -454,39 +524,24 @@ class Expression:
 
         Raises
         ------
-        RuntimeError
-            If the right-hand side is not a scalar.
+        TypeError
+            If the right-hand side is not of type float, int, Variable or Expression.
         """
-        return other
+        return rhs
 
     @dispatched
-    def __le__(self, other):
-        """
-        Create a constraint: expression <= scalar.
-
-        Parameters
-        ----------
-        other : float or int
-
-        Returns
-        -------
-        Constraint
-
-        Raises
-        ------
-        RuntimeError
-            If the right-hand side is not a scalar.
-        """
-        return other
-
-    @dispatched
-    def __ge__(self, other):
+    def __ge__(self, rhs):
         """
         Create a constraint: expression >= scalar.
 
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
+
+            self - rhs >= 0
+
         Parameters
         ----------
-        other : float or int
+        rhs : float, int, Variable or Expression
 
         Returns
         -------
@@ -494,7 +549,33 @@ class Expression:
 
         Raises
         ------
-        RuntimeError
-            If the right-hand side is not a scalar.
+        TypeError
+            If the right-hand side is not of type float, int, Variable or Expression.
+        """
+        return rhs
+
+    @dispatched
+    def __neg__(self):
+        """
+        Negate the expression, i.e., multiply it by `-1`.
+
+        Returns
+        -------
+        Expression
+        """
+        return
+
+    @dispatched
+    def __ne__(self, other: Expression):
+        """
+        Check whether this expression is different from ``other``.
+
+        Parameters
+        ----------
+        other : Expression
+
+        Returns
+        -------
+        bool
         """
         return other

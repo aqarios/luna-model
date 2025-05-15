@@ -1,4 +1,5 @@
 import pytest
+
 from aqmodels import Environment, Expression, Variable, Vtype
 
 
@@ -18,7 +19,7 @@ def test_variable_pow_0():
 
     result = x**0
     assert isinstance(result, Expression)
-    assert result.num_variables() == 0
+    assert result.num_variables == 0
     # assert result.get_linear(x) == 0 # TODO: this is a panic...
     assert result.get_offset() == 1
 
@@ -30,7 +31,7 @@ def test_variable_pow_1():
 
     result = x**1
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_linear(x) == 1
     assert result.get_offset() == 0
 
@@ -42,7 +43,7 @@ def test_variable_pow_2():
 
     result = x**2
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_offset() == 0
     assert result.get_linear(x) == 0
     assert result.get_quadratic(x, x) == 1
@@ -55,7 +56,7 @@ def test_variable_pow_3():
 
     result = x**3
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_offset() == 0
     assert result.get_linear(x) == 0
     assert result.get_quadratic(x, x) == 0
@@ -70,7 +71,7 @@ def test_variable_pow_n(scalar: int):
 
     result = x**scalar
     assert isinstance(result, Expression)
-    assert result.num_variables() == 1
+    assert result.num_variables == 1
     assert result.get_offset() == 0
     assert result.get_linear(x) == 0
     assert result.get_quadratic(x, x) == 0

@@ -125,10 +125,6 @@ class ResultView:
     def __repr__(self):
         return
 
-    @dispatched
-    def __getitem__(self, item):
-        return item
-
     @property
     @dispatched
     def sample(self):

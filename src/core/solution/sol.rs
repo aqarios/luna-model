@@ -3,7 +3,7 @@ use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
 use crate::core::writer::SolutionWriter;
 use crate::core::{ResultIterator, ResultView, Samples};
-use crate::errors::{IncorrectVtypeError, SampleIncorrectLengthError, SolutionCreatorErr};
+use crate::errors::{SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr};
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
 use std::fmt::{Display, Formatter};
@@ -77,30 +77,33 @@ impl<AssignmentTypes> SampleCol<AssignmentTypes>
 where
     AssignmentTypes: AssignmentBaseTypes,
 {
-    pub fn push<N: ToPrimitive>(&mut self, assignment: N) -> Result<(), IncorrectVtypeError> {
+    pub fn push<N: ToPrimitive>(
+        &mut self,
+        assignment: N,
+    ) -> Result<(), SampleIncompatibleVtypeErr> {
         match self {
             Self::Binary(xs) => match <AssignmentTypes::BinaryType as NumCast>::from(assignment) {
-                None => return Err(IncorrectVtypeError),
+                None => return Err(SampleIncompatibleVtypeErr),
                 Some(x) => {
                     xs.push(x);
                 }
             },
             Self::Spin(xs) => match <AssignmentTypes::SpinType as NumCast>::from(assignment) {
-                None => return Err(IncorrectVtypeError),
+                None => return Err(SampleIncompatibleVtypeErr),
                 Some(x) => {
                     xs.push(x);
                 }
             },
             Self::Integer(xs) => {
                 match <AssignmentTypes::IntegerType as NumCast>::from(assignment) {
-                    None => return Err(IncorrectVtypeError),
+                    None => return Err(SampleIncompatibleVtypeErr),
                     Some(x) => {
                         xs.push(x);
                     }
                 }
             }
             Self::Real(xs) => match <AssignmentTypes::RealType as NumCast>::from(assignment) {
-                None => return Err(IncorrectVtypeError),
+                None => return Err(SampleIncompatibleVtypeErr),
                 Some(x) => {
                     xs.push(x);
                 }
@@ -183,7 +186,7 @@ where
         sample: Vec<S>,
         counts: usize,
         energy: Option<E>,
-    ) -> Result<&mut Self, SolutionCreatorErr> {
+    ) -> Result<&mut Self, SolutionCreationErr> {
         self.add_sample(sample)?;
         self.counts.push(counts);
         self.raw_energies
@@ -195,9 +198,9 @@ where
         Ok(self)
     }
 
-    fn add_sample<T: Copy + NumCast>(&mut self, sample: Vec<T>) -> Result<(), SolutionCreatorErr> {
+    fn add_sample<T: Copy + NumCast>(&mut self, sample: Vec<T>) -> Result<(), SolutionCreationErr> {
         if sample.len() != self.samples.len() {
-            Err(SampleIncorrectLengthError)?
+            Err(SampleIncorrectLengthErr)?
         } else {
             for (i, &a) in sample.iter().enumerate() {
                 self.samples[i].push(a)?;

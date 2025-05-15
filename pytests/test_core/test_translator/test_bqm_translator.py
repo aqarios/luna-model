@@ -3,8 +3,28 @@ from random import Random
 import numpy as np
 import pytest
 
-from aqmodels import BqmTranslator
+from aqmodels import (
+    BqmTranslator,
+    Model,
+    Variable,
+    Sense,
+    ModelSenseNotMinimizeError,
+    TranslationError,
+)
 from pytests.test_core.utils import make_seed, generate_bqms
+
+
+@pytest.fixture
+def model() -> Model:
+    model = Model("test_model")
+    with model.environment:
+        x1 = Variable("x1")
+        x2 = Variable("x2")
+        x3 = Variable("x3")
+        x4 = Variable("x4")
+    model.objective = x1 + x2 + x3 - x4 + x1 * x2 - x3 * x4
+    model.set_sense(Sense.Max)
+    return model
 
 
 @pytest.mark.translator
@@ -49,3 +69,12 @@ def test_bqm_to_model_to_bqm():
         assert np.allclose(
             bqm_np.quadratic.col_indices, bqm_back_np.quadratic.col_indices
         )
+
+
+@pytest.mark.translator
+def test_bqm_translator_wrong_sense(model: Model):
+    with pytest.raises(ModelSenseNotMinimizeError):
+        _ = BqmTranslator.from_aq(model)
+
+    with pytest.raises(TranslationError):
+        _ = BqmTranslator.from_aq(model)

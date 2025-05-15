@@ -61,20 +61,53 @@ class Solution:
 
     @dispatched
     def __iter__(self):
+        """
+        Iterate over the single results of the solution.
+
+        Returns
+        -------
+        ResultIterator
+        """
+
         return
 
     @dispatched
     def __getitem__(self, item):
+        """
+        Extract a result view from the ``Solution`` object.
+
+        Returns
+        -------
+        ResultView
+
+        Raises
+        ------
+        TypeError
+            If ``item`` has the wrong type.
+        IndexError
+            If the row index is out of bounds for the variable environment.
+        """
         return item
 
     @dispatched
     def __eq__(self, item):
+        """
+        Check whether this solution is equal to ``other``.
+
+        Parameters
+        ----------
+        other : Model
+
+        Returns
+        -------
+        bool
+        """
         return item
 
     @property
     @dispatched
     def results(self):
-        """Iterate over the single results of the solution"""
+        """Get an iterator over the single results of the solution."""
         return
 
     @property
@@ -100,7 +133,7 @@ class Solution:
     @property
     @dispatched
     def counts(self):
-        """Get the number of how often each sample occurred in the solution."""
+        """Return how often each sample occurred in the solution."""
         return
 
     @property
@@ -175,7 +208,6 @@ class Solution:
 
     @staticmethod
     def build(
-        counts,
         component_types,
         binary_cols,
         spin_cols,
@@ -183,6 +215,7 @@ class Solution:
         real_cols,
         raw_energies,
         timing,
+        counts,
     ):
         """
         Build a Solution based on the provided input data. The solution is constructed
@@ -274,6 +307,12 @@ class Solution:
         -------
         Solution
             The constructed solution
+
+        Raises
+        ------
+        RuntimeError
+            If a sample column has an incorrect number of samples or if ``counts`` has
+            a length different from the number of samples given.
         """
         return (
             counts,

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from aqmodels._api_utils import export, dispatched
 
 
@@ -49,7 +50,7 @@ class Environment:
     @dispatched
     def get_variable(self, label):
         """
-        Get a variable by it's label (name).
+        Get a variable by its label (name).
 
         Parameters
         ----------
@@ -161,3 +162,7 @@ class Environment:
         Called automatically at the end of a `with` block.
         """
         return exc_type, exc_value, traceback
+
+    @dispatched
+    def __eq__(self, other):
+        return other

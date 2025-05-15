@@ -1,7 +1,7 @@
 use crate::core::environment::add_variable;
 use crate::core::expression::ExpressionBaseAdd;
 use crate::core::{ExpressionBaseAdjustment, Vtype};
-use crate::errors::{BqmTranslatorErr, ModelVtypeErr};
+use crate::errors::{BqmTranslatorErr, ModelSenseNotMinimizeErr, ModelVtypeErr};
 use crate::{
     core::{
         expression::{BiasConstraints, IndexConstraints},
@@ -88,6 +88,10 @@ impl BqmTranslator {
 
         if !model.constraints.borrow().is_empty() {
             return Err(ModelNotUnconstrainedErr)?;
+        }
+
+        if !model.sense.is_min() {
+            return Err(ModelSenseNotMinimizeErr)?;
         }
 
         let mut vtype = None;
