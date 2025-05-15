@@ -4,6 +4,7 @@ mod py_env;
 mod py_exceptions;
 mod py_expr;
 mod py_model;
+mod py_model_metadata;
 mod py_modules;
 mod py_res;
 mod py_sample;
