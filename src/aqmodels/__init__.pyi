@@ -1,885 +1,572 @@
-# This file is auto-generated.
-# Do not edit manually.
-
-from datetime import datetime, timedelta
-from dimod import BinaryQuadraticModel
-from dimod import ConstrainedQuadraticModel
-from dimod import SampleSet
 from enum import Enum
-from numpy.typing import NDArray
-from pathlib import Path
-from pyscipopt import Model as SciModel
-from qiskit.primitives import PrimitiveResult, PubResult
-from qiskit_optimization import QuadraticProgram
-from typing import Any
 from typing import overload
 
-from . import errors
-from . import translator
-
-class SamplesIterator:
-    def __iter__(self) -> SamplesIterator: ...
-    def __next__(self) -> Sample: ...
-
-class SampleIterator:
-    def __iter__(self) -> SampleIterator: ...
-    def __next__(self) -> int | float: ...
-
-class Samples:
-    def __str__(self) -> str: ...
-    @overload
-    def __getitem__(self, item: int) -> Sample: ...
-    @overload
-    def __getitem__(self, item: tuple[int, int]) -> int | float: ...
-    def __len__(self) -> int: ...
-    def __iter__(self) -> SamplesIterator: ...
-    def tolist(self) -> list[list[int | float]]: ...
-
-class Sample:
-    def __str__(self) -> str: ...
-    @overload
-    def __getitem__(self, item: Variable) -> int | float: ...
-    @overload
-    def __getitem__(self, item: int) -> int | float: ...
-    def __len__(self) -> int: ...
-    def __iter__(self) -> SampleIterator: ...
-
-class Timing:
-    @property
-    def start(self) -> datetime: ...
-    @property
-    def end(self) -> datetime: ...
-    @property
-    def total(self) -> timedelta: ...
-    @property
-    def total_seconds(self) -> float: ...
-    @property
-    def qpu(self) -> float | None: ...
-    @qpu.setter
-    def qpu(self, value: float | None): ...
-    def add_qpu(self, value: float): ...
-
-class Timer:
-    @staticmethod
-    def start() -> Timer: ...
-    def stop(self) -> Timing: ...
-
-class ResultIterator:
-    def __iter__(self) -> ResultIterator: ...
-    def __next__(self) -> ResultView: ...
-
-class Result:
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    @property
-    def sample(self) -> Sample: ...
-    @property
-    def obj_value(self) -> float | None: ...
-    @property
-    def constraints(self) -> NDArray | None: ...
-    @property
-    def feasible(self) -> bool | None: ...
-
-class ResultView:
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    @property
-    def sample(self) -> Sample: ...
-    @property
-    def counts(self) -> int: ...
-    @property
-    def obj_value(self) -> float | None: ...
-    @property
-    def raw_energy(self) -> float | None: ...
-    @property
-    def constraints(self) -> NDArray | None: ...
-    @property
-    def feasible(self) -> bool | None: ...
-
-class Solution:
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def __iter__(self) -> ResultIterator: ...
-    def __getitem__(self, item: int) -> ResultView: ...
-    def __eq__(self, other: Solution) -> bool: ...  # type: ignore
-    @property
-    def results(self) -> ResultIterator: ...
-    @property
-    def samples(self) -> Samples: ...
-    @property
-    def obj_values(self) -> NDArray: ...
-    @property
-    def raw_energies(self) -> NDArray: ...
-    @property
-    def counts(self) -> NDArray: ...
-    @property
-    def runtime(self) -> Timing | None: ...
-    @property
-    def best_sample_idx(self) -> int | None: ...
-    @overload
-    def serialize(self) -> bytes: ...
-    @overload
-    def serialize(self, compress: bool | None = ...) -> bytes: ...
-    @overload
-    def serialize(self, level: int | None = ...) -> bytes: ...
-    @overload
-    def serialize(
-        self, compress: bool | None = ..., level: int | None = ...
-    ) -> bytes: ...
-    @overload
-    def encode(self) -> bytes: ...
-    @overload
-    def encode(self, compress: bool | None = ...) -> bytes: ...
-    @overload
-    def encode(self, level: int | None = ...) -> bytes: ...
-    @overload
-    def encode(self, compress: bool | None = ..., level: int | None = ...) -> bytes: ...
-    @staticmethod
-    def deserialize(data: bytes) -> Solution: ...
-    @staticmethod
-    def decode(data: bytes) -> Solution: ...
-    @staticmethod
-    def build(
-        component_types: list[Vtype],
-        binary_cols: list[list[int]] | None = ...,
-        spin_cols: list[list[int]] | None = ...,
-        int_cols: list[list[int]] | None = ...,
-        real_cols: list[list[float]] | None = ...,
-        raw_energies: list[float | None] | None = ...,
-        timing: Timing | None = ...,
-        counts: list[int] | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable | str, int | float]) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float],
-        env: Environment | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float], /, *, model: Model
-    ) -> Solution: ...
-
-class Expression:
-    @overload
-    def __init__(self): ...
-    @overload
-    def __init__(self, env: Environment = ...): ...
-    def get_offset(self) -> float: ...
-    def get_linear(self, variable: Variable) -> float: ...
-    def get_quadratic(self, u: Variable, v: Variable) -> float: ...
-    def get_higher_order(self, variables: tuple[Variable, ...]) -> float: ...
-    @property
-    def num_variables(self) -> int: ...
-    def is_equal(self, other: Expression) -> bool: ...
-    @overload
-    def serialize(self) -> bytes: ...
-    @overload
-    def serialize(self, compress: bool | None = ...) -> bytes: ...
-    @overload
-    def serialize(self, level: int | None = ...) -> bytes: ...
-    @overload
-    def serialize(
-        self, compress: bool | None = ..., level: int | None = ...
-    ) -> bytes: ...
-    @overload
-    def encode(self) -> bytes: ...
-    @overload
-    def encode(self, compress: bool | None = ...) -> bytes: ...
-    @overload
-    def encode(self, level: int | None = ...) -> bytes: ...
-    @overload
-    def encode(self, compress: bool | None = ..., level: int | None = ...) -> bytes: ...
-    @staticmethod
-    def deserialize(data: bytes) -> Expression: ...
-    @staticmethod
-    def decode(data: bytes) -> Expression: ...
-
-    # addition
-    @overload
-    def __add__(self, other: Expression) -> Expression: ...
-    @overload
-    def __add__(self, other: Variable) -> Expression: ...
-    @overload
-    def __add__(self, other: int) -> Expression: ...
-    @overload
-    def __add__(self, other: float) -> Expression: ...
-    @overload
-    def __radd__(self, other: Expression) -> Expression: ...
-    @overload
-    def __radd__(self, other: Variable) -> Expression: ...
-    @overload
-    def __radd__(self, other: int) -> Expression: ...
-    @overload
-    def __radd__(self, other: float) -> Expression: ...
-
-    # Instance addition
-    @overload
-    def __iadd__(self, other: Expression): ...
-    @overload
-    def __iadd__(self, other: Variable): ...
-    @overload
-    def __iadd__(self, other: int): ...
-    @overload
-    def __iadd__(self, other: float): ...
-
-    # Instance subtraction
-    @overload
-    def __isub__(self, other: Expression): ...
-    @overload
-    def __isub__(self, other: Variable): ...
-    @overload
-    def __isub__(self, other: int): ...
-    @overload
-    def __isub__(self, other: float): ...
-
-    # sub
-    @overload
-    def __sub__(self, other: Expression) -> Expression: ...
-    @overload
-    def __sub__(self, other: Variable) -> Expression: ...
-    @overload
-    def __sub__(self, other: int) -> Expression: ...
-    @overload
-    def __sub__(self, other: float) -> Expression: ...
-
-    # Multiplication
-    @overload
-    def __mul__(self, other: Expression) -> Expression: ...
-    @overload
-    def __mul__(self, other: Variable) -> Expression: ...
-    @overload
-    def __mul__(self, other: int) -> Expression: ...
-    @overload
-    def __mul__(self, other: float) -> Expression: ...
-    @overload
-    def __rmul__(self, other: int) -> Expression: ...
-    @overload
-    def __rmul__(self, other: float) -> Expression: ...
-
-    # Instance multiplication
-    @overload
-    def __imul__(self, other: Expression): ...
-    @overload
-    def __imul__(self, other: Variable): ...
-    @overload
-    def __imul__(self, other: int): ...
-    @overload
-    def __imul__(self, other: float): ...
-
-    # pow
-    def __pow__(self, other: int) -> Expression: ...
-
-    # Constraint creation
-    @overload
-    def __eq__(self, rhs: Expression) -> Constraint: ...
-    @overload
-    def __eq__(self, rhs: Variable) -> Constraint: ...
-    @overload
-    def __eq__(self, rhs: int) -> Constraint: ...  # type: ignore
-    @overload
-    def __eq__(self, rhs: float) -> Constraint: ...  # type: ignore
-    @overload
-    def __le__(self, rhs: Expression) -> Constraint: ...
-    @overload
-    def __le__(self, rhs: Variable) -> Constraint: ...
-    @overload
-    def __le__(self, rhs: int) -> Constraint: ...
-    @overload
-    def __le__(self, rhs: float) -> Constraint: ...
-    @overload
-    def __ge__(self, rhs: Expression) -> Constraint: ...
-    @overload
-    def __ge__(self, rhs: Variable) -> Constraint: ...
-    @overload
-    def __ge__(self, rhs: int) -> Constraint: ...
-    @overload
-    def __ge__(self, rhs: float) -> Constraint: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-class Environment:
-    def __init__(self) -> None: ...
-    def __enter__(self) -> Any: ...
-    def __exit__(self, exc_type, exc_value, exc_traceback) -> None: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def __eq__(self, other: Environment) -> bool: ...
-    def get_variable(self, name: str) -> Variable: ...
-    @overload
-    def serialize(self) -> bytes: ...
-    @overload
-    def serialize(self, compress: bool | None = ...) -> bytes: ...
-    @overload
-    def serialize(self, level: int | None = ...) -> bytes: ...
-    @overload
-    def serialize(
-        self, compress: bool | None = ..., level: int | None = ...
-    ) -> bytes: ...
-    @overload
-    def encode(self) -> bytes: ...
-    @overload
-    def encode(self, compress: bool | None = ...) -> bytes: ...
-    @overload
-    def encode(self, level: int | None = ...) -> bytes: ...
-    @overload
-    def encode(self, compress: bool | None = ..., level: int | None = ...) -> bytes: ...
-    @staticmethod
-    def deserialize(data: bytes) -> Environment: ...
-    @staticmethod
-    def decode(data: bytes) -> Environment: ...
-
-class Vtype(Enum):
-    Real = ...
-    Integer = ...
-    Binary = ...
-    Spin = ...
-
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-class Bounds:
-    @overload
-    def __init__(self, lower: float, upper: float) -> None: ...
-    @overload
-    def __init__(self, lower: float) -> None: ...
-    @overload
-    def __init__(self, /, *, upper: float) -> None: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-
-class Variable:
-    def __init__(
-        self,
-        name: str,
-        env: Environment | None = ...,
-        vtype: Vtype | None = ...,
-        bounds: Bounds | None = ...,
-    ) -> None: ...
-    @overload
-    def __new__(
-        cls, name: str, vtype: Vtype | None = ..., bounds: Bounds | None = ...
-    ) -> Variable: ...
-    @overload
-    def __new__(
-        cls,
-        name: str,
-        env: Environment,
-        vtype: Vtype | None = ...,
-        bounds: Bounds | None = ...,
-    ) -> Variable: ...
-    def __hash__(self) -> int: ...
-
-    # addition
-    @overload
-    def __add__(self, other: Variable) -> Expression: ...
-    @overload
-    def __add__(self, other: Expression) -> Expression: ...
-    @overload
-    def __add__(self, other: int) -> Expression: ...
-    @overload
-    def __add__(self, other: float) -> Expression: ...
-    @overload
-    def __radd__(self, other: Variable) -> Expression: ...
-    @overload
-    def __radd__(self, other: Expression) -> Expression: ...
-    @overload
-    def __radd__(self, other: int) -> Expression: ...
-    @overload
-    def __radd__(self, other: float) -> Expression: ...
-
-    # subtraction
-    @overload
-    def __sub__(self, other: Expression) -> Expression: ...
-    @overload
-    def __sub__(self, other: Variable) -> Expression: ...
-    @overload
-    def __sub__(self, other: int) -> Expression: ...
-    @overload
-    def __sub__(self, other: float) -> Expression: ...
-    @overload
-    def __rsub__(self, other: int) -> Expression: ...
-    @overload
-    def __rsub__(self, other: float) -> Expression: ...
-
-    # multiplication
-    @overload
-    def __mul__(self, other: Expression) -> Expression: ...
-    @overload
-    def __mul__(self, other: Variable) -> Expression: ...
-    @overload
-    def __mul__(self, other: int) -> Expression: ...
-    @overload
-    def __mul__(self, other: float) -> Expression: ...
-    @overload
-    def __rmul__(self, other: Expression) -> Expression: ...
-    @overload
-    def __rmul__(self, other: Variable) -> Expression: ...
-    @overload
-    def __rmul__(self, other: int) -> Expression: ...
-    @overload
-    def __rmul__(self, other: float) -> Expression: ...
-
-    # pow
-    def __pow__(self, other: int) -> Expression: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    @overload
-    def __eq__(self, rhs: Expression) -> Constraint: ...  # type: ignore
-    @overload
-    def __eq__(self, rhs: Variable) -> Constraint: ...  # type: ignore
-    @overload
-    def __eq__(self, rhs: float) -> Constraint: ...  # type: ignore
-    @overload
-    def __eq__(self, rhs: int) -> Constraint: ...  # type: ignore
-    @overload
-    def __le__(self, rhs: Expression) -> Constraint: ...
-    @overload
-    def __le__(self, rhs: Variable) -> Constraint: ...
-    @overload
-    def __le__(self, rhs: int) -> Constraint: ...
-    @overload
-    def __le__(self, rhs: float) -> Constraint: ...
-    @overload
-    def __ge__(self, rhs: Expression) -> Constraint: ...
-    @overload
-    def __ge__(self, rhs: Variable) -> Constraint: ...
-    @overload
-    def __ge__(self, rhs: int) -> Constraint: ...
-    @overload
-    def __ge__(self, rhs: float) -> Constraint: ...
-    def __neg__(self) -> Expression: ...
-    @property
-    def name(self) -> str: ...
 
 class Comparator(Enum):
-    Eq = ...
-    Le = ...
-    Ge = ...
+    """
+    Comparison operators used to define constraints.
 
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
+    This enum represents the logical relation between the left-hand side (LHS)
+    and the right-hand side (RHS) of a constraint.
+
+    Attributes
+    ----------
+    Eq : Comparator
+        Equality constraint (==).
+    Le : Comparator
+        Less-than-or-equal constraint (<=).
+    Ge : Comparator
+        Greater-than-or-equal constraint (>=).
+
+    Examples
+    --------
+    >>> from luna_quantum import Comparator
+    >>> str(Comparator.Eq)
+    '=='
+    """
+
+    Eq = ...
+    """Equality (==)"""
+
+    Le = ...
+    """Less-than or equal (<=)"""
+
+    Ge = ...
+    """Greater-than or equal (>=)"""
+
+    def __str__(self, /) -> str: ...
+    def __repr__(self, /) -> str: ...
 
 class Constraint:
-    @overload
-    def __init__(
-        self, lhs: Expression, rhs: Expression, comparator: Comparator
-    ) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Expression, rhs: Variable, comparator: Comparator
-    ) -> None: ...
-    @overload
-    def __init__(self, lhs: Expression, rhs: int, comparator: Comparator) -> None: ...
-    @overload
-    def __init__(self, lhs: Expression, rhs: float, comparator: Comparator) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Expression, rhs: Expression, comparator: Comparator, name: str
-    ) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Expression, rhs: Variable, comparator: Comparator, name: str
-    ) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Expression, rhs: int, comparator: Comparator, name: str
-    ) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Expression, rhs: float, comparator: Comparator, name: str
-    ) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Variable, rhs: Expression, comparator: Comparator
-    ) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Variable, rhs: Variable, comparator: Comparator
-    ) -> None: ...
-    @overload
-    def __init__(self, lhs: Variable, rhs: int, comparator: Comparator) -> None: ...
-    @overload
-    def __init__(self, lhs: Variable, rhs: float, comparator: Comparator) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Variable, rhs: Expression, comparator: Comparator, name: str
-    ) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Variable, rhs: Variable, comparator: Comparator, name: str
-    ) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Variable, rhs: int, comparator: Comparator, name: str
-    ) -> None: ...
-    @overload
-    def __init__(
-        self, lhs: Variable, rhs: float, comparator: Comparator, name: str
-    ) -> None: ...
-    def __eq__(self, other: Constraint) -> bool: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    @property
-    def name(self) -> str | None: ...
-    @property
-    def lhs(self) -> Expression: ...
-    @property
-    def rhs(self) -> float: ...
-    @property
-    def comparator(self) -> Comparator: ...
+    """
+    A symbolic constraint formed by comparing an expression to a constant.
 
-class Constraints:
-    def __init__(self) -> None: ...
-    @overload
-    def add_constraint(self, constraint: Constraint): ...
-    @overload
-    def add_constraint(self, constraint: Constraint, name: str | None = ...): ...
-    @overload
-    def encode(self) -> bytes: ...
-    @overload
-    def encode(self, compress: bool | None = ...) -> bytes: ...
-    @overload
-    def encode(self, level: int | None = ...) -> bytes: ...
-    @overload
-    def encode(self, compress: bool | None = ..., level: int | None = ...) -> bytes: ...
-    @overload
-    def serialize(self) -> bytes: ...
-    @overload
-    def serialize(self, compress: bool | None = ...) -> bytes: ...
-    @overload
-    def serialize(self, level: int | None = ...) -> bytes: ...
-    @overload
-    def serialize(
-        self, compress: bool | None = ..., level: int | None = ...
-    ) -> bytes: ...
-    @staticmethod
-    def decode(data: bytes, env: Environment) -> Expression: ...
-    @staticmethod
-    def deserialize(data: bytes, env: Environment) -> Expression: ...
-    @overload
-    def __iadd__(self, constraint: Constraint): ...
-    @overload
-    def __iadd__(self, constraint: tuple[Constraint, str]): ...
-    def __eq__(self, other: Constraints) -> bool: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
-    def __getitem__(self, item: int) -> Constraint: ...
+    A `Constraint` captures a relation of the form:
+    `expression comparator constant`, where the comparator is one of:
+    `==`, `<=`, or `>=`.
 
-class Sense(Enum):
-    Min = ...
-    Max = ...
+    While constraints are usually created by comparing an `Expression` to a scalar
+    (e.g., `expr == 3.0`), they can also be constructed manually using this class.
 
-class Model:
+    Parameters
+    ----------
+    lhs : Expression
+        The left-hand side expression.
+    rhs : float
+        The scalar right-hand side value.
+    comparator : Comparator
+        The relation between lhs and rhs (e.g., `Comparator.Eq`).
+
+    Examples
+    --------
+    >>> from luna_quantum import Environment, Variable, Constraint, Comparator
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     c = Constraint(x + 2, 5.0, Comparator.Eq)
+
+    Or create via comparison:
+
+    >>> expr = 2 * x + 1
+    >>> c2 = expr <= 10.0
+    """
+
     @overload
-    def __init__(self) -> None: ...
+    def __init__(
+        self, /, lhs: Expression, rhs: Expression, comparator: Comparator
+    ) -> None: ...
     @overload
-    def __init__(self, name: str) -> None: ...
+    def __init__(
+        self, /, lhs: Expression, rhs: Variable, comparator: Comparator
+    ) -> None: ...
     @overload
-    def __init__(self, /, *, env: Environment) -> None: ...
+    def __init__(
+        self, /, lhs: Expression, rhs: int, comparator: Comparator
+    ) -> None: ...
     @overload
+    def __init__(
+        self, /, lhs: Expression, rhs: float, comparator: Comparator
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Expression, rhs: Expression, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Expression, rhs: Variable, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Expression, rhs: int, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Expression, rhs: float, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Variable, rhs: Expression, comparator: Comparator
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Variable, rhs: Variable, comparator: Comparator
+    ) -> None: ...
+    @overload
+    def __init__(self, /, lhs: Variable, rhs: int, comparator: Comparator) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Variable, rhs: float, comparator: Comparator
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Variable, rhs: Expression, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Variable, rhs: Variable, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Variable, rhs: int, comparator: Comparator, name: str
+    ) -> None: ...
+    @overload
+    def __init__(
+        self, /, lhs: Variable, rhs: float, comparator: Comparator, name: str
+    ) -> None: ...
     def __init__(
         self,
-        name: str | None = ...,
-        env: Environment | None = ...,
-    ) -> None: ...
-    def set_sense(self, sense: Sense) -> None: ...
+        lhs: Variable | Expression,
+        rhs: int | float | Expression | Variable,
+        comparator: Comparator,
+        name: str,
+    ) -> None:
+        """
+        Construct a new symbolic constraint.
+
+        Parameters
+        ----------
+        lhs : Expression | Variable
+            Left-hand side symbolic expression or variable.
+        rhs : int | float | Expression | Variable
+            Scalar right-hand side constant.
+        comparator : Comparator
+            Relational operator (e.g., Comparator.Eq, Comparator.Le).
+        name : str
+            The name of the constraint
+
+        Raises
+        ------
+        TypeError
+            If lhs is not an Expression or rhs is not a scalar float.
+        IllegalConstraintNameError
+            If the constraint is tried to be created with an illegal name.
+        """
+        ...
+
+    def __eq__(self, /, other: Constraint) -> bool: ... # type: ignore
+    def __str__(self, /) -> str: ...
+    def __repr__(self, /) -> str: ...
     @property
-    def name(self) -> str: ...
+    def name(self, /) -> str | None:
+        """
+        Get the name of the constraint.
+
+        Returns
+        -------
+        str, optional
+            Returns the name of the constraint as a string or None if it is unnamed.
+        """
+        ...
     @property
-    def objective(self) -> Expression: ...
+    def lhs(self, /) -> Expression:
+        """
+        Get the left-hand side of the constraint
+
+        Returns
+        -------
+        Expression
+            The left-hand side expression.
+        """
+        ...
+
     @property
-    def sense(self) -> Sense: ...
-    @objective.setter
-    def objective(self, value: Expression): ...
+    def rhs(self, /) -> float:
+        """
+        Get the right-hand side of the constraint
+
+        Returns
+        -------
+        float
+            The right-hand side expression.
+        """
+        ...
+
     @property
-    def constraints(self) -> Constraints: ...
-    @constraints.setter
-    def constraints(self, value: Constraints): ...
-    @property
-    def environment(self) -> Environment: ...
+    def comparator(self, /) -> Comparator:
+        """
+        Get the comparator of the constraint
+
+        Returns
+        -------
+        Comparator
+            The comparator of the constraint.
+        """
+        ...
+
+class Constraints:
+    """
+    A collection of symbolic constraints used to define a model.
+
+    The `Constraints` object serves as a container for individual `Constraint`
+    instances. It supports adding constraints programmatically and exporting
+    them for serialization.
+
+    Constraints are typically added using `add_constraint()` or the `+=` operator.
+
+    Examples
+    --------
+    >>> from luna_quantum import Constraints, Constraint, Environment, Variable
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     c = Constraint(x + 1, 0.0, Comparator.Le)
+
+    >>> cs = Constraints()
+    >>> cs.add_constraint(c)
+
+    >>> cs += x >= 1.0
+
+    Serialization:
+
+    >>> blob = cs.encode()
+    >>> expr = Constraints.decode(blob)
+
+    Notes
+    -----
+    - This class does not check feasibility or enforce satisfaction.
+    - Use `encode()`/`decode()` to serialize constraints alongside expressions.
+    """
+
+    def __init__(self, /) -> None: ...
     @overload
-    def variables(self) -> list[Variable]: ...
+    def add_constraint(self, /, constraint: Constraint):
+        """
+        Add a constraint to the collection.
+
+        Parameters
+        ----------
+        constraint : Constraint
+            The constraint to be added.
+        name : str, optional
+            The name of the constraint to be added.
+        """
+        ...
+
     @overload
-    def variables(self, /, *, active: bool | None) -> list[Variable]: ...
+    def add_constraint(self, /, constraint: Constraint, name: str | None = ...):
+        """
+        Add a constraint to the collection.
+
+        Parameters
+        ----------
+        constraint : Constraint
+            The constraint to be added.
+        name : str, optional
+            The name of the constraint to be added.
+        """
+        ...
+
     @overload
-    def add_constraint(self, constraint: Constraint): ...
+    def encode(self, /) -> bytes: ...
     @overload
-    def add_constraint(self, constraint: Constraint, name: str | None = ...): ...
+    def encode(self, /, compress: bool | None = ...) -> bytes: ...
     @overload
-    def set_objective(self, expression: Expression): ...
+    def encode(self, /, level: int | None = ...) -> bytes: ...
     @overload
-    def set_objective(self, expression: Expression, sense: Sense | None = ...): ...
-    @property
-    def num_constraints(self) -> int: ...
-    def evaluate(self, solution: Solution) -> Solution: ...
-    def evaluate_sample(self, sample: Sample) -> Result: ...
+    def encode(self, /, compress: bool | None = ..., level: int | None = ...) -> bytes:
+        """
+        Serialize the constraint collection to a binary blob.
+
+        Parameters
+        ----------
+        compress : bool, optional
+            Whether to compress the result. Default is True.
+        level : int, optional
+            Compression level (0–9). Default is 3.
+
+        Returns
+        -------
+        bytes
+            Encoded representation of the constraints.
+
+        Raises
+        ------
+        IOError
+            If serialization fails.
+        """
+        ...
+
     @overload
-    def serialize(self) -> bytes: ...
+    def serialize(self, /) -> bytes: ...
     @overload
-    def serialize(self, compress: bool | None = ...) -> bytes: ...
+    def serialize(self, /, compress: bool | None = ...) -> bytes: ...
     @overload
-    def serialize(self, level: int | None = ...) -> bytes: ...
+    def serialize(self, /, level: int | None = ...) -> bytes: ...
     @overload
     def serialize(
-        self, compress: bool | None = ..., level: int | None = ...
-    ) -> bytes: ...
-    @overload
-    def encode(self) -> bytes: ...
-    @overload
-    def encode(self, compress: bool | None = ...) -> bytes: ...
-    @overload
-    def encode(self, level: int | None = ...) -> bytes: ...
-    @overload
-    def encode(self, compress: bool | None = ..., level: int | None = ...) -> bytes: ...
-    @staticmethod
-    def deserialize(data: bytes) -> Model: ...
-    @staticmethod
-    def decode(data: bytes) -> Model: ...
-    def __eq__(self, other: Model) -> bool: ...
-    def __str__(self) -> str: ...
-    def __repr__(self) -> str: ...
+        self, /, compress: bool | None = ..., level: int | None = ...
+    ) -> bytes:
+        """
+        Alias for `encode()`.
 
-class NumpyTranslator:
-    @staticmethod
-    def to_aq(
-        result: NDArray,
-        energies: NDArray,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
+        See `encode()` for details.
+        """
+        ...
 
-class ZibTranslator:
     @staticmethod
-    def to_aq(
-        model: SciModel,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
+    def decode(data: bytes, env: Environment) -> Expression:
+        """
+        Deserialize an expression from binary constraint data.
 
-class DwaveTranslator:
-    @staticmethod
-    def to_aq(
-        sample_set: SampleSet,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
+        Parameters
+        ----------
+        data : bytes
+            Encoded blob from `encode()`.
 
-class CqmTranslator:
-    @staticmethod
-    def to_aq(cqm: ConstrainedQuadraticModel) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> ConstrainedQuadraticModel: ...
+        Returns
+        -------
+        Expression
+            Expression reconstructed from the constraint context.
 
-class Qubo:
-    @property
-    def offset(self) -> float: ...
-    @property
-    def matrix(self) -> NDArray: ...
-    @property
-    def variable_names(self) -> list[str]: ...
-    @property
-    def name(self) -> str: ...
-    @property
-    def vtype(self) -> Vtype: ...
+        Raises
+        ------
+        DecodeError
+            If decoding fails due to corruption or incompatibility.
+        """
+        ...
 
-class QuboTranslator:
     @staticmethod
-    def to_aq(
-        qubo: NDArray,
-        offset: float | None = ...,
-        variable_names: list[str] | None = ...,
-        name: str | None = ...,
-        vtype: Vtype | None = ...,
-    ) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> Qubo: ...
+    def deserialize(data: bytes, env: Environment) -> Expression:
+        """
+        Alias for `decode()`.
 
-class BqmTranslator:
-    @staticmethod
-    def to_aq(bqm: BinaryQuadraticModel, name: str | None = None) -> Model: ...
-    @staticmethod
-    def from_aq(model: Model) -> BinaryQuadraticModel: ...
+        See `decode()` for usage.
+        """
+        ...
 
-class AwsTranslator:
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
-
-class QctrlTranslator:
     @overload
-    @staticmethod
-    def to_aq(result: dict[str, Any]) -> Solution: ...
+    def __iadd__(self, /, constraint: Constraint): ...
     @overload
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
-        timing: Timing | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any],
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
+    def __iadd__(self, /, constraint: tuple[Constraint, str]): ...
+    def __iadd__(self, /, constraint: Constraint | tuple[Constraint, str]):
+        """
+        In-place constraint addition using `+=`.
 
-class IbmTranslator:
-    @overload
-    @staticmethod
-    def to_aq(
-        result: PrimitiveResult[PubResult], quadratic_program: QuadraticProgram
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def to_aq(
-        result: PrimitiveResult[PubResult],
-        quadratic_program: QuadraticProgram,
-        timing: Timing | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def to_aq(
-        result: PrimitiveResult[PubResult],
-        quadratic_program: QuadraticProgram,
-        timing: Timing | None = ...,
-        env: Environment | None = ...,
-    ) -> Solution: ...
+        Parameters
+        ----------
+        constraint : Constraint | tuple[Constraint, str]
+            The constraint to add.
 
-class LpTranslator:
-    @overload
-    @staticmethod
-    def to_aq(file: Path) -> Model: ...
-    @overload
-    @staticmethod
-    def to_aq(file: str) -> Model: ...
-    @overload
-    @staticmethod
-    def from_aq(model: Model) -> str: ...
-    @overload
-    @staticmethod
-    def from_aq(model: Model, file: Path) -> None: ...
+        Returns
+        -------
+        Constraints
+            The updated collection.
 
+        Raises
+        ------
+        TypeError
+            If the value is not a `Constraint` or valid symbolic comparison.
+        """
+        ...
+
+    def __eq__(self, /, other: Constraints) -> bool: ... # type: ignore
+    def __str__(self, /) -> str: ...
+    def __repr__(self, /) -> str: ...
+    def __getitem__(self, /, item: int) -> Constraint: ...
+
+# _errors.pyi
 class VariableOutOfRangeError(Exception):
+    """
+    Raised when a variable referenced in an expression is out of bounds for the environment.
+
+    This error typically occurs when querying coefficients (linear, quadratic,
+    or higher-order) from an `Expression` using a `Variable` whose index does not
+    exist in the environment's internal registry.
+
+    This may happen if:
+        - A variable is used from a different environment
+        - A variable was removed or never registered properly
+        - A raw index or tuple refers to a non-existent variable ID
+    """
     def __str__(self) -> str: ...
 
 class VariableExistsError(Exception):
-    def __str__(self) -> str: ...
+    """
+    Raised when trying to create a variable with a name that already exists.
 
-class VariableCreationError(Exception):
+    Variable names must be unique within an `Environment`. Attempting to redefine
+    a variable with the same name will raise this exception.
+    """
     def __str__(self) -> str: ...
 
 class VariableNotExistingError(Exception):
+    """
+    Raised when trying to get a variable with a name that does not exist.
+    """
+    def __str__(self) -> str: ...
+
+class VariableCreationError(Exception):
+    """
+    Raised when an error occurs during the creation of a variable.
+
+    For example, binary and spin variables cannot be created with bounds.
+    """
     def __str__(self) -> str: ...
 
 class VariablesFromDifferentEnvsError(Exception):
+    """
+    Raised when multiple variables from different environments are used together.
+
+    All variables in an expression or constraint must belong to the same
+    `Environment`. Mixing across environments is disallowed to ensure consistency.
+    """
     def __str__(self) -> str: ...
 
 class DifferentEnvsError(Exception):
+    """
+    Raised when two incompatible environments are passed to a model or operation.
+
+    Unlike `VariablesFromDifferentEnvsError`, this error may occur at the model level
+    or in structural operations that require consistency across multiple environments.
+    """
     def __str__(self) -> str: ...
 
 class NoActiveEnvironmentFoundError(Exception):
+    """
+    Raised when a variable or expression is created without an active environment context.
+
+    This typically happens when not using `with Environment(): ...` and no environment
+    was explicitly provided.
+    """
     def __str__(self) -> str: ...
 
 class MultipleActiveEnvironmentsError(Exception):
+    """
+    Raised when multiple environments are active simultaneously.
+
+    This is a logic error, since `aqmodels` only supports one active environment
+    at a time. This is enforced to maintain clarity and safety.
+    """
     def __str__(self) -> str: ...
 
 class DecodeError(Exception):
-    def __str__(self) -> str: ...
+    """
+    Raised when decoding or deserialization of binary data fails.
 
-class ModelVtypeError(TranslationError):
+    This can occur if the encoded data is corrupted, incompatible, or not generated
+    by `aqmodels.encode()`.
+    """
     def __str__(self) -> str: ...
 
 class VariableNamesError(Exception):
+    """
+    Raised when the QuboTranslator tries to create a model from a QUBO matrix, but
+    the provided variable names are invalid.
+
+    If variable names are provided to the QuboTranslator, they have to be unique, and
+    the number of names has to match the number of variables in the QUBO matrix.
+    """
     def __str__(self) -> str: ...
 
 class IllegalConstraintNameError(Exception):
+    """
+    Raised when a constraint is tried to be created with an illegal name.
+    """
     def __str__(self) -> str: ...
 
 class TranslationError(Exception):
+    """
+    Raised when an error occurred during translation.
+    """
     def __str__(self) -> str: ...
 
 class ModelNotQuadraticError(TranslationError):
+    """
+    Raised when a model is expected to be quadratic but contains higher-order terms.
+
+    Some solvers or transformations require the model to have at most quadratic
+    expressions. This error signals that unsupported terms were detected.
+    """
     def __str__(self) -> str: ...
 
 class ModelNotUnconstrainedError(TranslationError):
+    """
+    Raised when an operation requires an unconstrained model, but constraints are present.
+
+    Some solution methods may only work on unconstrained models, such as when
+    transforming a symbolic model to a low-level format.
+    """
     def __str__(self) -> str: ...
 
 class ModelSenseNotMinimizeError(TranslationError):
+    """
+    Raised when an operation requires a model with minimization sense, but has
+    maximization sense.
+
+    Some model formats only work with minimization sense. In this case, consider
+    setting the sense to `minimize` before the transformation, and multiplying the
+    objective by `-1` if necessary.
+    """
+    def __str__(self) -> str: ...
+
+class ModelVtypeError(TranslationError):
+    """
+    Raised when an operation has certain constraints on a model's variable types that
+    are violated.
+
+    Some solution methods may only work on models where all variables have the same
+    type, or where only certain variable types are permitted.
+    """
     def __str__(self) -> str: ...
 
 class SolutionTranslationError(Exception):
+    """
+    Raised when something goes wrong during the translation of a solution.
+
+    This may happen during the translation to an AqSolution from a different solution
+    format, e.g., when the samples have different lengths or the variable types are not
+    consistent with the model the solution is created for.
+    """
     def __str__(self) -> str: ...
 
 class SampleIncorrectLengthError(SolutionTranslationError):
+    """
+    Raised when a sample length is different from the number of model variables.
+
+    When an external solution format is translated to an AqSolution, the number of
+    variable assignments in the solution's sample has to exactly match the number of
+    variables in the model environment that is passed to the translator.
+    """
     def __str__(self) -> str: ...
 
 class SampleUnexpectedVariableError(SolutionTranslationError):
+    """
+    Raised when a sample contains a variable with a name that is not present in the
+    environment.
+
+    When a sample is translated to an AqResult, the currently active environment has to
+    contain the same variables as the sample.
+    """
     def __str__(self) -> str: ...
 
 class SampleIncompatibleVtypeError(SolutionTranslationError):
+    """
+    Raised when a sample's assignments have variable types incompatible with the
+    model's variable types.
+
+    When an external solution format is translated to an AqSolution, the variable
+    assignments are tried to be converted into the model's corresponding variable type.
+    This may fail when the assignment types are incompatible.
+
+    Note that conversions with precision loss or truncation are admitted, but
+    conversions of variables outside the permitted range will fail.
+    """
     def __str__(self) -> str: ...
-
-
-__all__ = [
-    "AwsTranslator",
-    "Bounds",
-    "BqmTranslator",
-    "Comparator",
-    "Constraint",
-    "Constraints",
-    "CqmTranslator",
-    "DecodeError",
-    "DifferentEnvsError",
-    "DwaveTranslator",
-    "Environment",
-    "Expression",
-    "IbmTranslator",
-    "IllegalConstraintNameError",
-    "LpTranslator",
-    "Model",
-    "ModelNotQuadraticError",
-    "ModelNotUnconstrainedError",
-    "ModelSenseNotMinimizeError",
-    "ModelVtypeError",
-    "MultipleActiveEnvironmentsError",
-    "NoActiveEnvironmentFoundError",
-    "NumpyTranslator",
-    "QctrlTranslator",
-    "Qubo",
-    "QuboTranslator",
-    "Result",
-    "ResultIterator",
-    "ResultView",
-    "Sample",
-    "SampleIncompatibleVtypeError",
-    "SampleIncorrectLengthError",
-    "SampleIterator",
-    "SampleUnexpectedVariableError",
-    "Samples",
-    "SamplesIterator",
-    "Sense",
-    "Solution",
-    "SolutionTranslationError",
-    "Timer",
-    "Timing",
-    "TranslationError",
-    "Variable",
-    "VariableCreationError",
-    "VariableExistsError",
-    "VariableNamesError",
-    "VariableNotExistingError",
-    "VariableOutOfRangeError",
-    "VariablesFromDifferentEnvsError",
-    "Vtype",
-    "ZibTranslator",
-    "errors",
-    "translator",
-]
