@@ -21,31 +21,28 @@ class NumpyTranslator:
         >>> result: NDArray = ...
         >>> energies: NDArray = ...
         >>> aqs = lq.translator.NumpyTranslator.to_aq(result, energies)
-    #[pyclass(unsendable, name = "NumpyTranslator", module = "aqmodels.translat
     """
     @overload
     @staticmethod
     def to_aq(result: NDArray, energies: NDArray) -> Solution: ...
     @overload
     @staticmethod
-    def to_aq(
-        result: NDArray,
-        energies: NDArray,
-        timing: Timing | None = ...,
-    ) -> Solution: ...
+    def to_aq(result: NDArray, energies: NDArray, timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def to_aq(result: NDArray, energies: NDArray, *, env: Environment) -> Solution: ...
     @overload
     @staticmethod
     def to_aq(
-        result: NDArray, energies: NDArray, *, env: Environment | None
+        result: NDArray, energies: NDArray, timing: Timing, *, env: Environment
     ) -> Solution: ...
-    @overload
     @staticmethod
     def to_aq(
         result: NDArray,
         energies: NDArray,
         timing: Timing | None = ...,
         *,
-        env: Environment | None,
+        env: Environment | None = ...,
     ) -> Solution:
         """
         Convert an IBM solution to our solution format.

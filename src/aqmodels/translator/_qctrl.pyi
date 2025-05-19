@@ -27,17 +27,21 @@ class QctrlTranslator:
     def to_aq(result: dict[str, Any]) -> Solution: ...
     @overload
     @staticmethod
+    def to_aq(result: dict[str, Any], timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def to_aq(result: dict[str, Any], *, env: Environment) -> Solution: ...
+    @overload
+    @staticmethod
+    def to_aq(
+        result: dict[str, Any], timing: Timing, *, env: Environment
+    ) -> Solution: ...
+    @staticmethod
     def to_aq(
         result: dict[str, Any],
         timing: Timing | None = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def to_aq(result: dict[str, Any], *, env: Environment | None) -> Solution: ...
-    @overload
-    @staticmethod
-    def to_aq(
-        result: dict[str, Any], timing: Timing | None = ..., *, env: Environment | None
+        *,
+        env: Environment | None = ...,
     ) -> Solution:
         """
         Convert a QCTRL result to our solution format.

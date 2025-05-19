@@ -65,9 +65,9 @@ class Samples:
 
     def __str__(self, /) -> str: ...
     @overload
-    def __getitem__(self, /, item: int) -> Sample: ...
+    def __getitem__(self, item: int, /) -> Sample: ...
     @overload
-    def __getitem__(self, /, item: tuple[int, int]) -> int | float:
+    def __getitem__(self, item: tuple[int, int], /) -> int | float:
         """
         Extract a sample or variable assignment from the ``Samples`` object.
         If ``item`` is an int, returns the sample in this row. If ``item`` is a tuple
@@ -141,9 +141,10 @@ class Sample:
 
     def __str__(self, /) -> str: ...
     @overload
-    def __getitem__(self, /, item: Variable) -> int | float: ...
+    def __getitem__(self, item: int, /) -> int | float: ...
     @overload
-    def __getitem__(self, /, item: int) -> int | float:
+    def __getitem__(self, item: Variable, /) -> int | float: ...
+    def __getitem__(self, item: int | Variable, /) -> int | float:
         """
         Extract a variable assignment from the ``Sample`` object.
 

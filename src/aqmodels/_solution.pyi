@@ -76,7 +76,7 @@ class Solution:
         """
         ...
 
-    def __getitem__(self, /, item: int) -> ResultView:
+    def __getitem__(self, item: int, /) -> ResultView:
         """
         Extract a result view from the `Solution` object.
 
@@ -93,7 +93,7 @@ class Solution:
         """
         ...
 
-    def __eq__(self, /, other: Solution) -> bool:
+    def __eq__(self, other: Solution, /) -> bool: # type: ignore
         """
         Check whether this solution is equal to `other`.
 
@@ -105,7 +105,7 @@ class Solution:
         -------
         bool
         """
-        ...  # type: ignore
+        ... 
 
     @property
     def results(self, /) -> ResultIterator:
@@ -149,20 +149,9 @@ class Solution:
         ...
 
     @overload
-    def serialize(self, /) -> bytes: ...
-    @overload
-    def serialize(self, /, *, compress: bool) -> bytes: ...
-    @overload
-    def serialize(self, /, *, level: int) -> bytes: ...
-    @overload
-    def serialize(self, /, *, compress: bool, level: int) -> bytes:
-        """Alias for `encode()`."""
-        ...
-
-    @overload
     def encode(self, /) -> bytes: ...
     @overload
-    def encode(self, /, compress: bool) -> bytes: ...
+    def encode(self, /, *, compress: bool) -> bytes: ...
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
     @overload
@@ -189,9 +178,20 @@ class Solution:
         """
         ...
 
-    @staticmethod
-    def deserialize(data: bytes) -> Solution:
-        """Alias for `decode()`."""
+    @overload
+    def serialize(self, /) -> bytes: ...
+    @overload
+    def serialize(self, /, *, compress: bool) -> bytes: ...
+    @overload
+    def serialize(self, /, *, level: int) -> bytes: ...
+    @overload
+    def serialize(self, /, compress: bool, level: int) -> bytes: ...
+    def serialize(self, /, compress: bool | None = ..., level: int | None = ...) -> bytes:
+        """
+        Alias for `encode()`.
+
+        See `encode()` for details.
+        """
         ...
 
     @staticmethod
@@ -214,6 +214,11 @@ class Solution:
         DecodeError
             If decoding fails due to corruption or incompatibility.
         """
+        ...
+
+    @staticmethod
+    def deserialize(data: bytes) -> Solution:
+        """Alias for `decode()`."""
         ...
 
     @staticmethod
@@ -339,7 +344,9 @@ class Solution:
     ) -> Solution: ...
     @overload
     @staticmethod
-    def from_dict(data: dict[Variable | str, int | float], *, model: Model) -> Solution:
+    def from_dict(data: dict[Variable | str, int | float], *, model: Model) -> Solution: ...
+    @staticmethod
+    def from_dict(data: dict[Variable | str, int | float], *, env: Environment | None = ..., model: Model | None = ...) -> Solution:
         """
         Create a `Solution` from a dict that maps variables or variable names to their
         assigned values.

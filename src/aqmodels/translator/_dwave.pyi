@@ -28,14 +28,21 @@ class DwaveTranslator:
     def to_aq(sample_set: SampleSet) -> Solution: ...
     @overload
     @staticmethod
-    def to_aq(sample_set: SampleSet, timing: Timing | None = ...) -> Solution: ...
+    def to_aq(sample_set: SampleSet, timing: Timing) -> Solution: ...
     @overload
     @staticmethod
-    def to_aq(sample_set: SampleSet, *, env: Environment | None) -> Solution: ...
+    def to_aq(sample_set: SampleSet, *, env: Environment) -> Solution: ...
     @overload
     @staticmethod
     def to_aq(
-        sample_set: SampleSet, timing: Timing | None = ..., *, env: Environment | None
+        sample_set: SampleSet, timing: Timing, *, env: Environment
+    ) -> Solution: ...
+    @staticmethod
+    def to_aq(
+        sample_set: SampleSet,
+        timing: Timing | None = ...,
+        *,
+        env: Environment | None = ...,
     ) -> Solution:
         """
         Convert a DWave SampleSet to our solution format.

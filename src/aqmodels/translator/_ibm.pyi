@@ -35,7 +35,7 @@ class IbmTranslator:
     def to_aq(
         result: PrimitiveResult[PubResult],
         quadratic_program: QuadraticProgram,
-        timing: Timing | None = ...,
+        timing: Timing,
     ) -> Solution: ...
     @overload
     @staticmethod
@@ -43,16 +43,24 @@ class IbmTranslator:
         result: PrimitiveResult[PubResult],
         quadratic_program: QuadraticProgram,
         *,
-        env: Environment | None,
+        env: Environment,
     ) -> Solution: ...
     @overload
     @staticmethod
     def to_aq(
         result: PrimitiveResult[PubResult],
         quadratic_program: QuadraticProgram,
+        timing: Timing,
+        *,
+        env: Environment,
+    ) -> Solution: ...
+    @staticmethod
+    def to_aq(
+        result: PrimitiveResult[PubResult],
+        quadratic_program: QuadraticProgram,
         timing: Timing | None = ...,
         *,
-        env: Environment | None,
+        env: Environment | None = ...,
     ) -> Solution:
         """
         Convert an IBM solution to our solution format.
