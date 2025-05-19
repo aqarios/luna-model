@@ -8,7 +8,7 @@ class SamplesIterator:
 
     Examples
     --------
-    >>> from aqmodels import Solution
+    >>> from luna_quantum import Solution
     >>> solution: Solution = ...
 
     Note: ``solution.samples`` is automatically converted into a ``SamplesIterator``.
@@ -35,7 +35,7 @@ class SampleIterator:
 
     Examples
     --------
-    >>> from aqmodels import Solution
+    >>> from luna_quantum import Solution
     >>> solution: Solution = ...
     >>> sample = solution.samples[0]
 
@@ -68,7 +68,7 @@ class Samples:
 
     Examples
     --------
-    >>> from aqmodels import Model, Sample, Solution
+    >>> from luna_quantum import Model, Sample, Solution
     >>> model: Model = ...
     >>> solution: Solution = ...
     >>> samples: Samples = solution.samples
@@ -152,7 +152,7 @@ class Sample:
 
     Examples
     --------
-    >>> from aqmodels import Model, Sample, Solution
+    >>> from luna_quantum import Model, Sample, Solution
     >>> model: Model = ...
     >>> solution: Solution = ...
     >>> sample: Sample = solution.samples[0]

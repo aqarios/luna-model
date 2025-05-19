@@ -46,7 +46,7 @@ class Model:
     --------
     Basic usage:
 
-    >>> from aqmodels import Model, Variable
+    >>> from luna_quantum import Model, Variable
     >>> model = Model("MyModel")
     >>> with model.environment:
     ...     x = Variable("x")
@@ -57,7 +57,7 @@ class Model:
 
     With explicit environment:
 
-    >>> from aqmodels import Environment
+    >>> from luna_quantum import Environment
     >>> env = Environment()
     >>> model = Model("ScopedModel", env)
     >>> with env:
@@ -145,6 +145,7 @@ class Model:
         """Return the name of the model."""
         return
 
+    @dispatched
     @property
     def sense(self):
         """
@@ -161,14 +162,6 @@ class Model:
     @property
     def objective(self):
         """Get the objective expression of the model."""
-        return
-
-    @dispatched
-    @property
-    def sense(self):
-        """
-        Get the sense of the model's objective.
-        """
         return
 
     @objective.setter

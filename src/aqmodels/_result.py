@@ -8,7 +8,7 @@ class ResultIterator:
 
     Examples
     --------
-    >>> from aqmodels import ResultIterator, Solution
+    >>> from luna_quantum import ResultIterator, Solution
     >>> solution: Solution = ...
     >>> results: ResultIterator = solution.results
     >>> for result in results:
@@ -39,7 +39,7 @@ class Result:
 
     Examples
     --------
-    >>> from aqmodels import Model, Result, Solution
+    >>> from luna_quantum import Model, Result, Solution
     >>> model: Model = ...
     >>> solution: Solution = ...
     >>> sample = solution.samples[0]
@@ -71,7 +71,7 @@ class Result:
     @property
     @dispatched
     def obj_value(self):
-        """Get the objective value of the result"""
+        """Get the objective value of the result."""
         return
 
     @property
@@ -79,8 +79,9 @@ class Result:
     def constraints(self):
         """
         Get this result's feasibility values of all constraints. Note that
-        ``results.constraints[i]`` iff. ``model.constraints[i]`` is feasible for
-        this result."""
+        `results.constraints[i]` iff. `model.constraints[i]` is feasible for
+        this result.
+        """
         return
 
     @property
@@ -104,7 +105,7 @@ class ResultView:
 
     Examples
     --------
-    >>> from aqmodels import ResultView, Solution
+    >>> from luna_quantum import ResultView, Solution
     >>> solution: Solution = ...
     >>> result: ResultView = solution[0]
     >>> result.obj_value
@@ -160,8 +161,9 @@ class ResultView:
     def constraints(self):
         """
         Get this result's feasibility values of all constraints. Note that
-        ``results.constraints[i]`` iff. ``model.constraints[i]`` is feasible for
-        this result."""
+        `results.constraints[i]` iff. `model.constraints[i]` is feasible for
+        this result.
+        """
         return
 
     @property

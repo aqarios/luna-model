@@ -22,7 +22,7 @@ class Comparator(Enum):
 
     Examples
     --------
-    >>> from aqmodels import Comparator
+    >>> from luna_quantum import Comparator
     >>> str(Comparator.Eq)
     '=='
     """
@@ -60,7 +60,7 @@ class Constraint:
 
     Examples
     --------
-    >>> from aqmodels import Environment, Variable, Constraint, Comparator
+    >>> from luna_quantum import Environment, Variable, Constraint, Comparator
     >>> with Environment():
     ...     x = Variable("x")
     ...     c = Constraint(x + 2, 5.0, Comparator.Eq)
@@ -138,11 +138,11 @@ class Constraint:
     @property
     def comparator(self):
         """
-        Get the right-hand side of the constraint
+        Get the comparator of the constraint
 
         Returns
         -------
-        Comparator§
+        Comparator
             The comparator of the constraint.
         """
         return
@@ -161,7 +161,7 @@ class Constraints:
 
     Examples
     --------
-    >>> from aqmodels import Constraints, Constraint, Environment, Variable
+    >>> from luna_quantum import Constraints, Constraint, Environment, Variable
     >>> with Environment():
     ...     x = Variable("x")
     ...     c = Constraint(x + 1, 0.0, Comparator.Le)

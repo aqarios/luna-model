@@ -20,7 +20,7 @@ class Environment:
     --------
     Create variables inside an environment:
 
-    >>> from aqmodels import Environment, Variable
+    >>> from luna_quantum import Environment, Variable
     >>> with Environment() as env:
     ...     x = Variable("x")
     ...     y = Variable("y")

@@ -25,7 +25,7 @@ class Vtype(Enum):
 
     Examples
     --------
-    >>> from aqmodels import Vtype
+    >>> from luna_quantum import Vtype
     >>> Vtype.Real
     Real
 
@@ -64,7 +64,7 @@ class Bounds:
 
     Examples
     --------
-    >>> from aqmodels import Bounds
+    >>> from luna_quantum import Bounds
     >>> Bounds(-1.0, 1.0)
     Bounds { lower: -1, upper: 1 }
 
@@ -116,7 +116,7 @@ class Variable:
 
     Examples
     --------
-    >>> from aqmodels import Variable, Environment, Vtype, Bounds
+    >>> from luna_quantum import Variable, Environment, Vtype, Bounds
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y", vtype=Vtype.Integer, bounds=Bounds(0, 5))

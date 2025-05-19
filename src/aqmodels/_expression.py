@@ -26,7 +26,7 @@ class Expression:
     --------
     Constructing expressions from variables:
 
-    >>> from aqmodels import Environment, Variable
+    >>> from luna_quantum import Environment, Variable
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y")
@@ -460,6 +460,26 @@ class Expression:
         """
         return other
 
+    def __pow__(self, other):
+        """
+        Raise the expression to the power specified by `other`.
+
+        Parameters
+        ----------
+        other : int
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        RuntimeError
+            If the param ``modulo`` usually supported for ``__pow__`` is specified.
+        """
+        return other
+
+
     @dispatched
     def __eq__(self, rhs):
         """
@@ -484,25 +504,6 @@ class Expression:
             If the right-hand side is not an Expression or scalar.
         """
         return rhs
-
-    def __pow__(self, other):
-        """
-        Raise the expression to the power specified by `other`.
-
-        Parameters
-        ----------
-        other : int
-
-        Returns
-        -------
-        Expression
-
-        Raises
-        ------
-        RuntimeError
-            If the param ``modulo`` usually supported for ``__pow__`` is specified.
-        """
-        return other
 
     @dispatched
     def __le__(self, rhs):

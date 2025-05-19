@@ -26,10 +26,15 @@ pub static DEFAULT_MODEL_NAME: &str = "unnamed";
     pyclass(eq, eq_int, name = "Sense", module = "aqmodels")
 )] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq)]
-/// The optimization sense, i.e., the direction to be optimized towards.
+/// Enumeration of optimization senses supported by the optimization system.
+/// 
+/// This enum defines the type of optimization used for a model. The type influences
+/// the domain and behavior of the model during optimization.
 pub enum Sense {
+    /// Indicate the objective function to be minimized.
     #[strum(to_string = "Minimize")]
     Min,
+    /// Indicate the objective function to be maximized.
     #[strum(to_string = "Maximize")]
     Max,
 }
