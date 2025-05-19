@@ -136,8 +136,8 @@ def extract(result, qp, timing, env):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("extract")?
-            .into();
+        .getattr("extract")?
+        .into();
 
         let args = (result, quadratic_program, timing, env);
         let result = extractor.call1(py, args)?;

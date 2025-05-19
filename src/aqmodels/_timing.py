@@ -13,7 +13,8 @@ class Timing:
 
     Examples
     --------
-    >>> from dwave.samplers.tree.solve import BinaryQuadraticModel    >>> from aqmodels import Model, Timer, Timing
+    >>> from dwave.samplers.tree.solve import BinaryQuadraticModel
+    >>> from luna_quantum import Model, Timer, Timing
     >>> model = ... # third-party model
     >>> algorithm = ... # third-party algorithm
     >>> timer = Timer.start()
@@ -114,7 +115,7 @@ class Timer:
     Examples
     --------
     Basic usage:
-    >>> from aqmodels import  Timer
+    >>> from luna_quantum import  Timer
     >>> timer = Timer.start()
     >>> solution = ... # create a solution by running an algorithm.
     >>> timing = timer.stop()

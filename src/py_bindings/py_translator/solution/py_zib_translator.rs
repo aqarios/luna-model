@@ -98,8 +98,8 @@ def extract(model, timing, env):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("extract")?
-            .into();
+        .getattr("extract")?
+        .into();
         let args = (model, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)

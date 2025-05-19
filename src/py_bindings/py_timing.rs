@@ -6,10 +6,10 @@ use std::time::{Duration, SystemTime};
 
 /// The object that holds information about an algorithm's runtime.
 ///
-/// This class can only be constructed using a ``Timer``. This ensures that a
-/// ``Timing`` object always contains a start as well as an end time.
+/// This class can only be constructed using a `Timer`. This ensures that a
+/// `Timing` object always contains a start as well as an end time.
 ///
-/// The ``qpu`` field of this class can only be set after constructing it with a timer.
+/// The `qpu` field of this class can only be set after constructing it with a timer.
 ///
 /// Examples
 /// --------

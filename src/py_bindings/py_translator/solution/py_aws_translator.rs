@@ -112,8 +112,8 @@ def extract(aws_result, timing, env):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("extract")?
-            .into();
+        .getattr("extract")?
+        .into();
         let args = (aws_result, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)

@@ -39,25 +39,25 @@ pub enum SampleKey {
 /// returned by the algorithm, metadata about the solution quality, e.g., the objective
 /// value, and the runtime of the algorithm.
 ///
-/// Models can't be constructed explicitly, but rather by obtaining a solution from an
-/// algorithm, or by converting a different solution format with one of the available
-/// translators. Note that the latter requires the environment the model was created
-/// in.
+/// A ``Solution`` can be constructed explicitly using ``from_dict`` or by obtaining a solution
+/// from an algorithm or by converting a different solution format with one of the available
+/// translators. Note that the latter requires the environment the model was created in.
 ///
 /// Examples
 /// --------
 /// Basic usage, assuming that the algorithm already returns a ``Solution``:
 ///
-/// >>> from aqmodels import Model, Solution
+/// >>> from luna_quantum import Model, Solution
 /// >>> model: Model = ...
 /// >>> algorithm = ...
 /// >>> solution: Solution = algorithm.run(model)
 /// >>> solution.samples
 /// [[1, 0, 1], [0, 0, 1]]
 ///
-/// When you have a ``dimod.Sampleset`` as raw solution format:
+/// When you have a ``dimod.Sampleset`` as the raw solution format:
 ///
-/// >>> from aqmodels.translator import BqmTranslator    >>> from aqmodels import Model, Solution, DwaveTranslator
+/// >>> from luna_quantum.translator import BqmTranslator
+/// >>> from luna_quantum import Model, Solution, DwaveTranslator
 /// >>> from dimod import SimulatedAnnealingSampler
 /// >>> model: Model = ...
 /// >>> bqm = BqmTranslator.from_aq(model)
@@ -89,7 +89,7 @@ impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
 
 #[pymethods]
 impl PySolution {
-    /// Build a Solution based on the provided input data. The solution is constructed
+    /// Build a ``Solution`` based on the provided input data. The solution is constructed
     /// based on a column layout of the solution. Let's take the following sample-set with three
     /// samples as an example:
     ///
@@ -97,28 +97,28 @@ impl PySolution {
     /// [ 1  0  -1  6  3.8  0 ]
     /// [ 1  1  +1  2  2.4  0 ]
     ///
-    /// Each row encodes a single sample. However, the variable types vary, the first, second and last
-    /// columns all represent a Binary variable (index 0, 1, 5). The third column represents a variable
-    /// of type Spin (index 2). The fourth column (index 3) a variable of type Integer and the fith column
-    /// (index 4) a real valued variable.
+    /// Each row encodes a single sample. However, the variable types vary, the first, second, and
+    /// last columns all represent a Binary variable (index 0, 1, 5). The third column represents a
+    /// variable of type Spin (index 2). The fourth column (index 3), a variable of type Integer and
+    /// the fifth column (index 4), a real-valued variable.
     ///
     /// Thus, the `component_types` list is:
     ///
     /// >>> component_types = [Vtype.Binary, Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real, Vtype.Binary]
     ///
-    /// Now we can extract all columns for a binary valued variable and append them to a new list:
+    /// Now we can extract all columns for a binary-valued variable and append them to a new list:
     ///
     /// >>> binary_cols = [[0, 1, 1], [1, 0, 1], [1, 0, 0]]
     ///
-    /// where the first element in the list represents the first column, the second element the second
-    /// column and the third element the fith column.
-    /// We do the same for the remaning variable types:
+    /// where the first element in the list represents the first column, the second element the\
+    /// second column and the third element the fifth column.
+    /// We do the same for the remaining variable types:
     ///
     /// >>> spin_cols = [[-1, -1, +1]]
     /// >>> int_cols = [[3, 6, 2]]
     /// >>> real_cols = [[2.2, 3.8, 2.4]]
     ///
-    /// If we know the raw energies we can construct them as well:
+    /// If we know the raw energies, we can construct them as well:
     ///
     /// >>> raw_energies = [-200, -100, +300]
     ///
@@ -156,23 +156,25 @@ impl PySolution {
     /// component_types : list[Vtype]
     ///     The variable type each element in a sample encodes.
     /// binary_cols : list[list[int]], optional
-    ///     The data of all binary valued columns. Each inner list encodes a single binary valued column.
-    /// Required if any element in the `component_types` is `Vtype.Binary`.
-    ///     spin_cols : list[list[int]], optional
-    /// The data of all spin valued columns. Each inner list encodes a single spin valued column.
-    ///     Required if any element in the `component_types` is `Vtype.Spin`.
+    ///     The data of all binary valued columns. Each inner list encodes a single binary-valued
+    ///     column. Required if any element in the `component_types` is `Vtype.Binary`.
+    /// spin_cols : list[list[int]], optional
+    ///     The data of all spin-valued columns. Each inner list encodes a single spin-valued
+    ///     column. Required if any element in the `component_types` is `Vtype.Spin`.
     /// int_cols : list[list[int]], optional
-    ///     The data of all integer valued columns. Each inner list encodes a single integer valued column.
-    /// Required if any element in the `component_types` is `Vtype.Integer`.
-    ///     real_cols : list[list[float]], optional
-    /// The data of all real valued columns. Each inner list encodes a single real valued column.
-    ///     Required if any element in the `component_types` is `Vtype.Real`.
+    ///     The data of all integer-valued columns. Each inner list encodes a single integer valued
+    ///     column. Required if any element in the `component_types` is `Vtype.Integer`.
+    /// real_cols : list[list[float]], optional
+    ///     The data of all real-valued columns. Each inner list encodes a single real-valued
+    ///     column. Required if any element in the `component_types` is `Vtype.Real`.
     /// raw_energies : list[float, optional], optional
-    ///     The data of all real valued columns. Each inner list encodes a single real valued column.
+    ///     The data of all real valued columns. Each inner list encodes a single real-valued
+    ///     column.
     /// timing : Timing, optional
     ///     The timing data.
     /// counts : list[int], optional
-    ///     The number each sample in the solution has occurred. By default 1 for all samples.
+    ///     The number how often each sample in the solution has occurred. By default, 1 for all
+    ///     samples.
     ///
     /// Returns
     /// -------
@@ -270,7 +272,7 @@ impl PySolution {
         Ok(PySolution(RcSolution(Rc::new(sol))))
     }
 
-    /// Create a solution from a dict that maps variables or variable names to their
+    /// Create a ``Solution`` from a dict that maps variables or variable names to their
     /// assigned values.
     ///
     /// If a Model is passed, the solution will be evaluated immediately. Otherwise,
@@ -403,7 +405,7 @@ impl PySolution {
     }
 
     /// Get the raw energy values of the single samples as returned by the solver /
-    /// algorithm. Will be None if the solver / algorithms did not provide a value.
+    /// algorithm. Will be None if the solver / algorithm did not provide a value.
     #[getter]
     fn raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
         self.raw_energies
@@ -460,7 +462,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-            .into())
+        .into())
     }
 
     /// Alias for ``encode()``.

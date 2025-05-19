@@ -14,12 +14,12 @@ class ZibTranslator:
 
     Examples
     --------
-    >>> import aqmodels as aqm
+    >>> import luna_quantum as lq
     >>> from pyscipopt import Model
     >>> model = Model()
     >>> model.readProblem("./path/to/my/model.lp")
     >>> model.optimize()
-    >>> aqs = aqm.translator.ZibTranslator.to_aq(model)
+    >>> aqs = lq.translator.ZibTranslator.to_aq(model)
     """
 
     @dispatched

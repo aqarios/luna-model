@@ -14,10 +14,10 @@ class IbmTranslator:
 
     Examples
     --------
-    >>> import aqmodels as aqm
+    >>> import luna_quantum as lq
     >>> ...
     >>> ibm_result = ...
-    >>> aqs = aqm.translator.IbmTranslator.to_aq(ibm_result)
+    >>> aqs = lq.translator.IbmTranslator.to_aq(ibm_result)
     """
 
     @dispatched

@@ -67,8 +67,8 @@ def extract(model):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("extract")?
-            .into();
+        .getattr("extract")?
+        .into();
         let args = (model,);
         let result = extractor.call1(py, args)?;
         Ok(result)
@@ -114,8 +114,8 @@ def extract(cqm):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("extract")?
-            .into();
+        .getattr("extract")?
+        .into();
         let args = (cqm,);
         let result = extractor.call1(py, args)?;
         Ok(result)

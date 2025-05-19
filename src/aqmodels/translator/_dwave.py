@@ -14,9 +14,9 @@ class DwaveTranslator:
     Examples
     --------
     >>> import dimod
-    >>> import aqmodels as aqm
+    >>> import luna_quantum as lq
     >>> dwave_sampleset = ...
-    >>> aqs = aqm.translator.DwaveTranslator.to_aq(dwave_sampleset)
+    >>> aqs = lq.translator.DwaveTranslator.to_aq(dwave_sampleset)
     """
 
     @dispatched

@@ -13,10 +13,10 @@ class QctrlTranslator:
 
     Examples
     --------
-    >>> import aqmodels as aqm
+    >>> import luna_quantum as lq
     >>> ...
     >>> qctrl_result = ...
-    >>> aqs = aqm.translator.QctrlTranslator.to_aq(qctrl_result)
+    >>> aqs = lq.translator.QctrlTranslator.to_aq(qctrl_result)
     """
 
     @dispatched

@@ -104,8 +104,8 @@ def extract(sampleset, timing, env):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("extract")?
-            .into();
+        .getattr("extract")?
+        .into();
         let args = (sampleset, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)

@@ -20,7 +20,7 @@ class Solution:
     --------
     Basic usage, assuming that the algorithm already returns a ``Solution``:
 
-    >>> from aqmodels import Model, Solution
+    >>> from luna_quantum import Model, Solution
     >>> model: Model = ...
     >>> algorithm = ...
     >>> solution: Solution = algorithm.run(model)
@@ -29,7 +29,8 @@ class Solution:
 
     When you have a ``dimod.Sampleset`` as raw solution format:
 
-    >>> from aqmodels.translator import BqmTranslator    >>> from aqmodels import Model, Solution, DwaveTranslator
+    >>> from luna_quantum.translator import BqmTranslator
+    >>> from luna_quantum import Model, Solution, DwaveTranslator
     >>> from dimod import SimulatedAnnealingSampler
     >>> model: Model = ...
     >>> bqm = BqmTranslator.from_aq(model)

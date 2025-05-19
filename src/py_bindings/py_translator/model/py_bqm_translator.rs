@@ -125,8 +125,8 @@ def to_bqm(offset, linear, quad, rows, cols, vtype, vars):
             c_str!(""),
             c_str!(""),
         )?
-            .getattr("to_bqm")?
-            .into();
+        .getattr("to_bqm")?
+        .into();
         let args = (
             offset,
             linear_py,
