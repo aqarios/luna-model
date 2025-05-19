@@ -3,8 +3,9 @@ import pytest
 from aqmodels import (
     Environment,
     Model,
-    MultipleActiveEnvironmentsError,
 )
+
+from aqmodels.errors import MultipleActiveEnvironmentsError
 
 
 @pytest.mark.model

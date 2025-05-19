@@ -1,6 +1,6 @@
 import pytest
 from random import Random
-from aqmodels import CqmTranslator
+from aqmodels.translator import CqmTranslator
 from dimod import lp as dimod_lp
 from pytests.test_core.test_translator.test_lp_translator import check_dimod_expr
 from pytests.test_core.utils import generate_cqms, make_seed

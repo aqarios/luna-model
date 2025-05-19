@@ -111,12 +111,12 @@ impl PyVariable {
     /// VariableCreationError
     ///     If the variable is tried to be created with incompatible bounds.
     #[new]
-    #[pyo3(signature=(name, env=None, vtype=None, bounds=None))]
+    #[pyo3(signature=(name, vtype=None, bounds=None, env=None))]
     fn py_new(
         name: String,
-        env: Option<&mut PyEnvironment>,
         vtype: Option<Vtype>,
         bounds: Option<PyBounds>,
+        env: Option<&mut PyEnvironment>,
     ) -> PyResult<Self> {
         let env: PyEnvironment = match env {
             Some(env) => env.clone(),

@@ -659,18 +659,18 @@ impl PyExpression {
         PyExpression::new(-self.borrow().deref())
     }
 
-    /// Check whether this expression is different from ``other``.
-    /// 
-    /// Parameters
-    /// ----------
-    /// other : Expression
-    /// 
-    /// Returns
-    /// -------
-    /// bool
-    fn __ne__(&self, other: &Self) -> bool {
-        *self.borrow() != *other.borrow()
-    }
+    // /// Check whether this expression is different from ``other``.
+    // /// 
+    // /// Parameters
+    // /// ----------
+    // /// other : Expression
+    // /// 
+    // /// Returns
+    // /// -------
+    // /// bool
+    // fn __ne__(&self, other: &Self) -> bool {
+    //     *self.borrow() != *other.borrow()
+    // }
 
     fn __str__(&self) -> String {
         self.borrow().to_string()

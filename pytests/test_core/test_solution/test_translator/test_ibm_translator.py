@@ -23,7 +23,6 @@ from scipy.optimize import minimize
 
 from random import Random
 from aqmodels import (
-    IbmTranslator,
     Solution,
     Timer,
     Variable,
@@ -31,6 +30,7 @@ from aqmodels import (
     Sense,
     Model,
 )
+from aqmodels.translator import IbmTranslator
 from pytests.test_core.utils import make_seed, random_bool
 
 

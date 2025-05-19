@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from aqmodels import Model, Variable, Bounds, Vtype, AwsTranslator
+from aqmodels import Model, Variable, Bounds, Vtype
+from aqmodels.translator import AwsTranslator
 
 
 @pytest.fixture

@@ -2,9 +2,11 @@ import pytest
 
 from aqmodels import (
     Environment,
+    Variable,
+)
+from aqmodels.errors import (
     MultipleActiveEnvironmentsError,
     NoActiveEnvironmentFoundError,
-    Variable,
     VariableExistsError,
 )
 
@@ -12,16 +14,16 @@ from aqmodels import (
 @pytest.mark.variable
 def test_create_variable_explicit():
     env = Environment()
-    _ = Variable("x", env)
+    _ = Variable("x", env=env)
 
 
 @pytest.mark.variable
 def test_create_variable_explicit_del_create():
     env = Environment()
-    x = Variable("x", env)
+    x = Variable("x", env=env)
     del x
     with pytest.raises(VariableExistsError):
-        _ = Variable("x", env)
+        _ = Variable("x", env=env)
 
 
 @pytest.mark.variable
@@ -48,8 +50,8 @@ def test_create_variable_in_double_context():
 def test_create_variable_with_same_name_different_evironment():
     env1 = Environment()
     env2 = Environment()
-    _ = Variable("x", env1)
-    _ = Variable("x", env2)
+    _ = Variable("x", env=env1)
+    _ = Variable("x", env=env2)
 
 
 @pytest.mark.variable
