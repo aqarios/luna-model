@@ -102,4 +102,5 @@ dev = [
     "qiskit-aer>=0.17.0",
     "pyscipopt>=5.4.1",
     "mypy>=1.15.0",
+    "ty>=0.0.1a5",
 ]

@@ -20,6 +20,50 @@ use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError};
 use pyo3::prelude::*;
 
+/// Represents a symbolic variable within an optimization environment.
+///
+/// A `Variable` is the fundamental building block of algebraic expressions
+/// used in optimization models. Each variable is tied to an `Environment`
+/// which scopes its lifecycle and expression context. Variables can be
+/// typed and optionally bounded.
+///
+/// Parameters
+/// ----------
+/// name : str
+///     The name of the variable.
+/// env : Environment, optional
+///     The environment in which this variable is created. If not provided,
+///     the current environment from the context manager is used.
+/// vtype : Vtype, optional
+///     The variable type (e.g., `Vtype.Real`, `Vtype.Integer`, etc.).
+///     Defaults to `Vtype.Binary`.
+/// bounds : Bounds, optional
+///     Bounds restricting the range of the variable. Only applicable for
+///     `Real` and `Integer` variables.
+///
+/// Examples
+/// --------
+/// >>> from luna_quantum import Variable, Environment, Vtype, Bounds
+/// >>> with Environment():
+/// ...     x = Variable("x")
+/// ...     y = Variable("y", vtype=Vtype.Integer, bounds=Bounds(0, 5))
+/// ...     expr = 2 * x + y - 1
+///
+/// Arithmetic Overloads
+/// --------------------
+/// Variables support standard arithmetic operations:
+///
+/// - Addition: `x + y`, `x + 2`, `2 + x`
+/// - Subtraction: `x - y`, `3 - x`
+/// - Multiplication: `x * y`, `2 * x`, `x * 2`
+///
+/// All expressions return `Expression` objects and preserve symbolic structure.
+///
+/// Notes
+/// -----
+/// - A `Variable` is bound to a specific `Environment` instance.
+/// - Variables are immutable; all operations yield new `Expression` objects.
+/// - Variables carry their environment, but the environment does not own the variable.
 #[pyclass(unsendable, subclass, name = "Variable", module = "aqmodels")]
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyVariable(pub ConcreteRcVarRef);
@@ -54,6 +98,18 @@ impl Eq for PyVariable {}
 
 #[pymethods]
 impl PyVariable {
+    /// Initialize a new Variable.
+    ///
+    /// See class-level docstring for full usage.
+    ///
+    /// Raises
+    /// ------
+    /// NoActiveEnvironmentFoundError
+    ///     If no active environment is found and none is explicitly provided.
+    /// VariableExistsError
+    ///     If a variable with the same name already exists in the environment.
+    /// VariableCreationError
+    ///     If the variable is tried to be created with incompatible bounds.
     #[new]
     #[pyo3(signature=(name, env=None, vtype=None, bounds=None))]
     fn py_new(
@@ -79,17 +135,36 @@ impl PyVariable {
         )?))
     }
 
+    /// Get the name of the variable.
     #[getter]
     fn get_name(&self) -> String {
         self.name()
     }
 
+    /// Compute the hash of the variable.
     fn __hash__(&self) -> u64 {
         let mut s = DefaultHasher::new();
         self.name().hash(&mut s);
         s.finish()
     }
 
+    /// Add this variable to another value.
+    ///
+    /// Parameters
+    /// ----------
+    /// other : Variable, Expression, int, or float
+    ///
+    /// Returns
+    /// -------
+    /// Expression
+    ///     The resulting symbolic expression.
+    ///
+    /// Raises
+    /// ------
+    /// VariablesFromDifferentEnvsError
+    ///     If the operands belong to different environments.
+    /// TypeError
+    ///     If the operand type is unsupported.
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         let expr: ConcreteExpression;
         if let Ok(rhs) = other.extract::<f64>(py) {
@@ -104,10 +179,42 @@ impl PyVariable {
         Ok(PyExpression::new(expr))
     }
 
+    /// Right-hand addition for scalars.
+    ///
+    /// Parameters
+    /// ----------
+    /// other : int or float
+    ///
+    /// Returns
+    /// -------
+    /// Expression
+    ///     The resulting symbolic expression.
+    ///
+    /// Raises
+    /// ------
+    /// TypeError
+    ///     If the operand type is unsupported.
     fn __radd__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         self.__add__(py, other)
     }
 
+    /// Subtract a value from this variable.
+    ///
+    /// Parameters
+    /// ----------
+    /// other : Variable, int, or float
+    ///
+    /// Returns
+    /// -------
+    /// Expression
+    ///     The resulting symbolic expression.
+    ///
+    /// Raises
+    /// ------
+    /// VariablesFromDifferentEnvsError
+    ///     If the operands belong to different environments.
+    /// TypeError
+    ///     If the operand type is unsupported.
     fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         let expr: ConcreteExpression;
         if let Ok(rhs) = other.extract::<f64>(py) {
@@ -127,6 +234,21 @@ impl PyVariable {
         Ok(PyExpression::new(expr))
     }
 
+    /// Subtract this variable from a scalar (right-hand subtraction).
+    ///
+    /// Parameters
+    /// ----------
+    /// other : int or float
+    ///
+    /// Returns
+    /// -------
+    /// Expression
+    ///     The resulting symbolic expression.
+    ///
+    /// Raises
+    /// ------
+    /// TypeError
+    ///     If ``other`` is not a scalar.
     fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.rsub(rhs)))
@@ -135,6 +257,23 @@ impl PyVariable {
         }
     }
 
+    /// Multiply this variable by another value.
+    ///
+    /// Parameters
+    /// ----------
+    /// other : Variable, Expression, int, or float
+    ///
+    /// Returns
+    /// -------
+    /// Expression
+    ///     The resulting symbolic expression.
+    ///
+    /// Raises
+    /// ------
+    /// VariablesFromDifferentEnvsError
+    ///     If the operands belong to different environments.
+    /// TypeError
+    ///     If the operand type is unsupported.
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         let expr: ConcreteExpression;
         if let Ok(rhs) = other.extract::<f64>(py) {
@@ -150,10 +289,39 @@ impl PyVariable {
         Ok(PyExpression::new(expr))
     }
 
+    /// Right-hand multiplication for scalars.
+    ///
+    /// Parameters
+    /// ----------
+    /// other : int or float
+    ///
+    /// Returns
+    /// -------
+    /// Expression
+    ///     The resulting symbolic expression.
+    ///
+    /// Raises
+    /// ------
+    /// TypeError
+    ///     If the operand type is unsupported.
     fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
         self.__mul__(py, other)
     }
 
+    /// Raise the variable to the power specified by `other`.
+    ///
+    /// Parameters
+    /// ----------
+    /// other : int
+    ///
+    /// Returns
+    /// -------
+    /// Expression
+    ///
+    /// Raises
+    /// ------
+    /// RuntimeError
+    ///     If the param ``modulo`` usually supported for ``__pow__`` is specified.
     fn __pow__(&self, other: usize, modparam: Option<usize>) -> PyResult<PyExpression> {
         if modparam.is_some() {
             return Err(PyRuntimeError::new_err(
@@ -175,28 +343,90 @@ impl PyVariable {
         Ok(PyExpression::new(expr))
     }
 
+    /// Negate the variable, i.e., multiply it by `-1`.
+    /// 
+    /// Returns
+    /// -------
+    /// Expression
+    fn __neg__(&self) -> PyExpression {
+        PyExpression::new(self.0.neg())
+    }
+
+    /// Create a constraint: expression == scalar.
+    /// 
+    /// If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+    /// constraint, resulting in the following constraint:
+    /// 
+    ///     self - rhs == 0
+    /// 
+    /// Parameters
+    /// ----------
+    /// rhs : float, int, Variable or Expression
+    /// 
+    /// Returns
+    /// -------
+    /// Constraint
+    /// 
+    /// Raises
+    /// ------
+    /// TypeError
+    ///     If the right-hand side is not of type float, int, Variable or Expression.
+    fn __eq__(&self, py: Python, rhs: PyObject) -> PyResult<PyConstraint> {
+        self.make_constraint(py, rhs, Comparator::Eq)
+    }
+
+    /// Create a constraint: expression <= scalar.
+    /// 
+    /// If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+    /// constraint, resulting in the following constraint:
+    /// 
+    ///     self - rhs <= 0
+    /// 
+    /// Parameters
+    /// ----------
+    /// rhs : float, int, Variable or Expression
+    /// 
+    /// Returns
+    /// -------
+    /// Constraint
+    /// 
+    /// Raises
+    /// ------
+    /// TypeError
+    ///     If the right-hand side is not of type float, int, Variable or Expression.
+    fn __le__(&self, py: Python, rhs: PyObject) -> PyResult<PyConstraint> {
+        self.make_constraint(py, rhs, Comparator::Le)
+    }
+
+    /// Create a constraint: expression >= scalar.
+    /// 
+    /// If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+    /// constraint, resulting in the following constraint:
+    /// 
+    ///     self - rhs >= 0
+    /// 
+    /// Parameters
+    /// ----------
+    /// rhs : float, int, Variable or Expression
+    /// 
+    /// Returns
+    /// -------
+    /// Constraint
+    /// 
+    /// Raises
+    /// ------
+    /// TypeError
+    ///     If the right-hand side is not of type float, int, Variable or Expression.
+    fn __ge__(&self, py: Python, rhs: PyObject) -> PyResult<PyConstraint> {
+        self.make_constraint(py, rhs, Comparator::Ge)
+    }
+
     fn __str__(&self) -> String {
         self.to_string()
     }
 
     fn __repr__(&self) -> String {
         format!("{:#?}", self.0)
-    }
-
-    fn __neg__(&self) -> PyExpression {
-        PyExpression::new(self.0.neg())
-    }
-
-    fn __eq__(&self, py: Python, rhs: PyObject) -> PyResult<PyConstraint> {
-        self.make_constraint(py, rhs, Comparator::Eq)
-    }
-
-    fn __le__(&self, py: Python, rhs: PyObject) -> PyResult<PyConstraint> {
-        self.make_constraint(py, rhs, Comparator::Le)
-    }
-
-    fn __ge__(&self, py: Python, rhs: PyObject) -> PyResult<PyConstraint> {
-        self.make_constraint(py, rhs, Comparator::Ge)
     }
 }
 

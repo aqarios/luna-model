@@ -6,7 +6,7 @@ class Solution:
     """
     The solution object that is obtained by running an algorihtm.
 
-    The ``Solution`` class represents a summary of all data obtained from solving a
+    The `Solution` class represents a summary of all data obtained from solving a
     model. It contains samples, i.e., assignments of values to each model variable as
     returned by the algorithm, metadata about the solution quality, e.g., the objective
     value, and the runtime of the algorithm.
@@ -18,18 +18,19 @@ class Solution:
 
     Examples
     --------
-    Basic usage, assuming that the algorithm already returns a ``Solution``:
+    Basic usage, assuming that the algorithm already returns a `Solution`:
 
-    >>> from aqmodels import Model, Solution
+    >>> from luna_quantum import Model, Solution
     >>> model: Model = ...
     >>> algorithm = ...
     >>> solution: Solution = algorithm.run(model)
     >>> solution.samples
     [[1, 0, 1], [0, 0, 1]]
 
-    When you have a ``dimod.Sampleset`` as raw solution format:
+    When you have a `dimod.Sampleset` as raw solution format:
 
-    >>> from aqmodels.translator import BqmTranslator    >>> from aqmodels import Model, Solution, DwaveTranslator
+    >>> from luna_quantum.translator import BqmTranslator
+    >>> from luna_quantum import Model, Solution, DwaveTranslator
     >>> from dimod import SimulatedAnnealingSampler
     >>> model: Model = ...
     >>> bqm = BqmTranslator.from_aq(model)
@@ -47,8 +48,8 @@ class Solution:
 
     Notes
     -----
-    - To ensure metadata like objective values or feasibility, use ``model.evaluate(solution)``.
-    - Use ``encode()`` and ``decode()`` to serialize and recover solutions.
+    - To ensure metadata like objective values or feasibility, use `model.evaluate(solution)`.
+    - Use `encode()` and `decode()` to serialize and recover solutions.
     """
 
     @dispatched
@@ -74,7 +75,7 @@ class Solution:
     @dispatched
     def __getitem__(self, item):
         """
-        Extract a result view from the ``Solution`` object.
+        Extract a result view from the `Solution` object.
 
         Returns
         -------
@@ -83,7 +84,7 @@ class Solution:
         Raises
         ------
         TypeError
-            If ``item`` has the wrong type.
+            If `item` has the wrong type.
         IndexError
             If the row index is out of bounds for the variable environment.
         """
@@ -92,7 +93,7 @@ class Solution:
     @dispatched
     def __eq__(self, item):
         """
-        Check whether this solution is equal to ``other``.
+        Check whether this solution is equal to `other`.
 
         Parameters
         ----------
@@ -174,7 +175,7 @@ class Solution:
 
     @dispatched
     def serialize(self, compress=True, level=3):
-        """Alias for ``encode()``."""
+        """Alias for `encode()`."""
         return compress, level
 
     @dispatched
@@ -186,7 +187,7 @@ class Solution:
         Parameters
         ----------
         data : bytes
-            Serialized model blob created by ``encode()``.
+            Serialized model blob created by `encode()`.
 
         Returns
         -------
@@ -203,7 +204,7 @@ class Solution:
     @dispatched
     @staticmethod
     def deserialize(data):
-        """Alias for ``decode()``."""
+        """Alias for `decode()`."""
         return data
 
     @staticmethod
@@ -311,7 +312,7 @@ class Solution:
         Raises
         ------
         RuntimeError
-            If a sample column has an incorrect number of samples or if ``counts`` has
+            If a sample column has an incorrect number of samples or if `counts` has
             a length different from the number of samples given.
         """
         return (

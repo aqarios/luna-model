@@ -8,7 +8,7 @@ class ResultIterator:
 
     Examples
     --------
-    >>> from aqmodels import ResultIterator, Solution
+    >>> from luna_quantum import ResultIterator, Solution
     >>> solution: Solution = ...
     >>> results: ResultIterator = solution.results
     >>> for result in results:
@@ -31,15 +31,15 @@ class Result:
     """
     A result object can be understood as a solution with only one sample.
 
-    It can be obtained by calling ``model.evaluate_sample`` for a single sample.
+    It can be obtained by calling `model.evaluate_sample` for a single sample.
 
     Most properties available for the solution object are also available for a result,
-    but in the singular form. For example, you can call ``solution.obj_values``, but
-    ``result.obj_value``.
+    but in the singular form. For example, you can call `solution.obj_values`, but
+    `result.obj_value`.
 
     Examples
     --------
-    >>> from aqmodels import Model, Result, Solution
+    >>> from luna_quantum import Model, Result, Solution
     >>> model: Model = ...
     >>> solution: Solution = ...
     >>> sample = solution.samples[0]
@@ -71,7 +71,7 @@ class Result:
     @property
     @dispatched
     def obj_value(self):
-        """Get the objective value of the result"""
+        """Get the objective value of the result."""
         return
 
     @property
@@ -79,8 +79,9 @@ class Result:
     def constraints(self):
         """
         Get this result's feasibility values of all constraints. Note that
-        ``results.constraints[i]`` iff. ``model.constraints[i]`` is feasible for
-        this result."""
+        `results.constraints[i]` iff. `model.constraints[i]` is feasible for
+        this result.
+        """
         return
 
     @property
@@ -95,16 +96,16 @@ class ResultView:
     """
     A result view object serves as a view into one row of a solution object.
 
-    The ``Result`` class is readonly as it's merely a helper class for looking into a
+    The `Result` class is readonly as it's merely a helper class for looking into a
     solution's row, i.e., a single sample and this sample's metadata.
 
     Most properties available for the solution object are also available for a result,
-    but in the singular form. For example, you can call ``solution.obj_values``, but
-    ``result.obj_value``.
+    but in the singular form. For example, you can call `solution.obj_values`, but
+    `result.obj_value`.
 
     Examples
     --------
-    >>> from aqmodels import ResultView, Solution
+    >>> from luna_quantum import ResultView, Solution
     >>> solution: Solution = ...
     >>> result: ResultView = solution[0]
     >>> result.obj_value
@@ -160,8 +161,9 @@ class ResultView:
     def constraints(self):
         """
         Get this result's feasibility values of all constraints. Note that
-        ``results.constraints[i]`` iff. ``model.constraints[i]`` is feasible for
-        this result."""
+        `results.constraints[i]` iff. `model.constraints[i]` is feasible for
+        this result.
+        """
         return
 
     @property

@@ -16,7 +16,7 @@ class LpTranslator:
     Examples
     --------
     >>> from pathlib import Path
-    >>> from aqmodels import LpTranslator
+    >>> from luna_quantum import LpTranslator
     >>> lp_filepath = Path("path/to/the/lp_file")
 
     >>> model = LpTranslator.to_aq(lp_filepath)

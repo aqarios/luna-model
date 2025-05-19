@@ -18,7 +18,7 @@ class CqmTranslator:
     --------
     >>> import dimod
     >>> import numpy as np
-    >>> from aqmodels import CqmTranslator, Vtype
+    >>> from luna_quantum import CqmTranslator, Vtype
     >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 
     Create a model from a matrix:

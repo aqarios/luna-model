@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 from collections import defaultdict
-from gen_common import (
+from gen_common import (  # type: ignore[unresolved-import]
     LIB_ROOT,
     PROJECT_ROOT,
     AUTOGEN_HEADER,

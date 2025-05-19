@@ -20,16 +20,38 @@ fn starts_with_failable(s: &str) -> bool {
         .any(|prefix| s.to_lowercase().starts_with(&prefix.to_lowercase()))
 }
 
+/// Comparison operators used to define constraints.
+/// 
+/// This enum represents the logical relation between the left-hand side (LHS)
+/// and the right-hand side (RHS) of a constraint.
+/// 
+/// Attributes
+/// ----------
+/// Eq : Comparator
+///     Equality constraint (==).
+/// Le : Comparator
+///     Less-than-or-equal constraint (<=).
+/// Ge : Comparator
+///     Greater-than-or-equal constraint (>=).
+/// 
+/// Examples
+/// --------
+/// >>> from luna_quantum import Comparator
+/// >>> str(Comparator.Eq)
+/// '=='
 #[cfg_attr(
     feature = "py",
     pyclass(eq, eq_int, name = "Comparator", module = "aqmodels")
 )] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {
+    /// Equality (==)
     #[strum(to_string = "==")]
     Eq,
+    /// Less-than or equal (<=)
     #[strum(to_string = "<=")]
     Le,
+    /// Greater-than or equal (>=)
     #[strum(to_string = ">=")]
     Ge,
 }

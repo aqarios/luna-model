@@ -22,6 +22,60 @@ use crate::{
 use derive_more::{Deref, DerefMut};
 use pyo3::{prelude::*, types::PyBytes};
 
+/// A symbolic optimization model consisting of an objective and constraints.
+/// 
+/// The `Model` class represents a structured symbolic optimization problem. It
+/// combines a scalar objective `Expression`, a collection of `Constraints`, and
+/// a shared `Environment` that scopes all variables used in the model.
+/// 
+/// Models can be constructed explicitly by passing an environment, or implicitly
+/// by allowing the model to create its own private environment. If constructed
+/// inside an active `Environment` context (via `with Environment()`), that context
+/// is used automatically.
+/// 
+/// Parameters
+/// ----------
+/// env : Environment, optional
+///     The environment in which variables and expressions are created. If not
+///     provided, the model will either use the current context (if active), or
+///     create a new private environment.
+/// name : str, optional
+///     An optional name assigned to the model.
+/// 
+/// Examples
+/// --------
+/// Basic usage:
+/// 
+/// >>> from luna_quantum import Model, Variable
+/// >>> model = Model("MyModel")
+/// >>> with model.environment:
+/// ...     x = Variable("x")
+/// ...     y = Variable("y")
+/// >>> model.objective = x * y + x
+/// >>> model.constraints += x >= 0
+/// >>> model.constraints += y <= 5
+/// 
+/// With explicit environment:
+/// 
+/// >>> from luna_quantum import Environment
+/// >>> env = Environment()
+/// >>> model = Model("ScopedModel", env)
+/// >>> with env:
+/// ...     x = Variable("x")
+/// ...     model.objective = x * x
+/// 
+/// Serialization:
+/// 
+/// >>> blob = model.encode()
+/// >>> restored = Model.decode(blob)
+/// >>> restored.name
+/// 'MyModel'
+/// 
+/// Notes
+/// -----
+/// - The `Model` class does not solve the optimization problem.
+/// - Use `.objective`, `.constraints`, and `.environment` to access the symbolic content.
+/// - Use `encode()` and `decode()` to serialize and recover models.
 #[pyclass(unsendable, subclass, name = "Model", module = "aqmodels")]
 #[derive(Clone, Deref, DerefMut)]
 pub struct PyModel {
@@ -31,7 +85,7 @@ pub struct PyModel {
     #[deref(ignore)]
     #[deref_mut(ignore)]
     #[pyo3(get, set)]
-    pub _metadata: PyModelMetadata, // HashMap<String, PyObject>, // pub metadata: Option<PyDict>,
+    pub _metadata: PyModelMetadata, 
 }
 
 impl PyModel {
@@ -51,6 +105,15 @@ impl Into<ConcreteMutRcModel> for PyModel {
 
 #[pymethods]
 impl PyModel {
+    /// Initialize a new symbolic model.
+    /// 
+    /// Parameters
+    /// ----------
+    /// name : str, optional
+    ///     An optional name for the model.
+    /// env : Environment, optional
+    ///     The environment in which the model operates. If not provided, a new
+    ///     environment will be created or inferred from context.
     #[new]
     #[pyo3(signature=(name=None, env=None))]
     fn py_new(name: Option<String>, env: Option<PyEnvironment>) -> Self {
@@ -61,59 +124,64 @@ impl PyModel {
                     .clone()
                     .unwrap_or_else(|| PyEnvironment::new(Environment::new()))
             }),
-            // If it show throw an error. But probably shouldn't so we create a new
-            // env if not in the context.
-            // None => CURRENT_ENV.with(|curr| {
-            //     curr.borrow().clone().ok_or_else(|| {
-            //         NoActiveEnvironmentFoundError::new_err("no active environment found.")
-            //     })
-            // })?,
         };
         Self::new(Model::new_with_env(name, env.0))
     }
 
+    /// Set the optimization sense of a model.
+    /// 
+    /// Parameters
+    /// ----------
+    /// sense : Sense
+    ///     The sense of the model (minimization, maximization)
     #[pyo3(name = "set_sense")]
     fn set_sense_py(&mut self, sense: Sense) {
         self.borrow_mut().set_sense(sense);
     }
 
-    // #[getter]
-    // #[pyo3(name = "_metadata")]
-    // fn get_metadata(&self) -> PyModelMetadata {
-    //     self.metadata.clone()
-    // }
-
-    // #[setter]
-    // #[pyo3(name = "_metadata")]
-    // fn set_metadata(&mut self, value: &PyModelMetadata) {
-    //     self.metadata = value.clone()
-    // }
-
+    /// Get the sense of the model
+    /// 
+    /// Returns
+    /// -------
+    /// Sense
+    ///     The sense of the model (Min or Max).
     #[getter]
     fn get_sense(&self) -> Sense {
         self.borrow().sense
     }
 
+    /// Get the objective expression of the model.
     #[getter]
     fn get_objective(&self) -> PyExpression {
         PyExpression(self.borrow().objective.clone())
     }
 
+    /// Set the objective expression of the model.
     #[setter]
     fn set_objective(&mut self, value: &PyExpression) {
         self.borrow_mut().objective = value.0.clone()
     }
 
+    /// Access the set of constraints associated with the model.
     #[getter]
     fn get_constraints(&self) -> PyConstraints {
         PyConstraints(Rc::clone(&self.borrow().constraints))
     }
 
+    /// Replace the model's constraints with a new set.
     #[setter]
     fn set_constraints(&mut self, value: &PyConstraints) {
         self.borrow_mut().constraints = value.0.clone()
     }
 
+    /// Add a constraint to the model's constraint collection.
+    /// 
+    /// Parameters
+    /// ----------
+    /// constraint : Constraint
+    ///     The constraint to be added.
+    /// name : str, optional
+    ///     The name of the constraint to be added.
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
         constraint.borrow_mut().set_name(name)?;
@@ -124,6 +192,15 @@ impl PyModel {
         Ok(())
     }
 
+
+    /// Set the model's objective to this expression.
+    /// 
+    /// Parameters
+    /// ----------
+    /// expression : Expression
+    ///     The expression assigned to the model's objective.
+    /// sense : Sense, optional
+    ///     The sense of the model for this objective, by default Sense.Min.
     #[pyo3(name = "set_objective", signature=(expression, sense=None))]
     fn set_objective_direct(&mut self, expression: PyExpression, sense: Option<Sense>) -> () {
         self.borrow_mut().set_sense(sense.unwrap_or(Sense::Min));
@@ -138,21 +215,41 @@ impl PyModel {
             .add_assign(expression.borrow().deref())?)
     }
 
+    /// Return the number of constraints defined in the model.
+    /// 
+    /// Returns
+    /// -------
+    /// int
+    ///     Total number of constraints.
     #[getter]
     fn num_constraints(&self) -> usize {
         self.borrow().constraints.borrow().len()
     }
 
+    /// Return the name of the model.
     #[getter]
     fn name(&self) -> String {
         self.borrow().name.clone()
     }
 
+    /// Get the environment in which this model is defined.
     #[getter]
     fn environment(&self) -> PyEnvironment {
         PyEnvironment(self.borrow().environment.clone())
     }
 
+
+    /// Get all variables that are part of this model.
+    /// 
+    /// Parameters
+    /// ----------
+    /// active : bool, optional
+    ///     Instead of all variables from the environment, return only those that are
+    ///     actually present in the model's objective.
+    /// 
+    /// Returns
+    /// -------
+    /// The model's variables as a list.
     #[pyo3(signature=(active=None))]
     fn variables(&self, active: Option<bool>) -> Vec<PyVariable> {
         let model = self.borrow();
@@ -169,6 +266,15 @@ impl PyModel {
             .collect()
     }
 
+    /// Check whether this model is equal to ``other``.
+    /// 
+    /// Parameters
+    /// ----------
+    /// other : Model
+    /// 
+    /// Returns
+    /// -------
+    /// bool
     fn __eq__(&self, other: &Self) -> bool {
         self.concrete_model == other.concrete_model
     }
@@ -181,6 +287,24 @@ impl PyModel {
         format!("{:#?}", self.borrow())
     }
 
+    /// Serialize the model into a compact binary format.
+    /// 
+    /// Parameters
+    /// ----------
+    /// compress : bool, optional
+    ///     Whether to compress the binary output. Default is True.
+    /// level : int, optional
+    ///     Compression level (0–9). Default is 3.
+    /// 
+    /// Returns
+    /// -------
+    /// bytes
+    ///     Encoded model representation.
+    /// 
+    /// Raises
+    /// ------
+    /// IOError
+    ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
@@ -192,10 +316,12 @@ impl PyModel {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-            .into())
+        .into())
     }
 
-    /// Alias for serialize
+    /// Alias for `encode()`.
+    /// 
+    /// See `encode()` for full documentation.
     #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
@@ -206,6 +332,22 @@ impl PyModel {
         self.encode(py, compress, level)
     }
 
+    /// Reconstruct an expression from encoded bytes.
+    /// 
+    /// Parameters
+    /// ----------
+    /// data : bytes
+    ///     Binary blob returned by `encode()`.
+    /// 
+    /// Returns
+    /// -------
+    /// Expression
+    ///     Deserialized expression object.
+    /// 
+    /// Raises
+    /// ------
+    /// DecodeError
+    ///     If decoding fails due to corruption or incompatibility.
     #[staticmethod]
     fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Ok(Self::new(
@@ -213,11 +355,25 @@ impl PyModel {
         ))
     }
 
+    /// Alias for `decode()`.
+    /// 
+    /// See `decode()` for full documentation.
     #[staticmethod]
     fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Self::decode(py, data)
     }
 
+    /// Evaluate the model given a solution.
+    /// 
+    /// Parameters
+    /// ----------
+    /// solution : Solution
+    ///     The solution used to evaluate the model with.
+    /// 
+    /// Returns
+    /// -------
+    /// Solution
+    ///     A new solution object with filled-out information.
     fn evaluate(&self, solution: &PySolution) -> PySolution {
         PySolution(
             self.borrow()
@@ -225,6 +381,17 @@ impl PyModel {
         )
     }
 
+    /// Evaluate the model given a single sample.
+    /// 
+    /// Parameters
+    /// ----------
+    /// sample : Sample
+    ///     The sample used to evaluate the model with.
+    /// 
+    /// Returns
+    /// -------
+    /// Result
+    ///     A result object containing the information from the evaluation process.
     fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
         PyOwnedResult(self.borrow().evaluate_sample(&sample.0))
     }

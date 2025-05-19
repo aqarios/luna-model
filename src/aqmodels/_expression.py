@@ -26,7 +26,7 @@ class Expression:
     --------
     Constructing expressions from variables:
 
-    >>> from aqmodels import Environment, Variable
+    >>> from luna_quantum import Environment, Variable
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y")
@@ -460,10 +460,29 @@ class Expression:
         """
         return other
 
+    def __pow__(self, other):
+        """
+        Raise the expression to the power specified by `other`.
+
+        Parameters
+        ----------
+        other : int
+
+        Returns
+        -------
+        Expression
+
+        Raises
+        ------
+        RuntimeError
+            If the param `modulo` usually supported for `__pow__` is specified.
+        """
+        return other
+
     @dispatched
     def __eq__(self, rhs):
         """
-        Compare to a different expression or create a constraint ``expression == scalar``
+        Compare to a different expression or create a constraint `expression == scalar`
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -485,29 +504,10 @@ class Expression:
         """
         return rhs
 
-    def __pow__(self, other):
-        """
-        Raise the expression to the power specified by `other`.
-
-        Parameters
-        ----------
-        other : int
-
-        Returns
-        -------
-        Expression
-
-        Raises
-        ------
-        RuntimeError
-            If the param ``modulo`` usually supported for ``__pow__`` is specified.
-        """
-        return other
-
     @dispatched
     def __le__(self, rhs):
         """
-        Create a constraint ``expression <= scalar``.
+        Create a constraint `expression <= scalar`.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -568,7 +568,7 @@ class Expression:
     @dispatched
     def __ne__(self, other: Expression):
         """
-        Check whether this expression is different from ``other``.
+        Check whether this expression is different from `other`.
 
         Parameters
         ----------
