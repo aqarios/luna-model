@@ -16,6 +16,7 @@ class ResultIterator:
     [0, -5, 0.28]
     [1, -4, -0.42]
     """
+
     def __iter__(self, /) -> ResultIterator: ...
     def __next__(self, /) -> ResultView: ...
 

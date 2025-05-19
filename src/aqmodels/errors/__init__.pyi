@@ -63,7 +63,6 @@ class SampleUnexpectedVariableError(SolutionTranslationError):
 class SampleIncompatibleVtypeError(SolutionTranslationError):
     def __str__(self) -> str: ...
 
-
 __all__ = [
     "DecodeError",
     "DifferentEnvsError",

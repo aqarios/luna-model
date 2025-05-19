@@ -120,11 +120,12 @@ impl PyResultView {
     }
 
     /// Get the raw energy returned by the algorithm if present. This value is not
-    /// guaranteed to be accurate under consideration of the corresponding AqModel.    
+    /// guaranteed to be accurate under consideration of the corresponding AqModel.
     #[getter]
     fn raw_energy(&self) -> Option<ConcreteBias> {
         self.0.raw_energy()
     }
+    
     /// Get this result's feasibility values of all constraints. Note that
     /// `results.constraints[i]` iff. `model.constraints[i]` is feasible for
     /// this result.

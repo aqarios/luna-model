@@ -3,28 +3,179 @@ from typing import overload
 from aqmodels import Variable
 
 class SamplesIterator:
-    def __iter__(self) -> SamplesIterator: ...
-    def __next__(self) -> Sample: ...
+    """
+    An iterator over a solution's samples.
+
+    Examples
+    --------
+    >>> from luna_quantum import Solution
+    >>> solution: Solution = ...
+
+    Note: ``solution.samples`` is automatically converted into a ``SamplesIterator``.
+
+    >>> for sample in solution.samples:
+    ...     sample
+    [0, -5, 0.28]
+    [1, -4, -0.42]
+    """
+
+    def __iter__(self, /) -> SamplesIterator: ...
+    def __next__(self, /) -> Sample: ...
 
 class SampleIterator:
-    def __iter__(self) -> SampleIterator: ...
-    def __next__(self) -> int | float: ...
+    """
+    An iterator over the variable assignments of a solution's sample.
+
+    Examples
+    --------
+    >>> from luna_quantum import Solution
+    >>> solution: Solution = ...
+    >>> sample = solution.samples[0]
+
+    Note: ``sample`` is automatically converted into a ``SampleIterator``.
+
+    >>> for var in sample:
+    ...     var
+    0
+    -5
+    0.28
+    """
+
+    def __iter__(self, /) -> SampleIterator: ...
+    def __next__(self, /) -> int | float: ...
 
 class Samples:
-    def __str__(self) -> str: ...
+    """
+    A samples object is simply a set-like object that contains every different sample
+    of a solution.
+
+    The ``Samples`` class is readonly as it's merely a helper class for looking into a
+    solution's different samples.
+
+    Examples
+    --------
+    >>> from luna_quantum import Model, Sample, Solution
+    >>> model: Model = ...
+    >>> solution: Solution = ...
+    >>> samples: Samples = solution.samples
+    >>> samples
+    [0, -5, 0.28]
+    [1, -4, -0.42]
+    """
+
+    def __str__(self, /) -> str: ...
     @overload
-    def __getitem__(self, item: int) -> Sample: ...
+    def __getitem__(self, /, item: int) -> Sample: ...
     @overload
-    def __getitem__(self, item: tuple[int, int]) -> int | float: ...
-    def __len__(self) -> int: ...
-    def __iter__(self) -> SamplesIterator: ...
-    def tolist(self) -> list[list[int | float]]: ...
+    def __getitem__(self, /, item: tuple[int, int]) -> int | float:
+        """
+        Extract a sample or variable assignment from the ``Samples`` object.
+        If ``item`` is an int, returns the sample in this row. If ``item`` is a tuple
+        of ints `(i, j)`, returns the variable assignment in row `i` and column `j`.
+
+        Returns
+        -------
+        Sample or int or float
+
+        Raises
+        ------
+        TypeError
+            If ``item`` has the wrong type.
+        IndexError
+            If the row or column index is out of bounds for the variable environment.
+        """
+        ...
+
+    def __len__(self, /) -> int:
+        """
+        Get the number of samples present in this sample set.
+
+        Returns
+        -------
+        int
+        """
+        ...
+
+    def __iter__(self, /) -> SamplesIterator:
+        """
+        Iterate over all samples of this sample set.
+
+        Returns
+        -------
+        SamplesIterator
+        """
+        ...
+
+    def tolist(self, /) -> list[list[int | float]]:
+        """
+        Convert the sample into a 2-dimensional list where a row constitutes a single
+        sample, and a column constitutes all assignments for a single variable.
+
+        Returns
+        -------
+        list[list[int | float]]
+            The samples object as a 2-dimensional list.
+        """
+        ...
 
 class Sample:
-    def __str__(self) -> str: ...
+    """
+    A sample object is an assignment of an actual value to each of the models'
+    variables.
+
+    The ``Sample`` class is readonly as it's merely a helper class for looking into a
+    single sample of a solution.
+
+    Note: a ``Sample`` can be converted to ``list[int | float]`` simply by calling
+    ``list(sample)``.
+
+    Examples
+    --------
+    >>> from luna_quantum import Model, Sample, Solution
+    >>> model: Model = ...
+    >>> solution: Solution = ...
+    >>> sample: Sample = solution.samples[0]
+    >>> sample
+    [0, -5, 0.28]
+    """
+
+    def __str__(self, /) -> str: ...
     @overload
-    def __getitem__(self, item: Variable) -> int | float: ...
+    def __getitem__(self, /, item: Variable) -> int | float: ...
     @overload
-    def __getitem__(self, item: int) -> int | float: ...
-    def __len__(self) -> int: ...
-    def __iter__(self) -> SampleIterator: ...
+    def __getitem__(self, /, item: int) -> int | float:
+        """
+        Extract a variable assignment from the ``Sample`` object.
+
+        Returns
+        -------
+        Sample or int or float
+
+        Raises
+        ------
+        TypeError
+            If ``item`` has the wrong type.
+        IndexError
+            If the row or column index is out of bounds for the variable environment.
+        """
+        ...
+
+    def __len__(self, /) -> int:
+        """
+        Get the number of variables present in this sample.
+
+        Returns
+        -------
+        int
+        """
+        ...
+
+    def __iter__(self, /) -> SampleIterator:
+        """
+        Iterate over all variable assignments of this sample.
+
+        Returns
+        -------
+        SampleIterator
+        """
+        ...
