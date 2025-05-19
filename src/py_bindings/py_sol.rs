@@ -192,7 +192,7 @@ impl PySolution {
         }
 
         let energy: Option<f64> = None;
-        sol.extend(sample, 1, energy);
+        let _ = sol.extend(sample, 1, energy)?;
         let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc);

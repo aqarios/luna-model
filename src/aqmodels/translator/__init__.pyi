@@ -142,6 +142,7 @@ class LpTranslator:
     @staticmethod
     def from_aq(model: Model, file: Path) -> None: ...
 
+
 __all__ = [
     "AwsTranslator",
     "BqmTranslator",

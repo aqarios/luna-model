@@ -11,160 +11,190 @@ use pyo3::exceptions::{PyException, PyIndexError};
 use pyo3::{create_exception, PyErr};
 use std::convert::From;
 
-/// Raised when a variable referenced in an expression is out of bounds for the environment.
-///
-/// This error typically occurs when querying coefficients (linear, quadratic,
-/// or higher-order) from an `Expression` using a `Variable` whose index does not
-/// exist in the environment's internal registry.
-///
-/// This may happen if:
-/// - A variable is used from a different environment
-/// - A variable was removed or never registered properly
-/// - A raw index or tuple refers to a non-existent variable ID
-create_exception!(aqmodels.errors, VariableOutOfRangeError, PyException);
+create_exception!(
+    aqmodels.errors,
+    VariableOutOfRangeError,
+    PyException,
+    "Raised when a variable referenced in an expression is out of bounds for the environment.
 
-/// Raised when trying to create a variable with a name that already exists.
-///
-/// Variable names must be unique within an `Environment`. Attempting to redefine
-/// a variable with the same name will raise this exception.
-create_exception!(aqmodels.errors, VariableExistsError, PyException);
+This error typically occurs when querying coefficients (linear, quadratic,
+or higher-order) from an `Expression` using a `Variable` whose index does not
+exist in the environment's internal registry.
 
-/// Raised when trying to get a variable with a name that does not exist.
-create_exception!(aqmodels.errors, VariableNotExistingError, PyException);
+This may happen if:
+    - A variable is used from a different environment
+    - A variable was removed or never registered properly
+    - A raw index or tuple refers to a non-existent variable ID"
+);
 
-/// Raised when an error occurs during the creation of a variable.
-///
-/// For example, binary and spin variables cannot be created with bounds.
-create_exception!(aqmodels.errors, VariableCreationError, PyException);
+create_exception!(
+    aqmodels.errors,
+    VariableExistsError,
+    PyException,
+    "Raised when trying to create a variable with a name that already exists.
 
-/// Raised when multiple variables from different environments are used together.
-///
-/// All variables in an expression or constraint must belong to the same
-/// `Environment`. Mixing across environments is disallowed to ensure consistency.
+Variable names must be unique within an `Environment`. Attempting to redefine
+a variable with the same name will raise this exception."
+);
+
+create_exception!(
+    aqmodels.errors,
+    VariableNotExistingError,
+    PyException,
+    "Raised when trying to get a variable with a name that does not exist."
+);
+
+create_exception!(
+    aqmodels.errors,
+    VariableCreationError,
+    PyException,
+    "Raised when an error occurs during the creation of a variable.
+
+For example, binary and spin variables cannot be created with bounds."
+);
+
 create_exception!(
     aqmodels.errors,
     VariablesFromDifferentEnvsError,
-    PyException
+    PyException,
+    "Raised when multiple variables from different environments are used together.
+
+All variables in an expression or constraint must belong to the same
+`Environment`. Mixing across environments is disallowed to ensure consistency."
 );
 
-/// Raised when two incompatible environments are passed to a model or operation.
-///
-/// Unlike `VariablesFromDifferentEnvsError`, this error may occur at the model level
-/// or in structural operations that require consistency across multiple environments.
-create_exception!(aqmodels.errors, DifferentEnvsError, PyException);
+create_exception!(
+    aqmodels.errors,
+    DifferentEnvsError,
+    PyException,
+    "Raised when two incompatible environments are passed to a model or operation.
 
-/// Raised when a variable or expression is created without an active environment context.
-///
-/// This typically happens when not using `with Environment(): ...` and no environment
-/// was explicitly provided.
-create_exception!(aqmodels.errors, NoActiveEnvironmentFoundError, PyException);
+Unlike `VariablesFromDifferentEnvsError`, this error may occur at the model level
+or in structural operations that require consistency across multiple environments."
+);
 
-/// Raised when multiple environments are active simultaneously.
-///
-/// This is a logic error, since `aqmodels` only supports one active environment
-/// at a time. This is enforced to maintain clarity and safety.
+create_exception!(
+    aqmodels.errors,
+    NoActiveEnvironmentFoundError,
+    PyException,
+    "Raised when a variable or expression is created without an active environment context.
+
+This typically happens when not using `with Environment(): ...` and no environment
+was explicitly provided."
+);
+
 create_exception!(
     aqmodels.errors,
     MultipleActiveEnvironmentsError,
-    PyException
+    PyException,
+    "Raised when multiple environments are active simultaneously.
+
+This is a logic error, since `aqmodels` only supports one active environment
+at a time. This is enforced to maintain clarity and safety."
 );
 
-/// Raised when decoding or deserialization of binary data fails.
-///
-/// This can occur if the encoded data is corrupted, incompatible, or not generated
-/// by `aqmodels.encode()`.
-create_exception!(aqmodels.errors, DecodeError, PyException);
+create_exception!(
+    aqmodels.errors,
+    DecodeError,
+    PyException,
+    "Raised when decoding or deserialization of binary data fails.
 
-/// Raised when a constraint is tried to be created with an illegal name.
-create_exception!(aqmodels.errors, IllegalConstraintNameError, PyException);
+This can occur if the encoded data is corrupted, incompatible, or not generated
+by `.encode()`."
+);
 
-/// Raised when an error occurred during translation.
-create_exception!(aqmodels.errors, TranslationError, PyException);
+create_exception!(
+    aqmodels.errors,
+    IllegalConstraintNameError,
+    PyException,
+    "Raised when a constraint is tried to be created with an illegal name."
+);
 
-/// Raised when a model is expected to be quadratic but contains higher-order terms.
-///
-/// Some solvers or transformations require the model to have at most quadratic
-/// expressions. This error signals that unsupported terms were detected.
-create_exception!(aqmodels.errors, ModelNotQuadraticError, TranslationError);
+create_exception!(
+    aqmodels.errors,
+    TranslationError,
+    PyException,
+    "Raised when an error occurred during translation."
+);
 
-/// Raised when an operation requires an unconstrained model, but constraints are present.
-///
-/// Some solution methods may only work on unconstrained models, such as when
-/// transforming a symbolic model to a low-level format.
+create_exception!(
+    aqmodels.errors,
+    ModelNotQuadraticError,
+    TranslationError,
+    "Raised when a model is expected to be quadratic but contains higher-order terms.
+
+Some solvers or transformations require the model to have at most quadratic
+expressions. This error signals that unsupported terms were detected."
+);
+
 create_exception!(
     aqmodels.errors,
     ModelNotUnconstrainedError,
-    TranslationError
+    TranslationError,
+    "Raised when an operation requires an unconstrained model, but constraints are present.
+
+Some solution methods may only work on unconstrained models, such as when
+transforming a symbolic model to a low-level format."
 );
 
-/// Raised when an operation requires a model with minimization sense, but has
-/// maximization sense.
-///
-/// Some model formats only work with minimization sense. In this case, consider
-/// setting the sense to `minimize` before the transformation, and multiplying the
-/// objective by `-1` if necessary.
 create_exception!(
     aqmodels.errors,
     ModelSenseNotMinimizeError,
-    TranslationError
+    TranslationError,
+    "Raised when an operation requires a model with minimization sense, but has maximization sense.
+
+Some model formats only work with minimization sense. In this case, consider
+setting the sense to `minimize` before the transformation, and multiplying the
+objective by `-1` if necessary."
 );
 
-/// Raised when an operation has certain constraints on a model's variable types that
-/// are violated.
-///
-/// Some solution methods may only work on models where all variables have the same
-/// type, or where only certain variable types are permitted.
-create_exception!(aqmodels.errors, ModelVtypeError, TranslationError);
+create_exception!(
+    aqmodels.errors,
+    ModelVtypeError,
+    TranslationError,
+    "Raised when an operation has certain constraints on a model's variable types that are violated.
 
-/// Raised when the QuboTranslator tries to create a model from a QUBO matrix, but
-/// the provided variable names are invalid.
-///
-/// If variable names are provided to the QuboTranslator, they have to be unique, and
-/// the number of names has to match the number of variables in the QUBO matrix.
+Some solution methods may only work on models where all variables have the same
+type, or where only certain variable types are permitted."
+);
+
 create_exception!(aqmodels.errors, VariableNamesError, TranslationError);
 
-/// Raised when something goes wrong during the translation of a solution.
-///
-/// This may happen during the translation to an AqSolution from a different solution
-/// format, e.g., when the samples have different lengths or the variable types are not
-/// consistent with the model the solution is created for.
 create_exception!(aqmodels.errors, SolutionTranslationError, PyException);
 
-/// Raised when a sample length is different from the number of model variables.
-///
-/// When an external solution format is translated to an AqSolution, the number of
-/// variable assignments in the solution's sample has to exactly match the number of
-/// variables in the model environment that is passed to the translator.
 create_exception!(
     aqmodels.errors,
     SampleIncorrectLengthError,
-    SolutionTranslationError
+    SolutionTranslationError,
+    "Raised when a sample length is different from the number of model variables.
+
+When an external solution format is translated to an AqSolution, the number of
+variable assignments in the solution's sample has to exactly match the number of
+variables in the model environment that is passed to the translator."
 );
 
-/// Raised when a sample contains a variable with a name that is not present in the
-/// environment.
-///
-/// When a sample is translated to an AqResult, the currently active environment has to
-/// contain the same variables as the sample.
 create_exception!(
     aqmodels.error,
     SampleUnexpectedVariableError,
-    SolutionTranslationError
+    SolutionTranslationError,
+    "Raised when a sample contains a variable with a name that is not present in the environment.
+
+When a sample is translated to an AqResult, the currently active environment has to
+contain the same variables as the sample."
 );
 
-/// Raised when a sample's assignments have variable types incompatible with the
-/// model's variable types.
-///
-/// When an external solution format is translated to an AqSolution, the variable
-/// assignments are tried to be converted into the model's corresponding variable type.
-/// This may fail when the assignment types are incompatible.
-///
-/// Note that conversions with precision loss or truncation are admitted, but
-/// conversions of variables outside the permitted range will fail.
 create_exception!(
     aqmodels.error,
     SampleIncompatibleVtypeError,
-    SolutionTranslationError
+    SolutionTranslationError,
+    "Raised when a sample's assignments have variable types incompatible with the model's variable types.
+
+When an external solution format is translated to an AqSolution, the variable
+assignments are tried to be converted into the model's corresponding variable type.
+This may fail when the assignment types are incompatible.
+
+Note that conversions with precision loss or truncation are admitted, but
+conversions of variables outside the permitted range will fail."
 );
 
 impl From<VariableOutOfRangeErr> for PyErr {
