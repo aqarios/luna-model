@@ -56,16 +56,16 @@ impl PyLpTranslator {
     #[pyo3(signature=(file))]
     fn to_aq(py: Python, file: PyObject) -> PyResult<PyModel> {
         if let Ok(file) = file.extract::<String>(py) {
-            /// Here we need to help the user a bit. Let's check if we can make a PathBuf from this.
-            /// If not possible we try to read the string as is. And throw an error if both fails.
-            /// from the translation.
+            // Here we need to help the user a bit. Let's check if we can make a PathBuf from this.
+            // If not possible we try to read the string as is. And throw an error if both fails.
+            // from the translation.
             let pathbuf = PathBuf::from(&file);
             let file = if pathbuf.exists() {
-                /// We have a real path. So we can call the translate on the pathbuf.
+                // We have a real path. So we can call the translate on the pathbuf.
                 LPTranslator::<ConcreteIndex, ConcreteBias>::read_file(pathbuf)?
             } else {
-                /// We have a string representing a model.
-                /// We don't need to do anything here.
+                // We have a string representing a model.
+                // We don't need to do anything here.
                 file
             };
             Ok(PyModel::new(LPTranslator::translate(file)?))

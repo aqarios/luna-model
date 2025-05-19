@@ -199,8 +199,8 @@ impl PySolution {
         timing: Option<PyTiming>,
         counts: Option<Vec<usize>>,
     ) -> PyResult<Self> {
-        /// todo! change to numpy arrays instead of vecs.
-        /// todo! move further down in rust code.
+        // todo! change to numpy arrays instead of vecs.
+        // todo! move further down in rust code.
         let mut sol = Solution::default();
 
         let (mut lb, mut ls, mut li, mut lr) = (0, 0, 0, 0);
