@@ -5,11 +5,11 @@ import pytest
 from time import sleep
 
 from aqmodels import (
-    QctrlTranslator,
     Timer,
     Variable,
     Environment,
 )
+from aqmodels.translator import QctrlTranslator
 from pytests.test_core.utils import make_seed, random, random_bool, random_int
 
 REPS: int = 20

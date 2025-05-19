@@ -4,13 +4,12 @@ import numpy as np
 import pytest
 
 from aqmodels import (
-    BqmTranslator,
     Model,
     Variable,
     Sense,
-    ModelSenseNotMinimizeError,
-    TranslationError,
 )
+from aqmodels.translator import BqmTranslator
+from aqmodels.errors import ModelSenseNotMinimizeError, TranslationError
 from pytests.test_core.utils import make_seed, generate_bqms
 
 

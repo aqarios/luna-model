@@ -8,12 +8,12 @@ from dwave.samplers import SimulatedAnnealingSampler
 
 from aqmodels import (
     Environment,
-    DwaveTranslator,
     Timer,
     Variable,
     Vtype,
-    SampleIncompatibleVtypeError,
 )
+from aqmodels.translator import DwaveTranslator
+from aqmodels.errors import SampleIncompatibleVtypeError
 from pytests.test_core.utils import make_seed, random_int, generate_bqms
 
 

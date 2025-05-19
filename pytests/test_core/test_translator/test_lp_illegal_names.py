@@ -1,6 +1,7 @@
 import pytest
 
-from aqmodels import Model, Variable, LpTranslator
+from aqmodels import Model, Variable
+from aqmodels.translator import LpTranslator
 from aqmodels.errors import IllegalConstraintNameError
 
 ILLEGAL_WORD_START = [
