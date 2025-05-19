@@ -6,14 +6,15 @@ class Timing:
     """
     The object that holds information about an algorithm's runtime.
 
-    This class can only be constructed using a ``Timer``. This ensures that a
-    ``Timing`` object always contains a start as well as an end time.
+    This class can only be constructed using a `Timer`. This ensures that a
+    `Timing` object always contains a start as well as an end time.
 
-    The ``qpu`` field of this class can only be set after constructing it with a timer.
+    The `qpu` field of this class can only be set after constructing it with a timer.
 
     Examples
     --------
-    >>> from dwave.samplers.tree.solve import BinaryQuadraticModel    >>> from aqmodels import Model, Timer, Timing
+    >>> from dwave.samplers.tree.solve import BinaryQuadraticModel
+    >>> from luna_quantum import Model, Timer, Timing
     >>> model = ... # third-party model
     >>> algorithm = ... # third-party algorithm
     >>> timer = Timer.start()
@@ -80,7 +81,7 @@ class Timing:
         Raises
         ------
         ValueError
-            If ``value`` is negative."""
+            If `value` is negative."""
         return value
 
     @dispatched
@@ -97,7 +98,7 @@ class Timing:
         Raises
         ------
         ValueError
-            If ``value`` is negative.
+            If `value` is negative.
         """
         return
 
@@ -107,14 +108,14 @@ class Timer:
     """
     Used to measure the computation time of an algorithm.
 
-    The sole purpose of the ``Timer`` class is to create a ``Timing`` object in a safe
-    way, i.e., to ensure that the ``Timing`` object always holds a starting and
+    The sole purpose of the `Timer` class is to create a `Timing` object in a safe
+    way, i.e., to ensure that the `Timing` object always holds a starting and
     finishing time.
 
     Examples
     --------
     Basic usage:
-    >>> from aqmodels import  Timer
+    >>> from luna_quantum import  Timer
     >>> timer = Timer.start()
     >>> solution = ... # create a solution by running an algorithm.
     >>> timing = timer.stop()
@@ -136,7 +137,7 @@ class Timer:
     @dispatched
     def stop(self):
         """
-        Stop the timer, and get the resulting ``Timing`` object.
+        Stop the timer, and get the resulting `Timing` object.
 
         Returns
         -------

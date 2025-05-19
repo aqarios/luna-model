@@ -13,9 +13,9 @@ class AwsTranslator:
 
     Examples
     --------
-    >>> import aqmodels as aqm
+    >>> import luna_quantum as lq
     >>> aws_result = ...
-    >>> aqs = aqm.translator.AwsTranslator.to_aq(aws_result)
+    >>> aqs = lq.translator.AwsTranslator.to_aq(aws_result)
     """
 
     @dispatched

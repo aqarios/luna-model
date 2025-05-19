@@ -80,7 +80,7 @@ class QuboTranslator:
     Examples
     --------
     >>> import numpy as np
-    >>> from aqmodels import QuboTranslator, Vtype
+    >>> from luna_quantum import QuboTranslator, Vtype
     >>> q = np.array([[1.0, -1.0], [-1.0, 2.0]])
 
     Create a model from a matrix:

@@ -11,7 +11,7 @@ class SamplesIterator:
     >>> from luna_quantum import Solution
     >>> solution: Solution = ...
 
-    Note: ``solution.samples`` is automatically converted into a ``SamplesIterator``.
+    Note: `solution.samples` is automatically converted into a `SamplesIterator`.
 
     >>> for sample in solution.samples:
     ...     sample
@@ -39,7 +39,7 @@ class SampleIterator:
     >>> solution: Solution = ...
     >>> sample = solution.samples[0]
 
-    Note: ``sample`` is automatically converted into a ``SampleIterator``.
+    Note: `sample` is automatically converted into a `SampleIterator`.
 
     >>> for var in sample:
     ...     var
@@ -63,7 +63,7 @@ class Samples:
     A samples object is simply a set-like object that contains every different sample
     of a solution.
 
-    The ``Samples`` class is readonly as it's merely a helper class for looking into a
+    The `Samples` class is readonly as it's merely a helper class for looking into a
     solution's different samples.
 
     Examples
@@ -84,8 +84,8 @@ class Samples:
     @dispatched
     def __getitem__(self, item):
         """
-        Extract a sample or variable assignment from the ``Samples`` object.
-        If ``item`` is an int, returns the sample in this row. If ``item`` is a tuple
+        Extract a sample or variable assignment from the `Samples` object.
+        If `item` is an int, returns the sample in this row. If `item` is a tuple
         of ints `(i, j)`, returns the variable assignment in row `i` and column `j`.
 
         Returns
@@ -95,7 +95,7 @@ class Samples:
         Raises
         ------
         TypeError
-            If ``item`` has the wrong type.
+            If `item` has the wrong type.
         IndexError
             If the row or column index is out of bounds for the variable environment.
         """
@@ -144,11 +144,11 @@ class Sample:
     A sample object is an assignment of an actual value to each of the models'
     variables.
 
-    The ``Sample`` class is readonly as it's merely a helper class for looking into a
+    The `Sample` class is readonly as it's merely a helper class for looking into a
     single sample of a solution.
 
-    Note: a ``Sample`` can be converted to ``list[int | float]`` simply by calling
-    ``list(sample)``.
+    Note: a `Sample` can be converted to `list[int | float]` simply by calling
+    `list(sample)`.
 
     Examples
     --------
@@ -167,7 +167,7 @@ class Sample:
     @dispatched
     def __getitem__(self, item):
         """
-        Extract a variable assignment from the ``Sample`` object.
+        Extract a variable assignment from the `Sample` object.
 
         Returns
         -------
@@ -176,7 +176,7 @@ class Sample:
         Raises
         ------
         TypeError
-            If ``item`` has the wrong type.
+            If `item` has the wrong type.
         IndexError
             If the row or column index is out of bounds for the variable environment.
         """

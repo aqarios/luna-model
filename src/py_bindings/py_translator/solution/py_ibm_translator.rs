@@ -11,6 +11,21 @@ use crate::{
 use pyo3::{ffi::c_str, prelude::*};
 use std::rc::Rc;
 
+/// Utility class for converting between an IBM solution and our solution format.
+///
+///
+/// `IbmTranslator` provides methods to:
+/// - Convert an IBM-style solution into our solution `Solution`.
+///
+/// The conversions are especially required when interacting with external ibm solvers/samplers or
+/// libraries that operate on ibm-based problem-solving/sampling.
+///
+/// Examples
+/// --------
+/// >>> import luna_quantum as lq
+/// >>> ...
+/// >>> ibm_result = ...
+/// >>> aqs = lq.translator.IbmTranslator.to_aq(ibm_result)
 #[pyclass(unsendable, name = "IbmTranslator", module = "aqmodels.translator")]
 pub struct PyIbmTranslator {}
 
@@ -44,6 +59,32 @@ impl PyIbmTranslator {
         )?))
     }
 
+    /// Convert an IBM solution to our solution format.
+    ///
+    /// Parameters
+    /// ----------
+    /// result : PrimitiveResult[PubResult]
+    ///     The ibm result.
+    /// quadratic_program : QuadraticProgram
+    ///     The quadratic program defining the optimization problem.
+    /// timing : Timing, optional
+    ///     The timing object produced while generating the result.
+    /// env : Environment, optional
+    ///     The environment of the model for which the result is produced.
+    ///
+    /// Raises
+    /// ------
+    /// NoActiveEnvironmentFoundError
+    ///     If no environment is passed to the method or available from the context.
+    /// SolutionTranslationError
+    ///     Generally if the solution translation fails. Might be specified by one of the
+    ///         two following errors.
+    /// SampleIncorrectLengthError
+    ///     If a solution's sample has a different number of variables than the model
+    ///     environment passed to the translator.
+    /// ModelVtypeError
+    ///     If the result's variable types are incompatible with the model environment's
+    ///     variable types.
     #[staticmethod]
     #[pyo3(signature=(result, quadratic_program, timing=None, env=None))]
     fn to_aq(
