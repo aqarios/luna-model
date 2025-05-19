@@ -48,64 +48,38 @@ transformers
     to a linear model.
 """
 
-from ._variable import (
-  Variable,
-  Vtype,
-  Bounds
-)
-from ._timing import (
-  Timer,
-  Timing
-)
+from ._variable import Variable, Vtype, Bounds
+from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import (
-  SampleIterator,
-  SamplesIterator,
-  Samples,
-  Sample
-)
-from ._result import (
-  ResultIterator,
-  Result,
-  ResultView
-)
-from ._model import (
-  Model,
-  Sense
-)
+from ._sample import SampleIterator, SamplesIterator, Samples, Sample
+from ._result import ResultIterator, Result, ResultView
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-  ResultIterator as __ResultIterator,
-  ResultView as __ResultView,
-  Comparator as __Comparator,
-  SampleIterator as __SampleIterator,
-  SamplesIterator as __SamplesIterator,
-  Constraints as __Constraints,
-  Bounds as __Bounds,
-  Solution as __Solution,
-  Samples as __Samples,
-  Sample as __Sample,
-  Result as __Result,
-  Environment as __Environment,
-  Model as __Model,
-  Timer as __Timer,
-  Timing as __Timing,
-  Expression as __Expression,
-  Variable as __Variable,
-  Vtype as __Vtype,
-  Constraint as __Constraint,
-  Sense as __Sense
+    ResultIterator as __ResultIterator,
+    ResultView as __ResultView,
+    Comparator as __Comparator,
+    SampleIterator as __SampleIterator,
+    SamplesIterator as __SamplesIterator,
+    Constraints as __Constraints,
+    Bounds as __Bounds,
+    Solution as __Solution,
+    Samples as __Samples,
+    Sample as __Sample,
+    Result as __Result,
+    Environment as __Environment,
+    Model as __Model,
+    Timer as __Timer,
+    Timing as __Timing,
+    Expression as __Expression,
+    Variable as __Variable,
+    Vtype as __Vtype,
+    Constraint as __Constraint,
+    Sense as __Sense,
 )
-from ._constraints import (
-  Comparator,
-  Constraint,
-  Constraints
-)
-from . import (
-  errors,
-  translator
-)
+from ._constraints import Comparator, Constraint, Constraints
+from . import errors, translator
 
 SamplesIterator = __SamplesIterator  # type: ignore[misc,assignment] # noqa: F811
 SampleIterator = __SampleIterator  # type: ignore[misc,assignment] # noqa: F811

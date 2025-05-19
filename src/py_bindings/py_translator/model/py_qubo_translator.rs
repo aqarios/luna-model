@@ -39,7 +39,7 @@ impl PyQubo {
     /// -------
     /// list[Variable]
     ///     The variable names in the order they appear in the QUBO.
-    #[getter(variable_names)]
+    #[getter]
     fn get_variable_names(&self) -> Vec<String> {
         self.variable_names.clone()
     }
@@ -50,7 +50,7 @@ impl PyQubo {
     /// -------
     /// str
     ///     The model name.
-    #[getter(name)]
+    #[getter]
     fn get_name(&self) -> String {
         self.name.clone()
     }
@@ -61,7 +61,7 @@ impl PyQubo {
     /// -------
     /// float
     ///     The constant offset of the model.
-    #[getter(offset)]
+    #[getter]
     fn get_offset(&self) -> f64 {
         self.offset
     }
@@ -72,7 +72,7 @@ impl PyQubo {
     /// -------
     /// Vtype
     ///     The variable type.
-    #[getter(vtype)]
+    #[getter]
     fn get_vtype(&self) -> Vtype {
         self.vtype
     }
