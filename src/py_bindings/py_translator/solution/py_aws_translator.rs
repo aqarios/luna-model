@@ -7,6 +7,18 @@ use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 
+/// Utility class for converting between an AWS result and an AqSolution (ours).
+///
+/// `AwsTranslator` provides methods to:
+/// - Convert an AWS-style result into our solution `Solution`.
+///
+/// The conversions are especially required when interaction with external aws solvers/samplers or libraries that operate on aws-based problem solving/sampling.
+///
+/// Examples
+/// --------
+/// >>> import aqmodels as aqm
+/// >>> aws_result = ...
+/// >>> aqs = aqm.translator.AwsTranslator.to_aq(aws_result)
 #[pyclass(unsendable, name = "AwsTranslator", module = "aqmodels.translator")]
 pub struct PyAwsTranslator(pub NpArrayTranslator);
 
@@ -41,6 +53,30 @@ impl PyAwsTranslator {
         )?))
     }
 
+    /// Convert an AWS Braket result to an AqSolution.
+    ///
+    /// Parameters
+    /// ----------
+    /// result : dict[str, Any]
+    ///     The aws braket result.
+    /// timing : Timing, optional
+    ///     The timing object produced while generating the result.
+    /// env : Environment, optional
+    ///     The environment of the model for which the result is produced.
+    ///
+    /// Raises
+    /// ------
+    /// NoActiveEnvironmentFoundError
+    ///     If no environment is passed to the method or available from the context.
+    /// SolutionTranslationError
+    ///     Generally if the solution translation fails. Might be specified by one of the
+    ///     two following errors.
+    /// SampleIncorrectLengthError
+    ///     If a solution's sample has a different number of variables than the model
+    ///     environment passed to the translator.
+    /// ModelVtypeError
+    ///     If the result's variable types are incompatible with the model environment's
+    ///     variable types.
     #[staticmethod]
     #[pyo3(signature = (aws_result, timing=None, env=None))]
     fn to_aq(
@@ -75,8 +111,8 @@ def extract(aws_result, timing, env):
             c_str!(""),
             c_str!(""),
         )?
-        .getattr("extract")?
-        .into();
+            .getattr("extract")?
+            .into();
         let args = (aws_result, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)

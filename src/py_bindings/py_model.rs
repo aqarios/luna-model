@@ -192,7 +192,7 @@ impl PyModel {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-            .into())
+        .into())
     }
 
     /// Alias for serialize
