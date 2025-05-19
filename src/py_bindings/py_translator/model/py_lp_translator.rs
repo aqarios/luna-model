@@ -6,11 +6,52 @@ use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use std::path::PathBuf;
 
+/// Utility class for converting between LP files and symbolic models.
+///
+/// `LpTranslator` provides methods to:
+/// - Convert an LP file into a symbolic `Model`
+/// - Convert a `Model` into an Lp file.
+///
+/// These conversions are especially useful when interacting with external solvers
+/// or libraries that operate on LP-based problem definitions.
+///
+/// Examples
+/// --------
+/// >>> from pathlib import Path
+/// >>> from luna_quantum import LpTranslator
+/// >>> lp_filepath = Path("path/to/the/lp_file")
+///
+/// >>> model = LpTranslator.to_aq(lp_filepath)
+///
+/// Convert it back to an LP file:
+///
+/// >>> recovered = LpTranslator.to_file(model)
 #[pyclass(unsendable, name = "LpTranslator", module = "aqmodels.translator")]
 pub struct PyLpTranslator {}
 
 #[pymethods]
 impl PyLpTranslator {
+    /// Convert an LP file into a symbolic `Model`.
+    ///
+    /// Parameters
+    /// ----------
+    /// file: Path | String
+    ///     An LP file representing a symbolic model, either given as a
+    ///     Path object to the LP file or its contents as a string.
+    ///     If you pass the path as a string, it will be interpreted as a
+    ///     model and thus fail to be parsed to a Model.
+    ///
+    /// Returns
+    /// -------
+    /// Model
+    ///     A symbolic model representing the given lp file structure.
+    ///
+    /// Raises
+    /// ------
+    /// TypeError
+    ///     If `file` is not of type `str` or `Path`.
+    /// TranslationError
+    ///     If the translation fails for a different reason.
     #[staticmethod]
     #[pyo3(signature=(file))]
     fn to_aq(py: Python, file: PyObject) -> PyResult<PyModel> {
@@ -38,6 +79,24 @@ impl PyLpTranslator {
         }
     }
 
+    /// Convert a symbolic model to an LP file representation.
+    ///
+    /// Parameters
+    /// ----------
+    /// model : Model
+    ///     The symbolic model to convert.
+    /// file : Path, optional
+    ///     The filepath to write the model contents to.
+    ///
+    /// Returns
+    /// -------
+    /// str
+    ///     If no file to write to is given, i.e., the file is None.
+    ///
+    /// Raises
+    /// ------
+    /// TranslationError
+    ///     If the translation fails for some reason.
     #[staticmethod]
     #[pyo3(signature=(model, filepath=None))]
     fn from_aq(model: &PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {

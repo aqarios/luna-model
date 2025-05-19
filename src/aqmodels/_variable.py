@@ -247,7 +247,7 @@ class Variable:
         Raises
         ------
         TypeError
-            If ``other`` is not a scalar.
+            If `other` is not a scalar.
         """
         return other
 
@@ -310,7 +310,7 @@ class Variable:
         Raises
         ------
         RuntimeError
-            If the param ``modulo`` usually supported for ``__pow__`` is specified.
+            If the param `modulo` usually supported for `__pow__` is specified.
         """
         return other
 

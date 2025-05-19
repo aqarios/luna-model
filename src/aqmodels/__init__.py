@@ -22,7 +22,7 @@ We recommend exploring the docstrings using
 TAB-completion and introspection capabilities.  See below for further
 instructions.
 
-The docstring examples assume that `aqmodels` has been imported as ``aqm``::
+The docstring examples assume that `aqmodels` has been imported as `aqm`::
 
   >>> import aqmodels as aqm
 
@@ -31,7 +31,7 @@ Code snippets are indicated by three greater-than signs::
   >>> x = 42
   >>> x = x + 1
 
-Use the built-in ``help`` function to view a function's docstring::
+Use the built-in `help` function to view a function's docstring::
 
   >>> help(aqm.Model)
   ... # doctest: +SKIP
@@ -49,20 +49,20 @@ transformers
 """
 
 from ._variable import (
-  Variable,
   Bounds,
-  Vtype
+  Vtype,
+  Variable
 )
 from ._timing import (
-  Timer,
-  Timing
+  Timing,
+  Timer
 )
 from ._solution import Solution
 from ._sample import (
+  SamplesIterator,
   Samples,
-  Sample,
   SampleIterator,
-  SamplesIterator
+  Sample
 )
 from ._result import (
   ResultView,
@@ -70,37 +70,37 @@ from ._result import (
   Result
 )
 from ._model import (
-  Model,
-  Sense
+  Sense,
+  Model
 )
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
   Vtype as __Vtype,
-  ResultView as __ResultView,
-  Result as __Result,
-  Environment as __Environment,
+  Bounds as __Bounds,
+  SampleIterator as __SampleIterator,
   Timer as __Timer,
-  Samples as __Samples,
-  Timing as __Timing,
+  Comparator as __Comparator,
+  Solution as __Solution,
   Sense as __Sense,
-  ResultIterator as __ResultIterator,
+  Result as __Result,
+  Variable as __Variable,
+  Samples as __Samples,
   SamplesIterator as __SamplesIterator,
   Constraint as __Constraint,
-  Sample as __Sample,
   Expression as __Expression,
+  Sample as __Sample,
+  ResultView as __ResultView,
   Constraints as __Constraints,
-  Bounds as __Bounds,
-  Variable as __Variable,
   Model as __Model,
-  Solution as __Solution,
-  Comparator as __Comparator,
-  SampleIterator as __SampleIterator
+  Timing as __Timing,
+  Environment as __Environment,
+  ResultIterator as __ResultIterator
 )
 from ._constraints import (
+  Comparator,
   Constraint,
-  Constraints,
-  Comparator
+  Constraints
 )
 from . import (
   translator,

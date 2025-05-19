@@ -11,11 +11,11 @@ class NumpyTranslator:
 
     Examples
     --------
-    >>> import aqmodels as aqm
+    >>> import luna_quantum as lq
     >>> from numpy.typing import NDArray
     >>> result: NDArray = ...
     >>> energies: NDArray = ...
-    >>> aqs = aqm.translator.NumpyTranslator.to_aq(result, energies)
+    >>> aqs = lq.translator.NumpyTranslator.to_aq(result, energies)
     """
 
     @dispatched
