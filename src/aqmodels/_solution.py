@@ -29,7 +29,7 @@ class Solution:
 
     When you have a ``dimod.Sampleset`` as raw solution format:
 
-    >>> from luna_quantum.translator import BqmTranslator    
+    >>> from luna_quantum.translator import BqmTranslator
     >>> from luna_quantum import Model, Solution, DwaveTranslator
     >>> from dimod import SimulatedAnnealingSampler
     >>> model: Model = ...

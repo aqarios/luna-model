@@ -44,7 +44,7 @@ def test_use_model_environment():
     model = make_model()
     with model.environment:
         _ = Variable("x")
-        m = Model()
+        _ = Model()
 
 
 @pytest.mark.model

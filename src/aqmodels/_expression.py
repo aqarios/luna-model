@@ -479,7 +479,6 @@ class Expression:
         """
         return other
 
-
     @dispatched
     def __eq__(self, rhs):
         """

@@ -1,4 +1,5 @@
-from aqmodels import Vtype
+import pytest
+from aqmodels import Vtype, Expression
 from .common import *  # noqa: F403
 from ...utils import (
     assert_higher_order,
