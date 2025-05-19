@@ -196,6 +196,23 @@ class Model:
         return
 
     @dispatched
+    def variables(self, active):
+        """
+        Get all variables that are part of this model.
+
+        Parameters
+        ----------
+        active : bool, optional
+            Instead of all variables from the environment, return only those that are
+            actually present in the model's objective.
+
+        Returns
+        -------
+        The model's variables as a list.
+        """
+        return active
+
+    @dispatched
     def add_constraint(self, constraint, name):
         """
         Add a constraint to the model's constraint collection.
