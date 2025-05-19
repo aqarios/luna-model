@@ -6,19 +6,20 @@ use crate::translator::solution::DwaveTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{ffi::c_str, prelude::*};
 
-/// Utility class for converting between a DWAVE solution and an AqSolution (ours).
+/// Utility class for converting between a DWAVE solution and our solution format.
 ///
 /// `DWaveSolutionTranslator` provides methods to:
 /// - Convert a dimod-style solution into our solution `Solution`.
 ///
-/// The conversions are especially required when interaction with external dwave/dimod solvers/samplers or libraries that operate on dwave/dimod-based problem solving/sampling.
+/// The conversions are especially required when interacting with external dwave/dimod
+/// solvers/samplers or libraries that operate on dwave/dimod-based problem-solving/sampling.
 ///
 /// Examples
 /// --------
 /// >>> import dimod
-/// >>> import aqmodels as aqm
+/// >>> import luna_quantum as lq
 /// >>> dwave_sampleset = ...
-/// >>> aqs = aqm.translator.DwaveTranslator.to_aq(dwave_sampleset)
+/// >>> aqs = lq.translator.DwaveTranslator.to_aq(dwave_sampleset)
 #[pyclass(unsendable, name = "DwaveTranslator", module = "aqmodels.translator")]
 pub struct PyDwaveTranslator(pub DwaveTranslator);
 
@@ -51,7 +52,7 @@ impl PyDwaveTranslator {
         )?))
     }
 
-    /// Convert a DWave SampleSet to an AqSolution.
+    /// Convert a DWave SampleSet to our solution format.
     ///
     /// Parameters
     /// ----------

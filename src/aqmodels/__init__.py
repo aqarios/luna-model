@@ -48,35 +48,35 @@ transformers
     to a linear model.
 """
 
-from ._variable import Bounds, Vtype, Variable
+from ._variable import Vtype, Bounds, Variable
 from ._timing import Timer, Timing
 from ._solution import Solution
-from ._sample import SamplesIterator, Samples, SampleIterator, Sample
-from ._result import ResultView, Result, ResultIterator
-from ._model import Sense, Model
+from ._sample import Sample, SamplesIterator, SampleIterator, Samples
+from ._result import Result, ResultIterator, ResultView
+from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Constraint as __Constraint,
+    Samples as __Samples,
     Timing as __Timing,
     Solution as __Solution,
     SamplesIterator as __SamplesIterator,
+    Sense as __Sense,
+    Timer as __Timer,
+    Result as __Result,
+    ResultView as __ResultView,
+    Variable as __Variable,
+    SampleIterator as __SampleIterator,
     Expression as __Expression,
     ResultIterator as __ResultIterator,
-    Bounds as __Bounds,
-    Model as __Model,
-    Samples as __Samples,
     Comparator as __Comparator,
-    Variable as __Variable,
-    Sense as __Sense,
-    ResultView as __ResultView,
-    Constraints as __Constraints,
-    Result as __Result,
-    SampleIterator as __SampleIterator,
-    Vtype as __Vtype,
-    Environment as __Environment,
+    Model as __Model,
     Sample as __Sample,
-    Timer as __Timer,
+    Environment as __Environment,
+    Bounds as __Bounds,
+    Constraint as __Constraint,
+    Vtype as __Vtype,
+    Constraints as __Constraints,
 )
 from ._constraints import Comparator, Constraint, Constraints
 from . import translator, errors

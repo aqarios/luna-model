@@ -19,7 +19,7 @@ use pyo3::prelude::*;
 /// --------
 /// >>> import dimod
 /// >>> import numpy as np
-/// >>> from aqmodels import BqmTranslator, Vtype
+/// >>> from luna_quantum import BqmTranslator, Vtype
 /// >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 ///
 /// Create a model from a matrix:

@@ -7,18 +7,19 @@ use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 
-/// Utility class for converting between an AWS result and an AqSolution (ours).
+/// Utility class for converting between an AWS result and our solution format.
 ///
 /// `AwsTranslator` provides methods to:
 /// - Convert an AWS-style result into our solution `Solution`.
 ///
-/// The conversions are especially required when interaction with external aws solvers/samplers or libraries that operate on aws-based problem solving/sampling.
+/// The conversions are especially required when interacting with external aws solvers/samplers or
+/// libraries that operate on aws-based problem-solving/sampling.
 ///
 /// Examples
 /// --------
-/// >>> import aqmodels as aqm
+/// >>> import luna_quantum as lq
 /// >>> aws_result = ...
-/// >>> aqs = aqm.translator.AwsTranslator.to_aq(aws_result)
+/// >>> aqs = lq.translator.AwsTranslator.to_aq(aws_result)
 #[pyclass(unsendable, name = "AwsTranslator", module = "aqmodels.translator")]
 pub struct PyAwsTranslator(pub NpArrayTranslator);
 
@@ -53,7 +54,7 @@ impl PyAwsTranslator {
         )?))
     }
 
-    /// Convert an AWS Braket result to an AqSolution.
+    /// Convert an AWS Braket result to our solution format.
     ///
     /// Parameters
     /// ----------

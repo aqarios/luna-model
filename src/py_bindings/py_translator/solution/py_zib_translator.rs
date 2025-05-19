@@ -8,22 +8,23 @@ use pyo3::prelude::*;
 use pyo3::pyclass;
 use std::collections::HashMap;
 
-/// Utility class for converting between a Zib solution and an AqSolution (ours).
+/// Utility class for converting between a Zib solution and our solution format.
 ///
 /// `ZibTranslator` provides methods to:
 ///
 ///     - Convert a Zib-style solution into our solution `Solution`.
 ///
-/// The conversions are especially required when interaction with external zib solvers/samplers or libraries that operate on zib-based problem solving/sampling.
+/// The conversions are especially required when interacting with external zib solvers/samplers or
+/// libraries that operate on zib-based problem-solving/sampling.
 ///
 /// Examples
 /// --------
-/// >>> import aqmodels as aqm
+/// >>> import luna_quantum as lq
 /// >>> from pyscipopt import Model
 /// >>> model = Model()
 /// >>> model.readProblem("./path/to/my/model.lp")
 /// >>> model.optimize()
-/// >>> aqs = aqm.translator.ZibTranslator.to_aq(model)
+/// >>> aqs = lq.translator.ZibTranslator.to_aq(model)
 #[pyclass(unsendable, name = "ZibTranslator", module = "aqmodels.translator")]
 pub struct PyZibTranslator(pub ZibTranslator);
 
@@ -51,7 +52,7 @@ impl PyZibTranslator {
         )?))
     }
 
-    /// Extract an AqSolution from a ZIB model.
+    /// Extract a solution from a ZIB model.
     ///
     /// Parameters
     /// ----------

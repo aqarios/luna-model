@@ -11,20 +11,21 @@ use crate::{
 use pyo3::{ffi::c_str, prelude::*};
 use std::rc::Rc;
 
-/// Utility class for converting between an IBM solution and an AqSolution (ours).
+/// Utility class for converting between an IBM solution and our solution format.
 ///
 ///
 /// `IbmTranslator` provides methods to:
 /// - Convert an IBM-style solution into our solution `Solution`.
 ///
-/// The conversions are especially required when interaction with external ibm solvers/samplers or libraries that operate on ibm-based problem solving/sampling.
+/// The conversions are especially required when interacting with external ibm solvers/samplers or
+/// libraries that operate on ibm-based problem-solving/sampling.
 ///
 /// Examples
 /// --------
-/// >>> import aqmodels as aqm
+/// >>> import luna_quantum as lq
 /// >>> ...
 /// >>> ibm_result = ...
-/// >>> aqs = aqm.translator.IbmTranslator.to_aq(ibm_result)
+/// >>> aqs = lq.translator.IbmTranslator.to_aq(ibm_result)
 #[pyclass(unsendable, name = "IbmTranslator", module = "aqmodels.translator")]
 pub struct PyIbmTranslator {}
 
@@ -58,7 +59,7 @@ impl PyIbmTranslator {
         )?))
     }
 
-    /// Convert an IBM solution to an AqSolution.
+    /// Convert an IBM solution to our solution format.
     ///
     /// Parameters
     /// ----------

@@ -9,8 +9,8 @@ use std::path::PathBuf;
 /// Utility class for converting between LP files and symbolic models.
 ///
 /// `LpTranslator` provides methods to:
-/// - Convert a LP file into a symbolic `Model`
-/// - Convert a `Model` into a Lp file.
+/// - Convert an LP file into a symbolic `Model`
+/// - Convert a `Model` into an Lp file.
 ///
 /// These conversions are especially useful when interacting with external solvers
 /// or libraries that operate on LP-based problem definitions.
@@ -18,12 +18,12 @@ use std::path::PathBuf;
 /// Examples
 /// --------
 /// >>> from pathlib import Path
-/// >>> from aqmodels import LpTranslator
+/// >>> from luna_quantum import LpTranslator
 /// >>> lp_filepath = Path("path/to/the/lp_file")
 ///
 /// >>> model = LpTranslator.to_aq(lp_filepath)
 ///
-/// Convert it back to a LP file:
+/// Convert it back to an LP file:
 ///
 /// >>> recovered = LpTranslator.to_file(model)
 #[pyclass(unsendable, name = "LpTranslator", module = "aqmodels.translator")]
@@ -31,12 +31,12 @@ pub struct PyLpTranslator {}
 
 #[pymethods]
 impl PyLpTranslator {
-    /// Convert a LP file into a symbolic `Model`.
+    /// Convert an LP file into a symbolic `Model`.
     ///
     /// Parameters
     /// ----------
     /// file: Path | String
-    ///     A LP file representing a symbolic model, either given as a
+    ///     An LP file representing a symbolic model, either given as a
     ///     Path object to the LP file or its contents as a string.
     ///     If you pass the path as a string, it will be interpreted as a
     ///     model and thus fail to be parsed to a Model.
@@ -79,7 +79,7 @@ impl PyLpTranslator {
         }
     }
 
-    /// Convert a symbolic model to a lp file representation.
+    /// Convert a symbolic model to an LP file representation.
     ///
     /// Parameters
     /// ----------

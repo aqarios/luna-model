@@ -7,18 +7,19 @@ use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 
-/// Utility class for converting between a result consisting of numpy arrays and an AqSolution (ours).
+/// Utility class for converting between a result consisting of numpy arrays and our solution
+/// format.
 ///
 /// `NumpyTranslator` provides methods to:
 /// - Convert a numpy-array result into our solution `Solution`.
 ///
 /// Examples
 /// --------
-/// >>> import aqmodels as aqm
+/// >>> import luna_quantum as lq
 /// >>> from numpy.typing import NDArray
 /// >>> result: NDArray = ...
 /// >>> energies: NDArray = ...
-/// >>> aqs = aqm.translator.NumpyTranslator.to_aq(result, energies)
+/// >>> aqs = lq.translator.NumpyTranslator.to_aq(result, energies)
 #[pyclass(unsendable, name = "NumpyTranslator", module = "aqmodels.translator")]
 pub struct PyNumpyTranslator {}
 
@@ -53,7 +54,7 @@ impl PyNumpyTranslator {
         )?))
     }
 
-    /// Convert an IBM solution to an AqSolution.
+    /// Convert an IBM solution to our solution format.
     ///
     /// Parameters
     /// ----------

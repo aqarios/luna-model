@@ -1,7 +1,7 @@
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 
-/// Utility class for converting between dimod.BianryQuadraticModel (CQM) and symbolic
+/// Utility class for converting between dimod.BinaryQuadraticModel (CQM) and symbolic
 /// models.
 ///
 /// `CqmTranslator` provides methods to:
@@ -15,7 +15,7 @@ use pyo3::prelude::*;
 /// --------
 /// >>> import dimod
 /// >>> import numpy as np
-/// >>> from aqmodels import CqmTranslator, Vtype
+/// >>> from luna_quantum import CqmTranslator, Vtype
 /// >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 ///
 /// Create a model from a matrix:

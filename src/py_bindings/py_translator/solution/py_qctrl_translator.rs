@@ -11,19 +11,20 @@ use crate::{
     translator::QctrlTranslator,
 };
 
-/// Utility class for converting between a QCTRL solution and an AqSolution (ours).
+/// Utility class for converting between a QCTRL solution and our solution format.
 ///
 /// `QctrlTranslator` provides methods to:
 /// - Convert a Qctrl-style solution into our solution `Solution`.
 ///
-/// The conversions are especially required when interaction with external qctrl solvers/samplers or libraries that operate on qctrl-based problem solving/sampling.
+/// The conversions are especially required when interacting with external qctrl solvers/samplers or
+/// libraries that operate on qctrl-based problem-solving/sampling.
 ///
 /// Examples
 /// --------
-/// >>> import aqmodels as aqm
+/// >>> import luna_quantum as lq
 /// >>> ...
 /// >>> qctrl_result = ...
-/// >>> aqs = aqm.translator.QctrlTranslator.to_aq(qctrl_result)
+/// >>> aqs = lq.translator.QctrlTranslator.to_aq(qctrl_result)
 #[pyclass(unsendable, name = "QctrlTranslator", module = "aqmodels.translator")]
 pub struct PyQctrlTranslator(pub QctrlTranslator);
 
@@ -53,7 +54,7 @@ impl PyQctrlTranslator {
         )?))
     }
 
-    /// Convert a QCTRL result to an AqSolution.
+    /// Convert a QCTRL result to our solution format.
     ///
     /// Parameters
     /// ----------

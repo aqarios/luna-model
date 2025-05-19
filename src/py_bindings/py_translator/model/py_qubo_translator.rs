@@ -5,12 +5,7 @@ use derive_more::{Deref, DerefMut};
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::prelude::*;
 
-/// The constant offset of the original model passed to the QuboTranslator.
-///
-/// Returns
-/// -------
-/// float
-///     The constant offset of the model.
+/// A wrapper around qubo matrices that holds all relevant metadata, e.g., the model offset.
 #[pyclass(unsendable, name = "Qubo", module = "aqmodels.translator")]
 #[derive(Deref, DerefMut)]
 pub struct PyQubo(pub Qubo<ConcreteIndex, ConcreteBias>);
@@ -95,7 +90,7 @@ impl PyQubo {
 /// Examples
 /// --------
 /// >>> import numpy as np
-/// >>> from aqmodels import QuboTranslator, Vtype
+/// >>> from luna_quantum import QuboTranslator, Vtype
 /// >>> q = np.array([[1.0, -1.0], [-1.0, 2.0]])
 ///
 /// Create a model from a matrix:
@@ -191,10 +186,9 @@ impl PyQuboTranslator {
     /// Returns
     /// -------
     /// Qubo
-    ///     An object representing a QUBO with additional information additional
-    ///     to the square NumPy array representing the QUBO matrix derived from
-    ///     the model's objective. This object also includes the `variable_ordering`
-    ///     as well as the `offset` of the original model.
+    ///     An object representing a QUBO with information additional to the square NumPy array
+    ///     representing the QUBO matrix derived from the model's objective. This object also
+    ///     includes the `variable_ordering` as well as the `offset` of the original model.
     ///
     /// Raises
     /// ------
