@@ -34,18 +34,18 @@ pub enum SampleKey {
 
 /// The solution object that is obtained by running an algorihtm.
 ///
-/// The ``Solution`` class represents a summary of all data obtained from solving a
+/// The `Solution` class represents a summary of all data obtained from solving a
 /// model. It contains samples, i.e., assignments of values to each model variable as
 /// returned by the algorithm, metadata about the solution quality, e.g., the objective
 /// value, and the runtime of the algorithm.
 ///
-/// A ``Solution`` can be constructed explicitly using ``from_dict`` or by obtaining a solution
+/// A `Solution` can be constructed explicitly using `from_dict` or by obtaining a solution
 /// from an algorithm or by converting a different solution format with one of the available
 /// translators. Note that the latter requires the environment the model was created in.
 ///
 /// Examples
 /// --------
-/// Basic usage, assuming that the algorithm already returns a ``Solution``:
+/// Basic usage, assuming that the algorithm already returns a `Solution`:
 ///
 /// >>> from luna_quantum import Model, Solution
 /// >>> model: Model = ...
@@ -54,7 +54,7 @@ pub enum SampleKey {
 /// >>> solution.samples
 /// [[1, 0, 1], [0, 0, 1]]
 ///
-/// When you have a ``dimod.Sampleset`` as the raw solution format:
+/// When you have a `dimod.Sampleset` as the raw solution format:
 ///
 /// >>> from luna_quantum.translator import BqmTranslator
 /// >>> from luna_quantum import Model, Solution, DwaveTranslator
@@ -75,8 +75,8 @@ pub enum SampleKey {
 ///
 /// Notes
 /// -----
-/// - To ensure metadata like objective values or feasibility, use ``model.evaluate(solution)``.
-/// - Use ``encode()`` and ``decode()`` to serialize and recover solutions.
+/// - To ensure metadata like objective values or feasibility, use `model.evaluate(solution)`.
+/// - Use `encode()` and `decode()` to serialize and recover solutions.
 #[pyclass(unsendable, name = "Solution", module = "aqmodels")]
 #[derive(Deref, DerefMut, Debug)]
 pub struct PySolution(pub RcSolution<ConcreteBias, ConcreteAssignmentTypes>);
@@ -89,7 +89,7 @@ impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
 
 #[pymethods]
 impl PySolution {
-    /// Build a ``Solution`` based on the provided input data. The solution is constructed
+    /// Build a `Solution` based on the provided input data. The solution is constructed
     /// based on a column layout of the solution. Let's take the following sample-set with three
     /// samples as an example:
     ///
@@ -184,7 +184,7 @@ impl PySolution {
     /// Raises
     /// ------
     /// RuntimeError
-    ///     If a sample column has an incorrect number of samples or if ``counts`` has
+    ///     If a sample column has an incorrect number of samples or if `counts` has
     ///     a length different from the number of samples given.
     #[staticmethod]
     #[pyo3(signature=(component_types, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None)
@@ -272,7 +272,7 @@ impl PySolution {
         Ok(PySolution(RcSolution(Rc::new(sol))))
     }
 
-    /// Create a ``Solution`` from a dict that maps variables or variable names to their
+    /// Create a `Solution` from a dict that maps variables or variable names to their
     /// assigned values.
     ///
     /// If a Model is passed, the solution will be evaluated immediately. Otherwise,
@@ -462,10 +462,10 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
-    /// Alias for ``encode()``.
+    /// Alias for `encode()`.
     #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
@@ -481,7 +481,7 @@ impl PySolution {
     /// Parameters
     /// ----------
     /// data : bytes
-    ///     Serialized model blob created by ``encode()``.
+    ///     Serialized model blob created by `encode()`.
     ///
     /// Returns
     /// -------
@@ -499,7 +499,7 @@ impl PySolution {
         ))
     }
 
-    /// Alias for ``decode()``.
+    /// Alias for `decode()`.
     #[staticmethod]
     fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Self::decode(py, data)
@@ -522,7 +522,7 @@ impl PySolution {
         PyResultIterator(slf.0.iter_results())
     }
 
-    /// Extract a result view from the ``Solution`` object.
+    /// Extract a result view from the `Solution` object.
     ///
     /// Returns
     /// -------
@@ -531,7 +531,7 @@ impl PySolution {
     /// Raises
     /// ------
     /// TypeError
-    ///     If ``item`` has the wrong type.
+    ///     If `item` has the wrong type.
     /// IndexError
     ///     If the row index is out of bounds for the variable environment.
     fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyResultView> {
@@ -547,7 +547,7 @@ impl PySolution {
         }
     }
 
-    /// Check whether this solution is equal to ``other``.
+    /// Check whether this solution is equal to `other`.
     ///
     /// Parameters
     /// ----------

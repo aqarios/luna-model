@@ -22,7 +22,7 @@ We recommend exploring the docstrings using
 TAB-completion and introspection capabilities.  See below for further
 instructions.
 
-The docstring examples assume that `aqmodels` has been imported as ``aqm``::
+The docstring examples assume that `aqmodels` has been imported as `aqm`::
 
   >>> import aqmodels as aqm
 
@@ -31,7 +31,7 @@ Code snippets are indicated by three greater-than signs::
   >>> x = 42
   >>> x = x + 1
 
-Use the built-in ``help`` function to view a function's docstring::
+Use the built-in `help` function to view a function's docstring::
 
   >>> help(aqm.Model)
   ... # doctest: +SKIP
@@ -48,37 +48,37 @@ transformers
     to a linear model.
 """
 
-from ._variable import Vtype, Variable, Bounds
+from ._variable import Bounds, Variable, Vtype
 from ._timing import Timing, Timer
 from ._solution import Solution
-from ._sample import SamplesIterator, SampleIterator, Sample, Samples
-from ._result import ResultIterator, ResultView, Result
+from ._sample import Sample, SamplesIterator, SampleIterator, Samples
+from ._result import ResultView, ResultIterator, Result
 from ._model import Model, Sense
 from ._expression import Expression
 from ._environment import Environment
 from ._core import (
-    Expression as __Expression,
-    Result as __Result,
-    Solution as __Solution,
     Vtype as __Vtype,
-    Timer as __Timer,
+    Solution as __Solution,
+    Variable as __Variable,
+    Sense as __Sense,
+    ResultView as __ResultView,
+    Sample as __Sample,
+    Result as __Result,
+    Environment as __Environment,
     SampleIterator as __SampleIterator,
     Samples as __Samples,
-    Bounds as __Bounds,
-    Constraints as __Constraints,
-    Sense as __Sense,
-    Comparator as __Comparator,
-    Model as __Model,
-    Timing as __Timing,
-    Sample as __Sample,
-    Environment as __Environment,
-    Constraint as __Constraint,
-    ResultView as __ResultView,
     SamplesIterator as __SamplesIterator,
+    Constraints as __Constraints,
+    Constraint as __Constraint,
     ResultIterator as __ResultIterator,
-    Variable as __Variable,
+    Timing as __Timing,
+    Bounds as __Bounds,
+    Expression as __Expression,
+    Model as __Model,
+    Comparator as __Comparator,
+    Timer as __Timer,
 )
-from ._constraints import Constraint, Comparator, Constraints
+from ._constraints import Constraints, Comparator, Constraint
 from . import translator, errors
 
 Comparator = __Comparator  # type: ignore[misc,assignment] # noqa: F811

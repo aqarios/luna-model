@@ -31,8 +31,8 @@ pub struct PyTiming(pub Timing);
 
 /// Used to measure the computation time of an algorithm.
 ///
-/// The sole purpose of the ``Timer`` class is to create a ``Timing`` object in a safe
-/// way, i.e., to ensure that the ``Timing`` object always holds a starting and
+/// The sole purpose of the `Timer` class is to create a `Timing` object in a safe
+/// way, i.e., to ensure that the `Timing` object always holds a starting and
 /// finishing time.
 ///
 /// Examples
@@ -107,7 +107,7 @@ impl PyTiming {
     /// Raises
     /// ------
     /// ValueError
-    ///     If ``value`` is negative.
+    ///     If `value` is negative.
     #[setter]
     fn set_qpu(&mut self, value: Option<f64>) -> PyResult<()> {
         if value.unwrap_or_default() < 0.0 {
@@ -129,7 +129,7 @@ impl PyTiming {
     /// Raises
     /// ------
     /// ValueError
-    ///     If ``value`` is negative.
+    ///     If `value` is negative.
     fn add_qpu(&mut self, value: f64) -> PyResult<()> {
         if value < 0.0 {
             Err(PyValueError::new_err("QPU time must not be negative."))
@@ -153,7 +153,7 @@ impl PyTimer {
         Self(Timer::start())
     }
 
-    /// Stop the timer, and get the resulting ``Timing`` object.
+    /// Stop the timer, and get the resulting `Timing` object.
     ///
     /// Returns
     /// -------

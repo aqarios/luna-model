@@ -314,7 +314,7 @@ class Model:
     @dispatched
     def __eq__(self, other):
         """
-        Check whether this model is equal to ``other``.
+        Check whether this model is equal to `other`.
 
         Parameters
         ----------

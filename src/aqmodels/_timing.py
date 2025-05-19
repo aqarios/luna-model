@@ -6,10 +6,10 @@ class Timing:
     """
     The object that holds information about an algorithm's runtime.
 
-    This class can only be constructed using a ``Timer``. This ensures that a
-    ``Timing`` object always contains a start as well as an end time.
+    This class can only be constructed using a `Timer`. This ensures that a
+    `Timing` object always contains a start as well as an end time.
 
-    The ``qpu`` field of this class can only be set after constructing it with a timer.
+    The `qpu` field of this class can only be set after constructing it with a timer.
 
     Examples
     --------
@@ -81,7 +81,7 @@ class Timing:
         Raises
         ------
         ValueError
-            If ``value`` is negative."""
+            If `value` is negative."""
         return value
 
     @dispatched
@@ -98,7 +98,7 @@ class Timing:
         Raises
         ------
         ValueError
-            If ``value`` is negative.
+            If `value` is negative.
         """
         return
 
@@ -108,8 +108,8 @@ class Timer:
     """
     Used to measure the computation time of an algorithm.
 
-    The sole purpose of the ``Timer`` class is to create a ``Timing`` object in a safe
-    way, i.e., to ensure that the ``Timing`` object always holds a starting and
+    The sole purpose of the `Timer` class is to create a `Timing` object in a safe
+    way, i.e., to ensure that the `Timing` object always holds a starting and
     finishing time.
 
     Examples
@@ -137,7 +137,7 @@ class Timer:
     @dispatched
     def stop(self):
         """
-        Stop the timer, and get the resulting ``Timing`` object.
+        Stop the timer, and get the resulting `Timing` object.
 
         Returns
         -------

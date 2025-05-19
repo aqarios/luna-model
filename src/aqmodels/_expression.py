@@ -463,7 +463,7 @@ class Expression:
     @dispatched
     def __eq__(self, rhs):
         """
-        Compare to a different expression or create a constraint ``expression == scalar``
+        Compare to a different expression or create a constraint `expression == scalar`
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -500,14 +500,14 @@ class Expression:
         Raises
         ------
         RuntimeError
-            If the param ``modulo`` usually supported for ``__pow__`` is specified.
+            If the param `modulo` usually supported for `__pow__` is specified.
         """
         return other
 
     @dispatched
     def __le__(self, rhs):
         """
-        Create a constraint ``expression <= scalar``.
+        Create a constraint `expression <= scalar`.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -568,7 +568,7 @@ class Expression:
     @dispatched
     def __ne__(self, other: Expression):
         """
-        Check whether this expression is different from ``other``.
+        Check whether this expression is different from `other`.
 
         Parameters
         ----------

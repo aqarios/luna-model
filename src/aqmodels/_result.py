@@ -31,11 +31,11 @@ class Result:
     """
     A result object can be understood as a solution with only one sample.
 
-    It can be obtained by calling ``model.evaluate_sample`` for a single sample.
+    It can be obtained by calling `model.evaluate_sample` for a single sample.
 
     Most properties available for the solution object are also available for a result,
-    but in the singular form. For example, you can call ``solution.obj_values``, but
-    ``result.obj_value``.
+    but in the singular form. For example, you can call `solution.obj_values`, but
+    `result.obj_value`.
 
     Examples
     --------
@@ -79,7 +79,7 @@ class Result:
     def constraints(self):
         """
         Get this result's feasibility values of all constraints. Note that
-        ``results.constraints[i]`` iff. ``model.constraints[i]`` is feasible for
+        `results.constraints[i]` iff. `model.constraints[i]` is feasible for
         this result."""
         return
 
@@ -95,12 +95,12 @@ class ResultView:
     """
     A result view object serves as a view into one row of a solution object.
 
-    The ``Result`` class is readonly as it's merely a helper class for looking into a
+    The `Result` class is readonly as it's merely a helper class for looking into a
     solution's row, i.e., a single sample and this sample's metadata.
 
     Most properties available for the solution object are also available for a result,
-    but in the singular form. For example, you can call ``solution.obj_values``, but
-    ``result.obj_value``.
+    but in the singular form. For example, you can call `solution.obj_values`, but
+    `result.obj_value`.
 
     Examples
     --------
@@ -160,7 +160,7 @@ class ResultView:
     def constraints(self):
         """
         Get this result's feasibility values of all constraints. Note that
-        ``results.constraints[i]`` iff. ``model.constraints[i]`` is feasible for
+        `results.constraints[i]` iff. `model.constraints[i]` is feasible for
         this result."""
         return
 
