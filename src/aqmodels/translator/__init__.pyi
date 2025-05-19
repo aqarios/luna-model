@@ -8,7 +8,6 @@ from qiskit_optimization import QuadraticProgram
 
 from .._core import Solution, Timing, Environment, Vtype, Model
 
-
 class ZibTranslator:
     """
     Utility class for converting between a Zib solution and our solution format.

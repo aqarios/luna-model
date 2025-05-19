@@ -13,7 +13,7 @@ from pytests.test_core.utils import generate_cqms, make_seed
 
 NOT_RUN_CPLEX = True
 try:
-    import cplex # type: ignore
+    import cplex  # type: ignore
 except ImportError as _:
     print(
         "Cplex is not installed and thus, the CPLEX tests will not be executed",
