@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import overload
 
-from aqmodels import Constraint
+from aqmodels import Constraint, Variable
 from aqmodels import Constraints
 from aqmodels import Environment
 from aqmodels import Expression
@@ -41,6 +41,10 @@ class Model:
     def constraints(self, value: Constraints): ...
     @property
     def environment(self) -> Environment: ...
+    @overload
+    def variables(self) -> list[Variable]: ...
+    @overload
+    def variables(self, /, *, active: bool | None) -> list[Variable]: ...
     @overload
     def add_constraint(self, constraint: Constraint): ...
     @overload

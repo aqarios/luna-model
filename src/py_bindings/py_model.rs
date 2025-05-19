@@ -8,9 +8,10 @@ use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
 use crate::core::operations::AddAssignToExpression;
-use crate::core::{ConcreteModel, ConcreteMutRcModel, RcSolution, Sense};
+use crate::core::{ConcreteModel, ConcreteMutRcModel, RcSolution, Sense, VarRef};
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
+use crate::py_bindings::py_var::PyVariable;
 use crate::{
     core::{Environment, Model},
     py_bindings::py_env::CURRENT_ENV,
@@ -152,6 +153,22 @@ impl PyModel {
         PyEnvironment(self.borrow().environment.clone())
     }
 
+    #[pyo3(signature=(active=None))]
+    fn variables(&self, active: Option<bool>) -> Vec<PyVariable> {
+        let model = self.borrow();
+        let active_vars = &model.objective.borrow().active;
+        (0..self.borrow().environment.borrow().varcount.into())
+            .enumerate()
+            .filter(|(_, a)| *active_vars.get(*a).unwrap_or(&false) || !active.unwrap_or_default())
+            .map(|(i, _)| {
+                PyVariable::new(VarRef {
+                    id: i.into(),
+                    env: Rc::clone(&model.environment),
+                })
+            })
+            .collect()
+    }
+
     fn __eq__(&self, other: &Self) -> bool {
         self.concrete_model == other.concrete_model
     }
@@ -175,7 +192,7 @@ impl PyModel {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
     /// Alias for serialize

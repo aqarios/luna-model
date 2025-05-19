@@ -13,6 +13,10 @@ def make_model() -> Model:
         return Model()
 
 
+def var_names(variables: list[Variable]) -> list[str]:
+    return [v.name for v in variables]
+
+
 @pytest.fixture
 def model() -> Model:
     return make_model()
@@ -117,3 +121,36 @@ def test_use_set_expression_with_sense_max():
     assert_offset(model.objective, 0)
     assert_linear(model.objective, (x,), 0)
     assert_quadratic(model.objective, (x, y), 1)
+
+
+@pytest.mark.model
+def test_access_variables():
+    with Environment() as env:
+        x = Variable("x")
+        y = Variable("y")
+
+        m = Model(env=env)
+        assert var_names(m.variables()) == ["x", "y"]
+        assert var_names(m.variables(active=False)) == ["x", "y"]
+        assert var_names(m.variables(active=True)) == []
+
+        m.objective = 1 * x
+        assert var_names(m.variables()) == ["x", "y"]
+        assert var_names(m.variables(active=False)) == ["x", "y"]
+        assert var_names(m.variables(active=True)) == ["x"]
+
+        m.objective = 1 * y
+        assert var_names(m.variables()) == ["x", "y"]
+        assert var_names(m.variables(active=False)) == ["x", "y"]
+        assert var_names(m.variables(active=True)) == ["y"]
+
+        m.objective = y + x
+        assert var_names(m.variables()) == ["x", "y"]
+        assert var_names(m.variables(active=False)) == ["x", "y"]
+        assert var_names(m.variables(active=True)) == ["x", "y"]
+
+        m2 = Model(env=env)
+        m2.objective = 1 * y
+        assert var_names(m2.variables()) == ["x", "y"]
+        assert var_names(m2.variables(active=False)) == ["x", "y"]
+        assert var_names(m2.variables(active=True)) == ["y"]

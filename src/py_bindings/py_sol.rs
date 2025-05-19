@@ -255,7 +255,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-            .into())
+        .into())
     }
 
     #[pyo3(signature=(compress=true, level=3))]
