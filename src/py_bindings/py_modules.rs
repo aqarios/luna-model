@@ -138,10 +138,14 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::TranslationError::NAME,
         m.py().get_type::<pyexc::TranslationError>(),
     )?;
+    m.add(
+        pyexc::ComputationError::NAME,
+        m.py().get_type::<pyexc::ComputationError>(),
+    )?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?
         .getattr("modules")?
-        .set_item("aqmodels.exceptions", m)?;
+        .set_item("aqmodels.errors", m)?;
     Ok(())
 }

@@ -56,3 +56,23 @@ def test_from_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     sol = Solution.from_dict(sample, model=m)
     assert sol.samples.tolist() == [[0, 0, 1]]
     assert sol.obj_values.tolist() == [-1.0]
+
+
+@pytest.mark.solution
+@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+def test_from_dicts_with_model(model: tuple[Model, tuple[Variable, ...]]):
+    m, (x, y, z) = model
+    samples = [
+        {x: 0, y: 0, z: 1},  # -1
+        {x: 1, y: 1, z: 1},  # -1
+        {x: 1, y: 0, z: 0},  # 1
+        {x: 0, y: 1, z: 1},  # -2
+    ]
+    sol = Solution.from_dicts(samples, model=m)
+    assert sol.samples.tolist() == [
+        [0, 0, 1],
+        [1, 1, 1],
+        [1, 0, 0],
+        [0, 1, 1],
+    ]
+    assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]

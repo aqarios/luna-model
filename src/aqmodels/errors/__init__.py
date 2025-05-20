@@ -20,6 +20,7 @@ SolutionTranslationError = errors.SolutionTranslationError
 SampleIncorrectLengthError = errors.SampleIncorrectLengthError
 SampleUnexpectedVariableError = errors.SampleUnexpectedVariableError
 SampleIncompatibleVtypeError = errors.SampleIncompatibleVtypeError
+ComputationError = errors.ComputationError
 
 __all__ = [
     "VariableOutOfRangeError",
@@ -42,4 +43,5 @@ __all__ = [
     "SampleIncorrectLengthError",
     "SampleUnexpectedVariableError",
     "SampleIncompatibleVtypeError",
+    "ComputationError",
 ]
