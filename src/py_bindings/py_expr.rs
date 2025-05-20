@@ -18,7 +18,7 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::exceptions::PyTypeError;
+use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 use std::{ops::Deref, rc::Rc};
 
@@ -296,8 +296,8 @@ impl PyExpression {
     /// ------
     /// DecodeError
     ///     If decoding fails due to corruption or incompatibility.
-    #[staticmethod]
-    fn decode(py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
+    #[classmethod]
+    fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
         Ok(PyExpression::new(
             data.as_bytes(py)
                 .unversionize()
@@ -309,9 +309,9 @@ impl PyExpression {
     /// Alias for `decode()`.
     /// 
     /// See `decode()` for full documentation.
-    #[staticmethod]
-    fn deserialize(py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
-        Self::decode(py, data, env)
+    #[classmethod]
+    fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
+        Self::decode(cls, py, data, env)
     }
 
     /// Add another expression, variable, or scalar.

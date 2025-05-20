@@ -20,6 +20,7 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
+use pyo3::types::PyType;
 use pyo3::{prelude::*, types::PyBytes};
 
 /// A symbolic optimization model consisting of an objective and constraints.
@@ -348,8 +349,8 @@ impl PyModel {
     /// ------
     /// DecodeError
     ///     If decoding fails due to corruption or incompatibility.
-    #[staticmethod]
-    fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+    #[classmethod]
+    fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Ok(Self::new(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
         ))
@@ -358,9 +359,9 @@ impl PyModel {
     /// Alias for `decode()`.
     /// 
     /// See `decode()` for full documentation.
-    #[staticmethod]
-    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Self::decode(py, data)
+    #[classmethod]
+    fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::decode(cls, py, data)
     }
 
     /// Evaluate the model given a solution.
