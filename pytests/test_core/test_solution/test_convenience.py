@@ -25,7 +25,7 @@ def model(request):
 
 @pytest.mark.solution
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
-def test_from_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
+def test_expectation_value(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     samples = [
         {x: 0, y: 0, z: 1},  # -1
