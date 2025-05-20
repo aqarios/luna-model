@@ -966,59 +966,40 @@ class Solution:
     @overload
     @staticmethod
     def from_dict(data: dict[Variable | str, int | float]) -> Solution: ...
-
     @overload
     @staticmethod
-    def from_dict(
-        data: dict[Variable, int], *, env: Environment
-    ) -> Solution: ...
+    def from_dict(data: dict[Variable, int], *, env: Environment) -> Solution: ...
     @overload
     @staticmethod
-    def from_dict(
-        data: dict[Variable, float], *, env: Environment
-    ) -> Solution: ...
+    def from_dict(data: dict[Variable, float], *, env: Environment) -> Solution: ...
     @overload
     @staticmethod
-    def from_dict(
-        data: dict[str, int], *, env: Environment
-    ) -> Solution: ...
+    def from_dict(data: dict[str, int], *, env: Environment) -> Solution: ...
     @overload
     @staticmethod
-    def from_dict(
-        data: dict[str, float], *, env: Environment
-    ) -> Solution: ...
+    def from_dict(data: dict[str, float], *, env: Environment) -> Solution: ...
     @overload
     @staticmethod
     def from_dict(
         data: dict[Variable | str, int | float], *, env: Environment
     ) -> Solution: ...
-
     @overload
     @staticmethod
-    def from_dict(
-        data: dict[Variable, int], *, model: Model
-    ) -> Solution: ...
+    def from_dict(data: dict[Variable, int], *, model: Model) -> Solution: ...
     @overload
     @staticmethod
-    def from_dict(
-        data: dict[Variable, float], *, model: Model
-    ) -> Solution: ...
+    def from_dict(data: dict[Variable, float], *, model: Model) -> Solution: ...
     @overload
     @staticmethod
-    def from_dict(
-        data: dict[str, int], *, model: Model
-    ) -> Solution: ...
+    def from_dict(data: dict[str, int], *, model: Model) -> Solution: ...
     @overload
     @staticmethod
-    def from_dict(
-        data: dict[str, float], *, model: Model
-    ) -> Solution: ...
+    def from_dict(data: dict[str, float], *, model: Model) -> Solution: ...
     @overload
     @staticmethod
     def from_dict(
         data: dict[Variable | str, int | float], *, model: Model
     ) -> Solution: ...
-
     @staticmethod
     def from_dict(
         data: dict[Variable | str, int | float],
