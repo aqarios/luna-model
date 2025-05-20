@@ -953,12 +953,48 @@ class Solution:
 
     @overload
     @staticmethod
+    def from_dict(data: dict[Variable, int]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, float]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, int]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, float]) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dict(data: dict[Variable | str, int | float]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, int], *, env: Environment) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, float], *, env: Environment) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, int], *, env: Environment) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, float], *, env: Environment) -> Solution: ...
     @overload
     @staticmethod
     def from_dict(
         data: dict[Variable | str, int | float], *, env: Environment
     ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, int], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, float], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, int], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, float], *, model: Model) -> Solution: ...
     @overload
     @staticmethod
     def from_dict(
