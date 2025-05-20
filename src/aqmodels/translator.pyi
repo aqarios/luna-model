@@ -6,7 +6,7 @@ from pyscipopt import Model as SciModel
 from qiskit.primitives import PrimitiveResult, PubResult
 from qiskit_optimization import QuadraticProgram
 
-from .._core import Solution, Timing, Environment, Vtype, Model
+from ._core import Solution, Timing, Environment, Vtype, Model
 
 class ZibTranslator:
     """
@@ -841,3 +841,4 @@ __all__ = [
     "BqmTranslator",
     "AwsTranslator",
 ]
+

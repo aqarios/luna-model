@@ -45,9 +45,6 @@ transformers
     to a linear model.
 """
 
-from . import translator
-from . import errors
-
 from ._core import (
     Vtype,
     Bounds,
@@ -69,6 +66,8 @@ from ._core import (
     Comparator,
     Constraint,
     Constraints,
+    translator,
+    errors,
 )
 
 __all__ = [
@@ -93,5 +92,5 @@ __all__ = [
     "Constraint",
     "Constraints",
     "translator",
-    "errors",
+    "errors"
 ]
