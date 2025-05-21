@@ -168,6 +168,9 @@ where
         AssignmentTypes: AssignmentBaseTypes,
     {
         let mut newsol = sol.0.deref().clone();
+        // here, we need to check if the solution and the model's environment
+        // are matching, i.e., if all the variables in the model's env and all the
+        // variables in the solution are equal (and also ordered equally).
         for (i, sample) in sol.samples().iter().enumerate() {
             let obj_val = self.objective.borrow().evaluate_sample(&sample);
             let constraints = if self.constraints.borrow().is_empty() {
