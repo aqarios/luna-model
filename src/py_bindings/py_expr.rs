@@ -18,38 +18,38 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
+use pyo3::{exceptions::PyTypeError, types::PyType};
 use std::{ops::Deref, rc::Rc};
 
 /// Polynomial expression supporting symbolic arithmetic, constraint creation, and encoding.
-/// 
+///
 /// An `Expression` represents a real-valued mathematical function composed of variables,
 /// scalars, and coefficients. Expressions may include constant, linear, quadratic, and
 /// higher-order terms (cubic and beyond). They are used to build objective functions
 /// and constraints in symbolic optimization models.
-/// 
+///
 /// Expressions support both regular and in-place arithmetic, including addition and
 /// multiplication with integers, floats, `Variable` instances, and other `Expression`s.
-/// 
+///
 /// Parameters
 /// ----------
 /// env : Environment, optional
 ///     Environment used to scope the expression when explicitly instantiating it.
 ///     Typically, expressions are constructed implicitly via arithmetic on variables.
-/// 
+///
 /// Examples
 /// --------
 /// Constructing expressions from variables:
-/// 
+///
 /// >>> from luna_quantum import Environment, Variable
 /// >>> with Environment():
 /// ...     x = Variable("x")
 /// ...     y = Variable("y")
 /// ...     expr = 1 + 2 * x + 3 * x * y + x * y * y
-/// 
+///
 /// Inspecting terms:
-/// 
+///
 /// >>> expr.get_offset()
 /// 1.0
 /// >>> expr.get_linear(x)
@@ -58,53 +58,53 @@ use std::{ops::Deref, rc::Rc};
 /// 3.0
 /// >>> expr.get_higher_order((x, y, y))
 /// 1.0
-/// 
+///
 /// In-place arithmetic:
-/// 
+///
 /// >>> expr += x
 /// >>> expr *= 2
-/// 
+///
 /// Creating constraints:
-/// 
+///
 /// >>> constraint = expr == 10.0
 /// >>> constraint2 = expr <= 15
-/// 
+///
 /// Serialization:
-/// 
+///
 /// >>> blob = expr.encode()
 /// >>> restored = Expression.decode(blob)
-/// 
+///
 /// Supported Arithmetic
 /// --------------------
 /// The following operations are supported:
-/// 
+///
 /// - Addition:
 ///     * `expr + expr` → `Expression`
 ///     * `expr + variable` → `Expression`
 ///     * `expr + int | float` → `Expression`
 ///     * `int | float + expr` → `Expression`
-/// 
+///
 /// - In-place addition:
 ///     * `expr += expr`
 ///     * `expr += variable`
 ///     * `expr += int | float`
-/// 
+///
 /// - Multiplication:
 ///     * `expr * expr`
 ///     * `expr * variable`
 ///     * `expr * int | float`
 ///     * `int | float * expr`
-/// 
+///
 /// - In-place multiplication:
 ///     * `expr *= expr`
 ///     * `expr *= variable`
 ///     * `expr *= int | float`
-/// 
+///
 /// - Constraint creation:
 ///     * `expr == constant` → `Constraint`
 ///     * `expr <= constant` → `Constraint`
 ///     * `expr >= constant` → `Constraint`
-/// 
+///
 /// Notes
 /// -----
 /// - Expressions are mutable: in-place operations (`+=`, `*=`) modify the instance.
@@ -123,14 +123,13 @@ impl PyExpression {
 
 #[pymethods]
 impl PyExpression {
-
     /// Create a new empty expression scoped to an environment.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// env : Environment
     ///     The environment to which this expression is bound.
-    /// 
+    ///
     /// aises
     /// ------
     /// NoActiveEnvironmentFoundError
@@ -150,7 +149,7 @@ impl PyExpression {
     }
 
     /// Get the constant (offset) term in the expression.
-    /// 
+    ///
     /// Returns
     /// -------
     /// float
@@ -160,17 +159,17 @@ impl PyExpression {
     }
 
     /// Get the coefficient of a linear term for a given variable.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// variable : Variable
     ///     The variable whose linear coefficient is being queried.
-    /// 
+    ///
     /// Returns
     /// -------
     /// float
     ///     The coefficient, or 0.0 if the variable is not present.
-    /// 
+    ///
     /// Raises
     /// ------
     /// VariableOutOfRangeError
@@ -180,17 +179,17 @@ impl PyExpression {
     }
 
     /// Get the coefficient for a quadratic term (u * v).
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// u : Variable
     /// v : Variable
-    /// 
+    ///
     /// Returns
     /// -------
     /// float
     ///     The coefficient, or 0.0 if not present.
-    /// 
+    ///
     /// Raises
     /// ------
     /// VariableOutOfRangeError
@@ -200,17 +199,17 @@ impl PyExpression {
     }
 
     /// Get the coefficient for a higher-order term (degree ≥ 3).
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// variables : tuple of Variable
     ///     A tuple of variables specifying the term.
-    /// 
+    ///
     /// Returns
     /// -------
     /// float
     ///     The coefficient, or 0.0 if not present.
-    /// 
+    ///
     /// Raises
     /// ------
     /// VariableOutOfRangeError
@@ -222,9 +221,8 @@ impl PyExpression {
             .higher_order(&variables.iter().map(|v| v.id).collect())?)
     }
 
-
     /// Return the number of distinct variables in the expression.
-    /// 
+    ///
     /// Returns
     /// -------
     /// int
@@ -235,19 +233,19 @@ impl PyExpression {
     }
 
     /// Serialize the expression into a compact binary format.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// compress : bool, optional
     ///     Whether to compress the data. Default is True.
     /// level : int, optional
     ///     Compression level (0–9). Default is 3.
-    /// 
+    ///
     /// Returns
     /// -------
     /// bytes
     ///     Encoded representation of the expression.
-    /// 
+    ///
     /// Raises
     /// ------
     /// IOError
@@ -268,7 +266,7 @@ impl PyExpression {
     }
 
     /// Alias for `encode()`.
-    /// 
+    ///
     /// See `encode()` for full documentation.
     #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
@@ -281,23 +279,28 @@ impl PyExpression {
     }
 
     /// Reconstruct an expression from encoded bytes.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// data : bytes
     ///     Binary blob returned by `encode()`.
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
     ///     Deserialized expression object.
-    /// 
+    ///
     /// Raises
     /// ------
     /// DecodeError
     ///     If decoding fails due to corruption or incompatibility.
     #[classmethod]
-    fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
+    fn decode(
+        _cls: &Bound<'_, PyType>,
+        py: Python,
+        data: Py<PyBytes>,
+        env: PyEnvironment,
+    ) -> PyResult<Self> {
         Ok(PyExpression::new(
             data.as_bytes(py)
                 .unversionize()
@@ -307,23 +310,28 @@ impl PyExpression {
     }
 
     /// Alias for `decode()`.
-    /// 
+    ///
     /// See `decode()` for full documentation.
     #[classmethod]
-    fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>, env: PyEnvironment) -> PyResult<Self> {
+    fn deserialize(
+        cls: &Bound<'_, PyType>,
+        py: Python,
+        data: Py<PyBytes>,
+        env: PyEnvironment,
+    ) -> PyResult<Self> {
         Self::decode(cls, py, data, env)
     }
 
     /// Add another expression, variable, or scalar.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : Expression, Variable, int, or float
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
-    /// 
+    ///
     /// Raises
     /// ------
     /// VariablesFromDifferentEnvsError
@@ -346,15 +354,15 @@ impl PyExpression {
     }
 
     /// Add this expression to a scalar or variable.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : int, float, or Variable
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -364,15 +372,15 @@ impl PyExpression {
     }
 
     /// Subtract another expression, variable, or scalar.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : Expression, Variable, int, or float
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
-    /// 
+    ///
     /// Raises
     /// ------
     /// VariablesFromDifferentEnvsError
@@ -395,15 +403,15 @@ impl PyExpression {
     }
 
     /// Multiply this expression by another value.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : Expression, Variable, int, or float
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
-    /// 
+    ///
     /// Raises
     /// ------
     /// VariablesFromDifferentEnvsError
@@ -425,15 +433,15 @@ impl PyExpression {
     }
 
     /// Right-hand multiplication.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : int or float
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -443,15 +451,15 @@ impl PyExpression {
     }
 
     /// In-place addition.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : Expression, Variable, int, or float
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
-    /// 
+    ///
     /// Raises
     /// ------
     /// VariablesFromDifferentEnvsError
@@ -473,15 +481,15 @@ impl PyExpression {
     }
 
     /// In-place subtraction.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : Expression, Variable, int, or float
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
-    /// 
+    ///
     /// Raises
     /// ------
     /// VariablesFromDifferentEnvsError
@@ -503,15 +511,15 @@ impl PyExpression {
     }
 
     /// In-place multiplication.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : Expression, Variable, int, or float
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
-    /// 
+    ///
     /// Raises
     /// ------
     /// VariablesFromDifferentEnvsError
@@ -532,15 +540,15 @@ impl PyExpression {
     }
 
     /// Raise the expression to the power specified by `other`.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : int
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
-    /// 
+    ///
     /// Raises
     /// ------
     /// RuntimeError
@@ -566,12 +574,12 @@ impl PyExpression {
     }
 
     /// Compare two expressions for equality.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : Expression
     ///     The expression to which `self` is compared to.
-    /// 
+    ///
     /// Returns
     /// -------
     /// bool
@@ -581,20 +589,20 @@ impl PyExpression {
     }
 
     /// Compare to a different expression or create a constraint ``expression == scalar``
-    /// 
+    ///
     /// If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
     /// constraint, resulting in the following constraint:
-    /// 
+    ///
     ///     self - rhs == 0
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// rhs : Expression or float, int, Variable or Expression
-    /// 
+    ///
     /// Returns
     /// -------
     /// bool or Constraint
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -604,20 +612,20 @@ impl PyExpression {
     }
 
     /// Create a constraint ``expression <= scalar``.
-    /// 
+    ///
     /// If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
     /// constraint, resulting in the following constraint:
-    /// 
+    ///
     ///     self - rhs <= 0
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// rhs : float, int, Variable or Expression
-    /// 
+    ///
     /// Returns
     /// -------
     /// Constraint
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -627,20 +635,20 @@ impl PyExpression {
     }
 
     /// Create a constraint: expression >= scalar.
-    /// 
+    ///
     /// If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
     /// constraint, resulting in the following constraint:
-    /// 
+    ///
     ///     self - rhs >= 0
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// rhs : float, int, Variable or Expression
-    /// 
+    ///
     /// Returns
     /// -------
     /// Constraint
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -649,9 +657,8 @@ impl PyExpression {
         PyConstraint::new_py(py, &self, other, Comparator::Ge)
     }
 
-    
     /// Negate the expression, i.e., multiply it by `-1`.
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
@@ -660,11 +667,11 @@ impl PyExpression {
     }
 
     // /// Check whether this expression is different from ``other``.
-    // /// 
+    // ///
     // /// Parameters
     // /// ----------
     // /// other : Expression
-    // /// 
+    // ///
     // /// Returns
     // /// -------
     // /// bool

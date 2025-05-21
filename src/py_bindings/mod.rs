@@ -17,38 +17,38 @@ use pyo3::prelude::*;
 
 /// AqModels
 /// ========
-/// 
+///
 /// Provides
 ///   1. A model object to define arbitrary (constrained) optimization problems.
 ///   2. A solution object to define arbitrary solutions to optimization problems.
 ///   3. Extendable translators to map arbitrary models of other libraries to an aq model.
 ///   4. Extendable transformers to transform arbitrary (constrained) optimization problems.
-/// 
-/// 
+///
+///
 /// How to use the documentation
 /// ----------------------------
 /// Documentation is available in two forms: docstrings provided with the code, and a
 /// reference guide, available from `the Aqarios homepage <https://docs.aqarios.com>`_.
-/// 
+///
 /// We recommend exploring the docstrings using
 /// `IPython <https://ipython.org>`_, an advanced Python shell with
 /// TAB-completion and introspection capabilities.  See below for further
 /// instructions.
-/// 
+///
 /// The docstring examples assume that `aqmodels` has been imported as ``aqm``::
-/// 
+///
 ///   >>> import aqmodels as aqm
-/// 
+///
 /// Code snippets are indicated by three greater-than signs::
-/// 
+///
 ///   >>> x = 42
 ///   >>> x = x + 1
-/// 
+///
 /// Use the built-in ``help`` function to view a function's docstring::
-/// 
+///
 ///   >>> help(aqm.Model)
 ///   ... # doctest: +SKIP
-/// 
+///
 /// Available subpackages
 /// ---------------------
 /// translators
