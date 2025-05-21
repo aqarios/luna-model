@@ -4,6 +4,7 @@ mod extras;
 mod model;
 mod variable;
 mod writer;
+mod utils;
 
 pub mod constraints;
 pub mod environment;

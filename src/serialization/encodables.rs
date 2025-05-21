@@ -11,7 +11,6 @@ use crate::core::{
     ConcreteConstraints, ConcreteEnvironment, ConcreteExpression, ConcreteModel,
     ConcreteMutRcEnvironment, ConcreteSolution, Timing,
 };
-use zstd::zstd_safe::WriteBuf;
 
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of an Expression. In case a new serialization format is defined update this value

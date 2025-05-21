@@ -1,8 +1,8 @@
 use crate::core::expression::BiasConstraints;
+use crate::core::solution::sample::OwnedSample;
 use crate::core::solution::AssignmentBaseTypes;
 use crate::core::{ResultView, VarAssignment};
 use either::{Either, Left, Right};
-use std::rc::Rc;
 
 /// Iterates over the single variable assignments of a solution row
 #[derive(Debug, Clone)]
@@ -11,7 +11,7 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
 {
-    sample: Either<ResultView<Bias, AssignmentTypes>, Rc<Vec<VarAssignment<AssignmentTypes>>>>,
+    sample: Either<ResultView<Bias, AssignmentTypes>, OwnedSample<AssignmentTypes>>, // Rc<Vec<VarAssignment<AssignmentTypes>>>>,
     /// Index of the next row of the sample within the solution
     next_col_idx: usize,
 }
@@ -22,7 +22,7 @@ where
     AssignmentTypes: AssignmentBaseTypes,
 {
     pub fn new(
-        sample: Either<ResultView<Bias, AssignmentTypes>, Rc<Vec<VarAssignment<AssignmentTypes>>>>,
+        sample: Either<ResultView<Bias, AssignmentTypes>, OwnedSample<AssignmentTypes>>, // Rc<Vec<VarAssignment<AssignmentTypes>>>>,
     ) -> SampleIterator<Bias, AssignmentTypes> {
         Self {
             sample,
@@ -36,7 +36,8 @@ where
             next_col_idx: 0,
         }
     }
-    pub fn from_sample_vec(res: Rc<Vec<VarAssignment<AssignmentTypes>>>) -> Self {
+    // pub fn from_sample_vec(res: Rc<Vec<VarAssignment<AssignmentTypes>>>) -> Self {
+    pub fn from_sample_vec(res: OwnedSample<AssignmentTypes>) -> Self {
         Self {
             sample: Right(res),
             next_col_idx: 0,
@@ -54,7 +55,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let out = match &self.sample {
             Left(r) => r.get_sample().get_assignment(self.next_col_idx),
-            Right(r) => r.get(self.next_col_idx).map(|&x| x),
+            Right(r) => r.actual.get(self.next_col_idx).map(|&x| x),
         };
         if let Some(_) = out {
             self.next_col_idx += 1;

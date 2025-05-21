@@ -12,6 +12,7 @@ pub use iterators::SampleIterator;
 pub use iterators::SamplesIterator;
 pub use res::OwnedResult;
 pub use res::ResultView;
+pub use sample::OwnedSample;
 pub use sample::Sample;
 pub use sample::Samples;
 pub use sol::RcSolution;

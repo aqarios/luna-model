@@ -15,9 +15,32 @@ where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes;
 
+#[derive(Debug, Clone)]
+pub struct OwnedSample<AssignmentTypes>
+where
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    pub variable_names: Vec<String>,
+    pub actual: Rc<Vec<VarAssignment<AssignmentTypes>>>,
+}
+impl<AssignmentTypes> OwnedSample<AssignmentTypes>
+where
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    pub fn new(
+        variable_names: Vec<String>,
+        actual: Rc<Vec<VarAssignment<AssignmentTypes>>>,
+    ) -> Self {
+        Self {
+            variable_names, actual
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deref, DerefMut)]
 pub struct Sample<Bias, AssignmentTypes>(
-    pub Either<ResultView<Bias, AssignmentTypes>, Rc<Vec<VarAssignment<AssignmentTypes>>>>,
+    // pub Either<ResultView<Bias, AssignmentTypes>, Rc<Vec<VarAssignment<AssignmentTypes>>>>,
+    pub Either<ResultView<Bias, AssignmentTypes>, OwnedSample<AssignmentTypes>>,
 )
 where
     Bias: BiasConstraints,
@@ -53,7 +76,7 @@ where
     pub fn get_assignment(&self, col_idx: usize) -> Option<VarAssignment<AssignmentTypes>> {
         match &self.0 {
             Left(r) => r.get_assignment(col_idx),
-            Right(r) => r.get(col_idx).map(|&x| x),
+            Right(r) => r.actual.get(col_idx).map(|&x| x),
         }
     }
 
@@ -73,7 +96,7 @@ where
     fn index_by_value(&self, index: Index) -> Self::Output {
         match &self.0 {
             Left(r) => r.index_by_value(index),
-            Right(s) => s[index.into()],
+            Right(s) => s.actual[index.into()],
         }
     }
 }
