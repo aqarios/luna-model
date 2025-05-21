@@ -163,6 +163,8 @@ where
     pub timing: Option<Timing>,
     /// Keeps track of the current number of samples.
     pub n_samples: usize,
+    /// The names of all variables present in the solution
+    pub variable_names: Vec<String>,
 }
 
 impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>

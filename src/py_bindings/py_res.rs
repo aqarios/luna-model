@@ -125,7 +125,7 @@ impl PyResultView {
     fn raw_energy(&self) -> Option<ConcreteBias> {
         self.0.raw_energy()
     }
-    
+
     /// Get this result's feasibility values of all constraints. Note that
     /// `results.constraints[i]` iff. `model.constraints[i]` is feasible for
     /// this result.

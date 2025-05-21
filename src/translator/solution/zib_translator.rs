@@ -26,6 +26,7 @@ impl ZibTranslator {
             }
         }
         sol.timing = timing;
+        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
         let sample_vec: Vec<_> = env
             .borrow()
             .variables

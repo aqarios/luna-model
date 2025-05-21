@@ -21,10 +21,10 @@ fn starts_with_failable(s: &str) -> bool {
 }
 
 /// Comparison operators used to define constraints.
-/// 
+///
 /// This enum represents the logical relation between the left-hand side (LHS)
 /// and the right-hand side (RHS) of a constraint.
-/// 
+///
 /// Attributes
 /// ----------
 /// Eq : Comparator
@@ -33,7 +33,7 @@ fn starts_with_failable(s: &str) -> bool {
 ///     Less-than-or-equal constraint (<=).
 /// Ge : Comparator
 ///     Greater-than-or-equal constraint (>=).
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Comparator

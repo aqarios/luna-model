@@ -24,16 +24,16 @@ use pyo3::types::PyType;
 use pyo3::{prelude::*, types::PyBytes};
 
 /// A symbolic optimization model consisting of an objective and constraints.
-/// 
+///
 /// The `Model` class represents a structured symbolic optimization problem. It
 /// combines a scalar objective `Expression`, a collection of `Constraints`, and
 /// a shared `Environment` that scopes all variables used in the model.
-/// 
+///
 /// Models can be constructed explicitly by passing an environment, or implicitly
 /// by allowing the model to create its own private environment. If constructed
 /// inside an active `Environment` context (via `with Environment()`), that context
 /// is used automatically.
-/// 
+///
 /// Parameters
 /// ----------
 /// env : Environment, optional
@@ -42,11 +42,11 @@ use pyo3::{prelude::*, types::PyBytes};
 ///     create a new private environment.
 /// name : str, optional
 ///     An optional name assigned to the model.
-/// 
+///
 /// Examples
 /// --------
 /// Basic usage:
-/// 
+///
 /// >>> from luna_quantum import Model, Variable
 /// >>> model = Model("MyModel")
 /// >>> with model.environment:
@@ -55,23 +55,23 @@ use pyo3::{prelude::*, types::PyBytes};
 /// >>> model.objective = x * y + x
 /// >>> model.constraints += x >= 0
 /// >>> model.constraints += y <= 5
-/// 
+///
 /// With explicit environment:
-/// 
+///
 /// >>> from luna_quantum import Environment
 /// >>> env = Environment()
 /// >>> model = Model("ScopedModel", env)
 /// >>> with env:
 /// ...     x = Variable("x")
 /// ...     model.objective = x * x
-/// 
+///
 /// Serialization:
-/// 
+///
 /// >>> blob = model.encode()
 /// >>> restored = Model.decode(blob)
 /// >>> restored.name
 /// 'MyModel'
-/// 
+///
 /// Notes
 /// -----
 /// - The `Model` class does not solve the optimization problem.
@@ -86,7 +86,7 @@ pub struct PyModel {
     #[deref(ignore)]
     #[deref_mut(ignore)]
     #[pyo3(get, set)]
-    pub _metadata: PyModelMetadata, 
+    pub _metadata: PyModelMetadata,
 }
 
 impl PyModel {
@@ -107,7 +107,7 @@ impl Into<ConcreteMutRcModel> for PyModel {
 #[pymethods]
 impl PyModel {
     /// Initialize a new symbolic model.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// name : str, optional
@@ -130,7 +130,7 @@ impl PyModel {
     }
 
     /// Set the optimization sense of a model.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// sense : Sense
@@ -141,7 +141,7 @@ impl PyModel {
     }
 
     /// Get the sense of the model
-    /// 
+    ///
     /// Returns
     /// -------
     /// Sense
@@ -176,7 +176,7 @@ impl PyModel {
     }
 
     /// Add a constraint to the model's constraint collection.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// constraint : Constraint
@@ -193,9 +193,8 @@ impl PyModel {
         Ok(())
     }
 
-
     /// Set the model's objective to this expression.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// expression : Expression
@@ -217,7 +216,7 @@ impl PyModel {
     }
 
     /// Return the number of constraints defined in the model.
-    /// 
+    ///
     /// Returns
     /// -------
     /// int
@@ -239,15 +238,14 @@ impl PyModel {
         PyEnvironment(self.borrow().environment.clone())
     }
 
-
     /// Get all variables that are part of this model.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// active : bool, optional
     ///     Instead of all variables from the environment, return only those that are
     ///     actually present in the model's objective.
-    /// 
+    ///
     /// Returns
     /// -------
     /// The model's variables as a list.
@@ -268,11 +266,11 @@ impl PyModel {
     }
 
     /// Check whether this model is equal to ``other``.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// other : Model
-    /// 
+    ///
     /// Returns
     /// -------
     /// bool
@@ -289,19 +287,19 @@ impl PyModel {
     }
 
     /// Serialize the model into a compact binary format.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// compress : bool, optional
     ///     Whether to compress the binary output. Default is True.
     /// level : int, optional
     ///     Compression level (0–9). Default is 3.
-    /// 
+    ///
     /// Returns
     /// -------
     /// bytes
     ///     Encoded model representation.
-    /// 
+    ///
     /// Raises
     /// ------
     /// IOError
@@ -321,7 +319,7 @@ impl PyModel {
     }
 
     /// Alias for `encode()`.
-    /// 
+    ///
     /// See `encode()` for full documentation.
     #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
@@ -334,17 +332,17 @@ impl PyModel {
     }
 
     /// Reconstruct an expression from encoded bytes.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// data : bytes
     ///     Binary blob returned by `encode()`.
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
     ///     Deserialized expression object.
-    /// 
+    ///
     /// Raises
     /// ------
     /// DecodeError
@@ -357,7 +355,7 @@ impl PyModel {
     }
 
     /// Alias for `decode()`.
-    /// 
+    ///
     /// See `decode()` for full documentation.
     #[classmethod]
     fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
@@ -365,12 +363,12 @@ impl PyModel {
     }
 
     /// Evaluate the model given a solution.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// solution : Solution
     ///     The solution used to evaluate the model with.
-    /// 
+    ///
     /// Returns
     /// -------
     /// Solution
@@ -383,12 +381,12 @@ impl PyModel {
     }
 
     /// Evaluate the model given a single sample.
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// sample : Sample
     ///     The sample used to evaluate the model with.
-    /// 
+    ///
     /// Returns
     /// -------
     /// Result

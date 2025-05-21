@@ -216,6 +216,7 @@ impl PySolution {
                     let bc = binary_cols[lb].clone();
                     let bc_len = bc.len();
                     sol.add_column(SampleCol::Binary(bc));
+                    sol.variable_names.push(format!("b{lb}"));
                     lb += 1;
                     bc_len
                 }
@@ -223,6 +224,7 @@ impl PySolution {
                     let sc = spin_cols[ls].clone();
                     let sc_len = sc.len();
                     sol.add_column(SampleCol::Spin(sc));
+                    sol.variable_names.push(format!("s{ls}"));
                     ls += 1;
                     sc_len
                 }
@@ -230,6 +232,7 @@ impl PySolution {
                     let ic = int_cols[li].clone();
                     let ic_len = ic.len();
                     sol.add_column(SampleCol::Integer(ic));
+                    sol.variable_names.push(format!("i{li}"));
                     li += 1;
                     ic_len
                 }
@@ -237,6 +240,7 @@ impl PySolution {
                     let rc = real_cols[lr].clone();
                     let rc_len = rc.len();
                     sol.add_column(SampleCol::Real(rc));
+                    sol.variable_names.push(format!("r{lr}"));
                     lr += 1;
                     rc_len
                 }
@@ -311,8 +315,7 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None)
-    )]
+    #[pyo3(signature=(data, env=None, model=None))]
     fn from_dict(
         data: HashMap<SampleKey, f64>,
         env: Option<PyEnvironment>,
@@ -349,6 +352,7 @@ impl PySolution {
         let n_vars = environment.borrow().varcount.into();
         let mut sample = vec![f64::default(); n_vars];
         let mut mask = vec![false; n_vars];
+        let mut var_names = vec![String::default(); n_vars];
 
         for (k, &v) in data.iter() {
             let var_name = match k {
@@ -365,12 +369,14 @@ impl PySolution {
             let var = maybe_var.unwrap().0 as usize;
             sample[var] = v;
             mask[var] = true;
+            var_names[var] = var_name.clone();
         }
 
         if !mask.iter().all(|&x| x) {
             return Err(SampleIncorrectLengthErr)?;
         }
 
+        sol.variable_names = var_names;
         let energy: Option<f64> = None;
         let _ = sol.extend(sample, 1, energy)?;
         let mut sol_rc = RcSolution(Rc::new(sol));
@@ -383,20 +389,20 @@ impl PySolution {
 
     /// Get an iterator over the single results of the solution.
     #[getter]
-    fn results<'a>(&self) -> PyResultIterator {
-        PyResultIterator(self.0.iter_results())
+    fn get_results<'a>(&self) -> PyResultIterator {
+        PyResultIterator(self.iter_results())
     }
 
     /// Get a view into the samples of the solution.
     #[getter]
-    fn samples(&self) -> PySamples {
+    fn get_samples(&self) -> PySamples {
         PySamples(Samples(RcSolution::clone(&self)))
     }
 
     /// Get the objective values of the single samples as a ndarray. A value will be
     /// None if the sample hasn't yet been evaluated.
     #[getter]
-    fn obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
+    fn get_obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
         self.obj_values
             .iter()
             .map(|x| x.into_py_any(py).unwrap())
@@ -407,7 +413,7 @@ impl PySolution {
     /// Get the raw energy values of the single samples as returned by the solver /
     /// algorithm. Will be None if the solver / algorithm did not provide a value.
     #[getter]
-    fn raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
+    fn get_raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
         self.raw_energies
             .iter()
             .map(|x| x.into_py_any(py).unwrap())
@@ -417,20 +423,26 @@ impl PySolution {
 
     /// Return how often each sample occurred in the solution.
     #[getter]
-    fn counts<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
+    fn get_counts<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
         self.counts.to_pyarray(py)
     }
 
     /// Get the solver / algorithm runtime.
     #[getter]
-    fn runtime(&self) -> Option<PyTiming> {
+    fn get_runtime(&self) -> Option<PyTiming> {
         self.timing.map(|t| PyTiming(t))
     }
 
     /// Get the index of the sample with the best objective value.
     #[getter]
-    fn best_sample_idx(&self) -> Option<usize> {
-        self.0.best_sample_idx
+    fn get_best_sample_idx(&self) -> Option<usize> {
+        self.best_sample_idx
+    }
+
+    /// Get the names of all variables in the solution.
+    #[getter]
+    fn get_variable_names(&self) -> Vec<String> {
+        self.variable_names.clone()
     }
 
     /// Serialize the solution into a compact binary format.
@@ -462,7 +474,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-            .into())
+        .into())
     }
 
     /// Alias for `encode()`.
@@ -500,7 +512,7 @@ impl PySolution {
     }
 
     /// Alias for `decode()`.
-    /// 
+    ///
     /// See `decode()` for full documentation.
     #[classmethod]
     fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
