@@ -77,6 +77,7 @@ def test_from_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]])
     ]
     assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]
 
+
 @pytest.mark.solution
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...]]):
@@ -86,9 +87,15 @@ def test_from_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...
     sample_c = {x: 1, y: 0, z: 0}  # 1
     sample_d = {x: 0, y: 1, z: 1}  # -2
     samples = [
-        sample_a, sample_b, sample_c, sample_d,
-        sample_b, sample_d, sample_a,
-        sample_b, sample_d,
+        sample_a,
+        sample_b,
+        sample_c,
+        sample_d,
+        sample_b,
+        sample_d,
+        sample_a,
+        sample_b,
+        sample_d,
         sample_d,
     ]
     counts = [2, 3, 1, 4]

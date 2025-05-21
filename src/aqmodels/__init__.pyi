@@ -20,7 +20,7 @@ from ._core import (
     Constraint,
     Constraints,
     translator,
-    errors
+    errors,
 )
 
 __all__ = [
