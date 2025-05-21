@@ -842,13 +842,13 @@ class Solution:
     def build(
         component_types: list[Vtype],
         *,
-        binary_cols: list[list[int]] | None,
-        spin_cols: list[list[int]] | None,
-        int_cols: list[list[int]] | None,
-        real_cols: list[list[float]] | None,
-        raw_energies: list[float | None] | None,
-        timing: Timing | None,
-        counts: list[int] | None,
+        binary_cols: list[list[int]] | None = ...,
+        spin_cols: list[list[int]] | None = ...,
+        int_cols: list[list[int]] | None = ...,
+        real_cols: list[list[float]] | None = ...,
+        raw_energies: list[float | None] | None = ...,
+        timing: Timing | None = ...,
+        counts: list[int] | None = ...,
     ) -> Solution:
         """
         Build a `Solution` based on the provided input data. The solution is constructed
