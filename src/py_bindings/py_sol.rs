@@ -372,7 +372,7 @@ impl PySolution {
         }
 
         let energy: Option<f64> = None;
-        let _ = sol.extend(sample, 1, energy)?;
+        let _ = sol.extend(&sample, 1, energy)?;
         let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc);
@@ -448,16 +448,20 @@ impl PySolution {
         let mut sol = Solution::default();
         for v in environment.borrow().variables.iter() {
             match v.vtype {
-                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
-                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(1))),
-                Vtype::Integer => sol.add_column(SampleCol::Integer(Vec::with_capacity(1))),
-                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(1))),
+                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(data.len()))),
+                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(data.len()))),
+                Vtype::Integer => {
+                    sol.add_column(SampleCol::Integer(Vec::with_capacity(data.len())))
+                }
+                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(data.len()))),
             }
         }
 
         let n_vars = environment.borrow().varcount.into();
 
-        for d in data {
+        let mut samples: Vec<Vec<f64>> = Vec::with_capacity(data.len());
+
+        for d in data.iter() {
             let mut sample = vec![f64::default(); n_vars];
             let mut mask = vec![false; n_vars];
 
@@ -483,7 +487,13 @@ impl PySolution {
             }
 
             let energy: Option<f64> = None;
-            let _ = sol.extend(sample, 1, energy)?;
+
+            if let Some(pos) = samples.iter().position(|s| s == &sample) {
+                sol.counts[pos] += 1;
+            } else {
+                let _ = sol.extend(&sample, 1, energy)?;
+                samples.push(sample);
+            }
         }
 
         let mut sol_rc = RcSolution(Rc::new(sol));
@@ -547,8 +557,6 @@ impl PySolution {
     }
 
     /// Compute the expectation value.
-    ///
-    /// Equivalent to `np.average(solution.obj_values, weights=solution.counts)`
     fn expectation_value(&self) -> PyResult<f64> {
         Ok(self.0.expectation_value()?)
     }

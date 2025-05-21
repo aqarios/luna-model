@@ -185,7 +185,7 @@ where
     /// solution translator is expected to do the aggregation.
     pub fn extend<S: Copy + NumCast, E: Copy + NumCast>(
         &mut self,
-        sample: Vec<S>,
+        sample: &Vec<S>,
         counts: usize,
         energy: Option<E>,
     ) -> Result<&mut Self, SolutionCreationErr> {
@@ -200,7 +200,7 @@ where
         Ok(self)
     }
 
-    fn add_sample<T: Copy + NumCast>(&mut self, sample: Vec<T>) -> Result<(), SolutionCreationErr> {
+    fn add_sample<T: Copy + NumCast>(&mut self, sample: &Vec<T>) -> Result<(), SolutionCreationErr> {
         if sample.len() != self.samples.len() {
             Err(SampleIncorrectLengthErr)?
         } else {
@@ -277,11 +277,6 @@ where
 
         Ok(weighted_sum / weight_sum)
     }
-
-    // fn cvar(&self) {}
-    // fn feasibility(&self) {}
-    // fn filter_feasible(&self) {}
-    // fn filer(&self) {}
 }
 
 #[derive(Debug, Deref, DerefMut)]
