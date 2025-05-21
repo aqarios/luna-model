@@ -19,10 +19,9 @@ from ._core import (
     Comparator,
     Constraint,
     Constraints,
+    translator,
+    errors
 )
-
-from . import translator
-from . import errors
 
 __all__ = [
     "Vtype",

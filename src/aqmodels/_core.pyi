@@ -2555,7 +2555,7 @@ class Environment:
 
         Parameters
         ----------
-        label : str
+        name : str
             The name/label of the variable
 
         Returns
