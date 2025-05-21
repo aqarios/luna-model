@@ -4,7 +4,7 @@ use num::pow::Pow;
 use num::NumCast;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub};
 use std::str::FromStr;
 
 use super::errors::VariableOutOfRangeErr;
@@ -61,6 +61,7 @@ pub trait BiasConstraints:
     + MulAssign
     + Mul<Output = Self>
     + Mul<ConcreteBias, Output = Self>
+    + Div<ConcreteBias, Output = Self>
     + Neg<Output = Self>
     + NumCast
     + FromStr
@@ -82,6 +83,7 @@ impl<
             + MulAssign
             + Mul<Output = T>
             + Mul<ConcreteBias, Output = Self>
+            + Div<ConcreteBias, Output = Self>
             + Neg<Output = T>
             + NumCast
             + FromStr,

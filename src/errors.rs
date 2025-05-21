@@ -6,6 +6,15 @@ use std::{
 };
 
 #[derive(Debug, Clone)]
+pub struct ComputationErr(pub String);
+impl Error for ComputationErr {}
+impl Display for ComputationErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "Encountered error in computation: {}", self.0)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct IllegalConstraintNameErr(pub String);
 impl Error for IllegalConstraintNameErr {}
 impl Display for IllegalConstraintNameErr {
