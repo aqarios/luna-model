@@ -119,8 +119,9 @@ def extract(result, qp, timing, env):
             if n == 0:
                 ordering.append(env.get_variable(qp.variables[i].name))
 
+        sample = sample[::-1] # reverse ordering for correct bitstrings.
         energies.append(float(qp.objective.evaluate(sample)))
-        samples.append(sample[::-1]) # reverse ordering for correct bitstrings.
+        samples.append(sample)
         flat_counts.append(count)
 
     return translator.IbmTranslator.translate(

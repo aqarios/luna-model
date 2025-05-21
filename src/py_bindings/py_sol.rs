@@ -17,7 +17,7 @@ use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::PyBytes;
+use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -492,17 +492,19 @@ impl PySolution {
     /// ------
     /// DecodeError
     ///     If decoding fails due to corruption or incompatibility.
-    #[staticmethod]
-    fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+    #[classmethod]
+    fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Ok(PySolution(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
         ))
     }
 
     /// Alias for `decode()`.
-    #[staticmethod]
-    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Self::decode(py, data)
+    /// 
+    /// See `decode()` for full documentation.
+    #[classmethod]
+    fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::decode(cls, py, data)
     }
 
     fn __str__(&self) -> String {

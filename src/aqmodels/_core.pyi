@@ -811,8 +811,8 @@ class Solution:
         """
         ...
 
-    @staticmethod
-    def decode(data: bytes) -> Solution:
+    @classmethod
+    def decode(cls, data: bytes) -> Solution:
         """
         Reconstruct a solution object from binary data.
 
@@ -833,8 +833,8 @@ class Solution:
         """
         ...
 
-    @staticmethod
-    def deserialize(data: bytes) -> Solution:
+    @classmethod
+    def deserialize(cls, data: bytes) -> Solution:
         """Alias for `decode()`."""
         ...
 
@@ -953,12 +953,48 @@ class Solution:
 
     @overload
     @staticmethod
+    def from_dict(data: dict[Variable, int]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, float]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, int]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, float]) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dict(data: dict[Variable | str, int | float]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, int], *, env: Environment) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, float], *, env: Environment) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, int], *, env: Environment) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, float], *, env: Environment) -> Solution: ...
     @overload
     @staticmethod
     def from_dict(
         data: dict[Variable | str, int | float], *, env: Environment
     ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, int], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, float], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, int], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, float], *, model: Model) -> Solution: ...
     @overload
     @staticmethod
     def from_dict(
@@ -1634,8 +1670,8 @@ class Model:
         """
         ...
 
-    @staticmethod
-    def decode(data: bytes) -> Model:
+    @classmethod
+    def decode(cls, data: bytes) -> Model:
         """
         Reconstruct a symbolic model from binary data.
 
@@ -1656,8 +1692,8 @@ class Model:
         """
         ...
 
-    @staticmethod
-    def deserialize(data: bytes) -> Model:
+    @classmethod
+    def deserialize(cls, data: bytes) -> Model:
         """
         Alias for `decode()`.
 
@@ -1946,17 +1982,8 @@ class Expression:
         """
         ...
 
-    @staticmethod
-    def deserialize(data: bytes) -> Expression:
-        """
-        Alias for `decode()`.
-
-        See `decode()` for full documentation.
-        """
-        ...
-
-    @staticmethod
-    def decode(data: bytes) -> Expression:
+    @classmethod
+    def decode(cls, data: bytes) -> Expression:
         """
         Reconstruct an expression from encoded bytes.
 
@@ -1974,6 +2001,15 @@ class Expression:
         ------
         DecodeError
             If decoding fails due to corruption or incompatibility.
+        """
+        ...
+
+    @classmethod
+    def deserialize(cls, data: bytes) -> Expression:
+        """
+        Alias for `decode()`.
+
+        See `decode()` for full documentation.
         """
         ...
 
@@ -2468,8 +2504,8 @@ class Environment:
         """
         ...
 
-    @staticmethod
-    def decode(data: bytes) -> Environment:
+    @classmethod
+    def decode(cls, data: bytes) -> Environment:
         """
         Reconstruct an expression from a previously encoded binary blob.
 
@@ -2490,8 +2526,8 @@ class Environment:
         """
         ...
 
-    @staticmethod
-    def deserialize(data: bytes) -> Environment:
+    @classmethod
+    def deserialize(cls, data: bytes) -> Environment:
         """
         Alias for `decode()`.
 
@@ -2828,8 +2864,8 @@ class Constraints:
         """
         ...
 
-    @staticmethod
-    def decode(data: bytes, env: Environment) -> Expression:
+    @classmethod
+    def decode(cls, data: bytes, env: Environment) -> Expression:
         """
         Deserialize an expression from binary constraint data.
 
@@ -2850,8 +2886,8 @@ class Constraints:
         """
         ...
 
-    @staticmethod
-    def deserialize(data: bytes, env: Environment) -> Expression:
+    @classmethod
+    def deserialize(cls, data: bytes, env: Environment) -> Expression:
         """
         Alias for `decode()`.
 

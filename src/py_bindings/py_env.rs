@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{prelude::*, types::PyBytes};
+use pyo3::{prelude::*, types::{PyBytes, PyType}};
 use std::{cell::RefCell, ops::Deref, rc::Rc};
 
 use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
@@ -199,8 +199,8 @@ impl PyEnvironment {
     /// ------
     /// DecodeError
     ///     If decoding fails due to corruption or incompatibility.
-    #[staticmethod]
-    fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+    #[classmethod]
+    fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Ok(PyEnvironment::new(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
         ))
@@ -209,9 +209,9 @@ impl PyEnvironment {
     /// Alias for `decode()`.
     ///
     /// See `decode()` for full usage details.
-    #[staticmethod]
-    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Self::decode(py, data)
+    #[classmethod]
+    fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::decode(cls, py, data)
     }
 
     fn __eq__(&self, other: &PyEnvironment) -> bool {
