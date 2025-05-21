@@ -142,6 +142,6 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     pm.py()
         .import("sys")?
         .getattr("modules")?
-        .set_item("aqmodels.exceptions", m)?;
+        .set_item("aqmodels.errors", m)?;
     Ok(())
 }
