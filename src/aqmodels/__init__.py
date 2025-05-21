@@ -92,5 +92,5 @@ __all__ = [
     "Constraint",
     "Constraints",
     "translator",
-    "errors"
+    "errors",
 ]
