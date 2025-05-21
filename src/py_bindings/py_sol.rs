@@ -470,6 +470,7 @@ impl PySolution {
         for d in data.iter() {
             let mut sample = vec![f64::default(); n_vars];
             let mut mask = vec![false; n_vars];
+            let mut var_names = vec![String::default(); n_vars];
 
             for (k, &v) in d.iter() {
                 let var_name = match k {
@@ -486,12 +487,14 @@ impl PySolution {
                 let var = maybe_var.unwrap().0 as usize;
                 sample[var] = v;
                 mask[var] = true;
+                var_names[var] = var_name.clone();
             }
 
             if !mask.iter().all(|&x| x) {
                 return Err(SampleIncorrectLengthErr)?;
             }
 
+            sol.variable_names = var_names;
             let energy: Option<f64> = None;
 
             if let Some(pos) = samples.iter().position(|s| s == &sample) {

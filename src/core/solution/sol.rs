@@ -202,7 +202,10 @@ where
         Ok(self)
     }
 
-    fn add_sample<T: Copy + NumCast>(&mut self, sample: &Vec<T>) -> Result<(), SolutionCreationErr> {
+    fn add_sample<T: Copy + NumCast>(
+        &mut self,
+        sample: &Vec<T>,
+    ) -> Result<(), SolutionCreationErr> {
         if sample.len() != self.samples.len() {
             Err(SampleIncorrectLengthErr)?
         } else {
