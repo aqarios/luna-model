@@ -169,10 +169,10 @@ class QuboTranslator:
     def to_aq(
         qubo: NDArray,
         *,
-        offset: float | None,
-        variable_names: list[str] | None,
-        name: str | None,
-        vtype: Vtype | None,
+        offset: float | None = ...,
+        variable_names: list[str] | None = ...,
+        name: str | None = ...,
+        vtype: Vtype | None = ...,
     ) -> Model:
         """
         Convert a dense QUBO matrix into a symbolic `Model`.
@@ -841,4 +841,3 @@ __all__ = [
     "BqmTranslator",
     "AwsTranslator",
 ]
-

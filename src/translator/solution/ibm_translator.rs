@@ -48,7 +48,7 @@ impl IbmTranslator {
             for (&idx, val) in index_list.iter().zip(sample) {
                 s[idx] = *val;
             }
-            sol.extend(s, occ, Some(*energy))?;
+            sol.extend(&s, occ, Some(*energy))?;
         }
         Ok(RcSolution(Rc::new(sol)))
     }

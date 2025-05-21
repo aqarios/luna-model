@@ -39,7 +39,7 @@ pub enum SampleKey {
 /// returned by the algorithm, metadata about the solution quality, e.g., the objective
 /// value, and the runtime of the algorithm.
 ///
-/// A `Solution` can be constructed explicitly using `from_dict` or by obtaining a solution
+/// A `Solution` can be constructed explicitly using `from_dict`, `from_dicts` or by obtaining a solution
 /// from an algorithm or by converting a different solution format with one of the available
 /// translators. Note that the latter requires the environment the model was created in.
 ///
@@ -372,7 +372,130 @@ impl PySolution {
         }
 
         let energy: Option<f64> = None;
-        let _ = sol.extend(sample, 1, energy)?;
+        let _ = sol.extend(&sample, 1, energy)?;
+        let mut sol_rc = RcSolution(Rc::new(sol));
+        if let Some(m) = model {
+            sol_rc = m.borrow().evaluate_solution(sol_rc);
+        }
+
+        Ok(PySolution(sol_rc))
+    }
+
+    /// Create a `Solution` from multiple dicts that map variables or variable names to their
+    /// assigned values.
+    ///
+    /// If a Model is passed, the solution will be evaluated immediately. Otherwise,
+    /// there has to be an environment present to determine the correct variable types.
+    ///
+    /// Parameters
+    /// ----------
+    /// data : list[dict[Variable | str, int | float]]
+    ///     The samples that shall be part of the solution.
+    /// env : Environment, optional
+    ///     The environment the variable types shall be determined from.
+    /// model : Model, optional
+    ///     A model to evaluate the sample with.
+    ///
+    /// Returns
+    /// -------
+    /// Solution
+    ///     The solution object created from the sample dict.
+    ///
+    /// Raises
+    /// ------
+    /// NoActiveEnvironmentFoundError
+    ///     If no environment or model is passed to the method or available from the
+    ///     context.
+    /// ValueError
+    ///     If `env` and `model` are both present. When this is the case, the user's
+    ///     intention is unclear as the model itself already contains an environment.
+    /// SolutionTranslationError
+    ///     Generally if the sample translation fails. Might be specified by one of the
+    ///     three following errors.
+    /// SampleIncorrectLengthErr
+    ///     If a sample has a different number of variables than the environment.
+    /// SampleUnexpectedVariableError
+    ///     If a sample has a variable that is not present in the environment.
+    /// ModelVtypeError
+    ///     If the result's variable types are incompatible with the model environment's
+    ///     variable types.
+    #[staticmethod]
+    #[pyo3(signature=(data, env=None, model=None)
+    )]
+    fn from_dicts(
+        data: Vec<HashMap<SampleKey, f64>>,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+    ) -> PyResult<PySolution> {
+        if env.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `env` or `model` has to be `None`",
+            ));
+        }
+        let environment: PyEnvironment = if model.is_some() {
+            PyEnvironment(Rc::clone(&model.as_ref().unwrap().borrow().environment))
+        } else {
+            match env {
+                Some(env) => env.clone(),
+                None => CURRENT_ENV.with(|current| {
+                    current.borrow().clone().ok_or_else(|| {
+                        NoActiveEnvironmentFoundError::new_err("no active environment found.")
+                    })
+                })?,
+            }
+        };
+
+        let mut sol = Solution::default();
+        for v in environment.borrow().variables.iter() {
+            match v.vtype {
+                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(data.len()))),
+                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(data.len()))),
+                Vtype::Integer => {
+                    sol.add_column(SampleCol::Integer(Vec::with_capacity(data.len())))
+                }
+                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(data.len()))),
+            }
+        }
+
+        let n_vars = environment.borrow().varcount.into();
+
+        let mut samples: Vec<Vec<f64>> = Vec::with_capacity(data.len());
+
+        for d in data.iter() {
+            let mut sample = vec![f64::default(); n_vars];
+            let mut mask = vec![false; n_vars];
+
+            for (k, &v) in d.iter() {
+                let var_name = match k {
+                    SampleKey::Str(s) => s,
+                    SampleKey::Var(v) => &v.name(),
+                };
+                let environ = environment.borrow();
+                let maybe_var = environ.variables_lookup.get(var_name);
+                if maybe_var.is_none() {
+                    return Err(SampleUnexpectedVariableErr {
+                        var_name: var_name.clone(),
+                    })?;
+                }
+                let var = maybe_var.unwrap().0 as usize;
+                sample[var] = v;
+                mask[var] = true;
+            }
+
+            if !mask.iter().all(|&x| x) {
+                return Err(SampleIncorrectLengthErr)?;
+            }
+
+            let energy: Option<f64> = None;
+
+            if let Some(pos) = samples.iter().position(|s| s == &sample) {
+                sol.counts[pos] += 1;
+            } else {
+                let _ = sol.extend(&sample, 1, energy)?;
+                samples.push(sample);
+            }
+        }
+
         let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc);
@@ -433,6 +556,11 @@ impl PySolution {
         self.0.best_sample_idx
     }
 
+    /// Compute the expectation value.
+    fn expectation_value(&self) -> PyResult<f64> {
+        Ok(self.0.expectation_value()?)
+    }
+
     /// Serialize the solution into a compact binary format.
     ///
     /// Parameters
@@ -462,7 +590,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-            .into())
+        .into())
     }
 
     /// Alias for `encode()`.
@@ -500,7 +628,7 @@ impl PySolution {
     }
 
     /// Alias for `decode()`.
-    /// 
+    ///
     /// See `decode()` for full documentation.
     #[classmethod]
     fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {

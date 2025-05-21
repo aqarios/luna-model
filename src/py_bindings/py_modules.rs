@@ -138,6 +138,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::TranslationError::NAME,
         m.py().get_type::<pyexc::TranslationError>(),
     )?;
+    m.add(
+        pyexc::ComputationError::NAME,
+        m.py().get_type::<pyexc::ComputationError>(),
+    )?;
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?

@@ -39,7 +39,7 @@ impl QctrlTranslator {
         for (idx, val) in (0..env.borrow().varcount.into()).zip(sample) {
             s[idx] = *val;
         }
-        sol.extend(s, 1, Some(energy))?;
+        sol.extend(&s, 1, Some(energy))?;
         Ok(RcSolution(Rc::new(sol)))
     }
 }

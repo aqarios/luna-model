@@ -186,6 +186,12 @@ class SampleIncompatibleVtypeError(SolutionTranslationError):
     """
     def __str__(self, /) -> str: ...
 
+class ComputationError(Exception):
+    """
+    Raised when an internal computation fails.
+    """
+    def __str__(self, /) -> str: ...
+
 __all__ = [
     "VariableOutOfRangeError",
     "VariableExistsError",
@@ -207,5 +213,5 @@ __all__ = [
     "SampleIncorrectLengthError",
     "SampleUnexpectedVariableError",
     "SampleIncompatibleVtypeError",
+    "ComputationError",
 ]
-
