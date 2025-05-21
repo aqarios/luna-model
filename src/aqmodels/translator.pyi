@@ -6,7 +6,7 @@ from pyscipopt import Model as SciModel
 from qiskit.primitives import PrimitiveResult, PubResult
 from qiskit_optimization import QuadraticProgram
 
-from .._core import Solution, Timing, Environment, Vtype, Model
+from ._core import Solution, Timing, Environment, Vtype, Model
 
 class ZibTranslator:
     """
@@ -169,10 +169,10 @@ class QuboTranslator:
     def to_aq(
         qubo: NDArray,
         *,
-        offset: float | None,
-        variable_names: list[str] | None,
-        name: str | None,
-        vtype: Vtype | None,
+        offset: float | None = ...,
+        variable_names: list[str] | None = ...,
+        name: str | None = ...,
+        vtype: Vtype | None = ...,
     ) -> Model:
         """
         Convert a dense QUBO matrix into a symbolic `Model`.

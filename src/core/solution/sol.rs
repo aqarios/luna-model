@@ -3,7 +3,9 @@ use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
 use crate::core::writer::SolutionWriter;
 use crate::core::{ResultIterator, ResultView, Samples};
-use crate::errors::{SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr};
+use crate::errors::{
+    ComputationErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr,
+};
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
 use std::fmt::{Display, Formatter};
@@ -185,7 +187,7 @@ where
     /// solution translator is expected to do the aggregation.
     pub fn extend<S: Copy + NumCast, E: Copy + NumCast>(
         &mut self,
-        sample: Vec<S>,
+        sample: &Vec<S>,
         counts: usize,
         energy: Option<E>,
     ) -> Result<&mut Self, SolutionCreationErr> {
@@ -200,7 +202,7 @@ where
         Ok(self)
     }
 
-    fn add_sample<T: Copy + NumCast>(&mut self, sample: Vec<T>) -> Result<(), SolutionCreationErr> {
+    fn add_sample<T: Copy + NumCast>(&mut self, sample: &Vec<T>) -> Result<(), SolutionCreationErr> {
         if sample.len() != self.samples.len() {
             Err(SampleIncorrectLengthErr)?
         } else {
@@ -250,6 +252,32 @@ where
         self.samples
             .get(col_idx)
             .and_then(|col| col.get::<Bias>(row_idx))
+    }
+}
+
+// Convenience functions
+impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
+where
+    Bias: BiasConstraints,
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    pub fn expectation_value(&self) -> Result<Bias, ComputationErr> {
+        // equivalent to doing np.average(solution.obj_values, weights=solution.counts)
+        let mut weight_sum: f64 = 0.0;
+        let mut weighted_sum: Bias = Bias::default();
+
+        for (idx, (&ov, &c)) in self.obj_values.iter().zip(&self.counts).enumerate() {
+            if ov.is_none() {
+                return Err(ComputationErr(format!(
+                    "obj_values contains a 'None' value at position '{idx}'."
+                )));
+            }
+            let obj_val = ov.unwrap();
+            weight_sum += c as f64;
+            weighted_sum += obj_val * c as f64;
+        }
+
+        Ok(weighted_sum / weight_sum)
     }
 }
 

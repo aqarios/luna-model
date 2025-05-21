@@ -763,6 +763,21 @@ class Solution:
         """Get the index of the sample with the best objective value."""
         ...
 
+    def expectation_value(self, /) -> float:
+        """
+        Compute the expectation value of the solution.
+
+        Returns
+        -------
+        float
+            The expectation value.
+
+        Raises
+        ------
+        ComputationError
+            If the computation fails for any reason.
+        """
+
     @overload
     def encode(self, /) -> bytes: ...
     @overload
@@ -842,13 +857,13 @@ class Solution:
     def build(
         component_types: list[Vtype],
         *,
-        binary_cols: list[list[int]] | None,
-        spin_cols: list[list[int]] | None,
-        int_cols: list[list[int]] | None,
-        real_cols: list[list[float]] | None,
-        raw_energies: list[float | None] | None,
-        timing: Timing | None,
-        counts: list[int] | None,
+        binary_cols: list[list[int]] | None = ...,
+        spin_cols: list[list[int]] | None = ...,
+        int_cols: list[list[int]] | None = ...,
+        real_cols: list[list[float]] | None = ...,
+        raw_energies: list[float | None] | None = ...,
+        timing: Timing | None = ...,
+        counts: list[int] | None = ...,
     ) -> Solution:
         """
         Build a `Solution` based on the provided input data. The solution is constructed
@@ -1018,6 +1033,109 @@ class Solution:
         ----------
         data : dict[Variable | str, int | float]
             The sample that shall be part of the solution.
+        env : Environment, optional
+            The environment the variable types shall be determined from.
+        model : Model, optional
+            A model to evaluate the sample with.
+
+        Returns
+        -------
+        Solution
+            The solution object created from the sample dict.
+
+        Raises
+        ------
+        NoActiveEnvironmentFoundError
+            If no environment or model is passed to the method or available from the
+            context.
+        ValueError
+            If `env` and `model` are both present. When this is the case, the user's
+            intention is unclear as the model itself already contains an environment.
+        SolutionTranslationError
+            Generally if the sample translation fails. Might be specified by one of the
+            three following errors.
+        SampleIncorrectLengthErr
+            If a sample has a different number of variables than the environment.
+        SampleUnexpectedVariableError
+            If a sample has a variable that is not present in the environment.
+        ModelVtypeError
+            If the result's variable types are incompatible with the model environment's
+            variable types.
+        """
+        ...
+
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[Variable, int]]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[Variable, float]]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[str, int]]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[str, float]]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[Variable | str, int | float]]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, int]], *, env: Environment
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, float]], *, env: Environment
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[str, int]], *, env: Environment) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[str, float]], *, env: Environment) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]], *, env: Environment
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[Variable, int]], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[Variable, float]], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[str, int]], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[str, float]], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]], *, model: Model
+    ) -> Solution: ...
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]],
+        *,
+        env: Environment | None = ...,
+        model: Model | None = ...,
+    ) -> Solution:
+        """
+        Create a `Solution` from multiple dicts that map variables or variable names to their
+        assigned values. Duplicate samples contained in the `data` list are aggregated to a single
+        sample.
+
+        If a Model is passed, the solution will be evaluated immediately. Otherwise,
+        there has to be an environment present to determine the correct variable types.
+
+        Parameters
+        ----------
+        data : list[dict[Variable | str, int | float]]
+            The samples that shall be part of the solution.
         env : Environment, optional
             The environment the variable types shall be determined from.
         model : Model, optional
@@ -2438,7 +2556,7 @@ class Environment:
 
         Parameters
         ----------
-        label : str
+        name : str
             The name/label of the variable
 
         Returns

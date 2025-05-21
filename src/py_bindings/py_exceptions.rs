@@ -1,8 +1,8 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
-    BqmTranslatorErr, DifferentEnvsErr, IllegalConstraintNameErr, IndexOutOfBoundsErr,
-    MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr,
-    ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
+    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, IllegalConstraintNameErr,
+    IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr,
+    ModelSenseNotMinimizeErr, ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
     SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VarNamesErr,
     VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr,
 };
@@ -10,6 +10,13 @@ use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
 use pyo3::{create_exception, PyErr};
 use std::convert::From;
+
+create_exception!(
+    aqmodels.errors,
+    ComputationError,
+    PyException,
+    "Raised when an internal computation fails."
+);
 
 create_exception!(
     aqmodels.errors,
@@ -334,5 +341,11 @@ impl From<TranslationErr> for PyErr {
 impl From<IllegalConstraintNameErr> for PyErr {
     fn from(value: IllegalConstraintNameErr) -> Self {
         IllegalConstraintNameError::new_err(value.to_string())
+    }
+}
+
+impl From<ComputationErr> for PyErr {
+    fn from(value: ComputationErr) -> Self {
+        ComputationError::new_err(value.to_string())
     }
 }

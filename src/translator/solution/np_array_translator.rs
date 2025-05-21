@@ -38,7 +38,7 @@ impl NpArrayTranslator {
             let start_idx = i * shape[1];
             let sample = samples[start_idx..start_idx + shape[1]].to_vec();
             sol.extend(
-                sample,
+                &sample,
                 <usize as NumCast>::from(counts[i]).unwrap(),
                 Some(energies[indices[i]]),
             )?;
