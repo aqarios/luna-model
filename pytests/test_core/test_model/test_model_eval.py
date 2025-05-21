@@ -88,13 +88,13 @@ def test_model_eval_wo_constraint(model_wo_constraint: Model, solution: Solution
     assert all(new_sol.raw_energies == solution.raw_energies)
     assert all(new_sol.obj_values == solution.raw_energies)
     
-def test_model_eval_wo_constraint_one_more_var_in_sol(model_wo_constraint_one_less_var: Model, solution: Solution):
+def test_model_eval_wo_constraint_one_less_var_in_model(model_wo_constraint_one_less_var: Model, solution: Solution):
     new_sol = model_wo_constraint_one_less_var.evaluate(solution)
     print(new_sol)
     assert all(new_sol.raw_energies == solution.raw_energies)
     assert all(new_sol.obj_values == solution.raw_energies)
 
-def test_model_eval_wo_constraint_one_less_var_in_sol(model_wo_constraint_one_more_var: Model, solution: Solution):
+def test_model_eval_wo_constraint_one_more_var_in_model(model_wo_constraint_one_more_var: Model, solution: Solution):
     new_sol = model_wo_constraint_one_more_var.evaluate(solution)
     print(new_sol)
     assert all(new_sol.raw_energies == solution.raw_energies)
