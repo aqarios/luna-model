@@ -4,7 +4,7 @@ use aqmodels::core::{
     environment::add_variable,
     expression::ExpressionEvaluation,
     operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
-    ConcreteBias, ConcreteIndex, IndexByValue, Vtype,
+    ConcreteBias, ConcreteIndex, ValueByIndex, Vtype,
 };
 
 use crate::common::{
@@ -30,10 +30,10 @@ impl Index<ConcreteIndex> for DSample {
     }
 }
 
-impl IndexByValue<ConcreteIndex> for DSample {
+impl ValueByIndex<ConcreteIndex> for DSample {
     type Output = ConcreteBias;
 
-    fn index_by_value(&self, index: ConcreteIndex) -> Self::Output {
+    fn value_by_index(&self, index: ConcreteIndex) -> Self::Output {
         self.values[index.0 as usize]
     }
 }
