@@ -373,11 +373,11 @@ impl PyModel {
     /// -------
     /// Solution
     ///     A new solution object with filled-out information.
-    fn evaluate(&self, solution: &PySolution) -> PySolution {
-        PySolution(
+    fn evaluate(&self, solution: &PySolution) -> PyResult<PySolution> {
+        Ok(PySolution(
             self.borrow()
-                .evaluate_solution(RcSolution::clone(&solution.0)),
-        )
+                .evaluate_solution(RcSolution::clone(&solution.0))?,
+        ))
     }
 
     /// Evaluate the model given a single sample.
@@ -391,7 +391,7 @@ impl PyModel {
     /// -------
     /// Result
     ///     A result object containing the information from the evaluation process.
-    fn evaluate_sample(&self, sample: &PySample) -> PyOwnedResult {
-        PyOwnedResult(self.borrow().evaluate_sample(&sample.0))
+    fn evaluate_sample(&self, sample: &PySample) -> PyResult<PyOwnedResult> {
+        Ok(PyOwnedResult(self.borrow().evaluate_sample(&sample.0)?))
     }
 }

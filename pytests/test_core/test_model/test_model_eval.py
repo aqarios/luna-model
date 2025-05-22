@@ -1,5 +1,6 @@
 import pytest
 from aqmodels import Solution, Variable, Vtype, Model
+from aqmodels.errors import EvaluationError
 
 
 @pytest.fixture
@@ -11,6 +12,7 @@ def solution() -> Solution:
             Vtype.Integer,
             Vtype.Real,
         ],
+        variable_names=["b", "s", "i", "r"],
         binary_cols=[[1, 0, 1]],
         spin_cols=[[+1, -1, +1]],
         int_cols=[[2, 3, -4]],
@@ -27,7 +29,7 @@ def model_wo_constraint() -> Model:
         s = Variable("s", vtype=Vtype.Spin)
         i = Variable("i", vtype=Vtype.Integer)
         r = Variable("r", vtype=Vtype.Real)
-    model.objective = b + s + i + r + b * s + i * r
+    model.objective = b + s + i + r 
     return model
 
 
@@ -89,16 +91,12 @@ def test_model_eval_wo_constraint(model_wo_constraint: Model, solution: Solution
     assert all(new_sol.obj_values == solution.raw_energies)
     
 def test_model_eval_wo_constraint_one_less_var_in_model(model_wo_constraint_one_less_var: Model, solution: Solution):
-    new_sol = model_wo_constraint_one_less_var.evaluate(solution)
-    print(new_sol)
-    assert all(new_sol.raw_energies == solution.raw_energies)
-    assert all(new_sol.obj_values == solution.raw_energies)
+    with pytest.raises(EvaluationError):
+        _ = model_wo_constraint_one_less_var.evaluate(solution)
 
 def test_model_eval_wo_constraint_one_more_var_in_model(model_wo_constraint_one_more_var: Model, solution: Solution):
-    new_sol = model_wo_constraint_one_more_var.evaluate(solution)
-    print(new_sol)
-    assert all(new_sol.raw_energies == solution.raw_energies)
-    assert all(new_sol.obj_values == solution.raw_energies)
+    with pytest.raises(EvaluationError):
+        _ = model_wo_constraint_one_more_var.evaluate(solution)
 
 
 def test_model_eval_w_constraint(model_w_constraint: Model, solution: Solution):

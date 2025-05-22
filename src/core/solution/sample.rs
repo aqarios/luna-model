@@ -21,7 +21,7 @@ where
     AssignmentTypes: AssignmentBaseTypes,
 {
     pub variable_names: Vec<String>,
-    pub actual: Rc<Vec<VarAssignment<AssignmentTypes>>>,
+    pub actual: Rc<Vec<VarAssignment<AssignmentTypes>>>, // todo: maybe remove this `RC`
 }
 impl<AssignmentTypes> OwnedSample<AssignmentTypes>
 where
@@ -35,11 +35,14 @@ where
             variable_names, actual
         }
     }
+
+    pub fn len(&self) -> usize {
+        self.actual.len()
+    }
 }
 
 #[derive(Debug, Clone, Deref, DerefMut)]
 pub struct Sample<Bias, AssignmentTypes>(
-    // pub Either<ResultView<Bias, AssignmentTypes>, Rc<Vec<VarAssignment<AssignmentTypes>>>>,
     pub Either<ResultView<Bias, AssignmentTypes>, OwnedSample<AssignmentTypes>>,
 )
 where
