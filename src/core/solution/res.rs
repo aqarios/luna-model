@@ -2,7 +2,7 @@ use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::sol::VarAssignment;
 use crate::core::writer::SolutionWriter;
-use crate::core::{IndexByValue, RcSolution, Sample, SampleIterator};
+use crate::core::{ValueByIndex, RcSolution, Sample, SampleIterator};
 use either::{Left, Right};
 use std::fmt::{Display, Formatter};
 
@@ -50,6 +50,10 @@ where
         self.sol.feasible[self.row_idx]
     }
 
+    pub fn counts(&self) -> usize {
+        self.sol.counts[self.row_idx]
+    }
+
     pub fn get_assignment(&self, col_idx: usize) -> Option<VarAssignment<AssignmentTypes>> {
         self.sol.get_assignment(self.row_idx, col_idx)
     }
@@ -60,7 +64,7 @@ where
     }
 }
 
-impl<Bias, AssignmentTypes, Index> IndexByValue<Index> for ResultView<Bias, AssignmentTypes>
+impl<Bias, AssignmentTypes, Index> ValueByIndex<Index> for ResultView<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
@@ -68,7 +72,7 @@ where
 {
     type Output = VarAssignment<AssignmentTypes>;
 
-    fn index_by_value(&self, index: Index) -> Self::Output {
+    fn value_by_index(&self, index: Index) -> Self::Output {
         self.sol.get_assignment(self.row_idx, index.into()).unwrap()
     }
 }
