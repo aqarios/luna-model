@@ -1,6 +1,6 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
-    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, IllegalConstraintNameErr,
+    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, EvaluationErr, IllegalConstraintNameErr,
     IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr,
     ModelSenseNotMinimizeErr, ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
     SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VarNamesErr,
@@ -15,7 +15,7 @@ create_exception!(
     aqmodels.errors,
     ComputationError,
     PyException,
-    "Raised when an internal computation fails."
+    "Raised when an error occured in an internal computation."
 );
 
 create_exception!(
@@ -165,7 +165,21 @@ Some solution methods may only work on models where all variables have the same
 type, or where only certain variable types are permitted."
 );
 
-create_exception!(aqmodels.errors, VariableNamesError, TranslationError);
+create_exception!(
+    aqmodels.errors,
+    VariableNamesError,
+    TranslationError,
+    "Raised when the QuboTranslator tries to create a model from a QUBO matrix, but the provided variable names are invalid.
+
+If variable names are provided to the QuboTranslator, they have to be unique, and the number of names has to match the number of variables in the QUBO matrix."
+);
+
+create_exception!(
+    aqmodels.errors,
+    EvaluationError,
+    PyException,
+    "Raised when an error occured during evaluation of a model."
+);
 
 create_exception!(aqmodels.errors, SolutionTranslationError, PyException);
 
@@ -347,5 +361,11 @@ impl From<IllegalConstraintNameErr> for PyErr {
 impl From<ComputationErr> for PyErr {
     fn from(value: ComputationErr) -> Self {
         ComputationError::new_err(value.to_string())
+    }
+}
+
+impl From<EvaluationErr> for PyErr {
+    fn from(value: EvaluationErr) -> Self {
+        EvaluationError::new_err(format!("{value}"))
     }
 }

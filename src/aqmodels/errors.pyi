@@ -188,7 +188,13 @@ class SampleIncompatibleVtypeError(SolutionTranslationError):
 
 class ComputationError(Exception):
     """
-    Raised when an internal computation fails.
+    Raised when an error occured in an internal computation.
+    """
+    def __str__(self, /) -> str: ...
+
+class EvaluationError(Exception):
+    """
+    Raised when an error occured during evaluation of a model.
     """
     def __str__(self, /) -> str: ...
 
@@ -214,4 +220,5 @@ __all__ = [
     "SampleUnexpectedVariableError",
     "SampleIncompatibleVtypeError",
     "ComputationError",
+    "EvaluationError"
 ]
