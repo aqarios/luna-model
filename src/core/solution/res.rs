@@ -49,6 +49,10 @@ where
         self.sol.feasible[self.row_idx]
     }
 
+    pub fn counts(&self) -> usize {
+        self.sol.counts[self.row_idx]
+    }
+
     pub fn get_assignment(&self, col_idx: usize) -> Option<VarAssignment<AssignmentTypes>> {
         self.sol.get_assignment(self.row_idx, col_idx)
     }
