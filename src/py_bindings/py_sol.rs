@@ -187,10 +187,11 @@ impl PySolution {
     ///     If a sample column has an incorrect number of samples or if `counts` has
     ///     a length different from the number of samples given.
     #[staticmethod]
-    #[pyo3(signature=(component_types, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None)
+    #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None)
     )]
     fn build(
         component_types: Vec<Vtype>,
+        variable_names: Option<Vec<String>>,
         binary_cols: Option<Vec<Vec<u8>>>,
         spin_cols: Option<Vec<Vec<i8>>>,
         int_cols: Option<Vec<Vec<i64>>>,
@@ -199,6 +200,14 @@ impl PySolution {
         timing: Option<PyTiming>,
         counts: Option<Vec<usize>>,
     ) -> PyResult<Self> {
+        let var_names: Vec<Option<String>> = if let Some(vn) = variable_names {
+            if vn.len() != component_types.len() {
+                return Err(PyRuntimeError::new_err(format!("length of variable names and length of component types do not match, is: '{}', actual: '{}'", vn.len(), component_types.len())));
+            }
+            vn.iter().map(|e| Some(e.clone())).collect()
+        } else {
+            vec![None; component_types.len()]
+        };
         // todo! change to numpy arrays instead of vecs.
         // todo! move further down in rust code.
         let mut sol = Solution::default();
@@ -216,7 +225,7 @@ impl PySolution {
                     let bc = binary_cols[lb].clone();
                     let bc_len = bc.len();
                     sol.add_column(SampleCol::Binary(bc));
-                    sol.variable_names.push(format!("b{lb}"));
+                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("b{lb}")));
                     lb += 1;
                     bc_len
                 }
@@ -224,7 +233,7 @@ impl PySolution {
                     let sc = spin_cols[ls].clone();
                     let sc_len = sc.len();
                     sol.add_column(SampleCol::Spin(sc));
-                    sol.variable_names.push(format!("s{ls}"));
+                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("s{ls}")));
                     ls += 1;
                     sc_len
                 }
@@ -232,7 +241,7 @@ impl PySolution {
                     let ic = int_cols[li].clone();
                     let ic_len = ic.len();
                     sol.add_column(SampleCol::Integer(ic));
-                    sol.variable_names.push(format!("i{li}"));
+                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("i{li}")));
                     li += 1;
                     ic_len
                 }
@@ -240,7 +249,7 @@ impl PySolution {
                     let rc = real_cols[lr].clone();
                     let rc_len = rc.len();
                     sol.add_column(SampleCol::Real(rc));
-                    sol.variable_names.push(format!("r{lr}"));
+                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("r{lr}")));
                     lr += 1;
                     rc_len
                 }
@@ -381,7 +390,7 @@ impl PySolution {
         let _ = sol.extend(&sample, 1, energy)?;
         let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
-            sol_rc = m.borrow().evaluate_solution(sol_rc);
+            sol_rc = m.borrow().evaluate_solution(sol_rc)?;
         }
 
         Ok(PySolution(sol_rc))
@@ -507,7 +516,7 @@ impl PySolution {
 
         let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
-            sol_rc = m.borrow().evaluate_solution(sol_rc);
+            sol_rc = m.borrow().evaluate_solution(sol_rc)?;
         }
 
         Ok(PySolution(sol_rc))

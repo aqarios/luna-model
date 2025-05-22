@@ -38,7 +38,7 @@ markers = [
 module-name = "aqmodels._core"
 python-packages = ["aqmodels"]
 python-source = "src"
-features = ["py", "gen"]
+features = ["py"]
 include = [
     "src/aqmodels/**/*.pyi",
     "src/aqmodels/**/*.py",
