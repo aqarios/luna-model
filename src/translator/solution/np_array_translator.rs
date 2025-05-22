@@ -33,6 +33,7 @@ impl NpArrayTranslator {
             }
         }
         sol.timing = timing;
+        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
         for i in 0..shape[0] {
             let start_idx = i * shape[1];
             let sample = samples[start_idx..start_idx + shape[1]].to_vec();

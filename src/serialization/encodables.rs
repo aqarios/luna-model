@@ -5,11 +5,13 @@ use super::versions::v0::SerEnvironment as SerEnvV0;
 use super::versions::v0::SerExpression as SerExprV0;
 use super::versions::v0::SerModel as SerModelV0;
 use super::versions::v0::SerSolution as SerSolutionV0;
+use super::versions::v0::SerTiming as SerTimingV0;
 use super::Version;
 use crate::core::{
     ConcreteConstraints, ConcreteEnvironment, ConcreteExpression, ConcreteModel,
-    ConcreteMutRcEnvironment, ConcreteSolution,
+    ConcreteMutRcEnvironment, ConcreteSolution, Timing,
 };
+use zstd::zstd_safe::WriteBuf;
 
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of an Expression. In case a new serialization format is defined update this value
@@ -36,6 +38,11 @@ type SerModelLatest = SerModelV0;
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
 type SerSolutionLatest = SerSolutionV0;
+/// Helper type to ensure easier version updates to a new serialization implementation
+/// of a Timing. In case a new serialization format is defined update this value
+/// to ensure all uses of serialization throught the entire library use the most recent
+/// serialization implementation.
+type SerTimingLatest = SerTimingV0;
 
 /// Makes an Expression with Index = VarId and Bias = f64 encodable.
 impl Encodable<SerExprV0> for ConcreteExpression {}
@@ -47,6 +54,8 @@ impl Encodable<SerEnvV0> for ConcreteEnvironment {}
 impl Encodable<SerModelV0> for ConcreteModel {}
 /// Makes a Solution encodable.
 impl Encodable<SerSolutionV0> for ConcreteSolution {}
+/// Makes a Timing encodable.
+impl Encodable<SerTimingV0> for Timing {}
 
 /// Default implementation to make a bytes vector deserializable to an Expression.
 /// For the decoding of a bytes vector to an Expression a reference counted pointer to
@@ -142,6 +151,25 @@ impl Decodable<ConcreteSolution> for Versioned<Vec<u8>> {
         match self.version {
             Some(Version::V0) => SerSolutionV0::decoder(self.data.as_slice(), payload),
             None => SerSolutionLatest::decoder(self.data.as_slice(), payload),
+        }
+    }
+}
+
+/// Default implementation to make a bytes vector deserializable to a Timing.
+impl Decodable<Timing> for Vec<u8> {
+    type Latest = SerTimingLatest;
+    type Payload = ();
+}
+
+/// Makes a versionized representation of the Timing decodable.
+impl Decodable<Timing> for Versioned<Vec<u8>> {
+    type Latest = SerTimingLatest;
+    type Payload = ();
+
+    fn decode(&self, payload: Self::Payload) -> Result<Timing, DecodeError> {
+        match self.version {
+            Some(Version::V0) => SerTimingV0::decoder(self.data.as_slice(), payload),
+            None => SerTimingLatest::decoder(self.data.as_slice(), payload),
         }
     }
 }

@@ -344,7 +344,7 @@ impl PyVariable {
     }
 
     /// Negate the variable, i.e., multiply it by `-1`.
-    /// 
+    ///
     /// Returns
     /// -------
     /// Expression
@@ -353,20 +353,20 @@ impl PyVariable {
     }
 
     /// Create a constraint: expression == scalar.
-    /// 
+    ///
     /// If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
     /// constraint, resulting in the following constraint:
-    /// 
+    ///
     ///     self - rhs == 0
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// rhs : float, int, Variable or Expression
-    /// 
+    ///
     /// Returns
     /// -------
     /// Constraint
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -376,20 +376,20 @@ impl PyVariable {
     }
 
     /// Create a constraint: expression <= scalar.
-    /// 
+    ///
     /// If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
     /// constraint, resulting in the following constraint:
-    /// 
+    ///
     ///     self - rhs <= 0
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// rhs : float, int, Variable or Expression
-    /// 
+    ///
     /// Returns
     /// -------
     /// Constraint
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -399,20 +399,20 @@ impl PyVariable {
     }
 
     /// Create a constraint: expression >= scalar.
-    /// 
+    ///
     /// If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
     /// constraint, resulting in the following constraint:
-    /// 
+    ///
     ///     self - rhs >= 0
-    /// 
+    ///
     /// Parameters
     /// ----------
     /// rhs : float, int, Variable or Expression
-    /// 
+    ///
     /// Returns
     /// -------
     /// Constraint
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError

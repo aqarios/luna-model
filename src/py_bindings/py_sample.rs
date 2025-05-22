@@ -12,14 +12,14 @@ use pyo3::IntoPyObjectExt;
 use super::py_var::PyVariable;
 
 /// An iterator over a solution's samples.
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Solution
 /// >>> solution: Solution = ...
-/// 
+///
 /// Note: ``solution.samples`` is automatically converted into a ``SamplesIterator``.
-/// 
+///
 /// >>> for sample in solution.samples:
 /// ...     sample
 /// [0, -5, 0.28]
@@ -29,15 +29,15 @@ use super::py_var::PyVariable;
 pub struct PySamplesIterator(pub SamplesIterator<ConcreteBias, ConcreteAssignmentTypes>);
 
 /// An iterator over the variable assignments of a solution's sample.
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Solution
 /// >>> solution: Solution = ...
 /// >>> sample = solution.samples[0]
-/// 
+///
 /// Note: ``sample`` is automatically converted into a ``SampleIterator``.
-/// 
+///
 /// >>> for var in sample:
 /// ...     var
 /// 0
@@ -49,10 +49,10 @@ pub struct PySampleIterator(pub SampleIterator<ConcreteBias, ConcreteAssignmentT
 
 /// A samples object is simply a set-like object that contains every different sample
 /// of a solution.
-/// 
+///
 /// The ``Samples`` class is readonly as it's merely a helper class for looking into a
 /// solution's different samples.
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Model, Sample, Solution
@@ -68,13 +68,13 @@ pub struct PySamples(pub Samples<ConcreteBias, ConcreteAssignmentTypes>);
 
 /// A sample object is an assignment of an actual value to each of the models'
 /// variables.
-/// 
+///
 /// The ``Sample`` class is readonly as it's merely a helper class for looking into a
 /// single sample of a solution.
-/// 
+///
 /// Note: a ``Sample`` can be converted to ``list[int | float]`` simply by calling
 /// ``list(sample)``.
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Model, Sample, Solution
@@ -103,7 +103,7 @@ impl Into<SampleIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySampleIte
 impl PySamples {
     /// Convert the sample into a 2-dimensional list where a row constitutes a single
     /// sample, and a column constitutes all assignments for a single variable.
-    /// 
+    ///
     /// Returns
     /// -------
     /// list[list[int | float]]
@@ -127,11 +127,11 @@ impl PySamples {
     /// Extract a sample or variable assignment from the ``Samples`` object.
     /// If ``item`` is an int, returns the sample in this row. If ``item`` is a tuple
     /// of ints `(i, j)`, returns the variable assignment in row `i` and column `j`.
-    /// 
+    ///
     /// Returns
     /// -------
     /// Sample or int or float
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -159,7 +159,7 @@ impl PySamples {
     }
 
     /// Get the number of samples present in this sample set.
-    /// 
+    ///
     /// Returns
     /// -------
     /// int
@@ -168,7 +168,7 @@ impl PySamples {
     }
 
     /// Iterate over all samples of this sample set.
-    /// 
+    ///
     /// Returns
     /// -------
     /// SamplesIterator
@@ -184,11 +184,11 @@ impl PySample {
     }
 
     /// Extract a variable assignment from the ``Sample`` object.
-    /// 
+    ///
     /// Returns
     /// -------
     /// Sample or int or float
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -217,7 +217,7 @@ impl PySample {
     }
 
     /// Get the number of variables present in this sample.
-    /// 
+    ///
     /// Returns
     /// -------
     /// int
@@ -229,7 +229,7 @@ impl PySample {
     }
 
     /// Iterate over all variable assignments of this sample.
-    /// 
+    ///
     /// Returns
     /// -------
     /// SampleIterator

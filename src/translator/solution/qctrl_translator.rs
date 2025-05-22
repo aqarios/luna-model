@@ -34,6 +34,7 @@ impl QctrlTranslator {
             }
         }
         sol.timing = timing;
+        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
         // Map the sample to the correct order.
         let mut s: Vec<S> = vec![S::default(); sample.len()];
         for (idx, val) in (0..env.borrow().varcount.into()).zip(sample) {

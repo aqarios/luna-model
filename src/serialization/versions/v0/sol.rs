@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use prost::Message;
 
+use crate::serialization::{Decodable, Encodable};
 use crate::{
     core::{
         solution::sol::SampleCol, ConcreteSolution, RcSolution, Solution, VarAssignment, Vtype,
@@ -45,55 +46,51 @@ pub struct SerSolution {
     #[prost(bytes, tag = 3)]
     sample_types: Vec<u8>,
 
-    #[prost(bytes, tag = 110)]
+    #[prost(bytes, tag = 4)]
     bins: Vec<u8>,
-    // #[prost(uint64, repeated, tag = 111)]
-    // bins_pos: Vec<u64>,
-    // #[prost(uint64, repeated, tag = 112)]
-    // bin_sample_association: Vec<u64>,
-    #[prost(int32, repeated, tag = 120)]
+
+    #[prost(int32, repeated, tag = 5)]
     spins: Vec<i32>,
-    // #[prost(uint64, repeated, tag = 121)]
-    // spins_pos: Vec<u64>,
-    // #[prost(uint64, repeated, tag = 122)]
-    // spin_sample_association: Vec<u64>,
-    #[prost(int64, repeated, tag = 130)]
+
+    #[prost(int64, repeated, tag = 6)]
     ints: Vec<i64>,
-    // #[prost(uint64, repeated, tag = 131)]
-    // ints_pos: Vec<u64>,
-    // #[prost(uint64, repeated, tag = 132)]
-    // int_sample_association: Vec<u64>,
-    #[prost(double, repeated, tag = 140)]
+
+    #[prost(double, repeated, tag = 7)]
     reals: Vec<f64>,
-    // #[prost(uint64, repeated, tag = 141)]
-    // reals_pos: Vec<u64>,
-    // #[prost(uint64, repeated, tag = 142)]
-    // real_sample_association: Vec<u64>,
+
     /// The number of occurences for each sample in the solution.
-    #[prost(uint64, repeated, tag = 30)]
+    #[prost(uint64, repeated, tag = 8)]
     counts: Vec<u64>,
 
     /// The objective value for each sample in the solution
-    #[prost(double, repeated, tag = 40)]
+    #[prost(double, repeated, tag = 9)]
     obj_values: Vec<f64>,
+
     /// If a sample has an objective value stored. Length corresponds to
     /// num_samples.
-    #[prost(bool, repeated, tag = 41)]
+    #[prost(bool, repeated, tag = 10)]
     has_obj_value: Vec<bool>,
 
     /// The raw energies for each sample in the solution
-    #[prost(double, repeated, tag = 50)]
+    #[prost(double, repeated, tag = 11)]
     raw_energies: Vec<f64>,
+
     /// If a sample has a raw energy stored. Length corresponds to
     /// num_samples.
-    #[prost(bool, repeated, tag = 51)]
+    #[prost(bool, repeated, tag = 12)]
     has_raw_energy: Vec<bool>,
 
     /// The index of the best sample
-    #[prost(uint64, optional, tag = 60)]
+    #[prost(uint64, optional, tag = 13)]
     best_sample_idx: Option<u64>,
-    // /// Runtime metrics of the solution.
-    // pub timing: Option<Timing>,
+
+    /// Runtime metrics of the solution.
+    #[prost(bytes, optional, tag = 14)]
+    timing: Option<Vec<u8>>,
+
+    /// The variable names
+    #[prost(string, repeated, tag = 15)]
+    variable_names: Vec<String>,
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Encodable.
@@ -106,7 +103,7 @@ impl BytesEncodable for SerSolution {
 /// Makes the SerSolution conform with the requirements for it to be an Decodable.
 impl BytesDecodable<ConcreteSolution> for SerSolution {
     fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<ConcreteSolution, DecodeError> {
-        Ok(Self::decode(bytes)?.extract())
+        Self::decode(bytes)?.extract()
     }
 }
 
@@ -185,10 +182,11 @@ impl SerSolution {
 
         self.num_samples = samples.len() as u64;
         self.best_sample_idx = solution.best_sample_idx.and_then(|v| Some(v as u64));
+        self.timing = solution.timing.map(|t| t.encode());
         self
     }
 
-    pub fn extract(&self) -> ConcreteSolution {
+    pub fn extract(&self) -> Result<ConcreteSolution, DecodeError> {
         let mut sol = Solution::default();
         let num_samples = self.num_samples as usize;
         let mut type_per_pos: Vec<Vtype> = Vec::new();
@@ -263,6 +261,12 @@ impl SerSolution {
             }
         }
 
-        RcSolution(Rc::new(sol))
+        sol.best_sample_idx = self.best_sample_idx.map(|idx| idx as usize);
+
+        if let Some(t) = &self.timing {
+            sol.timing = Some(t.decode(())?);
+        }
+
+        Ok(RcSolution(Rc::new(sol)))
     }
 }

@@ -7,7 +7,10 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{prelude::*, types::{PyBytes, PyType}};
+use pyo3::{
+    prelude::*,
+    types::{PyBytes, PyType},
+};
 use std::{cell::RefCell, ops::Deref, rc::Rc};
 
 use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};

@@ -39,6 +39,7 @@ impl IbmTranslator {
             }
         }
         sol.timing = timing;
+        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
         // used to determine the order of each assignment in the sample.
         let index_list: Vec<usize> = orderings.iter().map(|e| e.id.into()).collect();
         // For each sample:

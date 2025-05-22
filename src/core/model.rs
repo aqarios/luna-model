@@ -27,7 +27,7 @@ pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 )] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq)]
 /// Enumeration of optimization senses supported by the optimization system.
-/// 
+///
 /// This enum defines the type of optimization used for a model. The type influences
 /// the domain and behavior of the model during optimization.
 pub enum Sense {

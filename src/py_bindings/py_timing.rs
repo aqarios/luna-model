@@ -25,7 +25,7 @@ use std::time::{Duration, SystemTime};
 /// 1.2999193
 /// >>> timing.qpu
 /// 0.02491934
-#[pyclass(unsendable, name = "Timing", module="aqmodels")]
+#[pyclass(unsendable, name = "Timing", module = "aqmodels")]
 #[derive(Clone, Deref, DerefMut, Debug)]
 pub struct PyTiming(pub Timing);
 
@@ -42,7 +42,7 @@ pub struct PyTiming(pub Timing);
 /// >>> timer = Timer.start()
 /// >>> solution = ... # create a solution by running an algorithm.
 /// >>> timing = timer.stop()
-#[pyclass(unsendable, name = "Timer", module="aqmodels")]
+#[pyclass(unsendable, name = "Timer", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
 pub struct PyTimer(pub Timer);
 
