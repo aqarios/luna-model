@@ -1,7 +1,7 @@
 use crate::core::expression::{BiasConstraints, ExpressionEvaluation, IndexConstraints};
 use crate::core::operations::SubAssignToExpression;
 use crate::core::writer::ModelWriter;
-use crate::core::{ExpressionBase, IndexByValue, MutRcExpression};
+use crate::core::{ExpressionBase, ValueByIndex, MutRcExpression};
 use crate::errors::{IllegalConstraintNameErr, IndexOutOfBoundsErr};
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, AddAssign, Mul};
@@ -136,7 +136,7 @@ where
         Ok(())
     }
 
-    pub fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
+    pub fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<Index, Output = Elem>>(
         &self,
         sample: &'a Sample,
     ) -> bool

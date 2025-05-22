@@ -2,7 +2,7 @@ use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::AssignmentBaseTypes;
 use crate::core::writer::SolutionWriter;
 use crate::core::{
-    IndexByValue, RcSolution, ResultView, SampleIterator, SamplesIterator, VarAssignment,
+    ValueByIndex, RcSolution, ResultView, SampleIterator, SamplesIterator, VarAssignment,
 };
 use derive_more::{Deref, DerefMut};
 use either::{Either, Left, Right};
@@ -62,7 +62,7 @@ where
     }
 }
 
-impl<Bias, AssignmentTypes, Index> IndexByValue<Index> for Sample<Bias, AssignmentTypes>
+impl<Bias, AssignmentTypes, Index> ValueByIndex<Index> for Sample<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,
@@ -70,9 +70,9 @@ where
 {
     type Output = VarAssignment<AssignmentTypes>;
 
-    fn index_by_value(&self, index: Index) -> Self::Output {
+    fn value_by_index(&self, index: Index) -> Self::Output {
         match &self.0 {
-            Left(r) => r.index_by_value(index),
+            Left(r) => r.value_by_index(index),
             Right(s) => s[index.into()],
         }
     }
