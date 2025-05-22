@@ -29,39 +29,76 @@ pub fn diff<T: Eq + Hash + Clone>(a: &[T], b: &[T]) -> (Vec<T>, Vec<T>) {
 }
 
 pub fn check_variables_sol(vars_sol: &[String], vars_env: &[String]) -> Result<(), EvaluationErr> {
+    // First we check the length.
+    if vars_sol.len() != vars_env.len() {
+        // We can directly return an error.
+        return finalize_eval_err_sol(vars_sol, vars_env);
+    }
+
+    // The lengths are OK, now we need to check the contents.
+    if vars_sol != vars_env {
+        return finalize_eval_err_sol(vars_sol, vars_env);
+    }
+
+    // The lengths match and the contents match.
+    // Everything is OK
+    Ok(())
+}
+
+pub fn finalize_eval_err_sol(
+    vars_sol: &[String],
+    vars_env: &[String],
+) -> Result<(), EvaluationErr> {
     let (only_in_sol, only_in_env) = diff(vars_sol, vars_env);
     match (only_in_sol.len(), only_in_env.len()) {
         (0, 0) => Ok(()),
-        (_, 0) => Err(EvaluationErr::SolutionAndModelVariablesMismatch(VariableOcc::new(
-            Some(only_in_sol),
-            None,
-        ))),
-        (0, _) => Err(EvaluationErr::SolutionAndModelVariablesMismatch(VariableOcc::new(
-            None,
-            Some(only_in_env),
-        ))),
-        (_, _) => Err(EvaluationErr::SolutionAndModelVariablesMismatch(VariableOcc::new(
-            Some(only_in_sol),
-            Some(only_in_env),
-        ))),
+        (_, 0) => Err(EvaluationErr::SolutionAndModelVariablesMismatch(
+            VariableOcc::new(Some(only_in_sol), None),
+        )),
+        (0, _) => Err(EvaluationErr::SolutionAndModelVariablesMismatch(
+            VariableOcc::new(None, Some(only_in_env)),
+        )),
+        (_, _) => Err(EvaluationErr::SolutionAndModelVariablesMismatch(
+            VariableOcc::new(Some(only_in_sol), Some(only_in_env)),
+        )),
     }
 }
 
-pub fn check_variables_sample(vars_sol: &[String], vars_env: &[String]) -> Result<(), EvaluationErr> {
+pub fn check_variables_sample(
+    vars_sol: &[String],
+    vars_env: &[String],
+) -> Result<(), EvaluationErr> {
+    // First we check the length.
+    if vars_sol.len() != vars_env.len() {
+        // We can directly return an error.
+        return finalize_eval_err_sample(vars_sol, vars_env);
+    }
+
+    // The lengths are OK, now we need to check the contents.
+    if vars_sol != vars_env {
+        return finalize_eval_err_sample(vars_sol, vars_env);
+    }
+
+    // The lengths match and the contents match.
+    // Everything is OK
+    Ok(())
+}
+
+pub fn finalize_eval_err_sample(
+    vars_sol: &[String],
+    vars_env: &[String],
+) -> Result<(), EvaluationErr> {
     let (only_in_sol, only_in_env) = diff(vars_sol, vars_env);
     match (only_in_sol.len(), only_in_env.len()) {
         (0, 0) => Ok(()),
-        (_, 0) => Err(EvaluationErr::SampleAndModelVariablesMismatch(VariableOcc::new(
-            Some(only_in_sol),
-            None,
-        ))),
-        (0, _) => Err(EvaluationErr::SampleAndModelVariablesMismatch(VariableOcc::new(
-            None,
-            Some(only_in_env),
-        ))),
-        (_, _) => Err(EvaluationErr::SampleAndModelVariablesMismatch(VariableOcc::new(
-            Some(only_in_sol),
-            Some(only_in_env),
-        ))),
+        (_, 0) => Err(EvaluationErr::SampleAndModelVariablesMismatch(
+            VariableOcc::new(Some(only_in_sol), None),
+        )),
+        (0, _) => Err(EvaluationErr::SampleAndModelVariablesMismatch(
+            VariableOcc::new(None, Some(only_in_env)),
+        )),
+        (_, _) => Err(EvaluationErr::SampleAndModelVariablesMismatch(
+            VariableOcc::new(Some(only_in_sol), Some(only_in_env)),
+        )),
     }
 }
