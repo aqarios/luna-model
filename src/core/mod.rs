@@ -82,4 +82,4 @@ pub use variable::VarRef;
 pub use variable::Variable;
 pub use variable::Vtype;
 
-pub use traits::IndexByValue;
+pub use traits::ValueByIndex;

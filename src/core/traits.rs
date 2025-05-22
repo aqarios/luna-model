@@ -1,9 +1,9 @@
-pub trait IndexByValue<Idx>
+pub trait ValueByIndex<Idx>
 where
     Idx: ?Sized,
 {
     type Output: ?Sized;
 
     // Required method
-    fn index_by_value(&self, index: Idx) -> Self::Output;
+    fn value_by_index(&self, index: Idx) -> Self::Output;
 }
