@@ -176,7 +176,7 @@ where
     pub best_sample_idx: Option<usize>,
     /// Runtime metrics of the solution.
     pub timing: Option<Timing>,
-    /// Keeps track of the current number of samples.
+    /// Keeps track of the current number of unique samples.
     pub n_samples: usize,
     /// The names of all variables present in the solution
     pub variable_names: Vec<String>,
@@ -336,7 +336,7 @@ where
 }
 
 impl<Bias, AssignmentTypes> Into<Rc<Solution<Bias, AssignmentTypes>>>
-    for RcSolution<Bias, AssignmentTypes>
+for RcSolution<Bias, AssignmentTypes>
 where
     Bias: BiasConstraints,
     AssignmentTypes: AssignmentBaseTypes,

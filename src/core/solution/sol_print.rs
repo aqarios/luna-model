@@ -2,6 +2,7 @@ use crate::core::expression::{BiasConstraints, One};
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::solution::AssignmentBaseTypes;
 use crate::core::{PrintLayout, Solution};
+use std::time::Duration;
 
 impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
 where
@@ -180,7 +181,7 @@ where
             for (width, vname) in meta_widths.iter().zip(&meta_names) {
                 var_names.push(format!("{vname:>width$}"));
             }
-            var_names.push(String::from(" "));
+            var_names.push(String::from("│"));
         }
         for (mut vname, col_width) in self.variable_names[..n_cols]
             .iter()
@@ -196,7 +197,7 @@ where
             }
         }
         if let ShowMetadata::Right = show_metadata {
-            var_names.push(String::from(" "));
+            var_names.push(String::from("│"));
             for (width, vname) in meta_widths.iter().zip(meta_names) {
                 var_names.push(format!("{vname:>width$}"));
             }
@@ -208,15 +209,33 @@ where
             if let ShowMetadata::Left = show_metadata {
                 let meta_c = meta.clone();
                 out.push_str(&meta_c.join(" "));
-                out.push_str("   ");
+                out.push_str(" │ ");
             }
             out.push_str(&row.join(" "));
             if let ShowMetadata::Right = show_metadata {
-                out.push_str("   ");
+                out.push_str(" │ ");
                 let meta_c = meta.clone();
                 out.push_str(&meta_c.join(" "));
             }
         }
+        if n_rows < self.n_samples {
+            out.push_str("\n...");
+        }
+
+        out.push_str(&format!("\n\nTotal rows: {}", self.n_samples));
+        out.push_str(&format!("\nTotal columns: {}", self.samples.len()));
+
+        if let Some(t) = self.timing {
+            out.push_str("\n\nTiming:");
+            out.push_str(&format!(
+                "\nTotal: {}s",
+                t.total().unwrap_or(Duration::ZERO).as_secs_f64()
+            ));
+            if let Some(qpu) = t.qpu {
+                out.push_str(&format!("\nQPU: {qpu}s"))
+            }
+        }
+
         out
     }
 
