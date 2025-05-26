@@ -204,7 +204,17 @@ where
                         .collect(),
                 )
             };
-            newsol.add_sample_evaluation(i, Some(obj_val), constraints, self.sense.is_min());
+            let variable_bounds = self
+                .environment
+                .borrow()
+                .evaluate_bounds::<Bias, AssignmentTypes, Sample<Bias, AssignmentTypes>>(&sample);
+            newsol.add_sample_evaluation(
+                i,
+                Some(obj_val),
+                constraints,
+                variable_bounds,
+                self.sense.is_min(),
+            );
         }
         Ok(RcSolution(newsol.into()))
     }
@@ -239,10 +249,14 @@ where
                 constraint.comparator.evaluate(v, constraint.rhs)
             })
             .collect();
-        let feasible = cf.iter().all(|&b| b);
+        let vf: Vec<_> = self
+            .environment
+            .borrow()
+            .evaluate_bounds::<Bias, AssignmentTypes, Sample<Bias, AssignmentTypes>>(&sample);
+        let feasible = cf.iter().all(|&b| b) && vf.iter().all(|&b| b);
         let owned_sample_actual = Rc::new(sample.iter().collect());
         let owned_sample = OwnedSample::new(vars_sample.to_vec(), owned_sample_actual);
-        Ok(OwnedResult::new(owned_sample, obj_val, cf, feasible))
+        Ok(OwnedResult::new(owned_sample, obj_val, cf, vf, feasible))
     }
 
     pub fn set_sense(&mut self, sense: Sense) -> &mut Self {

@@ -1,7 +1,7 @@
 use crate::{core::ConcreteEnvId, errors::VariableCreationErr};
 use std::fmt::{Debug, Display, Formatter};
 
-use super::{bounds::display_bound, Bounds, Vtype};
+use super::{bounds::display_bound, Bounds, LazyBounds, Vtype};
 
 /// The variable of a model containing it's name, type, bounds and the environment association.
 #[derive(Debug, Clone, PartialEq)]
@@ -30,7 +30,7 @@ impl Variable {
     pub fn new(
         name: String,
         vtype: Option<&Vtype>,
-        bounds: Option<Bounds>,
+        bounds: Option<LazyBounds>,
         env_id: ConcreteEnvId,
     ) -> Result<Self, VariableCreationErr> {
         let vtype = vtype.map_or(Vtype::default(), |t| *t);
@@ -42,9 +42,9 @@ impl Variable {
         }?;
         let default_bounds = Bounds::default(&vtype);
         let bounds = bounds.map_or(default_bounds, |b| match (b.lower, b.upper) {
-            (Some(_), Some(_)) => b,
-            (Some(l), None) => Bounds::new(Some(l), default_bounds.upper),
-            (None, Some(u)) => Bounds::new(default_bounds.lower, Some(u)),
+            (Some(l), Some(u)) => Bounds::new(l, u),
+            (Some(l), None) => Bounds::new(l, default_bounds.upper),
+            (None, Some(u)) => Bounds::new(default_bounds.lower, u),
             (None, None) => default_bounds,
         });
         Ok(Self {
@@ -58,8 +58,8 @@ impl Variable {
     fn format_bounds(&self) -> String {
         let mut out = String::new();
         if matches!(self.vtype, Vtype::Integer | Vtype::Real) {
-            let has_lower = self.bounds.lower != None;
-            let has_upper = self.bounds.upper != None;
+            let has_lower = self.bounds.lower.is_bounded();
+            let has_upper = self.bounds.upper.is_bounded();
             if has_lower || has_upper {
                 let mut bounds = vec![];
                 if has_lower {

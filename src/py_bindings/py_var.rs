@@ -78,6 +78,12 @@ impl PyVariable {
         let name = &self.env.borrow().variables[idx].name;
         name.clone()
     }
+
+    pub fn bounds(&self) -> PyBounds {
+        let idx: usize = self.id.into();
+        let bounds = self.env.borrow().variables[idx].bounds;
+        PyBounds(bounds.into())
+    }
 }
 
 impl Hash for PyVariable {
@@ -139,6 +145,12 @@ impl PyVariable {
     #[getter]
     fn get_name(&self) -> String {
         self.name()
+    }
+
+    /// Get the bounds of the variable.
+    #[getter]
+    fn get_bounds(&self) -> PyBounds {
+        self.bounds()
     }
 
     /// Compute the hash of the variable.

@@ -46,6 +46,10 @@ where
         &self.sol.constraints[self.row_idx]
     }
 
+    pub fn variable_bounds_satisfaction(&self) -> &Option<Vec<bool>> {
+        &self.sol.variable_bounds[self.row_idx]
+    }
+
     pub fn feasible(&self) -> Option<bool> {
         self.sol.feasible[self.row_idx]
     }
@@ -98,6 +102,8 @@ where
     pub obj_value: Option<Bias>,
     /// Boolean flag for each single constraint whether it's satisfied.
     pub constraint_satisfaction: Option<Vec<bool>>,
+    /// Boolean flag for each variable bounds whether it's satisfied.
+    pub variable_bounds_satisfaction: Option<Vec<bool>>,
     /// Whether all constraints are satisfied.
     pub feasible: Option<bool>,
 }
@@ -111,12 +117,14 @@ where
         sample: OwnedSample<AssignmentTypes>, // Rc<Vec<VarAssignment<AssignmentTypes>>>,
         obj_value: Bias,
         constraint_satisfaction: Vec<bool>,
+        variable_bounds_satisfaction: Vec<bool>,
         feasible: bool,
     ) -> Self {
         Self {
             sample,
             obj_value: Some(obj_value),
             constraint_satisfaction: Some(constraint_satisfaction),
+            variable_bounds_satisfaction: Some(variable_bounds_satisfaction),
             feasible: Some(feasible),
         }
     }
