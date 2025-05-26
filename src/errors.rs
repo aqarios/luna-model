@@ -1,7 +1,7 @@
 use crate::core::Vtype;
 use std::{
     error::Error,
-    fmt::{Display, Formatter, Result},
+    fmt::{Display, Formatter},
     num::ParseIntError,
 };
 
@@ -9,7 +9,7 @@ use std::{
 pub struct ComputationErr(pub String);
 impl Error for ComputationErr {}
 impl Display for ComputationErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Encountered error in computation: {}", self.0)
     }
 }
@@ -18,7 +18,7 @@ impl Display for ComputationErr {
 pub struct IllegalConstraintNameErr(pub String);
 impl Error for IllegalConstraintNameErr {}
 impl Display for IllegalConstraintNameErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Illegal constraint name: {}", self.0)
     }
 }
@@ -27,7 +27,7 @@ impl Display for IllegalConstraintNameErr {
 pub struct VariableNotExistingErr;
 impl Error for VariableNotExistingErr {}
 impl Display for VariableNotExistingErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "variable does not exists in environment")
     }
 }
@@ -43,7 +43,7 @@ impl TranslationErr {
 }
 impl Error for TranslationErr {}
 impl Display for TranslationErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "error encountered during translation: {}", self.msg)
     }
 }
@@ -56,7 +56,7 @@ pub enum VariableCreationErr {
 }
 impl Error for VariableCreationErr {}
 impl Display for VariableCreationErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let msg = match self {
             VariableCreationErr::VariableExists(s) => {
                 format!("variable '{s}' already exists")
@@ -74,7 +74,7 @@ impl Display for VariableCreationErr {
 pub struct VariablesFromDifferentEnvsErr;
 impl Error for VariablesFromDifferentEnvsErr {}
 impl Display for VariablesFromDifferentEnvsErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "operation on two variables from different environments is not supported"
@@ -86,7 +86,7 @@ impl Display for VariablesFromDifferentEnvsErr {
 pub struct DifferentEnvsErr;
 impl Error for DifferentEnvsErr {}
 impl Display for DifferentEnvsErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "operation on two variables from different environments is not supported"
@@ -98,7 +98,7 @@ impl Display for DifferentEnvsErr {
 pub struct ParseFromStringError(pub String);
 impl Error for ParseFromStringError {}
 impl Display for ParseFromStringError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "could not parse to string: {}", self.0)
     }
 }
@@ -112,7 +112,7 @@ impl From<ParseIntError> for ParseFromStringError {
 pub struct ModelNotQuadraticErr;
 impl Error for ModelNotQuadraticErr {}
 impl Display for ModelNotQuadraticErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "the model is not linear or quadratic")
     }
 }
@@ -121,7 +121,7 @@ impl Display for ModelNotQuadraticErr {
 pub struct ModelSenseNotMinimizeErr;
 impl Error for ModelSenseNotMinimizeErr {}
 impl Display for ModelSenseNotMinimizeErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "the model does not have the sense 'minimize'")
     }
 }
@@ -130,7 +130,7 @@ impl Display for ModelSenseNotMinimizeErr {
 pub struct ModelNotUnconstrainedErr;
 impl Error for ModelNotUnconstrainedErr {}
 impl Display for ModelNotUnconstrainedErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "the model is not unconstrained")
     }
 }
@@ -139,7 +139,16 @@ impl Display for ModelNotUnconstrainedErr {
 pub struct ModelVtypeErr(pub String);
 impl Error for ModelVtypeErr {}
 impl Display for ModelVtypeErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", &self.0)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct VarNamesErr(pub String);
+impl Error for VarNamesErr {}
+impl Display for VarNamesErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", &self.0)
     }
 }
@@ -151,16 +160,18 @@ pub enum MatrixTranslatorErr {
     Maximize(ModelSenseNotMinimizeErr),
     Vtype(ModelVtypeErr),
     VarCreation(VariableCreationErr),
+    VarNames(VarNamesErr),
 }
 impl Error for MatrixTranslatorErr {}
 impl Display for MatrixTranslatorErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match &self {
             MatrixTranslatorErr::Constrained(err) => err.fmt(f),
             MatrixTranslatorErr::HigherOrder(err) => err.fmt(f),
             MatrixTranslatorErr::Maximize(err) => err.fmt(f),
             MatrixTranslatorErr::Vtype(err) => err.fmt(f),
             MatrixTranslatorErr::VarCreation(err) => err.fmt(f),
+            MatrixTranslatorErr::VarNames(err) => err.fmt(f),
         }
     }
 }
@@ -195,6 +206,12 @@ impl From<VariableCreationErr> for MatrixTranslatorErr {
     }
 }
 
+impl From<VarNamesErr> for MatrixTranslatorErr {
+    fn from(value: VarNamesErr) -> Self {
+        Self::VarNames(value)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum BqmTranslatorErr {
     Constrained(ModelNotUnconstrainedErr),
@@ -204,7 +221,7 @@ pub enum BqmTranslatorErr {
 }
 impl Error for BqmTranslatorErr {}
 impl Display for BqmTranslatorErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match &self {
             BqmTranslatorErr::Constrained(err) => err.fmt(f),
             BqmTranslatorErr::HigherOrder(err) => err.fmt(f),
@@ -250,7 +267,7 @@ impl IndexOutOfBoundsErr {
 }
 impl Error for IndexOutOfBoundsErr {}
 impl Display for IndexOutOfBoundsErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "index '{}' out of bounds for constraints of len {}",
@@ -265,7 +282,7 @@ pub struct SampleIncorrectLengthErr;
 impl Error for SampleIncorrectLengthErr {}
 
 impl Display for SampleIncorrectLengthErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "sample length is different from the number of variables in the environment"
@@ -277,11 +294,16 @@ impl Display for SampleIncorrectLengthErr {
 pub struct SampleUnexpectedVariableErr {
     pub var_name: String,
 }
+impl SampleUnexpectedVariableErr {
+    pub fn new(var_name: String) -> Self {
+        Self { var_name }
+    }
+}
 
 impl Error for SampleUnexpectedVariableErr {}
 
 impl Display for SampleUnexpectedVariableErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "found unexpected variable in sample: '{}'",
@@ -296,7 +318,7 @@ pub struct SampleIncompatibleVtypeErr;
 impl Error for SampleIncompatibleVtypeErr {}
 
 impl Display for SampleIncompatibleVtypeErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "sample contains variable assignments incompatible with the model's variable types."
@@ -314,7 +336,7 @@ pub enum SolutionCreationErr {
 impl Error for SolutionCreationErr {}
 
 impl Display for SolutionCreationErr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             SolutionCreationErr::SampleIncorrectLength(err) => err.fmt(f),
             SolutionCreationErr::SampleUnexpectedVariable(err) => err.fmt(f),
@@ -336,5 +358,64 @@ impl From<SampleIncompatibleVtypeErr> for SolutionCreationErr {
 impl From<IllegalConstraintNameErr> for TranslationErr {
     fn from(value: IllegalConstraintNameErr) -> Self {
         TranslationErr::new(value.0)
+    }
+}
+
+#[derive(Debug)]
+pub struct VariableOcc {
+    pub only_in_sol: Option<Vec<String>>,
+    pub only_in_env: Option<Vec<String>>,
+}
+impl VariableOcc {
+    pub fn new(only_in_sol: Option<Vec<String>>, only_in_env: Option<Vec<String>>) -> Self {
+        Self {
+            only_in_sol,
+            only_in_env,
+        }
+    }
+}
+
+impl VariableOcc {
+    fn build_str(&self, what: &str) -> Result<String, std::fmt::Error> {
+        let sep = ", ";
+        let msg_sol = format!("{what} contains variables not present in model");
+        let msg_env = "missing variables in solution present in model";
+        match (&self.only_in_sol, &self.only_in_env) {
+            (Some(s), None) => Ok(format!("{msg_sol}: '{}'", s.join(sep))),
+            (None, Some(e)) => Ok(format!("{msg_env}: '{}'", e.join(sep))),
+            (Some(s), Some(e)) => Ok(format!(
+                "{msg_sol}: '{}', and {msg_env}: '{}'",
+                s.join(sep),
+                e.join(sep)
+            )),
+            (None, None) => Err(std::fmt::Error),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum EvaluationErr {
+    SolutionAndModelVariablesMismatch(VariableOcc),
+    SampleAndModelVariablesMismatch(VariableOcc),
+}
+impl Error for EvaluationErr {}
+
+impl Display for EvaluationErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let msg = match self {
+            EvaluationErr::SolutionAndModelVariablesMismatch(oc) => {
+                format!(
+                    "error occurred during solution evaluation: {}",
+                    oc.build_str("solution")?
+                )
+            }
+            EvaluationErr::SampleAndModelVariablesMismatch(oc) => {
+                format!(
+                    "error occurred during sample evaluation: {}",
+                    oc.build_str("sample")?
+                )
+            }
+        };
+        write!(f, "{}", msg)
     }
 }

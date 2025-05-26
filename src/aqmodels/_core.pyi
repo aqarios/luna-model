@@ -857,6 +857,7 @@ class Solution:
     def build(
         component_types: list[Vtype],
         *,
+        variable_names: list[str] | None = ...,
         binary_cols: list[list[int]] | None = ...,
         spin_cols: list[list[int]] | None = ...,
         int_cols: list[list[int]] | None = ...,
@@ -932,6 +933,8 @@ class Solution:
         ----------
         component_types : list[Vtype]
             The variable type each element in a sample encodes.
+        variable_names : list[Vtype], optional
+            The name of each variable in the solution.
         binary_cols : list[list[int]], optional
             The data of all binary valued columns. Each inner list encodes a single binary-valued
             column. Required if any element in the `component_types` is `Vtype.Binary`.

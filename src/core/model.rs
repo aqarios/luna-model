@@ -1,3 +1,4 @@
+use either::Either;
 use strum_macros::Display;
 
 use super::constraints::Constraints;
@@ -6,11 +7,13 @@ use super::expression::{
     BiasConstraints, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation,
     IndexConstraints,
 };
+use super::solution::OwnedSample;
+use super::utils::{check_variables_sample, check_variables_sol};
 use super::{Environment, Expression, RcSolution, Sample, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::writer::ModelWriter;
-use crate::errors::VariableCreationErr;
+use crate::errors::{EvaluationErr, VariableCreationErr};
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 use std::cell::RefCell;
@@ -136,10 +139,20 @@ where
     pub fn evaluate_solution<AssignmentTypes>(
         &self,
         sol: RcSolution<Bias, AssignmentTypes>,
-    ) -> RcSolution<Bias, AssignmentTypes>
+    ) -> Result<RcSolution<Bias, AssignmentTypes>, EvaluationErr>
     where
         AssignmentTypes: AssignmentBaseTypes,
     {
+        let vars_sol = &sol.variable_names;
+        let vars_env = &self
+            .environment
+            .borrow()
+            .variables
+            .iter()
+            .map(|v| v.name.clone())
+            .collect::<Vec<String>>();
+        check_variables_sol(vars_sol, vars_env)?;
+
         let mut newsol = sol.0.deref().clone();
         for (i, sample) in sol.samples().iter().enumerate() {
             let obj_val = self.objective.borrow().evaluate_sample(&sample);
@@ -156,16 +169,29 @@ where
             };
             newsol.add_sample_evaluation(i, Some(obj_val), constraints, self.sense.is_min());
         }
-        RcSolution(newsol.into())
+        Ok(RcSolution(newsol.into()))
     }
 
     pub fn evaluate_sample<'a, AssignmentTypes>(
         &self,
         sample: &Sample<Bias, AssignmentTypes>,
-    ) -> OwnedResult<Bias, AssignmentTypes>
+    ) -> Result<OwnedResult<Bias, AssignmentTypes>, EvaluationErr>
     where
         AssignmentTypes: AssignmentBaseTypes,
     {
+        let vars_sample = match &sample.0 {
+            Either::Left(a) => &a.sol.variable_names,
+            Either::Right(b) => &b.variable_names,
+        };
+        let vars_env = &self
+            .environment
+            .borrow()
+            .variables
+            .iter()
+            .map(|v| v.name.clone())
+            .collect::<Vec<String>>();
+        check_variables_sample(vars_sample, vars_env)?;
+
         let obj_val = self.objective.borrow().evaluate_sample(sample);
         let cf: Vec<_> = self
             .constraints
@@ -177,8 +203,9 @@ where
             })
             .collect();
         let feasible = cf.iter().all(|&b| b);
-        let owned_sample = Rc::new(sample.iter().collect());
-        OwnedResult::new(owned_sample, obj_val, cf, feasible)
+        let owned_sample_actual = Rc::new(sample.iter().collect());
+        let owned_sample = OwnedSample::new(vars_sample.to_vec(), owned_sample_actual);
+        Ok(OwnedResult::new(owned_sample, obj_val, cf, feasible))
     }
 
     pub fn set_sense(&mut self, sense: Sense) -> &mut Self {

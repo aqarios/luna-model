@@ -4,6 +4,7 @@ mod extras;
 mod model;
 mod variable;
 mod writer;
+mod utils;
 
 pub mod constraints;
 pub mod environment;
@@ -83,4 +84,4 @@ pub use variable::VarRef;
 pub use variable::Variable;
 pub use variable::Vtype;
 
-pub use traits::IndexByValue;
+pub use traits::ValueByIndex;
