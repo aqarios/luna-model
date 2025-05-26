@@ -2,9 +2,9 @@ mod common;
 mod concrete;
 mod extras;
 mod model;
+mod utils;
 mod variable;
 mod writer;
-mod utils;
 
 pub mod constraints;
 pub mod environment;

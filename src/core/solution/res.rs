@@ -2,7 +2,7 @@ use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::sol::VarAssignment;
 use crate::core::writer::SolutionWriter;
-use crate::core::{ValueByIndex, RcSolution, Sample, SampleIterator};
+use crate::core::{RcSolution, Sample, SampleIterator, ValueByIndex};
 use either::{Left, Right};
 use std::fmt::{Display, Formatter};
 

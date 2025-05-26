@@ -31,6 +31,7 @@ where
         max_chars_per_var: usize,
         max_lines: usize,
     ) -> String {
+        println!("{max_line_length}, {max_chars_per_var}, {max_lines}");
         const SPACE_BETWEEN_COLS: usize = 1;
         let mut n_cols = 0;
         let mut col_widths = Vec::new();
@@ -47,35 +48,39 @@ where
                 SampleCol::Integer(_) => vname_len.max(2),
                 SampleCol::Real(_) => vname_len.max(4),
             };
+            let mut vals = Vec::with_capacity(n_rows);
             match col {
                 SampleCol::Binary(bins) => {
-                    for (row_idx, &v) in bins[..n_rows].iter().enumerate() {
+                    for &v in bins[..n_rows].iter() {
                         let s = Self::format_binary(v, col_width);
                         col_width = col_width.max(s.chars().count());
-                        collected[row_idx].push(s);
+                        vals.push(s);
                     }
                 }
                 SampleCol::Spin(spins) => {
-                    for (row_idx, &v) in spins[..n_rows].iter().enumerate() {
+                    for &v in spins[..n_rows].iter() {
                         let s = Self::format_spin(v, col_width);
                         col_width = col_width.max(s.chars().count());
-                        collected[row_idx].push(s);
+                        vals.push(s);
                     }
                 }
                 SampleCol::Integer(ints) => {
-                    for (row_idx, &v) in ints[..n_rows].iter().enumerate() {
-                        let s = Self::format_int(v, col_width);
+                    for &v in ints[..n_rows].iter() {
+                        let s = Self::format_int(v, max_chars_per_var);
                         col_width = col_width.max(s.chars().count());
-                        collected[row_idx].push(s);
+                        vals.push(s);
                     }
                 }
                 SampleCol::Real(reals) => {
-                    for (row_idx, &v) in reals[..n_rows].iter().enumerate() {
-                        let s = Self::format_real(v, col_width);
+                    for &v in reals[..n_rows].iter() {
+                        let s = Self::format_real(v, max_chars_per_var);
                         col_width = col_width.max(s.chars().count());
-                        collected[row_idx].push(s);
+                        vals.push(s);
                     }
                 }
+            }
+            for (row_idx, s) in vals.iter().enumerate() {
+                collected[row_idx].push(format!("{s:>col_width$}"))
             }
 
             let width_old = width_reached;
@@ -101,7 +106,7 @@ where
             .zip(col_widths)
         {
             vname.truncate(col_width);
-            var_names.push(vname);
+            var_names.push(format!("{vname:>col_width$}"));
         }
 
         let mut out = var_names.join(" ");
@@ -138,31 +143,21 @@ where
     }
 
     fn format_int(value: AssignmentTypes::IntegerType, col_width: usize) -> String {
-        let sign = if value < AssignmentTypes::IntegerType::default() {
-            "-"
-        } else {
-            " "
-        };
         if value.to_string().chars().count() <= col_width {
-            format!("{sign}{value:>col_width$}")
+            format!("{value}")
         } else {
-            format!("{sign}{value:e>col_width$}")
+            format!("{value:>col_width$e}")
         }
     }
 
     fn format_real(value: AssignmentTypes::RealType, col_width: usize) -> String {
-        let sign = if value < AssignmentTypes::RealType::default() {
-            "-"
-        } else {
-            " "
-        };
         let digits_int_part = format!("{:.0}", value).chars().count();
         if digits_int_part <= col_width - 2 {
             let decimals = col_width - digits_int_part - 1;
-            format!("{sign}{value:>col_width$.decimals$}")
+            format!("{value:>col_width$.decimals$}")
         } else {
             let decimals = col_width - 4;
-            format!("{sign}{value:e>col_width$.decimals$}")
+            format!("{value:>col_width$.decimals$e}")
         }
     }
 }

@@ -1,5 +1,5 @@
 use crate::core::term::types::SizeType;
-use crate::core::{ConcreteBias, ValueByIndex, MutRcEnvironment, Vtype};
+use crate::core::{ConcreteBias, MutRcEnvironment, ValueByIndex, Vtype};
 use num::pow::Pow;
 use num::NumCast;
 use std::fmt::{Debug, Display};

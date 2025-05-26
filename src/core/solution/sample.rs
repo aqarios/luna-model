@@ -2,7 +2,7 @@ use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::AssignmentBaseTypes;
 use crate::core::writer::SolutionWriter;
 use crate::core::{
-    ValueByIndex, RcSolution, ResultView, SampleIterator, SamplesIterator, VarAssignment,
+    RcSolution, ResultView, SampleIterator, SamplesIterator, ValueByIndex, VarAssignment,
 };
 use derive_more::{Deref, DerefMut};
 use either::{Either, Left, Right};
@@ -32,7 +32,8 @@ where
         actual: Rc<Vec<VarAssignment<AssignmentTypes>>>,
     ) -> Self {
         Self {
-            variable_names, actual
+            variable_names,
+            actual,
         }
     }
 

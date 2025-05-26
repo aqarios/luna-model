@@ -1,7 +1,7 @@
 use crate::core::expression::{BiasConstraints, ExpressionEvaluation, IndexConstraints};
 use crate::core::operations::SubAssignToExpression;
 use crate::core::writer::ModelWriter;
-use crate::core::{ExpressionBase, ValueByIndex, MutRcExpression};
+use crate::core::{ExpressionBase, MutRcExpression, ValueByIndex};
 use crate::errors::{IllegalConstraintNameErr, IndexOutOfBoundsErr};
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, AddAssign, Mul};

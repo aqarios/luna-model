@@ -226,7 +226,8 @@ impl PySolution {
                     let bc = binary_cols[lb].clone();
                     let bc_len = bc.len();
                     sol.add_column(SampleCol::Binary(bc));
-                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("b{lb}")));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("b{lb}")));
                     lb += 1;
                     bc_len
                 }
@@ -234,7 +235,8 @@ impl PySolution {
                     let sc = spin_cols[ls].clone();
                     let sc_len = sc.len();
                     sol.add_column(SampleCol::Spin(sc));
-                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("s{ls}")));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("s{ls}")));
                     ls += 1;
                     sc_len
                 }
@@ -242,7 +244,8 @@ impl PySolution {
                     let ic = int_cols[li].clone();
                     let ic_len = ic.len();
                     sol.add_column(SampleCol::Integer(ic));
-                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("i{li}")));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("i{li}")));
                     li += 1;
                     ic_len
                 }
@@ -250,7 +253,8 @@ impl PySolution {
                     let rc = real_cols[lr].clone();
                     let rc_len = rc.len();
                     sol.add_column(SampleCol::Real(rc));
-                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("r{lr}")));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("r{lr}")));
                     lr += 1;
                     rc_len
                 }
