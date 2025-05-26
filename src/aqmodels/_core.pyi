@@ -753,6 +753,9 @@ class Solution:
         """
         Get the best result of the solution if it exists.
 
+        A best solution is defined as the result with the lowest (in case of Sense.Min)
+        or the highest (in case of Sense.Max) objective value that is feasible.
+
         Returns
         -------
         ResultView

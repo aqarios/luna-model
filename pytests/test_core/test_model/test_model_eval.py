@@ -109,7 +109,7 @@ def test_model_eval_wo_constraint_best(model_wo_constraint: Model, solution: Sol
     assert all(new_sol.raw_energies == solution.raw_energies)
     assert all(new_sol.obj_values == solution.raw_energies)
     assert new_sol.best_sample_idx is not None
-    assert new_sol.best_sample_idx == len(new_sol) - 1
+    assert new_sol.best_sample_idx == 1
     assert new_sol.best() == new_sol[new_sol.best_sample_idx]
 
 
