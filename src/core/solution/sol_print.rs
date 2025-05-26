@@ -46,6 +46,7 @@ where
             String::from("feas"),
             String::from("raw"),
             String::from("obj"),
+            String::from("count"),
         ];
         let mut var_names = Vec::new();
 
@@ -61,6 +62,7 @@ where
                 };
                 metadata[row_idx].push(String::from(s))
             }
+
             let mut raws = Vec::new();
             let mut col_width = 3;
             for raw in self.raw_energies[..n_rows].iter() {
@@ -76,6 +78,7 @@ where
             for (row_idx, s) in raws.iter().enumerate() {
                 metadata[row_idx].push(format!("{s:>col_width$}"))
             }
+
             let mut objs = Vec::new();
             col_width = 3;
             for obj in self.obj_values[..n_rows].iter() {
@@ -91,6 +94,20 @@ where
             for (row_idx, s) in objs.iter().enumerate() {
                 metadata[row_idx].push(format!("{s:>col_width$}"))
             }
+
+            let mut counts = Vec::new();
+            col_width = 5;
+            for &count in self.counts[..n_rows].iter() {
+                let s = Self::format_usize(count, max_chars_per_var);
+                col_width = col_width.max(s.chars().count());
+                counts.push(s);
+            }
+            meta_widths.push(col_width);
+            width_reached += col_width + SPACE_BETWEEN_COLS;
+            for (row_idx, s) in counts.iter().enumerate() {
+                metadata[row_idx].push(format!("{s:>col_width$}"))
+            }
+
             width_reached += 2; // for extra spacing
         }
 
@@ -230,6 +247,14 @@ where
     }
 
     fn format_int(value: AssignmentTypes::IntegerType, col_width: usize) -> String {
+        if value.to_string().chars().count() <= col_width {
+            format!("{value}")
+        } else {
+            format!("{value:>col_width$e}")
+        }
+    }
+
+    fn format_usize(value: usize, col_width: usize) -> String {
         if value.to_string().chars().count() <= col_width {
             format!("{value}")
         } else {
