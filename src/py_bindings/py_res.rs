@@ -141,6 +141,10 @@ impl PyResultView {
     fn feasible(&self) -> Option<bool> {
         self.0.feasible()
     }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
 }
 
 #[pymethods]

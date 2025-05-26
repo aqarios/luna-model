@@ -116,8 +116,8 @@ impl PyModel {
     ///     The environment in which the model operates. If not provided, a new
     ///     environment will be created or inferred from context.
     #[new]
-    #[pyo3(signature=(name=None, env=None))]
-    fn py_new(name: Option<String>, env: Option<PyEnvironment>) -> Self {
+    #[pyo3(signature=(name=None, sense=None, env=None))]
+    fn py_new(name: Option<String>, sense: Option<Sense>, env: Option<PyEnvironment>) -> Self {
         let env: PyEnvironment = match env {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|curr| {
@@ -126,7 +126,7 @@ impl PyModel {
                     .unwrap_or_else(|| PyEnvironment::new(Environment::new()))
             }),
         };
-        Self::new(Model::new_with_env(name, env.0))
+        Self::new(Model::new_with_env(name, sense, env.0))
     }
 
     /// Set the optimization sense of a model.

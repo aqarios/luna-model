@@ -674,6 +674,7 @@ class Solution:
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+    def __len__(self, /) -> int: ...
     def __iter__(self, /) -> ResultIterator:
         """
         Extract a result view from the `Solution` object.
@@ -719,6 +720,18 @@ class Solution:
         Returns
         -------
         bool
+        """
+        ...
+
+
+    def best(self, /) -> ResultView | None: 
+        """
+        Get the best result of the solution if it exists.
+
+        Returns
+        -------
+        ResultView
+            The best result of the solution as a view.
         """
         ...
 
@@ -1491,6 +1504,7 @@ class ResultView:
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+    def __eq__(self, other: ResultView, /) -> bool: ... # type: ignore
 
 # _model.pyi
 class Sense(Enum):
@@ -1570,13 +1584,23 @@ class Model:
     @overload
     def __init__(self, /, name: str) -> None: ...
     @overload
+    def __init__(self, /, name: str, *, sense: Sense) -> None: ...
+    @overload
+    def __init__(self, /, name: str, *, env: Environment) -> None: ...
+    @overload
+    def __init__(self, /, *, sense: Sense) -> None: ...
+    @overload
     def __init__(self, /, *, env: Environment) -> None: ...
     @overload
-    def __init__(self, /, name: str, env: Environment) -> None: ...
+    def __init__(self, /, *, sense: Sense, env: Environment) -> None: ...
+    @overload
+    def __init__(self, /, name: str, *, sense: Sense, env: Environment) -> None: ...
     def __init__(
         self,
         /,
         name: str | None = ...,
+        *,
+        sense: Sense | None = ...,
         env: Environment | None = ...,
     ) -> None:
         """

@@ -1,5 +1,5 @@
 use either::Either;
-use strum_macros::Display;
+use strum_macros::{Display, EnumString};
 
 use super::constraints::Constraints;
 use super::environment::add_variable;
@@ -28,17 +28,17 @@ pub static DEFAULT_MODEL_NAME: &str = "unnamed";
     feature = "py",
     pyclass(eq, eq_int, name = "Sense", module = "aqmodels")
 )] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
-#[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq)]
+#[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq, EnumString)]
 /// Enumeration of optimization senses supported by the optimization system.
 ///
 /// This enum defines the type of optimization used for a model. The type influences
 /// the domain and behavior of the model during optimization.
 pub enum Sense {
     /// Indicate the objective function to be minimized.
-    #[strum(to_string = "Minimize")]
+    #[strum(to_string = "Minimize", serialize="Min")]
     Min,
     /// Indicate the objective function to be maximized.
-    #[strum(to_string = "Maximize")]
+    #[strum(to_string = "Maximize", serialize="Max")]
     Max,
 }
 
@@ -46,6 +46,12 @@ impl Sense {
     /// Convenience function to check if the sense is `Sense::Min`.
     pub fn is_min(&self) -> bool {
         self == &Self::Min
+    }
+}
+
+impl Default for Sense {
+    fn default() -> Self {
+        Self::Min
     }
 }
 
@@ -77,25 +83,29 @@ where
     Bias: BiasConstraints,
 {
     /// Create a new Model using a specifc environment.
-    pub fn new_with_env(name: Option<String>, env: Rc<RefCell<Environment<Index>>>) -> Self {
+    pub fn new_with_env(
+        name: Option<String>,
+        sense: Option<Sense>,
+        env: Rc<RefCell<Environment<Index>>>,
+    ) -> Self {
         Self {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
             objective: Rc::new(RefCell::new(Expression::empty(env.clone()))),
             environment: env,
             constraints: Rc::new(RefCell::new(Constraints::default())),
-            sense: Sense::Min,
+            sense: sense.unwrap_or(Sense::default()),
         }
     }
 
     /// Create a new Model with a new environment created just for this model.
-    pub fn new(name: Option<String>) -> Self {
+    pub fn new(name: Option<String>, sense: Option<Sense>) -> Self {
         let rcenv = Rc::new(RefCell::new(Environment::new()));
         Self {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
             objective: Rc::new(RefCell::new(Expression::empty(rcenv.clone()))),
             environment: rcenv,
             constraints: Rc::new(RefCell::new(Constraints::default())),
-            sense: Sense::Min,
+            sense: sense.unwrap_or(Sense::default()),
         }
     }
 
@@ -110,7 +120,7 @@ where
         offset: Option<Bias>,
         variable_names: Option<Vec<String>>,
     ) -> Result<Self, VarNamesErr> {
-        let model = Model::new(name);
+        let model = Model::new(name, Some(Sense::default()));
 
         for idx in 0..num_variables.into() {
             let var_name = match &variable_names {
