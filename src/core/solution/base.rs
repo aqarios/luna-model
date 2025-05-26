@@ -1,5 +1,6 @@
+use crate::core::expression::One;
 use num::NumCast;
-use std::fmt::{Debug, Display};
+use std::fmt::{Debug, Display, LowerExp};
 
 pub trait AssignmentBaseTypes: Debug + Clone + Copy + Default {
     /// The type of binary variable assignments in solutions
@@ -13,11 +14,31 @@ pub trait AssignmentBaseTypes: Debug + Clone + Copy + Default {
 }
 
 pub trait AssignmentConstraints:
-    Debug + Clone + Display + Copy + Default + PartialEq + PartialOrd + NumCast
+    Debug
+    + Clone
+    + Display
+    + ToString
+    + Copy
+    + Default
+    + One
+    + PartialEq
+    + PartialOrd
+    + NumCast
+    + LowerExp
 {
 }
 
-impl<T: Debug + Clone + Display + Copy + Default + PartialEq + PartialOrd + NumCast>
-    AssignmentConstraints for T
+impl<
+        T: Debug
+            + Clone
+            + Display
+            + Copy
+            + Default
+            + One
+            + PartialEq
+            + PartialOrd
+            + NumCast
+            + LowerExp,
+    > AssignmentConstraints for T
 {
 }

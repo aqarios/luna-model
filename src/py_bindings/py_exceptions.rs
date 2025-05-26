@@ -3,8 +3,8 @@ use crate::errors::{
     BqmTranslatorErr, ComputationErr, DifferentEnvsErr, IllegalConstraintNameErr,
     IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr,
     ModelSenseNotMinimizeErr, ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
-    SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VarNamesErr,
-    VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr,
+    SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VariableCreationErr,
+    VariableNotExistingErr, VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
@@ -219,10 +219,11 @@ impl From<VariableNotExistingErr> for PyErr {
 impl From<VariableCreationErr> for PyErr {
     fn from(err: VariableCreationErr) -> PyErr {
         match err {
-            VariableCreationErr::VariableExists => VariableExistsError::new_err(err.to_string()),
+            VariableCreationErr::VariableExists(_) => VariableExistsError::new_err(err.to_string()),
             VariableCreationErr::InvalidBounds(_) => {
                 VariableCreationError::new_err(err.to_string())
             }
+            VariableCreationErr::VarName(_) => VariableNamesError::new_err(err.to_string()),
         }
     }
 }
@@ -275,12 +276,6 @@ impl From<IndexOutOfBoundsErr> for PyErr {
     }
 }
 
-impl From<VarNamesErr> for PyErr {
-    fn from(value: VarNamesErr) -> Self {
-        VariableNamesError::new_err(value.to_string())
-    }
-}
-
 impl From<MatrixTranslatorErr> for PyErr {
     fn from(err: MatrixTranslatorErr) -> Self {
         match err {
@@ -288,7 +283,7 @@ impl From<MatrixTranslatorErr> for PyErr {
             MatrixTranslatorErr::HigherOrder(err) => err.into(),
             MatrixTranslatorErr::Maximize(err) => err.into(),
             MatrixTranslatorErr::Vtype(err) => err.into(),
-            MatrixTranslatorErr::VarNames(err) => err.into(),
+            MatrixTranslatorErr::VarCreation(err) => err.into(),
         }
     }
 }

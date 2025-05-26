@@ -58,7 +58,7 @@ pub struct SerSolution {
     #[prost(double, repeated, tag = 7)]
     reals: Vec<f64>,
 
-    /// The number of occurences for each sample in the solution.
+    /// The number of occurrences for each sample in the solution.
     #[prost(uint64, repeated, tag = 8)]
     counts: Vec<u64>,
 
@@ -183,6 +183,7 @@ impl SerSolution {
         self.num_samples = samples.len() as u64;
         self.best_sample_idx = solution.best_sample_idx.and_then(|v| Some(v as u64));
         self.timing = solution.timing.map(|t| t.encode());
+        self.variable_names = solution.variable_names.clone();
         self
     }
 
@@ -266,6 +267,8 @@ impl SerSolution {
         if let Some(t) = &self.timing {
             sol.timing = Some(t.decode(())?);
         }
+
+        sol.variable_names = self.variable_names.clone();
 
         Ok(RcSolution(Rc::new(sol)))
     }

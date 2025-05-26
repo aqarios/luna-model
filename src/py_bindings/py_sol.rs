@@ -1,6 +1,7 @@
 use crate::core::solution::sol::SampleCol;
 use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, RcSolution, Samples, Solution, VarAssignment, Vtype,
+    ConcreteAssignmentTypes, ConcreteBias, PrintLayout, RcSolution, Samples, Solution,
+    VarAssignment, Vtype,
 };
 use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
@@ -513,6 +514,22 @@ impl PySolution {
         Ok(PySolution(sol_rc))
     }
 
+    /// Get a human-readable string representation of a solution.
+    #[pyo3(signature=(max_line_length=80, max_chars_per_var=5, max_lines=10, layout=PrintLayout::Col, show_energies=false)
+    )]
+    fn print(
+        &self,
+        max_line_length: usize,
+        max_chars_per_var: usize,
+        max_lines: usize,
+        layout: PrintLayout,
+        show_energies: bool,
+    ) -> String {
+        assert!(!show_energies);
+        self.0
+            .print(max_line_length, max_chars_per_var, max_lines, layout)
+    }
+
     /// Get an iterator over the single results of the solution.
     #[getter]
     fn get_results<'a>(&self) -> PyResultIterator {
@@ -766,3 +783,17 @@ impl PartialEq<Self> for SampleKey {
 }
 
 impl Eq for SampleKey {}
+
+// Implement FromPyObject for your enum
+impl<'py> FromPyObject<'py> for PrintLayout {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        let mode: &str = ob.extract()?;
+        match mode {
+            "row" => Ok(PrintLayout::Row),
+            "column" => Ok(PrintLayout::Col),
+            _ => Err(PyValueError::new_err(format!(
+                "Invalid print layout '{mode}'. Expected one of 'row', 'column'."
+            ))),
+        }
+    }
+}

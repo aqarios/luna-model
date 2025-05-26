@@ -96,16 +96,33 @@ pub fn add_variable<Index: IndexConstraints>(
     bounds: Option<Bounds>,
 ) -> Result<VarRef<Index>, VariableCreationErr> {
     let mut mutable_env = env.borrow_mut();
-    if mutable_env.variables_lookup.contains_key(name) == true {
-        return Err(VariableCreationErr::VariableExists);
+    if mutable_env.variables_lookup.contains_key(name) {
+        return Err(VariableCreationErr::VariableExists(name.clone()));
     }
-
+    ensure_name_valid(name)?;
     let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id)?;
     let id = mutable_env.varcount;
     mutable_env.variables.push(var);
     mutable_env.variables_lookup.insert(name.to_string(), id);
     mutable_env.varcount += Index::one();
     Ok(VarRef::new(id, env.clone()))
+}
+
+fn ensure_name_valid(name: &String) -> Result<(), VariableCreationErr> {
+    if !name.starts_with(|c: char| c.is_ascii_alphabetic()) {
+        Err(VariableCreationErr::VarName(String::from(
+            "Variable names must start with an alphabetic character.",
+        )))
+    } else if !name
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ',')
+    {
+        Err(VariableCreationErr::VarName(String::from(
+            "Variable names must only contain alphanumeric characters or '_' or ','.",
+        )))
+    } else {
+        Ok(())
+    }
 }
 
 pub fn get_vref_by_name<Index: IndexConstraints>(

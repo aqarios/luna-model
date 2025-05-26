@@ -23,6 +23,12 @@ where
     Real(AssignmentTypes::RealType),
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum PrintLayout {
+    Row,
+    Col,
+}
+
 impl<AssignmentTypes> Default for VarAssignment<AssignmentTypes>
 where
     AssignmentTypes: AssignmentBaseTypes,
