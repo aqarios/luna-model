@@ -723,8 +723,7 @@ class Solution:
         """
         ...
 
-
-    def best(self, /) -> ResultView | None: 
+    def best(self, /) -> ResultView | None:
         """
         Get the best result of the solution if it exists.
 
@@ -1504,7 +1503,7 @@ class ResultView:
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
-    def __eq__(self, other: ResultView, /) -> bool: ... # type: ignore
+    def __eq__(self, other: ResultView, /) -> bool: ...  # type: ignore
 
 # _model.pyi
 class Sense(Enum):

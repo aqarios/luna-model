@@ -29,8 +29,9 @@ def model_wo_constraint() -> Model:
         s = Variable("s", vtype=Vtype.Spin)
         i = Variable("i", vtype=Vtype.Integer)
         r = Variable("r", vtype=Vtype.Real)
-    model.objective = b + s + i + r 
+    model.objective = b + s + i + r
     return model
+
 
 @pytest.fixture
 def model_wo_constraint_maximize() -> Model:
@@ -40,7 +41,7 @@ def model_wo_constraint_maximize() -> Model:
         s = Variable("s", vtype=Vtype.Spin)
         i = Variable("i", vtype=Vtype.Integer)
         r = Variable("r", vtype=Vtype.Real)
-    model.objective = b + s + i + r 
+    model.objective = b + s + i + r
     return model
 
 
@@ -101,7 +102,8 @@ def test_model_eval_wo_constraint(model_wo_constraint: Model, solution: Solution
     assert all(new_sol.raw_energies == solution.raw_energies)
     assert all(new_sol.obj_values == solution.raw_energies)
     assert len(new_sol) == 3
-    
+
+
 def test_model_eval_wo_constraint_best(model_wo_constraint: Model, solution: Solution):
     new_sol = model_wo_constraint.evaluate(solution)
     assert all(new_sol.raw_energies == solution.raw_energies)
@@ -110,19 +112,28 @@ def test_model_eval_wo_constraint_best(model_wo_constraint: Model, solution: Sol
     assert new_sol.best_sample_idx == len(new_sol) - 1
     assert new_sol.best() == new_sol[new_sol.best_sample_idx]
 
-def test_model_eval_wo_constraint_best_maximize(model_wo_constraint_maximize: Model, solution: Solution):
+
+def test_model_eval_wo_constraint_best_maximize(
+    model_wo_constraint_maximize: Model, solution: Solution
+):
     new_sol = model_wo_constraint_maximize.evaluate(solution)
     assert all(new_sol.raw_energies == solution.raw_energies)
     assert all(new_sol.obj_values == solution.raw_energies)
     assert new_sol.best_sample_idx is not None
     assert new_sol.best_sample_idx == 0
     assert new_sol.best() == new_sol[new_sol.best_sample_idx]
-    
-def test_model_eval_wo_constraint_one_less_var_in_model(model_wo_constraint_one_less_var: Model, solution: Solution):
+
+
+def test_model_eval_wo_constraint_one_less_var_in_model(
+    model_wo_constraint_one_less_var: Model, solution: Solution
+):
     with pytest.raises(EvaluationError):
         _ = model_wo_constraint_one_less_var.evaluate(solution)
 
-def test_model_eval_wo_constraint_one_more_var_in_model(model_wo_constraint_one_more_var: Model, solution: Solution):
+
+def test_model_eval_wo_constraint_one_more_var_in_model(
+    model_wo_constraint_one_more_var: Model, solution: Solution
+):
     with pytest.raises(EvaluationError):
         _ = model_wo_constraint_one_more_var.evaluate(solution)
 
