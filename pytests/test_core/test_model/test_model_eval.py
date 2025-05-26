@@ -130,6 +130,9 @@ def test_model_eval_w_constraint_infeasible(
         assert res.constraints is not None
         for constr in res.constraints:
             assert not constr
+        assert res.variable_bounds is not None
+        for varbounds in res.variable_bounds:
+            assert varbounds or not varbounds
         assert res.feasible is not None
         assert not res.feasible
 
