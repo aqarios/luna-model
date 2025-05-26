@@ -50,6 +50,8 @@ class Vtype(Enum):
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
 
+class Unbounded: ...
+
 class Bounds:
     """
     Represents bounds for a variable (only supported for real and integer variables).
@@ -84,16 +86,35 @@ class Bounds:
     """
 
     @overload
-    def __init__(self, /, *, lower: float) -> None: ...
+    def __init__(self, /, *, lower: float | Unbounded) -> None: ...
     @overload
-    def __init__(self, /, *, upper: float) -> None: ...
+    def __init__(self, /, *, upper: float | type[Unbounded]) -> None: ...
     @overload
-    def __init__(self, /, lower: float, upper: float) -> None:
+    def __init__(
+        self, /, lower: float | type[Unbounded], upper: float | type[Unbounded]
+    ) -> None: ...
+    @overload
+    def __init__(
+        self,
+        /,
+        lower: float | type[Unbounded] | None = ...,
+        upper: float | type[Unbounded] | None = ...,
+    ) -> None:
         """
         Create bounds for a variable.
 
         See class-level docstring for full documentation.
         """
+        ...
+
+    @property
+    def lower(self, /) -> float | Unbounded | None:
+        """Get the lower bound"""
+        ...
+
+    @property
+    def upper(self, /) -> float | Unbounded | None:
+        """Get the upper bound"""
         ...
 
     def __str__(self, /) -> str: ...
@@ -187,6 +208,11 @@ class Variable:
     @property
     def name(self, /) -> str:
         """Get the name of the variable."""
+        ...
+
+    @property
+    def bounds(self, /) -> Bounds:
+        """Get the bounds of the variable."""
         ...
 
     @overload
@@ -761,6 +787,11 @@ class Solution:
     @property
     def best_sample_idx(self, /) -> int | None:
         """Get the index of the sample with the best objective value."""
+        ...
+
+    @property
+    def variable_names(self, /) -> list[str]:
+        """Get the names of all variables in the solution."""
         ...
 
     def expectation_value(self, /) -> float:
@@ -1416,6 +1447,13 @@ class Result:
         ...
 
     @property
+    def variable_bounds(self, /) -> NDArray | None:
+        """
+        Get this result's feasibility values of all variable bounds.
+        """
+        ...
+
+    @property
     def feasible(self, /) -> bool | None:
         """Return whether all constraint results are feasible for this result."""
         ...
@@ -1481,6 +1519,13 @@ class ResultView:
         Get this result's feasibility values of all constraints. Note that
         `results.constraints[i]` iff. `model.constraints[i]` is feasible for
         this result.
+        """
+        ...
+
+    @property
+    def variable_bounds(self, /) -> NDArray | None:
+        """
+        Get this result's feasibility values of all variable bounds.
         """
         ...
 

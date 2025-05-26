@@ -1,5 +1,5 @@
 use crate::{
-    core::{Bounds, ConcreteEnvironment, Environment, VarId, Variable, Vtype},
+    core::{Bound, ConcreteEnvironment, Environment, LazyBounds, VarId, Variable, Vtype},
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable},
         utils::{force_u32, force_u8},
@@ -45,10 +45,10 @@ pub struct SerEnvironment {
 
     /// If the integer at each index has a non-default bound.
     #[prost(bool, repeated, tag = "11")]
-    integer_bounds_non_default_lower: Vec<bool>,
+    integer_bounds_bounded_lower: Vec<bool>,
     /// If the integer at each index has a non-default bound.
     #[prost(bool, repeated, tag = "12")]
-    integer_bounds_non_default_upper: Vec<bool>,
+    integer_bounds_bounded_upper: Vec<bool>,
     /// The integer lower bounds
     #[prost(double, repeated, tag = "13")]
     integer_bounds_lower: Vec<f64>,
@@ -58,10 +58,10 @@ pub struct SerEnvironment {
 
     /// If the real at each index has a non-default bound.
     #[prost(bool, repeated, tag = "15")]
-    real_bounds_non_default_lower: Vec<bool>,
+    real_bounds_bounded_lower: Vec<bool>,
     /// If the real at each index has a non-default bound.
     #[prost(bool, repeated, tag = "16")]
-    real_bounds_non_default_upper: Vec<bool>,
+    real_bounds_bounded_upper: Vec<bool>,
     /// The reals' lower bounds.
     #[prost(double, repeated, tag = "17")]
     real_bounds_lower: Vec<f64>,
@@ -94,9 +94,6 @@ impl Creatable<ConcreteEnvironment> for SerEnvironment {
     fn new(environment: &ConcreteEnvironment) -> Self {
         let mut out = Self::base(environment.id, environment.varcount.0);
 
-        let dint = Bounds::integer();
-        let dreal = Bounds::real();
-
         for (i, var) in environment.variables.iter().enumerate() {
             match var.vtype {
                 Vtype::Binary => {
@@ -111,33 +108,33 @@ impl Creatable<ConcreteEnvironment> for SerEnvironment {
                     out.integer.push(force_u32(i));
                     out.integer_names.push(var.name.clone());
 
-                    if var.bounds.lower != dint.lower {
-                        out.integer_bounds_non_default_lower.push(true);
+                    if var.bounds.lower.is_bounded() {
+                        out.integer_bounds_bounded_lower.push(true);
                         out.integer_bounds_lower.push(var.bounds.lower.unwrap());
                     } else {
-                        out.integer_bounds_non_default_lower.push(false);
+                        out.integer_bounds_bounded_lower.push(false);
                     }
-                    if var.bounds.upper != dint.upper {
-                        out.integer_bounds_non_default_upper.push(true);
+                    if var.bounds.upper.is_bounded() {
+                        out.integer_bounds_bounded_upper.push(true);
                         out.integer_bounds_upper.push(var.bounds.upper.unwrap());
                     } else {
-                        out.integer_bounds_non_default_upper.push(false);
+                        out.integer_bounds_bounded_upper.push(false);
                     }
                 }
                 Vtype::Real => {
                     out.real.push(force_u32(i));
                     out.real_names.push(var.name.clone());
-                    if var.bounds.lower != dreal.lower {
-                        out.real_bounds_non_default_lower.push(true);
+                    if var.bounds.lower.is_bounded() {
+                        out.real_bounds_bounded_lower.push(true);
                         out.real_bounds_lower.push(var.bounds.lower.unwrap());
                     } else {
-                        out.real_bounds_non_default_lower.push(false);
+                        out.real_bounds_bounded_lower.push(false);
                     }
-                    if var.bounds.upper != dreal.upper {
-                        out.real_bounds_non_default_upper.push(true);
+                    if var.bounds.upper.is_bounded() {
+                        out.real_bounds_bounded_upper.push(true);
                         out.real_bounds_upper.push(var.bounds.upper.unwrap());
                     } else {
-                        out.real_bounds_non_default_upper.push(false);
+                        out.real_bounds_bounded_upper.push(false);
                     }
                 }
             }
@@ -161,12 +158,12 @@ impl SerEnvironment {
             spin_names: Vec::new(),
             integer_names: Vec::new(),
             real_names: Vec::new(),
-            integer_bounds_non_default_lower: Vec::new(),
-            integer_bounds_non_default_upper: Vec::new(),
+            integer_bounds_bounded_lower: Vec::new(),
+            integer_bounds_bounded_upper: Vec::new(),
             integer_bounds_lower: Vec::new(),
             integer_bounds_upper: Vec::new(),
-            real_bounds_non_default_lower: Vec::new(),
-            real_bounds_non_default_upper: Vec::new(),
+            real_bounds_bounded_lower: Vec::new(),
+            real_bounds_bounded_upper: Vec::new(),
             real_bounds_lower: Vec::new(),
             real_bounds_upper: Vec::new(),
         }
@@ -194,58 +191,56 @@ impl SerEnvironment {
                     .expect("spin variable creation failed during deserialization");
             env.variables_lookup.insert(name, VarId(*v));
         }
-        let dint = Bounds::integer();
         let mut int_pos_lower = 0;
         let mut int_pos_upper = 0;
         for (i, v) in self.integer.iter().enumerate() {
-            let lower = self.integer_bounds_non_default_lower[i]
+            let lower = self.integer_bounds_bounded_lower[i]
                 .then(|| {
                     let out = self.integer_bounds_lower[int_pos_lower];
                     int_pos_lower += 1;
-                    out
+                    Bound::Some(out)
                 })
-                .or(dint.lower);
-            let upper = self.integer_bounds_non_default_upper[i]
+                .or(Some(Bound::Unbounded()));
+            let upper = self.integer_bounds_bounded_upper[i]
                 .then(|| {
                     let out = self.integer_bounds_upper[int_pos_upper];
                     int_pos_upper += 1;
-                    out
+                    Bound::Some(out)
                 })
-                .or(dint.upper);
+                .or(Some(Bound::Unbounded()));
             let name = self.integer_names[i].clone();
             env.variables[*v as usize] = Variable::new(
                 name.clone(),
                 Some(&Vtype::Integer),
-                Some(Bounds::new(lower, upper)),
+                Some(LazyBounds::new(lower, upper)),
                 env.id,
             )
             .expect("integer variable creation failed during deserialization");
             env.variables_lookup.insert(name, VarId(*v));
         }
 
-        let dreal = Bounds::integer();
         let mut real_pos_lower = 0;
         let mut real_pos_upper = 0;
         for (i, v) in self.real.iter().enumerate() {
-            let lower = self.real_bounds_non_default_lower[i]
+            let lower = self.real_bounds_bounded_lower[i]
                 .then(|| {
                     let out = self.real_bounds_lower[real_pos_lower];
                     real_pos_lower += 1;
-                    out
+                    Bound::Some(out)
                 })
-                .or(dreal.lower);
-            let upper = self.real_bounds_non_default_upper[i]
+                .or(Some(Bound::Unbounded()));
+            let upper = self.real_bounds_bounded_upper[i]
                 .then(|| {
                     let out = self.real_bounds_upper[real_pos_upper];
                     real_pos_upper += 1;
-                    out
+                    Bound::Some(out)
                 })
-                .or(dreal.upper);
+                .or(Some(Bound::Unbounded()));
             let name = self.real_names[i].clone();
             env.variables[*v as usize] = Variable::new(
                 name.clone(),
                 Some(&Vtype::Real),
-                Some(Bounds::new(lower, upper)),
+                Some(LazyBounds::new(lower, upper)),
                 env.id,
             )
             .expect("real variable creation failed during deserialization");

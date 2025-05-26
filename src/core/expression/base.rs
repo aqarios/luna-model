@@ -1,5 +1,5 @@
 use crate::core::term::types::SizeType;
-use crate::core::{ConcreteBias, ValueByIndex, MutRcEnvironment, Vtype};
+use crate::core::{ConcreteBias, MutRcEnvironment, ValueByIndex, Vtype};
 use num::pow::Pow;
 use num::NumCast;
 use std::fmt::{Debug, Display};
@@ -62,6 +62,8 @@ pub trait BiasConstraints:
     + Mul<Output = Self>
     + Mul<ConcreteBias, Output = Self>
     + Div<ConcreteBias, Output = Self>
+    + PartialEq<ConcreteBias>
+    + PartialOrd<ConcreteBias>
     + Neg<Output = Self>
     + NumCast
     + FromStr
@@ -84,6 +86,8 @@ impl<
             + Mul<Output = T>
             + Mul<ConcreteBias, Output = Self>
             + Div<ConcreteBias, Output = Self>
+            + PartialEq<ConcreteBias>
+            + PartialOrd<ConcreteBias>
             + Neg<Output = T>
             + NumCast
             + FromStr,

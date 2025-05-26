@@ -23,6 +23,20 @@ where
     Real(AssignmentTypes::RealType),
 }
 
+impl<AssignmentTypes> VarAssignment<AssignmentTypes>
+where
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    pub fn to_bias<Bias: BiasConstraints>(&self) -> Bias {
+        match self {
+            VarAssignment::Binary(col) => <Bias as NumCast>::from(*col).unwrap(),
+            VarAssignment::Spin(col) => <Bias as NumCast>::from(*col).unwrap(),
+            VarAssignment::Integer(col) => <Bias as NumCast>::from(*col).unwrap(),
+            VarAssignment::Real(col) => <Bias as NumCast>::from(*col).unwrap(),
+        }
+    }
+}
+
 impl<AssignmentTypes> Default for VarAssignment<AssignmentTypes>
 where
     AssignmentTypes: AssignmentBaseTypes,
@@ -154,6 +168,9 @@ where
     /// to one sample, i.e., `constraints[i]` corresponds to `samples[i]`. May be empty for
     /// solutions that haven't yet been evaluated.
     pub constraints: Vec<Option<Vec<bool>>>,
+    /// Boolean flag for each sample whether it's feasible, i.e., whether all bounds are satisfied.
+    /// May be empty for solutions that haven't yet been evaluated.
+    pub variable_bounds: Vec<Option<Vec<bool>>>,
     /// Boolean flag for each sample whether it's feasible, i.e., whether all constraints are
     /// satisfied. In other words, `feasible[i]` iff. `all(constraints[i])`. May be empty for
     /// solutions that haven't yet been evaluated.
@@ -221,6 +238,7 @@ where
         sample_idx: usize,
         obj_value: Option<Bias>,
         constraints: Option<Vec<bool>>,
+        variable_bounds: Vec<bool>,
         sense_is_minimize: bool,
     ) {
         self.obj_values[sample_idx] = obj_value;
@@ -231,8 +249,12 @@ where
             if self.constraints.len() != self.n_samples {
                 self.constraints = vec![None; self.n_samples]
             }
-            self.feasible[sample_idx] = Some(constr.iter().all(|&b| b));
+            if self.variable_bounds.len() != self.n_samples {
+                self.variable_bounds = vec![None; self.n_samples]
+            }
+            self.feasible[sample_idx] = Some(constr.iter().all(|&b| b) && variable_bounds.iter().all(|&b| b));
             self.constraints[sample_idx] = Some(constr.clone());
+            self.variable_bounds[sample_idx] = Some(variable_bounds.clone())
         }
         match self.best_sample_idx {
             None => {}

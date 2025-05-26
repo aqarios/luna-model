@@ -4,7 +4,7 @@ mod varid;
 mod vref;
 mod vtype;
 
-pub use bounds::Bounds;
+pub use bounds::{LazyBounds, Bounds, Bound};
 pub use var::Variable;
 pub use varid::VarId;
 pub use vref::VarRef;

@@ -1,5 +1,5 @@
 use super::{BiasConstraints, Expression, ExpressionEvaluation, IndexConstraints};
-use crate::core::{ValueByIndex};
+use crate::core::ValueByIndex;
 use std::ops::Mul;
 
 impl<Index, Bias> ExpressionEvaluation<Index, Bias> for Expression<Index, Bias>

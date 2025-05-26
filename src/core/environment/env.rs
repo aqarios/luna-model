@@ -1,9 +1,11 @@
+use crate::core::expression::BiasConstraints;
+use crate::core::solution::AssignmentBaseTypes;
 use crate::core::writer::LineLengthRestrictor;
 use crate::core::{
     expression::IndexConstraints,
-    variable::{Bounds, VarRef, Variable, Vtype},
+    variable::{VarRef, Variable, Vtype},
 };
-use crate::core::{ConcreteEnvId as EnvId, MutRcEnvironment};
+use crate::core::{ConcreteEnvId as EnvId, LazyBounds, MutRcEnvironment, ValueByIndex, VarAssignment};
 use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
@@ -55,6 +57,24 @@ where
             .get(name)
             .ok_or_else(|| VariableNotExistingErr)?))
     }
+
+    pub fn evaluate_bounds<
+        Bias: BiasConstraints,
+        AssignmentTypes: AssignmentBaseTypes,
+        Sample: ValueByIndex<Index, Output = VarAssignment<AssignmentTypes>>,
+    >(
+        &self,
+        sample: &Sample,
+    ) -> Vec<bool> {
+        self.variables
+            .iter()
+            .enumerate()
+            .map(|(i, v)| {
+                let value: Bias = sample.value_by_index(i.into()).to_bias();
+                v.bounds.evaluate(value)
+            })
+            .collect()
+    }
 }
 
 impl<Idx> Index<Idx> for Environment<Idx>
@@ -93,7 +113,7 @@ pub fn add_variable<Index: IndexConstraints>(
     env: Rc<RefCell<Environment<Index>>>,
     name: &String,
     vtype: Option<&Vtype>,
-    bounds: Option<Bounds>,
+    bounds: Option<LazyBounds>,
 ) -> Result<VarRef<Index>, VariableCreationErr> {
     let mut mutable_env = env.borrow_mut();
     if mutable_env.variables_lookup.contains_key(name) == true {
