@@ -29,6 +29,13 @@ pub enum PrintLayout {
     Col,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum ShowMetadata {
+    Left,
+    Right,
+    False,
+}
+
 impl<AssignmentTypes> Default for VarAssignment<AssignmentTypes>
 where
     AssignmentTypes: AssignmentBaseTypes,

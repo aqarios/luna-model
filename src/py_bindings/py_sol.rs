@@ -1,4 +1,4 @@
-use crate::core::solution::sol::SampleCol;
+use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::{
     ConcreteAssignmentTypes, ConcreteBias, PrintLayout, RcSolution, Samples, Solution,
     VarAssignment, Vtype,
@@ -528,7 +528,14 @@ impl PySolution {
     }
 
     /// Get a human-readable string representation of a solution.
-    #[pyo3(signature=(max_line_length=80, max_chars_per_var=5, max_lines=10, layout=PrintLayout::Col, show_energies=false)
+    #[pyo3(
+        signature=(
+            max_line_length=80,
+            max_chars_per_var=5,
+            max_lines=10,
+            layout=PrintLayout::Col,
+            show_metadata=ShowMetadata::False,
+        )
     )]
     fn print(
         &self,
@@ -536,11 +543,15 @@ impl PySolution {
         max_chars_per_var: usize,
         max_lines: usize,
         layout: PrintLayout,
-        show_energies: bool,
+        show_metadata: ShowMetadata,
     ) -> String {
-        assert!(!show_energies);
-        self.0
-            .print(max_line_length, max_chars_per_var, max_lines, layout)
+        self.0.print(
+            max_line_length,
+            max_chars_per_var,
+            max_lines,
+            layout,
+            show_metadata,
+        )
     }
 
     /// Get an iterator over the single results of the solution.
@@ -805,7 +816,21 @@ impl<'py> FromPyObject<'py> for PrintLayout {
             "row" => Ok(PrintLayout::Row),
             "column" => Ok(PrintLayout::Col),
             _ => Err(PyValueError::new_err(format!(
-                "Invalid print layout '{mode}'. Expected one of 'row', 'column'."
+                "Invalid spec '{mode}'. Expected one of 'row', 'column'."
+            ))),
+        }
+    }
+}
+
+impl<'py> FromPyObject<'py> for ShowMetadata {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        let mode: &str = ob.extract()?;
+        match mode {
+            "left" => Ok(ShowMetadata::Left),
+            "right" => Ok(ShowMetadata::Right),
+            "false" => Ok(ShowMetadata::False),
+            _ => Err(PyValueError::new_err(format!(
+                "Invalid spec '{mode}'. Expected one of 'left', 'right', 'false."
             ))),
         }
     }

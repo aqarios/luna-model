@@ -41,4 +41,4 @@ def test_simple_solution_print(model: tuple[Model, tuple[Variable, ...]]):
             ]
         )
     print()
-    print(sol.print(max_chars_per_var=5))
+    print(sol.print(max_line_length=40, max_chars_per_var=5, show_metadata="left"))

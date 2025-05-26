@@ -1,5 +1,5 @@
 use crate::core::expression::{BiasConstraints, One};
-use crate::core::solution::sol::SampleCol;
+use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::solution::AssignmentBaseTypes;
 use crate::core::{PrintLayout, Solution};
 
@@ -14,13 +14,14 @@ where
         max_chars_per_var: usize,
         max_lines: usize,
         layout: PrintLayout,
+        show_metadata: ShowMetadata,
     ) -> String {
         match layout {
             PrintLayout::Row => {
-                self.print_row_layout(max_line_length, max_chars_per_var, max_lines)
+                self.print_row_layout(max_line_length, max_chars_per_var, max_lines, show_metadata)
             }
             PrintLayout::Col => {
-                self.print_col_layout(max_line_length, max_chars_per_var, max_lines)
+                self.print_col_layout(max_line_length, max_chars_per_var, max_lines, show_metadata)
             }
         }
     }
@@ -30,15 +31,67 @@ where
         max_line_length: usize,
         max_chars_per_var: usize,
         max_lines: usize,
+        show_metadata: ShowMetadata,
     ) -> String {
-        println!("{max_line_length}, {max_chars_per_var}, {max_lines}");
         const SPACE_BETWEEN_COLS: usize = 1;
         let mut n_cols = 0;
         let mut col_widths = Vec::new();
+        let mut meta_widths = Vec::with_capacity(3);
         let mut width_reached = 0;
 
         let n_rows = max_lines.min(self.n_samples);
-        let mut collected = vec![Vec::with_capacity(n_cols); n_rows];
+        let mut collected = vec![Vec::new(); n_rows];
+        let mut metadata = vec![Vec::new(); n_rows];
+        let mut meta_names = vec![
+            String::from("feas"),
+            String::from("raw"),
+            String::from("obj"),
+        ];
+        let mut var_names = Vec::new();
+
+        if matches!(show_metadata, ShowMetadata::Left | ShowMetadata::Right) {
+            let feas_width = 4;
+            meta_widths.push(feas_width);
+            width_reached += feas_width + SPACE_BETWEEN_COLS;
+            for (row_idx, feasible) in self.feasible[..n_rows].iter().enumerate() {
+                let s = match feasible {
+                    None => "   ?",
+                    Some(true) => "   t",
+                    Some(false) => "   f",
+                };
+                metadata[row_idx].push(String::from(s))
+            }
+            let mut raws = Vec::new();
+            let mut col_width = 3;
+            for raw in self.raw_energies[..n_rows].iter() {
+                let s = match raw {
+                    None => String::from("?"),
+                    Some(bias) => Self::format_bias(*bias, max_chars_per_var),
+                };
+                col_width = col_width.max(s.chars().count());
+                raws.push(s);
+            }
+            meta_widths.push(col_width);
+            width_reached += col_width + SPACE_BETWEEN_COLS;
+            for (row_idx, s) in raws.iter().enumerate() {
+                metadata[row_idx].push(format!("{s:>col_width$}"))
+            }
+            let mut objs = Vec::new();
+            col_width = 3;
+            for obj in self.obj_values[..n_rows].iter() {
+                let s = match obj {
+                    None => String::from("?"),
+                    Some(bias) => Self::format_bias(*bias, max_chars_per_var),
+                };
+                col_width = col_width.max(s.chars().count());
+                objs.push(s);
+            }
+            meta_widths.push(col_width);
+            width_reached += col_width + SPACE_BETWEEN_COLS;
+            for (row_idx, s) in objs.iter().enumerate() {
+                metadata[row_idx].push(format!("{s:>col_width$}"))
+            }
+        }
 
         for (col, vname) in self.samples.iter().zip(&self.variable_names) {
             let vname_len = vname.chars().count().min(max_chars_per_var);
@@ -99,7 +152,11 @@ where
             }
         }
 
-        let mut var_names = Vec::with_capacity(n_cols);
+        if let ShowMetadata::Left = show_metadata {
+            for (width, vname) in meta_widths.iter().zip(&meta_names) {
+                var_names.push(format!("{vname:>width$}"));
+            }
+        }
         for (mut vname, col_width) in self.variable_names[..n_cols]
             .iter()
             .cloned()
@@ -108,20 +165,36 @@ where
             vname.truncate(col_width);
             var_names.push(format!("{vname:>col_width$}"));
         }
+        if let ShowMetadata::Right = show_metadata {
+            for (width, vname) in meta_widths.iter().zip(meta_names) {
+                var_names.push(format!("{vname:>width$}"));
+            }
+        }
 
         let mut out = var_names.join(" ");
-        for row in collected {
+        for (meta, row) in metadata.iter().zip(collected) {
             out.push('\n');
+            if let ShowMetadata::Left = show_metadata {
+                let meta_c = meta.clone();
+                out.push_str(&meta_c.join(" "));
+                out.push(' ');
+            }
             out.push_str(&row.join(" "));
+            if let ShowMetadata::Right = show_metadata {
+                out.push(' ');
+                let meta_c = meta.clone();
+                out.push_str(&meta_c.join(" "));
+            }
         }
         out
     }
 
     fn print_row_layout(
         &self,
-        max_line_length: usize,
-        max_chars_per_var: usize,
-        max_lines: usize,
+        _max_line_length: usize,
+        _max_chars_per_var: usize,
+        _max_lines: usize,
+        _show_metadata: ShowMetadata,
     ) -> String {
         todo!()
     }
@@ -151,6 +224,17 @@ where
     }
 
     fn format_real(value: AssignmentTypes::RealType, col_width: usize) -> String {
+        let digits_int_part = format!("{:.0}", value).chars().count();
+        if digits_int_part <= col_width - 2 {
+            let decimals = col_width - digits_int_part - 1;
+            format!("{value:>col_width$.decimals$}")
+        } else {
+            let decimals = col_width - 4;
+            format!("{value:>col_width$.decimals$e}")
+        }
+    }
+
+    fn format_bias(value: Bias, col_width: usize) -> String {
         let digits_int_part = format!("{:.0}", value).chars().count();
         if digits_int_part <= col_width - 2 {
             let decimals = col_width - digits_int_part - 1;
