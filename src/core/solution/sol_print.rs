@@ -42,7 +42,7 @@ where
         let n_rows = max_lines.min(self.n_samples);
         let mut collected = vec![Vec::new(); n_rows];
         let mut metadata = vec![Vec::new(); n_rows];
-        let mut meta_names = vec![
+        let meta_names = vec![
             String::from("feas"),
             String::from("raw"),
             String::from("obj"),
@@ -91,6 +91,7 @@ where
             for (row_idx, s) in objs.iter().enumerate() {
                 metadata[row_idx].push(format!("{s:>col_width$}"))
             }
+            width_reached += 2; // for extra spacing
         }
 
         for (col, vname) in self.samples.iter().zip(&self.variable_names) {
@@ -138,16 +139,22 @@ where
 
             let width_old = width_reached;
             width_reached += col_width + SPACE_BETWEEN_COLS;
+            n_cols += 1;
             if width_reached <= max_line_length {
-                n_cols += 1;
-                col_widths.push(col_width);
+                col_widths.push(col_width as isize);
             } else {
+                let too_long = width_old + 3 > max_line_length;
                 collected.iter_mut().for_each(|cols| {
-                    if width_old + 3 > max_line_length {
+                    if too_long {
                         cols.pop();
                     }
-                    cols.push(String::from("..."))
+                    cols.push(String::from("..."));
                 });
+                if !too_long {
+                    col_widths.push(col_width as isize);
+                    n_cols += 1;
+                }
+                col_widths.push(-1); // magic value for '...' column
                 break;
             }
         }
@@ -156,16 +163,23 @@ where
             for (width, vname) in meta_widths.iter().zip(&meta_names) {
                 var_names.push(format!("{vname:>width$}"));
             }
+            var_names.push(String::from(" "));
         }
         for (mut vname, col_width) in self.variable_names[..n_cols]
             .iter()
             .cloned()
             .zip(col_widths)
         {
-            vname.truncate(col_width);
-            var_names.push(format!("{vname:>col_width$}"));
+            if col_width < 0 {
+                var_names.push(String::from("   "));
+            } else {
+                let cw = col_width as usize;
+                vname.truncate(cw);
+                var_names.push(format!("{vname:>cw$}"));
+            }
         }
         if let ShowMetadata::Right = show_metadata {
+            var_names.push(String::from(" "));
             for (width, vname) in meta_widths.iter().zip(meta_names) {
                 var_names.push(format!("{vname:>width$}"));
             }
@@ -177,11 +191,11 @@ where
             if let ShowMetadata::Left = show_metadata {
                 let meta_c = meta.clone();
                 out.push_str(&meta_c.join(" "));
-                out.push(' ');
+                out.push_str("   ");
             }
             out.push_str(&row.join(" "));
             if let ShowMetadata::Right = show_metadata {
-                out.push(' ');
+                out.push_str("   ");
                 let meta_c = meta.clone();
                 out.push_str(&meta_c.join(" "));
             }
