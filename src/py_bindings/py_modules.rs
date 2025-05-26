@@ -32,6 +32,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_sol::PySolution>()?;
     m.add_class::<py_timing::PyTiming>()?;
     m.add_class::<py_timing::PyTimer>()?;
+    m.add_class::<py_bounds::PyUnbounded>()?;
     Ok(())
 }
 
