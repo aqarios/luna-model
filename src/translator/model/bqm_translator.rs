@@ -1,6 +1,6 @@
 use crate::core::environment::add_variable;
 use crate::core::expression::ExpressionBaseAdd;
-use crate::core::{ExpressionBaseAdjustment, Vtype};
+use crate::core::{ExpressionBaseAdjustment, Sense, Vtype};
 use crate::errors::{BqmTranslatorErr, ModelSenseNotMinimizeErr, ModelVtypeErr};
 use crate::{
     core::{
@@ -31,7 +31,7 @@ impl BqmTranslator {
         Index: IndexConstraints,
         Bias: BiasConstraints,
     {
-        let model = Model::new(name);
+        let model = Model::new(name, Some(Sense::Min));
         for var in vars.iter() {
             _ = add_variable(Rc::clone(&model.environment), var, Some(&vtype), None);
         }

@@ -585,6 +585,15 @@ impl PySolution {
         Ok(self.0.expectation_value()?)
     }
 
+    /// Get the best result.
+    fn best(&self) -> Option<PyResultView> {
+        self.0.best().map(|r| PyResultView(r))
+    }
+
+    fn __len__(&self) -> usize {
+        self.n_samples
+    }
+
     /// Serialize the solution into a compact binary format.
     ///
     /// Parameters

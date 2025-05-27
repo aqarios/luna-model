@@ -220,5 +220,5 @@ __all__ = [
     "SampleUnexpectedVariableError",
     "SampleIncompatibleVtypeError",
     "ComputationError",
-    "EvaluationError"
+    "EvaluationError",
 ]

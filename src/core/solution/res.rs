@@ -2,7 +2,7 @@ use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::sol::VarAssignment;
 use crate::core::writer::SolutionWriter;
-use crate::core::{ValueByIndex, RcSolution, Sample, SampleIterator};
+use crate::core::{RcSolution, Sample, SampleIterator, ValueByIndex};
 use either::{Left, Right};
 use std::fmt::{Display, Formatter};
 
@@ -65,6 +65,14 @@ where
     pub fn get_sample(&self) -> Sample<Bias, AssignmentTypes> {
         // Cloning is fine here as only usize and Rc are cloned.
         Sample(Left(self.clone()))
+    }
+}
+
+impl<Bias: BiasConstraints, AssignmentTypes: AssignmentBaseTypes + PartialEq> PartialEq
+    for ResultView<Bias, AssignmentTypes>
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.row_idx == self.row_idx && self.sol == other.sol
     }
 }
 
