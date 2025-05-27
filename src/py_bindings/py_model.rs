@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{AddAssign, Deref};
 use std::rc::Rc;
 
@@ -393,5 +394,17 @@ impl PyModel {
     ///     A result object containing the information from the evaluation process.
     fn evaluate_sample(&self, sample: &PySample) -> PyResult<PyOwnedResult> {
         Ok(PyOwnedResult(self.borrow().evaluate_sample(&sample.0)?))
+    }
+
+    /// Compute the hash of the variable.
+    fn __hash__(&self) -> PyResult<u64> {
+        let mut s = DefaultHasher::new();
+        let ser = &self
+            .borrow()
+            .encode()
+            .maybe_compress(true, None)?
+            .versionize();
+        ser.hash(&mut s);
+        Ok(s.finish())
     }
 }
