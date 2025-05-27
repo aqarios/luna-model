@@ -136,6 +136,14 @@ impl PyResultView {
             .map(|c| c.to_pyarray(py))
     }
 
+    /// Get this result's feasibility values of all variable bounds.
+    #[getter]
+    fn variable_bounds<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
+        self.variable_bounds_satisfaction()
+            .as_ref()
+            .map(|c| c.to_pyarray(py))
+    }
+
     /// Return whether all constraint results are feasible for this result.
     #[getter]
     fn feasible(&self) -> Option<bool> {
@@ -163,6 +171,14 @@ impl PyOwnedResult {
     #[getter]
     fn constraints<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
         self.constraint_satisfaction
+            .as_ref()
+            .map(|c| c.to_pyarray(py))
+    }
+
+    /// Get this result's feasibility values of all variable bounds.
+    #[getter]
+    fn variable_bounds<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
+        self.variable_bounds_satisfaction
             .as_ref()
             .map(|c| c.to_pyarray(py))
     }

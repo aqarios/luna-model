@@ -2,7 +2,7 @@ use crate::core::constraints::Constraints;
 use crate::core::expression::{BiasConstraints, IndexConstraints};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::writer::line_length_restrictor::LineLengthRestrictor;
-use crate::core::{Constraint, Environment, Expression, Model, Vtype};
+use crate::core::{Bound, Constraint, Environment, Expression, Model, Vtype};
 use hashbrown::HashMap;
 use std::cell::Ref;
 use std::fmt::{Display, Formatter};
@@ -197,12 +197,12 @@ where
             if i > 0 {
                 self.writer.new_line();
             }
-            if var.bounds.lower.is_some() || var.bounds.upper.is_some() {
-                if let Some(l) = var.bounds.lower {
+            if var.bounds.lower.is_bounded() || var.bounds.upper.is_bounded() {
+                if let Bound::Some(l) = var.bounds.lower {
                     self.writer.write(&l.to_string()).with_spaces("<=");
                 }
                 self.writer.write(&var.name);
-                if let Some(u) = var.bounds.upper {
+                if let Bound::Some(u) = var.bounds.upper {
                     self.writer.with_spaces("<=").write(&u.to_string());
                 }
             } else {
