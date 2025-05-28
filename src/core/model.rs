@@ -1,5 +1,5 @@
 use either::Either;
-use strum_macros::Display;
+use strum_macros::{Display, EnumString};
 
 use super::constraints::Constraints;
 use super::environment::add_variable;
@@ -13,7 +13,7 @@ use super::{Environment, Expression, RcSolution, Sample, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::writer::ModelWriter;
-use crate::errors::{EvaluationErr, VarNamesErr};
+use crate::errors::{EvaluationErr, VariableCreationErr};
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 use std::cell::RefCell;
@@ -28,17 +28,17 @@ pub static DEFAULT_MODEL_NAME: &str = "unnamed";
     feature = "py",
     pyclass(eq, eq_int, name = "Sense", module = "aqmodels")
 )] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
-#[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq)]
+#[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq, EnumString)]
 /// Enumeration of optimization senses supported by the optimization system.
 ///
 /// This enum defines the type of optimization used for a model. The type influences
 /// the domain and behavior of the model during optimization.
 pub enum Sense {
     /// Indicate the objective function to be minimized.
-    #[strum(to_string = "Minimize")]
+    #[strum(to_string = "Minimize", serialize = "Min")]
     Min,
     /// Indicate the objective function to be maximized.
-    #[strum(to_string = "Maximize")]
+    #[strum(to_string = "Maximize", serialize = "Max")]
     Max,
 }
 
@@ -46,6 +46,12 @@ impl Sense {
     /// Convenience function to check if the sense is `Sense::Min`.
     pub fn is_min(&self) -> bool {
         self == &Self::Min
+    }
+}
+
+impl Default for Sense {
+    fn default() -> Self {
+        Self::Min
     }
 }
 
@@ -77,25 +83,29 @@ where
     Bias: BiasConstraints,
 {
     /// Create a new Model using a specifc environment.
-    pub fn new_with_env(name: Option<String>, env: Rc<RefCell<Environment<Index>>>) -> Self {
+    pub fn new_with_env(
+        name: Option<String>,
+        sense: Option<Sense>,
+        env: Rc<RefCell<Environment<Index>>>,
+    ) -> Self {
         Self {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
             objective: Rc::new(RefCell::new(Expression::empty(env.clone()))),
             environment: env,
             constraints: Rc::new(RefCell::new(Constraints::default())),
-            sense: Sense::Min,
+            sense: sense.unwrap_or(Sense::default()),
         }
     }
 
     /// Create a new Model with a new environment created just for this model.
-    pub fn new(name: Option<String>) -> Self {
+    pub fn new(name: Option<String>, sense: Option<Sense>) -> Self {
         let rcenv = Rc::new(RefCell::new(Environment::new()));
         Self {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
             objective: Rc::new(RefCell::new(Expression::empty(rcenv.clone()))),
             environment: rcenv,
             constraints: Rc::new(RefCell::new(Constraints::default())),
-            sense: Sense::Min,
+            sense: sense.unwrap_or(Sense::default()),
         }
     }
 
@@ -109,47 +119,20 @@ where
         num_variables: Index,
         offset: Option<Bias>,
         variable_names: Option<Vec<String>>,
-    ) -> Result<Self, VarNamesErr> {
-        let model = Model::new(name);
+    ) -> Result<Self, VariableCreationErr> {
+        let model = Model::new(name, Some(Sense::default()));
 
         for idx in 0..num_variables.into() {
             let var_name = match &variable_names {
                 None => &format!("x_{}", idx.to_string()),
-                Some(names) => {
-                    // Name needs to start with alpha.
-                    let name = &names[idx];
-                    if !name.starts_with(|c: char| c.is_alphabetic()) {
-                        return Err(VarNamesErr(String::from(
-                            "Variable names must start with an alphabetic character.",
-                        )));
-                    }
-                    for c in name.chars() {
-                        // Check that the character is only alphanumeric or '_' or ','.
-                        if c.is_alphanumeric() || c == '_' || c == ',' {
-                            continue;
-                        } else {
-                            return Err(VarNamesErr(String::from(
-                                "Variable names must only contain alphanumeric characters or '_' or ','."
-                            )));
-                        }
-                    }
-                    name
-                }
+                Some(names) => &names[idx],
             };
-            if model
-                .environment
-                .borrow()
-                .variables_lookup
-                .contains_key(var_name)
-            {
-                return Err(VarNamesErr(format!("Duplicate variable name: {var_name}")));
-            }
-            let _ = add_variable(
+            add_variable(
                 model.environment.clone(),
                 var_name,
                 Some(&vtype.unwrap_or(Vtype::Binary)),
                 None,
-            );
+            )?;
         }
 
         model.objective.borrow_mut().resize(num_variables);
@@ -183,18 +166,23 @@ where
         let mut newsol = sol.0.deref().clone();
         for (i, sample) in sol.samples().iter().enumerate() {
             let obj_val = self.objective.borrow().evaluate_sample(&sample);
-            let constraints = if self.constraints.borrow().is_empty() {
-                None
-            } else {
-                Some(
-                    self.constraints
-                        .borrow()
-                        .iter()
-                        .map(|constr| constr.evaluate_sample(&sample))
-                        .collect(),
-                )
-            };
-            newsol.add_sample_evaluation(i, Some(obj_val), constraints, self.sense.is_min());
+            let constraints = self
+                .constraints
+                .borrow()
+                .iter()
+                .map(|constr| constr.evaluate_sample(&sample))
+                .collect();
+            let variable_bounds = self
+                .environment
+                .borrow()
+                .evaluate_bounds::<Bias, AssignmentTypes, Sample<Bias, AssignmentTypes>>(&sample);
+            newsol.add_sample_evaluation(
+                i,
+                Some(obj_val),
+                constraints,
+                variable_bounds,
+                self.sense.is_min(),
+            );
         }
         Ok(RcSolution(newsol.into()))
     }
@@ -229,10 +217,14 @@ where
                 constraint.comparator.evaluate(v, constraint.rhs)
             })
             .collect();
-        let feasible = cf.iter().all(|&b| b);
+        let vf: Vec<_> = self
+            .environment
+            .borrow()
+            .evaluate_bounds::<Bias, AssignmentTypes, Sample<Bias, AssignmentTypes>>(&sample);
+        let feasible = cf.iter().all(|&b| b) && vf.iter().all(|&b| b);
         let owned_sample_actual = Rc::new(sample.iter().collect());
         let owned_sample = OwnedSample::new(vars_sample.to_vec(), owned_sample_actual);
-        Ok(OwnedResult::new(owned_sample, obj_val, cf, feasible))
+        Ok(OwnedResult::new(owned_sample, obj_val, cf, vf, feasible))
     }
 
     pub fn set_sense(&mut self, sense: Sense) -> &mut Self {

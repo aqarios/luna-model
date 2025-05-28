@@ -4,6 +4,76 @@ use crate::translator::model::BqmTranslator;
 use numpy::{PyReadonlyArray1, ToPyArray};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
+use std::ffi::CStr;
+
+#[cfg(not(feature = "lq"))]
+static PY_CODE: &'static CStr = c_str!("
+import numpy as np
+from dimod import BinaryQuadraticModel
+
+from aqmodels._core import translator
+
+def extract(bqm, name):
+    if not isinstance(bqm, BinaryQuadraticModel):
+        raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
+    vars = np.array(bqm.variables.to_serializable())
+    linears = np.array([bqm.get_linear(v) for v in vars])
+    linear_indices, linears = tuple(zip(*[(i, v) for i, v in enumerate(linears) if v != 0]))
+    intermediate = [
+        (ui, vi, bqm.get_quadratic(vars[ui], vars[vi], default=0))
+        for ui in range(len(vars))
+        for vi in range(ui + 1, len(vars))
+        if bqm.get_quadratic(vars[ui], vars[vi], default=0) != 0
+    ]
+    quads_rows, quads_cols, quads = tuple(zip(*intermediate)) if len(intermediate) > 0 else (np.array([]), np.array([]), np.array([]))
+    vartype = bqm.vartype.name
+    offset = float(bqm.offset)
+    return translator.BqmTranslator.translate(
+        vars, 
+        offset, 
+        np.array(linears, dtype=np.float64), 
+        np.array(linear_indices, dtype=np.uint64), 
+        np.array(quads, dtype=np.float64), 
+        np.array(quads_rows, dtype=np.uint64), 
+        np.array(quads_cols, dtype=np.uint64), 
+        vartype, 
+        name
+    )"
+);
+#[cfg(feature = "lq")]
+static PY_CODE: &'static CStr = c_str!("
+import numpy as np
+from dimod import BinaryQuadraticModel
+
+from luna_quantum._core import translator
+
+def extract(bqm, name):
+    if not isinstance(bqm, BinaryQuadraticModel):
+        raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
+    vars = np.array(bqm.variables.to_serializable())
+    linears = np.array([bqm.get_linear(v) for v in vars])
+    linear_indices, linears = tuple(zip(*[(i, v) for i, v in enumerate(linears) if v != 0]))
+    intermediate = [
+        (ui, vi, bqm.get_quadratic(vars[ui], vars[vi], default=0))
+        for ui in range(len(vars))
+        for vi in range(ui + 1, len(vars))
+        if bqm.get_quadratic(vars[ui], vars[vi], default=0) != 0
+    ]
+    quads_rows, quads_cols, quads = tuple(zip(*intermediate)) if len(intermediate) > 0 else (np.array([]), np.array([]), np.array([]))
+    vartype = bqm.vartype.name
+    offset = float(bqm.offset)
+    return translator.BqmTranslator.translate(
+        vars, 
+        offset, 
+        np.array(linears, dtype=np.float64), 
+        np.array(linear_indices, dtype=np.uint64), 
+        np.array(quads, dtype=np.float64), 
+        np.array(quads_rows, dtype=np.uint64), 
+        np.array(quads_cols, dtype=np.uint64), 
+        vartype, 
+        name
+    )"
+);
 
 /// Utility class for converting between dimod.BinaryQuadraticModel (BQM) and symbolic
 /// models.
@@ -156,45 +226,7 @@ def to_bqm(offset, linear, quad, rows, cols, vtype, vars):
     #[staticmethod]
     #[pyo3(signature=(bqm, name=None))]
     fn to_aq(py: Python, bqm: PyObject, name: Option<PyObject>) -> PyResult<PyObject> {
-        let extractor: PyObject = PyModule::from_code(
-            py,
-            c_str!(
-                "
-import numpy as np
-from dimod import BinaryQuadraticModel
-
-from aqmodels._core import translator
-
-def extract(bqm, name):
-    if not isinstance(bqm, BinaryQuadraticModel):
-        raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
-    vars = np.array(bqm.variables.to_serializable())
-    linears = np.array([bqm.get_linear(v) for v in vars])
-    linear_indices, linears = tuple(zip(*[(i, v) for i, v in enumerate(linears) if v != 0]))
-    intermediate = [
-        (ui, vi, bqm.get_quadratic(vars[ui], vars[vi], default=0))
-        for ui in range(len(vars))
-        for vi in range(ui + 1, len(vars))
-        if bqm.get_quadratic(vars[ui], vars[vi], default=0) != 0
-    ]
-    quads_rows, quads_cols, quads = tuple(zip(*intermediate)) if len(intermediate) > 0 else (np.array([]), np.array([]), np.array([]))
-    vartype = bqm.vartype.name
-    offset = float(bqm.offset)
-    return translator.BqmTranslator.translate(
-        vars, 
-        offset, 
-        np.array(linears, dtype=np.float64), 
-        np.array(linear_indices, dtype=np.uint64), 
-        np.array(quads, dtype=np.float64), 
-        np.array(quads_rows, dtype=np.uint64), 
-        np.array(quads_cols, dtype=np.uint64), 
-        vartype, 
-        name
-    )"
-            ),
-            c_str!(""),
-            c_str!(""),
-        )?
+        let extractor: PyObject = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();
         let args = (bqm, name);

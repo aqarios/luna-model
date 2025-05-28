@@ -2,9 +2,9 @@ mod common;
 mod concrete;
 mod extras;
 mod model;
+mod utils;
 mod variable;
 mod writer;
-mod utils;
 
 pub mod constraints;
 pub mod environment;
@@ -65,6 +65,7 @@ pub use model::DEFAULT_MODEL_NAME;
 pub use qubo::Qubo;
 
 pub use solution::OwnedResult;
+pub use solution::PrintLayout;
 pub use solution::RcSolution;
 pub use solution::ResultIterator;
 pub use solution::ResultView;
@@ -77,7 +78,9 @@ pub use solution::Timer;
 pub use solution::Timing;
 pub use solution::VarAssignment;
 
+pub use variable::Bound;
 pub use variable::Bounds;
+pub use variable::LazyBounds;
 pub use variable::VarId;
 pub use variable::VarRef;
 pub use variable::Variable;

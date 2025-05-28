@@ -1,11 +1,11 @@
-from typing import overload, Any
-from enum import Enum
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import overload, Any
 
 from numpy.typing import NDArray
 
-from . import translator
 from . import errors
+from . import translator
 
 # _variable.pyi
 class Vtype(Enum):
@@ -50,6 +50,8 @@ class Vtype(Enum):
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
 
+class Unbounded: ...
+
 class Bounds:
     """
     Represents bounds for a variable (only supported for real and integer variables).
@@ -84,16 +86,35 @@ class Bounds:
     """
 
     @overload
-    def __init__(self, /, *, lower: float) -> None: ...
+    def __init__(self, /, *, lower: float | Unbounded) -> None: ...
     @overload
-    def __init__(self, /, *, upper: float) -> None: ...
+    def __init__(self, /, *, upper: float | type[Unbounded]) -> None: ...
     @overload
-    def __init__(self, /, lower: float, upper: float) -> None:
+    def __init__(
+        self, /, lower: float | type[Unbounded], upper: float | type[Unbounded]
+    ) -> None: ...
+    @overload
+    def __init__(
+        self,
+        /,
+        lower: float | type[Unbounded] | None = ...,
+        upper: float | type[Unbounded] | None = ...,
+    ) -> None:
         """
         Create bounds for a variable.
 
         See class-level docstring for full documentation.
         """
+        ...
+
+    @property
+    def lower(self, /) -> float | Unbounded | None:
+        """Get the lower bound"""
+        ...
+
+    @property
+    def upper(self, /) -> float | Unbounded | None:
+        """Get the upper bound"""
         ...
 
     def __str__(self, /) -> str: ...
@@ -187,6 +208,11 @@ class Variable:
     @property
     def name(self, /) -> str:
         """Get the name of the variable."""
+        ...
+
+    @property
+    def bounds(self, /) -> Bounds:
+        """Get the bounds of the variable."""
         ...
 
     @overload
@@ -383,12 +409,23 @@ class Variable:
     @overload
     def __eq__(self, rhs: float, /) -> Constraint: ...
     @overload
-    def __eq__(self, rhs: Variable, /) -> Constraint: ...
-    @overload
     def __eq__(self, rhs: Expression, /) -> Constraint: ...
-    def __eq__(self, rhs: int | float | Variable | Expression, /) -> Constraint:  # type: ignore
+    @overload
+    def __eq__(self, rhs: Variable, /) -> bool:
         """
-        Create a constraint: expression == scalar.
+        Check equality of two variables.
+
+        Parameters
+        ----------
+        rhs : Variable
+
+        Returns
+        -------
+        bool
+        """
+    def __eq__(self, rhs: int | float | Expression, /) -> Constraint:  # type: ignore
+        """
+        Create a constraint: Variable == float | int | Expression.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -397,7 +434,7 @@ class Variable:
 
         Parameters
         ----------
-        rhs : float, int, Variable or Expression
+        rhs : float, int or Expression
 
         Returns
         -------
@@ -406,7 +443,7 @@ class Variable:
         Raises
         ------
         TypeError
-            If the right-hand side is not of type float, int, Variable or Expression.
+            If the right-hand side is not of type float, int or Expression.
         """
 
     @overload
@@ -419,7 +456,7 @@ class Variable:
     def __le__(self, rhs: Expression, /) -> Constraint: ...
     def __le__(self, rhs: int | float | Variable | Expression, /) -> Constraint:  # type: ignore
         """
-        Create a constraint: expression <= scalar.
+        Create a constraint: Variable <= scalar.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -451,7 +488,7 @@ class Variable:
     def __ge__(self, rhs: Expression, /) -> Constraint: ...
     def __ge__(self, rhs: int | float | Variable | Expression, /) -> Constraint:
         """
-        Create a constraint: expression >= scalar.
+        Create a constraint: Variable >= scalar.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -674,6 +711,7 @@ class Solution:
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+    def __len__(self, /) -> int: ...
     def __iter__(self, /) -> ResultIterator:
         """
         Extract a result view from the `Solution` object.
@@ -722,6 +760,20 @@ class Solution:
         """
         ...
 
+    def best(self, /) -> ResultView | None:
+        """
+        Get the best result of the solution if it exists.
+
+        A best solution is defined as the result with the lowest (in case of Sense.Min)
+        or the highest (in case of Sense.Max) objective value that is feasible.
+
+        Returns
+        -------
+        ResultView
+            The best result of the solution as a view.
+        """
+        ...
+
     @property
     def results(self, /) -> ResultIterator:
         """Get an iterator over the single results of the solution."""
@@ -761,6 +813,11 @@ class Solution:
     @property
     def best_sample_idx(self, /) -> int | None:
         """Get the index of the sample with the best objective value."""
+        ...
+
+    @property
+    def variable_names(self, /) -> list[str]:
+        """Get the names of all variables in the solution."""
         ...
 
     def expectation_value(self, /) -> float:
@@ -1024,6 +1081,7 @@ class Solution:
         *,
         env: Environment | None = ...,
         model: Model | None = ...,
+        timing: Timing | None = ...,
     ) -> Solution:
         """
         Create a `Solution` from a dict that maps variables or variable names to their
@@ -1126,6 +1184,7 @@ class Solution:
         *,
         env: Environment | None = ...,
         model: Model | None = ...,
+        timing: Timing | None = ...,
     ) -> Solution:
         """
         Create a `Solution` from multiple dicts that map variables or variable names to their
@@ -1416,6 +1475,13 @@ class Result:
         ...
 
     @property
+    def variable_bounds(self, /) -> NDArray | None:
+        """
+        Get this result's feasibility values of all variable bounds.
+        """
+        ...
+
+    @property
     def feasible(self, /) -> bool | None:
         """Return whether all constraint results are feasible for this result."""
         ...
@@ -1485,12 +1551,20 @@ class ResultView:
         ...
 
     @property
+    def variable_bounds(self, /) -> NDArray | None:
+        """
+        Get this result's feasibility values of all variable bounds.
+        """
+        ...
+
+    @property
     def feasible(self, /) -> bool | None:
         """Return whether all constraint results are feasible for this result."""
         ...
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+    def __eq__(self, other: ResultView, /) -> bool: ...  # type: ignore
 
 # _model.pyi
 class Sense(Enum):
@@ -1570,13 +1644,23 @@ class Model:
     @overload
     def __init__(self, /, name: str) -> None: ...
     @overload
+    def __init__(self, /, name: str, *, sense: Sense) -> None: ...
+    @overload
+    def __init__(self, /, name: str, *, env: Environment) -> None: ...
+    @overload
+    def __init__(self, /, *, sense: Sense) -> None: ...
+    @overload
     def __init__(self, /, *, env: Environment) -> None: ...
     @overload
-    def __init__(self, /, name: str, env: Environment) -> None: ...
+    def __init__(self, /, *, sense: Sense, env: Environment) -> None: ...
+    @overload
+    def __init__(self, /, name: str, *, sense: Sense, env: Environment) -> None: ...
     def __init__(
         self,
         /,
         name: str | None = ...,
+        *,
+        sense: Sense | None = ...,
         env: Environment | None = ...,
     ) -> None:
         """
@@ -1639,6 +1723,7 @@ class Model:
     def constraints(self, value: Constraints, /):
         """Replace the model's constraints with a new set."""
         ...
+
     @property
     def environment(self, /) -> Environment:
         """Get the environment in which this model is defined."""
@@ -1838,6 +1923,7 @@ class Model:
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+    def __hash__(self, /) -> int: ...
 
 # _expression.pyi
 class Expression:
@@ -2026,6 +2112,7 @@ class Expression:
             If any variable is out of bounds for the environment.
         """
         ...
+
     @property
     def num_variables(self, /) -> int:
         """
@@ -2833,6 +2920,7 @@ class Constraint:
             Returns the name of the constraint as a string or None if it is unnamed.
         """
         ...
+
     @property
     def lhs(self, /) -> Expression:
         """

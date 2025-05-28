@@ -1,5 +1,6 @@
 use numpy::PyReadonlyArray1;
 use pyo3::{ffi::c_str, prelude::*};
+use std::ffi::CStr;
 
 use crate::{
     py_bindings::{
@@ -10,6 +11,41 @@ use crate::{
     },
     translator::QctrlTranslator,
 };
+
+#[cfg(not(feature = "lq"))]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from aqmodels._core import translator
+
+def extract(result, timing, env):
+    sample = result.get('solution_bitstring')
+    energy = result.get('final_aggregate_cost')
+    return translator.QctrlTranslator.translate(
+        np.array(sample, dtype=np.int64),
+        energy,
+        timing,
+        env,
+    )
+"
+);
+#[cfg(feature = "lq")]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from luna_quantum._core import translator
+
+def extract(result, timing, env):
+    sample = result.get('solution_bitstring')
+    energy = result.get('final_aggregate_cost')
+    return translator.QctrlTranslator.translate(
+        np.array(sample, dtype=np.int64),
+        energy,
+        timing,
+        env,
+    )
+"
+);
 
 /// Utility class for converting between a QCTRL solution and our solution format.
 ///
@@ -86,29 +122,9 @@ impl PyQctrlTranslator {
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {
-        let extractor: Py<PyAny> = PyModule::from_code(
-            py,
-            c_str!(
-                "
-import numpy as np
-from aqmodels._core import translator
-
-def extract(result, timing, env):
-    sample = result.get('solution_bitstring')
-    energy = result.get('final_aggregate_cost')
-    return translator.QctrlTranslator.translate(
-        np.array(sample, dtype=np.int64),
-        energy,
-        timing,
-        env,
-    )
-"
-            ),
-            c_str!(""),
-            c_str!(""),
-        )?
-        .getattr("extract")?
-        .into();
+        let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
+            .getattr("extract")?
+            .into();
 
         let args = (result, timing, env);
         let result = extractor.call1(py, args)?;
