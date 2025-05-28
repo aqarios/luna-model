@@ -59,6 +59,7 @@ use pyo3::prelude::*;
 ///     another aq-models model. Such a transformer for example can map a constrained
 ///     optimization problem to an unconstrained optimization problem or a quadratic model
 ///     to a linear model.
+#[cfg(not(feature = "lq"))]
 #[pymodule]
 #[pyo3(name = "_core")]
 pub fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
