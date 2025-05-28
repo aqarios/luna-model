@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{AddAssign, Deref};
 use std::rc::Rc;
 
@@ -393,5 +394,32 @@ impl PyModel {
     ///     A result object containing the information from the evaluation process.
     fn evaluate_sample(&self, sample: &PySample) -> PyResult<PyOwnedResult> {
         Ok(PyOwnedResult(self.borrow().evaluate_sample(&sample.0)?))
+    }
+
+    /// Compute the hash of the variable.
+    fn __hash__(&self) -> PyResult<u64> {
+        self.hash(false, false, None)
+    }
+}
+
+impl PyModel {
+    // #[pyo3(signature=(version=false, compress=false, level=None))]
+
+    /// Compute the hash of the variable, with more options to determine how the hash is
+    /// computed.
+    ///
+    /// WARNING: These values will not be equal to `__hash__` results due to additional
+    /// implementation details in the `__hash__` function.
+    fn hash(&self, version: bool, compress: bool, level: Option<i32>) -> PyResult<u64> {
+        let mut s = DefaultHasher::new();
+        let mut ser = self.borrow().encode();
+        if compress {
+            ser = ser.maybe_compress(true, level)?;
+        }
+        if version {
+            ser = ser.versionize();
+        }
+        ser.hash(&mut s);
+        Ok(s.finish())
     }
 }
