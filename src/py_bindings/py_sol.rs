@@ -536,8 +536,9 @@ impl PySolution {
     #[pyo3(
         signature=(
             max_line_length=80,
-            max_chars_per_var=5,
+            max_col_size=5,
             max_lines=10,
+            max_var_name_length=10,
             layout=PrintLayout::Col,
             show_metadata=ShowMetadata::False,
         )
@@ -545,15 +546,17 @@ impl PySolution {
     fn print(
         &self,
         max_line_length: usize,
-        max_chars_per_var: usize,
+        max_col_size: usize,
         max_lines: usize,
+        max_var_name_length: usize,
         layout: PrintLayout,
         show_metadata: ShowMetadata,
     ) -> String {
         self.0.print(
             max_line_length,
-            max_chars_per_var,
+            max_col_size,
             max_lines,
+            max_var_name_length,
             layout,
             show_metadata,
         )

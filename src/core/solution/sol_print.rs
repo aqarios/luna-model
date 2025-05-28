@@ -1,8 +1,10 @@
 use crate::core::expression::{BiasConstraints, One};
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::solution::AssignmentBaseTypes;
-use crate::core::{PrintLayout, Solution};
+use crate::core::{PrintLayout, Solution, VarAssignment};
 use std::time::Duration;
+
+const SPACE_BETWEEN_COLS: usize = 1;
 
 impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
 where
@@ -12,17 +14,22 @@ where
     pub fn print(
         &self,
         max_line_length: usize,
-        max_chars_per_var: usize,
+        max_col_size: usize,
         max_lines: usize,
+        max_var_name_length: usize,
         layout: PrintLayout,
         show_metadata: ShowMetadata,
     ) -> String {
         match layout {
-            PrintLayout::Row => {
-                self.print_row_layout(max_line_length, max_chars_per_var, max_lines, show_metadata)
-            }
+            PrintLayout::Row => self.print_row_layout(
+                max_line_length,
+                max_col_size,
+                max_lines,
+                max_var_name_length,
+                show_metadata,
+            ),
             PrintLayout::Col => {
-                self.print_col_layout(max_line_length, max_chars_per_var, max_lines, show_metadata)
+                self.print_col_layout(max_line_length, max_col_size, max_lines, show_metadata)
             }
         }
     }
@@ -30,11 +37,10 @@ where
     fn print_col_layout(
         &self,
         max_line_length: usize,
-        max_chars_per_var: usize,
+        max_col_size: usize,
         max_lines: usize,
         show_metadata: ShowMetadata,
     ) -> String {
-        const SPACE_BETWEEN_COLS: usize = 1;
         let mut n_cols = 0;
         let mut col_widths = Vec::new();
         let mut meta_widths = Vec::with_capacity(3);
@@ -69,7 +75,7 @@ where
             for raw in self.raw_energies[..n_rows].iter() {
                 let s = match raw {
                     None => String::from("?"),
-                    Some(bias) => Self::format_bias(*bias, max_chars_per_var),
+                    Some(bias) => Self::format_bias(*bias, max_col_size),
                 };
                 col_width = col_width.max(s.chars().count());
                 raws.push(s);
@@ -85,7 +91,7 @@ where
             for obj in self.obj_values[..n_rows].iter() {
                 let s = match obj {
                     None => String::from("?"),
-                    Some(bias) => Self::format_bias(*bias, max_chars_per_var),
+                    Some(bias) => Self::format_bias(*bias, max_col_size),
                 };
                 col_width = col_width.max(s.chars().count());
                 objs.push(s);
@@ -99,7 +105,7 @@ where
             let mut counts = Vec::new();
             col_width = 5;
             for &count in self.counts[..n_rows].iter() {
-                let s = Self::format_usize(count, max_chars_per_var);
+                let s = Self::format_usize(count, max_col_size);
                 col_width = col_width.max(s.chars().count());
                 counts.push(s);
             }
@@ -113,7 +119,7 @@ where
         }
 
         for (col, vname) in self.samples.iter().zip(&self.variable_names) {
-            let vname_len = vname.chars().count().min(max_chars_per_var);
+            let vname_len = vname.chars().count().min(max_col_size);
             let mut col_width = match col {
                 SampleCol::Binary(_) => vname_len,
                 SampleCol::Spin(_) => vname_len.max(2),
@@ -138,14 +144,14 @@ where
                 }
                 SampleCol::Integer(ints) => {
                     for &v in ints[..n_rows].iter() {
-                        let s = Self::format_int(v, max_chars_per_var);
+                        let s = Self::format_int(v, max_col_size);
                         col_width = col_width.max(s.chars().count());
                         vals.push(s);
                     }
                 }
                 SampleCol::Real(reals) => {
                     for &v in reals[..n_rows].iter() {
-                        let s = Self::format_real(v, max_chars_per_var);
+                        let s = Self::format_real(v, max_col_size);
                         col_width = col_width.max(s.chars().count());
                         vals.push(s);
                     }
@@ -241,11 +247,55 @@ where
 
     fn print_row_layout(
         &self,
-        _max_line_length: usize,
-        _max_chars_per_var: usize,
-        _max_lines: usize,
-        _show_metadata: ShowMetadata,
+        max_line_length: usize,
+        max_col_size: usize,
+        max_lines: usize,
+        max_var_name_length: usize,
+        show_metadata: ShowMetadata,
     ) -> String {
+        let n_rows = max_lines.min(self.samples.len());
+        let mut collected = vec![Vec::new(); n_rows];
+        let mut col_widths = vec![0];
+
+        for (i, mut vname) in self.variable_names[..n_rows].iter().cloned().enumerate() {
+            vname.truncate(max_var_name_length);
+            col_widths[0] = col_widths[0].max(vname.chars().count());
+            collected[i].push(vname);
+        }
+
+        let mut n_cols = usize::MAX;
+        for (i, sample_col) in self.samples[..max_lines].iter().enumerate() {
+            let mut width_reached = 0;
+            for (j, &v) in sample_col.as_vec().iter().enumerate() {
+                let (s, w) = match v {
+                    VarAssignment::Binary(bin) => {
+                        let w = *col_widths.get(j).unwrap_or(&0).max(&max_col_size);
+                        (Self::format_binary(bin, w), w)
+                    }
+                    VarAssignment::Spin(spin) => {
+                        let w = *col_widths.get(j).unwrap_or(&2).max(&max_col_size);
+                        (Self::format_spin(spin, w), w)
+                    }
+                    VarAssignment::Integer(int) => {
+                        let w = *col_widths.get(j).unwrap_or(&2).max(&max_col_size);
+                        (Self::format_int(int, w), w)
+                    }
+                    VarAssignment::Real(real) => {
+                        let w = *col_widths.get(j).unwrap_or(&4).max(&max_col_size);
+                        (Self::format_real(real, w), w)
+                    }
+                };
+                let s_len = s.chars().count();
+                width_reached += s_len + SPACE_BETWEEN_COLS;
+                if j > n_cols || width_reached > max_line_length {
+                    n_cols = collected.iter().min_by_key(|x| x.len());
+                    break;
+                }
+                col_widths[j + 1] = w.max(s_len);
+                collected[i].push(s);
+            }
+        }
+
         todo!()
     }
 
