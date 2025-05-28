@@ -1,5 +1,5 @@
 use crate::core::Qubo;
-use crate::errors::{ModelSenseNotMinimizeErr, ModelVtypeErr, VarNamesErr};
+use crate::errors::{ModelSenseNotMinimizeErr, ModelVtypeErr, VariableCreationErr};
 use crate::{
     core::{
         expression::{BiasConstraints, IndexConstraints},
@@ -28,7 +28,7 @@ impl MatrixTranslator {
     {
         if let Some(names) = variable_names.as_ref() {
             if names.len() != num_variables.into() {
-                return Err(VarNamesErr(format!(
+                return Err(VariableCreationErr::VarName(format!(
                     "Number of variable names must match the number of variables"
                 )))?;
             }

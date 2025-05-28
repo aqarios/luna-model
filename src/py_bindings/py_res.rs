@@ -143,7 +143,6 @@ impl PyResultView {
             .as_ref()
             .map(|c| c.to_pyarray(py))
     }
-
     /// Return whether all constraint results are feasible for this result.
     #[getter]
     fn feasible(&self) -> Option<bool> {

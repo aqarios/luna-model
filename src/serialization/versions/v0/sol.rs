@@ -1,7 +1,5 @@
 use std::rc::Rc;
 
-use prost::Message;
-
 use crate::serialization::{Decodable, Encodable};
 use crate::{
     core::{
@@ -12,6 +10,7 @@ use crate::{
         utils::force_i8,
     },
 };
+use prost::Message;
 
 fn assignment_type_to_u8(vtype: Vtype) -> u8 {
     match vtype {
@@ -30,6 +29,18 @@ fn u8_to_assignment_type(u: u8) -> Vtype {
         3 => Vtype::Real,
         _ => panic!("issue"),
     }
+}
+
+#[derive(Clone, PartialEq, Message)]
+struct BoolVec {
+    #[prost(bool, repeated, tag = "1")]
+    values: Vec<bool>,
+}
+
+#[derive(Clone, PartialEq, Message)]
+struct OptBoolVec {
+    #[prost(message, optional, tag = "1")]
+    vector: Option<BoolVec>,
 }
 
 /// Representation of encodable solution based on protocol buffers.
@@ -58,7 +69,7 @@ pub struct SerSolution {
     #[prost(double, repeated, tag = 7)]
     reals: Vec<f64>,
 
-    /// The number of occurences for each sample in the solution.
+    /// The number of occurrences for each sample in the solution.
     #[prost(uint64, repeated, tag = 8)]
     counts: Vec<u64>,
 
@@ -91,6 +102,12 @@ pub struct SerSolution {
     /// The variable names
     #[prost(string, repeated, tag = 15)]
     variable_names: Vec<String>,
+
+    #[prost(message, repeated, tag = 16)]
+    constraints: Vec<OptBoolVec>,
+
+    #[prost(message, repeated, tag = 17)]
+    variable_bounds: Vec<OptBoolVec>,
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Encodable.
@@ -183,6 +200,26 @@ impl SerSolution {
         self.num_samples = samples.len() as u64;
         self.best_sample_idx = solution.best_sample_idx.and_then(|v| Some(v as u64));
         self.timing = solution.timing.map(|t| t.encode());
+        self.variable_names = solution.variable_names.clone();
+
+        self.constraints = solution
+            .constraints
+            .clone()
+            .into_iter()
+            .map(|opt_vec| OptBoolVec {
+                vector: opt_vec.map(|values| BoolVec { values }),
+            })
+            .collect();
+
+        self.variable_bounds = solution
+            .variable_bounds
+            .clone()
+            .into_iter()
+            .map(|opt_vec| OptBoolVec {
+                vector: opt_vec.map(|values| BoolVec { values }),
+            })
+            .collect();
+
         self
     }
 
@@ -266,6 +303,35 @@ impl SerSolution {
         if let Some(t) = &self.timing {
             sol.timing = Some(t.decode(())?);
         }
+
+        sol.variable_names = self.variable_names.clone();
+
+        sol.constraints = self
+            .constraints
+            .clone()
+            .into_iter()
+            .map(|item| item.vector.map(|v| v.values))
+            .collect();
+
+        sol.variable_bounds = self
+            .variable_bounds
+            .clone()
+            .into_iter()
+            .map(|item| item.vector.map(|v| v.values))
+            .collect();
+
+        sol.feasible = sol
+            .constraints
+            .iter()
+            .zip(&sol.variable_bounds)
+            .map(|x| match x {
+                (None, _) => None,
+                (_, None) => None,
+                (Some(constr), Some(vbs)) => {
+                    Some(constr.iter().all(|&b| b) && vbs.iter().all(|&b| b))
+                }
+            })
+            .collect();
 
         Ok(RcSolution(Rc::new(sol)))
     }

@@ -1,7 +1,7 @@
 from itertools import product
-import pytest
-
 from typing import Tuple
+
+import pytest
 
 from aqmodels import Variable, Environment, Vtype
 
@@ -10,7 +10,7 @@ from aqmodels import Variable, Environment, Vtype
 def variables(request) -> Tuple[Variable, ...]:
     n, vtype = request.param
     with Environment():
-        variables = [Variable(f"{i}", vtype=vtype) for i in range(n)]
+        variables = [Variable(f"x_{i}", vtype=vtype) for i in range(n)]
     return tuple(variables)
 
 

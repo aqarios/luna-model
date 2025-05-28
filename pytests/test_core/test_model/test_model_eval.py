@@ -1,4 +1,5 @@
 import pytest
+
 from aqmodels import Solution, Variable, Vtype, Model, Bounds, Unbounded, Sense
 from aqmodels.errors import EvaluationError
 
@@ -101,6 +102,7 @@ def test_model_eval_wo_constraint(model_wo_constraint: Model, solution: Solution
     new_sol = model_wo_constraint.evaluate(solution)
     assert all(new_sol.raw_energies == solution.raw_energies)
     assert all(new_sol.obj_values == solution.raw_energies)
+
     assert len(new_sol) == 3
 
 
@@ -114,7 +116,7 @@ def test_model_eval_wo_constraint_best(model_wo_constraint: Model, solution: Sol
 
 
 def test_model_eval_wo_constraint_best_maximize(
-    model_wo_constraint_maximize: Model, solution: Solution
+        model_wo_constraint_maximize: Model, solution: Solution
 ):
     new_sol = model_wo_constraint_maximize.evaluate(solution)
     assert all(new_sol.raw_energies == solution.raw_energies)
@@ -125,14 +127,14 @@ def test_model_eval_wo_constraint_best_maximize(
 
 
 def test_model_eval_wo_constraint_one_less_var_in_model(
-    model_wo_constraint_one_less_var: Model, solution: Solution
+        model_wo_constraint_one_less_var: Model, solution: Solution
 ):
     with pytest.raises(EvaluationError):
         _ = model_wo_constraint_one_less_var.evaluate(solution)
 
 
 def test_model_eval_wo_constraint_one_more_var_in_model(
-    model_wo_constraint_one_more_var: Model, solution: Solution
+        model_wo_constraint_one_more_var: Model, solution: Solution
 ):
     with pytest.raises(EvaluationError):
         _ = model_wo_constraint_one_more_var.evaluate(solution)
@@ -150,11 +152,11 @@ def test_model_eval_w_constraint(model_w_constraint: Model, solution: Solution):
         for varbound in res.variable_bounds:
             assert varbound
         assert res.feasible is not None
-        assert res.feasible 
+        assert res.feasible
 
 
 def test_model_eval_w_constraint_infeasible(
-    model_w_constraint_infeasible: Model, solution: Solution
+        model_w_constraint_infeasible: Model, solution: Solution
 ):
     new_sol = model_w_constraint_infeasible.evaluate(solution)
     assert all(new_sol.raw_energies == solution.raw_energies)
@@ -197,4 +199,3 @@ def test_model_eval_infeasible_bounds():
     assert sample.constraints.tolist() == [True]
     assert sample.variable_bounds is not None
     assert sample.variable_bounds.tolist() == [False, False, True]
-

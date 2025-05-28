@@ -1,11 +1,11 @@
-from typing import overload, Any
-from enum import Enum
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import overload, Any
 
 from numpy.typing import NDArray
 
-from . import translator
 from . import errors
+from . import translator
 
 # _variable.pyi
 class Vtype(Enum):
@@ -1081,6 +1081,7 @@ class Solution:
         *,
         env: Environment | None = ...,
         model: Model | None = ...,
+        timing: Timing | None = ...,
     ) -> Solution:
         """
         Create a `Solution` from a dict that maps variables or variable names to their
@@ -1183,6 +1184,7 @@ class Solution:
         *,
         env: Environment | None = ...,
         model: Model | None = ...,
+        timing: Timing | None = ...,
     ) -> Solution:
         """
         Create a `Solution` from multiple dicts that map variables or variable names to their
@@ -1721,6 +1723,7 @@ class Model:
     def constraints(self, value: Constraints, /):
         """Replace the model's constraints with a new set."""
         ...
+
     @property
     def environment(self, /) -> Environment:
         """Get the environment in which this model is defined."""
@@ -2109,6 +2112,7 @@ class Expression:
             If any variable is out of bounds for the environment.
         """
         ...
+
     @property
     def num_variables(self, /) -> int:
         """
@@ -2916,6 +2920,7 @@ class Constraint:
             Returns the name of the constraint as a string or None if it is unnamed.
         """
         ...
+
     @property
     def lhs(self, /) -> Expression:
         """
