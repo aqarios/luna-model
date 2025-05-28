@@ -5,6 +5,40 @@ use crate::py_bindings::py_timing::PyTiming;
 use crate::translator::solution::DwaveTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{ffi::c_str, prelude::*};
+use std::ffi::CStr;
+
+#[cfg(not(feature = "lq"))]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from aqmodels._core import translator
+
+def extract(sampleset, timing, env):
+    sampleset = sampleset.aggregate()
+    record = sampleset.record
+    sample = record.sample.astype(np.int64, order='C')
+    counts = record.num_occurrences.astype(np.int64, order='C')
+    energy = record.energy.astype(np.float64, order='C')
+    return translator.DwaveTranslator.translate(
+        sample, counts, energy, timing, env
+    )"
+);
+#[cfg(feature = "lq")]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from luna_quantum._core import translator
+
+def extract(sampleset, timing, env):
+    sampleset = sampleset.aggregate()
+    record = sampleset.record
+    sample = record.sample.astype(np.int64, order='C')
+    counts = record.num_occurrences.astype(np.int64, order='C')
+    energy = record.energy.astype(np.float64, order='C')
+    return translator.DwaveTranslator.translate(
+        sample, counts, energy, timing, env
+    )"
+);
 
 /// Utility class for converting between a DWAVE solution and our solution format.
 ///
@@ -84,28 +118,9 @@ impl PyDwaveTranslator {
         timing: Option<PyObject>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {
-        let extractor: Py<PyAny> = PyModule::from_code(
-            py,
-            c_str!(
-                "
-import numpy as np
-from aqmodels._core import translator
-
-def extract(sampleset, timing, env):
-    sampleset = sampleset.aggregate()
-    record = sampleset.record
-    sample = record.sample.astype(np.int64, order='C')
-    counts = record.num_occurrences.astype(np.int64, order='C')
-    energy = record.energy.astype(np.float64, order='C')
-    return translator.DwaveTranslator.translate(
-        sample, counts, energy, timing, env
-    )"
-            ),
-            c_str!(""),
-            c_str!(""),
-        )?
-        .getattr("extract")?
-        .into();
+        let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
+            .getattr("extract")?
+            .into();
         let args = (sampleset, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)

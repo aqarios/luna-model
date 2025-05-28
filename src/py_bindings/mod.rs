@@ -5,7 +5,7 @@ mod py_exceptions;
 mod py_expr;
 mod py_model;
 mod py_model_metadata;
-mod py_modules;
+pub mod py_modules;
 mod py_res;
 mod py_sample;
 mod py_sol;
@@ -61,7 +61,7 @@ use pyo3::prelude::*;
 ///     to a linear model.
 #[pymodule]
 #[pyo3(name = "_core")]
-fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Add version information to the python module
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     py_modules::register_core(m)?;
