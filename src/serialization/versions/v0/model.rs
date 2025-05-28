@@ -1,12 +1,12 @@
 use crate::{
-    core::{ConcreteModel, Model},
+    core::{ConcreteModel, Model, Sense},
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
         Decodable, Encodable,
     },
 };
 use prost::Message;
-use std::{cell::RefCell, ops::Deref, rc::Rc};
+use std::{cell::RefCell, ops::Deref, rc::Rc, str::FromStr};
 
 /// Representation of encodable model based on protocol buffers.
 #[derive(Clone, PartialEq, Message)]
@@ -23,6 +23,9 @@ pub struct SerModel {
     /// The name of the model.
     #[prost(string, tag = "4")]
     name: String,
+    /// The sense of the model.
+    #[prost(string, tag = "5")]
+    sense: String,
 }
 
 /// Makes the SerModel conform with the requirements for it to be an Encodable.
@@ -42,17 +45,18 @@ impl BytesDecodable<ConcreteModel> for SerModel {
 /// Makes the SerModel conform with the requirements for it to be an Encodable.
 impl Creatable<ConcreteModel> for SerModel {
     fn new(value: &ConcreteModel) -> Self {
-        Self::empty(value.name.clone()).fill(&value)
+        Self::empty(value.name.clone(), value.sense).fill(&value)
     }
 }
 
 impl SerModel {
     /// Creates an empty serializable model struct.
-    fn empty(name: String) -> Self {
+    fn empty(name: String, sense: Sense) -> Self {
         Self {
             objective: Vec::new(),
             constraints: Vec::new(),
             environment: Vec::new(),
+            sense: sense.to_string(),
             name,
         }
     }
@@ -68,7 +72,8 @@ impl SerModel {
     /// Extracts the data from self to an instance of Model with Index VarId and
     /// Bias f64.
     pub fn extract(&self) -> Result<ConcreteModel, DecodeError> {
-        let mut model = Model::new(Some(self.name.clone()));
+        let sense = Sense::from_str(&self.sense).map_err(|e| DecodeError::new(e.to_string()))?;
+        let mut model = Model::new(Some(self.name.clone()), Some(sense));
         model.environment = Rc::new(RefCell::new(self.environment.decode(())?));
         model.objective = Rc::new(RefCell::new(
             self.objective.decode(Rc::clone(&model.environment))?,

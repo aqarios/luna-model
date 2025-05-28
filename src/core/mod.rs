@@ -78,7 +78,9 @@ pub use solution::Timer;
 pub use solution::Timing;
 pub use solution::VarAssignment;
 
+pub use variable::Bound;
 pub use variable::Bounds;
+pub use variable::LazyBounds;
 pub use variable::VarId;
 pub use variable::VarRef;
 pub use variable::Variable;

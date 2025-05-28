@@ -7,7 +7,7 @@ use super::{
     util::starts_with_any,
 };
 use crate::core::environment::get_vref_by_name;
-use crate::core::{Sense, Vtype, DEFAULT_MODEL_NAME};
+use crate::core::{Bound, Sense, Vtype, DEFAULT_MODEL_NAME};
 use crate::{
     core::{
         environment::add_variable,
@@ -345,13 +345,13 @@ where
         self.variable_sections.iter()
     }
 
-    fn extract_bounds(&self) -> Option<HashMap<String, (Option<f64>, Option<f64>)>> {
+    fn extract_bounds(&self) -> Option<HashMap<String, (Bound, Bound)>> {
         if let Some(bounds) = self.get(Section::Bounds) {
-            let mut boundsmap: HashMap<String, (Option<f64>, Option<f64>)> = HashMap::new();
+            let mut boundsmap: HashMap<String, (Bound, Bound)> = HashMap::new();
             for entry in bounds.iter() {
                 if entry.contains("free") {
                     let var = entry.replace("free", "").trim().to_string();
-                    boundsmap.insert(var, (None, None));
+                    boundsmap.insert(var, (Bound::Unbounded(), Bound::Unbounded()));
                     continue;
                 }
                 let parts: Vec<&str> = entry.split_whitespace().collect();
@@ -365,11 +365,17 @@ where
                     }
                     // Format: var <= upper
                     [var, "<=", upper] => {
-                        boundsmap.insert(var.to_string(), (None, parse_bound_value(upper)));
+                        boundsmap.insert(
+                            var.to_string(),
+                            (Bound::Unbounded(), parse_bound_value(upper)),
+                        );
                     }
                     // Format: var >= lower
                     [var, ">=", lower] => {
-                        boundsmap.insert(var.to_string(), (parse_bound_value(lower), None));
+                        boundsmap.insert(
+                            var.to_string(),
+                            (parse_bound_value(lower), Bound::Unbounded()),
+                        );
                     }
                     _ => (),
                 }
@@ -405,7 +411,7 @@ where
                     Rc::clone(&model.environment),
                     var,
                     Some(&(*vtype).into()),
-                    bounds,
+                    bounds.map(|b| b.into()),
                 )
                 .map_err(|e| TranslationErr::new(e.to_string()))?;
                 varlookup.insert(var.to_string(), vref);
@@ -543,19 +549,22 @@ where
     }
 }
 
-fn parse_bound_value(s: &str) -> Option<f64> {
+fn parse_bound_value(s: &str) -> Bound {
     match s {
-        "inf" | "infinity" => None,
-        "-inf" | "-infinity" => None,
-        _ => s.parse::<f64>().ok(),
+        "inf" | "infinity" => Bound::Unbounded(),
+        "-inf" | "-infinity" => Bound::Unbounded(),
+        _ => s
+            .parse::<f64>()
+            .ok()
+            .map_or(Bound::Unbounded(), |v| Bound::Some(v)),
     }
 }
 
 fn parse_bounds(v: &str, bounds: &Bounds) -> String {
     match (bounds.lower, bounds.upper) {
-        (None, None) => format!("{} free", v),
-        (Some(lower), None) => format!("{} >= {}", v, lower),
-        (None, Some(upper)) => format!("{} <= {}", v, upper),
-        (Some(lower), Some(upper)) => format!("{} <= {} <= {}", lower, v, upper),
+        (Bound::Unbounded(), Bound::Unbounded()) => format!("{} free", v),
+        (Bound::Some(lower), Bound::Unbounded()) => format!("{} >= {}", v, lower),
+        (Bound::Unbounded(), Bound::Some(upper)) => format!("{} <= {}", v, upper),
+        (Bound::Some(lower), Bound::Some(upper)) => format!("{} <= {} <= {}", lower, v, upper),
     }
 }

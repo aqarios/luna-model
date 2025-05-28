@@ -286,6 +286,9 @@ impl PySolution {
             sol.counts = vec![1; sol.n_samples];
         }
         sol.obj_values = vec![None; sol.n_samples];
+        sol.constraints = vec![None; sol.n_samples];
+        sol.variable_bounds = vec![None; sol.n_samples];
+        sol.feasible = vec![None; sol.n_samples];
         sol.timing = timing.and_then(|t| Some(t.0));
         Ok(PySolution(RcSolution(Rc::new(sol))))
     }
@@ -540,7 +543,7 @@ impl PySolution {
             max_lines=10,
             max_var_name_length=10,
             layout=PrintLayout::Col,
-            show_metadata=ShowMetadata::False,
+            show_metadata=ShowMetadata::Right,
         )
     )]
     fn print(
@@ -625,6 +628,15 @@ impl PySolution {
         Ok(self.0.expectation_value()?)
     }
 
+    /// Get the best result.
+    fn best(&self) -> Option<PyResultView> {
+        self.0.best().map(|r| PyResultView(r))
+    }
+
+    fn __len__(&self) -> usize {
+        self.n_samples
+    }
+
     /// Serialize the solution into a compact binary format.
     ///
     /// Parameters
@@ -700,7 +712,7 @@ impl PySolution {
     }
 
     fn __str__(&self) -> String {
-        format!("{}", self.0)
+        self.print(80, 5, 10, PrintLayout::Col, ShowMetadata::Right)
     }
 
     fn __repr__(&self) -> String {

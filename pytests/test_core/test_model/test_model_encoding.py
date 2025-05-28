@@ -2,7 +2,7 @@ import base64
 
 import pytest
 
-from aqmodels import Environment, Model, Variable
+from aqmodels import Environment, Model, Variable, Sense
 
 
 def assert_encode_decode(model: Model):
@@ -23,6 +23,13 @@ def test_encode_decode_empty():
 
     assert_encode_decode(model)
 
+@pytest.mark.model
+def test_encode_decode_empty_max():
+    with Environment():
+        model = Model(sense=Sense.Max)
+
+    assert_encode_decode(model)
+
 
 @pytest.mark.model
 def test_encode_decode_with_objective():
@@ -31,6 +38,21 @@ def test_encode_decode_with_objective():
         y = Variable("y")
         z = Variable("z")
         model = Model(name="objective")
+
+    model.objective += 1
+    model.objective += x
+    model.objective += x * y
+    model.objective += x * y * z
+
+    assert_encode_decode(model)
+
+@pytest.mark.model
+def test_encode_decode_with_objective_max():
+    with Environment():
+        x = Variable("x")
+        y = Variable("y")
+        z = Variable("z")
+        model = Model(name="objective", sense=Sense.Max)
 
     model.objective += 1
     model.objective += x

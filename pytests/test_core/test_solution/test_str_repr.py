@@ -57,9 +57,10 @@ def test_simple_solution_print(model: tuple[Model, tuple[Variable, ...]]):
             ],
             timing=timing,
         )
-    print()
-    print(sol.print(max_line_length=50, max_chars_per_var=5, show_metadata="left", max_lines=2))
-    print()
-    print('=' * 80)
-    print()
-    print(sol.print(max_line_length=50, max_chars_per_var=5, show_metadata="right", max_lines=2))
+    # print()
+    # print(sol.print(max_line_length=50, max_chars_per_var=5, show_metadata="left", max_lines=2))
+    # print()
+    # print('=' * 80)
+    # print()
+    # print(sol.print(max_line_length=50, max_chars_per_var=5, show_metadata="right", max_lines=2))
+    print(sol)
