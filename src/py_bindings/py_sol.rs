@@ -286,6 +286,7 @@ impl PySolution {
             sol.counts = vec![1; sol.n_samples];
         }
         sol.obj_values = vec![None; sol.n_samples];
+        sol.feasible = vec![None; sol.n_samples];
         sol.timing = timing.and_then(|t| Some(t.0));
         Ok(PySolution(RcSolution(Rc::new(sol))))
     }
@@ -539,7 +540,7 @@ impl PySolution {
             max_chars_per_var=5,
             max_lines=10,
             layout=PrintLayout::Col,
-            show_metadata=ShowMetadata::False,
+            show_metadata=ShowMetadata::Right,
         )
     )]
     fn print(
@@ -651,7 +652,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
     /// Alias for `encode()`.
@@ -697,7 +698,7 @@ impl PySolution {
     }
 
     fn __str__(&self) -> String {
-        format!("{}", self.0)
+        self.print(80, 5, 10, PrintLayout::Col, ShowMetadata::Right)
     }
 
     fn __repr__(&self) -> String {

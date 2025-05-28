@@ -4,18 +4,20 @@ import pytest
 
 from aqmodels import Solution, Vtype
 
-sol_str_1 = """{
-  [1, 1, 2, 2.0]: 1,
-  [0, -1, 3, 3.0]: 2,
-  [1, 1, -4, 4.23]: 3,
-}"""
+sol_str_1 = """x_0 x_1 x_2   x_3 │ feas   raw obj count
+  1   1   2 2.000 │    ? 6.000   ?     1
+  0  -1   3 3.000 │    ? 5.000   ?     2
+  1   1  -4 4.230 │    ? 2.000   ?     3
 
-sol_str_2 = """{
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1]: 1,
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0]: 1,
-}"""
+Total rows: 3
+Total columns: 4"""
+
+sol_str_2 = """b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15 b16     │ feas raw obj count
+ 1  1  1  1  1  1  1  1  1  1   1   1   1   1   1   1   1 ... │    ?   ?   ?     1
+ 0  0  0  0  0  0  0  0  0  0   0   0   0   0   0   0   0 ... │    ?   ?   ?     1
+
+Total rows: 2
+Total columns: 30"""
 
 
 @pytest.fixture
@@ -33,6 +35,7 @@ def solution(request) -> Solution:
         real_cols=[[2.0, 3.0, 4.23]],
         counts=[1, 2, 3],
         raw_energies=[6.0, 5.0, 2.0],
+        variable_names=list(f"x_{i}" for i in range(4))
     )
 
 

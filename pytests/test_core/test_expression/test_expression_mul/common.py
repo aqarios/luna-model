@@ -9,7 +9,7 @@ from aqmodels import Environment, Expression, Variable
 def variables(request) -> Tuple[Variable, ...]:
     n, vtype = request.param
     with Environment():
-        variables = [Variable(f"{i}", vtype=vtype) for i in range(n)]
+        variables = [Variable(f"x_{i}", vtype=vtype) for i in range(n)]
     return tuple(variables)
 
 
