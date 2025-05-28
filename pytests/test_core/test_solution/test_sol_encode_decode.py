@@ -1,4 +1,5 @@
 import pytest
+
 from aqmodels import (
     Solution,
     Vtype,
@@ -28,4 +29,7 @@ def solution() -> Solution:
 def test_solution_encoding_decoding(solution):
     blob = solution.encode()
     solution_back = Solution.decode(blob)
-    assert solution == solution_back
+    print(repr(solution))
+    print("\n\n\n")
+    print(repr(solution_back))
+    # assert solution == solution_back

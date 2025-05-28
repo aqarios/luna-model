@@ -6,7 +6,7 @@ from aqmodels import Variable, Environment, Vtype, Solution, Model
 def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
     env = Environment()
     with env:
-        variables = [Variable(f"{i}", vtype=vtype) for i in range(n)]
+        variables = [Variable(f"x_{i}", vtype=vtype) for i in range(n)]
     return tuple(variables), env
 
 

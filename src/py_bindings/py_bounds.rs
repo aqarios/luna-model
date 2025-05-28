@@ -1,7 +1,10 @@
 use crate::core::{Bound, Bounds, LazyBounds};
 use derive_more::{Deref, DerefMut};
 use pyo3::{
-    exceptions::{PyRuntimeError, PyTypeError}, prelude::*, types::PyType, IntoPyObjectExt, PyTypeInfo
+    exceptions::{PyRuntimeError, PyTypeError},
+    prelude::*,
+    types::PyType,
+    IntoPyObjectExt, PyTypeInfo,
 };
 
 /// Represents bounds for a variable (only supported for real and integer variables).

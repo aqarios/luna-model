@@ -72,7 +72,7 @@ impl<Bias: BiasConstraints, AssignmentTypes: AssignmentBaseTypes + PartialEq> Pa
     for ResultView<Bias, AssignmentTypes>
 {
     fn eq(&self, other: &Self) -> bool {
-        self.row_idx == self.row_idx && self.sol == other.sol
+        self.row_idx == other.row_idx && self.sol == other.sol
     }
 }
 

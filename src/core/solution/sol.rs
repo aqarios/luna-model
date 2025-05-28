@@ -23,6 +23,19 @@ where
     Real(AssignmentTypes::RealType),
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum PrintLayout {
+    Row,
+    Col,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum ShowMetadata {
+    Left,
+    Right,
+    False,
+}
+
 impl<AssignmentTypes> VarAssignment<AssignmentTypes>
 where
     AssignmentTypes: AssignmentBaseTypes,
@@ -180,7 +193,7 @@ where
     pub best_sample_idx: Option<usize>,
     /// Runtime metrics of the solution.
     pub timing: Option<Timing>,
-    /// Keeps track of the current number of samples.
+    /// Keeps track of the current number of unique samples.
     pub n_samples: usize,
     /// The names of all variables present in the solution
     pub variable_names: Vec<String>,
@@ -214,6 +227,7 @@ where
             .push(energy.and_then(|e| <Bias as NumCast>::from(e)));
         self.obj_values.push(None);
         self.constraints.push(None);
+        self.variable_bounds.push(None);
         self.feasible.push(None);
         self.n_samples += 1;
         Ok(self)
@@ -237,7 +251,7 @@ where
         &mut self,
         sample_idx: usize,
         obj_value: Option<Bias>,
-        constraints: Option<Vec<bool>>,
+        constraints: Vec<bool>,
         variable_bounds: Vec<bool>,
         sense_is_minimize: bool,
     ) {
@@ -248,17 +262,13 @@ where
         if self.variable_bounds.len() != self.n_samples {
             self.variable_bounds = vec![None; self.n_samples]
         }
+        if self.constraints.len() != self.n_samples {
+            self.constraints = vec![None; self.n_samples]
+        }
         self.variable_bounds[sample_idx] = Some(variable_bounds.clone());
-        if let Some(constr) = constraints.as_ref() {
-            if self.constraints.len() != self.n_samples {
-                self.constraints = vec![None; self.n_samples]
-            }
-            self.constraints[sample_idx] = Some(constr.clone());
-            self.feasible[sample_idx] =
-                Some(constr.iter().all(|&b| b) && variable_bounds.iter().all(|&b| b));
-        } else {
-            self.feasible[sample_idx] = Some(variable_bounds.iter().all(|&b| b));
-        };
+        self.constraints[sample_idx] = Some(constraints.clone());
+        self.feasible[sample_idx] =
+            Some(constraints.iter().all(|&b| b) && variable_bounds.iter().all(|&b| b));
         let curr_sample_feasible = self.feasible[sample_idx].is_some_and(|b| b);
         match self.best_sample_idx {
             None => {
@@ -268,7 +278,9 @@ where
             }
             Some(i) => match (self.obj_values[i], obj_value) {
                 (Some(old), Some(new)) => {
-                    if new < old && sense_is_minimize && curr_sample_feasible || new > old && !sense_is_minimize && curr_sample_feasible {
+                    if new < old && sense_is_minimize && curr_sample_feasible
+                        || new > old && !sense_is_minimize && curr_sample_feasible
+                    {
                         self.best_sample_idx = Some(sample_idx);
                     }
                 }

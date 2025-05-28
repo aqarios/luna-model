@@ -13,7 +13,7 @@ use super::{Environment, Expression, RcSolution, Sample, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::{AssignmentBaseTypes, OwnedResult};
 use crate::core::writer::ModelWriter;
-use crate::errors::{EvaluationErr, VarNamesErr};
+use crate::errors::{EvaluationErr, VariableCreationErr};
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 use std::cell::RefCell;
@@ -35,10 +35,10 @@ pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 /// the domain and behavior of the model during optimization.
 pub enum Sense {
     /// Indicate the objective function to be minimized.
-    #[strum(to_string = "Minimize", serialize="Min")]
+    #[strum(to_string = "Minimize", serialize = "Min")]
     Min,
     /// Indicate the objective function to be maximized.
-    #[strum(to_string = "Maximize", serialize="Max")]
+    #[strum(to_string = "Maximize", serialize = "Max")]
     Max,
 }
 
@@ -119,47 +119,20 @@ where
         num_variables: Index,
         offset: Option<Bias>,
         variable_names: Option<Vec<String>>,
-    ) -> Result<Self, VarNamesErr> {
+    ) -> Result<Self, VariableCreationErr> {
         let model = Model::new(name, Some(Sense::default()));
 
         for idx in 0..num_variables.into() {
             let var_name = match &variable_names {
                 None => &format!("x_{}", idx.to_string()),
-                Some(names) => {
-                    // Name needs to start with alpha.
-                    let name = &names[idx];
-                    if !name.starts_with(|c: char| c.is_alphabetic()) {
-                        return Err(VarNamesErr(String::from(
-                            "Variable names must start with an alphabetic character.",
-                        )));
-                    }
-                    for c in name.chars() {
-                        // Check that the character is only alphanumeric or '_' or ','.
-                        if c.is_alphanumeric() || c == '_' || c == ',' {
-                            continue;
-                        } else {
-                            return Err(VarNamesErr(String::from(
-                                "Variable names must only contain alphanumeric characters or '_' or ','."
-                            )));
-                        }
-                    }
-                    name
-                }
+                Some(names) => &names[idx],
             };
-            if model
-                .environment
-                .borrow()
-                .variables_lookup
-                .contains_key(var_name)
-            {
-                return Err(VarNamesErr(format!("Duplicate variable name: {var_name}")));
-            }
-            let _ = add_variable(
+            add_variable(
                 model.environment.clone(),
                 var_name,
                 Some(&vtype.unwrap_or(Vtype::Binary)),
                 None,
-            );
+            )?;
         }
 
         model.objective.borrow_mut().resize(num_variables);
@@ -193,17 +166,12 @@ where
         let mut newsol = sol.0.deref().clone();
         for (i, sample) in sol.samples().iter().enumerate() {
             let obj_val = self.objective.borrow().evaluate_sample(&sample);
-            let constraints = if self.constraints.borrow().is_empty() {
-                None
-            } else {
-                Some(
-                    self.constraints
-                        .borrow()
-                        .iter()
-                        .map(|constr| constr.evaluate_sample(&sample))
-                        .collect(),
-                )
-            };
+            let constraints = self
+                .constraints
+                .borrow()
+                .iter()
+                .map(|constr| constr.evaluate_sample(&sample))
+                .collect();
             let variable_bounds = self
                 .environment
                 .borrow()

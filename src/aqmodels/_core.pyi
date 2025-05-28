@@ -1,11 +1,11 @@
-from typing import overload, Any
-from enum import Enum
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import overload, Any
 
 from numpy.typing import NDArray
 
-from . import translator
 from . import errors
+from . import translator
 
 # _variable.pyi
 class Vtype(Enum):
@@ -409,31 +409,42 @@ class Variable:
     @overload
     def __eq__(self, rhs: float, /) -> Constraint: ...
     @overload
-    def __eq__(self, rhs: Variable, /) -> bool: ...
-    @overload
     def __eq__(self, rhs: Expression, /) -> Constraint: ...
-    # def __eq__(self, rhs: int | float | Variable | Expression, /) -> Constraint | bool:  # type: ignore
-    #     """
-    #     Create a constraint: expression == scalar.
+    @overload
+    def __eq__(self, rhs: Variable, /) -> bool:
+        """
+        Check equality of two variables.
 
-    #     If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
-    #     constraint, resulting in the following constraint:
+        Parameters
+        ----------
+        rhs : Variable
 
-    #         self - rhs == 0
+        Returns
+        -------
+        bool
+        """
+    def __eq__(self, rhs: int | float | Expression, /) -> Constraint:  # type: ignore
+        """
+        Create a constraint: Variable == float | int | Expression.
 
-    #     Parameters
-    #     ----------
-    #     rhs : float, int, Variable or Expression
+        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+        constraint, resulting in the following constraint:
 
-    #     Returns
-    #     -------
-    #     Constraint
+            self - rhs == 0
 
-    #     Raises
-    #     ------
-    #     TypeError
-    #         If the right-hand side is not of type float, int, Variable or Expression.
-    #     """
+        Parameters
+        ----------
+        rhs : float, int or Expression
+
+        Returns
+        -------
+        Constraint
+
+        Raises
+        ------
+        TypeError
+            If the right-hand side is not of type float, int or Expression.
+        """
 
     @overload
     def __le__(self, rhs: int, /) -> Constraint: ...
@@ -445,7 +456,7 @@ class Variable:
     def __le__(self, rhs: Expression, /) -> Constraint: ...
     def __le__(self, rhs: int | float | Variable | Expression, /) -> Constraint:  # type: ignore
         """
-        Create a constraint: expression <= scalar.
+        Create a constraint: Variable <= scalar.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -477,7 +488,7 @@ class Variable:
     def __ge__(self, rhs: Expression, /) -> Constraint: ...
     def __ge__(self, rhs: int | float | Variable | Expression, /) -> Constraint:
         """
-        Create a constraint: expression >= scalar.
+        Create a constraint: Variable >= scalar.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -1070,6 +1081,7 @@ class Solution:
         *,
         env: Environment | None = ...,
         model: Model | None = ...,
+        timing: Timing | None = ...,
     ) -> Solution:
         """
         Create a `Solution` from a dict that maps variables or variable names to their
@@ -1172,6 +1184,7 @@ class Solution:
         *,
         env: Environment | None = ...,
         model: Model | None = ...,
+        timing: Timing | None = ...,
     ) -> Solution:
         """
         Create a `Solution` from multiple dicts that map variables or variable names to their
@@ -1710,6 +1723,7 @@ class Model:
     def constraints(self, value: Constraints, /):
         """Replace the model's constraints with a new set."""
         ...
+
     @property
     def environment(self, /) -> Environment:
         """Get the environment in which this model is defined."""
@@ -1909,6 +1923,7 @@ class Model:
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+    def __hash__(self, /) -> int: ...
 
 # _expression.pyi
 class Expression:
@@ -2097,6 +2112,7 @@ class Expression:
             If any variable is out of bounds for the environment.
         """
         ...
+
     @property
     def num_variables(self, /) -> int:
         """
@@ -2904,6 +2920,7 @@ class Constraint:
             Returns the name of the constraint as a string or None if it is unnamed.
         """
         ...
+
     @property
     def lhs(self, /) -> Expression:
         """

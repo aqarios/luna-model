@@ -1,6 +1,7 @@
-use crate::core::solution::sol::SampleCol;
+use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, RcSolution, Samples, Solution, VarAssignment, Vtype,
+    ConcreteAssignmentTypes, ConcreteBias, PrintLayout, RcSolution, Samples, Solution,
+    VarAssignment, Vtype,
 };
 use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
@@ -225,7 +226,8 @@ impl PySolution {
                     let bc = binary_cols[lb].clone();
                     let bc_len = bc.len();
                     sol.add_column(SampleCol::Binary(bc));
-                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("b{lb}")));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("b{lb}")));
                     lb += 1;
                     bc_len
                 }
@@ -233,7 +235,8 @@ impl PySolution {
                     let sc = spin_cols[ls].clone();
                     let sc_len = sc.len();
                     sol.add_column(SampleCol::Spin(sc));
-                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("s{ls}")));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("s{ls}")));
                     ls += 1;
                     sc_len
                 }
@@ -241,7 +244,8 @@ impl PySolution {
                     let ic = int_cols[li].clone();
                     let ic_len = ic.len();
                     sol.add_column(SampleCol::Integer(ic));
-                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("i{li}")));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("i{li}")));
                     li += 1;
                     ic_len
                 }
@@ -249,7 +253,8 @@ impl PySolution {
                     let rc = real_cols[lr].clone();
                     let rc_len = rc.len();
                     sol.add_column(SampleCol::Real(rc));
-                    sol.variable_names.push(var_names[i].clone().unwrap_or(format!("r{lr}")));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("r{lr}")));
                     lr += 1;
                     rc_len
                 }
@@ -281,6 +286,9 @@ impl PySolution {
             sol.counts = vec![1; sol.n_samples];
         }
         sol.obj_values = vec![None; sol.n_samples];
+        sol.constraints = vec![None; sol.n_samples];
+        sol.variable_bounds = vec![None; sol.n_samples];
+        sol.feasible = vec![None; sol.n_samples];
         sol.timing = timing.and_then(|t| Some(t.0));
         Ok(PySolution(RcSolution(Rc::new(sol))))
     }
@@ -324,11 +332,12 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None))]
+    #[pyo3(signature=(data, env=None, model=None, timing=None))]
     fn from_dict(
         data: HashMap<SampleKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
+        timing: Option<PyTiming>,
     ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
@@ -386,6 +395,7 @@ impl PySolution {
         }
 
         sol.variable_names = var_names;
+        sol.timing = timing.map(|t| t.0);
         let energy: Option<f64> = None;
         let _ = sol.extend(&sample, 1, energy)?;
         let mut sol_rc = RcSolution(Rc::new(sol));
@@ -435,12 +445,13 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None)
+    #[pyo3(signature=(data, env=None, model=None, timing=None)
     )]
     fn from_dicts(
         data: Vec<HashMap<SampleKey, f64>>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
+        timing: Option<PyTiming>,
     ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
@@ -514,12 +525,41 @@ impl PySolution {
             }
         }
 
+        sol.timing = timing.map(|t| t.0);
+
         let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc)?;
         }
 
         Ok(PySolution(sol_rc))
+    }
+
+    /// Get a human-readable string representation of a solution.
+    #[pyo3(
+        signature=(
+            max_line_length=80,
+            max_chars_per_var=5,
+            max_lines=10,
+            layout=PrintLayout::Col,
+            show_metadata=ShowMetadata::Right,
+        )
+    )]
+    fn print(
+        &self,
+        max_line_length: usize,
+        max_chars_per_var: usize,
+        max_lines: usize,
+        layout: PrintLayout,
+        show_metadata: ShowMetadata,
+    ) -> String {
+        self.0.print(
+            max_line_length,
+            max_chars_per_var,
+            max_lines,
+            layout,
+            show_metadata,
+        )
     }
 
     /// Get an iterator over the single results of the solution.
@@ -669,7 +709,7 @@ impl PySolution {
     }
 
     fn __str__(&self) -> String {
-        format!("{}", self.0)
+        self.print(80, 5, 10, PrintLayout::Col, ShowMetadata::Right)
     }
 
     fn __repr__(&self) -> String {
@@ -784,3 +824,31 @@ impl PartialEq<Self> for SampleKey {
 }
 
 impl Eq for SampleKey {}
+
+// Implement FromPyObject for your enum
+impl<'py> FromPyObject<'py> for PrintLayout {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        let mode: &str = ob.extract()?;
+        match mode {
+            "row" => Ok(PrintLayout::Row),
+            "column" => Ok(PrintLayout::Col),
+            _ => Err(PyValueError::new_err(format!(
+                "Invalid spec '{mode}'. Expected one of 'row', 'column'."
+            ))),
+        }
+    }
+}
+
+impl<'py> FromPyObject<'py> for ShowMetadata {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        let mode: &str = ob.extract()?;
+        match mode {
+            "left" => Ok(ShowMetadata::Left),
+            "right" => Ok(ShowMetadata::Right),
+            "false" => Ok(ShowMetadata::False),
+            _ => Err(PyValueError::new_err(format!(
+                "Invalid spec '{mode}'. Expected one of 'left', 'right', 'false."
+            ))),
+        }
+    }
+}

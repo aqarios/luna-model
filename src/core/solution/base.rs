@@ -1,5 +1,7 @@
+use crate::core::expression::One;
 use num::NumCast;
-use std::fmt::{Debug, Display};
+use std::fmt::{Debug, Display, LowerExp};
+use std::ops::Neg;
 
 pub trait AssignmentBaseTypes: Debug + Clone + Copy + Default {
     /// The type of binary variable assignments in solutions
@@ -7,17 +9,38 @@ pub trait AssignmentBaseTypes: Debug + Clone + Copy + Default {
     /// The type of spin variable assignments in solutions
     type SpinType: AssignmentConstraints;
     /// The type of integer variable assignments in solutions
-    type IntegerType: AssignmentConstraints;
+    type IntegerType: AssignmentConstraints
+        + Neg<Output = <Self as AssignmentBaseTypes>::IntegerType>;
     /// The type of real-valued variable assignments in solutions
-    type RealType: AssignmentConstraints;
+    type RealType: AssignmentConstraints + Neg<Output = <Self as AssignmentBaseTypes>::RealType>;
 }
 
 pub trait AssignmentConstraints:
-    Debug + Clone + Display + Copy + Default + PartialEq + PartialOrd + NumCast
+    Debug
+    + Clone
+    + Display
+    + ToString
+    + Copy
+    + Default
+    + One
+    + PartialEq
+    + PartialOrd
+    + NumCast
+    + LowerExp
 {
 }
 
-impl<T: Debug + Clone + Display + Copy + Default + PartialEq + PartialOrd + NumCast>
-    AssignmentConstraints for T
+impl<
+        T: Debug
+            + Clone
+            + Display
+            + Copy
+            + Default
+            + One
+            + PartialEq
+            + PartialOrd
+            + NumCast
+            + LowerExp,
+    > AssignmentConstraints for T
 {
 }

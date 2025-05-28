@@ -2,7 +2,7 @@ use crate::core::term::types::SizeType;
 use crate::core::{ConcreteBias, MutRcEnvironment, ValueByIndex, Vtype};
 use num::pow::Pow;
 use num::NumCast;
-use std::fmt::{Debug, Display};
+use std::fmt::{Debug, Display, LowerExp};
 use std::hash::Hash;
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub};
 use std::str::FromStr;
@@ -67,6 +67,7 @@ pub trait BiasConstraints:
     + Neg<Output = Self>
     + NumCast
     + FromStr
+    + LowerExp
 {
 }
 impl<
@@ -90,7 +91,8 @@ impl<
             + PartialOrd<ConcreteBias>
             + Neg<Output = T>
             + NumCast
-            + FromStr,
+            + FromStr
+            + LowerExp,
     > BiasConstraints for T
 {
 }
