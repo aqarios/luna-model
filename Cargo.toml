@@ -43,6 +43,7 @@ optional = true
 
 [features]
 py = ["pyo3", "numpy"]
+lq = ["py"]
 
 [dev-dependencies]
 cargo-tarpaulin = "0.32.3"
