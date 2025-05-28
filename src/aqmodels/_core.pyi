@@ -409,12 +409,23 @@ class Variable:
     @overload
     def __eq__(self, rhs: float, /) -> Constraint: ...
     @overload
-    def __eq__(self, rhs: Variable, /) -> Constraint: ...
-    @overload
     def __eq__(self, rhs: Expression, /) -> Constraint: ...
-    def __eq__(self, rhs: int | float | Variable | Expression, /) -> Constraint:  # type: ignore
+    @overload
+    def __eq__(self, rhs: Variable, /) -> bool:
         """
-        Create a constraint: expression == scalar.
+        Check equality of two variables.
+
+        Parameters
+        ----------
+        rhs : Variable
+
+        Returns
+        -------
+        bool
+        """
+    def __eq__(self, rhs: int | float | Expression, /) -> Constraint:  # type: ignore
+        """
+        Create a constraint: Variable == float | int | Expression.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -423,7 +434,7 @@ class Variable:
 
         Parameters
         ----------
-        rhs : float, int, Variable or Expression
+        rhs : float, int or Expression
 
         Returns
         -------
@@ -432,7 +443,7 @@ class Variable:
         Raises
         ------
         TypeError
-            If the right-hand side is not of type float, int, Variable or Expression.
+            If the right-hand side is not of type float, int or Expression.
         """
 
     @overload
@@ -445,7 +456,7 @@ class Variable:
     def __le__(self, rhs: Expression, /) -> Constraint: ...
     def __le__(self, rhs: int | float | Variable | Expression, /) -> Constraint:  # type: ignore
         """
-        Create a constraint: expression <= scalar.
+        Create a constraint: Variable <= scalar.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -477,7 +488,7 @@ class Variable:
     def __ge__(self, rhs: Expression, /) -> Constraint: ...
     def __ge__(self, rhs: int | float | Variable | Expression, /) -> Constraint:
         """
-        Create a constraint: expression >= scalar.
+        Create a constraint: Variable >= scalar.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
