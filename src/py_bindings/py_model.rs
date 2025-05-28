@@ -400,13 +400,16 @@ impl PyModel {
     fn __hash__(&self) -> PyResult<u64> {
         self.hash(false, false, None)
     }
+}
+
+impl PyModel {
+    // #[pyo3(signature=(version=false, compress=false, level=None))]
 
     /// Compute the hash of the variable, with more options to determine how the hash is
     /// computed.
     ///
     /// WARNING: These values will not be equal to `__hash__` results due to additional
     /// implementation details in the `__hash__` function.
-    #[pyo3(signature=(version=false, compress=false, level=None))]
     fn hash(&self, version: bool, compress: bool, level: Option<i32>) -> PyResult<u64> {
         let mut s = DefaultHasher::new();
         let mut ser = self.borrow().encode();
