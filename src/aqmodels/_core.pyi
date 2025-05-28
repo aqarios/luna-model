@@ -409,31 +409,31 @@ class Variable:
     @overload
     def __eq__(self, rhs: float, /) -> Constraint: ...
     @overload
-    def __eq__(self, rhs: Variable, /) -> Constraint: ...
+    def __eq__(self, rhs: Variable, /) -> bool: ...
     @overload
     def __eq__(self, rhs: Expression, /) -> Constraint: ...
-    def __eq__(self, rhs: int | float | Variable | Expression, /) -> Constraint:  # type: ignore
-        """
-        Create a constraint: expression == scalar.
+    # def __eq__(self, rhs: int | float | Variable | Expression, /) -> Constraint | bool:  # type: ignore
+    #     """
+    #     Create a constraint: expression == scalar.
 
-        If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
-        constraint, resulting in the following constraint:
+    #     If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
+    #     constraint, resulting in the following constraint:
 
-            self - rhs == 0
+    #         self - rhs == 0
 
-        Parameters
-        ----------
-        rhs : float, int, Variable or Expression
+    #     Parameters
+    #     ----------
+    #     rhs : float, int, Variable or Expression
 
-        Returns
-        -------
-        Constraint
+    #     Returns
+    #     -------
+    #     Constraint
 
-        Raises
-        ------
-        TypeError
-            If the right-hand side is not of type float, int, Variable or Expression.
-        """
+    #     Raises
+    #     ------
+    #     TypeError
+    #         If the right-hand side is not of type float, int, Variable or Expression.
+    #     """
 
     @overload
     def __le__(self, rhs: int, /) -> Constraint: ...
