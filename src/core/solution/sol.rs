@@ -36,6 +36,20 @@ pub enum ShowMetadata {
     False,
 }
 
+impl<AssignmentTypes> VarAssignment<AssignmentTypes>
+where
+    AssignmentTypes: AssignmentBaseTypes,
+{
+    pub fn to_bias<Bias: BiasConstraints>(&self) -> Bias {
+        match self {
+            VarAssignment::Binary(col) => <Bias as NumCast>::from(*col).unwrap(),
+            VarAssignment::Spin(col) => <Bias as NumCast>::from(*col).unwrap(),
+            VarAssignment::Integer(col) => <Bias as NumCast>::from(*col).unwrap(),
+            VarAssignment::Real(col) => <Bias as NumCast>::from(*col).unwrap(),
+        }
+    }
+}
+
 impl<AssignmentTypes> Default for VarAssignment<AssignmentTypes>
 where
     AssignmentTypes: AssignmentBaseTypes,
@@ -167,6 +181,9 @@ where
     /// to one sample, i.e., `constraints[i]` corresponds to `samples[i]`. May be empty for
     /// solutions that haven't yet been evaluated.
     pub constraints: Vec<Option<Vec<bool>>>,
+    /// Boolean flag for each sample whether it's feasible, i.e., whether all bounds are satisfied.
+    /// May be empty for solutions that haven't yet been evaluated.
+    pub variable_bounds: Vec<Option<Vec<bool>>>,
     /// Boolean flag for each sample whether it's feasible, i.e., whether all constraints are
     /// satisfied. In other words, `feasible[i]` iff. `all(constraints[i])`. May be empty for
     /// solutions that haven't yet been evaluated.
@@ -210,6 +227,7 @@ where
             .push(energy.and_then(|e| <Bias as NumCast>::from(e)));
         self.obj_values.push(None);
         self.constraints.push(None);
+        self.variable_bounds.push(None);
         self.feasible.push(None);
         self.n_samples += 1;
         Ok(self)
@@ -233,25 +251,36 @@ where
         &mut self,
         sample_idx: usize,
         obj_value: Option<Bias>,
-        constraints: Option<Vec<bool>>,
+        constraints: Vec<bool>,
+        variable_bounds: Vec<bool>,
         sense_is_minimize: bool,
     ) {
         self.obj_values[sample_idx] = obj_value;
-        if let Some(constr) = constraints.as_ref() {
-            if self.feasible.len() != self.n_samples {
-                self.feasible = vec![None; self.n_samples]
-            }
-            if self.constraints.len() != self.n_samples {
-                self.constraints = vec![None; self.n_samples]
-            }
-            self.feasible[sample_idx] = Some(constr.iter().all(|&b| b));
-            self.constraints[sample_idx] = Some(constr.clone());
+        if self.feasible.len() != self.n_samples {
+            self.feasible = vec![None; self.n_samples]
         }
+        if self.variable_bounds.len() != self.n_samples {
+            self.variable_bounds = vec![None; self.n_samples]
+        }
+        if self.constraints.len() != self.n_samples {
+            self.constraints = vec![None; self.n_samples]
+        }
+        self.variable_bounds[sample_idx] = Some(variable_bounds.clone());
+        self.constraints[sample_idx] = Some(constraints.clone());
+        self.feasible[sample_idx] =
+            Some(constraints.iter().all(|&b| b) && variable_bounds.iter().all(|&b| b));
+        let curr_sample_feasible = self.feasible[sample_idx].is_some_and(|b| b);
         match self.best_sample_idx {
-            None => {}
+            None => {
+                if curr_sample_feasible {
+                    self.best_sample_idx = Some(sample_idx)
+                }
+            }
             Some(i) => match (self.obj_values[i], obj_value) {
                 (Some(old), Some(new)) => {
-                    if new < old && sense_is_minimize || new > old && !sense_is_minimize {
+                    if new < old && sense_is_minimize && curr_sample_feasible
+                        || new > old && !sense_is_minimize && curr_sample_feasible
+                    {
                         self.best_sample_idx = Some(sample_idx);
                     }
                 }
@@ -268,6 +297,11 @@ where
         self.samples
             .get(col_idx)
             .and_then(|col| col.get::<Bias>(row_idx))
+    }
+
+    pub fn best(&self) -> Option<ResultView<Bias, AssignmentTypes>> {
+        self.best_sample_idx
+            .map(|idx| ResultView::new(RcSolution(Rc::new(self.clone())), idx))
     }
 }
 
@@ -322,6 +356,11 @@ where
 
     pub fn samples(&self) -> Samples<Bias, AssignmentTypes> {
         Samples(RcSolution::clone(&self))
+    }
+
+    pub fn best(&self) -> Option<ResultView<Bias, AssignmentTypes>> {
+        self.best_sample_idx
+            .map(|idx| ResultView::new(self.clone(), idx))
     }
 }
 

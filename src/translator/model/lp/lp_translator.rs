@@ -116,7 +116,8 @@ where
         sections: SectionsHolder<Index, Bias>,
     ) -> Result<Model<Index, Bias>, TranslationErr> {
         let model_name = &sections.model_name;
-        let mut model = Model::new(model_name.clone());
+        let mut model = Model::new(model_name.clone(), None);
+        // ATTENTION: The sense will be set correctly in the `.make_objective` call.
         let vl = sections.make_variables(&mut model)?;
         sections.make_objective(&mut model, &vl)?;
         sections.make_constraints(&mut model, &vl)?;

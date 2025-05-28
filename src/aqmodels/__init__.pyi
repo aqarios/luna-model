@@ -19,6 +19,7 @@ from ._core import (
     Comparator,
     Constraint,
     Constraints,
+    Unbounded,
     translator,
     errors,
 )
@@ -46,4 +47,5 @@ __all__ = [
     "Constraints",
     "translator",
     "errors",
+    "Unbounded"
 ]
