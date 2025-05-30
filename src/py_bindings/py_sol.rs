@@ -712,7 +712,7 @@ impl PySolution {
     }
 
     fn __str__(&self) -> String {
-        self.print(80, 5, 10, PrintLayout::Col, ShowMetadata::Right)
+        self.print(80, 5, 10, 10, PrintLayout::Col, ShowMetadata::Right)
     }
 
     fn __repr__(&self) -> String {
