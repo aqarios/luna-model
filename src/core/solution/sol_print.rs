@@ -57,7 +57,7 @@ where
         ];
         let mut var_names = Vec::new();
 
-        if matches!(show_metadata, ShowMetadata::Left | ShowMetadata::Right) {
+        if matches!(show_metadata, ShowMetadata::Before | ShowMetadata::After) {
             let feas_width = 4;
             meta_widths.push(feas_width);
             width_reached += feas_width + SPACE_BETWEEN_COLS;
@@ -183,7 +183,7 @@ where
             }
         }
 
-        if let ShowMetadata::Left = show_metadata {
+        if let ShowMetadata::Before = show_metadata {
             for (width, vname) in meta_widths.iter().zip(&meta_names) {
                 var_names.push(format!("{vname:>width$}"));
             }
@@ -202,7 +202,7 @@ where
                 var_names.push(format!("{vname:>cw$}"));
             }
         }
-        if let ShowMetadata::Right = show_metadata {
+        if let ShowMetadata::After = show_metadata {
             var_names.push(String::from("│"));
             for (width, vname) in meta_widths.iter().zip(meta_names) {
                 var_names.push(format!("{vname:>width$}"));
@@ -212,13 +212,13 @@ where
         let mut out = var_names.join(" ");
         for (meta, row) in metadata.iter().zip(collected) {
             out.push('\n');
-            if let ShowMetadata::Left = show_metadata {
+            if let ShowMetadata::Before = show_metadata {
                 let meta_c = meta.clone();
                 out.push_str(&meta_c.join(" "));
                 out.push_str(" │ ");
             }
             out.push_str(&row.join(" "));
-            if let ShowMetadata::Right = show_metadata {
+            if let ShowMetadata::After = show_metadata {
                 out.push_str(" │ ");
                 let meta_c = meta.clone();
                 out.push_str(&meta_c.join(" "));
@@ -285,7 +285,7 @@ where
         }
 
         let mut metadata = Vec::new();
-        if matches!(show_metadata, ShowMetadata::Left | ShowMetadata::Right) {
+        if matches!(show_metadata, ShowMetadata::Before | ShowMetadata::After) {
             let mut meta_names = vec![
                 String::from("feasible"),
                 String::from("raw energy"),
@@ -363,7 +363,7 @@ where
         }
 
         let mut out = String::new();
-        if let ShowMetadata::Left = show_metadata {
+        if let ShowMetadata::Before = show_metadata {
             for row in metadata.iter() {
                 for (i, (&width, col)) in col_widths.iter().zip(row).enumerate() {
                     if i > 0 {
@@ -388,8 +388,9 @@ where
                 out.push_str(&format!("{col:>width$}"))
             }
         }
-        if let ShowMetadata::Right = show_metadata {
+        if let ShowMetadata::After = show_metadata {
             let total_width = col_widths.iter().sum::<usize>() + col_widths.len() - 1;
+            out.push('\n');
             out.push_str(&String::from("─".repeat(total_width)));
             out.push('\n');
             for row in metadata {

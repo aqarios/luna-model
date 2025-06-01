@@ -538,26 +538,26 @@ impl PySolution {
     /// Get a human-readable string representation of a solution.
     #[pyo3(
         signature=(
+            layout=PrintLayout::Col,
             max_line_length=80,
-            max_col_size=5,
+            max_column_length=5,
             max_lines=10,
             max_var_name_length=10,
-            layout=PrintLayout::Col,
-            show_metadata=ShowMetadata::Right,
+            show_metadata=ShowMetadata::After,
         )
     )]
     fn print(
         &self,
+        layout: PrintLayout,
         max_line_length: usize,
-        max_col_size: usize,
+        max_column_length: usize,
         max_lines: usize,
         max_var_name_length: usize,
-        layout: PrintLayout,
         show_metadata: ShowMetadata,
     ) -> String {
         self.0.print(
             max_line_length,
-            max_col_size,
+            max_column_length,
             max_lines,
             max_var_name_length,
             layout,
@@ -712,7 +712,7 @@ impl PySolution {
     }
 
     fn __str__(&self) -> String {
-        self.print(80, 5, 10, 10, PrintLayout::Col, ShowMetadata::Right)
+        self.print(PrintLayout::Col, 80, 5, 10, 10, ShowMetadata::After)
     }
 
     fn __repr__(&self) -> String {
@@ -846,11 +846,11 @@ impl<'py> FromPyObject<'py> for ShowMetadata {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
         let mode: &str = ob.extract()?;
         match mode {
-            "left" => Ok(ShowMetadata::Left),
-            "right" => Ok(ShowMetadata::Right),
-            "false" => Ok(ShowMetadata::False),
+            "before" => Ok(ShowMetadata::Before),
+            "after" => Ok(ShowMetadata::After),
+            "hide" => Ok(ShowMetadata::Hide),
             _ => Err(PyValueError::new_err(format!(
-                "Invalid spec '{mode}'. Expected one of 'left', 'right', 'false."
+                "Invalid spec '{mode}'. Expected one of 'before', 'after', 'hide'."
             ))),
         }
     }

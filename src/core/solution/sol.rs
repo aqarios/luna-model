@@ -31,9 +31,9 @@ pub enum PrintLayout {
 
 #[derive(Debug, Clone, Copy)]
 pub enum ShowMetadata {
-    Left,
-    Right,
-    False,
+    Before,
+    After,
+    Hide,
 }
 
 impl<AssignmentTypes> VarAssignment<AssignmentTypes>

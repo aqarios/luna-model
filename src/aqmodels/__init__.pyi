@@ -47,5 +47,5 @@ __all__ = [
     "Constraints",
     "translator",
     "errors",
-    "Unbounded"
+    "Unbounded",
 ]

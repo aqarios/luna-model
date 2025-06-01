@@ -23,6 +23,7 @@ def test_encode_decode_empty():
 
     assert_encode_decode(model)
 
+
 @pytest.mark.model
 def test_encode_decode_empty_max():
     with Environment():
@@ -45,6 +46,7 @@ def test_encode_decode_with_objective():
     model.objective += x * y * z
 
     assert_encode_decode(model)
+
 
 @pytest.mark.model
 def test_encode_decode_with_objective_max():

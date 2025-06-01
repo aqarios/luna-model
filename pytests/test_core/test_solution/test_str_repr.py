@@ -66,6 +66,8 @@ def test_simple_solution_print(model: tuple[Model, tuple[Variable, ...]]):
     # print(sol)
 
     print()
-    print(sol.print(show_metadata="right"))
+    print(sol.print(layout="column", show_metadata="after"))
     print()
-    print(sol.print(layout="row", show_metadata="left"))
+    print(sol.print(layout="row", show_metadata="before"))
+    print()
+    print(sol.print(layout="row", show_metadata="after"))

@@ -41,7 +41,7 @@ def solution(request) -> Solution:
         real_cols=[[2.0, 3.0, 4.23]],
         counts=[1, 2, 3],
         raw_energies=[6.0, 5.0, 2.0],
-        variable_names=list(f"x_{i}" for i in range(4))
+        variable_names=list(f"x_{i}" for i in range(4)),
     )
 
 
