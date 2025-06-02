@@ -3,6 +3,7 @@ from enum import Enum
 from typing import overload, Any
 
 from numpy.typing import NDArray
+from typing_extensions import Literal
 
 from . import errors
 from . import translator
@@ -413,15 +414,16 @@ class Variable:
     @overload
     def __eq__(self, rhs: Variable, /) -> bool:
         """
-        Check equality of two variables.
+           Check equality of two variables.
 
-        Parameters
-        ----------
+           Parameters
+           ----------
+
         rhs : Variable
 
-        Returns
-        -------
-        bool
+           Returns
+           -------
+           bool
         """
     def __eq__(self, rhs: int | float | Expression, /) -> Constraint:  # type: ignore
         """
@@ -1080,6 +1082,73 @@ class Solution:
     def from_dict(
         data: dict[Variable | str, int | float], *, model: Model
     ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, int], *, timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[Variable, float], *, timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, int], *, timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(data: dict[str, float], *, timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable | str, int | float], *, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable, int], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable, float], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[str, int], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[str, float], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable | str, int | float], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable, int], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable, float], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[str, int], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[str, float], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dict(
+        data: dict[Variable | str, int | float], *, model: Model, timing: Timing
+    ) -> Solution: ...
     @staticmethod
     def from_dict(
         data: dict[Variable | str, int | float],
@@ -1183,6 +1252,78 @@ class Solution:
     def from_dicts(
         data: list[dict[Variable | str, int | float]], *, model: Model
     ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[Variable, int]], *, timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, float]], *, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[str, int]], *, timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(data: list[dict[str, float]], *, timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]], *, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, int]], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, float]], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[str, int]], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[str, float]], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]],
+        *,
+        env: Environment,
+        timing: Timing,
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, int]], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, float]], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[str, int]], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[str, float]], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]], *, model: Model, timing: Timing
+    ) -> Solution: ...
     @staticmethod
     def from_dicts(
         data: list[dict[Variable | str, int | float]],
@@ -1231,6 +1372,72 @@ class Solution:
         ModelVtypeError
             If the result's variable types are incompatible with the model environment's
             variable types.
+        """
+        ...
+
+    def print(
+        self,
+        /,
+        layout: Literal["row", "column"] = "column",
+        max_line_length: int = 80,
+        max_column_length: int = 5,
+        max_lines: int = 10,
+        max_var_name_length: int = 10,
+        show_metadata: Literal["before", "after", "hide"] = "after",
+    ):
+        """
+        Show a solution object as a human-readable string.
+
+        This method provides various ways to customize the way the solution is
+        represented as a string.
+
+        Parameters
+        ----------
+        layout : Literal["row", "column"]
+            With `"row"` layout, all assignments to one variable across different
+            samples are shown in the same *row*, and each sample is shown in one
+            column.
+            With `"column"` layout, all assignments to one variable across different
+            samples are shown in the same *column*, and each sample is shown in one row.
+        max_line_length : int
+            The max number of chars shown in one line or, in other words, the max width
+            of a row.
+        max_column_length : int
+            The maximal number of chars in one column. For both the row and column
+            layout, this controls the max number of chars a single variable assignment
+            may be shown with. For the column layout, this also controls the max number
+            of chars that a variable name is shown with.
+            Note: the max column length cannot always be adhered to. This is
+            specifically the case when a variable assignment is so high that the max
+            column length is not sufficient to show the number correctly.
+        max_lines : int
+            The max number of lines used for showing the samples. Note that this
+             parameter does not influence how metadata are shown, s.t. the total number
+             of lines may be higher than `max_lines`.
+        max_var_name_length : int
+            The max number of chars that a variable is shown with in row layout. This
+            parameter is ignored in column layout.
+        show_metadata : Literal["before", "after", "hide"]
+            Whether and where to show sample-specific metadata such as feasibility and
+            objective value. Note that this parameter only controls how sample-specific
+            metadata are shown. Other metadata, like the solution timing will be shown
+            after the samples regardless of the value of this parameter.
+
+            - `"before"`: show metadata before the actual sample, i.e., above the
+                sample in row layout, and left of the sample in column layout.
+            - `"after"`: show metadata after the actual sample, i.e., below the
+                sample in row layout, and right of the sample in column layout.
+            - "hide": do not show sample-specific metadata.
+
+        Returns
+        -------
+        str
+            The solution represented as a string.
+
+        Raises
+        ------
+        ValueError
+            If at least one of the params has an invalid value.
         """
         ...
 

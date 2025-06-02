@@ -1,8 +1,10 @@
 use crate::core::expression::{BiasConstraints, One};
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::solution::AssignmentBaseTypes;
-use crate::core::{PrintLayout, Solution};
+use crate::core::{PrintLayout, Solution, VarAssignment};
 use std::time::Duration;
+
+const SPACE_BETWEEN_COLS: usize = 1;
 
 impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
 where
@@ -12,17 +14,22 @@ where
     pub fn print(
         &self,
         max_line_length: usize,
-        max_chars_per_var: usize,
+        max_col_size: usize,
         max_lines: usize,
+        max_var_name_length: usize,
         layout: PrintLayout,
         show_metadata: ShowMetadata,
     ) -> String {
         match layout {
-            PrintLayout::Row => {
-                self.print_row_layout(max_line_length, max_chars_per_var, max_lines, show_metadata)
-            }
+            PrintLayout::Row => self.print_row_layout(
+                max_line_length,
+                max_col_size,
+                max_lines,
+                max_var_name_length,
+                show_metadata,
+            ),
             PrintLayout::Col => {
-                self.print_col_layout(max_line_length, max_chars_per_var, max_lines, show_metadata)
+                self.print_col_layout(max_line_length, max_col_size, max_lines, show_metadata)
             }
         }
     }
@@ -30,11 +37,10 @@ where
     fn print_col_layout(
         &self,
         max_line_length: usize,
-        max_chars_per_var: usize,
+        max_col_size: usize,
         max_lines: usize,
         show_metadata: ShowMetadata,
     ) -> String {
-        const SPACE_BETWEEN_COLS: usize = 1;
         let mut n_cols = 0;
         let mut col_widths = Vec::new();
         let mut meta_widths = Vec::with_capacity(3);
@@ -51,7 +57,7 @@ where
         ];
         let mut var_names = Vec::new();
 
-        if matches!(show_metadata, ShowMetadata::Left | ShowMetadata::Right) {
+        if matches!(show_metadata, ShowMetadata::Before | ShowMetadata::After) {
             let feas_width = 4;
             meta_widths.push(feas_width);
             width_reached += feas_width + SPACE_BETWEEN_COLS;
@@ -69,7 +75,7 @@ where
             for raw in self.raw_energies[..n_rows].iter() {
                 let s = match raw {
                     None => String::from("?"),
-                    Some(bias) => Self::format_bias(*bias, max_chars_per_var),
+                    Some(bias) => Self::format_bias(*bias, max_col_size),
                 };
                 col_width = col_width.max(s.chars().count());
                 raws.push(s);
@@ -85,7 +91,7 @@ where
             for obj in self.obj_values[..n_rows].iter() {
                 let s = match obj {
                     None => String::from("?"),
-                    Some(bias) => Self::format_bias(*bias, max_chars_per_var),
+                    Some(bias) => Self::format_bias(*bias, max_col_size),
                 };
                 col_width = col_width.max(s.chars().count());
                 objs.push(s);
@@ -99,7 +105,7 @@ where
             let mut counts = Vec::new();
             col_width = 5;
             for &count in self.counts[..n_rows].iter() {
-                let s = Self::format_usize(count, max_chars_per_var);
+                let s = Self::format_usize(count, max_col_size);
                 col_width = col_width.max(s.chars().count());
                 counts.push(s);
             }
@@ -109,11 +115,11 @@ where
                 metadata[row_idx].push(format!("{s:>col_width$}"))
             }
 
-            width_reached += 2; // for extra spacing
+            width_reached += SPACE_BETWEEN_COLS;
         }
 
         for (col, vname) in self.samples.iter().zip(&self.variable_names) {
-            let vname_len = vname.chars().count().min(max_chars_per_var);
+            let vname_len = vname.chars().count().min(max_col_size);
             let mut col_width = match col {
                 SampleCol::Binary(_) => vname_len,
                 SampleCol::Spin(_) => vname_len.max(2),
@@ -138,14 +144,14 @@ where
                 }
                 SampleCol::Integer(ints) => {
                     for &v in ints[..n_rows].iter() {
-                        let s = Self::format_int(v, max_chars_per_var);
+                        let s = Self::format_int(v, max_col_size);
                         col_width = col_width.max(s.chars().count());
                         vals.push(s);
                     }
                 }
                 SampleCol::Real(reals) => {
                     for &v in reals[..n_rows].iter() {
-                        let s = Self::format_real(v, max_chars_per_var);
+                        let s = Self::format_real(v, max_col_size);
                         col_width = col_width.max(s.chars().count());
                         vals.push(s);
                     }
@@ -161,32 +167,33 @@ where
             if width_reached <= max_line_length {
                 col_widths.push(col_width as isize);
             } else {
-                let too_long = width_old + 3 > max_line_length;
+                let too_long = width_old + 4 > max_line_length;
                 collected.iter_mut().for_each(|cols| {
                     if too_long {
                         cols.pop();
                     }
+                    cols.pop();
                     cols.push(String::from("..."));
                 });
-                if !too_long {
-                    col_widths.push(col_width as isize);
-                    n_cols += 1;
+                if too_long {
+                    col_widths.pop();
+                    n_cols -= 1;
                 }
                 col_widths.push(-1); // magic value for '...' column
                 break;
             }
         }
 
-        if let ShowMetadata::Left = show_metadata {
+        if let ShowMetadata::Before = show_metadata {
             for (width, vname) in meta_widths.iter().zip(&meta_names) {
                 var_names.push(format!("{vname:>width$}"));
             }
             var_names.push(String::from("│"));
         }
-        for (mut vname, col_width) in self.variable_names[..n_cols]
+        for (mut vname, &col_width) in self.variable_names[..n_cols]
             .iter()
             .cloned()
-            .zip(col_widths)
+            .zip(&col_widths)
         {
             if col_width < 0 {
                 var_names.push(String::from("   "));
@@ -196,7 +203,7 @@ where
                 var_names.push(format!("{vname:>cw$}"));
             }
         }
-        if let ShowMetadata::Right = show_metadata {
+        if let ShowMetadata::After = show_metadata {
             var_names.push(String::from("│"));
             for (width, vname) in meta_widths.iter().zip(meta_names) {
                 var_names.push(format!("{vname:>width$}"));
@@ -206,13 +213,13 @@ where
         let mut out = var_names.join(" ");
         for (meta, row) in metadata.iter().zip(collected) {
             out.push('\n');
-            if let ShowMetadata::Left = show_metadata {
+            if let ShowMetadata::Before = show_metadata {
                 let meta_c = meta.clone();
                 out.push_str(&meta_c.join(" "));
                 out.push_str(" │ ");
             }
             out.push_str(&row.join(" "));
-            if let ShowMetadata::Right = show_metadata {
+            if let ShowMetadata::After = show_metadata {
                 out.push_str(" │ ");
                 let meta_c = meta.clone();
                 out.push_str(&meta_c.join(" "));
@@ -221,10 +228,229 @@ where
         if n_rows < self.n_samples {
             out.push_str("\n...");
         }
+        out.push_str(&self.format_other_metadata());
+        out
+    }
 
-        out.push_str(&format!("\n\nTotal rows: {}", self.n_samples));
-        out.push_str(&format!("\nTotal columns: {}", self.samples.len()));
+    fn print_row_layout(
+        &self,
+        max_line_length: usize,
+        max_col_size: usize,
+        max_lines: usize,
+        max_var_name_length: usize,
+        show_metadata: ShowMetadata,
+    ) -> String {
+        let n_rows = max_lines.min(self.samples.len());
+        let mut collected = vec![Vec::new(); n_rows];
+        let mut col_widths = vec![0];
 
+        for (i, mut vname) in self.variable_names[..n_rows].iter().cloned().enumerate() {
+            vname.truncate(max_var_name_length);
+            col_widths[0] = col_widths[0].max(vname.chars().count());
+            collected[i].push(vname);
+        }
+
+        let mut n_cols = self.n_samples + 1;
+        for (i, sample_col) in self.samples.iter().enumerate() {
+            if i == max_lines {
+                break;
+            }
+            let mut width_reached = 0;
+            for (j, &v) in sample_col.as_vec().iter().enumerate() {
+                let s = match v {
+                    VarAssignment::Binary(b) => {
+                        Self::format_binary(b, *col_widths.get(j).unwrap_or(&1).max(&max_col_size))
+                    }
+                    VarAssignment::Spin(spin) => {
+                        Self::format_spin(spin, *col_widths.get(j).unwrap_or(&2).max(&max_col_size))
+                    }
+                    VarAssignment::Integer(int) => {
+                        Self::format_int(int, *col_widths.get(j).unwrap_or(&2).max(&max_col_size))
+                    }
+                    VarAssignment::Real(real) => {
+                        Self::format_real(real, *col_widths.get(j).unwrap_or(&4).max(&max_col_size))
+                    }
+                };
+                let s_len = s.chars().count();
+                width_reached += s_len + SPACE_BETWEEN_COLS;
+                if j > n_cols || width_reached > max_line_length {
+                    n_cols = n_cols.min(j);
+                    break;
+                }
+                if col_widths.len() <= j + 1 {
+                    col_widths.push(0);
+                }
+                col_widths[j + 1] = col_widths[j + 1].max(s_len);
+                collected[i].push(s);
+            }
+        }
+
+        let mut metadata = Vec::new();
+        if matches!(show_metadata, ShowMetadata::Before | ShowMetadata::After) {
+            let mut meta_names = vec![
+                String::from("feasible"),
+                String::from("raw energy"),
+                String::from("objective value"),
+                String::from("count"),
+            ];
+            for mut s in meta_names {
+                s.truncate(max_var_name_length);
+                let s = String::from(s.trim());
+                col_widths[0] = col_widths[0].max(s.chars().count());
+                metadata.push(vec![s]);
+            }
+            for (j, feasible) in self.feasible.iter().enumerate() {
+                let s = match feasible {
+                    None => "?",
+                    Some(true) => "t",
+                    Some(false) => "f",
+                };
+                if j > n_cols {
+                    break;
+                }
+                metadata[0].push(String::from(s));
+            }
+            let mut width_reached = 0;
+            for (j, raw) in self.raw_energies.iter().enumerate() {
+                let s = match raw {
+                    None => String::from("?"),
+                    Some(bias) => Self::format_bias(*bias, max_col_size),
+                };
+                let s_len = s.chars().count();
+                width_reached += s_len + SPACE_BETWEEN_COLS;
+                if j > n_cols || width_reached > max_line_length {
+                    n_cols = n_cols.min(j);
+                    break;
+                }
+                if col_widths.len() <= j + 1 {
+                    col_widths.push(0);
+                }
+                col_widths[j + 1] = col_widths[j + 1].max(s_len);
+                metadata[1].push(String::from(s));
+            }
+            width_reached = 0;
+            for (j, obj) in self.obj_values.iter().enumerate() {
+                let s = match obj {
+                    None => String::from("?"),
+                    Some(bias) => Self::format_bias(*bias, max_col_size),
+                };
+                let s_len = s.chars().count();
+                width_reached += s_len + SPACE_BETWEEN_COLS;
+                if j > n_cols || width_reached > max_line_length {
+                    n_cols = n_cols.min(j);
+                    break;
+                }
+                if col_widths.len() <= j + 1 {
+                    col_widths.push(0);
+                }
+                col_widths[j + 1] = col_widths[j + 1].max(s_len);
+                metadata[2].push(String::from(s));
+            }
+            width_reached = 0;
+            for (j, &count) in self.counts.iter().enumerate() {
+                let s = Self::format_usize(count, max_col_size);
+                let s_len = s.chars().count();
+                width_reached += s_len + SPACE_BETWEEN_COLS;
+                if j > n_cols || width_reached > max_line_length {
+                    n_cols = n_cols.min(j);
+                    break;
+                }
+                if col_widths.len() <= j + 1 {
+                    col_widths.push(0);
+                }
+                col_widths[j + 1] = col_widths[j + 1].max(s_len);
+                metadata[3].push(String::from(s));
+            }
+        }
+
+        println!("\n{col_widths:?}");
+        println!("{n_cols}");
+        let mut total_width = col_widths[..n_cols].iter().sum::<usize>() + n_cols - 1;
+        println!("{total_width}");
+        while n_cols <= self.n_samples + 1 && total_width > max_line_length - 4 {
+            n_cols -= 1;
+            total_width = col_widths[..n_cols].iter().sum::<usize>() + n_cols - 1;
+            println!("---------");
+            println!("\n{col_widths:?}");
+            println!("{n_cols}");
+            println!("{total_width}");
+        }
+        if n_cols <= self.n_samples {
+            total_width += 4;
+        }
+        println!("---------");
+
+        let mut out = String::new();
+        if let ShowMetadata::Before = show_metadata {
+            for row in metadata.iter() {
+                for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
+                    if j >= n_cols {
+                        if n_cols <= self.n_samples + 1 {
+                            out.push_str(&String::from(" ..."));
+                        }
+                        break;
+                    }
+                    if j > 0 {
+                        out.push(' ')
+                    }
+                    out.push_str(&format!("{col:>width$}"))
+                }
+                out.push('\n');
+            }
+
+            out.push_str(&String::from("─".repeat(total_width)));
+            out.push('\n');
+        }
+
+        for (i, row) in collected.iter().enumerate() {
+            if i > 0 {
+                out.push('\n');
+            }
+            for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
+                if j >= n_cols {
+                    if n_cols <= self.n_samples + 1 {
+                        out.push_str(&String::from(" ..."));
+                    }
+                    break;
+                }
+                if j > 0 {
+                    out.push(' ')
+                }
+                out.push_str(&format!("{col:>width$}"))
+            }
+        }
+        if self.samples.len() > max_lines {
+            out.push_str("\n...");
+        }
+
+        if let ShowMetadata::After = show_metadata {
+            out.push_str(&format!("\n{}\n", "─".repeat(total_width)));
+            for (i, row) in metadata.iter().enumerate() {
+                for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
+                    if j >= n_cols {
+                        if n_cols <= self.n_samples + 1 {
+                            out.push_str(&String::from(" ..."));
+                        }
+                        break;
+                    }
+                    if j > 0 {
+                        out.push(' ')
+                    }
+                    out.push_str(&format!("{col:>width$}"))
+                }
+                if i < 3 {
+                    out.push('\n');
+                }
+            }
+        }
+        out.push_str(&self.format_other_metadata());
+        out
+    }
+
+    fn format_other_metadata(&self) -> String {
+        let mut out = String::new();
+        out.push_str(&format!("\n\nTotal samples: {}", self.n_samples));
+        out.push_str(&format!("\nTotal variables: {}", self.samples.len()));
         if let Some(t) = self.timing {
             out.push_str("\n\nTiming:");
             out.push_str(&format!(
@@ -235,18 +461,7 @@ where
                 out.push_str(&format!("\nQPU: {qpu}s"))
             }
         }
-
         out
-    }
-
-    fn print_row_layout(
-        &self,
-        _max_line_length: usize,
-        _max_chars_per_var: usize,
-        _max_lines: usize,
-        _show_metadata: ShowMetadata,
-    ) -> String {
-        todo!()
     }
 
     fn format_binary(value: AssignmentTypes::BinaryType, col_width: usize) -> String {
@@ -285,7 +500,8 @@ where
         let digits_int_part = format!("{:.0}", value).chars().count();
         if digits_int_part <= col_width - 2 {
             let decimals = col_width - digits_int_part - 1;
-            format!("{value:>col_width$.decimals$}")
+            let s = format!("{value:>col_width$.decimals$}");
+            remove_trailing_zeros(s)
         } else {
             let decimals = col_width - 4;
             format!("{value:>col_width$.decimals$e}")
@@ -296,10 +512,20 @@ where
         let digits_int_part = format!("{:.0}", value).chars().count();
         if digits_int_part <= col_width - 2 {
             let decimals = col_width - digits_int_part - 1;
-            format!("{value:>col_width$.decimals$}")
+            let s = format!("{value:>col_width$.decimals$}");
+            remove_trailing_zeros(s)
         } else {
             let decimals = col_width - 4;
             format!("{value:>col_width$.decimals$e}")
         }
     }
+}
+
+fn remove_trailing_zeros(mut s: String) -> String {
+    if s.contains(|c| c == '.') && !s.contains(|c| c == 'e') {
+        while s.ends_with('0') && !s.ends_with(".0") {
+            s.pop();
+        }
+    }
+    s
 }

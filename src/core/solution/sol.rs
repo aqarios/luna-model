@@ -31,9 +31,9 @@ pub enum PrintLayout {
 
 #[derive(Debug, Clone, Copy)]
 pub enum ShowMetadata {
-    Left,
-    Right,
-    False,
+    Before,
+    After,
+    Hide,
 }
 
 impl<AssignmentTypes> VarAssignment<AssignmentTypes>
@@ -150,6 +150,16 @@ where
             Self::Spin(col) => col.get(index).map(|&x| VarAssignment::Spin(x)),
             Self::Integer(col) => col.get(index).map(|&x| VarAssignment::Integer(x)),
             Self::Real(col) => col.get(index).map(|&x| VarAssignment::Real(x)),
+        }
+    }
+
+    pub fn as_vec(&self) -> Vec<VarAssignment<AssignmentTypes>> {
+        // todo: do this without `collect` instead, and use some other return typle like `impl Iter`
+        match self {
+            SampleCol::Binary(bins) => bins.iter().map(|&x| VarAssignment::Binary(x)).collect(),
+            SampleCol::Spin(spins) => spins.iter().map(|&x| VarAssignment::Spin(x)).collect(),
+            SampleCol::Integer(ints) => ints.iter().map(|&x| VarAssignment::Integer(x)).collect(),
+            SampleCol::Real(reals) => reals.iter().map(|&x| VarAssignment::Real(x)).collect(),
         }
     }
 }
