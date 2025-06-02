@@ -1,8 +1,8 @@
 import pytest
 
 from aqmodels import Model, Variable
-from aqmodels.translator import LpTranslator
 from aqmodels.errors import IllegalConstraintNameError
+from aqmodels.translator import LpTranslator
 
 ILLEGAL_WORD_START = [
     "0",
@@ -26,4 +26,3 @@ def test_illegal_words(word: str):
     model.objective = x * y
     with pytest.raises(IllegalConstraintNameError):
         model.constraints.add_constraint(x + y * 3 <= 10, word)
-        _ = LpTranslator.from_aq(model)

@@ -1,13 +1,14 @@
+import sys
 import tempfile
 from pathlib import Path
 from random import Random
 
 import gurobipy as gp
 import pytest
-import sys
 from dimod import lp as dimod_lp
 
 from aqmodels import Sense
+from aqmodels.errors import TranslationError
 from aqmodels.translator import LpTranslator
 from pytests.test_core.utils import generate_cqms, make_seed
 
@@ -303,3 +304,19 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
             return False
 
     return True
+
+
+@pytest.mark.translator
+def test_invalid_var_name():
+    rand = Random(make_seed())
+    cqm = generate_cqms(1, rand)[0]
+
+    # SETUP
+    tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
+    dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
+    tmp_lp.flush()
+    tmp_lp.seek(0)
+
+    lp_str = tmp_lp.file.read().replace("x_0", "0x")
+    with pytest.raises(TranslationError):
+        _ = LpTranslator.to_aq(lp_str)
