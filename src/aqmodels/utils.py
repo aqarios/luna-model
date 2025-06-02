@@ -43,8 +43,9 @@ def quicksum(
 
     assert start is not None
     assert isinstance(start, Expression)
+    _start: Expression = start
 
     for item in items:
-        start = start + item
+        _start += item
 
-    return start
+    return _start
