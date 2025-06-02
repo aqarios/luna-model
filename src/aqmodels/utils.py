@@ -44,9 +44,7 @@ def quicksum(
 
     assert start is not None
     if not isinstance(start, Expression):
-        raise TypeError(
-            "start must be of type `Expression`"
-        )
+        raise TypeError("start must be of type `Expression`")
 
     _start: Expression = start
 

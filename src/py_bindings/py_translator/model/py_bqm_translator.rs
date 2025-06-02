@@ -2,6 +2,7 @@ use crate::core::Vtype;
 use crate::py_bindings::py_model::PyModel;
 use crate::translator::model::BqmTranslator;
 use numpy::{PyReadonlyArray1, ToPyArray};
+use pyo3::exceptions::PyTypeError;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use std::ffi::CStr;
@@ -119,11 +120,13 @@ impl PyBqmTranslator {
         vartype: String,
         name: Option<String>,
     ) -> PyResult<PyModel> {
-        let vtype = if vartype == String::from("SPIN") {
-            Vtype::Spin
+        let vtype = if vartype.to_uppercase() == String::from("SPIN") {
+            Ok(Vtype::Spin)
+        } else if vartype.to_uppercase() == String::from("BINARY") {
+            Ok(Vtype::Binary)
         } else {
-            Vtype::Binary
-        };
+            Err(PyTypeError::new_err(format!("unknown vartype '{vartype}'")))
+        }?;
 
         Ok(PyModel::new(BqmTranslator::model_from_bqm(
             vars.extract(py)?,
@@ -137,7 +140,7 @@ impl PyBqmTranslator {
             quads_rows.as_slice().expect("failed to convert to slice"),
             quads_cols.as_slice().expect("failed to convert to slice"),
             name,
-        )))
+        )?))
     }
 
     /// Convert a symbolic model to a dense QUBO matrix representation.

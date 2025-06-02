@@ -1,7 +1,6 @@
 import pytest
 from aqmodels import Model, Variable, Vtype, Sense, quicksum
 from aqmodels.translator import LpTranslator
-from pyscipopt import Model as PyscipOptModel
 
 
 @pytest.fixture
