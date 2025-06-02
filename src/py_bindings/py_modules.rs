@@ -36,7 +36,9 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
-pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn register_translator(
+    pm: &Bound<'_, PyModule>,
+) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "translator")?;
     m.add_class::<py_translator::PyQubo>()?;
     m.add_class::<py_translator::PyQuboTranslator>()?;
@@ -50,14 +52,22 @@ pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_translator::PyAwsTranslator>()?;
     m.add_class::<py_translator::PyNumpyTranslator>()?;
     pm.add_submodule(&m)?;
+    #[cfg(not(feature = "lq"))]
     pm.py()
         .import("sys")?
         .getattr("modules")?
         .set_item("aqmodels.translator", m)?;
+    #[cfg(feature = "lq")]
+    pm.py()
+        .import("sys")?
+        .getattr("modules")?
+        .set_item("luna_quantum.translator", m)?;
     Ok(())
 }
 
-pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
+pub fn register_errors(
+    pm: &Bound<'_, PyModule>,
+) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "errors")?;
     m.add(
         pyexc::DecodeError::NAME,
@@ -148,9 +158,16 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         m.py().get_type::<pyexc::EvaluationError>(),
     )?;
     pm.add_submodule(&m)?;
+    #[cfg(not(feature = "lq"))]
     pm.py()
         .import("sys")?
         .getattr("modules")?
         .set_item("aqmodels.errors", m)?;
+    #[cfg(feature = "lq")]
+    pm.py()
+        .import("sys")?
+        .getattr("modules")?
+        .set_item("luna_quantum.errors", m)?;
     Ok(())
 }
+
