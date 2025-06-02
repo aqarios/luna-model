@@ -9,7 +9,7 @@ def quicksum(
 ) -> Expression:
     """
     Create an Expression based on an iterable of Expression, Variable, int or float elements.
-    Note that either the `iterable` must contain at least one `Expression` or `Variable` or 
+    Note that either the `iterable` must contain at least one `Expression` or `Variable` or
     the start parameter is set.
 
     Parameters

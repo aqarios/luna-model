@@ -98,5 +98,5 @@ __all__ = [
     "translator",
     "errors",
     "utils",
-    "quicksum"
+    "quicksum",
 ]

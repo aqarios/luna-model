@@ -521,7 +521,7 @@ class Variable:
         ...
 
     @property
-    def _environment(self, /) -> Environment: 
+    def _environment(self, /) -> Environment:
         """Get this variables's environment."""
         ...
 
@@ -2576,7 +2576,7 @@ class Expression:
         ...
 
     @property
-    def _environment(self, /) -> Environment: 
+    def _environment(self, /) -> Environment:
         """Get this expression's environment."""
         ...
 

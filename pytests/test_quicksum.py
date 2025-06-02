@@ -1,5 +1,4 @@
 import pytest
-from typing import Iterable
 from aqmodels import quicksum, Environment, Variable, Expression
 
 
@@ -45,6 +44,7 @@ def test_quicksum_iterable_exprs(variables: list[Variable]):
     expr = quicksum(make_expression(variables) for _ in range(N))
     assert isinstance(expr, Expression)
     assert expr.is_equal(te)
+
 
 def test_quicksum_iterable_nums():
     with pytest.raises(TypeError):

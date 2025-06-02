@@ -51,5 +51,5 @@ __all__ = [
     "errors",
     "Unbounded",
     "utils",
-    "quicksum"
+    "quicksum",
 ]
