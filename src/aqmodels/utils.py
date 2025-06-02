@@ -1,15 +1,26 @@
 from typing import Iterable
 from ._core import Expression, Variable
 
-a = sum([1, 2, 3])
-
 
 def quicksum(
-    iterable: Iterable[Expression | Variable | float | int],
+    iterable: Iterable[Expression | Variable | int | float],
     /,
-    start: Expression = Expression(),
+    start: Expression | None = None,
 ) -> Expression:
-    for item in iterable:
-        start += item
+    items = list(iterable)
+    if start is None:
+        for item in items:
+            if isinstance(item, Expression) or isinstance(item, Variable):
+                start = Expression(env=item._environment)
+                break
+
+    if start is None:
+        raise TypeError("iterable must contain at least one Expression or Variable, or 'start' needs to be set.")
+    
+    assert start is not None
+    assert isinstance(start, Expression)
+
+    for item in items:
+        start = start + item
 
     return start

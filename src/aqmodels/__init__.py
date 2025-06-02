@@ -45,7 +45,7 @@ transformers
     to a linear model.
 """
 
-# from . import utils
+from . import utils
 from ._core import (
     Vtype,
     Bounds,
@@ -71,7 +71,7 @@ from ._core import (
     translator,
     errors,
 )
-# from .utils import quicksum
+from .utils import quicksum
 
 __all__ = [
     "Vtype",
@@ -97,6 +97,6 @@ __all__ = [
     "Unbounded",
     "translator",
     "errors",
-    # "utils",
-    # "quicksum"
+    "utils",
+    "quicksum"
 ]
