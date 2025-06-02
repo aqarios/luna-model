@@ -1,3 +1,5 @@
+from . import utils
+from .utils import quicksum
 from ._core import (
     Vtype,
     Bounds,
@@ -48,4 +50,6 @@ __all__ = [
     "translator",
     "errors",
     "Unbounded",
+    "utils",
+    "quicksum",
 ]

@@ -449,6 +449,12 @@ impl PyVariable {
     fn __repr__(&self) -> String {
         format!("{:#?}", self.0)
     }
+
+    /// Get this variables's environment.
+    #[getter]
+    fn _environment(&self) -> PyEnvironment {
+        PyEnvironment(self.env.clone())
+    }
 }
 
 impl PyVariable {
