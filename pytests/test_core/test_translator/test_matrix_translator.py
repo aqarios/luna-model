@@ -18,7 +18,8 @@ from aqmodels.errors import (
     TranslationError,
     ModelSenseNotMinimizeError,
     VariableNamesError,
-    ModelVtypeError, VariableExistsError,
+    ModelVtypeError,
+    VariableExistsError,
 )
 from aqmodels.translator import QuboTranslator
 from ..utils import make_seed
@@ -289,5 +290,8 @@ def test_variable_names_param(qubo: NDArray):
     with pytest.raises(VariableNamesError, match=num_vars_msg):
         _ = QuboTranslator.to_aq(qubo, variable_names=["a", "a"])
 
-    with pytest.raises(VariableExistsError, match="variable creation failed: variable 'a' already exists"):
+    with pytest.raises(
+        VariableExistsError,
+        match="variable creation failed: variable 'a' already exists",
+    ):
         _ = QuboTranslator.to_aq(qubo, variable_names=["a", "a", "c", "d"])

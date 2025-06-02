@@ -686,4 +686,10 @@ impl PyExpression {
     fn __repr__(&self) -> String {
         format!("{:#?}", self.borrow())
     }
+
+    /// Get this expression's environment.
+    #[getter]
+    fn _environment(&self) -> PyEnvironment {
+        PyEnvironment(self.0.borrow().env.clone())
+    }
 }
