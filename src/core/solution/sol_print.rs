@@ -115,7 +115,7 @@ where
                 metadata[row_idx].push(format!("{s:>col_width$}"))
             }
 
-            width_reached += 2; // for extra spacing
+            width_reached += SPACE_BETWEEN_COLS;
         }
 
         for (col, vname) in self.samples.iter().zip(&self.variable_names) {
@@ -167,16 +167,17 @@ where
             if width_reached <= max_line_length {
                 col_widths.push(col_width as isize);
             } else {
-                let too_long = width_old + 3 > max_line_length;
+                let too_long = width_old + 4 > max_line_length;
                 collected.iter_mut().for_each(|cols| {
                     if too_long {
                         cols.pop();
                     }
+                    cols.pop();
                     cols.push(String::from("..."));
                 });
-                if !too_long {
-                    col_widths.push(col_width as isize);
-                    n_cols += 1;
+                if too_long {
+                    col_widths.pop();
+                    n_cols -= 1;
                 }
                 col_widths.push(-1); // magic value for '...' column
                 break;
@@ -189,10 +190,10 @@ where
             }
             var_names.push(String::from("│"));
         }
-        for (mut vname, col_width) in self.variable_names[..n_cols]
+        for (mut vname, &col_width) in self.variable_names[..n_cols]
             .iter()
             .cloned()
-            .zip(col_widths)
+            .zip(&col_widths)
         {
             if col_width < 0 {
                 var_names.push(String::from("   "));
