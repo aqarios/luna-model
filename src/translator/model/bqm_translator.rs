@@ -1,7 +1,7 @@
 use crate::core::environment::add_variable;
 use crate::core::expression::ExpressionBaseAdd;
 use crate::core::{ExpressionBaseAdjustment, Sense, Vtype};
-use crate::errors::{BqmTranslatorErr, ModelSenseNotMinimizeErr, ModelVtypeErr};
+use crate::errors::{BqmTranslatorErr, ModelSenseNotMinimizeErr, ModelVtypeErr, VariableCreationErr};
 use crate::{
     core::{
         expression::{BiasConstraints, IndexConstraints},
@@ -26,14 +26,14 @@ impl BqmTranslator {
         quadratic_rows: &[u64],
         quadratic_cols: &[u64],
         name: Option<String>,
-    ) -> Model<Index, Bias>
+    ) -> Result<Model<Index, Bias>, VariableCreationErr>
     where
         Index: IndexConstraints,
         Bias: BiasConstraints,
     {
         let model = Model::new(name, Some(Sense::Min));
         for var in vars.iter() {
-            _ = add_variable(Rc::clone(&model.environment), var, Some(&vtype), None);
+            add_variable(Rc::clone(&model.environment), var, Some(&vtype), None)?;
         }
         model.objective.borrow_mut().resize(vars.len().into());
         model.objective.borrow_mut().add_offset(offset);
@@ -54,7 +54,7 @@ impl BqmTranslator {
                 bias,
             );
         }
-        model
+        Ok(model)
     }
 
     /// Back(translate) an AQM to a BQM.
