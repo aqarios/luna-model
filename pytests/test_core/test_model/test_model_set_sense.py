@@ -1,5 +1,7 @@
 import pytest
 from aqmodels import Model, Variable, Vtype, Sense, quicksum
+from aqmodels.translator import LpTranslator
+from pyscipopt import Model as PyscipOptModel
 
 
 @pytest.fixture
@@ -38,6 +40,24 @@ def test_set_sense_init(items, values, weights, capacity):
     model.add_constraint(quicksum(x[i] * weights[i] for i in x.keys()) <= capacity)
 
     assert model.sense == Sense.Max
+    lp_str = LpTranslator.from_aq(model)
+    assert "Maximize" in lp_str
+
+
+def test_set_sense_init_lp(items, values, weights, capacity):
+    # Create the binary Variables (selected/not selected item)
+    model = Model("Vacation Knapsack1", sense=Sense.Max)
+
+    with model.environment:
+        x = {idx: Variable(name=i, vtype=Vtype.Binary) for idx, i in enumerate(items)}
+
+    model.set_objective(quicksum(x[i] * values[i] for i in x.keys()))
+    # The total weight of selected items should not exceed a specified threshold
+    model.add_constraint(quicksum(x[i] * weights[i] for i in x.keys()) <= capacity)
+
+    assert model.sense == Sense.Max
+    lp_str = LpTranslator.from_aq(model)
+    assert "Maximize" in lp_str
 
 
 def test_set_sense_after_creation(items, values, weights, capacity):
@@ -54,6 +74,8 @@ def test_set_sense_after_creation(items, values, weights, capacity):
     model.add_constraint(quicksum(x[i] * weights[i] for i in x.keys()) <= capacity)
 
     assert model.sense == Sense.Max
+    lp_str = LpTranslator.from_aq(model)
+    assert "Maximize" in lp_str
 
 
 def test_set_sense_after_objective(items, values, weights, capacity):
@@ -70,6 +92,8 @@ def test_set_sense_after_objective(items, values, weights, capacity):
     model.add_constraint(quicksum(x[i] * weights[i] for i in x.keys()) <= capacity)
 
     assert model.sense == Sense.Max
+    lp_str = LpTranslator.from_aq(model)
+    assert "Maximize" in lp_str
 
 
 def test_set_sense_after_constraints(items, values, weights, capacity):
@@ -86,6 +110,8 @@ def test_set_sense_after_constraints(items, values, weights, capacity):
     model.set_sense(Sense.Max)
 
     assert model.sense == Sense.Max
+    lp_str = LpTranslator.from_aq(model)
+    assert "Maximize" in lp_str
 
 
 if __name__ == "__main__":
