@@ -8,6 +8,7 @@ from aqmodels.errors import (
     MultipleActiveEnvironmentsError,
     NoActiveEnvironmentFoundError,
     VariableExistsError,
+    VariableNamesError,
 )
 
 
@@ -47,7 +48,7 @@ def test_create_variable_in_double_context():
 
 
 @pytest.mark.variable
-def test_create_variable_with_same_name_different_evironment():
+def test_create_variable_with_same_name_different_environment():
     env1 = Environment()
     env2 = Environment()
     _ = Variable("x", env=env1)
@@ -55,8 +56,23 @@ def test_create_variable_with_same_name_different_evironment():
 
 
 @pytest.mark.variable
-def test_create_variable_with_same_name_different_evironment_context():
+def test_create_variable_with_same_name_different_environment_context():
     with Environment():
         _ = Variable("x")
     with Environment():
         _ = Variable("x")
+
+
+@pytest.mark.variable
+def test_create_variable_with_invalid_name():
+    with Environment():
+        with pytest.raises(
+            VariableNamesError,
+            match="Variable names must start with an alphabetic character",
+        ):
+            _ = Variable("0")
+        with pytest.raises(
+            VariableNamesError,
+            match="Variable names must only contain alphanumeric characters or '_' or ','",
+        ):
+            _ = Variable("xß")
