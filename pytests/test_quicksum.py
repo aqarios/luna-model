@@ -50,6 +50,7 @@ def test_quicksum_iterable_nums():
     with pytest.raises(TypeError):
         _ = quicksum(i for i in range(N))
 
+
 def test_quicksum_iterable_start_variable():
     with pytest.raises(TypeError):
-        _ = quicksum((i for i in range(N)), start=Variable("x", env=Environment())) # type: ignore
+        _ = quicksum((i for i in range(N)), start=Variable("x", env=Environment()))  # type: ignore
