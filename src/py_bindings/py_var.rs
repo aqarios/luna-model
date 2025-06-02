@@ -19,6 +19,7 @@ use crate::core::{
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError};
 use pyo3::prelude::*;
+use pyo3::types::PyBool;
 
 /// Represents a symbolic variable within an optimization environment.
 ///
@@ -96,7 +97,8 @@ impl PartialEq<Self> for PyVariable {
     fn eq(&self, other: &Self) -> bool {
         let self_idx: usize = self.id.into();
         let other_idx: usize = other.id.into();
-        self.env.borrow().variables[self_idx] == other.env.borrow().variables[other_idx]
+        return self.env.borrow().id == other.env.borrow().id
+            && self.env.borrow().variables[self_idx] == other.env.borrow().variables[other_idx];
     }
 }
 
@@ -364,7 +366,8 @@ impl PyVariable {
         PyExpression::new(self.0.neg())
     }
 
-    /// Create a constraint: expression == scalar.
+    /// Either creates an constraint: variable == int | float | Expression or computes
+    /// the equality of two variables: variable == variable.
     ///
     /// If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
     /// constraint, resulting in the following constraint:
@@ -377,14 +380,20 @@ impl PyVariable {
     ///
     /// Returns
     /// -------
-    /// Constraint
+    /// Constraint | bool
     ///
     /// Raises
     /// ------
     /// TypeError
     ///     If the right-hand side is not of type float, int, Variable or Expression.
-    fn __eq__(&self, py: Python, rhs: PyObject) -> PyResult<PyConstraint> {
-        self.make_constraint(py, rhs, Comparator::Eq)
+    fn __eq__(&self, py: Python, rhs: PyObject) -> PyResult<PyObject> {
+        if let Ok(var) = rhs.extract::<PyVariable>(py) {
+            Ok(PyBool::new(py, *self == var).to_owned().into())
+        } else {
+            #[allow(deprecated)]
+            self.make_constraint(py, rhs, Comparator::Eq)
+                .map(|c| c.into_py(py))
+        }
     }
 
     /// Create a constraint: expression <= scalar.
