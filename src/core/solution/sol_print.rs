@@ -249,7 +249,7 @@ where
             collected[i].push(vname);
         }
 
-        let mut n_cols = usize::MAX;
+        let mut n_cols = self.n_samples;
         for (i, sample_col) in self.samples.iter().enumerate() {
             if i == max_lines {
                 break;
@@ -363,9 +363,20 @@ where
         }
 
         let mut out = String::new();
+        let mut total_width = col_widths[..=n_cols].iter().sum::<usize>() + n_cols;
+        if n_cols <= self.n_samples && total_width > max_line_length - 4 {
+            n_cols -= 1;
+            total_width = col_widths[..=n_cols].iter().sum::<usize>() + n_cols + 4;
+        }
         if let ShowMetadata::Before = show_metadata {
             for row in metadata.iter() {
                 for (i, (&width, col)) in col_widths.iter().zip(row).enumerate() {
+                    if i > n_cols {
+                        if n_cols <= self.n_samples {
+                            out.push_str(&String::from(" ..."));
+                        }
+                        break;
+                    }
                     if i > 0 {
                         out.push(' ')
                     }
@@ -373,34 +384,49 @@ where
                 }
                 out.push('\n');
             }
-            let total_width = col_widths.iter().sum::<usize>() + col_widths.len() - 1;
             out.push_str(&String::from("─".repeat(total_width)));
             out.push('\n');
         }
+
         for (i, row) in collected.iter().enumerate() {
             if i > 0 {
                 out.push('\n');
             }
-            for (i, (&width, col)) in col_widths.iter().zip(row).enumerate() {
-                if i > 0 {
+            for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
+                if j > n_cols {
+                    if n_cols <= self.n_samples {
+                        out.push_str(&String::from(" ..."));
+                    }
+                    break;
+                }
+                if j > 0 {
                     out.push(' ')
                 }
                 out.push_str(&format!("{col:>width$}"))
             }
         }
+        if self.samples.len() > max_lines {
+            out.push_str("\n...");
+        }
+
         if let ShowMetadata::After = show_metadata {
-            let total_width = col_widths.iter().sum::<usize>() + col_widths.len() - 1;
-            out.push('\n');
-            out.push_str(&String::from("─".repeat(total_width)));
-            out.push('\n');
-            for row in metadata {
-                for (i, (&width, col)) in col_widths.iter().zip(row).enumerate() {
-                    if i > 0 {
+            out.push_str(&format!("\n{}\n", "─".repeat(total_width)));
+            for (i, row) in metadata.iter().enumerate() {
+                for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
+                    if j > n_cols {
+                        if n_cols <= self.n_samples {
+                            out.push_str(&String::from(" ..."));
+                        }
+                        break;
+                    }
+                    if j > 0 {
                         out.push(' ')
                     }
                     out.push_str(&format!("{col:>width$}"))
                 }
-                out.push('\n');
+                if i < 3 {
+                    out.push('\n');
+                }
             }
         }
         out.push_str(&self.format_other_metadata());
@@ -409,7 +435,7 @@ where
 
     fn format_other_metadata(&self) -> String {
         let mut out = String::new();
-        out.push_str(&format!("\n\ntotal samples: {}", self.n_samples));
+        out.push_str(&format!("\n\nTotal samples: {}", self.n_samples));
         out.push_str(&format!("\nTotal variables: {}", self.samples.len()));
         if let Some(t) = self.timing {
             out.push_str("\n\nTiming:");

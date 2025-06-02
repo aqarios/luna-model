@@ -66,8 +66,8 @@ def test_simple_solution_print(model: tuple[Model, tuple[Variable, ...]]):
     # print(sol)
 
     print()
-    print(sol.print(layout="column", show_metadata="after"))
+    print(sol.print(layout="column", show_metadata="after", max_lines=2, max_line_length=50))
     print()
-    print(sol.print(layout="row", show_metadata="before"))
+    print(sol.print(layout="row", show_metadata="before", max_lines=7))
     print()
-    print(sol.print(layout="row", show_metadata="after"))
+    print(sol.print(layout="row", show_metadata="after", max_line_length=20))
