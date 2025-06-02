@@ -28,6 +28,7 @@ def quicksum(
     ------
     TypeError
         If the `iterable` does not contain any Expression or Variable.
+        If the `start` is not of type Expression.
     """
     items = list(iterable)
     if start is None:
@@ -42,7 +43,11 @@ def quicksum(
         )
 
     assert start is not None
-    assert isinstance(start, Expression)
+    if not isinstance(start, Expression):
+        raise TypeError(
+            "start must be of type `Expression`"
+        )
+
     _start: Expression = start
 
     for item in items:
