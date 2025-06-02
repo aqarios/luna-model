@@ -250,7 +250,7 @@ where
             collected[i].push(vname);
         }
 
-        let mut n_cols = self.n_samples;
+        let mut n_cols = self.n_samples + 1;
         for (i, sample_col) in self.samples.iter().enumerate() {
             if i == max_lines {
                 break;
@@ -259,7 +259,7 @@ where
             for (j, &v) in sample_col.as_vec().iter().enumerate() {
                 let s = match v {
                     VarAssignment::Binary(b) => {
-                        Self::format_binary(b, *col_widths.get(j).unwrap_or(&0).max(&max_col_size))
+                        Self::format_binary(b, *col_widths.get(j).unwrap_or(&1).max(&max_col_size))
                     }
                     VarAssignment::Spin(spin) => {
                         Self::format_spin(spin, *col_widths.get(j).unwrap_or(&2).max(&max_col_size))
@@ -363,28 +363,41 @@ where
             }
         }
 
-        let mut out = String::new();
-        let mut total_width = col_widths[..=n_cols].iter().sum::<usize>() + n_cols;
-        if n_cols <= self.n_samples && total_width > max_line_length - 4 {
+        println!("\n{col_widths:?}");
+        println!("{n_cols}");
+        let mut total_width = col_widths[..n_cols].iter().sum::<usize>() + n_cols - 1;
+        println!("{total_width}");
+        while n_cols <= self.n_samples + 1 && total_width > max_line_length - 4 {
             n_cols -= 1;
-            total_width = col_widths[..=n_cols].iter().sum::<usize>() + n_cols + 4;
+            total_width = col_widths[..n_cols].iter().sum::<usize>() + n_cols - 1;
+            println!("---------");
+            println!("\n{col_widths:?}");
+            println!("{n_cols}");
+            println!("{total_width}");
         }
+        if n_cols <= self.n_samples {
+            total_width += 4;
+        }
+        println!("---------");
+
+        let mut out = String::new();
         if let ShowMetadata::Before = show_metadata {
             for row in metadata.iter() {
-                for (i, (&width, col)) in col_widths.iter().zip(row).enumerate() {
-                    if i > n_cols {
-                        if n_cols <= self.n_samples {
+                for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
+                    if j >= n_cols {
+                        if n_cols <= self.n_samples + 1 {
                             out.push_str(&String::from(" ..."));
                         }
                         break;
                     }
-                    if i > 0 {
+                    if j > 0 {
                         out.push(' ')
                     }
                     out.push_str(&format!("{col:>width$}"))
                 }
                 out.push('\n');
             }
+
             out.push_str(&String::from("─".repeat(total_width)));
             out.push('\n');
         }
@@ -394,8 +407,8 @@ where
                 out.push('\n');
             }
             for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
-                if j > n_cols {
-                    if n_cols <= self.n_samples {
+                if j >= n_cols {
+                    if n_cols <= self.n_samples + 1 {
                         out.push_str(&String::from(" ..."));
                     }
                     break;
@@ -414,8 +427,8 @@ where
             out.push_str(&format!("\n{}\n", "─".repeat(total_width)));
             for (i, row) in metadata.iter().enumerate() {
                 for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
-                    if j > n_cols {
-                        if n_cols <= self.n_samples {
+                    if j >= n_cols {
+                        if n_cols <= self.n_samples + 1 {
                             out.push_str(&String::from(" ..."));
                         }
                         break;

@@ -60,7 +60,7 @@ def solution(request, model: Model):
 
 
 @pytest.mark.solution
-def test_row_no_metadata(solution: Solution):
+def test_row_hide(solution: Solution):
     s = solution.print(layout="row", show_metadata="hide")
     assert s == """
 b_0      0     0     1
@@ -75,8 +75,9 @@ r_1  1.0e8 -10.1 -10.1
 Total samples: 3
 Total variables: 8""".strip("\n")
 
+
 @pytest.mark.solution
-def test_row_before_lines(solution: Solution):
+def test_row_before_max_lines(solution: Solution):
     s = solution.print(layout="row", show_metadata="before", max_lines=7)
     assert s == """
   feasible      ?     ?     ?
@@ -97,8 +98,8 @@ Total samples: 3
 Total variables: 8""".strip("\n")
 
 
-def test_row_after_cols(solution: Solution):
-    s = solution.print(layout="row", show_metadata="after", max_line_length=20)
+def test_row_after_max_line_length(solution: Solution):
+    s = solution.print(layout="row", show_metadata="after", max_line_length=27)
     assert s == """
        b_0      0     0 ...
        b_1      1     1 ...
@@ -118,7 +119,28 @@ Total samples: 3
 Total variables: 8""".strip("\n")
 
 
-def test_col_no_metadata(solution: Solution):
+def test_row_after_max_line_length_dots_too_long(solution: Solution):
+    s = solution.print(layout="row", show_metadata="after", max_line_length=26)
+    assert s == """
+       b_0      0 ...
+       b_1      1 ...
+       s_0     -1 ...
+       s_1      1 ...
+       i_0    -10 ...
+       i_1     42 ...
+       r_0 -3.2e2 ...
+       r_1  1.0e8 ...
+─────────────────────
+  feasible      ? ...
+raw energy      ? ...
+ objective      ? ...
+     count      1 ...
+
+Total samples: 3
+Total variables: 8""".strip("\n")
+
+
+def test_col_hide(solution: Solution):
     s = solution.print(layout="column", show_metadata="hide")
     assert s == """
 b_0 b_1 s_0 s_1  i_0 i_1    r_0   r_1
