@@ -16,6 +16,7 @@ def model_a():
     model.constraints += z + x >= 5, "c2"
     return model
 
+
 @pytest.fixture
 def model_b():
     model = Model("model_b")
@@ -31,6 +32,7 @@ def model_b():
 
     return model
 
+
 def test_same_model_var_order(model_a: Model):
     ser_model_a = model_a.encode()
     ser_model_a2 = model_a.encode()
@@ -43,5 +45,6 @@ def test_same_model_diff_var_order(model_a: Model, model_b: Model):
     ser_model_a = model_a.encode()
     ser_model_b = model_b.encode()
 
-    assert (model_a == model_a and ser_model_a == ser_model_b) or (model_a != model_b and ser_model_a != ser_model_b)
-
+    assert (model_a == model_a and ser_model_a == ser_model_b) or (
+        model_a != model_b and ser_model_a != ser_model_b
+    )

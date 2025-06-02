@@ -87,23 +87,19 @@ def test_large_model_hash():
         # t4 = np.mean(t4s)
         # # t4std = np.std(t4s)
 
-        all = [t0] #, t1, t2, t3, t4]
+        all = [t0]  # , t1, t2, t3, t4]
         all_txt = [
             f"{t0:.7f}",  #  default
             # f"{t1:.7f}",  #  c=T, v=T
             # f"{t2:.7f}",  #  c=F, v=T
             # f"{t3:.7f}",  #  c=T, v=F
-            # f"{t4:.7f}",  #  c=F, v=F 
+            # f"{t4:.7f}",  #  c=F, v=F
         ]
 
         argmin = np.argmin(all)
         all_txt[argmin] = f"[bold magenta]{all_txt[argmin]}"
 
-        table.add_row(
-            str(size),
-            str(density),
-            *all_txt
-        )
+        table.add_row(str(size), str(density), *all_txt)
 
     console = Console()
     console.print(table)

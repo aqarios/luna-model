@@ -138,7 +138,7 @@ impl PyModel {
     ///     The sense of the model (minimization, maximization)
     #[pyo3(name = "set_sense")]
     fn set_sense_py(&mut self, sense: Sense) {
-        self.borrow_mut().set_sense(sense);
+        self.concrete_model.borrow_mut().set_sense(sense);
     }
 
     /// Get the sense of the model
@@ -149,7 +149,7 @@ impl PyModel {
     ///     The sense of the model (Min or Max).
     #[getter]
     fn get_sense(&self) -> Sense {
-        self.borrow().sense
+        self.concrete_model.borrow().sense
     }
 
     /// Get the objective expression of the model.
@@ -204,7 +204,8 @@ impl PyModel {
     ///     The sense of the model for this objective, by default Sense.Min.
     #[pyo3(name = "set_objective", signature=(expression, sense=None))]
     fn set_objective_direct(&mut self, expression: PyExpression, sense: Option<Sense>) -> () {
-        self.borrow_mut().set_sense(sense.unwrap_or(Sense::Min));
+        let sense = sense.unwrap_or(self.concrete_model.borrow().sense);
+        self.borrow_mut().set_sense(sense);
         self.borrow_mut().objective = expression.0.clone();
     }
 
