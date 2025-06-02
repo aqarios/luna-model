@@ -535,7 +535,58 @@ impl PySolution {
         Ok(PySolution(sol_rc))
     }
 
-    /// Get a human-readable string representation of a solution.
+    /// Show a solution object as a human-readable string.
+    ///
+    /// This method provides various ways to customize the way the solution is
+    /// represented as a string.
+    ///
+    /// Parameters
+    /// ----------
+    /// layout : Literal["row", "column"]
+    ///     With `"row"` layout, all assignments to one variable across different
+    ///     samples are shown in the same *row*, and each sample is shown in one
+    ///     column.
+    ///     With `"column"` layout, all assignments to one variable across different
+    ///     samples are shown in the same *column*, and each sample is shown in one row.
+    /// max_line_length : int
+    ///     The max number of chars shown in one line or, in other words, the max width
+    ///     of a row.
+    /// max_column_length : int
+    ///     The maximal number of chars in one column. For both the row and column
+    ///     layout, this controls the max number of chars a single variable assignment
+    ///     may be shown with. For the column layout, this also controls the max number
+    ///     of chars that a variable name is shown with.
+    ///     Note: the max column length cannot always be adhered to. This is
+    ///     specifically the case when a variable assignment is so high that the max
+    ///     column length is not sufficient to show the number correctly.
+    /// max_lines : int
+    ///     The max number of lines used for showing the samples. Note that this
+    ///      parameter does not influence how metadata are shown, s.t. the total number
+    ///      of lines may be higher than `max_lines`.
+    /// max_var_name_length : int
+    ///     The max number of chars that a variable is shown with in row layout. This
+    ///     parameter is ignored in column layout.
+    /// show_metadata : Literal["before", "after", "hide"]
+    ///     Whether and where to show sample-specific metadata such as feasibility and
+    ///     objective value. Note that this parameter only controls how sample-specific
+    ///     metadata are shown. Other metadata, like the solution timing will be shown
+    ///     after the samples regardless of the value of this parameter.
+    ///
+    ///     - `"before"`: show metadata before the actual sample, i.e., above the
+    ///         sample in row layout, and left of the sample in column layout.
+    ///     - `"after"`: show metadata after the actual sample, i.e., below the
+    ///         sample in row layout, and right of the sample in column layout.
+    ///     - "hide": do not show sample-specific metadata.
+    ///
+    /// Returns
+    /// -------
+    /// str
+    ///     The solution represented as a string.
+    ///
+    /// Raises
+    ///  ------
+    ///  ValueError
+    ///      If at least one of the params has an invalid value.
     #[pyo3(
         signature=(
             layout=PrintLayout::Col,
@@ -554,15 +605,33 @@ impl PySolution {
         max_lines: usize,
         max_var_name_length: usize,
         show_metadata: ShowMetadata,
-    ) -> String {
-        self.0.print(
-            max_line_length,
-            max_column_length,
-            max_lines,
-            max_var_name_length,
-            layout,
-            show_metadata,
-        )
+    ) -> PyResult<String> {
+        if max_line_length < 5 {
+            Err(PyValueError::new_err(format!(
+                "`max_line_length needs` to be at least 5; actual value: {max_line_length}"
+            )))
+        } else if max_column_length < 1 {
+            Err(PyValueError::new_err(format!(
+                "`max_column_length` needs to be at least 1; actual value: {max_line_length}"
+            )))
+        } else if max_lines < 1 {
+            Err(PyValueError::new_err(format!(
+                "`max_lines` needs to be at least 1; actual value: {max_line_length}"
+            )))
+        } else if max_var_name_length < 1 {
+            Err(PyValueError::new_err(format!(
+                "`max_var_name_length` needs to be at least 1; actual value: {max_line_length}"
+            )))
+        } else {
+            Ok(self.0.print(
+                max_line_length,
+                max_column_length,
+                max_lines,
+                max_var_name_length,
+                layout,
+                show_metadata,
+            ))
+        }
     }
 
     /// Get an iterator over the single results of the solution.
@@ -712,7 +781,8 @@ impl PySolution {
     }
 
     fn __str__(&self) -> String {
-        self.print(PrintLayout::Col, 80, 5, 10, 10, ShowMetadata::After)
+        let s = self.print(PrintLayout::Col, 80, 5, 10, 10, ShowMetadata::After);
+        s.unwrap()
     }
 
     fn __repr__(&self) -> String {

@@ -1539,6 +1539,11 @@ class Solution:
         -------
         str
             The solution represented as a string.
+
+        Raises
+        ------
+        ValueError
+            If at least one of the params has an invalid value.
         """
         ...
 
