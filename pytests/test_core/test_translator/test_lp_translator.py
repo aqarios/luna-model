@@ -367,10 +367,16 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
 
 def scip_models_are_equal(model1: ScipModel, model2: ScipModel) -> tuple[bool, str]:
     if model1.getObjectiveSense() != model2.getObjectiveSense():
-        return False, f"objective sense not equal: {model1.getObjectiveSense()} and {model2.getObjectiveSense()}"
+        return (
+            False,
+            f"objective sense not equal: {model1.getObjectiveSense()} and {model2.getObjectiveSense()}",
+        )
 
     if model1.getObjoffset() != model2.getObjoffset():
-        return False, f"offset not equal: {model1.getObjoffset()} and {model2.getObjoffset()}"
+        return (
+            False,
+            f"offset not equal: {model1.getObjoffset()} and {model2.getObjoffset()}",
+        )
 
     m1_variables = model1.getVars()
     m2_variables = model2.getVars()
@@ -405,7 +411,10 @@ def scip_models_are_equal(model1: ScipModel, model2: ScipModel) -> tuple[bool, s
     for m1_name, m1_item in m1_conss_lookup.items():
         m2_item = m2_conss_lookup.get(m1_name, None)
         if m2_item is None:
-            return False, f"constraint for name '{m1_name}' does not exist in second model"
+            return (
+                False,
+                f"constraint for name '{m1_name}' does not exist in second model",
+            )
         if isinstance(m1_item, tuple):
             m1_q, m1_s, m1_l = m1_item
             m2_q, m2_s, m2_l = m2_item
