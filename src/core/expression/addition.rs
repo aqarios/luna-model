@@ -60,8 +60,8 @@ where
             // if both expressions have the same number of variables.
             // If rhs has more variables than self, we need to resize the out to
             // allow the other variables to be added safely.
-            if out.num_variables() < rhs.num_variables() {
-                out.resize(rhs.num_variables().into());
+            if out.active.len() < rhs.active.len() {
+                out.resize(rhs.active.len().into());
             }
             // Now we can perform all additions safely.
             out.add_offset(rhs.offset);
