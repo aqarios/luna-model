@@ -15,12 +15,13 @@ from aqmodels._core import translator
 
 def extract(sampleset, timing, env):
     sampleset = sampleset.aggregate()
+    variables = sampleset.variables
     record = sampleset.record
     sample = record.sample.astype(np.int64, order='C')
     counts = record.num_occurrences.astype(np.int64, order='C')
     energy = record.energy.astype(np.float64, order='C')
     return translator.DwaveTranslator.translate(
-        sample, counts, energy, timing, env
+        sample, variables, counts, energy, timing, env
     )"
 );
 #[cfg(feature = "lq")]
@@ -31,12 +32,13 @@ from luna_quantum._core import translator
 
 def extract(sampleset, timing, env):
     sampleset = sampleset.aggregate()
+    variables = sampleset.variables
     record = sampleset.record
     sample = record.sample.astype(np.int64, order='C')
     counts = record.num_occurrences.astype(np.int64, order='C')
     energy = record.energy.astype(np.float64, order='C')
     return translator.DwaveTranslator.translate(
-        sample, counts, energy, timing, env
+        sample, variables, counts, energy, timing, env
     )"
 );
 
@@ -60,9 +62,10 @@ pub struct PyDwaveTranslator(pub DwaveTranslator);
 #[pymethods]
 impl PyDwaveTranslator {
     #[staticmethod]
-    #[pyo3(signature=(samples, counts, energy, timing=None, env=None))]
+    #[pyo3(signature=(samples, variables_order, counts, energy, timing=None, env=None))]
     fn translate(
         samples: PyReadonlyArray2<i64>,
+        variables_order: Vec<String>,
         counts: PyReadonlyArray1<i64>,
         energy: PyReadonlyArray1<f64>,
         timing: Option<PyTiming>,
@@ -78,6 +81,7 @@ impl PyDwaveTranslator {
         };
         Ok(PySolution(DwaveTranslator::from_dimod_sample_set(
             samples.as_slice()?,
+            variables_order.as_slice(),
             counts.as_slice()?,
             energy.as_slice()?,
             samples.shape(),
