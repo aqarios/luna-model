@@ -6,7 +6,7 @@ from random import Random
 import gurobipy as gp
 import pytest
 from dimod import lp as dimod_lp
-from pyscipopt import Model as ScipModel, Expr
+from pyscipopt import Model as ScipModel
 
 from aqmodels import Sense
 from aqmodels.errors import TranslationError
@@ -195,7 +195,8 @@ def test_scip_to_model_to_scip():
         # build cplex model back
         scip_model_back = ScipModel()
         scip_model_back.readProblem(tmp_lp.name)
-        assert scip_models_are_equal(scip_model, scip_model_back)
+        is_equal, msg = scip_models_are_equal(scip_model, scip_model_back)
+        assert is_equal, msg
 
 
 ###################################### SCIP ###########################################
@@ -364,11 +365,79 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
     return True
 
 
-def scip_models_are_equal(model1: ScipModel, model2: ScipModel, tol: float = 1e-9) -> bool:
-    a = model1.getVars()
-    expr = model1.getObjective()
-    print(expr[a[0]])
-    return False
+def scip_models_are_equal(model1: ScipModel, model2: ScipModel) -> tuple[bool, str]:
+    if model1.getObjectiveSense() != model2.getObjectiveSense():
+        return False, f"objective sense not equal: {model1.getObjectiveSense()} and {model2.getObjectiveSense()}"
+
+    if model1.getObjoffset() != model2.getObjoffset():
+        return False, f"offset not equal: {model1.getObjoffset()} and {model2.getObjoffset()}"
+
+    m1_variables = model1.getVars()
+    m2_variables = model2.getVars()
+
+    m1_var_lookup = {str(var): str(var.vtype()) for var in m1_variables}
+    m2_var_lookup = {str(var): str(var.vtype()) for var in m2_variables}
+    if m1_var_lookup != m2_var_lookup:
+        return False, f"vars not equal: {m1_var_lookup}, {m2_var_lookup}"
+
+    m1_expr = model1.getObjective()
+    m2_expr = model2.getObjective()
+
+    for m1_var, m2_var in zip(m1_variables, m2_variables):
+        m1_value_m1_var = m1_expr[m1_var]
+        m2_value_m2_var = m2_expr[m2_var]
+        if m1_value_m1_var != m2_value_m2_var:
+            return False, f"({m1_var}) => {m1_value_m1_var} vs {m2_value_m2_var}"
+
+    m1_conss_lookup = {
+        str(con): model1.getValsLinear(con)
+        if con.isLinear()
+        else model1.getTermsQuadratic(con)
+        for con in model1.getConss()
+    }
+    m2_conss_lookup = {
+        str(con): model2.getValsLinear(con)
+        if con.isLinear()
+        else model2.getTermsQuadratic(con)
+        for con in model2.getConss()
+    }
+
+    for m1_name, m1_item in m1_conss_lookup.items():
+        m2_item = m2_conss_lookup.get(m1_name, None)
+        if m2_item is None:
+            return False, f"constraint for name '{m1_name}' does not exist in second model"
+        if isinstance(m1_item, tuple):
+            m1_q, m1_s, m1_l = m1_item
+            m2_q, m2_s, m2_l = m2_item
+
+            m1_dict = {}
+            for u, v, b in m1_q:
+                m1_dict[(str(u), str(v))] = b
+                m1_dict[(str(v), str(u))] = b
+            for u, b in m1_l:
+                m1_dict[str(u)] = b
+
+            m2_dict = {}
+            for u, v, b in m2_q:
+                m2_dict[(str(u), str(v))] = b
+                m2_dict[(str(v), str(u))] = b
+            for u, b in m2_l:
+                m2_dict[str(u)] = b
+
+            if m1_dict != m2_dict:
+                return False, f"{m1_dict} != {m2_dict}"
+
+            if m1_s != list():
+                return False, f"{m1_s} != []"
+            if m2_s != list():
+                return False, f"{m2_s} != []"
+
+        else:
+            if m1_item != m2_item:
+                return False, ""
+
+    return True, ""
+
 
 @pytest.mark.translator
 def test_invalid_var_name():
