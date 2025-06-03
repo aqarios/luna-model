@@ -14,8 +14,9 @@ pub struct QctrlTranslator {}
 
 impl QctrlTranslator {
     pub fn from_qctrl<S, E, Index>(
-        sample: &[S],
-        energy: E,
+        samples: Vec<Vec<S>>,
+        counts: Vec<usize>,
+        energies: Vec<Option<E>>,
         timing: Option<Timing>,
         env: MutRcEnvironment<Index>,
     ) -> Result<ConcreteSolution, SolutionCreationErr>
@@ -27,20 +28,22 @@ impl QctrlTranslator {
         let mut sol = Solution::default();
         for v in env.borrow().variables.iter() {
             match v.vtype {
-                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
-                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(1))),
-                Vtype::Integer => sol.add_column(SampleCol::Integer(Vec::with_capacity(1))),
-                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(1))),
+                Vtype::Binary => {
+                    sol.add_column(SampleCol::Binary(Vec::with_capacity(samples.len())))
+                }
+                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(samples.len()))),
+                Vtype::Integer => {
+                    sol.add_column(SampleCol::Integer(Vec::with_capacity(samples.len())))
+                }
+                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(samples.len()))),
             }
         }
         sol.timing = timing;
         sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
-        // Map the sample to the correct order.
-        let mut s: Vec<S> = vec![S::default(); sample.len()];
-        for (idx, val) in (0..env.borrow().varcount.into()).zip(sample) {
-            s[idx] = *val;
+
+        for ((sample, count), energy) in samples.iter().zip(counts).zip(energies) {
+            sol.extend(&sample, count, energy)?;
         }
-        sol.extend(&s, 1, Some(energy))?;
         Ok(RcSolution(Rc::new(sol)))
     }
 }
