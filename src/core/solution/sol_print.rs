@@ -287,7 +287,7 @@ where
 
         let mut metadata = Vec::new();
         if matches!(show_metadata, ShowMetadata::Before | ShowMetadata::After) {
-            let mut meta_names = vec![
+            let meta_names = vec![
                 String::from("feasible"),
                 String::from("raw energy"),
                 String::from("objective value"),

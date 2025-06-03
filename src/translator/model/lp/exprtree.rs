@@ -295,20 +295,25 @@ pub struct ExprTreeTuple<Bias>
 where
     Bias: BiasConstraints,
 {
-    lin: ExprTree<Bias>,
+    lin: Option<ExprTree<Bias>>,
     quad: Option<ExprTree<Bias>>,
+    cons: Option<ExprTree<Bias>>,
 }
 
 impl<Bias> ExprTreeTuple<Bias>
 where
     Bias: BiasConstraints,
 {
-    fn new(lin: ExprTree<Bias>, quad: Option<ExprTree<Bias>>) -> Self {
-        Self { lin, quad }
+    fn new(
+        lin: Option<ExprTree<Bias>>,
+        quad: Option<ExprTree<Bias>>,
+        cons: Option<ExprTree<Bias>>,
+    ) -> Self {
+        Self { lin, quad, cons }
     }
 
     pub fn optimize(&mut self) -> &mut Self {
-        self.lin = self.lin.optimize();
+        self.lin = self.lin.as_mut().and_then(|e| Some(e.optimize()));
         self.quad = self.quad.as_mut().and_then(|e| Some(e.optimize()));
         self
     }
@@ -326,20 +331,33 @@ where
 
     pub fn from_expression<Index>(
         expr: &Expression<Index, Bias>,
+        is_constraint: bool,
     ) -> Result<ExprTreeTuple<Bias>, TranslationErr>
     where
         Index: IndexConstraints,
     {
+        // Constant
+        let constant = if expr.offset != Bias::default() {
+            Some(ExprTree::Number(expr.offset))
+        } else {
+            None
+        };
+
         // Linear terms
-        let mut lintree = ExprTree::Number(expr.offset);
-        for (u, bias) in expr.linear.iter() {
-            let vname = expr.env.borrow()[u.into()].name.clone();
-            let mul = ExprTree::Mul(
-                Box::new(ExprTree::Number(*bias)),
-                Box::new(ExprTree::Variable(vname)),
-            );
-            lintree = ExprTree::Add(Box::new(lintree), Box::new(mul));
-        }
+        let lintree = if expr.linear.is_zero() {
+            None
+        } else {
+            let mut lintree = ExprTree::Number(Bias::default());
+            for (u, bias) in expr.linear.iter() {
+                let vname = expr.env.borrow()[u.into()].name.clone();
+                let mul = ExprTree::Mul(
+                    Box::new(ExprTree::Number(*bias)),
+                    Box::new(ExprTree::Variable(vname)),
+                );
+                lintree = ExprTree::Add(Box::new(lintree), Box::new(mul));
+            }
+            Some(lintree)
+        };
         // Quadratic terms
         let quadtree = if let Some(q) = &expr.quadratic {
             let mut quadtree = ExprTree::Number(Bias::default());
@@ -351,7 +369,12 @@ where
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Number(Bias::one() * 2.0)),
                     );
-                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(bias * 2.0)), Box::new(pow));
+                    let num = if is_constraint {
+                        bias
+                    } else {
+                        bias * 2.0
+                    };
+                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(num)), Box::new(pow));
                     quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
                 } else {
                     // Mul
@@ -361,7 +384,12 @@ where
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Variable(v_name)),
                     );
-                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(bias * 2.0)), Box::new(vmul));
+                    let num = if is_constraint {
+                        bias
+                    } else {
+                        bias * 2.0
+                    };
+                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(num)), Box::new(vmul));
                     quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
                 }
             }
@@ -375,7 +403,7 @@ where
                 "cannot create an LP file from a model with higher order terms".to_string(),
             ));
         }
-        Ok(ExprTreeTuple::new(lintree, quadtree))
+        Ok(ExprTreeTuple::new(lintree, quadtree, constant))
     }
 
     pub fn optimize(&self) -> Self
@@ -587,11 +615,16 @@ where
                 result.push_str(" / 2");
             }
         }
-        let linstr = self.lin.to_string();
-        if quadstr.is_none() {
-            result.push_str(&format!("{linstr}"));
-        } else {
-            result.push_str(&format!(" + {linstr}"));
+        if let Some(lin) = &self.lin {
+            let linstr = lin.to_string();
+            if quadstr.is_none() {
+                result.push_str(&format!("{linstr}"));
+            } else {
+                result.push_str(&format!(" + {linstr}"));
+            }
+        }
+        if let Some(constant) = &self.cons {
+            result.push_str(&format!(" + {}", constant.to_string()));
         }
         result.replace("+ -", "-").replace("+-", "-")
     }

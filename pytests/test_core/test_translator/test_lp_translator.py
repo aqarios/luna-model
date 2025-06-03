@@ -6,6 +6,7 @@ from random import Random
 import gurobipy as gp
 import pytest
 from dimod import lp as dimod_lp
+from pyscipopt import Model as ScipModel, Expr
 
 from aqmodels import Sense
 from aqmodels.errors import TranslationError
@@ -46,6 +47,9 @@ def test_lp_file_str_path():
         assert aqmodel_from_path == aqmodel_from_path_as_str
 
 
+##################################### Dimod ###########################################
+
+
 @pytest.mark.translator
 def test_cqm_to_model_to_cqm():
     rand = Random(make_seed())
@@ -68,6 +72,11 @@ def test_cqm_to_model_to_cqm():
             check_dimod_expr(constr.lhs, constr_back.lhs)
             assert constr.rhs == constr_back.rhs
             assert type(constr) is type(constr_back)
+
+
+##################################### Dimod ###########################################
+
+##################################### Gurobi ##########################################
 
 
 @pytest.mark.translator
@@ -148,6 +157,52 @@ def test_gurobi_and_aq_lp_read_equality():
                 assert gp_coef == aq_coef
 
 
+##################################### Gurobi ##########################################
+
+###################################### SCIP ###########################################
+
+
+@pytest.mark.translator
+def test_scip_to_model_to_scip():
+    rand = Random(make_seed())
+    cqms = generate_cqms(NUM_CQMS, rand)
+    for cqm in cqms:
+        # We use CQM's assuming the LP file is correctly formatted for Gurobi.
+        # SETUP
+        tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
+        dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
+        tmp_lp.flush()
+        tmp_lp.seek(0)
+        scip_model = ScipModel()
+        scip_model.readProblem(tmp_lp.name)
+        # ACTUAL
+        # build cplex base model (ground truth)
+        tmp_lp.seek(0)
+        tmp_lp.truncate()
+        scip_model.writeProblem(tmp_lp.name)
+        tmp_lp.flush()
+        tmp_lp.seek(0)
+        # build aqmodel
+        tmp_lp.seek(0)
+        aqmodel = LpTranslator.to_aq(tmp_lp.file.read())
+        lp_str = LpTranslator.from_aq(aqmodel)
+        # write to lp file
+        tmp_lp.seek(0)
+        tmp_lp.truncate()
+        tmp_lp.write(lp_str)
+        tmp_lp.flush()
+        tmp_lp.seek(0)
+        # build cplex model back
+        scip_model_back = ScipModel()
+        scip_model_back.readProblem(tmp_lp.name)
+        assert scip_models_are_equal(scip_model, scip_model_back)
+
+
+###################################### SCIP ###########################################
+
+###################################### CPLEX ##########################################
+
+
 @pytest.mark.skipif(NOT_RUN_CPLEX, reason="CPLEX is required for test")
 @pytest.mark.translator
 def test_cplex_to_model_to_cplex():
@@ -188,6 +243,9 @@ def test_cplex_to_model_to_cplex():
         cpx_back_mps_str = tmp_mps.read()
         # compare the two MPS strings
         assert cpx_mps_str == cpx_back_mps_str
+
+
+###################################### CPLEX ##########################################
 
 
 def check_dimod_expr(cqm, cqm_back):
@@ -305,6 +363,12 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
 
     return True
 
+
+def scip_models_are_equal(model1: ScipModel, model2: ScipModel, tol: float = 1e-9) -> bool:
+    a = model1.getVars()
+    expr = model1.getObjective()
+    print(expr[a[0]])
+    return False
 
 @pytest.mark.translator
 def test_invalid_var_name():

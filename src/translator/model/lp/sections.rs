@@ -7,7 +7,7 @@ use super::{
     util::starts_with_any,
 };
 use crate::core::environment::get_vref_by_name;
-use crate::core::{Bound, Sense, Vtype, DEFAULT_MODEL_NAME};
+use crate::core::{Bound, LazyBounds, Sense, Vtype, DEFAULT_MODEL_NAME};
 use crate::{
     core::{
         environment::add_variable,
@@ -230,13 +230,13 @@ where
         // objective
         sections.push(
             &Section::Objective(model.sense),
-            ExprTree::from_expression(&model.objective.borrow())?
+            ExprTree::from_expression(&model.objective.borrow(), false)?
                 .optimize()
                 .to_string(true),
         );
         // constraints
         for (i, constraint) in model.constraints.borrow().iter().enumerate() {
-            let lhs_str = ExprTree::from_expression(&constraint.lhs.borrow())?
+            let lhs_str = ExprTree::from_expression(&constraint.lhs.borrow(), true)?
                 .optimize()
                 .to_string(false);
             let comparator = match constraint.comparator {
@@ -391,17 +391,17 @@ where
         model: &mut Model<Index, Bias>,
     ) -> Result<HashMap<String, VarRef<Index>>, TranslationErr> {
         let mut varlookup = HashMap::new();
-        let boundsmap = self.extract_bounds();
+        let mut boundsmap = self.extract_bounds();
         for (vtype, vars) in self.iter_variables() {
             for var in vars {
                 let bounds: Option<Bounds> = match boundsmap {
-                    Some(ref bm) => match bm.get(var) {
+                    Some(ref mut bm) => match bm.remove(var) {
                         Some((l, u)) => match vtype {
                             // We ignore the set bounds for the case of binary variables
                             // as we do not allow setting the bounds in case of Binary
                             // or string
                             VariableType::Binary => None,
-                            _ => Some(Bounds::new(*l, *u)),
+                            _ => Some(Bounds::new(l, u)),
                         },
                         None => None,
                     },
@@ -415,6 +415,20 @@ where
                 )
                 .map_err(|e| TranslationErr::new(e.to_string()))?;
                 varlookup.insert(var.to_string(), vref);
+            }
+        }
+        if let Some(ref mut bm) = boundsmap {
+            if !bm.is_empty() {
+                for (var, (lower, upper)) in bm.iter() {
+                    let vref = add_variable(
+                        Rc::clone(&model.environment),
+                        var,
+                        Some(&Vtype::Real),
+                        Some(LazyBounds::new(Some(*lower), Some(*upper))),
+                    )
+                    .map_err(|e| TranslationErr::new(e.to_string()))?;
+                    varlookup.insert(var.to_string(), vref);
+                }
             }
         }
         Ok(varlookup)
@@ -508,30 +522,29 @@ where
         expr_str: &str,
         vars: &HashMap<String, VarRef<Index>>,
     ) -> Result<(), TranslationErr> {
-        let expression = ExprTree::build(&expr_str)
-            .optimize()
-            .evaluate(&EvalContext::new(
-                |n| {
-                    let mut var: Option<VarRef<_>> = vars.get(n).cloned(); // .unwrap().clone()
-                    if var.is_none() {
-                        // Is it in the environment?
-                        let res = get_vref_by_name(&n.to_string(), Rc::clone(&expr.env));
-                        var = if let Ok(v) = res {
-                            Some(v)
-                        } else {
-                            add_variable(
-                                Rc::clone(&expr.env),
-                                &n.to_string(),
-                                Some(&Vtype::Real),
-                                None,
-                            )
-                            .ok()
-                        };
-                    }
-                    var.unwrap()
-                },
-                Rc::clone(&expr.env),
-            ))?;
+        let mut expression = ExprTree::build(&expr_str);
+        expression = expression.optimize();
+        let expression = expression.evaluate(&EvalContext::new(
+            |n| {
+                let mut var: Option<VarRef<_>> = vars.get(n).cloned(); // .unwrap().clone()
+                if var.is_none() {
+                    let res = get_vref_by_name(&n.to_string(), Rc::clone(&expr.env));
+                    var = if let Ok(v) = res {
+                        Some(v)
+                    } else {
+                        add_variable(
+                            Rc::clone(&expr.env),
+                            &n.to_string(),
+                            Some(&Vtype::Real),
+                            None,
+                        )
+                        .ok()
+                    };
+                }
+                var.unwrap()
+            },
+            Rc::clone(&expr.env),
+        ))?;
         expr.add_assign(&expression)?;
         Ok(())
     }
