@@ -79,3 +79,4 @@ pytests/test_core/test_translator/model.lp
 pytests/test_core/test_solution/test_translator/model.lp
 
 tmp.py
+out.txt

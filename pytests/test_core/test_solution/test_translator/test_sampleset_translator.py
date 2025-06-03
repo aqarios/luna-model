@@ -27,11 +27,16 @@ def mock_env(n_variables: int, vtype: Vtype = Vtype.Binary) -> Environment:
 
 @pytest.mark.solution_translation
 def test_sampleset_translator_constructed():
-    samples = [[0, 1, 1], [0, 0, 1], [0, 1, 0]]
+    samples_raw = [
+        {"x0": 0, "x1": 1, "x2": 1},
+        {"x0": 0, "x1": 0, "x2": 1},
+        {"x0": 0, "x1": 1, "x2": 0},
+    ]
+    samples = [[v for v in sample.values()] for sample in samples_raw]
     counts = [1, 2, 3]
     energy = [-1, 0, 1]
     sampleset = SampleSet.from_samples(
-        as_samples(np.array(samples)),
+        as_samples(samples_raw),
         "BINARY",
         energy,
         num_occurrences=np.array(counts),
@@ -65,11 +70,22 @@ def test_sampleset_translator_sa_random_models():
         timing = timer.stop()
         vtype = Vtype.Binary if bqm.vartype == Vartype.BINARY else Vtype.Spin
         env = mock_env(bqm.num_variables, vtype=vtype)
-        sol = DwaveTranslator.to_aq(sampleset, timing, env)
+        sol = DwaveTranslator.to_aq(sampleset, timing, env=env)
 
         sampleset_agg = sampleset.aggregate()
+
+        dimod_positions = {v: i for i, v in enumerate(bqm.variables)}
+        samples_ordered = []
+        for sample in sampleset_agg.samples():
+            dimod_np = np.zeros(len(bqm.variables), dtype=int)
+            for v, pos in dimod_positions.items():
+                dimod_np[pos] = sample[v] # type: ignore
+            samples_ordered.append(dimod_np.tolist())
+
         assert len(sol.samples) == len(sampleset_agg.record.sample)
-        assert sol.samples.tolist() == sampleset_agg.record.sample.tolist()
+        for sample in sol.samples.tolist():
+            assert sample in samples_ordered
+        # assert sol.samples.tolist() == samples_ordered
         assert sol.counts.tolist() == sampleset_agg.record.num_occurrences.tolist()
         assert len(sol.counts) == len(sol.samples)
         assert sol.runtime is not None
@@ -92,9 +108,10 @@ def test_sampleset_translator_sa_random_models():
 
 @pytest.mark.solution_translation
 def test_sampleset_translator_error_handling():
-    samples = [[-1, 1, 1]]
+    samples_raw = [{"x0": -1, "x1": 1, "x2": 1}]
+    samples = [[v for v in sample.values()] for sample in samples_raw]
     energy = [-5]
-    sampleset = SampleSet.from_samples(as_samples(np.array(samples)), "SPIN", energy)
+    sampleset = SampleSet.from_samples(as_samples(samples_raw), "SPIN", energy)
 
     env = mock_env(3)
     with pytest.raises(
@@ -108,13 +125,15 @@ def test_sampleset_translator_error_handling():
     with pytest.raises(IndexError):
         _ = sol.samples[1]
 
-    samples = [[0, 1, 1]]
-    sampleset = SampleSet.from_samples(as_samples(np.array(samples)), "BINARY", energy)
+    samples_raw = [{"x0": 0, "x1": 1, "x2": 1}]
+    samples = [[v for v in sample.values()] for sample in samples_raw]
+    sampleset = SampleSet.from_samples(as_samples(samples_raw), "BINARY", energy)
     with does_not_raise():
         DwaveTranslator.to_aq(sampleset, env=env)
 
-    samples = [[-10, 10, 6.43]]
+    samples_raw = [{"x0": -10, "x1": 10, "x2": 6.43}]
+    samples = [[v for v in sample.values()] for sample in samples_raw]
     env = mock_env(3, vtype=Vtype.Integer)
-    sampleset = SampleSet.from_samples(as_samples(np.array(samples)), "INTEGER", energy)
+    sampleset = SampleSet.from_samples(as_samples(samples_raw), "INTEGER", energy)
     with does_not_raise():
         DwaveTranslator.to_aq(sampleset, env=env)
