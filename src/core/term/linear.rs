@@ -64,6 +64,14 @@ where
     pub fn resize(&mut self, new_len: usize) {
         self.biases.resize_with(new_len, Bias::default);
     }
+
+    pub fn is_zero(&self) -> bool {
+        let mut all_zero = true;
+        for &b in self.biases.iter() {
+            all_zero &= b == Bias::default();
+        }
+        all_zero
+    }
 }
 
 impl<Bias> MulAssign<Bias> for Linear<Bias>

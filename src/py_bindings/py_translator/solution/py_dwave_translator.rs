@@ -111,17 +111,17 @@ impl PyDwaveTranslator {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature = (sampleset, timing=None, env=None))]
+    #[pyo3(signature = (sample_set, timing=None, env=None))]
     fn to_aq(
         py: Python,
-        sampleset: PyObject,
+        sample_set: PyObject,
         timing: Option<PyObject>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();
-        let args = (sampleset, timing, env);
+        let args = (sample_set, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)
     }

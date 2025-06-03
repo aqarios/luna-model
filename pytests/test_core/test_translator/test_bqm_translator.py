@@ -2,14 +2,19 @@ from random import Random
 
 import numpy as np
 import pytest
+from dimod import BinaryQuadraticModel
 
 from aqmodels import (
     Model,
     Variable,
     Sense,
 )
+from aqmodels.errors import (
+    ModelSenseNotMinimizeError,
+    TranslationError,
+    VariableNamesError,
+)
 from aqmodels.translator import BqmTranslator
-from aqmodels.errors import ModelSenseNotMinimizeError, TranslationError
 from pytests.test_core.utils import make_seed, generate_bqms
 
 
@@ -77,3 +82,15 @@ def test_bqm_translator_wrong_sense(model: Model):
 
     with pytest.raises(TranslationError):
         _ = BqmTranslator.from_aq(model)
+
+
+@pytest.mark.translator
+def test_invalid_var_name():
+    bqm = BinaryQuadraticModel(
+        {"0": 4.0, "1": -2.0, "2": 6.0, "3": 2.0, "4": 5.0},
+        {("2", "3"): 6.0, ("0", "4"): 4.0},
+        offset=0,
+        vartype="BINARY",
+    )
+    with pytest.raises(VariableNamesError, match="variable creation failed:"):
+        _ = BqmTranslator.to_aq(bqm)
