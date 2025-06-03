@@ -13,6 +13,7 @@ mod py_timing;
 mod py_translator;
 mod py_var;
 
+#[cfg(not(feature = "lq"))]
 use pyo3::prelude::*;
 
 /// AqModels
