@@ -1,14 +1,10 @@
 from random import Random
+from time import sleep
 from typing import Any
 
 import pytest
-from time import sleep
 
-from aqmodels import (
-    Timer,
-    Variable,
-    Environment,
-)
+from aqmodels import Environment, Timer, Variable
 from aqmodels.translator import QctrlTranslator
 from pytests.test_core.utils import make_seed, random, random_bool, random_int
 

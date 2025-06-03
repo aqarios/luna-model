@@ -1,6 +1,5 @@
 import pytest
 
-
 AQM_MODULE_NAME: str = "aqmodels"
 TRANSLATOR_MODULE_NAME: str = "aqmodels.translator"
 ERRORS_MODULE_NAME: str = "aqmodels.errors"

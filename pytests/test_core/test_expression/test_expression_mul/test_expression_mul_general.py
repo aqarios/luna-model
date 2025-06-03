@@ -1,6 +1,7 @@
 import pytest
-from aqmodels import Vtype, Expression
-from .common import *  # noqa: F403
+
+from aqmodels import Expression, Vtype
+
 from ...utils import (
     assert_higher_order,
     assert_higher_order_all,
@@ -8,6 +9,7 @@ from ...utils import (
     assert_offset,
     assert_quadratic,
 )
+from .common import *  # noqa: F403
 
 
 @pytest.mark.expression

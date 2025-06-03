@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import Solution, Variable, Vtype, Model, Bounds, Unbounded, Sense
+from aqmodels import Bounds, Model, Sense, Solution, Unbounded, Variable, Vtype
 from aqmodels.errors import EvaluationError
 
 

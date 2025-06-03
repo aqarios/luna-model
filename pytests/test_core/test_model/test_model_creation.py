@@ -1,10 +1,6 @@
 import pytest
 
-from aqmodels import (
-    Environment,
-    Model,
-)
-
+from aqmodels import Environment, Model
 from aqmodels.errors import MultipleActiveEnvironmentsError
 
 

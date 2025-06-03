@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from aqmodels import Model, Variable, Environment, Vtype, Solution, Timer
+from aqmodels import Environment, Model, Solution, Timer, Variable, Vtype
 
 
 def vars() -> tuple[tuple[Variable, ...], Environment]:
