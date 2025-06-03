@@ -18,15 +18,21 @@ def extract(bqm, name):
     if not isinstance(bqm, BinaryQuadraticModel):
         raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
     vars = np.array(bqm.variables.to_serializable())
-    linears = np.array([bqm.get_linear(v) for v in vars])
-    linear_indices, linears = tuple(zip(*[(i, v) for i, v in enumerate(linears) if v != 0]))
-    intermediate = [
-        (ui, vi, bqm.get_quadratic(vars[ui], vars[vi], default=0))
-        for ui in range(len(vars))
-        for vi in range(ui + 1, len(vars))
-        if bqm.get_quadratic(vars[ui], vars[vi], default=0) != 0
-    ]
-    quads_rows, quads_cols, quads = tuple(zip(*intermediate)) if len(intermediate) > 0 else (np.array([]), np.array([]), np.array([]))
+    vars_pos = {var: i for i, var in enumerate(vars)}
+
+    linears = []
+    linear_indices = []
+    for var, val in bqm.linear.items():
+        linears.append(val)
+        linear_indices.append(vars_pos[var])
+    quads = []
+    quad_row = []
+    quad_col = []
+    for (var1, var2), val in bqm.quadratic.items():
+        quads.append(val)
+        quad_row.append(vars_pos[var1])
+        quad_col.append(vars_pos[var2])
+
     vartype = bqm.vartype.name
     offset = float(bqm.offset)
     return translator.BqmTranslator.translate(
@@ -35,8 +41,8 @@ def extract(bqm, name):
         np.array(linears, dtype=np.float64), 
         np.array(linear_indices, dtype=np.uint64), 
         np.array(quads, dtype=np.float64), 
-        np.array(quads_rows, dtype=np.uint64), 
-        np.array(quads_cols, dtype=np.uint64), 
+        np.array(quad_row, dtype=np.uint64), 
+        np.array(quad_col, dtype=np.uint64), 
         vartype, 
         name
     )"
@@ -52,15 +58,21 @@ def extract(bqm, name):
     if not isinstance(bqm, BinaryQuadraticModel):
         raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
     vars = np.array(bqm.variables.to_serializable())
-    linears = np.array([bqm.get_linear(v) for v in vars])
-    linear_indices, linears = tuple(zip(*[(i, v) for i, v in enumerate(linears) if v != 0]))
-    intermediate = [
-        (ui, vi, bqm.get_quadratic(vars[ui], vars[vi], default=0))
-        for ui in range(len(vars))
-        for vi in range(ui + 1, len(vars))
-        if bqm.get_quadratic(vars[ui], vars[vi], default=0) != 0
-    ]
-    quads_rows, quads_cols, quads = tuple(zip(*intermediate)) if len(intermediate) > 0 else (np.array([]), np.array([]), np.array([]))
+    vars_pos = {var: i for i, var in enumerate(vars)}
+
+    linears = []
+    linear_indices = []
+    for var, val in bqm.linear.items():
+        linears.append(val)
+        linear_indices.append(vars_pos[var])
+    quads = []
+    quad_row = []
+    quad_col = []
+    for (var1, var2), val in bqm.quadratic.items():
+        quads.append(val)
+        quad_row.append(vars_pos[var1])
+        quad_col.append(vars_pos[var2])
+
     vartype = bqm.vartype.name
     offset = float(bqm.offset)
     return translator.BqmTranslator.translate(
@@ -69,8 +81,8 @@ def extract(bqm, name):
         np.array(linears, dtype=np.float64), 
         np.array(linear_indices, dtype=np.uint64), 
         np.array(quads, dtype=np.float64), 
-        np.array(quads_rows, dtype=np.uint64), 
-        np.array(quads_cols, dtype=np.uint64), 
+        np.array(quad_row, dtype=np.uint64), 
+        np.array(quad_col, dtype=np.uint64), 
         vartype, 
         name
     )"
