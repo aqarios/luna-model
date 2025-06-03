@@ -1,6 +1,7 @@
-from random import Random
-from typing import Any
+from random import Random, shuffle
+from typing import Any, Callable
 
+from numpy import unique
 import pytest
 from time import sleep
 
@@ -17,22 +18,51 @@ MAX_VARS: int = 200
 
 
 def fake_qctrl_result(
-    rand: Random, len: int, cost: float, num_samples: int
-) -> dict[str, Any]:
+    rand: Random, length: int, cost: float, num_samples: int
+) -> tuple[dict[str, Any], Callable[[list], str]]:
     def random_bitstring():
-        return "".join([str(int(random_bool(rand))) for _ in range(len)])
+        return "".join([str(int(random_bool(rand))) for _ in range(length)])
 
-    best = random_bitstring()
+    assignment = [length - 1 - i for i in range(length)]
+    shuffle(assignment)
+    map = {f"n[{i}]": a for i, a in enumerate(assignment)}
+    # key position in sample actual, a position in solution false
+    forward_assignment = {i: a for i, a in enumerate(assignment)}
+    reverse_assignment = {a: i for i, a in enumerate(assignment)}
+
+    def adjust_ordering(actual: list | str) -> str:
+        # need to move each value to the A value of the mapping.
+        # the actual is the correct bitstring in the expected order.
+        out = "".join([
+            str(actual[forward_assignment[i]])
+            for i in range(len(actual))
+        ])
+        return out
+
+    def reverse_adjust(other: list) -> str:
+        out = "".join([
+            str(other[reverse_assignment[i]])
+            for i in range(len(other))
+        ])
+        return out
+
+
+    best = adjust_ordering(random_bitstring())
     best_dist = {best: random_int(rand)}
-    more_dist = {random_bitstring(): random_int(rand) for _ in range(num_samples - 1)}
+
+    base_samples = [adjust_ordering(random_bitstring()) for _ in range(num_samples - 1)]
+    all_samples = [best, *base_samples]
+    if unique(all_samples).shape[0] != num_samples:
+        return fake_qctrl_result(rand, length, cost, num_samples)
+
+    more_dist = {sample: random_int(rand) for sample in base_samples}
+
     return {
         "solution_bitstring": best,
         "solution_bitstring_cost": cost,
         "final_bitstring_distribution": {**best_dist, **more_dist},
-        "variables_to_bitstring_index_map": {
-            f"n[{i}]": len - 1 - i for i in range(len)
-        },
-    }
+        "variables_to_bitstring_index_map": map,
+    }, reverse_adjust
 
 
 def actual_qctrl_result():
@@ -72,9 +102,8 @@ def test_qctrl_translator_constructed():
     for _ in range(REPS):
         rand = Random(make_seed())
         sample_len = rand.randint(2, MAX_VARS)
-        num_samples = rand.randint(1, sample_len // 2)
-        print("NUM SAMPLES = ", num_samples)
-        fake_result = fake_qctrl_result(
+        num_samples = rand.randint(1, max(sample_len // 2, 1))
+        fake_result, reverser = fake_qctrl_result(
             rand, sample_len, random(random_int(rand)), num_samples
         )
 
@@ -85,16 +114,20 @@ def test_qctrl_translator_constructed():
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
-        assert len(samples[0]) == sample_len, "sample len (num variables) does not match"
+        assert len(samples[0]) == sample_len, (
+            "sample len (num variables) does not match"
+        )
         min_energy_index = None
         min_energy = None
         for i, item in enumerate(sol.raw_energies):
             if item is None:
                 continue
-            min_energy_index = i if (min_energy is None) or (min_energy > item) else min_energy_index
+            min_energy_index = (
+                i if (min_energy is None) or (min_energy > item) else min_energy_index
+            )
         assert min_energy_index is not None
         assert (
-            "".join([str(e) for e in reversed(samples[min_energy_index])])
+            reverser(samples[min_energy_index])
             == fake_result["solution_bitstring"]
         )
         assert len(sol.counts.tolist()) == num_samples
@@ -114,8 +147,8 @@ def test_qctrl_translator_constructed_explicit_env():
     for _ in range(REPS):
         rand = Random(make_seed())
         sample_len = rand.randint(2, MAX_VARS)
-        num_samples = rand.randint(1, sample_len // 2)
-        fake_result = fake_qctrl_result(
+        num_samples = rand.randint(1, max(sample_len // 2, 1))
+        fake_result, reverser  = fake_qctrl_result(
             rand, sample_len, random(random_int(rand)), num_samples
         )
 
@@ -127,16 +160,20 @@ def test_qctrl_translator_constructed_explicit_env():
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
-        assert len(samples[0]) == sample_len, "sample len (num variables) does not match"
+        assert len(samples[0]) == sample_len, (
+            "sample len (num variables) does not match"
+        )
         min_energy_index = None
         min_energy = None
         for i, item in enumerate(sol.raw_energies):
             if item is None:
                 continue
-            min_energy_index = i if (min_energy is None) or (min_energy > item) else min_energy_index
+            min_energy_index = (
+                i if (min_energy is None) or (min_energy > item) else min_energy_index
+            )
         assert min_energy_index is not None
         assert (
-            "".join([str(e) for e in reversed(samples[min_energy_index])])
+            reverser(samples[min_energy_index])
             == fake_result["solution_bitstring"]
         )
         assert len(sol.counts.tolist()) == num_samples
@@ -147,7 +184,7 @@ def test_qctrl_translator_constructed_explicit_env():
             assert result.constraints is None
             assert result.feasible is None
             assert result.obj_value is None
-            bs = "".join([str(e) for e in reversed([e for e in result.sample])])
+            bs = reverser([e for e in result.sample])
             assert result.counts == fake_result["final_bitstring_distribution"][bs]
             if bs == fake_result["solution_bitstring"]:
                 assert result.raw_energy == fake_result["solution_bitstring_cost"]
@@ -161,8 +198,8 @@ def test_qctrl_translator_constructed_with_time():
     for _ in range(REPS):
         rand = Random(make_seed())
         sample_len = rand.randint(2, MAX_VARS)
-        num_samples = rand.randint(1, sample_len // 2)
-        fake_result = fake_qctrl_result(
+        num_samples = rand.randint(1, max(sample_len // 2, 1))
+        fake_result, reverser = fake_qctrl_result(
             rand, sample_len, random(random_int(rand)), num_samples
         )
         timer = Timer.start()
@@ -176,16 +213,20 @@ def test_qctrl_translator_constructed_with_time():
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
-        assert len(samples[0]) == sample_len, "sample len (num variables) does not match"
+        assert len(samples[0]) == sample_len, (
+            "sample len (num variables) does not match"
+        )
         min_energy_index = None
         min_energy = None
         for i, item in enumerate(sol.raw_energies):
             if item is None:
                 continue
-            min_energy_index = i if (min_energy is None) or (min_energy > item) else min_energy_index
+            min_energy_index = (
+                i if (min_energy is None) or (min_energy > item) else min_energy_index
+            )
         assert min_energy_index is not None
         assert (
-            "".join([str(e) for e in reversed(samples[min_energy_index])])
+            reverser(samples[min_energy_index])
             == fake_result["solution_bitstring"]
         )
         assert len(sol.counts.tolist()) == num_samples
@@ -208,8 +249,8 @@ def test_qctrl_translator_constructed_vars():
     for _ in range(REPS):
         rand = Random(make_seed())
         sample_len = rand.randint(2, MAX_VARS)
-        num_samples = rand.randint(1, sample_len // 2)
-        fake_result = fake_qctrl_result(
+        num_samples = rand.randint(1, max(sample_len // 2, 1))
+        fake_result, reverser = fake_qctrl_result(
             rand, sample_len, random(random_int(rand)), num_samples
         )
 
@@ -220,16 +261,20 @@ def test_qctrl_translator_constructed_vars():
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
-        assert len(samples[0]) == sample_len, "sample len (num variables) does not match"
+        assert len(samples[0]) == sample_len, (
+            "sample len (num variables) does not match"
+        )
         min_energy_index = None
         min_energy = None
         for i, item in enumerate(sol.raw_energies):
             if item is None:
                 continue
-            min_energy_index = i if (min_energy is None) or (min_energy > item) else min_energy_index
+            min_energy_index = (
+                i if (min_energy is None) or (min_energy > item) else min_energy_index
+            )
         assert min_energy_index is not None
         assert (
-            "".join([str(e) for e in reversed(samples[min_energy_index])])
+            reverser(samples[min_energy_index])
             == fake_result["solution_bitstring"]
         )
         assert len(sol.counts.tolist()) == num_samples
@@ -240,7 +285,7 @@ def test_qctrl_translator_constructed_vars():
             assert result.constraints is None
             assert result.feasible is None
             assert result.obj_value is None
-            bs = "".join([str(e) for e in reversed([e for e in result.sample])])
+            bs = reverser([e for e in result.sample])
             assert result.counts == fake_result["final_bitstring_distribution"][bs]
             if bs == fake_result["solution_bitstring"]:
                 assert result.raw_energy == fake_result["solution_bitstring_cost"]
