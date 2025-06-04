@@ -612,15 +612,15 @@ impl PySolution {
             )))
         } else if max_column_length < 1 {
             Err(PyValueError::new_err(format!(
-                "`max_column_length` needs to be at least 1; actual value: {max_line_length}"
+                "`max_column_length` needs to be at least 1; actual value: {max_column_length}"
             )))
         } else if max_lines < 1 {
             Err(PyValueError::new_err(format!(
-                "`max_lines` needs to be at least 1; actual value: {max_line_length}"
+                "`max_lines` needs to be at least 1; actual value: {max_lines}"
             )))
         } else if max_var_name_length < 1 {
             Err(PyValueError::new_err(format!(
-                "`max_var_name_length` needs to be at least 1; actual value: {max_line_length}"
+                "`max_var_name_length` needs to be at least 1; actual value: {max_var_name_length}"
             )))
         } else {
             Ok(self.0.print(
@@ -735,7 +735,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-        .into())
+            .into())
     }
 
     /// Alias for `encode()`.
