@@ -363,22 +363,14 @@ where
             }
         }
 
-        println!("\n{col_widths:?}");
-        println!("{n_cols}");
         let mut total_width = col_widths[..n_cols].iter().sum::<usize>() + n_cols - 1;
-        println!("{total_width}");
         while n_cols <= self.n_samples + 1 && total_width > max_line_length - 4 {
             n_cols -= 1;
             total_width = col_widths[..n_cols].iter().sum::<usize>() + n_cols - 1;
-            println!("---------");
-            println!("\n{col_widths:?}");
-            println!("{n_cols}");
-            println!("{total_width}");
         }
         if n_cols <= self.n_samples {
             total_width += 4;
         }
-        println!("---------");
 
         let mut out = String::new();
         if let ShowMetadata::Before = show_metadata {
