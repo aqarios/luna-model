@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from aqmodels import Model, Variable, Environment, Vtype, Solution, Timer
+from aqmodels import Model, Variable, Environment, Vtype, Solution, Timer, Sense
 
 
 def vars() -> tuple[tuple[Variable, ...], Environment]:
@@ -229,4 +229,80 @@ b_0 b_1 s_0 s_1  i_0     │ feas raw obj count
 
 Total samples: 3
 Total variables: 8""".strip("\n")
+    )
+
+
+@pytest.fixture
+def model_with_sol(request) -> tuple[Model, Solution]:
+    minimize: bool = request.param
+    m = Model()
+    with m.environment:
+        a = Variable("a")
+        b = Variable("b")
+        c = Variable("c")
+        d = Variable("d")
+        e = Variable("e")
+    m.objective = -a - 5 * b - 6 * c + 2 * d + 2 * e
+    m.constraints += a + b <= 1
+    if not minimize:
+        m.set_sense(Sense.Max)
+
+    sol = Solution.from_dicts(
+        [
+            # infeasible, e: -10
+            *(2 * [{a: 1, b: 1, c: 1, d: 1, e: 0}]),
+            {a: 1, b: 1, c: 1, d: 0, e: 1},
+            # feasible, e: -9
+            {a: 0, b: 1, c: 1, d: 1, e: 0},
+            *(3 * [{a: 0, b: 1, c: 1, d: 0, e: 1}]),
+            # infeasible, e: -6
+            {a: 1, b: 1, c: 0, d: 0, e: 0},
+            # feasible, e: -5
+            {a: 0, b: 1, c: 0, d: 0, e: 0},
+            # feasible, e: -11
+            {a: 0, b: 1, c: 1, d: 0, e: 0},
+        ],
+        model=m,
+    )
+
+    return m, sol
+
+
+@pytest.mark.parametrize("model_with_sol", [True], indirect=True)
+def test_sorted_solution_minimize(model_with_sol: tuple[Model, Solution]):
+    _, sol = model_with_sol
+    assert (
+        sol.print()
+        == """
+a b c d e │ feas raw   obj count
+0 1 1 0 0 │    t   ? -11.0     1
+0 1 1 0 1 │    t   ?  -9.0     3
+0 1 1 1 0 │    t   ?  -9.0     1
+0 1 0 0 0 │    t   ?  -5.0     1
+1 1 1 1 0 │    f   ? -10.0     2
+1 1 1 0 1 │    f   ? -10.0     1
+1 1 0 0 0 │    f   ?  -6.0     1
+
+Total samples: 7
+Total variables: 5""".strip("\n")
+    )
+
+
+@pytest.mark.parametrize("model_with_sol", [False], indirect=True)
+def test_sorted_solution_maximize(model_with_sol: tuple[Model, Solution]):
+    _, sol = model_with_sol
+    assert (
+        sol.print()
+        == """
+a b c d e │ feas raw   obj count
+0 1 0 0 0 │    t   ?  -5.0     1
+0 1 1 0 1 │    t   ?  -9.0     3
+0 1 1 1 0 │    t   ?  -9.0     1
+0 1 1 0 0 │    t   ? -11.0     1
+1 1 0 0 0 │    f   ?  -6.0     1
+1 1 1 1 0 │    f   ? -10.0     2
+1 1 1 0 1 │    f   ? -10.0     1
+
+Total samples: 7
+Total variables: 5""".strip("\n")
     )

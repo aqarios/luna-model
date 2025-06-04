@@ -56,7 +56,7 @@ def test_bqm_solution():
     dimod_sample = res.samples()[0]
     with aqm.environment:
         sol_from_dict = Solution.from_dict(
-            {str(v): float(val) for v, val in dimod_sample.items()} # type: ignore
+            {str(v): float(val) for v, val in dimod_sample.items()}  # type: ignore
         )
 
     sol = aqm.evaluate(sol)
