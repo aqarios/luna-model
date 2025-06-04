@@ -369,11 +369,7 @@ where
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Number(Bias::one() * 2.0)),
                     );
-                    let num = if is_constraint {
-                        bias
-                    } else {
-                        bias * 2.0
-                    };
+                    let num = if is_constraint { bias } else { bias * 2.0 };
                     let mul = ExprTree::Mul(Box::new(ExprTree::Number(num)), Box::new(pow));
                     quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
                 } else {
@@ -384,11 +380,7 @@ where
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Variable(v_name)),
                     );
-                    let num = if is_constraint {
-                        bias
-                    } else {
-                        bias * 2.0
-                    };
+                    let num = if is_constraint { bias } else { bias * 2.0 };
                     let mul = ExprTree::Mul(Box::new(ExprTree::Number(num)), Box::new(vmul));
                     quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
                 }
