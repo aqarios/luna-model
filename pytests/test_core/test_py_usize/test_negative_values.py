@@ -2,7 +2,7 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from aqmodels import Environment, Variable, Solution
+from aqmodels import Environment, Solution, Variable
 
 
 def test_negative_value_normal_method():

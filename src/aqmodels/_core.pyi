@@ -922,135 +922,6 @@ class Solution:
         """Alias for `decode()`."""
         ...
 
-    @staticmethod
-    def build(
-        component_types: list[Vtype],
-        *,
-        variable_names: list[str] | None = ...,
-        binary_cols: list[list[int]] | None = ...,
-        spin_cols: list[list[int]] | None = ...,
-        int_cols: list[list[int]] | None = ...,
-        real_cols: list[list[float]] | None = ...,
-        raw_energies: list[float | None] | None = ...,
-        timing: Timing | None = ...,
-        counts: list[int] | None = ...,
-    ) -> Solution:
-        """Build a `Solution` based on the provided input data.
-
-        The solution is constructed based on a column layout of the solution.
-        Let's take the following sample-set with three samples as an example:
-
-        [ 0  1  -1  3  2.2  1 ]
-        [ 1  0  -1  6  3.8  0 ]
-        [ 1  1  +1  2  2.4  0 ]
-
-        Each row encodes a single sample. However, the variable types vary, the first,
-        second, and last columns all represent a Binary variable (index 0, 1, 5). The
-        third column represents a variable of type Spin (index 2). The fourth column
-        (index 3), a variable of type Integer and the fifth column (index 4), a
-        real-valued variable.
-
-        Thus, the `component_types` list is:
-
-        >>> component_types = [
-        ...     Vtype.Binary,
-        ...     Vtype.Binary,
-        ...     Vtype.Spin,
-        ...     Vtype.Integer,
-        ...     Vtype.Real,
-        ...     Vtype.Binary,
-        ... ]
-
-        Now we can extract all columns for a binary-valued variable and append them to
-        a new list:
-
-        >>> binary_cols = [[0, 1, 1], [1, 0, 1], [1, 0, 0]]
-
-        where the first element in the list represents the first column, the second
-        element the/second column and the third element the fifth column.
-        We do the same for the remaining variable types:
-
-        >>> spin_cols = [[-1, -1, +1]]
-        >>> int_cols = [[3, 6, 2]]
-        >>> real_cols = [[2.2, 3.8, 2.4]]
-
-        If we know the raw energies, we can construct them as well:
-
-        >>> raw_energies = [-200, -100, +300]
-
-        And finally call the `build` function:
-
-        >>> sol = Solution.build(
-        ...     component_types,
-        ...     binary_cols,
-        ...     spin_cols,
-        ...     int_cols,
-        ...     real_cols,
-        ...     raw_energies,
-        ...     timing,
-        ...     counts=[1, 1, 1],
-        ... )
-        >>> sol
-
-        In this example, we could also neglect the `counts` as it defaults to `1`
-        for all samples if not set:
-
-        >>> sol = Solution.build(
-        ...     component_types,
-        ...     binary_cols,
-        ...     spin_cols,
-        ...     int_cols,
-        ...     real_cols,
-        ...     raw_energies,
-        ...     timing,
-        ... )
-        >>> sol
-
-
-        Parameters
-        ----------
-        component_types : list[Vtype]
-            The variable type each element in a sample encodes.
-        variable_names : list[Vtype], optional
-            The name of each variable in the solution.
-        binary_cols : list[list[int]], optional
-            The data of all binary valued columns.
-            Each inner list encodes a single binary-valued column. Required if any
-            element in the `component_types` is `Vtype.Binary`.
-        spin_cols : list[list[int]], optional
-            The data of all spin-valued columns.
-            Each inner list encodes a single spin-valued column. Required if any
-            element in the `component_types` is `Vtype.Spin`.
-        int_cols : list[list[int]], optional
-            The data of all integer-valued columns.
-            Each inner list encodes a single integer valued column. Required if any
-            element in the `component_types` is `Vtype.Integer`.
-        real_cols : list[list[float]], optional
-            The data of all real-valued columns.
-            Each inner list encodes a single real-valued column. Required if any
-            element in the `component_types` is `Vtype.Real`.
-        raw_energies : list[float, optional], optional
-            The data of all real valued columns.
-            Each inner list encodes a single real-valued column.
-        timing : Timing, optional
-            The timing data.
-        counts : list[int], optional
-            The number how often each sample in the solution has occurred.
-            By default, 1 for all samples.
-
-        Returns
-        -------
-        Solution
-            The constructed solution
-
-        Raises
-        ------
-        RuntimeError
-            If a sample column has an incorrect number of samples or if `counts` has
-            a length different from the number of samples given.
-        """
-        ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[Variable, int]) -> Solution: ...
@@ -1920,6 +1791,91 @@ class Model:
         ----------
         sense : Sense
             The sense of the model (minimization, maximization)
+        """
+        ...
+
+    @overload
+    def add_variable(self, name: str, /) -> Variable: ...
+    @overload
+    def add_variable(self, name: str, /, vtype: Vtype | None = ...) -> Variable: ...
+    @overload
+    def add_variable(
+        self,
+        name: str,
+        /,
+        vtype: Vtype,
+        *,
+        lower: float | type[Unbounded],
+    ) -> Variable: ...
+    @overload
+    def add_variable(
+        self,
+        name: str,
+        /,
+        vtype: Vtype,
+        *,
+        upper: float | type[Unbounded],
+    ) -> Variable: ...
+    @overload
+    def add_variable(
+        self,
+        name: str,
+        /,
+        vtype: Vtype,
+        *,
+        lower: float | type[Unbounded],
+        upper: float | type[Unbounded],
+    ) -> Variable: ...
+    def add_variable(
+        self,
+        name: str,
+        /,
+        vtype: Vtype | None = ...,
+        *,
+        lower: float | type[Unbounded] | None = ...,
+        upper: float | type[Unbounded] | None = ...,
+    ) -> Variable:
+        """
+        Add a new variable to the model.
+
+        Parameters
+        ----------
+        name : str
+            The name of the variable.
+        vtype : Vtype, optional
+            The variable type (e.g., `Vtype.Real`, `Vtype.Integer`, etc.).
+            Defaults to `Vtype.Binary`.
+        lower: float, optional
+            The lower bound restricts the range of the variable. Only applicable for
+            `Real` and `Integer` variables.
+        upper: float, optional
+            The upper bound restricts the range of the variable. Only applicable for
+            `Real` and `Integer` variables.
+
+        Returns
+        -------
+        Variable
+            The variable added to the model.
+        """
+        ...
+
+    def get_variable(self, name: str, /) -> Variable:
+        """Get a variable by its label (name).
+
+        Parameters
+        ----------
+        label : str
+            The name/label of the variable
+
+        Returns
+        -------
+        Variable
+            The variable with the specified label/name.
+
+        Raises
+        ------
+        VariableNotExistingError
+            If no variable with the specified name is registered.
         """
         ...
 
