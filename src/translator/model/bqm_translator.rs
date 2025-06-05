@@ -1,7 +1,9 @@
 use crate::core::environment::add_variable;
 use crate::core::expression::ExpressionBaseAdd;
 use crate::core::{ExpressionBaseAdjustment, Sense, Vtype};
-use crate::errors::{BqmTranslatorErr, ModelSenseNotMinimizeErr, ModelVtypeErr, VariableCreationErr};
+use crate::errors::{
+    BqmTranslatorErr, ModelSenseNotMinimizeErr, ModelVtypeErr, VariableCreationErr,
+};
 use crate::{
     core::{
         expression::{BiasConstraints, IndexConstraints},
