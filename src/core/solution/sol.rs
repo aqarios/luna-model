@@ -162,8 +162,6 @@ where
             SampleCol::Real(reals) => reals.iter().map(|&x| VarAssignment::Real(x)).collect(),
         }
     }
-
-    pub fn from_vec(values: Vec<VarAssignment<AssignmentTypes>>) {}
 }
 
 /// The solutions object for AQMs. It doesn't have any knowledge about the corresponding AQM or
