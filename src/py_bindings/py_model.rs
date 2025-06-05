@@ -174,6 +174,29 @@ impl PyModel {
         )?))
     }
 
+    /// Get a variable by its label (name).
+    ///
+    /// Parameters
+    /// ----------
+    /// label : str
+    ///     The name/label of the variable
+    ///
+    /// Returns
+    /// -------
+    /// Variable
+    ///     The variable with the specified label/name.
+    ///
+    /// Raises
+    /// ------
+    /// VariableNotExistingError
+    ///     If no variable with the specified name is registered.
+    fn get_variable(&self, name: String) -> PyResult<PyVariable> {
+        Ok(PyVariable(Rc::new(environment::get_vref_by_name(
+            &name,
+            Rc::clone(&self.concrete_model.borrow().environment),
+        )?)))
+    }
+
     /// Set the optimization sense of a model.
     ///
     /// Parameters

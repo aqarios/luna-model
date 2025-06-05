@@ -1965,6 +1965,26 @@ class Model:
         """
         ...
 
+    def get_variable(self, name: str, /) -> Variable:
+        """Get a variable by its label (name).
+
+        Parameters
+        ----------
+        label : str
+            The name/label of the variable
+
+        Returns
+        -------
+        Variable
+            The variable with the specified label/name.
+
+        Raises
+        ------
+        VariableNotExistingError
+            If no variable with the specified name is registered.
+        """
+        ...
+
     @property
     def name(self, /) -> str:
         """Return the name of the model."""
