@@ -1,13 +1,11 @@
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import overload, Any
+from types import TracebackType
+from typing import Literal, Self, overload
 
 from numpy.typing import NDArray
-from typing_extensions import Literal
 
-from . import errors
-from . import translator
-
+from . import errors, translator
 
 # _variable.pyi
 class Vtype(Enum):
@@ -50,12 +48,9 @@ class Vtype(Enum):
     """Spin variable. Can only take values -1 or +1."""
 
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
 
-
 class Unbounded: ...
-
 
 class Bounds:
     """
@@ -92,21 +87,17 @@ class Bounds:
 
     @overload
     def __init__(self, /, *, lower: float | Unbounded) -> None: ...
-
     @overload
     def __init__(self, /, *, upper: float | type[Unbounded]) -> None: ...
-
     @overload
     def __init__(
-            self, /, lower: float | type[Unbounded], upper: float | type[Unbounded]
+        self, /, lower: float | type[Unbounded], upper: float | type[Unbounded]
     ) -> None: ...
-
-    @overload
     def __init__(
-            self,
-            /,
-            lower: float | type[Unbounded] | None = ...,
-            upper: float | type[Unbounded] | None = ...,
+        self,
+        /,
+        lower: float | type[Unbounded] | None = ...,
+        upper: float | type[Unbounded] | None = ...,
     ) -> None:
         """
         Create bounds for a variable.
@@ -117,18 +108,16 @@ class Bounds:
 
     @property
     def lower(self, /) -> float | Unbounded | None:
-        """Get the lower bound"""
+        """Get the lower bound."""
         ...
 
     @property
     def upper(self, /) -> float | Unbounded | None:
-        """Get the upper bound"""
+        """Get the upper bound."""
         ...
 
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
 
 class Variable:
     """
@@ -180,29 +169,24 @@ class Variable:
 
     @overload
     def __init__(self, /, name: str) -> None: ...
-
     @overload
     def __init__(self, /, name: str, *, env: Environment) -> None: ...
-
     @overload
     def __init__(self, /, name: str, *, vtype: Vtype) -> None: ...
-
     @overload
     def __init__(self, /, name: str, *, vtype: Vtype, bounds: Bounds) -> None: ...
-
     @overload
     def __init__(
-            self, /, name: str, *, vtype: Vtype, bounds: Bounds, env: Environment
+        self, /, name: str, *, vtype: Vtype, bounds: Bounds, env: Environment
     ) -> None: ...
-
     def __init__(
-            self,
-            /,
-            name: str,
-            *,
-            vtype: Vtype | None = ...,
-            bounds: Bounds | None = ...,
-            env: Environment | None = ...,
+        self,
+        /,
+        name: str,
+        *,
+        vtype: Vtype | None = ...,
+        bounds: Bounds | None = ...,
+        env: Environment | None = ...,
     ) -> None:
         """
         Initialize a new Variable.
@@ -232,16 +216,12 @@ class Variable:
 
     @overload
     def __add__(self, other: int, /) -> Expression: ...
-
     @overload
     def __add__(self, other: float, /) -> Expression: ...
-
     @overload
     def __add__(self, other: Variable, /) -> Expression: ...
-
     @overload
     def __add__(self, other: Expression, /) -> Expression: ...
-
     def __add__(self, other: int | float | Variable | Expression, /) -> Expression:
         """
         Add this variable to another value.
@@ -266,16 +246,12 @@ class Variable:
 
     @overload
     def __radd__(self, other: int, /) -> Expression: ...
-
     @overload
     def __radd__(self, other: float, /) -> Expression: ...
-
     @overload
     def __radd__(self, other: Variable, /) -> Expression: ...
-
     @overload
     def __radd__(self, other: Expression, /) -> Expression: ...
-
     def __radd__(self, other: int | float | Variable | Expression, /) -> Expression:
         """
         Right-hand addition.
@@ -298,16 +274,12 @@ class Variable:
 
     @overload
     def __sub__(self, other: int, /) -> Expression: ...
-
     @overload
     def __sub__(self, other: float, /) -> Expression: ...
-
     @overload
     def __sub__(self, other: Variable, /) -> Expression: ...
-
     @overload
     def __sub__(self, other: Expression, /) -> Expression: ...
-
     def __sub__(self, other: int | float | Variable | Expression, /) -> Expression:
         """
         Subtract a value from this variable.
@@ -332,10 +304,8 @@ class Variable:
 
     @overload
     def __rsub__(self, other: int, /) -> Expression: ...
-
     @overload
     def __rsub__(self, other: float, /) -> Expression: ...
-
     def __rsub__(self, other: int | float, /) -> Expression:
         """
         Subtract this variable from a scalar (right-hand subtraction).
@@ -358,16 +328,12 @@ class Variable:
 
     @overload
     def __mul__(self, other: int, /) -> Expression: ...
-
     @overload
     def __mul__(self, other: float, /) -> Expression: ...
-
     @overload
     def __mul__(self, other: Variable, /) -> Expression: ...
-
     @overload
     def __mul__(self, other: Expression, /) -> Expression: ...
-
     def __mul__(self, other: int | float | Variable | Expression, /) -> Expression:
         """
         Multiply this variable by another value.
@@ -392,16 +358,12 @@ class Variable:
 
     @overload
     def __rmul__(self, other: int, /) -> Expression: ...
-
     @overload
     def __rmul__(self, other: float, /) -> Expression: ...
-
     @overload
     def __rmul__(self, other: Variable, /) -> Expression: ...
-
     @overload
     def __rmul__(self, other: Expression, /) -> Expression: ...
-
     def __rmul__(self, other: int | float | Variable | Expression, /) -> Expression:
         """
         Right-hand multiplication for scalars.
@@ -443,29 +405,24 @@ class Variable:
 
     @overload
     def __eq__(self, rhs: int, /) -> Constraint: ...
-
     @overload
     def __eq__(self, rhs: float, /) -> Constraint: ...
-
     @overload
     def __eq__(self, rhs: Expression, /) -> Constraint: ...
-
     @overload
-    def __eq__(self, rhs: Variable, /) -> bool:
+    def __eq__(self, rhs: Variable, /) -> bool:  # noqa: D418
         """
-           Check equality of two variables.
+        Check equality of two variables.
 
-           Parameters
-           ----------
-
+        Parameters
+        ----------
         rhs : Variable
 
-           Returns
-           -------
-           bool
+        Returns
+        -------
+        bool
         """
-
-    def __eq__(self, rhs: int | float | Expression, /) -> Constraint:  # type: ignore
+    def __eq__(self, rhs: int | float | Expression, /) -> Constraint:  # type: ignore[reportIncompatibleMethodOverride]
         """
         Create a constraint: Variable == float | int | Expression.
 
@@ -490,17 +447,13 @@ class Variable:
 
     @overload
     def __le__(self, rhs: int, /) -> Constraint: ...
-
     @overload
     def __le__(self, rhs: float, /) -> Constraint: ...
-
     @overload
     def __le__(self, rhs: Variable, /) -> Constraint: ...
-
     @overload
     def __le__(self, rhs: Expression, /) -> Constraint: ...
-
-    def __le__(self, rhs: int | float | Variable | Expression, /) -> Constraint:  # type: ignore
+    def __le__(self, rhs: int | float | Variable | Expression, /) -> Constraint:
         """
         Create a constraint: Variable <= scalar.
 
@@ -526,16 +479,12 @@ class Variable:
 
     @overload
     def __ge__(self, rhs: int, /) -> Constraint: ...
-
     @overload
     def __ge__(self, rhs: float, /) -> Constraint: ...
-
     @overload
     def __ge__(self, rhs: Variable, /) -> Constraint: ...
-
     @overload
     def __ge__(self, rhs: Expression, /) -> Constraint: ...
-
     def __ge__(self, rhs: int | float | Variable | Expression, /) -> Constraint:
         """
         Create a constraint: Variable >= scalar.
@@ -576,11 +525,8 @@ class Variable:
         ...
 
     def __hash__(self, /) -> int: ...
-
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
 
 # _timing.pyi
 class Timing:
@@ -596,8 +542,8 @@ class Timing:
     --------
     >>> from dwave.samplers.tree.solve import BinaryQuadraticModel
     >>> from luna_quantum import Model, Timer, Timing
-    >>> model = ... # third-party model
-    >>> algorithm = ... # third-party algorithm
+    >>> model = ...  # third-party model
+    >>> algorithm = ...  # third-party algorithm
     >>> timer = Timer.start()
     >>> sol = algorithm.run(model)
     >>> timing: Timing = timer.stop()
@@ -633,13 +579,15 @@ class Timing:
     @property
     def total_seconds(self, /) -> float:
         """
-        The total time in seconds an algorithm needed to run. Computed as the
-        difference of end and start time.
+        The total time in seconds an algorithm needed to run.
+
+        Computed as the difference of end and start time.
 
         Raises
         ------
         RuntimeError
-            If total_seconds cannot be computed due to an inconsistent start or end time.
+            If `total_seconds` cannot be computed due to an inconsistent start or
+            end time.
         """
         ...
 
@@ -649,7 +597,7 @@ class Timing:
         ...
 
     @qpu.setter
-    def qpu(self, /, value: float | None):
+    def qpu(self, /, value: float | None) -> None:
         """
         Set the qpu usage time.
 
@@ -660,10 +608,11 @@ class Timing:
         """
         ...
 
-    def add_qpu(self, /, value: float):
+    def add_qpu(self, /, value: float) -> None:
         """
-        Add qpu usage time to the qpu usage time already present. If the current value
-        is None, this method acts like a setter.
+        Add qpu usage time to the qpu usage time already present.
+
+        If the current value is None, this method acts like a setter.
 
         Parameters
         ----------
@@ -676,7 +625,6 @@ class Timing:
             If `value` is negative.
         """
         ...
-
 
 class Timer:
     """
@@ -691,7 +639,7 @@ class Timer:
     Basic usage:
     >>> from luna_quantum import Timer
     >>> timer = Timer.start()
-    >>> solution = ... # create a solution by running an algorithm.
+    >>> solution = ...  # create a solution by running an algorithm.
     >>> timing = timer.stop()
     """
 
@@ -718,7 +666,6 @@ class Timer:
         """
         ...
 
-
 # _solution.pyi
 class Solution:
     """
@@ -729,9 +676,10 @@ class Solution:
     returned by the algorithm, metadata about the solution quality, e.g., the objective
     value, and the runtime of the algorithm.
 
-    A `Solution` can be constructed explicitly using `from_dict` or by obtaining a solution
-    from an algorithm or by converting a different solution format with one of the available
-    translators. Note that the latter requires the environment the model was created in.
+    A `Solution` can be constructed explicitly using `from_dict` or by obtaining a
+    solution from an algorithm or by converting a different solution format with one of
+    the available translators. Note that the latter requires the environment the model
+    was created in.
 
     Examples
     --------
@@ -765,16 +713,14 @@ class Solution:
 
     Notes
     -----
-    - To ensure metadata like objective values or feasibility, use `model.evaluate(solution)`.
+    - To ensure metadata like objective values or feasibility, use
+      `model.evaluate(solution)`.
     - Use `encode()` and `decode()` to serialize and recover solutions.
     """
 
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
     def __len__(self, /) -> int: ...
-
     def __iter__(self, /) -> ResultIterator:
         """
         Extract a result view from the `Solution` object.
@@ -809,7 +755,7 @@ class Solution:
         """
         ...
 
-    def __eq__(self, other: Solution, /) -> bool:  # type: ignore
+    def __eq__(self, other: Solution, /) -> bool:  # type: ignore[reportIncompatibleMethodOverride]
         """
         Check whether this solution is equal to `other`.
 
@@ -850,14 +796,16 @@ class Solution:
     @property
     def obj_values(self, /) -> NDArray:
         """
-        Get the objective values of the single samples as a ndarray. A value will be
-        None if the sample hasn't yet been evaluated.
+        Get the objective values of the single samples as a ndarray.
+
+        A value will be None if the sample hasn't yet been evaluated.
         """
         ...
 
     @property
     def raw_energies(self, /) -> NDArray:
-        """
+        """Get the raw energies.
+
         Get the raw energy values of the single samples as returned by the solver /
         algorithm. Will be None if the solver / algorithm did not provide a value.
         """
@@ -900,15 +848,13 @@ class Solution:
 
     @overload
     def encode(self, /) -> bytes: ...
-
     @overload
     def encode(self, /, *, compress: bool) -> bytes: ...
-
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
-
     @overload
-    def encode(self, /, *, compress: bool, level: int) -> bytes:
+    def encode(self, /, *, compress: bool, level: int) -> bytes: ...
+    def encode(self, /, *, compress: bool = True, level: int = 3) -> bytes:
         """
         Serialize the solution into a compact binary format.
 
@@ -917,7 +863,7 @@ class Solution:
         compress : bool, optional
             Whether to compress the binary output. Default is True.
         level : int, optional
-            Compression level (0–9). Default is 3.
+            Compression level (0-9). Default is 3.
 
         Returns
         -------
@@ -933,18 +879,14 @@ class Solution:
 
     @overload
     def serialize(self, /) -> bytes: ...
-
     @overload
     def serialize(self, /, *, compress: bool) -> bytes: ...
-
     @overload
     def serialize(self, /, *, level: int) -> bytes: ...
-
     @overload
     def serialize(self, /, compress: bool, level: int) -> bytes: ...
-
     def serialize(
-            self, /, compress: bool | None = ..., level: int | None = ...
+        self, /, compress: bool | None = ..., level: int | None = ...
     ) -> bytes:
         """
         Alias for `encode()`.
@@ -982,53 +924,62 @@ class Solution:
 
     @staticmethod
     def build(
-            component_types: list[Vtype],
-            *,
-            variable_names: list[str] | None = ...,
-            binary_cols: list[list[int]] | None = ...,
-            spin_cols: list[list[int]] | None = ...,
-            int_cols: list[list[int]] | None = ...,
-            real_cols: list[list[float]] | None = ...,
-            raw_energies: list[float | None] | None = ...,
-            timing: Timing | None = ...,
-            counts: list[int] | None = ...,
+        component_types: list[Vtype],
+        *,
+        variable_names: list[str] | None = ...,
+        binary_cols: list[list[int]] | None = ...,
+        spin_cols: list[list[int]] | None = ...,
+        int_cols: list[list[int]] | None = ...,
+        real_cols: list[list[float]] | None = ...,
+        raw_energies: list[float | None] | None = ...,
+        timing: Timing | None = ...,
+        counts: list[int] | None = ...,
     ) -> Solution:
-        """
-        Build a `Solution` based on the provided input data. The solution is constructed
-        based on a column layout of the solution. Let's take the following sample-set with three
-        samples as an example:
-       
+        """Build a `Solution` based on the provided input data.
+
+        The solution is constructed based on a column layout of the solution.
+        Let's take the following sample-set with three samples as an example:
+
         [ 0  1  -1  3  2.2  1 ]
         [ 1  0  -1  6  3.8  0 ]
         [ 1  1  +1  2  2.4  0 ]
-       
-        Each row encodes a single sample. However, the variable types vary, the first, second, and
-        last columns all represent a Binary variable (index 0, 1, 5). The third column represents a
-        variable of type Spin (index 2). The fourth column (index 3), a variable of type Integer and
-        the fifth column (index 4), a real-valued variable.
-       
+
+        Each row encodes a single sample. However, the variable types vary, the first,
+        second, and last columns all represent a Binary variable (index 0, 1, 5). The
+        third column represents a variable of type Spin (index 2). The fourth column
+        (index 3), a variable of type Integer and the fifth column (index 4), a
+        real-valued variable.
+
         Thus, the `component_types` list is:
-       
-        >>> component_types = [Vtype.Binary, Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real, Vtype.Binary]
-       
-        Now we can extract all columns for a binary-valued variable and append them to a new list:
-       
+
+        >>> component_types = [
+        ...     Vtype.Binary,
+        ...     Vtype.Binary,
+        ...     Vtype.Spin,
+        ...     Vtype.Integer,
+        ...     Vtype.Real,
+        ...     Vtype.Binary,
+        ... ]
+
+        Now we can extract all columns for a binary-valued variable and append them to
+        a new list:
+
         >>> binary_cols = [[0, 1, 1], [1, 0, 1], [1, 0, 0]]
-       
-        where the first element in the list represents the first column, the second element the\
-        second column and the third element the fifth column.
+
+        where the first element in the list represents the first column, the second
+        element the/second column and the third element the fifth column.
         We do the same for the remaining variable types:
-       
+
         >>> spin_cols = [[-1, -1, +1]]
         >>> int_cols = [[3, 6, 2]]
         >>> real_cols = [[2.2, 3.8, 2.4]]
-       
+
         If we know the raw energies, we can construct them as well:
-       
+
         >>> raw_energies = [-200, -100, +300]
-       
+
         And finally call the `build` function:
-       
+
         >>> sol = Solution.build(
         ...     component_types,
         ...     binary_cols,
@@ -1037,13 +988,13 @@ class Solution:
         ...     real_cols,
         ...     raw_energies,
         ...     timing,
-        ...     counts=[1, 1, 1]
+        ...     counts=[1, 1, 1],
         ... )
         >>> sol
-       
+
         In this example, we could also neglect the `counts` as it defaults to `1`
         for all samples if not set:
-       
+
         >>> sol = Solution.build(
         ...     component_types,
         ...     binary_cols,
@@ -1051,11 +1002,11 @@ class Solution:
         ...     int_cols,
         ...     real_cols,
         ...     raw_energies,
-        ...     timing
+        ...     timing,
         ... )
         >>> sol
-       
-       
+
+
         Parameters
         ----------
         component_types : list[Vtype]
@@ -1063,31 +1014,35 @@ class Solution:
         variable_names : list[Vtype], optional
             The name of each variable in the solution.
         binary_cols : list[list[int]], optional
-            The data of all binary valued columns. Each inner list encodes a single binary-valued
-            column. Required if any element in the `component_types` is `Vtype.Binary`.
+            The data of all binary valued columns.
+            Each inner list encodes a single binary-valued column. Required if any
+            element in the `component_types` is `Vtype.Binary`.
         spin_cols : list[list[int]], optional
-            The data of all spin-valued columns. Each inner list encodes a single spin-valued
-            column. Required if any element in the `component_types` is `Vtype.Spin`.
+            The data of all spin-valued columns.
+            Each inner list encodes a single spin-valued column. Required if any
+            element in the `component_types` is `Vtype.Spin`.
         int_cols : list[list[int]], optional
-            The data of all integer-valued columns. Each inner list encodes a single integer valued
-            column. Required if any element in the `component_types` is `Vtype.Integer`.
+            The data of all integer-valued columns.
+            Each inner list encodes a single integer valued column. Required if any
+            element in the `component_types` is `Vtype.Integer`.
         real_cols : list[list[float]], optional
-            The data of all real-valued columns. Each inner list encodes a single real-valued
-            column. Required if any element in the `component_types` is `Vtype.Real`.
+            The data of all real-valued columns.
+            Each inner list encodes a single real-valued column. Required if any
+            element in the `component_types` is `Vtype.Real`.
         raw_energies : list[float, optional], optional
-            The data of all real valued columns. Each inner list encodes a single real-valued
-            column.
+            The data of all real valued columns.
+            Each inner list encodes a single real-valued column.
         timing : Timing, optional
             The timing data.
         counts : list[int], optional
-            The number how often each sample in the solution has occurred. By default, 1 for all
-            samples.
-       
+            The number how often each sample in the solution has occurred.
+            By default, 1 for all samples.
+
         Returns
         -------
         Solution
             The constructed solution
-       
+
         Raises
         ------
         RuntimeError
@@ -1099,158 +1054,129 @@ class Solution:
     @overload
     @staticmethod
     def from_dict(data: dict[Variable, int]) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[Variable, float]) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[str, int]) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[str, float]) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[Variable | str, int | float]) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[Variable, int], *, env: Environment) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[Variable, float], *, env: Environment) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[str, int], *, env: Environment) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[str, float], *, env: Environment) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[Variable | str, int | float], *, env: Environment
+        data: dict[Variable | str, int | float], *, env: Environment
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[Variable, int], *, model: Model) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[Variable, float], *, model: Model) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[str, int], *, model: Model) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[str, float], *, model: Model) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[Variable | str, int | float], *, model: Model
+        data: dict[Variable | str, int | float], *, model: Model
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[Variable, int], *, timing: Timing) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[Variable, float], *, timing: Timing) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[str, int], *, timing: Timing) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(data: dict[str, float], *, timing: Timing) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[Variable | str, int | float], *, timing: Timing
+        data: dict[Variable | str, int | float], *, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[Variable, int], *, env: Environment, timing: Timing
+        data: dict[Variable, int], *, env: Environment, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[Variable, float], *, env: Environment, timing: Timing
+        data: dict[Variable, float], *, env: Environment, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[str, int], *, env: Environment, timing: Timing
+        data: dict[str, int], *, env: Environment, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[str, float], *, env: Environment, timing: Timing
+        data: dict[str, float], *, env: Environment, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[Variable | str, int | float], *, env: Environment, timing: Timing
+        data: dict[Variable | str, int | float], *, env: Environment, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[Variable, int], *, model: Model, timing: Timing
+        data: dict[Variable, int], *, model: Model, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[Variable, float], *, model: Model, timing: Timing
+        data: dict[Variable, float], *, model: Model, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[str, int], *, model: Model, timing: Timing
+        data: dict[str, int], *, model: Model, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[str, float], *, model: Model, timing: Timing
+        data: dict[str, float], *, model: Model, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dict(
-            data: dict[Variable | str, int | float], *, model: Model, timing: Timing
+        data: dict[Variable | str, int | float], *, model: Model, timing: Timing
     ) -> Solution: ...
-
     @staticmethod
     def from_dict(
-            data: dict[Variable | str, int | float],
-            *,
-            env: Environment | None = ...,
-            model: Model | None = ...,
-            timing: Timing | None = ...,
+        data: dict[Variable | str, int | float],
+        *,
+        env: Environment | None = ...,
+        model: Model | None = ...,
+        timing: Timing | None = ...,
     ) -> Solution:
-        """
+        """Create a `Solution` from a dict.
+
         Create a `Solution` from a dict that maps variables or variable names to their
         assigned values.
 
@@ -1295,170 +1221,141 @@ class Solution:
     @overload
     @staticmethod
     def from_dicts(data: list[dict[Variable, int]]) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[Variable, float]]) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, int]]) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, float]]) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[Variable | str, int | float]]) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable, int]], *, env: Environment
+        data: list[dict[Variable, int]], *, env: Environment
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable, float]], *, env: Environment
+        data: list[dict[Variable, float]], *, env: Environment
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, int]], *, env: Environment) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, float]], *, env: Environment) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable | str, int | float]], *, env: Environment
+        data: list[dict[Variable | str, int | float]], *, env: Environment
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[Variable, int]], *, model: Model) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[Variable, float]], *, model: Model) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, int]], *, model: Model) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, float]], *, model: Model) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable | str, int | float]], *, model: Model
+        data: list[dict[Variable | str, int | float]], *, model: Model
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[Variable, int]], *, timing: Timing) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable, float]], *, timing: Timing
+        data: list[dict[Variable, float]], *, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, int]], *, timing: Timing) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, float]], *, timing: Timing) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable | str, int | float]], *, timing: Timing
+        data: list[dict[Variable | str, int | float]], *, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable, int]], *, env: Environment, timing: Timing
+        data: list[dict[Variable, int]], *, env: Environment, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable, float]], *, env: Environment, timing: Timing
+        data: list[dict[Variable, float]], *, env: Environment, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[str, int]], *, env: Environment, timing: Timing
+        data: list[dict[str, int]], *, env: Environment, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[str, float]], *, env: Environment, timing: Timing
+        data: list[dict[str, float]], *, env: Environment, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable | str, int | float]],
-            *,
-            env: Environment,
-            timing: Timing,
+        data: list[dict[Variable | str, int | float]],
+        *,
+        env: Environment,
+        timing: Timing,
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable, int]], *, model: Model, timing: Timing
+        data: list[dict[Variable, int]], *, model: Model, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable, float]], *, model: Model, timing: Timing
+        data: list[dict[Variable, float]], *, model: Model, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[str, int]], *, model: Model, timing: Timing
+        data: list[dict[str, int]], *, model: Model, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[str, float]], *, model: Model, timing: Timing
+        data: list[dict[str, float]], *, model: Model, timing: Timing
     ) -> Solution: ...
-
     @overload
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable | str, int | float]], *, model: Model, timing: Timing
+        data: list[dict[Variable | str, int | float]], *, model: Model, timing: Timing
     ) -> Solution: ...
-
     @staticmethod
     def from_dicts(
-            data: list[dict[Variable | str, int | float]],
-            *,
-            env: Environment | None = ...,
-            model: Model | None = ...,
-            timing: Timing | None = ...,
+        data: list[dict[Variable | str, int | float]],
+        *,
+        env: Environment | None = ...,
+        model: Model | None = ...,
+        timing: Timing | None = ...,
     ) -> Solution:
-        """
-        Create a `Solution` from multiple dicts that map variables or variable names to their
-        assigned values. Duplicate samples contained in the `data` list are aggregated to a single
-        sample.
+        """Create a `Solution` from multiple dicts.
+
+        Create a `Solution` from multiple dicts that map variables or variable names to
+        their assigned values. Duplicate samples contained in the `data` list are
+        aggregated to a single sample.
 
         If a Model is passed, the solution will be evaluated immediately. Otherwise,
         there has to be an environment present to determine the correct variable types.
@@ -1499,15 +1396,15 @@ class Solution:
         ...
 
     def print(
-            self,
-            /,
-            layout: Literal["row", "column"] = "column",
-            max_line_length: int = 80,
-            max_column_length: int = 5,
-            max_lines: int = 10,
-            max_var_name_length: int = 10,
-            show_metadata: Literal["before", "after", "hide"] = "after",
-    ):
+        self,
+        /,
+        layout: Literal["row", "column"] = "column",
+        max_line_length: int = 80,
+        max_column_length: int = 5,
+        max_lines: int = 10,
+        max_var_name_length: int = 10,
+        show_metadata: Literal["before", "after", "hide"] = "after",
+    ) -> None:
         """
         Show a solution object as a human-readable string.
 
@@ -1564,7 +1461,6 @@ class Solution:
         """
         ...
 
-
 # _sample.pyi
 class SamplesIterator:
     """
@@ -1584,9 +1480,7 @@ class SamplesIterator:
     """
 
     def __iter__(self, /) -> SamplesIterator: ...
-
     def __next__(self, /) -> Sample: ...
-
 
 class SampleIterator:
     """
@@ -1608,17 +1502,14 @@ class SampleIterator:
     """
 
     def __iter__(self, /) -> SampleIterator: ...
-
     def __next__(self, /) -> int | float: ...
 
-
 class Samples:
-    """
-    A samples object is simply a set-like object that contains every different sample
-    of a solution.
+    """A set-like object containing every different sample of a solution.
 
-    The ``Samples`` class is readonly as it's merely a helper class for looking into a
-    solution's different samples.
+    A samples object is simply a set-like object that contains every different sample
+    of a solution. The ``Samples`` class is readonly as it's merely a helper class for
+    looking into a solution's different samples.
 
     Examples
     --------
@@ -1632,14 +1523,13 @@ class Samples:
     """
 
     def __str__(self, /) -> str: ...
-
     @overload
     def __getitem__(self, item: int, /) -> Sample: ...
-
     @overload
-    def __getitem__(self, item: tuple[int, int], /) -> int | float:
-        """
-        Extract a sample or variable assignment from the ``Samples`` object.
+    def __getitem__(self, item: tuple[int, int], /) -> int | float: ...
+    def __getitem__(self, item: int | tuple[int, int], /) -> int | float:
+        """Extract a sample or variable assignment from the ``Samples`` object.
+
         If ``item`` is an int, returns the sample in this row. If ``item`` is a tuple
         of ints `(i, j)`, returns the variable assignment in row `i` and column `j`.
 
@@ -1677,7 +1567,8 @@ class Samples:
         ...
 
     def tolist(self, /) -> list[list[int | float]]:
-        """
+        """Convert sample into a 2-dimensional list.
+
         Convert the sample into a 2-dimensional list where a row constitutes a single
         sample, and a column constitutes all assignments for a single variable.
 
@@ -1688,10 +1579,10 @@ class Samples:
         """
         ...
 
-
 class Sample:
-    """
-    A sample object is an assignment of an actual value to each of the models'
+    """Assignment of actual values to the model's variables.
+
+    A sample object is an assignment of an actual value to each of the model's
     variables.
 
     The ``Sample`` class is readonly as it's merely a helper class for looking into a
@@ -1711,13 +1602,10 @@ class Sample:
     """
 
     def __str__(self, /) -> str: ...
-
     @overload
     def __getitem__(self, item: int, /) -> int | float: ...
-
     @overload
     def __getitem__(self, item: Variable, /) -> int | float: ...
-
     def __getitem__(self, item: int | Variable, /) -> int | float:
         """
         Extract a variable assignment from the ``Sample`` object.
@@ -1755,7 +1643,6 @@ class Sample:
         """
         ...
 
-
 # _result.pyi
 class ResultIterator:
     """
@@ -1773,9 +1660,7 @@ class ResultIterator:
     """
 
     def __iter__(self, /) -> ResultIterator: ...
-
     def __next__(self, /) -> ResultView: ...
-
 
 class Result:
     """
@@ -1816,7 +1701,8 @@ class Result:
 
     @property
     def constraints(self, /) -> NDArray | None:
-        """
+        """The result's feasibility of all constraints.
+
         Get this result's feasibility values of all constraints. Note that
         `results.constraints[i]` iff. `model.constraints[i]` is feasible for
         this result.
@@ -1825,9 +1711,7 @@ class Result:
 
     @property
     def variable_bounds(self, /) -> NDArray | None:
-        """
-        Get this result's feasibility values of all variable bounds.
-        """
+        """Get this result's feasibility values of all variable bounds."""
         ...
 
     @property
@@ -1836,9 +1720,7 @@ class Result:
         ...
 
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
 
 class ResultView:
     """
@@ -1879,33 +1761,35 @@ class ResultView:
     @property
     def obj_value(self, /) -> float | None:
         """
-        Get the objective value of this sample if present. This is the value computed
-        by the corresponding AqModel.
+        Get the objective value of this sample if present.
+
+        This is the value computed by the corresponding AqModel.
         """
         ...
 
     @property
     def raw_energy(self, /) -> float | None:
         """
-        Get the raw energy returned by the algorithm if present. This value is not
-        guaranteed to be accurate under consideration of the corresponding AqModel.
+        Get the raw energy returned by the algorithm if present.
+
+        This value is not guaranteed to be accurate under consideration of the
+        corresponding AqModel.
         """
         ...
 
     @property
     def constraints(self, /) -> NDArray | None:
         """
-        Get this result's feasibility values of all constraints. Note that
-        `results.constraints[i]` iff. `model.constraints[i]` is feasible for
+        Get this result's feasibility values of all constraints.
+
+        Note that `results.constraints[i]` iff. `model.constraints[i]` is feasible for
         this result.
         """
         ...
 
     @property
     def variable_bounds(self, /) -> NDArray | None:
-        """
-        Get this result's feasibility values of all variable bounds.
-        """
+        """Get this result's feasibility values of all variable bounds."""
         ...
 
     @property
@@ -1914,11 +1798,8 @@ class ResultView:
         ...
 
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
-    def __eq__(self, other: ResultView, /) -> bool: ...  # type: ignore
-
+    def __eq__(self, other: ResultView, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
 
 # _model.pyi
 class Sense(Enum):
@@ -1934,7 +1815,6 @@ class Sense(Enum):
 
     Max = ...
     """Indicate the objective function to be maximized."""
-
 
 class Model:
     """
@@ -1990,41 +1870,34 @@ class Model:
     Notes
     -----
     - The `Model` class does not solve the optimization problem.
-    - Use `.objective`, `.constraints`, and `.environment` to access the symbolic content.
+    - Use `.objective`, `.constraints`, and `.environment` to access the symbolic
+      content.
     - Use `encode()` and `decode()` to serialize and recover models.
     """
 
     @overload
     def __init__(self, /) -> None: ...
-
     @overload
     def __init__(self, /, name: str) -> None: ...
-
     @overload
     def __init__(self, /, name: str, *, sense: Sense) -> None: ...
-
     @overload
     def __init__(self, /, name: str, *, env: Environment) -> None: ...
-
     @overload
     def __init__(self, /, *, sense: Sense) -> None: ...
-
     @overload
     def __init__(self, /, *, env: Environment) -> None: ...
-
     @overload
     def __init__(self, /, *, sense: Sense, env: Environment) -> None: ...
-
     @overload
     def __init__(self, /, name: str, *, sense: Sense, env: Environment) -> None: ...
-
     def __init__(
-            self,
-            /,
-            name: str | None = ...,
-            *,
-            sense: Sense | None = ...,
-            env: Environment | None = ...,
+        self,
+        /,
+        name: str | None = ...,
+        *,
+        sense: Sense | None = ...,
+        env: Environment | None = ...,
     ) -> None:
         """
         Initialize a new symbolic model.
@@ -2058,7 +1931,7 @@ class Model:
     @property
     def sense(self, /) -> Sense:
         """
-        Get the sense of the model
+        Get the sense of the model.
 
         Returns
         -------
@@ -2073,7 +1946,7 @@ class Model:
         ...
 
     @objective.setter
-    def objective(self, value: Expression, /):
+    def objective(self, value: Expression, /) -> None:
         """Set the objective expression of the model."""
         ...
 
@@ -2083,7 +1956,7 @@ class Model:
         ...
 
     @constraints.setter
-    def constraints(self, value: Constraints, /):
+    def constraints(self, value: Constraints, /) -> None:
         """Replace the model's constraints with a new set."""
         ...
 
@@ -2094,10 +1967,8 @@ class Model:
 
     @overload
     def variables(self, /) -> list[Variable]: ...
-
     @overload
     def variables(self, /, *, active: bool) -> list[Variable]: ...
-
     def variables(self, /, active: bool | None = ...) -> list[Variable]:
         """
         Get all variables that are part of this model.
@@ -2115,12 +1986,10 @@ class Model:
         ...
 
     @overload
-    def add_constraint(self, /, constraint: Constraint): ...
-
+    def add_constraint(self, /, constraint: Constraint) -> None: ...
     @overload
-    def add_constraint(self, /, constraint: Constraint, name: str): ...
-
-    def add_constraint(self, /, constraint: Constraint, name: str | None = ...):
+    def add_constraint(self, /, constraint: Constraint, name: str) -> None: ...
+    def add_constraint(self, /, constraint: Constraint, name: str | None = ...) -> None:
         """
         Add a constraint to the model's constraint collection.
 
@@ -2134,12 +2003,12 @@ class Model:
         ...
 
     @overload
-    def set_objective(self, /, expression: Expression): ...
-
+    def set_objective(self, /, expression: Expression) -> None: ...
     @overload
-    def set_objective(self, /, expression: Expression, *, sense: Sense): ...
-
-    def set_objective(self, /, expression: Expression, *, sense: Sense | None = ...):
+    def set_objective(self, /, expression: Expression, *, sense: Sense) -> None: ...
+    def set_objective(
+        self, /, expression: Expression, *, sense: Sense | None = ...
+    ) -> None:
         """
         Set the model's objective to this expression.
 
@@ -2198,17 +2067,13 @@ class Model:
 
     @overload
     def encode(self, /) -> bytes: ...
-
     @overload
     def encode(self, /, *, compress: bool) -> bytes: ...
-
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
-
     @overload
     def encode(self, /, compress: bool, level: int) -> bytes: ...
-
-    def encode(self, /, compress: bool | None = ..., level: int | None = ...) -> bytes:
+    def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         """
         Serialize the model into a compact binary format.
 
@@ -2217,7 +2082,7 @@ class Model:
         compress : bool, optional
             Whether to compress the binary output. Default is True.
         level : int, optional
-            Compression level (0–9). Default is 3.
+            Compression level (0-9). Default is 3.
 
         Returns
         -------
@@ -2233,18 +2098,14 @@ class Model:
 
     @overload
     def serialize(self, /) -> bytes: ...
-
     @overload
     def serialize(self, /, *, compress: bool) -> bytes: ...
-
     @overload
     def serialize(self, /, *, level: int) -> bytes: ...
-
     @overload
     def serialize(self, /, compress: bool, level: int) -> bytes: ...
-
     def serialize(
-            self, /, compress: bool | None = ..., level: int | None = ...
+        self, /, compress: bool | None = ..., level: int | None = ...
     ) -> bytes:
         """
         Alias for `encode()`.
@@ -2284,7 +2145,7 @@ class Model:
         """
         ...
 
-    def __eq__(self, other: Model, /) -> bool:  # type: ignore
+    def __eq__(self, other: Model, /) -> bool:  # type: ignore[reportIncompatibleMethodOverride]
         """
         Check whether this model is equal to `other`.
 
@@ -2299,21 +2160,18 @@ class Model:
         ...
 
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
     def __hash__(self, /) -> int: ...
-
 
 # _expression.pyi
 class Expression:
     """
-    Polynomial expression supporting symbolic arithmetic, constraint creation, and encoding.
+    Polynomial expression supporting symbolic arithmetic, constraint creation.
 
-    An `Expression` represents a real-valued mathematical function composed of variables,
-    scalars, and coefficients. Expressions may include constant, linear, quadratic, and
-    higher-order terms (cubic and beyond). They are used to build objective functions
-    and constraints in symbolic optimization models.
+    An `Expression` represents a real-valued mathematical function composed of
+    variables, scalars, and coefficients. Expressions may include constant, linear,
+    quadratic, and higher-order terms (cubic and beyond). They are used to build
+    objective functions and constraints in symbolic optimization models.
 
     Expressions support both regular and in-place arithmetic, including addition and
     multiplication with integers, floats, `Variable` instances, and other `Expression`s.
@@ -2401,23 +2259,21 @@ class Expression:
 
     @overload
     def __init__(self, /) -> None: ...
-
     @overload
     def __init__(self, /, env: Environment) -> None: ...
-
     def __init__(self, /, env: Environment | None = ...) -> None:
         """
-         Create a new empty expression scoped to an environment.
+        Create a new empty expression scoped to an environment.
 
-         Parameters
-         ----------
-         env : Environment
-             The environment to which this expression is bound.
+        Parameters
+        ----------
+        env : Environment
+            The environment to which this expression is bound.
 
         Raises
-         ------
-         NoActiveEnvironmentFoundError
-             If no environment is provided and none is active in the context.
+        ------
+        NoActiveEnvironmentFoundError
+            If no environment is provided and none is active in the context.
         """
         ...
 
@@ -2525,17 +2381,13 @@ class Expression:
 
     @overload
     def encode(self, /) -> bytes: ...
-
     @overload
     def encode(self, /, *, compress: bool) -> bytes: ...
-
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
-
     @overload
     def encode(self, /, compress: bool, level: int) -> bytes: ...
-
-    def encode(self, /, compress: bool | None = ..., level: int | None = ...) -> bytes:
+    def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         """
         Serialize the expression into a compact binary format.
 
@@ -2544,7 +2396,7 @@ class Expression:
         compress : bool, optional
             Whether to compress the data. Default is True.
         level : int, optional
-            Compression level (0–9). Default is 3.
+            Compression level (0-9). Default is 3.
 
         Returns
         -------
@@ -2560,18 +2412,14 @@ class Expression:
 
     @overload
     def serialize(self, /) -> bytes: ...
-
     @overload
     def serialize(self, /, *, compress: bool) -> bytes: ...
-
     @overload
     def serialize(self, /, *, level: int) -> bytes: ...
-
     @overload
     def serialize(self, /, compress: bool, level: int) -> bytes: ...
-
     def serialize(
-            self, /, compress: bool | None = ..., level: int | None = ...
+        self, /, compress: bool | None = ..., level: int | None = ...
     ) -> bytes:
         """
         Alias for `encode()`.
@@ -2613,16 +2461,12 @@ class Expression:
 
     @overload
     def __add__(self, other: Expression, /) -> Expression: ...
-
     @overload
     def __add__(self, other: Variable, /) -> Expression: ...
-
     @overload
     def __add__(self, other: int, /) -> Expression: ...
-
     @overload
     def __add__(self, other: float, /) -> Expression: ...
-
     def __add__(self, other: Expression | Variable | int | float, /) -> Expression:
         """
         Add another expression, variable, or scalar.
@@ -2646,16 +2490,12 @@ class Expression:
 
     @overload
     def __radd__(self, other: Expression, /) -> Expression: ...
-
     @overload
     def __radd__(self, other: Variable, /) -> Expression: ...
-
     @overload
     def __radd__(self, other: int, /) -> Expression: ...
-
     @overload
     def __radd__(self, other: float, /) -> Expression: ...
-
     def __radd__(self, other: Expression | Variable | int | float, /) -> Expression:
         """
         Add this expression to a scalar or variable.
@@ -2676,18 +2516,14 @@ class Expression:
         ...
 
     @overload
-    def __iadd__(self, other: Expression, /): ...
-
+    def __iadd__(self, other: Expression, /) -> Self: ...
     @overload
-    def __iadd__(self, other: Variable, /): ...
-
+    def __iadd__(self, other: Variable, /) -> Self: ...
     @overload
-    def __iadd__(self, other: int, /): ...
-
+    def __iadd__(self, other: int, /) -> Self: ...
     @overload
-    def __iadd__(self, other: float, /): ...
-
-    def __iadd__(self, other: Expression | Variable | int | float, /) -> Expression:
+    def __iadd__(self, other: float, /) -> Self: ...
+    def __iadd__(self, other: Expression | Variable | int | float, /) -> Self:
         """
         In-place addition.
 
@@ -2697,7 +2533,7 @@ class Expression:
 
         Returns
         -------
-        Expression
+        Self
 
         Raises
         ------
@@ -2709,18 +2545,14 @@ class Expression:
         ...
 
     @overload
-    def __isub__(self, other: Expression, /): ...
-
+    def __isub__(self, other: Expression, /) -> Self: ...
     @overload
-    def __isub__(self, other: Variable, /): ...
-
+    def __isub__(self, other: Variable, /) -> Self: ...
     @overload
-    def __isub__(self, other: int, /): ...
-
+    def __isub__(self, other: int, /) -> Self: ...
     @overload
-    def __isub__(self, other: float, /): ...
-
-    def __isub__(self, other: Expression | Variable | int | float, /):
+    def __isub__(self, other: float, /) -> Self: ...
+    def __isub__(self, other: Expression | Variable | int | float, /) -> Self:
         """
         In-place subtraction.
 
@@ -2730,7 +2562,7 @@ class Expression:
 
         Returns
         -------
-        Expression
+        Self
 
         Raises
         ------
@@ -2743,16 +2575,12 @@ class Expression:
 
     @overload
     def __sub__(self, other: Expression, /) -> Expression: ...
-
     @overload
     def __sub__(self, other: Variable, /) -> Expression: ...
-
     @overload
     def __sub__(self, other: int, /) -> Expression: ...
-
     @overload
     def __sub__(self, other: float, /) -> Expression: ...
-
     def __sub__(self, other: Expression | Variable | int | float, /) -> Expression:
         """
         Subtract another expression, variable, or scalar.
@@ -2776,16 +2604,12 @@ class Expression:
 
     @overload
     def __mul__(self, other: Expression, /) -> Expression: ...
-
     @overload
     def __mul__(self, other: Variable, /) -> Expression: ...
-
     @overload
     def __mul__(self, other: int, /) -> Expression: ...
-
     @overload
     def __mul__(self, other: float, /) -> Expression: ...
-
     def __mul__(self, other: Expression | Variable | int | float, /) -> Expression:
         """
         Multiply this expression by another value.
@@ -2809,10 +2633,8 @@ class Expression:
 
     @overload
     def __rmul__(self, other: int, /) -> Expression: ...
-
     @overload
     def __rmul__(self, other: float, /) -> Expression: ...
-
     def __rmul__(self, other: int | float, /) -> Expression:
         """
         Right-hand multiplication.
@@ -2833,18 +2655,14 @@ class Expression:
         ...
 
     @overload
-    def __imul__(self, other: Expression, /): ...
-
+    def __imul__(self, other: Expression, /) -> Self: ...
     @overload
-    def __imul__(self, other: Variable, /): ...
-
+    def __imul__(self, other: Variable, /) -> Self: ...
     @overload
-    def __imul__(self, other: int, /): ...
-
+    def __imul__(self, other: int, /) -> Self: ...
     @overload
-    def __imul__(self, other: float, /): ...
-
-    def __imul__(self, other: Expression | Variable | int | float, /):
+    def __imul__(self, other: float, /) -> Self: ...
+    def __imul__(self, other: Expression | Variable | int | float, /) -> Self:
         """
         In-place multiplication.
 
@@ -2854,7 +2672,7 @@ class Expression:
 
         Returns
         -------
-        Expression
+        Self
 
         Raises
         ------
@@ -2886,19 +2704,15 @@ class Expression:
 
     @overload
     def __eq__(self, rhs: Expression, /) -> Constraint: ...
-
     @overload
     def __eq__(self, rhs: Variable, /) -> Constraint: ...
-
     @overload
-    def __eq__(self, rhs: int, /) -> Constraint: ...  # type: ignore
-
+    def __eq__(self, rhs: int, /) -> Constraint: ...
     @overload
-    def __eq__(self, rhs: float, /) -> Constraint: ...  # type: ignore
-
-    def __eq__(self, rhs: Expression | Variable | int | float, /) -> Constraint:  # type: ignore
+    def __eq__(self, rhs: float, /) -> Constraint: ...
+    def __eq__(self, rhs: Expression | Variable | int | float, /) -> Constraint:  # type: ignore[reportIncompatibleMethodOverride]
         """
-        Compare to a different expression or create a constraint `expression == scalar`
+        Compare to a different expression or create a constraint `expression == scalar`.
 
         If `rhs` is of type `Variable` or `Expression` it is moved to the `lhs` in the
         constraint, resulting in the following constraint:
@@ -2922,16 +2736,12 @@ class Expression:
 
     @overload
     def __le__(self, rhs: Expression, /) -> Constraint: ...
-
     @overload
     def __le__(self, rhs: Variable, /) -> Constraint: ...
-
     @overload
     def __le__(self, rhs: int, /) -> Constraint: ...
-
     @overload
     def __le__(self, rhs: float, /) -> Constraint: ...
-
     def __le__(self, rhs: Expression | Variable | int | float, /) -> Constraint:
         """
         Create a constraint `expression <= scalar`.
@@ -2958,16 +2768,12 @@ class Expression:
 
     @overload
     def __ge__(self, rhs: Expression, /) -> Constraint: ...
-
     @overload
     def __ge__(self, rhs: Variable, /) -> Constraint: ...
-
     @overload
     def __ge__(self, rhs: int, /) -> Constraint: ...
-
     @overload
     def __ge__(self, rhs: float, /) -> Constraint: ...
-
     def __ge__(self, rhs: Expression | Variable | int | float, /) -> Constraint:
         """
         Create a constraint: expression >= scalar.
@@ -3008,17 +2814,15 @@ class Expression:
         ...
 
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
 
 # _environment.pyi
 class Environment:
     """
     Execution context for variable creation and expression scoping.
 
-    An `Environment` provides the symbolic scope in which `Variable` objects are defined.
-    It is required for variable construction, and ensures consistency across expressions.
+    An `Environment` provides the symbolic scope in which `Variable`s are defined.
+    It is required for constructing variables ensuring consistency across expressions.
     The environment does **not** store constraints or expressions — it only facilitates
     their creation by acting as a context manager and anchor for `Variable` instances.
 
@@ -3042,7 +2846,8 @@ class Environment:
     Notes
     -----
     - The environment is required to create `Variable` instances.
-    - It does **not** own constraints or expressions — they merely reference variables tied to an environment.
+    - It does **not** own constraints or expressions — they merely reference variables
+      tied to an environment.
     - Environments **cannot be nested**. Only one can be active at a time.
     - Use `encode()` / `decode()` to persist and recover expression trees.
     """
@@ -3055,7 +2860,7 @@ class Environment:
         """
         ...
 
-    def __enter__(self, /) -> Any:
+    def __enter__(self, /) -> Self:
         """
         Activate this environment for variable creation.
 
@@ -3071,7 +2876,13 @@ class Environment:
         """
         ...
 
-    def __exit__(self, /, exc_type, exc_value, exc_traceback) -> None:
+    def __exit__(
+        self,
+        /,
+        exc_type: type[BaseException] | None = ...,
+        exc_value: BaseException | None = ...,
+        exc_traceback: TracebackType | None = ...,
+    ) -> None:
         """
         Deactivate this environment.
 
@@ -3102,17 +2913,13 @@ class Environment:
 
     @overload
     def encode(self, /) -> bytes: ...
-
     @overload
     def encode(self, /, *, compress: bool) -> bytes: ...
-
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
-
     @overload
     def encode(self, /, compress: bool, level: int) -> bytes: ...
-
-    def encode(self, /, compress: bool | None = ..., level: int | None = ...) -> bytes:
+    def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         """
         Serialize the environment into a compact binary format.
 
@@ -3139,18 +2946,14 @@ class Environment:
 
     @overload
     def serialize(self, /) -> bytes: ...
-
     @overload
     def serialize(self, /, *, compress: bool) -> bytes: ...
-
     @overload
     def serialize(self, /, *, level: int) -> bytes: ...
-
     @overload
     def serialize(self, /, compress: bool, level: int) -> bytes: ...
-
     def serialize(
-            self, /, compress: bool | None = ..., level: int | None = ...
+        self, /, compress: bool | None = ..., level: int | None = ...
     ) -> bytes:
         """
         Alias for `encode()`.
@@ -3190,12 +2993,9 @@ class Environment:
         """
         ...
 
-    def __eq__(self, other: Environment, /) -> bool: ...  # type: ignore
-
+    def __eq__(self, other: Environment, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
 
 # _constraints.pyi
 class Comparator(Enum):
@@ -3231,9 +3031,7 @@ class Comparator(Enum):
     """Greater-than or equal (>=)"""
 
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
 
 class Constraint:
     """
@@ -3270,89 +3068,73 @@ class Constraint:
 
     @overload
     def __init__(
-            self, /, lhs: Expression, rhs: Expression, comparator: Comparator
+        self, /, lhs: Expression, rhs: Expression, comparator: Comparator
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Expression, rhs: Variable, comparator: Comparator
+        self, /, lhs: Expression, rhs: Variable, comparator: Comparator
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Expression, rhs: int, comparator: Comparator
+        self, /, lhs: Expression, rhs: int, comparator: Comparator
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Expression, rhs: float, comparator: Comparator
+        self, /, lhs: Expression, rhs: float, comparator: Comparator
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Expression, rhs: Expression, comparator: Comparator, name: str
+        self, /, lhs: Expression, rhs: Expression, comparator: Comparator, name: str
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Expression, rhs: Variable, comparator: Comparator, name: str
+        self, /, lhs: Expression, rhs: Variable, comparator: Comparator, name: str
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Expression, rhs: int, comparator: Comparator, name: str
+        self, /, lhs: Expression, rhs: int, comparator: Comparator, name: str
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Expression, rhs: float, comparator: Comparator, name: str
+        self, /, lhs: Expression, rhs: float, comparator: Comparator, name: str
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Variable, rhs: Expression, comparator: Comparator
+        self, /, lhs: Variable, rhs: Expression, comparator: Comparator
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Variable, rhs: Variable, comparator: Comparator
+        self, /, lhs: Variable, rhs: Variable, comparator: Comparator
     ) -> None: ...
-
     @overload
     def __init__(self, /, lhs: Variable, rhs: int, comparator: Comparator) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Variable, rhs: float, comparator: Comparator
+        self, /, lhs: Variable, rhs: float, comparator: Comparator
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Variable, rhs: Expression, comparator: Comparator, name: str
+        self, /, lhs: Variable, rhs: Expression, comparator: Comparator, name: str
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Variable, rhs: Variable, comparator: Comparator, name: str
+        self, /, lhs: Variable, rhs: Variable, comparator: Comparator, name: str
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Variable, rhs: int, comparator: Comparator, name: str
+        self, /, lhs: Variable, rhs: int, comparator: Comparator, name: str
     ) -> None: ...
-
     @overload
     def __init__(
-            self, /, lhs: Variable, rhs: float, comparator: Comparator, name: str
+        self, /, lhs: Variable, rhs: float, comparator: Comparator, name: str
     ) -> None: ...
-
     def __init__(
-            self,
-            /,
-            lhs: Variable | Expression,
-            rhs: int | float | Expression | Variable,
-            comparator: Comparator,
-            name: str,
+        self,
+        /,
+        lhs: Variable | Expression,
+        rhs: int | float | Expression | Variable,
+        comparator: Comparator,
+        name: str,
     ) -> None:
         """
         Construct a new symbolic constraint.
@@ -3392,7 +3174,7 @@ class Constraint:
     @property
     def lhs(self, /) -> Expression:
         """
-        Get the left-hand side of the constraint
+        Get the left-hand side of the constraint.
 
         Returns
         -------
@@ -3404,7 +3186,7 @@ class Constraint:
     @property
     def rhs(self, /) -> float:
         """
-        Get the right-hand side of the constraint
+        Get the right-hand side of the constraint.
 
         Returns
         -------
@@ -3416,7 +3198,7 @@ class Constraint:
     @property
     def comparator(self, /) -> Comparator:
         """
-        Get the comparator of the constraint
+        Get the comparator of the constraint.
 
         Returns
         -------
@@ -3425,12 +3207,9 @@ class Constraint:
         """
         ...
 
-    def __eq__(self, other: Constraint, /) -> bool: ...  # type: ignore
-
+    def __eq__(self, other: Constraint, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
 
 class Constraints:
     """
@@ -3466,25 +3245,11 @@ class Constraints:
     """
 
     def __init__(self, /) -> None: ...
-
     @overload
-    def add_constraint(self, /, constraint: Constraint):
-        """
-        Add a constraint to the collection.
-
-        Parameters
-        ----------
-        constraint : Constraint
-            The constraint to be added.
-        name : str, optional
-            The name of the constraint to be added.
-        """
-        ...
-
+    def add_constraint(self, /, constraint: Constraint) -> None: ...
     @overload
-    def add_constraint(self, /, constraint: Constraint, name: str): ...
-
-    def add_constraint(self, /, constraint: Constraint, name: str | None = ...):
+    def add_constraint(self, /, constraint: Constraint, name: str) -> None: ...
+    def add_constraint(self, /, constraint: Constraint, name: str | None = ...) -> None:
         """
         Add a constraint to the collection.
 
@@ -3499,17 +3264,13 @@ class Constraints:
 
     @overload
     def encode(self, /) -> bytes: ...
-
     @overload
     def encode(self, /, *, compress: bool) -> bytes: ...
-
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
-
     @overload
     def encode(self, /, compress: bool, level: int) -> bytes: ...
-
-    def encode(self, /, compress: bool | None = ..., level: int | None = ...) -> bytes:
+    def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         """
         Serialize the constraint collection to a binary blob.
 
@@ -3518,7 +3279,7 @@ class Constraints:
         compress : bool, optional
             Whether to compress the result. Default is True.
         level : int, optional
-            Compression level (0–9). Default is 3.
+            Compression level (0-9). Default is 3.
 
         Returns
         -------
@@ -3534,18 +3295,14 @@ class Constraints:
 
     @overload
     def serialize(self, /) -> bytes: ...
-
     @overload
     def serialize(self, /, *, compress: bool) -> bytes: ...
-
     @overload
     def serialize(self, /, *, level: int) -> bytes: ...
-
     @overload
     def serialize(self, /, compress: bool, level: int) -> bytes: ...
-
     def serialize(
-            self, /, compress: bool | None = ..., level: int | None = ...
+        self, /, compress: bool | None = ..., level: int | None = ...
     ) -> bytes:
         """
         Alias for `encode()`.
@@ -3586,12 +3343,10 @@ class Constraints:
         ...
 
     @overload
-    def __iadd__(self, constraint: Constraint, /): ...
-
+    def __iadd__(self, constraint: Constraint, /) -> Self: ...
     @overload
-    def __iadd__(self, constraint: tuple[Constraint, str], /): ...
-
-    def __iadd__(self, constraint: Constraint | tuple[Constraint, str], /):
+    def __iadd__(self, constraint: tuple[Constraint, str], /) -> Self: ...
+    def __iadd__(self, constraint: Constraint | tuple[Constraint, str], /) -> Self:
         """
         In-place constraint addition using `+=`.
 
@@ -3612,14 +3367,10 @@ class Constraints:
         """
         ...
 
-    def __eq__(self, other: Constraints, /) -> bool: ...  # type: ignore
-
+    def __eq__(self, other: Constraints, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
     def __str__(self, /) -> str: ...
-
     def __repr__(self, /) -> str: ...
-
     def __getitem__(self, item: int, /) -> Constraint: ...
-
     def __len__(self, /) -> int:
         """
         Get the number of constraints.
@@ -3631,28 +3382,27 @@ class Constraints:
         """
         ...
 
-
 __all__ = [
-    "Vtype",
     "Bounds",
-    "Variable",
-    "Timing",
-    "Timer",
-    "Solution",
-    "SamplesIterator",
-    "SampleIterator",
-    "Samples",
-    "Sample",
-    "ResultIterator",
-    "Result",
-    "ResultView",
-    "Sense",
-    "Model",
-    "Expression",
-    "Environment",
     "Comparator",
     "Constraint",
     "Constraints",
-    "translator",
+    "Environment",
+    "Expression",
+    "Model",
+    "Result",
+    "ResultIterator",
+    "ResultView",
+    "Sample",
+    "SampleIterator",
+    "Samples",
+    "SamplesIterator",
+    "Sense",
+    "Solution",
+    "Timer",
+    "Timing",
+    "Variable",
+    "Vtype",
     "errors",
+    "translator",
 ]

@@ -1,5 +1,6 @@
 import pytest
-from aqmodels import Model, Variable, Vtype, Bounds, Unbounded
+
+from aqmodels import Bounds, Model, Unbounded, Variable, Vtype
 
 
 @pytest.fixture

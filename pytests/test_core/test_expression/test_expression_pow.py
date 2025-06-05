@@ -3,7 +3,7 @@ from typing import Tuple
 
 import pytest
 
-from aqmodels import Variable, Environment, Vtype
+from aqmodels import Environment, Variable, Vtype
 
 
 @pytest.fixture

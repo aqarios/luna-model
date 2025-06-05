@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from aqmodels import Model, Variable, Environment, Vtype, Solution, Timer, Sense
+from aqmodels import Environment, Model, Sense, Solution, Timer, Variable, Vtype
 
 
 def vars() -> tuple[tuple[Variable, ...], Environment]:
@@ -63,8 +63,8 @@ def solution(request, model: Model):
 def test_row_hide(solution: Solution):
     s = solution.print(layout="row", show_metadata="hide")
     assert (
-            s
-            == """
+        s
+        == """
 b_0      0     0     1
 b_1      1     1     1
 s_0     -1    -1    -1
@@ -83,8 +83,8 @@ Total variables: 8""".strip("\n")
 def test_row_before_max_lines(solution: Solution):
     s = solution.print(layout="row", show_metadata="before", max_lines=7)
     assert (
-            s
-            == """
+        s
+        == """
   feasible      ?     ?     ?
 raw energy      ?     ?     ?
  objective      ?     ?     ?
@@ -107,8 +107,8 @@ Total variables: 8""".strip("\n")
 def test_row_after_max_line_length(solution: Solution):
     s = solution.print(layout="row", show_metadata="after", max_line_length=27)
     assert (
-            s
-            == """
+        s
+        == """
        b_0      0     0 ...
        b_1      1     1 ...
        s_0     -1    -1 ...
@@ -131,8 +131,8 @@ Total variables: 8""".strip("\n")
 def test_row_after_max_line_length_dots_too_long(solution: Solution):
     s = solution.print(layout="row", show_metadata="after", max_line_length=26)
     assert (
-            s
-            == """
+        s
+        == """
        b_0      0 ...
        b_1      1 ...
        s_0     -1 ...
@@ -155,8 +155,8 @@ Total variables: 8""".strip("\n")
 def test_col_hide(solution: Solution):
     s = solution.print(layout="column", show_metadata="hide")
     assert (
-            s
-            == """
+        s
+        == """
 b_0 b_1 s_0 s_1  i_0 i_1    r_0   r_1
   0   1  -1   1  -10  42 -3.2e2 1.0e8
   0   1  -1   1 -100  42  -3.12 -10.1
@@ -170,8 +170,8 @@ Total variables: 8""".strip("\n")
 def test_col_after_full(solution: Solution):
     s = solution.print(layout="column", show_metadata="after")
     assert (
-            s
-            == """
+        s
+        == """
 b_0 b_1 s_0 s_1  i_0 i_1    r_0   r_1 │ feas raw obj count
   0   1  -1   1  -10  42 -3.2e2 1.0e8 │    ?   ?   ?     1
   0   1  -1   1 -100  42  -3.12 -10.1 │    ?   ?   ?     1
@@ -186,8 +186,8 @@ def test_col_before_full(solution: Solution):
     print()
     s = solution.print(layout="column", show_metadata="before")
     assert (
-            s
-            == """
+        s
+        == """
 feas raw obj count │ b_0 b_1 s_0 s_1  i_0 i_1    r_0   r_1
    ?   ?   ?     1 │   0   1  -1   1  -10  42 -3.2e2 1.0e8
    ?   ?   ?     1 │   0   1  -1   1 -100  42  -3.12 -10.1
@@ -203,8 +203,8 @@ def test_col_after_truncated(solution: Solution):
         layout="column", show_metadata="after", max_lines=2, max_line_length=50
     )
     assert (
-            s
-            == """
+        s
+        == """
 b_0 b_1 s_0 s_1  i_0 i_1     │ feas raw obj count
   0   1  -1   1  -10  42 ... │    ?   ?   ?     1
   0   1  -1   1 -100  42 ... │    ?   ?   ?     1
@@ -220,8 +220,8 @@ def test_col_after_truncated_dots_too_long(solution: Solution):
         layout="column", show_metadata="after", max_lines=2, max_line_length=48
     )
     assert (
-            s
-            == """
+        s
+        == """
 b_0 b_1 s_0 s_1  i_0     │ feas raw obj count
   0   1  -1   1  -10 ... │    ?   ?   ?     1
   0   1  -1   1 -100 ... │    ?   ?   ?     1
@@ -272,8 +272,8 @@ def model_with_sol(request) -> tuple[Model, Solution]:
 def test_sorted_solution_minimize_col(model_with_sol: tuple[Model, Solution]):
     _, sol = model_with_sol
     assert (
-            sol.print()
-            == """
+        sol.print()
+        == """
 a b c d e │ feas raw   obj count
 0 1 1 0 0 │    t   ? -11.0     1
 0 1 1 0 1 │    t   ?  -9.0     3
@@ -291,7 +291,9 @@ Total variables: 5""".strip("\n")
 @pytest.mark.parametrize("model_with_sol", [True], indirect=True)
 def test_sorted_solution_minimize_row(model_with_sol: tuple[Model, Solution]):
     _, sol = model_with_sol
-    assert sol.print(layout="row") == """
+    assert (
+        sol.print(layout="row")
+        == """
          a     0     0     0     0     1     1     1
          b     1     1     1     1     1     1     1
          c     1     1     1     0     1     1     0
@@ -305,14 +307,15 @@ raw energy     ?     ?     ?     ?     ?     ?     ?
 
 Total samples: 7
 Total variables: 5""".strip("\n")
+    )
 
 
 @pytest.mark.parametrize("model_with_sol", [False], indirect=True)
 def test_sorted_solution_maximize(model_with_sol: tuple[Model, Solution]):
     _, sol = model_with_sol
     assert (
-            sol.print()
-            == """
+        sol.print()
+        == """
 a b c d e │ feas raw   obj count
 0 1 0 0 0 │    t   ?  -5.0     1
 0 1 1 0 1 │    t   ?  -9.0     3
@@ -331,7 +334,9 @@ Total variables: 5""".strip("\n")
 def test_sorted_solution_maximize_row(model_with_sol: tuple[Model, Solution]):
     _, sol = model_with_sol
     print()
-    assert sol.print(layout="row") == """
+    assert (
+        sol.print(layout="row")
+        == """
          a     0     0     0     0     1     1     1
          b     1     1     1     1     1     1     1
          c     0     1     1     1     0     1     1
@@ -345,3 +350,4 @@ raw energy     ?     ?     ?     ?     ?     ?     ?
 
 Total samples: 7
 Total variables: 5""".strip("\n")
+    )

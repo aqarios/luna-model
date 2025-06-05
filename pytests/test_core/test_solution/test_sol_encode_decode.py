@@ -1,9 +1,6 @@
 import pytest
 
-from aqmodels import (
-    Solution,
-    Vtype,
-)
+from aqmodels import Solution, Vtype
 
 
 @pytest.fixture
