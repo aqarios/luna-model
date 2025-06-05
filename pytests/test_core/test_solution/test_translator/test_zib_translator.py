@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 from pyscipopt import Model as ScipModel
 
-from aqmodels import Model, Timer, Variable, Bounds, Vtype
-from aqmodels.translator import ZibTranslator, LpTranslator
+from aqmodels import Bounds, Model, Timer, Variable, Vtype
+from aqmodels.translator import LpTranslator, ZibTranslator
 
 
 @pytest.fixture

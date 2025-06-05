@@ -1,14 +1,11 @@
 import pytest
 
-from aqmodels import (
-    Solution,
-    Vtype,
-)
+from aqmodels import Solution, Vtype
 
 
 @pytest.fixture
 def solution() -> Solution:
-    return Solution._build( # type: ignore[reportAttributeAccessIssue]
+    return Solution._build(  # type: ignore[reportAttributeAccessIssue]
         component_types=[
             Vtype.Binary,
             Vtype.Spin,

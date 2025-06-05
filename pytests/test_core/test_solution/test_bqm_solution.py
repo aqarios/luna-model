@@ -1,9 +1,9 @@
 import dimod
 import numpy as np
-from aqmodels._core import Solution
-from aqmodels.translator import BqmTranslator
-from aqmodels.translator import DwaveTranslator
 from dwave.samplers import TabuSampler
+
+from aqmodels._core import Solution
+from aqmodels.translator import BqmTranslator, DwaveTranslator
 
 
 def test_bqm_solution():
