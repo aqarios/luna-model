@@ -1,6 +1,7 @@
 use pyo3::{ffi::c_str, prelude::*};
 use std::{collections::HashMap, ffi::CStr};
 
+use crate::py_bindings::py_usize::PyUsize;
 use crate::{
     py_bindings::{
         py_env::{PyEnvironment, CURRENT_ENV},
@@ -70,8 +71,8 @@ impl PyQctrlTranslator {
     fn translate(
         solution_bitstring: Option<String>,
         solution_bitstring_cost: Option<f64>,
-        final_bitstring_distribution: Option<HashMap<String, usize>>,
-        variables_to_bitstring_index_map: Option<HashMap<String, usize>>,
+        final_bitstring_distribution: Option<HashMap<String, PyUsize>>,
+        variables_to_bitstring_index_map: Option<HashMap<String, PyUsize>>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PySolution> {
@@ -106,20 +107,20 @@ impl PyQctrlTranslator {
         let mapper: HashMap<usize, usize> = variables_to_bitstring_index_map
             .unwrap()
             .iter()
-            .map(|(k, v)| {
+            .map(|(k, &v)| {
                 let index = regex::Regex::new(r"\[([^\]]+)\]")
                     .unwrap()
                     .captures(k)
                     .unwrap()[1]
                     .parse::<usize>()
                     .unwrap();
-                (index, *v)
+                (index, v.into())
             })
             .collect();
         let mut samples: Vec<Vec<usize>> = Vec::new();
         let mut counts = Vec::new();
         let mut energies = Vec::new();
-        for (bs, count) in final_bitstring_distribution.unwrap().iter() {
+        for (bs, &count) in final_bitstring_distribution.unwrap().iter() {
             if bs == solution_bitstring.as_ref().unwrap() {
                 energies.push(Some(solution_bitstring_cost.unwrap()));
             } else {
@@ -134,7 +135,7 @@ impl PyQctrlTranslator {
                 .map(|i| unordered_sample[mapper[&i]])
                 .collect();
             samples.push(sample);
-            counts.push(*count);
+            counts.push(count.into());
         }
 
         Ok(PySolution(QctrlTranslator::from_qctrl(

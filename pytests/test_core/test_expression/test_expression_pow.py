@@ -37,5 +37,7 @@ def test_expression_pow(variables):
 def test_expression_pow_n1(variables):
     x, y, z = variables
 
-    with pytest.raises(TypeError):
+    with pytest.raises(
+        ValueError, match="Expected a non-negative number, received: -1"
+    ):
         _ = (x + y + z) ** -1

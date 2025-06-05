@@ -79,7 +79,7 @@ def test_sampleset_translator_sa_random_models():
         for sample in sampleset_agg.samples():
             dimod_np = np.zeros(len(bqm.variables), dtype=int)
             for v, pos in dimod_positions.items():
-                dimod_np[pos] = sample[v] # type: ignore
+                dimod_np[pos] = sample[v]  # type: ignore
             samples_ordered.append(dimod_np.tolist())
 
         assert len(sol.samples) == len(sampleset_agg.record.sample)

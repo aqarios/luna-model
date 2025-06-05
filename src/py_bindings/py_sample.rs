@@ -5,7 +5,7 @@ use crate::core::{
 use crate::py_bindings::py_sol::PyVarAssignment;
 use derive_more::{Deref, DerefMut};
 use either::Either;
-use pyo3::exceptions::{PyIndexError, PyTypeError};
+use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::IntoPyObjectExt;
 
@@ -139,15 +139,30 @@ impl PySamples {
     /// IndexError
     ///     If the row or column index is out of bounds for the variable environment.
     fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyObject> {
-        if let Ok(res_idx) = item.extract::<usize>(py) {
-            match self.get_sample(res_idx) {
+        if let Ok(res_idx) = item.extract::<isize>(py) {
+            if res_idx < 0 {
+                return Err(PyValueError::new_err(format!(
+                    "Expected a non-negative number, received: {res_idx}"
+                )))?;
+            }
+            match self.get_sample(res_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
                 ))),
                 Some(r) => PySample(r).into_pyobject(py)?.into_py_any(py),
             }
-        } else if let Ok((res_idx, var_idx)) = item.extract::<(usize, usize)>(py) {
-            match self.get_assignment(res_idx, var_idx) {
+        } else if let Ok((res_idx, var_idx)) = item.extract::<(isize, isize)>(py) {
+            if res_idx < 0 {
+                return Err(PyValueError::new_err(format!(
+                    "Expected a non-negative number, received: {res_idx}"
+                )))?;
+            }
+            if var_idx < 0 {
+                return Err(PyValueError::new_err(format!(
+                    "Expected a non-negative number, received: {var_idx}"
+                )))?;
+            }
+            match self.get_assignment(res_idx as usize, var_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index ({res_idx}, {var_idx}) out of bounds"
                 ))),
@@ -204,8 +219,13 @@ impl PySample {
                 ))),
                 Some(v) => Ok(PyVarAssignment(v)),
             }
-        } else if let Ok(var_idx) = item.extract::<usize>(py) {
-            match self.get_assignment(var_idx) {
+        } else if let Ok(var_idx) = item.extract::<isize>(py) {
+            if var_idx < 0 {
+                return Err(PyValueError::new_err(format!(
+                    "Expected a non-negative number, received: {var_idx}"
+                )))?;
+            }
+            match self.get_assignment(var_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {var_idx} out of bounds"
                 ))),

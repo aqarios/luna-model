@@ -11,6 +11,7 @@ mod py_sample;
 mod py_sol;
 mod py_timing;
 mod py_translator;
+mod py_usize;
 mod py_var;
 
 #[cfg(not(feature = "lq"))]
