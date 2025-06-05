@@ -306,7 +306,7 @@ impl PyConstraints {
             self.borrow().get_constraint(n as usize)?.clone(),
         ))
     }
-    
+
     fn __len__(&self) -> usize {
         self.borrow().constraints.len()
     }

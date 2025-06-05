@@ -90,3 +90,13 @@ def test_invalid_var_name():
     )
     with pytest.raises(VariableNamesError, match="variable creation failed:"):
         _ = BqmTranslator.to_aq(bqm)
+
+
+def test_error_handling_int_vars():
+    rand = Random(make_seed())
+    bqms = generate_bqms(3, rand, int_vars=True)
+    for bqm in bqms:
+        with pytest.raises(
+            TypeError, match="All BQM variables have to be of type str, received:"
+        ):
+            _ = BqmTranslator.to_aq(bqm)

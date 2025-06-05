@@ -70,7 +70,7 @@ def assert_higher_order_all(expr, variables, value):
 
 
 def generate_bqms(
-    n_models: int, rand: r.Random, n_vars_max: int = 100
+    n_models: int, rand: r.Random, n_vars_max: int = 100, *, int_vars: bool = False
 ) -> list[BinaryQuadraticModel]:
     out = []
     for _ in range(n_models):
@@ -78,11 +78,9 @@ def generate_bqms(
         density = rand.random() * (1 - 1 / n_vars)
         num_interactions = int(density * n_vars**2 / 2)
         vartype = Vartype.BINARY if rand.randint(0, 1) == 0 else Vartype.SPIN
+        vars = n_vars if int_vars else [f"x{i}" for i in range(n_vars)]
         bqm = generators.gnm_random_bqm(
-            [f"x{i}" for i in range(n_vars)],
-            num_interactions,
-            vartype,
-            random_state=random_int(rand),
+            vars, num_interactions, vartype, random_state=random_int(rand)
         )
         out.append(bqm)
     return out

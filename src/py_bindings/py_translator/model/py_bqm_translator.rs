@@ -18,7 +18,11 @@ from aqmodels._core import translator
 def extract(bqm, name):
     if not isinstance(bqm, BinaryQuadraticModel):
         raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
-    vars = np.array(bqm.variables.to_serializable())
+    bqm_vars_ser = bqm.variables.to_serializable()
+    for v in bqm_vars_ser:
+        if not isinstance(v, str):
+            raise TypeError(f'All BQM variables have to be of type str, received: {type(v)}')
+    vars = np.array(bqm_vars_ser)
     vars_pos = {var: i for i, var in enumerate(vars)}
 
     linears = []
@@ -59,7 +63,11 @@ from luna_quantum._core import translator
 def extract(bqm, name):
     if not isinstance(bqm, BinaryQuadraticModel):
         raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
-    vars = np.array(bqm.variables.to_serializable())
+    bqm_vars_ser = bqm.variables.to_serializable()
+    for v in bqm_vars_ser:
+        if not isinstance(v, str):
+            raise TypeError(f'All BQM variables have to be of type str, received: {type(v)}')
+    vars = np.array(bqm_vars_ser)
     vars_pos = {var: i for i, var in enumerate(vars)}
 
     linears = []
