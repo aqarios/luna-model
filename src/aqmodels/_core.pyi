@@ -3371,6 +3371,16 @@ class Constraints:
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
     def __getitem__(self, item: int, /) -> Constraint: ...
+    def __len__(self, /) -> int:
+        """
+        Get the number of constraints.
+
+        Returns
+        -------
+        int
+            The number of constraints associated with this `Constraints` object.
+        """
+        ...
 
 __all__ = [
     "Bounds",

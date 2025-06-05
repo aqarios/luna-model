@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from aqmodels import Environment, Model, Solution, Timer, Variable, Vtype
+from aqmodels import Environment, Model, Sense, Solution, Timer, Variable, Vtype
 
 
 def vars() -> tuple[tuple[Variable, ...], Environment]:
@@ -229,4 +229,125 @@ b_0 b_1 s_0 s_1  i_0     │ feas raw obj count
 
 Total samples: 3
 Total variables: 8""".strip("\n")
+    )
+
+
+@pytest.fixture
+def model_with_sol(request) -> tuple[Model, Solution]:
+    minimize: bool = request.param
+    m = Model()
+    with m.environment:
+        a = Variable("a")
+        b = Variable("b")
+        c = Variable("c")
+        d = Variable("d")
+        e = Variable("e")
+    m.objective = -a - 5 * b - 6 * c + 2 * d + 2 * e
+    m.constraints += a + b <= 1
+    if not minimize:
+        m.set_sense(Sense.Max)
+
+    sol = Solution.from_dicts(
+        [
+            # infeasible, e: -10
+            *(2 * [{a: 1, b: 1, c: 1, d: 1, e: 0}]),
+            {a: 1, b: 1, c: 1, d: 0, e: 1},
+            # feasible, e: -9
+            {a: 0, b: 1, c: 1, d: 1, e: 0},
+            *(3 * [{a: 0, b: 1, c: 1, d: 0, e: 1}]),
+            # infeasible, e: -6
+            {a: 1, b: 1, c: 0, d: 0, e: 0},
+            # feasible, e: -5
+            {a: 0, b: 1, c: 0, d: 0, e: 0},
+            # feasible, e: -11
+            {a: 0, b: 1, c: 1, d: 0, e: 0},
+        ],
+        model=m,
+    )
+
+    return m, sol
+
+
+@pytest.mark.parametrize("model_with_sol", [True], indirect=True)
+def test_sorted_solution_minimize_col(model_with_sol: tuple[Model, Solution]):
+    _, sol = model_with_sol
+    assert (
+        sol.print()
+        == """
+a b c d e │ feas raw   obj count
+0 1 1 0 0 │    t   ? -11.0     1
+0 1 1 0 1 │    t   ?  -9.0     3
+0 1 1 1 0 │    t   ?  -9.0     1
+0 1 0 0 0 │    t   ?  -5.0     1
+1 1 1 1 0 │    f   ? -10.0     2
+1 1 1 0 1 │    f   ? -10.0     1
+1 1 0 0 0 │    f   ?  -6.0     1
+
+Total samples: 7
+Total variables: 5""".strip("\n")
+    )
+
+
+@pytest.mark.parametrize("model_with_sol", [True], indirect=True)
+def test_sorted_solution_minimize_row(model_with_sol: tuple[Model, Solution]):
+    _, sol = model_with_sol
+    assert (
+        sol.print(layout="row")
+        == """
+         a     0     0     0     0     1     1     1
+         b     1     1     1     1     1     1     1
+         c     1     1     1     0     1     1     0
+         d     0     0     1     0     1     0     0
+         e     0     1     0     0     0     1     0
+────────────────────────────────────────────────────
+  feasible     t     t     t     t     f     f     f
+raw energy     ?     ?     ?     ?     ?     ?     ?
+ objective -11.0  -9.0  -9.0  -5.0 -10.0 -10.0  -6.0
+     count     1     3     1     1     2     1     1
+
+Total samples: 7
+Total variables: 5""".strip("\n")
+    )
+
+
+@pytest.mark.parametrize("model_with_sol", [False], indirect=True)
+def test_sorted_solution_maximize(model_with_sol: tuple[Model, Solution]):
+    _, sol = model_with_sol
+    assert (
+        sol.print()
+        == """
+a b c d e │ feas raw   obj count
+0 1 0 0 0 │    t   ?  -5.0     1
+0 1 1 0 1 │    t   ?  -9.0     3
+0 1 1 1 0 │    t   ?  -9.0     1
+0 1 1 0 0 │    t   ? -11.0     1
+1 1 0 0 0 │    f   ?  -6.0     1
+1 1 1 1 0 │    f   ? -10.0     2
+1 1 1 0 1 │    f   ? -10.0     1
+
+Total samples: 7
+Total variables: 5""".strip("\n")
+    )
+
+
+@pytest.mark.parametrize("model_with_sol", [False], indirect=True)
+def test_sorted_solution_maximize_row(model_with_sol: tuple[Model, Solution]):
+    _, sol = model_with_sol
+    print()
+    assert (
+        sol.print(layout="row")
+        == """
+         a     0     0     0     0     1     1     1
+         b     1     1     1     1     1     1     1
+         c     0     1     1     1     0     1     1
+         d     0     0     1     0     0     1     0
+         e     0     1     0     0     0     0     1
+────────────────────────────────────────────────────
+  feasible     t     t     t     t     f     f     f
+raw energy     ?     ?     ?     ?     ?     ?     ?
+ objective  -5.0  -9.0  -9.0 -11.0  -6.0 -10.0 -10.0
+     count     1     3     1     1     1     2     1
+
+Total samples: 7
+Total variables: 5""".strip("\n")
     )
