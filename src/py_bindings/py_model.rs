@@ -3,13 +3,17 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::{AddAssign, Deref};
 use std::rc::Rc;
 
+use super::py_bounds::BoundValue;
 use super::py_constr::PyConstraint;
 use super::py_model_metadata::PyModelMetadata;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
 use crate::core::operations::AddAssignToExpression;
-use crate::core::{ConcreteModel, ConcreteMutRcModel, RcSolution, Sense, VarRef};
+use crate::core::{
+    environment, Bound as VarBound, ConcreteModel, ConcreteMutRcModel, LazyBounds, RcSolution,
+    Sense, VarRef, Vtype,
+};
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
 use crate::py_bindings::py_var::PyVariable;
@@ -128,6 +132,46 @@ impl PyModel {
             }),
         };
         Self::new(Model::new_with_env(name, sense, env.0))
+    }
+
+    /// Add a new variable to the model.
+    ///
+    /// Parameters
+    /// ----------
+    /// name : str
+    ///     The name of the variable.
+    /// vtype : Vtype, optional
+    ///     The variable type (e.g., `Vtype.Real`, `Vtype.Integer`, etc.).
+    ///     Defaults to `Vtype.Binary`.
+    /// lower: float, optional
+    ///     The lower bound restricts the range of the variable. Only applicable for
+    ///     `Real` and `Integer` variables.
+    /// upper: float, optional
+    ///     The upper bound restricts the range of the variable. Only applicable for
+    ///     `Real` and `Integer` variables.
+    ///
+    /// Returns
+    /// -------
+    /// Variable
+    ///     The variable added to the model.
+    #[pyo3(signature = (name, vtype=None, lower=BoundValue::None, upper=BoundValue::None))]
+    fn add_variable(
+        &self,
+        name: String,
+        vtype: Option<Vtype>,
+        lower: BoundValue,
+        upper: BoundValue,
+    ) -> PyResult<PyVariable> {
+        let bounds = match (&lower, &upper) {
+            (BoundValue::None, BoundValue::None) => None,
+            _ => Some(LazyBounds::new(lower.into(), upper.into())),
+        };
+        Ok(PyVariable::new(environment::add_variable(
+            Rc::clone(&self.concrete_model.borrow().environment),
+            &name,
+            vtype.as_ref(),
+            bounds,
+        )?))
     }
 
     /// Set the optimization sense of a model.
