@@ -17,7 +17,7 @@ use crate::core::{
     ConcreteVarRef, Expression, Vtype,
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::exceptions::{PyRuntimeError, PyTypeError};
+use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyBool;
 
@@ -336,19 +336,23 @@ impl PyVariable {
     /// ------
     /// RuntimeError
     ///     If the param ``modulo`` usually supported for ``__pow__`` is specified.
-    fn __pow__(&self, other: usize, modparam: Option<usize>) -> PyResult<PyExpression> {
+    fn __pow__(&self, other: isize, modparam: Option<isize>) -> PyResult<PyExpression> {
+        // Using PyUsize as param type in a slot would still lead to a TypeError upon negative values.
         if modparam.is_some() {
             return Err(PyRuntimeError::new_err(
                 "the parameter 'mod' is not supported.",
             ));
         }
         let expr = match other {
+            i if i < 0 => Err(PyValueError::new_err(format!(
+                "Expected a non-negative number, received: {i}"
+            )))?,
             0 => Expression::empty(Rc::clone(&self.env)).add(1.0),
             1 => Expression::new_linear_single(Rc::clone(&self.env), self.id, 1.0),
             2 => Expression::new_quadratic(Rc::clone(&self.env), self.id, self.id, 1.0),
             _ => {
                 let mut base = Expression::new_linear_single(Rc::clone(&self.env), self.id, 1.0);
-                for _ in 1..other {
+                for _ in 1..other.into() {
                     base.mul_assign(self.as_ref())?;
                 }
                 base

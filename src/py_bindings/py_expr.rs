@@ -18,6 +18,7 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
+use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use std::{ops::Deref, rc::Rc};
@@ -553,13 +554,17 @@ impl PyExpression {
     /// ------
     /// RuntimeError
     ///     If the param ``modulo`` usually supported for ``__pow__`` is specified.
-    fn __pow__(&self, other: usize, modparam: Option<usize>) -> PyResult<PyExpression> {
+    fn __pow__(&self, other: isize, modparam: Option<isize>) -> PyResult<PyExpression> {
+        // Using PyUsize as param type in a slot would still lead to a TypeError upon negative values.
         if modparam.is_some() {
             return Err(PyRuntimeError::new_err(
                 "the parameter 'mod' is not supported.",
             ));
         }
         let expr = match other {
+            i if i < 0 => Err(PyValueError::new_err(format!(
+                "Expected a non-negative number, received: {i}"
+            )))?,
             0 => Expression::empty(Rc::clone(&self.borrow().env)).add(1.0),
             1 => self.0.borrow().deref().clone(),
             _ => {

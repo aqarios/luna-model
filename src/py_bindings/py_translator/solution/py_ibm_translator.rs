@@ -1,3 +1,4 @@
+use crate::py_bindings::py_usize::PyUsize;
 use crate::{
     py_bindings::{
         py_env::{PyEnvironment, CURRENT_ENV},
@@ -117,7 +118,7 @@ impl PyIbmTranslator {
         samples: Vec<Vec<i64>>,
         orderings: Vec<PyVariable>,
         energies: Vec<f64>,
-        counts: Vec<usize>,
+        counts: Vec<PyUsize>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PySolution> {
@@ -133,7 +134,7 @@ impl PyIbmTranslator {
             &samples,
             &orderings.iter().map(|e| Rc::clone(&e.0)).collect(),
             &energies,
-            counts,
+            counts.into_iter().map(|n| n.into()).collect(),
             timing.map(|t| t.into()),
             environment.into(),
         )?))

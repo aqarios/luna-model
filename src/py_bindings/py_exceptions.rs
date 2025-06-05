@@ -15,7 +15,7 @@ create_exception!(
     aqmodels.errors,
     ComputationError,
     PyException,
-    "Raised when an error occured in an internal computation."
+    "Raised when an error occurred in an internal computation."
 );
 
 create_exception!(
