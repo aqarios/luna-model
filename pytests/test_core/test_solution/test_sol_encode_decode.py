@@ -8,7 +8,7 @@ from aqmodels import (
 
 @pytest.fixture
 def solution() -> Solution:
-    return Solution.build(
+    return Solution._build( # type: ignore[reportAttributeAccessIssue]
         component_types=[
             Vtype.Binary,
             Vtype.Spin,

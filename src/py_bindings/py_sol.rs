@@ -125,7 +125,7 @@ impl PySolution {
     ///
     /// And finally call the `build` function:
     ///
-    /// >>> sol = Solution.build(
+    /// >>> sol = Solution._build(
     /// ...     component_types,
     /// ...     binary_cols,
     /// ...     spin_cols,
@@ -140,7 +140,7 @@ impl PySolution {
     /// In this example, we could also neglect the `counts` as it defaults to `1`
     /// for all samples if not set:
     ///
-    /// >>> sol = Solution.build(
+    /// >>> sol = Solution._build(
     /// ...     component_types,
     /// ...     binary_cols,
     /// ...     spin_cols,
@@ -190,7 +190,7 @@ impl PySolution {
     #[staticmethod]
     #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None)
     )]
-    fn build(
+    fn _build(
         component_types: Vec<Vtype>,
         variable_names: Option<Vec<String>>,
         binary_cols: Option<Vec<Vec<u8>>>,
