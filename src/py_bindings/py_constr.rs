@@ -299,6 +299,10 @@ impl PyConstraints {
         // a view.
         Ok(PyConstraint::new(self.borrow().get_constraint(n)?.clone()))
     }
+    
+    fn __len__(&self) -> usize {
+        self.borrow().constraints.len()
+    }
 
     fn __eq__(&self, other: Self) -> bool {
         *self.borrow() == *other.borrow()
