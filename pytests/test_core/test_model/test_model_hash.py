@@ -1,6 +1,8 @@
-import pytest
 from typing import Callable
-from aqmodels import Model, Variable, Vtype, Bounds, Unbounded
+
+import pytest
+
+from aqmodels import Bounds, Model, Unbounded, Variable, Vtype
 
 
 @pytest.fixture

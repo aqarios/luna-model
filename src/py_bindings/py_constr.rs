@@ -4,6 +4,7 @@ use std::{
     rc::Rc,
 };
 
+use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 use crate::{
     core::{
         expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
@@ -15,10 +16,9 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
+use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
-
-use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 
 /// A collection of symbolic constraints used to define a model.
 ///
@@ -294,10 +294,17 @@ impl PyConstraints {
         Ok(())
     }
 
-    fn __getitem__(&self, n: usize) -> PyResult<PyConstraint> {
+    fn __getitem__(&self, n: isize) -> PyResult<PyConstraint> {
+        if n < 0 {
+            Err(PyValueError::new_err(format!(
+                "Expected a non-negative number, received: {n}"
+            )))?
+        }
         // todo: can we remove the clone here? acceptable for now. Make it more like
         // a view.
-        Ok(PyConstraint::new(self.borrow().get_constraint(n)?.clone()))
+        Ok(PyConstraint::new(
+            self.borrow().get_constraint(n as usize)?.clone(),
+        ))
     }
     
     fn __len__(&self) -> usize {

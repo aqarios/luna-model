@@ -10,6 +10,7 @@ use crate::py_bindings::py_model::PyModel;
 use crate::py_bindings::py_res::{PyResultIterator, PyResultView};
 use crate::py_bindings::py_sample::PySamples;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::py_bindings::py_usize::PyUsize;
 use crate::py_bindings::py_var::PyVariable;
 use crate::serialization::{
     Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -125,7 +126,7 @@ impl PySolution {
     ///
     /// And finally call the `build` function:
     ///
-    /// >>> sol = Solution.build(
+    /// >>> sol = Solution._build(
     /// ...     component_types,
     /// ...     binary_cols,
     /// ...     spin_cols,
@@ -140,7 +141,7 @@ impl PySolution {
     /// In this example, we could also neglect the `counts` as it defaults to `1`
     /// for all samples if not set:
     ///
-    /// >>> sol = Solution.build(
+    /// >>> sol = Solution._build(
     /// ...     component_types,
     /// ...     binary_cols,
     /// ...     spin_cols,
@@ -190,7 +191,7 @@ impl PySolution {
     #[staticmethod]
     #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None)
     )]
-    fn build(
+    fn _build(
         component_types: Vec<Vtype>,
         variable_names: Option<Vec<String>>,
         binary_cols: Option<Vec<Vec<u8>>>,
@@ -199,7 +200,7 @@ impl PySolution {
         real_cols: Option<Vec<Vec<f64>>>,
         raw_energies: Option<Vec<Option<f64>>>,
         timing: Option<PyTiming>,
-        counts: Option<Vec<usize>>,
+        counts: Option<Vec<PyUsize>>,
     ) -> PyResult<Self> {
         let var_names: Vec<Option<String>> = if let Some(vn) = variable_names {
             if vn.len() != component_types.len() {
@@ -281,7 +282,7 @@ impl PySolution {
                     "counts does not match the number of samples given.",
                 ));
             }
-            sol.counts = no;
+            sol.counts = no.into_iter().map(|x| x.into()).collect();
         } else {
             sol.counts = vec![1; sol.n_samples];
         }
@@ -590,47 +591,44 @@ impl PySolution {
     #[pyo3(
         signature=(
             layout=PrintLayout::Col,
-            max_line_length=80,
-            max_column_length=5,
-            max_lines=10,
-            max_var_name_length=10,
+            max_line_length=PyUsize(80),
+            max_column_length=PyUsize(5),
+            max_lines=PyUsize(10),
+            max_var_name_length=PyUsize(10),
             show_metadata=ShowMetadata::After,
         )
     )]
     fn print(
         &self,
         layout: PrintLayout,
-        max_line_length: usize,
-        max_column_length: usize,
-        max_lines: usize,
-        max_var_name_length: usize,
+        max_line_length: PyUsize,
+        max_column_length: PyUsize,
+        max_lines: PyUsize,
+        max_var_name_length: PyUsize,
         show_metadata: ShowMetadata,
     ) -> PyResult<String> {
-        if max_line_length < 5 {
+        let mll = max_line_length.into();
+        let mcl = max_column_length.into();
+        let ml = max_lines.into();
+        let mvnl = max_var_name_length.into();
+        if mll < 5 {
             Err(PyValueError::new_err(format!(
-                "`max_line_length needs` to be at least 5; actual value: {max_line_length}"
+                "`max_line_length needs` to be at least 5; actual value: {mll}"
             )))
-        } else if max_column_length < 1 {
+        } else if mcl < 1 {
             Err(PyValueError::new_err(format!(
-                "`max_column_length` needs to be at least 1; actual value: {max_column_length}"
+                "`max_column_length` needs to be at least 1; actual value: {mcl}"
             )))
-        } else if max_lines < 1 {
+        } else if ml < 1 {
             Err(PyValueError::new_err(format!(
-                "`max_lines` needs to be at least 1; actual value: {max_lines}"
+                "`max_lines` needs to be at least 1; actual value: {ml}"
             )))
-        } else if max_var_name_length < 1 {
+        } else if mvnl < 1 {
             Err(PyValueError::new_err(format!(
-                "`max_var_name_length` needs to be at least 1; actual value: {max_var_name_length}"
+                "`max_var_name_length` needs to be at least 1; actual value: {mvnl}"
             )))
         } else {
-            Ok(self.0.print(
-                max_line_length,
-                max_column_length,
-                max_lines,
-                max_var_name_length,
-                layout,
-                show_metadata,
-            ))
+            Ok(self.0.print(mll, mcl, ml, mvnl, layout, show_metadata))
         }
     }
 
@@ -781,7 +779,14 @@ impl PySolution {
     }
 
     fn __str__(&self) -> String {
-        let s = self.print(PrintLayout::Col, 80, 5, 10, 10, ShowMetadata::After);
+        let s = self.print(
+            PrintLayout::Col,
+            80.into(),
+            5.into(),
+            10.into(),
+            10.into(),
+            ShowMetadata::After,
+        );
         s.unwrap()
     }
 
@@ -811,8 +816,13 @@ impl PySolution {
     /// IndexError
     ///     If the row index is out of bounds for the variable environment.
     fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyResultView> {
-        if let Ok(res_idx) = item.extract::<usize>(py) {
-            match self.get_result_view(res_idx) {
+        if let Ok(res_idx) = item.extract::<isize>(py) {
+            if res_idx < 0 {
+                return Err(PyValueError::new_err(format!(
+                    "Expected a non-negative number, received: {res_idx}"
+                )))?;
+            }
+            match self.get_result_view(res_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
                 ))),

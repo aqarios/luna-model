@@ -3,11 +3,8 @@ import pytest
 from aqmodels import Environment, Expression, Model, Sense, Variable, Vtype
 from aqmodels._core import Unbounded
 from aqmodels.errors import VariableCreationError, VariableExistsError
-from ..utils import (
-    assert_linear,
-    assert_offset,
-    assert_quadratic,
-)
+
+from ..utils import assert_linear, assert_offset, assert_quadratic
 
 
 def make_model() -> Model:

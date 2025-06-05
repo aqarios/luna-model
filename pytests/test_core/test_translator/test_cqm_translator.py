@@ -1,7 +1,7 @@
 from random import Random
 
 import pytest
-from dimod import Binary, Integer, Real, ConstrainedQuadraticModel
+from dimod import Binary, ConstrainedQuadraticModel, Integer, Real
 from dimod import lp as dimod_lp
 
 from aqmodels.translator import CqmTranslator

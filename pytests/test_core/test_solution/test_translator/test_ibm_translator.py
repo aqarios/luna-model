@@ -1,9 +1,10 @@
-import pytest
-import numpy as np
 import warnings
-
-from docplex.mp.model import Model as CPXModel
 from contextlib import nullcontext
+from random import Random
+
+import numpy as np
+import pytest
+from docplex.mp.model import Model as CPXModel
 from qiskit import QuantumCircuit, generate_preset_pass_manager
 from qiskit.circuit.library import QAOAAnsatz
 from qiskit.primitives import (
@@ -13,26 +14,17 @@ from qiskit.primitives import (
     StatevectorEstimator,
     StatevectorSampler,
 )
-from qiskit.quantum_info import SparsePauliOp
 from qiskit.providers import BackendV2
+from qiskit.quantum_info import SparsePauliOp
 from qiskit_aer import AerSimulator
-from qiskit_optimization import QuadraticProgram
 from qiskit_ibm_runtime import EstimatorV2, SamplerV2, Session
+from qiskit_optimization import QuadraticProgram
 from qiskit_optimization.translators import from_docplex_mp
 from scipy.optimize import minimize
 
-from random import Random
-from aqmodels import (
-    Solution,
-    Timer,
-    Variable,
-    Vtype,
-    Sense,
-    Model,
-)
+from aqmodels import Model, Sense, Solution, Timer, Variable, Vtype
 from aqmodels.translator import IbmTranslator
 from pytests.test_core.utils import make_seed, random_bool
-
 
 Backend = BackendV2 | AerSimulator | None
 Sampler = SamplerV2 | StatevectorSampler

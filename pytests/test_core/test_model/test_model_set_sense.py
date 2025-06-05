@@ -1,5 +1,6 @@
 import pytest
-from aqmodels import Model, Variable, Vtype, Sense, quicksum
+
+from aqmodels import Model, Sense, Variable, Vtype, quicksum
 from aqmodels.translator import LpTranslator
 
 

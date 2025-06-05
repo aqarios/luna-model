@@ -1,4 +1,6 @@
-from typing import Iterable, overload
+from collections.abc import Iterable
+from typing import overload
+
 from aqmodels import Expression, Variable
 
 @overload

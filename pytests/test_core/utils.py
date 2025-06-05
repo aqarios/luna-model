@@ -1,9 +1,9 @@
 import random as r
 import sys
-import numpy as np
-
 from itertools import permutations
-from dimod import generators, BinaryQuadraticModel, Vartype, ConstrainedQuadraticModel
+
+import numpy as np
+from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel, Vartype, generators
 
 
 def todo(msg: str | None = None):
