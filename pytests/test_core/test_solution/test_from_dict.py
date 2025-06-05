@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import Variable, Environment, Vtype, Solution, Model
+from aqmodels import Environment, Model, Solution, Variable, Vtype
 
 
 def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:

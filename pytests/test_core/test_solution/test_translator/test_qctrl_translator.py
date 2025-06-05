@@ -1,17 +1,13 @@
 from random import Random, shuffle
+from time import sleep
 from typing import Any, Callable
 
-from numpy import unique
 import pytest
-from time import sleep
+from numpy import unique
 
-from aqmodels import (
-    Timer,
-    Variable,
-    Environment,
-)
+from aqmodels import Environment, Timer, Variable
 from aqmodels.translator import QctrlTranslator
-from pytests.test_core.utils import random, make_seed, random_bool, random_int
+from pytests.test_core.utils import make_seed, random, random_bool, random_int
 
 REPS: int = 100
 MAX_VARS: int = 200
@@ -33,19 +29,12 @@ def fake_qctrl_result(
     def adjust_ordering(actual: list | str) -> str:
         # need to move each value to the A value of the mapping.
         # the actual is the correct bitstring in the expected order.
-        out = "".join([
-            str(actual[forward_assignment[i]])
-            for i in range(len(actual))
-        ])
+        out = "".join([str(actual[forward_assignment[i]]) for i in range(len(actual))])
         return out
 
     def reverse_adjust(other: list) -> str:
-        out = "".join([
-            str(other[reverse_assignment[i]])
-            for i in range(len(other))
-        ])
+        out = "".join([str(other[reverse_assignment[i]]) for i in range(len(other))])
         return out
-
 
     best = adjust_ordering(random_bitstring())
     best_dist = {best: random_int(rand)}
@@ -126,10 +115,7 @@ def test_qctrl_translator_constructed():
                 i if (min_energy is None) or (min_energy > item) else min_energy_index
             )
         assert min_energy_index is not None
-        assert (
-            reverser(samples[min_energy_index])
-            == fake_result["solution_bitstring"]
-        )
+        assert reverser(samples[min_energy_index]) == fake_result["solution_bitstring"]
         assert len(sol.counts.tolist()) == num_samples
         assert fake_result["solution_bitstring_cost"] in sol.raw_energies.tolist()
         assert sol.runtime is None
@@ -148,7 +134,7 @@ def test_qctrl_translator_constructed_explicit_env():
         rand = Random(make_seed())
         sample_len = rand.randint(2, MAX_VARS)
         num_samples = rand.randint(1, max(sample_len // 2, 1))
-        fake_result, reverser  = fake_qctrl_result(
+        fake_result, reverser = fake_qctrl_result(
             rand, sample_len, random(random_int(rand)), num_samples
         )
 
@@ -172,10 +158,7 @@ def test_qctrl_translator_constructed_explicit_env():
                 i if (min_energy is None) or (min_energy > item) else min_energy_index
             )
         assert min_energy_index is not None
-        assert (
-            reverser(samples[min_energy_index])
-            == fake_result["solution_bitstring"]
-        )
+        assert reverser(samples[min_energy_index]) == fake_result["solution_bitstring"]
         assert len(sol.counts.tolist()) == num_samples
         assert fake_result["solution_bitstring_cost"] in sol.raw_energies.tolist()
         assert sol.runtime is None
@@ -225,10 +208,7 @@ def test_qctrl_translator_constructed_with_time():
                 i if (min_energy is None) or (min_energy > item) else min_energy_index
             )
         assert min_energy_index is not None
-        assert (
-            reverser(samples[min_energy_index])
-            == fake_result["solution_bitstring"]
-        )
+        assert reverser(samples[min_energy_index]) == fake_result["solution_bitstring"]
         assert len(sol.counts.tolist()) == num_samples
         assert fake_result["solution_bitstring_cost"] in sol.raw_energies.tolist()
         assert sol.runtime is not None
@@ -273,10 +253,7 @@ def test_qctrl_translator_constructed_vars():
                 i if (min_energy is None) or (min_energy > item) else min_energy_index
             )
         assert min_energy_index is not None
-        assert (
-            reverser(samples[min_energy_index])
-            == fake_result["solution_bitstring"]
-        )
+        assert reverser(samples[min_energy_index]) == fake_result["solution_bitstring"]
         assert len(sol.counts.tolist()) == num_samples
         assert fake_result["solution_bitstring_cost"] in sol.raw_energies.tolist()
         assert sol.runtime is None

@@ -13,9 +13,9 @@ samples_str = """
 
 sol_str_1 = """
 x_0 x_1 x_2  x_3 │ feas raw obj count
-  1   1   2  2.0 │    ? 6.0   ?     1
-  0  -1   3  3.0 │    ? 5.0   ?     2
   1   1  -4 4.23 │    ? 2.0   ?     3
+  0  -1   3  3.0 │    ? 5.0   ?     2
+  1   1   2  2.0 │    ? 6.0   ?     1
 
 Total samples: 3
 Total variables: 4""".strip("\n")
@@ -31,7 +31,7 @@ Total variables: 30""".strip("\n")
 
 @pytest.fixture
 def solution(request) -> Solution:
-    return Solution.build(
+    return Solution._build(  # type: ignore[reportAttributeAccessIssue]
         component_types=[
             Vtype.Binary,
             Vtype.Spin,
@@ -67,7 +67,7 @@ def test_samples(solution: Solution):
 def test_model(solution: Solution):
     assert str(solution) == sol_str_1
 
-    solution_2 = Solution.build(
+    solution_2 = Solution._build(  # type: ignore[reportAttributeAccessIssue]
         component_types=[Vtype.Binary] * 30,
         binary_cols=[[1, 0]] * 30,
     )

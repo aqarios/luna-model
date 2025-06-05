@@ -6,15 +6,10 @@ import pytest
 from dimod import SampleSet, Vartype, as_samples
 from dwave.samplers import SimulatedAnnealingSampler
 
-from aqmodels import (
-    Environment,
-    Timer,
-    Variable,
-    Vtype,
-)
-from aqmodels.translator import DwaveTranslator
+from aqmodels import Environment, Timer, Variable, Vtype
 from aqmodels.errors import SampleIncompatibleVtypeError
-from pytests.test_core.utils import make_seed, random_int, generate_bqms
+from aqmodels.translator import DwaveTranslator
+from pytests.test_core.utils import generate_bqms, make_seed, random_int
 
 
 def mock_env(n_variables: int, vtype: Vtype = Vtype.Binary) -> Environment:
@@ -79,7 +74,7 @@ def test_sampleset_translator_sa_random_models():
         for sample in sampleset_agg.samples():
             dimod_np = np.zeros(len(bqm.variables), dtype=int)
             for v, pos in dimod_positions.items():
-                dimod_np[pos] = sample[v] # type: ignore
+                dimod_np[pos] = sample[v]  # type: ignore
             samples_ordered.append(dimod_np.tolist())
 
         assert len(sol.samples) == len(sampleset_agg.record.sample)

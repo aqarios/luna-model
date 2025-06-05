@@ -8,7 +8,8 @@ use pyo3::prelude::*;
 use std::ffi::CStr;
 
 #[cfg(not(feature = "lq"))]
-static PY_CODE: &'static CStr = c_str!("
+static PY_CODE: &'static CStr = c_str!(
+    "
 import numpy as np
 from dimod import BinaryQuadraticModel
 
@@ -48,7 +49,8 @@ def extract(bqm, name):
     )"
 );
 #[cfg(feature = "lq")]
-static PY_CODE: &'static CStr = c_str!("
+static PY_CODE: &'static CStr = c_str!(
+    "
 import numpy as np
 from dimod import BinaryQuadraticModel
 

@@ -2,7 +2,7 @@ import base64
 
 import pytest
 
-from aqmodels import Environment, Model, Variable, Sense
+from aqmodels import Environment, Model, Sense, Variable
 
 
 def assert_encode_decode(model: Model):

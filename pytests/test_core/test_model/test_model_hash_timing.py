@@ -1,13 +1,14 @@
 from itertools import product
+
 import numpy as np
 import scipy.sparse as sp  # type: ignore[import-untyped]
 from numpy.typing import NDArray
-from pytests.test_core.utils import make_seed
-from aqmodels import Model, Timer
-from aqmodels.translator import QuboTranslator
 from rich.console import Console
 from rich.table import Table
 
+from aqmodels import Model, Timer
+from aqmodels.translator import QuboTranslator
+from pytests.test_core.utils import make_seed
 
 REPS = 10
 

@@ -1,9 +1,9 @@
 import dimod
 import numpy as np
-from aqmodels._core import Solution
-from aqmodels.translator import BqmTranslator
-from aqmodels.translator import DwaveTranslator
 from dwave.samplers import TabuSampler
+
+from aqmodels._core import Solution
+from aqmodels.translator import BqmTranslator, DwaveTranslator
 
 
 def test_bqm_solution():
@@ -56,7 +56,7 @@ def test_bqm_solution():
     dimod_sample = res.samples()[0]
     with aqm.environment:
         sol_from_dict = Solution.from_dict(
-            {str(v): float(val) for v, val in dimod_sample.items()} # type: ignore
+            {str(v): float(val) for v, val in dimod_sample.items()}  # type: ignore
         )
 
     sol = aqm.evaluate(sol)
