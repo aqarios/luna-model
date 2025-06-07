@@ -214,6 +214,11 @@ class Variable:
         """Get the bounds of the variable."""
         ...
 
+    @property
+    def vtype(self, /) -> Vtype:
+        """Get the vtype of the variable."""
+        ...
+
     @overload
     def __add__(self, other: int, /) -> Expression: ...
     @overload
@@ -422,6 +427,7 @@ class Variable:
         -------
         bool
         """
+
     def __eq__(self, rhs: int | float | Expression, /) -> Constraint:  # type: ignore[reportIncompatibleMethodOverride]
         """
         Create a constraint: Variable == float | int | Expression.
