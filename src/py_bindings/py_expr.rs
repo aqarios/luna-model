@@ -9,7 +9,8 @@ use crate::core::{
         AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
         SubAssignToExpression, SubToExpression,
     },
-    Comparator, ConcreteExpression, ConcreteMutRcExpression, Expression, ExpressionBase,
+    Comparator, ConcreteBias, ConcreteExpression, ConcreteIndex, ConcreteMutRcEnvironment,
+    ConcreteMutRcExpression, Expression, ExpressionBase, VarRef,
 };
 use crate::{
     core::expression::ExpressionBaseCreation,
@@ -19,8 +20,9 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyValueError;
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes};
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes, IntoPyObjectExt};
 use pyo3::{exceptions::PyTypeError, types::PyType};
+use std::cell::Ref;
 use std::{ops::Deref, rc::Rc};
 
 /// Polynomial expression supporting symbolic arithmetic, constraint creation, and encoding.
@@ -116,9 +118,120 @@ use std::{ops::Deref, rc::Rc};
 #[derive(Deref, DerefMut, Clone)]
 pub struct PyExpression(pub ConcreteMutRcExpression);
 
+/// Iterate over the single components of an expression.
+///
+/// Examples
+/// --------
+/// >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+/// >>> expr: Expression = ...
+/// >>> vars: Constant | Linear | Quadratic | HigherOrder
+/// >>> bias: float
+/// >>> for vars, bias in expr.items():
+/// >>> match vars:
+/// >>>     case Constant(): do_something_with_constant(bias)
+/// >>>     case Linear(x): do_something_with_linear_var(x, bias)
+/// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
+/// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
+#[pyclass(unsendable, name = "ExpressionIterator", module = "aqmodels")]
+pub struct PyExpressionIterator {
+    items: Vec<(Vec<ConcreteIndex>, ConcreteBias)>,
+    env: ConcreteMutRcEnvironment,
+    current_idx: usize,
+}
+
+/// Convenience class to indicate the empty set of variables of an expression's
+/// constant term when iterating over the expression's components.
+///
+/// Note that the bias corresponding to the constant part is not part of this class.
+///
+/// Examples
+/// --------
+/// >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+/// >>> expr: Expression = ...
+/// >>> vars: Constant | Linear | Quadratic | HigherOrder
+/// >>> bias: float
+/// >>> for vars, bias in expr.items():
+/// >>> match vars:
+/// >>>     case Constant(): do_something_with_constant(bias)
+/// >>>     case Linear(x): do_something_with_linear_var(x, bias)
+/// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
+/// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
+#[pyclass(unsendable, name = "Constant", module = "aqmodels")]
+pub struct PyConstant();
+
+/// Convenience class to indicate the variable of an expression's linear term when
+/// iterating over the expression's components.
+///
+/// Note that the bias corresponding to this variable is not part of this class.
+///
+/// Examples
+/// --------
+/// >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+/// >>> expr: Expression = ...
+/// >>> vars: Constant | Linear | Quadratic | HigherOrder
+/// >>> bias: float
+/// >>> for vars, bias in expr.items():
+/// >>> match vars:
+/// >>>     case Constant(): do_something_with_constant(bias)
+/// >>>     case Linear(x): do_something_with_linear_var(x, bias)
+/// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
+/// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
+#[pyclass(unsendable, name = "Linear", module = "aqmodels")]
+pub struct PyLinear(pub PyVariable);
+
+/// Convenience class to indicate the variables of an expression's quadratic term when
+/// iterating over the expression's components.
+///
+/// Note that the bias corresponding to these two variables is not part of this class.
+///
+/// Examples
+/// --------
+/// >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+/// >>> expr: Expression = ...
+/// >>> vars: Constant | Linear | Quadratic | HigherOrder
+/// >>> bias: float
+/// >>> for vars, bias in expr.items():
+/// >>> match vars:
+/// >>>     case Constant(): do_something_with_constant(bias)
+/// >>>     case Linear(x): do_something_with_linear_var(x, bias)
+/// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
+/// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
+#[pyclass(unsendable, name = "Quadratic", module = "aqmodels")]
+pub struct PyQuadratic(pub (PyVariable, PyVariable));
+
+/// Convenience class to indicate the set of variables of an expression's higher-order
+/// term when iterating over the expression's components.
+///
+/// Note that the bias corresponding to these variables is not part of this class.
+///
+/// Examples
+/// --------
+/// >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+/// >>> expr: Expression = ...
+/// >>> vars: Constant | Linear | Quadratic | HigherOrder
+/// >>> bias: float
+/// >>> for vars, bias in expr.items():
+/// >>> match vars:
+/// >>>     case Constant(): do_something_with_constant(bias)
+/// >>>     case Linear(x): do_something_with_linear_var(x, bias)
+/// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
+/// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
+#[pyclass(unsendable, name = "HigherOrder", module = "aqmodels")]
+pub struct PyHigherOrder(pub Vec<PyVariable>);
+
 impl PyExpression {
     pub fn new(expression: ConcreteExpression) -> Self {
         Self(expression.into())
+    }
+}
+
+impl PyExpressionIterator {
+    fn new(expr: Ref<ConcreteExpression>) -> Self {
+        Self {
+            items: expr.items(),
+            env: Rc::clone(&expr.env),
+            current_idx: 0,
+        }
     }
 }
 
@@ -696,5 +809,109 @@ impl PyExpression {
     #[getter]
     fn _environment(&self) -> PyEnvironment {
         PyEnvironment(self.0.borrow().env.clone())
+    }
+
+    /// Iterate over the single components of an expression. An *component* refers to
+    /// a single constant, linear, quadratic, or higher-order term of an expression.
+    //
+    /// Returns
+    /// -------
+    /// ExpressionIterator
+    ///     The iterator over the expression's components.
+    fn items(&self) -> PyExpressionIterator {
+        PyExpressionIterator::new(self.borrow())
+    }
+}
+
+#[pymethods]
+impl PyExpressionIterator {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(
+        mut slf: PyRefMut<'_, Self>,
+        py: Python,
+    ) -> PyResult<Option<(PyObject, ConcreteBias)>> {
+        slf.current_idx += 1;
+        let res = slf.items.get(slf.current_idx - 1);
+        if res.is_none() {
+            return Ok(None);
+        }
+        let (idxs, bias) = res.unwrap();
+        let vars: Vec<_> = idxs
+            .iter()
+            .map(|&idx| PyVariable::new(VarRef::new(idx, Rc::clone(&slf.env))))
+            .collect();
+        let var_obj = match &vars[..] {
+            [] => PyConstant().into_py_any(py),
+            [a] => PyLinear(a.clone()).into_py_any(py),
+            [a, b] => PyQuadratic((a.clone(), b.clone())).into_py_any(py),
+            _ => PyHigherOrder(vars).into_py_any(py),
+        };
+        Ok(Some((var_obj?, *bias)))
+    }
+}
+
+#[pymethods]
+impl PyConstant {
+    fn __str__(&self) -> String {
+        String::from("Constant()")
+    }
+}
+
+#[pymethods]
+impl PyLinear {
+    #[getter]
+    fn get_var(&self) -> PyVariable {
+        self.0.clone()
+    }
+
+    #[classattr]
+    fn __match_args__() -> (&'static str,) {
+        ("var",)
+    }
+
+    fn __str__(&self) -> String {
+        format!("Linear({})", self.0.name())
+    }
+}
+
+#[pymethods]
+impl PyQuadratic {
+    #[getter]
+    fn get_var_a(&self) -> PyVariable {
+        self.0 .0.clone()
+    }
+    #[getter]
+    fn get_var_b(&self) -> PyVariable {
+        self.0 .1.clone()
+    }
+
+    #[classattr]
+    fn __match_args__() -> (&'static str, &'static str) {
+        ("var_a", "var_b")
+    }
+
+    fn __str__(&self) -> String {
+        format!("Quadratic({}, {})", self.0 .0.name(), self.0 .1.name())
+    }
+}
+
+#[pymethods]
+impl PyHigherOrder {
+    #[getter]
+    fn get_vars(&self) -> Vec<PyVariable> {
+        self.0.clone()
+    }
+
+    #[classattr]
+    fn __match_args__() -> (&'static str,) {
+        ("vars",)
+    }
+
+    fn __str__(&self) -> String {
+        let vnames: Vec<_> = self.0.iter().map(|x| x.name().clone()).collect();
+        format!("HigherOrder({})", vnames.join(", "))
     }
 }

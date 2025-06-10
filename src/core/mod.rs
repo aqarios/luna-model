@@ -34,6 +34,7 @@ pub use concrete::ConcreteHigherOrder;
 pub use concrete::ConcreteId;
 pub use concrete::ConcreteIndex;
 pub use concrete::ConcreteIntegerType;
+pub use concrete::ConcreteLinear;
 pub use concrete::ConcreteModel;
 pub use concrete::ConcreteMutRcConstraint;
 pub use concrete::ConcreteMutRcConstraints;

@@ -9,6 +9,7 @@ use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::writer::ModelWriter;
 use crate::core::{MutRcEnvironment, Vtype};
 use hashbrown::HashMap;
+use rand::seq::IndexedRandom;
 use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Clone)]
@@ -26,6 +27,43 @@ where
     /// contained in the expression. 1 indicates already added 0 indicating floating.
     pub active: Vec<bool>,
     pub num_variables: SizeType,
+}
+
+impl<Index, Bias> Expression<Index, Bias>
+where
+    Index: IndexConstraints,
+    Bias: BiasConstraints,
+{
+    pub fn items(&self) -> Vec<(Vec<Index>, Bias)> {
+        let mut constant = Vec::new();
+        if self.offset != Bias::default() {
+            constant.push((Vec::new(), self.offset));
+        }
+        let linear = self
+            .linear
+            .iter()
+            .filter(|(_, &bias)| bias != Bias::default())
+            .map(|(idx, &bias)| (vec![idx.into()], bias))
+            .collect();
+        let quadratic = match &self.quadratic {
+            None => Vec::new(),
+            Some(quad) => quad
+                .iter_flat()
+                .filter(|(_, _, bias)| bias != &Bias::default())
+                .map(|(u_idx, v_idx, bias)| (vec![u_idx, v_idx], bias))
+                .collect(),
+        };
+        let higher_order = match &self.higher_order {
+            None => Vec::new(),
+            Some(ho) => ho
+                .iter_contrib()
+                .filter(|(_, &bias)| bias != Bias::default())
+                .map(|(contrib, &bias)| (contrib, bias))
+                .collect(),
+        };
+
+        vec![constant, linear, quadratic, higher_order].concat()
+    }
 }
 
 impl<Index, Bias> ExpressionBaseTypes for Expression<Index, Bias>
