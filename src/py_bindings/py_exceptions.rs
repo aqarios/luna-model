@@ -4,7 +4,7 @@ use crate::errors::{
     IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr,
     ModelSenseNotMinimizeErr, ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
     SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VariableCreationErr,
-    VariableNotExistingErr, VariablesFromDifferentEnvsErr,
+    VariableNotExistingErr, VariablesFromDifferentEnvsErr, DuplicateConstraintNameErr
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
@@ -16,6 +16,13 @@ create_exception!(
     ComputationError,
     PyException,
     "Raised when an error occurred in an internal computation."
+);
+
+create_exception!(
+    aqmodels.errors,
+    DuplicateConstraintNameError,
+    PyException,
+    "Raised when a duplicate constraint name is used."
 );
 
 create_exception!(
@@ -362,5 +369,11 @@ impl From<ComputationErr> for PyErr {
 impl From<EvaluationErr> for PyErr {
     fn from(value: EvaluationErr) -> Self {
         EvaluationError::new_err(format!("{value}"))
+    }
+}
+
+impl From<DuplicateConstraintNameErr> for PyErr {
+    fn from(value: DuplicateConstraintNameErr) -> Self {
+        DuplicateConstraintNameError::new_err(format!("{value}"))
     }
 }

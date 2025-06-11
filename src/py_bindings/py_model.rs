@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::ops::{AddAssign, Deref};
+use std::ops::Deref;
 use std::rc::Rc;
 
 use super::py_bounds::BoundValue;
@@ -11,8 +11,7 @@ use super::{
 };
 use crate::core::operations::AddAssignToExpression;
 use crate::core::{
-    environment, Bound as VarBound, ConcreteModel, ConcreteMutRcModel, LazyBounds, RcSolution,
-    Sense, VarRef, Vtype,
+    environment, ConcreteModel, ConcreteMutRcModel, LazyBounds, RcSolution, Sense, VarRef, Vtype,
 };
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
@@ -257,7 +256,7 @@ impl PyModel {
         self.borrow()
             .constraints
             .borrow_mut()
-            .add_assign(constraint.borrow().deref());
+            .add_assign(constraint.borrow().deref())?;
         Ok(())
     }
 

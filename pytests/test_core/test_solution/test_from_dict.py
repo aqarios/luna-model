@@ -1,8 +1,9 @@
 from random import Random
 import pytest
+from random import Random
 
 from aqmodels import Environment, Model, Solution, Variable, Vtype
-from pytests.test_core.utils import random_int, make_seed
+from pytests.test_core.utils import make_seed, random_int
 
 
 def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
@@ -114,6 +115,37 @@ def test_from_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...
     ]
     counts = [2, 3, 1, 4]
     sol = Solution.from_dicts(samples, model=m)
+    assert len(sol.samples) == 4
+    assert len(sol.counts) == 4
+    assert sol.samples.tolist() == [
+        [0, 0, 1],  # -1
+        [1, 1, 1],  # -1
+        [1, 0, 0],  # 1
+        [0, 1, 1],  # -2
+    ]
+    assert sol.counts.tolist() == counts
+    assert sol.obj_values.tolist() == [-1, -1, 1, -2]
+
+
+@pytest.mark.solution
+@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+def test_from_dicts_duplicate_with_model_and_counts(
+    model: tuple[Model, tuple[Variable, ...]],
+):
+    m, (x, y, z) = model
+    sample_a = {x: 0, y: 0, z: 1}  # -1
+    sample_b = {x: 1, y: 1, z: 1}  # -1
+    sample_c = {x: 1, y: 0, z: 0}  # 1
+    sample_d = {x: 0, y: 1, z: 1}  # -2
+    samples = [
+        sample_a,
+        sample_b,
+        sample_c,
+        sample_d,
+    ]
+    rand = Random(make_seed())
+    counts = [random_int(rand), random_int(rand), random_int(rand), random_int(rand)]
+    sol = Solution.from_dicts(samples, model=m, counts=counts)
     assert len(sol.samples) == 4
     assert len(sol.counts) == 4
     assert sol.samples.tolist() == [

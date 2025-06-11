@@ -97,6 +97,7 @@ _model_repr_1 = """Model {
         num_variables: 20,
     },
     constraints: Constraints {
+        used_names: [],
         constraints: [],
     },
     environment_id: 0,
