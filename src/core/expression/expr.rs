@@ -9,7 +9,6 @@ use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::writer::ModelWriter;
 use crate::core::{MutRcEnvironment, Vtype};
 use hashbrown::HashMap;
-use rand::seq::IndexedRandom;
 use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Clone)]
