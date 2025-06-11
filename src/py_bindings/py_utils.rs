@@ -1,8 +1,44 @@
-use super::py_sol::PySolution;
-use crate::core::{expression::BiasConstraints, solution::AssignmentBaseTypes, Samples, Timing};
+use super::{py_model::PyModel, py_sol::PySolution};
+use crate::core::{
+    expression::BiasConstraints, solution::AssignmentBaseTypes, Constraints, Expression, Samples,
+    Timing, VarId,
+};
+use crate::translator::model::lp::exprtree::ExprTree;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 static DELIMITER: &str = ", ";
+
+pub fn repr_model(model: &PyModel) -> String {
+    let bm = model.borrow();
+    format!(
+        "Model(name={}, sense={}, objective={}, constraints={})",
+        bm.name,
+        bm.sense,
+        repr_objective(&bm.objective.borrow()),
+        repr_constraints(&bm.constraints.borrow())
+    )
+}
+
+pub fn repr_objective(obj: &Expression<VarId, f64>) -> String {
+    // using the LP Translator Expression Tree.
+    ExprTree::from_expression_internal(obj)
+        .unwrap()
+        .optimize()
+        .to_repr()
+        .replace("[", "")
+        .replace("]", "")
+}
+
+pub fn repr_constraints(constrs: &Constraints<VarId, f64>) -> String {
+    format!(
+        "[{}]",
+        constrs
+            .iter()
+            .map(|c| c.to_string())
+            .collect::<Vec<_>>()
+            .join(DELIMITER)
+    )
+}
 
 pub fn repr_solution(sol: &PySolution) -> String {
     let mut repr = String::from("Solution(");

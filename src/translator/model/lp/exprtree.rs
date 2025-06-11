@@ -297,6 +297,7 @@ where
 {
     lin: Option<ExprTree<Bias>>,
     quad: Option<ExprTree<Bias>>,
+    ho: Option<ExprTree<Bias>>,
     cons: Option<ExprTree<Bias>>,
 }
 
@@ -307,14 +308,21 @@ where
     fn new(
         lin: Option<ExprTree<Bias>>,
         quad: Option<ExprTree<Bias>>,
+        ho: Option<ExprTree<Bias>>,
         cons: Option<ExprTree<Bias>>,
     ) -> Self {
-        Self { lin, quad, cons }
+        Self {
+            lin,
+            quad,
+            ho,
+            cons,
+        }
     }
 
     pub fn optimize(&mut self) -> &mut Self {
         self.lin = self.lin.as_mut().and_then(|e| Some(e.optimize()));
         self.quad = self.quad.as_mut().and_then(|e| Some(e.optimize()));
+        self.ho = self.ho.as_mut().and_then(|e| Some(e.optimize()));
         self
     }
 }
@@ -395,9 +403,85 @@ where
                 "cannot create an LP file from a model with higher order terms".to_string(),
             ));
         }
-        Ok(ExprTreeTuple::new(lintree, quadtree, constant))
+        Ok(ExprTreeTuple::new(lintree, quadtree, None, constant))
     }
 
+    pub fn from_expression_internal<Index>(
+        expr: &Expression<Index, Bias>,
+    ) -> Result<ExprTreeTuple<Bias>, TranslationErr>
+    where
+        Index: IndexConstraints,
+    {
+        // Constant
+        let constant = if expr.offset != Bias::default() {
+            Some(ExprTree::Number(expr.offset))
+        } else {
+            None
+        };
+
+        // Linear terms
+        let lintree = if expr.linear.is_zero() {
+            None
+        } else {
+            let mut lintree = ExprTree::Number(Bias::default());
+            for (u, bias) in expr.linear.iter() {
+                let vname = expr.env.borrow()[u.into()].name.clone();
+                let mul = ExprTree::Mul(
+                    Box::new(ExprTree::Number(*bias)),
+                    Box::new(ExprTree::Variable(vname)),
+                );
+                lintree = ExprTree::Add(Box::new(lintree), Box::new(mul));
+            }
+            Some(lintree)
+        };
+        // Quadratic terms
+        let quadtree = if let Some(q) = &expr.quadratic {
+            let mut quadtree = ExprTree::Number(Bias::default());
+            for (u, v, bias) in q.iter_flat() {
+                if u == v {
+                    // Pow
+                    let u_name = expr.env.borrow()[u].name.clone();
+                    let pow = ExprTree::Pow(
+                        Box::new(ExprTree::Variable(u_name)),
+                        Box::new(ExprTree::Number(Bias::one() * 2.0)),
+                    );
+                    let num = bias;
+                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(num)), Box::new(pow));
+                    quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
+                } else {
+                    // Mul
+                    let u_name = expr.env.borrow()[u].name.clone();
+                    let v_name = expr.env.borrow()[v].name.clone();
+                    let vmul = ExprTree::Mul(
+                        Box::new(ExprTree::Variable(u_name)),
+                        Box::new(ExprTree::Variable(v_name)),
+                    );
+                    let num = bias;
+                    let mul = ExprTree::Mul(Box::new(ExprTree::Number(num)), Box::new(vmul));
+                    quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
+                }
+            }
+            Some(quadtree)
+        } else {
+            None
+        };
+        // HigherOrder terms
+        let hotree = if let Some(ho) = &expr.higher_order {
+            let mut hotree = ExprTree::Number(Bias::default());
+            for (vs, bias) in ho.iter_contrib() {
+                let mut ho_mul = ExprTree::Number(*bias);
+                for v in vs {
+                    let v_name = expr.env.borrow()[v].name.clone();
+                    ho_mul = ExprTree::Mul(Box::new(ho_mul), Box::new(ExprTree::Variable(v_name)))
+                }
+                hotree = ExprTree::Add(Box::new(hotree), Box::new(ho_mul));
+            }
+            Some(hotree)
+        } else {
+            None
+        };
+        Ok(ExprTreeTuple::new(lintree, quadtree, hotree, constant))
+    }
     pub fn optimize(&self) -> Self
     where
         Bias: BiasConstraints,
@@ -617,6 +701,43 @@ where
         }
         if let Some(constant) = &self.cons {
             result.push_str(&format!(" + {}", constant.to_string()));
+        }
+        result.replace("+ -", "-").replace("+-", "-")
+    }
+
+    pub fn to_repr(&self) -> String {
+        let mut result = String::new();
+        let linstr = self.lin.as_ref().and_then(|l| Some(l.to_string()));
+        let quadstr = self.quad.as_ref().and_then(|q| Some(q.to_string()));
+        let hostr = self.ho.as_ref().and_then(|h| Some(h.to_string()));
+        let cons = self.cons.as_ref().and_then(|c| Some(c.to_string()));
+
+        if let Some(lin) = &linstr {
+            result.push_str(lin)
+        }
+
+        if let Some(quad) = &quadstr {
+            if linstr.is_some() {
+                result.push_str(&format!("+ {}", quad));
+            } else {
+                result.push_str(quad);
+            }
+        }
+
+        if let Some(ho) = &hostr {
+            if linstr.is_some() || quadstr.is_some() {
+                result.push_str(&format!("+ {}", ho));
+            } else {
+                result.push_str(ho);
+            }
+        }
+
+        if let Some(cons) = &cons {
+            if linstr.is_some() || quadstr.is_some() || hostr.is_some() {
+                result.push_str(&format!(" + {}", cons));
+            } else {
+                result.push_str(cons);
+            }
         }
         result.replace("+ -", "-").replace("+-", "-")
     }

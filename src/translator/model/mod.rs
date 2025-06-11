@@ -1,5 +1,5 @@
 mod bqm_translator;
-mod lp;
+pub mod lp;
 mod matrix_translator;
 
 pub use bqm_translator::BqmTranslator;

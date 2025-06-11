@@ -6,12 +6,14 @@ use std::rc::Rc;
 use super::py_bounds::BoundValue;
 use super::py_constr::PyConstraint;
 use super::py_model_metadata::PyModelMetadata;
+use super::py_utils::repr_model;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
 use crate::core::operations::AddAssignToExpression;
 use crate::core::{
-    environment, ConcreteModel, ConcreteMutRcModel, LazyBounds, RcSolution, Sense, VarRef, Vtype,
+    environment, ConcreteModel, ConcreteMutRcModel, LazyBounds, RcSolution,
+    Sense, VarRef, Vtype,
 };
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
@@ -351,7 +353,7 @@ impl PyModel {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:#?}", self.borrow())
+        repr_model(self)
     }
 
     /// Serialize the model into a compact binary format.
