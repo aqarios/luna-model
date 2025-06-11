@@ -156,8 +156,8 @@ impl Section {
             (Some(Section::VariableType(VariableType::Binary)), None)
         } else if starts_with_any(line, &VariableTypeKeywords::all_gen()) {
             (Some(Section::VariableType(VariableType::General)), None)
-        } else if starts_with_any(line, &VariableTypeKeywords::all_semi()) {
-            (Some(Section::VariableType(VariableType::Semi)), None)
+        // } else if starts_with_any(line, &VariableTypeKeywords::all_semi()) {
+        //     (Some(Section::VariableType(VariableType::Semi)), None)
         } else {
             (None, Some(line.trim()))
         }
@@ -219,7 +219,7 @@ where
                     v.name.clone(),
                 ),
                 Vtype::Real => {
-                    sections.push(&Section::VariableType(VariableType::Semi), v.name.clone())
+                    sections.push(&Section::VariableType(VariableType::Continuous), v.name.clone())
                 }
             }
             if v.vtype != Vtype::Binary {
