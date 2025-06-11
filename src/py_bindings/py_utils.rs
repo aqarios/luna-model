@@ -21,10 +21,10 @@ pub fn repr_model(model: &PyModel) -> String {
 
 pub fn repr_objective(obj: &Expression<VarId, f64>) -> String {
     // using the LP Translator Expression Tree.
-    ExprTree::from_expression(obj, false)
+    ExprTree::from_expression_internal(obj)
         .unwrap()
         .optimize()
-        .to_string(false)
+        .to_repr()
         .replace("[", "")
         .replace("]", "")
 }
