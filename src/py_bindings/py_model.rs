@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::ops::{AddAssign, Deref};
+use std::ops::Deref;
 use std::rc::Rc;
 
 use super::py_bounds::BoundValue;
@@ -258,7 +258,7 @@ impl PyModel {
         self.borrow()
             .constraints
             .borrow_mut()
-            .add_assign(constraint.borrow().deref());
+            .add_assign(constraint.borrow().deref())?;
         Ok(())
     }
 

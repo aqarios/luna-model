@@ -158,6 +158,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::EvaluationError::NAME,
         m.py().get_type::<pyexc::EvaluationError>(),
     )?;
+    m.add(
+        pyexc::DuplicateConstraintNameError::NAME,
+        m.py().get_type::<pyexc::DuplicateConstraintNameError>(),
+    )?;
     pm.add_submodule(&m)?;
     #[cfg(not(feature = "lq"))]
     pm.py()
