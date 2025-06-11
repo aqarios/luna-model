@@ -13,6 +13,7 @@ mod py_timing;
 mod py_translator;
 mod py_usize;
 mod py_var;
+mod py_utils;
 
 #[cfg(not(feature = "lq"))]
 use pyo3::prelude::*;

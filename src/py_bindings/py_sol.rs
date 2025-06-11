@@ -1,3 +1,4 @@
+use super::py_utils::repr_solution;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::{
     ConcreteAssignmentTypes, ConcreteBias, PrintLayout, RcSolution, Samples, Solution,
@@ -807,7 +808,7 @@ impl PySolution {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:#?}", self.0)
+        repr_solution(self)
     }
 
     /// Iterate over the single results of the solution.
