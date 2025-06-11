@@ -5,6 +5,7 @@ use super::{
     VarRef,
 };
 use crate::core::solution::AssignmentBaseTypes;
+use crate::core::term::Linear;
 use std::{cell::RefCell, rc::Rc};
 
 pub type ConcreteId = u32;
@@ -19,6 +20,7 @@ pub type ConcreteConstraints = Constraints<ConcreteIndex, ConcreteBias>;
 pub type ConcreteModel = Model<ConcreteIndex, ConcreteBias>;
 pub type ConcreteEnvironment = Environment<ConcreteIndex>;
 
+pub type ConcreteLinear = Linear<ConcreteBias>;
 pub type ConcreteQuadratic = Quadratic<ConcreteIndex, ConcreteBias>;
 pub type ConcreteHigherOrder = HigherOrder<ConcreteIndex, ConcreteBias>;
 

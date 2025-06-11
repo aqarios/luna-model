@@ -85,6 +85,11 @@ impl PyVariable {
         let bounds = self.env.borrow().variables[idx].bounds;
         PyBounds(bounds.into())
     }
+
+    pub fn vtype(&self) -> Vtype {
+        let idx: usize = self.id.into();
+        self.env.borrow().variables[idx].vtype
+    }
 }
 
 impl Hash for PyVariable {
@@ -153,6 +158,11 @@ impl PyVariable {
     #[getter]
     fn get_bounds(&self) -> PyBounds {
         self.bounds()
+    }
+
+    #[getter]
+    fn get_vtype(&self) -> Vtype {
+        self.vtype()
     }
 
     /// Compute the hash of the variable.
