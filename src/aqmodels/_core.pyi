@@ -1205,16 +1205,37 @@ class Solution:
     def from_dicts(data: list[dict[Variable, int]]) -> Solution: ...
     @overload
     @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, int]], *, counts: list[int]
+    ) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dicts(data: list[dict[Variable, float]]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, float]], *, counts: list[int]
+    ) -> Solution: ...
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, int]]) -> Solution: ...
     @overload
     @staticmethod
+    def from_dicts(data: list[dict[str, int]], *, counts: list[int]) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dicts(data: list[dict[str, float]]) -> Solution: ...
     @overload
     @staticmethod
+    def from_dicts(data: list[dict[str, float]], *, counts: list[int]) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dicts(data: list[dict[Variable | str, int | float]]) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]], *, counts: list[int]
+    ) -> Solution: ...
     @overload
     @staticmethod
     def from_dicts(
@@ -1223,14 +1244,34 @@ class Solution:
     @overload
     @staticmethod
     def from_dicts(
+        data: list[dict[Variable, int]], *, env: Environment, counts: list[int]
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
         data: list[dict[Variable, float]], *, env: Environment
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, float]], *, env: Environment, counts: list[int]
     ) -> Solution: ...
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, int]], *, env: Environment) -> Solution: ...
     @overload
     @staticmethod
+    def from_dicts(
+        data: list[dict[str, int]], *, env: Environment, counts: list[int]
+    ) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dicts(data: list[dict[str, float]], *, env: Environment) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[str, float]], *, env: Environment, counts: list[int]
+    ) -> Solution: ...
     @overload
     @staticmethod
     def from_dicts(
@@ -1238,16 +1279,44 @@ class Solution:
     ) -> Solution: ...
     @overload
     @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]],
+        *,
+        env: Environment,
+        counts: list[int],
+    ) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dicts(data: list[dict[Variable, int]], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, int]], *, model: Model, counts: list[int]
+    ) -> Solution: ...
     @overload
     @staticmethod
     def from_dicts(data: list[dict[Variable, float]], *, model: Model) -> Solution: ...
     @overload
     @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, float]], *, model: Model, counts: list[int]
+    ) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dicts(data: list[dict[str, int]], *, model: Model) -> Solution: ...
     @overload
     @staticmethod
+    def from_dicts(
+        data: list[dict[str, int]], *, model: Model, counts: list[int]
+    ) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dicts(data: list[dict[str, float]], *, model: Model) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[str, float]], *, model: Model, counts: list[int]
+    ) -> Solution: ...
     @overload
     @staticmethod
     def from_dicts(
@@ -1255,7 +1324,20 @@ class Solution:
     ) -> Solution: ...
     @overload
     @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]],
+        *,
+        model: Model,
+        counts: list[int],
+    ) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dicts(data: list[dict[Variable, int]], *, timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, int]], *, timing: Timing, counts: list[int]
+    ) -> Solution: ...
     @overload
     @staticmethod
     def from_dicts(
@@ -1263,14 +1345,37 @@ class Solution:
     ) -> Solution: ...
     @overload
     @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, float]], *, timing: Timing, counts: list[int]
+    ) -> Solution: ...
+    @overload
+    @staticmethod
     def from_dicts(data: list[dict[str, int]], *, timing: Timing) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[str, int]], *, timing: Timing, counts: list[int]
+    ) -> Solution: ...
     @overload
     @staticmethod
     def from_dicts(data: list[dict[str, float]], *, timing: Timing) -> Solution: ...
     @overload
     @staticmethod
     def from_dicts(
+        data: list[dict[str, float]], *, timing: Timing, counts: list[int]
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
         data: list[dict[Variable | str, int | float]], *, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]],
+        *,
+        timing: Timing,
+        counts: list[int],
     ) -> Solution: ...
     @overload
     @staticmethod
@@ -1280,7 +1385,25 @@ class Solution:
     @overload
     @staticmethod
     def from_dicts(
+        data: list[dict[Variable, int]],
+        *,
+        env: Environment,
+        timing: Timing,
+        counts: list[int],
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
         data: list[dict[Variable, float]], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, float]],
+        *,
+        env: Environment,
+        timing: Timing,
+        counts: list[int],
     ) -> Solution: ...
     @overload
     @staticmethod
@@ -1290,7 +1413,25 @@ class Solution:
     @overload
     @staticmethod
     def from_dicts(
+        data: list[dict[str, int]],
+        *,
+        env: Environment,
+        timing: Timing,
+        counts: list[int],
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
         data: list[dict[str, float]], *, env: Environment, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[str, float]],
+        *,
+        env: Environment,
+        timing: Timing,
+        counts: list[int],
     ) -> Solution: ...
     @overload
     @staticmethod
@@ -1303,7 +1444,25 @@ class Solution:
     @overload
     @staticmethod
     def from_dicts(
+        data: list[dict[Variable | str, int | float]],
+        *,
+        env: Environment,
+        timing: Timing,
+        counts: list[int],
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
         data: list[dict[Variable, int]], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable, int]],
+        *,
+        model: Model,
+        timing: Timing,
+        counts: list[int],
     ) -> Solution: ...
     @overload
     @staticmethod
@@ -1313,7 +1472,21 @@ class Solution:
     @overload
     @staticmethod
     def from_dicts(
+        data: list[dict[Variable, float]],
+        *,
+        model: Model,
+        timing: Timing,
+        counts: list[int],
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
         data: list[dict[str, int]], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[str, int]], *, model: Model, timing: Timing, counts: list[int]
     ) -> Solution: ...
     @overload
     @staticmethod
@@ -1323,7 +1496,21 @@ class Solution:
     @overload
     @staticmethod
     def from_dicts(
+        data: list[dict[str, float]], *, model: Model, timing: Timing, counts: list[int]
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
         data: list[dict[Variable | str, int | float]], *, model: Model, timing: Timing
+    ) -> Solution: ...
+    @overload
+    @staticmethod
+    def from_dicts(
+        data: list[dict[Variable | str, int | float]],
+        *,
+        model: Model,
+        timing: Timing,
+        counts: list[int],
     ) -> Solution: ...
     @staticmethod
     def from_dicts(
@@ -1332,6 +1519,7 @@ class Solution:
         env: Environment | None = ...,
         model: Model | None = ...,
         timing: Timing | None = ...,
+        counts: int | None = ...,
     ) -> Solution:
         """Create a `Solution` from multiple dicts.
 
@@ -1350,6 +1538,8 @@ class Solution:
             The environment the variable types shall be determined from.
         model : Model, optional
             A model to evaluate the sample with.
+        counts : int, optional
+            The number of occurrences for each sample.
 
         Returns
         -------
@@ -1364,6 +1554,7 @@ class Solution:
         ValueError
             If `env` and `model` are both present. When this is the case, the user's
             intention is unclear as the model itself already contains an environment.
+            Or if the the number of samples and the number of counts do not match.
         SolutionTranslationError
             Generally if the sample translation fails. Might be specified by one of the
             three following errors.
