@@ -1,5 +1,5 @@
 import pytest
-from aqmodels._core import Unbounded
+from aqmodels import Unbounded
 
 from aqmodels import Environment, Expression, Model, Sense, Variable, Vtype
 from aqmodels.errors import VariableCreationError, VariableExistsError

@@ -535,7 +535,8 @@ class Variable:
     def __repr__(self, /) -> str: ...
 
 class Constant:
-    """
+    """A constant expression.
+
     Convenience class to indicate the empty set of variables of an expression's
     constant term when iterating over the expression's components.
 
@@ -555,10 +556,9 @@ class Constant:
     >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
     """
 
-    ...
-
 class Linear:
-    """
+    """A linear expression.
+
     Convenience class to indicate the variable of an expression's linear term when
     iterating over the expression's components.
 
@@ -584,7 +584,8 @@ class Linear:
     def var(self) -> Variable: ...
 
 class Quadratic:
-    """
+    """A quadratic expression.
+
     Convenience class to indicate the variables of an expression's quadratic term when
     iterating over the expression's components.
 
@@ -612,7 +613,8 @@ class Quadratic:
     def var_b(self) -> Variable: ...
 
 class HigherOrder:
-    """
+    """A higher-order expression.
+
     Convenience class to indicate the set of variables of an expression's higher-order
     term when iterating over the expression's components.
 
@@ -2418,7 +2420,9 @@ class Expression:
 
     def items(self, /) -> ExpressionIterator:
         """
-        Iterate over the single components of an expression. An *component* refers to
+        Iterate over the single components of an expression.
+
+        An *component* refers to
         a single constant, linear, quadratic, or higher-order term of an expression.
 
         Returns
