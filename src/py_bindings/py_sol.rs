@@ -1,3 +1,4 @@
+use super::py_utils::repr_solution;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::{
     ConcreteAssignmentTypes, ConcreteBias, PrintLayout, RcSolution, Samples, Solution,
@@ -308,6 +309,8 @@ impl PySolution {
     ///     The environment the variable types shall be determined from.
     /// model : Model, optional
     ///     A model to evaluate the sample with.
+    /// counts : int, optional
+    ///     The number of occurrences of this sample.
     ///
     /// Returns
     /// -------
@@ -333,12 +336,13 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None))]
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None))]
     fn from_dict(
         data: HashMap<SampleKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
+        counts: Option<usize>,
     ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
@@ -398,7 +402,7 @@ impl PySolution {
         sol.variable_names = var_names;
         sol.timing = timing.map(|t| t.0);
         let energy: Option<f64> = None;
-        let _ = sol.extend(&sample, 1, energy)?;
+        let _ = sol.extend(&sample, counts.unwrap_or(1), energy)?;
         let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc)?;
@@ -421,6 +425,8 @@ impl PySolution {
     ///     The environment the variable types shall be determined from.
     /// model : Model, optional
     ///     A model to evaluate the sample with.
+    /// counts : int, optional
+    ///     The number of occurrences for each sample.
     ///
     /// Returns
     /// -------
@@ -435,6 +441,7 @@ impl PySolution {
     /// ValueError
     ///     If `env` and `model` are both present. When this is the case, the user's
     ///     intention is unclear as the model itself already contains an environment.
+    ///     Or if the the number of samples and the number of counts do not match.
     /// SolutionTranslationError
     ///     Generally if the sample translation fails. Might be specified by one of the
     ///     three following errors.
@@ -446,19 +453,28 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None)
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None)
     )]
     fn from_dicts(
         data: Vec<HashMap<SampleKey, f64>>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
+        counts: Option<Vec<usize>>,
     ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
                 "either `env` or `model` has to be `None`",
             ));
         }
+
+        if counts.is_some() && counts.as_ref().unwrap().len() != data.len() {
+            return Err(PyValueError::new_err(format!(
+                "the number of samples and the counts do not match: num samples is '{}', num counts is '{}'", 
+                data.len(), counts.unwrap().len()))
+            );
+        }
+
         let environment: PyEnvironment = if model.is_some() {
             PyEnvironment(Rc::clone(&model.as_ref().unwrap().borrow().environment))
         } else {
@@ -488,7 +504,7 @@ impl PySolution {
 
         let mut samples: Vec<Vec<f64>> = Vec::with_capacity(data.len());
 
-        for d in data.iter() {
+        for (i, d) in data.iter().enumerate() {
             let mut sample = vec![f64::default(); n_vars];
             let mut mask = vec![false; n_vars];
             let mut var_names = vec![String::default(); n_vars];
@@ -518,10 +534,11 @@ impl PySolution {
             sol.variable_names = var_names;
             let energy: Option<f64> = None;
 
+            let sc = counts.as_ref().and_then(|c| Some(c[i])).or(Some(1)).unwrap();
             if let Some(pos) = samples.iter().position(|s| s == &sample) {
-                sol.counts[pos] += 1;
+                sol.counts[pos] += sc;
             } else {
-                let _ = sol.extend(&sample, 1, energy)?;
+                let _ = sol.extend(&sample, sc, energy)?;
                 samples.push(sample);
             }
         }
@@ -791,7 +808,7 @@ impl PySolution {
     }
 
     fn __repr__(&self) -> String {
-        format!("{:#?}", self.0)
+        repr_solution(self)
     }
 
     /// Iterate over the single results of the solution.

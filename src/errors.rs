@@ -6,6 +6,15 @@ use std::{
 };
 
 #[derive(Debug, Clone)]
+pub struct DuplicateConstraintNameErr(pub String);
+impl Error for DuplicateConstraintNameErr {}
+impl Display for DuplicateConstraintNameErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "duplicate constraint name used: {}", self.0)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct ComputationErr(pub String);
 impl Error for ComputationErr {}
 impl Display for ComputationErr {
@@ -344,6 +353,12 @@ impl From<IllegalConstraintNameErr> for TranslationErr {
     }
 }
 
+impl From<DuplicateConstraintNameErr> for IllegalConstraintNameErr {
+    fn from(value: DuplicateConstraintNameErr) -> Self {
+        IllegalConstraintNameErr(value.to_string())
+    }
+}
+
 #[derive(Debug)]
 pub struct VariableOcc {
     pub only_in_sol: Option<Vec<String>>,
@@ -402,3 +417,5 @@ impl Display for EvaluationErr {
         write!(f, "{}", msg)
     }
 }
+
+

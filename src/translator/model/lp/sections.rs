@@ -21,7 +21,7 @@ use hashbrown::{hash_map::Iter, HashMap};
 use regex::Regex;
 use strum_macros::Display;
 
-use std::{cell::RefCell, hash::Hash, marker::PhantomData, ops::AddAssign, rc::Rc};
+use std::{cell::RefCell, hash::Hash, marker::PhantomData, rc::Rc};
 
 #[derive(Debug, Clone, PartialEq, Display, Eq, Hash)]
 pub enum Section {
@@ -156,8 +156,8 @@ impl Section {
             (Some(Section::VariableType(VariableType::Binary)), None)
         } else if starts_with_any(line, &VariableTypeKeywords::all_gen()) {
             (Some(Section::VariableType(VariableType::General)), None)
-        } else if starts_with_any(line, &VariableTypeKeywords::all_semi()) {
-            (Some(Section::VariableType(VariableType::Semi)), None)
+        // } else if starts_with_any(line, &VariableTypeKeywords::all_semi()) {
+        //     (Some(Section::VariableType(VariableType::Semi)), None)
         } else {
             (None, Some(line.trim()))
         }
@@ -219,7 +219,7 @@ where
                     v.name.clone(),
                 ),
                 Vtype::Real => {
-                    sections.push(&Section::VariableType(VariableType::Semi), v.name.clone())
+                    sections.push(&Section::VariableType(VariableType::Continuous), v.name.clone())
                 }
             }
             if v.vtype != Vtype::Binary {
@@ -505,7 +505,11 @@ where
                             )))
                         }
                     };
-                    model.constraints.borrow_mut().add_assign(c);
+                    model
+                        .constraints
+                        .borrow_mut()
+                        .add_assign(&c)
+                        .map_err(|e| TranslationErr::new(e.to_string()))?;
                 } else {
                     return Err(TranslationErr::new(format!(
                         "malformed constraint: {}",

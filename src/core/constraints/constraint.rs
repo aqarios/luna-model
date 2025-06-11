@@ -2,9 +2,9 @@ use crate::core::expression::{BiasConstraints, ExpressionEvaluation, IndexConstr
 use crate::core::operations::SubAssignToExpression;
 use crate::core::writer::ModelWriter;
 use crate::core::{ExpressionBase, MutRcExpression, ValueByIndex};
-use crate::errors::{IllegalConstraintNameErr, IndexOutOfBoundsErr};
+use crate::errors::{DuplicateConstraintNameErr, IllegalConstraintNameErr, IndexOutOfBoundsErr};
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Add, AddAssign, Mul};
+use std::ops::{Add, Mul};
 use std::slice::Iter;
 use std::string::ToString;
 use strum_macros::Display;
@@ -165,6 +165,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
+    pub used_names: Vec<String>,
     pub constraints: Vec<Constraint<Index, Bias>>,
 }
 
@@ -175,18 +176,27 @@ where
 {
     pub fn default() -> Self {
         Self {
+            used_names: Vec::new(),
             constraints: Vec::new(),
         }
     }
 
     pub fn new_from(other: &Self) -> Self {
         Self {
+            used_names: other.used_names.clone(),
             constraints: other.constraints.clone(),
         }
     }
 
     pub fn new_from_vec(constraints: Vec<Constraint<Index, Bias>>) -> Self {
-        Self { constraints }
+        Self {
+            used_names: constraints
+                .iter()
+                .filter(|c| c.name.is_some())
+                .map(|c| c.name.clone().unwrap())
+                .collect(),
+            constraints,
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -212,37 +222,37 @@ where
     }
 }
 
-impl<Index, Bias> AddAssign<Constraint<Index, Bias>> for Constraints<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn add_assign(&mut self, rhs: Constraint<Index, Bias>) {
-        self.constraints.push(rhs)
-    }
-}
-
 impl<Index, Bias> Add<Constraint<Index, Bias>> for Constraints<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Constraints<Index, Bias>;
+    type Output = Result<Constraints<Index, Bias>, DuplicateConstraintNameErr>;
 
     fn add(self, rhs: Constraint<Index, Bias>) -> Self::Output {
         let mut out = Constraints::new_from(&self);
-        out += rhs;
-        out
+        out.add_assign(&rhs)?;
+        Ok(out)
     }
 }
 
-impl<Index, Bias> AddAssign<&Constraint<Index, Bias>> for Constraints<Index, Bias>
+impl<Index, Bias> Constraints<Index, Bias>
 where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn add_assign(&mut self, rhs: &Constraint<Index, Bias>) {
-        self.constraints.push(rhs.clone());
+    pub fn add_assign(
+        &mut self,
+        rhs: &Constraint<Index, Bias>,
+    ) -> Result<(), DuplicateConstraintNameErr> {
+        if let Some(name) = &rhs.name {
+            if self.used_names.contains(&name) {
+                return Err(DuplicateConstraintNameErr(name.to_string()));
+            } else {
+                self.used_names.push(name.to_string())
+            }
+        }
+        Ok(self.constraints.push(rhs.clone()))
     }
 }
 
@@ -251,12 +261,17 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    type Output = Constraints<Index, Bias>;
+    type Output = Result<Constraints<Index, Bias>, DuplicateConstraintNameErr>;
 
     fn add(self, rhs: &Constraint<Index, Bias>) -> Self::Output {
+        if rhs.name.is_some() && self.used_names.contains(rhs.name.as_ref().unwrap()) {
+            return Err(DuplicateConstraintNameErr(
+                rhs.name.as_ref().unwrap().to_string(),
+            ));
+        }
         let mut out = Constraints::new_from(&self);
-        out += rhs;
-        out
+        out.add_assign(rhs)?;
+        Ok(out)
     }
 }
 

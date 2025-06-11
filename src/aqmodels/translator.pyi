@@ -156,7 +156,7 @@ class QuboTranslator:
     Examples
     --------
     >>> import numpy as np
-    >>> from luna_quantum import QuboTranslator, Vtype
+    >>> from luna_quantum.translator import QuboTranslator, Vtype
     >>> q = np.array([[1.0, -1.0], [-1.0, 2.0]])
 
     Create a model from a matrix:
@@ -397,7 +397,7 @@ class LpTranslator:
     Examples
     --------
     >>> from pathlib import Path
-    >>> from luna_quantum import LpTranslator
+    >>> from luna_quantum.translator import LpTranslator
     >>> lp_filepath = Path("path/to/the/lp_file")
 
     >>> model = LpTranslator.to_aq(lp_filepath)
@@ -638,7 +638,7 @@ class CqmTranslator:
     --------
     >>> import dimod
     >>> import numpy as np
-    >>> from luna_quantum import CqmTranslator, Vtype
+    >>> from luna_quantum.translator import CqmTranslator, Vtype
     >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 
     Create a model from a matrix:
@@ -713,7 +713,7 @@ class BqmTranslator:
     --------
     >>> import dimod
     >>> import numpy as np
-    >>> from luna_quantum import BqmTranslator, Vtype
+    >>> from luna_quantum.translator import BqmTranslator, Vtype
     >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 
     Create a model from a matrix:

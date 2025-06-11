@@ -1,8 +1,4 @@
-use std::{
-    cell::RefCell,
-    ops::{AddAssign, Deref},
-    rc::Rc,
-};
+use std::{cell::RefCell, ops::Deref, rc::Rc};
 
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 use crate::{
@@ -290,7 +286,7 @@ impl PyConstraints {
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
         constraint.borrow_mut().set_name(name)?;
-        self.borrow_mut().add_assign(constraint.borrow().deref());
+        self.borrow_mut().add_assign(constraint.borrow().deref())?;
         Ok(())
     }
 
@@ -306,7 +302,7 @@ impl PyConstraints {
             self.borrow().get_constraint(n as usize)?.clone(),
         ))
     }
-    
+
     fn __len__(&self) -> usize {
         self.borrow().constraints.len()
     }

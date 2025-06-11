@@ -1,5 +1,5 @@
 use super::{
-    keywords::{BoundsKeywords, ConstraintsKeywords, EndKeywords},
+    keywords::{BoundsKeywords, ConstraintsKeywords, EndKeywords, VariableType},
     sections::{Section, SectionsHolder},
     util::{chunks, is_comment, is_end},
 };
@@ -161,6 +161,9 @@ where
             }
         }
         for (vt, data) in sections.iter_variables() {
+            if *vt == VariableType::Continuous {
+                continue;
+            }
             out.push_str(&format!("{}\n", vt.to_string()));
             let data_str = data.join(" ");
             let chunks = chunks(&data_str, MAX_LINE_LENGTH);

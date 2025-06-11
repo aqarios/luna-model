@@ -221,10 +221,16 @@ class EvaluationError(Exception):
 
     def __str__(self, /) -> str: ...
 
+class DuplicateConstraintNameError(Exception):
+    """Raised when a duplicate constraint name is used."""
+
+    def __str__(self, /) -> str: ...
+
 __all__ = [
     "ComputationError",
     "DecodeError",
     "DifferentEnvsError",
+    "DuplicateConstraintNameError",
     "EvaluationError",
     "IllegalConstraintNameError",
     "ModelNotQuadraticError",
