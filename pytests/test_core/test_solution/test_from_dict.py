@@ -1,3 +1,4 @@
+from random import Random
 import pytest
 from random import Random
 
@@ -58,6 +59,18 @@ def test_from_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     sol = Solution.from_dict(sample, model=m)
     assert sol.samples.tolist() == [[0, 0, 1]]
     assert sol.obj_values.tolist() == [-1.0]
+
+
+@pytest.mark.solution
+@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+def test_from_dict_with_model_and_counts(model: tuple[Model, tuple[Variable, ...]]):
+    m, (x, y, z) = model
+    sample = {x: 0, y: 0, z: 1}
+    counts = random_int(rand=Random(make_seed()))
+    sol = Solution.from_dict(sample, model=m, counts=counts)
+    assert sol.samples.tolist() == [[0, 0, 1]]
+    assert sol.obj_values.tolist() == [-1.0]
+    assert sol.counts == counts
 
 
 @pytest.mark.solution
