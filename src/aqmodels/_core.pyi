@@ -1318,8 +1318,8 @@ class Solution:
             The environment the variable types shall be determined from.
         model : Model, optional
             A model to evaluate the sample with.
-        counts int, optional
-            How often the sample is encountered.
+        counts : int, optional
+            The number of occurrences of this sample.
 
         Returns
         -------
