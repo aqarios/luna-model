@@ -530,10 +530,11 @@ impl PySolution {
             sol.variable_names = var_names;
             let energy: Option<f64> = None;
 
+            let sc = counts.as_ref().and_then(|c| Some(c[i])).or(Some(1)).unwrap();
             if let Some(pos) = samples.iter().position(|s| s == &sample) {
-                sol.counts[pos] += 1;
+                sol.counts[pos] += sc;
             } else {
-                let _ = sol.extend(&sample, counts.as_ref().and_then(|c| Some(c[i])).or(Some(1)).unwrap(), energy)?;
+                let _ = sol.extend(&sample, sc, energy)?;
                 samples.push(sample);
             }
         }
