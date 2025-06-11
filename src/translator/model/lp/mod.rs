@@ -1,4 +1,4 @@
-mod exprtree;
+pub mod exprtree;
 mod keywords;
 mod lp_translator;
 mod sections;
