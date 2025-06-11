@@ -309,6 +309,8 @@ impl PySolution {
     ///     The environment the variable types shall be determined from.
     /// model : Model, optional
     ///     A model to evaluate the sample with.
+    /// counts : int, optional
+    ///     The number of occurrences of this sample.
     ///
     /// Returns
     /// -------
@@ -334,12 +336,13 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None))]
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None))]
     fn from_dict(
         data: HashMap<SampleKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
+        counts: Option<usize>,
     ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
@@ -399,7 +402,7 @@ impl PySolution {
         sol.variable_names = var_names;
         sol.timing = timing.map(|t| t.0);
         let energy: Option<f64> = None;
-        let _ = sol.extend(&sample, 1, energy)?;
+        let _ = sol.extend(&sample, counts.unwrap_or(1), energy)?;
         let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc)?;
