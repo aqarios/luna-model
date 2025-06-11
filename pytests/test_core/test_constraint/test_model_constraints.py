@@ -1,6 +1,7 @@
 import pytest
 
 from aqmodels import Environment, Model, Variable, Vtype
+from aqmodels.errors import DuplicateConstraintNameError
 
 
 def model_iadd(request) -> Model:
@@ -163,6 +164,17 @@ def test_model_add_constraint_le_named():
     assert model.num_constraints == 1
     assert model.constraints[0].name == "constraint"
 
+@pytest.mark.constraint
+def test_model_add_constraint_le_named_duplicate():
+    with Environment():
+        model = Model()
+        x = Variable("x")
+        y = Variable("y")
+
+    model.constraints += x + y <= 1, "constraint"
+    with pytest.raises(DuplicateConstraintNameError):
+        model.constraints += x - y == 2, "constraint"
+
 
 @pytest.mark.constraint
 def test_model_add_constraint_eq_named():
@@ -175,6 +187,17 @@ def test_model_add_constraint_eq_named():
     assert model.num_constraints == 1
     assert model.constraints[0].name == "constraint"
 
+@pytest.mark.constraint
+def test_model_add_constraint_eq_named_duplicate():
+    with Environment():
+        model = Model()
+        x = Variable("x")
+        y = Variable("y")
+
+    model.constraints += x + y == 0, "constraint"
+    with pytest.raises(DuplicateConstraintNameError):
+        model.constraints += x - y == 2, "constraint"
+
 
 @pytest.mark.constraint
 def test_model_add_constraint_ge_named():
@@ -186,6 +209,17 @@ def test_model_add_constraint_ge_named():
     model.constraints += x + y >= 1, "constraint"
     assert model.num_constraints == 1
     assert model.constraints[0].name == "constraint"
+
+@pytest.mark.constraint
+def test_model_add_constraint_ge_named_duplicate():
+    with Environment():
+        model = Model()
+        x = Variable("x")
+        y = Variable("y")
+
+    model.constraints += x + y >= 0, "constraint"
+    with pytest.raises(DuplicateConstraintNameError):
+        model.constraints += x - y == 2, "constraint"
 
 
 @pytest.mark.constraint

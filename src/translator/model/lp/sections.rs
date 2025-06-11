@@ -21,7 +21,7 @@ use hashbrown::{hash_map::Iter, HashMap};
 use regex::Regex;
 use strum_macros::Display;
 
-use std::{cell::RefCell, hash::Hash, marker::PhantomData, ops::AddAssign, rc::Rc};
+use std::{cell::RefCell, hash::Hash, marker::PhantomData, rc::Rc};
 
 #[derive(Debug, Clone, PartialEq, Display, Eq, Hash)]
 pub enum Section {
@@ -505,7 +505,11 @@ where
                             )))
                         }
                     };
-                    model.constraints.borrow_mut().add_assign(c);
+                    model
+                        .constraints
+                        .borrow_mut()
+                        .add_assign(&c)
+                        .map_err(|e| TranslationErr::new(e.to_string()))?;
                 } else {
                     return Err(TranslationErr::new(format!(
                         "malformed constraint: {}",
