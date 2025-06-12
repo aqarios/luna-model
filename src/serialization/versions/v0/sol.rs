@@ -1,9 +1,10 @@
 use std::rc::Rc;
 
+use crate::core::Solution;
 use crate::serialization::{Decodable, Encodable};
 use crate::{
     core::{
-        solution::sol::SampleCol, ConcreteSolution, RcSolution, Solution, VarAssignment, Vtype,
+        solution::sol::SampleCol, RcSolution, VarAssignment, Vtype,
     },
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
@@ -118,22 +119,22 @@ impl BytesEncodable for SerSolution {
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Decodable.
-impl BytesDecodable<ConcreteSolution> for SerSolution {
-    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<ConcreteSolution, DecodeError> {
+impl BytesDecodable<RcSolution> for SerSolution {
+    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<RcSolution, DecodeError> {
         Self::decode(bytes)?.extract()
     }
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Encodable.
-impl Creatable<ConcreteSolution> for SerSolution {
-    fn new(value: &ConcreteSolution) -> Self {
+impl Creatable<RcSolution> for SerSolution {
+    fn new(value: &RcSolution) -> Self {
         Self::default().fill(&value)
     }
 }
 
 impl SerSolution {
-    /// Fills the serializable solution based on an instance of Solution.
-    fn fill(mut self, solution: &ConcreteSolution) -> Self {
+    /// Fills the serializable solution based on an instance of RcSolution.
+    fn fill(mut self, solution: &RcSolution) -> Self {
         let samples = solution.samples();
         for ((i, sample), &occ) in solution.samples().iter().enumerate().zip(&solution.counts) {
             // for (pos, a) in sample.iter().enumerate() {
@@ -223,7 +224,7 @@ impl SerSolution {
         self
     }
 
-    pub fn extract(&self) -> Result<ConcreteSolution, DecodeError> {
+    pub fn extract(&self) -> Result<RcSolution, DecodeError> {
         let mut sol = Solution::default();
         let num_samples = self.num_samples as usize;
         let mut type_per_pos: Vec<Vtype> = Vec::new();

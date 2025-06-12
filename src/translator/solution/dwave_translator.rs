@@ -1,6 +1,7 @@
+use crate::core::environment::SharedEnvironment;
 use crate::core::expression::IndexConstraints;
 use crate::core::solution::sol::SampleCol;
-use crate::core::{ConcreteSolution, MutRcEnvironment, RcSolution, Solution, Timing, Vtype};
+use crate::core::{RcSolution, Solution, Timing, Vtype};
 use crate::errors::SolutionCreationErr;
 use hashbrown::HashMap;
 use num::NumCast;
@@ -16,8 +17,8 @@ impl DwaveTranslator {
         energy: &[E],
         shape: &[usize],
         timing: Option<Timing>,
-        env: MutRcEnvironment<Idx>,
-    ) -> Result<ConcreteSolution, SolutionCreationErr>
+        env: SharedEnvironment
+    ) -> Result<RcSolution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default,
         N: Copy + NumCast,

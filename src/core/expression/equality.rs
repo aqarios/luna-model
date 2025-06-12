@@ -1,10 +1,6 @@
-use super::{BiasConstraints, Expression, ExpressionBase, IndexConstraints};
+use super::{Expression, ExpressionBase};
 
-impl<Index, Bias> PartialEq for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl PartialEq for Expression {
     fn eq(&self, other: &Self) -> bool {
         if self.env.borrow().id != other.env.borrow().id {
             // Non-equal envs directly implicate non-equal expressions.

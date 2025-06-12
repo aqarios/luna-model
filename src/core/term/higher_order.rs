@@ -1,28 +1,24 @@
-use crate::core::expression::{BiasConstraints, IndexConstraints};
+use crate::{
+    types::{Bias, VarIndex},
+};
 use hashbrown::{hash_map::Iter, HashMap};
 use std::{
-    marker::PhantomData,
-    ops::{Index, IndexMut, MulAssign, Neg},
+    ops::{Index, IndexMut, MulAssign, Neg}, str::FromStr,
 };
 
 static DELIMITER: &str = "-";
 
 #[derive(Clone, Debug)]
-pub struct HigherOrder<Index, Bias> {
+pub struct HigherOrder {
     pub biases: HashMap<String, Bias>,
-    phantom_data: PhantomData<Index>, // required for compiler to acknowledge the Index
     default_bias: Bias,
 }
 
-impl<Index, Bias> HigherOrder<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
+impl HigherOrder
 {
     pub fn default() -> Self {
         Self {
             biases: HashMap::default(),
-            phantom_data: PhantomData,
             default_bias: Bias::default(),
         }
     }
@@ -30,7 +26,6 @@ where
     pub fn new(biases: HashMap<String, Bias>) -> Self {
         Self {
             biases,
-            phantom_data: PhantomData,
             default_bias: Bias::default(),
         }
     }
@@ -38,7 +33,6 @@ where
     pub fn with_size(size: usize) -> Self {
         Self {
             biases: HashMap::with_capacity(size),
-            phantom_data: PhantomData,
             default_bias: Bias::default(),
         }
     }
@@ -47,7 +41,7 @@ where
         self.biases.len()
     }
 
-    pub fn make_key(index: &Vec<Index>) -> String {
+    pub fn make_key(index: &Vec<VarIndex>) -> String {
         let mut indices = index.clone();
         indices.sort();
         indices
@@ -57,9 +51,9 @@ where
             .join(DELIMITER)
     }
 
-    fn key_contributions(key: &String) -> Vec<Index> {
+    fn key_contributions(key: &String) -> Vec<VarIndex> {
         key.split(DELIMITER)
-            .map(|s| Index::from_str(s).ok().unwrap())
+            .map(|s| VarIndex::from_str(s).ok().unwrap())
             .collect()
         // ok().unwrap() instead of unwrap() to get rid of the error for now. needs
         // fixing ??
@@ -73,19 +67,16 @@ where
         self.biases.iter()
     }
 
-    pub fn iter_contrib(&self) -> impl Iterator<Item = (Vec<Index>, &Bias)> {
+    pub fn iter_contrib(&self) -> impl Iterator<Item = (Vec<VarIndex>, &Bias)> {
         self.biases
             .iter()
-            .map(|(key, bias)| (HigherOrder::<Index, Bias>::key_contributions(&key), bias))
+            .map(|(key, bias)| (HigherOrder::key_contributions(&key), bias))
     }
 
     pub fn resize(&mut self, _: usize) {}
 }
 
-impl<Index, Bias> MulAssign<Bias> for HigherOrder<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
+impl MulAssign<Bias> for HigherOrder
 {
     fn mul_assign(&mut self, rhs: Bias) {
         for (_, value) in self.biases.iter_mut() {
@@ -94,24 +85,18 @@ where
     }
 }
 
-impl<Idx, Bias> Index<&Vec<Idx>> for HigherOrder<Idx, Bias>
-where
-    Idx: IndexConstraints,
-    Bias: BiasConstraints,
+impl Index<&Vec<VarIndex>> for HigherOrder
 {
     type Output = Bias;
-    fn index(&self, index: &Vec<Idx>) -> &Self::Output {
+    fn index(&self, index: &Vec<VarIndex>) -> &Self::Output {
         let key = Self::make_key(index);
         self.biases.get(&key).unwrap_or(&self.default_bias)
     }
 }
 
-impl<Idx, Bias> IndexMut<&Vec<Idx>> for HigherOrder<Idx, Bias>
-where
-    Idx: IndexConstraints,
-    Bias: BiasConstraints,
+impl IndexMut<&Vec<VarIndex>> for HigherOrder
 {
-    fn index_mut(&mut self, index: &Vec<Idx>) -> &mut Self::Output {
+    fn index_mut(&mut self, index: &Vec<VarIndex>) -> &mut Self::Output {
         let key = Self::make_key(index);
         if !self.biases.contains_key(&key) {
             self.biases.insert(key.to_string(), Bias::default());
@@ -120,10 +105,7 @@ where
     }
 }
 
-impl<Idx, Bias> Index<&String> for HigherOrder<Idx, Bias>
-where
-    Idx: IndexConstraints,
-    Bias: BiasConstraints,
+impl Index<&String> for HigherOrder
 {
     type Output = Bias;
 
@@ -132,10 +114,7 @@ where
     }
 }
 
-impl<Idx, Bias> IndexMut<&String> for HigherOrder<Idx, Bias>
-where
-    Idx: IndexConstraints,
-    Bias: BiasConstraints,
+impl IndexMut<&String> for HigherOrder
 {
     fn index_mut(&mut self, index: &String) -> &mut Self::Output {
         if !self.biases.contains_key(index) {
@@ -145,10 +124,7 @@ where
     }
 }
 
-impl<Index, Bias> PartialEq for HigherOrder<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
+impl PartialEq for HigherOrder
 {
     fn eq(&self, other: &Self) -> bool {
         // This basic check is no gurantee for actual equality.
@@ -171,10 +147,7 @@ where
     }
 }
 
-impl<Index, Bias> HigherOrder<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
+impl HigherOrder
 {
     fn negate(&self) -> Self {
         HigherOrder::new(
@@ -186,24 +159,18 @@ where
     }
 }
 
-impl<Index, Bias> Neg for HigherOrder<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
+impl Neg for HigherOrder
 {
-    type Output = HigherOrder<Index, Bias>;
+    type Output = HigherOrder;
 
     fn neg(self) -> Self::Output {
         self.negate()
     }
 }
 
-impl<Index, Bias> Neg for &HigherOrder<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
+impl Neg for &HigherOrder
 {
-    type Output = HigherOrder<Index, Bias>;
+    type Output = HigherOrder;
 
     fn neg(self) -> Self::Output {
         self.negate()

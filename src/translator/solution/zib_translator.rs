@@ -1,6 +1,7 @@
+use crate::core::environment::SharedEnvironment;
 use crate::core::expression::IndexConstraints;
 use crate::core::solution::sol::SampleCol;
-use crate::core::{ConcreteSolution, MutRcEnvironment, RcSolution, Solution, Timing, Vtype};
+use crate::core::{RcSolution, Solution, Timing, Vtype};
 use crate::errors::SolutionCreationErr;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -11,8 +12,8 @@ impl ZibTranslator {
     pub fn from_zib<Index>(
         sample: HashMap<String, f64>,
         timing: Option<Timing>,
-        env: MutRcEnvironment<Index>,
-    ) -> Result<ConcreteSolution, SolutionCreationErr>
+        env: SharedEnvironment
+    ) -> Result<RcSolution, SolutionCreationErr>
     where
         Index: IndexConstraints,
     {

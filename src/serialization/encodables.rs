@@ -7,10 +7,8 @@ use super::versions::v0::SerModel as SerModelV0;
 use super::versions::v0::SerSolution as SerSolutionV0;
 use super::versions::v0::SerTiming as SerTimingV0;
 use super::Version;
-use crate::core::{
-    ConcreteConstraints, ConcreteEnvironment, ConcreteExpression, ConcreteModel,
-    ConcreteMutRcEnvironment, ConcreteSolution, Timing,
-};
+use crate::core::environment::SharedEnvironment;
+use crate::core::{Constraints, Environment, Expression, Model, RcSolution, Timing};
 
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of an Expression. In case a new serialization format is defined update this value
@@ -44,33 +42,33 @@ type SerSolutionLatest = SerSolutionV0;
 type SerTimingLatest = SerTimingV0;
 
 /// Makes an Expression with Index = VarId and Bias = f64 encodable.
-impl Encodable<SerExprV0> for ConcreteExpression {}
+impl Encodable<SerExprV0> for Expression {}
 /// Makes a Constraints with Index = VarId and Bias = f64 encodable.
-impl Encodable<SerConstrV0> for ConcreteConstraints {}
+impl Encodable<SerConstrV0> for Constraints {}
 /// Makes an Environment with Index = VarId encodable.
-impl Encodable<SerEnvV0> for ConcreteEnvironment {}
+impl Encodable<SerEnvV0> for Environment {}
 /// Makes a Model with Index = VarId and Bias = f64 encodable.
-impl Encodable<SerModelV0> for ConcreteModel {}
+impl Encodable<SerModelV0> for Model {}
 /// Makes a Solution encodable.
-impl Encodable<SerSolutionV0> for ConcreteSolution {}
+impl Encodable<SerSolutionV0> for RcSolution {}
 /// Makes a Timing encodable.
 impl Encodable<SerTimingV0> for Timing {}
 
 /// Default implementation to make a bytes vector deserializable to an Expression.
 /// For the decoding of a bytes vector to an Expression a reference counted pointer to
 /// it's environment is required (given by the Payload type)
-impl Decodable<ConcreteExpression> for Vec<u8> {
+impl Decodable<Expression> for Vec<u8> {
     type Latest = SerExprLatest;
-    type Payload = ConcreteMutRcEnvironment;
+    type Payload = SharedEnvironment;
 }
 /// Makes a versionized representation of the Expression decodable.
 /// For the decoding of a bytes vector to an Expression a reference counted pointer to
 /// it's environment is required (given by the Payload type)
-impl Decodable<ConcreteExpression> for Versioned<Vec<u8>> {
+impl Decodable<Expression> for Versioned<Vec<u8>> {
     type Latest = SerExprLatest;
-    type Payload = ConcreteMutRcEnvironment;
+    type Payload = SharedEnvironment;
 
-    fn decode(&self, payload: Self::Payload) -> Result<ConcreteExpression, DecodeError> {
+    fn decode(&self, payload: Self::Payload) -> Result<Expression, DecodeError> {
         match self.version {
             Some(Version::V0) => SerExprV0::decoder(self.data.as_slice(), payload),
             None => SerExprLatest::decoder(self.data.as_slice(), payload),
@@ -81,18 +79,18 @@ impl Decodable<ConcreteExpression> for Versioned<Vec<u8>> {
 /// Default implementation to make a bytes vector deserializable to a Constraints.
 /// For the decoding of a bytes vector to an Constraints a reference counted pointer to
 /// it's environment is required (given by the Payload type)
-impl Decodable<ConcreteConstraints> for Vec<u8> {
+impl Decodable<Constraints> for Vec<u8> {
     type Latest = SerConstrLatest;
-    type Payload = ConcreteMutRcEnvironment;
+    type Payload = SharedEnvironment;
 }
 /// Makes a versionized representation of the Constraints decodable.
 /// For the decoding of a bytes vector to a Constraints a reference counted pointer to
 /// it's environment is required (given by the Payload type)
-impl Decodable<ConcreteConstraints> for Versioned<Vec<u8>> {
+impl Decodable<Constraints> for Versioned<Vec<u8>> {
     type Latest = SerConstrLatest;
-    type Payload = ConcreteMutRcEnvironment;
+    type Payload = SharedEnvironment;
 
-    fn decode(&self, payload: Self::Payload) -> Result<ConcreteConstraints, DecodeError> {
+    fn decode(&self, payload: Self::Payload) -> Result<Constraints, DecodeError> {
         match self.version {
             Some(Version::V0) => SerConstrV0::decoder(self.data.as_slice(), payload),
             None => SerConstrV0::decoder(self.data.as_slice(), payload),
@@ -101,16 +99,16 @@ impl Decodable<ConcreteConstraints> for Versioned<Vec<u8>> {
 }
 
 /// Default implementation to make a bytes vector deserializable to an Environment.
-impl Decodable<ConcreteEnvironment> for Vec<u8> {
+impl Decodable<Environment> for Vec<u8> {
     type Latest = SerEnvLatest;
     type Payload = ();
 }
 /// Makes a versionized representation of the Environment decodable.
-impl Decodable<ConcreteEnvironment> for Versioned<Vec<u8>> {
+impl Decodable<Environment> for Versioned<Vec<u8>> {
     type Latest = SerEnvLatest;
     type Payload = ();
 
-    fn decode(&self, payload: Self::Payload) -> Result<ConcreteEnvironment, DecodeError> {
+    fn decode(&self, payload: Self::Payload) -> Result<Environment, DecodeError> {
         match self.version {
             Some(Version::V0) => SerEnvV0::decoder(self.data.as_slice(), payload),
             None => SerEnvLatest::decoder(self.data.as_slice(), payload),
@@ -119,16 +117,16 @@ impl Decodable<ConcreteEnvironment> for Versioned<Vec<u8>> {
 }
 
 /// Default implementation to make a bytes vector deserializable to a Model.
-impl Decodable<ConcreteModel> for Vec<u8> {
+impl Decodable<Model> for Vec<u8> {
     type Latest = SerModelLatest;
     type Payload = ();
 }
 /// Makes a versionized representation of the Model decodable.
-impl Decodable<ConcreteModel> for Versioned<Vec<u8>> {
+impl Decodable<Model> for Versioned<Vec<u8>> {
     type Latest = SerModelLatest;
     type Payload = ();
 
-    fn decode(&self, payload: Self::Payload) -> Result<ConcreteModel, DecodeError> {
+    fn decode(&self, payload: Self::Payload) -> Result<Model, DecodeError> {
         match self.version {
             Some(Version::V0) => SerModelV0::decoder(self.data.as_slice(), payload),
             None => SerModelLatest::decoder(self.data.as_slice(), payload),
@@ -137,16 +135,16 @@ impl Decodable<ConcreteModel> for Versioned<Vec<u8>> {
 }
 
 /// Default implementation to make a bytes vector deserializable to a Solution.
-impl Decodable<ConcreteSolution> for Vec<u8> {
+impl Decodable<RcSolution> for Vec<u8> {
     type Latest = SerSolutionLatest;
     type Payload = ();
 }
 /// Makes a versionized representation of the Model decodable.
-impl Decodable<ConcreteSolution> for Versioned<Vec<u8>> {
+impl Decodable<RcSolution> for Versioned<Vec<u8>> {
     type Latest = SerSolutionLatest;
     type Payload = ();
 
-    fn decode(&self, payload: Self::Payload) -> Result<ConcreteSolution, DecodeError> {
+    fn decode(&self, payload: Self::Payload) -> Result<RcSolution, DecodeError> {
         match self.version {
             Some(Version::V0) => SerSolutionV0::decoder(self.data.as_slice(), payload),
             None => SerSolutionLatest::decoder(self.data.as_slice(), payload),
