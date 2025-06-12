@@ -247,9 +247,11 @@ def test_model():
             + x0 * x3 * 1848482
             + x1 * x4
         )
-        m.constraints.add_constraint(x0 + x2 <= 1)
+        # m.constraints.add_constraint(x0 + x2 <= 1)
+        m.add_constraint(x0 + x2 <= 1)
         assert str(m) == _model_str_3
-        m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")
+        # m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")
+        m.add_constraint(x0 + x2 <= 1, "my_constraint")
         assert str(m) == _model_str_4
 
     with does_not_raise():

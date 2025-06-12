@@ -233,13 +233,15 @@ impl PyModel {
     /// Access the set of constraints associated with the model.
     #[getter]
     fn get_constraints(&self) -> PyConstraints {
+        // PyConstraints(Rc::new(RefCell::new(self.borrow().constraints.clone())))
+        // PyConstraints(Rc::new(RefCell::new(&self.borrow().constraints)))
         PyConstraints(self.borrow().constraints.clone())
     }
 
     /// Replace the model's constraints with a new set.
     #[setter]
     fn set_constraints(&mut self, value: &PyConstraints) {
-        self.borrow_mut().constraints = value.0.clone()
+        self.borrow_mut().constraints = value.0.clone();
     }
 
     /// Add a constraint to the model's constraint collection.
@@ -275,10 +277,7 @@ impl PyModel {
     }
 
     fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {
-        Ok(self
-            .borrow_mut()
-            .objective
-            .add_assign(&expression.0)?)
+        Ok(self.borrow_mut().objective.add_assign(&expression.0)?)
     }
 
     /// Return the number of constraints defined in the model.
