@@ -1,6 +1,4 @@
-use std::cell::RefCell;
 use std::hash::{DefaultHasher, Hash, Hasher};
-use std::ops::Deref;
 use std::rc::Rc;
 
 use super::py_constr::PyConstraint;
@@ -12,10 +10,7 @@ use crate::core::operations::{
     AddToExpression, MulAssignToExpression, MulToExpression, NegToExpression, RSubToExpression,
     SubAssignToExpression, SubToExpression,
 };
-use crate::core::{
-    environment, Comparator, ConcreteConstraint, ConcreteExpression, ConcreteRcVarRef,
-    ConcreteVarRef, Expression, Vtype,
-};
+use crate::core::{environment, Comparator, Constraint, Expression, VarRef, Vtype};
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
@@ -67,10 +62,10 @@ use pyo3::types::PyBool;
 /// - Variables carry their environment, but the environment does not own the variable.
 #[pyclass(unsendable, subclass, name = "Variable", module = "aqmodels")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyVariable(pub ConcreteRcVarRef);
+pub struct PyVariable(pub Rc<VarRef>);
 
 impl PyVariable {
-    pub fn new(varref: ConcreteVarRef) -> Self {
+    pub fn new(varref: VarRef) -> Self {
         Self(varref.into())
     }
 
@@ -141,7 +136,7 @@ impl PyVariable {
         };
 
         Ok(PyVariable::new(environment::add_variable(
-            env.into(),
+            env.0.clone(),
             &name,
             vtype.as_ref(),
             bounds.map(|pb| pb.into()),
@@ -190,13 +185,13 @@ impl PyVariable {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: ConcreteExpression;
+        let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.add(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = self.add(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            expr = rhs.borrow().add(self.as_ref())?;
+            expr = rhs.add(self.as_ref())?;
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -240,13 +235,13 @@ impl PyVariable {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: ConcreteExpression;
+        let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.add(-rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = self.sub(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            expr = rhs.borrow().mul(-1.0).add(self.as_ref())?;
+            expr = rhs.mul(-1.0).add(self.as_ref())?;
             // rhs.borrow()
             //     .add(self.as_ref())
             //     .map(|e| PyExpression::new(e))
@@ -299,13 +294,13 @@ impl PyVariable {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: ConcreteExpression;
+        let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.mul(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = self.mul(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            expr = rhs.borrow().mul(self.as_ref())?;
+            expr = rhs.mul(self.as_ref())?;
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -357,11 +352,11 @@ impl PyVariable {
             i if i < 0 => Err(PyValueError::new_err(format!(
                 "Expected a non-negative number, received: {i}"
             )))?,
-            0 => Expression::empty(Rc::clone(&self.env)).add(1.0),
-            1 => Expression::new_linear_single(Rc::clone(&self.env), self.id, 1.0),
-            2 => Expression::new_quadratic(Rc::clone(&self.env), self.id, self.id, 1.0),
+            0 => Expression::empty(self.env.clone()).add(1.0),
+            1 => Expression::new_linear_single(self.env.clone(), self.id, 1.0),
+            2 => Expression::new_quadratic(self.env.clone(), self.id, self.id, 1.0),
             _ => {
-                let mut base = Expression::new_linear_single(Rc::clone(&self.env), self.id, 1.0);
+                let mut base = Expression::new_linear_single(self.env.clone(), self.id, 1.0);
                 for _ in 1..other.into() {
                     base.mul_assign(self.as_ref())?;
                 }
@@ -478,23 +473,20 @@ impl PyVariable {
         rhs: PyObject,
         comparator: Comparator,
     ) -> PyResult<PyConstraint> {
-        let mut lhs = Expression::new_linear_single(Rc::clone(&self.env), self.id, 1.0);
+        let mut lhs = Expression::new_linear_single(self.env.clone(), self.id, 1.0);
         let bias: PyResult<f64> = if let Ok(bias) = rhs.extract::<f64>(py) {
             Ok(bias)
         } else if let Ok(var) = rhs.extract::<PyVariable>(py) {
             lhs.sub_assign(var.as_ref())?;
             Ok(0.0)
         } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
-            lhs.sub_assign(expr.borrow().deref())?;
+            lhs.sub_assign(&expr.0)?;
             Ok(0.0)
         } else {
             Err(PyTypeError::new_err("unsupported type for operation"))
         };
-        Ok(PyConstraint::new(ConcreteConstraint::new(
-            Rc::new(RefCell::new(lhs)),
-            bias?,
-            comparator,
-            None,
+        Ok(PyConstraint::new(Constraint::new(
+            lhs, bias?, comparator, None,
         )?))
     }
 }

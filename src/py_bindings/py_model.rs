@@ -10,16 +10,14 @@ use super::py_utils::repr_model;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
+use crate::core::environment::SharedEnvironment;
 use crate::core::operations::AddAssignToExpression;
-use crate::core::{
-    environment, ConcreteModel, ConcreteMutRcModel, LazyBounds, RcSolution,
-    Sense, VarRef, Vtype,
-};
+use crate::core::{environment, LazyBounds, RcSolution, Sense, VarRef, Vtype};
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
 use crate::py_bindings::py_var::PyVariable;
 use crate::{
-    core::{Environment, Model},
+    core::Model,
     py_bindings::py_env::CURRENT_ENV,
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -88,7 +86,7 @@ use pyo3::{prelude::*, types::PyBytes};
 pub struct PyModel {
     #[deref]
     #[deref_mut]
-    pub concrete_model: ConcreteMutRcModel,
+    pub concrete_model: Rc<RefCell<Model>>,
     #[deref(ignore)]
     #[deref_mut(ignore)]
     #[pyo3(get, set)]
@@ -96,7 +94,7 @@ pub struct PyModel {
 }
 
 impl PyModel {
-    pub fn new(model: ConcreteModel) -> Self {
+    pub fn new(model: Model) -> Self {
         Self {
             concrete_model: Rc::new(RefCell::new(model)),
             _metadata: PyModelMetadata::new(),
@@ -104,8 +102,8 @@ impl PyModel {
     }
 }
 
-impl Into<ConcreteMutRcModel> for PyModel {
-    fn into(self) -> ConcreteMutRcModel {
+impl Into<Rc<RefCell<Model>>> for PyModel {
+    fn into(self) -> Rc<RefCell<Model>> {
         self.concrete_model
     }
 }
@@ -129,7 +127,7 @@ impl PyModel {
             None => CURRENT_ENV.with(|curr| {
                 curr.borrow()
                     .clone()
-                    .unwrap_or_else(|| PyEnvironment::new(Environment::new()))
+                    .unwrap_or_else(|| PyEnvironment::new(SharedEnvironment::default()))
             }),
         };
         Self::new(Model::new_with_env(name, sense, env.0))
@@ -168,7 +166,7 @@ impl PyModel {
             _ => Some(LazyBounds::new(lower.into(), upper.into())),
         };
         Ok(PyVariable::new(environment::add_variable(
-            Rc::clone(&self.concrete_model.borrow().environment),
+            self.concrete_model.borrow().environment.clone(),
             &name,
             vtype.as_ref(),
             bounds,
@@ -194,7 +192,7 @@ impl PyModel {
     fn get_variable(&self, name: String) -> PyResult<PyVariable> {
         Ok(PyVariable(Rc::new(environment::get_vref_by_name(
             &name,
-            Rc::clone(&self.concrete_model.borrow().environment),
+            self.concrete_model.borrow().environment.clone(),
         )?)))
     }
 
@@ -235,7 +233,7 @@ impl PyModel {
     /// Access the set of constraints associated with the model.
     #[getter]
     fn get_constraints(&self) -> PyConstraints {
-        PyConstraints(Rc::clone(&self.borrow().constraints))
+        PyConstraints(self.borrow().constraints.clone())
     }
 
     /// Replace the model's constraints with a new set.
@@ -255,9 +253,8 @@ impl PyModel {
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
         constraint.borrow_mut().set_name(name)?;
-        self.borrow()
+        self.borrow_mut()
             .constraints
-            .borrow_mut()
             .add_assign(constraint.borrow().deref())?;
         Ok(())
     }
@@ -279,10 +276,9 @@ impl PyModel {
 
     fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {
         Ok(self
-            .borrow()
-            .objective
             .borrow_mut()
-            .add_assign(expression.borrow().deref())?)
+            .objective
+            .add_assign(&expression.0)?)
     }
 
     /// Return the number of constraints defined in the model.
@@ -293,7 +289,7 @@ impl PyModel {
     ///     Total number of constraints.
     #[getter]
     fn num_constraints(&self) -> usize {
-        self.borrow().constraints.borrow().len()
+        self.borrow().constraints.len()
     }
 
     /// Return the name of the model.
@@ -322,14 +318,14 @@ impl PyModel {
     #[pyo3(signature=(active=None))]
     fn variables(&self, active: Option<bool>) -> Vec<PyVariable> {
         let model = self.borrow();
-        let active_vars = &model.objective.borrow().active;
+        let active_vars = &model.objective.active;
         (0..self.borrow().environment.borrow().varcount.into())
             .enumerate()
             .filter(|(_, a)| *active_vars.get(*a).unwrap_or(&false) || !active.unwrap_or_default())
             .map(|(i, _)| {
                 PyVariable::new(VarRef {
                     id: i.into(),
-                    env: Rc::clone(&model.environment),
+                    env: model.environment.clone(),
                 })
             })
             .collect()

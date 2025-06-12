@@ -94,7 +94,7 @@ impl PyNumpyTranslator {
             energies.as_slice()?,
             sol_agg.shape(),
             timing.map(|t| t.into()),
-            environment.into(),
+            environment.0.clone(),
         )?))
     }
 

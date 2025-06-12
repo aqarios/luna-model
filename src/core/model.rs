@@ -54,6 +54,7 @@ impl Default for Sense {
 
 /// A model describing some function to be optimized (objective) and restrictions
 /// on this objective (constraints).
+#[derive(Clone)]
 pub struct Model {
     /// The name of the model.
     pub name: String,
@@ -172,7 +173,7 @@ impl Model {
         Ok(RcSolution(newsol.into()))
     }
 
-    pub fn evaluate_sample<'a, AssignmentTypes>(
+    pub fn evaluate_sample<'a>(
         &self,
         sample: &Sample,
     ) -> Result<OwnedResult, EvaluationErr>

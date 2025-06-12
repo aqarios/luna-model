@@ -4,26 +4,28 @@ use super::{
     py_exceptions::NoActiveEnvironmentFoundError,
     py_var::PyVariable,
 };
-use crate::core::{
-    operations::{
-        AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
-        SubAssignToExpression, SubToExpression,
-    },
-    Comparator, ConcreteBias, ConcreteExpression, ConcreteIndex, ConcreteMutRcEnvironment,
-    ConcreteMutRcExpression, Expression, ExpressionBase, VarRef,
-};
 use crate::{
     core::expression::ExpressionBaseCreation,
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
+use crate::{
+    core::{
+        environment::SharedEnvironment,
+        operations::{
+            AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
+            SubAssignToExpression, SubToExpression,
+        },
+        Comparator, Expression, ExpressionBase, VarRef,
+    },
+    types::{Bias, VarIndex},
+};
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes, IntoPyObjectExt};
 use pyo3::{exceptions::PyTypeError, types::PyType};
-use std::cell::Ref;
-use std::{ops::Deref, rc::Rc};
+use std::ops::Deref;
 
 /// Polynomial expression supporting symbolic arithmetic, constraint creation, and encoding.
 ///
@@ -116,7 +118,7 @@ use std::{ops::Deref, rc::Rc};
 /// - Use `==`, `<=`, `>=` with numeric constants to create constraints.
 #[pyclass(unsendable, name = "Expression", module = "aqmodels")]
 #[derive(Deref, DerefMut, Clone)]
-pub struct PyExpression(pub ConcreteMutRcExpression);
+pub struct PyExpression(pub Expression);
 
 /// Iterate over the single components of an expression.
 ///
@@ -134,8 +136,8 @@ pub struct PyExpression(pub ConcreteMutRcExpression);
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[pyclass(unsendable, name = "ExpressionIterator", module = "aqmodels")]
 pub struct PyExpressionIterator {
-    items: Vec<(Vec<ConcreteIndex>, ConcreteBias)>,
-    env: ConcreteMutRcEnvironment,
+    items: Vec<(Vec<VarIndex>, Bias)>,
+    env: SharedEnvironment,
     current_idx: usize,
 }
 
@@ -220,16 +222,17 @@ pub struct PyQuadratic(pub (PyVariable, PyVariable));
 pub struct PyHigherOrder(pub Vec<PyVariable>);
 
 impl PyExpression {
-    pub fn new(expression: ConcreteExpression) -> Self {
-        Self(expression.into())
+    pub fn new(expression: Expression) -> Self {
+        // Self(Rc::new(RefCell::new(expression)))
+        Self(expression)
     }
 }
 
 impl PyExpressionIterator {
-    fn new(expr: Ref<ConcreteExpression>) -> Self {
+    fn new(expr: &Expression) -> Self {
         Self {
             items: expr.items(),
-            env: Rc::clone(&expr.env),
+            env: expr.env.clone(),
             current_idx: 0,
         }
     }
@@ -269,7 +272,7 @@ impl PyExpression {
     /// float
     ///     The constant term.
     fn get_offset(&self) -> f64 {
-        self.borrow().offset()
+        self.offset()
     }
 
     /// Get the coefficient of a linear term for a given variable.
@@ -289,7 +292,7 @@ impl PyExpression {
     /// VariableOutOfRangeError
     ///     If the variable index is not valid in this expression's environment.
     fn get_linear(&self, variable: &PyVariable) -> PyResult<f64> {
-        Ok(self.borrow().linear(variable.id)?)
+        Ok(self.linear(variable.id)?)
     }
 
     /// Get the coefficient for a quadratic term (u * v).
@@ -309,7 +312,7 @@ impl PyExpression {
     /// VariableOutOfRangeError
     ///     If either variable is out of bounds for the expression's environment.
     fn get_quadratic(&self, u: &PyVariable, v: &PyVariable) -> PyResult<f64> {
-        Ok(self.borrow().quadratic(u.id, v.id)?)
+        Ok(self.quadratic(u.id, v.id)?)
     }
 
     /// Get the coefficient for a higher-order term (degree ≥ 3).
@@ -330,9 +333,7 @@ impl PyExpression {
     ///     If any variable is out of bounds for the environment.
     fn get_higher_order(&self, variables: Vec<PyVariable>) -> PyResult<f64> {
         // todo: optimize the iter away...
-        Ok(self
-            .borrow()
-            .higher_order(&variables.iter().map(|v| v.id).collect())?)
+        Ok(self.higher_order(&variables.iter().map(|v| v.id).collect())?)
     }
 
     /// Return the number of distinct variables in the expression.
@@ -343,7 +344,7 @@ impl PyExpression {
     ///     Number of variables with non-zero coefficients.
     #[getter]
     fn get_num_variables(&self) -> usize {
-        self.borrow().num_variables()
+        self.num_variables()
     }
 
     /// Serialize the expression into a compact binary format.
@@ -370,7 +371,6 @@ impl PyExpression {
         Ok(PyBytes::new(
             py,
             &self
-                .borrow()
                 .deref()
                 .encode()
                 .maybe_compress(compress, level)?
@@ -453,13 +453,13 @@ impl PyExpression {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: ConcreteExpression;
+        let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
-            expr = self.borrow().add(rhs);
+            expr = self.add(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            expr = self.borrow().add(rhs.as_ref())?;
+            expr = self.add(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            expr = self.borrow().add(rhs.borrow().deref())?;
+            expr = self.add(rhs.deref())?;
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -502,13 +502,13 @@ impl PyExpression {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: ConcreteExpression;
+        let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
-            expr = self.borrow().sub(rhs);
+            expr = self.sub(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            expr = self.borrow().sub(rhs.as_ref())?;
+            expr = self.sub(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            expr = self.borrow().sub(rhs.borrow().deref())?;
+            expr = self.sub(rhs.deref())?;
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -533,13 +533,13 @@ impl PyExpression {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
-        let expr: ConcreteExpression;
+        let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
-            expr = self.borrow().mul(rhs);
+            expr = self.mul(rhs);
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            expr = self.borrow().mul(rhs.as_ref())?;
+            expr = self.mul(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            expr = self.borrow().mul(rhs.borrow().deref())?;
+            expr = self.mul(rhs.deref())?;
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -582,11 +582,11 @@ impl PyExpression {
     ///     If the operand type is unsupported.
     fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
-            self.borrow_mut().add_assign(rhs)
+            self.add_assign(rhs)
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            self.borrow_mut().add_assign(rhs.as_ref())?
+            self.add_assign(rhs.as_ref())?
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            self.borrow_mut().add_assign(rhs.borrow().deref())?
+            self.add_assign(rhs.deref())?
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -612,11 +612,11 @@ impl PyExpression {
     ///     If the operand type is unsupported.
     fn __isub__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
-            self.borrow_mut().sub_assign(rhs)
+            self.sub_assign(rhs)
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            self.borrow_mut().sub_assign(rhs.as_ref())?
+            self.sub_assign(rhs.as_ref())?
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            self.borrow_mut().sub_assign(rhs.borrow().deref())?
+            self.sub_assign(rhs.deref())?
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -642,11 +642,11 @@ impl PyExpression {
     ///     If the operand type is unsupported.
     fn __imul__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
-            self.borrow_mut().mul_assign(rhs)
+            self.mul_assign(rhs)
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
-            self.borrow_mut().mul_assign(rhs.as_ref())?
+            self.mul_assign(rhs.as_ref())?
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            self.borrow_mut().mul_assign(rhs.borrow().deref())?
+            self.mul_assign(rhs.deref())?
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -678,12 +678,12 @@ impl PyExpression {
             i if i < 0 => Err(PyValueError::new_err(format!(
                 "Expected a non-negative number, received: {i}"
             )))?,
-            0 => Expression::empty(Rc::clone(&self.borrow().env)).add(1.0),
-            1 => self.0.borrow().deref().clone(),
+            0 => Expression::empty(self.env.clone()).add(1.0),
+            1 => self.0.clone(),
             _ => {
-                let mut base = Expression::empty(Rc::clone(&self.borrow().env)).add(1.0);
+                let mut base = Expression::empty(self.env.clone()).add(1.0);
                 for _ in 0..other {
-                    base.mul_assign(self.borrow().deref())?;
+                    base.mul_assign(self.deref())?;
                 }
                 base
             }
@@ -703,7 +703,7 @@ impl PyExpression {
     /// bool
     ///     If the two expressions are equal.
     pub fn is_equal(&self, other: &PyExpression) -> bool {
-        *self.borrow() == *other.borrow()
+        self.0 == other.0
     }
 
     /// Compare to a different expression or create a constraint ``expression == scalar``
@@ -781,7 +781,7 @@ impl PyExpression {
     /// -------
     /// Expression
     fn __neg__(&self) -> PyExpression {
-        PyExpression::new(-self.borrow().deref())
+        PyExpression::new(-self.deref())
     }
 
     // /// Check whether this expression is different from ``other``.
@@ -798,17 +798,17 @@ impl PyExpression {
     // }
 
     fn __str__(&self) -> String {
-        self.borrow().to_string()
+        self.to_string()
     }
 
     fn __repr__(&self) -> String {
-        format!("{:#?}", self.borrow())
+        format!("{:#?}", self.0)
     }
 
     /// Get this expression's environment.
     #[getter]
     fn _environment(&self) -> PyEnvironment {
-        PyEnvironment(self.0.borrow().env.clone())
+        PyEnvironment(self.0.env.clone())
     }
 
     /// Iterate over the single components of an expression. An *component* refers to
@@ -819,7 +819,7 @@ impl PyExpression {
     /// ExpressionIterator
     ///     The iterator over the expression's components.
     fn items(&self) -> PyExpressionIterator {
-        PyExpressionIterator::new(self.borrow())
+        PyExpressionIterator::new(&self)
     }
 }
 
@@ -829,10 +829,7 @@ impl PyExpressionIterator {
         slf
     }
 
-    fn __next__(
-        mut slf: PyRefMut<'_, Self>,
-        py: Python,
-    ) -> PyResult<Option<(PyObject, ConcreteBias)>> {
+    fn __next__(mut slf: PyRefMut<'_, Self>, py: Python) -> PyResult<Option<(PyObject, Bias)>> {
         slf.current_idx += 1;
         let res = slf.items.get(slf.current_idx - 1);
         if res.is_none() {
@@ -841,7 +838,7 @@ impl PyExpressionIterator {
         let (idxs, bias) = res.unwrap();
         let vars: Vec<_> = idxs
             .iter()
-            .map(|&idx| PyVariable::new(VarRef::new(idx, Rc::clone(&slf.env))))
+            .map(|&idx| PyVariable::new(VarRef::new(idx, slf.env.clone())))
             .collect();
         let var_obj = match &vars[..] {
             [] => PyConstant().into_py_any(py),

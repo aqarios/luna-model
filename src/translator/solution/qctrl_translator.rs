@@ -4,7 +4,7 @@ use num::NumCast;
 
 use crate::{
     core::{
-        environment::SharedEnvironment, expression::IndexConstraints, solution::sol::SampleCol, RcSolution, Solution, Timing, Vtype
+        environment::SharedEnvironment, solution::sol::SampleCol, RcSolution, Solution, Timing, Vtype
     },
     errors::SolutionCreationErr,
 };
@@ -12,7 +12,7 @@ use crate::{
 pub struct QctrlTranslator {}
 
 impl QctrlTranslator {
-    pub fn from_qctrl<S, E, Index>(
+    pub fn from_qctrl<S, E>(
         samples: Vec<Vec<S>>,
         counts: Vec<usize>,
         energies: Vec<Option<E>>,
@@ -22,7 +22,6 @@ impl QctrlTranslator {
     where
         S: Copy + NumCast + Default,
         E: Copy + NumCast,
-        Index: IndexConstraints,
     {
         let mut sol = Solution::default();
         for v in env.borrow().variables.iter() {

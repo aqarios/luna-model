@@ -30,6 +30,10 @@ impl SharedEnvironment {
     pub fn new(env: Environment) -> Self {
         Self(Rc::new(RefCell::new(env)))
     }
+
+    pub fn default() -> Self {
+        Self(Rc::new(RefCell::new(Environment::new())))
+    }
 }
 
 impl Clone for SharedEnvironment {

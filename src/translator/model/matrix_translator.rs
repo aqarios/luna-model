@@ -23,7 +23,7 @@ impl MatrixTranslator {
         variable_names: Option<Vec<String>>,
     ) -> Result<Model, MatrixTranslatorErr> {
         if let Some(names) = variable_names.as_ref() {
-            if names.len() != num_variables.into() {
+            if names.len() != <VarIndex as Into<usize>>::into(num_variables) {
                 return Err(VariableCreationErr::VarName(format!(
                     "Number of variable names must match the number of variables"
                 )))?;

@@ -1,5 +1,4 @@
 use crate::core::environment::SharedEnvironment;
-use crate::core::expression::IndexConstraints;
 use crate::core::solution::sol::SampleCol;
 use crate::core::{RcSolution, Solution, Timing, Vtype};
 use crate::errors::SolutionCreationErr;
@@ -9,7 +8,7 @@ use std::rc::Rc;
 pub struct NpArrayTranslator {}
 
 impl NpArrayTranslator {
-    pub fn from_numpy_arrays<S, N, E, Idx>(
+    pub fn from_numpy_arrays<S, N, E>(
         samples: &[S],
         counts: &[N],
         indices: &[usize],
@@ -22,7 +21,6 @@ impl NpArrayTranslator {
         S: Copy + NumCast,
         N: Copy + NumCast,
         E: Copy + NumCast,
-        Idx: IndexConstraints,
     {
         let mut sol = Solution::default();
         for v in env.borrow().variables.iter() {

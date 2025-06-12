@@ -3,9 +3,7 @@ use std::{cell::RefCell, ops::Deref, rc::Rc};
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 use crate::{
     core::{
-        expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
-        ConcreteConstraint, ConcreteConstraints, ConcreteExpression, ConcreteMutRcConstraint,
-        ConcreteMutRcConstraints, Constraint, Create, Expression,
+        expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator, Constraint, Constraints, Expression
     },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -47,11 +45,12 @@ use pyo3::{prelude::*, types::PyBytes};
 /// - Use `encode()`/`decode()` to serialize constraints alongside expressions.
 #[pyclass(unsendable, name = "Constraints", module = "aqmodels")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyConstraints(pub ConcreteMutRcConstraints);
+pub struct PyConstraints(pub Constraints);
 
 impl PyConstraints {
-    pub fn new(constrs: ConcreteConstraints) -> Self {
-        Self(constrs.into())
+    pub fn new(constrs: Constraints) -> Self {
+        // Self(Rc::new(RefCell::new(constrs)))
+        Self(constrs)
     }
 }
 
@@ -86,11 +85,11 @@ impl PyConstraints {
 /// >>> c2 = expr <= 10.0
 #[pyclass(unsendable, name = "Constraint", module = "aqmodels")]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyConstraint(pub ConcreteMutRcConstraint);
+pub struct PyConstraint(pub Rc<RefCell<Constraint>>);
 
 impl PyConstraint {
-    pub fn new(constraint: ConcreteConstraint) -> Self {
-        Self(constraint.into())
+    pub fn new(constraint: Constraint) -> Self {
+        Self(Rc::new(RefCell::new(constraint)))
     }
 
     pub fn new_py(
@@ -99,20 +98,20 @@ impl PyConstraint {
         rhs: PyObject,
         comparator: Comparator,
     ) -> PyResult<PyConstraint> {
-        let mut lhs = lhs.borrow().deref().clone();
+        let mut lhs = lhs.clone();
         let bias: PyResult<f64> = if let Ok(bias) = rhs.extract::<f64>(py) {
             Ok(bias)
         } else if let Ok(var) = rhs.extract::<PyVariable>(py) {
             lhs.sub_assign(var.as_ref())?;
             Ok(0.0)
         } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
-            lhs.sub_assign(expr.borrow().deref())?;
+            lhs.sub_assign(&expr.0)?;
             Ok(0.0)
         } else {
             Err(PyTypeError::new_err("unsupported type for operation"))
         };
         Ok(PyConstraint::new(Constraint::new(
-            Rc::new(RefCell::new(lhs)),
+            lhs.0,
             bias?,
             comparator,
             None,
@@ -150,11 +149,11 @@ impl PyConstraint {
         comparator: Comparator,
         name: Option<String>,
     ) -> PyResult<Self> {
-        let lhs: PyResult<ConcreteExpression> = if let Ok(expr) = lhs.extract::<PyExpression>(py) {
-            Ok(expr.0.borrow().deref().clone())
+        let lhs: PyResult<Expression> = if let Ok(expr) = lhs.extract::<PyExpression>(py) {
+            Ok(expr.0.clone())
         } else if let Ok(var) = lhs.extract::<PyVariable>(py) {
             Ok(Expression::new_linear_single(
-                Rc::clone(&var.env),
+                var.env.clone(),
                 var.id,
                 1.0,
             ))
@@ -170,15 +169,15 @@ impl PyConstraint {
             lhs.sub_assign(var.as_ref())?;
             Ok(0.0)
         } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
-            lhs.sub_assign(expr.borrow().deref())?;
+            lhs.sub_assign(expr.deref())?;
             Ok(0.0)
         } else {
             Err(PyTypeError::new_err(
                 "unsupported type for rhs in operation",
             ))
         };
-        Ok(PyConstraint::new(ConcreteConstraint::new(
-            Rc::new(RefCell::new(lhs)),
+        Ok(PyConstraint::new(Constraint::new(
+            lhs,
             bias?,
             comparator,
             name,
@@ -216,7 +215,8 @@ impl PyConstraint {
     ///     The left-hand side expression.
     #[getter]
     fn lhs(&self) -> PyExpression {
-        PyExpression(Rc::clone(&self.borrow().lhs))
+        // PyExpression(Rc::new(RefCell::new(self.borrow().lhs.clone())))
+        PyExpression(self.borrow().lhs.clone())
     }
 
     /// Get the right-hand side of the constraint
@@ -246,7 +246,7 @@ impl PyConstraint {
 impl PyConstraints {
     #[new]
     fn py_new() -> Self {
-        PyConstraints(ConcreteMutRcConstraints::create())
+        PyConstraints::new(Constraints::default())
     }
 
     /// In-place constraint addition using `+=`.
@@ -286,7 +286,7 @@ impl PyConstraints {
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
         constraint.borrow_mut().set_name(name)?;
-        self.borrow_mut().add_assign(constraint.borrow().deref())?;
+        self.add_assign(constraint.borrow().deref())?;
         Ok(())
     }
 
@@ -299,24 +299,24 @@ impl PyConstraints {
         // todo: can we remove the clone here? acceptable for now. Make it more like
         // a view.
         Ok(PyConstraint::new(
-            self.borrow().get_constraint(n as usize)?.clone(),
+            self.get_constraint(n as usize)?.clone(),
         ))
     }
 
     fn __len__(&self) -> usize {
-        self.borrow().constraints.len()
+        self.constraints.len()
     }
 
     fn __eq__(&self, other: Self) -> bool {
-        *self.borrow() == *other.borrow()
+        self.0 == other.0
     }
 
     fn __str__(&self) -> String {
-        self.borrow().to_string()
+        self.to_string()
     }
 
     fn __repr__(&self) -> String {
-        format!("{:#?}", self.borrow())
+        format!("{:#?}", self.0)
     }
 
     /// Serialize the constraint collection to a binary blob.
@@ -343,7 +343,6 @@ impl PyConstraints {
         Ok(PyBytes::new(
             py,
             &self
-                .borrow()
                 .deref()
                 .encode()
                 .maybe_compress(compress, level)?

@@ -7,7 +7,7 @@ use num::NumCast;
 
 use crate::{
     core::{
-        environment::SharedEnvironment, expression::IndexConstraints, solution::sol::SampleCol, RcSolution, Solution, Timing, VarRef, Vtype
+        environment::SharedEnvironment, solution::sol::SampleCol, RcSolution, Solution, Timing, VarRef, Vtype
     },
     errors::SolutionCreationErr,
 };
@@ -15,7 +15,7 @@ use crate::{
 pub struct IbmTranslator {}
 
 impl IbmTranslator {
-    pub fn from_ibm<S, E, Index>(
+    pub fn from_ibm<S, E>(
         samples: &Vec<Vec<S>>,
         orderings: &Vec<Rc<VarRef>>,
         energies: &Vec<E>,
@@ -26,7 +26,6 @@ impl IbmTranslator {
     where
         S: Copy + NumCast + Default + Display + Debug,
         E: Copy + NumCast + Debug,
-        Index: IndexConstraints,
     {
         let mut sol = Solution::default();
         for v in env.borrow().variables.iter() {

@@ -1,5 +1,4 @@
 use crate::core::environment::SharedEnvironment;
-use crate::core::expression::IndexConstraints;
 use crate::core::solution::sol::SampleCol;
 use crate::core::{RcSolution, Solution, Timing, Vtype};
 use crate::errors::SolutionCreationErr;
@@ -10,7 +9,7 @@ use std::rc::Rc;
 pub struct DwaveTranslator {}
 
 impl DwaveTranslator {
-    pub fn from_dimod_sample_set<S, N, E, Idx>(
+    pub fn from_dimod_sample_set<S, N, E>(
         samples: &[S],
         variables_order: &[String],
         counts: &[N],
@@ -23,7 +22,6 @@ impl DwaveTranslator {
         S: Copy + NumCast + Default,
         N: Copy + NumCast,
         E: Copy + NumCast,
-        Idx: IndexConstraints,
     {
         let mut sol = Solution::default();
         for v in env.borrow().iter() {
