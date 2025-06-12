@@ -11,9 +11,7 @@ use crate::{
     errors::VariablesFromDifferentEnvsErr,
     types::{Bias, VarIndex},
 };
-use std::{
-    fmt::{Debug, Display, Formatter},
-};
+use std::fmt::{Debug, Display, Formatter};
 
 /// A reference to a variable.
 #[derive(Clone)]

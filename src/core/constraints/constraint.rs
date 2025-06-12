@@ -1,5 +1,5 @@
-use crate::core::expression::{ExpressionEvaluation, Expression};
-use crate::core::operations::{SubToExpression};
+use crate::core::expression::{Expression, ExpressionEvaluation};
+use crate::core::operations::SubToExpression;
 use crate::core::writer::ModelWriter;
 use crate::core::{ExpressionBase, ValueByIndex};
 use crate::errors::{DuplicateConstraintNameErr, IllegalConstraintNameErr, IndexOutOfBoundsErr};
