@@ -117,7 +117,6 @@ use std::{cell::RefCell, rc::Rc};
 /// - Comparisons like `expr == expr` return `bool`, not constraints.
 /// - Use `==`, `<=`, `>=` with numeric constants to create constraints.
 #[pyclass(unsendable, name = "Expression", module = "aqmodels")]
-// #[derive(Deref, DerefMut, Clone)]
 #[derive(Clone)]
 pub struct PyExpression(pub Either<Expression, Rc<RefCell<Model>>>);
 
