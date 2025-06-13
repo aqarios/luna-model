@@ -1,9 +1,8 @@
-use crate::{
-    types::{Bias, VarIndex},
-};
+use crate::types::{Bias, VarIndex};
 use hashbrown::{hash_map::Iter, HashMap};
 use std::{
-    ops::{Index, IndexMut, MulAssign, Neg}, str::FromStr,
+    ops::{Index, IndexMut, MulAssign, Neg},
+    str::FromStr,
 };
 
 static DELIMITER: &str = "-";
@@ -14,8 +13,7 @@ pub struct HigherOrder {
     default_bias: Bias,
 }
 
-impl HigherOrder
-{
+impl HigherOrder {
     pub fn default() -> Self {
         Self {
             biases: HashMap::default(),
@@ -76,8 +74,7 @@ impl HigherOrder
     pub fn resize(&mut self, _: usize) {}
 }
 
-impl MulAssign<Bias> for HigherOrder
-{
+impl MulAssign<Bias> for HigherOrder {
     fn mul_assign(&mut self, rhs: Bias) {
         for (_, value) in self.biases.iter_mut() {
             *value *= rhs;
@@ -85,8 +82,7 @@ impl MulAssign<Bias> for HigherOrder
     }
 }
 
-impl Index<&Vec<VarIndex>> for HigherOrder
-{
+impl Index<&Vec<VarIndex>> for HigherOrder {
     type Output = Bias;
     fn index(&self, index: &Vec<VarIndex>) -> &Self::Output {
         let key = Self::make_key(index);
@@ -94,8 +90,7 @@ impl Index<&Vec<VarIndex>> for HigherOrder
     }
 }
 
-impl IndexMut<&Vec<VarIndex>> for HigherOrder
-{
+impl IndexMut<&Vec<VarIndex>> for HigherOrder {
     fn index_mut(&mut self, index: &Vec<VarIndex>) -> &mut Self::Output {
         let key = Self::make_key(index);
         if !self.biases.contains_key(&key) {
@@ -105,8 +100,7 @@ impl IndexMut<&Vec<VarIndex>> for HigherOrder
     }
 }
 
-impl Index<&String> for HigherOrder
-{
+impl Index<&String> for HigherOrder {
     type Output = Bias;
 
     fn index(&self, index: &String) -> &Self::Output {
@@ -114,8 +108,7 @@ impl Index<&String> for HigherOrder
     }
 }
 
-impl IndexMut<&String> for HigherOrder
-{
+impl IndexMut<&String> for HigherOrder {
     fn index_mut(&mut self, index: &String) -> &mut Self::Output {
         if !self.biases.contains_key(index) {
             self.biases.insert(index.to_string(), Bias::default());
@@ -124,8 +117,7 @@ impl IndexMut<&String> for HigherOrder
     }
 }
 
-impl PartialEq for HigherOrder
-{
+impl PartialEq for HigherOrder {
     fn eq(&self, other: &Self) -> bool {
         // This basic check is no gurantee for actual equality.
         // As if this is not equal it might be due to different representations,
@@ -147,8 +139,7 @@ impl PartialEq for HigherOrder
     }
 }
 
-impl HigherOrder
-{
+impl HigherOrder {
     fn negate(&self) -> Self {
         HigherOrder::new(
             self.biases
@@ -159,8 +150,7 @@ impl HigherOrder
     }
 }
 
-impl Neg for HigherOrder
-{
+impl Neg for HigherOrder {
     type Output = HigherOrder;
 
     fn neg(self) -> Self::Output {
@@ -168,8 +158,7 @@ impl Neg for HigherOrder
     }
 }
 
-impl Neg for &HigherOrder
-{
+impl Neg for &HigherOrder {
     type Output = HigherOrder;
 
     fn neg(self) -> Self::Output {

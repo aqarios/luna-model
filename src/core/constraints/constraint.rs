@@ -1,7 +1,7 @@
 use crate::core::expression::{Expression, ExpressionEvaluation};
 use crate::core::operations::SubToExpression;
 use crate::core::writer::ModelWriter;
-use crate::core::{ExpressionBase, ValueByIndex};
+use crate::core::{ExpressionBase, SharedEnvironment, ValueByIndex};
 use crate::errors::{DuplicateConstraintNameErr, IllegalConstraintNameErr, IndexOutOfBoundsErr};
 use crate::types::{Bias, VarIndex};
 use std::fmt::{Debug, Display, Formatter};
@@ -74,6 +74,18 @@ pub struct Constraint {
     pub rhs: Bias,
     pub comparator: Comparator,
     pub name: Option<String>,
+}
+
+impl Constraint {
+    /// Deep clone a constraint for the new environment.
+    pub fn deep_clone(&self, env: SharedEnvironment) -> Self {
+        Self {
+            lhs: self.lhs.deep_clone(env),
+            rhs: self.rhs,
+            comparator: self.comparator,
+            name: self.name.clone(),
+        }
+    }
 }
 
 impl Constraint {
@@ -152,6 +164,20 @@ impl Display for Constraint {
 pub struct Constraints {
     pub used_names: Vec<String>,
     pub constraints: Vec<Constraint>,
+}
+
+impl Constraints {
+    /// Deep clone the constraints for the new environment.
+    pub fn deep_clone(&self, env: SharedEnvironment) -> Self {
+        Self {
+            used_names: self.used_names.clone(),
+            constraints: self
+                .constraints
+                .iter()
+                .map(|c| c.deep_clone(env.clone()))
+                .collect(),
+        }
+    }
 }
 
 impl Constraints {

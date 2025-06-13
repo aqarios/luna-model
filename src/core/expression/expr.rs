@@ -27,6 +27,21 @@ pub struct Expression {
 }
 
 impl Expression {
+    /// Deep clone the expression for a new environment.
+    pub fn deep_clone(&self, env: SharedEnvironment) -> Self {
+        Self {
+            env,
+            offset: self.offset,
+            linear: self.linear.clone(),
+            quadratic: self.quadratic.clone(),
+            higher_order: self.higher_order.clone(),
+            active: self.active.clone(),
+            num_variables: self.num_variables.clone(),
+        }
+    }
+}
+
+impl Expression {
     pub fn items(&self) -> Vec<(Vec<VarIndex>, Bias)> {
         let mut constant = Vec::new();
         if self.offset != Bias::default() {
