@@ -21,12 +21,11 @@ use crate::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
-use derive_more::{Deref, DerefMut};
 use either::Either::{self, Left, Right};
 use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes, IntoPyObjectExt};
 use pyo3::{exceptions::PyTypeError, types::PyType};
-use std::{cell::RefCell, ops::Deref, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 /// Polynomial expression supporting symbolic arithmetic, constraint creation, and encoding.
 ///
@@ -410,7 +409,6 @@ impl PyExpression {
         Ok(PyBytes::new(
             py,
             &base
-                .deref()
                 .encode()
                 .maybe_compress(compress, level)?
                 .versionize(),

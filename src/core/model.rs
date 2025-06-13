@@ -72,6 +72,18 @@ pub struct Model {
 }
 
 impl Model {
+    pub fn deep_clone(&self) -> Self {
+        Self {
+            name: self.name.clone(),
+            environment: self.environment.deep_clone(),
+            objective: self.objective.clone(),
+            constraints: self.constraints.clone(),
+            sense: self.sense.clone(),
+        }
+    }
+}
+
+impl Model {
     /// Create a new Model using a specifc environment.
     pub fn new_with_env(
         name: Option<String>,

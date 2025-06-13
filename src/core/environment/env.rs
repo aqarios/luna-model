@@ -9,13 +9,14 @@ use derive_more::{Deref, DerefMut};
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
+use std::ops::Deref;
 use std::slice::Iter;
 use std::{cell::RefCell, ops::Index, rc::Rc};
 
 // already thread safe.
 static ENV_COUNTER: CounterU8 = CounterU8::new(0);
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Environment {
     pub id: EnvId,
     pub variables: Vec<Variable>,
@@ -25,6 +26,14 @@ pub struct Environment {
 
 #[derive(Debug, PartialEq, Deref, DerefMut)]
 pub struct SharedEnvironment(Rc<RefCell<Environment>>);
+
+impl SharedEnvironment {
+    pub fn deep_clone(&self) -> Self {
+        let b = self.borrow();
+        let some = b.deref();
+        SharedEnvironment::new(some.clone())
+    }
+}
 
 impl SharedEnvironment {
     pub fn new(env: Environment) -> Self {

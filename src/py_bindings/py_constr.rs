@@ -364,14 +364,14 @@ impl PyConstraints {
         }
     }
 
-    fn __str__(&self, py: Python) -> String {
+    fn __str__(&self) -> String {
         match &self.data {
             Left(constrs) => constrs.to_string(),
             Right(parent) => parent.borrow().constraints.to_string(),
         }
     }
 
-    fn __repr__(&self, py: Python) -> String {
+    fn __repr__(&self) -> String {
         let r = match &self.data {
             Left(constrs) => constrs.to_string(),
             Right(parent) => parent.borrow().constraints.to_string(),
