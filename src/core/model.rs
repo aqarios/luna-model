@@ -72,6 +72,13 @@ pub struct Model {
 }
 
 impl Model {
+    /// Deep clone a Model.
+    ///
+    /// This creates a new Model with a deep clone of the contained data.
+    /// The SharedEnvironment is not just an increase of the reference counted environment
+    /// but a new SharedEnvironment object with a deep cloned environment having a new
+    /// environment id that is guaranteed to be different from all other possibly
+    /// exisiting environments.
     pub fn deep_clone(&self) -> Self {
         Self {
             name: self.name.clone(),
@@ -147,11 +154,7 @@ impl Model {
         Ok(model)
     }
 
-    pub fn evaluate_solution(
-        &self,
-        sol: RcSolution,
-    ) -> Result<RcSolution, EvaluationErr>
-    {
+    pub fn evaluate_solution(&self, sol: RcSolution) -> Result<RcSolution, EvaluationErr> {
         let vars_sol = &sol.variable_names;
         let vars_env = &self
             .environment
@@ -170,10 +173,7 @@ impl Model {
                 .iter()
                 .map(|constr| constr.evaluate_sample(&sample))
                 .collect();
-            let variable_bounds = self
-                .environment
-                .borrow()
-                .evaluate_bounds::<Sample>(&sample);
+            let variable_bounds = self.environment.borrow().evaluate_bounds::<Sample>(&sample);
             newsol.add_sample_evaluation(
                 i,
                 Some(obj_val),
@@ -185,11 +185,7 @@ impl Model {
         Ok(RcSolution(newsol.into()))
     }
 
-    pub fn evaluate_sample<'a>(
-        &self,
-        sample: &Sample,
-    ) -> Result<OwnedResult, EvaluationErr>
-    {
+    pub fn evaluate_sample<'a>(&self, sample: &Sample) -> Result<OwnedResult, EvaluationErr> {
         let vars_sample = match &sample.0 {
             Either::Left(a) => &a.sol.variable_names,
             Either::Right(b) => &b.variable_names,
@@ -212,10 +208,7 @@ impl Model {
                 constraint.comparator.evaluate(v, constraint.rhs)
             })
             .collect();
-        let vf: Vec<_> = self
-            .environment
-            .borrow()
-            .evaluate_bounds::<Sample>(&sample);
+        let vf: Vec<_> = self.environment.borrow().evaluate_bounds::<Sample>(&sample);
         let feasible = cf.iter().all(|&b| b) && vf.iter().all(|&b| b);
         let owned_sample_actual = Rc::new(sample.iter().collect());
         let owned_sample = OwnedSample::new(vars_sample.to_vec(), owned_sample_actual);

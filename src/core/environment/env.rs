@@ -28,10 +28,15 @@ pub struct Environment {
 pub struct SharedEnvironment(Rc<RefCell<Environment>>);
 
 impl SharedEnvironment {
+    /// Deep clone a shared environment.
+    /// This creates a new SharedEnvironment with a deep copy of the contained
+    /// environment, not just an increase of the reference counted environment.
+    /// The deep cloned environment gets a new environment id that is guaranteed
+    /// to be different from all other possibly exisiting environments.
     pub fn deep_clone(&self) -> Self {
         let b = self.borrow();
-        let some = b.deref();
-        SharedEnvironment::new(some.clone())
+        let cloned = b.deref().deep_clone();
+        SharedEnvironment::new(cloned)
     }
 }
 
@@ -62,6 +67,20 @@ impl Environment {
             variables: Vec::new(),
             variables_lookup: HashMap::new(),
             varcount: VarIndex::default(),
+        }
+    }
+
+    /// Deep clone an environment.
+    /// This creates a new Environment with a deep copy of the environment this method
+    /// is called on.
+    /// The deep cloned environment gets a new environment id that is guaranteed
+    /// to be different from all other possibly exisiting environments.
+    pub fn deep_clone(&self) -> Self {
+        Self {
+            id: ENV_COUNTER.get(),
+            variables: self.variables.clone(),
+            variables_lookup: self.variables_lookup.clone(),
+            varcount: self.varcount.clone(),
         }
     }
 
