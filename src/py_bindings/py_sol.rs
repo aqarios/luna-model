@@ -346,8 +346,8 @@ impl PySolution {
                 "either `env` or `model` has to be `None`",
             ));
         }
-        let environment: PyEnvironment = if model.is_some() {
-            PyEnvironment(model.as_ref().unwrap().borrow().environment.clone())
+        let environment: PyEnvironment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
         } else {
             match env {
                 Some(env) => env.clone(),
@@ -472,8 +472,8 @@ impl PySolution {
             );
         }
 
-        let environment: PyEnvironment = if model.is_some() {
-            PyEnvironment(model.as_ref().unwrap().borrow().environment.clone())
+        let environment: PyEnvironment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
         } else {
             match env {
                 Some(env) => env.clone(),

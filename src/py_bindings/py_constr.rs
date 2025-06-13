@@ -3,13 +3,15 @@ use std::{cell::RefCell, ops::Deref, rc::Rc};
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 use crate::{
     core::{
-        expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator, Constraint, Constraints, Expression
+        expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
+        Constraint, Constraints, Expression, Model,
     },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
 use derive_more::{Deref, DerefMut};
+use either::Either::{self, Left, Right};
 use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
@@ -44,13 +46,30 @@ use pyo3::{prelude::*, types::PyBytes};
 /// - This class does not check feasibility or enforce satisfaction.
 /// - Use `encode()`/`decode()` to serialize constraints alongside expressions.
 #[pyclass(unsendable, name = "Constraints", module = "aqmodels")]
-#[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyConstraints(pub Constraints);
+#[derive(Debug, Clone)]
+pub struct PyConstraints {
+    pub data: Either<Constraints, Rc<RefCell<Model>>>,
+}
 
 impl PyConstraints {
     pub fn new(constrs: Constraints) -> Self {
         // Self(Rc::new(RefCell::new(constrs)))
-        Self(constrs)
+        Self {
+            data: Left(constrs),
+        }
+    }
+
+    pub fn with_parent(parent: Rc<RefCell<Model>>) -> Self {
+        Self {
+            data: Right(parent),
+        }
+    }
+
+    pub fn get_cloned_constraints(&self) -> Constraints {
+        match &self.data {
+            Left(constrs) => constrs.clone(),
+            Right(parent) => parent.borrow().constraints.clone(),
+        }
     }
 }
 
@@ -102,16 +121,29 @@ impl PyConstraint {
         let bias: PyResult<f64> = if let Ok(bias) = rhs.extract::<f64>(py) {
             Ok(bias)
         } else if let Ok(var) = rhs.extract::<PyVariable>(py) {
-            lhs.sub_assign(var.as_ref())?;
+            match &mut lhs.0 {
+                Left(expr) => expr.sub_assign(var.as_ref())?,
+                Right(parent) => parent.borrow_mut().objective.sub_assign(var.as_ref())?,
+            };
             Ok(0.0)
         } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
-            lhs.sub_assign(&expr.0)?;
+            match (&mut lhs.0, &expr.0) {
+                (Left(l), Left(r)) => l.sub_assign(r)?,
+                (Left(l), Right(r)) => l.sub_assign(&r.borrow().objective)?,
+                (Right(l), Left(r)) => l.borrow_mut().objective.sub_assign(r)?,
+                (Right(l), Right(r)) => {
+                    l.borrow_mut().objective.sub_assign(&r.borrow().objective)?
+                }
+            }
             Ok(0.0)
         } else {
             Err(PyTypeError::new_err("unsupported type for operation"))
         };
         Ok(PyConstraint::new(Constraint::new(
-            lhs.0,
+            match &lhs.0 {
+                Left(expr) => expr.clone(),
+                Right(parent) => parent.borrow().objective.clone(),
+            },
             bias?,
             comparator,
             None,
@@ -150,13 +182,12 @@ impl PyConstraint {
         name: Option<String>,
     ) -> PyResult<Self> {
         let lhs: PyResult<Expression> = if let Ok(expr) = lhs.extract::<PyExpression>(py) {
-            Ok(expr.0.clone())
+            Ok(match &expr.0 {
+                Left(e) => e.clone(),
+                Right(parent) => parent.borrow().objective.clone(),
+            })
         } else if let Ok(var) = lhs.extract::<PyVariable>(py) {
-            Ok(Expression::new_linear_single(
-                var.env.clone(),
-                var.id,
-                1.0,
-            ))
+            Ok(Expression::new_linear_single(var.env.clone(), var.id, 1.0))
         } else {
             Err(PyTypeError::new_err(
                 "unsupported type for lhs in operation",
@@ -169,7 +200,10 @@ impl PyConstraint {
             lhs.sub_assign(var.as_ref())?;
             Ok(0.0)
         } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
-            lhs.sub_assign(expr.deref())?;
+            match &expr.0 {
+                Left(e) => lhs.sub_assign(e)?,
+                Right(parent) => lhs.sub_assign(&parent.borrow().objective)?,
+            }
             Ok(0.0)
         } else {
             Err(PyTypeError::new_err(
@@ -177,10 +211,7 @@ impl PyConstraint {
             ))
         };
         Ok(PyConstraint::new(Constraint::new(
-            lhs,
-            bias?,
-            comparator,
-            name,
+            lhs, bias?, comparator, name,
         )?))
     }
 
@@ -216,7 +247,7 @@ impl PyConstraint {
     #[getter]
     fn lhs(&self) -> PyExpression {
         // PyExpression(Rc::new(RefCell::new(self.borrow().lhs.clone())))
-        PyExpression(self.borrow().lhs.clone())
+        PyExpression::new(self.borrow().lhs.clone())
     }
 
     /// Get the right-hand side of the constraint
@@ -286,7 +317,15 @@ impl PyConstraints {
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
         constraint.borrow_mut().set_name(name)?;
-        self.add_assign(constraint.borrow().deref())?;
+        match &mut self.data {
+            Left(constrs) => constrs.add_assign(constraint.borrow().deref())?,
+            Right(parent) => {
+                parent
+                    .borrow_mut()
+                    .constraints
+                    .add_assign(constraint.borrow().deref())?;
+            }
+        }
         Ok(())
     }
 
@@ -298,25 +337,46 @@ impl PyConstraints {
         }
         // todo: can we remove the clone here? acceptable for now. Make it more like
         // a view.
-        Ok(PyConstraint::new(
-            self.get_constraint(n as usize)?.clone(),
-        ))
+        let constr = match &self.data {
+            Left(constrs) => constrs.get_constraint(n as usize)?.clone(),
+            Right(parent) => parent
+                .borrow()
+                .constraints
+                .get_constraint(n as usize)?
+                .clone(),
+        };
+        Ok(PyConstraint::new(constr))
     }
 
     fn __len__(&self) -> usize {
-        self.constraints.len()
+        match &self.data {
+            Left(constrs) => constrs.len(),
+            Right(parent) => parent.borrow().constraints.len(),
+        }
     }
 
     fn __eq__(&self, other: Self) -> bool {
-        self.0 == other.0
+        match (&self.data, &other.data) {
+            (Left(lhs), Left(rhs)) => lhs == rhs,
+            (Left(lhs), Right(rhs)) => *lhs == rhs.borrow().constraints,
+            (Right(lhs), Left(rhs)) => lhs.borrow().constraints == *rhs,
+            (Right(lhs), Right(rhs)) => lhs.borrow().constraints == rhs.borrow().constraints,
+        }
     }
 
-    fn __str__(&self) -> String {
-        self.to_string()
+    fn __str__(&self, py: Python) -> String {
+        match &self.data {
+            Left(constrs) => constrs.to_string(),
+            Right(parent) => parent.borrow().constraints.to_string(),
+        }
     }
 
-    fn __repr__(&self) -> String {
-        format!("{:#?}", self.0)
+    fn __repr__(&self, py: Python) -> String {
+        let r = match &self.data {
+            Left(constrs) => constrs.to_string(),
+            Right(parent) => parent.borrow().constraints.to_string(),
+        };
+        format!("{:#?}", r)
     }
 
     /// Serialize the constraint collection to a binary blob.
@@ -340,15 +400,26 @@ impl PyConstraints {
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let compress = compress.unwrap_or(level.is_some());
-        Ok(PyBytes::new(
-            py,
-            &self
-                .deref()
-                .encode()
-                .maybe_compress(compress, level)?
-                .versionize(),
-        )
-        .into())
+        match &self.data {
+            Left(constrs) => Ok(PyBytes::new(
+                py,
+                &constrs
+                    .encode()
+                    .maybe_compress(compress, level)?
+                    .versionize(),
+            )
+            .into()),
+            Right(parent) => Ok(PyBytes::new(
+                py,
+                &parent
+                    .borrow()
+                    .constraints
+                    .encode()
+                    .maybe_compress(compress, level)?
+                    .versionize(),
+            )
+            .into()),
+        }
     }
 
     /// Alias for `encode()`.

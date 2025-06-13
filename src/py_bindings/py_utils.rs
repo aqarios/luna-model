@@ -6,7 +6,7 @@ use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 static DELIMITER: &str = ", ";
 
 pub fn repr_model(model: &PyModel) -> String {
-    let bm = model.borrow();
+    let bm = &model.borrow();
     format!(
         "Model(name={}, sense={}, objective={}, constraints={})",
         bm.name,

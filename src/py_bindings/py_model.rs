@@ -24,6 +24,7 @@ use crate::{
     },
 };
 use derive_more::{Deref, DerefMut};
+use either::Either::{Left, Right};
 use pyo3::types::PyType;
 use pyo3::{prelude::*, types::PyBytes};
 
@@ -87,8 +88,6 @@ pub struct PyModel {
     #[deref]
     #[deref_mut]
     pub concrete_model: Rc<RefCell<Model>>,
-    #[deref(ignore)]
-    #[deref_mut(ignore)]
     #[pyo3(get, set)]
     pub _metadata: PyModelMetadata,
 }
@@ -102,11 +101,11 @@ impl PyModel {
     }
 }
 
-impl Into<Rc<RefCell<Model>>> for PyModel {
-    fn into(self) -> Rc<RefCell<Model>> {
-        self.concrete_model
-    }
-}
+// impl Into<Rc<RefCell<Model>>> for PyModel {
+//     fn into(self) -> Rc<RefCell<Model>> {
+//         self.concrete_model
+//     }
+// }
 
 #[pymethods]
 impl PyModel {
@@ -192,7 +191,7 @@ impl PyModel {
     fn get_variable(&self, name: String) -> PyResult<PyVariable> {
         Ok(PyVariable(Rc::new(environment::get_vref_by_name(
             &name,
-            self.concrete_model.borrow().environment.clone(),
+            self.borrow().environment.clone(),
         )?)))
     }
 
@@ -204,7 +203,7 @@ impl PyModel {
     ///     The sense of the model (minimization, maximization)
     #[pyo3(name = "set_sense")]
     fn set_sense_py(&mut self, sense: Sense) {
-        self.concrete_model.borrow_mut().set_sense(sense);
+        self.borrow_mut().set_sense(sense);
     }
 
     /// Get the sense of the model
@@ -215,33 +214,31 @@ impl PyModel {
     ///     The sense of the model (Min or Max).
     #[getter]
     fn get_sense(&self) -> Sense {
-        self.concrete_model.borrow().sense
+        self.borrow().sense
     }
 
     /// Get the objective expression of the model.
     #[getter]
     fn get_objective(&self) -> PyExpression {
-        PyExpression(self.borrow().objective.clone())
+        PyExpression::with_parent(Rc::clone(&self))
     }
 
     /// Set the objective expression of the model.
     #[setter]
     fn set_objective(&mut self, value: &PyExpression) {
-        self.borrow_mut().objective = value.0.clone()
+        self.borrow_mut().objective = value.get_cloned_expression();
     }
 
     /// Access the set of constraints associated with the model.
     #[getter]
     fn get_constraints(&self) -> PyConstraints {
-        // PyConstraints(Rc::new(RefCell::new(self.borrow().constraints.clone())))
-        // PyConstraints(Rc::new(RefCell::new(&self.borrow().constraints)))
-        PyConstraints(self.borrow().constraints.clone())
+        PyConstraints::with_parent(Rc::clone(&self))
     }
 
     /// Replace the model's constraints with a new set.
     #[setter]
     fn set_constraints(&mut self, value: &PyConstraints) {
-        self.borrow_mut().constraints = value.0.clone();
+        self.borrow_mut().constraints = value.get_cloned_constraints();
     }
 
     /// Add a constraint to the model's constraint collection.
@@ -271,13 +268,19 @@ impl PyModel {
     ///     The sense of the model for this objective, by default Sense.Min.
     #[pyo3(name = "set_objective", signature=(expression, sense=None))]
     fn set_objective_direct(&mut self, expression: PyExpression, sense: Option<Sense>) -> () {
-        let sense = sense.unwrap_or(self.concrete_model.borrow().sense);
+        let sense = sense.unwrap_or(self.borrow().sense);
         self.borrow_mut().set_sense(sense);
-        self.borrow_mut().objective = expression.0.clone();
+        self.borrow_mut().objective = expression.get_cloned_expression();
     }
 
     fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {
-        Ok(self.borrow_mut().objective.add_assign(&expression.0)?)
+        Ok(match &expression.0 {
+            Left(expr) => self.borrow_mut().objective.add_assign(expr)?,
+            Right(parent) => self
+                .borrow_mut()
+                .objective
+                .add_assign(&parent.borrow().objective)?,
+        })
     }
 
     /// Return the number of constraints defined in the model.

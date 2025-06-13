@@ -12,6 +12,7 @@ use crate::core::operations::{
 };
 use crate::core::{environment, Comparator, Constraint, Expression, VarRef, Vtype};
 use derive_more::{Deref, DerefMut};
+use either::Either::{Left, Right};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyBool;
@@ -191,7 +192,10 @@ impl PyVariable {
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = self.add(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            expr = rhs.add(self.as_ref())?;
+            expr = match &rhs.0 {
+                Left(e) => e.add(self.as_ref())?,
+                Right(p) => p.borrow().objective.add(self.as_ref())?,
+            };
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -241,11 +245,10 @@ impl PyVariable {
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = self.sub(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            expr = rhs.mul(-1.0).add(self.as_ref())?;
-            // rhs.borrow()
-            //     .add(self.as_ref())
-            //     .map(|e| PyExpression::new(e))
-            //     .map_err(|e| VariablesFromDifferentEnvsException::new_err(e.to_string()))
+            expr = match &rhs.0 {
+                Left(e) => (e.mul(-1.0)).add(self.as_ref())?,
+                Right(p) => (p.borrow().objective.mul(-1.0)).add(self.as_ref())?,
+            };
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -300,7 +303,10 @@ impl PyVariable {
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = self.mul(rhs.as_ref())?;
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
-            expr = rhs.mul(self.as_ref())?;
+            expr = match &rhs.0 {
+                Left(e) => e.mul(self.as_ref())?,
+                Right(p) => p.borrow().objective.mul(self.as_ref())?,
+            };
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
         }
@@ -480,7 +486,10 @@ impl PyVariable {
             lhs.sub_assign(var.as_ref())?;
             Ok(0.0)
         } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
-            lhs.sub_assign(&expr.0)?;
+            match &expr.0 {
+                Left(e) => lhs.sub_assign(e)?,
+                Right(p) => lhs.sub_assign(&p.borrow().objective)?,
+            };
             Ok(0.0)
         } else {
             Err(PyTypeError::new_err("unsupported type for operation"))

@@ -3683,22 +3683,22 @@ class Constraints:
     """
 
     def __init__(self, /) -> None: ...
-    # @overload
-    # def add_constraint(self, /, constraint: Constraint) -> None: ...
-    # @overload
-    # def add_constraint(self, /, constraint: Constraint, name: str) -> None: ...
-    # def add_constraint(self, /, constraint: Constraint, name: str | None = ...) -> None:
-    #     """
-    #     Add a constraint to the collection.
+    @overload
+    def add_constraint(self, /, constraint: Constraint) -> None: ...
+    @overload
+    def add_constraint(self, /, constraint: Constraint, name: str) -> None: ...
+    def add_constraint(self, /, constraint: Constraint, name: str | None = ...) -> None:
+        """
+        Add a constraint to the collection.
 
-    #     Parameters
-    #     ----------
-    #     constraint : Constraint
-    #         The constraint to be added.
-    #     name : str, optional
-    #         The name of the constraint to be added.
-    #     """
-    #     ...
+        Parameters
+        ----------
+        constraint : Constraint
+            The constraint to be added.
+        name : str, optional
+            The name of the constraint to be added.
+        """
+        ...
     @overload
     def encode(self, /) -> bytes: ...
     @overload
