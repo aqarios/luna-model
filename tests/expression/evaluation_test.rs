@@ -1,50 +1,55 @@
-use std::{ops::Index, rc::Rc};
+use std::ops::Index;
 
-use aqmodels::core::{
-    environment::add_variable,
-    expression::ExpressionEvaluation,
-    operations::{AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression},
-    ConcreteBias, ConcreteIndex, ValueByIndex, Vtype,
+use aqmodels::{
+    core::{
+        environment::add_variable,
+        expression::ExpressionEvaluation,
+        operations::{
+            AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
+        },
+        ValueByIndex, Vtype,
+    },
+    types::{Bias, VarIndex},
 };
 
 use crate::common::{
-    almost_equal, create_env, create_linear_expression, make_seed, package, random_bias,
+    almost_equal, create_env, create_linear_expression, make_seed, random_bias,
     random_biases,
 };
 
 struct DSample {
-    values: Vec<ConcreteBias>,
+    values: Vec<Bias>,
 }
 
 impl DSample {
-    fn new(values: Vec<ConcreteBias>) -> Self {
+    fn new(values: Vec<Bias>) -> Self {
         Self { values }
     }
 }
 
-impl ValueByIndex<ConcreteIndex> for DSample {
-    type Output = ConcreteBias;
+impl ValueByIndex<VarIndex> for DSample {
+    type Output = Bias;
 
-    fn value_by_index(&self, index: ConcreteIndex) -> Self::Output {
+    fn value_by_index(&self, index: VarIndex) -> Self::Output {
         self.values[index.0 as usize]
     }
 }
 
-impl Index<ConcreteIndex> for DSample {
-    type Output = ConcreteBias;
+impl Index<VarIndex> for DSample {
+    type Output = Bias;
 
-    fn index(&self, index: ConcreteIndex) -> &Self::Output {
+    fn index(&self, index: VarIndex) -> &Self::Output {
         &self.values[index.0 as usize]
     }
 }
 
 fn evaluate_linear_expression(vtype: Vtype, n: usize) {
     let seed = make_seed();
-    let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n, seed);
-    let expr = create_linear_expression(Rc::clone(&env), &biases, vtype);
+    let env = create_env();
+    let biases = random_biases::<Bias>(n, seed);
+    let expr = create_linear_expression(env.clone(), &biases, vtype);
 
-    let expected: ConcreteBias = biases.iter().map(|b| b).sum();
+    let expected: Bias = biases.iter().map(|b| b).sum();
     let result = expr.evaluate_sample(&DSample::new(vec![1.0; biases.len()]));
 
     assert!(
@@ -57,15 +62,15 @@ fn evaluate_linear_expression(vtype: Vtype, n: usize) {
 
 fn evaluate_quadratic_expression(vtype: Vtype, n: usize) {
     let seed = make_seed();
-    let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n, seed);
-    let mut expr = create_linear_expression(Rc::clone(&env), &biases, vtype);
+    let env = create_env();
+    let biases = random_biases::<Bias>(n, seed);
+    let mut expr = create_linear_expression(env.clone(), &biases, vtype);
 
-    let multiplier = add_variable(Rc::clone(&env), &"m".to_string(), Some(&vtype), None).unwrap();
-    let mscalar = random_bias::<ConcreteBias>(seed);
+    let multiplier = add_variable(env.clone(), &"m".to_string(), Some(&vtype), None).unwrap();
+    let mscalar = random_bias::<Bias>(seed);
     expr.mul_assign(&multiplier.mul(mscalar)).unwrap();
 
-    let expected: ConcreteBias = biases.iter().map(|b| b * mscalar).sum::<ConcreteBias>();
+    let expected: Bias = biases.iter().map(|b| b * mscalar).sum::<Bias>();
     let result = expr.evaluate_sample(&DSample::new(vec![1.0; biases.len() + 1]));
 
     assert!(
@@ -78,21 +83,21 @@ fn evaluate_quadratic_expression(vtype: Vtype, n: usize) {
 
 fn evaluate_higher_order_expression(vtype: Vtype, n: usize) {
     let seed = make_seed();
-    let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n, seed);
-    let mut expr = create_linear_expression(Rc::clone(&env), &biases, vtype);
+    let env = create_env();
+    let biases = random_biases::<Bias>(n, seed);
+    let mut expr = create_linear_expression(env.clone(), &biases, vtype);
 
-    let ma = add_variable(Rc::clone(&env), &"ma".to_string(), Some(&vtype), None).unwrap();
-    let mb = add_variable(Rc::clone(&env), &"mb".to_string(), Some(&vtype), None).unwrap();
-    let ma_scalar = random_bias::<ConcreteBias>(seed);
-    let mb_scalar = random_bias::<ConcreteBias>(seed);
+    let ma = add_variable(env.clone(), &"ma".to_string(), Some(&vtype), None).unwrap();
+    let mb = add_variable(env.clone(), &"mb".to_string(), Some(&vtype), None).unwrap();
+    let ma_scalar = random_bias::<Bias>(seed);
+    let mb_scalar = random_bias::<Bias>(seed);
     expr.mul_assign(&ma.mul(ma_scalar)).unwrap();
     expr.mul_assign(&mb.mul(mb_scalar)).unwrap();
 
-    let expected: ConcreteBias = biases
+    let expected: Bias = biases
         .iter()
         .map(|b| b * ma_scalar * mb_scalar)
-        .sum::<ConcreteBias>();
+        .sum::<Bias>();
     let result = expr.evaluate_sample(&DSample::new(vec![1.0; biases.len() + 2]));
 
     assert!(
@@ -105,38 +110,26 @@ fn evaluate_higher_order_expression(vtype: Vtype, n: usize) {
 
 fn evaluate_mixed_order_mixed_vtype_expression(n: usize) {
     let seed = make_seed();
-    let env = package(create_env::<ConcreteIndex>());
+    let env = create_env();
 
-    let binary_biases = random_biases::<ConcreteBias>(n, seed);
-    let binary_expr = create_linear_expression(Rc::clone(&env), &binary_biases, Vtype::Binary);
-    let spin_biases = random_biases::<ConcreteBias>(n, seed);
-    let spin_expr = create_linear_expression(Rc::clone(&env), &binary_biases, Vtype::Spin);
-    let int_biases = random_biases::<ConcreteBias>(n, seed);
-    let int_expr = create_linear_expression(Rc::clone(&env), &binary_biases, Vtype::Integer);
-    let real_biases = random_biases::<ConcreteBias>(n, seed);
-    let real_expr = create_linear_expression(Rc::clone(&env), &binary_biases, Vtype::Real);
+    let binary_biases = random_biases::<Bias>(n, seed);
+    let binary_expr = create_linear_expression(env.clone(), &binary_biases, Vtype::Binary);
+    let spin_biases = random_biases::<Bias>(n, seed);
+    let spin_expr = create_linear_expression(env.clone(), &binary_biases, Vtype::Spin);
+    let int_biases = random_biases::<Bias>(n, seed);
+    let int_expr = create_linear_expression(env.clone(), &binary_biases, Vtype::Integer);
+    let real_biases = random_biases::<Bias>(n, seed);
+    let real_expr = create_linear_expression(env.clone(), &binary_biases, Vtype::Real);
 
-    let mb = add_variable(
-        Rc::clone(&env),
-        &"mb".to_string(),
-        Some(&Vtype::Binary),
-        None,
-    )
-    .unwrap();
-    let ms = add_variable(Rc::clone(&env), &"ms".to_string(), Some(&Vtype::Spin), None).unwrap();
-    let mi = add_variable(
-        Rc::clone(&env),
-        &"mi".to_string(),
-        Some(&Vtype::Integer),
-        None,
-    )
-    .unwrap();
-    let mr = add_variable(Rc::clone(&env), &"mr".to_string(), Some(&Vtype::Real), None).unwrap();
+    let mb = add_variable(env.clone(), &"mb".to_string(), Some(&Vtype::Binary), None).unwrap();
+    let ms = add_variable(env.clone(), &"ms".to_string(), Some(&Vtype::Spin), None).unwrap();
+    let mi = add_variable(env.clone(), &"mi".to_string(), Some(&Vtype::Integer), None).unwrap();
+    let mr = add_variable(env.clone(), &"mr".to_string(), Some(&Vtype::Real), None).unwrap();
 
-    let mbsc = random_bias::<ConcreteBias>(seed);
-    let mssc = random_bias::<ConcreteBias>(seed);
-    let misc = random_bias::<ConcreteBias>(seed);
-    let mrsc = random_bias::<ConcreteBias>(seed);
+    let mbsc = random_bias::<Bias>(seed);
+    let mssc = random_bias::<Bias>(seed);
+    let misc = random_bias::<Bias>(seed);
+    let mrsc = random_bias::<Bias>(seed);
 
     // Quadratics
     let quad_binary = binary_expr.mul(&mb.mul(mbsc)).unwrap();
@@ -178,34 +171,34 @@ fn evaluate_mixed_order_mixed_vtype_expression(n: usize) {
     expr.add_assign(&ho_real).unwrap();
 
     // Expected evaluated value
-    let mut expected: ConcreteBias = ConcreteBias::default();
+    let mut expected: Bias = Bias::default();
     // Linear sums
-    expected += binary_biases.iter().map(|b| b).sum::<ConcreteBias>();
-    expected += spin_biases.iter().map(|b| b).sum::<ConcreteBias>();
-    expected += int_biases.iter().map(|b| b).sum::<ConcreteBias>();
-    expected += real_biases.iter().map(|b| b).sum::<ConcreteBias>();
+    expected += binary_biases.iter().map(|b| b).sum::<Bias>();
+    expected += spin_biases.iter().map(|b| b).sum::<Bias>();
+    expected += int_biases.iter().map(|b| b).sum::<Bias>();
+    expected += real_biases.iter().map(|b| b).sum::<Bias>();
     // Quadratic sums
-    expected += binary_biases.iter().map(|b| b * mbsc).sum::<ConcreteBias>();
-    expected += spin_biases.iter().map(|b| b * mssc).sum::<ConcreteBias>();
-    expected += int_biases.iter().map(|b| b * misc).sum::<ConcreteBias>();
-    expected += real_biases.iter().map(|b| b * mrsc).sum::<ConcreteBias>();
+    expected += binary_biases.iter().map(|b| b * mbsc).sum::<Bias>();
+    expected += spin_biases.iter().map(|b| b * mssc).sum::<Bias>();
+    expected += int_biases.iter().map(|b| b * misc).sum::<Bias>();
+    expected += real_biases.iter().map(|b| b * mrsc).sum::<Bias>();
     // Higher Order Sums
     expected += binary_biases
         .iter()
         .map(|b| b * mbsc * mssc * misc * mrsc)
-        .sum::<ConcreteBias>();
+        .sum::<Bias>();
     expected += spin_biases
         .iter()
         .map(|b| b * mbsc * mssc * misc * mrsc)
-        .sum::<ConcreteBias>();
+        .sum::<Bias>();
     expected += int_biases
         .iter()
         .map(|b| b * mbsc * mssc * misc * mrsc)
-        .sum::<ConcreteBias>();
+        .sum::<Bias>();
     expected += real_biases
         .iter()
         .map(|b| b * mbsc * mssc * misc * mrsc)
-        .sum::<ConcreteBias>();
+        .sum::<Bias>();
 
     let result = expr.evaluate_sample(&DSample::new(vec![
         1.0;
