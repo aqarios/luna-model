@@ -2,7 +2,7 @@ use either::Either;
 use strum_macros::{Display, EnumString};
 
 use super::constraints::Constraints;
-use super::environment::{add_variable, SharedEnvironment};
+use super::environment::SharedEnvironment;
 use super::expression::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation};
 use super::solution::OwnedSample;
 use super::utils::{check_variables_sample, check_variables_sol};
@@ -92,6 +92,10 @@ impl Model {
 }
 
 impl Model {
+    pub fn default() -> Self {
+        Self::new(None, None)
+    }
+
     /// Create a new Model using a specifc environment.
     pub fn new_with_env(
         name: Option<String>,
@@ -137,12 +141,9 @@ impl Model {
                 None => &format!("x_{}", idx.to_string()),
                 Some(names) => &names[idx],
             };
-            add_variable(
-                model.environment.clone(),
-                var_name,
-                Some(&vtype.unwrap_or(Vtype::Binary)),
-                None,
-            )?;
+            model
+                .environment
+                .add_variable(var_name, Some(vtype.unwrap_or(Vtype::Binary)), None)?;
         }
 
         model.objective.resize(num_variables);

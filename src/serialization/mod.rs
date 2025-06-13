@@ -1,6 +1,6 @@
 mod encodables;
 mod utils;
-mod versions;
+pub mod versions;
 
 mod compressable;
 mod encodable;

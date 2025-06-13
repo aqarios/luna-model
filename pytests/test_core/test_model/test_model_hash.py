@@ -3,20 +3,21 @@ from typing import Callable
 import pytest
 
 from aqmodels import Bounds, Model, Unbounded, Variable, Vtype
+from aqmodels._core import Environment
 
 
 @pytest.fixture
-def model_empty_maker() -> Callable[[], Model]:
-    def creator():
-        return Model()
+def model_empty_maker() -> Callable[[Environment], Model]:
+    def creator(env: Environment):
+        return Model(env=env)
 
     return creator
 
 
 @pytest.fixture
-def model_empty_with_vars_maker() -> Callable[[], Model]:
-    def creator():
-        m = Model()
+def model_empty_with_vars_maker() -> Callable[[Environment], Model]:
+    def creator(env: Environment):
+        m = Model(env=env)
         with m.environment:
             _ = Variable("b", vtype=Vtype.Binary)
             _ = Variable("s", vtype=Vtype.Spin)
@@ -28,9 +29,9 @@ def model_empty_with_vars_maker() -> Callable[[], Model]:
 
 
 @pytest.fixture
-def model_objective_maker() -> Callable[[], Model]:
-    def creator():
-        m = Model()
+def model_objective_maker() -> Callable[[Environment], Model]:
+    def creator(env: Environment):
+        m = Model(env=env)
         with m.environment:
             b = Variable("b", vtype=Vtype.Binary)
             s = Variable("s", vtype=Vtype.Spin)
@@ -76,36 +77,41 @@ def model_objective_and_constraints_and_bounds_maker() -> Callable[[], Model]:
 
 @pytest.mark.model
 def test_hash_model_empty(model_empty_maker):
-    m1 = model_empty_maker()
-    m2 = model_empty_maker()
+    env = Environment()
+    m1 = model_empty_maker(env)
+    m2 = model_empty_maker(env)
     assert hash(m1) == hash(m2)
 
 
 @pytest.mark.model
 def test_hash_model_empty_with_vars(model_empty_with_vars_maker):
-    m1 = model_empty_with_vars_maker()
-    m2 = model_empty_with_vars_maker()
+    env = Environment()
+    m1 = model_empty_with_vars_maker(env)
+    m2 = model_empty_with_vars_maker(env)
     assert hash(m1) == hash(m2)
 
 
 @pytest.mark.model
 def test_hash_model_objective(model_objective_maker):
-    m1 = model_objective_maker()
-    m2 = model_objective_maker()
+    env = Environment()
+    m1 = model_objective_maker(env)
+    m2 = model_objective_maker(env)
     assert hash(m1) == hash(m2)
 
 
 def test_hash_model_objective_and_constraints(model_objective_and_constraints_maker):
-    m1 = model_objective_and_constraints_maker()
-    m2 = model_objective_and_constraints_maker()
+    env = Environment()
+    m1 = model_objective_and_constraints_maker(env)
+    m2 = model_objective_and_constraints_maker(env)
     assert hash(m1) == hash(m2)
 
 
 def test_hash_model_objective_and_constraints_and_bounds(
     model_objective_and_constraints_and_bounds_maker,
 ):
-    m1 = model_objective_and_constraints_and_bounds_maker()
-    m2 = model_objective_and_constraints_and_bounds_maker()
+    env = Environment()
+    m1 = model_objective_and_constraints_and_bounds_maker(env)
+    m2 = model_objective_and_constraints_and_bounds_maker(env)
     assert hash(m1) == hash(m2)
 
 
@@ -116,11 +122,12 @@ def test_hash_model_different(
     model_objective_and_constraints_maker,
     model_objective_and_constraints_and_bounds_maker,
 ):
-    m1 = model_empty_maker()
-    m2 = model_empty_with_vars_maker()
-    m3 = model_objective_maker()
-    m4 = model_objective_and_constraints_maker()
-    m5 = model_objective_and_constraints_and_bounds_maker()
+    env = Environment()
+    m1 = model_empty_maker(env)
+    m2 = model_empty_with_vars_maker(env)
+    m3 = model_objective_maker(env)
+    m4 = model_objective_and_constraints_maker(env)
+    m5 = model_objective_and_constraints_and_bounds_maker(env)
 
     assert hash(m1) != hash(m2)
     assert hash(m1) != hash(m3)

@@ -6,6 +6,9 @@ use super::versions::v0::SerExpression as SerExprV0;
 use super::versions::v0::SerModel as SerModelV0;
 use super::versions::v0::SerSolution as SerSolutionV0;
 use super::versions::v0::SerTiming as SerTimingV0;
+
+use super::versions::v1::SerEnvironment as SerEnvV1;
+
 use super::Version;
 use crate::core::environment::SharedEnvironment;
 use crate::core::{Constraints, Environment, Expression, Model, RcSolution, Timing};
@@ -24,7 +27,7 @@ type SerConstrLatest = SerConstrV0;
 /// of an Environment. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
-type SerEnvLatest = SerEnvV0;
+type SerEnvLatest = SerEnvV1;
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of a Model. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
@@ -46,13 +49,16 @@ impl Encodable<SerExprV0> for Expression {}
 /// Makes a Constraints with Index = VarId and Bias = f64 encodable.
 impl Encodable<SerConstrV0> for Constraints {}
 /// Makes an Environment with Index = VarId encodable.
-impl Encodable<SerEnvV0> for Environment {}
+impl Encodable<SerEnvV1> for Environment {}
 /// Makes a Model with Index = VarId and Bias = f64 encodable.
 impl Encodable<SerModelV0> for Model {}
 /// Makes a Solution encodable.
 impl Encodable<SerSolutionV0> for RcSolution {}
 /// Makes a Timing encodable.
 impl Encodable<SerTimingV0> for Timing {}
+
+/// Makes the v0 serialization of an Environment decodable.
+impl Decoder<Environment, ()> for SerEnvV0 {}
 
 /// Default implementation to make a bytes vector deserializable to an Expression.
 /// For the decoding of a bytes vector to an Expression a reference counted pointer to
