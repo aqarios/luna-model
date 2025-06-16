@@ -2,7 +2,6 @@ use std::fmt::Debug;
 
 use aqmodels::{
     core::{
-        environment::add_variable,
         expression::ExpressionBaseCreation,
         operations::{AddToExpression, MulToExpression},
         Expression, SharedEnvironment, VarRef, Vtype,
@@ -16,6 +15,7 @@ use rand::{
     Rng, RngCore, SeedableRng,
 };
 
+#[allow(dead_code)]
 pub fn make_seed() -> u64 {
     let seed: u64 = rand::rng().next_u64();
     eprintln!(
@@ -29,6 +29,7 @@ Random Seed = {}
     seed
 }
 
+#[allow(dead_code)]
 pub fn random_bias<B: Default + std::ops::Add<f64, Output = B>>(seed: u64) -> B
 where
     StandardUniform: Distribution<B>,
@@ -38,6 +39,7 @@ where
     rng.random()
 }
 
+#[allow(dead_code)]
 pub fn random_biases<B: Copy + Default + std::ops::Add<f64, Output = B>>(
     n: usize,
     seed: u64,
@@ -50,6 +52,7 @@ where
     (0..n).map(|_| rng.random()).collect()
 }
 
+#[allow(dead_code)]
 pub fn create_linear_expression_with_vars(
     env: SharedEnvironment,
     biases: &Vec<Bias>,
@@ -63,13 +66,8 @@ pub fn create_linear_expression_with_vars(
     };
     let vars: Vec<VarRef> = (0..biases.len())
         .map(|i| {
-            add_variable(
-                env.clone(),
-                &format!("{}{}", varname_prefix, i),
-                Some(&vtype),
-                None,
-            )
-            .unwrap()
+            env.add_variable(&format!("{}{}", varname_prefix, i), Some(vtype), None)
+                .unwrap()
         })
         .collect();
     let mut expr = Expression::empty(env.clone());
@@ -80,6 +78,7 @@ pub fn create_linear_expression_with_vars(
     (expr, vars)
 }
 
+#[allow(dead_code)]
 pub fn create_linear_expression(
     env: SharedEnvironment,
     biases: &Vec<Bias>,
@@ -88,6 +87,7 @@ pub fn create_linear_expression(
     create_linear_expression_with_vars(env, biases, vtype).0
 }
 
+#[allow(dead_code)]
 pub fn create_env() -> SharedEnvironment {
     SharedEnvironment::default()
 }

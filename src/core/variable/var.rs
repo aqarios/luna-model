@@ -13,6 +13,17 @@ pub struct Variable {
 }
 
 impl Variable {
+    pub fn deep_clone(&self, id: EnvId) -> Self {
+        Self {
+            name: self.name.clone(),
+            vtype: self.vtype,
+            bounds: self.bounds.clone(),
+            env_id: id
+        }
+    }
+}
+
+impl Variable {
     /// Create a default variable.
     ///
     /// Currently, this creates an unnamed binary variable.
@@ -29,11 +40,11 @@ impl Variable {
     /// id.
     pub fn new(
         name: String,
-        vtype: Option<&Vtype>,
+        vtype: Option<Vtype>,
         bounds: Option<LazyBounds>,
         env_id: EnvId,
     ) -> Result<Self, VariableCreationErr> {
-        let vtype = vtype.map_or(Vtype::default(), |t| *t);
+        let vtype = vtype.map_or(Vtype::default(), |t| t);
         match (vtype, bounds.is_some()) {
             (Vtype::Binary, true) | (Vtype::Spin, true) => {
                 Err(VariableCreationErr::InvalidBounds(vtype))

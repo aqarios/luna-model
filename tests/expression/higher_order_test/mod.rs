@@ -6,7 +6,6 @@ mod spin_test;
 use hashbrown::HashMap;
 
 use aqmodels::{core::{
-    environment::add_variable,
     operations::{MulAssignToExpression, MulToExpression},
     term::{types::OneVarTerm, HigherOrder},
     Vtype,
@@ -20,8 +19,8 @@ fn higher_order_expression_base(vtype: Vtype, n: usize) {
     let biases = random_biases::<Bias>(n, seed);
     let (mut expr, vars) = create_linear_expression_with_vars(env.clone(), &biases, vtype);
 
-    let ma = add_variable(env.clone(), &"ma".to_string(), Some(&vtype), None).unwrap();
-    let mb = add_variable(env.clone(), &"mb".to_string(), Some(&vtype), None).unwrap();
+    let ma = env.add_variable("ma", Some(vtype), None).unwrap();
+    let mb = env.add_variable("mb", Some(vtype), None).unwrap();
     let ma_scalar = random_bias::<Bias>(seed);
     let mb_scalar = random_bias::<Bias>(seed);
 

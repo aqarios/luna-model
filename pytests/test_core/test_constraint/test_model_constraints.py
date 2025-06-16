@@ -4,8 +4,8 @@ from aqmodels import Environment, Model, Variable, Vtype
 from aqmodels.errors import DuplicateConstraintNameError
 
 
-def model_iadd(request) -> Model:
-    with Environment():
+def model_iadd(request, env) -> Model:
+    with env:
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -21,8 +21,8 @@ def model_iadd(request) -> Model:
     return model
 
 
-def model_iadd_named(request) -> Model:
-    with Environment():
+def model_iadd_named(request, env) -> Model:
+    with env:
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -38,8 +38,8 @@ def model_iadd_named(request) -> Model:
     return model
 
 
-def model_fadd(request) -> Model:
-    with Environment():
+def model_fadd(request, env) -> Model:
+    with env:
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -55,8 +55,8 @@ def model_fadd(request) -> Model:
     return model
 
 
-def model_fadd_named(request) -> Model:
-    with Environment():
+def model_fadd_named(request, env) -> Model:
+    with env:
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -72,8 +72,8 @@ def model_fadd_named(request) -> Model:
     return model
 
 
-def model_direct_add(request) -> Model:
-    with Environment():
+def model_direct_add(request, env) -> Model:
+    with env:
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -89,8 +89,8 @@ def model_direct_add(request) -> Model:
     return model
 
 
-def model_direct_add_named(request) -> Model:
-    with Environment():
+def model_direct_add_named(request, env) -> Model:
+    with env:
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -108,15 +108,17 @@ def model_direct_add_named(request) -> Model:
 
 @pytest.fixture
 def models(request) -> tuple[Model, Model, Model]:
-    return (model_iadd(request), model_fadd(request), model_direct_add(request))
+    env = Environment()
+    return (model_iadd(request, env), model_fadd(request, env), model_direct_add(request, env))
 
 
 @pytest.fixture
 def models_named(request) -> tuple[Model, Model, Model]:
+    env = Environment()
     return (
-        model_iadd_named(request),
-        model_fadd_named(request),
-        model_direct_add_named(request),
+        model_iadd_named(request, env),
+        model_fadd_named(request, env),
+        model_direct_add_named(request, env),
     )
 
 

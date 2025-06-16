@@ -5,7 +5,6 @@ mod spin_test;
 
 use aqmodels::{
     core::{
-        environment::add_variable,
         operations::{MulAssignToExpression, MulToExpression},
         term::types::{OneVarTerm, OneVarTermConstruction},
         Vtype,
@@ -21,7 +20,7 @@ fn quadratic_expression_base(vtype: Vtype, n: usize) {
     let biases = random_biases::<Bias>(n, seed);
     let mut expr = create_linear_expression(env.clone(), &biases, vtype);
 
-    let multiplier = add_variable(env.clone(), &"m".to_string(), Some(&vtype), None).unwrap();
+    let multiplier = env.add_variable("m", Some(vtype), None).unwrap();
     let mscalar = random_bias::<Bias>(seed);
     expr.mul_assign(&multiplier.mul(mscalar)).unwrap();
 

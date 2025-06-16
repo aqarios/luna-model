@@ -1,5 +1,5 @@
 use crate::{
-    core::environment::{get_vref_by_name, SharedEnvironment},
+    core::environment::SharedEnvironment,
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
@@ -124,10 +124,7 @@ impl PyEnvironment {
     /// VariableNotExistingError
     ///     If no variable with the specified name is registered.
     fn get_variable(&self, name: String) -> PyResult<PyVariable> {
-        Ok(PyVariable(Rc::new(get_vref_by_name(
-            &name,
-            self.0.clone(),
-        )?)))
+        Ok(PyVariable(Rc::new(self.0.get_vref_by_name(&name)?)))
     }
 
     /// Serialize the environment into a compact binary format.

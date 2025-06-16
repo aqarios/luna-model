@@ -6,17 +6,14 @@ use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use crate::types::Bias;
 use crate::types::{EnvId, VarIndex};
 use derive_more::{Deref, DerefMut};
-use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
+use uuid::Uuid;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::slice::Iter;
 use std::{cell::RefCell, ops::Index, rc::Rc};
 
-// already thread safe.
-static ENV_COUNTER: CounterU8 = CounterU8::new(0);
-
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Environment {
     pub id: EnvId,
     pub variables: Vec<Variable>,
@@ -38,6 +35,62 @@ impl SharedEnvironment {
         let cloned = b.deref().deep_clone();
         SharedEnvironment::new(cloned)
     }
+
+    pub fn add_variable(
+        &self,
+        name: &str,
+        vtype: Option<Vtype>,
+        bounds: Option<LazyBounds>,
+    ) -> Result<VarRef, VariableCreationErr> {
+        let mut mutable_env = self.borrow_mut();
+        if mutable_env.variables_lookup.contains_key(name) {
+            return Err(VariableCreationErr::VariableExists(name.to_string()));
+        }
+        ensure_name_valid(name)?;
+        let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id)?;
+        let id = mutable_env.varcount;
+        mutable_env.variables.push(var);
+        mutable_env.variables_lookup.insert(name.to_string(), id);
+        mutable_env.varcount += VarIndex::one();
+        Ok(VarRef::new(id, self.clone()))
+    }
+
+    pub fn add_binary(&self, name: &str) -> Result<VarRef, VariableCreationErr> {
+        self.add_variable(name, Some(Vtype::Binary), None)
+    }
+
+    pub fn add_spin(&self, name: &str) -> Result<VarRef, VariableCreationErr> {
+        self.add_variable(name, Some(Vtype::Spin), None)
+    }
+
+    pub fn add_real(
+        &self,
+        name: &str,
+        bounds: Option<LazyBounds>,
+    ) -> Result<VarRef, VariableCreationErr> {
+        self.add_variable(name, Some(Vtype::Real), bounds)
+    }
+
+    pub fn add_integer(
+        &self,
+        name: &str,
+        bounds: Option<LazyBounds>,
+    ) -> Result<VarRef, VariableCreationErr> {
+        self.add_variable(name, Some(Vtype::Integer), bounds)
+    }
+
+    pub fn get_vref_by_name(&self, name: &str) -> Result<VarRef, VariableNotExistingErr> {
+        let index = self.borrow().get(&name.to_string())?;
+        // As we don't store the VarRefs here, we need to create a new one based on the info
+        // we have.
+        Ok(VarRef::new(index, self.clone()))
+    }
+
+    pub fn get_vrefs_in_order(&self) -> Vec<VarRef> {
+        (0..self.borrow().variables.len())
+            .map(|idx| VarRef::new(idx.into(), self.clone()))
+            .collect()
+    }
 }
 
 impl SharedEnvironment {
@@ -58,7 +111,7 @@ impl Clone for SharedEnvironment {
 
 impl Environment {
     pub fn new() -> Self {
-        Self::new_for(ENV_COUNTER.get())
+        Self::new_for(Uuid::new_v4())
     }
 
     pub fn new_for(id: EnvId) -> Self {
@@ -76,9 +129,10 @@ impl Environment {
     /// The deep cloned environment gets a new environment id that is guaranteed
     /// to be different from all other possibly exisiting environments.
     pub fn deep_clone(&self) -> Self {
+        let id = Uuid::new_v4();
         Self {
-            id: ENV_COUNTER.get(),
-            variables: self.variables.clone(),
+            id,
+            variables: self.variables.iter().map(|v| v.deep_clone(id)).collect(),
             variables_lookup: self.variables_lookup.clone(),
             varcount: self.varcount.clone(),
         }
@@ -143,26 +197,7 @@ impl Display for Environment {
     }
 }
 
-pub fn add_variable(
-    env: SharedEnvironment,
-    name: &String,
-    vtype: Option<&Vtype>,
-    bounds: Option<LazyBounds>,
-) -> Result<VarRef, VariableCreationErr> {
-    let mut mutable_env = env.borrow_mut();
-    if mutable_env.variables_lookup.contains_key(name) {
-        return Err(VariableCreationErr::VariableExists(name.clone()));
-    }
-    ensure_name_valid(name)?;
-    let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id)?;
-    let id = mutable_env.varcount;
-    mutable_env.variables.push(var);
-    mutable_env.variables_lookup.insert(name.to_string(), id);
-    mutable_env.varcount += VarIndex::one();
-    Ok(VarRef::new(id, env.clone()))
-}
-
-fn ensure_name_valid(name: &String) -> Result<(), VariableCreationErr> {
+fn ensure_name_valid(name: &str) -> Result<(), VariableCreationErr> {
     if !name.starts_with(|c: char| c.is_ascii_alphabetic()) {
         Err(VariableCreationErr::VarName(String::from(
             "Variable names must start with an alphabetic character.",
@@ -177,20 +212,4 @@ fn ensure_name_valid(name: &String) -> Result<(), VariableCreationErr> {
     } else {
         Ok(())
     }
-}
-
-pub fn get_vref_by_name(
-    name: &String,
-    env: SharedEnvironment,
-) -> Result<VarRef, VariableNotExistingErr> {
-    let index = env.borrow().get(name)?;
-    // As we don't store the VarRefs here, we need to create a new one based on the info
-    // we have.
-    Ok(VarRef::new(index, env.clone()))
-}
-
-pub fn get_vrefs_in_order(env: SharedEnvironment) -> Vec<VarRef> {
-    (0..env.borrow().variables.len())
-        .map(|idx| VarRef::new(idx.into(), env.clone()))
-        .collect()
 }
