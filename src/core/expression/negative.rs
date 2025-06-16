@@ -1,12 +1,8 @@
 use std::ops::Neg;
 
-use super::{BiasConstraints, Expression, ExpressionBaseCreation, IndexConstraints};
+use super::{Expression, ExpressionBaseCreation};
 
-impl<Index, Bias> Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl Expression {
     fn negate(&self) -> Self {
         let mut out = Expression::new_from_other(&self);
         out.linear = -out.linear;
@@ -20,24 +16,16 @@ where
     }
 }
 
-impl<Index, Bias> Neg for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Expression<Index, Bias>;
+impl Neg for Expression {
+    type Output = Expression;
 
     fn neg(self) -> Self::Output {
         self.negate()
     }
 }
 
-impl<Index, Bias> Neg for &Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Expression<Index, Bias>;
+impl Neg for &Expression {
+    type Output = Expression;
 
     fn neg(self) -> Self::Output {
         self.negate()

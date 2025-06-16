@@ -1,4 +1,3 @@
-use crate::core::{ConcreteBias, ConcreteIndex};
 use crate::translator::base::BackTranslator;
 use crate::translator::LPTranslator;
 use crate::{py_bindings::py_model::PyModel, translator::base::Translator};
@@ -62,7 +61,7 @@ impl PyLpTranslator {
             let pathbuf = PathBuf::from(&file);
             let file = if pathbuf.exists() {
                 // We have a real path. So we can call the translate on the pathbuf.
-                LPTranslator::<ConcreteIndex, ConcreteBias>::read_file(pathbuf)?
+                LPTranslator::read_file(pathbuf)?
             } else {
                 // We have a string representing a model.
                 // We don't need to do anything here.
@@ -70,7 +69,7 @@ impl PyLpTranslator {
             };
             Ok(PyModel::new(LPTranslator::translate(file)?))
         } else if let Ok(filepath) = file.extract::<PathBuf>(py) {
-            let file = LPTranslator::<ConcreteIndex, ConcreteBias>::read_file(filepath)?;
+            let file = LPTranslator::read_file(filepath)?;
             Ok(PyModel::new(LPTranslator::translate(file)?))
         } else {
             Err(PyTypeError::new_err(

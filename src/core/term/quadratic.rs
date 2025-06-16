@@ -1,5 +1,5 @@
 use super::types::{OneVarTerm, OneVarTermConstruction};
-use crate::core::expression::{BiasConstraints, IndexConstraints};
+use crate::types::{Bias, VarIndex};
 use std::{
     cmp::Ordering,
     iter::Enumerate,
@@ -8,16 +8,14 @@ use std::{
 };
 
 #[derive(Debug, Clone)]
-pub struct Quadratic<Index, Bias> {
-    pub adj: Vec<Vec<OneVarTerm<Index, Bias>>>,
+pub struct Quadratic {
+    pub adj: Vec<Vec<OneVarTerm>>,
     default_bias: Bias,
 }
 
-impl<Index, Bias> Quadratic<Index, Bias>
+impl Quadratic
 where
-    Bias: BiasConstraints,
-    OneVarTerm<Index, Bias>: Clone,
-    Index: IndexConstraints,
+    OneVarTerm: Clone,
 {
     pub fn new(num_variables: usize) -> Self {
         let adj = vec![Vec::new(); num_variables];
@@ -27,7 +25,7 @@ where
         }
     }
 
-    pub fn new_from(adj: Vec<Vec<OneVarTerm<Index, Bias>>>) -> Self {
+    pub fn new_from(adj: Vec<Vec<OneVarTerm>>) -> Self {
         Self {
             adj,
             default_bias: Bias::default(),
@@ -51,15 +49,15 @@ where
         true
     }
 
-    pub fn get_mut(&mut self, idx: Index) -> Option<&mut Vec<OneVarTerm<Index, Bias>>> {
-        self.adj.get_mut(idx.into())
+    pub fn get_mut(&mut self, idx: VarIndex) -> Option<&mut Vec<OneVarTerm>> {
+        self.adj.get_mut(<VarIndex as Into<usize>>::into(idx))
     }
 
-    pub fn iter(&self) -> Enumerate<Iter<Vec<OneVarTerm<Index, Bias>>>> {
+    pub fn iter(&self) -> Enumerate<Iter<Vec<OneVarTerm>>> {
         self.adj.iter().enumerate()
     }
 
-    pub fn iter_flat(&self) -> impl Iterator<Item = (Index, Index, Bias)> + '_ {
+    pub fn iter_flat(&self) -> impl Iterator<Item = (VarIndex, VarIndex, Bias)> + '_ {
         self.adj
             .iter()
             .enumerate()
@@ -72,7 +70,7 @@ where
 
     pub fn iter_flat_positioned(
         &self,
-    ) -> impl Iterator<Item = ((usize, usize), Index, Index, Bias)> + '_ {
+    ) -> impl Iterator<Item = ((usize, usize), VarIndex, VarIndex, Bias)> + '_ {
         self.adj
             .iter()
             .enumerate()
@@ -85,10 +83,7 @@ where
     }
 }
 
-impl<Index, Bias> MulAssign<Bias> for Quadratic<Index, Bias>
-where
-    Bias: BiasConstraints,
-{
+impl MulAssign<Bias> for Quadratic {
     fn mul_assign(&mut self, rhs: Bias) {
         for neighborhood in self.adj.iter_mut() {
             for term in neighborhood.iter_mut() {
@@ -99,13 +94,13 @@ where
 }
 
 // Iterator struct
-pub struct QuadraticIter<'a, Index, Bias> {
-    inner: std::slice::Iter<'a, Vec<OneVarTerm<Index, Bias>>>,
+pub struct QuadraticIter<'a> {
+    inner: std::slice::Iter<'a, Vec<OneVarTerm>>,
 }
 
-impl<'a, Index, Bias> IntoIterator for &'a Quadratic<Index, Bias> {
-    type Item = &'a Vec<OneVarTerm<Index, Bias>>;
-    type IntoIter = QuadraticIter<'a, Index, Bias>;
+impl<'a> IntoIterator for &'a Quadratic {
+    type Item = &'a Vec<OneVarTerm>;
+    type IntoIter = QuadraticIter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
         QuadraticIter {
@@ -114,8 +109,8 @@ impl<'a, Index, Bias> IntoIterator for &'a Quadratic<Index, Bias> {
     }
 }
 
-impl<'a, Index, Bias> Iterator for QuadraticIter<'a, Index, Bias> {
-    type Item = &'a Vec<OneVarTerm<Index, Bias>>;
+impl<'a> Iterator for QuadraticIter<'a> {
+    type Item = &'a Vec<OneVarTerm>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
@@ -123,14 +118,14 @@ impl<'a, Index, Bias> Iterator for QuadraticIter<'a, Index, Bias> {
 }
 
 // Mutable Iterator struct
-pub struct QuadraticIterMut<'a, Index, Bias> {
-    inner: std::slice::IterMut<'a, Vec<OneVarTerm<Index, Bias>>>,
+pub struct QuadraticIterMut<'a> {
+    inner: std::slice::IterMut<'a, Vec<OneVarTerm>>,
 }
 
 // Implement IntoIterator for &mut Quadratic
-impl<'a, Index, Bias> IntoIterator for &'a mut Quadratic<Index, Bias> {
-    type Item = &'a mut Vec<OneVarTerm<Index, Bias>>;
-    type IntoIter = QuadraticIterMut<'a, Index, Bias>;
+impl<'a> IntoIterator for &'a mut Quadratic {
+    type Item = &'a mut Vec<OneVarTerm>;
+    type IntoIter = QuadraticIterMut<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
         QuadraticIterMut {
@@ -140,33 +135,29 @@ impl<'a, Index, Bias> IntoIterator for &'a mut Quadratic<Index, Bias> {
 }
 
 // Implement Iterator for QuadraticIterMut
-impl<'a, Index, Bias> Iterator for QuadraticIterMut<'a, Index, Bias> {
-    type Item = &'a mut Vec<OneVarTerm<Index, Bias>>;
+impl<'a> Iterator for QuadraticIterMut<'a> {
+    type Item = &'a mut Vec<OneVarTerm>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next()
     }
 }
 
-impl<Idx, Bias> Index<usize> for Quadratic<Idx, Bias> {
-    type Output = Vec<OneVarTerm<Idx, Bias>>;
+impl Index<usize> for Quadratic {
+    type Output = Vec<OneVarTerm>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.adj[index]
     }
 }
 
-impl<Idx, Bias> IndexMut<usize> for Quadratic<Idx, Bias> {
+impl IndexMut<usize> for Quadratic {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.adj[index]
     }
 }
 
-impl<Idx, Bias> Index<(usize, usize)> for Quadratic<Idx, Bias>
-where
-    Idx: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl Index<(usize, usize)> for Quadratic {
     type Output = Bias;
 
     fn index(&self, index: (usize, usize)) -> &Self::Output {
@@ -177,7 +168,7 @@ where
             inner = index.0;
         }
 
-        let neighborhood: &Vec<OneVarTerm<Idx, Bias>> = &self.adj[outer];
+        let neighborhood: &Vec<OneVarTerm> = &self.adj[outer];
         let pos = neighborhood.binary_search_by(|term| {
             term.index
                 .partial_cmp(&inner.into())
@@ -191,26 +182,21 @@ where
     }
 }
 
-impl<Idx, Bias> Index<(Idx, Idx)> for Quadratic<Idx, Bias>
-where
-    Idx: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl Index<(VarIndex, VarIndex)> for Quadratic {
     type Output = Bias;
 
-    fn index(&self, index: (Idx, Idx)) -> &Self::Output {
-        &self[(index.0.into(), index.1.into())]
+    fn index(&self, index: (VarIndex, VarIndex)) -> &Self::Output {
+        &self[(
+            <VarIndex as Into<usize>>::into(index.0),
+            <VarIndex as Into<usize>>::into(index.1),
+        )]
     }
 }
 
-impl<Idx, Bias> IndexMut<(Idx, Idx)> for Quadratic<Idx, Bias>
-where
-    Idx: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl IndexMut<(VarIndex, VarIndex)> for Quadratic {
     /// Assumes quadratic exists!
     /// Creates the bias if it doesn't already exist
-    fn index_mut(&mut self, index: (Idx, Idx)) -> &mut Self::Output {
+    fn index_mut(&mut self, index: (VarIndex, VarIndex)) -> &mut Self::Output {
         let mut outer = index.0;
         let mut inner = index.1;
         if outer > inner {
@@ -218,9 +204,9 @@ where
             inner = index.0;
         }
 
-        let neighborhood: &mut Vec<OneVarTerm<Idx, Bias>> = self
+        let neighborhood: &mut Vec<OneVarTerm> = self
             .adj
-            .get_mut(outer.into())
+            .get_mut::<usize>(outer.into())
             .expect("neighborhood should exist for the given index");
         let pos = neighborhood
             .binary_search_by(|term| term.index.partial_cmp(&inner).unwrap_or(Ordering::Equal))
@@ -235,11 +221,7 @@ where
     }
 }
 
-impl<Index, Bias> PartialEq for Quadratic<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl PartialEq for Quadratic {
     fn eq(&self, other: &Self) -> bool {
         // This basic check is no gurantee for actual equality.
         // As if this is not equal it might be due to different representations,
@@ -269,11 +251,7 @@ where
     }
 }
 
-impl<Index, Bias> Quadratic<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl Quadratic {
     fn negate(&self) -> Self {
         Quadratic::new_from(
             self.adj
@@ -289,24 +267,16 @@ where
     }
 }
 
-impl<Index, Bias> Neg for Quadratic<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Quadratic<Index, Bias>;
+impl Neg for Quadratic {
+    type Output = Quadratic;
 
     fn neg(self) -> Self::Output {
         self.negate()
     }
 }
 
-impl<Index, Bias> Neg for &Quadratic<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Quadratic<Index, Bias>;
+impl Neg for &Quadratic {
+    type Output = Quadratic;
 
     fn neg(self) -> Self::Output {
         self.negate()

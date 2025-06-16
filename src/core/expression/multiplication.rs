@@ -1,23 +1,20 @@
+use crate::core::expression::One;
 use super::{
-    base::{
-        BiasConstraints, ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulDirect,
-        IndexConstraints,
-    },
+    base::{ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulDirect},
     Expression,
 };
-use crate::core::operations::{MulAssignToExpression, MulToExpression};
 use crate::core::ExpressionBase;
 use crate::core::VarRef;
 use crate::errors::VariablesFromDifferentEnvsErr;
+use crate::{
+    core::operations::{MulAssignToExpression, MulToExpression},
+    types::Bias,
+};
 
 // MULTIPLICATION
 
-impl<Index, Bias> MulToExpression<Index, Bias, Bias> for &Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Expression<Index, Bias>;
+impl MulToExpression<Bias> for &Expression {
+    type Output = Expression;
 
     fn mul(self, rhs: Bias) -> Self::Output {
         let mut out = Expression::new_from_other(&self);
@@ -34,14 +31,10 @@ where
     }
 }
 
-impl<Index, Bias> MulToExpression<Index, Bias, &VarRef<Index>> for &Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
+impl MulToExpression<&VarRef> for &Expression {
+    type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
 
-    fn mul(self, rhs: &VarRef<Index>) -> Self::Output {
+    fn mul(self, rhs: &VarRef) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
@@ -70,15 +63,10 @@ where
     }
 }
 
-impl<Index, Bias> MulToExpression<Index, Bias, &Expression<Index, Bias>>
-    for &Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
+impl MulToExpression<&Expression> for &Expression {
+    type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
 
-    fn mul(self, rhs: &Expression<Index, Bias>) -> Self::Output {
+    fn mul(self, rhs: &Expression) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
@@ -91,11 +79,7 @@ where
 
 // MULTIPLICATION ASSIGN
 
-impl<Index, Bias> MulAssignToExpression<Index, Bias, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl MulAssignToExpression<Bias> for Expression {
     type Output = ();
 
     fn mul_assign(&mut self, rhs: Bias) -> Self::Output {
@@ -110,14 +94,10 @@ where
     }
 }
 
-impl<Index, Bias> MulAssignToExpression<Index, Bias, &VarRef<Index>> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl MulAssignToExpression<&VarRef> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
-    fn mul_assign(&mut self, rhs: &VarRef<Index>) -> Self::Output {
+    fn mul_assign(&mut self, rhs: &VarRef) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
@@ -134,15 +114,10 @@ where
     }
 }
 
-impl<Index, Bias> MulAssignToExpression<Index, Bias, &Expression<Index, Bias>>
-    for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl MulAssignToExpression<&Expression> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
-    fn mul_assign(&mut self, rhs: &Expression<Index, Bias>) -> Self::Output {
+    fn mul_assign(&mut self, rhs: &Expression) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {

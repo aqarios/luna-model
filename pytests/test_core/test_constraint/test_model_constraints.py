@@ -223,8 +223,22 @@ def test_model_add_constraint_ge_named_duplicate():
 
 
 @pytest.mark.constraint
-@pytest.mark.parametrize("models", ["le", "eq", "ge"], indirect=True)
-def test_model_add_constraint_same(models: tuple[Model, Model, Model]):
+@pytest.mark.parametrize("models", ["le"], indirect=True)
+def test_model_add_constraint_same_le(models: tuple[Model, Model, Model]):
+    model_a, model_b, model_c = models
+    assert model_a.constraints == model_b.constraints
+    assert model_b.constraints == model_c.constraints
+
+@pytest.mark.constraint
+@pytest.mark.parametrize("models", ["eq"], indirect=True)
+def test_model_add_constraint_same_eq(models: tuple[Model, Model, Model]):
+    model_a, model_b, model_c = models
+    assert model_a.constraints == model_b.constraints
+    assert model_b.constraints == model_c.constraints
+
+@pytest.mark.constraint
+@pytest.mark.parametrize("models", ["ge"], indirect=True)
+def test_model_add_constraint_same_ge(models: tuple[Model, Model, Model]):
     model_a, model_b, model_c = models
     assert model_a.constraints == model_b.constraints
     assert model_b.constraints == model_c.constraints

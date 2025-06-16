@@ -1,10 +1,11 @@
-use crate::core::expression::BiasConstraints;
-use crate::core::solution::base::AssignmentBaseTypes;
 use crate::core::solution::timing::Timing;
 use crate::core::writer::SolutionWriter;
 use crate::core::{ResultIterator, ResultView, Samples};
 use crate::errors::{
     ComputationErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr,
+};
+use crate::types::{
+    Bias, BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType,
 };
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
@@ -13,14 +14,11 @@ use std::ops::Mul;
 use std::rc::Rc;
 
 #[derive(Debug, Clone, Copy)]
-pub enum VarAssignment<AssignmentTypes>
-where
-    AssignmentTypes: AssignmentBaseTypes,
-{
-    Binary(AssignmentTypes::BinaryType),
-    Spin(AssignmentTypes::SpinType),
-    Integer(AssignmentTypes::IntegerType),
-    Real(AssignmentTypes::RealType),
+pub enum VarAssignment {
+    Binary(BinaryAssignmentType),
+    Spin(SpinAssignmentType),
+    Integer(IntegerAssignmentType),
+    Real(RealAssignmentType),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -36,11 +34,8 @@ pub enum ShowMetadata {
     Hide,
 }
 
-impl<AssignmentTypes> VarAssignment<AssignmentTypes>
-where
-    AssignmentTypes: AssignmentBaseTypes,
-{
-    pub fn to_bias<Bias: BiasConstraints>(&self) -> Bias {
+impl VarAssignment {
+    pub fn to_bias(&self) -> Bias {
         match self {
             VarAssignment::Binary(col) => <Bias as NumCast>::from(*col).unwrap(),
             VarAssignment::Spin(col) => <Bias as NumCast>::from(*col).unwrap(),
@@ -50,19 +45,13 @@ where
     }
 }
 
-impl<AssignmentTypes> Default for VarAssignment<AssignmentTypes>
-where
-    AssignmentTypes: AssignmentBaseTypes,
-{
+impl Default for VarAssignment {
     fn default() -> Self {
-        VarAssignment::Binary(AssignmentTypes::BinaryType::default())
+        VarAssignment::Binary(BinaryAssignmentType::default())
     }
 }
 
-impl<AssignmentTypes> Display for VarAssignment<AssignmentTypes>
-where
-    AssignmentTypes: AssignmentBaseTypes,
-{
+impl Display for VarAssignment {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             VarAssignment::Binary(x) => write!(f, "{x}"),
@@ -75,21 +64,14 @@ where
 
 /// The different assignments to a variable in the single samples
 #[derive(Debug, Clone, PartialEq)]
-pub enum SampleCol<AssignmentTypes>
-where
-    AssignmentTypes: AssignmentBaseTypes,
-{
-    Binary(Vec<AssignmentTypes::BinaryType>),
-    Spin(Vec<AssignmentTypes::SpinType>),
-    Integer(Vec<AssignmentTypes::IntegerType>),
-    Real(Vec<AssignmentTypes::RealType>),
+pub enum SampleCol {
+    Binary(Vec<BinaryAssignmentType>),
+    Spin(Vec<SpinAssignmentType>),
+    Integer(Vec<IntegerAssignmentType>),
+    Real(Vec<RealAssignmentType>),
 }
 
-impl<Bias, AssignmentTypes> Mul<Bias> for VarAssignment<AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
+impl Mul<Bias> for VarAssignment {
     type Output = Bias;
 
     fn mul(self, rhs: Bias) -> Self::Output {
@@ -102,36 +84,33 @@ where
     }
 }
 
-impl<AssignmentTypes> SampleCol<AssignmentTypes>
-where
-    AssignmentTypes: AssignmentBaseTypes,
-{
+impl SampleCol {
     pub fn push<N: ToPrimitive>(
         &mut self,
         assignment: N,
     ) -> Result<(), SampleIncompatibleVtypeErr> {
         match self {
-            Self::Binary(xs) => match <AssignmentTypes::BinaryType as NumCast>::from(assignment) {
+            Self::Binary(xs) => match <BinaryAssignmentType as NumCast>::from(assignment) {
                 None => return Err(SampleIncompatibleVtypeErr),
                 Some(x) => {
                     xs.push(x);
                 }
             },
-            Self::Spin(xs) => match <AssignmentTypes::SpinType as NumCast>::from(assignment) {
+            Self::Spin(xs) => match <SpinAssignmentType as NumCast>::from(assignment) {
                 None => return Err(SampleIncompatibleVtypeErr),
                 Some(x) => {
                     xs.push(x);
                 }
             },
             Self::Integer(xs) => {
-                match <AssignmentTypes::IntegerType as NumCast>::from(assignment) {
+                match <IntegerAssignmentType as NumCast>::from(assignment) {
                     None => return Err(SampleIncompatibleVtypeErr),
                     Some(x) => {
                         xs.push(x);
                     }
                 }
             }
-            Self::Real(xs) => match <AssignmentTypes::RealType as NumCast>::from(assignment) {
+            Self::Real(xs) => match <RealAssignmentType as NumCast>::from(assignment) {
                 None => return Err(SampleIncompatibleVtypeErr),
                 Some(x) => {
                     xs.push(x);
@@ -141,10 +120,7 @@ where
         Ok(())
     }
 
-    pub fn get<Bias: BiasConstraints>(
-        &self,
-        index: usize,
-    ) -> Option<VarAssignment<AssignmentTypes>> {
+    pub fn get(&self, index: usize) -> Option<VarAssignment> {
         match self {
             Self::Binary(col) => col.get(index).map(|&x| VarAssignment::Binary(x)),
             Self::Spin(col) => col.get(index).map(|&x| VarAssignment::Spin(x)),
@@ -153,7 +129,7 @@ where
         }
     }
 
-    pub fn as_vec(&self) -> Vec<VarAssignment<AssignmentTypes>> {
+    pub fn as_vec(&self) -> Vec<VarAssignment> {
         // todo: do this without `collect` instead, and use some other return typle like `impl Iter`
         match self {
             SampleCol::Binary(bins) => bins.iter().map(|&x| VarAssignment::Binary(x)).collect(),
@@ -168,15 +144,11 @@ where
 /// about the environment the model was created in. Instead, for each sample, we expect the indices
 /// of the solution to be aligned with the variable indices of the model's environment.
 #[derive(Debug, Clone, Default)]
-pub struct Solution<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
+pub struct Solution {
     /// A collection of samples. Each inner vec corresponds to all assignments to a single variable
     /// across different samples. `samples.len()` can be expected to always correspond exactly to
     /// the number of results available in the solution.
-    pub samples: Vec<SampleCol<AssignmentTypes>>,
+    pub samples: Vec<SampleCol>,
     /// How often each result occurs in the solution. `counts.len()` can be expected to
     /// always be equal to `samples.len()`
     pub counts: Vec<usize>,
@@ -209,16 +181,12 @@ where
     pub variable_names: Vec<String>,
 }
 
-impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
+impl Solution {
     pub fn len(&self) -> usize {
         self.n_samples
     }
 
-    pub fn add_column(&mut self, col: SampleCol<AssignmentTypes>) {
+    pub fn add_column(&mut self, col: SampleCol) {
         self.samples.push(col);
     }
 
@@ -299,28 +267,20 @@ where
         }
     }
 
-    pub fn get_assignment(
-        &self,
-        row_idx: usize,
-        col_idx: usize,
-    ) -> Option<VarAssignment<AssignmentTypes>> {
+    pub fn get_assignment(&self, row_idx: usize, col_idx: usize) -> Option<VarAssignment> {
         self.samples
             .get(col_idx)
-            .and_then(|col| col.get::<Bias>(row_idx))
+            .and_then(|col| col.get(row_idx))
     }
 
-    pub fn best(&self) -> Option<ResultView<Bias, AssignmentTypes>> {
+    pub fn best(&self) -> Option<ResultView> {
         self.best_sample_idx
             .map(|idx| ResultView::new(RcSolution(Rc::new(self.clone())), idx))
     }
 }
 
 // Convenience functions
-impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
+impl Solution {
     pub fn expectation_value(&self) -> Result<Bias, ComputationErr> {
         // equivalent to doing np.average(solution.obj_values, weights=solution.counts)
         let mut weight_sum: f64 = 0.0;
@@ -342,17 +302,10 @@ where
 }
 
 #[derive(Debug, Deref, DerefMut)]
-pub struct RcSolution<Bias, AssignmentTypes>(pub Rc<Solution<Bias, AssignmentTypes>>)
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes;
+pub struct RcSolution(pub Rc<Solution>);
 
-impl<Bias, AssignmentTypes> RcSolution<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
-    pub fn get_result_view(&self, row_idx: usize) -> Option<ResultView<Bias, AssignmentTypes>> {
+impl RcSolution {
+    pub fn get_result_view(&self, row_idx: usize) -> Option<ResultView> {
         if row_idx >= self.0.n_samples {
             None
         } else {
@@ -360,46 +313,33 @@ where
         }
     }
 
-    pub fn iter_results(&self) -> ResultIterator<Bias, AssignmentTypes> {
+    pub fn iter_results(&self) -> ResultIterator {
         ResultIterator::new(RcSolution::clone(&self))
     }
 
-    pub fn samples(&self) -> Samples<Bias, AssignmentTypes> {
+    pub fn samples(&self) -> Samples {
         Samples(RcSolution::clone(&self))
     }
 
-    pub fn best(&self) -> Option<ResultView<Bias, AssignmentTypes>> {
+    pub fn best(&self) -> Option<ResultView> {
         self.best_sample_idx
             .map(|idx| ResultView::new(self.clone(), idx))
     }
 }
 
-impl<Bias, AssignmentTypes> Clone for RcSolution<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
+impl Clone for RcSolution {
     fn clone(&self) -> Self {
         RcSolution(Rc::clone(&self.0))
     }
 }
 
-impl<Bias, AssignmentTypes> Into<Rc<Solution<Bias, AssignmentTypes>>>
-    for RcSolution<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
-    fn into(self) -> Rc<Solution<Bias, AssignmentTypes>> {
+impl Into<Rc<Solution>> for RcSolution {
+    fn into(self) -> Rc<Solution> {
         self.0
     }
 }
 
-impl<Bias, AssignmentTypes> PartialEq for RcSolution<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes + PartialEq,
-{
+impl PartialEq for RcSolution {
     fn eq(&self, other: &Self) -> bool {
         let lhs = &self.0;
         let rhs = &other.0;
@@ -416,11 +356,7 @@ where
     }
 }
 
-impl<Bias, AssignmentTypes> Display for RcSolution<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
+impl Display for RcSolution {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = SolutionWriter::new()
             .write_solution(RcSolution::clone(&self))

@@ -1,7 +1,4 @@
-use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, RcSolution, ResultIterator, Sample, SampleIterator,
-    Samples, SamplesIterator,
-};
+use crate::core::{RcSolution, ResultIterator, Sample, SampleIterator, Samples, SamplesIterator};
 use crate::py_bindings::py_sol::PyVarAssignment;
 use derive_more::{Deref, DerefMut};
 use either::Either;
@@ -26,7 +23,7 @@ use super::py_var::PyVariable;
 /// [1, -4, -0.42]
 #[pyclass(unsendable, name = "SamplesIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySamplesIterator(pub SamplesIterator<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySamplesIterator(pub SamplesIterator);
 
 /// An iterator over the variable assignments of a solution's sample.
 ///
@@ -45,7 +42,7 @@ pub struct PySamplesIterator(pub SamplesIterator<ConcreteBias, ConcreteAssignmen
 /// 0.28
 #[pyclass(unsendable, name = "SampleIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySampleIterator(pub SampleIterator<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySampleIterator(pub SampleIterator);
 
 /// A samples object is simply a set-like object that contains every different sample
 /// of a solution.
@@ -64,7 +61,7 @@ pub struct PySampleIterator(pub SampleIterator<ConcreteBias, ConcreteAssignmentT
 /// [1, -4, -0.42]
 #[pyclass(unsendable, name = "Samples", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySamples(pub Samples<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySamples(pub Samples);
 
 /// A sample object is an assignment of an actual value to each of the models'
 /// variables.
@@ -85,16 +82,16 @@ pub struct PySamples(pub Samples<ConcreteBias, ConcreteAssignmentTypes>);
 /// [0, -5, 0.28]
 #[pyclass(unsendable, name = "Sample", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySample(pub Sample<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySample(pub Sample);
 
-impl Into<SamplesIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySamplesIterator {
-    fn into(self) -> SamplesIterator<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<SamplesIterator> for PySamplesIterator {
+    fn into(self) -> SamplesIterator {
         self.0
     }
 }
 
-impl Into<SampleIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySampleIterator {
-    fn into(self) -> SampleIterator<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<SampleIterator> for PySampleIterator {
+    fn into(self) -> SampleIterator {
         self.0
     }
 }

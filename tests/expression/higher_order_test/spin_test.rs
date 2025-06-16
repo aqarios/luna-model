@@ -1,9 +1,10 @@
-use std::rc::Rc;
-
-use aqmodels::core::{
-    operations::{MulAssignToExpression, MulToExpression},
-    term::{types::OneVarTerm, HigherOrder},
-    ConcreteBias, ConcreteIndex, Vtype,
+use aqmodels::{
+    core::{
+        operations::{MulAssignToExpression, MulToExpression},
+        term::{types::OneVarTerm, HigherOrder},
+        Vtype,
+    },
+    types::Bias,
 };
 
 use crate::common::*;
@@ -13,23 +14,21 @@ fn higher_order_expression_equal_spins_varref() {
     let seed = make_seed();
     let n = 4;
 
-    let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n, seed);
-    let (mut expr, vars) =
-        create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Spin);
+    let env = create_env();
+    let biases = random_biases::<Bias>(n, seed);
+    let (mut expr, vars) = create_linear_expression_with_vars(env.clone(), &biases, Vtype::Spin);
 
     let multiplier = &vars[0];
     expr.mul_assign(multiplier).unwrap();
     expr.mul_assign(multiplier).unwrap();
 
-    let expected_offset = ConcreteBias::default();
+    let expected_offset = Bias::default();
 
-    let mut expected_linear: Vec<ConcreteBias> = biases.clone();
+    let mut expected_linear: Vec<Bias> = biases.clone();
     expected_linear[multiplier.id.0 as usize] = biases[0];
 
-    let expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> =
-        vec![vec![]; biases.len()];
-    let expected_higher_order: HigherOrder<ConcreteIndex, ConcreteBias> = HigherOrder::default();
+    let expected_quadratic: Vec<Vec<OneVarTerm>> = vec![vec![]; biases.len()];
+    let expected_higher_order: HigherOrder = HigherOrder::default();
 
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, expected_offset, "offset is wrong");
@@ -74,24 +73,21 @@ fn higher_order_expression_equal_spins_expr() {
     let seed = make_seed();
     let n = 100;
 
-    let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n, seed);
-    let (mut expr, vars) =
-        create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Spin);
+    let env = create_env();
+    let biases = random_biases::<Bias>(n, seed);
+    let (mut expr, vars) = create_linear_expression_with_vars(env.clone(), &biases, Vtype::Spin);
 
     let multiplier = &vars[0];
     expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
     expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
 
-    let expected_offset = ConcreteBias::default();
+    let expected_offset = Bias::default();
 
-    let mut expected_linear: Vec<ConcreteBias> =
-        biases.iter().map(|b| b * biases[0] * biases[0]).collect();
+    let mut expected_linear: Vec<Bias> = biases.iter().map(|b| b * biases[0] * biases[0]).collect();
     expected_linear[multiplier.id.0 as usize] = biases[0] * biases[0] * biases[0];
 
-    let expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> =
-        vec![vec![]; biases.len()];
-    let expected_higher_order: HigherOrder<ConcreteIndex, ConcreteBias> = HigherOrder::default();
+    let expected_quadratic: Vec<Vec<OneVarTerm>> = vec![vec![]; biases.len()];
+    let expected_higher_order: HigherOrder = HigherOrder::default();
 
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, expected_offset, "offset is wrong");

@@ -1,7 +1,5 @@
 use crate::{
-    core::{
-        environment::get_vref_by_name, ConcreteEnvironment, ConcreteMutRcEnvironment, Environment,
-    },
+    core::environment::{get_vref_by_name, SharedEnvironment},
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
@@ -47,17 +45,11 @@ use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
 /// - Use `encode()` / `decode()` to persist and recover expression trees.
 #[pyclass(unsendable, name = "Environment", module = "aqmodels")]
 #[derive(Deref, DerefMut, Clone)]
-pub struct PyEnvironment(pub ConcreteMutRcEnvironment);
-
-impl Into<ConcreteMutRcEnvironment> for PyEnvironment {
-    fn into(self) -> ConcreteMutRcEnvironment {
-        self.0
-    }
-}
+pub struct PyEnvironment(pub SharedEnvironment);
 
 impl PyEnvironment {
-    pub fn new(env: ConcreteEnvironment) -> Self {
-        Self(env.into())
+    pub fn new(env: SharedEnvironment) -> Self {
+        Self(env)
     }
 }
 
@@ -72,7 +64,7 @@ impl PyEnvironment {
     /// It is recommended to use this in a `with` statement to ensure proper scoping.
     #[new]
     fn py_new() -> PyResult<Self> {
-        Ok(PyEnvironment::new(Environment::new()))
+        Ok(PyEnvironment::new(SharedEnvironment::default()))
     }
 
     /// Activate this environment for variable creation.
@@ -134,7 +126,7 @@ impl PyEnvironment {
     fn get_variable(&self, name: String) -> PyResult<PyVariable> {
         Ok(PyVariable(Rc::new(get_vref_by_name(
             &name,
-            Rc::clone(&self.0),
+            self.0.clone(),
         )?)))
     }
 
@@ -204,9 +196,9 @@ impl PyEnvironment {
     ///     If decoding fails due to corruption or incompatibility.
     #[classmethod]
     fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Ok(PyEnvironment::new(
+        Ok(PyEnvironment::new(SharedEnvironment::new(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
-        ))
+        )))
     }
 
     /// Alias for `decode()`.

@@ -1,9 +1,6 @@
 use super::py_utils::repr_solution;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
-use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, PrintLayout, RcSolution, Samples, Solution,
-    VarAssignment, Vtype,
-};
+use crate::core::{PrintLayout, RcSolution, Samples, Solution, VarAssignment, Vtype};
 use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
@@ -27,7 +24,7 @@ use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
-pub struct PyVarAssignment(pub VarAssignment<ConcreteAssignmentTypes>);
+pub struct PyVarAssignment(pub VarAssignment);
 
 #[derive(Debug, Clone)]
 pub enum SampleKey {
@@ -82,10 +79,10 @@ pub enum SampleKey {
 /// - Use `encode()` and `decode()` to serialize and recover solutions.
 #[pyclass(unsendable, name = "Solution", module = "aqmodels")]
 #[derive(Deref, DerefMut, Debug)]
-pub struct PySolution(pub RcSolution<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySolution(pub RcSolution);
 
-impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
-    fn into(self) -> RcSolution<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<RcSolution> for PySolution {
+    fn into(self) -> RcSolution {
         self.0
     }
 }
@@ -349,8 +346,8 @@ impl PySolution {
                 "either `env` or `model` has to be `None`",
             ));
         }
-        let environment: PyEnvironment = if model.is_some() {
-            PyEnvironment(Rc::clone(&model.as_ref().unwrap().borrow().environment))
+        let environment: PyEnvironment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
         } else {
             match env {
                 Some(env) => env.clone(),
@@ -475,8 +472,8 @@ impl PySolution {
             );
         }
 
-        let environment: PyEnvironment = if model.is_some() {
-            PyEnvironment(Rc::clone(&model.as_ref().unwrap().borrow().environment))
+        let environment: PyEnvironment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
         } else {
             match env {
                 Some(env) => env.clone(),
@@ -534,7 +531,11 @@ impl PySolution {
             sol.variable_names = var_names;
             let energy: Option<f64> = None;
 
-            let sc = counts.as_ref().and_then(|c| Some(c[i])).or(Some(1)).unwrap();
+            let sc = counts
+                .as_ref()
+                .and_then(|c| Some(c[i]))
+                .or(Some(1))
+                .unwrap();
             if let Some(pos) = samples.iter().position(|s| s == &sample) {
                 sol.counts[pos] += sc;
             } else {

@@ -3669,8 +3669,6 @@ class Constraints:
     ...     c = Constraint(x + 1, 0.0, Comparator.Le)
 
     >>> cs = Constraints()
-    >>> cs.add_constraint(c)
-
     >>> cs += x >= 1.0
 
     Serialization:
@@ -3701,7 +3699,6 @@ class Constraints:
             The name of the constraint to be added.
         """
         ...
-
     @overload
     def encode(self, /) -> bytes: ...
     @overload
