@@ -16,8 +16,7 @@ pub struct ResultView {
     pub row_idx: usize,
 }
 
-impl ResultView
-{
+impl ResultView {
     pub fn new(sol: RcSolution, row_idx: usize) -> Self {
         Self { sol, row_idx }
     }
@@ -66,8 +65,7 @@ impl PartialEq for ResultView {
     }
 }
 
-impl ValueByIndex<VarIndex> for ResultView
-{
+impl ValueByIndex<VarIndex> for ResultView {
     type Output = VarAssignment;
 
     fn value_by_index(&self, index: VarIndex) -> Self::Output {
@@ -76,8 +74,7 @@ impl ValueByIndex<VarIndex> for ResultView
 }
 
 #[derive(Debug, Clone)]
-pub struct OwnedResult
-{
+pub struct OwnedResult {
     /// The vector of variable assignments.
     pub sample: OwnedSample, // Rc<Vec<VarAssignment>>,
     /// The objective value computed from an AqModel. If not present, a raw value from the solver
@@ -91,8 +88,7 @@ pub struct OwnedResult
     pub feasible: Option<bool>,
 }
 
-impl OwnedResult
-{
+impl OwnedResult {
     pub fn new(
         sample: OwnedSample, // Rc<Vec<VarAssignment>>,
         obj_value: Bias,
@@ -118,8 +114,7 @@ impl OwnedResult
     }
 }
 
-impl Display for ResultView
-{
+impl Display for ResultView {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = SolutionWriter::new()
             .write_sample(Sample(Left(self.clone())))
@@ -128,8 +123,7 @@ impl Display for ResultView
     }
 }
 
-impl Display for OwnedResult
-{
+impl Display for OwnedResult {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = SolutionWriter::new()
             .write_sample(Sample(Right(self.sample.clone())))
