@@ -24,13 +24,13 @@ def model_samples():
         r2 = Variable("r2", vtype=Vtype.Real)
 
     model.objective = (
-            1 * b1 - 2 * b2 + 3 * s1 - 4 * s2 + 5 * i1 - 6 * i2 + 7 * r1 - 8 * r2
+        1 * b1 - 2 * b2 + 3 * s1 - 4 * s2 + 5 * i1 - 6 * i2 + 7 * r1 - 8 * r2
     )
 
     samples = [
         {b1: 0, b2: 1, s1: -1, s2: 1, i1: 3, i2: 42, r1: 0, r2: 12.34},
         {b1: 0, b2: 0, s1: -1, s2: -1, i1: 4, i2: 38, r1: 0.34, r2: 11.7923},
-        {b1: 1, b2: 1, s1: -1, s2: 1, i1: 0, i2: 12, r1: 0.001, r2: 23.4}
+        {b1: 1, b2: 1, s1: -1, s2: 1, i1: 0, i2: 12, r1: 0.001, r2: 23.4},
     ]
 
     return model, samples
@@ -45,7 +45,7 @@ def test_v0_v1_equality_empty_sol():
 
 
 def test_v0_v1_equality_sol_no_eval(
-        model_samples: tuple[Model, list[dict[Variable, int | float]]],
+    model_samples: tuple[Model, list[dict[Variable, int | float]]],
 ):
     model, samples = model_samples
     sol = Solution.from_dicts(samples, env=model.environment)
@@ -55,7 +55,7 @@ def test_v0_v1_equality_sol_no_eval(
 
 
 def test_v0_v1_equality_sol_eval(
-        model_samples: tuple[Model, list[dict[Variable, int | float]]],
+    model_samples: tuple[Model, list[dict[Variable, int | float]]],
 ):
     model, samples = model_samples
     sol = Solution.from_dicts(samples, model=model)
@@ -65,7 +65,7 @@ def test_v0_v1_equality_sol_eval(
 
 
 def test_v0_v1_equality_sol_sense_max(
-        model_samples: tuple[Model, list[dict[Variable, int | float]]],
+    model_samples: tuple[Model, list[dict[Variable, int | float]]],
 ):
     model, samples = model_samples
     model.set_sense(Sense.Max)
@@ -76,7 +76,7 @@ def test_v0_v1_equality_sol_sense_max(
 
 
 def test_v0_v1_equality_sol_eval_timing(
-        model_samples: tuple[Model, list[dict[Variable, int | float]]],
+    model_samples: tuple[Model, list[dict[Variable, int | float]]],
 ):
     model, samples = model_samples
     timer = Timer.start()
