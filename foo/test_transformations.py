@@ -1,6 +1,6 @@
 from aqmodels import Model
 from aqmodels._core import Sense, Variable
-from aqmodels.transformations import ChangeSensePass, PassManager
+from aqmodels.transformations import ChangeSensePass, PassManager, MaxBiasAnalysis
 
 # pm = PassManager()
 # print(pm)
@@ -10,7 +10,7 @@ aqm.set_sense(sense=Sense.Max)
 with aqm.environment:
     x = Variable("x")
     y = Variable("y")
-aqm.objective = x * y
+aqm.objective = x * 20 * y
 
 # class Trp(TransformationPass):
 #     def __new__(cls):
@@ -31,8 +31,12 @@ print(
     p.sense,
 )
 
-pm = PassManager([p])
+m = MaxBiasAnalysis()
+
+pm = PassManager([p, m])
+
+print(pm)
 model2, cache = pm.run(aqm)
 
-print(cache.max_bias())
+print(cache.max_bias().val)
 

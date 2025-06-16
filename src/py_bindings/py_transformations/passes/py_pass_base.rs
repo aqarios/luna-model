@@ -1,7 +1,7 @@
 
-use crate::transformations::base_passes::ConcretePass;
+use crate::transformations::base_passes::Pass;
 
 
 pub trait PyPass {
-    fn as_pass(self) -> ConcretePass;
+    fn as_pass(self) -> Pass;
 }

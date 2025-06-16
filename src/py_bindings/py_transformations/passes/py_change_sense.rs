@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use crate::{
     core::Sense,
     transformations::{
-        base_passes::{BasePass, ConcretePass},
+        base_passes::{BasePass, Pass},
         passes::change_sense::ChangeSensePass,
     },
 };
@@ -41,7 +41,7 @@ impl PyChangeSensePass {
 }
 
 impl PyPass for PyChangeSensePass {
-    fn as_pass(self) -> ConcretePass {
-        ConcretePass::Transformation(Box::new(self.0))
+    fn as_pass(self) -> Pass {
+        Pass::Transformation(Box::new(self.0))
     }
 }

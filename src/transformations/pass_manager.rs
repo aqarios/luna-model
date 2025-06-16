@@ -2,11 +2,7 @@ use std::fmt;
 
 use hashbrown::HashSet;
 
-use crate::core::{
-    expression::{BiasConstraints, IndexConstraints},
-    solution::AssignmentBaseTypes,
-    ConcreteAssignmentTypes, ConcreteBias, ConcreteIndex, Model, Solution, Timer,
-};
+use crate::core::{Model, Solution, Timer};
 
 use super::{
     analysis_cache::AnalysisCache,
@@ -16,22 +12,12 @@ use super::{
 };
 
 #[derive(Debug)]
-pub struct PassManager<
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-> {
-    pub passes: Vec<Pass<Index, Bias, AssignmentTypes>>,
+pub struct PassManager {
+    pub passes: Vec<Pass>,
 }
 
-pub type ConcretePassManager = PassManager<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>;
-
-impl<Index: IndexConstraints, Bias: BiasConstraints, AssignmentTypes: AssignmentBaseTypes>
-    PassManager<Index, Bias, AssignmentTypes>
-{
-    pub fn new(
-        passes: Option<Vec<Pass<Index, Bias, AssignmentTypes>>>,
-    ) -> PassManager<Index, Bias, AssignmentTypes> {
+impl PassManager {
+    pub fn new(passes: Option<Vec<Pass>>) -> PassManager {
         if let Some(x) = passes {
             PassManager { passes: x }
         } else {
@@ -39,7 +25,7 @@ impl<Index: IndexConstraints, Bias: BiasConstraints, AssignmentTypes: Assignment
         }
     }
 
-    pub fn add_pass(&mut self, pass: Pass<Index, Bias, AssignmentTypes>) {
+    pub fn add_pass(&mut self, pass: Pass) {
         self.passes.push(pass);
     }
 
@@ -64,10 +50,7 @@ impl<Index: IndexConstraints, Bias: BiasConstraints, AssignmentTypes: Assignment
         Ok(())
     }
 
-    pub fn run(
-        &self,
-        mut model: Model<Index, Bias>,
-    ) -> Result<IntermediateRepresentation<Index, Bias>, CompilationError> {
+    pub fn run(&self, mut model: Model) -> Result<IntermediateRepresentation, CompilationError> {
         self.check_dependencies()?;
 
         let mut cache = AnalysisCache::new();
@@ -99,11 +82,7 @@ impl<Index: IndexConstraints, Bias: BiasConstraints, AssignmentTypes: Assignment
         Ok(ir)
     }
 
-    pub fn backwards(
-        &self,
-        mut solution: Solution<Bias, AssignmentTypes>,
-        ir: &IntermediateRepresentation<Index, Bias>,
-    ) -> Solution<Bias, AssignmentTypes> {
+    pub fn backwards(&self, mut solution: Solution, ir: &IntermediateRepresentation) -> Solution {
         for (general_pass, (_, _, kind)) in self.passes.iter().zip(ir.execution_log.iter()).rev() {
             match (general_pass, kind) {
                 (Pass::Transformation(pass), Some(TransformationType::DidTransform)) => {
@@ -116,9 +95,7 @@ impl<Index: IndexConstraints, Bias: BiasConstraints, AssignmentTypes: Assignment
     }
 }
 
-impl<Index: IndexConstraints, Bias: BiasConstraints, AssignmentTypes: AssignmentBaseTypes>
-    fmt::Display for PassManager<Index, Bias, AssignmentTypes>
-{
+impl fmt::Display for PassManager {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "PassManager\n")?;
         for pass in self.passes.iter() {

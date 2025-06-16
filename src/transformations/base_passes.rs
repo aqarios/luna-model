@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use crate::core::{
-    expression::{BiasConstraints, IndexConstraints}, solution::AssignmentBaseTypes, ConcreteAssignmentTypes, ConcreteBias, ConcreteIndex, Model, Solution
+    Model, Solution,
 };
 
 use super::{
@@ -16,48 +16,43 @@ pub enum TransformationType {
     NoTranform,
 }
 
-pub type TransformationPassResult<Index, Bias> =
-    Result<(Model<Index, Bias>, TransformationType), TransformationPassError>;
+pub type TransformationPassResult = Result<(Model, TransformationType), TransformationPassError>;
 
-pub trait BasePass : Debug {
+pub trait BasePass: Debug {
     fn name(&self) -> &str;
     fn requires(&self) -> &[&str];
     // TODO fn requires_spec(&self) -> ModelSpecs
 }
 
-pub trait AnalysisPass<Index: IndexConstraints, Bias: BiasConstraints>: BasePass {
-    fn run(&self, model: &Model<Index, Bias>, cache: &mut AnalysisCache) -> AnalysisPassResult;
+pub trait AnalysisPass: BasePass {
+    fn run(&self, model: &Model, cache: &mut AnalysisCache) -> AnalysisPassResult;
 }
 
-pub trait TransformationPass<
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
->: BasePass
+pub trait TransformationPass: BasePass
 {
     fn invalidates(&self) -> &[&str];
     fn run(
         &self,
-        model: Model<Index, Bias>,
+        model: Model,
         cache: &AnalysisCache,
-    ) -> TransformationPassResult<Index, Bias>;
+    ) -> TransformationPassResult;
 
     fn backwards(
         &self,
-        solution: Solution<Bias, AssignmentTypes>,
+        solution: Solution,
         cache: &AnalysisCache,
-    ) -> Solution<Bias, AssignmentTypes>;
+    ) -> Solution;
 }
 
 #[derive(Debug)]
-pub enum Pass<Index: IndexConstraints, Bias: BiasConstraints, AssignmentTypes: AssignmentBaseTypes>
+pub enum Pass
 {
-    Transformation(Box<dyn TransformationPass<Index, Bias, AssignmentTypes>>),
-    Analysis(Box<dyn AnalysisPass<Index, Bias>>),
+    Transformation(Box<dyn TransformationPass>),
+    Analysis(Box<dyn AnalysisPass>),
 }
 
-impl<Index: IndexConstraints, Bias: BiasConstraints, AssignmentTypes: AssignmentBaseTypes>
-    Pass<Index, Bias, AssignmentTypes>
+impl
+    Pass
 {
     pub fn name(&self) -> &str {
         match self {
@@ -73,5 +68,3 @@ impl<Index: IndexConstraints, Bias: BiasConstraints, AssignmentTypes: Assignment
         }
     }
 }
-
-pub type ConcretePass = Pass<ConcreteIndex, ConcreteBias, ConcreteAssignmentTypes>;

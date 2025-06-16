@@ -3,10 +3,7 @@ use num::{abs, NumCast};
 use pyo3::prelude::*;
 
 use crate::{
-    core::{
-        expression::{BiasConstraints, IndexConstraints},
-        Model, Sense,
-    },
+    core::{Model, Sense},
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisResult},
         base_passes::{AnalysisPass, AnalysisPassResult, BasePass},
@@ -15,7 +12,6 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct MaxBiasAnalysis {
-    pub sense: Sense,
 }
 
 impl BasePass for MaxBiasAnalysis {
@@ -39,9 +35,9 @@ pub struct MaxBias {
 
 impl AnalysisResult for MaxBias {}
 
-impl<Index: IndexConstraints, Bias: BiasConstraints> AnalysisPass<Index, Bias> for MaxBiasAnalysis {
-    fn run(&self, model: &Model<Index, Bias>, cache: &mut AnalysisCache) -> AnalysisPassResult {
-        let obj = model.objective.borrow();
+impl AnalysisPass for MaxBiasAnalysis {
+    fn run(&self, model: &Model, cache: &mut AnalysisCache) -> AnalysisPassResult {
+        let obj = &model.objective;
         let mut max_val = 0.0;
 
         let max_linear = obj

@@ -45,7 +45,7 @@ transformers
     to a linear model.
 """
 
-from . import utils, transformations
+from . import utils
 
 from ._core import (
     Bounds,
