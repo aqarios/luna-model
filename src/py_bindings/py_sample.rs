@@ -4,6 +4,7 @@ use derive_more::{Deref, DerefMut};
 use either::Either;
 use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
 
 use super::py_var::PyVariable;
@@ -216,6 +217,19 @@ impl PySample {
                 ))),
                 Some(v) => Ok(PyVarAssignment(v)),
             }
+        } else if let Ok(var_name) = item.extract::<String>(py) {
+            if let Some(var_idx) = self.0.index_for_variable_name(&var_name) {
+                match self.get_assignment(var_idx as usize) {
+                    None => Err(PyIndexError::new_err(format!(
+                        "Index {var_idx} out of bounds"
+                    ))),
+                    Some(v) => Ok(PyVarAssignment(v)),
+                }
+            } else {
+                Err(PyValueError::new_err(format!(
+                    "unknown variable name: '{var_name}'"
+                )))
+            }
         } else if let Ok(var_idx) = item.extract::<isize>(py) {
             if var_idx < 0 {
                 return Err(PyValueError::new_err(format!(
@@ -252,6 +266,21 @@ impl PySample {
     /// SampleIterator
     fn __iter__(slf: PyRef<'_, Self>) -> PySampleIterator {
         PySampleIterator(slf.0.iter())
+    }
+
+    /// Convert the sample to a dictionary.
+
+    /// Returns
+    /// -------
+    /// dict
+    ///     A dictionary representation of the sample, where the keys are the
+    ///     variable names and the values are the variables' assignments.
+    fn to_dict<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyDict> {
+        let py_dict = PyDict::new(py);
+        for (k, v) in self.0.to_map() {
+            py_dict.set_item(k, PyVarAssignment(v)).unwrap()
+        }
+        py_dict
     }
 }
 
