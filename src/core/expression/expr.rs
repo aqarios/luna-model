@@ -688,9 +688,10 @@ impl ExpressionBaseMulDirect<VarIndex, Bias> for Expression {
 
 impl Expression {
     fn check_and_get(&self, v: VarIndex) -> Result<usize, VariableOutOfRangeErr> {
-        match <VarIndex as Into<usize>>::into(v) <= self.active.len() {
-            true => Ok(v.into()),
-            false => Err(VariableOutOfRangeErr(v.into())),
+        let v_idx: usize = v.into();
+        match v_idx <= self.active.len() {
+            true => Ok(v_idx),
+            false => Err(VariableOutOfRangeErr(v_idx)),
         }
     }
 
