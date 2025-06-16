@@ -45,30 +45,28 @@ transformers
     to a linear model.
 """
 
-from . import translator
-from . import errors
-
+from . import errors, transformations, translator
 from ._core import (
-    Vtype,
     Bounds,
-    Variable,
-    Timing,
-    Timer,
-    Solution,
-    SamplesIterator,
-    SampleIterator,
-    Samples,
-    Sample,
-    ResultIterator,
-    Result,
-    ResultView,
-    Sense,
-    Model,
-    Expression,
-    Environment,
     Comparator,
     Constraint,
     Constraints,
+    Environment,
+    Expression,
+    Model,
+    Result,
+    ResultIterator,
+    ResultView,
+    Sample,
+    SampleIterator,
+    Samples,
+    SamplesIterator,
+    Sense,
+    Solution,
+    Timer,
+    Timing,
+    Variable,
+    Vtype,
 )
 
 __all__ = [
@@ -93,5 +91,6 @@ __all__ = [
     "Constraint",
     "Constraints",
     "translator",
+    "transformations",
     "errors",
 ]

@@ -4,7 +4,7 @@ use crate::core::{Comparator, Sense, Vtype};
 
 use super::{
     py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_model_metadata,
-    py_res, py_sample, py_sol, py_timing, py_translator, py_var,
+    py_res, py_sample, py_sol, py_timing, py_transformations, py_translator, py_var,
 };
 
 // #[pymodule]
@@ -143,5 +143,17 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         .import("sys")?
         .getattr("modules")?
         .set_item("aqmodels.exceptions", m)?;
+    Ok(())
+}
+
+pub fn register_transformations(pm: &Bound<'_, PyModule>) -> PyResult<()> {
+    let m = PyModule::new(pm.py(), "transformations")?;
+    m.add_class::<py_transformations::PyPassManager>()?;
+    m.add_class::<py_transformations::PyChangeSensePass>()?;
+    pm.add_submodule(&m)?;
+    pm.py()
+        .import("sys")?
+        .getattr("modules")?
+        .set_item("aqmodels.transformations", m)?;
     Ok(())
 }

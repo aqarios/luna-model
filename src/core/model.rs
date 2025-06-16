@@ -48,6 +48,7 @@ impl Sense {
 
 /// A model describing some function to be optimized (objective) and restrictions
 /// on this objective (constraints).
+#[derive(Clone)]
 pub struct Model<Index, Bias>
 where
     Index: IndexConstraints,

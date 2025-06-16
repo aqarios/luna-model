@@ -12,6 +12,7 @@ mod py_sol;
 mod py_timing;
 mod py_translator;
 mod py_var;
+mod py_transformations;
 
 use pyo3::prelude::*;
 
@@ -66,6 +67,7 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     py_modules::register_core(m)?;
     py_modules::register_translator(m)?;
+    py_modules::register_transformations(m)?;
     py_modules::register_errors(m)?;
     Ok(())
 }
