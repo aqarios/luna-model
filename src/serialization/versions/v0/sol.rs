@@ -3,9 +3,7 @@ use std::rc::Rc;
 use crate::core::Solution;
 use crate::serialization::{Decodable, Encodable};
 use crate::{
-    core::{
-        solution::sol::SampleCol, RcSolution, VarAssignment, Vtype,
-    },
+    core::{solution::sol::SampleCol, RcSolution, VarAssignment, Vtype},
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
         utils::force_i8,

@@ -296,6 +296,25 @@ impl Solution {
 
         Ok(weighted_sum / weight_sum)
     }
+
+    pub fn feasibility_ratio(&self) -> Result<Bias, ComputationErr> {
+        let mut n_feasible = 0;
+        let mut n_total = 0;
+
+        for (idx, (&feas, &c)) in self.feasible.iter().zip(&self.counts).enumerate() {
+            if feas.is_none() {
+                return Err(ComputationErr(format!(
+                    "feasible contains a 'None' value at position '{idx}'."
+                )));
+            }
+            if feas.unwrap() {
+                n_feasible += c;
+            }
+            n_total += c;
+        }
+
+        Ok(n_feasible as f64 / n_total as f64)
+    }
 }
 
 #[derive(Debug, Deref, DerefMut)]

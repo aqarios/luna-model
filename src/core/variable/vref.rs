@@ -130,5 +130,4 @@ impl ContentEquality for VarRef {
     fn is_equal_contents(&self, other: &Self) -> bool {
         self.id == other.id && self.env.is_equal_contents(&other.env)
     }
-
 }

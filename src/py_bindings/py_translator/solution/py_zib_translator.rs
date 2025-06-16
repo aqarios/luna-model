@@ -70,7 +70,7 @@ impl PyZibTranslator {
         Ok(PySolution(ZibTranslator::from_zib(
             sample,
             timing.map(|t| t.into()),
-            environment.0.clone()
+            environment.0.clone(),
         )?))
     }
 

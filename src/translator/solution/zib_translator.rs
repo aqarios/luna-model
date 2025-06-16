@@ -11,9 +11,8 @@ impl ZibTranslator {
     pub fn from_zib(
         sample: HashMap<String, f64>,
         timing: Option<Timing>,
-        env: SharedEnvironment
-    ) -> Result<RcSolution, SolutionCreationErr>
-    {
+        env: SharedEnvironment,
+    ) -> Result<RcSolution, SolutionCreationErr> {
         let mut sol = Solution::default();
         for v in env.borrow().variables.iter() {
             match v.vtype {

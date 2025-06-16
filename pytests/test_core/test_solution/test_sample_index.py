@@ -85,7 +85,3 @@ def test_index_sample_on_sol(model: tuple[Model, tuple[Variable, ...]]):
         assert sol[i].sample[f"x_{0}"] == samples[i][x]
         assert sol[i].sample[f"x_{1}"] == samples[i][y]
         assert sol[i].sample[f"x_{2}"] == samples[i][z]
-
-
-
-

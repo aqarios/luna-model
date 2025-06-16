@@ -1,5 +1,3 @@
-use num::traits::Pow;
-use std::ops::AddAssign;
 use crate::core::expression::One;
 use crate::{
     core::{
@@ -11,6 +9,8 @@ use crate::{
     errors::TranslationErr,
     types::Bias,
 };
+use num::traits::Pow;
+use std::ops::AddAssign;
 
 // ExprTree AST
 #[derive(Debug, Clone)]
@@ -452,8 +452,7 @@ impl ExprTree {
         };
         Ok(ExprTreeTuple::new(lintree, quadtree, hotree, constant))
     }
-    pub fn optimize(&self) -> Self
-    {
+    pub fn optimize(&self) -> Self {
         use ExprTree::*;
 
         match self {
@@ -523,10 +522,7 @@ impl ExprTree {
         }
     }
 
-    pub fn evaluate<F>(
-        self: &Self,
-        ctx: &EvalContext<F>,
-    ) -> Result<Expression, TranslationErr>
+    pub fn evaluate<F>(self: &Self, ctx: &EvalContext<F>) -> Result<Expression, TranslationErr>
     where
         F: Fn(&str) -> VarRef,
     {
@@ -639,8 +635,7 @@ impl ToString for ExprTree {
     }
 }
 
-impl ExprTreeTuple
-{
+impl ExprTreeTuple {
     pub fn to_string(&self, is_obj: bool) -> String {
         let mut result = String::new();
         let quadstr = self.quad.as_ref().and_then(|q| Some(q.to_string()));

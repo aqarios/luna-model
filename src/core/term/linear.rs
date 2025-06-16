@@ -13,8 +13,7 @@ pub struct Linear {
     biases: Vec<Bias>,
 }
 
-impl Linear
-{
+impl Linear {
     pub fn default() -> Self {
         Self { biases: Vec::new() }
     }
@@ -72,8 +71,7 @@ impl Linear
     }
 }
 
-impl MulAssign<Bias> for Linear
-{
+impl MulAssign<Bias> for Linear {
     fn mul_assign(&mut self, rhs: Bias) {
         for b in self.biases.iter_mut() {
             *b *= rhs;
@@ -81,8 +79,7 @@ impl MulAssign<Bias> for Linear
     }
 }
 
-impl From<&Vec<Bias>> for Linear
-{
+impl From<&Vec<Bias>> for Linear {
     fn from(value: &Vec<Bias>) -> Self {
         Self {
             biases: value.to_vec(),
@@ -105,8 +102,7 @@ impl IndexMut<usize> for Linear {
     }
 }
 
-impl PartialEq for Linear
-{
+impl PartialEq for Linear {
     fn eq(&self, other: &Self) -> bool {
         if self.len() != other.len() {
             return false;
@@ -115,23 +111,20 @@ impl PartialEq for Linear
     }
 }
 
-impl Linear
-{
+impl Linear {
     fn negate(&self) -> Self {
         Linear::new(self.biases.iter().map(|b| -*b).collect())
     }
 }
 
-impl Neg for Linear
-{
+impl Neg for Linear {
     type Output = Linear;
     fn neg(self) -> Self::Output {
         self.negate()
     }
 }
 
-impl Neg for &Linear
-{
+impl Neg for &Linear {
     type Output = Linear;
     fn neg(self) -> Self::Output {
         self.negate()

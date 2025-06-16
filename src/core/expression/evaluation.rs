@@ -1,5 +1,5 @@
-use crate::core::expression::One;
 use super::{Expression, ExpressionEvaluation};
+use crate::core::expression::One;
 use crate::{
     core::ValueByIndex,
     types::{Bias, VarIndex},

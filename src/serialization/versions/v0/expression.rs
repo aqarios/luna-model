@@ -11,7 +11,7 @@ use crate::{
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
         utils::force_u32,
-    }
+    },
 };
 use prost::Message;
 

@@ -1,14 +1,15 @@
 use crate::core::expression::One;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::{PrintLayout, Solution, VarAssignment};
-use crate::types::{Bias, BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType};
+use crate::types::{
+    Bias, BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType,
+};
 use std::cmp::Ordering;
 use std::time::Duration;
 
 const SPACE_BETWEEN_COLS: usize = 1;
 
-impl Solution
-{
+impl Solution {
     pub fn print(
         &self,
         max_line_length: usize,

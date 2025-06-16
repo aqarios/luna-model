@@ -164,6 +164,7 @@ def test_model_add_constraint_le_named():
     assert model.num_constraints == 1
     assert model.constraints[0].name == "constraint"
 
+
 @pytest.mark.constraint
 def test_model_add_constraint_le_named_duplicate():
     with Environment():
@@ -187,6 +188,7 @@ def test_model_add_constraint_eq_named():
     assert model.num_constraints == 1
     assert model.constraints[0].name == "constraint"
 
+
 @pytest.mark.constraint
 def test_model_add_constraint_eq_named_duplicate():
     with Environment():
@@ -209,6 +211,7 @@ def test_model_add_constraint_ge_named():
     model.constraints += x + y >= 1, "constraint"
     assert model.num_constraints == 1
     assert model.constraints[0].name == "constraint"
+
 
 @pytest.mark.constraint
 def test_model_add_constraint_ge_named_duplicate():

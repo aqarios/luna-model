@@ -467,7 +467,7 @@ impl PySolution {
 
         if counts.is_some() && counts.as_ref().unwrap().len() != data.len() {
             return Err(PyValueError::new_err(format!(
-                "the number of samples and the counts do not match: num samples is '{}', num counts is '{}'", 
+                "the number of samples and the counts do not match: num samples is '{}', num counts is '{}'",
                 data.len(), counts.unwrap().len()))
             );
         }
@@ -708,9 +708,34 @@ impl PySolution {
         self.variable_names.clone()
     }
 
-    /// Compute the expectation value.
+    /// Compute the expectation value of the solution.
+    ///
+    /// Returns
+    /// -------
+    /// float
+    ///     The expectation value.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
     fn expectation_value(&self) -> PyResult<f64> {
         Ok(self.0.expectation_value()?)
+    }
+
+    /// Compute the expectation value of the solution.
+    ///
+    /// Returns
+    /// -------
+    /// float
+    ///     The feasibility ratio.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    fn feasibility_ratio(&self) -> PyResult<f64> {
+        Ok(self.0.feasibility_ratio()?)
     }
 
     /// Get the best result.

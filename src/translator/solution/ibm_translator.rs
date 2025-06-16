@@ -7,7 +7,8 @@ use num::NumCast;
 
 use crate::{
     core::{
-        environment::SharedEnvironment, solution::sol::SampleCol, RcSolution, Solution, Timing, VarRef, Vtype
+        environment::SharedEnvironment, solution::sol::SampleCol, RcSolution, Solution, Timing,
+        VarRef, Vtype,
     },
     errors::SolutionCreationErr,
 };
@@ -21,7 +22,7 @@ impl IbmTranslator {
         energies: &Vec<E>,
         counts: Vec<usize>,
         timing: Option<Timing>,
-        env: SharedEnvironment
+        env: SharedEnvironment,
     ) -> Result<RcSolution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default + Display + Debug,
