@@ -11,7 +11,7 @@ use crate::{
             AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
             SubAssignToExpression, SubToExpression,
         },
-        Comparator, Expression, ExpressionBase, VarRef,
+        Comparator, ContentEquality, Expression, ExpressionBase, VarRef,
     },
     types::{Bias, VarIndex},
 };
@@ -246,7 +246,7 @@ impl PyExpressionIterator {
             },
             env: match &expr.0 {
                 Left(expr) => expr.env.clone(),
-                Right(p) => p.borrow().environment.clone()
+                Right(p) => p.borrow().environment.clone(),
             },
             current_idx: 0,
         }
@@ -407,10 +407,7 @@ impl PyExpression {
         };
         Ok(PyBytes::new(
             py,
-            &base
-                .encode()
-                .maybe_compress(compress, level)?
-                .versionize(),
+            &base.encode().maybe_compress(compress, level)?.versionize(),
         )
         .into())
     }
@@ -834,7 +831,7 @@ impl PyExpression {
             (Left(l), Left(r)) => l == r,
             (Left(l), Right(r)) => *l == r.borrow().objective,
             (Right(l), Left(r)) => l.borrow().objective == *r,
-            (Right(l), Right(r)) => l.borrow().objective == r.borrow().objective
+            (Right(l), Right(r)) => l.borrow().objective == r.borrow().objective,
         }
     }
 
@@ -964,6 +961,18 @@ impl PyExpression {
     ///     The iterator over the expression's components.
     fn items(&self) -> PyExpressionIterator {
         PyExpressionIterator::new(&self)
+    }
+
+    fn equal_contents(&self, other: &Self) -> bool {
+        match (&self.0, &other.0) {
+            (Left(lhs), Left(rhs)) => lhs.is_equal_contents(&rhs),
+            (Left(lhs), Right(rhs)) => lhs.is_equal_contents(&rhs.borrow().objective),
+            (Right(lhs), Left(rhs)) => lhs.borrow().objective.is_equal_contents(&rhs),
+            (Right(lhs), Right(rhs)) => lhs
+                .borrow()
+                .objective
+                .is_equal_contents(&rhs.borrow().objective),
+        }
     }
 }
 

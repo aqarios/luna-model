@@ -7,6 +7,7 @@ use super::VariableOutOfRangeErr;
 use crate::core::environment::SharedEnvironment;
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
+use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
 use crate::core::Vtype;
 use crate::types::{Bias, VarIndex};
@@ -839,5 +840,17 @@ impl Display for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = ModelWriter::new().write_expression(&self).to_string();
         f.write_str(&s)
+    }
+}
+
+impl ContentEquality for Expression {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.env.is_equal_contents(&other.env)
+            && self.offset == other.offset
+            && self.linear == other.linear
+            && self.quadratic == other.quadratic
+            && self.higher_order == other.higher_order
+            && self.active == other.active
+            && self.num_variables == other.num_variables
     }
 }

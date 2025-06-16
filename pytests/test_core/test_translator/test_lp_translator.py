@@ -43,8 +43,8 @@ def test_lp_file_str_path():
         aqmodel_from_path = LpTranslator.to_aq(Path(tmp_lp.file.name))
         aqmodel_from_path_as_str = LpTranslator.to_aq(str(tmp_lp.file.name))
 
-        assert aqmodel_from_contents == aqmodel_from_path
-        assert aqmodel_from_path == aqmodel_from_path_as_str
+        assert aqmodel_from_contents.equal_contents(aqmodel_from_path)
+        assert aqmodel_from_path.equal_contents(aqmodel_from_path_as_str)
 
 
 ##################################### Dimod ###########################################

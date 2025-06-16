@@ -1,4 +1,4 @@
-use crate::{errors::VariableCreationErr, types::EnvId};
+use crate::{core::ContentEquality, errors::VariableCreationErr, types::EnvId};
 use std::fmt::{Debug, Display, Formatter};
 
 use super::{bounds::display_bound, Bounds, LazyBounds, Vtype};
@@ -10,6 +10,17 @@ pub struct Variable {
     pub vtype: Vtype,
     pub bounds: Bounds,
     pub env_id: EnvId,
+}
+
+impl Variable {
+    pub fn deep_clone(&self, id: EnvId) -> Self {
+        Self {
+            name: self.name.clone(),
+            vtype: self.vtype,
+            bounds: self.bounds.clone(),
+            env_id: id,
+        }
+    }
 }
 
 impl Variable {
@@ -29,11 +40,11 @@ impl Variable {
     /// id.
     pub fn new(
         name: String,
-        vtype: Option<&Vtype>,
+        vtype: Option<Vtype>,
         bounds: Option<LazyBounds>,
         env_id: EnvId,
     ) -> Result<Self, VariableCreationErr> {
-        let vtype = vtype.map_or(Vtype::default(), |t| *t);
+        let vtype = vtype.map_or(Vtype::default(), |t| t);
         match (vtype, bounds.is_some()) {
             (Vtype::Binary, true) | (Vtype::Spin, true) => {
                 Err(VariableCreationErr::InvalidBounds(vtype))
@@ -78,5 +89,11 @@ impl Variable {
 impl Display for Variable {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}: {}{}", self.name, self.vtype, self.format_bounds())
+    }
+}
+
+impl ContentEquality for Variable {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.name == other.name && self.vtype == other.vtype && self.bounds == other.bounds
     }
 }

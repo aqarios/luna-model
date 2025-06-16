@@ -201,8 +201,8 @@ fn main() {
 
     // Add variables to the environment
     let mut env = model.environment.borrow_mut();
-    let x = env.add_variable("x".to_string(), Some(&Vtype::Real), None);
-    let y = env.add_variable("y".to_string(), Some(&Vtype::Real), None);
+    let x = env.add_variable("x".to_string(), Some(Vtype::Real), None);
+    let y = env.add_variable("y".to_string(), Some(Vtype::Real), None);
     drop(env); // Release the mutable borrow
 
     // Directly build the objective using variable operations

@@ -2,7 +2,6 @@ use std::ops::Index;
 
 use aqmodels::{
     core::{
-        environment::add_variable,
         expression::ExpressionEvaluation,
         operations::{
             AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
@@ -66,7 +65,7 @@ fn evaluate_quadratic_expression(vtype: Vtype, n: usize) {
     let biases = random_biases::<Bias>(n, seed);
     let mut expr = create_linear_expression(env.clone(), &biases, vtype);
 
-    let multiplier = add_variable(env.clone(), &"m".to_string(), Some(&vtype), None).unwrap();
+    let multiplier = env.add_variable("m", Some(vtype), None).unwrap();
     let mscalar = random_bias::<Bias>(seed);
     expr.mul_assign(&multiplier.mul(mscalar)).unwrap();
 
@@ -87,8 +86,8 @@ fn evaluate_higher_order_expression(vtype: Vtype, n: usize) {
     let biases = random_biases::<Bias>(n, seed);
     let mut expr = create_linear_expression(env.clone(), &biases, vtype);
 
-    let ma = add_variable(env.clone(), &"ma".to_string(), Some(&vtype), None).unwrap();
-    let mb = add_variable(env.clone(), &"mb".to_string(), Some(&vtype), None).unwrap();
+    let ma = env.add_variable("ma", Some(vtype), None).unwrap();
+    let mb = env.add_variable("mb", Some(vtype), None).unwrap();
     let ma_scalar = random_bias::<Bias>(seed);
     let mb_scalar = random_bias::<Bias>(seed);
     expr.mul_assign(&ma.mul(ma_scalar)).unwrap();
@@ -121,10 +120,10 @@ fn evaluate_mixed_order_mixed_vtype_expression(n: usize) {
     let real_biases = random_biases::<Bias>(n, seed);
     let real_expr = create_linear_expression(env.clone(), &binary_biases, Vtype::Real);
 
-    let mb = add_variable(env.clone(), &"mb".to_string(), Some(&Vtype::Binary), None).unwrap();
-    let ms = add_variable(env.clone(), &"ms".to_string(), Some(&Vtype::Spin), None).unwrap();
-    let mi = add_variable(env.clone(), &"mi".to_string(), Some(&Vtype::Integer), None).unwrap();
-    let mr = add_variable(env.clone(), &"mr".to_string(), Some(&Vtype::Real), None).unwrap();
+    let mb = env.add_variable("mb", Some(Vtype::Binary), None).unwrap();
+    let ms = env.add_variable("ms", Some(Vtype::Spin), None).unwrap();
+    let mi = env.add_variable("mi", Some(Vtype::Integer), None).unwrap();
+    let mr = env.add_variable("mr", Some(Vtype::Real), None).unwrap();
 
     let mbsc = random_bias::<Bias>(seed);
     let mssc = random_bias::<Bias>(seed);

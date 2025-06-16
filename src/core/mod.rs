@@ -53,3 +53,4 @@ pub use variable::Variable;
 pub use variable::Vtype;
 
 pub use traits::ValueByIndex;
+pub use traits::ContentEquality;

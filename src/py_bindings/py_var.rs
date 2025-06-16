@@ -10,7 +10,7 @@ use crate::core::operations::{
     AddToExpression, MulAssignToExpression, MulToExpression, NegToExpression, RSubToExpression,
     SubAssignToExpression, SubToExpression,
 };
-use crate::core::{environment, Comparator, Constraint, Expression, VarRef, Vtype};
+use crate::core::{Comparator, Constraint, Expression, VarRef, Vtype};
 use derive_more::{Deref, DerefMut};
 use either::Either::{Left, Right};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
@@ -136,10 +136,9 @@ impl PyVariable {
             })?,
         };
 
-        Ok(PyVariable::new(environment::add_variable(
-            env.0.clone(),
+        Ok(PyVariable::new(env.0.add_variable(
             &name,
-            vtype.as_ref(),
+            vtype,
             bounds.map(|pb| pb.into()),
         )?))
     }

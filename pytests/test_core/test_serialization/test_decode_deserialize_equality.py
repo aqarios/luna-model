@@ -12,6 +12,6 @@ def test_decode_and_deserialize_equality(initial, serialized_object, class_type)
     assert isinstance(decoded, class_type)
     assert isinstance(deserialized, class_type)
     assert isinstance(decoded, type(deserialized))
-    assert decoded == deserialized
-    assert decoded == initial
-    assert deserialized == initial
+    assert decoded.equal_contents(deserialized)
+    assert decoded.equal_contents(initial)
+    assert deserialized.equal_contents(initial)
