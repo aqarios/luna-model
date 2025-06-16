@@ -6,14 +6,12 @@ use super::{
     keywords::VariableType,
     util::starts_with_any,
 };
-use crate::core::environment::get_vref_by_name;
 use crate::core::{Bound, LazyBounds, Sense, Vtype, DEFAULT_MODEL_NAME};
 use crate::types::Bias;
 use crate::{
     core::{
-        environment::add_variable, expression::ExpressionBaseCreation,
-        operations::AddAssignToExpression, Bounds, Comparator, Constraint, Expression, Model,
-        VarRef,
+        expression::ExpressionBaseCreation, operations::AddAssignToExpression, Bounds, Comparator,
+        Constraint, Expression, Model, VarRef,
     },
     errors::TranslationErr,
 };
@@ -400,26 +398,24 @@ impl SectionsHolder {
                     },
                     None => None,
                 };
-                let vref = add_variable(
-                    model.environment.clone(),
-                    var,
-                    Some(&(*vtype).into()),
-                    bounds.map(|b| b.into()),
-                )
-                .map_err(|e| TranslationErr::new(e.to_string()))?;
+                let vref = model
+                    .environment
+                    .add_variable(var, Some((*vtype).into()), bounds.map(|b| b.into()))
+                    .map_err(|e| TranslationErr::new(e.to_string()))?;
                 varlookup.insert(var.to_string(), vref);
             }
         }
         if let Some(ref mut bm) = boundsmap {
             if !bm.is_empty() {
                 for (var, (lower, upper)) in bm.iter() {
-                    let vref = add_variable(
-                        model.environment.clone(),
-                        var,
-                        Some(&Vtype::Real),
-                        Some(LazyBounds::new(Some(*lower), Some(*upper))),
-                    )
-                    .map_err(|e| TranslationErr::new(e.to_string()))?;
+                    let vref = model
+                        .environment
+                        .add_variable(
+                            var,
+                            Some(Vtype::Real),
+                            Some(LazyBounds::new(Some(*lower), Some(*upper))),
+                        )
+                        .map_err(|e| TranslationErr::new(e.to_string()))?;
                     varlookup.insert(var.to_string(), vref);
                 }
             }
@@ -509,12 +505,11 @@ impl SectionsHolder {
             |n| {
                 let mut var: Option<VarRef> = vars.get(n).cloned(); // .unwrap().clone()
                 if var.is_none() {
-                    let res = get_vref_by_name(&n.to_string(), expr.env.clone());
+                    let res = expr.env.get_vref_by_name(n);
                     var = if let Ok(v) = res {
                         Some(v)
                     } else {
-                        add_variable(expr.env.clone(), &n.to_string(), Some(&Vtype::Real), None)
-                            .ok()
+                        expr.env.add_variable(n, Some(Vtype::Real), None).ok()
                     };
                 }
                 var.unwrap()

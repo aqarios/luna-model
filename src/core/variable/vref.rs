@@ -1,4 +1,5 @@
 use crate::core::expression::One;
+use crate::core::traits::ContentEquality;
 use crate::{
     core::{
         environment::SharedEnvironment,
@@ -122,5 +123,11 @@ impl NegToExpression for &VarRef {
 
     fn neg(self) -> Self::Output {
         Expression::new_linear_single(self.env.clone(), self.id, -Bias::one())
+    }
+}
+
+impl ContentEquality for VarRef {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.id == other.id && self.env.is_equal_contents(&other.env)
     }
 }

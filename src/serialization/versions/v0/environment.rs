@@ -1,9 +1,6 @@
 use crate::{
-    core::{Bound, Environment, LazyBounds, VarId, Variable, Vtype},
-    serialization::{
-        encodable::{BytesDecodable, BytesEncodable},
-        utils::force_u8,
-    },
+    core::{environment::ENV_COUNTER, Bound, Environment, LazyBounds, VarId, Variable, Vtype},
+    serialization::encodable::BytesDecodable,
 };
 use prost::Message;
 
@@ -70,13 +67,6 @@ pub struct SerEnvironment {
     real_bounds_upper: Vec<f64>,
 }
 
-/// Makes the SerEnvironment conform with the requirements for it to be an Encodable.
-impl BytesEncodable for SerEnvironment {
-    fn encode_to_bytes(&self) -> Vec<u8> {
-        self.encode_to_vec()
-    }
-}
-
 /// Makes the SerEnvironment conform with the requirements for it to be a Decodable.
 impl BytesDecodable<Environment> for SerEnvironment {
     fn decode_from_bytes(
@@ -90,7 +80,8 @@ impl BytesDecodable<Environment> for SerEnvironment {
 impl SerEnvironment {
     /// Extracts the data from self to and instance of Environment with Index VarId.
     pub fn extract(&self) -> Environment {
-        let mut env = Environment::new_for(force_u8(self.id));
+        // Serialization UPDATE
+        let mut env = Environment::new_for(ENV_COUNTER.inc());
         env.varcount = VarId(self.varcount);
         env.variables = Vec::with_capacity(self.varcount as usize);
         env.variables
@@ -99,14 +90,14 @@ impl SerEnvironment {
         for (i, v) in self.binary.iter().enumerate() {
             let name = self.binary_names[i].clone();
             env.variables[*v as usize] =
-                Variable::new(name.clone(), Some(&Vtype::Binary), None, env.id)
+                Variable::new(name.clone(), Some(Vtype::Binary), None, env.id)
                     .expect("binary variable creation failed during deserialization");
             env.variables_lookup.insert(name, VarId(*v));
         }
         for (i, v) in self.spin.iter().enumerate() {
             let name = self.spin_names[i].clone();
             env.variables[*v as usize] =
-                Variable::new(name.clone(), Some(&Vtype::Spin), None, env.id)
+                Variable::new(name.clone(), Some(Vtype::Spin), None, env.id)
                     .expect("spin variable creation failed during deserialization");
             env.variables_lookup.insert(name, VarId(*v));
         }
@@ -130,7 +121,7 @@ impl SerEnvironment {
             let name = self.integer_names[i].clone();
             env.variables[*v as usize] = Variable::new(
                 name.clone(),
-                Some(&Vtype::Integer),
+                Some(Vtype::Integer),
                 Some(LazyBounds::new(lower, upper)),
                 env.id,
             )
@@ -158,7 +149,7 @@ impl SerEnvironment {
             let name = self.real_names[i].clone();
             env.variables[*v as usize] = Variable::new(
                 name.clone(),
-                Some(&Vtype::Real),
+                Some(Vtype::Real),
                 Some(LazyBounds::new(lower, upper)),
                 env.id,
             )

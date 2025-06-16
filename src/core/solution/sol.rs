@@ -1,4 +1,5 @@
 use crate::core::solution::timing::Timing;
+use crate::core::traits::ContentEquality;
 use crate::core::writer::SolutionWriter;
 use crate::core::{ResultIterator, ResultView, Samples, Sense};
 use crate::errors::{
@@ -365,5 +366,21 @@ impl Display for RcSolution {
             .write_solution(RcSolution::clone(&self))
             .to_string();
         f.write_str(&s)
+    }
+}
+
+impl ContentEquality for Solution {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.samples == other.samples
+            && self.counts == other.counts
+            && self.obj_values == other.obj_values
+            && self.raw_energies == other.raw_energies
+            && self.constraints == other.constraints
+            && self.variable_bounds == other.variable_bounds
+            && self.feasible == other.feasible
+            && self.best_sample_idx == other.best_sample_idx
+            && self.timing == other.timing
+            && self.n_samples == other.n_samples
+            && self.variable_names == other.variable_names
     }
 }

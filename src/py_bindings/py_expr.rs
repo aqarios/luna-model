@@ -11,7 +11,7 @@ use crate::{
             AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
             SubAssignToExpression, SubToExpression,
         },
-        Comparator, Expression, ExpressionBase, VarRef,
+        Comparator, ContentEquality, Expression, ExpressionBase, VarRef,
     },
     types::{Bias, VarIndex},
 };
@@ -961,6 +961,18 @@ impl PyExpression {
     ///     The iterator over the expression's components.
     fn items(&self) -> PyExpressionIterator {
         PyExpressionIterator::new(&self)
+    }
+
+    fn equal_contents(&self, other: &Self) -> bool {
+        match (&self.0, &other.0) {
+            (Left(lhs), Left(rhs)) => lhs.is_equal_contents(&rhs),
+            (Left(lhs), Right(rhs)) => lhs.is_equal_contents(&rhs.borrow().objective),
+            (Right(lhs), Left(rhs)) => lhs.borrow().objective.is_equal_contents(&rhs),
+            (Right(lhs), Right(rhs)) => lhs
+                .borrow()
+                .objective
+                .is_equal_contents(&rhs.borrow().objective),
+        }
     }
 }
 

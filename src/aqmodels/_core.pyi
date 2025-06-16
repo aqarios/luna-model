@@ -90,8 +90,7 @@ class Bounds:
     """
 
     @overload
-    def __init__(self, /, *, lower: float | Unbounded) -> None: ...
-
+    def __init__(self, /, *, lower: float | type[Unbounded]) -> None: ...
     @overload
     def __init__(self, /, *, upper: float | type[Unbounded]) -> None: ...
 
@@ -181,7 +180,8 @@ class Variable:
 
     @overload
     def __init__(self, /, name: str, *, env: Environment) -> None: ...
-
+    @overload
+    def __init__(self, /, name: str, *, env: Environment, vtype: Vtype) -> None: ...
     @overload
     def __init__(self, /, name: str, *, vtype: Vtype) -> None: ...
 
@@ -1661,13 +1661,15 @@ class Sample:
     @overload
     def __getitem__(self, item: Variable, /) -> int | float: ...
 
-    def __getitem__(self, item: int | Variable, /) -> int | float:
+@overload
+    def __getitem__(self, item: str, /) -> int | float: ...
+    def __getitem__(self, item: int | Variable | str, /) -> int | float:
         """
         Extract a variable assignment from the ``Sample`` object.
 
         Returns
         -------
-        Sample or int or float
+        int or float
 
         Raises
         ------
@@ -1698,6 +1700,15 @@ class Sample:
         """
         ...
 
+    def to_dict(self, /) -> dict[str, int | float]:
+        """Convert the sample to a dictionary.
+
+        Returns
+        -------
+        dict
+            A dictionary representation of the sample, where the keys are the
+            variable names and the values are the variables' assignments.
+        """
 
 # _result.pyi
 class ResultIterator:

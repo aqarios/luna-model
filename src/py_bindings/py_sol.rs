@@ -199,7 +199,7 @@ impl PySolution {
         raw_energies: Option<Vec<Option<f64>>>,
         timing: Option<PyTiming>,
         counts: Option<Vec<PyUsize>>,
-        sense: Option<Sense>
+        sense: Option<Sense>,
     ) -> PyResult<Self> {
         let var_names: Vec<Option<String>> = if let Some(vn) = variable_names {
             if vn.len() != component_types.len() {
@@ -776,7 +776,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-            .into())
+        .into())
     }
 
     /// Alias for `encode()`.

@@ -5,6 +5,7 @@ use crate::core::{
 use crate::types::VarIndex;
 use derive_more::{Deref, DerefMut};
 use either::{Either, Left, Right};
+use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
 use std::rc::Rc;
 
@@ -56,6 +57,29 @@ impl Sample {
 
     pub fn iter(&self) -> SampleIterator {
         SampleIterator::new(self.0.clone())
+    }
+
+    pub fn index_for_variable_name(&self, varname: &String) -> Option<usize> {
+        match &self.0 {
+            Left(rv) => rv.sol.variable_names.iter().position(|e| e == varname),
+            Right(os) => os.variable_names.iter().position(|e| e == varname),
+        }
+    }
+
+    pub fn to_map(&self) -> HashMap<String, VarAssignment> {
+        match &self.0 {
+            Left(rv) => rv
+                .iter()
+                .zip(rv.sol.variable_names.iter())
+                .map(|(v, s)| (s.clone(), v.clone()))
+                .collect(),
+            Right(os) => os
+                .actual
+                .iter()
+                .zip(os.variable_names.iter())
+                .map(|(v, s)| (s.clone(), v.clone()))
+                .collect(),
+        }
     }
 }
 

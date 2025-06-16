@@ -1,5 +1,6 @@
 use crate::core::expression::{Expression, ExpressionEvaluation};
 use crate::core::operations::SubToExpression;
+use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
 use crate::core::{ExpressionBase, SharedEnvironment, ValueByIndex};
 use crate::errors::{DuplicateConstraintNameErr, IllegalConstraintNameErr, IndexOutOfBoundsErr};
@@ -160,6 +161,15 @@ impl Display for Constraint {
     }
 }
 
+impl ContentEquality for Constraint {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.lhs.is_equal_contents(&other.lhs)
+            && self.rhs == other.rhs
+            && self.comparator == other.comparator
+            && self.name == other.name
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Constraints {
     pub used_names: Vec<String>,
@@ -274,5 +284,12 @@ impl Display for Constraints {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = ModelWriter::new().write_constraints(&self).to_string();
         f.write_str(&s)
+    }
+}
+
+impl ContentEquality for Constraints {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.used_names == other.used_names
+            && self.constraints.is_equal_contents(&other.constraints)
     }
 }

@@ -52,4 +52,5 @@ pub use variable::VarRef;
 pub use variable::Variable;
 pub use variable::Vtype;
 
+pub use traits::ContentEquality;
 pub use traits::ValueByIndex;
