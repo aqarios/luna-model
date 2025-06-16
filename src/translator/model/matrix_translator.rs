@@ -1,10 +1,10 @@
+use std::usize;
+
 use crate::core::Qubo;
 use crate::errors::{ModelSenseNotMinimizeErr, ModelVtypeErr, VariableCreationErr};
+use crate::types::{Bias, VarIndex};
 use crate::{
-    core::{
-        expression::{BiasConstraints, IndexConstraints},
-        ExpressionBase, Model, Vtype,
-    },
+    core::{ExpressionBase, Model, Vtype},
     errors::{MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr},
 };
 
@@ -14,20 +14,16 @@ pub struct MatrixTranslator {}
 
 impl MatrixTranslator {
     /// Translates a QUBO to an AQM.
-    pub fn model_from_dense<Index, Bias>(
+    pub fn model_from_dense(
         name: Option<String>,
         dense: &[Bias],
-        num_variables: Index,
+        num_variables: VarIndex,
         vtype: Option<Vtype>,
         offset: Option<Bias>,
         variable_names: Option<Vec<String>>,
-    ) -> Result<Model<Index, Bias>, MatrixTranslatorErr>
-    where
-        Index: IndexConstraints,
-        Bias: BiasConstraints,
-    {
+    ) -> Result<Model, MatrixTranslatorErr> {
         if let Some(names) = variable_names.as_ref() {
-            if names.len() != num_variables.into() {
+            if names.len() != <VarIndex as Into<usize>>::into(num_variables) {
                 return Err(VariableCreationErr::VarName(format!(
                     "Number of variable names must match the number of variables"
                 )))?;
@@ -49,19 +45,13 @@ impl MatrixTranslator {
     /// problem to be expressed in a QUBO. We can use the AQM to define our model and send
     /// the information between workers efficiently. The solving process can then use this function
     /// to express the optimization problem in the expected format.
-    pub fn model_to_dense<Index, Bias>(
-        model: &Model<Index, Bias>,
-    ) -> Result<Qubo<Index, Bias>, MatrixTranslatorErr>
-    where
-        Index: IndexConstraints,
-        Bias: BiasConstraints,
-    {
-        let obj = model.objective.borrow();
+    pub fn model_to_dense(model: &Model) -> Result<Qubo, MatrixTranslatorErr> {
+        let obj = &model.objective;
         if obj.has_higher_order() {
             return Err(ModelNotQuadraticErr)?;
         }
 
-        if !model.constraints.borrow().is_empty() {
+        if !model.constraints.is_empty() {
             return Err(ModelNotUnconstrainedErr)?;
         }
 
@@ -102,8 +92,10 @@ impl MatrixTranslator {
 
         if obj.has_quadratic() {
             for (u, v, bias) in obj.quadratic.as_ref().unwrap().iter_flat() {
-                dense[u.into() * nvars + v.into()] = bias * 0.5;
-                dense[v.into() * nvars + u.into()] = bias * 0.5;
+                dense[<VarIndex as Into<usize>>::into(u) * nvars
+                    + <VarIndex as Into<usize>>::into(v)] = bias * 0.5;
+                dense[<VarIndex as Into<usize>>::into(v) * nvars
+                    + <VarIndex as Into<usize>>::into(u)] = bias * 0.5;
             }
         }
 

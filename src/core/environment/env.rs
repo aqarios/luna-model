@@ -1,35 +1,62 @@
-use crate::core::expression::BiasConstraints;
-use crate::core::solution::AssignmentBaseTypes;
+use crate::core::expression::One;
+use crate::core::variable::{VarRef, Variable, Vtype};
 use crate::core::writer::LineLengthRestrictor;
-use crate::core::{
-    expression::IndexConstraints,
-    variable::{VarRef, Variable, Vtype},
-};
-use crate::core::{
-    ConcreteEnvId as EnvId, LazyBounds, MutRcEnvironment, ValueByIndex, VarAssignment,
-};
+use crate::core::{LazyBounds, ValueByIndex, VarAssignment};
 use crate::errors::{VariableCreationErr, VariableNotExistingErr};
+use crate::types::Bias;
+use crate::types::{EnvId, VarIndex};
+use derive_more::{Deref, DerefMut};
 use global_counter::primitive::exact::CounterU8;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
+use std::ops::Deref;
 use std::slice::Iter;
 use std::{cell::RefCell, ops::Index, rc::Rc};
 
 // already thread safe.
 static ENV_COUNTER: CounterU8 = CounterU8::new(0);
 
-#[derive(Debug, PartialEq)]
-pub struct Environment<Index> {
+#[derive(Debug, PartialEq, Clone)]
+pub struct Environment {
     pub id: EnvId,
     pub variables: Vec<Variable>,
-    pub variables_lookup: HashMap<String, Index>,
-    pub varcount: Index,
+    pub variables_lookup: HashMap<String, VarIndex>,
+    pub varcount: VarIndex,
 }
 
-impl<Index> Environment<Index>
-where
-    Index: IndexConstraints,
-{
+#[derive(Debug, PartialEq, Deref, DerefMut)]
+pub struct SharedEnvironment(Rc<RefCell<Environment>>);
+
+impl SharedEnvironment {
+    /// Deep clone a shared environment.
+    /// This creates a new SharedEnvironment with a deep copy of the contained
+    /// environment, not just an increase of the reference counted environment.
+    /// The deep cloned environment gets a new environment id that is guaranteed
+    /// to be different from all other possibly exisiting environments.
+    pub fn deep_clone(&self) -> Self {
+        let b = self.borrow();
+        let cloned = b.deref().deep_clone();
+        SharedEnvironment::new(cloned)
+    }
+}
+
+impl SharedEnvironment {
+    pub fn new(env: Environment) -> Self {
+        Self(Rc::new(RefCell::new(env)))
+    }
+
+    pub fn default() -> Self {
+        Self(Rc::new(RefCell::new(Environment::new())))
+    }
+}
+
+impl Clone for SharedEnvironment {
+    fn clone(&self) -> Self {
+        Self(Rc::clone(&self.0))
+    }
+}
+
+impl Environment {
     pub fn new() -> Self {
         Self::new_for(ENV_COUNTER.get())
     }
@@ -39,13 +66,27 @@ where
             id,
             variables: Vec::new(),
             variables_lookup: HashMap::new(),
-            varcount: Index::default(),
+            varcount: VarIndex::default(),
+        }
+    }
+
+    /// Deep clone an environment.
+    /// This creates a new Environment with a deep copy of the environment this method
+    /// is called on.
+    /// The deep cloned environment gets a new environment id that is guaranteed
+    /// to be different from all other possibly exisiting environments.
+    pub fn deep_clone(&self) -> Self {
+        Self {
+            id: ENV_COUNTER.get(),
+            variables: self.variables.clone(),
+            variables_lookup: self.variables_lookup.clone(),
+            varcount: self.varcount.clone(),
         }
     }
 
     /// Alias for self[id].vtype
     #[inline]
-    pub fn get_vtype(&self, id: Index) -> Vtype {
+    pub fn get_vtype(&self, id: VarIndex) -> Vtype {
         self[id].vtype
     }
 
@@ -53,18 +94,14 @@ where
         self.variables.iter()
     }
 
-    pub fn get(&self, name: &String) -> Result<Index, VariableNotExistingErr> {
+    pub fn get(&self, name: &String) -> Result<VarIndex, VariableNotExistingErr> {
         Ok(*(self
             .variables_lookup
             .get(name)
             .ok_or_else(|| VariableNotExistingErr)?))
     }
 
-    pub fn evaluate_bounds<
-        Bias: BiasConstraints,
-        AssignmentTypes: AssignmentBaseTypes,
-        Sample: ValueByIndex<Index, Output = VarAssignment<AssignmentTypes>>,
-    >(
+    pub fn evaluate_bounds<Sample: ValueByIndex<VarIndex, Output = VarAssignment>>(
         &self,
         sample: &Sample,
     ) -> Vec<bool> {
@@ -79,21 +116,16 @@ where
     }
 }
 
-impl<Idx> Index<Idx> for Environment<Idx>
-where
-    Idx: IndexConstraints,
-{
+impl Index<VarIndex> for Environment {
     type Output = Variable;
 
-    fn index(&self, index: Idx) -> &Self::Output {
-        &self.variables[index.into()]
+    fn index(&self, index: VarIndex) -> &Self::Output {
+        let idx: usize = index.into();
+        &self.variables[idx]
     }
 }
 
-impl<Index> Display for Environment<Index>
-where
-    Index: IndexConstraints,
-{
+impl Display for Environment {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let variables: Vec<_> = self.variables.iter().map(|x| x.name.clone()).collect();
         let mut writer = LineLengthRestrictor::new(0);
@@ -111,12 +143,12 @@ where
     }
 }
 
-pub fn add_variable<Index: IndexConstraints>(
-    env: Rc<RefCell<Environment<Index>>>,
+pub fn add_variable(
+    env: SharedEnvironment,
     name: &String,
     vtype: Option<&Vtype>,
     bounds: Option<LazyBounds>,
-) -> Result<VarRef<Index>, VariableCreationErr> {
+) -> Result<VarRef, VariableCreationErr> {
     let mut mutable_env = env.borrow_mut();
     if mutable_env.variables_lookup.contains_key(name) {
         return Err(VariableCreationErr::VariableExists(name.clone()));
@@ -126,7 +158,7 @@ pub fn add_variable<Index: IndexConstraints>(
     let id = mutable_env.varcount;
     mutable_env.variables.push(var);
     mutable_env.variables_lookup.insert(name.to_string(), id);
-    mutable_env.varcount += Index::one();
+    mutable_env.varcount += VarIndex::one();
     Ok(VarRef::new(id, env.clone()))
 }
 
@@ -147,21 +179,18 @@ fn ensure_name_valid(name: &String) -> Result<(), VariableCreationErr> {
     }
 }
 
-pub fn get_vref_by_name<Index: IndexConstraints>(
+pub fn get_vref_by_name(
     name: &String,
-    env: MutRcEnvironment<Index>,
-) -> Result<VarRef<Index>, VariableNotExistingErr> {
+    env: SharedEnvironment,
+) -> Result<VarRef, VariableNotExistingErr> {
     let index = env.borrow().get(name)?;
     // As we don't store the VarRefs here, we need to create a new one based on the info
     // we have.
-    Ok(VarRef::new(index, Rc::clone(&env)))
+    Ok(VarRef::new(index, env.clone()))
 }
 
-pub fn get_vrefs_in_order<Index>(env: MutRcEnvironment<Index>) -> Vec<VarRef<Index>>
-where
-    Index: IndexConstraints,
-{
+pub fn get_vrefs_in_order(env: SharedEnvironment) -> Vec<VarRef> {
     (0..env.borrow().variables.len())
-        .map(|idx| VarRef::new(idx.into(), Rc::clone(&env)))
+        .map(|idx| VarRef::new(idx.into(), env.clone()))
         .collect()
 }

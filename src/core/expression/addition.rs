@@ -1,24 +1,21 @@
 use super::{
-    base::{
-        BiasConstraints, ExpressionBase, ExpressionBaseAdd, ExpressionBaseAdjustment,
-        ExpressionBaseCreation, IndexConstraints,
-    },
+    base::{ExpressionBase, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation},
     Expression,
 };
-use crate::core::operations::{
-    AddAssignToExpression, AddToExpression, SubAssignToExpression, SubToExpression,
-};
+use crate::core::expression::One;
 use crate::core::VarRef;
 use crate::errors::VariablesFromDifferentEnvsErr;
+use crate::{
+    core::operations::{
+        AddAssignToExpression, AddToExpression, SubAssignToExpression, SubToExpression,
+    },
+    types::Bias,
+};
 
 // ADDITION
 
-impl<Index, Bias> AddToExpression<Index, Bias, Bias> for &Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Expression<Index, Bias>;
+impl AddToExpression<Bias> for &Expression {
+    type Output = Expression;
     fn add(self, rhs: Bias) -> Self::Output {
         let mut out = Expression::new_from_other(&self);
         out.add_offset(rhs);
@@ -26,13 +23,9 @@ where
     }
 }
 
-impl<Index, Bias> AddToExpression<Index, Bias, &VarRef<Index>> for &Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
-    fn add(self, rhs: &VarRef<Index>) -> Self::Output {
+impl AddToExpression<&VarRef> for &Expression {
+    type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
+    fn add(self, rhs: &VarRef) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
@@ -43,14 +36,9 @@ where
     }
 }
 
-impl<Index, Bias> AddToExpression<Index, Bias, &Expression<Index, Bias>>
-    for &Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
-    fn add(self, rhs: &Expression<Index, Bias>) -> Self::Output {
+impl AddToExpression<&Expression> for &Expression {
+    type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
+    fn add(self, rhs: &Expression) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
@@ -79,11 +67,7 @@ where
 }
 
 // ADD ASSIGN
-impl<Index, Bias> AddAssignToExpression<Index, Bias, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl AddAssignToExpression<Bias> for Expression {
     type Output = ();
 
     fn add_assign(&mut self, rhs: Bias) -> Self::Output {
@@ -91,14 +75,10 @@ where
     }
 }
 
-impl<Index, Bias> AddAssignToExpression<Index, Bias, &VarRef<Index>> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl AddAssignToExpression<&VarRef> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
-    fn add_assign(&mut self, rhs: &VarRef<Index>) -> Self::Output {
+    fn add_assign(&mut self, rhs: &VarRef) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
@@ -107,14 +87,9 @@ where
     }
 }
 
-impl<Index, Bias> AddAssignToExpression<Index, Bias, &Expression<Index, Bias>>
-    for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl AddAssignToExpression<&Expression> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
-    fn add_assign(&mut self, rhs: &Expression<Index, Bias>) -> Self::Output {
+    fn add_assign(&mut self, rhs: &Expression) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
@@ -129,24 +104,16 @@ where
 
 // SUBTRACTION
 
-impl<Index, Bias> SubToExpression<Index, Bias, Bias> for &Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Expression<Index, Bias>;
+impl SubToExpression<Bias> for &Expression {
+    type Output = Expression;
     fn sub(self, rhs: Bias) -> Self::Output {
         self.add(-rhs)
     }
 }
 
-impl<Index, Bias> SubToExpression<Index, Bias, &VarRef<Index>> for &Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
-    fn sub(self, rhs: &VarRef<Index>) -> Self::Output {
+impl SubToExpression<&VarRef> for &Expression {
+    type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
+    fn sub(self, rhs: &VarRef) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
@@ -157,14 +124,9 @@ where
     }
 }
 
-impl<Index, Bias> SubToExpression<Index, Bias, &Expression<Index, Bias>>
-    for &Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
-    fn sub(self, rhs: &Expression<Index, Bias>) -> Self::Output {
+impl SubToExpression<&Expression> for &Expression {
+    type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
+    fn sub(self, rhs: &Expression) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
@@ -194,11 +156,7 @@ where
 
 // SUBTRACTION ASSIGN
 
-impl<Index, Bias> SubAssignToExpression<Index, Bias, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl SubAssignToExpression<Bias> for Expression {
     type Output = ();
 
     fn sub_assign(&mut self, rhs: Bias) -> Self::Output {
@@ -206,14 +164,10 @@ where
     }
 }
 
-impl<Index, Bias> SubAssignToExpression<Index, Bias, &VarRef<Index>> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl SubAssignToExpression<&VarRef> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
-    fn sub_assign(&mut self, rhs: &VarRef<Index>) -> Self::Output {
+    fn sub_assign(&mut self, rhs: &VarRef) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
@@ -222,15 +176,10 @@ where
     }
 }
 
-impl<Index, Bias> SubAssignToExpression<Index, Bias, &Expression<Index, Bias>>
-    for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl SubAssignToExpression<&Expression> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
-    fn sub_assign(&mut self, rhs: &Expression<Index, Bias>) -> Self::Output {
+    fn sub_assign(&mut self, rhs: &Expression) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {

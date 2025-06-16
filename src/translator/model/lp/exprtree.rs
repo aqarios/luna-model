@@ -1,53 +1,45 @@
-use std::{marker::PhantomData, rc::Rc};
-
+use num::traits::Pow;
+use std::ops::AddAssign;
+use crate::core::expression::One;
 use crate::{
     core::{
-        expression::{
-            BiasConstraints, ExpressionBaseAdd, ExpressionBaseCreation, IndexConstraints,
-        },
+        environment::SharedEnvironment,
+        expression::{ExpressionBaseAdd, ExpressionBaseCreation},
         operations::{AddToExpression, MulAssignToExpression, MulToExpression, SubToExpression},
-        Expression, MutRcEnvironment, VarRef,
+        Expression, VarRef,
     },
     errors::TranslationErr,
+    types::Bias,
 };
 
 // ExprTree AST
 #[derive(Debug, Clone)]
-pub enum ExprTree<Bias>
-where
-    Bias: BiasConstraints,
-{
+pub enum ExprTree {
     Number(Bias),
     Variable(String),
-    Add(Box<ExprTree<Bias>>, Box<ExprTree<Bias>>),
-    Sub(Box<ExprTree<Bias>>, Box<ExprTree<Bias>>),
-    Mul(Box<ExprTree<Bias>>, Box<ExprTree<Bias>>),
-    Pow(Box<ExprTree<Bias>>, Box<ExprTree<Bias>>),
+    Add(Box<ExprTree>, Box<ExprTree>),
+    Sub(Box<ExprTree>, Box<ExprTree>),
+    Mul(Box<ExprTree>, Box<ExprTree>),
+    Pow(Box<ExprTree>, Box<ExprTree>),
 }
 
 // Evaluation context
-pub struct EvalContext<Index, Bias, F>
+pub struct EvalContext<F>
 where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-    F: Fn(&str) -> VarRef<Index>,
+    F: Fn(&str) -> VarRef,
 {
     pub resolve_variable: F,
-    pub env: MutRcEnvironment<Index>,
-    _phantom: PhantomData<Bias>,
+    pub env: SharedEnvironment,
 }
 
-impl<Index, Bias, F> EvalContext<Index, Bias, F>
+impl<F> EvalContext<F>
 where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-    F: Fn(&str) -> VarRef<Index>,
+    F: Fn(&str) -> VarRef,
 {
-    pub fn new(resolve_variable: F, env: MutRcEnvironment<Index>) -> Self {
+    pub fn new(resolve_variable: F, env: SharedEnvironment) -> Self {
         Self {
             resolve_variable,
             env,
-            _phantom: PhantomData,
         }
     }
 }
@@ -183,19 +175,14 @@ fn tokenize(input: &str) -> Vec<Token> {
 }
 
 // Parser state
-struct Parser<Bias: BiasConstraints> {
+struct Parser {
     tokens: Vec<Token>,
     pos: usize,
-    _phantom: PhantomData<Bias>,
 }
 
-impl<Bias: BiasConstraints> Parser<Bias> {
+impl Parser {
     fn new(tokens: Vec<Token>) -> Self {
-        Self {
-            tokens,
-            pos: 0,
-            _phantom: PhantomData,
-        }
+        Self { tokens, pos: 0 }
     }
 
     fn current(&self) -> Option<&Token> {
@@ -206,7 +193,7 @@ impl<Bias: BiasConstraints> Parser<Bias> {
         self.pos += 1;
     }
 
-    fn parse_expression(&mut self) -> ExprTree<Bias> {
+    fn parse_expression(&mut self) -> ExprTree {
         let mut expr = self.parse_term();
         while let Some(token) = self.current() {
             match token {
@@ -224,7 +211,7 @@ impl<Bias: BiasConstraints> Parser<Bias> {
         expr
     }
 
-    fn parse_term(&mut self) -> ExprTree<Bias> {
+    fn parse_term(&mut self) -> ExprTree {
         let mut expr = self.parse_factor();
 
         while let Some(token) = self.current() {
@@ -247,7 +234,7 @@ impl<Bias: BiasConstraints> Parser<Bias> {
         expr
     }
 
-    fn parse_factor(&mut self) -> ExprTree<Bias> {
+    fn parse_factor(&mut self) -> ExprTree {
         let mut base = self.parse_atom();
         while let Some(Token::Caret) = self.current() {
             self.advance();
@@ -256,7 +243,7 @@ impl<Bias: BiasConstraints> Parser<Bias> {
         base
     }
 
-    fn parse_atom(&mut self) -> ExprTree<Bias> {
+    fn parse_atom(&mut self) -> ExprTree {
         match self.current() {
             Some(Token::Plus) => {
                 self.advance(); // skip '+'
@@ -271,7 +258,7 @@ impl<Bias: BiasConstraints> Parser<Bias> {
                 )
             }
             Some(Token::Number(n)) => {
-                let bias = Bias::from(*n).unwrap();
+                let bias = Bias::from(*n);
                 self.advance();
                 ExprTree::Number(bias)
             }
@@ -291,25 +278,19 @@ impl<Bias: BiasConstraints> Parser<Bias> {
     }
 }
 
-pub struct ExprTreeTuple<Bias>
-where
-    Bias: BiasConstraints,
-{
-    lin: Option<ExprTree<Bias>>,
-    quad: Option<ExprTree<Bias>>,
-    ho: Option<ExprTree<Bias>>,
-    cons: Option<ExprTree<Bias>>,
+pub struct ExprTreeTuple {
+    lin: Option<ExprTree>,
+    quad: Option<ExprTree>,
+    ho: Option<ExprTree>,
+    cons: Option<ExprTree>,
 }
 
-impl<Bias> ExprTreeTuple<Bias>
-where
-    Bias: BiasConstraints,
-{
+impl ExprTreeTuple {
     fn new(
-        lin: Option<ExprTree<Bias>>,
-        quad: Option<ExprTree<Bias>>,
-        ho: Option<ExprTree<Bias>>,
-        cons: Option<ExprTree<Bias>>,
+        lin: Option<ExprTree>,
+        quad: Option<ExprTree>,
+        ho: Option<ExprTree>,
+        cons: Option<ExprTree>,
     ) -> Self {
         Self {
             lin,
@@ -327,23 +308,17 @@ where
     }
 }
 
-impl<Bias> ExprTree<Bias>
-where
-    Bias: BiasConstraints,
-{
+impl ExprTree {
     pub fn build(input: &str) -> Self {
         let tokens = tokenize(input);
-        let mut parser = Parser::<Bias>::new(tokens);
+        let mut parser = Parser::new(tokens);
         parser.parse_expression()
     }
 
-    pub fn from_expression<Index>(
-        expr: &Expression<Index, Bias>,
+    pub fn from_expression(
+        expr: &Expression,
         is_constraint: bool,
-    ) -> Result<ExprTreeTuple<Bias>, TranslationErr>
-    where
-        Index: IndexConstraints,
-    {
+    ) -> Result<ExprTreeTuple, TranslationErr> {
         // Constant
         let constant = if expr.offset != Bias::default() {
             Some(ExprTree::Number(expr.offset))
@@ -406,12 +381,7 @@ where
         Ok(ExprTreeTuple::new(lintree, quadtree, None, constant))
     }
 
-    pub fn from_expression_internal<Index>(
-        expr: &Expression<Index, Bias>,
-    ) -> Result<ExprTreeTuple<Bias>, TranslationErr>
-    where
-        Index: IndexConstraints,
-    {
+    pub fn from_expression_internal(expr: &Expression) -> Result<ExprTreeTuple, TranslationErr> {
         // Constant
         let constant = if expr.offset != Bias::default() {
             Some(ExprTree::Number(expr.offset))
@@ -483,8 +453,6 @@ where
         Ok(ExprTreeTuple::new(lintree, quadtree, hotree, constant))
     }
     pub fn optimize(&self) -> Self
-    where
-        Bias: BiasConstraints,
     {
         use ExprTree::*;
 
@@ -555,27 +523,25 @@ where
         }
     }
 
-    pub fn evaluate<Index, F>(
+    pub fn evaluate<F>(
         self: &Self,
-        ctx: &EvalContext<Index, Bias, F>,
-    ) -> Result<Expression<Index, Bias>, TranslationErr>
+        ctx: &EvalContext<F>,
+    ) -> Result<Expression, TranslationErr>
     where
-        Index: IndexConstraints,
-        Bias: BiasConstraints,
-        F: Fn(&str) -> VarRef<Index>,
+        F: Fn(&str) -> VarRef,
     {
         use ExprTree::*;
 
         match self {
             Number(bias) => {
-                let mut out = Expression::empty(Rc::clone(&ctx.env));
+                let mut out = Expression::empty(ctx.env.clone());
                 out.add_offset(*bias);
                 Ok(out)
             }
             Variable(name) => {
                 let var = (ctx.resolve_variable)(name);
                 Ok(Expression::new_linear_single(
-                    Rc::clone(&ctx.env),
+                    ctx.env.clone(),
                     var.id,
                     Bias::one(),
                 ))
@@ -599,7 +565,7 @@ where
                 (Variable(name), Number(bias)) => {
                     let var = (ctx.resolve_variable)(name);
                     let mut base =
-                        Expression::new_linear_single(Rc::clone(&ctx.env), var.id, Bias::one());
+                        Expression::new_linear_single(ctx.env.clone(), var.id, Bias::one());
                     let mut count = Bias::one();
                     while count < *bias {
                         base.mul_assign(&var)?;
@@ -613,10 +579,7 @@ where
     }
 }
 
-impl<Bias> ToString for ExprTree<Bias>
-where
-    Bias: BiasConstraints,
-{
+impl ToString for ExprTree {
     fn to_string(&self) -> String {
         use ExprTree::*;
 
@@ -676,9 +639,7 @@ where
     }
 }
 
-impl<Bias> ExprTreeTuple<Bias>
-where
-    Bias: BiasConstraints,
+impl ExprTreeTuple
 {
     pub fn to_string(&self, is_obj: bool) -> String {
         let mut result = String::new();
@@ -743,14 +704,14 @@ where
     }
 }
 
-fn is_zero<B: BiasConstraints>(b: &B) -> bool {
-    *b == B::default()
+fn is_zero(b: &Bias) -> bool {
+    *b == Bias::default()
 }
 
-fn is_zero_expr<Bias: BiasConstraints>(e: &ExprTree<Bias>) -> bool {
+fn is_zero_expr(e: &ExprTree) -> bool {
     matches!(e, ExprTree::Number(b) if is_zero(b))
 }
 
-fn is_one<B: BiasConstraints>(b: &B) -> bool {
-    *b == B::one()
+fn is_one(b: &Bias) -> bool {
+    *b == Bias::one()
 }

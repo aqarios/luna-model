@@ -136,7 +136,7 @@ impl PyIbmTranslator {
             &energies,
             counts.into_iter().map(|n| n.into()).collect(),
             timing.map(|t| t.into()),
-            environment.into(),
+            environment.0.clone(),
         )?))
     }
 

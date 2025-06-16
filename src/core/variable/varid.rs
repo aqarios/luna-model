@@ -1,12 +1,12 @@
 use crate::core::expression::One;
-use crate::core::ConcreteId;
 use crate::errors::ParseFromStringError;
+use crate::types::Id;
 use std::fmt::Debug;
 use std::{ops::AddAssign, str::FromStr};
 
 /// The VarId is a wrapper around some primitive type used as the index in Expressions.
 #[derive(Debug, Clone, Copy, Default, Eq, Ord, PartialEq, PartialOrd, Hash)]
-pub struct VarId(pub ConcreteId);
+pub struct VarId(pub Id);
 
 impl One for VarId {
     fn one() -> Self {
@@ -30,7 +30,7 @@ impl FromStr for VarId {
     type Err = ParseFromStringError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(VarId(s.parse::<ConcreteId>()?))
+        Ok(VarId(s.parse::<Id>()?))
     }
 }
 
@@ -43,10 +43,10 @@ impl Into<usize> for VarId {
 impl From<usize> for VarId {
     fn from(value: usize) -> Self {
         assert!(
-            value <= ConcreteId::MAX as usize,
-            "value out of range for ConcreteIndex"
+            value <= Id::MAX as usize,
+            "value out of range for Index"
         );
-        VarId(value as ConcreteId)
+        VarId(value as Id)
     }
 }
 

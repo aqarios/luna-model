@@ -1,5 +1,6 @@
-use crate::core::{ConcreteAssignmentTypes, ConcreteBias, OwnedResult, ResultIterator, ResultView};
+use crate::core::{OwnedResult, ResultIterator, ResultView};
 use crate::py_bindings::py_sample::PySample;
+use crate::types::Bias;
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::{pyclass, pymethods, Bound, PyRef, PyRefMut, Python};
@@ -28,7 +29,7 @@ use pyo3::{pyclass, pymethods, Bound, PyRef, PyRefMut, Python};
 /// False
 #[pyclass(unsendable, name = "ResultView", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PyResultView(pub ResultView<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PyResultView(pub ResultView);
 
 /// A result object can be understood as a solution with only one sample.
 ///
@@ -55,7 +56,7 @@ pub struct PyResultView(pub ResultView<ConcreteBias, ConcreteAssignmentTypes>);
 /// False
 #[pyclass(unsendable, name = "Result", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PyOwnedResult(pub OwnedResult<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PyOwnedResult(pub OwnedResult);
 
 /// An iterator over a solution's results.
 ///
@@ -70,22 +71,22 @@ pub struct PyOwnedResult(pub OwnedResult<ConcreteBias, ConcreteAssignmentTypes>)
 /// [1, -4, -0.42]
 #[pyclass(unsendable, name = "ResultIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PyResultIterator(pub ResultIterator<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PyResultIterator(pub ResultIterator);
 
-impl Into<ResultView<ConcreteBias, ConcreteAssignmentTypes>> for PyResultView {
-    fn into(self) -> ResultView<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<ResultView> for PyResultView {
+    fn into(self) -> ResultView {
         self.0
     }
 }
 
-impl Into<OwnedResult<ConcreteBias, ConcreteAssignmentTypes>> for PyOwnedResult {
-    fn into(self) -> OwnedResult<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<OwnedResult> for PyOwnedResult {
+    fn into(self) -> OwnedResult {
         self.0
     }
 }
 
-impl Into<ResultIterator<ConcreteBias, ConcreteAssignmentTypes>> for PyResultIterator {
-    fn into(self) -> ResultIterator<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<ResultIterator> for PyResultIterator {
+    fn into(self) -> ResultIterator {
         self.0
     }
 }
@@ -115,14 +116,14 @@ impl PyResultView {
     /// Get the objective value of this sample if present. This is the value computed
     /// by the corresponding AqModel.
     #[getter]
-    fn obj_value(&self) -> Option<ConcreteBias> {
+    fn obj_value(&self) -> Option<Bias> {
         self.0.obj_value()
     }
 
     /// Get the raw energy returned by the algorithm if present. This value is not
     /// guaranteed to be accurate under consideration of the corresponding AqModel.
     #[getter]
-    fn raw_energy(&self) -> Option<ConcreteBias> {
+    fn raw_energy(&self) -> Option<Bias> {
         self.0.raw_energy()
     }
 
@@ -164,7 +165,7 @@ impl PyOwnedResult {
 
     /// Get the objective value of the result.
     #[getter]
-    fn obj_value(&self) -> Option<ConcreteBias> {
+    fn obj_value(&self) -> Option<Bias> {
         self.obj_value
     }
 

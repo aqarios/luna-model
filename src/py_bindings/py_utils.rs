@@ -1,25 +1,22 @@
 use super::{py_model::PyModel, py_sol::PySolution};
-use crate::core::{
-    expression::BiasConstraints, solution::AssignmentBaseTypes, Constraints, Expression, Samples,
-    Timing, VarId,
-};
+use crate::core::{Constraints, Expression, Samples, Timing};
 use crate::translator::model::lp::exprtree::ExprTree;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 static DELIMITER: &str = ", ";
 
 pub fn repr_model(model: &PyModel) -> String {
-    let bm = model.borrow();
+    let bm = &model.borrow();
     format!(
         "Model(name={}, sense={}, objective={}, constraints={})",
         bm.name,
         bm.sense,
-        repr_objective(&bm.objective.borrow()),
-        repr_constraints(&bm.constraints.borrow())
+        repr_objective(&bm.objective),
+        repr_constraints(&bm.constraints)
     )
 }
 
-pub fn repr_objective(obj: &Expression<VarId, f64>) -> String {
+pub fn repr_objective(obj: &Expression) -> String {
     // using the LP Translator Expression Tree.
     ExprTree::from_expression_internal(obj)
         .unwrap()
@@ -29,7 +26,7 @@ pub fn repr_objective(obj: &Expression<VarId, f64>) -> String {
         .replace("]", "")
 }
 
-pub fn repr_constraints(constrs: &Constraints<VarId, f64>) -> String {
+pub fn repr_constraints(constrs: &Constraints) -> String {
     format!(
         "[{}]",
         constrs
@@ -63,7 +60,7 @@ pub fn repr_solution(sol: &PySolution) -> String {
     repr
 }
 
-pub fn repr_samples<B: BiasConstraints, A: AssignmentBaseTypes>(samples: &Samples<B, A>) -> String {
+pub fn repr_samples(samples: &Samples) -> String {
     format!(
         "[{}]",
         samples

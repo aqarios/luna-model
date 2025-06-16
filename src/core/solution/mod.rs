@@ -1,4 +1,3 @@
-mod base;
 mod res;
 mod timing;
 
@@ -7,7 +6,6 @@ mod sample;
 pub mod sol;
 mod sol_print;
 
-pub use base::AssignmentBaseTypes;
 pub use iterators::ResultIterator;
 pub use iterators::SampleIterator;
 pub use iterators::SamplesIterator;

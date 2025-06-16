@@ -143,7 +143,7 @@ impl PyQctrlTranslator {
             counts,
             energies,
             timing.map(|t| t.into()),
-            environment.into(),
+            environment.0.clone(),
         )?))
     }
 
