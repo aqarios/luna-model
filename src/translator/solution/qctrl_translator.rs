@@ -4,7 +4,8 @@ use num::NumCast;
 
 use crate::{
     core::{
-        environment::SharedEnvironment, solution::sol::SampleCol, RcSolution, Solution, Timing, Vtype
+        environment::SharedEnvironment, solution::sol::SampleCol, RcSolution, Solution, Timing,
+        Vtype,
     },
     errors::SolutionCreationErr,
 };
@@ -17,7 +18,7 @@ impl QctrlTranslator {
         counts: Vec<usize>,
         energies: Vec<Option<E>>,
         timing: Option<Timing>,
-        env: SharedEnvironment
+        env: SharedEnvironment,
     ) -> Result<RcSolution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default,

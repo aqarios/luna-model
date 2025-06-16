@@ -1,3 +1,4 @@
+use crate::core::Sense;
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_sol::PySolution;
@@ -12,11 +13,12 @@ use std::ffi::CStr;
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
     "
-from aqmodels._core import translator
+from aqmodels._core import translator, Sense
 
 def extract(model, timing, env):
     sample = {x.name: model.getVal(x) for x in model.getVars()}
-    return translator.ZibTranslator.translate(sample, timing, env)
+    sense = Sense.Max if model.getObjectiveSense() == 'maximize' else Sense.Min
+    return translator.ZibTranslator.translate(sample, sense, timing, env)
 "
 );
 #[cfg(feature = "lq")]
@@ -26,7 +28,8 @@ from aqmodels._core import translator
 
 def extract(model, timing, env):
     sample = {x.name: model.getVal(x) for x in model.getVars()}
-    return translator.ZibTranslator.translate(sample, timing, env)
+    sense = Sense.Max if model.getObjectiveSense() == 'maximize' else Sense.Min
+    return translator.ZibTranslator.translate(sample, sense, timing, env)
 "
 );
 
@@ -56,6 +59,7 @@ impl PyZibTranslator {
     fn translate(
         // hashbrown::HashMap does not work here ;(
         sample: HashMap<String, f64>,
+        sense: Sense,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PySolution> {
@@ -68,9 +72,9 @@ impl PyZibTranslator {
             })?,
         };
         Ok(PySolution(ZibTranslator::from_zib(
-            sample,
+            sample, sense,
             timing.map(|t| t.into()),
-            environment.0.clone()
+            environment.0.clone(),
         )?))
     }
 

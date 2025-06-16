@@ -13,8 +13,7 @@ use aqmodels::{
 };
 
 use crate::common::{
-    almost_equal, create_env, create_linear_expression, make_seed, random_bias,
-    random_biases,
+    almost_equal, create_env, create_linear_expression, make_seed, random_bias, random_biases,
 };
 
 struct DSample {

@@ -7,6 +7,7 @@ from numpy.typing import NDArray
 
 from . import errors, translator
 
+
 # _variable.pyi
 class Vtype(Enum):
     """
@@ -48,9 +49,12 @@ class Vtype(Enum):
     """Spin variable. Can only take values -1 or +1."""
 
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
 
+
 class Unbounded: ...
+
 
 class Bounds:
     """
@@ -87,17 +91,20 @@ class Bounds:
 
     @overload
     def __init__(self, /, *, lower: float | Unbounded) -> None: ...
+
     @overload
     def __init__(self, /, *, upper: float | type[Unbounded]) -> None: ...
+
     @overload
     def __init__(
-        self, /, lower: float | type[Unbounded], upper: float | type[Unbounded]
+            self, /, lower: float | type[Unbounded], upper: float | type[Unbounded]
     ) -> None: ...
+
     def __init__(
-        self,
-        /,
-        lower: float | type[Unbounded] | None = ...,
-        upper: float | type[Unbounded] | None = ...,
+            self,
+            /,
+            lower: float | type[Unbounded] | None = ...,
+            upper: float | type[Unbounded] | None = ...,
     ) -> None:
         """
         Create bounds for a variable.
@@ -117,7 +124,9 @@ class Bounds:
         ...
 
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
 
 class Variable:
     """
@@ -169,24 +178,29 @@ class Variable:
 
     @overload
     def __init__(self, /, name: str) -> None: ...
+
     @overload
     def __init__(self, /, name: str, *, env: Environment) -> None: ...
+
     @overload
     def __init__(self, /, name: str, *, vtype: Vtype) -> None: ...
+
     @overload
     def __init__(self, /, name: str, *, vtype: Vtype, bounds: Bounds) -> None: ...
+
     @overload
     def __init__(
-        self, /, name: str, *, vtype: Vtype, bounds: Bounds, env: Environment
+            self, /, name: str, *, vtype: Vtype, bounds: Bounds, env: Environment
     ) -> None: ...
+
     def __init__(
-        self,
-        /,
-        name: str,
-        *,
-        vtype: Vtype | None = ...,
-        bounds: Bounds | None = ...,
-        env: Environment | None = ...,
+            self,
+            /,
+            name: str,
+            *,
+            vtype: Vtype | None = ...,
+            bounds: Bounds | None = ...,
+            env: Environment | None = ...,
     ) -> None:
         """
         Initialize a new Variable.
@@ -221,12 +235,16 @@ class Variable:
 
     @overload
     def __add__(self, other: int, /) -> Expression: ...
+
     @overload
     def __add__(self, other: float, /) -> Expression: ...
+
     @overload
     def __add__(self, other: Variable, /) -> Expression: ...
+
     @overload
     def __add__(self, other: Expression, /) -> Expression: ...
+
     def __add__(self, other: int | float | Variable | Expression, /) -> Expression:
         """
         Add this variable to another value.
@@ -251,12 +269,16 @@ class Variable:
 
     @overload
     def __radd__(self, other: int, /) -> Expression: ...
+
     @overload
     def __radd__(self, other: float, /) -> Expression: ...
+
     @overload
     def __radd__(self, other: Variable, /) -> Expression: ...
+
     @overload
     def __radd__(self, other: Expression, /) -> Expression: ...
+
     def __radd__(self, other: int | float | Variable | Expression, /) -> Expression:
         """
         Right-hand addition.
@@ -279,12 +301,16 @@ class Variable:
 
     @overload
     def __sub__(self, other: int, /) -> Expression: ...
+
     @overload
     def __sub__(self, other: float, /) -> Expression: ...
+
     @overload
     def __sub__(self, other: Variable, /) -> Expression: ...
+
     @overload
     def __sub__(self, other: Expression, /) -> Expression: ...
+
     def __sub__(self, other: int | float | Variable | Expression, /) -> Expression:
         """
         Subtract a value from this variable.
@@ -309,8 +335,10 @@ class Variable:
 
     @overload
     def __rsub__(self, other: int, /) -> Expression: ...
+
     @overload
     def __rsub__(self, other: float, /) -> Expression: ...
+
     def __rsub__(self, other: int | float, /) -> Expression:
         """
         Subtract this variable from a scalar (right-hand subtraction).
@@ -333,12 +361,16 @@ class Variable:
 
     @overload
     def __mul__(self, other: int, /) -> Expression: ...
+
     @overload
     def __mul__(self, other: float, /) -> Expression: ...
+
     @overload
     def __mul__(self, other: Variable, /) -> Expression: ...
+
     @overload
     def __mul__(self, other: Expression, /) -> Expression: ...
+
     def __mul__(self, other: int | float | Variable | Expression, /) -> Expression:
         """
         Multiply this variable by another value.
@@ -363,12 +395,16 @@ class Variable:
 
     @overload
     def __rmul__(self, other: int, /) -> Expression: ...
+
     @overload
     def __rmul__(self, other: float, /) -> Expression: ...
+
     @overload
     def __rmul__(self, other: Variable, /) -> Expression: ...
+
     @overload
     def __rmul__(self, other: Expression, /) -> Expression: ...
+
     def __rmul__(self, other: int | float | Variable | Expression, /) -> Expression:
         """
         Right-hand multiplication for scalars.
@@ -410,10 +446,13 @@ class Variable:
 
     @overload
     def __eq__(self, rhs: int, /) -> Constraint: ...
+
     @overload
     def __eq__(self, rhs: float, /) -> Constraint: ...
+
     @overload
     def __eq__(self, rhs: Expression, /) -> Constraint: ...
+
     @overload
     def __eq__(self, rhs: Variable, /) -> bool:  # noqa: D418
         """
@@ -453,12 +492,16 @@ class Variable:
 
     @overload
     def __le__(self, rhs: int, /) -> Constraint: ...
+
     @overload
     def __le__(self, rhs: float, /) -> Constraint: ...
+
     @overload
     def __le__(self, rhs: Variable, /) -> Constraint: ...
+
     @overload
     def __le__(self, rhs: Expression, /) -> Constraint: ...
+
     def __le__(self, rhs: int | float | Variable | Expression, /) -> Constraint:
         """
         Create a constraint: Variable <= scalar.
@@ -485,12 +528,16 @@ class Variable:
 
     @overload
     def __ge__(self, rhs: int, /) -> Constraint: ...
+
     @overload
     def __ge__(self, rhs: float, /) -> Constraint: ...
+
     @overload
     def __ge__(self, rhs: Variable, /) -> Constraint: ...
+
     @overload
     def __ge__(self, rhs: Expression, /) -> Constraint: ...
+
     def __ge__(self, rhs: int | float | Variable | Expression, /) -> Constraint:
         """
         Create a constraint: Variable >= scalar.
@@ -531,8 +578,11 @@ class Variable:
         ...
 
     def __hash__(self, /) -> int: ...
+
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
 
 class Constant:
     """A constant expression.
@@ -555,6 +605,7 @@ class Constant:
     >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
     >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
     """
+
 
 class Linear:
     """A linear expression.
@@ -583,6 +634,7 @@ class Linear:
     @property
     def var(self) -> Variable: ...
 
+
 class Quadratic:
     """A quadratic expression.
 
@@ -609,8 +661,10 @@ class Quadratic:
 
     @property
     def var_a(self) -> Variable: ...
+
     @property
     def var_b(self) -> Variable: ...
+
 
 class HigherOrder:
     """A higher-order expression.
@@ -638,6 +692,7 @@ class HigherOrder:
 
     @property
     def vars(self) -> list[Variable]: ...
+
 
 # _timing.pyi
 class Timing:
@@ -737,6 +792,7 @@ class Timing:
         """
         ...
 
+
 class Timer:
     """
     Used to measure the computation time of an algorithm.
@@ -776,6 +832,7 @@ class Timer:
             The timing object that holds the start and end time.
         """
         ...
+
 
 # _solution.pyi
 class Solution:
@@ -830,8 +887,11 @@ class Solution:
     """
 
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
     def __len__(self, /) -> int: ...
+
     def __iter__(self, /) -> ResultIterator:
         """
         Extract a result view from the `Solution` object.
@@ -933,6 +993,11 @@ class Solution:
         ...
 
     @property
+    def sense(self, /) -> Sense:
+        """Get the optimization sense."""
+        ...
+
+    @property
     def best_sample_idx(self, /) -> int | None:
         """Get the index of the sample with the best objective value."""
         ...
@@ -959,12 +1024,16 @@ class Solution:
 
     @overload
     def encode(self, /) -> bytes: ...
+
     @overload
     def encode(self, /, *, compress: bool) -> bytes: ...
+
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
+
     @overload
     def encode(self, /, *, compress: bool, level: int) -> bytes: ...
+
     def encode(self, /, *, compress: bool = True, level: int = 3) -> bytes:
         """
         Serialize the solution into a compact binary format.
@@ -990,14 +1059,18 @@ class Solution:
 
     @overload
     def serialize(self, /) -> bytes: ...
+
     @overload
     def serialize(self, /, *, compress: bool) -> bytes: ...
+
     @overload
     def serialize(self, /, *, level: int) -> bytes: ...
+
     @overload
     def serialize(self, /, compress: bool, level: int) -> bytes: ...
+
     def serialize(
-        self, /, compress: bool | None = ..., level: int | None = ...
+            self, /, compress: bool | None = ..., level: int | None = ...
     ) -> bytes:
         """
         Alias for `encode()`.
@@ -1035,272 +1108,121 @@ class Solution:
 
     @overload
     @staticmethod
-    def from_dict(data: dict[Variable, int]) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable, int], *, counts: int) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable, float]) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable, float], *, counts: int) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, int]) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, int], *, counts: int) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, float]) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, float], *, counts: int) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable | str, int | float]) -> Solution: ...
-    @overload
-    @staticmethod
     def from_dict(
-        data: dict[Variable | str, int | float], *, counts: int
+            data: dict[Variable, int],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: int = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable, int], *, env: Environment) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dict(
-        data: dict[Variable, int], *, env: Environment, counts: int
+            data: dict[Variable, float],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: int = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable, float], *, env: Environment) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dict(
-        data: dict[Variable, float], *, env: Environment, counts: int
+            data: dict[str, int],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: int = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, int], *, env: Environment) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dict(
-        data: dict[str, int], *, env: Environment, counts: int
+            data: dict[str, float],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: int = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, float], *, env: Environment) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dict(
-        data: dict[str, float], *, env: Environment, counts: int
+            data: dict[Variable | str, int],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: int = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dict(
-        data: dict[Variable | str, int | float], *, env: Environment
+            data: dict[Variable | str, float],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: int = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dict(
-        data: dict[Variable | str, int | float], *, env: Environment, counts: int
+            data: dict[Variable, int | float],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: int = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable, int], *, model: Model) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dict(
-        data: dict[Variable, int], *, model: Model, counts: int
+            data: dict[str, int | float],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: int = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable, float], *, model: Model) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dict(
-        data: dict[Variable, float], *, model: Model, counts: int
+            data: dict[Variable | str, int | float],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: int = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, int], *, model: Model) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, int], *, model: Model, counts: int) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, float], *, model: Model) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, float], *, model: Model, counts: int) -> Solution: ...
-    @overload
+
     @staticmethod
     def from_dict(
-        data: dict[Variable | str, int | float], *, model: Model
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float], *, model: Model, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable, int], *, timing: Timing) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, int], *, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[Variable, float], *, timing: Timing) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, float], *, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, int], *, timing: Timing) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, int], *, timing: Timing, counts: int) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(data: dict[str, float], *, timing: Timing) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, float], *, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float], *, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float], *, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, int], *, env: Environment, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, int], *, env: Environment, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, float], *, env: Environment, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, float], *, env: Environment, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, int], *, env: Environment, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, int], *, env: Environment, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, float], *, env: Environment, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, float], *, env: Environment, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float], *, env: Environment, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float],
-        *,
-        env: Environment,
-        timing: Timing,
-        counts: int,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, int], *, model: Model, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, int], *, model: Model, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, float], *, model: Model, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, float], *, model: Model, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, int], *, model: Model, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, int], *, model: Model, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, float], *, model: Model, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, float], *, model: Model, timing: Timing, counts: int
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float], *, model: Model, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float],
-        *,
-        model: Model,
-        timing: Timing,
-        counts: int,
-    ) -> Solution: ...
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float],
-        *,
-        env: Environment | None = ...,
-        model: Model | None = ...,
-        timing: Timing | None = ...,
-        counts: int | None = ...,
+            data: dict[Variable | str, int | float],
+            *,
+            env: Environment | None = ...,
+            model: Model | None = ...,
+            timing: Timing | None = ...,
+            counts: int | None = ...,
+            sense: Sense | None = ...,
     ) -> Solution:
         """Create a `Solution` from a dict.
 
@@ -1334,6 +1256,7 @@ class Solution:
         ValueError
             If `env` and `model` are both present. When this is the case, the user's
             intention is unclear as the model itself already contains an environment.
+            Or if `sense` and `model` are both present as the sense is then ambiguous.
         SolutionTranslationError
             Generally if the sample translation fails. Might be specified by one of the
             three following errors.
@@ -1349,324 +1272,121 @@ class Solution:
 
     @overload
     @staticmethod
-    def from_dicts(data: list[dict[Variable, int]]) -> Solution: ...
-    @overload
-    @staticmethod
     def from_dicts(
-        data: list[dict[Variable, int]], *, counts: list[int]
+            data: list[dict[Variable, int]],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: list[int] = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[Variable, float]]) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dicts(
-        data: list[dict[Variable, float]], *, counts: list[int]
+            data: list[dict[Variable, float]],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: list[int] = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[str, int]]) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[str, int]], *, counts: list[int]) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[str, float]]) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[str, float]], *, counts: list[int]) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[Variable | str, int | float]]) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dicts(
-        data: list[dict[Variable | str, int | float]], *, counts: list[int]
+            data: list[dict[str, int]],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: list[int] = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dicts(
-        data: list[dict[Variable, int]], *, env: Environment
+            data: list[dict[str, float]],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: list[int] = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dicts(
-        data: list[dict[Variable, int]], *, env: Environment, counts: list[int]
+            data: list[dict[Variable | str, int]],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: list[int] = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dicts(
-        data: list[dict[Variable, float]], *, env: Environment
+            data: list[dict[Variable | str, float]],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: list[int] = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dicts(
-        data: list[dict[Variable, float]], *, env: Environment, counts: list[int]
+            data: list[dict[Variable, int | float]],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: list[int] = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[str, int]], *, env: Environment) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dicts(
-        data: list[dict[str, int]], *, env: Environment, counts: list[int]
+            data: list[dict[str, int | float]],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: list[int] = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[str, float]], *, env: Environment) -> Solution: ...
+
     @overload
     @staticmethod
     def from_dicts(
-        data: list[dict[str, float]], *, env: Environment, counts: list[int]
+            data: list[dict[Variable | str, int | float]],
+            *,
+            env: Environment = ...,
+            model: Model = ...,
+            timing: Timing = ...,
+            counts: list[int] = ...,
+            sense: Sense = ...,
     ) -> Solution: ...
-    @overload
+
     @staticmethod
     def from_dicts(
-        data: list[dict[Variable | str, int | float]], *, env: Environment
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]],
-        *,
-        env: Environment,
-        counts: list[int],
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[Variable, int]], *, model: Model) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, int]], *, model: Model, counts: list[int]
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[Variable, float]], *, model: Model) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, float]], *, model: Model, counts: list[int]
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[str, int]], *, model: Model) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, int]], *, model: Model, counts: list[int]
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[str, float]], *, model: Model) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, float]], *, model: Model, counts: list[int]
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]], *, model: Model
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]],
-        *,
-        model: Model,
-        counts: list[int],
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[Variable, int]], *, timing: Timing) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, int]], *, timing: Timing, counts: list[int]
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, float]], *, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, float]], *, timing: Timing, counts: list[int]
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[str, int]], *, timing: Timing) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, int]], *, timing: Timing, counts: list[int]
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(data: list[dict[str, float]], *, timing: Timing) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, float]], *, timing: Timing, counts: list[int]
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]], *, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]],
-        *,
-        timing: Timing,
-        counts: list[int],
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, int]], *, env: Environment, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, int]],
-        *,
-        env: Environment,
-        timing: Timing,
-        counts: list[int],
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, float]], *, env: Environment, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, float]],
-        *,
-        env: Environment,
-        timing: Timing,
-        counts: list[int],
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, int]], *, env: Environment, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, int]],
-        *,
-        env: Environment,
-        timing: Timing,
-        counts: list[int],
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, float]], *, env: Environment, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, float]],
-        *,
-        env: Environment,
-        timing: Timing,
-        counts: list[int],
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]],
-        *,
-        env: Environment,
-        timing: Timing,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]],
-        *,
-        env: Environment,
-        timing: Timing,
-        counts: list[int],
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, int]], *, model: Model, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, int]],
-        *,
-        model: Model,
-        timing: Timing,
-        counts: list[int],
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, float]], *, model: Model, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, float]],
-        *,
-        model: Model,
-        timing: Timing,
-        counts: list[int],
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, int]], *, model: Model, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, int]], *, model: Model, timing: Timing, counts: list[int]
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, float]], *, model: Model, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, float]], *, model: Model, timing: Timing, counts: list[int]
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]], *, model: Model, timing: Timing
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]],
-        *,
-        model: Model,
-        timing: Timing,
-        counts: list[int],
-    ) -> Solution: ...
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]],
-        *,
-        env: Environment | None = ...,
-        model: Model | None = ...,
-        timing: Timing | None = ...,
-        counts: int | None = ...,
+            data: list[dict[Variable | str, int | float]],
+            *,
+            env: Environment | None = ...,
+            model: Model | None = ...,
+            timing: Timing | None = ...,
+            counts: list[int] | None = ...,
+            sense: Sense | None = ...,
     ) -> Solution:
         """Create a `Solution` from multiple dicts.
 
@@ -1687,6 +1407,8 @@ class Solution:
             A model to evaluate the sample with.
         counts : int, optional
             The number of occurrences for each sample.
+        sense: Sense, optional
+            The sense of the optimization problem.
 
         Returns
         -------
@@ -1701,6 +1423,7 @@ class Solution:
         ValueError
             If `env` and `model` are both present. When this is the case, the user's
             intention is unclear as the model itself already contains an environment.
+            Or if `sense` and `model` are both present as the sense is then ambiguous.
             Or if the the number of samples and the number of counts do not match.
         SolutionTranslationError
             Generally if the sample translation fails. Might be specified by one of the
@@ -1716,14 +1439,14 @@ class Solution:
         ...
 
     def print(
-        self,
-        /,
-        layout: Literal["row", "column"] = "column",
-        max_line_length: int = 80,
-        max_column_length: int = 5,
-        max_lines: int = 10,
-        max_var_name_length: int = 10,
-        show_metadata: Literal["before", "after", "hide"] = "after",
+            self,
+            /,
+            layout: Literal["row", "column"] = "column",
+            max_line_length: int = 80,
+            max_column_length: int = 5,
+            max_lines: int = 10,
+            max_var_name_length: int = 10,
+            show_metadata: Literal["before", "after", "hide"] = "after",
     ) -> None:
         """
         Show a solution object as a human-readable string.
@@ -1781,6 +1504,7 @@ class Solution:
         """
         ...
 
+
 # _sample.pyi
 class SamplesIterator:
     """
@@ -1800,7 +1524,9 @@ class SamplesIterator:
     """
 
     def __iter__(self, /) -> SamplesIterator: ...
+
     def __next__(self, /) -> Sample: ...
+
 
 class SampleIterator:
     """
@@ -1822,7 +1548,9 @@ class SampleIterator:
     """
 
     def __iter__(self, /) -> SampleIterator: ...
+
     def __next__(self, /) -> int | float: ...
+
 
 class Samples:
     """A set-like object containing every different sample of a solution.
@@ -1843,10 +1571,13 @@ class Samples:
     """
 
     def __str__(self, /) -> str: ...
+
     @overload
     def __getitem__(self, item: int, /) -> Sample: ...
+
     @overload
     def __getitem__(self, item: tuple[int, int], /) -> int | float: ...
+
     def __getitem__(self, item: int | tuple[int, int], /) -> int | float:
         """Extract a sample or variable assignment from the ``Samples`` object.
 
@@ -1899,6 +1630,7 @@ class Samples:
         """
         ...
 
+
 class Sample:
     """Assignment of actual values to the model's variables.
 
@@ -1922,10 +1654,13 @@ class Sample:
     """
 
     def __str__(self, /) -> str: ...
+
     @overload
     def __getitem__(self, item: int, /) -> int | float: ...
+
     @overload
     def __getitem__(self, item: Variable, /) -> int | float: ...
+
     def __getitem__(self, item: int | Variable, /) -> int | float:
         """
         Extract a variable assignment from the ``Sample`` object.
@@ -1963,6 +1698,7 @@ class Sample:
         """
         ...
 
+
 # _result.pyi
 class ResultIterator:
     """
@@ -1980,7 +1716,9 @@ class ResultIterator:
     """
 
     def __iter__(self, /) -> ResultIterator: ...
+
     def __next__(self, /) -> ResultView: ...
+
 
 class Result:
     """
@@ -2040,7 +1778,9 @@ class Result:
         ...
 
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
 
 class ResultView:
     """
@@ -2118,8 +1858,11 @@ class ResultView:
         ...
 
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
     def __eq__(self, other: ResultView, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
+
 
 # _model.pyi
 class Sense(Enum):
@@ -2135,6 +1878,7 @@ class Sense(Enum):
 
     Max = ...
     """Indicate the objective function to be maximized."""
+
 
 class Model:
     """
@@ -2197,27 +1941,35 @@ class Model:
 
     @overload
     def __init__(self, /) -> None: ...
+
     @overload
     def __init__(self, /, name: str) -> None: ...
+
     @overload
     def __init__(self, /, name: str, *, sense: Sense) -> None: ...
+
     @overload
     def __init__(self, /, name: str, *, env: Environment) -> None: ...
+
     @overload
     def __init__(self, /, *, sense: Sense) -> None: ...
+
     @overload
     def __init__(self, /, *, env: Environment) -> None: ...
+
     @overload
     def __init__(self, /, *, sense: Sense, env: Environment) -> None: ...
+
     @overload
     def __init__(self, /, name: str, *, sense: Sense, env: Environment) -> None: ...
+
     def __init__(
-        self,
-        /,
-        name: str | None = ...,
-        *,
-        sense: Sense | None = ...,
-        env: Environment | None = ...,
+            self,
+            /,
+            name: str | None = ...,
+            *,
+            sense: Sense | None = ...,
+            env: Environment | None = ...,
     ) -> None:
         """
         Initialize a new symbolic model.
@@ -2245,44 +1997,49 @@ class Model:
 
     @overload
     def add_variable(self, name: str, /) -> Variable: ...
+
     @overload
     def add_variable(self, name: str, /, vtype: Vtype | None = ...) -> Variable: ...
+
     @overload
     def add_variable(
-        self,
-        name: str,
-        /,
-        vtype: Vtype,
-        *,
-        lower: float | type[Unbounded],
+            self,
+            name: str,
+            /,
+            vtype: Vtype,
+            *,
+            lower: float | type[Unbounded],
     ) -> Variable: ...
+
     @overload
     def add_variable(
-        self,
-        name: str,
-        /,
-        vtype: Vtype,
-        *,
-        upper: float | type[Unbounded],
+            self,
+            name: str,
+            /,
+            vtype: Vtype,
+            *,
+            upper: float | type[Unbounded],
     ) -> Variable: ...
+
     @overload
     def add_variable(
-        self,
-        name: str,
-        /,
-        vtype: Vtype,
-        *,
-        lower: float | type[Unbounded],
-        upper: float | type[Unbounded],
+            self,
+            name: str,
+            /,
+            vtype: Vtype,
+            *,
+            lower: float | type[Unbounded],
+            upper: float | type[Unbounded],
     ) -> Variable: ...
+
     def add_variable(
-        self,
-        name: str,
-        /,
-        vtype: Vtype | None = ...,
-        *,
-        lower: float | type[Unbounded] | None = ...,
-        upper: float | type[Unbounded] | None = ...,
+            self,
+            name: str,
+            /,
+            vtype: Vtype | None = ...,
+            *,
+            lower: float | type[Unbounded] | None = ...,
+            upper: float | type[Unbounded] | None = ...,
     ) -> Variable:
         """
         Add a new variable to the model.
@@ -2372,8 +2129,10 @@ class Model:
 
     @overload
     def variables(self, /) -> list[Variable]: ...
+
     @overload
     def variables(self, /, *, active: bool) -> list[Variable]: ...
+
     def variables(self, /, active: bool | None = ...) -> list[Variable]:
         """
         Get all variables that are part of this model.
@@ -2392,8 +2151,10 @@ class Model:
 
     @overload
     def add_constraint(self, /, constraint: Constraint) -> None: ...
+
     @overload
     def add_constraint(self, /, constraint: Constraint, name: str) -> None: ...
+
     def add_constraint(self, /, constraint: Constraint, name: str | None = ...) -> None:
         """
         Add a constraint to the model's constraint collection.
@@ -2409,10 +2170,12 @@ class Model:
 
     @overload
     def set_objective(self, /, expression: Expression) -> None: ...
+
     @overload
     def set_objective(self, /, expression: Expression, *, sense: Sense) -> None: ...
+
     def set_objective(
-        self, /, expression: Expression, *, sense: Sense | None = ...
+            self, /, expression: Expression, *, sense: Sense | None = ...
     ) -> None:
         """
         Set the model's objective to this expression.
@@ -2472,12 +2235,16 @@ class Model:
 
     @overload
     def encode(self, /) -> bytes: ...
+
     @overload
     def encode(self, /, *, compress: bool) -> bytes: ...
+
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
+
     @overload
     def encode(self, /, compress: bool, level: int) -> bytes: ...
+
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         """
         Serialize the model into a compact binary format.
@@ -2503,14 +2270,18 @@ class Model:
 
     @overload
     def serialize(self, /) -> bytes: ...
+
     @overload
     def serialize(self, /, *, compress: bool) -> bytes: ...
+
     @overload
     def serialize(self, /, *, level: int) -> bytes: ...
+
     @overload
     def serialize(self, /, compress: bool, level: int) -> bytes: ...
+
     def serialize(
-        self, /, compress: bool | None = ..., level: int | None = ...
+            self, /, compress: bool | None = ..., level: int | None = ...
     ) -> bytes:
         """
         Alias for `encode()`.
@@ -2565,8 +2336,11 @@ class Model:
         ...
 
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
     def __hash__(self, /) -> int: ...
+
 
 # _expression.pyi
 class Expression:
@@ -2664,8 +2438,10 @@ class Expression:
 
     @overload
     def __init__(self, /) -> None: ...
+
     @overload
     def __init__(self, /, env: Environment) -> None: ...
+
     def __init__(self, /, env: Environment | None = ...) -> None:
         """
         Create a new empty expression scoped to an environment.
@@ -2800,12 +2576,16 @@ class Expression:
 
     @overload
     def encode(self, /) -> bytes: ...
+
     @overload
     def encode(self, /, *, compress: bool) -> bytes: ...
+
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
+
     @overload
     def encode(self, /, compress: bool, level: int) -> bytes: ...
+
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         """
         Serialize the expression into a compact binary format.
@@ -2831,14 +2611,18 @@ class Expression:
 
     @overload
     def serialize(self, /) -> bytes: ...
+
     @overload
     def serialize(self, /, *, compress: bool) -> bytes: ...
+
     @overload
     def serialize(self, /, *, level: int) -> bytes: ...
+
     @overload
     def serialize(self, /, compress: bool, level: int) -> bytes: ...
+
     def serialize(
-        self, /, compress: bool | None = ..., level: int | None = ...
+            self, /, compress: bool | None = ..., level: int | None = ...
     ) -> bytes:
         """
         Alias for `encode()`.
@@ -2880,12 +2664,16 @@ class Expression:
 
     @overload
     def __add__(self, other: Expression, /) -> Expression: ...
+
     @overload
     def __add__(self, other: Variable, /) -> Expression: ...
+
     @overload
     def __add__(self, other: int, /) -> Expression: ...
+
     @overload
     def __add__(self, other: float, /) -> Expression: ...
+
     def __add__(self, other: Expression | Variable | int | float, /) -> Expression:
         """
         Add another expression, variable, or scalar.
@@ -2909,12 +2697,16 @@ class Expression:
 
     @overload
     def __radd__(self, other: Expression, /) -> Expression: ...
+
     @overload
     def __radd__(self, other: Variable, /) -> Expression: ...
+
     @overload
     def __radd__(self, other: int, /) -> Expression: ...
+
     @overload
     def __radd__(self, other: float, /) -> Expression: ...
+
     def __radd__(self, other: Expression | Variable | int | float, /) -> Expression:
         """
         Add this expression to a scalar or variable.
@@ -2936,12 +2728,16 @@ class Expression:
 
     @overload
     def __iadd__(self, other: Expression, /) -> Self: ...
+
     @overload
     def __iadd__(self, other: Variable, /) -> Self: ...
+
     @overload
     def __iadd__(self, other: int, /) -> Self: ...
+
     @overload
     def __iadd__(self, other: float, /) -> Self: ...
+
     def __iadd__(self, other: Expression | Variable | int | float, /) -> Self:
         """
         In-place addition.
@@ -2965,12 +2761,16 @@ class Expression:
 
     @overload
     def __isub__(self, other: Expression, /) -> Self: ...
+
     @overload
     def __isub__(self, other: Variable, /) -> Self: ...
+
     @overload
     def __isub__(self, other: int, /) -> Self: ...
+
     @overload
     def __isub__(self, other: float, /) -> Self: ...
+
     def __isub__(self, other: Expression | Variable | int | float, /) -> Self:
         """
         In-place subtraction.
@@ -2994,12 +2794,16 @@ class Expression:
 
     @overload
     def __sub__(self, other: Expression, /) -> Expression: ...
+
     @overload
     def __sub__(self, other: Variable, /) -> Expression: ...
+
     @overload
     def __sub__(self, other: int, /) -> Expression: ...
+
     @overload
     def __sub__(self, other: float, /) -> Expression: ...
+
     def __sub__(self, other: Expression | Variable | int | float, /) -> Expression:
         """
         Subtract another expression, variable, or scalar.
@@ -3023,12 +2827,16 @@ class Expression:
 
     @overload
     def __mul__(self, other: Expression, /) -> Expression: ...
+
     @overload
     def __mul__(self, other: Variable, /) -> Expression: ...
+
     @overload
     def __mul__(self, other: int, /) -> Expression: ...
+
     @overload
     def __mul__(self, other: float, /) -> Expression: ...
+
     def __mul__(self, other: Expression | Variable | int | float, /) -> Expression:
         """
         Multiply this expression by another value.
@@ -3052,8 +2860,10 @@ class Expression:
 
     @overload
     def __rmul__(self, other: int, /) -> Expression: ...
+
     @overload
     def __rmul__(self, other: float, /) -> Expression: ...
+
     def __rmul__(self, other: int | float, /) -> Expression:
         """
         Right-hand multiplication.
@@ -3075,12 +2885,16 @@ class Expression:
 
     @overload
     def __imul__(self, other: Expression, /) -> Self: ...
+
     @overload
     def __imul__(self, other: Variable, /) -> Self: ...
+
     @overload
     def __imul__(self, other: int, /) -> Self: ...
+
     @overload
     def __imul__(self, other: float, /) -> Self: ...
+
     def __imul__(self, other: Expression | Variable | int | float, /) -> Self:
         """
         In-place multiplication.
@@ -3123,13 +2937,18 @@ class Expression:
 
     @overload
     def __eq__(self, rhs: Expression, /) -> Constraint: ...
+
     @overload
     def __eq__(self, rhs: Variable, /) -> Constraint: ...
+
     @overload
     def __eq__(self, rhs: int, /) -> Constraint: ...
+
     @overload
     def __eq__(self, rhs: float, /) -> Constraint: ...
-    def __eq__(self, rhs: Expression | Variable | int | float, /) -> Constraint:  # type: ignore[reportIncompatibleMethodOverride]
+
+    def __eq__(self, rhs: Expression | Variable | int | float,
+               /) -> Constraint:  # type: ignore[reportIncompatibleMethodOverride]
         """
         Compare to a different expression or create a constraint `expression == scalar`.
 
@@ -3155,12 +2974,16 @@ class Expression:
 
     @overload
     def __le__(self, rhs: Expression, /) -> Constraint: ...
+
     @overload
     def __le__(self, rhs: Variable, /) -> Constraint: ...
+
     @overload
     def __le__(self, rhs: int, /) -> Constraint: ...
+
     @overload
     def __le__(self, rhs: float, /) -> Constraint: ...
+
     def __le__(self, rhs: Expression | Variable | int | float, /) -> Constraint:
         """
         Create a constraint `expression <= scalar`.
@@ -3187,12 +3010,16 @@ class Expression:
 
     @overload
     def __ge__(self, rhs: Expression, /) -> Constraint: ...
+
     @overload
     def __ge__(self, rhs: Variable, /) -> Constraint: ...
+
     @overload
     def __ge__(self, rhs: int, /) -> Constraint: ...
+
     @overload
     def __ge__(self, rhs: float, /) -> Constraint: ...
+
     def __ge__(self, rhs: Expression | Variable | int | float, /) -> Constraint:
         """
         Create a constraint: expression >= scalar.
@@ -3233,7 +3060,9 @@ class Expression:
         ...
 
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
 
 class ExpressionIterator:
     """
@@ -3254,7 +3083,9 @@ class ExpressionIterator:
     """
 
     def __next__(self) -> tuple[Constant | Linear | Quadratic | HigherOrder, float]: ...
+
     def __iter__(self) -> ExpressionIterator: ...
+
 
 # _environment.pyi
 class Environment:
@@ -3317,11 +3148,11 @@ class Environment:
         ...
 
     def __exit__(
-        self,
-        /,
-        exc_type: type[BaseException] | None = ...,
-        exc_value: BaseException | None = ...,
-        exc_traceback: TracebackType | None = ...,
+            self,
+            /,
+            exc_type: type[BaseException] | None = ...,
+            exc_value: BaseException | None = ...,
+            exc_traceback: TracebackType | None = ...,
     ) -> None:
         """
         Deactivate this environment.
@@ -3353,12 +3184,16 @@ class Environment:
 
     @overload
     def encode(self, /) -> bytes: ...
+
     @overload
     def encode(self, /, *, compress: bool) -> bytes: ...
+
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
+
     @overload
     def encode(self, /, compress: bool, level: int) -> bytes: ...
+
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         """
         Serialize the environment into a compact binary format.
@@ -3386,14 +3221,18 @@ class Environment:
 
     @overload
     def serialize(self, /) -> bytes: ...
+
     @overload
     def serialize(self, /, *, compress: bool) -> bytes: ...
+
     @overload
     def serialize(self, /, *, level: int) -> bytes: ...
+
     @overload
     def serialize(self, /, compress: bool, level: int) -> bytes: ...
+
     def serialize(
-        self, /, compress: bool | None = ..., level: int | None = ...
+            self, /, compress: bool | None = ..., level: int | None = ...
     ) -> bytes:
         """
         Alias for `encode()`.
@@ -3434,8 +3273,11 @@ class Environment:
         ...
 
     def __eq__(self, other: Environment, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
+
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
 
 # _constraints.pyi
 class Comparator(Enum):
@@ -3471,7 +3313,9 @@ class Comparator(Enum):
     """Greater-than or equal (>=)"""
 
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
 
 class Constraint:
     """
@@ -3508,73 +3352,89 @@ class Constraint:
 
     @overload
     def __init__(
-        self, /, lhs: Expression, rhs: Expression, comparator: Comparator
+            self, /, lhs: Expression, rhs: Expression, comparator: Comparator
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Expression, rhs: Variable, comparator: Comparator
+            self, /, lhs: Expression, rhs: Variable, comparator: Comparator
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Expression, rhs: int, comparator: Comparator
+            self, /, lhs: Expression, rhs: int, comparator: Comparator
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Expression, rhs: float, comparator: Comparator
+            self, /, lhs: Expression, rhs: float, comparator: Comparator
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Expression, rhs: Expression, comparator: Comparator, name: str
+            self, /, lhs: Expression, rhs: Expression, comparator: Comparator, name: str
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Expression, rhs: Variable, comparator: Comparator, name: str
+            self, /, lhs: Expression, rhs: Variable, comparator: Comparator, name: str
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Expression, rhs: int, comparator: Comparator, name: str
+            self, /, lhs: Expression, rhs: int, comparator: Comparator, name: str
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Expression, rhs: float, comparator: Comparator, name: str
+            self, /, lhs: Expression, rhs: float, comparator: Comparator, name: str
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Variable, rhs: Expression, comparator: Comparator
+            self, /, lhs: Variable, rhs: Expression, comparator: Comparator
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Variable, rhs: Variable, comparator: Comparator
+            self, /, lhs: Variable, rhs: Variable, comparator: Comparator
     ) -> None: ...
+
     @overload
     def __init__(self, /, lhs: Variable, rhs: int, comparator: Comparator) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Variable, rhs: float, comparator: Comparator
+            self, /, lhs: Variable, rhs: float, comparator: Comparator
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Variable, rhs: Expression, comparator: Comparator, name: str
+            self, /, lhs: Variable, rhs: Expression, comparator: Comparator, name: str
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Variable, rhs: Variable, comparator: Comparator, name: str
+            self, /, lhs: Variable, rhs: Variable, comparator: Comparator, name: str
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Variable, rhs: int, comparator: Comparator, name: str
+            self, /, lhs: Variable, rhs: int, comparator: Comparator, name: str
     ) -> None: ...
+
     @overload
     def __init__(
-        self, /, lhs: Variable, rhs: float, comparator: Comparator, name: str
+            self, /, lhs: Variable, rhs: float, comparator: Comparator, name: str
     ) -> None: ...
+
     def __init__(
-        self,
-        /,
-        lhs: Variable | Expression,
-        rhs: int | float | Expression | Variable,
-        comparator: Comparator,
-        name: str,
+            self,
+            /,
+            lhs: Variable | Expression,
+            rhs: int | float | Expression | Variable,
+            comparator: Comparator,
+            name: str,
     ) -> None:
         """
         Construct a new symbolic constraint.
@@ -3648,8 +3508,11 @@ class Constraint:
         ...
 
     def __eq__(self, other: Constraint, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
+
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
 
 class Constraints:
     """
@@ -3683,10 +3546,13 @@ class Constraints:
     """
 
     def __init__(self, /) -> None: ...
+
     @overload
     def add_constraint(self, /, constraint: Constraint) -> None: ...
+
     @overload
     def add_constraint(self, /, constraint: Constraint, name: str) -> None: ...
+
     def add_constraint(self, /, constraint: Constraint, name: str | None = ...) -> None:
         """
         Add a constraint to the collection.
@@ -3699,14 +3565,19 @@ class Constraints:
             The name of the constraint to be added.
         """
         ...
+
     @overload
     def encode(self, /) -> bytes: ...
+
     @overload
     def encode(self, /, *, compress: bool) -> bytes: ...
+
     @overload
     def encode(self, /, *, level: int) -> bytes: ...
+
     @overload
     def encode(self, /, compress: bool, level: int) -> bytes: ...
+
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         """
         Serialize the constraint collection to a binary blob.
@@ -3732,14 +3603,18 @@ class Constraints:
 
     @overload
     def serialize(self, /) -> bytes: ...
+
     @overload
     def serialize(self, /, *, compress: bool) -> bytes: ...
+
     @overload
     def serialize(self, /, *, level: int) -> bytes: ...
+
     @overload
     def serialize(self, /, compress: bool, level: int) -> bytes: ...
+
     def serialize(
-        self, /, compress: bool | None = ..., level: int | None = ...
+            self, /, compress: bool | None = ..., level: int | None = ...
     ) -> bytes:
         """
         Alias for `encode()`.
@@ -3781,8 +3656,10 @@ class Constraints:
 
     @overload
     def __iadd__(self, constraint: Constraint, /) -> Self: ...
+
     @overload
     def __iadd__(self, constraint: tuple[Constraint, str], /) -> Self: ...
+
     def __iadd__(self, constraint: Constraint | tuple[Constraint, str], /) -> Self:
         """
         In-place constraint addition using `+=`.
@@ -3805,9 +3682,13 @@ class Constraints:
         ...
 
     def __eq__(self, other: Constraints, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
+
     def __str__(self, /) -> str: ...
+
     def __repr__(self, /) -> str: ...
+
     def __getitem__(self, item: int, /) -> Constraint: ...
+
     def __len__(self, /) -> int:
         """
         Get the number of constraints.
@@ -3818,6 +3699,7 @@ class Constraints:
             The number of constraints associated with this `Constraints` object.
         """
         ...
+
 
 __all__ = [
     "Bounds",

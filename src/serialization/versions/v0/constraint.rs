@@ -4,8 +4,8 @@ use crate::serialization::encodable::BytesDecodable;
 use crate::{
     core::Comparator,
     serialization::{
-        encodable::{BytesEncodable, Creatable, DecodeError},
-        Decodable, Encodable,
+        encodable::{BytesEncodable, DecodeError},
+        Decodable,
     },
 };
 use prost::Message;
@@ -51,44 +51,7 @@ impl BytesDecodable<Constraints, SharedEnvironment> for SerConstraints {
     }
 }
 
-/// Makes the SerConstraints conform with the requirements for it to be an Encodable.
-impl Creatable<Constraints> for SerConstraints {
-    fn new(value: &Constraints) -> Self {
-        Self::default().fill(value)
-    }
-}
-
 impl SerConstraints {
-    /// Creates an empty serializable constraints struct.
-    fn default() -> Self {
-        Self {
-            lhsides: Vec::new(),
-            rhsides: Vec::new(),
-            comparators: Vec::new(),
-            names: Vec::new(),
-        }
-    }
-
-    /// Fills the serializable constraints based on an instance of constraints.
-    fn fill(mut self, constraints: &Constraints) -> Self {
-        for c in &constraints.constraints {
-            let lhs_bytes = c.lhs.encode();
-
-            let comparator = match c.comparator {
-                Comparator::Le => 0,
-                Comparator::Eq => 1,
-                Comparator::Ge => 2,
-            };
-            self.lhsides.push(lhs_bytes);
-            self.rhsides.push(c.rhs);
-            self.comparators.push(comparator);
-            self.names
-                .push(c.name.clone().unwrap_or("<NN>".to_string()));
-        }
-
-        self
-    }
-
     /// Extracts the data from self to an instance of Constraints with Index VarId and
     /// Bias f64.
     pub fn extract(&self, env: SharedEnvironment) -> Result<Constraints, DecodeError> {

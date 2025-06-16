@@ -86,7 +86,7 @@ impl PyDwaveTranslator {
             energy.as_slice()?,
             samples.shape(),
             timing.map(|t| t.into()),
-            environment.0.clone()
+            environment.0.clone(),
         )?))
     }
 

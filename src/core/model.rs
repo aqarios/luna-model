@@ -175,13 +175,7 @@ impl Model {
                 .map(|constr| constr.evaluate_sample(&sample))
                 .collect();
             let variable_bounds = self.environment.borrow().evaluate_bounds::<Sample>(&sample);
-            newsol.add_sample_evaluation(
-                i,
-                Some(obj_val),
-                constraints,
-                variable_bounds,
-                self.sense.is_min(),
-            );
+            newsol.add_sample_evaluation(i, Some(obj_val), constraints, variable_bounds);
         }
         Ok(RcSolution(newsol.into()))
     }

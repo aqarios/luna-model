@@ -17,8 +17,8 @@ pub use constraints::Comparator;
 pub use constraints::Constraint;
 pub use constraints::Constraints;
 
-pub use environment::SharedEnvironment;
 pub use environment::Environment;
+pub use environment::SharedEnvironment;
 
 pub use expression::Expression;
 pub use expression::ExpressionBase;

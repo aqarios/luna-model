@@ -1,8 +1,8 @@
-use crate::core::expression::One;
 use super::{
     base::{ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulDirect},
     Expression,
 };
+use crate::core::expression::One;
 use crate::core::ExpressionBase;
 use crate::core::VarRef;
 use crate::errors::VariablesFromDifferentEnvsErr;

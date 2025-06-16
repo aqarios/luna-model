@@ -1,8 +1,8 @@
 use crate::{
     core::{Bound, Environment, LazyBounds, VarId, Variable, Vtype},
     serialization::{
-        encodable::{BytesDecodable, BytesEncodable, Creatable},
-        utils::{force_u32, force_u8},
+        encodable::{BytesDecodable, BytesEncodable},
+        utils::force_u8,
     },
 };
 use prost::Message;
@@ -87,88 +87,7 @@ impl BytesDecodable<Environment> for SerEnvironment {
     }
 }
 
-/// Makes the SerEnvironment conform with the requirements for it to be an Encodable.
-impl Creatable<Environment> for SerEnvironment {
-    /// Creates a new instance of a serializabl environment and fills it based on an
-    /// instance of Environment.
-    fn new(environment: &Environment) -> Self {
-        let mut out = Self::base(environment.id, environment.varcount.0);
-
-        for (i, var) in environment.variables.iter().enumerate() {
-            match var.vtype {
-                Vtype::Binary => {
-                    out.binary.push(force_u32(i));
-                    out.binary_names.push(var.name.clone());
-                }
-                Vtype::Spin => {
-                    out.spin.push(force_u32(i));
-                    out.spin_names.push(var.name.clone());
-                }
-                Vtype::Integer => {
-                    out.integer.push(force_u32(i));
-                    out.integer_names.push(var.name.clone());
-
-                    if var.bounds.lower.is_bounded() {
-                        out.integer_bounds_bounded_lower.push(true);
-                        out.integer_bounds_lower.push(var.bounds.lower.unwrap());
-                    } else {
-                        out.integer_bounds_bounded_lower.push(false);
-                    }
-                    if var.bounds.upper.is_bounded() {
-                        out.integer_bounds_bounded_upper.push(true);
-                        out.integer_bounds_upper.push(var.bounds.upper.unwrap());
-                    } else {
-                        out.integer_bounds_bounded_upper.push(false);
-                    }
-                }
-                Vtype::Real => {
-                    out.real.push(force_u32(i));
-                    out.real_names.push(var.name.clone());
-                    if var.bounds.lower.is_bounded() {
-                        out.real_bounds_bounded_lower.push(true);
-                        out.real_bounds_lower.push(var.bounds.lower.unwrap());
-                    } else {
-                        out.real_bounds_bounded_lower.push(false);
-                    }
-                    if var.bounds.upper.is_bounded() {
-                        out.real_bounds_bounded_upper.push(true);
-                        out.real_bounds_upper.push(var.bounds.upper.unwrap());
-                    } else {
-                        out.real_bounds_bounded_upper.push(false);
-                    }
-                }
-            }
-        }
-
-        out
-    }
-}
-
 impl SerEnvironment {
-    /// Creates an empty serializable environment.
-    fn base(id: u8, varcount: u32) -> Self {
-        Self {
-            id: id as u32,
-            varcount,
-            binary: Vec::new(),
-            spin: Vec::new(),
-            integer: Vec::new(),
-            real: Vec::new(),
-            binary_names: Vec::new(),
-            spin_names: Vec::new(),
-            integer_names: Vec::new(),
-            real_names: Vec::new(),
-            integer_bounds_bounded_lower: Vec::new(),
-            integer_bounds_bounded_upper: Vec::new(),
-            integer_bounds_lower: Vec::new(),
-            integer_bounds_upper: Vec::new(),
-            real_bounds_bounded_lower: Vec::new(),
-            real_bounds_bounded_upper: Vec::new(),
-            real_bounds_lower: Vec::new(),
-            real_bounds_upper: Vec::new(),
-        }
-    }
-
     /// Extracts the data from self to and instance of Environment with Index VarId.
     pub fn extract(&self) -> Environment {
         let mut env = Environment::new_for(force_u8(self.id));

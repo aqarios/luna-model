@@ -246,7 +246,7 @@ impl PyExpressionIterator {
             },
             env: match &expr.0 {
                 Left(expr) => expr.env.clone(),
-                Right(p) => p.borrow().environment.clone()
+                Right(p) => p.borrow().environment.clone(),
             },
             current_idx: 0,
         }
@@ -407,10 +407,7 @@ impl PyExpression {
         };
         Ok(PyBytes::new(
             py,
-            &base
-                .encode()
-                .maybe_compress(compress, level)?
-                .versionize(),
+            &base.encode().maybe_compress(compress, level)?.versionize(),
         )
         .into())
     }
@@ -834,7 +831,7 @@ impl PyExpression {
             (Left(l), Left(r)) => l == r,
             (Left(l), Right(r)) => *l == r.borrow().objective,
             (Right(l), Left(r)) => l.borrow().objective == *r,
-            (Right(l), Right(r)) => l.borrow().objective == r.borrow().objective
+            (Right(l), Right(r)) => l.borrow().objective == r.borrow().objective,
         }
     }
 

@@ -1,4 +1,7 @@
-use aqmodels::{core::{expression::ExpressionBaseCreation, Expression}, types::Bias};
+use aqmodels::{
+    core::{expression::ExpressionBaseCreation, Expression},
+    types::Bias,
+};
 
 use crate::common::*;
 

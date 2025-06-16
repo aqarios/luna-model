@@ -6,6 +6,12 @@ use super::versions::v0::SerExpression as SerExprV0;
 use super::versions::v0::SerModel as SerModelV0;
 use super::versions::v0::SerSolution as SerSolutionV0;
 use super::versions::v0::SerTiming as SerTimingV0;
+use super::versions::v1::SerConstraints as SerConstrV1;
+use super::versions::v1::SerEnvironment as SerEnvV1;
+use super::versions::v1::SerExpression as SerExprV1;
+use super::versions::v1::SerModel as SerModelV1;
+use super::versions::v1::SerSolution as SerSolutionV1;
+use super::versions::v1::SerTiming as SerTimingV1;
 use super::Version;
 use crate::core::environment::SharedEnvironment;
 use crate::core::{Constraints, Environment, Expression, Model, RcSolution, Timing};
@@ -14,45 +20,52 @@ use crate::core::{Constraints, Environment, Expression, Model, RcSolution, Timin
 /// of an Expression. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
-type SerExprLatest = SerExprV0;
+type SerExprLatest = SerExprV1;
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of Constraints. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
-type SerConstrLatest = SerConstrV0;
+type SerConstrLatest = SerConstrV1;
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of an Environment. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
-type SerEnvLatest = SerEnvV0;
+type SerEnvLatest = SerEnvV1;
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of a Model. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
-type SerModelLatest = SerModelV0;
+type SerModelLatest = SerModelV1;
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of a Solution. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
-type SerSolutionLatest = SerSolutionV0;
+type SerSolutionLatest = SerSolutionV1;
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of a Timing. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
-type SerTimingLatest = SerTimingV0;
+type SerTimingLatest = SerTimingV1;
 
 /// Makes an Expression with Index = VarId and Bias = f64 encodable.
-impl Encodable<SerExprV0> for Expression {}
+impl Encodable<SerExprV1> for Expression {}
 /// Makes a Constraints with Index = VarId and Bias = f64 encodable.
-impl Encodable<SerConstrV0> for Constraints {}
+impl Encodable<SerConstrV1> for Constraints {}
 /// Makes an Environment with Index = VarId encodable.
-impl Encodable<SerEnvV0> for Environment {}
+impl Encodable<SerEnvV1> for Environment {}
 /// Makes a Model with Index = VarId and Bias = f64 encodable.
-impl Encodable<SerModelV0> for Model {}
+impl Encodable<SerModelV1> for Model {}
 /// Makes a Solution encodable.
-impl Encodable<SerSolutionV0> for RcSolution {}
+impl Encodable<SerSolutionV1> for RcSolution {}
 /// Makes a Timing encodable.
-impl Encodable<SerTimingV0> for Timing {}
+impl Encodable<SerTimingV1> for Timing {}
+
+impl Decoder<Constraints, SharedEnvironment> for SerConstrV0 {}
+impl Decoder<Environment, ()> for SerEnvV0 {}
+impl Decoder<Expression, SharedEnvironment> for SerExprV0 {}
+impl Decoder<Model, ()> for SerModelV0 {}
+impl Decoder<RcSolution, ()> for SerSolutionV0 {}
+impl Decoder<Timing, ()> for SerTimingV0 {}
 
 /// Default implementation to make a bytes vector deserializable to an Expression.
 /// For the decoding of a bytes vector to an Expression a reference counted pointer to
@@ -71,6 +84,7 @@ impl Decodable<Expression> for Versioned<Vec<u8>> {
     fn decode(&self, payload: Self::Payload) -> Result<Expression, DecodeError> {
         match self.version {
             Some(Version::V0) => SerExprV0::decoder(self.data.as_slice(), payload),
+            Some(Version::V1) => SerExprV1::decoder(self.data.as_slice(), payload),
             None => SerExprLatest::decoder(self.data.as_slice(), payload),
         }
     }
@@ -93,7 +107,8 @@ impl Decodable<Constraints> for Versioned<Vec<u8>> {
     fn decode(&self, payload: Self::Payload) -> Result<Constraints, DecodeError> {
         match self.version {
             Some(Version::V0) => SerConstrV0::decoder(self.data.as_slice(), payload),
-            None => SerConstrV0::decoder(self.data.as_slice(), payload),
+            Some(Version::V1) => SerConstrV1::decoder(self.data.as_slice(), payload),
+            None => SerConstrV1::decoder(self.data.as_slice(), payload),
         }
     }
 }
@@ -111,6 +126,7 @@ impl Decodable<Environment> for Versioned<Vec<u8>> {
     fn decode(&self, payload: Self::Payload) -> Result<Environment, DecodeError> {
         match self.version {
             Some(Version::V0) => SerEnvV0::decoder(self.data.as_slice(), payload),
+            Some(Version::V1) => SerEnvV1::decoder(self.data.as_slice(), payload),
             None => SerEnvLatest::decoder(self.data.as_slice(), payload),
         }
     }
@@ -129,6 +145,7 @@ impl Decodable<Model> for Versioned<Vec<u8>> {
     fn decode(&self, payload: Self::Payload) -> Result<Model, DecodeError> {
         match self.version {
             Some(Version::V0) => SerModelV0::decoder(self.data.as_slice(), payload),
+            Some(Version::V1) => SerModelV1::decoder(self.data.as_slice(), payload),
             None => SerModelLatest::decoder(self.data.as_slice(), payload),
         }
     }
@@ -147,6 +164,7 @@ impl Decodable<RcSolution> for Versioned<Vec<u8>> {
     fn decode(&self, payload: Self::Payload) -> Result<RcSolution, DecodeError> {
         match self.version {
             Some(Version::V0) => SerSolutionV0::decoder(self.data.as_slice(), payload),
+            Some(Version::V1) => SerSolutionV1::decoder(self.data.as_slice(), payload),
             None => SerSolutionLatest::decoder(self.data.as_slice(), payload),
         }
     }
@@ -166,6 +184,7 @@ impl Decodable<Timing> for Versioned<Vec<u8>> {
     fn decode(&self, payload: Self::Payload) -> Result<Timing, DecodeError> {
         match self.version {
             Some(Version::V0) => SerTimingV0::decoder(self.data.as_slice(), payload),
+            Some(Version::V1) => SerTimingV1::decoder(self.data.as_slice(), payload),
             None => SerTimingLatest::decoder(self.data.as_slice(), payload),
         }
     }
