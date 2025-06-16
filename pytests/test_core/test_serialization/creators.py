@@ -8,8 +8,7 @@ def create_serializable_objects():
 
 
 def create_serialized_objects():
-    # return serialized_objects([Model, Environment])
-    return serialized_objects([Environment])
+    return serialized_objects([Model, Environment])
 
 
 def create_serialized_objects_with_env():

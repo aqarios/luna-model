@@ -12,7 +12,7 @@ use super::{
 };
 use crate::core::environment::SharedEnvironment;
 use crate::core::operations::AddAssignToExpression;
-use crate::core::{LazyBounds, RcSolution, Sense, VarRef, Vtype};
+use crate::core::{ContentEquality, LazyBounds, RcSolution, Sense, VarRef, Vtype};
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
 use crate::py_bindings::py_var::PyVariable;
@@ -465,6 +465,12 @@ impl PyModel {
     /// Compute the hash of the variable.
     fn __hash__(&self) -> PyResult<u64> {
         self.hash(false, false, None)
+    }
+
+    fn equal_contents(&self, other: &Self) -> bool {
+        self.concrete_model
+            .borrow()
+            .is_equal_contents(&other.concrete_model.borrow())
     }
 }
 

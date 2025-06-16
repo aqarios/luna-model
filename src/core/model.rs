@@ -5,6 +5,7 @@ use super::constraints::Constraints;
 use super::environment::SharedEnvironment;
 use super::expression::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation};
 use super::solution::OwnedSample;
+use super::traits::ContentEquality;
 use super::utils::{check_variables_sample, check_variables_sol};
 use super::{Environment, Expression, RcSolution, Sample, Vtype};
 use crate::core::expression::ExpressionEvaluation;
@@ -247,5 +248,15 @@ impl Display for Model {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = ModelWriter::new().write_model(&self).to_string();
         f.write_str(&s)
+    }
+}
+
+impl ContentEquality for Model {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.environment.is_equal_contents(&other.environment)
+            && self.objective.is_equal_contents(&other.objective)
+            && self.constraints.is_equal_contents(&other.constraints)
+            && self.sense == other.sense
     }
 }

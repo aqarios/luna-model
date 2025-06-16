@@ -1,4 +1,5 @@
 use crate::core::expression::One;
+use crate::core::traits::ContentEquality;
 use crate::core::variable::{VarRef, Variable, Vtype};
 use crate::core::writer::LineLengthRestrictor;
 use crate::core::{LazyBounds, ValueByIndex, VarAssignment};
@@ -6,12 +7,14 @@ use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use crate::types::Bias;
 use crate::types::{EnvId, VarIndex};
 use derive_more::{Deref, DerefMut};
+use global_counter::primitive::exact::CounterU64;
 use hashbrown::HashMap;
-use uuid::Uuid;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::slice::Iter;
 use std::{cell::RefCell, ops::Index, rc::Rc};
+
+pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Environment {
@@ -109,9 +112,25 @@ impl Clone for SharedEnvironment {
     }
 }
 
+impl ContentEquality for SharedEnvironment {
+    /// Compare content equality of two environments, ignoring the envid.
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.borrow().is_equal_contents(&other.borrow())
+    }
+}
+
+impl ContentEquality for Environment {
+    /// Compare content equality of two environments, ignoring the envid.
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.variables.is_equal_contents(&other.variables)
+            && self.variables_lookup == other.variables_lookup
+            && self.varcount == other.varcount
+    }
+}
+
 impl Environment {
     pub fn new() -> Self {
-        Self::new_for(Uuid::new_v4())
+        Self::new_for(ENV_COUNTER.inc())
     }
 
     pub fn new_for(id: EnvId) -> Self {
@@ -129,7 +148,7 @@ impl Environment {
     /// The deep cloned environment gets a new environment id that is guaranteed
     /// to be different from all other possibly exisiting environments.
     pub fn deep_clone(&self) -> Self {
-        let id = Uuid::new_v4();
+        let id = ENV_COUNTER.inc();
         Self {
             id,
             variables: self.variables.iter().map(|v| v.deep_clone(id)).collect(),

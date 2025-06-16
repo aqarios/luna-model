@@ -1,4 +1,5 @@
 use crate::core::solution::timing::Timing;
+use crate::core::traits::ContentEquality;
 use crate::core::writer::SolutionWriter;
 use crate::core::{ResultIterator, ResultView, Samples};
 use crate::errors::{
@@ -102,14 +103,12 @@ impl SampleCol {
                     xs.push(x);
                 }
             },
-            Self::Integer(xs) => {
-                match <IntegerAssignmentType as NumCast>::from(assignment) {
-                    None => return Err(SampleIncompatibleVtypeErr),
-                    Some(x) => {
-                        xs.push(x);
-                    }
+            Self::Integer(xs) => match <IntegerAssignmentType as NumCast>::from(assignment) {
+                None => return Err(SampleIncompatibleVtypeErr),
+                Some(x) => {
+                    xs.push(x);
                 }
-            }
+            },
             Self::Real(xs) => match <RealAssignmentType as NumCast>::from(assignment) {
                 None => return Err(SampleIncompatibleVtypeErr),
                 Some(x) => {
@@ -268,9 +267,7 @@ impl Solution {
     }
 
     pub fn get_assignment(&self, row_idx: usize, col_idx: usize) -> Option<VarAssignment> {
-        self.samples
-            .get(col_idx)
-            .and_then(|col| col.get(row_idx))
+        self.samples.get(col_idx).and_then(|col| col.get(row_idx))
     }
 
     pub fn best(&self) -> Option<ResultView> {
@@ -362,5 +359,21 @@ impl Display for RcSolution {
             .write_solution(RcSolution::clone(&self))
             .to_string();
         f.write_str(&s)
+    }
+}
+
+impl ContentEquality for Solution {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.samples == other.samples
+            && self.counts == other.counts
+            && self.obj_values == other.obj_values
+            && self.raw_energies == other.raw_energies
+            && self.constraints == other.constraints
+            && self.variable_bounds == other.variable_bounds
+            && self.feasible == other.feasible
+            && self.best_sample_idx == other.best_sample_idx
+            && self.timing == other.timing
+            && self.n_samples == other.n_samples
+            && self.variable_names == other.variable_names
     }
 }

@@ -4,8 +4,8 @@ from aqmodels import Environment, Model, Variable, Vtype
 from aqmodels.errors import DuplicateConstraintNameError
 
 
-def model_iadd(request, env) -> Model:
-    with env:
+def model_iadd(request) -> Model:
+    with Environment():
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -21,8 +21,8 @@ def model_iadd(request, env) -> Model:
     return model
 
 
-def model_iadd_named(request, env) -> Model:
-    with env:
+def model_iadd_named(request) -> Model:
+    with Environment():
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -38,8 +38,8 @@ def model_iadd_named(request, env) -> Model:
     return model
 
 
-def model_fadd(request, env) -> Model:
-    with env:
+def model_fadd(request) -> Model:
+    with Environment():
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -55,8 +55,8 @@ def model_fadd(request, env) -> Model:
     return model
 
 
-def model_fadd_named(request, env) -> Model:
-    with env:
+def model_fadd_named(request) -> Model:
+    with Environment():
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -72,8 +72,8 @@ def model_fadd_named(request, env) -> Model:
     return model
 
 
-def model_direct_add(request, env) -> Model:
-    with env:
+def model_direct_add(request) -> Model:
+    with Environment():
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -89,8 +89,8 @@ def model_direct_add(request, env) -> Model:
     return model
 
 
-def model_direct_add_named(request, env) -> Model:
-    with env:
+def model_direct_add_named(request) -> Model:
+    with Environment():
         model = Model()
         x = Variable("x")
         y = Variable("y")
@@ -108,17 +108,15 @@ def model_direct_add_named(request, env) -> Model:
 
 @pytest.fixture
 def models(request) -> tuple[Model, Model, Model]:
-    env = Environment()
-    return (model_iadd(request, env), model_fadd(request, env), model_direct_add(request, env))
+    return (model_iadd(request), model_fadd(request), model_direct_add(request))
 
 
 @pytest.fixture
 def models_named(request) -> tuple[Model, Model, Model]:
-    env = Environment()
     return (
-        model_iadd_named(request, env),
-        model_fadd_named(request, env),
-        model_direct_add_named(request, env),
+        model_iadd_named(request),
+        model_fadd_named(request),
+        model_direct_add_named(request),
     )
 
 
@@ -225,33 +223,19 @@ def test_model_add_constraint_ge_named_duplicate():
 
 
 @pytest.mark.constraint
-@pytest.mark.parametrize("models", ["le"], indirect=True)
-def test_model_add_constraint_same_le(models: tuple[Model, Model, Model]):
+@pytest.mark.parametrize("models", ["le", "eq", "ge"], indirect=True)
+def test_model_add_constraint_same(models: tuple[Model, Model, Model]):
     model_a, model_b, model_c = models
-    assert model_a.constraints == model_b.constraints
-    assert model_b.constraints == model_c.constraints
-
-@pytest.mark.constraint
-@pytest.mark.parametrize("models", ["eq"], indirect=True)
-def test_model_add_constraint_same_eq(models: tuple[Model, Model, Model]):
-    model_a, model_b, model_c = models
-    assert model_a.constraints == model_b.constraints
-    assert model_b.constraints == model_c.constraints
-
-@pytest.mark.constraint
-@pytest.mark.parametrize("models", ["ge"], indirect=True)
-def test_model_add_constraint_same_ge(models: tuple[Model, Model, Model]):
-    model_a, model_b, model_c = models
-    assert model_a.constraints == model_b.constraints
-    assert model_b.constraints == model_c.constraints
+    assert model_a.constraints.equal_contents(model_b.constraints)
+    assert model_b.constraints.equal_contents(model_c.constraints)
 
 
 @pytest.mark.constraint
 @pytest.mark.parametrize("models_named", ["le", "eq", "ge"], indirect=True)
 def test_model_add_constraint_same_named(models_named: tuple[Model, Model, Model]):
     model_a, model_b, model_c = models_named
-    assert model_a.constraints == model_b.constraints
-    assert model_b.constraints == model_c.constraints
+    assert model_a.constraints.equal_contents(model_b.constraints)
+    assert model_b.constraints.equal_contents(model_c.constraints)
 
 
 @pytest.mark.constraint

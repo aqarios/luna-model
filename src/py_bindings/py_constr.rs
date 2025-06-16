@@ -4,7 +4,7 @@ use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 use crate::{
     core::{
         expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
-        Constraint, Constraints, Expression, Model,
+        Constraint, Constraints, ContentEquality, Expression, Model,
     },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -477,6 +477,18 @@ impl PyConstraints {
         env: PyEnvironment,
     ) -> PyResult<Self> {
         Self::decode(cls, py, data, env)
+    }
+
+    fn equal_contents(&self, other: &Self) -> bool {
+        match (&self.data, &other.data) {
+            (Left(lhs), Left(rhs)) => lhs.is_equal_contents(&rhs),
+            (Left(lhs), Right(rhs)) => lhs.is_equal_contents(&rhs.borrow().constraints),
+            (Right(lhs), Left(rhs)) => lhs.borrow().constraints.is_equal_contents(&rhs),
+            (Right(lhs), Right(rhs)) => lhs
+                .borrow()
+                .constraints
+                .is_equal_contents(&rhs.borrow().constraints),
+        }
     }
 }
 

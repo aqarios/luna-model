@@ -1,12 +1,8 @@
 use crate::{
-    core::{Bound, Environment, LazyBounds, VarId, Variable, Vtype},
-    serialization::{
-        encodable::{BytesDecodable, BytesEncodable, Creatable},
-        utils::force_u32,
-    },
+    core::{environment::ENV_COUNTER, Bound, Environment, LazyBounds, VarId, Variable, Vtype},
+    serialization::{encodable::{BytesDecodable, BytesEncodable, Creatable}, utils::force_u32},
 };
 use prost::Message;
-use uuid::Uuid;
 
 /// Representation of a bytes encodable/decodable environment.
 #[derive(Clone, PartialEq, Message)]
@@ -66,13 +62,6 @@ pub struct SerEnvironment {
     /// The reals' upper bounds.
     #[prost(double, repeated, tag = "18")]
     real_bounds_upper: Vec<f64>,
-
-    /// The environment id part A.
-    #[prost(uint64, tag = "19")]
-    id_a: u64,
-    /// The environment id part A.
-    #[prost(uint64, tag = "20")]
-    id_b: u64,
 }
 
 /// Makes the SerEnvironment conform with the requirements for it to be an Encodable.
@@ -97,7 +86,7 @@ impl Creatable<Environment> for SerEnvironment {
     /// Creates a new instance of a serializabl environment and fills it based on an
     /// instance of Environment.
     fn new(environment: &Environment) -> Self {
-        let mut out = Self::base(environment.id, environment.varcount.0);
+        let mut out = Self::base(environment.varcount.0);
 
         for (i, var) in environment.variables.iter().enumerate() {
             match var.vtype {
@@ -151,11 +140,8 @@ impl Creatable<Environment> for SerEnvironment {
 
 impl SerEnvironment {
     /// Creates an empty serializable environment.
-    fn base(id: Uuid, varcount: u32) -> Self {
-        let (a, b) = id.as_u64_pair();
+    fn base(varcount: u32) -> Self {
         Self {
-            id_a: a,
-            id_b: b,
             varcount,
             binary: Vec::new(),
             spin: Vec::new(),
@@ -178,7 +164,8 @@ impl SerEnvironment {
 
     /// Extracts the data from self to and instance of Environment with Index VarId.
     pub fn extract(&self) -> Environment {
-        let mut env = Environment::new_for(Uuid::from_u64_pair(self.id_a, self.id_b));
+        // Serialization UPDATE
+        let mut env = Environment::new_for(ENV_COUNTER.inc());
         env.varcount = VarId(self.varcount);
         env.variables = Vec::with_capacity(self.varcount as usize);
         env.variables

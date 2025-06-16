@@ -1,5 +1,5 @@
 use crate::{
-    core::environment::SharedEnvironment,
+    core::{environment::SharedEnvironment, ContentEquality},
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
@@ -216,5 +216,9 @@ impl PyEnvironment {
 
     fn __repr__(&self) -> String {
         format!("{:#?}", self.borrow())
+    }
+
+    fn equal_contents(&self, other: &Self) -> bool {
+        self.0.is_equal_contents(&other.0)
     }
 }

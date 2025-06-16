@@ -5,7 +5,6 @@ from math import prod
 from typing import Callable, Protocol, Sequence
 
 from aqmodels import (
-    quicksum,
     Bounds,
     Comparator,
     Constraint,
@@ -98,8 +97,7 @@ def environments() -> list[Environment]:
     ]
 
     envs: list[Environment] = list()
-    # for r in range(1, len(variables_gen) + 1):
-    for r in range(1, 2):
+    for r in range(1, len(variables_gen) + 1):
         var_gen_combs = combinations(variables_gen, r)
         for var_gens in var_gen_combs:
             env = Environment()
@@ -129,8 +127,8 @@ def expressions(
     for r in range(2, len(items) + 1):
         combs = combinations(items, r)
         item_cominations.extend(
-            [quicksum([random(seed) * v for v in comb]) for comb in combs]
-        )
+            [sum([random(seed) * v for v in comb]) for comb in combs]
+        )  # type: ignore
 
     return [*items, *item_cominations]
 

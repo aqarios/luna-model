@@ -1,9 +1,7 @@
-use uuid::Uuid;
-
 use crate::core::VarId;
 
 pub type Id = u32;
-pub type EnvId = Uuid;
+pub type EnvId = u64;
 pub type VarIndex = VarId;
 pub type Bias = f64;
 

@@ -57,7 +57,6 @@ impl Encodable<SerSolutionV0> for RcSolution {}
 /// Makes a Timing encodable.
 impl Encodable<SerTimingV0> for Timing {}
 
-/// Makes the v0 serialization of an Environment decodable.
 impl Decoder<Environment, ()> for SerEnvV0 {}
 
 /// Default implementation to make a bytes vector deserializable to an Expression.
