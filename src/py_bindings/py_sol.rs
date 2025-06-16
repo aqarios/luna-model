@@ -1,7 +1,6 @@
-use crate::core::solution::sol::SampleCol;
-use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, RcSolution, Samples, Solution, VarAssignment, Vtype,
-};
+use super::py_utils::repr_solution;
+use crate::core::solution::sol::{SampleCol, ShowMetadata};
+use crate::core::{PrintLayout, RcSolution, Samples, Solution, VarAssignment, Vtype};
 use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
@@ -9,6 +8,7 @@ use crate::py_bindings::py_model::PyModel;
 use crate::py_bindings::py_res::{PyResultIterator, PyResultView};
 use crate::py_bindings::py_sample::PySamples;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::py_bindings::py_usize::PyUsize;
 use crate::py_bindings::py_var::PyVariable;
 use crate::serialization::{
     Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -17,14 +17,14 @@ use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::PyBytes;
+use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
-pub struct PyVarAssignment(pub VarAssignment<ConcreteAssignmentTypes>);
+pub struct PyVarAssignment(pub VarAssignment);
 
 #[derive(Debug, Clone)]
 pub enum SampleKey {
@@ -39,7 +39,7 @@ pub enum SampleKey {
 /// returned by the algorithm, metadata about the solution quality, e.g., the objective
 /// value, and the runtime of the algorithm.
 ///
-/// A `Solution` can be constructed explicitly using `from_dict` or by obtaining a solution
+/// A `Solution` can be constructed explicitly using `from_dict`, `from_dicts` or by obtaining a solution
 /// from an algorithm or by converting a different solution format with one of the available
 /// translators. Note that the latter requires the environment the model was created in.
 ///
@@ -79,10 +79,10 @@ pub enum SampleKey {
 /// - Use `encode()` and `decode()` to serialize and recover solutions.
 #[pyclass(unsendable, name = "Solution", module = "aqmodels")]
 #[derive(Deref, DerefMut, Debug)]
-pub struct PySolution(pub RcSolution<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySolution(pub RcSolution);
 
-impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
-    fn into(self) -> RcSolution<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<RcSolution> for PySolution {
+    fn into(self) -> RcSolution {
         self.0
     }
 }
@@ -124,7 +124,7 @@ impl PySolution {
     ///
     /// And finally call the `build` function:
     ///
-    /// >>> sol = Solution.build(
+    /// >>> sol = Solution._build(
     /// ...     component_types,
     /// ...     binary_cols,
     /// ...     spin_cols,
@@ -139,7 +139,7 @@ impl PySolution {
     /// In this example, we could also neglect the `counts` as it defaults to `1`
     /// for all samples if not set:
     ///
-    /// >>> sol = Solution.build(
+    /// >>> sol = Solution._build(
     /// ...     component_types,
     /// ...     binary_cols,
     /// ...     spin_cols,
@@ -187,18 +187,27 @@ impl PySolution {
     ///     If a sample column has an incorrect number of samples or if `counts` has
     ///     a length different from the number of samples given.
     #[staticmethod]
-    #[pyo3(signature=(component_types, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None)
+    #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None)
     )]
-    fn build(
+    fn _build(
         component_types: Vec<Vtype>,
+        variable_names: Option<Vec<String>>,
         binary_cols: Option<Vec<Vec<u8>>>,
         spin_cols: Option<Vec<Vec<i8>>>,
         int_cols: Option<Vec<Vec<i64>>>,
         real_cols: Option<Vec<Vec<f64>>>,
         raw_energies: Option<Vec<Option<f64>>>,
         timing: Option<PyTiming>,
-        counts: Option<Vec<usize>>,
+        counts: Option<Vec<PyUsize>>,
     ) -> PyResult<Self> {
+        let var_names: Vec<Option<String>> = if let Some(vn) = variable_names {
+            if vn.len() != component_types.len() {
+                return Err(PyRuntimeError::new_err(format!("length of variable names and length of component types do not match, is: '{}', actual: '{}'", vn.len(), component_types.len())));
+            }
+            vn.iter().map(|e| Some(e.clone())).collect()
+        } else {
+            vec![None; component_types.len()]
+        };
         // todo! change to numpy arrays instead of vecs.
         // todo! move further down in rust code.
         let mut sol = Solution::default();
@@ -216,6 +225,8 @@ impl PySolution {
                     let bc = binary_cols[lb].clone();
                     let bc_len = bc.len();
                     sol.add_column(SampleCol::Binary(bc));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("b{lb}")));
                     lb += 1;
                     bc_len
                 }
@@ -223,6 +234,8 @@ impl PySolution {
                     let sc = spin_cols[ls].clone();
                     let sc_len = sc.len();
                     sol.add_column(SampleCol::Spin(sc));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("s{ls}")));
                     ls += 1;
                     sc_len
                 }
@@ -230,6 +243,8 @@ impl PySolution {
                     let ic = int_cols[li].clone();
                     let ic_len = ic.len();
                     sol.add_column(SampleCol::Integer(ic));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("i{li}")));
                     li += 1;
                     ic_len
                 }
@@ -237,6 +252,8 @@ impl PySolution {
                     let rc = real_cols[lr].clone();
                     let rc_len = rc.len();
                     sol.add_column(SampleCol::Real(rc));
+                    sol.variable_names
+                        .push(var_names[i].clone().unwrap_or(format!("r{lr}")));
                     lr += 1;
                     rc_len
                 }
@@ -263,11 +280,14 @@ impl PySolution {
                     "counts does not match the number of samples given.",
                 ));
             }
-            sol.counts = no;
+            sol.counts = no.into_iter().map(|x| x.into()).collect();
         } else {
             sol.counts = vec![1; sol.n_samples];
         }
         sol.obj_values = vec![None; sol.n_samples];
+        sol.constraints = vec![None; sol.n_samples];
+        sol.variable_bounds = vec![None; sol.n_samples];
+        sol.feasible = vec![None; sol.n_samples];
         sol.timing = timing.and_then(|t| Some(t.0));
         Ok(PySolution(RcSolution(Rc::new(sol))))
     }
@@ -286,6 +306,8 @@ impl PySolution {
     ///     The environment the variable types shall be determined from.
     /// model : Model, optional
     ///     A model to evaluate the sample with.
+    /// counts : int, optional
+    ///     The number of occurrences of this sample.
     ///
     /// Returns
     /// -------
@@ -311,20 +333,21 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None)
-    )]
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None))]
     fn from_dict(
         data: HashMap<SampleKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
+        timing: Option<PyTiming>,
+        counts: Option<usize>,
     ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
                 "either `env` or `model` has to be `None`",
             ));
         }
-        let environment: PyEnvironment = if model.is_some() {
-            PyEnvironment(Rc::clone(&model.as_ref().unwrap().borrow().environment))
+        let environment: PyEnvironment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
         } else {
             match env {
                 Some(env) => env.clone(),
@@ -349,6 +372,7 @@ impl PySolution {
         let n_vars = environment.borrow().varcount.into();
         let mut sample = vec![f64::default(); n_vars];
         let mut mask = vec![false; n_vars];
+        let mut var_names = vec![String::default(); n_vars];
 
         for (k, &v) in data.iter() {
             let var_name = match k {
@@ -365,38 +389,283 @@ impl PySolution {
             let var = maybe_var.unwrap().0 as usize;
             sample[var] = v;
             mask[var] = true;
+            var_names[var] = var_name.clone();
         }
 
         if !mask.iter().all(|&x| x) {
             return Err(SampleIncorrectLengthErr)?;
         }
 
+        sol.variable_names = var_names;
+        sol.timing = timing.map(|t| t.0);
         let energy: Option<f64> = None;
-        let _ = sol.extend(sample, 1, energy)?;
+        let _ = sol.extend(&sample, counts.unwrap_or(1), energy)?;
         let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
-            sol_rc = m.borrow().evaluate_solution(sol_rc);
+            sol_rc = m.borrow().evaluate_solution(sol_rc)?;
         }
 
         Ok(PySolution(sol_rc))
     }
 
+    /// Create a `Solution` from multiple dicts that map variables or variable names to their
+    /// assigned values.
+    ///
+    /// If a Model is passed, the solution will be evaluated immediately. Otherwise,
+    /// there has to be an environment present to determine the correct variable types.
+    ///
+    /// Parameters
+    /// ----------
+    /// data : list[dict[Variable | str, int | float]]
+    ///     The samples that shall be part of the solution.
+    /// env : Environment, optional
+    ///     The environment the variable types shall be determined from.
+    /// model : Model, optional
+    ///     A model to evaluate the sample with.
+    /// counts : int, optional
+    ///     The number of occurrences for each sample.
+    ///
+    /// Returns
+    /// -------
+    /// Solution
+    ///     The solution object created from the sample dict.
+    ///
+    /// Raises
+    /// ------
+    /// NoActiveEnvironmentFoundError
+    ///     If no environment or model is passed to the method or available from the
+    ///     context.
+    /// ValueError
+    ///     If `env` and `model` are both present. When this is the case, the user's
+    ///     intention is unclear as the model itself already contains an environment.
+    ///     Or if the the number of samples and the number of counts do not match.
+    /// SolutionTranslationError
+    ///     Generally if the sample translation fails. Might be specified by one of the
+    ///     three following errors.
+    /// SampleIncorrectLengthErr
+    ///     If a sample has a different number of variables than the environment.
+    /// SampleUnexpectedVariableError
+    ///     If a sample has a variable that is not present in the environment.
+    /// ModelVtypeError
+    ///     If the result's variable types are incompatible with the model environment's
+    ///     variable types.
+    #[staticmethod]
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None)
+    )]
+    fn from_dicts(
+        data: Vec<HashMap<SampleKey, f64>>,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+        timing: Option<PyTiming>,
+        counts: Option<Vec<usize>>,
+    ) -> PyResult<PySolution> {
+        if env.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `env` or `model` has to be `None`",
+            ));
+        }
+
+        if counts.is_some() && counts.as_ref().unwrap().len() != data.len() {
+            return Err(PyValueError::new_err(format!(
+                "the number of samples and the counts do not match: num samples is '{}', num counts is '{}'", 
+                data.len(), counts.unwrap().len()))
+            );
+        }
+
+        let environment: PyEnvironment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
+        } else {
+            match env {
+                Some(env) => env.clone(),
+                None => CURRENT_ENV.with(|current| {
+                    current.borrow().clone().ok_or_else(|| {
+                        NoActiveEnvironmentFoundError::new_err("no active environment found.")
+                    })
+                })?,
+            }
+        };
+
+        let mut sol = Solution::default();
+        for v in environment.borrow().variables.iter() {
+            match v.vtype {
+                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(data.len()))),
+                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(data.len()))),
+                Vtype::Integer => {
+                    sol.add_column(SampleCol::Integer(Vec::with_capacity(data.len())))
+                }
+                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(data.len()))),
+            }
+        }
+
+        let n_vars = environment.borrow().varcount.into();
+
+        let mut samples: Vec<Vec<f64>> = Vec::with_capacity(data.len());
+
+        for (i, d) in data.iter().enumerate() {
+            let mut sample = vec![f64::default(); n_vars];
+            let mut mask = vec![false; n_vars];
+            let mut var_names = vec![String::default(); n_vars];
+
+            for (k, &v) in d.iter() {
+                let var_name = match k {
+                    SampleKey::Str(s) => s,
+                    SampleKey::Var(v) => &v.name(),
+                };
+                let environ = environment.borrow();
+                let maybe_var = environ.variables_lookup.get(var_name);
+                if maybe_var.is_none() {
+                    return Err(SampleUnexpectedVariableErr {
+                        var_name: var_name.clone(),
+                    })?;
+                }
+                let var = maybe_var.unwrap().0 as usize;
+                sample[var] = v;
+                mask[var] = true;
+                var_names[var] = var_name.clone();
+            }
+
+            if !mask.iter().all(|&x| x) {
+                return Err(SampleIncorrectLengthErr)?;
+            }
+
+            sol.variable_names = var_names;
+            let energy: Option<f64> = None;
+
+            let sc = counts
+                .as_ref()
+                .and_then(|c| Some(c[i]))
+                .or(Some(1))
+                .unwrap();
+            if let Some(pos) = samples.iter().position(|s| s == &sample) {
+                sol.counts[pos] += sc;
+            } else {
+                let _ = sol.extend(&sample, sc, energy)?;
+                samples.push(sample);
+            }
+        }
+
+        sol.timing = timing.map(|t| t.0);
+
+        let mut sol_rc = RcSolution(Rc::new(sol));
+        if let Some(m) = model {
+            sol_rc = m.borrow().evaluate_solution(sol_rc)?;
+        }
+
+        Ok(PySolution(sol_rc))
+    }
+
+    /// Show a solution object as a human-readable string.
+    ///
+    /// This method provides various ways to customize the way the solution is
+    /// represented as a string.
+    ///
+    /// Parameters
+    /// ----------
+    /// layout : Literal["row", "column"]
+    ///     With `"row"` layout, all assignments to one variable across different
+    ///     samples are shown in the same *row*, and each sample is shown in one
+    ///     column.
+    ///     With `"column"` layout, all assignments to one variable across different
+    ///     samples are shown in the same *column*, and each sample is shown in one row.
+    /// max_line_length : int
+    ///     The max number of chars shown in one line or, in other words, the max width
+    ///     of a row.
+    /// max_column_length : int
+    ///     The maximal number of chars in one column. For both the row and column
+    ///     layout, this controls the max number of chars a single variable assignment
+    ///     may be shown with. For the column layout, this also controls the max number
+    ///     of chars that a variable name is shown with.
+    ///     Note: the max column length cannot always be adhered to. This is
+    ///     specifically the case when a variable assignment is so high that the max
+    ///     column length is not sufficient to show the number correctly.
+    /// max_lines : int
+    ///     The max number of lines used for showing the samples. Note that this
+    ///      parameter does not influence how metadata are shown, s.t. the total number
+    ///      of lines may be higher than `max_lines`.
+    /// max_var_name_length : int
+    ///     The max number of chars that a variable is shown with in row layout. This
+    ///     parameter is ignored in column layout.
+    /// show_metadata : Literal["before", "after", "hide"]
+    ///     Whether and where to show sample-specific metadata such as feasibility and
+    ///     objective value. Note that this parameter only controls how sample-specific
+    ///     metadata are shown. Other metadata, like the solution timing will be shown
+    ///     after the samples regardless of the value of this parameter.
+    ///
+    ///     - `"before"`: show metadata before the actual sample, i.e., above the
+    ///         sample in row layout, and left of the sample in column layout.
+    ///     - `"after"`: show metadata after the actual sample, i.e., below the
+    ///         sample in row layout, and right of the sample in column layout.
+    ///     - "hide": do not show sample-specific metadata.
+    ///
+    /// Returns
+    /// -------
+    /// str
+    ///     The solution represented as a string.
+    ///
+    /// Raises
+    ///  ------
+    ///  ValueError
+    ///      If at least one of the params has an invalid value.
+    #[pyo3(
+        signature=(
+            layout=PrintLayout::Col,
+            max_line_length=PyUsize(80),
+            max_column_length=PyUsize(5),
+            max_lines=PyUsize(10),
+            max_var_name_length=PyUsize(10),
+            show_metadata=ShowMetadata::After,
+        )
+    )]
+    fn print(
+        &self,
+        layout: PrintLayout,
+        max_line_length: PyUsize,
+        max_column_length: PyUsize,
+        max_lines: PyUsize,
+        max_var_name_length: PyUsize,
+        show_metadata: ShowMetadata,
+    ) -> PyResult<String> {
+        let mll = max_line_length.into();
+        let mcl = max_column_length.into();
+        let ml = max_lines.into();
+        let mvnl = max_var_name_length.into();
+        if mll < 5 {
+            Err(PyValueError::new_err(format!(
+                "`max_line_length needs` to be at least 5; actual value: {mll}"
+            )))
+        } else if mcl < 1 {
+            Err(PyValueError::new_err(format!(
+                "`max_column_length` needs to be at least 1; actual value: {mcl}"
+            )))
+        } else if ml < 1 {
+            Err(PyValueError::new_err(format!(
+                "`max_lines` needs to be at least 1; actual value: {ml}"
+            )))
+        } else if mvnl < 1 {
+            Err(PyValueError::new_err(format!(
+                "`max_var_name_length` needs to be at least 1; actual value: {mvnl}"
+            )))
+        } else {
+            Ok(self.0.print(mll, mcl, ml, mvnl, layout, show_metadata))
+        }
+    }
+
     /// Get an iterator over the single results of the solution.
     #[getter]
-    fn results<'a>(&self) -> PyResultIterator {
-        PyResultIterator(self.0.iter_results())
+    fn get_results<'a>(&self) -> PyResultIterator {
+        PyResultIterator(self.iter_results())
     }
 
     /// Get a view into the samples of the solution.
     #[getter]
-    fn samples(&self) -> PySamples {
+    fn get_samples(&self) -> PySamples {
         PySamples(Samples(RcSolution::clone(&self)))
     }
 
     /// Get the objective values of the single samples as a ndarray. A value will be
     /// None if the sample hasn't yet been evaluated.
     #[getter]
-    fn obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
+    fn get_obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
         self.obj_values
             .iter()
             .map(|x| x.into_py_any(py).unwrap())
@@ -407,7 +676,7 @@ impl PySolution {
     /// Get the raw energy values of the single samples as returned by the solver /
     /// algorithm. Will be None if the solver / algorithm did not provide a value.
     #[getter]
-    fn raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
+    fn get_raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
         self.raw_energies
             .iter()
             .map(|x| x.into_py_any(py).unwrap())
@@ -417,20 +686,40 @@ impl PySolution {
 
     /// Return how often each sample occurred in the solution.
     #[getter]
-    fn counts<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
+    fn get_counts<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
         self.counts.to_pyarray(py)
     }
 
     /// Get the solver / algorithm runtime.
     #[getter]
-    fn runtime(&self) -> Option<PyTiming> {
+    fn get_runtime(&self) -> Option<PyTiming> {
         self.timing.map(|t| PyTiming(t))
     }
 
     /// Get the index of the sample with the best objective value.
     #[getter]
-    fn best_sample_idx(&self) -> Option<usize> {
-        self.0.best_sample_idx
+    fn get_best_sample_idx(&self) -> Option<usize> {
+        self.best_sample_idx
+    }
+
+    /// Get the names of all variables in the solution.
+    #[getter]
+    fn get_variable_names(&self) -> Vec<String> {
+        self.variable_names.clone()
+    }
+
+    /// Compute the expectation value.
+    fn expectation_value(&self) -> PyResult<f64> {
+        Ok(self.0.expectation_value()?)
+    }
+
+    /// Get the best result.
+    fn best(&self) -> Option<PyResultView> {
+        self.0.best().map(|r| PyResultView(r))
+    }
+
+    fn __len__(&self) -> usize {
+        self.n_samples
     }
 
     /// Serialize the solution into a compact binary format.
@@ -462,7 +751,7 @@ impl PySolution {
                 .maybe_compress(compress, level)?
                 .versionize(),
         )
-            .into())
+        .into())
     }
 
     /// Alias for `encode()`.
@@ -492,25 +781,35 @@ impl PySolution {
     /// ------
     /// DecodeError
     ///     If decoding fails due to corruption or incompatibility.
-    #[staticmethod]
-    fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+    #[classmethod]
+    fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Ok(PySolution(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
         ))
     }
 
     /// Alias for `decode()`.
-    #[staticmethod]
-    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Self::decode(py, data)
+    ///
+    /// See `decode()` for full documentation.
+    #[classmethod]
+    fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::decode(cls, py, data)
     }
 
     fn __str__(&self) -> String {
-        format!("{}", self.0)
+        let s = self.print(
+            PrintLayout::Col,
+            80.into(),
+            5.into(),
+            10.into(),
+            10.into(),
+            ShowMetadata::After,
+        );
+        s.unwrap()
     }
 
     fn __repr__(&self) -> String {
-        format!("{:#?}", self.0)
+        repr_solution(self)
     }
 
     /// Iterate over the single results of the solution.
@@ -535,8 +834,13 @@ impl PySolution {
     /// IndexError
     ///     If the row index is out of bounds for the variable environment.
     fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyResultView> {
-        if let Ok(res_idx) = item.extract::<usize>(py) {
-            match self.get_result_view(res_idx) {
+        if let Ok(res_idx) = item.extract::<isize>(py) {
+            if res_idx < 0 {
+                return Err(PyValueError::new_err(format!(
+                    "Expected a non-negative number, received: {res_idx}"
+                )))?;
+            }
+            match self.get_result_view(res_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
                 ))),
@@ -621,3 +925,31 @@ impl PartialEq<Self> for SampleKey {
 }
 
 impl Eq for SampleKey {}
+
+// Implement FromPyObject for your enum
+impl<'py> FromPyObject<'py> for PrintLayout {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        let mode: &str = ob.extract()?;
+        match mode {
+            "row" => Ok(PrintLayout::Row),
+            "column" => Ok(PrintLayout::Col),
+            _ => Err(PyValueError::new_err(format!(
+                "Invalid spec '{mode}'. Expected one of 'row', 'column'."
+            ))),
+        }
+    }
+}
+
+impl<'py> FromPyObject<'py> for ShowMetadata {
+    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+        let mode: &str = ob.extract()?;
+        match mode {
+            "before" => Ok(ShowMetadata::Before),
+            "after" => Ok(ShowMetadata::After),
+            "hide" => Ok(ShowMetadata::Hide),
+            _ => Err(PyValueError::new_err(format!(
+                "Invalid spec '{mode}'. Expected one of 'before', 'after', 'hide'."
+            ))),
+        }
+    }
+}

@@ -6,6 +6,50 @@ use crate::translator::NpArrayTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
+use std::ffi::CStr;
+
+#[cfg(not(feature = "lq"))]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from aqmodels._core import translator
+
+def extract(result, energies, timing, env):
+    (sol_agg, indices, num_occ) = np.unique(
+        result, return_index=True, return_counts=True, axis=0
+    )
+
+    sol_agg = sol_agg.astype(np.float64, order='C')
+    indices = indices.astype(np.uint64, order='C')
+    num_occ = num_occ.astype(np.uint64, order='C')
+    energies = energies.astype(np.float64, order='C')
+
+    return translator.AwsTranslator.translate(
+        sol_agg, indices, num_occ, energies, timing, env
+    )
+"
+);
+#[cfg(feature = "lq")]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from luna_quantum._core import translator
+
+def extract(result, energies, timing, env):
+    (sol_agg, indices, num_occ) = np.unique(
+        result, return_index=True, return_counts=True, axis=0
+    )
+
+    sol_agg = sol_agg.astype(np.float64, order='C')
+    indices = indices.astype(np.uint64, order='C')
+    num_occ = num_occ.astype(np.uint64, order='C')
+    energies = energies.astype(np.float64, order='C')
+
+    return translator.AwsTranslator.translate(
+        sol_agg, indices, num_occ, energies, timing, env
+    )
+"
+);
 
 /// Utility class for converting between a result consisting of numpy arrays and our solution
 /// format.
@@ -50,7 +94,7 @@ impl PyNumpyTranslator {
             energies.as_slice()?,
             sol_agg.shape(),
             timing.map(|t| t.into()),
-            environment.into(),
+            environment.0.clone(),
         )?))
     }
 
@@ -89,33 +133,9 @@ impl PyNumpyTranslator {
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PyObject> {
-        let extractor: Py<PyAny> = PyModule::from_code(
-            py,
-            c_str!(
-                "
-import numpy as np
-from aqmodels._core import translator
-
-def extract(result, energies, timing, env):
-    (sol_agg, indices, num_occ) = np.unique(
-        result, return_index=True, return_counts=True, axis=0
-    )
-
-    sol_agg = sol_agg.astype(np.float64, order='C')
-    indices = indices.astype(np.uint64, order='C')
-    num_occ = num_occ.astype(np.uint64, order='C')
-    energies = energies.astype(np.float64, order='C')
-
-    return translator.AwsTranslator.translate(
-        sol_agg, indices, num_occ, energies, timing, env
-    )
-"
-            ),
-            c_str!(""),
-            c_str!(""),
-        )?
-        .getattr("extract")?
-        .into();
+        let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
+            .getattr("extract")?
+            .into();
         let args = (result, energies, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)

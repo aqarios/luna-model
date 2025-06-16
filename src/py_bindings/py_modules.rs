@@ -16,6 +16,11 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Add core components as wrappers.
     m.add_class::<py_env::PyEnvironment>()?;
     m.add_class::<py_expr::PyExpression>()?;
+    m.add_class::<py_expr::PyExpressionIterator>()?;
+    m.add_class::<py_expr::PyConstant>()?;
+    m.add_class::<py_expr::PyLinear>()?;
+    m.add_class::<py_expr::PyQuadratic>()?;
+    m.add_class::<py_expr::PyHigherOrder>()?;
     m.add_class::<py_model::PyModel>()?;
     m.add_class::<py_model_metadata::PyModelMetadata>()?;
     m.add_class::<py_var::PyVariable>()?;
@@ -32,6 +37,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_sol::PySolution>()?;
     m.add_class::<py_timing::PyTiming>()?;
     m.add_class::<py_timing::PyTimer>()?;
+    m.add_class::<py_bounds::PyUnbounded>()?;
     Ok(())
 }
 
@@ -49,10 +55,16 @@ pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_translator::PyAwsTranslator>()?;
     m.add_class::<py_translator::PyNumpyTranslator>()?;
     pm.add_submodule(&m)?;
+    #[cfg(not(feature = "lq"))]
     pm.py()
         .import("sys")?
         .getattr("modules")?
         .set_item("aqmodels.translator", m)?;
+    #[cfg(feature = "lq")]
+    pm.py()
+        .import("sys")?
+        .getattr("modules")?
+        .set_item("luna_quantum.translator", m)?;
     Ok(())
 }
 
@@ -138,11 +150,29 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::TranslationError::NAME,
         m.py().get_type::<pyexc::TranslationError>(),
     )?;
+    m.add(
+        pyexc::ComputationError::NAME,
+        m.py().get_type::<pyexc::ComputationError>(),
+    )?;
+    m.add(
+        pyexc::EvaluationError::NAME,
+        m.py().get_type::<pyexc::EvaluationError>(),
+    )?;
+    m.add(
+        pyexc::DuplicateConstraintNameError::NAME,
+        m.py().get_type::<pyexc::DuplicateConstraintNameError>(),
+    )?;
     pm.add_submodule(&m)?;
+    #[cfg(not(feature = "lq"))]
     pm.py()
         .import("sys")?
         .getattr("modules")?
-        .set_item("aqmodels.exceptions", m)?;
+        .set_item("aqmodels.errors", m)?;
+    #[cfg(feature = "lq")]
+    pm.py()
+        .import("sys")?
+        .getattr("modules")?
+        .set_item("luna_quantum.errors", m)?;
     Ok(())
 }
 

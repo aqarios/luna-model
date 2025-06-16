@@ -10,7 +10,7 @@ pub struct DecodeError {
 }
 
 impl DecodeError {
-    fn new(msg: String) -> Self {
+    pub fn new(msg: String) -> Self {
         Self { msg }
     }
 }

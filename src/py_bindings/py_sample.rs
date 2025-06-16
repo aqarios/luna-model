@@ -1,43 +1,41 @@
-use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, RcSolution, ResultIterator, Sample, SampleIterator,
-    Samples, SamplesIterator,
-};
+use crate::core::{RcSolution, ResultIterator, Sample, SampleIterator, Samples, SamplesIterator};
 use crate::py_bindings::py_sol::PyVarAssignment;
 use derive_more::{Deref, DerefMut};
 use either::Either;
-use pyo3::exceptions::{PyIndexError, PyTypeError};
+use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
 
 use super::py_var::PyVariable;
 
 /// An iterator over a solution's samples.
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Solution
 /// >>> solution: Solution = ...
-/// 
+///
 /// Note: ``solution.samples`` is automatically converted into a ``SamplesIterator``.
-/// 
+///
 /// >>> for sample in solution.samples:
 /// ...     sample
 /// [0, -5, 0.28]
 /// [1, -4, -0.42]
 #[pyclass(unsendable, name = "SamplesIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySamplesIterator(pub SamplesIterator<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySamplesIterator(pub SamplesIterator);
 
 /// An iterator over the variable assignments of a solution's sample.
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Solution
 /// >>> solution: Solution = ...
 /// >>> sample = solution.samples[0]
-/// 
+///
 /// Note: ``sample`` is automatically converted into a ``SampleIterator``.
-/// 
+///
 /// >>> for var in sample:
 /// ...     var
 /// 0
@@ -45,14 +43,14 @@ pub struct PySamplesIterator(pub SamplesIterator<ConcreteBias, ConcreteAssignmen
 /// 0.28
 #[pyclass(unsendable, name = "SampleIterator", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySampleIterator(pub SampleIterator<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySampleIterator(pub SampleIterator);
 
 /// A samples object is simply a set-like object that contains every different sample
 /// of a solution.
-/// 
+///
 /// The ``Samples`` class is readonly as it's merely a helper class for looking into a
 /// solution's different samples.
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Model, Sample, Solution
@@ -64,17 +62,17 @@ pub struct PySampleIterator(pub SampleIterator<ConcreteBias, ConcreteAssignmentT
 /// [1, -4, -0.42]
 #[pyclass(unsendable, name = "Samples", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySamples(pub Samples<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySamples(pub Samples);
 
 /// A sample object is an assignment of an actual value to each of the models'
 /// variables.
-/// 
+///
 /// The ``Sample`` class is readonly as it's merely a helper class for looking into a
 /// single sample of a solution.
-/// 
+///
 /// Note: a ``Sample`` can be converted to ``list[int | float]`` simply by calling
 /// ``list(sample)``.
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Model, Sample, Solution
@@ -85,16 +83,16 @@ pub struct PySamples(pub Samples<ConcreteBias, ConcreteAssignmentTypes>);
 /// [0, -5, 0.28]
 #[pyclass(unsendable, name = "Sample", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
-pub struct PySample(pub Sample<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySample(pub Sample);
 
-impl Into<SamplesIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySamplesIterator {
-    fn into(self) -> SamplesIterator<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<SamplesIterator> for PySamplesIterator {
+    fn into(self) -> SamplesIterator {
         self.0
     }
 }
 
-impl Into<SampleIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySampleIterator {
-    fn into(self) -> SampleIterator<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<SampleIterator> for PySampleIterator {
+    fn into(self) -> SampleIterator {
         self.0
     }
 }
@@ -103,7 +101,7 @@ impl Into<SampleIterator<ConcreteBias, ConcreteAssignmentTypes>> for PySampleIte
 impl PySamples {
     /// Convert the sample into a 2-dimensional list where a row constitutes a single
     /// sample, and a column constitutes all assignments for a single variable.
-    /// 
+    ///
     /// Returns
     /// -------
     /// list[list[int | float]]
@@ -127,11 +125,11 @@ impl PySamples {
     /// Extract a sample or variable assignment from the ``Samples`` object.
     /// If ``item`` is an int, returns the sample in this row. If ``item`` is a tuple
     /// of ints `(i, j)`, returns the variable assignment in row `i` and column `j`.
-    /// 
+    ///
     /// Returns
     /// -------
     /// Sample or int or float
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -139,15 +137,30 @@ impl PySamples {
     /// IndexError
     ///     If the row or column index is out of bounds for the variable environment.
     fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyObject> {
-        if let Ok(res_idx) = item.extract::<usize>(py) {
-            match self.get_sample(res_idx) {
+        if let Ok(res_idx) = item.extract::<isize>(py) {
+            if res_idx < 0 {
+                return Err(PyValueError::new_err(format!(
+                    "Expected a non-negative number, received: {res_idx}"
+                )))?;
+            }
+            match self.get_sample(res_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
                 ))),
                 Some(r) => PySample(r).into_pyobject(py)?.into_py_any(py),
             }
-        } else if let Ok((res_idx, var_idx)) = item.extract::<(usize, usize)>(py) {
-            match self.get_assignment(res_idx, var_idx) {
+        } else if let Ok((res_idx, var_idx)) = item.extract::<(isize, isize)>(py) {
+            if res_idx < 0 {
+                return Err(PyValueError::new_err(format!(
+                    "Expected a non-negative number, received: {res_idx}"
+                )))?;
+            }
+            if var_idx < 0 {
+                return Err(PyValueError::new_err(format!(
+                    "Expected a non-negative number, received: {var_idx}"
+                )))?;
+            }
+            match self.get_assignment(res_idx as usize, var_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index ({res_idx}, {var_idx}) out of bounds"
                 ))),
@@ -159,7 +172,7 @@ impl PySamples {
     }
 
     /// Get the number of samples present in this sample set.
-    /// 
+    ///
     /// Returns
     /// -------
     /// int
@@ -168,7 +181,7 @@ impl PySamples {
     }
 
     /// Iterate over all samples of this sample set.
-    /// 
+    ///
     /// Returns
     /// -------
     /// SamplesIterator
@@ -184,11 +197,11 @@ impl PySample {
     }
 
     /// Extract a variable assignment from the ``Sample`` object.
-    /// 
+    ///
     /// Returns
     /// -------
     /// Sample or int or float
-    /// 
+    ///
     /// Raises
     /// ------
     /// TypeError
@@ -204,8 +217,26 @@ impl PySample {
                 ))),
                 Some(v) => Ok(PyVarAssignment(v)),
             }
-        } else if let Ok(var_idx) = item.extract::<usize>(py) {
-            match self.get_assignment(var_idx) {
+        } else if let Ok(var_name) = item.extract::<String>(py) {
+            if let Some(var_idx) = self.0.index_for_variable_name(&var_name) {
+                match self.get_assignment(var_idx as usize) {
+                    None => Err(PyIndexError::new_err(format!(
+                        "Index {var_idx} out of bounds"
+                    ))),
+                    Some(v) => Ok(PyVarAssignment(v)),
+                }
+            } else {
+                Err(PyValueError::new_err(format!(
+                    "unknown variable name: '{var_name}'"
+                )))
+            }
+        } else if let Ok(var_idx) = item.extract::<isize>(py) {
+            if var_idx < 0 {
+                return Err(PyValueError::new_err(format!(
+                    "Expected a non-negative number, received: {var_idx}"
+                )))?;
+            }
+            match self.get_assignment(var_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {var_idx} out of bounds"
                 ))),
@@ -217,7 +248,7 @@ impl PySample {
     }
 
     /// Get the number of variables present in this sample.
-    /// 
+    ///
     /// Returns
     /// -------
     /// int
@@ -229,12 +260,27 @@ impl PySample {
     }
 
     /// Iterate over all variable assignments of this sample.
-    /// 
+    ///
     /// Returns
     /// -------
     /// SampleIterator
     fn __iter__(slf: PyRef<'_, Self>) -> PySampleIterator {
         PySampleIterator(slf.0.iter())
+    }
+
+    /// Convert the sample to a dictionary.
+
+    /// Returns
+    /// -------
+    /// dict
+    ///     A dictionary representation of the sample, where the keys are the
+    ///     variable names and the values are the variables' assignments.
+    fn to_dict<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyDict> {
+        let py_dict = PyDict::new(py);
+        for (k, v) in self.0.to_map() {
+            py_dict.set_item(k, PyVarAssignment(v)).unwrap()
+        }
+        py_dict
     }
 }
 

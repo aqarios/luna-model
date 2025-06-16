@@ -1,10 +1,12 @@
+use crate::core::environment::SharedEnvironment;
 use crate::core::term::types::SizeType;
-use crate::core::{ConcreteBias, IndexByValue, MutRcEnvironment, Vtype};
+use crate::core::{ValueByIndex, Vtype};
+use crate::types::Bias;
 use num::pow::Pow;
 use num::NumCast;
-use std::fmt::{Debug, Display};
+use std::fmt::{Debug, Display, LowerExp};
 use std::hash::Hash;
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub};
 use std::str::FromStr;
 
 use super::errors::VariableOutOfRangeErr;
@@ -60,10 +62,14 @@ pub trait BiasConstraints:
     + One
     + MulAssign
     + Mul<Output = Self>
-    + Mul<ConcreteBias, Output = Self>
+    + Mul<Bias, Output = Self>
+    + Div<Bias, Output = Self>
+    + PartialEq<Bias>
+    + PartialOrd<Bias>
     + Neg<Output = Self>
     + NumCast
     + FromStr
+    + LowerExp
 {
 }
 impl<
@@ -81,10 +87,14 @@ impl<
             + One
             + MulAssign
             + Mul<Output = T>
-            + Mul<ConcreteBias, Output = Self>
+            + Mul<Bias, Output = Self>
+            + Div<Bias, Output = Self>
+            + PartialEq<Bias>
+            + PartialOrd<Bias>
             + Neg<Output = T>
             + NumCast
-            + FromStr,
+            + FromStr
+            + LowerExp,
     > BiasConstraints for T
 {
 }
@@ -106,18 +116,13 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn empty(env: MutRcEnvironment<Index>) -> Self;
-    fn new(env: MutRcEnvironment<Index>, active: Vec<bool>, num_variables: usize) -> Self;
+    fn empty(env: SharedEnvironment) -> Self;
+    fn new(env: SharedEnvironment, active: Vec<bool>, num_variables: usize) -> Self;
     fn new_from_other(other: &Self) -> Self;
-    fn new_linear_single(env: MutRcEnvironment<Index>, v: Index, bias: Bias) -> Self;
-    fn new_linear(env: MutRcEnvironment<Index>, u: (Index, Bias), v: (Index, Bias)) -> Self;
-    fn new_linear_and_offset(
-        env: MutRcEnvironment<Index>,
-        v: Index,
-        bias: Bias,
-        offset: Bias,
-    ) -> Self;
-    fn new_quadratic(env: MutRcEnvironment<Index>, u: Index, v: Index, bias: Bias) -> Self;
+    fn new_linear_single(env: SharedEnvironment, v: Index, bias: Bias) -> Self;
+    fn new_linear(env: SharedEnvironment, u: (Index, Bias), v: (Index, Bias)) -> Self;
+    fn new_linear_and_offset(env: SharedEnvironment, v: Index, bias: Bias, offset: Bias) -> Self;
+    fn new_quadratic(env: SharedEnvironment, u: Index, v: Index, bias: Bias) -> Self;
 }
 
 pub trait ExpressionBaseAdjustment<Index, Bias>: ExpressionBase<Index, Bias>
@@ -327,7 +332,7 @@ where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Idx, Output = Elem>>(
+    fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<Idx, Output = Elem>>(
         &self,
         sample: &'a Sample,
     ) -> Bias
@@ -338,7 +343,7 @@ where
     fn evaluate_sampleset<
         'a,
         Elem: 'a,
-        Sample: IndexByValue<Idx, Output = Elem> + 'a,
+        Sample: ValueByIndex<Idx, Output = Elem> + 'a,
         SampleSet: Iterator<Item = &'a Sample> + Copy,
     >(
         &self,

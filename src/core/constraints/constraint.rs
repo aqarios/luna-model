@@ -1,10 +1,12 @@
-use crate::core::expression::{BiasConstraints, ExpressionEvaluation, IndexConstraints};
-use crate::core::operations::SubAssignToExpression;
+use crate::core::expression::{Expression, ExpressionEvaluation};
+use crate::core::operations::SubToExpression;
+use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
-use crate::core::{ExpressionBase, IndexByValue, MutRcExpression};
-use crate::errors::{IllegalConstraintNameErr, IndexOutOfBoundsErr};
+use crate::core::{ExpressionBase, SharedEnvironment, ValueByIndex};
+use crate::errors::{DuplicateConstraintNameErr, IllegalConstraintNameErr, IndexOutOfBoundsErr};
+use crate::types::{Bias, VarIndex};
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::{Add, AddAssign, Mul};
+use std::ops::{Add, Mul};
 use std::slice::Iter;
 use std::string::ToString;
 use strum_macros::Display;
@@ -21,10 +23,10 @@ fn starts_with_failable(s: &str) -> bool {
 }
 
 /// Comparison operators used to define constraints.
-/// 
+///
 /// This enum represents the logical relation between the left-hand side (LHS)
 /// and the right-hand side (RHS) of a constraint.
-/// 
+///
 /// Attributes
 /// ----------
 /// Eq : Comparator
@@ -33,7 +35,7 @@ fn starts_with_failable(s: &str) -> bool {
 ///     Less-than-or-equal constraint (<=).
 /// Ge : Comparator
 ///     Greater-than-or-equal constraint (>=).
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Comparator
@@ -57,7 +59,7 @@ pub enum Comparator {
 }
 
 impl Comparator {
-    pub fn evaluate<Bias: BiasConstraints>(&self, lhs: Bias, rhs: Bias) -> bool {
+    pub fn evaluate(&self, lhs: Bias, rhs: Bias) -> bool {
         match self {
             Self::Eq => lhs == rhs,
             Self::Le => lhs <= rhs,
@@ -67,33 +69,37 @@ impl Comparator {
 }
 
 #[derive(Debug, Clone)]
-pub struct Constraint<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+pub struct Constraint {
     // todo, expression in constraint should be immutable...
-    pub lhs: MutRcExpression<Index, Bias>,
+    pub lhs: Expression,
     pub rhs: Bias,
     pub comparator: Comparator,
     pub name: Option<String>,
 }
 
-impl<Index, Bias> Constraint<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl Constraint {
+    /// Deep clone a constraint for the new environment.
+    pub fn deep_clone(&self, env: SharedEnvironment) -> Self {
+        Self {
+            lhs: self.lhs.deep_clone(env),
+            rhs: self.rhs,
+            comparator: self.comparator,
+            name: self.name.clone(),
+        }
+    }
+}
+
+impl Constraint {
     pub fn new(
-        lhs: MutRcExpression<Index, Bias>,
+        lhs: Expression,
         rhs: Bias,
         comparator: Comparator,
         name: Option<String>,
     ) -> Result<Self, IllegalConstraintNameErr> {
         Self::validate_name(&name)?;
-        let lhs_constant = lhs.borrow().offset();
+        let lhs_constant = lhs.offset();
         let actual_rhs = rhs - lhs_constant;
-        lhs.borrow_mut().sub_assign(lhs_constant);
+        let lhs = lhs.sub(lhs_constant);
         Ok(Self {
             lhs,
             rhs: actual_rhs,
@@ -136,64 +142,85 @@ where
         Ok(())
     }
 
-    pub fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
+    pub fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<VarIndex, Output = Elem>>(
         &self,
         sample: &'a Sample,
     ) -> bool
     where
         Elem: Mul<Bias, Output = Bias>,
     {
-        let val = self.lhs.borrow().evaluate_sample(sample);
+        let val = self.lhs.evaluate_sample(sample);
         self.comparator.evaluate(val, self.rhs)
     }
 }
 
-impl<Index, Bias> Display for Constraint<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl Display for Constraint {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = ModelWriter::new().write_constraint(&self).to_string();
         f.write_str(&s)
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Constraints<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    pub constraints: Vec<Constraint<Index, Bias>>,
+impl ContentEquality for Constraint {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.lhs.is_equal_contents(&other.lhs)
+            && self.rhs == other.rhs
+            && self.comparator == other.comparator
+            && self.name == other.name
+    }
 }
 
-impl<Index, Bias> Constraints<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+#[derive(Debug, Clone, PartialEq)]
+pub struct Constraints {
+    pub used_names: Vec<String>,
+    pub constraints: Vec<Constraint>,
+}
+
+impl Constraints {
+    /// Deep clone the constraints for the new environment.
+    pub fn deep_clone(&self, env: SharedEnvironment) -> Self {
+        Self {
+            used_names: self.used_names.clone(),
+            constraints: self
+                .constraints
+                .iter()
+                .map(|c| c.deep_clone(env.clone()))
+                .collect(),
+        }
+    }
+}
+
+impl Constraints {
     pub fn default() -> Self {
         Self {
+            used_names: Vec::new(),
             constraints: Vec::new(),
         }
     }
 
     pub fn new_from(other: &Self) -> Self {
         Self {
+            used_names: other.used_names.clone(),
             constraints: other.constraints.clone(),
         }
     }
 
-    pub fn new_from_vec(constraints: Vec<Constraint<Index, Bias>>) -> Self {
-        Self { constraints }
+    pub fn new_from_vec(constraints: Vec<Constraint>) -> Self {
+        Self {
+            used_names: constraints
+                .iter()
+                .filter(|c| c.name.is_some())
+                .map(|c| c.name.clone().unwrap())
+                .collect(),
+            constraints,
+        }
     }
 
     pub fn len(&self) -> usize {
         self.constraints.len()
     }
 
-    pub fn iter(&self) -> Iter<'_, Constraint<Index, Bias>> {
+    pub fn iter(&self) -> Iter<'_, Constraint> {
         self.constraints.iter()
     }
 
@@ -201,10 +228,7 @@ where
         self.len() == 0
     }
 
-    pub fn get_constraint(
-        &self,
-        index: usize,
-    ) -> Result<&Constraint<Index, Bias>, IndexOutOfBoundsErr> {
+    pub fn get_constraint(&self, index: usize) -> Result<&Constraint, IndexOutOfBoundsErr> {
         if index >= self.len() {
             return Err(IndexOutOfBoundsErr::new(index, self.len()));
         }
@@ -212,71 +236,60 @@ where
     }
 }
 
-impl<Index, Bias> AddAssign<Constraint<Index, Bias>> for Constraints<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn add_assign(&mut self, rhs: Constraint<Index, Bias>) {
-        self.constraints.push(rhs)
-    }
-}
+impl Add<Constraint> for Constraints {
+    type Output = Result<Constraints, DuplicateConstraintNameErr>;
 
-impl<Index, Bias> Add<Constraint<Index, Bias>> for Constraints<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Constraints<Index, Bias>;
-
-    fn add(self, rhs: Constraint<Index, Bias>) -> Self::Output {
+    fn add(self, rhs: Constraint) -> Self::Output {
         let mut out = Constraints::new_from(&self);
-        out += rhs;
-        out
+        out.add_assign(&rhs)?;
+        Ok(out)
     }
 }
 
-impl<Index, Bias> AddAssign<&Constraint<Index, Bias>> for Constraints<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn add_assign(&mut self, rhs: &Constraint<Index, Bias>) {
-        self.constraints.push(rhs.clone());
+impl Constraints {
+    pub fn add_assign(&mut self, rhs: &Constraint) -> Result<(), DuplicateConstraintNameErr> {
+        if let Some(name) = &rhs.name {
+            if self.used_names.contains(&name) {
+                return Err(DuplicateConstraintNameErr(name.to_string()));
+            } else {
+                self.used_names.push(name.to_string())
+            }
+        }
+        Ok(self.constraints.push(rhs.clone()))
     }
 }
 
-impl<Index, Bias> Add<&Constraint<Index, Bias>> for &Constraints<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Constraints<Index, Bias>;
+impl Add<&Constraint> for &Constraints {
+    type Output = Result<Constraints, DuplicateConstraintNameErr>;
 
-    fn add(self, rhs: &Constraint<Index, Bias>) -> Self::Output {
+    fn add(self, rhs: &Constraint) -> Self::Output {
+        if rhs.name.is_some() && self.used_names.contains(rhs.name.as_ref().unwrap()) {
+            return Err(DuplicateConstraintNameErr(
+                rhs.name.as_ref().unwrap().to_string(),
+            ));
+        }
         let mut out = Constraints::new_from(&self);
-        out += rhs;
-        out
+        out.add_assign(rhs)?;
+        Ok(out)
     }
 }
 
-impl<Index, Bias> PartialEq for Constraint<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl PartialEq for Constraint {
     fn eq(&self, other: &Self) -> bool {
         self.comparator == other.comparator && self.rhs == other.rhs && self.lhs == other.lhs
     }
 }
 
-impl<Index, Bias> Display for Constraints<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl Display for Constraints {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = ModelWriter::new().write_constraints(&self).to_string();
         f.write_str(&s)
+    }
+}
+
+impl ContentEquality for Constraints {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.used_names == other.used_names
+            && self.constraints.is_equal_contents(&other.constraints)
     }
 }

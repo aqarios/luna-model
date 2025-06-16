@@ -1,12 +1,12 @@
 use crate::{
-    core::{ConcreteModel, Model},
+    core::{environment::SharedEnvironment, Model, Sense},
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
         Decodable, Encodable,
     },
 };
 use prost::Message;
-use std::{cell::RefCell, ops::Deref, rc::Rc};
+use std::{ops::Deref, str::FromStr};
 
 /// Representation of encodable model based on protocol buffers.
 #[derive(Clone, PartialEq, Message)]
@@ -23,6 +23,9 @@ pub struct SerModel {
     /// The name of the model.
     #[prost(string, tag = "4")]
     name: String,
+    /// The sense of the model.
+    #[prost(string, tag = "5")]
+    sense: String,
 }
 
 /// Makes the SerModel conform with the requirements for it to be an Encodable.
@@ -33,49 +36,47 @@ impl BytesEncodable for SerModel {
 }
 
 /// Makes the SerModel conform with the requirements for it to be an Decodable.
-impl BytesDecodable<ConcreteModel> for SerModel {
-    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<ConcreteModel, DecodeError> {
+impl BytesDecodable<Model> for SerModel {
+    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<Model, DecodeError> {
         Self::decode(bytes)?.extract()
     }
 }
 
 /// Makes the SerModel conform with the requirements for it to be an Encodable.
-impl Creatable<ConcreteModel> for SerModel {
-    fn new(value: &ConcreteModel) -> Self {
-        Self::empty(value.name.clone()).fill(&value)
+impl Creatable<Model> for SerModel {
+    fn new(value: &Model) -> Self {
+        Self::empty(value.name.clone(), value.sense).fill(&value)
     }
 }
 
 impl SerModel {
     /// Creates an empty serializable model struct.
-    fn empty(name: String) -> Self {
+    fn empty(name: String, sense: Sense) -> Self {
         Self {
             objective: Vec::new(),
             constraints: Vec::new(),
             environment: Vec::new(),
+            sense: sense.to_string(),
             name,
         }
     }
 
     /// Fills the serializable model based on an instance of Model.
-    fn fill(mut self, model: &ConcreteModel) -> Self {
-        self.objective = model.objective.borrow().deref().encode();
-        self.constraints = model.constraints.borrow().deref().encode();
+    fn fill(mut self, model: &Model) -> Self {
+        self.objective = model.objective.encode();
+        self.constraints = model.constraints.encode();
         self.environment = model.environment.borrow().deref().encode();
         self
     }
 
     /// Extracts the data from self to an instance of Model with Index VarId and
     /// Bias f64.
-    pub fn extract(&self) -> Result<ConcreteModel, DecodeError> {
-        let mut model = Model::new(Some(self.name.clone()));
-        model.environment = Rc::new(RefCell::new(self.environment.decode(())?));
-        model.objective = Rc::new(RefCell::new(
-            self.objective.decode(Rc::clone(&model.environment))?,
-        ));
-        model.constraints = Rc::new(RefCell::new(
-            self.constraints.decode(Rc::clone(&model.environment))?,
-        ));
+    pub fn extract(&self) -> Result<Model, DecodeError> {
+        let sense = Sense::from_str(&self.sense).map_err(|e| DecodeError::new(e.to_string()))?;
+        let mut model = Model::new(Some(self.name.clone()), Some(sense));
+        model.environment = SharedEnvironment::new(self.environment.decode(())?);
+        model.objective = self.objective.decode(model.environment.clone())?;
+        model.constraints = self.constraints.decode(model.environment.clone())?;
         Ok(model)
     }
 }

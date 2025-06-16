@@ -1,15 +1,51 @@
-use numpy::PyReadonlyArray1;
 use pyo3::{ffi::c_str, prelude::*};
+use std::{collections::HashMap, ffi::CStr};
 
+use crate::py_bindings::py_usize::PyUsize;
 use crate::{
     py_bindings::{
         py_env::{PyEnvironment, CURRENT_ENV},
-        py_exceptions::NoActiveEnvironmentFoundError,
+        py_exceptions::{NoActiveEnvironmentFoundError, SolutionTranslationError},
         py_sol::PySolution,
         py_timing::PyTiming,
     },
     translator::QctrlTranslator,
 };
+
+#[cfg(not(feature = "lq"))]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from aqmodels._core import translator
+
+def extract(result, timing, env):
+    return translator.QctrlTranslator.translate(
+        result.get('solution_bitstring', None),
+        result.get('solution_bitstring_cost', None),
+        result.get('final_bitstring_distribution', None),
+        result.get('variables_to_bitstring_index_map', None),
+        timing,
+        env,
+    )
+"
+);
+#[cfg(feature = "lq")]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from luna_quantum._core import translator
+
+def extract(result, timing, env):
+    return translator.QctrlTranslator.translate(
+        result.get('solution_bitstring', None),
+        result.get('solution_bitstring_cost', None),
+        result.get('final_bitstring_distribution', None),
+        result.get('variables_to_bitstring_index_map', None),
+        timing,
+        env,
+    )
+"
+);
 
 /// Utility class for converting between a QCTRL solution and our solution format.
 ///
@@ -31,10 +67,12 @@ pub struct PyQctrlTranslator(pub QctrlTranslator);
 #[pymethods]
 impl PyQctrlTranslator {
     #[staticmethod]
-    #[pyo3(signature=(sample, energy, timing=None, env=None))]
+    #[pyo3(signature=(solution_bitstring, solution_bitstring_cost, final_bitstring_distribution, variables_to_bitstring_index_map, timing=None, env=None))]
     fn translate(
-        sample: PyReadonlyArray1<i64>,
-        energy: f64,
+        solution_bitstring: Option<String>,
+        solution_bitstring_cost: Option<f64>,
+        final_bitstring_distribution: Option<HashMap<String, PyUsize>>,
+        variables_to_bitstring_index_map: Option<HashMap<String, PyUsize>>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PySolution> {
@@ -46,11 +84,66 @@ impl PyQctrlTranslator {
                 })
             })?,
         };
+        if solution_bitstring.is_none() {
+            return Err(SolutionTranslationError::new_err(
+                "QCTRL result does not contain a 'solution_bitstring'.",
+            ));
+        }
+        if solution_bitstring_cost.is_none() {
+            return Err(SolutionTranslationError::new_err(
+                "QCTRL result does not contain a 'solution_bitstring_cost'.",
+            ));
+        }
+        if final_bitstring_distribution.is_none() {
+            return Err(SolutionTranslationError::new_err(
+                "QCTRL result does not contain a 'final_bitstring_distribution'.",
+            ));
+        }
+        if variables_to_bitstring_index_map.is_none() {
+            return Err(SolutionTranslationError::new_err(
+                "QCTRL result does not contain a 'variables_to_bitstring_index_map'.",
+            ));
+        }
+        let mapper: HashMap<usize, usize> = variables_to_bitstring_index_map
+            .unwrap()
+            .iter()
+            .map(|(k, &v)| {
+                let index = regex::Regex::new(r"\[([^\]]+)\]")
+                    .unwrap()
+                    .captures(k)
+                    .unwrap()[1]
+                    .parse::<usize>()
+                    .unwrap();
+                (index, v.into())
+            })
+            .collect();
+        let mut samples: Vec<Vec<usize>> = Vec::new();
+        let mut counts = Vec::new();
+        let mut energies = Vec::new();
+        for (bs, &count) in final_bitstring_distribution.unwrap().iter() {
+            if bs == solution_bitstring.as_ref().unwrap() {
+                energies.push(Some(solution_bitstring_cost.unwrap()));
+            } else {
+                energies.push(None);
+            };
+            let unordered_sample: Vec<usize> = bs
+                .chars()
+                .map(|c| c.to_digit(10).unwrap() as usize)
+                .collect();
+            let sample: Vec<usize> = (0..unordered_sample.len())
+                .into_iter()
+                .map(|i| unordered_sample[mapper[&i]])
+                .collect();
+            samples.push(sample);
+            counts.push(count.into());
+        }
+
         Ok(PySolution(QctrlTranslator::from_qctrl(
-            sample.as_slice()?,
-            energy,
+            samples,
+            counts,
+            energies,
             timing.map(|t| t.into()),
-            environment.into(),
+            environment.0.clone(),
         )?))
     }
 
@@ -86,29 +179,9 @@ impl PyQctrlTranslator {
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {
-        let extractor: Py<PyAny> = PyModule::from_code(
-            py,
-            c_str!(
-                "
-import numpy as np
-from aqmodels._core import translator
-
-def extract(result, timing, env):
-    sample = result.get('solution_bitstring')
-    energy = result.get('final_aggregate_cost')
-    return translator.QctrlTranslator.translate(
-        np.array(sample, dtype=np.int64),
-        energy,
-        timing,
-        env,
-    )
-"
-            ),
-            c_str!(""),
-            c_str!(""),
-        )?
-        .getattr("extract")?
-        .into();
+        let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
+            .getattr("extract")?
+            .into();
 
         let args = (result, timing, env);
         let result = extractor.call1(py, args)?;

@@ -4,6 +4,8 @@ use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::{pyclass, pymethods, PyResult};
 use std::time::{Duration, SystemTime};
 
+use super::py_utils::repr_timing;
+
 /// The object that holds information about an algorithm's runtime.
 ///
 /// This class can only be constructed using a `Timer`. This ensures that a
@@ -25,7 +27,7 @@ use std::time::{Duration, SystemTime};
 /// 1.2999193
 /// >>> timing.qpu
 /// 0.02491934
-#[pyclass(unsendable, name = "Timing")]
+#[pyclass(unsendable, name = "Timing", module = "aqmodels")]
 #[derive(Clone, Deref, DerefMut, Debug)]
 pub struct PyTiming(pub Timing);
 
@@ -42,7 +44,7 @@ pub struct PyTiming(pub Timing);
 /// >>> timer = Timer.start()
 /// >>> solution = ... # create a solution by running an algorithm.
 /// >>> timing = timer.stop()
-#[pyclass(unsendable, name = "Timer")]
+#[pyclass(unsendable, name = "Timer", module = "aqmodels")]
 #[derive(Deref, DerefMut)]
 pub struct PyTimer(pub Timer);
 
@@ -137,6 +139,10 @@ impl PyTiming {
             self.qpu = Some(self.qpu.unwrap_or_default() + value);
             Ok(())
         }
+    }
+
+    fn __repr__(&self) -> String {
+        repr_timing(self)
     }
 }
 

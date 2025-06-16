@@ -7,6 +7,28 @@ use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::pyclass;
 use std::collections::HashMap;
+use std::ffi::CStr;
+
+#[cfg(not(feature = "lq"))]
+static PY_CODE: &'static CStr = c_str!(
+    "
+from aqmodels._core import translator
+
+def extract(model, timing, env):
+    sample = {x.name: model.getVal(x) for x in model.getVars()}
+    return translator.ZibTranslator.translate(sample, timing, env)
+"
+);
+#[cfg(feature = "lq")]
+static PY_CODE: &'static CStr = c_str!(
+    "
+from aqmodels._core import translator
+
+def extract(model, timing, env):
+    sample = {x.name: model.getVal(x) for x in model.getVars()}
+    return translator.ZibTranslator.translate(sample, timing, env)
+"
+);
 
 /// Utility class for converting between a Zib solution and our solution format.
 ///
@@ -48,7 +70,7 @@ impl PyZibTranslator {
         Ok(PySolution(ZibTranslator::from_zib(
             sample,
             timing.map(|t| t.into()),
-            environment.into(),
+            environment.0.clone()
         )?))
     }
 
@@ -84,22 +106,9 @@ impl PyZibTranslator {
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PyObject> {
-        let extractor: Py<PyAny> = PyModule::from_code(
-            py,
-            c_str!(
-                "
-from aqmodels._core import translator
-
-def extract(model, timing, env):
-    sample = {x.name: model.getVal(x) for x in model.getVars()}
-    return translator.ZibTranslator.translate(sample, timing, env)
-"
-            ),
-            c_str!(""),
-            c_str!(""),
-        )?
-        .getattr("extract")?
-        .into();
+        let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
+            .getattr("extract")?
+            .into();
         let args = (model, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)

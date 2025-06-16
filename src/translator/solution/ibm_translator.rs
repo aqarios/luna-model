@@ -7,8 +7,7 @@ use num::NumCast;
 
 use crate::{
     core::{
-        expression::IndexConstraints, solution::sol::SampleCol, ConcreteSolution, MutRcEnvironment,
-        RcSolution, Solution, Timing, VarRef, Vtype,
+        environment::SharedEnvironment, solution::sol::SampleCol, RcSolution, Solution, Timing, VarRef, Vtype
     },
     errors::SolutionCreationErr,
 };
@@ -16,18 +15,17 @@ use crate::{
 pub struct IbmTranslator {}
 
 impl IbmTranslator {
-    pub fn from_ibm<S, E, Index>(
+    pub fn from_ibm<S, E>(
         samples: &Vec<Vec<S>>,
-        orderings: &Vec<Rc<VarRef<Index>>>,
+        orderings: &Vec<Rc<VarRef>>,
         energies: &Vec<E>,
         counts: Vec<usize>,
         timing: Option<Timing>,
-        env: MutRcEnvironment<Index>,
-    ) -> Result<ConcreteSolution, SolutionCreationErr>
+        env: SharedEnvironment
+    ) -> Result<RcSolution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default + Display + Debug,
         E: Copy + NumCast + Debug,
-        Index: IndexConstraints,
     {
         let mut sol = Solution::default();
         for v in env.borrow().variables.iter() {
@@ -39,6 +37,7 @@ impl IbmTranslator {
             }
         }
         sol.timing = timing;
+        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
         // used to determine the order of each assignment in the sample.
         let index_list: Vec<usize> = orderings.iter().map(|e| e.id.into()).collect();
         // For each sample:
@@ -48,7 +47,7 @@ impl IbmTranslator {
             for (&idx, val) in index_list.iter().zip(sample) {
                 s[idx] = *val;
             }
-            sol.extend(s, occ, Some(*energy))?;
+            sol.extend(&s, occ, Some(*energy))?;
         }
         Ok(RcSolution(Rc::new(sol)))
     }

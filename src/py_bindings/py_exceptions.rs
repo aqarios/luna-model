@@ -1,15 +1,29 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
-    BqmTranslatorErr, DifferentEnvsErr, IllegalConstraintNameErr, IndexOutOfBoundsErr,
-    MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr,
-    ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
-    SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VarNamesErr,
-    VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr,
+    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, EvaluationErr, IllegalConstraintNameErr,
+    IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr,
+    ModelSenseNotMinimizeErr, ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
+    SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VariableCreationErr,
+    VariableNotExistingErr, VariablesFromDifferentEnvsErr, DuplicateConstraintNameErr
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError};
 use pyo3::{create_exception, PyErr};
 use std::convert::From;
+
+create_exception!(
+    aqmodels.errors,
+    ComputationError,
+    PyException,
+    "Raised when an error occurred in an internal computation."
+);
+
+create_exception!(
+    aqmodels.errors,
+    DuplicateConstraintNameError,
+    PyException,
+    "Raised when a duplicate constraint name is used."
+);
 
 create_exception!(
     aqmodels.errors,
@@ -158,7 +172,21 @@ Some solution methods may only work on models where all variables have the same
 type, or where only certain variable types are permitted."
 );
 
-create_exception!(aqmodels.errors, VariableNamesError, TranslationError);
+create_exception!(
+    aqmodels.errors,
+    VariableNamesError,
+    TranslationError,
+    "Raised when the QuboTranslator tries to create a model from a QUBO matrix, but the provided variable names are invalid.
+
+If variable names are provided to the QuboTranslator, they have to be unique, and the number of names has to match the number of variables in the QUBO matrix."
+);
+
+create_exception!(
+    aqmodels.errors,
+    EvaluationError,
+    PyException,
+    "Raised when an error occured during evaluation of a model."
+);
 
 create_exception!(aqmodels.errors, SolutionTranslationError, PyException);
 
@@ -212,10 +240,11 @@ impl From<VariableNotExistingErr> for PyErr {
 impl From<VariableCreationErr> for PyErr {
     fn from(err: VariableCreationErr) -> PyErr {
         match err {
-            VariableCreationErr::VariableExists => VariableExistsError::new_err(err.to_string()),
+            VariableCreationErr::VariableExists(_) => VariableExistsError::new_err(err.to_string()),
             VariableCreationErr::InvalidBounds(_) => {
                 VariableCreationError::new_err(err.to_string())
             }
+            VariableCreationErr::VarName(_) => VariableNamesError::new_err(err.to_string()),
         }
     }
 }
@@ -268,12 +297,6 @@ impl From<IndexOutOfBoundsErr> for PyErr {
     }
 }
 
-impl From<VarNamesErr> for PyErr {
-    fn from(value: VarNamesErr) -> Self {
-        VariableNamesError::new_err(value.to_string())
-    }
-}
-
 impl From<MatrixTranslatorErr> for PyErr {
     fn from(err: MatrixTranslatorErr) -> Self {
         match err {
@@ -281,7 +304,7 @@ impl From<MatrixTranslatorErr> for PyErr {
             MatrixTranslatorErr::HigherOrder(err) => err.into(),
             MatrixTranslatorErr::Maximize(err) => err.into(),
             MatrixTranslatorErr::Vtype(err) => err.into(),
-            MatrixTranslatorErr::VarNames(err) => err.into(),
+            MatrixTranslatorErr::VarCreation(err) => err.into(),
         }
     }
 }
@@ -334,5 +357,23 @@ impl From<TranslationErr> for PyErr {
 impl From<IllegalConstraintNameErr> for PyErr {
     fn from(value: IllegalConstraintNameErr) -> Self {
         IllegalConstraintNameError::new_err(value.to_string())
+    }
+}
+
+impl From<ComputationErr> for PyErr {
+    fn from(value: ComputationErr) -> Self {
+        ComputationError::new_err(value.to_string())
+    }
+}
+
+impl From<EvaluationErr> for PyErr {
+    fn from(value: EvaluationErr) -> Self {
+        EvaluationError::new_err(format!("{value}"))
+    }
+}
+
+impl From<DuplicateConstraintNameErr> for PyErr {
+    fn from(value: DuplicateConstraintNameErr) -> Self {
+        DuplicateConstraintNameError::new_err(format!("{value}"))
     }
 }

@@ -1,8 +1,10 @@
 from pathlib import Path
+
 import pytest
 from dimod import lp as dimod_lp
 from pyscipopt import Model as ScipModel
-from aqmodels import Model, Variable, Vtype, Bounds
+
+from aqmodels import Bounds, Model, Variable, Vtype
 from aqmodels.translator import LpTranslator
 
 

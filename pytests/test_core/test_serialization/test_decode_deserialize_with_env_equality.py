@@ -16,4 +16,4 @@ def test_decode_and_deserialize_with_env_equality(
     assert isinstance(decoded, type(deserialized))
     assert decoded == deserialized
     assert decoded == initial
-    assert deserialized == initial
+    assert deserialized.equal_contents(initial)

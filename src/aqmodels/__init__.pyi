@@ -1,29 +1,37 @@
+from . import utils
 from ._core import (
-    Vtype,
     Bounds,
-    Variable,
-    Timing,
-    Timer,
-    Solution,
-    SamplesIterator,
-    SampleIterator,
-    Samples,
-    Sample,
-    ResultIterator,
-    Result,
-    ResultView,
-    Sense,
-    Model,
-    Expression,
-    Environment,
     Comparator,
+    Constant,
     Constraint,
     Constraints,
+    Environment,
+    Expression,
+    ExpressionIterator,
+    HigherOrder,
+    Linear,
+    Model,
+    Quadratic,
+    Result,
+    ResultIterator,
+    ResultView,
+    Sample,
+    SampleIterator,
+    Samples,
+    SamplesIterator,
+    Sense,
+    Solution,
+    Timer,
+    Timing,
+    Unbounded,
+    Variable,
+    Vtype,
+    errors,
+    translator,
 )
 
-from . import translator
 from . import transformations
-from . import errors
+from .utils import quicksum
 
 __all__ = [
     "Vtype",
@@ -49,4 +57,12 @@ __all__ = [
     "translator",
     "transformations",
     "errors",
+    "Unbounded",
+    "ExpressionIterator",
+    "Constant",
+    "Linear",
+    "Quadratic",
+    "HigherOrder",
+    "utils",
+    "quicksum",
 ]

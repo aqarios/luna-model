@@ -1,13 +1,14 @@
 use crate::{
-    core::{
-        environment::get_vref_by_name, ConcreteEnvironment, ConcreteMutRcEnvironment, Environment,
-    },
+    core::{environment::SharedEnvironment, ContentEquality},
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
     },
 };
 use derive_more::{Deref, DerefMut};
-use pyo3::{prelude::*, types::PyBytes};
+use pyo3::{
+    prelude::*,
+    types::{PyBytes, PyType},
+};
 use std::{cell::RefCell, ops::Deref, rc::Rc};
 
 use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
@@ -44,17 +45,11 @@ use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
 /// - Use `encode()` / `decode()` to persist and recover expression trees.
 #[pyclass(unsendable, name = "Environment", module = "aqmodels")]
 #[derive(Deref, DerefMut, Clone)]
-pub struct PyEnvironment(pub ConcreteMutRcEnvironment);
-
-impl Into<ConcreteMutRcEnvironment> for PyEnvironment {
-    fn into(self) -> ConcreteMutRcEnvironment {
-        self.0
-    }
-}
+pub struct PyEnvironment(pub SharedEnvironment);
 
 impl PyEnvironment {
-    pub fn new(env: ConcreteEnvironment) -> Self {
-        Self(env.into())
+    pub fn new(env: SharedEnvironment) -> Self {
+        Self(env)
     }
 }
 
@@ -69,7 +64,7 @@ impl PyEnvironment {
     /// It is recommended to use this in a `with` statement to ensure proper scoping.
     #[new]
     fn py_new() -> PyResult<Self> {
-        Ok(PyEnvironment::new(Environment::new()))
+        Ok(PyEnvironment::new(SharedEnvironment::default()))
     }
 
     /// Activate this environment for variable creation.
@@ -129,10 +124,7 @@ impl PyEnvironment {
     /// VariableNotExistingError
     ///     If no variable with the specified name is registered.
     fn get_variable(&self, name: String) -> PyResult<PyVariable> {
-        Ok(PyVariable(Rc::new(get_vref_by_name(
-            &name,
-            Rc::clone(&self.0),
-        )?)))
+        Ok(PyVariable(Rc::new(self.0.get_vref_by_name(&name)?)))
     }
 
     /// Serialize the environment into a compact binary format.
@@ -199,19 +191,19 @@ impl PyEnvironment {
     /// ------
     /// DecodeError
     ///     If decoding fails due to corruption or incompatibility.
-    #[staticmethod]
-    fn decode(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Ok(PyEnvironment::new(
+    #[classmethod]
+    fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Ok(PyEnvironment::new(SharedEnvironment::new(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
-        ))
+        )))
     }
 
     /// Alias for `decode()`.
     ///
     /// See `decode()` for full usage details.
-    #[staticmethod]
-    fn deserialize(py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Self::decode(py, data)
+    #[classmethod]
+    fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+        Self::decode(cls, py, data)
     }
 
     fn __eq__(&self, other: &PyEnvironment) -> bool {
@@ -224,5 +216,9 @@ impl PyEnvironment {
 
     fn __repr__(&self) -> String {
         format!("{:#?}", self.borrow())
+    }
+
+    fn equal_contents(&self, other: &Self) -> bool {
+        self.0.is_equal_contents(&other.0)
     }
 }

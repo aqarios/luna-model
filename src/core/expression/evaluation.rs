@@ -1,13 +1,13 @@
-use super::{BiasConstraints, Expression, ExpressionEvaluation, IndexConstraints};
-use crate::core::IndexByValue;
+use crate::core::expression::One;
+use super::{Expression, ExpressionEvaluation};
+use crate::{
+    core::ValueByIndex,
+    types::{Bias, VarIndex},
+};
 use std::ops::Mul;
 
-impl<Index, Bias> ExpressionEvaluation<Index, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn evaluate_sample<'a, Elem: 'a, Sample: IndexByValue<Index, Output = Elem>>(
+impl ExpressionEvaluation<VarIndex, Bias> for Expression {
+    fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<VarIndex, Output = Elem>>(
         &self,
         sample: &'a Sample,
     ) -> Bias
@@ -18,12 +18,12 @@ where
         let mut value = self.offset;
         // Evaluate the linear term.
         for (idx, bias) in self.linear.iter() {
-            value += sample.index_by_value(idx.into()) * *bias;
+            value += sample.value_by_index(idx.into()) * *bias;
         }
         // Evaluate the quadratic term if it exists.
         if let Some(quad) = &self.quadratic {
             for (u, v, bias) in quad.iter_flat() {
-                value += sample.index_by_value(u) * (sample.index_by_value(v) * bias);
+                value += sample.value_by_index(u) * (sample.value_by_index(v) * bias);
             }
         }
         // Evaluate the higher order term if it exists.
@@ -32,7 +32,7 @@ where
                 value += *bias
                     * contribs
                         .iter()
-                        .fold(Bias::one(), |acc, x| sample.index_by_value(*x) * acc);
+                        .fold(Bias::one(), |acc, x| sample.value_by_index(*x) * acc);
             }
         }
         value
@@ -41,7 +41,7 @@ where
     fn evaluate_sampleset<
         'a,
         Elem: 'a,
-        Sample: IndexByValue<Index, Output = Elem> + 'a,
+        Sample: ValueByIndex<VarIndex, Output = Elem> + 'a,
         SampleSet: Iterator<Item = &'a Sample> + Copy,
     >(
         &self,

@@ -3,11 +3,11 @@ use pyo3::prelude::*;
 use strum_macros::{Display, EnumIter};
 
 /// Enumeration of variable types supported by the optimization system.
-/// 
+///
 /// This enum defines the type of a variable used in a model. The type influences
 /// the domain and behavior of the variable during optimization. It is often passed
 /// when defining variables to specify how they should behave.
-/// 
+///
 /// Attributes
 /// ----------
 /// Real : Vtype
@@ -18,13 +18,13 @@ use strum_macros::{Display, EnumIter};
 ///     Binary variable. Can only take values 0 or 1.
 /// Spin : Vtype
 ///     Spin variable. Can only take values -1 or +1.
-/// 
+///
 /// Examples
 /// --------
 /// >>> from luna_quantum import Vtype
 /// >>> Vtype.Real
 /// Real
-/// 
+///
 /// >>> str(Vtype.Binary)
 /// 'Binary'
 #[cfg_attr(

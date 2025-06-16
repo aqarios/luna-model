@@ -1,25 +1,24 @@
+use crate::types::{Bias, VarIndex};
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct OneVarTerm<Index, Bias> {
-    pub index: Index,
+pub struct OneVarTerm {
+    pub index: VarIndex,
     pub bias: Bias,
 }
 
 pub type SizeType = usize;
 
-pub trait OneVarTermConstruction<Index, Bias> {
-    fn new(index: Index, bias: Bias) -> Self;
-    fn new_default(index: Index) -> Self;
+pub trait OneVarTermConstruction {
+    fn new(index: VarIndex, bias: Bias) -> Self;
+    fn new_default(index: VarIndex) -> Self;
 }
 
-impl<Index, Bias> OneVarTermConstruction<Index, Bias> for OneVarTerm<Index, Bias>
-where
-    Bias: Default,
-{
-    fn new(index: Index, bias: Bias) -> Self {
+impl OneVarTermConstruction for OneVarTerm {
+    fn new(index: VarIndex, bias: Bias) -> Self {
         Self { index, bias }
     }
 
-    fn new_default(index: Index) -> Self {
+    fn new_default(index: VarIndex) -> Self {
         Self {
             index,
             bias: Bias::default(),

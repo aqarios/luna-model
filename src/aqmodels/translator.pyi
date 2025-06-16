@@ -1,12 +1,13 @@
-from typing import overload, Any
 from pathlib import Path
-from numpy.typing import NDArray
+from typing import Any, overload
+
 from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel, SampleSet
+from numpy.typing import NDArray
 from pyscipopt import Model as SciModel
 from qiskit.primitives import PrimitiveResult, PubResult
 from qiskit_optimization import QuadraticProgram
 
-from .._core import Solution, Timing, Environment, Vtype, Model
+from ._core import Environment, Model, Solution, Timing, Vtype
 
 class ZibTranslator:
     """
@@ -16,8 +17,8 @@ class ZibTranslator:
 
         - Convert a Zib-style solution into our solution `Solution`.
 
-    The conversions are especially required when interacting with external zib solvers/samplers or
-    libraries that operate on zib-based problem-solving/sampling.
+    The conversions are especially required when interacting with external zib
+    solvers/samplers or libraries that operate on zib-based problem-solving/sampling.
 
     Examples
     --------
@@ -28,6 +29,7 @@ class ZibTranslator:
     >>> model.optimize()
     >>> aqs = lq.translator.ZibTranslator.to_aq(model)
     """
+
     @overload
     @staticmethod
     def to_aq(model: SciModel) -> Solution: ...
@@ -61,8 +63,8 @@ class ZibTranslator:
         NoActiveEnvironmentFoundError
             If no environment is passed to the method or available from the context.
         SolutionTranslationError
-            Generally if the solution translation fails. Might be specified by one of the
-                two following errors.
+            Generally if the solution translation fails. Might be specified by one of
+            the two following errors.
         SampleIncorrectLengthError
             If a solution's sample has a different number of variables than the model
             environment passed to the translator.
@@ -73,8 +75,10 @@ class ZibTranslator:
         ...
 
 class Qubo:
-    """
-    A wrapper around qubo matrices that holds all relevant metadata, e.g., the model offset.
+    """The result of the QuboTranslator.
+
+    A wrapper around qubo matrices that holds all relevant metadata,
+    e.g., the model offset.
     """
 
     @property
@@ -152,12 +156,14 @@ class QuboTranslator:
     Examples
     --------
     >>> import numpy as np
-    >>> from luna_quantum import QuboTranslator, Vtype
+    >>> from luna_quantum.translator import QuboTranslator, Vtype
     >>> q = np.array([[1.0, -1.0], [-1.0, 2.0]])
 
     Create a model from a matrix:
 
-    >>> model = QuboTranslator.to_aq(q, offset=4.2, name="qubo_model", vtype=Vtype.Binary)
+    >>> model = QuboTranslator.to_aq(
+    ...     q, offset=4.2, name="qubo_model", vtype=Vtype.Binary
+    ... )
 
     Convert it back to a dense matrix:
 
@@ -169,10 +175,10 @@ class QuboTranslator:
     def to_aq(
         qubo: NDArray,
         *,
-        offset: float | None,
-        variable_names: list[str] | None,
-        name: str | None,
-        vtype: Vtype | None,
+        offset: float | None = ...,
+        variable_names: list[str] | None = ...,
+        name: str | None = ...,
+        vtype: Vtype | None = ...,
     ) -> Model:
         """
         Convert a dense QUBO matrix into a symbolic `Model`.
@@ -218,9 +224,10 @@ class QuboTranslator:
         Returns
         -------
         Qubo
-            An object representing a QUBO with information additional to the square NumPy array
-            representing the QUBO matrix derived from the model's objective. This object also
-            includes the `variable_ordering` as well as the `offset` of the original model.
+            An object representing a QUBO with information additional to the square
+            NumPy array representing the QUBO matrix derived from the model's objective.
+            This object also includes the `variable_ordering` as well as the `offset`
+            of the original model.
 
         Raises
         ------
@@ -246,8 +253,8 @@ class QctrlTranslator:
     `QctrlTranslator` provides methods to:
     - Convert a Qctrl-style solution into our solution `Solution`.
 
-    The conversions are especially required when interacting with external qctrl solvers/samplers or
-    libraries that operate on qctrl-based problem-solving/sampling.
+    The conversions are especially required when interacting with external qctrl
+    solvers/samplers or libraries that operate on qctrl-based problem-solving/sampling.
 
     Examples
     --------
@@ -256,6 +263,7 @@ class QctrlTranslator:
     >>> qctrl_result = ...
     >>> aqs = lq.translator.QctrlTranslator.to_aq(qctrl_result)
     """
+
     @overload
     @staticmethod
     def to_aq(result: dict[str, Any]) -> Solution: ...
@@ -294,8 +302,8 @@ class QctrlTranslator:
         NoActiveEnvironmentFoundError
             If no environment is passed to the method or available from the context.
         SolutionTranslationError
-            Generally if the solution translation fails. Might be specified by one of the
-            two following errors.
+            Generally if the solution translation fails. Might be specified by one of
+            the two following errors.
         SampleIncorrectLengthError
             If a solution's sample has a different number of variables than the model
             environment passed to the translator.
@@ -306,9 +314,10 @@ class QctrlTranslator:
         ...
 
 class NumpyTranslator:
-    """
-    Utility class for converting between a result consisting of numpy arrays and our solution
-    format.
+    """Translate between numpy arrays and our solution format.
+
+    Utility class for converting between a result consisting of numpy arrays and our
+    solution format.
 
     `NumpyTranslator` provides methods to:
     - Convert a numpy-array result into our solution `Solution`.
@@ -321,6 +330,7 @@ class NumpyTranslator:
     >>> energies: NDArray = ...
     >>> aqs = lq.translator.NumpyTranslator.to_aq(result, energies)
     """
+
     @overload
     @staticmethod
     def to_aq(result: NDArray, energies: NDArray) -> Solution: ...
@@ -362,8 +372,8 @@ class NumpyTranslator:
         NoActiveEnvironmentFoundError
             If no environment is passed to the method or available from the context.
         SolutionTranslationError
-            Generally if the solution translation fails. Might be specified by one of the
-                two following errors.
+            Generally if the solution translation fails. Might be specified by one of
+            the two following errors.
         SampleIncorrectLengthError
             If a solution's sample has a different number of variables than the model
             environment passed to the translator.
@@ -387,7 +397,7 @@ class LpTranslator:
     Examples
     --------
     >>> from pathlib import Path
-    >>> from luna_quantum import LpTranslator
+    >>> from luna_quantum.translator import LpTranslator
     >>> lp_filepath = Path("path/to/the/lp_file")
 
     >>> model = LpTranslator.to_aq(lp_filepath)
@@ -402,7 +412,9 @@ class LpTranslator:
     def to_aq(file: Path) -> Model: ...
     @overload
     @staticmethod
-    def to_aq(file: str) -> Model:
+    def to_aq(file: str) -> Model: ...
+    @staticmethod
+    def to_aq(file: str | Path) -> Model:
         """
         Convert an LP file into a symbolic `Model`.
 
@@ -433,7 +445,9 @@ class LpTranslator:
     def from_aq(model: Model) -> str: ...
     @overload
     @staticmethod
-    def from_aq(model: Model, *, filepath: Path) -> None:
+    def from_aq(model: Model, *, filepath: Path) -> None: ...
+    @staticmethod
+    def from_aq(model: Model, *, filepath: Path | None = ...) -> None:
         """
         Convert a symbolic model to an LP file representation.
 
@@ -457,15 +471,13 @@ class LpTranslator:
         ...
 
 class IbmTranslator:
-    """
-    Utility class for converting between an IBM solution and our solution format.
-
+    """Utility class for converting between an IBM solution and our solution format.
 
     `IbmTranslator` provides methods to:
     - Convert an IBM-style solution into our solution `Solution`.
 
-    The conversions are especially required when interacting with external ibm solvers/samplers or
-    libraries that operate on ibm-based problem-solving/sampling.
+    The conversions are especially required when interacting with external ibm
+    solvers/samplers oe libraries that operate on ibm-based problem-solving/sampling.
 
     Examples
     --------
@@ -474,6 +486,7 @@ class IbmTranslator:
     >>> ibm_result = ...
     >>> aqs = lq.translator.IbmTranslator.to_aq(ibm_result)
     """
+
     @overload
     @staticmethod
     def to_aq(
@@ -530,8 +543,8 @@ class IbmTranslator:
         NoActiveEnvironmentFoundError
             If no environment is passed to the method or available from the context.
         SolutionTranslationError
-            Generally if the solution translation fails. Might be specified by one of the
-                two following errors.
+            Generally if the solution translation fails. Might be specified by one of
+            the two following errors.
         SampleIncorrectLengthError
             If a solution's sample has a different number of variables than the model
             environment passed to the translator.
@@ -542,14 +555,14 @@ class IbmTranslator:
         ...
 
 class DwaveTranslator:
-    """
-    Utility class for converting between a DWAVE solution and our solution format.
+    """Utility class for converting between a DWAVE solution and our solution format.
 
     `DWaveSolutionTranslator` provides methods to:
     - Convert a dimod-style solution into our solution `Solution`.
 
     The conversions are especially required when interacting with external dwave/dimod
-    solvers/samplers or libraries that operate on dwave/dimod-based problem-solving/sampling.
+    solvers/samplers or libraries that operate on dwave/dimod-based problem-solving/
+    sampling.
 
     Examples
     --------
@@ -558,6 +571,7 @@ class DwaveTranslator:
     >>> dwave_sampleset = ...
     >>> aqs = lq.translator.DwaveTranslator.to_aq(dwave_sampleset)
     """
+
     @overload
     @staticmethod
     def to_aq(sample_set: SampleSet) -> Solution: ...
@@ -596,8 +610,8 @@ class DwaveTranslator:
         NoActiveEnvironmentFoundError
             If no environment is passed to the method or available from the context.
         SolutionTranslationError
-            Generally if the solution translation fails. Might be specified by one of the
-                two following errors.
+            Generally if the solution translation fails. Might be specified by one of
+            the two following errors.
         SampleIncorrectLengthError
             If a solution's sample has a different number of variables than the model
             environment passed to the translator.
@@ -608,7 +622,8 @@ class DwaveTranslator:
         ...
 
 class CqmTranslator:
-    """
+    """CQM to AQM translator.
+
     Utility class for converting between dimod.BinaryQuadraticModel (CQM) and symbolic
     models.
 
@@ -623,7 +638,7 @@ class CqmTranslator:
     --------
     >>> import dimod
     >>> import numpy as np
-    >>> from luna_quantum import CqmTranslator, Vtype
+    >>> from luna_quantum.translator import CqmTranslator, Vtype
     >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 
     Create a model from a matrix:
@@ -634,6 +649,7 @@ class CqmTranslator:
 
     >>> recovered = CqmTranslator.from_aq(model)
     """
+
     @staticmethod
     def to_aq(cqm: ConstrainedQuadraticModel) -> Model:
         """
@@ -681,7 +697,8 @@ class CqmTranslator:
         ...
 
 class BqmTranslator:
-    """
+    """BQM to AQM translator.
+
     Utility class for converting between dimod.BinaryQuadraticModel (BQM) and symbolic
     models.
 
@@ -696,7 +713,7 @@ class BqmTranslator:
     --------
     >>> import dimod
     >>> import numpy as np
-    >>> from luna_quantum import BqmTranslator, Vtype
+    >>> from luna_quantum.translator import BqmTranslator, Vtype
     >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 
     Create a model from a matrix:
@@ -707,12 +724,15 @@ class BqmTranslator:
 
     >>> recovered = BqmTranslator.from_aq(model)
     """
+
     @overload
     @staticmethod
     def to_aq(bqm: BinaryQuadraticModel) -> Model: ...
     @overload
     @staticmethod
-    def to_aq(bqm: BinaryQuadraticModel, *, name: str) -> Model:
+    def to_aq(bqm: BinaryQuadraticModel, *, name: str) -> Model: ...
+    @staticmethod
+    def to_aq(bqm: BinaryQuadraticModel, *, name: str | None = ...) -> Model:
         """
         Convert a BQM into a symbolic `Model`.
 
@@ -769,8 +789,8 @@ class AwsTranslator:
     `AwsTranslator` provides methods to:
     - Convert an AWS-style result into our solution `Solution`.
 
-    The conversions are especially required when interacting with external aws solvers/samplers or
-    libraries that operate on aws-based problem-solving/sampling.
+    The conversions are especially required when interacting with external aws
+    solvers/samplers or libraries that operate on aws-based problem-solving/sampling.
 
     Examples
     --------
@@ -817,8 +837,8 @@ class AwsTranslator:
         NoActiveEnvironmentFoundError
             If no environment is passed to the method or available from the context.
         SolutionTranslationError
-            Generally if the solution translation fails. Might be specified by one of the
-            two following errors.
+            Generally if the solution translation fails. Might be specified by one of
+            the two following errors.
         SampleIncorrectLengthError
             If a solution's sample has a different number of variables than the model
             environment passed to the translator.
@@ -829,15 +849,15 @@ class AwsTranslator:
         ...
 
 __all__ = [
-    "ZibTranslator",
+    "AwsTranslator",
+    "BqmTranslator",
+    "CqmTranslator",
+    "DwaveTranslator",
+    "IbmTranslator",
+    "LpTranslator",
+    "NumpyTranslator",
+    "QctrlTranslator",
     "Qubo",
     "QuboTranslator",
-    "QctrlTranslator",
-    "NumpyTranslator",
-    "LpTranslator",
-    "IbmTranslator",
-    "DwaveTranslator",
-    "CqmTranslator",
-    "BqmTranslator",
-    "AwsTranslator",
+    "ZibTranslator",
 ]

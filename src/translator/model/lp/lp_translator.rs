@@ -1,40 +1,27 @@
 use super::{
-    keywords::{BoundsKeywords, ConstraintsKeywords, EndKeywords},
+    keywords::{BoundsKeywords, ConstraintsKeywords, EndKeywords, VariableType},
     sections::{Section, SectionsHolder},
     util::{chunks, is_comment, is_end},
 };
+use crate::{core::Model, errors::TranslationErr};
 use crate::{
     core::Sense,
     translator::base::{BackTranslator, Translator},
 };
-use crate::{
-    core::{
-        expression::{BiasConstraints, IndexConstraints},
-        Model,
-    },
-    errors::TranslationErr,
-};
 use std::{
     fs::File,
     io::{Read, Write},
-    marker::PhantomData,
     path::PathBuf,
 };
 
 static MAX_LINE_LENGTH: usize = 88;
 static INDENT: &str = " ";
 
-pub struct LPTranslator<Index, Bias> {
-    _phantom_index: PhantomData<Index>,
-    _phantom_bias: PhantomData<Bias>,
-}
-
-impl<Index, Bias> LPTranslator<Index, Bias>
+pub struct LPTranslator
 where
-    Self: Translator,
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+    Self: Translator;
+
+impl LPTranslator {
     pub fn read_file(filepath: PathBuf) -> Result<String, TranslationErr> {
         let display = filepath.display();
         let mut file = match File::open(&filepath) {
@@ -60,8 +47,8 @@ where
         Ok(())
     }
 
-    fn parse_sections(contents: String) -> Result<SectionsHolder<Index, Bias>, TranslationErr> {
-        let mut sections: SectionsHolder<Index, Bias> = SectionsHolder::new();
+    fn parse_sections(contents: String) -> Result<SectionsHolder, TranslationErr> {
+        let mut sections: SectionsHolder = SectionsHolder::new();
         let mut last_section = Section::Placeholder;
         for (_i, line) in contents.lines().enumerate() {
             // println!("{}: {}", i, line);
@@ -112,18 +99,17 @@ where
         Ok(sections)
     }
 
-    fn build_model(
-        sections: SectionsHolder<Index, Bias>,
-    ) -> Result<Model<Index, Bias>, TranslationErr> {
+    fn build_model(sections: SectionsHolder) -> Result<Model, TranslationErr> {
         let model_name = &sections.model_name;
-        let mut model = Model::new(model_name.clone());
+        let mut model = Model::new(model_name.clone(), None);
+        // ATTENTION: The sense will be set correctly in the `.make_objective` call.
         let vl = sections.make_variables(&mut model)?;
         sections.make_objective(&mut model, &vl)?;
         sections.make_constraints(&mut model, &vl)?;
         Ok(model)
     }
 
-    fn build_string(model: &Model<Index, Bias>) -> Result<String, TranslationErr> {
+    fn build_string(model: &Model) -> Result<String, TranslationErr> {
         let sections = SectionsHolder::from_model(&model)?;
         let mut out = String::new();
 
@@ -160,6 +146,9 @@ where
             }
         }
         for (vt, data) in sections.iter_variables() {
+            if *vt == VariableType::Continuous {
+                continue;
+            }
             out.push_str(&format!("{}\n", vt.to_string()));
             let data_str = data.join(" ");
             let chunks = chunks(&data_str, MAX_LINE_LENGTH);
@@ -172,25 +161,17 @@ where
     }
 }
 
-impl<Index, Bias> Translator for LPTranslator<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl Translator for LPTranslator {
     type TranslateIn = String;
-    type TranslateOut = Result<Model<Index, Bias>, TranslationErr>;
+    type TranslateOut = Result<Model, TranslationErr>;
 
     fn translate(file: Self::TranslateIn) -> Self::TranslateOut {
         Self::build_model(Self::parse_sections(file)?)
     }
 }
 
-impl<'a, Index, Bias> BackTranslator<'a> for LPTranslator<Index, Bias>
-where
-    Index: IndexConstraints + 'a,
-    Bias: BiasConstraints + 'a,
-{
-    type BackTranslateIn = (&'a Model<Index, Bias>, Option<PathBuf>);
+impl<'a> BackTranslator<'a> for LPTranslator {
+    type BackTranslateIn = (&'a Model, Option<PathBuf>);
     type BackTranslateOut = Result<Option<String>, TranslationErr>;
 
     fn back_translate(data: Self::BackTranslateIn) -> Self::BackTranslateOut {

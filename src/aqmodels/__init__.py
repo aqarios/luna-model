@@ -45,15 +45,21 @@ transformers
     to a linear model.
 """
 
-from . import errors, transformations, translator
+from . import utils, transformations
+
 from ._core import (
     Bounds,
     Comparator,
+    Constant,
     Constraint,
     Constraints,
     Environment,
     Expression,
+    ExpressionIterator,
+    HigherOrder,
+    Linear,
     Model,
+    Quadratic,
     Result,
     ResultIterator,
     ResultView,
@@ -65,9 +71,13 @@ from ._core import (
     Solution,
     Timer,
     Timing,
+    Unbounded,
     Variable,
     Vtype,
+    errors,
+    translator,
 )
+from .utils import quicksum
 
 __all__ = [
     "Vtype",
@@ -90,7 +100,15 @@ __all__ = [
     "Comparator",
     "Constraint",
     "Constraints",
+    "Unbounded",
+    "ExpressionIterator",
+    "Constant",
+    "Linear",
+    "Quadratic",
+    "HigherOrder",
     "translator",
     "transformations",
     "errors",
+    "utils",
+    "quicksum",
 ]

@@ -1,4 +1,5 @@
 import pytest
+
 from aqmodels import (
     Comparator,
     Constraint,
@@ -403,12 +404,10 @@ def test_constraint_creation_eq_var_rhs_var(
     variable_and_variable: tuple[Variable, Variable],
 ):
     lhs, rhs = variable_and_variable
-    constr = lhs == rhs
-    assert isinstance(constr, Constraint)
-    assert constr.name is None
-    assert constr.lhs.is_equal(lhs - rhs)
-    assert constr.rhs == rhs
-    assert constr.comparator == Comparator.Eq
+    are_equal = lhs == rhs
+    assert not isinstance(are_equal, Constraint)
+    assert isinstance(are_equal, bool)
+    assert not are_equal
 
 
 @pytest.mark.constraint
@@ -444,7 +443,6 @@ def test_constraint_creation_eq_var_direct_rhs_var(
     lhs, rhs = variable_and_variable
     constr = Constraint(lhs, rhs, Comparator.Eq)
     assert isinstance(constr, Constraint)
-    assert constr == (lhs == rhs)
     assert constr.name is None
     assert constr.lhs.is_equal(lhs - rhs)
     assert constr.rhs == rhs

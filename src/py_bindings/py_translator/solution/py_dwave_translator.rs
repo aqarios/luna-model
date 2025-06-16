@@ -5,6 +5,42 @@ use crate::py_bindings::py_timing::PyTiming;
 use crate::translator::solution::DwaveTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{ffi::c_str, prelude::*};
+use std::ffi::CStr;
+
+#[cfg(not(feature = "lq"))]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from aqmodels._core import translator
+
+def extract(sampleset, timing, env):
+    sampleset = sampleset.aggregate()
+    variables = sampleset.variables
+    record = sampleset.record
+    sample = record.sample.astype(np.int64, order='C')
+    counts = record.num_occurrences.astype(np.int64, order='C')
+    energy = record.energy.astype(np.float64, order='C')
+    return translator.DwaveTranslator.translate(
+        sample, variables, counts, energy, timing, env
+    )"
+);
+#[cfg(feature = "lq")]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from luna_quantum._core import translator
+
+def extract(sampleset, timing, env):
+    sampleset = sampleset.aggregate()
+    variables = sampleset.variables
+    record = sampleset.record
+    sample = record.sample.astype(np.int64, order='C')
+    counts = record.num_occurrences.astype(np.int64, order='C')
+    energy = record.energy.astype(np.float64, order='C')
+    return translator.DwaveTranslator.translate(
+        sample, variables, counts, energy, timing, env
+    )"
+);
 
 /// Utility class for converting between a DWAVE solution and our solution format.
 ///
@@ -26,9 +62,10 @@ pub struct PyDwaveTranslator(pub DwaveTranslator);
 #[pymethods]
 impl PyDwaveTranslator {
     #[staticmethod]
-    #[pyo3(signature=(samples, counts, energy, timing=None, env=None))]
+    #[pyo3(signature=(samples, variables_order, counts, energy, timing=None, env=None))]
     fn translate(
         samples: PyReadonlyArray2<i64>,
+        variables_order: Vec<String>,
         counts: PyReadonlyArray1<i64>,
         energy: PyReadonlyArray1<f64>,
         timing: Option<PyTiming>,
@@ -44,11 +81,12 @@ impl PyDwaveTranslator {
         };
         Ok(PySolution(DwaveTranslator::from_dimod_sample_set(
             samples.as_slice()?,
+            variables_order.as_slice(),
             counts.as_slice()?,
             energy.as_slice()?,
             samples.shape(),
             timing.map(|t| t.into()),
-            environment.into(),
+            environment.0.clone()
         )?))
     }
 
@@ -77,36 +115,17 @@ impl PyDwaveTranslator {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature = (sampleset, timing=None, env=None))]
+    #[pyo3(signature = (sample_set, timing=None, env=None))]
     fn to_aq(
         py: Python,
-        sampleset: PyObject,
+        sample_set: PyObject,
         timing: Option<PyObject>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {
-        let extractor: Py<PyAny> = PyModule::from_code(
-            py,
-            c_str!(
-                "
-import numpy as np
-from aqmodels._core import translator
-
-def extract(sampleset, timing, env):
-    sampleset = sampleset.aggregate()
-    record = sampleset.record
-    sample = record.sample.astype(np.int64, order='C')
-    counts = record.num_occurrences.astype(np.int64, order='C')
-    energy = record.energy.astype(np.float64, order='C')
-    return translator.DwaveTranslator.translate(
-        sample, counts, energy, timing, env
-    )"
-            ),
-            c_str!(""),
-            c_str!(""),
-        )?
-        .getattr("extract")?
-        .into();
-        let args = (sampleset, timing, env);
+        let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
+            .getattr("extract")?
+            .into();
+        let args = (sample_set, timing, env);
         let result = extractor.call1(py, args)?;
         Ok(result)
     }

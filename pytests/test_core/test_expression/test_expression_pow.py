@@ -1,16 +1,16 @@
 from itertools import product
-import pytest
-
 from typing import Tuple
 
-from aqmodels import Variable, Environment, Vtype
+import pytest
+
+from aqmodels import Environment, Variable, Vtype
 
 
 @pytest.fixture
 def variables(request) -> Tuple[Variable, ...]:
     n, vtype = request.param
     with Environment():
-        variables = [Variable(f"{i}", vtype=vtype) for i in range(n)]
+        variables = [Variable(f"x_{i}", vtype=vtype) for i in range(n)]
     return tuple(variables)
 
 
@@ -37,5 +37,7 @@ def test_expression_pow(variables):
 def test_expression_pow_n1(variables):
     x, y, z = variables
 
-    with pytest.raises(TypeError):
+    with pytest.raises(
+        ValueError, match="Expected a non-negative number, received: -1"
+    ):
         _ = (x + y + z) ** -1

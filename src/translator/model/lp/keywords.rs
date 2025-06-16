@@ -96,12 +96,12 @@ pub enum VariableTypeKeywords {
     Generals,
     #[strum(to_string = "Gen")]
     Gen,
-    #[strum(to_string = "Semi-Continuous")]
-    SemiContinuous,
-    #[strum(to_string = "Semis")]
-    Semis,
-    #[strum(to_string = "Semi")]
-    Semi,
+    // #[strum(to_string = "Semi-Continuous")]
+    // SemiContinuous,
+    // #[strum(to_string = "Semis")]
+    // Semis,
+    // #[strum(to_string = "Semi")]
+    // Semi,
 }
 
 impl VariableTypeKeywords {
@@ -119,13 +119,13 @@ impl VariableTypeKeywords {
             Self::Gen.to_string(),
         ]
     }
-    pub fn all_semi() -> Vec<String> {
-        vec![
-            Self::SemiContinuous.to_string(),
-            Self::Semis.to_string(),
-            Self::Semi.to_string(),
-        ]
-    }
+    // pub fn all_semi() -> Vec<String> {
+    //     vec![
+    //         Self::SemiContinuous.to_string(),
+    //         Self::Semis.to_string(),
+    //         Self::Semi.to_string(),
+    //     ]
+    // }
 }
 
 #[derive(Copy, Display, Hash, Eq, PartialEq, Clone, Debug)]
@@ -134,15 +134,17 @@ pub enum VariableType {
     Binary,
     #[strum(to_string = "Generals")]
     General,
-    #[strum(to_string = "Semi-Continuous")]
-    Semi,
+    #[strum(to_string = "Continuous")]
+    Continuous,
+    // #[strum(to_string = "Semi-Continuous")]
+    // Semi,
 }
 
 impl Into<Vtype> for VariableType {
     fn into(self) -> Vtype {
         match self {
             Self::Binary => Vtype::Binary,
-            Self::Semi => Vtype::Real,
+            Self::Continuous => Vtype::Real,
             Self::General => Vtype::Integer,
         }
     }

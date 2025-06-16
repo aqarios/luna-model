@@ -2,8 +2,101 @@ use crate::core::Vtype;
 use crate::py_bindings::py_model::PyModel;
 use crate::translator::model::BqmTranslator;
 use numpy::{PyReadonlyArray1, ToPyArray};
+use pyo3::exceptions::PyTypeError;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
+use std::ffi::CStr;
+
+#[cfg(not(feature = "lq"))]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from dimod import BinaryQuadraticModel
+
+from aqmodels._core import translator
+
+def extract(bqm, name):
+    if not isinstance(bqm, BinaryQuadraticModel):
+        raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
+    bqm_vars_ser = bqm.variables.to_serializable()
+    for v in bqm_vars_ser:
+        if not isinstance(v, str):
+            raise TypeError(f'All BQM variables have to be of type str, received: {type(v)}')
+    vars = np.array(bqm_vars_ser)
+    vars_pos = {var: i for i, var in enumerate(vars)}
+
+    linears = []
+    linear_indices = []
+    for var, val in bqm.linear.items():
+        linears.append(val)
+        linear_indices.append(vars_pos[var])
+    quads = []
+    quad_row = []
+    quad_col = []
+    for (var1, var2), val in bqm.quadratic.items():
+        quads.append(val)
+        quad_row.append(vars_pos[var1])
+        quad_col.append(vars_pos[var2])
+
+    vartype = bqm.vartype.name
+    offset = float(bqm.offset)
+    return translator.BqmTranslator.translate(
+        vars, 
+        offset, 
+        np.array(linears, dtype=np.float64), 
+        np.array(linear_indices, dtype=np.uint64), 
+        np.array(quads, dtype=np.float64), 
+        np.array(quad_row, dtype=np.uint64), 
+        np.array(quad_col, dtype=np.uint64), 
+        vartype, 
+        name
+    )"
+);
+#[cfg(feature = "lq")]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from dimod import BinaryQuadraticModel
+
+from luna_quantum._core import translator
+
+def extract(bqm, name):
+    if not isinstance(bqm, BinaryQuadraticModel):
+        raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
+    bqm_vars_ser = bqm.variables.to_serializable()
+    for v in bqm_vars_ser:
+        if not isinstance(v, str):
+            raise TypeError(f'All BQM variables have to be of type str, received: {type(v)}')
+    vars = np.array(bqm_vars_ser)
+    vars_pos = {var: i for i, var in enumerate(vars)}
+
+    linears = []
+    linear_indices = []
+    for var, val in bqm.linear.items():
+        linears.append(val)
+        linear_indices.append(vars_pos[var])
+    quads = []
+    quad_row = []
+    quad_col = []
+    for (var1, var2), val in bqm.quadratic.items():
+        quads.append(val)
+        quad_row.append(vars_pos[var1])
+        quad_col.append(vars_pos[var2])
+
+    vartype = bqm.vartype.name
+    offset = float(bqm.offset)
+    return translator.BqmTranslator.translate(
+        vars, 
+        offset, 
+        np.array(linears, dtype=np.float64), 
+        np.array(linear_indices, dtype=np.uint64), 
+        np.array(quads, dtype=np.float64), 
+        np.array(quad_row, dtype=np.uint64), 
+        np.array(quad_col, dtype=np.uint64), 
+        vartype, 
+        name
+    )"
+);
 
 /// Utility class for converting between dimod.BinaryQuadraticModel (BQM) and symbolic
 /// models.
@@ -49,11 +142,13 @@ impl PyBqmTranslator {
         vartype: String,
         name: Option<String>,
     ) -> PyResult<PyModel> {
-        let vtype = if vartype == String::from("SPIN") {
-            Vtype::Spin
+        let vtype = if vartype.to_uppercase() == String::from("SPIN") {
+            Ok(Vtype::Spin)
+        } else if vartype.to_uppercase() == String::from("BINARY") {
+            Ok(Vtype::Binary)
         } else {
-            Vtype::Binary
-        };
+            Err(PyTypeError::new_err(format!("unknown vartype '{vartype}'")))
+        }?;
 
         Ok(PyModel::new(BqmTranslator::model_from_bqm(
             vars.extract(py)?,
@@ -67,7 +162,7 @@ impl PyBqmTranslator {
             quads_rows.as_slice().expect("failed to convert to slice"),
             quads_cols.as_slice().expect("failed to convert to slice"),
             name,
-        )))
+        )?))
     }
 
     /// Convert a symbolic model to a dense QUBO matrix representation.
@@ -156,45 +251,7 @@ def to_bqm(offset, linear, quad, rows, cols, vtype, vars):
     #[staticmethod]
     #[pyo3(signature=(bqm, name=None))]
     fn to_aq(py: Python, bqm: PyObject, name: Option<PyObject>) -> PyResult<PyObject> {
-        let extractor: PyObject = PyModule::from_code(
-            py,
-            c_str!(
-                "
-import numpy as np
-from dimod import BinaryQuadraticModel
-
-from aqmodels._core import translator
-
-def extract(bqm, name):
-    if not isinstance(bqm, BinaryQuadraticModel):
-        raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
-    vars = np.array(bqm.variables.to_serializable())
-    linears = np.array([bqm.get_linear(v) for v in vars])
-    linear_indices, linears = tuple(zip(*[(i, v) for i, v in enumerate(linears) if v != 0]))
-    intermediate = [
-        (ui, vi, bqm.get_quadratic(vars[ui], vars[vi], default=0))
-        for ui in range(len(vars))
-        for vi in range(ui + 1, len(vars))
-        if bqm.get_quadratic(vars[ui], vars[vi], default=0) != 0
-    ]
-    quads_rows, quads_cols, quads = tuple(zip(*intermediate)) if len(intermediate) > 0 else (np.array([]), np.array([]), np.array([]))
-    vartype = bqm.vartype.name
-    offset = float(bqm.offset)
-    return translator.BqmTranslator.translate(
-        vars, 
-        offset, 
-        np.array(linears, dtype=np.float64), 
-        np.array(linear_indices, dtype=np.uint64), 
-        np.array(quads, dtype=np.float64), 
-        np.array(quads_rows, dtype=np.uint64), 
-        np.array(quads_cols, dtype=np.uint64), 
-        vartype, 
-        name
-    )"
-            ),
-            c_str!(""),
-            c_str!(""),
-        )?
+        let extractor: PyObject = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();
         let args = (bqm, name);

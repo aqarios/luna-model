@@ -1,3 +1,4 @@
+use crate::py_bindings::py_usize::PyUsize;
 use crate::{
     py_bindings::{
         py_env::{PyEnvironment, CURRENT_ENV},
@@ -9,7 +10,87 @@ use crate::{
     translator::IbmTranslator,
 };
 use pyo3::{ffi::c_str, prelude::*};
+use std::ffi::CStr;
 use std::rc::Rc;
+
+#[cfg(not(feature = "lq"))]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from aqmodels._core import translator
+
+def extract(result, qp, timing, env):
+    meas: BitArray = result[0].data.meas
+    counts: dict[str, int] = meas.get_counts()
+
+    samples = []
+    energies = []
+    flat_counts = []
+
+    ordering = []
+
+    for n, (bitstring, count) in enumerate(counts.items()):
+        sample = []
+        for i, b in enumerate(bitstring):
+            sample.append(int(b))
+            
+            if n == 0:
+                ordering.append(env.get_variable(qp.variables[i].name))
+
+        sample = sample[::-1] # reverse ordering for correct bitstrings.
+        energies.append(float(qp.objective.evaluate(sample)))
+        samples.append(sample)
+        flat_counts.append(count)
+
+    return translator.IbmTranslator.translate(
+        samples, 
+        ordering, 
+        energies, 
+        flat_counts, 
+        timing, 
+        env
+    )
+"
+);
+#[cfg(feature = "lq")]
+static PY_CODE: &'static CStr = c_str!(
+    "
+import numpy as np
+from luna_quantum._core import translator
+
+def extract(result, qp, timing, env):
+    meas: BitArray = result[0].data.meas
+    counts: dict[str, int] = meas.get_counts()
+
+    samples = []
+    energies = []
+    flat_counts = []
+
+    ordering = []
+
+    for n, (bitstring, count) in enumerate(counts.items()):
+        sample = []
+        for i, b in enumerate(bitstring):
+            sample.append(int(b))
+            
+            if n == 0:
+                ordering.append(env.get_variable(qp.variables[i].name))
+
+        sample = sample[::-1] # reverse ordering for correct bitstrings.
+        energies.append(float(qp.objective.evaluate(sample)))
+        samples.append(sample)
+        flat_counts.append(count)
+
+    return translator.IbmTranslator.translate(
+        samples, 
+        ordering, 
+        energies, 
+        flat_counts, 
+        timing, 
+        env
+    )
+"
+);
 
 /// Utility class for converting between an IBM solution and our solution format.
 ///
@@ -37,7 +118,7 @@ impl PyIbmTranslator {
         samples: Vec<Vec<i64>>,
         orderings: Vec<PyVariable>,
         energies: Vec<f64>,
-        counts: Vec<usize>,
+        counts: Vec<PyUsize>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PySolution> {
@@ -53,9 +134,9 @@ impl PyIbmTranslator {
             &samples,
             &orderings.iter().map(|e| Rc::clone(&e.0)).collect(),
             &energies,
-            counts,
+            counts.into_iter().map(|n| n.into()).collect(),
             timing.map(|t| t.into()),
-            environment.into(),
+            environment.0.clone(),
         )?))
     }
 
@@ -94,50 +175,9 @@ impl PyIbmTranslator {
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {
-        let extractor: Py<PyAny> = PyModule::from_code(
-            py,
-            c_str!(
-                "
-import numpy as np
-from aqmodels._core import translator
-
-def extract(result, qp, timing, env):
-    meas: BitArray = result[0].data.meas
-    counts: dict[str, int] = meas.get_counts()
-
-    samples = []
-    energies = []
-    flat_counts = []
-
-    ordering = []
-
-    for n, (bitstring, count) in enumerate(counts.items()):
-        sample = []
-        for i, b in enumerate(bitstring):
-            sample.append(int(b))
-            
-            if n == 0:
-                ordering.append(env.get_variable(qp.variables[i].name))
-
-        energies.append(float(qp.objective.evaluate(sample)))
-        samples.append(sample[::-1]) # reverse ordering for correct bitstrings.
-        flat_counts.append(count)
-
-    return translator.IbmTranslator.translate(
-        samples, 
-        ordering, 
-        energies, 
-        flat_counts, 
-        timing, 
-        env
-    )
-"
-            ),
-            c_str!(""),
-            c_str!(""),
-        )?
-        .getattr("extract")?
-        .into();
+        let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
+            .getattr("extract")?
+            .into();
 
         let args = (result, quadratic_program, timing, env);
         let result = extractor.call1(py, args)?;

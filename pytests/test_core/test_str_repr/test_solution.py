@@ -4,23 +4,34 @@ import pytest
 
 from aqmodels import Solution, Vtype
 
-sol_str_1 = """{
+samples_str = """
+{
   [1, 1, 2, 2.0]: 1,
   [0, -1, 3, 3.0]: 2,
   [1, 1, -4, 4.23]: 3,
-}"""
+}""".strip("\n")
 
-sol_str_2 = """{
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1]: 1,
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0]: 1,
-}"""
+sol_str_1 = """
+x_0 x_1 x_2  x_3 │ feas raw obj count
+  1   1  -4 4.23 │    ? 2.0   ?     3
+  0  -1   3  3.0 │    ? 5.0   ?     2
+  1   1   2  2.0 │    ? 6.0   ?     1
+
+Total samples: 3
+Total variables: 4""".strip("\n")
+
+sol_str_2 = """
+b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15     │ feas raw obj count
+ 1  1  1  1  1  1  1  1  1  1   1   1   1   1   1   1 ... │    ?   ?   ?     1
+ 0  0  0  0  0  0  0  0  0  0   0   0   0   0   0   0 ... │    ?   ?   ?     1
+
+Total samples: 2
+Total variables: 30""".strip("\n")
 
 
 @pytest.fixture
 def solution(request) -> Solution:
-    return Solution.build(
+    return Solution._build(  # type: ignore[reportAttributeAccessIssue]
         component_types=[
             Vtype.Binary,
             Vtype.Spin,
@@ -33,6 +44,7 @@ def solution(request) -> Solution:
         real_cols=[[2.0, 3.0, 4.23]],
         counts=[1, 2, 3],
         raw_energies=[6.0, 5.0, 2.0],
+        variable_names=list(f"x_{i}" for i in range(4)),
     )
 
 
@@ -47,7 +59,7 @@ def test_sample(solution: Solution):
 @pytest.mark.parametrize("solution", [()], indirect=True)
 def test_samples(solution: Solution):
     samples = solution.samples
-    assert str(samples) == sol_str_1
+    assert str(samples) == samples_str
 
 
 @pytest.mark.str_repr
@@ -55,7 +67,7 @@ def test_samples(solution: Solution):
 def test_model(solution: Solution):
     assert str(solution) == sol_str_1
 
-    solution_2 = Solution.build(
+    solution_2 = Solution._build(  # type: ignore[reportAttributeAccessIssue]
         component_types=[Vtype.Binary] * 30,
         binary_cols=[[1, 0]] * 30,
     )

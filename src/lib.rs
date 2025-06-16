@@ -1,6 +1,7 @@
 /// The core component of the library. This includes everyting related to defining and
 /// working with an AQ Model (AQ/M) and an AQ Solution (AQ/S).
 pub mod core;
+pub mod types;
 /// Collection of all errors that can be returned by this library.
 mod errors;
 /// Module for importing commonly used structs and functions when working with this library.
@@ -18,4 +19,4 @@ pub mod transformations;
 
 // Import of the python bindings only when the `--features` flag is set to `py`.
 #[cfg(feature = "py")]
-mod py_bindings;
+pub mod py_bindings;

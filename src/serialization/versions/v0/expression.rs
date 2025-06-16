@@ -1,17 +1,17 @@
 use crate::{
     core::{
+        environment::SharedEnvironment,
         expression::ExpressionBaseCreation,
         term::{
             types::{OneVarTerm, OneVarTermConstruction},
             HigherOrder, Linear, Quadratic,
         },
-        ConcreteExpression, ConcreteHigherOrder, ConcreteMutRcEnvironment, ConcreteQuadratic,
         Expression, ExpressionBase, VarId,
     },
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
         utils::force_u32,
-    },
+    }
 };
 use prost::Message;
 
@@ -82,18 +82,18 @@ impl BytesEncodable for SerExpression {
 }
 
 /// Makes the SerExpression conform with the requirements for it to be a Decodable.
-impl BytesDecodable<ConcreteExpression, ConcreteMutRcEnvironment> for SerExpression {
+impl BytesDecodable<Expression, SharedEnvironment> for SerExpression {
     fn decode_from_bytes(
         bytes: &[u8],
-        payload: ConcreteMutRcEnvironment,
-    ) -> Result<ConcreteExpression, DecodeError> {
+        payload: SharedEnvironment,
+    ) -> Result<Expression, DecodeError> {
         Ok(Self::decode(bytes)?.extract(payload))
     }
 }
 
 /// Makes the SerExpression conform with the requirements for it to be an Encodable.
-impl Creatable<ConcreteExpression> for SerExpression {
-    fn new(value: &ConcreteExpression) -> Self {
+impl Creatable<Expression> for SerExpression {
+    fn new(value: &Expression) -> Self {
         Self::default().fill(&value)
     }
 }
@@ -119,7 +119,7 @@ impl SerExpression {
     }
 
     /// Fills the serializable expression based on an instance of Expression.
-    fn fill(mut self, expression: &ConcreteExpression) -> Self {
+    fn fill(mut self, expression: &Expression) -> Self {
         self.num_variables = force_u32(expression.num_variables());
         self.active.resize(expression.active.len(), false);
         self.active.copy_from_slice(&expression.active);
@@ -157,7 +157,7 @@ impl SerExpression {
         self
     }
 
-    fn decode_quadratic(&self) -> Option<ConcreteQuadratic> {
+    fn decode_quadratic(&self) -> Option<Quadratic> {
         if self.quad_size == 0 {
             return None;
         }
@@ -181,7 +181,7 @@ impl SerExpression {
         Some(quad)
     }
 
-    fn decode_higher_order(&self) -> Option<ConcreteHigherOrder> {
+    fn decode_higher_order(&self) -> Option<HigherOrder> {
         if self.ho_size == 0 {
             return None;
         }
@@ -204,7 +204,7 @@ impl SerExpression {
 
     /// Extracts the data from self to and instance of Expression with Index VarId and
     /// Bias f64.
-    pub fn extract(&self, env: ConcreteMutRcEnvironment) -> ConcreteExpression {
+    pub fn extract(&self, env: SharedEnvironment) -> Expression {
         let mut expr = Expression::empty(env);
         expr.num_variables = self.num_variables as usize;
         expr.active = self.active.clone();

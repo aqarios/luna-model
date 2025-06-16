@@ -1,6 +1,6 @@
-use crate::core::expression::IndexConstraints;
+use crate::core::environment::SharedEnvironment;
 use crate::core::solution::sol::SampleCol;
-use crate::core::{ConcreteSolution, MutRcEnvironment, RcSolution, Solution, Timing, Vtype};
+use crate::core::{RcSolution, Solution, Timing, Vtype};
 use crate::errors::SolutionCreationErr;
 use num::NumCast;
 use std::rc::Rc;
@@ -8,20 +8,19 @@ use std::rc::Rc;
 pub struct NpArrayTranslator {}
 
 impl NpArrayTranslator {
-    pub fn from_numpy_arrays<S, N, E, Idx>(
+    pub fn from_numpy_arrays<S, N, E>(
         samples: &[S],
         counts: &[N],
         indices: &[usize],
         energies: &[E],
         shape: &[usize],
         timing: Option<Timing>,
-        env: MutRcEnvironment<Idx>,
-    ) -> Result<ConcreteSolution, SolutionCreationErr>
+        env: SharedEnvironment
+    ) -> Result<RcSolution, SolutionCreationErr>
     where
         S: Copy + NumCast,
         N: Copy + NumCast,
         E: Copy + NumCast,
-        Idx: IndexConstraints,
     {
         let mut sol = Solution::default();
         for v in env.borrow().variables.iter() {
@@ -33,11 +32,12 @@ impl NpArrayTranslator {
             }
         }
         sol.timing = timing;
+        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
         for i in 0..shape[0] {
             let start_idx = i * shape[1];
             let sample = samples[start_idx..start_idx + shape[1]].to_vec();
             sol.extend(
-                sample,
+                &sample,
                 <usize as NumCast>::from(counts[i]).unwrap(),
                 Some(energies[indices[i]]),
             )?;
