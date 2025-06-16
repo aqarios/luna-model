@@ -72,13 +72,6 @@ def test_v0_v1_equality_sol_sense_max(
     sol = Solution.from_dicts(samples, model=model)
     with open(path / "sol_eval_sense_max", "rb") as f:
         reconstructed = Solution.decode(f.read())
-        # print()
-        # print(reconstructed)
-        # print("---------")
-        # print(sol)
-        # print("---------")
-        # print(reconstructed.sense)
-        # print(sol.sense)
         assert reconstructed == sol
 
 
