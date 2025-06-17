@@ -1,6 +1,6 @@
 use crate::core::expression::One;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
-use crate::core::{PrintLayout, Solution, VarAssignment};
+use crate::core::{PrintLayout, Sense, Solution, VarAssignment};
 use crate::types::{
     Bias, BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType,
 };
@@ -521,26 +521,7 @@ impl Solution {
     }
 
     fn get_sample_indices_sorted(&self) -> Vec<usize> {
-        let best_obj = match self.best_sample_idx {
-            None => None,
-            Some(i) => self.obj_values[i],
-        };
-        // TODO: replace with sense stored in solution object
-        let sense = match best_obj {
-            None => -1.0,
-            Some(bobj) => {
-                if self
-                    .obj_values
-                    .iter()
-                    .zip(&self.feasible)
-                    .all(|(&obj, &feas)| !feas.unwrap_or_default() || obj.unwrap_or(bobj) >= bobj)
-                {
-                    -1.0
-                } else {
-                    1.0
-                }
-            }
-        };
+        let sense = if self.sense == Sense::Min { -1.0 } else { 1.0 };
         let mut idxs = (0..self.n_samples).collect::<Vec<_>>();
         idxs.sort_by(|&idx1, &idx2| 'res: {
             let feas = self.feasible[idx2].cmp(&self.feasible[idx1]);

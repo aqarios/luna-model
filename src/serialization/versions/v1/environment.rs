@@ -1,8 +1,9 @@
+use crate::core::environment::ENV_COUNTER;
 use crate::{
-    core::{environment::ENV_COUNTER, Bound, Environment, LazyBounds, VarId, Variable, Vtype},
+    core::{Bound, Environment, LazyBounds, VarId, Variable, Vtype},
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, Creatable},
-        utils::force_u32,
+        utils::{force_u32, force_u8},
     },
 };
 use prost::Message;
