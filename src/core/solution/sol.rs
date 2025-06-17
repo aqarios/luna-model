@@ -1,7 +1,7 @@
 use crate::core::solution::timing::Timing;
 use crate::core::traits::ContentEquality;
 use crate::core::writer::SolutionWriter;
-use crate::core::{ResultIterator, ResultView, Samples};
+use crate::core::{ResultIterator, ResultView, Samples, Sense};
 use crate::errors::{
     ComputationErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr,
 };
@@ -176,11 +176,19 @@ pub struct Solution {
     pub timing: Option<Timing>,
     /// Keeps track of the current number of unique samples.
     pub n_samples: usize,
-    /// The names of all variables present in the solution
+    /// The names of all variables present in the solution.
     pub variable_names: Vec<String>,
+    /// The model's optimization sense the solution was created with.
+    pub sense: Sense,
 }
 
 impl Solution {
+    pub fn with_sense(sense: Sense) -> Solution {
+        let mut out = Self::default();
+        out.sense = sense;
+        out
+    }
+
     pub fn len(&self) -> usize {
         self.n_samples
     }
@@ -230,7 +238,6 @@ impl Solution {
         obj_value: Option<Bias>,
         constraints: Vec<bool>,
         variable_bounds: Vec<bool>,
-        sense_is_minimize: bool,
     ) {
         self.obj_values[sample_idx] = obj_value;
         if self.feasible.len() != self.n_samples {
@@ -253,16 +260,15 @@ impl Solution {
                     self.best_sample_idx = Some(sample_idx)
                 }
             }
-            Some(i) => match (self.obj_values[i], obj_value) {
-                (Some(old), Some(new)) => {
-                    if new < old && sense_is_minimize && curr_sample_feasible
-                        || new > old && !sense_is_minimize && curr_sample_feasible
+            Some(i) => {
+                if let (Some(old), Some(new)) = (self.obj_values[i], obj_value) {
+                    if new < old && self.sense == Sense::Min && curr_sample_feasible
+                        || new > old && self.sense == Sense::Max && curr_sample_feasible
                     {
                         self.best_sample_idx = Some(sample_idx);
                     }
                 }
-                _ => {}
-            },
+            }
         }
     }
 
@@ -350,6 +356,7 @@ impl PartialEq for RcSolution {
             && lhs.best_sample_idx == rhs.best_sample_idx
             && lhs.timing == rhs.timing
             && lhs.n_samples == rhs.n_samples
+            && lhs.sense == rhs.sense
     }
 }
 

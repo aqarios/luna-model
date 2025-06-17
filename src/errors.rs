@@ -417,5 +417,3 @@ impl Display for EvaluationErr {
         write!(f, "{}", msg)
     }
 }
-
-

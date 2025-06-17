@@ -42,10 +42,7 @@ impl Into<usize> for VarId {
 
 impl From<usize> for VarId {
     fn from(value: usize) -> Self {
-        assert!(
-            value <= Id::MAX as usize,
-            "value out of range for Index"
-        );
+        assert!(value <= Id::MAX as usize, "value out of range for Index");
         VarId(value as Id)
     }
 }

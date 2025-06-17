@@ -354,7 +354,8 @@ class NumpyTranslator:
         env: Environment | None = ...,
     ) -> Solution:
         """
-        Convert an IBM solution to our solution format.
+        Convert a solution in the format of numpy arrays to our solution format.
+        Note that the optimization sense is always assumed to be minimization.
 
         Parameters
         ----------
@@ -673,6 +674,7 @@ class CqmTranslator:
             If the translation fails for some reason.
         """
         ...
+
     @staticmethod
     def from_aq(model: Model) -> ConstrainedQuadraticModel:
         """
@@ -749,6 +751,7 @@ class BqmTranslator:
             A symbolic model representing the given BQM.
         """
         ...
+
     @staticmethod
     def from_aq(model: Model) -> BinaryQuadraticModel:
         """

@@ -1,6 +1,6 @@
 use super::py_utils::repr_solution;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
-use crate::core::{PrintLayout, RcSolution, Samples, Solution, VarAssignment, Vtype};
+use crate::core::{PrintLayout, RcSolution, Samples, Sense, Solution, VarAssignment, Vtype};
 use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
@@ -187,7 +187,7 @@ impl PySolution {
     ///     If a sample column has an incorrect number of samples or if `counts` has
     ///     a length different from the number of samples given.
     #[staticmethod]
-    #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None)
+    #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None, sense=None)
     )]
     fn _build(
         component_types: Vec<Vtype>,
@@ -199,6 +199,7 @@ impl PySolution {
         raw_energies: Option<Vec<Option<f64>>>,
         timing: Option<PyTiming>,
         counts: Option<Vec<PyUsize>>,
+        sense: Option<Sense>,
     ) -> PyResult<Self> {
         let var_names: Vec<Option<String>> = if let Some(vn) = variable_names {
             if vn.len() != component_types.len() {
@@ -210,7 +211,7 @@ impl PySolution {
         };
         // todo! change to numpy arrays instead of vecs.
         // todo! move further down in rust code.
-        let mut sol = Solution::default();
+        let mut sol = Solution::with_sense(sense.unwrap_or_default());
 
         let (mut lb, mut ls, mut li, mut lr) = (0, 0, 0, 0);
         let binary_cols = binary_cols.unwrap_or(Vec::new());
@@ -322,6 +323,7 @@ impl PySolution {
     /// ValueError
     ///     If `env` and `model` are both present. When this is the case, the user's
     ///     intention is unclear as the model itself already contains an environment.
+    ///     Or if `sense` and `model` are both present as the sense is then ambiguous.
     /// SolutionTranslationError
     ///     Generally if the sample translation fails. Might be specified by one of the
     ///     three following errors.
@@ -333,19 +335,26 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None))]
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None))]
     fn from_dict(
         data: HashMap<SampleKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
         counts: Option<usize>,
+        sense: Option<Sense>,
     ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
                 "either `env` or `model` has to be `None`",
             ));
         }
+        if sense.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `sense` or `model` has to be `None`",
+            ));
+        }
+
         let environment: PyEnvironment = if let Some(model) = &model {
             PyEnvironment(model.borrow().environment.clone())
         } else {
@@ -359,7 +368,9 @@ impl PySolution {
             }
         };
 
-        let mut sol = Solution::default();
+        let mut sol = Solution::with_sense(
+            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+        );
         for v in environment.borrow().variables.iter() {
             match v.vtype {
                 Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
@@ -438,6 +449,7 @@ impl PySolution {
     /// ValueError
     ///     If `env` and `model` are both present. When this is the case, the user's
     ///     intention is unclear as the model itself already contains an environment.
+    ///     Or if `sense` and `model` are both present as the sense is then ambiguous.
     ///     Or if the the number of samples and the number of counts do not match.
     /// SolutionTranslationError
     ///     Generally if the sample translation fails. Might be specified by one of the
@@ -450,7 +462,7 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None)
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None)
     )]
     fn from_dicts(
         data: Vec<HashMap<SampleKey, f64>>,
@@ -458,16 +470,21 @@ impl PySolution {
         model: Option<PyModel>,
         timing: Option<PyTiming>,
         counts: Option<Vec<usize>>,
+        sense: Option<Sense>,
     ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
                 "either `env` or `model` has to be `None`",
             ));
         }
-
+        if sense.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `sense` or `model` has to be `None`",
+            ));
+        }
         if counts.is_some() && counts.as_ref().unwrap().len() != data.len() {
             return Err(PyValueError::new_err(format!(
-                "the number of samples and the counts do not match: num samples is '{}', num counts is '{}'", 
+                "the number of samples and the counts do not match: num samples is '{}', num counts is '{}'",
                 data.len(), counts.unwrap().len()))
             );
         }
@@ -485,7 +502,9 @@ impl PySolution {
             }
         };
 
-        let mut sol = Solution::default();
+        let mut sol = Solution::with_sense(
+            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+        );
         for v in environment.borrow().variables.iter() {
             match v.vtype {
                 Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(data.len()))),
@@ -694,6 +713,12 @@ impl PySolution {
     #[getter]
     fn get_runtime(&self) -> Option<PyTiming> {
         self.timing.map(|t| PyTiming(t))
+    }
+
+    /// Get the optimization sense.
+    #[getter]
+    fn get_sense(&self) -> Sense {
+        self.sense
     }
 
     /// Get the index of the sample with the best objective value.
