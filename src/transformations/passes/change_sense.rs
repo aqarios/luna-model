@@ -12,12 +12,13 @@ pub struct ChangeSensePass {
 }
 
 impl BasePass for ChangeSensePass {
-    fn name(&self) -> &str {
-        "change-sense"
+    fn name(&self) -> String {
+        String::from("change-sense")
     }
 
-    fn requires(&self) -> &[&str] {
-        &[]
+    fn requires(&self) -> Vec<String> {
+        // &[]
+        Vec::new()
     }
 }
 

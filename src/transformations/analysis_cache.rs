@@ -10,9 +10,9 @@ pub struct AnalysisCache {
 }
 
 #[derive(Debug)]
-enum Reason {
+pub enum Reason {
     Overridden,
-    Invalidated
+    Invalidated,
 }
 
 impl AnalysisCache {
@@ -26,7 +26,9 @@ impl AnalysisCache {
     pub fn insert<T: AnalysisResult>(&mut self, name: &str, item: T) {
         let x = Box::new(item);
         match self.store.insert(name.to_owned(), x) {
-            Some(old) => self.history.push((name.to_owned(), Reason::Overridden ,old)),
+            Some(old) => self
+                .history
+                .push((name.to_owned(), Reason::Overridden, old)),
             _ => {}
         }
     }
@@ -58,5 +60,19 @@ impl AnalysisCache {
                 self.history.push((x.to_owned(), Reason::Invalidated, v))
             }
         });
+    }
+}
+
+impl Clone for AnalysisCache {
+    fn clone(&self) -> Self {
+        todo!()
+        // Self {
+        //     store: self
+        //         .store
+        //         .iter()
+        //         .map(|(k, v)| (k.clone(), v.downcast().clone()))
+        //         .collect(),
+        //     history: self.history.clone(),
+        // }
     }
 }

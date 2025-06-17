@@ -36,7 +36,8 @@ impl PyChangeSensePass {
 
     #[getter]
     pub fn get_requires(&self) -> Vec<String> {
-        self.requires().iter().map(|&x| x.to_owned()).collect()
+        // self.requires().iter().map(|x| x.to_owned()).collect()
+        self.requires()
     }
 }
 

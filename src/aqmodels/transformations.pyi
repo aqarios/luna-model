@@ -1,6 +1,12 @@
+from abc import abstractmethod
 from typing import Any
+from enum import Enum
 
-from aqmodels._core import Sense
+from aqmodels._core import Model, Sense
+
+class TransformationType(Enum):
+    DidTransform = ...
+    NoTranform = ...
 
 class PassManager:
     """TODO."""
@@ -24,5 +30,15 @@ class MaxBiasAnalysis(BasePass):
     """TODO."""
 
     def __init__(self) -> None: ...
+
+class TransformationPass:
+    @property
+    @abstractmethod
+    def name(self) -> str: ...
+    @property
+    @abstractmethod
+    def requires(self) -> list[str]: ...
+    @abstractmethod
+    def run(self, model: Model, cache) -> tuple[Model, TransformationType]: ...
 
 __all__ = ["ChangeSensePass", "MaxBiasAnalysis", "PassManager"]

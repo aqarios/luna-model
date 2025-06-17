@@ -1,6 +1,12 @@
 from aqmodels import Model
 from aqmodels._core import Sense, Variable
-from aqmodels.transformations import ChangeSensePass, PassManager, MaxBiasAnalysis
+from aqmodels.transformations import (
+    ChangeSensePass,
+    PassManager,
+    MaxBiasAnalysis,
+    TransformationPass,
+    TransformationType,
+)
 
 # pm = PassManager()
 # print(pm)
@@ -24,6 +30,30 @@ aqm.objective = x * 20 * y
 
 # trp.run(aqm)
 
+
+class PyChangeSensePass(TransformationPass):
+    sense: Sense
+
+    def __init__(self, sense: Sense) -> None:
+        self.sense = sense
+
+    @property
+    def name(self) -> str:
+        return "py-change-sense"
+
+    @property
+    def requires(self) -> list[str]:
+        return []
+
+    def run(self, model: Model, cache) -> tuple[Model, TransformationType]:
+        if self.sense == model.sense:
+            return model, TransformationType.NoTranform
+
+        model.objective *= -1
+        model.set_sense(self.sense)
+        return model, TransformationType.DidTransform
+
+
 p = ChangeSensePass()
 print(
     p.name,
@@ -33,10 +63,18 @@ print(
 
 m = MaxBiasAnalysis()
 
-pm = PassManager([p, m])
+pycsp = PyChangeSensePass(Sense.Min)
+print(
+    pycsp.name,
+)
+
+# print(pycsp.run(aqm, None))
+
+# pm = PassManager([p, m])
+pm = PassManager([m, pycsp])
 
 print(pm)
 model2, cache = pm.run(aqm)
 
-print(cache.max_bias().val)
-
+# print(cache.max_bias().val)
+print(model2)

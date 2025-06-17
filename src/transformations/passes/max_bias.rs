@@ -3,7 +3,7 @@ use num::{abs, NumCast};
 use pyo3::prelude::*;
 
 use crate::{
-    core::{Model, Sense},
+    core::Model,
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisResult},
         base_passes::{AnalysisPass, AnalysisPassResult, BasePass},
@@ -11,16 +11,15 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct MaxBiasAnalysis {
-}
+pub struct MaxBiasAnalysis {}
 
 impl BasePass for MaxBiasAnalysis {
-    fn name(&self) -> &str {
-        "max-bias"
+    fn name(&self) -> String {
+        String::from("max-bias")
     }
 
-    fn requires(&self) -> &[&str] {
-        &[]
+    fn requires(&self) -> Vec<String> {
+        Vec::new()
     }
 }
 
@@ -63,7 +62,7 @@ impl AnalysisPass for MaxBiasAnalysis {
             max_val = f64::max(max_val, max_ho);
         }
 
-        cache.insert(self.name(), MaxBias { val: max_val });
+        cache.insert(&self.name(), MaxBias { val: max_val });
         Ok(())
     }
 }
