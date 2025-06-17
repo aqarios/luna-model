@@ -733,9 +733,34 @@ impl PySolution {
         self.variable_names.clone()
     }
 
-    /// Compute the expectation value.
+    /// Compute the expectation value of the solution.
+    ///
+    /// Returns
+    /// -------
+    /// float
+    ///     The expectation value.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
     fn expectation_value(&self) -> PyResult<f64> {
         Ok(self.0.expectation_value()?)
+    }
+
+    /// Compute the expectation value of the solution.
+    ///
+    /// Returns
+    /// -------
+    /// float
+    ///     The feasibility ratio.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    fn feasibility_ratio(&self) -> PyResult<f64> {
+        Ok(self.0.feasibility_ratio()?)
     }
 
     /// Get the best result.

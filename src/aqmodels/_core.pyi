@@ -1022,6 +1022,21 @@ class Solution:
             If the computation fails for any reason.
         """
 
+    def feasibility_ratio(self, /) -> float:
+        """
+        Compute the feasibility ratio of the solution.
+
+        Returns
+        -------
+        float
+            The feasibility ratio.
+
+        Raises
+        ------
+        ComputationError
+            If the computation fails for any reason.
+        """
+
     @overload
     def encode(self, /) -> bytes: ...
 
