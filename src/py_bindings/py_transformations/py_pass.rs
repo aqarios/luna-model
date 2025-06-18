@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use pyo3::{exceptions::{PyNotImplementedError, PyRuntimeError}, prelude::*, types::PyType};
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
 
 use super::{passes::py_pass_base::PyPass, py_analysis_cache::PyAnalysisCache};
 use crate::{
