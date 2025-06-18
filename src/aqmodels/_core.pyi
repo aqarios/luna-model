@@ -996,6 +996,23 @@ class Solution:
         """
         ...
 
+    def highest_constraint_violation(self, /) -> int | None:
+        """
+        Get the index of the constraint with the highest number of violations.
+
+        Returns
+        -------
+        int | None
+            The index of the constraint with the most violations. None, if the solution
+            was created for an unconstrained model.
+
+        Raises
+        ------
+        ComputationError
+            If the computation fails for any reason.
+        """
+        ...
+
     @overload
     def encode(self, /) -> bytes: ...
     @overload

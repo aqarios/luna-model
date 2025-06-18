@@ -373,6 +373,30 @@ impl Solution {
 
         Ok(n_feasible as f64 / n_total as f64)
     }
+
+    pub fn highest_constraint_violations(&self) -> Result<Option<usize>, ComputationErr> {
+        let mut n_violations = vec![0; self.constraints.len()];
+        for (idx, (satisfied, &count)) in self.constraints.iter().zip(&self.counts).enumerate() {
+            if satisfied.is_none() {
+                return Err(ComputationErr(format!(
+                    "feasible contains a 'None' value at position '{idx}'."
+                )));
+            }
+            satisfied
+                .as_ref()
+                .unwrap()
+                .iter()
+                .zip(&mut n_violations)
+                .filter(|(&sat, _)| !sat)
+                .for_each(|(_, n)| *n += count)
+        }
+
+        Ok(n_violations
+            .iter()
+            .enumerate()
+            .max_by_key(|(_, &c)| c)
+            .map(|(idx, _)| idx))
+    }
 }
 
 #[derive(Debug, Deref, DerefMut)]

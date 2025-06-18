@@ -788,6 +788,22 @@ impl PySolution {
         Ok(PySolution(RcSolution(Rc::new(sol))))
     }
 
+    /// Get the index of the constraint with the highest number of violations.
+    ///
+    /// Returns
+    /// -------
+    /// int | None
+    ///     The index of the constraint with the most violations. None, if the solution
+    ///     was created for an unconstrained model.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    fn highest_constraint_violations(&self) -> PyResult<Option<usize>> {
+        Ok(self.0.highest_constraint_violations()?)
+    }
+
     /// Get the best result.
     fn best(&self) -> Option<PyResultView> {
         self.0.best().map(|r| PyResultView(r))
