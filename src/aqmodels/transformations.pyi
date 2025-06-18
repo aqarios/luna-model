@@ -1,8 +1,10 @@
 from abc import abstractmethod
-from typing import Any
 from enum import Enum
+from typing import Any
 
-from aqmodels._core import Model, Sense
+from aqmodels._core import Model, Sense, Solution
+
+class AnalysisCache: ...
 
 class TransformationType(Enum):
     DidTransform = ...
@@ -12,6 +14,7 @@ class PassManager:
     """TODO."""
 
     def __init__(self, passes: None | list[Any]) -> None: ...
+    def run(self, model: Model) -> tuple[Model, AnalysisCache]: ...
 
 class BasePass:
     @property
@@ -22,7 +25,7 @@ class BasePass:
 class ChangeSensePass(BasePass):
     """TODO."""
 
-    def __init__(self, sense: Sense = Sense.Min) -> None: ...
+    def __init__(self, sense: Sense = ...) -> None: ...
     @property
     def sense(self) -> Sense: ...
 
@@ -36,9 +39,12 @@ class TransformationPass:
     @abstractmethod
     def name(self) -> str: ...
     @property
-    @abstractmethod
     def requires(self) -> list[str]: ...
+    @property
+    def invalidates(self) -> list[str]: ...
     @abstractmethod
-    def run(self, model: Model, cache) -> tuple[Model, TransformationType]: ...
-
-__all__ = ["ChangeSensePass", "MaxBiasAnalysis", "PassManager"]
+    def run(
+        self, model: Model, cache: AnalysisCache
+    ) -> tuple[Model, TransformationType]: ...
+    @abstractmethod
+    def backwards(self, solution: Solution, cache: AnalysisCache) -> Solution: ...

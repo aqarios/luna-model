@@ -4,17 +4,8 @@ from itertools import combinations, product
 from math import prod
 from typing import Callable, Protocol, Sequence
 
-from aqmodels import (
-    Bounds,
-    Comparator,
-    Constraint,
-    Constraints,
-    Environment,
-    Expression,
-    Model,
-    Variable,
-    Vtype,
-)
+from aqmodels import (Bounds, Comparator, Constraint, Constraints, Environment,
+                      Expression, Model, Variable, Vtype)
 
 from .utils import make_seed, random
 

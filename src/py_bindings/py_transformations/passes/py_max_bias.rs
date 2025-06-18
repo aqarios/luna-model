@@ -32,7 +32,7 @@ impl PyMaxBiasAnalysis {
 }
 
 impl PyPass for PyMaxBiasAnalysis {
-    fn as_pass(self) -> Pass {
-        Pass::Analysis(Box::new(self.0))
+    fn as_pass(self) -> PyResult<Pass> {
+        Ok(Pass::Analysis(Box::new(self.0)))
     }
 }

@@ -17,7 +17,6 @@ impl BasePass for ChangeSensePass {
     }
 
     fn requires(&self) -> Vec<String> {
-        // &[]
         Vec::new()
     }
 }

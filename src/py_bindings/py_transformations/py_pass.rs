@@ -1,25 +1,16 @@
 use std::fmt::Debug;
 
-use pyo3::{
-    prelude::*,
-    types::{PyDict, PyTuple},
-};
+use pyo3::{exceptions::{PyNotImplementedError, PyRuntimeError}, prelude::*, types::PyType};
 
-use super::{
-    passes::py_pass_base::{PyPass, PyPassPy},
-    py_analysis_cache::PyAnalysisCache,
-    py_pass_manager::CompilationError,
-    py_transformation_pass_result::PyTransformationPassResult,
-};
+use super::{passes::py_pass_base::PyPass, py_analysis_cache::PyAnalysisCache};
 use crate::{
     core::{Model, Solution},
-    py_bindings::py_model::PyModel,
+    py_bindings::{py_model::PyModel, py_sol::PySolution},
     transformations::{
         analysis_cache::AnalysisCache,
         base_passes::{
             BasePass, Pass, TransformationPass, TransformationPassResult, TransformationType,
         },
-        errors::TransformationPassError,
     },
 };
 
@@ -36,40 +27,54 @@ impl PyTransformationPass {
         Self {}
     }
 
-    // #[pyo2(name = "name")]
-    // fn py_name(&self) -> PyResult<String> {
-    //     Err(pyo3::exceptions::PyNotImplementedError::new_err(
-    //         "Must override name",
-    //     ))
-    // }
+    #[getter]
+    #[pyo3(name = "name")]
+    fn get_name(&self) -> PyResult<String> {
+        Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            "'name' property is not implemented.",
+        ))
+    }
 
-    // #[pyo3(name = "requires")]
-    // fn py_requires(&self) -> PyResult<&[&str]> {
-    //     Err(pyo3::exceptions::PyNotImplementedError::new_err(
-    //         "Must override requires",
-    //     ))
-    // }
+    #[getter]
+    #[pyo3(name = "requires")]
+    fn get_requires(&self) -> Vec<String> {
+        Vec::new()
+    }
 
-    // #[pyo3(name = "run")]
-    // fn py_run(
-    //     &self,
-    //     _model: PyModel,
-    //     _cache: &PyAnalysisCache,
-    // ) -> PyResult<(PyModel, TransformationType)> {
-    //     Err(pyo3::exceptions::PyNotImplementedError::new_err(
-    //         "Must override run",
-    //     ))
-    // }
+    #[getter]
+    #[pyo3(name = "invalidates")]
+    fn get_invalidates(&self) -> Vec<String> {
+        Vec::new()
+    }
+
+    #[pyo3(name = "run")]
+    fn py_run(
+        &self,
+        _model: PyModel,
+        _cache: &PyAnalysisCache,
+    ) -> PyResult<(PyModel, TransformationType)> {
+        Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            "'run' method is not implemented.",
+        ))
+    }
+
+    #[pyo3(name = "backwards")]
+    fn py_backwards(
+        &self,
+        _solution: &PySolution,
+        _cache: &PyAnalysisCache,
+    ) -> PyResult<PySolution> {
+        Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            "'backwards' method is not implemented.",
+        ))
+    }
 }
 
-// #[pymethods]
-// impl PyTransformationPassAdapter {
-//
-// }
-
 impl PyPass for Py<PyTransformationPass> {
-    fn as_pass(self) -> Pass {
-        Pass::Transformation(Box::new(PyTransformationPassAdapter::new(self)))
+    fn as_pass(self) -> PyResult<Pass> {
+        Ok(Pass::Transformation(Box::new(
+            PyTransformationPassAdapter::new(self)?,
+        )))
     }
 }
 
@@ -78,8 +83,43 @@ pub struct PyTransformationPassAdapter {
 }
 
 impl PyTransformationPassAdapter {
-    fn new(inner: Py<PyTransformationPass>) -> Self {
-        Self { inner }
+    fn new(inner: Py<PyTransformationPass>) -> PyResult<Self> {
+        let slf = Self { inner };
+        slf.check_superclass()?;
+        Ok(slf)
+    }
+
+    /// Check that the superclass implements all required methods.
+    fn check_superclass(&self) -> Result<(), PyErr> {
+        Python::with_gil(|py| {
+            let base_cls = py.get_type::<PyTransformationPass>();
+            let cls = self.inner.getattr(py, "__class__")?;
+            let cls_name: String = cls.getattr(py, "__name__")?.extract(py)?;
+            Self::check_overridden(py, "name", &base_cls, &cls, &cls_name)?;
+            Self::check_overridden(py, "run", &base_cls, &cls, &cls_name)?;
+            Self::check_overridden(py, "backwards", &base_cls, &cls, &cls_name)?;
+            Ok(())
+        })
+    }
+
+    fn check_overridden(
+        py: Python,
+        name: &str,
+        base: &Bound<PyType>,
+        cls: &Py<PyAny>,
+        cls_name: &String,
+    ) -> PyResult<()> {
+        let cls_method = cls.getattr(py, name)?;
+        let base_method = base.getattr(name)?;
+
+        if cls_method.is(&base_method) {
+            Err(PyRuntimeError::new_err(format!(
+                "{} is not a valid TransformationPass: must override '{}'",
+                cls_name, name,
+            )))
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -110,7 +150,7 @@ impl TransformationPass for PyTransformationPassAdapter {
         &[]
     }
 
-    fn run(&self, mut model: Model, cache: &AnalysisCache) -> TransformationPassResult {
+    fn run(&self, mut model: Model, _cache: &AnalysisCache) -> TransformationPassResult {
         let res = Python::with_gil(|py| {
             let some = self
                 .inner
@@ -134,7 +174,7 @@ impl TransformationPass for PyTransformationPassAdapter {
         Ok(res)
     }
 
-    fn backwards(&self, mut solution: Solution, _cache: &AnalysisCache) -> Solution {
+    fn backwards(&self, mut _solution: Solution, _cache: &AnalysisCache) -> Solution {
         todo!()
     }
 }
@@ -144,9 +184,3 @@ impl Debug for PyTransformationPassAdapter {
         write!(f, "{:?}", self.inner)
     }
 }
-
-// impl Clone for PyTransformationPassAdapter {
-//     fn clone(&self) -> Self {
-//         todo!()
-//     }
-// }

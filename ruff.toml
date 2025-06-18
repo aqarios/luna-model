@@ -73,6 +73,7 @@ exclude = [
     # "src/aqmodels/_core.pyi",
     # "src/aqmodels/errors.pyi",
     "pytests/**/*",
+    "foo/**/*",
 ]
 
 [lint.flake8-annotations]

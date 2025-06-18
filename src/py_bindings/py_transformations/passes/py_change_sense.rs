@@ -42,7 +42,7 @@ impl PyChangeSensePass {
 }
 
 impl PyPass for PyChangeSensePass {
-    fn as_pass(self) -> Pass {
-        Pass::Transformation(Box::new(self.0))
+    fn as_pass(self) -> PyResult<Pass> {
+        Ok(Pass::Transformation(Box::new(self.0)))
     }
 }

@@ -62,17 +62,3 @@ impl AnalysisCache {
         });
     }
 }
-
-impl Clone for AnalysisCache {
-    fn clone(&self) -> Self {
-        todo!()
-        // Self {
-        //     store: self
-        //         .store
-        //         .iter()
-        //         .map(|(k, v)| (k.clone(), v.downcast().clone()))
-        //         .collect(),
-        //     history: self.history.clone(),
-        // }
-    }
-}

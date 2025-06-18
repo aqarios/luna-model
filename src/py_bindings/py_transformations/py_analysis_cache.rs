@@ -3,7 +3,7 @@ use pyo3::{pyclass, pymethods};
 
 use crate::transformations::{analysis_cache::AnalysisCache, passes::max_bias::MaxBias};
 
-#[pyclass]
+#[pyclass(name = "AnalysisCache")]
 #[derive(Deref, DerefMut)]
 pub struct PyAnalysisCache(AnalysisCache);
 
