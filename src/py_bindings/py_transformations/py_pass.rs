@@ -131,7 +131,7 @@ impl BasePass for PyTransformationPassAdapter {
             self.inner
                 .getattr(py, "name")
                 .and_then(|res| res.extract::<String>(py))
-                .expect("no 'name' metod")
+                .expect("no 'name' method")
         })
     }
 
