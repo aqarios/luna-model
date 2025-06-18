@@ -332,6 +332,23 @@ impl PyModel {
             .collect()
     }
 
+    /// Get all model constraints that are violated by the given sample.
+    ///
+    /// Parameters
+    /// ----------
+    /// sample : Sample
+    ///     The sample to check constraint feasibility for.
+    ///
+    /// Returns
+    /// -------
+    /// Constraints
+    ///     The constraints violated by the given sample.
+    fn violated_constraints(&self, sample: &PySample) -> PyConstraints {
+        PyConstraints {
+            data: Left(self.concrete_model.borrow().violated_constraints(sample)),
+        }
+    }
+
     /// Check whether this model is equal to ``other``.
     ///
     /// Parameters

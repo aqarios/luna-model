@@ -2259,6 +2259,24 @@ class Model:
         """
         ...
 
+
+
+    def violated_constraints(self,/, sample: Sample) -> Constraints:
+        """
+        Get all model constraints that are violated by the given sample.
+
+        Parameters
+        ----------
+        sample : Sample
+            The sample to check constraint feasibility for.
+
+        Returns
+        -------
+        Constraints
+            The constraints violated by the given sample.
+        """
+        ...
+
     @overload
     def encode(self, /) -> bytes: ...
 

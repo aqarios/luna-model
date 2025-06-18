@@ -216,6 +216,24 @@ impl Model {
         self.sense = sense;
         self
     }
+
+    pub fn violated_constraints(&self, sample: &Sample) -> Constraints {
+        let mut used_names = Vec::new();
+        let mut constraints = Vec::new();
+        for constr in self.constraints.iter() {
+            let v = constr.lhs.evaluate_sample(sample);
+            if !constr.comparator.evaluate(v, constr.rhs) {
+                if let Some(name) = &constr.name {
+                    used_names.push(name.clone());
+                }
+                constraints.push(constr.clone())
+            }
+        }
+        Constraints {
+            used_names,
+            constraints,
+        }
+    }
 }
 
 impl PartialEq for Model {
