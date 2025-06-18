@@ -1453,6 +1453,63 @@ class Solution:
         """
         ...
 
+
+    @staticmethod
+    def from_counts(
+            data: dict[str, int],
+            *,
+            env: Environment | None = ...,
+            model: Model | None = ...,
+            timing: Timing | None = ...,
+            sense: Sense | None = ...,
+            bit_order: Literal["LTR", "RTL"] = "RTL",
+    ) -> Solution:
+        """
+        Create a `Solution` from a dict that maps measured bitstrings to counts.
+
+        If a Model is passed, the solution will be evaluated immediately. Otherwise,
+        there has to be an environment present to determine the correct variable types.
+        Only applicable to binary or spin models.
+
+        Parameters
+        ----------
+        data : dict[str, int]
+            The counts that shall be part of the solution.
+        env : Environment, optional
+            The environment the variable types shall be determined from.
+        model : Model, optional
+            A model to evaluate the sample with.
+        timing : Timing, optional
+            The timing for acquiring the solution.
+        sense : Sense, optional
+            The sense the model the solution belongs to. Default: Sense.Min
+        bit_order : Literal["LTR", "RTL"]
+            The order of the bits in the bitstring. Default "RTL".
+
+        Returns
+        -------
+        Solution
+            The solution object created from the sample dict.
+
+        Raises
+        ------
+        NoActiveEnvironmentFoundError
+            If no environment or model is passed to the method or available from the
+            context.
+        ValueError
+            If `env` and `model` are both present. When this is the case, the user's
+            intention is unclear as the model itself already contains an environment.
+            Or if `sense` and `model` are both present as the sense is then ambiguous.
+            Or if the the environment contains non-(binary or spin) variables.
+            Or if a bitstring contains chars other than '0' and '1'.
+        SolutionTranslationError
+            Generally if the sample translation fails. Might be specified by one of the
+            three following errors.
+        SampleIncorrectLengthErr
+            If a sample has a different number of variables than the environment.
+        """
+        ...
+
     def print(
             self,
             /,
