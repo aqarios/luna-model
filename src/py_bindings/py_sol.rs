@@ -1,7 +1,7 @@
 use super::py_utils::repr_solution;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::{PrintLayout, RcSolution, Samples, Sense, Solution, VarAssignment, Vtype};
-use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
+use crate::errors::{ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_model::PyModel;
@@ -761,6 +761,31 @@ impl PySolution {
     ///     If the computation fails for any reason.
     fn feasibility_ratio(&self) -> PyResult<f64> {
         Ok(self.0.feasibility_ratio()?)
+    }
+
+    /// Get a new solution with all infeasible samples removed.
+    ///
+    /// Returns
+    /// -------
+    ///     The new solution with only feasible samples.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    fn filter_feasible(&self) -> PyResult<PySolution> {
+        if let Some(idx) = self.feasible.iter().position(|f| f.is_none()) {
+            Err(ComputationErr(format!(
+                "feasible contains a 'None' value at position '{idx}'"
+            )))?;
+        }
+        let mask = self
+            .feasible
+            .iter()
+            .map(|x| x.unwrap_or_default())
+            .collect();
+        let sol = self.filter_samples(&mask);
+        Ok(PySolution(RcSolution(Rc::new(sol))))
     }
 
     /// Get the best result.

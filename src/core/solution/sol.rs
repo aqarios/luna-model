@@ -1,5 +1,6 @@
 use crate::core::solution::timing::Timing;
 use crate::core::traits::ContentEquality;
+use crate::core::utils::filter_by_mask;
 use crate::core::writer::SolutionWriter;
 use crate::core::{ResultIterator, ResultView, Samples, Sense};
 use crate::errors::{
@@ -256,7 +257,7 @@ impl Solution {
         let curr_sample_feasible = self.feasible[sample_idx].is_some_and(|b| b);
         match self.best_sample_idx {
             None => {
-                if curr_sample_feasible {
+                if curr_sample_feasible && obj_value.is_some() {
                     self.best_sample_idx = Some(sample_idx)
                 }
             }
@@ -279,6 +280,57 @@ impl Solution {
     pub fn best(&self) -> Option<ResultView> {
         self.best_sample_idx
             .map(|idx| ResultView::new(RcSolution(Rc::new(self.clone())), idx))
+    }
+
+    pub fn filter_samples(&self, mask: &Vec<bool>) -> Self {
+        if self.n_samples != mask.len() {
+            panic!(
+                "Filter sample should only be called internally and provide mask with correct len"
+            )
+        }
+        let mut sol = Self::default();
+        sol.samples = self
+            .samples
+            .iter()
+            .map(|col| match col {
+                SampleCol::Binary(b) => SampleCol::Binary(filter_by_mask(b, mask)),
+                SampleCol::Spin(s) => SampleCol::Spin(filter_by_mask(s, mask)),
+                SampleCol::Integer(i) => SampleCol::Integer(filter_by_mask(i, mask)),
+                SampleCol::Real(r) => SampleCol::Real(filter_by_mask(r, mask)),
+            })
+            .collect();
+        sol.sense = self.sense;
+        sol.timing = self.timing;
+        sol.variable_names = self.variable_names.clone();
+        sol.counts = filter_by_mask(&self.counts, mask);
+        sol.obj_values = filter_by_mask(&self.obj_values, mask);
+        sol.raw_energies = filter_by_mask(&self.raw_energies, mask);
+        sol.constraints = filter_by_mask(&self.constraints, mask);
+        sol.variable_bounds = filter_by_mask(&self.variable_bounds, mask);
+        sol.feasible = filter_by_mask(&self.feasible, mask);
+        sol.n_samples = sol.counts.len();
+        sol.ensure_best_sample_idx();
+        sol
+    }
+
+    pub fn ensure_best_sample_idx(&mut self) {
+        self.best_sample_idx = self.feasible.iter().zip(&self.obj_values).enumerate().fold(
+            None,
+            |acc, (idx, (&feas, &obj))| match (acc, feas, obj) {
+                (None, Some(f), Some(o)) => Some(idx),
+                (Some(a), Some(f), Some(o)) => {
+                    let best_obj = self.obj_values[a].unwrap();
+                    if f && (self.sense == Sense::Min && o < best_obj
+                        || self.sense == Sense::Max && o > best_obj)
+                    {
+                        Some(idx)
+                    } else {
+                        acc
+                    }
+                }
+                (a, _, _) => a,
+            },
+        )
     }
 }
 
@@ -371,10 +423,12 @@ impl PartialEq for RcSolution {
             && lhs.obj_values == rhs.obj_values
             && lhs.raw_energies == rhs.raw_energies
             && lhs.constraints == rhs.constraints
+            && lhs.variable_bounds == rhs.variable_bounds
             && lhs.feasible == rhs.feasible
             && lhs.best_sample_idx == rhs.best_sample_idx
             && lhs.timing == rhs.timing
             && lhs.n_samples == rhs.n_samples
+            && lhs.variable_names == rhs.variable_names
             && lhs.sense == rhs.sense
     }
 }
