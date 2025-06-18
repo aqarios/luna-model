@@ -29,7 +29,7 @@ impl BasePass for MaxBiasAnalysis {
 )]
 #[derive(Debug, Clone, Copy)]
 pub struct MaxBias {
-    val: f64,
+    pub val: f64,
 }
 
 // impl AnalysisResult for MaxBias {}

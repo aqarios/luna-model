@@ -1,4 +1,7 @@
+#[cfg(feature = "py")]
 use pyo3::types::PyDict;
+#[cfg(feature = "py")]
+use pyo3::{Py};
 
 use super::passes::max_bias::MaxBias;
 use std::{collections::hash_map::HashMap, fmt::Debug};
@@ -7,7 +10,7 @@ pub enum AnalysisCacheElement {
     MaxBiasAnalysis(MaxBias),
 
     #[cfg(feature = "py")]
-    PyAnalysis(PyDict),
+    PyAnalysis(Py<PyDict>),
 }
 
 pub struct AnalysisCache {
