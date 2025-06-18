@@ -1,11 +1,15 @@
 use pyo3::{prelude::*, PyTypeCheck};
 
 use crate::core::{Comparator, Sense, Vtype};
+
+#[cfg(feature = "transformations")]
 use crate::transformations::base_passes::TransformationType;
+#[cfg(feature = "transformations")]
+use super::py_transformations;
 
 use super::{
     py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_model_metadata,
-    py_res, py_sample, py_sol, py_timing, py_transformations, py_translator, py_var,
+    py_res, py_sample, py_sol, py_timing, py_translator, py_var,
 };
 
 // #[pymodule]
@@ -177,6 +181,7 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 
+#[cfg(feature = "transformations")]
 pub fn register_transformations(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "transformations")?;
     m.add_class::<py_transformations::PyPassManager>()?;

@@ -12,9 +12,11 @@ mod py_sol;
 mod py_timing;
 mod py_translator;
 mod py_usize;
-mod py_var;
-mod py_transformations;
 mod py_utils;
+mod py_var;
+
+#[cfg(feature = "transformations")]
+mod py_transformations;
 
 #[cfg(not(feature = "lq"))]
 use pyo3::prelude::*;
@@ -71,7 +73,10 @@ pub fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     py_modules::register_core(m)?;
     py_modules::register_translator(m)?;
-    py_modules::register_transformations(m)?;
     py_modules::register_errors(m)?;
+
+    #[cfg(feature = "transformations")]
+    py_modules::register_transformations(m)?;
+
     Ok(())
 }

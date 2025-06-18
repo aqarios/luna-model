@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use crate::{
     core::Model,
     transformations::{
-        analysis_cache::{AnalysisCache, AnalysisResult},
+        analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{AnalysisPass, AnalysisPassResult, BasePass},
     },
 };
@@ -27,12 +27,12 @@ impl BasePass for MaxBiasAnalysis {
     feature = "py",
     pyclass(get_all, name = "MaxBias", module = "aqmodels.transformations")
 )]
-#[derive(Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct MaxBias {
     val: f64,
 }
 
-impl AnalysisResult for MaxBias {}
+// impl AnalysisResult for MaxBias {}
 
 impl AnalysisPass for MaxBiasAnalysis {
     fn run(&self, model: &Model, cache: &mut AnalysisCache) -> AnalysisPassResult {
@@ -62,7 +62,10 @@ impl AnalysisPass for MaxBiasAnalysis {
             max_val = f64::max(max_val, max_ho);
         }
 
-        cache.insert(&self.name(), MaxBias { val: max_val });
+        cache.insert(
+            &self.name(),
+            AnalysisCacheElement::MaxBiasAnalysis(MaxBias { val: max_val }),
+        );
         Ok(())
     }
 }

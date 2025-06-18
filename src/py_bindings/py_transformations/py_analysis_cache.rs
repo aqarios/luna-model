@@ -1,9 +1,12 @@
 use derive_more::{Deref, DerefMut};
 use pyo3::{pyclass, pymethods};
 
-use crate::transformations::{analysis_cache::AnalysisCache, passes::max_bias::MaxBias};
+use crate::transformations::{
+    analysis_cache::{AnalysisCache, AnalysisCacheElement},
+    passes::max_bias::MaxBias,
+};
 
-#[pyclass(name = "AnalysisCache")]
+#[pyclass(unsendable, name = "AnalysisCache")]
 #[derive(Deref, DerefMut)]
 pub struct PyAnalysisCache(AnalysisCache);
 
@@ -16,6 +19,10 @@ impl PyAnalysisCache {
 #[pymethods]
 impl PyAnalysisCache {
     pub fn max_bias(&self) -> Option<MaxBias> {
-        self.get::<MaxBias>("max-bias").cloned()
+        if let Some(AnalysisCacheElement::MaxBiasAnalysis(b)) = self.get("max-bias") {
+            Some(*b)
+        } else {
+            None
+        }
     }
 }

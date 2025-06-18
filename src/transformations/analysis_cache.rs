@@ -1,12 +1,18 @@
-use std::boxed::Box;
-use std::{any::Any, collections::hash_map::HashMap};
+use pyo3::types::PyDict;
 
-pub trait AnalysisResult: Any + Sync + Send + Clone {}
+use super::passes::max_bias::MaxBias;
+use std::{collections::hash_map::HashMap, fmt::Debug};
 
-#[derive(Debug)]
+pub enum AnalysisCacheElement {
+    MaxBiasAnalysis(MaxBias),
+
+    #[cfg(feature = "py")]
+    PyAnalysis(PyDict),
+}
+
 pub struct AnalysisCache {
-    store: HashMap<String, Box<dyn Any + Sync + Send>>,
-    history: Vec<(String, Reason, Box<dyn Any + Sync + Send>)>,
+    store: HashMap<String, AnalysisCacheElement>,
+    history: Vec<(String, Reason, AnalysisCacheElement)>,
 }
 
 #[derive(Debug)]
@@ -23,9 +29,8 @@ impl AnalysisCache {
         }
     }
 
-    pub fn insert<T: AnalysisResult>(&mut self, name: &str, item: T) {
-        let x = Box::new(item);
-        match self.store.insert(name.to_owned(), x) {
+    pub fn insert(&mut self, name: &str, item: AnalysisCacheElement) {
+        match self.store.insert(name.to_owned(), item) {
             Some(old) => self
                 .history
                 .push((name.to_owned(), Reason::Overridden, old)),
@@ -33,24 +38,20 @@ impl AnalysisCache {
         }
     }
 
-    pub fn get<T: AnalysisResult>(&self, name: &str) -> Option<&T> {
-        self.store
-            .get(name)
-            .and_then(|boxed| boxed.downcast_ref::<T>())
+    pub fn get(&self, name: &str) -> Option<&AnalysisCacheElement> {
+        self.store.get(name)
     }
 
-    pub fn get_mut<T: AnalysisResult>(&mut self, name: &str) -> Option<&mut T> {
-        self.store
-            .get_mut(name)
-            .and_then(|boxed| boxed.downcast_mut::<T>())
+    pub fn get_mut(&mut self, name: &str) -> Option<&mut AnalysisCacheElement> {
+        self.store.get_mut(name)
     }
 
-    pub fn get_history<T: AnalysisResult>(&self, name: &str) -> Vec<(&T, &Reason)> {
+    pub fn get_history(&self, name: &str) -> Vec<(&AnalysisCacheElement, &Reason)> {
         self.history
             .iter()
             .rev()
             .filter(|(k, _, _)| k == name)
-            .filter_map(|(_, r, v)| v.downcast_ref::<T>().map(|x| (x, r)))
+            .filter_map(|(_, r, v)| Some((v, r)))
             .collect()
     }
 

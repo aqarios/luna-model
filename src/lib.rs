@@ -14,7 +14,7 @@ pub mod serialization;
 /// translation from another library TO our solution.
 pub mod translator;
 
-
+#[cfg(feature = "transformations")]
 pub mod transformations;
 
 // Import of the python bindings only when the `--features` flag is set to `py`.
