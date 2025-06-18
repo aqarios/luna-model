@@ -67,7 +67,8 @@ impl PassManager {
                     Some(ret.1)
                 }
                 Pass::Analysis(x) => {
-                    x.run(&model, &mut cache)?;
+                    let ret = x.run(&model, &mut cache)?;
+                    cache.insert(&x.name(), ret);
                     None
                 }
             };

@@ -35,7 +35,7 @@ pub struct MaxBias {
 // impl AnalysisResult for MaxBias {}
 
 impl AnalysisPass for MaxBiasAnalysis {
-    fn run(&self, model: &Model, cache: &mut AnalysisCache) -> AnalysisPassResult {
+    fn run(&self, model: &Model, _cache: &AnalysisCache) -> AnalysisPassResult {
         let obj = &model.objective;
         let mut max_val = 0.0;
 
@@ -62,10 +62,8 @@ impl AnalysisPass for MaxBiasAnalysis {
             max_val = f64::max(max_val, max_ho);
         }
 
-        cache.insert(
-            &self.name(),
-            AnalysisCacheElement::MaxBiasAnalysis(MaxBias { val: max_val }),
-        );
-        Ok(())
+        Ok(AnalysisCacheElement::MaxBiasAnalysis(MaxBias {
+            val: max_val,
+        }))
     }
 }

@@ -1,5 +1,6 @@
 """Helper script to test out transformations."""
 
+from typing import Any
 from aqmodels import Model
 from aqmodels._core import Sense, Solution, Variable
 from aqmodels.transformations import (
@@ -8,6 +9,7 @@ from aqmodels.transformations import (
     MaxBiasAnalysis,
     PassManager,
     TransformationPass,
+    AnalysisPass,
     TransformationType,
 )
 
@@ -56,13 +58,27 @@ class PyChangeSensePass(TransformationPass):
 #     p.sense,
 # )
 
+class PyMaxBiasAnalysis(AnalysisPass):
+    @property
+    def name(self) -> str:
+        return "py-max-bias"
+
+    def run(self, model: Model, cache: AnalysisCache) -> float:
+        max_val = 0.0
+        for _, bias in model.objective.items():
+            max_val = max(max_val, bias)
+        return max_val
+
+
+
 m = MaxBiasAnalysis()
+pym = PyMaxBiasAnalysis()
 
 pycsp = PyChangeSensePass(Sense.Min)
 # print(
 #     pycsp.name,
 # )
-pm = PassManager([m, pycsp])
+pm = PassManager([m, pycsp, pym])
 
 print("=== PassManager ===")
 print(pm)
@@ -70,3 +86,11 @@ model2, cache = pm.run(aqm)
 
 print("=== Model ===")
 print(model2)
+
+# print(cache)
+# print(cache[m.name].val)
+print("=== Model ===")
+print(model2)
+
+print(cache)
+print(cache[pym.name])

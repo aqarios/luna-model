@@ -188,6 +188,7 @@ pub fn register_transformations(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_transformations::PyMaxBiasAnalysis>()?;
     m.add_class::<py_transformations::PyChangeSensePass>()?;
     m.add_class::<py_transformations::PyTransformationPass>()?;
+    m.add_class::<py_transformations::PyAnalysisPass>()?;
     m.add_class::<py_transformations::PyAnalysisCache>()?;
     m.add_class::<TransformationType>()?;
     pm.add_submodule(&m)?;

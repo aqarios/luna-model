@@ -11,6 +11,7 @@ use crate::{
         base_passes::{
             BasePass, Pass, TransformationPass, TransformationPassResult, TransformationType,
         },
+        errors::TransformationPassError,
     },
 };
 
@@ -48,10 +49,11 @@ impl PyTransformationPass {
     }
 
     #[pyo3(name = "run")]
+    #[allow(unused_variables)]
     fn py_run(
         &self,
-        _model: PyModel,
-        _cache: &PyAnalysisCache,
+        model: PyModel,
+        cache: &PyAnalysisCache,
     ) -> PyResult<(PyModel, TransformationType)> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'run' method is not implemented.",
@@ -59,10 +61,11 @@ impl PyTransformationPass {
     }
 
     #[pyo3(name = "backwards")]
+    #[allow(unused_variables)]
     fn py_backwards(
         &self,
-        _solution: &PySolution,
-        _cache: &PyAnalysisCache,
+        solution: &PySolution,
+        cache: &PyAnalysisCache,
     ) -> PyResult<PySolution> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'backwards' method is not implemented.",
@@ -123,8 +126,6 @@ impl PyTransformationPassAdapter {
     }
 }
 
-impl PyTransformationPassAdapter {}
-
 impl BasePass for PyTransformationPassAdapter {
     fn name(&self) -> String {
         Python::with_gil(|py| {
@@ -150,28 +151,37 @@ impl TransformationPass for PyTransformationPassAdapter {
         &[]
     }
 
-    fn run(&self, mut model: Model, _cache: &AnalysisCache) -> TransformationPassResult {
-        let res = Python::with_gil(|py| {
-            let some = self
+    fn run(&self, mut model: Model, cache: &AnalysisCache) -> TransformationPassResult {
+        Python::with_gil(|py| {
+            let fallback_name = String::from("PyTransformationPassAdapter");
+            let cls_name: String = self
+                .inner
+                .getattr(py, "__class__")
+                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?
+                .getattr(py, "__name__")
+                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?
+                .extract(py)
+                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?;
+            let py_res = self
                 .inner
                 .call_method1(
                     py,
                     "run",
                     (
                         PyModel::new(model),
-                        PyAnalysisCache::new(AnalysisCache::new()), // TODO: fix this
+                        PyAnalysisCache::new(cache.clone_py(py)),
                     ),
                 )
-                .unwrap();
-            let (py_model, py_tt): (Py<PyModel>, Py<TransformationType>) =
-                some.extract(py).unwrap();
+                .map_err(|e| TransformationPassError(cls_name.clone(), e.to_string()))?;
+            let (py_model, py_tt): (Py<PyModel>, Py<TransformationType>) = py_res
+                .extract(py)
+                .map_err(|e| TransformationPassError(cls_name.clone(), e.to_string()))?;
             let py_model_borrow = py_model.borrow(py);
             let pymodel = py_model_borrow.clone();
             model = pymodel.concrete_model.borrow().clone();
             let tt = py_tt.borrow(py);
-            (model, tt.clone())
-        });
-        Ok(res)
+            Ok((model, tt.clone()))
+        })
     }
 
     fn backwards(&self, mut _solution: Solution, _cache: &AnalysisCache) -> Solution {

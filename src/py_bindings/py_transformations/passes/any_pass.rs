@@ -1,7 +1,7 @@
 use pyo3::{FromPyObject, Py, PyResult};
 
 use crate::{
-    py_bindings::py_transformations::py_pass::PyTransformationPass,
+    py_bindings::py_transformations::{py_transformation_pass::PyTransformationPass, PyAnalysisPass},
     transformations::base_passes::Pass,
 };
 
@@ -14,7 +14,7 @@ pub enum AnyPass {
     ChangeSense(PyChangeSensePass),
     MaxBias(PyMaxBiasAnalysis),
     PyTransformationPass(Py<PyTransformationPass>),
-    // PyAnalysisPass(PyTransformationPassAdapter),
+    PyAnalysisPass(Py<PyAnalysisPass>),
 }
 
 impl AnyPass {
@@ -23,7 +23,7 @@ impl AnyPass {
             Self::ChangeSense(x) => x.as_pass()?,
             Self::MaxBias(x) => x.as_pass()?,
             Self::PyTransformationPass(x) => x.as_pass()?,
-            // Self::PyAnalysisPass(x) => x.as_pass(),
+            Self::PyAnalysisPass(x) => x.as_pass()?,
         })
     }
 }

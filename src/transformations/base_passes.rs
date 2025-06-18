@@ -3,14 +3,14 @@ use std::fmt::Debug;
 use crate::core::{Model, Solution};
 
 use super::{
-    analysis_cache::AnalysisCache,
+    analysis_cache::{AnalysisCache, AnalysisCacheElement},
     errors::{AnalysisPassError, TransformationPassError},
 };
 
 #[cfg(feature = "py")]
 use pyo3::prelude::pyclass;
 
-pub type AnalysisPassResult = Result<(), AnalysisPassError>;
+pub type AnalysisPassResult = Result<AnalysisCacheElement, AnalysisPassError>;
 
 #[cfg_attr(
     feature = "py",
@@ -31,7 +31,7 @@ pub trait BasePass: Debug {
 }
 
 pub trait AnalysisPass: BasePass {
-    fn run(&self, model: &Model, cache: &mut AnalysisCache) -> AnalysisPassResult;
+    fn run(&self, model: &Model, cache: &AnalysisCache) -> AnalysisPassResult;
 }
 
 pub trait TransformationPass: BasePass {

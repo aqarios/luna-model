@@ -1,7 +1,8 @@
 #[cfg(feature = "py")]
 use pyo3::types::PyDict;
 #[cfg(feature = "py")]
-use pyo3::{Py};
+use pyo3::Py;
+use pyo3::{PyAny, Python};
 
 use super::passes::max_bias::MaxBias;
 use std::{collections::hash_map::HashMap, fmt::Debug};
@@ -10,7 +11,17 @@ pub enum AnalysisCacheElement {
     MaxBiasAnalysis(MaxBias),
 
     #[cfg(feature = "py")]
-    PyAnalysis(Py<PyDict>),
+    PyAnalysis(Py<PyAny>),
+}
+
+impl AnalysisCacheElement {
+    pub fn clone_py(&self, py: Python) -> Self {
+        match self {
+            Self::MaxBiasAnalysis(v) => Self::MaxBiasAnalysis(v.clone()),
+            #[cfg(feature = "py")]
+            Self::PyAnalysis(v) => Self::PyAnalysis(v.clone_ref(py)),
+        }
+    }
 }
 
 pub struct AnalysisCache {
@@ -18,7 +29,24 @@ pub struct AnalysisCache {
     history: Vec<(String, Reason, AnalysisCacheElement)>,
 }
 
-#[derive(Debug)]
+impl AnalysisCache {
+    pub fn clone_py(&self, py: Python) -> Self {
+        Self {
+            store: self
+                .store
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone_py(py)))
+                .collect(),
+            history: self
+                .history
+                .iter()
+                .map(|(k, r, e)| (k.clone(), *r, e.clone_py(py)))
+                .collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum Reason {
     Overridden,
     Invalidated,

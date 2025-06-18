@@ -8,7 +8,7 @@ use crate::transformations::{
 
 #[pyclass(unsendable, name = "AnalysisCache")]
 #[derive(Deref, DerefMut)]
-pub struct PyAnalysisCache(AnalysisCache);
+pub struct PyAnalysisCache(pub AnalysisCache);
 
 impl PyAnalysisCache {
     pub fn new(cache: AnalysisCache) -> Self {
@@ -18,6 +18,11 @@ impl PyAnalysisCache {
 
 #[pymethods]
 impl PyAnalysisCache {
+
+    fn __getitem__(&self, py: Python, key: String) -> PyResult<Option<PyObject>> {
+        self.get_element(py, key)
+    }
+
     #[pyo3(name = "get")]
     pub fn get_element(&self, py: Python, key: String) -> PyResult<Option<PyObject>> {
         if let Some(val) = self.get(&key) {
