@@ -34,9 +34,10 @@ either = "1.15.0"
 regex = "1.11.1"
 time = { version = "0.3.41", features = ["formatting"] }
 itertools = "0.14.0"
+indexmap = "2.9.0"
 [dependencies.pyo3]
 version = "0.24.1"
-features = ["extension-module"]
+features = ["extension-module", "indexmap"]
 optional = true
 
 [dependencies.numpy]

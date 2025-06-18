@@ -1,6 +1,6 @@
 use super::py_utils::repr_solution;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
-use crate::core::{PrintLayout, RcSolution, ResultView, Samples, Sense, Solution, VarAssignment, Vtype};
+use crate::core::{PrintLayout, RcSolution, Samples, Sense, Solution, VarAssignment, Vtype};
 use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
@@ -14,6 +14,7 @@ use crate::serialization::{
     Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
 };
 use derive_more::{Deref, DerefMut};
+use indexmap::IndexMap;
 use itertools;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
@@ -583,10 +584,11 @@ impl PySolution {
         Ok(PySolution(sol_rc))
     }
 
-    /// Create a `Solution` from a dict that maps bitstrings to counts of the bitstrings.
+    /// Create a `Solution` from a dict that maps measured bitstrings to counts.
     ///
     /// If a Model is passed, the solution will be evaluated immediately. Otherwise,
     /// there has to be an environment present to determine the correct variable types.
+    /// Only applicable to binary or spin models.
     ///
     /// Parameters
     /// ----------
@@ -625,10 +627,10 @@ impl PySolution {
     /// SampleIncorrectLengthErr
     ///     If a sample has a different number of variables than the environment.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, sense=None, bit_order="LTR".to_owned())
+    #[pyo3(signature=(data, env=None, model=None, timing=None, sense=None, bit_order="RTL".to_owned())
     )]
     fn from_counts(
-        data: HashMap<String, usize>,
+        data: IndexMap<String, usize>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
@@ -668,10 +670,11 @@ impl PySolution {
                 Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(data.len()))),
                 _ => {
                     return Err(PyValueError::new_err(
-                        "environment contains non binary or spin variables.",
+                        "environment contains non-binary or non-spin variables.",
                     ))
                 }
             }
+            sol.variable_names.push(v.name.clone())
         }
 
         let order = match bit_order.as_str() {
@@ -690,7 +693,7 @@ impl PySolution {
 
         for (k, v) in data.iter() {
             if k.len() != nvars {
-                return Err(SampleIncorrectLengthErr.into())
+                return Err(SampleIncorrectLengthErr.into());
             }
             let it = match order {
                 BitOrder::LTR => itertools::Either::Left(k.chars()),

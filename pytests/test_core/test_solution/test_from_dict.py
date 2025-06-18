@@ -3,6 +3,7 @@ from random import Random
 import pytest
 
 from aqmodels import Environment, Model, Solution, Variable, Vtype
+from aqmodels.errors import SampleIncorrectLengthError
 from pytests.test_core.utils import make_seed, random_int
 
 
@@ -156,3 +157,65 @@ def test_from_dicts_duplicate_with_model_and_counts(
     ]
     assert sol.counts.tolist() == counts
     assert sol.obj_values.tolist() == [-1, -1, 1, -2]
+
+
+@pytest.mark.solution
+@pytest.mark.parametrize("model", [(3, Vtype.Binary), (3, Vtype.Spin)], indirect=True)
+def test_from_counts_with_model(model):
+    m, (x, _, _) = model
+    rand = Random(make_seed())
+    counts = {
+        "100": random_int(rand),
+        "111": random_int(rand),
+        "001": random_int(rand),
+        "110": random_int(rand),
+    }
+    sol = Solution.from_counts(counts, model=m)
+    assert len(sol.samples) == 4
+    assert len(sol.counts) == 4
+    if x.vtype == Vtype.Binary:
+        assert sol.samples.tolist() == [
+            [0, 0, 1],  # -1
+            [1, 1, 1],  # -1
+            [1, 0, 0],  # 1
+            [0, 1, 1],  # -2
+        ]
+        assert sol.obj_values.tolist() == [-1, -1, 1, -2]
+    else:
+        assert sol.samples.tolist() == [
+            [1, 1, -1],  # 1
+            [-1, -1, -1],  # +1
+            [-1, 1, 1],  # -3
+            [1, -1, -1],  # 3
+        ]
+        assert sol.obj_values.tolist() == [1, 1, -3, 3]
+
+
+@pytest.mark.solution
+@pytest.mark.parametrize("model", [(3, Vtype.Integer)], indirect=True)
+def test_from_counts_wrong_vtype(model):
+    m, (x, _, _) = model
+    rand = Random(make_seed())
+    counts = {
+        "100": random_int(rand),
+        "111": random_int(rand),
+        "001": random_int(rand),
+        "110": random_int(rand),
+    }
+    with pytest.raises(ValueError):
+        Solution.from_counts(counts, model=m)
+
+
+@pytest.mark.solution
+@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+def test_from_counts_wrong_size(model):
+    m, (x, _, _) = model
+    rand = Random(make_seed())
+    counts = {
+        "100": random_int(rand),
+        "111": random_int(rand),
+        "01": random_int(rand),
+        "110": random_int(rand),
+    }
+    with pytest.raises(SampleIncorrectLengthError):
+        Solution.from_counts(counts, model=m)
