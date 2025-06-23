@@ -1,5 +1,6 @@
 use crate::types::{Bias, VarIndex};
 use hashbrown::{hash_map::Iter, HashMap};
+use itertools::Itertools;
 use std::{
     ops::{Index, IndexMut, MulAssign, Neg},
     str::FromStr,
@@ -119,22 +120,13 @@ impl IndexMut<&String> for HigherOrder {
 
 impl PartialEq for HigherOrder {
     fn eq(&self, other: &Self) -> bool {
-        // This basic check is no gurantee for actual equality.
-        // As if this is not equal it might be due to different representations,
-        // e.g., in one expression the interaction between two variables can be explicitly
-        // contained as 0.0, while in an other expression this interaction is not
-        // represented directly. The value of the interaction is still 0.0.
-        // Thus they are equal... This is not handled by the below trivial comparison.
-        //
-        // self.biases == other.biases
-        for lhs_idx in self.biases.keys() {
-            for rhs_idx in other.biases.keys() {
-                if self[lhs_idx] != other[rhs_idx] {
-                    return false;
-                }
+        let mut all_keys = self.biases.keys().collect_vec();
+        all_keys.append(&mut other.biases.keys().collect_vec());
+        for &key in all_keys.iter() {
+            if self[key] != other[key] {
+                return false;
             }
         }
-
         true
     }
 }

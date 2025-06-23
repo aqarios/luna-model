@@ -1386,16 +1386,15 @@ class Solution:
         """
         ...
 
-
     @staticmethod
     def from_counts(
-            data: dict[str, int],
-            *,
-            env: Environment | None = ...,
-            model: Model | None = ...,
-            timing: Timing | None = ...,
-            sense: Sense | None = ...,
-            bit_order: Literal["LTR", "RTL"] = "RTL",
+        data: dict[str, int],
+        *,
+        env: Environment | None = ...,
+        model: Model | None = ...,
+        timing: Timing | None = ...,
+        sense: Sense | None = ...,
+        bit_order: Literal["LTR", "RTL"] = "RTL",
     ) -> Solution:
         """
         Create a `Solution` from a dict that maps measured bitstrings to counts.
@@ -2551,6 +2550,34 @@ class Expression:
         -------
         bool
             If the two expressions are equal.
+        """
+        ...
+
+    def substitute(self, target: Variable, replacement: Expression) -> Expression:
+        """
+        Substitute every occurrence of a variable with another expression.
+
+        Given an expression `self`, this method replaces all occurrences of `target`
+        with `replacement`. If the substitution would cross differing environments
+        (e.g. captures from two different scopes), it returns a `DifferentEnvsErr`.
+
+        Parameters
+        ----------
+        target : VarRef
+            The variable reference to replace.
+        replacement : Expression
+            The expression to insert in place of `target`.
+
+        Returns
+        -------
+        Expression
+            The resulting expression after substitution.
+
+        Raises
+        ------
+        DifferentEnvsErr
+            If the environments of `self`, `target` and `replacement`
+            are not compatible.
         """
         ...
 

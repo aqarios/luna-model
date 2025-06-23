@@ -116,6 +116,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
+    fn simple(env: SharedEnvironment, offset: Bias) -> Self;
     fn empty(env: SharedEnvironment) -> Self;
     fn new(env: SharedEnvironment, active: Vec<bool>, num_variables: usize) -> Self;
     fn new_from_other(other: &Self) -> Self;

@@ -84,6 +84,17 @@ impl ExpressionBaseTypes for Expression {
 }
 
 impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
+    fn simple(env: SharedEnvironment, offset: Bias) -> Self {
+        Self {
+            env,
+            offset,
+            linear: Linear::default(),
+            quadratic: None,
+            higher_order: None,
+            active: Vec::default(),
+            num_variables: 0,
+        }
+    }
     fn empty(env: SharedEnvironment) -> Self {
         Self {
             env,
