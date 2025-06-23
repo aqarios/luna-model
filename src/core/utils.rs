@@ -102,11 +102,3 @@ pub fn finalize_eval_err_sample(
         )),
     }
 }
-
-pub fn filter_by_mask<T: Clone>(items: &Vec<T>, mask: &Vec<bool>) -> Vec<T> {
-    items
-        .iter()
-        .zip(mask)
-        .filter_map(|(x, flag)| flag.then_some(x.clone()))
-        .collect()
-}

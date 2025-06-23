@@ -1,6 +1,5 @@
 use crate::core::solution::timing::Timing;
-use crate::core::traits::ContentEquality;
-use crate::core::utils::filter_by_mask;
+use crate::core::traits::{ContentEquality, FilterByMask};
 use crate::core::writer::SolutionWriter;
 use crate::core::{ResultIterator, ResultView, Samples, Sense};
 use crate::errors::{
@@ -293,31 +292,31 @@ impl Solution {
             .samples
             .iter()
             .map(|col| match col {
-                SampleCol::Binary(b) => SampleCol::Binary(filter_by_mask(b, mask)),
-                SampleCol::Spin(s) => SampleCol::Spin(filter_by_mask(s, mask)),
-                SampleCol::Integer(i) => SampleCol::Integer(filter_by_mask(i, mask)),
-                SampleCol::Real(r) => SampleCol::Real(filter_by_mask(r, mask)),
+                SampleCol::Binary(b) => SampleCol::Binary(b.filter_by_mask(mask)),
+                SampleCol::Spin(s) => SampleCol::Spin(s.filter_by_mask(mask)),
+                SampleCol::Integer(i) => SampleCol::Integer(i.filter_by_mask(mask)),
+                SampleCol::Real(r) => SampleCol::Real(r.filter_by_mask(mask)),
             })
             .collect();
         sol.sense = self.sense;
         sol.timing = self.timing;
         sol.variable_names = self.variable_names.clone();
-        sol.counts = filter_by_mask(&self.counts, mask);
-        sol.obj_values = filter_by_mask(&self.obj_values, mask);
-        sol.raw_energies = filter_by_mask(&self.raw_energies, mask);
-        sol.constraints = filter_by_mask(&self.constraints, mask);
-        sol.variable_bounds = filter_by_mask(&self.variable_bounds, mask);
-        sol.feasible = filter_by_mask(&self.feasible, mask);
+        sol.counts = self.counts.filter_by_mask(mask);
+        sol.obj_values = self.obj_values.filter_by_mask(mask);
+        sol.raw_energies = self.raw_energies.filter_by_mask(mask);
+        sol.constraints = self.constraints.filter_by_mask(mask);
+        sol.variable_bounds = self.variable_bounds.filter_by_mask(mask);
+        sol.feasible = self.feasible.filter_by_mask(mask);
         sol.n_samples = sol.counts.len();
         sol.ensure_best_sample_idx();
         sol
     }
 
-    pub fn ensure_best_sample_idx(&mut self) {
+    fn ensure_best_sample_idx(&mut self) {
         self.best_sample_idx = self.feasible.iter().zip(&self.obj_values).enumerate().fold(
             None,
             |acc, (idx, (&feas, &obj))| match (acc, feas, obj) {
-                (None, Some(f), Some(o)) => Some(idx),
+                (None, Some(_), Some(_)) => Some(idx),
                 (Some(a), Some(f), Some(o)) => {
                     let best_obj = self.obj_values[a].unwrap();
                     if f && (self.sense == Sense::Min && o < best_obj
