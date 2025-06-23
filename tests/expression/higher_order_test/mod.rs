@@ -5,11 +5,14 @@ mod spin_test;
 
 use hashbrown::HashMap;
 
-use aqmodels::{core::{
-    operations::{MulAssignToExpression, MulToExpression},
-    term::{types::OneVarTerm, HigherOrder},
-    Vtype,
-}, types::Bias};
+use aqmodels::{
+    core::{
+        operations::{MulAssignToExpression, MulToExpression},
+        term::{types::OneVarTerm, HigherOrder},
+        Vtype,
+    },
+    types::Bias,
+};
 
 use crate::common::*;
 

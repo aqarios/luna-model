@@ -17,7 +17,6 @@ impl PyModelMetadata {
     }
 }
 
-
 #[pymethods]
 impl PyModelMetadata {
     #[new]

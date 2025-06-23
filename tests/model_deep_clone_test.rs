@@ -1,6 +1,9 @@
 mod common;
 
-use aqmodels::core::{operations::{AddAssignToExpression, MulAssignToExpression}, Model};
+use aqmodels::core::{
+    operations::{AddAssignToExpression, MulAssignToExpression},
+    Model,
+};
 use common::*;
 
 #[test]

@@ -1,8 +1,11 @@
-use aqmodels::{core::{
-    operations::{MulAssignToExpression, MulToExpression},
-    term::types::{OneVarTerm, OneVarTermConstruction},
-    Vtype,
-}, types::Bias};
+use aqmodels::{
+    core::{
+        operations::{MulAssignToExpression, MulToExpression},
+        term::types::{OneVarTerm, OneVarTermConstruction},
+        Vtype,
+    },
+    types::Bias,
+};
 
 use crate::common::*;
 
@@ -13,8 +16,7 @@ fn quadratic_expression_equal_binaries_varref() {
 
     let env = create_env();
     let biases = random_biases::<Bias>(n, seed);
-    let (mut expr, vars) =
-        create_linear_expression_with_vars(env.clone(), &biases, Vtype::Binary);
+    let (mut expr, vars) = create_linear_expression_with_vars(env.clone(), &biases, Vtype::Binary);
 
     let multiplier = &vars[0];
     expr.mul_assign(multiplier).unwrap();
@@ -26,8 +28,7 @@ fn quadratic_expression_equal_binaries_varref() {
     // As the smaller value will always contain the interaction.
     // In this case, we multiply with the variable with the smallest index,
     // so we know that all interactions will be located at this position.
-    let mut expected_quadratic: Vec<Vec<OneVarTerm>> = vec![biases
-        [1..]
+    let mut expected_quadratic: Vec<Vec<OneVarTerm>> = vec![biases[1..]
         .iter()
         .enumerate()
         .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b))
@@ -75,8 +76,7 @@ fn quadratic_expression_equal_binaries_expr() {
 
     let env = create_env();
     let biases = random_biases::<Bias>(n, seed);
-    let (mut expr, vars) =
-        create_linear_expression_with_vars(env.clone(), &biases, Vtype::Binary);
+    let (mut expr, vars) = create_linear_expression_with_vars(env.clone(), &biases, Vtype::Binary);
 
     let multiplier = &vars[0];
     expr.mul_assign(&multiplier.mul(1.0)).unwrap();
@@ -88,8 +88,7 @@ fn quadratic_expression_equal_binaries_expr() {
     // As the smaller value will always contain the interaction.
     // In this case, we multiply with the variable with the smallest index,
     // so we know that all interactions will be located at this position.
-    let mut expected_quadratic: Vec<Vec<OneVarTerm>> = vec![biases
-        [1..]
+    let mut expected_quadratic: Vec<Vec<OneVarTerm>> = vec![biases[1..]
         .iter()
         .enumerate()
         .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b))

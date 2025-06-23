@@ -98,7 +98,8 @@ impl PyNumpyTranslator {
         )?))
     }
 
-    /// Convert an IBM solution to our solution format.
+    /// Convert a solution in the format of numpy arrays to our solution format.
+    /// Note that the optimization sense is always assumed to be minimization.
     ///
     /// Parameters
     /// ----------

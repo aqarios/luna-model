@@ -71,7 +71,11 @@ impl ModelWriter {
             if *bias != Bias::default() {
                 let vnames = indices
                     .iter()
-                    .map(|&idx| env.variables[<VarIndex as Into<usize>>::into(idx)].name.clone())
+                    .map(|&idx| {
+                        env.variables[<VarIndex as Into<usize>>::into(idx)]
+                            .name
+                            .clone()
+                    })
                     .collect::<Vec<_>>()
                     .join(" * ");
                 if !self.is_first {
@@ -85,15 +89,15 @@ impl ModelWriter {
         self
     }
 
-    pub fn write_quadratic(
-        &mut self,
-        env: &Environment,
-        quadratic: &Quadratic,
-    ) -> &mut Self {
+    pub fn write_quadratic(&mut self, env: &Environment, quadratic: &Quadratic) -> &mut Self {
         for (i, j, bias) in quadratic.iter_flat() {
             if bias != Bias::default() {
-                let v_i = env.variables[<VarIndex as Into<usize>>::into(i)].name.clone();
-                let v_j = env.variables[<VarIndex as Into<usize>>::into(j)].name.clone();
+                let v_i = env.variables[<VarIndex as Into<usize>>::into(i)]
+                    .name
+                    .clone();
+                let v_j = env.variables[<VarIndex as Into<usize>>::into(j)]
+                    .name
+                    .clone();
                 if !self.is_first {
                     self.writer.space();
                 }
