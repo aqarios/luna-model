@@ -1,7 +1,7 @@
 use pyo3::{FromPyObject, Py, PyResult};
 
 use crate::{
-    py_bindings::py_transformations::{py_transformation_pass::PyTransformationPass, PyAnalysisPass},
+    py_bindings::py_transformations::{PyTransformationPass, PyAnalysisPass},
     transformations::base_passes::Pass,
 };
 

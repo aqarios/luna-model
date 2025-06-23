@@ -1,6 +1,4 @@
 #[cfg(feature = "py")]
-use pyo3::types::PyDict;
-#[cfg(feature = "py")]
 use pyo3::Py;
 use pyo3::{PyAny, Python};
 
