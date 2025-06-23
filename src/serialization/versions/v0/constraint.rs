@@ -1,14 +1,14 @@
-use crate::core::{ConcreteConstraints, ConcreteMutRcEnvironment, Constraint, Constraints};
+use crate::core::environment::SharedEnvironment;
+use crate::core::{Constraint, Constraints};
 use crate::serialization::encodable::BytesDecodable;
 use crate::{
     core::Comparator,
     serialization::{
-        encodable::{BytesEncodable, Creatable, DecodeError},
-        Decodable, Encodable,
+        encodable::{BytesEncodable, DecodeError},
+        Decodable,
     },
 };
 use prost::Message;
-use std::{cell::RefCell, rc::Rc};
 
 static PLACEHOLDER_NAME: &str = "<NN>";
 
@@ -42,59 +42,19 @@ impl BytesEncodable for SerConstraints {
 
 /// Makes the SerConstraints conform with the requirements for it to be a Decodable.
 /// The result is a Constraints<VarId, f64> instance.
-impl BytesDecodable<ConcreteConstraints, ConcreteMutRcEnvironment> for SerConstraints {
+impl BytesDecodable<Constraints, SharedEnvironment> for SerConstraints {
     fn decode_from_bytes(
         bytes: &[u8],
-        payload: ConcreteMutRcEnvironment,
-    ) -> Result<ConcreteConstraints, DecodeError> {
+        payload: SharedEnvironment,
+    ) -> Result<Constraints, DecodeError> {
         Self::decode(bytes)?.extract(payload)
     }
 }
 
-/// Makes the SerConstraints conform with the requirements for it to be an Encodable.
-impl Creatable<ConcreteConstraints> for SerConstraints {
-    fn new(value: &ConcreteConstraints) -> Self {
-        Self::default().fill(value)
-    }
-}
-
 impl SerConstraints {
-    /// Creates an empty serializable constraints struct.
-    fn default() -> Self {
-        Self {
-            lhsides: Vec::new(),
-            rhsides: Vec::new(),
-            comparators: Vec::new(),
-            names: Vec::new(),
-        }
-    }
-
-    /// Fills the serializable constraints based on an instance of constraints.
-    fn fill(mut self, constraints: &ConcreteConstraints) -> Self {
-        for c in &constraints.constraints {
-            let lhs_bytes = c.lhs.borrow().encode();
-
-            let comparator = match c.comparator {
-                Comparator::Le => 0,
-                Comparator::Eq => 1,
-                Comparator::Ge => 2,
-            };
-            self.lhsides.push(lhs_bytes);
-            self.rhsides.push(c.rhs);
-            self.comparators.push(comparator);
-            self.names
-                .push(c.name.clone().unwrap_or("<NN>".to_string()));
-        }
-
-        self
-    }
-
     /// Extracts the data from self to an instance of Constraints with Index VarId and
     /// Bias f64.
-    pub fn extract(
-        &self,
-        env: ConcreteMutRcEnvironment,
-    ) -> Result<ConcreteConstraints, DecodeError> {
+    pub fn extract(&self, env: SharedEnvironment) -> Result<Constraints, DecodeError> {
         let mut constraints = Vec::new();
 
         for (((lhs, rhs), comp), name) in self
@@ -104,8 +64,7 @@ impl SerConstraints {
             .zip(&self.comparators)
             .zip(&self.names)
         {
-            let lhs_base = lhs.decode(Rc::clone(&env))?;
-            let lhs = Rc::new(RefCell::new(lhs_base));
+            let lhs = lhs.decode(env.clone())?;
             let comparator = match comp {
                 0 => Comparator::Le,
                 1 => Comparator::Eq,

@@ -1,4 +1,4 @@
-use crate::{core::ConcreteEnvId, errors::VariableCreationErr};
+use crate::{core::ContentEquality, errors::VariableCreationErr, types::EnvId};
 use std::fmt::{Debug, Display, Formatter};
 
 use super::{bounds::display_bound, Bounds, LazyBounds, Vtype};
@@ -9,7 +9,18 @@ pub struct Variable {
     pub name: String,
     pub vtype: Vtype,
     pub bounds: Bounds,
-    pub env_id: ConcreteEnvId,
+    pub env_id: EnvId,
+}
+
+impl Variable {
+    pub fn deep_clone(&self, id: EnvId) -> Self {
+        Self {
+            name: self.name.clone(),
+            vtype: self.vtype,
+            bounds: self.bounds.clone(),
+            env_id: id,
+        }
+    }
 }
 
 impl Variable {
@@ -22,18 +33,18 @@ impl Variable {
             name: String::from(""),
             vtype: Vtype::default(),
             bounds: Bounds::default(&Vtype::default()),
-            env_id: ConcreteEnvId::default(),
+            env_id: EnvId::default(),
         }
     }
     /// Create a new variable based on the name, optional type and bounds and an environment
     /// id.
     pub fn new(
         name: String,
-        vtype: Option<&Vtype>,
+        vtype: Option<Vtype>,
         bounds: Option<LazyBounds>,
-        env_id: ConcreteEnvId,
+        env_id: EnvId,
     ) -> Result<Self, VariableCreationErr> {
-        let vtype = vtype.map_or(Vtype::default(), |t| *t);
+        let vtype = vtype.map_or(Vtype::default(), |t| t);
         match (vtype, bounds.is_some()) {
             (Vtype::Binary, true) | (Vtype::Spin, true) => {
                 Err(VariableCreationErr::InvalidBounds(vtype))
@@ -78,5 +89,11 @@ impl Variable {
 impl Display for Variable {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}: {}{}", self.name, self.vtype, self.format_bounds())
+    }
+}
+
+impl ContentEquality for Variable {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.name == other.name && self.vtype == other.vtype && self.bounds == other.bounds
     }
 }

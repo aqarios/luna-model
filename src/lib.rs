@@ -12,6 +12,7 @@ pub mod serialization;
 /// Gurobi, CPLEX and Dimod. This also includes translations of the solution's focused on the
 /// translation from another library TO our solution.
 pub mod translator;
+pub mod types;
 
 // Import of the python bindings only when the `--features` flag is set to `py`.
 #[cfg(feature = "py")]

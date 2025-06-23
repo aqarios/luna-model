@@ -6,16 +6,6 @@ pub fn force_u32(n: usize) -> u32 {
     n.try_into().unwrap()
 }
 
-/// Force translation of a `u32` to a `u8`. Used heavily in serialization tasks due
-/// to our restrictions of a maximum number of environments that can be represented by a
-/// u8. However, u8 is not a data type supported by the current serialization library used
-/// internally. Thus we need to escelate out internal u8 typed data to a u32. In deserialization
-/// however, we know that this u32 is actually a u8. Thus we can gurantee and therefore force
-/// the cast to a u8.
-pub fn force_u8(n: u32) -> u8 {
-    n.try_into().unwrap()
-}
-
 /// Force translation of a `i32` to a `i8`. Used heavily in serialization tasks.
 pub fn force_i8(n: i32) -> i8 {
     n.try_into().unwrap()

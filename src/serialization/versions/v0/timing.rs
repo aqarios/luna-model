@@ -1,9 +1,9 @@
 use crate::core::Timing;
-use crate::serialization::encodable::{BytesDecodable, BytesEncodable, Creatable};
+use crate::serialization::encodable::{BytesDecodable, BytesEncodable};
 use crate::serialization::DecodeError;
 use prost::Message;
 use std::ops::Add;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime};
 
 #[derive(Clone, PartialEq, Message)]
 pub struct SerTiming {
@@ -29,25 +29,7 @@ impl BytesDecodable<Timing> for SerTiming {
     }
 }
 
-impl Creatable<Timing> for SerTiming {
-    fn new(value: &Timing) -> Self {
-        Self::default().fill(value)
-    }
-}
-
 impl SerTiming {
-    fn fill(mut self, timing: &Timing) -> Self {
-        self.start = timing
-            .start
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs_f64();
-        self.end = timing.end.duration_since(UNIX_EPOCH).unwrap().as_secs_f64();
-        self.qpu = timing.qpu;
-
-        self
-    }
-
     pub fn extract(&self) -> Timing {
         let start = SystemTime::UNIX_EPOCH.add(Duration::from_secs_f64(self.start));
         let end = SystemTime::UNIX_EPOCH.add(Duration::from_secs_f64(self.end));

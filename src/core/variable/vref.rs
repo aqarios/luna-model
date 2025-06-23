@@ -1,59 +1,49 @@
+use crate::core::expression::One;
+use crate::core::traits::ContentEquality;
 use crate::{
     core::{
-        expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints},
+        environment::SharedEnvironment,
+        expression::ExpressionBaseCreation,
         operations::{
             AddToExpression, MulToExpression, NegToExpression, RSubToExpression, SubToExpression,
         },
-        Expression, MutRcEnvironment,
+        Expression,
     },
     errors::VariablesFromDifferentEnvsErr,
+    types::{Bias, VarIndex},
 };
-use std::{
-    fmt::{Debug, Display, Formatter},
-    rc::Rc,
-};
+use std::fmt::{Debug, Display, Formatter};
 
 /// A reference to a variable.
 #[derive(Clone)]
-pub struct VarRef<Index> {
-    pub id: Index,
-    pub env: MutRcEnvironment<Index>,
+pub struct VarRef {
+    pub id: VarIndex,
+    pub env: SharedEnvironment,
 }
 
-impl<Index> VarRef<Index>
-where
-    Index: IndexConstraints,
-{
-    pub fn new(id: Index, env: MutRcEnvironment<Index>) -> Self {
+impl VarRef {
+    pub fn new(id: VarIndex, env: SharedEnvironment) -> Self {
         Self { id, env }
     }
 }
 
-impl<Index, Bias> AddToExpression<Index, Bias, Bias> for &VarRef<Index>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Expression<Index, Bias>;
+impl AddToExpression<Bias> for &VarRef {
+    type Output = Expression;
 
     fn add(self, rhs: Bias) -> Self::Output {
-        Expression::new_linear_and_offset(Rc::clone(&self.env), self.id, Bias::one(), rhs)
+        Expression::new_linear_and_offset(self.env.clone(), self.id, Bias::one(), rhs)
     }
 }
 
-impl<Index, Bias> AddToExpression<Index, Bias, &VarRef<Index>> for &VarRef<Index>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
+impl AddToExpression<&VarRef> for &VarRef {
+    type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
 
-    fn add(self, rhs: &VarRef<Index>) -> Self::Output {
+    fn add(self, rhs: &VarRef) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(Expression::new_linear(
-                Rc::clone(&self.env),
+                self.env.clone(),
                 (self.id, Bias::one()),
                 (rhs.id, Bias::one()),
             ))
@@ -61,31 +51,23 @@ where
     }
 }
 
-impl<Index, Bias> MulToExpression<Index, Bias, Bias> for &VarRef<Index>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Expression<Index, Bias>;
+impl MulToExpression<Bias> for &VarRef {
+    type Output = Expression;
 
     fn mul(self, rhs: Bias) -> Self::Output {
-        Expression::new_linear_single(Rc::clone(&self.env), self.id, rhs)
+        Expression::new_linear_single(self.env.clone(), self.id, rhs)
     }
 }
 
-impl<Index, Bias> MulToExpression<Index, Bias, &VarRef<Index>> for &VarRef<Index>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
+impl MulToExpression<&VarRef> for &VarRef {
+    type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
 
-    fn mul(self, rhs: &VarRef<Index>) -> Self::Output {
+    fn mul(self, rhs: &VarRef) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(Expression::new_quadratic(
-                Rc::clone(&self.env),
+                self.env.clone(),
                 self.id,
                 rhs.id,
                 Bias::one(),
@@ -94,31 +76,23 @@ where
     }
 }
 
-impl<Index, Bias> RSubToExpression<Index, Bias, Bias> for &VarRef<Index>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Expression<Index, Bias>;
+impl RSubToExpression<Bias> for &VarRef {
+    type Output = Expression;
 
     fn rsub(self, rhs: Bias) -> Self::Output {
-        Expression::new_linear_and_offset(Rc::clone(&self.env), self.id, -Bias::one(), rhs)
+        Expression::new_linear_and_offset(self.env.clone(), self.id, -Bias::one(), rhs)
     }
 }
 
-impl<Index, Bias> SubToExpression<Index, Bias, &VarRef<Index>> for &VarRef<Index>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Result<Expression<Index, Bias>, VariablesFromDifferentEnvsErr>;
+impl SubToExpression<&VarRef> for &VarRef {
+    type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
 
-    fn sub(self, rhs: &VarRef<Index>) -> Self::Output {
+    fn sub(self, rhs: &VarRef) -> Self::Output {
         if self.env.borrow().id != rhs.env.borrow().id {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(Expression::new_linear(
-                Rc::clone(&self.env),
+                self.env.clone(),
                 (self.id, Bias::one()),
                 (rhs.id, -Bias::one()),
             ))
@@ -126,36 +100,34 @@ where
     }
 }
 
-impl<Index> Debug for VarRef<Index>
-where
-    Index: IndexConstraints,
-{
+impl Debug for VarRef {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let env = self.env.borrow();
-        let v = &env.variables[self.id.into()];
+        let idx: usize = self.id.into();
+        let v = &env.variables[idx];
 
         write!(f, "{v:?}")
     }
 }
 
-impl<Index> Display for VarRef<Index>
-where
-    Index: IndexConstraints,
-{
+impl Display for VarRef {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let v = &self.env.borrow().variables[self.id.into()];
+        let idx: usize = self.id.into();
+        let v = &self.env.borrow().variables[idx];
         f.write_str(&v.to_string())
     }
 }
 
-impl<Index, Bias> NegToExpression<Index, Bias> for &VarRef<Index>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type Output = Expression<Index, Bias>;
+impl NegToExpression for &VarRef {
+    type Output = Expression;
 
     fn neg(self) -> Self::Output {
-        Expression::new_linear_single(Rc::clone(&self.env), self.id, -Bias::one())
+        Expression::new_linear_single(self.env.clone(), self.id, -Bias::one())
+    }
+}
+
+impl ContentEquality for VarRef {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.id == other.id && self.env.is_equal_contents(&other.env)
     }
 }

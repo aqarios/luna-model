@@ -1,3 +1,4 @@
+import re
 import string
 from contextlib import nullcontext as does_not_raise
 
@@ -223,7 +224,8 @@ def test_environment():
         _ = Variable("a")
         _ = Variable("b", vtype=Vtype.Integer)
         _ = Variable("c")
-        assert str(env) == "Environment 0\n  a, b, c"
+        env_str = re.sub(r"(Environment\s+)[^\n]+", r"\1?", str(env))
+        assert env_str == "Environment ?\n  a, b, c"
 
 
 @pytest.mark.str_repr

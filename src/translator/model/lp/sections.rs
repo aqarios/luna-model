@@ -6,14 +6,12 @@ use super::{
     keywords::VariableType,
     util::starts_with_any,
 };
-use crate::core::environment::get_vref_by_name;
 use crate::core::{Bound, LazyBounds, Sense, Vtype, DEFAULT_MODEL_NAME};
+use crate::types::Bias;
 use crate::{
     core::{
-        environment::add_variable,
-        expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints},
-        operations::AddAssignToExpression,
-        Bounds, Comparator, Constraint, Expression, Model, VarRef,
+        expression::ExpressionBaseCreation, operations::AddAssignToExpression, Bounds, Comparator,
+        Constraint, Expression, Model, VarRef,
     },
     errors::TranslationErr,
 };
@@ -21,7 +19,7 @@ use hashbrown::{hash_map::Iter, HashMap};
 use regex::Regex;
 use strum_macros::Display;
 
-use std::{cell::RefCell, hash::Hash, marker::PhantomData, rc::Rc};
+use std::hash::Hash;
 
 #[derive(Debug, Clone, PartialEq, Display, Eq, Hash)]
 pub enum Section {
@@ -165,26 +163,18 @@ impl Section {
 }
 
 #[derive(Debug)]
-pub struct SectionsHolder<Index, Bias> {
+pub struct SectionsHolder {
     variable_sections: HashMap<VariableType, Vec<String>>,
     sections: HashMap<Section, Vec<String>>,
     pub model_name: Option<String>,
-    _pi: PhantomData<Index>,
-    _pb: PhantomData<Bias>,
 }
 
-impl<Index, Bias> SectionsHolder<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl SectionsHolder {
     pub fn new() -> Self {
         Self {
             sections: HashMap::new(),
             variable_sections: HashMap::new(),
             model_name: None,
-            _pb: PhantomData,
-            _pi: PhantomData,
         }
     }
 
@@ -198,7 +188,7 @@ where
         }
     }
 
-    pub fn from_model(model: &Model<Index, Bias>) -> Result<Self, TranslationErr> {
+    pub fn from_model(model: &Model) -> Result<Self, TranslationErr> {
         let mut sections = Self::new();
         if model.name != DEFAULT_MODEL_NAME {
             sections.model_name = Some(model.name.clone());
@@ -218,9 +208,10 @@ where
                     &Section::VariableType(VariableType::General),
                     v.name.clone(),
                 ),
-                Vtype::Real => {
-                    sections.push(&Section::VariableType(VariableType::Continuous), v.name.clone())
-                }
+                Vtype::Real => sections.push(
+                    &Section::VariableType(VariableType::Continuous),
+                    v.name.clone(),
+                ),
             }
             if v.vtype != Vtype::Binary {
                 // Binary bounds are fixed...does not make sense to change them.
@@ -230,13 +221,13 @@ where
         // objective
         sections.push(
             &Section::Objective(model.sense),
-            ExprTree::from_expression(&model.objective.borrow(), false)?
+            ExprTree::from_expression(&model.objective, false)?
                 .optimize()
                 .to_string(true),
         );
         // constraints
-        for (i, constraint) in model.constraints.borrow().iter().enumerate() {
-            let lhs_str = ExprTree::from_expression(&constraint.lhs.borrow(), true)?
+        for (i, constraint) in model.constraints.iter().enumerate() {
+            let lhs_str = ExprTree::from_expression(&constraint.lhs, true)?
                 .optimize()
                 .to_string(false);
             let comparator = match constraint.comparator {
@@ -388,8 +379,8 @@ where
 
     pub fn make_variables(
         &self,
-        model: &mut Model<Index, Bias>,
-    ) -> Result<HashMap<String, VarRef<Index>>, TranslationErr> {
+        model: &mut Model,
+    ) -> Result<HashMap<String, VarRef>, TranslationErr> {
         let mut varlookup = HashMap::new();
         let mut boundsmap = self.extract_bounds();
         for (vtype, vars) in self.iter_variables() {
@@ -407,26 +398,24 @@ where
                     },
                     None => None,
                 };
-                let vref = add_variable(
-                    Rc::clone(&model.environment),
-                    var,
-                    Some(&(*vtype).into()),
-                    bounds.map(|b| b.into()),
-                )
-                .map_err(|e| TranslationErr::new(e.to_string()))?;
+                let vref = model
+                    .environment
+                    .add_variable(var, Some((*vtype).into()), bounds.map(|b| b.into()))
+                    .map_err(|e| TranslationErr::new(e.to_string()))?;
                 varlookup.insert(var.to_string(), vref);
             }
         }
         if let Some(ref mut bm) = boundsmap {
             if !bm.is_empty() {
                 for (var, (lower, upper)) in bm.iter() {
-                    let vref = add_variable(
-                        Rc::clone(&model.environment),
-                        var,
-                        Some(&Vtype::Real),
-                        Some(LazyBounds::new(Some(*lower), Some(*upper))),
-                    )
-                    .map_err(|e| TranslationErr::new(e.to_string()))?;
+                    let vref = model
+                        .environment
+                        .add_variable(
+                            var,
+                            Some(Vtype::Real),
+                            Some(LazyBounds::new(Some(*lower), Some(*upper))),
+                        )
+                        .map_err(|e| TranslationErr::new(e.to_string()))?;
                     varlookup.insert(var.to_string(), vref);
                 }
             }
@@ -436,8 +425,8 @@ where
 
     pub fn make_objective(
         &self,
-        model: &mut Model<Index, Bias>,
-        vars: &HashMap<String, VarRef<Index>>,
+        model: &mut Model,
+        vars: &HashMap<String, VarRef>,
     ) -> Result<(), TranslationErr> {
         let min_obj = self.get(Section::Objective(Sense::Min));
         let max_obj = self.get(Section::Objective(Sense::Max));
@@ -457,47 +446,32 @@ where
         };
         model.set_sense(sense);
         let all = obj.concat();
-        Self::add_to_expression(&mut model.objective.borrow_mut(), &all, &vars)?;
+        Self::add_to_expression(&mut model.objective, &all, &vars)?;
         Ok(())
     }
 
     pub fn make_constraints(
         &self,
-        model: &mut Model<Index, Bias>,
-        vars: &HashMap<String, VarRef<Index>>,
+        model: &mut Model,
+        vars: &HashMap<String, VarRef>,
     ) -> Result<(), TranslationErr> {
         if let Some(constrs) = self.get(Section::Constraints) {
             for entry in constrs {
                 let (name, constr) = entry.split_once(":").unwrap();
                 if let Some((lhs_str, comp, rhs_str)) = Self::split_constraint_expression(&constr) {
-                    let mut lhs: Expression<Index, Bias> = Expression::new(
-                        Rc::clone(&model.environment),
-                        vec![false; model.objective.borrow().active.len()],
-                        model.objective.borrow().num_variables,
+                    let mut lhs: Expression = Expression::new(
+                        model.environment.clone(),
+                        vec![false; model.objective.active.len()],
+                        model.objective.num_variables,
                     );
                     Self::add_to_expression(&mut lhs, &lhs_str, &vars)?;
                     let rhs = rhs_str.parse::<Bias>().map_err(|_| {
                         TranslationErr::new(format!("cannot convert rhs to f64: {}", rhs_str))
                     })?;
                     let c = match comp {
-                        "=" => Constraint::new(
-                            Rc::new(RefCell::new(lhs)),
-                            rhs,
-                            Comparator::Eq,
-                            Some(name.to_string()),
-                        )?,
-                        "<=" => Constraint::new(
-                            Rc::new(RefCell::new(lhs)),
-                            rhs,
-                            Comparator::Le,
-                            Some(name.to_string()),
-                        )?,
-                        ">=" => Constraint::new(
-                            Rc::new(RefCell::new(lhs)),
-                            rhs,
-                            Comparator::Ge,
-                            Some(name.to_string()),
-                        )?,
+                        "=" => Constraint::new(lhs, rhs, Comparator::Eq, Some(name.to_string()))?,
+                        "<=" => Constraint::new(lhs, rhs, Comparator::Le, Some(name.to_string()))?,
+                        ">=" => Constraint::new(lhs, rhs, Comparator::Ge, Some(name.to_string()))?,
                         _ => {
                             return Err(TranslationErr::new(format!(
                                 "unknown comparator '{}' for constraint '{}'",
@@ -507,7 +481,6 @@ where
                     };
                     model
                         .constraints
-                        .borrow_mut()
                         .add_assign(&c)
                         .map_err(|e| TranslationErr::new(e.to_string()))?;
                 } else {
@@ -522,32 +495,26 @@ where
     }
 
     fn add_to_expression(
-        expr: &mut Expression<Index, Bias>,
+        expr: &mut Expression,
         expr_str: &str,
-        vars: &HashMap<String, VarRef<Index>>,
+        vars: &HashMap<String, VarRef>,
     ) -> Result<(), TranslationErr> {
         let mut expression = ExprTree::build(&expr_str);
         expression = expression.optimize();
         let expression = expression.evaluate(&EvalContext::new(
             |n| {
-                let mut var: Option<VarRef<_>> = vars.get(n).cloned(); // .unwrap().clone()
+                let mut var: Option<VarRef> = vars.get(n).cloned(); // .unwrap().clone()
                 if var.is_none() {
-                    let res = get_vref_by_name(&n.to_string(), Rc::clone(&expr.env));
+                    let res = expr.env.get_vref_by_name(n);
                     var = if let Ok(v) = res {
                         Some(v)
                     } else {
-                        add_variable(
-                            Rc::clone(&expr.env),
-                            &n.to_string(),
-                            Some(&Vtype::Real),
-                            None,
-                        )
-                        .ok()
+                        expr.env.add_variable(n, Some(Vtype::Real), None).ok()
                     };
                 }
                 var.unwrap()
             },
-            Rc::clone(&expr.env),
+            expr.env.clone(),
         ))?;
         expr.add_assign(&expression)?;
         Ok(())

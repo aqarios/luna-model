@@ -1,10 +1,12 @@
-use std::{cell::RefCell, rc::Rc};
+use std::fmt::Debug;
 
-use aqmodels::core::{
-    environment::add_variable,
-    expression::{BiasConstraints, ExpressionBaseCreation, IndexConstraints},
-    operations::{AddToExpression, MulToExpression},
-    Environment, Expression, VarRef, Vtype,
+use aqmodels::{
+    core::{
+        expression::ExpressionBaseCreation,
+        operations::{AddToExpression, MulToExpression},
+        Expression, SharedEnvironment, VarRef, Vtype,
+    },
+    types::Bias,
 };
 use num::abs;
 use rand::{
@@ -13,6 +15,7 @@ use rand::{
     Rng, RngCore, SeedableRng,
 };
 
+#[allow(dead_code)]
 pub fn make_seed() -> u64 {
     let seed: u64 = rand::rng().next_u64();
     eprintln!(
@@ -26,6 +29,7 @@ Random Seed = {}
     seed
 }
 
+#[allow(dead_code)]
 pub fn random_bias<B: Default + std::ops::Add<f64, Output = B>>(seed: u64) -> B
 where
     StandardUniform: Distribution<B>,
@@ -35,6 +39,7 @@ where
     rng.random()
 }
 
+#[allow(dead_code)]
 pub fn random_biases<B: Copy + Default + std::ops::Add<f64, Output = B>>(
     n: usize,
     seed: u64,
@@ -47,29 +52,25 @@ where
     (0..n).map(|_| rng.random()).collect()
 }
 
-pub fn create_linear_expression_with_vars<I: IndexConstraints, B: BiasConstraints>(
-    env: Rc<RefCell<Environment<I>>>,
-    biases: &Vec<B>,
+#[allow(dead_code)]
+pub fn create_linear_expression_with_vars(
+    env: SharedEnvironment,
+    biases: &Vec<Bias>,
     vtype: Vtype,
-) -> (Expression<I, B>, Vec<VarRef<I>>) {
+) -> (Expression, Vec<VarRef>) {
     let varname_prefix = match vtype {
         Vtype::Binary => "b",
         Vtype::Spin => "s",
         Vtype::Integer => "i",
         Vtype::Real => "r",
     };
-    let vars: Vec<VarRef<I>> = (0..biases.len())
+    let vars: Vec<VarRef> = (0..biases.len())
         .map(|i| {
-            add_variable(
-                Rc::clone(&env),
-                &format!("{}{}", varname_prefix, i),
-                Some(&vtype),
-                None,
-            )
-            .unwrap()
+            env.add_variable(&format!("{}{}", varname_prefix, i), Some(vtype), None)
+                .unwrap()
         })
         .collect();
-    let mut expr = Expression::empty(Rc::clone(&env));
+    let mut expr = Expression::empty(env.clone());
     for (v, b) in vars.iter().zip(biases) {
         let tmp = &v.mul(*b);
         expr = expr.add(tmp).unwrap();
@@ -77,22 +78,21 @@ pub fn create_linear_expression_with_vars<I: IndexConstraints, B: BiasConstraint
     (expr, vars)
 }
 
-pub fn create_linear_expression<I: IndexConstraints, B: BiasConstraints>(
-    env: Rc<RefCell<Environment<I>>>,
-    biases: &Vec<B>,
+#[allow(dead_code)]
+pub fn create_linear_expression(
+    env: SharedEnvironment,
+    biases: &Vec<Bias>,
     vtype: Vtype,
-) -> Expression<I, B> {
+) -> Expression {
     create_linear_expression_with_vars(env, biases, vtype).0
 }
 
-pub fn create_env<I: IndexConstraints>() -> Environment<I> {
-    Environment::new()
+#[allow(dead_code)]
+pub fn create_env() -> SharedEnvironment {
+    SharedEnvironment::default()
 }
 
-pub fn package<T>(value: T) -> Rc<RefCell<T>> {
-    Rc::new(RefCell::new(value))
-}
-
+#[allow(dead_code)]
 pub fn almost_equal(a: f64, b: f64, epsilon: Option<f64>, abs_th: Option<f64>) -> bool {
     let epsilon = epsilon.unwrap_or(128_f64 * f64::EPSILON);
     let abs_th = abs_th.unwrap_or(f64::MIN_POSITIVE);
@@ -103,4 +103,12 @@ pub fn almost_equal(a: f64, b: f64, epsilon: Option<f64>, abs_th: Option<f64>) -
     let diff = (a - b).abs();
     let norm = (abs(a) + abs(b)).min(f64::MAX);
     diff < abs_th.max(epsilon * norm)
+}
+
+#[allow(dead_code)]
+pub fn assert_noerror<T, E: Debug>(res: Result<T, E>) -> T {
+    match res {
+        Ok(v) => v,
+        Err(e) => panic!("encountered unexpected error: {:?}", e),
+    }
 }

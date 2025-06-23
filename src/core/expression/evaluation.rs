@@ -1,13 +1,13 @@
-use super::{BiasConstraints, Expression, ExpressionEvaluation, IndexConstraints};
-use crate::core::ValueByIndex;
+use super::{Expression, ExpressionEvaluation};
+use crate::core::expression::One;
+use crate::{
+    core::ValueByIndex,
+    types::{Bias, VarIndex},
+};
 use std::ops::Mul;
 
-impl<Index, Bias> ExpressionEvaluation<Index, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<Index, Output = Elem>>(
+impl ExpressionEvaluation<VarIndex, Bias> for Expression {
+    fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<VarIndex, Output = Elem>>(
         &self,
         sample: &'a Sample,
     ) -> Bias
@@ -41,7 +41,7 @@ where
     fn evaluate_sampleset<
         'a,
         Elem: 'a,
-        Sample: ValueByIndex<Index, Output = Elem> + 'a,
+        Sample: ValueByIndex<VarIndex, Output = Elem> + 'a,
         SampleSet: Iterator<Item = &'a Sample> + Copy,
     >(
         &self,

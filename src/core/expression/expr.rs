@@ -1,39 +1,49 @@
 use super::base::{
-    BiasConstraints, ExpressionBase, ExpressionBaseAdd, ExpressionBaseAdjustment,
-    ExpressionBaseCreation, ExpressionBaseMul, ExpressionBaseMulComponents,
-    ExpressionBaseMulDirect, ExpressionBaseSet, ExpressionBaseTypes, IndexConstraints,
+    ExpressionBase, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation,
+    ExpressionBaseMul, ExpressionBaseMulComponents, ExpressionBaseMulDirect, ExpressionBaseSet,
+    ExpressionBaseTypes,
 };
 use super::VariableOutOfRangeErr;
+use crate::core::environment::SharedEnvironment;
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
+use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
-use crate::core::{MutRcEnvironment, Vtype};
+use crate::core::Vtype;
+use crate::types::{Bias, VarIndex};
 use hashbrown::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Clone)]
-pub struct Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    pub env: MutRcEnvironment<Index>,
+pub struct Expression {
+    pub env: SharedEnvironment,
     pub offset: Bias,
-    pub linear: Linear<Bias>,
-    pub quadratic: Option<Quadratic<Index, Bias>>,
-    pub higher_order: Option<HigherOrder<Index, Bias>>,
+    pub linear: Linear,
+    pub quadratic: Option<Quadratic>,
+    pub higher_order: Option<HigherOrder>,
     /// Mirror of the linear array that tracks which variables are already
     /// contained in the expression. 1 indicates already added 0 indicating floating.
     pub active: Vec<bool>,
     pub num_variables: SizeType,
 }
 
-impl<Index, Bias> Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    pub fn items(&self) -> Vec<(Vec<Index>, Bias)> {
+impl Expression {
+    /// Deep clone the expression for a new environment.
+    pub fn deep_clone(&self, env: SharedEnvironment) -> Self {
+        Self {
+            env,
+            offset: self.offset,
+            linear: self.linear.clone(),
+            quadratic: self.quadratic.clone(),
+            higher_order: self.higher_order.clone(),
+            active: self.active.clone(),
+            num_variables: self.num_variables.clone(),
+        }
+    }
+}
+
+impl Expression {
+    pub fn items(&self) -> Vec<(Vec<VarIndex>, Bias)> {
         let mut constant = Vec::new();
         if self.offset != Bias::default() {
             constant.push((Vec::new(), self.offset));
@@ -65,24 +75,16 @@ where
     }
 }
 
-impl<Index, Bias> ExpressionBaseTypes for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    type LinearType = Linear<Bias>;
-    type QuadraticType = Quadratic<Index, Bias>;
-    type HigherOrderType = HigherOrder<Index, Bias>;
+impl ExpressionBaseTypes for Expression {
+    type LinearType = Linear;
+    type QuadraticType = Quadratic;
+    type HigherOrderType = HigherOrder;
 
     type HigherOrderKey = String;
 }
 
-impl<Index, Bias> ExpressionBaseCreation<Index, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn empty(env: MutRcEnvironment<Index>) -> Self {
+impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
+    fn empty(env: SharedEnvironment) -> Self {
         Self {
             env,
             offset: Bias::default(),
@@ -94,7 +96,7 @@ where
         }
     }
 
-    fn new(env: MutRcEnvironment<Index>, active: Vec<bool>, num_variables: usize) -> Self {
+    fn new(env: SharedEnvironment, active: Vec<bool>, num_variables: usize) -> Self {
         Self {
             env,
             offset: Bias::default(),
@@ -106,12 +108,13 @@ where
         }
     }
 
-    fn new_linear_single(env: MutRcEnvironment<Index>, v: Index, bias: Bias) -> Self {
+    fn new_linear_single(env: SharedEnvironment, v: VarIndex, bias: Bias) -> Self {
         let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
         let mut active = Vec::new();
         active.resize(linear.len(), false);
-        active[v.into()] = true;
+        let v_idx: usize = v.into();
+        active[v_idx] = true;
 
         Self {
             env,
@@ -125,16 +128,17 @@ where
     }
 
     fn new_linear_and_offset(
-        env: MutRcEnvironment<Index>,
-        v: Index,
+        env: SharedEnvironment,
+        v: VarIndex,
         bias: Bias,
         offset: Bias,
     ) -> Self {
         let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
+        let v_idx: usize = v.into();
         let mut active = Vec::new();
         active.resize(linear.len(), false);
-        active[v.into()] = true;
+        active[v_idx] = true;
 
         Self {
             env,
@@ -147,13 +151,15 @@ where
         }
     }
 
-    fn new_linear(env: MutRcEnvironment<Index>, u: (Index, Bias), v: (Index, Bias)) -> Self {
-        let linear = Linear::new_from_variables((u.0.into(), u.1), (v.0.into(), v.1));
+    fn new_linear(env: SharedEnvironment, u: (VarIndex, Bias), v: (VarIndex, Bias)) -> Self {
+        let u0_idx: usize = u.0.into();
+        let v0_idx: usize = v.0.into();
+        let linear = Linear::new_from_variables((u0_idx, u.1), (v0_idx, v.1));
         // todo: make this it's own struct similar to linear.
         let mut active = Vec::new();
         active.resize(linear.len(), false);
-        active[u.0.into()] = true;
-        active[v.0.into()] = true;
+        active[u0_idx] = true;
+        active[v0_idx] = true;
 
         Self {
             env,
@@ -165,7 +171,7 @@ where
             num_variables: 2,
         }
     }
-    fn new_quadratic(env: MutRcEnvironment<Index>, u: Index, v: Index, bias: Bias) -> Self {
+    fn new_quadratic(env: SharedEnvironment, u: VarIndex, v: VarIndex, bias: Bias) -> Self {
         let mut out = Self {
             env,
             offset: Bias::default(),
@@ -191,48 +197,45 @@ where
     }
 }
 
-impl<Index, Bias> ExpressionBaseAdjustment<Index, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn add_variable(&mut self, v: Index) -> SizeType {
+impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
+    fn add_variable(&mut self, v: VarIndex) -> SizeType {
         // First, we need to check if the variable is larger or equal to the current
         // size of the linear terms.
-        let size = self.linear.len();
-        if v.into() >= size {
+        let size: usize = self.linear.len();
+        let v_idx: usize = v.into();
+        if v_idx >= size {
             // We can simply resize the linear term and the active tracker.
-            self.linear.resize(v.into() + 1);
-            self.active.resize(v.into() + 1, false);
+            self.linear.resize(v_idx + 1);
+            self.active.resize(v_idx + 1, false);
             // We also need to resize the quadratic term if this expression has one.
             if self.has_quadratic() {
-                self.quadratic.as_mut().unwrap().resize(v.into() + 1);
+                self.quadratic.as_mut().unwrap().resize(v_idx + 1);
             }
             // We do not need to resize the higher order term as in this implementation
             // it grows dynamically.
             // ...
             // Now we set the currently added variable as active.
-            self.active[v.into()] = true;
+            self.active[v_idx] = true;
             // And incresae the variable counter by one.
             self.num_variables += 1;
         } else {
             // v < size
             // We do not need to do any resizing.
             // And can directly check if the variable is active.
-            let active = self.active[v.into()];
+            let active: bool = self.active[v_idx];
             // If the variable is already activated we need to do nothing.
             // This means the variable was already added at some point.
             // Otherwise, we need to activate it and increase the var counter by one.
             if !active {
-                self.active[v.into()] = true;
+                self.active[v_idx] = true;
                 self.num_variables += 1;
             }
         }
 
-        v.into()
+        v_idx
     }
 
-    fn add_variables(&mut self, vars: &Vec<Index>) {
+    fn add_variables(&mut self, vars: &Vec<VarIndex>) {
         // We only need to call the add_variable for the largest index.
         // This will automatically allocate memory for all others.
         let max_index = vars.iter().max().unwrap();
@@ -240,17 +243,18 @@ where
         // Now we need to set each variable as active and increase the variable counter
         // if the variable has not been added before.
         for v in vars {
-            let active = self.active[(*v).into()];
+            let v_idx: usize = (*v).into();
+            let active: bool = self.active[v_idx];
             if !active {
-                self.active[(*v).into()] = true;
+                self.active[v_idx] = true;
                 self.num_variables += 1;
             }
         }
     }
 
-    fn resize(&mut self, n: Index) {
+    fn resize(&mut self, n: VarIndex) {
         if self.has_quadratic() {
-            if n.into() < self.linear.len() {
+            if <VarIndex as Into<usize>>::into(n) < self.linear.len() {
                 let quadratic = self.quadratic.as_mut().unwrap();
                 for neighborhood in quadratic {
                     if let Ok(pos) = neighborhood.binary_search_by(|term| term.index.cmp(&n)) {
@@ -274,21 +278,17 @@ where
     }
 }
 
-impl<Index, Bias> ExpressionBase<Index, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl ExpressionBase<VarIndex, Bias> for Expression {
     fn offset(&self) -> Bias {
         self.offset
     }
 
-    fn linear(&self, v: Index) -> Result<Bias, VariableOutOfRangeErr> {
+    fn linear(&self, v: VarIndex) -> Result<Bias, VariableOutOfRangeErr> {
         let v_idx = self.check_and_get(v)?;
         Ok(self.linear[v_idx])
     }
 
-    fn quadratic(&self, u: Index, v: Index) -> Result<Bias, VariableOutOfRangeErr> {
+    fn quadratic(&self, u: VarIndex, v: VarIndex) -> Result<Bias, VariableOutOfRangeErr> {
         self.check_and_get(u)?;
         self.check_and_get(v)?;
         Ok(self
@@ -297,7 +297,7 @@ where
             .map_or_else(Bias::default, |q| q[(u, v)]))
     }
 
-    fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeErr> {
+    fn higher_order(&self, indices: &Vec<VarIndex>) -> Result<Bias, VariableOutOfRangeErr> {
         self.check_multi(indices)?;
         let res = match self.has_higher_order() {
             true => self.higher_order.as_ref().unwrap()[indices],
@@ -311,7 +311,7 @@ where
     }
 
     #[inline]
-    fn vartype(&self, v: Index) -> Vtype {
+    fn vartype(&self, v: VarIndex) -> Vtype {
         self.env.borrow().get_vtype(v)
     }
 
@@ -328,21 +328,17 @@ where
     }
 }
 
-impl<Index, Bias> ExpressionBaseAdd<Index, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
     fn add_offset(&mut self, bias: Bias) {
         self.offset += bias
     }
 
-    fn add_linear(&mut self, v: Index, bias: Bias) {
+    fn add_linear(&mut self, v: VarIndex, bias: Bias) {
         self.add_variable(v);
         self.linear[v.into()] += bias;
     }
 
-    fn add_quadratic(&mut self, u: Index, v: Index, bias: Bias) {
+    fn add_quadratic(&mut self, u: VarIndex, v: VarIndex, bias: Bias) {
         self.add_variable(u);
         self.add_variable(v);
         self.enforce_quadratic();
@@ -362,7 +358,7 @@ where
         }
     }
 
-    fn add_higher_order(&mut self, vars: &Vec<Index>, bias: Bias) {
+    fn add_higher_order(&mut self, vars: &Vec<VarIndex>, bias: Bias) {
         self.add_variables(vars);
         self.enforce_higher_order();
         let contributions = self.reduce_higher_order_vars(vars);
@@ -395,7 +391,7 @@ where
         }
     }
 
-    fn add_quadratic_back(&mut self, u: Index, v: Index, bias: Bias) {
+    fn add_quadratic_back(&mut self, u: VarIndex, v: VarIndex, bias: Bias) {
         let u_idx = self.add_variable(u);
         let v_idx = self.add_variable(v);
         self.enforce_quadratic();
@@ -416,7 +412,7 @@ where
             }
         }
     }
-    fn add_quadratic_from_dense(&mut self, dense: &[Bias], num_variables: Index) {
+    fn add_quadratic_from_dense(&mut self, dense: &[Bias], num_variables: VarIndex) {
         self.enforce_quadratic();
         let f_add_quadratic = match self.is_linear() {
             true => Self::add_quadratic_back,
@@ -438,12 +434,8 @@ where
     }
 }
 
-impl<Index, Bias> ExpressionBaseSet<Index, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn set_higher_order(&mut self, vars: &Vec<Index>, bias: Bias) {
+impl ExpressionBaseSet<VarIndex, Bias> for Expression {
+    fn set_higher_order(&mut self, vars: &Vec<VarIndex>, bias: Bias) {
         self.add_variables(vars);
         self.enforce_higher_order();
         let contributions = self.reduce_higher_order_vars(vars);
@@ -456,11 +448,7 @@ where
     }
 }
 
-impl<Index, Bias> ExpressionBaseMul<Index, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl ExpressionBaseMul<VarIndex, Bias> for Expression {
     fn multiply(lhs: &Self, rhs: &Self, result: &mut Self) {
         // First, we need to get the shared active variables for both
         // lhs and rhs.
@@ -479,14 +467,14 @@ where
         // Also this is only important for linear. In the quadratic or higher order
         // should never be inactive variables.
         //
-        let lhs_linear_actives: Vec<(Index, Bias)> = lhs
+        let lhs_linear_actives: Vec<(VarIndex, Bias)> = lhs
             .linear
             .iter()
             .filter(|(idx, _)| lhs.active[*idx])
             .map(|(idx, bias)| (idx.into(), *bias))
             .collect();
 
-        let rhs_linear_actives: Vec<(Index, Bias)> = rhs
+        let rhs_linear_actives: Vec<(VarIndex, Bias)> = rhs
             .linear
             .iter()
             .filter(|(idx, _)| rhs.active[*idx])
@@ -560,22 +548,18 @@ where
         }
     }
 }
-impl<Index, Bias> ExpressionBaseMulComponents<Index, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl ExpressionBaseMulComponents<VarIndex, Bias> for Expression {
     fn mul_offsets(&mut self, lhs: &Bias, rhs: &Bias) {
         self.add_offset(*lhs * *rhs);
     }
 
-    fn mul_linear_with_offset(&mut self, linear: &Vec<(Index, Bias)>, offset: &Bias) {
+    fn mul_linear_with_offset(&mut self, linear: &Vec<(VarIndex, Bias)>, offset: &Bias) {
         for (idx, bias) in linear.iter() {
             self.add_linear(*idx, *bias * *offset);
         }
     }
 
-    fn mul_linears(&mut self, lhs: &Vec<(Index, Bias)>, rhs: &Vec<(Index, Bias)>) {
+    fn mul_linears(&mut self, lhs: &Vec<(VarIndex, Bias)>, rhs: &Vec<(VarIndex, Bias)>) {
         for (u, u_bias) in lhs.iter() {
             for (v, v_bias) in rhs.iter() {
                 self.add_quadratic(*u, *v, *u_bias * *v_bias);
@@ -589,7 +573,11 @@ where
         }
     }
 
-    fn mul_quadratic_with_linear(&mut self, lhs: &Self::QuadraticType, rhs: &Vec<(Index, Bias)>) {
+    fn mul_quadratic_with_linear(
+        &mut self,
+        lhs: &Self::QuadraticType,
+        rhs: &Vec<(VarIndex, Bias)>,
+    ) {
         for (l, lbias) in rhs.iter() {
             for (u, v, qbias) in lhs.iter_flat() {
                 self.add_higher_order(&vec![u, v, *l], *lbias * qbias);
@@ -614,7 +602,7 @@ where
     fn mul_higher_order_with_linear(
         &mut self,
         lhs: &Self::HigherOrderType,
-        rhs: &Vec<(Index, Bias)>,
+        rhs: &Vec<(VarIndex, Bias)>,
     ) {
         for (mut contribs, hbias) in lhs.iter_contrib() {
             for (l, bias) in rhs.iter() {
@@ -648,19 +636,15 @@ where
     }
 }
 
-impl<Index, Bias> ExpressionBaseMulDirect<Index, Bias> for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn mul_with_offset(&mut self, offset: Bias, v: Index, bias: Bias) {
+impl ExpressionBaseMulDirect<VarIndex, Bias> for Expression {
+    fn mul_with_offset(&mut self, offset: Bias, v: VarIndex, bias: Bias) {
         // Multiplying the offset with a variable creates a new linear term that is
         // added to the linear part of the expression. Thus we can reuse the add_linear
         // here.
         self.add_linear(v, bias * offset)
     }
 
-    fn mul_with_linear(&mut self, linear: &Self::LinearType, v: Index, bias: Bias) {
+    fn mul_with_linear(&mut self, linear: &Self::LinearType, v: VarIndex, bias: Bias) {
         // Multiplying the linear part of the expression with a variable can produce
         // different results. For binary, this updates the linear term by multipliction
         // of the bias.
@@ -680,7 +664,7 @@ where
         }
     }
 
-    fn mul_with_quadratic(&mut self, quadratic: &Self::QuadraticType, v: Index, bias: Bias) {
+    fn mul_with_quadratic(&mut self, quadratic: &Self::QuadraticType, v: VarIndex, bias: Bias) {
         // Multiply the quadratic part with a variable.
         for (u, neighborhood) in quadratic.iter() {
             for term in neighborhood.iter() {
@@ -692,7 +676,7 @@ where
     fn mul_with_higher_order(
         &mut self,
         higher_order: &Self::HigherOrderType,
-        v: Index,
+        v: VarIndex,
         bias: Bias,
     ) {
         for (indices, ho_bias) in higher_order.iter_contrib() {
@@ -703,19 +687,16 @@ where
     }
 }
 
-impl<Index, Bias> Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
-    fn check_and_get(&self, v: Index) -> Result<usize, VariableOutOfRangeErr> {
-        match v.into() <= self.active.len() {
-            true => Ok(v.into()),
-            false => Err(VariableOutOfRangeErr(v.into())),
+impl Expression {
+    fn check_and_get(&self, v: VarIndex) -> Result<usize, VariableOutOfRangeErr> {
+        let v_idx: usize = v.into();
+        match v_idx <= self.active.len() {
+            true => Ok(v_idx),
+            false => Err(VariableOutOfRangeErr(v_idx)),
         }
     }
 
-    fn check_multi(&self, vars: &Vec<Index>) -> Result<(), VariableOutOfRangeErr> {
+    fn check_multi(&self, vars: &Vec<VarIndex>) -> Result<(), VariableOutOfRangeErr> {
         for v in vars {
             let v_idx: usize = (*v).into();
             if !self.active[v_idx] {
@@ -751,34 +732,34 @@ where
         let quadratic = self.quadratic.as_ref().unwrap();
         assert!(
             quadratic[v].is_empty() || quadratic[v].last().unwrap().index <= u.into(),
-            "Index out of oder: last index <= {} (is {})",
+            "VarIndex out of oder: last index <= {} (is {})",
             u,
-            quadratic[v].last().unwrap().index.into()
+            <VarIndex as Into<usize>>::into(quadratic[v].last().unwrap().index)
         );
 
         assert!(
             quadratic[u].is_empty() || quadratic[u].last().unwrap().index <= v.into(),
-            "Index out of oder: last index <= {} (is {})",
+            "VarIndex out of oder: last index <= {} (is {})",
             v,
-            quadratic[u].last().unwrap().index.into()
+            <VarIndex as Into<usize>>::into(quadratic[u].last().unwrap().index)
         );
     }
 
     /// Assumes quadratic exists!
     /// Creates the bias if it doesn't already exist
-    pub fn asymmetric_quadratic_ref(&mut self, u: Index, v: Index) -> &mut Bias {
+    pub fn asymmetric_quadratic_ref(&mut self, u: VarIndex, v: VarIndex) -> &mut Bias {
         assert!(self.has_quadratic(), "quadratic is not initialized");
         &mut self.quadratic.as_mut().unwrap()[(u, v)]
     }
 
-    fn reduce_higher_order_vars(&self, indices: &Vec<Index>) -> Vec<Index> {
+    fn reduce_higher_order_vars(&self, indices: &Vec<VarIndex>) -> Vec<VarIndex> {
         // We have a multiplicative interaction between multiple variables here,
         // similar to the case for quadratic. So we need to check the interactions
         // for each combination...
         // We need to efficiently check if indices exist more than once in the list
         // and if it is the case, we need to retrieve which indices are repeated, and
         // how often they are repeated.
-        let mut ocurrences: HashMap<Index, usize> = HashMap::new();
+        let mut ocurrences: HashMap<VarIndex, usize> = HashMap::new();
         for index in indices.iter() {
             let value = ocurrences.get_mut(index);
             match value {
@@ -788,7 +769,7 @@ where
                 }
             }
         }
-        let mut contribs: Vec<Index> = Vec::new();
+        let mut contribs: Vec<VarIndex> = Vec::new();
         for (idx, count) in ocurrences.iter() {
             match (*count > 1, self.vartype(*idx)) {
                 // Binary variables cancel out to a single binary variable.
@@ -824,25 +805,21 @@ where
     }
 }
 
-impl<Index, Bias> Debug for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl Debug for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let linear = ModelWriter::new()
-            .write_linear(self.env.borrow(), &self.linear)
+            .write_linear(&self.env.borrow(), &self.linear)
             .to_string();
         let quadratic = if let Some(q) = &self.quadratic {
             ModelWriter::new()
-                .write_quadratic(self.env.borrow(), q)
+                .write_quadratic(&self.env.borrow(), q)
                 .to_string()
         } else {
             String::from("None")
         };
         let higher_order = if let Some(ho) = &self.higher_order {
             ModelWriter::new()
-                .write_higher_order(self.env.borrow(), ho)
+                .write_higher_order(&self.env.borrow(), ho)
                 .to_string()
         } else {
             String::from("None")
@@ -859,13 +836,21 @@ where
     }
 }
 
-impl<Index, Bias> Display for Expression<Index, Bias>
-where
-    Index: IndexConstraints,
-    Bias: BiasConstraints,
-{
+impl Display for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = ModelWriter::new().write_expression(&self).to_string();
         f.write_str(&s)
+    }
+}
+
+impl ContentEquality for Expression {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        self.env.is_equal_contents(&other.env)
+            && self.offset == other.offset
+            && self.linear == other.linear
+            && self.quadratic == other.quadratic
+            && self.higher_order == other.higher_order
+            && self.active == other.active
+            && self.num_variables == other.num_variables
     }
 }

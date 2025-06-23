@@ -1,4 +1,4 @@
-use crate::core::{ConcreteBias, ConcreteIndex, Qubo};
+use crate::core::Qubo;
 use crate::py_bindings::py_model::PyModel;
 use crate::{core::Vtype, translator::MatrixTranslator};
 use derive_more::{Deref, DerefMut};
@@ -8,10 +8,10 @@ use pyo3::prelude::*;
 /// A wrapper around qubo matrices that holds all relevant metadata, e.g., the model offset.
 #[pyclass(unsendable, name = "Qubo", module = "aqmodels.translator")]
 #[derive(Deref, DerefMut)]
-pub struct PyQubo(pub Qubo<ConcreteIndex, ConcreteBias>);
+pub struct PyQubo(pub Qubo);
 
-impl Into<Qubo<ConcreteIndex, ConcreteBias>> for PyQubo {
-    fn into(self) -> Qubo<ConcreteIndex, ConcreteBias> {
+impl Into<Qubo> for PyQubo {
+    fn into(self) -> Qubo {
         self.0
     }
 }

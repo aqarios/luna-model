@@ -1,24 +1,20 @@
-use crate::core::environment::add_variable;
 use crate::core::expression::ExpressionBaseAdd;
 use crate::core::{ExpressionBaseAdjustment, Sense, Vtype};
 use crate::errors::{
     BqmTranslatorErr, ModelSenseNotMinimizeErr, ModelVtypeErr, VariableCreationErr,
 };
+use crate::types::{Bias, VarIndex};
 use crate::{
-    core::{
-        expression::{BiasConstraints, IndexConstraints},
-        ExpressionBase, Model,
-    },
+    core::{ExpressionBase, Model},
     errors::{ModelNotQuadraticErr, ModelNotUnconstrainedErr},
 };
-use std::rc::Rc;
 
 /// A translator used to read a Binary Quadratic Model (BQM) and create an AQM.
 pub struct BqmTranslator {}
 
 impl BqmTranslator {
     /// Translates a BQM to an AQM.
-    pub fn model_from_bqm<Index, Bias>(
+    pub fn model_from_bqm(
         vars: Vec<String>,
         vtype: Vtype,
         offset: Bias,
@@ -28,33 +24,24 @@ impl BqmTranslator {
         quadratic_rows: &[u64],
         quadratic_cols: &[u64],
         name: Option<String>,
-    ) -> Result<Model<Index, Bias>, VariableCreationErr>
-    where
-        Index: IndexConstraints,
-        Bias: BiasConstraints,
-    {
-        let model = Model::new(name, Some(Sense::Min));
+    ) -> Result<Model, VariableCreationErr> {
+        let mut model = Model::new(name, Some(Sense::Min));
         for var in vars.iter() {
-            add_variable(Rc::clone(&model.environment), var, Some(&vtype), None)?;
+            model.environment.add_variable(var, Some(vtype), None)?;
         }
-        model.objective.borrow_mut().resize(vars.len().into());
-        model.objective.borrow_mut().add_offset(offset);
+        model.objective.resize(vars.len().into());
+        model.objective.add_offset(offset);
         for (&i, &bias) in linear_indices.iter().zip(linear) {
-            model
-                .objective
-                .borrow_mut()
-                .add_linear((i as usize).into(), bias);
+            model.objective.add_linear((i as usize).into(), bias);
         }
         for ((&u, &v), &bias) in quadratic_rows
             .iter()
             .zip(quadratic_cols.iter())
             .zip(quadratic)
         {
-            model.objective.borrow_mut().add_quadratic(
-                (u as usize).into(),
-                (v as usize).into(),
-                bias,
-            );
+            model
+                .objective
+                .add_quadratic((u as usize).into(), (v as usize).into(), bias);
         }
         Ok(model)
     }
@@ -65,8 +52,8 @@ impl BqmTranslator {
     /// problem to be expressed as a BQM. We can use the AQM to define our model and send
     /// the information between workers efficiently. The solving process can then use this function
     /// to express the optimization problem in the expected format.
-    pub fn model_to_bqm<Index, Bias>(
-        model: &Model<Index, Bias>,
+    pub fn model_to_bqm(
+        model: &Model,
     ) -> Result<
         (
             Bias,
@@ -78,17 +65,13 @@ impl BqmTranslator {
             Vec<String>,
         ),
         BqmTranslatorErr,
-    >
-    where
-        Index: IndexConstraints,
-        Bias: BiasConstraints,
-    {
-        let obj = model.objective.borrow();
+    > {
+        let obj = &model.objective;
         if obj.has_higher_order() {
             return Err(ModelNotQuadraticErr)?;
         }
 
-        if !model.constraints.borrow().is_empty() {
+        if !model.constraints.is_empty() {
             return Err(ModelNotUnconstrainedErr)?;
         }
 
@@ -134,8 +117,8 @@ impl BqmTranslator {
         let mut col_indices = Vec::new();
         if obj.has_quadratic() {
             for (u, v, bias) in obj.quadratic.as_ref().unwrap().iter_flat() {
-                row_indices.push(u.into() as i32);
-                col_indices.push(v.into() as i32);
+                row_indices.push(<VarIndex as Into<usize>>::into(u) as i32);
+                col_indices.push(<VarIndex as Into<usize>>::into(v) as i32);
                 quadratic.push(bias)
             }
         }

@@ -1,9 +1,10 @@
-use std::rc::Rc;
-
-use aqmodels::core::{
-    operations::{MulAssignToExpression, MulToExpression},
-    term::types::{OneVarTerm, OneVarTermConstruction},
-    ConcreteBias, ConcreteIndex, Vtype,
+use aqmodels::{
+    core::{
+        operations::{MulAssignToExpression, MulToExpression},
+        term::types::{OneVarTerm, OneVarTermConstruction},
+        Vtype,
+    },
+    types::Bias,
 };
 
 use crate::common::*;
@@ -13,23 +14,21 @@ fn quadratic_expression_equal_binaries_varref() {
     let seed = make_seed();
     let n = 100;
 
-    let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n, seed);
-    let (mut expr, vars) =
-        create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Binary);
+    let env = create_env();
+    let biases = random_biases::<Bias>(n, seed);
+    let (mut expr, vars) = create_linear_expression_with_vars(env.clone(), &biases, Vtype::Binary);
 
     let multiplier = &vars[0];
     expr.mul_assign(multiplier).unwrap();
 
-    let mut expected_linear: Vec<ConcreteBias> = vec![biases[0]];
-    expected_linear.append(&mut vec![ConcreteBias::default(); biases.len() - 1]);
+    let mut expected_linear: Vec<Bias> = vec![biases[0]];
+    expected_linear.append(&mut vec![Bias::default(); biases.len() - 1]);
 
     // Here, the creation of the quadratic variable is a bit more tricky.
     // As the smaller value will always contain the interaction.
     // In this case, we multiply with the variable with the smallest index,
     // so we know that all interactions will be located at this position.
-    let mut expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> = vec![biases
-        [1..]
+    let mut expected_quadratic: Vec<Vec<OneVarTerm>> = vec![biases[1..]
         .iter()
         .enumerate()
         .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b))
@@ -37,7 +36,7 @@ fn quadratic_expression_equal_binaries_varref() {
     expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
 
     assert_eq!(expr.env, env, "envs is wrong");
-    assert_eq!(expr.offset, ConcreteBias::default(), "offset is wrong");
+    assert_eq!(expr.offset, Bias::default(), "offset is wrong");
     assert_eq!(
         expr.linear.to_vec(),
         &expected_linear,
@@ -75,23 +74,21 @@ fn quadratic_expression_equal_binaries_expr() {
     let seed = make_seed();
     let n = 100;
 
-    let env = package(create_env::<ConcreteIndex>());
-    let biases = random_biases::<ConcreteBias>(n, seed);
-    let (mut expr, vars) =
-        create_linear_expression_with_vars(Rc::clone(&env), &biases, Vtype::Binary);
+    let env = create_env();
+    let biases = random_biases::<Bias>(n, seed);
+    let (mut expr, vars) = create_linear_expression_with_vars(env.clone(), &biases, Vtype::Binary);
 
     let multiplier = &vars[0];
     expr.mul_assign(&multiplier.mul(1.0)).unwrap();
 
-    let mut expected_linear: Vec<ConcreteBias> = vec![biases[0]];
-    expected_linear.append(&mut vec![ConcreteBias::default(); biases.len() - 1]);
+    let mut expected_linear: Vec<Bias> = vec![biases[0]];
+    expected_linear.append(&mut vec![Bias::default(); biases.len() - 1]);
 
     // Here, the creation of the quadratic variable is a bit more tricky.
     // As the smaller value will always contain the interaction.
     // In this case, we multiply with the variable with the smallest index,
     // so we know that all interactions will be located at this position.
-    let mut expected_quadratic: Vec<Vec<OneVarTerm<ConcreteIndex, ConcreteBias>>> = vec![biases
-        [1..]
+    let mut expected_quadratic: Vec<Vec<OneVarTerm>> = vec![biases[1..]
         .iter()
         .enumerate()
         .map(|(i, b)| OneVarTerm::new((i + 1).into(), *b))
@@ -99,7 +96,7 @@ fn quadratic_expression_equal_binaries_expr() {
     expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
 
     assert_eq!(expr.env, env, "envs is wrong");
-    assert_eq!(expr.offset, ConcreteBias::default(), "offset is wrong");
+    assert_eq!(expr.offset, Bias::default(), "offset is wrong");
     assert_eq!(
         expr.linear.to_vec(),
         &expected_linear,

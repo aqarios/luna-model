@@ -1,4 +1,4 @@
-use crate::core::expression::BiasConstraints;
+use crate::types::Bias;
 use std::{
     cmp::max,
     iter::Enumerate,
@@ -9,14 +9,11 @@ use std::{
 // Currently the expression traits use the structs directly. I don't like this...
 
 #[derive(Clone, Debug)]
-pub struct Linear<Bias> {
+pub struct Linear {
     biases: Vec<Bias>,
 }
 
-impl<Bias> Linear<Bias>
-where
-    Bias: BiasConstraints,
-{
+impl Linear {
     pub fn default() -> Self {
         Self { biases: Vec::new() }
     }
@@ -74,10 +71,7 @@ where
     }
 }
 
-impl<Bias> MulAssign<Bias> for Linear<Bias>
-where
-    Bias: BiasConstraints,
-{
+impl MulAssign<Bias> for Linear {
     fn mul_assign(&mut self, rhs: Bias) {
         for b in self.biases.iter_mut() {
             *b *= rhs;
@@ -85,10 +79,7 @@ where
     }
 }
 
-impl<Bias> From<&Vec<Bias>> for Linear<Bias>
-where
-    Bias: Clone,
-{
+impl From<&Vec<Bias>> for Linear {
     fn from(value: &Vec<Bias>) -> Self {
         Self {
             biases: value.to_vec(),
@@ -97,7 +88,7 @@ where
 }
 
 // todo@benjamin: add the indexing functionality for 'Index' generic.
-impl<Bias> Index<usize> for Linear<Bias> {
+impl Index<usize> for Linear {
     type Output = Bias;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -105,16 +96,13 @@ impl<Bias> Index<usize> for Linear<Bias> {
     }
 }
 
-impl<Bias> IndexMut<usize> for Linear<Bias> {
+impl IndexMut<usize> for Linear {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.biases[index]
     }
 }
 
-impl<Bias> PartialEq for Linear<Bias>
-where
-    Bias: BiasConstraints,
-{
+impl PartialEq for Linear {
     fn eq(&self, other: &Self) -> bool {
         if self.len() != other.len() {
             return false;
@@ -123,30 +111,21 @@ where
     }
 }
 
-impl<Bias> Linear<Bias>
-where
-    Bias: BiasConstraints,
-{
+impl Linear {
     fn negate(&self) -> Self {
         Linear::new(self.biases.iter().map(|b| -*b).collect())
     }
 }
 
-impl<Bias> Neg for Linear<Bias>
-where
-    Bias: BiasConstraints,
-{
-    type Output = Linear<Bias>;
+impl Neg for Linear {
+    type Output = Linear;
     fn neg(self) -> Self::Output {
         self.negate()
     }
 }
 
-impl<Bias> Neg for &Linear<Bias>
-where
-    Bias: BiasConstraints,
-{
-    type Output = Linear<Bias>;
+impl Neg for &Linear {
+    type Output = Linear;
     fn neg(self) -> Self::Output {
         self.negate()
     }

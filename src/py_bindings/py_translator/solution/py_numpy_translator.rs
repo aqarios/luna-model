@@ -94,11 +94,12 @@ impl PyNumpyTranslator {
             energies.as_slice()?,
             sol_agg.shape(),
             timing.map(|t| t.into()),
-            environment.into(),
+            environment.0.clone(),
         )?))
     }
 
-    /// Convert an IBM solution to our solution format.
+    /// Convert a solution in the format of numpy arrays to our solution format.
+    /// Note that the optimization sense is always assumed to be minimization.
     ///
     /// Parameters
     /// ----------

@@ -1,17 +1,15 @@
-use crate::core::expression::{BiasConstraints, One};
+use crate::core::expression::One;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
-use crate::core::solution::AssignmentBaseTypes;
-use crate::core::{PrintLayout, Solution, VarAssignment};
+use crate::core::{PrintLayout, Sense, Solution, VarAssignment};
+use crate::types::{
+    Bias, BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType,
+};
 use std::cmp::Ordering;
 use std::time::Duration;
 
 const SPACE_BETWEEN_COLS: usize = 1;
 
-impl<Bias, AssignmentTypes> Solution<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
+impl Solution {
     pub fn print(
         &self,
         max_line_length: usize,
@@ -466,23 +464,23 @@ where
         out
     }
 
-    fn format_binary(value: AssignmentTypes::BinaryType, col_width: usize) -> String {
-        if value == AssignmentTypes::BinaryType::default() {
+    fn format_binary(value: BinaryAssignmentType, col_width: usize) -> String {
+        if value == BinaryAssignmentType::default() {
             format!("{:>col_width$}", 0)
         } else {
             format!("{:>col_width$}", 1)
         }
     }
 
-    fn format_spin(value: AssignmentTypes::SpinType, col_width: usize) -> String {
-        if value == AssignmentTypes::SpinType::one() {
+    fn format_spin(value: SpinAssignmentType, col_width: usize) -> String {
+        if value == SpinAssignmentType::one() {
             format!("{:>col_width$}", 1)
         } else {
             format!("{:>col_width$}", -1)
         }
     }
 
-    fn format_int(value: AssignmentTypes::IntegerType, col_width: usize) -> String {
+    fn format_int(value: IntegerAssignmentType, col_width: usize) -> String {
         if value.to_string().chars().count() <= col_width {
             format!("{value}")
         } else {
@@ -498,7 +496,7 @@ where
         }
     }
 
-    fn format_real(value: AssignmentTypes::RealType, col_width: usize) -> String {
+    fn format_real(value: RealAssignmentType, col_width: usize) -> String {
         let digits_int_part = format!("{:.0}", value).chars().count();
         if digits_int_part <= col_width - 2 {
             let decimals = col_width - digits_int_part - 1;
@@ -523,26 +521,7 @@ where
     }
 
     fn get_sample_indices_sorted(&self) -> Vec<usize> {
-        let best_obj = match self.best_sample_idx {
-            None => None,
-            Some(i) => self.obj_values[i],
-        };
-        // TODO: replace with sense stored in solution object
-        let sense = match best_obj {
-            None => -1.0,
-            Some(bobj) => {
-                if self
-                    .obj_values
-                    .iter()
-                    .zip(&self.feasible)
-                    .all(|(&obj, &feas)| !feas.unwrap_or_default() || obj.unwrap_or(bobj) >= bobj)
-                {
-                    -1.0
-                } else {
-                    1.0
-                }
-            }
-        };
+        let sense = if self.sense == Sense::Min { -1.0 } else { 1.0 };
         let mut idxs = (0..self.n_samples).collect::<Vec<_>>();
         idxs.sort_by(|&idx1, &idx2| 'res: {
             let feas = self.feasible[idx2].cmp(&self.feasible[idx1]);

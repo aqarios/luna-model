@@ -1,10 +1,7 @@
 use super::py_utils::repr_solution;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
-use crate::core::{
-    ConcreteAssignmentTypes, ConcreteBias, PrintLayout, RcSolution, Samples, Solution,
-    VarAssignment, Vtype,
-};
-use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
+use crate::core::{PrintLayout, RcSolution, Samples, Sense, Solution, VarAssignment, Vtype};
+use crate::errors::{ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_model::PyModel;
@@ -17,6 +14,8 @@ use crate::serialization::{
     Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
 };
 use derive_more::{Deref, DerefMut};
+use indexmap::IndexMap;
+use itertools;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
@@ -27,12 +26,17 @@ use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
-pub struct PyVarAssignment(pub VarAssignment<ConcreteAssignmentTypes>);
+pub struct PyVarAssignment(pub VarAssignment);
 
 #[derive(Debug, Clone)]
 pub enum SampleKey {
     Str(String),
     Var(PyVariable),
+}
+
+enum BitOrder {
+    LTR,
+    RTL,
 }
 
 /// The solution object that is obtained by running an algorihtm.
@@ -82,10 +86,10 @@ pub enum SampleKey {
 /// - Use `encode()` and `decode()` to serialize and recover solutions.
 #[pyclass(unsendable, name = "Solution", module = "aqmodels")]
 #[derive(Deref, DerefMut, Debug)]
-pub struct PySolution(pub RcSolution<ConcreteBias, ConcreteAssignmentTypes>);
+pub struct PySolution(pub RcSolution);
 
-impl Into<RcSolution<ConcreteBias, ConcreteAssignmentTypes>> for PySolution {
-    fn into(self) -> RcSolution<ConcreteBias, ConcreteAssignmentTypes> {
+impl Into<RcSolution> for PySolution {
+    fn into(self) -> RcSolution {
         self.0
     }
 }
@@ -190,7 +194,7 @@ impl PySolution {
     ///     If a sample column has an incorrect number of samples or if `counts` has
     ///     a length different from the number of samples given.
     #[staticmethod]
-    #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None)
+    #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None, sense=None)
     )]
     fn _build(
         component_types: Vec<Vtype>,
@@ -202,6 +206,7 @@ impl PySolution {
         raw_energies: Option<Vec<Option<f64>>>,
         timing: Option<PyTiming>,
         counts: Option<Vec<PyUsize>>,
+        sense: Option<Sense>,
     ) -> PyResult<Self> {
         let var_names: Vec<Option<String>> = if let Some(vn) = variable_names {
             if vn.len() != component_types.len() {
@@ -213,7 +218,7 @@ impl PySolution {
         };
         // todo! change to numpy arrays instead of vecs.
         // todo! move further down in rust code.
-        let mut sol = Solution::default();
+        let mut sol = Solution::with_sense(sense.unwrap_or_default());
 
         let (mut lb, mut ls, mut li, mut lr) = (0, 0, 0, 0);
         let binary_cols = binary_cols.unwrap_or(Vec::new());
@@ -325,6 +330,7 @@ impl PySolution {
     /// ValueError
     ///     If `env` and `model` are both present. When this is the case, the user's
     ///     intention is unclear as the model itself already contains an environment.
+    ///     Or if `sense` and `model` are both present as the sense is then ambiguous.
     /// SolutionTranslationError
     ///     Generally if the sample translation fails. Might be specified by one of the
     ///     three following errors.
@@ -336,21 +342,28 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None))]
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None))]
     fn from_dict(
         data: HashMap<SampleKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
         counts: Option<usize>,
+        sense: Option<Sense>,
     ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
                 "either `env` or `model` has to be `None`",
             ));
         }
-        let environment: PyEnvironment = if model.is_some() {
-            PyEnvironment(Rc::clone(&model.as_ref().unwrap().borrow().environment))
+        if sense.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `sense` or `model` has to be `None`",
+            ));
+        }
+
+        let environment: PyEnvironment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
         } else {
             match env {
                 Some(env) => env.clone(),
@@ -362,7 +375,9 @@ impl PySolution {
             }
         };
 
-        let mut sol = Solution::default();
+        let mut sol = Solution::with_sense(
+            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+        );
         for v in environment.borrow().variables.iter() {
             match v.vtype {
                 Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
@@ -427,6 +442,10 @@ impl PySolution {
     ///     A model to evaluate the sample with.
     /// counts : int, optional
     ///     The number of occurrences for each sample.
+    /// timing : Timing, optional
+    ///     The timing for acquiring the solution.
+    /// sense : Sense, optional
+    ///     The sense the model the solution belongs to. Default: Sense.Min
     ///
     /// Returns
     /// -------
@@ -441,6 +460,7 @@ impl PySolution {
     /// ValueError
     ///     If `env` and `model` are both present. When this is the case, the user's
     ///     intention is unclear as the model itself already contains an environment.
+    ///     Or if `sense` and `model` are both present as the sense is then ambiguous.
     ///     Or if the the number of samples and the number of counts do not match.
     /// SolutionTranslationError
     ///     Generally if the sample translation fails. Might be specified by one of the
@@ -453,7 +473,7 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None)
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None)
     )]
     fn from_dicts(
         data: Vec<HashMap<SampleKey, f64>>,
@@ -461,22 +481,27 @@ impl PySolution {
         model: Option<PyModel>,
         timing: Option<PyTiming>,
         counts: Option<Vec<usize>>,
+        sense: Option<Sense>,
     ) -> PyResult<PySolution> {
         if env.is_some() && model.is_some() {
             return Err(PyValueError::new_err(
                 "either `env` or `model` has to be `None`",
             ));
         }
-
+        if sense.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `sense` or `model` has to be `None`",
+            ));
+        }
         if counts.is_some() && counts.as_ref().unwrap().len() != data.len() {
             return Err(PyValueError::new_err(format!(
-                "the number of samples and the counts do not match: num samples is '{}', num counts is '{}'", 
+                "the number of samples and the counts do not match: num samples is '{}', num counts is '{}'",
                 data.len(), counts.unwrap().len()))
             );
         }
 
-        let environment: PyEnvironment = if model.is_some() {
-            PyEnvironment(Rc::clone(&model.as_ref().unwrap().borrow().environment))
+        let environment: PyEnvironment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
         } else {
             match env {
                 Some(env) => env.clone(),
@@ -488,7 +513,9 @@ impl PySolution {
             }
         };
 
-        let mut sol = Solution::default();
+        let mut sol = Solution::with_sense(
+            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+        );
         for v in environment.borrow().variables.iter() {
             match v.vtype {
                 Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(data.len()))),
@@ -534,13 +561,155 @@ impl PySolution {
             sol.variable_names = var_names;
             let energy: Option<f64> = None;
 
-            let sc = counts.as_ref().and_then(|c| Some(c[i])).or(Some(1)).unwrap();
+            let sc = counts
+                .as_ref()
+                .and_then(|c| Some(c[i]))
+                .or(Some(1))
+                .unwrap();
             if let Some(pos) = samples.iter().position(|s| s == &sample) {
                 sol.counts[pos] += sc;
             } else {
                 let _ = sol.extend(&sample, sc, energy)?;
                 samples.push(sample);
             }
+        }
+
+        sol.timing = timing.map(|t| t.0);
+
+        let mut sol_rc = RcSolution(Rc::new(sol));
+        if let Some(m) = model {
+            sol_rc = m.borrow().evaluate_solution(sol_rc)?;
+        }
+
+        Ok(PySolution(sol_rc))
+    }
+
+    /// Create a `Solution` from a dict that maps measured bitstrings to counts.
+    ///
+    /// If a Model is passed, the solution will be evaluated immediately. Otherwise,
+    /// there has to be an environment present to determine the correct variable types.
+    /// Only applicable to binary or spin models.
+    ///
+    /// Parameters
+    /// ----------
+    /// data : dict[str, int]
+    ///     The counts that shall be part of the solution.
+    /// env : Environment, optional
+    ///     The environment the variable types shall be determined from.
+    /// model : Model, optional
+    ///     A model to evaluate the sample with.
+    /// timing : Timing, optional
+    ///     The timing for acquiring the solution.
+    /// sense : Sense, optional
+    ///     The sense the model the solution belongs to. Default: Sense.Min
+    /// bit_order : Literal["LTR", "RTL"]
+    ///     The order of the bits in the bitstring. Default "RTL".
+    ///
+    /// Returns
+    /// -------
+    /// Solution
+    ///     The solution object created from the sample dict.
+    ///
+    /// Raises
+    /// ------
+    /// NoActiveEnvironmentFoundError
+    ///     If no environment or model is passed to the method or available from the
+    ///     context.
+    /// ValueError
+    ///     If `env` and `model` are both present. When this is the case, the user's
+    ///     intention is unclear as the model itself already contains an environment.
+    ///     Or if `sense` and `model` are both present as the sense is then ambiguous.
+    ///     Or if the the environment contains non-(binary or spin) variables.
+    ///     Or if a bitstring contains chars other than '0' and '1'.
+    /// SolutionTranslationError
+    ///     Generally if the sample translation fails. Might be specified by one of the
+    ///     three following errors.
+    /// SampleIncorrectLengthErr
+    ///     If a sample has a different number of variables than the environment.
+    #[staticmethod]
+    #[pyo3(signature=(data, env=None, model=None, timing=None, sense=None, bit_order="RTL".to_owned())
+    )]
+    fn from_counts(
+        data: IndexMap<String, usize>,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+        timing: Option<PyTiming>,
+        sense: Option<Sense>,
+        bit_order: String,
+    ) -> PyResult<PySolution> {
+        if env.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `env` or `model` has to be `None`",
+            ));
+        }
+        if sense.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `sense` or `model` has to be `None`",
+            ));
+        }
+
+        let environment: PyEnvironment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
+        } else {
+            match env {
+                Some(env) => env.clone(),
+                None => CURRENT_ENV.with(|current| {
+                    current.borrow().clone().ok_or_else(|| {
+                        NoActiveEnvironmentFoundError::new_err("no active environment found.")
+                    })
+                })?,
+            }
+        };
+
+        let mut sol = Solution::with_sense(
+            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+        );
+        for v in environment.borrow().variables.iter() {
+            match v.vtype {
+                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(data.len()))),
+                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(data.len()))),
+                _ => {
+                    return Err(PyValueError::new_err(
+                        "environment contains non-binary or non-spin variables.",
+                    ))
+                }
+            }
+            sol.variable_names.push(v.name.clone())
+        }
+
+        let order = match bit_order.as_str() {
+            "LTR" => BitOrder::LTR,
+            "RTL" => BitOrder::RTL,
+            _ => return Err(PyValueError::new_err("`bit_order` must be 'RTL' or 'LTR'.")),
+        };
+
+        let nvars = sol.samples.len();
+        sol.n_samples = data.len();
+        sol.raw_energies = vec![None; data.len()];
+        sol.obj_values = vec![None; data.len()];
+        sol.constraints = vec![None; data.len()];
+        sol.variable_bounds = vec![None; data.len()];
+        sol.feasible = vec![None; data.len()];
+
+        for (k, v) in data.iter() {
+            if k.len() != nvars {
+                return Err(SampleIncorrectLengthErr.into());
+            }
+            let it = match order {
+                BitOrder::LTR => itertools::Either::Left(k.chars()),
+                BitOrder::RTL => itertools::Either::Right(k.chars().rev()),
+            };
+
+            for (c, col) in it.into_iter().zip(sol.samples.iter_mut()) {
+                match (c, col) {
+                    ('0', SampleCol::Binary(vec)) => vec.push(0),
+                    ('1', SampleCol::Binary(vec)) => vec.push(1),
+                    ('0', SampleCol::Spin(vec)) => vec.push(1),
+                    ('1', SampleCol::Spin(vec)) => vec.push(-1),
+                    _ => return Err(PyValueError::new_err("unexpected char in bitstring.")),
+                }
+            }
+            sol.counts.push(*v);
         }
 
         sol.timing = timing.map(|t| t.0);
@@ -695,6 +864,12 @@ impl PySolution {
         self.timing.map(|t| PyTiming(t))
     }
 
+    /// Get the optimization sense.
+    #[getter]
+    fn get_sense(&self) -> Sense {
+        self.sense
+    }
+
     /// Get the index of the sample with the best objective value.
     #[getter]
     fn get_best_sample_idx(&self) -> Option<usize> {
@@ -707,9 +882,75 @@ impl PySolution {
         self.variable_names.clone()
     }
 
-    /// Compute the expectation value.
+    /// Compute the expectation value of the solution.
+    ///
+    /// Returns
+    /// -------
+    /// float
+    ///     The expectation value.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
     fn expectation_value(&self) -> PyResult<f64> {
         Ok(self.0.expectation_value()?)
+    }
+
+    /// Compute the expectation value of the solution.
+    ///
+    /// Returns
+    /// -------
+    /// float
+    ///     The feasibility ratio.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    fn feasibility_ratio(&self) -> PyResult<f64> {
+        Ok(self.0.feasibility_ratio()?)
+    }
+
+    /// Get a new solution with all infeasible samples removed.
+    ///
+    /// Returns
+    /// -------
+    ///     The new solution with only feasible samples.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    fn filter_feasible(&self) -> PyResult<PySolution> {
+        if let Some(idx) = self.feasible.iter().position(|f| f.is_none()) {
+            Err(ComputationErr(format!(
+                "feasible contains a 'None' value at position '{idx}'"
+            )))?;
+        }
+        let mask = self
+            .feasible
+            .iter()
+            .map(|x| x.unwrap_or_default())
+            .collect();
+        let sol = self.filter_samples(&mask);
+        Ok(PySolution(RcSolution(Rc::new(sol))))
+    }
+
+    /// Get the index of the constraint with the highest number of violations.
+    ///
+    /// Returns
+    /// -------
+    /// int | None
+    ///     The index of the constraint with the most violations. None, if the solution
+    ///     was created for an unconstrained model.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    fn highest_constraint_violations(&self) -> PyResult<Option<usize>> {
+        Ok(self.0.highest_constraint_violations()?)
     }
 
     /// Get the best result.

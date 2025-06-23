@@ -6,7 +6,6 @@ mod evaluation;
 mod expr;
 mod multiplication;
 mod negative;
-mod subtraction;
 
 pub use base::BiasConstraints;
 pub use base::ExpressionBase;

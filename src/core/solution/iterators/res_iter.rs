@@ -1,36 +1,22 @@
-use crate::core::expression::BiasConstraints;
-use crate::core::solution::AssignmentBaseTypes;
 use crate::core::{RcSolution, ResultView};
 
 /// Iterates over the single results of a solution
 #[derive(Debug, Clone)]
-pub struct ResultIterator<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
+pub struct ResultIterator {
     /// The solution this result view corresponds to
-    sol: RcSolution<Bias, AssignmentTypes>,
+    sol: RcSolution,
     /// Index of the next row of the sample within the solution
     next_row: usize,
 }
 
-impl<Bias, AssignmentTypes> ResultIterator<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
-    pub fn new(sol: RcSolution<Bias, AssignmentTypes>) -> Self {
+impl ResultIterator {
+    pub fn new(sol: RcSolution) -> Self {
         Self { sol, next_row: 0 }
     }
 }
 
-impl<Bias, AssignmentTypes> Iterator for ResultIterator<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
-    type Item = ResultView<Bias, AssignmentTypes>;
+impl Iterator for ResultIterator {
+    type Item = ResultView;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.next_row >= self.sol.len() {

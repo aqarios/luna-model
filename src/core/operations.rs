@@ -1,64 +1,64 @@
 /// Custom Add to result in an Expression for a more fine grained control, especially for the
 /// AddAssignToExpression trait which we require to be able to return an Error in
 /// constrast to the default AddAssign trait that does not provide this flexibility.
-pub trait AddToExpression<Index, Bias, Other> {
+pub trait AddToExpression<Rhs> {
     type Output;
 
-    fn add(self, rhs: Other) -> Self::Output;
+    fn add(self, rhs: Rhs) -> Self::Output;
 }
 
 /// Custom Mul to result in an Expression for a more fine grained control, especially for the
 /// MulAssignToExpression trait which we require to be able to return an Error in
 /// constrast to the default MulAssign trait that does not provide this flexibility.
-pub trait MulToExpression<Index, Bias, Other> {
+pub trait MulToExpression<Rhs> {
     type Output;
 
-    fn mul(self, rhs: Other) -> Self::Output;
+    fn mul(self, rhs: Rhs) -> Self::Output;
 }
 
 /// Custom Sub to result in an Expression for a more fine grained control, especially for the
 /// SubAssignToExpression trait which we require to be able to return an Error in
 /// constrast to the default SubAssign trait that does not provide this flexibility.
-pub trait SubToExpression<Index, Bias, Other> {
+pub trait SubToExpression<Rhs> {
     type Output;
 
-    fn sub(self, rhs: Other) -> Self::Output;
+    fn sub(self, rhs: Rhs) -> Self::Output;
 }
 
 /// Custom SubAssign to result in an Expression for a more fine grained control.
-pub trait SubAssignToExpression<Index, Bias, Other> {
+pub trait SubAssignToExpression<Rhs> {
     type Output;
 
-    fn sub_assign(&mut self, rhs: Other) -> Self::Output;
+    fn sub_assign(&mut self, rhs: Rhs) -> Self::Output;
 }
 
 /// Custom RSub to result in an Expression for a more fine grained control. This implements the
 /// specific case that self is located on the right hand side of a subtraction.
-pub trait RSubToExpression<Index, Bias, Other> {
+pub trait RSubToExpression<Rhs> {
     type Output;
 
-    fn rsub(self, rhs: Other) -> Self::Output;
+    fn rsub(self, rhs: Rhs) -> Self::Output;
 }
 
 /// Required to be able to return an Error in constrast to the default AddAssign trait
 /// that does not provide this flexibility.
-pub trait AddAssignToExpression<Index, Bias, Other> {
+pub trait AddAssignToExpression<Rhs> {
     type Output;
 
-    fn add_assign(&mut self, rhs: Other) -> Self::Output;
+    fn add_assign(&mut self, rhs: Rhs) -> Self::Output;
 }
 
 /// Required to be able to return an Error in constrast to the default MulAssign trait
 /// that does not provide this flexibility.
-pub trait MulAssignToExpression<Index, Bias, Other> {
+pub trait MulAssignToExpression<Rhs> {
     type Output;
 
-    fn mul_assign(&mut self, rhs: Other) -> Self::Output;
+    fn mul_assign(&mut self, rhs: Rhs) -> Self::Output;
 }
 
 /// Custom Sub to result in an Expression for a more fine grained control, especially
 /// regarding the Bias.
-pub trait NegToExpression<Index, Bias> {
+pub trait NegToExpression {
     type Output;
 
     fn neg(self) -> Self::Output;

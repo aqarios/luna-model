@@ -1,43 +1,33 @@
-use crate::core::expression::BiasConstraints;
 use crate::core::solution::sample::OwnedSample;
-use crate::core::solution::AssignmentBaseTypes;
 use crate::core::{ResultView, VarAssignment};
 use either::{Either, Left, Right};
 
 /// Iterates over the single variable assignments of a solution row
 #[derive(Debug, Clone)]
-pub struct SampleIterator<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
-    sample: Either<ResultView<Bias, AssignmentTypes>, OwnedSample<AssignmentTypes>>, // Rc<Vec<VarAssignment<AssignmentTypes>>>>,
+pub struct SampleIterator {
+    sample: Either<ResultView, OwnedSample>, // Rc<Vec<VarAssignment>>>,
     /// Index of the next row of the sample within the solution
     next_col_idx: usize,
 }
 
-impl<Bias, AssignmentTypes> SampleIterator<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
+impl SampleIterator {
     pub fn new(
-        sample: Either<ResultView<Bias, AssignmentTypes>, OwnedSample<AssignmentTypes>>, // Rc<Vec<VarAssignment<AssignmentTypes>>>>,
-    ) -> SampleIterator<Bias, AssignmentTypes> {
+        sample: Either<ResultView, OwnedSample>, // Rc<Vec<VarAssignment>>>,
+    ) -> SampleIterator {
         Self {
             sample,
             next_col_idx: 0,
         }
     }
 
-    pub fn from_res_view(res: &ResultView<Bias, AssignmentTypes>) -> Self {
+    pub fn from_res_view(res: &ResultView) -> Self {
         Self {
             sample: Left(res.clone()),
             next_col_idx: 0,
         }
     }
-    // pub fn from_sample_vec(res: Rc<Vec<VarAssignment<AssignmentTypes>>>) -> Self {
-    pub fn from_sample_vec(res: OwnedSample<AssignmentTypes>) -> Self {
+    // pub fn from_sample_vec(res: Rc<Vec<VarAssignment>>) -> Self {
+    pub fn from_sample_vec(res: OwnedSample) -> Self {
         Self {
             sample: Right(res),
             next_col_idx: 0,
@@ -45,12 +35,8 @@ where
     }
 }
 
-impl<Bias, AssignmentTypes> Iterator for SampleIterator<Bias, AssignmentTypes>
-where
-    Bias: BiasConstraints,
-    AssignmentTypes: AssignmentBaseTypes,
-{
-    type Item = VarAssignment<AssignmentTypes>;
+impl Iterator for SampleIterator {
+    type Item = VarAssignment;
 
     fn next(&mut self) -> Option<Self::Item> {
         let out = match &self.sample {
