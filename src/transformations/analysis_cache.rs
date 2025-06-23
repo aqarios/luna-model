@@ -1,18 +1,53 @@
-use std::boxed::Box;
-use std::{any::Any, collections::hash_map::HashMap};
+#[cfg(feature = "py")]
+use pyo3::Py;
+use pyo3::{PyAny, Python};
 
-pub trait AnalysisResult: Any + Sync + Send + Clone {}
+use super::passes::max_bias::MaxBias;
+use std::{collections::hash_map::HashMap, fmt::Debug};
 
-#[derive(Debug)]
-pub struct AnalysisCache {
-    store: HashMap<String, Box<dyn Any + Sync + Send>>,
-    history: Vec<(String, Reason, Box<dyn Any + Sync + Send>)>,
+pub enum AnalysisCacheElement {
+    MaxBiasAnalysis(MaxBias),
+
+    #[cfg(feature = "py")]
+    PyAnalysis(Py<PyAny>),
 }
 
-#[derive(Debug)]
-enum Reason {
+impl AnalysisCacheElement {
+    pub fn clone_py(&self, py: Python) -> Self {
+        match self {
+            Self::MaxBiasAnalysis(v) => Self::MaxBiasAnalysis(v.clone()),
+            #[cfg(feature = "py")]
+            Self::PyAnalysis(v) => Self::PyAnalysis(v.clone_ref(py)),
+        }
+    }
+}
+
+pub struct AnalysisCache {
+    store: HashMap<String, AnalysisCacheElement>,
+    history: Vec<(String, Reason, AnalysisCacheElement)>,
+}
+
+impl AnalysisCache {
+    pub fn clone_py(&self, py: Python) -> Self {
+        Self {
+            store: self
+                .store
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone_py(py)))
+                .collect(),
+            history: self
+                .history
+                .iter()
+                .map(|(k, r, e)| (k.clone(), *r, e.clone_py(py)))
+                .collect(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum Reason {
     Overridden,
-    Invalidated
+    Invalidated,
 }
 
 impl AnalysisCache {
@@ -23,32 +58,29 @@ impl AnalysisCache {
         }
     }
 
-    pub fn insert<T: AnalysisResult>(&mut self, name: &str, item: T) {
-        let x = Box::new(item);
-        match self.store.insert(name.to_owned(), x) {
-            Some(old) => self.history.push((name.to_owned(), Reason::Overridden ,old)),
+    pub fn insert(&mut self, name: &str, item: AnalysisCacheElement) {
+        match self.store.insert(name.to_owned(), item) {
+            Some(old) => self
+                .history
+                .push((name.to_owned(), Reason::Overridden, old)),
             _ => {}
         }
     }
 
-    pub fn get<T: AnalysisResult>(&self, name: &str) -> Option<&T> {
-        self.store
-            .get(name)
-            .and_then(|boxed| boxed.downcast_ref::<T>())
+    pub fn get(&self, name: &str) -> Option<&AnalysisCacheElement> {
+        self.store.get(name)
     }
 
-    pub fn get_mut<T: AnalysisResult>(&mut self, name: &str) -> Option<&mut T> {
-        self.store
-            .get_mut(name)
-            .and_then(|boxed| boxed.downcast_mut::<T>())
+    pub fn get_mut(&mut self, name: &str) -> Option<&mut AnalysisCacheElement> {
+        self.store.get_mut(name)
     }
 
-    pub fn get_history<T: AnalysisResult>(&self, name: &str) -> Vec<(&T, &Reason)> {
+    pub fn get_history(&self, name: &str) -> Vec<(&AnalysisCacheElement, &Reason)> {
         self.history
             .iter()
             .rev()
             .filter(|(k, _, _)| k == name)
-            .filter_map(|(_, r, v)| v.downcast_ref::<T>().map(|x| (x, r)))
+            .filter_map(|(_, r, v)| Some((v, r)))
             .collect()
     }
 

@@ -62,7 +62,13 @@ fn linear_constraints() {
     let rhs = random_bias(seed);
 
     let constr_a = Constraint::new(expr.clone(), rhs, Comparator::Le, None).unwrap();
-    let constr_b = Constraint::new(expr.clone(), rhs, Comparator::Eq, Some("constr".to_string())).unwrap();
+    let constr_b = Constraint::new(
+        expr.clone(),
+        rhs,
+        Comparator::Eq,
+        Some("constr".to_string()),
+    )
+    .unwrap();
     let constr_c = Constraint::new(expr.clone(), rhs, Comparator::Ge, None).unwrap();
     let original_constraints = vec![&constr_a, &constr_b, &constr_c];
 

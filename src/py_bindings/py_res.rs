@@ -1,15 +1,9 @@
-use std::rc::Rc;
-
 use crate::core::{OwnedResult, ResultIterator, ResultView};
 use crate::py_bindings::py_sample::PySample;
 use crate::types::Bias;
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
-use pyo3::types::{PyDict, PyDictMethods};
 use pyo3::{pyclass, pymethods, Bound, PyRef, PyRefMut, Python};
-
-use super::py_sol::PyVarAssignment;
-use super::py_var::PyVariable;
 
 /// A result view object serves as a view into one row of a solution object.
 ///

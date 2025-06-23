@@ -1,4 +1,4 @@
-use std::{cell::RefCell, fmt::Display, ops::Deref, rc::Rc};
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 use hashbrown::HashMap;
 use pyo3::{prelude::*, types::PyDict};
@@ -16,7 +16,6 @@ impl PyModelMetadata {
         }
     }
 }
-
 
 #[pymethods]
 impl PyModelMetadata {

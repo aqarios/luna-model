@@ -23,6 +23,25 @@ def solution() -> Solution:
 
 
 @pytest.fixture
+def solution_max() -> Solution:
+    return Solution._build(  # type: ignore[reportAttributeAccessIssue]
+        component_types=[
+            Vtype.Binary,
+            Vtype.Spin,
+            Vtype.Integer,
+            Vtype.Real,
+        ],
+        variable_names=["b", "s", "i", "r"],
+        binary_cols=[[1, 0, 1]],
+        spin_cols=[[+1, -1, +1]],
+        int_cols=[[2, 3, -4]],
+        real_cols=[[2.0, 3.0, 4.0]],
+        raw_energies=[6.0, 5.0, 2.0],
+        sense=Sense.Max,
+    )
+
+
+@pytest.fixture
 def model_wo_constraint() -> Model:
     model = Model("test_model")
     with model.environment:
@@ -118,11 +137,11 @@ def test_model_eval_wo_constraint_best(model_wo_constraint: Model, solution: Sol
 
 
 def test_model_eval_wo_constraint_best_maximize(
-    model_wo_constraint_maximize: Model, solution: Solution
+    model_wo_constraint_maximize: Model, solution_max: Solution
 ):
-    new_sol = model_wo_constraint_maximize.evaluate(solution)
-    assert all(new_sol.raw_energies == solution.raw_energies)
-    assert all(new_sol.obj_values == solution.raw_energies)
+    new_sol = model_wo_constraint_maximize.evaluate(solution_max)
+    assert all(new_sol.raw_energies == solution_max.raw_energies)
+    assert all(new_sol.obj_values == solution_max.raw_energies)
     assert new_sol.best_sample_idx is not None
     assert new_sol.best_sample_idx == 0
     assert new_sol.best() == new_sol[new_sol.best_sample_idx]

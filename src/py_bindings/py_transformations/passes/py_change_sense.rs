@@ -36,12 +36,12 @@ impl PyChangeSensePass {
 
     #[getter]
     pub fn get_requires(&self) -> Vec<String> {
-        self.requires().iter().map(|&x| x.to_owned()).collect()
+        self.requires()
     }
 }
 
 impl PyPass for PyChangeSensePass {
-    fn as_pass(self) -> Pass {
-        Pass::Transformation(Box::new(self.0))
+    fn as_pass(self) -> PyResult<Pass> {
+        Ok(Pass::Transformation(Box::new(self.0)))
     }
 }

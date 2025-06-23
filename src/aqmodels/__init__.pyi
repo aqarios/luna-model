@@ -1,4 +1,4 @@
-from . import utils
+from . import transformations, utils
 from ._core import (
     Bounds,
     Comparator,
@@ -29,8 +29,6 @@ from ._core import (
     errors,
     translator,
 )
-
-from . import transformations
 from .utils import quicksum
 
 __all__ = [

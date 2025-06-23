@@ -17,15 +17,20 @@ pub struct PyPassManager(PassManager);
 impl PyPassManager {
     #[new]
     #[pyo3(signature=(passes=None))]
-    pub fn py_new(passes: Option<Vec<AnyPass>>) -> Self {
-        PyPassManager(PassManager::new(
-            passes.map(|x| x.into_iter().map(|y| y.as_pass()).collect()),
-        ))
+    pub fn py_new(passes: Option<Vec<AnyPass>>) -> PyResult<Self> {
+        let mapped = passes
+            .map(|x| {
+                x.into_iter()
+                    .map(|y| y.as_pass())
+                    .collect::<PyResult<Vec<_>>>()
+            })
+            .transpose()?;
+        Ok(PyPassManager(PassManager::new(mapped)))
     }
 
     #[pyo3(name = "add")]
-    pub fn py_add(&mut self, pass: AnyPass) {
-        self.add_pass(pass.as_pass());
+    pub fn py_add(&mut self, pass: AnyPass) -> PyResult<()> {
+        Ok(self.add_pass(pass.as_pass()?))
     }
 
     pub fn __str__(&self) -> String {

@@ -32,7 +32,8 @@ impl PassManager {
     fn check_dependencies(&self) -> Result<(), CompilationError> {
         let mut satisfied: HashSet<String> = HashSet::new();
         for pass in self.passes.iter() {
-            let mut it = pass.requires().iter().filter(|&&n| !satisfied.contains(n));
+            let required = pass.requires();
+            let mut it = required.iter().filter(|&n| !satisfied.contains(n));
             if let Some(x) = it.next() {
                 return Err(CompilationError(format!(
                     "Dependency issue: Pass '{}' requires '{}', which is not satisfied.",
@@ -66,7 +67,8 @@ impl PassManager {
                     Some(ret.1)
                 }
                 Pass::Analysis(x) => {
-                    x.run(&model, &mut cache)?;
+                    let ret = x.run(&model, &mut cache)?;
+                    cache.insert(&x.name(), ret);
                     None
                 }
             };

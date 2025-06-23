@@ -3,24 +3,23 @@ use num::{abs, NumCast};
 use pyo3::prelude::*;
 
 use crate::{
-    core::{Model, Sense},
+    core::Model,
     transformations::{
-        analysis_cache::{AnalysisCache, AnalysisResult},
+        analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{AnalysisPass, AnalysisPassResult, BasePass},
     },
 };
 
 #[derive(Debug, Clone)]
-pub struct MaxBiasAnalysis {
-}
+pub struct MaxBiasAnalysis {}
 
 impl BasePass for MaxBiasAnalysis {
-    fn name(&self) -> &str {
-        "max-bias"
+    fn name(&self) -> String {
+        String::from("max-bias")
     }
 
-    fn requires(&self) -> &[&str] {
-        &[]
+    fn requires(&self) -> Vec<String> {
+        Vec::new()
     }
 }
 
@@ -28,15 +27,15 @@ impl BasePass for MaxBiasAnalysis {
     feature = "py",
     pyclass(get_all, name = "MaxBias", module = "aqmodels.transformations")
 )]
-#[derive(Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct MaxBias {
-    val: f64,
+    pub val: f64,
 }
 
-impl AnalysisResult for MaxBias {}
+// impl AnalysisResult for MaxBias {}
 
 impl AnalysisPass for MaxBiasAnalysis {
-    fn run(&self, model: &Model, cache: &mut AnalysisCache) -> AnalysisPassResult {
+    fn run(&self, model: &Model, _cache: &AnalysisCache) -> AnalysisPassResult {
         let obj = &model.objective;
         let mut max_val = 0.0;
 
@@ -63,7 +62,8 @@ impl AnalysisPass for MaxBiasAnalysis {
             max_val = f64::max(max_val, max_ho);
         }
 
-        cache.insert(self.name(), MaxBias { val: max_val });
-        Ok(())
+        Ok(AnalysisCacheElement::MaxBiasAnalysis(MaxBias {
+            val: max_val,
+        }))
     }
 }

@@ -1,4 +1,4 @@
-from aqmodels import Environment, Variable, Vtype, Bounds
+from aqmodels import Bounds, Environment, Variable, Vtype
 
 
 def test_variable_properties():

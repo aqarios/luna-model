@@ -16,7 +16,7 @@ impl DwaveTranslator {
         energy: &[E],
         shape: &[usize],
         timing: Option<Timing>,
-        env: SharedEnvironment
+        env: SharedEnvironment,
     ) -> Result<RcSolution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default,
