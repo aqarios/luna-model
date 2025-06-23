@@ -26,7 +26,7 @@ pub trait Substitution {
     ///    are not compatible
     fn substitute(
         self,
-        var: &VarRef,
+        target: &VarRef,
         replacement: &Expression,
     ) -> Result<Expression, DifferentEnvsErr>;
 }

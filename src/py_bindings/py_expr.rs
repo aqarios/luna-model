@@ -967,7 +967,7 @@ impl PyExpression {
     ///
     /// Given an expression `self`, this method replaces all occurrences of `target` 
     /// with `replacement`. If the substitution would cross differing environments 
-    /// (e.g. captures from two different scopes), it returns a `DifferentEnvsErr`.
+    /// (e.g. captures from two different scopes), it returns a `DifferentEnvsError`.
     ///
     /// Parameters
     /// ----------
@@ -983,7 +983,7 @@ impl PyExpression {
     ///
     /// Raises
     /// ------
-    /// DifferentEnvsErr
+    /// DifferentEnvsError
     ///     If the environments of `self`, `target` and `replacement`
     ///     are not compatible.
     fn substitute(

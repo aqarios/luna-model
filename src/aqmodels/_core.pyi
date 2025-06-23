@@ -2225,6 +2225,36 @@ class Model:
         """
         ...
 
+    def substitute(self, /, target: Variable, replacement: Expression) -> None:
+        """Substitute every occurrence of variable.
+
+        Substitute every occurrence of a variable in the model's objective and
+        constraint expressions with another expression.
+
+        Given a `Model` instance `self`, this method replaces all occurrences of
+        `target` with `replacement` for the objective and each constraint.
+        If any substitution would cross differing environments (e.g. captures from two
+        different scopes), it raises a `DifferentEnvsError`.
+
+        Parameters
+        ----------
+        target : VarRef
+            The variable reference to replace.
+        replacement : Expression
+            The expression to insert in place of `target`.
+
+        Returns
+        -------
+        None
+            Performs substitution in place; no return value.
+
+        Raises
+        ------
+        DifferentEnvsError
+            If the environments of `self`, `target`, and `replacement`
+            are not compatible.
+        """
+
     @overload
     def encode(self, /) -> bytes: ...
     @overload
@@ -2553,7 +2583,7 @@ class Expression:
         """
         ...
 
-    def substitute(self, target: Variable, replacement: Expression) -> Expression:
+    def substitute(self, /, target: Variable, replacement: Expression) -> Expression:
         """
         Substitute every occurrence of a variable with another expression.
 
