@@ -3,7 +3,6 @@ use aqmodels::{
         operations::{MulAssignToExpression, MulToExpression},
         term::{
             types::{OneVarTerm, OneVarTermConstruction},
-            HigherOrder,
         },
         Vtype,
     },
@@ -39,8 +38,6 @@ fn higher_order_expression_equal_binaries_varref() {
         .collect()];
     expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
 
-    let expected_higher_order: HigherOrder = HigherOrder::default();
-
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, Bias::default(), "offset is wrong");
     assert_eq!(
@@ -59,7 +56,7 @@ fn higher_order_expression_equal_binaries_varref() {
     );
     assert_eq!(
         expr.higher_order,
-        Some(expected_higher_order),
+        None,
         "higher order should be None"
     );
     assert_eq!(
@@ -108,8 +105,6 @@ fn higher_order_expression_equal_binaries_expr() {
         .collect()];
     expected_quadratic.append(&mut vec![vec![]; biases.len() - 1]);
 
-    let expected_higher_order: HigherOrder = HigherOrder::default();
-
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, expected_offset, "offset is wrong");
     assert_eq!(
@@ -128,7 +123,7 @@ fn higher_order_expression_equal_binaries_expr() {
     );
     assert_eq!(
         expr.higher_order,
-        Some(expected_higher_order),
+        None,
         "higher order should be None"
     );
     assert_eq!(

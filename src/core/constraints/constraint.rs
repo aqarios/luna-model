@@ -2,8 +2,10 @@ use crate::core::expression::{Expression, ExpressionEvaluation};
 use crate::core::operations::SubToExpression;
 use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
-use crate::core::{ExpressionBase, SharedEnvironment, ValueByIndex};
-use crate::errors::{DuplicateConstraintNameErr, IllegalConstraintNameErr, IndexOutOfBoundsErr};
+use crate::core::{ExpressionBase, SharedEnvironment, Substitution, ValueByIndex, VarRef};
+use crate::errors::{
+    DifferentEnvsErr, DuplicateConstraintNameErr, IllegalConstraintNameErr, IndexOutOfBoundsErr,
+};
 use crate::types::{Bias, VarIndex};
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, Mul};
@@ -152,6 +154,15 @@ impl Constraint {
         let val = self.lhs.evaluate_sample(sample);
         self.comparator.evaluate(val, self.rhs)
     }
+
+    pub fn substitute(
+        &mut self,
+        target: &VarRef,
+        replacement: &Expression,
+    ) -> Result<(), DifferentEnvsErr> {
+        self.lhs = (&self.lhs).substitute(target, replacement)?;
+        Ok(())
+    }
 }
 
 impl Display for Constraint {
@@ -233,6 +244,17 @@ impl Constraints {
             return Err(IndexOutOfBoundsErr::new(index, self.len()));
         }
         Ok(&self.constraints[index])
+    }
+
+    pub fn substitute(
+        &mut self,
+        target: &VarRef,
+        replacement: &Expression,
+    ) -> Result<(), DifferentEnvsErr> {
+        for constr in self.constraints.iter_mut() {
+            constr.substitute(target, replacement)?;
+        }
+        Ok(())
     }
 }
 

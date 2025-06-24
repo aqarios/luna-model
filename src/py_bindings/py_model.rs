@@ -6,7 +6,7 @@ use std::rc::Rc;
 use super::py_bounds::BoundValue;
 use super::py_constr::PyConstraint;
 use super::py_model_metadata::PyModelMetadata;
-use super::py_utils::repr_model;
+use super::py_utils::{repr_model, Replacement};
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
@@ -477,6 +477,38 @@ impl PyModel {
     ///     A result object containing the information from the evaluation process.
     fn evaluate_sample(&self, sample: &PySample) -> PyResult<PyOwnedResult> {
         Ok(PyOwnedResult(self.borrow().evaluate_sample(&sample.0)?))
+    }
+
+    /// Substitute every occurrence of a variable in the model’s objective and constraint expressions with another expression.
+    ///
+    /// Given a `Model` instance `self`, this method replaces all occurrences of `target`
+    /// with `replacement` for the objective and each constraint. If any substitution would
+    /// cross differing environments (e.g. captures from two different scopes), it raises
+    /// a `DifferentEnvsError`.
+    ///
+    /// Parameters
+    /// ----------
+    /// target : VarRef
+    ///     The variable reference to replace.
+    /// replacement : Expression
+    ///     The expression to insert in place of `target`.
+    ///
+    /// Returns
+    /// -------
+    /// None
+    ///     Performs substitution in place; no return value.
+    ///
+    /// Raises
+    /// ------
+    /// DifferentEnvsError
+    ///     If the environments of `self`, `target`, and `replacement`
+    ///     are not compatible.
+    fn substitute(&mut self, target: &PyVariable, replacement: Replacement) -> PyResult<()> {
+        let mutmodel = &mut self.concrete_model.borrow_mut();
+        Ok(match &replacement.as_expr().0 {
+            Left(expr) => mutmodel.substitute(&target.0, expr)?,
+            Right(model) => mutmodel.substitute(&target.0, &model.borrow().objective)?,
+        })
     }
 
     /// Compute the hash of the variable.

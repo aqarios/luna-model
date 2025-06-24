@@ -3,6 +3,7 @@ mod model;
 mod utils;
 mod variable;
 mod writer;
+mod rs_operations;
 
 pub mod constraints;
 pub mod environment;
@@ -23,6 +24,7 @@ pub use environment::SharedEnvironment;
 pub use expression::Expression;
 pub use expression::ExpressionBase;
 pub use expression::ExpressionBaseAdjustment;
+pub use expression::Substitution;
 
 pub use model::Model;
 pub use model::Sense;

@@ -1,7 +1,6 @@
 use aqmodels::{
     core::{
         operations::{MulAssignToExpression, MulToExpression},
-        term::{types::OneVarTerm, HigherOrder},
         Vtype,
     },
     types::Bias,
@@ -27,9 +26,6 @@ fn higher_order_expression_equal_spins_varref() {
     let mut expected_linear: Vec<Bias> = biases.clone();
     expected_linear[multiplier.id.0 as usize] = biases[0];
 
-    let expected_quadratic: Vec<Vec<OneVarTerm>> = vec![vec![]; biases.len()];
-    let expected_higher_order: HigherOrder = HigherOrder::default();
-
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, expected_offset, "offset is wrong");
     assert_eq!(
@@ -37,20 +33,11 @@ fn higher_order_expression_equal_spins_varref() {
         &expected_linear,
         "linear parts are not equal"
     );
-    assert_ne!(
+    assert_eq!(
         expr.quadratic, None,
-        "quadratic must not be None after multiplications"
+        "quadratic must be None after multiplications if result would be empty quadratic expression."
     );
-    assert_eq!(
-        expr.quadratic.unwrap().adj,
-        expected_quadratic,
-        "the quadratic term is not the expected structure"
-    );
-    assert_eq!(
-        expr.higher_order,
-        Some(expected_higher_order),
-        "higher order should be None"
-    );
+    assert_eq!(expr.higher_order, None, "higher order should be None");
     assert_eq!(
         expr.active.len(),
         biases.len(),
@@ -86,9 +73,6 @@ fn higher_order_expression_equal_spins_expr() {
     let mut expected_linear: Vec<Bias> = biases.iter().map(|b| b * biases[0] * biases[0]).collect();
     expected_linear[multiplier.id.0 as usize] = biases[0] * biases[0] * biases[0];
 
-    let expected_quadratic: Vec<Vec<OneVarTerm>> = vec![vec![]; biases.len()];
-    let expected_higher_order: HigherOrder = HigherOrder::default();
-
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, expected_offset, "offset is wrong");
     assert_eq!(
@@ -96,20 +80,11 @@ fn higher_order_expression_equal_spins_expr() {
         &expected_linear,
         "linear parts are not equal"
     );
-    assert_ne!(
+    assert_eq!(
         expr.quadratic, None,
         "quadratic must not be None after multiplications"
     );
-    assert_eq!(
-        expr.quadratic.unwrap().adj,
-        expected_quadratic,
-        "the quadratic term is not the expected structure"
-    );
-    assert_eq!(
-        expr.higher_order,
-        Some(expected_higher_order),
-        "higher order should be None"
-    );
+    assert_eq!(expr.higher_order, None, "higher order should be None");
     assert_eq!(
         expr.active.len(),
         biases.len(),
