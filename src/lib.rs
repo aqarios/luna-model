@@ -14,6 +14,8 @@ pub mod serialization;
 pub mod translator;
 pub mod types;
 
+pub mod hashing;
+
 // Import of the python bindings only when the `--features` flag is set to `py`.
 #[cfg(feature = "py")]
 pub mod py_bindings;

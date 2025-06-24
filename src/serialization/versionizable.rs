@@ -6,7 +6,6 @@ use super::utils::{Slicable, Vectorizable};
 #[repr(u32)]
 pub enum Version {
     V0 = 0,
-    V1 = 1,
 }
 
 /// Utility methods for working on the version enum.
@@ -14,14 +13,13 @@ impl Version {
     /// Get the most recent (latest) supported version.
     /// Used to always return the most recent serialized data structures.
     pub fn latest() -> Self {
-        Version::V1
+        Version::V0
     }
 
     /// Helper function to recover the version as an Enum based on a u32.
     pub fn from(u: u32) -> Self {
         match u {
             0 => Version::V0,
-            1 => Version::V1,
             _ => panic!("unkown version"),
         }
     }
