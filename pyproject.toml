@@ -25,7 +25,9 @@ cache-keys = [
 markers = [
     "variable",
     "expression",
+    "expression_substitution",
     "model",
+    "model_substitution",
     "constraint",
     "str_repr",
     "translator",

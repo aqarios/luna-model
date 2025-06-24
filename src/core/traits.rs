@@ -20,3 +20,17 @@ where
         self.iter().zip(other).all(|(l, r)| l.is_equal_contents(r))
     }
 }
+
+pub trait FilterByMask<T> {
+    fn filter_by_mask(&self, mask: &Vec<bool>) -> Vec<T>;
+}
+
+impl<T: Clone> FilterByMask<T> for Vec<T> {
+    fn filter_by_mask(&self, mask: &Vec<bool>) -> Vec<T> {
+        self
+            .iter()
+            .zip(mask)
+            .filter_map(|(x, flag)| flag.then_some(x.clone()))
+            .collect()
+    }
+}

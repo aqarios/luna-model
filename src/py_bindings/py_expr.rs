@@ -1,8 +1,5 @@
 use super::{
-    py_constr::PyConstraint,
-    py_env::{PyEnvironment, CURRENT_ENV},
-    py_exceptions::NoActiveEnvironmentFoundError,
-    py_var::PyVariable,
+    py_constr::PyConstraint, py_env::{PyEnvironment, CURRENT_ENV}, py_exceptions::NoActiveEnvironmentFoundError, py_utils::Replacement, py_var::PyVariable
 };
 use crate::{
     core::{
@@ -11,7 +8,7 @@ use crate::{
             AddAssignToExpression, AddToExpression, MulAssignToExpression, MulToExpression,
             SubAssignToExpression, SubToExpression,
         },
-        Comparator, ContentEquality, Expression, ExpressionBase, VarRef,
+        Comparator, ContentEquality, Expression, ExpressionBase, Substitution, VarRef,
     },
     types::{Bias, VarIndex},
 };
@@ -961,6 +958,48 @@ impl PyExpression {
     ///     The iterator over the expression's components.
     fn items(&self) -> PyExpressionIterator {
         PyExpressionIterator::new(&self)
+    }
+
+    /// Substitute every occurrence of a variable in an expression with another expression.
+    ///
+    /// Given an expression `self`, this method replaces all occurrences of `target`
+    /// with `replacement`. If the substitution would cross differing environments
+    /// (e.g. captures from two different scopes), it returns a `DifferentEnvsError`.
+    ///
+    /// Parameters
+    /// ----------
+    /// target : VarRef
+    ///     The variable reference to replace.
+    /// replacement : Expression | Variable
+    ///     The expression to insert in place of `target`.
+    ///
+    /// Returns
+    /// -------
+    /// Expression
+    ///     The resulting expression after substitution.
+    ///
+    /// Raises
+    /// ------
+    /// DifferentEnvsError
+    ///     If the environments of `self`, `target` and `replacement`
+    ///     are not compatible.
+    fn substitute(
+        &self,
+        target: &PyVariable,
+        replacement: Replacement,
+    ) -> PyResult<PyExpression> {
+        let expr = match &self.0 {
+            Left(expr) => match &replacement.as_expr().0 {
+                Left(repl) => expr.substitute(&target.0, repl),
+                Right(other_model) => expr.substitute(&target.0, &other_model.borrow().objective),
+            },
+            Right(model) => match &replacement.as_expr().0 {
+                Left(repl) => (&model.borrow().objective).substitute(&target.0, &repl),
+                Right(other_model) => (&model.borrow().objective)
+                    .substitute(&target.0, &other_model.borrow().objective),
+            },
+        }?;
+        Ok(PyExpression::new(expr))
     }
 
     fn equal_contents(&self, other: &Self) -> bool {

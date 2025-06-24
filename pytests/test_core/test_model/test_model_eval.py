@@ -1,6 +1,15 @@
 import pytest
 
-from aqmodels import Bounds, Model, Sense, Solution, Unbounded, Variable, Vtype
+from aqmodels import (
+    Bounds,
+    Model,
+    Sense,
+    Solution,
+    Unbounded,
+    Variable,
+    Vtype,
+    Constraints,
+)
 from aqmodels.errors import EvaluationError
 
 
@@ -220,3 +229,35 @@ def test_model_eval_infeasible_bounds():
     assert sample.constraints.tolist() == [True]
     assert sample.variable_bounds is not None
     assert sample.variable_bounds.tolist() == [False, False, True]
+
+
+def test_model_violated_constraints():
+    m = Model("test_eval_bounds")
+    with m.environment:
+        x1 = Variable("x1")
+        x2 = Variable("x2")
+        x3 = Variable("x3")
+
+    m.objective = x1 - 3 * x2 + 2 * x3
+
+    sol_dict = {"x1": 1, "x2": 1, "x3": 0}
+
+    sol_no_constr = Solution.from_dict(sol_dict, model=m)
+    assert len(sol_no_constr.samples) == 1
+    sample_no_constr = sol_no_constr.samples[0]
+    assert m.violated_constraints(sample_no_constr) == Constraints()
+
+    c1 = x1 + x2 <= 1
+    c2 = x1 + x2 + x3 <= 2
+    c3 = x1 + x3 >= 1
+
+    m.add_constraint(c1)
+    m.add_constraint(c2)
+    m.add_constraint(c3)
+
+    sol = Solution.from_dict(sol_dict, model=m)
+    assert len(sol.samples) == 1
+    sample = sol.samples[0]
+    violated = Constraints()
+    violated.add_constraint(c1)
+    assert m.violated_constraints(sample) == violated

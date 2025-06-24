@@ -1,6 +1,6 @@
 [package]
 name = "aqmodels"
-version = "0.1.5-rc2"
+version = "0.1.5-rc4"
 edition = "2021"
 description = "Rust based implementation of aq-models"
 readme = "README.md"
@@ -33,9 +33,11 @@ zstd = "0.13.3"
 either = "1.15.0"
 regex = "1.11.1"
 time = { version = "0.3.41", features = ["formatting"] }
+itertools = "0.14.0"
+indexmap = "2.9.0"
 [dependencies.pyo3]
 version = "0.24.1"
-features = ["extension-module"]
+features = ["extension-module", "indexmap"]
 optional = true
 
 [dependencies.numpy]

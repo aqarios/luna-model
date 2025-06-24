@@ -1,5 +1,5 @@
 use super::{
-    base::{ExpressionBase, ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation},
+    base::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation},
     Expression,
 };
 use crate::core::expression::One;
@@ -53,7 +53,7 @@ impl AddToExpression<&Expression> for &Expression {
             }
             // Now we can perform all additions safely.
             out.add_offset(rhs.offset);
-            out.add_linear_from(&rhs.linear);
+            out.add_linear_from(&rhs.linear, &rhs.active);
 
             if rhs.quadratic.is_some() {
                 out.add_quadratic_from(rhs.quadratic.as_ref().unwrap());
@@ -136,18 +136,18 @@ impl SubToExpression<&Expression> for &Expression {
             // if both expressions have the same number of variables.
             // If rhs has more variables than self, we need to resize the out to
             // allow the other variables to be added safely.
-            if out.num_variables() < rhs.num_variables() {
-                out.resize(rhs.num_variables().into());
+            if out.active.len() < rhs.active.len() {
+                out.resize(rhs.active.len().into());
             }
             // Now we can perform all additions safely.
             out.add_offset(-rhs.offset);
-            out.add_linear_from(&(-&rhs.linear));
+            out.add_linear_from(&(-&rhs.linear), &rhs.active);
 
-            if rhs.quadratic.is_some() {
-                out.add_quadratic_from(&-rhs.quadratic.as_ref().unwrap());
+            if let Some(q) = &rhs.quadratic {
+                out.add_quadratic_from(&(-q));
             }
-            if rhs.higher_order.is_some() {
-                out.add_higher_order_from(&-rhs.higher_order.as_ref().unwrap());
+            if let Some(ho) = &rhs.higher_order {
+                out.add_higher_order_from(&(-ho));
             }
             Ok(out)
         }

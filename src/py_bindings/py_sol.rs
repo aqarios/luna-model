@@ -1,7 +1,7 @@
 use super::py_utils::repr_solution;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::{PrintLayout, RcSolution, Samples, Sense, Solution, VarAssignment, Vtype};
-use crate::errors::{SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
+use crate::errors::{ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_model::PyModel;
@@ -14,6 +14,8 @@ use crate::serialization::{
     Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
 };
 use derive_more::{Deref, DerefMut};
+use indexmap::IndexMap;
+use itertools;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
@@ -30,6 +32,11 @@ pub struct PyVarAssignment(pub VarAssignment);
 pub enum SampleKey {
     Str(String),
     Var(PyVariable),
+}
+
+enum BitOrder {
+    LTR,
+    RTL,
 }
 
 /// The solution object that is obtained by running an algorihtm.
@@ -435,6 +442,10 @@ impl PySolution {
     ///     A model to evaluate the sample with.
     /// counts : int, optional
     ///     The number of occurrences for each sample.
+    /// timing : Timing, optional
+    ///     The timing for acquiring the solution.
+    /// sense : Sense, optional
+    ///     The sense the model the solution belongs to. Default: Sense.Min
     ///
     /// Returns
     /// -------
@@ -561,6 +572,144 @@ impl PySolution {
                 let _ = sol.extend(&sample, sc, energy)?;
                 samples.push(sample);
             }
+        }
+
+        sol.timing = timing.map(|t| t.0);
+
+        let mut sol_rc = RcSolution(Rc::new(sol));
+        if let Some(m) = model {
+            sol_rc = m.borrow().evaluate_solution(sol_rc)?;
+        }
+
+        Ok(PySolution(sol_rc))
+    }
+
+    /// Create a `Solution` from a dict that maps measured bitstrings to counts.
+    ///
+    /// If a Model is passed, the solution will be evaluated immediately. Otherwise,
+    /// there has to be an environment present to determine the correct variable types.
+    /// Only applicable to binary or spin models.
+    ///
+    /// Parameters
+    /// ----------
+    /// data : dict[str, int]
+    ///     The counts that shall be part of the solution.
+    /// env : Environment, optional
+    ///     The environment the variable types shall be determined from.
+    /// model : Model, optional
+    ///     A model to evaluate the sample with.
+    /// timing : Timing, optional
+    ///     The timing for acquiring the solution.
+    /// sense : Sense, optional
+    ///     The sense the model the solution belongs to. Default: Sense.Min
+    /// bit_order : Literal["LTR", "RTL"]
+    ///     The order of the bits in the bitstring. Default "RTL".
+    ///
+    /// Returns
+    /// -------
+    /// Solution
+    ///     The solution object created from the sample dict.
+    ///
+    /// Raises
+    /// ------
+    /// NoActiveEnvironmentFoundError
+    ///     If no environment or model is passed to the method or available from the
+    ///     context.
+    /// ValueError
+    ///     If `env` and `model` are both present. When this is the case, the user's
+    ///     intention is unclear as the model itself already contains an environment.
+    ///     Or if `sense` and `model` are both present as the sense is then ambiguous.
+    ///     Or if the the environment contains non-(binary or spin) variables.
+    ///     Or if a bitstring contains chars other than '0' and '1'.
+    /// SolutionTranslationError
+    ///     Generally if the sample translation fails. Might be specified by one of the
+    ///     three following errors.
+    /// SampleIncorrectLengthErr
+    ///     If a sample has a different number of variables than the environment.
+    #[staticmethod]
+    #[pyo3(signature=(data, env=None, model=None, timing=None, sense=None, bit_order="RTL".to_owned())
+    )]
+    fn from_counts(
+        data: IndexMap<String, usize>,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+        timing: Option<PyTiming>,
+        sense: Option<Sense>,
+        bit_order: String,
+    ) -> PyResult<PySolution> {
+        if env.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `env` or `model` has to be `None`",
+            ));
+        }
+        if sense.is_some() && model.is_some() {
+            return Err(PyValueError::new_err(
+                "either `sense` or `model` has to be `None`",
+            ));
+        }
+
+        let environment: PyEnvironment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
+        } else {
+            match env {
+                Some(env) => env.clone(),
+                None => CURRENT_ENV.with(|current| {
+                    current.borrow().clone().ok_or_else(|| {
+                        NoActiveEnvironmentFoundError::new_err("no active environment found.")
+                    })
+                })?,
+            }
+        };
+
+        let mut sol = Solution::with_sense(
+            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+        );
+        for v in environment.borrow().variables.iter() {
+            match v.vtype {
+                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(data.len()))),
+                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(data.len()))),
+                _ => {
+                    return Err(PyValueError::new_err(
+                        "environment contains non-binary or non-spin variables.",
+                    ))
+                }
+            }
+            sol.variable_names.push(v.name.clone())
+        }
+
+        let order = match bit_order.as_str() {
+            "LTR" => BitOrder::LTR,
+            "RTL" => BitOrder::RTL,
+            _ => return Err(PyValueError::new_err("`bit_order` must be 'RTL' or 'LTR'.")),
+        };
+
+        let nvars = sol.samples.len();
+        sol.n_samples = data.len();
+        sol.raw_energies = vec![None; data.len()];
+        sol.obj_values = vec![None; data.len()];
+        sol.constraints = vec![None; data.len()];
+        sol.variable_bounds = vec![None; data.len()];
+        sol.feasible = vec![None; data.len()];
+
+        for (k, v) in data.iter() {
+            if k.len() != nvars {
+                return Err(SampleIncorrectLengthErr.into());
+            }
+            let it = match order {
+                BitOrder::LTR => itertools::Either::Left(k.chars()),
+                BitOrder::RTL => itertools::Either::Right(k.chars().rev()),
+            };
+
+            for (c, col) in it.into_iter().zip(sol.samples.iter_mut()) {
+                match (c, col) {
+                    ('0', SampleCol::Binary(vec)) => vec.push(0),
+                    ('1', SampleCol::Binary(vec)) => vec.push(1),
+                    ('0', SampleCol::Spin(vec)) => vec.push(1),
+                    ('1', SampleCol::Spin(vec)) => vec.push(-1),
+                    _ => return Err(PyValueError::new_err("unexpected char in bitstring.")),
+                }
+            }
+            sol.counts.push(*v);
         }
 
         sol.timing = timing.map(|t| t.0);
@@ -761,6 +910,47 @@ impl PySolution {
     ///     If the computation fails for any reason.
     fn feasibility_ratio(&self) -> PyResult<f64> {
         Ok(self.0.feasibility_ratio()?)
+    }
+
+    /// Get a new solution with all infeasible samples removed.
+    ///
+    /// Returns
+    /// -------
+    ///     The new solution with only feasible samples.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    fn filter_feasible(&self) -> PyResult<PySolution> {
+        if let Some(idx) = self.feasible.iter().position(|f| f.is_none()) {
+            Err(ComputationErr(format!(
+                "feasible contains a 'None' value at position '{idx}'"
+            )))?;
+        }
+        let mask = self
+            .feasible
+            .iter()
+            .map(|x| x.unwrap_or_default())
+            .collect();
+        let sol = self.filter_samples(&mask);
+        Ok(PySolution(RcSolution(Rc::new(sol))))
+    }
+
+    /// Get the index of the constraint with the highest number of violations.
+    ///
+    /// Returns
+    /// -------
+    /// int | None
+    ///     The index of the constraint with the most violations. None, if the solution
+    ///     was created for an unconstrained model.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    fn highest_constraint_violations(&self) -> PyResult<Option<usize>> {
+        Ok(self.0.highest_constraint_violations()?)
     }
 
     /// Get the best result.

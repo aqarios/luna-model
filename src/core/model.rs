@@ -7,11 +7,11 @@ use super::expression::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionB
 use super::solution::OwnedSample;
 use super::traits::ContentEquality;
 use super::utils::{check_variables_sample, check_variables_sol};
-use super::{Environment, Expression, RcSolution, Sample, Vtype};
+use super::{Environment, Expression, RcSolution, Sample, Substitution, VarRef, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::OwnedResult;
 use crate::core::writer::ModelWriter;
-use crate::errors::{EvaluationErr, VariableCreationErr};
+use crate::errors::{DifferentEnvsErr, EvaluationErr, VariableCreationErr};
 use crate::types::{Bias, VarIndex};
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
@@ -215,6 +215,49 @@ impl Model {
     pub fn set_sense(&mut self, sense: Sense) -> &mut Self {
         self.sense = sense;
         self
+    }
+
+    pub fn violated_constraints(&self, sample: &Sample) -> Constraints {
+        let mut used_names = Vec::new();
+        let mut constraints = Vec::new();
+        for constr in self.constraints.iter() {
+            let v = constr.lhs.evaluate_sample(sample);
+            if !constr.comparator.evaluate(v, constr.rhs) {
+                if let Some(name) = &constr.name {
+                    used_names.push(name.clone());
+                }
+                constraints.push(constr.clone())
+            }
+        }
+        Constraints {
+            used_names,
+            constraints,
+        }
+    }
+
+    /// Substitute every occurrence of a variable in the model’s objective and constraint expressions with another expression.
+    ///
+    /// Given a `Model` instance `self`, this method replaces all occurrences of `target`
+    /// with `replacement` for the objective and each constraint.
+    /// If any substitution would cross differing environments (e.g. captures from two
+    /// different scopes), it returns a `DifferentEnvsError`.
+    ///
+    /// # Parameters
+    /// - `target`: the variable reference to replace
+    /// - `replacement`: the expression to insert in place of `target`
+    ///
+    /// # Returns
+    /// - `Ok(())`: Unit type after substitution.
+    /// - `Err(DifferentEnvsErr)`: if the environments of `self`, `target`, and `replacement`
+    ///    are not compatible
+    pub fn substitute(
+        &mut self,
+        target: &VarRef,
+        replacement: &Expression,
+    ) -> Result<(), DifferentEnvsErr> {
+        self.objective = (&self.objective).substitute(target, replacement)?;
+        self.constraints.substitute(target, replacement)?;
+        Ok(())
     }
 }
 

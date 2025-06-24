@@ -27,6 +27,7 @@ impl MulToExpression<Bias> for &Expression {
         if out.has_higher_order() {
             *out.higher_order.as_mut().unwrap() *= rhs;
         }
+        out.cleanup();
         out
     }
 }
@@ -58,6 +59,7 @@ impl MulToExpression<&VarRef> for &Expression {
                     Bias::one(),
                 );
             }
+            out.cleanup();
             Ok(out)
         }
     }
@@ -91,6 +93,7 @@ impl MulAssignToExpression<Bias> for Expression {
         if self.has_higher_order() {
             *self.higher_order.as_mut().unwrap() *= rhs;
         }
+        self.cleanup();
     }
 }
 
