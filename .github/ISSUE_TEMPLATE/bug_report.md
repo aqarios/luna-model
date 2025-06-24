@@ -22,8 +22,8 @@ Steps to reproduce the behavior:
 
 1. **Code to reproduce**
 
-   ```python
-   # Paste minimal code snippet here that triggers the bug
+```python
+# Paste minimal code snippet here that triggers the bug
 ````
 
 2. **Command**
