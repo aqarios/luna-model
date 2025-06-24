@@ -1,6 +1,6 @@
 use crate::{
     core::{environment::ENV_COUNTER, Bound, Environment, LazyBounds, VarId, Variable, Vtype},
-    serialization::encodable::BytesDecodable,
+    serialization::encodable::{BytesDecodable, BytesEncodable},
 };
 use prost::Message;
 
@@ -9,62 +9,69 @@ use prost::Message;
 pub struct SerEnvironment {
     /// The environment id.
     #[prost(uint32, tag = "1")]
-    id: u32,
+    pub id: u32,
     /// The number of variables registered in the environment.
     #[prost(uint32, tag = "2")]
-    varcount: u32,
+    pub varcount: u32,
 
     /// The indices of the binary variables.
     #[prost(uint32, repeated, tag = "3")]
-    binary: Vec<u32>,
+    pub binary: Vec<u32>,
     /// The indices of the spin variables.
     #[prost(uint32, repeated, tag = "4")]
-    spin: Vec<u32>,
+    pub spin: Vec<u32>,
     /// The indices of the integer variables.
     #[prost(uint32, repeated, tag = "5")]
-    integer: Vec<u32>,
+    pub integer: Vec<u32>,
     /// The indices of the real variables.
     #[prost(uint32, repeated, tag = "6")]
-    real: Vec<u32>,
+    pub real: Vec<u32>,
 
     /// The names of the binary variables
     #[prost(string, repeated, tag = "7")]
-    binary_names: Vec<String>,
+    pub binary_names: Vec<String>,
     /// The names of the spin variables
     #[prost(string, repeated, tag = "8")]
-    spin_names: Vec<String>,
+    pub spin_names: Vec<String>,
     /// The names of the integer variables
     #[prost(string, repeated, tag = "9")]
-    integer_names: Vec<String>,
+    pub integer_names: Vec<String>,
     /// The names of the real variables
     #[prost(string, repeated, tag = "10")]
-    real_names: Vec<String>,
+    pub real_names: Vec<String>,
 
     /// If the integer at each index has a non-default bound.
     #[prost(bool, repeated, tag = "11")]
-    integer_bounds_bounded_lower: Vec<bool>,
+    pub integer_bounds_bounded_lower: Vec<bool>,
     /// If the integer at each index has a non-default bound.
     #[prost(bool, repeated, tag = "12")]
-    integer_bounds_bounded_upper: Vec<bool>,
+    pub integer_bounds_bounded_upper: Vec<bool>,
     /// The integer lower bounds
     #[prost(double, repeated, tag = "13")]
-    integer_bounds_lower: Vec<f64>,
+    pub integer_bounds_lower: Vec<f64>,
     /// The integer upper bounds
     #[prost(double, repeated, tag = "14")]
-    integer_bounds_upper: Vec<f64>,
+    pub integer_bounds_upper: Vec<f64>,
 
     /// If the real at each index has a non-default bound.
     #[prost(bool, repeated, tag = "15")]
-    real_bounds_bounded_lower: Vec<bool>,
+    pub real_bounds_bounded_lower: Vec<bool>,
     /// If the real at each index has a non-default bound.
     #[prost(bool, repeated, tag = "16")]
-    real_bounds_bounded_upper: Vec<bool>,
+    pub real_bounds_bounded_upper: Vec<bool>,
     /// The reals' lower bounds.
     #[prost(double, repeated, tag = "17")]
-    real_bounds_lower: Vec<f64>,
+    pub real_bounds_lower: Vec<f64>,
     /// The reals' upper bounds.
     #[prost(double, repeated, tag = "18")]
-    real_bounds_upper: Vec<f64>,
+    pub real_bounds_upper: Vec<f64>,
+}
+
+/// Makes the SerEnvironment conform with the requirements for it to be an Encodable.
+impl BytesEncodable for SerEnvironment {
+    fn encode_to_bytes(&self) -> Vec<u8> {
+        self.encode_to_vec()
+    }
 }
 
 /// Makes the SerEnvironment conform with the requirements for it to be a Decodable.
