@@ -1,48 +1,68 @@
 ---
 name: Bug report
-about: Create a report to help us fix bugs. Make sure to search all open and closed
-  issues first to ensure no duplicate bug reports are created.
-title: ''
+about: Create a report to help us fix bugs
+title: "[Bug]"
 labels: bug
 assignees: JFLXB
 
 ---
 
-**Describe the bug**
+<!--
+Thanks for taking the time to report an issue! Please fill in as much of the template below as you can.
+Before opening a new bug report, please search both open and closed issues to ensure your problem hasn’t already been reported.
+-->
+
+## 🐞 Describe the bug
+
 A clear and concise description of what the bug is.
 
-**To Reproduce**
+## 🔁 To Reproduce
+
 Steps to reproduce the behavior:
-1. The code snippet to reproduce the bug
 
-```python
-```
+1. **Code to reproduce**
 
-2. The command used to execute the code snippet
+   ```python
+   # Paste minimal code snippet here that triggers the bug
+````
 
-```bash
-<write your command here>
-```
+2. **Command**
 
-3. The output received from the above code snippet and command
+   ```bash
+   # How are you running the above snippet?
+   ```
 
-```bash
-```
+3. **Actual output**
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+   ```bash
+   # What output did you get?
+   ```
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+## ✅ Expected behavior
 
-**Desktop (please complete the following information):**
- - OS: [e.g. OSX (ARM), OSX (intel), Linux (Ubuntu) or Windows]
- - Version [e.g. v0.1.4-rc8 or commit hash]
+A clear and concise description of what you expected to happen instead.
 
-**Additional context**
-Add any other context about the problem here.
+## 🖼️ Screenshots
 
-**Related issues**
-Link all related issues as a list, e.g.:
+If applicable, add screenshots or terminal output to help explain your problem.
 
-- #issuenumber
+## 💻 Environment
+
+Please complete the following information:
+
+* **OS:** \[e.g. macOS (ARM), macOS (Intel), Ubuntu 22.04, Windows 10]
+* **Python version:** \[e.g. 3.11.4]
+* **Library version:** \[e.g. v0.1.4-rc8, commit `abcdef1`]
+* **Installation method:** \[e.g. `pip install`, `uv sync`, `from source`]
+
+## 🔧 Additional context
+
+Add any other context about the problem here (e.g., relevant config files, environment variables, network setup).
+
+## 🔗 Related issues
+
+Link any related issues here:
+
+* \#firstissuenumber
+* \#secondissuenumber
+* ...

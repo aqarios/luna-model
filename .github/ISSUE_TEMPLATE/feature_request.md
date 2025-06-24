@@ -1,27 +1,50 @@
 ---
 name: Feature request
-about: 'Suggest an idea for this project.  Make sure to search all open and closed
-  issues first to ensure no duplicate bug reports are created. '
-title: ''
+about: Suggest a new feature, improvement, or enhancement
+title: "[Feature Request]"
 labels: feature
 assignees: JFLXB
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
-If your idea is related to code improvements, give an example on how you currently achieve the desired functionality (*if applicable*).
+<!--
+Thank you for taking the time to suggest an improvement!
+Before opening a new feature request, please search both open and closed issues to ensure your feature request hasn’t already been posted or is already finished but unreleased.
+-->
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen. Also include how you would expect to use the library (*if applicable*).
+## 🦄 Is your feature request related to a problem? Please describe.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+A clear and concise description of what the problem is.  
+Example:  
+> “I’m always frustrated when …”
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+If your idea involves code improvements, include a minimal example of how you currently work around it (if applicable):
 
-**Related Feature Requests**
-Link all possibly related feature request in a list:
+```python
+# Your current workaround here
+````
 
-- #issuenumber
+## 💡 Describe the solution you’d like
+
+A clear and concise description of what you want to happen.
+Also include how you would use the library or API with this feature (code examples welcome):
+
+```python
+# How you’d like it to work
+```
+
+## 🔄 Describe alternatives you’ve considered
+
+A clear and concise description of any alternative solutions or features you’ve considered, and why they didn’t meet your needs.
+
+## 📖 Additional context
+
+Add any other context, screenshots, or links that help clarify your request.
+
+## 🔗 Related Feature Requests
+
+Link all possibly related feature requests here:
+
+* \#firstissuenumber
+* \#sencondissuenumber
+* ...
