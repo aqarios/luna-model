@@ -1,7 +1,9 @@
 use std::rc::Rc;
+use std::str::FromStr;
 
-use crate::core::{Sense, Solution};
-use crate::serialization::Decodable;
+use crate::core::{Sense, Solution, VarAssignment};
+use crate::serialization::encodable::Creatable;
+use crate::serialization::{Decodable, Encodable};
 use crate::{
     core::{solution::sol::SampleCol, RcSolution, Vtype},
     serialization::{
@@ -10,6 +12,15 @@ use crate::{
     },
 };
 use prost::Message;
+
+fn assignment_type_to_u8(vtype: Vtype) -> u8 {
+    match vtype {
+        Vtype::Binary => 0,
+        Vtype::Spin => 1,
+        Vtype::Integer => 2,
+        Vtype::Real => 3,
+    }
+}
 
 fn u8_to_assignment_type(u: u8) -> Vtype {
     match u {
@@ -98,6 +109,9 @@ pub struct SerSolution {
 
     #[prost(message, repeated, tag = 17)]
     variable_bounds: Vec<OptBoolVec>,
+
+    #[prost(string, optional, tag = 18)]
+    sense: Option<String>,
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Encodable.
@@ -114,7 +128,98 @@ impl BytesDecodable<RcSolution> for SerSolution {
     }
 }
 
+/// Makes the SerSolution conform with the requirements for it to be an Encodable.
+impl Creatable<RcSolution> for SerSolution {
+    fn new(value: &RcSolution) -> Self {
+        Self::default().fill(&value)
+    }
+}
+
 impl SerSolution {
+    /// Fills the serializable solution based on an instance of RcSolution.
+    fn fill(mut self, solution: &RcSolution) -> Self {
+        let samples = solution.samples();
+        for ((i, sample), &occ) in solution.samples().iter().enumerate().zip(&solution.counts) {
+            for a in sample.iter() {
+                match a {
+                    VarAssignment::Binary(v) => {
+                        self.bins.push(v);
+                    }
+                    VarAssignment::Spin(v) => {
+                        self.spins.push(v as i32);
+                    }
+                    VarAssignment::Integer(v) => {
+                        self.ints.push(v);
+                    }
+                    VarAssignment::Real(v) => {
+                        self.reals.push(v);
+                    }
+                };
+            }
+            self.sample_types = if solution.len() > 0 {
+                let s = solution.samples().get_sample(0).unwrap();
+                s.iter()
+                    .map(|a| match a {
+                        VarAssignment::Binary(_) => assignment_type_to_u8(Vtype::Binary),
+                        VarAssignment::Spin(_) => assignment_type_to_u8(Vtype::Spin),
+                        VarAssignment::Integer(_) => assignment_type_to_u8(Vtype::Integer),
+                        VarAssignment::Real(_) => assignment_type_to_u8(Vtype::Real),
+                    })
+                    .collect()
+            } else {
+                Vec::new()
+            };
+            self.sample_len = solution.samples.len() as u32;
+            self.counts.push(occ as u64);
+
+            if let Some(res) = solution.get_result_view(i) {
+                if let Some(ov) = res.obj_value() {
+                    self.obj_values.push(ov);
+                    self.has_obj_value.push(true);
+                } else {
+                    self.has_obj_value.push(false);
+                }
+
+                if let Some(en) = res.raw_energy() {
+                    self.has_raw_energy.push(true);
+                    self.raw_energies.push(en);
+                } else {
+                    self.has_raw_energy.push(false);
+                }
+            } else {
+                self.has_obj_value.push(false);
+                self.has_raw_energy.push(false);
+            }
+        }
+
+        self.num_samples = samples.len() as u64;
+        self.best_sample_idx = solution.best_sample_idx.and_then(|v| Some(v as u64));
+        self.timing = solution.timing.map(|t| t.encode());
+        self.variable_names = solution.variable_names.clone();
+
+        self.constraints = solution
+            .constraints
+            .clone()
+            .into_iter()
+            .map(|opt_vec| OptBoolVec {
+                vector: opt_vec.map(|values| BoolVec { values }),
+            })
+            .collect();
+
+        self.variable_bounds = solution
+            .variable_bounds
+            .clone()
+            .into_iter()
+            .map(|opt_vec| OptBoolVec {
+                vector: opt_vec.map(|values| BoolVec { values }),
+            })
+            .collect();
+
+        self.sense = Some(solution.sense.to_string());
+
+        self
+    }
+
     pub fn extract(&self) -> Result<RcSolution, DecodeError> {
         let mut sol = Solution::default();
         let num_samples = self.num_samples as usize;
@@ -223,21 +328,26 @@ impl SerSolution {
             })
             .collect();
 
-        sol.sense = match sol.best_sample_idx.and_then(|i| sol.obj_values[i]) {
-            None => Sense::Min,
-            Some(bobj) => {
-                if sol
-                    .obj_values
-                    .iter()
-                    .zip(&sol.feasible)
-                    .all(|(&obj, &feas)| !feas.unwrap_or(true) || obj.unwrap_or(bobj) >= bobj)
-                {
-                    Sense::Min
-                } else {
-                    Sense::Max
+        if let Some(sense) = &self.sense {
+            let sense = Sense::from_str(&sense).map_err(|e| DecodeError::new(e.to_string()))?;
+            sol.sense = sense;
+        } else {
+            sol.sense = match sol.best_sample_idx.and_then(|i| sol.obj_values[i]) {
+                None => Sense::Min,
+                Some(bobj) => {
+                    if sol
+                        .obj_values
+                        .iter()
+                        .zip(&sol.feasible)
+                        .all(|(&obj, &feas)| !feas.unwrap_or(true) || obj.unwrap_or(bobj) >= bobj)
+                    {
+                        Sense::Min
+                    } else {
+                        Sense::Max
+                    }
                 }
-            }
-        };
+            };
+        }
 
         Ok(RcSolution(Rc::new(sol)))
     }

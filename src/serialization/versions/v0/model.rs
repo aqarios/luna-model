@@ -1,31 +1,31 @@
 use crate::{
     core::{environment::SharedEnvironment, Model, Sense},
     serialization::{
-        encodable::{BytesDecodable, BytesEncodable, DecodeError},
-        Decodable,
-    }
+        encodable::{BytesDecodable, BytesEncodable, Creatable, DecodeError},
+        Decodable, Encodable,
+    },
 };
 use prost::Message;
-use std::str::FromStr;
+use std::{ops::Deref, str::FromStr};
 
 /// Representation of encodable model based on protocol buffers.
 #[derive(Clone, PartialEq, Message)]
 pub struct SerModel {
     /// Representation of the objective as a byte vector, i.e. an encoded Expression.
     #[prost(bytes, tag = "1")]
-    pub objective: Vec<u8>,
+    objective: Vec<u8>,
     /// Representation of the constraints as a byte vector, i.e. an encoded Constraints.
     #[prost(bytes, tag = "2")]
-    pub constraints: Vec<u8>,
+    constraints: Vec<u8>,
     /// Representation of the environment as a byte vector, i.e., an encoded Environment.
     #[prost(bytes, tag = "3")]
-    pub environment: Vec<u8>,
+    environment: Vec<u8>,
     /// The name of the model.
     #[prost(string, tag = "4")]
-    pub name: String,
+    name: String,
     /// The sense of the model.
     #[prost(string, tag = "5")]
-    pub sense: String,
+    sense: String,
 }
 
 /// Makes the SerModel conform with the requirements for it to be an Encodable.
@@ -42,7 +42,33 @@ impl BytesDecodable<Model> for SerModel {
     }
 }
 
+/// Makes the SerModel conform with the requirements for it to be an Encodable.
+impl Creatable<Model> for SerModel {
+    fn new(value: &Model) -> Self {
+        Self::empty(value.name.clone(), value.sense).fill(&value)
+    }
+}
+
 impl SerModel {
+    /// Creates an empty serializable model struct.
+    fn empty(name: String, sense: Sense) -> Self {
+        Self {
+            objective: Vec::new(),
+            constraints: Vec::new(),
+            environment: Vec::new(),
+            sense: sense.to_string(),
+            name,
+        }
+    }
+
+    /// Fills the serializable model based on an instance of Model.
+    fn fill(mut self, model: &Model) -> Self {
+        self.objective = model.objective.encode();
+        self.constraints = model.constraints.encode();
+        self.environment = model.environment.borrow().deref().encode();
+        self
+    }
+
     /// Extracts the data from self to an instance of Model with Index VarId and
     /// Bias f64.
     pub fn extract(&self) -> Result<Model, DecodeError> {
