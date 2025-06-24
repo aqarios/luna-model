@@ -22,21 +22,21 @@ Steps to reproduce the behavior:
 
 1. **Code to reproduce**
 
-    ```python
-    # Paste minimal code snippet here that triggers the bug
-    ```
+```python
+# Paste minimal code snippet here that triggers the bug
+```
 
 2. **Command**
 
-    ```bash
-    # How are you running the above snippet?
-    ```
+```bash
+# How are you running the above snippet?
+```
 
 3. **Actual output**
 
-    ```bash
-    # What output did you get?
-    ```
+```bash
+# What output did you get?
+```
 
 ## ✅ Expected behavior
 
