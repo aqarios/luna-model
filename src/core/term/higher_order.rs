@@ -73,6 +73,10 @@ impl HigherOrder {
     }
 
     pub fn resize(&mut self, _: usize) {}
+
+    pub fn cleanup(&mut self) {
+        self.biases.retain(|_, bias| *bias != Bias::default());
+    }
 }
 
 impl MulAssign<Bias> for HigherOrder {

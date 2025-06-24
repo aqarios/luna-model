@@ -2242,7 +2242,9 @@ class Model:
         """
         ...
 
-    def substitute(self, /, target: Variable, replacement: Expression) -> None:
+    def substitute(
+        self, /, target: Variable, replacement: Expression | Variable
+    ) -> None:
         """Substitute every occurrence of variable.
 
         Substitute every occurrence of a variable in the model's objective and
@@ -2600,7 +2602,9 @@ class Expression:
         """
         ...
 
-    def substitute(self, /, target: Variable, replacement: Expression) -> Expression:
+    def substitute(
+        self, /, target: Variable, replacement: Expression | Variable
+    ) -> Expression:
         """
         Substitute every occurrence of a variable with another expression.
 

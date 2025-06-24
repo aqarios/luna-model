@@ -246,6 +246,26 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
         v_idx
     }
 
+    fn remove_variable(&mut self, v: VarIndex) {
+        let v_idx: usize = v.into();
+        let size: usize = self.active.len();
+
+        if self.active[v_idx] {
+            // only reduce the variable count if the variable was active
+            // before it's removal.
+            self.num_variables -= 1;
+        }
+
+        if v_idx == size {
+            self.active.resize(size - 1, false);
+            self.linear.resize(size - 1);
+            self.num_variables -= 1;
+        } else {
+            self.active[v_idx] = false;
+            self.linear[v_idx] = Bias::default();
+        }
+    }
+
     fn add_variables(&mut self, vars: &Vec<VarIndex>) {
         // We only need to call the add_variable for the largest index.
         // This will automatically allocate memory for all others.
@@ -260,6 +280,12 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
                 self.active[v_idx] = true;
                 self.num_variables += 1;
             }
+        }
+    }
+
+    fn remove_variables(&mut self, vars: &Vec<VarIndex>) {
+        for var in vars {
+            self.remove_variable(*var);
         }
     }
 
@@ -386,9 +412,11 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
         self.higher_order.as_mut().unwrap()[key] += bias;
     }
 
-    fn add_linear_from(&mut self, other: &Self::LinearType) {
+    fn add_linear_from(&mut self, other: &Self::LinearType, other_active: &Vec<bool>) {
         for (u, bias) in other.iter() {
-            self.add_linear(u.into(), *bias);
+            if self.active[u] || other_active[u] {
+                self.add_linear(u.into(), *bias);
+            }
         }
     }
     fn add_quadratic_from(&mut self, other: &Self::QuadraticType) {
@@ -557,8 +585,10 @@ impl ExpressionBaseMul<VarIndex, Bias> for Expression {
             // linear * higher_order        = rhs.higher_order * lhs.linear
             result.mul_higher_order_with_linear(&rhs_ho, &lhs_linear_actives);
         }
+        result.cleanup()
     }
 }
+
 impl ExpressionBaseMulComponents<VarIndex, Bias> for Expression {
     fn mul_offsets(&mut self, lhs: &Bias, rhs: &Bias) {
         self.add_offset(*lhs * *rhs);
@@ -813,6 +843,21 @@ impl Expression {
             }
         }
         contribs
+    }
+
+    pub fn cleanup(&mut self) {
+        if let Some(q) = &mut self.quadratic {
+            q.cleanup();
+            if q.is_empty() {
+                self.quadratic = None
+            }
+        }
+        if let Some(ho) = &mut self.higher_order {
+            ho.cleanup();
+            if ho.is_empty() {
+                self.higher_order = None
+            }
+        }
     }
 }
 

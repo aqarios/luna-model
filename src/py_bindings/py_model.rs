@@ -6,7 +6,7 @@ use std::rc::Rc;
 use super::py_bounds::BoundValue;
 use super::py_constr::PyConstraint;
 use super::py_model_metadata::PyModelMetadata;
-use super::py_utils::repr_model;
+use super::py_utils::{repr_model, Replacement};
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
@@ -503,9 +503,9 @@ impl PyModel {
     /// DifferentEnvsError
     ///     If the environments of `self`, `target`, and `replacement`
     ///     are not compatible.
-    fn substitute(&mut self, target: &PyVariable, replacement: &PyExpression) -> PyResult<()> {
+    fn substitute(&mut self, target: &PyVariable, replacement: Replacement) -> PyResult<()> {
         let mutmodel = &mut self.concrete_model.borrow_mut();
-        Ok(match &replacement.0 {
+        Ok(match &replacement.as_expr().0 {
             Left(expr) => mutmodel.substitute(&target.0, expr)?,
             Right(model) => mutmodel.substitute(&target.0, &model.borrow().objective)?,
         })

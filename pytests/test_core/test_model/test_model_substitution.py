@@ -4,6 +4,32 @@ from aqmodels import Model, Variable, Vtype
 
 
 @pytest.mark.model_substitution
+def test_model_substitution_var():
+    m = Model()
+    with m.environment:
+        target = Variable("n", vtype=Vtype.Integer)
+        a = Variable("a", vtype=Vtype.Integer)
+
+    replacement = a
+
+    base_obj = a * 3.4 + 10.10 * target
+    expected_obj = a * 3.4 + 10.10 * a
+
+    constr_a = target * target
+    expected_constr_a = a * a
+    constr_b = target**3
+    expected_constr_b = a**3
+    m.objective = base_obj
+    m.constraints += constr_a <= 0, "a"
+    m.constraints += constr_b <= 0, "b"
+    m.substitute(target, replacement)
+
+    assert expected_obj.is_equal(expected_obj)
+    assert expected_constr_a.is_equal(m.constraints[0].lhs)
+    assert expected_constr_b.is_equal(m.constraints[1].lhs)
+
+
+@pytest.mark.model_substitution
 def test_model_substitution():
     m = Model()
     with m.environment:

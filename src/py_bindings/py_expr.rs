@@ -1,8 +1,5 @@
 use super::{
-    py_constr::PyConstraint,
-    py_env::{PyEnvironment, CURRENT_ENV},
-    py_exceptions::NoActiveEnvironmentFoundError,
-    py_var::PyVariable,
+    py_constr::PyConstraint, py_env::{PyEnvironment, CURRENT_ENV}, py_exceptions::NoActiveEnvironmentFoundError, py_utils::Replacement, py_var::PyVariable
 };
 use crate::{
     core::{
@@ -965,15 +962,15 @@ impl PyExpression {
 
     /// Substitute every occurrence of a variable in an expression with another expression.
     ///
-    /// Given an expression `self`, this method replaces all occurrences of `target` 
-    /// with `replacement`. If the substitution would cross differing environments 
+    /// Given an expression `self`, this method replaces all occurrences of `target`
+    /// with `replacement`. If the substitution would cross differing environments
     /// (e.g. captures from two different scopes), it returns a `DifferentEnvsError`.
     ///
     /// Parameters
     /// ----------
     /// target : VarRef
     ///     The variable reference to replace.
-    /// replacement : Expression
+    /// replacement : Expression | Variable
     ///     The expression to insert in place of `target`.
     ///
     /// Returns
@@ -989,14 +986,14 @@ impl PyExpression {
     fn substitute(
         &self,
         target: &PyVariable,
-        replacement: &PyExpression,
+        replacement: Replacement,
     ) -> PyResult<PyExpression> {
         let expr = match &self.0 {
-            Left(expr) => match &replacement.0 {
+            Left(expr) => match &replacement.as_expr().0 {
                 Left(repl) => expr.substitute(&target.0, repl),
                 Right(other_model) => expr.substitute(&target.0, &other_model.borrow().objective),
             },
-            Right(model) => match &replacement.0 {
+            Right(model) => match &replacement.as_expr().0 {
                 Left(repl) => (&model.borrow().objective).substitute(&target.0, &repl),
                 Right(other_model) => (&model.borrow().objective)
                     .substitute(&target.0, &other_model.borrow().objective),

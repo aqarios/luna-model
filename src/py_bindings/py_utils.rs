@@ -1,6 +1,11 @@
+use super::py_expr::PyExpression;
+use super::py_var::PyVariable;
 use super::{py_model::PyModel, py_sol::PySolution};
+use crate::core::operations::MulToExpression;
 use crate::core::{Constraints, Expression, Samples, Timing};
 use crate::translator::model::lp::exprtree::ExprTree;
+use either::Either::Left;
+use pyo3::FromPyObject;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 static DELIMITER: &str = ", ";
@@ -164,4 +169,20 @@ pub fn repr_timing(timing: &Timing) -> String {
 
 pub fn repr_strings(strs: &Vec<String>) -> String {
     format!("[{}]", strs.join(DELIMITER))
+}
+
+
+#[derive(FromPyObject)]
+pub enum Replacement {
+    Expr(PyExpression),
+    Var(PyVariable),
+}
+
+impl Replacement {
+    pub fn as_expr(self) -> PyExpression {
+        match self {
+            Replacement::Expr(expr) => expr,
+            Replacement::Var(var) => PyExpression(Left(var.0.mul(1.0))),
+        }
+    }
 }

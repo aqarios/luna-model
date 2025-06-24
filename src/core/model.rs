@@ -256,7 +256,7 @@ impl Model {
         replacement: &Expression,
     ) -> Result<(), DifferentEnvsErr> {
         self.objective = (&self.objective).substitute(target, replacement)?;
-        self.constraints.substitute(target, replacement);
+        self.constraints.substitute(target, replacement)?;
         Ok(())
     }
 }

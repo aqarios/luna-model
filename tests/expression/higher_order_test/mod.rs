@@ -28,21 +28,7 @@ fn higher_order_expression_base(vtype: Vtype, n: usize) {
     let mb_scalar = random_bias::<Bias>(seed);
 
     expr.mul_assign(&ma.mul(ma_scalar)).unwrap();
-    println!("expr.linear after first mul {:?}", &expr.linear.to_vec());
-    println!(
-        "expr.adj after first mul {:?}",
-        &expr.quadratic.as_ref().unwrap().adj
-    );
     expr.mul_assign(&mb.mul(mb_scalar)).unwrap();
-    println!("expr.linear after second mul {:?}", &expr.linear.to_vec());
-    println!(
-        "expr.adj after second mul {:?}",
-        &expr.quadratic.as_ref().unwrap().adj
-    );
-    println!(
-        "expr.ho after second mul {:?}",
-        &expr.higher_order.as_ref().unwrap().biases
-    );
 
     let expected_quadratic: Vec<Vec<OneVarTerm>> = vec![vec![]; biases.len() + 2];
 

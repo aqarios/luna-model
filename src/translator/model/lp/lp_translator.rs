@@ -51,7 +51,6 @@ impl LPTranslator {
         let mut sections: SectionsHolder = SectionsHolder::new();
         let mut last_section = Section::Placeholder;
         for (_i, line) in contents.lines().enumerate() {
-            // println!("{}: {}", i, line);
             if is_comment(line) {
                 // Check if the Comment contains "Model" and use the rest after as the model name.
                 if line.contains("Model") {
@@ -95,7 +94,6 @@ impl LPTranslator {
                 }
             }
         }
-        // println!("{:#?}", sections);
         Ok(sections)
     }
 

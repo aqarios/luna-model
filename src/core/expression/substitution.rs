@@ -4,10 +4,10 @@ use crate::{
         operations::{AddAssignToExpression, MulAssignToExpression, MulToExpression},
         VarRef,
     },
-    errors::{DifferentEnvsErr, VariablesFromDifferentEnvsErr},
+    errors::{DifferentEnvsErr, VariablesFromDifferentEnvsErr}, types::{Bias, VarIndex},
 };
 
-use super::Expression;
+use super::{Expression, ExpressionBaseAdjustment};
 
 pub trait Substitution {
     /// Substitute every occurrence of a variable in an expression with another expression.
@@ -43,14 +43,19 @@ impl Substitution for &Expression {
             return Err(DifferentEnvsErr);
         }
 
-        let target_idx: usize = target.id.into();
-
         let mut out = Expression::empty(self.env.clone());
         out.offset += self.offset;
 
-        for (var, bias) in self.linear.iter() {
-            if var != target_idx {
-                out.add_linear(var.into(), *bias);
+        let active_linears: Vec<(VarIndex, Bias)> = self
+            .linear
+            .iter()
+            .filter(|(idx, _)| self.active[*idx])
+            .map(|(idx, bias)| (idx.into(), *bias))
+            .collect();
+
+        for (var, bias) in active_linears.iter() {
+            if *var != target.id {
+                out.add_linear(*var, *bias);
             } else {
                 out.add_assign(&replacement.mul(*bias))?;
             }
@@ -93,6 +98,7 @@ impl Substitution for &Expression {
             }
         }
 
+        out.remove_variable(target.id);
         Ok(out)
     }
 }

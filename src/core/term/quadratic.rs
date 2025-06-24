@@ -81,6 +81,12 @@ where
                     .map(move |(v_idx, term)| ((u_idx, v_idx), u_idx.into(), term.index, term.bias))
             })
     }
+
+    pub fn cleanup(&mut self) {
+        for neighborhood in self.adj.iter_mut() {
+            neighborhood.retain(|t| t.bias != Bias::default());
+        }
+    }
 }
 
 impl MulAssign<Bias> for Quadratic {

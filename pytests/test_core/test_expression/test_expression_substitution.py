@@ -2,6 +2,19 @@ import pytest
 
 from aqmodels import Environment, Variable, Vtype
 
+@pytest.mark.expression_substitution
+def test_expression_simple_var():
+    with Environment():
+        target = Variable("target", vtype=Vtype.Integer)
+        a = Variable("a", vtype=Vtype.Integer)
+
+    base = a * 3.4 + 10.10 * target
+    replacement = a
+    expected = 3.4 * a + 10.10 * a
+
+    result = base.substitute(target, replacement)
+    assert expected.is_equal(result)
+
 
 @pytest.mark.expression_substitution
 def test_expression_simple():
