@@ -34,9 +34,9 @@ Steps to reproduce the behavior:
 
 3. **Actual output**
 
-     ```bash
-     # What output did you get?
-     ```
+    ```bash
+    # What output did you get?
+    ```
 
 ## ✅ Expected behavior
 
