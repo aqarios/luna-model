@@ -32,7 +32,7 @@ def test_from_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     sol_repr = repr(sol)
     assert (
         sol_repr
-        == "Solution(samples=[[0, 0, 1]], obj_values=[-1], raw_energies=[None], counts=[1], constraints=[[]], variable_bounds=[[True, True, True]], feasible=[True], best_sample_idx=0, runtime=None, n_samples=1, variable_names=[x_0, x_1, x_2])"
+        == "Solution(samples=[[0, 0, 1]], obj_values=[-1], raw_energies=[None], counts=[1], constraints=[[]], variable_bounds=[[True, True, True]], feasible=[True], best_sample_idx=0, runtime=None, n_samples=1, variable_names=[x_0, x_1, x_2], sense=Minimize)"
     )
 
 
@@ -57,7 +57,7 @@ def test_from_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]])
     sol_repr = repr(sol)
     assert (
         sol_repr
-        == "Solution(samples=[[0, 0, 1], [1, 1, 1], [1, 0, 0], [0, 1, 1]], obj_values=[-1, -1, 1, -2], raw_energies=[None, None, None, None], counts=[1, 1, 1, 1], constraints=[[], [], [], []], variable_bounds=[[True, True, True], [True, True, True], [True, True, True], [True, True, True]], feasible=[True, True, True, True], best_sample_idx=3, runtime=None, n_samples=4, variable_names=[x_0, x_1, x_2])"
+        == "Solution(samples=[[0, 0, 1], [1, 1, 1], [1, 0, 0], [0, 1, 1]], obj_values=[-1, -1, 1, -2], raw_energies=[None, None, None, None], counts=[1, 1, 1, 1], constraints=[[], [], [], []], variable_bounds=[[True, True, True], [True, True, True], [True, True, True], [True, True, True]], feasible=[True, True, True, True], best_sample_idx=3, runtime=None, n_samples=4, variable_names=[x_0, x_1, x_2], sense=Minimize)"
     )
 
 
@@ -96,5 +96,5 @@ def test_from_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...
     sol_repr = repr(sol)
     assert (
         sol_repr
-        == "Solution(samples=[[0, 0, 1], [1, 1, 1], [1, 0, 0], [0, 1, 1]], obj_values=[-1, -1, 1, -2], raw_energies=[None, None, None, None], counts=[2, 3, 1, 4], constraints=[[], [], [], []], variable_bounds=[[True, True, True], [True, True, True], [True, True, True], [True, True, True]], feasible=[True, True, True, True], best_sample_idx=3, runtime=None, n_samples=4, variable_names=[x_0, x_1, x_2])"
+        == "Solution(samples=[[0, 0, 1], [1, 1, 1], [1, 0, 0], [0, 1, 1]], obj_values=[-1, -1, 1, -2], raw_energies=[None, None, None, None], counts=[2, 3, 1, 4], constraints=[[], [], [], []], variable_bounds=[[True, True, True], [True, True, True], [True, True, True], [True, True, True]], feasible=[True, True, True, True], best_sample_idx=3, runtime=None, n_samples=4, variable_names=[x_0, x_1, x_2], sense=Minimize)"
     )
