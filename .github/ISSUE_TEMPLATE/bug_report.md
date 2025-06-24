@@ -28,15 +28,15 @@ Steps to reproduce the behavior:
 
 2. **Command**
 
-   ```bash
-   # How are you running the above snippet?
-   ```
+```bash
+# How are you running the above snippet?
+```
 
 3. **Actual output**
 
-   ```bash
-   # What output did you get?
-   ```
+ ```bash
+ # What output did you get?
+ ```
 
 ## ✅ Expected behavior
 
