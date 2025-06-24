@@ -9,27 +9,27 @@ use prost::Message;
 pub struct SerEnvironment {
     /// The environment id.
     #[prost(uint32, tag = "1")]
-    pub id: u32,
+    id: u32,
     /// The number of variables registered in the environment.
     #[prost(uint32, tag = "2")]
-    pub varcount: u32,
+    varcount: u32,
 
     /// The indices of the binary variables.
     #[prost(uint32, repeated, tag = "3")]
-    pub binary: Vec<u32>,
+    binary: Vec<u32>,
     /// The indices of the spin variables.
     #[prost(uint32, repeated, tag = "4")]
-    pub spin: Vec<u32>,
+    spin: Vec<u32>,
     /// The indices of the integer variables.
     #[prost(uint32, repeated, tag = "5")]
-    pub integer: Vec<u32>,
+    integer: Vec<u32>,
     /// The indices of the real variables.
     #[prost(uint32, repeated, tag = "6")]
-    pub real: Vec<u32>,
+    real: Vec<u32>,
 
     /// The names of the binary variables
     #[prost(string, repeated, tag = "7")]
-    pub binary_names: Vec<String>,
+    binary_names: Vec<String>,
     /// The names of the spin variables
     #[prost(string, repeated, tag = "8")]
     pub spin_names: Vec<String>,

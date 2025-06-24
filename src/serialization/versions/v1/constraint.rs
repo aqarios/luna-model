@@ -83,7 +83,7 @@ impl SerConstraints {
             self.rhsides.push(c.rhs);
             self.comparators.push(comparator);
             self.names
-                .push(c.name.clone().unwrap_or("<NN>".to_string()));
+                .push(c.name.clone().unwrap_or(PLACEHOLDER_NAME.to_string()));
         }
 
         self
