@@ -6,7 +6,7 @@ use std::rc::Rc;
 use super::py_bounds::BoundValue;
 use super::py_constr::PyConstraint;
 use super::py_model_metadata::PyModelMetadata;
-use super::py_utils::repr_model;
+use super::py_utils::{repr_model, Replacement};
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
@@ -16,6 +16,7 @@ use crate::core::{ContentEquality, LazyBounds, RcSolution, Sense, VarRef, Vtype}
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
 use crate::py_bindings::py_var::PyVariable;
+use crate::serialization::encode_for_hash;
 use crate::{
     core::Model,
     py_bindings::py_env::CURRENT_ENV,
@@ -479,9 +480,41 @@ impl PyModel {
         Ok(PyOwnedResult(self.borrow().evaluate_sample(&sample.0)?))
     }
 
+    /// Substitute every occurrence of a variable in the model’s objective and constraint expressions with another expression.
+    ///
+    /// Given a `Model` instance `self`, this method replaces all occurrences of `target`
+    /// with `replacement` for the objective and each constraint. If any substitution would
+    /// cross differing environments (e.g. captures from two different scopes), it raises
+    /// a `DifferentEnvsError`.
+    ///
+    /// Parameters
+    /// ----------
+    /// target : VarRef
+    ///     The variable reference to replace.
+    /// replacement : Expression
+    ///     The expression to insert in place of `target`.
+    ///
+    /// Returns
+    /// -------
+    /// None
+    ///     Performs substitution in place; no return value.
+    ///
+    /// Raises
+    /// ------
+    /// DifferentEnvsError
+    ///     If the environments of `self`, `target`, and `replacement`
+    ///     are not compatible.
+    fn substitute(&mut self, target: &PyVariable, replacement: Replacement) -> PyResult<()> {
+        let mutmodel = &mut self.concrete_model.borrow_mut();
+        Ok(match &replacement.as_expr().0 {
+            Left(expr) => mutmodel.substitute(&target.0, expr)?,
+            Right(model) => mutmodel.substitute(&target.0, &model.borrow().objective)?,
+        })
+    }
+
     /// Compute the hash of the variable.
     fn __hash__(&self) -> PyResult<u64> {
-        self.hash(false, false, None)
+        self.hash()
     }
 
     fn equal_contents(&self, other: &Self) -> bool {
@@ -499,15 +532,9 @@ impl PyModel {
     ///
     /// WARNING: These values will not be equal to `__hash__` results due to additional
     /// implementation details in the `__hash__` function.
-    fn hash(&self, version: bool, compress: bool, level: Option<i32>) -> PyResult<u64> {
+    fn hash(&self) -> PyResult<u64> {
         let mut s = DefaultHasher::new();
-        let mut ser = self.borrow().encode();
-        if compress {
-            ser = ser.maybe_compress(true, level)?;
-        }
-        if version {
-            ser = ser.versionize();
-        }
+        let ser = encode_for_hash(&self.borrow());
         ser.hash(&mut s);
         Ok(s.finish())
     }

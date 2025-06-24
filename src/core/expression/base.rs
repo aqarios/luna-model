@@ -116,6 +116,7 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
+    fn simple(env: SharedEnvironment, offset: Bias) -> Self;
     fn empty(env: SharedEnvironment) -> Self;
     fn new(env: SharedEnvironment, active: Vec<bool>, num_variables: usize) -> Self;
     fn new_from_other(other: &Self) -> Self;
@@ -132,10 +133,8 @@ where
 {
     fn add_variable(&mut self, v: Index) -> SizeType;
     fn add_variables(&mut self, vars: &Vec<Index>);
-    // fn add_active_variables(&mut self, n: Index);
-    // // todo: make this rusty -> makes sense to return a & here??
-    // /// Return an empty neighborhood; useful when a variable does not have an adjacency.
-    // // fn empty_neighborhood(&self) -> &Vec<OneVarTerm<Index, Bias>>;
+    fn remove_variable(&mut self, v: Index);
+    fn remove_variables(&mut self, vars: &Vec<Index>);
     /// Resize the model to contain `n` variables.
     fn resize(&mut self, n: Index);
 }
@@ -145,12 +144,6 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    // -- /// Set offset.
-    // -- fn set_offset(&mut self, bias: Bias);
-    // -- /// Add linear bias to variable `v`.
-    // -- fn set_linear(&mut self, v: Index, bias: Bias) -> Result<(), VariableOutOfRangeError>;
-    // -- /// Add interaction between variables `v` and `u`.
-    // -- fn set_quadratic(&mut self, u: Index, v: Index, bias: Bias);
     /// Add interaction between variables in `indices`.
     fn set_higher_order(&mut self, vars: &Vec<Index>, bias: Bias);
 }
@@ -200,7 +193,7 @@ where
     fn add_higher_order_direct(&mut self, key: &Self::HigherOrderKey, bias: Bias);
 
     /// Add linear biases from another linear term.
-    fn add_linear_from(&mut self, other: &Self::LinearType);
+    fn add_linear_from(&mut self, other: &Self::LinearType, other_active: &Vec<bool>);
     /// Add quadratic biases from another quadratic term.
     fn add_quadratic_from(&mut self, other: &Self::QuadraticType);
     /// Add higher order biases from another higher order term.

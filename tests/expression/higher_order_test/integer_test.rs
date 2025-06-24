@@ -1,7 +1,7 @@
 use aqmodels::{
     core::{
         operations::{MulAssignToExpression, MulToExpression},
-        term::{types::OneVarTerm, HigherOrder},
+        term::HigherOrder,
         Vtype,
     },
     types::Bias,
@@ -24,7 +24,6 @@ fn higher_order_expression_equal_integer_varref() {
     expr.mul_assign(multiplier).unwrap();
 
     let expected_linear: Vec<Bias> = vec![Bias::default(); biases.len()];
-    let expected_quadratic: Vec<Vec<OneVarTerm>> = vec![vec![]; biases.len()];
 
     let mut expected_higher_order: HashMap<String, Bias> = HashMap::with_capacity(biases.len());
     for (var, bias) in vars.iter().zip(&biases) {
@@ -39,14 +38,9 @@ fn higher_order_expression_equal_integer_varref() {
         &expected_linear,
         "linear parts are not equal"
     );
-    assert_ne!(
+    assert_eq!(
         expr.quadratic, None,
         "quadratic must not be None after multiplications"
-    );
-    assert_eq!(
-        expr.quadratic.unwrap().adj,
-        expected_quadratic,
-        "the quadratic term is not the expected structure"
     );
     assert_ne!(expr.higher_order, None, "higher order should NOT be None");
 
@@ -86,7 +80,6 @@ fn higher_order_expression_equal_integer_expr() {
     expr.mul_assign(&multiplier.mul(biases[0])).unwrap();
 
     let expected_linear: Vec<Bias> = vec![Bias::default(); biases.len()];
-    let expected_quadratic: Vec<Vec<OneVarTerm>> = vec![vec![]; biases.len()];
 
     let mut expected_higher_order: HashMap<String, Bias> = HashMap::with_capacity(biases.len());
     for (var, bias) in vars.iter().zip(&biases) {
@@ -101,14 +94,9 @@ fn higher_order_expression_equal_integer_expr() {
         &expected_linear,
         "linear parts are not equal"
     );
-    assert_ne!(
-        expr.quadratic, None,
-        "quadratic must not be None after multiplications"
-    );
     assert_eq!(
-        expr.quadratic.unwrap().adj,
-        expected_quadratic,
-        "the quadratic term is not the expected structure"
+        expr.quadratic, None,
+        "quadratic must be None after multiplications if it would be empty."
     );
     assert_eq!(
         expr.higher_order.as_ref().unwrap().biases,

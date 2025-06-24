@@ -139,8 +139,6 @@ impl SerSolution {
         let sample_len = self.sample_len as usize;
         for _ in 0..num_samples {
             for j in 0..sample_len {
-                // let pos = i * num_samples + j;
-                // println!("{pos}");
                 match &type_per_pos[j] {
                     Vtype::Binary => {
                         sol.samples[j]
