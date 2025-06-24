@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: AqModels Support
+    url: https://github.com/aqarios/aq-models-rs/discussions
+    about: Please ask and answer questions here and discuss big-picture ideas.
+  - name: AqModels Documentation
+    url: https://docs.aqarios.com
+    about: Please go through the docus regarding modeling in the `luna-quantum` docs (uses aqmodels internally).
