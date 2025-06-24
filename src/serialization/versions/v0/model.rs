@@ -3,7 +3,7 @@ use crate::{
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, DecodeError},
         Decodable,
-    },
+    }
 };
 use prost::Message;
 use std::str::FromStr;
@@ -13,19 +13,19 @@ use std::str::FromStr;
 pub struct SerModel {
     /// Representation of the objective as a byte vector, i.e. an encoded Expression.
     #[prost(bytes, tag = "1")]
-    objective: Vec<u8>,
+    pub objective: Vec<u8>,
     /// Representation of the constraints as a byte vector, i.e. an encoded Constraints.
     #[prost(bytes, tag = "2")]
-    constraints: Vec<u8>,
+    pub constraints: Vec<u8>,
     /// Representation of the environment as a byte vector, i.e., an encoded Environment.
     #[prost(bytes, tag = "3")]
-    environment: Vec<u8>,
+    pub environment: Vec<u8>,
     /// The name of the model.
     #[prost(string, tag = "4")]
-    name: String,
+    pub name: String,
     /// The sense of the model.
     #[prost(string, tag = "5")]
-    sense: String,
+    pub sense: String,
 }
 
 /// Makes the SerModel conform with the requirements for it to be an Encodable.
