@@ -13,6 +13,7 @@ pub mod serialization;
 /// translation from another library TO our solution.
 pub mod translator;
 pub mod types;
+pub mod hashing;
 
 #[cfg(feature = "transformations")]
 pub mod transformations;

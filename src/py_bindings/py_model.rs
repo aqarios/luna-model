@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::hash::{DefaultHasher, Hash, Hasher};
 use std::ops::Deref;
 use std::rc::Rc;
 
@@ -16,6 +15,7 @@ use crate::core::{ContentEquality, LazyBounds, RcSolution, Sense, VarRef, Vtype}
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
 use crate::py_bindings::py_var::PyVariable;
+use crate::hashing::hash_model;
 use crate::{
     core::Model,
     py_bindings::py_env::CURRENT_ENV,
@@ -513,7 +513,7 @@ impl PyModel {
 
     /// Compute the hash of the variable.
     fn __hash__(&self) -> PyResult<u64> {
-        self.hash(false, false, None)
+        self.hash()
     }
 
     fn equal_contents(&self, other: &Self) -> bool {
@@ -531,16 +531,7 @@ impl PyModel {
     ///
     /// WARNING: These values will not be equal to `__hash__` results due to additional
     /// implementation details in the `__hash__` function.
-    fn hash(&self, version: bool, compress: bool, level: Option<i32>) -> PyResult<u64> {
-        let mut s = DefaultHasher::new();
-        let mut ser = self.borrow().encode();
-        if compress {
-            ser = ser.maybe_compress(true, level)?;
-        }
-        if version {
-            ser = ser.versionize();
-        }
-        ser.hash(&mut s);
-        Ok(s.finish())
+    fn hash(&self) -> PyResult<u64> {
+        Ok(hash_model(&self.borrow()))
     }
 }
