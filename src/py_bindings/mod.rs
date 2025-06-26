@@ -18,6 +18,9 @@ mod py_var;
 #[cfg(feature = "transformations")]
 mod py_transformations;
 
+#[cfg(feature = "transformations")]
+pub use py_transformations::register_transformations;
+
 #[cfg(not(feature = "lq"))]
 use pyo3::prelude::*;
 

@@ -1,13 +1,15 @@
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
-    braced, parse::Parser, parse_macro_input, punctuated::Punctuated, token::Comma, DeriveInput,
-    Expr, Fields, Ident, ItemStruct, MetaNameValue,
-};
-use syn::{
+    braced,
     parse::{Parse, ParseStream},
-    Path, Result as SynResult, Token,
+    parse_macro_input,
+    punctuated::Punctuated,
+    token::Comma,
+    Ident, ItemStruct, Path, Result as SynResult, Token,
 };
+#[cfg(feature = "py")]
+use syn::{parse::Parser, DeriveInput, Expr, Fields, MetaNameValue};
 
 /// Replace the derive with an attribute macro:
 #[cfg(feature = "py")]
