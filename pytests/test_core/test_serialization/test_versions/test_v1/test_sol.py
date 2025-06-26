@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from aqmodels import Variable, Vtype, Model, Solution, Environment, Sense, Timer
+from aqmodels import Environment, Model, Sense, Solution, Timer, Variable, Vtype
 
 path = Path("./pytests/test_core/test_serialization/test_versions/data/v0/sol/")
 
