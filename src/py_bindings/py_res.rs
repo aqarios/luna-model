@@ -27,7 +27,8 @@ use pyo3::{pyclass, pymethods, Bound, PyRef, PyRefMut, Python};
 /// [True, False]
 /// >>> result.feasible
 /// False
-#[pyclass(unsendable, name = "ResultView", module = "aqmodels")]
+#[cfg_attr(feature = "lq", pyclass(unsendable, name = "ResultView", module = "luna_quantum"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "ResultView", module = "aqmodels"))]
 #[derive(Deref, DerefMut)]
 pub struct PyResultView(pub ResultView);
 
@@ -54,7 +55,8 @@ pub struct PyResultView(pub ResultView);
 /// [True, False]
 /// >>> result.feasible
 /// False
-#[pyclass(unsendable, name = "Result", module = "aqmodels")]
+#[cfg_attr(feature = "lq", pyclass(unsendable, name = "Result", module = "luna_quantum"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Result", module = "aqmodels"))]
 #[derive(Deref, DerefMut)]
 pub struct PyOwnedResult(pub OwnedResult);
 
@@ -69,7 +71,8 @@ pub struct PyOwnedResult(pub OwnedResult);
 /// ...     result.sample
 /// [0, -5, 0.28]
 /// [1, -4, -0.42]
-#[pyclass(unsendable, name = "ResultIterator", module = "aqmodels")]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "ResultIterator", module = "luna_quantum"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "ResultIterator", module = "aqmodels"))]
 #[derive(Deref, DerefMut)]
 pub struct PyResultIterator(pub ResultIterator);
 

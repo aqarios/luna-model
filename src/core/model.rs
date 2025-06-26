@@ -22,10 +22,15 @@ use std::rc::Rc;
 /// The default name for a model.
 pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 
+// we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[cfg_attr(
-    feature = "py",
+    all(feature = "py", feature = "lq"),
+    pyclass(eq, eq_int, name = "Sense", module = "luna_quantum")
+)] 
+#[cfg_attr(
+    all(feature = "py", not(feature = "lq")),
     pyclass(eq, eq_int, name = "Sense", module = "aqmodels")
-)] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
+)] 
 #[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq, EnumString)]
 /// Enumeration of optimization senses supported by the optimization system.
 ///

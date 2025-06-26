@@ -27,10 +27,15 @@ use strum_macros::{Display, EnumIter};
 ///
 /// >>> str(Vtype.Binary)
 /// 'Binary'
+// we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[cfg_attr(
-    feature = "py",
+    all(feature = "py", feature = "lq"),
+    pyclass(eq, eq_int, name = "Vtype", module = "luna_quantum")
+)]
+#[cfg_attr(
+    all(feature = "py", not(feature = "lq")),
     pyclass(eq, eq_int, name = "Vtype", module = "aqmodels")
-)] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
+)] 
 #[derive(Debug, Copy, Clone, PartialEq, EnumIter, Display)]
 pub enum Vtype {
     /// Binary variable. Can only take values 0 or 1.
