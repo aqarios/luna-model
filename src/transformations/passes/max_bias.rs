@@ -11,9 +11,7 @@ use crate::{
 };
 
 #[cfg(feature = "py")]
-use crate::transformations::base_passes::Pass;
-#[cfg(feature = "py")]
-use aqm_macros::py_pass;
+use {crate::transformations::base_passes::Pass, aqm_macros::py_pass};
 
 #[cfg_attr(feature = "py", py_pass(pass_variant = "Analysis"))]
 #[derive(Debug, Clone)]
