@@ -1,5 +1,9 @@
 use super::{
-    py_constr::PyConstraint, py_env::{PyEnvironment, CURRENT_ENV}, py_exceptions::NoActiveEnvironmentFoundError, py_utils::Replacement, py_var::PyVariable
+    py_constr::PyConstraint,
+    py_env::{PyEnvironment, CURRENT_ENV},
+    py_exceptions::NoActiveEnvironmentFoundError,
+    py_utils::Replacement,
+    py_var::PyVariable,
 };
 use crate::{
     core::{
@@ -113,8 +117,14 @@ use std::{cell::RefCell, rc::Rc};
 /// - Expressions are scoped to an environment via the variables they reference.
 /// - Comparisons like `expr == expr` return `bool`, not constraints.
 /// - Use `==`, `<=`, `>=` with numeric constants to create constraints.
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Expression", module = "luna_quantum"))]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Expression", module = "aqmodels"))]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "Expression", module = "luna_quantum")
+)]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "Expression", module = "aqmodels")
+)]
 #[derive(Clone)]
 pub struct PyExpression(pub Either<Expression, Rc<RefCell<Model>>>);
 
@@ -148,8 +158,14 @@ impl PyExpression {
 /// >>>     case Linear(x): do_something_with_linear_var(x, bias)
 /// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "ExpressionIterator", module = "luna_quantum"))]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "ExpressionIterator", module = "aqmodels"))]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "ExpressionIterator", module = "luna_quantum")
+)]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "ExpressionIterator", module = "aqmodels")
+)]
 pub struct PyExpressionIterator {
     items: Vec<(Vec<VarIndex>, Bias)>,
     env: SharedEnvironment,
@@ -173,8 +189,14 @@ pub struct PyExpressionIterator {
 /// >>>     case Linear(x): do_something_with_linear_var(x, bias)
 /// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Constant", module = "luna_quantum"))]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Constant", module = "aqmodels"))]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "Constant", module = "luna_quantum")
+)]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "Constant", module = "aqmodels")
+)]
 pub struct PyConstant();
 
 /// Convenience class to indicate the variable of an expression's linear term when
@@ -194,8 +216,14 @@ pub struct PyConstant();
 /// >>>     case Linear(x): do_something_with_linear_var(x, bias)
 /// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Linear", module = "luna_quantum"))]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Linear", module = "aqmodels"))]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "Linear", module = "luna_quantum")
+)]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "Linear", module = "aqmodels")
+)]
 pub struct PyLinear(pub PyVariable);
 
 /// Convenience class to indicate the variables of an expression's quadratic term when
@@ -215,8 +243,14 @@ pub struct PyLinear(pub PyVariable);
 /// >>>     case Linear(x): do_something_with_linear_var(x, bias)
 /// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Quadratic", module = "luna_quantum"))]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Quadratic", module = "aqmodels"))]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "Quadratic", module = "luna_quantum")
+)]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "Quadratic", module = "aqmodels")
+)]
 pub struct PyQuadratic(pub (PyVariable, PyVariable));
 
 /// Convenience class to indicate the set of variables of an expression's higher-order
@@ -236,8 +270,14 @@ pub struct PyQuadratic(pub (PyVariable, PyVariable));
 /// >>>     case Linear(x): do_something_with_linear_var(x, bias)
 /// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "HigherOrder", module = "luna_quantum"))]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "HigherOrder", module = "aqmodels"))]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "HigherOrder", module = "luna_quantum")
+)]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "HigherOrder", module = "aqmodels")
+)]
 pub struct PyHigherOrder(pub Vec<PyVariable>);
 
 impl PyExpressionIterator {
@@ -633,6 +673,31 @@ impl PyExpression {
         self.__mul__(py, other)
     }
 
+    /// Right-hand subtraction from another expression, variable, or scalar.
+    ///
+    /// Parameters
+    /// ----------
+    /// other : int, or float (lhs)
+    ///
+    /// Returns
+    /// -------
+    /// Expression
+    ///
+    /// Raises
+    /// ------
+    /// VariablesFromDifferentEnvsError
+    ///     If operands are from different environments.
+    /// TypeError
+    ///     If the operand type is unsupported.
+    fn __rsub__(&self, other: f64) -> PyResult<PyExpression> {
+        let expr = match &self.0 {
+            Left(e) => (-e).sub(other),
+            Right(p) => (-&(p.borrow().objective)).sub(other),
+        };
+
+        Ok(PyExpression::new(expr))
+    }
+
     /// In-place addition.
     ///
     /// Parameters
@@ -989,11 +1054,7 @@ impl PyExpression {
     /// DifferentEnvsError
     ///     If the environments of `self`, `target` and `replacement`
     ///     are not compatible.
-    fn substitute(
-        &self,
-        target: &PyVariable,
-        replacement: Replacement,
-    ) -> PyResult<PyExpression> {
+    fn substitute(&self, target: &PyVariable, replacement: Replacement) -> PyResult<PyExpression> {
         let expr = match &self.0 {
             Left(expr) => match &replacement.as_expr().0 {
                 Left(repl) => expr.substitute(&target.0, repl),
