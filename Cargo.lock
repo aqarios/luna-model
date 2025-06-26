@@ -36,7 +36,7 @@ dependencies = [
 
 [[package]]
 name = "aqmodels"
-version = "0.1.5-rc4"
+version = "0.1.5-rc6"
 dependencies = [
  "aqm-macros",
  "derive_more",

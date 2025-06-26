@@ -43,7 +43,8 @@ use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
 /// - It does **not** own constraints or expressions — they merely reference variables tied to an environment.
 /// - Environments **cannot be nested**. Only one can be active at a time.
 /// - Use `encode()` / `decode()` to persist and recover expression trees.
-#[pyclass(unsendable, name = "Environment", module = "aqmodels")]
+#[cfg_attr(feature = "lq", pyclass(unsendable, name = "Environment", module = "luna_quantum"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Environment", module = "aqmodels"))]
 #[derive(Deref, DerefMut, Clone)]
 pub struct PyEnvironment(pub SharedEnvironment);
 

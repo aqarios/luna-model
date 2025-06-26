@@ -60,10 +60,12 @@ pub fn repr_solution(sol: &PySolution) -> String {
     );
     repr += &format!("runtime={}, ", repr_opt_timing(&sol.timing));
     repr += &format!("n_samples={}, ", sol.n_samples);
-    repr += &format!("variable_names={}", repr_strings(&sol.variable_names));
+    repr += &format!("variable_names={}, ", repr_strings(&sol.variable_names));
+    repr += &format!("sense={}", &sol.sense.to_string());
     repr += ")";
     repr
 }
+
 
 pub fn repr_samples(samples: &Samples) -> String {
     format!(

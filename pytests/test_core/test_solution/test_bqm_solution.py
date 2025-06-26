@@ -2,7 +2,7 @@ import dimod
 import numpy as np
 from dwave.samplers import TabuSampler
 
-from aqmodels._core import Solution
+from aqmodels import Solution
 from aqmodels.translator import BqmTranslator, DwaveTranslator
 
 

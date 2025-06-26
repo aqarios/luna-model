@@ -6,7 +6,8 @@ use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, T
 use pyo3::prelude::*;
 
 /// A wrapper around qubo matrices that holds all relevant metadata, e.g., the model offset.
-#[pyclass(unsendable, name = "Qubo", module = "aqmodels.translator")]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Qubo", module = "luna_quantum.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Qubo", module = "aqmodels.translator"))]
 #[derive(Deref, DerefMut)]
 pub struct PyQubo(pub Qubo);
 
@@ -101,7 +102,8 @@ impl PyQubo {
 ///
 /// >>> recovered = QuboTranslator.from_aq(model)
 /// >>> assert np.allclose(q, recovered.matrix)
-#[pyclass(unsendable, name = "QuboTranslator", module = "aqmodels.translator")]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "QuboTranslator", module = "luna_quantum.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "QuboTranslator", module = "aqmodels.translator"))]
 pub struct PyQuboTranslator {}
 
 #[derive(FromPyObject)]
