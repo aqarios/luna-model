@@ -4,9 +4,9 @@ use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
 
 use crate::{
     core::{Model, Solution},
-    py_bindings::{py_model::PyModel, py_transformations::py_analysis_cache::PyAnalysisCache},
+    py_bindings::py_model::PyModel,
     transformations::{
-        analysis_cache::AnalysisCache,
+        analysis_cache::{AnalysisCache, PyAnalysisCache},
         base_passes::{BasePass, TransformationPass, TransformationPassResult, TransformationType},
         errors::TransformationPassError,
     },

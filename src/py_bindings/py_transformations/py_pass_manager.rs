@@ -3,10 +3,10 @@ use pyo3::exceptions::PyRuntimeError;
 use pyo3::{create_exception, prelude::*};
 
 use crate::transformations::errors::CompilationError as CompilationErr;
+use crate::transformations::analysis_cache::PyAnalysisCache;
 use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
 
 use super::py_module::AnyPass;
-use super::py_analysis_cache::PyAnalysisCache;
 
 // TODO: Docstrings
 #[pyclass(unsendable, name = "PassManager", module = "aqmodels.transformations")]

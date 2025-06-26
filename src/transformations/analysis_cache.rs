@@ -1,48 +1,12 @@
-#[cfg(feature = "py")]
-use pyo3::{Py, PyAny, Python};
-
 use super::passes::max_bias::MaxBias;
+use aqm_macros::register_caches;
 use std::{collections::hash_map::HashMap, fmt::Debug};
 
-pub enum AnalysisCacheElement {
-    MaxBiasAnalysis(MaxBias),
-
-    #[cfg(feature = "py")]
-    PyAnalysis(Py<PyAny>),
-}
-
-impl AnalysisCacheElement {
-    #[cfg(feature = "py")]
-    pub fn clone_py(&self, py: Python) -> Self {
-        match self {
-            Self::MaxBiasAnalysis(v) => Self::MaxBiasAnalysis(v.clone()),
-            #[cfg(feature = "py")]
-            Self::PyAnalysis(v) => Self::PyAnalysis(v.clone_ref(py)),
-        }
-    }
-}
+register_caches!(MaxBias);
 
 pub struct AnalysisCache {
     store: HashMap<String, AnalysisCacheElement>,
     history: Vec<(String, Reason, AnalysisCacheElement)>,
-}
-
-impl AnalysisCache {
-    #[cfg(feature = "py")]
-    pub fn clone_py(&self, py: Python) -> Self {
-        Self {
-            store: self
-                .store
-                .iter()
-                .map(|(k, v)| (k.clone(), v.clone_py(py)))
-                .collect(),
-            history: self
-                .history
-                .iter()
-                .map(|(k, r, e)| (k.clone(), *r, e.clone_py(py)))
-                .collect(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy)]

@@ -2,7 +2,7 @@ use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
     braced, parse::Parser, parse_macro_input, punctuated::Punctuated, token::Comma, DeriveInput,
-    Expr, Fields, Ident, MetaNameValue,
+    Expr, Fields, Ident, ItemStruct, MetaNameValue,
 };
 use syn::{
     parse::{Parse, ParseStream},
@@ -116,16 +116,16 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 struct RegisterArgs {
-    passes:   Vec<Path>,
+    passes: Vec<Path>,
     specials: Vec<Path>,
-    extras:   Vec<Path>,
+    extras: Vec<Path>,
 }
 
 impl Parse for RegisterArgs {
     fn parse(input: ParseStream) -> SynResult<Self> {
-        let mut passes:   Option<Vec<Path>> = None;
+        let mut passes: Option<Vec<Path>> = None;
         let mut specials: Option<Vec<Path>> = None;
-        let mut extras:   Option<Vec<Path>> = None;
+        let mut extras: Option<Vec<Path>> = None;
 
         // Keep reading `key = { … }` blocks until EOF
         while !input.is_empty() {
@@ -136,10 +136,11 @@ impl Parse for RegisterArgs {
             let content;
             braced!(content in input);
             let list: Vec<Path> = Punctuated::<Path, Comma>::parse_terminated(&content)?
-                .into_iter().collect();
+                .into_iter()
+                .collect();
 
             match &*key.to_string() {
-                "passes"  => {
+                "passes" => {
                     if passes.is_some() {
                         return Err(input.error("`passes` specified more than once"));
                     }
@@ -151,7 +152,7 @@ impl Parse for RegisterArgs {
                     }
                     specials = Some(list);
                 }
-                "extras"  => {
+                "extras" => {
                     if extras.is_some() {
                         return Err(input.error("`extras` specified more than once"));
                     }
@@ -169,18 +170,25 @@ impl Parse for RegisterArgs {
             let _ = input.parse::<Comma>();
         }
 
-        let passes   = passes.ok_or_else(|| input.error("you must provide `passes = { … }`"))?;
+        let passes = passes.ok_or_else(|| input.error("you must provide `passes = { … }`"))?;
         let specials = specials.unwrap_or_default();
-        let extras   = extras.unwrap_or_default();
+        let extras = extras.unwrap_or_default();
 
-        Ok(RegisterArgs { passes, specials, extras })
+        Ok(RegisterArgs {
+            passes,
+            specials,
+            extras,
+        })
     }
 }
 
 #[proc_macro]
 pub fn register_pytransformations(input: TokenStream) -> TokenStream {
-    let RegisterArgs { passes, specials, extras } =
-        parse_macro_input!(input as RegisterArgs);
+    let RegisterArgs {
+        passes,
+        specials,
+        extras,
+    } = parse_macro_input!(input as RegisterArgs);
 
     // --- Build specials: Variant = TypeIdent, payload = Py<TypeIdent>
     let enum_specials = specials.iter().map(|path| {
@@ -197,13 +205,15 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
 
     // --- Build normal passes: strip "Py" / "Pass" for variant names
     let mut enum_passes = Vec::new();
-    let mut arm_passes  = Vec::new();
+    let mut arm_passes = Vec::new();
     for path in &passes {
         let ty_ident = &path.segments.last().unwrap().ident;
         let s = ty_ident.to_string();
         let stripped = s
-            .strip_prefix("Py").unwrap_or(&s)
-            .strip_suffix("Pass").unwrap_or(&s);
+            .strip_prefix("Py")
+            .unwrap_or(&s)
+            .strip_suffix("Pass")
+            .unwrap_or(&s);
         let var_ident = format_ident!("{}", stripped);
 
         enum_passes.push(quote! { #var_ident(#ty_ident), });
@@ -261,6 +271,238 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
               .set_item("aqmodels.transformations", m)?;
             Ok(())
         }
+    };
+
+    expanded.into()
+}
+
+// CACHES
+/// ## 1) `#[analysis_cache]` attribute
+///
+/// Wraps your struct in a `cfg_attr(feature="py", pyclass(...))`.
+#[proc_macro_attribute]
+pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    // Parse the annotated item as a struct (so we preserve its derives & fields)
+    let s = parse_macro_input!(item as ItemStruct);
+    let name = s.ident.to_string();
+    // Emit a cfg_attr only when `--features py` is on.
+    let expanded = quote! {
+        #[cfg_attr(
+            feature = "py",
+            pyo3::pyclass(get_all, name = #name, module = "aqmodels.transformations")
+        )]
+        #s
+    };
+    expanded.into()
+}
+
+/// ------------------------------------------------------------------------
+/// 2) The `register_caches!` function‐like macro
+/// ------------------------------------------------------------------------
+struct CacheRegisterArgs {
+    types: Vec<Path>,
+}
+
+impl Parse for CacheRegisterArgs {
+    fn parse(input: ParseStream) -> SynResult<Self> {
+        // Parse a comma‐separated list of type names
+        let types = Punctuated::<Path, Comma>::parse_terminated(input)?
+            .into_iter()
+            .collect();
+        Ok(CacheRegisterArgs { types })
+    }
+}
+/// ## 2) `register_caches!` function‐like macro
+///
+/// Usage:
+/// ```ignore
+/// register_caches!(
+///     SomeName,
+///     OtherName,
+/// );
+/// ```
+///
+/// Expands to:
+/// 1. `pub enum AnalysisCacheElement { … }` with `SomeNameAnalysis(SomeName)`, …, plus
+///    a `#[cfg(feature="py")] PyAnalysis(Py<PyAny>)` variant
+/// 2. `impl AnalysisCacheElement { fn clone_py(...) { … } }`
+/// 3. (behind `#[cfg(feature="py")]`) the `PyAnalysisCache` newtype + `#[pymethods]` block
+
+#[proc_macro]
+pub fn register_caches(input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(input as CacheRegisterArgs);
+    let types = args.types; // Vec<Path>
+
+    // 1) Build the "AnalysisCacheElement" enum variants
+    //    and collect them into Vecs so we can reuse:
+    let mut enum_variants = Vec::new();
+    let mut clone_arms = Vec::new();
+    let mut accessors = Vec::new();
+    let mut element_arms = Vec::new();
+
+    for path in &types {
+        // e.g. `SomeName`
+        let ident = &path.segments.last().unwrap().ident;
+        // variant: `SomeNameAnalysis`
+        let var_ident = format_ident!("{}Analysis", ident);
+        // kebab‐case key: "some-name"
+        let key = {
+            let s = ident.to_string();
+            let mut out = String::new();
+            for (i, ch) in s.chars().enumerate() {
+                if ch.is_uppercase() {
+                    if i != 0 {
+                        out.push('-');
+                    }
+                    for lo in ch.to_lowercase() {
+                        out.push(lo);
+                    }
+                } else {
+                    out.push(ch);
+                }
+            }
+            out
+        };
+        // snake_case method: `some_name`
+        let snake = {
+            let s = ident.to_string();
+            let mut out = String::new();
+            for (i, ch) in s.chars().enumerate() {
+                if ch.is_uppercase() {
+                    if i != 0 {
+                        out.push('_');
+                    }
+                    for lo in ch.to_lowercase() {
+                        out.push(lo);
+                    }
+                } else {
+                    out.push(ch);
+                }
+            }
+            format_ident!("{}", out)
+        };
+
+        // enum variant
+        enum_variants.push(quote! {
+            #var_ident(#ident),
+        });
+        // clone_py arm
+        clone_arms.push(quote! {
+            AnalysisCacheElement::#var_ident(v) => AnalysisCacheElement::#var_ident(*v),
+        });
+        // element->PyObject arm in get_element
+        element_arms.push(quote! {
+            AnalysisCacheElement::#var_ident(v) => v.into_py_any(py)?,
+        });
+        // accessor method
+        accessors.push(quote! {
+            pub fn #snake(&self) -> Option<#ident> {
+                if let Some(AnalysisCacheElement::#var_ident(v)) = self.get(#key) {
+                    Some(*v)
+                } else {
+                    None
+                }
+            }
+        });
+    }
+
+    // plus the PyAnalysis variant & arms
+    enum_variants.push(quote! {
+        #[cfg(feature = "py")]
+        PyAnalysis(pyo3::Py<pyo3::PyAny>),
+    });
+    clone_arms.push(quote! {
+        #[cfg(feature = "py")]
+        AnalysisCacheElement::PyAnalysis(v) => AnalysisCacheElement::PyAnalysis(v.clone_ref(py)),
+    });
+    element_arms.push(quote! {
+        #[cfg(feature = "py")]
+        AnalysisCacheElement::PyAnalysis(v) => v.into_py_any(py)?,
+    });
+
+    // 2) Emit the combined code
+    let expanded = quote! {
+        #[cfg(feature = "py")]
+        use {
+        //     derive_more::{Deref, DerefMut},
+        //     pyo3::{pyclass, pymethods, IntoPyObjectExt, Py, PyAny, PyObject, PyResult, Python},
+            // pyo3::{Py, PyAny},
+        };
+
+        /// All possible elements in the cache
+        pub enum AnalysisCacheElement {
+            #(#enum_variants)*
+        }
+
+        impl AnalysisCacheElement {
+            #[cfg(feature = "py")]
+            pub fn clone_py(&self, py: pyo3::Python) -> Self {
+                match self {
+                    #(#clone_arms)*
+                }
+            }
+        }
+
+        impl AnalysisCache {
+            #[cfg(feature = "py")]
+            pub fn clone_py(&self, py: pyo3::Python) -> Self {
+                Self {
+                    store: self
+                        .store
+                        .iter()
+                        .map(|(k, v)| (k.clone(), v.clone_py(py)))
+                        .collect(),
+                    history: self
+                        .history
+                        .iter()
+                        .map(|(k, r, e)| (k.clone(), *r, e.clone_py(py)))
+                        .collect(),
+                }
+            }
+        }
+
+
+        // // Py‐bindings for the entire cache
+        #[cfg(feature = "py")]
+        mod py_analysis_cache {
+            use pyo3::IntoPyObjectExt;
+            use super::*;
+
+            #[pyo3::pyclass(unsendable, name = "AnalysisCache")]
+            #[derive(derive_more::Deref, derive_more::DerefMut)]
+            pub struct PyAnalysisCache(pub AnalysisCache);
+
+            #[cfg(feature = "py")]
+            impl PyAnalysisCache {
+                pub fn new(cache: AnalysisCache) -> Self {
+                    PyAnalysisCache(cache)
+                }
+            }
+
+            #[cfg(feature = "py")]
+            #[pyo3::pymethods]
+            impl PyAnalysisCache {
+                fn __getitem__(&self, py: pyo3::Python, key: String) -> pyo3::PyResult<Option<pyo3::PyObject>> {
+                    self.get_element(py, key)
+                }
+
+                #[pyo3(name = "get")]
+                pub fn get_element(&self, py: pyo3::Python, key: String) -> pyo3::PyResult<Option<pyo3::PyObject>> {
+                    if let Some(val) = self.get(&key) {
+                        Ok(Some(match val {
+                            #(#element_arms)*
+                        }))
+                    } else {
+                        Ok(None)
+                    }
+                }
+
+                #(#accessors)*
+            }
+        }
+
+        #[cfg(feature = "py")]
+        pub use py_analysis_cache::PyAnalysisCache;
     };
 
     expanded.into()
