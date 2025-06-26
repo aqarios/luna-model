@@ -1,3 +1,5 @@
+use aqm_macros::transformation;
+
 use crate::{
     core::{operations::MulAssignToExpression, Model, Sense, Solution},
     transformations::{
@@ -6,6 +8,7 @@ use crate::{
     },
 };
 
+#[transformation]
 #[derive(Debug, Clone)]
 pub struct ChangeSensePass {
     pub sense: Sense,

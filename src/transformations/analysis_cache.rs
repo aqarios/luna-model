@@ -1,6 +1,5 @@
 #[cfg(feature = "py")]
-use pyo3::Py;
-use pyo3::{PyAny, Python};
+use pyo3::{Py, PyAny, Python};
 
 use super::passes::max_bias::MaxBias;
 use std::{collections::hash_map::HashMap, fmt::Debug};
@@ -13,6 +12,7 @@ pub enum AnalysisCacheElement {
 }
 
 impl AnalysisCacheElement {
+    #[cfg(feature = "py")]
     pub fn clone_py(&self, py: Python) -> Self {
         match self {
             Self::MaxBiasAnalysis(v) => Self::MaxBiasAnalysis(v.clone()),
@@ -28,6 +28,7 @@ pub struct AnalysisCache {
 }
 
 impl AnalysisCache {
+    #[cfg(feature = "py")]
     pub fn clone_py(&self, py: Python) -> Self {
         Self {
             store: self
