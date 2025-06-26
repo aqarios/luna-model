@@ -185,8 +185,8 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
 pub fn register_transformations(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(pm.py(), "transformations")?;
     m.add_class::<py_transformations::PyPassManager>()?;
-    m.add_class::<py_transformations::PyMaxBiasAnalysis>()?;
-    m.add_class::<py_transformations::PyChangeSensePass>()?;
+    m.add_class::<crate::transformations::passes::max_bias::PyMaxBiasAnalysis>()?;
+    m.add_class::<crate::transformations::passes::change_sense::PyChangeSensePass>()?;
     m.add_class::<py_transformations::PyTransformationPass>()?;
     m.add_class::<py_transformations::PyAnalysisPass>()?;
     m.add_class::<py_transformations::PyAnalysisCache>()?;

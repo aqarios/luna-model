@@ -1,12 +1,11 @@
-use aqm_macros::generate_anypass;
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::{create_exception, prelude::*};
 
 use crate::transformations::errors::CompilationError as CompilationErr;
-use crate::transformations::PyAnyPass;
 use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
 
+use super::passes::any_pass::AnyPass;
 // use super::passes::any_pass::AnyPass;
 use super::py_analysis_cache::PyAnalysisCache;
 
@@ -19,7 +18,7 @@ pub struct PyPassManager(PassManager);
 impl PyPassManager {
     #[new]
     #[pyo3(signature=(passes=None))]
-    pub fn py_new(passes: Option<Vec<PyAnyPass>>) -> PyResult<Self> {
+    pub fn py_new(passes: Option<Vec<AnyPass>>) -> PyResult<Self> {
         let mapped = passes
             .map(|x| {
                 x.into_iter()
@@ -31,7 +30,7 @@ impl PyPassManager {
     }
 
     #[pyo3(name = "add")]
-    pub fn py_add(&mut self, pass: PyAnyPass) -> PyResult<()> {
+    pub fn py_add(&mut self, pass: AnyPass) -> PyResult<()> {
         Ok(self.add_pass(pass.as_pass()?))
     }
 

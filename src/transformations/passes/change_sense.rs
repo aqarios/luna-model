@@ -1,17 +1,24 @@
-use aqm_macros::transformation;
-
 use crate::{
     core::{operations::MulAssignToExpression, Model, Sense, Solution},
     transformations::{
         analysis_cache::AnalysisCache,
+        base_passes::Pass,
         base_passes::{BasePass, TransformationPass, TransformationPassResult, TransformationType},
     },
 };
+#[cfg(feature = "py")]
+use aqm_macros::py_pass;
 
-#[transformation]
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
 pub struct ChangeSensePass {
     pub sense: Sense,
+}
+
+impl ChangeSensePass {
+    pub fn new(sense: Sense) -> Self {
+        ChangeSensePass { sense }
+    }
 }
 
 impl BasePass for ChangeSensePass {

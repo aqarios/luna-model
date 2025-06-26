@@ -7,11 +7,21 @@ use crate::{
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{AnalysisPass, AnalysisPassResult, BasePass},
+        base_passes::Pass,
     },
 };
+#[cfg(feature = "py")]
+use aqm_macros::py_pass;
 
+#[cfg_attr(feature = "py", py_pass(pass_variant = "Analysis"))]
 #[derive(Debug, Clone)]
 pub struct MaxBiasAnalysis {}
+
+impl MaxBiasAnalysis {
+    pub fn new() -> Self {
+        MaxBiasAnalysis {}
+    }
+}
 
 impl BasePass for MaxBiasAnalysis {
     fn name(&self) -> String {
@@ -31,8 +41,6 @@ impl BasePass for MaxBiasAnalysis {
 pub struct MaxBias {
     pub val: f64,
 }
-
-// impl AnalysisResult for MaxBias {}
 
 impl AnalysisPass for MaxBiasAnalysis {
     fn run(&self, model: &Model, _cache: &AnalysisCache) -> AnalysisPassResult {
