@@ -2,7 +2,7 @@ use super::py_expr::PyExpression;
 use super::py_var::PyVariable;
 use super::{py_model::PyModel, py_sol::PySolution};
 use crate::core::operations::MulToExpression;
-use crate::core::{Constraints, Expression, Samples, Sense, Timing};
+use crate::core::{Constraints, Expression, Samples, Timing};
 use crate::translator::model::lp::exprtree::ExprTree;
 use either::Either::Left;
 use pyo3::FromPyObject;

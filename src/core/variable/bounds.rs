@@ -8,7 +8,8 @@ const fn unwrap_failed() -> ! {
     panic!("called `Bound::unwrap()` on an `Unbounded` value")
 }
 
-#[cfg_attr(feature = "py", pyclass(eq, name = "Bound", module = "aqmodels"))]
+#[cfg_attr(all(feature = "py", feature = "lq"), pyclass(eq, name = "Bound", module = "luna_quantum"))]
+#[cfg_attr(all(feature = "py", not(feature = "lq")), pyclass(eq, name = "Bound", module = "aqmodels"))]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Bound {
     /// Explicitly unbounded value.
@@ -29,13 +30,6 @@ impl Bound {
         }
     }
 }
-
-// #[cfg_attr(feature = "py", pyclass(eq, name = "LazyBound", module = "aqmodels"))]
-// #[derive(Debug, Clone, Copy, PartialEq)]
-// pub enum LazyBound {
-//     Default(),
-//     Bound(Bound),
-// }
 
 /// The bounds on a variable.
 #[derive(Clone, Copy, PartialEq)]

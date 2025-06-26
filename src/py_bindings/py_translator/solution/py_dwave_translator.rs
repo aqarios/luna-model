@@ -56,7 +56,8 @@ def extract(sampleset, timing, env):
 /// >>> import luna_quantum as lq
 /// >>> dwave_sampleset = ...
 /// >>> aqs = lq.translator.DwaveTranslator.to_aq(dwave_sampleset)
-#[pyclass(unsendable, name = "DwaveTranslator", module = "aqmodels.translator")]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "DwaveTranslator", module = "luna_quantum.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "DwaveTranslator", module = "aqmodels.translator"))]
 pub struct PyDwaveTranslator(pub DwaveTranslator);
 
 #[pymethods]

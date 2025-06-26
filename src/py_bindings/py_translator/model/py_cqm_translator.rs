@@ -85,7 +85,8 @@ def extract(model):
 /// Convert it back to a dense matrix:
 ///
 /// >>> recovered = CqmTranslator.from_aq(model)
-#[pyclass(unsendable, name = "CqmTranslator", module = "aqmodels.translator")]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "CqmTranslator", module = "luna_quantum.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "CqmTranslator", module = "aqmodels.translator"))]
 pub struct PyCqmTranslator {}
 
 #[pymethods]

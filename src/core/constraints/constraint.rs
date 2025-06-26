@@ -43,10 +43,15 @@ fn starts_with_failable(s: &str) -> bool {
 /// >>> from luna_quantum import Comparator
 /// >>> str(Comparator.Eq)
 /// '=='
+// we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[cfg_attr(
-    feature = "py",
+    all(feature = "py", feature = "lq"),
+    pyclass(eq, eq_int, name = "Comparator", module = "luna_quantum")
+)] 
+#[cfg_attr(
+    all(feature = "py", not(feature = "lq")),
     pyclass(eq, eq_int, name = "Comparator", module = "aqmodels")
-)] // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
+)] 
 #[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {
     /// Equality (==)
