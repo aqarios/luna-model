@@ -50,7 +50,8 @@ def extract(model, timing, env):
 /// >>> model.readProblem("./path/to/my/model.lp")
 /// >>> model.optimize()
 /// >>> aqs = lq.translator.ZibTranslator.to_aq(model)
-#[pyclass(unsendable, name = "ZibTranslator", module = "aqmodels.translator")]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "ZibTranslator", module = "luna_quantum.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "ZibTranslator", module = "aqmodels.translator"))]
 pub struct PyZibTranslator(pub ZibTranslator);
 
 #[pymethods]
