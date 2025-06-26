@@ -1,3 +1,5 @@
+/// The installed aq-models-version
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// The core component of the library. This includes everyting related to defining and
 /// working with an AQ Model (AQ/M) and an AQ Solution (AQ/S).
 pub mod core;
@@ -12,10 +14,10 @@ pub mod serialization;
 /// Gurobi, CPLEX and Dimod. This also includes translations of the solution's focused on the
 /// translation from another library TO our solution.
 pub mod translator;
+/// Common types used in aq-models
 pub mod types;
-
+/// Defines components required to compute the hash of a model.
 pub mod hashing;
-
 // Import of the python bindings only when the `--features` flag is set to `py`.
 #[cfg(feature = "py")]
 pub mod py_bindings;
