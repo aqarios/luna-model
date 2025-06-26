@@ -46,9 +46,10 @@ optional = true
 
 [dependencies.aqm-macros]
 path = "aqm-macros"
+features = [ "py" ]
 optional = true
 
 [features]
-py = ["pyo3", "numpy"]
+py = ["pyo3", "numpy", "aqm-macros"]
 lq = ["py"]
-transformations = ["aqm-macros"]
+transformations = []

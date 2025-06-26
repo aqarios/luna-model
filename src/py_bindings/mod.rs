@@ -76,7 +76,7 @@ pub fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     py_modules::register_errors(m)?;
 
     #[cfg(feature = "transformations")]
-    py_modules::register_transformations(m)?;
+    py_transformations::register_transformations(m)?;
 
     Ok(())
 }

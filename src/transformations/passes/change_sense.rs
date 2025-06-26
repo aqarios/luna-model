@@ -2,10 +2,12 @@ use crate::{
     core::{operations::MulAssignToExpression, Model, Sense, Solution},
     transformations::{
         analysis_cache::AnalysisCache,
-        base_passes::Pass,
         base_passes::{BasePass, TransformationPass, TransformationPassResult, TransformationType},
     },
 };
+
+#[cfg(feature = "py")]
+use crate::transformations::base_passes::Pass;
 #[cfg(feature = "py")]
 use aqm_macros::py_pass;
 

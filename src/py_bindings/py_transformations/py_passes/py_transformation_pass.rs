@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 
 use super::{py_pass_base::PyPass, py_transformation_pass_adapter::PyTransformationPassAdapter};
 use crate::{
-    py_bindings::{py_model::PyModel, py_sol::PySolution, py_transformations::PyAnalysisCache},
+    py_bindings::{py_model::PyModel, py_sol::PySolution, py_transformations::py_analysis_cache::PyAnalysisCache},
     transformations::base_passes::{Pass, TransformationType},
 };
 

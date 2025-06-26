@@ -7,9 +7,11 @@ use crate::{
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{AnalysisPass, AnalysisPassResult, BasePass},
-        base_passes::Pass,
     },
 };
+
+#[cfg(feature = "py")]
+use crate::transformations::base_passes::Pass;
 #[cfg(feature = "py")]
 use aqm_macros::py_pass;
 

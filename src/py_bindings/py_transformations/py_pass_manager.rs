@@ -5,8 +5,7 @@ use pyo3::{create_exception, prelude::*};
 use crate::transformations::errors::CompilationError as CompilationErr;
 use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
 
-use super::passes::any_pass::AnyPass;
-// use super::passes::any_pass::AnyPass;
+use super::py_module::AnyPass;
 use super::py_analysis_cache::PyAnalysisCache;
 
 // TODO: Docstrings

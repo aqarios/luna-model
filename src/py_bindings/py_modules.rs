@@ -2,10 +2,6 @@ use pyo3::{prelude::*, PyTypeCheck};
 
 use crate::core::{Comparator, Sense, Vtype};
 
-#[cfg(feature = "transformations")]
-use crate::transformations::base_passes::TransformationType;
-#[cfg(feature = "transformations")]
-use super::py_transformations;
 
 use super::{
     py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_model_metadata,
@@ -178,23 +174,5 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         .import("sys")?
         .getattr("modules")?
         .set_item("luna_quantum.errors", m)?;
-    Ok(())
-}
-
-#[cfg(feature = "transformations")]
-pub fn register_transformations(pm: &Bound<'_, PyModule>) -> PyResult<()> {
-    let m = PyModule::new(pm.py(), "transformations")?;
-    m.add_class::<py_transformations::PyPassManager>()?;
-    m.add_class::<crate::transformations::passes::max_bias::PyMaxBiasAnalysis>()?;
-    m.add_class::<crate::transformations::passes::change_sense::PyChangeSensePass>()?;
-    m.add_class::<py_transformations::PyTransformationPass>()?;
-    m.add_class::<py_transformations::PyAnalysisPass>()?;
-    m.add_class::<py_transformations::PyAnalysisCache>()?;
-    m.add_class::<TransformationType>()?;
-    pm.add_submodule(&m)?;
-    pm.py()
-        .import("sys")?
-        .getattr("modules")?
-        .set_item("aqmodels.transformations", m)?;
     Ok(())
 }
