@@ -23,7 +23,7 @@ impl NpArrayTranslator {
         E: Copy + NumCast,
     {
         let mut sol = Solution::default();
-        for v in env.borrow().variables.iter() {
+        for v in env.borrow().variables().iter() {
             match v.vtype {
                 Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(shape[0]))),
                 Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(shape[0]))),
@@ -32,7 +32,7 @@ impl NpArrayTranslator {
             }
         }
         sol.timing = timing;
-        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
+        sol.variable_names = env.variable_names();
         for i in 0..shape[0] {
             let start_idx = i * shape[1];
             let sample = samples[start_idx..start_idx + shape[1]].to_vec();

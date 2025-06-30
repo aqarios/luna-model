@@ -2,6 +2,7 @@ use crate::core::expression::One;
 use crate::errors::ParseFromStringError;
 use crate::types::Id;
 use std::fmt::Debug;
+use std::ops::SubAssign;
 use std::{ops::AddAssign, str::FromStr};
 
 /// The VarId is a wrapper around some primitive type used as the index in Expressions.
@@ -17,6 +18,12 @@ impl One for VarId {
 impl AddAssign<VarId> for VarId {
     fn add_assign(&mut self, rhs: VarId) {
         self.0 += rhs.0
+    }
+}
+
+impl SubAssign<VarId> for VarId {
+    fn sub_assign(&mut self, rhs: VarId) {
+        self.0 -= rhs.0
     }
 }
 

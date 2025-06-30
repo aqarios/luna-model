@@ -36,6 +36,7 @@ impl Variable {
             env_id: EnvId::default(),
         }
     }
+
     /// Create a new variable based on the name, optional type and bounds and an environment
     /// id.
     pub fn new(

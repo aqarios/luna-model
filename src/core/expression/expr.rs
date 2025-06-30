@@ -9,7 +9,7 @@ use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
-use crate::core::Vtype;
+use crate::core::{VarRef, Vtype};
 use crate::types::{Bias, VarIndex};
 use hashbrown::HashMap;
 use std::fmt::{Debug, Display, Formatter};
@@ -72,6 +72,15 @@ impl Expression {
         };
 
         vec![constant, linear, quadratic, higher_order].concat()
+    }
+
+    pub fn contains(&self, needle: &VarRef) -> bool {
+        for (indices, _) in self.items() {
+            if indices.contains(&needle.id) {
+                return true;
+            }
+        }
+        false
     }
 }
 
@@ -864,24 +873,24 @@ impl Expression {
 impl Debug for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let linear = ModelWriter::new()
-            .write_linear(&self.env.borrow(), &self.linear)
+            .write_linear(&self.env, &self.linear)
             .to_string();
         let quadratic = if let Some(q) = &self.quadratic {
             ModelWriter::new()
-                .write_quadratic(&self.env.borrow(), q)
+                .write_quadratic(&self.env, q)
                 .to_string()
         } else {
             String::from("None")
         };
         let higher_order = if let Some(ho) = &self.higher_order {
             ModelWriter::new()
-                .write_higher_order(&self.env.borrow(), ho)
+                .write_higher_order(&self.env, ho)
                 .to_string()
         } else {
             String::from("None")
         };
         f.debug_struct("Expression")
-            .field("environment_id", &self.env.borrow().id)
+            .field("environment_id", &self.env.id())
             .field("offset", &self.offset)
             .field("linear", &format_args!("{linear}"))
             .field("quadratic", &format_args!("{quadratic}"))

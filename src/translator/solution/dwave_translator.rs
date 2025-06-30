@@ -24,7 +24,7 @@ impl DwaveTranslator {
         E: Copy + NumCast,
     {
         let mut sol = Solution::default();
-        for v in env.borrow().iter() {
+        for v in env.borrow().variables().iter() {
             match v.vtype {
                 Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(shape[0]))),
                 Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(shape[0]))),
@@ -33,7 +33,7 @@ impl DwaveTranslator {
             }
         }
         sol.timing = timing;
-        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
+        sol.variable_names = env.variable_names();
         let map: HashMap<String, usize> = sol
             .variable_names
             .iter()

@@ -194,7 +194,7 @@ impl SectionsHolder {
             sections.model_name = Some(model.name.clone());
         }
         // variables & bounds
-        for v in model.environment.borrow().iter() {
+        for v in model.environment.borrow().variables().iter() {
             match v.vtype {
                 Vtype::Binary => {
                     sections.push(&Section::VariableType(VariableType::Binary), v.name.clone())

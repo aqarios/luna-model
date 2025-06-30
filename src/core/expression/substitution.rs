@@ -37,8 +37,8 @@ impl Substitution for &Expression {
         target: &VarRef,
         replacement: &Expression,
     ) -> Result<Expression, DifferentEnvsErr> {
-        let env_self_and_var_match = self.env.borrow().id == target.env.borrow().id;
-        let env_self_and_target_match = self.env.borrow().id == replacement.env.borrow().id;
+        let env_self_and_var_match = self.env.id() == target.env.id();
+        let env_self_and_target_match = self.env.id() == replacement.env.id();
         if !env_self_and_var_match || !env_self_and_target_match {
             return Err(DifferentEnvsErr);
         }

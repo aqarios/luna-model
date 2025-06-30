@@ -39,7 +39,7 @@ impl AddToExpression<&VarRef> for &VarRef {
     type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
 
     fn add(self, rhs: &VarRef) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(Expression::new_linear(
@@ -63,7 +63,7 @@ impl MulToExpression<&VarRef> for &VarRef {
     type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
 
     fn mul(self, rhs: &VarRef) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(Expression::new_quadratic(
@@ -88,7 +88,7 @@ impl SubToExpression<&VarRef> for &VarRef {
     type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
 
     fn sub(self, rhs: &VarRef) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(Expression::new_linear(
@@ -102,10 +102,8 @@ impl SubToExpression<&VarRef> for &VarRef {
 
 impl Debug for VarRef {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let env = self.env.borrow();
         let idx: usize = self.id.into();
-        let v = &env.variables[idx];
-
+        let v = &self.env.borrow()[idx];
         write!(f, "{v:?}")
     }
 }
@@ -113,7 +111,7 @@ impl Debug for VarRef {
 impl Display for VarRef {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let idx: usize = self.id.into();
-        let v = &self.env.borrow().variables[idx];
+        let v = &self.env.borrow()[idx];
         f.write_str(&v.to_string())
     }
 }

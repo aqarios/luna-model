@@ -2,8 +2,8 @@ use crate::core::constraints::Constraints;
 use crate::core::expression::One;
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::writer::line_length_restrictor::LineLengthRestrictor;
-use crate::core::{Bound, Constraint, Environment, Expression, Model, Vtype};
-use crate::types::{Bias, VarIndex};
+use crate::core::{Bound, Constraint, Expression, Model, SharedEnvironment, Vtype};
+use crate::types::Bias;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
 use strum::IntoEnumIterator;
@@ -42,19 +42,19 @@ impl ModelWriter {
             .with_new_line("Bounds")
             .increase_indent()
             .new_line();
-        self.write_bounds(&model.environment.borrow());
+        self.write_bounds(&model.environment);
         self.writer.decrease_indent();
-        self.write_variables(&model.environment.borrow())
+        self.write_variables(&model.environment)
     }
 
     pub fn write_expression(&mut self, expr: &Expression) -> &mut Self {
         if let Some(higher_order) = &expr.higher_order {
-            self.write_higher_order(&expr.env.borrow(), higher_order);
+            self.write_higher_order(&expr.env, higher_order);
         }
         if let Some(quadratic) = &expr.quadratic {
-            self.write_quadratic(&expr.env.borrow(), quadratic);
+            self.write_quadratic(&expr.env, quadratic);
         }
-        self.write_linear(&expr.env.borrow(), &expr.linear);
+        self.write_linear(&expr.env, &expr.linear);
         if expr.offset != Bias::default() {
             self.write_offset(&expr.offset);
         }
@@ -64,18 +64,14 @@ impl ModelWriter {
 
     pub fn write_higher_order(
         &mut self,
-        env: &Environment,
+        env: &SharedEnvironment,
         higher_order: &HigherOrder,
     ) -> &mut Self {
         for (indices, bias) in higher_order.iter_contrib() {
             if *bias != Bias::default() {
                 let vnames = indices
                     .iter()
-                    .map(|&idx| {
-                        env.variables[<VarIndex as Into<usize>>::into(idx)]
-                            .name
-                            .clone()
-                    })
+                    .map(|&idx| env.borrow()[idx].name.clone())
                     .collect::<Vec<_>>()
                     .join(" * ");
                 if !self.is_first {
@@ -89,15 +85,11 @@ impl ModelWriter {
         self
     }
 
-    pub fn write_quadratic(&mut self, env: &Environment, quadratic: &Quadratic) -> &mut Self {
+    pub fn write_quadratic(&mut self, env: &SharedEnvironment, quadratic: &Quadratic) -> &mut Self {
         for (i, j, bias) in quadratic.iter_flat() {
             if bias != Bias::default() {
-                let v_i = env.variables[<VarIndex as Into<usize>>::into(i)]
-                    .name
-                    .clone();
-                let v_j = env.variables[<VarIndex as Into<usize>>::into(j)]
-                    .name
-                    .clone();
+                let v_i = env.borrow()[i].name.clone();
+                let v_j = env.borrow()[j].name.clone();
                 if !self.is_first {
                     self.writer.space();
                 }
@@ -109,13 +101,13 @@ impl ModelWriter {
         self
     }
 
-    pub fn write_linear(&mut self, env: &Environment, linear: &Linear) -> &mut Self {
+    pub fn write_linear(&mut self, env: &SharedEnvironment, linear: &Linear) -> &mut Self {
         for (i, bias) in linear.iter() {
             if *bias != Bias::default() {
                 if !self.is_first {
                     self.writer.space();
                 }
-                let s = format!("{}{}", self.show_bias(bias), env.variables[i].name);
+                let s = format!("{}{}", self.show_bias(bias), env.borrow()[i].name);
                 self.writer.write(&s);
                 self.is_first = false;
             }
@@ -183,8 +175,8 @@ impl ModelWriter {
         self
     }
 
-    pub fn write_bounds(&mut self, env: &Environment) -> &mut Self {
-        for (i, var) in env.iter().enumerate() {
+    pub fn write_bounds(&mut self, env: &SharedEnvironment) -> &mut Self {
+        for (i, var) in env.borrow().variables().iter().enumerate() {
             if i > 0 {
                 self.writer.new_line();
             }
@@ -203,9 +195,9 @@ impl ModelWriter {
         self
     }
 
-    pub fn write_variables(&mut self, env: &Environment) -> &mut Self {
+    pub fn write_variables(&mut self, env: &SharedEnvironment) -> &mut Self {
         let mut var_map = HashMap::new();
-        for var in env.iter() {
+        for var in env.borrow().variables() {
             var_map
                 .entry(var.vtype.to_string())
                 .or_insert(vec![])
