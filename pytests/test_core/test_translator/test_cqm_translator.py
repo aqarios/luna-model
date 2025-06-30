@@ -5,7 +5,8 @@ from dimod import Binary, ConstrainedQuadraticModel, Integer, Real
 from dimod import lp as dimod_lp
 
 from aqmodels.translator import CqmTranslator
-from pytests.test_core.test_translator.test_lp_translator import check_dimod_expr
+from pytests.test_core.test_translator.test_lp_translator import \
+    check_dimod_expr
 from pytests.test_core.utils import generate_cqms, make_seed
 
 NUM_CQMS: int = 100

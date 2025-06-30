@@ -1,0 +1,17 @@
+[package]
+name = "aqm-macros"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+proc-macro = true
+
+[features]
+py = []
+
+[dependencies]
+syn = { version = "2.0", features = ["full"] }
+quote = "1.0"
+proc-macro2 = "1.0"
+once_cell = "1.21.3"
+pyo3 = "0.24.1"
