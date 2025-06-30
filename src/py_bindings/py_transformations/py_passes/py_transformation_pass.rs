@@ -4,8 +4,11 @@ use pyo3::prelude::*;
 
 use super::{py_pass_base::PyPass, py_transformation_pass_adapter::PyTransformationPassAdapter};
 use crate::{
-    py_bindings::{py_model::PyModel, py_sol::PySolution, py_transformations::PyAnalysisCache},
-    transformations::base_passes::{Pass, TransformationType},
+    py_bindings::{py_model::PyModel, py_sol::PySolution},
+    transformations::{
+        analysis_cache::PyAnalysisCache,
+        base_passes::{Pass, TransformationType},
+    },
 };
 
 #[pyclass(unsendable, subclass, name = "TransformationPass")]

@@ -1,6 +1,6 @@
 use num::{abs, NumCast};
 #[cfg(feature = "py")]
-use pyo3::prelude::*;
+use aqm_macros::analysis_cache;
 
 use crate::{
     core::Model,
@@ -10,8 +10,18 @@ use crate::{
     },
 };
 
+#[cfg(feature = "py")]
+use {crate::transformations::base_passes::Pass, aqm_macros::py_pass};
+
+#[cfg_attr(feature = "py", py_pass(pass_variant = "Analysis"))]
 #[derive(Debug, Clone)]
 pub struct MaxBiasAnalysis {}
+
+impl MaxBiasAnalysis {
+    pub fn new() -> Self {
+        MaxBiasAnalysis {}
+    }
+}
 
 impl BasePass for MaxBiasAnalysis {
     fn name(&self) -> String {
@@ -23,16 +33,11 @@ impl BasePass for MaxBiasAnalysis {
     }
 }
 
-#[cfg_attr(
-    feature = "py",
-    pyclass(get_all, name = "MaxBias", module = "aqmodels.transformations")
-)]
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "py", analysis_cache)]
 pub struct MaxBias {
     pub val: f64,
 }
-
-// impl AnalysisResult for MaxBias {}
 
 impl AnalysisPass for MaxBiasAnalysis {
     fn run(&self, model: &Model, _cache: &AnalysisCache) -> AnalysisPassResult {

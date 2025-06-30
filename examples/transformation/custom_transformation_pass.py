@@ -1,15 +1,12 @@
 """Helper script to test out transformations."""
 
-from typing import Any
-from aqmodels import Model
-from aqmodels._core import Sense, Solution, Variable
+from aqmodels import Model, Solution
+from aqmodels._core import Sense, Variable
 from aqmodels.transformations import (
     AnalysisCache,
     ChangeSensePass,
-    MaxBiasAnalysis,
     PassManager,
     TransformationPass,
-    AnalysisPass,
     TransformationType,
 )
 
@@ -25,9 +22,11 @@ class PyChangeSensePass(TransformationPass):
     """Transformation pass to change the sense to the target sense."""
 
     target_sense: Sense
+    last_model: Model | None
 
     def __init__(self, sense: Sense) -> None:
         self.target_sense = sense
+        self.last_model = None
 
     @property
     def name(self) -> str:
@@ -44,53 +43,27 @@ class PyChangeSensePass(TransformationPass):
 
         model.objective *= -1
         model.set_sense(self.target_sense)
+        self.last_model = model
         return model, TransformationType.DidTransform
 
     def backwards(self, solution: Solution, cache: AnalysisCache) -> Solution:
-        # return super().backwards(solution, cache)
-        return solution
+        """Transform solution back."""
+        _ = solution, cache
+        if not self.last_model:
+            raise RuntimeError
+        return self.last_model.evaluate(solution)
 
 
-# p = ChangeSensePass()
-# print(
-#     p.name,
-#     p.requires,
-#     p.sense,
-# )
+c = ChangeSensePass(Sense.Min)
+pycsp = PyChangeSensePass(Sense.Max)
+pm = PassManager([c, pycsp])
 
-class PyMaxBiasAnalysis(AnalysisPass):
-    @property
-    def name(self) -> str:
-        return "py-max-bias"
-
-    def run(self, model: Model, cache: AnalysisCache) -> float:
-        max_val = 0.0
-        for _, bias in model.objective.items():
-            max_val = max(max_val, bias)
-        return max_val
-
-
-
-m = MaxBiasAnalysis()
-pym = PyMaxBiasAnalysis()
-
-pycsp = PyChangeSensePass(Sense.Min)
-# print(
-#     pycsp.name,
-# )
-pm = PassManager([m, pycsp, pym])
-
-print("=== PassManager ===")
-print(pm)
+print("=== PassManager ===")  # noqa: T201
+print(pm)  # noqa: T201
 model2, cache = pm.run(aqm)
 
-print("=== Model ===")
-print(model2)
+print("=== Model Before Transformation ===")  # noqa: T201
+print(aqm)  # noqa: T201
 
-# print(cache)
-# print(cache[m.name].val)
-print("=== Model ===")
-print(model2)
-
-print(cache)
-print(cache[pym.name])
+print("=== Model After Transformation ===")  # noqa: T201
+print(model2)  # noqa: T201

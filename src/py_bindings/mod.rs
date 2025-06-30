@@ -18,6 +18,9 @@ mod py_var;
 #[cfg(feature = "transformations")]
 mod py_transformations;
 
+#[cfg(feature = "transformations")]
+pub use py_transformations::register_transformations;
+
 #[cfg(not(feature = "lq"))]
 use pyo3::prelude::*;
 
@@ -76,7 +79,7 @@ pub fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     py_modules::register_errors(m)?;
 
     #[cfg(feature = "transformations")]
-    py_modules::register_transformations(m)?;
+    py_transformations::register_transformations(m)?;
 
     Ok(())
 }

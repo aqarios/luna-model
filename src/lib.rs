@@ -5,6 +5,8 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub mod core;
 /// Collection of all errors that can be returned by this library.
 mod errors;
+/// Defines components required to compute the hash of a model.
+pub mod hashing;
 /// Module for importing commonly used structs and functions when working with this library.
 pub mod prelude;
 /// Everything related to the serialization of all structures that need to be sendable between
@@ -16,8 +18,6 @@ pub mod serialization;
 pub mod translator;
 /// Common types used in aq-models
 pub mod types;
-/// Defines components required to compute the hash of a model.
-pub mod hashing;
 
 #[cfg(feature = "transformations")]
 pub mod transformations;

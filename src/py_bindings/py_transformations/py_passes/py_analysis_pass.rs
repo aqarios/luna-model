@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use pyo3::{prelude::*, types::PyDict};
 
 use crate::{
-    py_bindings::{py_model::PyModel, py_transformations::PyAnalysisCache},
+    py_bindings::py_model::PyModel, transformations::analysis_cache::PyAnalysisCache,
     transformations::base_passes::Pass,
 };
 

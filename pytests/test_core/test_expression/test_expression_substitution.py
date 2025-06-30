@@ -2,6 +2,7 @@ import pytest
 
 from aqmodels import Environment, Variable, Vtype
 
+
 @pytest.mark.expression_substitution
 def test_expression_simple_var():
     with Environment():
