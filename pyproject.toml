@@ -35,6 +35,7 @@ markers = [
     "solution",
     "solution_translation",
 ]
+testpaths = ["pytests"]
 
 [tool.maturin]
 module-name = "aqmodels._core"
