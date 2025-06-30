@@ -226,7 +226,13 @@ class DuplicateConstraintNameError(Exception):
 
     def __str__(self, /) -> str: ...
 
+class CompilationError(Exception):
+    """Raised when an error occured during compilation of a model in the PassManager."""
+
+    def __str__(self, /) -> str: ...
+
 __all__ = [
+    "ComputationError",
     "ComputationError",
     "DecodeError",
     "DifferentEnvsError",

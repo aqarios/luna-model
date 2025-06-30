@@ -2,10 +2,13 @@ use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::{create_exception, prelude::*};
 
-use crate::transformations::errors::CompilationError as CompilationErr;
+use crate::core::RcSolution;
+use crate::py_bindings::py_sol::PySolution;
 use crate::transformations::analysis_cache::PyAnalysisCache;
+use crate::transformations::errors::CompilationError as CompilationErr;
 use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
 
+use super::py_ir::PyIR;
 use super::py_module::AnyPass;
 
 // TODO: Docstrings
@@ -42,10 +45,13 @@ impl PyPassManager {
     }
 
     #[pyo3(name = "run")]
-    pub fn py_run(&self, model: PyModel) -> PyResult<(PyModel, PyAnalysisCache)> {
-        let input = model.borrow().deep_clone();
-        let ir = self.run(input)?;
-        Ok((PyModel::new(ir.model), PyAnalysisCache::new(ir.cache)))
+    pub fn py_run(&self, model: PyModel) -> PyResult<PyIR> {
+        Ok(PyIR(self.run(model.borrow().deep_clone())?))
+    }
+
+    #[pyo3(name = "backwards")]
+    pub fn py_backwargs(&self, solution: &PySolution, ir: &PyIR) -> PySolution {
+        PySolution(RcSolution(self.backwards(solution.as_ref().clone(), &ir.0).into()))
     }
 }
 

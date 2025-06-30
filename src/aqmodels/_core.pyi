@@ -3676,5 +3676,6 @@ __all__ = [
     "Variable",
     "Vtype",
     "errors",
+    "transformations",
     "translator",
 ]

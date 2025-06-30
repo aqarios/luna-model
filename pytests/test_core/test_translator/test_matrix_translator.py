@@ -7,15 +7,11 @@ import scipy.sparse as sp  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 
 from aqmodels import Model, Sense, Variable, Vtype
-from aqmodels.errors import (
-    ModelNotQuadraticError,
-    ModelNotUnconstrainedError,
-    ModelSenseNotMinimizeError,
-    ModelVtypeError,
-    TranslationError,
-    VariableExistsError,
-    VariableNamesError,
-)
+from aqmodels.errors import (ModelNotQuadraticError,
+                             ModelNotUnconstrainedError,
+                             ModelSenseNotMinimizeError, ModelVtypeError,
+                             TranslationError, VariableExistsError,
+                             VariableNamesError)
 from aqmodels.translator import QuboTranslator
 
 from ..utils import make_seed

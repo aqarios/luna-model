@@ -54,16 +54,25 @@ class PyChangeSensePass(TransformationPass):
         return self.last_model.evaluate(solution)
 
 
-c = ChangeSensePass(Sense.Min)
-pycsp = PyChangeSensePass(Sense.Max)
-pm = PassManager([c, pycsp])
+target_sense = Sense.Max
+c = ChangeSensePass(target_sense)
+pycsp = PyChangeSensePass(target_sense)
+pm = PassManager([c])
+py_pm = PassManager([pycsp])
 
-print("=== PassManager ===")  # noqa: T201
+print("=== PassManager (builtin pass) ===")  # noqa: T201
 print(pm)  # noqa: T201
-model2, cache = pm.run(aqm)
+ir = pm.run(aqm)
+
+print("=== PassManager (custom pass) ===")  # noqa: T201
+print(py_pm)  # noqa: T201
+py_ir = py_pm.run(aqm)
 
 print("=== Model Before Transformation ===")  # noqa: T201
 print(aqm)  # noqa: T201
 
-print("=== Model After Transformation ===")  # noqa: T201
-print(model2)  # noqa: T201
+print("=== Model After Transformation (builtin) ===")  # noqa: T201
+print(ir.model)  # noqa: T201
+
+print("=== Model After Transformation (custom pass) ===")  # noqa: T201
+print(py_ir.model)  # noqa: T201

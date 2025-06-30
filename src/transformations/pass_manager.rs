@@ -8,7 +8,7 @@ use super::{
     analysis_cache::AnalysisCache,
     base_passes::{Pass, TransformationType},
     errors::CompilationError,
-    intermediate_representation::IntermediateRepresentation,
+    intermediate_representation::{ExecutionLog, IntermediateRepresentation},
 };
 
 #[derive(Debug)]
@@ -55,8 +55,7 @@ impl PassManager {
         self.check_dependencies()?;
 
         let mut cache = AnalysisCache::new();
-
-        let mut execution_log = Vec::new();
+        let mut execution_log = ExecutionLog::new();
 
         for pass in self.passes.iter() {
             let timer = Timer::start();
@@ -73,7 +72,7 @@ impl PassManager {
                 }
             };
             let timing = timer.stop();
-            execution_log.push((pass.name().to_owned(), timing, kind))
+            execution_log.push(pass.name(), timing, kind)
         }
 
         let ir = IntermediateRepresentation {
@@ -85,8 +84,8 @@ impl PassManager {
     }
 
     pub fn backwards(&self, mut solution: Solution, ir: &IntermediateRepresentation) -> Solution {
-        for (general_pass, (_, _, kind)) in self.passes.iter().zip(ir.execution_log.iter()).rev() {
-            match (general_pass, kind) {
+        for (general_pass, log) in self.passes.iter().zip(ir.execution_log.iter()).rev() {
+            match (general_pass, &log.kind) {
                 (Pass::Transformation(pass), Some(TransformationType::DidTransform)) => {
                     solution = pass.backwards(solution, &ir.cache);
                 }

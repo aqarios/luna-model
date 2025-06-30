@@ -19,10 +19,10 @@ pm = PassManager([m, c])
 
 print("=== PassManager ===")  # noqa: T201
 print(pm)  # noqa: T201
-model2, cache = pm.run(aqm)
+ir = pm.run(aqm)
 
 print("=== Model Before Transformation ===")  # noqa: T201
 print(aqm)  # noqa: T201
 
 print("=== Model After Transformation ===")  # noqa: T201
-print(model2)  # noqa: T201
+print(ir.model)  # noqa: T201

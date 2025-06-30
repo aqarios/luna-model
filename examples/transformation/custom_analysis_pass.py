@@ -40,6 +40,6 @@ pm = PassManager([m, pym])
 
 print("=== PassManager ===")  # noqa: T201
 print(pm)  # noqa: T201
-model2, cache = pm.run(aqm)
-print("Builtin MaxBiasAnalysis =", cache[m.name].val)  # noqa: T201
-print("Custom PyMaxBiasAnalysis =", cache[pym.name])  # noqa: T201
+ir = pm.run(aqm)
+print("Builtin MaxBiasAnalysis =", ir.cache[m.name].val)  # noqa: T201
+print("Custom PyMaxBiasAnalysis =", ir.cache[pym.name])  # noqa: T201

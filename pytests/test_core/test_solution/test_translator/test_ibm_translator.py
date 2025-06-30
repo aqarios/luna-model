@@ -7,13 +7,8 @@ import pytest
 from docplex.mp.model import Model as CPXModel
 from qiskit import QuantumCircuit, generate_preset_pass_manager
 from qiskit.circuit.library import QAOAAnsatz
-from qiskit.primitives import (
-    BitArray,
-    PrimitiveResult,
-    PubResult,
-    StatevectorEstimator,
-    StatevectorSampler,
-)
+from qiskit.primitives import (BitArray, PrimitiveResult, PubResult,
+                               StatevectorEstimator, StatevectorSampler)
 from qiskit.providers import BackendV2
 from qiskit.quantum_info import SparsePauliOp
 from qiskit_aer import AerSimulator
