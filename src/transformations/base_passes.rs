@@ -10,23 +10,24 @@ use super::{
 #[cfg(feature = "py")]
 use pyo3::prelude::pyclass;
 
-pub type AnalysisPassResult = Result<AnalysisCacheElement, AnalysisPassError>;
+pub type AnalysisPassResult = Result<Option<AnalysisCacheElement>, AnalysisPassError>;
 
 #[cfg_attr(
     all(feature = "py", not(feature = "lq")),
-    pyclass(name = "TransformationType", module = "aqmodels")
+    pyclass(name = "ActionType", module = "aqmodels")
 )]
 #[cfg_attr(
     all(feature = "py", feature = "lq"),
-    pyclass(name = "TransformationType", module = "luna_quantum")
+    pyclass(name = "ActionType", module = "luna_quantum")
 )]
 #[derive(Clone)]
-pub enum TransformationType {
+pub enum ActionType {
     DidTransform,
-    NoTranform,
+    DidAnalysis,
+    Nothing,
 }
 
-pub type TransformationPassResult = Result<(Model, TransformationType), TransformationPassError>;
+pub type TransformationPassResult = Result<(Model, ActionType), TransformationPassError>;
 
 pub trait BasePass: Debug {
     fn name(&self) -> String;

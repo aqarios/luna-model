@@ -7,7 +7,7 @@ use crate::{
     py_bindings::{py_model::PyModel, py_sol::PySolution},
     transformations::{
         analysis_cache::PyAnalysisCache,
-        base_passes::{Pass, TransformationType},
+        base_passes::{Pass, ActionType},
     },
 };
 
@@ -50,7 +50,7 @@ impl PyTransformationPass {
         &self,
         model: PyModel,
         cache: &PyAnalysisCache,
-    ) -> PyResult<(PyModel, TransformationType)> {
+    ) -> PyResult<(PyModel, ActionType)> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'run' method is not implemented.",
         ))

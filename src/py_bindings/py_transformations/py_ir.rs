@@ -5,7 +5,7 @@ use crate::{
     py_bindings::{py_model::PyModel, py_timing::PyTiming},
     transformations::{
         analysis_cache::PyAnalysisCache,
-        base_passes::TransformationType,
+        base_passes::ActionType,
         intermediate_representation::{IntermediateRepresentation, LogElement},
     },
 };
@@ -31,7 +31,7 @@ use crate::{
 pub struct PyLogElement {
     pass_name: String,
     timing: PyTiming,
-    kind: Option<TransformationType>,
+    kind: ActionType,
 }
 impl PyLogElement {
     fn new(elem: &LogElement) -> Self {

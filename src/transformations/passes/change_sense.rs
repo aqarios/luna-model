@@ -2,7 +2,7 @@ use crate::{
     core::{operations::MulAssignToExpression, Model, Sense, Solution},
     transformations::{
         analysis_cache::AnalysisCache,
-        base_passes::{BasePass, TransformationPass, TransformationPassResult, TransformationType},
+        base_passes::{BasePass, TransformationPass, TransformationPassResult, ActionType},
     },
 };
 
@@ -38,11 +38,11 @@ impl TransformationPass for ChangeSensePass {
 
     fn run(&self, mut model: Model, _cache: &AnalysisCache) -> TransformationPassResult {
         if model.sense == self.sense {
-            return Ok((model, TransformationType::NoTranform));
+            return Ok((model, ActionType::Nothing));
         } else {
             model.objective.mul_assign(-1.0);
             model.set_sense(self.sense);
-            return Ok((model, TransformationType::DidTransform));
+            return Ok((model, ActionType::DidTransform));
         }
     }
 

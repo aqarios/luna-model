@@ -6,7 +6,7 @@ use crate::core::{Model, Solution, Timer};
 
 use super::{
     analysis_cache::AnalysisCache,
-    base_passes::{Pass, TransformationType},
+    base_passes::{ActionType, Pass},
     errors::CompilationError,
     intermediate_representation::{ExecutionLog, IntermediateRepresentation},
 };
@@ -63,12 +63,16 @@ impl PassManager {
                 Pass::Transformation(x) => {
                     let ret = x.run(model, &cache)?;
                     model = ret.0;
-                    Some(ret.1)
+                    ret.1
                 }
                 Pass::Analysis(x) => {
                     let ret = x.run(&model, &mut cache)?;
-                    cache.insert(&x.name(), ret);
-                    None
+                    if let Some(inner) = ret {
+                        cache.insert(&x.name(), inner);
+                        ActionType::DidAnalysis
+                    } else {
+                        ActionType::Nothing
+                    }
                 }
             };
             let timing = timer.stop();
@@ -86,7 +90,7 @@ impl PassManager {
     pub fn backwards(&self, mut solution: Solution, ir: &IntermediateRepresentation) -> Solution {
         for (general_pass, log) in self.passes.iter().zip(ir.execution_log.iter()).rev() {
             match (general_pass, &log.kind) {
-                (Pass::Transformation(pass), Some(TransformationType::DidTransform)) => {
+                (Pass::Transformation(pass), ActionType::DidAnalysis) => {
                     solution = pass.backwards(solution, &ir.cache);
                 }
                 _ => {}
