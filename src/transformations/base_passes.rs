@@ -13,8 +13,12 @@ use pyo3::prelude::pyclass;
 pub type AnalysisPassResult = Result<AnalysisCacheElement, AnalysisPassError>;
 
 #[cfg_attr(
-    feature = "py",
+    all(feature = "py", not(feature = "lq")),
     pyclass(name = "TransformationType", module = "aqmodels")
+)]
+#[cfg_attr(
+    all(feature = "py", feature = "lq"),
+    pyclass(name = "TransformationType", module = "luna_quantum")
 )]
 #[derive(Clone)]
 pub enum TransformationType {
