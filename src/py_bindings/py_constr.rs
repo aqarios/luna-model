@@ -45,8 +45,8 @@ use pyo3::{prelude::*, types::PyBytes};
 /// -----
 /// - This class does not check feasibility or enforce satisfaction.
 /// - Use `encode()`/`decode()` to serialize constraints alongside expressions.
-#[cfg_attr(feature = "lq", pyclass(unsendable, name = "Constraints", module = "luna_quantum"))]
 #[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Constraints", module = "aqmodels"))]
+#[cfg_attr(feature = "lq", pyclass(unsendable, name = "Constraints", module = "luna_quantum"))]
 #[derive(Debug, Clone)]
 pub struct PyConstraints {
     pub data: Either<Constraints, Rc<RefCell<Model>>>,
@@ -103,8 +103,8 @@ impl PyConstraints {
 ///
 /// >>> expr = 2 * x + 1
 /// >>> c2 = expr <= 10.0
-#[cfg_attr(feature = "lq", pyclass(unsendable, name = "Constraint", module = "luna_quantum"))]
 #[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Constraint", module = "aqmodels"))]
+#[cfg_attr(feature = "lq", pyclass(unsendable, name = "Constraint", module = "luna_quantum"))]
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyConstraint(pub Rc<RefCell<Constraint>>);
 

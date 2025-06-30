@@ -8,8 +8,8 @@ const fn unwrap_failed() -> ! {
     panic!("called `Bound::unwrap()` on an `Unbounded` value")
 }
 
-#[cfg_attr(all(feature = "py", feature = "lq"), pyclass(eq, name = "Bound", module = "luna_quantum"))]
 #[cfg_attr(all(feature = "py", not(feature = "lq")), pyclass(eq, name = "Bound", module = "aqmodels"))]
+#[cfg_attr(all(feature = "py", feature = "lq"), pyclass(eq, name = "Bound", module = "luna_quantum"))]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Bound {
     /// Explicitly unbounded value.

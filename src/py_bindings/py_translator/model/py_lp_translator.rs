@@ -25,8 +25,8 @@ use std::path::PathBuf;
 /// Convert it back to an LP file:
 ///
 /// >>> recovered = LpTranslator.to_file(model)
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "LpTranslator", module = "luna_quantum.translator"))]
 #[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "LpTranslator", module = "aqmodels.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "LpTranslator", module = "luna_quantum.translator"))]
 pub struct PyLpTranslator {}
 
 #[pymethods]

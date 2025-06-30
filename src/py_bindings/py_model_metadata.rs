@@ -3,8 +3,8 @@ use std::{cell::RefCell, fmt::Display, rc::Rc};
 use hashbrown::HashMap;
 use pyo3::{prelude::*, types::PyDict};
 
-#[cfg_attr(feature = "lq", pyclass(unsendable, subclass, name = "ModelMetadata", module = "luna_quantum"))]
 #[cfg_attr(not(feature = "lq"), pyclass(unsendable, subclass, name = "ModelMetadata", module = "aqmodels"))]
+#[cfg_attr(feature = "lq", pyclass(unsendable, subclass, name = "ModelMetadata", module = "luna_quantum"))]
 #[derive(Clone, Debug)]
 pub struct PyModelMetadata {
     pub data: Rc<RefCell<HashMap<String, PyObject>>>,

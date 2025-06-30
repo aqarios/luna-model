@@ -10,11 +10,23 @@ use crate::{
     },
 };
 
-#[pyclass(
-    unsendable,
-    get_all,
-    name = "LogElement",
-    module = "aqmodels.transformations"
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(
+        unsendable,
+        get_all,
+        name = "LogElement",
+        module = "aqmodels.transformations"
+    )
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(
+        unsendable,
+        get_all,
+        name = "LogElement",
+        module = "luna_quantum.transformations"
+    )
 )]
 pub struct PyLogElement {
     pass_name: String,
@@ -31,7 +43,8 @@ impl PyLogElement {
     }
 }
 
-#[pyclass(unsendable, name = "IR", module = "aqmodels.transformations")]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "IR", module = "aqmodels.transformations"))]
+#[cfg_attr(feature = "lq", pyclass(unsendable, name = "IR", module = "luna_quantum.transformations"))]
 #[derive(Deref, DerefMut)]
 pub struct PyIR(pub IntermediateRepresentation);
 

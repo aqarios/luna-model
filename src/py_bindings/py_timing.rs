@@ -27,8 +27,8 @@ use super::py_utils::repr_timing;
 /// 1.2999193
 /// >>> timing.qpu
 /// 0.02491934
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Timing", module = "luna_quantum"))]
 #[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Timing", module = "aqmodels"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Timing", module = "luna_quantum"))]
 #[derive(Clone, Deref, DerefMut, Debug)]
 pub struct PyTiming(pub Timing);
 
@@ -45,8 +45,8 @@ pub struct PyTiming(pub Timing);
 /// >>> timer = Timer.start()
 /// >>> solution = ... # create a solution by running an algorithm.
 /// >>> timing = timer.stop()
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Timer", module = "luna_quantum"))]
 #[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Timer", module = "aqmodels"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Timer", module = "luna_quantum"))]
 #[derive(Deref, DerefMut)]
 pub struct PyTimer(pub Timer);
 

@@ -4,15 +4,24 @@ use pyo3::{create_exception, prelude::*};
 
 use crate::core::RcSolution;
 use crate::py_bindings::py_sol::PySolution;
-use crate::transformations::analysis_cache::PyAnalysisCache;
 use crate::transformations::errors::CompilationError as CompilationErr;
 use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
 
 use super::py_ir::PyIR;
 use super::py_module::AnyPass;
 
-// TODO: Docstrings
-#[pyclass(unsendable, name = "PassManager", module = "aqmodels.transformations")]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "PassManager", module = "aqmodels.transformations")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(
+        unsendable,
+        name = "PassManager",
+        module = "luna_quantum.transformations"
+    )
+)]
 #[derive(Deref, DerefMut)]
 pub struct PyPassManager(PassManager);
 
@@ -51,7 +60,9 @@ impl PyPassManager {
 
     #[pyo3(name = "backwards")]
     pub fn py_backwargs(&self, solution: &PySolution, ir: &PyIR) -> PySolution {
-        PySolution(RcSolution(self.backwards(solution.as_ref().clone(), &ir.0).into()))
+        PySolution(RcSolution(
+            self.backwards(solution.as_ref().clone(), &ir.0).into(),
+        ))
     }
 }
 

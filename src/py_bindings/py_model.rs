@@ -82,8 +82,8 @@ use pyo3::{prelude::*, types::PyBytes};
 /// - The `Model` class does not solve the optimization problem.
 /// - Use `.objective`, `.constraints`, and `.environment` to access the symbolic content.
 /// - Use `encode()` and `decode()` to serialize and recover models.
-#[cfg_attr(feature = "lq",      pyclass(unsendable, subclass, name = "Model", module = "luna_quantum"))]
 #[cfg_attr(not(feature = "lq"), pyclass(unsendable, subclass, name = "Model", module = "aqmodels"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, subclass, name = "Model", module = "luna_quantum"))]
 #[derive(Clone, Deref, DerefMut)]
 pub struct PyModel {
     #[deref]

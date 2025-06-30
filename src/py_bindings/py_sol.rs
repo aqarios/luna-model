@@ -84,8 +84,8 @@ enum BitOrder {
 /// -----
 /// - To ensure metadata like objective values or feasibility, use `model.evaluate(solution)`.
 /// - Use `encode()` and `decode()` to serialize and recover solutions.
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Solution", module = "luna_quantum"))]
 #[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Solution", module = "aqmodels"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Solution", module = "luna_quantum"))]
 #[derive(Deref, DerefMut, Debug)]
 pub struct PySolution(pub RcSolution);
 

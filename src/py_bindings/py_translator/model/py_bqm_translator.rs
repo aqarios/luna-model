@@ -122,8 +122,8 @@ def extract(bqm, name):
 /// Convert it back to a dense matrix:
 ///
 /// >>> recovered = BqmTranslator.from_aq(model)
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "BqmTranslator", module = "luna_quantum.translator"))]
 #[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "BqmTranslator", module = "aqmodels.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "BqmTranslator", module = "luna_quantum.translator"))]
 pub struct PyBqmTranslator {}
 
 #[pymethods]
