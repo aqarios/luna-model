@@ -1,4 +1,4 @@
-from aqmodels import Model, Variable, Vtype, Bounds, Unbounded
+from aqmodels import Bounds, Model, Unbounded, Variable, Vtype
 
 
 def test_hash_consistent_empty():
@@ -321,6 +321,7 @@ def test_hash_consistent_objective_higher_order_and_linear_and_quadratic_and_off
         r = Variable("real_var", vtype=Vtype.Real)
     model.objective += b * s * i * r + b * r + 2.2 + s
     assert hash(model) == 6909893265384172710
+
 
 def test_hash_consistent_full():
     model = Model()

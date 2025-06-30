@@ -1,6 +1,6 @@
 from random import Random
+
 import pytest
-from random import Random
 
 from aqmodels import Environment, Model, Solution, Variable, Vtype
 from pytests.test_core.utils import make_seed, random_int

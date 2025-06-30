@@ -5,11 +5,8 @@ import pytest
 from dimod import BinaryQuadraticModel
 
 from aqmodels import Model, Sense, Variable
-from aqmodels.errors import (
-    ModelSenseNotMinimizeError,
-    TranslationError,
-    VariableNamesError,
-)
+from aqmodels.errors import (ModelSenseNotMinimizeError, TranslationError,
+                             VariableNamesError)
 from aqmodels.translator import BqmTranslator
 from pytests.test_core.utils import generate_bqms, make_seed
 

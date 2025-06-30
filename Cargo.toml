@@ -1,6 +1,6 @@
 [package]
 name = "aqmodels"
-version = "0.1.5-rc6"
+version = "0.1.5-rc7"
 edition = "2021"
 description = "Rust based implementation of aq-models"
 readme = "README.md"
@@ -23,7 +23,7 @@ global_counter = "0.2.2"
 hashbrown = "0.15.2"
 nohash = "0.2.0"
 num = "0.4.3"
-once_cell = "1.20.2"
+once_cell = "1.21.3"
 rand = "0.9.0"
 rustc-hash = "2.1.1"
 prost = "0.13.5"
@@ -44,6 +44,14 @@ optional = true
 version = "0.24.0"
 optional = true
 
+[dependencies.aqm-macros]
+path = "aqm-macros"
+# features = [ "py" ]
+default-features = false
+optional = true
+
 [features]
 py = ["pyo3", "numpy"]
-lq = ["py"]
+transformations = ["aqm-macros"]
+pyt = ["py", "aqm-macros/py", "transformations"]
+lq = ["py", "pyt"]

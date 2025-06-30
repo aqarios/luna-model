@@ -5,7 +5,7 @@ from typing import Literal, Self, overload
 
 from numpy.typing import NDArray
 
-from . import errors, translator
+from . import errors, transformations, translator
 
 # _variable.pyi
 class Vtype(Enum):
@@ -3676,5 +3676,6 @@ __all__ = [
     "Variable",
     "Vtype",
     "errors",
+    "transformations",
     "translator",
 ]

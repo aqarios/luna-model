@@ -3,7 +3,8 @@ import sys
 from itertools import permutations
 
 import numpy as np
-from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel, Vartype, generators
+from dimod import (BinaryQuadraticModel, ConstrainedQuadraticModel, Vartype,
+                   generators)
 
 
 def todo(msg: str | None = None):

@@ -1,0 +1,214 @@
+from abc import abstractmethod
+from enum import Enum
+from typing import Any, Literal, overload
+
+from aqmodels import Model, Sense, Solution, Timing
+
+class BasePass:
+    @property
+    def name(self) -> str:
+        """Get the name of this pass."""
+        ...
+    @property
+    def requires(self) -> list[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+
+class TransformationPass(BasePass):
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Get the name of this pass."""
+        ...
+    @property
+    def requires(self) -> list[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+    @property
+    def invalidates(self) -> list[str]:
+        """Get a list of passes that are invalidated by this pass."""
+        ...
+    @abstractmethod
+    def run(
+        self, model: Model, cache: AnalysisCache
+    ) -> tuple[Model, TransformationType]:
+        """Run/Execute this transformation pass."""
+        ...
+    @abstractmethod
+    def backwards(self, solution: Solution, cache: AnalysisCache) -> Solution:
+        """Convert a solution back to fit this pass' input.
+
+        Convert a solution from a representation fitting this pass' output to
+        a solution representation fitting this pass' input.
+        """
+        ...
+
+class AnalysisCache:
+    @overload
+    def __getitem__(  # type: ignore[reportOverlappingOverload]
+        self, key: Literal["max-bias"]
+    ) -> MaxBias: ...
+    @overload
+    def __getitem__(self, key: str) -> dict[Any, Any]: ...
+    def __getitem__(self, key: str) -> Any:
+        """Get the analysis result for a specific analysis pass."""
+        ...
+
+class AnalysisPass(BasePass):
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Get the name of this pass."""
+        ...
+    @property
+    def requires(self) -> list[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+    @abstractmethod
+    def run(self, model: Model, cache: AnalysisCache) -> float:
+        """Run/Execute this analysis pass."""
+        ...
+
+class TransformationType(Enum):
+    DidTransform = ...
+    """Indicate that the pass did transform the model."""
+    NoTranform = ...
+    """Indicate that the pass did NOT transform the model."""
+
+class ChangeSensePass(BasePass):
+    """A transformation pass to change the model's Sense to a target Sense."""
+
+    def __init__(self, sense: Sense) -> None:
+        """Transform the model's Sense to a target Sense.
+
+        Parameters
+        ----------
+        sense : Sense
+            The target sense of the model after calling the `run` method on it.
+        """
+        ...
+    @property
+    def sense(self) -> Sense:
+        """Get the specified target sense of this pass."""
+        ...
+
+class MaxBias:
+    """An analysis pass result storing the max bias (coefficient) of a model."""
+
+    @property
+    def val(self) -> float:
+        """Get the value of the maxium bias."""
+        ...
+
+class MaxBiasAnalysis(BasePass):
+    """An analysis pass computing the maximum bias contained in the model."""
+
+    def __init__(self) -> None: ...
+
+class LogElement:
+    """An element of the execution log of an intermediate representation (IR)."""
+
+    @property
+    def pass_name(self) -> str:
+        """The name of the pass."""
+        ...
+
+    @property
+    def timing(self) -> Timing:
+        """Timing information for this log element."""
+        ...
+
+    @property
+    def kind(self) -> TransformationType | None:
+        """Transformation type information for this log element, if available."""
+        ...
+
+class IR:
+    """The intermediate representation (IR) of a model after transformation.
+
+    The IR contains the resulting model after transformation (`ir.model`) as well
+    as the analysis cache (`ir.cache`) and an execution log (`ir.execution_log`).
+    """
+
+    @property
+    def model(self) -> Model:
+        """Get the model stored in the IR."""
+        ...
+
+    @property
+    def cache(self) -> AnalysisCache:
+        """Get the analysis cache stored the IR."""
+        ...
+
+    @property
+    def execution_log(self) -> list[LogElement]:
+        """Get the analysis cache stored the IR."""
+        ...
+
+class PassManager:
+    """Manage and execute a sequence of passes on a model.
+
+    The PassManager implements a compiler-style pass pattern, enabling both
+    general-purpose and algorithm-specific manipulations of optimization
+    models. Each pass is an atomic operation (for example, ChangeSensePass)
+    that transforms the model or its intermediate representation (IR). The
+    PassManager runs each pass in order and produces a rich IR that records
+    the transformations applied and supports back-transformations.
+    """
+
+    def __init__(
+        self, passes: list[BasePass | TransformationPass | AnalysisPass]
+    ) -> None:
+        """Manage and execute a sequence of passes on a model.
+
+        The PassManager implements a compiler-style pass pattern, enabling both
+        general-purpose and algorithm-specific manipulations of optimization
+        models. Each pass is an atomic operation (for example, ChangeSensePass)
+        that transforms the model or its intermediate representation (IR). The
+        PassManager runs each pass in order and produces a rich IR that records
+        the transformations applied and supports back-transformations.
+
+        Parameters
+        ----------
+        passes : list[TransformationPass | AnalysisPass]
+            An ordered sequence of Pass instances to apply. Each Pass must conform to
+            the `TransformationPass` or `AnalysisPass` interface.
+        """
+        ...
+
+    def run(self, model: Model) -> IR:
+        """Apply all configures passes.
+
+        Apply all configured passes to the given model and return the
+        resulting intermediate representation.
+
+        Parameters
+        ----------
+        model : Model
+            The model to be transformed.
+
+        Returns
+        -------
+        IR
+            The intermediate representation of the model after transformation.
+        """
+        ...
+
+    def backwards(self, solution: Solution, ir: IR) -> Solution:
+        """Apply the back transformation to the given solution.
+
+        Parameters
+        ----------
+        solution : Solution
+            The solution to transform back to a representation fitting the original
+            (input) model of this `PassManager`.
+        ir : IR
+            The intermediate representation (IR) resulted from the `run` call.
+
+        Returns
+        -------
+        Solution
+            A solution object representing a solution to the original problem passed
+            to this `PassManager`'s run method.
+        """
+        ...
