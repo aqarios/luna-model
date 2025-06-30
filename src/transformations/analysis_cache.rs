@@ -1,8 +1,9 @@
-use super::passes::max_bias::MaxBias;
+use super::passes::{max_bias::MaxBias, binary_spin::BinarySpinInfo};
 use aqm_macros::register_caches;
 use std::{collections::hash_map::HashMap, fmt::Debug};
 
 register_caches!(MaxBias);
+
 
 pub struct AnalysisCache {
     store: HashMap<String, AnalysisCacheElement>,

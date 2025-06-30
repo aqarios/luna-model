@@ -41,9 +41,9 @@ impl PassManager {
                     x
                 )));
             }
-            satisfied.insert(pass.name().to_owned());
+            satisfied.insert(pass.name());
             if let Pass::Transformation(transform) = pass {
-                transform.invalidates().iter().for_each(|&x| {
+                transform.invalidates().iter().for_each(|x| {
                     satisfied.remove(x);
                 });
             }

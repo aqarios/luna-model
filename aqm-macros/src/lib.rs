@@ -471,6 +471,8 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
                         .collect(),
                 }
             }
+
+            #(#accessors)*
         }
 
 

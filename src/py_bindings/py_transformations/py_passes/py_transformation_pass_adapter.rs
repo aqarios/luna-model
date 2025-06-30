@@ -80,8 +80,13 @@ impl BasePass for PyTransformationPassAdapter {
 }
 
 impl TransformationPass for PyTransformationPassAdapter {
-    fn invalidates(&self) -> &[&str] {
-        &[]
+    fn invalidates(&self) -> Vec<String> {
+        Python::with_gil(|py| {
+            self.inner
+                .getattr(py, "invalidates")
+                .and_then(|res| res.extract::<Vec<String>>(py))
+                .expect("no 'invalidates' method")
+        })
     }
 
     fn run(&self, mut model: Model, cache: &AnalysisCache) -> TransformationPassResult {

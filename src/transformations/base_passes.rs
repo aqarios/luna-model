@@ -31,7 +31,9 @@ pub type TransformationPassResult = Result<(Model, ActionType), TransformationPa
 
 pub trait BasePass: Debug {
     fn name(&self) -> String;
-    fn requires(&self) -> Vec<String>;
+    fn requires(&self) -> Vec<String> {
+        Vec::new()
+    }
     // TODO fn requires_spec(&self) -> ModelSpecs
 }
 
@@ -40,7 +42,9 @@ pub trait AnalysisPass: BasePass {
 }
 
 pub trait TransformationPass: BasePass {
-    fn invalidates(&self) -> &[&str];
+    fn invalidates(&self) -> Vec<String> {
+        Vec::new()
+    }
     fn run(&self, model: Model, cache: &AnalysisCache) -> TransformationPassResult;
 
     fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution;
