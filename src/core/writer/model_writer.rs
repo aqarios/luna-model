@@ -2,7 +2,7 @@ use crate::core::constraints::Constraints;
 use crate::core::expression::One;
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::writer::line_length_restrictor::LineLengthRestrictor;
-use crate::core::{Bound, Constraint, Expression, Model, SharedEnvironment, Variable, Vtype};
+use crate::core::{Bound, Constraint, Expression, Model, SharedEnvironment, Vtype};
 use crate::types::Bias;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
