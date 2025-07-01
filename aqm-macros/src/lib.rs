@@ -400,17 +400,17 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
         });
         // clone_py arm
         clone_arms.push(quote! {
-            AnalysisCacheElement::#var_ident(v) => AnalysisCacheElement::#var_ident(*v),
+            AnalysisCacheElement::#var_ident(v) => AnalysisCacheElement::#var_ident(v.clone()),
         });
         // element->PyObject arm in get_element
         element_arms.push(quote! {
-            AnalysisCacheElement::#var_ident(v) => v.into_py_any(py)?,
+            AnalysisCacheElement::#var_ident(v) => v.clone().into_py_any(py)?,
         });
         // accessor method
         accessors.push(quote! {
             pub fn #snake(&self) -> Option<#ident> {
                 if let Some(AnalysisCacheElement::#var_ident(v)) = self.get(#key) {
-                    Some(*v)
+                    Some(v.clone())
                 } else {
                     None
                 }
@@ -429,7 +429,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
     });
     element_arms.push(quote! {
         #[cfg(feature = "py")]
-        AnalysisCacheElement::PyAnalysis(v) => v.into_py_any(py)?,
+        AnalysisCacheElement::PyAnalysis(v) => v.clone().into_py_any(py)?,
     });
 
     // 2) Emit the combined code
@@ -471,6 +471,8 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
                         .collect(),
                 }
             }
+
+            #(#accessors)*
         }
 
 
