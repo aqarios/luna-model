@@ -157,7 +157,7 @@ class PassManager:
     """
 
     def __init__(
-        self, passes: list[BasePass | TransformationPass | AnalysisPass]
+        self, passes: list[BasePass | TransformationPass | AnalysisPass] | None = ...
     ) -> None:
         """Manage and execute a sequence of passes on a model.
 
@@ -170,9 +170,9 @@ class PassManager:
 
         Parameters
         ----------
-        passes : list[TransformationPass | AnalysisPass]
+        passes : list[TransformationPass | AnalysisPass] | None
             An ordered sequence of Pass instances to apply. Each Pass must conform to
-            the `TransformationPass` or `AnalysisPass` interface.
+            the `TransformationPass` or `AnalysisPass` interface, default None.
         """
         ...
 
