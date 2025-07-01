@@ -1,10 +1,35 @@
-from . import transformations, utils
-from ._core import (Bounds, Comparator, Constant, Constraint, Constraints,
-                    Environment, Expression, ExpressionIterator, HigherOrder,
-                    Linear, Model, Quadratic, Result, ResultIterator,
-                    ResultView, Sample, SampleIterator, Samples,
-                    SamplesIterator, Sense, Solution, Timer, Timing, Unbounded,
-                    Variable, Vtype, errors, translator)
+from ._core import (
+    Bounds,
+    Comparator,
+    Constant,
+    Constraint,
+    Constraints,
+    Environment,
+    Expression,
+    ExpressionIterator,
+    HigherOrder,
+    Linear,
+    Model,
+    Quadratic,
+    Result,
+    ResultIterator,
+    ResultView,
+    Sample,
+    SampleIterator,
+    Samples,
+    SamplesIterator,
+    Sense,
+    Solution,
+    Timer,
+    Timing,
+    Unbounded,
+    Variable,
+    Vtype,
+    errors,
+    translator,
+    utils,
+    transformations,
+)
 from .utils import quicksum
 
 __all__ = [
@@ -38,5 +63,5 @@ __all__ = [
     "Quadratic",
     "HigherOrder",
     "utils",
-    "quicksum",
+    "quicksum"
 ]

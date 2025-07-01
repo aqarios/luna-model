@@ -4,7 +4,7 @@ use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::{pyclass, pymethods, PyResult};
 use std::time::{Duration, SystemTime};
 
-use super::py_utils::repr_timing;
+use super::py_utilities::repr_timing;
 
 /// The object that holds information about an algorithm's runtime.
 ///

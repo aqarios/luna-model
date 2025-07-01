@@ -2,13 +2,9 @@
 
 from aqmodels import Model, Solution
 from aqmodels._core import Sense, Variable
-from aqmodels.transformations import (
-    AnalysisCache,
-    ChangeSensePass,
-    PassManager,
-    TransformationPass,
-    TransformationType,
-)
+from aqmodels.transformations import (AnalysisCache, ChangeSensePass,
+                                      PassManager, TransformationPass,
+                                      TransformationType)
 
 aqm = Model()
 aqm.set_sense(sense=Sense.Max)

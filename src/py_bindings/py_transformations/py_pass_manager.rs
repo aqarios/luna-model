@@ -1,10 +1,8 @@
 use derive_more::{Deref, DerefMut};
-use pyo3::exceptions::PyRuntimeError;
-use pyo3::{create_exception, prelude::*};
+use pyo3::prelude::*;
 
 use crate::core::RcSolution;
 use crate::py_bindings::py_sol::PySolution;
-use crate::transformations::errors::CompilationError as CompilationErr;
 use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
 
 use super::py_ir::PyIR;
@@ -63,13 +61,5 @@ impl PyPassManager {
         PySolution(RcSolution(
             self.backwards(solution.as_ref().clone(), &ir.0).into(),
         ))
-    }
-}
-
-create_exception!(aqmodels.errors, CompilationError, PyRuntimeError);
-
-impl From<CompilationErr> for PyErr {
-    fn from(value: CompilationErr) -> Self {
-        CompilationError::new_err(value.to_string())
     }
 }
