@@ -4,7 +4,8 @@ use crate::{
         operations::{AddAssignToExpression, MulAssignToExpression, MulToExpression},
         VarRef,
     },
-    errors::{DifferentEnvsErr, VariablesFromDifferentEnvsErr}, types::{Bias, VarIndex},
+    errors::{DifferentEnvsErr, VariablesFromDifferentEnvsErr},
+    types::{Bias, VarIndex},
 };
 
 use super::{Expression, ExpressionBaseAdjustment};
@@ -98,7 +99,9 @@ impl Substitution for &Expression {
             }
         }
 
-        out.remove_variable(target.id);
+        if !replacement.contains(target) {
+            out.remove_variable(target.id);
+        }
         Ok(out)
     }
 }

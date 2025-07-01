@@ -5,6 +5,35 @@ from aqmodels.errors import VariableNotExistingError
 
 
 @pytest.mark.model_substitution
+def test_model_substitution_same_var():
+    m = Model()
+    with m.environment:
+        target = Variable("target", vtype=Vtype.Integer)
+        a = Variable("a", vtype=Vtype.Integer)
+
+    replacement = 2 * target
+
+    base_obj = a * 3.4 + 10.10 * target
+    expected_obj = a * 3.4 + 10.10 * 2 * target
+
+    constr_a = target * target
+    expected_constr_a = (2 * target) * (2 * target)
+    constr_b = a**3
+    expected_constr_b = a**3
+    m.objective = base_obj
+    m.constraints += constr_a <= 0, "a"
+    m.constraints += constr_b <= 0, "b"
+    m.substitute(target, replacement)
+
+    assert expected_obj.is_equal(m.objective)
+    assert expected_constr_a.is_equal(m.constraints[0].lhs)
+    assert expected_constr_b.is_equal(m.constraints[1].lhs)
+
+    r = m.environment.get_variable("target")
+    assert target == r
+
+
+@pytest.mark.model_substitution
 def test_model_substitution_var():
     m = Model()
     with m.environment:
@@ -25,7 +54,7 @@ def test_model_substitution_var():
     m.constraints += constr_b <= 0, "b"
     m.substitute(target, replacement)
 
-    assert expected_obj.is_equal(expected_obj)
+    assert expected_obj.is_equal(m.objective)
     assert expected_constr_a.is_equal(m.constraints[0].lhs)
     assert expected_constr_b.is_equal(m.constraints[1].lhs)
 
@@ -67,7 +96,7 @@ def test_model_substitution():
     m.constraints += constr_b <= 0, "b"
     m.substitute(target, replacement)
 
-    assert expected_obj.is_equal(expected_obj)
+    assert expected_obj.is_equal(m.objective)
     assert expected_constr_a.is_equal(m.constraints[0].lhs)
     assert expected_constr_b.is_equal(m.constraints[1].lhs)
 
