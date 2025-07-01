@@ -2,7 +2,7 @@ use super::passes::{max_bias::MaxBias, binary_spin::BinarySpinInfo};
 use aqm_macros::register_caches;
 use std::{collections::hash_map::HashMap, fmt::Debug};
 
-register_caches!(MaxBias);
+register_caches!(MaxBias, BinarySpinInfo);
 
 
 pub struct AnalysisCache {

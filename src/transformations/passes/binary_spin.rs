@@ -80,10 +80,8 @@ impl AnalysisPass for BinarySpinAnalysis {
         if cache.map.is_empty() {
             Ok(None)
         } else {
-            // Ok(Some(AnalysisCacheElement::BinarySpinInfo(cache)))
-            todo!()
+            Ok(Some(AnalysisCacheElement::BinarySpinInfoAnalysis(cache)))
         }
-
     }
 }
 
