@@ -226,8 +226,13 @@ class DuplicateConstraintNameError(Exception):
 
     def __str__(self, /) -> str: ...
 
-class CompilationError(Exception):
+class CompilationError(RuntimeError):
     """Raised when an error occured during compilation of a model in the PassManager."""
+
+    def __str__(self, /) -> str: ...
+
+class StartCannotBeInferredError(TypeError):
+    """To be raised when the start value in the quicksum cannot be inferred."""
 
     def __str__(self, /) -> str: ...
 

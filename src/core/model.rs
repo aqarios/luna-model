@@ -7,7 +7,7 @@ use super::expression::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionB
 use super::solution::OwnedSample;
 use super::traits::ContentEquality;
 use super::utils::{check_variables_sample, check_variables_sol};
-use super::{Environment, Expression, RcSolution, Sample, Substitution, VarRef, Vtype};
+use super::{Expression, RcSolution, Sample, Substitution, VarRef, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::OwnedResult;
 use crate::core::writer::ModelWriter;
@@ -26,11 +26,11 @@ pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 #[cfg_attr(
     all(feature = "py", not(feature = "lq")),
     pyclass(eq, eq_int, name = "Sense", module = "aqmodels")
-)] 
+)]
 #[cfg_attr(
     all(feature = "py", feature = "lq"),
     pyclass(eq, eq_int, name = "Sense", module = "luna_quantum")
-)] 
+)]
 #[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq, EnumString)]
 /// Enumeration of optimization senses supported by the optimization system.
 ///
@@ -119,7 +119,7 @@ impl Model {
 
     /// Create a new Model with a new environment created just for this model.
     pub fn new(name: Option<String>, sense: Option<Sense>) -> Self {
-        let rcenv = SharedEnvironment::new(Environment::new());
+        let rcenv = SharedEnvironment::default();
         Self {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
             objective: Expression::empty(rcenv.clone()),
@@ -164,13 +164,7 @@ impl Model {
 
     pub fn evaluate_solution(&self, sol: RcSolution) -> Result<RcSolution, EvaluationErr> {
         let vars_sol = &sol.variable_names;
-        let vars_env = &self
-            .environment
-            .borrow()
-            .variables
-            .iter()
-            .map(|v| v.name.clone())
-            .collect::<Vec<String>>();
+        let vars_env = &self.environment.variable_names();
         check_variables_sol(vars_sol, vars_env)?;
 
         let mut newsol = sol.0.deref().clone();
@@ -192,13 +186,7 @@ impl Model {
             Either::Left(a) => &a.sol.variable_names,
             Either::Right(b) => &b.variable_names,
         };
-        let vars_env = &self
-            .environment
-            .borrow()
-            .variables
-            .iter()
-            .map(|v| v.name.clone())
-            .collect::<Vec<String>>();
+        let vars_env = &self.environment.variable_names();
         check_variables_sample(vars_sample, vars_env)?;
 
         let obj_val = self.objective.evaluate_sample(sample);
@@ -262,6 +250,9 @@ impl Model {
     ) -> Result<(), DifferentEnvsErr> {
         self.objective = (&self.objective).substitute(target, replacement)?;
         self.constraints.substitute(target, replacement)?;
+        if !replacement.contains(target) {
+            self.environment.remove(target);
+        }
         Ok(())
     }
 }
@@ -269,7 +260,7 @@ impl Model {
 impl PartialEq for Model {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
-            && self.environment.borrow().id == other.environment.borrow().id
+            && self.environment.id() == other.environment.id()
             && self.objective == other.objective
             && self.constraints == other.constraints
     }
@@ -281,7 +272,7 @@ impl Debug for Model {
             .field("name", &self.name)
             .field("objective", &self.objective)
             .field("constraints", &self.constraints)
-            .field("environment_id", &self.environment.borrow().id)
+            .field("environment_id", &self.environment.id())
             .finish()
     }
 }

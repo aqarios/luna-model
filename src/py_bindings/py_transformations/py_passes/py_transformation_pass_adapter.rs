@@ -7,7 +7,7 @@ use crate::{
     py_bindings::py_model::PyModel,
     transformations::{
         analysis_cache::{AnalysisCache, PyAnalysisCache},
-        base_passes::{BasePass, TransformationPass, TransformationPassResult, TransformationType},
+        base_passes::{BasePass, TransformationPass, TransformationPassResult, ActionType},
         errors::TransformationPassError,
     },
 };
@@ -106,7 +106,7 @@ impl TransformationPass for PyTransformationPassAdapter {
                     ),
                 )
                 .map_err(|e| TransformationPassError(cls_name.clone(), e.to_string()))?;
-            let (py_model, py_tt): (Py<PyModel>, Py<TransformationType>) = py_res
+            let (py_model, py_tt): (Py<PyModel>, Py<ActionType>) = py_res
                 .extract(py)
                 .map_err(|e| TransformationPassError(cls_name.clone(), e.to_string()))?;
             let py_model_borrow = py_model.borrow(py);

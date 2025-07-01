@@ -1,16 +1,16 @@
 use crate::core::{Model, Timing};
 use std::slice::Iter;
 
-use super::{analysis_cache::AnalysisCache, base_passes::TransformationType};
+use super::{analysis_cache::AnalysisCache, base_passes::ActionType};
 
 pub struct LogElement {
     pub pass: String,
     pub timing: Timing,
-    pub kind: Option<TransformationType>,
+    pub kind: ActionType,
 }
 
 impl LogElement {
-    fn new(pass: String, timing: Timing, kind: Option<TransformationType>) -> Self {
+    fn new(pass: String, timing: Timing, kind: ActionType) -> Self {
         Self { pass, timing, kind }
     }
 }
@@ -27,7 +27,7 @@ impl ExecutionLog {
         self.log.iter()
     }
 
-    pub fn push(&mut self, pass_name: String, timing: Timing, kind: Option<TransformationType>) {
+    pub fn push(&mut self, pass_name: String, timing: Timing, kind: ActionType) {
         self.log.push(LogElement::new(pass_name, timing, kind));
     }
 }

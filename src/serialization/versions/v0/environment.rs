@@ -12,7 +12,6 @@ use prost::Message;
 pub struct SerEnvironment {
     // NOTE: Old "id" field has been removed
     // id: u32, // tag = 1 (Removed)
-    
     /// The number of variables registered in the environment.
     #[prost(uint32, tag = "2")]
     varcount: u32,
@@ -68,6 +67,14 @@ pub struct SerEnvironment {
     /// The reals' upper bounds.
     #[prost(double, repeated, tag = "18")]
     pub real_bounds_upper: Vec<f64>,
+
+
+    /// The length of the variables vector.
+    #[prost(uint64, tag = "19")]
+    variables_len: u64,
+    /// The indices of the ghost variables.
+    #[prost(uint32, repeated, tag = "20")]
+    ghosts: Vec<u32>,
 }
 
 /// Makes the SerEnvironment conform with the requirements for it to be an Encodable.
@@ -92,49 +99,53 @@ impl Creatable<Environment> for SerEnvironment {
     /// Creates a new instance of a serializabl environment and fills it based on an
     /// instance of Environment.
     fn new(environment: &Environment) -> Self {
-        let mut out = Self::base(environment.varcount.0);
+        let mut out = Self::base(environment.varcount.0, environment.variables.len() as u64);
 
-        for (i, var) in environment.variables.iter().enumerate() {
-            match var.vtype {
-                Vtype::Binary => {
-                    out.binary.push(force_u32(i));
-                    out.binary_names.push(var.name.clone());
-                }
-                Vtype::Spin => {
-                    out.spin.push(force_u32(i));
-                    out.spin_names.push(var.name.clone());
-                }
-                Vtype::Integer => {
-                    out.integer.push(force_u32(i));
-                    out.integer_names.push(var.name.clone());
+        for (i, var) in environment.variables().iter().enumerate() {
+            if var.name == Variable::ghost().name {
+                out.ghosts.push(force_u32(i));
+            } else {
+                match var.vtype {
+                    Vtype::Binary => {
+                        out.binary.push(force_u32(i));
+                        out.binary_names.push(var.name.clone());
+                    }
+                    Vtype::Spin => {
+                        out.spin.push(force_u32(i));
+                        out.spin_names.push(var.name.clone());
+                    }
+                    Vtype::Integer => {
+                        out.integer.push(force_u32(i));
+                        out.integer_names.push(var.name.clone());
 
-                    if var.bounds.lower.is_bounded() {
-                        out.integer_bounds_bounded_lower.push(true);
-                        out.integer_bounds_lower.push(var.bounds.lower.unwrap());
-                    } else {
-                        out.integer_bounds_bounded_lower.push(false);
+                        if var.bounds.lower.is_bounded() {
+                            out.integer_bounds_bounded_lower.push(true);
+                            out.integer_bounds_lower.push(var.bounds.lower.unwrap());
+                        } else {
+                            out.integer_bounds_bounded_lower.push(false);
+                        }
+                        if var.bounds.upper.is_bounded() {
+                            out.integer_bounds_bounded_upper.push(true);
+                            out.integer_bounds_upper.push(var.bounds.upper.unwrap());
+                        } else {
+                            out.integer_bounds_bounded_upper.push(false);
+                        }
                     }
-                    if var.bounds.upper.is_bounded() {
-                        out.integer_bounds_bounded_upper.push(true);
-                        out.integer_bounds_upper.push(var.bounds.upper.unwrap());
-                    } else {
-                        out.integer_bounds_bounded_upper.push(false);
-                    }
-                }
-                Vtype::Real => {
-                    out.real.push(force_u32(i));
-                    out.real_names.push(var.name.clone());
-                    if var.bounds.lower.is_bounded() {
-                        out.real_bounds_bounded_lower.push(true);
-                        out.real_bounds_lower.push(var.bounds.lower.unwrap());
-                    } else {
-                        out.real_bounds_bounded_lower.push(false);
-                    }
-                    if var.bounds.upper.is_bounded() {
-                        out.real_bounds_bounded_upper.push(true);
-                        out.real_bounds_upper.push(var.bounds.upper.unwrap());
-                    } else {
-                        out.real_bounds_bounded_upper.push(false);
+                    Vtype::Real => {
+                        out.real.push(force_u32(i));
+                        out.real_names.push(var.name.clone());
+                        if var.bounds.lower.is_bounded() {
+                            out.real_bounds_bounded_lower.push(true);
+                            out.real_bounds_lower.push(var.bounds.lower.unwrap());
+                        } else {
+                            out.real_bounds_bounded_lower.push(false);
+                        }
+                        if var.bounds.upper.is_bounded() {
+                            out.real_bounds_bounded_upper.push(true);
+                            out.real_bounds_upper.push(var.bounds.upper.unwrap());
+                        } else {
+                            out.real_bounds_bounded_upper.push(false);
+                        }
                     }
                 }
             }
@@ -146,9 +157,10 @@ impl Creatable<Environment> for SerEnvironment {
 
 impl SerEnvironment {
     /// Creates an empty serializable environment.
-    fn base(varcount: u32) -> Self {
+    fn base(varcount: u32, variables_len: u64) -> Self {
         Self {
             varcount,
+            variables_len,
             binary: Vec::new(),
             spin: Vec::new(),
             integer: Vec::new(),
@@ -165,6 +177,7 @@ impl SerEnvironment {
             real_bounds_bounded_upper: Vec::new(),
             real_bounds_lower: Vec::new(),
             real_bounds_upper: Vec::new(),
+            ghosts: Vec::new(),
         }
     }
 
@@ -173,9 +186,13 @@ impl SerEnvironment {
         // Serialization UPDATE
         let mut env = Environment::new_for(ENV_COUNTER.inc());
         env.varcount = VarId(self.varcount);
-        env.variables = Vec::with_capacity(self.varcount as usize);
+        env.variables = Vec::with_capacity(self.variables_len as usize);
         env.variables
-            .resize(self.varcount as usize, Variable::default());
+            .resize(self.variables_len as usize, Variable::default());
+
+        for i in self.ghosts.iter() {
+            env.variables[*i as usize] = Variable::ghost();
+        }
 
         for (i, v) in self.binary.iter().enumerate() {
             let name = self.binary_names[i].clone();

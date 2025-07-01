@@ -32,7 +32,7 @@ impl Display for IllegalConstraintNameErr {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct VariableNotExistingErr;
 impl Error for VariableNotExistingErr {}
 impl Display for VariableNotExistingErr {

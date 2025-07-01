@@ -29,9 +29,7 @@ class TransformationPass(BasePass):
         """Get a list of passes that are invalidated by this pass."""
         ...
     @abstractmethod
-    def run(
-        self, model: Model, cache: AnalysisCache
-    ) -> tuple[Model, TransformationType]:
+    def run(self, model: Model, cache: AnalysisCache) -> tuple[Model, ActionType]:
         """Run/Execute this transformation pass."""
         ...
     @abstractmethod
@@ -69,11 +67,13 @@ class AnalysisPass(BasePass):
         """Run/Execute this analysis pass."""
         ...
 
-class TransformationType(Enum):
+class ActionType(Enum):
     DidTransform = ...
     """Indicate that the pass did transform the model."""
-    NoTranform = ...
-    """Indicate that the pass did NOT transform the model."""
+    DidAnalysis = ...
+    """Indicate that the pass did analyse the model."""
+    Nothing = ...
+    """Indicate that the pass did NOT do anything."""
 
 class ChangeSensePass(BasePass):
     """A transformation pass to change the model's Sense to a target Sense."""
@@ -119,7 +119,7 @@ class LogElement:
         ...
 
     @property
-    def kind(self) -> TransformationType | None:
+    def kind(self) -> ActionType | None:
         """Transformation type information for this log element, if available."""
         ...
 
@@ -212,3 +212,17 @@ class PassManager:
             to this `PassManager`'s run method.
         """
         ...
+
+__all__ = [
+    "IR",
+    "ActionType",
+    "AnalysisCache",
+    "AnalysisPass",
+    "BasePass",
+    "ChangeSensePass",
+    "LogElement",
+    "MaxBias",
+    "MaxBiasAnalysis",
+    "PassManager",
+    "TransformationPass",
+]

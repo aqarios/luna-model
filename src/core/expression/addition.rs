@@ -26,7 +26,7 @@ impl AddToExpression<Bias> for &Expression {
 impl AddToExpression<&VarRef> for &Expression {
     type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
     fn add(self, rhs: &VarRef) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut out = Expression::new_from_other(&self);
@@ -39,7 +39,7 @@ impl AddToExpression<&VarRef> for &Expression {
 impl AddToExpression<&Expression> for &Expression {
     type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
     fn add(self, rhs: &Expression) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut out = Expression::new_from_other(&self);
@@ -79,7 +79,7 @@ impl AddAssignToExpression<&VarRef> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
     fn add_assign(&mut self, rhs: &VarRef) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(self.add_linear(rhs.id, Bias::one()))
@@ -90,7 +90,7 @@ impl AddAssignToExpression<&VarRef> for Expression {
 impl AddAssignToExpression<&Expression> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
     fn add_assign(&mut self, rhs: &Expression) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             let result = self.add(rhs);
@@ -114,7 +114,7 @@ impl SubToExpression<Bias> for &Expression {
 impl SubToExpression<&VarRef> for &Expression {
     type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
     fn sub(self, rhs: &VarRef) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut out = Expression::new_from_other(&self);
@@ -127,7 +127,7 @@ impl SubToExpression<&VarRef> for &Expression {
 impl SubToExpression<&Expression> for &Expression {
     type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
     fn sub(self, rhs: &Expression) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut out = Expression::new_from_other(&self);
@@ -168,7 +168,7 @@ impl SubAssignToExpression<&VarRef> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
     fn sub_assign(&mut self, rhs: &VarRef) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             Ok(self.add_linear(rhs.id, -Bias::one()))
@@ -180,7 +180,7 @@ impl SubAssignToExpression<&Expression> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
     fn sub_assign(&mut self, rhs: &Expression) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             let result = self.add(&-rhs);
