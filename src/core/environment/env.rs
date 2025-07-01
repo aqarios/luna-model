@@ -2,7 +2,7 @@ use crate::core::expression::One;
 use crate::core::traits::ContentEquality;
 use crate::core::variable::{VarRef, Variable, Vtype};
 use crate::core::writer::LineLengthRestrictor;
-use crate::core::{LazyBounds, ValueByIndex, VarAssignment};
+use crate::core::{Bounds, LazyBounds, ValueByIndex, VarAssignment};
 use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use crate::types::Bias;
 use crate::types::{EnvId, VarIndex};
@@ -22,6 +22,8 @@ pub struct Environment {
     pub variables: Vec<Variable>,
     pub variables_lookup: HashMap<String, VarIndex>,
     pub varcount: VarIndex,
+    // ghost variable indices.
+    pub ghost_vars: Vec<usize>,
 }
 
 #[derive(Debug, PartialEq, Deref, DerefMut)]
@@ -36,7 +38,7 @@ impl SharedEnvironment {
     pub fn deep_clone(&self) -> Self {
         let b = self.borrow();
         let cloned = b.deref().deep_clone();
-        SharedEnvironment::new(cloned)
+        SharedEnvironment::from(cloned)
     }
 
     pub fn add_variable(
@@ -51,8 +53,14 @@ impl SharedEnvironment {
         }
         ensure_name_valid(name)?;
         let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id)?;
-        let id = mutable_env.varcount;
-        mutable_env.variables.push(var);
+        let id = if let Some(id) = mutable_env.ghost_vars.pop() {
+            mutable_env.variables[id] = var;
+            id.into()
+        } else {
+            let id = mutable_env.varcount;
+            mutable_env.variables.push(var);
+            id
+        };
         mutable_env.variables_lookup.insert(name.to_string(), id);
         mutable_env.varcount += VarIndex::one();
         Ok(VarRef::new(id, self.clone()))
@@ -91,18 +99,54 @@ impl SharedEnvironment {
 
     pub fn get_vrefs_in_order(&self) -> Vec<VarRef> {
         (0..self.borrow().variables.len())
+            .filter(|idx| !self.borrow().ghost_vars.contains(idx))
             .map(|idx| VarRef::new(idx.into(), self.clone()))
             .collect()
+    }
+
+    pub fn remove(&mut self, target: &VarRef) {
+        let mut mutable_env = self.borrow_mut();
+        let idx: usize = target.id.into();
+        let var_name = mutable_env.variables[idx].name.clone();
+        // remove from variables lookup
+        mutable_env.variables_lookup.remove(&var_name);
+        // reduce varcount by one.
+        mutable_env.varcount -= VarIndex::one();
+        // replace in variables vec with ghost to maintin correctness of other indices
+        mutable_env.variables[idx] = Variable::ghost();
+        // add to deregistered (ghost) variables.
+        mutable_env.ghost_vars.push(idx);
+        // finally: adjust add_variable logic based on the changes included in the removal of
+        // variables.
+        // Update all access methods to only return the actual non ghost variables.
+    }
+
+    pub fn variable_names(&self) -> Vec<String> {
+        self.borrow()
+            .variables
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| !self.borrow().ghost_vars.contains(i))
+            .map(|(_, e)| e.name.clone())
+            .collect()
+    }
+
+    pub fn id(&self) -> EnvId {
+        self.borrow().id
+    }
+
+    pub fn varcount(&self) -> VarIndex {
+        self.borrow().varcount
     }
 }
 
 impl SharedEnvironment {
-    pub fn new(env: Environment) -> Self {
-        Self(Rc::new(RefCell::new(env)))
-    }
-
     pub fn default() -> Self {
         Self(Rc::new(RefCell::new(Environment::new())))
+    }
+
+    pub fn from(env: Environment) -> Self {
+        Self(Rc::new(RefCell::new(env)))
     }
 }
 
@@ -139,6 +183,7 @@ impl Environment {
             variables: Vec::new(),
             variables_lookup: HashMap::new(),
             varcount: VarIndex::default(),
+            ghost_vars: Vec::new(),
         }
     }
 
@@ -154,6 +199,7 @@ impl Environment {
             variables: self.variables.iter().map(|v| v.deep_clone(id)).collect(),
             variables_lookup: self.variables_lookup.clone(),
             varcount: self.varcount.clone(),
+            ghost_vars: Vec::new(),
         }
     }
 
@@ -163,7 +209,33 @@ impl Environment {
         self[id].vtype
     }
 
-    pub fn iter(&self) -> Iter<'_, Variable> {
+    // pub fn iter<'a>(
+    //     &'a self,
+    // ) -> Map<
+    //     Filter<Enumerate<Iter<'a, Variable>>, impl FnMut(&'a (usize, &'a Variable)) -> bool>,
+    //     impl FnMut((usize, &'a Variable)) -> &'a Variable,
+    // > {
+    //     self.variables
+    //         .iter()
+    //         .enumerate()
+    //         .filter(|(i, _)| !self.ghost_vars.contains(i))
+    //         .map(|(_, e)| e)
+    // }
+    //
+    
+    /// Includes only non ghost variables, i.e., active variables.
+    pub fn variables(&self) -> Vec<&Variable> {
+        self.variables
+            .iter()
+            .enumerate()
+            .filter(|(idx, _)| !self.ghost_vars.contains(idx))
+            .map(|(_, var)| var)
+            .collect()
+    }
+
+
+    /// Includes ghost variables, i.e., inactive variables.
+    pub fn all_variables(&self) -> Iter<Variable> {
         self.variables.iter()
     }
 
@@ -181,11 +253,20 @@ impl Environment {
         self.variables
             .iter()
             .enumerate()
+            .filter(|(i, _)| !self.ghost_vars.contains(i))
             .map(|(i, v)| {
                 let value: Bias = sample.value_by_index(i.into()).to_bias();
                 v.bounds.evaluate(value)
             })
             .collect()
+    }
+}
+
+impl Index<usize> for Environment {
+    type Output = Variable;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.variables[index]
     }
 }
 
@@ -200,7 +281,13 @@ impl Index<VarIndex> for Environment {
 
 impl Display for Environment {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let variables: Vec<_> = self.variables.iter().map(|x| x.name.clone()).collect();
+        let variables: Vec<_> = self
+            .variables
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| !self.ghost_vars.contains(i))
+            .map(|(_, x)| x.name.clone())
+            .collect();
         let mut writer = LineLengthRestrictor::new(0);
         writer
             .write(&format!("Environment {}", self.id))
@@ -230,5 +317,16 @@ fn ensure_name_valid(name: &str) -> Result<(), VariableCreationErr> {
         )))
     } else {
         Ok(())
+    }
+}
+
+impl Variable {
+    pub fn ghost() -> Self {
+        Self {
+            name: "GHOST_VAR".to_string(),
+            vtype: Vtype::Real,
+            bounds: Bounds::real(),
+            env_id: 0,
+        }
     }
 }

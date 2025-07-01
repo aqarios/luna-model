@@ -36,7 +36,7 @@ impl MulToExpression<&VarRef> for &Expression {
     type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
 
     fn mul(self, rhs: &VarRef) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut out =
@@ -69,7 +69,7 @@ impl MulToExpression<&Expression> for &Expression {
     type Output = Result<Expression, VariablesFromDifferentEnvsErr>;
 
     fn mul(self, rhs: &Expression) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             let mut result = Expression::empty(self.env.clone());
@@ -101,7 +101,7 @@ impl MulAssignToExpression<&VarRef> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
     fn mul_assign(&mut self, rhs: &VarRef) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             // We use the `mul` implementation as we need the temporary expression.
@@ -121,7 +121,7 @@ impl MulAssignToExpression<&Expression> for Expression {
     type Output = Result<(), VariablesFromDifferentEnvsErr>;
 
     fn mul_assign(&mut self, rhs: &Expression) -> Self::Output {
-        if self.env.borrow().id != rhs.env.borrow().id {
+        if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
             let result = self.mul(rhs);

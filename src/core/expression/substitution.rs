@@ -4,7 +4,8 @@ use crate::{
         operations::{AddAssignToExpression, MulAssignToExpression, MulToExpression},
         VarRef,
     },
-    errors::{DifferentEnvsErr, VariablesFromDifferentEnvsErr}, types::{Bias, VarIndex},
+    errors::{DifferentEnvsErr, VariablesFromDifferentEnvsErr},
+    types::{Bias, VarIndex},
 };
 
 use super::{Expression, ExpressionBaseAdjustment};
@@ -37,8 +38,8 @@ impl Substitution for &Expression {
         target: &VarRef,
         replacement: &Expression,
     ) -> Result<Expression, DifferentEnvsErr> {
-        let env_self_and_var_match = self.env.borrow().id == target.env.borrow().id;
-        let env_self_and_target_match = self.env.borrow().id == replacement.env.borrow().id;
+        let env_self_and_var_match = self.env.id() == target.env.id();
+        let env_self_and_target_match = self.env.id() == replacement.env.id();
         if !env_self_and_var_match || !env_self_and_target_match {
             return Err(DifferentEnvsErr);
         }
@@ -98,7 +99,9 @@ impl Substitution for &Expression {
             }
         }
 
-        out.remove_variable(target.id);
+        if !replacement.contains(target) {
+            out.remove_variable(target.id);
+        }
         Ok(out)
     }
 }

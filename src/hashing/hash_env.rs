@@ -73,7 +73,7 @@ impl HashEnv {
             // the id was 0 (zero) for all environments in a past version. So we set it to exactly
             // this value.
             id: 0,
-            varcount: env.borrow().varcount.0,
+            varcount: env.varcount().0,
             binary: Vec::new(),
             spin: Vec::new(),
             integer: Vec::new(),
@@ -92,7 +92,7 @@ impl HashEnv {
             real_bounds_upper: Vec::new(),
         };
 
-        for (i, var) in env.borrow().variables.iter().enumerate() {
+        for (i, var) in env.borrow().all_variables().enumerate() {
             match var.vtype {
                 Vtype::Binary => {
                     serenv.binary.push(force_u32(i));

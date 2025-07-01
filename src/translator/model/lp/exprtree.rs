@@ -332,7 +332,7 @@ impl ExprTree {
         } else {
             let mut lintree = ExprTree::Number(Bias::default());
             for (u, bias) in expr.linear.iter() {
-                let vname = expr.env.borrow()[u.into()].name.clone();
+                let vname = expr.env.borrow()[u].name.clone();
                 let mul = ExprTree::Mul(
                     Box::new(ExprTree::Number(*bias)),
                     Box::new(ExprTree::Variable(vname)),
@@ -395,7 +395,7 @@ impl ExprTree {
         } else {
             let mut lintree = ExprTree::Number(Bias::default());
             for (u, bias) in expr.linear.iter() {
-                let vname = expr.env.borrow()[u.into()].name.clone();
+                let vname = expr.env.borrow()[u].name.clone();
                 let mul = ExprTree::Mul(
                     Box::new(ExprTree::Number(*bias)),
                     Box::new(ExprTree::Variable(vname)),
