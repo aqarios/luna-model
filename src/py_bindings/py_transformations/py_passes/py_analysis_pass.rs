@@ -10,7 +10,7 @@ use crate::{
 use super::{py_analysis_pass_adapter::PyAnalysisPassAdapter, py_pass_base::PyPass};
 
 #[pyclass(unsendable, subclass, name = "AnalysisPass")]
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct PyAnalysisPass {}
 
 #[pymethods]

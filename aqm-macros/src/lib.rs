@@ -84,7 +84,7 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         // The Python wrapper type
         #[pyclass(name = #class_name)]
-        #[derive(::derive_more::Deref, ::derive_more::DerefMut, Clone)]
+        #[derive(::derive_more::Deref, ::derive_more::DerefMut, Clone, Debug)]
         pub struct #wrapper_name(pub #struct_name);
 
         #[pymethods]
@@ -201,6 +201,10 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
         let ty_ident = &path.segments.last().unwrap().ident;
         quote! { AnyPass::#ty_ident(x) => x.as_pass()?, }
     });
+    let clone_arm_specials = specials.iter().map(|path| {
+        let ty_ident = &path.segments.last().unwrap().ident;
+        quote! { AnyPass::#ty_ident(x) => AnyPass::#ty_ident(Python::with_gil(|py| x.clone_ref(py))), }
+    });
     let reg_specials = specials.iter().map(|path| {
         quote! { m.add_class::<#path>()?; }
     });
@@ -208,6 +212,7 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
     // --- Build normal passes: strip "Py" / "Pass" for variant names
     let mut enum_passes = Vec::new();
     let mut arm_passes = Vec::new();
+    let mut clone_arm_passes = Vec::new();
     for path in &passes {
         let ty_ident = &path.segments.last().unwrap().ident;
         let s = ty_ident.to_string();
@@ -220,6 +225,7 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
 
         enum_passes.push(quote! { #var_ident(#ty_ident), });
         arm_passes.push(quote! { AnyPass::#var_ident(x) => x.as_pass()?, });
+        clone_arm_passes.push(quote! { AnyPass::#var_ident(x) => AnyPass::#var_ident(x.clone()), });
     }
     let reg_passes = passes.iter().map(|path| {
         quote! { m.add_class::<#path>()?; }
@@ -236,12 +242,21 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
 
 
         #[allow(dead_code)]
-        #[derive(FromPyObject)]
+        #[derive(Debug, FromPyObject, IntoPyObject)]
         pub enum AnyPass {
             // specials first
             #(#enum_specials)*
             // then normal passes
             #(#enum_passes)*
+        }
+
+        impl Clone for AnyPass {
+            fn clone(&self) -> Self {
+                 match self {
+                     #(#clone_arm_specials)*
+                     #(#clone_arm_passes)*
+                 }
+            }
         }
 
         impl AnyPass {

@@ -22,6 +22,9 @@ mod py_transformations;
 #[cfg(feature = "transformations")]
 pub use py_transformations::register_transformations;
 
+#[cfg(feature = "pyt")]
+pub use py_transformations::AnyPass;
+
 #[cfg(not(feature = "lq"))]
 use pyo3::prelude::*;
 
