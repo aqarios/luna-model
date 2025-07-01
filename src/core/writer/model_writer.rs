@@ -2,7 +2,7 @@ use crate::core::constraints::Constraints;
 use crate::core::expression::One;
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::writer::line_length_restrictor::LineLengthRestrictor;
-use crate::core::{Bound, Constraint, Expression, Model, SharedEnvironment, Vtype};
+use crate::core::{Bound, Constraint, Expression, Model, SharedEnvironment, Variable, Vtype};
 use crate::types::Bias;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
@@ -38,12 +38,7 @@ impl ModelWriter {
             self.write_constraints(&constraints);
             self.writer.decrease_indent();
         }
-        self.writer
-            .with_new_line("Bounds")
-            .increase_indent()
-            .new_line();
         self.write_bounds(&model.environment);
-        self.writer.decrease_indent();
         self.write_variables(&model.environment)
     }
 
@@ -175,11 +170,26 @@ impl ModelWriter {
         self
     }
 
-    pub fn write_bounds(&mut self, env: &SharedEnvironment) -> &mut Self {
-        for (i, var) in env.borrow().variables().iter().enumerate() {
+    pub fn write_bounds(&mut self, environment: &SharedEnvironment) -> &mut Self {
+        let binding = environment.borrow();
+        let vars = binding.variables();
+        let ints_and_reals: Vec<_> = vars
+            .into_iter()
+            .filter(|v| v.vtype == Vtype::Integer || v.vtype == Vtype::Real)
+            .collect();
+        if ints_and_reals.len() == 0 {
+            return self;
+        }
+
+        self.writer
+            .with_new_line("Bounds")
+            .increase_indent()
+            .new_line();
+        for (i, var) in ints_and_reals.iter().enumerate() {
             if i > 0 {
                 self.writer.new_line();
             }
+            // Only print var bounds for integer and real, ignore binary and spin
             if var.bounds.lower.is_bounded() || var.bounds.upper.is_bounded() {
                 if let Bound::Some(l) = var.bounds.lower {
                     self.writer.write(&l.to_string()).with_spaces("<=");
@@ -192,6 +202,7 @@ impl ModelWriter {
                 self.writer.write(&var.name).space().write("unbounded");
             }
         }
+        self.writer.decrease_indent();
         self
     }
 
