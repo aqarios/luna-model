@@ -29,7 +29,7 @@ impl IbmTranslator {
         E: Copy + NumCast + Debug,
     {
         let mut sol = Solution::default();
-        for v in env.borrow().variables.iter() {
+        for v in env.borrow().variables().iter() {
             match v.vtype {
                 Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
                 Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(1))),
@@ -38,7 +38,7 @@ impl IbmTranslator {
             }
         }
         sol.timing = timing;
-        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
+        sol.variable_names = env.variable_names();
         // used to determine the order of each assignment in the sample.
         let index_list: Vec<usize> = orderings.iter().map(|e| e.id.into()).collect();
         // For each sample:

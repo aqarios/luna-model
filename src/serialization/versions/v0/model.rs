@@ -74,7 +74,7 @@ impl SerModel {
     pub fn extract(&self) -> Result<Model, DecodeError> {
         let sense = Sense::from_str(&self.sense).map_err(|e| DecodeError::new(e.to_string()))?;
         let mut model = Model::new(Some(self.name.clone()), Some(sense));
-        model.environment = SharedEnvironment::new(self.environment.decode(())?);
+        model.environment = SharedEnvironment::from(self.environment.decode(())?);
         model.objective = self.objective.decode(model.environment.clone())?;
         model.constraints = self.constraints.decode(model.environment.clone())?;
         Ok(model)

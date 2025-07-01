@@ -60,9 +60,9 @@ impl MatrixTranslator {
         }
 
         let mut vtype = None;
-        let env = model.environment.borrow();
-        let mut variables = Vec::with_capacity(env.varcount.into());
-        for var in env.variables.iter() {
+        // let env = model.environment.borrow();
+        let mut variables = Vec::with_capacity(model.environment.varcount().into());
+        for var in model.environment.borrow().variables().iter() {
             match vtype {
                 None => {
                     if var.vtype == Vtype::Integer || var.vtype == Vtype::Real {

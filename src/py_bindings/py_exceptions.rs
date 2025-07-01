@@ -7,7 +7,8 @@ use crate::errors::{
     VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
-use pyo3::exceptions::{PyException, PyIndexError};
+use crate::transformations::errors::CompilationError as CompilationErr;
+use pyo3::exceptions::{PyException, PyIndexError, PyRuntimeError, PyTypeError};
 use pyo3::{create_exception, PyErr};
 use std::convert::From;
 
@@ -225,6 +226,20 @@ Note that conversions with precision loss or truncation are admitted, but
 conversions of variables outside the permitted range will fail."
 );
 
+create_exception!(
+    aqmodels.errors,
+    StartCannotBeInferredError,
+    PyTypeError,
+    "To be raised when the start value in the quicksum cannot be inferred."
+);
+
+create_exception!(
+    aqmodels.errors,
+    CompilationError,
+    PyRuntimeError,
+    "Raised when an error occured during compilation of a model in the PassManager."
+);
+
 impl From<VariableOutOfRangeErr> for PyErr {
     fn from(value: VariableOutOfRangeErr) -> Self {
         VariableOutOfRangeError::new_err(value.to_string())
@@ -375,5 +390,11 @@ impl From<EvaluationErr> for PyErr {
 impl From<DuplicateConstraintNameErr> for PyErr {
     fn from(value: DuplicateConstraintNameErr) -> Self {
         DuplicateConstraintNameError::new_err(format!("{value}"))
+    }
+}
+
+impl From<CompilationErr> for PyErr {
+    fn from(value: CompilationErr) -> Self {
+        CompilationError::new_err(value.to_string())
     }
 }

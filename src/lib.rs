@@ -4,7 +4,7 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// working with an AQ Model (AQ/M) and an AQ Solution (AQ/S).
 pub mod core;
 /// Collection of all errors that can be returned by this library.
-mod errors;
+pub mod errors;
 /// Defines components required to compute the hash of a model.
 pub mod hashing;
 /// Module for importing commonly used structs and functions when working with this library.

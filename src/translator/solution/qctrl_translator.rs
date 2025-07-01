@@ -25,7 +25,7 @@ impl QctrlTranslator {
         E: Copy + NumCast,
     {
         let mut sol = Solution::default();
-        for v in env.borrow().variables.iter() {
+        for v in env.borrow().variables().iter() {
             match v.vtype {
                 Vtype::Binary => {
                     sol.add_column(SampleCol::Binary(Vec::with_capacity(samples.len())))
@@ -38,7 +38,7 @@ impl QctrlTranslator {
             }
         }
         sol.timing = timing;
-        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
+        sol.variable_names = env.variable_names();
 
         for ((sample, count), energy) in samples.iter().zip(counts).zip(energies) {
             sol.extend(&sample, count, energy)?;

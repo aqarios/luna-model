@@ -2,7 +2,7 @@ use super::{Expression, ExpressionBase};
 
 impl PartialEq for Expression {
     fn eq(&self, other: &Self) -> bool {
-        if self.env.borrow().id != other.env.borrow().id {
+        if self.env.id() != other.env.id() {
             // Non-equal envs directly implicate non-equal expressions.
             return false;
         }

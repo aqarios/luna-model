@@ -15,7 +15,7 @@ impl ZibTranslator {
         env: SharedEnvironment,
     ) -> Result<RcSolution, SolutionCreationErr> {
         let mut sol = Solution::with_sense(sense);
-        for v in env.borrow().variables.iter() {
+        for v in env.borrow().variables().iter() {
             match v.vtype {
                 Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
                 Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(1))),
@@ -24,10 +24,10 @@ impl ZibTranslator {
             }
         }
         sol.timing = timing;
-        sol.variable_names = env.borrow().iter().map(|v| v.name.clone()).collect();
+        sol.variable_names = env.variable_names();
         let sample_vec: Vec<_> = env
             .borrow()
-            .variables
+            .variables()
             .iter()
             .map(|x| *sample.get(&x.name).unwrap())
             .collect();
