@@ -69,11 +69,13 @@ class AnalysisPass(BasePass):
         """Run/Execute this analysis pass."""
         ...
 
-class TransformationType(Enum):
+class ActionType(Enum):
     DidTransform = ...
     """Indicate that the pass did transform the model."""
-    NoTranform = ...
-    """Indicate that the pass did NOT transform the model."""
+    DidAnalysis = ...
+    """Indicate that the pass did analyse the model."""
+    Nothing = ...
+    """Indicate that the pass did NOT do anything."""
 
 class ChangeSensePass(BasePass):
     """A transformation pass to change the model's Sense to a target Sense."""

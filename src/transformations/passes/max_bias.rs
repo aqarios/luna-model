@@ -1,6 +1,6 @@
-use num::{abs, NumCast};
 #[cfg(feature = "py")]
 use aqm_macros::analysis_cache;
+use num::{abs, NumCast};
 
 use crate::{
     core::Model,
@@ -67,8 +67,8 @@ impl AnalysisPass for MaxBiasAnalysis {
             max_val = f64::max(max_val, max_ho);
         }
 
-        Ok(AnalysisCacheElement::MaxBiasAnalysis(MaxBias {
+        Ok(Some(AnalysisCacheElement::MaxBiasAnalysis(MaxBias {
             val: max_val,
-        }))
+        })))
     }
 }

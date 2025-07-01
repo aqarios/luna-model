@@ -101,10 +101,14 @@ impl AnalysisPass for PyAnalysisPassAdapter {
                     ),
                 )
                 .map_err(|e| AnalysisPassError(cls_name.clone(), e.to_string()))?;
-            let py_cache: Py<PyAny> = py_res
+            let py_any: Py<PyAny> = py_res
                 .extract(py)
                 .map_err(|e| AnalysisPassError(cls_name.clone(), e.to_string()))?;
-            Ok(AnalysisCacheElement::PyAnalysis(py_cache))
+            if py_any.is_none(py) {
+                Ok(None)
+            } else {
+                Ok(Some(AnalysisCacheElement::PyAnalysis(py_any)))
+            }
         })
     }
 }
