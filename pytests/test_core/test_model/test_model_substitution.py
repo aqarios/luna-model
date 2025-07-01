@@ -1,13 +1,14 @@
 import pytest
 
 from aqmodels import Model, Variable, Vtype
+from aqmodels.errors import VariableNotExistingError
 
 
 @pytest.mark.model_substitution
 def test_model_substitution_var():
     m = Model()
     with m.environment:
-        target = Variable("n", vtype=Vtype.Integer)
+        target = Variable("target", vtype=Vtype.Integer)
         a = Variable("a", vtype=Vtype.Integer)
 
     replacement = a
@@ -28,13 +29,16 @@ def test_model_substitution_var():
     assert expected_constr_a.is_equal(m.constraints[0].lhs)
     assert expected_constr_b.is_equal(m.constraints[1].lhs)
 
+    with pytest.raises(VariableNotExistingError):
+        _ = m.environment.get_variable("target")
+
 
 @pytest.mark.model_substitution
 def test_model_substitution():
     m = Model()
     with m.environment:
         a = Variable("a", vtype=Vtype.Integer)
-        target = Variable("n", vtype=Vtype.Integer)
+        target = Variable("target", vtype=Vtype.Integer)
 
         x1 = Variable("x_1")
         x2 = Variable("x_2")
@@ -66,3 +70,6 @@ def test_model_substitution():
     assert expected_obj.is_equal(expected_obj)
     assert expected_constr_a.is_equal(m.constraints[0].lhs)
     assert expected_constr_b.is_equal(m.constraints[1].lhs)
+
+    with pytest.raises(VariableNotExistingError):
+        _ = m.environment.get_variable("target")
