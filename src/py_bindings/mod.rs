@@ -12,6 +12,7 @@ mod py_sol;
 mod py_timing;
 mod py_translator;
 mod py_usize;
+mod py_utilities;
 mod py_utils;
 mod py_var;
 
@@ -77,6 +78,7 @@ pub fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     py_modules::register_core(m)?;
     py_modules::register_translator(m)?;
     py_modules::register_errors(m)?;
+    py_modules::register_utils(m)?;
 
     #[cfg(feature = "transformations")]
     py_transformations::register_transformations(m)?;

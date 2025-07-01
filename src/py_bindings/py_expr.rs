@@ -2,7 +2,7 @@ use super::{
     py_constr::PyConstraint,
     py_env::{PyEnvironment, CURRENT_ENV},
     py_exceptions::NoActiveEnvironmentFoundError,
-    py_utils::Replacement,
+    py_utilities::Replacement,
     py_var::PyVariable,
 };
 use crate::{
@@ -311,7 +311,7 @@ impl PyExpression {
     ///     If no environment is provided and none is active in the context.
     #[new]
     #[pyo3(signature=(env=None))]
-    fn py_new(env: Option<&mut PyEnvironment>) -> PyResult<Self> {
+    pub fn py_new(env: Option<&mut PyEnvironment>) -> PyResult<Self> {
         let env: PyEnvironment = match env {
             Some(env) => env.clone(),
             None => CURRENT_ENV.with(|current| {
@@ -714,7 +714,7 @@ impl PyExpression {
     ///     If operands are from different environments.
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
+    pub fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             match &mut self.0 {
                 Left(e) => e.add_assign(rhs),

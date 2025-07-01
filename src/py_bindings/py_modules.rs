@@ -2,10 +2,9 @@ use pyo3::{prelude::*, PyTypeCheck};
 
 use crate::core::{Comparator, Sense, Vtype};
 
-
 use super::{
     py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_model_metadata,
-    py_res, py_sample, py_sol, py_timing, py_translator, py_var,
+    py_res, py_sample, py_sol, py_timing, py_translator, py_utils, py_var,
 };
 
 // #[pymodule]
@@ -39,6 +38,23 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_timing::PyTiming>()?;
     m.add_class::<py_timing::PyTimer>()?;
     m.add_class::<py_bounds::PyUnbounded>()?;
+    Ok(())
+}
+
+pub fn register_utils(pm: &Bound<'_, PyModule>) -> PyResult<()> {
+    let m = PyModule::new(pm.py(), "utils")?;
+    m.add_function(wrap_pyfunction!(py_utils::quicksum, &m)?)?;
+    pm.add_submodule(&m)?;
+    #[cfg(not(feature = "lq"))]
+    pm.py()
+        .import("sys")?
+        .getattr("modules")?
+        .set_item("aqmodels.utils", m)?;
+    #[cfg(feature = "lq")]
+    pm.py()
+        .import("sys")?
+        .getattr("modules")?
+        .set_item("luna_quantum.utils", m)?;
     Ok(())
 }
 
@@ -162,6 +178,14 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add(
         pyexc::DuplicateConstraintNameError::NAME,
         m.py().get_type::<pyexc::DuplicateConstraintNameError>(),
+    )?;
+    m.add(
+        pyexc::CompilationError::NAME,
+        m.py().get_type::<pyexc::CompilationError>(),
+    )?;
+    m.add(
+        pyexc::StartCannotBeInferredError::NAME,
+        m.py().get_type::<pyexc::StartCannotBeInferredError>(),
     )?;
     pm.add_submodule(&m)?;
     #[cfg(not(feature = "lq"))]

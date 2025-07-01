@@ -1,4 +1,4 @@
-use super::py_utils::repr_solution;
+use super::py_utilities::repr_solution;
 use crate::core::solution::sol::{SampleCol, ShowMetadata};
 use crate::core::{PrintLayout, RcSolution, Samples, Sense, Solution, VarAssignment, Vtype};
 use crate::errors::{ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr};

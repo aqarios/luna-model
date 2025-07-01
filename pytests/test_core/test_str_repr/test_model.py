@@ -9,15 +9,12 @@ from aqmodels import Bounds, Environment, Expression, Model, Variable, Vtype
 _model_str_1 = """Model: TestModel
 Minimize
   x0
-Bounds
-  0 <= x0 <= 1
 Binary
   x0"""
 _model_str_2 = """Model: TestModel
 Minimize
   -x0 * x1 + x0
 Bounds
-  0 <= x0 <= 1
   0 <= x1
 Binary
   x0
@@ -30,11 +27,8 @@ Minimize
 Subject To
   c0: x0 + x2 <= 1
 Bounds
-  0 <= x0 <= 1
   0 <= x1
-  0 <= x2 <= 1
   0 <= x3 <= 30
-  -1 <= x4 <= 1
 Binary
   x0 x2
 Spin
@@ -51,11 +45,8 @@ Subject To
   c0: x0 + x2 <= 1
   my_constraint: x0 + x2 <= 1
 Bounds
-  0 <= x0 <= 1
   0 <= x1
-  0 <= x2 <= 1
   0 <= x3 <= 30
-  -1 <= x4 <= 1
 Binary
   x0 x2
 Spin
