@@ -182,9 +182,9 @@ impl Model {
     }
 
     pub fn evaluate_sample<'a>(&self, sample: &Sample) -> Result<OwnedResult, EvaluationErr> {
-        let vars_sample = match &sample.0 {
-            Either::Left(a) => &a.sol.variable_names,
-            Either::Right(b) => &b.variable_names,
+        let (vars_sample, index_map) = match &sample.0 {
+            Either::Left(a) => (&a.sol.variable_names, &a.sol.index_map),
+            Either::Right(b) => (&b.variable_names, &b.index_map),
         };
         let vars_env = &self.environment.variable_names();
         check_variables_sample(vars_sample, vars_env)?;
@@ -201,7 +201,7 @@ impl Model {
         let vf: Vec<_> = self.environment.borrow().evaluate_bounds::<Sample>(&sample);
         let feasible = cf.iter().all(|&b| b) && vf.iter().all(|&b| b);
         let owned_sample_actual = Rc::new(sample.iter().collect());
-        let owned_sample = OwnedSample::new(vars_sample.to_vec(), owned_sample_actual);
+        let owned_sample = OwnedSample::new(vars_sample.to_vec(), owned_sample_actual, index_map.clone());
         Ok(OwnedResult::new(owned_sample, obj_val, cf, vf, feasible))
     }
 

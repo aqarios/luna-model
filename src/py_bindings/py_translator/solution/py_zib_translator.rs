@@ -1,9 +1,7 @@
 use crate::core::Sense;
-use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
-use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
-use crate::py_bindings::py_sol::PySolution;
+use crate::py_bindings::py_env::PyEnvironment;
+use crate::py_bindings::py_sol::{PySolution, SampleKey};
 use crate::py_bindings::py_timing::PyTiming;
-use crate::translator::ZibTranslator;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::pyclass;
@@ -50,34 +48,34 @@ def extract(model, timing, env):
 /// >>> model.readProblem("./path/to/my/model.lp")
 /// >>> model.optimize()
 /// >>> aqs = lq.translator.ZibTranslator.to_aq(model)
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "ZibTranslator", module = "aqmodels.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "ZibTranslator", module = "luna_quantum.translator"))]
-pub struct PyZibTranslator(pub ZibTranslator);
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "ZibTranslator", module = "aqmodels.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "ZibTranslator", module = "luna_quantum.translator")
+)]
+pub struct PyZibTranslator;
 
 #[pymethods]
 impl PyZibTranslator {
     #[staticmethod]
     fn translate(
         // hashbrown::HashMap does not work here ;(
-        sample: HashMap<String, f64>,
+        sample: HashMap<SampleKey, f64>,
         sense: Sense,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<PySolution> {
-        let environment: PyEnvironment = match env {
-            Some(env) => env.clone(),
-            None => CURRENT_ENV.with(|current| {
-                current.borrow().clone().ok_or_else(|| {
-                    NoActiveEnvironmentFoundError::new_err("no active environment found.")
-                })
-            })?,
-        };
-        Ok(PySolution(ZibTranslator::from_zib(
+        Ok(PySolution::from_dict(
             sample,
-            sense,
-            timing.map(|t| t.into()),
-            environment.0.clone(),
-        )?))
+            env,
+            None,
+            timing,
+            None,
+            Some(sense),
+        )?)
     }
 
     /// Extract a solution from a ZIB model.

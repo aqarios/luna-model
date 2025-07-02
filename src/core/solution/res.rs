@@ -57,6 +57,10 @@ impl ResultView {
         // Cloning is fine here as only usize and Rc are cloned.
         Sample(Left(self.clone()))
     }
+
+    pub fn map_varidx(&self, varidx: usize) -> usize {
+        self.sol.map_varidx(varidx)
+    }
 }
 
 impl PartialEq for ResultView {
@@ -69,7 +73,9 @@ impl ValueByIndex<VarIndex> for ResultView {
     type Output = VarAssignment;
 
     fn value_by_index(&self, index: VarIndex) -> Self::Output {
-        self.sol.get_assignment(self.row_idx, index.into()).unwrap()
+        self.sol
+            .get_assignment(self.row_idx, self.map_varidx(index.into()))
+            .unwrap()
     }
 }
 

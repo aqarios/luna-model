@@ -6,10 +6,7 @@ use std::{
 use num::NumCast;
 
 use crate::{
-    core::{
-        environment::SharedEnvironment, solution::sol::SampleCol, RcSolution, Solution, Timing,
-        VarRef, Vtype,
-    },
+    core::{environment::SharedEnvironment, RcSolution, Solution, Timing, VarRef},
     errors::SolutionCreationErr,
 };
 
@@ -29,14 +26,7 @@ impl IbmTranslator {
         E: Copy + NumCast + Debug,
     {
         let mut sol = Solution::default();
-        for v in env.borrow().variables().iter() {
-            match v.vtype {
-                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
-                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(1))),
-                Vtype::Integer => sol.add_column(SampleCol::Integer(Vec::with_capacity(1))),
-                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(1))),
-            }
-        }
+        sol.create_columns(&env, 1);
         sol.timing = timing;
         sol.variable_names = env.variable_names();
         // used to determine the order of each assignment in the sample.

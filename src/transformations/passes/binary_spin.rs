@@ -1,7 +1,11 @@
 use std::collections::HashMap;
 
 use crate::{
-    core::{expression::ExpressionBaseAdd, solution::sol::SampleCol, Model, Solution, Vtype},
+    core::{
+        expression::ExpressionBaseAdd,
+        solution::sol::{SampleCol, SampleColElement},
+        Model, Solution, Vtype,
+    },
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{
@@ -76,7 +80,7 @@ impl AnalysisPass for BinarySpinAnalysis {
             }
             .to_string(),
         );
-        for x in model.environment.borrow().variables.iter() {
+        for x in model.environment.borrow().variables().iter() {
             match (x.vtype, self.vtype) {
                 (Vtype::Binary, Vtype::Spin) => {
                     cache
@@ -183,16 +187,18 @@ impl TransformationPass for BinarySpinPass {
                     match cache.old_vtype {
                         Vtype::Spin => {
                             if let Some(SampleCol::Binary(inner)) = col {
-                                solution.samples[i] = SampleCol::Spin(
-                                    inner.into_iter().map(|x| 1 - 2 * (*x) as i8).collect(),
-                                );
+                                solution.samples[i] = SampleCol::Spin(SampleColElement::new(
+                                    inner.varid,
+                                    inner.iter().map(|x| 1 - 2 * (*x) as i8).collect(),
+                                ));
                             }
                         }
                         Vtype::Binary => {
                             if let Some(SampleCol::Spin(inner)) = col {
-                                solution.samples[i] = SampleCol::Binary(
-                                    inner.into_iter().map(|x| ((1 - *x) as u8) / 2).collect(),
-                                );
+                                solution.samples[i] = SampleCol::Binary(SampleColElement::new(
+                                    inner.varid,
+                                    inner.iter().map(|x| ((1 - *x) as u8) / 2).collect(),
+                                ));
                             }
                         }
                         _ => panic!(),
