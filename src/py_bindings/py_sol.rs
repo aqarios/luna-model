@@ -386,16 +386,9 @@ impl PySolution {
         let mut sol = Solution::with_sense(
             sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
         );
-        println!(
-            "env all vars = {:?}",
-            environment.borrow().all_variables().collect_vec()
-        );
-        println!("env vars = {:?}", environment.borrow().variables());
         sol.create_columns(&environment, 1);
-        println!("sol samples = {:?}", sol.samples);
 
         let n_vars = environment.borrow().varcount() as usize;
-        println!("n_vars = {:?}", n_vars);
         let mut sample = vec![f64::default(); n_vars];
         let mut mask = vec![false; n_vars];
         let mut var_names = vec![String::default(); n_vars];
@@ -407,16 +400,17 @@ impl PySolution {
             };
             let environ = environment.borrow();
             let maybe_var = environ.get(var_name).ok();
-            println!("{:?}", maybe_var);
+            // println!("{:?}", maybe_var);
             if maybe_var.is_none() {
                 return Err(SampleUnexpectedVariableErr {
                     var_name: var_name.clone(),
                 })?;
             }
             let var = maybe_var.unwrap().0 as usize;
-            sample[var] = v;
-            mask[var] = true;
-            var_names[var] = var_name.clone();
+            let sidx = sol.map_varidx(var);
+            sample[sidx] = v;
+            mask[sidx] = true;
+            var_names[sidx] = var_name.clone();
         }
 
         if !mask.iter().all(|&x| x) {

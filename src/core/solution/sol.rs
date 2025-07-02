@@ -10,6 +10,7 @@ use crate::types::{
     VarIndex,
 };
 use derive_more::{Deref, DerefMut};
+use hashbrown::HashMap;
 use num::{NumCast, ToPrimitive};
 use std::fmt::{Display, Formatter};
 use std::ops::Mul;
@@ -221,6 +222,8 @@ pub struct Solution {
     pub variable_names: Vec<String>,
     /// The model's optimization sense the solution was created with.
     pub sense: Sense,
+
+    pub index_map: HashMap<usize, usize>,
 }
 
 impl Solution {
@@ -239,26 +242,58 @@ impl Solution {
     }
 
     pub fn create_columns(&mut self, env: &SharedEnvironment, capacity: usize) {
+        let mut running_index = 0;
         for (idx, v) in env.borrow().all_variables().enumerate() {
             match v.vtype {
-                Vtype::Binary => self.add_column(SampleCol::Binary(SampleColElement::new(
-                    idx.into(),
-                    Vec::with_capacity(capacity),
-                ))),
-                Vtype::Spin => self.add_column(SampleCol::Spin(SampleColElement::new(
-                    idx.into(),
-                    Vec::with_capacity(capacity),
-                ))),
-                Vtype::Integer => self.add_column(SampleCol::Integer(SampleColElement::new(
-                    idx.into(),
-                    Vec::with_capacity(capacity),
-                ))),
-                Vtype::Real => self.add_column(SampleCol::Real(SampleColElement::new(
-                    idx.into(),
-                    Vec::with_capacity(capacity),
-                ))),
+                Vtype::Binary => {
+                    self.add_column(SampleCol::Binary(SampleColElement::new(
+                        idx.into(),
+                        Vec::with_capacity(capacity),
+                    )));
+                    if running_index != idx {
+                        self.index_map.insert(idx, running_index);
+                    }
+                    running_index += 1;
+                }
+                Vtype::Spin => {
+                    self.add_column(SampleCol::Spin(SampleColElement::new(
+                        idx.into(),
+                        Vec::with_capacity(capacity),
+                    )));
+                    if running_index != idx {
+                        self.index_map.insert(idx, running_index);
+                    }
+                    running_index += 1;
+                }
+                Vtype::Integer => {
+                    self.add_column(SampleCol::Integer(SampleColElement::new(
+                        idx.into(),
+                        Vec::with_capacity(capacity),
+                    )));
+                    if running_index != idx {
+                        self.index_map.insert(idx, running_index);
+                    }
+                    running_index += 1
+                }
+                Vtype::Real => {
+                    self.add_column(SampleCol::Real(SampleColElement::new(
+                        idx.into(),
+                        Vec::with_capacity(capacity),
+                    )));
+                    if running_index != idx {
+                        self.index_map.insert(idx, running_index);
+                    }
+                    running_index += 1
+                }
                 Vtype::__Ghost => (),
             }
+        }
+    }
+
+    pub fn map_varidx(&self, varidx: usize) -> usize {
+        match self.index_map.get(&varidx) {
+            Some(mapped) => *mapped,
+            None => varidx,
         }
     }
 
