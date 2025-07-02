@@ -339,8 +339,17 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // Parse the annotated item as a struct (so we preserve its derives & fields)
-    let s = parse_macro_input!(item as ItemStruct);
-    let name = s.ident.to_string();
+    let input = parse_macro_input!(item as ItemStruct);
+    let name = input.ident.to_string();
+    let struct_name = &input.ident;
+
+    let class_name = struct_name.to_string();
+
+    let field_names = input.fields
+        .iter()
+        .map(|f| f.ident.as_ref().unwrap())
+        .collect::<Vec<_>>();
+
     // Emit a cfg_attr only when `--features py` is on.
     let expanded = quote! {
         #[cfg_attr(
@@ -351,7 +360,24 @@ pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
             all(feature = "py", feature = "lq"),
             pyo3::pyclass(get_all, name = #name, module = "luna_quantum.transformations")
         )]
-        #s
+        #input
+
+        #[pymethods]
+        impl #struct_name {
+            pub fn __repr__(&self) -> PyResult<String> {
+                let mut parts = Vec::new();
+
+                #(
+                    {
+                        let field_name = stringify!(#field_names);
+                        let value = format!("{:?}", self.#field_names);
+                        parts.push(format!("{}={}", field_name, value));
+                    }
+                )*
+
+                Ok(format!("{}({})", #class_name, parts.join(", ")))
+            }
+        }
     };
     expanded.into()
 }
