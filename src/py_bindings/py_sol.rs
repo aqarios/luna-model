@@ -1,6 +1,8 @@
 use super::py_utilities::repr_solution;
 use crate::core::solution::sol::{SampleCol, SampleColElement, ShowMetadata};
-use crate::core::{PrintLayout, RcSolution, Samples, Sense, Solution, VarAssignment, Vtype};
+use crate::core::{
+    PrintLayout, RcSolution, Samples, Sense, SharedEnvironment, Solution, VarAssignment, Vtype,
+};
 use crate::errors::{ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
@@ -15,7 +17,6 @@ use crate::serialization::{
 };
 use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
-use itertools::{self, Itertools};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
@@ -32,6 +33,13 @@ pub struct PyVarAssignment(pub VarAssignment);
 pub enum SampleKey {
     Str(String),
     Var(PyVariable),
+}
+
+impl From<String> for SampleKey {
+    fn from(value: String) -> Self {
+        Self::Str(value)
+    }
+
 }
 
 enum BitOrder {
@@ -351,7 +359,7 @@ impl PySolution {
     ///     variable types.
     #[staticmethod]
     #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None))]
-    fn from_dict(
+    pub fn from_dict(
         data: HashMap<SampleKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
@@ -359,63 +367,18 @@ impl PySolution {
         counts: Option<usize>,
         sense: Option<Sense>,
     ) -> PyResult<PySolution> {
-        if env.is_some() && model.is_some() {
-            return Err(PyValueError::new_err(
-                "either `env` or `model` has to be `None`",
-            ));
-        }
-        if sense.is_some() && model.is_some() {
-            return Err(PyValueError::new_err(
-                "either `sense` or `model` has to be `None`",
-            ));
-        }
-
-        let environment: PyEnvironment = if let Some(model) = &model {
-            PyEnvironment(model.borrow().environment.clone())
-        } else {
-            match env {
-                Some(env) => env.clone(),
-                None => CURRENT_ENV.with(|current| {
-                    current.borrow().clone().ok_or_else(|| {
-                        NoActiveEnvironmentFoundError::new_err("no active environment found.")
-                    })
-                })?,
-            }
-        };
+        Self::check_env_or_model(&env, &model)?;
+        Self::check_sense_or_model(&sense, &model)?;
+        let environment = Self::retrieve_environment(&env, &model)?;
 
         let mut sol = Solution::with_sense(
             sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
         );
         sol.create_columns(&environment, 1);
-
         let n_vars = environment.borrow().varcount() as usize;
-        let mut sample = vec![f64::default(); n_vars];
-        let mut mask = vec![false; n_vars];
-        let mut var_names = vec![String::default(); n_vars];
 
-        for (k, &v) in data.iter() {
-            let var_name = match k {
-                SampleKey::Str(s) => s,
-                SampleKey::Var(v) => &v.name(),
-            };
-            let environ = environment.borrow();
-            let maybe_var = environ.get(var_name).ok();
-            // println!("{:?}", maybe_var);
-            if maybe_var.is_none() {
-                return Err(SampleUnexpectedVariableErr {
-                    var_name: var_name.clone(),
-                })?;
-            }
-            let var = maybe_var.unwrap().0 as usize;
-            let sidx = sol.map_varidx(var);
-            sample[sidx] = v;
-            mask[sidx] = true;
-            var_names[sidx] = var_name.clone();
-        }
-
-        if !mask.iter().all(|&x| x) {
-            return Err(SampleIncorrectLengthErr)?;
-        }
+        let (sample, var_names) =
+            Self::build_sample(&data, n_vars, &environment, |idx| sol.map_varidx(idx))?;
 
         sol.variable_names = var_names;
         sol.timing = timing.map(|t| t.0);
@@ -486,35 +449,10 @@ impl PySolution {
         counts: Option<Vec<usize>>,
         sense: Option<Sense>,
     ) -> PyResult<PySolution> {
-        if env.is_some() && model.is_some() {
-            return Err(PyValueError::new_err(
-                "either `env` or `model` has to be `None`",
-            ));
-        }
-        if sense.is_some() && model.is_some() {
-            return Err(PyValueError::new_err(
-                "either `sense` or `model` has to be `None`",
-            ));
-        }
-        if counts.is_some() && counts.as_ref().unwrap().len() != data.len() {
-            return Err(PyValueError::new_err(format!(
-                "the number of samples and the counts do not match: num samples is '{}', num counts is '{}'",
-                data.len(), counts.unwrap().len()))
-            );
-        }
-
-        let environment: PyEnvironment = if let Some(model) = &model {
-            PyEnvironment(model.borrow().environment.clone())
-        } else {
-            match env {
-                Some(env) => env.clone(),
-                None => CURRENT_ENV.with(|current| {
-                    current.borrow().clone().ok_or_else(|| {
-                        NoActiveEnvironmentFoundError::new_err("no active environment found.")
-                    })
-                })?,
-            }
-        };
+        Self::check_env_or_model(&env, &model)?;
+        Self::check_sense_or_model(&sense, &model)?;
+        Self::check_counts_and_samples_len(&counts, data.len())?;
+        let environment = Self::retrieve_environment(&env, &model)?;
 
         let mut sol = Solution::with_sense(
             sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
@@ -525,31 +463,8 @@ impl PySolution {
         let mut samples: Vec<Vec<f64>> = Vec::with_capacity(data.len());
 
         for (i, d) in data.iter().enumerate() {
-            let mut sample = vec![f64::default(); n_vars];
-            let mut mask = vec![false; n_vars];
-            let mut var_names = vec![String::default(); n_vars];
-
-            for (k, &v) in d.iter() {
-                let var_name = match k {
-                    SampleKey::Str(s) => s,
-                    SampleKey::Var(v) => &v.name(),
-                };
-                let environ = environment.borrow();
-                let maybe_var = environ.get(var_name).ok();
-                if maybe_var.is_none() {
-                    return Err(SampleUnexpectedVariableErr {
-                        var_name: var_name.clone(),
-                    })?;
-                }
-                let var = maybe_var.unwrap().0 as usize;
-                sample[var] = v;
-                mask[var] = true;
-                var_names[var] = var_name.clone();
-            }
-
-            if !mask.iter().all(|&x| x) {
-                return Err(SampleIncorrectLengthErr)?;
-            }
+            let (sample, var_names) =
+                Self::build_sample(&d, n_vars, &environment, |idx| sol.map_varidx(idx))?;
 
             sol.variable_names = var_names;
             let energy: Option<f64> = None;
@@ -630,29 +545,9 @@ impl PySolution {
         sense: Option<Sense>,
         bit_order: String,
     ) -> PyResult<PySolution> {
-        if env.is_some() && model.is_some() {
-            return Err(PyValueError::new_err(
-                "either `env` or `model` has to be `None`",
-            ));
-        }
-        if sense.is_some() && model.is_some() {
-            return Err(PyValueError::new_err(
-                "either `sense` or `model` has to be `None`",
-            ));
-        }
-
-        let environment: PyEnvironment = if let Some(model) = &model {
-            PyEnvironment(model.borrow().environment.clone())
-        } else {
-            match env {
-                Some(env) => env.clone(),
-                None => CURRENT_ENV.with(|current| {
-                    current.borrow().clone().ok_or_else(|| {
-                        NoActiveEnvironmentFoundError::new_err("no active environment found.")
-                    })
-                })?,
-            }
-        };
+        Self::check_env_or_model(&env, &model)?;
+        Self::check_sense_or_model(&sense, &model)?;
+        let environment = Self::retrieve_environment(&env, &model)?;
 
         let mut sol = Solution::with_sense(
             sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
@@ -1190,5 +1085,97 @@ impl<'py> FromPyObject<'py> for ShowMetadata {
                 "Invalid spec '{mode}'. Expected one of 'before', 'after', 'hide'."
             ))),
         }
+    }
+}
+
+impl PySolution {
+    fn check_env_or_model(env: &Option<PyEnvironment>, model: &Option<PyModel>) -> PyResult<()> {
+        if env.is_some() && model.is_some() {
+            Err(PyValueError::new_err(
+                "either `env` or `model` has to be `None`",
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
+    fn check_sense_or_model(sense: &Option<Sense>, model: &Option<PyModel>) -> PyResult<()> {
+        if sense.is_some() && model.is_some() {
+            Err(PyValueError::new_err(
+                "either `sense` or `model` has to be `None`",
+            ))
+        } else {
+            Ok(())
+        }
+    }
+
+    fn check_counts_and_samples_len(counts: &Option<Vec<usize>>, data_len: usize) -> PyResult<()> {
+        if counts.is_some() && counts.as_ref().unwrap().len() != data_len {
+            return Err(PyValueError::new_err(format!(
+                "the number of samples and the number of counts do not match: num samples is '{}', num counts is '{}'",
+                data_len, counts.as_ref().unwrap().len()))
+            );
+        } else {
+            Ok(())
+        }
+    }
+
+    fn retrieve_environment(
+        env: &Option<PyEnvironment>,
+        model: &Option<PyModel>,
+    ) -> PyResult<PyEnvironment> {
+        let environment = if let Some(model) = &model {
+            PyEnvironment(model.borrow().environment.clone())
+        } else {
+            match env {
+                Some(env) => env.clone(),
+                None => CURRENT_ENV.with(|current| {
+                    current.borrow().clone().ok_or_else(|| {
+                        NoActiveEnvironmentFoundError::new_err("no active environment found.")
+                    })
+                })?,
+            }
+        };
+        Ok(environment)
+    }
+
+    pub fn build_sample<F>(
+        data: &HashMap<SampleKey, f64>,
+        n_vars: usize,
+        env: &SharedEnvironment,
+        map_varidx: F,
+    ) -> PyResult<(Vec<f64>, Vec<String>)>
+    where
+        F: Fn(usize) -> usize,
+    {
+        let mut sample = vec![f64::default(); n_vars];
+        let mut mask = vec![false; n_vars];
+        let mut var_names = vec![String::default(); n_vars];
+
+        for (k, &v) in data.iter() {
+            let var_name = match k {
+                SampleKey::Str(s) => s,
+                SampleKey::Var(v) => &v.name(),
+            };
+            let environ = env.borrow();
+            let maybe_var = environ.get(var_name).ok();
+            // println!("{:?}", maybe_var);
+            if maybe_var.is_none() {
+                return Err(SampleUnexpectedVariableErr {
+                    var_name: var_name.clone(),
+                })?;
+            }
+            let var = maybe_var.unwrap().0 as usize;
+            let sidx = map_varidx(var);
+            sample[sidx] = v;
+            mask[sidx] = true;
+            var_names[sidx] = var_name.clone();
+        }
+
+        if !mask.iter().all(|&x| x) {
+            return Err(SampleIncorrectLengthErr)?;
+        }
+
+        Ok((sample, var_names))
     }
 }

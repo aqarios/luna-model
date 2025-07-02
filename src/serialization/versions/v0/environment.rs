@@ -104,7 +104,7 @@ impl Creatable<Environment> for SerEnvironment {
             environment.all_variables().len() as u64,
         );
 
-        for (i, var) in environment.variables().iter().enumerate() {
+        for (i, var) in environment.all_variables().enumerate() {
             match var.vtype {
                 Vtype::__Ghost => {
                     out.ghosts.push(force_u32(i));
