@@ -1,5 +1,5 @@
 use super::py_utilities::repr_solution;
-use crate::core::solution::sol::{SampleCol, ShowMetadata};
+use crate::core::solution::sol::{SampleCol, SampleColElement, ShowMetadata};
 use crate::core::{PrintLayout, RcSolution, Samples, Sense, Solution, VarAssignment, Vtype};
 use crate::errors::{ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
@@ -15,7 +15,7 @@ use crate::serialization::{
 };
 use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
-use itertools;
+use itertools::{self, Itertools};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
@@ -84,8 +84,14 @@ enum BitOrder {
 /// -----
 /// - To ensure metadata like objective values or feasibility, use `model.evaluate(solution)`.
 /// - Use `encode()` and `decode()` to serialize and recover solutions.
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Solution", module = "aqmodels"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Solution", module = "luna_quantum"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "Solution", module = "aqmodels")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "Solution", module = "luna_quantum")
+)]
 #[derive(Deref, DerefMut, Debug)]
 pub struct PySolution(pub RcSolution);
 
@@ -230,10 +236,11 @@ impl PySolution {
         let mut num_samples: Option<usize> = None;
         for (i, ct) in component_types.iter().enumerate() {
             let len = match ct {
+                Vtype::__Ghost => 0,
                 Vtype::Binary => {
                     let bc = binary_cols[lb].clone();
                     let bc_len = bc.len();
-                    sol.add_column(SampleCol::Binary(bc));
+                    sol.add_column(SampleCol::Binary(SampleColElement::new(i.into(), bc)));
                     sol.variable_names
                         .push(var_names[i].clone().unwrap_or(format!("b{lb}")));
                     lb += 1;
@@ -242,7 +249,7 @@ impl PySolution {
                 Vtype::Spin => {
                     let sc = spin_cols[ls].clone();
                     let sc_len = sc.len();
-                    sol.add_column(SampleCol::Spin(sc));
+                    sol.add_column(SampleCol::Spin(SampleColElement::new(i.into(), sc)));
                     sol.variable_names
                         .push(var_names[i].clone().unwrap_or(format!("s{ls}")));
                     ls += 1;
@@ -251,7 +258,7 @@ impl PySolution {
                 Vtype::Integer => {
                     let ic = int_cols[li].clone();
                     let ic_len = ic.len();
-                    sol.add_column(SampleCol::Integer(ic));
+                    sol.add_column(SampleCol::Integer(SampleColElement::new(i.into(), ic)));
                     sol.variable_names
                         .push(var_names[i].clone().unwrap_or(format!("i{li}")));
                     li += 1;
@@ -260,7 +267,7 @@ impl PySolution {
                 Vtype::Real => {
                     let rc = real_cols[lr].clone();
                     let rc_len = rc.len();
-                    sol.add_column(SampleCol::Real(rc));
+                    sol.add_column(SampleCol::Real(SampleColElement::new(i.into(), rc)));
                     sol.variable_names
                         .push(var_names[i].clone().unwrap_or(format!("r{lr}")));
                     lr += 1;
@@ -379,16 +386,16 @@ impl PySolution {
         let mut sol = Solution::with_sense(
             sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
         );
-        for v in environment.borrow().variables.iter() {
-            match v.vtype {
-                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
-                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(1))),
-                Vtype::Integer => sol.add_column(SampleCol::Integer(Vec::with_capacity(1))),
-                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(1))),
-            }
-        }
+        println!(
+            "env all vars = {:?}",
+            environment.borrow().all_variables().collect_vec()
+        );
+        println!("env vars = {:?}", environment.borrow().variables());
+        sol.create_columns(&environment, 1);
+        println!("sol samples = {:?}", sol.samples);
 
-        let n_vars = environment.borrow().varcount.into();
+        let n_vars = environment.borrow().varcount() as usize;
+        println!("n_vars = {:?}", n_vars);
         let mut sample = vec![f64::default(); n_vars];
         let mut mask = vec![false; n_vars];
         let mut var_names = vec![String::default(); n_vars];
@@ -399,7 +406,7 @@ impl PySolution {
                 SampleKey::Var(v) => &v.name(),
             };
             let environ = environment.borrow();
-            let maybe_var = environ.variables_lookup.get(var_name);
+            let maybe_var = environ.get(var_name).ok();
             println!("{:?}", maybe_var);
             if maybe_var.is_none() {
                 return Err(SampleUnexpectedVariableErr {
@@ -518,18 +525,8 @@ impl PySolution {
         let mut sol = Solution::with_sense(
             sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
         );
-        for v in environment.borrow().variables.iter() {
-            match v.vtype {
-                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(data.len()))),
-                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(data.len()))),
-                Vtype::Integer => {
-                    sol.add_column(SampleCol::Integer(Vec::with_capacity(data.len())))
-                }
-                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(data.len()))),
-            }
-        }
-
-        let n_vars = environment.borrow().varcount.into();
+        sol.create_columns(&environment, data.len());
+        let n_vars = environment.borrow().varcount() as usize;
 
         let mut samples: Vec<Vec<f64>> = Vec::with_capacity(data.len());
 
@@ -544,7 +541,7 @@ impl PySolution {
                     SampleKey::Var(v) => &v.name(),
                 };
                 let environ = environment.borrow();
-                let maybe_var = environ.variables_lookup.get(var_name);
+                let maybe_var = environ.get(var_name).ok();
                 if maybe_var.is_none() {
                     return Err(SampleUnexpectedVariableErr {
                         var_name: var_name.clone(),
@@ -666,10 +663,16 @@ impl PySolution {
         let mut sol = Solution::with_sense(
             sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
         );
-        for v in environment.borrow().variables.iter() {
+        for (idx, v) in environment.borrow().all_variables().enumerate() {
             match v.vtype {
-                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(data.len()))),
-                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(data.len()))),
+                Vtype::Binary => sol.add_column(SampleCol::Binary(SampleColElement::new(
+                    idx.into(),
+                    Vec::with_capacity(data.len()),
+                ))),
+                Vtype::Spin => sol.add_column(SampleCol::Spin(SampleColElement::new(
+                    idx.into(),
+                    Vec::with_capacity(data.len()),
+                ))),
                 _ => {
                     return Err(PyValueError::new_err(
                         "environment contains non-binary or non-spin variables.",

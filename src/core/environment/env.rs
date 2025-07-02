@@ -18,12 +18,12 @@ pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Environment {
-    pub id: EnvId,
-    pub variables: Vec<Variable>,
-    pub variables_lookup: HashMap<String, VarIndex>,
-    pub varcount: VarIndex,
+    id: EnvId,
+    variables: Vec<Variable>,
+    variables_lookup: HashMap<String, VarIndex>,
+    varcount: VarIndex,
     // ghost variable indices.
-    pub ghost_vars: Vec<usize>,
+    ghost_vars: Vec<usize>,
 }
 
 #[derive(Debug, PartialEq, Deref, DerefMut)]
@@ -203,6 +203,24 @@ impl Environment {
         }
     }
 
+    #[inline]
+    pub fn id(&self) -> EnvId {
+        self.id
+    }
+
+    #[inline]
+    pub fn varcount(&self) -> u32 {
+        self.varcount.0 
+    }
+
+    pub fn set_data(&mut self, varcount: VarIndex, variables: Vec<Variable>, variables_lookup: HashMap<String, VarIndex>, ghost_vars: Vec<usize>) {
+        self.varcount = varcount;
+        self.variables = variables;
+        self.variables_lookup = variables_lookup;
+        self.ghost_vars = ghost_vars;
+
+    }
+
     /// Alias for self[id].vtype
     #[inline]
     pub fn get_vtype(&self, id: VarIndex) -> Vtype {
@@ -324,8 +342,8 @@ impl Variable {
     pub fn ghost() -> Self {
         Self {
             name: "GHOST_VAR".to_string(),
-            vtype: Vtype::Real,
-            bounds: Bounds::real(),
+            vtype: Vtype::__Ghost,
+            bounds: Bounds::__ghost(),
             env_id: 0,
         }
     }

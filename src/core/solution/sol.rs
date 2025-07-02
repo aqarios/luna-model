@@ -1,18 +1,20 @@
 use crate::core::solution::timing::Timing;
 use crate::core::traits::{ContentEquality, FilterByMask};
 use crate::core::writer::SolutionWriter;
-use crate::core::{ResultIterator, ResultView, Samples, Sense};
+use crate::core::{ResultIterator, ResultView, Samples, Sense, SharedEnvironment, Vtype};
 use crate::errors::{
     ComputationErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr,
 };
 use crate::types::{
     Bias, BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType,
+    VarIndex,
 };
 use derive_more::{Deref, DerefMut};
 use num::{NumCast, ToPrimitive};
 use std::fmt::{Display, Formatter};
 use std::ops::Mul;
 use std::rc::Rc;
+use std::slice::Iter;
 
 #[derive(Debug, Clone, Copy)]
 pub enum VarAssignment {
@@ -63,13 +65,52 @@ impl Display for VarAssignment {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct SampleColElement<T> {
+    pub data: Vec<T>,
+    pub varid: VarIndex,
+}
+
+impl<T> SampleColElement<T> {
+    pub fn new(varid: VarIndex, data: Vec<T>) -> Self {
+        Self { data, varid }
+    }
+
+    pub fn push(&mut self, value: T) {
+        self.data.push(value);
+    }
+
+    pub fn get(&self, index: usize) -> Option<&T> {
+        self.data.get(index)
+    }
+
+    pub fn iter(&self) -> Iter<'_, T> {
+        self.data.iter()
+    }
+}
+
+impl<T> IntoIterator for SampleColElement<T> {
+    type IntoIter = std::vec::IntoIter<T>;
+    type Item = T;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.into_iter()
+    }
+}
+
+impl<T: Clone> FilterByMask<T> for SampleColElement<T> {
+    fn filter_by_mask(&self, mask: &Vec<bool>) -> Vec<T> {
+        self.data.filter_by_mask(mask)
+    }
+}
+
 /// The different assignments to a variable in the single samples
 #[derive(Debug, Clone, PartialEq)]
 pub enum SampleCol {
-    Binary(Vec<BinaryAssignmentType>),
-    Spin(Vec<SpinAssignmentType>),
-    Integer(Vec<IntegerAssignmentType>),
-    Real(Vec<RealAssignmentType>),
+    Binary(SampleColElement<BinaryAssignmentType>),
+    Spin(SampleColElement<SpinAssignmentType>),
+    Integer(SampleColElement<IntegerAssignmentType>),
+    Real(SampleColElement<RealAssignmentType>),
 }
 
 impl Mul<Bias> for VarAssignment {
@@ -197,6 +238,30 @@ impl Solution {
         self.samples.push(col);
     }
 
+    pub fn create_columns(&mut self, env: &SharedEnvironment, capacity: usize) {
+        for (idx, v) in env.borrow().all_variables().enumerate() {
+            match v.vtype {
+                Vtype::Binary => self.add_column(SampleCol::Binary(SampleColElement::new(
+                    idx.into(),
+                    Vec::with_capacity(capacity),
+                ))),
+                Vtype::Spin => self.add_column(SampleCol::Spin(SampleColElement::new(
+                    idx.into(),
+                    Vec::with_capacity(capacity),
+                ))),
+                Vtype::Integer => self.add_column(SampleCol::Integer(SampleColElement::new(
+                    idx.into(),
+                    Vec::with_capacity(capacity),
+                ))),
+                Vtype::Real => self.add_column(SampleCol::Real(SampleColElement::new(
+                    idx.into(),
+                    Vec::with_capacity(capacity),
+                ))),
+                Vtype::__Ghost => (),
+            }
+        }
+    }
+
     /// Extend a solution with a sample, without computing any objective values or similar.
     /// This method does not check whether the sample is already part of the solution as for now the
     /// solution translator is expected to do the aggregation.
@@ -292,10 +357,18 @@ impl Solution {
             .samples
             .iter()
             .map(|col| match col {
-                SampleCol::Binary(b) => SampleCol::Binary(b.filter_by_mask(mask)),
-                SampleCol::Spin(s) => SampleCol::Spin(s.filter_by_mask(mask)),
-                SampleCol::Integer(i) => SampleCol::Integer(i.filter_by_mask(mask)),
-                SampleCol::Real(r) => SampleCol::Real(r.filter_by_mask(mask)),
+                SampleCol::Binary(b) => {
+                    SampleCol::Binary(SampleColElement::new(b.varid, b.data.filter_by_mask(mask)))
+                }
+                SampleCol::Spin(s) => {
+                    SampleCol::Spin(SampleColElement::new(s.varid, s.filter_by_mask(mask)))
+                }
+                SampleCol::Integer(i) => {
+                    SampleCol::Integer(SampleColElement::new(i.varid, i.filter_by_mask(mask)))
+                }
+                SampleCol::Real(r) => {
+                    SampleCol::Real(SampleColElement::new(r.varid, r.filter_by_mask(mask)))
+                }
             })
             .collect();
         sol.sense = self.sense;

@@ -63,6 +63,7 @@ pub fn create_linear_expression_with_vars(
         Vtype::Spin => "s",
         Vtype::Integer => "i",
         Vtype::Real => "r",
+        Vtype::__Ghost => "g",
     };
     let vars: Vec<VarRef> = (0..biases.len())
         .map(|i| {

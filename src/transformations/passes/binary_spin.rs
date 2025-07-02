@@ -1,7 +1,11 @@
 use std::collections::HashMap;
 
 use crate::{
-    core::{expression::ExpressionBaseAdd, solution::sol::SampleCol, Model, Solution, Vtype},
+    core::{
+        expression::ExpressionBaseAdd,
+        solution::sol::{SampleCol, SampleColElement},
+        Model, Solution, Vtype,
+    },
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{
@@ -66,9 +70,8 @@ impl BinarySpinInfo {
 
 impl AnalysisPass for BinarySpinAnalysis {
     fn run(&self, model: &Model, _cache: &AnalysisCache) -> AnalysisPassResult {
-        let mut cache =
-            BinarySpinInfo::try_new(self.vtype).map_err(|x| self.map_err(&x))?;
-        for x in model.environment.borrow().variables.iter() {
+        let mut cache = BinarySpinInfo::try_new(self.vtype).map_err(|x| self.map_err(&x))?;
+        for x in model.environment.borrow().variables().iter() {
             match (x.vtype, self.vtype) {
                 (Vtype::Binary, Vtype::Spin) => {
                     cache.map.insert(x.name.clone(), format!("s_{}", x.name));
@@ -128,13 +131,13 @@ impl TransformationPass for BinarySpinPass {
                             let mut e = -0.5 * var;
                             e.add_offset(0.5);
                             e
-                        },
+                        }
                         Vtype::Binary => {
                             let mut e = -2.0 * var;
                             e.add_offset(1.0);
                             e
-                        },
-                        // This cannot be reached 
+                        }
+                        // This cannot be reached
                         _ => panic!(),
                     };
                     model
@@ -171,19 +174,21 @@ impl TransformationPass for BinarySpinPass {
                     match cache.old_vtype {
                         Vtype::Spin => {
                             if let Some(SampleCol::Binary(inner)) = col {
-                                solution.samples[i] = SampleCol::Spin(
-                                    inner.into_iter().map(|x| 1 - 2 * (*x) as i8).collect(),
-                                );
+                                solution.samples[i] = SampleCol::Spin(SampleColElement::new(
+                                    inner.varid,
+                                    inner.iter().map(|x| 1 - 2 * (*x) as i8).collect(),
+                                ));
                             }
                         }
                         Vtype::Binary => {
                             if let Some(SampleCol::Spin(inner)) = col {
-                                solution.samples[i] = SampleCol::Binary(
-                                    inner.into_iter().map(|x| ((1 - *x) as u8) / 2).collect(),
-                                );
+                                solution.samples[i] = SampleCol::Binary(SampleColElement::new(
+                                    inner.varid,
+                                    inner.iter().map(|x| ((1 - *x) as u8) / 2).collect(),
+                                ));
                             }
                         }
-                        _ => panic!()
+                        _ => panic!(),
                     }
                 }
             }

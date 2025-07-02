@@ -79,19 +79,19 @@ impl PyVariable {
 
     pub fn name(&self) -> String {
         let idx: usize = self.id.into();
-        let name = &self.env.borrow().variables[idx].name;
+        let name = &self.env.borrow()[idx].name;
         name.clone()
     }
 
     pub fn bounds(&self) -> PyBounds {
         let idx: usize = self.id.into();
-        let bounds = self.env.borrow().variables[idx].bounds;
+        let bounds = self.env.borrow()[idx].bounds;
         PyBounds(bounds.into())
     }
 
     pub fn vtype(&self) -> Vtype {
         let idx: usize = self.id.into();
-        self.env.borrow().variables[idx].vtype
+        self.env.borrow()[idx].vtype
     }
 }
 
@@ -105,8 +105,8 @@ impl PartialEq<Self> for PyVariable {
     fn eq(&self, other: &Self) -> bool {
         let self_idx: usize = self.id.into();
         let other_idx: usize = other.id.into();
-        return self.env.borrow().id == other.env.borrow().id
-            && self.env.borrow().variables[self_idx] == other.env.borrow().variables[other_idx];
+        return self.env.borrow().id() == other.env.borrow().id()
+            && self.env.borrow()[self_idx] == other.env.borrow()[other_idx];
     }
 }
 

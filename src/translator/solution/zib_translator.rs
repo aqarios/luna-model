@@ -1,6 +1,5 @@
 use crate::core::environment::SharedEnvironment;
-use crate::core::solution::sol::SampleCol;
-use crate::core::{RcSolution, Sense, Solution, Timing, Vtype};
+use crate::core::{RcSolution, Sense, Solution, Timing};
 use crate::errors::SolutionCreationErr;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -15,14 +14,7 @@ impl ZibTranslator {
         env: SharedEnvironment,
     ) -> Result<RcSolution, SolutionCreationErr> {
         let mut sol = Solution::with_sense(sense);
-        for v in env.borrow().variables().iter() {
-            match v.vtype {
-                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(1))),
-                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(1))),
-                Vtype::Integer => sol.add_column(SampleCol::Integer(Vec::with_capacity(1))),
-                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(1))),
-            }
-        }
+        sol.create_columns(&env, 1);
         sol.timing = timing;
         sol.variable_names = env.variable_names();
         let sample_vec: Vec<_> = env
