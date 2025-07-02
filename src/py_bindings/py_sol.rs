@@ -400,6 +400,7 @@ impl PySolution {
             };
             let environ = environment.borrow();
             let maybe_var = environ.variables_lookup.get(var_name);
+            println!("{:?}", maybe_var);
             if maybe_var.is_none() {
                 return Err(SampleUnexpectedVariableErr {
                     var_name: var_name.clone(),

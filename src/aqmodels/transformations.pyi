@@ -2,7 +2,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Literal, overload
 
-from aqmodels import Model, Sense, Solution, Timing
+from aqmodels import Model, Sense, Solution, Timing, Vtype
 
 class BasePass:
     @property
@@ -102,6 +102,36 @@ class MaxBias:
 
 class MaxBiasAnalysis(BasePass):
     """An analysis pass computing the maximum bias contained in the model."""
+
+    def __init__(self) -> None: ...
+
+class BinarySpinAnalysis(BasePass):
+    """An analysis pass noting down which variables need to be transformed."""
+
+    def __init__(self, vtype: Literal[Vtype.Binary, Vtype.Spin]) -> None: ...
+    @property
+    def vtype(self) -> Vtype:
+        """Get the target vtype."""
+        ...
+
+class BinarySpinInfo:
+    @property
+    def old_vtype(self) -> Vtype:
+        """Get the source vtype."""
+        ...
+
+    @property
+    def new_vtype(self) -> Vtype:
+        """Get the target vtype."""
+        ...
+
+    @property
+    def map(self) -> dict[str, str]:
+        """Get the variable name mapping."""
+        ...
+
+class BinarySpinPass(BasePass):
+    """An transformation pass changing the denoted variables to target."""
 
     def __init__(self) -> None: ...
 

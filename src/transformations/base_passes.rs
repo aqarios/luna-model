@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 use crate::core::{Model, Solution};
 
@@ -39,7 +39,15 @@ pub trait BasePass: Debug {
 
 pub trait AnalysisPass: BasePass {
     fn run(&self, model: &Model, cache: &AnalysisCache) -> AnalysisPassResult;
+
+    fn map_err(&self, err: &dyn Display) -> AnalysisPassError {
+        AnalysisPassError(self.name(), err.to_string())
+    }
 }
+
+impl dyn AnalysisPass {
+}
+
 
 pub trait TransformationPass: BasePass {
     fn invalidates(&self) -> Vec<String> {
@@ -48,7 +56,12 @@ pub trait TransformationPass: BasePass {
     fn run(&self, model: Model, cache: &AnalysisCache) -> TransformationPassResult;
 
     fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution;
+
+    fn map_err(&self, err: &dyn Display) -> TransformationPassError {
+        TransformationPassError(self.name(), err.to_string())
+    }
 }
+
 
 #[derive(Debug)]
 pub enum Pass {

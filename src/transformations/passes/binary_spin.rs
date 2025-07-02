@@ -1,14 +1,13 @@
 use std::collections::HashMap;
 
 use crate::{
-    core::{expression::ExpressionBaseAdd, Model, Solution, Variable, Vtype},
+    core::{expression::ExpressionBaseAdd, solution::sol::SampleCol, Model, Solution, Vtype},
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{
             ActionType, AnalysisPass, AnalysisPassResult, BasePass, TransformationPass,
             TransformationPassResult,
         },
-        errors::{AnalysisPassError, TransformationPassError},
     },
 };
 
@@ -52,13 +51,13 @@ impl BinarySpinInfo {
         match vtype {
             Vtype::Spin => Ok(BinarySpinInfo {
                 map,
-                old_vtype: vtype,
-                new_vtype: Vtype::Binary,
+                old_vtype: Vtype::Binary,
+                new_vtype: vtype,
             }),
             Vtype::Binary => Ok(BinarySpinInfo {
                 map,
-                old_vtype: vtype,
-                new_vtype: Vtype::Spin,
+                new_vtype: vtype,
+                old_vtype: Vtype::Spin,
             }),
             x => Err(format!("Vtype '{}' not supported.", x)),
         }
@@ -68,11 +67,14 @@ impl BinarySpinInfo {
 impl AnalysisPass for BinarySpinAnalysis {
     fn run(&self, model: &Model, _cache: &AnalysisCache) -> AnalysisPassResult {
         let mut cache =
-            BinarySpinInfo::try_new(self.vtype).map_err(|x| AnalysisPassError(self.name(), x))?;
+            BinarySpinInfo::try_new(self.vtype).map_err(|x| self.map_err(&x))?;
         for x in model.environment.borrow().variables.iter() {
             match (x.vtype, self.vtype) {
-                (Vtype::Binary, Vtype::Spin) | (Vtype::Spin, Vtype::Binary) => {
+                (Vtype::Binary, Vtype::Spin) => {
                     cache.map.insert(x.name.clone(), format!("s_{}", x.name));
+                }
+                (Vtype::Spin, Vtype::Binary) => {
+                    cache.map.insert(x.name.clone(), format!("x_{}", x.name));
                 }
                 _ => {}
             };
@@ -89,19 +91,17 @@ impl AnalysisPass for BinarySpinAnalysis {
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
-pub struct BinarySpinPass {
-    pub vtype: Vtype,
-}
+pub struct BinarySpinPass {}
 
 impl BinarySpinPass {
-    pub fn new(vtype: Vtype) -> Self {
-        BinarySpinPass { vtype }
+    pub fn new() -> Self {
+        BinarySpinPass {}
     }
 }
 
 impl BasePass for BinarySpinPass {
     fn name(&self) -> String {
-        String::from("binary-spin")
+        String::from("binary-spin-tr")
     }
 
     fn requires(&self) -> Vec<String> {
@@ -112,39 +112,83 @@ impl BasePass for BinarySpinPass {
 impl TransformationPass for BinarySpinPass {
     #[allow(unreachable_code)]
     fn run(&self, mut model: Model, cache: &AnalysisCache) -> TransformationPassResult {
-        let cache: BinarySpinInfo = todo!();
+        match cache.get("binary-spin") {
+            Some(AnalysisCacheElement::BinarySpinInfoAnalysis(cache)) => {
+                for (s, t) in cache.map.iter() {
+                    let varref = model
+                        .environment
+                        .get_vref_by_name(s)
+                        .map_err(|e| self.map_err(&e))?;
+                    let var = model
+                        .environment
+                        .add_variable(t, Some(cache.new_vtype), None)
+                        .map_err(|e| self.map_err(&e))?;
+                    let expr = match cache.new_vtype {
+                        Vtype::Spin => {
+                            let mut e = -0.5 * var;
+                            e.add_offset(0.5);
+                            e
+                        },
+                        Vtype::Binary => {
+                            let mut e = -2.0 * var;
+                            e.add_offset(1.0);
+                            e
+                        },
+                        // This cannot be reached 
+                        _ => panic!(),
+                    };
+                    model
+                        .substitute(&varref, &expr)
+                        .map_err(|e| self.map_err(&e))?;
+                }
 
-        for (s, t) in cache.map.iter() {
-            let varref = model
-                .environment
-                .get_vref_by_name(s)
-                .map_err(|e| TransformationPassError(self.name(), format!("{}", e)))?;
-            let var = model
-                .environment
-                .add_variable(t, Some(cache.new_vtype), None)
-                .map_err(|e| TransformationPassError(self.name(), format!("{}", e)))?;
-            let expr = match cache.new_vtype {
-                Vtype::Spin => {
-                    let mut e = -0.5 * var;
-                    e.add_offset(0.5);
-                    e
-                }
-                Vtype::Binary => {
-                    let mut e = -2.0 * var;
-                    e.add_offset(1.0);
-                    e
-                }
-                _ => panic!(),
-            };
-            model
-                .substitute(&varref, &expr)
-                .map_err(|e| TransformationPassError(self.name(), format!("{}", e)))?;
+                Ok((model, ActionType::DidTransform))
+            }
+            _ => Ok((model, ActionType::Nothing)),
         }
-
-        Ok((model, ActionType::DidTransform))
     }
 
-    fn backwards(&self, solution: Solution, _cache: &AnalysisCache) -> Solution {
+    fn backwards(&self, mut solution: Solution, cache: &AnalysisCache) -> Solution {
+        match cache.get("binary-spin") {
+            Some(AnalysisCacheElement::BinarySpinInfoAnalysis(cache)) => {
+                let mut rev_map = HashMap::new();
+                cache.map.iter().for_each(|(k, v)| {
+                    rev_map.insert(v.clone(), k.clone());
+                });
+                let idxs: Vec<usize> = solution
+                    .variable_names
+                    .iter_mut()
+                    .enumerate()
+                    .filter_map(|(i, x)| {
+                        rev_map.get(x).map(|k| {
+                            *x = k.clone();
+                            i
+                        })
+                    })
+                    .collect();
+                for i in idxs.into_iter() {
+                    let col = solution.samples.get_mut(i);
+                    match cache.old_vtype {
+                        Vtype::Spin => {
+                            if let Some(SampleCol::Binary(inner)) = col {
+                                solution.samples[i] = SampleCol::Spin(
+                                    inner.into_iter().map(|x| 1 - 2 * (*x) as i8).collect(),
+                                );
+                            }
+                        }
+                        Vtype::Binary => {
+                            if let Some(SampleCol::Spin(inner)) = col {
+                                solution.samples[i] = SampleCol::Binary(
+                                    inner.into_iter().map(|x| ((1 - *x) as u8) / 2).collect(),
+                                );
+                            }
+                        }
+                        _ => panic!()
+                    }
+                }
+            }
+            _ => {}
+        }
         solution
     }
 }
