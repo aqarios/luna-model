@@ -321,9 +321,9 @@ impl PyModel {
     fn variables(&self, active: Option<bool>) -> Vec<PyVariable> {
         let model = self.borrow();
         let active_vars = &model.objective.active;
-        (0..self.borrow().environment.borrow().varcount.into())
+        (0..self.borrow().environment.borrow().varcount())
             .enumerate()
-            .filter(|(_, a)| *active_vars.get(*a).unwrap_or(&false) || !active.unwrap_or_default())
+            .filter(|(_, a)| *active_vars.get(*a as usize).unwrap_or(&false) || !active.unwrap_or_default())
             .map(|(i, _)| {
                 PyVariable::new(VarRef {
                     id: i.into(),

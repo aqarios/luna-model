@@ -94,6 +94,7 @@ impl HashEnv {
 
         for (i, var) in env.borrow().all_variables().enumerate() {
             match var.vtype {
+                Vtype::__Ghost => (),
                 Vtype::Binary => {
                     serenv.binary.push(force_u32(i));
                     serenv.binary_names.push(var.name.clone());

@@ -46,6 +46,9 @@ pub enum Vtype {
     Integer,
     /// Continuous real-valued variable. Can take any value within given bounds.
     Real,
+    /// Special Ghost Variable type. Cannot be exluded from python enum specifically.
+    /// todo: either keep as is or make pyenum wrapper...
+    __Ghost,
 }
 
 impl Vtype {

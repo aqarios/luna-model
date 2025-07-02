@@ -1,4 +1,4 @@
-from aqmodels import Model, Vtype, Solution
+from aqmodels import Model, Solution, Vtype
 from aqmodels.transformations import BinarySpinAnalysis, BinarySpinPass, PassManager
 
 pm = PassManager([BinarySpinAnalysis(Vtype.Binary), BinarySpinPass()])
@@ -15,7 +15,13 @@ ir = pm.run(model)
 
 
 print(ir.model)
-sol = Solution.from_dict({"s": 0, "x": 1}, model=ir.model)
-
+sol = Solution.from_dict({"x_s": 0, "x": 1}, model=ir.model)
 print(sol)
+sol2 = Solution.from_dicts([{"x_s": 0, "x": 1}], model=ir.model)
+print(sol2)
 
+# try with owned
+res = ir.model.evaluate_sample(sol.samples[0])
+print(res)
+res2 = ir.model.evaluate_sample(res.sample)
+print(res2)
