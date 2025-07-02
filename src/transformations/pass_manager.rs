@@ -74,6 +74,9 @@ impl PassManager {
                         ActionType::Nothing
                     }
                 }
+                Pass::IfElse(x) => {
+                    todo!("If-Else Pass not implemented yet.");
+                }
             };
             let timing = timer.stop();
             execution_log.push(pass.name(), timing, kind)
@@ -107,6 +110,7 @@ impl fmt::Display for PassManager {
             let s = match pass {
                 Pass::Transformation(_) => "⚙️",
                 Pass::Analysis(_) => "🔎",
+                Pass::IfElse(_) => "❔",
             };
             write!(f, "{} {}\n", s, pass.name())?;
         }

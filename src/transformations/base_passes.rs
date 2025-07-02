@@ -4,7 +4,7 @@ use crate::core::{Model, Solution};
 
 use super::{
     analysis_cache::{AnalysisCache, AnalysisCacheElement},
-    errors::{AnalysisPassError, TransformationPassError},
+    errors::{AnalysisPassError, TransformationPassError}, passes::ifelse::IfElsePass,
 };
 
 #[cfg(feature = "py")]
@@ -50,6 +50,7 @@ pub trait TransformationPass: BasePass {
 pub enum Pass {
     Transformation(Box<dyn TransformationPass>),
     Analysis(Box<dyn AnalysisPass>),
+    IfElse(IfElsePass)
 }
 
 impl Pass {
@@ -57,6 +58,7 @@ impl Pass {
         match self {
             Pass::Analysis(x) => x.name(),
             Pass::Transformation(x) => x.name(),
+            Pass::IfElse(x) => x.name(),
         }
     }
 
@@ -64,6 +66,7 @@ impl Pass {
         match self {
             Pass::Analysis(x) => x.requires(),
             Pass::Transformation(x) => x.requires(),
+            Pass::IfElse(x) => x.requires(),
         }
     }
 }

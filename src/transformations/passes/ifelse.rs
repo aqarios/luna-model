@@ -4,7 +4,7 @@ use pyo3::exceptions::PyTypeError;
 use pyo3::IntoPyObjectExt;
 
 #[cfg(feature = "py")]
-use crate::py_bindings::AnyPass;
+use {crate::py_bindings::AnyPass, pyo3::prelude::*};
 
 use crate::core::Model;
 use crate::core::Solution;
@@ -97,13 +97,20 @@ impl Clone for Condition {
     }
 }
 
-#[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
+// #[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
 #[derive(Debug, Clone)]
 pub struct IfElsePass {
     required: Vec<String>,
     condition: Condition,
     then: Vec<AnyPass>,
     otherwise: Vec<AnyPass>,
+}
+
+#[cfg(feature = "py")]
+impl IfElsePass {
+    pub fn as_pass(self) -> PyResult<Pass> {
+        Ok(Pass::IfElse(self))
+    }
 }
 
 impl IfElsePass {
