@@ -75,19 +75,39 @@ def test_bqm_solution():
     assert sol_dict_best is not None
     assert bqm.energy(res) == sol_dict_best.obj_value
 
+
 def test_bqm_solution_with_substitution():
     cqm = dimod.generators.random_bin_packing(num_items=2, seed=102)  # type: ignore
     bqm, _ = dimod.cqm_to_bqm(cqm)
 
     # aqmodels flow
     aqm = BqmTranslator.to_aq(bqm)
-    print(aqm)
+    # print(aqm)
 
     rep = aqm.add_variable("s", vtype=Vtype.Spin)
     target = aqm.variables()[0]
+    target_name = target.name
+    target_vtype = target.vtype
+    target_lower = target.bounds.lower
+    target_upper = target.bounds.upper
+
+    print("***** before substitute I")
+    print(aqm.variables())
     aqm.substitute(target, rep)
+    print("***** after substitute I")
+    print(aqm.variables())
     # And now back to the original one to have a valid model and solution.
-    aqm.substitute(rep, target)
+    if target_vtype not in [Vtype.Binary, Vtype.Spin]:
+        back_target = aqm.add_variable(
+            target_name, vtype=target_vtype, lower=target_lower, upper=target_upper
+        )
+    else:
+        back_target = aqm.add_variable(target_name, vtype=target_vtype)
+
+    print("***** before substitute II")
+    aqm.substitute(rep, back_target)
+    print("***** after substitute II")
+    print(aqm.variables())
 
     bqm2 = BqmTranslator.from_aq(aqm)
     assert bqm2.is_almost_equal(bqm)

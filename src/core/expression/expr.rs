@@ -259,17 +259,16 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
         let v_idx: usize = v.into();
         let size: usize = self.active.len();
 
-        if self.active[v_idx] {
-            // only reduce the variable count if the variable was active
-            // before it's removal.
-            self.num_variables -= 1;
-        }
-
         if v_idx == size {
             self.active.resize(size - 1, false);
             self.linear.resize(size - 1);
             self.num_variables -= 1;
         } else {
+            if self.active[v_idx] {
+                // only reduce the variable count if the variable was active
+                // before it's removal.
+                self.num_variables -= 1;
+            }
             self.active[v_idx] = false;
             self.linear[v_idx] = Bias::default();
         }
@@ -876,9 +875,7 @@ impl Debug for Expression {
             .write_linear(&self.env, &self.linear)
             .to_string();
         let quadratic = if let Some(q) = &self.quadratic {
-            ModelWriter::new()
-                .write_quadratic(&self.env, q)
-                .to_string()
+            ModelWriter::new().write_quadratic(&self.env, q).to_string()
         } else {
             String::from("None")
         };

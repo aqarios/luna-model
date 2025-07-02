@@ -138,6 +138,15 @@ impl SharedEnvironment {
     pub fn varcount(&self) -> VarIndex {
         self.borrow().varcount
     }
+
+    /// Includes only non ghost variables, i.e., active variables.
+    pub fn vrefs(&self) -> Vec<VarRef> {
+        (0..self.0.borrow().variables.len())
+            .filter(|idx| !self.0.borrow().ghost_vars.contains(idx))
+            .map(|idx| VarRef::new(idx.into(), self.clone()))
+            .collect()
+    }
+
 }
 
 impl SharedEnvironment {
@@ -250,7 +259,6 @@ impl Environment {
             .map(|(_, var)| var)
             .collect()
     }
-
 
     /// Includes ghost variables, i.e., inactive variables.
     pub fn all_variables(&self) -> Iter<Variable> {

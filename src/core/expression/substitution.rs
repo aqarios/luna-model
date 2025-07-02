@@ -38,6 +38,12 @@ impl Substitution for &Expression {
         target: &VarRef,
         replacement: &Expression,
     ) -> Result<Expression, DifferentEnvsErr> {
+        dbg!(&self.env);
+        dbg!(&self.active);
+        dbg!(&self.linear);
+        dbg!(target);
+        dbg!(replacement);
+
         let env_self_and_var_match = self.env.id() == target.env.id();
         let env_self_and_target_match = self.env.id() == replacement.env.id();
         if !env_self_and_var_match || !env_self_and_target_match {
@@ -98,6 +104,8 @@ impl Substitution for &Expression {
                 }
             }
         }
+        dbg!(&out.num_variables);
+        dbg!(&out.active);
 
         if !replacement.contains(target) {
             out.remove_variable(target.id);
