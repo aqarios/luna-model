@@ -72,7 +72,9 @@ class ActionType(Enum):
     """Indicate that the pass did transform the model."""
     DidAnalysis = ...
     """Indicate that the pass did analyse the model."""
-    Nothing = ...
+    DidAnalysisTransform = ...
+    """Indicate that the pass did analyse and transfrom the model."""
+    DidNothing = ...
     """Indicate that the pass did NOT do anything."""
 
 class ChangeSensePass(BasePass):
@@ -105,8 +107,8 @@ class MaxBiasAnalysis(BasePass):
 
     def __init__(self) -> None: ...
 
-class BinarySpinAnalysis(BasePass):
-    """An analysis pass noting down which variables need to be transformed."""
+class BinarySpinPass(BasePass):
+    """An transformation pass changing the binary/spin variables to spin/binary."""
 
     def __init__(
         self, vtype: Literal[Vtype.Binary, Vtype.Spin], prefix: str | None
@@ -129,18 +131,8 @@ class BinarySpinInfo:
 
     @property
     def new_vtype(self) -> Vtype:
-        """Get the target vtype."""
-        ...
-
-    @property
-    def map(self) -> dict[str, str]:
         """Get the variable name mapping."""
         ...
-
-class BinarySpinPass(BasePass):
-    """An transformation pass changing the denoted variables to target."""
-
-    def __init__(self) -> None: ...
 
 class LogElement:
     """An element of the execution log of an intermediate representation (IR)."""

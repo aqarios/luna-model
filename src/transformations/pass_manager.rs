@@ -61,13 +61,19 @@ impl PassManager {
             let timer = Timer::start();
             let kind = match pass {
                 Pass::Transformation(x) => {
-                    let (m, c, a) = x.run(model, &cache)?;
-                    model = m;
-                    if let Some(inner) = c {
-                        cache.insert(&x.name(), inner);
-                        ActionType::DidAnalysisTransform
-                    } else {
-                        a
+                    let outcome = x.run(model, &cache)?;
+                    model = outcome.model;
+                    match outcome.action {
+                        ActionType::DidTransform => {
+                            if let Some(analysis) = outcome.analysis {
+                                cache.insert(&x.name(), analysis);
+                                ActionType::DidAnalysisTransform
+                            } else {
+                                ActionType::DidTransform
+                            }
+                        }
+                        ActionType::DidNothing => ActionType::DidNothing,
+                        _ => panic!("unexpected action type!"),
                     }
                 }
                 Pass::Analysis(x) => {
@@ -76,7 +82,7 @@ impl PassManager {
                         cache.insert(&x.name(), inner);
                         ActionType::DidAnalysis
                     } else {
-                        ActionType::Nothing
+                        ActionType::DidNothing
                     }
                 }
             };
@@ -95,7 +101,10 @@ impl PassManager {
     pub fn backwards(&self, mut solution: Solution, ir: &IntermediateRepresentation) -> Solution {
         for (general_pass, log) in self.passes.iter().zip(ir.execution_log.iter()).rev() {
             match (general_pass, &log.kind) {
-                (Pass::Transformation(pass), ActionType::DidAnalysis) => {
+                (
+                    Pass::Transformation(pass),
+                    ActionType::DidTransform | ActionType::DidAnalysisTransform,
+                ) => {
                     solution = pass.backwards(solution, &ir.cache);
                 }
                 _ => {}

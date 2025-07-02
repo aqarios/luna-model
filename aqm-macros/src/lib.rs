@@ -491,6 +491,9 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
 
         /// All possible elements in the cache
         pub enum AnalysisCacheElement {
+            // Float(f64),
+            // Int(i32),
+            // String(String),
             #(#enum_variants)*
         }
 

@@ -7,7 +7,7 @@ use crate::{
     py_bindings::py_model::PyModel,
     transformations::{
         analysis_cache::{AnalysisCache, PyAnalysisCache},
-        base_passes::{ActionType, BasePass, TransformationPass, TransformationPassResult},
+        base_passes::{ActionType, BasePass, TransformationOutcome, TransformationPass, TransformationPassResult},
         errors::TransformationPassError,
     },
 };
@@ -118,7 +118,7 @@ impl TransformationPass for PyTransformationPassAdapter {
             let pymodel = py_model_borrow.clone();
             model = pymodel.concrete_model.borrow().clone();
             let tt = py_tt.borrow(py);
-            Ok((model, None, tt.clone()))
+            Ok(TransformationOutcome::new(model, None, tt.clone()))
         })
     }
 

@@ -9,7 +9,7 @@ use crate::{
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{
-            ActionType, AnalysisPass, AnalysisPassResult, BasePass, TransformationPass,
+            ActionType, BasePass, TransformationOutcome, TransformationPass,
             TransformationPassResult,
         },
     },
@@ -20,27 +20,6 @@ use {
     crate::transformations::base_passes::Pass,
     aqm_macros::{analysis_cache, py_pass},
 };
-
-///////////////////////////////////////////////////////////////////////////////
-
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "py", py_pass(pass_variant = "Analysis"))]
-pub struct BinarySpinAnalysis {
-    pub vtype: Vtype,
-    pub prefix: Option<String>,
-}
-
-impl BinarySpinAnalysis {
-    pub fn new(vtype: Vtype, prefix: Option<String>) -> Self {
-        BinarySpinAnalysis { vtype, prefix }
-    }
-}
-
-impl BasePass for BinarySpinAnalysis {
-    fn name(&self) -> String {
-        String::from("binary-spin")
-    }
-}
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "py", analysis_cache)]
@@ -69,8 +48,28 @@ impl BinarySpinInfo {
     }
 }
 
-impl AnalysisPass for BinarySpinAnalysis {
-    fn run(&self, model: &Model, _cache: &AnalysisCache) -> AnalysisPassResult {
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
+pub struct BinarySpinPass {
+    pub vtype: Vtype,
+    pub prefix: Option<String>,
+}
+
+impl BinarySpinPass {
+    pub fn new(vtype: Vtype, prefix: Option<String>) -> Self {
+        BinarySpinPass { vtype, prefix }
+    }
+}
+
+impl BasePass for BinarySpinPass {
+    fn name(&self) -> String {
+        String::from("binary-spin")
+    }
+}
+
+impl TransformationPass for BinarySpinPass {
+    #[allow(unreachable_code)]
+    fn run(&self, mut model: Model, _cache: &AnalysisCache) -> TransformationPassResult {
         let mut cache = BinarySpinInfo::try_new(self.vtype).map_err(|x| self.map_err(&x))?;
         let pref = self.prefix.clone().unwrap_or(
             match self.vtype {
@@ -96,72 +95,46 @@ impl AnalysisPass for BinarySpinAnalysis {
             };
         }
         if cache.map.is_empty() {
-            Ok(None)
-        } else {
-            Ok(Some(AnalysisCacheElement::BinarySpinInfoAnalysis(cache)))
+            return Ok(TransformationOutcome::new(
+                model,
+                None,
+                ActionType::DidNothing,
+            ));
         }
-    }
-}
 
-///////////////////////////////////////////////////////////////////////////////
-
-#[derive(Debug, Clone)]
-#[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
-pub struct BinarySpinPass {}
-
-impl BinarySpinPass {
-    pub fn new() -> Self {
-        BinarySpinPass {}
-    }
-}
-
-impl BasePass for BinarySpinPass {
-    fn name(&self) -> String {
-        String::from("binary-spin-tr")
-    }
-
-    fn requires(&self) -> Vec<String> {
-        return vec!["binary-spin".to_string()];
-    }
-}
-
-impl TransformationPass for BinarySpinPass {
-    #[allow(unreachable_code)]
-    fn run(&self, mut model: Model, cache: &AnalysisCache) -> TransformationPassResult {
-        match cache.get("binary-spin") {
-            Some(AnalysisCacheElement::BinarySpinInfoAnalysis(cache)) => {
-                for (s, t) in cache.map.iter() {
-                    let varref = model
-                        .environment
-                        .get_vref_by_name(s)
-                        .map_err(|e| self.map_err(&e))?;
-                    let var = model
-                        .environment
-                        .add_variable(t, Some(cache.new_vtype), None)
-                        .map_err(|e| self.map_err(&e))?;
-                    let expr = match cache.new_vtype {
-                        Vtype::Spin => {
-                            let mut e = -0.5 * var;
-                            e.add_offset(0.5);
-                            e
-                        }
-                        Vtype::Binary => {
-                            let mut e = -2.0 * var;
-                            e.add_offset(1.0);
-                            e
-                        }
-                        // This cannot be reached
-                        _ => panic!(),
-                    };
-                    model
-                        .substitute(&varref, &expr)
-                        .map_err(|e| self.map_err(&e))?;
+        for (s, t) in cache.map.iter() {
+            let varref = model
+                .environment
+                .get_vref_by_name(s)
+                .map_err(|e| self.map_err(&e))?;
+            let var = model
+                .environment
+                .add_variable(t, Some(cache.new_vtype), None)
+                .map_err(|e| self.map_err(&e))?;
+            let expr = match cache.new_vtype {
+                Vtype::Spin => {
+                    let mut e = -0.5 * var;
+                    e.add_offset(0.5);
+                    e
                 }
-
-                Ok((model, None, ActionType::DidTransform))
-            }
-            _ => Ok((model, None, ActionType::Nothing)),
+                Vtype::Binary => {
+                    let mut e = -2.0 * var;
+                    e.add_offset(1.0);
+                    e
+                }
+                // This cannot be reached
+                _ => panic!("unexpected vtype"),
+            };
+            model
+                .substitute(&varref, &expr)
+                .map_err(|e| self.map_err(&e))?;
         }
+
+        Ok(TransformationOutcome::new(
+            model,
+            Some(AnalysisCacheElement::BinarySpinInfoAnalysis(cache)),
+            ActionType::DidTransform,
+        ))
     }
 
     fn backwards(&self, mut solution: Solution, cache: &AnalysisCache) -> Solution {
@@ -201,7 +174,7 @@ impl TransformationPass for BinarySpinPass {
                                 ));
                             }
                         }
-                        _ => panic!(),
+                        _ => panic!("unexpected vtype"),
                     }
                 }
             }

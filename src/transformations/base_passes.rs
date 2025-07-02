@@ -20,12 +20,12 @@ pub type AnalysisPassResult = Result<Option<AnalysisCacheElement>, AnalysisPassE
     all(feature = "py", feature = "lq"),
     pyclass(name = "ActionType", module = "luna_quantum")
 )]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum ActionType {
     DidTransform,
     DidAnalysis,
     DidAnalysisTransform,
-    Nothing,
+    DidNothing,
 }
 
 pub trait BasePass: Debug {
@@ -44,8 +44,23 @@ pub trait AnalysisPass: BasePass {
     }
 }
 
-pub type TransformationPassResult =
-    Result<(Model, Option<AnalysisCacheElement>, ActionType), TransformationPassError>;
+pub struct TransformationOutcome {
+    pub model: Model,
+    pub analysis: Option<AnalysisCacheElement>,
+    pub action: ActionType,
+}
+
+impl TransformationOutcome {
+    pub fn new(model: Model, analysis: Option<AnalysisCacheElement>, action: ActionType) -> Self {
+        TransformationOutcome {
+            model,
+            analysis,
+            action,
+        }
+    }
+}
+
+pub type TransformationPassResult = Result<TransformationOutcome, TransformationPassError>;
 
 pub trait TransformationPass: BasePass {
     fn invalidates(&self) -> Vec<String> {
