@@ -41,6 +41,27 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
     let pass_variant =
         pass_variant.unwrap_or_else(|| panic!("you must supply `pass_variant = \"...\"`"));
 
+    let get_invalidates = if pass_variant == "Transformation" {
+        quote! {
+            #[getter]
+            pub fn get_invalidates(&self) -> Vec<String> {
+                return self.invalidates()
+            }
+        }
+    } else {
+        quote! {}
+    };
+    let invalidates_repr = if pass_variant == "Transformation" {
+        quote! {
+            let vec = self.invalidates();
+            if !vec.is_empty() {
+                parts.push(format!("invalidates={:?}", vec));
+            }
+        }
+    } else {
+        quote! {}
+    };
+
     // Turn the string into an Ident so we splice it cleanly:
     let pass_variant_ident = format_ident!("{}", pass_variant);
 
@@ -75,6 +96,10 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
         }
     });
+    let field_names = fields
+        .iter()
+        .map(|f| f.ident.as_ref().unwrap())
+        .collect::<Vec<_>>();
 
     // 5) Build your expanded code:
     let expanded = quote! {
@@ -104,6 +129,29 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
             #[getter]
             pub fn get_requires(&self) -> Vec<String> {
                 self.requires()
+            }
+
+            #get_invalidates
+
+            pub fn __repr__(&self) -> PyResult<String> {
+                let mut parts = Vec::new();
+
+                #(
+                    {
+                        let field_name = stringify!(#field_names);
+                        let value = format!("{:?}", self.#field_names);
+                        parts.push(format!("{}={}", field_name, value));
+                    }
+                )*
+
+                parts.push(format!("name=\"{}\"", self.name()));
+                let vec = self.requires();
+                if !vec.is_empty() {
+                    parts.push(format!("requires={:?}", vec));
+                }
+                #invalidates_repr
+
+                Ok(format!("{}({})", #class_name, parts.join(", ")))
             }
         }
 

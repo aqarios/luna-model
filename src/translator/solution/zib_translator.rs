@@ -35,3 +35,5 @@ impl ZibTranslator {
         Ok(RcSolution(Rc::new(sol)))
     }
 }
+
+// Comment DB: Unneccesary use Solution.from_dict()

@@ -46,3 +46,5 @@ impl QctrlTranslator {
         Ok(RcSolution(Rc::new(sol)))
     }
 }
+
+// Comment DB: Unneccesarty use Solution.from_counts

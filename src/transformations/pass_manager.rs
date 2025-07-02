@@ -61,9 +61,14 @@ impl PassManager {
             let timer = Timer::start();
             let kind = match pass {
                 Pass::Transformation(x) => {
-                    let ret = x.run(model, &cache)?;
-                    model = ret.0;
-                    ret.1
+                    let (m, c, a) = x.run(model, &cache)?;
+                    model = m;
+                    if let Some(inner) = c {
+                        cache.insert(&x.name(), inner);
+                        ActionType::DidAnalysisTransform
+                    } else {
+                        a
+                    }
                 }
                 Pass::Analysis(x) => {
                     let ret = x.run(&model, &mut cache)?;

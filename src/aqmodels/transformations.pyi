@@ -108,10 +108,17 @@ class MaxBiasAnalysis(BasePass):
 class BinarySpinAnalysis(BasePass):
     """An analysis pass noting down which variables need to be transformed."""
 
-    def __init__(self, vtype: Literal[Vtype.Binary, Vtype.Spin]) -> None: ...
+    def __init__(
+        self, vtype: Literal[Vtype.Binary, Vtype.Spin], prefix: str | None
+    ) -> None: ...
     @property
     def vtype(self) -> Vtype:
         """Get the target vtype."""
+        ...
+
+    @property
+    def prefix(self) -> str | None:
+        """Get the naming prefix."""
         ...
 
 class BinarySpinInfo:

@@ -30,11 +30,11 @@ impl BasePass for ChangeSensePass {
 impl TransformationPass for ChangeSensePass {
     fn run(&self, mut model: Model, _cache: &AnalysisCache) -> TransformationPassResult {
         if model.sense == self.sense {
-            return Ok((model, ActionType::Nothing));
+            return Ok((model, None, ActionType::Nothing));
         } else {
             model.objective.mul_assign(-1.0);
             model.set_sense(self.sense);
-            return Ok((model, ActionType::DidTransform));
+            return Ok((model, None, ActionType::DidTransform));
         }
     }
 

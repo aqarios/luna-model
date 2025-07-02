@@ -53,3 +53,6 @@ impl IbmTranslator {
         Ok(RcSolution(Rc::new(sol)))
     }
 }
+
+// Comment DB: unneccesary use Solution.from_counts
+// Alternatively: direct translation of the BitArray sample object

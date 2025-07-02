@@ -24,10 +24,9 @@ pub type AnalysisPassResult = Result<Option<AnalysisCacheElement>, AnalysisPassE
 pub enum ActionType {
     DidTransform,
     DidAnalysis,
+    DidAnalysisTransform,
     Nothing,
 }
-
-pub type TransformationPassResult = Result<(Model, ActionType), TransformationPassError>;
 
 pub trait BasePass: Debug {
     fn name(&self) -> String;
@@ -45,9 +44,8 @@ pub trait AnalysisPass: BasePass {
     }
 }
 
-impl dyn AnalysisPass {
-}
-
+pub type TransformationPassResult =
+    Result<(Model, Option<AnalysisCacheElement>, ActionType), TransformationPassError>;
 
 pub trait TransformationPass: BasePass {
     fn invalidates(&self) -> Vec<String> {
@@ -61,7 +59,6 @@ pub trait TransformationPass: BasePass {
         TransformationPassError(self.name(), err.to_string())
     }
 }
-
 
 #[derive(Debug)]
 pub enum Pass {

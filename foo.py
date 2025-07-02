@@ -1,9 +1,9 @@
-from aqmodels import Model, Vtype, Solution
+from aqmodels import Model, Solution, Vtype
 from aqmodels.transformations import BinarySpinAnalysis, BinarySpinPass, PassManager
 
-pm = PassManager([BinarySpinAnalysis(Vtype.Binary), BinarySpinPass()])
-print(pm)
-
+pm = PassManager([BinarySpinAnalysis(Vtype.Binary, ""), BinarySpinPass()])
+print(BinarySpinAnalysis(Vtype.Binary, "z"))
+print(BinarySpinPass())
 
 model = Model()
 x = model.add_variable("x")
@@ -15,7 +15,6 @@ ir = pm.run(model)
 
 
 print(ir.model)
-sol = Solution.from_dict({"s": 0, "x": 1}, model=ir.model)
+sol = Solution.from_dict({"x_s": 0, "x": 1}, model=ir.model)
 
 print(sol)
-

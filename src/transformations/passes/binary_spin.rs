@@ -23,11 +23,12 @@ use {
 #[cfg_attr(feature = "py", py_pass(pass_variant = "Analysis"))]
 pub struct BinarySpinAnalysis {
     pub vtype: Vtype,
+    pub prefix: Option<String>,
 }
 
 impl BinarySpinAnalysis {
-    pub fn new(vtype: Vtype) -> Self {
-        BinarySpinAnalysis { vtype }
+    pub fn new(vtype: Vtype, prefix: Option<String>) -> Self {
+        BinarySpinAnalysis { vtype, prefix }
     }
 }
 
@@ -66,15 +67,26 @@ impl BinarySpinInfo {
 
 impl AnalysisPass for BinarySpinAnalysis {
     fn run(&self, model: &Model, _cache: &AnalysisCache) -> AnalysisPassResult {
-        let mut cache =
-            BinarySpinInfo::try_new(self.vtype).map_err(|x| self.map_err(&x))?;
+        let mut cache = BinarySpinInfo::try_new(self.vtype).map_err(|x| self.map_err(&x))?;
+        let pref = self.prefix.clone().unwrap_or(
+            match self.vtype {
+                Vtype::Binary => "x",
+                Vtype::Spin => "s",
+                _ => "",
+            }
+            .to_string(),
+        );
         for x in model.environment.borrow().variables.iter() {
             match (x.vtype, self.vtype) {
                 (Vtype::Binary, Vtype::Spin) => {
-                    cache.map.insert(x.name.clone(), format!("s_{}", x.name));
+                    cache
+                        .map
+                        .insert(x.name.clone(), format!("{}_{}", pref, x.name));
                 }
                 (Vtype::Spin, Vtype::Binary) => {
-                    cache.map.insert(x.name.clone(), format!("x_{}", x.name));
+                    cache
+                        .map
+                        .insert(x.name.clone(), format!("{}_{}", pref, x.name));
                 }
                 _ => {}
             };
@@ -128,13 +140,13 @@ impl TransformationPass for BinarySpinPass {
                             let mut e = -0.5 * var;
                             e.add_offset(0.5);
                             e
-                        },
+                        }
                         Vtype::Binary => {
                             let mut e = -2.0 * var;
                             e.add_offset(1.0);
                             e
-                        },
-                        // This cannot be reached 
+                        }
+                        // This cannot be reached
                         _ => panic!(),
                     };
                     model
@@ -142,9 +154,9 @@ impl TransformationPass for BinarySpinPass {
                         .map_err(|e| self.map_err(&e))?;
                 }
 
-                Ok((model, ActionType::DidTransform))
+                Ok((model, None, ActionType::DidTransform))
             }
-            _ => Ok((model, ActionType::Nothing)),
+            _ => Ok((model, None, ActionType::Nothing)),
         }
     }
 
@@ -183,7 +195,7 @@ impl TransformationPass for BinarySpinPass {
                                 );
                             }
                         }
-                        _ => panic!()
+                        _ => panic!(),
                     }
                 }
             }
