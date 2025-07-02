@@ -17,7 +17,8 @@ ir = pm.run(model)
 print(ir.model)
 sol = Solution.from_dict({"x_s": 0, "x": 1}, model=ir.model)
 print(sol)
-
+sol2 = Solution.from_dicts([{"x_s": 0, "x": 1}], model=ir.model)
+print(sol2)
 
 # try with owned
 res = ir.model.evaluate_sample(sol.samples[0])
