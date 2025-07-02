@@ -259,10 +259,13 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
         let v_idx: usize = v.into();
         let size: usize = self.active.len();
 
-        if v_idx == size {
+        if v_idx == (size - 1) {
             self.active.resize(size - 1, false);
             self.linear.resize(size - 1);
             self.num_variables -= 1;
+        } else if v_idx >= size {
+            // self.active.resize(size, false);
+            // self.linear.resize(size);
         } else {
             if self.active[v_idx] {
                 // only reduce the variable count if the variable was active

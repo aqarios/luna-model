@@ -91,11 +91,7 @@ def test_bqm_solution_with_substitution():
     target_lower = target.bounds.lower
     target_upper = target.bounds.upper
 
-    print("***** before substitute I")
-    print(aqm.variables())
     aqm.substitute(target, rep)
-    print("***** after substitute I")
-    print(aqm.variables())
     # And now back to the original one to have a valid model and solution.
     if target_vtype not in [Vtype.Binary, Vtype.Spin]:
         back_target = aqm.add_variable(
@@ -104,10 +100,7 @@ def test_bqm_solution_with_substitution():
     else:
         back_target = aqm.add_variable(target_name, vtype=target_vtype)
 
-    print("***** before substitute II")
     aqm.substitute(rep, back_target)
-    print("***** after substitute II")
-    print(aqm.variables())
 
     bqm2 = BqmTranslator.from_aq(aqm)
     assert bqm2.is_almost_equal(bqm)
