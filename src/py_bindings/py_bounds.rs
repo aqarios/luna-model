@@ -3,7 +3,6 @@ use derive_more::{Deref, DerefMut};
 use pyo3::{
     exceptions::{PyRuntimeError, PyTypeError},
     prelude::*,
-    types::PyNone,
     IntoPyObjectExt, PyTypeInfo,
 };
 

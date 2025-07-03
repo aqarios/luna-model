@@ -291,6 +291,30 @@ impl Environment {
             })
             .collect()
     }
+
+    pub fn get_for_index(&self, index: VarIndex) -> Result<&Variable, VariableNotExistingErr> {
+        let idx: usize = index.into();
+        let var = self.variables.get(idx);
+        match var {
+            Some(v) => match v.vtype {
+                Vtype::__Ghost => Err(VariableNotExistingErr {}),
+                _ => Ok(v),
+            },
+            None => Err(VariableNotExistingErr {}),
+        }
+    }
+
+    pub fn check_living(&self, index: VarIndex) -> Result<(), VariableNotExistingErr> {
+        let idx: usize = index.into();
+        let var = self.variables.get(idx);
+        match var {
+            Some(v) => match v.vtype {
+                Vtype::__Ghost => Err(VariableNotExistingErr {}),
+                _ => Ok(()),
+            },
+            None => Err(VariableNotExistingErr {}),
+        }
+    }
 }
 
 impl Index<usize> for Environment {

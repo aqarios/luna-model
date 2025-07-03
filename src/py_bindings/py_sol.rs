@@ -3,7 +3,9 @@ use crate::core::solution::sol::{SampleCol, SampleColElement, ShowMetadata};
 use crate::core::{
     PrintLayout, RcSolution, Samples, Sense, SharedEnvironment, Solution, VarAssignment, Vtype,
 };
-use crate::errors::{ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr};
+use crate::errors::{
+    ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, VariableNotExistingErr,
+};
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_model::PyModel;
@@ -39,7 +41,6 @@ impl From<String> for SampleKey {
     fn from(value: String) -> Self {
         Self::Str(value)
     }
-
 }
 
 enum BitOrder {
@@ -1043,7 +1044,7 @@ impl Hash for SampleKey {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
             SampleKey::Str(s) => s.hash(state),
-            SampleKey::Var(v) => v.hash(state),
+            SampleKey::Var(v) => v.hash(state).expect(&VariableNotExistingErr {}.to_string()),
         }
     }
 }
@@ -1155,7 +1156,7 @@ impl PySolution {
         for (k, &v) in data.iter() {
             let var_name = match k {
                 SampleKey::Str(s) => s,
-                SampleKey::Var(v) => &v.name(),
+                SampleKey::Var(v) => &v.name()?,
             };
             let environ = env.borrow();
             let maybe_var = environ.get(var_name).ok();

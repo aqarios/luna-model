@@ -11,7 +11,7 @@ use super::{
 };
 use crate::core::environment::SharedEnvironment;
 use crate::core::operations::AddAssignToExpression;
-use crate::core::{ContentEquality, LazyBounds, RcSolution, Sense, VarRef, Vtype};
+use crate::core::{ContentEquality, LazyBounds, RcSolution, Sense, Vtype};
 use crate::hashing::hash_model;
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
