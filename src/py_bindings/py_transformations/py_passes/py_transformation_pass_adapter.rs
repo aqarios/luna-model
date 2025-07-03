@@ -1,13 +1,14 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Deref, rc::Rc};
 
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
 
 use crate::{
-    core::{Model, Solution},
-    py_bindings::py_model::PyModel,
+    core::{Model, RcSolution, Solution},
+    py_bindings::{py_model::PyModel, py_sol::PySolution},
     transformations::{
         analysis_cache::{AnalysisCache, PyAnalysisCache},
         base_passes::{BasePass, TransformationPass, TransformationPassResult},
+        errors::TransformationPassError,
     },
 };
 
@@ -109,8 +110,26 @@ impl TransformationPass for PyTransformationPassAdapter {
         Ok(outcome)
     }
 
-    fn backwards(&self, mut _solution: Solution, _cache: &AnalysisCache) -> Solution {
-        todo!()
+    fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution {
+        Python::with_gil(|py| {
+            let py_res = self
+                .inner
+                .call_method1(
+                    py,
+                    "backwards",
+                    (
+                        PySolution(RcSolution(Rc::new(solution))),
+                        PyAnalysisCache::new(cache.clone_py(py)),
+                    ),
+                )
+                .map_err(|e| self.map_err(&e))?;
+            let py_sol: Py<PySolution> = py_res.extract(py).map_err(|e| self.map_err(&e))?;
+            let py_sol_borrow = py_sol.borrow(py);
+            let pysol = py_sol_borrow.clone();
+            let sol = pysol.0.deref().clone();
+            Ok::<Solution, TransformationPassError>(sol)
+        })
+        .unwrap() // Backwards cannot have error currently.
     }
 }
 

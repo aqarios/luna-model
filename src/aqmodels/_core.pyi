@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from enum import Enum
 from types import TracebackType
-from typing import Literal, Self, overload
+from typing import Iterator, Literal, Self, overload
 
 from numpy.typing import NDArray
 
@@ -3653,6 +3653,7 @@ class Constraints:
             The number of constraints associated with this `Constraints` object.
         """
         ...
+    def __iter__(self, /) -> Iterator[Constraint]: ...
 
 __all__ = [
     "Bounds",

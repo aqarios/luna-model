@@ -63,7 +63,7 @@ class AnalysisPass(BasePass):
         """Get a list of required passes that need to be run before this pass."""
         ...
     @abstractmethod
-    def run(self, model: Model, cache: AnalysisCache) -> float:
+    def run(self, model: Model, cache: AnalysisCache) -> ...:
         """Run/Execute this analysis pass."""
         ...
 
