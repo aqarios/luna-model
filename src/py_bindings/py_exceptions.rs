@@ -12,22 +12,55 @@ use pyo3::exceptions::{PyException, PyIndexError, PyRuntimeError, PyTypeError};
 use pyo3::{create_exception, PyErr};
 use std::convert::From;
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    ComputationError,
+    PyException,
+    "Raised when an error occurred in an internal computation."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     ComputationError,
     PyException,
     "Raised when an error occurred in an internal computation."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    DuplicateConstraintNameError,
+    PyException,
+    "Raised when a duplicate constraint name is used."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     DuplicateConstraintNameError,
     PyException,
     "Raised when a duplicate constraint name is used."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    VariableOutOfRangeError,
+    PyException,
+    "Raised when a variable referenced in an expression is out of bounds for the environment.
+
+This error typically occurs when querying coefficients (linear, quadratic,
+or higher-order) from an `Expression` using a `Variable` whose index does not
+exist in the environment's internal registry.
+
+This may happen if:
+    - A variable is used from a different environment
+    - A variable was removed or never registered properly
+    - A raw index or tuple refers to a non-existent variable ID"
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     VariableOutOfRangeError,
     PyException,
     "Raised when a variable referenced in an expression is out of bounds for the environment.
@@ -42,8 +75,19 @@ This may happen if:
     - A raw index or tuple refers to a non-existent variable ID"
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    VariableExistsError,
+    PyException,
+    "Raised when trying to create a variable with a name that already exists.
+
+Variable names must be unique within an `Environment`. Attempting to redefine
+a variable with the same name will raise this exception."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     VariableExistsError,
     PyException,
     "Raised when trying to create a variable with a name that already exists.
@@ -52,15 +96,33 @@ Variable names must be unique within an `Environment`. Attempting to redefine
 a variable with the same name will raise this exception."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    VariableNotExistingError,
+    PyException,
+    "Raised when trying to get a variable with a name that does not exist."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     VariableNotExistingError,
     PyException,
     "Raised when trying to get a variable with a name that does not exist."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    VariableCreationError,
+    PyException,
+    "Raised when an error occurs during the creation of a variable.
+
+For example, binary and spin variables cannot be created with bounds."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     VariableCreationError,
     PyException,
     "Raised when an error occurs during the creation of a variable.
@@ -68,8 +130,19 @@ create_exception!(
 For example, binary and spin variables cannot be created with bounds."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    VariablesFromDifferentEnvsError,
+    PyException,
+    "Raised when multiple variables from different environments are used together.
+
+All variables in an expression or constraint must belong to the same
+`Environment`. Mixing across environments is disallowed to ensure consistency."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     VariablesFromDifferentEnvsError,
     PyException,
     "Raised when multiple variables from different environments are used together.
@@ -78,8 +151,19 @@ All variables in an expression or constraint must belong to the same
 `Environment`. Mixing across environments is disallowed to ensure consistency."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    DifferentEnvsError,
+    PyException,
+    "Raised when two incompatible environments are passed to a model or operation.
+
+Unlike `VariablesFromDifferentEnvsError`, this error may occur at the model level
+or in structural operations that require consistency across multiple environments."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     DifferentEnvsError,
     PyException,
     "Raised when two incompatible environments are passed to a model or operation.
@@ -88,8 +172,19 @@ Unlike `VariablesFromDifferentEnvsError`, this error may occur at the model leve
 or in structural operations that require consistency across multiple environments."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    NoActiveEnvironmentFoundError,
+    PyException,
+    "Raised when a variable or expression is created without an active environment context.
+
+This typically happens when not using `with Environment(): ...` and no environment
+was explicitly provided."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     NoActiveEnvironmentFoundError,
     PyException,
     "Raised when a variable or expression is created without an active environment context.
@@ -98,8 +193,19 @@ This typically happens when not using `with Environment(): ...` and no environme
 was explicitly provided."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    MultipleActiveEnvironmentsError,
+    PyException,
+    "Raised when multiple environments are active simultaneously.
+
+This is a logic error, since `aqmodels` only supports one active environment
+at a time. This is enforced to maintain clarity and safety."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     MultipleActiveEnvironmentsError,
     PyException,
     "Raised when multiple environments are active simultaneously.
@@ -108,8 +214,19 @@ This is a logic error, since `aqmodels` only supports one active environment
 at a time. This is enforced to maintain clarity and safety."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    DecodeError,
+    PyException,
+    "Raised when decoding or deserialization of binary data fails.
+
+This can occur if the encoded data is corrupted, incompatible, or not generated
+by `.encode()`."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     DecodeError,
     PyException,
     "Raised when decoding or deserialization of binary data fails.
@@ -118,22 +235,49 @@ This can occur if the encoded data is corrupted, incompatible, or not generated
 by `.encode()`."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    IllegalConstraintNameError,
+    PyException,
+    "Raised when a constraint is tried to be created with an illegal name."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     IllegalConstraintNameError,
     PyException,
     "Raised when a constraint is tried to be created with an illegal name."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    TranslationError,
+    PyException,
+    "Raised when an error occurred during translation."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     TranslationError,
     PyException,
     "Raised when an error occurred during translation."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    ModelNotQuadraticError,
+    TranslationError,
+    "Raised when a model is expected to be quadratic but contains higher-order terms.
+
+Some solvers or transformations require the model to have at most quadratic
+expressions. This error signals that unsupported terms were detected."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     ModelNotQuadraticError,
     TranslationError,
     "Raised when a model is expected to be quadratic but contains higher-order terms.
@@ -142,8 +286,19 @@ Some solvers or transformations require the model to have at most quadratic
 expressions. This error signals that unsupported terms were detected."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    ModelNotUnconstrainedError,
+    TranslationError,
+    "Raised when an operation requires an unconstrained model, but constraints are present.
+
+Some solution methods may only work on unconstrained models, such as when
+transforming a symbolic model to a low-level format."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     ModelNotUnconstrainedError,
     TranslationError,
     "Raised when an operation requires an unconstrained model, but constraints are present.
@@ -152,8 +307,20 @@ Some solution methods may only work on unconstrained models, such as when
 transforming a symbolic model to a low-level format."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    ModelSenseNotMinimizeError,
+    TranslationError,
+    "Raised when an operation requires a model with minimization sense, but has maximization sense.
+
+Some model formats only work with minimization sense. In this case, consider
+setting the sense to `minimize` before the transformation, and multiplying the
+objective by `-1` if necessary."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     ModelSenseNotMinimizeError,
     TranslationError,
     "Raised when an operation requires a model with minimization sense, but has maximization sense.
@@ -163,8 +330,19 @@ setting the sense to `minimize` before the transformation, and multiplying the
 objective by `-1` if necessary."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    ModelVtypeError,
+    TranslationError,
+    "Raised when an operation has certain constraints on a model's variable types that are violated.
+
+Some solution methods may only work on models where all variables have the same
+type, or where only certain variable types are permitted."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     ModelVtypeError,
     TranslationError,
     "Raised when an operation has certain constraints on a model's variable types that are violated.
@@ -173,8 +351,18 @@ Some solution methods may only work on models where all variables have the same
 type, or where only certain variable types are permitted."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    VariableNamesError,
+    TranslationError,
+    "Raised when the QuboTranslator tries to create a model from a QUBO matrix, but the provided variable names are invalid.
+
+If variable names are provided to the QuboTranslator, they have to be unique, and the number of names has to match the number of variables in the QUBO matrix."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     VariableNamesError,
     TranslationError,
     "Raised when the QuboTranslator tries to create a model from a QUBO matrix, but the provided variable names are invalid.
@@ -182,17 +370,40 @@ create_exception!(
 If variable names are provided to the QuboTranslator, they have to be unique, and the number of names has to match the number of variables in the QUBO matrix."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    EvaluationError,
+    PyException,
+    "Raised when an error occured during evaluation of a model."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     EvaluationError,
     PyException,
     "Raised when an error occured during evaluation of a model."
 );
 
-create_exception!(aqmodels.errors, SolutionTranslationError, PyException);
+#[cfg(not(feature = "lq"))]
+create_exception!(aqmodels._core.errors, SolutionTranslationError, PyException);
+#[cfg(feature = "lq")]
+create_exception!(luna_quantum._core.errors, SolutionTranslationError, PyException);
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    SampleIncorrectLengthError,
+    SolutionTranslationError,
+    "Raised when a sample length is different from the number of model variables.
+
+When an external solution format is translated to an AqSolution, the number of
+variable assignments in the solution's sample has to exactly match the number of
+variables in the model environment that is passed to the translator."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     SampleIncorrectLengthError,
     SolutionTranslationError,
     "Raised when a sample length is different from the number of model variables.
@@ -202,8 +413,19 @@ variable assignments in the solution's sample has to exactly match the number of
 variables in the model environment that is passed to the translator."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.error,
+    aqmodels._core.errors,
+    SampleUnexpectedVariableError,
+    SolutionTranslationError,
+    "Raised when a sample contains a variable with a name that is not present in the environment.
+
+When a sample is translated to an AqResult, the currently active environment has to
+contain the same variables as the sample."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     SampleUnexpectedVariableError,
     SolutionTranslationError,
     "Raised when a sample contains a variable with a name that is not present in the environment.
@@ -212,8 +434,23 @@ When a sample is translated to an AqResult, the currently active environment has
 contain the same variables as the sample."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.error,
+    aqmodels._core.errors,
+    SampleIncompatibleVtypeError,
+    SolutionTranslationError,
+    "Raised when a sample's assignments have variable types incompatible with the model's variable types.
+
+When an external solution format is translated to an AqSolution, the variable
+assignments are tried to be converted into the model's corresponding variable type.
+This may fail when the assignment types are incompatible.
+
+Note that conversions with precision loss or truncation are admitted, but
+conversions of variables outside the permitted range will fail."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     SampleIncompatibleVtypeError,
     SolutionTranslationError,
     "Raised when a sample's assignments have variable types incompatible with the model's variable types.
@@ -226,15 +463,31 @@ Note that conversions with precision loss or truncation are admitted, but
 conversions of variables outside the permitted range will fail."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    StartCannotBeInferredError,
+    PyTypeError,
+    "To be raised when the start value in the quicksum cannot be inferred."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     StartCannotBeInferredError,
     PyTypeError,
     "To be raised when the start value in the quicksum cannot be inferred."
 );
 
+#[cfg(not(feature = "lq"))]
 create_exception!(
-    aqmodels.errors,
+    aqmodels._core.errors,
+    CompilationError,
+    PyRuntimeError,
+    "Raised when an error occured during compilation of a model in the PassManager."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
     CompilationError,
     PyRuntimeError,
     "Raised when an error occured during compilation of a model in the PassManager."

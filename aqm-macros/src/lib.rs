@@ -358,11 +358,11 @@ pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let expanded = quote! {
         #[cfg_attr(
             all(feature = "py", not(feature = "lq")),
-            pyo3::pyclass(get_all, name = #name, module = "aqmodels.transformations")
+            pyo3::pyclass(get_all, name = #name, module = "aqmodels._core.transformations")
         )]
         #[cfg_attr(
             all(feature = "py", feature = "lq"),
-            pyo3::pyclass(get_all, name = #name, module = "luna_quantum.transformations")
+            pyo3::pyclass(get_all, name = #name, module = "luna_quantum._core.transformations")
         )]
         #input
 

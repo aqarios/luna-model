@@ -71,10 +71,14 @@ impl Substitution for &Expression {
                         out.add_assign(&toadd)?
                     }
                     (true, false) => {
-                        out.add_assign(&replacement.mul(&VarRef::new(v, self.env.clone()))?)?
+                        let mut toadd = replacement.mul(&VarRef::new(v, self.env.clone()))?;
+                        toadd.mul_assign(bias);
+                        out.add_assign(&toadd)?
                     }
                     (false, true) => {
-                        out.add_assign(&replacement.mul(&VarRef::new(u, self.env.clone()))?)?
+                        let mut toadd = replacement.mul(&VarRef::new(u, self.env.clone()))?;
+                        toadd.mul_assign(bias);
+                        out.add_assign(&toadd)?
                     }
                     (false, false) => out.add_quadratic(u, v, bias),
                 }
@@ -98,7 +102,6 @@ impl Substitution for &Expression {
                 }
             }
         }
-
         if !replacement.contains(target) {
             out.remove_variable(target.id);
         }

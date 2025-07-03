@@ -1,8 +1,8 @@
 import pytest
 
-AQM_MODULE_NAME: str = "aqmodels"
-TRANSLATOR_MODULE_NAME: str = "aqmodels.translator"
-ERRORS_MODULE_NAME: str = "aqmodels.errors"
+AQM_MODULE_NAME: str = "aqmodels._core"
+TRANSLATOR_MODULE_NAME: str = "aqmodels._core.translator"
+ERRORS_MODULE_NAME: str = "aqmodels._core.errors"
 
 
 @pytest.mark.imports

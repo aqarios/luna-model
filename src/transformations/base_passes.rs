@@ -14,11 +14,11 @@ pub type AnalysisPassResult = Result<Option<AnalysisCacheElement>, AnalysisPassE
 
 #[cfg_attr(
     all(feature = "py", not(feature = "lq")),
-    pyclass(name = "ActionType", module = "aqmodels")
+    pyclass(name = "ActionType", module = "aqmodels._core")
 )]
 #[cfg_attr(
     all(feature = "py", feature = "lq"),
-    pyclass(name = "ActionType", module = "luna_quantum")
+    pyclass(name = "ActionType", module = "luna_quantum._core")
 )]
 #[derive(Clone, Debug)]
 pub enum ActionType {

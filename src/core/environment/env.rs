@@ -138,6 +138,14 @@ impl SharedEnvironment {
     pub fn varcount(&self) -> VarIndex {
         self.borrow().varcount
     }
+
+    /// Includes only non ghost variables, i.e., active variables.
+    pub fn vrefs(&self) -> Vec<VarRef> {
+        (0..self.0.borrow().variables.len())
+            .filter(|idx| !self.0.borrow().ghost_vars.contains(idx))
+            .map(|idx| VarRef::new(idx.into(), self.clone()))
+            .collect()
+    }
 }
 
 impl SharedEnvironment {
@@ -166,7 +174,8 @@ impl ContentEquality for SharedEnvironment {
 impl ContentEquality for Environment {
     /// Compare content equality of two environments, ignoring the envid.
     fn is_equal_contents(&self, other: &Self) -> bool {
-        self.variables.is_equal_contents(&other.variables)
+        self.variables().len() == other.variables().len()
+            && self.variables().is_equal_contents(&other.variables())
             && self.variables_lookup == other.variables_lookup
             && self.varcount == other.varcount
     }
@@ -210,15 +219,20 @@ impl Environment {
 
     #[inline]
     pub fn varcount(&self) -> u32 {
-        self.varcount.0 
+        self.varcount.0
     }
 
-    pub fn set_data(&mut self, varcount: VarIndex, variables: Vec<Variable>, variables_lookup: HashMap<String, VarIndex>, ghost_vars: Vec<usize>) {
+    pub fn set_data(
+        &mut self,
+        varcount: VarIndex,
+        variables: Vec<Variable>,
+        variables_lookup: HashMap<String, VarIndex>,
+        ghost_vars: Vec<usize>,
+    ) {
         self.varcount = varcount;
         self.variables = variables;
         self.variables_lookup = variables_lookup;
         self.ghost_vars = ghost_vars;
-
     }
 
     /// Alias for self[id].vtype
@@ -240,7 +254,7 @@ impl Environment {
     //         .map(|(_, e)| e)
     // }
     //
-    
+
     /// Includes only non ghost variables, i.e., active variables.
     pub fn variables(&self) -> Vec<&Variable> {
         self.variables
@@ -250,7 +264,6 @@ impl Environment {
             .map(|(_, var)| var)
             .collect()
     }
-
 
     /// Includes ghost variables, i.e., inactive variables.
     pub fn all_variables(&self) -> Iter<Variable> {
@@ -277,6 +290,30 @@ impl Environment {
                 v.bounds.evaluate(value)
             })
             .collect()
+    }
+
+    pub fn get_for_index(&self, index: VarIndex) -> Result<&Variable, VariableNotExistingErr> {
+        let idx: usize = index.into();
+        let var = self.variables.get(idx);
+        match var {
+            Some(v) => match v.vtype {
+                Vtype::__Ghost => Err(VariableNotExistingErr {}),
+                _ => Ok(v),
+            },
+            None => Err(VariableNotExistingErr {}),
+        }
+    }
+
+    pub fn check_living(&self, index: VarIndex) -> Result<(), VariableNotExistingErr> {
+        let idx: usize = index.into();
+        let var = self.variables.get(idx);
+        match var {
+            Some(v) => match v.vtype {
+                Vtype::__Ghost => Err(VariableNotExistingErr {}),
+                _ => Ok(()),
+            },
+            None => Err(VariableNotExistingErr {}),
+        }
     }
 }
 

@@ -11,11 +11,11 @@ use super::{
 };
 use crate::core::environment::SharedEnvironment;
 use crate::core::operations::AddAssignToExpression;
-use crate::core::{ContentEquality, LazyBounds, RcSolution, Sense, VarRef, Vtype};
+use crate::core::{ContentEquality, LazyBounds, RcSolution, Sense, Vtype};
+use crate::hashing::hash_model;
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
 use crate::py_bindings::py_var::PyVariable;
-use crate::hashing::hash_model;
 use crate::{
     core::Model,
     py_bindings::py_env::CURRENT_ENV,
@@ -82,8 +82,14 @@ use pyo3::{prelude::*, types::PyBytes};
 /// - The `Model` class does not solve the optimization problem.
 /// - Use `.objective`, `.constraints`, and `.environment` to access the symbolic content.
 /// - Use `encode()` and `decode()` to serialize and recover models.
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, subclass, name = "Model", module = "aqmodels"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, subclass, name = "Model", module = "luna_quantum"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, subclass, name = "Model", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, subclass, name = "Model", module = "luna_quantum._core")
+)]
 #[derive(Clone, Deref, DerefMut)]
 pub struct PyModel {
     #[deref]
@@ -321,14 +327,16 @@ impl PyModel {
     fn variables(&self, active: Option<bool>) -> Vec<PyVariable> {
         let model = self.borrow();
         let active_vars = &model.objective.active;
-        (0..self.borrow().environment.borrow().varcount())
+        self.borrow()
+            .environment
+            .vrefs()
+            .into_iter()
             .enumerate()
-            .filter(|(_, a)| *active_vars.get(*a as usize).unwrap_or(&false) || !active.unwrap_or_default())
-            .map(|(i, _)| {
-                PyVariable::new(VarRef {
-                    id: i.into(),
-                    env: model.environment.clone(),
-                })
+            .filter(|(a, _)| {
+                *active_vars.get(*a as usize).unwrap_or(&false) || !active.unwrap_or_default()
+            })
+            .map(|(_, vref)| {
+                PyVariable::new(vref)
             })
             .collect()
     }

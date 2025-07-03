@@ -1,5 +1,6 @@
 use crate::core::expression::One;
 use crate::core::traits::ContentEquality;
+use crate::errors::VariableNotExistingErr;
 use crate::{
     core::{
         environment::SharedEnvironment,
@@ -24,6 +25,10 @@ pub struct VarRef {
 impl VarRef {
     pub fn new(id: VarIndex, env: SharedEnvironment) -> Self {
         Self { id, env }
+    }
+
+    pub fn check_living(&self) -> Result<(), VariableNotExistingErr> {
+        self.env.borrow().check_living(self.id)
     }
 }
 

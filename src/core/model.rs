@@ -25,11 +25,11 @@ pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[cfg_attr(
     all(feature = "py", not(feature = "lq")),
-    pyclass(eq, eq_int, name = "Sense", module = "aqmodels")
+    pyclass(eq, eq_int, name = "Sense", module = "aqmodels._core")
 )]
 #[cfg_attr(
     all(feature = "py", feature = "lq"),
-    pyclass(eq, eq_int, name = "Sense", module = "luna_quantum")
+    pyclass(eq, eq_int, name = "Sense", module = "luna_quantum._core")
 )]
 #[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq, EnumString)]
 /// Enumeration of optimization senses supported by the optimization system.
@@ -201,7 +201,8 @@ impl Model {
         let vf: Vec<_> = self.environment.borrow().evaluate_bounds::<Sample>(&sample);
         let feasible = cf.iter().all(|&b| b) && vf.iter().all(|&b| b);
         let owned_sample_actual = Rc::new(sample.iter().collect());
-        let owned_sample = OwnedSample::new(vars_sample.to_vec(), owned_sample_actual, index_map.clone());
+        let owned_sample =
+            OwnedSample::new(vars_sample.to_vec(), owned_sample_actual, index_map.clone());
         Ok(OwnedResult::new(owned_sample, obj_val, cf, vf, feasible))
     }
 
@@ -287,9 +288,9 @@ impl Display for Model {
 impl ContentEquality for Model {
     fn is_equal_contents(&self, other: &Self) -> bool {
         self.name == other.name
-            && self.environment.is_equal_contents(&other.environment)
-            && self.objective.is_equal_contents(&other.objective)
-            && self.constraints.is_equal_contents(&other.constraints)
-            && self.sense == other.sense
+        && self.environment.is_equal_contents(&other.environment)
+        && self.objective.is_equal_contents(&other.objective)
+        && self.constraints.is_equal_contents(&other.constraints)
+        && self.sense == other.sense
     }
 }
