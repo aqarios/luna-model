@@ -2368,6 +2368,21 @@ class Model:
         """
         ...
 
+    def equal_contents(self, other: Model, /) -> bool:
+        """
+        Check whether this model has equal contents as `other`.
+
+        Parameters
+        ----------
+        other : Model
+
+        Returns
+        -------
+        bool
+        """
+        ...
+
+
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
     def __hash__(self, /) -> int: ...
@@ -3639,10 +3654,31 @@ class Constraints:
         """
         ...
 
+    @overload
+    def get(self, item: str, /) -> Constraint: ...
+    @overload
+    def get(self, item: int | str, /) -> Constraint: ...
+    def get(self, item: int | str, /) -> Constraint:
+        """Get a constraint for its name or index."""
+        ...
+
+    @overload
+    def remove(self, item: str, /) -> Constraint: ...
+    @overload
+    def remove(self, item: int | str, /) -> Constraint: ...
+    def remove(self, item: int | str, /) -> Constraint:
+        """Remove a constraint for its name or index."""
+        ...
+
     def __eq__(self, other: Constraints, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+    @overload
+    def __getitem__(self, item: str, /) -> Constraint: ...
+    @overload
     def __getitem__(self, item: int, /) -> Constraint: ...
+    def __getitem__(self, item: int | str, /) -> Constraint: ...
+
     def __len__(self, /) -> int:
         """
         Get the number of constraints.
@@ -3651,6 +3687,20 @@ class Constraints:
         -------
         int
             The number of constraints associated with this `Constraints` object.
+        """
+        ...
+
+    def equal_contents(self, other: Constraints, /) -> bool:
+        """
+        Check whether this constraints has equal contents as `other`.
+
+        Parameters
+        ----------
+        other : Constraints
+
+        Returns
+        -------
+        bool
         """
         ...
 

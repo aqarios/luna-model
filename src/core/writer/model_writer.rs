@@ -146,14 +146,14 @@ impl ModelWriter {
     }
 
     pub fn write_constraints(&mut self, constraints: &Constraints) -> &mut Self {
-        for (i, constr) in constraints.iter().enumerate() {
+        for (i, (name, constr)) in constraints.iter().enumerate() {
             if i > 0 {
                 self.writer.new_line();
             }
             self.writer
                 .write(&format!(
                     "{}: ",
-                    constr.name.clone().unwrap_or(format!("c{i}"))
+                    name
                 ))
                 .increase_indent();
             self.write_constraint(constr);

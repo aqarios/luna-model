@@ -4,7 +4,7 @@ use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 use crate::{
     core::{
         expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
-        Constraint, Constraints, ContentEquality, Expression, Model,
+        Constraint, ConstraintKey, Constraints, ContentEquality, Expression, Model,
     },
     serialization::{
         Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
@@ -12,7 +12,6 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use either::Either::{self, Left, Right};
-use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
 
@@ -45,8 +44,14 @@ use pyo3::{prelude::*, types::PyBytes};
 /// -----
 /// - This class does not check feasibility or enforce satisfaction.
 /// - Use `encode()`/`decode()` to serialize constraints alongside expressions.
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Constraints", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq", pyclass(unsendable, name = "Constraints", module = "luna_quantum._core"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "Constraints", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "Constraints", module = "luna_quantum._core")
+)]
 #[derive(Debug, Clone)]
 pub struct PyConstraints {
     pub data: Either<Constraints, Rc<RefCell<Model>>>,
@@ -103,8 +108,14 @@ impl PyConstraints {
 ///
 /// >>> expr = 2 * x + 1
 /// >>> c2 = expr <= 10.0
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Constraint", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq", pyclass(unsendable, name = "Constraint", module = "luna_quantum._core"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "Constraint", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "Constraint", module = "luna_quantum._core")
+)]
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyConstraint(pub Rc<RefCell<Constraint>>);
 
@@ -331,21 +342,10 @@ impl PyConstraints {
         Ok(())
     }
 
-    fn __getitem__(&self, n: isize) -> PyResult<PyConstraint> {
-        if n < 0 {
-            Err(PyValueError::new_err(format!(
-                "Expected a non-negative number, received: {n}"
-            )))?
-        }
-        // todo: can we remove the clone here? acceptable for now. Make it more like
-        // a view.
+    fn __getitem__(&self, n: ConstraintKey) -> PyResult<PyConstraint> {
         let constr = match &self.data {
-            Left(constrs) => constrs.get_constraint(n as usize)?.clone(),
-            Right(parent) => parent
-                .borrow()
-                .constraints
-                .get_constraint(n as usize)?
-                .clone(),
+            Left(constrs) => constrs.get_constraint(n)?.clone(),
+            Right(parent) => parent.borrow().constraints.get_constraint(n)?.clone(),
         };
         Ok(PyConstraint::new(constr))
     }
@@ -490,6 +490,21 @@ impl PyConstraints {
                 .borrow()
                 .constraints
                 .is_equal_contents(&rhs.borrow().constraints),
+        }
+    }
+
+    fn get(&self, item: ConstraintKey) -> PyResult<PyConstraint> {
+        let constr = match &self.data {
+            Left(d) => d.get_constraint(item)?.clone(),
+            Right(d) => d.borrow().constraints.get_constraint(item)?.clone(),
+        };
+        Ok(PyConstraint::new(constr))
+    }
+
+    fn remove(&mut self, item: ConstraintKey) {
+        match &mut self.data {
+            Left(d) => d.remove_constraint(item),
+            Right(d) => d.borrow_mut().constraints.remove_constraint(item),
         }
     }
 }
