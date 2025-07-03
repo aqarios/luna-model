@@ -7,12 +7,11 @@ use crate::{
     py_bindings::py_model::PyModel,
     transformations::{
         analysis_cache::{AnalysisCache, PyAnalysisCache},
-        base_passes::{ActionType, BasePass, TransformationOutcome, TransformationPass, TransformationPassResult},
-        errors::TransformationPassError,
+        base_passes::{BasePass, TransformationPass, TransformationPassResult},
     },
 };
 
-use super::py_transformation_pass::PyTransformationPass;
+use super::py_transformation_pass::{PyTransformationOutcome, PyTransformationPass};
 
 pub struct PyTransformationPassAdapter {
     inner: Py<PyTransformationPass>,
@@ -89,17 +88,8 @@ impl TransformationPass for PyTransformationPassAdapter {
         })
     }
 
-    fn run(&self, mut model: Model, cache: &AnalysisCache) -> TransformationPassResult {
-        Python::with_gil(|py| {
-            let fallback_name = String::from("PyTransformationPassAdapter");
-            let cls_name: String = self
-                .inner
-                .getattr(py, "__class__")
-                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?
-                .getattr(py, "__name__")
-                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?
-                .extract(py)
-                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?;
+    fn run(&self, model: Model, cache: &AnalysisCache) -> TransformationPassResult {
+        let py_outcome = Python::with_gil(|py| {
             let py_res = self
                 .inner
                 .call_method1(
@@ -110,16 +100,13 @@ impl TransformationPass for PyTransformationPassAdapter {
                         PyAnalysisCache::new(cache.clone_py(py)),
                     ),
                 )
-                .map_err(|e| TransformationPassError(cls_name.clone(), e.to_string()))?;
-            let (py_model, py_tt): (Py<PyModel>, Py<ActionType>) = py_res
-                .extract(py)
-                .map_err(|e| TransformationPassError(cls_name.clone(), e.to_string()))?;
-            let py_model_borrow = py_model.borrow(py);
-            let pymodel = py_model_borrow.clone();
-            model = pymodel.concrete_model.borrow().clone();
-            let tt = py_tt.borrow(py);
-            Ok(TransformationOutcome::new(model, None, tt.clone()))
-        })
+                .map_err(|e| self.map_err(&e))?;
+            let py_outcome: PyTransformationOutcome =
+                py_res.extract(py).map_err(|e| self.map_err(&e))?;
+            Ok(py_outcome)
+        })?;
+        let outcome = py_outcome.try_into().map_err(|e| self.map_err(&e))?;
+        Ok(outcome)
     }
 
     fn backwards(&self, mut _solution: Solution, _cache: &AnalysisCache) -> Solution {

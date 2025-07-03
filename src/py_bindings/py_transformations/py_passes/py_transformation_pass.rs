@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 use pyo3::prelude::*;
 
@@ -6,10 +6,46 @@ use super::{py_pass_base::PyPass, py_transformation_pass_adapter::PyTransformati
 use crate::{
     py_bindings::{py_model::PyModel, py_sol::PySolution},
     transformations::{
-        analysis_cache::PyAnalysisCache,
-        base_passes::{Pass, ActionType},
+        analysis_cache::{AnalysisCacheElement, PyAnalysisCache},
+        base_passes::{ActionType, Pass, TransformationOutcome},
     },
 };
+
+#[pyclass(unsendable, name = "TransformationOutcome", get_all, set_all)]
+#[derive(FromPyObject)]
+pub struct PyTransformationOutcome {
+    pub model: PyModel,
+    pub action: ActionType,
+    pub analysis: Option<Py<PyAny>>,
+}
+
+#[pymethods]
+impl PyTransformationOutcome {
+    #[new]
+    #[pyo3(signature=(model, action, analysis=None))]
+    pub fn py_new(model: PyModel, action: ActionType, analysis: Option<Py<PyAny>>) -> Self {
+        PyTransformationOutcome {
+            model,
+            action,
+            analysis,
+        }
+    }
+}
+
+impl TryInto<TransformationOutcome> for PyTransformationOutcome {
+    type Error = String;
+
+    fn try_into(self) -> Result<TransformationOutcome, String> {
+        let model = Rc::into_inner(self.model.concrete_model)
+            .ok_or("Model reference leaked out of transformation scope.".to_string())?
+            .into_inner();
+        Ok(TransformationOutcome {
+            model,
+            analysis: self.analysis.map(|x| AnalysisCacheElement::PyAnalysis(x)),
+            action: self.action.clone(),
+        })
+    }
+}
 
 #[pyclass(unsendable, subclass, name = "TransformationPass")]
 #[derive(Clone, Debug)]
@@ -46,11 +82,7 @@ impl PyTransformationPass {
 
     #[pyo3(name = "run")]
     #[allow(unused_variables)]
-    fn py_run(
-        &self,
-        model: PyModel,
-        cache: &PyAnalysisCache,
-    ) -> PyResult<(PyModel, ActionType)> {
+    fn py_run(&self, model: PyModel, cache: &PyAnalysisCache) -> PyResult<PyTransformationOutcome> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'run' method is not implemented.",
         ))
