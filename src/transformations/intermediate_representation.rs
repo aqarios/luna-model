@@ -3,6 +3,7 @@ use std::slice::Iter;
 
 use super::{analysis_cache::AnalysisCache, base_passes::ActionType};
 
+#[derive(Debug)]
 pub struct LogElement {
     pub pass: String,
     pub timing: Timing,

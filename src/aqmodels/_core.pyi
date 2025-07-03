@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from enum import Enum
 from types import TracebackType
-from typing import Literal, Self, overload
+from typing import Iterator, Literal, Self, overload
 
 from numpy.typing import NDArray
 
@@ -107,12 +107,12 @@ class Bounds:
         ...
 
     @property
-    def lower(self, /) -> float | Unbounded | None:
+    def lower(self, /) -> float | type[Unbounded] | None:
         """Get the lower bound."""
         ...
 
     @property
-    def upper(self, /) -> float | Unbounded | None:
+    def upper(self, /) -> float | type[Unbounded] | None:
         """Get the upper bound."""
         ...
 
@@ -2010,7 +2010,7 @@ class Model:
         /,
         vtype: Vtype,
         *,
-        lower: float | type[Unbounded],
+        lower: float | type[Unbounded] | None,
     ) -> Variable: ...
     @overload
     def add_variable(
@@ -2019,7 +2019,7 @@ class Model:
         /,
         vtype: Vtype,
         *,
-        upper: float | type[Unbounded],
+        upper: float | type[Unbounded] | None,
     ) -> Variable: ...
     @overload
     def add_variable(
@@ -2028,8 +2028,8 @@ class Model:
         /,
         vtype: Vtype,
         *,
-        lower: float | type[Unbounded],
-        upper: float | type[Unbounded],
+        lower: float | type[Unbounded] | None,
+        upper: float | type[Unbounded] | None,
     ) -> Variable: ...
     def add_variable(
         self,
@@ -2371,6 +2371,11 @@ class Model:
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
     def __hash__(self, /) -> int: ...
+
+
+    def deep_clone(self) -> Model:
+        """Make a deep clone of the model."""
+        ...
 
 # _expression.pyi
 class Expression:
@@ -3653,6 +3658,7 @@ class Constraints:
             The number of constraints associated with this `Constraints` object.
         """
         ...
+    def __iter__(self, /) -> Iterator[Constraint]: ...
 
 __all__ = [
     "Bounds",

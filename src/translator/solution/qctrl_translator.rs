@@ -3,10 +3,7 @@ use std::rc::Rc;
 use num::NumCast;
 
 use crate::{
-    core::{
-        environment::SharedEnvironment, solution::sol::SampleCol, RcSolution, Solution, Timing,
-        Vtype,
-    },
+    core::{environment::SharedEnvironment, RcSolution, Solution, Timing},
     errors::SolutionCreationErr,
 };
 
@@ -25,18 +22,7 @@ impl QctrlTranslator {
         E: Copy + NumCast,
     {
         let mut sol = Solution::default();
-        for v in env.borrow().variables().iter() {
-            match v.vtype {
-                Vtype::Binary => {
-                    sol.add_column(SampleCol::Binary(Vec::with_capacity(samples.len())))
-                }
-                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(samples.len()))),
-                Vtype::Integer => {
-                    sol.add_column(SampleCol::Integer(Vec::with_capacity(samples.len())))
-                }
-                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(samples.len()))),
-            }
-        }
+        sol.create_columns(&env, samples.len());
         sol.timing = timing;
         sol.variable_names = env.variable_names();
 
@@ -46,3 +32,5 @@ impl QctrlTranslator {
         Ok(RcSolution(Rc::new(sol)))
     }
 }
+
+// Comment DB: Unneccesarty use Solution.from_counts

@@ -10,14 +10,14 @@ use super::py_module::AnyPass;
 
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "PassManager", module = "aqmodels.transformations")
+    pyclass(unsendable, name = "PassManager", module = "aqmodels._core.transformations")
 )]
 #[cfg_attr(
     feature = "lq",
     pyclass(
         unsendable,
         name = "PassManager",
-        module = "luna_quantum.transformations"
+        module = "luna_quantum._core.transformations"
     )
 )]
 #[derive(Deref, DerefMut)]

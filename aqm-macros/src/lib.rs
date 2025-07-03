@@ -41,6 +41,27 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
     let pass_variant =
         pass_variant.unwrap_or_else(|| panic!("you must supply `pass_variant = \"...\"`"));
 
+    let get_invalidates = if pass_variant == "Transformation" {
+        quote! {
+            #[getter]
+            pub fn get_invalidates(&self) -> Vec<String> {
+                return self.invalidates()
+            }
+        }
+    } else {
+        quote! {}
+    };
+    let invalidates_repr = if pass_variant == "Transformation" {
+        quote! {
+            let vec = self.invalidates();
+            if !vec.is_empty() {
+                parts.push(format!("invalidates={:?}", vec));
+            }
+        }
+    } else {
+        quote! {}
+    };
+
     // Turn the string into an Ident so we splice it cleanly:
     let pass_variant_ident = format_ident!("{}", pass_variant);
 
@@ -75,6 +96,10 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
         }
     });
+    let field_names = fields
+        .iter()
+        .map(|f| f.ident.as_ref().unwrap())
+        .collect::<Vec<_>>();
 
     // 5) Build your expanded code:
     let expanded = quote! {
@@ -105,11 +130,38 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
             pub fn get_requires(&self) -> Vec<String> {
                 self.requires()
             }
+
+            #get_invalidates
+
+            pub fn __repr__(&self) -> String {
+                self.repr()
+            }
         }
 
         impl #wrapper_name {
             pub fn as_pass(self) -> PyResult<Pass> {
                 Ok(Pass::#pass_variant_ident(Box::new(self.0)))
+            }
+
+            pub fn repr(&self) -> String {
+                let mut parts = Vec::new();
+
+                #(
+                    {
+                        let field_name = stringify!(#field_names);
+                        let value = format!("{:?}", self.#field_names);
+                        parts.push(format!("{}={}", field_name, value));
+                    }
+                )*
+
+                parts.push(format!("name=\"{}\"", self.name()));
+                let vec = self.requires();
+                if !vec.is_empty() {
+                    parts.push(format!("requires={:?}", vec));
+                }
+                #invalidates_repr
+
+                format!("{}({})", #class_name, parts.join(", "))
             }
         }
     };
@@ -291,19 +343,51 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // Parse the annotated item as a struct (so we preserve its derives & fields)
-    let s = parse_macro_input!(item as ItemStruct);
-    let name = s.ident.to_string();
+    let input = parse_macro_input!(item as ItemStruct);
+    let name = input.ident.to_string();
+    let struct_name = &input.ident;
+
+    let class_name = struct_name.to_string();
+
+    let field_names = input.fields
+        .iter()
+        .map(|f| f.ident.as_ref().unwrap())
+        .collect::<Vec<_>>();
+
     // Emit a cfg_attr only when `--features py` is on.
     let expanded = quote! {
         #[cfg_attr(
             all(feature = "py", not(feature = "lq")),
-            pyo3::pyclass(get_all, name = #name, module = "aqmodels.transformations")
+            pyo3::pyclass(get_all, name = #name, module = "aqmodels._core.transformations")
         )]
         #[cfg_attr(
             all(feature = "py", feature = "lq"),
-            pyo3::pyclass(get_all, name = #name, module = "luna_quantum.transformations")
+            pyo3::pyclass(get_all, name = #name, module = "luna_quantum._core.transformations")
         )]
-        #s
+        #input
+
+        #[pymethods]
+        impl #struct_name {
+            pub fn __repr__(&self) -> String {
+                self.repr()
+            }
+        }
+
+        impl #struct_name {
+            pub fn repr(&self) -> String {
+                let mut parts = Vec::new();
+
+                #(
+                    {
+                        let field_name = stringify!(#field_names);
+                        let value = format!("{:?}", self.#field_names);
+                        parts.push(format!("{}={}", field_name, value));
+                    }
+                )*
+
+                format!("{}({})", #class_name, parts.join(", "))
+            }
+        }
     };
     expanded.into()
 }
@@ -351,6 +435,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
     let mut clone_arms = Vec::new();
     let mut accessors = Vec::new();
     let mut element_arms = Vec::new();
+    let mut repr_arms = Vec::new();
 
     for path in &types {
         // e.g. `SomeName`
@@ -406,6 +491,10 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
         element_arms.push(quote! {
             AnalysisCacheElement::#var_ident(v) => v.clone().into_py_any(py)?,
         });
+        // repr->element.repr
+        repr_arms.push(quote! {
+            AnalysisCacheElement::#var_ident(v) => v.repr(),
+        });
         // accessor method
         accessors.push(quote! {
             pub fn #snake(&self) -> Option<#ident> {
@@ -431,6 +520,10 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
         #[cfg(feature = "py")]
         AnalysisCacheElement::PyAnalysis(v) => v.clone().into_py_any(py)?,
     });
+    repr_arms.push(quote! {
+        #[cfg(feature = "py")]
+        AnalysisCacheElement::PyAnalysis(_) => "py".to_string(),
+    });
 
     // 2) Emit the combined code
     let expanded = quote! {
@@ -443,6 +536,9 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
 
         /// All possible elements in the cache
         pub enum AnalysisCacheElement {
+            // Float(f64),
+            // Int(i32),
+            // String(String),
             #(#enum_variants)*
         }
 
@@ -451,6 +547,12 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             pub fn clone_py(&self, py: pyo3::Python) -> Self {
                 match self {
                     #(#clone_arms)*
+                }
+            }
+
+            pub fn repr(&self) -> String {
+                match self {
+                    #(#repr_arms)*
                 }
             }
         }
@@ -512,6 +614,10 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
                 }
 
                 #(#accessors)*
+
+                pub fn __repr__(&self, py: pyo3::Python) -> String {
+                    self._repr(py)
+                }
             }
         }
 

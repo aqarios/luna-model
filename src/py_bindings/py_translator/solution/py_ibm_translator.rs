@@ -107,8 +107,8 @@ def extract(result, qp, timing, env):
 /// >>> ...
 /// >>> ibm_result = ...
 /// >>> aqs = lq.translator.IbmTranslator.to_aq(ibm_result)
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "IbmTranslator", module = "aqmodels.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "IbmTranslator", module = "luna_quantum.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "IbmTranslator", module = "aqmodels._core.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "IbmTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyIbmTranslator {}
 
 #[pymethods]
