@@ -35,8 +35,8 @@ use pyo3::{
 /// -----
 /// - Bounds are only meaningful for variables of type `Vtype.Real` or `Vtype.Integer`.
 /// - If both bounds are omitted, the variable is unbounded.
-#[cfg_attr(not(feature = "lq"), pyclass(name = "Bounds", module = "aqmodels"))]
-#[cfg_attr(feature = "lq", pyclass(name = "Bounds", module = "luna_quantum"))]
+#[cfg_attr(not(feature = "lq"), pyclass(name = "Bounds", module = "aqmodels._core"))]
+#[cfg_attr(feature = "lq", pyclass(name = "Bounds", module = "luna_quantum._core"))]
 #[derive(Clone, Copy, Deref, DerefMut)]
 pub struct PyBounds(pub LazyBounds);
 
@@ -46,8 +46,8 @@ impl Into<LazyBounds> for PyBounds {
     }
 }
 
-#[cfg_attr(not(feature = "lq"), pyclass(name = "Unbounded", module = "aqmodels"))]
-#[cfg_attr(feature = "lq", pyclass(name = "Unbounded", module = "luna_quantum"))]
+#[cfg_attr(not(feature = "lq"), pyclass(name = "Unbounded", module = "aqmodels._core"))]
+#[cfg_attr(feature = "lq", pyclass(name = "Unbounded", module = "luna_quantum._core"))]
 #[derive(Debug, Clone, Copy)]
 pub struct PyUnbounded;
 

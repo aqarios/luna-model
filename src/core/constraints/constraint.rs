@@ -46,11 +46,11 @@ fn starts_with_failable(s: &str) -> bool {
 // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[cfg_attr(
     all(feature = "py", not(feature = "lq")),
-    pyclass(eq, eq_int, name = "Comparator", module = "aqmodels")
+    pyclass(eq, eq_int, name = "Comparator", module = "aqmodels._core")
 )] 
 #[cfg_attr(
     all(feature = "py", feature = "lq"),
-    pyclass(eq, eq_int, name = "Comparator", module = "luna_quantum")
+    pyclass(eq, eq_int, name = "Comparator", module = "luna_quantum._core")
 )] 
 #[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {

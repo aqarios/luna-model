@@ -84,11 +84,11 @@ use pyo3::{prelude::*, types::PyBytes};
 /// - Use `encode()` and `decode()` to serialize and recover models.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, subclass, name = "Model", module = "aqmodels")
+    pyclass(unsendable, subclass, name = "Model", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, subclass, name = "Model", module = "luna_quantum")
+    pyclass(unsendable, subclass, name = "Model", module = "luna_quantum._core")
 )]
 #[derive(Clone, Deref, DerefMut)]
 pub struct PyModel {

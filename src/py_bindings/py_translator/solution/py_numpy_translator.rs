@@ -64,8 +64,8 @@ def extract(result, energies, timing, env):
 /// >>> result: NDArray = ...
 /// >>> energies: NDArray = ...
 /// >>> aqs = lq.translator.NumpyTranslator.to_aq(result, energies)
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "NumpyTranslator", module = "aqmodels.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "NumpyTranslator", module = "luna_quantum.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "NumpyTranslator", module = "aqmodels._core.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "NumpyTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyNumpyTranslator {}
 
 #[pymethods]

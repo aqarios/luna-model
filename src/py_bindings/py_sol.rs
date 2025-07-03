@@ -95,11 +95,11 @@ enum BitOrder {
 /// - Use `encode()` and `decode()` to serialize and recover solutions.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Solution", module = "aqmodels")
+    pyclass(unsendable, name = "Solution", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Solution", module = "luna_quantum")
+    pyclass(unsendable, name = "Solution", module = "luna_quantum._core")
 )]
 #[derive(Deref, DerefMut, Debug)]
 pub struct PySolution(pub RcSolution);

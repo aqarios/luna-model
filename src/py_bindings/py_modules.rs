@@ -49,12 +49,12 @@ pub fn register_utils(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     pm.py()
         .import("sys")?
         .getattr("modules")?
-        .set_item("aqmodels.utils", m)?;
+        .set_item("aqmodels._core.utils", m)?;
     #[cfg(feature = "lq")]
     pm.py()
         .import("sys")?
         .getattr("modules")?
-        .set_item("luna_quantum.utils", m)?;
+        .set_item("luna_quantum._core.utils", m)?;
     Ok(())
 }
 
@@ -76,12 +76,12 @@ pub fn register_translator(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     pm.py()
         .import("sys")?
         .getattr("modules")?
-        .set_item("aqmodels.translator", m)?;
+        .set_item("aqmodels._core.translator", m)?;
     #[cfg(feature = "lq")]
     pm.py()
         .import("sys")?
         .getattr("modules")?
-        .set_item("luna_quantum.translator", m)?;
+        .set_item("luna_quantum._core.translator", m)?;
     Ok(())
 }
 
@@ -192,11 +192,11 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     pm.py()
         .import("sys")?
         .getattr("modules")?
-        .set_item("aqmodels.errors", m)?;
+        .set_item("aqmodels._core.errors", m)?;
     #[cfg(feature = "lq")]
     pm.py()
         .import("sys")?
         .getattr("modules")?
-        .set_item("luna_quantum.errors", m)?;
+        .set_item("luna_quantum._core.errors", m)?;
     Ok(())
 }
