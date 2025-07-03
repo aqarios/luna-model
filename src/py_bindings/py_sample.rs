@@ -22,8 +22,8 @@ use super::py_var::PyVariable;
 /// ...     sample
 /// [0, -5, 0.28]
 /// [1, -4, -0.42]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "SamplesIterator", module = "aqmodels"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "SamplesIterator", module = "luna_quantum"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "SamplesIterator", module = "aqmodels._core"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "SamplesIterator", module = "luna_quantum._core"))]
 #[derive(Deref, DerefMut)]
 pub struct PySamplesIterator(pub SamplesIterator);
 
@@ -42,8 +42,8 @@ pub struct PySamplesIterator(pub SamplesIterator);
 /// 0
 /// -5
 /// 0.28
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "SampleIterator", module = "aqmodels"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "SampleIterator", module = "luna_quantum"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "SampleIterator", module = "aqmodels._core"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "SampleIterator", module = "luna_quantum._core"))]
 #[derive(Deref, DerefMut)]
 pub struct PySampleIterator(pub SampleIterator);
 
@@ -62,8 +62,8 @@ pub struct PySampleIterator(pub SampleIterator);
 /// >>> samples
 /// [0, -5, 0.28]
 /// [1, -4, -0.42]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Samples", module = "aqmodels"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Samples", module = "luna_quantum"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Samples", module = "aqmodels._core"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Samples", module = "luna_quantum._core"))]
 #[derive(Deref, DerefMut)]
 pub struct PySamples(pub Samples);
 
@@ -84,8 +84,8 @@ pub struct PySamples(pub Samples);
 /// >>> sample: Sample = solution.samples[0]
 /// >>> sample
 /// [0, -5, 0.28]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Sample", module = "aqmodels"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Sample", module = "luna_quantum"))]
+#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Sample", module = "aqmodels._core"))]
+#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Sample", module = "luna_quantum._core"))]
 #[derive(Deref, DerefMut)]
 pub struct PySample(pub Sample);
 
