@@ -29,7 +29,11 @@ class TransformationPass(BasePass):
         """Get a list of passes that are invalidated by this pass."""
         ...
     @abstractmethod
-    def run(self, model: Model, cache: AnalysisCache) -> tuple[Model, ActionType]:
+    def run(
+        self, model: Model, cache: AnalysisCache
+    ) -> (
+        TransformationOutcome | tuple[Model, ActionType] | tuple[Model, ActionType, Any]
+    ):
         """Run/Execute this transformation pass."""
         ...
     @abstractmethod
@@ -39,6 +43,22 @@ class TransformationPass(BasePass):
         Convert a solution from a representation fitting this pass' output to
         a solution representation fitting this pass' input.
         """
+        ...
+
+class TransformationOutcome:
+    """Output object for transformation pass."""
+
+    model: Model
+    action: ActionType
+    analysis: ...
+
+    def __init__(
+        self, model: Model, action: ActionType, analysis: ... = None
+    ) -> None: ...
+
+    @staticmethod
+    def nothing(model: Model) -> TransformationOutcome:
+        """Easy nothing action return."""
         ...
 
 class AnalysisCache:

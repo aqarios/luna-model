@@ -2372,6 +2372,11 @@ class Model:
     def __repr__(self, /) -> str: ...
     def __hash__(self, /) -> int: ...
 
+
+    def deep_clone(self) -> Model:
+        """Make a deep clone of the model."""
+        ...
+
 # _expression.pyi
 class Expression:
     """

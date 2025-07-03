@@ -1,11 +1,12 @@
 from collections.abc import Callable
-from typing import Generic, TypeVar, override
+from typing import Any, Generic, TypeVar, override
 
 from aqmodels import Model, Solution
 from aqmodels.transformations import (
     ActionType,
     AnalysisCache,
     AnalysisPass,
+    TransformationOutcome,
     TransformationPass,
 )
 
@@ -14,8 +15,12 @@ T = TypeVar("T")
 
 type AnalysisSignature[T] = Callable[[Model, AnalysisCache], T]
 
+type Outcome = (
+    TransformationOutcome | tuple[Model, ActionType] | tuple[Model, ActionType, Any]
+)
 type TransformationSignature = Callable[
-    [Model, AnalysisCache], tuple[Model, ActionType]
+    [Model, AnalysisCache],
+    Outcome,
 ]
 type BackwardsSignature = Callable[[Solution, AnalysisCache], Solution]
 
@@ -78,14 +83,14 @@ class DynamicTransformationPass(TransformationPass):
         return self._requires
 
     @override
-    def run(self, model: Model, cache: AnalysisCache) -> tuple[Model, ActionType]:
+    def run(self, model: Model, cache: AnalysisCache) -> Outcome:
         return self._func(model, cache)
 
     @override
     def backwards(self, solution: Solution, cache: AnalysisCache) -> Solution:
         return self._backwards(solution, cache)
 
-    def __call__(self, model: Model, cache: AnalysisCache) -> tuple[Model, ActionType]:
+    def __call__(self, model: Model, cache: AnalysisCache) -> Outcome:
         return self._func(model, cache)
 
     def __repr__(self) -> str:

@@ -522,6 +522,12 @@ impl PyModel {
             .borrow()
             .is_equal_contents(&other.concrete_model.borrow())
     }
+
+    // Deep clones the model
+    fn deep_clone(&self) -> PyModel {
+        let model = self.concrete_model.borrow().deep_clone();
+        PyModel::new(model)
+    }
 }
 
 impl PyModel {
