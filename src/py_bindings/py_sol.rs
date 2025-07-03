@@ -100,7 +100,7 @@ enum BitOrder {
     feature = "lq",
     pyclass(unsendable, name = "Solution", module = "luna_quantum")
 )]
-#[derive(Deref, DerefMut, Debug)]
+#[derive(Deref, DerefMut, Debug, Clone)]
 pub struct PySolution(pub RcSolution);
 
 impl Into<RcSolution> for PySolution {
@@ -1089,6 +1089,10 @@ impl<'py> FromPyObject<'py> for ShowMetadata {
 }
 
 impl PySolution {
+    pub fn new(solution: Solution) -> Self {
+        return PySolution(RcSolution(Rc::new(solution)))
+    }
+
     fn check_env_or_model(env: &Option<PyEnvironment>, model: &Option<PyModel>) -> PyResult<()> {
         if env.is_some() && model.is_some() {
             Err(PyValueError::new_err(

@@ -8,7 +8,6 @@ use crate::{
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement, PyAnalysisCache},
         base_passes::{AnalysisPass, AnalysisPassResult, BasePass},
-        errors::AnalysisPassError,
     },
 };
 
@@ -81,11 +80,6 @@ impl BasePass for PyAnalysisPassAdapter {
 impl AnalysisPass for PyAnalysisPassAdapter {
     fn run(&self, model: &Model, cache: &AnalysisCache) -> AnalysisPassResult {
         Python::with_gil(|py| {
-            let name = self
-                .inner
-                .getattr(py, "name")
-                .and_then(|res| res.extract::<String>(py))
-                .expect("no 'name' method");
             let py_res = self
                 .inner
                 .call_method1(
@@ -96,10 +90,10 @@ impl AnalysisPass for PyAnalysisPassAdapter {
                         PyAnalysisCache::new(cache.clone_py(py)),
                     ),
                 )
-                .map_err(|e| AnalysisPassError(name.clone(), e.to_string()))?;
+                .map_err(|e| self.map_err(&e))?;
             let py_any: Py<PyAny> = py_res
                 .extract(py)
-                .map_err(|e| AnalysisPassError(name.clone(), e.to_string()))?;
+                .map_err(|e| self.map_err(&e))?;
             if py_any.is_none(py) {
                 Ok(None)
             } else {

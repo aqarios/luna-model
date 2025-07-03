@@ -22,7 +22,7 @@ use {
 };
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "py", analysis_cache)]
+#[analysis_cache]
 pub struct BinarySpinInfo {
     map: HashMap<String, String>,
     old_vtype: Vtype,

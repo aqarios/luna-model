@@ -133,7 +133,17 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             #get_invalidates
 
-            pub fn __repr__(&self) -> PyResult<String> {
+            pub fn __repr__(&self) -> String {
+                self.repr()
+            }
+        }
+
+        impl #wrapper_name {
+            pub fn as_pass(self) -> PyResult<Pass> {
+                Ok(Pass::#pass_variant_ident(Box::new(self.0)))
+            }
+
+            pub fn repr(&self) -> String {
                 let mut parts = Vec::new();
 
                 #(
@@ -151,13 +161,7 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
                 }
                 #invalidates_repr
 
-                Ok(format!("{}({})", #class_name, parts.join(", ")))
-            }
-        }
-
-        impl #wrapper_name {
-            pub fn as_pass(self) -> PyResult<Pass> {
-                Ok(Pass::#pass_variant_ident(Box::new(self.0)))
+                format!("{}({})", #class_name, parts.join(", "))
             }
         }
     };
@@ -364,7 +368,13 @@ pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
         #[pymethods]
         impl #struct_name {
-            pub fn __repr__(&self) -> PyResult<String> {
+            pub fn __repr__(&self) -> String {
+                self.repr()
+            }
+        }
+
+        impl #struct_name {
+            pub fn repr(&self) -> String {
                 let mut parts = Vec::new();
 
                 #(
@@ -375,7 +385,7 @@ pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     }
                 )*
 
-                Ok(format!("{}({})", #class_name, parts.join(", ")))
+                format!("{}({})", #class_name, parts.join(", "))
             }
         }
     };
@@ -425,6 +435,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
     let mut clone_arms = Vec::new();
     let mut accessors = Vec::new();
     let mut element_arms = Vec::new();
+    let mut repr_arms = Vec::new();
 
     for path in &types {
         // e.g. `SomeName`
@@ -480,6 +491,10 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
         element_arms.push(quote! {
             AnalysisCacheElement::#var_ident(v) => v.clone().into_py_any(py)?,
         });
+        // repr->element.repr
+        repr_arms.push(quote! {
+            AnalysisCacheElement::#var_ident(v) => v.repr(),
+        });
         // accessor method
         accessors.push(quote! {
             pub fn #snake(&self) -> Option<#ident> {
@@ -505,6 +520,10 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
         #[cfg(feature = "py")]
         AnalysisCacheElement::PyAnalysis(v) => v.clone().into_py_any(py)?,
     });
+    repr_arms.push(quote! {
+        #[cfg(feature = "py")]
+        AnalysisCacheElement::PyAnalysis(_) => "py".to_string(),
+    });
 
     // 2) Emit the combined code
     let expanded = quote! {
@@ -528,6 +547,12 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             pub fn clone_py(&self, py: pyo3::Python) -> Self {
                 match self {
                     #(#clone_arms)*
+                }
+            }
+
+            pub fn repr(&self) -> String {
+                match self {
+                    #(#repr_arms)*
                 }
             }
         }
@@ -589,6 +614,10 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
                 }
 
                 #(#accessors)*
+
+                pub fn __repr__(&self, py: pyo3::Python) -> String {
+                    self._repr(py)
+                }
             }
         }
 

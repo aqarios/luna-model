@@ -1,9 +1,9 @@
-use std::{fmt::Debug, ops::Deref, rc::Rc};
+use std::{fmt::Debug, rc::Rc};
 
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
 
 use crate::{
-    core::{Model, RcSolution, Solution},
+    core::{Model, Solution},
     py_bindings::{py_model::PyModel, py_sol::PySolution},
     transformations::{
         analysis_cache::{AnalysisCache, PyAnalysisCache},
@@ -111,25 +111,24 @@ impl TransformationPass for PyTransformationPassAdapter {
     }
 
     fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution {
-        Python::with_gil(|py| {
+        let py_sol = Python::with_gil(|py| {
             let py_res = self
                 .inner
                 .call_method1(
                     py,
                     "backwards",
                     (
-                        PySolution(RcSolution(Rc::new(solution))),
+                        PySolution::new(solution),
                         PyAnalysisCache::new(cache.clone_py(py)),
                     ),
                 )
                 .map_err(|e| self.map_err(&e))?;
-            let py_sol: Py<PySolution> = py_res.extract(py).map_err(|e| self.map_err(&e))?;
-            let py_sol_borrow = py_sol.borrow(py);
-            let pysol = py_sol_borrow.clone();
-            let sol = pysol.0.deref().clone();
-            Ok::<Solution, TransformationPassError>(sol)
-        })
-        .unwrap() // Backwards cannot have error currently.
+            let py_sol: PySolution = py_res.extract(py).map_err(|e| self.map_err(&e))?;
+            Ok::<PySolution, TransformationPassError>(py_sol)
+        }).unwrap(); // Backwards cannot have error currently.
+        let sol: Solution = Rc::into_inner(py_sol.0 .0)
+            .ok_or(self.map_err(&"Solution reference leaked out of backwards scope.")).unwrap();
+        sol
     }
 }
 
