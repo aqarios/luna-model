@@ -5,7 +5,10 @@ use crate::core::{Sense, Solution, VarAssignment};
 use crate::serialization::encodable::Creatable;
 use crate::serialization::{Decodable, Encodable};
 use crate::{
-    core::{solution::sol::SampleCol, RcSolution, Vtype},
+    core::{
+        solution::sol::{SampleCol, SampleColElement},
+        RcSolution, Vtype,
+    },
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, DecodeError},
         utils::force_i8,
@@ -19,6 +22,7 @@ fn assignment_type_to_u8(vtype: Vtype) -> u8 {
         Vtype::Spin => 1,
         Vtype::Integer => 2,
         Vtype::Real => 3,
+        Vtype::__Ghost => 4,
     }
 }
 
@@ -28,6 +32,7 @@ fn u8_to_assignment_type(u: u8) -> Vtype {
         1 => Vtype::Spin,
         2 => Vtype::Integer,
         3 => Vtype::Real,
+        4 => Vtype::__Ghost,
         _ => panic!("issue"),
     }
 }
@@ -224,15 +229,26 @@ impl SerSolution {
         let mut sol = Solution::default();
         let num_samples = self.num_samples as usize;
         let mut type_per_pos: Vec<Vtype> = Vec::new();
-        for &st in self.sample_types.iter() {
+        for (idx, &st) in self.sample_types.iter().enumerate() {
             let vt = u8_to_assignment_type(st);
             match vt {
-                Vtype::Binary => sol.add_column(SampleCol::Binary(Vec::with_capacity(num_samples))),
-                Vtype::Spin => sol.add_column(SampleCol::Spin(Vec::with_capacity(num_samples))),
-                Vtype::Integer => {
-                    sol.add_column(SampleCol::Integer(Vec::with_capacity(num_samples)))
-                }
-                Vtype::Real => sol.add_column(SampleCol::Real(Vec::with_capacity(num_samples))),
+                Vtype::__Ghost => (),
+                Vtype::Binary => sol.add_column(SampleCol::Binary(SampleColElement::new(
+                    idx.into(),
+                    Vec::with_capacity(num_samples),
+                ))),
+                Vtype::Spin => sol.add_column(SampleCol::Spin(SampleColElement::new(
+                    idx.into(),
+                    Vec::with_capacity(num_samples),
+                ))),
+                Vtype::Integer => sol.add_column(SampleCol::Integer(SampleColElement::new(
+                    idx.into(),
+                    Vec::with_capacity(num_samples),
+                ))),
+                Vtype::Real => sol.add_column(SampleCol::Real(SampleColElement::new(
+                    idx.into(),
+                    Vec::with_capacity(num_samples),
+                ))),
             }
             type_per_pos.push(vt);
         }
@@ -269,6 +285,7 @@ impl SerSolution {
                             .expect("something went wrong");
                         lr += 1;
                     }
+                    Vtype::__Ghost => (),
                 };
             }
         }

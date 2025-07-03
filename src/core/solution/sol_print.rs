@@ -132,28 +132,28 @@ impl Solution {
             let mut vals = Vec::with_capacity(n_rows);
             match col {
                 SampleCol::Binary(bins) => {
-                    for &v in sorted_by_idxs(&bins, &idxs)[..n_rows].iter() {
+                    for &v in sorted_by_idxs(&bins.data, &idxs)[..n_rows].iter() {
                         let s = Self::format_binary(v, col_width);
                         col_width = col_width.max(s.chars().count());
                         vals.push(s);
                     }
                 }
                 SampleCol::Spin(spins) => {
-                    for &v in sorted_by_idxs(&spins, &idxs)[..n_rows].iter() {
+                    for &v in sorted_by_idxs(&spins.data, &idxs)[..n_rows].iter() {
                         let s = Self::format_spin(v, col_width);
                         col_width = col_width.max(s.chars().count());
                         vals.push(s);
                     }
                 }
                 SampleCol::Integer(ints) => {
-                    for &v in sorted_by_idxs(&ints, &idxs)[..n_rows].iter() {
+                    for &v in sorted_by_idxs(&ints.data, &idxs)[..n_rows].iter() {
                         let s = Self::format_int(v, max_col_size);
                         col_width = col_width.max(s.chars().count());
                         vals.push(s);
                     }
                 }
                 SampleCol::Real(reals) => {
-                    for &v in sorted_by_idxs(&reals, &idxs)[..n_rows].iter() {
+                    for &v in sorted_by_idxs(&reals.data, &idxs)[..n_rows].iter() {
                         let s = Self::format_real(v, max_col_size);
                         col_width = col_width.max(s.chars().count());
                         vals.push(s);

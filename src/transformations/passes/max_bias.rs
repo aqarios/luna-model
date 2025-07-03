@@ -27,10 +27,6 @@ impl BasePass for MaxBiasAnalysis {
     fn name(&self) -> String {
         String::from("max-bias")
     }
-
-    fn requires(&self) -> Vec<String> {
-        Vec::new()
-    }
 }
 
 #[derive(Debug, Clone, Copy)]

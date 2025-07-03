@@ -21,14 +21,19 @@ where
     }
 }
 
+impl<T: ContentEquality + ?Sized> ContentEquality for &T {
+    fn is_equal_contents(&self, other: &&T) -> bool {
+        (*self).is_equal_contents(*other)
+    }
+}
+
 pub trait FilterByMask<T> {
     fn filter_by_mask(&self, mask: &Vec<bool>) -> Vec<T>;
 }
 
 impl<T: Clone> FilterByMask<T> for Vec<T> {
     fn filter_by_mask(&self, mask: &Vec<bool>) -> Vec<T> {
-        self
-            .iter()
+        self.iter()
             .zip(mask)
             .filter_map(|(x, flag)| flag.then_some(x.clone()))
             .collect()

@@ -196,6 +196,7 @@ impl SectionsHolder {
         // variables & bounds
         for v in model.environment.borrow().variables().iter() {
             match v.vtype {
+                Vtype::__Ghost => (),
                 Vtype::Binary => {
                     sections.push(&Section::VariableType(VariableType::Binary), v.name.clone())
                 }

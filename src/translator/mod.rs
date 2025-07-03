@@ -10,4 +10,3 @@ pub use solution::DwaveTranslator;
 pub use solution::IbmTranslator;
 pub use solution::NpArrayTranslator;
 pub use solution::QctrlTranslator;
-pub use solution::ZibTranslator;

@@ -107,12 +107,12 @@ class Bounds:
         ...
 
     @property
-    def lower(self, /) -> float | Unbounded | None:
+    def lower(self, /) -> float | type[Unbounded] | None:
         """Get the lower bound."""
         ...
 
     @property
-    def upper(self, /) -> float | Unbounded | None:
+    def upper(self, /) -> float | type[Unbounded] | None:
         """Get the upper bound."""
         ...
 
@@ -2010,7 +2010,7 @@ class Model:
         /,
         vtype: Vtype,
         *,
-        lower: float | type[Unbounded],
+        lower: float | type[Unbounded] | None,
     ) -> Variable: ...
     @overload
     def add_variable(
@@ -2019,7 +2019,7 @@ class Model:
         /,
         vtype: Vtype,
         *,
-        upper: float | type[Unbounded],
+        upper: float | type[Unbounded] | None,
     ) -> Variable: ...
     @overload
     def add_variable(
@@ -2028,8 +2028,8 @@ class Model:
         /,
         vtype: Vtype,
         *,
-        lower: float | type[Unbounded],
-        upper: float | type[Unbounded],
+        lower: float | type[Unbounded] | None,
+        upper: float | type[Unbounded] | None,
     ) -> Variable: ...
     def add_variable(
         self,

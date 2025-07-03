@@ -36,7 +36,7 @@ use pyo3::{
 /// - Bounds are only meaningful for variables of type `Vtype.Real` or `Vtype.Integer`.
 /// - If both bounds are omitted, the variable is unbounded.
 #[cfg_attr(not(feature = "lq"), pyclass(name = "Bounds", module = "aqmodels"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "Bounds", module = "luna_quantum"))]
+#[cfg_attr(feature = "lq", pyclass(name = "Bounds", module = "luna_quantum"))]
 #[derive(Clone, Copy, Deref, DerefMut)]
 pub struct PyBounds(pub LazyBounds);
 
@@ -47,7 +47,7 @@ impl Into<LazyBounds> for PyBounds {
 }
 
 #[cfg_attr(not(feature = "lq"), pyclass(name = "Unbounded", module = "aqmodels"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "Unbounded", module = "luna_quantum"))]
+#[cfg_attr(feature = "lq", pyclass(name = "Unbounded", module = "luna_quantum"))]
 #[derive(Debug, Clone, Copy)]
 pub struct PyUnbounded;
 
@@ -93,6 +93,20 @@ impl<'s> FromPyObject<'s> for BoundValue {
     }
 }
 
+impl<'py> IntoPyObject<'py> for BoundValue {
+    type Target = PyAny;
+    type Output = pyo3::Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        match self {
+            Self::None => Ok(py.None().into_bound(py)),
+            Self::Unbounded => Ok(PyUnbounded.into_py_any(py)?.into_bound(py)),
+            Self::Value(val) => Ok(val.into_py_any(py)?.into_bound(py)),
+        }
+    }
+}
+
 impl Into<Option<Bound>> for BoundValue {
     fn into(self) -> Option<Bound> {
         match self {
@@ -103,12 +117,12 @@ impl Into<Option<Bound>> for BoundValue {
     }
 }
 
-fn bound_into_py(py: Python, bound: Option<Bound>) -> PyResult<Py<PyAny>> {
+fn bound_into_boundvalue(bound: Option<Bound>) -> Option<BoundValue> {
     match bound {
-        None => Ok(py.None()),
+        None => None,
         Some(b) => match b {
-            Bound::Some(val) => val.into_py_any(py),
-            Bound::Unbounded() => "Unbounded".into_py_any(py),
+            Bound::Some(val) => Some(BoundValue::Value(val)),
+            Bound::Unbounded() => Some(BoundValue::Unbounded),
         },
     }
 }
@@ -125,13 +139,13 @@ impl PyBounds {
     }
 
     #[getter]
-    fn get_lower(&self, py: Python) -> PyResult<Py<PyAny>> {
-        bound_into_py(py, self.lower)
+    fn get_lower(&self) -> Option<BoundValue> {
+        bound_into_boundvalue(self.lower)
     }
 
     #[getter]
-    fn get_upper(&self, py: Python) -> PyResult<Py<PyAny>> {
-        bound_into_py(py, self.upper)
+    fn get_upper(&self) -> Option<BoundValue> {
+        bound_into_boundvalue(self.upper)
     }
 
     fn __str__(&self) -> String {

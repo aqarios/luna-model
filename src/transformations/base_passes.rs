@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 use crate::core::{Model, Solution};
 
@@ -31,20 +31,37 @@ pub type TransformationPassResult = Result<(Model, ActionType), TransformationPa
 
 pub trait BasePass: Debug {
     fn name(&self) -> String;
-    fn requires(&self) -> Vec<String>;
+    fn requires(&self) -> Vec<String> {
+        Vec::new()
+    }
     // TODO fn requires_spec(&self) -> ModelSpecs
 }
 
 pub trait AnalysisPass: BasePass {
     fn run(&self, model: &Model, cache: &AnalysisCache) -> AnalysisPassResult;
+
+    fn map_err(&self, err: &dyn Display) -> AnalysisPassError {
+        AnalysisPassError(self.name(), err.to_string())
+    }
 }
 
+impl dyn AnalysisPass {
+}
+
+
 pub trait TransformationPass: BasePass {
-    fn invalidates(&self) -> &[&str];
+    fn invalidates(&self) -> Vec<String> {
+        Vec::new()
+    }
     fn run(&self, model: Model, cache: &AnalysisCache) -> TransformationPassResult;
 
     fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution;
+
+    fn map_err(&self, err: &dyn Display) -> TransformationPassError {
+        TransformationPassError(self.name(), err.to_string())
+    }
 }
+
 
 #[derive(Debug)]
 pub enum Pass {

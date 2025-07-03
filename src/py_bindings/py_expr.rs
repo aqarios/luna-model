@@ -14,6 +14,7 @@ use crate::{
         },
         Comparator, ContentEquality, Expression, ExpressionBase, Substitution, VarRef,
     },
+    errors::VariableNotExistingErr,
     types::{Bias, VarIndex},
 };
 use crate::{
@@ -1128,8 +1129,8 @@ impl PyLinear {
         ("var",)
     }
 
-    fn __str__(&self) -> String {
-        format!("Linear({})", self.0.name())
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("Linear({})", self.0.name()?))
     }
 }
 
@@ -1149,8 +1150,12 @@ impl PyQuadratic {
         ("var_a", "var_b")
     }
 
-    fn __str__(&self) -> String {
-        format!("Quadratic({}, {})", self.0 .0.name(), self.0 .1.name())
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!(
+            "Quadratic({}, {})",
+            self.0 .0.name()?,
+            self.0 .1.name()?
+        ))
     }
 }
 
@@ -1166,8 +1171,12 @@ impl PyHigherOrder {
         ("vars",)
     }
 
-    fn __str__(&self) -> String {
-        let vnames: Vec<_> = self.0.iter().map(|x| x.name().clone()).collect();
-        format!("HigherOrder({})", vnames.join(", "))
+    fn __str__(&self) -> PyResult<String> {
+        let vnames: Vec<_> = self
+            .0
+            .iter()
+            .map(|x| Ok(x.name()?.clone()))
+            .collect::<Result<Vec<String>, VariableNotExistingErr>>()?;
+        Ok(format!("HigherOrder({})", vnames.join(", ")))
     }
 }

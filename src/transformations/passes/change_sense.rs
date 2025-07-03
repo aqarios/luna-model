@@ -25,17 +25,9 @@ impl BasePass for ChangeSensePass {
     fn name(&self) -> String {
         String::from("change-sense")
     }
-
-    fn requires(&self) -> Vec<String> {
-        Vec::new()
-    }
 }
 
 impl TransformationPass for ChangeSensePass {
-    fn invalidates(&self) -> &[&str] {
-        &[]
-    }
-
     fn run(&self, mut model: Model, _cache: &AnalysisCache) -> TransformationPassResult {
         if model.sense == self.sense {
             return Ok((model, ActionType::Nothing));

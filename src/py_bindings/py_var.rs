@@ -11,6 +11,7 @@ use crate::core::operations::{
     SubAssignToExpression, SubToExpression,
 };
 use crate::core::{Comparator, Constraint, Expression, VarRef, Vtype};
+use crate::errors::VariableNotExistingErr;
 use derive_more::{Deref, DerefMut};
 use either::Either::{Left, Right};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
@@ -77,36 +78,37 @@ impl PyVariable {
         Self(varref.into())
     }
 
-    pub fn name(&self) -> String {
-        let idx: usize = self.id.into();
-        let name = &self.env.borrow().variables[idx].name;
-        name.clone()
+    pub fn name(&self) -> Result<String, VariableNotExistingErr> {
+        Ok(self.env.borrow().get_for_index(self.id)?.name.clone())
     }
 
-    pub fn bounds(&self) -> PyBounds {
-        let idx: usize = self.id.into();
-        let bounds = self.env.borrow().variables[idx].bounds;
-        PyBounds(bounds.into())
+    pub fn bounds(&self) -> Result<PyBounds, VariableNotExistingErr> {
+        Ok(PyBounds(
+            self.env.borrow().get_for_index(self.id)?.bounds.into(),
+        ))
     }
 
-    pub fn vtype(&self) -> Vtype {
-        let idx: usize = self.id.into();
-        self.env.borrow().variables[idx].vtype
+    pub fn vtype(&self) -> Result<Vtype, VariableNotExistingErr> {
+        Ok(self.env.borrow().get_for_index(self.id)?.vtype)
+    }
+
+    pub fn hash<H: Hasher>(&self, state: &mut H) -> Result<(), VariableNotExistingErr> {
+        Ok(self.name()?.hash(state))
     }
 }
 
-impl Hash for PyVariable {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.name().hash(state)
-    }
-}
+// impl Hash for PyVariable {
+//     fn hash<H: Hasher>(&self, state: &mut H) {
+//         self.name().hash(state)
+//     }
+// }
 
 impl PartialEq<Self> for PyVariable {
     fn eq(&self, other: &Self) -> bool {
         let self_idx: usize = self.id.into();
         let other_idx: usize = other.id.into();
-        return self.env.borrow().id == other.env.borrow().id
-            && self.env.borrow().variables[self_idx] == other.env.borrow().variables[other_idx];
+        return self.env.borrow().id() == other.env.borrow().id()
+            && self.env.borrow()[self_idx] == other.env.borrow()[other_idx];
     }
 }
 
@@ -152,26 +154,26 @@ impl PyVariable {
 
     /// Get the name of the variable.
     #[getter]
-    fn get_name(&self) -> String {
-        self.name()
+    fn get_name(&self) -> PyResult<String> {
+        Ok(self.name()?)
     }
 
     /// Get the bounds of the variable.
     #[getter]
-    fn get_bounds(&self) -> PyBounds {
-        self.bounds()
+    fn get_bounds(&self) -> PyResult<PyBounds> {
+        Ok(self.bounds()?)
     }
 
     #[getter]
-    fn get_vtype(&self) -> Vtype {
-        self.vtype()
+    fn get_vtype(&self) -> PyResult<Vtype> {
+        Ok(self.vtype()?)
     }
 
     /// Compute the hash of the variable.
-    fn __hash__(&self) -> u64 {
+    fn __hash__(&self) -> PyResult<u64> {
         let mut s = DefaultHasher::new();
-        self.name().hash(&mut s);
-        s.finish()
+        self.hash(&mut s)?;
+        Ok(s.finish())
     }
 
     /// Add this variable to another value.
@@ -192,6 +194,7 @@ impl PyVariable {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        self.check_living()?;
         let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.add(rhs);
@@ -224,6 +227,7 @@ impl PyVariable {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __radd__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        self.check_living()?;
         self.__add__(py, other)
     }
 
@@ -245,6 +249,7 @@ impl PyVariable {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        self.check_living()?;
         let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.add(-rhs);
@@ -278,6 +283,7 @@ impl PyVariable {
     /// TypeError
     ///     If ``other`` is not a scalar.
     fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        self.check_living()?;
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.rsub(rhs)))
         } else {
@@ -303,6 +309,7 @@ impl PyVariable {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        self.check_living()?;
         let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = self.mul(rhs);
@@ -336,6 +343,7 @@ impl PyVariable {
     /// TypeError
     ///     If the operand type is unsupported.
     fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+        self.check_living()?;
         self.__mul__(py, other)
     }
 
@@ -354,6 +362,7 @@ impl PyVariable {
     /// RuntimeError
     ///     If the param ``modulo`` usually supported for ``__pow__`` is specified.
     fn __pow__(&self, other: isize, modparam: Option<isize>) -> PyResult<PyExpression> {
+        self.check_living()?;
         // Using PyUsize as param type in a slot would still lead to a TypeError upon negative values.
         if modparam.is_some() {
             return Err(PyRuntimeError::new_err(
@@ -383,8 +392,9 @@ impl PyVariable {
     /// Returns
     /// -------
     /// Expression
-    fn __neg__(&self) -> PyExpression {
-        PyExpression::new(self.0.neg())
+    fn __neg__(&self) -> PyResult<PyExpression> {
+        self.check_living()?;
+        Ok(PyExpression::new(self.0.neg()))
     }
 
     /// Either creates an constraint: variable == int | float | Expression or computes
@@ -408,6 +418,7 @@ impl PyVariable {
     /// TypeError
     ///     If the right-hand side is not of type float, int, Variable or Expression.
     fn __eq__(&self, py: Python, rhs: PyObject) -> PyResult<PyObject> {
+        self.check_living()?;
         if let Ok(var) = rhs.extract::<PyVariable>(py) {
             Ok(PyBool::new(py, *self == var).to_owned().into())
         } else {
@@ -463,18 +474,21 @@ impl PyVariable {
         self.make_constraint(py, rhs, Comparator::Ge)
     }
 
-    fn __str__(&self) -> String {
-        self.to_string()
+    fn __str__(&self) -> PyResult<String> {
+        self.check_living()?;
+        Ok(self.to_string())
     }
 
-    fn __repr__(&self) -> String {
-        format!("{:#?}", self.0)
+    fn __repr__(&self) -> PyResult<String> {
+        self.check_living()?;
+        Ok(format!("{:#?}", self.0))
     }
 
     /// Get this variables's environment.
     #[getter]
-    fn _environment(&self) -> PyEnvironment {
-        PyEnvironment(self.env.clone())
+    fn _environment(&self) -> PyResult<PyEnvironment> {
+        self.check_living()?;
+        Ok(PyEnvironment(self.env.clone()))
     }
 }
 
@@ -485,6 +499,7 @@ impl PyVariable {
         rhs: PyObject,
         comparator: Comparator,
     ) -> PyResult<PyConstraint> {
+        self.check_living()?;
         let mut lhs = Expression::new_linear_single(self.env.clone(), self.id, 1.0);
         let bias: PyResult<f64> = if let Ok(bias) = rhs.extract::<f64>(py) {
             Ok(bias)
