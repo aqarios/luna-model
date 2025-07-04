@@ -16,17 +16,30 @@ pub struct Samples(pub RcSolution);
 pub struct OwnedSample {
     pub variable_names: Vec<String>,
     pub actual: Rc<Vec<VarAssignment>>, // todo: maybe remove this `RC`
+    pub index_map: HashMap<usize, usize>,
 }
 impl OwnedSample {
-    pub fn new(variable_names: Vec<String>, actual: Rc<Vec<VarAssignment>>) -> Self {
+    pub fn new(
+        variable_names: Vec<String>,
+        actual: Rc<Vec<VarAssignment>>,
+        index_map: HashMap<usize, usize>,
+    ) -> Self {
         Self {
             variable_names,
             actual,
+            index_map,
         }
     }
 
     pub fn len(&self) -> usize {
         self.actual.len()
+    }
+
+    fn map_varidx(&self, varidx: usize) -> usize {
+        match self.index_map.get(&varidx) {
+            Some(mapped) => *mapped,
+            None => varidx,
+        }
     }
 }
 
@@ -89,7 +102,7 @@ impl ValueByIndex<VarIndex> for Sample {
     fn value_by_index(&self, index: VarIndex) -> Self::Output {
         match &self.0 {
             Left(r) => r.value_by_index(index),
-            Right(s) => s.actual[<VarIndex as Into<usize>>::into(index)],
+            Right(s) => s.actual[s.map_varidx(index.into())],
         }
     }
 }

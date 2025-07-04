@@ -45,11 +45,11 @@ use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
 /// - Use `encode()` / `decode()` to persist and recover expression trees.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Environment", module = "aqmodels")
+    pyclass(unsendable, name = "Environment", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Environment", module = "luna_quantum")
+    pyclass(unsendable, name = "Environment", module = "luna_quantum._core")
 )]
 #[derive(Deref, DerefMut, Clone)]
 pub struct PyEnvironment(pub SharedEnvironment);

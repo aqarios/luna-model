@@ -1,11 +1,12 @@
-use super::passes::max_bias::MaxBias;
+use super::passes::{binary_spin::BinarySpinInfo, max_bias::MaxBias};
 use aqm_macros::register_caches;
-use std::{collections::hash_map::HashMap, fmt::Debug};
+use indexmap::{IndexMap, map::Iter};
+use std::fmt::Debug;
 
-register_caches!(MaxBias);
+register_caches!(MaxBias, BinarySpinInfo);
 
 pub struct AnalysisCache {
-    store: HashMap<String, AnalysisCacheElement>,
+    store: IndexMap<String, AnalysisCacheElement>,
     history: Vec<(String, Reason, AnalysisCacheElement)>,
 }
 
@@ -18,7 +19,7 @@ pub enum Reason {
 impl AnalysisCache {
     pub fn new() -> AnalysisCache {
         AnalysisCache {
-            store: HashMap::new(),
+            store: IndexMap::new(),
             history: Vec::new(),
         }
     }
@@ -51,9 +52,13 @@ impl AnalysisCache {
 
     pub fn invalidate(&mut self, names: &[&str]) {
         names.iter().for_each(|&x| {
-            if let Some(v) = self.store.remove(x) {
+            if let Some(v) = self.store.shift_remove(x) {
                 self.history.push((x.to_owned(), Reason::Invalidated, v))
             }
         });
+    }
+
+    pub fn iter(&self) -> Iter<'_, String, AnalysisCacheElement> {
+        return self.store.iter();
     }
 }

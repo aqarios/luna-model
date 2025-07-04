@@ -2,7 +2,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Literal, overload
 
-from aqmodels import Model, Sense, Solution, Timing
+from aqmodels import Model, Sense, Solution, Timing, Vtype
 
 class BasePass:
     @property
@@ -29,7 +29,11 @@ class TransformationPass(BasePass):
         """Get a list of passes that are invalidated by this pass."""
         ...
     @abstractmethod
-    def run(self, model: Model, cache: AnalysisCache) -> tuple[Model, ActionType]:
+    def run(
+        self, model: Model, cache: AnalysisCache
+    ) -> (
+        TransformationOutcome | tuple[Model, ActionType] | tuple[Model, ActionType, Any]
+    ):
         """Run/Execute this transformation pass."""
         ...
     @abstractmethod
@@ -39,6 +43,22 @@ class TransformationPass(BasePass):
         Convert a solution from a representation fitting this pass' output to
         a solution representation fitting this pass' input.
         """
+        ...
+
+class TransformationOutcome:
+    """Output object for transformation pass."""
+
+    model: Model
+    action: ActionType
+    analysis: ...
+
+    def __init__(
+        self, model: Model, action: ActionType, analysis: ... = None
+    ) -> None: ...
+
+    @staticmethod
+    def nothing(model: Model) -> TransformationOutcome:
+        """Easy nothing action return."""
         ...
 
 class AnalysisCache:
@@ -63,7 +83,7 @@ class AnalysisPass(BasePass):
         """Get a list of required passes that need to be run before this pass."""
         ...
     @abstractmethod
-    def run(self, model: Model, cache: AnalysisCache) -> float:
+    def run(self, model: Model, cache: AnalysisCache) -> ...:
         """Run/Execute this analysis pass."""
         ...
 
@@ -72,7 +92,9 @@ class ActionType(Enum):
     """Indicate that the pass did transform the model."""
     DidAnalysis = ...
     """Indicate that the pass did analyse the model."""
-    Nothing = ...
+    DidAnalysisTransform = ...
+    """Indicate that the pass did analyse and transfrom the model."""
+    DidNothing = ...
     """Indicate that the pass did NOT do anything."""
 
 class ChangeSensePass(BasePass):
@@ -104,6 +126,33 @@ class MaxBiasAnalysis(BasePass):
     """An analysis pass computing the maximum bias contained in the model."""
 
     def __init__(self) -> None: ...
+
+class BinarySpinPass(BasePass):
+    """An transformation pass changing the binary/spin variables to spin/binary."""
+
+    def __init__(
+        self, vtype: Literal[Vtype.Binary, Vtype.Spin], prefix: str | None
+    ) -> None: ...
+    @property
+    def vtype(self) -> Vtype:
+        """Get the target vtype."""
+        ...
+
+    @property
+    def prefix(self) -> str | None:
+        """Get the naming prefix."""
+        ...
+
+class BinarySpinInfo:
+    @property
+    def old_vtype(self) -> Vtype:
+        """Get the source vtype."""
+        ...
+
+    @property
+    def new_vtype(self) -> Vtype:
+        """Get the variable name mapping."""
+        ...
 
 class LogElement:
     """An element of the execution log of an intermediate representation (IR)."""

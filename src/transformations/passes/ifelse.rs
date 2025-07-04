@@ -1,24 +1,23 @@
-#[cfg(feature = "py")]
-use aqm_macros::py_pass;
-use pyo3::exceptions::PyTypeError;
-use pyo3::IntoPyObjectExt;
+use aqm_macros::analysis_cache;
 
 #[cfg(feature = "py")]
-use {crate::py_bindings::AnyPass, pyo3::prelude::*};
+use {
+    crate::transformations::analysis_cache::PyAnalysisCache, pyo3::exceptions::PyTypeError,
+    pyo3::prelude::*, pyo3::IntoPyObjectExt,
+};
 
 use crate::core::Model;
 use crate::core::Solution;
 use crate::transformations::analysis_cache::AnalysisCache;
-use crate::transformations::analysis_cache::PyAnalysisCache;
 use crate::transformations::base_passes::{
-    BasePass, Pass, TransformationPass, TransformationPassResult,
+    BasePass, Pass, TransformationPassResult,
 };
 use crate::transformations::errors::CompilationError;
 use crate::transformations::errors::TransformationPassError;
-use crate::transformations::pass_manager::PassManager;
 
 pub type RustCallback = fn(&AnalysisCache) -> bool;
 
+#[cfg(feature = "py")]
 #[cfg_attr(feature = "py", pyclass(unsendable))]
 struct RustCallbackWrapper {
     callback: RustCallback,
@@ -97,13 +96,19 @@ impl Clone for Condition {
     }
 }
 
-// #[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
 #[derive(Debug, Clone)]
+#[analysis_cache]
+pub struct IfElseInfo {
+    fulfilled_condition: bool
+}
+
+// #[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
+#[derive(Debug)]
 pub struct IfElsePass {
     required: Vec<String>,
     condition: Condition,
-    then: Vec<AnyPass>,
-    otherwise: Vec<AnyPass>,
+    then: Vec<Pass>,
+    otherwise: Vec<Pass>,
 }
 
 #[cfg(feature = "py")]
@@ -117,8 +122,8 @@ impl IfElsePass {
     pub fn new(
         required: Vec<String>,
         condition: Condition,
-        then: Vec<AnyPass>,
-        otherwise: Vec<AnyPass>,
+        then: Vec<Pass>,
+        otherwise: Vec<Pass>,
     ) -> Self {
         IfElsePass {
             required,
@@ -139,40 +144,44 @@ impl BasePass for IfElsePass {
     }
 }
 
-impl TransformationPass for IfElsePass {
-    fn invalidates(&self) -> &[&str] {
-        &[]
+
+
+impl IfElsePass {
+    pub fn invalidates(&self) -> Vec<String> {
+        Vec::default()
     }
 
-    fn run(&self, model: Model, cache: &AnalysisCache) -> TransformationPassResult {
+    pub fn run(&self, _model: Model, cache: &AnalysisCache) -> TransformationPassResult {
         let is_condition = self
             .condition
             .call(cache)
             .map_err(|err| TransformationPassError(self.name(), err.to_string()))?;
         if is_condition {
             // todo: change once pipelines are available.
-            let mapped = self
-                .then
-                .iter()
-                .map(|y| y.clone().as_pass())
-                .collect::<PyResult<Vec<_>>>()
-                .map_err(|e| TransformationPassError(self.name(), e.to_string()))?;
-            let pm = PassManager::new(Some(mapped));
-            pm.run(model)
+            // let mapped = self
+            //     .then
+            //     .iter()
+            //     // .map(|y| y.clone().as_pass())
+            //     // .collect::<PyResult<Vec<_>>>()
+            //     .map_err(|e| TransformationPassError(self.name(), e.to_string()))?;
+            // let pm = PassManager::new(Some(self.then));
+            // pm.run(model)
+            todo!()
         } else {
             // todo: change once pipelines are available.
-            let mapped = self
-                .otherwise
-                .iter()
-                .map(|y| y.clone().as_pass())
-                .collect::<PyResult<Vec<_>>>()
-                .map_err(|e| TransformationPassError(self.name(), e.to_string()))?;
-            let pm = PassManager::new(Some(mapped));
-            pm.run(model)
+            // let mapped = self
+            //     .otherwise
+            //     .iter()
+            //     .map(|y| y.clone().as_pass())
+            //     .collect::<PyResult<Vec<_>>>()
+            //     .map_err(|e| TransformationPassError(self.name(), e.to_string()))?;
+            // let pm = PassManager::new(Some(self.otherwise));
+            // pm.run(model)
+            todo!()
         }
     }
 
-    fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution {
+    pub fn backwards(&self, _solution: Solution, _cache: &AnalysisCache) -> Solution {
         todo!()
     }
 }

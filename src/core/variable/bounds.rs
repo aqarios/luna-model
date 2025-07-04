@@ -8,8 +8,8 @@ const fn unwrap_failed() -> ! {
     panic!("called `Bound::unwrap()` on an `Unbounded` value")
 }
 
-#[cfg_attr(all(feature = "py", not(feature = "lq")), pyclass(eq, name = "Bound", module = "aqmodels"))]
-#[cfg_attr(all(feature = "py", feature = "lq"), pyclass(eq, name = "Bound", module = "luna_quantum"))]
+#[cfg_attr(all(feature = "py", not(feature = "lq")), pyclass(eq, name = "Bound", module = "aqmodels._core"))]
+#[cfg_attr(all(feature = "py", feature = "lq"), pyclass(eq, name = "Bound", module = "luna_quantum._core"))]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Bound {
     /// Explicitly unbounded value.
@@ -76,6 +76,7 @@ impl Bounds {
             Vtype::Integer => Self::integer(),
             Vtype::Binary => Self::binary(),
             Vtype::Spin => Self::spin(),
+            Vtype::__Ghost => Self::__ghost(),
         }
     }
 
@@ -94,6 +95,11 @@ impl Bounds {
     /// The default bounds of a real variable.
     pub fn real() -> Self {
         Self::new(Bound::Some(0.0), Bound::Unbounded())
+    }
+
+    /// The default bounds of a ghost variable.
+    pub fn __ghost() -> Self {
+        Self::new(Bound::Unbounded(), Bound::Unbounded())
     }
 
     pub fn evaluate<Elem: PartialEq<f64> + PartialOrd<f64>>(&self, value: Elem) -> bool {

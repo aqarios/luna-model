@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use pyo3::{prelude::*, types::PyDict};
+use pyo3::{prelude::*};
 
 use crate::{
     py_bindings::py_model::PyModel, transformations::analysis_cache::PyAnalysisCache,
@@ -38,7 +38,7 @@ impl PyAnalysisPass {
 
     #[pyo3(name = "run")]
     #[allow(unused_variables)]
-    fn py_run(&self, model: PyModel, cache: &PyAnalysisCache) -> PyResult<Py<PyDict>> {
+    fn py_run(&self, model: PyModel, cache: &PyAnalysisCache) -> PyResult<Py<PyAny>> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'run' method is not implemented.",
         ))

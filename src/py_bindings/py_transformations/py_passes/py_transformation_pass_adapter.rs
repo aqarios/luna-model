@@ -1,18 +1,18 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
 
 use crate::{
     core::{Model, Solution},
-    py_bindings::py_model::PyModel,
+    py_bindings::{py_model::PyModel, py_sol::PySolution},
     transformations::{
         analysis_cache::{AnalysisCache, PyAnalysisCache},
-        base_passes::{BasePass, TransformationPass, TransformationPassResult, ActionType},
+        base_passes::{BasePass, TransformationPass, TransformationPassResult},
         errors::TransformationPassError,
     },
 };
 
-use super::py_transformation_pass::PyTransformationPass;
+use super::py_transformation_pass::{PyTransformationOutcome, PyTransformationPass};
 
 pub struct PyTransformationPassAdapter {
     inner: Py<PyTransformationPass>,
@@ -80,21 +80,17 @@ impl BasePass for PyTransformationPassAdapter {
 }
 
 impl TransformationPass for PyTransformationPassAdapter {
-    fn invalidates(&self) -> &[&str] {
-        &[]
+    fn invalidates(&self) -> Vec<String> {
+        Python::with_gil(|py| {
+            self.inner
+                .getattr(py, "invalidates")
+                .and_then(|res| res.extract::<Vec<String>>(py))
+                .expect("no 'invalidates' method")
+        })
     }
 
-    fn run(&self, mut model: Model, cache: &AnalysisCache) -> TransformationPassResult {
-        Python::with_gil(|py| {
-            let fallback_name = String::from("PyTransformationPassAdapter");
-            let cls_name: String = self
-                .inner
-                .getattr(py, "__class__")
-                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?
-                .getattr(py, "__name__")
-                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?
-                .extract(py)
-                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?;
+    fn run(&self, model: Model, cache: &AnalysisCache) -> TransformationPassResult {
+        let py_outcome = Python::with_gil(|py| {
             let py_res = self
                 .inner
                 .call_method1(
@@ -105,20 +101,34 @@ impl TransformationPass for PyTransformationPassAdapter {
                         PyAnalysisCache::new(cache.clone_py(py)),
                     ),
                 )
-                .map_err(|e| TransformationPassError(cls_name.clone(), e.to_string()))?;
-            let (py_model, py_tt): (Py<PyModel>, Py<ActionType>) = py_res
-                .extract(py)
-                .map_err(|e| TransformationPassError(cls_name.clone(), e.to_string()))?;
-            let py_model_borrow = py_model.borrow(py);
-            let pymodel = py_model_borrow.clone();
-            model = pymodel.concrete_model.borrow().clone();
-            let tt = py_tt.borrow(py);
-            Ok((model, tt.clone()))
-        })
+                .map_err(|e| self.map_err(&e))?;
+            let py_outcome: PyTransformationOutcome =
+                py_res.extract(py).map_err(|e| self.map_err(&e))?;
+            Ok(py_outcome)
+        })?;
+        let outcome = py_outcome.try_into().map_err(|e| self.map_err(&e))?;
+        Ok(outcome)
     }
 
-    fn backwards(&self, mut _solution: Solution, _cache: &AnalysisCache) -> Solution {
-        todo!()
+    fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution {
+        let py_sol = Python::with_gil(|py| {
+            let py_res = self
+                .inner
+                .call_method1(
+                    py,
+                    "backwards",
+                    (
+                        PySolution::new(solution),
+                        PyAnalysisCache::new(cache.clone_py(py)),
+                    ),
+                )
+                .map_err(|e| self.map_err(&e))?;
+            let py_sol: PySolution = py_res.extract(py).map_err(|e| self.map_err(&e))?;
+            Ok::<PySolution, TransformationPassError>(py_sol)
+        }).unwrap(); // Backwards cannot have error currently.
+        let sol: Solution = Rc::into_inner(py_sol.0 .0)
+            .ok_or(self.map_err(&"Solution reference leaked out of backwards scope.")).unwrap();
+        sol
     }
 }
 

@@ -14,6 +14,7 @@ use crate::{
         },
         Comparator, ContentEquality, Expression, ExpressionBase, Substitution, VarRef,
     },
+    errors::VariableNotExistingErr,
     types::{Bias, VarIndex},
 };
 use crate::{
@@ -119,11 +120,11 @@ use std::{cell::RefCell, rc::Rc};
 /// - Use `==`, `<=`, `>=` with numeric constants to create constraints.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Expression", module = "aqmodels")
+    pyclass(unsendable, name = "Expression", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Expression", module = "luna_quantum")
+    pyclass(unsendable, name = "Expression", module = "luna_quantum._core")
 )]
 #[derive(Clone)]
 pub struct PyExpression(pub Either<Expression, Rc<RefCell<Model>>>);
@@ -160,11 +161,11 @@ impl PyExpression {
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "ExpressionIterator", module = "aqmodels")
+    pyclass(unsendable, name = "ExpressionIterator", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "ExpressionIterator", module = "luna_quantum")
+    pyclass(unsendable, name = "ExpressionIterator", module = "luna_quantum._core")
 )]
 pub struct PyExpressionIterator {
     items: Vec<(Vec<VarIndex>, Bias)>,
@@ -191,11 +192,11 @@ pub struct PyExpressionIterator {
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Constant", module = "aqmodels")
+    pyclass(unsendable, name = "Constant", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Constant", module = "luna_quantum")
+    pyclass(unsendable, name = "Constant", module = "luna_quantum._core")
 )]
 pub struct PyConstant();
 
@@ -218,11 +219,11 @@ pub struct PyConstant();
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Linear", module = "aqmodels")
+    pyclass(unsendable, name = "Linear", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Linear", module = "luna_quantum")
+    pyclass(unsendable, name = "Linear", module = "luna_quantum._core")
 )]
 pub struct PyLinear(pub PyVariable);
 
@@ -245,11 +246,11 @@ pub struct PyLinear(pub PyVariable);
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Quadratic", module = "aqmodels")
+    pyclass(unsendable, name = "Quadratic", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Quadratic", module = "luna_quantum")
+    pyclass(unsendable, name = "Quadratic", module = "luna_quantum._core")
 )]
 pub struct PyQuadratic(pub (PyVariable, PyVariable));
 
@@ -272,11 +273,11 @@ pub struct PyQuadratic(pub (PyVariable, PyVariable));
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "HigherOrder", module = "aqmodels")
+    pyclass(unsendable, name = "HigherOrder", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "HigherOrder", module = "luna_quantum")
+    pyclass(unsendable, name = "HigherOrder", module = "luna_quantum._core")
 )]
 pub struct PyHigherOrder(pub Vec<PyVariable>);
 
@@ -1128,8 +1129,8 @@ impl PyLinear {
         ("var",)
     }
 
-    fn __str__(&self) -> String {
-        format!("Linear({})", self.0.name())
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("Linear({})", self.0.name()?))
     }
 }
 
@@ -1149,8 +1150,12 @@ impl PyQuadratic {
         ("var_a", "var_b")
     }
 
-    fn __str__(&self) -> String {
-        format!("Quadratic({}, {})", self.0 .0.name(), self.0 .1.name())
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!(
+            "Quadratic({}, {})",
+            self.0 .0.name()?,
+            self.0 .1.name()?
+        ))
     }
 }
 
@@ -1166,8 +1171,12 @@ impl PyHigherOrder {
         ("vars",)
     }
 
-    fn __str__(&self) -> String {
-        let vnames: Vec<_> = self.0.iter().map(|x| x.name().clone()).collect();
-        format!("HigherOrder({})", vnames.join(", "))
+    fn __str__(&self) -> PyResult<String> {
+        let vnames: Vec<_> = self
+            .0
+            .iter()
+            .map(|x| Ok(x.name()?.clone()))
+            .collect::<Result<Vec<String>, VariableNotExistingErr>>()?;
+        Ok(format!("HigherOrder({})", vnames.join(", ")))
     }
 }
