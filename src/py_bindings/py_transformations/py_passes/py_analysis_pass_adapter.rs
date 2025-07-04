@@ -91,9 +91,7 @@ impl AnalysisPass for PyAnalysisPassAdapter {
                     ),
                 )
                 .map_err(|e| self.map_err(&e))?;
-            let py_any: Py<PyAny> = py_res
-                .extract(py)
-                .map_err(|e| self.map_err(&e))?;
+            let py_any: Py<PyAny> = py_res.extract(py).map_err(|e| self.map_err(&e))?;
             if py_any.is_none(py) {
                 Ok(None)
             } else {
@@ -106,5 +104,13 @@ impl AnalysisPass for PyAnalysisPassAdapter {
 impl Debug for PyAnalysisPassAdapter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.inner)
+    }
+}
+
+impl Clone for PyAnalysisPassAdapter {
+    fn clone(&self) -> Self {
+        Python::with_gil(|py| PyAnalysisPassAdapter {
+            inner: self.inner.clone_ref(py),
+        })
     }
 }

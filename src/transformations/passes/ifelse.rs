@@ -1,4 +1,5 @@
 use aqm_macros::analysis_cache;
+use global_counter::primitive::exact::CounterU64;
 
 #[cfg(feature = "py")]
 use {
@@ -6,14 +7,16 @@ use {
     pyo3::prelude::*, pyo3::IntoPyObjectExt,
 };
 
-use crate::core::Model;
-use crate::core::Solution;
 use crate::transformations::analysis_cache::AnalysisCache;
-use crate::transformations::base_passes::{
-    BasePass, Pass, TransformationPassResult,
+use crate::transformations::base_passes::BasePass;
+use crate::transformations::{
+    errors::CompilationError, intermediate_representation::IntermediateRepresentation,
 };
-use crate::transformations::errors::CompilationError;
-use crate::transformations::errors::TransformationPassError;
+use crate::{
+    core::Model,
+    transformations::{errors::IfElsePassError, pipeline::Pipeline},
+};
+use crate::{core::Solution, transformations::analysis_cache::AnalysisCacheElement};
 
 pub type RustCallback = fn(&AnalysisCache) -> bool;
 
@@ -99,44 +102,43 @@ impl Clone for Condition {
 #[derive(Debug, Clone)]
 #[analysis_cache]
 pub struct IfElseInfo {
-    fulfilled_condition: bool
+    fulfilled_condition: bool,
 }
 
-// #[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
-#[derive(Debug)]
+/// Counter to ensure multiple if-else branches can be used in the same pass.
+pub static IF_ELSE_COUNTER: CounterU64 = CounterU64::new(0);
+
+// #[cfg_attr(feature = "py", py_pass(pass_variant = "IfElse"))]
+#[derive(Debug, Clone)]
 pub struct IfElsePass {
     required: Vec<String>,
     condition: Condition,
-    then: Vec<Pass>,
-    otherwise: Vec<Pass>,
-}
-
-#[cfg(feature = "py")]
-impl IfElsePass {
-    pub fn as_pass(self) -> PyResult<Pass> {
-        Ok(Pass::IfElse(self))
-    }
+    then: Pipeline,
+    otherwise: Pipeline,
+    // #[py_pass(init_ignore)]
+    name: String,
 }
 
 impl IfElsePass {
     pub fn new(
         required: Vec<String>,
         condition: Condition,
-        then: Vec<Pass>,
-        otherwise: Vec<Pass>,
+        then: Pipeline,
+        otherwise: Pipeline,
     ) -> Self {
         IfElsePass {
             required,
             condition,
             then,
             otherwise,
+            name: format!("if-else-{}", IF_ELSE_COUNTER.inc()),
         }
     }
 }
 
 impl BasePass for IfElsePass {
     fn name(&self) -> String {
-        String::from("if-else-pass")
+        self.name.clone()
     }
 
     fn requires(&self) -> Vec<String> {
@@ -144,44 +146,47 @@ impl BasePass for IfElsePass {
     }
 }
 
+pub struct IfElseOutcome {
+    pub ir: IntermediateRepresentation,
+    pub analysis: AnalysisCacheElement,
+}
 
+pub type IfElsePassResult = Result<IfElseOutcome, IfElsePassError>;
 
 impl IfElsePass {
-    pub fn invalidates(&self) -> Vec<String> {
-        Vec::default()
-    }
-
-    pub fn run(&self, _model: Model, cache: &AnalysisCache) -> TransformationPassResult {
+    pub fn run(&self, model: Model, cache: &AnalysisCache) -> IfElsePassResult {
         let is_condition = self
             .condition
             .call(cache)
-            .map_err(|err| TransformationPassError(self.name(), err.to_string()))?;
-        if is_condition {
-            // todo: change once pipelines are available.
-            // let mapped = self
-            //     .then
-            //     .iter()
-            //     // .map(|y| y.clone().as_pass())
-            //     // .collect::<PyResult<Vec<_>>>()
-            //     .map_err(|e| TransformationPassError(self.name(), e.to_string()))?;
-            // let pm = PassManager::new(Some(self.then));
-            // pm.run(model)
-            todo!()
+            .map_err(|err| IfElsePassError(err.to_string()))?;
+        let ir = if is_condition {
+            self.then
+                .run(model, &cache)
+                .map_err(|err| IfElsePassError(err.to_string()))
         } else {
-            // todo: change once pipelines are available.
-            // let mapped = self
-            //     .otherwise
-            //     .iter()
-            //     .map(|y| y.clone().as_pass())
-            //     .collect::<PyResult<Vec<_>>>()
-            //     .map_err(|e| TransformationPassError(self.name(), e.to_string()))?;
-            // let pm = PassManager::new(Some(self.otherwise));
-            // pm.run(model)
-            todo!()
-        }
+            self.otherwise
+                .run(model, &cache)
+                .map_err(|err| IfElsePassError(err.to_string()))
+        }?;
+        Ok(IfElseOutcome {
+            ir,
+            analysis: AnalysisCacheElement::IfElseInfoAnalysis(IfElseInfo {
+                fulfilled_condition: is_condition,
+            }),
+        })
     }
 
-    pub fn backwards(&self, _solution: Solution, _cache: &AnalysisCache) -> Solution {
-        todo!()
+    pub fn backwards(&self, mut solution: Solution, ir: &IntermediateRepresentation) -> Solution {
+        match ir.cache.get(&self.name) {
+            Some(AnalysisCacheElement::IfElseInfoAnalysis(cache)) => {
+                if cache.fulfilled_condition {
+                    solution = self.then.backwards(solution, ir)
+                } else {
+                    solution = self.otherwise.backwards(solution, ir)
+                }
+            }
+            _ => {}
+        }
+        solution
     }
 }

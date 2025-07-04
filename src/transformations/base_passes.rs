@@ -4,9 +4,12 @@ use crate::core::{Model, Solution};
 
 use super::{
     analysis_cache::{AnalysisCache, AnalysisCacheElement},
-    errors::{AnalysisPassError, TransformationPassError}, passes::ifelse::IfElsePass,
+    errors::{AnalysisPassError, TransformationPassError},
+    passes::ifelse::IfElsePass,
+    pipeline::Pipeline,
 };
 
+use dyn_clone::DynClone;
 #[cfg(feature = "py")]
 use pyo3::prelude::pyclass;
 
@@ -25,6 +28,8 @@ pub enum ActionType {
     DidTransform,
     DidAnalysis,
     DidAnalysisTransform,
+    DidIfElse,
+    DidPipeline,
     DidNothing,
 }
 
@@ -36,7 +41,7 @@ pub trait BasePass: Debug {
     // TODO fn requires_spec(&self) -> ModelSpecs
 }
 
-pub trait AnalysisPass: BasePass {
+pub trait AnalysisPass: BasePass + DynClone {
     fn run(&self, model: &Model, cache: &AnalysisCache) -> AnalysisPassResult;
 
     fn map_err(&self, err: &dyn Display) -> AnalysisPassError {
@@ -62,7 +67,7 @@ impl TransformationOutcome {
 
 pub type TransformationPassResult = Result<TransformationOutcome, TransformationPassError>;
 
-pub trait TransformationPass: BasePass {
+pub trait TransformationPass: BasePass + DynClone {
     fn invalidates(&self) -> Vec<String> {
         Vec::new()
     }
@@ -73,13 +78,19 @@ pub trait TransformationPass: BasePass {
     fn map_err(&self, err: &dyn Display) -> TransformationPassError {
         TransformationPassError(self.name(), err.to_string())
     }
+
+    // fn clone_box(&self) -> Box<dyn TransformationPass>;
 }
+
+dyn_clone::clone_trait_object!(TransformationPass);
+dyn_clone::clone_trait_object!(AnalysisPass);
 
 #[derive(Debug)]
 pub enum Pass {
     Transformation(Box<dyn TransformationPass>),
     Analysis(Box<dyn AnalysisPass>),
-    IfElse(IfElsePass)
+    IfElse(IfElsePass),
+    Pipeline(Pipeline),
 }
 
 impl Pass {
@@ -88,6 +99,7 @@ impl Pass {
             Pass::Analysis(x) => x.name(),
             Pass::Transformation(x) => x.name(),
             Pass::IfElse(x) => x.name(),
+            Pass::Pipeline(x) => x.name(),
         }
     }
 
@@ -96,6 +108,18 @@ impl Pass {
             Pass::Analysis(x) => x.requires(),
             Pass::Transformation(x) => x.requires(),
             Pass::IfElse(x) => x.requires(),
+            Pass::Pipeline(x) => x.requires(),
+        }
+    }
+}
+
+impl Clone for Pass {
+    fn clone(&self) -> Self {
+        match self {
+            Self::IfElse(x) => Self::IfElse(x.clone()),
+            Self::Pipeline(x) => Self::Pipeline(x.clone()),
+            Self::Transformation(x) => Self::Transformation(x.clone()),
+            Self::Analysis(x) => Self::Analysis(x.clone()),
         }
     }
 }

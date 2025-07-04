@@ -11,6 +11,203 @@ use syn::{
 #[cfg(feature = "py")]
 use syn::{parse::Parser, DeriveInput, Expr, Fields, MetaNameValue};
 
+// // use syn::{
+// //     parse_macro_input, punctuated::Punctuated, token::Comma, Data, DeriveInput, Fields, Lit, Meta,
+// //     MetaNameValue, Type,
+// // };
+//
+// #[proc_macro_derive(PyPass, attributes(pass, aqm))]
+// pub fn derive_py_pass(item: TokenStream) -> TokenStream {
+//     // 1) Parse the struct
+//     let input = parse_macro_input!(item as DeriveInput);
+//     let struct_name = &input.ident;
+//     let wrapper_name = format_ident!("Py{}", struct_name);
+//     let class_name = struct_name.to_string();
+//
+//     // 2) Read #[py_pass(pass_variant = "...")]
+//     let mut pass_variant: Option<String> = None;
+//     for attr in &input.attrs {
+//         if attr.path().is_ident("pass") {
+//             // parse_args_with MetaNameValue only: pass_variant = "Foo"
+//             let args = attr
+//                 .parse_args_with(Punctuated::<MetaNameValue, Comma>::parse_terminated)
+//                 .expect("invalid #[pass]: expected `pass_variant = \"…\"`");
+//             for nv in args {
+//                 if nv.path.is_ident("pass_variant") {
+//                     if let Expr::Lit(ExprLit {
+//                         lit: Lit::Str(s), ..
+//                     }) = nv.value
+//                     {
+//                         pass_variant = Some(s.value());
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     let pass_variant = pass_variant
+//         .unwrap_or_else(|| panic!("you must supply `#[pass(pass_variant = \"…\")]`"));
+//     let pass_variant_ident = format_ident!("{}", pass_variant);
+//
+//     // 3) Collect named fields, handling #[aqm(ignore)] and #[aqm(init_type = "...")]
+//     let fields = match &input.data {
+//         Data::Struct(ds) => {
+//             if let Fields::Named(named) = &ds.fields {
+//                 named.named.iter().collect::<Vec<_>>()
+//             } else {
+//                 panic!("PyPass only supports structs with named fields");
+//             }
+//         }
+//         _ => panic!("PyPass can only be derived on structs"),
+//     };
+//
+//     let mut init_args = Vec::new();
+//     let mut forwards = Vec::new();
+//     let mut field_getters = Vec::new();
+//     let mut repr_fields = Vec::new();
+//
+//     for f in fields {
+//         let name = f.ident.as_ref().unwrap();
+//         let mut ignore = false;
+//         let mut override_ty: Option<Type> = None;
+//
+//         for attr in &f.attrs {
+//             if attr.path().is_ident("aqm") {
+//                 // parse as a list of syn::Meta, e.g. `ignore` or `init_type = "Foo"`
+//                 let metas = attr
+//                     .parse_args_with(Punctuated::<Meta, Comma>::parse_terminated)
+//                     .expect("invalid `#[aqm(...)]`");
+//                 for m in metas {
+//                     match m {
+//                         Meta::Path(path) if path.is_ident("ignore") => {
+//                             ignore = true;
+//                         }
+//                         Meta::NameValue(MetaNameValue { path, value, .. })
+//                             if path.is_ident("init_type") =>
+//                         {
+//                             if let Expr::Lit(ExprLit {
+//                                 lit: Lit::Str(s), ..
+//                             }) = value
+//                             {
+//                                 override_ty = Some(s.parse().expect("invalid type in init_type"));
+//                             } else {
+//                                 panic!("`init_type` must be a string literal");
+//                             }
+//                         }
+//                         _ => {}
+//                     }
+//                 }
+//             }
+//         }
+//
+//         if ignore {
+//             continue;
+//         }
+//
+//         // decide ctor‐type vs real‐type
+//         let init_ty = override_ty.unwrap_or_else(|| f.ty.clone());
+//         init_args.push(quote! { #name: #init_ty });
+//         forwards.push(quote! { #name });
+//         repr_fields.push(name);
+//
+//         // always emit a #[getter] returning the *real* type
+//         let getter = format_ident!("get_{}", name);
+//         let real_ty = &f.ty;
+//         field_getters.push(quote! {
+//             #[getter]
+//             pub fn #getter(&self) -> #real_ty {
+//                 self.#name.clone()
+//             }
+//         });
+//     }
+//
+//     // optional Transformation::invalidates support
+//     let get_invalidates = if pass_variant == "Transformation" {
+//         quote! {
+//             #[getter]
+//             pub fn get_invalidates(&self) -> Vec<String> {
+//                 self.invalidates()
+//             }
+//         }
+//     } else {
+//         quote! {}
+//     };
+//     let invalidates_repr = if pass_variant == "Transformation" {
+//         quote! {
+//             let vec = self.invalidates();
+//             if !vec.is_empty() {
+//                 parts.push(format!("invalidates={:?}", vec));
+//             }
+//         }
+//     } else {
+//         quote! {}
+//     };
+//
+//     // 4) Assemble the final PyO3 wrapper
+//     let expanded = quote! {
+//         use pyo3::prelude::*;
+//         #input
+//
+//         #[pyclass(name = #class_name)]
+//         #[derive(::derive_more::Deref, ::derive_more::DerefMut, Clone, Debug)]
+//         pub struct #wrapper_name(pub #struct_name);
+//
+//         #[pymethods]
+//         impl #wrapper_name {
+//             #[new]
+//             pub fn py_init(#(#init_args),*) -> Self {
+//                 #wrapper_name(#struct_name::new(#(#forwards),*))
+//             }
+//
+//             #(#field_getters)*
+//
+//             #[getter]
+//             pub fn get_name(&self) -> String {
+//                 self.name()
+//             }
+//
+//             #[getter]
+//             pub fn get_requires(&self) -> Vec<String> {
+//                 self.requires()
+//             }
+//
+//             #get_invalidates
+//
+//             pub fn __repr__(&self) -> String {
+//                 self.repr()
+//             }
+//         }
+//
+//         impl #wrapper_name {
+//             pub fn as_pass(self) -> PyResult<Pass> {
+//                 Ok(Pass::#pass_variant_ident(Box::new(self.0)))
+//             }
+//
+//             pub fn repr(&self) -> String {
+//                 let mut parts = Vec::new();
+//
+//                 #(
+//                     parts.push(format!(
+//                         "{}={:?}",
+//                         stringify!(#repr_fields),
+//                         self.#repr_fields
+//                     ));
+//                 )*
+//
+//                 parts.push(format!("name=\"{}\"", self.name()));
+//                 let vec = self.requires();
+//                 if !vec.is_empty() {
+//                     parts.push(format!("requires={:?}", vec));
+//                 }
+//                 #invalidates_repr
+//
+//                 format!("{}({})", #class_name, parts.join(", "))
+//             }
+//         }
+//     };
+//
+//     TokenStream::from(expanded)
+// }
+
 /// Replace the derive with an attribute macro:
 #[cfg(feature = "py")]
 #[proc_macro_attribute]
@@ -364,7 +561,8 @@ pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let class_name = struct_name.to_string();
 
-    let field_names = input.fields
+    let field_names = input
+        .fields
         .iter()
         .map(|f| f.ident.as_ref().unwrap())
         .collect::<Vec<_>>();
@@ -448,6 +646,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
     // 1) Build the "AnalysisCacheElement" enum variants
     //    and collect them into Vecs so we can reuse:
     let mut enum_variants = Vec::new();
+    let mut py_clone_arms = Vec::new();
     let mut clone_arms = Vec::new();
     let mut accessors = Vec::new();
     let mut element_arms = Vec::new();
@@ -500,6 +699,9 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             #var_ident(#ident),
         });
         // clone_py arm
+        py_clone_arms.push(quote! {
+            AnalysisCacheElement::#var_ident(v) => AnalysisCacheElement::#var_ident(v.clone()),
+        });
         clone_arms.push(quote! {
             AnalysisCacheElement::#var_ident(v) => AnalysisCacheElement::#var_ident(v.clone()),
         });
@@ -528,9 +730,13 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
         #[cfg(feature = "py")]
         PyAnalysis(pyo3::Py<pyo3::PyAny>),
     });
-    clone_arms.push(quote! {
+    py_clone_arms.push(quote! {
         #[cfg(feature = "py")]
         AnalysisCacheElement::PyAnalysis(v) => AnalysisCacheElement::PyAnalysis(v.clone_ref(py)),
+    });
+    clone_arms.push(quote! {
+        #[cfg(feature = "py")]
+        AnalysisCacheElement::PyAnalysis(v) => Python::with_gil(|py| AnalysisCacheElement::PyAnalysis(v.clone_ref(py))),
     });
     element_arms.push(quote! {
         #[cfg(feature = "py")]
@@ -544,17 +750,11 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
     // 2) Emit the combined code
     let expanded = quote! {
         #[cfg(feature = "py")]
-        use {
-        //     derive_more::{Deref, DerefMut},
-        //     pyo3::{pyclass, pymethods, IntoPyObjectExt, Py, PyAny, PyObject, PyResult, Python},
-            // pyo3::{Py, PyAny},
-        };
+        use pyo3::{PyErr, IntoPyObject};
 
         /// All possible elements in the cache
+        #[derive(Debug)]
         pub enum AnalysisCacheElement {
-            // Float(f64),
-            // Int(i32),
-            // String(String),
             #(#enum_variants)*
         }
 
@@ -562,13 +762,21 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             #[cfg(feature = "py")]
             pub fn clone_py(&self, py: pyo3::Python) -> Self {
                 match self {
-                    #(#clone_arms)*
+                    #(#py_clone_arms)*
                 }
             }
 
             pub fn repr(&self) -> String {
                 match self {
                     #(#repr_arms)*
+                }
+            }
+        }
+
+        impl Clone for AnalysisCacheElement {
+            fn clone(&self) -> Self {
+                match self {
+                    #(#clone_arms)*
                 }
             }
         }
@@ -593,6 +801,16 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             #(#accessors)*
         }
 
+        #[cfg(feature = "py")]
+        impl<'py> IntoPyObject<'py> for AnalysisCache {
+            type Error = PyErr;
+            type Target = PyAnalysisCache;
+            type Output = Bound<'py, PyAnalysisCache>;
+
+            fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+                Bound::new(py, PyAnalysisCache::new(self))
+            }
+        }
 
         // // Py‐bindings for the entire cache
         #[cfg(feature = "py")]
@@ -635,6 +853,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
                     self._repr(py)
                 }
             }
+
         }
 
         #[cfg(feature = "py")]

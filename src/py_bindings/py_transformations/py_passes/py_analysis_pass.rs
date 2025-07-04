@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use pyo3::{prelude::*};
+use pyo3::prelude::*;
 
 use crate::{
     py_bindings::py_model::PyModel, transformations::analysis_cache::PyAnalysisCache,
