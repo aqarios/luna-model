@@ -35,6 +35,7 @@ regex = "1.11.1"
 time = { version = "0.3.41", features = ["formatting"] }
 itertools = "0.14.0"
 indexmap = "2.9.0"
+sqids = "0.4.2"
 [dependencies.pyo3]
 version = "0.24.1"
 features = ["extension-module", "indexmap"]

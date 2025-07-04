@@ -1,4 +1,4 @@
-use crate::core::{Constraint, Comparator};
+// use crate::core::{Constraint, Comparator};
 
 pub enum ConstraintTypes {
     GeneralEquality,
@@ -14,7 +14,7 @@ pub enum ConstraintTypes {
 impl ConstraintTypes {
     pub fn parent(&self) -> Option<ConstraintTypes> {
         match self {
-            ConstraintTypes::SetPartitioning => Some(ConstraintTypes::IntegerEquality),
+            ConstraintTypes::SetPartitioning => Some(ConstraintTypes::HammingWeight),
             ConstraintTypes::HammingWeight => Some(ConstraintTypes::IntegerEquality),
             ConstraintTypes::SetPacking => Some(ConstraintTypes::IntegerInequality),
             ConstraintTypes::SetCovering => Some(ConstraintTypes::IntegerInequality),

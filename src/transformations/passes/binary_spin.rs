@@ -1,17 +1,19 @@
 use std::collections::HashMap;
 
+use sqids::Sqids;
+
 use crate::{
     core::{
         expression::ExpressionBaseAdd,
         solution::sol::{SampleCol, SampleColElement},
-        Model, Solution, Vtype,
+        Model, Solution, VarRef, Variable, Vtype,
     },
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{
             ActionType, BasePass, TransformationOutcome, TransformationPass,
             TransformationPassResult,
-        },
+        }, errors::TransformationPassError,
     },
 };
 
@@ -75,21 +77,27 @@ impl TransformationPass for BinarySpinPass {
             match self.vtype {
                 Vtype::Binary => "x",
                 Vtype::Spin => "s",
-                _ => "",
+                _ => panic!("Cannot be reached."),
             }
             .to_string(),
         );
         for x in model.environment.borrow().variables().iter() {
+            let mut new_name = format!("{}_{}", pref, x.name);
+            let vref_old = model
+                .environment
+                .get_vref_by_name(&x.name)
+                .map_err(|e| self.map_err(&e))?;
+            if model.environment.get_vref_by_name(&new_name).is_ok() {
+                // New name already exists
+                let suffix = Sqids::default()
+                    .encode(&[vref_old.id.into()])
+                    .map_err(|e| self.map_err(&e))?;
+                new_name = format!("{}_{}", new_name, suffix);
+            }
+
             match (x.vtype, self.vtype) {
-                (Vtype::Binary, Vtype::Spin) => {
-                    cache
-                        .map
-                        .insert(x.name.clone(), format!("{}_{}", pref, x.name));
-                }
-                (Vtype::Spin, Vtype::Binary) => {
-                    cache
-                        .map
-                        .insert(x.name.clone(), format!("{}_{}", pref, x.name));
+                (Vtype::Binary, Vtype::Spin) | (Vtype::Spin, Vtype::Binary) => {
+                    cache.map.insert(x.name.clone(), new_name);
                 }
                 _ => {}
             };
