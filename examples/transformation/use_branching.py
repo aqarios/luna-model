@@ -1,15 +1,9 @@
 """Helper script to test out transformations."""
 
-from aqmodels import Model
-from aqmodels._core import Sense, Variable
-from aqmodels.transformations import (
-    AnalysisCache,
-    ChangeSensePass,
-    PassManager,
-    IfElsePass,
-    Pipeline,
-)
+from aqmodels import Model, Sense, Variable
 from aqmodels.decorators import analyse
+from aqmodels.transformations import (AnalysisCache, ChangeSensePass,
+                                      IfElsePass, PassManager, Pipeline)
 
 aqm = Model("Model To transform")
 aqm.set_sense(sense=Sense.Max)
