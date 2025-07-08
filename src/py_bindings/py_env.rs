@@ -228,4 +228,9 @@ impl PyEnvironment {
     fn equal_contents(&self, other: &Self) -> bool {
         self.0.is_equal_contents(&other.0)
     }
+
+    fn __contains__(&self, varname: String) -> bool {
+        self.0.contains(varname)
+    }
+
 }

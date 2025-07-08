@@ -146,6 +146,10 @@ impl SharedEnvironment {
             .map(|idx| VarRef::new(idx.into(), self.clone()))
             .collect()
     }
+
+    pub fn contains(&self, varname: String) -> bool {
+        self.variable_names().contains(&varname)
+    }
 }
 
 impl SharedEnvironment {
