@@ -1,14 +1,14 @@
 import pytest
 
 from aqmodels import Environment, Model, Variable, Vtype
-from aqmodels.errors import DuplicateConstraintNameError
+from aqmodels.errors import DuplicateConstraintNameError, NoConstraintForKeyError
 
 
 def model_iadd(request) -> Model:
     with Environment():
         model = Model()
-        x = Variable("x")
-        y = Variable("y")
+        x = model.add_variable("x")
+        y = model.add_variable("y")
 
     comp = request.param
     if comp == "le":
@@ -24,8 +24,8 @@ def model_iadd(request) -> Model:
 def model_iadd_named(request) -> Model:
     with Environment():
         model = Model()
-        x = Variable("x")
-        y = Variable("y")
+        x = model.add_variable("x")
+        y = model.add_variable("y")
 
     comp = request.param
     if comp == "le":
@@ -41,8 +41,8 @@ def model_iadd_named(request) -> Model:
 def model_fadd(request) -> Model:
     with Environment():
         model = Model()
-        x = Variable("x")
-        y = Variable("y")
+        x = model.add_variable("x")
+        y = model.add_variable("y")
 
     comp = request.param
     if comp == "le":
@@ -58,8 +58,8 @@ def model_fadd(request) -> Model:
 def model_fadd_named(request) -> Model:
     with Environment():
         model = Model()
-        x = Variable("x")
-        y = Variable("y")
+        x = model.add_variable("x")
+        y = model.add_variable("y")
 
     comp = request.param
     if comp == "le":
@@ -75,8 +75,8 @@ def model_fadd_named(request) -> Model:
 def model_direct_add(request) -> Model:
     with Environment():
         model = Model()
-        x = Variable("x")
-        y = Variable("y")
+        x = model.add_variable("x")
+        y = model.add_variable("y")
 
     comp = request.param
     if comp == "le":
@@ -92,8 +92,8 @@ def model_direct_add(request) -> Model:
 def model_direct_add_named(request) -> Model:
     with Environment():
         model = Model()
-        x = Variable("x")
-        y = Variable("y")
+        x = model.add_variable("x")
+        y = model.add_variable("y")
 
     comp = request.param
     if comp == "le":
@@ -120,57 +120,101 @@ def models_named(request) -> tuple[Model, Model, Model]:
     )
 
 
+def check_get_constraint_error(model, index, name, error_type):
+    with pytest.raises(error_type):
+        model.constraints[index]
+    with pytest.raises(error_type):
+        model.constraints[name]
+    with pytest.raises(error_type):
+        model.constraints.get(index)
+    with pytest.raises(error_type):
+        model.constraints.get(name)
+
+
+@pytest.mark.constraint
+def test_model_get_constraint_not_existing():
+    check_get_constraint_error(Model(), 0, "my_constraint", NoConstraintForKeyError)
+    check_get_constraint_error(Model(), 0, "my_constraint", IndexError)
+
+
+@pytest.mark.constraint
+def test_model_remove_constraint():
+    model = Model()
+    x = model.add_variable("x")
+    y = model.add_variable("y")
+
+    def add_constraint():
+        model.constraints += x + y <= 1, "my_constraint"
+
+    def check(error_type):
+        check_get_constraint_error(model, 0, "my_constraint", error_type)
+
+    check(NoConstraintForKeyError)
+    check(IndexError)
+    add_constraint()
+    model.constraints.remove(0)
+    check(NoConstraintForKeyError)
+    check(IndexError)
+    add_constraint()
+    model.constraints.remove("my_constraint")
+    check(NoConstraintForKeyError)
+    check(IndexError)
+
+
 @pytest.mark.constraint
 def test_model_add_constraint_le():
-    with Environment():
-        model = Model()
-        x = Variable("x")
-        y = Variable("y")
+    model = Model()
+    x = model.add_variable("x")
+    y = model.add_variable("y")
 
-    model.constraints += x + y <= 1
+    model.constraints += x + y <= 1, "my_constraint"
     assert model.num_constraints == 1
+    assert model.constraints[0] == model.constraints["my_constraint"]
+    assert model.constraints.get(0) == model.constraints.get("my_constraint")
 
 
 @pytest.mark.constraint
 def test_model_add_constraint_eq():
-    with Environment():
-        model = Model()
-        x = Variable("x")
-        y = Variable("y")
+    model = Model()
+    x = model.add_variable("x")
+    y = model.add_variable("y")
 
-    model.constraints += x + y == 0
+    model.constraints += x + y == 0, "my_constraint"
     assert model.num_constraints == 1
+    assert model.constraints[0] == model.constraints["my_constraint"]
+    assert model.constraints.get(0) == model.constraints.get("my_constraint")
 
 
 @pytest.mark.constraint
 def test_model_add_constraint_ge():
-    with Environment():
-        model = Model()
-        x = Variable("x")
-        y = Variable("y")
+    model = Model()
+    x = model.add_variable("x")
+    y = model.add_variable("y")
 
-    model.constraints += x + y >= 1
+    model.constraints += x + y >= 1, "my_constraint"
     assert model.num_constraints == 1
+    assert model.constraints[0] == model.constraints["my_constraint"]
+    assert model.constraints.get(0) == model.constraints.get("my_constraint")
 
 
 @pytest.mark.constraint
 def test_model_add_constraint_le_named():
-    with Environment():
-        model = Model()
-        x = Variable("x")
-        y = Variable("y")
+    model = Model()
+    x = model.add_variable("x")
+    y = model.add_variable("y")
 
     model.constraints += x + y <= 1, "constraint"
     assert model.num_constraints == 1
     assert model.constraints[0].name == "constraint"
+    assert model.constraints[0] == model.constraints["constraint"]
+    assert model.constraints.get(0) == model.constraints.get("constraint")
 
 
 @pytest.mark.constraint
 def test_model_add_constraint_le_named_duplicate():
-    with Environment():
-        model = Model()
-        x = Variable("x")
-        y = Variable("y")
+    model = Model()
+    x = model.add_variable("x")
+    y = model.add_variable("y")
 
     model.constraints += x + y <= 1, "constraint"
     with pytest.raises(DuplicateConstraintNameError):
@@ -179,10 +223,9 @@ def test_model_add_constraint_le_named_duplicate():
 
 @pytest.mark.constraint
 def test_model_add_constraint_eq_named():
-    with Environment():
-        model = Model()
-        x = Variable("x")
-        y = Variable("y")
+    model = Model()
+    x = model.add_variable("x")
+    y = model.add_variable("y")
 
     model.constraints += x + y == 0, "constraint"
     assert model.num_constraints == 1
@@ -191,10 +234,9 @@ def test_model_add_constraint_eq_named():
 
 @pytest.mark.constraint
 def test_model_add_constraint_eq_named_duplicate():
-    with Environment():
-        model = Model()
-        x = Variable("x")
-        y = Variable("y")
+    model = Model()
+    x = model.add_variable("x")
+    y = model.add_variable("y")
 
     model.constraints += x + y == 0, "constraint"
     with pytest.raises(DuplicateConstraintNameError):
@@ -203,10 +245,9 @@ def test_model_add_constraint_eq_named_duplicate():
 
 @pytest.mark.constraint
 def test_model_add_constraint_ge_named():
-    with Environment():
-        model = Model()
-        x = Variable("x")
-        y = Variable("y")
+    model = Model()
+    x = model.add_variable("x")
+    y = model.add_variable("y")
 
     model.constraints += x + y >= 1, "constraint"
     assert model.num_constraints == 1
@@ -215,10 +256,9 @@ def test_model_add_constraint_ge_named():
 
 @pytest.mark.constraint
 def test_model_add_constraint_ge_named_duplicate():
-    with Environment():
-        model = Model()
-        x = Variable("x")
-        y = Variable("y")
+    model = Model()
+    x = model.add_variable("x")
+    y = model.add_variable("y")
 
     model.constraints += x + y >= 0, "constraint"
     with pytest.raises(DuplicateConstraintNameError):
@@ -245,10 +285,9 @@ def test_model_add_constraint_same_named(models_named: tuple[Model, Model, Model
 def test_model_constraints_len():
     m = Model()
     assert len(m.constraints) == 0
-    with m.environment:
-        x = Variable("x")
-        y = Variable("y")
-        z = Variable("z", vtype=Vtype.Integer)
+    x = m.add_variable("x")
+    y = m.add_variable("y")
+    z = m.add_variable("z", vtype=Vtype.Integer)
     assert len(m.constraints) == 0
     m.constraints += x + y <= 1
     assert len(m.constraints) == 1

@@ -1,4 +1,5 @@
 use either::Either;
+use indexmap::IndexMap;
 use strum_macros::{Display, EnumString};
 
 use super::constraints::Constraints;
@@ -173,7 +174,7 @@ impl Model {
             let constraints = self
                 .constraints
                 .iter()
-                .map(|constr| constr.evaluate_sample(&sample))
+                .map(|(_, constr)| constr.evaluate_sample(&sample))
                 .collect();
             let variable_bounds = self.environment.borrow().evaluate_bounds::<Sample>(&sample);
             newsol.add_sample_evaluation(i, Some(obj_val), constraints, variable_bounds);
@@ -193,7 +194,7 @@ impl Model {
         let cf: Vec<_> = self
             .constraints
             .iter()
-            .map(|constraint| {
+            .map(|(_, constraint)| {
                 let v = constraint.lhs.evaluate_sample(sample);
                 constraint.comparator.evaluate(v, constraint.rhs)
             })
@@ -212,19 +213,17 @@ impl Model {
     }
 
     pub fn violated_constraints(&self, sample: &Sample) -> Constraints {
-        let mut used_names = Vec::new();
+        let mut index_map = IndexMap::new();
         let mut constraints = Vec::new();
-        for constr in self.constraints.iter() {
+        for (idx, (name, constr)) in self.constraints.iter().enumerate() {
             let v = constr.lhs.evaluate_sample(sample);
             if !constr.comparator.evaluate(v, constr.rhs) {
-                if let Some(name) = &constr.name {
-                    used_names.push(name.clone());
-                }
+                index_map.insert(name.to_string(), idx);
                 constraints.push(constr.clone())
             }
         }
         Constraints {
-            used_names,
+            index_map,
             constraints,
         }
     }
@@ -288,9 +287,9 @@ impl Display for Model {
 impl ContentEquality for Model {
     fn is_equal_contents(&self, other: &Self) -> bool {
         self.name == other.name
-        && self.environment.is_equal_contents(&other.environment)
-        && self.objective.is_equal_contents(&other.objective)
-        && self.constraints.is_equal_contents(&other.constraints)
-        && self.sense == other.sense
+            && self.environment.is_equal_contents(&other.environment)
+            && self.objective.is_equal_contents(&other.objective)
+            && self.constraints.is_equal_contents(&other.constraints)
+            && self.sense == other.sense
     }
 }
