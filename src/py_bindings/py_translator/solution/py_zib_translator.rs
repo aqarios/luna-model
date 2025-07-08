@@ -14,7 +14,7 @@ static PY_CODE: &'static CStr = c_str!(
 from aqmodels._core import translator, Sense
 
 def extract(model, timing, env):
-    sample = {x.name: model.getVal(x) for x in model.getVars()}
+    sample = {x.name: model.getVal(x) for x in model.getVars() if x.name in env}
     sense = Sense.Max if model.getObjectiveSense() == 'maximize' else Sense.Min
     return translator.ZibTranslator.translate(sample, sense, timing, env)
 "
@@ -25,7 +25,7 @@ static PY_CODE: &'static CStr = c_str!(
 from aqmodels._core import translator
 
 def extract(model, timing, env):
-    sample = {x.name: model.getVal(x) for x in model.getVars()}
+    sample = {x.name: model.getVal(x) for x in model.getVars() if x.name in env}
     sense = Sense.Max if model.getObjectiveSense() == 'maximize' else Sense.Min
     return translator.ZibTranslator.translate(sample, sense, timing, env)
 "
