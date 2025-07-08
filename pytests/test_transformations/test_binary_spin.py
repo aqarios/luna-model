@@ -7,7 +7,6 @@ def default_pass_manager():
     return  PassManager([BinarySpinPass(Vtype.Spin, None)])
 
 def test_target_variable_exists(default_pass_manager: PassManager):
-    print("HELLO")
     model = Model()
     model.add_variable("s_x", vtype=Vtype.Spin)
     model.add_variable("x", vtype=Vtype.Binary)
@@ -18,7 +17,6 @@ def test_target_variable_exists(default_pass_manager: PassManager):
     assert ir.model.variables()[1].name == "s_x_Uk"
 
 def test_target_variable_exists_many(default_pass_manager: PassManager):
-    print("HELLO")
     model = Model()
     for i in range(100):
         model.add_variable(f"s_x_{i}", vtype=Vtype.Spin)
