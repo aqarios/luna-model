@@ -32,6 +32,7 @@ pub struct PyLogElement {
     pass_name: String,
     timing: PyTiming,
     kind: ActionType,
+    // components: Option<Vec<PyLogElement>>,
 }
 impl PyLogElement {
     fn new(elem: &LogElement) -> Self {
@@ -39,12 +40,19 @@ impl PyLogElement {
             pass_name: elem.pass.clone(),
             timing: PyTiming(elem.timing),
             kind: elem.kind.clone(),
+            // components: elem.components.iter().map(|e| PyLogElement::new(e)).collect(),
         }
     }
 }
 
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "IR", module = "aqmodels._core.transformations"))]
-#[cfg_attr(feature = "lq", pyclass(unsendable, name = "IR", module = "luna_quantum._core.transformations"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "IR", module = "aqmodels._core.transformations")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "IR", module = "luna_quantum._core.transformations")
+)]
 #[derive(Deref, DerefMut)]
 pub struct PyIR(pub IntermediateRepresentation);
 

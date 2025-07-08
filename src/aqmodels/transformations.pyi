@@ -172,6 +172,11 @@ class LogElement:
         """Transformation type information for this log element, if available."""
         ...
 
+    # @property
+    # def components(self) -> list[LogElement] | None:
+    #     """Components of this log-element."""
+    #     ...
+
 class IR:
     """The intermediate representation (IR) of a model after transformation.
 
