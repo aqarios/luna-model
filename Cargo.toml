@@ -37,6 +37,7 @@ itertools = "0.14.0"
 indexmap = "2.9.0"
 dyn-clone = "1.0.19"
 pad = "0.1.6"
+sqids = "0.4.2"
 [dependencies.pyo3]
 version = "0.24.1"
 features = ["extension-module", "indexmap"]
