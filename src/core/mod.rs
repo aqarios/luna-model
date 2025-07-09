@@ -14,6 +14,7 @@ pub mod solution;
 pub mod term;
 mod traits;
 
+pub use constraints::ConstraintKey;
 pub use constraints::Comparator;
 pub use constraints::Constraint;
 pub use constraints::Constraints;

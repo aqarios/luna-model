@@ -227,7 +227,7 @@ impl SectionsHolder {
                 .to_string(true),
         );
         // constraints
-        for (i, constraint) in model.constraints.iter().enumerate() {
+        for (name, constraint) in model.constraints.iter() {
             let lhs_str = ExprTree::from_expression(&constraint.lhs, true)?
                 .optimize()
                 .to_string(false);
@@ -240,7 +240,7 @@ impl SectionsHolder {
                 &Section::Constraints,
                 format!(
                     "{}: {} {} {}",
-                    constraint.name.clone().unwrap_or(format!("c{i}")),
+                    name,
                     lhs_str,
                     comparator,
                     constraint.rhs

@@ -36,7 +36,7 @@ pub fn repr_constraints(constrs: &Constraints) -> String {
         "[{}]",
         constrs
             .iter()
-            .map(|c| c.to_string())
+            .map(|(_, c)| c.to_string())
             .collect::<Vec<_>>()
             .join(DELIMITER)
     )
@@ -65,7 +65,6 @@ pub fn repr_solution(sol: &PySolution) -> String {
     repr += ")";
     repr
 }
-
 
 pub fn repr_samples(samples: &Samples) -> String {
     format!(
@@ -172,7 +171,6 @@ pub fn repr_timing(timing: &Timing) -> String {
 pub fn repr_strings(strs: &Vec<String>) -> String {
     format!("[{}]", strs.join(DELIMITER))
 }
-
 
 #[derive(FromPyObject)]
 pub enum Replacement {
