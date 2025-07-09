@@ -1,4 +1,4 @@
-use super::execution::{backwards, run_passes};
+use super::execution::{backwards, run_passes, check_dependencies};
 use super::{
     analysis_cache::AnalysisCache, base_passes::Pass, errors::CompilationError,
     intermediate_representation::IntermediateRepresentation,
@@ -25,6 +25,7 @@ impl PassManager {
     }
 
     pub fn run(&self, model: Model) -> Result<IntermediateRepresentation, CompilationError> {
+        check_dependencies(&self.passes)?;
         run_passes(&self.passes, model, AnalysisCache::new())
     }
 

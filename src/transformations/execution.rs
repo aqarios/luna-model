@@ -7,12 +7,34 @@ use super::{
 use crate::core::{Model, Solution, Timer};
 use hashbrown::HashSet;
 
+pub fn check_dependencies(passes: &Vec<Pass>) -> Result<(), CompilationError> {
+    let mut satisfied: HashSet<String> = HashSet::new();
+    for pass in passes.iter() {
+        // todo: include IfElse and Pipeline options
+        let required = pass.requires();
+        let mut it = required.iter().filter(|&n| !satisfied.contains(n));
+        if let Some(x) = it.next() {
+            return Err(CompilationError(format!(
+                "Dependency issue: Pass '{}' requires '{}', which is not satisfied.",
+                pass.name(),
+                x
+            )));
+        }
+        satisfied.insert(pass.name());
+        if let Pass::Transformation(transform) = pass {
+            transform.invalidates().iter().for_each(|x| {
+                satisfied.remove(x);
+            });
+        }
+    }
+    Ok(())
+}
+
 pub fn run_passes(
     passes: &Vec<Pass>,
     mut model: Model,
     mut cache: AnalysisCache,
 ) -> Result<IntermediateRepresentation, CompilationError> {
-    check_dependencies(&passes)?;
     let mut execution_log = ExecutionLog::new();
     for pass in passes.iter() {
         let timer = Timer::start();
@@ -70,29 +92,6 @@ pub fn run_passes(
         cache,
         execution_log,
     })
-}
-
-fn check_dependencies(passes: &Vec<Pass>) -> Result<(), CompilationError> {
-    let mut satisfied: HashSet<String> = HashSet::new();
-    for pass in passes.iter() {
-        // todo: include IfElse and Pipeline options
-        let required = pass.requires();
-        let mut it = required.iter().filter(|&n| !satisfied.contains(n));
-        if let Some(x) = it.next() {
-            return Err(CompilationError(format!(
-                "Dependency issue: Pass '{}' requires '{}', which is not satisfied.",
-                pass.name(),
-                x
-            )));
-        }
-        satisfied.insert(pass.name());
-        if let Pass::Transformation(transform) = pass {
-            transform.invalidates().iter().for_each(|x| {
-                satisfied.remove(x);
-            });
-        }
-    }
-    Ok(())
 }
 
 pub fn backwards(
