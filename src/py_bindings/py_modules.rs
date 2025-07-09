@@ -187,6 +187,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::StartCannotBeInferredError::NAME,
         m.py().get_type::<pyexc::StartCannotBeInferredError>(),
     )?;
+    m.add(
+        pyexc::NoConstraintForKeyError::NAME,
+        m.py().get_type::<pyexc::NoConstraintForKeyError>(),
+    )?;
     pm.add_submodule(&m)?;
     #[cfg(not(feature = "lq"))]
     pm.py()

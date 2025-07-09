@@ -236,6 +236,9 @@ class StartCannotBeInferredError(TypeError):
 
     def __str__(self, /) -> str: ...
 
+class NoConstraintForKeyError(IndexError):
+    """Raised getting a constraint from the constraints that does not exist."""
+
 __all__ = [
     "ComputationError",
     "ComputationError",
@@ -250,6 +253,7 @@ __all__ = [
     "ModelVtypeError",
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
+    "NoConstraintForKeyError",
     "SampleIncompatibleVtypeError",
     "SampleIncorrectLengthError",
     "SampleUnexpectedVariableError",

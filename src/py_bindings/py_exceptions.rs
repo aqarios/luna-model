@@ -1,10 +1,11 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
     BqmTranslatorErr, ComputationErr, DifferentEnvsErr, DuplicateConstraintNameErr, EvaluationErr,
-    IllegalConstraintNameErr, IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr,
-    ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr, ModelVtypeErr, SampleIncompatibleVtypeErr,
-    SampleIncorrectLengthErr, SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr,
-    VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr,
+    GetConstraintErr, IllegalConstraintNameErr, IndexOutOfBoundsErr, MatrixTranslatorErr,
+    ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr, ModelVtypeErr,
+    SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr,
+    SolutionCreationErr, TranslationErr, VariableCreationErr, VariableNotExistingErr,
+    VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
 use crate::transformations::errors::CompilationError as CompilationErr;
@@ -388,7 +389,11 @@ create_exception!(
 #[cfg(not(feature = "lq"))]
 create_exception!(aqmodels._core.errors, SolutionTranslationError, PyException);
 #[cfg(feature = "lq")]
-create_exception!(luna_quantum._core.errors, SolutionTranslationError, PyException);
+create_exception!(
+    luna_quantum._core.errors,
+    SolutionTranslationError,
+    PyException
+);
 
 #[cfg(not(feature = "lq"))]
 create_exception!(
@@ -491,6 +496,21 @@ create_exception!(
     CompilationError,
     PyRuntimeError,
     "Raised when an error occured during compilation of a model in the PassManager."
+);
+
+#[cfg(not(feature = "lq"))]
+create_exception!(
+    aqmodels._core.errors,
+    NoConstraintForKeyError,
+    PyIndexError,
+    "Raised getting a constraint from the constraints that does not exist."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
+    NoConstraintForKeyError,
+    PyIndexError,
+    "Raised getting a constraint from the constraints that does not exist."
 );
 
 impl From<VariableOutOfRangeErr> for PyErr {
@@ -649,5 +669,18 @@ impl From<DuplicateConstraintNameErr> for PyErr {
 impl From<CompilationErr> for PyErr {
     fn from(value: CompilationErr) -> Self {
         CompilationError::new_err(value.to_string())
+    }
+}
+
+impl From<GetConstraintErr> for PyErr {
+    fn from(value: GetConstraintErr) -> Self {
+        match value {
+            GetConstraintErr::IndexOutOfBoundsErr(err) => {
+                NoConstraintForKeyError::new_err(err.to_string())
+            }
+            GetConstraintErr::NoConstraintForKeyErr(_) => {
+                NoConstraintForKeyError::new_err(value.to_string())
+            }
+        }
     }
 }
