@@ -1,7 +1,10 @@
+use std::fmt::{Display, Write};
+
 use global_counter::primitive::exact::CounterU64;
 
 use crate::core::{Model, Solution};
 
+use crate::transformations::passes;
 use crate::{
     transformations::analysis_cache::AnalysisCache,
     transformations::base_passes::{BasePass, Pass},
@@ -48,5 +51,32 @@ impl Pipeline {
 
     pub fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {
         backwards(&self.passes, solution, ir)
+    }
+}
+
+impl Display for Pipeline {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "🛢️ {}\n", self.name)?;
+        write!(f, "{}", self.content_string().replace("\n", "\n  "))?;
+        Ok(())
+    }
+}
+
+impl Pipeline {
+    pub fn content_string(&self) -> String {
+        let mut out = String::new();
+        if self.passes.len() >= 2 {
+            for i in 0..=self.passes.len() - 2 {
+                out += &format!("{}\n", self.passes[i]);
+            }
+        }
+        if self.passes.len() >= 1 {
+            out += &format!("{}", self.passes[self.passes.len() - 1]);
+        }
+        out
+    }
+
+    pub fn len(&self) -> usize {
+        self.passes.len()
     }
 }

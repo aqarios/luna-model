@@ -1,4 +1,4 @@
-use super::execution::{backwards, run_passes, check_dependencies};
+use super::execution::{backwards, check_dependencies, run_passes};
 use super::{
     analysis_cache::AnalysisCache, base_passes::Pass, errors::CompilationError,
     intermediate_representation::IntermediateRepresentation,
@@ -37,15 +37,12 @@ impl PassManager {
 impl fmt::Display for PassManager {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "PassManager\n")?;
-        for pass in self.passes.iter() {
-            let s = match pass {
-                Pass::Transformation(_) => "⚙️",
-                Pass::Analysis(_) => "🔎",
-                Pass::IfElse(_) => "❔",
-                Pass::Pipeline(_) => "🛢️",
-            };
-            write!(f, "{} {}\n", s, pass.name())?;
+        if self.passes.len() >= 2 {
+            for i in 0..=self.passes.len() - 2 {
+                write!(f, "{}\n", self.passes[i])?;
+            }
         }
+        write!(f, "{}", self.passes[self.passes.len() - 1])?;
         Ok(())
     }
 }

@@ -2,8 +2,15 @@
 
 from aqmodels import Model, Sense, Variable
 from aqmodels.decorators import analyse
-from aqmodels.transformations import (AnalysisCache, ChangeSensePass,
-                                      IfElsePass, PassManager, Pipeline)
+from aqmodels.transformations import (
+    AnalysisCache,
+    ChangeSensePass,
+    IfElsePass,
+    MaxBias,
+    MaxBiasAnalysis,
+    PassManager,
+    Pipeline,
+)
 
 aqm = Model("Model To transform")
 aqm.set_sense(sense=Sense.Max)
@@ -13,25 +20,29 @@ with aqm.environment:
 aqm.objective = x * 20 * y
 
 
-@analyse(name="identify-sense")
+@analyse()
 def identify_sense(model: Model, _: AnalysisCache) -> Sense:
     return model.sense
 
 
-p_change_to_max = Pipeline([ChangeSensePass(Sense.Max)])
-p_change_to_min = Pipeline([ChangeSensePass(Sense.Min)])
-
-pm = PassManager(
-    [
-        identify_sense,
-        IfElsePass(
-            required=["identify-sense"],
-            condition=lambda c: c["identify-sense"] == Sense.Min,
-            then=p_change_to_max,
-            otherwise=p_change_to_min,
-        ),
-    ]
+if_else_s = IfElsePass(
+    required=["identify-sense"],
+    condition=lambda c: c["identify-sense"] == Sense.Min,
+    then=Pipeline([identify_sense]),
+    otherwise=Pipeline([]),
 )
+p_change_to_max = Pipeline(
+    [MaxBiasAnalysis(), ChangeSensePass(Sense.Max), identify_sense]
+)
+p_change_to_min = Pipeline([ChangeSensePass(Sense.Min), if_else_s, MaxBiasAnalysis()])
+if_else_r = IfElsePass(
+    required=["identify-sense"],
+    condition=lambda c: c["identify-sense"] == Sense.Min,
+    then=p_change_to_max,
+    otherwise=p_change_to_min,
+)
+
+pm = PassManager([identify_sense, if_else_r])
 
 print("=== PassManager ===")  # noqa: T201
 print(pm)  # noqa: T201

@@ -49,6 +49,13 @@ pub trait AnalysisPass: BasePass + DynClone {
     }
 }
 
+impl Display for dyn AnalysisPass where Self: BasePass + DynClone {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "🔎 {}", self.name())
+    }
+
+}
+
 pub struct TransformationOutcome {
     pub model: Model,
     pub analysis: Option<AnalysisCacheElement>,
@@ -80,6 +87,13 @@ pub trait TransformationPass: BasePass + DynClone {
     }
 
     // fn clone_box(&self) -> Box<dyn TransformationPass>;
+}
+
+impl Display for dyn TransformationPass where Self: BasePass + DynClone {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "⚙️ {}", self.name())
+    }
+
 }
 
 dyn_clone::clone_trait_object!(TransformationPass);
@@ -120,6 +134,17 @@ impl Clone for Pass {
             Self::Pipeline(x) => Self::Pipeline(x.clone()),
             Self::Transformation(x) => Self::Transformation(x.clone()),
             Self::Analysis(x) => Self::Analysis(x.clone()),
+        }
+    }
+}
+
+impl Display for Pass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Transformation(x) => write!(f, "{}", x),
+            Self::Analysis(x) => write!(f, "{}", x),
+            Self::IfElse(x) => write!(f, "{}", x),
+            Self::Pipeline(x) => write!(f, "{}", x),
         }
     }
 }

@@ -1,4 +1,5 @@
 mod execution;
+mod unicode;
 
 pub mod base_passes;
 pub mod errors;

@@ -1,5 +1,10 @@
+use crate::transformations::unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R};
+use std::fmt::Display;
+
 use aqm_macros::analysis_cache;
 use global_counter::primitive::exact::CounterU64;
+use itertools::Itertools;
+use pad::PadStr;
 
 #[cfg(feature = "py")]
 use {
@@ -186,5 +191,94 @@ impl IfElsePass {
             _ => {}
         }
         solution
+    }
+}
+
+impl Display for IfElsePass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if (self.then.len() == 0) && (self.otherwise.len() == 0) {
+            write!(f, "❔ {} (empty)", self.name)?;
+            return Ok(());
+        }
+
+        let str_then = self.then.content_string();
+        let str_otherwise = self.otherwise.content_string();
+
+        let mut then: Vec<_> = str_then.split("\n").collect();
+        let mut otherwise: Vec<_> = str_otherwise.split("\n").collect();
+
+        let maybe_then_width_max = then.iter().max_by(|a, b| a.len().cmp(&b.len()));
+        if maybe_then_width_max.is_none() {
+            return write!(f, "");
+        }
+        let target_width = maybe_then_width_max.unwrap().len();
+
+        // let maybe_otherwise_width_max = otherwise.iter().max_by(|a, b| a.len().cmp(&b.len()));
+        // if maybe_otherwise_width_max.is_none() {
+        //     return write!(f, "");
+        // }
+        // let otherwise_width_max = maybe_otherwise_width_max.unwrap().len();
+
+        // let target_width = then_width_max.max(otherwise_width_max);
+
+        if then.len() > otherwise.len() {
+            otherwise.resize(then.len(), "");
+        } else if then.len() < otherwise.len() {
+            then.resize(otherwise.len(), "");
+        }
+
+        let final_then: Vec<_> = then.iter().map(|s| s.pad_to_width(target_width)).collect();
+        let final_otherwise: Vec<_> = otherwise.iter().map(|s| s.to_string()).collect();
+
+        // let contents = final_then
+        //     .iter()
+        //     .zip(final_otherwise)
+        //     .map(|(t, o)| format!("{t}{V_AND_R} {o}"))
+        //     .collect_vec();
+
+        let title_then = format!("{CHECK_MARK}  {}", self.then.name())
+            .pad_to_width_with_alignment(target_width - 1, pad::Alignment::Left);
+        let title_otherwise = format!("{BALLOT_X} {}", self.otherwise.name())
+            .pad_to_width_with_alignment(target_width, pad::Alignment::Left);
+
+        let ext_then = format!("{U_AND_R} {title_then}");
+        let ext_a_else = format!(
+            "{}{D_AND_L}",
+            H_BAR.repeat(target_width - self.name.len() + 6)
+        );
+        let ext_b_else = format!("  {title_otherwise}");
+
+        write!(f, "❔ {} {ext_a_else}\n", self.name)?;
+        write!(f, "   {ext_then}   {ext_b_else}\n")?;
+        // write!(f, "   {V_AND_RIGHT}{h_line}{V_AND_H}{h_line}\n")?;
+        for (i, (t, o)) in final_then.iter().zip(&final_otherwise).enumerate() {
+            let end = if i < final_then.len() - 1 { "\n" } else { "" };
+            let limiter_a = match (t.is_empty(), &final_then.get(i + 1)) {
+                (false, Some(x)) => {
+                    if x.is_empty() {
+                        U_AND_R
+                    } else {
+                        V_AND_R
+                    }
+                }
+                (false, None) => U_AND_R,
+                (true, None) => "",
+                _ => "",
+            };
+            let limiter_b = match (o.is_empty(), &final_otherwise.get(i + 1)) {
+                (false, Some(x)) => {
+                    if x.is_empty() {
+                        U_AND_R
+                    } else {
+                        V_AND_R
+                    }
+                }
+                (false, None) => U_AND_R,
+                (true, None) => "",
+                _ => "",
+            };
+            write!(f, "        {limiter_a} {t}  {limiter_b} {o}{end}")?;
+        }
+        Ok(())
     }
 }
