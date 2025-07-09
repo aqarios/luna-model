@@ -1,10 +1,65 @@
 from abc import abstractmethod
+from collections.abc import Callable
 from enum import Enum
 from typing import Any, Literal, overload
 
 from aqmodels import Model, Sense, Solution, Timing, Vtype
 
 class BasePass:
+    @property
+    def name(self) -> str:
+        """Get the name of this pass."""
+        ...
+    @property
+    def requires(self) -> list[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+
+class Pipeline(BasePass):
+
+    @overload
+    def __init__(self, passes: list[BasePass]) -> None: ...
+    @overload
+    def __init__(self, passes: list[BasePass], name: str) -> None: ...
+    def __init__(self, passes: list[BasePass], name: str | None = ...) -> None: ...
+
+
+    @property
+    def name(self) -> str:
+        """Get the name of this pass."""
+        ...
+    @property
+    def requires(self) -> list[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+
+class IfElsePass(BasePass):
+    @overload
+    def __init__(
+        self,
+        requires: list[str],
+        condition: Callable[[AnalysisCache], bool],
+        then: Pipeline,
+        otherwise: Pipeline,
+    ) -> None: ...
+    @overload
+    def __init__(
+        self,
+        requires: list[str],
+        condition: Callable[[AnalysisCache], bool],
+        then: Pipeline,
+        otherwise: Pipeline,
+        name: str,
+    ) -> None: ...
+    def __init__(
+        self,
+        requires: list[str],
+        condition: Callable[[AnalysisCache], bool],
+        then: Pipeline,
+        otherwise: Pipeline,
+        name: str | None = ...,
+    ) -> None: ...
+
     @property
     def name(self) -> str:
         """Get the name of this pass."""
@@ -55,7 +110,6 @@ class TransformationOutcome:
     def __init__(
         self, model: Model, action: ActionType, analysis: ... = None
     ) -> None: ...
-
     @staticmethod
     def nothing(model: Model) -> TransformationOutcome:
         """Easy nothing action return."""

@@ -120,7 +120,7 @@ pub static IF_ELSE_COUNTER: CounterU64 = CounterU64::new(0);
 // #[cfg_attr(feature = "py", py_pass(pass_variant = "IfElse"))]
 #[derive(Debug, Clone)]
 pub struct IfElsePass {
-    required: Vec<String>,
+    requires: Vec<String>,
     condition: Condition,
     then: Pipeline,
     otherwise: Pipeline,
@@ -130,17 +130,21 @@ pub struct IfElsePass {
 
 impl IfElsePass {
     pub fn new(
-        required: Vec<String>,
+        requires: Vec<String>,
         condition: Condition,
         then: Pipeline,
         otherwise: Pipeline,
+        name: Option<String>,
     ) -> Self {
+        let mut requires = requires;
+        requires.append(&mut then.requires());
+        requires.append(&mut otherwise.requires());
         IfElsePass {
-            required,
+            requires,
             condition,
             then,
             otherwise,
-            name: format!("if-else-{}", IF_ELSE_COUNTER.inc()),
+            name: name.unwrap_or_else(|| format!("if-else-{}", IF_ELSE_COUNTER.inc())),
         }
     }
 }
@@ -151,7 +155,7 @@ impl BasePass for IfElsePass {
     }
 
     fn requires(&self) -> Vec<String> {
-        self.required.clone()
+        self.requires.clone()
     }
 }
 

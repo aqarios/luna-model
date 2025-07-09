@@ -14,17 +14,20 @@ pub struct PyIfElsePass(pub IfElsePass);
 #[pymethods]
 impl PyIfElsePass {
     #[new]
+    #[pyo3(signature = (requires, condition, then, otherwise, name=None))]
     pub fn py_new(
-        required: Vec<String>,
+        requires: Vec<String>,
         condition: Condition,
         then: &PyPipeline,
         otherwise: &PyPipeline,
+        name: Option<String>,
     ) -> Self {
         Self(IfElsePass::new(
-            required,
+            requires,
             condition,
             then.0.clone(),
             otherwise.0.clone(),
+            name,
         ))
     }
 }

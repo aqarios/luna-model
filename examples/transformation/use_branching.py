@@ -6,7 +6,6 @@ from aqmodels.transformations import (
     AnalysisCache,
     ChangeSensePass,
     IfElsePass,
-    MaxBias,
     MaxBiasAnalysis,
     PassManager,
     Pipeline,
@@ -22,11 +21,12 @@ aqm.objective = x * 20 * y
 
 @analyse()
 def identify_sense(model: Model, _: AnalysisCache) -> Sense:
+    """AnalysisPass to identify the sense."""
     return model.sense
 
 
 if_else_s = IfElsePass(
-    required=["identify-sense"],
+    requires=["identify-sense"],
     condition=lambda c: c["identify-sense"] == Sense.Min,
     then=Pipeline([identify_sense]),
     otherwise=Pipeline([]),
@@ -36,7 +36,7 @@ p_change_to_max = Pipeline(
 )
 p_change_to_min = Pipeline([ChangeSensePass(Sense.Min), if_else_s, MaxBiasAnalysis()])
 if_else_r = IfElsePass(
-    required=["identify-sense"],
+    requires=["identify-sense"],
     condition=lambda c: c["identify-sense"] == Sense.Min,
     then=p_change_to_max,
     otherwise=p_change_to_min,
@@ -55,7 +55,7 @@ print("=== Model After Transformation ===")  # noqa: T201
 print(ir.model)  # noqa: T201
 
 print("=== Analysis Cache ===")  # noqa: T201
-print(ir.cache)
+print(ir.cache)  # noqa: T201
 print("=== Execution Log ===")  # noqa: T201
 for item in ir.execution_log:
-    print(item.pass_name, item.kind, item.timing)
+    print(item.pass_name, item.kind, item.timing)  # noqa: T201

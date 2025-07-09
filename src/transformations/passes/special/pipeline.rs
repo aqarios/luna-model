@@ -7,12 +7,14 @@ use crate::{
     transformations::intermediate_representation::IntermediateRepresentation,
 };
 use global_counter::primitive::exact::CounterU64;
+use itertools::Itertools;
 use std::fmt::Display;
 
 /// Collection of Passes that are executed in the order the pipeline is initialized.
 #[derive(Debug, Clone)]
 pub struct Pipeline {
     passes: Vec<Pass>,
+    required: Vec<String>,
     name: String,
 }
 
@@ -21,7 +23,9 @@ pub static PIPELINE_COUNTER: CounterU64 = CounterU64::new(0);
 
 impl Pipeline {
     pub fn new(passes: Vec<Pass>, name: Option<String>) -> Self {
+        let required = passes.iter().map(|p| p.requires()).flatten().collect_vec();
         Self {
+            required,
             passes,
             name: name.unwrap_or(format!("pipeline-{}", PIPELINE_COUNTER.inc())),
         }
@@ -34,7 +38,7 @@ impl BasePass for Pipeline {
     }
 
     fn requires(&self) -> Vec<String> {
-        Vec::new()
+        self.required.clone()
     }
 }
 
