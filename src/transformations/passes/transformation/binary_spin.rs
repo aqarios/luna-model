@@ -7,14 +7,14 @@ use crate::{
     core::{
         expression::ExpressionBaseAdd,
         solution::sol::{SampleCol, SampleColElement},
-        Model, Solution, VarRef, Variable, Vtype,
+        Model, Solution, Vtype,
     },
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{
             ActionType, BasePass, TransformationOutcome, TransformationPass,
             TransformationPassResult,
-        }, errors::TransformationPassError,
+        },
     },
 };
 

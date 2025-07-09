@@ -392,6 +392,24 @@ impl VariableOcc {
 }
 
 #[derive(Debug)]
+pub enum GetConstraintErr {
+    IndexOutOfBoundsErr(IndexOutOfBoundsErr),
+    NoConstraintForKeyErr(String),
+}
+impl Error for GetConstraintErr {}
+impl Display for GetConstraintErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let msg = match self {
+            Self::IndexOutOfBoundsErr(err) => err.to_string(),
+            Self::NoConstraintForKeyErr(name) => {
+                format!("no constraint for key: {name}").to_string()
+            }
+        };
+        write!(f, "{}", msg)
+    }
+}
+
+#[derive(Debug)]
 pub enum EvaluationErr {
     SolutionAndModelVariablesMismatch(VariableOcc),
     SampleAndModelVariablesMismatch(VariableOcc),

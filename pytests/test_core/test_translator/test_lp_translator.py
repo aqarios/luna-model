@@ -2,6 +2,7 @@ import sys
 import tempfile
 from pathlib import Path
 from random import Random
+import time
 
 import gurobipy as gp
 import pytest
@@ -195,6 +196,7 @@ def test_scip_to_model_to_scip():
         # build cplex model back
         scip_model_back = ScipModel()
         scip_model_back.readProblem(tmp_lp.name)
+
         is_equal, msg = scip_models_are_equal(scip_model, scip_model_back)
         assert is_equal, msg
 
@@ -231,7 +233,6 @@ def test_cplex_to_model_to_cplex():
         tmp_lp.seek(0)
         aqmodel = LpTranslator.to_aq(tmp_lp.file.read())
         lp_str = LpTranslator.from_aq(aqmodel)
-        print(lp_str)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.write(lp_str)
@@ -418,6 +419,7 @@ def scip_models_are_equal(model1: ScipModel, model2: ScipModel) -> tuple[bool, s
         if isinstance(m1_item, tuple):
             m1_q, m1_s, m1_l = m1_item
             m2_q, m2_s, m2_l = m2_item
+
 
             m1_dict = {}
             for u, v, b in m1_q:

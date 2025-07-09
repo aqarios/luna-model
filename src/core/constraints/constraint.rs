@@ -4,12 +4,13 @@ use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
 use crate::core::{ExpressionBase, SharedEnvironment, Substitution, ValueByIndex, VarRef};
 use crate::errors::{
-    DifferentEnvsErr, DuplicateConstraintNameErr, IllegalConstraintNameErr, IndexOutOfBoundsErr,
+    DifferentEnvsErr, DuplicateConstraintNameErr, GetConstraintErr, IllegalConstraintNameErr,
+    IndexOutOfBoundsErr,
 };
 use crate::types::{Bias, VarIndex};
+use indexmap::IndexMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, Mul};
-use std::slice::Iter;
 use std::string::ToString;
 use strum_macros::Display;
 
@@ -47,11 +48,11 @@ fn starts_with_failable(s: &str) -> bool {
 #[cfg_attr(
     all(feature = "py", not(feature = "lq")),
     pyclass(eq, eq_int, name = "Comparator", module = "aqmodels._core")
-)] 
+)]
 #[cfg_attr(
     all(feature = "py", feature = "lq"),
     pyclass(eq, eq_int, name = "Comparator", module = "luna_quantum._core")
-)] 
+)]
 #[derive(Debug, Copy, Clone, PartialEq, Display)]
 pub enum Comparator {
     /// Equality (==)
@@ -188,15 +189,30 @@ impl ContentEquality for Constraint {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Constraints {
-    pub used_names: Vec<String>,
+    pub index_map: IndexMap<String, usize>,
     pub constraints: Vec<Constraint>,
+}
+
+#[cfg_attr(feature = "py", derive(FromPyObject))]
+pub enum ConstraintKey {
+    Int(usize),
+    Str(String),
+}
+
+impl Display for ConstraintKey {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Int(idx) => write!(f, "{}", idx),
+            Self::Str(name) => write!(f, "{}", name),
+        }
+    }
 }
 
 impl Constraints {
     /// Deep clone the constraints for the new environment.
     pub fn deep_clone(&self, env: SharedEnvironment) -> Self {
         Self {
-            used_names: self.used_names.clone(),
+            index_map: self.index_map.clone(),
             constraints: self
                 .constraints
                 .iter()
@@ -209,46 +225,83 @@ impl Constraints {
 impl Constraints {
     pub fn default() -> Self {
         Self {
-            used_names: Vec::new(),
+            index_map: IndexMap::new(),
             constraints: Vec::new(),
         }
     }
 
     pub fn new_from(other: &Self) -> Self {
         Self {
-            used_names: other.used_names.clone(),
+            index_map: other.index_map.clone(),
             constraints: other.constraints.clone(),
         }
     }
 
     pub fn new_from_vec(constraints: Vec<Constraint>) -> Self {
-        Self {
-            used_names: constraints
-                .iter()
-                .filter(|c| c.name.is_some())
-                .map(|c| c.name.clone().unwrap())
-                .collect(),
-            constraints,
-        }
+        let mut slf = Self::default();
+        constraints.into_iter().enumerate().for_each(|(idx, c)| {
+            let name = (&c).name.clone().unwrap_or(format!("c{idx}").to_string());
+            slf.index_map.insert(name.clone(), idx);
+            slf.constraints.push(c);
+        });
+        slf
     }
 
     pub fn len(&self) -> usize {
         self.constraints.len()
     }
 
-    pub fn iter(&self) -> Iter<'_, Constraint> {
-        self.constraints.iter()
+    pub fn iter(&self) -> ConstraintsIterator {
+        ConstraintsIterator::new(&self)
     }
 
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
-    pub fn get_constraint(&self, index: usize) -> Result<&Constraint, IndexOutOfBoundsErr> {
-        if index >= self.len() {
-            return Err(IndexOutOfBoundsErr::new(index, self.len()));
+    pub fn get_constraint(&self, key: ConstraintKey) -> Result<&Constraint, GetConstraintErr> {
+        let index = match &key {
+            ConstraintKey::Int(idx) => Some(idx),
+            ConstraintKey::Str(name) => self.index_map.get(name),
+        };
+        match index {
+            Some(idx) => {
+                let constr = self.constraints.get(*idx);
+                match constr {
+                    Some(constr) => Ok(constr),
+                    None => Err(GetConstraintErr::IndexOutOfBoundsErr(
+                        IndexOutOfBoundsErr::new(*idx, self.len()),
+                    )),
+                }
+            }
+            None => Err(GetConstraintErr::NoConstraintForKeyErr(key.to_string())),
         }
-        Ok(&self.constraints[index])
+    }
+
+    pub fn remove_constraint(&mut self, key: ConstraintKey) {
+        let (idx, name) = match &key {
+            ConstraintKey::Int(idx) => {
+                let v = self.index_map.iter().find(|(_, b)| **b == *idx);
+                if let Some((name, _)) = v {
+                    (*idx, name.clone())
+                } else {
+                    return ();
+                }
+            }
+            ConstraintKey::Str(name) => {
+                if let Some(idx) = self.index_map.get(name) {
+                    (*idx, name.clone())
+                } else {
+                    return ();
+                }
+            }
+        };
+        self.constraints.remove(idx);
+        self.index_map.shift_remove(&name);
+        self.index_map
+            .iter_mut()
+            .filter(|(_, index)| **index > idx)
+            .for_each(|(_, index)| *index -= 1);
     }
 
     pub fn substitute(
@@ -275,12 +328,17 @@ impl Add<Constraint> for Constraints {
 
 impl Constraints {
     pub fn add_assign(&mut self, rhs: &Constraint) -> Result<(), DuplicateConstraintNameErr> {
+        // dbg!(rhs);
         if let Some(name) = &rhs.name {
-            if self.used_names.contains(&name) {
+            if self.index_map.contains_key(name) {
                 return Err(DuplicateConstraintNameErr(name.to_string()));
             } else {
-                self.used_names.push(name.to_string())
+                self.index_map
+                    .insert(name.to_string(), self.constraints.len());
             }
+        } else {
+            let idx = self.constraints.len();
+            self.index_map.insert(format!("c{}", idx), idx);
         }
         Ok(self.constraints.push(rhs.clone()))
     }
@@ -290,11 +348,6 @@ impl Add<&Constraint> for &Constraints {
     type Output = Result<Constraints, DuplicateConstraintNameErr>;
 
     fn add(self, rhs: &Constraint) -> Self::Output {
-        if rhs.name.is_some() && self.used_names.contains(rhs.name.as_ref().unwrap()) {
-            return Err(DuplicateConstraintNameErr(
-                rhs.name.as_ref().unwrap().to_string(),
-            ));
-        }
         let mut out = Constraints::new_from(&self);
         out.add_assign(rhs)?;
         Ok(out)
@@ -316,7 +369,45 @@ impl Display for Constraints {
 
 impl ContentEquality for Constraints {
     fn is_equal_contents(&self, other: &Self) -> bool {
-        self.used_names == other.used_names
-            && self.constraints.is_equal_contents(&other.constraints)
+        self.index_map == other.index_map && self.constraints.is_equal_contents(&other.constraints)
+    }
+}
+
+pub struct ConstraintsIterator<'a> {
+    collection: &'a Constraints,
+    names: Vec<&'a String>,
+    indices: Vec<usize>,
+    current: usize,
+}
+
+impl<'a> ConstraintsIterator<'a> {
+    fn new(collection: &'a Constraints) -> Self {
+        let mut names = Vec::new();
+        let mut indices = Vec::new();
+        collection.index_map.iter().for_each(|(key, idx)| {
+            names.push(key);
+            indices.push(*idx);
+        });
+        Self {
+            collection,
+            current: 0,
+            indices,
+            names,
+        }
+    }
+}
+
+impl<'a> Iterator for ConstraintsIterator<'a> {
+    type Item = (&'a String, &'a Constraint);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.current >= self.names.len() {
+            return None;
+        }
+        let name = self.names[self.current];
+        let index = self.indices[self.current];
+        let constr = &self.collection.constraints[index];
+        self.current += 1;
+        Some((name, constr))
     }
 }
