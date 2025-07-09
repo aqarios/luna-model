@@ -1,10 +1,4 @@
-use std::fmt::{Display, Write};
-
-use global_counter::primitive::exact::CounterU64;
-
 use crate::core::{Model, Solution};
-
-use crate::transformations::passes;
 use crate::{
     transformations::analysis_cache::AnalysisCache,
     transformations::base_passes::{BasePass, Pass},
@@ -12,6 +6,8 @@ use crate::{
     transformations::execution::{backwards, run_passes},
     transformations::intermediate_representation::IntermediateRepresentation,
 };
+use global_counter::primitive::exact::CounterU64;
+use std::fmt::Display;
 
 /// Collection of Passes that are executed in the order the pipeline is initialized.
 #[derive(Debug, Clone)]
