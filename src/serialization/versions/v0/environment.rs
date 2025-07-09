@@ -191,7 +191,12 @@ impl SerEnvironment {
         let mut variables_lookup = HashMap::new();
         let mut variables = Vec::with_capacity(self.variables_len as usize);
         let mut ghost_vars = Vec::with_capacity(self.ghosts.len());
-        variables.resize(self.variables_len as usize, Variable::default());
+        let num_vars = if self.variables_len != 0 {
+            self.variables_len as usize
+        } else {
+            self.varcount as usize
+        };
+        variables.resize(num_vars, Variable::default());
 
         for i in self.ghosts.iter() {
             variables[*i as usize] = Variable::ghost();
