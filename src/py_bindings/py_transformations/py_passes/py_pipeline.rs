@@ -2,7 +2,7 @@ use pyo3::prelude::*;
 
 use crate::{
     py_bindings::AnyPass,
-    transformations::{base_passes::Pass, pipeline::Pipeline},
+    transformations::{base_passes::Pass, passes::pipeline::Pipeline},
 };
 
 #[pyclass(unsendable, name = "Pipeline")]

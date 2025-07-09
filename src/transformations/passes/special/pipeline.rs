@@ -2,12 +2,12 @@ use global_counter::primitive::exact::CounterU64;
 
 use crate::core::{Model, Solution};
 
-use super::{
-    analysis_cache::AnalysisCache,
-    base_passes::{BasePass, Pass},
-    errors::CompilationError,
-    intermediate_representation::IntermediateRepresentation,
-    pass_manager::{backwards, run_passes},
+use crate::{
+    transformations::analysis_cache::AnalysisCache,
+    transformations::base_passes::{BasePass, Pass},
+    transformations::errors::CompilationError,
+    transformations::execution::{backwards, run_passes},
+    transformations::intermediate_representation::IntermediateRepresentation,
 };
 
 /// Collection of Passes that are executed in the order the pipeline is initialized.

@@ -7,15 +7,13 @@ use {
     pyo3::prelude::*, pyo3::IntoPyObjectExt,
 };
 
+use super::pipeline::Pipeline;
 use crate::transformations::analysis_cache::AnalysisCache;
 use crate::transformations::base_passes::BasePass;
 use crate::transformations::{
     errors::CompilationError, intermediate_representation::IntermediateRepresentation,
 };
-use crate::{
-    core::Model,
-    transformations::{errors::IfElsePassError, pipeline::Pipeline},
-};
+use crate::{core::Model, transformations::errors::IfElsePassError};
 use crate::{core::Solution, transformations::analysis_cache::AnalysisCacheElement};
 
 pub type RustCallback = fn(&AnalysisCache) -> bool;
@@ -105,6 +103,13 @@ pub struct IfElseInfo {
     fulfilled_condition: bool,
 }
 
+pub struct IfElseOutcome {
+    pub ir: IntermediateRepresentation,
+    pub analysis: AnalysisCacheElement,
+}
+
+pub type IfElsePassResult = Result<IfElseOutcome, IfElsePassError>;
+
 /// Counter to ensure multiple if-else branches can be used in the same pass.
 pub static IF_ELSE_COUNTER: CounterU64 = CounterU64::new(0);
 
@@ -145,13 +150,6 @@ impl BasePass for IfElsePass {
         self.required.clone()
     }
 }
-
-pub struct IfElseOutcome {
-    pub ir: IntermediateRepresentation,
-    pub analysis: AnalysisCacheElement,
-}
-
-pub type IfElsePassResult = Result<IfElseOutcome, IfElsePassError>;
 
 impl IfElsePass {
     pub fn run(&self, model: Model, cache: &AnalysisCache) -> IfElsePassResult {

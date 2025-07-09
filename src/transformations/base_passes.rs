@@ -6,7 +6,7 @@ use super::{
     analysis_cache::{AnalysisCache, AnalysisCacheElement},
     errors::{AnalysisPassError, TransformationPassError},
     passes::ifelse::IfElsePass,
-    pipeline::Pipeline,
+    passes::pipeline::Pipeline,
 };
 
 use dyn_clone::DynClone;
