@@ -10,7 +10,6 @@ use hashbrown::HashSet;
 pub fn check_dependencies(passes: &Vec<Pass>) -> Result<(), CompilationError> {
     let mut satisfied: HashSet<String> = HashSet::new();
     for pass in passes.iter() {
-        // todo: include IfElse and Pipeline options
         let required = pass.requires();
         let mut it = required.iter().filter(|&n| !satisfied.contains(n));
         if let Some(x) = it.next() {
