@@ -40,7 +40,7 @@ impl IbmTranslator {
             }
             sol.extend(&s, occ, Some(*energy))?;
         }
-        Ok(RcSolution(Rc::new(sol)))
+        Ok(RcSolution::from(sol))
     }
 }
 

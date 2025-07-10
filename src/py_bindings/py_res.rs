@@ -113,7 +113,7 @@ impl PyResultView {
     /// Return how often this result appears in the solution.
     #[getter]
     fn counts(&self) -> usize {
-        self.sol.counts[self.row_idx]
+        self.sol.borrow().counts[self.row_idx]
     }
 
     /// Get the objective value of this sample if present. This is the value computed

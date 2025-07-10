@@ -1,7 +1,4 @@
-use std::rc::Rc;
-
 use num::NumCast;
-
 use crate::{
     core::{environment::SharedEnvironment, RcSolution, Solution, Timing},
     errors::SolutionCreationErr,
@@ -29,7 +26,7 @@ impl QctrlTranslator {
         for ((sample, count), energy) in samples.iter().zip(counts).zip(energies) {
             sol.extend(&sample, count, energy)?;
         }
-        Ok(RcSolution(Rc::new(sol)))
+        Ok(RcSolution::from(sol))
     }
 }
 

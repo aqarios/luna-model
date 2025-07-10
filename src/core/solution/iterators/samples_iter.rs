@@ -20,7 +20,7 @@ impl Iterator for SamplesIterator {
     type Item = Sample;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.next_row >= self.sol.len() {
+        if self.next_row >= self.sol.borrow().len() {
             None
         } else {
             let sample = Some(Sample(Left(ResultView::new(

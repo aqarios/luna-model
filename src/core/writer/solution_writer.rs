@@ -14,7 +14,7 @@ impl SolutionWriter {
     }
 
     pub fn write_solution(&mut self, sol: RcSolution) -> &mut Self {
-        self.write_samples(sol.samples(), &sol.counts)
+        self.write_samples(sol.samples(), &sol.borrow().counts)
     }
 
     pub fn write_samples(&mut self, samples: Samples, counts: &Vec<usize>) -> &mut Self {

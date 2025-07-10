@@ -3,7 +3,6 @@ use crate::core::{RcSolution, Solution, Timing};
 use crate::errors::SolutionCreationErr;
 use hashbrown::HashMap;
 use num::NumCast;
-use std::rc::Rc;
 
 pub struct DwaveTranslator {}
 
@@ -46,6 +45,6 @@ impl DwaveTranslator {
                 Some(energy[i]),
             )?;
         }
-        Ok(RcSolution(Rc::new(sol)))
+        Ok(RcSolution::from(sol))
     }
 }

@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use std::str::FromStr;
 
 use crate::core::{Sense, Solution, VarAssignment};
@@ -144,7 +143,12 @@ impl SerSolution {
     /// Fills the serializable solution based on an instance of RcSolution.
     fn fill(mut self, solution: &RcSolution) -> Self {
         let samples = solution.samples();
-        for ((i, sample), &occ) in solution.samples().iter().enumerate().zip(&solution.counts) {
+        for ((i, sample), &occ) in solution
+            .samples()
+            .iter()
+            .enumerate()
+            .zip(&solution.borrow().counts)
+        {
             for a in sample.iter() {
                 match a {
                     VarAssignment::Binary(v) => {
@@ -161,7 +165,7 @@ impl SerSolution {
                     }
                 };
             }
-            self.sample_types = if solution.len() > 0 {
+            self.sample_types = if solution.borrow().len() > 0 {
                 let s = solution.samples().get_sample(0).unwrap();
                 s.iter()
                     .map(|a| match a {
@@ -174,7 +178,7 @@ impl SerSolution {
             } else {
                 Vec::new()
             };
-            self.sample_len = solution.samples.len() as u32;
+            self.sample_len = solution.borrow().samples.len() as u32;
             self.counts.push(occ as u64);
 
             if let Some(res) = solution.get_result_view(i) {
@@ -198,11 +202,15 @@ impl SerSolution {
         }
 
         self.num_samples = samples.len() as u64;
-        self.best_sample_idx = solution.best_sample_idx.and_then(|v| Some(v as u64));
-        self.timing = solution.timing.map(|t| t.encode());
-        self.variable_names = solution.variable_names.clone();
+        self.best_sample_idx = solution
+            .borrow()
+            .best_sample_idx
+            .and_then(|v| Some(v as u64));
+        self.timing = solution.borrow().timing.map(|t| t.encode());
+        self.variable_names = solution.borrow().variable_names.clone();
 
         self.constraints = solution
+            .borrow()
             .constraints
             .clone()
             .into_iter()
@@ -212,6 +220,7 @@ impl SerSolution {
             .collect();
 
         self.variable_bounds = solution
+            .borrow()
             .variable_bounds
             .clone()
             .into_iter()
@@ -220,7 +229,7 @@ impl SerSolution {
             })
             .collect();
 
-        self.sense = Some(solution.sense.to_string());
+        self.sense = Some(solution.borrow().sense.to_string());
 
         self
     }
@@ -366,6 +375,6 @@ impl SerSolution {
             };
         }
 
-        Ok(RcSolution(Rc::new(sol)))
+        Ok(RcSolution::from(sol))
     }
 }

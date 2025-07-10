@@ -8,10 +8,14 @@ use crate::errors::{
     VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
-use crate::transformations::errors::CompilationError as CompilationErr;
-use pyo3::exceptions::{PyException, PyIndexError, PyRuntimeError, PyTypeError};
+use pyo3::exceptions::{PyException, PyIndexError, PyTypeError};
 use pyo3::{create_exception, PyErr};
 use std::convert::From;
+#[cfg(feature = "pyt")]
+use {
+    crate::transformations::errors::CompilationError as CompilationErr,
+    pyo3::exceptions::PyRuntimeError,
+};
 
 #[cfg(not(feature = "lq"))]
 create_exception!(
@@ -483,14 +487,14 @@ create_exception!(
     "To be raised when the start value in the quicksum cannot be inferred."
 );
 
-#[cfg(not(feature = "lq"))]
+#[cfg(all(not(feature = "lq"), feature = "pyt"))]
 create_exception!(
     aqmodels._core.errors,
     CompilationError,
     PyRuntimeError,
     "Raised when an error occured during compilation of a model in the PassManager."
 );
-#[cfg(feature = "lq")]
+#[cfg(all(feature = "lq", feature = "pyt"))]
 create_exception!(
     luna_quantum._core.errors,
     CompilationError,
@@ -666,6 +670,7 @@ impl From<DuplicateConstraintNameErr> for PyErr {
     }
 }
 
+#[cfg(feature = "transformations")]
 impl From<CompilationErr> for PyErr {
     fn from(value: CompilationErr) -> Self {
         CompilationError::new_err(value.to_string())

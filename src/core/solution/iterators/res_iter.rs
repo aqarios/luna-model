@@ -19,7 +19,7 @@ impl Iterator for ResultIterator {
     type Item = ResultView;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.next_row >= self.sol.len() {
+        if self.next_row >= self.sol.borrow().len() {
             None
         } else {
             let res_view = Some(ResultView::new(RcSolution::clone(&self.sol), self.next_row));

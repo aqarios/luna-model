@@ -26,7 +26,6 @@ use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(pub VarAssignment);
@@ -314,7 +313,7 @@ impl PySolution {
         sol.variable_bounds = vec![None; sol.n_samples];
         sol.feasible = vec![None; sol.n_samples];
         sol.timing = timing.and_then(|t| Some(t.0));
-        Ok(PySolution(RcSolution(Rc::new(sol))))
+        Ok(PySolution(RcSolution::from(sol)))
     }
 
     /// Create a `Solution` from a dict that maps variables or variable names to their
@@ -385,7 +384,7 @@ impl PySolution {
         sol.timing = timing.map(|t| t.0);
         let energy: Option<f64> = None;
         let _ = sol.extend(&sample, counts.unwrap_or(1), energy)?;
-        let mut sol_rc = RcSolution(Rc::new(sol));
+        let mut sol_rc = RcSolution::from(sol);
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc)?;
         }
@@ -485,7 +484,7 @@ impl PySolution {
 
         sol.timing = timing.map(|t| t.0);
 
-        let mut sol_rc = RcSolution(Rc::new(sol));
+        let mut sol_rc = RcSolution::from(sol);
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc)?;
         }
@@ -609,7 +608,7 @@ impl PySolution {
 
         sol.timing = timing.map(|t| t.0);
 
-        let mut sol_rc = RcSolution(Rc::new(sol));
+        let mut sol_rc = RcSolution::from(sol);
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc)?;
         }
@@ -709,7 +708,7 @@ impl PySolution {
                 "`max_var_name_length` needs to be at least 1; actual value: {mvnl}"
             )))
         } else {
-            Ok(self.0.print(mll, mcl, ml, mvnl, layout, show_metadata))
+            Ok(self.borrow().print(mll, mcl, ml, mvnl, layout, show_metadata))
         }
     }
 
@@ -729,7 +728,7 @@ impl PySolution {
     /// None if the sample hasn't yet been evaluated.
     #[getter]
     fn get_obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
-        self.obj_values
+        self.borrow().obj_values
             .iter()
             .map(|x| x.into_py_any(py).unwrap())
             .collect::<Vec<_>>()
@@ -740,7 +739,7 @@ impl PySolution {
     /// algorithm. Will be None if the solver / algorithm did not provide a value.
     #[getter]
     fn get_raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
-        self.raw_energies
+        self.borrow().raw_energies
             .iter()
             .map(|x| x.into_py_any(py).unwrap())
             .collect::<Vec<_>>()
@@ -750,31 +749,31 @@ impl PySolution {
     /// Return how often each sample occurred in the solution.
     #[getter]
     fn get_counts<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
-        self.counts.to_pyarray(py)
+        self.borrow().counts.to_pyarray(py)
     }
 
     /// Get the solver / algorithm runtime.
     #[getter]
     fn get_runtime(&self) -> Option<PyTiming> {
-        self.timing.map(|t| PyTiming(t))
+        self.borrow().timing.map(|t| PyTiming(t))
     }
 
     /// Get the optimization sense.
     #[getter]
     fn get_sense(&self) -> Sense {
-        self.sense
+        self.borrow().sense
     }
 
     /// Get the index of the sample with the best objective value.
     #[getter]
     fn get_best_sample_idx(&self) -> Option<usize> {
-        self.best_sample_idx
+        self.borrow().best_sample_idx
     }
 
     /// Get the names of all variables in the solution.
     #[getter]
     fn get_variable_names(&self) -> Vec<String> {
-        self.variable_names.clone()
+        self.borrow().variable_names.clone()
     }
 
     /// Compute the expectation value of the solution.
@@ -789,7 +788,7 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn expectation_value(&self) -> PyResult<f64> {
-        Ok(self.0.expectation_value()?)
+        Ok(self.borrow().expectation_value()?)
     }
 
     /// Compute the expectation value of the solution.
@@ -804,7 +803,7 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn feasibility_ratio(&self) -> PyResult<f64> {
-        Ok(self.0.feasibility_ratio()?)
+        Ok(self.borrow().feasibility_ratio()?)
     }
 
     /// Get a new solution with all infeasible samples removed.
@@ -818,18 +817,19 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn filter_feasible(&self) -> PyResult<PySolution> {
-        if let Some(idx) = self.feasible.iter().position(|f| f.is_none()) {
+        if let Some(idx) = self.borrow().feasible.iter().position(|f| f.is_none()) {
             Err(ComputationErr(format!(
                 "feasible contains a 'None' value at position '{idx}'"
             )))?;
         }
         let mask = self
+            .borrow()
             .feasible
             .iter()
             .map(|x| x.unwrap_or_default())
             .collect();
-        let sol = self.filter_samples(&mask);
-        Ok(PySolution(RcSolution(Rc::new(sol))))
+        let sol = self.borrow().filter_samples(&mask);
+        Ok(PySolution(RcSolution::from(sol)))
     }
 
     /// Get the index of the constraint with the highest number of violations.
@@ -845,7 +845,7 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn highest_constraint_violations(&self) -> PyResult<Option<usize>> {
-        Ok(self.0.highest_constraint_violations()?)
+        Ok(self.borrow().highest_constraint_violations()?)
     }
 
     /// Get the best result.
@@ -854,7 +854,7 @@ impl PySolution {
     }
 
     fn __len__(&self) -> usize {
-        self.n_samples
+        self.borrow().n_samples
     }
 
     /// Serialize the solution into a compact binary format.
@@ -1091,7 +1091,7 @@ impl<'py> FromPyObject<'py> for ShowMetadata {
 
 impl PySolution {
     pub fn new(solution: Solution) -> Self {
-        return PySolution(RcSolution(Rc::new(solution)))
+        return PySolution(RcSolution::from(solution))
     }
 
     fn check_env_or_model(env: &Option<PyEnvironment>, model: &Option<PyModel>) -> PyResult<()> {

@@ -181,7 +181,7 @@ impl PySamples {
     /// -------
     /// int
     fn __len__(&self) -> usize {
-        self.n_samples
+        self.borrow().n_samples
     }
 
     /// Iterate over all samples of this sample set.
@@ -258,7 +258,7 @@ impl PySample {
     /// int
     fn __len__(&self) -> usize {
         match &self.0 .0 {
-            Either::Left(r) => r.sol.samples.len(),
+            Either::Left(r) => r.sol.borrow().samples.len(),
             Either::Right(r) => r.len(),
         }
     }

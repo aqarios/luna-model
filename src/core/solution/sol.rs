@@ -12,6 +12,7 @@ use crate::types::{
 use derive_more::{Deref, DerefMut};
 use hashbrown::HashMap;
 use num::{NumCast, ToPrimitive};
+use std::cell::RefCell;
 use std::fmt::{Display, Formatter};
 use std::ops::Mul;
 use std::rc::Rc;
@@ -378,7 +379,7 @@ impl Solution {
 
     pub fn best(&self) -> Option<ResultView> {
         self.best_sample_idx
-            .map(|idx| ResultView::new(RcSolution(Rc::new(self.clone())), idx))
+            .map(|idx| ResultView::new(RcSolution(Rc::new(RefCell::new(self.clone()))), idx))
     }
 
     pub fn filter_samples(&self, mask: &Vec<bool>) -> Self {
@@ -507,11 +508,17 @@ impl Solution {
 }
 
 #[derive(Debug, Deref, DerefMut)]
-pub struct RcSolution(pub Rc<Solution>);
+pub struct RcSolution(pub Rc<RefCell<Solution>>);
+
+impl RcSolution {
+    pub fn from(sol: Solution) -> Self {
+        Self(Rc::new(RefCell::new(sol)))
+    }
+}
 
 impl RcSolution {
     pub fn get_result_view(&self, row_idx: usize) -> Option<ResultView> {
-        if row_idx >= self.0.n_samples {
+        if row_idx >= self.borrow().n_samples {
             None
         } else {
             Some(ResultView::new(self.clone(), row_idx))
@@ -527,7 +534,7 @@ impl RcSolution {
     }
 
     pub fn best(&self) -> Option<ResultView> {
-        self.best_sample_idx
+        self.borrow().best_sample_idx
             .map(|idx| ResultView::new(self.clone(), idx))
     }
 }
@@ -538,16 +545,16 @@ impl Clone for RcSolution {
     }
 }
 
-impl Into<Rc<Solution>> for RcSolution {
-    fn into(self) -> Rc<Solution> {
+impl Into<Rc<RefCell<Solution>>> for RcSolution {
+    fn into(self) -> Rc<RefCell<Solution>> {
         self.0
     }
 }
 
 impl PartialEq for RcSolution {
     fn eq(&self, other: &Self) -> bool {
-        let lhs = &self.0;
-        let rhs = &other.0;
+        let lhs = &self.borrow();
+        let rhs = &other.borrow();
 
         lhs.samples == rhs.samples
             && lhs.counts == rhs.counts
