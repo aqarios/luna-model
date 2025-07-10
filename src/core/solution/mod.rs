@@ -15,7 +15,7 @@ pub use sample::OwnedSample;
 pub use sample::Sample;
 pub use sample::Samples;
 pub use sol::PrintLayout;
-pub use sol::RcSolution;
+pub use sol::SharedSolution;
 pub use sol::Solution;
 pub use sol::VarAssignment;
 pub use timing::Timer;

@@ -8,7 +8,7 @@ use super::expression::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionB
 use super::solution::OwnedSample;
 use super::traits::ContentEquality;
 use super::utils::{check_variables_sample, check_variables_sol};
-use super::{Expression, RcSolution, Sample, Substitution, VarRef, Vtype};
+use super::{Expression, SharedSolution, Sample, Substitution, VarRef, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::OwnedResult;
 use crate::core::writer::ModelWriter;
@@ -163,7 +163,7 @@ impl Model {
         Ok(model)
     }
 
-    pub fn evaluate_solution(&self, sol: RcSolution) -> Result<RcSolution, EvaluationErr> {
+    pub fn evaluate_solution(&self, sol: SharedSolution) -> Result<SharedSolution, EvaluationErr> {
         let vars_sol = &sol.borrow().variable_names;
         let vars_env = &self.environment.variable_names();
         check_variables_sol(vars_sol, vars_env)?;
@@ -179,7 +179,7 @@ impl Model {
             let variable_bounds = self.environment.borrow().evaluate_bounds::<Sample>(&sample);
             newsol.borrow_mut().add_sample_evaluation(i, Some(obj_val), constraints, variable_bounds);
         }
-        Ok(RcSolution(newsol.into()))
+        Ok(SharedSolution(newsol.into()))
     }
 
     pub fn evaluate_sample<'a>(&self, sample: &Sample) -> Result<OwnedResult, EvaluationErr> {

@@ -1,6 +1,6 @@
 use num::NumCast;
 use crate::{
-    core::{environment::SharedEnvironment, RcSolution, Solution, Timing},
+    core::{environment::SharedEnvironment, SharedSolution, Solution, Timing},
     errors::SolutionCreationErr,
 };
 
@@ -13,7 +13,7 @@ impl QctrlTranslator {
         energies: Vec<Option<E>>,
         timing: Option<Timing>,
         env: SharedEnvironment,
-    ) -> Result<RcSolution, SolutionCreationErr>
+    ) -> Result<SharedSolution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default,
         E: Copy + NumCast,
@@ -26,7 +26,7 @@ impl QctrlTranslator {
         for ((sample, count), energy) in samples.iter().zip(counts).zip(energies) {
             sol.extend(&sample, count, energy)?;
         }
-        Ok(RcSolution::from(sol))
+        Ok(SharedSolution::from(sol))
     }
 }
 

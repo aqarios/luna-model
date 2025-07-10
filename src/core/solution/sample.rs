@@ -1,6 +1,6 @@
 use crate::core::writer::SolutionWriter;
 use crate::core::{
-    RcSolution, ResultView, SampleIterator, SamplesIterator, ValueByIndex, VarAssignment,
+    SharedSolution, ResultView, SampleIterator, SamplesIterator, ValueByIndex, VarAssignment,
 };
 use crate::types::VarIndex;
 use derive_more::{Deref, DerefMut};
@@ -10,7 +10,7 @@ use std::fmt::{Display, Formatter};
 use std::rc::Rc;
 
 #[derive(Debug, Clone, Deref, DerefMut)]
-pub struct Samples(pub RcSolution);
+pub struct Samples(pub SharedSolution);
 
 #[derive(Debug, Clone)]
 pub struct OwnedSample {
@@ -56,7 +56,7 @@ impl Samples {
     }
 
     pub fn iter(&self) -> SamplesIterator {
-        SamplesIterator::new(RcSolution::clone(&self.0))
+        SamplesIterator::new(SharedSolution::clone(&self.0))
     }
 
     pub fn len(&self) -> usize {

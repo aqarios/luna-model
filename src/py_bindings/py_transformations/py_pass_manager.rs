@@ -1,7 +1,7 @@
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
 
-use crate::core::RcSolution;
+use crate::core::{SharedSolution, Solution};
 use crate::py_bindings::py_sol::PySolution;
 use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
 
@@ -10,7 +10,11 @@ use super::py_module::AnyPass;
 
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "PassManager", module = "aqmodels._core.transformations")
+    pyclass(
+        unsendable,
+        name = "PassManager",
+        module = "aqmodels._core.transformations"
+    )
 )]
 #[cfg_attr(
     feature = "lq",
@@ -58,8 +62,8 @@ impl PyPassManager {
 
     #[pyo3(name = "backwards")]
     pub fn py_backwargs(&self, solution: &PySolution, ir: &PyIR) -> PySolution {
-        PySolution(RcSolution(
-            self.backwards(solution.as_ref().clone(), &ir.0).into(),
+        PySolution(SharedSolution::from(
+            self.backwards(solution.borrow().clone(), &ir.0),
         ))
     }
 }

@@ -1,5 +1,5 @@
 use crate::core::environment::SharedEnvironment;
-use crate::core::{RcSolution, Solution, Timing};
+use crate::core::{SharedSolution, Solution, Timing};
 use crate::errors::SolutionCreationErr;
 use num::NumCast;
 
@@ -14,7 +14,7 @@ impl NpArrayTranslator {
         shape: &[usize],
         timing: Option<Timing>,
         env: SharedEnvironment,
-    ) -> Result<RcSolution, SolutionCreationErr>
+    ) -> Result<SharedSolution, SolutionCreationErr>
     where
         S: Copy + NumCast,
         N: Copy + NumCast,
@@ -33,6 +33,6 @@ impl NpArrayTranslator {
                 Some(energies[indices[i]]),
             )?;
         }
-        Ok(RcSolution::from(sol))
+        Ok(SharedSolution::from(sol))
     }
 }

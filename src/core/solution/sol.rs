@@ -379,7 +379,7 @@ impl Solution {
 
     pub fn best(&self) -> Option<ResultView> {
         self.best_sample_idx
-            .map(|idx| ResultView::new(RcSolution(Rc::new(RefCell::new(self.clone()))), idx))
+            .map(|idx| ResultView::new(SharedSolution(Rc::new(RefCell::new(self.clone()))), idx))
     }
 
     pub fn filter_samples(&self, mask: &Vec<bool>) -> Self {
@@ -508,15 +508,15 @@ impl Solution {
 }
 
 #[derive(Debug, Deref, DerefMut)]
-pub struct RcSolution(pub Rc<RefCell<Solution>>);
+pub struct SharedSolution(pub Rc<RefCell<Solution>>);
 
-impl RcSolution {
+impl SharedSolution {
     pub fn from(sol: Solution) -> Self {
         Self(Rc::new(RefCell::new(sol)))
     }
 }
 
-impl RcSolution {
+impl SharedSolution {
     pub fn get_result_view(&self, row_idx: usize) -> Option<ResultView> {
         if row_idx >= self.borrow().n_samples {
             None
@@ -526,11 +526,11 @@ impl RcSolution {
     }
 
     pub fn iter_results(&self) -> ResultIterator {
-        ResultIterator::new(RcSolution::clone(&self))
+        ResultIterator::new(SharedSolution::clone(&self))
     }
 
     pub fn samples(&self) -> Samples {
-        Samples(RcSolution::clone(&self))
+        Samples(SharedSolution::clone(&self))
     }
 
     pub fn best(&self) -> Option<ResultView> {
@@ -539,19 +539,19 @@ impl RcSolution {
     }
 }
 
-impl Clone for RcSolution {
+impl Clone for SharedSolution {
     fn clone(&self) -> Self {
-        RcSolution(Rc::clone(&self.0))
+        SharedSolution(Rc::clone(&self.0))
     }
 }
 
-impl Into<Rc<RefCell<Solution>>> for RcSolution {
+impl Into<Rc<RefCell<Solution>>> for SharedSolution {
     fn into(self) -> Rc<RefCell<Solution>> {
         self.0
     }
 }
 
-impl PartialEq for RcSolution {
+impl PartialEq for SharedSolution {
     fn eq(&self, other: &Self) -> bool {
         let lhs = &self.borrow();
         let rhs = &other.borrow();
@@ -571,10 +571,10 @@ impl PartialEq for RcSolution {
     }
 }
 
-impl Display for RcSolution {
+impl Display for SharedSolution {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = SolutionWriter::new()
-            .write_solution(RcSolution::clone(&self))
+            .write_solution(SharedSolution::clone(&self))
             .to_string();
         f.write_str(&s)
     }

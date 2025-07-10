@@ -1,7 +1,7 @@
 use super::py_utilities::repr_solution;
 use crate::core::solution::sol::{SampleCol, SampleColElement, ShowMetadata};
 use crate::core::{
-    PrintLayout, RcSolution, Samples, Sense, SharedEnvironment, Solution, VarAssignment, Vtype,
+    PrintLayout, SharedSolution, Samples, Sense, SharedEnvironment, Solution, VarAssignment, Vtype,
 };
 use crate::errors::{
     ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, VariableNotExistingErr,
@@ -101,10 +101,10 @@ enum BitOrder {
     pyclass(unsendable, name = "Solution", module = "luna_quantum._core")
 )]
 #[derive(Deref, DerefMut, Debug, Clone)]
-pub struct PySolution(pub RcSolution);
+pub struct PySolution(pub SharedSolution);
 
-impl Into<RcSolution> for PySolution {
-    fn into(self) -> RcSolution {
+impl Into<SharedSolution> for PySolution {
+    fn into(self) -> SharedSolution {
         self.0
     }
 }
@@ -313,7 +313,7 @@ impl PySolution {
         sol.variable_bounds = vec![None; sol.n_samples];
         sol.feasible = vec![None; sol.n_samples];
         sol.timing = timing.and_then(|t| Some(t.0));
-        Ok(PySolution(RcSolution::from(sol)))
+        Ok(PySolution(SharedSolution::from(sol)))
     }
 
     /// Create a `Solution` from a dict that maps variables or variable names to their
@@ -384,7 +384,7 @@ impl PySolution {
         sol.timing = timing.map(|t| t.0);
         let energy: Option<f64> = None;
         let _ = sol.extend(&sample, counts.unwrap_or(1), energy)?;
-        let mut sol_rc = RcSolution::from(sol);
+        let mut sol_rc = SharedSolution::from(sol);
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc)?;
         }
@@ -484,7 +484,7 @@ impl PySolution {
 
         sol.timing = timing.map(|t| t.0);
 
-        let mut sol_rc = RcSolution::from(sol);
+        let mut sol_rc = SharedSolution::from(sol);
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc)?;
         }
@@ -608,7 +608,7 @@ impl PySolution {
 
         sol.timing = timing.map(|t| t.0);
 
-        let mut sol_rc = RcSolution::from(sol);
+        let mut sol_rc = SharedSolution::from(sol);
         if let Some(m) = model {
             sol_rc = m.borrow().evaluate_solution(sol_rc)?;
         }
@@ -721,7 +721,7 @@ impl PySolution {
     /// Get a view into the samples of the solution.
     #[getter]
     fn get_samples(&self) -> PySamples {
-        PySamples(Samples(RcSolution::clone(&self)))
+        PySamples(Samples(SharedSolution::clone(&self)))
     }
 
     /// Get the objective values of the single samples as a ndarray. A value will be
@@ -829,7 +829,7 @@ impl PySolution {
             .map(|x| x.unwrap_or_default())
             .collect();
         let sol = self.borrow().filter_samples(&mask);
-        Ok(PySolution(RcSolution::from(sol)))
+        Ok(PySolution(SharedSolution::from(sol)))
     }
 
     /// Get the index of the constraint with the highest number of violations.
@@ -1091,7 +1091,7 @@ impl<'py> FromPyObject<'py> for ShowMetadata {
 
 impl PySolution {
     pub fn new(solution: Solution) -> Self {
-        return PySolution(RcSolution::from(solution))
+        return PySolution(SharedSolution::from(solution))
     }
 
     fn check_env_or_model(env: &Option<PyEnvironment>, model: &Option<PyModel>) -> PyResult<()> {

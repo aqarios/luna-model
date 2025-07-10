@@ -35,7 +35,7 @@ pub use qubo::Qubo;
 
 pub use solution::OwnedResult;
 pub use solution::PrintLayout;
-pub use solution::RcSolution;
+pub use solution::SharedSolution;
 pub use solution::ResultIterator;
 pub use solution::ResultView;
 pub use solution::Sample;

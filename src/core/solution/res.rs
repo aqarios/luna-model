@@ -1,6 +1,6 @@
 use crate::core::solution::sol::VarAssignment;
 use crate::core::writer::SolutionWriter;
-use crate::core::{RcSolution, Sample, SampleIterator, ValueByIndex};
+use crate::core::{SharedSolution, Sample, SampleIterator, ValueByIndex};
 use crate::types::{Bias, VarIndex};
 use either::{Left, Right};
 use std::fmt::{Display, Formatter};
@@ -11,13 +11,13 @@ use super::sample::OwnedSample;
 #[derive(Debug, Clone)]
 pub struct ResultView {
     /// The solution this result view corresponds to
-    pub sol: RcSolution,
+    pub sol: SharedSolution,
     /// Index of the row of the sample within the solution
     pub row_idx: usize,
 }
 
 impl ResultView {
-    pub fn new(sol: RcSolution, row_idx: usize) -> Self {
+    pub fn new(sol: SharedSolution, row_idx: usize) -> Self {
         Self { sol, row_idx }
     }
 

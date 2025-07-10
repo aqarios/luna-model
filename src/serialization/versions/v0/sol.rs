@@ -6,7 +6,7 @@ use crate::serialization::{Decodable, Encodable};
 use crate::{
     core::{
         solution::sol::{SampleCol, SampleColElement},
-        RcSolution, Vtype,
+        SharedSolution, Vtype,
     },
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, DecodeError},
@@ -126,22 +126,22 @@ impl BytesEncodable for SerSolution {
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Decodable.
-impl BytesDecodable<RcSolution> for SerSolution {
-    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<RcSolution, DecodeError> {
+impl BytesDecodable<SharedSolution> for SerSolution {
+    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<SharedSolution, DecodeError> {
         Self::decode(bytes)?.extract()
     }
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Encodable.
-impl Creatable<RcSolution> for SerSolution {
-    fn new(value: &RcSolution) -> Self {
+impl Creatable<SharedSolution> for SerSolution {
+    fn new(value: &SharedSolution) -> Self {
         Self::default().fill(&value)
     }
 }
 
 impl SerSolution {
     /// Fills the serializable solution based on an instance of RcSolution.
-    fn fill(mut self, solution: &RcSolution) -> Self {
+    fn fill(mut self, solution: &SharedSolution) -> Self {
         let samples = solution.samples();
         for ((i, sample), &occ) in solution
             .samples()
@@ -234,7 +234,7 @@ impl SerSolution {
         self
     }
 
-    pub fn extract(&self) -> Result<RcSolution, DecodeError> {
+    pub fn extract(&self) -> Result<SharedSolution, DecodeError> {
         let mut sol = Solution::default();
         let num_samples = self.num_samples as usize;
         let mut type_per_pos: Vec<Vtype> = Vec::new();
@@ -375,6 +375,6 @@ impl SerSolution {
             };
         }
 
-        Ok(RcSolution::from(sol))
+        Ok(SharedSolution::from(sol))
     }
 }
