@@ -616,6 +616,9 @@ class DwaveTranslator:
         SampleIncorrectLengthError
             If a solution's sample has a different number of variables than the model
             environment passed to the translator.
+        SampleUnexpectedVariableError
+            If the sample_set contains variables that are not contained in the passed
+            environment.
         ModelVtypeError
             If the result's variable types are incompatible with the model environment's
             variable types.
