@@ -137,3 +137,11 @@ impl Debug for PyTransformationPassAdapter {
         write!(f, "{:?}", self.inner)
     }
 }
+
+impl Clone for PyTransformationPassAdapter {
+    fn clone(&self) -> Self {
+        Python::with_gil(|py| PyTransformationPassAdapter {
+            inner: self.inner.clone_ref(py),
+        })
+    }
+}

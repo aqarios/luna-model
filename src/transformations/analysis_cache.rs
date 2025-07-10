@@ -1,10 +1,17 @@
-use super::passes::{binary_spin::BinarySpinInfo, max_bias::MaxBias};
+use super::passes::{binary_spin::BinarySpinInfo, ifelse::IfElseInfo, max_bias::MaxBias};
 use aqm_macros::register_caches;
-use indexmap::{IndexMap, map::Iter};
+use indexmap::{
+    map::{IntoIter, Iter},
+    IndexMap,
+};
 use std::fmt::Debug;
 
-register_caches!(MaxBias, BinarySpinInfo);
+#[cfg(feature = "py")]
+use pyo3::{Bound, Python};
 
+register_caches!(MaxBias, BinarySpinInfo, IfElseInfo);
+
+#[derive(Debug, Clone)]
 pub struct AnalysisCache {
     store: IndexMap<String, AnalysisCacheElement>,
     history: Vec<(String, Reason, AnalysisCacheElement)>,
@@ -30,6 +37,12 @@ impl AnalysisCache {
                 .history
                 .push((name.to_owned(), Reason::Overridden, old)),
             _ => {}
+        }
+    }
+
+    pub fn insert_from(&mut self, cache: Self) {
+        for (key, element) in cache.into_iter() {
+            self.insert(&key, element);
         }
     }
 
@@ -59,6 +72,10 @@ impl AnalysisCache {
     }
 
     pub fn iter(&self) -> Iter<'_, String, AnalysisCacheElement> {
-        return self.store.iter();
+        self.store.iter()
+    }
+
+    pub fn into_iter(self) -> IntoIter<String, AnalysisCacheElement> {
+        self.store.into_iter()
     }
 }

@@ -11,7 +11,6 @@ use syn::{
 #[cfg(feature = "py")]
 use syn::{parse::Parser, DeriveInput, Expr, Fields, MetaNameValue};
 
-/// Replace the derive with an attribute macro:
 #[cfg(feature = "py")]
 #[proc_macro_attribute]
 pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -109,7 +108,7 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         // The Python wrapper type
         #[pyclass(name = #class_name)]
-        #[derive(::derive_more::Deref, ::derive_more::DerefMut, Clone)]
+        #[derive(::derive_more::Deref, ::derive_more::DerefMut, Clone, Debug)]
         pub struct #wrapper_name(pub #struct_name);
 
         #[pymethods]
@@ -253,6 +252,10 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
         let ty_ident = &path.segments.last().unwrap().ident;
         quote! { AnyPass::#ty_ident(x) => x.as_pass()?, }
     });
+    let clone_arm_specials = specials.iter().map(|path| {
+        let ty_ident = &path.segments.last().unwrap().ident;
+        quote! { AnyPass::#ty_ident(x) => AnyPass::#ty_ident(Python::with_gil(|py| x.clone_ref(py))), }
+    });
     let reg_specials = specials.iter().map(|path| {
         quote! { m.add_class::<#path>()?; }
     });
@@ -260,6 +263,7 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
     // --- Build normal passes: strip "Py" / "Pass" for variant names
     let mut enum_passes = Vec::new();
     let mut arm_passes = Vec::new();
+    let mut clone_arm_passes = Vec::new();
     for path in &passes {
         let ty_ident = &path.segments.last().unwrap().ident;
         let s = ty_ident.to_string();
@@ -272,6 +276,7 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
 
         enum_passes.push(quote! { #var_ident(#ty_ident), });
         arm_passes.push(quote! { AnyPass::#var_ident(x) => x.as_pass()?, });
+        clone_arm_passes.push(quote! { AnyPass::#var_ident(x) => AnyPass::#var_ident(x.clone()), });
     }
     let reg_passes = passes.iter().map(|path| {
         quote! { m.add_class::<#path>()?; }
@@ -288,12 +293,21 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
 
 
         #[allow(dead_code)]
-        #[derive(FromPyObject)]
+        #[derive(Debug, FromPyObject, IntoPyObject)]
         pub enum AnyPass {
             // specials first
             #(#enum_specials)*
             // then normal passes
             #(#enum_passes)*
+        }
+
+        impl Clone for AnyPass {
+            fn clone(&self) -> Self {
+                 match self {
+                     #(#clone_arm_specials)*
+                     #(#clone_arm_passes)*
+                 }
+            }
         }
 
         impl AnyPass {
@@ -349,7 +363,8 @@ pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let class_name = struct_name.to_string();
 
-    let field_names = input.fields
+    let field_names = input
+        .fields
         .iter()
         .map(|f| f.ident.as_ref().unwrap())
         .collect::<Vec<_>>();
@@ -366,6 +381,7 @@ pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
         )]
         #input
 
+        #[cfg(feature = "py")]
         #[pymethods]
         impl #struct_name {
             pub fn __repr__(&self) -> String {
@@ -432,6 +448,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
     // 1) Build the "AnalysisCacheElement" enum variants
     //    and collect them into Vecs so we can reuse:
     let mut enum_variants = Vec::new();
+    let mut py_clone_arms = Vec::new();
     let mut clone_arms = Vec::new();
     let mut accessors = Vec::new();
     let mut element_arms = Vec::new();
@@ -484,6 +501,9 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             #var_ident(#ident),
         });
         // clone_py arm
+        py_clone_arms.push(quote! {
+            AnalysisCacheElement::#var_ident(v) => AnalysisCacheElement::#var_ident(v.clone()),
+        });
         clone_arms.push(quote! {
             AnalysisCacheElement::#var_ident(v) => AnalysisCacheElement::#var_ident(v.clone()),
         });
@@ -512,9 +532,13 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
         #[cfg(feature = "py")]
         PyAnalysis(pyo3::Py<pyo3::PyAny>),
     });
-    clone_arms.push(quote! {
+    py_clone_arms.push(quote! {
         #[cfg(feature = "py")]
         AnalysisCacheElement::PyAnalysis(v) => AnalysisCacheElement::PyAnalysis(v.clone_ref(py)),
+    });
+    clone_arms.push(quote! {
+        #[cfg(feature = "py")]
+        AnalysisCacheElement::PyAnalysis(v) => Python::with_gil(|py| AnalysisCacheElement::PyAnalysis(v.clone_ref(py))),
     });
     element_arms.push(quote! {
         #[cfg(feature = "py")]
@@ -528,17 +552,11 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
     // 2) Emit the combined code
     let expanded = quote! {
         #[cfg(feature = "py")]
-        use {
-        //     derive_more::{Deref, DerefMut},
-        //     pyo3::{pyclass, pymethods, IntoPyObjectExt, Py, PyAny, PyObject, PyResult, Python},
-            // pyo3::{Py, PyAny},
-        };
+        use pyo3::{PyErr, IntoPyObject};
 
         /// All possible elements in the cache
+        #[derive(Debug)]
         pub enum AnalysisCacheElement {
-            // Float(f64),
-            // Int(i32),
-            // String(String),
             #(#enum_variants)*
         }
 
@@ -546,13 +564,21 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             #[cfg(feature = "py")]
             pub fn clone_py(&self, py: pyo3::Python) -> Self {
                 match self {
-                    #(#clone_arms)*
+                    #(#py_clone_arms)*
                 }
             }
 
             pub fn repr(&self) -> String {
                 match self {
                     #(#repr_arms)*
+                }
+            }
+        }
+
+        impl Clone for AnalysisCacheElement {
+            fn clone(&self) -> Self {
+                match self {
+                    #(#clone_arms)*
                 }
             }
         }
@@ -577,6 +603,16 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             #(#accessors)*
         }
 
+        #[cfg(feature = "py")]
+        impl<'py> IntoPyObject<'py> for AnalysisCache {
+            type Error = PyErr;
+            type Target = PyAnalysisCache;
+            type Output = Bound<'py, PyAnalysisCache>;
+
+            fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+                Bound::new(py, PyAnalysisCache::new(self))
+            }
+        }
 
         // // Py‐bindings for the entire cache
         #[cfg(feature = "py")]
@@ -619,6 +655,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
                     self._repr(py)
                 }
             }
+
         }
 
         #[cfg(feature = "py")]

@@ -12,8 +12,8 @@ use crate::{
 #[cfg(feature = "py")]
 use {crate::transformations::base_passes::Pass, aqm_macros::py_pass};
 
-#[derive(Debug, Clone)]
 #[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
+#[derive(Debug, Clone)]
 pub struct ChangeSensePass {
     pub sense: Sense,
 }

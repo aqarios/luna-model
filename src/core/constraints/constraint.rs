@@ -9,7 +9,6 @@ use crate::errors::{
 };
 use crate::types::{Bias, VarIndex};
 use indexmap::IndexMap;
-use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, Mul};
 use std::string::ToString;

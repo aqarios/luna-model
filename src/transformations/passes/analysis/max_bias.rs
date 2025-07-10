@@ -1,4 +1,3 @@
-#[cfg(feature = "py")]
 use aqm_macros::analysis_cache;
 use num::{abs, NumCast};
 

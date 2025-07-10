@@ -1,3 +1,4 @@
+use aqm_macros::analysis_cache;
 use std::collections::HashMap;
 
 use sqids::Sqids;
@@ -6,22 +7,19 @@ use crate::{
     core::{
         expression::ExpressionBaseAdd,
         solution::sol::{SampleCol, SampleColElement},
-        Model, Solution, VarRef, Variable, Vtype,
+        Model, Solution, Vtype,
     },
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{
             ActionType, BasePass, TransformationOutcome, TransformationPass,
             TransformationPassResult,
-        }, errors::TransformationPassError,
+        },
     },
 };
 
 #[cfg(feature = "py")]
-use {
-    crate::transformations::base_passes::Pass,
-    aqm_macros::{analysis_cache, py_pass},
-};
+use {crate::transformations::base_passes::Pass, aqm_macros::py_pass};
 
 #[derive(Debug, Clone)]
 #[analysis_cache]
@@ -70,7 +68,7 @@ impl BasePass for BinarySpinPass {
 }
 
 impl TransformationPass for BinarySpinPass {
-    #[allow(unreachable_code)]
+    // #[allow(unreachable_code)]
     fn run(&self, mut model: Model, _cache: &AnalysisCache) -> TransformationPassResult {
         let mut cache = BinarySpinInfo::try_new(self.vtype).map_err(|x| self.map_err(&x))?;
         let pref = self.prefix.clone().unwrap_or(
