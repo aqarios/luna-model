@@ -1525,6 +1525,87 @@ class Solution:
         """
         ...
 
+    @overload
+    def add_var(self, var: Variable, data: list[int | float]) -> None: ...
+    @overload
+    def add_var(
+        self, var: str, data: list[int | float], vtype: Vtype | None = ...
+    ) -> None: ...
+    def add_var(
+        self, var: str | Variable, data: list[int | float], vtype: Vtype | None = ...
+    ) -> None:
+        """Add a variable column to the solution.
+
+        Parameters
+        ----------
+        var : str | Variable
+            The name of the variable for which the sample column is created,
+            or the variable itself.
+        data : list[int | float]
+            The contents of the sample column to be added.
+        vtype : Vtype | None, default None
+            The vtype of the variable for which the sample column is created.
+            If the `var` parameter is a str, the vtype is defaulted to Vtype.Binary.
+            If the `var` is a Variable, the `vtype` parameter is ignored and the
+            vtype of the variable is used.
+
+        Raises
+        ------
+        SampleColumnCreationError
+        """
+
+    @overload
+    def add_vars(
+        self, variables: list[Variable], data: list[list[int | float]]
+    ) -> None: ...
+    @overload
+    def add_vars(
+        self, variables: list[str], data: list[list[int | float]], vtypes: list[Vtype]
+    ) -> None: ...
+    @overload
+    def add_vars(
+        self,
+        variables: list[Variable | str],
+        data: list[list[int | float]],
+        vtypes: list[Vtype | None],
+    ) -> None: ...
+    def add_vars(
+        self,
+        variables: list[Variable | str],
+        data: list[list[int | float]],
+        vtypes: list[Vtype | None] | None = ...,
+    ) -> None:
+        """Add multiple variable columns to the solution.
+
+        Parameters
+        ----------
+        vars : list[str | Variable]
+            The names of the variable for which the sample columns are created,
+            or a list of the variables itself.
+        data : list[list[int | float]]
+            A list of the contents of the sample columns to be added.
+        vtypes : list[Vtype] | None
+            The vtypes of the variables for which the sample columns are created.
+            If the `vars` parameter is a `list[str], the vtypes are defaulted to
+            Vtype.Binary.
+            If the `vars` is a list[Variable], the `vtypes` parameter is ignored and the
+            vtypes of the variable is used.
+            For mixed `vars`, the vtype is chosen dynamically following the
+            two rules above.
+
+        Raises
+        ------
+        SampleColumnCreationError
+        """
+
+    def remove_var(self, var: str | Variable) -> None:
+        """Remove the sample column for the given variable."""
+        ...
+
+    def remove_vars(self, variables: list[str | Variable]) -> None:
+        """Remove the sample columns for the given variables."""
+        ...
+
 # _sample.pyi
 class SamplesIterator:
     """
@@ -2382,12 +2463,9 @@ class Model:
         """
         ...
 
-
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
     def __hash__(self, /) -> int: ...
-
-
     def deep_clone(self) -> Model:
         """Make a deep clone of the model."""
         ...
@@ -3683,7 +3761,6 @@ class Constraints:
     @overload
     def __getitem__(self, item: int, /) -> Constraint: ...
     def __getitem__(self, item: int | str, /) -> Constraint: ...
-
     def __len__(self, /) -> int:
         """
         Get the number of constraints.
@@ -3695,7 +3772,6 @@ class Constraints:
         """
         ...
     def __iter__(self, /) -> Iterator[Constraint]: ...
-
     def equal_contents(self, other: Constraints, /) -> bool:
         """
         Check whether this constraints has equal contents as `other`.

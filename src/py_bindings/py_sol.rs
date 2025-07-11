@@ -1,7 +1,8 @@
 use super::py_utilities::repr_solution;
-use crate::core::solution::sol::{SampleCol, SampleColElement, ShowMetadata};
+use crate::core::solution::sol::{SampleCol, SampleColElement, ShowMetadata, VarKey};
 use crate::core::{
-    PrintLayout, SharedSolution, Samples, Sense, SharedEnvironment, Solution, VarAssignment, Vtype,
+    PrintLayout, Samples, Sense, SharedEnvironment, SharedSolution, Solution, VarAssignment,
+    Variable, Vtype,
 };
 use crate::errors::{
     ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, VariableNotExistingErr,
@@ -19,7 +20,8 @@ use crate::serialization::{
 };
 use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
-use numpy::{PyArray1, ToPyArray};
+use itertools::Itertools;
+use numpy::{PyArray1, PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
@@ -31,16 +33,25 @@ use std::hash::{Hash, Hasher};
 pub struct PyVarAssignment(pub VarAssignment);
 
 #[derive(Debug, Clone)]
-pub enum SampleKey {
+pub enum VariableKey {
     Str(String),
     Var(PyVariable),
 }
 
-impl From<String> for SampleKey {
+impl From<String> for VariableKey {
     fn from(value: String) -> Self {
         Self::Str(value)
     }
 }
+
+// impl<'a> Into<VarKey<'a>> for VariableKey {
+//     fn into(self) -> VarKey<'a> {
+//         match self {
+//             Self::Str(str) => VarKey::Name(str.to_string()),
+//             Self::Var(py_var) => VarKey::Var(py_var.0.as_ref()),
+//         }
+//     }
+// }
 
 enum BitOrder {
     LTR,
@@ -360,7 +371,7 @@ impl PySolution {
     #[staticmethod]
     #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None))]
     pub fn from_dict(
-        data: HashMap<SampleKey, f64>,
+        data: HashMap<VariableKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
@@ -442,7 +453,7 @@ impl PySolution {
     #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None)
     )]
     fn from_dicts(
-        data: Vec<HashMap<SampleKey, f64>>,
+        data: Vec<HashMap<VariableKey, f64>>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
@@ -708,7 +719,9 @@ impl PySolution {
                 "`max_var_name_length` needs to be at least 1; actual value: {mvnl}"
             )))
         } else {
-            Ok(self.borrow().print(mll, mcl, ml, mvnl, layout, show_metadata))
+            Ok(self
+                .borrow()
+                .print(mll, mcl, ml, mvnl, layout, show_metadata))
         }
     }
 
@@ -728,7 +741,8 @@ impl PySolution {
     /// None if the sample hasn't yet been evaluated.
     #[getter]
     fn get_obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
-        self.borrow().obj_values
+        self.borrow()
+            .obj_values
             .iter()
             .map(|x| x.into_py_any(py).unwrap())
             .collect::<Vec<_>>()
@@ -739,7 +753,8 @@ impl PySolution {
     /// algorithm. Will be None if the solver / algorithm did not provide a value.
     #[getter]
     fn get_raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
-        self.borrow().raw_energies
+        self.borrow()
+            .raw_energies
             .iter()
             .map(|x| x.into_py_any(py).unwrap())
             .collect::<Vec<_>>()
@@ -998,6 +1013,78 @@ impl PySolution {
     fn __eq__(&self, other: &PySolution) -> bool {
         &self.0 == &other.0
     }
+
+    #[pyo3(signature=(var, data, vtype=None))]
+    // todo: change to pyarray
+    fn add_var(&self, var: VariableKey, data: Vec<f64>, vtype: Option<Vtype>) -> PyResult<()> {
+        let (var, default) = match &var {
+            VariableKey::Str(str) => (
+                VarKey::Name(str.to_string()),
+                vtype.unwrap_or_else(|| Vtype::Binary),
+            ),
+            VariableKey::Var(elem) => (
+                VarKey::Var(elem.0.as_ref()),
+                elem.0.as_ref().env.borrow().get_vtype(elem.0.id),
+            ),
+        };
+        Ok(self
+            .borrow_mut()
+            .add_samplecol(var, data.as_slice(), default)?)
+    }
+
+    #[pyo3(signature=(variables, data, vtypes=None))]
+    fn add_vars(
+        &self,
+        variables: Vec<VariableKey>,
+        // todo: change to pyarray
+        data: Vec<Vec<f64>>,
+        vtypes: Option<Vec<Option<Vtype>>>,
+    ) -> PyResult<()> {
+        let vtypes = match vtypes {
+            Some(vs) => vs
+                .iter()
+                .zip(&variables)
+                .map(|(vt, vk)| match vk {
+                    VariableKey::Str(_) => vt.unwrap_or_else(|| Vtype::Binary),
+                    VariableKey::Var(v) => v.0.as_ref().env.borrow().get_vtype(v.0.id),
+                })
+                .collect_vec(),
+            None => variables
+                .iter()
+                .map(|vk| match vk {
+                    VariableKey::Str(_) => Vtype::Binary,
+                    VariableKey::Var(v) => v.0.as_ref().env.borrow().get_vtype(v.0.id),
+                })
+                .collect_vec(),
+        };
+
+        for (i, col) in data.iter().enumerate() {
+            let var = match &variables[i] {
+                VariableKey::Str(str) => VarKey::Name(str.to_string()),
+                VariableKey::Var(elem) => VarKey::Var(elem.0.as_ref()),
+            };
+            self.borrow_mut().add_samplecol(var, &col, vtypes[i])?;
+        }
+        Ok(())
+    }
+
+    fn remove_var(&self, var: VariableKey) {
+        let var = match &var {
+            VariableKey::Str(str) => VarKey::Name(str.to_string()),
+            VariableKey::Var(elem) => VarKey::Var(elem.0.as_ref()),
+        };
+        self.borrow_mut().remove_samplecol(var)
+    }
+
+    fn remove_vars(&self, variables: Vec<VariableKey>) {
+        for var in variables {
+            let var = match &var {
+                VariableKey::Str(str) => VarKey::Name(str.to_string()),
+                VariableKey::Var(elem) => VarKey::Var(elem.0.as_ref()),
+            };
+            self.borrow_mut().remove_samplecol(var)
+        }
+    }
 }
 
 impl<'py> IntoPyObject<'py> for PyVarAssignment {
@@ -1015,51 +1102,51 @@ impl<'py> IntoPyObject<'py> for PyVarAssignment {
     }
 }
 
-impl<'py> IntoPyObject<'py> for SampleKey {
+impl<'py> IntoPyObject<'py> for VariableKey {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         match self {
-            SampleKey::Str(x) => Ok(x.into_py_any(py)?.into_bound(py)),
-            SampleKey::Var(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+            VariableKey::Str(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+            VariableKey::Var(x) => Ok(x.into_py_any(py)?.into_bound(py)),
         }
     }
 }
 
-impl<'py> FromPyObject<'py> for SampleKey {
+impl<'py> FromPyObject<'py> for VariableKey {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = ob.extract::<String>() {
-            Ok(SampleKey::Str(s))
+            Ok(VariableKey::Str(s))
         } else if let Ok(v) = ob.extract::<PyVariable>() {
-            Ok(SampleKey::Var(v))
+            Ok(VariableKey::Var(v))
         } else {
             Err(PyTypeError::new_err("keys have to be 'str' or 'Variable'"))
         }
     }
 }
 
-impl Hash for SampleKey {
+impl Hash for VariableKey {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
-            SampleKey::Str(s) => s.hash(state),
-            SampleKey::Var(v) => v.hash(state).expect(&VariableNotExistingErr {}.to_string()),
+            VariableKey::Str(s) => s.hash(state),
+            VariableKey::Var(v) => v.hash(state).expect(&VariableNotExistingErr {}.to_string()),
         }
     }
 }
 
-impl PartialEq<Self> for SampleKey {
+impl PartialEq<Self> for VariableKey {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (SampleKey::Str(s1), SampleKey::Str(s2)) => s1 == s2,
-            (SampleKey::Var(v1), SampleKey::Var(v2)) => v1 == v2,
+            (VariableKey::Str(s1), VariableKey::Str(s2)) => s1 == s2,
+            (VariableKey::Var(v1), VariableKey::Var(v2)) => v1 == v2,
             _ => false,
         }
     }
 }
 
-impl Eq for SampleKey {}
+impl Eq for VariableKey {}
 
 // Implement FromPyObject for your enum
 impl<'py> FromPyObject<'py> for PrintLayout {
@@ -1091,7 +1178,7 @@ impl<'py> FromPyObject<'py> for ShowMetadata {
 
 impl PySolution {
     pub fn new(solution: Solution) -> Self {
-        return PySolution(SharedSolution::from(solution))
+        return PySolution(SharedSolution::from(solution));
     }
 
     fn check_env_or_model(env: &Option<PyEnvironment>, model: &Option<PyModel>) -> PyResult<()> {
@@ -1145,7 +1232,7 @@ impl PySolution {
     }
 
     pub fn build_sample<F>(
-        data: &HashMap<SampleKey, f64>,
+        data: &HashMap<VariableKey, f64>,
         n_vars: usize,
         env: &SharedEnvironment,
         map_varidx: F,
@@ -1159,8 +1246,8 @@ impl PySolution {
 
         for (k, &v) in data.iter() {
             let var_name = match k {
-                SampleKey::Str(s) => s,
-                SampleKey::Var(v) => &v.name()?,
+                VariableKey::Str(s) => s,
+                VariableKey::Var(v) => &v.name()?,
             };
             let environ = env.borrow();
             let maybe_var = environ.get(var_name).ok();

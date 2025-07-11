@@ -1,11 +1,6 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
-    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, DuplicateConstraintNameErr, EvaluationErr,
-    GetConstraintErr, IllegalConstraintNameErr, IndexOutOfBoundsErr, MatrixTranslatorErr,
-    ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr, ModelVtypeErr,
-    SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr,
-    SolutionCreationErr, TranslationErr, VariableCreationErr, VariableNotExistingErr,
-    VariablesFromDifferentEnvsErr,
+    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, DuplicateConstraintNameErr, EvaluationErr, GetConstraintErr, IllegalConstraintNameErr, IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr, ModelVtypeErr, SampleColCreationErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError, PyTypeError};
@@ -502,6 +497,21 @@ create_exception!(
     "Raised when an error occured during compilation of a model in the PassManager."
 );
 
+#[cfg(all(not(feature = "lq"), feature = "pyt"))]
+create_exception!(
+    aqmodels._core.errors,
+    SampleColCreationError,
+    PyRuntimeError,
+    "Raised when an error occured during creation of a sample column."
+);
+#[cfg(all(feature = "lq", feature = "pyt"))]
+create_exception!(
+    luna_quantum._core.errors,
+    SampleColCreationError,
+    PyRuntimeError,
+    "Raised when an error occured during creation of a sample column."
+);
+
 #[cfg(not(feature = "lq"))]
 create_exception!(
     aqmodels._core.errors,
@@ -667,6 +677,12 @@ impl From<EvaluationErr> for PyErr {
 impl From<DuplicateConstraintNameErr> for PyErr {
     fn from(value: DuplicateConstraintNameErr) -> Self {
         DuplicateConstraintNameError::new_err(format!("{value}"))
+    }
+}
+
+impl From<SampleColCreationErr> for PyErr {
+    fn from(value: SampleColCreationErr) -> Self {
+        SampleColCreationError::new_err(format!("{value}"))
     }
 }
 

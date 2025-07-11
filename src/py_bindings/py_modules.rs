@@ -193,6 +193,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::NoConstraintForKeyError::NAME,
         m.py().get_type::<pyexc::NoConstraintForKeyError>(),
     )?;
+    m.add(
+        pyexc::SampleColCreationError::NAME,
+        m.py().get_type::<pyexc::SampleColCreationError>(),
+    )?;
     pm.add_submodule(&m)?;
     #[cfg(not(feature = "lq"))]
     pm.py()
