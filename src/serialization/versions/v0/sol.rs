@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use std::str::FromStr;
 
 use crate::core::{Sense, Solution, VarAssignment};
@@ -7,7 +6,7 @@ use crate::serialization::{Decodable, Encodable};
 use crate::{
     core::{
         solution::sol::{SampleCol, SampleColElement},
-        RcSolution, Vtype,
+        SharedSolution, Vtype,
     },
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, DecodeError},
@@ -127,24 +126,29 @@ impl BytesEncodable for SerSolution {
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Decodable.
-impl BytesDecodable<RcSolution> for SerSolution {
-    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<RcSolution, DecodeError> {
+impl BytesDecodable<SharedSolution> for SerSolution {
+    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<SharedSolution, DecodeError> {
         Self::decode(bytes)?.extract()
     }
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Encodable.
-impl Creatable<RcSolution> for SerSolution {
-    fn new(value: &RcSolution) -> Self {
+impl Creatable<SharedSolution> for SerSolution {
+    fn new(value: &SharedSolution) -> Self {
         Self::default().fill(&value)
     }
 }
 
 impl SerSolution {
     /// Fills the serializable solution based on an instance of RcSolution.
-    fn fill(mut self, solution: &RcSolution) -> Self {
+    fn fill(mut self, solution: &SharedSolution) -> Self {
         let samples = solution.samples();
-        for ((i, sample), &occ) in solution.samples().iter().enumerate().zip(&solution.counts) {
+        for ((i, sample), &occ) in solution
+            .samples()
+            .iter()
+            .enumerate()
+            .zip(&solution.borrow().counts)
+        {
             for a in sample.iter() {
                 match a {
                     VarAssignment::Binary(v) => {
@@ -161,7 +165,7 @@ impl SerSolution {
                     }
                 };
             }
-            self.sample_types = if solution.len() > 0 {
+            self.sample_types = if solution.borrow().len() > 0 {
                 let s = solution.samples().get_sample(0).unwrap();
                 s.iter()
                     .map(|a| match a {
@@ -174,7 +178,7 @@ impl SerSolution {
             } else {
                 Vec::new()
             };
-            self.sample_len = solution.samples.len() as u32;
+            self.sample_len = solution.borrow().samples.len() as u32;
             self.counts.push(occ as u64);
 
             if let Some(res) = solution.get_result_view(i) {
@@ -198,11 +202,15 @@ impl SerSolution {
         }
 
         self.num_samples = samples.len() as u64;
-        self.best_sample_idx = solution.best_sample_idx.and_then(|v| Some(v as u64));
-        self.timing = solution.timing.map(|t| t.encode());
-        self.variable_names = solution.variable_names.clone();
+        self.best_sample_idx = solution
+            .borrow()
+            .best_sample_idx
+            .and_then(|v| Some(v as u64));
+        self.timing = solution.borrow().timing.map(|t| t.encode());
+        self.variable_names = solution.borrow().variable_names.clone();
 
         self.constraints = solution
+            .borrow()
             .constraints
             .clone()
             .into_iter()
@@ -212,6 +220,7 @@ impl SerSolution {
             .collect();
 
         self.variable_bounds = solution
+            .borrow()
             .variable_bounds
             .clone()
             .into_iter()
@@ -220,12 +229,12 @@ impl SerSolution {
             })
             .collect();
 
-        self.sense = Some(solution.sense.to_string());
+        self.sense = Some(solution.borrow().sense.to_string());
 
         self
     }
 
-    pub fn extract(&self) -> Result<RcSolution, DecodeError> {
+    pub fn extract(&self) -> Result<SharedSolution, DecodeError> {
         let mut sol = Solution::default();
         let num_samples = self.num_samples as usize;
         let mut type_per_pos: Vec<Vtype> = Vec::new();
@@ -366,6 +375,6 @@ impl SerSolution {
             };
         }
 
-        Ok(RcSolution(Rc::new(sol)))
+        Ok(SharedSolution::from(sol))
     }
 }

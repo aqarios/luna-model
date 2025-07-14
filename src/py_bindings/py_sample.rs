@@ -1,4 +1,4 @@
-use crate::core::{RcSolution, ResultIterator, Sample, SampleIterator, Samples, SamplesIterator};
+use crate::core::{SharedSolution, ResultIterator, Sample, SampleIterator, Samples, SamplesIterator};
 use crate::py_bindings::py_sol::PyVarAssignment;
 use derive_more::{Deref, DerefMut};
 use either::Either;
@@ -111,7 +111,7 @@ impl PySamples {
     /// list[list[int | float]]
     ///     The samples object as a 2-dimensional list.
     fn tolist(&self, py: Python) -> Vec<Vec<PyObject>> {
-        ResultIterator::new(RcSolution::clone(&self))
+        ResultIterator::new(SharedSolution::clone(&self))
             .into_iter()
             .map(|r| {
                 SampleIterator::from_res_view(&r)
@@ -181,7 +181,7 @@ impl PySamples {
     /// -------
     /// int
     fn __len__(&self) -> usize {
-        self.n_samples
+        self.borrow().n_samples
     }
 
     /// Iterate over all samples of this sample set.
@@ -258,7 +258,7 @@ impl PySample {
     /// int
     fn __len__(&self) -> usize {
         match &self.0 .0 {
-            Either::Left(r) => r.sol.samples.len(),
+            Either::Left(r) => r.sol.borrow().samples.len(),
             Either::Right(r) => r.len(),
         }
     }

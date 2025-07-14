@@ -1,9 +1,10 @@
 use crate::core::solution::timing::Timing;
 use crate::core::traits::{ContentEquality, FilterByMask};
 use crate::core::writer::SolutionWriter;
-use crate::core::{ResultIterator, ResultView, Samples, Sense, SharedEnvironment, Vtype};
+use crate::core::{ResultIterator, ResultView, Samples, Sense, SharedEnvironment, VarRef, Vtype};
 use crate::errors::{
-    ComputationErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SolutionCreationErr,
+    ComputationErr, SampleColCreationErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
+    SolutionCreationErr,
 };
 use crate::types::{
     Bias, BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType,
@@ -11,7 +12,9 @@ use crate::types::{
 };
 use derive_more::{Deref, DerefMut};
 use hashbrown::HashMap;
+use itertools::Itertools;
 use num::{NumCast, ToPrimitive};
+use std::cell::RefCell;
 use std::fmt::{Display, Formatter};
 use std::ops::Mul;
 use std::rc::Rc;
@@ -112,6 +115,42 @@ pub enum SampleCol {
     Spin(SampleColElement<SpinAssignmentType>),
     Integer(SampleColElement<IntegerAssignmentType>),
     Real(SampleColElement<RealAssignmentType>),
+}
+
+impl SampleCol {
+    pub fn new<N: NumCast + Copy>(
+        data: &[N],
+        varid: VarIndex,
+        vtype: Vtype,
+    ) -> Result<SampleCol, SampleColCreationErr> {
+        match vtype {
+            Vtype::Binary => Ok(SampleCol::Binary(Self::make_samplecol_elem(varid, data)?)),
+            Vtype::Spin => Ok(SampleCol::Spin(Self::make_samplecol_elem(varid, data)?)),
+            Vtype::Real => Ok(SampleCol::Real(Self::make_samplecol_elem(varid, data)?)),
+            Vtype::Integer => Ok(SampleCol::Integer(Self::make_samplecol_elem(varid, data)?)),
+            Vtype::__Ghost => Err(SampleColCreationErr::new(
+                "cannot create a sample column for ghost variables.",
+            )),
+        }
+    }
+
+    fn make_samplecol_elem<T: NumCast, N: NumCast + Copy>(
+        varid: VarIndex,
+        data: &[N],
+    ) -> Result<SampleColElement<T>, SampleColCreationErr> {
+        Ok(SampleColElement::new(
+            varid,
+            Self::make_sample_col_element_contents(data)?,
+        ))
+    }
+
+    fn make_sample_col_element_contents<T: NumCast, N: NumCast + Copy>(
+        data: &[N],
+    ) -> Result<Vec<T>, SampleColCreationErr> {
+        data.iter()
+            .map(|e| <T as NumCast>::from(*e).ok_or_else(|| SampleColCreationErr::default()))
+            .collect()
+    }
 }
 
 impl Mul<Bias> for VarAssignment {
@@ -378,7 +417,7 @@ impl Solution {
 
     pub fn best(&self) -> Option<ResultView> {
         self.best_sample_idx
-            .map(|idx| ResultView::new(RcSolution(Rc::new(self.clone())), idx))
+            .map(|idx| ResultView::new(SharedSolution(Rc::new(RefCell::new(self.clone()))), idx))
     }
 
     pub fn filter_samples(&self, mask: &Vec<bool>) -> Self {
@@ -438,6 +477,96 @@ impl Solution {
                 (a, _, _) => a,
             },
         )
+    }
+}
+
+pub enum VarKey<'a> {
+    Name(String),
+    Var(&'a VarRef),
+}
+
+impl Solution {
+    pub fn add_samplecol<N: NumCast + Copy>(
+        &mut self,
+        var: VarKey,
+        data: &[N],
+        vtype: Vtype,
+    ) -> Result<(), SampleColCreationErr> {
+        match var {
+            VarKey::Name(varname) => self.add_samplecol_for_varname(varname, data, vtype),
+            VarKey::Var(var) => self.add_samplecol_for_var(&var, data, vtype),
+        }
+    }
+
+    pub fn add_samplecol_for_var<N: NumCast + Copy>(
+        &mut self,
+        var: &VarRef,
+        data: &[N],
+        vtype: Vtype,
+    ) -> Result<(), SampleColCreationErr> {
+        let varname = var
+            .env
+            .borrow()
+            .get_for_index(var.id)
+            .map_err(|e| SampleColCreationErr::new(&e.to_string()))?
+            .name
+            .clone();
+        self.index_map.insert(var.id.into(), self.samples.len());
+        self.variable_names.push(varname);
+        self.add_column(SampleCol::new(data, var.id, vtype)?);
+        // todo: adjust other values and fix logic after restructuring the solution
+        // internally.
+        Ok(())
+    }
+    pub fn add_samplecol_for_varname<N: NumCast + Copy>(
+        &mut self,
+        varname: String,
+        data: &[N],
+        vtype: Vtype,
+    ) -> Result<(), SampleColCreationErr> {
+        let varid = self.variable_names.len();
+        self.index_map.insert(varid, self.samples.len());
+        self.add_column(SampleCol::new(
+            data,
+            varid.into(),
+            vtype,
+        )?);
+        self.variable_names.push(varname);
+        // todo: adjust other values and fix logic after restructuring the solution
+        // internally.
+        Ok(())
+    }
+
+    pub fn remove_samplecol(&mut self, var: VarKey) {
+        match var {
+            VarKey::Var(var) => self.remove_samplecol_for_var(var),
+            VarKey::Name(varname) => self.remove_samplecol_for_varname(varname),
+        }
+    }
+
+    pub fn remove_samplecol_for_var(&mut self, var: &VarRef) {
+        let env = var.env.borrow();
+        let variable = env.get_for_index(var.id);
+        match variable {
+            Ok(variable) => {
+                let id: usize = var.id.into();
+                self.index_map.remove(&id);
+                self.remove_samplecol_for_varname(variable.name.clone())
+            },
+            Err(_) => (),
+        }
+    }
+
+    pub fn remove_samplecol_for_varname(&mut self, varname: String) {
+        let index = self.variable_names.iter().find_position(|&n| *n == varname);
+        match index {
+            Some((idx, _)) => {
+                self.index_map.remove(&idx);
+                let _ = self.variable_names.remove(idx);
+                let _ = self.samples.remove(idx);
+            },
+            None => (),
+        };
     }
 }
 
@@ -507,11 +636,17 @@ impl Solution {
 }
 
 #[derive(Debug, Deref, DerefMut)]
-pub struct RcSolution(pub Rc<Solution>);
+pub struct SharedSolution(pub Rc<RefCell<Solution>>);
 
-impl RcSolution {
+impl SharedSolution {
+    pub fn from(sol: Solution) -> Self {
+        Self(Rc::new(RefCell::new(sol)))
+    }
+}
+
+impl SharedSolution {
     pub fn get_result_view(&self, row_idx: usize) -> Option<ResultView> {
-        if row_idx >= self.0.n_samples {
+        if row_idx >= self.borrow().n_samples {
             None
         } else {
             Some(ResultView::new(self.clone(), row_idx))
@@ -519,35 +654,36 @@ impl RcSolution {
     }
 
     pub fn iter_results(&self) -> ResultIterator {
-        ResultIterator::new(RcSolution::clone(&self))
+        ResultIterator::new(SharedSolution::clone(&self))
     }
 
     pub fn samples(&self) -> Samples {
-        Samples(RcSolution::clone(&self))
+        Samples(SharedSolution::clone(&self))
     }
 
     pub fn best(&self) -> Option<ResultView> {
-        self.best_sample_idx
+        self.borrow()
+            .best_sample_idx
             .map(|idx| ResultView::new(self.clone(), idx))
     }
 }
 
-impl Clone for RcSolution {
+impl Clone for SharedSolution {
     fn clone(&self) -> Self {
-        RcSolution(Rc::clone(&self.0))
+        SharedSolution(Rc::clone(&self.0))
     }
 }
 
-impl Into<Rc<Solution>> for RcSolution {
-    fn into(self) -> Rc<Solution> {
+impl Into<Rc<RefCell<Solution>>> for SharedSolution {
+    fn into(self) -> Rc<RefCell<Solution>> {
         self.0
     }
 }
 
-impl PartialEq for RcSolution {
+impl PartialEq for SharedSolution {
     fn eq(&self, other: &Self) -> bool {
-        let lhs = &self.0;
-        let rhs = &other.0;
+        let lhs = &self.borrow();
+        let rhs = &other.borrow();
 
         lhs.samples == rhs.samples
             && lhs.counts == rhs.counts
@@ -564,10 +700,10 @@ impl PartialEq for RcSolution {
     }
 }
 
-impl Display for RcSolution {
+impl Display for SharedSolution {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = SolutionWriter::new()
-            .write_solution(RcSolution::clone(&self))
+            .write_solution(SharedSolution::clone(&self))
             .to_string();
         f.write_str(&s)
     }

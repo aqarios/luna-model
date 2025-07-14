@@ -6,7 +6,7 @@ use std::{
 use num::NumCast;
 
 use crate::{
-    core::{environment::SharedEnvironment, RcSolution, Solution, Timing, VarRef},
+    core::{environment::SharedEnvironment, SharedSolution, Solution, Timing, VarRef},
     errors::SolutionCreationErr,
 };
 
@@ -20,7 +20,7 @@ impl IbmTranslator {
         counts: Vec<usize>,
         timing: Option<Timing>,
         env: SharedEnvironment,
-    ) -> Result<RcSolution, SolutionCreationErr>
+    ) -> Result<SharedSolution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default + Display + Debug,
         E: Copy + NumCast + Debug,
@@ -40,7 +40,7 @@ impl IbmTranslator {
             }
             sol.extend(&s, occ, Some(*energy))?;
         }
-        Ok(RcSolution(Rc::new(sol)))
+        Ok(SharedSolution::from(sol))
     }
 }
 

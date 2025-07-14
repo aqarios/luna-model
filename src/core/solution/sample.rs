@@ -1,6 +1,6 @@
 use crate::core::writer::SolutionWriter;
 use crate::core::{
-    RcSolution, ResultView, SampleIterator, SamplesIterator, ValueByIndex, VarAssignment,
+    SharedSolution, ResultView, SampleIterator, SamplesIterator, ValueByIndex, VarAssignment,
 };
 use crate::types::VarIndex;
 use derive_more::{Deref, DerefMut};
@@ -10,7 +10,7 @@ use std::fmt::{Display, Formatter};
 use std::rc::Rc;
 
 #[derive(Debug, Clone, Deref, DerefMut)]
-pub struct Samples(pub RcSolution);
+pub struct Samples(pub SharedSolution);
 
 #[derive(Debug, Clone)]
 pub struct OwnedSample {
@@ -52,11 +52,15 @@ impl Samples {
     }
 
     pub fn get_assignment(&self, row_idx: usize, col_idx: usize) -> Option<VarAssignment> {
-        self.0.get_assignment(row_idx, col_idx)
+        self.borrow().get_assignment(row_idx, col_idx)
     }
 
     pub fn iter(&self) -> SamplesIterator {
-        SamplesIterator::new(RcSolution::clone(&self.0))
+        SamplesIterator::new(SharedSolution::clone(&self.0))
+    }
+
+    pub fn len(&self) -> usize {
+        self.borrow().len()
     }
 }
 
@@ -74,7 +78,7 @@ impl Sample {
 
     pub fn index_for_variable_name(&self, varname: &String) -> Option<usize> {
         match &self.0 {
-            Left(rv) => rv.sol.variable_names.iter().position(|e| e == varname),
+            Left(rv) => rv.sol.borrow().variable_names.iter().position(|e| e == varname),
             Right(os) => os.variable_names.iter().position(|e| e == varname),
         }
     }
@@ -83,7 +87,7 @@ impl Sample {
         match &self.0 {
             Left(rv) => rv
                 .iter()
-                .zip(rv.sol.variable_names.iter())
+                .zip(rv.sol.borrow().variable_names.iter())
                 .map(|(v, s)| (s.clone(), v.clone()))
                 .collect(),
             Right(os) => os
@@ -119,7 +123,7 @@ impl IntoIterator for Sample {
 impl Display for Samples {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let s = SolutionWriter::new()
-            .write_samples(self.clone(), &self.counts)
+            .write_samples(self.clone(), &self.borrow().counts)
             .to_string();
         f.write_str(&s)
     }

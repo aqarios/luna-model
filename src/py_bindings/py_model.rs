@@ -11,7 +11,7 @@ use super::{
 };
 use crate::core::environment::SharedEnvironment;
 use crate::core::operations::AddAssignToExpression;
-use crate::core::{ContentEquality, LazyBounds, RcSolution, Sense, Vtype};
+use crate::core::{ContentEquality, LazyBounds, SharedSolution, Sense, Vtype};
 use crate::hashing::hash_model;
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
@@ -469,7 +469,7 @@ impl PyModel {
     fn evaluate(&self, solution: &PySolution) -> PyResult<PySolution> {
         Ok(PySolution(
             self.borrow()
-                .evaluate_solution(RcSolution::clone(&solution.0))?,
+                .evaluate_solution(SharedSolution::clone(&solution.0))?,
         ))
     }
 

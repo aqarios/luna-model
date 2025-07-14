@@ -6,6 +6,28 @@ use std::{
 };
 
 #[derive(Debug, Clone)]
+pub struct SampleColCreationErr {
+    msg: Option<String>,
+}
+impl SampleColCreationErr {
+    pub fn default() -> Self {
+        Self { msg: None }
+    }
+    pub fn new(msg: &str) -> Self {
+        Self { msg: Some(String::from(msg)) }
+    }
+}
+impl Error for SampleColCreationErr {}
+impl Display for SampleColCreationErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match &self.msg {
+            Some(msg) => write!(f, "error when creating sample column: {}", msg),
+            None => write!(f, "error when creating sample column"),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct DuplicateConstraintNameErr(pub String);
 impl Error for DuplicateConstraintNameErr {}
 impl Display for DuplicateConstraintNameErr {

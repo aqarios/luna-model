@@ -8,7 +8,7 @@ use super::expression::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionB
 use super::solution::OwnedSample;
 use super::traits::ContentEquality;
 use super::utils::{check_variables_sample, check_variables_sol};
-use super::{Expression, RcSolution, Sample, Substitution, VarRef, Vtype};
+use super::{Expression, SharedSolution, Sample, Substitution, VarRef, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::OwnedResult;
 use crate::core::writer::ModelWriter;
@@ -163,12 +163,12 @@ impl Model {
         Ok(model)
     }
 
-    pub fn evaluate_solution(&self, sol: RcSolution) -> Result<RcSolution, EvaluationErr> {
-        let vars_sol = &sol.variable_names;
+    pub fn evaluate_solution(&self, sol: SharedSolution) -> Result<SharedSolution, EvaluationErr> {
+        let vars_sol = &sol.borrow().variable_names;
         let vars_env = &self.environment.variable_names();
         check_variables_sol(vars_sol, vars_env)?;
 
-        let mut newsol = sol.0.deref().clone();
+        let newsol = sol.0.deref().clone();
         for (i, sample) in sol.samples().iter().enumerate() {
             let obj_val = self.objective.evaluate_sample(&sample);
             let constraints = self
@@ -177,14 +177,14 @@ impl Model {
                 .map(|(_, constr)| constr.evaluate_sample(&sample))
                 .collect();
             let variable_bounds = self.environment.borrow().evaluate_bounds::<Sample>(&sample);
-            newsol.add_sample_evaluation(i, Some(obj_val), constraints, variable_bounds);
+            newsol.borrow_mut().add_sample_evaluation(i, Some(obj_val), constraints, variable_bounds);
         }
-        Ok(RcSolution(newsol.into()))
+        Ok(SharedSolution(newsol.into()))
     }
 
     pub fn evaluate_sample<'a>(&self, sample: &Sample) -> Result<OwnedResult, EvaluationErr> {
         let (vars_sample, index_map) = match &sample.0 {
-            Either::Left(a) => (&a.sol.variable_names, &a.sol.index_map),
+            Either::Left(a) => (&a.sol.borrow().variable_names, &a.sol.borrow().index_map),
             Either::Right(b) => (&b.variable_names, &b.index_map),
         };
         let vars_env = &self.environment.variable_names();

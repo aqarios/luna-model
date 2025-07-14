@@ -127,7 +127,7 @@ impl TransformationPass for PyTransformationPassAdapter {
             Ok::<PySolution, TransformationPassError>(py_sol)
         }).unwrap(); // Backwards cannot have error currently.
         let sol: Solution = Rc::into_inner(py_sol.0 .0)
-            .ok_or(self.map_err(&"Solution reference leaked out of backwards scope.")).unwrap();
+            .ok_or(self.map_err(&"Solution reference leaked out of backwards scope.")).unwrap().into_inner();
         sol
     }
 }

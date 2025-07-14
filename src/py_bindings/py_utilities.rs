@@ -45,23 +45,23 @@ pub fn repr_constraints(constrs: &Constraints) -> String {
 pub fn repr_solution(sol: &PySolution) -> String {
     let mut repr = String::from("Solution(");
     repr += &format!("samples={}, ", repr_samples(&sol.samples()));
-    repr += &format!("obj_values={}, ", repr_opt_numbers(&sol.obj_values));
-    repr += &format!("raw_energies={}, ", repr_opt_numbers(&sol.raw_energies));
-    repr += &format!("counts={}, ", repr_numbers(&sol.counts));
-    repr += &format!("constraints={}, ", repr_opt_bools_vec(&sol.constraints));
+    repr += &format!("obj_values={}, ", repr_opt_numbers(&sol.borrow().obj_values));
+    repr += &format!("raw_energies={}, ", repr_opt_numbers(&sol.borrow().raw_energies));
+    repr += &format!("counts={}, ", repr_numbers(&sol.borrow().counts));
+    repr += &format!("constraints={}, ", repr_opt_bools_vec(&sol.borrow().constraints));
     repr += &format!(
         "variable_bounds={}, ",
-        repr_opt_bools_vec(&sol.variable_bounds)
+        repr_opt_bools_vec(&sol.borrow().variable_bounds)
     );
-    repr += &format!("feasible={}, ", repr_opt_bools(&sol.feasible));
+    repr += &format!("feasible={}, ", repr_opt_bools(&sol.borrow().feasible));
     repr += &format!(
         "best_sample_idx={}, ",
-        repr_opt_number(&sol.best_sample_idx)
+        repr_opt_number(&sol.borrow().best_sample_idx)
     );
-    repr += &format!("runtime={}, ", repr_opt_timing(&sol.timing));
-    repr += &format!("n_samples={}, ", sol.n_samples);
-    repr += &format!("variable_names={}, ", repr_strings(&sol.variable_names));
-    repr += &format!("sense={}", &sol.sense.to_string());
+    repr += &format!("runtime={}, ", repr_opt_timing(&sol.borrow().timing));
+    repr += &format!("n_samples={}, ", sol.borrow().n_samples);
+    repr += &format!("variable_names={}, ", repr_strings(&sol.borrow().variable_names));
+    repr += &format!("sense={}", &sol.borrow().sense.to_string());
     repr += ")";
     repr
 }

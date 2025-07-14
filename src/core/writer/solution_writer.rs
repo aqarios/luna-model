@@ -1,5 +1,5 @@
 use crate::core::writer::line_length_restrictor::LineLengthRestrictor;
-use crate::core::{RcSolution, Sample, Samples};
+use crate::core::{SharedSolution, Sample, Samples};
 use std::fmt::{Display, Formatter};
 
 pub struct SolutionWriter {
@@ -13,8 +13,8 @@ impl SolutionWriter {
         }
     }
 
-    pub fn write_solution(&mut self, sol: RcSolution) -> &mut Self {
-        self.write_samples(sol.samples(), &sol.counts)
+    pub fn write_solution(&mut self, sol: SharedSolution) -> &mut Self {
+        self.write_samples(sol.samples(), &sol.borrow().counts)
     }
 
     pub fn write_samples(&mut self, samples: Samples, counts: &Vec<usize>) -> &mut Self {

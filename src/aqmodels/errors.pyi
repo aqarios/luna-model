@@ -239,6 +239,13 @@ class StartCannotBeInferredError(TypeError):
 class NoConstraintForKeyError(IndexError):
     """Raised getting a constraint from the constraints that does not exist."""
 
+    def __str__(self, /) -> str: ...
+
+class SampleColCreationError(IndexError):
+    """Raised when an error occured during creation of a sample column."""
+
+    def __str__(self, /) -> str: ...
+
 __all__ = [
     "ComputationError",
     "ComputationError",
@@ -254,6 +261,7 @@ __all__ = [
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "NoConstraintForKeyError",
+    "SampleColCreationError",
     "SampleIncompatibleVtypeError",
     "SampleIncorrectLengthError",
     "SampleUnexpectedVariableError",

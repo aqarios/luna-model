@@ -1,17 +1,16 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
-    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, DuplicateConstraintNameErr, EvaluationErr,
-    GetConstraintErr, IllegalConstraintNameErr, IndexOutOfBoundsErr, MatrixTranslatorErr,
-    ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr, ModelVtypeErr,
-    SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr,
-    SolutionCreationErr, TranslationErr, VariableCreationErr, VariableNotExistingErr,
-    VariablesFromDifferentEnvsErr,
+    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, DuplicateConstraintNameErr, EvaluationErr, GetConstraintErr, IllegalConstraintNameErr, IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr, ModelVtypeErr, SampleColCreationErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr
 };
 use crate::serialization::DecodeError as DecodeErr;
-use crate::transformations::errors::CompilationError as CompilationErr;
-use pyo3::exceptions::{PyException, PyIndexError, PyRuntimeError, PyTypeError};
+use pyo3::exceptions::{PyException, PyIndexError, PyTypeError};
 use pyo3::{create_exception, PyErr};
 use std::convert::From;
+#[cfg(feature = "pyt")]
+use {
+    crate::transformations::errors::CompilationError as CompilationErr,
+    pyo3::exceptions::PyRuntimeError,
+};
 
 #[cfg(not(feature = "lq"))]
 create_exception!(
@@ -483,19 +482,34 @@ create_exception!(
     "To be raised when the start value in the quicksum cannot be inferred."
 );
 
-#[cfg(not(feature = "lq"))]
+#[cfg(all(not(feature = "lq"), feature = "pyt"))]
 create_exception!(
     aqmodels._core.errors,
     CompilationError,
     PyRuntimeError,
     "Raised when an error occured during compilation of a model in the PassManager."
 );
-#[cfg(feature = "lq")]
+#[cfg(all(feature = "lq", feature = "pyt"))]
 create_exception!(
     luna_quantum._core.errors,
     CompilationError,
     PyRuntimeError,
     "Raised when an error occured during compilation of a model in the PassManager."
+);
+
+#[cfg(all(not(feature = "lq"), feature = "pyt"))]
+create_exception!(
+    aqmodels._core.errors,
+    SampleColCreationError,
+    PyRuntimeError,
+    "Raised when an error occured during creation of a sample column."
+);
+#[cfg(all(feature = "lq", feature = "pyt"))]
+create_exception!(
+    luna_quantum._core.errors,
+    SampleColCreationError,
+    PyRuntimeError,
+    "Raised when an error occured during creation of a sample column."
 );
 
 #[cfg(not(feature = "lq"))]
@@ -666,6 +680,13 @@ impl From<DuplicateConstraintNameErr> for PyErr {
     }
 }
 
+impl From<SampleColCreationErr> for PyErr {
+    fn from(value: SampleColCreationErr) -> Self {
+        SampleColCreationError::new_err(format!("{value}"))
+    }
+}
+
+#[cfg(feature = "transformations")]
 impl From<CompilationErr> for PyErr {
     fn from(value: CompilationErr) -> Self {
         CompilationError::new_err(value.to_string())
