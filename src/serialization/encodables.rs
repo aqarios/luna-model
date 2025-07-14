@@ -8,7 +8,7 @@ use super::versions::v0::SerSolution as SerSolutionV0;
 use super::versions::v0::SerTiming as SerTimingV0;
 use super::Version;
 use crate::core::environment::SharedEnvironment;
-use crate::core::{Constraints, Environment, Expression, Model, SharedSolution, Timing};
+use crate::core::{Constraints, Environment, Expression, Model, Timing, Solution};
 
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of an Expression. In case a new serialization format is defined update this value
@@ -50,7 +50,7 @@ impl Encodable<SerEnvV0> for Environment {}
 /// Makes a Model with Index = VarId and Bias = f64 encodable.
 impl Encodable<SerModelV0> for Model {}
 /// Makes a Solution encodable.
-impl Encodable<SerSolutionV0> for SharedSolution {}
+impl Encodable<SerSolutionV0> for Solution {}
 /// Makes a Timing encodable.
 impl Encodable<SerTimingV0> for Timing {}
 
@@ -135,16 +135,16 @@ impl Decodable<Model> for Versioned<Vec<u8>> {
 }
 
 /// Default implementation to make a bytes vector deserializable to a Solution.
-impl Decodable<SharedSolution> for Vec<u8> {
+impl Decodable<Solution> for Vec<u8> {
     type Latest = SerSolutionLatest;
     type Payload = ();
 }
 /// Makes a versionized representation of the Model decodable.
-impl Decodable<SharedSolution> for Versioned<Vec<u8>> {
+impl Decodable<Solution> for Versioned<Vec<u8>> {
     type Latest = SerSolutionLatest;
     type Payload = ();
 
-    fn decode(&self, payload: Self::Payload) -> Result<SharedSolution, DecodeError> {
+    fn decode(&self, payload: Self::Payload) -> Result<Solution, DecodeError> {
         match self.version {
             Some(Version::V0) => SerSolutionV0::decoder(self.data.as_slice(), payload),
             None => SerSolutionLatest::decoder(self.data.as_slice(), payload),

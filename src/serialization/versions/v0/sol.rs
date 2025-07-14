@@ -1,13 +1,11 @@
 use std::str::FromStr;
 
-use crate::core::{Sense, Solution, VarAssignment};
+use crate::core::solution::sol::Solution;
+use crate::core::{Sense, VarAssignment};
 use crate::serialization::encodable::Creatable;
 use crate::serialization::{Decodable, Encodable};
 use crate::{
-    core::{
-        solution::sol::{SampleCol, SampleColElement},
-        SharedSolution, Vtype,
-    },
+    core::Vtype,
     serialization::{
         encodable::{BytesDecodable, BytesEncodable, DecodeError},
         utils::force_i8,
@@ -126,28 +124,28 @@ impl BytesEncodable for SerSolution {
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Decodable.
-impl BytesDecodable<SharedSolution> for SerSolution {
-    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<SharedSolution, DecodeError> {
+impl BytesDecodable<Solution> for SerSolution {
+    fn decode_from_bytes(bytes: &[u8], _payload: ()) -> Result<Solution, DecodeError> {
         Self::decode(bytes)?.extract()
     }
 }
 
 /// Makes the SerSolution conform with the requirements for it to be an Encodable.
-impl Creatable<SharedSolution> for SerSolution {
-    fn new(value: &SharedSolution) -> Self {
+impl Creatable<Solution> for SerSolution {
+    fn new(value: &Solution) -> Self {
         Self::default().fill(&value)
     }
 }
 
 impl SerSolution {
     /// Fills the serializable solution based on an instance of RcSolution.
-    fn fill(mut self, solution: &SharedSolution) -> Self {
+    fn fill(mut self, solution: &Solution) -> Self {
         let samples = solution.samples();
         for ((i, sample), &occ) in solution
             .samples()
             .iter()
             .enumerate()
-            .zip(&solution.borrow().counts)
+            .zip(&solution.counts)
         {
             for a in sample.iter() {
                 match a {
@@ -165,7 +163,7 @@ impl SerSolution {
                     }
                 };
             }
-            self.sample_types = if solution.borrow().len() > 0 {
+            self.sample_types = if solution.len() > 0 {
                 let s = solution.samples().get_sample(0).unwrap();
                 s.iter()
                     .map(|a| match a {
@@ -178,7 +176,7 @@ impl SerSolution {
             } else {
                 Vec::new()
             };
-            self.sample_len = solution.borrow().samples.len() as u32;
+            self.sample_len = solution.samples.len() as u32;
             self.counts.push(occ as u64);
 
             if let Some(res) = solution.get_result_view(i) {
@@ -203,14 +201,12 @@ impl SerSolution {
 
         self.num_samples = samples.len() as u64;
         self.best_sample_idx = solution
-            .borrow()
             .best_sample_idx
             .and_then(|v| Some(v as u64));
-        self.timing = solution.borrow().timing.map(|t| t.encode());
-        self.variable_names = solution.borrow().variable_names.clone();
+        self.timing = solution.timing.map(|t| t.encode());
+        self.variable_names = solution.variable_names.clone();
 
         self.constraints = solution
-            .borrow()
             .constraints
             .clone()
             .into_iter()
@@ -220,7 +216,6 @@ impl SerSolution {
             .collect();
 
         self.variable_bounds = solution
-            .borrow()
             .variable_bounds
             .clone()
             .into_iter()
@@ -229,36 +224,18 @@ impl SerSolution {
             })
             .collect();
 
-        self.sense = Some(solution.borrow().sense.to_string());
+        self.sense = Some(solution.sense.to_string());
 
         self
     }
 
-    pub fn extract(&self) -> Result<SharedSolution, DecodeError> {
+    pub fn extract(&self) -> Result<Solution, DecodeError> {
         let mut sol = Solution::default();
         let num_samples = self.num_samples as usize;
         let mut type_per_pos: Vec<Vtype> = Vec::new();
         for (idx, &st) in self.sample_types.iter().enumerate() {
             let vt = u8_to_assignment_type(st);
-            match vt {
-                Vtype::__Ghost => (),
-                Vtype::Binary => sol.add_column(SampleCol::Binary(SampleColElement::new(
-                    idx.into(),
-                    Vec::with_capacity(num_samples),
-                ))),
-                Vtype::Spin => sol.add_column(SampleCol::Spin(SampleColElement::new(
-                    idx.into(),
-                    Vec::with_capacity(num_samples),
-                ))),
-                Vtype::Integer => sol.add_column(SampleCol::Integer(SampleColElement::new(
-                    idx.into(),
-                    Vec::with_capacity(num_samples),
-                ))),
-                Vtype::Real => sol.add_column(SampleCol::Real(SampleColElement::new(
-                    idx.into(),
-                    Vec::with_capacity(num_samples),
-                ))),
-            }
+            sol.add_new_col_for(idx.into(), vt, num_samples);
             type_per_pos.push(vt);
         }
 
@@ -298,12 +275,12 @@ impl SerSolution {
                 };
             }
         }
-        sol.obj_values = vec![None; num_samples];
+        sol.obj_values = Some(Vec::with_capacity(num_samples));
         if !self.obj_values.is_empty() {
             let mut idx = 0;
             for (i, &has_val) in self.has_obj_value.iter().enumerate() {
                 if has_val {
-                    sol.obj_values[i] = Some(self.obj_values[idx]);
+                    sol.obj_values[i] = self.obj_values[idx];
                     idx += 1;
                 }
             }
@@ -375,6 +352,6 @@ impl SerSolution {
             };
         }
 
-        Ok(SharedSolution::from(sol))
+        Ok(sol)
     }
 }

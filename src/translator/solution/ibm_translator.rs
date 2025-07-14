@@ -6,8 +6,9 @@ use std::{
 use num::NumCast;
 
 use crate::{
-    core::{environment::SharedEnvironment, SharedSolution, Solution, Timing, VarRef},
+    core::{SharedEnvironment, Solution, Timing, VarRef},
     errors::SolutionCreationErr,
+    types::Bias,
 };
 
 pub struct IbmTranslator {}
@@ -20,7 +21,7 @@ impl IbmTranslator {
         counts: Vec<usize>,
         timing: Option<Timing>,
         env: SharedEnvironment,
-    ) -> Result<SharedSolution, SolutionCreationErr>
+    ) -> Result<Solution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default + Display + Debug,
         E: Copy + NumCast + Debug,
@@ -38,9 +39,9 @@ impl IbmTranslator {
             for (&idx, val) in index_list.iter().zip(sample) {
                 s[idx] = *val;
             }
-            sol.extend(&s, occ, Some(*energy))?;
+            sol.extend(&s, occ, <Bias as NumCast>::from(*energy).unwrap())?;
         }
-        Ok(SharedSolution::from(sol))
+        Ok(sol)
     }
 }
 

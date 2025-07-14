@@ -1,3 +1,4 @@
+// OLD SOLUTION
 use crate::core::solution::timing::Timing;
 use crate::core::traits::{ContentEquality, FilterByMask};
 use crate::core::writer::SolutionWriter;
@@ -39,34 +40,6 @@ pub enum ShowMetadata {
     Before,
     After,
     Hide,
-}
-
-impl VarAssignment {
-    pub fn to_bias(&self) -> Bias {
-        match self {
-            VarAssignment::Binary(col) => <Bias as NumCast>::from(*col).unwrap(),
-            VarAssignment::Spin(col) => <Bias as NumCast>::from(*col).unwrap(),
-            VarAssignment::Integer(col) => <Bias as NumCast>::from(*col).unwrap(),
-            VarAssignment::Real(col) => <Bias as NumCast>::from(*col).unwrap(),
-        }
-    }
-}
-
-impl Default for VarAssignment {
-    fn default() -> Self {
-        VarAssignment::Binary(BinaryAssignmentType::default())
-    }
-}
-
-impl Display for VarAssignment {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            VarAssignment::Binary(x) => write!(f, "{x}"),
-            VarAssignment::Spin(x) => write!(f, "{x}"),
-            VarAssignment::Integer(x) => write!(f, "{x}"),
-            VarAssignment::Real(x) => write!(f, "{x:?}"),
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -134,72 +107,9 @@ impl SampleCol {
         }
     }
 
-    fn make_samplecol_elem<T: NumCast, N: NumCast + Copy>(
-        varid: VarIndex,
-        data: &[N],
-    ) -> Result<SampleColElement<T>, SampleColCreationErr> {
-        Ok(SampleColElement::new(
-            varid,
-            Self::make_sample_col_element_contents(data)?,
-        ))
-    }
-
-    fn make_sample_col_element_contents<T: NumCast, N: NumCast + Copy>(
-        data: &[N],
-    ) -> Result<Vec<T>, SampleColCreationErr> {
-        data.iter()
-            .map(|e| <T as NumCast>::from(*e).ok_or_else(|| SampleColCreationErr::default()))
-            .collect()
-    }
-}
-
-impl Mul<Bias> for VarAssignment {
-    type Output = Bias;
-
-    fn mul(self, rhs: Bias) -> Self::Output {
-        match self {
-            VarAssignment::Binary(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
-            VarAssignment::Spin(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
-            VarAssignment::Integer(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
-            VarAssignment::Real(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
-        }
-    }
 }
 
 impl SampleCol {
-    pub fn push<N: ToPrimitive>(
-        &mut self,
-        assignment: N,
-    ) -> Result<(), SampleIncompatibleVtypeErr> {
-        match self {
-            Self::Binary(xs) => match <BinaryAssignmentType as NumCast>::from(assignment) {
-                None => return Err(SampleIncompatibleVtypeErr),
-                Some(x) => {
-                    xs.push(x);
-                }
-            },
-            Self::Spin(xs) => match <SpinAssignmentType as NumCast>::from(assignment) {
-                None => return Err(SampleIncompatibleVtypeErr),
-                Some(x) => {
-                    xs.push(x);
-                }
-            },
-            Self::Integer(xs) => match <IntegerAssignmentType as NumCast>::from(assignment) {
-                None => return Err(SampleIncompatibleVtypeErr),
-                Some(x) => {
-                    xs.push(x);
-                }
-            },
-            Self::Real(xs) => match <RealAssignmentType as NumCast>::from(assignment) {
-                None => return Err(SampleIncompatibleVtypeErr),
-                Some(x) => {
-                    xs.push(x);
-                }
-            },
-        };
-        Ok(())
-    }
-
     pub fn get(&self, index: usize) -> Option<VarAssignment> {
         match self {
             Self::Binary(col) => col.get(index).map(|&x| VarAssignment::Binary(x)),
@@ -333,41 +243,6 @@ impl Solution {
         match self.index_map.get(&varidx) {
             Some(mapped) => *mapped,
             None => varidx,
-        }
-    }
-
-    /// Extend a solution with a sample, without computing any objective values or similar.
-    /// This method does not check whether the sample is already part of the solution as for now the
-    /// solution translator is expected to do the aggregation.
-    pub fn extend<S: Copy + NumCast, E: Copy + NumCast>(
-        &mut self,
-        sample: &Vec<S>,
-        counts: usize,
-        energy: Option<E>,
-    ) -> Result<&mut Self, SolutionCreationErr> {
-        self.add_sample(sample)?;
-        self.counts.push(counts);
-        self.raw_energies
-            .push(energy.and_then(|e| <Bias as NumCast>::from(e)));
-        self.obj_values.push(None);
-        self.constraints.push(None);
-        self.variable_bounds.push(None);
-        self.feasible.push(None);
-        self.n_samples += 1;
-        Ok(self)
-    }
-
-    fn add_sample<T: Copy + NumCast>(
-        &mut self,
-        sample: &Vec<T>,
-    ) -> Result<(), SolutionCreationErr> {
-        if sample.len() != self.samples.len() {
-            Err(SampleIncorrectLengthErr)?
-        } else {
-            for (i, &a) in sample.iter().enumerate() {
-                self.samples[i].push(a)?;
-            }
-            Ok(())
         }
     }
 
@@ -570,70 +445,6 @@ impl Solution {
     }
 }
 
-// Convenience functions
-impl Solution {
-    pub fn expectation_value(&self) -> Result<Bias, ComputationErr> {
-        // equivalent to doing np.average(solution.obj_values, weights=solution.counts)
-        let mut weight_sum: f64 = 0.0;
-        let mut weighted_sum: Bias = Bias::default();
-
-        for (idx, (&ov, &c)) in self.obj_values.iter().zip(&self.counts).enumerate() {
-            if ov.is_none() {
-                return Err(ComputationErr(format!(
-                    "obj_values contains a 'None' value at position '{idx}'."
-                )));
-            }
-            let obj_val = ov.unwrap();
-            weight_sum += c as f64;
-            weighted_sum += obj_val * c as f64;
-        }
-
-        Ok(weighted_sum / weight_sum)
-    }
-
-    pub fn feasibility_ratio(&self) -> Result<Bias, ComputationErr> {
-        let mut n_feasible = 0;
-        let mut n_total = 0;
-
-        for (idx, (&feas, &c)) in self.feasible.iter().zip(&self.counts).enumerate() {
-            if feas.is_none() {
-                return Err(ComputationErr(format!(
-                    "feasible contains a 'None' value at position '{idx}'."
-                )));
-            }
-            if feas.unwrap() {
-                n_feasible += c;
-            }
-            n_total += c;
-        }
-
-        Ok(n_feasible as f64 / n_total as f64)
-    }
-
-    pub fn highest_constraint_violations(&self) -> Result<Option<usize>, ComputationErr> {
-        let mut n_violations = vec![0; self.constraints.len()];
-        for (idx, (satisfied, &count)) in self.constraints.iter().zip(&self.counts).enumerate() {
-            if satisfied.is_none() {
-                return Err(ComputationErr(format!(
-                    "feasible contains a 'None' value at position '{idx}'."
-                )));
-            }
-            satisfied
-                .as_ref()
-                .unwrap()
-                .iter()
-                .zip(&mut n_violations)
-                .filter(|(&sat, _)| !sat)
-                .for_each(|(_, n)| *n += count)
-        }
-
-        Ok(n_violations
-            .iter()
-            .enumerate()
-            .max_by_key(|(_, &c)| c)
-            .map(|(idx, _)| idx))
-    }
-}
 
 #[derive(Debug, Deref, DerefMut)]
 pub struct SharedSolution(pub Rc<RefCell<Solution>>);
@@ -645,82 +456,7 @@ impl SharedSolution {
 }
 
 impl SharedSolution {
-    pub fn get_result_view(&self, row_idx: usize) -> Option<ResultView> {
-        if row_idx >= self.borrow().n_samples {
-            None
-        } else {
-            Some(ResultView::new(self.clone(), row_idx))
-        }
-    }
-
     pub fn iter_results(&self) -> ResultIterator {
         ResultIterator::new(SharedSolution::clone(&self))
-    }
-
-    pub fn samples(&self) -> Samples {
-        Samples(SharedSolution::clone(&self))
-    }
-
-    pub fn best(&self) -> Option<ResultView> {
-        self.borrow()
-            .best_sample_idx
-            .map(|idx| ResultView::new(self.clone(), idx))
-    }
-}
-
-impl Clone for SharedSolution {
-    fn clone(&self) -> Self {
-        SharedSolution(Rc::clone(&self.0))
-    }
-}
-
-impl Into<Rc<RefCell<Solution>>> for SharedSolution {
-    fn into(self) -> Rc<RefCell<Solution>> {
-        self.0
-    }
-}
-
-impl PartialEq for SharedSolution {
-    fn eq(&self, other: &Self) -> bool {
-        let lhs = &self.borrow();
-        let rhs = &other.borrow();
-
-        lhs.samples == rhs.samples
-            && lhs.counts == rhs.counts
-            && lhs.obj_values == rhs.obj_values
-            && lhs.raw_energies == rhs.raw_energies
-            && lhs.constraints == rhs.constraints
-            && lhs.variable_bounds == rhs.variable_bounds
-            && lhs.feasible == rhs.feasible
-            && lhs.best_sample_idx == rhs.best_sample_idx
-            && lhs.timing == rhs.timing
-            && lhs.n_samples == rhs.n_samples
-            && lhs.variable_names == rhs.variable_names
-            && lhs.sense == rhs.sense
-    }
-}
-
-impl Display for SharedSolution {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let s = SolutionWriter::new()
-            .write_solution(SharedSolution::clone(&self))
-            .to_string();
-        f.write_str(&s)
-    }
-}
-
-impl ContentEquality for Solution {
-    fn is_equal_contents(&self, other: &Self) -> bool {
-        self.samples == other.samples
-            && self.counts == other.counts
-            && self.obj_values == other.obj_values
-            && self.raw_energies == other.raw_energies
-            && self.constraints == other.constraints
-            && self.variable_bounds == other.variable_bounds
-            && self.feasible == other.feasible
-            && self.best_sample_idx == other.best_sample_idx
-            && self.timing == other.timing
-            && self.n_samples == other.n_samples
-            && self.variable_names == other.variable_names
     }
 }

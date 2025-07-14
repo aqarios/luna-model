@@ -10,12 +10,6 @@ pub enum Version {
 
 /// Utility methods for working on the version enum.
 impl Version {
-    /// Get the most recent (latest) supported version.
-    /// Used to always return the most recent serialized data structures.
-    pub fn latest() -> Self {
-        Version::V0
-    }
-
     /// Helper function to recover the version as an Enum based on a u32.
     pub fn from(u: u32) -> Self {
         match u {
@@ -95,8 +89,8 @@ where
     /// If your requirement is to versionize data that is not always
     /// the latest version, please create a new Issue [here](https://github.com/aqarios/aq-models-rs/issues)
     /// explaining your use case and why you require a more flexible versionizing approach.
-    fn versionize(self) -> Vec<u8> {
-        SerVersioned::new(Version::latest(), self.to_vec()).encode_to_vec()
+    fn versionize(self, version: Version) -> Vec<u8> {
+        SerVersioned::new(version, self.to_vec()).encode_to_vec()
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
-    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, DuplicateConstraintNameErr, EvaluationErr, GetConstraintErr, IllegalConstraintNameErr, IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr, ModelVtypeErr, SampleColCreationErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr
+    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, DuplicateConstraintNameErr, EvaluationErr, GetConstraintErr, IllegalConstraintNameErr, IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr, ModelVtypeErr, ColumnCreationErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr
 };
 use crate::serialization::DecodeError as DecodeErr;
 use pyo3::exceptions::{PyException, PyIndexError, PyTypeError};
@@ -680,8 +680,8 @@ impl From<DuplicateConstraintNameErr> for PyErr {
     }
 }
 
-impl From<SampleColCreationErr> for PyErr {
-    fn from(value: SampleColCreationErr) -> Self {
+impl From<ColumnCreationErr> for PyErr {
+    fn from(value: ColumnCreationErr) -> Self {
         SampleColCreationError::new_err(format!("{value}"))
     }
 }
