@@ -11,7 +11,7 @@ use super::{
 };
 use crate::core::environment::SharedEnvironment;
 use crate::core::operations::AddAssignToExpression;
-use crate::core::{ContentEquality, LazyBounds, SharedSolution, Sense, Vtype};
+use crate::core::{ContentEquality, LazyBounds, Sense, SharedSolution, Vtype};
 use crate::hashing::hash_model;
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
@@ -335,9 +335,7 @@ impl PyModel {
             .filter(|(a, _)| {
                 *active_vars.get(*a as usize).unwrap_or(&false) || !active.unwrap_or_default()
             })
-            .map(|(_, vref)| {
-                PyVariable::new(vref)
-            })
+            .map(|(_, vref)| PyVariable::new(vref))
             .collect()
     }
 
@@ -399,16 +397,7 @@ impl PyModel {
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        let compress = compress.unwrap_or(level.is_some());
-        Ok(PyBytes::new(
-            py,
-            &self
-                .borrow()
-                .encode()
-                .maybe_compress(compress, level)?
-                .versionize(),
-        )
-        .into())
+        Ok(PyBytes::new(py, &self.borrow().encode(compress, level)?).into())
     }
 
     /// Alias for `encode()`.

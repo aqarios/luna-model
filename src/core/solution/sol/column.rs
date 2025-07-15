@@ -11,6 +11,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ColElement<T> {
+    // todo: is this var id really needed?
     pub varid: VarIndex,
     pub data: Vec<T>,
 }

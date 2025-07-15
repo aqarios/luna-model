@@ -14,7 +14,9 @@ impl SampleColCreationErr {
         Self { msg: None }
     }
     pub fn new(msg: &str) -> Self {
-        Self { msg: Some(String::from(msg)) }
+        Self {
+            msg: Some(String::from(msg)),
+        }
     }
 }
 impl Error for SampleColCreationErr {}
@@ -455,5 +457,14 @@ impl Display for EvaluationErr {
             }
         };
         write!(f, "{}", msg)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CompressionErr(pub String);
+impl Error for CompressionErr {}
+impl Display for CompressionErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "compression failed: '{}'", self.0)
     }
 }

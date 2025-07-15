@@ -1,8 +1,8 @@
-use crate::{core::solution::sample::OwnedSample, types::Bias};
+use crate::{core::solution::sample::SampleOwned, types::Bias};
 
 pub struct OwnedResult {
     /// The vector of variable assignments.
-    sample: OwnedSample,
+    sample: SampleOwned,
     /// The objective value computed from an AqModel. If not present, a raw value from the solver
     /// may be used. None, if none of these are present.
     pub obj_value: Option<Bias>,
@@ -16,7 +16,7 @@ pub struct OwnedResult {
 
 impl OwnedResult {
     pub fn new(
-        sample: OwnedSample,
+        sample: SampleOwned,
         objective_value: Bias,
         constraint_satisfaction: Vec<bool>,
         variable_bounds_satisfaction: Vec<bool>,

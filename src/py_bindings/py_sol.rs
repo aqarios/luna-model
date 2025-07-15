@@ -892,16 +892,7 @@ impl PySolution {
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        let compress = compress.unwrap_or(level.is_some());
-        Ok(PyBytes::new(
-            py,
-            &self
-                .0
-                .encode()
-                .maybe_compress(compress, level)?
-                .versionize(),
-        )
-        .into())
+        Ok(PyBytes::new(py, &self.0.encode(compress, level)?).into())
     }
 
     /// Alias for `encode()`.

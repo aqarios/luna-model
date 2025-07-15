@@ -156,17 +156,7 @@ impl PyEnvironment {
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        let compress = compress.unwrap_or(level.is_some());
-        Ok(PyBytes::new(
-            py,
-            &self
-                .borrow()
-                .deref()
-                .encode()
-                .maybe_compress(compress, level)?
-                .versionize(),
-        )
-        .into())
+        Ok(PyBytes::new(py, &self.borrow().deref().encode(compress, level)?).into())
     }
 
     /// Alias for `encode()`.
@@ -232,5 +222,4 @@ impl PyEnvironment {
     fn __contains__(&self, varname: String) -> bool {
         self.0.contains(varname)
     }
-
 }

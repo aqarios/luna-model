@@ -401,26 +401,11 @@ impl PyConstraints {
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        let compress = compress.unwrap_or(level.is_some());
         match &self.data {
-            Left(constrs) => Ok(PyBytes::new(
-                py,
-                &constrs
-                    .encode()
-                    .maybe_compress(compress, level)?
-                    .versionize(),
-            )
-            .into()),
-            Right(parent) => Ok(PyBytes::new(
-                py,
-                &parent
-                    .borrow()
-                    .constraints
-                    .encode()
-                    .maybe_compress(compress, level)?
-                    .versionize(),
-            )
-            .into()),
+            Left(constrs) => Ok(PyBytes::new(py, &constrs.encode(compress, level)?).into()),
+            Right(parent) => {
+                Ok(PyBytes::new(py, &parent.borrow().constraints.encode(compress, level)?).into())
+            }
         }
     }
 

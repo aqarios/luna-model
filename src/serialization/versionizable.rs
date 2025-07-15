@@ -6,6 +6,7 @@ use super::utils::{Slicable, Vectorizable};
 #[repr(u32)]
 pub enum Version {
     V0 = 0,
+    V1 = 1,
 }
 
 /// Utility methods for working on the version enum.
@@ -14,6 +15,7 @@ impl Version {
     pub fn from(u: u32) -> Self {
         match u {
             0 => Version::V0,
+            1 => Version::V1,
             _ => panic!("unkown version"),
         }
     }
@@ -74,6 +76,10 @@ impl<B> Versioned<B> {
             data,
         }
     }
+}
+
+pub trait Versionized {
+    fn version(&self) -> Version;
 }
 
 /// This trait defines the required methods for an object to be versionizable.
@@ -144,6 +150,7 @@ impl Slicable for &[u8] {
 /// Since the Versionizable trait implements it's methods by default and Vec<u8> fullfills
 /// the Vectorizable trait we are not required to adjust the default implementation.
 impl Versionizable for Vec<u8> {}
+
 /// Implementation of the Unversionizable trait for the &[u8] data type.
 /// Since the Unversionizable trait implements it's methods by default and &[u8] fullfills
 /// the Slicable trait we are not required to adjust the default implementation.

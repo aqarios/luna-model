@@ -444,16 +444,11 @@ impl PyExpression {
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        let compress = compress.unwrap_or(level.is_some());
         let base = match &self.0 {
             Left(expr) => expr,
             Right(parent) => &parent.borrow().objective,
         };
-        Ok(PyBytes::new(
-            py,
-            &base.encode().maybe_compress(compress, level)?.versionize(),
-        )
-        .into())
+        Ok(PyBytes::new(py, &base.encode(compress, level)?).into())
     }
 
     /// Alias for `encode()`.

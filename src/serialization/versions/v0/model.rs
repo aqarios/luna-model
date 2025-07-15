@@ -63,9 +63,9 @@ impl SerModel {
 
     /// Fills the serializable model based on an instance of Model.
     fn fill(mut self, model: &Model) -> Self {
-        self.objective = model.objective.encode();
-        self.constraints = model.constraints.encode();
-        self.environment = model.environment.borrow().deref().encode();
+        self.objective = model.objective.serialize();
+        self.constraints = model.constraints.serialize();
+        self.environment = model.environment.borrow().deref().serialize();
         self
     }
 

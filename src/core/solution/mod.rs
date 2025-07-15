@@ -26,5 +26,6 @@ pub use sample::VarAssignment;
 pub use timing::Timer;
 pub use timing::Timing;
 pub use sol::Solution;
+pub use sol::Column;
 pub use result::ResultView;
 pub use sample::Sample;
