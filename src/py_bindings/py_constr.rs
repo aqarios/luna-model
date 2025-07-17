@@ -7,7 +7,7 @@ use crate::{
         Constraint, ConstraintKey, Constraints, ContentEquality, Expression, Model,
     },
     serialization::{
-        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
+        Decodable, Decompressable, Encodable, Unversionizable
     },
 };
 use derive_more::{Deref, DerefMut};

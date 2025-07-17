@@ -139,7 +139,7 @@ impl PyQctrlTranslator {
             counts.push(count.into());
         }
 
-        Ok(PySolution(QctrlTranslator::from_qctrl(
+        Ok(PySolution::new(QctrlTranslator::from_qctrl(
             samples,
             counts,
             energies,

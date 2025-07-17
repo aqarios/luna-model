@@ -1,13 +1,13 @@
-use num::{NumCast, ToPrimitive};
-
 use crate::{
-    core::{VarAssignment, Vtype},
-    errors::{SampleColCreationErr, SampleIncompatibleVtypeErr},
+    core::{traits::FilterByMask, VarAssignment, Vtype},
+    errors::{ColumnCreationErr, SampleIncompatibleVtypeErr},
     types::{
         BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType,
         VarIndex,
     },
 };
+use num::{NumCast, ToPrimitive};
+use std::slice::Iter;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ColElement<T> {
@@ -28,6 +28,16 @@ impl<T> ColElement<T> {
     pub fn get(&self, idx: usize) -> Option<&T> {
         self.data.get(idx)
     }
+
+    pub fn iter(&self) -> Iter<'_, T> {
+        self.data.iter()
+    }
+}
+
+impl<T: Clone> FilterByMask<T> for ColElement<T> {
+    fn filter_by_mask(&self, mask: &Vec<bool>) -> Vec<T> {
+        self.data.filter_by_mask(mask)
+    }
 }
 
 /// The different assignments to a variable in the single samples
@@ -46,6 +56,16 @@ impl Column {
             Self::Spin(col) => col.get(idx).map(|&x| VarAssignment::Spin(x)),
             Self::Integer(col) => col.get(idx).map(|&x| VarAssignment::Integer(x)),
             Self::Real(col) => col.get(idx).map(|&x| VarAssignment::Real(x)),
+        }
+    }
+
+    pub fn as_vec(&self) -> Vec<VarAssignment> {
+        // todo: do this without `collect` instead, and use some other return typle like `impl Iter`
+        match self {
+            Column::Binary(bins) => bins.iter().map(|&x| VarAssignment::Binary(x)).collect(),
+            Column::Spin(spins) => spins.iter().map(|&x| VarAssignment::Spin(x)).collect(),
+            Column::Integer(ints) => ints.iter().map(|&x| VarAssignment::Integer(x)).collect(),
+            Column::Real(reals) => reals.iter().map(|&x| VarAssignment::Real(x)).collect(),
         }
     }
 }
@@ -88,13 +108,13 @@ impl Column {
         data: &[N],
         varid: VarIndex,
         vtype: Vtype,
-    ) -> Result<Column, SampleColCreationErr> {
+    ) -> Result<Column, ColumnCreationErr> {
         match vtype {
             Vtype::Binary => Ok(Column::Binary(Self::try_make_samplecol_elem(varid, data)?)),
             Vtype::Spin => Ok(Column::Spin(Self::try_make_samplecol_elem(varid, data)?)),
             Vtype::Real => Ok(Column::Real(Self::try_make_samplecol_elem(varid, data)?)),
             Vtype::Integer => Ok(Column::Integer(Self::try_make_samplecol_elem(varid, data)?)),
-            Vtype::__Ghost => Err(SampleColCreationErr::new(
+            Vtype::__Ghost => Err(ColumnCreationErr::new(
                 "cannot create a sample column for ghost variables.",
             )),
         }
@@ -102,7 +122,7 @@ impl Column {
     fn try_make_samplecol_elem<T: NumCast, N: NumCast + Copy>(
         varid: VarIndex,
         data: &[N],
-    ) -> Result<ColElement<T>, SampleColCreationErr> {
+    ) -> Result<ColElement<T>, ColumnCreationErr> {
         Ok(ColElement::new(
             varid,
             Self::try_make_sample_col_element_contents(data)?,
@@ -111,9 +131,9 @@ impl Column {
 
     fn try_make_sample_col_element_contents<T: NumCast, N: NumCast + Copy>(
         data: &[N],
-    ) -> Result<Vec<T>, SampleColCreationErr> {
+    ) -> Result<Vec<T>, ColumnCreationErr> {
         data.iter()
-            .map(|e| <T as NumCast>::from(*e).ok_or_else(|| SampleColCreationErr::default()))
+            .map(|e| <T as NumCast>::from(*e).ok_or_else(|| ColumnCreationErr::default()))
             .collect()
     }
 

@@ -80,7 +80,7 @@ impl PyDwaveTranslator {
                 })
             })?,
         };
-        Ok(PySolution(DwaveTranslator::from_dimod_sample_set(
+        Ok(PySolution::new(DwaveTranslator::from_dimod_sample_set(
             samples.as_slice()?,
             variables_order.as_slice(),
             counts.as_slice()?,

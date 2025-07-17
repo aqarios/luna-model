@@ -1,6 +1,9 @@
 use super::sol::Solution;
 use crate::core::{
-    solution::{result::ResultView, sample::SamplesIterator},
+    solution::{
+        result::ResultView,
+        sample::{SampleView, Samples, SamplesIterator},
+    },
     VarAssignment,
 };
 
@@ -21,11 +24,23 @@ impl Solution {
         }
     }
 
+    pub fn get_sample_view(&self, idx: usize) -> Option<SampleView> {
+        if idx >= self.n_samples {
+            None
+        } else {
+            Some(SampleView::new(self, idx))
+        }
+    }
+
     pub fn get_assignment(&self, row: usize, col: usize) -> Option<VarAssignment> {
         self.samples.get(col).and_then(|column| column.get(row))
     }
 
-    pub fn iter_samples<'a>(&'a self) -> SamplesIterator<'a> {
+    pub fn iter_samples(&self) -> SamplesIterator {
         SamplesIterator::new(self)
+    }
+
+    pub fn samples(&self) -> Samples {
+        Samples(&self)
     }
 }

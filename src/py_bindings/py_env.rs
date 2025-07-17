@@ -1,8 +1,6 @@
 use crate::{
     core::{environment::SharedEnvironment, ContentEquality},
-    serialization::{
-        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
-    },
+    serialization::{Decodable, Decompressable, Encodable, Unversionizable},
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{

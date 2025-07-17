@@ -183,7 +183,7 @@ impl Model {
             vb.push(
                 self.environment
                     .borrow()
-                    .evaluate_bounds::<SampleView>(&sample),
+                    .evaluate_bounds::<Sample>(&sample),
             );
             obj_values.push(obj_val);
         }
@@ -216,7 +216,7 @@ impl Model {
         self
     }
 
-    pub fn violated_constraints(&self, sample: &SampleView) -> Constraints {
+    pub fn violated_constraints(&self, sample: &Sample) -> Constraints {
         let mut index_map = IndexMap::new();
         let mut constraints = Vec::new();
         for (idx, (name, constr)) in self.constraints.iter().enumerate() {

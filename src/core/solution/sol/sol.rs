@@ -19,7 +19,7 @@ pub struct Solution {
     /// Objetive values as computed by the solver. May be empty if the solver does not provide
     /// energies in its solution format. May be different from `obj_values`, e.g., because an offset
     /// was neglected, or the AQM was transformed before being solved.
-    pub raw_energies: Option<Vec<Bias>>,
+    pub raw_energies: Vec<Option<Bias>>,
     /// Objetive values as computed by the corresponding AQM. May be empty for solutions that
     /// haven't yet been evaluated.
     pub obj_values: Option<Vec<Bias>>,
@@ -45,6 +45,14 @@ pub struct Solution {
     pub variable_names: Vec<String>,
     /// The model's optimization sense the solution was created with.
     pub sense: Sense,
+}
+
+impl Solution {
+    pub fn with_sense(sense: Sense) -> Self {
+        let mut out = Self::default();
+        out.sense = sense;
+        out
+    }
 }
 
 impl std::fmt::Display for Solution {

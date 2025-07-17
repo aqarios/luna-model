@@ -43,7 +43,7 @@ impl DwaveTranslator {
             sol.extend(
                 &sample,
                 <usize as NumCast>::from(counts[i]).unwrap(),
-                <Bias as NumCast>::from(energy[i]).unwrap(),
+                Some(<Bias as NumCast>::from(energy[i]).unwrap()),
             )?;
         }
         Ok(sol)

@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use super::{SampleIterator, VarAssignment};
 use crate::{
     core::{
@@ -7,6 +9,7 @@ use crate::{
     types::VarIndex,
 };
 use derive_more::{Deref, DerefMut};
+use hashbrown::HashMap;
 
 pub enum Sample<'a> {
     View(SampleView<'a>),
@@ -34,6 +37,29 @@ impl<'a> Sample<'a> {
     pub fn iter(&'a self) -> SampleIterator<'a> {
         SampleIterator::new(self)
     }
+
+    pub fn index_for_variable_name(&self, varname: &str) -> Option<usize> {
+        match self {
+            Self::View(view) => view.sol.variable_names.iter().position(|e| e == varname),
+            Self::Owned(owned) => owned.variable_names.iter().position(|e| e == varname),
+        }
+    }
+
+    pub fn to_map(&self) -> HashMap<String, VarAssignment> {
+        match &self {
+            Self::View(view) => self
+                .iter()
+                .zip(view.sol.variable_names.iter())
+                .map(|(v, s)| (s.clone(), v.clone()))
+                .collect(),
+            Self::Owned(os) => os
+                .actual
+                .iter()
+                .zip(os.variable_names.iter())
+                .map(|(v, s)| (s.clone(), v.clone()))
+                .collect(),
+        }
+    }
 }
 
 impl<'a> ValueByIndex<VarIndex> for Sample<'a> {
@@ -44,6 +70,14 @@ impl<'a> ValueByIndex<VarIndex> for Sample<'a> {
             Self::View(view) => view.value_by_index(index),
             Self::Owned(owned) => owned.value_by_index(index),
         }
+    }
+}
+
+impl<'a> Display for Sample<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        todo!()
+        // let s = SolutionWriter::new().write_sample(self.clone()).to_string();
+        // f.write_str(&s)
     }
 }
 
@@ -83,6 +117,10 @@ impl SampleOwned {
             actual,
         }
     }
+
+    pub fn to_map(&self) -> HashMap<&String, &VarAssignment> {
+        self.variable_names.iter().zip(&self.actual).collect()
+    }
 }
 
 impl<'a> ValueByIndex<VarIndex> for SampleOwned {
@@ -91,5 +129,11 @@ impl<'a> ValueByIndex<VarIndex> for SampleOwned {
     fn value_by_index(&self, index: VarIndex) -> Self::Output {
         let idx: usize = index.into();
         self.actual[idx]
+    }
+}
+
+impl Display for SampleOwned {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        todo!()
     }
 }

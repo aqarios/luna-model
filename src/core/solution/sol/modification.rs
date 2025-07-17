@@ -1,12 +1,13 @@
-use super::{column::Column, Solution};
+use super::{column::Column, Solution, VarKey};
 use crate::{
-    core::{traits::PushOrCreate, SharedEnvironment, Vtype},
-    errors::{SampleIncorrectLengthErr, SolutionCreationErr},
+    core::{SharedEnvironment, VarRef, Vtype},
+    errors::{ColumnCreationErr, SampleIncorrectLengthErr, SolutionCreationErr},
     types::{
         Bias, BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType,
         VarIndex,
     },
 };
+use itertools::Itertools;
 use num::NumCast;
 
 impl Solution {
@@ -17,11 +18,11 @@ impl Solution {
         &mut self,
         sample: &Vec<S>,
         counts: usize,
-        energy: Bias,
+        energy: Option<Bias>,
     ) -> Result<&mut Self, SolutionCreationErr> {
         self.add_sample(sample)?;
         self.counts.push(counts);
-        self.raw_energies.push_or_create(energy);
+        self.raw_energies.push(energy);
         self.n_samples += 1;
         Ok(self)
     }
@@ -96,5 +97,86 @@ impl Solution {
 
     pub fn add_real_col(&mut self, varid: VarIndex, data: Vec<RealAssignmentType>) {
         self.add_column(Column::new_real(varid, data))
+    }
+}
+
+impl Solution {
+    pub fn add_samplecol<N: NumCast + Copy>(
+        &mut self,
+        var: VarKey,
+        data: &[N],
+        vtype: Vtype,
+    ) -> Result<(), ColumnCreationErr> {
+        match var {
+            VarKey::Name(varname) => self.add_samplecol_for_varname(varname, data, vtype),
+            VarKey::Var(var) => self.add_samplecol_for_var(&var, data, vtype),
+        }
+    }
+
+    pub fn add_samplecol_for_var<N: NumCast + Copy>(
+        &mut self,
+        var: &VarRef,
+        data: &[N],
+        vtype: Vtype,
+    ) -> Result<(), ColumnCreationErr> {
+        let varname = var
+            .env
+            .borrow()
+            .get_for_index(var.id)
+            .map_err(|e| ColumnCreationErr::new(&e.to_string()))?
+            .name
+            .clone();
+        self.variable_names.push(varname);
+        self.add_column(Column::try_new(data, var.id, vtype)?);
+        // todo: adjust other values and fix logic after restructuring the solution
+        // internally.
+        Ok(())
+    }
+    pub fn add_samplecol_for_varname<N: NumCast + Copy>(
+        &mut self,
+        varname: String,
+        data: &[N],
+        vtype: Vtype,
+    ) -> Result<(), ColumnCreationErr> {
+        let varid = self.variable_names.len();
+        self.add_column(Column::try_new(
+            data,
+            varid.into(),
+            vtype,
+        )?);
+        self.variable_names.push(varname);
+        // todo: adjust other values and fix logic after restructuring the solution
+        // internally.
+        Ok(())
+    }
+
+    pub fn remove_samplecol(&mut self, var: VarKey) {
+        match var {
+            VarKey::Var(var) => self.remove_samplecol_for_var(var),
+            VarKey::Name(varname) => self.remove_samplecol_for_varname(varname),
+        }
+    }
+
+    pub fn remove_samplecol_for_var(&mut self, var: &VarRef) {
+        let env = var.env.borrow();
+        let variable = env.get_for_index(var.id);
+        match variable {
+            Ok(variable) => {
+                let id: usize = var.id.into();
+                self.remove_samplecol_for_varname(variable.name.clone())
+            },
+            Err(_) => (),
+        }
+    }
+
+    pub fn remove_samplecol_for_varname(&mut self, varname: String) {
+        let index = self.variable_names.iter().find_position(|&n| *n == varname);
+        match index {
+            Some((idx, _)) => {
+                let _ = self.variable_names.remove(idx);
+                let _ = self.samples.remove(idx);
+            },
+            None => (),
+        };
     }
 }

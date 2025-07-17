@@ -18,13 +18,13 @@ impl<'a> SamplesIterator<'a> {
 }
 
 impl<'a> Iterator for SamplesIterator<'a> {
-    type Item = SampleView<'a>;
+    type Item = Sample<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.row >= self.sol.len() {
             None
         } else {
-            let sample = Some(SampleView::new(&self.sol, self.row));
+            let sample = Some(Sample::View(SampleView::new(&self.sol, self.row)));
             self.row += 1;
             sample
         }

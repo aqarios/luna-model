@@ -1,9 +1,6 @@
-use std::str::FromStr;
-
 use crate::core::solution::sol::Solution;
-use crate::core::{Sense, VarAssignment};
-use crate::serialization::encodable::Creatable;
-use crate::serialization::{Decodable, Encodable};
+use crate::core::Sense;
+use crate::serialization::Decodable;
 use crate::{
     core::Vtype,
     serialization::{
@@ -12,6 +9,7 @@ use crate::{
     },
 };
 use prost::Message;
+use std::str::FromStr;
 
 fn assignment_type_to_u8(vtype: Vtype) -> u8 {
     match vtype {
@@ -130,105 +128,7 @@ impl BytesDecodable<Solution> for SerSolution {
     }
 }
 
-/// Makes the SerSolution conform with the requirements for it to be an Encodable.
-impl Creatable<Solution> for SerSolution {
-    fn new(value: &Solution) -> Self {
-        Self::default().fill(&value)
-    }
-}
-
 impl SerSolution {
-    /// Fills the serializable solution based on an instance of RcSolution.
-    fn fill(mut self, solution: &Solution) -> Self {
-        let samples = solution.samples();
-        for ((i, sample), &occ) in solution
-            .samples()
-            .iter()
-            .enumerate()
-            .zip(&solution.counts)
-        {
-            for a in sample.iter() {
-                match a {
-                    VarAssignment::Binary(v) => {
-                        self.bins.push(v);
-                    }
-                    VarAssignment::Spin(v) => {
-                        self.spins.push(v as i32);
-                    }
-                    VarAssignment::Integer(v) => {
-                        self.ints.push(v);
-                    }
-                    VarAssignment::Real(v) => {
-                        self.reals.push(v);
-                    }
-                };
-            }
-            self.sample_types = if solution.len() > 0 {
-                let s = solution.samples().get_sample(0).unwrap();
-                s.iter()
-                    .map(|a| match a {
-                        VarAssignment::Binary(_) => assignment_type_to_u8(Vtype::Binary),
-                        VarAssignment::Spin(_) => assignment_type_to_u8(Vtype::Spin),
-                        VarAssignment::Integer(_) => assignment_type_to_u8(Vtype::Integer),
-                        VarAssignment::Real(_) => assignment_type_to_u8(Vtype::Real),
-                    })
-                    .collect()
-            } else {
-                Vec::new()
-            };
-            self.sample_len = solution.samples.len() as u32;
-            self.counts.push(occ as u64);
-
-            if let Some(res) = solution.get_result_view(i) {
-                if let Some(ov) = res.obj_value() {
-                    self.obj_values.push(ov);
-                    self.has_obj_value.push(true);
-                } else {
-                    self.has_obj_value.push(false);
-                }
-
-                if let Some(en) = res.raw_energy() {
-                    self.has_raw_energy.push(true);
-                    self.raw_energies.push(en);
-                } else {
-                    self.has_raw_energy.push(false);
-                }
-            } else {
-                self.has_obj_value.push(false);
-                self.has_raw_energy.push(false);
-            }
-        }
-
-        self.num_samples = samples.len() as u64;
-        self.best_sample_idx = solution
-            .best_sample_idx
-            .and_then(|v| Some(v as u64));
-        self.timing = solution.timing.map(|t| t.encode());
-        self.variable_names = solution.variable_names.clone();
-
-        self.constraints = solution
-            .constraints
-            .clone()
-            .into_iter()
-            .map(|opt_vec| OptBoolVec {
-                vector: opt_vec.map(|values| BoolVec { values }),
-            })
-            .collect();
-
-        self.variable_bounds = solution
-            .variable_bounds
-            .clone()
-            .into_iter()
-            .map(|opt_vec| OptBoolVec {
-                vector: opt_vec.map(|values| BoolVec { values }),
-            })
-            .collect();
-
-        self.sense = Some(solution.sense.to_string());
-
-        self
-    }
-
     pub fn extract(&self) -> Result<Solution, DecodeError> {
         let mut sol = Solution::default();
         let num_samples = self.num_samples as usize;
@@ -275,16 +175,17 @@ impl SerSolution {
                 };
             }
         }
-        sol.obj_values = Some(Vec::with_capacity(num_samples));
-        if !self.obj_values.is_empty() {
-            let mut idx = 0;
-            for (i, &has_val) in self.has_obj_value.iter().enumerate() {
-                if has_val {
-                    sol.obj_values[i] = self.obj_values[idx];
-                    idx += 1;
-                }
-            }
+
+        // check that all objective values exist.
+        if self.has_obj_value.iter().all(|&b| b) {
+            sol.obj_values = Some(self.obj_values.clone());
+        } else {
+            // Not all entries have an objective value.
+            // The new solution does not allow for this, so we set it to
+            // not existing.
+            sol.obj_values = None;
         }
+
         sol.raw_energies = vec![None; num_samples];
         if !self.raw_energies.is_empty() {
             let mut idx = 0;
@@ -318,40 +219,39 @@ impl SerSolution {
             .map(|item| item.vector.map(|v| v.values))
             .collect();
 
-        sol.feasible = sol
-            .constraints
-            .iter()
-            .zip(&sol.variable_bounds)
-            .map(|x| match x {
-                (None, _) => None,
-                (_, None) => None,
-                (Some(constr), Some(vbs)) => {
-                    Some(constr.iter().all(|&b| b) && vbs.iter().all(|&b| b))
-                }
-            })
-            .collect();
+        sol.feasible = match (&sol.constraints, &sol.variable_bounds) {
+            (Some(constr), Some(vbs)) => Some(
+                constr
+                    .iter()
+                    .zip(vbs)
+                    .map(|(cs, vs)| cs.iter().all(|&b| b) && vs.iter().all(|&b| b))
+                    .collect(),
+            ),
+            _ => None,
+        };
 
         if let Some(sense) = &self.sense {
             let sense = Sense::from_str(&sense).map_err(|e| DecodeError::new(e.to_string()))?;
             sol.sense = sense;
         } else {
-            sol.sense = match sol.best_sample_idx.and_then(|i| sol.obj_values[i]) {
+            let best_obj = &sol
+                .best_sample_idx
+                .and_then(|i| sol.obj_values.as_ref().map(|o| o[i]));
+
+            sol.sense = match best_obj {
                 None => Sense::Min,
-                Some(bobj) => {
-                    if sol
-                        .obj_values
-                        .iter()
-                        .zip(&sol.feasible)
-                        .all(|(&obj, &feas)| !feas.unwrap_or(true) || obj.unwrap_or(bobj) >= bobj)
-                    {
-                        Sense::Min
-                    } else {
-                        Sense::Max
+                Some(bobj) => match (sol.obj_values.as_ref(), sol.feasible.as_ref()) {
+                    (Some(o), Some(f)) => {
+                        if o.iter().zip(f).all(|(&obj, &feas)| !feas || obj >= *bobj) {
+                            Sense::Min
+                        } else {
+                            Sense::Max
+                        }
                     }
-                }
+                    _ => Sense::Min,
+                },
             };
         }
-
         Ok(sol)
     }
 }

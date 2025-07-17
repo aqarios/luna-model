@@ -4,8 +4,9 @@ use super::versions::v0::SerConstraints as SerConstrV0;
 use super::versions::v0::SerEnvironment as SerEnvV0;
 use super::versions::v0::SerExpression as SerExprV0;
 use super::versions::v0::SerModel as SerModelV0;
-use super::versions::v1::SerSolution as SerSolutionV1;
+use super::versions::v0::SerSolution as SerSolutionV0;
 use super::versions::v0::SerTiming as SerTimingV0;
+use super::versions::v1::SerSolution as SerSolutionV1;
 use super::Version;
 use crate::core::environment::SharedEnvironment;
 use crate::core::{Constraints, Environment, Expression, Model, Solution, Timing};
@@ -77,6 +78,8 @@ impl Encodable<SerTimingV0> for Timing {
         Version::V0
     }
 }
+/// Makes a Solution decodable for V0.
+impl Decoder<Solution, ()> for SerSolutionV0 {}
 
 /// Default implementation to make a bytes vector deserializable to an Expression.
 /// For the decoding of a bytes vector to an Expression a reference counted pointer to
@@ -170,7 +173,7 @@ impl Decodable<Solution> for Versioned<Vec<u8>> {
 
     fn decode(&self, payload: Self::Payload) -> Result<Solution, DecodeError> {
         match self.version {
-            Some(Version::V0) => todo!("implement deser for SolV0."), // SerSolutionV0::decoder(self.data.as_slice(), payload),
+            Some(Version::V0) => SerSolutionV0::decoder(self.data.as_slice(), payload),
             Some(Version::V1) => SerSolutionV1::decoder(self.data.as_slice(), payload),
             _ => SerSolutionLatest::decoder(self.data.as_slice(), payload),
         }

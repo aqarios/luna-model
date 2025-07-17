@@ -88,7 +88,7 @@ impl PyNumpyTranslator {
             })?,
         };
 
-        Ok(PySolution(NpArrayTranslator::from_numpy_arrays(
+        Ok(PySolution::new(NpArrayTranslator::from_numpy_arrays(
             sol_agg.as_slice()?,
             counts.as_slice()?,
             indices.as_slice()?,

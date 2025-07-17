@@ -11,7 +11,7 @@ use super::{
 };
 use crate::core::environment::SharedEnvironment;
 use crate::core::operations::AddAssignToExpression;
-use crate::core::{ContentEquality, LazyBounds, Sense, SharedSolution, Vtype};
+use crate::core::{ContentEquality, LazyBounds, Sample, Sense, Vtype};
 use crate::hashing::hash_model;
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
@@ -19,9 +19,7 @@ use crate::py_bindings::py_var::PyVariable;
 use crate::{
     core::Model,
     py_bindings::py_env::CURRENT_ENV,
-    serialization::{
-        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
-    },
+    serialization::{Decodable, Decompressable, Encodable, Unversionizable},
 };
 use derive_more::{Deref, DerefMut};
 use either::Either::{Left, Right};
@@ -351,8 +349,22 @@ impl PyModel {
     /// Constraints
     ///     The constraints violated by the given sample.
     fn violated_constraints(&self, sample: &PySample) -> PyConstraints {
-        PyConstraints {
-            data: Left(self.concrete_model.borrow().violated_constraints(sample)),
+        match &sample {
+            PySample::View(view) => {
+                let binding = view.sol.borrow();
+                let samples = binding.samples();
+                let sample = samples.get_sample(view.row).unwrap();
+                PyConstraints {
+                    data: Left(self.concrete_model.borrow().violated_constraints(&sample)),
+                }
+            }
+            PySample::Owned(owned) => PyConstraints {
+                data: Left(
+                    self.concrete_model
+                        .borrow()
+                        .violated_constraints(&Sample::Owned(owned.0.clone())),
+                ),
+            },
         }
     }
 
@@ -455,10 +467,9 @@ impl PyModel {
     /// -------
     /// Solution
     ///     A new solution object with filled-out information.
-    fn evaluate(&self, solution: &PySolution) -> PyResult<PySolution> {
-        Ok(PySolution(
-            self.borrow()
-                .evaluate_solution(SharedSolution::clone(&solution.0))?,
+    fn evaluate(&self, solution: PySolution) -> PyResult<PySolution> {
+        Ok(PySolution::new(
+            self.borrow().evaluate_solution(solution.borrow().clone())?,
         ))
     }
 
@@ -474,7 +485,18 @@ impl PyModel {
     /// Result
     ///     A result object containing the information from the evaluation process.
     fn evaluate_sample(&self, sample: &PySample) -> PyResult<PyOwnedResult> {
-        Ok(PyOwnedResult(self.borrow().evaluate_sample(&sample.0)?))
+        match &sample {
+            PySample::View(view) => {
+                let binding = view.sol.borrow();
+                let samples = binding.samples();
+                let s = samples.get_sample(view.row).unwrap();
+                Ok(PyOwnedResult::new(self.borrow().evaluate_sample(&s)?))
+            }
+            PySample::Owned(owned) => Ok(PyOwnedResult::new(
+                self.borrow()
+                    .evaluate_sample(&Sample::Owned(owned.0.clone()))?,
+            )),
+        }
     }
 
     /// Substitute every occurrence of a variable in the model’s objective and constraint expressions with another expression.

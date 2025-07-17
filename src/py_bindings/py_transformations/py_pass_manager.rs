@@ -1,7 +1,6 @@
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
 
-use crate::core::{SharedSolution, Solution};
 use crate::py_bindings::py_sol::PySolution;
 use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
 
@@ -62,8 +61,6 @@ impl PyPassManager {
 
     #[pyo3(name = "backwards")]
     pub fn py_backwargs(&self, solution: &PySolution, ir: &PyIR) -> PySolution {
-        PySolution(SharedSolution::from(
-            self.backwards(solution.borrow().clone(), &ir.0),
-        ))
+        PySolution::new(self.backwards(solution.borrow().clone(), &ir.0))
     }
 }

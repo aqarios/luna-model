@@ -1,5 +1,6 @@
-use bitvec::vec::BitVec;
+use bitvec::order::Lsb0;
 use bitvec::view::AsBits;
+use itertools::Itertools;
 use prost::Message;
 
 use crate::core::solution::Column;
@@ -44,6 +45,8 @@ pub struct SerSolution {
     /// The raw energies for each sample in the solution
     #[prost(double, repeated, tag = 11)]
     raw_energies: Vec<f64>, // inherently optional
+    #[prost(bool, repeated, tag = 12)]
+    has_raw_energies: Vec<bool>, // inherently optional // todo: make bitvec
     /// The index of the best sample
     #[prost(uint64, optional, tag = 13)]
     best_sample_idx: Option<u64>,
@@ -84,21 +87,32 @@ impl SerSolution {
         self.timing = sol.timing.map(|t| t.serialize());
         self.best_sample_idx = sol.best_sample_idx.map(|b| b as u64);
         self.counts = sol.counts.iter().map(|&c| c as u64).collect();
-        self.obj_values = sol.obj_values.map_or_else(Vec::default, |o| o.clone());
-        self.raw_energies = sol.raw_energies.map_or_else(Vec::default, |r| r.clone());
+        self.obj_values = sol.obj_values.clone().unwrap_or_else(Vec::default);
+
+        for energy in &sol.raw_energies {
+            match energy {
+                Some(e) => {
+                    self.raw_energies.push(*e);
+                    self.has_raw_energies.push(true);
+                }
+                None => {
+                    self.has_raw_energies.push(false);
+                }
+            }
+        }
 
         for col in sol.samples.iter() {
             match &col {
                 Column::Binary(inner) => self
                     .bins
-                    .extend(inner.data.as_bits().to_bitvec().into_vec()),
+                    .extend(inner.data.as_bits::<Lsb0>().to_bitvec().into_vec()),
                 Column::Spin(inner) => self.spins.extend(
                     inner
                         .data
                         .iter()
-                        .map(|&s| s == 1)
-                        .collect()
-                        .as_bits()
+                        .map(|&s| (s == 1) as u8)
+                        .collect_vec()
+                        .as_bits::<Lsb0>()
                         .to_bitvec()
                         .into_vec(),
                 ),
@@ -112,17 +126,17 @@ impl SerSolution {
             dbg!(&self.reals, &self.reals.len());
         }
 
-        self.constraints = sol.constraints.map_or_else(Vec::default, |cs| {
+        self.constraints = sol.constraints.clone().map_or_else(Vec::default, |cs| {
             let mut flat = Vec::default();
             for cv in cs.iter() {
-                flat.extend(cv.iter().collect().as_bits().to_bitvec().into_vec());
+                flat.extend(cv.iter().map(|e| *e as u8).collect_vec().as_bits::<Lsb0>().to_bitvec().into_vec());
             }
             flat
         });
-        self.variable_bounds = sol.variable_bounds.map_or_else(Vec::default, |cs| {
+        self.variable_bounds = sol.variable_bounds.clone().map_or_else(Vec::default, |cs| {
             let mut flat = Vec::default();
             for cv in cs.iter() {
-                flat.extend(cv.iter().collect().as_bits().to_bitvec().into_vec());
+                flat.extend(cv.iter().map(|e| *e as u8).collect_vec().as_bits::<Lsb0>().to_bitvec().into_vec());
             }
             flat
         });

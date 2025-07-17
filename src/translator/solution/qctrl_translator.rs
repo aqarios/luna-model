@@ -1,8 +1,9 @@
-use num::NumCast;
 use crate::{
     core::{SharedEnvironment, Solution, Timing},
-    errors::SolutionCreationErr, types::Bias,
+    errors::SolutionCreationErr,
+    types::Bias,
 };
+use num::NumCast;
 
 pub struct QctrlTranslator {}
 
@@ -10,7 +11,7 @@ impl QctrlTranslator {
     pub fn from_qctrl<S, E>(
         samples: Vec<Vec<S>>,
         counts: Vec<usize>,
-        energies: Vec<E>,
+        energies: Vec<Option<E>>,
         timing: Option<Timing>,
         env: SharedEnvironment,
     ) -> Result<Solution, SolutionCreationErr>
@@ -24,7 +25,11 @@ impl QctrlTranslator {
         sol.variable_names = env.variable_names();
 
         for ((sample, count), energy) in samples.iter().zip(counts).zip(energies) {
-            sol.extend(&sample, count, <Bias as NumCast>::from(energy).unwrap())?;
+            sol.extend(
+                &sample,
+                count,
+                energy.map(|e| <Bias as NumCast>::from(e).unwrap()),
+            )?;
         }
         Ok(sol)
     }

@@ -131,7 +131,7 @@ impl PyIbmTranslator {
                 })
             })?,
         };
-        Ok(PySolution(IbmTranslator::from_ibm(
+        Ok(PySolution::new(IbmTranslator::from_ibm(
             &samples,
             &orderings.iter().map(|e| Rc::clone(&e.0)).collect(),
             &energies,

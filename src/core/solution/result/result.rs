@@ -1,8 +1,11 @@
+use std::fmt::Display;
+
 use crate::{core::solution::sample::SampleOwned, types::Bias};
 
+#[derive(Debug)]
 pub struct OwnedResult {
     /// The vector of variable assignments.
-    sample: SampleOwned,
+    pub sample: SampleOwned,
     /// The objective value computed from an AqModel. If not present, a raw value from the solver
     /// may be used. None, if none of these are present.
     pub obj_value: Option<Bias>,
@@ -29,5 +32,11 @@ impl OwnedResult {
             variable_bounds_satisfaction: Some(variable_bounds_satisfaction),
             feasible: Some(feasible),
         }
+    }
+}
+
+impl Display for OwnedResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        todo!()
     }
 }

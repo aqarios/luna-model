@@ -6,10 +6,10 @@ use std::{
 };
 
 #[derive(Debug, Clone)]
-pub struct SampleColCreationErr {
+pub struct ColumnCreationErr {
     msg: Option<String>,
 }
-impl SampleColCreationErr {
+impl ColumnCreationErr {
     pub fn default() -> Self {
         Self { msg: None }
     }
@@ -19,8 +19,8 @@ impl SampleColCreationErr {
         }
     }
 }
-impl Error for SampleColCreationErr {}
-impl Display for SampleColCreationErr {
+impl Error for ColumnCreationErr {}
+impl Display for ColumnCreationErr {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match &self.msg {
             Some(msg) => write!(f, "error when creating sample column: {}", msg),

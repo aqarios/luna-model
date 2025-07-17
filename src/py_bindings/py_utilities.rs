@@ -44,11 +44,17 @@ pub fn repr_constraints(constrs: &Constraints) -> String {
 
 pub fn repr_solution(sol: &PySolution) -> String {
     let mut repr = String::from("Solution(");
-    repr += &format!("samples={}, ", repr_samples(&sol.samples()));
-    repr += &format!("obj_values={}, ", repr_opt_numbers(&sol.borrow().obj_values));
-    repr += &format!("raw_energies={}, ", repr_opt_numbers(&sol.borrow().raw_energies));
+    repr += &format!("samples={}, ", repr_samples(&sol.borrow().samples()));
+    repr += &format!("obj_values={}, ", repr_opt_vec(&sol.borrow().obj_values));
+    repr += &format!(
+        "raw_energies={}, ",
+        repr_opt_numbers(&sol.borrow().raw_energies)
+    );
     repr += &format!("counts={}, ", repr_numbers(&sol.borrow().counts));
-    repr += &format!("constraints={}, ", repr_opt_bools_vec(&sol.borrow().constraints));
+    repr += &format!(
+        "constraints={}, ",
+        repr_opt_bools_vec(&sol.borrow().constraints)
+    );
     repr += &format!(
         "variable_bounds={}, ",
         repr_opt_bools_vec(&sol.borrow().variable_bounds)
@@ -60,7 +66,10 @@ pub fn repr_solution(sol: &PySolution) -> String {
     );
     repr += &format!("runtime={}, ", repr_opt_timing(&sol.borrow().timing));
     repr += &format!("n_samples={}, ", sol.borrow().n_samples);
-    repr += &format!("variable_names={}, ", repr_strings(&sol.borrow().variable_names));
+    repr += &format!(
+        "variable_names={}, ",
+        repr_strings(&sol.borrow().variable_names)
+    );
     repr += &format!("sense={}", &sol.borrow().sense.to_string());
     repr += ")";
     repr
@@ -94,6 +103,23 @@ pub fn repr_opt_number<T: ToString>(num: &Option<T>) -> String {
     }
 }
 
+pub fn repr_opt_vec<T: ToString>(vec: &Option<Vec<T>>) -> String {
+    match vec {
+        Some(v) => repr_vec(v),
+        None => "None".to_string(),
+    }
+}
+
+pub fn repr_vec<T: ToString>(vec: &Vec<T>) -> String {
+    format!(
+        "[{}]",
+        vec.iter()
+            .map(|v| v.to_string())
+            .collect::<Vec<String>>()
+            .join(DELIMITER)
+    )
+}
+
 pub fn repr_numbers<T: ToString>(nums: &Vec<T>) -> String {
     format!(
         "[{}]",
@@ -104,35 +130,36 @@ pub fn repr_numbers<T: ToString>(nums: &Vec<T>) -> String {
     )
 }
 
-pub fn repr_opt_bools_vec(bools: &Vec<Option<Vec<bool>>>) -> String {
-    format!(
-        "[{}]",
-        bools
-            .iter()
-            .map(|ovb| match ovb {
-                Some(v) => format!(
+pub fn repr_opt_bools_vec(bools: &Option<Vec<Vec<bool>>>) -> String {
+    match &bools {
+        Some(b) => format!(
+            "[{}]",
+            b.iter()
+                .map(|ovb| format!(
                     "[{}]",
-                    v.iter()
+                    ovb.iter()
                         .map(|b| repr_bool(b))
                         .collect::<Vec<String>>()
                         .join(DELIMITER)
-                ),
-                None => "None".to_string(),
-            })
-            .collect::<Vec<String>>()
-            .join(DELIMITER)
-    )
+                ),)
+                .collect::<Vec<String>>()
+                .join(DELIMITER)
+        ),
+        None => "None".to_string(),
+    }
 }
 
-pub fn repr_opt_bools(bools: &Vec<Option<bool>>) -> String {
-    format!(
-        "[{}]",
-        bools
-            .iter()
-            .map(|b| repr_opt_bool(b))
-            .collect::<Vec<_>>()
-            .join(DELIMITER)
-    )
+pub fn repr_opt_bools(bools: &Option<Vec<bool>>) -> String {
+    match bools {
+        Some(b) => format!(
+            "[{}]",
+            b.iter()
+                .map(|b| repr_bool(b))
+                .collect::<Vec<_>>()
+                .join(DELIMITER)
+        ),
+        None => "None".to_string(),
+    }
 }
 
 pub fn repr_opt_bool(b: &Option<bool>) -> String {
