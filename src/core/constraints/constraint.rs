@@ -329,7 +329,6 @@ impl Add<Constraint> for Constraints {
 
 impl Constraints {
     pub fn add_assign(&mut self, rhs: &Constraint) -> Result<(), DuplicateConstraintNameErr> {
-        dbg!(rhs);
         if let Some(name) = &rhs.name {
             if self.index_map.contains_key(name) {
                 return Err(DuplicateConstraintNameErr(name.to_string()));
