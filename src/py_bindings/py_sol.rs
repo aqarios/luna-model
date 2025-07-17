@@ -949,8 +949,7 @@ impl PySolution {
     /// -------
     /// ResultIterator
     fn __iter__(slf: PyRef<'_, Self>) -> PyResultIterator {
-        // PyResultIterator(slf.0.iter_results())
-        todo!()
+        PyResultIterator::new(slf.clone())
     }
 
     /// Extract a result view from the `Solution` object.
