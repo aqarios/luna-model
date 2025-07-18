@@ -1,6 +1,9 @@
 use std::fmt::Display;
 
-use crate::{core::solution::sample::SampleOwned, types::Bias};
+use crate::{
+    core::{solution::sample::SampleOwned, writer::SolutionWriter, Sample},
+    types::Bias,
+};
 
 #[derive(Debug)]
 pub struct OwnedResult {
@@ -37,6 +40,9 @@ impl OwnedResult {
 
 impl Display for OwnedResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        let s = SolutionWriter::new()
+            .write_sample(&Sample::Owned(self.sample.clone()))
+            .to_string();
+        f.write_str(&s)
     }
 }

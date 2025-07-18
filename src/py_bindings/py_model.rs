@@ -5,6 +5,7 @@ use std::rc::Rc;
 use super::py_bounds::BoundValue;
 use super::py_constr::PyConstraint;
 use super::py_model_metadata::PyModelMetadata;
+use super::py_sample::PySampleInner;
 use super::py_utilities::{repr_model, Replacement};
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
@@ -349,8 +350,8 @@ impl PyModel {
     /// Constraints
     ///     The constraints violated by the given sample.
     fn violated_constraints(&self, sample: &PySample) -> PyConstraints {
-        match &sample {
-            PySample::View(view) => {
+        match &sample.0 {
+            PySampleInner::View(view) => {
                 let binding = view.sol.borrow();
                 let samples = binding.samples();
                 let sample = samples.get_sample(view.row).unwrap();
@@ -358,7 +359,7 @@ impl PyModel {
                     data: Left(self.concrete_model.borrow().violated_constraints(&sample)),
                 }
             }
-            PySample::Owned(owned) => PyConstraints {
+            PySampleInner::Owned(owned) => PyConstraints {
                 data: Left(
                     self.concrete_model
                         .borrow()
@@ -485,14 +486,14 @@ impl PyModel {
     /// Result
     ///     A result object containing the information from the evaluation process.
     fn evaluate_sample(&self, sample: &PySample) -> PyResult<PyOwnedResult> {
-        match &sample {
-            PySample::View(view) => {
+        match &sample.0 {
+            PySampleInner::View(view) => {
                 let binding = view.sol.borrow();
                 let samples = binding.samples();
                 let s = samples.get_sample(view.row).unwrap();
                 Ok(PyOwnedResult::new(self.borrow().evaluate_sample(&s)?))
             }
-            PySample::Owned(owned) => Ok(PyOwnedResult::new(
+            PySampleInner::Owned(owned) => Ok(PyOwnedResult::new(
                 self.borrow()
                     .evaluate_sample(&Sample::Owned(owned.0.clone()))?,
             )),

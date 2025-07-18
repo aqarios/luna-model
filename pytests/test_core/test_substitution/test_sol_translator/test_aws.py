@@ -16,5 +16,5 @@ def aws_solution() -> dict[str, np.typing.NDArray]:
     }
 
 
-def test_dwave_sol_with_substituted_model(aws_solution: dict[str, np.typing.NDArray]):
+def test_aws_sol_with_substituted_model(aws_solution: dict[str, np.typing.NDArray]):
     do_checks(AwsTranslator, aws_solution)

@@ -11,17 +11,7 @@ use crate::{
 use prost::Message;
 use std::str::FromStr;
 
-fn assignment_type_to_u8(vtype: Vtype) -> u8 {
-    match vtype {
-        Vtype::Binary => 0,
-        Vtype::Spin => 1,
-        Vtype::Integer => 2,
-        Vtype::Real => 3,
-        Vtype::__Ghost => 4,
-    }
-}
-
-fn u8_to_assignment_type(u: u8) -> Vtype {
+fn u8_to_vtype(u: u8) -> Vtype {
     match u {
         0 => Vtype::Binary,
         1 => Vtype::Spin,
@@ -134,7 +124,7 @@ impl SerSolution {
         let num_samples = self.num_samples as usize;
         let mut type_per_pos: Vec<Vtype> = Vec::new();
         for (idx, &st) in self.sample_types.iter().enumerate() {
-            let vt = u8_to_assignment_type(st);
+            let vt = u8_to_vtype(st);
             sol.add_new_col_for(idx.into(), vt, num_samples);
             type_per_pos.push(vt);
         }

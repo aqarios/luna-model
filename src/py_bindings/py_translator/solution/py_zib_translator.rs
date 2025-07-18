@@ -2,6 +2,7 @@ use crate::core::Sense;
 use crate::py_bindings::py_env::PyEnvironment;
 use crate::py_bindings::py_sol::{PySolution, VariableKey};
 use crate::py_bindings::py_timing::PyTiming;
+use indexmap::IndexMap;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::pyclass;
@@ -63,7 +64,7 @@ impl PyZibTranslator {
     #[staticmethod]
     fn translate(
         // hashbrown::HashMap does not work here ;(
-        sample: HashMap<VariableKey, f64>,
+        sample: IndexMap<VariableKey, f64>,
         sense: Sense,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,

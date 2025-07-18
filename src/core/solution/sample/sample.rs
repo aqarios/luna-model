@@ -4,6 +4,7 @@ use super::{SampleIterator, VarAssignment};
 use crate::{
     core::{
         solution::{result::ResultView, sol::Solution},
+        writer::SolutionWriter,
         ValueByIndex,
     },
     types::VarIndex,
@@ -60,6 +61,26 @@ impl<'a> Sample<'a> {
                 .collect(),
         }
     }
+
+    // pub fn index_map(&self) -> HashMap<VarIndex, VarIndex> {
+    //     match self {
+    //         Self::View(view) => view.res.sol.varidx_to_pos(),
+    //         Self::Owned(owned) => owned.index_map(),
+    //     }
+    // }
+    pub fn varname_to_pos(&self) -> HashMap<String, VarIndex> {
+        match self {
+            Self::View(view) => view.res.sol.varname_to_pos(),
+            Self::Owned(owned) => owned.varname_to_pos(),
+        }
+    }
+
+    pub fn var_indices(&self) -> Vec<VarIndex> {
+        match self {
+            Self::View(view) => view.res.sol.var_indices(),
+            Self::Owned(owned) => owned.var_indices.clone(),
+        }
+    }
 }
 
 impl<'a> ValueByIndex<VarIndex> for Sample<'a> {
@@ -75,9 +96,8 @@ impl<'a> ValueByIndex<VarIndex> for Sample<'a> {
 
 impl<'a> Display for Sample<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
-        // let s = SolutionWriter::new().write_sample(self.clone()).to_string();
-        // f.write_str(&s)
+        let s = SolutionWriter::new().write_sample(self).to_string();
+        f.write_str(&s)
     }
 }
 
@@ -108,18 +128,32 @@ impl<'a> ValueByIndex<VarIndex> for SampleView<'a> {
 pub struct SampleOwned {
     pub variable_names: Vec<String>,
     pub actual: Vec<VarAssignment>,
+    pub var_indices: Vec<VarIndex>,
 }
 
 impl SampleOwned {
-    pub fn new(variable_names: Vec<String>, actual: Vec<VarAssignment>) -> Self {
+    pub fn new(
+        variable_names: Vec<String>,
+        actual: Vec<VarAssignment>,
+        var_indices: Vec<VarIndex>,
+    ) -> Self {
         Self {
             variable_names,
             actual,
+            var_indices,
         }
     }
 
     pub fn to_map(&self) -> HashMap<&String, &VarAssignment> {
         self.variable_names.iter().zip(&self.actual).collect()
+    }
+
+    pub fn varname_to_pos(&self) -> HashMap<String, VarIndex> {
+        let mut map = HashMap::with_capacity(self.variable_names.len());
+        for (i, name) in self.variable_names.iter().enumerate() {
+            map.insert(name.to_string(), i.into());
+        }
+        map
     }
 }
 
@@ -134,6 +168,9 @@ impl<'a> ValueByIndex<VarIndex> for SampleOwned {
 
 impl Display for SampleOwned {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        let s = SolutionWriter::new()
+            .write_sample(&Sample::Owned(self.clone()))
+            .to_string();
+        f.write_str(&s)
     }
 }

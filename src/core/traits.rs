@@ -39,17 +39,3 @@ impl<T: Clone> FilterByMask<T> for Vec<T> {
             .collect()
     }
 }
-
-pub trait PushOrCreate<T> {
-    fn push_or_create(&mut self, item: T);
-}
-
-impl<T> PushOrCreate<T> for Option<Vec<T>> {
-    fn push_or_create(&mut self, item: T) {
-        if let Some(ref mut data) = self {
-            data.push(item);
-        } else {
-            self.insert(vec![item]);
-        }
-    }
-}

@@ -152,4 +152,13 @@ impl Column {
     pub fn new_real(varid: VarIndex, data: Vec<RealAssignmentType>) -> Column {
         Column::Real(ColElement::new(varid, data))
     }
+
+    pub fn var_index(&self) -> VarIndex {
+        match self {
+            Self::Binary(x) => x.varid,
+            Self::Spin(x) => x.varid,
+            Self::Integer(x) => x.varid,
+            Self::Real(x) => x.varid,
+        }
+    }
 }

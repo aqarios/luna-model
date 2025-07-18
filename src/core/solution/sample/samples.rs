@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
 use derive_more::{Deref, DerefMut};
-use crate::core::Solution;
+use crate::core::{writer::SolutionWriter, Solution};
 use super::{Sample, SamplesIterator, VarAssignment};
 
 #[derive(Debug, Clone, Deref, DerefMut)]
@@ -27,10 +27,9 @@ impl<'a> Samples<'a> {
 
 impl<'a> Display for Samples<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
-        // let s = SolutionWriter::new()
-        //     .write_samples(self.clone(), &self.borrow().counts)
-        //     .to_string();
-        // f.write_str(&s)
+        let s = SolutionWriter::new()
+            .write_samples(&self, &self.counts)
+            .to_string();
+        f.write_str(&s)
     }
 }

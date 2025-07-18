@@ -2,7 +2,7 @@ use crate::core::expression::One;
 use crate::core::traits::ContentEquality;
 use crate::core::variable::{VarRef, Variable, Vtype};
 use crate::core::writer::LineLengthRestrictor;
-use crate::core::{Bounds, LazyBounds, Sample, ValueByIndex, VarAssignment};
+use crate::core::{Bounds, LazyBounds, ValueByIndex, VarAssignment};
 use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use crate::types::Bias;
 use crate::types::{EnvId, VarIndex};
@@ -91,7 +91,7 @@ impl SharedEnvironment {
     }
 
     pub fn get_vref_by_name(&self, name: &str) -> Result<VarRef, VariableNotExistingErr> {
-        let index = self.borrow().get(&name.to_string())?;
+        let index = self.borrow().get_varidx(&name.to_string())?;
         // As we don't store the VarRefs here, we need to create a new one based on the info
         // we have.
         Ok(VarRef::new(index, self.clone()))
@@ -149,6 +149,10 @@ impl SharedEnvironment {
 
     pub fn contains(&self, varname: String) -> bool {
         self.variable_names().contains(&varname)
+    }
+
+    pub fn varidx_for_name(&self, varname: &String) -> VarIndex {
+        self.borrow().variables_lookup[varname]
     }
 }
 
@@ -274,23 +278,27 @@ impl Environment {
         self.variables.iter()
     }
 
-    pub fn get(&self, name: &String) -> Result<VarIndex, VariableNotExistingErr> {
+    pub fn get_varidx(&self, name: &String) -> Result<VarIndex, VariableNotExistingErr> {
         Ok(*(self
             .variables_lookup
             .get(name)
             .ok_or_else(|| VariableNotExistingErr)?))
     }
 
-    pub fn evaluate_bounds<Sample: ValueByIndex<VarIndex, Output = VarAssignment>>(
+    pub fn evaluate_bounds<Sample: ValueByIndex<VarIndex, Output = VarAssignment>, F>(
         &self,
         sample: &Sample,
-    ) -> Vec<bool> {
+        index_map: F,
+    ) -> Vec<bool>
+    where
+        F: Fn(VarIndex) -> VarIndex,
+    {
         self.variables
             .iter()
             .enumerate()
             .filter(|(i, _)| !self.ghost_vars.contains(i))
             .map(|(i, v)| {
-                let value: Bias = sample.value_by_index(i.into()).to_bias();
+                let value: Bias = sample.value_by_index(index_map(i.into())).to_bias();
                 v.bounds.evaluate(value)
             })
             .collect()

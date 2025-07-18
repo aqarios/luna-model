@@ -1,6 +1,6 @@
 use super::py_utilities::repr_solution;
 use crate::core::solution::{ColElement, Column, PrintLayout, ShowMetadata, VarKey};
-use crate::core::{Sense, SharedEnvironment, Solution, VarAssignment, Vtype};
+use crate::core::{make_index_map, Sense, SharedEnvironment, Solution, VarAssignment, Vtype};
 use crate::errors::{
     ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, VariableNotExistingErr,
 };
@@ -13,6 +13,7 @@ use crate::py_bindings::py_timing::PyTiming;
 use crate::py_bindings::py_usize::PyUsize;
 use crate::py_bindings::py_var::PyVariable;
 use crate::serialization::{Decodable, Decompressable, Encodable, Unversionizable};
+use crate::types::VarIndex;
 use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
 use itertools::Itertools;
@@ -22,7 +23,6 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
 use std::cell::RefCell;
-use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::rc::Rc;
@@ -215,7 +215,7 @@ impl PySolution {
     ///     If a sample column has an incorrect number of samples or if `counts` has
     ///     a length different from the number of samples given.
     #[staticmethod]
-    #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None, sense=None)
+    #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None, sense=None, obj_values=None, constraints=None, variable_bounds=None, feasible=None)
     )]
     fn _build(
         component_types: Vec<Vtype>,
@@ -228,6 +228,10 @@ impl PySolution {
         timing: Option<PyTiming>,
         counts: Option<Vec<PyUsize>>,
         sense: Option<Sense>,
+        obj_values: Option<Vec<f64>>,
+        constraints: Option<Vec<Vec<bool>>>,
+        variable_bounds: Option<Vec<Vec<bool>>>,
+        feasible: Option<Vec<bool>>,
     ) -> PyResult<Self> {
         let var_names: Vec<Option<String>> = if let Some(vn) = variable_names {
             if vn.len() != component_types.len() {
@@ -314,10 +318,10 @@ impl PySolution {
         } else {
             sol.counts = vec![1; sol.n_samples];
         }
-        sol.obj_values = None;
-        sol.constraints = None;
-        sol.variable_bounds = None;
-        sol.feasible = None;
+        sol.obj_values = obj_values;
+        sol.constraints = constraints;
+        sol.variable_bounds = variable_bounds;
+        sol.feasible = feasible;
         sol.timing = timing.and_then(|t| Some(t.0));
         Ok(PySolution::new(sol))
     }
@@ -366,7 +370,7 @@ impl PySolution {
     #[staticmethod]
     #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None))]
     pub fn from_dict(
-        data: HashMap<VariableKey, f64>,
+        data: IndexMap<VariableKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
@@ -382,12 +386,12 @@ impl PySolution {
         );
         sol.create_columns(&environment, 1);
         let n_vars = environment.borrow().varcount() as usize;
-
-        let (sample, var_names) = Self::build_sample(&data, n_vars, &environment, |idx| idx)?;
-        // Self::build_sample(&data, n_vars, &environment, |idx| sol.map_varidx(idx))?;
-
-        sol.variable_names = var_names;
+        let (data, variable_names) = Self::build_varnames(data, n_vars)?;
+        sol.variable_names = variable_names;
+        let index_map = make_index_map(sol.varname_to_pos(), &environment);
+        let sample = Self::build_sample(&data, n_vars, &environment, |idx| index_map[&idx])?;
         sol.timing = timing.map(|t| t.0);
+
         let energy: Option<f64> = None;
         let _ = sol.extend(&sample, counts.unwrap_or(1), energy)?;
         if let Some(m) = model {
@@ -447,7 +451,7 @@ impl PySolution {
     #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None)
     )]
     fn from_dicts(
-        data: Vec<HashMap<VariableKey, f64>>,
+        data: Vec<IndexMap<VariableKey, f64>>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
@@ -463,15 +467,19 @@ impl PySolution {
             sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
         );
         sol.create_columns(&environment, data.len());
-        let n_vars = environment.borrow().varcount() as usize;
 
         let mut samples: Vec<Vec<f64>> = Vec::with_capacity(data.len());
 
+        let n_vars = environment.borrow().varcount() as usize;
+        // we need to ensure each sample dict / hashmap / indexmap has the same order.
+        let (data, variable_names) = Self::build_varnames_multi(data)?;
+        sol.variable_names = variable_names;
+        let index_map = make_index_map(sol.varname_to_pos(), &environment);
+
         for (i, d) in data.iter().enumerate() {
-            let (sample, var_names) = Self::build_sample(&d, n_vars, &environment, |idx| idx)?;
+            let sample = Self::build_sample(d, n_vars, &environment, |idx| index_map[&idx])?;
             // Self::build_sample(&d, n_vars, &environment, |idx| sol.map_varidx(idx))?;
 
-            sol.variable_names = var_names;
             let energy: Option<f64> = None;
 
             let sc = counts
@@ -734,13 +742,13 @@ impl PySolution {
     /// Get the objective values of the single samples as a ndarray. A value will be
     /// None if the sample hasn't yet been evaluated.
     #[getter]
-    fn get_obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
-        self.borrow()
-            .obj_values
-            .iter()
-            .map(|x| x.into_py_any(py).unwrap())
-            .collect::<Vec<_>>()
-            .to_pyarray(py)
+    fn get_obj_values<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<PyObject>>> {
+        self.borrow().obj_values.as_ref().map(|ovs| {
+            ovs.iter()
+                .map(|x| x.into_py_any(py).unwrap())
+                .collect::<Vec<_>>()
+                .to_pyarray(py)
+        })
     }
 
     /// Get the raw energy values of the single samples as returned by the solver /
@@ -854,7 +862,9 @@ impl PySolution {
 
     /// Get the best result.
     fn best(&self) -> Option<PyResultView> {
-        self.borrow().best().map(|r| PyResultView::new(self.clone(), r.idx))
+        self.borrow()
+            .best()
+            .map(|r| PyResultView::new(self.clone(), r.idx))
     }
 
     fn __len__(&self) -> usize {
@@ -1008,7 +1018,8 @@ impl PySolution {
                 elem.0.as_ref().env.borrow().get_vtype(elem.0.id),
             ),
         };
-        Ok(self.borrow_mut()
+        Ok(self
+            .borrow_mut()
             .add_samplecol(var, data.as_slice(), default)?)
     }
 
@@ -1043,8 +1054,7 @@ impl PySolution {
                 VariableKey::Str(str) => VarKey::Name(str.to_string()),
                 VariableKey::Var(elem) => VarKey::Var(elem.0.as_ref()),
             };
-            self.borrow_mut()
-                .add_samplecol(var, &col, vtypes[i])?;
+            self.borrow_mut().add_samplecol(var, &col, vtypes[i])?;
         }
         Ok(())
     }
@@ -1208,43 +1218,86 @@ impl PySolution {
         Ok(environment)
     }
 
-    pub fn build_sample<F>(
-        data: &HashMap<VariableKey, f64>,
-        n_vars: usize,
-        env: &SharedEnvironment,
-        map_varidx: F,
-    ) -> PyResult<(Vec<f64>, Vec<String>)>
-    where
-        F: Fn(usize) -> usize,
-    {
-        let mut sample = vec![f64::default(); n_vars];
-        let mut mask = vec![false; n_vars];
-        let mut var_names = vec![String::default(); n_vars];
+    pub fn build_varnames_multi(
+        data: Vec<IndexMap<VariableKey, f64>>,
+    ) -> PyResult<(Vec<IndexMap<String, f64>>, Vec<String>)> {
+        let data = data
+            .into_iter()
+            .map(|sample| {
+                sample
+                    .into_iter()
+                    .map(|(k, v)| {
+                        let var_name = match k {
+                            VariableKey::Str(s) => Ok(s),
+                            VariableKey::Var(v) => v.name(),
+                        };
+                        match var_name {
+                            Ok(vn) => Ok((vn, v)),
+                            Err(e) => Err(e),
+                        }
+                    })
+                    .collect::<Result<IndexMap<_, _>, _>>()
+                    .map(|mut ok| {
+                        ok.sort_unstable_keys();
+                        ok
+                    })
+            })
+            .collect::<Result<Vec<IndexMap<_, _>>, _>>()?;
 
-        for (k, &v) in data.iter() {
+        let var_names = data[0].keys().cloned().collect_vec();
+        Ok((data, var_names))
+    }
+
+    pub fn build_varnames(
+        data: IndexMap<VariableKey, f64>,
+        n_vars: usize,
+    ) -> PyResult<(IndexMap<String, f64>, Vec<String>)> {
+        let mut var_names = Vec::with_capacity(n_vars);
+        let mut new_data = IndexMap::with_capacity(n_vars);
+        for (k, v) in data.iter() {
             let var_name = match k {
                 VariableKey::Str(s) => s,
                 VariableKey::Var(v) => &v.name()?,
             };
+            var_names.push(var_name.to_string());
+            new_data.insert(var_name.to_string(), *v);
+        }
+
+        Ok((new_data, var_names))
+    }
+
+    pub fn build_sample<F>(
+        data: &IndexMap<String, f64>,
+        n_vars: usize,
+        env: &SharedEnvironment,
+        map_varidx: F,
+    ) -> PyResult<Vec<f64>>
+    where
+        F: Fn(VarIndex) -> VarIndex,
+    {
+        let mut sample = vec![f64::default(); n_vars];
+        let mut mask = vec![false; n_vars];
+
+        for (k, &v) in data.iter() {
             let environ = env.borrow();
-            let maybe_var = environ.get(var_name).ok();
-            // println!("{:?}", maybe_var);
+            let maybe_var = environ.get_varidx(k).ok();
             if maybe_var.is_none() {
                 return Err(SampleUnexpectedVariableErr {
-                    var_name: var_name.clone(),
+                    var_name: k.clone(),
                 })?;
             }
             let var = maybe_var.unwrap().0 as usize;
-            let sidx = map_varidx(var);
+            // println!("build_var -> var = {}", &var);
+            let sidx: usize = map_varidx(var.into()).into();
+            // println!("build_var -> sidx = {}", &sidx);
             sample[sidx] = v;
             mask[sidx] = true;
-            var_names[sidx] = var_name.clone();
         }
 
         if !mask.iter().all(|&x| x) {
             return Err(SampleIncorrectLengthErr)?;
         }
 
-        Ok((sample, var_names))
+        Ok(sample)
     }
 }

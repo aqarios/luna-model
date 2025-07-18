@@ -7,6 +7,7 @@ use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
+use strum_macros::Display;
 
 use super::py_sol::PySolution;
 use super::py_var::PyVariable;
@@ -133,11 +134,14 @@ pub struct PySamples(pub PySolution);
     pyclass(unsendable, name = "Sample", module = "luna_quantum._core")
 )]
 #[derive(Clone)]
-pub enum PySample {
+pub struct PySample(pub PySampleInner);
+
+#[derive(Clone)]
+pub enum PySampleInner {
     View(PySView),
     Owned(PySOwned),
 }
-#[derive(Clone, IntoPyObject, FromPyObject)]
+#[derive(Clone)]
 pub struct PySView {
     pub sol: PySolution,
     pub row: usize,
@@ -160,32 +164,32 @@ pub struct PySOwned(pub SampleOwned);
 
 impl PySample {
     pub fn new(sol: PySolution, row: usize) -> Self {
-        Self::View(PySView::new(sol, row))
+        Self(PySampleInner::View(PySView::new(sol, row)))
     }
     pub fn owned(sample: SampleOwned) -> Self {
-        Self::Owned(PySOwned(sample))
+        Self(PySampleInner::Owned(PySOwned(sample)))
     }
 
     fn get_assignment(&self, col: usize) -> Option<VarAssignment> {
-        match self {
-            Self::View(view) => {
+        match &self.0 {
+            PySampleInner::View(view) => {
                 let binding = view.sol.0.borrow();
                 let samples = binding.samples();
                 samples.get_assignment(view.row, col)
             }
-            Self::Owned(owned) => owned.actual.get(col).copied(),
+            PySampleInner::Owned(owned) => owned.actual.get(col).copied(),
         }
     }
 
     fn index_for_variable_name(&self, varname: &str) -> Option<usize> {
-        match self {
-            Self::View(view) => {
+        match &self.0 {
+            PySampleInner::View(view) => {
                 let binding = view.sol.0.borrow();
                 let samples = binding.samples();
                 let sample = samples.get_sample(view.row);
                 sample.map(|s| s.index_for_variable_name(varname))?
             }
-            Self::Owned(owned) => owned.variable_names.iter().position(|n| n == varname),
+            PySampleInner::Owned(owned) => owned.variable_names.iter().position(|n| n == varname),
         }
     }
 }
@@ -307,14 +311,14 @@ impl PySamples {
 #[pymethods]
 impl PySample {
     fn __str__(&self) -> String {
-        match self {
-            Self::View(view) => {
+        match &self.0 {
+            PySampleInner::View(view) => {
                 let binding = view.sol.0.borrow();
                 let samples = binding.samples();
                 let sample = samples.get_sample(view.row).unwrap();
                 format!("{}", sample)
             }
-            Self::Owned(owned) => format!("{}", owned.0),
+            PySampleInner::Owned(owned) => format!("{}", owned.0),
         }
     }
 
@@ -375,14 +379,14 @@ impl PySample {
     /// -------
     /// int
     fn __len__(&self) -> usize {
-        match self {
-            Self::View(view) => {
+        match &self.0 {
+            PySampleInner::View(view) => {
                 let binding = view.sol.borrow();
                 let samples = binding.samples();
                 let sample = samples.get_sample(view.row).unwrap();
                 sample.len()
             }
-            Self::Owned(owned) => owned.variable_names.len(),
+            PySampleInner::Owned(owned) => owned.variable_names.len(),
         }
     }
 
@@ -403,8 +407,8 @@ impl PySample {
     ///     A dictionary representation of the sample, where the keys are the
     ///     variable names and the values are the variables' assignments.
     fn to_dict<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyDict> {
-        match self {
-            Self::View(view) => {
+        match &self.0 {
+            PySampleInner::View(view) => {
                 let binding = view.sol.borrow();
                 let samples = binding.samples();
                 let sample = samples.get_sample(view.row).unwrap();
@@ -414,7 +418,7 @@ impl PySample {
                 }
                 py_dict
             }
-            Self::Owned(owned) => {
+            PySampleInner::Owned(owned) => {
                 let py_dict = PyDict::new(py);
                 for (k, v) in owned.to_map() {
                     py_dict.set_item(k, PyVarAssignment(*v)).unwrap()
@@ -432,13 +436,13 @@ impl PySampleIterator {
     }
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyVarAssignment> {
-        let out = match &slf.sample {
-            PySample::View(view) => {
+        let out = match &slf.sample.0 {
+            PySampleInner::View(view) => {
                 let b = view.sol.borrow().get_assignment(view.row, slf.idx);
                 let out = b.map(|v| PyVarAssignment(v));
                 out
             }
-            PySample::Owned(owned) => {
+            PySampleInner::Owned(owned) => {
                 let out = owned.actual.get(slf.idx);
                 out.map(|v| PyVarAssignment(*v))
             }

@@ -1,7 +1,11 @@
 use std::fmt::Display;
 
 use crate::{
-    core::{solution::sol::Solution, ValueByIndex, VarAssignment},
+    core::{
+        solution::{sample::SampleView, sol::Solution},
+        writer::SolutionWriter,
+        Sample, ValueByIndex, VarAssignment,
+    },
     types::{Bias, VarIndex},
 };
 
@@ -30,7 +34,10 @@ impl<'a> ValueByIndex<VarIndex> for ResultView<'a> {
 
 impl<'a> Display for ResultView<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        let s = SolutionWriter::new()
+            .write_sample(&Sample::View(SampleView::new(self.sol, self.idx)))
+            .to_string();
+        f.write_str(&s)
     }
 }
 
@@ -48,7 +55,10 @@ impl<'a> ResultView<'a> {
     }
 
     pub fn variable_bounds_satisfaction(&self) -> Option<Vec<bool>> {
-        self.sol.variable_bounds.as_ref().map(|v| v[self.idx].clone())
+        self.sol
+            .variable_bounds
+            .as_ref()
+            .map(|v| v[self.idx].clone())
     }
 
     pub fn feasible(&self) -> Option<bool> {

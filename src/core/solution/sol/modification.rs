@@ -1,6 +1,6 @@
 use super::{column::Column, Solution, VarKey};
 use crate::{
-    core::{SharedEnvironment, VarRef, Vtype},
+    core::{Sense, SharedEnvironment, VarRef, Vtype},
     errors::{ColumnCreationErr, SampleIncorrectLengthErr, SolutionCreationErr},
     types::{
         Bias, BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType,
@@ -63,8 +63,26 @@ impl Solution {
         self.obj_values = Some(objective_value);
         self.constraints = Some(constraints);
         self.variable_bounds = Some(variable_bounds);
-        // todo: add best sample index comp here or during getter dynamically?
-        // I'd suggest when field is accessed.
+        self.best_sample_idx = match self.sense {
+            Sense::Min => self.obj_values.as_ref().map_or_else(
+                || None,
+                |ov| {
+                    ov.iter()
+                        .enumerate()
+                        .min_by(|(_, a), (_, b)| a.total_cmp(b))
+                        .map(|(idx, _)| idx)
+                },
+            ),
+            Sense::Max => self.obj_values.as_ref().map_or_else(
+                || None,
+                |ov| {
+                    ov.iter()
+                        .enumerate()
+                        .max_by(|(_, a), (_, b)| a.total_cmp(b))
+                        .map(|(idx, _)| idx)
+                },
+            ),
+        }
     }
 }
 
@@ -139,11 +157,7 @@ impl Solution {
         vtype: Vtype,
     ) -> Result<(), ColumnCreationErr> {
         let varid = self.variable_names.len();
-        self.add_column(Column::try_new(
-            data,
-            varid.into(),
-            vtype,
-        )?);
+        self.add_column(Column::try_new(data, varid.into(), vtype)?);
         self.variable_names.push(varname);
         // todo: adjust other values and fix logic after restructuring the solution
         // internally.
@@ -164,7 +178,7 @@ impl Solution {
             Ok(variable) => {
                 let id: usize = var.id.into();
                 self.remove_samplecol_for_varname(variable.name.clone())
-            },
+            }
             Err(_) => (),
         }
     }
@@ -175,7 +189,7 @@ impl Solution {
             Some((idx, _)) => {
                 let _ = self.variable_names.remove(idx);
                 let _ = self.samples.remove(idx);
-            },
+            }
             None => (),
         };
     }

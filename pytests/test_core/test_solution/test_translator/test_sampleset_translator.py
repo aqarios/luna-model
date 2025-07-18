@@ -42,8 +42,8 @@ def test_sampleset_translator_constructed():
 
     assert sol.samples.tolist() == samples
     assert sol.counts.tolist() == counts
-    assert sol.obj_values.tolist() == [None, None, None]
     assert sol.raw_energies.tolist() == energy
+    assert sol.obj_values is None
     assert sol.runtime is None
 
     for result in sol.results:
@@ -87,7 +87,7 @@ def test_sampleset_translator_sa_random_models():
         assert sol.runtime.total.total_seconds() > 0
         assert sol.runtime.total_seconds > 0
         assert sol.runtime.qpu is None
-        assert sol.obj_values.tolist() == [None] * len(sol.samples)
+        assert sol.obj_values is None
         assert sol.raw_energies.tolist() == sampleset_agg.record.energy.tolist()
 
         results = list(sol.results)

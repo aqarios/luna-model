@@ -57,3 +57,5 @@ pub use variable::Vtype;
 
 pub use traits::ContentEquality;
 pub use traits::ValueByIndex;
+
+pub use utils::make_index_map;
