@@ -1,4 +1,4 @@
-use std::{fmt::Debug, rc::Rc};
+use std::fmt::Debug;
 
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
 
@@ -10,6 +10,7 @@ use crate::{
         base_passes::{BasePass, TransformationPass, TransformationPassResult},
         errors::TransformationPassError,
     },
+    utils::ShareMut,
 };
 
 use super::py_transformation_pass::{PyTransformationOutcome, PyTransformationPass};
@@ -125,9 +126,11 @@ impl TransformationPass for PyTransformationPassAdapter {
                 .map_err(|e| self.map_err(&e))?;
             let py_sol: PySolution = py_res.extract(py).map_err(|e| self.map_err(&e))?;
             Ok::<PySolution, TransformationPassError>(py_sol)
-        }).unwrap(); // Backwards cannot have error currently.
-        let sol: Solution = Rc::into_inner(py_sol.0 .0)
-            .ok_or(self.map_err(&"Solution reference leaked out of backwards scope.")).unwrap().into_inner();
+        })
+        .unwrap(); // Backwards cannot have error currently.
+        let sol: Solution = ShareMut::into_inner(py_sol.0)
+            .ok_or(self.map_err(&"Solution reference leaked out of backwards scope."))
+            .unwrap();
         sol
     }
 }

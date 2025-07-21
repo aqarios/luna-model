@@ -1,12 +1,14 @@
-use crate::core::{SharedSolution, ResultIterator, Sample, SampleIterator, Samples, SamplesIterator};
+use crate::core::solution::sample::SampleOwned;
+use crate::core::VarAssignment;
 use crate::py_bindings::py_sol::PyVarAssignment;
 use derive_more::{Deref, DerefMut};
-use either::Either;
+use itertools::Itertools;
 use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
 
+use super::py_sol::PySolution;
 use super::py_var::PyVariable;
 
 /// An iterator over a solution's samples.
@@ -22,10 +24,28 @@ use super::py_var::PyVariable;
 /// ...     sample
 /// [0, -5, 0.28]
 /// [1, -4, -0.42]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "SamplesIterator", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "SamplesIterator", module = "luna_quantum._core"))]
-#[derive(Deref, DerefMut)]
-pub struct PySamplesIterator(pub SamplesIterator);
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "SamplesIterator", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "SamplesIterator", module = "luna_quantum._core")
+)]
+pub struct PySamplesIterator {
+    sol: PySolution,
+    idx: usize,
+}
+
+impl PySamplesIterator {
+    fn new(sol: PySolution) -> Self {
+        Self { sol, idx: 0 }
+    }
+}
+
+// impl PySamplesIterator {
+//
+// }
 
 /// An iterator over the variable assignments of a solution's sample.
 ///
@@ -42,10 +62,24 @@ pub struct PySamplesIterator(pub SamplesIterator);
 /// 0
 /// -5
 /// 0.28
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "SampleIterator", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "SampleIterator", module = "luna_quantum._core"))]
-#[derive(Deref, DerefMut)]
-pub struct PySampleIterator(pub SampleIterator);
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "SampleIterator", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "SampleIterator", module = "luna_quantum._core")
+)]
+pub struct PySampleIterator {
+    sample: PySample,
+    idx: usize,
+}
+
+impl PySampleIterator {
+    fn new(sample: PySample) -> Self {
+        Self { sample, idx: 0 }
+    }
+}
 
 /// A samples object is simply a set-like object that contains every different sample
 /// of a solution.
@@ -62,10 +96,16 @@ pub struct PySampleIterator(pub SampleIterator);
 /// >>> samples
 /// [0, -5, 0.28]
 /// [1, -4, -0.42]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Samples", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Samples", module = "luna_quantum._core"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "Samples", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "Samples", module = "luna_quantum._core")
+)]
 #[derive(Deref, DerefMut)]
-pub struct PySamples(pub Samples);
+pub struct PySamples(pub PySolution);
 
 /// A sample object is an assignment of an actual value to each of the models'
 /// variables.
@@ -84,22 +124,86 @@ pub struct PySamples(pub Samples);
 /// >>> sample: Sample = solution.samples[0]
 /// >>> sample
 /// [0, -5, 0.28]
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Sample", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Sample", module = "luna_quantum._core"))]
-#[derive(Deref, DerefMut)]
-pub struct PySample(pub Sample);
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "Sample", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "Sample", module = "luna_quantum._core")
+)]
+#[derive(Clone)]
+pub struct PySample(pub PySampleInner);
 
-impl Into<SamplesIterator> for PySamplesIterator {
-    fn into(self) -> SamplesIterator {
-        self.0
+#[derive(Clone)]
+pub enum PySampleInner {
+    View(PySView),
+    Owned(PySOwned),
+}
+#[derive(Clone)]
+pub struct PySView {
+    pub sol: PySolution,
+    pub row: usize,
+}
+impl PySView {
+    fn new(sol: PySolution, row: usize) -> Self {
+        Self { sol, row }
+    }
+}
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(unsendable, name = "OwnedSample", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(unsendable, name = "OwnedSample", module = "luna_quantum._core")
+)]
+#[derive(Clone, Deref)]
+pub struct PySOwned(pub SampleOwned);
+
+impl PySample {
+    pub fn new(sol: PySolution, row: usize) -> Self {
+        Self(PySampleInner::View(PySView::new(sol, row)))
+    }
+    pub fn owned(sample: SampleOwned) -> Self {
+        Self(PySampleInner::Owned(PySOwned(sample)))
+    }
+
+    fn get_assignment(&self, col: usize) -> Option<VarAssignment> {
+        match &self.0 {
+            PySampleInner::View(view) => {
+                let binding = view.sol.0.access();
+                let samples = binding.samples();
+                samples.get_assignment(view.row, col)
+            }
+            PySampleInner::Owned(owned) => owned.actual.get(col).copied(),
+        }
+    }
+
+    fn index_for_variable_name(&self, varname: &str) -> Option<usize> {
+        match &self.0 {
+            PySampleInner::View(view) => {
+                let binding = view.sol.0.access();
+                let samples = binding.samples();
+                let sample = samples.get_sample(view.row);
+                sample.map(|s| s.index_for_variable_name(varname))?
+            }
+            PySampleInner::Owned(owned) => owned.variable_names.iter().position(|n| n == varname),
+        }
     }
 }
 
-impl Into<SampleIterator> for PySampleIterator {
-    fn into(self) -> SampleIterator {
-        self.0
-    }
-}
+// impl Into<SamplesIterator> for PySamplesIterator {
+//     fn into(self) -> SamplesIterator {
+//         self.0
+//     }
+// }
+//
+// impl Into<SampleIterator> for PySampleIterator {
+//     fn into(self) -> SampleIterator {
+//         self.0
+//     }
+// }
 
 #[pymethods]
 impl PySamples {
@@ -111,19 +215,22 @@ impl PySamples {
     /// list[list[int | float]]
     ///     The samples object as a 2-dimensional list.
     fn tolist(&self, py: Python) -> Vec<Vec<PyObject>> {
-        ResultIterator::new(SharedSolution::clone(&self))
-            .into_iter()
-            .map(|r| {
-                SampleIterator::from_res_view(&r)
-                    .into_iter()
+        let b = self.access();
+        let samples = b.samples();
+        samples
+            .iter()
+            .map(|s| {
+                s.iter()
                     .map(|v| PyVarAssignment(v).into_pyobject(py).unwrap().unbind())
-                    .collect()
+                    .collect_vec()
             })
-            .collect()
+            .collect_vec()
     }
 
-    fn __str__(&self) -> String {
-        format!("{}", self.0)
+    fn __str__<'a>(&'a self) -> String {
+        let b = self.access();
+        let samples = b.samples();
+        format!("{}", samples)
     }
 
     /// Extract a sample or variable assignment from the ``Samples`` object.
@@ -147,11 +254,13 @@ impl PySamples {
                     "Expected a non-negative number, received: {res_idx}"
                 )))?;
             }
-            match self.get_sample(res_idx as usize) {
+            match self.access().samples().get_sample(res_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
                 ))),
-                Some(r) => PySample(r).into_pyobject(py)?.into_py_any(py),
+                Some(_) => PySample::new(self.0.clone(), res_idx as usize)
+                    .into_pyobject(py)?
+                    .into_py_any(py),
             }
         } else if let Ok((res_idx, var_idx)) = item.extract::<(isize, isize)>(py) {
             if res_idx < 0 {
@@ -164,7 +273,11 @@ impl PySamples {
                     "Expected a non-negative number, received: {var_idx}"
                 )))?;
             }
-            match self.get_assignment(res_idx as usize, var_idx as usize) {
+            match self
+                .access()
+                .samples()
+                .get_assignment(res_idx as usize, var_idx as usize)
+            {
                 None => Err(PyIndexError::new_err(format!(
                     "Index ({res_idx}, {var_idx}) out of bounds"
                 ))),
@@ -181,7 +294,7 @@ impl PySamples {
     /// -------
     /// int
     fn __len__(&self) -> usize {
-        self.borrow().n_samples
+        self.access().n_samples
     }
 
     /// Iterate over all samples of this sample set.
@@ -190,14 +303,22 @@ impl PySamples {
     /// -------
     /// SamplesIterator
     fn __iter__(&self) -> PySamplesIterator {
-        PySamplesIterator(self.0.iter())
+        PySamplesIterator::new(self.0.clone())
     }
 }
 
 #[pymethods]
 impl PySample {
     fn __str__(&self) -> String {
-        format!("{}", self.0)
+        match &self.0 {
+            PySampleInner::View(view) => {
+                let binding = view.sol.0.access();
+                let samples = binding.samples();
+                let sample = samples.get_sample(view.row).unwrap();
+                format!("{}", sample)
+            }
+            PySampleInner::Owned(owned) => format!("{}", owned.0),
+        }
     }
 
     /// Extract a variable assignment from the ``Sample`` object.
@@ -222,8 +343,8 @@ impl PySample {
                 Some(v) => Ok(PyVarAssignment(v)),
             }
         } else if let Ok(var_name) = item.extract::<String>(py) {
-            if let Some(var_idx) = self.0.index_for_variable_name(&var_name) {
-                match self.get_assignment(var_idx as usize) {
+            if let Some(var_idx) = self.index_for_variable_name(&var_name) {
+                match self.get_assignment(var_idx) {
                     None => Err(PyIndexError::new_err(format!(
                         "Index {var_idx} out of bounds"
                     ))),
@@ -257,9 +378,14 @@ impl PySample {
     /// -------
     /// int
     fn __len__(&self) -> usize {
-        match &self.0 .0 {
-            Either::Left(r) => r.sol.borrow().samples.len(),
-            Either::Right(r) => r.len(),
+        match &self.0 {
+            PySampleInner::View(view) => {
+                let binding = view.sol.access();
+                let samples = binding.samples();
+                let sample = samples.get_sample(view.row).unwrap();
+                sample.len()
+            }
+            PySampleInner::Owned(owned) => owned.variable_names.len(),
         }
     }
 
@@ -269,7 +395,7 @@ impl PySample {
     /// -------
     /// SampleIterator
     fn __iter__(slf: PyRef<'_, Self>) -> PySampleIterator {
-        PySampleIterator(slf.0.iter())
+        PySampleIterator::new(slf.clone())
     }
 
     /// Convert the sample to a dictionary.
@@ -280,11 +406,25 @@ impl PySample {
     ///     A dictionary representation of the sample, where the keys are the
     ///     variable names and the values are the variables' assignments.
     fn to_dict<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyDict> {
-        let py_dict = PyDict::new(py);
-        for (k, v) in self.0.to_map() {
-            py_dict.set_item(k, PyVarAssignment(v)).unwrap()
+        match &self.0 {
+            PySampleInner::View(view) => {
+                let binding = view.sol.access();
+                let samples = binding.samples();
+                let sample = samples.get_sample(view.row).unwrap();
+                let py_dict = PyDict::new(py);
+                for (k, v) in sample.to_map() {
+                    py_dict.set_item(k, PyVarAssignment(v)).unwrap()
+                }
+                py_dict
+            }
+            PySampleInner::Owned(owned) => {
+                let py_dict = PyDict::new(py);
+                for (k, v) in owned.to_map() {
+                    py_dict.set_item(k, PyVarAssignment(*v)).unwrap()
+                }
+                py_dict
+            }
         }
-        py_dict
     }
 }
 
@@ -295,7 +435,19 @@ impl PySampleIterator {
     }
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyVarAssignment> {
-        slf.next().map(|res| PyVarAssignment(res))
+        let out = match &slf.sample.0 {
+            PySampleInner::View(view) => {
+                let b = view.sol.access().get_assignment(view.row, slf.idx);
+                let out = b.map(|v| PyVarAssignment(v));
+                out
+            }
+            PySampleInner::Owned(owned) => {
+                let out = owned.actual.get(slf.idx);
+                out.map(|v| PyVarAssignment(*v))
+            }
+        };
+        slf.idx += 1;
+        out
     }
 }
 
@@ -306,6 +458,13 @@ impl PySamplesIterator {
     }
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PySample> {
-        slf.next().map(|s| PySample(s))
+        let binding = slf.sol.access();
+        let samples = binding.samples();
+        let sample = samples
+            .get_sample(slf.idx)
+            .map(|_| PySample::new(slf.sol.clone(), slf.idx));
+        drop(binding);
+        slf.idx += 1;
+        sample
     }
 }

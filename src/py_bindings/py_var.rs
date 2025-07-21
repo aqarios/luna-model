@@ -1,6 +1,3 @@
-use std::hash::{DefaultHasher, Hash, Hasher};
-use std::rc::Rc;
-
 use super::py_constr::PyConstraint;
 use super::py_env::{PyEnvironment, CURRENT_ENV};
 use super::py_exceptions::NoActiveEnvironmentFoundError;
@@ -12,11 +9,13 @@ use crate::core::operations::{
 };
 use crate::core::{Comparator, Constraint, Expression, VarRef, Vtype};
 use crate::errors::VariableNotExistingErr;
+use crate::utils::Share;
 use derive_more::{Deref, DerefMut};
 use either::Either::{Left, Right};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyBool;
+use std::hash::{DefaultHasher, Hash, Hasher};
 
 /// Represents a symbolic variable within an optimization environment.
 ///
@@ -71,7 +70,7 @@ use pyo3::types::PyBool;
     pyclass(unsendable, subclass, name = "Variable", module = "luna_quantum._core")
 )]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyVariable(pub Rc<VarRef>);
+pub struct PyVariable(pub Share<VarRef>);
 
 impl PyVariable {
     pub fn new(varref: VarRef) -> Self {
@@ -79,17 +78,17 @@ impl PyVariable {
     }
 
     pub fn name(&self) -> Result<String, VariableNotExistingErr> {
-        Ok(self.env.borrow().get_for_index(self.id)?.name.clone())
+        Ok(self.env.access().get_for_index(self.id)?.name.clone())
     }
 
     pub fn bounds(&self) -> Result<PyBounds, VariableNotExistingErr> {
         Ok(PyBounds(
-            self.env.borrow().get_for_index(self.id)?.bounds.into(),
+            self.env.access().get_for_index(self.id)?.bounds.into(),
         ))
     }
 
     pub fn vtype(&self) -> Result<Vtype, VariableNotExistingErr> {
-        Ok(self.env.borrow().get_for_index(self.id)?.vtype)
+        Ok(self.env.access().get_for_index(self.id)?.vtype)
     }
 
     pub fn hash<H: Hasher>(&self, state: &mut H) -> Result<(), VariableNotExistingErr> {
@@ -97,18 +96,21 @@ impl PyVariable {
     }
 }
 
-// impl Hash for PyVariable {
-//     fn hash<H: Hasher>(&self, state: &mut H) {
-//         self.name().hash(state)
-//     }
-// }
-
 impl PartialEq<Self> for PyVariable {
     fn eq(&self, other: &Self) -> bool {
         let self_idx: usize = self.id.into();
         let other_idx: usize = other.id.into();
-        return self.env.borrow().id() == other.env.borrow().id()
-            && self.env.borrow()[self_idx] == other.env.borrow()[other_idx];
+        if self.env.ptr_eq(&other.env) {
+            // euqal pointer so also equal id, now let's check the
+            // variable itself.
+            let env = self.env.access();
+            let lhs = &env[self_idx];
+            let rhs = &env[other_idx];
+            lhs == rhs
+        } else {
+            self.env.access().id() == other.env.access().id()
+                && self.env.access()[self_idx] == other.env.access()[other_idx]
+        }
     }
 }
 
@@ -203,7 +205,7 @@ impl PyVariable {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = match &rhs.0 {
                 Left(e) => e.add(self.as_ref())?,
-                Right(p) => p.borrow().objective.add(self.as_ref())?,
+                Right(p) => p.access().objective.add(self.as_ref())?,
             };
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
@@ -258,7 +260,7 @@ impl PyVariable {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = match &rhs.0 {
                 Left(e) => (e.mul(-1.0)).add(self.as_ref())?,
-                Right(p) => (p.borrow().objective.mul(-1.0)).add(self.as_ref())?,
+                Right(p) => (p.access().objective.mul(-1.0)).add(self.as_ref())?,
             };
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
@@ -318,7 +320,7 @@ impl PyVariable {
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = match &rhs.0 {
                 Left(e) => e.mul(self.as_ref())?,
-                Right(p) => p.borrow().objective.mul(self.as_ref())?,
+                Right(p) => p.access().objective.mul(self.as_ref())?,
             };
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
@@ -509,7 +511,7 @@ impl PyVariable {
         } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
             match &expr.0 {
                 Left(e) => lhs.sub_assign(e)?,
-                Right(p) => lhs.sub_assign(&p.borrow().objective)?,
+                Right(p) => lhs.sub_assign(&p.access().objective)?,
             };
             Ok(0.0)
         } else {

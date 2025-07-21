@@ -2,6 +2,8 @@ use std::io;
 
 use prost::Message;
 
+use crate::errors::CompressionErr;
+
 use super::{
     utils::{Slicable, Vectorizable},
     versionizable::Versioned,
@@ -45,12 +47,12 @@ where
     /// paramater.
     fn maybe_compress(
         self,
-        do_compression: bool,
+        do_compression: Option<bool>,
         level: Option<i32>,
-    ) -> Result<Vec<u8>, io::Error> {
+    ) -> Result<Vec<u8>, CompressionErr> {
         match do_compression {
-            true => Ok(SerCompressed::new(true, self.compress(level)?).encode_to_vec()),
-            false => Ok(SerCompressed::new(false, self.to_vec()).encode_to_vec()),
+            Some(true) => Ok(SerCompressed::new(true, self.compress(level)?).encode_to_vec()),
+            Some(false) | None => Ok(SerCompressed::new(false, self.to_vec()).encode_to_vec()),
         }
     }
 }
@@ -98,3 +100,9 @@ impl Compressable for Vec<u8> {}
 
 /// Enables the decompression capabilities for a versioned bytes vector.
 impl Decompressable for Versioned<Vec<u8>> {}
+
+impl From<io::Error> for CompressionErr {
+    fn from(value: io::Error) -> Self {
+        CompressionErr(value.to_string())
+    }
+}

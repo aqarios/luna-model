@@ -332,7 +332,7 @@ impl ExprTree {
         } else {
             let mut lintree = ExprTree::Number(Bias::default());
             for (u, bias) in expr.linear.iter() {
-                let vname = expr.env.borrow()[u].name.clone();
+                let vname = expr.env.access()[u].name.clone();
                 let mul = ExprTree::Mul(
                     Box::new(ExprTree::Number(*bias)),
                     Box::new(ExprTree::Variable(vname)),
@@ -347,7 +347,7 @@ impl ExprTree {
             for (u, v, bias) in q.iter_flat() {
                 if u == v {
                     // Pow
-                    let u_name = expr.env.borrow()[u].name.clone();
+                    let u_name = expr.env.access()[u].name.clone();
                     let pow = ExprTree::Pow(
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Number(Bias::one() * 2.0)),
@@ -357,8 +357,8 @@ impl ExprTree {
                     quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
                 } else {
                     // Mul
-                    let u_name = expr.env.borrow()[u].name.clone();
-                    let v_name = expr.env.borrow()[v].name.clone();
+                    let u_name = expr.env.access()[u].name.clone();
+                    let v_name = expr.env.access()[v].name.clone();
                     let vmul = ExprTree::Mul(
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Variable(v_name)),
@@ -395,7 +395,7 @@ impl ExprTree {
         } else {
             let mut lintree = ExprTree::Number(Bias::default());
             for (u, bias) in expr.linear.iter() {
-                let vname = expr.env.borrow()[u].name.clone();
+                let vname = expr.env.access()[u].name.clone();
                 let mul = ExprTree::Mul(
                     Box::new(ExprTree::Number(*bias)),
                     Box::new(ExprTree::Variable(vname)),
@@ -410,7 +410,7 @@ impl ExprTree {
             for (u, v, bias) in q.iter_flat() {
                 if u == v {
                     // Pow
-                    let u_name = expr.env.borrow()[u].name.clone();
+                    let u_name = expr.env.access()[u].name.clone();
                     let pow = ExprTree::Pow(
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Number(Bias::one() * 2.0)),
@@ -420,8 +420,8 @@ impl ExprTree {
                     quadtree = ExprTree::Add(Box::new(quadtree), Box::new(mul));
                 } else {
                     // Mul
-                    let u_name = expr.env.borrow()[u].name.clone();
-                    let v_name = expr.env.borrow()[v].name.clone();
+                    let u_name = expr.env.access()[u].name.clone();
+                    let v_name = expr.env.access()[v].name.clone();
                     let vmul = ExprTree::Mul(
                         Box::new(ExprTree::Variable(u_name)),
                         Box::new(ExprTree::Variable(v_name)),
@@ -441,7 +441,7 @@ impl ExprTree {
             for (vs, bias) in ho.iter_contrib() {
                 let mut ho_mul = ExprTree::Number(*bias);
                 for v in vs {
-                    let v_name = expr.env.borrow()[v].name.clone();
+                    let v_name = expr.env.access()[v].name.clone();
                     ho_mul = ExprTree::Mul(Box::new(ho_mul), Box::new(ExprTree::Variable(v_name)))
                 }
                 hotree = ExprTree::Add(Box::new(hotree), Box::new(ho_mul));

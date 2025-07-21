@@ -111,7 +111,7 @@ def test_zib_translator(model: Model):
         sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5
     )
     assert sol.runtime.qpu is None
-    assert sol.obj_values.tolist() == [None] * len(sol.samples)
+    assert sol.obj_values is None
 
     results = list(sol.results)
     assert len(results) == len(sol.samples)
@@ -159,7 +159,7 @@ def test_zib_translator_quadratic(model_quadratic: Model):
         sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5
     )
     assert sol.runtime.qpu is None
-    assert sol.obj_values.tolist() == [None] * len(sol.samples)
+    assert sol.obj_values is None
 
     results = list(sol.results)
     assert len(results) == len(sol.samples)

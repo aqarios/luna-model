@@ -209,7 +209,7 @@ impl PyQuboTranslator {
     #[staticmethod]
     #[pyo3(signature=(model))]
     fn from_aq(model: &PyModel) -> PyResult<PyQubo> {
-        let qubo = MatrixTranslator::model_to_dense(&model.borrow())?;
+        let qubo = MatrixTranslator::model_to_dense(&model.access())?;
         Ok(PyQubo(qubo))
     }
 }

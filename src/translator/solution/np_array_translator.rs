@@ -1,6 +1,7 @@
 use crate::core::environment::SharedEnvironment;
-use crate::core::{SharedSolution, Solution, Timing};
+use crate::core::{Solution, Timing};
 use crate::errors::SolutionCreationErr;
+use crate::types::Bias;
 use num::NumCast;
 
 pub struct NpArrayTranslator {}
@@ -14,7 +15,7 @@ impl NpArrayTranslator {
         shape: &[usize],
         timing: Option<Timing>,
         env: SharedEnvironment,
-    ) -> Result<SharedSolution, SolutionCreationErr>
+    ) -> Result<Solution, SolutionCreationErr>
     where
         S: Copy + NumCast,
         N: Copy + NumCast,
@@ -30,9 +31,9 @@ impl NpArrayTranslator {
             sol.extend(
                 &sample,
                 <usize as NumCast>::from(counts[i]).unwrap(),
-                Some(energies[indices[i]]),
+                Some(<Bias as NumCast>::from(energies[indices[i]]).unwrap()),
             )?;
         }
-        Ok(SharedSolution::from(sol))
+        Ok(sol)
     }
 }

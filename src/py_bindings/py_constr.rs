@@ -1,19 +1,17 @@
-use std::{cell::RefCell, ops::Deref, rc::Rc};
-
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
+use crate::utils::ShareMut;
 use crate::{
     core::{
         expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
         Constraint, ConstraintKey, Constraints, ContentEquality, Expression, Model,
     },
-    serialization::{
-        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
-    },
+    serialization::{Decodable, Decompressable, Encodable, Unversionizable},
 };
 use derive_more::{Deref, DerefMut};
 use either::Either::{self, Left, Right};
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
+use std::ops::Deref;
 
 /// A collection of symbolic constraints used to define a model.
 ///
@@ -54,18 +52,18 @@ use pyo3::{prelude::*, types::PyBytes};
 )]
 #[derive(Debug, Clone)]
 pub struct PyConstraints {
-    pub data: Either<Constraints, Rc<RefCell<Model>>>,
+    pub data: Either<Constraints, ShareMut<Model>>,
 }
 
 impl PyConstraints {
     pub fn new(constrs: Constraints) -> Self {
-        // Self(Rc::new(RefCell::new(constrs)))
+        // Self(Arc::new(Mutex::new(constrs)))
         Self {
             data: Left(constrs),
         }
     }
 
-    pub fn with_parent(parent: Rc<RefCell<Model>>) -> Self {
+    pub fn with_parent(parent: ShareMut<Model>) -> Self {
         Self {
             data: Right(parent),
         }
@@ -74,7 +72,7 @@ impl PyConstraints {
     pub fn get_cloned_constraints(&self) -> Constraints {
         match &self.data {
             Left(constrs) => constrs.clone(),
-            Right(parent) => parent.borrow().constraints.clone(),
+            Right(parent) => parent.access().constraints.clone(),
         }
     }
 }
@@ -117,11 +115,11 @@ impl PyConstraints {
     pyclass(unsendable, name = "Constraint", module = "luna_quantum._core")
 )]
 #[derive(Debug, Deref, DerefMut, Clone)]
-pub struct PyConstraint(pub Rc<RefCell<Constraint>>);
+pub struct PyConstraint(pub ShareMut<Constraint>);
 
 impl PyConstraint {
     pub fn new(constraint: Constraint) -> Self {
-        Self(Rc::new(RefCell::new(constraint)))
+        Self(ShareMut::new(constraint))
     }
 
     pub fn new_py(
@@ -136,16 +134,16 @@ impl PyConstraint {
         } else if let Ok(var) = rhs.extract::<PyVariable>(py) {
             match &mut lhs.0 {
                 Left(expr) => expr.sub_assign(var.as_ref())?,
-                Right(parent) => parent.borrow_mut().objective.sub_assign(var.as_ref())?,
+                Right(parent) => parent.access_mut().objective.sub_assign(var.as_ref())?,
             };
             Ok(0.0)
         } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
             match (&mut lhs.0, &expr.0) {
                 (Left(l), Left(r)) => l.sub_assign(r)?,
-                (Left(l), Right(r)) => l.sub_assign(&r.borrow().objective)?,
-                (Right(l), Left(r)) => l.borrow_mut().objective.sub_assign(r)?,
+                (Left(l), Right(r)) => l.sub_assign(&r.access().objective)?,
+                (Right(l), Left(r)) => l.access_mut().objective.sub_assign(r)?,
                 (Right(l), Right(r)) => {
-                    l.borrow_mut().objective.sub_assign(&r.borrow().objective)?
+                    l.access_mut().objective.sub_assign(&r.access().objective)?
                 }
             }
             Ok(0.0)
@@ -155,7 +153,7 @@ impl PyConstraint {
         Ok(PyConstraint::new(Constraint::new(
             match &lhs.0 {
                 Left(expr) => expr.clone(),
-                Right(parent) => parent.borrow().objective.clone(),
+                Right(parent) => parent.access().objective.clone(),
             },
             bias?,
             comparator,
@@ -197,7 +195,7 @@ impl PyConstraint {
         let lhs: PyResult<Expression> = if let Ok(expr) = lhs.extract::<PyExpression>(py) {
             Ok(match &expr.0 {
                 Left(e) => e.clone(),
-                Right(parent) => parent.borrow().objective.clone(),
+                Right(parent) => parent.access().objective.clone(),
             })
         } else if let Ok(var) = lhs.extract::<PyVariable>(py) {
             Ok(Expression::new_linear_single(var.env.clone(), var.id, 1.0))
@@ -215,7 +213,7 @@ impl PyConstraint {
         } else if let Ok(expr) = rhs.extract::<PyExpression>(py) {
             match &expr.0 {
                 Left(e) => lhs.sub_assign(e)?,
-                Right(parent) => lhs.sub_assign(&parent.borrow().objective)?,
+                Right(parent) => lhs.sub_assign(&parent.access().objective)?,
             }
             Ok(0.0)
         } else {
@@ -229,15 +227,19 @@ impl PyConstraint {
     }
 
     fn __eq__(&self, other: Self) -> bool {
-        *self.borrow() == *other.borrow()
+        if self.ptr_eq(&other) {
+            true
+        } else {
+            *self.access() == *other.access()
+        }
     }
 
     fn __str__(&self) -> String {
-        self.borrow().to_string()
+        self.access().to_string()
     }
 
     fn __repr__(&self) -> String {
-        format!("{:#?}", self.borrow())
+        format!("{:#?}", self.access())
     }
 
     /// Get the name of the constraint.
@@ -248,7 +250,7 @@ impl PyConstraint {
     ///     Returns the name of the constraint as a string or None if it is unnamed.
     #[getter]
     fn name(&self) -> Option<String> {
-        self.borrow().name.clone()
+        self.access().name.clone()
     }
 
     /// Get the left-hand side of the constraint
@@ -259,8 +261,8 @@ impl PyConstraint {
     ///     The left-hand side expression.
     #[getter]
     fn lhs(&self) -> PyExpression {
-        // PyExpression(Rc::new(RefCell::new(self.borrow().lhs.clone())))
-        PyExpression::new(self.borrow().lhs.clone())
+        // PyExpression(Arc::new(Mutex::new(self.access().lhs.clone())))
+        PyExpression::new(self.access().lhs.clone())
     }
 
     /// Get the right-hand side of the constraint
@@ -271,7 +273,7 @@ impl PyConstraint {
     ///     The right-hand side expression.
     #[getter]
     fn rhs(&self) -> f64 {
-        self.borrow().rhs
+        self.access().rhs
     }
 
     /// Get the comparator of the constraint
@@ -282,7 +284,7 @@ impl PyConstraint {
     ///     The comparator of the constraint.
     #[getter]
     fn comparator(&self) -> Comparator {
-        self.borrow().comparator
+        self.access().comparator
     }
 }
 
@@ -329,14 +331,14 @@ impl PyConstraints {
     ///     The name of the constraint to be added.
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
-        constraint.borrow_mut().set_name(name)?;
+        constraint.access_mut().set_name(name)?;
         match &mut self.data {
-            Left(constrs) => constrs.add_assign(constraint.borrow().deref())?,
+            Left(constrs) => constrs.add_assign(constraint.access().deref())?,
             Right(parent) => {
                 parent
-                    .borrow_mut()
+                    .access_mut()
                     .constraints
-                    .add_assign(constraint.borrow().deref())?;
+                    .add_assign(constraint.access().deref())?;
             }
         }
         Ok(())
@@ -345,7 +347,7 @@ impl PyConstraints {
     fn __getitem__(&self, n: ConstraintKey) -> PyResult<PyConstraint> {
         let constr = match &self.data {
             Left(constrs) => constrs.get_constraint(n)?.clone(),
-            Right(parent) => parent.borrow().constraints.get_constraint(n)?.clone(),
+            Right(parent) => parent.access().constraints.get_constraint(n)?.clone(),
         };
         Ok(PyConstraint::new(constr))
     }
@@ -353,30 +355,36 @@ impl PyConstraints {
     fn __len__(&self) -> usize {
         match &self.data {
             Left(constrs) => constrs.len(),
-            Right(parent) => parent.borrow().constraints.len(),
+            Right(parent) => parent.access().constraints.len(),
         }
     }
 
     fn __eq__(&self, other: Self) -> bool {
         match (&self.data, &other.data) {
             (Left(lhs), Left(rhs)) => lhs == rhs,
-            (Left(lhs), Right(rhs)) => *lhs == rhs.borrow().constraints,
-            (Right(lhs), Left(rhs)) => lhs.borrow().constraints == *rhs,
-            (Right(lhs), Right(rhs)) => lhs.borrow().constraints == rhs.borrow().constraints,
+            (Left(lhs), Right(rhs)) => *lhs == rhs.access().constraints,
+            (Right(lhs), Left(rhs)) => lhs.access().constraints == *rhs,
+            (Right(lhs), Right(rhs)) => {
+                if lhs.ptr_eq(rhs) {
+                    true
+                } else {
+                    lhs.access().constraints == rhs.access().constraints
+                }
+            }
         }
     }
 
     fn __str__(&self) -> String {
         match &self.data {
             Left(constrs) => constrs.to_string(),
-            Right(parent) => parent.borrow().constraints.to_string(),
+            Right(parent) => parent.access().constraints.to_string(),
         }
     }
 
     fn __repr__(&self) -> String {
         let r = match &self.data {
             Left(constrs) => constrs.to_string(),
-            Right(parent) => parent.borrow().constraints.to_string(),
+            Right(parent) => parent.access().constraints.to_string(),
         };
         format!("{:#?}", r)
     }
@@ -401,26 +409,11 @@ impl PyConstraints {
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        let compress = compress.unwrap_or(level.is_some());
         match &self.data {
-            Left(constrs) => Ok(PyBytes::new(
-                py,
-                &constrs
-                    .encode()
-                    .maybe_compress(compress, level)?
-                    .versionize(),
-            )
-            .into()),
-            Right(parent) => Ok(PyBytes::new(
-                py,
-                &parent
-                    .borrow()
-                    .constraints
-                    .encode()
-                    .maybe_compress(compress, level)?
-                    .versionize(),
-            )
-            .into()),
+            Left(constrs) => Ok(PyBytes::new(py, &constrs.encode(compress, level)?).into()),
+            Right(parent) => {
+                Ok(PyBytes::new(py, &parent.access().constraints.encode(compress, level)?).into())
+            }
         }
     }
 
@@ -484,19 +477,19 @@ impl PyConstraints {
     fn equal_contents(&self, other: &Self) -> bool {
         match (&self.data, &other.data) {
             (Left(lhs), Left(rhs)) => lhs.is_equal_contents(&rhs),
-            (Left(lhs), Right(rhs)) => lhs.is_equal_contents(&rhs.borrow().constraints),
-            (Right(lhs), Left(rhs)) => lhs.borrow().constraints.is_equal_contents(&rhs),
+            (Left(lhs), Right(rhs)) => lhs.is_equal_contents(&rhs.access().constraints),
+            (Right(lhs), Left(rhs)) => lhs.access().constraints.is_equal_contents(&rhs),
             (Right(lhs), Right(rhs)) => lhs
-                .borrow()
+                .access()
                 .constraints
-                .is_equal_contents(&rhs.borrow().constraints),
+                .is_equal_contents(&rhs.access().constraints),
         }
     }
 
     fn get(&self, item: ConstraintKey) -> PyResult<PyConstraint> {
         let constr = match &self.data {
             Left(d) => d.get_constraint(item)?.clone(),
-            Right(d) => d.borrow().constraints.get_constraint(item)?.clone(),
+            Right(d) => d.access().constraints.get_constraint(item)?.clone(),
         };
         Ok(PyConstraint::new(constr))
     }
@@ -504,7 +497,7 @@ impl PyConstraints {
     fn remove(&mut self, item: ConstraintKey) {
         match &mut self.data {
             Left(d) => d.remove_constraint(item),
-            Right(d) => d.borrow_mut().constraints.remove_constraint(item),
+            Right(d) => d.access_mut().constraints.remove_constraint(item),
         }
     }
 }

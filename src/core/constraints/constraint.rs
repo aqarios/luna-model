@@ -150,14 +150,17 @@ impl Constraint {
         Ok(())
     }
 
-    pub fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<VarIndex, Output = Elem>>(
+    pub fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<VarIndex, Output = Elem>, F>(
         &self,
         sample: &'a Sample,
+        index_map: F,
     ) -> bool
     where
         Elem: Mul<Bias, Output = Bias>,
+        F: Fn(VarIndex) -> VarIndex,
     {
-        let val = self.lhs.evaluate_sample(sample);
+        // println!("Constraint evaluate sample");
+        let val = self.lhs.evaluate_sample(sample, &index_map);
         self.comparator.evaluate(val, self.rhs)
     }
 
@@ -328,7 +331,6 @@ impl Add<Constraint> for Constraints {
 
 impl Constraints {
     pub fn add_assign(&mut self, rhs: &Constraint) -> Result<(), DuplicateConstraintNameErr> {
-        // dbg!(rhs);
         if let Some(name) = &rhs.name {
             if self.index_map.contains_key(name) {
                 return Err(DuplicateConstraintNameErr(name.to_string()));

@@ -1,15 +1,13 @@
 use crate::{
     core::{environment::SharedEnvironment, ContentEquality},
-    serialization::{
-        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
-    },
+    serialization::{Decodable, Decompressable, Encodable, Unversionizable}, utils::Share,
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{
     prelude::*,
     types::{PyBytes, PyType},
 };
-use std::{cell::RefCell, ops::Deref, rc::Rc};
+use std::{cell::RefCell, ops::Deref};
 
 use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
 
@@ -131,7 +129,7 @@ impl PyEnvironment {
     /// VariableNotExistingError
     ///     If no variable with the specified name is registered.
     fn get_variable(&self, name: String) -> PyResult<PyVariable> {
-        Ok(PyVariable(Rc::new(self.0.get_vref_by_name(&name)?)))
+        Ok(PyVariable(Share::new(self.0.get_vref_by_name(&name)?)))
     }
 
     /// Serialize the environment into a compact binary format.
@@ -156,17 +154,7 @@ impl PyEnvironment {
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        let compress = compress.unwrap_or(level.is_some());
-        Ok(PyBytes::new(
-            py,
-            &self
-                .borrow()
-                .deref()
-                .encode()
-                .maybe_compress(compress, level)?
-                .versionize(),
-        )
-        .into())
+        Ok(PyBytes::new(py, &self.access().deref().encode(compress, level)?).into())
     }
 
     /// Alias for `encode()`.
@@ -214,15 +202,15 @@ impl PyEnvironment {
     }
 
     fn __eq__(&self, other: &PyEnvironment) -> bool {
-        *self.borrow() == *other.borrow()
+        *self.access() == *other.access()
     }
 
     fn __str__(&self) -> String {
-        self.borrow().to_string()
+        self.access().to_string()
     }
 
     fn __repr__(&self) -> String {
-        format!("{:#?}", self.borrow())
+        format!("{:#?}", self.access())
     }
 
     fn equal_contents(&self, other: &Self) -> bool {
@@ -232,5 +220,4 @@ impl PyEnvironment {
     fn __contains__(&self, varname: String) -> bool {
         self.0.contains(varname)
     }
-
 }

@@ -1,7 +1,12 @@
-use hashbrown::HashSet;
+use hashbrown::{HashMap, HashSet};
 use std::hash::Hash;
 
-use crate::errors::{EvaluationErr, VariableOcc};
+use crate::{
+    errors::{EvaluationErr, VariableOcc},
+    types::VarIndex,
+};
+
+use super::SharedEnvironment;
 
 // pub fn equal_elements<T: Eq + Hash>(a: &[T], b: &[T]) -> bool {
 //     // might benefit from a lazy approach, terminating early if a mismatch is found.
@@ -101,4 +106,18 @@ pub fn finalize_eval_err_sample(
             VariableOcc::new(Some(only_in_sol), Some(only_in_env)),
         )),
     }
+}
+
+pub fn make_index_map(
+    sol_varname_to_pos: HashMap<String, VarIndex>,
+    env: &SharedEnvironment,
+) -> HashMap<VarIndex, VarIndex> {
+    let vars_env = env.variable_names();
+    let mut index_map: HashMap<VarIndex, VarIndex> = HashMap::with_capacity(vars_env.len());
+    for v in vars_env {
+        let v_idx_model = env.varidx_for_name(&v);
+        let v_idx_sol = sol_varname_to_pos[&v];
+        index_map.insert(v_idx_model, v_idx_sol);
+    }
+    index_map
 }

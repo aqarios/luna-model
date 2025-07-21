@@ -1,6 +1,6 @@
-use crate::errors::IllegalConstraintNameErr;
+use crate::errors::{CompressionErr, IllegalConstraintNameErr};
 
-use super::utils::Slicable;
+use super::{utils::Slicable, Compressable, Version, Versionizable};
 
 /// An erorr returned on issues in the decoding/deserialization of data.
 #[derive(Debug, Clone)]
@@ -62,9 +62,23 @@ where
     Self: Sized,
     S: Creatable<Self>,
 {
-    /// Encode `self` to a bytes vector.
-    fn encode(&self) -> Vec<u8> {
+    fn version(&self) -> Version;
+
+    /// Serilize `self` to a bytes vector.
+    fn serialize(&self) -> Vec<u8> {
         S::new(&self).encode_to_bytes()
+    }
+
+    /// Encode `self` to a bytes vector.
+    fn encode(
+        &self,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> Result<Vec<u8>, CompressionErr> {
+        Ok(self
+            .serialize()
+            .maybe_compress(compress, level)?
+            .versionize(self.version()))
     }
 }
 

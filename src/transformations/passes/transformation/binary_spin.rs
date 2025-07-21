@@ -1,4 +1,5 @@
 use aqm_macros::analysis_cache;
+use itertools::Itertools;
 use std::collections::HashMap;
 
 use sqids::Sqids;
@@ -6,7 +7,7 @@ use sqids::Sqids;
 use crate::{
     core::{
         expression::ExpressionBaseAdd,
-        solution::sol::{SampleCol, SampleColElement},
+        solution::{sol::ColElement, Column},
         Model, Solution, Vtype,
     },
     transformations::{
@@ -79,7 +80,14 @@ impl TransformationPass for BinarySpinPass {
             }
             .to_string(),
         );
-        for x in model.environment.borrow().variables().iter() {
+
+        let env = model.environment.access();
+        let vars = env.variables().into_iter().cloned().collect_vec();
+        // make the compiler happy :) and clear the lock.
+        // So we can use it in the loop.
+        drop(env);
+
+        for x in vars.iter() {
             let mut new_name = format!("{}_{}", pref, x.name);
             let vref_old = model
                 .environment
@@ -100,6 +108,7 @@ impl TransformationPass for BinarySpinPass {
                 _ => {}
             };
         }
+
         if cache.map.is_empty() {
             return Ok(TransformationOutcome::new(
                 model,
@@ -165,16 +174,16 @@ impl TransformationPass for BinarySpinPass {
                     let col = solution.samples.get_mut(i);
                     match cache.old_vtype {
                         Vtype::Spin => {
-                            if let Some(SampleCol::Binary(inner)) = col {
-                                solution.samples[i] = SampleCol::Spin(SampleColElement::new(
+                            if let Some(Column::Binary(inner)) = col {
+                                solution.samples[i] = Column::Spin(ColElement::new(
                                     inner.varid,
                                     inner.iter().map(|x| 1 - 2 * (*x) as i8).collect(),
                                 ));
                             }
                         }
                         Vtype::Binary => {
-                            if let Some(SampleCol::Spin(inner)) = col {
-                                solution.samples[i] = SampleCol::Binary(SampleColElement::new(
+                            if let Some(Column::Spin(inner)) = col {
+                                solution.samples[i] = Column::Binary(ColElement::new(
                                     inner.varid,
                                     inner.iter().map(|x| ((1 - *x) as u8) / 2).collect(),
                                 ));

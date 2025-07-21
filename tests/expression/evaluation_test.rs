@@ -48,7 +48,7 @@ fn evaluate_linear_expression(vtype: Vtype, n: usize) {
     let expr = create_linear_expression(env.clone(), &biases, vtype);
 
     let expected: Bias = biases.iter().map(|b| b).sum();
-    let result = expr.evaluate_sample(&DSample::new(vec![1.0; biases.len()]));
+    let result = expr.evaluate_sample(&DSample::new(vec![1.0; biases.len()]), |idx| idx);
 
     assert!(
         almost_equal(expected, result, None, None),
@@ -69,7 +69,7 @@ fn evaluate_quadratic_expression(vtype: Vtype, n: usize) {
     expr.mul_assign(&multiplier.mul(mscalar)).unwrap();
 
     let expected: Bias = biases.iter().map(|b| b * mscalar).sum::<Bias>();
-    let result = expr.evaluate_sample(&DSample::new(vec![1.0; biases.len() + 1]));
+    let result = expr.evaluate_sample(&DSample::new(vec![1.0; biases.len() + 1]), |idx| idx);
 
     assert!(
         almost_equal(expected, result, None, None),
@@ -96,7 +96,7 @@ fn evaluate_higher_order_expression(vtype: Vtype, n: usize) {
         .iter()
         .map(|b| b * ma_scalar * mb_scalar)
         .sum::<Bias>();
-    let result = expr.evaluate_sample(&DSample::new(vec![1.0; biases.len() + 2]));
+    let result = expr.evaluate_sample(&DSample::new(vec![1.0; biases.len() + 2]), |idx| idx);
 
     assert!(
         almost_equal(expected, result, None, None),
@@ -198,14 +198,17 @@ fn evaluate_mixed_order_mixed_vtype_expression(n: usize) {
         .map(|b| b * mbsc * mssc * misc * mrsc)
         .sum::<Bias>();
 
-    let result = expr.evaluate_sample(&DSample::new(vec![
-        1.0;
-        binary_biases.len()
-            + spin_biases.len()
-            + int_biases.len()
-            + real_biases.len()
-            + 4
-    ]));
+    let result = expr.evaluate_sample(
+        &DSample::new(vec![
+            1.0;
+            binary_biases.len()
+                + spin_biases.len()
+                + int_biases.len()
+                + real_biases.len()
+                + 4
+        ]),
+        |idx| idx,
+    );
 
     assert!(
         almost_equal(expected, result, None, None),

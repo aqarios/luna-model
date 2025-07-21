@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{
     core::{operations::MulAssignToExpression, Model, Sense, Solution},
     transformations::{
@@ -52,9 +54,7 @@ impl TransformationPass for ChangeSensePass {
     fn backwards(&self, mut solution: Solution, _cache: &AnalysisCache) -> Solution {
         solution.obj_values = solution
             .obj_values
-            .into_iter()
-            .map(|x| x.map(|y| y * (-1.0)))
-            .collect();
+            .map(|x| x.into_iter().map(|y| y * (-1.0)).collect_vec());
         solution
     }
 }

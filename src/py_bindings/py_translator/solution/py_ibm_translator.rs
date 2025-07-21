@@ -11,7 +11,6 @@ use crate::{
 };
 use pyo3::{ffi::c_str, prelude::*};
 use std::ffi::CStr;
-use std::rc::Rc;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
@@ -131,9 +130,9 @@ impl PyIbmTranslator {
                 })
             })?,
         };
-        Ok(PySolution(IbmTranslator::from_ibm(
+        Ok(PySolution::new(IbmTranslator::from_ibm(
             &samples,
-            &orderings.iter().map(|e| Rc::clone(&e.0)).collect(),
+            &orderings.iter().map(|e| e.0.clone()).collect(),
             &energies,
             counts.into_iter().map(|n| n.into()).collect(),
             timing.map(|t| t.into()),
