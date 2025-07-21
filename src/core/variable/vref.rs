@@ -28,7 +28,7 @@ impl VarRef {
     }
 
     pub fn check_living(&self) -> Result<(), VariableNotExistingErr> {
-        self.env.borrow().check_living(self.id)
+        self.env.access().check_living(self.id)
     }
 }
 
@@ -108,7 +108,7 @@ impl SubToExpression<&VarRef> for &VarRef {
 impl Debug for VarRef {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let idx: usize = self.id.into();
-        let v = &self.env.borrow()[idx];
+        let v = &self.env.access()[idx];
         write!(f, "{v:?}")
     }
 }
@@ -116,7 +116,7 @@ impl Debug for VarRef {
 impl Display for VarRef {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let idx: usize = self.id.into();
-        let v = &self.env.borrow()[idx];
+        let v = &self.env.access()[idx];
         f.write_str(&v.to_string())
     }
 }

@@ -100,6 +100,6 @@ impl PyLpTranslator {
     #[staticmethod]
     #[pyo3(signature=(model, filepath=None))]
     fn from_aq(model: &PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
-        Ok(LPTranslator::back_translate((&model.borrow(), filepath))?)
+        Ok(LPTranslator::back_translate((&model.access(), filepath))?)
     }
 }

@@ -139,13 +139,13 @@ impl PyResultIterator {
 #[pymethods]
 impl PyResultView {
     fn __str__(&self) -> String {
-        let binding = self.sol.borrow();
+        let binding = self.sol.access();
         let res = binding.get_result_view(self.idx).unwrap();
         format!("{}", res)
     }
 
     fn __repr__(&self) -> String {
-        let binding = self.sol.borrow();
+        let binding = self.sol.access();
         let res = binding.get_result_view(self.idx).unwrap();
         format!("{:#?}", res)
     }
@@ -159,14 +159,14 @@ impl PyResultView {
     /// Return how often this result appears in the solution.
     #[getter]
     fn counts(&self) -> usize {
-        self.sol.borrow().counts[self.idx]
+        self.sol.access().counts[self.idx]
     }
 
     /// Get the objective value of this sample if present. This is the value computed
     /// by the corresponding AqModel.
     #[getter]
     fn obj_value(&self) -> Option<Bias> {
-        let binding = self.sol.borrow();
+        let binding = self.sol.access();
         let res = binding.get_result_view(self.idx).unwrap();
         res.obj_value()
     }
@@ -175,7 +175,7 @@ impl PyResultView {
     /// guaranteed to be accurate under consideration of the corresponding AqModel.
     #[getter]
     fn raw_energy(&self) -> Option<Bias> {
-        let binding = self.sol.borrow();
+        let binding = self.sol.access();
         let res = binding.get_result_view(self.idx).unwrap();
         res.raw_energy()
     }
@@ -185,7 +185,7 @@ impl PyResultView {
     /// this result.
     #[getter]
     fn constraints<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
-        let binding = self.sol.borrow();
+        let binding = self.sol.access();
         let res = binding.get_result_view(self.idx).unwrap();
         res.constraint_satisfaction()
             .as_ref()
@@ -195,7 +195,7 @@ impl PyResultView {
     /// Get this result's feasibility values of all variable bounds.
     #[getter]
     fn variable_bounds<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<bool>>> {
-        let binding = self.sol.borrow();
+        let binding = self.sol.access();
         let res = binding.get_result_view(self.idx).unwrap();
         res.variable_bounds_satisfaction()
             .as_ref()
@@ -204,13 +204,13 @@ impl PyResultView {
     /// Return whether all constraint results are feasible for this result.
     #[getter]
     fn feasible(&self) -> Option<bool> {
-        let binding = self.sol.borrow();
+        let binding = self.sol.access();
         let res = binding.get_result_view(self.idx).unwrap();
         res.feasible()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.idx == other.idx && *self.sol.borrow() == *other.sol.borrow()
+        self.idx == other.idx && *self.sol.access() == *other.sol.access()
     }
 }
 
@@ -268,7 +268,7 @@ impl PyResultIterator {
     }
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyResultView> {
-        let binding = slf.sol.borrow();
+        let binding = slf.sol.access();
         let samples = binding.samples();
         let res = samples
             .get_result_view(slf.idx)

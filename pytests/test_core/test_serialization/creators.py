@@ -13,4 +13,7 @@ def create_serialized_objects():
 
 
 def create_serialized_objects_with_env():
-    return serialized_objects_with_env([Expression, Constraints])
+    return serialized_objects_with_env([Constraints])
+
+def create_serialized_objects_with_env_contents():
+    return serialized_objects_with_env([Expression])

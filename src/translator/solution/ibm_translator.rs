@@ -1,6 +1,5 @@
 use std::{
     fmt::{Debug, Display},
-    rc::Rc,
 };
 
 use num::NumCast;
@@ -8,7 +7,7 @@ use num::NumCast;
 use crate::{
     core::{SharedEnvironment, Solution, Timing, VarRef},
     errors::SolutionCreationErr,
-    types::Bias,
+    types::Bias, utils::Share,
 };
 
 pub struct IbmTranslator {}
@@ -16,7 +15,7 @@ pub struct IbmTranslator {}
 impl IbmTranslator {
     pub fn from_ibm<S, E>(
         samples: &Vec<Vec<S>>,
-        orderings: &Vec<Rc<VarRef>>,
+        orderings: &Vec<Share<VarRef>>,
         energies: &Vec<E>,
         counts: Vec<usize>,
         timing: Option<Timing>,

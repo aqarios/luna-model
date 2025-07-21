@@ -1,15 +1,13 @@
-use std::{fmt::Debug, rc::Rc};
-
-use pyo3::{prelude::*, types::PyNone};
-
 use super::{py_pass_base::PyPass, py_transformation_pass_adapter::PyTransformationPassAdapter};
 use crate::{
     py_bindings::{py_model::PyModel, py_sol::PySolution},
     transformations::{
         analysis_cache::{AnalysisCacheElement, PyAnalysisCache},
         base_passes::{ActionType, Pass, TransformationOutcome},
-    },
+    }, utils::ShareMut,
 };
+use pyo3::{prelude::*, types::PyNone};
+use std::fmt::Debug;
 
 #[pyclass(unsendable, name = "TransformationOutcome", get_all, set_all)]
 #[derive(FromPyObject)]
@@ -18,7 +16,6 @@ pub struct StructuredPyTransformationOutcome {
     pub action: ActionType,
     pub analysis: Option<Py<PyAny>>,
 }
-
 
 #[derive(FromPyObject)]
 pub enum PyTransformationOutcome {
@@ -56,15 +53,14 @@ impl TryInto<TransformationOutcome> for PyTransformationOutcome {
         let (pymodel, action, analysis) = match self {
             PyTransformationOutcome::Structured(x) => (x.model, x.action, x.analysis),
             PyTransformationOutcome::Tuple2(a, b) => (a, b, None),
-            PyTransformationOutcome::Tuple3(a, b, c) => (a, b, c)
+            PyTransformationOutcome::Tuple3(a, b, c) => (a, b, c),
         };
-        let model = Rc::into_inner(pymodel.concrete_model)
-            .ok_or("Model reference leaked out of transformation scope.".to_string())?
-            .into_inner();
+        let model = ShareMut::into_inner(pymodel.concrete_model)
+            .ok_or("Model reference leaked out of transformation scope.".to_string())?;
         Ok(TransformationOutcome {
             model,
             analysis: analysis.map(|x| AnalysisCacheElement::PyAnalysis(x)),
-            action
+            action,
         })
     }
 }

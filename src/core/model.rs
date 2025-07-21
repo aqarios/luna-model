@@ -188,7 +188,7 @@ impl Model {
             );
             vb.push(
                 self.environment
-                    .borrow()
+                    .access()
                     .evaluate_bounds(&sample, |var_idx| index_map[&var_idx].into()),
             );
             obj_values.push(obj_val);
@@ -219,7 +219,7 @@ impl Model {
             .collect();
         let vf: Vec<_> = self
             .environment
-            .borrow()
+            .access()
             .evaluate_bounds(sample, |idx| index_map[&idx]);
         let feasible = cf.iter().all(|&b| b) && vf.iter().all(|&b| b);
         let owned_sample = SampleOwned::new(

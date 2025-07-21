@@ -194,7 +194,7 @@ impl SectionsHolder {
             sections.model_name = Some(model.name.clone());
         }
         // variables & bounds
-        for v in model.environment.borrow().variables().iter() {
+        for v in model.environment.access().variables().iter() {
             match v.vtype {
                 Vtype::__Ghost => (),
                 Vtype::Binary => {
@@ -238,13 +238,7 @@ impl SectionsHolder {
             };
             sections.push(
                 &Section::Constraints,
-                format!(
-                    "{}: {} {} {}",
-                    name,
-                    lhs_str,
-                    comparator,
-                    constraint.rhs
-                ),
+                format!("{}: {} {} {}", name, lhs_str, comparator, constraint.rhs),
             );
         }
         // end

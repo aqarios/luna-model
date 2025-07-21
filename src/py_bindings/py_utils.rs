@@ -1,17 +1,15 @@
-use either::Either::{Left, Right};
-use pyo3::{
-    prelude::{pyfunction, Bound, PyAny},
-    types::PyAnyMethods,
-    PyResult, Python,
-};
-
-use crate::core::{expression::ExpressionBaseCreation, Expression, SharedEnvironment};
-
 use super::{
     py_env::{PyEnvironment, CURRENT_ENV},
     py_exceptions::StartCannotBeInferredError,
     py_expr::PyExpression,
     py_var::PyVariable,
+};
+use crate::core::{expression::ExpressionBaseCreation, Expression, SharedEnvironment};
+use either::Either::{Left, Right};
+use pyo3::{
+    prelude::{pyfunction, Bound, PyAny},
+    types::PyAnyMethods,
+    PyResult, Python,
 };
 
 #[pyfunction]
@@ -41,7 +39,7 @@ pub fn quicksum(
                     } else if let Ok(rhs) = obj.extract::<PyExpression>() {
                         env = Some(match rhs.0 {
                             Left(expr) => expr.env.clone(),
-                            Right(m) => m.borrow().environment.clone(),
+                            Right(m) => m.access().environment.clone(),
                         })
                     }
                 }

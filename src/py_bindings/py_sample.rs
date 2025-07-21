@@ -7,7 +7,6 @@ use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
-use strum_macros::Display;
 
 use super::py_sol::PySolution;
 use super::py_var::PyVariable;
@@ -173,7 +172,7 @@ impl PySample {
     fn get_assignment(&self, col: usize) -> Option<VarAssignment> {
         match &self.0 {
             PySampleInner::View(view) => {
-                let binding = view.sol.0.borrow();
+                let binding = view.sol.0.access();
                 let samples = binding.samples();
                 samples.get_assignment(view.row, col)
             }
@@ -184,7 +183,7 @@ impl PySample {
     fn index_for_variable_name(&self, varname: &str) -> Option<usize> {
         match &self.0 {
             PySampleInner::View(view) => {
-                let binding = view.sol.0.borrow();
+                let binding = view.sol.0.access();
                 let samples = binding.samples();
                 let sample = samples.get_sample(view.row);
                 sample.map(|s| s.index_for_variable_name(varname))?
@@ -216,7 +215,7 @@ impl PySamples {
     /// list[list[int | float]]
     ///     The samples object as a 2-dimensional list.
     fn tolist(&self, py: Python) -> Vec<Vec<PyObject>> {
-        let b = self.borrow();
+        let b = self.access();
         let samples = b.samples();
         samples
             .iter()
@@ -229,7 +228,7 @@ impl PySamples {
     }
 
     fn __str__<'a>(&'a self) -> String {
-        let b = self.borrow();
+        let b = self.access();
         let samples = b.samples();
         format!("{}", samples)
     }
@@ -255,7 +254,7 @@ impl PySamples {
                     "Expected a non-negative number, received: {res_idx}"
                 )))?;
             }
-            match self.borrow().samples().get_sample(res_idx as usize) {
+            match self.access().samples().get_sample(res_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
                 ))),
@@ -275,7 +274,7 @@ impl PySamples {
                 )))?;
             }
             match self
-                .borrow()
+                .access()
                 .samples()
                 .get_assignment(res_idx as usize, var_idx as usize)
             {
@@ -295,7 +294,7 @@ impl PySamples {
     /// -------
     /// int
     fn __len__(&self) -> usize {
-        self.borrow().n_samples
+        self.access().n_samples
     }
 
     /// Iterate over all samples of this sample set.
@@ -313,7 +312,7 @@ impl PySample {
     fn __str__(&self) -> String {
         match &self.0 {
             PySampleInner::View(view) => {
-                let binding = view.sol.0.borrow();
+                let binding = view.sol.0.access();
                 let samples = binding.samples();
                 let sample = samples.get_sample(view.row).unwrap();
                 format!("{}", sample)
@@ -381,7 +380,7 @@ impl PySample {
     fn __len__(&self) -> usize {
         match &self.0 {
             PySampleInner::View(view) => {
-                let binding = view.sol.borrow();
+                let binding = view.sol.access();
                 let samples = binding.samples();
                 let sample = samples.get_sample(view.row).unwrap();
                 sample.len()
@@ -409,7 +408,7 @@ impl PySample {
     fn to_dict<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyDict> {
         match &self.0 {
             PySampleInner::View(view) => {
-                let binding = view.sol.borrow();
+                let binding = view.sol.access();
                 let samples = binding.samples();
                 let sample = samples.get_sample(view.row).unwrap();
                 let py_dict = PyDict::new(py);
@@ -438,7 +437,7 @@ impl PySampleIterator {
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyVarAssignment> {
         let out = match &slf.sample.0 {
             PySampleInner::View(view) => {
-                let b = view.sol.borrow().get_assignment(view.row, slf.idx);
+                let b = view.sol.access().get_assignment(view.row, slf.idx);
                 let out = b.map(|v| PyVarAssignment(v));
                 out
             }
@@ -459,7 +458,7 @@ impl PySamplesIterator {
     }
 
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PySample> {
-        let binding = slf.sol.borrow();
+        let binding = slf.sol.access();
         let samples = binding.samples();
         let sample = samples
             .get_sample(slf.idx)
