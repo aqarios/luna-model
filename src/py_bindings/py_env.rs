@@ -1,3 +1,5 @@
+use super::py_utilities::unwind;
+use unwind_macros::unwindable;
 use crate::{
     core::{environment::SharedEnvironment, ContentEquality},
     serialization::{
@@ -64,6 +66,7 @@ thread_local! {
     pub static CURRENT_ENV: RefCell<Option<PyEnvironment>> = RefCell::new(None);
 }
 
+#[unwindable]
 #[pymethods]
 impl PyEnvironment {
     /// Initialize a new environment for variable construction.

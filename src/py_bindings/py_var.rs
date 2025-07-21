@@ -17,6 +17,8 @@ use either::Either::{Left, Right};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyBool;
+use crate::py_bindings::py_utilities::unwind;
+use unwind_macros::unwindable;
 
 /// Represents a symbolic variable within an optimization environment.
 ///
@@ -114,6 +116,7 @@ impl PartialEq<Self> for PyVariable {
 
 impl Eq for PyVariable {}
 
+#[unwindable]
 #[pymethods]
 impl PyVariable {
     /// Initialize a new Variable.
@@ -521,6 +524,7 @@ impl PyVariable {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl Vtype {
     fn __str__(&self) -> String {

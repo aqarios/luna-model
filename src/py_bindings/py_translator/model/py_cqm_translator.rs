@@ -1,6 +1,8 @@
+use crate::py_bindings::py_utilities::unwind;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use std::ffi::CStr;
+use unwind_macros::unwindable;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE_TO_AQ: &'static CStr = c_str!(
@@ -85,10 +87,25 @@ def extract(model):
 /// Convert it back to a dense matrix:
 ///
 /// >>> recovered = CqmTranslator.from_aq(model)
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "CqmTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "CqmTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(
+        unsendable,
+        name = "CqmTranslator",
+        module = "aqmodels._core.translator"
+    )
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(
+        unsendable,
+        name = "CqmTranslator",
+        module = "luna_quantum._core.translator"
+    )
+)]
 pub struct PyCqmTranslator {}
 
+#[unwindable]
 #[pymethods]
 impl PyCqmTranslator {
     /// Convert a symbolic model to a dense QUBO matrix representation.

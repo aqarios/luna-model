@@ -5,10 +5,36 @@ use crate::core::operations::MulToExpression;
 use crate::core::{Constraints, Expression, Samples, Timing};
 use crate::translator::model::lp::exprtree::ExprTree;
 use either::Either::Left;
-use pyo3::FromPyObject;
+use pyo3::exceptions::PyRuntimeError;
+use pyo3::{FromPyObject, PyResult};
+use std::panic::{self, AssertUnwindSafe, PanicHookInfo};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 static DELIMITER: &str = ", ";
+
+pub fn unwind<T, F>(f: F) -> PyResult<T>
+where
+    F: FnOnce() -> PyResult<T>,
+{
+    let prev_hook = panic::take_hook();
+    panic::set_hook(Box::new(|_info: &PanicHookInfo| {}));
+    let result = panic::catch_unwind(AssertUnwindSafe(f));
+    panic::set_hook(prev_hook);
+
+    match result {
+        Ok(inner) => inner,
+        Err(payload) => {
+            let msg = if let Some(s) = payload.downcast_ref::<&str>() {
+                s.to_string()
+            } else if let Some(s) = payload.downcast_ref::<String>() {
+                s.clone()
+            } else {
+                "rust panic occurred".to_string()
+            };
+            Err(PyRuntimeError::new_err(msg))
+        }
+    }
+}
 
 pub fn repr_model(model: &PyModel) -> String {
     let bm = &model.borrow();

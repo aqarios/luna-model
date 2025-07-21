@@ -1,3 +1,4 @@
+use super::py_utilities::unwind;
 use super::py_utilities::repr_solution;
 use crate::core::solution::sol::{SampleCol, SampleColElement, ShowMetadata};
 use crate::core::{
@@ -24,6 +25,7 @@ use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
+use unwind_macros::unwindable;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
@@ -110,6 +112,7 @@ impl Into<RcSolution> for PySolution {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PySolution {
     /// Build a `Solution` based on the provided input data. The solution is constructed

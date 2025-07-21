@@ -1,3 +1,4 @@
+use super::py_utilities::unwind;
 use crate::core::{Bound, Bounds, LazyBounds};
 use derive_more::{Deref, DerefMut};
 use pyo3::{
@@ -5,6 +6,7 @@ use pyo3::{
     prelude::*,
     IntoPyObjectExt, PyTypeInfo,
 };
+use unwind_macros::unwindable;
 
 /// Represents bounds for a variable (only supported for real and integer variables).
 ///
@@ -35,8 +37,14 @@ use pyo3::{
 /// -----
 /// - Bounds are only meaningful for variables of type `Vtype.Real` or `Vtype.Integer`.
 /// - If both bounds are omitted, the variable is unbounded.
-#[cfg_attr(not(feature = "lq"), pyclass(name = "Bounds", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq", pyclass(name = "Bounds", module = "luna_quantum._core"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "Bounds", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "Bounds", module = "luna_quantum._core")
+)]
 #[derive(Clone, Copy, Deref, DerefMut)]
 pub struct PyBounds(pub LazyBounds);
 
@@ -46,11 +54,18 @@ impl Into<LazyBounds> for PyBounds {
     }
 }
 
-#[cfg_attr(not(feature = "lq"), pyclass(name = "Unbounded", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq", pyclass(name = "Unbounded", module = "luna_quantum._core"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "Unbounded", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "Unbounded", module = "luna_quantum._core")
+)]
 #[derive(Debug, Clone, Copy)]
 pub struct PyUnbounded;
 
+#[unwindable]
 #[pymethods]
 impl PyUnbounded {
     #[new]
@@ -127,6 +142,7 @@ fn bound_into_boundvalue(bound: Option<Bound>) -> Option<BoundValue> {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyBounds {
     /// Create bounds for a variable.
