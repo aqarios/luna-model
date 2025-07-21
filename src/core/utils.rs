@@ -6,7 +6,7 @@ use crate::{
     types::VarIndex,
 };
 
-use super::{SharedEnvironment, Solution};
+use super::SharedEnvironment;
 
 // pub fn equal_elements<T: Eq + Hash>(a: &[T], b: &[T]) -> bool {
 //     // might benefit from a lazy approach, terminating early if a mismatch is found.

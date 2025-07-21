@@ -15,6 +15,7 @@ use crate::py_bindings::py_var::PyVariable;
 use crate::serialization::{Decodable, Decompressable, Encodable, Unversionizable};
 use crate::types::VarIndex;
 use derive_more::{Deref, DerefMut};
+use hashbrown::HashMap;
 use indexmap::IndexMap;
 use itertools::Itertools;
 use numpy::{PyArray1, ToPyArray};
@@ -386,8 +387,8 @@ impl PySolution {
         );
         sol.create_columns(&environment, 1);
         let n_vars = environment.borrow().varcount() as usize;
-        let (data, variable_names) = Self::build_varnames(data, n_vars)?;
-        sol.variable_names = variable_names;
+        let data = Self::build_ordered_raw_sample(data, &environment.variable_names())?;
+        sol.variable_names = environment.variable_names();
         let index_map = make_index_map(sol.varname_to_pos(), &environment);
         let sample = Self::build_sample(&data, n_vars, &environment, |idx| index_map[&idx])?;
         sol.timing = timing.map(|t| t.0);
@@ -472,14 +473,12 @@ impl PySolution {
 
         let n_vars = environment.borrow().varcount() as usize;
         // we need to ensure each sample dict / hashmap / indexmap has the same order.
-        let (data, variable_names) = Self::build_varnames_multi(data)?;
-        sol.variable_names = variable_names;
+        let data = Self::build_ordered_raw_samples(data, &environment.variable_names())?;
+        sol.variable_names = environment.variable_names();
         let index_map = make_index_map(sol.varname_to_pos(), &environment);
 
         for (i, d) in data.iter().enumerate() {
             let sample = Self::build_sample(d, n_vars, &environment, |idx| index_map[&idx])?;
-            // Self::build_sample(&d, n_vars, &environment, |idx| sol.map_varidx(idx))?;
-
             let energy: Option<f64> = None;
 
             let sc = counts
@@ -1218,9 +1217,16 @@ impl PySolution {
         Ok(environment)
     }
 
-    pub fn build_varnames_multi(
+    pub fn build_ordered_raw_samples(
         data: Vec<IndexMap<VariableKey, f64>>,
-    ) -> PyResult<(Vec<IndexMap<String, f64>>, Vec<String>)> {
+        variable_names: &Vec<String>,
+    ) -> PyResult<Vec<IndexMap<String, f64>>> {
+        // todo: this works for now and gives the expected results based on the tests
+        // however, there are some bottlenecks in here which probably can be eliminated
+        // this needs further investigation in the future. For now this is fine.
+        if data.is_empty() {
+            return Err(PyRuntimeError::new_err("empty data passed."));
+        }
         let data = data
             .into_iter()
             .map(|sample| {
@@ -1237,33 +1243,50 @@ impl PySolution {
                         }
                     })
                     .collect::<Result<IndexMap<_, _>, _>>()
-                    .map(|mut ok| {
-                        ok.sort_unstable_keys();
-                        ok
-                    })
             })
             .collect::<Result<Vec<IndexMap<_, _>>, _>>()?;
-
-        let var_names = data[0].keys().cloned().collect_vec();
-        Ok((data, var_names))
+        let rank: IndexMap<&String, usize> = variable_names
+            .iter()
+            .enumerate()
+            .map(|(i, k)| (k, i))
+            .collect();
+        let data = data
+            .iter()
+            .map(|sample| {
+                let mut s = sample.clone();
+                s.sort_unstable_by(|k1, _v1, k2, _v_2| {
+                    let r1 = rank.get(k1).copied().unwrap_or(usize::MAX);
+                    let r2 = rank.get(k2).copied().unwrap_or(usize::MAX);
+                    r1.cmp(&r2)
+                });
+                s
+            })
+            .collect::<Vec<IndexMap<_, _>>>();
+        Ok(data)
     }
 
-    pub fn build_varnames(
+    pub fn build_ordered_raw_sample(
         data: IndexMap<VariableKey, f64>,
-        n_vars: usize,
-    ) -> PyResult<(IndexMap<String, f64>, Vec<String>)> {
-        let mut var_names = Vec::with_capacity(n_vars);
-        let mut new_data = IndexMap::with_capacity(n_vars);
+        variables: &Vec<String>,
+    ) -> PyResult<IndexMap<String, f64>> {
+        let mut new_data = IndexMap::with_capacity(variables.len());
+        let rank: HashMap<&String, usize> =
+            variables.iter().enumerate().map(|(i, k)| (k, i)).collect();
+
         for (k, v) in data.iter() {
             let var_name = match k {
                 VariableKey::Str(s) => s,
                 VariableKey::Var(v) => &v.name()?,
             };
-            var_names.push(var_name.to_string());
             new_data.insert(var_name.to_string(), *v);
         }
+        new_data.sort_unstable_by(|k1, _v1, k2, _v2| {
+            let r1 = rank.get(k1).copied().unwrap_or(usize::MAX);
+            let r2 = rank.get(k2).copied().unwrap_or(usize::MAX);
+            r1.cmp(&r2)
+        });
 
-        Ok((new_data, var_names))
+        Ok(new_data)
     }
 
     pub fn build_sample<F>(

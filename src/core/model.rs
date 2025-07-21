@@ -13,9 +13,7 @@ use crate::core::utils::make_index_map;
 use crate::core::writer::ModelWriter;
 use crate::errors::{DifferentEnvsErr, EvaluationErr, VariableCreationErr};
 use crate::types::{Bias, VarIndex};
-use hashbrown::HashMap;
 use indexmap::IndexMap;
-use std::env::var;
 use std::fmt::{Debug, Display, Formatter};
 use strum_macros::{Display, EnumString};
 
@@ -172,10 +170,6 @@ impl Model {
 
         let index_map = make_index_map(sol.varname_to_pos(), &self.environment);
 
-        // println!("eval_sol -> index_map = {:#?}", &index_map);
-        // println!("sol = {:#?}", &sol);
-        // println!("environment = {:#?}", &self.environment);
-
         let mut obj_values = Vec::with_capacity(sol.n_samples);
         let mut constr = Vec::with_capacity(sol.n_samples);
         let mut vb = Vec::with_capacity(sol.n_samples);
@@ -184,7 +178,6 @@ impl Model {
             let obj_val = self
                 .objective
                 .evaluate_sample(&sample, |var_idx| index_map[&var_idx].into());
-            // println!("obj_val done");
             constr.push(
                 self.constraints
                     .iter()
@@ -193,7 +186,6 @@ impl Model {
                     })
                     .collect(),
             );
-            // println!("constraints done");
             vb.push(
                 self.environment
                     .borrow()
