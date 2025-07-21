@@ -1,6 +1,6 @@
 use crate::core::environment::SharedEnvironment;
 use crate::core::{Solution, Timing};
-use crate::errors::SolutionCreationErr;
+use crate::errors::{SampleUnexpectedVariableErr, SolutionCreationErr};
 use crate::types::Bias;
 use hashbrown::HashMap;
 use num::NumCast;
@@ -37,7 +37,12 @@ impl DwaveTranslator {
             let sample_unordered = samples[start_idx..start_idx + shape[1]].to_vec();
             let mut sample: Vec<S> = vec![S::default(); sample_unordered.len()];
             for (var, elem) in variables_order.iter().zip(sample_unordered) {
-                sample[map[var]] = elem;
+                let idx = map
+                    .get(var)
+                    .ok_or(SolutionCreationErr::SampleUnexpectedVariable(
+                        SampleUnexpectedVariableErr::new(var.clone()),
+                    ))?;
+                sample[*idx] = elem;
             }
 
             sol.extend(
