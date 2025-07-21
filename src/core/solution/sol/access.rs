@@ -38,7 +38,6 @@ impl Solution {
     }
 
     pub fn get_assignment(&self, row: usize, col: usize) -> Option<VarAssignment> {
-        // println!("sol -> get_assignment -> row = {row}, col = {col}");
         self.samples.get(col).and_then(|column| column.get(row))
     }
 

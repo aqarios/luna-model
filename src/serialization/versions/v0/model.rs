@@ -65,7 +65,7 @@ impl SerModel {
     fn fill(mut self, model: &Model) -> Self {
         self.objective = model.objective.serialize();
         self.constraints = model.constraints.serialize();
-        self.environment = model.environment.borrow().deref().serialize();
+        self.environment = model.environment.access().deref().serialize();
         self
     }
 

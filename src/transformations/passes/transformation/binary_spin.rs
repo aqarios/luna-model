@@ -1,11 +1,14 @@
 use aqm_macros::analysis_cache;
+use itertools::Itertools;
 use std::collections::HashMap;
 
 use sqids::Sqids;
 
 use crate::{
     core::{
-        expression::ExpressionBaseAdd, solution::{sol::ColElement, Column}, Model, Solution, Vtype
+        expression::ExpressionBaseAdd,
+        solution::{sol::ColElement, Column},
+        Model, Solution, Vtype,
     },
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
@@ -77,7 +80,14 @@ impl TransformationPass for BinarySpinPass {
             }
             .to_string(),
         );
-        for x in model.environment.borrow().variables().iter() {
+
+        let env = model.environment.access();
+        let vars = env.variables().into_iter().cloned().collect_vec();
+        // make the compiler happy :) and clear the lock.
+        // So we can use it in the loop.
+        drop(env);
+
+        for x in vars.iter() {
             let mut new_name = format!("{}_{}", pref, x.name);
             let vref_old = model
                 .environment
@@ -98,6 +108,7 @@ impl TransformationPass for BinarySpinPass {
                 _ => {}
             };
         }
+
         if cache.map.is_empty() {
             return Ok(TransformationOutcome::new(
                 model,

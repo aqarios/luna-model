@@ -5,6 +5,7 @@ use super::{
     py_utilities::Replacement,
     py_var::PyVariable,
 };
+use crate::utils::ShareMut;
 use crate::{
     core::{
         environment::SharedEnvironment,
@@ -19,15 +20,12 @@ use crate::{
 };
 use crate::{
     core::{expression::ExpressionBaseCreation, Model},
-    serialization::{
-        Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
-    },
+    serialization::{Decodable, Decompressable, Encodable, Unversionizable},
 };
 use either::Either::{self, Left, Right};
 use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes, IntoPyObjectExt};
 use pyo3::{exceptions::PyTypeError, types::PyType};
-use std::{cell::RefCell, rc::Rc};
 
 /// Polynomial expression supporting symbolic arithmetic, constraint creation, and encoding.
 ///
@@ -127,20 +125,20 @@ use std::{cell::RefCell, rc::Rc};
     pyclass(unsendable, name = "Expression", module = "luna_quantum._core")
 )]
 #[derive(Clone)]
-pub struct PyExpression(pub Either<Expression, Rc<RefCell<Model>>>);
+pub struct PyExpression(pub Either<Expression, ShareMut<Model>>);
 
 impl PyExpression {
     pub fn new(expr: Expression) -> Self {
         Self(Left(expr))
     }
-    pub fn with_parent(parent: Rc<RefCell<Model>>) -> Self {
+    pub fn with_parent(parent: ShareMut<Model>) -> Self {
         Self(Right(parent))
     }
 
     pub fn get_cloned_expression(&self) -> Expression {
         match &self.0 {
             Left(expr) => expr.clone(),
-            Right(parent) => parent.borrow().objective.clone(),
+            Right(parent) => parent.access().objective.clone(),
         }
     }
 }
@@ -286,11 +284,11 @@ impl PyExpressionIterator {
         Self {
             items: match &expr.0 {
                 Left(expr) => expr.items(),
-                Right(p) => p.borrow().objective.items(),
+                Right(p) => p.access().objective.items(),
             },
             env: match &expr.0 {
                 Left(expr) => expr.env.clone(),
-                Right(p) => p.borrow().environment.clone(),
+                Right(p) => p.access().environment.clone(),
             },
             current_idx: 0,
         }
@@ -333,7 +331,7 @@ impl PyExpression {
     fn get_offset(&self) -> f64 {
         match &self.0 {
             Left(expr) => expr.offset(),
-            Right(parent) => parent.borrow().objective.offset(),
+            Right(parent) => parent.access().objective.offset(),
         }
     }
 
@@ -356,7 +354,7 @@ impl PyExpression {
     fn get_linear(&self, variable: &PyVariable) -> PyResult<f64> {
         Ok(match &self.0 {
             Left(expr) => expr.linear(variable.id)?,
-            Right(parent) => parent.borrow().objective.linear(variable.id)?,
+            Right(parent) => parent.access().objective.linear(variable.id)?,
         })
     }
 
@@ -379,7 +377,7 @@ impl PyExpression {
     fn get_quadratic(&self, u: &PyVariable, v: &PyVariable) -> PyResult<f64> {
         Ok(match &self.0 {
             Left(expr) => expr.quadratic(u.id, v.id)?,
-            Right(parent) => parent.borrow().objective.quadratic(u.id, v.id)?,
+            Right(parent) => parent.access().objective.quadratic(u.id, v.id)?,
         })
     }
 
@@ -404,7 +402,7 @@ impl PyExpression {
         Ok(match &self.0 {
             Left(expr) => expr.higher_order(&variables.iter().map(|v| v.id).collect())?,
             Right(parent) => parent
-                .borrow()
+                .access()
                 .objective
                 .higher_order(&variables.iter().map(|v| v.id).collect())?,
         })
@@ -420,7 +418,7 @@ impl PyExpression {
     fn get_num_variables(&self) -> usize {
         match &self.0 {
             Left(expr) => expr.num_variables(),
-            Right(parent) => parent.borrow().objective.num_variables(),
+            Right(parent) => parent.access().objective.num_variables(),
         }
     }
 
@@ -446,7 +444,7 @@ impl PyExpression {
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
         let base = match &self.0 {
             Left(expr) => expr,
-            Right(parent) => &parent.borrow().objective,
+            Right(parent) => &parent.access().objective,
         };
         Ok(PyBytes::new(py, &base.encode(compress, level)?).into())
     }
@@ -529,19 +527,26 @@ impl PyExpression {
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = match &self.0 {
                 Left(e) => e.add(rhs),
-                Right(p) => p.borrow().objective.add(rhs),
+                Right(p) => p.access().objective.add(rhs),
             }
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = match &self.0 {
                 Left(e) => e.add(rhs.as_ref())?,
-                Right(p) => p.borrow().objective.add(rhs.as_ref())?,
+                Right(p) => p.access().objective.add(rhs.as_ref())?,
             }
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = match (&self.0, rhs.0) {
                 (Left(l), Left(r)) => l.add(&r)?,
-                (Left(l), Right(r)) => l.add(&r.borrow().objective)?,
-                (Right(l), Left(r)) => l.borrow().objective.add(&r)?,
-                (Right(l), Right(r)) => l.borrow().objective.add(&r.borrow().objective)?,
+                (Left(l), Right(r)) => l.add(&r.access().objective)?,
+                (Right(l), Left(r)) => l.access().objective.add(&r)?,
+                (Right(l), Right(r)) => {
+                    if l.ptr_eq(&r) {
+                        let m = l.access();
+                        m.objective.add(&m.objective)?
+                    } else {
+                        l.access().objective.add(&r.access().objective)?
+                    }
+                }
             }
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
@@ -589,19 +594,26 @@ impl PyExpression {
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = match &self.0 {
                 Left(e) => e.sub(rhs),
-                Right(p) => p.borrow().objective.sub(rhs),
+                Right(p) => p.access().objective.sub(rhs),
             }
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = match &self.0 {
                 Left(e) => e.sub(rhs.as_ref())?,
-                Right(p) => p.borrow().objective.sub(rhs.as_ref())?,
+                Right(p) => p.access().objective.sub(rhs.as_ref())?,
             }
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = match (&self.0, rhs.0) {
                 (Left(l), Left(r)) => l.sub(&r)?,
-                (Left(l), Right(r)) => l.sub(&r.borrow().objective)?,
-                (Right(l), Left(r)) => l.borrow().objective.sub(&r)?,
-                (Right(l), Right(r)) => l.borrow().objective.sub(&r.borrow().objective)?,
+                (Left(l), Right(r)) => l.sub(&r.access().objective)?,
+                (Right(l), Left(r)) => l.access().objective.sub(&r)?,
+                (Right(l), Right(r)) => {
+                    if l.ptr_eq(&r) {
+                        let m = l.access();
+                        m.objective.sub(&m.objective)?
+                    } else {
+                        l.access().objective.sub(&r.access().objective)?
+                    }
+                }
             }
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
@@ -631,19 +643,26 @@ impl PyExpression {
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = match &self.0 {
                 Left(e) => e.mul(rhs),
-                Right(p) => p.borrow().objective.mul(rhs),
+                Right(p) => p.access().objective.mul(rhs),
             }
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             expr = match &self.0 {
                 Left(e) => e.mul(rhs.as_ref())?,
-                Right(p) => p.borrow().objective.mul(rhs.as_ref())?,
+                Right(p) => p.access().objective.mul(rhs.as_ref())?,
             }
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             expr = match (&self.0, rhs.0) {
                 (Left(l), Left(r)) => l.mul(&r)?,
-                (Left(l), Right(r)) => l.mul(&r.borrow().objective)?,
-                (Right(l), Left(r)) => l.borrow().objective.mul(&r)?,
-                (Right(l), Right(r)) => l.borrow().objective.mul(&r.borrow().objective)?,
+                (Left(l), Right(r)) => l.mul(&r.access().objective)?,
+                (Right(l), Left(r)) => l.access().objective.mul(&r)?,
+                (Right(l), Right(r)) => {
+                    if l.ptr_eq(&r) {
+                        let m = l.access();
+                        m.objective.mul(&m.objective)?
+                    } else {
+                        l.access().objective.mul(&r.access().objective)?
+                    }
+                }
             }
         } else {
             return Err(PyTypeError::new_err("unsupported type for operation"));
@@ -688,7 +707,7 @@ impl PyExpression {
     fn __rsub__(&self, other: f64) -> PyResult<PyExpression> {
         let expr = match &self.0 {
             Left(e) => (-e).sub(other),
-            Right(p) => (-&(p.borrow().objective)).sub(other),
+            Right(p) => (-&(p.access().objective)).sub(other),
         };
 
         Ok(PyExpression::new(expr))
@@ -714,20 +733,26 @@ impl PyExpression {
         if let Ok(rhs) = other.extract::<f64>(py) {
             match &mut self.0 {
                 Left(e) => e.add_assign(rhs),
-                Right(p) => p.borrow_mut().objective.add_assign(rhs),
+                Right(p) => p.access().objective.add_assign(rhs),
             }
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             match &mut self.0 {
                 Left(e) => e.add_assign(rhs.as_ref())?,
-                Right(p) => p.borrow_mut().objective.add_assign(rhs.as_ref())?,
+                Right(p) => p.access().objective.add_assign(rhs.as_ref())?,
             }
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             match (&mut self.0, rhs.0) {
                 (Left(l), Left(r)) => l.add_assign(&r)?,
-                (Left(l), Right(r)) => l.add_assign(&r.borrow().objective)?,
-                (Right(l), Left(r)) => l.borrow_mut().objective.add_assign(&r)?,
+                (Left(l), Right(r)) => l.add_assign(&r.access().objective)?,
+                (Right(l), Left(r)) => l.access().objective.add_assign(&r)?,
                 (Right(l), Right(r)) => {
-                    l.borrow_mut().objective.add_assign(&r.borrow().objective)?
+                    if l.ptr_eq(&r) {
+                        let mut m = l.access();
+                        let to = m.objective.clone();
+                        m.objective.add_assign(&to)?
+                    } else {
+                        l.access_mut().objective.add_assign(&r.access().objective)?
+                    }
                 }
             }
         } else {
@@ -757,20 +782,26 @@ impl PyExpression {
         if let Ok(rhs) = other.extract::<f64>(py) {
             match &mut self.0 {
                 Left(e) => e.sub_assign(rhs),
-                Right(p) => p.borrow_mut().objective.sub_assign(rhs),
+                Right(p) => p.access().objective.sub_assign(rhs),
             }
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             match &mut self.0 {
                 Left(e) => e.sub_assign(rhs.as_ref())?,
-                Right(p) => p.borrow_mut().objective.sub_assign(rhs.as_ref())?,
+                Right(p) => p.access().objective.sub_assign(rhs.as_ref())?,
             }
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             match (&mut self.0, rhs.0) {
                 (Left(l), Left(r)) => l.sub_assign(&r)?,
-                (Left(l), Right(r)) => l.sub_assign(&r.borrow().objective)?,
-                (Right(l), Left(r)) => l.borrow_mut().objective.sub_assign(&r)?,
+                (Left(l), Right(r)) => l.sub_assign(&r.access().objective)?,
+                (Right(l), Left(r)) => l.access().objective.sub_assign(&r)?,
                 (Right(l), Right(r)) => {
-                    l.borrow_mut().objective.sub_assign(&r.borrow().objective)?
+                    if l.ptr_eq(&r) {
+                        let mut m = l.access();
+                        let to = m.objective.clone();
+                        m.objective.sub_assign(&to)?
+                    } else {
+                        l.access_mut().objective.sub_assign(&r.access().objective)?
+                    }
                 }
             }
         } else {
@@ -800,20 +831,26 @@ impl PyExpression {
         if let Ok(rhs) = other.extract::<f64>(py) {
             match &mut self.0 {
                 Left(e) => e.mul_assign(rhs),
-                Right(p) => p.borrow_mut().objective.mul_assign(rhs),
+                Right(p) => p.access().objective.mul_assign(rhs),
             }
         } else if let Ok(rhs) = other.extract::<PyVariable>(py) {
             match &mut self.0 {
                 Left(e) => e.mul_assign(rhs.as_ref())?,
-                Right(p) => p.borrow_mut().objective.mul_assign(rhs.as_ref())?,
+                Right(p) => p.access().objective.mul_assign(rhs.as_ref())?,
             }
         } else if let Ok(rhs) = other.extract::<PyExpression>(py) {
             match (&mut self.0, rhs.0) {
                 (Left(l), Left(r)) => l.mul_assign(&r)?,
-                (Left(l), Right(r)) => l.mul_assign(&r.borrow().objective)?,
-                (Right(l), Left(r)) => l.borrow_mut().objective.mul_assign(&r)?,
+                (Left(l), Right(r)) => l.mul_assign(&r.access().objective)?,
+                (Right(l), Left(r)) => l.access().objective.mul_assign(&r)?,
                 (Right(l), Right(r)) => {
-                    l.borrow_mut().objective.mul_assign(&r.borrow().objective)?
+                    if l.ptr_eq(&r) {
+                        let mut m = l.access_mut();
+                        let to = m.objective.clone();
+                        m.objective.mul_assign(&to)?
+                    } else {
+                        l.access_mut().objective.mul_assign(&r.access().objective)?
+                    }
                 }
             }
         } else {
@@ -850,13 +887,13 @@ impl PyExpression {
             0 => {
                 let env = match &self.0 {
                     Left(expr) => expr.env.clone(),
-                    Right(p) => p.borrow().environment.clone(),
+                    Right(p) => p.access().environment.clone(),
                 };
                 Expression::empty(env).add(1.0)
             }
             1 => match &self.0 {
                 Left(expr) => expr.clone(),
-                Right(p) => p.borrow().objective.clone(),
+                Right(p) => p.access().objective.clone(),
             },
             _ => match &self.0 {
                 Left(expr) => {
@@ -867,7 +904,7 @@ impl PyExpression {
                     base
                 }
                 Right(p) => {
-                    let m = p.borrow();
+                    let m = p.access();
                     let mut base = Expression::empty(m.environment.clone()).add(1.0);
                     for _ in 0..other {
                         base.mul_assign(&m.objective)?;
@@ -893,9 +930,15 @@ impl PyExpression {
     pub fn is_equal(&self, other: &PyExpression) -> bool {
         match (&self.0, &other.0) {
             (Left(l), Left(r)) => l == r,
-            (Left(l), Right(r)) => *l == r.borrow().objective,
-            (Right(l), Left(r)) => l.borrow().objective == *r,
-            (Right(l), Right(r)) => l.borrow().objective == r.borrow().objective,
+            (Left(l), Right(r)) => *l == r.access().objective,
+            (Right(l), Left(r)) => l.access().objective == *r,
+            (Right(l), Right(r)) => {
+                if l.ptr_eq(&r) {
+                    true
+                } else {
+                    l.access().objective == r.access().objective
+                }
+            }
         }
     }
 
@@ -976,7 +1019,7 @@ impl PyExpression {
     fn __neg__(&self) -> PyExpression {
         PyExpression::new(match &self.0 {
             Left(expr) => -expr,
-            Right(p) => -(&p.borrow().objective),
+            Right(p) => -(&p.access().objective),
         })
     }
 
@@ -990,20 +1033,20 @@ impl PyExpression {
     // /// -------
     // /// bool
     // fn __ne__(&self, other: &Self) -> bool {
-    //     *self.borrow() != *other.borrow()
+    //     *self.access() != *other.access()
     // }
 
     fn __str__(&self) -> String {
         match &self.0 {
             Left(expr) => expr.to_string(),
-            Right(p) => p.borrow().objective.to_string(),
+            Right(p) => p.access().objective.to_string(),
         }
     }
 
     fn __repr__(&self) -> String {
         match &self.0 {
             Left(expr) => format!("{:#?}", expr),
-            Right(p) => format!("{:#?}", p.borrow().objective),
+            Right(p) => format!("{:#?}", p.access().objective),
         }
     }
 
@@ -1012,7 +1055,7 @@ impl PyExpression {
     fn _environment(&self) -> PyEnvironment {
         PyEnvironment(match &self.0 {
             Left(expr) => expr.env.clone(),
-            Right(p) => p.borrow().environment.clone(),
+            Right(p) => p.access().environment.clone(),
         })
     }
 
@@ -1054,12 +1097,12 @@ impl PyExpression {
         let expr = match &self.0 {
             Left(expr) => match &replacement.as_expr().0 {
                 Left(repl) => expr.substitute(&target.0, repl),
-                Right(other_model) => expr.substitute(&target.0, &other_model.borrow().objective),
+                Right(other_model) => expr.substitute(&target.0, &other_model.access().objective),
             },
             Right(model) => match &replacement.as_expr().0 {
-                Left(repl) => (&model.borrow().objective).substitute(&target.0, &repl),
-                Right(other_model) => (&model.borrow().objective)
-                    .substitute(&target.0, &other_model.borrow().objective),
+                Left(repl) => (&model.access().objective).substitute(&target.0, &repl),
+                Right(other_model) => (&model.access().objective)
+                    .substitute(&target.0, &other_model.access().objective),
             },
         }?;
         Ok(PyExpression::new(expr))
@@ -1068,12 +1111,17 @@ impl PyExpression {
     fn equal_contents(&self, other: &Self) -> bool {
         match (&self.0, &other.0) {
             (Left(lhs), Left(rhs)) => lhs.is_equal_contents(&rhs),
-            (Left(lhs), Right(rhs)) => lhs.is_equal_contents(&rhs.borrow().objective),
-            (Right(lhs), Left(rhs)) => lhs.borrow().objective.is_equal_contents(&rhs),
-            (Right(lhs), Right(rhs)) => lhs
-                .borrow()
-                .objective
-                .is_equal_contents(&rhs.borrow().objective),
+            (Left(lhs), Right(rhs)) => lhs.is_equal_contents(&rhs.access().objective),
+            (Right(lhs), Left(rhs)) => lhs.access().objective.is_equal_contents(&rhs),
+            (Right(lhs), Right(rhs)) => {
+                if lhs.ptr_eq(&rhs) {
+                    true
+                } else {
+                    lhs.access()
+                        .objective
+                        .is_equal_contents(&rhs.access().objective)
+                }
+            }
         }
     }
 }

@@ -114,9 +114,7 @@ pub fn make_index_map(
 ) -> HashMap<VarIndex, VarIndex> {
     let vars_env = env.variable_names();
     let mut index_map: HashMap<VarIndex, VarIndex> = HashMap::with_capacity(vars_env.len());
-    // println!("sol_varname_to_pos -> {:#?}", &sol_varname_to_pos);
     for v in vars_env {
-        // println!("varname in iter -> {v}");
         let v_idx_model = env.varidx_for_name(&v);
         let v_idx_sol = sol_varname_to_pos[&v];
         index_map.insert(v_idx_model, v_idx_sol);

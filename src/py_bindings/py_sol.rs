@@ -14,6 +14,7 @@ use crate::py_bindings::py_usize::PyUsize;
 use crate::py_bindings::py_var::PyVariable;
 use crate::serialization::{Decodable, Decompressable, Encodable, Unversionizable};
 use crate::types::VarIndex;
+use crate::utils::ShareMut;
 use derive_more::{Deref, DerefMut};
 use hashbrown::HashMap;
 use indexmap::IndexMap;
@@ -23,10 +24,8 @@ use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
-use std::cell::RefCell;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
-use std::rc::Rc;
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(pub VarAssignment);
@@ -102,11 +101,11 @@ enum BitOrder {
     pyclass(unsendable, name = "Solution", module = "luna_quantum._core")
 )]
 #[derive(Deref, DerefMut, Debug, Clone)]
-pub struct PySolution(pub Rc<RefCell<Solution>>);
+pub struct PySolution(pub ShareMut<Solution>);
 
 impl PySolution {
     pub fn new(sol: Solution) -> Self {
-        PySolution(Rc::new(RefCell::new(sol)))
+        PySolution(ShareMut::new(sol))
     }
 }
 
@@ -383,10 +382,10 @@ impl PySolution {
         let environment = Self::retrieve_environment(&env, &model)?;
 
         let mut sol = Solution::with_sense(
-            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+            sense.unwrap_or(model.as_ref().map(|m| m.access().sense).unwrap_or_default()),
         );
         sol.create_columns(&environment, 1);
-        let n_vars = environment.borrow().varcount() as usize;
+        let n_vars = environment.access().varcount() as usize;
         let data = Self::build_ordered_raw_sample(data, &environment.variable_names())?;
         sol.variable_names = environment.variable_names();
         let index_map = make_index_map(sol.varname_to_pos(), &environment);
@@ -396,7 +395,7 @@ impl PySolution {
         let energy: Option<f64> = None;
         let _ = sol.extend(&sample, counts.unwrap_or(1), energy)?;
         if let Some(m) = model {
-            sol = m.borrow().evaluate_solution(sol)?;
+            sol = m.access().evaluate_solution(sol)?;
         }
 
         Ok(PySolution::new(sol))
@@ -465,13 +464,13 @@ impl PySolution {
         let environment = Self::retrieve_environment(&env, &model)?;
 
         let mut sol = Solution::with_sense(
-            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+            sense.unwrap_or(model.as_ref().map(|m| m.access().sense).unwrap_or_default()),
         );
         sol.create_columns(&environment, data.len());
 
         let mut samples: Vec<Vec<f64>> = Vec::with_capacity(data.len());
 
-        let n_vars = environment.borrow().varcount() as usize;
+        let n_vars = environment.access().varcount() as usize;
         // we need to ensure each sample dict / hashmap / indexmap has the same order.
         let data = Self::build_ordered_raw_samples(data, &environment.variable_names())?;
         sol.variable_names = environment.variable_names();
@@ -497,7 +496,7 @@ impl PySolution {
         sol.timing = timing.map(|t| t.0);
 
         if let Some(m) = model {
-            sol = m.borrow().evaluate_solution(sol)?;
+            sol = m.access().evaluate_solution(sol)?;
         }
 
         Ok(PySolution::new(sol))
@@ -561,9 +560,9 @@ impl PySolution {
         let environment = Self::retrieve_environment(&env, &model)?;
 
         let mut sol = Solution::with_sense(
-            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+            sense.unwrap_or(model.as_ref().map(|m| m.access().sense).unwrap_or_default()),
         );
-        for (idx, v) in environment.borrow().all_variables().enumerate() {
+        for (idx, v) in environment.access().all_variables().enumerate() {
             match v.vtype {
                 Vtype::Binary => sol.add_column(Column::Binary(ColElement::new(
                     idx.into(),
@@ -620,7 +619,7 @@ impl PySolution {
         sol.timing = timing.map(|t| t.0);
 
         if let Some(m) = model {
-            sol = m.borrow().evaluate_solution(sol)?;
+            sol = m.access().evaluate_solution(sol)?;
         }
 
         Ok(PySolution::new(sol))
@@ -719,7 +718,7 @@ impl PySolution {
             )))
         } else {
             Ok(self
-                .borrow()
+                .access()
                 .print(mll, mcl, ml, mvnl, layout, show_metadata))
         }
     }
@@ -727,7 +726,7 @@ impl PySolution {
     /// Get an iterator over the single results of the solution.
     #[getter]
     fn get_results(&self) -> PyResultIterator {
-        // PyResultIterator(self.borrow().iter_results())
+        // PyResultIterator(self.access().iter_results())
         PyResultIterator::new(self.clone())
     }
 
@@ -742,7 +741,7 @@ impl PySolution {
     /// None if the sample hasn't yet been evaluated.
     #[getter]
     fn get_obj_values<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<PyObject>>> {
-        self.borrow().obj_values.as_ref().map(|ovs| {
+        self.access().obj_values.as_ref().map(|ovs| {
             ovs.iter()
                 .map(|x| x.into_py_any(py).unwrap())
                 .collect::<Vec<_>>()
@@ -754,7 +753,7 @@ impl PySolution {
     /// algorithm. Will be None if the solver / algorithm did not provide a value.
     #[getter]
     fn get_raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
-        self.borrow()
+        self.access()
             .raw_energies
             .iter()
             .map(|x| x.into_py_any(py).unwrap())
@@ -765,31 +764,31 @@ impl PySolution {
     /// Return how often each sample occurred in the solution.
     #[getter]
     fn get_counts<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
-        self.borrow().counts.to_pyarray(py)
+        self.access().counts.to_pyarray(py)
     }
 
     /// Get the solver / algorithm runtime.
     #[getter]
     fn get_runtime(&self) -> Option<PyTiming> {
-        self.borrow().timing.map(|t| PyTiming(t))
+        self.access().timing.map(|t| PyTiming(t))
     }
 
     /// Get the optimization sense.
     #[getter]
     fn get_sense(&self) -> Sense {
-        self.borrow().sense
+        self.access().sense
     }
 
     /// Get the index of the sample with the best objective value.
     #[getter]
     fn get_best_sample_idx(&self) -> Option<usize> {
-        self.borrow().best_sample_idx
+        self.access().best_sample_idx
     }
 
     /// Get the names of all variables in the solution.
     #[getter]
     fn get_variable_names(&self) -> Vec<String> {
-        self.borrow().variable_names.clone()
+        self.access().variable_names.clone()
     }
 
     /// Compute the expectation value of the solution.
@@ -804,7 +803,7 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn expectation_value(&self) -> PyResult<f64> {
-        Ok(self.borrow().expectation_value()?)
+        Ok(self.access().expectation_value()?)
     }
 
     /// Compute the expectation value of the solution.
@@ -819,7 +818,7 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn feasibility_ratio(&self) -> PyResult<f64> {
-        Ok(self.borrow().feasibility_ratio()?)
+        Ok(self.access().feasibility_ratio()?)
     }
 
     /// Get a new solution with all infeasible samples removed.
@@ -833,8 +832,9 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn filter_feasible(&self) -> PyResult<PySolution> {
-        if let Some(f) = &self.borrow().feasible {
-            let sol = self.borrow().filter_samples(&f);
+        let slf = self.access();
+        if let Some(f) = &slf.feasible {
+            let sol = slf.filter_samples(&f);
             Ok(PySolution::new(sol))
         } else {
             Err(ComputationErr(
@@ -856,18 +856,18 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn highest_constraint_violations(&self) -> PyResult<Option<usize>> {
-        Ok(self.borrow().highest_constraint_violations()?)
+        Ok(self.access().highest_constraint_violations()?)
     }
 
     /// Get the best result.
     fn best(&self) -> Option<PyResultView> {
-        self.borrow()
-            .best()
-            .map(|r| PyResultView::new(self.clone(), r.idx))
+        let slf = self.access();
+        slf.best()
+            .map(|r| PyResultView::new(PySolution::new(slf.clone()), r.idx))
     }
 
     fn __len__(&self) -> usize {
-        self.borrow().n_samples
+        self.access().n_samples
     }
 
     /// Serialize the solution into a compact binary format.
@@ -890,8 +890,8 @@ impl PySolution {
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        // Ok(PyBytes::new(py, &self.borrow().encode(compress, level)?).into())
-        Ok(PyBytes::new(py, &self.borrow().encode(compress, level)?).into())
+        // Ok(PyBytes::new(py, &self.access().encode(compress, level)?).into())
+        Ok(PyBytes::new(py, &self.access().encode(compress, level)?).into())
     }
 
     /// Alias for `encode()`.
@@ -980,7 +980,7 @@ impl PySolution {
                     "Expected a non-negative number, received: {res_idx}"
                 )))?;
             }
-            match self.borrow().get_result_view(res_idx as usize) {
+            match self.access().get_result_view(res_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
                 ))),
@@ -1001,7 +1001,7 @@ impl PySolution {
     /// -------
     /// bool
     fn __eq__(&self, other: &PySolution) -> bool {
-        &self.borrow().deref() == &other.borrow().deref()
+        &self.access().deref() == &other.access().deref()
     }
 
     #[pyo3(signature=(var, data, vtype=None))]
@@ -1014,11 +1014,11 @@ impl PySolution {
             ),
             VariableKey::Var(elem) => (
                 VarKey::Var(elem.0.as_ref()),
-                elem.0.as_ref().env.borrow().get_vtype(elem.0.id),
+                elem.0.as_ref().env.access().get_vtype(elem.0.id),
             ),
         };
         Ok(self
-            .borrow_mut()
+            .access_mut()
             .add_samplecol(var, data.as_slice(), default)?)
     }
 
@@ -1036,14 +1036,14 @@ impl PySolution {
                 .zip(&variables)
                 .map(|(vt, vk)| match vk {
                     VariableKey::Str(_) => vt.unwrap_or_else(|| Vtype::Binary),
-                    VariableKey::Var(v) => v.0.as_ref().env.borrow().get_vtype(v.0.id),
+                    VariableKey::Var(v) => v.0.as_ref().env.access().get_vtype(v.0.id),
                 })
                 .collect_vec(),
             None => variables
                 .iter()
                 .map(|vk| match vk {
                     VariableKey::Str(_) => Vtype::Binary,
-                    VariableKey::Var(v) => v.0.as_ref().env.borrow().get_vtype(v.0.id),
+                    VariableKey::Var(v) => v.0.as_ref().env.access().get_vtype(v.0.id),
                 })
                 .collect_vec(),
         };
@@ -1053,7 +1053,7 @@ impl PySolution {
                 VariableKey::Str(str) => VarKey::Name(str.to_string()),
                 VariableKey::Var(elem) => VarKey::Var(elem.0.as_ref()),
             };
-            self.borrow_mut().add_samplecol(var, &col, vtypes[i])?;
+            self.access_mut().add_samplecol(var, &col, vtypes[i])?;
         }
         Ok(())
     }
@@ -1063,7 +1063,7 @@ impl PySolution {
             VariableKey::Str(str) => VarKey::Name(str.to_string()),
             VariableKey::Var(elem) => VarKey::Var(elem.0.as_ref()),
         };
-        self.borrow_mut().remove_samplecol(var)
+        self.access_mut().remove_samplecol(var)
     }
 
     fn remove_vars(&self, variables: Vec<VariableKey>) {
@@ -1072,7 +1072,7 @@ impl PySolution {
                 VariableKey::Str(str) => VarKey::Name(str.to_string()),
                 VariableKey::Var(elem) => VarKey::Var(elem.0.as_ref()),
             };
-            self.borrow_mut().remove_samplecol(var)
+            self.access_mut().remove_samplecol(var)
         }
     }
 }
@@ -1203,7 +1203,7 @@ impl PySolution {
         model: &Option<PyModel>,
     ) -> PyResult<PyEnvironment> {
         let environment = if let Some(model) = &model {
-            PyEnvironment(model.borrow().environment.clone())
+            PyEnvironment(model.access().environment.clone())
         } else {
             match env {
                 Some(env) => env.clone(),
@@ -1302,7 +1302,7 @@ impl PySolution {
         let mut mask = vec![false; n_vars];
 
         for (k, &v) in data.iter() {
-            let environ = env.borrow();
+            let environ = env.access();
             let maybe_var = environ.get_varidx(k).ok();
             if maybe_var.is_none() {
                 return Err(SampleUnexpectedVariableErr {
@@ -1310,10 +1310,9 @@ impl PySolution {
                 })?;
             }
             let var = maybe_var.unwrap().0 as usize;
-            // println!("build_var -> var = {}", &var);
             let sidx: usize = map_varidx(var.into()).into();
-            // println!("build_var -> sidx = {}", &sidx);
             sample[sidx] = v;
+
             mask[sidx] = true;
         }
 

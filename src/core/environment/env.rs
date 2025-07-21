@@ -6,13 +6,14 @@ use crate::core::{Bounds, LazyBounds, ValueByIndex, VarAssignment};
 use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use crate::types::Bias;
 use crate::types::{EnvId, VarIndex};
+use crate::utils::ShareMut;
 use derive_more::{Deref, DerefMut};
 use global_counter::primitive::exact::CounterU64;
 use hashbrown::HashMap;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
+use std::ops::Index;
 use std::slice::Iter;
-use std::{cell::RefCell, ops::Index, rc::Rc};
 
 pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
 
@@ -26,8 +27,18 @@ pub struct Environment {
     ghost_vars: Vec<usize>,
 }
 
-#[derive(Debug, PartialEq, Deref, DerefMut)]
-pub struct SharedEnvironment(Rc<RefCell<Environment>>);
+#[derive(Debug, Deref, DerefMut)]
+pub struct SharedEnvironment(ShareMut<Environment>);
+
+impl PartialEq for SharedEnvironment {
+    fn eq(&self, other: &Self) -> bool {
+        if self.ptr_eq(other) {
+            true
+        } else {
+            self.access().eq(&other.access())
+        }
+    }
+}
 
 impl SharedEnvironment {
     /// Deep clone a shared environment.
@@ -36,7 +47,7 @@ impl SharedEnvironment {
     /// The deep cloned environment gets a new environment id that is guaranteed
     /// to be different from all other possibly exisiting environments.
     pub fn deep_clone(&self) -> Self {
-        let b = self.borrow();
+        let b = self.access();
         let cloned = b.deref().deep_clone();
         SharedEnvironment::from(cloned)
     }
@@ -47,7 +58,7 @@ impl SharedEnvironment {
         vtype: Option<Vtype>,
         bounds: Option<LazyBounds>,
     ) -> Result<VarRef, VariableCreationErr> {
-        let mut mutable_env = self.borrow_mut();
+        let mut mutable_env = self.access_mut();
         if mutable_env.variables_lookup.contains_key(name) {
             return Err(VariableCreationErr::VariableExists(name.to_string()));
         }
@@ -91,21 +102,19 @@ impl SharedEnvironment {
     }
 
     pub fn get_vref_by_name(&self, name: &str) -> Result<VarRef, VariableNotExistingErr> {
-        let index = self.borrow().get_varidx(&name.to_string())?;
-        // As we don't store the VarRefs here, we need to create a new one based on the info
-        // we have.
+        let index = self.access().get_varidx(&name.to_string())?;
         Ok(VarRef::new(index, self.clone()))
     }
 
     pub fn get_vrefs_in_order(&self) -> Vec<VarRef> {
-        (0..self.borrow().variables.len())
-            .filter(|idx| !self.borrow().ghost_vars.contains(idx))
+        (0..self.access().variables.len())
+            .filter(|idx| !self.access().ghost_vars.contains(idx))
             .map(|idx| VarRef::new(idx.into(), self.clone()))
             .collect()
     }
 
     pub fn remove(&mut self, target: &VarRef) {
-        let mut mutable_env = self.borrow_mut();
+        let mut mutable_env = self.access_mut();
         let idx: usize = target.id.into();
         let var_name = mutable_env.variables[idx].name.clone();
         // remove from variables lookup
@@ -122,27 +131,28 @@ impl SharedEnvironment {
     }
 
     pub fn variable_names(&self) -> Vec<String> {
-        self.borrow()
-            .variables
+        let slf = self.access();
+        slf.variables
             .iter()
             .enumerate()
-            .filter(|(i, _)| !self.borrow().ghost_vars.contains(i))
+            .filter(|(i, _)| !slf.ghost_vars.contains(i))
             .map(|(_, e)| e.name.clone())
             .collect()
     }
 
     pub fn id(&self) -> EnvId {
-        self.borrow().id
+        self.access().id
     }
 
     pub fn varcount(&self) -> VarIndex {
-        self.borrow().varcount
+        self.access().varcount
     }
 
     /// Includes only non ghost variables, i.e., active variables.
     pub fn vrefs(&self) -> Vec<VarRef> {
-        (0..self.0.borrow().variables.len())
-            .filter(|idx| !self.0.borrow().ghost_vars.contains(idx))
+        let slf = self.access();
+        (0..slf.variables.len())
+            .filter(|idx| !slf.ghost_vars.contains(idx))
             .map(|idx| VarRef::new(idx.into(), self.clone()))
             .collect()
     }
@@ -152,30 +162,34 @@ impl SharedEnvironment {
     }
 
     pub fn varidx_for_name(&self, varname: &String) -> VarIndex {
-        self.borrow().variables_lookup[varname]
+        self.access().variables_lookup[varname]
     }
 }
 
 impl SharedEnvironment {
     pub fn default() -> Self {
-        Self(Rc::new(RefCell::new(Environment::new())))
+        Self(ShareMut::new(Environment::new()))
     }
 
     pub fn from(env: Environment) -> Self {
-        Self(Rc::new(RefCell::new(env)))
+        Self(ShareMut::new(env))
     }
 }
 
 impl Clone for SharedEnvironment {
     fn clone(&self) -> Self {
-        Self(Rc::clone(&self.0))
+        Self(self.0.clone())
     }
 }
 
 impl ContentEquality for SharedEnvironment {
     /// Compare content equality of two environments, ignoring the envid.
     fn is_equal_contents(&self, other: &Self) -> bool {
-        self.borrow().is_equal_contents(&other.borrow())
+        if self.ptr_eq(other) {
+            true
+        } else {
+            self.access().is_equal_contents(&other.access())
+        }
     }
 }
 

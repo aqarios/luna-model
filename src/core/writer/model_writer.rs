@@ -66,7 +66,7 @@ impl ModelWriter {
             if *bias != Bias::default() {
                 let vnames = indices
                     .iter()
-                    .map(|&idx| env.borrow()[idx].name.clone())
+                    .map(|&idx| env.access()[idx].name.clone())
                     .collect::<Vec<_>>()
                     .join(" * ");
                 if !self.is_first {
@@ -83,8 +83,8 @@ impl ModelWriter {
     pub fn write_quadratic(&mut self, env: &SharedEnvironment, quadratic: &Quadratic) -> &mut Self {
         for (i, j, bias) in quadratic.iter_flat() {
             if bias != Bias::default() {
-                let v_i = env.borrow()[i].name.clone();
-                let v_j = env.borrow()[j].name.clone();
+                let v_i = env.access()[i].name.clone();
+                let v_j = env.access()[j].name.clone();
                 if !self.is_first {
                     self.writer.space();
                 }
@@ -102,7 +102,7 @@ impl ModelWriter {
                 if !self.is_first {
                     self.writer.space();
                 }
-                let s = format!("{}{}", self.show_bias(bias), env.borrow()[i].name);
+                let s = format!("{}{}", self.show_bias(bias), env.access()[i].name);
                 self.writer.write(&s);
                 self.is_first = false;
             }
@@ -171,7 +171,7 @@ impl ModelWriter {
     }
 
     pub fn write_bounds(&mut self, environment: &SharedEnvironment) -> &mut Self {
-        let binding = environment.borrow();
+        let binding = environment.access();
         let vars = binding.variables();
         let ints_and_reals: Vec<_> = vars
             .into_iter()
@@ -208,7 +208,7 @@ impl ModelWriter {
 
     pub fn write_variables(&mut self, env: &SharedEnvironment) -> &mut Self {
         let mut var_map = HashMap::new();
-        for var in env.borrow().variables() {
+        for var in env.access().variables() {
             var_map
                 .entry(var.vtype.to_string())
                 .or_insert(vec![])

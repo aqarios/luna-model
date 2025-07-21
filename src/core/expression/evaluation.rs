@@ -13,29 +13,17 @@ impl ExpressionEvaluation<VarIndex, Bias> for Expression {
         index_map: F,
     ) -> Bias
     where
-        // &'a Elem: Mul<Bias, Output = Bias>,
         Elem: Mul<Bias, Output = Bias>,
         F: Fn(VarIndex) -> VarIndex,
     {
-        // println!("eval sample -> linear = {:?}", self.linear);
-        // println!("eval sample -> active = {:?}", self.active);
-        // println!("eval sample -> linear.len() = {:?}", self.linear.len());
-
         let mut value = self.offset;
         // Evaluate the linear term.
         for (idx, bias) in self.linear.iter() {
-            // println!("in linear loop of eval -> idx = {idx}");
             if self.active[idx] {
                 let mapped = index_map(idx.into());
-                // println!("in linear loop of eval, idx = {idx} -> mapped idx = {mapped:?}");
                 value += sample.value_by_index(mapped) * *bias;
             }
         }
-        // println!("eval sample -> quadra = {:?}", self.quadratic);
-        // println!(
-        //     "eval sample -> quadra.len() = {:?}",
-        //     self.quadratic.as_ref().map(|e| e.len())
-        // );
         // Evaluate the quadratic term if it exists.
         if let Some(quad) = &self.quadratic {
             for (u, v, bias) in quad.iter_flat() {

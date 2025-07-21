@@ -197,7 +197,7 @@ impl PyBqmTranslator {
     #[pyo3(signature=(model))]
     fn from_aq<'a>(py: Python<'a>, model: &PyModel) -> PyResult<PyObject> {
         let (offset, linear, quad, rows, cols, vtype, vars) =
-            BqmTranslator::model_to_bqm(&model.borrow())?;
+            BqmTranslator::model_to_bqm(&model.access())?;
         let linear_py = linear.to_pyarray(py);
         let quadratic_py = quad.to_pyarray(py);
         let rows_py = rows.to_pyarray(py);

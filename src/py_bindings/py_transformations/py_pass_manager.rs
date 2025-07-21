@@ -56,11 +56,11 @@ impl PyPassManager {
 
     #[pyo3(name = "run")]
     pub fn py_run(&self, model: PyModel) -> PyResult<PyIR> {
-        Ok(PyIR(self.run(model.borrow().deep_clone())?))
+        Ok(PyIR(self.run(model.access().deep_clone())?))
     }
 
     #[pyo3(name = "backwards")]
     pub fn py_backwargs(&self, solution: &PySolution, ir: &PyIR) -> PySolution {
-        PySolution::new(self.backwards(solution.borrow().clone(), &ir.0))
+        PySolution::new(self.backwards(solution.access().clone(), &ir.0))
     }
 }

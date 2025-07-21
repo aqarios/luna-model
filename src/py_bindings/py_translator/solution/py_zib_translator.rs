@@ -6,7 +6,6 @@ use indexmap::IndexMap;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::pyclass;
-use std::collections::HashMap;
 use std::ffi::CStr;
 
 #[cfg(not(feature = "lq"))]

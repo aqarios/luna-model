@@ -11,7 +11,7 @@ use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 static DELIMITER: &str = ", ";
 
 pub fn repr_model(model: &PyModel) -> String {
-    let bm = &model.borrow();
+    let bm = &model.access();
     format!(
         "Model(name={}, sense={}, objective={}, constraints={})",
         bm.name,
@@ -44,33 +44,33 @@ pub fn repr_constraints(constrs: &Constraints) -> String {
 
 pub fn repr_solution(sol: &PySolution) -> String {
     let mut repr = String::from("Solution(");
-    repr += &format!("samples={}, ", repr_samples(&sol.borrow().samples()));
-    repr += &format!("obj_values={}, ", repr_opt_vec(&sol.borrow().obj_values));
+    repr += &format!("samples={}, ", repr_samples(&sol.access().samples()));
+    repr += &format!("obj_values={}, ", repr_opt_vec(&sol.access().obj_values));
     repr += &format!(
         "raw_energies={}, ",
-        repr_opt_numbers(&sol.borrow().raw_energies)
+        repr_opt_numbers(&sol.access().raw_energies)
     );
-    repr += &format!("counts={}, ", repr_numbers(&sol.borrow().counts));
+    repr += &format!("counts={}, ", repr_numbers(&sol.access().counts));
     repr += &format!(
         "constraints={}, ",
-        repr_opt_bools_vec(&sol.borrow().constraints)
+        repr_opt_bools_vec(&sol.access().constraints)
     );
     repr += &format!(
         "variable_bounds={}, ",
-        repr_opt_bools_vec(&sol.borrow().variable_bounds)
+        repr_opt_bools_vec(&sol.access().variable_bounds)
     );
-    repr += &format!("feasible={}, ", repr_opt_bools(&sol.borrow().feasible));
+    repr += &format!("feasible={}, ", repr_opt_bools(&sol.access().feasible));
     repr += &format!(
         "best_sample_idx={}, ",
-        repr_opt_number(&sol.borrow().best_sample_idx)
+        repr_opt_number(&sol.access().best_sample_idx)
     );
-    repr += &format!("runtime={}, ", repr_opt_timing(&sol.borrow().timing));
-    repr += &format!("n_samples={}, ", sol.borrow().n_samples);
+    repr += &format!("runtime={}, ", repr_opt_timing(&sol.access().timing));
+    repr += &format!("n_samples={}, ", sol.access().n_samples);
     repr += &format!(
         "variable_names={}, ",
-        repr_strings(&sol.borrow().variable_names)
+        repr_strings(&sol.access().variable_names)
     );
-    repr += &format!("sense={}", &sol.borrow().sense.to_string());
+    repr += &format!("sense={}", &sol.access().sense.to_string());
     repr += ")";
     repr
 }
@@ -158,13 +158,6 @@ pub fn repr_opt_bools(bools: &Option<Vec<bool>>) -> String {
                 .collect::<Vec<_>>()
                 .join(DELIMITER)
         ),
-        None => "None".to_string(),
-    }
-}
-
-pub fn repr_opt_bool(b: &Option<bool>) -> String {
-    match b {
-        Some(b) => repr_bool(b),
         None => "None".to_string(),
     }
 }

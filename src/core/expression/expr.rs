@@ -360,7 +360,7 @@ impl ExpressionBase<VarIndex, Bias> for Expression {
 
     #[inline]
     fn vartype(&self, v: VarIndex) -> Vtype {
-        self.env.borrow().get_vtype(v)
+        self.env.access().get_vtype(v)
     }
 
     fn is_linear(&self) -> bool {

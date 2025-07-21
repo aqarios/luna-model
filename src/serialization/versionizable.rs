@@ -78,10 +78,6 @@ impl<B> Versioned<B> {
     }
 }
 
-pub trait Versionized {
-    fn version(&self) -> Version;
-}
-
 /// This trait defines the required methods for an object to be versionizable.
 pub trait Versionizable<B = Self>
 where

@@ -42,7 +42,7 @@ impl Solution {
     }
 
     pub fn create_columns(&mut self, env: &SharedEnvironment, capacity: usize) {
-        for (idx, v) in env.borrow().all_variables().enumerate() {
+        for (idx, v) in env.access().all_variables().enumerate() {
             self.add_new_col_for(idx.into(), v.vtype, capacity);
         }
     }
@@ -139,7 +139,7 @@ impl Solution {
     ) -> Result<(), ColumnCreationErr> {
         let varname = var
             .env
-            .borrow()
+            .access()
             .get_for_index(var.id)
             .map_err(|e| ColumnCreationErr::new(&e.to_string()))?
             .name
@@ -172,13 +172,10 @@ impl Solution {
     }
 
     pub fn remove_samplecol_for_var(&mut self, var: &VarRef) {
-        let env = var.env.borrow();
+        let env = var.env.access();
         let variable = env.get_for_index(var.id);
         match variable {
-            Ok(variable) => {
-                let id: usize = var.id.into();
-                self.remove_samplecol_for_varname(variable.name.clone())
-            }
+            Ok(variable) => self.remove_samplecol_for_varname(variable.name.clone()),
             Err(_) => (),
         }
     }
