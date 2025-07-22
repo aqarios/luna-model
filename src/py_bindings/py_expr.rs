@@ -324,6 +324,14 @@ impl PyExpression {
         Ok(PyExpression::new(Expression::empty(env.0)))
     }
 
+    /// Get the degree of the expression.
+    fn degree(&self) -> usize {
+        match &self.0 {
+            Left(expr) => expr.degree(),
+            Right(parent) => parent.borrow().objective.degree(),
+        }
+    }
+
     /// Get the constant (offset) term in the expression.
     ///
     /// Returns

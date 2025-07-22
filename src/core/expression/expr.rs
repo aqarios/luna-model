@@ -12,6 +12,7 @@ use crate::core::writer::ModelWriter;
 use crate::core::{VarRef, Vtype};
 use crate::types::{Bias, VarIndex};
 use hashbrown::HashMap;
+use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter};
 
 #[derive(Clone)]
@@ -81,6 +82,35 @@ impl Expression {
             }
         }
         false
+    }
+
+    pub fn vtypes(&self) -> Vec<Vtype> {
+        self.active
+            .iter()
+            .enumerate()
+            .filter(|(_, &a)| a)
+            .map(|(idx, _)| self.env.borrow().get_vtype(idx.into()))
+            .unique()
+            .collect_vec()
+    }
+
+    pub fn degree(&self) -> usize {
+        let mut degree = 0;
+        if !self.linear.is_zero() {
+            // has a linear term -> at least degree 1.
+            degree = 1;
+        }
+        if let Some(quad) = &self.quadratic {
+            if quad.has_interaction() {
+                // has a quadratic interaction -> at least deg 2
+                degree = 2;
+            }
+        }
+        if let Some(ho) = &self.higher_order {
+            degree = ho.max_degree()
+        }
+
+        degree
     }
 }
 

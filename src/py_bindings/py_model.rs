@@ -335,10 +335,14 @@ impl PyModel {
             .filter(|(a, _)| {
                 *active_vars.get(*a as usize).unwrap_or(&false) || !active.unwrap_or_default()
             })
-            .map(|(_, vref)| {
-                PyVariable::new(vref)
-            })
+            .map(|(_, vref)| PyVariable::new(vref))
             .collect()
+    }
+
+    /// Get a list of all unique variable types of all variables in this model.
+    #[pyo3(name = "vtypes")]
+    fn get_vtypes(&self) -> Vec<Vtype> {
+        self.borrow().vtypes()
     }
 
     /// Get all model constraints that are violated by the given sample.

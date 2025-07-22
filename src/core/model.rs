@@ -1,5 +1,6 @@
 use either::Either;
 use indexmap::IndexMap;
+use itertools::Itertools;
 use strum_macros::{Display, EnumString};
 
 use super::constraints::Constraints;
@@ -254,6 +255,13 @@ impl Model {
             self.environment.remove(target);
         }
         Ok(())
+    }
+
+    pub fn vtypes(&self) -> Vec<Vtype> {
+        let mut obj_vtypes = self.objective.vtypes();
+        let mut constr_vtypes = self.constraints.vtypes();
+        obj_vtypes.append(&mut constr_vtypes);
+        obj_vtypes.into_iter().unique().collect_vec()
     }
 }
 
