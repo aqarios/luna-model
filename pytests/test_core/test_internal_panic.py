@@ -31,3 +31,7 @@ End
 def test_internal_panic():
     with pytest.raises(InternalPanicError):
         _ = LpTranslator.to_aq(ILLEGAL_LP)
+
+def test_internal_panic_rt_err():
+    with pytest.raises(RuntimeError):
+        _ = LpTranslator.to_aq(ILLEGAL_LP)
