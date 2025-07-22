@@ -1,5 +1,7 @@
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
+use crate::py_bindings::py_utilities::unwind;
+use unwind_macros::unwindable;
 
 use crate::{
     py_bindings::{py_model::PyModel, py_timing::PyTiming},
@@ -48,6 +50,7 @@ impl PyLogElement {
 #[derive(Deref, DerefMut)]
 pub struct PyIR(pub IntermediateRepresentation);
 
+#[unwindable]
 #[pymethods]
 impl PyIR {
     #[getter]

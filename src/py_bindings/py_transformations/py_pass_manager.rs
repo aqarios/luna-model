@@ -1,6 +1,8 @@
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
+use unwind_macros::unwindable;
 
+use crate::py_bindings::py_utilities::unwind;
 use crate::core::RcSolution;
 use crate::py_bindings::py_sol::PySolution;
 use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
@@ -23,6 +25,7 @@ use super::py_module::AnyPass;
 #[derive(Deref, DerefMut)]
 pub struct PyPassManager(PassManager);
 
+#[unwindable]
 #[pymethods]
 impl PyPassManager {
     #[new]
