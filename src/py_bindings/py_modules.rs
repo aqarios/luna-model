@@ -192,6 +192,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::NoConstraintForKeyError::NAME,
         m.py().get_type::<pyexc::NoConstraintForKeyError>(),
     )?;
+    m.add(
+        pyexc::InternalPanicError::NAME,
+        m.py().get_type::<pyexc::InternalPanicError>(),
+    )?;
     pm.add_submodule(&m)?;
     #[cfg(not(feature = "lq"))]
     pm.py()

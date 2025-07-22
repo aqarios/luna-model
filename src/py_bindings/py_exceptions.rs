@@ -21,6 +21,21 @@ use {
 #[cfg(not(feature = "lq"))]
 create_exception!(
     aqmodels._core.errors,
+    InternalPanicError,
+    PyRuntimeError,
+    "Raised when an internal and unrecoverable error occurred."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
+    InternalPanicError,
+    PyRuntimeError,
+    "Raised when an internal and unrecoverable error occurred."
+);
+
+#[cfg(not(feature = "lq"))]
+create_exception!(
+    aqmodels._core.errors,
     ComputationError,
     PyException,
     "Raised when an error occurred in an internal computation."

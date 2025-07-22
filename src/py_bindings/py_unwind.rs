@@ -1,6 +1,6 @@
-use pyo3::exceptions::PyRuntimeError;
 use pyo3::{PyResult};
 use std::panic::{self, AssertUnwindSafe, PanicHookInfo};
+use super::py_exceptions::InternalPanicError;
 
 pub fn unwind<T, F>(f: F) -> PyResult<T>
 where
@@ -21,7 +21,7 @@ where
             } else {
                 "rust panic occurred".to_string()
             };
-            Err(PyRuntimeError::new_err(msg))
+            Err(InternalPanicError::new_err(format!("internal panic: {msg}")))
         }
     }
 }
