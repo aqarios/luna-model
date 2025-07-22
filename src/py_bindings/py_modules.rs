@@ -179,6 +179,7 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::DuplicateConstraintNameError::NAME,
         m.py().get_type::<pyexc::DuplicateConstraintNameError>(),
     )?;
+    #[cfg(feature = "pyt")]
     m.add(
         pyexc::CompilationError::NAME,
         m.py().get_type::<pyexc::CompilationError>(),

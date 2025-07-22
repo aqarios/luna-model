@@ -4,7 +4,7 @@ use crate::types::Bias;
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::{pyclass, pymethods, Bound, PyRef, PyRefMut, Python};
-use super::py_utilities::unwind;
+use super::unwind;
 use unwind_macros::unwindable;
 
 /// A result view object serves as a view into one row of a solution object.

@@ -1,4 +1,4 @@
-use super::py_utilities::unwind;
+use super::unwind;
 use unwind_macros::unwindable;
 use super::{
     py_constr::PyConstraint,

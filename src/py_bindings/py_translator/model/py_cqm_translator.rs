@@ -1,4 +1,4 @@
-use crate::py_bindings::py_utilities::unwind;
+use crate::py_bindings::unwind;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use std::ffi::CStr;

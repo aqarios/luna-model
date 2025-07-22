@@ -17,7 +17,7 @@ use either::Either::{Left, Right};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyBool;
-use crate::py_bindings::py_utilities::unwind;
+use super::unwind;
 use unwind_macros::unwindable;
 
 /// Represents a symbolic variable within an optimization environment.

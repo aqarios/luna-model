@@ -1,4 +1,3 @@
-use crate::py_bindings::py_utilities::unwind;
 use crate::core::{Timer, Timing};
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
@@ -6,6 +5,7 @@ use pyo3::{pyclass, pymethods, PyResult};
 use unwind_macros::unwindable;
 use std::time::{Duration, SystemTime};
 
+use super::unwind;
 use super::py_utilities::repr_timing;
 
 /// The object that holds information about an algorithm's runtime.

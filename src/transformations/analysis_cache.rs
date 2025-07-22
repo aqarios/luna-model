@@ -1,9 +1,11 @@
-use super::passes::{max_bias::MaxBias, binary_spin::BinarySpinInfo};
+use super::passes::{binary_spin::BinarySpinInfo, max_bias::MaxBias};
 use aqm_macros::register_caches;
 use std::{collections::hash_map::HashMap, fmt::Debug};
 
-register_caches!(MaxBias, BinarySpinInfo);
+#[cfg(feature = "py")]
+use {crate::py_bindings::unwind, unwind_macros::unwindable};
 
+register_caches!(MaxBias, BinarySpinInfo);
 
 pub struct AnalysisCache {
     store: HashMap<String, AnalysisCacheElement>,

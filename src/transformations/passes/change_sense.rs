@@ -2,12 +2,15 @@ use crate::{
     core::{operations::MulAssignToExpression, Model, Sense, Solution},
     transformations::{
         analysis_cache::AnalysisCache,
-        base_passes::{BasePass, TransformationPass, TransformationPassResult, ActionType},
+        base_passes::{ActionType, BasePass, TransformationPass, TransformationPassResult},
     },
 };
 
 #[cfg(feature = "py")]
-use {crate::transformations::base_passes::Pass, aqm_macros::py_pass};
+use {
+    crate::py_bindings::unwind, crate::transformations::base_passes::Pass, aqm_macros::py_pass,
+    unwind_macros::unwindable,
+};
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]

@@ -1,5 +1,5 @@
 use unwind_macros::unwindable;
-use crate::py_bindings::py_utilities::unwind;
+use crate::py_bindings::unwind;
 use crate::py_bindings::py_usize::PyUsize;
 use crate::{
     py_bindings::{

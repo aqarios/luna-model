@@ -1,6 +1,6 @@
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
-use crate::py_bindings::py_utilities::unwind;
+use crate::py_bindings::unwind;
 use unwind_macros::unwindable;
 
 use crate::{

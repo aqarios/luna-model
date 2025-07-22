@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
 use unwind_macros::unwindable;
-use super::py_utilities::unwind;
+use super::unwind;
 use super::py_var::PyVariable;
 
 /// An iterator over a solution's samples.

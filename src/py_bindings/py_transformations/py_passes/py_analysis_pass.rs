@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use pyo3::{prelude::*, types::PyDict};
-use crate::py_bindings::py_utilities::unwind;
+use crate::py_bindings::unwind;
 use unwind_macros::unwindable;
 
 use crate::{

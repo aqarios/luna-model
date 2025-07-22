@@ -1,4 +1,4 @@
-use super::py_utilities::unwind;
+use super::unwind;
 use crate::core::{Bound, Bounds, LazyBounds};
 use derive_more::{Deref, DerefMut};
 use pyo3::{

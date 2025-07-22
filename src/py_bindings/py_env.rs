@@ -1,4 +1,4 @@
-use super::py_utilities::unwind;
+use super::unwind;
 use unwind_macros::unwindable;
 use crate::{
     core::{environment::SharedEnvironment, ContentEquality},

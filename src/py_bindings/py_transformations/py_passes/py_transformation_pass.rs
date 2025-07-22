@@ -5,7 +5,7 @@ use unwind_macros::unwindable;
 
 use super::{py_pass_base::PyPass, py_transformation_pass_adapter::PyTransformationPassAdapter};
 use crate::{
-    py_bindings::{py_model::PyModel, py_sol::PySolution, py_utilities::unwind},
+    py_bindings::{py_model::PyModel, py_sol::PySolution, unwind},
     transformations::{
         analysis_cache::PyAnalysisCache,
         base_passes::{Pass, ActionType},

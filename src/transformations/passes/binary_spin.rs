@@ -17,8 +17,10 @@ use crate::{
 
 #[cfg(feature = "py")]
 use {
+    crate::py_bindings::unwind,
     crate::transformations::base_passes::Pass,
     aqm_macros::{analysis_cache, py_pass},
+    unwind_macros::unwindable,
 };
 
 ///////////////////////////////////////////////////////////////////////////////

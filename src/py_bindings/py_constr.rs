@@ -13,7 +13,7 @@ use derive_more::{Deref, DerefMut};
 use either::Either::{self, Left, Right};
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
-use super::py_utilities::unwind;
+use super::unwind;
 use unwind_macros::unwindable;
 
 /// A collection of symbolic constraints used to define a model.

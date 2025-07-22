@@ -1,4 +1,4 @@
-use crate::py_bindings::py_utilities::unwind;
+use crate::py_bindings::unwind;
 use crate::translator::base::BackTranslator;
 use crate::translator::LPTranslator;
 use crate::{py_bindings::py_model::PyModel, translator::base::Translator};

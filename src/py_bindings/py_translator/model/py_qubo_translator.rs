@@ -1,4 +1,4 @@
-use crate::py_bindings::py_utilities::unwind;
+use crate::py_bindings::unwind;
 use crate::core::Qubo;
 use crate::py_bindings::py_model::PyModel;
 use crate::{core::Vtype, translator::MatrixTranslator};
