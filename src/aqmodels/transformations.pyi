@@ -117,11 +117,11 @@ class TransformationOutcome:
 
 class AnalysisCache:
     @overload
-    def __getitem__(  # type: ignore[reportOverlappingOverload]
+    def __getitem__( # type: ignore[reportOverlappingOverload]
         self, key: Literal["max-bias"]
     ) -> MaxBias: ...
     @overload
-    def __getitem__(self, key: str) -> dict[Any, Any]: ...
+    def __getitem__(self, key: str) -> ...: ...
     def __getitem__(self, key: str) -> Any:
         """Get the analysis result for a specific analysis pass."""
         ...

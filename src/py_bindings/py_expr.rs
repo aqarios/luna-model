@@ -1059,6 +1059,28 @@ impl PyExpression {
         })
     }
 
+    /// Get all variables that are part of the expression.
+    //
+    /// Returns
+    /// -------
+    /// list[Variable]
+    ///     The list of active variables
+    fn variables(&self) -> Vec<PyVariable> {
+        let active_vars = match &self.0 {
+            Left(expr) => expr.variables(),
+            Right(p) => p.access().objective.variables(),
+        };
+        let env = match &self.0 {
+            Left(expr) => expr.env.clone(),
+            Right(p) => p.access().environment.clone(),
+        };
+
+        active_vars
+            .into_iter()
+            .map(|id| PyVariable::new(VarRef::new(id, env.clone())))
+            .collect()
+    }
+
     /// Iterate over the single components of an expression. An *component* refers to
     /// a single constant, linear, quadratic, or higher-order term of an expression.
     //
@@ -1068,6 +1090,85 @@ impl PyExpression {
     ///     The iterator over the expression's components.
     fn items(&self) -> PyExpressionIterator {
         PyExpressionIterator::new(&self)
+    }
+
+    /// Get all linear components.
+    //
+    /// Returns
+    /// -------
+    /// list[tuple[Variable, float]]
+    ///     The linear components.
+    fn linear_items(&self) -> Vec<(PyVariable, Bias)> {
+        let linear_items = match &self.0 {
+            Left(expr) => expr.linear_items(),
+            Right(p) => p.access().objective.linear_items(),
+        };
+        let env = match &self.0 {
+            Left(expr) => expr.env.clone(),
+            Right(p) => p.access().environment.clone(),
+        };
+
+        linear_items
+            .into_iter()
+            .map(|(id, bias)| (PyVariable::new(VarRef::new(id, env.clone())), bias))
+            .collect()
+    }
+
+    /// Get all quadratic components.
+    //
+    /// Returns
+    /// -------
+    /// list[tuple[Variable, Variable, float]]
+    ///     The quadratic components.
+    fn quadratic_items(&self) -> Vec<(PyVariable, PyVariable, Bias)> {
+        let quadratic_items = match &self.0 {
+            Left(expr) => expr.quadratic_items(),
+            Right(p) => p.access().objective.quadratic_items(),
+        };
+        let env = match &self.0 {
+            Left(expr) => expr.env.clone(),
+            Right(p) => p.access().environment.clone(),
+        };
+
+        quadratic_items
+            .into_iter()
+            .map(|(id1, id2, bias)| {
+                (
+                    PyVariable::new(VarRef::new(id1, env.clone())),
+                    PyVariable::new(VarRef::new(id2, env.clone())),
+                    bias,
+                )
+            })
+            .collect()
+    }
+
+    /// Get all higher-order components.
+    //
+    /// Returns
+    /// -------
+    /// list[tuple[list[Variable], float]]
+    ///     The higher-order components.
+    fn higher_order_items(&self) -> Vec<(Vec<PyVariable>, Bias)> {
+        let higher_order_items = match &self.0 {
+            Left(expr) => expr.higher_order_items(),
+            Right(p) => p.access().objective.higher_order_items(),
+        };
+        let env = match &self.0 {
+            Left(expr) => expr.env.clone(),
+            Right(p) => p.access().environment.clone(),
+        };
+
+        higher_order_items
+            .into_iter()
+            .map(|(ids, bias)| {
+                (
+                    ids.into_iter()
+                        .map(|id| PyVariable::new(VarRef::new(id, env.clone())))
+                        .collect(),
+                    bias,
+                )
+            })
+            .collect()
     }
 
     /// Substitute every occurrence of a variable in an expression with another expression.

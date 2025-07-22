@@ -2684,6 +2684,51 @@ class Expression:
         """
         ...
 
+    def variables(self, /) -> list[Variable]:
+        """
+        Get all variables that are part of this expression.
+
+        Returns
+        -------
+        list[Variable]
+            The list of active variables
+        """
+        ...
+
+
+    def linear_items(self, /) -> list[tuple[Variable, float]]:
+        """
+        Get all linear components.
+
+        Returns
+        -------
+        list[tuple[Variable, float]]
+            The linear components.
+        """
+        ...
+    def quadratic_items(self, /) -> list[tuple[Variable, Variable, float]]:
+        """
+        Get all quadratic components.
+
+        Returns
+        -------
+        list[tuple[Variable, Variable, float]]
+            The quadratic components.
+        """
+        ...
+
+    def higher_order_items(self, /) -> list[tuple[list[Variable], float]]:
+        """
+        Get all higher-order components.
+
+        Returns
+        -------
+        list[tuple[list[Variable], float]]
+            The higher-order components.
+        """
+        ...
+
+
     def is_equal(self, /, other: Expression) -> bool:
         """
         Compare two expressions for equality.

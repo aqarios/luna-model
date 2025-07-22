@@ -166,10 +166,13 @@ pub trait ExpressionBase<Index, Bias> {
     fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeErr>;
     /// Test whether the model has no quadratic biases.
     fn is_linear(&self) -> bool;
-    /// Return the number of variables in the quadratic model.
+    /// Return the number of variables in the expression.
     fn num_variables(&self) -> SizeType;
+    /// Return the the variables indices in the expression.
+    fn variables(&self) -> Vec<Index>;
     /// Return the variable type of variable `v`.
     fn vartype(&self, _v: Index) -> Vtype;
+    
 }
 
 /// Implements addition of variables, biases (scalars) and terms to `self`.
