@@ -1,10 +1,7 @@
-use std::cell::RefCell;
-use std::ops::Deref;
-use std::rc::Rc;
-
 use super::py_bounds::BoundValue;
 use super::py_constr::PyConstraint;
 use super::py_model_metadata::PyModelMetadata;
+use super::unwind;
 use super::py_utilities::{repr_model, Replacement};
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
@@ -27,6 +24,10 @@ use derive_more::{Deref, DerefMut};
 use either::Either::{Left, Right};
 use pyo3::types::PyType;
 use pyo3::{prelude::*, types::PyBytes};
+use std::cell::RefCell;
+use std::ops::Deref;
+use std::rc::Rc;
+use unwind_macros::unwindable;
 
 /// A symbolic optimization model consisting of an objective and constraints.
 ///
@@ -114,6 +115,7 @@ impl PyModel {
 //     }
 // }
 
+#[unwindable]
 #[pymethods]
 impl PyModel {
     /// Initialize a new symbolic model.
@@ -335,9 +337,7 @@ impl PyModel {
             .filter(|(a, _)| {
                 *active_vars.get(*a as usize).unwrap_or(&false) || !active.unwrap_or_default()
             })
-            .map(|(_, vref)| {
-                PyVariable::new(vref)
-            })
+            .map(|(_, vref)| PyVariable::new(vref))
             .collect()
     }
 

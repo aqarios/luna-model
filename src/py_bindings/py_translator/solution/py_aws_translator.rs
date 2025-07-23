@@ -7,6 +7,8 @@ use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use std::ffi::CStr;
+use unwind_macros::unwindable;
+use crate::py_bindings::unwind;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
@@ -70,6 +72,7 @@ def extract(aws_result, timing, env):
 #[cfg_attr(feature = "lq",      pyclass(unsendable, name = "AwsTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyAwsTranslator(pub NpArrayTranslator);
 
+#[unwindable]
 #[pymethods]
 impl PyAwsTranslator {
     #[staticmethod]

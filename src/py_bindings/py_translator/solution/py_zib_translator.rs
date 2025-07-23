@@ -1,3 +1,5 @@
+use unwind_macros::unwindable;
+use crate::py_bindings::unwind;
 use crate::core::Sense;
 use crate::py_bindings::py_env::PyEnvironment;
 use crate::py_bindings::py_sol::{PySolution, SampleKey};
@@ -58,6 +60,7 @@ def extract(model, timing, env):
 )]
 pub struct PyZibTranslator;
 
+#[unwindable]
 #[pymethods]
 impl PyZibTranslator {
     #[staticmethod]

@@ -87,6 +87,7 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[derive(::derive_more::Deref, ::derive_more::DerefMut, Clone)]
         pub struct #wrapper_name(pub #struct_name);
 
+        #[unwindable]
         #[pymethods]
         impl #wrapper_name {
             #[new]
@@ -434,12 +435,12 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
 
     // 2) Emit the combined code
     let expanded = quote! {
-        #[cfg(feature = "py")]
-        use {
-        //     derive_more::{Deref, DerefMut},
-        //     pyo3::{pyclass, pymethods, IntoPyObjectExt, Py, PyAny, PyObject, PyResult, Python},
-            // pyo3::{Py, PyAny},
-        };
+        // #[cfg(feature = "py")]
+        // use {
+        // //     derive_more::{Deref, DerefMut},
+        // //     pyo3::{pyclass, pymethods, IntoPyObjectExt, Py, PyAny, PyObject, PyResult, Python},
+        //     // pyo3::{Py, PyAny},
+        // };
 
         /// All possible elements in the cache
         pub enum AnalysisCacheElement {
@@ -494,6 +495,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             }
 
             #[cfg(feature = "py")]
+            #[unwindable]
             #[pyo3::pymethods]
             impl PyAnalysisCache {
                 fn __getitem__(&self, py: pyo3::Python, key: String) -> pyo3::PyResult<Option<pyo3::PyObject>> {

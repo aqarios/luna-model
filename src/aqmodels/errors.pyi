@@ -239,6 +239,13 @@ class StartCannotBeInferredError(TypeError):
 class NoConstraintForKeyError(IndexError):
     """Raised getting a constraint from the constraints that does not exist."""
 
+    def __str__(self, /) -> str: ...
+
+class InternalPanicError(RuntimeError):
+    """Raised when an internal and unrecoverable error occurred."""
+
+    def __str__(self, /) -> str: ...
+
 __all__ = [
     "ComputationError",
     "ComputationError",
@@ -247,6 +254,7 @@ __all__ = [
     "DuplicateConstraintNameError",
     "EvaluationError",
     "IllegalConstraintNameError",
+    "InternalPanicError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
     "ModelSenseNotMinimizeError",

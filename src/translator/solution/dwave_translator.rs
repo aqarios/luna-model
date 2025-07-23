@@ -1,6 +1,6 @@
 use crate::core::environment::SharedEnvironment;
 use crate::core::{RcSolution, Solution, Timing};
-use crate::errors::{SampleUnexpectedVariableErr, SolutionCreationErr, VariableNotExistingErr};
+use crate::errors::{SampleUnexpectedVariableErr, SolutionCreationErr};
 use hashbrown::HashMap;
 use num::NumCast;
 use std::rc::Rc;

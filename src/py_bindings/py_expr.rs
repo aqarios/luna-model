@@ -1,3 +1,5 @@
+use super::unwind;
+use unwind_macros::unwindable;
 use super::{
     py_constr::PyConstraint,
     py_env::{PyEnvironment, CURRENT_ENV},
@@ -297,6 +299,7 @@ impl PyExpressionIterator {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyExpression {
     /// Create a new empty expression scoped to an environment.
@@ -1083,6 +1086,7 @@ impl PyExpression {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyExpressionIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
@@ -1110,6 +1114,7 @@ impl PyExpressionIterator {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyConstant {
     fn __str__(&self) -> String {
@@ -1117,6 +1122,7 @@ impl PyConstant {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyLinear {
     #[getter]
@@ -1134,6 +1140,7 @@ impl PyLinear {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyQuadratic {
     #[getter]
@@ -1159,6 +1166,7 @@ impl PyQuadratic {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyHigherOrder {
     #[getter]

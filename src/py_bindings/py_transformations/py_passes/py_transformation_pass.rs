@@ -1,10 +1,11 @@
 use std::fmt::Debug;
 
 use pyo3::prelude::*;
+use unwind_macros::unwindable;
 
 use super::{py_pass_base::PyPass, py_transformation_pass_adapter::PyTransformationPassAdapter};
 use crate::{
-    py_bindings::{py_model::PyModel, py_sol::PySolution},
+    py_bindings::{py_model::PyModel, py_sol::PySolution, unwind},
     transformations::{
         analysis_cache::PyAnalysisCache,
         base_passes::{Pass, ActionType},
@@ -15,6 +16,7 @@ use crate::{
 #[derive(Clone, Debug)]
 pub struct PyTransformationPass {}
 
+#[unwindable]
 #[pymethods]
 impl PyTransformationPass {
     #[new]

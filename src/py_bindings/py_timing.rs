@@ -2,8 +2,10 @@ use crate::core::{Timer, Timing};
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::{pyclass, pymethods, PyResult};
+use unwind_macros::unwindable;
 use std::time::{Duration, SystemTime};
 
+use super::unwind;
 use super::py_utilities::repr_timing;
 
 /// The object that holds information about an algorithm's runtime.
@@ -62,6 +64,7 @@ impl Into<Timer> for PyTimer {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyTiming {
     /// The starting time of the algorithm.
@@ -148,6 +151,7 @@ impl PyTiming {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyTimer {
     /// Create a timer that starts counting immediately.
