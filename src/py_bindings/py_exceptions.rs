@@ -13,10 +13,9 @@ use pyo3::{create_exception, PyErr};
 use std::convert::From;
 
 #[cfg(feature = "pyt")]
-use {
-    crate::transformations::errors::CompilationError as CompilationErr,
-    pyo3::exceptions::PyRuntimeError
-};
+use crate::transformations::errors::CompilationError as CompilationErr;
+#[cfg(feature = "py")]
+use pyo3::exceptions::PyRuntimeError;
 
 #[cfg(not(feature = "lq"))]
 create_exception!(
