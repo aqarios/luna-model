@@ -33,6 +33,14 @@ class Pipeline(BasePass):
         """Get a list of required passes that need to be run before this pass."""
         ...
 
+    def add(self, new_pass: BasePass) -> None:
+        """Add new pass to pipeline."""
+        ...
+
+    def clear(self, new_pass: BasePass) -> None:
+        """Clear pipeline."""
+        ...
+
 class IfElsePass(BasePass):
     @overload
     def __init__(
