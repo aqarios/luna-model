@@ -1,3 +1,5 @@
+use unwind_macros::unwindable;
+use crate::py_bindings::unwind;
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_sol::PySolution;
@@ -68,6 +70,7 @@ def extract(result, energies, timing, env):
 #[cfg_attr(feature = "lq",      pyclass(unsendable, name = "NumpyTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyNumpyTranslator {}
 
+#[unwindable]
 #[pymethods]
 impl PyNumpyTranslator {
     #[staticmethod]

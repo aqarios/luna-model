@@ -1,5 +1,4 @@
 use std::{cell::RefCell, ops::Deref, rc::Rc};
-
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 use crate::{
     core::{
@@ -14,6 +13,8 @@ use derive_more::{Deref, DerefMut};
 use either::Either::{self, Left, Right};
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
+use super::unwind;
+use unwind_macros::unwindable;
 
 /// A collection of symbolic constraints used to define a model.
 ///
@@ -164,6 +165,7 @@ impl PyConstraint {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyConstraint {
     /// Construct a new symbolic constraint.
@@ -286,6 +288,7 @@ impl PyConstraint {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyConstraints {
     #[new]
@@ -507,8 +510,18 @@ impl PyConstraints {
             Right(d) => d.borrow_mut().constraints.remove_constraint(item),
         }
     }
+
+    /// Get all unique constraint types identified using their comparator.
+    #[pyo3(name = "ctypes")]
+    fn get_ctypes(&self) -> Vec<Comparator> {
+        match &self.data {
+            Left(d) => d.ctypes(),
+            Right(d) => d.borrow().constraints.ctypes(),
+        }
+    }
 }
 
+#[unwindable]
 #[pymethods]
 impl Comparator {
     fn __str__(&self) -> String {

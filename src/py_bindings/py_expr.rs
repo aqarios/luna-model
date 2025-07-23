@@ -1,3 +1,5 @@
+use super::unwind;
+use unwind_macros::unwindable;
 use super::{
     py_constr::PyConstraint,
     py_env::{PyEnvironment, CURRENT_ENV},
@@ -297,6 +299,7 @@ impl PyExpressionIterator {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyExpression {
     /// Create a new empty expression scoped to an environment.
@@ -322,6 +325,14 @@ impl PyExpression {
             })?,
         };
         Ok(PyExpression::new(Expression::empty(env.0)))
+    }
+
+    /// Get the degree of the expression.
+    fn degree(&self) -> usize {
+        match &self.0 {
+            Left(expr) => expr.degree(),
+            Right(parent) => parent.borrow().objective.degree(),
+        }
     }
 
     /// Get the constant (offset) term in the expression.
@@ -1021,6 +1032,28 @@ impl PyExpression {
         })
     }
 
+    /// Get all variables that are part of the expression.
+    //
+    /// Returns
+    /// -------
+    /// list[Variable]
+    ///     The list of active variables
+    fn variables(&self) -> Vec<PyVariable> {
+        let active_vars = match &self.0 {
+            Left(expr) => expr.variables(),
+            Right(p) => p.borrow().objective.variables(),
+        };
+        let env = match &self.0 {
+            Left(expr) => expr.env.clone(),
+            Right(p) => p.borrow().environment.clone(),
+        };
+
+        active_vars
+            .into_iter()
+            .map(|id| PyVariable::new(VarRef::new(id, env.clone())))
+            .collect()
+    }
+
     /// Iterate over the single components of an expression. An *component* refers to
     /// a single constant, linear, quadratic, or higher-order term of an expression.
     //
@@ -1083,6 +1116,7 @@ impl PyExpression {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyExpressionIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
@@ -1110,6 +1144,7 @@ impl PyExpressionIterator {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyConstant {
     fn __str__(&self) -> String {
@@ -1117,6 +1152,7 @@ impl PyConstant {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyLinear {
     #[getter]
@@ -1134,6 +1170,7 @@ impl PyLinear {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyQuadratic {
     #[getter]
@@ -1159,6 +1196,7 @@ impl PyQuadratic {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyHigherOrder {
     #[getter]

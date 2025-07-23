@@ -1,6 +1,6 @@
 [package]
 name = "aqmodels"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 description = "Rust based implementation of aq-models"
 readme = "README.md"
@@ -50,8 +50,12 @@ path = "aqm-macros"
 default-features = false
 optional = true
 
+[dependencies.unwind-macros]
+path = "unwind-macros"
+optional = true
+
 [features]
-py = ["pyo3", "numpy"]
+py = ["pyo3", "numpy", "unwind-macros"]
 transformations = ["aqm-macros"]
 pyt = ["py", "aqm-macros/py", "transformations"]
 lq = ["py", "pyt"]

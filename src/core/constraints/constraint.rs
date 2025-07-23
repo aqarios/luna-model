@@ -2,7 +2,7 @@ use crate::core::expression::{Expression, ExpressionEvaluation};
 use crate::core::operations::SubToExpression;
 use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
-use crate::core::{ExpressionBase, SharedEnvironment, Substitution, ValueByIndex, VarRef};
+use crate::core::{ExpressionBase, SharedEnvironment, Substitution, ValueByIndex, VarRef, Vtype};
 use crate::errors::{
     DifferentEnvsErr, DuplicateConstraintNameErr, GetConstraintErr, IllegalConstraintNameErr,
     IndexOutOfBoundsErr,
@@ -54,7 +54,7 @@ fn starts_with_failable(s: &str) -> bool {
     all(feature = "py", feature = "lq"),
     pyclass(eq, eq_int, name = "Comparator", module = "luna_quantum._core")
 )]
-#[derive(Debug, Copy, Clone, PartialEq, Display)]
+#[derive(Debug, Copy, Clone, PartialEq, Display, Eq, Hash)]
 pub enum Comparator {
     /// Equality (==)
     #[strum(to_string = "==")]
@@ -314,6 +314,23 @@ impl Constraints {
             constr.substitute(target, replacement)?;
         }
         Ok(())
+    }
+
+    pub fn ctypes(&self) -> Vec<Comparator> {
+        self.constraints
+            .iter()
+            .map(|c| c.comparator)
+            .unique()
+            .collect_vec()
+    }
+
+    pub fn vtypes(&self) -> Vec<Vtype> {
+        self.constraints
+            .iter()
+            .map(|c| c.lhs.vtypes())
+            .flatten()
+            .unique()
+            .collect_vec()
     }
 }
 

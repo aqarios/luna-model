@@ -2382,6 +2382,9 @@ class Model:
         """
         ...
 
+    def vtypes(self, /) -> list[Vtype]:
+        """Get a list of all unique variable types of all variables in this model."""
+        ...
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
@@ -2598,6 +2601,17 @@ class Expression:
         -------
         int
             Number of variables with non-zero coefficients.
+        """
+        ...
+
+    def variables(self, /) -> list[Variable]:
+        """
+        Get all variables that are part of this expression.
+
+        Returns
+        -------
+        list[Variable]
+            The list of active variables
         """
         ...
 
@@ -3074,6 +3088,10 @@ class Expression:
         -------
         Expression
         """
+        ...
+
+    def degree(self, /) -> int:
+        """Get the degree of this expression."""
         ...
 
     @property
@@ -3678,7 +3696,6 @@ class Constraints:
     @overload
     def __getitem__(self, item: int, /) -> Constraint: ...
     def __getitem__(self, item: int | str, /) -> Constraint: ...
-
     def __len__(self, /) -> int:
         """
         Get the number of constraints.
@@ -3702,6 +3719,10 @@ class Constraints:
         -------
         bool
         """
+        ...
+
+    def ctypes(self, /) -> list[Comparator]:
+        """Get all unique constraint types identified using their comparator."""
         ...
 
 __all__ = [
