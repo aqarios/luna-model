@@ -20,6 +20,15 @@ impl PyPipeline {
             .collect::<PyResult<Vec<_>>>()?;
         Ok(Self(Pipeline::new(mapped, name)))
     }
+
+    fn clear(&mut self) {
+        self.0.clear()
+    }
+
+    fn add(&mut self, pass: AnyPass) -> PyResult<()> {
+        self.0.add(pass.as_pass()?);
+        Ok(())
+    }
 }
 
 impl PyPipeline {
