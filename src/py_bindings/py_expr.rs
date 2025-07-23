@@ -327,6 +327,14 @@ impl PyExpression {
         Ok(PyExpression::new(Expression::empty(env.0)))
     }
 
+    /// Get the degree of the expression.
+    fn degree(&self) -> usize {
+        match &self.0 {
+            Left(expr) => expr.degree(),
+            Right(parent) => parent.borrow().objective.degree(),
+        }
+    }
+
     /// Get the constant (offset) term in the expression.
     ///
     /// Returns
@@ -1022,6 +1030,28 @@ impl PyExpression {
             Left(expr) => expr.env.clone(),
             Right(p) => p.borrow().environment.clone(),
         })
+    }
+
+    /// Get all variables that are part of the expression.
+    //
+    /// Returns
+    /// -------
+    /// list[Variable]
+    ///     The list of active variables
+    fn variables(&self) -> Vec<PyVariable> {
+        let active_vars = match &self.0 {
+            Left(expr) => expr.variables(),
+            Right(p) => p.borrow().objective.variables(),
+        };
+        let env = match &self.0 {
+            Left(expr) => expr.env.clone(),
+            Right(p) => p.borrow().environment.clone(),
+        };
+
+        active_vars
+            .into_iter()
+            .map(|id| PyVariable::new(VarRef::new(id, env.clone())))
+            .collect()
     }
 
     /// Iterate over the single components of an expression. An *component* refers to

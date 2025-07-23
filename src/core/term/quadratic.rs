@@ -87,6 +87,18 @@ where
             neighborhood.retain(|t| t.bias != Bias::default());
         }
     }
+
+    /// Check if an interaction exists in the adj matrix.
+    /// Stops early if one is found. Worst case complete iteration over
+    /// outer vec.
+    pub fn has_interaction(&self) -> bool {
+        for neighborhood in &self.adj {
+            if !neighborhood.is_empty() {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 impl MulAssign<Bias> for Quadratic {

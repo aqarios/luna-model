@@ -11,6 +11,11 @@ static DELIMITER: &str = "-";
 #[derive(Clone, Debug)]
 pub struct HigherOrder {
     pub biases: HashMap<String, Bias>,
+    /// convenience value to get the maximum number of interactions.
+    /// May be none due to late addition.
+    /// todo: @jflxb make by default available (not none) with transfomration
+    /// serialization updates in feature/transformations.
+    max_deg: Option<usize>,
     default_bias: Bias,
 }
 
@@ -19,6 +24,7 @@ impl HigherOrder {
         Self {
             biases: HashMap::default(),
             default_bias: Bias::default(),
+            max_deg: None,
         }
     }
 
@@ -26,6 +32,7 @@ impl HigherOrder {
         Self {
             biases,
             default_bias: Bias::default(),
+            max_deg: None,
         }
     }
 
@@ -33,6 +40,7 @@ impl HigherOrder {
         Self {
             biases: HashMap::with_capacity(size),
             default_bias: Bias::default(),
+            max_deg: None,
         }
     }
 
@@ -76,6 +84,17 @@ impl HigherOrder {
 
     pub fn cleanup(&mut self) {
         self.biases.retain(|_, bias| *bias != Bias::default());
+    }
+
+    pub fn max_degree(&self) -> usize {
+        match self.max_deg {
+            Some(val) => val,
+            None => self
+                .iter_contrib()
+                .map(|(vars, _)| vars.len())
+                .max()
+                .unwrap(),
+        }
     }
 }
 

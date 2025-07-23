@@ -510,6 +510,15 @@ impl PyConstraints {
             Right(d) => d.borrow_mut().constraints.remove_constraint(item),
         }
     }
+
+    /// Get all unique constraint types identified using their comparator.
+    #[pyo3(name = "ctypes")]
+    fn get_ctypes(&self) -> Vec<Comparator> {
+        match &self.data {
+            Left(d) => d.ctypes(),
+            Right(d) => d.borrow().constraints.ctypes(),
+        }
+    }
 }
 
 #[unwindable]

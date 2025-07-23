@@ -341,6 +341,12 @@ impl PyModel {
             .collect()
     }
 
+    /// Get a list of all unique variable types of all variables in this model.
+    #[pyo3(name = "vtypes")]
+    fn get_vtypes(&self) -> Vec<Vtype> {
+        self.borrow().vtypes()
+    }
+
     /// Get all model constraints that are violated by the given sample.
     ///
     /// Parameters
