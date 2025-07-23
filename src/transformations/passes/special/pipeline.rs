@@ -40,6 +40,8 @@ impl BasePass for Pipeline {
     fn requires(&self) -> Vec<String> {
         self.required.clone()
     }
+
+
 }
 
 pub type PipelineResult = Result<IntermediateRepresentation, CompilationError>;
@@ -51,6 +53,14 @@ impl Pipeline {
 
     pub fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {
         backwards(&self.passes, solution, ir)
+    }
+
+    pub fn clear(&mut self) {
+        self.passes.clear()
+    }
+
+    pub fn add(&mut self, pass: Pass) {
+        self.passes.push(pass)
     }
 }
 
