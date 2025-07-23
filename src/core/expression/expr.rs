@@ -74,6 +74,36 @@ impl Expression {
         vec![constant, linear, quadratic, higher_order].concat()
     }
 
+    pub fn linear_items(&self) -> Vec<(VarIndex, Bias)> {
+        self.linear
+            .iter()
+            .filter(|(_, &bias)| bias != Bias::default())
+            .map(|(idx, &bias)| (idx.into(), bias))
+            .collect()
+    }
+
+    pub fn quadratic_items(&self) -> Vec<(VarIndex, VarIndex, Bias)> {
+        match &self.quadratic {
+            None => Vec::new(),
+            Some(quad) => quad
+                .iter_flat()
+                .filter(|(_, _, bias)| bias != &Bias::default())
+                .map(|(u_idx, v_idx, bias)| (u_idx, v_idx, bias))
+                .collect(),
+        }
+    }
+
+    pub fn higher_order_items(&self) -> Vec<(Vec<VarIndex>, Bias)> {
+        match &self.higher_order {
+            None => Vec::new(),
+            Some(ho) => ho
+                .iter_contrib()
+                .filter(|(_, &bias)| bias != Bias::default())
+                .map(|(contrib, &bias)| (contrib, bias))
+                .collect(),
+        }
+    }
+
     pub fn contains(&self, needle: &VarRef) -> bool {
         for (indices, _) in self.items() {
             if indices.contains(&needle.id) {
@@ -356,6 +386,15 @@ impl ExpressionBase<VarIndex, Bias> for Expression {
 
     fn num_variables(&self) -> SizeType {
         self.num_variables
+    }
+
+    fn variables(&self) -> Vec<VarIndex> {
+        self.active
+            .iter()
+            .enumerate()
+            .filter(|(_, &v)| v)
+            .map(|(x, _)| x.into())
+            .collect()
     }
 
     #[inline]
