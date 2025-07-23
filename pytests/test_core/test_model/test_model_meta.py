@@ -20,7 +20,7 @@ def model(request):
 
     vtypes: list[Vtype] = req.get("vtypes", None)
     ctypes: list[Comparator] = req.get("ctypes", [])
-    target_degree = req.get("target_degree", 1)
+    target_degree = req.get("target_degree", 0)
 
     if vtypes is None:
         raise RuntimeError("vtypes cannot be none")
@@ -79,11 +79,17 @@ def naive_query_ctypes(model: Model) -> list[Comparator]:
 def naive_query_vtypes(model: Model) -> list[Vtype]:
     contained: list[str] = []
     vtypes: list[Vtype] = []
-    for v in model.variables():
+    for v in model.objective.variables():
         vt = v.vtype
         if str(vt) not in contained:
             contained.append(str(vt))
             vtypes.append(vt)
+    for c in model.constraints:
+        for v in c.lhs.variables():
+            vt = v.vtype
+            if str(vt) not in contained:
+                contained.append(str(vt))
+                vtypes.append(vt)
     return vtypes
 
 
@@ -126,6 +132,18 @@ def naive_query_obj_degree(model: Model) -> int:
             "vtypes": [Vtype.Spin, Vtype.Binary, Vtype.Integer, Vtype.Real],
             "ctypes": [Comparator.Eq, Comparator.Le, Comparator.Ge],
             "target_degree": 10
+        },
+        {
+            "vtypes": [Vtype.Integer],
+            "target_degree": 0
+        },
+        {
+            "vtypes": [Vtype.Integer],
+            "target_degree": 2
+        },
+        {
+            "vtypes": [Vtype.Real],
+            "target_degree": 1
         },
         {
             "vtypes": [Vtype.Spin, Vtype.Binary],

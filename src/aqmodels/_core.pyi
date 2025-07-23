@@ -2604,6 +2604,17 @@ class Expression:
         """
         ...
 
+    def variables(self, /) -> list[Variable]:
+        """
+        Get all variables that are part of this expression.
+
+        Returns
+        -------
+        list[Variable]
+            The list of active variables
+        """
+        ...
+
     def is_equal(self, /, other: Expression) -> bool:
         """
         Compare two expressions for equality.

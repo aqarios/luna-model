@@ -1029,6 +1029,28 @@ impl PyExpression {
         })
     }
 
+    /// Get all variables that are part of the expression.
+    //
+    /// Returns
+    /// -------
+    /// list[Variable]
+    ///     The list of active variables
+    fn variables(&self) -> Vec<PyVariable> {
+        let active_vars = match &self.0 {
+            Left(expr) => expr.variables(),
+            Right(p) => p.borrow().objective.variables(),
+        };
+        let env = match &self.0 {
+            Left(expr) => expr.env.clone(),
+            Right(p) => p.borrow().environment.clone(),
+        };
+
+        active_vars
+            .into_iter()
+            .map(|id| PyVariable::new(VarRef::new(id, env.clone())))
+            .collect()
+    }
+
     /// Iterate over the single components of an expression. An *component* refers to
     /// a single constant, linear, quadratic, or higher-order term of an expression.
     //

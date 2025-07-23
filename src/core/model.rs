@@ -9,7 +9,7 @@ use super::expression::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionB
 use super::solution::OwnedSample;
 use super::traits::ContentEquality;
 use super::utils::{check_variables_sample, check_variables_sol};
-use super::{Expression, RcSolution, Sample, Substitution, VarRef, Vtype};
+use super::{Expression, ExpressionBase, RcSolution, Sample, Substitution, VarRef, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::solution::OwnedResult;
 use crate::core::writer::ModelWriter;
