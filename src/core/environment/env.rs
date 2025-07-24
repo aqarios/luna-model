@@ -2,7 +2,7 @@ use crate::core::expression::One;
 use crate::core::traits::ContentEquality;
 use crate::core::variable::{VarRef, Variable, Vtype};
 use crate::core::writer::LineLengthRestrictor;
-use crate::core::{Bounds, LazyBounds, ValueByIndex, VarAssignment};
+use crate::core::{Bounds, LazyBounds, ValueByIndex, VarAssignment, VarId};
 use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use crate::types::Bias;
 use crate::types::{EnvId, VarIndex};
@@ -10,6 +10,7 @@ use crate::utils::ShareMut;
 use derive_more::{Deref, DerefMut};
 use global_counter::primitive::exact::CounterU64;
 use hashbrown::HashMap;
+use sqids::Sqids;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::ops::Index;
@@ -75,6 +76,30 @@ impl SharedEnvironment {
         mutable_env.variables_lookup.insert(name.to_string(), id);
         mutable_env.varcount += VarIndex::one();
         Ok(VarRef::new(id, self.clone()))
+    }
+
+    pub fn add_variable_with_fallback(
+        &self,
+        name: &str,
+        vtype: Option<Vtype>,
+        bounds: Option<LazyBounds>,
+        enc: Option<&[u64]>,
+    ) -> Result<VarRef, VariableCreationErr> {
+        let ret = self.add_variable(name, vtype, bounds);
+
+        match &ret {
+            Err(VariableCreationErr::VariableExists(_)) => {
+                let content = match enc {
+                    Some(e) => e,
+                    // unwrap here is safe as variable exists. 
+                    None => &[(*self.access().variables_lookup.get(name).unwrap()).into()],
+                };
+                let suffix = Sqids::default().encode(content).unwrap();
+                let new_name = format!("{}_{}", name, suffix);
+                self.add_variable(&new_name, vtype, bounds)
+            }
+            _ => ret,
+        }
     }
 
     pub fn add_binary(&self, name: &str) -> Result<VarRef, VariableCreationErr> {

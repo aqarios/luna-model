@@ -2145,6 +2145,73 @@ class Model:
         """
         ...
 
+    @overload
+    def add_variable_with_fallback(self, name: str, /) -> Variable: ...
+    @overload
+    def add_variable_with_fallback(
+        self, name: str, /, vtype: Vtype | None = ...
+    ) -> Variable: ...
+    @overload
+    def add_variable_with_fallback(
+        self,
+        name: str,
+        /,
+        vtype: Vtype,
+        *,
+        lower: float | type[Unbounded] | None,
+    ) -> Variable: ...
+    @overload
+    def add_variable_with_fallback(
+        self,
+        name: str,
+        /,
+        vtype: Vtype,
+        *,
+        upper: float | type[Unbounded] | None,
+    ) -> Variable: ...
+    @overload
+    def add_variable_with_fallback(
+        self,
+        name: str,
+        /,
+        vtype: Vtype,
+        *,
+        lower: float | type[Unbounded] | None,
+        upper: float | type[Unbounded] | None,
+    ) -> Variable: ...
+    def add_variable_with_fallback(
+        self,
+        name: str,
+        /,
+        vtype: Vtype | None = ...,
+        *,
+        lower: float | type[Unbounded] | None = ...,
+        upper: float | type[Unbounded] | None = ...,
+    ) -> Variable:
+        """
+        Add a new variable to the model with fallback renaming.
+
+        Parameters
+        ----------
+        name : str
+            The name of the variable.
+        vtype : Vtype, optional
+            The variable type (e.g., `Vtype.Real`, `Vtype.Integer`, etc.).
+            Defaults to `Vtype.Binary`.
+        lower: float, optional
+            The lower bound restricts the range of the variable. Only applicable for
+            `Real` and `Integer` variables.
+        upper: float, optional
+            The upper bound restricts the range of the variable. Only applicable for
+            `Real` and `Integer` variables.
+
+        Returns
+        -------
+        Variable
+            The variable added to the model.
+        """
+        ...
+
     def get_variable(self, name: str, /) -> Variable:
         """Get a variable by its label (name).
 
