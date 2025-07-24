@@ -352,6 +352,18 @@ impl PyConstraints {
         Ok(PyConstraint::new(constr))
     }
 
+    fn __setitem__(&mut self, n: ConstraintKey, c: PyConstraint) -> PyResult<()> {
+        let constraint = c.access().clone();
+        match &mut self.data {
+            Left(constrs) => constrs.set_constraint(n, constraint)?,
+            Right(parent) => parent
+                .access_mut()
+                .constraints
+                .set_constraint(n, constraint)?,
+        };
+        Ok(())
+    }
+
     fn __len__(&self) -> usize {
         match &self.data {
             Left(constrs) => constrs.len(),

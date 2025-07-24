@@ -37,7 +37,7 @@ class Pipeline(BasePass):
         """Add new pass to pipeline."""
         ...
 
-    def clear(self, new_pass: BasePass) -> None:
+    def clear(self) -> None:
         """Clear pipeline."""
         ...
 

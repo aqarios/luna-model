@@ -170,6 +170,46 @@ impl PyModel {
         ))
     }
 
+    /// Add a new variable to the model with fallback renaming.
+    ///
+    /// Parameters
+    /// ----------
+    /// name : str
+    ///     The name of the variable.
+    /// vtype : Vtype, optional
+    ///     The variable type (e.g., `Vtype.Real`, `Vtype.Integer`, etc.).
+    ///     Defaults to `Vtype.Binary`.
+    /// lower: float, optional
+    ///     The lower bound restricts the range of the variable. Only applicable for
+    ///     `Real` and `Integer` variables.
+    /// upper: float, optional
+    ///     The upper bound restricts the range of the variable. Only applicable for
+    ///     `Real` and `Integer` variables.
+    ///
+    /// Returns
+    /// -------
+    /// Variable
+    ///     The variable added to the model.
+    #[pyo3(signature = (name, vtype=None, lower=BoundValue::None, upper=BoundValue::None))]
+    fn add_variable_with_fallback(
+        &self,
+        name: String,
+        vtype: Option<Vtype>,
+        lower: BoundValue,
+        upper: BoundValue,
+    ) -> PyResult<PyVariable> {
+        let bounds = match (&lower, &upper) {
+            (BoundValue::None, BoundValue::None) => None,
+            _ => Some(LazyBounds::new(lower.into(), upper.into())),
+        };
+        Ok(PyVariable::new(
+            self.concrete_model
+                .access_mut()
+                .environment
+                .add_variable_with_fallback(&name, vtype, bounds, None)?,
+        ))
+    }
+
     /// Get a variable by its label (name).
     ///
     /// Parameters
