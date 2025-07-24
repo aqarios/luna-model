@@ -1,4 +1,5 @@
 use crate::core::{Model, Solution};
+use crate::transformations::base_passes::TransformationPass;
 use crate::{
     transformations::analysis_cache::AnalysisCache,
     transformations::base_passes::{BasePass, Pass},
@@ -7,6 +8,7 @@ use crate::{
     transformations::intermediate_representation::IntermediateRepresentation,
 };
 use global_counter::primitive::exact::CounterU64;
+use hashbrown::{HashMap, HashSet};
 use itertools::Itertools;
 use std::fmt::Display;
 
@@ -14,7 +16,8 @@ use std::fmt::Display;
 #[derive(Debug, Clone)]
 pub struct Pipeline {
     passes: Vec<Pass>,
-    required: Vec<String>,
+    required: HashSet<String>,
+    satisfied: HashSet<String>,
     name: String,
 }
 
@@ -23,12 +26,34 @@ pub static PIPELINE_COUNTER: CounterU64 = CounterU64::new(0);
 
 impl Pipeline {
     pub fn new(passes: Vec<Pass>, name: Option<String>) -> Self {
-        let required = passes.iter().map(|p| p.requires()).flatten().collect_vec();
+        let mut required = HashSet::new();
+        let mut satisfied = HashSet::new();
+        for pass in passes.iter() {
+            for req in pass.requires().iter() {
+                if !satisfied.contains(req) {
+                    required.insert(req.clone());
+                }
+            }
+            if let Pass::Transformation(x) = pass {
+                for inv in x.invalidates().iter() {
+                    satisfied.remove(inv);
+                }
+            }
+            if let Pass::Pipeline(pipeline) = pass {
+                satisfied.extend(pipeline.satisfied())
+            }
+            satisfied.insert(pass.name());
+        }
         Self {
             required,
             passes,
+            satisfied,
             name: name.unwrap_or(format!("pipeline-{}", PIPELINE_COUNTER.inc())),
         }
+    }
+
+    pub fn satisfied(&self) -> HashSet<String> {
+        self.satisfied.clone()
     }
 }
 
@@ -38,7 +63,7 @@ impl BasePass for Pipeline {
     }
 
     fn requires(&self) -> Vec<String> {
-        self.required.clone()
+        self.required.iter().cloned().collect()
     }
 
 
@@ -60,6 +85,20 @@ impl Pipeline {
     }
 
     pub fn add(&mut self, pass: Pass) {
+        for req in pass.requires().iter() {
+            if !self.satisfied.contains(req) {
+                self.required.insert(req.clone());
+            }
+            if let Pass::Transformation(x) = &pass {
+                for inv in x.invalidates().iter() {
+                    self.satisfied.remove(inv);
+                }
+            }
+            if let Pass::Pipeline(pipeline) = &pass {
+                self.satisfied.extend(pipeline.satisfied())
+            }
+            self.satisfied.insert(pass.name());
+        }
         self.passes.push(pass)
     }
 }
