@@ -2,7 +2,7 @@ use crate::core::expression::One;
 use crate::core::traits::ContentEquality;
 use crate::core::variable::{VarRef, Variable, Vtype};
 use crate::core::writer::LineLengthRestrictor;
-use crate::core::{Bounds, LazyBounds, ValueByIndex, VarAssignment, VarId};
+use crate::core::{Bounds, LazyBounds, ValueByIndex, VarAssignment};
 use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use crate::types::Bias;
 use crate::types::{EnvId, VarIndex};
