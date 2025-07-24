@@ -1,5 +1,4 @@
 use crate::core::{Model, Solution};
-use crate::transformations::base_passes::TransformationPass;
 use crate::{
     transformations::analysis_cache::AnalysisCache,
     transformations::base_passes::{BasePass, Pass},
@@ -8,8 +7,7 @@ use crate::{
     transformations::intermediate_representation::IntermediateRepresentation,
 };
 use global_counter::primitive::exact::CounterU64;
-use hashbrown::{HashMap, HashSet};
-use itertools::Itertools;
+use hashbrown::HashSet;
 use std::fmt::Display;
 
 /// Collection of Passes that are executed in the order the pipeline is initialized.
@@ -105,7 +103,7 @@ impl Pipeline {
 
 impl Display for Pipeline {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "🛢️ {}\n", self.name)?;
+        write!(f, "🛢️ {}\n  ", self.name)?;
         write!(f, "{}", self.content_string().replace("\n", "\n  "))?;
         Ok(())
     }

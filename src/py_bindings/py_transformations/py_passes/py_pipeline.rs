@@ -29,6 +29,10 @@ impl PyPipeline {
         self.0.add(pass.as_pass()?);
         Ok(())
     }
+
+    fn __repr__(&self) -> String {
+        return format!("{}", self.0);
+    }
 }
 
 impl PyPipeline {
