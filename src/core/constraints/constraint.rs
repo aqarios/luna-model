@@ -281,6 +281,20 @@ impl Constraints {
         }
     }
 
+    pub fn set_constraint(&mut self, key: ConstraintKey, constr: Constraint) -> Result<(), GetConstraintErr> {
+        let index = match &key {
+            ConstraintKey::Int(idx) => Some(idx),
+            ConstraintKey::Str(name) => self.index_map.get(name),
+        };
+        match index {
+            Some(idx) => {
+                self.constraints.insert(*idx, constr);
+                Ok(())
+            }
+            None => Err(GetConstraintErr::NoConstraintForKeyErr(key.to_string())),
+        }
+    }
+
     pub fn remove_constraint(&mut self, key: ConstraintKey) {
         let (idx, name) = match &key {
             ConstraintKey::Int(idx) => {

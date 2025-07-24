@@ -2695,7 +2695,6 @@ class Expression:
         """
         ...
 
-
     def linear_items(self, /) -> list[tuple[Variable, float]]:
         """
         Get all linear components.
@@ -2727,7 +2726,6 @@ class Expression:
             The higher-order components.
         """
         ...
-
 
     def is_equal(self, /, other: Expression) -> bool:
         """
@@ -3806,6 +3804,11 @@ class Constraints:
     @overload
     def __getitem__(self, item: int, /) -> Constraint: ...
     def __getitem__(self, item: int | str, /) -> Constraint: ...
+    @overload
+    def __setitem__(self, item: str, content: Constraint, /) -> None: ...
+    @overload
+    def __setitem__(self, item: int, content: Constraint, /) -> None: ...
+    def __setitem__(self, item: int | str, content: Constraint, /) -> None: ...
     def __len__(self, /) -> int:
         """
         Get the number of constraints.
