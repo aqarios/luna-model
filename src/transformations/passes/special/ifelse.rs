@@ -11,7 +11,7 @@ use {
     pyo3::prelude::*, pyo3::IntoPyObjectExt,
 };
 
-use super::pipeline::Pipeline;
+use super::pipeline::{AbstractPipeline, Pipeline};
 use crate::transformations::analysis_cache::AnalysisCache;
 use crate::transformations::base_passes::BasePass;
 use crate::transformations::{

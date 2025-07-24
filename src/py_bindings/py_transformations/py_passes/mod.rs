@@ -7,6 +7,7 @@ mod py_transformation_pass_adapter;
 mod py_analysis_cache_impl;
 mod py_ifelse;
 mod py_pipeline;
+mod py_pipeline_adapter;
 
 pub use py_pass_base::PyPass;
 pub use py_transformation_pass::PyTransformationPass;
