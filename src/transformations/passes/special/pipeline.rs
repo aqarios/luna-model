@@ -20,6 +20,7 @@ pub trait AbstractPipeline: BasePass + DynClone {
     fn satisfied(&self) -> HashSet<String>;
     fn content_string(&self) -> String;
     fn len(&self) -> usize;
+    fn passes(&self) -> Vec<Pass>;
 }
 dyn_clone::clone_trait_object!(AbstractPipeline);
 
@@ -127,12 +128,23 @@ impl AbstractPipeline for Pipeline {
     fn len(&self) -> usize {
         self.passes.len()
     }
+
+    fn passes(&self) -> Vec<Pass> {
+        self.passes.clone()
+    }
 }
 
 impl Display for dyn AbstractPipeline {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "🛢️ {}\n  ", self.name())?;
         write!(f, "{}", self.content_string().replace("\n", "\n  "))?;
+        Ok(())
+    }
+}
+
+impl Display for Pipeline {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", (self as &dyn AbstractPipeline))?;
         Ok(())
     }
 }

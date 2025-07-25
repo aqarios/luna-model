@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use crate::{
     core::{Model, Solution}, py_bindings::{AnyPass, IntoAnyPass}, transformations::{
         analysis_cache::AnalysisCache,
-        base_passes::{self, BasePass},
+        base_passes::{self, BasePass, Pass},
         intermediate_representation::IntermediateRepresentation,
         pass_manager::PassManager,
         passes::pipeline::{AbstractPipeline, PipelineResult},
@@ -80,6 +80,11 @@ impl AbstractPipeline for PyPipelineAdapter {
 
     fn len(&self) -> usize {
         Python::with_gil(|py| self.inner.extract::<PyPipeline>(py).unwrap().0.len())
+    }
+
+    fn passes(&self) -> Vec<Pass> {
+        let x = Python::with_gil(|py| self.inner.extract::<PyPipeline>(py).unwrap());
+        x.0.passes().clone()
     }
 }
 
