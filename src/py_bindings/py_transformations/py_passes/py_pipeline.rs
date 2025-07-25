@@ -2,8 +2,13 @@ use pyo3::prelude::*;
 
 use crate::{
     py_bindings::AnyPass,
-    transformations::{base_passes::Pass, passes::pipeline::Pipeline},
+    transformations::{
+        base_passes::Pass,
+        passes::pipeline::{AbstractPipeline, Pipeline},
+    },
 };
+
+use super::{py_pass_base::PyPass, py_pipeline_adapter::PyPipelineAdapter};
 
 #[pyclass(unsendable, name = "Pipeline")]
 #[derive(Debug, Clone)]
@@ -29,14 +34,11 @@ impl PyPipeline {
         self.0.add(pass.as_pass()?);
         Ok(())
     }
+}
 
-    fn __repr__(&self) -> String {
-        return format!("{}", self.0);
+impl PyPass for Py<PyPipeline> {
+    fn as_pass(self) -> PyResult<Pass> {
+        Ok(Pass::Pipeline(Box::new(PyPipelineAdapter::new(self)?)))
     }
 }
 
-impl PyPipeline {
-    pub fn as_pass(self) -> PyResult<Pass> {
-        Ok(Pass::Pipeline(self.0))
-    }
-}

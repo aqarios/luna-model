@@ -5,7 +5,7 @@ use crate::transformations::{
     passes::ifelse::{Condition, IfElsePass},
 };
 
-use super::PyPipeline;
+use super::{py_pipeline_adapter::PyPipelineAdapter, PyPipeline};
 
 #[pyclass(unsendable, name = "IfElsePass")]
 #[derive(Debug, Clone)]
@@ -18,17 +18,17 @@ impl PyIfElsePass {
     pub fn py_new(
         requires: Vec<String>,
         condition: Condition,
-        then: &PyPipeline,
-        otherwise: &PyPipeline,
+        then: Py<PyPipeline>,
+        otherwise: Py<PyPipeline>,
         name: Option<String>,
-    ) -> Self {
-        Self(IfElsePass::new(
+    ) -> PyResult<Self> {
+        Ok(Self(IfElsePass::new(
             requires,
             condition,
-            then.0.clone(),
-            otherwise.0.clone(),
+            Box::new(PyPipelineAdapter::new(then)?),
+            Box::new(PyPipelineAdapter::new(otherwise)?),
             name,
-        ))
+        )))
     }
 }
 

@@ -11,7 +11,7 @@ use {
     pyo3::prelude::*, pyo3::IntoPyObjectExt,
 };
 
-use super::pipeline::Pipeline;
+use super::pipeline::{AbstractPipeline, Pipeline};
 use crate::transformations::analysis_cache::AnalysisCache;
 use crate::transformations::base_passes::BasePass;
 use crate::transformations::{
@@ -122,8 +122,8 @@ pub static IF_ELSE_COUNTER: CounterU64 = CounterU64::new(0);
 pub struct IfElsePass {
     requires: Vec<String>,
     condition: Condition,
-    then: Pipeline,
-    otherwise: Pipeline,
+    then: Box<dyn AbstractPipeline>,
+    otherwise: Box<dyn AbstractPipeline>,
     // #[py_pass(init_ignore)]
     name: String,
 }
@@ -132,8 +132,8 @@ impl IfElsePass {
     pub fn new(
         requires: Vec<String>,
         condition: Condition,
-        then: Pipeline,
-        otherwise: Pipeline,
+        then: Box<dyn AbstractPipeline>,
+        otherwise: Box<dyn AbstractPipeline>,
         name: Option<String>,
     ) -> Self {
         let mut requires = requires;

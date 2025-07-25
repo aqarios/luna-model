@@ -5,8 +5,7 @@ use crate::core::{Model, Solution};
 use super::{
     analysis_cache::{AnalysisCache, AnalysisCacheElement},
     errors::{AnalysisPassError, TransformationPassError},
-    passes::ifelse::IfElsePass,
-    passes::pipeline::Pipeline,
+    passes::{ifelse::IfElsePass, pipeline::{AbstractPipeline}},
 };
 
 use dyn_clone::DynClone;
@@ -104,7 +103,7 @@ pub enum Pass {
     Transformation(Box<dyn TransformationPass>),
     Analysis(Box<dyn AnalysisPass>),
     IfElse(IfElsePass),
-    Pipeline(Pipeline),
+    Pipeline(Box<dyn AbstractPipeline>),
 }
 
 impl Pass {

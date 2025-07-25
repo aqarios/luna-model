@@ -6,9 +6,21 @@ use crate::{
     transformations::execution::{backwards, run_passes},
     transformations::intermediate_representation::IntermediateRepresentation,
 };
+use dyn_clone::DynClone;
 use global_counter::primitive::exact::CounterU64;
 use hashbrown::HashSet;
 use std::fmt::Display;
+
+pub trait AbstractPipeline: BasePass + DynClone {
+    fn run(&self, model: Model, cache: &AnalysisCache) -> PipelineResult;
+    fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution;
+    fn clear(&mut self);
+    fn add(&mut self, pass: Pass);
+    fn satisfied(&self) -> HashSet<String>;
+    fn content_string(&self) -> String;
+    fn len(&self) -> usize;
+}
+dyn_clone::clone_trait_object!(AbstractPipeline);
 
 /// Collection of Passes that are executed in the order the pipeline is initialized.
 #[derive(Debug, Clone)]
@@ -49,10 +61,6 @@ impl Pipeline {
             name: name.unwrap_or(format!("pipeline-{}", PIPELINE_COUNTER.inc())),
         }
     }
-
-    pub fn satisfied(&self) -> HashSet<String> {
-        self.satisfied.clone()
-    }
 }
 
 impl BasePass for Pipeline {
@@ -63,26 +71,28 @@ impl BasePass for Pipeline {
     fn requires(&self) -> Vec<String> {
         self.required.iter().cloned().collect()
     }
-
-
 }
 
 pub type PipelineResult = Result<IntermediateRepresentation, CompilationError>;
 
-impl Pipeline {
-    pub fn run(&self, model: Model, cache: &AnalysisCache) -> PipelineResult {
+impl AbstractPipeline for Pipeline {
+    fn satisfied(&self) -> HashSet<String> {
+        self.satisfied.clone()
+    }
+
+    fn run(&self, model: Model, cache: &AnalysisCache) -> PipelineResult {
         run_passes(&self.passes, model, cache.clone())
     }
 
-    pub fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {
+    fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {
         backwards(&self.passes, solution, ir)
     }
 
-    pub fn clear(&mut self) {
+    fn clear(&mut self) {
         self.passes.clear()
     }
 
-    pub fn add(&mut self, pass: Pass) {
+    fn add(&mut self, pass: Pass) {
         for req in pass.requires().iter() {
             if !self.satisfied.contains(req) {
                 self.required.insert(req.clone());
@@ -99,18 +109,8 @@ impl Pipeline {
         }
         self.passes.push(pass)
     }
-}
 
-impl Display for Pipeline {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "🛢️ {}\n  ", self.name)?;
-        write!(f, "{}", self.content_string().replace("\n", "\n  "))?;
-        Ok(())
-    }
-}
-
-impl Pipeline {
-    pub fn content_string(&self) -> String {
+    fn content_string(&self) -> String {
         let mut out = String::new();
         if self.passes.len() >= 2 {
             for i in 0..=self.passes.len() - 2 {
@@ -123,7 +123,15 @@ impl Pipeline {
         out
     }
 
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.passes.len()
+    }
+}
+
+impl Display for dyn AbstractPipeline {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "🛢️ {}\n  ", self.name())?;
+        write!(f, "{}", self.content_string().replace("\n", "\n  "))?;
+        Ok(())
     }
 }

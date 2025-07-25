@@ -15,9 +15,9 @@ use crate::transformations::passes::change_sense::PyChangeSensePass;
 use crate::transformations::passes::max_bias::{MaxBias, PyMaxBiasAnalysis};
 
 register_pytransformations!(
-    specials = {PyAnalysisPass, PyTransformationPass},
+    specials = {PyAnalysisPass, PyTransformationPass, PyPipeline},
     extras = {PyAnalysisCache, PyPassManager, ActionType, MaxBias, PyIR, PyLogElement, BinarySpinInfo, StructuredPyTransformationOutcome},
     passes = {
-        PyChangeSensePass, PyMaxBiasAnalysis, PyBinarySpinPass, PyIfElsePass, PyPipeline
+        PyChangeSensePass, PyMaxBiasAnalysis, PyBinarySpinPass, PyIfElsePass
     },
 );
