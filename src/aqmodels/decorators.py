@@ -1,4 +1,5 @@
 """Decorators."""
+
 from collections.abc import Callable
 from typing import Any, Generic, TypeVar, override
 
@@ -7,6 +8,8 @@ from aqmodels.transformations import (
     ActionType,
     AnalysisCache,
     AnalysisPass,
+    BasePass,
+    MetaAnalysisPass,
     TransformationOutcome,
     TransformationPass,
 )
@@ -15,6 +18,8 @@ T = TypeVar("T")
 
 
 type AnalysisSignature[T] = Callable[[Model, AnalysisCache], T]
+
+type MetaAnalysisSignature[T] = Callable[[list[BasePass], AnalysisCache], T]
 
 type Outcome = (
     TransformationOutcome | tuple[Model, ActionType] | tuple[Model, ActionType, Any]
@@ -58,6 +63,36 @@ class DynamicAnalysisPass(AnalysisPass, Generic[T]):
 
     def __call__(self, model: Model, cache: AnalysisCache) -> T:
         return self._func(model, cache)
+
+
+class DynamicMetaAnalysisPass(MetaAnalysisPass, Generic[T]):
+    def __init__(
+        self,
+        name: str,
+        requires: list[str],
+        func: MetaAnalysisSignature[T],
+    ) -> None:
+        self._name = name
+        self._requires = requires
+        self._func = func
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def requires(self) -> list[str]:
+        return self._requires
+
+    def __repr__(self) -> str:
+        return f'FunctionMetaAnalysis(name="{self.name}")'
+
+    @override
+    def run(self, passes: list[BasePass], cache: AnalysisCache) -> T:
+        return self._func(passes, cache)
+
+    def __call__(self, passes: list[BasePass], cache: AnalysisCache) -> T:
+        return self._func(passes, cache)
 
 
 class DynamicTransformationPass(TransformationPass):
@@ -126,6 +161,37 @@ def analyse(
         loc_name = name or func.__name__.replace("_", "-")
 
         return DynamicAnalysisPass(name=loc_name, requires=requires, func=func)
+
+    return _decorator
+
+def meta_analyse(
+    name: str | None = None, requires: list[str] | None = None
+) -> Callable[[MetaAnalysisSignature[T]], DynamicMetaAnalysisPass[T]]:
+    """Create an MetaAnalysisPass instance from a function.
+
+    Parameters
+    ----------
+    name: str | None
+        The name of the analysis pass. If no name provided, uses the function name.
+    requires: list[str] | None
+        List of required analysis passes (defaults to empty list)
+
+    Returns
+    -------
+    Callable[[Callable[[list[BasePass], AnalysisCache], Any]], MetaAnalysisPass]
+        An instance of a dynamically created AnalysisPass subclass
+    """
+    if requires is None:
+        requires = []
+
+    _T = TypeVar("_T")
+
+    def _decorator(
+        func: MetaAnalysisSignature[_T],
+    ) -> DynamicMetaAnalysisPass[_T]:
+        loc_name = name or func.__name__.replace("_", "-")
+
+        return DynamicMetaAnalysisPass(name=loc_name, requires=requires, func=func)
 
     return _decorator
 
