@@ -13,8 +13,7 @@ use crate::{
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{
-            ActionType, BasePass, TransformationOutcome, TransformationPass,
-            TransformationPassResult,
+            ActionType, BasePass, TransformationOutcome, TransformationPass, TransformationPassResult
         },
     },
 };

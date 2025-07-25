@@ -264,19 +264,31 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
     let mut enum_passes = Vec::new();
     let mut arm_passes = Vec::new();
     let mut clone_arm_passes = Vec::new();
+    let mut import_passes = Vec::new();
+    let mut impl_into_anypass = Vec::new();
     for path in &passes {
         let ty_ident = &path.segments.last().unwrap().ident;
         let s = ty_ident.to_string();
-        let stripped = s
-            .strip_prefix("Py")
-            .unwrap_or(&s)
+        let py_stripped = s.strip_prefix("Py").unwrap_or(&s);
+        let stripped = py_stripped
             .strip_suffix("Pass")
-            .unwrap_or(&s);
+            .unwrap_or(py_stripped.strip_suffix("Analysis").unwrap_or(&py_stripped));
+        let rs_ident = format_ident!("{}", py_stripped);
         let var_ident = format_ident!("{}", stripped);
+
+        import_passes.push(quote! {#rs_ident,});
 
         enum_passes.push(quote! { #var_ident(#ty_ident), });
         arm_passes.push(quote! { AnyPass::#var_ident(x) => x.as_pass()?, });
         clone_arm_passes.push(quote! { AnyPass::#var_ident(x) => AnyPass::#var_ident(x.clone()), });
+
+        impl_into_anypass.push(quote! {
+            impl IntoAnyPass for #rs_ident {
+                fn as_anypass(&self) -> AnyPass {
+                    AnyPass::#var_ident(#ty_ident(self.clone()))
+                }
+            }
+        })
     }
     let reg_passes = passes.iter().map(|path| {
         quote! { m.add_class::<#path>()?; }
@@ -290,6 +302,8 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
     // --- Emit everything
     let expanded = quote! {
         use pyo3::prelude::*;
+        use crate::transformations::base_passes::BasePass;
+        use crate::transformations::passes::{#(#import_passes)*};
 
 
         #[allow(dead_code)]
@@ -300,6 +314,12 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
             // then normal passes
             #(#enum_passes)*
         }
+
+        pub trait IntoAnyPass {
+            fn as_anypass(&self)  -> AnyPass;
+        }
+
+        #(#impl_into_anypass)*
 
         impl Clone for AnyPass {
             fn clone(&self) -> Self {

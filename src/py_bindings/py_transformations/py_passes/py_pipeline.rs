@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 
 use crate::{
-    py_bindings::AnyPass,
+    py_bindings::{AnyPass, IntoAnyPass},
     transformations::{
         base_passes::Pass,
         passes::pipeline::{AbstractPipeline, Pipeline},
@@ -34,6 +34,19 @@ impl PyPipeline {
         self.0.add(pass.as_pass()?);
         Ok(())
     }
+
+    fn __len__(&self) -> usize {
+        self.0.len()
+    }
+
+    #[getter]
+    fn passes(&self) -> Vec<AnyPass> {
+        self.0.passes().iter().map(|e| e.as_anypass()).collect()
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{}", self.0)
+    }
 }
 
 impl PyPass for Py<PyPipeline> {
@@ -42,3 +55,9 @@ impl PyPass for Py<PyPipeline> {
     }
 }
 
+impl IntoAnyPass for Pipeline {
+    fn as_anypass(&self) -> AnyPass {
+        let p = Python::with_gil(|py| Py::new(py, PyPipeline(self.clone()))).unwrap();
+        AnyPass::PyPipeline(p)
+    }
+}

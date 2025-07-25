@@ -5,8 +5,7 @@ use crate::{
     transformations::{
         analysis_cache::AnalysisCache,
         base_passes::{
-            ActionType, BasePass, TransformationOutcome, TransformationPass,
-            TransformationPassResult,
+            ActionType, BasePass, TransformationOutcome, TransformationPass, TransformationPassResult
         },
     },
 };

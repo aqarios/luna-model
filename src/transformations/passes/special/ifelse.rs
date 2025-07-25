@@ -1,4 +1,7 @@
-use crate::unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R};
+use crate::{
+    transformations::pass_manager::PassManager,
+    unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R},
+};
 use std::fmt::Display;
 
 use aqm_macros::analysis_cache;
@@ -11,7 +14,7 @@ use {
     pyo3::prelude::*, pyo3::IntoPyObjectExt,
 };
 
-use super::pipeline::{AbstractPipeline, Pipeline};
+use super::pipeline::AbstractPipeline;
 use crate::transformations::analysis_cache::AnalysisCache;
 use crate::transformations::base_passes::BasePass;
 use crate::transformations::{
@@ -159,19 +162,26 @@ impl BasePass for IfElsePass {
     }
 }
 
+// impl IntoAnyPass for IfElsePass {}
+
 impl IfElsePass {
-    pub fn run(&self, model: Model, cache: &AnalysisCache) -> IfElsePassResult {
+    pub fn run(
+        &self,
+        model: Model,
+        cache: &AnalysisCache,
+        executor: &PassManager,
+    ) -> IfElsePassResult {
         let is_condition = self
             .condition
             .call(cache)
             .map_err(|err| IfElsePassError(err.to_string()))?;
         let ir = if is_condition {
             self.then
-                .run(model, &cache)
+                .run(model, &cache, executor)
                 .map_err(|err| IfElsePassError(err.to_string()))
         } else {
             self.otherwise
-                .run(model, &cache)
+                .run(model, &cache, executor)
                 .map_err(|err| IfElsePassError(err.to_string()))
         }?;
         Ok(IfElseOutcome {

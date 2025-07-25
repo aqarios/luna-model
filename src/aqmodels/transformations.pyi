@@ -41,6 +41,14 @@ class Pipeline(BasePass):
         """Clear pipeline."""
         ...
 
+    @property
+    def passes(self) -> list[BasePass]:
+        """Get all passes that are part of the pipeline."""
+        ...
+
+    def __len__(self) -> int: ...
+
+
 class IfElsePass(BasePass):
     @overload
     def __init__(
@@ -146,6 +154,21 @@ class AnalysisPass(BasePass):
         ...
     @abstractmethod
     def run(self, model: Model, cache: AnalysisCache) -> ...:
+        """Run/Execute this analysis pass."""
+        ...
+
+class MetaAnalysisPass(BasePass):
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Get the name of this pass."""
+        ...
+    @property
+    def requires(self) -> list[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+    @abstractmethod
+    def run(self, passes: list[BasePass], cache: AnalysisCache) -> ...:
         """Run/Execute this analysis pass."""
         ...
 

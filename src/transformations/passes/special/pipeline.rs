@@ -1,4 +1,5 @@
 use crate::core::{Model, Solution};
+use crate::transformations::pass_manager::PassManager;
 use crate::{
     transformations::analysis_cache::AnalysisCache,
     transformations::base_passes::{BasePass, Pass},
@@ -12,13 +13,14 @@ use hashbrown::HashSet;
 use std::fmt::Display;
 
 pub trait AbstractPipeline: BasePass + DynClone {
-    fn run(&self, model: Model, cache: &AnalysisCache) -> PipelineResult;
+    fn run(&self, model: Model, cache: &AnalysisCache, executor: &PassManager) -> PipelineResult;
     fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution;
     fn clear(&mut self);
     fn add(&mut self, pass: Pass);
     fn satisfied(&self) -> HashSet<String>;
     fn content_string(&self) -> String;
     fn len(&self) -> usize;
+    fn passes(&self) -> Vec<Pass>;
 }
 dyn_clone::clone_trait_object!(AbstractPipeline);
 
@@ -80,8 +82,8 @@ impl AbstractPipeline for Pipeline {
         self.satisfied.clone()
     }
 
-    fn run(&self, model: Model, cache: &AnalysisCache) -> PipelineResult {
-        run_passes(&self.passes, model, cache.clone())
+    fn run(&self, model: Model, cache: &AnalysisCache, executor: &PassManager) -> PipelineResult {
+        run_passes(&self.passes, model, cache.clone(), executor)
     }
 
     fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {
@@ -126,12 +128,23 @@ impl AbstractPipeline for Pipeline {
     fn len(&self) -> usize {
         self.passes.len()
     }
+
+    fn passes(&self) -> Vec<Pass> {
+        self.passes.clone()
+    }
 }
 
 impl Display for dyn AbstractPipeline {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "🛢️ {}\n  ", self.name())?;
         write!(f, "{}", self.content_string().replace("\n", "\n  "))?;
+        Ok(())
+    }
+}
+
+impl Display for Pipeline {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", (self as &dyn AbstractPipeline))?;
         Ok(())
     }
 }

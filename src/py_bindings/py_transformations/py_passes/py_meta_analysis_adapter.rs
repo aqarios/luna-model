@@ -3,22 +3,22 @@ use std::fmt::Debug;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
 
 use crate::{
-    core::Model,
-    py_bindings::{py_model::PyModel, AnyPass, IntoAnyPass},
+    py_bindings::{AnyPass, IntoAnyPass},
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement, PyAnalysisCache},
-        base_passes::{AnalysisPass, AnalysisPassResult, BasePass},
+        base_passes::{BasePass, Pass},
+        passes::special::meta_analysis::{MetaAnalysisPass, MetaAnalysisPassResult},
     },
 };
 
-use super::py_analysis_pass::PyAnalysisPass;
+use super::py_meta_analysis::PyMetaAnalysisPass;
 
-pub struct PyAnalysisPassAdapter {
-    inner: Py<PyAnalysisPass>,
+pub struct PyMetaAnalysisPassAdapter {
+    inner: Py<PyMetaAnalysisPass>,
 }
 
-impl PyAnalysisPassAdapter {
-    pub fn new(inner: Py<PyAnalysisPass>) -> PyResult<Self> {
+impl PyMetaAnalysisPassAdapter {
+    pub fn new(inner: Py<PyMetaAnalysisPass>) -> PyResult<Self> {
         let slf = Self { inner };
         slf.check_superclass()?;
         Ok(slf)
@@ -27,7 +27,7 @@ impl PyAnalysisPassAdapter {
     /// Check that the superclass implements all required methods.
     fn check_superclass(&self) -> Result<(), PyErr> {
         Python::with_gil(|py| {
-            let base_cls = py.get_type::<PyAnalysisPass>();
+            let base_cls = py.get_type::<PyMetaAnalysisPass>();
             let cls = self.inner.getattr(py, "__class__")?;
             let cls_name: String = cls.getattr(py, "__name__")?.extract(py)?;
             Self::check_overridden(py, "name", &base_cls, &cls, &cls_name)?;
@@ -57,7 +57,7 @@ impl PyAnalysisPassAdapter {
     }
 }
 
-impl BasePass for PyAnalysisPassAdapter {
+impl BasePass for PyMetaAnalysisPassAdapter {
     fn name(&self) -> String {
         Python::with_gil(|py| {
             self.inner
@@ -77,8 +77,9 @@ impl BasePass for PyAnalysisPassAdapter {
     }
 }
 
-impl AnalysisPass for PyAnalysisPassAdapter {
-    fn run(&self, model: &Model, cache: &AnalysisCache) -> AnalysisPassResult {
+impl MetaAnalysisPass for PyMetaAnalysisPassAdapter {
+    fn run(&self, pipeline: &Vec<Pass>, cache: &AnalysisCache) -> MetaAnalysisPassResult {
+        let passes: Vec<AnyPass> = pipeline.iter().map(|p| p.as_anypass()).collect();
         Python::with_gil(|py| {
             let py_res = self
                 .inner
@@ -86,7 +87,7 @@ impl AnalysisPass for PyAnalysisPassAdapter {
                     py,
                     "run",
                     (
-                        PyModel::new(model.clone()),
+                        passes,
                         PyAnalysisCache::new(cache.clone_py(py)),
                     ),
                 )
@@ -101,22 +102,22 @@ impl AnalysisPass for PyAnalysisPassAdapter {
     }
 }
 
-impl Debug for PyAnalysisPassAdapter {
+impl Debug for PyMetaAnalysisPassAdapter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.inner)
     }
 }
 
-impl Clone for PyAnalysisPassAdapter {
+impl Clone for PyMetaAnalysisPassAdapter {
     fn clone(&self) -> Self {
-        Python::with_gil(|py| PyAnalysisPassAdapter {
+        Python::with_gil(|py| PyMetaAnalysisPassAdapter {
             inner: self.inner.clone_ref(py),
         })
     }
 }
 
-impl IntoAnyPass for PyAnalysisPassAdapter {
+impl IntoAnyPass for PyMetaAnalysisPassAdapter {
     fn as_anypass(&self) -> AnyPass {
-        Python::with_gil(|py| AnyPass::PyAnalysisPass(self.inner.clone_ref(py)))
+        Python::with_gil(|py| AnyPass::PyMetaAnalysisPass(self.inner.clone_ref(py)))
     }
 }

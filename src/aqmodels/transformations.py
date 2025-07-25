@@ -15,4 +15,6 @@ One can implement their own transformations by implementing the `TransformationP
 and `AnalysisPass` abstract classes. See the examples for further details.
 """
 
+from abc import ABC, abstractmethod
+
 from ._core.transformations import *  # type: ignore[reportMissingImports] # noqa: F403

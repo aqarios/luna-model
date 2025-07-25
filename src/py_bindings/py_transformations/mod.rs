@@ -5,3 +5,4 @@ mod py_ir;
 
 pub use py_module::register_transformations;
 pub use py_module::AnyPass;
+pub use py_module::IntoAnyPass;
