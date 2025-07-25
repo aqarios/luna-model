@@ -26,7 +26,7 @@ impl PassManager {
 
     pub fn run(&self, model: Model) -> Result<IntermediateRepresentation, CompilationError> {
         check_dependencies(&self.passes)?;
-        run_passes(&self.passes, model, AnalysisCache::new())
+        run_passes(&self.passes, model, AnalysisCache::new(), self)
     }
 
     pub fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {

@@ -2,7 +2,7 @@ use super::{
     analysis_cache::AnalysisCache,
     base_passes::{ActionType, BasePass, Pass},
     errors::CompilationError,
-    intermediate_representation::{ExecutionLog, IntermediateRepresentation},
+    intermediate_representation::{ExecutionLog, IntermediateRepresentation}, pass_manager::PassManager,
 };
 use crate::core::{Model, Solution, Timer};
 use hashbrown::HashSet;
@@ -36,6 +36,7 @@ pub fn run_passes(
     passes: &Vec<Pass>,
     mut model: Model,
     mut cache: AnalysisCache,
+    executor: &PassManager,
 ) -> Result<IntermediateRepresentation, CompilationError> {
     let mut execution_log = ExecutionLog::new();
     for pass in passes.iter() {
@@ -68,8 +69,18 @@ pub fn run_passes(
                 };
                 (kind, None)
             }
+            Pass::MetaAnalysis(x) => {
+                let ret = x.run(&executor.passes, &mut cache)?;
+                let kind = if let Some(inner) = ret {
+                    cache.insert(&x.name(), inner);
+                    ActionType::DidAnalysis
+                } else {
+                    ActionType::DidNothing
+                };
+                (kind, None)
+            }
             Pass::IfElse(x) => {
-                let outcome = x.run(model, &cache)?;
+                let outcome = x.run(model, &cache, executor)?;
                 model = outcome.ir.model;
                 cache.insert(&x.name(), outcome.analysis);
                 // Other passes might be dependent from the analysis inside
@@ -79,7 +90,7 @@ pub fn run_passes(
                 (ActionType::DidIfElse, Some(outcome.ir.execution_log))
             }
             Pass::Pipeline(x) => {
-                let outcome = x.run(model, &cache)?;
+                let outcome = x.run(model, &cache, executor)?;
                 model = outcome.model;
                 cache.insert_from(outcome.cache);
                 (ActionType::DidPipeline, Some(outcome.execution_log))

@@ -1059,7 +1059,7 @@ impl PyExpression {
         })
     }
 
-    /// Get all variables that are part of the expression.
+    /// Get all variables that are part of this expression.
     //
     /// Returns
     /// -------

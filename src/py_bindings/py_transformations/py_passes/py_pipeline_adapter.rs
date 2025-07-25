@@ -3,13 +3,13 @@ use std::fmt::Debug;
 use pyo3::prelude::*;
 
 use crate::{
-    core::{Model, Solution},
-    transformations::{
+    core::{Model, Solution}, py_bindings::{AnyPass, IntoAnyPass}, transformations::{
         analysis_cache::AnalysisCache,
         base_passes::{self, BasePass},
         intermediate_representation::IntermediateRepresentation,
+        pass_manager::PassManager,
         passes::pipeline::{AbstractPipeline, PipelineResult},
-    },
+    }
 };
 
 use super::PyPipeline;
@@ -36,13 +36,13 @@ impl BasePass for PyPipelineAdapter {
 }
 
 impl AbstractPipeline for PyPipelineAdapter {
-    fn run(&self, model: Model, cache: &AnalysisCache) -> PipelineResult {
+    fn run(&self, model: Model, cache: &AnalysisCache, executor: &PassManager) -> PipelineResult {
         Python::with_gil(|py| {
             self.inner
                 .extract::<PyPipeline>(py)
                 .unwrap()
                 .0
-                .run(model, cache)
+                .run(model, cache, executor)
         })
     }
 
@@ -57,33 +57,15 @@ impl AbstractPipeline for PyPipelineAdapter {
     }
 
     fn clear(&mut self) {
-        Python::with_gil(|py| {
-            self.inner
-                .extract::<PyPipeline>(py)
-                .unwrap()
-                .0
-                .clear()
-        })
+        Python::with_gil(|py| self.inner.extract::<PyPipeline>(py).unwrap().0.clear())
     }
 
     fn add(&mut self, pass: base_passes::Pass) {
-        Python::with_gil(|py| {
-            self.inner
-                .extract::<PyPipeline>(py)
-                .unwrap()
-                .0
-                .add(pass)
-        })
+        Python::with_gil(|py| self.inner.extract::<PyPipeline>(py).unwrap().0.add(pass))
     }
 
     fn satisfied(&self) -> hashbrown::HashSet<String> {
-        Python::with_gil(|py| {
-            self.inner
-                .extract::<PyPipeline>(py)
-                .unwrap()
-                .0
-                .satisfied()
-        })
+        Python::with_gil(|py| self.inner.extract::<PyPipeline>(py).unwrap().0.satisfied())
     }
 
     fn content_string(&self) -> String {
@@ -97,13 +79,7 @@ impl AbstractPipeline for PyPipelineAdapter {
     }
 
     fn len(&self) -> usize {
-        Python::with_gil(|py| {
-            self.inner
-                .extract::<PyPipeline>(py)
-                .unwrap()
-                .0
-                .len()
-        })
+        Python::with_gil(|py| self.inner.extract::<PyPipeline>(py).unwrap().0.len())
     }
 }
 
@@ -120,3 +96,10 @@ impl Clone for PyPipelineAdapter {
         })
     }
 }
+
+impl IntoAnyPass for PyPipelineAdapter {
+    fn as_anypass(&self) -> AnyPass {
+        Python::with_gil(|py| AnyPass::PyPipeline(self.inner.clone_ref(py)))
+    }
+}
+

@@ -5,7 +5,7 @@ pub enum ConstraintTypes {
     GeneralInequality,
     IntegerEquality,
     IntegerInequality,
-    SetPartitioning,
+    OneHot,
     SetPacking,
     SetCovering,
     HammingWeight,
@@ -14,7 +14,7 @@ pub enum ConstraintTypes {
 impl ConstraintTypes {
     pub fn parent(&self) -> Option<ConstraintTypes> {
         match self {
-            ConstraintTypes::SetPartitioning => Some(ConstraintTypes::HammingWeight),
+            ConstraintTypes::OneHot => Some(ConstraintTypes::HammingWeight),
             ConstraintTypes::HammingWeight => Some(ConstraintTypes::IntegerEquality),
             ConstraintTypes::SetPacking => Some(ConstraintTypes::IntegerInequality),
             ConstraintTypes::SetCovering => Some(ConstraintTypes::IntegerInequality),

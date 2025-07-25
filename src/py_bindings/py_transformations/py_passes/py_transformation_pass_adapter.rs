@@ -4,7 +4,7 @@ use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
 
 use crate::{
     core::{Model, Solution},
-    py_bindings::{py_model::PyModel, py_sol::PySolution},
+    py_bindings::{py_model::PyModel, py_sol::PySolution, AnyPass, IntoAnyPass},
     transformations::{
         analysis_cache::{AnalysisCache, PyAnalysisCache},
         base_passes::{BasePass, TransformationPass, TransformationPassResult},
@@ -146,5 +146,11 @@ impl Clone for PyTransformationPassAdapter {
         Python::with_gil(|py| PyTransformationPassAdapter {
             inner: self.inner.clone_ref(py),
         })
+    }
+}
+
+impl IntoAnyPass for PyTransformationPassAdapter {
+    fn as_anypass(&self) -> AnyPass {
+        Python::with_gil(|py| AnyPass::PyTransformationPass(self.inner.clone_ref(py)))
     }
 }

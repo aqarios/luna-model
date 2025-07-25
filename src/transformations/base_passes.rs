@@ -5,8 +5,13 @@ use crate::core::{Model, Solution};
 use super::{
     analysis_cache::{AnalysisCache, AnalysisCacheElement},
     errors::{AnalysisPassError, TransformationPassError},
-    passes::{ifelse::IfElsePass, pipeline::{AbstractPipeline}},
+    passes::{
+        ifelse::IfElsePass, pipeline::AbstractPipeline, special::meta_analysis::MetaAnalysisPass,
+    },
 };
+
+#[cfg(feature = "py")]
+use crate::py_bindings::{AnyPass, IntoAnyPass};
 
 use dyn_clone::DynClone;
 #[cfg(feature = "py")]
@@ -32,13 +37,21 @@ pub enum ActionType {
     DidNothing,
 }
 
-pub trait BasePass: Debug {
+#[cfg(feature = "py")]
+pub trait Placeholder: IntoAnyPass {}
+
+#[cfg(not(feature = "py"))]
+pub trait Placeholder {}
+
+pub trait BasePass: Debug + Placeholder {
     fn name(&self) -> String;
     fn requires(&self) -> Vec<String> {
         Vec::new()
     }
     // TODO fn requires_spec(&self) -> ModelSpecs
 }
+
+impl<T: BasePass> Placeholder for T {}
 
 pub trait AnalysisPass: BasePass + DynClone {
     fn run(&self, model: &Model, cache: &AnalysisCache) -> AnalysisPassResult;
@@ -48,11 +61,13 @@ pub trait AnalysisPass: BasePass + DynClone {
     }
 }
 
-impl Display for dyn AnalysisPass where Self: BasePass + DynClone {
+impl Display for dyn AnalysisPass
+where
+    Self: BasePass + DynClone,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "🔎 {}", self.name())
     }
-
 }
 
 pub struct TransformationOutcome {
@@ -88,11 +103,13 @@ pub trait TransformationPass: BasePass + DynClone {
     // fn clone_box(&self) -> Box<dyn TransformationPass>;
 }
 
-impl Display for dyn TransformationPass where Self: BasePass + DynClone {
+impl Display for dyn TransformationPass
+where
+    Self: BasePass + DynClone,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "⚙️ {}", self.name())
     }
-
 }
 
 dyn_clone::clone_trait_object!(TransformationPass);
@@ -104,24 +121,27 @@ pub enum Pass {
     Analysis(Box<dyn AnalysisPass>),
     IfElse(IfElsePass),
     Pipeline(Box<dyn AbstractPipeline>),
+    MetaAnalysis(Box<dyn MetaAnalysisPass>),
 }
 
 impl Pass {
     pub fn name(&self) -> String {
         match self {
-            Pass::Analysis(x) => x.name(),
-            Pass::Transformation(x) => x.name(),
-            Pass::IfElse(x) => x.name(),
-            Pass::Pipeline(x) => x.name(),
+            Self::Analysis(x) => x.name(),
+            Self::Transformation(x) => x.name(),
+            Self::IfElse(x) => x.name(),
+            Self::Pipeline(x) => x.name(),
+            Self::MetaAnalysis(x) => x.name(),
         }
     }
 
     pub fn requires(&self) -> Vec<String> {
         match self {
-            Pass::Analysis(x) => x.requires(),
-            Pass::Transformation(x) => x.requires(),
-            Pass::IfElse(x) => x.requires(),
-            Pass::Pipeline(x) => x.requires(),
+            Self::Analysis(x) => x.requires(),
+            Self::Transformation(x) => x.requires(),
+            Self::IfElse(x) => x.requires(),
+            Self::Pipeline(x) => x.requires(),
+            Self::MetaAnalysis(x) => x.requires(),
         }
     }
 }
@@ -133,6 +153,7 @@ impl Clone for Pass {
             Self::Pipeline(x) => Self::Pipeline(x.clone()),
             Self::Transformation(x) => Self::Transformation(x.clone()),
             Self::Analysis(x) => Self::Analysis(x.clone()),
+            Self::MetaAnalysis(x) => Self::MetaAnalysis(x.clone()),
         }
     }
 }
@@ -144,6 +165,20 @@ impl Display for Pass {
             Self::Analysis(x) => write!(f, "{}", x),
             Self::IfElse(x) => write!(f, "{}", x),
             Self::Pipeline(x) => write!(f, "{}", x),
+            Self::MetaAnalysis(x) => write!(f, "{}", x),
+        }
+    }
+}
+
+#[cfg(feature = "py")]
+impl IntoAnyPass for Pass {
+    fn as_anypass(&self) -> AnyPass {
+        match self {
+            Self::Transformation(x) => x.as_anypass(),
+            Self::Analysis(x) => x.as_anypass(),
+            Self::IfElse(x) => x.as_anypass(),
+            Self::Pipeline(x) => x.as_anypass(),
+            Self::MetaAnalysis(x) => x.as_anypass(),
         }
     }
 }

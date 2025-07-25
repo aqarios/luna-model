@@ -3,7 +3,7 @@ use aqm_macros::register_pytransformations;
 use super::py_ir::{PyIR, PyLogElement};
 use super::py_pass_manager::PyPassManager;
 use super::py_passes::{
-    PyAnalysisPass, PyIfElsePass, PyPass, PyPipeline, PyTransformationPass,
+    PyAnalysisPass, PyIfElsePass, PyMetaAnalysisPass, PyPass, PyPipeline, PyTransformationPass,
     StructuredPyTransformationOutcome,
 };
 
@@ -15,7 +15,7 @@ use crate::transformations::passes::change_sense::PyChangeSensePass;
 use crate::transformations::passes::max_bias::{MaxBias, PyMaxBiasAnalysis};
 
 register_pytransformations!(
-    specials = {PyAnalysisPass, PyTransformationPass, PyPipeline},
+    specials = {PyAnalysisPass, PyTransformationPass, PyPipeline, PyMetaAnalysisPass},
     extras = {PyAnalysisCache, PyPassManager, ActionType, MaxBias, PyIR, PyLogElement, BinarySpinInfo, StructuredPyTransformationOutcome},
     passes = {
         PyChangeSensePass, PyMaxBiasAnalysis, PyBinarySpinPass, PyIfElsePass
