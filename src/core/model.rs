@@ -15,11 +15,11 @@ use crate::core::solution::OwnedResult;
 use crate::core::writer::ModelWriter;
 use crate::errors::{DifferentEnvsErr, EvaluationErr, VariableCreationErr};
 use crate::types::{Bias, VarIndex};
-#[cfg(feature = "py")]
-use pyo3::prelude::*;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
 use std::rc::Rc;
+#[cfg(feature = "py")]
+use {crate::py_bindings::unwind, pyo3::prelude::*, unwind_macros::unwindable};
 
 /// The default name for a model.
 pub static DEFAULT_MODEL_NAME: &str = "unnamed";
@@ -57,6 +57,23 @@ impl Sense {
 impl Default for Sense {
     fn default() -> Self {
         Self::Min
+    }
+}
+
+#[cfg(feature = "py")]
+#[cfg_attr(feature = "py", pymethods)]
+#[cfg_attr(feature = "py", unwindable)]
+impl Sense {
+    #[getter]
+    fn get_name(&self) -> String {
+        match &self {
+            Self::Min => String::from("Min"),
+            Self::Max => String::from("Max"),
+        }
+    }
+    #[getter]
+    fn get_value(&self) -> String {
+        self.to_string()
     }
 }
 

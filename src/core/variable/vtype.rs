@@ -31,7 +31,7 @@ use strum_macros::{Display, EnumIter};
 #[cfg_attr(
     all(feature = "py", not(feature = "lq")),
     pyclass(eq, eq_int, name = "Vtype", module = "aqmodels._core")
-)] 
+)]
 #[cfg_attr(
     all(feature = "py", feature = "lq"),
     pyclass(eq, eq_int, name = "Vtype", module = "luna_quantum._core")

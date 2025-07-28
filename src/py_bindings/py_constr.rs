@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::Deref, rc::Rc};
+use super::unwind;
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 use crate::{
     core::{
@@ -13,7 +13,7 @@ use derive_more::{Deref, DerefMut};
 use either::Either::{self, Left, Right};
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
-use super::unwind;
+use std::{cell::RefCell, ops::Deref, rc::Rc};
 use unwind_macros::unwindable;
 
 /// A collection of symbolic constraints used to define a model.
@@ -530,5 +530,18 @@ impl Comparator {
 
     fn __repr__(&self) -> String {
         format!("{self:#?}")
+    }
+
+    #[getter]
+    fn get_name(&self) -> String {
+        match &self {
+            Self::Eq => String::from("Eq"),
+            Self::Le => String::from("Le"),
+            Self::Ge => String::from("Ge"),
+        }
+    }
+    #[getter]
+    fn get_value(&self) -> PyResult<String> {
+        self.get_name()
     }
 }

@@ -539,4 +539,21 @@ impl Vtype {
     fn __repr__(&self) -> String {
         format!("{self:#?}")
     }
+
+    #[getter]
+    fn get_name(&self) -> String {
+        match &self {
+            Self::Binary => String::from("Binary"),
+            Self::Spin => String::from("Spin"),
+            Self::Integer => String::from("Integer"),
+            Self::Real => String::from("Real"),
+            Self::__Ghost => {
+                panic!("you should not be able to interact with __Ghost variables in Python.")
+            }
+        }
+    }
+    #[getter]
+    fn get_value(&self) -> PyResult<String> {
+        self.get_name()
+    }
 }
