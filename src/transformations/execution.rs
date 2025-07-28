@@ -104,6 +104,7 @@ pub fn run_passes(
         model,
         cache,
         execution_log,
+        input_model: None
     })
 }
 

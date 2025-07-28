@@ -2,7 +2,6 @@ use crate::core::{Model, Timing};
 use std::slice::Iter;
 
 use super::{analysis_cache::AnalysisCache, base_passes::ActionType};
-
 #[derive(Debug, Clone)]
 pub struct LogElement {
     pub pass: String,
@@ -56,4 +55,5 @@ pub struct IntermediateRepresentation {
     pub model: Model,
     pub cache: AnalysisCache,
     pub execution_log: ExecutionLog,
+    pub input_model: Option<Model>,
 }

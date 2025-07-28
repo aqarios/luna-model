@@ -25,12 +25,21 @@ impl PassManager {
     }
 
     pub fn run(&self, model: Model) -> Result<IntermediateRepresentation, CompilationError> {
+        let input_model = model.deep_clone();
         check_dependencies(&self.passes)?;
-        run_passes(&self.passes, model, AnalysisCache::new(), self)
+        let mut ir = run_passes(&self.passes, model, AnalysisCache::new(), self)?;
+        ir.input_model = Some(input_model);
+        return Ok(ir)
     }
 
     pub fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {
-        backwards(&self.passes, solution, ir)
+        // TODO: needs Backwards Error
+        let sol = backwards(&self.passes, solution, ir);
+        if let Some(input) = &ir.input_model {
+            input.evaluate_solution(sol).unwrap()
+        } else {
+            sol
+        }
     }
 }
 
