@@ -25,10 +25,10 @@ use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
-use unwind_macros::unwindable;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
+use unwind_macros::unwindable;
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(pub VarAssignment);
@@ -539,7 +539,7 @@ impl PySolution {
     /// SampleIncorrectLengthErr
     ///     If a sample has a different number of variables than the environment.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, sense=None, bit_order="RTL".to_owned())
+    #[pyo3(signature=(data, env=None, model=None, timing=None, sense=None, bit_order="RTL".to_owned(), energies=None)
     )]
     fn from_counts(
         data: IndexMap<String, usize>,
@@ -548,6 +548,7 @@ impl PySolution {
         timing: Option<PyTiming>,
         sense: Option<Sense>,
         bit_order: String,
+        energies: Option<Vec<Option<f64>>>,
     ) -> PyResult<PySolution> {
         Self::check_env_or_model(&env, &model)?;
         Self::check_sense_or_model(&sense, &model)?;
@@ -583,7 +584,7 @@ impl PySolution {
 
         let nvars = sol.samples.len();
         sol.n_samples = data.len();
-        sol.raw_energies = vec![None; data.len()];
+        sol.raw_energies = energies.map_or_else(|| vec![None; data.len()], |v| v);
         sol.obj_values = vec![None; data.len()];
         sol.constraints = vec![None; data.len()];
         sol.variable_bounds = vec![None; data.len()];
