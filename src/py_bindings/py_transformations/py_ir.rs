@@ -13,7 +13,6 @@ use crate::{
 #[cfg_attr(
     not(feature = "lq"),
     pyclass(
-        unsendable,
         get_all,
         name = "LogElement",
         module = "aqmodels._core.transformations"
@@ -22,7 +21,6 @@ use crate::{
 #[cfg_attr(
     feature = "lq",
     pyclass(
-        unsendable,
         get_all,
         name = "LogElement",
         module = "luna_quantum._core.transformations"
@@ -47,11 +45,11 @@ impl PyLogElement {
 
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "IR", module = "aqmodels._core.transformations")
+    pyclass(name = "IR", module = "aqmodels._core.transformations")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "IR", module = "luna_quantum._core.transformations")
+    pyclass(name = "IR", module = "luna_quantum._core.transformations")
 )]
 #[derive(Deref, DerefMut)]
 pub struct PyIR(pub IntermediateRepresentation);

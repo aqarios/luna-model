@@ -81,11 +81,11 @@ use std::ops::Deref;
 /// - Use `encode()` and `decode()` to serialize and recover models.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, subclass, name = "Model", module = "aqmodels._core")
+    pyclass(subclass, name = "Model", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, subclass, name = "Model", module = "luna_quantum._core")
+    pyclass(subclass, name = "Model", module = "luna_quantum._core")
 )]
 #[derive(Clone, Deref, DerefMut)]
 pub struct PyModel {

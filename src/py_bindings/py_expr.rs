@@ -118,11 +118,11 @@ use pyo3::{exceptions::PyTypeError, types::PyType};
 /// - Use `==`, `<=`, `>=` with numeric constants to create constraints.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Expression", module = "aqmodels._core")
+    pyclass(name = "Expression", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Expression", module = "luna_quantum._core")
+    pyclass(name = "Expression", module = "luna_quantum._core")
 )]
 #[derive(Clone)]
 pub struct PyExpression(pub Either<Expression, ShareMut<Model>>);
@@ -159,11 +159,11 @@ impl PyExpression {
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "ExpressionIterator", module = "aqmodels._core")
+    pyclass(name = "ExpressionIterator", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "ExpressionIterator", module = "luna_quantum._core")
+    pyclass(name = "ExpressionIterator", module = "luna_quantum._core")
 )]
 pub struct PyExpressionIterator {
     items: Vec<(Vec<VarIndex>, Bias)>,
@@ -190,11 +190,11 @@ pub struct PyExpressionIterator {
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Constant", module = "aqmodels._core")
+    pyclass(name = "Constant", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Constant", module = "luna_quantum._core")
+    pyclass(name = "Constant", module = "luna_quantum._core")
 )]
 pub struct PyConstant();
 
@@ -217,11 +217,11 @@ pub struct PyConstant();
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Linear", module = "aqmodels._core")
+    pyclass(name = "Linear", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Linear", module = "luna_quantum._core")
+    pyclass(name = "Linear", module = "luna_quantum._core")
 )]
 pub struct PyLinear(pub PyVariable);
 
@@ -244,11 +244,11 @@ pub struct PyLinear(pub PyVariable);
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Quadratic", module = "aqmodels._core")
+    pyclass(name = "Quadratic", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Quadratic", module = "luna_quantum._core")
+    pyclass(name = "Quadratic", module = "luna_quantum._core")
 )]
 pub struct PyQuadratic(pub (PyVariable, PyVariable));
 
@@ -271,11 +271,11 @@ pub struct PyQuadratic(pub (PyVariable, PyVariable));
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "HigherOrder", module = "aqmodels._core")
+    pyclass(name = "HigherOrder", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "HigherOrder", module = "luna_quantum._core")
+    pyclass(name = "HigherOrder", module = "luna_quantum._core")
 )]
 pub struct PyHigherOrder(pub Vec<PyVariable>);
 

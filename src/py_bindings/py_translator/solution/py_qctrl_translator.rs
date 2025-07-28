@@ -61,8 +61,8 @@ def extract(result, timing, env):
 /// >>> ...
 /// >>> qctrl_result = ...
 /// >>> aqs = lq.translator.QctrlTranslator.to_aq(qctrl_result)
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "QctrlTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "QctrlTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(name = "QctrlTranslator", module = "aqmodels._core.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(name = "QctrlTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyQctrlTranslator(pub QctrlTranslator);
 
 #[pymethods]
