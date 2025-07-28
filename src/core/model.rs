@@ -263,6 +263,21 @@ impl Model {
         obj_vtypes.append(&mut constr_vtypes);
         obj_vtypes.into_iter().unique().collect_vec()
     }
+
+    pub fn num_variables(&self) -> usize {
+        let mut vars = self.objective.variables();
+        let mut constraint_vars = self
+            .constraints
+            .iter()
+            .map(|(_, c)| c.lhs.variables())
+            .flatten()
+            .unique()
+            .collect_vec();
+        // move values in vars
+        vars.append(&mut constraint_vars);
+        // Get len of all unique vars.
+        vars.iter().unique().collect_vec().len()
+    }
 }
 
 impl PartialEq for Model {

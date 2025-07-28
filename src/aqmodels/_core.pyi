@@ -2191,6 +2191,18 @@ class Model:
         ...
 
     @property
+    def num_variables(self, /) -> int:
+        """
+        Return the number of variables defined in the model.
+
+        Returns
+        -------
+        int
+            Total number of variables.
+        """
+        ...
+
+    @property
     def num_constraints(self, /) -> int:
         """
         Return the number of constraints defined in the model.
