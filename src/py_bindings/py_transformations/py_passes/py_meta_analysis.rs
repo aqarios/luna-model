@@ -9,7 +9,7 @@ use crate::{
 
 use super::{py_meta_analysis_adapter::PyMetaAnalysisPassAdapter, py_pass_base::PyPass};
 
-#[pyclass(unsendable, subclass, name = "MetaAnalysisPass")]
+#[pyclass(subclass, name = "MetaAnalysisPass")]
 #[derive(Debug)]
 pub struct PyMetaAnalysisPass {}
 

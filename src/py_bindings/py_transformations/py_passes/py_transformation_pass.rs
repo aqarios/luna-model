@@ -9,7 +9,7 @@ use crate::{
 use pyo3::{prelude::*, types::PyNone};
 use std::fmt::Debug;
 
-#[pyclass(unsendable, name = "TransformationOutcome", get_all, set_all)]
+#[pyclass(name = "TransformationOutcome", get_all, set_all)]
 #[derive(FromPyObject)]
 pub struct StructuredPyTransformationOutcome {
     pub model: PyModel,
@@ -65,7 +65,7 @@ impl TryInto<TransformationOutcome> for PyTransformationOutcome {
     }
 }
 
-#[pyclass(unsendable, subclass, name = "TransformationPass")]
+#[pyclass(subclass, name = "TransformationPass")]
 #[derive(Clone, Debug)]
 pub struct PyTransformationPass {}
 

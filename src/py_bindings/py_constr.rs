@@ -44,11 +44,11 @@ use std::ops::Deref;
 /// - Use `encode()`/`decode()` to serialize constraints alongside expressions.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Constraints", module = "aqmodels._core")
+    pyclass(name = "Constraints", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Constraints", module = "luna_quantum._core")
+    pyclass(name = "Constraints", module = "luna_quantum._core")
 )]
 #[derive(Debug, Clone)]
 pub struct PyConstraints {
@@ -108,11 +108,11 @@ impl PyConstraints {
 /// >>> c2 = expr <= 10.0
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Constraint", module = "aqmodels._core")
+    pyclass(name = "Constraint", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Constraint", module = "luna_quantum._core")
+    pyclass(name = "Constraint", module = "luna_quantum._core")
 )]
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyConstraint(pub ShareMut<Constraint>);

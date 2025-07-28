@@ -1,25 +1,15 @@
-use std::fmt::Display;
+use crate::utils::ShareMut;
 use hashbrown::HashMap;
 use pyo3::{prelude::*, types::PyDict};
-use crate::utils::ShareMut;
+use std::fmt::Display;
 
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(
-        unsendable,
-        subclass,
-        name = "ModelMetadata",
-        module = "aqmodels._core"
-    )
+    pyclass(subclass, name = "ModelMetadata", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(
-        unsendable,
-        subclass,
-        name = "ModelMetadata",
-        module = "luna_quantum._core"
-    )
+    pyclass(subclass, name = "ModelMetadata", module = "luna_quantum._core")
 )]
 #[derive(Clone, Debug)]
 pub struct PyModelMetadata {

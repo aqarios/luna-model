@@ -63,11 +63,11 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 /// - Variables carry their environment, but the environment does not own the variable.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, subclass, name = "Variable", module = "aqmodels._core")
+    pyclass(subclass, name = "Variable", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, subclass, name = "Variable", module = "luna_quantum._core")
+    pyclass(subclass, name = "Variable", module = "luna_quantum._core")
 )]
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyVariable(pub Share<VarRef>);

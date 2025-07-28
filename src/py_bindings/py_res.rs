@@ -31,11 +31,11 @@ use super::py_sol::PySolution;
 /// False
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "ResultView", module = "aqmodels._core")
+    pyclass(name = "ResultView", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "ResultView", module = "luna_quantum._core")
+    pyclass(name = "ResultView", module = "luna_quantum._core")
 )]
 pub struct PyResultView {
     sol: PySolution,
@@ -73,11 +73,11 @@ impl PyResultView {
 /// False
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Result", module = "aqmodels._core")
+    pyclass(name = "Result", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Result", module = "luna_quantum._core")
+    pyclass(name = "Result", module = "luna_quantum._core")
 )]
 #[derive(DerefMut, Deref)]
 pub struct PyOwnedResult(pub OwnedResult);
@@ -101,11 +101,11 @@ impl PyOwnedResult {
 /// [1, -4, -0.42]
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "ResultIterator", module = "aqmodels._core")
+    pyclass(name = "ResultIterator", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "ResultIterator", module = "luna_quantum._core")
+    pyclass(name = "ResultIterator", module = "luna_quantum._core")
 )]
 pub struct PyResultIterator {
     sol: PySolution,

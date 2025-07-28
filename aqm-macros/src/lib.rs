@@ -640,7 +640,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             use pyo3::IntoPyObjectExt;
             use super::*;
 
-            #[pyo3::pyclass(unsendable, name = "AnalysisCache")]
+            #[pyo3::pyclass(name = "AnalysisCache")]
             #[derive(derive_more::Deref, derive_more::DerefMut)]
             pub struct PyAnalysisCache(pub AnalysisCache);
 
