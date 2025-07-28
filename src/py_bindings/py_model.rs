@@ -3,6 +3,7 @@ use super::py_constr::PyConstraint;
 use super::py_model_metadata::PyModelMetadata;
 use super::py_sample::PySampleInner;
 use super::py_utilities::{repr_model, Replacement};
+use super::unwind;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
@@ -24,6 +25,7 @@ use either::Either::{Left, Right};
 use pyo3::types::PyType;
 use pyo3::{prelude::*, types::PyBytes};
 use std::ops::Deref;
+use unwind_macros::unwindable;
 
 /// A symbolic optimization model consisting of an objective and constraints.
 ///
@@ -105,6 +107,13 @@ impl PyModel {
     }
 }
 
+// impl Into<Rc<RefCell<Model>>> for PyModel {
+//     fn into(self) -> Rc<RefCell<Model>> {
+//         self.concrete_model
+//     }
+// }
+
+#[unwindable]
 #[pymethods]
 impl PyModel {
     /// Initialize a new symbolic model.
@@ -369,6 +378,12 @@ impl PyModel {
             })
             .map(|(_, vref)| PyVariable::new(vref))
             .collect()
+    }
+
+    /// Get a list of all unique variable types of all variables in this model.
+    #[pyo3(name = "vtypes")]
+    fn get_vtypes(&self) -> Vec<Vtype> {
+        self.access().vtypes()
     }
 
     /// Get all model constraints that are violated by the given sample.

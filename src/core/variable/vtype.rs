@@ -36,7 +36,7 @@ use strum_macros::{Display, EnumIter};
     all(feature = "py", feature = "lq"),
     pyclass(eq, eq_int, name = "Vtype", module = "luna_quantum._core")
 )]
-#[derive(Debug, Copy, Clone, PartialEq, EnumIter, Display)]
+#[derive(Debug, Copy, Clone, PartialEq, EnumIter, Display, Hash, Eq)]
 pub enum Vtype {
     /// Binary variable. Can only take values 0 or 1.
     Binary,

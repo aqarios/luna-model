@@ -1,3 +1,5 @@
+use unwind_macros::unwindable;
+use crate::py_bindings::unwind;
 use crate::py_bindings::py_usize::PyUsize;
 use crate::{
     py_bindings::{
@@ -110,6 +112,7 @@ def extract(result, qp, timing, env):
 #[cfg_attr(feature = "lq",      pyclass(name = "IbmTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyIbmTranslator {}
 
+#[unwindable]
 #[pymethods]
 impl PyIbmTranslator {
     #[staticmethod]

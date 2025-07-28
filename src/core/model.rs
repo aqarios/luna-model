@@ -7,13 +7,14 @@ use super::solution::sol::Solution;
 use super::solution::Sample;
 use super::traits::ContentEquality;
 use super::utils::{check_variables_sample, check_variables_sol};
-use super::{Expression, Substitution, VarRef, Vtype};
+use super::{Expression, ExpressionBase, Substitution, VarRef, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::utils::make_index_map;
 use crate::core::writer::ModelWriter;
 use crate::errors::{DifferentEnvsErr, EvaluationErr, VariableCreationErr};
 use crate::types::{Bias, VarIndex};
 use indexmap::IndexMap;
+use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter};
 use strum_macros::{Display, EnumString};
 
@@ -280,6 +281,13 @@ impl Model {
             self.environment.remove(target);
         }
         Ok(())
+    }
+
+    pub fn vtypes(&self) -> Vec<Vtype> {
+        let mut obj_vtypes = self.objective.vtypes();
+        let mut constr_vtypes = self.constraints.vtypes();
+        obj_vtypes.append(&mut constr_vtypes);
+        obj_vtypes.into_iter().unique().collect_vec()
     }
 }
 

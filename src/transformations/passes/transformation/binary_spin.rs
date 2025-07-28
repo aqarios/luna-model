@@ -13,13 +13,17 @@ use crate::{
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement},
         base_passes::{
-            ActionType, BasePass, TransformationOutcome, TransformationPass, TransformationPassResult
+            ActionType, BasePass, TransformationOutcome, TransformationPass,
+            TransformationPassResult,
         },
     },
 };
 
 #[cfg(feature = "py")]
-use {crate::transformations::base_passes::Pass, aqm_macros::py_pass};
+use {
+    crate::py_bindings::unwind, crate::transformations::base_passes::Pass, aqm_macros::py_pass,
+    unwind_macros::unwindable,
+};
 
 #[derive(Debug, Clone)]
 #[analysis_cache]

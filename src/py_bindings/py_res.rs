@@ -3,6 +3,8 @@ use crate::types::Bias;
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::{pyclass, pymethods, Bound, PyRef, PyRefMut, Python};
+use super::unwind;
+use unwind_macros::unwindable;
 
 use super::py_sample::PySample;
 use super::py_sol::PySolution;
@@ -136,6 +138,7 @@ impl PyResultIterator {
 //     }
 // }
 
+#[unwindable]
 #[pymethods]
 impl PyResultView {
     fn __str__(&self) -> String {
@@ -214,6 +217,7 @@ impl PyResultView {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyOwnedResult {
     /// Get the sample of the result.
@@ -261,6 +265,7 @@ impl PyOwnedResult {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyResultIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {

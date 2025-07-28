@@ -1,6 +1,7 @@
-use std::fmt::Debug;
-
+use crate::py_bindings::unwind;
 use pyo3::prelude::*;
+use std::fmt::Debug;
+use unwind_macros::unwindable;
 
 use crate::{
     py_bindings::py_model::PyModel, transformations::analysis_cache::PyAnalysisCache,
@@ -13,6 +14,7 @@ use super::{py_analysis_pass_adapter::PyAnalysisPassAdapter, py_pass_base::PyPas
 #[derive(Debug)]
 pub struct PyAnalysisPass {}
 
+#[unwindable]
 #[pymethods]
 impl PyAnalysisPass {
     #[new]

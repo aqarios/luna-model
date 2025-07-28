@@ -6,6 +6,8 @@ use crate::translator::solution::DwaveTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{ffi::c_str, prelude::*};
 use std::ffi::CStr;
+use unwind_macros::unwindable;
+use crate::py_bindings::unwind;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
@@ -60,6 +62,7 @@ def extract(sampleset, timing, env):
 #[cfg_attr(feature = "lq",      pyclass(name = "DwaveTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyDwaveTranslator(pub DwaveTranslator);
 
+#[unwindable]
 #[pymethods]
 impl PyDwaveTranslator {
     #[staticmethod]

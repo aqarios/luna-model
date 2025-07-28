@@ -172,7 +172,10 @@ pub trait ExpressionBase<Index, Bias> {
     fn variables(&self) -> Vec<Index>;
     /// Return the variable type of variable `v`.
     fn vartype(&self, _v: Index) -> Vtype;
-    
+    /// Return the the variables types in the expression.
+    fn vtypes(&self) -> Vec<Vtype>;
+    /// Return the the degree of the expression.
+    fn degree(&self) -> usize;
 }
 
 /// Implements addition of variables, biases (scalars) and terms to `self`.

@@ -2530,6 +2530,13 @@ class Model:
         """
         ...
 
+<<<<<<< HEAD
+=======
+    def vtypes(self, /) -> list[Vtype]:
+        """Get a list of all unique variable types of all variables in this model."""
+        ...
+
+>>>>>>> origin/main
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
     def __hash__(self, /) -> int: ...
@@ -2762,6 +2769,7 @@ class Expression:
         """
         ...
 
+<<<<<<< HEAD
     def linear_items(self, /) -> list[tuple[Variable, float]]:
         """
         Get all linear components.
@@ -2794,6 +2802,8 @@ class Expression:
         """
         ...
 
+=======
+>>>>>>> origin/main
     def is_equal(self, /, other: Expression) -> bool:
         """
         Compare two expressions for equality.
@@ -3267,6 +3277,10 @@ class Expression:
         -------
         Expression
         """
+        ...
+
+    def degree(self, /) -> int:
+        """Get the degree of this expression."""
         ...
 
     @property
@@ -3871,11 +3885,14 @@ class Constraints:
     @overload
     def __getitem__(self, item: int, /) -> Constraint: ...
     def __getitem__(self, item: int | str, /) -> Constraint: ...
+<<<<<<< HEAD
     @overload
     def __setitem__(self, item: str, content: Constraint, /) -> None: ...
     @overload
     def __setitem__(self, item: int, content: Constraint, /) -> None: ...
     def __setitem__(self, item: int | str, content: Constraint, /) -> None: ...
+=======
+>>>>>>> origin/main
     def __len__(self, /) -> int:
         """
         Get the number of constraints.
@@ -3899,6 +3916,10 @@ class Constraints:
         -------
         bool
         """
+        ...
+
+    def ctypes(self, /) -> list[Comparator]:
+        """Get all unique constraint types identified using their comparator."""
         ...
 
 __all__ = [

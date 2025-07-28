@@ -241,8 +241,13 @@ class NoConstraintForKeyError(IndexError):
 
     def __str__(self, /) -> str: ...
 
+<<<<<<< HEAD
 class SampleColCreationError(IndexError):
     """Raised when an error occured during creation of a sample column."""
+=======
+class InternalPanicError(RuntimeError):
+    """Raised when an internal and unrecoverable error occurred."""
+>>>>>>> origin/main
 
     def __str__(self, /) -> str: ...
 
@@ -254,6 +259,7 @@ __all__ = [
     "DuplicateConstraintNameError",
     "EvaluationError",
     "IllegalConstraintNameError",
+    "InternalPanicError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
     "ModelSenseNotMinimizeError",

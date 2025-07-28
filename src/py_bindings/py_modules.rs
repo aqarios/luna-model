@@ -197,6 +197,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::SampleColCreationError::NAME,
         m.py().get_type::<pyexc::SampleColCreationError>(),
     )?;
+    m.add(
+        pyexc::InternalPanicError::NAME,
+        m.py().get_type::<pyexc::InternalPanicError>(),
+    )?;
     pm.add_submodule(&m)?;
     #[cfg(not(feature = "lq"))]
     pm.py()

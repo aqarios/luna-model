@@ -10,7 +10,10 @@ use crate::{
 };
 
 #[cfg(feature = "py")]
-use {crate::transformations::base_passes::Pass, aqm_macros::py_pass};
+use {
+    crate::py_bindings::unwind, crate::transformations::base_passes::Pass, aqm_macros::py_pass,
+    unwind_macros::unwindable,
+};
 
 #[cfg_attr(feature = "py", py_pass(pass_variant = "Analysis"))]
 #[derive(Debug, Clone)]

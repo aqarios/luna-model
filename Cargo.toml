@@ -54,8 +54,12 @@ path = "aqm-macros"
 default-features = false
 optional = true
 
+[dependencies.unwind-macros]
+path = "unwind-macros"
+optional = true
+
 [features]
-py = ["pyo3", "numpy"]
+py = ["pyo3", "numpy", "unwind-macros"]
 transformations = ["aqm-macros"]
 pyt = ["py", "aqm-macros/py", "transformations"]
 lq = ["py", "pyt"]

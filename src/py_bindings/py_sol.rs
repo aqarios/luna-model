@@ -1,3 +1,4 @@
+use super::py_unwind::unwind;
 use super::py_utilities::repr_solution;
 use crate::core::solution::{ColElement, Column, PrintLayout, ShowMetadata, VarKey};
 use crate::core::{make_index_map, Sense, SharedEnvironment, Solution, VarAssignment, Vtype};
@@ -16,7 +17,6 @@ use crate::serialization::{Decodable, Decompressable, Encodable, Unversionizable
 use crate::types::VarIndex;
 use crate::utils::ShareMut;
 use derive_more::{Deref, DerefMut};
-use hashbrown::HashMap;
 use indexmap::IndexMap;
 use itertools::Itertools;
 use numpy::{PyArray1, ToPyArray};
@@ -24,8 +24,10 @@ use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
+use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
+use unwind_macros::unwindable;
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(pub VarAssignment);
@@ -109,12 +111,7 @@ impl PySolution {
     }
 }
 
-// impl Into<SharedSolution> for PySolution {
-//     fn into(self) -> SharedSolution {
-//         self.0
-//     }
-// }
-
+#[unwindable]
 #[pymethods]
 impl PySolution {
     /// Build a `Solution` based on the provided input data. The solution is constructed

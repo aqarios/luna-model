@@ -1,9 +1,11 @@
+use crate::py_bindings::unwind;
 use crate::core::Qubo;
 use crate::py_bindings::py_model::PyModel;
 use crate::{core::Vtype, translator::MatrixTranslator};
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::prelude::*;
+use unwind_macros::unwindable;
 
 /// A wrapper around qubo matrices that holds all relevant metadata, e.g., the model offset.
 #[cfg_attr(not(feature = "lq"), pyclass(name = "Qubo", module = "aqmodels._core.translator"))]
@@ -17,6 +19,7 @@ impl Into<Qubo> for PyQubo {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyQubo {
     /// The actual QUBO matrix.
@@ -112,6 +115,7 @@ enum QuboType<'py> {
     I64(PyReadonlyArray2<'py, i64>),
 }
 
+#[unwindable]
 #[pymethods]
 impl PyQuboTranslator {
     /// Convert a dense QUBO matrix into a symbolic `Model`.

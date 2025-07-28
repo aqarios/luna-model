@@ -5,7 +5,9 @@ use numpy::{PyReadonlyArray1, ToPyArray};
 use pyo3::exceptions::PyTypeError;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
+use unwind_macros::unwindable;
 use std::ffi::CStr;
+use crate::py_bindings::unwind;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
@@ -126,6 +128,7 @@ def extract(bqm, name):
 #[cfg_attr(feature = "lq",      pyclass(name = "BqmTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyBqmTranslator {}
 
+#[unwindable]
 #[pymethods]
 impl PyBqmTranslator {
     #[staticmethod]

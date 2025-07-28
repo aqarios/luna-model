@@ -1,13 +1,16 @@
 use super::{py_pass_base::PyPass, py_transformation_pass_adapter::PyTransformationPassAdapter};
 use crate::{
-    py_bindings::{py_model::PyModel, py_sol::PySolution},
+    py_bindings::{py_model::PyModel, py_sol::PySolution, unwind},
     transformations::{
         analysis_cache::{AnalysisCacheElement, PyAnalysisCache},
         base_passes::{ActionType, Pass, TransformationOutcome},
-    }, utils::ShareMut,
+    },
+    utils::ShareMut,
 };
-use pyo3::{prelude::*, types::PyNone};
+use pyo3::prelude::*;
+use pyo3::types::PyNone;
 use std::fmt::Debug;
+use unwind_macros::unwindable;
 
 #[pyclass(name = "TransformationOutcome", get_all, set_all)]
 #[derive(FromPyObject)]
@@ -69,6 +72,7 @@ impl TryInto<TransformationOutcome> for PyTransformationOutcome {
 #[derive(Clone, Debug)]
 pub struct PyTransformationPass {}
 
+#[unwindable]
 #[pymethods]
 impl PyTransformationPass {
     #[new]

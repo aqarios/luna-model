@@ -1,7 +1,4 @@
-use std::fmt::Debug;
-
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
-
+use super::py_transformation_pass::{PyTransformationOutcome, PyTransformationPass};
 use crate::{
     core::{Model, Solution},
     py_bindings::{py_model::PyModel, py_sol::PySolution, AnyPass, IntoAnyPass},
@@ -12,8 +9,8 @@ use crate::{
     },
     utils::ShareMut,
 };
-
-use super::py_transformation_pass::{PyTransformationOutcome, PyTransformationPass};
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
+use std::fmt::Debug;
 
 pub struct PyTransformationPassAdapter {
     inner: Py<PyTransformationPass>,

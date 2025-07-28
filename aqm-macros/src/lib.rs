@@ -111,6 +111,7 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[derive(::derive_more::Deref, ::derive_more::DerefMut, Clone, Debug)]
         pub struct #wrapper_name(pub #struct_name);
 
+        #[unwindable]
         #[pymethods]
         impl #wrapper_name {
             #[new]
@@ -652,6 +653,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             }
 
             #[cfg(feature = "py")]
+            #[unwindable]
             #[pyo3::pymethods]
             impl PyAnalysisCache {
                 fn __getitem__(&self, py: pyo3::Python, key: String) -> pyo3::PyResult<Option<pyo3::PyObject>> {

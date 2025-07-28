@@ -7,7 +7,11 @@ use indexmap::{
 use std::fmt::Debug;
 
 #[cfg(feature = "py")]
-use pyo3::{Bound, Python};
+use {
+    crate::py_bindings::unwind,
+    pyo3::{Bound, Python},
+    unwind_macros::unwindable,
+};
 
 register_caches!(MaxBias, BinarySpinInfo, IfElseInfo);
 

@@ -8,12 +8,16 @@ use crate::errors::{
     VariableNotExistingErr, VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
-use pyo3::exceptions::{PyException, PyIndexError, PyTypeError};
-use pyo3::{create_exception, exceptions::PyRuntimeError, PyErr};
 use std::convert::From;
 
 #[cfg(feature = "pyt")]
 use crate::transformations::errors::CompilationError as CompilationErr;
+#[cfg(feature = "py")]
+use {
+    pyo3::exceptions::PyRuntimeError,
+    pyo3::exceptions::{PyException, PyIndexError, PyTypeError},
+    pyo3::{create_exception, PyErr},
+};
 
 #[cfg(not(feature = "lq"))]
 create_exception!(
@@ -28,6 +32,20 @@ create_exception!(
     CompressionError,
     PyException,
     "Raised when an error occurred during the compression step of encoding."
+);
+#[cfg(not(feature = "lq"))]
+create_exception!(
+    aqmodels._core.errors,
+    InternalPanicError,
+    PyRuntimeError,
+    "Raised when an internal and unrecoverable error occurred."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
+    InternalPanicError,
+    PyRuntimeError,
+    "Raised when an internal and unrecoverable error occurred."
 );
 
 #[cfg(not(feature = "lq"))]
@@ -705,6 +723,7 @@ impl From<ColumnCreationErr> for PyErr {
 }
 
 #[cfg(feature = "transformations")]
+#[cfg(feature = "pyt")]
 impl From<CompilationErr> for PyErr {
     fn from(value: CompilationErr) -> Self {
         CompilationError::new_err(value.to_string())

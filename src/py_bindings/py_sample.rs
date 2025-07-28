@@ -7,8 +7,9 @@ use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
-
 use super::py_sol::PySolution;
+use unwind_macros::unwindable;
+use super::unwind;
 use super::py_var::PyVariable;
 
 /// An iterator over a solution's samples.
@@ -205,6 +206,7 @@ impl PySample {
 //     }
 // }
 
+#[unwindable]
 #[pymethods]
 impl PySamples {
     /// Convert the sample into a 2-dimensional list where a row constitutes a single
@@ -307,6 +309,7 @@ impl PySamples {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PySample {
     fn __str__(&self) -> String {
@@ -428,6 +431,7 @@ impl PySample {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PySampleIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
@@ -451,6 +455,7 @@ impl PySampleIterator {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PySamplesIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {

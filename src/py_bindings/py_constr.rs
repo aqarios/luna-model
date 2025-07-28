@@ -1,3 +1,4 @@
+use super::unwind;
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
 use crate::utils::ShareMut;
 use crate::{
@@ -11,7 +12,7 @@ use derive_more::{Deref, DerefMut};
 use either::Either::{self, Left, Right};
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
-use std::ops::Deref;
+use unwind_macros::unwindable;
 
 /// A collection of symbolic constraints used to define a model.
 ///
@@ -162,6 +163,7 @@ impl PyConstraint {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyConstraint {
     /// Construct a new symbolic constraint.
@@ -288,6 +290,7 @@ impl PyConstraint {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyConstraints {
     #[new]
@@ -333,12 +336,12 @@ impl PyConstraints {
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
         constraint.access_mut().set_name(name)?;
         match &mut self.data {
-            Left(constrs) => constrs.add_assign(constraint.access().deref())?,
+            Left(constrs) => constrs.add_assign(&constraint.access())?,
             Right(parent) => {
                 parent
                     .access_mut()
                     .constraints
-                    .add_assign(constraint.access().deref())?;
+                    .add_assign(&constraint.access())?;
             }
         }
         Ok(())
@@ -512,8 +515,18 @@ impl PyConstraints {
             Right(d) => d.access_mut().constraints.remove_constraint(item),
         }
     }
+
+    /// Get all unique constraint types identified using their comparator.
+    #[pyo3(name = "ctypes")]
+    fn get_ctypes(&self) -> Vec<Comparator> {
+        match &self.data {
+            Left(d) => d.ctypes(),
+            Right(d) => d.access().constraints.ctypes(),
+        }
+    }
 }
 
+#[unwindable]
 #[pymethods]
 impl Comparator {
     fn __str__(&self) -> String {

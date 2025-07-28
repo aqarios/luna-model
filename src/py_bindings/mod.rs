@@ -15,6 +15,9 @@ mod py_usize;
 mod py_utilities;
 mod py_utils;
 mod py_var;
+pub mod py_unwind;
+
+pub use py_unwind::unwind;
 
 #[cfg(feature = "transformations")]
 mod py_transformations;

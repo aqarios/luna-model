@@ -44,11 +44,11 @@ impl PyModelMetadata {
     }
 
     fn __setitem__(&mut self, key: String, value: PyObject) {
-        self.set_item(key, value);
+        self.set_item(key, value)
     }
 
     fn __delitem__(&mut self, key: String) {
-        self.del_item(key);
+        self.del_item(key)
     }
 
     fn __str__(&self) -> String {
