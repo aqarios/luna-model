@@ -221,7 +221,7 @@ impl PySolution {
         spin_cols: Option<Vec<Vec<i8>>>,
         int_cols: Option<Vec<Vec<i64>>>,
         real_cols: Option<Vec<Vec<f64>>>,
-        raw_energies: Option<Vec<Option<f64>>>,
+        raw_energies: Option<Vec<f64>>,
         timing: Option<PyTiming>,
         counts: Option<Vec<PyUsize>>,
         sense: Option<Sense>,
@@ -300,11 +300,7 @@ impl PySolution {
             }
         }
         sol.n_samples = num_samples.unwrap_or(0);
-        if let Some(re) = raw_energies {
-            sol.raw_energies = re;
-        } else {
-            sol.raw_energies = vec![None; sol.n_samples];
-        }
+        sol.raw_energies = raw_energies;
         if let Some(no) = counts {
             if no.len() != sol.n_samples {
                 return Err(PyRuntimeError::new_err(
@@ -365,7 +361,7 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None))]
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None, energy=None))]
     pub fn from_dict(
         data: IndexMap<VariableKey, f64>,
         env: Option<PyEnvironment>,
@@ -373,6 +369,7 @@ impl PySolution {
         timing: Option<PyTiming>,
         counts: Option<usize>,
         sense: Option<Sense>,
+        energy: Option<f64>,
     ) -> PyResult<PySolution> {
         Self::check_env_or_model(&env, &model)?;
         Self::check_sense_or_model(&sense, &model)?;
@@ -389,8 +386,11 @@ impl PySolution {
         let sample = Self::build_sample(&data, n_vars, &environment, |idx| index_map[&idx])?;
         sol.timing = timing.map(|t| t.0);
 
-        let energy: Option<f64> = None;
-        let _ = sol.extend(&sample, counts.unwrap_or(1), energy)?;
+        if let Some(energy) = energy {
+            sol.extend(&sample, counts.unwrap_or(1), energy)?;
+        } else {
+            sol.extend_no_energy(&sample, counts.unwrap_or(1))?;
+        }
         if let Some(m) = model {
             sol = m.access().evaluate_solution(sol)?;
         }
@@ -445,7 +445,7 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None)
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None, energies=None)
     )]
     fn from_dicts(
         data: Vec<IndexMap<VariableKey, f64>>,
@@ -454,6 +454,7 @@ impl PySolution {
         timing: Option<PyTiming>,
         counts: Option<Vec<usize>>,
         sense: Option<Sense>,
+        energies: Option<Vec<f64>>,
     ) -> PyResult<PySolution> {
         Self::check_env_or_model(&env, &model)?;
         Self::check_sense_or_model(&sense, &model)?;
@@ -475,8 +476,6 @@ impl PySolution {
 
         for (i, d) in data.iter().enumerate() {
             let sample = Self::build_sample(d, n_vars, &environment, |idx| index_map[&idx])?;
-            let energy: Option<f64> = None;
-
             let sc = counts
                 .as_ref()
                 .and_then(|c| Some(c[i]))
@@ -485,7 +484,13 @@ impl PySolution {
             if let Some(pos) = samples.iter().position(|s| s == &sample) {
                 sol.counts[pos] += sc;
             } else {
-                let _ = sol.extend(&sample, sc, energy)?;
+                // this is safe. The input energies are either all set or all none, when entire vec
+                // is none.
+                if let Some(e) = energies.as_ref().map(|es| es[i]) {
+                    sol.extend(&sample, sc, e)?;
+                } else {
+                    sol.extend_no_energy(&sample, sc)?;
+                }
                 samples.push(sample);
             }
         }
@@ -542,7 +547,7 @@ impl PySolution {
     /// SampleIncorrectLengthErr
     ///     If a sample has a different number of variables than the environment.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, sense=None, bit_order="RTL".to_owned())
+    #[pyo3(signature=(data, env=None, model=None, timing=None, sense=None, bit_order="RTL".to_owned(), energies=None)
     )]
     fn from_counts(
         data: IndexMap<String, usize>,
@@ -551,6 +556,7 @@ impl PySolution {
         timing: Option<PyTiming>,
         sense: Option<Sense>,
         bit_order: String,
+        energies: Option<Vec<f64>>,
     ) -> PyResult<PySolution> {
         Self::check_env_or_model(&env, &model)?;
         Self::check_sense_or_model(&sense, &model)?;
@@ -586,7 +592,7 @@ impl PySolution {
 
         let nvars = sol.samples.len();
         sol.n_samples = data.len();
-        sol.raw_energies = vec![None; data.len()];
+        sol.raw_energies = energies;
         sol.obj_values = None;
         sol.constraints = None;
         sol.variable_bounds = None;
@@ -749,13 +755,13 @@ impl PySolution {
     /// Get the raw energy values of the single samples as returned by the solver /
     /// algorithm. Will be None if the solver / algorithm did not provide a value.
     #[getter]
-    fn get_raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
-        self.access()
-            .raw_energies
-            .iter()
-            .map(|x| x.into_py_any(py).unwrap())
-            .collect::<Vec<_>>()
-            .to_pyarray(py)
+    fn get_raw_energies<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<PyObject>>> {
+        self.access().raw_energies.as_ref().map(|e| {
+            e.iter()
+                .map(|x| x.into_py_any(py).unwrap())
+                .collect::<Vec<_>>()
+                .to_pyarray(py)
+        })
     }
 
     /// Return how often each sample occurred in the solution.

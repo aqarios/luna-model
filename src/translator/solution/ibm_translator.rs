@@ -38,7 +38,7 @@ impl IbmTranslator {
             for (&idx, val) in index_list.iter().zip(sample) {
                 s[idx] = *val;
             }
-            sol.extend(&s, occ, Some(<Bias as NumCast>::from(*energy).unwrap()))?;
+            sol.extend(&s, occ, <Bias as NumCast>::from(*energy).unwrap())?;
         }
         Ok(sol)
     }

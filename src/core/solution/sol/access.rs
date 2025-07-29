@@ -51,21 +51,6 @@ impl Solution {
 }
 
 impl Solution {
-    // pub fn varidx_to_pos(&self) -> HashMap<VarIndex, VarIndex> {
-    //     let mut map = HashMap::with_capacity(self.samples.len());
-    //     for (i, col) in self.samples.iter().enumerate() {
-    //         map.insert(col.var_index(), i.into());
-    //     }
-    //     map
-    // }
-
-    // pub fn pos_to_varidx(&self) -> HashMap<VarIndex, VarIndex> {
-    //     let mut map = HashMap::with_capacity(self.samples.len());
-    //     for (i, col) in self.samples.iter().enumerate() {
-    //         map.insert(i.into(), col.var_index());
-    //     }
-    //     map
-    // }
     pub fn varname_to_pos(&self) -> HashMap<String, VarIndex> {
         let mut map = HashMap::with_capacity(self.variable_names.len());
         for (i, vname) in self.variable_names.iter().enumerate() {

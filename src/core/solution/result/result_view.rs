@@ -47,7 +47,7 @@ impl<'a> ResultView<'a> {
     }
 
     pub fn raw_energy(&self) -> Option<Bias> {
-        self.sol.raw_energies[self.idx]
+        self.sol.raw_energies.as_ref().map(|e| e[self.idx])
     }
 
     pub fn constraint_satisfaction(&self) -> Option<Vec<bool>> {

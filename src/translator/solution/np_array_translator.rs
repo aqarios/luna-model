@@ -31,7 +31,7 @@ impl NpArrayTranslator {
             sol.extend(
                 &sample,
                 <usize as NumCast>::from(counts[i]).unwrap(),
-                Some(<Bias as NumCast>::from(energies[indices[i]]).unwrap()),
+                <Bias as NumCast>::from(energies[indices[i]]).unwrap(),
             )?;
         }
         Ok(sol)

@@ -1,6 +1,6 @@
 use super::{column::Column, Solution, VarKey};
 use crate::{
-    core::{Sense, SharedEnvironment, VarRef, Vtype},
+    core::{traits::PushOrCreate, Sense, SharedEnvironment, VarRef, Vtype},
     errors::{ColumnCreationErr, SampleIncorrectLengthErr, SolutionCreationErr},
     types::{
         Bias, BinaryAssignmentType, IntegerAssignmentType, RealAssignmentType, SpinAssignmentType,
@@ -18,11 +18,25 @@ impl Solution {
         &mut self,
         sample: &Vec<S>,
         counts: usize,
-        energy: Option<Bias>,
+        energy: Bias,
     ) -> Result<&mut Self, SolutionCreationErr> {
         self.add_sample(sample)?;
         self.counts.push(counts);
-        self.raw_energies.push(energy);
+        self.raw_energies.push_or_create(energy);
+        self.n_samples += 1;
+        Ok(self)
+    }
+
+    /// Extend a solution with a sample, without computing any objective values or similar.
+    /// This method does not check whether the sample is already part of the solution as for now the
+    /// solution translator is expected to do the aggregation.
+    pub fn extend_no_energy<S: Copy + NumCast>(
+        &mut self,
+        sample: &Vec<S>,
+        counts: usize,
+    ) -> Result<&mut Self, SolutionCreationErr> {
+        self.add_sample(sample)?;
+        self.counts.push(counts);
         self.n_samples += 1;
         Ok(self)
     }

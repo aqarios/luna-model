@@ -88,7 +88,7 @@ impl Solution {
         sol.variable_names = self.variable_names.clone();
         sol.counts = self.counts.filter_by_mask(mask);
         sol.obj_values = self.obj_values.as_ref().map(|o| o.filter_by_mask(mask));
-        sol.raw_energies = self.raw_energies.filter_by_mask(mask);
+        sol.raw_energies = self.raw_energies.as_ref().map(|e| e.filter_by_mask(mask));
         sol.constraints = self.constraints.as_ref().map(|c| c.filter_by_mask(mask));
         sol.variable_bounds = self
             .variable_bounds

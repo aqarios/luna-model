@@ -78,6 +78,7 @@ impl PyZibTranslator {
             timing,
             None,
             Some(sense),
+            None,
         )?)
     }
 
