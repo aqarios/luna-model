@@ -1,5 +1,6 @@
 use super::py_unwind::unwind;
 use super::py_utilities::repr_solution;
+use crate::core::solution::sol::Filter;
 use crate::core::solution::{ColElement, Column, PrintLayout, ShowMetadata, VarKey};
 use crate::core::{make_index_map, Sense, SharedEnvironment, Solution, VarAssignment, Vtype};
 use crate::errors::{
@@ -822,6 +823,22 @@ impl PySolution {
     ///     If the computation fails for any reason.
     fn feasibility_ratio(&self) -> PyResult<f64> {
         Ok(self.access().feasibility_ratio()?)
+    }
+
+    // Get a new solution with all samples for which the condition `f` is true.
+
+    // Parameters
+    // ----------
+    // f : Callable[[Sample], bool]
+    //     A filter function yielding true for all samples to be contained in the
+    //     new solution.
+
+    // Returns
+    // -------
+    // Solution
+    //     The new solution with only samples for which the condition is true.
+    fn filter(&self, f: Filter) -> PyResult<PySolution> {
+        Ok(PySolution::new(self.access().filter(f)?))
     }
 
     /// Get a new solution with all infeasible samples removed.

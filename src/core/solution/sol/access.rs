@@ -4,7 +4,7 @@ use super::sol::Solution;
 use crate::{
     core::{
         solution::{
-            result::ResultView,
+            result::{ResultView, ResultViewsIterator},
             sample::{SampleView, Samples, SamplesIterator},
         },
         VarAssignment,
@@ -39,6 +39,10 @@ impl Solution {
 
     pub fn get_assignment(&self, row: usize, col: usize) -> Option<VarAssignment> {
         self.samples.get(col).and_then(|column| column.get(row))
+    }
+
+    pub fn iter_result_views(&self) -> ResultViewsIterator {
+        ResultViewsIterator::new(self)
     }
 
     pub fn iter_samples(&self) -> SamplesIterator {

@@ -982,7 +982,7 @@ class Solution:
         """
         ...
 
-    def filter(self, /, f: Callable[[Sample], bool]) -> Solution:
+    def filter(self, /, f: Callable[[ResultView], bool]) -> Solution:
         """
         Get a new solution with all samples for which the condition `f` is true.
 
