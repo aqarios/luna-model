@@ -829,7 +829,7 @@ impl PySolution {
 
     // Parameters
     // ----------
-    // f : Callable[[Sample], bool]
+    // f : Callable[[ResultView], bool]
     //     A filter function yielding true for all samples to be contained in the
     //     new solution.
 
