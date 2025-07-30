@@ -4,7 +4,7 @@ from aqmodels.translator import LpTranslator
 
 ILLEGAL_LP = """
 // this is something totally unexpected and will definetly panic.
-// 
+//
 //         this '&' here is a really weird and unexpected token => panics internally.
 //         |
 //         v
@@ -31,6 +31,7 @@ End
 def test_internal_panic():
     with pytest.raises(InternalPanicError):
         _ = LpTranslator.to_aq(ILLEGAL_LP)
+
 
 def test_internal_panic_rt_err():
     with pytest.raises(RuntimeError):

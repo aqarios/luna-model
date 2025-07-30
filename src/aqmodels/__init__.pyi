@@ -63,5 +63,5 @@ __all__ = [
     "Quadratic",
     "HigherOrder",
     "utils",
-    "quicksum"
+    "quicksum",
 ]

@@ -1,7 +1,6 @@
 import pytest
 
-from aqmodels import (Environment, Expression, Model, Sense, Unbounded,
-                      Variable, Vtype)
+from aqmodels import Environment, Expression, Model, Sense, Unbounded, Variable, Vtype
 from aqmodels.errors import VariableCreationError, VariableExistsError
 
 from ..utils import assert_linear, assert_offset, assert_quadratic
@@ -158,7 +157,6 @@ def test_access_variables():
         assert var_names(m2.variables(active=False)) == ["x", "y"]
         assert var_names(m2.variables(active=True)) == ["y"]
         assert m2.num_variables == 1
-
 
 
 @pytest.mark.model

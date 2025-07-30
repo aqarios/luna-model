@@ -1,7 +1,13 @@
 import pytest
 
-from aqmodels import (Comparator, Constraint, Constraints, Environment,
-                      Expression, Variable)
+from aqmodels import (
+    Comparator,
+    Constraint,
+    Constraints,
+    Environment,
+    Expression,
+    Variable,
+)
 
 
 @pytest.fixture

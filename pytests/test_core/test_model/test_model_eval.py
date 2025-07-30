@@ -1,7 +1,15 @@
 import pytest
 
-from aqmodels import (Bounds, Constraints, Model, Sense, Solution, Unbounded,
-                      Variable, Vtype)
+from aqmodels import (
+    Bounds,
+    Constraints,
+    Model,
+    Sense,
+    Solution,
+    Unbounded,
+    Variable,
+    Vtype,
+)
 from aqmodels.errors import EvaluationError
 
 
