@@ -48,7 +48,7 @@ pub fn repr_solution(sol: &PySolution) -> String {
     repr += &format!("obj_values={}, ", repr_opt_vec(&sol.access().obj_values));
     repr += &format!(
         "raw_energies={}, ",
-        repr_opt_numbers(&sol.access().raw_energies)
+        repr_opt_vec(&sol.access().raw_energies)
     );
     repr += &format!("counts={}, ", repr_numbers(&sol.access().counts));
     repr += &format!(
@@ -81,16 +81,6 @@ pub fn repr_samples(samples: &Samples) -> String {
         samples
             .iter()
             .map(|s| s.to_string())
-            .collect::<Vec<String>>()
-            .join(DELIMITER)
-    )
-}
-
-pub fn repr_opt_numbers<T: ToString>(nums: &Vec<Option<T>>) -> String {
-    format!(
-        "[{}]",
-        nums.iter()
-            .map(|n| repr_opt_number(n))
             .collect::<Vec<String>>()
             .join(DELIMITER)
     )

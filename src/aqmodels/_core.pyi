@@ -1,7 +1,8 @@
+from collections.abc import Callable, Iterator
 from datetime import datetime, timedelta
 from enum import Enum
 from types import TracebackType
-from typing import Iterator, Literal, Self, overload
+from typing import Literal, Self, overload
 
 from numpy.typing import NDArray
 
@@ -907,7 +908,7 @@ class Solution:
         ...
 
     @property
-    def obj_values(self, /) -> NDArray:
+    def obj_values(self, /) -> NDArray | None:
         """
         Get the objective values of the single samples as a ndarray.
 
@@ -916,7 +917,7 @@ class Solution:
         ...
 
     @property
-    def raw_energies(self, /) -> NDArray:
+    def raw_energies(self, /) -> NDArray | None:
         """Get the raw energies.
 
         Get the raw energy values of the single samples as returned by the solver /
@@ -978,6 +979,23 @@ class Solution:
         ------
         ComputationError
             If the computation fails for any reason.
+        """
+        ...
+
+    def filter(self, /, f: Callable[[ResultView], bool]) -> Solution:
+        """
+        Get a new solution with all samples for which the condition `f` is true.
+
+        Parameters
+        ----------
+        f : Callable[[ResultView], bool]
+            A filter function yielding true for all samples to be contained in the
+            new solution.
+
+        Returns
+        -------
+        Solution
+            The new solution with only samples for which the condition is true.
         """
         ...
 
@@ -2530,13 +2548,10 @@ class Model:
         """
         ...
 
-<<<<<<< HEAD
-=======
     def vtypes(self, /) -> list[Vtype]:
         """Get a list of all unique variable types of all variables in this model."""
         ...
 
->>>>>>> origin/main
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
     def __hash__(self, /) -> int: ...
@@ -2769,7 +2784,6 @@ class Expression:
         """
         ...
 
-<<<<<<< HEAD
     def linear_items(self, /) -> list[tuple[Variable, float]]:
         """
         Get all linear components.
@@ -2802,8 +2816,6 @@ class Expression:
         """
         ...
 
-=======
->>>>>>> origin/main
     def is_equal(self, /, other: Expression) -> bool:
         """
         Compare two expressions for equality.
@@ -3885,14 +3897,11 @@ class Constraints:
     @overload
     def __getitem__(self, item: int, /) -> Constraint: ...
     def __getitem__(self, item: int | str, /) -> Constraint: ...
-<<<<<<< HEAD
     @overload
     def __setitem__(self, item: str, content: Constraint, /) -> None: ...
     @overload
     def __setitem__(self, item: int, content: Constraint, /) -> None: ...
     def __setitem__(self, item: int | str, content: Constraint, /) -> None: ...
-=======
->>>>>>> origin/main
     def __len__(self, /) -> int:
         """
         Get the number of constraints.

@@ -1,8 +1,8 @@
 import pytest
 
 from aqmodels import Model, Sense, Variable, Vtype
-from aqmodels.utils import quicksum
 from aqmodels.translator import LpTranslator
+from aqmodels.utils import quicksum
 
 
 @pytest.fixture

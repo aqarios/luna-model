@@ -7,7 +7,8 @@ from dimod import SampleSet, Vartype, as_samples
 from dwave.samplers import SimulatedAnnealingSampler
 
 from aqmodels import Environment, Timer, Variable, Vtype
-from aqmodels.errors import SampleIncompatibleVtypeError, SampleUnexpectedVariableError
+from aqmodels.errors import (SampleIncompatibleVtypeError,
+                             SampleUnexpectedVariableError)
 from aqmodels.translator import DwaveTranslator
 from pytests.test_core.utils import generate_bqms, make_seed, random_int
 
@@ -88,6 +89,7 @@ def test_sampleset_translator_sa_random_models():
         assert sol.runtime.total_seconds > 0
         assert sol.runtime.qpu is None
         assert sol.obj_values is None
+        assert sol.raw_energies is not None
         assert sol.raw_energies.tolist() == sampleset_agg.record.energy.tolist()
 
         results = list(sol.results)

@@ -1,4 +1,4 @@
-from aqmodels import Model, Vtype, Solution, quicksum
+from aqmodels import Model, Solution, Vtype, quicksum
 
 
 def check_solution_contents(lhs: Solution, rhs: Solution) -> bool:

@@ -40,8 +40,8 @@ use super::py_sol::PySolution;
     pyclass(name = "ResultView", module = "luna_quantum._core")
 )]
 pub struct PyResultView {
-    sol: PySolution,
-    idx: usize,
+    pub sol: PySolution,
+    pub idx: usize,
 }
 
 impl PyResultView {

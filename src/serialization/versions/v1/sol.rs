@@ -79,8 +79,6 @@ pub struct SerSolution {
     /// The raw energies for each sample in the solution
     #[prost(double, repeated, tag = 14)]
     raw_energies: Vec<f64>, // inherently optional
-    #[prost(bool, repeated, tag = 15)]
-    has_raw_energies: Vec<bool>, // inherently optional // todo: make bitvec
     /// The index of the best sample
     #[prost(uint64, optional, tag = 16)]
     best_sample_idx: Option<u64>,
@@ -127,18 +125,7 @@ impl SerSolution {
         self.best_sample_idx = sol.best_sample_idx.map(|b| b as u64);
         self.counts = sol.counts.iter().map(|&c| c as u64).collect();
         self.obj_values = sol.obj_values.clone().unwrap_or_else(Vec::default);
-
-        for energy in &sol.raw_energies {
-            match energy {
-                Some(e) => {
-                    self.raw_energies.push(*e);
-                    self.has_raw_energies.push(true);
-                }
-                None => {
-                    self.has_raw_energies.push(false);
-                }
-            }
-        }
+        self.raw_energies = sol.raw_energies.clone().unwrap_or_else(Vec::default);
 
         for col in sol.samples.iter() {
             match &col {
@@ -215,19 +202,10 @@ impl SerSolution {
             true => None,
             false => Some(self.obj_values),
         };
-        sol.raw_energies = vec![None; sol.n_samples];
-        match self.raw_energies.is_empty() {
-            true => (),
-            false => {
-                let mut idx = 0;
-                for (i, &has_val) in self.has_raw_energies.iter().enumerate() {
-                    if has_val {
-                        sol.raw_energies[i] = Some(self.raw_energies[idx]);
-                        idx += 1;
-                    }
-                }
-            }
-        }
+        sol.raw_energies = match self.raw_energies.is_empty() {
+            true => None,
+            false => Some(self.raw_energies),
+        };
 
         if let Some(t) = self.timing {
             sol.timing = Some(t.decode(())?);

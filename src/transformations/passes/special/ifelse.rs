@@ -32,7 +32,7 @@ struct RustCallbackWrapper {
 }
 
 #[cfg(feature = "py")]
-#[pymethods]
+#[cfg_attr(feature = "py", pymethods)]
 impl RustCallbackWrapper {
     fn __call__(&self, cache_py: &PyAnalysisCache) -> PyResult<bool> {
         Ok((self.callback)(&cache_py.0))

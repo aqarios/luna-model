@@ -4,7 +4,7 @@ use super::sol::Solution;
 use crate::{
     core::{
         solution::{
-            result::ResultView,
+            result::{ResultView, ResultViewsIterator},
             sample::{SampleView, Samples, SamplesIterator},
         },
         VarAssignment,
@@ -41,6 +41,10 @@ impl Solution {
         self.samples.get(col).and_then(|column| column.get(row))
     }
 
+    pub fn iter_result_views(&self) -> ResultViewsIterator {
+        ResultViewsIterator::new(self)
+    }
+
     pub fn iter_samples(&self) -> SamplesIterator {
         SamplesIterator::new(self)
     }
@@ -51,21 +55,6 @@ impl Solution {
 }
 
 impl Solution {
-    // pub fn varidx_to_pos(&self) -> HashMap<VarIndex, VarIndex> {
-    //     let mut map = HashMap::with_capacity(self.samples.len());
-    //     for (i, col) in self.samples.iter().enumerate() {
-    //         map.insert(col.var_index(), i.into());
-    //     }
-    //     map
-    // }
-
-    // pub fn pos_to_varidx(&self) -> HashMap<VarIndex, VarIndex> {
-    //     let mut map = HashMap::with_capacity(self.samples.len());
-    //     for (i, col) in self.samples.iter().enumerate() {
-    //         map.insert(i.into(), col.var_index());
-    //     }
-    //     map
-    // }
     pub fn varname_to_pos(&self) -> HashMap<String, VarIndex> {
         let mut map = HashMap::with_capacity(self.variable_names.len());
         for (i, vname) in self.variable_names.iter().enumerate() {

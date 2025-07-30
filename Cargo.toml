@@ -1,6 +1,6 @@
 [package]
 name = "aqmodels"
-version = "0.2.0-dev5"
+version = "0.2.0-dev6"
 edition = "2021"
 description = "Rust based implementation of aq-models"
 readme = "README.md"
@@ -50,7 +50,6 @@ optional = true
 
 [dependencies.aqm-macros]
 path = "aqm-macros"
-# features = [ "py" ]
 default-features = false
 optional = true
 

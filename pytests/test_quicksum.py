@@ -1,7 +1,6 @@
 import pytest
 
-from aqmodels import Environment, Expression, Variable
-from aqmodels import quicksum
+from aqmodels import Environment, Expression, Variable, quicksum
 
 N: int = 20
 

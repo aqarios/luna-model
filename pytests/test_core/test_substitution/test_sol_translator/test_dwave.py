@@ -1,7 +1,9 @@
-import pytest
 import numpy as np
+import pytest
 from dimod import SampleSet, as_samples
+
 from aqmodels.translator import DwaveTranslator
+
 from .common import do_checks  # type: ignore[reportMissingImports]
 
 

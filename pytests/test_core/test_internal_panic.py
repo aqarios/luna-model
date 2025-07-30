@@ -1,4 +1,5 @@
 import pytest
+
 from aqmodels.errors import InternalPanicError
 from aqmodels.translator import LpTranslator
 

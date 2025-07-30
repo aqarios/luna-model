@@ -176,15 +176,13 @@ impl SerSolution {
             sol.obj_values = None;
         }
 
-        sol.raw_energies = vec![None; num_samples];
-        if !self.raw_energies.is_empty() {
-            let mut idx = 0;
-            for (i, &has_val) in self.has_raw_energy.iter().enumerate() {
-                if has_val {
-                    sol.raw_energies[i] = Some(self.raw_energies[idx]);
-                    idx += 1;
-                }
-            }
+        if self.has_raw_energy.iter().all(|&b| b) {
+            sol.raw_energies = Some(self.raw_energies.clone());
+        } else {
+            // Not all entries have a raw energy.
+            // The new solution does not allow for this, so we set it to
+            // not existing.
+            sol.raw_energies = None;
         }
 
         sol.best_sample_idx = self.best_sample_idx.map(|idx| idx as usize);

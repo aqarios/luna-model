@@ -106,18 +106,8 @@ def test_qctrl_translator_constructed():
         assert len(samples[0]) == sample_len, (
             "sample len (num variables) does not match"
         )
-        min_energy_index = None
-        min_energy = None
-        for i, item in enumerate(sol.raw_energies):
-            if item is None:
-                continue
-            min_energy_index = (
-                i if (min_energy is None) or (min_energy > item) else min_energy_index
-            )
-        assert min_energy_index is not None
-        assert reverser(samples[min_energy_index]) == fake_result["solution_bitstring"]
+        assert sol.raw_energies == None
         assert len(sol.counts.tolist()) == num_samples
-        assert fake_result["solution_bitstring_cost"] in sol.raw_energies.tolist()
         assert sol.runtime is None
 
         for result in sol.results:
@@ -149,18 +139,8 @@ def test_qctrl_translator_constructed_explicit_env():
         assert len(samples[0]) == sample_len, (
             "sample len (num variables) does not match"
         )
-        min_energy_index = None
-        min_energy = None
-        for i, item in enumerate(sol.raw_energies):
-            if item is None:
-                continue
-            min_energy_index = (
-                i if (min_energy is None) or (min_energy > item) else min_energy_index
-            )
-        assert min_energy_index is not None
-        assert reverser(samples[min_energy_index]) == fake_result["solution_bitstring"]
+        assert sol.raw_energies == None
         assert len(sol.counts.tolist()) == num_samples
-        assert fake_result["solution_bitstring_cost"] in sol.raw_energies.tolist()
         assert sol.runtime is None
 
         for result in sol.results:
@@ -169,8 +149,6 @@ def test_qctrl_translator_constructed_explicit_env():
             assert result.obj_value is None
             bs = reverser([e for e in result.sample])
             assert result.counts == fake_result["final_bitstring_distribution"][bs]
-            if bs == fake_result["solution_bitstring"]:
-                assert result.raw_energy == fake_result["solution_bitstring_cost"]
 
         results = list(sol.results)
         assert len(results) == num_samples
@@ -199,18 +177,8 @@ def test_qctrl_translator_constructed_with_time():
         assert len(samples[0]) == sample_len, (
             "sample len (num variables) does not match"
         )
-        min_energy_index = None
-        min_energy = None
-        for i, item in enumerate(sol.raw_energies):
-            if item is None:
-                continue
-            min_energy_index = (
-                i if (min_energy is None) or (min_energy > item) else min_energy_index
-            )
-        assert min_energy_index is not None
-        assert reverser(samples[min_energy_index]) == fake_result["solution_bitstring"]
+        assert sol.raw_energies == None
         assert len(sol.counts.tolist()) == num_samples
-        assert fake_result["solution_bitstring_cost"] in sol.raw_energies.tolist()
         assert sol.runtime is not None
         assert round(sol.runtime.total.total_seconds(), 1) == 0.3
         assert round(sol.runtime.total_seconds, 1) == 0.3
@@ -244,18 +212,8 @@ def test_qctrl_translator_constructed_vars():
         assert len(samples[0]) == sample_len, (
             "sample len (num variables) does not match"
         )
-        min_energy_index = None
-        min_energy = None
-        for i, item in enumerate(sol.raw_energies):
-            if item is None:
-                continue
-            min_energy_index = (
-                i if (min_energy is None) or (min_energy > item) else min_energy_index
-            )
-        assert min_energy_index is not None
-        assert reverser(samples[min_energy_index]) == fake_result["solution_bitstring"]
+        assert sol.raw_energies == None
         assert len(sol.counts.tolist()) == num_samples
-        assert fake_result["solution_bitstring_cost"] in sol.raw_energies.tolist()
         assert sol.runtime is None
 
         for result in sol.results:
@@ -264,8 +222,6 @@ def test_qctrl_translator_constructed_vars():
             assert result.obj_value is None
             bs = reverser([e for e in result.sample])
             assert result.counts == fake_result["final_bitstring_distribution"][bs]
-            if bs == fake_result["solution_bitstring"]:
-                assert result.raw_energy == fake_result["solution_bitstring_cost"]
 
         results = list(sol.results)
         assert len(results) == num_samples
