@@ -50,7 +50,8 @@ from ._core import (Bounds, Comparator, Constant, Constraint, Constraints,
                     Linear, Model, Quadratic, Result, ResultIterator,
                     ResultView, Sample, SampleIterator, Samples,
                     SamplesIterator, Sense, Solution, Timer, Timing, Unbounded,
-                    Variable, Vtype, errors, translator, utils, transformations)
+                    Variable, Vtype, errors, transformations, translator,
+                    utils)
 from .utils import quicksum
 
 __all__ = [

@@ -1,4 +1,5 @@
 import pytest
+
 from aqmodels import Environment, Model, Solution, Variable, Vtype
 
 

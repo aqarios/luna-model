@@ -1,6 +1,8 @@
-import pytest
 import numpy as np
+import pytest
+
 from aqmodels.translator import NumpyTranslator
+
 from .common import do_checks  # type: ignore[reportMissingImports]
 
 

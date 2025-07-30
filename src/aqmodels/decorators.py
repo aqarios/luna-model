@@ -4,15 +4,10 @@ from collections.abc import Callable
 from typing import Any, Generic, TypeVar, override
 
 from aqmodels import Model, Solution
-from aqmodels.transformations import (
-    ActionType,
-    AnalysisCache,
-    AnalysisPass,
-    BasePass,
-    MetaAnalysisPass,
-    TransformationOutcome,
-    TransformationPass,
-)
+from aqmodels.transformations import (ActionType, AnalysisCache, AnalysisPass,
+                                      BasePass, MetaAnalysisPass,
+                                      TransformationOutcome,
+                                      TransformationPass)
 
 T = TypeVar("T")
 

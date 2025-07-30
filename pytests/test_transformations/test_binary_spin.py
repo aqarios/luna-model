@@ -1,6 +1,8 @@
 import pytest
+
 from aqmodels._core import Model, Vtype
 from aqmodels.transformations import BinarySpinPass, PassManager
+
 
 @pytest.fixture
 def default_pass_manager():

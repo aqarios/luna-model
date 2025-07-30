@@ -7,7 +7,8 @@ from dimod import SampleSet, Vartype, as_samples
 from dwave.samplers import SimulatedAnnealingSampler
 
 from aqmodels import Environment, Timer, Variable, Vtype
-from aqmodels.errors import SampleIncompatibleVtypeError, SampleUnexpectedVariableError
+from aqmodels.errors import (SampleIncompatibleVtypeError,
+                             SampleUnexpectedVariableError)
 from aqmodels.translator import DwaveTranslator
 from pytests.test_core.utils import generate_bqms, make_seed, random_int
 

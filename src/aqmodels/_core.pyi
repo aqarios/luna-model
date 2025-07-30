@@ -1,7 +1,8 @@
+from collections.abc import Callable, Iterator
 from datetime import datetime, timedelta
 from enum import Enum
 from types import TracebackType
-from typing import Iterator, Literal, Self, overload
+from typing import Literal, Self, overload
 
 from numpy.typing import NDArray
 
@@ -978,6 +979,23 @@ class Solution:
         ------
         ComputationError
             If the computation fails for any reason.
+        """
+        ...
+
+    def filter(self, /, f: Callable[[Sample], bool]) -> Solution:
+        """
+        Get a new solution with all samples for which the condition `f` is true.
+
+        Parameters
+        ----------
+        f : Callable[[Sample], bool]
+            A filter function yielding true for all samples to be contained in the
+            new solution.
+
+        Returns
+        -------
+        Solution
+            The new solution with only samples for which the condition is true.
         """
         ...
 
@@ -3884,7 +3902,6 @@ class Constraints:
     @overload
     def __setitem__(self, item: int, content: Constraint, /) -> None: ...
     def __setitem__(self, item: int | str, content: Constraint, /) -> None: ...
-
     def __len__(self, /) -> int:
         """
         Get the number of constraints.
