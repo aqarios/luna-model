@@ -2,9 +2,14 @@
 
 from aqmodels import Model, Sense, Variable
 from aqmodels.decorators import analyse
-from aqmodels.transformations import (AnalysisCache, ChangeSensePass,
-                                      IfElsePass, MaxBiasAnalysis, PassManager,
-                                      Pipeline)
+from aqmodels.transformations import (
+    AnalysisCache,
+    ChangeSensePass,
+    IfElsePass,
+    MaxBiasAnalysis,
+    PassManager,
+    Pipeline,
+)
 
 aqm = Model("Model To transform")
 aqm.set_sense(sense=Sense.Max)
