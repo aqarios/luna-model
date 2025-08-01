@@ -33,6 +33,11 @@ class Pipeline(BasePass):
         """Get a list of required passes that need to be run before this pass."""
         ...
 
+    @property
+    def satisfies(self) -> set[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+
     def add(self, new_pass: BasePass) -> None:
         """Add new pass to pipeline."""
         ...

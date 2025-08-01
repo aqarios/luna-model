@@ -1,9 +1,12 @@
+use std::collections::HashSet;
+
+use indexmap::IndexSet;
 use pyo3::prelude::*;
 
 use crate::{
     py_bindings::{AnyPass, IntoAnyPass},
     transformations::{
-        base_passes::Pass,
+        base_passes::{BasePass, Pass},
         passes::pipeline::{AbstractPipeline, Pipeline},
     },
 };
@@ -26,8 +29,19 @@ impl PyPipeline {
         Ok(Self(Pipeline::new(mapped, name)))
     }
 
-    fn name(&self) {
+    #[getter]
+    fn name(&self) -> String {
         return self.0.name()
+    }
+
+    #[getter]
+    fn requires(&self) -> Vec<String> {
+        return self.0.requires()
+    }
+
+    #[getter]
+    fn satisfies(&self) -> HashSet<String> {
+        return self.0.satisfies()
     }
 
     fn clear(&mut self) {

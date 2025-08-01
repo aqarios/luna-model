@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{collections::HashSet, fmt::Debug};
 
 use pyo3::prelude::*;
 
@@ -64,8 +64,8 @@ impl AbstractPipeline for PyPipelineAdapter {
         Python::with_gil(|py| self.inner.extract::<PyPipeline>(py).unwrap().0.add(pass))
     }
 
-    fn satisfied(&self) -> hashbrown::HashSet<String> {
-        Python::with_gil(|py| self.inner.extract::<PyPipeline>(py).unwrap().0.satisfied())
+    fn satisfies(&self) -> HashSet<String> {
+        Python::with_gil(|py| self.inner.extract::<PyPipeline>(py).unwrap().0.satisfies())
     }
 
     fn content_string(&self) -> String {
