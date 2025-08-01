@@ -1236,6 +1236,27 @@ impl PyExpression {
             }
         }
     }
+
+    fn has_quadratic(&self) -> bool {
+        match &self.0 {
+            Left(expr) => expr.has_quadratic(),
+            Right(model) => model.access().objective.has_quadratic() 
+        }
+    }
+
+    fn has_higher_order(&self) -> bool {
+        match &self.0 {
+            Left(expr) => expr.has_higher_order(),
+            Right(model) => model.access().objective.has_higher_order() 
+        }
+    }
+
+    fn is_constant(&self) -> bool {
+        match &self.0 {
+            Left(expr) => expr.is_constant(),
+            Right(model) => model.access().objective.is_constant() 
+        }
+    }
 }
 
 #[unwindable]
