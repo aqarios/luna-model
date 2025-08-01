@@ -26,7 +26,7 @@ pub fn check_dependencies(passes: &Vec<Pass>) -> Result<(), CompilationError> {
             });
         }
         if let Pass::Pipeline(pipeline) = pass {
-            satisfied.extend(pipeline.satisfied())
+            satisfied.extend(pipeline.satisfies())
         }
     }
     Ok(())

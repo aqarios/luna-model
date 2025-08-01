@@ -9,7 +9,7 @@ use crate::{
 };
 use dyn_clone::DynClone;
 use global_counter::primitive::exact::CounterU64;
-use hashbrown::HashSet;
+use std::collections::HashSet;
 use std::fmt::Display;
 
 pub trait AbstractPipeline: BasePass + DynClone {
@@ -17,7 +17,7 @@ pub trait AbstractPipeline: BasePass + DynClone {
     fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution;
     fn clear(&mut self);
     fn add(&mut self, pass: Pass);
-    fn satisfied(&self) -> HashSet<String>;
+    fn satisfies(&self) -> HashSet<String>;
     fn content_string(&self) -> String;
     fn len(&self) -> usize;
     fn passes(&self) -> Vec<Pass>;
@@ -52,7 +52,7 @@ impl Pipeline {
                 }
             }
             if let Pass::Pipeline(pipeline) = pass {
-                satisfied.extend(pipeline.satisfied())
+                satisfied.extend(pipeline.satisfies())
             }
             satisfied.insert(pass.name());
         }
@@ -78,7 +78,7 @@ impl BasePass for Pipeline {
 pub type PipelineResult = Result<IntermediateRepresentation, CompilationError>;
 
 impl AbstractPipeline for Pipeline {
-    fn satisfied(&self) -> HashSet<String> {
+    fn satisfies(&self) -> HashSet<String> {
         self.satisfied.clone()
     }
 
@@ -105,7 +105,7 @@ impl AbstractPipeline for Pipeline {
                 }
             }
             if let Pass::Pipeline(pipeline) = &pass {
-                self.satisfied.extend(pipeline.satisfied())
+                self.satisfied.extend(pipeline.satisfies())
             }
             self.satisfied.insert(pass.name());
         }
