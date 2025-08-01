@@ -26,6 +26,10 @@ impl PyPipeline {
         Ok(Self(Pipeline::new(mapped, name)))
     }
 
+    fn name(&self) {
+        return self.0.name()
+    }
+
     fn clear(&mut self) {
         self.0.clear()
     }
