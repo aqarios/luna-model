@@ -114,6 +114,9 @@ impl Expression {
         false
     }
 
+    pub fn is_constant(&self) -> bool {
+        (self.linear.len() == 0) & !self.has_quadratic() & !self.has_higher_order()
+    }
 }
 
 impl ExpressionBaseTypes for Expression {

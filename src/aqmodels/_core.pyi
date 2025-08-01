@@ -2816,6 +2816,39 @@ class Expression:
         """
         ...
 
+    def is_constant(self, /) -> bool:
+        """
+        Check if expression is constant.
+
+        Returns
+        -------
+        bool
+            If the expression is constant
+        """
+        ...
+
+    def has_quadratic(self, /) -> bool:
+        """
+        Check if expression has quadratic.
+
+        Returns
+        -------
+        bool
+            If the expression has quadratic
+        """
+        ...
+
+    def has_higher_order(self, /) -> bool:
+        """
+        Check if expression has higher-order.
+
+        Returns
+        -------
+        bool
+            If the expression has higher-order
+        """
+        ...
+
     def is_equal(self, /, other: Expression) -> bool:
         """
         Compare two expressions for equality.
@@ -3302,6 +3335,7 @@ class Expression:
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+
 
 class ExpressionIterator:
     """
