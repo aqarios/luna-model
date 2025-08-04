@@ -207,6 +207,11 @@ class Variable:
         ...
 
     @property
+    def id(self, /) -> int:
+        """Get the id of the variable."""
+        ...
+
+    @property
     def name(self, /) -> str:
         """Get the name of the variable."""
         ...
@@ -1412,6 +1417,7 @@ class Solution:
         timing: Timing | None = ...,
         sense: Sense | None = ...,
         bit_order: Literal["LTR", "RTL"] = "RTL",
+        raw_energies: list[float] | None = ...,
     ) -> Solution:
         """
         Create a `Solution` from a dict that maps measured bitstrings to counts.
@@ -1434,6 +1440,8 @@ class Solution:
             The sense the model the solution belongs to. Default: Sense.Min
         bit_order : Literal["LTR", "RTL"]
             The order of the bits in the bitstring. Default "RTL".
+        energies: list[float], optional
+            The raw energies for each sample. Default None.
 
         Returns
         -------
@@ -2179,6 +2187,18 @@ class Model:
             The expression assigned to the model's objective.
         sense : Sense, optional
             The sense of the model for this objective, by default Sense.Min.
+        """
+        ...
+
+    @property
+    def num_variables(self, /) -> int:
+        """
+        Return the number of variables defined in the model.
+
+        Returns
+        -------
+        int
+            Total number of variables.
         """
         ...
 

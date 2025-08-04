@@ -4,6 +4,7 @@ use std::rc::Rc;
 use super::py_constr::PyConstraint;
 use super::py_env::{PyEnvironment, CURRENT_ENV};
 use super::py_exceptions::NoActiveEnvironmentFoundError;
+use super::unwind;
 use super::{py_bounds::PyBounds, py_expr::PyExpression};
 use crate::core::expression::ExpressionBaseCreation;
 use crate::core::operations::{
@@ -17,7 +18,6 @@ use either::Either::{Left, Right};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyBool;
-use super::unwind;
 use unwind_macros::unwindable;
 
 /// Represents a symbolic variable within an optimization environment.
@@ -153,6 +153,11 @@ impl PyVariable {
             vtype,
             bounds.map(|pb| pb.into()),
         )?))
+    }
+
+    #[getter]
+    pub fn get_id(&self) -> usize {
+        self.id.0 as usize
     }
 
     /// Get the name of the variable.
@@ -533,5 +538,22 @@ impl Vtype {
 
     fn __repr__(&self) -> String {
         format!("{self:#?}")
+    }
+
+    #[getter]
+    fn get_name(&self) -> String {
+        match &self {
+            Self::Binary => String::from("Binary"),
+            Self::Spin => String::from("Spin"),
+            Self::Integer => String::from("Integer"),
+            Self::Real => String::from("Real"),
+            Self::__Ghost => {
+                panic!("you should not be able to interact with __Ghost variables in Python.")
+            }
+        }
+    }
+    #[getter]
+    fn get_value(&self) -> PyResult<String> {
+        self.get_name()
     }
 }

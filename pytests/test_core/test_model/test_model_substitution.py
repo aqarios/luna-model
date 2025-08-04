@@ -99,6 +99,7 @@ def test_model_substitution():
     assert expected_obj.is_equal(m.objective)
     assert expected_constr_a.is_equal(m.constraints[0].lhs)
     assert expected_constr_b.is_equal(m.constraints[1].lhs)
+    assert m.num_variables == 4
 
     with pytest.raises(VariableNotExistingError):
         _ = m.environment.get_variable("target")
