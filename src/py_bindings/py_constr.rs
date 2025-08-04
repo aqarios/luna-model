@@ -536,4 +536,17 @@ impl Comparator {
     fn __repr__(&self) -> String {
         format!("{self:#?}")
     }
+
+    #[getter]
+    fn get_name(&self) -> String {
+        match &self {
+            Self::Eq => String::from("Eq"),
+            Self::Le => String::from("Le"),
+            Self::Ge => String::from("Ge"),
+        }
+    }
+    #[getter]
+    fn get_value(&self) -> PyResult<String> {
+        self.get_name()
+    }
 }

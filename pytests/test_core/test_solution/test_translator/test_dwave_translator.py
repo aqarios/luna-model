@@ -7,8 +7,7 @@ from dimod import SampleSet, Vartype, as_samples
 from dwave.samplers import SimulatedAnnealingSampler
 
 from aqmodels import Environment, Timer, Variable, Vtype
-from aqmodels.errors import (SampleIncompatibleVtypeError,
-                             SampleUnexpectedVariableError)
+from aqmodels.errors import SampleIncompatibleVtypeError, SampleUnexpectedVariableError
 from aqmodels.translator import DwaveTranslator
 from pytests.test_core.utils import generate_bqms, make_seed, random_int
 
@@ -146,5 +145,3 @@ def test_dwave_translator_incorrect_sample_length():
     sampleset = SampleSet.from_samples({"a": 1, "b": 0}, "BINARY", 0)
     with pytest.raises(SampleUnexpectedVariableError):
         _ = DwaveTranslator.to_aq(sampleset, env=env)
-
-

@@ -101,6 +101,7 @@ def test_filter_feasible(model: tuple[Model, tuple[Variable, ...]]):
     )
     assert sol_feasible == expected
 
+
 @pytest.mark.solution
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_filter_feasible_callback(model: tuple[Model, tuple[Variable, ...]]):

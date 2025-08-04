@@ -1,8 +1,7 @@
 import pytest
 
 from aqmodels import Environment, Model, Variable, Vtype
-from aqmodels.errors import (DuplicateConstraintNameError,
-                             NoConstraintForKeyError)
+from aqmodels.errors import DuplicateConstraintNameError, NoConstraintForKeyError
 
 
 def model_iadd(request) -> Model:

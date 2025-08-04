@@ -1,5 +1,4 @@
-from aqmodels import (Constant, Environment, HigherOrder, Linear, Quadratic,
-                      Variable)
+from aqmodels import Constant, Environment, HigherOrder, Linear, Quadratic, Variable
 
 
 def test_expression_iteration():
@@ -46,4 +45,3 @@ def test_expression_items():
         assert set(linear) == {(a, -1), (b, 0.0001), (c, 3)}
         assert set(quadratic) == {(a, b, -5.5), (b, c, 2)}
         assert higher_order == [([a, b, c], 1)]
-

@@ -1,0 +1,47 @@
+# Run `pre-commit install` to enable pre-commit hooks after cloning the project.
+# Thereafter, pre-commit will run automatically on `git commit`.
+
+repos:
+  # optional basic config generated using `pre-commit sample-config`
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+  # ruff config from ruff docs: https://docs.astral.sh/ruff/integrations/#pre-commit
+  - repo: local
+    hooks:
+      # Run the linter.
+      - id: ruff
+        name: ruff
+        entry: ruff check .
+        language: system
+        pass_filenames: false
+        always_run: true
+      # Run the formatter.
+      - id: ruff-format
+        name: ruff-format
+        entry: ruff format . --check
+        language: system
+        pass_filenames: false
+        always_run: true
+  # mypy config
+  # - repo: local
+  #   hooks:
+  #     - id: mypy
+  #       name: mypy
+  #       entry: mypy ./src
+  #       language: system
+  #       pass_filenames: false
+  #       always_run: true
+  # # custom local hook for pytest
+  # - repo: local
+  #   hooks:
+  #     - id: pytest-with-coverage
+  #       name: "Pytest with Coverage Check"
+  #       entry: bash -c 'pytest --cov=src/aqmodels --cov-report=term --cov-fail-under=90'
+  #       language: system
+  #       pass_filenames: false
+  #       always_run: true

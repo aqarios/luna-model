@@ -1,8 +1,4 @@
-use std::collections::HashSet;
-
-use indexmap::IndexSet;
-use pyo3::prelude::*;
-
+use super::{py_pass_base::PyPass, py_pipeline_adapter::PyPipelineAdapter};
 use crate::{
     py_bindings::{AnyPass, IntoAnyPass},
     transformations::{
@@ -10,8 +6,8 @@ use crate::{
         passes::pipeline::{AbstractPipeline, Pipeline},
     },
 };
-
-use super::{py_pass_base::PyPass, py_pipeline_adapter::PyPipelineAdapter};
+use pyo3::prelude::*;
+use std::collections::HashSet;
 
 #[pyclass(unsendable, name = "Pipeline")]
 #[derive(Debug, Clone)]
@@ -31,17 +27,17 @@ impl PyPipeline {
 
     #[getter]
     fn name(&self) -> String {
-        return self.0.name()
+        return self.0.name();
     }
 
     #[getter]
     fn requires(&self) -> Vec<String> {
-        return self.0.requires()
+        return self.0.requires();
     }
 
     #[getter]
     fn satisfies(&self) -> HashSet<String> {
-        return self.0.satisfies()
+        return self.0.satisfies();
     }
 
     fn clear(&mut self) {

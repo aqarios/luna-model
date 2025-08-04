@@ -42,6 +42,7 @@ def model() -> Model:
     m.constraints += 0.3 * dollars - mn == 0, "Manganese"
     return m
 
+
 @pytest.fixture
 def model_quadratic() -> Model:
     m = Model(name="TestModel")
@@ -80,6 +81,7 @@ def model_quadratic() -> Model:
     m.constraints += 2.4 * pennies + 0.5 * dollars - zi == 0, "Zinc"
     m.constraints += 0.3 * dollars - mn == 0, "Manganese"
     return m
+
 
 @pytest.mark.solution_translation
 def test_zib_translator(model: Model):
@@ -129,6 +131,7 @@ def test_zib_translator(model: Model):
         v = model.environment.get_variable(key)
         assert np.isclose(sample[v], value, atol=1e-5)
 
+
 @pytest.mark.solution_translation
 def test_zib_translator_quadratic(model_quadratic: Model):
     lp_str = LpTranslator.from_aq(model_quadratic)
@@ -143,9 +146,15 @@ def test_zib_translator_quadratic(model_quadratic: Model):
     scip_model.optimize()
     timing = timer.stop()
     _ = ZibTranslator.to_aq(scip_model, timing=timing, env=model_quadratic.environment)
-    truth_sample = {x.name: scip_model.getVal(x) for x in scip_model.getVars() if x.name in model_quadratic.environment}
+    truth_sample = {
+        x.name: scip_model.getVal(x)
+        for x in scip_model.getVars()
+        if x.name in model_quadratic.environment
+    }
 
-    sol = ZibTranslator.to_aq(scip_model, timing=timing, env=model_quadratic.environment)
+    sol = ZibTranslator.to_aq(
+        scip_model, timing=timing, env=model_quadratic.environment
+    )
     assert len(sol.samples) == 1
     assert sol.raw_energies == None
     assert len(sol.counts) == 1
@@ -176,6 +185,7 @@ def test_zib_translator_quadratic(model_quadratic: Model):
     for key, value in truth_sample.items():
         v = model_quadratic.environment.get_variable(key)
         assert np.isclose(sample[v], value, atol=1e-5)
+
 
 @pytest.mark.solution_translation
 def test_read_coins():

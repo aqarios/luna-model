@@ -17,9 +17,8 @@ use indexmap::IndexMap;
 use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter};
 use strum_macros::{Display, EnumString};
-
 #[cfg(feature = "py")]
-use pyo3::prelude::*;
+use {crate::py_bindings::unwind, pyo3::prelude::*, unwind_macros::unwindable};
 
 /// The default name for a model.
 pub static DEFAULT_MODEL_NAME: &str = "unnamed";
@@ -57,6 +56,23 @@ impl Sense {
 impl Default for Sense {
     fn default() -> Self {
         Self::Min
+    }
+}
+
+#[cfg(feature = "py")]
+#[cfg_attr(feature = "py", pymethods)]
+#[cfg_attr(feature = "py", unwindable)]
+impl Sense {
+    #[getter]
+    fn get_name(&self) -> String {
+        match &self {
+            Self::Min => String::from("Min"),
+            Self::Max => String::from("Max"),
+        }
+    }
+    #[getter]
+    fn get_value(&self) -> String {
+        self.to_string()
     }
 }
 
@@ -288,6 +304,21 @@ impl Model {
         let mut constr_vtypes = self.constraints.vtypes();
         obj_vtypes.append(&mut constr_vtypes);
         obj_vtypes.into_iter().unique().collect_vec()
+    }
+
+    pub fn num_variables(&self) -> usize {
+        let mut vars = self.objective.variables();
+        let mut constraint_vars = self
+            .constraints
+            .iter()
+            .map(|(_, c)| c.lhs.variables())
+            .flatten()
+            .unique()
+            .collect_vec();
+        // move values in vars
+        vars.append(&mut constraint_vars);
+        // Get len of all unique vars.
+        vars.iter().unique().collect_vec().len()
     }
 }
 

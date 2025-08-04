@@ -1,9 +1,12 @@
 import pytest
 
 from aqmodels import Environment, Variable
-from aqmodels.errors import (MultipleActiveEnvironmentsError,
-                             NoActiveEnvironmentFoundError,
-                             VariableExistsError, VariableNamesError)
+from aqmodels.errors import (
+    MultipleActiveEnvironmentsError,
+    NoActiveEnvironmentFoundError,
+    VariableExistsError,
+    VariableNamesError,
+)
 
 
 @pytest.mark.variable

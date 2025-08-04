@@ -1,7 +1,6 @@
 import pytest
 
-from aqmodels import (Environment, Expression, Model, Sense, Unbounded,
-                      Variable, Vtype)
+from aqmodels import Environment, Expression, Model, Sense, Unbounded, Variable, Vtype
 from aqmodels.errors import VariableCreationError, VariableExistsError
 
 from ..utils import assert_linear, assert_offset, assert_quadratic
@@ -132,27 +131,32 @@ def test_access_variables():
         assert var_names(m.variables()) == ["x", "y"]
         assert var_names(m.variables(active=False)) == ["x", "y"]
         assert var_names(m.variables(active=True)) == []
+        assert m.num_variables == 0
 
         m.objective = 1 * x
         assert var_names(m.variables()) == ["x", "y"]
         assert var_names(m.variables(active=False)) == ["x", "y"]
         assert var_names(m.variables(active=True)) == ["x"]
+        assert m.num_variables == 1
 
         m.objective = 1 * y
         assert var_names(m.variables()) == ["x", "y"]
         assert var_names(m.variables(active=False)) == ["x", "y"]
         assert var_names(m.variables(active=True)) == ["y"]
+        assert m.num_variables == 1
 
         m.objective = y + x
         assert var_names(m.variables()) == ["x", "y"]
         assert var_names(m.variables(active=False)) == ["x", "y"]
         assert var_names(m.variables(active=True)) == ["x", "y"]
+        assert m.num_variables == 2
 
         m2 = Model(env=env)
         m2.objective = 1 * y
         assert var_names(m2.variables()) == ["x", "y"]
         assert var_names(m2.variables(active=False)) == ["x", "y"]
         assert var_names(m2.variables(active=True)) == ["y"]
+        assert m2.num_variables == 1
 
 
 @pytest.mark.model

@@ -164,6 +164,7 @@ def analyse(
 
     return _decorator
 
+
 def meta_analyse(
     name: str | None = None, requires: list[str] | None = None
 ) -> Callable[[MetaAnalysisSignature[T]], DynamicMetaAnalysisPass[T]]:

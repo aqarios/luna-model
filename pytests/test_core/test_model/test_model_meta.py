@@ -2,8 +2,17 @@ import random
 
 import pytest
 
-from aqmodels import (Comparator, Constant, Constraint, HigherOrder, Linear,
-                      Model, Quadratic, Vtype, quicksum)
+from aqmodels import (
+    Comparator,
+    Constant,
+    Constraint,
+    HigherOrder,
+    Linear,
+    Model,
+    Quadratic,
+    Vtype,
+    quicksum,
+)
 
 
 @pytest.fixture
@@ -114,39 +123,30 @@ def naive_query_obj_degree(model: Model) -> int:
         {
             "vtypes": [Vtype.Spin, Vtype.Binary, Vtype.Integer, Vtype.Real],
             "ctypes": [Comparator.Eq, Comparator.Le, Comparator.Ge],
-            "target_degree": 2
+            "target_degree": 2,
         },
         {
             "vtypes": [Vtype.Spin, Vtype.Binary, Vtype.Integer, Vtype.Real],
             "ctypes": [Comparator.Eq, Comparator.Le, Comparator.Ge],
-            "target_degree": 3
+            "target_degree": 3,
         },
         {
             "vtypes": [Vtype.Spin, Vtype.Binary, Vtype.Integer, Vtype.Real],
             "ctypes": [Comparator.Eq, Comparator.Le, Comparator.Ge],
-            "target_degree": 10
+            "target_degree": 10,
         },
-        {
-            "vtypes": [Vtype.Integer],
-            "target_degree": 0
-        },
-        {
-            "vtypes": [Vtype.Integer],
-            "target_degree": 2
-        },
-        {
-            "vtypes": [Vtype.Real],
-            "target_degree": 1
-        },
+        {"vtypes": [Vtype.Integer], "target_degree": 0},
+        {"vtypes": [Vtype.Integer], "target_degree": 2},
+        {"vtypes": [Vtype.Real], "target_degree": 1},
         {
             "vtypes": [Vtype.Spin, Vtype.Binary],
             "ctypes": [Comparator.Eq, Comparator.Le, Comparator.Ge],
-            "target_degree": 4
+            "target_degree": 4,
         },
         {
             "vtypes": [Vtype.Real, Vtype.Binary],
             "ctypes": [Comparator.Eq, Comparator.Ge],
-            "target_degree": 1
+            "target_degree": 1,
         },
     ],
     indirect=True,

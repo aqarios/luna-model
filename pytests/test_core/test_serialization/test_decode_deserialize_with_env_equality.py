@@ -1,7 +1,9 @@
 import pytest
 
-from .creators import (create_serialized_objects_with_env,
-                       create_serialized_objects_with_env_contents)
+from .creators import (
+    create_serialized_objects_with_env,
+    create_serialized_objects_with_env_contents,
+)
 
 
 @pytest.mark.parametrize(

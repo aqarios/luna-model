@@ -330,6 +330,17 @@ impl PyModel {
         })
     }
 
+    /// Return the number of variables defined in the model.
+    ///
+    /// Returns
+    /// -------
+    /// int
+    ///     Total number of variables.
+    #[getter]
+    fn num_variables(&self) -> usize {
+        self.access().num_variables()
+    }
+
     /// Return the number of constraints defined in the model.
     ///
     /// Returns

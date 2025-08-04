@@ -18,6 +18,7 @@ def np_solution() -> tuple[np.typing.NDArray, np.typing.NDArray]:
     )
 
 
-def test_numpy_sol_with_substituted_model(np_solution: tuple[np.typing.NDArray, np.typing.NDArray]):
+def test_numpy_sol_with_substituted_model(
+    np_solution: tuple[np.typing.NDArray, np.typing.NDArray],
+):
     do_checks(NumpyTranslator, np_solution)
-

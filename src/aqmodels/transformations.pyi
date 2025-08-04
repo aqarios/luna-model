@@ -16,14 +16,11 @@ class BasePass:
         ...
 
 class Pipeline(BasePass):
-
     @overload
     def __init__(self, passes: list[BasePass]) -> None: ...
     @overload
     def __init__(self, passes: list[BasePass], name: str) -> None: ...
     def __init__(self, passes: list[BasePass], name: str | None = ...) -> None: ...
-
-
     @property
     def name(self) -> str:
         """Get the name of this pass."""
@@ -53,7 +50,6 @@ class Pipeline(BasePass):
 
     def __len__(self) -> int: ...
 
-
 class IfElsePass(BasePass):
     @overload
     def __init__(
@@ -80,7 +76,6 @@ class IfElsePass(BasePass):
         otherwise: Pipeline,
         name: str | None = ...,
     ) -> None: ...
-
     @property
     def name(self) -> str:
         """Get the name of this pass."""
@@ -138,7 +133,7 @@ class TransformationOutcome:
 
 class AnalysisCache:
     @overload
-    def __getitem__( # type: ignore[reportOverlappingOverload]
+    def __getitem__(  # type: ignore[reportOverlappingOverload]
         self, key: Literal["max-bias"]
     ) -> MaxBias: ...
     @overload

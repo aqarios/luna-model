@@ -6,7 +6,8 @@ from aqmodels.transformations import BinarySpinPass, PassManager
 
 @pytest.fixture
 def default_pass_manager():
-    return  PassManager([BinarySpinPass(Vtype.Spin, None)])
+    return PassManager([BinarySpinPass(Vtype.Spin, None)])
+
 
 def test_target_variable_exists(default_pass_manager: PassManager):
     model = Model()
@@ -17,6 +18,7 @@ def test_target_variable_exists(default_pass_manager: PassManager):
     assert len(ir.model.variables()) == 2
     assert ir.model.variables()[0].name == "s_x"
     assert ir.model.variables()[1].name == "s_x_Uk"
+
 
 def test_target_variable_exists_many(default_pass_manager: PassManager):
     model = Model()
