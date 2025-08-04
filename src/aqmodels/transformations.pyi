@@ -3,7 +3,7 @@ from collections.abc import Callable
 from enum import Enum
 from typing import Any, Literal, overload
 
-from aqmodels import Model, Sense, Solution, Timing, Vtype
+from . import Model, Sense, Solution, Timing, Vtype
 
 class BasePass:
     @property

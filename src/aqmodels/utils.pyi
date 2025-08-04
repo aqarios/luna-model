@@ -1,7 +1,7 @@
 from collections.abc import Generator, Iterable
 from typing import overload
 
-from aqmodels import Expression, Variable
+from . import Expression, Variable
 
 @overload
 def quicksum(iterable: Generator[Expression], /) -> Expression: ...

@@ -3,8 +3,8 @@
 from collections.abc import Callable
 from typing import Any, Generic, TypeVar, override
 
-from aqmodels import Model, Solution
-from aqmodels.transformations import (
+from . import Model, Solution
+from .transformations import (
     ActionType,
     AnalysisCache,
     AnalysisPass,
