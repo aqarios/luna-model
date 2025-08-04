@@ -2,8 +2,13 @@ import pytest
 
 from aqmodels import Expression, Vtype
 
-from ...utils import (assert_higher_order, assert_higher_order_all,
-                      assert_linear, assert_offset, assert_quadratic)
+from ...utils import (
+    assert_higher_order,
+    assert_higher_order_all,
+    assert_linear,
+    assert_offset,
+    assert_quadratic,
+)
 from .common import *  # noqa: F403
 
 

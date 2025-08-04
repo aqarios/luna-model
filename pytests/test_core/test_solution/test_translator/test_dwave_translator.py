@@ -144,5 +144,3 @@ def test_dwave_translator_incorrect_sample_length():
     sampleset = SampleSet.from_samples({"a": 1, "b": 0}, "BINARY", 0)
     with pytest.raises(SampleUnexpectedVariableError):
         _ = DwaveTranslator.to_aq(sampleset, env=env)
-
-

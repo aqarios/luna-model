@@ -1,5 +1,4 @@
-from aqmodels import (Constant, Environment, HigherOrder, Linear, Quadratic,
-                      Variable)
+from aqmodels import Constant, Environment, HigherOrder, Linear, Quadratic, Variable
 
 
 def test_expression_iteration():

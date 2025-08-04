@@ -1,7 +1,6 @@
 import pytest
 
-from aqmodels import (Environment, Expression, Model, Sense, Unbounded,
-                      Variable, Vtype)
+from aqmodels import Environment, Expression, Model, Sense, Unbounded, Variable, Vtype
 from aqmodels.errors import VariableCreationError, VariableExistsError
 
 from ..utils import assert_linear, assert_offset, assert_quadratic

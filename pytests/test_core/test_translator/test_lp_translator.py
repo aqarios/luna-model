@@ -420,7 +420,6 @@ def scip_models_are_equal(model1: ScipModel, model2: ScipModel) -> tuple[bool, s
             m1_q, m1_s, m1_l = m1_item
             m2_q, m2_s, m2_l = m2_item
 
-
             m1_dict = {}
             for u, v, b in m1_q:
                 m1_dict[(str(u), str(v))] = b
