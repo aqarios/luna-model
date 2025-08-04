@@ -11,10 +11,10 @@ multi-ecosystem-groups:
       interval: "weekly"
 
 updates:
-  - package-ecosystem: "uv"
-    directory: "/"
-    patterns: ["*"]
-    multi-ecosystem-group: "aqmodels"
+  # - package-ecosystem: "uv"
+  #   directory: "/"
+  #   patterns: ["*"]
+  #   multi-ecosystem-group: "aqmodels"
 
   - package-ecosystem: "cargo"
     directory: "/"
