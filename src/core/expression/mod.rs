@@ -18,6 +18,7 @@ pub use base::IndexConstraints;
 pub use base::One;
 
 pub use errors::VariableOutOfRangeErr;
+pub use errors::EnvMismatchError;
 
 pub use expr::Expression;
 

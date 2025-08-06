@@ -246,6 +246,11 @@ class SampleColCreationError(IndexError):
 
     def __str__(self, /) -> str: ...
 
+class EnvMismatchError(RuntimeError):
+    """Raised when environments of provided expressions mismatch."""
+
+    def __setr__(self, /) -> str: ...
+
 class InternalPanicError(RuntimeError):
     """Raised when an internal and unrecoverable error occurred."""
 

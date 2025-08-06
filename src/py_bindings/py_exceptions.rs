@@ -1,4 +1,4 @@
-use crate::core::expression::VariableOutOfRangeErr;
+use crate::core::expression::{VariableOutOfRangeErr, EnvMismatchError};
 use crate::errors::{
     BqmTranslatorErr, ColumnCreationErr, CompressionErr, ComputationErr, DifferentEnvsErr,
     DuplicateConstraintNameErr, EvaluationErr, GetConstraintErr, IllegalConstraintNameErr,
@@ -746,5 +746,11 @@ impl From<GetConstraintErr> for PyErr {
 impl From<CompressionErr> for PyErr {
     fn from(value: CompressionErr) -> Self {
         CompressionError::new_err(value.to_string())
+    }
+}
+
+impl From<EnvMismatchError> for PyErr {
+    fn from(value: EnvMismatchError) -> Self {
+        PyRuntimeError::new_err(format!("{}", value))
     }
 }

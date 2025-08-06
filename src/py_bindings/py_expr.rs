@@ -1,5 +1,6 @@
+use std::collections::HashMap;
+
 use super::unwind;
-use unwind_macros::unwindable;
 use super::{
     py_constr::PyConstraint,
     py_env::{PyEnvironment, CURRENT_ENV},
@@ -28,6 +29,7 @@ use either::Either::{self, Left, Right};
 use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes, IntoPyObjectExt};
 use pyo3::{exceptions::PyTypeError, types::PyType};
+use unwind_macros::unwindable;
 
 /// Polynomial expression supporting symbolic arithmetic, constraint creation, and encoding.
 ///
@@ -143,6 +145,7 @@ impl PyExpression {
             Right(parent) => parent.access().objective.clone(),
         }
     }
+
 }
 
 /// Iterate over the single components of an expression.
@@ -1240,22 +1243,46 @@ impl PyExpression {
     fn has_quadratic(&self) -> bool {
         match &self.0 {
             Left(expr) => expr.has_quadratic(),
-            Right(model) => model.access().objective.has_quadratic() 
+            Right(model) => model.access().objective.has_quadratic(),
         }
     }
 
     fn has_higher_order(&self) -> bool {
         match &self.0 {
             Left(expr) => expr.has_higher_order(),
-            Right(model) => model.access().objective.has_higher_order() 
+            Right(model) => model.access().objective.has_higher_order(),
         }
     }
 
     fn is_constant(&self) -> bool {
         match &self.0 {
             Left(expr) => expr.is_constant(),
-            Right(model) => model.access().objective.is_constant() 
+            Right(model) => model.access().objective.is_constant(),
         }
+    }
+
+
+    #[staticmethod]
+    fn deep_clone_many(py_exprs: Vec<PyExpression>) -> PyResult<Vec<PyExpression>> {
+        let parent_exprs: HashMap<usize, Expression> = py_exprs
+            .iter()
+            .enumerate()
+            .filter_map(|(i, e)| match &(e.0) {
+                Left(_) => None,
+                Right(parent) => Some((i, parent.access().objective.clone())),
+            })
+            .collect();
+        let exprs: Vec<&Expression> = py_exprs
+            .iter()
+            .enumerate()
+            .map(|(i, e)| match &(e.0) {
+                Left(expr) => expr,
+                Right(_) => parent_exprs.get(&i).unwrap(),
+            })
+            .collect();
+
+        let cloned_exprs = Expression::deep_clone_many(&exprs)?;
+        Ok(cloned_exprs.into_iter().map(|e| PyExpression::new(e)).collect())
     }
 }
 

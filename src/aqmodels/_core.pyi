@@ -2,7 +2,7 @@ from collections.abc import Callable, Iterator
 from datetime import datetime, timedelta
 from enum import Enum
 from types import TracebackType
-from typing import Literal, Self, overload
+from typing import Literal, Self, Sequence, overload
 
 from numpy.typing import NDArray
 
@@ -2885,6 +2885,7 @@ class Expression:
         """
         ...
 
+
     def substitute(
         self, /, target: Variable, replacement: Expression | Variable
     ) -> Expression:
@@ -2992,6 +2993,22 @@ class Expression:
         Alias for `decode()`.
 
         See `decode()` for full documentation.
+        """
+        ...
+
+    @staticmethod
+    def deep_clone_many(exprs: list[Expression]) -> list[Expression]:
+        """Deep clones all provided expressions into new environment.
+
+        Parameters
+        ----------
+        exprs: list[Expression]
+            The expressions to move to new_environment
+
+        Returns
+        -------
+        list[Expressions]
+            The same expressions but part of a new environment
         """
         ...
 
