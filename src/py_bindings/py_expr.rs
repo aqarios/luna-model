@@ -1066,7 +1066,7 @@ impl PyExpression {
 
     /// Get this expression's environment.
     #[getter]
-    fn _environment(&self) -> PyEnvironment {
+    fn environment(&self) -> PyEnvironment {
         PyEnvironment(match &self.0 {
             Left(expr) => expr.env.clone(),
             Right(p) => p.access().environment.clone(),

@@ -1,7 +1,7 @@
 use super::unwind;
 use unwind_macros::unwindable;
 use crate::{
-    core::{environment::SharedEnvironment, ContentEquality},
+    core::{environment::SharedEnvironment, ContentEquality, VarRef},
     serialization::{Decodable, Decompressable, Encodable, Unversionizable}, utils::Share,
 };
 use derive_more::{Deref, DerefMut};
@@ -222,5 +222,14 @@ impl PyEnvironment {
 
     fn __contains__(&self, varname: String) -> bool {
         self.0.contains(varname)
+    }
+
+    #[getter]
+    fn num_variables(&self) -> usize {
+        return self.varcount().into()
+    }
+
+    fn variables(&self) -> Vec<PyVariable> {
+        self.vrefs().into_iter().map(|v| PyVariable::new(v)).collect()
     }
 }

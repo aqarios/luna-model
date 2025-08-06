@@ -170,7 +170,8 @@ impl SharedEnvironment {
     }
 
     pub fn varcount(&self) -> VarIndex {
-        self.access().varcount
+        let vc: usize = self.access().varcount.into();
+        (vc - self.access().ghost_vars.len()).into()
     }
 
     /// Includes only non ghost variables, i.e., active variables.

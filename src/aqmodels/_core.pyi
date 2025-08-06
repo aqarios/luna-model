@@ -3366,7 +3366,7 @@ class Expression:
         ...
 
     @property
-    def _environment(self, /) -> Environment:
+    def environment(self, /) -> Environment:
         """Get this expression's environment."""
         ...
 
@@ -3574,6 +3574,15 @@ class Environment:
     def __eq__(self, other: Environment, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+
+    @property
+    def num_variables(self, /) -> int:
+        """Get the number of variables in env."""
+        ...
+
+    def variables(self, /) -> list[Variable]:
+        """Get the variables in env."""
+        ...
 
 # _constraints.pyi
 class Comparator(Enum):
