@@ -160,7 +160,6 @@ impl Constraint {
         Elem: Mul<Bias, Output = Bias>,
         F: Fn(VarIndex) -> VarIndex,
     {
-        // println!("Constraint evaluate sample");
         let val = self.lhs.evaluate_sample(sample, &index_map);
         self.comparator.evaluate(val, self.rhs)
     }
