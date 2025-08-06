@@ -27,15 +27,10 @@ impl ExpressionEvaluation<VarIndex, Bias> for Expression {
         // Evaluate the quadratic term if it exists.
         if let Some(quad) = &self.quadratic {
             for (u, v, bias) in quad.iter_flat() {
-                value +=
-                    sample.value_by_index(u) * (sample.value_by_index(index_map(v.into())) * bias);
+                value += sample.value_by_index(index_map(u))
+                    * (sample.value_by_index(index_map(v)) * bias);
             }
         }
-        // println!("eval sample -> higher = {:?}", self.higher_order);
-        // println!(
-        //     "eval sample -> higher.len() = {:?}",
-        //     self.higher_order.as_ref().map(|e| e.len())
-        // );
         // Evaluate the higher order term if it exists.
         if let Some(ho) = &self.higher_order {
             for (contribs, bias) in ho.iter_contrib() {
