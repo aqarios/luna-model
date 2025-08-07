@@ -2885,6 +2885,23 @@ class Expression:
         """
         ...
 
+    def separate(self, variables: list[Variable]) -> tuple[Expression, Expression]:
+        """
+        Separates expression into two expressions based on presence of variables.
+
+        Parameters
+        ----------
+        variables : list[Variable]
+            The variables of which one must at least be present in a left term.
+
+        Returns
+        -------
+        tuple[Expression, Expression]
+            Two expressions, left contains one of the variables right does not, i.e.
+            (contains, does not contain)
+        """
+
+
 
     def substitute(
         self, /, target: Variable, replacement: Expression | Variable

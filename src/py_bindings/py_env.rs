@@ -1,7 +1,7 @@
 use super::unwind;
 use unwind_macros::unwindable;
 use crate::{
-    core::{environment::SharedEnvironment, ContentEquality, VarRef},
+    core::{environment::SharedEnvironment, ContentEquality},
     serialization::{Decodable, Decompressable, Encodable, Unversionizable}, utils::Share,
 };
 use derive_more::{Deref, DerefMut};

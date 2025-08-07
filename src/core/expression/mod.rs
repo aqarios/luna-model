@@ -7,6 +7,7 @@ mod expr;
 mod multiplication;
 mod negative;
 mod substitution;
+mod separation;
 
 pub use base::BiasConstraints;
 pub use base::ExpressionBase;
@@ -23,3 +24,4 @@ pub use errors::EnvMismatchError;
 pub use expr::Expression;
 
 pub use substitution::Substitution;
+pub use separation::Separation;

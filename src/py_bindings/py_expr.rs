@@ -8,6 +8,7 @@ use super::{
     py_utilities::Replacement,
     py_var::PyVariable,
 };
+use crate::core::expression::Separation;
 use crate::utils::ShareMut;
 use crate::{
     core::{
@@ -145,7 +146,6 @@ impl PyExpression {
             Right(parent) => parent.access().objective.clone(),
         }
     }
-
 }
 
 /// Iterate over the single components of an expression.
@@ -1261,6 +1261,26 @@ impl PyExpression {
         }
     }
 
+    /// Separates expression into two expressions based on presence of variables.
+
+    /// Parameters
+    /// ----------
+    /// variables : list[Variable]
+    ///     The variables of which one must at least be present in a left term.
+
+    /// Returns
+    /// -------
+    /// tuple[Expression, Expression]
+    ///     Two expressions, left contains one of the variables right does not, i.e.
+    ///     (contains, does not contain)
+    fn separate(&self, variables: Vec<PyVariable>) -> PyResult<(PyExpression, PyExpression)> {
+        let vars: Vec<VarRef> = variables.iter().map(|x| (**x.0).clone()).collect();
+        let (left, right) = match &self.0 {
+            Left(expr) => expr.separate(&vars),
+            Right(model) => model.access().objective.separate(&vars),
+        }?;
+        Ok((PyExpression::new(left), PyExpression::new(right)))
+    }
 
     #[staticmethod]
     fn deep_clone_many(py_exprs: Vec<PyExpression>) -> PyResult<Vec<PyExpression>> {
@@ -1282,7 +1302,10 @@ impl PyExpression {
             .collect();
 
         let cloned_exprs = Expression::deep_clone_many(&exprs)?;
-        Ok(cloned_exprs.into_iter().map(|e| PyExpression::new(e)).collect())
+        Ok(cloned_exprs
+            .into_iter()
+            .map(|e| PyExpression::new(e))
+            .collect())
     }
 }
 
