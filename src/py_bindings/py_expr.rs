@@ -328,6 +328,20 @@ impl PyExpression {
         Ok(PyExpression::new(Expression::empty(env.0)))
     }
 
+    #[staticmethod]
+    #[pyo3(name="const", signature=(val, env=None))]
+    pub fn constant(val: f64, env: Option<&mut PyEnvironment>) -> PyResult<Self> {
+        let env: PyEnvironment = match env {
+            Some(env) => env.clone(),
+            None => CURRENT_ENV.with(|current| {
+                current.borrow().clone().ok_or_else(|| {
+                    NoActiveEnvironmentFoundError::new_err("no active environment found.")
+                })
+            })?,
+        };
+        Ok(PyExpression::new(Expression::simple(env.0, val)))
+    }
+
     /// Get the degree of the expression.
     fn degree(&self) -> usize {
         match &self.0 {

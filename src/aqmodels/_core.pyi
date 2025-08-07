@@ -2693,6 +2693,27 @@ class Expression:
         """
         ...
 
+    @overload
+    @staticmethod
+    def const(val: float, /) -> Expression: ...
+    @overload
+    @staticmethod
+    def const(val: float, /, env: Environment) -> Expression: ...
+    @staticmethod
+    def const(val: float, /, env: Environment | None = None) -> Expression:
+        """Create constant expression.
+
+        Parameters
+        ----------
+        val : float
+            The constant
+
+        Returns
+        -------
+        Expression
+        """
+        ...
+
     def get_offset(self, /) -> float:
         """
         Get the constant (offset) term in the expression.
@@ -2900,8 +2921,6 @@ class Expression:
             Two expressions, left contains one of the variables right does not, i.e.
             (contains, does not contain)
         """
-
-
 
     def substitute(
         self, /, target: Variable, replacement: Expression | Variable
@@ -3591,7 +3610,6 @@ class Environment:
     def __eq__(self, other: Environment, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
-
     @property
     def num_variables(self, /) -> int:
         """Get the number of variables in env."""
