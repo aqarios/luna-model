@@ -3,7 +3,6 @@ use std::collections::HashSet;
 use crate::{
     core::{
         expression::{ExpressionBaseAdd, ExpressionBaseCreation},
-        term::{HigherOrder, Linear, Quadratic},
         Expression, VarId, VarRef,
     },
     errors::DifferentEnvsErr,
