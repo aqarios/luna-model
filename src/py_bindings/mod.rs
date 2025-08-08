@@ -6,9 +6,9 @@ mod py_expr;
 mod py_model;
 mod py_model_metadata;
 pub mod py_modules;
-mod py_res;
-mod py_sample;
-mod py_sol;
+pub mod py_res;
+pub mod py_sample;
+pub mod py_sol;
 mod py_timing;
 mod py_translator;
 mod py_usize;
@@ -24,6 +24,11 @@ mod py_transformations;
 
 #[cfg(feature = "transformations")]
 pub use py_transformations::register_transformations;
+
+#[cfg(feature = "pyt")]
+pub use py_transformations::AnyPass;
+#[cfg(feature = "pyt")]
+pub use py_transformations::IntoAnyPass;
 
 #[cfg(not(feature = "lq"))]
 use pyo3::prelude::*;

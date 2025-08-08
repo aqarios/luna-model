@@ -1,6 +1,6 @@
 use crate::core::solution::sol::VarAssignment;
 use crate::core::writer::SolutionWriter;
-use crate::core::{RcSolution, Sample, SampleIterator, ValueByIndex};
+use crate::core::{Sample, SampleIterator, SharedSolution, ValueByIndex};
 use crate::types::{Bias, VarIndex};
 use either::{Left, Right};
 use std::fmt::{Display, Formatter};
@@ -11,13 +11,13 @@ use super::sample::OwnedSample;
 #[derive(Debug, Clone)]
 pub struct ResultView {
     /// The solution this result view corresponds to
-    pub sol: RcSolution,
+    pub sol: SharedSolution,
     /// Index of the row of the sample within the solution
     pub row_idx: usize,
 }
 
 impl ResultView {
-    pub fn new(sol: RcSolution, row_idx: usize) -> Self {
+    pub fn new(sol: SharedSolution, row_idx: usize) -> Self {
         Self { sol, row_idx }
     }
 
@@ -26,40 +26,39 @@ impl ResultView {
     }
 
     pub fn obj_value(&self) -> Option<Bias> {
-        self.sol.obj_values[self.row_idx]
+        self.sol.access().obj_values[self.row_idx]
     }
 
     pub fn raw_energy(&self) -> Option<Bias> {
-        self.sol.raw_energies[self.row_idx]
+        self.sol.access().raw_energies[self.row_idx]
     }
 
-    pub fn constraint_satisfaction(&self) -> &Option<Vec<bool>> {
-        &self.sol.constraints[self.row_idx]
+    pub fn constraint_satisfaction(&self) -> Option<Vec<bool>> {
+        self.sol.access().constraints[self.row_idx].clone()
     }
 
-    pub fn variable_bounds_satisfaction(&self) -> &Option<Vec<bool>> {
-        &self.sol.variable_bounds[self.row_idx]
+    pub fn variable_bounds_satisfaction(&self) -> Option<Vec<bool>> {
+        self.sol.access().variable_bounds[self.row_idx].clone()
     }
 
     pub fn feasible(&self) -> Option<bool> {
-        self.sol.feasible[self.row_idx]
+        self.sol.access().feasible[self.row_idx]
     }
 
     pub fn counts(&self) -> usize {
-        self.sol.counts[self.row_idx]
+        self.sol.access().counts[self.row_idx]
     }
 
     pub fn get_assignment(&self, col_idx: usize) -> Option<VarAssignment> {
-        self.sol.get_assignment(self.row_idx, col_idx)
+        self.sol.access().get_assignment(self.row_idx, col_idx)
     }
 
     pub fn get_sample(&self) -> Sample {
-        // Cloning is fine here as only usize and Rc are cloned.
         Sample(Left(self.clone()))
     }
 
     pub fn map_varidx(&self, varidx: usize) -> usize {
-        self.sol.map_varidx(varidx)
+        self.sol.access().map_varidx(varidx)
     }
 }
 
@@ -74,6 +73,7 @@ impl ValueByIndex<VarIndex> for ResultView {
 
     fn value_by_index(&self, index: VarIndex) -> Self::Output {
         self.sol
+            .access()
             .get_assignment(self.row_idx, self.map_varidx(index.into()))
             .unwrap()
     }
@@ -82,7 +82,7 @@ impl ValueByIndex<VarIndex> for ResultView {
 #[derive(Debug, Clone)]
 pub struct OwnedResult {
     /// The vector of variable assignments.
-    pub sample: OwnedSample, // Rc<Vec<VarAssignment>>,
+    pub sample: OwnedSample,
     /// The objective value computed from an AqModel. If not present, a raw value from the solver
     /// may be used. None, if none of these are present.
     pub obj_value: Option<Bias>,
@@ -96,7 +96,7 @@ pub struct OwnedResult {
 
 impl OwnedResult {
     pub fn new(
-        sample: OwnedSample, // Rc<Vec<VarAssignment>>,
+        sample: OwnedSample,
         obj_value: Bias,
         constraint_satisfaction: Vec<bool>,
         variable_bounds_satisfaction: Vec<bool>,

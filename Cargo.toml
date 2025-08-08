@@ -1,6 +1,6 @@
 [package]
 name = "aqmodels"
-version = "0.1.9"
+version = "0.2.0"
 edition = "2021"
 description = "Rust based implementation of aq-models"
 readme = "README.md"
@@ -35,6 +35,10 @@ regex = "1.11.1"
 time = { version = "0.3.41", features = ["formatting"] }
 itertools = "0.14.0"
 indexmap = "2.9.0"
+dyn-clone = "1.0.19"
+pad = "0.1.6"
+sqids = "0.4.2"
+bitvec = "1.0.1"
 [dependencies.pyo3]
 version = "0.24.1"
 features = ["extension-module", "indexmap"]
@@ -46,7 +50,6 @@ optional = true
 
 [dependencies.aqm-macros]
 path = "aqm-macros"
-# features = [ "py" ]
 default-features = false
 optional = true
 

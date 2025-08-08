@@ -1,8 +1,8 @@
 import sys
 import tempfile
+import time
 from pathlib import Path
 from random import Random
-import time
 
 import gurobipy as gp
 import pytest

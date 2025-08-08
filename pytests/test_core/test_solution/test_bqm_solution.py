@@ -5,20 +5,23 @@ from dwave.samplers import TabuSampler
 from aqmodels import Solution, Vtype
 from aqmodels.translator import BqmTranslator, DwaveTranslator
 
+from ..utils import make_seed
+
 
 def test_bqm_solution():
-    cqm = dimod.generators.random_bin_packing(num_items=5, seed=102)  # type: ignore
+    seed = make_seed()
+    cqm = dimod.generators.random_bin_packing(num_items=5, seed=seed)  # type: ignore
     bqm, _ = dimod.cqm_to_bqm(cqm)
 
     # aqmodels flow
     aqm = BqmTranslator.to_aq(bqm)
     bqm2 = BqmTranslator.from_aq(aqm)
-    assert bqm2.is_almost_equal(bqm)
+    assert bqm2.is_almost_equal(bqm), "the bqms are not equal"
 
     bqm_vars = bqm2.variables
     aqm_vars = [v for v in aqm.variables()]
     aqm_var_names = [v.name for v in aqm_vars]
-    assert bqm_vars == aqm_var_names
+    assert bqm_vars == aqm_var_names, "the variables names are not ordered equally"
 
     bqm_qubo = np.zeros((len(bqm_vars), len(bqm_vars)))
     for i, u in enumerate(bqm_vars):
@@ -38,9 +41,9 @@ def test_bqm_solution():
             aqm_qubo[i, j] = aqm.objective.get_quadratic(u, v)
             aqm_qubo[j, i] = aqm.objective.get_quadratic(v, u)
 
-    assert np.allclose(bqm_qubo, aqm_qubo)
+    assert np.allclose(bqm_qubo, aqm_qubo), "the qubos are not equal"
 
-    res = TabuSampler().sample(bqm, seed=42)
+    res = TabuSampler().sample(bqm, seed=seed)
 
     ordering = aqm_var_names.copy()
     dimod_positions = {v: i for i, v in enumerate(bqm_vars)}
@@ -62,18 +65,30 @@ def test_bqm_solution():
     sol = aqm.evaluate(sol)
     sol_from_dict = aqm.evaluate(sol_from_dict)
 
-    assert sol.variable_names == aqm_var_names
-    assert sol.variable_names == bqm_vars
+    quest = sol_from_dict.samples[0].to_dict()
+    for k, v in sol.samples[0].to_dict().items():
+        assert quest[k] == v, "incorrect assignment in solution built from dict"
+
+    assert sol.variable_names == aqm_var_names, (
+        "(sol) the variable names don't have the expected format or ordering"
+    )
+    assert sol.variable_names == bqm_vars, (
+        "(sol) the variable names don't match the BQM variable names"
+    )
 
     aqm_np = np.array(sol.samples.tolist()[0])
-    assert np.allclose(dimod_np, aqm_np)
+    assert np.allclose(dimod_np, aqm_np), (
+        "the numpy samples representation does not match"
+    )
 
     sol_best = sol.best()
-    assert sol_best is not None
-    assert bqm.energy(res) == sol_best.obj_value
+    assert sol_best is not None, "the best energy is not None"
+    assert sol_best.obj_value == bqm.energy(res), "the objective values are not correct"
     sol_dict_best = sol_from_dict.best()
-    assert sol_dict_best is not None
-    assert bqm.energy(res) == sol_dict_best.obj_value
+    assert sol_dict_best is not None, "the best solution is falsly set"
+    assert sol_dict_best.obj_value == bqm.energy(res), (
+        "the objective values do not match"
+    )
 
 
 def test_bqm_solution_with_substitution():

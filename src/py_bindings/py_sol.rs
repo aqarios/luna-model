@@ -1,9 +1,8 @@
 use super::py_unwind::unwind;
 use super::py_utilities::repr_solution;
-use crate::core::solution::sol::{SampleCol, SampleColElement, ShowMetadata};
-use crate::core::{
-    PrintLayout, RcSolution, Samples, Sense, SharedEnvironment, Solution, VarAssignment, Vtype,
-};
+use crate::core::solution::sol::Filter;
+use crate::core::solution::{ColElement, Column, PrintLayout, ShowMetadata, VarKey};
+use crate::core::{make_index_map, Sense, SharedEnvironment, Solution, VarAssignment, Vtype};
 use crate::errors::{
     ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, VariableNotExistingErr,
 };
@@ -15,11 +14,12 @@ use crate::py_bindings::py_sample::PySamples;
 use crate::py_bindings::py_timing::PyTiming;
 use crate::py_bindings::py_usize::PyUsize;
 use crate::py_bindings::py_var::PyVariable;
-use crate::serialization::{
-    Compressable, Decodable, Decompressable, Encodable, Unversionizable, Versionizable,
-};
+use crate::serialization::{Decodable, Decompressable, Encodable, Unversionizable};
+use crate::types::VarIndex;
+use crate::utils::ShareMut;
 use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
+use itertools::Itertools;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
@@ -27,19 +27,19 @@ use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use std::rc::Rc;
+use std::ops::Deref;
 use unwind_macros::unwindable;
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(pub VarAssignment);
 
 #[derive(Debug, Clone)]
-pub enum SampleKey {
+pub enum VariableKey {
     Str(String),
     Var(PyVariable),
 }
 
-impl From<String> for SampleKey {
+impl From<String> for VariableKey {
     fn from(value: String) -> Self {
         Self::Str(value)
     }
@@ -97,18 +97,18 @@ enum BitOrder {
 /// - Use `encode()` and `decode()` to serialize and recover solutions.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "Solution", module = "aqmodels._core")
+    pyclass(name = "Solution", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "Solution", module = "luna_quantum._core")
+    pyclass(name = "Solution", module = "luna_quantum._core")
 )]
-#[derive(Deref, DerefMut, Debug)]
-pub struct PySolution(pub RcSolution);
+#[derive(Deref, DerefMut, Debug, Clone)]
+pub struct PySolution(pub ShareMut<Solution>);
 
-impl Into<RcSolution> for PySolution {
-    fn into(self) -> RcSolution {
-        self.0
+impl PySolution {
+    pub fn new(sol: Solution) -> Self {
+        PySolution(ShareMut::new(sol))
     }
 }
 
@@ -213,7 +213,7 @@ impl PySolution {
     ///     If a sample column has an incorrect number of samples or if `counts` has
     ///     a length different from the number of samples given.
     #[staticmethod]
-    #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None, sense=None)
+    #[pyo3(signature=(component_types, variable_names=None, binary_cols=None, spin_cols=None, int_cols=None, real_cols=None, raw_energies=None, timing=None, counts=None, sense=None, obj_values=None, constraints=None, variable_bounds=None, feasible=None)
     )]
     fn _build(
         component_types: Vec<Vtype>,
@@ -222,10 +222,14 @@ impl PySolution {
         spin_cols: Option<Vec<Vec<i8>>>,
         int_cols: Option<Vec<Vec<i64>>>,
         real_cols: Option<Vec<Vec<f64>>>,
-        raw_energies: Option<Vec<Option<f64>>>,
+        raw_energies: Option<Vec<f64>>,
         timing: Option<PyTiming>,
         counts: Option<Vec<PyUsize>>,
         sense: Option<Sense>,
+        obj_values: Option<Vec<f64>>,
+        constraints: Option<Vec<Vec<bool>>>,
+        variable_bounds: Option<Vec<Vec<bool>>>,
+        feasible: Option<Vec<bool>>,
     ) -> PyResult<Self> {
         let var_names: Vec<Option<String>> = if let Some(vn) = variable_names {
             if vn.len() != component_types.len() {
@@ -252,7 +256,7 @@ impl PySolution {
                 Vtype::Binary => {
                     let bc = binary_cols[lb].clone();
                     let bc_len = bc.len();
-                    sol.add_column(SampleCol::Binary(SampleColElement::new(i.into(), bc)));
+                    sol.add_column(Column::Binary(ColElement::new(i.into(), bc)));
                     sol.variable_names
                         .push(var_names[i].clone().unwrap_or(format!("b{lb}")));
                     lb += 1;
@@ -261,7 +265,7 @@ impl PySolution {
                 Vtype::Spin => {
                     let sc = spin_cols[ls].clone();
                     let sc_len = sc.len();
-                    sol.add_column(SampleCol::Spin(SampleColElement::new(i.into(), sc)));
+                    sol.add_column(Column::Spin(ColElement::new(i.into(), sc)));
                     sol.variable_names
                         .push(var_names[i].clone().unwrap_or(format!("s{ls}")));
                     ls += 1;
@@ -270,7 +274,7 @@ impl PySolution {
                 Vtype::Integer => {
                     let ic = int_cols[li].clone();
                     let ic_len = ic.len();
-                    sol.add_column(SampleCol::Integer(SampleColElement::new(i.into(), ic)));
+                    sol.add_column(Column::Integer(ColElement::new(i.into(), ic)));
                     sol.variable_names
                         .push(var_names[i].clone().unwrap_or(format!("i{li}")));
                     li += 1;
@@ -279,7 +283,7 @@ impl PySolution {
                 Vtype::Real => {
                     let rc = real_cols[lr].clone();
                     let rc_len = rc.len();
-                    sol.add_column(SampleCol::Real(SampleColElement::new(i.into(), rc)));
+                    sol.add_column(Column::Real(ColElement::new(i.into(), rc)));
                     sol.variable_names
                         .push(var_names[i].clone().unwrap_or(format!("r{lr}")));
                     lr += 1;
@@ -297,11 +301,7 @@ impl PySolution {
             }
         }
         sol.n_samples = num_samples.unwrap_or(0);
-        if let Some(re) = raw_energies {
-            sol.raw_energies = re;
-        } else {
-            sol.raw_energies = vec![None; sol.n_samples];
-        }
+        sol.raw_energies = raw_energies;
         if let Some(no) = counts {
             if no.len() != sol.n_samples {
                 return Err(PyRuntimeError::new_err(
@@ -312,12 +312,12 @@ impl PySolution {
         } else {
             sol.counts = vec![1; sol.n_samples];
         }
-        sol.obj_values = vec![None; sol.n_samples];
-        sol.constraints = vec![None; sol.n_samples];
-        sol.variable_bounds = vec![None; sol.n_samples];
-        sol.feasible = vec![None; sol.n_samples];
+        sol.obj_values = obj_values;
+        sol.constraints = constraints;
+        sol.variable_bounds = variable_bounds;
+        sol.feasible = feasible;
         sol.timing = timing.and_then(|t| Some(t.0));
-        Ok(PySolution(RcSolution(Rc::new(sol))))
+        Ok(PySolution::new(sol))
     }
 
     /// Create a `Solution` from a dict that maps variables or variable names to their
@@ -362,38 +362,41 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None))]
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None, energy=None))]
     pub fn from_dict(
-        data: HashMap<SampleKey, f64>,
+        data: IndexMap<VariableKey, f64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
         counts: Option<usize>,
         sense: Option<Sense>,
+        energy: Option<f64>,
     ) -> PyResult<PySolution> {
         Self::check_env_or_model(&env, &model)?;
         Self::check_sense_or_model(&sense, &model)?;
         let environment = Self::retrieve_environment(&env, &model)?;
 
         let mut sol = Solution::with_sense(
-            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+            sense.unwrap_or(model.as_ref().map(|m| m.access().sense).unwrap_or_default()),
         );
         sol.create_columns(&environment, 1);
-        let n_vars = environment.borrow().varcount() as usize;
-
-        let (sample, var_names) =
-            Self::build_sample(&data, n_vars, &environment, |idx| sol.map_varidx(idx))?;
-
-        sol.variable_names = var_names;
+        let n_vars = environment.access().varcount() as usize;
+        let data = Self::build_ordered_raw_sample(data, &environment.variable_names())?;
+        sol.variable_names = environment.variable_names();
+        let index_map = make_index_map(sol.varname_to_pos(), &environment);
+        let sample = Self::build_sample(&data, n_vars, &environment, |idx| index_map[&idx])?;
         sol.timing = timing.map(|t| t.0);
-        let energy: Option<f64> = None;
-        let _ = sol.extend(&sample, counts.unwrap_or(1), energy)?;
-        let mut sol_rc = RcSolution(Rc::new(sol));
+
+        if let Some(energy) = energy {
+            sol.extend(&sample, counts.unwrap_or(1), energy)?;
+        } else {
+            sol.extend_no_energy(&sample, counts.unwrap_or(1))?;
+        }
         if let Some(m) = model {
-            sol_rc = m.borrow().evaluate_solution(sol_rc)?;
+            sol = m.access().evaluate_solution(sol)?;
         }
 
-        Ok(PySolution(sol_rc))
+        Ok(PySolution::new(sol))
     }
 
     /// Create a `Solution` from multiple dicts that map variables or variable names to their
@@ -443,15 +446,16 @@ impl PySolution {
     ///     If the result's variable types are incompatible with the model environment's
     ///     variable types.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None)
+    #[pyo3(signature=(data, env=None, model=None, timing=None, counts=None, sense=None, energies=None)
     )]
     fn from_dicts(
-        data: Vec<HashMap<SampleKey, f64>>,
+        data: Vec<IndexMap<VariableKey, f64>>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
         counts: Option<Vec<usize>>,
         sense: Option<Sense>,
+        energies: Option<Vec<f64>>,
     ) -> PyResult<PySolution> {
         Self::check_env_or_model(&env, &model)?;
         Self::check_sense_or_model(&sense, &model)?;
@@ -459,20 +463,20 @@ impl PySolution {
         let environment = Self::retrieve_environment(&env, &model)?;
 
         let mut sol = Solution::with_sense(
-            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+            sense.unwrap_or(model.as_ref().map(|m| m.access().sense).unwrap_or_default()),
         );
         sol.create_columns(&environment, data.len());
-        let n_vars = environment.borrow().varcount() as usize;
 
         let mut samples: Vec<Vec<f64>> = Vec::with_capacity(data.len());
 
+        let n_vars = environment.access().varcount() as usize;
+        // we need to ensure each sample dict / hashmap / indexmap has the same order.
+        let data = Self::build_ordered_raw_samples(data, &environment.variable_names())?;
+        sol.variable_names = environment.variable_names();
+        let index_map = make_index_map(sol.varname_to_pos(), &environment);
+
         for (i, d) in data.iter().enumerate() {
-            let (sample, var_names) =
-                Self::build_sample(&d, n_vars, &environment, |idx| sol.map_varidx(idx))?;
-
-            sol.variable_names = var_names;
-            let energy: Option<f64> = None;
-
+            let sample = Self::build_sample(d, n_vars, &environment, |idx| index_map[&idx])?;
             let sc = counts
                 .as_ref()
                 .and_then(|c| Some(c[i]))
@@ -481,19 +485,24 @@ impl PySolution {
             if let Some(pos) = samples.iter().position(|s| s == &sample) {
                 sol.counts[pos] += sc;
             } else {
-                let _ = sol.extend(&sample, sc, energy)?;
+                // this is safe. The input energies are either all set or all none, when entire vec
+                // is none.
+                if let Some(e) = energies.as_ref().map(|es| es[i]) {
+                    sol.extend(&sample, sc, e)?;
+                } else {
+                    sol.extend_no_energy(&sample, sc)?;
+                }
                 samples.push(sample);
             }
         }
 
         sol.timing = timing.map(|t| t.0);
 
-        let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
-            sol_rc = m.borrow().evaluate_solution(sol_rc)?;
+            sol = m.access().evaluate_solution(sol)?;
         }
 
-        Ok(PySolution(sol_rc))
+        Ok(PySolution::new(sol))
     }
 
     /// Create a `Solution` from a dict that maps measured bitstrings to counts.
@@ -548,22 +557,22 @@ impl PySolution {
         timing: Option<PyTiming>,
         sense: Option<Sense>,
         bit_order: String,
-        energies: Option<Vec<Option<f64>>>,
+        energies: Option<Vec<f64>>,
     ) -> PyResult<PySolution> {
         Self::check_env_or_model(&env, &model)?;
         Self::check_sense_or_model(&sense, &model)?;
         let environment = Self::retrieve_environment(&env, &model)?;
 
         let mut sol = Solution::with_sense(
-            sense.unwrap_or(model.as_ref().map(|m| m.borrow().sense).unwrap_or_default()),
+            sense.unwrap_or(model.as_ref().map(|m| m.access().sense).unwrap_or_default()),
         );
-        for (idx, v) in environment.borrow().all_variables().enumerate() {
+        for (idx, v) in environment.access().all_variables().enumerate() {
             match v.vtype {
-                Vtype::Binary => sol.add_column(SampleCol::Binary(SampleColElement::new(
+                Vtype::Binary => sol.add_column(Column::Binary(ColElement::new(
                     idx.into(),
                     Vec::with_capacity(data.len()),
                 ))),
-                Vtype::Spin => sol.add_column(SampleCol::Spin(SampleColElement::new(
+                Vtype::Spin => sol.add_column(Column::Spin(ColElement::new(
                     idx.into(),
                     Vec::with_capacity(data.len()),
                 ))),
@@ -584,11 +593,11 @@ impl PySolution {
 
         let nvars = sol.samples.len();
         sol.n_samples = data.len();
-        sol.raw_energies = energies.map_or_else(|| vec![None; data.len()], |v| v);
-        sol.obj_values = vec![None; data.len()];
-        sol.constraints = vec![None; data.len()];
-        sol.variable_bounds = vec![None; data.len()];
-        sol.feasible = vec![None; data.len()];
+        sol.raw_energies = energies;
+        sol.obj_values = None;
+        sol.constraints = None;
+        sol.variable_bounds = None;
+        sol.feasible = None;
 
         for (k, v) in data.iter() {
             if k.len() != nvars {
@@ -601,10 +610,10 @@ impl PySolution {
 
             for (c, col) in it.into_iter().zip(sol.samples.iter_mut()) {
                 match (c, col) {
-                    ('0', SampleCol::Binary(vec)) => vec.push(0),
-                    ('1', SampleCol::Binary(vec)) => vec.push(1),
-                    ('0', SampleCol::Spin(vec)) => vec.push(1),
-                    ('1', SampleCol::Spin(vec)) => vec.push(-1),
+                    ('0', Column::Binary(vec)) => vec.push(0),
+                    ('1', Column::Binary(vec)) => vec.push(1),
+                    ('0', Column::Spin(vec)) => vec.push(1),
+                    ('1', Column::Spin(vec)) => vec.push(-1),
                     _ => return Err(PyValueError::new_err("unexpected char in bitstring.")),
                 }
             }
@@ -613,12 +622,11 @@ impl PySolution {
 
         sol.timing = timing.map(|t| t.0);
 
-        let mut sol_rc = RcSolution(Rc::new(sol));
         if let Some(m) = model {
-            sol_rc = m.borrow().evaluate_solution(sol_rc)?;
+            sol = m.access().evaluate_solution(sol)?;
         }
 
-        Ok(PySolution(sol_rc))
+        Ok(PySolution::new(sol))
     }
 
     /// Show a solution object as a human-readable string.
@@ -713,72 +721,78 @@ impl PySolution {
                 "`max_var_name_length` needs to be at least 1; actual value: {mvnl}"
             )))
         } else {
-            Ok(self.0.print(mll, mcl, ml, mvnl, layout, show_metadata))
+            Ok(self
+                .access()
+                .print(mll, mcl, ml, mvnl, layout, show_metadata))
         }
     }
 
     /// Get an iterator over the single results of the solution.
     #[getter]
-    fn get_results<'a>(&self) -> PyResultIterator {
-        PyResultIterator(self.iter_results())
+    fn get_results(&self) -> PyResultIterator {
+        // PyResultIterator(self.access().iter_results())
+        PyResultIterator::new(self.clone())
     }
 
     /// Get a view into the samples of the solution.
     #[getter]
-    fn get_samples(&self) -> PySamples {
-        PySamples(Samples(RcSolution::clone(&self)))
+    fn get_samples<'a>(&'a self) -> PySamples {
+        // PySamples(Samples(&self.0))
+        PySamples(self.clone())
     }
 
     /// Get the objective values of the single samples as a ndarray. A value will be
     /// None if the sample hasn't yet been evaluated.
     #[getter]
-    fn get_obj_values<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
-        self.obj_values
-            .iter()
-            .map(|x| x.into_py_any(py).unwrap())
-            .collect::<Vec<_>>()
-            .to_pyarray(py)
+    fn get_obj_values<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<PyObject>>> {
+        self.access().obj_values.as_ref().map(|ovs| {
+            ovs.iter()
+                .map(|x| x.into_py_any(py).unwrap())
+                .collect::<Vec<_>>()
+                .to_pyarray(py)
+        })
     }
 
     /// Get the raw energy values of the single samples as returned by the solver /
     /// algorithm. Will be None if the solver / algorithm did not provide a value.
     #[getter]
-    fn get_raw_energies<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<PyObject>> {
-        self.raw_energies
-            .iter()
-            .map(|x| x.into_py_any(py).unwrap())
-            .collect::<Vec<_>>()
-            .to_pyarray(py)
+    fn get_raw_energies<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<PyObject>>> {
+        self.access().raw_energies.as_ref().map(|e| {
+            e.iter()
+                .map(|x| x.into_py_any(py).unwrap())
+                .collect::<Vec<_>>()
+                .to_pyarray(py)
+        })
     }
 
     /// Return how often each sample occurred in the solution.
     #[getter]
     fn get_counts<'a>(&self, py: Python<'a>) -> Bound<'a, PyArray1<usize>> {
-        self.counts.to_pyarray(py)
+        self.access().counts.to_pyarray(py)
     }
 
     /// Get the solver / algorithm runtime.
     #[getter]
     fn get_runtime(&self) -> Option<PyTiming> {
-        self.timing.map(|t| PyTiming(t))
+        self.access().timing.map(|t| PyTiming(t))
     }
 
     /// Get the optimization sense.
     #[getter]
     fn get_sense(&self) -> Sense {
-        self.sense
+        self.access().sense
     }
 
     /// Get the index of the sample with the best objective value.
     #[getter]
     fn get_best_sample_idx(&self) -> Option<usize> {
-        self.best_sample_idx
+        self.access().best_sample_idx
     }
 
     /// Get the names of all variables in the solution.
     #[getter]
     fn get_variable_names(&self) -> Vec<String> {
-        self.variable_names.clone()
+        self.access().variable_names.clone()
     }
 
     /// Compute the expectation value of the solution.
@@ -793,7 +807,7 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn expectation_value(&self) -> PyResult<f64> {
-        Ok(self.0.expectation_value()?)
+        Ok(self.access().expectation_value()?)
     }
 
     /// Compute the expectation value of the solution.
@@ -808,7 +822,23 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn feasibility_ratio(&self) -> PyResult<f64> {
-        Ok(self.0.feasibility_ratio()?)
+        Ok(self.access().feasibility_ratio()?)
+    }
+
+    // Get a new solution with all samples for which the condition `f` is true.
+
+    // Parameters
+    // ----------
+    // f : Callable[[ResultView], bool]
+    //     A filter function yielding true for all samples to be contained in the
+    //     new solution.
+
+    // Returns
+    // -------
+    // Solution
+    //     The new solution with only samples for which the condition is true.
+    fn filter(&self, f: Filter) -> PyResult<PySolution> {
+        Ok(PySolution::new(self.access().filter(f)?))
     }
 
     /// Get a new solution with all infeasible samples removed.
@@ -822,18 +852,15 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn filter_feasible(&self) -> PyResult<PySolution> {
-        if let Some(idx) = self.feasible.iter().position(|f| f.is_none()) {
-            Err(ComputationErr(format!(
-                "feasible contains a 'None' value at position '{idx}'"
-            )))?;
+        let slf = self.access();
+        if let Some(f) = &slf.feasible {
+            let sol = slf.filter_samples(&f);
+            Ok(PySolution::new(sol))
+        } else {
+            Err(ComputationErr(
+                "no feasible information on solution, evalaute first.".to_string(),
+            ))?
         }
-        let mask = self
-            .feasible
-            .iter()
-            .map(|x| x.unwrap_or_default())
-            .collect();
-        let sol = self.filter_samples(&mask);
-        Ok(PySolution(RcSolution(Rc::new(sol))))
     }
 
     /// Get the index of the constraint with the highest number of violations.
@@ -849,16 +876,18 @@ impl PySolution {
     /// ComputationError
     ///     If the computation fails for any reason.
     fn highest_constraint_violations(&self) -> PyResult<Option<usize>> {
-        Ok(self.0.highest_constraint_violations()?)
+        Ok(self.access().highest_constraint_violations()?)
     }
 
     /// Get the best result.
     fn best(&self) -> Option<PyResultView> {
-        self.0.best().map(|r| PyResultView(r))
+        let slf = self.access();
+        slf.best()
+            .map(|r| PyResultView::new(PySolution::new(slf.clone()), r.idx))
     }
 
     fn __len__(&self) -> usize {
-        self.n_samples
+        self.access().n_samples
     }
 
     /// Serialize the solution into a compact binary format.
@@ -881,16 +910,8 @@ impl PySolution {
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
     fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
-        let compress = compress.unwrap_or(level.is_some());
-        Ok(PyBytes::new(
-            py,
-            &self
-                .0
-                .encode()
-                .maybe_compress(compress, level)?
-                .versionize(),
-        )
-        .into())
+        // Ok(PyBytes::new(py, &self.access().encode(compress, level)?).into())
+        Ok(PyBytes::new(py, &self.access().encode(compress, level)?).into())
     }
 
     /// Alias for `encode()`.
@@ -922,7 +943,7 @@ impl PySolution {
     ///     If decoding fails due to corruption or incompatibility.
     #[classmethod]
     fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Ok(PySolution(
+        Ok(PySolution::new(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
         ))
     }
@@ -957,7 +978,7 @@ impl PySolution {
     /// -------
     /// ResultIterator
     fn __iter__(slf: PyRef<'_, Self>) -> PyResultIterator {
-        PyResultIterator(slf.0.iter_results())
+        PyResultIterator::new(slf.clone())
     }
 
     /// Extract a result view from the `Solution` object.
@@ -979,11 +1000,11 @@ impl PySolution {
                     "Expected a non-negative number, received: {res_idx}"
                 )))?;
             }
-            match self.get_result_view(res_idx as usize) {
+            match self.access().get_result_view(res_idx as usize) {
                 None => Err(PyIndexError::new_err(format!(
                     "Index {res_idx} out of bounds"
                 ))),
-                Some(r) => Ok(PyResultView(r)),
+                Some(r) => Ok(PyResultView::new(self.clone(), r.idx)),
             }
         } else {
             Err(PyTypeError::new_err("unsupported type for indexing"))
@@ -1000,7 +1021,79 @@ impl PySolution {
     /// -------
     /// bool
     fn __eq__(&self, other: &PySolution) -> bool {
-        &self.0 == &other.0
+        &self.access().deref() == &other.access().deref()
+    }
+
+    #[pyo3(signature=(var, data, vtype=None))]
+    // todo: change to pyarray
+    fn add_var(&self, var: VariableKey, data: Vec<f64>, vtype: Option<Vtype>) -> PyResult<()> {
+        let (var, default) = match &var {
+            VariableKey::Str(str) => (
+                VarKey::Name(str.to_string()),
+                vtype.unwrap_or_else(|| Vtype::Binary),
+            ),
+            VariableKey::Var(elem) => (
+                VarKey::Var(elem.0.as_ref()),
+                elem.0.as_ref().env.access().get_vtype(elem.0.id),
+            ),
+        };
+        Ok(self
+            .access_mut()
+            .add_samplecol(var, data.as_slice(), default)?)
+    }
+
+    #[pyo3(signature=(variables, data, vtypes=None))]
+    fn add_vars(
+        &self,
+        variables: Vec<VariableKey>,
+        // todo: change to pyarray
+        data: Vec<Vec<f64>>,
+        vtypes: Option<Vec<Option<Vtype>>>,
+    ) -> PyResult<()> {
+        let vtypes = match vtypes {
+            Some(vs) => vs
+                .iter()
+                .zip(&variables)
+                .map(|(vt, vk)| match vk {
+                    VariableKey::Str(_) => vt.unwrap_or_else(|| Vtype::Binary),
+                    VariableKey::Var(v) => v.0.as_ref().env.access().get_vtype(v.0.id),
+                })
+                .collect_vec(),
+            None => variables
+                .iter()
+                .map(|vk| match vk {
+                    VariableKey::Str(_) => Vtype::Binary,
+                    VariableKey::Var(v) => v.0.as_ref().env.access().get_vtype(v.0.id),
+                })
+                .collect_vec(),
+        };
+
+        for (i, col) in data.iter().enumerate() {
+            let var = match &variables[i] {
+                VariableKey::Str(str) => VarKey::Name(str.to_string()),
+                VariableKey::Var(elem) => VarKey::Var(elem.0.as_ref()),
+            };
+            self.access_mut().add_samplecol(var, &col, vtypes[i])?;
+        }
+        Ok(())
+    }
+
+    fn remove_var(&self, var: VariableKey) {
+        let var = match &var {
+            VariableKey::Str(str) => VarKey::Name(str.to_string()),
+            VariableKey::Var(elem) => VarKey::Var(elem.0.as_ref()),
+        };
+        self.access_mut().remove_samplecol(var)
+    }
+
+    fn remove_vars(&self, variables: Vec<VariableKey>) {
+        for var in variables {
+            let var = match &var {
+                VariableKey::Str(str) => VarKey::Name(str.to_string()),
+                VariableKey::Var(elem) => VarKey::Var(elem.0.as_ref()),
+            };
+            self.access_mut().remove_samplecol(var)
+        }
     }
 }
 
@@ -1019,51 +1112,51 @@ impl<'py> IntoPyObject<'py> for PyVarAssignment {
     }
 }
 
-impl<'py> IntoPyObject<'py> for SampleKey {
+impl<'py> IntoPyObject<'py> for VariableKey {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
     type Error = PyErr;
 
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         match self {
-            SampleKey::Str(x) => Ok(x.into_py_any(py)?.into_bound(py)),
-            SampleKey::Var(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+            VariableKey::Str(x) => Ok(x.into_py_any(py)?.into_bound(py)),
+            VariableKey::Var(x) => Ok(x.into_py_any(py)?.into_bound(py)),
         }
     }
 }
 
-impl<'py> FromPyObject<'py> for SampleKey {
+impl<'py> FromPyObject<'py> for VariableKey {
     fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
         if let Ok(s) = ob.extract::<String>() {
-            Ok(SampleKey::Str(s))
+            Ok(VariableKey::Str(s))
         } else if let Ok(v) = ob.extract::<PyVariable>() {
-            Ok(SampleKey::Var(v))
+            Ok(VariableKey::Var(v))
         } else {
             Err(PyTypeError::new_err("keys have to be 'str' or 'Variable'"))
         }
     }
 }
 
-impl Hash for SampleKey {
+impl Hash for VariableKey {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
-            SampleKey::Str(s) => s.hash(state),
-            SampleKey::Var(v) => v.hash(state).expect(&VariableNotExistingErr {}.to_string()),
+            VariableKey::Str(s) => s.hash(state),
+            VariableKey::Var(v) => v.hash(state).expect(&VariableNotExistingErr {}.to_string()),
         }
     }
 }
 
-impl PartialEq<Self> for SampleKey {
+impl PartialEq<Self> for VariableKey {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (SampleKey::Str(s1), SampleKey::Str(s2)) => s1 == s2,
-            (SampleKey::Var(v1), SampleKey::Var(v2)) => v1 == v2,
+            (VariableKey::Str(s1), VariableKey::Str(s2)) => s1 == s2,
+            (VariableKey::Var(v1), VariableKey::Var(v2)) => v1 == v2,
             _ => false,
         }
     }
 }
 
-impl Eq for SampleKey {}
+impl Eq for VariableKey {}
 
 // Implement FromPyObject for your enum
 impl<'py> FromPyObject<'py> for PrintLayout {
@@ -1130,7 +1223,7 @@ impl PySolution {
         model: &Option<PyModel>,
     ) -> PyResult<PyEnvironment> {
         let environment = if let Some(model) = &model {
-            PyEnvironment(model.borrow().environment.clone())
+            PyEnvironment(model.access().environment.clone())
         } else {
             match env {
                 Some(env) => env.clone(),
@@ -1144,43 +1237,109 @@ impl PySolution {
         Ok(environment)
     }
 
+    pub fn build_ordered_raw_samples(
+        data: Vec<IndexMap<VariableKey, f64>>,
+        variable_names: &Vec<String>,
+    ) -> PyResult<Vec<IndexMap<String, f64>>> {
+        // todo: this works for now and gives the expected results based on the tests
+        // however, there are some bottlenecks in here which probably can be eliminated
+        // this needs further investigation in the future. For now this is fine.
+        if data.is_empty() {
+            return Err(PyRuntimeError::new_err("empty data passed."));
+        }
+        let data = data
+            .into_iter()
+            .map(|sample| {
+                sample
+                    .into_iter()
+                    .map(|(k, v)| {
+                        let var_name = match k {
+                            VariableKey::Str(s) => Ok(s),
+                            VariableKey::Var(v) => v.name(),
+                        };
+                        match var_name {
+                            Ok(vn) => Ok((vn, v)),
+                            Err(e) => Err(e),
+                        }
+                    })
+                    .collect::<Result<IndexMap<_, _>, _>>()
+            })
+            .collect::<Result<Vec<IndexMap<_, _>>, _>>()?;
+        let rank: IndexMap<&String, usize> = variable_names
+            .iter()
+            .enumerate()
+            .map(|(i, k)| (k, i))
+            .collect();
+        let data = data
+            .iter()
+            .map(|sample| {
+                let mut s = sample.clone();
+                s.sort_unstable_by(|k1, _v1, k2, _v_2| {
+                    let r1 = rank.get(k1).copied().unwrap_or(usize::MAX);
+                    let r2 = rank.get(k2).copied().unwrap_or(usize::MAX);
+                    r1.cmp(&r2)
+                });
+                s
+            })
+            .collect::<Vec<IndexMap<_, _>>>();
+        Ok(data)
+    }
+
+    pub fn build_ordered_raw_sample(
+        data: IndexMap<VariableKey, f64>,
+        variables: &Vec<String>,
+    ) -> PyResult<IndexMap<String, f64>> {
+        let mut new_data = IndexMap::with_capacity(variables.len());
+        let rank: HashMap<&String, usize> =
+            variables.iter().enumerate().map(|(i, k)| (k, i)).collect();
+
+        for (k, v) in data.iter() {
+            let var_name = match k {
+                VariableKey::Str(s) => s,
+                VariableKey::Var(v) => &v.name()?,
+            };
+            new_data.insert(var_name.to_string(), *v);
+        }
+        new_data.sort_unstable_by(|k1, _v1, k2, _v2| {
+            let r1 = rank.get(k1).copied().unwrap_or(usize::MAX);
+            let r2 = rank.get(k2).copied().unwrap_or(usize::MAX);
+            r1.cmp(&r2)
+        });
+
+        Ok(new_data)
+    }
+
     pub fn build_sample<F>(
-        data: &HashMap<SampleKey, f64>,
+        data: &IndexMap<String, f64>,
         n_vars: usize,
         env: &SharedEnvironment,
         map_varidx: F,
-    ) -> PyResult<(Vec<f64>, Vec<String>)>
+    ) -> PyResult<Vec<f64>>
     where
-        F: Fn(usize) -> usize,
+        F: Fn(VarIndex) -> VarIndex,
     {
         let mut sample = vec![f64::default(); n_vars];
         let mut mask = vec![false; n_vars];
-        let mut var_names = vec![String::default(); n_vars];
 
         for (k, &v) in data.iter() {
-            let var_name = match k {
-                SampleKey::Str(s) => s,
-                SampleKey::Var(v) => &v.name()?,
-            };
-            let environ = env.borrow();
-            let maybe_var = environ.get(var_name).ok();
-            // println!("{:?}", maybe_var);
+            let environ = env.access();
+            let maybe_var = environ.get_varidx(k).ok();
             if maybe_var.is_none() {
                 return Err(SampleUnexpectedVariableErr {
-                    var_name: var_name.clone(),
+                    var_name: k.clone(),
                 })?;
             }
             let var = maybe_var.unwrap().0 as usize;
-            let sidx = map_varidx(var);
+            let sidx: usize = map_varidx(var.into()).into();
             sample[sidx] = v;
+
             mask[sidx] = true;
-            var_names[sidx] = var_name.clone();
         }
 
         if !mask.iter().all(|&x| x) {
             return Err(SampleIncorrectLengthErr)?;
         }
 
-        Ok((sample, var_names))
+        Ok(sample)
     }
 }

@@ -77,7 +77,7 @@ fn linear_constraints() {
     assert_noerror(constrs.add_assign(&constr_b));
     assert_noerror(constrs.add_assign(&constr_c));
 
-    for (constr, actual) in constrs.iter().zip(&original_constraints) {
+    for ((_, constr), actual) in constrs.iter().zip(&original_constraints) {
         assert_eq!(constr.lhs.offset, 0.0);
         assert_eq!(constr.lhs.linear.to_vec(), actual.lhs.linear.to_vec());
         assert_eq!(constr.lhs.quadratic, actual.lhs.quadratic);

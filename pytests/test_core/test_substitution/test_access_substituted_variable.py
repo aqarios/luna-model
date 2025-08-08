@@ -1,5 +1,6 @@
 import pytest
-from aqmodels import Model, Vtype, Variable
+
+from aqmodels import Model, Variable, Vtype
 from aqmodels.errors import VariableNotExistingError
 
 

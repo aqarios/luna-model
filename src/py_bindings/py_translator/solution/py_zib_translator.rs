@@ -2,12 +2,12 @@ use unwind_macros::unwindable;
 use crate::py_bindings::unwind;
 use crate::core::Sense;
 use crate::py_bindings::py_env::PyEnvironment;
-use crate::py_bindings::py_sol::{PySolution, SampleKey};
+use crate::py_bindings::py_sol::{PySolution, VariableKey};
 use crate::py_bindings::py_timing::PyTiming;
+use indexmap::IndexMap;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::pyclass;
-use std::collections::HashMap;
 use std::ffi::CStr;
 
 #[cfg(not(feature = "lq"))]
@@ -52,11 +52,11 @@ def extract(model, timing, env):
 /// >>> aqs = lq.translator.ZibTranslator.to_aq(model)
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "ZibTranslator", module = "aqmodels._core.translator")
+    pyclass(name = "ZibTranslator", module = "aqmodels._core.translator")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(unsendable, name = "ZibTranslator", module = "luna_quantum._core.translator")
+    pyclass(name = "ZibTranslator", module = "luna_quantum._core.translator")
 )]
 pub struct PyZibTranslator;
 
@@ -66,7 +66,7 @@ impl PyZibTranslator {
     #[staticmethod]
     fn translate(
         // hashbrown::HashMap does not work here ;(
-        sample: HashMap<SampleKey, f64>,
+        sample: IndexMap<VariableKey, f64>,
         sense: Sense,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
@@ -78,6 +78,7 @@ impl PyZibTranslator {
             timing,
             None,
             Some(sense),
+            None,
         )?)
     }
 

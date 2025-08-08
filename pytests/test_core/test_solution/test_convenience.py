@@ -100,3 +100,30 @@ def test_filter_feasible(model: tuple[Model, tuple[Variable, ...]]):
         [{x: 0, y: 0, z: 1}, {x: 1, y: 0, z: 0}], model=m, counts=[1, 3]
     )
     assert sol_feasible == expected
+
+
+@pytest.mark.solution
+@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+def test_filter_feasible_callback(model: tuple[Model, tuple[Variable, ...]]):
+    m, (x, y, z) = model
+    m.add_constraint(x + y + z <= 1)
+    samples = [
+        {x: 0, y: 0, z: 1},  # -1
+        {x: 1, y: 1, z: 1},  # -1
+        {x: 1, y: 0, z: 0},  # 1
+        {x: 0, y: 1, z: 1},  # -2
+    ]
+    sol = Solution.from_dicts(samples, model=m, counts=[1, 2, 3, 4])
+
+    assert sol.samples.tolist() == [
+        [0, 0, 1],
+        [1, 1, 1],
+        [1, 0, 0],
+        [0, 1, 1],
+    ]
+    assert sol.obj_values is not None
+    assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]
+
+    expected_sol_feasible = sol.filter_feasible()
+    sol_feasible_with_ffn = sol.filter(lambda res: bool(res.feasible))
+    assert expected_sol_feasible == sol_feasible_with_ffn

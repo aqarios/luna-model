@@ -1,6 +1,8 @@
-import pytest
 import numpy as np
+import pytest
+
 from aqmodels.translator import NumpyTranslator
+
 from .common import do_checks  # type: ignore[reportMissingImports]
 
 
@@ -16,7 +18,7 @@ def np_solution() -> tuple[np.typing.NDArray, np.typing.NDArray]:
     )
 
 
-def test_dwave_sol_with_substituted_model(
+def test_numpy_sol_with_substituted_model(
     np_solution: tuple[np.typing.NDArray, np.typing.NDArray],
 ):
     do_checks(NumpyTranslator, np_solution)

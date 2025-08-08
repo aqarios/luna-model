@@ -68,8 +68,8 @@ def extract(aws_result, timing, env):
 /// >>> import luna_quantum as lq
 /// >>> aws_result = ...
 /// >>> aqs = lq.translator.AwsTranslator.to_aq(aws_result)
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "AwsTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "AwsTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(name = "AwsTranslator", module = "aqmodels._core.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(name = "AwsTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyAwsTranslator(pub NpArrayTranslator);
 
 #[unwindable]
@@ -93,7 +93,7 @@ impl PyAwsTranslator {
             })?,
         };
 
-        Ok(PySolution(NpArrayTranslator::from_numpy_arrays(
+        Ok(PySolution::new(NpArrayTranslator::from_numpy_arrays(
             sol_agg.as_slice()?,
             counts.as_slice()?,
             indices.as_slice()?,

@@ -1,18 +1,25 @@
-use std::{cell::RefCell, fmt::Display, rc::Rc};
+use crate::utils::ShareMut;
 use hashbrown::HashMap;
 use pyo3::{prelude::*, types::PyDict};
+use std::fmt::Display;
 
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, subclass, name = "ModelMetadata", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq", pyclass(unsendable, subclass, name = "ModelMetadata", module = "luna_quantum._core"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(subclass, name = "ModelMetadata", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(subclass, name = "ModelMetadata", module = "luna_quantum._core")
+)]
 #[derive(Clone, Debug)]
 pub struct PyModelMetadata {
-    pub data: Rc<RefCell<HashMap<String, PyObject>>>,
+    pub data: ShareMut<HashMap<String, PyObject>>,
 }
 
 impl PyModelMetadata {
     pub fn new() -> Self {
         Self {
-            data: Rc::new(RefCell::new(HashMap::new())),
+            data: ShareMut::new(HashMap::new()),
         }
     }
 }
@@ -25,11 +32,11 @@ impl PyModelMetadata {
     }
 
     fn __len__(&self) -> usize {
-        self.data.borrow().len()
+        self.data.access().len()
     }
 
     fn __contains__(&self, key: String) -> bool {
-        self.data.borrow().contains_key(&key)
+        self.data.access().contains_key(&key)
     }
 
     fn __getitem__(&self, py: Python, key: String) -> PyObject {
@@ -55,23 +62,23 @@ impl PyModelMetadata {
     fn get_item(&self, py: Python, key: String) -> PyObject {
         #[allow(deprecated)]
         self.data
-            .borrow()
+            .access()
             .get(&key)
             .map(|v| v.into_py(py))
             .unwrap_or_else(|| py.None())
     }
 
     fn set_item(&mut self, key: String, value: PyObject) {
-        self.data.borrow_mut().insert(key, value);
+        self.data.access_mut().insert(key, value);
     }
 
     fn del_item(&mut self, key: String) {
-        self.data.borrow_mut().remove(&key);
+        self.data.access_mut().remove(&key);
     }
 
     fn to_dict<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyDict> {
         let dict = PyDict::new(py);
-        for (k, v) in self.data.borrow().iter() {
+        for (k, v) in self.data.access().iter() {
             dict.set_item(k, v).unwrap()
         }
         dict
@@ -86,7 +93,7 @@ impl Display for PyModelMetadata {
         write!(f, "{{")?;
 
         let mut first = true;
-        for (key, value) in self.data.borrow().iter() {
+        for (key, value) in self.data.access().iter() {
             let item = format!("'{}': '{}'", key, value);
 
             if !first {

@@ -11,7 +11,6 @@ use syn::{
 #[cfg(feature = "py")]
 use syn::{parse::Parser, DeriveInput, Expr, Fields, MetaNameValue};
 
-/// Replace the derive with an attribute macro:
 #[cfg(feature = "py")]
 #[proc_macro_attribute]
 pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -40,6 +39,27 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
     }
     let pass_variant =
         pass_variant.unwrap_or_else(|| panic!("you must supply `pass_variant = \"...\"`"));
+
+    let get_invalidates = if pass_variant == "Transformation" {
+        quote! {
+            #[getter]
+            pub fn get_invalidates(&self) -> Vec<String> {
+                return self.invalidates()
+            }
+        }
+    } else {
+        quote! {}
+    };
+    let invalidates_repr = if pass_variant == "Transformation" {
+        quote! {
+            let vec = self.invalidates();
+            if !vec.is_empty() {
+                parts.push(format!("invalidates={:?}", vec));
+            }
+        }
+    } else {
+        quote! {}
+    };
 
     // Turn the string into an Ident so we splice it cleanly:
     let pass_variant_ident = format_ident!("{}", pass_variant);
@@ -75,6 +95,10 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
         }
     });
+    let field_names = fields
+        .iter()
+        .map(|f| f.ident.as_ref().unwrap())
+        .collect::<Vec<_>>();
 
     // 5) Build your expanded code:
     let expanded = quote! {
@@ -84,7 +108,7 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         // The Python wrapper type
         #[pyclass(name = #class_name)]
-        #[derive(::derive_more::Deref, ::derive_more::DerefMut, Clone)]
+        #[derive(::derive_more::Deref, ::derive_more::DerefMut, Clone, Debug)]
         pub struct #wrapper_name(pub #struct_name);
 
         #[unwindable]
@@ -106,11 +130,38 @@ pub fn py_pass(attr: TokenStream, item: TokenStream) -> TokenStream {
             pub fn get_requires(&self) -> Vec<String> {
                 self.requires()
             }
+
+            #get_invalidates
+
+            pub fn __repr__(&self) -> String {
+                self.repr()
+            }
         }
 
         impl #wrapper_name {
             pub fn as_pass(self) -> PyResult<Pass> {
                 Ok(Pass::#pass_variant_ident(Box::new(self.0)))
+            }
+
+            pub fn repr(&self) -> String {
+                let mut parts = Vec::new();
+
+                #(
+                    {
+                        let field_name = stringify!(#field_names);
+                        let value = format!("{:?}", self.#field_names);
+                        parts.push(format!("{}={}", field_name, value));
+                    }
+                )*
+
+                parts.push(format!("name=\"{}\"", self.name()));
+                let vec = self.requires();
+                if !vec.is_empty() {
+                    parts.push(format!("requires={:?}", vec));
+                }
+                #invalidates_repr
+
+                format!("{}({})", #class_name, parts.join(", "))
             }
         }
     };
@@ -202,6 +253,10 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
         let ty_ident = &path.segments.last().unwrap().ident;
         quote! { AnyPass::#ty_ident(x) => x.as_pass()?, }
     });
+    let clone_arm_specials = specials.iter().map(|path| {
+        let ty_ident = &path.segments.last().unwrap().ident;
+        quote! { AnyPass::#ty_ident(x) => AnyPass::#ty_ident(Python::with_gil(|py| x.clone_ref(py))), }
+    });
     let reg_specials = specials.iter().map(|path| {
         quote! { m.add_class::<#path>()?; }
     });
@@ -209,18 +264,32 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
     // --- Build normal passes: strip "Py" / "Pass" for variant names
     let mut enum_passes = Vec::new();
     let mut arm_passes = Vec::new();
+    let mut clone_arm_passes = Vec::new();
+    let mut import_passes = Vec::new();
+    let mut impl_into_anypass = Vec::new();
     for path in &passes {
         let ty_ident = &path.segments.last().unwrap().ident;
         let s = ty_ident.to_string();
-        let stripped = s
-            .strip_prefix("Py")
-            .unwrap_or(&s)
+        let py_stripped = s.strip_prefix("Py").unwrap_or(&s);
+        let stripped = py_stripped
             .strip_suffix("Pass")
-            .unwrap_or(&s);
+            .unwrap_or(py_stripped.strip_suffix("Analysis").unwrap_or(&py_stripped));
+        let rs_ident = format_ident!("{}", py_stripped);
         let var_ident = format_ident!("{}", stripped);
+
+        import_passes.push(quote! {#rs_ident,});
 
         enum_passes.push(quote! { #var_ident(#ty_ident), });
         arm_passes.push(quote! { AnyPass::#var_ident(x) => x.as_pass()?, });
+        clone_arm_passes.push(quote! { AnyPass::#var_ident(x) => AnyPass::#var_ident(x.clone()), });
+
+        impl_into_anypass.push(quote! {
+            impl IntoAnyPass for #rs_ident {
+                fn as_anypass(&self) -> AnyPass {
+                    AnyPass::#var_ident(#ty_ident(self.clone()))
+                }
+            }
+        })
     }
     let reg_passes = passes.iter().map(|path| {
         quote! { m.add_class::<#path>()?; }
@@ -234,15 +303,32 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
     // --- Emit everything
     let expanded = quote! {
         use pyo3::prelude::*;
+        use crate::transformations::base_passes::BasePass;
+        use crate::transformations::passes::{#(#import_passes)*};
 
 
         #[allow(dead_code)]
-        #[derive(FromPyObject)]
+        #[derive(Debug, FromPyObject, IntoPyObject)]
         pub enum AnyPass {
             // specials first
             #(#enum_specials)*
             // then normal passes
             #(#enum_passes)*
+        }
+
+        pub trait IntoAnyPass {
+            fn as_anypass(&self)  -> AnyPass;
+        }
+
+        #(#impl_into_anypass)*
+
+        impl Clone for AnyPass {
+            fn clone(&self) -> Self {
+                 match self {
+                     #(#clone_arm_specials)*
+                     #(#clone_arm_passes)*
+                 }
+            }
         }
 
         impl AnyPass {
@@ -292,8 +378,18 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // Parse the annotated item as a struct (so we preserve its derives & fields)
-    let s = parse_macro_input!(item as ItemStruct);
-    let name = s.ident.to_string();
+    let input = parse_macro_input!(item as ItemStruct);
+    let name = input.ident.to_string();
+    let struct_name = &input.ident;
+
+    let class_name = struct_name.to_string();
+
+    let field_names = input
+        .fields
+        .iter()
+        .map(|f| f.ident.as_ref().unwrap())
+        .collect::<Vec<_>>();
+
     // Emit a cfg_attr only when `--features py` is on.
     let expanded = quote! {
         #[cfg_attr(
@@ -304,7 +400,31 @@ pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
             all(feature = "py", feature = "lq"),
             pyo3::pyclass(get_all, name = #name, module = "luna_quantum._core.transformations")
         )]
-        #s
+        #input
+
+        #[cfg(feature = "py")]
+        #[pymethods]
+        impl #struct_name {
+            pub fn __repr__(&self) -> String {
+                self.repr()
+            }
+        }
+
+        impl #struct_name {
+            pub fn repr(&self) -> String {
+                let mut parts = Vec::new();
+
+                #(
+                    {
+                        let field_name = stringify!(#field_names);
+                        let value = format!("{:?}", self.#field_names);
+                        parts.push(format!("{}={}", field_name, value));
+                    }
+                )*
+
+                format!("{}({})", #class_name, parts.join(", "))
+            }
+        }
     };
     expanded.into()
 }
@@ -349,9 +469,11 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
     // 1) Build the "AnalysisCacheElement" enum variants
     //    and collect them into Vecs so we can reuse:
     let mut enum_variants = Vec::new();
+    let mut py_clone_arms = Vec::new();
     let mut clone_arms = Vec::new();
     let mut accessors = Vec::new();
     let mut element_arms = Vec::new();
+    let mut repr_arms = Vec::new();
 
     for path in &types {
         // e.g. `SomeName`
@@ -400,12 +522,19 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             #var_ident(#ident),
         });
         // clone_py arm
+        py_clone_arms.push(quote! {
+            AnalysisCacheElement::#var_ident(v) => AnalysisCacheElement::#var_ident(v.clone()),
+        });
         clone_arms.push(quote! {
             AnalysisCacheElement::#var_ident(v) => AnalysisCacheElement::#var_ident(v.clone()),
         });
         // element->PyObject arm in get_element
         element_arms.push(quote! {
             AnalysisCacheElement::#var_ident(v) => v.clone().into_py_any(py)?,
+        });
+        // repr->element.repr
+        repr_arms.push(quote! {
+            AnalysisCacheElement::#var_ident(v) => v.repr(),
         });
         // accessor method
         accessors.push(quote! {
@@ -424,25 +553,30 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
         #[cfg(feature = "py")]
         PyAnalysis(pyo3::Py<pyo3::PyAny>),
     });
-    clone_arms.push(quote! {
+    py_clone_arms.push(quote! {
         #[cfg(feature = "py")]
         AnalysisCacheElement::PyAnalysis(v) => AnalysisCacheElement::PyAnalysis(v.clone_ref(py)),
+    });
+    clone_arms.push(quote! {
+        #[cfg(feature = "py")]
+        AnalysisCacheElement::PyAnalysis(v) => Python::with_gil(|py| AnalysisCacheElement::PyAnalysis(v.clone_ref(py))),
     });
     element_arms.push(quote! {
         #[cfg(feature = "py")]
         AnalysisCacheElement::PyAnalysis(v) => v.clone().into_py_any(py)?,
     });
+    repr_arms.push(quote! {
+        #[cfg(feature = "py")]
+        AnalysisCacheElement::PyAnalysis(_) => "py".to_string(),
+    });
 
     // 2) Emit the combined code
     let expanded = quote! {
-        // #[cfg(feature = "py")]
-        // use {
-        // //     derive_more::{Deref, DerefMut},
-        // //     pyo3::{pyclass, pymethods, IntoPyObjectExt, Py, PyAny, PyObject, PyResult, Python},
-        //     // pyo3::{Py, PyAny},
-        // };
+        #[cfg(feature = "py")]
+        use pyo3::{PyErr, IntoPyObject};
 
         /// All possible elements in the cache
+        #[derive(Debug)]
         pub enum AnalysisCacheElement {
             #(#enum_variants)*
         }
@@ -450,6 +584,20 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
         impl AnalysisCacheElement {
             #[cfg(feature = "py")]
             pub fn clone_py(&self, py: pyo3::Python) -> Self {
+                match self {
+                    #(#py_clone_arms)*
+                }
+            }
+
+            pub fn repr(&self) -> String {
+                match self {
+                    #(#repr_arms)*
+                }
+            }
+        }
+
+        impl Clone for AnalysisCacheElement {
+            fn clone(&self) -> Self {
                 match self {
                     #(#clone_arms)*
                 }
@@ -476,6 +624,16 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             #(#accessors)*
         }
 
+        #[cfg(feature = "py")]
+        impl<'py> IntoPyObject<'py> for AnalysisCache {
+            type Error = PyErr;
+            type Target = PyAnalysisCache;
+            type Output = Bound<'py, PyAnalysisCache>;
+
+            fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+                Bound::new(py, PyAnalysisCache::new(self))
+            }
+        }
 
         // // Py‐bindings for the entire cache
         #[cfg(feature = "py")]
@@ -483,7 +641,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             use pyo3::IntoPyObjectExt;
             use super::*;
 
-            #[pyo3::pyclass(unsendable, name = "AnalysisCache")]
+            #[pyo3::pyclass(name = "AnalysisCache")]
             #[derive(derive_more::Deref, derive_more::DerefMut)]
             pub struct PyAnalysisCache(pub AnalysisCache);
 
@@ -514,7 +672,12 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
                 }
 
                 #(#accessors)*
+
+                pub fn __repr__(&self, py: pyo3::Python) -> String {
+                    self._repr(py)
+                }
             }
+
         }
 
         #[cfg(feature = "py")]

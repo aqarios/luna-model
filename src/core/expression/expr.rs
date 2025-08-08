@@ -75,6 +75,36 @@ impl Expression {
         vec![constant, linear, quadratic, higher_order].concat()
     }
 
+    pub fn linear_items(&self) -> Vec<(VarIndex, Bias)> {
+        self.linear
+            .iter()
+            .filter(|(_, &bias)| bias != Bias::default())
+            .map(|(idx, &bias)| (idx.into(), bias))
+            .collect()
+    }
+
+    pub fn quadratic_items(&self) -> Vec<(VarIndex, VarIndex, Bias)> {
+        match &self.quadratic {
+            None => Vec::new(),
+            Some(quad) => quad
+                .iter_flat()
+                .filter(|(_, _, bias)| bias != &Bias::default())
+                .map(|(u_idx, v_idx, bias)| (u_idx, v_idx, bias))
+                .collect(),
+        }
+    }
+
+    pub fn higher_order_items(&self) -> Vec<(Vec<VarIndex>, Bias)> {
+        match &self.higher_order {
+            None => Vec::new(),
+            Some(ho) => ho
+                .iter_contrib()
+                .filter(|(_, &bias)| bias != Bias::default())
+                .map(|(contrib, &bias)| (contrib, bias))
+                .collect(),
+        }
+    }
+
     pub fn contains(&self, needle: &VarRef) -> bool {
         for (indices, _) in self.items() {
             if indices.contains(&needle.id) {
@@ -84,6 +114,9 @@ impl Expression {
         false
     }
 
+    pub fn is_constant(&self) -> bool {
+        (self.linear.len() == 0) & !self.has_quadratic() & !self.has_higher_order()
+    }
 }
 
 impl ExpressionBaseTypes for Expression {
@@ -365,7 +398,7 @@ impl ExpressionBase<VarIndex, Bias> for Expression {
             .iter()
             .enumerate()
             .filter(|(_, &a)| a)
-            .map(|(idx, _)| self.env.borrow().get_vtype(idx.into()))
+            .map(|(idx, _)| self.env.access().get_vtype(idx.into()))
             .unique()
             .collect_vec()
     }
@@ -400,7 +433,7 @@ impl ExpressionBase<VarIndex, Bias> for Expression {
 
     #[inline]
     fn vartype(&self, v: VarIndex) -> Vtype {
-        self.env.borrow().get_vtype(v)
+        self.env.access().get_vtype(v)
     }
 
     fn is_linear(&self) -> bool {
@@ -696,10 +729,11 @@ impl ExpressionBaseMulComponents<VarIndex, Bias> for Expression {
         lhs: &Self::HigherOrderType,
         rhs: &Vec<(VarIndex, Bias)>,
     ) {
-        for (mut contribs, hbias) in lhs.iter_contrib() {
+        for (contribs, hbias) in lhs.iter_contrib() {
             for (l, bias) in rhs.iter() {
-                contribs.push(*l);
-                self.add_higher_order(&contribs, *bias * *hbias);
+                let mut loc_contribs = contribs.clone();
+                loc_contribs.push(*l);
+                self.add_higher_order(&loc_contribs, *bias * *hbias);
             }
         }
     }
@@ -709,20 +743,22 @@ impl ExpressionBaseMulComponents<VarIndex, Bias> for Expression {
         lhs: &Self::HigherOrderType,
         rhs: &Self::QuadraticType,
     ) {
-        for (mut contribs, hbias) in lhs.iter_contrib() {
+        for (contribs, hbias) in lhs.iter_contrib() {
             for (u, v, qbias) in rhs.iter_flat() {
-                contribs.push(u);
-                contribs.push(v);
-                self.add_higher_order(&contribs, qbias * *hbias);
+                let mut loc_contribs = contribs.clone();
+                loc_contribs.push(u);
+                loc_contribs.push(v);
+                self.add_higher_order(&loc_contribs, qbias * *hbias);
             }
         }
     }
 
     fn mul_higher_orders(&mut self, lhs: &Self::HigherOrderType, rhs: &Self::HigherOrderType) {
-        for (mut lhs_contribs, lhs_bias) in lhs.iter_contrib() {
+        for (lhs_contribs, lhs_bias) in lhs.iter_contrib() {
             for (mut rhs_contribs, rhs_bias) in rhs.iter_contrib() {
-                lhs_contribs.append(&mut rhs_contribs);
-                self.add_higher_order(&lhs_contribs, *lhs_bias * *rhs_bias);
+                let mut loc_contribs = lhs_contribs.clone();
+                loc_contribs.append(&mut rhs_contribs);
+                self.add_higher_order(&loc_contribs, *lhs_bias * *rhs_bias);
             }
         }
     }

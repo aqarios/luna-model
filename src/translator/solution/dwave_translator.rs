@@ -1,9 +1,9 @@
 use crate::core::environment::SharedEnvironment;
-use crate::core::{RcSolution, Solution, Timing};
+use crate::core::{Solution, Timing};
 use crate::errors::{SampleUnexpectedVariableErr, SolutionCreationErr};
+use crate::types::Bias;
 use hashbrown::HashMap;
 use num::NumCast;
-use std::rc::Rc;
 
 pub struct DwaveTranslator {}
 
@@ -16,7 +16,7 @@ impl DwaveTranslator {
         shape: &[usize],
         timing: Option<Timing>,
         env: SharedEnvironment,
-    ) -> Result<RcSolution, SolutionCreationErr>
+    ) -> Result<Solution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default,
         N: Copy + NumCast,
@@ -48,9 +48,9 @@ impl DwaveTranslator {
             sol.extend(
                 &sample,
                 <usize as NumCast>::from(counts[i]).unwrap(),
-                Some(energy[i]),
+                <Bias as NumCast>::from(energy[i]).unwrap(),
             )?;
         }
-        Ok(RcSolution(Rc::new(sol)))
+        Ok(sol)
     }
 }

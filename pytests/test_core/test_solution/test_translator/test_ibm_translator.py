@@ -146,11 +146,12 @@ def test_ibm_solution_translator():
     qp = controlled_qp()
     res = compute_result(qp)
     timing = timer.stop()
-    sol: Solution = IbmTranslator.to_aq(res, qp, timing, aqm.environment)
+    sol: Solution = IbmTranslator.to_aq(res, qp, timing, env=aqm.environment)
 
     truth_samples, truth_energies, truth_counts = extract(res, qp)
-    assert len(sol.samples) == len(truth_samples)
+    assert len(sol.samples) == len(truth_samples), "sample lengths not matching"
     assert sol.samples.tolist() == truth_samples
+    assert sol.raw_energies is not None
     assert len(sol.raw_energies) == len(truth_energies)
     assert sol.raw_energies.tolist() == truth_energies
     assert len(sol.counts) == len(truth_counts)
@@ -160,7 +161,7 @@ def test_ibm_solution_translator():
     assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds)
     assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds())
     assert sol.runtime.qpu is None
-    assert sol.obj_values.tolist() == [None] * len(sol.samples)
+    assert sol.obj_values is None
 
     results = list(sol.results)
     assert len(results) == len(sol.samples)

@@ -84,6 +84,8 @@ def test_v0_v1_equality_sol_eval_timing(
     timing = timer.stop()
     timing.qpu = 0.0142
     sol = Solution.from_dicts(samples, model=model, counts=[2, 1, 1], timing=timing)
+    assert sol.runtime is not None
+
     with open(path / "sol_eval_timing", "rb") as f:
         reconstructed = Solution.decode(f.read())
         assert reconstructed.variable_names == sol.variable_names
@@ -91,6 +93,7 @@ def test_v0_v1_equality_sol_eval_timing(
         assert np.all(reconstructed.obj_values == sol.obj_values)
         assert np.all(reconstructed.counts == sol.counts)
         assert np.all(reconstructed.raw_energies == sol.raw_energies)
+        assert reconstructed.runtime is not None
         assert reconstructed.runtime.qpu == sol.runtime.qpu
         total_seconds = reconstructed.runtime.total_seconds
         assert total_seconds > 1.23 and total_seconds < 1.231

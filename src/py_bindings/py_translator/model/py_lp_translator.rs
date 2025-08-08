@@ -27,22 +27,8 @@ use unwind_macros::unwindable;
 /// Convert it back to an LP file:
 ///
 /// >>> recovered = LpTranslator.to_file(model)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(
-        unsendable,
-        name = "LpTranslator",
-        module = "aqmodels._core.translator"
-    )
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(
-        unsendable,
-        name = "LpTranslator",
-        module = "luna_quantum._core.translator"
-    )
-)]
+#[cfg_attr(not(feature = "lq"), pyclass(name = "LpTranslator", module = "aqmodels._core.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(name = "LpTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyLpTranslator {}
 
 #[unwindable]
@@ -117,6 +103,6 @@ impl PyLpTranslator {
     #[staticmethod]
     #[pyo3(signature=(model, filepath=None))]
     fn from_aq(model: &PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
-        Ok(LPTranslator::back_translate((&model.borrow(), filepath))?)
+        Ok(LPTranslator::back_translate((&model.access(), filepath))?)
     }
 }

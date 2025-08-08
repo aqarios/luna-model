@@ -241,6 +241,11 @@ class NoConstraintForKeyError(IndexError):
 
     def __str__(self, /) -> str: ...
 
+class SampleColCreationError(IndexError):
+    """Raised when an error occured during creation of a sample column."""
+
+    def __str__(self, /) -> str: ...
+
 class InternalPanicError(RuntimeError):
     """Raised when an internal and unrecoverable error occurred."""
 
@@ -262,6 +267,7 @@ __all__ = [
     "MultipleActiveEnvironmentsError",
     "NoActiveEnvironmentFoundError",
     "NoConstraintForKeyError",
+    "SampleColCreationError",
     "SampleIncompatibleVtypeError",
     "SampleIncorrectLengthError",
     "SampleUnexpectedVariableError",

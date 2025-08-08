@@ -1,10 +1,81 @@
 from abc import abstractmethod
+from collections.abc import Callable
 from enum import Enum
 from typing import Any, Literal, overload
 
-from aqmodels import Model, Sense, Solution, Timing, Vtype
+from . import Model, Sense, Solution, Timing, Vtype
 
 class BasePass:
+    @property
+    def name(self) -> str:
+        """Get the name of this pass."""
+        ...
+    @property
+    def requires(self) -> list[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+
+class Pipeline(BasePass):
+    @overload
+    def __init__(self, passes: list[BasePass]) -> None: ...
+    @overload
+    def __init__(self, passes: list[BasePass], name: str) -> None: ...
+    def __init__(self, passes: list[BasePass], name: str | None = ...) -> None: ...
+    @property
+    def name(self) -> str:
+        """Get the name of this pass."""
+        ...
+    @property
+    def requires(self) -> list[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+
+    @property
+    def satisfies(self) -> set[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+
+    def add(self, new_pass: BasePass) -> None:
+        """Add new pass to pipeline."""
+        ...
+
+    def clear(self) -> None:
+        """Clear pipeline."""
+        ...
+
+    @property
+    def passes(self) -> list[BasePass]:
+        """Get all passes that are part of the pipeline."""
+        ...
+
+    def __len__(self) -> int: ...
+
+class IfElsePass(BasePass):
+    @overload
+    def __init__(
+        self,
+        requires: list[str],
+        condition: Callable[[AnalysisCache], bool],
+        then: Pipeline,
+        otherwise: Pipeline,
+    ) -> None: ...
+    @overload
+    def __init__(
+        self,
+        requires: list[str],
+        condition: Callable[[AnalysisCache], bool],
+        then: Pipeline,
+        otherwise: Pipeline,
+        name: str,
+    ) -> None: ...
+    def __init__(
+        self,
+        requires: list[str],
+        condition: Callable[[AnalysisCache], bool],
+        then: Pipeline,
+        otherwise: Pipeline,
+        name: str | None = ...,
+    ) -> None: ...
     @property
     def name(self) -> str:
         """Get the name of this pass."""
@@ -29,7 +100,11 @@ class TransformationPass(BasePass):
         """Get a list of passes that are invalidated by this pass."""
         ...
     @abstractmethod
-    def run(self, model: Model, cache: AnalysisCache) -> tuple[Model, ActionType]:
+    def run(
+        self, model: Model, cache: AnalysisCache
+    ) -> (
+        TransformationOutcome | tuple[Model, ActionType] | tuple[Model, ActionType, Any]
+    ):
         """Run/Execute this transformation pass."""
         ...
     @abstractmethod
@@ -41,13 +116,28 @@ class TransformationPass(BasePass):
         """
         ...
 
+class TransformationOutcome:
+    """Output object for transformation pass."""
+
+    model: Model
+    action: ActionType
+    analysis: ...
+
+    def __init__(
+        self, model: Model, action: ActionType, analysis: ... = None
+    ) -> None: ...
+    @staticmethod
+    def nothing(model: Model) -> TransformationOutcome:
+        """Easy nothing action return."""
+        ...
+
 class AnalysisCache:
     @overload
     def __getitem__(  # type: ignore[reportOverlappingOverload]
         self, key: Literal["max-bias"]
     ) -> MaxBias: ...
     @overload
-    def __getitem__(self, key: str) -> dict[Any, Any]: ...
+    def __getitem__(self, key: str) -> ...: ...
     def __getitem__(self, key: str) -> Any:
         """Get the analysis result for a specific analysis pass."""
         ...
@@ -63,7 +153,22 @@ class AnalysisPass(BasePass):
         """Get a list of required passes that need to be run before this pass."""
         ...
     @abstractmethod
-    def run(self, model: Model, cache: AnalysisCache) -> float:
+    def run(self, model: Model, cache: AnalysisCache) -> ...:
+        """Run/Execute this analysis pass."""
+        ...
+
+class MetaAnalysisPass(BasePass):
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Get the name of this pass."""
+        ...
+    @property
+    def requires(self) -> list[str]:
+        """Get a list of required passes that need to be run before this pass."""
+        ...
+    @abstractmethod
+    def run(self, passes: list[BasePass], cache: AnalysisCache) -> ...:
         """Run/Execute this analysis pass."""
         ...
 
@@ -72,7 +177,9 @@ class ActionType(Enum):
     """Indicate that the pass did transform the model."""
     DidAnalysis = ...
     """Indicate that the pass did analyse the model."""
-    Nothing = ...
+    DidAnalysisTransform = ...
+    """Indicate that the pass did analyse and transfrom the model."""
+    DidNothing = ...
     """Indicate that the pass did NOT do anything."""
 
 class ChangeSensePass(BasePass):
@@ -105,13 +212,20 @@ class MaxBiasAnalysis(BasePass):
 
     def __init__(self) -> None: ...
 
-class BinarySpinAnalysis(BasePass):
-    """An analysis pass noting down which variables need to be transformed."""
+class BinarySpinPass(BasePass):
+    """An transformation pass changing the binary/spin variables to spin/binary."""
 
-    def __init__(self, vtype: Literal[Vtype.Binary, Vtype.Spin]) -> None: ...
+    def __init__(
+        self, vtype: Literal[Vtype.Binary, Vtype.Spin], prefix: str | None
+    ) -> None: ...
     @property
     def vtype(self) -> Vtype:
         """Get the target vtype."""
+        ...
+
+    @property
+    def prefix(self) -> str | None:
+        """Get the naming prefix."""
         ...
 
 class BinarySpinInfo:
@@ -122,18 +236,8 @@ class BinarySpinInfo:
 
     @property
     def new_vtype(self) -> Vtype:
-        """Get the target vtype."""
-        ...
-
-    @property
-    def map(self) -> dict[str, str]:
         """Get the variable name mapping."""
         ...
-
-class BinarySpinPass(BasePass):
-    """An transformation pass changing the denoted variables to target."""
-
-    def __init__(self) -> None: ...
 
 class LogElement:
     """An element of the execution log of an intermediate representation (IR)."""
@@ -152,6 +256,11 @@ class LogElement:
     def kind(self) -> ActionType | None:
         """Transformation type information for this log element, if available."""
         ...
+
+    # @property
+    # def components(self) -> list[LogElement] | None:
+    #     """Components of this log-element."""
+    #     ...
 
 class IR:
     """The intermediate representation (IR) of a model after transformation.
@@ -187,7 +296,7 @@ class PassManager:
     """
 
     def __init__(
-        self, passes: list[BasePass | TransformationPass | AnalysisPass]
+        self, passes: list[BasePass | TransformationPass | AnalysisPass] | None = ...
     ) -> None:
         """Manage and execute a sequence of passes on a model.
 
@@ -200,9 +309,9 @@ class PassManager:
 
         Parameters
         ----------
-        passes : list[TransformationPass | AnalysisPass]
+        passes : list[TransformationPass | AnalysisPass] | None
             An ordered sequence of Pass instances to apply. Each Pass must conform to
-            the `TransformationPass` or `AnalysisPass` interface.
+            the `TransformationPass` or `AnalysisPass` interface, default None.
         """
         ...
 

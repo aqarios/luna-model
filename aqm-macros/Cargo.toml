@@ -11,7 +11,7 @@ proc-macro = true
 py = []
 
 [dependencies]
-syn = { version = "2.0", features = ["full"] }
+syn = { version = "2.0.104", features = ["full"] }
 quote = "1.0"
 proc-macro2 = "1.0"
 once_cell = "1.21.3"

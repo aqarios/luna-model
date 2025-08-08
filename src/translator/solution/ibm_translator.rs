@@ -1,13 +1,13 @@
 use std::{
     fmt::{Debug, Display},
-    rc::Rc,
 };
 
 use num::NumCast;
 
 use crate::{
-    core::{environment::SharedEnvironment, RcSolution, Solution, Timing, VarRef},
+    core::{SharedEnvironment, Solution, Timing, VarRef},
     errors::SolutionCreationErr,
+    types::Bias, utils::Share,
 };
 
 pub struct IbmTranslator {}
@@ -15,12 +15,12 @@ pub struct IbmTranslator {}
 impl IbmTranslator {
     pub fn from_ibm<S, E>(
         samples: &Vec<Vec<S>>,
-        orderings: &Vec<Rc<VarRef>>,
+        orderings: &Vec<Share<VarRef>>,
         energies: &Vec<E>,
         counts: Vec<usize>,
         timing: Option<Timing>,
         env: SharedEnvironment,
-    ) -> Result<RcSolution, SolutionCreationErr>
+    ) -> Result<Solution, SolutionCreationErr>
     where
         S: Copy + NumCast + Default + Display + Debug,
         E: Copy + NumCast + Debug,
@@ -38,8 +38,11 @@ impl IbmTranslator {
             for (&idx, val) in index_list.iter().zip(sample) {
                 s[idx] = *val;
             }
-            sol.extend(&s, occ, Some(*energy))?;
+            sol.extend(&s, occ, <Bias as NumCast>::from(*energy).unwrap())?;
         }
-        Ok(RcSolution(Rc::new(sol)))
+        Ok(sol)
     }
 }
+
+// Comment DB: unneccesary use Solution.from_counts
+// Alternatively: direct translation of the BitArray sample object

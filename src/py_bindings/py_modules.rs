@@ -184,6 +184,7 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::CompilationError::NAME,
         m.py().get_type::<pyexc::CompilationError>(),
     )?;
+    #[cfg(feature = "pyt")]
     m.add(
         pyexc::StartCannotBeInferredError::NAME,
         m.py().get_type::<pyexc::StartCannotBeInferredError>(),
@@ -191,6 +192,10 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add(
         pyexc::NoConstraintForKeyError::NAME,
         m.py().get_type::<pyexc::NoConstraintForKeyError>(),
+    )?;
+    m.add(
+        pyexc::SampleColCreationError::NAME,
+        m.py().get_type::<pyexc::SampleColCreationError>(),
     )?;
     m.add(
         pyexc::InternalPanicError::NAME,
