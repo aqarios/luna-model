@@ -1,7 +1,9 @@
 """Decorators."""
 
 from collections.abc import Callable
-from typing import Any, Generic, TypeVar, override
+from typing import Any, Generic, TypeAlias, TypeVar
+
+from typing_extensions import override
 
 from . import Model, Solution
 from .transformations import (
@@ -16,19 +18,18 @@ from .transformations import (
 
 T = TypeVar("T")
 
+AnalysisSignature: TypeAlias = Callable[[Model, AnalysisCache], T]
 
-type AnalysisSignature[T] = Callable[[Model, AnalysisCache], T]
+MetaAnalysisSignature: TypeAlias = Callable[[list[BasePass], AnalysisCache], T]
 
-type MetaAnalysisSignature[T] = Callable[[list[BasePass], AnalysisCache], T]
-
-type Outcome = (
+Outcome: TypeAlias = (
     TransformationOutcome | tuple[Model, ActionType] | tuple[Model, ActionType, Any]
 )
-type TransformationSignature = Callable[
+TransformationSignature: TypeAlias = Callable[
     [Model, AnalysisCache],
     Outcome,
 ]
-type BackwardsSignature = Callable[[Solution, AnalysisCache], Solution]
+BackwardsSignature: TypeAlias = Callable[[Solution, AnalysisCache], Solution]
 
 
 def __identity_backwards(solution: Solution, _: AnalysisCache) -> Solution:
