@@ -729,10 +729,11 @@ impl ExpressionBaseMulComponents<VarIndex, Bias> for Expression {
         lhs: &Self::HigherOrderType,
         rhs: &Vec<(VarIndex, Bias)>,
     ) {
-        for (mut contribs, hbias) in lhs.iter_contrib() {
+        for (contribs, hbias) in lhs.iter_contrib() {
             for (l, bias) in rhs.iter() {
-                contribs.push(*l);
-                self.add_higher_order(&contribs, *bias * *hbias);
+                let mut loc_contribs = contribs.clone();
+                loc_contribs.push(*l);
+                self.add_higher_order(&loc_contribs, *bias * *hbias);
             }
         }
     }
@@ -742,20 +743,22 @@ impl ExpressionBaseMulComponents<VarIndex, Bias> for Expression {
         lhs: &Self::HigherOrderType,
         rhs: &Self::QuadraticType,
     ) {
-        for (mut contribs, hbias) in lhs.iter_contrib() {
+        for (contribs, hbias) in lhs.iter_contrib() {
             for (u, v, qbias) in rhs.iter_flat() {
-                contribs.push(u);
-                contribs.push(v);
-                self.add_higher_order(&contribs, qbias * *hbias);
+                let mut loc_contribs = contribs.clone();
+                loc_contribs.push(u);
+                loc_contribs.push(v);
+                self.add_higher_order(&loc_contribs, qbias * *hbias);
             }
         }
     }
 
     fn mul_higher_orders(&mut self, lhs: &Self::HigherOrderType, rhs: &Self::HigherOrderType) {
-        for (mut lhs_contribs, lhs_bias) in lhs.iter_contrib() {
+        for (lhs_contribs, lhs_bias) in lhs.iter_contrib() {
             for (mut rhs_contribs, rhs_bias) in rhs.iter_contrib() {
-                lhs_contribs.append(&mut rhs_contribs);
-                self.add_higher_order(&lhs_contribs, *lhs_bias * *rhs_bias);
+                let mut loc_contribs = lhs_contribs.clone();
+                loc_contribs.append(&mut rhs_contribs);
+                self.add_higher_order(&loc_contribs, *lhs_bias * *rhs_bias);
             }
         }
     }
