@@ -35,6 +35,8 @@ fn u8_to_vtype(u: u8) -> Vtype {
     }
 }
 
+type Bv = u8;
+
 /// Representation of encodable solution based on protocol buffers.
 #[derive(Clone, PartialEq, Message)]
 pub struct SerSolution {
@@ -55,12 +57,12 @@ pub struct SerSolution {
     sample_types: Vec<u8>,
 
     #[prost(bytes, tag = 6)]
-    bins: Vec<u8>,
+    bins: Vec<Bv>,
     #[prost(uint64, tag = 7)]
     n_bins: u64,
 
     #[prost(bytes, tag = 8)]
-    spins: Vec<u8>,
+    spins: Vec<Bv>,
     #[prost(uint64, tag = 9)]
     n_spins: u64,
 
@@ -127,32 +129,31 @@ impl SerSolution {
         self.obj_values = sol.obj_values.clone().unwrap_or_else(Vec::default);
         self.raw_energies = sol.raw_energies.clone().unwrap_or_else(Vec::default);
 
+        let mut bin_vec: BitVec<Bv, Lsb0> = BitVec::new();
+        let mut spin_vec: BitVec<Bv, Lsb0> = BitVec::new();
+
         for col in sol.samples.iter() {
             match &col {
                 Column::Binary(inner) => {
                     self.sample_types.push(vtype_to_u8(Vtype::Binary));
                     self.n_bins += 1;
-                    self.bins.extend(
+                    bin_vec.extend(
                         inner
                             .data
                             .iter()
                             .map(|&b| b == 1)
                             .into_iter()
-                            .collect::<BitVec<u8, Lsb0>>()
-                            .into_vec(),
                     )
                 }
                 Column::Spin(inner) => {
                     self.sample_types.push(vtype_to_u8(Vtype::Spin));
                     self.n_spins += 1;
-                    self.spins.extend(
+                    spin_vec.extend(
                         inner
                             .data
                             .iter()
-                            .map(|&s| ((1 + s) / 2) == 1)
+                            .map(|&s| s == -1)
                             .into_iter()
-                            .collect::<BitVec<u8, Lsb0>>()
-                            .into_vec(),
                     )
                 }
                 Column::Integer(inner) => {
@@ -165,6 +166,9 @@ impl SerSolution {
                 }
             }
         }
+
+        self.bins = bin_vec.into_vec();
+        self.spins = spin_vec.into_vec();
 
         // self.n_constraints = sol.constraints.as_ref().map_or(0, |c| c.len() as u64);
         self.constraints = sol.constraints.clone().map_or_else(Vec::default, |cs| {
@@ -211,13 +215,13 @@ impl SerSolution {
             sol.timing = Some(t.decode(())?);
         }
 
-        let mut bv: BitVec<u8, Lsb0> = BitVec::from_vec(self.bins);
+        let mut bv: BitVec<Bv, Lsb0> = BitVec::from_vec(self.bins);
         bv.truncate(sol.n_samples * self.n_bins as usize);
         let bins: Vec<u8> = bv.into_iter().map(|v| v as u8).collect();
 
-        let mut sv: BitVec<u8, Lsb0> = BitVec::from_vec(self.spins);
+        let mut sv: BitVec<Bv, Lsb0> = BitVec::from_vec(self.spins);
         sv.truncate(sol.n_samples * self.n_spins as usize);
-        let spins: Vec<i8> = sv.into_iter().map(|v| 2 * v as i8 - 1).collect();
+        let spins: Vec<i8> = sv.into_iter().map(|v| 1 - (2 * v as i8)).collect();
 
         let (mut start_bin, mut start_spin, mut start_int, mut start_real) = (0, 0, 0, 0);
         for (i, &st) in self.sample_types.iter().enumerate() {
