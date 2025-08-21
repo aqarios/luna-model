@@ -37,13 +37,15 @@ impl BasePass for PyPipelineAdapter {
 
 impl AbstractPipeline for PyPipelineAdapter {
     fn run(&self, model: Model, cache: &AnalysisCache, executor: &PassManager) -> PipelineResult {
-        Python::with_gil(|py| {
+        let res = Python::with_gil(|py| {
             self.inner
                 .extract::<PyPipeline>(py)
                 .unwrap()
                 .0
                 .run(model, cache, executor)
-        })
+        });
+        dbg!(&res);
+        return res
     }
 
     fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {

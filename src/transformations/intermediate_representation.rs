@@ -51,6 +51,7 @@ impl ExecutionLog {
     }
 }
 
+#[derive(Debug)]
 pub struct IntermediateRepresentation {
     pub model: Model,
     pub cache: AnalysisCache,
