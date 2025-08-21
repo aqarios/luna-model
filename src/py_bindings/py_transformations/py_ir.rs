@@ -44,8 +44,20 @@ impl PyLogElement {
             components: elem
                 .components
                 .as_ref()
-                .map(|x| x.iter().map(|e| PyLogElement::new(e)).collect()), 
+                .map(|x| x.iter().map(|e| PyLogElement::new(e)).collect()),
         }
+    }
+}
+
+#[pymethods]
+impl PyLogElement {
+    fn __repr__(&self) -> String {
+        format!(
+            "Log(\"{}\", action={:?}, components={:?})",
+            self.pass_name,
+            self.kind,
+            self.components.as_ref().map(|x| x.len())
+        )
     }
 }
 
