@@ -1,4 +1,5 @@
 use crate::core::{Model, Solution};
+use crate::transformations::intermediate_representation::ExecutionLog;
 use crate::transformations::pass_manager::PassManager;
 use crate::{
     transformations::analysis_cache::AnalysisCache,
@@ -14,7 +15,12 @@ use std::fmt::Display;
 
 pub trait AbstractPipeline: BasePass + DynClone {
     fn run(&self, model: Model, cache: &AnalysisCache, executor: &PassManager) -> PipelineResult;
-    fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution;
+    fn backwards(
+        &self,
+        solution: Solution,
+        ir: &IntermediateRepresentation,
+        log: &ExecutionLog,
+    ) -> Solution;
     fn clear(&mut self);
     fn add(&mut self, pass: Pass);
     fn satisfies(&self) -> HashSet<String>;
@@ -86,8 +92,13 @@ impl AbstractPipeline for Pipeline {
         run_passes(&self.passes, model, cache.clone(), executor)
     }
 
-    fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {
-        backwards(&self.passes, solution, ir)
+    fn backwards(
+        &self,
+        solution: Solution,
+        ir: &IntermediateRepresentation,
+        log: &ExecutionLog,
+    ) -> Solution {
+        backwards(&self.passes, solution, ir, Some(log))
     }
 
     fn clear(&mut self) {
