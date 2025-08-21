@@ -1,6 +1,6 @@
+use crate::py_bindings::unwind;
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
-use crate::py_bindings::unwind;
 use unwind_macros::unwindable;
 
 use crate::{
@@ -28,11 +28,12 @@ use crate::{
         module = "luna_quantum._core.transformations"
     )
 )]
+#[derive(Clone)]
 pub struct PyLogElement {
     pass_name: String,
     timing: PyTiming,
     kind: ActionType,
-    // components: Option<Vec<PyLogElement>>,
+    components: Option<Vec<PyLogElement>>,
 }
 impl PyLogElement {
     fn new(elem: &LogElement) -> Self {
@@ -40,7 +41,10 @@ impl PyLogElement {
             pass_name: elem.pass.clone(),
             timing: PyTiming(elem.timing),
             kind: elem.kind.clone(),
-            // components: elem.components.iter().map(|e| PyLogElement::new(e)).collect(),
+            components: elem
+                .components
+                .as_ref()
+                .map(|x| x.iter().map(|e| PyLogElement::new(e)).collect()), 
         }
     }
 }
