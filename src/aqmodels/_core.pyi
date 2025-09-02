@@ -857,6 +857,14 @@ class Solution:
         """
         ...
 
+    def repr_html(self, /) -> str:
+        """Represent the solution as a html table.
+
+        Returns
+        -------
+        str
+        """
+
     def __getitem__(self, item: int, /) -> ResultView:
         """
         Extract a result view from the `Solution` object.
