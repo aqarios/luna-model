@@ -5,15 +5,13 @@ use either::{Either, Left, Right};
 /// Iterates over the single variable assignments of a solution row
 #[derive(Debug, Clone)]
 pub struct SampleIterator {
-    sample: Either<ResultView, OwnedSample>, // Rc<Vec<VarAssignment>>>,
+    sample: Either<ResultView, OwnedSample>,
     /// Index of the next row of the sample within the solution
     next_col_idx: usize,
 }
 
 impl SampleIterator {
-    pub fn new(
-        sample: Either<ResultView, OwnedSample>, // Rc<Vec<VarAssignment>>>,
-    ) -> SampleIterator {
+    pub fn new(sample: Either<ResultView, OwnedSample>) -> SampleIterator {
         Self {
             sample,
             next_col_idx: 0,
@@ -26,7 +24,7 @@ impl SampleIterator {
             next_col_idx: 0,
         }
     }
-    // pub fn from_sample_vec(res: Rc<Vec<VarAssignment>>) -> Self {
+
     pub fn from_sample_vec(res: OwnedSample) -> Self {
         Self {
             sample: Right(res),

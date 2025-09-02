@@ -1,7 +1,7 @@
 use crate::core::environment::SharedEnvironment;
 use crate::core::term::types::SizeType;
 use crate::core::{ValueByIndex, Vtype};
-use crate::types::Bias;
+use crate::types::{Bias, VarIndex};
 use num::pow::Pow;
 use num::NumCast;
 use std::fmt::{Debug, Display, LowerExp};
@@ -166,12 +166,12 @@ pub trait ExpressionBase<Index, Bias> {
     fn higher_order(&self, indices: &Vec<Index>) -> Result<Bias, VariableOutOfRangeErr>;
     /// Test whether the model has no quadratic biases.
     fn is_linear(&self) -> bool;
-    /// Return the number of variables in the quadratic model.
+    /// Return the number of variables in the expression.
     fn num_variables(&self) -> SizeType;
-    /// Return the variable type of variable `v`.
-    fn vartype(&self, _v: Index) -> Vtype;
     /// Return the the variables indices in the expression.
     fn variables(&self) -> Vec<Index>;
+    /// Return the variable type of variable `v`.
+    fn vartype(&self, _v: Index) -> Vtype;
     /// Return the the variables types in the expression.
     fn vtypes(&self) -> Vec<Vtype>;
     /// Return the the degree of the expression.
@@ -240,33 +240,6 @@ where
     Bias: BiasConstraints,
 {
     fn multiply(lhs: &Self, rhs: &Self, result: &mut Self);
-    // /// Multiply two offset and add to self.
-    // fn mul_offset(&mut self, lhs: Bias, rhs: Bias);
-    // /// Multiply an offset with a linear term.
-    // fn mul_offset_linear(&mut self, lhs: &Bias, rhs: &Self);
-    // /// Multiply an offset with a quadratic term.
-    // fn mul_offset_quadratic(&mut self, lhs: &Bias, rhs: &Self::QuadraticType);
-    // /// Multiply an offset with a higher order term.
-    // fn mul_offset_higher_order(&mut self, lhs: &Bias, rhs: &Self::HigherOrderType);
-
-    // /// Multiply two linear terms and add to self.
-    // fn mul_linear(&mut self, lhs: &Self, rhs: &Self);
-    // /// Multiply a linear term with a quadratic term.
-    // fn mul_linear_quadratic(&mut self, lhs: &Self, rhs: &Self::QuadraticType);
-    // /// Multiply a linear with a higher order term.
-    // fn mul_linear_higher_order(&mut self, lhs: &Self, rhs: &Self);
-
-    // /// Multiply two quadratic terms and add to self.
-    // fn mul_quadratic(&mut self, lhs: &Self::QuadraticType, rhs: &Self::QuadraticType);
-    // /// Multiply a quadratic with a higher order term.
-    // fn mul_quadratic_higher_order(
-    //     &mut self,
-    //     lhs: &Self::QuadraticType,
-    //     rhs: &Self::HigherOrderType,
-    // );
-
-    // /// Multiply two higher order terms and add to self.
-    // fn mul_higher_order(&mut self, lhs: &Self::HigherOrderType, rhs: &Self::HigherOrderType);
 }
 
 pub trait ExpressionBaseMulComponents<Index, Bias>: ExpressionBaseTypes
@@ -331,24 +304,27 @@ where
     Idx: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<Idx, Output = Elem>>(
+    fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<Idx, Output = Elem>, F>(
         &self,
         sample: &'a Sample,
+        index_map: F,
     ) -> Bias
     where
-        // &'a Elem: Mul<Bias, Output = Bias>,
-        Elem: Mul<Bias, Output = Bias>;
+        Elem: Mul<Bias, Output = Bias>,
+        F: Fn(VarIndex) -> Idx;
 
     fn evaluate_sampleset<
         'a,
         Elem: 'a,
         Sample: ValueByIndex<Idx, Output = Elem> + 'a,
         SampleSet: Iterator<Item = &'a Sample> + Copy,
+        F,
     >(
         &self,
         sampleset: &'a SampleSet,
+        index_map: F,
     ) -> Vec<Bias>
     where
-        // &'a Elem: Mul<Bias, Output = Bias>,
-        Elem: Mul<Bias, Output = Bias>;
+        Elem: Mul<Bias, Output = Bias>,
+        F: Fn(VarIndex) -> Idx;
 }

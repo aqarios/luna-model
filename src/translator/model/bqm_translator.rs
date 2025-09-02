@@ -81,7 +81,7 @@ impl BqmTranslator {
 
         let mut vtype = None;
         let mut variables = Vec::with_capacity(model.environment.varcount().into());
-        for var in model.environment.borrow().variables().iter() {
+        for var in model.environment.access().variables().iter() {
             match vtype {
                 None => {
                     if var.vtype == Vtype::Integer || var.vtype == Vtype::Real {

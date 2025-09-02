@@ -29,6 +29,13 @@ def solution() -> Solution:
         real_cols=[[2.0, 3.0, 4.0]],
         raw_energies=[6.0, 5.0, 2.0],
     )
+    # return Solution.from_dicts(
+    #     [
+    #         {"b": 1, "s": +1, "i": 2, "r": 2.0},
+    #         {"b": 0, "s": +1, "i": 2, "r": 2.0},
+    #         {"b": 1, "s": +1, "i": 2, "r": 2.0},
+    #     ]
+    # )
 
 
 @pytest.fixture
@@ -138,11 +145,21 @@ def test_model_eval_wo_constraint(model_wo_constraint: Model, solution: Solution
 
 def test_model_eval_wo_constraint_best(model_wo_constraint: Model, solution: Solution):
     new_sol = model_wo_constraint.evaluate(solution)
-    assert all(new_sol.raw_energies == solution.raw_energies)
-    assert all(new_sol.obj_values == solution.raw_energies)
-    assert new_sol.best_sample_idx is not None
-    assert new_sol.best_sample_idx == 1
-    assert new_sol.best() == new_sol[new_sol.best_sample_idx]
+
+    best_val = float("inf")
+    best_idx = 0
+    for i, sample in enumerate(new_sol.samples):
+        val = sum([a for _, a in sample.to_dict().items()])
+        if val <= best_val:
+            best_idx = i
+
+    assert all(new_sol.raw_energies == solution.raw_energies), "raw_energies not equal"
+    assert all(new_sol.obj_values == solution.raw_energies), "obj_values not equal"
+    assert new_sol.best_sample_idx is not None, "best_sample_idx is None"
+    assert new_sol.best_sample_idx == best_idx, "best_sample_idx is not 2"
+    assert new_sol.best() == new_sol[new_sol.best_sample_idx], (
+        "best is not equal to index"
+    )
 
 
 def test_model_eval_wo_constraint_best_maximize(

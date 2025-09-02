@@ -1,3 +1,4 @@
+from collections.abc import Callable, Iterator
 from datetime import datetime, timedelta
 from enum import Enum
 from types import TracebackType
@@ -912,7 +913,7 @@ class Solution:
         ...
 
     @property
-    def obj_values(self, /) -> NDArray:
+    def obj_values(self, /) -> NDArray | None:
         """
         Get the objective values of the single samples as a ndarray.
 
@@ -921,7 +922,7 @@ class Solution:
         ...
 
     @property
-    def raw_energies(self, /) -> NDArray:
+    def raw_energies(self, /) -> NDArray | None:
         """Get the raw energies.
 
         Get the raw energy values of the single samples as returned by the solver /
@@ -983,6 +984,23 @@ class Solution:
         ------
         ComputationError
             If the computation fails for any reason.
+        """
+        ...
+
+    def filter(self, /, f: Callable[[ResultView], bool]) -> Solution:
+        """
+        Get a new solution with all samples for which the condition `f` is true.
+
+        Parameters
+        ----------
+        f : Callable[[ResultView], bool]
+            A filter function yielding true for all samples to be contained in the
+            new solution.
+
+        Returns
+        -------
+        Solution
+            The new solution with only samples for which the condition is true.
         """
         ...
 
@@ -1533,6 +1551,87 @@ class Solution:
         """
         ...
 
+    @overload
+    def add_var(self, var: Variable, data: list[int | float]) -> None: ...
+    @overload
+    def add_var(
+        self, var: str, data: list[int | float], vtype: Vtype | None = ...
+    ) -> None: ...
+    def add_var(
+        self, var: str | Variable, data: list[int | float], vtype: Vtype | None = ...
+    ) -> None:
+        """Add a variable column to the solution.
+
+        Parameters
+        ----------
+        var : str | Variable
+            The name of the variable for which the sample column is created,
+            or the variable itself.
+        data : list[int | float]
+            The contents of the sample column to be added.
+        vtype : Vtype | None, default None
+            The vtype of the variable for which the sample column is created.
+            If the `var` parameter is a str, the vtype is defaulted to Vtype.Binary.
+            If the `var` is a Variable, the `vtype` parameter is ignored and the
+            vtype of the variable is used.
+
+        Raises
+        ------
+        SampleColumnCreationError
+        """
+
+    @overload
+    def add_vars(
+        self, variables: list[Variable], data: list[list[int | float]]
+    ) -> None: ...
+    @overload
+    def add_vars(
+        self, variables: list[str], data: list[list[int | float]], vtypes: list[Vtype]
+    ) -> None: ...
+    @overload
+    def add_vars(
+        self,
+        variables: list[Variable | str],
+        data: list[list[int | float]],
+        vtypes: list[Vtype | None],
+    ) -> None: ...
+    def add_vars(
+        self,
+        variables: list[Variable | str],
+        data: list[list[int | float]],
+        vtypes: list[Vtype | None] | None = ...,
+    ) -> None:
+        """Add multiple variable columns to the solution.
+
+        Parameters
+        ----------
+        vars : list[str | Variable]
+            The names of the variable for which the sample columns are created,
+            or a list of the variables itself.
+        data : list[list[int | float]]
+            A list of the contents of the sample columns to be added.
+        vtypes : list[Vtype] | None
+            The vtypes of the variables for which the sample columns are created.
+            If the `vars` parameter is a `list[str], the vtypes are defaulted to
+            Vtype.Binary.
+            If the `vars` is a list[Variable], the `vtypes` parameter is ignored and the
+            vtypes of the variable is used.
+            For mixed `vars`, the vtype is chosen dynamically following the
+            two rules above.
+
+        Raises
+        ------
+        SampleColumnCreationError
+        """
+
+    def remove_var(self, var: str | Variable) -> None:
+        """Remove the sample column for the given variable."""
+        ...
+
+    def remove_vars(self, variables: list[str | Variable]) -> None:
+        """Remove the sample columns for the given variables."""
+        ...
+
 # _sample.pyi
 class SamplesIterator:
     """
@@ -2072,6 +2171,73 @@ class Model:
         """
         ...
 
+    @overload
+    def add_variable_with_fallback(self, name: str, /) -> Variable: ...
+    @overload
+    def add_variable_with_fallback(
+        self, name: str, /, vtype: Vtype | None = ...
+    ) -> Variable: ...
+    @overload
+    def add_variable_with_fallback(
+        self,
+        name: str,
+        /,
+        vtype: Vtype,
+        *,
+        lower: float | type[Unbounded] | None,
+    ) -> Variable: ...
+    @overload
+    def add_variable_with_fallback(
+        self,
+        name: str,
+        /,
+        vtype: Vtype,
+        *,
+        upper: float | type[Unbounded] | None,
+    ) -> Variable: ...
+    @overload
+    def add_variable_with_fallback(
+        self,
+        name: str,
+        /,
+        vtype: Vtype,
+        *,
+        lower: float | type[Unbounded] | None,
+        upper: float | type[Unbounded] | None,
+    ) -> Variable: ...
+    def add_variable_with_fallback(
+        self,
+        name: str,
+        /,
+        vtype: Vtype | None = ...,
+        *,
+        lower: float | type[Unbounded] | None = ...,
+        upper: float | type[Unbounded] | None = ...,
+    ) -> Variable:
+        """
+        Add a new variable to the model with fallback renaming.
+
+        Parameters
+        ----------
+        name : str
+            The name of the variable.
+        vtype : Vtype, optional
+            The variable type (e.g., `Vtype.Real`, `Vtype.Integer`, etc.).
+            Defaults to `Vtype.Binary`.
+        lower: float, optional
+            The lower bound restricts the range of the variable. Only applicable for
+            `Real` and `Integer` variables.
+        upper: float, optional
+            The upper bound restricts the range of the variable. Only applicable for
+            `Real` and `Integer` variables.
+
+        Returns
+        -------
+        Variable
+            The variable added to the model.
+        """
+        ...
+
     def get_variable(self, name: str, /) -> Variable:
         """Get a variable by its label (name).
 
@@ -2409,6 +2575,9 @@ class Model:
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
     def __hash__(self, /) -> int: ...
+    def deep_clone(self) -> Model:
+        """Make a deep clone of the model."""
+        ...
 
 # _expression.pyi
 class Expression:
@@ -2632,6 +2801,71 @@ class Expression:
         -------
         list[Variable]
             The list of active variables
+        """
+        ...
+
+    def linear_items(self, /) -> list[tuple[Variable, float]]:
+        """
+        Get all linear components.
+
+        Returns
+        -------
+        list[tuple[Variable, float]]
+            The linear components.
+        """
+        ...
+    def quadratic_items(self, /) -> list[tuple[Variable, Variable, float]]:
+        """
+        Get all quadratic components.
+
+        Returns
+        -------
+        list[tuple[Variable, Variable, float]]
+            The quadratic components.
+        """
+        ...
+
+    def higher_order_items(self, /) -> list[tuple[list[Variable], float]]:
+        """
+        Get all higher-order components.
+
+        Returns
+        -------
+        list[tuple[list[Variable], float]]
+            The higher-order components.
+        """
+        ...
+
+    def is_constant(self, /) -> bool:
+        """
+        Check if expression is constant.
+
+        Returns
+        -------
+        bool
+            If the expression is constant
+        """
+        ...
+
+    def has_quadratic(self, /) -> bool:
+        """
+        Check if expression has quadratic.
+
+        Returns
+        -------
+        bool
+            If the expression has quadratic
+        """
+        ...
+
+    def has_higher_order(self, /) -> bool:
+        """
+        Check if expression has higher-order.
+
+        Returns
+        -------
+        bool
+            If the expression has higher-order
         """
         ...
 
@@ -3716,6 +3950,11 @@ class Constraints:
     @overload
     def __getitem__(self, item: int, /) -> Constraint: ...
     def __getitem__(self, item: int | str, /) -> Constraint: ...
+    @overload
+    def __setitem__(self, item: str, content: Constraint, /) -> None: ...
+    @overload
+    def __setitem__(self, item: int, content: Constraint, /) -> None: ...
+    def __setitem__(self, item: int | str, content: Constraint, /) -> None: ...
     def __len__(self, /) -> int:
         """
         Get the number of constraints.
@@ -3726,7 +3965,7 @@ class Constraints:
             The number of constraints associated with this `Constraints` object.
         """
         ...
-
+    def __iter__(self, /) -> Iterator[Constraint]: ...
     def equal_contents(self, other: Constraints, /) -> bool:
         """
         Check whether this constraints has equal contents as `other`.

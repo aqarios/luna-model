@@ -1,14 +1,23 @@
-use super::passes::{binary_spin::BinarySpinInfo, max_bias::MaxBias};
+use super::passes::{binary_spin::BinarySpinInfo, ifelse::IfElseInfo, max_bias::MaxBias};
 use aqm_macros::register_caches;
-use std::{collections::hash_map::HashMap, fmt::Debug};
+use indexmap::{
+    map::{IntoIter, Iter},
+    IndexMap,
+};
+use std::fmt::Debug;
 
 #[cfg(feature = "py")]
-use {crate::py_bindings::unwind, unwind_macros::unwindable};
+use {
+    crate::py_bindings::unwind,
+    pyo3::{Bound, Python},
+    unwind_macros::unwindable,
+};
 
-register_caches!(MaxBias, BinarySpinInfo);
+register_caches!(MaxBias, BinarySpinInfo, IfElseInfo);
 
+#[derive(Debug, Clone)]
 pub struct AnalysisCache {
-    store: HashMap<String, AnalysisCacheElement>,
+    store: IndexMap<String, AnalysisCacheElement>,
     history: Vec<(String, Reason, AnalysisCacheElement)>,
 }
 
@@ -21,7 +30,7 @@ pub enum Reason {
 impl AnalysisCache {
     pub fn new() -> AnalysisCache {
         AnalysisCache {
-            store: HashMap::new(),
+            store: IndexMap::new(),
             history: Vec::new(),
         }
     }
@@ -32,6 +41,12 @@ impl AnalysisCache {
                 .history
                 .push((name.to_owned(), Reason::Overridden, old)),
             _ => {}
+        }
+    }
+
+    pub fn insert_from(&mut self, cache: Self) {
+        for (key, element) in cache.into_iter() {
+            self.insert(&key, element);
         }
     }
 
@@ -54,9 +69,17 @@ impl AnalysisCache {
 
     pub fn invalidate(&mut self, names: &[&str]) {
         names.iter().for_each(|&x| {
-            if let Some(v) = self.store.remove(x) {
+            if let Some(v) = self.store.shift_remove(x) {
                 self.history.push((x.to_owned(), Reason::Invalidated, v))
             }
         });
+    }
+
+    pub fn iter(&self) -> Iter<'_, String, AnalysisCacheElement> {
+        self.store.iter()
+    }
+
+    pub fn into_iter(self) -> IntoIter<String, AnalysisCacheElement> {
+        self.store.into_iter()
     }
 }

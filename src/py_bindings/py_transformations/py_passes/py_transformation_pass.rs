@@ -1,18 +1,74 @@
-use std::fmt::Debug;
-
-use pyo3::prelude::*;
-use unwind_macros::unwindable;
-
 use super::{py_pass_base::PyPass, py_transformation_pass_adapter::PyTransformationPassAdapter};
 use crate::{
     py_bindings::{py_model::PyModel, py_sol::PySolution, unwind},
     transformations::{
-        analysis_cache::PyAnalysisCache,
-        base_passes::{Pass, ActionType},
+        analysis_cache::{AnalysisCacheElement, PyAnalysisCache},
+        base_passes::{ActionType, Pass, TransformationOutcome},
     },
+    utils::ShareMut,
 };
+use pyo3::prelude::*;
+use pyo3::types::PyNone;
+use std::fmt::Debug;
+use unwind_macros::unwindable;
 
-#[pyclass(unsendable, subclass, name = "TransformationPass")]
+#[pyclass(name = "TransformationOutcome", get_all, set_all)]
+#[derive(FromPyObject)]
+pub struct StructuredPyTransformationOutcome {
+    pub model: PyModel,
+    pub action: ActionType,
+    pub analysis: Option<Py<PyAny>>,
+}
+
+#[derive(FromPyObject)]
+pub enum PyTransformationOutcome {
+    Structured(StructuredPyTransformationOutcome),
+    Tuple2(PyModel, ActionType),
+    Tuple3(PyModel, ActionType, Option<Py<PyAny>>),
+}
+
+#[pymethods]
+impl StructuredPyTransformationOutcome {
+    #[new]
+    #[pyo3(signature=(model, action, analysis=None))]
+    pub fn py_new(model: PyModel, action: ActionType, analysis: Option<Py<PyAny>>) -> Self {
+        StructuredPyTransformationOutcome {
+            model,
+            action,
+            analysis,
+        }
+    }
+
+    #[staticmethod]
+    pub fn nothing(model: PyModel) -> Self {
+        StructuredPyTransformationOutcome {
+            model,
+            action: ActionType::DidNothing,
+            analysis: None,
+        }
+    }
+}
+
+impl TryInto<TransformationOutcome> for PyTransformationOutcome {
+    type Error = String;
+
+    fn try_into(self) -> Result<TransformationOutcome, String> {
+        let (pymodel, action, analysis) = match self {
+            PyTransformationOutcome::Structured(x) => (x.model, x.action, x.analysis),
+            PyTransformationOutcome::Tuple2(a, b) => (a, b, None),
+            PyTransformationOutcome::Tuple3(a, b, c) => (a, b, c),
+        };
+        let model = ShareMut::into_inner(pymodel.concrete_model)
+            .ok_or("Model reference leaked out of transformation scope.".to_string())?;
+        Ok(TransformationOutcome {
+            model,
+            analysis: analysis.map(|x| AnalysisCacheElement::PyAnalysis(x)),
+            action,
+        })
+    }
+}
+
+#[pyclass(subclass, name = "TransformationPass")]
 #[derive(Clone, Debug)]
 pub struct PyTransformationPass {}
 
@@ -48,11 +104,7 @@ impl PyTransformationPass {
 
     #[pyo3(name = "run")]
     #[allow(unused_variables)]
-    fn py_run(
-        &self,
-        model: PyModel,
-        cache: &PyAnalysisCache,
-    ) -> PyResult<(PyModel, ActionType)> {
+    fn py_run(&self, model: PyModel, cache: &PyAnalysisCache) -> PyResult<Py<PyNone>> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'run' method is not implemented.",
         ))

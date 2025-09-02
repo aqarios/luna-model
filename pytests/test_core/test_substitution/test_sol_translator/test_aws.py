@@ -1,6 +1,8 @@
-import pytest
 import numpy as np
+import pytest
+
 from aqmodels.translator import AwsTranslator
+
 from .common import do_checks  # type: ignore[reportMissingImports]
 
 
@@ -16,5 +18,5 @@ def aws_solution() -> dict[str, np.typing.NDArray]:
     }
 
 
-def test_dwave_sol_with_substituted_model(aws_solution: dict[str, np.typing.NDArray]):
+def test_aws_sol_with_substituted_model(aws_solution: dict[str, np.typing.NDArray]):
     do_checks(AwsTranslator, aws_solution)

@@ -28,3 +28,20 @@ def test_expression_iteration():
         assert set(linear) == {(a, -1), (b, 0.0001), (c, 3)}
         assert set(quadratic) == {(a, b, -5.5), (b, c, 2)}
         assert higher_order == [([a, b, c], 1)]
+
+
+def test_expression_items():
+    with Environment():
+        a = Variable("a")
+        b = Variable("b")
+        c = Variable("c")
+
+        expr = a * b * c - 5.5 * a * b + 2 * c * b - a + 0.0001 * b + 3 * c - 42
+
+        linear = expr.linear_items()
+        quadratic = expr.quadratic_items()
+        higher_order = expr.higher_order_items()
+
+        assert set(linear) == {(a, -1), (b, 0.0001), (c, 3)}
+        assert set(quadratic) == {(a, b, -5.5), (b, c, 2)}
+        assert higher_order == [([a, b, c], 1)]

@@ -151,14 +151,16 @@ impl Constraint {
         Ok(())
     }
 
-    pub fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<VarIndex, Output = Elem>>(
+    pub fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<VarIndex, Output = Elem>, F>(
         &self,
         sample: &'a Sample,
+        index_map: F,
     ) -> bool
     where
         Elem: Mul<Bias, Output = Bias>,
+        F: Fn(VarIndex) -> VarIndex,
     {
-        let val = self.lhs.evaluate_sample(sample);
+        let val = self.lhs.evaluate_sample(sample, &index_map);
         self.comparator.evaluate(val, self.rhs)
     }
 
@@ -274,6 +276,24 @@ impl Constraints {
                         IndexOutOfBoundsErr::new(*idx, self.len()),
                     )),
                 }
+            }
+            None => Err(GetConstraintErr::NoConstraintForKeyErr(key.to_string())),
+        }
+    }
+
+    pub fn set_constraint(
+        &mut self,
+        key: ConstraintKey,
+        constr: Constraint,
+    ) -> Result<(), GetConstraintErr> {
+        let index = match &key {
+            ConstraintKey::Int(idx) => Some(idx),
+            ConstraintKey::Str(name) => self.index_map.get(name),
+        };
+        match index {
+            Some(idx) => {
+                self.constraints[*idx] = constr;
+                Ok(())
             }
             None => Err(GetConstraintErr::NoConstraintForKeyErr(key.to_string())),
         }

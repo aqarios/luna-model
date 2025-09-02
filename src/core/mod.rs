@@ -33,10 +33,10 @@ pub use model::DEFAULT_MODEL_NAME;
 
 pub use qubo::Qubo;
 
-pub use solution::OwnedResult;
-pub use solution::PrintLayout;
-pub use solution::RcSolution;
-pub use solution::ResultIterator;
+// pub use solution::OwnedResult;
+// pub use solution::PrintLayout;
+// pub use solution::SharedSolution;
+// pub use solution::ResultIterator;
 pub use solution::ResultView;
 pub use solution::Sample;
 pub use solution::SampleIterator;
@@ -57,3 +57,5 @@ pub use variable::Vtype;
 
 pub use traits::ContentEquality;
 pub use traits::ValueByIndex;
+
+pub use utils::make_index_map;

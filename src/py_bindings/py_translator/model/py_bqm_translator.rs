@@ -124,8 +124,8 @@ def extract(bqm, name):
 /// Convert it back to a dense matrix:
 ///
 /// >>> recovered = BqmTranslator.from_aq(model)
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "BqmTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "BqmTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(name = "BqmTranslator", module = "aqmodels._core.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(name = "BqmTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyBqmTranslator {}
 
 #[unwindable]
@@ -200,7 +200,7 @@ impl PyBqmTranslator {
     #[pyo3(signature=(model))]
     fn from_aq<'a>(py: Python<'a>, model: &PyModel) -> PyResult<PyObject> {
         let (offset, linear, quad, rows, cols, vtype, vars) =
-            BqmTranslator::model_to_bqm(&model.borrow())?;
+            BqmTranslator::model_to_bqm(&model.access())?;
         let linear_py = linear.to_pyarray(py);
         let quadratic_py = quad.to_pyarray(py);
         let rows_py = rows.to_pyarray(py);

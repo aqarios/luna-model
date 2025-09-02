@@ -19,6 +19,31 @@ def solution() -> Solution:
         real_cols=[[2.2, 3.3, -4.4]],
         raw_energies=[0.3, 1.2, -200],
         counts=[1, 2, 3],
+        constraints=[
+            [True, True, True],
+            [False, True, False],
+            [False, True, True],
+        ],
+        variable_bounds=[
+            [True, True, True, True, True],
+            [True, True, True, True, True],
+            [True, True, True, True, True],
+        ],
+        feasible=[True, False, False],
+    )
+
+
+@pytest.fixture
+def solution_many_binary() -> Solution:
+    return Solution._build(  # type: ignore[reportAttributeAccessIssue]
+        component_types=[
+            Vtype.Binary,
+            Vtype.Binary,
+            Vtype.Binary,
+        ],
+        binary_cols=[[0, 0, 0], [1, 0, 1], [1, 1, 0]],
+        raw_energies=[-1, 0, -1],
+        counts=[1, 2, 3],
     )
 
 
@@ -26,7 +51,10 @@ def solution() -> Solution:
 def test_solution_encoding_decoding(solution):
     blob = solution.encode()
     solution_back = Solution.decode(blob)
-    print(repr(solution))
-    print("\n\n\n")
-    print(repr(solution_back))
-    # assert solution == solution_back
+    assert solution == solution_back
+
+@pytest.mark.solution_translation
+def test_solution_encoding_decoding_many(solution_many_binary):
+    blob = solution_many_binary.encode()
+    solution_back = Solution.decode(blob)
+    assert solution_many_binary == solution_back

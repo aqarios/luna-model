@@ -6,6 +6,30 @@ use std::{
 };
 
 #[derive(Debug, Clone)]
+pub struct ColumnCreationErr {
+    msg: Option<String>,
+}
+impl ColumnCreationErr {
+    pub fn default() -> Self {
+        Self { msg: None }
+    }
+    pub fn new(msg: &str) -> Self {
+        Self {
+            msg: Some(String::from(msg)),
+        }
+    }
+}
+impl Error for ColumnCreationErr {}
+impl Display for ColumnCreationErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match &self.msg {
+            Some(msg) => write!(f, "error when creating sample column: {}", msg),
+            None => write!(f, "error when creating sample column"),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct DuplicateConstraintNameErr(pub String);
 impl Error for DuplicateConstraintNameErr {}
 impl Display for DuplicateConstraintNameErr {
@@ -433,5 +457,14 @@ impl Display for EvaluationErr {
             }
         };
         write!(f, "{}", msg)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CompressionErr(pub String);
+impl Error for CompressionErr {}
+impl Display for CompressionErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "compression failed: '{}'", self.0)
     }
 }

@@ -1,3 +1,5 @@
+mod utils;
+
 /// The installed aq-models-version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// The core component of the library. This includes everyting related to defining and
@@ -25,3 +27,6 @@ pub mod transformations;
 // Import of the python bindings only when the `--features` flag is set to `py`.
 #[cfg(feature = "py")]
 pub mod py_bindings;
+
+/// Unicode character for printing stuff.
+pub mod unicode;

@@ -8,8 +8,8 @@ use pyo3::prelude::*;
 use unwind_macros::unwindable;
 
 /// A wrapper around qubo matrices that holds all relevant metadata, e.g., the model offset.
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "Qubo", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "Qubo", module = "luna_quantum._core.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(name = "Qubo", module = "aqmodels._core.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(name = "Qubo", module = "luna_quantum._core.translator"))]
 #[derive(Deref, DerefMut)]
 pub struct PyQubo(pub Qubo);
 
@@ -105,8 +105,8 @@ impl PyQubo {
 ///
 /// >>> recovered = QuboTranslator.from_aq(model)
 /// >>> assert np.allclose(q, recovered.matrix)
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "QuboTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "QuboTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(name = "QuboTranslator", module = "aqmodels._core.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(name = "QuboTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyQuboTranslator {}
 
 #[derive(FromPyObject)]
@@ -213,7 +213,7 @@ impl PyQuboTranslator {
     #[staticmethod]
     #[pyo3(signature=(model))]
     fn from_aq(model: &PyModel) -> PyResult<PyQubo> {
-        let qubo = MatrixTranslator::model_to_dense(&model.borrow())?;
+        let qubo = MatrixTranslator::model_to_dense(&model.access())?;
         Ok(PyQubo(qubo))
     }
 }

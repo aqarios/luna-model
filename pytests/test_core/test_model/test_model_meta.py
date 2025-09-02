@@ -1,16 +1,18 @@
-import pytest
 import random
+
+import pytest
+
 from aqmodels import (
-    Model,
-    Vtype,
     Comparator,
     Constant,
-    Linear,
-    HigherOrder,
-    Quadratic,
     Constraint,
+    HigherOrder,
+    Linear,
+    Model,
+    Quadratic,
+    Vtype,
+    quicksum,
 )
-from aqmodels import quicksum
 
 
 @pytest.fixture

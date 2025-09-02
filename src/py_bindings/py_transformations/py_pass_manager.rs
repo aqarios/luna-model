@@ -1,18 +1,20 @@
+use crate::py_bindings::py_sol::PySolution;
+use crate::py_bindings::unwind;
+use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
 use derive_more::{Deref, DerefMut};
 use pyo3::prelude::*;
 use unwind_macros::unwindable;
-
-use crate::py_bindings::unwind;
-use crate::core::RcSolution;
-use crate::py_bindings::py_sol::PySolution;
-use crate::{py_bindings::py_model::PyModel, transformations::pass_manager::PassManager};
 
 use super::py_ir::PyIR;
 use super::py_module::AnyPass;
 
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(unsendable, name = "PassManager", module = "aqmodels._core.transformations")
+    pyclass(
+        unsendable,
+        name = "PassManager",
+        module = "aqmodels._core.transformations"
+    )
 )]
 #[cfg_attr(
     feature = "lq",
@@ -56,13 +58,11 @@ impl PyPassManager {
 
     #[pyo3(name = "run")]
     pub fn py_run(&self, model: PyModel) -> PyResult<PyIR> {
-        Ok(PyIR(self.run(model.borrow().deep_clone())?))
+        Ok(PyIR(self.run(model.access().deep_clone())?))
     }
 
     #[pyo3(name = "backwards")]
     pub fn py_backwargs(&self, solution: &PySolution, ir: &PyIR) -> PySolution {
-        PySolution(RcSolution(
-            self.backwards(solution.as_ref().clone(), &ir.0).into(),
-        ))
+        PySolution::new(self.backwards(solution.access().clone(), &ir.0))
     }
 }

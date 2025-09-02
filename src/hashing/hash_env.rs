@@ -92,7 +92,7 @@ impl HashEnv {
             real_bounds_upper: Vec::new(),
         };
 
-        for (i, var) in env.borrow().all_variables().enumerate() {
+        for (i, var) in env.access().all_variables().enumerate() {
             match var.vtype {
                 Vtype::__Ghost => (),
                 Vtype::Binary => {

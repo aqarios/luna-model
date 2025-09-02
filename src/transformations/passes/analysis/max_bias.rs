@@ -1,4 +1,3 @@
-#[cfg(feature = "py")]
 use aqm_macros::analysis_cache;
 use num::{abs, NumCast};
 
@@ -33,7 +32,7 @@ impl BasePass for MaxBiasAnalysis {
 }
 
 #[derive(Debug, Clone, Copy)]
-#[cfg_attr(feature = "py", analysis_cache)]
+#[analysis_cache]
 pub struct MaxBias {
     pub val: f64,
 }

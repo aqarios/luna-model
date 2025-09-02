@@ -2,7 +2,6 @@ mod constraint;
 mod environment;
 mod expression;
 mod model;
-/// Serializable structs for version 0 based encodings.
 mod sol;
 mod timing;
 

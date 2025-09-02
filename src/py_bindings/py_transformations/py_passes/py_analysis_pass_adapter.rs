@@ -4,11 +4,10 @@ use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
 
 use crate::{
     core::Model,
-    py_bindings::py_model::PyModel,
+    py_bindings::{py_model::PyModel, AnyPass, IntoAnyPass},
     transformations::{
         analysis_cache::{AnalysisCache, AnalysisCacheElement, PyAnalysisCache},
         base_passes::{AnalysisPass, AnalysisPassResult, BasePass},
-        errors::AnalysisPassError,
     },
 };
 
@@ -81,15 +80,6 @@ impl BasePass for PyAnalysisPassAdapter {
 impl AnalysisPass for PyAnalysisPassAdapter {
     fn run(&self, model: &Model, cache: &AnalysisCache) -> AnalysisPassResult {
         Python::with_gil(|py| {
-            let fallback_name = String::from("PyAnalysisPassAdapter");
-            let cls_name: String = self
-                .inner
-                .getattr(py, "__class__")
-                .map_err(|e| AnalysisPassError(fallback_name.clone(), e.to_string()))?
-                .getattr(py, "__name__")
-                .map_err(|e| AnalysisPassError(fallback_name.clone(), e.to_string()))?
-                .extract(py)
-                .map_err(|e| AnalysisPassError(fallback_name.clone(), e.to_string()))?;
             let py_res = self
                 .inner
                 .call_method1(
@@ -100,10 +90,8 @@ impl AnalysisPass for PyAnalysisPassAdapter {
                         PyAnalysisCache::new(cache.clone_py(py)),
                     ),
                 )
-                .map_err(|e| AnalysisPassError(cls_name.clone(), e.to_string()))?;
-            let py_any: Py<PyAny> = py_res
-                .extract(py)
-                .map_err(|e| AnalysisPassError(cls_name.clone(), e.to_string()))?;
+                .map_err(|e| self.map_err(&e))?;
+            let py_any: Py<PyAny> = py_res.extract(py).map_err(|e| self.map_err(&e))?;
             if py_any.is_none(py) {
                 Ok(None)
             } else {
@@ -116,5 +104,19 @@ impl AnalysisPass for PyAnalysisPassAdapter {
 impl Debug for PyAnalysisPassAdapter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.inner)
+    }
+}
+
+impl Clone for PyAnalysisPassAdapter {
+    fn clone(&self) -> Self {
+        Python::with_gil(|py| PyAnalysisPassAdapter {
+            inner: self.inner.clone_ref(py),
+        })
+    }
+}
+
+impl IntoAnyPass for PyAnalysisPassAdapter {
+    fn as_anypass(&self) -> AnyPass {
+        Python::with_gil(|py| AnyPass::PyAnalysisPass(self.inner.clone_ref(py)))
     }
 }

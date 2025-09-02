@@ -1,3 +1,5 @@
+mod execution;
+
 pub mod base_passes;
 pub mod errors;
 pub mod pass_manager;

@@ -63,8 +63,8 @@ def extract(result, timing, env):
 /// >>> ...
 /// >>> qctrl_result = ...
 /// >>> aqs = lq.translator.QctrlTranslator.to_aq(qctrl_result)
-#[cfg_attr(not(feature = "lq"), pyclass(unsendable, name = "QctrlTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(unsendable, name = "QctrlTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(not(feature = "lq"), pyclass(name = "QctrlTranslator", module = "aqmodels._core.translator"))]
+#[cfg_attr(feature = "lq",      pyclass(name = "QctrlTranslator", module = "luna_quantum._core.translator"))]
 pub struct PyQctrlTranslator(pub QctrlTranslator);
 
 #[unwindable]
@@ -123,13 +123,14 @@ impl PyQctrlTranslator {
             .collect();
         let mut samples: Vec<Vec<usize>> = Vec::new();
         let mut counts = Vec::new();
-        let mut energies = Vec::new();
+        // let mut energies = Vec::new();
         for (bs, &count) in final_bitstring_distribution.unwrap().iter() {
-            if bs == solution_bitstring.as_ref().unwrap() {
-                energies.push(Some(solution_bitstring_cost.unwrap()));
-            } else {
-                energies.push(None);
-            };
+            // todo: write to metadata.
+            // if bs == solution_bitstring.as_ref().unwrap() {
+            //     energies.push(Some(solution_bitstring_cost.unwrap()));
+            // } else {
+            //     energies.push(None);
+            // };
             let unordered_sample: Vec<usize> = bs
                 .chars()
                 .map(|c| c.to_digit(10).unwrap() as usize)
@@ -142,10 +143,11 @@ impl PyQctrlTranslator {
             counts.push(count.into());
         }
 
-        Ok(PySolution(QctrlTranslator::from_qctrl(
+        Ok(PySolution::new(QctrlTranslator::from_qctrl(
             samples,
             counts,
-            energies,
+            // energies, // removed as we only have a single value here. We don't care for now. Can
+            // be put in the metadata once available.
             timing.map(|t| t.into()),
             environment.0.clone(),
         )?))

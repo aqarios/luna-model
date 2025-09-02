@@ -1,23 +1,22 @@
-use either::Either;
-use indexmap::IndexMap;
-use itertools::Itertools;
-use strum_macros::{Display, EnumString};
-
 use super::constraints::Constraints;
 use super::environment::SharedEnvironment;
 use super::expression::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation};
-use super::solution::OwnedSample;
+use super::solution::result::OwnedResult;
+use super::solution::sample::SampleOwned;
+use super::solution::sol::Solution;
+use super::solution::Sample;
 use super::traits::ContentEquality;
 use super::utils::{check_variables_sample, check_variables_sol};
-use super::{Expression, ExpressionBase, RcSolution, Sample, Substitution, VarRef, Vtype};
+use super::{Expression, ExpressionBase, Substitution, VarRef, Vtype};
 use crate::core::expression::ExpressionEvaluation;
-use crate::core::solution::OwnedResult;
+use crate::core::utils::make_index_map;
 use crate::core::writer::ModelWriter;
 use crate::errors::{DifferentEnvsErr, EvaluationErr, VariableCreationErr};
 use crate::types::{Bias, VarIndex};
+use indexmap::IndexMap;
+use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::Deref;
-use std::rc::Rc;
+use strum_macros::{Display, EnumString};
 #[cfg(feature = "py")]
 use {crate::py_bindings::unwind, pyo3::prelude::*, unwind_macros::unwindable};
 
@@ -181,47 +180,70 @@ impl Model {
         Ok(model)
     }
 
-    pub fn evaluate_solution(&self, sol: RcSolution) -> Result<RcSolution, EvaluationErr> {
+    pub fn evaluate_solution(&self, mut sol: Solution) -> Result<Solution, EvaluationErr> {
         let vars_sol = &sol.variable_names;
         let vars_env = &self.environment.variable_names();
         check_variables_sol(vars_sol, vars_env)?;
 
-        let mut newsol = sol.0.deref().clone();
-        for (i, sample) in sol.samples().iter().enumerate() {
-            let obj_val = self.objective.evaluate_sample(&sample);
-            let constraints = self
-                .constraints
-                .iter()
-                .map(|(_, constr)| constr.evaluate_sample(&sample))
-                .collect();
-            let variable_bounds = self.environment.borrow().evaluate_bounds::<Sample>(&sample);
-            newsol.add_sample_evaluation(i, Some(obj_val), constraints, variable_bounds);
+        let index_map = make_index_map(sol.varname_to_pos(), &self.environment);
+
+        let mut obj_values = Vec::with_capacity(sol.n_samples);
+        let mut constr = Vec::with_capacity(sol.n_samples);
+        let mut vb = Vec::with_capacity(sol.n_samples);
+
+        for sample in sol.iter_samples() {
+            let obj_val = self
+                .objective
+                .evaluate_sample(&sample, |var_idx| index_map[&var_idx].into());
+            constr.push(
+                self.constraints
+                    .iter()
+                    .map(|(_, constr)| {
+                        constr.evaluate_sample(&sample, |var_idx| index_map[&var_idx].into())
+                    })
+                    .collect(),
+            );
+            vb.push(
+                self.environment
+                    .access()
+                    .evaluate_bounds(&sample, |var_idx| index_map[&var_idx].into()),
+            );
+            obj_values.push(obj_val);
         }
-        Ok(RcSolution(newsol.into()))
+        sol.add_eval_data(obj_values, constr, vb);
+        Ok(sol)
     }
 
     pub fn evaluate_sample<'a>(&self, sample: &Sample) -> Result<OwnedResult, EvaluationErr> {
-        let (vars_sample, index_map) = match &sample.0 {
-            Either::Left(a) => (&a.sol.variable_names, &a.sol.index_map),
-            Either::Right(b) => (&b.variable_names, &b.index_map),
-        };
-        let vars_env = &self.environment.variable_names();
-        check_variables_sample(vars_sample, vars_env)?;
+        let sample_var_names = sample.variable_names();
+        let env_var_names = &self.environment.variable_names();
+        check_variables_sample(&sample_var_names, env_var_names)?;
 
-        let obj_val = self.objective.evaluate_sample(sample);
+        let index_map = make_index_map(sample.varname_to_pos(), &self.environment);
+
+        let obj_val = self
+            .objective
+            .evaluate_sample(sample, |idx| index_map[&idx]);
         let cf: Vec<_> = self
             .constraints
             .iter()
             .map(|(_, constraint)| {
-                let v = constraint.lhs.evaluate_sample(sample);
+                let v = constraint
+                    .lhs
+                    .evaluate_sample(sample, |idx| index_map[&idx]);
                 constraint.comparator.evaluate(v, constraint.rhs)
             })
             .collect();
-        let vf: Vec<_> = self.environment.borrow().evaluate_bounds::<Sample>(&sample);
+        let vf: Vec<_> = self
+            .environment
+            .access()
+            .evaluate_bounds(sample, |idx| index_map[&idx]);
         let feasible = cf.iter().all(|&b| b) && vf.iter().all(|&b| b);
-        let owned_sample_actual = Rc::new(sample.iter().collect());
-        let owned_sample =
-            OwnedSample::new(vars_sample.to_vec(), owned_sample_actual, index_map.clone());
+        let owned_sample = SampleOwned::new(
+            sample_var_names.to_vec(),
+            sample.iter().collect(),
+            sample.var_indices(),
+        );
         Ok(OwnedResult::new(owned_sample, obj_val, cf, vf, feasible))
     }
 
@@ -231,10 +253,13 @@ impl Model {
     }
 
     pub fn violated_constraints(&self, sample: &Sample) -> Constraints {
+        let var_index_lookup = make_index_map(sample.varname_to_pos(), &self.environment);
         let mut index_map = IndexMap::new();
         let mut constraints = Vec::new();
         for (idx, (name, constr)) in self.constraints.iter().enumerate() {
-            let v = constr.lhs.evaluate_sample(sample);
+            let v = constr
+                .lhs
+                .evaluate_sample(sample, |idx| var_index_lookup[&idx].into());
             if !constr.comparator.evaluate(v, constr.rhs) {
                 index_map.insert(name.to_string(), idx);
                 constraints.push(constr.clone())

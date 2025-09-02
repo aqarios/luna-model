@@ -1,6 +1,6 @@
-use std::fmt::Debug;
-use pyo3::{prelude::*, types::PyDict};
 use crate::py_bindings::unwind;
+use pyo3::prelude::*;
+use std::fmt::Debug;
 use unwind_macros::unwindable;
 
 use crate::{
@@ -10,8 +10,8 @@ use crate::{
 
 use super::{py_analysis_pass_adapter::PyAnalysisPassAdapter, py_pass_base::PyPass};
 
-#[pyclass(unsendable, subclass, name = "AnalysisPass")]
-#[derive(Clone, Debug)]
+#[pyclass(subclass, name = "AnalysisPass")]
+#[derive(Debug)]
 pub struct PyAnalysisPass {}
 
 #[unwindable]
@@ -40,7 +40,7 @@ impl PyAnalysisPass {
 
     #[pyo3(name = "run")]
     #[allow(unused_variables)]
-    fn py_run(&self, model: PyModel, cache: &PyAnalysisCache) -> PyResult<Py<PyDict>> {
+    fn py_run(&self, model: PyModel, cache: &PyAnalysisCache) -> PyResult<Py<PyAny>> {
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'run' method is not implemented.",
         ))

@@ -1,18 +1,16 @@
-use std::fmt::Debug;
-
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
-
+use super::py_transformation_pass::{PyTransformationOutcome, PyTransformationPass};
 use crate::{
     core::{Model, Solution},
-    py_bindings::py_model::PyModel,
+    py_bindings::{py_model::PyModel, py_sol::PySolution, AnyPass, IntoAnyPass},
     transformations::{
         analysis_cache::{AnalysisCache, PyAnalysisCache},
-        base_passes::{BasePass, TransformationPass, TransformationPassResult, ActionType},
+        base_passes::{BasePass, TransformationPass, TransformationPassResult},
         errors::TransformationPassError,
     },
+    utils::ShareMut,
 };
-
-use super::py_transformation_pass::PyTransformationPass;
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyType};
+use std::fmt::Debug;
 
 pub struct PyTransformationPassAdapter {
     inner: Py<PyTransformationPass>,
@@ -89,17 +87,8 @@ impl TransformationPass for PyTransformationPassAdapter {
         })
     }
 
-    fn run(&self, mut model: Model, cache: &AnalysisCache) -> TransformationPassResult {
-        Python::with_gil(|py| {
-            let fallback_name = String::from("PyTransformationPassAdapter");
-            let cls_name: String = self
-                .inner
-                .getattr(py, "__class__")
-                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?
-                .getattr(py, "__name__")
-                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?
-                .extract(py)
-                .map_err(|e| TransformationPassError(fallback_name.clone(), e.to_string()))?;
+    fn run(&self, model: Model, cache: &AnalysisCache) -> TransformationPassResult {
+        let py_outcome = Python::with_gil(|py| {
             let py_res = self
                 .inner
                 .call_method1(
@@ -110,25 +99,55 @@ impl TransformationPass for PyTransformationPassAdapter {
                         PyAnalysisCache::new(cache.clone_py(py)),
                     ),
                 )
-                .map_err(|e| TransformationPassError(cls_name.clone(), e.to_string()))?;
-            let (py_model, py_tt): (Py<PyModel>, Py<ActionType>) = py_res
-                .extract(py)
-                .map_err(|e| TransformationPassError(cls_name.clone(), e.to_string()))?;
-            let py_model_borrow = py_model.borrow(py);
-            let pymodel = py_model_borrow.clone();
-            model = pymodel.concrete_model.borrow().clone();
-            let tt = py_tt.borrow(py);
-            Ok((model, tt.clone()))
-        })
+                .map_err(|e| self.map_err(&e))?;
+            let py_outcome: PyTransformationOutcome =
+                py_res.extract(py).map_err(|e| self.map_err(&e))?;
+            Ok(py_outcome)
+        })?;
+        let outcome = py_outcome.try_into().map_err(|e| self.map_err(&e))?;
+        Ok(outcome)
     }
 
-    fn backwards(&self, mut _solution: Solution, _cache: &AnalysisCache) -> Solution {
-        todo!()
+    fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution {
+        let py_sol = Python::with_gil(|py| {
+            let py_res = self
+                .inner
+                .call_method1(
+                    py,
+                    "backwards",
+                    (
+                        PySolution::new(solution),
+                        PyAnalysisCache::new(cache.clone_py(py)),
+                    ),
+                )
+                .map_err(|e| self.map_err(&e))?;
+            let py_sol: PySolution = py_res.extract(py).map_err(|e| self.map_err(&e))?;
+            Ok::<PySolution, TransformationPassError>(py_sol)
+        })
+        .unwrap(); // Backwards cannot have error currently.
+        let sol: Solution = ShareMut::into_inner(py_sol.0)
+            .ok_or(self.map_err(&"Solution reference leaked out of backwards scope."))
+            .unwrap();
+        sol
     }
 }
 
 impl Debug for PyTransformationPassAdapter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.inner)
+    }
+}
+
+impl Clone for PyTransformationPassAdapter {
+    fn clone(&self) -> Self {
+        Python::with_gil(|py| PyTransformationPassAdapter {
+            inner: self.inner.clone_ref(py),
+        })
+    }
+}
+
+impl IntoAnyPass for PyTransformationPassAdapter {
+    fn as_anypass(&self) -> AnyPass {
+        Python::with_gil(|py| AnyPass::PyTransformationPass(self.inner.clone_ref(py)))
     }
 }

@@ -1,22 +1,38 @@
 use crate::core::expression::VariableOutOfRangeErr;
 use crate::errors::{
-    BqmTranslatorErr, ComputationErr, DifferentEnvsErr, DuplicateConstraintNameErr, EvaluationErr,
-    GetConstraintErr, IllegalConstraintNameErr, IndexOutOfBoundsErr, MatrixTranslatorErr,
-    ModelNotQuadraticErr, ModelNotUnconstrainedErr, ModelSenseNotMinimizeErr, ModelVtypeErr,
-    SampleIncompatibleVtypeErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr,
-    SolutionCreationErr, TranslationErr, VariableCreationErr, VariableNotExistingErr,
-    VariablesFromDifferentEnvsErr,
+    BqmTranslatorErr, ColumnCreationErr, CompressionErr, ComputationErr, DifferentEnvsErr,
+    DuplicateConstraintNameErr, EvaluationErr, GetConstraintErr, IllegalConstraintNameErr,
+    IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr,
+    ModelSenseNotMinimizeErr, ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
+    SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VariableCreationErr,
+    VariableNotExistingErr, VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
-use pyo3::exceptions::{PyException, PyIndexError, PyTypeError};
-use pyo3::{create_exception, PyErr};
 use std::convert::From;
 
 #[cfg(feature = "pyt")]
 use crate::transformations::errors::CompilationError as CompilationErr;
 #[cfg(feature = "py")]
-use pyo3::exceptions::PyRuntimeError;
+use {
+    pyo3::exceptions::PyRuntimeError,
+    pyo3::exceptions::{PyException, PyIndexError, PyTypeError},
+    pyo3::{create_exception, PyErr},
+};
 
+#[cfg(not(feature = "lq"))]
+create_exception!(
+    aqmodels._core.errors,
+    CompressionError,
+    PyException,
+    "Raised when an error occurred during the compression step of encoding."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
+    CompressionError,
+    PyException,
+    "Raised when an error occurred during the compression step of encoding."
+);
 #[cfg(not(feature = "lq"))]
 create_exception!(
     aqmodels._core.errors,
@@ -520,6 +536,21 @@ create_exception!(
 #[cfg(not(feature = "lq"))]
 create_exception!(
     aqmodels._core.errors,
+    SampleColCreationError,
+    PyRuntimeError,
+    "Raised when an error occured during creation of a sample column."
+);
+#[cfg(feature = "lq")]
+create_exception!(
+    luna_quantum._core.errors,
+    SampleColCreationError,
+    PyRuntimeError,
+    "Raised when an error occured during creation of a sample column."
+);
+
+#[cfg(not(feature = "lq"))]
+create_exception!(
+    aqmodels._core.errors,
     NoConstraintForKeyError,
     PyIndexError,
     "Raised getting a constraint from the constraints that does not exist."
@@ -685,6 +716,13 @@ impl From<DuplicateConstraintNameErr> for PyErr {
     }
 }
 
+impl From<ColumnCreationErr> for PyErr {
+    fn from(value: ColumnCreationErr) -> Self {
+        SampleColCreationError::new_err(format!("{value}"))
+    }
+}
+
+#[cfg(feature = "transformations")]
 #[cfg(feature = "pyt")]
 impl From<CompilationErr> for PyErr {
     fn from(value: CompilationErr) -> Self {
@@ -702,5 +740,11 @@ impl From<GetConstraintErr> for PyErr {
                 NoConstraintForKeyError::new_err(value.to_string())
             }
         }
+    }
+}
+
+impl From<CompressionErr> for PyErr {
+    fn from(value: CompressionErr) -> Self {
+        CompressionError::new_err(value.to_string())
     }
 }

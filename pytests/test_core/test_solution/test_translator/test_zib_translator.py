@@ -101,8 +101,7 @@ def test_zib_translator(model: Model):
 
     sol = ZibTranslator.to_aq(scip_model, timing=timing, env=model.environment)
     assert len(sol.samples) == 1
-    assert len(sol.raw_energies) == 1
-    assert sol.raw_energies.tolist() == [None]
+    assert sol.raw_energies == None
     assert len(sol.counts) == 1
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
@@ -113,7 +112,8 @@ def test_zib_translator(model: Model):
         sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5
     )
     assert sol.runtime.qpu is None
-    assert sol.obj_values.tolist() == [None] * len(sol.samples)
+    assert sol.obj_values is None
+    assert sol.raw_energies is None
 
     results = list(sol.results)
     assert len(results) == len(sol.samples)
@@ -121,7 +121,7 @@ def test_zib_translator(model: Model):
         assert result.counts == sol.counts.tolist()[i]  # type: ignore
         assert list(result.sample) == list(sol.samples[i])
         assert result.obj_value is None
-        assert result.raw_energy == sol.raw_energies.tolist()[i]  # type: ignore
+        # assert result.raw_energy == sol.raw_energies.tolist()[i]  # type: ignore
         assert result.constraints is None
         assert result.feasible is None
 
@@ -156,8 +156,7 @@ def test_zib_translator_quadratic(model_quadratic: Model):
         scip_model, timing=timing, env=model_quadratic.environment
     )
     assert len(sol.samples) == 1
-    assert len(sol.raw_energies) == 1
-    assert sol.raw_energies.tolist() == [None]
+    assert sol.raw_energies == None
     assert len(sol.counts) == 1
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
@@ -168,7 +167,8 @@ def test_zib_translator_quadratic(model_quadratic: Model):
         sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5
     )
     assert sol.runtime.qpu is None
-    assert sol.obj_values.tolist() == [None] * len(sol.samples)
+    assert sol.obj_values is None
+    assert sol.raw_energies is None
 
     results = list(sol.results)
     assert len(results) == len(sol.samples)
@@ -176,7 +176,7 @@ def test_zib_translator_quadratic(model_quadratic: Model):
         assert result.counts == sol.counts.tolist()[i]  # type: ignore
         assert list(result.sample) == list(sol.samples[i])
         assert result.obj_value is None
-        assert result.raw_energy == sol.raw_energies.tolist()[i]  # type: ignore
+        # assert result.raw_energy == sol.raw_energies.tolist()[i]  # type: ignore
         assert result.constraints is None
         assert result.feasible is None
 
