@@ -955,6 +955,22 @@ class Solution:
         """Get the names of all variables in the solution."""
         ...
 
+    def cvar(self, /, alpha: float) -> float:
+        """
+        Compute the Conditional Value at Rist (CVaR) of the solution.
+
+        Returns
+        -------
+        float
+            The CVaR.
+
+        Raises
+        ------
+        ComputationError
+            If the computation fails for any reason.
+        """
+        ...
+
     def expectation_value(self, /) -> float:
         """
         Compute the expectation value of the solution.

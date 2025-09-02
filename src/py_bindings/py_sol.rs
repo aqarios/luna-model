@@ -810,6 +810,21 @@ impl PySolution {
         Ok(self.access().expectation_value()?)
     }
 
+    /// Compute the Conditional Value at Rist (CVaR) of the solution.
+    ///
+    /// Returns
+    /// -------
+    /// float
+    ///     The CVaR.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    fn cvar(&self, alpha: f64) -> PyResult<f64> {
+        Ok(self.access().cvar(alpha)?)
+    }
+
     /// Compute the expectation value of the solution.
     ///
     /// Returns
