@@ -1,7 +1,33 @@
-use crate::{errors::ComputationErr, types::Bias};
 use super::Solution;
+use crate::{errors::ComputationErr, types::Bias};
 
 impl Solution {
+    pub fn cvar(&self, alpha: Bias) -> Result<Bias, ComputationErr> {
+        // Implementation based on definition of CVaR in https://arxiv.org/pdf/1907.04769
+        // alpha has to be in (0.0, 1.0]
+        if !(alpha.is_finite() && alpha > 0.0 && alpha <= 1.0) {
+            return Err(ComputationErr(format!("alpha not in (0, 1], is {alpha}")));
+        }
+        match &self.obj_values {
+            Some(objs) => {
+                // samples have to be sorted in nondecreasing order
+                let k = objs.len();
+                let m = (alpha * k as f64).ceil() as usize;
+                let factor: f64 = 1.0 / m as f64;
+
+                let mut objs = objs.to_vec();
+                objs.select_nth_unstable_by(m - 1, |a, b| a.total_cmp(b));
+                let sum: f64 = objs[..m].iter().copied().sum();
+                Ok(factor * sum)
+            }
+            None => {
+                return Err(ComputationErr(String::from(
+                    "solution has to be evaluated first.",
+                )))
+            }
+        }
+    }
+
     pub fn expectation_value(&self) -> Result<Bias, ComputationErr> {
         let mut weight_sum: f64 = 0.0;
         let mut weighted_sum: Bias = Bias::default();
