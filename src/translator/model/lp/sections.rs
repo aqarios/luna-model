@@ -454,11 +454,11 @@ impl SectionsHolder {
             for entry in constrs {
                 let (name, constr) = entry.split_once(":").unwrap();
                 if let Some((lhs_str, comp, rhs_str)) = Self::split_constraint_expression(&constr) {
-                    let mut lhs: Expression = Expression::new(
-                        model.environment.clone(),
-                        vec![false; model.objective.active.len()],
-                        model.objective.num_variables,
-                    );
+                    let mut lhs: Expression = Expression::empty(model.environment.clone());
+                    //     model.environment.clone(),
+                    //     vec![false; model.objective.active.len()],
+                    //     model.objective.num_variables,
+                    // );
                     Self::add_to_expression(&mut lhs, &lhs_str, &vars)?;
                     let rhs = rhs_str.parse::<Bias>().map_err(|_| {
                         TranslationErr::new(format!("cannot convert rhs to f64: {}", rhs_str))
