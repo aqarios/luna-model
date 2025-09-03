@@ -35,6 +35,7 @@ def test_expectation_value(model: tuple[Model, tuple[Variable, ...]]):
         {x: 0, y: 1, z: 1},  # -2
     ]
     sol = Solution.from_dicts(samples, model=m)
+    assert sol.obj_values is not None
     gt_expval = np.average(sol.obj_values, weights=sol.counts)
     gt_manual_expval = float(
         sum(w * o for w, o in zip(sol.counts, sol.obj_values)) / sum(sol.counts)
@@ -47,8 +48,24 @@ def test_expectation_value(model: tuple[Model, tuple[Variable, ...]]):
         [1, 0, 0],
         [0, 1, 1],
     ]
+    assert sol.obj_values is not None
     assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]
     assert sol.expectation_value() == gt_expval
+
+
+@pytest.mark.solution
+@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+def test_cvar(model: tuple[Model, tuple[Variable, ...]]):
+    m, (x, y, z) = model
+    samples = [
+        {x: 0, y: 0, z: 1},  # -1
+        {x: 1, y: 1, z: 1},  # -1
+        {x: 1, y: 0, z: 0},  # 1
+        {x: 0, y: 1, z: 1},  # -2
+    ]
+    sol = Solution.from_dicts(samples, model=m)
+    assert sol.obj_values is not None
+    assert sol.cvar(alpha=1.0) == sol.expectation_value()
 
 
 @pytest.mark.solution
@@ -70,6 +87,7 @@ def test_feasibility_ratio(model: tuple[Model, tuple[Variable, ...]]):
         [1, 0, 0],
         [0, 1, 1],
     ]
+    assert sol.obj_values is not None
     assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]
     assert sol.feasibility_ratio() == 0.4
 
@@ -93,6 +111,7 @@ def test_filter_feasible(model: tuple[Model, tuple[Variable, ...]]):
         [1, 0, 0],
         [0, 1, 1],
     ]
+    assert sol.obj_values is not None
     assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]
 
     sol_feasible = sol.filter_feasible()
