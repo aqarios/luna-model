@@ -2923,6 +2923,20 @@ class Expression:
         """
         ...
 
+    def equal_contents(self, other: Expression, /) -> bool:
+        """
+        Check whether this expression has equal contents as `other`.
+
+        Parameters
+        ----------
+        other : Expression
+
+        Returns
+        -------
+        bool
+        """
+        ...
+
     @overload
     def encode(self, /) -> bytes: ...
     @overload
@@ -2973,7 +2987,7 @@ class Expression:
         ...
 
     @classmethod
-    def decode(cls, data: bytes) -> Expression:
+    def decode(cls, data: bytes, env: Environment) -> Expression:
         """
         Reconstruct an expression from encoded bytes.
 
@@ -2981,6 +2995,8 @@ class Expression:
         ----------
         data : bytes
             Binary blob returned by `encode()`.
+        env : Environment
+            The environment of the expression.
 
         Returns
         -------
@@ -2995,7 +3011,7 @@ class Expression:
         ...
 
     @classmethod
-    def deserialize(cls, data: bytes) -> Expression:
+    def deserialize(cls, data: bytes, env: Environment) -> Expression:
         """
         Alias for `decode()`.
 
@@ -3559,6 +3575,20 @@ class Environment:
         Alias for `decode()`.
 
         See `decode()` for full usage details.
+        """
+        ...
+
+    def equal_contents(self, other: Environment, /) -> bool:
+        """
+        Check whether this environment has equal contents as `other`.
+
+        Parameters
+        ----------
+        other : Environment
+
+        Returns
+        -------
+        bool
         """
         ...
 
