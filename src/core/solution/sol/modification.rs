@@ -67,13 +67,12 @@ impl Solution {
         constraints: Vec<Vec<bool>>,
         variable_bounds: Vec<Vec<bool>>,
     ) {
-        let f = constraints
+        let feas = constraints
             .iter()
             .zip(&variable_bounds)
             .map(|(c, v)| c.iter().all(|&b| b) && v.iter().all(|&b| b))
             .collect();
 
-        self.feasible = Some(f);
         self.obj_values = Some(objective_value);
         self.constraints = Some(constraints);
         self.variable_bounds = Some(variable_bounds);
@@ -82,8 +81,10 @@ impl Solution {
                 || None,
                 |ov| {
                     ov.iter()
+                        .zip(&feas)
                         .enumerate()
-                        .min_by(|(_, a), (_, b)| a.total_cmp(b))
+                        .filter(|(_, (_, &f))| f)
+                        .min_by(|(_, (a, _)), (_, (b, _))| a.total_cmp(b))
                         .map(|(idx, _)| idx)
                 },
             ),
@@ -91,12 +92,15 @@ impl Solution {
                 || None,
                 |ov| {
                     ov.iter()
+                        .zip(&feas)
                         .enumerate()
-                        .max_by(|(_, a), (_, b)| a.total_cmp(b))
+                        .filter(|(_, (_, &f))| f)
+                        .max_by(|(_, (a, _)), (_, (b, _))| a.total_cmp(b))
                         .map(|(idx, _)| idx)
                 },
             ),
-        }
+        };
+        self.feasible = Some(feas);
     }
 }
 

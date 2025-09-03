@@ -131,21 +131,25 @@ fn tokenize(input: &str) -> Vec<Token> {
                 }
 
                 // Tokenize inside the brackets
-                let mut sub_tokens = tokenize(&bracket_content);
+                let sub_tokens = tokenize(&bracket_content);
 
                 // Apply division if necessary
                 if divide_by_two {
-                    for token in &mut sub_tokens {
-                        if let Token::Number(ref mut n) = token {
-                            *n /= 2.0;
-                        }
-                    }
+                    // Division by two: Multiply by '0.5' to ensure implicit multiplication by 1.0
+                    // is handled.
+                    tokens.push(Token::LParen);
+                    tokens.push(Token::Number(0.5));
+                    tokens.push(Token::Star);
+                    tokens.push(Token::LParen);
+                    tokens.extend(sub_tokens);
+                    tokens.push(Token::RParen);
+                    tokens.push(Token::RParen);
+                } else {
+                    // No division: Just wrap in parentheses
+                    tokens.push(Token::LParen);
+                    tokens.extend(sub_tokens);
+                    tokens.push(Token::RParen);
                 }
-
-                // Wrap in parentheses
-                tokens.push(Token::LParen);
-                tokens.extend(sub_tokens);
-                tokens.push(Token::RParen);
             }
             ']' => {
                 tokens.push(Token::RParen);
