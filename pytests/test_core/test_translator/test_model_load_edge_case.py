@@ -3,6 +3,7 @@ from pathlib import Path
 from aqmodels import Model
 from aqmodels.translator import LpTranslator
 
+
 def test_model_edge_case():
     model_bytes_b64: bytes = (Path(__file__).parent / "model_bytes.model").read_bytes()
     model_bytes: bytes = base64.b64decode(model_bytes_b64)
@@ -13,4 +14,3 @@ def test_model_edge_case():
 
     assert hash(model) == hash(model_lp)
     assert hash(model) == hash(model_lp_2)
-

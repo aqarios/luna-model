@@ -52,6 +52,7 @@ def test_expectation_value(model: tuple[Model, tuple[Variable, ...]]):
     assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]
     assert sol.expectation_value() == gt_expval
 
+
 @pytest.mark.solution
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_cvar(model: tuple[Model, tuple[Variable, ...]]):
@@ -65,6 +66,7 @@ def test_cvar(model: tuple[Model, tuple[Variable, ...]]):
     sol = Solution.from_dicts(samples, model=m)
     assert sol.obj_values is not None
     assert sol.cvar(alpha=1.0) == sol.expectation_value()
+
 
 @pytest.mark.solution
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
