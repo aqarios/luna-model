@@ -1,13 +1,13 @@
 use crate::core::Vtype;
 use crate::py_bindings::py_model::PyModel;
+use crate::py_bindings::unwind;
 use crate::translator::model::BqmTranslator;
 use numpy::{PyReadonlyArray1, ToPyArray};
 use pyo3::exceptions::PyTypeError;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
-use unwind_macros::unwindable;
 use std::ffi::CStr;
-use crate::py_bindings::unwind;
+use unwind_macros::unwindable;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
@@ -43,14 +43,14 @@ def extract(bqm, name):
     vartype = bqm.vartype.name
     offset = float(bqm.offset)
     return translator.BqmTranslator.translate(
-        vars, 
-        offset, 
-        np.array(linears, dtype=np.float64), 
-        np.array(linear_indices, dtype=np.uint64), 
-        np.array(quads, dtype=np.float64), 
-        np.array(quad_row, dtype=np.uint64), 
-        np.array(quad_col, dtype=np.uint64), 
-        vartype, 
+        vars,
+        offset,
+        np.array(linears, dtype=np.float64),
+        np.array(linear_indices, dtype=np.uint64),
+        np.array(quads, dtype=np.float64),
+        np.array(quad_row, dtype=np.uint64),
+        np.array(quad_col, dtype=np.uint64),
+        vartype,
         name
     )"
 );
@@ -88,14 +88,14 @@ def extract(bqm, name):
     vartype = bqm.vartype.name
     offset = float(bqm.offset)
     return translator.BqmTranslator.translate(
-        vars, 
-        offset, 
-        np.array(linears, dtype=np.float64), 
-        np.array(linear_indices, dtype=np.uint64), 
-        np.array(quads, dtype=np.float64), 
-        np.array(quad_row, dtype=np.uint64), 
-        np.array(quad_col, dtype=np.uint64), 
-        vartype, 
+        vars,
+        offset,
+        np.array(linears, dtype=np.float64),
+        np.array(linear_indices, dtype=np.uint64),
+        np.array(quads, dtype=np.float64),
+        np.array(quad_row, dtype=np.uint64),
+        np.array(quad_col, dtype=np.uint64),
+        vartype,
         name
     )"
 );
@@ -124,8 +124,14 @@ def extract(bqm, name):
 /// Convert it back to a dense matrix:
 ///
 /// >>> recovered = BqmTranslator.from_aq(model)
-#[cfg_attr(not(feature = "lq"), pyclass(name = "BqmTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "BqmTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "BqmTranslator", module = "aqmodels._core.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "BqmTranslator", module = "luna_quantum._core.translator")
+)]
 pub struct PyBqmTranslator {}
 
 #[unwindable]
@@ -208,7 +214,7 @@ impl PyBqmTranslator {
         let vtype_py = vtype.unwrap().to_string();
         let vars_py = vars.into_pyobject(py)?;
 
-        let extractor: PyObject = PyModule::from_code(
+        let extractor: Py<PyAny> = PyModule::from_code(
             py,
             c_str!(
                 "
@@ -254,8 +260,8 @@ def to_bqm(offset, linear, quad, rows, cols, vtype, vars):
     ///     A symbolic model representing the given BQM.
     #[staticmethod]
     #[pyo3(signature=(bqm, name=None))]
-    fn to_aq(py: Python, bqm: PyObject, name: Option<PyObject>) -> PyResult<PyObject> {
-        let extractor: PyObject = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
+    fn to_aq(py: Python, bqm: Py<PyAny>, name: Option<Py<PyAny>>) -> PyResult<Py<PyAny>> {
+        let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();
         let args = (bqm, name);

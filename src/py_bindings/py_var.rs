@@ -14,8 +14,8 @@ use crate::utils::Share;
 use derive_more::{Deref, DerefMut};
 use either::Either::{Left, Right};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
-use pyo3::prelude::*;
 use pyo3::types::PyBool;
+use pyo3::{prelude::*, IntoPyObjectExt};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use unwind_macros::unwindable;
 
@@ -427,14 +427,15 @@ impl PyVariable {
     /// ------
     /// TypeError
     ///     If the right-hand side is not of type float, int, Variable or Expression.
-    fn __eq__(&self, py: Python, rhs: PyObject) -> PyResult<PyObject> {
+    fn __eq__(&self, py: Python, rhs: Py<PyAny>) -> PyResult<Py<PyAny>> {
         self.check_living()?;
         if let Ok(var) = rhs.extract::<PyVariable>(py) {
-            Ok(PyBool::new(py, *self == var).to_owned().into())
+            Ok(PyBool::new(py, *self == var).to_owned().into_py_any(py)?)
         } else {
             #[allow(deprecated)]
             self.make_constraint(py, rhs, Comparator::Eq)
-                .map(|c| c.into_py(py))
+                .map(|c| c.into_py_any(py).unwrap())
+                // todo(team): handle unwrap here better.
         }
     }
 
