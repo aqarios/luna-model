@@ -156,7 +156,7 @@ impl PyEnvironment {
     /// IOError
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<Py<PyAny>> {
         Ok(PyBytes::new(py, &self.access().deref().encode(compress, level)?).into())
     }
 
@@ -169,7 +169,7 @@ impl PyEnvironment {
         py: Python,
         compress: Option<bool>,
         level: Option<i32>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         self.encode(py, compress, level)
     }
 

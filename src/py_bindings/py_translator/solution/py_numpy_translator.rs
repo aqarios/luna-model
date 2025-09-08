@@ -133,11 +133,11 @@ impl PyNumpyTranslator {
     #[pyo3(signature = (result, energies, timing=None, env=None))]
     fn to_aq(
         py: Python,
-        result: PyObject,
-        energies: PyObject,
+        result: Py<PyAny>,
+        energies: Py<PyAny>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();

@@ -126,7 +126,7 @@ impl PyConstraint {
     pub fn new_py(
         py: Python,
         lhs: &PyExpression,
-        rhs: PyObject,
+        rhs: Py<PyAny>,
         comparator: Comparator,
     ) -> PyResult<PyConstraint> {
         let mut lhs = lhs.clone();
@@ -189,8 +189,8 @@ impl PyConstraint {
     #[pyo3(signature=(lhs, rhs, comparator, name=None))]
     fn py_new(
         py: Python,
-        lhs: PyObject,
-        rhs: PyObject,
+        lhs: Py<PyAny>,
+        rhs: Py<PyAny>,
         comparator: Comparator,
         name: Option<String>,
     ) -> PyResult<Self> {
@@ -314,7 +314,7 @@ impl PyConstraints {
     /// ------
     /// TypeError
     ///     If the value is not a `Constraint` or valid symbolic comparison.
-    fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
+    fn __iadd__(&mut self, py: Python, other: Py<PyAny>) -> PyResult<()> {
         if let Ok((constr, name)) = other.extract::<(PyConstraint, String)>(py) {
             Ok(self.add_constraint(constr, Some(name))?)
         } else if let Ok(constr) = other.extract::<PyConstraint>(py) {
@@ -423,7 +423,7 @@ impl PyConstraints {
     /// IOError
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<Py<PyAny>> {
         match &self.data {
             Left(constrs) => Ok(PyBytes::new(py, &constrs.encode(compress, level)?).into()),
             Right(parent) => {
@@ -441,7 +441,7 @@ impl PyConstraints {
         py: Python,
         compress: Option<bool>,
         level: Option<i32>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         self.encode(py, compress, level)
     }
 

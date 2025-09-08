@@ -57,7 +57,7 @@ impl PyLpTranslator {
     ///     If the translation fails for a different reason.
     #[staticmethod]
     #[pyo3(signature=(file))]
-    fn to_aq(py: Python, file: PyObject) -> PyResult<PyModel> {
+    fn to_aq(py: Python, file: Py<PyAny>) -> PyResult<PyModel> {
         if let Ok(file) = file.extract::<String>(py) {
             // Here we need to help the user a bit. Let's check if we can make a PathBuf from this.
             // If not possible we try to read the string as is. And throw an error if both fails.

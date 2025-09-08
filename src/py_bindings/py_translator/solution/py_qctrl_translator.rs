@@ -181,7 +181,7 @@ impl PyQctrlTranslator {
     #[pyo3(signature=(result, timing=None, env=None))]
     fn to_aq(
         py: Python,
-        result: PyObject,
+        result: Py<PyAny>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {

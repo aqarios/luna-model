@@ -255,7 +255,7 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
     });
     let clone_arm_specials = specials.iter().map(|path| {
         let ty_ident = &path.segments.last().unwrap().ident;
-        quote! { AnyPass::#ty_ident(x) => AnyPass::#ty_ident(Python::with_gil(|py| x.clone_ref(py))), }
+        quote! { AnyPass::#ty_ident(x) => AnyPass::#ty_ident(Python::attach(|py| x.clone_ref(py))), }
     });
     let reg_specials = specials.iter().map(|path| {
         quote! { m.add_class::<#path>()?; }
@@ -559,7 +559,7 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
     });
     clone_arms.push(quote! {
         #[cfg(feature = "py")]
-        AnalysisCacheElement::PyAnalysis(v) => Python::with_gil(|py| AnalysisCacheElement::PyAnalysis(v.clone_ref(py))),
+        AnalysisCacheElement::PyAnalysis(v) => Python::attach(|py| AnalysisCacheElement::PyAnalysis(v.clone_ref(py))),
     });
     element_arms.push(quote! {
         #[cfg(feature = "py")]
@@ -656,12 +656,12 @@ pub fn register_caches(input: TokenStream) -> TokenStream {
             #[unwindable]
             #[pyo3::pymethods]
             impl PyAnalysisCache {
-                fn __getitem__(&self, py: pyo3::Python, key: String) -> pyo3::PyResult<Option<pyo3::PyObject>> {
+                fn __getitem__(&self, py: pyo3::Python, key: String) -> pyo3::PyResult<Option<pyo3::Py<PyAny>>> {
                     self.get_element(py, key)
                 }
 
                 #[pyo3(name = "get")]
-                pub fn get_element(&self, py: pyo3::Python, key: String) -> pyo3::PyResult<Option<pyo3::PyObject>> {
+                pub fn get_element(&self, py: pyo3::Python, key: String) -> pyo3::PyResult<Option<pyo3::Py<PyAny>>> {
                     if let Some(val) = self.get(&key) {
                         Ok(Some(match val {
                             #(#element_arms)*

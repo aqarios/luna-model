@@ -216,7 +216,7 @@ impl PySamples {
     /// -------
     /// list[list[int | float]]
     ///     The samples object as a 2-dimensional list.
-    fn tolist(&self, py: Python) -> Vec<Vec<PyObject>> {
+    fn tolist(&self, py: Python) -> Vec<Vec<Py<PyAny>>> {
         let b = self.access();
         let samples = b.samples();
         samples
@@ -249,7 +249,7 @@ impl PySamples {
     ///     If ``item`` has the wrong type.
     /// IndexError
     ///     If the row or column index is out of bounds for the variable environment.
-    fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyObject> {
+    fn __getitem__(&self, py: Python, item: Py<PyAny>) -> PyResult<Py<PyAny>> {
         if let Ok(res_idx) = item.extract::<isize>(py) {
             if res_idx < 0 {
                 return Err(PyValueError::new_err(format!(
@@ -336,7 +336,7 @@ impl PySample {
     ///     If ``item`` has the wrong type.
     /// IndexError
     ///     If the row or column index is out of bounds for the variable environment.
-    fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyVarAssignment> {
+    fn __getitem__(&self, py: Python, item: Py<PyAny>) -> PyResult<PyVarAssignment> {
         if let Ok(var) = item.extract::<PyVariable>(py) {
             match self.get_assignment(var.id.into()) {
                 None => Err(PyIndexError::new_err(format!(

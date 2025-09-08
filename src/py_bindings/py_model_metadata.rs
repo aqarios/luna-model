@@ -13,7 +13,7 @@ use std::fmt::Display;
 )]
 #[derive(Clone, Debug)]
 pub struct PyModelMetadata {
-    pub data: ShareMut<HashMap<String, PyObject>>,
+    pub data: ShareMut<HashMap<String, Py<PyAny>>>,
 }
 
 impl PyModelMetadata {
@@ -68,7 +68,7 @@ impl PyModelMetadata {
             .unwrap_or_else(|| py.None())
     }
 
-    fn set_item(&mut self, key: String, value: PyObject) {
+    fn set_item(&mut self, key: String, value: Py<PyAny>) {
         self.data.access_mut().insert(key, value);
     }
 

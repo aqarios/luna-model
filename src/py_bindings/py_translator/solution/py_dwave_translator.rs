@@ -122,8 +122,8 @@ impl PyDwaveTranslator {
     #[pyo3(signature = (sample_set, timing=None, env=None))]
     fn to_aq(
         py: Python,
-        sample_set: PyObject,
-        timing: Option<PyObject>,
+        sample_set: Py<PyAny>,
+        timing: Option<Py<PyAny>>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?

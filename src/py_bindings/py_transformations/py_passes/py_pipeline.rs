@@ -71,7 +71,7 @@ impl PyPass for Py<PyPipeline> {
 
 impl IntoAnyPass for Pipeline {
     fn as_anypass(&self) -> AnyPass {
-        let p = Python::with_gil(|py| Py::new(py, PyPipeline(self.clone()))).unwrap();
+        let p = Python::attach(|py| Py::new(py, PyPipeline(self.clone()))).unwrap();
         AnyPass::PyPipeline(p)
     }
 }

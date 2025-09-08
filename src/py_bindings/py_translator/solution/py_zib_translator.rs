@@ -110,10 +110,10 @@ impl PyZibTranslator {
     #[pyo3(signature=(model, timing=None, env=None))]
     fn to_aq(
         py: Python,
-        model: PyObject,
+        model: Py<PyAny>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();

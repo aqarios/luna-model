@@ -132,10 +132,10 @@ impl PyAwsTranslator {
     #[pyo3(signature = (aws_result, timing=None, env=None))]
     fn to_aq(
         py: Python,
-        aws_result: PyObject,
+        aws_result: Py<PyAny>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();

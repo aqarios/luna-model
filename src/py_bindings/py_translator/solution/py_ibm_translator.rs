@@ -173,8 +173,8 @@ impl PyIbmTranslator {
     #[pyo3(signature=(result, quadratic_program, timing=None, env=None))]
     fn to_aq(
         py: Python,
-        result: PyObject,
-        quadratic_program: PyObject,
+        result: Py<PyAny>,
+        quadratic_program: Py<PyAny>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {

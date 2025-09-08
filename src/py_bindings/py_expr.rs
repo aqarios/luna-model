@@ -452,7 +452,7 @@ impl PyExpression {
     /// IOError
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<Py<PyAny>> {
         let base = match &self.0 {
             Left(expr) => expr,
             Right(parent) => &parent.access().objective,
@@ -469,7 +469,7 @@ impl PyExpression {
         py: Python,
         compress: Option<bool>,
         level: Option<i32>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         self.encode(py, compress, level)
     }
 
@@ -533,7 +533,7 @@ impl PyExpression {
     ///     If operands are from different environments.
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __add__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = match &self.0 {
@@ -580,7 +580,7 @@ impl PyExpression {
     /// ------
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __radd__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __radd__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         self.__add__(py, other)
     }
 
@@ -600,7 +600,7 @@ impl PyExpression {
     ///     If operands are from different environments.
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __sub__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = match &self.0 {
@@ -649,7 +649,7 @@ impl PyExpression {
     ///     If operands are from different environments.
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __mul__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
             expr = match &self.0 {
@@ -695,7 +695,7 @@ impl PyExpression {
     /// ------
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __rmul__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         self.__mul__(py, other)
     }
 
@@ -740,7 +740,7 @@ impl PyExpression {
     ///     If operands are from different environments.
     /// TypeError
     ///     If the operand type is unsupported.
-    pub fn __iadd__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
+    pub fn __iadd__(&mut self, py: Python, other: Py<PyAny>) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             match &mut self.0 {
                 Left(e) => e.add_assign(rhs),
@@ -789,7 +789,7 @@ impl PyExpression {
     ///     If operands are from different environments.
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __isub__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
+    fn __isub__(&mut self, py: Python, other: Py<PyAny>) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             match &mut self.0 {
                 Left(e) => e.sub_assign(rhs),
@@ -838,7 +838,7 @@ impl PyExpression {
     ///     If operands are from different environments.
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __imul__(&mut self, py: Python, other: PyObject) -> PyResult<()> {
+    fn __imul__(&mut self, py: Python, other: Py<PyAny>) -> PyResult<()> {
         if let Ok(rhs) = other.extract::<f64>(py) {
             match &mut self.0 {
                 Left(e) => e.mul_assign(rhs),
@@ -972,7 +972,7 @@ impl PyExpression {
     /// ------
     /// TypeError
     ///     If the right-hand side is not an Expression or scalar.
-    fn __eq__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
+    fn __eq__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyConstraint> {
         PyConstraint::new_py(py, &self, other, Comparator::Eq)
     }
 
@@ -995,7 +995,7 @@ impl PyExpression {
     /// ------
     /// TypeError
     ///     If the right-hand side is not of type float, int, Variable or Expression.
-    fn __le__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
+    fn __le__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyConstraint> {
         PyConstraint::new_py(py, &self, other, Comparator::Le)
     }
 
@@ -1018,7 +1018,7 @@ impl PyExpression {
     /// ------
     /// TypeError
     ///     If the right-hand side is not of type float, int, Variable or Expression.
-    fn __ge__(&self, py: Python, other: PyObject) -> PyResult<PyConstraint> {
+    fn __ge__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyConstraint> {
         PyConstraint::new_py(py, &self, other, Comparator::Ge)
     }
 
@@ -1266,7 +1266,7 @@ impl PyExpressionIterator {
         slf
     }
 
-    fn __next__(mut slf: PyRefMut<'_, Self>, py: Python) -> PyResult<Option<(PyObject, Bias)>> {
+    fn __next__(mut slf: PyRefMut<'_, Self>, py: Python) -> PyResult<Option<(Py<PyAny>, Bias)>> {
         slf.current_idx += 1;
         let res = slf.items.get(slf.current_idx - 1);
         if res.is_none() {

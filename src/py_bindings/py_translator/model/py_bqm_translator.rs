@@ -142,7 +142,7 @@ impl PyBqmTranslator {
     )]
     fn translate(
         py: Python,
-        vars: PyObject,
+        vars: Py<PyAny>,
         offset: f64,
         linears: PyReadonlyArray1<f64>,
         linear_indices: PyReadonlyArray1<u64>,
@@ -204,7 +204,7 @@ impl PyBqmTranslator {
     ///     spin.
     #[staticmethod]
     #[pyo3(signature=(model))]
-    fn from_aq<'a>(py: Python<'a>, model: &PyModel) -> PyResult<PyObject> {
+    fn from_aq<'a>(py: Python<'a>, model: &PyModel) -> PyResult<Py<PyAny>> {
         let (offset, linear, quad, rows, cols, vtype, vars) =
             BqmTranslator::model_to_bqm(&model.access())?;
         let linear_py = linear.to_pyarray(py);
