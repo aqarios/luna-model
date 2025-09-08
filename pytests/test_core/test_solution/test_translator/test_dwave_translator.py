@@ -1,10 +1,20 @@
 from contextlib import nullcontext as does_not_raise
 from random import Random
+import sys
 
 import numpy as np
 import pytest
 from dimod import SampleSet, Vartype, as_samples
-from dwave.samplers import SimulatedAnnealingSampler
+
+NOT_RUN_DWAVE = False
+try:
+    from dwave.samplers import SimulatedAnnealingSampler
+except ImportError as _:
+    print(
+        "Dwave is not installed and thus, the CPLEX tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_DWAVE = True
 
 from aqmodels import Environment, Timer, Variable, Vtype
 from aqmodels.errors import SampleIncompatibleVtypeError, SampleUnexpectedVariableError
@@ -54,6 +64,7 @@ def test_sampleset_translator_constructed():
     assert len(results) == 3
 
 
+@pytest.mark.skipif(NOT_RUN_DWAVE, reason="Dwave is required for test")
 @pytest.mark.solution_translation
 def test_sampleset_translator_sa_random_models():
     rand = Random(make_seed())

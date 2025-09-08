@@ -6,14 +6,23 @@ from random import Random
 
 import pytest
 from dimod import lp as dimod_lp
-from pyscipopt import Model as ScipModel
 
 from aqmodels import Sense
 from aqmodels.errors import TranslationError
 from aqmodels.translator import LpTranslator
 from pytests.test_core.utils import generate_cqms, make_seed
 
-NOT_RUN_GUROBI = True
+NOT_RUN_SCIP = False
+try:
+    from pyscipopt import Model as ScipModel
+except ImportError as _:
+    print(
+        "SCOP is not installed and thus, the Gurobi tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_SCIP = True
+
+NOT_RUN_GUROBI = False
 try:
     import gurobipy as gp
 except ImportError as _:
@@ -23,7 +32,7 @@ except ImportError as _:
     )
     NOT_RUN_GUROBI = True
 
-NOT_RUN_CPLEX = True
+NOT_RUN_CPLEX = False
 try:
     import cplex  # type: ignore
 except ImportError as _:
@@ -174,6 +183,7 @@ def test_gurobi_and_aq_lp_read_equality():
 ###################################### SCIP ###########################################
 
 
+@pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 @pytest.mark.translator
 def test_scip_to_model_to_scip():
     rand = Random(make_seed())

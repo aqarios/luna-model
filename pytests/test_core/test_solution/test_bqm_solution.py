@@ -1,13 +1,26 @@
+import sys
+import pytest
 import dimod
 import numpy as np
-from dwave.samplers import TabuSampler
+
 
 from aqmodels import Solution, Vtype
 from aqmodels.translator import BqmTranslator, DwaveTranslator
 
 from ..utils import make_seed
 
+NOT_RUN_DWAVE = False
+try:
+    from dwave.samplers import TabuSampler
+except ImportError as _:
+    print(
+        "Dwave is not installed and thus, the CPLEX tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_DWAVE = True
 
+
+@pytest.mark.skipif(NOT_RUN_DWAVE, reason="Dwave is required for test")
 def test_bqm_solution():
     seed = make_seed()
     cqm = dimod.generators.random_bin_packing(num_items=5, seed=seed)  # type: ignore
@@ -91,6 +104,7 @@ def test_bqm_solution():
     )
 
 
+@pytest.mark.skipif(NOT_RUN_DWAVE, reason="Dwave is required for test")
 def test_bqm_solution_with_substitution():
     cqm = dimod.generators.random_bin_packing(num_items=2, seed=102)  # type: ignore
     bqm, _ = dimod.cqm_to_bqm(cqm)
