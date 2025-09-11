@@ -35,12 +35,12 @@ impl<T> ShareMut<T> {
 
     #[inline]
     pub fn access(&self) -> MutexGuard<'_, T> {
-        self.0.try_lock().unwrap()
+        self.0.lock().unwrap()
     }
 
     #[inline]
     pub fn access_mut(&self) -> MutexGuard<'_, T> {
-        self.0.try_lock().unwrap()
+        self.0.lock().unwrap()
     }
 
     #[inline]

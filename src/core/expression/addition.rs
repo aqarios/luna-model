@@ -93,11 +93,19 @@ impl AddAssignToExpression<&Expression> for Expression {
         if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
-            let result = self.add(rhs);
-            match result {
-                Ok(expr) => Ok(*self = expr),
-                Err(e) => Err(e.into()),
+            if self.active.len() < rhs.active.len() {
+                self.resize(rhs.active.len().into());
             }
+            self.add_offset(rhs.offset);
+            self.add_linear_from(&rhs.linear, &rhs.active);
+
+            if rhs.quadratic.is_some() {
+                self.add_quadratic_from(rhs.quadratic.as_ref().unwrap());
+            }
+            if rhs.higher_order.is_some() {
+                self.add_higher_order_from(rhs.higher_order.as_ref().unwrap());
+            }
+            Ok(())
         }
     }
 }

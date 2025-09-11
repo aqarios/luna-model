@@ -497,10 +497,16 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
     }
 
     fn add_linear_from(&mut self, other: &Self::LinearType, other_active: &Vec<bool>) {
-        for (u, bias) in other.iter() {
-            if self.active[u] || other_active[u] {
-                self.add_linear(u.into(), *bias);
-            }
+        let sel = other_active
+            .iter()
+            .zip(&mut self.active)
+            .zip(other.iter())
+            .filter(|((o, s), _)| **o || **s);
+
+        for ((_, ref mut s), (u, bias)) in sel {
+            self.linear[u.into()] += bias;
+            self.num_variables += (**s == false) as usize;
+            **s = **s || true;
         }
     }
     fn add_quadratic_from(&mut self, other: &Self::QuadraticType) {
@@ -553,6 +559,31 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
                     f_add_quadratic(self, u.into(), v.into(), qbias);
                 }
             }
+        }
+    }
+}
+
+impl Expression {
+    fn guard(&mut self, u: usize, bias: Bias, other_active: &Vec<bool>) {
+        if self.active[u] || other_active[u] {
+            // self.add_linear(u.into(), *bias);
+            self.lin_ass(u, bias);
+            self.active_check_set(u);
+        }
+    }
+
+    fn lin_ass(&mut self, u: usize, bias: Bias) {
+        self.linear[u.into()] += bias;
+    }
+
+    fn active_check_set(&mut self, u: usize) {
+        let active: bool = self.active[u];
+        // If the variable is already activated we need to do nothing.
+        // This means the variable was already added at some point.
+        // Otherwise, we need to activate it and increase the var counter by one.
+        if !active {
+            self.active[u] = true;
+            self.num_variables += 1;
         }
     }
 }
