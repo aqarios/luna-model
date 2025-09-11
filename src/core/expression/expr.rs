@@ -563,31 +563,6 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
     }
 }
 
-impl Expression {
-    fn guard(&mut self, u: usize, bias: Bias, other_active: &Vec<bool>) {
-        if self.active[u] || other_active[u] {
-            // self.add_linear(u.into(), *bias);
-            self.lin_ass(u, bias);
-            self.active_check_set(u);
-        }
-    }
-
-    fn lin_ass(&mut self, u: usize, bias: Bias) {
-        self.linear[u.into()] += bias;
-    }
-
-    fn active_check_set(&mut self, u: usize) {
-        let active: bool = self.active[u];
-        // If the variable is already activated we need to do nothing.
-        // This means the variable was already added at some point.
-        // Otherwise, we need to activate it and increase the var counter by one.
-        if !active {
-            self.active[u] = true;
-            self.num_variables += 1;
-        }
-    }
-}
-
 impl ExpressionBaseSet<VarIndex, Bias> for Expression {
     fn set_higher_order(&mut self, vars: &Vec<VarIndex>, bias: Bias) {
         self.add_variables(vars);
