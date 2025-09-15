@@ -5,7 +5,9 @@ use super::base::{
 };
 use super::VariableOutOfRangeErr;
 use crate::core::environment::SharedEnvironment;
-use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType, TwoVarTerm, TwoVarTermConstruction};
+use crate::core::term::types::{
+    OneVarTerm, OneVarTermConstruction, SizeType, TwoVarTerm, TwoVarTermConstruction,
+};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
@@ -22,9 +24,9 @@ pub struct Expression {
     pub linear: Linear,
     pub quadratic: Option<Quadratic>,
     pub higher_order: Option<HigherOrder>,
-    /// Mirror of the linear array that tracks which variables are already
-    /// contained in the expression. 1 indicates already added 0 indicating floating.
-    pub active: Vec<bool>,
+    // /// Mirror of the linear array that tracks which variables are already
+    // /// contained in the expression. 1 indicates already added 0 indicating floating.
+    // pub active: Vec<bool>,
     pub num_variables: SizeType,
 }
 
@@ -37,7 +39,7 @@ impl Expression {
             linear: self.linear.clone(),
             quadratic: self.quadratic.clone(),
             higher_order: self.higher_order.clone(),
-            active: self.active.clone(),
+            // active: self.active.clone(),
             num_variables: self.num_variables.clone(),
         }
     }
@@ -135,7 +137,7 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             linear: Linear::default(),
             quadratic: None,
             higher_order: None,
-            active: Vec::default(),
+            // active: Vec::default(),
             num_variables: 0,
         }
     }
@@ -146,7 +148,7 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             linear: Linear::default(),
             quadratic: None,
             higher_order: None,
-            active: Vec::default(),
+            // active: Vec::default(),
             num_variables: 0,
         }
     }
@@ -158,7 +160,7 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             linear: Linear::default(),
             quadratic: None,
             higher_order: None,
-            active,
+            // active,
             num_variables,
         }
     }
@@ -166,10 +168,10 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
     fn new_linear_single(env: SharedEnvironment, v: VarIndex, bias: Bias) -> Self {
         let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
-        let mut active = Vec::new();
-        let v_idx: usize = v.into();
-        active.resize(v_idx + 1, false);
-        active[v_idx] = true;
+        // let mut active = Vec::new();
+        // let v_idx: usize = v.into();
+        // active.resize(v_idx + 1, false);
+        // active[v_idx] = true;
 
         Self {
             env,
@@ -177,7 +179,7 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             linear,
             quadratic: None,
             higher_order: None,
-            active,
+            // active,
             num_variables: 1,
         }
     }
@@ -190,10 +192,10 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
     ) -> Self {
         let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
-        let mut active = Vec::new();
-        let v_idx: usize = v.into();
-        active.resize(v_idx + 1, false);
-        active[v_idx] = true;
+        // let mut active = Vec::new();
+        // let v_idx: usize = v.into();
+        // active.resize(v_idx + 1, false);
+        // active[v_idx] = true;
 
         Self {
             env,
@@ -201,7 +203,7 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             linear,
             quadratic: None,
             higher_order: None,
-            active,
+            // active,
             num_variables: 1,
         }
     }
@@ -222,7 +224,7 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             linear,
             quadratic: None,
             higher_order: None,
-            active: Vec::default(),
+            // active: Vec::default(),
             num_variables: 2,
         }
     }
@@ -244,7 +246,10 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
         let larger = u.max(v);
         let smaller = u.min(v);
 
-        let adj: Vec<TwoVarTerm> = vec![TwoVarTerm::new(smaller, vec![OneVarTerm::new(larger, bias)])];
+        let adj: Vec<TwoVarTerm> = vec![TwoVarTerm::new(
+            smaller,
+            vec![OneVarTerm::new(larger, bias)],
+        )];
         let quadratic = Quadratic::new_from(adj);
         // quadratic.adj[smaller].push(OneVarTerm::new(larger, bias));
 
@@ -256,7 +261,7 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             num_variables: 2,
             quadratic: Some(quadratic),
             // quadratic: None,
-            active: Vec::default(),
+            // active: Vec::default(),
         }
         // Self {
         //     env,
@@ -275,7 +280,7 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             linear: other.linear.clone(),
             quadratic: other.quadratic.clone(),
             higher_order: other.higher_order.clone(),
-            active: other.active.clone(),
+            // active: other.active.clone(),
             num_variables: other.num_variables,
         }
     }
@@ -290,7 +295,7 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
         if v_idx >= size {
             // We can simply resize the linear term and the active tracker.
             self.linear.resize(v_idx + 1);
-            self.active.resize(v_idx + 1, false);
+            // self.active.resize(v_idx + 1, false);
             // We also need to resize the quadratic term if this expression has one.
             if self.has_quadratic() {
                 self.quadratic.as_mut().unwrap().resize(v_idx + 1);
@@ -299,46 +304,46 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
             // it grows dynamically.
             // ...
             // Now we set the currently added variable as active.
-            self.active[v_idx] = true;
+            // self.active[v_idx] = true;
             // And incresae the variable counter by one.
             self.num_variables += 1;
         } else {
             // v < size
             // We do not need to do any resizing.
             // And can directly check if the variable is active.
-            let active: bool = self.active[v_idx];
+            // let active: bool = self.active[v_idx];
             // If the variable is already activated we need to do nothing.
             // This means the variable was already added at some point.
             // Otherwise, we need to activate it and increase the var counter by one.
-            if !active {
-                self.active[v_idx] = true;
-                self.num_variables += 1;
-            }
+            // if !active {
+            //     // self.active[v_idx] = true;
+            //     self.num_variables += 1;
+            // }
         }
 
         v_idx
     }
 
     fn remove_variable(&mut self, v: VarIndex) {
-        let v_idx: usize = v.into();
-        let size: usize = self.active.len();
+        // let v_idx: usize = v.into();
+        // // let size: usize = self.active.len();
 
-        if v_idx == (size - 1) {
-            self.active.resize(size - 1, false);
-            self.linear.resize(size - 1);
-            self.num_variables -= 1;
-        } else if v_idx >= size {
-            // self.active.resize(size, false);
-            // self.linear.resize(size);
-        } else {
-            if self.active[v_idx] {
-                // only reduce the variable count if the variable was active
-                // before it's removal.
-                self.num_variables -= 1;
-            }
-            self.active[v_idx] = false;
-            self.linear[v_idx] = Bias::default();
-        }
+        // if v_idx == (size - 1) {
+        //     // self.active.resize(size - 1, false);
+        //     self.linear.resize(size - 1);
+        //     self.num_variables -= 1;
+        // } else if v_idx >= size {
+        //     // self.active.resize(size, false);
+        //     // self.linear.resize(size);
+        // } else {
+        //     if self.active[v_idx] {
+        //         // only reduce the variable count if the variable was active
+        //         // before it's removal.
+        //         self.num_variables -= 1;
+        //     }
+        //     self.active[v_idx] = false;
+        //     self.linear[v_idx] = Bias::default();
+        // }
     }
 
     fn add_variables(&mut self, vars: &Vec<VarIndex>) {
@@ -350,11 +355,11 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
         // if the variable has not been added before.
         for v in vars {
             let v_idx: usize = (*v).into();
-            let active: bool = self.active[v_idx];
-            if !active {
-                self.active[v_idx] = true;
-                self.num_variables += 1;
-            }
+            // let active: bool = self.active[v_idx];
+            // if !active {
+            //     self.active[v_idx] = true;
+            //     self.num_variables += 1;
+            // }
         }
     }
 
@@ -378,14 +383,12 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
         }
 
         self.linear.resize(n.into());
-        self.active.resize(n.into(), false);
+        // self.active.resize(n.into(), false);
 
         // Again, higher order terms do not need to be resized, see `add_variables`
 
         assert!(
-            !self.has_quadratic()
-                || self.linear.len() == self.quadratic.as_ref().unwrap().len()
-                || self.linear.len() == self.active.len()
+            !self.has_quadratic() || self.linear.len() == self.quadratic.as_ref().unwrap().len() // || self.linear.len() == self.active.len()
         );
     }
 }
@@ -423,11 +426,8 @@ impl ExpressionBase<VarIndex, Bias> for Expression {
     }
 
     fn vtypes(&self) -> Vec<Vtype> {
-        self.active
-            .iter()
-            .enumerate()
-            .filter(|(_, &a)| a)
-            .map(|(idx, _)| self.env.access().get_vtype(idx.into()))
+        (0..self.num_variables)
+            .map(|idx| self.env.access().get_vtype(idx.into()))
             .unique()
             .collect_vec()
     }
@@ -452,12 +452,7 @@ impl ExpressionBase<VarIndex, Bias> for Expression {
     }
 
     fn variables(&self) -> Vec<VarIndex> {
-        self.active
-            .iter()
-            .enumerate()
-            .filter(|(_, &v)| v)
-            .map(|(x, _)| x.into())
-            .collect()
+        (0..self.num_variables).map(|x| x.into()).collect()
     }
 
     #[inline]
@@ -526,21 +521,20 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
     }
 
     fn add_linear_from(&mut self, other: &Self::LinearType, other_active: &Vec<bool>) {
-        dbg!(&self.active, &other_active);
-        let sel = other_active
-            .iter()
-            .zip(&mut self.active)
-            .zip(other.iter())
-            .filter(|((o, s), _)| **o || **s);
-
-        for ((_, ref mut s), (u, bias)) in sel {
+        // dbg!(&self.active, &other_active);
+        // let sel = other_active
+        // .iter()
+        // .zip(&mut self.active)
+        // .zip(other.iter())
+        // .filter(|((o, s), _)| **o || **s);
+        for (u, bias) in other.iter() {
             self.linear[u.into()] += bias;
-            dbg!("A", u, &s, self.num_variables);
-            self.num_variables += (**s == false) as usize;
-            dbg!("B", u, &s, self.num_variables);
-            **s = **s || true;
+            // dbg!("A", u, &s, self.num_variables);
+            // self.num_variables += (**s == false) as usize;
+            // dbg!("B", u, &s, self.num_variables);
+            // **s = **s || true;
         }
-        dbg!(&self.active);
+        // dbg!(&self.active);
     }
     fn add_quadratic_from(&mut self, other: &Self::QuadraticType) {
         for (u, v, bias) in other.iter_flat() {
@@ -632,14 +626,14 @@ impl ExpressionBaseMul<VarIndex, Bias> for Expression {
         let lhs_linear_actives: Vec<(VarIndex, Bias)> = lhs
             .linear
             .iter()
-            .filter(|(idx, _)| lhs.active[*idx])
+            // .filter(|(idx, _)| lhs.active[*idx])
             .map(|(idx, bias)| (idx.into(), bias))
             .collect();
 
         let rhs_linear_actives: Vec<(VarIndex, Bias)> = rhs
             .linear
             .iter()
-            .filter(|(idx, _)| rhs.active[*idx])
+            // .filter(|(idx, _)| rhs.active[*idx])
             .map(|(idx, bias)| (idx.into(), bias))
             .collect();
 
@@ -825,9 +819,9 @@ impl ExpressionBaseMulDirect<VarIndex, Bias> for Expression {
             // in all cases.
             // However, we can make use of the logic already implemented in the
             // add_quadratic case. Which checks the logic based on the variable type.
-            if self.active[u_idx] {
+            // if self.active[u_idx] {
                 self.add_quadratic(u_idx.into(), v, u_bias * bias)
-            }
+            // }
         }
     }
 
