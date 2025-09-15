@@ -124,18 +124,17 @@ impl SerExpression {
         self.active.resize(expression.active.len(), false);
         self.active.copy_from_slice(&expression.active);
         self.offset = expression.offset;
-        self.linear.resize(expression.linear.len(), f64::default());
-        self.linear.copy_from_slice(expression.linear.to_vec());
+        self.linear = expression.linear.to_vec(expression.num_variables);
 
         if let Some(quad) = &expression.quadratic {
             self.quad_size = force_u32(quad.len());
-            for (u, neighborhood) in quad.iter() {
-                if !neighborhood.is_empty() {
+            for t in quad.iter() {
+                if !t.neighborhood.is_empty() {
                     // only store data if the neighborhood is not empty.
-                    self.quad_neighborhood_indices.push(force_u32(u));
+                    self.quad_neighborhood_indices.push(force_u32(t.index.into()));
                     self.quad_neighborhoods_len
-                        .push(force_u32(neighborhood.len()));
-                    neighborhood.iter().for_each(|e| {
+                        .push(force_u32(t.neighborhood.len()));
+                    t.neighborhood.iter().for_each(|e| {
                         self.quad_neighborhoods.push(e.index.0);
                         self.quad_neighborhoods_values.push(e.bias);
                     });
@@ -161,7 +160,7 @@ impl SerExpression {
         if self.quad_size == 0 {
             return None;
         }
-        let mut quad = Quadratic::new(self.quad_size as usize);
+        let mut quad = Quadratic::default();
         let mut start = 0;
         for (u, len) in self
             .quad_neighborhood_indices

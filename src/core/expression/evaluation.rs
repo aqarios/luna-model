@@ -21,7 +21,7 @@ impl ExpressionEvaluation<VarIndex, Bias> for Expression {
         for (idx, bias) in self.linear.iter() {
             if self.active[idx] {
                 let mapped = index_map(idx.into());
-                value += sample.value_by_index(mapped) * *bias;
+                value += sample.value_by_index(mapped) * bias;
             }
         }
         // Evaluate the quadratic term if it exists.

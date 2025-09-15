@@ -34,8 +34,8 @@ fn higher_order_expression_equal_real_varref() {
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, Bias::default(), "offset is wrong");
     assert_eq!(
-        expr.linear.to_vec(),
-        &expected_linear,
+        expr.linear.to_vec(expr.num_variables),
+        expected_linear,
         "linear parts are not equal"
     );
     assert_eq!(
@@ -90,8 +90,8 @@ fn higher_order_expression_equal_real_expr() {
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, Bias::default(), "offset is wrong");
     assert_eq!(
-        expr.linear.to_vec(),
-        &expected_linear,
+        expr.linear.to_vec(expr.num_variables),
+        expected_linear,
         "linear parts are not equal"
     );
     assert_eq!(

@@ -338,7 +338,7 @@ impl ExprTree {
             for (u, bias) in expr.linear.iter() {
                 let vname = expr.env.access()[u].name.clone();
                 let mul = ExprTree::Mul(
-                    Box::new(ExprTree::Number(*bias)),
+                    Box::new(ExprTree::Number(bias)),
                     Box::new(ExprTree::Variable(vname)),
                 );
                 lintree = ExprTree::Add(Box::new(lintree), Box::new(mul));
@@ -401,7 +401,7 @@ impl ExprTree {
             for (u, bias) in expr.linear.iter() {
                 let vname = expr.env.access()[u].name.clone();
                 let mul = ExprTree::Mul(
-                    Box::new(ExprTree::Number(*bias)),
+                    Box::new(ExprTree::Number(bias)),
                     Box::new(ExprTree::Variable(vname)),
                 );
                 lintree = ExprTree::Add(Box::new(lintree), Box::new(mul));

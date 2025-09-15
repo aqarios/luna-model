@@ -87,7 +87,7 @@ impl MatrixTranslator {
         dense.resize(nvars * nvars, Bias::default());
 
         for (u, bias) in obj.linear.iter() {
-            dense[u * (nvars + 1)] = *bias;
+            dense[u * (nvars + 1)] = bias;
         }
 
         if obj.has_quadratic() {

@@ -51,7 +51,7 @@ impl Substitution for &Expression {
             .linear
             .iter()
             .filter(|(idx, _)| self.active[*idx])
-            .map(|(idx, bias)| (idx.into(), *bias))
+            .map(|(idx, bias)| (idx.into(), bias))
             .collect();
 
         for (var, bias) in active_linears.iter() {

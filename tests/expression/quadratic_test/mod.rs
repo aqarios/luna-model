@@ -6,7 +6,7 @@ mod spin_test;
 use aqmodels::{
     core::{
         operations::{MulAssignToExpression, MulToExpression},
-        term::types::{OneVarTerm, OneVarTermConstruction},
+        term::types::{OneVarTerm, OneVarTermConstruction, TwoVarTerm, TwoVarTermConstruction},
         Vtype,
     },
     types::Bias,
@@ -24,17 +24,19 @@ fn quadratic_expression_base(vtype: Vtype, n: usize) {
     let mscalar = random_bias::<Bias>(seed);
     expr.mul_assign(&multiplier.mul(mscalar)).unwrap();
 
-    let mut quadratic: Vec<Vec<OneVarTerm>> = biases
+    let quadratic: Vec<TwoVarTerm> = biases
         .iter()
-        .map(|b| vec![OneVarTerm::new(multiplier.id, b * mscalar)])
+        .enumerate()
+        // .map(|b| vec![OneVarTerm::new(multiplier.id, b * mscalar)])
+        .map(|(i, b)| TwoVarTerm::new(i.into(), vec![OneVarTerm::new(multiplier.id, b * mscalar)]))
         .collect();
-    quadratic.push(vec![]);
+    // quadratic.push(vec![]);
 
     assert_eq!(expr.env, env, "envs is wrong");
     assert_eq!(expr.offset, Bias::default(), "offset is wrong");
     assert_eq!(
-        expr.linear.to_vec(),
-        &vec![Bias::default(); biases.len() + 1],
+        expr.linear.to_vec(expr.num_variables),
+        vec![Bias::default(); biases.len() + 1],
         "linear parts are not equal"
     );
     assert_ne!(
