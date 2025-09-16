@@ -5,9 +5,7 @@ use super::base::{
 };
 use super::VariableOutOfRangeErr;
 use crate::core::environment::SharedEnvironment;
-use crate::core::term::types::{
-    OneVarTerm, OneVarTermConstruction, SizeType, TwoVarTerm, TwoVarTermConstruction,
-};
+use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
@@ -593,11 +591,14 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
         // .zip(&mut self.active)
         // .zip(other.iter())
         // .filter(|((o, s), _)| **o || **s);
+        // println!("!! {self:?}");
+        // println!("!! {other:?}");
         for (u, bias) in other.iter() {
+            // println!("**** u = {u}");
+            self.add_variable(u.into());
             self.linear[u] += bias;
             // self.num_variables += self.linear.add(u, bias) as usize;
             // dbg!("A", u, &s, self.num_variables);
-            // self.num_variables += (**s == false) as usize;
             // dbg!("B", u, &s, self.num_variables);
             // **s = **s || true;
         }
@@ -1095,20 +1096,20 @@ impl Display for Expression {
 impl ContentEquality for Expression {
     fn is_equal_contents(&self, other: &Self) -> bool {
         let eok = self.env.is_equal_contents(&other.env);
-        // dbg!(eok);
+        // println!("eok = {}", eok);
         let ook = self.offset == other.offset;
-        // dbg!(ook);
+        // println!("ook = {}", ook);
         let lok = self.linear == other.linear;
-        // dbg!(&self.linear, &other.linear);
-        // dbg!(lok);
+        // println!("self.linear = {:?}, other.linear = {:?}", &self.linear, &other.linear);
+        // println!("lok = {}", lok);
         let qok = self.quadratic == other.quadratic;
-        // dbg!(qok);
+        // println!("qok = {}", qok);
         let hok = self.higher_order == other.higher_order;
-        // dbg!(hok);
+        // println!("hok = {}", hok);
         let aok = self.active == other.active;
-        // dbg!(aok);
+        // println!("aok = {}", aok);
         let nok = self.num_variables == other.num_variables;
-        // dbg!(nok);
+        // println!("nok = {}", nok);
 
         eok && ook && lok && qok && hok && aok && nok
 

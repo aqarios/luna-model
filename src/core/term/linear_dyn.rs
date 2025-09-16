@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 use crate::{
     core::{
         term::types::{OneVarTerm, OneVarTermConstruction},
@@ -87,7 +85,8 @@ impl Linear {
             return Vec::default();
         }
 
-        let mut linear = vec![0.0; (self.max_idx + 1) as usize];
+        // let mut linear = vec![0.0; (self.max_idx + 1) as usize];
+        let mut linear = vec![0.0; length];
         for (u, bias) in self.iter() {
             linear[u] = bias;
         }
@@ -206,7 +205,17 @@ impl PartialEq for Linear {
 
 impl Linear {
     fn negate(&self) -> Self {
-        Linear::new(self.biases.iter().map(|t| -t.bias).collect())
+        // Linear::new(self.biases.iter().map(|t| -t.bias).collect())
+        let out = Self {
+            biases: self
+                .biases
+                .iter()
+                .map(|t| OneVarTerm::new(t.index, -t.bias))
+                .collect(),
+            max_idx: self.max_idx,
+            default_bias: Bias::default(),
+        };
+        out
     }
 }
 

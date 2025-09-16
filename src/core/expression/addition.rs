@@ -48,9 +48,9 @@ impl AddToExpression<&Expression> for &Expression {
             // if both expressions have the same number of variables.
             // If rhs has more variables than self, we need to resize the out to
             // allow the other variables to be added safely.
-            // if out.active.len() < rhs.active.len() {
-            //     out.resize(rhs.active.len().into());
-            // }
+            if out.active.len() < rhs.active.len() {
+                out.active.resize(rhs.active.len(), false);
+            }
             // Now we can perform all additions safely.
             out.add_offset(rhs.offset);
             out.add_linear_from(&rhs.linear);
@@ -144,6 +144,9 @@ impl SubToExpression<&Expression> for &Expression {
             // if both expressions have the same number of variables.
             // If rhs has more variables than self, we need to resize the out to
             // allow the other variables to be added safely.
+            if out.active.len() < rhs.active.len() {
+                out.active.resize(rhs.active.len(), false);
+            }
             // Now we can perform all additions safely.
             out.add_offset(-rhs.offset);
             out.add_linear_from(&(-&rhs.linear));
