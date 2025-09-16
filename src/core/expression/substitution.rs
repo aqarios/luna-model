@@ -50,7 +50,7 @@ impl Substitution for &Expression {
         let active_linears: Vec<(VarIndex, Bias)> = self
             .linear
             .iter()
-            .filter(|(idx, _)| self.active[*idx])
+            // .filter(|(idx, _)| self.active[*idx])
             .map(|(idx, bias)| (idx.into(), bias))
             .collect();
 

@@ -29,7 +29,7 @@ impl BqmTranslator {
         for var in vars.iter() {
             model.environment.add_variable(var, Some(vtype), None)?;
         }
-        model.objective.resize(vars.len().into());
+        // model.objective.resize(vars.len().into());
         model.objective.add_offset(offset);
         for (&i, &bias) in linear_indices.iter().zip(linear) {
             model.objective.add_linear((i as usize).into(), bias);

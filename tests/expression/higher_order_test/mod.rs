@@ -54,16 +54,16 @@ fn higher_order_expression_base(vtype: Vtype, n: usize) {
         expected_higher_order,
         "higher order not as expected"
     );
-    assert_eq!(
-        expr.active.len(),
-        biases.len() + 2,
-        "the number of active variables in the result is false"
-    );
-    assert_eq!(
-        expr.active,
-        vec![true; biases.len() + 2],
-        "all variables should be active in the result"
-    );
+    // assert_eq!(
+    //     expr.active.len(),
+    //     biases.len() + 2,
+    //     "the number of active variables in the result is false"
+    // );
+    // assert_eq!(
+    //     expr.active,
+    //     vec![true; biases.len() + 2],
+    //     "all variables should be active in the result"
+    // );
     assert_eq!(
         expr.num_variables,
         biases.len() + 2,

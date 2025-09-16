@@ -9,6 +9,7 @@ use crate::{
 };
 use std::{
     cmp::Ordering,
+    isize,
     ops::{Index, IndexMut, MulAssign, Neg},
     slice::IterMut,
 };
@@ -16,24 +17,35 @@ use std::{
 #[derive(Clone, Debug)]
 pub struct Linear {
     biases: Vec<OneVarTerm>,
+    max_idx: isize,
     default_bias: Bias,
 }
 
 impl Linear {
     pub fn default() -> Self {
+        // println!("default");
         Self {
             biases: Vec::new(),
+            max_idx: -1,
             default_bias: Bias::default(),
         }
     }
 
     pub fn new(biases: Vec<Bias>) -> Self {
+        // println!("new with biases: {biases:?}");
+        let mut max_idx: isize = -1;
+        let biases = biases
+            .into_iter()
+            .enumerate()
+            .filter(|(_, bias)| *bias != Bias::default())
+            .map(|(idx, bias)| {
+                max_idx = idx as isize;
+                OneVarTerm::new(VarId(idx as u32), bias)
+            })
+            .collect();
         Self {
-            biases: biases
-                .into_iter()
-                .enumerate()
-                .map(|(idx, bias)| OneVarTerm::new(VarId(idx as u32), bias))
-                .collect_vec(),
+            max_idx: max_idx,
+            biases,
             default_bias: Bias::default(),
         }
     }
@@ -45,26 +57,37 @@ impl Linear {
     // }
 
     pub fn new_from_weighted_variable(var: usize, bias: Bias) -> Self {
+        // println!("new_from_weighted_variable");
         let mut out = Self::default();
-        out.biases.push(OneVarTerm::new(VarId(var as u32), bias));
+        out.max_idx = var as isize;
+        if bias != Bias::default() {
+            out.biases.push(OneVarTerm::new(VarId(var as u32), bias));
+        }
         out
     }
 
     pub fn new_from_variables(lhs: (usize, Bias), rhs: (usize, Bias)) -> Self {
+        // println!("new_from_variables");
         let mut out = Self::default();
         if lhs.0 < rhs.0 {
+            out.max_idx = rhs.0 as isize;
             out.biases.push(OneVarTerm::new(VarId(lhs.0 as u32), lhs.1));
             out.biases.push(OneVarTerm::new(VarId(rhs.0 as u32), rhs.1));
         } else {
+            out.max_idx = lhs.0 as isize;
             out.biases.push(OneVarTerm::new(VarId(rhs.0 as u32), rhs.1));
             out.biases.push(OneVarTerm::new(VarId(lhs.0 as u32), lhs.1));
         }
         out
     }
 
-    pub fn to_vec(&self, num_variables: usize) -> Vec<Bias> {
-        dbg!(self);
-        let mut linear = vec![0.0; num_variables];
+    pub fn to_vec(&self, length: usize) -> Vec<Bias> {
+        // let length = length.unwrap_or_else(|| (self.max_idx + 1) as usize);
+        if length == 0 {
+            return Vec::default();
+        }
+
+        let mut linear = vec![0.0; (self.max_idx + 1) as usize];
         for (u, bias) in self.iter() {
             linear[u] = bias;
         }
@@ -94,6 +117,28 @@ impl Linear {
             all_zero &= t.bias == Bias::default();
         }
         all_zero
+    }
+
+    pub fn add(&mut self, index: usize, bias: Bias) -> bool {
+        let pos = self
+            .biases
+            .binary_search_by(|term| {
+                term.index
+                    .partial_cmp(&index.into())
+                    .unwrap_or(Ordering::Equal)
+            })
+            .unwrap_or_else(|insert_pos| insert_pos);
+        if pos == self.biases.len() {
+            self.max_idx = index as isize;
+            self.biases.push(OneVarTerm::new(index.into(), bias));
+            true
+        } else if self.biases[pos].index != index.into() {
+            self.biases.insert(pos, OneVarTerm::new(index.into(), bias));
+            true
+        } else {
+            self.biases[pos].bias += bias;
+            false
+        }
     }
 }
 
@@ -129,6 +174,7 @@ impl Index<usize> for Linear {
 
 impl IndexMut<usize> for Linear {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        // println!("linear_dyn index mut called");
         let pos = self
             .biases
             .binary_search_by(|term| {
@@ -138,6 +184,7 @@ impl IndexMut<usize> for Linear {
             })
             .unwrap_or_else(|insert_pos| insert_pos);
         if pos == self.biases.len() {
+            self.max_idx = index as isize;
             self.biases.push(OneVarTerm::new_default(index.into()))
         } else if self.biases[pos].index != index.into() {
             self.biases

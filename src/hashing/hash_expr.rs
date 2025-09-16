@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use prost::Message;
 
 use crate::core::Expression;
@@ -67,7 +68,7 @@ impl HashExpr {
     pub fn build(expr: &Expression) -> Vec<u8> {
         let mut serexpr = HashExpr {
             num_variables: force_u32(expr.num_variables),
-            active: expr.active.clone(),
+            active: expr.active.iter().map(|b| *b).collect_vec(),
             offset: expr.offset,
             linear: expr.linear.to_vec(expr.num_variables),
             quad_size: u32::default(),

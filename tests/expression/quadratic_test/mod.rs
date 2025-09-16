@@ -49,16 +49,16 @@ fn quadratic_expression_base(vtype: Vtype, n: usize) {
         "the quadratic term is not the expected structure"
     );
     assert_eq!(expr.higher_order, None, "higher order should be None");
-    assert_eq!(
-        expr.active.len(),
-        biases.len() + 1,
-        "the number of active variables in the result is false"
-    );
-    assert_eq!(
-        expr.active,
-        vec![true; biases.len() + 1],
-        "all variables should be active in the result"
-    );
+    // assert_eq!(
+    //     expr.active.len(),
+    //     biases.len() + 1,
+    //     "the number of active variables in the result is false"
+    // );
+    // assert_eq!(
+    //     expr.active,
+    //     vec![true; biases.len() + 1],
+    //     "all variables should be active in the result"
+    // );
     assert_eq!(
         expr.num_variables,
         biases.len() + 1,

@@ -1,5 +1,5 @@
 use super::{
-    base::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation},
+    base::{ExpressionBaseAdd, ExpressionBaseCreation},
     Expression,
 };
 use crate::core::expression::One;
@@ -48,12 +48,12 @@ impl AddToExpression<&Expression> for &Expression {
             // if both expressions have the same number of variables.
             // If rhs has more variables than self, we need to resize the out to
             // allow the other variables to be added safely.
-            if out.active.len() < rhs.active.len() {
-                out.resize(rhs.active.len().into());
-            }
+            // if out.active.len() < rhs.active.len() {
+            //     out.resize(rhs.active.len().into());
+            // }
             // Now we can perform all additions safely.
             out.add_offset(rhs.offset);
-            out.add_linear_from(&rhs.linear, &rhs.active);
+            out.add_linear_from(&rhs.linear);
 
             if rhs.quadratic.is_some() {
                 out.add_quadratic_from(rhs.quadratic.as_ref().unwrap());
@@ -93,11 +93,11 @@ impl AddAssignToExpression<&Expression> for Expression {
         if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
-            if self.active.len() < rhs.active.len() {
-                self.resize(rhs.active.len().into());
-            }
+            // if self.active.len() < rhs.active.len() {
+            //     self.resize(rhs.active.len().into());
+            // }
             self.add_offset(rhs.offset);
-            self.add_linear_from(&rhs.linear, &rhs.active);
+            self.add_linear_from(&rhs.linear);
 
             if rhs.quadratic.is_some() {
                 self.add_quadratic_from(rhs.quadratic.as_ref().unwrap());
@@ -144,12 +144,9 @@ impl SubToExpression<&Expression> for &Expression {
             // if both expressions have the same number of variables.
             // If rhs has more variables than self, we need to resize the out to
             // allow the other variables to be added safely.
-            if out.active.len() < rhs.active.len() {
-                out.resize(rhs.active.len().into());
-            }
             // Now we can perform all additions safely.
             out.add_offset(-rhs.offset);
-            out.add_linear_from(&(-&rhs.linear), &rhs.active);
+            out.add_linear_from(&(-&rhs.linear));
 
             if let Some(q) = &rhs.quadratic {
                 out.add_quadratic_from(&(-q));

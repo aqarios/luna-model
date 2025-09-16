@@ -13,6 +13,7 @@ use crate::{
         utils::force_u32,
     },
 };
+use bitvec::vec::BitVec;
 use prost::Message;
 
 /// Representation of a bytes encodable/decodable Expression.
@@ -121,8 +122,7 @@ impl SerExpression {
     /// Fills the serializable expression based on an instance of Expression.
     fn fill(mut self, expression: &Expression) -> Self {
         self.num_variables = force_u32(expression.num_variables());
-        self.active.resize(expression.active.len(), false);
-        self.active.copy_from_slice(&expression.active);
+        self.active = expression.active.iter().map(|b| *b).collect();
         self.offset = expression.offset;
         self.linear = expression.linear.to_vec(expression.num_variables);
 
@@ -206,8 +206,9 @@ impl SerExpression {
     pub fn extract(&self, env: SharedEnvironment) -> Expression {
         let mut expr = Expression::empty(env);
         expr.num_variables = self.num_variables as usize;
-        expr.active = self.active.clone();
+        expr.active = BitVec::from_iter(self.active.iter());
         expr.offset = self.offset;
+        // println!("in extract will call new with: {:?}", self.linear);
         expr.linear = Linear::new(self.linear.clone()); // todo(team): might be optimizable with mem copies. See somewhere in code where I do something similar.
         expr.quadratic = self.decode_quadratic();
         expr.higher_order = self.decode_higher_order();
