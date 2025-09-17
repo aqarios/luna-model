@@ -50,6 +50,7 @@ impl AddToExpression<&Expression> for &Expression {
             // allow the other variables to be added safely.
             if out.active.len() < rhs.active.len() {
                 out.active.resize(rhs.active.len(), false);
+                out.active.force_align();
             }
             // Now we can perform all additions safely.
             out.add_offset(rhs.offset);
@@ -96,6 +97,10 @@ impl AddAssignToExpression<&Expression> for Expression {
             // if self.active.len() < rhs.active.len() {
             //     self.resize(rhs.active.len().into());
             // }
+            if self.active.len() < rhs.active.len() {
+                self.active.resize(rhs.active.len(), false);
+                self.active.force_align();
+            }
             self.add_offset(rhs.offset);
             self.add_linear_from(&rhs.linear);
 
@@ -146,6 +151,7 @@ impl SubToExpression<&Expression> for &Expression {
             // allow the other variables to be added safely.
             if out.active.len() < rhs.active.len() {
                 out.active.resize(rhs.active.len(), false);
+                out.active.force_align();
             }
             // Now we can perform all additions safely.
             out.add_offset(-rhs.offset);

@@ -105,7 +105,7 @@ impl BqmTranslator {
         let mut dense: Vec<Bias> = Vec::new();
         dense.resize(nvars * nvars, Bias::default());
 
-        let linear = obj.linear.to_vec(nvars);
+        let linear = obj.linear.to_vec(obj.active.len());
 
         let mut quadratic = Vec::new();
         let mut row_indices = Vec::new();

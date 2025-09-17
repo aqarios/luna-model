@@ -58,7 +58,7 @@ impl HigherOrder {
             .join(DELIMITER)
     }
 
-    fn key_contributions(key: &String) -> Vec<VarIndex> {
+    pub fn key_contributions(key: &String) -> Vec<VarIndex> {
         key.split(DELIMITER)
             .map(|s| VarIndex::from_str(s).ok().unwrap())
             .collect()

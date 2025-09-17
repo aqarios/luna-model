@@ -397,10 +397,17 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
     }
 
     fn add_variables(&mut self, vars: &Vec<VarIndex>) {
+        // println!("in add variables for vars = {vars:?}");
+        // println!("active = {:?}", self.active);
+        if vars.len() == 0 {
+            return;
+        }
         // We only need to call the add_variable for the largest index.
         // This will automatically allocate memory for all others.
         let max_index = vars.iter().max().unwrap();
+        // println!("max_index = {max_index:?}");
         self.add_variable(*max_index);
+        // println!("active = {:?}", self.active);
         // Now we need to set each variable as active and increase the variable counter
         // if the variable has not been added before.
         for v in vars {
@@ -415,6 +422,7 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
             //     self.num_variables += 1;
             // }
         }
+        // println!("active = {:?}", self.active);
     }
 
     // fn remove_variables(&mut self, vars: &Vec<VarIndex>) {
@@ -480,8 +488,11 @@ impl ExpressionBase<VarIndex, Bias> for Expression {
     }
 
     fn vtypes(&self) -> Vec<Vtype> {
-        (0..self.num_variables)
-            .map(|idx| self.env.access().get_vtype(idx.into()))
+        self.active
+            .iter()
+            .enumerate()
+            .filter(|(_, a)| **a)
+            .map(|(idx, _)| self.env.access().get_vtype(idx.into()))
             .unique()
             .collect_vec()
     }
@@ -580,6 +591,7 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
     }
 
     fn add_higher_order_direct(&mut self, key: &Self::HigherOrderKey, bias: Bias) {
+        self.add_variables(&HigherOrder::key_contributions(key));
         self.enforce_higher_order();
         self.higher_order.as_mut().unwrap()[key] += bias;
     }

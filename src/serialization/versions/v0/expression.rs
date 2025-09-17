@@ -124,7 +124,7 @@ impl SerExpression {
         self.num_variables = force_u32(expression.num_variables());
         self.active = expression.active.iter().map(|b| *b).collect();
         self.offset = expression.offset;
-        self.linear = expression.linear.to_vec(expression.num_variables);
+        self.linear = expression.linear.to_vec(expression.active.len());
 
         if let Some(quad) = &expression.quadratic {
             self.quad_size = force_u32(quad.len());

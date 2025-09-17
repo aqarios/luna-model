@@ -86,6 +86,7 @@ impl Linear {
         }
 
         // let mut linear = vec![0.0; (self.max_idx + 1) as usize];
+        let length = length.max((self.max_idx + 1) as usize);
         let mut linear = vec![0.0; length];
         for (u, bias) in self.iter() {
             linear[u] = bias;
