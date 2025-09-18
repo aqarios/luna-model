@@ -154,8 +154,6 @@ impl SerExpression {
             }
         }
 
-        println!("{self:?}");
-
         self
     }
 
