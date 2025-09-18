@@ -127,7 +127,7 @@ impl SerExpression {
         self.linear = expression.linear.to_vec(expression.active.len());
 
         if let Some(quad) = &expression.quadratic {
-            self.quad_size = force_u32(quad.len());
+            self.quad_size = force_u32(expression.active.len());
             for t in quad.iter() {
                 if !t.neighborhood.is_empty() {
                     // only store data if the neighborhood is not empty.
