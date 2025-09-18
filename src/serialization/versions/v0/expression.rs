@@ -131,7 +131,8 @@ impl SerExpression {
             for t in quad.iter() {
                 if !t.neighborhood.is_empty() {
                     // only store data if the neighborhood is not empty.
-                    self.quad_neighborhood_indices.push(force_u32(t.index.into()));
+                    self.quad_neighborhood_indices
+                        .push(force_u32(t.index.into()));
                     self.quad_neighborhoods_len
                         .push(force_u32(t.neighborhood.len()));
                     t.neighborhood.iter().for_each(|e| {
@@ -152,6 +153,8 @@ impl SerExpression {
                 });
             }
         }
+
+        println!("{self:?}");
 
         self
     }
