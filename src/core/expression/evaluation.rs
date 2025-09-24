@@ -19,10 +19,10 @@ impl ExpressionEvaluation<VarIndex, Bias> for Expression {
         let mut value = self.offset;
         // Evaluate the linear term.
         for (idx, bias) in self.linear.iter() {
-            if self.active[idx] {
-                let mapped = index_map(idx.into());
-                value += sample.value_by_index(mapped) * *bias;
-            }
+            // if self.active[idx] {
+            let mapped = index_map(idx.into());
+            value += sample.value_by_index(mapped) * bias;
+            // }
         }
         // Evaluate the quadratic term if it exists.
         if let Some(quad) = &self.quadratic {

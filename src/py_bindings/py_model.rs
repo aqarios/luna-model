@@ -385,7 +385,8 @@ impl PyModel {
             .into_iter()
             .enumerate()
             .filter(|(a, _)| {
-                *active_vars.get(*a as usize).unwrap_or(&false) || !active.unwrap_or_default()
+                active_vars.get(*a as usize).map_or_else(|| false, |r| *r)
+                    || !active.unwrap_or_default()
             })
             .map(|(_, vref)| PyVariable::new(vref))
             .collect()

@@ -170,7 +170,7 @@ impl Model {
                 .add_variable(var_name, Some(vtype.unwrap_or(Vtype::Binary)), None)?;
         }
 
-        model.objective.resize(num_variables);
+        // model.objective.resize(num_variables);
         model
             .objective
             .add_quadratic_from_dense(matrix_flat, num_variables);

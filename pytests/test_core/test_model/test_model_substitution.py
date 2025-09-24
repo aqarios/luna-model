@@ -52,7 +52,15 @@ def test_model_substitution_var():
     m.objective = base_obj
     m.constraints += constr_a <= 0, "a"
     m.constraints += constr_b <= 0, "b"
+    print()
+    print(repr(m.objective))
+    print(repr(m.constraints[0]))
+    print(repr(m.constraints[1]))
     m.substitute(target, replacement)
+    print("------------")
+    print(repr(m.objective))
+    print(repr(m.constraints[0]))
+    print(repr(m.constraints[1]))
 
     assert expected_obj.is_equal(m.objective)
     assert expected_constr_a.is_equal(m.constraints[0].lhs)

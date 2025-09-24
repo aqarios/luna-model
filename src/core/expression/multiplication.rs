@@ -39,8 +39,7 @@ impl MulToExpression<&VarRef> for &Expression {
         if self.env.id() != rhs.env.id() {
             Err(VariablesFromDifferentEnvsErr)
         } else {
-            let mut out =
-                Expression::new(self.env.clone(), self.active.clone(), self.num_variables());
+            let mut out = Expression::new(self.env.clone(), self.num_variables());
             out.active = self.active.clone();
             out.num_variables = self.num_variables;
             out.mul_with_offset(self.offset, rhs.id, Bias::one());
