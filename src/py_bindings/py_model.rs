@@ -354,8 +354,14 @@ impl PyModel {
 
     /// Return the name of the model.
     #[getter]
-    fn name(&self) -> String {
+    fn get_name(&self) -> String {
         self.access().name.clone()
+    }
+
+    /// Return the name of the model.
+    #[setter]
+    fn set_name(&self, name: String) {
+        self.access().name = name;
     }
 
     /// Get the environment in which this model is defined.

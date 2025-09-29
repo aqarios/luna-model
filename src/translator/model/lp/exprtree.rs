@@ -283,7 +283,7 @@ impl Parser {
 }
 
 pub struct ExprTreeTuple {
-    lin: Option<ExprTree>,
+    pub lin: Option<ExprTree>,
     quad: Option<ExprTree>,
     ho: Option<ExprTree>,
     cons: Option<ExprTree>,
