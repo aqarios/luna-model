@@ -2287,6 +2287,11 @@ class Model:
         """Return the name of the model."""
         ...
 
+    @name.setter
+    def name(self, /, name: str) -> None:
+        """Set the name of the model."""
+        ...
+
     @property
     def sense(self, /) -> Sense:
         """
