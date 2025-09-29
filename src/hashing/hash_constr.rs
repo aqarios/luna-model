@@ -48,7 +48,7 @@ impl HashConstr {
                 .names
                 .push(c.name.clone().unwrap_or("<NN>".to_string()));
         }
-
+        println!("serconstrs = {serconstrs:?}");
         serconstrs.encode_to_vec()
     }
 }

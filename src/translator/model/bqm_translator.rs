@@ -29,7 +29,7 @@ impl BqmTranslator {
         for var in vars.iter() {
             model.environment.add_variable(var, Some(vtype), None)?;
         }
-        model.objective.resize(vars.len().into());
+        // model.objective.resize(vars.len().into());
         model.objective.add_offset(offset);
         for (&i, &bias) in linear_indices.iter().zip(linear) {
             model.objective.add_linear((i as usize).into(), bias);
@@ -105,11 +105,7 @@ impl BqmTranslator {
         let mut dense: Vec<Bias> = Vec::new();
         dense.resize(nvars * nvars, Bias::default());
 
-        for (u, bias) in obj.linear.iter() {
-            dense[u * (nvars + 1)] = *bias;
-        }
-
-        let linear = obj.linear.to_vec().clone();
+        let linear = obj.linear.to_vec(obj.active.len());
 
         let mut quadratic = Vec::new();
         let mut row_indices = Vec::new();

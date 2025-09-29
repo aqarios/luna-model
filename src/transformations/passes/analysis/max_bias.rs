@@ -45,7 +45,7 @@ impl AnalysisPass for MaxBiasAnalysis {
         let max_linear = obj
             .linear
             .iter()
-            .map(|(_, &v)| abs(NumCast::from(v).unwrap()))
+            .map(|(_, v)| abs(NumCast::from(v).unwrap()))
             .fold(0.0, f64::max);
         max_val = f64::max(max_val, max_linear);
 

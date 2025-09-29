@@ -118,7 +118,7 @@ where
 {
     fn simple(env: SharedEnvironment, offset: Bias) -> Self;
     fn empty(env: SharedEnvironment) -> Self;
-    fn new(env: SharedEnvironment, active: Vec<bool>, num_variables: usize) -> Self;
+    fn new(env: SharedEnvironment, num_variables: usize) -> Self;
     fn new_from_other(other: &Self) -> Self;
     fn new_linear_single(env: SharedEnvironment, v: Index, bias: Bias) -> Self;
     fn new_linear(env: SharedEnvironment, u: (Index, Bias), v: (Index, Bias)) -> Self;
@@ -131,12 +131,13 @@ where
     Index: IndexConstraints,
     Bias: BiasConstraints,
 {
-    fn add_variable(&mut self, v: Index) -> SizeType;
+    // fn add_variable(&mut self, v: Index) -> SizeType;
+    fn add_variable(&mut self, v: Index);
     fn add_variables(&mut self, vars: &Vec<Index>);
     fn remove_variable(&mut self, v: Index);
-    fn remove_variables(&mut self, vars: &Vec<Index>);
-    /// Resize the model to contain `n` variables.
-    fn resize(&mut self, n: Index);
+    // fn remove_variables(&mut self, vars: &Vec<Index>);
+    // /// Resize the model to contain `n` variables.
+    // fn resize(&mut self, n: Index);
 }
 
 pub trait ExpressionBaseSet<Index, Bias>: ExpressionBaseTypes
@@ -199,7 +200,8 @@ where
     fn add_higher_order_direct(&mut self, key: &Self::HigherOrderKey, bias: Bias);
 
     /// Add linear biases from another linear term.
-    fn add_linear_from(&mut self, other: &Self::LinearType, other_active: &Vec<bool>);
+    // fn add_linear_from(&mut self, other: &Self::LinearType, other_active: &Vec<bool>);
+    fn add_linear_from(&mut self, other: &Self::LinearType);
     /// Add quadratic biases from another quadratic term.
     fn add_quadratic_from(&mut self, other: &Self::QuadraticType);
     /// Add higher order biases from another higher order term.

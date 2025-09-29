@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use prost::Message;
 
 use crate::core::Expression;
@@ -65,11 +66,12 @@ pub struct HashExpr {
 
 impl HashExpr {
     pub fn build(expr: &Expression) -> Vec<u8> {
+        let activelen = expr.active.len();
         let mut serexpr = HashExpr {
             num_variables: force_u32(expr.num_variables),
-            active: expr.active.clone(),
+            active: expr.active.iter().map(|b| *b).collect_vec(),
             offset: expr.offset,
-            linear: expr.linear.to_vec().clone(),
+            linear: expr.linear.to_vec(activelen),
             quad_size: u32::default(),
             quad_neighborhood_indices: Vec::new(),
             quad_neighborhoods: Vec::new(),
@@ -82,15 +84,18 @@ impl HashExpr {
         };
 
         if let Some(quad) = &expr.quadratic {
-            serexpr.quad_size = force_u32(quad.len());
-            for (u, neighborhood) in quad.iter() {
-                if !neighborhood.is_empty() {
+            // serexpr.quad_size = force_u32(quad.len());
+            serexpr.quad_size = force_u32(activelen);
+            for t in quad.iter() {
+                if !t.neighborhood.is_empty() {
                     // only store data if the neighborhood is not empty.
-                    serexpr.quad_neighborhood_indices.push(force_u32(u));
+                    serexpr
+                        .quad_neighborhood_indices
+                        .push(force_u32(t.index.into()));
                     serexpr
                         .quad_neighborhoods_len
-                        .push(force_u32(neighborhood.len()));
-                    neighborhood.iter().for_each(|e| {
+                        .push(force_u32(t.neighborhood.len()));
+                    t.neighborhood.iter().for_each(|e| {
                         serexpr.quad_neighborhoods.push(e.index.0);
                         serexpr.quad_neighborhoods_values.push(e.bias);
                     });
@@ -108,6 +113,7 @@ impl HashExpr {
                 });
             }
         }
+        println!("serexpr = {serexpr:?}");
         serexpr.encode_to_vec()
     }
 }

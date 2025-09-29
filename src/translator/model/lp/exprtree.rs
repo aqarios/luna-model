@@ -17,6 +17,7 @@ use std::ops::AddAssign;
 pub enum ExprTree {
     Number(Bias),
     Variable(String),
+    Neg(Box<ExprTree>),
     Add(Box<ExprTree>, Box<ExprTree>),
     Sub(Box<ExprTree>, Box<ExprTree>),
     Mul(Box<ExprTree>, Box<ExprTree>),
@@ -179,111 +180,251 @@ fn tokenize(input: &str) -> Vec<Token> {
 }
 
 // Parser state
+// #[derive(Debug)]
 struct Parser {
-    tokens: Vec<Token>,
-    pos: usize,
+    //     tokens: Vec<Token>,
+    //     pos: usize,
 }
 
 impl Parser {
-    fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens, pos: 0 }
-    }
+    pub fn parse_expression(tokens: &[Token]) -> Result<ExprTree, String> {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        enum Op {
+            Add,
+            Sub,
+            Mul,
+            Pow,
+            UMinus,
+            LParen,
+        }
 
-    fn current(&self) -> Option<&Token> {
-        self.tokens.get(self.pos)
-    }
+        fn prec(op: Op) -> u8 {
+            match op {
+                Op::Add | Op::Sub => 10,
+                Op::Mul => 20,    // implicit '*' uses same precedence
+                Op::Pow => 30,    // right-associative
+                Op::UMinus => 40, // prefix, highest
+                Op::LParen => 0,
+            }
+        }
 
-    fn advance(&mut self) {
-        self.pos += 1;
-    }
+        fn is_right_assoc(op: Op) -> bool {
+            matches!(op, Op::Pow | Op::UMinus)
+        }
 
-    fn parse_expression(&mut self) -> ExprTree {
-        let mut expr = self.parse_term();
-        while let Some(token) = self.current() {
-            match token {
+        // Helpers to detect when implicit multiplication is required.
+        fn can_end_term(tok: &Token) -> bool {
+            matches!(tok, Token::Number(_) | Token::Variable(_) | Token::RParen)
+        }
+        fn can_start_term(tok: &Token) -> bool {
+            matches!(tok, Token::Number(_) | Token::Variable(_) | Token::LParen)
+        }
+
+        // Pretty helper for error messages
+        fn tok_str(t: &Token) -> &'static str {
+            match t {
+                Token::Number(_) => "number",
+                Token::Variable(_) => "variable",
+                Token::Plus => "+",
+                Token::Minus => "-",
+                Token::Star => "*",
+                Token::Caret => "^",
+                Token::LParen => "(",
+                Token::RParen => ")",
+            }
+        }
+
+        let mut vals: Vec<ExprTree> = Vec::new();
+        let mut ops: Vec<Op> = Vec::new();
+
+        // Applies a single operator sitting on `ops` to `vals`.
+        let apply_top = |ops: &mut Vec<Op>, vals: &mut Vec<ExprTree>| -> Result<(), String> {
+            // println!("apply_top: {ops:?}, {vals:?}");
+            let op = ops.pop().expect("apply_top called with empty ops");
+
+            match op {
+                Op::UMinus => {
+                    let a = vals.pop().ok_or("unary minus: missing operand")?;
+                    // let out: ExprTree = todo!("implement unary negation of operand `a`");
+                    // example if building AST: let out = Expr::Neg(Box::new(a));
+                    let out = ExprTree::Neg(Box::new(a));
+                    vals.push(out);
+                }
+                Op::Add | Op::Sub | Op::Mul | Op::Pow => {
+                    let rhs = vals
+                        .pop()
+                        .ok_or_else(|| format!("operator {:?}: missing right operand", op))?;
+                    // println!("rhs = {rhs:?}");
+                    let lhs = vals
+                        .pop()
+                        .ok_or_else(|| format!("operator {:?}: missing left operand", op))?;
+                    // println!("lhs = {lhs:?}");
+                    // println!("op = {op:?}");
+                    let out: ExprTree = match op {
+                        Op::Add => ExprTree::Add(Box::new(lhs), Box::new(rhs)), // todo!("implement addition: `lhs + rhs`"),
+                        Op::Sub => ExprTree::Sub(Box::new(lhs), Box::new(rhs)), // todo!("implement subtraction: `lhs - rhs`"),
+                        Op::Mul => ExprTree::Mul(Box::new(lhs), Box::new(rhs)), // todo!("implement multiplication: `lhs * rhs` (also used for implicit multiplication)"),
+                        Op::Pow => ExprTree::Pow(Box::new(lhs), Box::new(rhs)), // todo!("implement exponentiation: `lhs ^ rhs`"),
+                        _ => unreachable!(),
+                    };
+                    // println!("out = {out:?}");
+                    // example if building AST: let out = Expr::Bin(op_to_ast(op), Box::new(lhs), Box::new(rhs));
+                    vals.push(out);
+                }
+                Op::LParen => unreachable!("should not directly apply LParen"),
+            }
+
+            // println!("apply_top (end): {ops:?}, {vals:?}");
+
+            Ok(())
+        };
+
+        // Push a (possibly implicit) operator, respecting precedence/associativity
+        let push_op =
+            |new_op: Op, ops: &mut Vec<Op>, vals: &mut Vec<ExprTree>| -> Result<(), String> {
+                // println!("push_op: {new_op:?}: {ops:?}, {vals:?}");
+                while let Some(&top) = ops.last() {
+                    if top == Op::LParen {
+                        break;
+                    }
+                    let p_top = prec(top);
+                    let p_new = prec(new_op);
+
+                    let should_pop = if is_right_assoc(new_op) {
+                        // Right-assoc: pop only strictly higher precedence
+                        p_top > p_new
+                    } else {
+                        // Left-assoc: pop higher *or equal* precedence
+                        p_top >= p_new
+                    };
+
+                    if should_pop {
+                        apply_top(ops, vals)?;
+                    } else {
+                        break;
+                    }
+                }
+                ops.push(new_op);
+                Ok(())
+            };
+
+        // Scan with implicit-multiplication insertion and unary-minus handling
+        let mut i = 0usize;
+        let mut prev_token: Option<&Token> = None;
+
+        while i < tokens.len() {
+            let t = &tokens[i];
+
+            // Insert implicit '*' when a term-ending token is followed by a term-starting token.
+            if let Some(prev) = prev_token {
+                if can_end_term(prev) && can_start_term(t) {
+                    // behave as if a '*' appeared here
+                    push_op(Op::Mul, &mut ops, &mut vals)?;
+                }
+            }
+
+            match t {
+                Token::Number(n) => {
+                    // let v: R = todo!("implement literal number {}", n);
+                    // example AST: let v = Expr::Number(*n);
+                    let v = ExprTree::Number(*n);
+                    vals.push(v);
+                }
+                Token::Variable(name) => {
+                    // let v: R = todo!("implement variable `{}`", name);
+                    // example AST: let v = Expr::Var(name.clone());
+                    let v = ExprTree::Variable(name.clone());
+                    vals.push(v);
+                }
+                Token::LParen => {
+                    ops.push(Op::LParen);
+                }
+                Token::RParen => {
+                    // Pop until matching '('
+                    while let Some(&top) = ops.last() {
+                        if top == Op::LParen {
+                            break;
+                        }
+                        apply_top(&mut ops, &mut vals)?;
+                    }
+                    match ops.pop() {
+                        Some(Op::LParen) => { /* matched */ }
+                        _ => return Err("unmatched ')'".to_string()),
+                    }
+                }
                 Token::Plus => {
-                    self.advance();
-                    expr = ExprTree::Add(Box::new(expr), Box::new(self.parse_term()));
+                    // Unary '+' is a no-op; detect and skip it.
+                    let unary = match prev_token {
+                        None => true,
+                        Some(Token::LParen) => true,
+                        Some(Token::Plus | Token::Minus | Token::Star | Token::Caret) => true,
+                        _ => false,
+                    };
+                    if !unary {
+                        push_op(Op::Add, &mut ops, &mut vals)?;
+                    }
                 }
                 Token::Minus => {
-                    self.advance();
-                    expr = ExprTree::Sub(Box::new(expr), Box::new(self.parse_term()));
+                    // Detect unary vs binary '-'
+                    let unary = match prev_token {
+                        None => true,
+                        Some(Token::LParen) => true,
+                        Some(Token::Plus | Token::Minus | Token::Star | Token::Caret) => true,
+                        _ => false,
+                    };
+                    // println!("is unary? {unary}");
+                    if unary {
+                        // Treat as prefix operator with highest precedence
+                        push_op(Op::UMinus, &mut ops, &mut vals)?;
+                    } else {
+                        push_op(Op::Sub, &mut ops, &mut vals)?;
+                    }
                 }
-                _ => break,
-            }
-        }
-        expr
-    }
-
-    fn parse_term(&mut self) -> ExprTree {
-        let mut expr = self.parse_factor();
-
-        while let Some(token) = self.current() {
-            match token {
                 Token::Star => {
-                    self.advance();
-                    expr = ExprTree::Mul(Box::new(expr), Box::new(self.parse_factor()));
+                    push_op(Op::Mul, &mut ops, &mut vals)?;
                 }
-
-                // Handle implicit multiplication
-                Token::Variable(_) | Token::Number(_) | Token::LParen => {
-                    let rhs = self.parse_factor();
-                    expr = ExprTree::Mul(Box::new(expr), Box::new(rhs));
+                Token::Caret => {
+                    push_op(Op::Pow, &mut ops, &mut vals)?;
                 }
-
-                _ => break,
             }
+
+            prev_token = Some(t);
+            i += 1;
         }
 
-        expr
-    }
+        // println!("vals = {:?}", vals);
+        // println!("ops = {:?}", ops);
 
-    fn parse_factor(&mut self) -> ExprTree {
-        let mut base = self.parse_atom();
-        while let Some(Token::Caret) = self.current() {
-            self.advance();
-            base = ExprTree::Pow(Box::new(base), Box::new(self.parse_atom()));
+        // Close any remaining operators
+        while let Some(top) = ops.pop() {
+            // println!("closing ({top:?})");
+            if top == Op::LParen {
+                return Err("unmatched '('".to_string());
+            }
+            // We popped one already; re-apply via helper that expects it on the stack:
+            ops.push(top);
+            apply_top(&mut ops, &mut vals)?;
+            // let _ = ops.pop(); // remove the one we just applied
         }
-        base
-    }
 
-    fn parse_atom(&mut self) -> ExprTree {
-        match self.current() {
-            Some(Token::Plus) => {
-                self.advance(); // skip '+'
-                self.parse_atom() // unary plus, just pass through
-            }
-            Some(Token::Minus) => {
-                self.advance(); // skip '-'
-                let expr = self.parse_atom();
-                ExprTree::Mul(
-                    Box::new(ExprTree::Number(Bias::one() * -1.0)),
-                    Box::new(expr),
-                )
-            }
-            Some(Token::Number(n)) => {
-                let bias = Bias::from(*n);
-                self.advance();
-                ExprTree::Number(bias)
-            }
-            Some(Token::Variable(name)) => {
-                let var = name.clone();
-                self.advance();
-                ExprTree::Variable(var)
-            }
-            Some(Token::LParen) => {
-                self.advance();
-                let expr = self.parse_expression();
-                self.advance(); // consume RParen
-                expr
-            }
-            other => panic!("Unexpected token: {:?}", other),
+        // println!("vals (after close) = {:?}", vals);
+        // println!("ops (after close) = {:?}", ops);
+
+        if vals.len() == 1 {
+            Ok(vals.pop().unwrap())
+        } else if vals.is_empty() {
+            Err("empty expression".to_string())
+        } else {
+            Err(format!(
+                "parser ended with {} values on the stack (missing operators?)",
+                vals.len()
+            ))
         }
     }
 }
 
 pub struct ExprTreeTuple {
-    lin: Option<ExprTree>,
+    pub lin: Option<ExprTree>,
     quad: Option<ExprTree>,
     ho: Option<ExprTree>,
     cons: Option<ExprTree>,
@@ -315,8 +456,13 @@ impl ExprTreeTuple {
 impl ExprTree {
     pub fn build(input: &str) -> Self {
         let tokens = tokenize(input);
-        let mut parser = Parser::new(tokens);
-        parser.parse_expression()
+        // println!("tokens = {tokens:?}");
+        // let mut parser = Parser::new(tokens);
+        // println!("parser = {parser:?}");
+        // parser.parse_expression()
+        let tree = Parser::parse_expression(&tokens).unwrap(); // todo: handle unwrap
+        // println!("tree = {tree:?}");
+        tree
     }
 
     pub fn from_expression(
@@ -338,7 +484,7 @@ impl ExprTree {
             for (u, bias) in expr.linear.iter() {
                 let vname = expr.env.access()[u].name.clone();
                 let mul = ExprTree::Mul(
-                    Box::new(ExprTree::Number(*bias)),
+                    Box::new(ExprTree::Number(bias)),
                     Box::new(ExprTree::Variable(vname)),
                 );
                 lintree = ExprTree::Add(Box::new(lintree), Box::new(mul));
@@ -401,7 +547,7 @@ impl ExprTree {
             for (u, bias) in expr.linear.iter() {
                 let vname = expr.env.access()[u].name.clone();
                 let mul = ExprTree::Mul(
-                    Box::new(ExprTree::Number(*bias)),
+                    Box::new(ExprTree::Number(bias)),
                     Box::new(ExprTree::Variable(vname)),
                 );
                 lintree = ExprTree::Add(Box::new(lintree), Box::new(mul));
@@ -553,7 +699,11 @@ impl ExprTree {
             }
             Sub(lhs, rhs) => {
                 let l = lhs.evaluate(ctx)?;
+                // println!("SUB (eval): lhs = {l:?}");
+                // println!("SUB (eval): lhs.linear = {:?}", l.linear);
                 let r = rhs.evaluate(ctx)?;
+                // println!("SUB (eval): rhs = {r:?}");
+                // println!("SUB (eval): rhs.linear = {:?}", r.linear);
                 Ok(l.sub(&r)?)
             }
             Mul(lhs, rhs) => {
@@ -575,6 +725,10 @@ impl ExprTree {
                 }
                 _ => panic!("Pow is only supported for Variable ^ Number"),
             },
+            Neg(a) => {
+                let a = a.evaluate(ctx)?;
+                Ok(a.mul(-1.0))
+            }
         }
     }
 }
@@ -634,6 +788,9 @@ impl ToString for ExprTree {
 
             Pow(base, exp) => {
                 format!("{} ^ {}", base.to_string(), exp.to_string())
+            }
+            Neg(a) => {
+                format!("- {}", a.to_string())
             }
         }
     }
