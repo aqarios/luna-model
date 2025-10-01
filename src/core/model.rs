@@ -170,7 +170,7 @@ impl Model {
                 .add_variable(var_name, Some(vtype.unwrap_or(Vtype::Binary)), None)?;
         }
 
-        model.objective.resize(num_variables);
+        // model.objective.resize(num_variables);
         model
             .objective
             .add_quadratic_from_dense(matrix_flat, num_variables);
@@ -351,10 +351,12 @@ impl Display for Model {
 
 impl ContentEquality for Model {
     fn is_equal_contents(&self, other: &Self) -> bool {
-        self.name == other.name
-            && self.environment.is_equal_contents(&other.environment)
-            && self.objective.is_equal_contents(&other.objective)
-            && self.constraints.is_equal_contents(&other.constraints)
-            && self.sense == other.sense
+        let name_eq = self.name == other.name;
+        let env_eq = self.environment.is_equal_contents(&other.environment);
+        let obj_eq = self.objective.is_equal_contents(&other.objective);
+        let const_eq = self.constraints.is_equal_contents(&other.constraints);
+        let sense_eq = self.sense == other.sense;
+        // dbg!(name_eq, env_eq, obj_eq, const_eq, sense_eq);
+        name_eq && env_eq && obj_eq && const_eq && sense_eq
     }
 }

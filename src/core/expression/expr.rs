@@ -12,6 +12,7 @@ use crate::core::traits::ContentEquality;
 use crate::core::writer::ModelWriter;
 use crate::core::{VarRef, Vtype};
 use crate::types::{Bias, VarIndex};
+use bitvec::vec::BitVec;
 use hashbrown::HashMap;
 use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter};
@@ -23,10 +24,8 @@ pub struct Expression {
     pub linear: Linear,
     pub quadratic: Option<Quadratic>,
     pub higher_order: Option<HigherOrder>,
-    /// Mirror of the linear array that tracks which variables are already
-    /// contained in the expression. 1 indicates already added 0 indicating floating.
-    pub active: Vec<bool>,
     pub num_variables: SizeType,
+    pub active: BitVec,
 }
 
 impl Expression {
@@ -38,8 +37,8 @@ impl Expression {
             linear: self.linear.clone(),
             quadratic: self.quadratic.clone(),
             higher_order: self.higher_order.clone(),
-            active: self.active.clone(),
             num_variables: self.num_variables.clone(),
+            active: self.active.clone(),
         }
     }
 
@@ -71,8 +70,8 @@ impl Expression {
         let linear = self
             .linear
             .iter()
-            .filter(|(_, &bias)| bias != Bias::default())
-            .map(|(idx, &bias)| (vec![idx.into()], bias))
+            .filter(|(_, bias)| *bias != Bias::default())
+            .map(|(idx, bias)| (vec![idx.into()], bias))
             .collect();
         let quadratic = match &self.quadratic {
             None => Vec::new(),
@@ -97,8 +96,8 @@ impl Expression {
     pub fn linear_items(&self) -> Vec<(VarIndex, Bias)> {
         self.linear
             .iter()
-            .filter(|(_, &bias)| bias != Bias::default())
-            .map(|(idx, &bias)| (idx.into(), bias))
+            .filter(|(_, bias)| *bias != Bias::default())
+            .map(|(idx, bias)| (idx.into(), bias))
             .collect()
     }
 
@@ -154,8 +153,8 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             linear: Linear::default(),
             quadratic: None,
             higher_order: None,
-            active: Vec::default(),
             num_variables: 0,
+            active: BitVec::default(),
         }
     }
     fn empty(env: SharedEnvironment) -> Self {
@@ -165,30 +164,35 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             linear: Linear::default(),
             quadratic: None,
             higher_order: None,
-            active: Vec::default(),
             num_variables: 0,
+            active: BitVec::default(),
         }
     }
 
-    fn new(env: SharedEnvironment, active: Vec<bool>, num_variables: usize) -> Self {
+    fn new(env: SharedEnvironment, num_variables: usize) -> Self {
         Self {
             env,
             offset: Bias::default(),
-            linear: Linear::with_size(active.len()),
+            linear: Linear::default(),
             quadratic: None,
             higher_order: None,
-            active,
             num_variables,
+            active: BitVec::default(),
         }
     }
 
     fn new_linear_single(env: SharedEnvironment, v: VarIndex, bias: Bias) -> Self {
         let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
-        let mut active = Vec::new();
-        active.resize(linear.len(), false);
+        // let mut active = Vec::new();
+        // let v_idx: usize = v.into();
+        // active.resize(v_idx + 1, false);
+        // active[v_idx] = true;
         let v_idx: usize = v.into();
-        active[v_idx] = true;
+        let mut active = BitVec::with_capacity(v_idx + 1);
+        active.resize(v_idx + 1, false);
+        active.force_align();
+        active.set(v.0 as usize, true);
 
         Self {
             env,
@@ -209,10 +213,15 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
     ) -> Self {
         let linear = Linear::new_from_weighted_variable(v.into(), bias);
         // todo: make this it's own struct similar to linear.
+        // let mut active = Vec::new();
+        // let v_idx: usize = v.into();
+        // active.resize(v_idx + 1, false);
+        // active[v_idx] = true;
         let v_idx: usize = v.into();
-        let mut active = Vec::new();
-        active.resize(linear.len(), false);
-        active[v_idx] = true;
+        let mut active = BitVec::with_capacity(v_idx + 1);
+        active.resize(v_idx + 1, false);
+        active.force_align();
+        active.set(v.0 as usize, true);
 
         Self {
             env,
@@ -230,10 +239,16 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
         let v0_idx: usize = v.0.into();
         let linear = Linear::new_from_variables((u0_idx, u.1), (v0_idx, v.1));
         // todo: make this it's own struct similar to linear.
-        let mut active = Vec::new();
-        active.resize(linear.len(), false);
-        active[u0_idx] = true;
-        active[v0_idx] = true;
+        // let mut active = Vec::new();
+        // active.resize(linear.len(), false);
+        // active[u0_idx] = true;
+        // active[v0_idx] = true;
+        let size = u0_idx.max(v0_idx) + 1;
+        let mut active = BitVec::with_capacity(size);
+        active.resize(size, false);
+        active.force_align();
+        active.set(u0_idx, true);
+        active.set(v0_idx, true);
 
         Self {
             env,
@@ -242,21 +257,72 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
             quadratic: None,
             higher_order: None,
             active,
-            num_variables: 2,
+            // active: Vec::default(),
+            num_variables: !(u0_idx == v0_idx) as usize + 1,
         }
     }
     fn new_quadratic(env: SharedEnvironment, u: VarIndex, v: VarIndex, bias: Bias) -> Self {
+        // let larger = u.max(v);
+        // let smaller: usize = u.min(v).into();
+        // let largeru: usize = larger.into();
+        // let n_vars: usize = largeru + 1;
+        // let linear = vec![Bias::default(); n_vars];
+        // let n_vars: usize = u.min(v).into();
+        // let mut active = vec![false; n_vars];
+        // let uidx: usize = u.into();
+        // let vidx: usize = v.into();
+        // active[uidx] = true;
+        // active[vidx] = true;
+        //
+        //
+        // NEWER
+        // let uidx: usize = u.into();
+        // let vidx: usize = v.into();
+        // let size: usize = uidx.max(vidx) + 1;
+        // let mut active = BitVec::with_capacity(uidx.max(vidx) + 1);
+        // active.resize(size, false);
+        // dbg!(uidx, vidx, size, &active);
+        // active.set(uidx, true);
+        // active.set(vidx, true);
+        // dbg!(&active);
+
+        // // let adj : Vec<Vec<OneVarTerm>> = Vec::default();
+        // // let mut quadratic = Quadratic::new(smaller);
+        // let larger = u.max(v);
+        // let smaller = u.min(v);
+
+        // let adj: Vec<TwoVarTerm> = vec![TwoVarTerm::new(
+        //     smaller,
+        //     vec![OneVarTerm::new(larger, bias)],
+        // )];
+        // let quadratic = Quadratic::new_from(adj);
+        // quadratic.adj[smaller].push(OneVarTerm::new(larger, bias));
+        //
+        let mx: usize = u.max(v).into();
+        let mut active = BitVec::with_capacity(mx + 1);
+        active.force_align();
+
         let mut out = Self {
             env,
             offset: Bias::default(),
             linear: Linear::default(),
-            quadratic: None,
             higher_order: None,
-            active: Vec::default(),
             num_variables: 0,
+            quadratic: None,
+            // quadratic: None,
+            active,
         };
         out.add_quadratic(u, v, bias);
         out
+        // Self {
+        //     env,
+        //     offset: Bias::default(),
+        //     linear: Linear::default(),
+        //     higher_order: None,
+        //     num_variables: 2,
+        //     quadratic: None,
+        //     active: Vec::default(),
+        // }
     }
     fn new_from_other(other: &Self) -> Self {
         Self {
@@ -272,112 +338,140 @@ impl ExpressionBaseCreation<VarIndex, Bias> for Expression {
 }
 
 impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
-    fn add_variable(&mut self, v: VarIndex) -> SizeType {
-        // First, we need to check if the variable is larger or equal to the current
-        // size of the linear terms.
-        let size: usize = self.linear.len();
-        let v_idx: usize = v.into();
-        if v_idx >= size {
-            // We can simply resize the linear term and the active tracker.
-            self.linear.resize(v_idx + 1);
-            self.active.resize(v_idx + 1, false);
-            // We also need to resize the quadratic term if this expression has one.
-            if self.has_quadratic() {
-                self.quadratic.as_mut().unwrap().resize(v_idx + 1);
-            }
-            // We do not need to resize the higher order term as in this implementation
-            // it grows dynamically.
-            // ...
-            // Now we set the currently added variable as active.
-            self.active[v_idx] = true;
-            // And incresae the variable counter by one.
-            self.num_variables += 1;
-        } else {
-            // v < size
-            // We do not need to do any resizing.
-            // And can directly check if the variable is active.
-            let active: bool = self.active[v_idx];
-            // If the variable is already activated we need to do nothing.
-            // This means the variable was already added at some point.
-            // Otherwise, we need to activate it and increase the var counter by one.
-            if !active {
-                self.active[v_idx] = true;
-                self.num_variables += 1;
-            }
+    // fn add_variable(&mut self, v: VarIndex) -> SizeType {
+    fn add_variable(&mut self, v: VarIndex) {
+        let vidx: usize = v.into();
+
+        if self.active.len() <= vidx {
+            self.active.resize(vidx + 1, false);
+            self.active.force_align();
         }
 
-        v_idx
+        let was_active = self.active[vidx];
+        // dbg!(vidx, was_active, (was_active == false) as usize);
+        self.active.set(vidx, true);
+        self.num_variables += (was_active == false) as usize;
+
+        //     // First, we need to check if the variable is larger or equal to the current
+        //     // size of the linear terms.
+        //     let size: usize = self.linear.len();
+        //     let v_idx: usize = v.into();
+        //     if v_idx >= size {
+        //         // We can simply resize the linear term and the active tracker.
+        //         self.linear.resize(v_idx + 1);
+        //         // self.active.resize(v_idx + 1, false);
+        //         // We also need to resize the quadratic term if this expression has one.
+        //         if self.has_quadratic() {
+        //             self.quadratic.as_mut().unwrap().resize(v_idx + 1);
+        //         }
+        //         // We do not need to resize the higher order term as in this implementation
+        //         // it grows dynamically.
+        //         // ...
+        //         // Now we set the currently added variable as active.
+        //         // self.active[v_idx] = true;
+        //         // And incresae the variable counter by one.
+        //         self.num_variables += 1;
+        //     } else {
+        //         // v < size
+        //         // We do not need to do any resizing.
+        //         // And can directly check if the variable is active.
+        //         // let active: bool = self.active[v_idx];
+        //         // If the variable is already activated we need to do nothing.
+        //         // This means the variable was already added at some point.
+        //         // Otherwise, we need to activate it and increase the var counter by one.
+        //         // if !active {
+        //         //     // self.active[v_idx] = true;
+        //         //     self.num_variables += 1;
+        //         // }
+        //     }
+
+        //     v_idx
     }
 
     fn remove_variable(&mut self, v: VarIndex) {
-        let v_idx: usize = v.into();
-        let size: usize = self.active.len();
-
-        if v_idx == (size - 1) {
-            self.active.resize(size - 1, false);
-            self.linear.resize(size - 1);
+        let was_active = self.active.get(v.0 as usize).map_or_else(|| false, |b| *b);
+        if was_active {
+            self.active.set(v.0 as usize, false);
             self.num_variables -= 1;
-        } else if v_idx >= size {
-            // self.active.resize(size, false);
-            // self.linear.resize(size);
-        } else {
-            if self.active[v_idx] {
-                // only reduce the variable count if the variable was active
-                // before it's removal.
-                self.num_variables -= 1;
-            }
-            self.active[v_idx] = false;
-            self.linear[v_idx] = Bias::default();
         }
+        // let v_idx: usize = v.into();
+        // // let size: usize = self.active.len();
+
+        // if v_idx == (size - 1) {
+        //     // self.active.resize(size - 1, false);
+        //     self.linear.resize(size - 1);
+        //     self.num_variables -= 1;
+        // } else if v_idx >= size {
+        //     // self.active.resize(size, false);
+        //     // self.linear.resize(size);
+        // } else {
+        //     if self.active[v_idx] {
+        //         // only reduce the variable count if the variable was active
+        //         // before it's removal.
+        //         self.num_variables -= 1;
+        //     }
+        //     self.active[v_idx] = false;
+        //     self.linear[v_idx] = Bias::default();
+        // }
     }
 
     fn add_variables(&mut self, vars: &Vec<VarIndex>) {
+        // println!("in add variables for vars = {vars:?}");
+        // println!("active = {:?}", self.active);
+        if vars.len() == 0 {
+            return;
+        }
         // We only need to call the add_variable for the largest index.
         // This will automatically allocate memory for all others.
         let max_index = vars.iter().max().unwrap();
+        // println!("max_index = {max_index:?}");
         self.add_variable(*max_index);
+        // println!("active = {:?}", self.active);
         // Now we need to set each variable as active and increase the variable counter
         // if the variable has not been added before.
         for v in vars {
-            let v_idx: usize = (*v).into();
-            let active: bool = self.active[v_idx];
-            if !active {
-                self.active[v_idx] = true;
-                self.num_variables += 1;
-            }
+            let vidx: usize = (*v).into();
+            let was_active = self.active[vidx];
+            // dbg!(vidx, was_active, (was_active == false) as usize);
+            self.active.set(vidx, true);
+            self.num_variables += (was_active == false) as usize;
+            // let active: bool = self.active[v_idx];
+            // if !active {
+            //     self.active[v_idx] = true;
+            //     self.num_variables += 1;
+            // }
         }
+        // println!("active = {:?}", self.active);
     }
 
-    fn remove_variables(&mut self, vars: &Vec<VarIndex>) {
-        for var in vars {
-            self.remove_variable(*var);
-        }
-    }
+    // fn remove_variables(&mut self, vars: &Vec<VarIndex>) {
+    //     for var in vars {
+    //         self.remove_variable(*var);
+    //     }
+    // }
 
-    fn resize(&mut self, n: VarIndex) {
-        if self.has_quadratic() {
-            if <VarIndex as Into<usize>>::into(n) < self.linear.len() {
-                let quadratic = self.quadratic.as_mut().unwrap();
-                for neighborhood in quadratic {
-                    if let Ok(pos) = neighborhood.binary_search_by(|term| term.index.cmp(&n)) {
-                        neighborhood.truncate(pos);
-                    }
-                }
-            }
-            self.quadratic.as_mut().unwrap().resize(n.into());
-        }
+    // fn resize(&mut self, n: VarIndex) {
+    //     if self.has_quadratic() {
+    //         if <VarIndex as Into<usize>>::into(n) < self.linear.len() {
+    //             let quadratic = self.quadratic.as_mut().unwrap();
+    //             for t in quadratic {
+    //                 if let Ok(pos) = t.neighborhood.binary_search_by(|term| term.index.cmp(&n)) {
+    //                     t.neighborhood.truncate(pos);
+    //                 }
+    //             }
+    //         }
+    //         self.quadratic.as_mut().unwrap().resize(n.into());
+    //     }
 
-        self.linear.resize(n.into());
-        self.active.resize(n.into(), false);
+    //     self.linear.resize(n.into());
+    //     // self.active.resize(n.into(), false);
 
-        // Again, higher order terms do not need to be resized, see `add_variables`
+    //     // Again, higher order terms do not need to be resized, see `add_variables`
 
-        assert!(
-            !self.has_quadratic()
-                || self.linear.len() == self.quadratic.as_ref().unwrap().len()
-                || self.linear.len() == self.active.len()
-        );
-    }
+    //     assert!(
+    //         !self.has_quadratic() || self.linear.len() == self.quadratic.as_ref().unwrap().len() // || self.linear.len() == self.active.len()
+    //     );
+    // }
 }
 
 impl ExpressionBase<VarIndex, Bias> for Expression {
@@ -416,7 +510,7 @@ impl ExpressionBase<VarIndex, Bias> for Expression {
         self.active
             .iter()
             .enumerate()
-            .filter(|(_, &a)| a)
+            .filter(|(_, a)| **a)
             .map(|(idx, _)| self.env.access().get_vtype(idx.into()))
             .unique()
             .collect_vec()
@@ -442,10 +536,11 @@ impl ExpressionBase<VarIndex, Bias> for Expression {
     }
 
     fn variables(&self) -> Vec<VarIndex> {
+        // (0..self.num_variables).map(|x| x.into()).collect()
         self.active
             .iter()
             .enumerate()
-            .filter(|(_, &v)| v)
+            .filter(|(_, a)| **a)
             .map(|(x, _)| x.into())
             .collect()
     }
@@ -475,7 +570,9 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
 
     fn add_linear(&mut self, v: VarIndex, bias: Bias) {
         self.add_variable(v);
-        self.linear[v.into()] += bias;
+        if bias != Bias::default() {
+            self.linear[v.into()] += bias;
+        }
     }
 
     fn add_quadratic(&mut self, u: VarIndex, v: VarIndex, bias: Bias) {
@@ -488,7 +585,9 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
             (true, Vtype::Spin) => self.offset += bias,
             // 1*1 == 1 and 0*0 == 0 so this is linear
             (true, Vtype::Binary) => {
-                self.linear[u.into()] += bias;
+                if bias != Bias::default() {
+                    self.linear[u.into()] += bias;
+                }
             }
             (_, _) => {
                 if bias != Bias::default() {
@@ -511,17 +610,33 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
     }
 
     fn add_higher_order_direct(&mut self, key: &Self::HigherOrderKey, bias: Bias) {
+        self.add_variables(&HigherOrder::key_contributions(key));
         self.enforce_higher_order();
         self.higher_order.as_mut().unwrap()[key] += bias;
     }
 
-    fn add_linear_from(&mut self, other: &Self::LinearType, other_active: &Vec<bool>) {
+    fn add_linear_from(&mut self, other: &Self::LinearType) {
+        // dbg!(&self.active, &other_active);
+        // let sel = other_active
+        // .iter()
+        // .zip(&mut self.active)
+        // .zip(other.iter())
+        // .filter(|((o, s), _)| **o || **s);
+        // println!("!! {self:?}");
+        // println!("!! {other:?}");
         for (u, bias) in other.iter() {
-            if self.active[u] || other_active[u] {
-                self.add_linear(u.into(), *bias);
-            }
+            // println!("**** u = {u}");
+            self.add_variable(u.into());
+            self.linear[u] += bias;
+            // self.num_variables += self.linear.add(u, bias) as usize;
+            // dbg!("A", u, &s, self.num_variables);
+            // dbg!("B", u, &s, self.num_variables);
+            // **s = **s || true;
         }
+        // self.num_variables += self.linear.len();
+        // dbg!(&self.active);
     }
+
     fn add_quadratic_from(&mut self, other: &Self::QuadraticType) {
         for (u, v, bias) in other.iter_flat() {
             self.add_quadratic(u, v, bias);
@@ -534,8 +649,12 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
     }
 
     fn add_quadratic_back(&mut self, u: VarIndex, v: VarIndex, bias: Bias) {
-        let u_idx = self.add_variable(u);
-        let v_idx = self.add_variable(v);
+        self.add_variable(u);
+        self.add_variable(v);
+
+        let u_idx: usize = u.into();
+        let v_idx: usize = v.into();
+
         self.enforce_quadratic();
         self.check_quadratic_dimensions(u_idx, v_idx);
         match (u_idx == v_idx, self.vartype(u)) {
@@ -612,15 +731,15 @@ impl ExpressionBaseMul<VarIndex, Bias> for Expression {
         let lhs_linear_actives: Vec<(VarIndex, Bias)> = lhs
             .linear
             .iter()
-            .filter(|(idx, _)| lhs.active[*idx])
-            .map(|(idx, bias)| (idx.into(), *bias))
+            // .filter(|(idx, _)| lhs.active[*idx])
+            .map(|(idx, bias)| (idx.into(), bias))
             .collect();
 
         let rhs_linear_actives: Vec<(VarIndex, Bias)> = rhs
             .linear
             .iter()
-            .filter(|(idx, _)| rhs.active[*idx])
-            .map(|(idx, bias)| (idx.into(), *bias))
+            // .filter(|(idx, _)| rhs.active[*idx])
+            .map(|(idx, bias)| (idx.into(), bias))
             .collect();
 
         // lhs      rhs
@@ -805,17 +924,17 @@ impl ExpressionBaseMulDirect<VarIndex, Bias> for Expression {
             // in all cases.
             // However, we can make use of the logic already implemented in the
             // add_quadratic case. Which checks the logic based on the variable type.
-            if self.active[u_idx] {
-                self.add_quadratic(u_idx.into(), v, *u_bias * bias)
-            }
+            // if self.active[u_idx] {
+            self.add_quadratic(u_idx.into(), v, u_bias * bias)
+            // }
         }
     }
 
     fn mul_with_quadratic(&mut self, quadratic: &Self::QuadraticType, v: VarIndex, bias: Bias) {
         // Multiply the quadratic part with a variable.
-        for (u, neighborhood) in quadratic.iter() {
-            for term in neighborhood.iter() {
-                self.add_higher_order(&vec![u.into(), term.index, v], term.bias * bias)
+        for t in quadratic.iter() {
+            for term in t.neighborhood.iter() {
+                self.add_higher_order(&vec![t.index.into(), term.index, v], term.bias * bias)
             }
         }
     }
@@ -837,25 +956,27 @@ impl ExpressionBaseMulDirect<VarIndex, Bias> for Expression {
 impl Expression {
     fn check_and_get(&self, v: VarIndex) -> Result<usize, VariableOutOfRangeErr> {
         let v_idx: usize = v.into();
-        match v_idx <= self.active.len() {
-            true => Ok(v_idx),
-            false => Err(VariableOutOfRangeErr(v_idx)),
-        }
+        Ok(v_idx)
+
+        // match v_idx <= self.active.len() {
+        //     true => Ok(v_idx),
+        //     false => Err(VariableOutOfRangeErr(v_idx)),
+        // }
     }
 
     fn check_multi(&self, vars: &Vec<VarIndex>) -> Result<(), VariableOutOfRangeErr> {
         for v in vars {
             let v_idx: usize = (*v).into();
-            if !self.active[v_idx] {
-                return Err(VariableOutOfRangeErr(v_idx));
-            }
+            // if !self.active[v_idx] {
+            //     return Err(VariableOutOfRangeErr(v_idx));
+            // }
         }
         Ok(())
     }
 
     pub fn enforce_quadratic(&mut self) {
         if !self.has_quadratic() {
-            self.quadratic = Some(Quadratic::new(self.linear.len()))
+            self.quadratic = Some(Quadratic::default())
         }
     }
 
@@ -1005,12 +1126,30 @@ impl Display for Expression {
 
 impl ContentEquality for Expression {
     fn is_equal_contents(&self, other: &Self) -> bool {
-        self.env.is_equal_contents(&other.env)
-            && self.offset == other.offset
-            && self.linear == other.linear
-            && self.quadratic == other.quadratic
-            && self.higher_order == other.higher_order
-            && self.active == other.active
-            && self.num_variables == other.num_variables
+        let eok = self.env.is_equal_contents(&other.env);
+        // println!("eok = {}", eok);
+        let ook = self.offset == other.offset;
+        // println!("ook = {}", ook);
+        let lok = self.linear == other.linear;
+        // println!("self.linear = {:?}, other.linear = {:?}", &self.linear, &other.linear);
+        // println!("lok = {}", lok);
+        let qok = self.quadratic == other.quadratic;
+        // println!("qok = {}", qok);
+        let hok = self.higher_order == other.higher_order;
+        // println!("hok = {}", hok);
+        let aok = self.active == other.active;
+        // println!("aok = {}", aok);
+        let nok = self.num_variables == other.num_variables;
+        // println!("nok = {}", nok);
+
+        eok && ook && lok && qok && hok && aok && nok
+
+        // self.env.is_equal_contents(&other.env)
+        //     && self.offset == other.offset
+        //     && self.linear == other.linear
+        //     && self.quadratic == other.quadratic
+        //     && self.higher_order == other.higher_order
+        //     && self.active == other.active
+        //     && self.num_variables == other.num_variables
     }
 }

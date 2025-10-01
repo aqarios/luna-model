@@ -1,5 +1,5 @@
 mod addition;
-mod base;
+pub mod base;
 mod equality;
 mod errors;
 mod evaluation;

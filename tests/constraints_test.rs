@@ -13,7 +13,7 @@ fn linear_constraint_eq() {
 
     let constr = Constraint::new(expr, rhs, Comparator::Eq, Some("constr".to_string())).unwrap();
     assert_eq!(constr.lhs.offset, 0.0);
-    assert_eq!(constr.lhs.linear.to_vec(), &biases);
+    assert_eq!(constr.lhs.linear.to_vec(biases.len()), biases);
     assert_eq!(constr.lhs.quadratic, None);
     assert_eq!(constr.lhs.higher_order, None);
     assert_eq!(constr.rhs, rhs);
@@ -30,7 +30,7 @@ fn linear_constraint_le() {
 
     let constr = Constraint::new(expr, rhs, Comparator::Le, None).unwrap();
     assert_eq!(constr.lhs.offset, 0.0);
-    assert_eq!(constr.lhs.linear.to_vec(), &biases);
+    assert_eq!(constr.lhs.linear.to_vec(biases.len()), biases);
     assert_eq!(constr.lhs.quadratic, None);
     assert_eq!(constr.lhs.higher_order, None);
     assert_eq!(constr.rhs, rhs);
@@ -47,7 +47,7 @@ fn linear_constraint_ge() {
 
     let constr = Constraint::new(expr, rhs, Comparator::Ge, Some("constr".to_string())).unwrap();
     assert_eq!(constr.lhs.offset, 0.0);
-    assert_eq!(constr.lhs.linear.to_vec(), &biases);
+    assert_eq!(constr.lhs.linear.to_vec(biases.len()), biases);
     assert_eq!(constr.lhs.quadratic, None);
     assert_eq!(constr.lhs.higher_order, None);
     assert_eq!(constr.rhs, rhs);
@@ -77,9 +77,14 @@ fn linear_constraints() {
     assert_noerror(constrs.add_assign(&constr_b));
     assert_noerror(constrs.add_assign(&constr_c));
 
+    dbg!(&expr);
+
     for ((_, constr), actual) in constrs.iter().zip(&original_constraints) {
         assert_eq!(constr.lhs.offset, 0.0);
-        assert_eq!(constr.lhs.linear.to_vec(), actual.lhs.linear.to_vec());
+        assert_eq!(
+            constr.lhs.linear.to_vec(constr.lhs.num_variables),
+            actual.lhs.linear.to_vec(actual.lhs.num_variables)
+        );
         assert_eq!(constr.lhs.quadratic, actual.lhs.quadratic);
         assert_eq!(constr.lhs.higher_order, actual.lhs.higher_order);
         assert_eq!(constr.rhs, actual.rhs);

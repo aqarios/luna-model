@@ -6,7 +6,7 @@ use super::{
     keywords::VariableType,
     util::starts_with_any,
 };
-use crate::core::{Bound, LazyBounds, Sense, Vtype, DEFAULT_MODEL_NAME};
+use crate::core::{Bound, ExpressionBase, LazyBounds, Sense, Vtype, DEFAULT_MODEL_NAME};
 use crate::types::Bias;
 use crate::{
     core::{
@@ -193,8 +193,18 @@ impl SectionsHolder {
         if model.name != DEFAULT_MODEL_NAME {
             sections.model_name = Some(model.name.clone());
         }
+        // Let's create the expression tree tuple first, so that we can directly
+        // add the missing linear terms to ensure all variables listed in the model
+        // are also represented in the objective.
+        let mut etree = ExprTree::from_expression(&model.objective, false)?;
+        // We also need to optimize first, so we don't optimize the zeros away.
+        etree.optimize();
+        // We need to add variables to the linear expression in case they are not
+        // present. So that all listed variables (in the environment) are respected in
+        // the objective function.
+        let model_variables = model.objective.variables();
         // variables & bounds
-        for v in model.environment.access().variables().iter() {
+        for (idx, &v) in model.environment.access().variables().iter().enumerate() {
             match v.vtype {
                 Vtype::__Ghost => (),
                 Vtype::Binary => {
@@ -218,14 +228,23 @@ impl SectionsHolder {
                 // Binary bounds are fixed...does not make sense to change them.
                 sections.push(&Section::Bounds, parse_bounds(&v.name, &v.bounds));
             }
+            // Check if the variables is also present in the model's objective.
+            if !model_variables.contains(&(idx.into())) {
+                // The variable is not present in the model's objective...
+                // Therefore, we need to add it to the linear part as a 0 * variable.
+                if etree.lin.is_some() {
+                    etree.lin = Some(ExprTree::Add(
+                        Box::new(etree.lin.unwrap()),
+                        Box::new(ExprTree::Mul(
+                            Box::new(ExprTree::Number(Bias::default())),
+                            Box::new(ExprTree::Variable(v.name.clone())),
+                        )),
+                    ));
+                }
+            }
         }
         // objective
-        sections.push(
-            &Section::Objective(model.sense),
-            ExprTree::from_expression(&model.objective, false)?
-                .optimize()
-                .to_string(true),
-        );
+        sections.push(&Section::Objective(model.sense), etree.to_string(true));
         // constraints
         for (name, constraint) in model.constraints.iter() {
             let lhs_str = ExprTree::from_expression(&constraint.lhs, true)?
@@ -454,11 +473,11 @@ impl SectionsHolder {
             for entry in constrs {
                 let (name, constr) = entry.split_once(":").unwrap();
                 if let Some((lhs_str, comp, rhs_str)) = Self::split_constraint_expression(&constr) {
-                    let mut lhs: Expression = Expression::new(
-                        model.environment.clone(),
-                        vec![false; model.objective.active.len()],
-                        model.objective.num_variables,
-                    );
+                    let mut lhs: Expression = Expression::empty(model.environment.clone());
+                    //     model.environment.clone(),
+                    //     vec![false; model.objective.active.len()],
+                    //     model.objective.num_variables,
+                    // );
                     Self::add_to_expression(&mut lhs, &lhs_str, &vars)?;
                     let rhs = rhs_str.parse::<Bias>().map_err(|_| {
                         TranslationErr::new(format!("cannot convert rhs to f64: {}", rhs_str))
@@ -494,8 +513,10 @@ impl SectionsHolder {
         expr_str: &str,
         vars: &HashMap<String, VarRef>,
     ) -> Result<(), TranslationErr> {
-        let mut expression = ExprTree::build(&expr_str);
-        expression = expression.optimize();
+        // println!("str expr: {:?}", &expr_str);
+        let expression = ExprTree::build(&expr_str);
+        // println!("expr: {:?}", expression);
+        // expression = expression.optimize();
         let expression = expression.evaluate(&EvalContext::new(
             |n| {
                 let mut var: Option<VarRef> = vars.get(n).cloned(); // .unwrap().clone()
@@ -511,6 +532,7 @@ impl SectionsHolder {
             },
             expr.env.clone(),
         ))?;
+        // println!("built expr: {:?}", &expression);
         expr.add_assign(&expression)?;
         Ok(())
     }

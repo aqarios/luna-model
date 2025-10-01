@@ -12,7 +12,7 @@ def model_a():
         z = Variable("z", vtype=Vtype.Binary)
         a = Variable("a", vtype=Vtype.Real, bounds=Bounds(10, 20))
 
-    model.objective = x + y + z + x * y + x * z + a
+    model.objective += x + y + z + x * y + x * z + a
     model.constraints += x + y <= 3, "c1"
     model.constraints += z + x >= 5, "c2"
     return model

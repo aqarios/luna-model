@@ -354,8 +354,14 @@ impl PyModel {
 
     /// Return the name of the model.
     #[getter]
-    fn name(&self) -> String {
+    fn get_name(&self) -> String {
         self.access().name.clone()
+    }
+
+    /// Return the name of the model.
+    #[setter]
+    fn set_name(&self, name: String) {
+        self.access().name = name;
     }
 
     /// Get the environment in which this model is defined.
@@ -385,7 +391,8 @@ impl PyModel {
             .into_iter()
             .enumerate()
             .filter(|(a, _)| {
-                *active_vars.get(*a as usize).unwrap_or(&false) || !active.unwrap_or_default()
+                active_vars.get(*a as usize).map_or_else(|| false, |r| *r)
+                    || !active.unwrap_or_default()
             })
             .map(|(_, vref)| PyVariable::new(vref))
             .collect()
