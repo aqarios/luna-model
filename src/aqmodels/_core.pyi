@@ -3454,6 +3454,12 @@ class Expression:
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
 
+
+    def evaluate(self, solution: Solution, /) -> list[float]:
+        """Evaluate an expression based on an existing solution."""
+        ...
+
+
 class ExpressionIterator:
     """
     Iterate over the single components of an expression.

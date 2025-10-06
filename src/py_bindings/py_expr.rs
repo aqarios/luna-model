@@ -8,7 +8,9 @@ use super::{
     py_utilities::Replacement,
     py_var::PyVariable,
 };
-use crate::core::expression::Separation;
+use crate::core::expression::{ExpressionEvaluation, Separation};
+use crate::core::make_index_map;
+use crate::py_bindings::py_sol::PySolution;
 use crate::utils::ShareMut;
 use crate::{
     core::{
@@ -1320,6 +1322,24 @@ impl PyExpression {
             .into_iter()
             .map(|e| PyExpression::new(e))
             .collect())
+    }
+
+    fn evaluate(&self, sol: &PySolution) -> PyResult<Vec<Bias>> {
+        let env = match &self.0 {
+            Either::Left(e) => e.env.clone(),
+            Either::Right(e) => e.access().environment.clone(),
+        };
+        let expr: &Expression = match &self.0 {
+            Either::Left(e) => e,
+            Either::Right(e) => &e.access().objective,
+        };
+        let index_map = make_index_map(sol.access().varname_to_pos(), &env);
+        let res = sol
+            .access()
+            .iter_samples()
+            .map(|x| expr.evaluate_sample(&x, |i| index_map[&i].into()))
+            .collect();
+        Ok(res)
     }
 }
 
