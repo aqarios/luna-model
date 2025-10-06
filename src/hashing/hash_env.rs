@@ -138,7 +138,6 @@ impl HashEnv {
                 }
             }
         }
-
         serenv.encode_to_vec()
     }
 }

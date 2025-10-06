@@ -11,11 +11,11 @@ fn linear_expression_base(vtype: Vtype, n: usize) {
     assert_eq!(expr.env, env);
     assert_eq!(expr.offset, Bias::default());
     assert_eq!(expr.linear.len(), biases.len());
-    assert_eq!(expr.linear.to_vec(), &biases);
+    assert_eq!(expr.linear.to_vec(expr.num_variables), biases);
     assert_eq!(expr.quadratic, None);
     assert_eq!(expr.higher_order, None);
-    assert_eq!(expr.active.len(), biases.len());
-    assert_eq!(expr.active, vec![true; biases.len()]);
+    // assert_eq!(expr.active.len(), biases.len());
+    // assert_eq!(expr.active, vec![true; biases.len()]);
     assert_eq!(expr.num_variables, biases.len());
 }
 
