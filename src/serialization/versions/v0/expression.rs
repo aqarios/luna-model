@@ -209,7 +209,6 @@ impl SerExpression {
         expr.num_variables = self.num_variables as usize;
         expr.active = BitVec::from_iter(self.active.iter());
         expr.offset = self.offset;
-        // println!("in extract will call new with: {:?}", self.linear);
         expr.linear = Linear::new(self.linear.clone()); // todo(team): might be optimizable with mem copies. See somewhere in code where I do something similar.
         expr.quadratic = self.decode_quadratic();
         expr.higher_order = self.decode_higher_order();

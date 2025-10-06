@@ -138,7 +138,6 @@ impl HashEnv {
                 }
             }
         }
-        println!("serenv = {serenv:?}");
         serenv.encode_to_vec()
     }
 }

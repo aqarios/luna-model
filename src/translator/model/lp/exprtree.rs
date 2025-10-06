@@ -239,7 +239,6 @@ impl Parser {
 
         // Applies a single operator sitting on `ops` to `vals`.
         let apply_top = |ops: &mut Vec<Op>, vals: &mut Vec<ExprTree>| -> Result<(), String> {
-            // println!("apply_top: {ops:?}, {vals:?}");
             let op = ops.pop().expect("apply_top called with empty ops");
 
             match op {
@@ -254,12 +253,9 @@ impl Parser {
                     let rhs = vals
                         .pop()
                         .ok_or_else(|| format!("operator {:?}: missing right operand", op))?;
-                    // println!("rhs = {rhs:?}");
                     let lhs = vals
                         .pop()
                         .ok_or_else(|| format!("operator {:?}: missing left operand", op))?;
-                    // println!("lhs = {lhs:?}");
-                    // println!("op = {op:?}");
                     let out: ExprTree = match op {
                         Op::Add => ExprTree::Add(Box::new(lhs), Box::new(rhs)), // todo!("implement addition: `lhs + rhs`"),
                         Op::Sub => ExprTree::Sub(Box::new(lhs), Box::new(rhs)), // todo!("implement subtraction: `lhs - rhs`"),
@@ -267,14 +263,11 @@ impl Parser {
                         Op::Pow => ExprTree::Pow(Box::new(lhs), Box::new(rhs)), // todo!("implement exponentiation: `lhs ^ rhs`"),
                         _ => unreachable!(),
                     };
-                    // println!("out = {out:?}");
                     // example if building AST: let out = Expr::Bin(op_to_ast(op), Box::new(lhs), Box::new(rhs));
                     vals.push(out);
                 }
                 Op::LParen => unreachable!("should not directly apply LParen"),
             }
-
-            // println!("apply_top (end): {ops:?}, {vals:?}");
 
             Ok(())
         };
@@ -282,7 +275,6 @@ impl Parser {
         // Push a (possibly implicit) operator, respecting precedence/associativity
         let push_op =
             |new_op: Op, ops: &mut Vec<Op>, vals: &mut Vec<ExprTree>| -> Result<(), String> {
-                // println!("push_op: {new_op:?}: {ops:?}, {vals:?}");
                 while let Some(&top) = ops.last() {
                     if top == Op::LParen {
                         break;
@@ -372,7 +364,6 @@ impl Parser {
                         Some(Token::Plus | Token::Minus | Token::Star | Token::Caret) => true,
                         _ => false,
                     };
-                    // println!("is unary? {unary}");
                     if unary {
                         // Treat as prefix operator with highest precedence
                         push_op(Op::UMinus, &mut ops, &mut vals)?;
@@ -392,12 +383,8 @@ impl Parser {
             i += 1;
         }
 
-        // println!("vals = {:?}", vals);
-        // println!("ops = {:?}", ops);
-
         // Close any remaining operators
         while let Some(top) = ops.pop() {
-            // println!("closing ({top:?})");
             if top == Op::LParen {
                 return Err("unmatched '('".to_string());
             }
@@ -406,9 +393,6 @@ impl Parser {
             apply_top(&mut ops, &mut vals)?;
             // let _ = ops.pop(); // remove the one we just applied
         }
-
-        // println!("vals (after close) = {:?}", vals);
-        // println!("ops (after close) = {:?}", ops);
 
         if vals.len() == 1 {
             Ok(vals.pop().unwrap())
@@ -456,12 +440,7 @@ impl ExprTreeTuple {
 impl ExprTree {
     pub fn build(input: &str) -> Self {
         let tokens = tokenize(input);
-        // println!("tokens = {tokens:?}");
-        // let mut parser = Parser::new(tokens);
-        // println!("parser = {parser:?}");
-        // parser.parse_expression()
         let tree = Parser::parse_expression(&tokens).unwrap(); // todo: handle unwrap
-        // println!("tree = {tree:?}");
         tree
     }
 
@@ -699,11 +678,7 @@ impl ExprTree {
             }
             Sub(lhs, rhs) => {
                 let l = lhs.evaluate(ctx)?;
-                // println!("SUB (eval): lhs = {l:?}");
-                // println!("SUB (eval): lhs.linear = {:?}", l.linear);
                 let r = rhs.evaluate(ctx)?;
-                // println!("SUB (eval): rhs = {r:?}");
-                // println!("SUB (eval): rhs.linear = {:?}", r.linear);
                 Ok(l.sub(&r)?)
             }
             Mul(lhs, rhs) => {

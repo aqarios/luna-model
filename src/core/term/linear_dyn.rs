@@ -21,7 +21,6 @@ pub struct Linear {
 
 impl Linear {
     pub fn default() -> Self {
-        // println!("default");
         Self {
             biases: Vec::new(),
             max_idx: -1,
@@ -30,7 +29,6 @@ impl Linear {
     }
 
     pub fn new(biases: Vec<Bias>) -> Self {
-        // println!("new with biases: {biases:?}");
         let mut max_idx: isize = -1;
         let biases = biases
             .into_iter()
@@ -48,14 +46,7 @@ impl Linear {
         }
     }
 
-    // pub fn with_size(size: usize) -> Self {
-    //     let mut biases = Vec::with_capacity(size);
-    //     biases.resize_with(size, Bias::default);
-    //     Self { biases }
-    // }
-
     pub fn new_from_weighted_variable(var: usize, bias: Bias) -> Self {
-        // println!("new_from_weighted_variable");
         let mut out = Self::default();
         out.max_idx = var as isize;
         if bias != Bias::default() {
@@ -65,7 +56,6 @@ impl Linear {
     }
 
     pub fn new_from_variables(lhs: (usize, Bias), rhs: (usize, Bias)) -> Self {
-        // println!("new_from_variables");
         let mut out = Self::default();
         if lhs.0 < rhs.0 {
             out.max_idx = rhs.0 as isize;
@@ -174,7 +164,6 @@ impl Index<usize> for Linear {
 
 impl IndexMut<usize> for Linear {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        // println!("linear_dyn index mut called");
         let pos = self
             .biases
             .binary_search_by(|term| {

@@ -513,10 +513,7 @@ impl SectionsHolder {
         expr_str: &str,
         vars: &HashMap<String, VarRef>,
     ) -> Result<(), TranslationErr> {
-        // println!("str expr: {:?}", &expr_str);
         let expression = ExprTree::build(&expr_str);
-        // println!("expr: {:?}", expression);
-        // expression = expression.optimize();
         let expression = expression.evaluate(&EvalContext::new(
             |n| {
                 let mut var: Option<VarRef> = vars.get(n).cloned(); // .unwrap().clone()
@@ -532,7 +529,6 @@ impl SectionsHolder {
             },
             expr.env.clone(),
         ))?;
-        // println!("built expr: {:?}", &expression);
         expr.add_assign(&expression)?;
         Ok(())
     }
