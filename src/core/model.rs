@@ -356,7 +356,6 @@ impl ContentEquality for Model {
         let obj_eq = self.objective.is_equal_contents(&other.objective);
         let const_eq = self.constraints.is_equal_contents(&other.constraints);
         let sense_eq = self.sense == other.sense;
-        // dbg!(name_eq, env_eq, obj_eq, const_eq, sense_eq);
         name_eq && env_eq && obj_eq && const_eq && sense_eq
     }
 }
