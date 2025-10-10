@@ -249,7 +249,7 @@ class SampleColCreationError(IndexError):
 class EnvMismatchError(RuntimeError):
     """Raised when environments of provided expressions mismatch."""
 
-    def __setr__(self, /) -> str: ...
+    def __str__(self, /) -> str: ...
 
 class InternalPanicError(RuntimeError):
     """Raised when an internal and unrecoverable error occurred."""

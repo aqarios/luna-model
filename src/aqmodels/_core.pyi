@@ -2,7 +2,7 @@ from collections.abc import Callable, Iterator
 from datetime import datetime, timedelta
 from enum import Enum
 from types import TracebackType
-from typing import Literal, Self, Sequence, overload
+from typing import Literal, Self, overload
 
 from numpy.typing import NDArray
 
@@ -986,6 +986,11 @@ class Solution:
         """
         Compute the Conditional Value at Rist (CVaR) of the solution.
 
+        Parameters
+        ----------
+        float : alpha
+            The confidence level.
+
         Returns
         -------
         float
@@ -1004,10 +1009,15 @@ class Solution:
         """
         Compute the temperature weighted expectation value of the solution.
 
+        Parameters
+        ----------
+        float : beta
+            The inverse temperature for computing Boltzmann weights.
+
         Returns
         -------
         float
-            The expectation value.
+            The temperature weighted expectation value.
 
         Raises
         ------

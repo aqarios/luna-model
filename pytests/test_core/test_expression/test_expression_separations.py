@@ -33,6 +33,7 @@ def test_expression_separation_quadratic():
     assert right.is_equal((b + d) ** 2 + 9 - 6 * (b + d))
     assert (left + right).is_equal(expr)
 
+
 def test_expression_separation_higher_order():
     with Environment():
         a = Variable("a")
