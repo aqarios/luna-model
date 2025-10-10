@@ -785,6 +785,15 @@ class Timer:
         """
         ...
 
+class ValueToggle(Enum):
+    """Toggle enum for choosing the quantity for solution convenience functions."""
+
+    Obj = ...
+    """Use the `obj_values` field."""
+
+    Raw = ...
+    """Use the `raw_energies` field."""
+
 # _solution.pyi
 class Solution:
     """
@@ -929,6 +938,11 @@ class Solution:
         """
         ...
 
+    @obj_values.setter
+    def obj_values(self, other: NDArray | None) -> None:
+        """Set the objective values of the single samples as a ndarray."""
+        ...
+
     @property
     def raw_energies(self, /) -> NDArray | None:
         """Get the raw energies.
@@ -936,6 +950,11 @@ class Solution:
         Get the raw energy values of the single samples as returned by the solver /
         algorithm. Will be None if the solver / algorithm did not provide a value.
         """
+        ...
+
+    @raw_energies.setter
+    def raw_energies(self, other: NDArray | None) -> None:
+        """Set the raw energies of the single samples as a ndarray."""
         ...
 
     @property
@@ -963,7 +982,7 @@ class Solution:
         """Get the names of all variables in the solution."""
         ...
 
-    def cvar(self, /, alpha: float) -> float:
+    def cvar(self, /, alpha: float, value_toggle: ValueToggle = ...) -> float:
         """
         Compute the Conditional Value at Rist (CVaR) of the solution.
 
@@ -979,7 +998,25 @@ class Solution:
         """
         ...
 
-    def expectation_value(self, /) -> float:
+    def temperature_weighted(
+        self, /, beta: float, value_toggle: ValueToggle = ...
+    ) -> float:
+        """
+        Compute the temperature weighted expectation value of the solution.
+
+        Returns
+        -------
+        float
+            The expectation value.
+
+        Raises
+        ------
+        ComputationError
+            If the computation fails for any reason.
+        """
+        ...
+
+    def expectation_value(self, /, value_toggle: ValueToggle = ...) -> float:
         """
         Compute the expectation value of the solution.
 
@@ -1460,6 +1497,7 @@ class Solution:
         sense: Sense | None = ...,
         bit_order: Literal["LTR", "RTL"] = "RTL",
         raw_energies: list[float] | None = ...,
+        var_order: list[str] | None = ...,
     ) -> Solution:
         """
         Create a `Solution` from a dict that maps measured bitstrings to counts.
@@ -3453,12 +3491,9 @@ class Expression:
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
-
-
-    def evaluate(self, solution: Solution, /) -> list[float]:
+    def evaluate(self, solution: Solution, /) -> NDArray:
         """Evaluate an expression based on an existing solution."""
         ...
-
 
 class ExpressionIterator:
     """

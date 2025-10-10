@@ -9,7 +9,7 @@ use super::{
     py_var::PyVariable,
 };
 use crate::core::expression::{ExpressionEvaluation, Separation};
-use crate::core::make_index_map;
+use crate::core::{make_index_map, check_variables_sol};
 use crate::py_bindings::py_sol::PySolution;
 use crate::utils::ShareMut;
 use crate::{
@@ -29,6 +29,7 @@ use crate::{
     serialization::{Decodable, Decompressable, Encodable, Unversionizable},
 };
 use either::Either::{self, Left, Right};
+use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes, IntoPyObjectExt};
 use pyo3::{exceptions::PyTypeError, types::PyType};
@@ -1324,21 +1325,31 @@ impl PyExpression {
             .collect())
     }
 
-    fn evaluate(&self, sol: &PySolution) -> PyResult<Vec<Bias>> {
+    /// Evaluate model based on existing solution
+    fn evaluate<'a>(&self, py: Python<'a>, sol: &PySolution) -> PyResult<Bound<'a, PyArray1<f64>>> {
+
         let env = match &self.0 {
             Either::Left(e) => e.env.clone(),
             Either::Right(e) => e.access().environment.clone(),
         };
+
+        {
+            let vars_sol = &sol.access().variable_names;
+            let vars_env = env.variable_names();
+            check_variables_sol(vars_sol, &vars_env)?;
+        }
+
         let expr: &Expression = match &self.0 {
             Either::Left(e) => e,
             Either::Right(e) => &e.access().objective,
         };
+        // Can fail if env in 
         let index_map = make_index_map(sol.access().varname_to_pos(), &env);
         let res = sol
             .access()
             .iter_samples()
             .map(|x| expr.evaluate_sample(&x, |i| index_map[&i].into()))
-            .collect();
+            .collect::<Vec<f64>>().to_pyarray(py);
         Ok(res)
     }
 }

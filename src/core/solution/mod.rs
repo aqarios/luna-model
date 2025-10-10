@@ -13,6 +13,7 @@ pub use sol::ColElement;
 pub use sol::ShowMetadata;
 pub use sol::PrintLayout;
 pub use sol::VarKey;
+pub use sol::ValueToggle;
 pub use result::ResultView;
 pub use sample::Sample;
 pub use sample::Samples;
