@@ -113,7 +113,6 @@ impl HashExpr {
                 });
             }
         }
-        println!("serexpr = {serexpr:?}");
         serexpr.encode_to_vec()
     }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "aqmodels"
-version = "0.2.2-beta1"
+version = "0.2.2"
 edition = "2021"
 description = "Rust based implementation of aq-models"
 readme = "README.md"
@@ -31,10 +31,10 @@ strum = "0.27.2"
 strum_macros = "0.27.2"
 zstd = "0.13.3"
 either = "1.15.0"
-regex = "1.11.1"
-time = { version = "0.3.43", features = ["formatting"] }
+regex = "1.11.3"
+time = { version = "0.3.44", features = ["formatting"] }
 itertools = "0.14.0"
-indexmap = "2.10.0"
+indexmap = "2.11.4"
 dyn-clone = "1.0.19"
 pad = "0.1.6"
 sqids = "0.4.2"

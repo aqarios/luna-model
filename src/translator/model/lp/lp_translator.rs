@@ -94,7 +94,6 @@ impl LPTranslator {
                 }
             }
         }
-        // dbg!(&sections);
         Ok(sections)
     }
 

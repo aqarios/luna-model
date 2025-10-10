@@ -20,13 +20,6 @@ impl Quadratic
 where
     TwoVarTerm: Clone,
 {
-    // pub fn new(num_variables: usize) -> Self {
-    //     let adj = vec![Vec::new(); num_variables];
-    //     Self {
-    //         adj,
-    //         default_bias: Bias::default(),
-    //     }
-    // }
     pub fn default() -> Self {
         Self {
             adj: Vec::default(),
@@ -206,6 +199,7 @@ impl IndexMut<usize> for Quadratic {
     }
 }
 
+// todo(team): Maybe use lifetimes to get rid of borrowed default_bias.
 impl Index<(usize, usize)> for Quadratic {
     type Output = Bias;
 
