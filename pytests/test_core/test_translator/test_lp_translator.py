@@ -16,7 +16,7 @@ try:
     from pyscipopt import Model as ScipModel
 except ImportError as _:
     print(
-        "SCOP is not installed and thus, the Gurobi tests will not be executed",
+        "SCIP is not installed and thus, the Gurobi tests will not be executed",
         file=sys.stdout,
     )
     NOT_RUN_SCIP = True

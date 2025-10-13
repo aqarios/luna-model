@@ -1,11 +1,8 @@
 use crate::{
     core::{
-        expression::{ExpressionBaseAdd, ExpressionBaseCreation},
-        operations::{AddAssignToExpression, MulAssignToExpression, MulToExpression},
-        VarRef,
+        expression::{ExpressionBaseAdd, ExpressionBaseCreation}, operations::{AddAssignToExpression, MulAssignToExpression, MulToExpression}, VarId, VarRef
     },
     errors::{DifferentEnvsErr, VariablesFromDifferentEnvsErr},
-    types::{Bias, VarIndex},
 };
 
 use super::{Expression, ExpressionBaseAdjustment};
@@ -47,18 +44,19 @@ impl Substitution for &Expression {
         let mut out = Expression::empty(self.env.clone());
         out.offset += self.offset;
 
-        let active_linears: Vec<(VarIndex, Bias)> = self
-            .linear
-            .iter()
-            .filter(|(idx, _)| self.active[*idx])
-            .map(|(idx, bias)| (idx.into(), *bias))
-            .collect();
+        // let active_linears: Vec<(VarIndex, Bias)> = self
+        //     .linear
+        //     .iter()
+        //     // .filter(|(idx, _)| self.active[*idx])
+        //     .map(|(idx, bias)| (idx.into(), bias))
+        //     .collect();
 
-        for (var, bias) in active_linears.iter() {
-            if *var != target.id {
-                out.add_linear(*var, *bias);
+        for (var, bias) in self.linear.iter() {
+            let varid: VarId = var.into();
+            if varid != target.id {
+                out.add_linear(varid, bias);
             } else {
-                out.add_assign(&replacement.mul(*bias))?;
+                out.add_assign(&replacement.mul(bias))?;
             }
         }
 

@@ -1,0 +1,339 @@
+use super::types::{OneVarTerm, OneVarTermConstruction};
+use crate::{
+    core::term::types::{TwoVarTerm, TwoVarTermConstruction},
+    types::{Bias, VarIndex},
+};
+use std::{
+    cmp::Ordering,
+    ops::{Index, IndexMut, MulAssign, Neg},
+    slice::Iter,
+};
+
+#[derive(Debug, Clone)]
+pub struct Quadratic {
+    pub adj: Vec<TwoVarTerm>,
+    default_bias: Bias,
+    default_neighborhood: Vec<OneVarTerm>,
+}
+
+impl Quadratic
+where
+    TwoVarTerm: Clone,
+{
+    pub fn default() -> Self {
+        Self {
+            adj: Vec::default(),
+            default_bias: Bias::default(),
+            default_neighborhood: Vec::default(),
+        }
+    }
+
+    pub fn new_from(adj: Vec<TwoVarTerm>) -> Self {
+        Self {
+            adj,
+            default_bias: Bias::default(),
+            default_neighborhood: Vec::default(),
+        }
+    }
+
+    // todo(team): remove
+    pub fn resize(&mut self, _: usize) {
+        // self.adj.resize(n, Vec::new());
+    }
+
+    pub fn len(&self) -> usize {
+        self.adj.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        for neighborhood in self.adj.iter() {
+            if !neighborhood.is_empty() {
+                return false;
+            }
+        }
+        true
+    }
+
+    pub fn get_mut(&mut self, idx: VarIndex) -> Option<&mut TwoVarTerm> {
+        self.adj.get_mut(<VarIndex as Into<usize>>::into(idx))
+    }
+
+    pub fn iter(&self) -> Iter<TwoVarTerm> {
+        self.adj.iter()
+    }
+
+    pub fn iter_flat(&self) -> impl Iterator<Item = (VarIndex, VarIndex, Bias)> + '_ {
+        self.adj.iter().flat_map(|t| {
+            t.neighborhood
+                .iter()
+                .map(move |term| (t.index.into(), term.index, term.bias))
+        })
+    }
+
+    pub fn iter_flat_positioned(
+        &self,
+    ) -> impl Iterator<Item = ((usize, usize), VarIndex, VarIndex, Bias)> + '_ {
+        self.adj.iter().flat_map(|t| {
+            t.neighborhood.iter().enumerate().map(move |(v_idx, term)| {
+                (
+                    (t.index.into(), v_idx),
+                    t.index.into(),
+                    term.index,
+                    term.bias,
+                )
+            })
+        })
+    }
+
+    pub fn cleanup(&mut self) {
+        for t in self.adj.iter_mut() {
+            t.neighborhood.retain(|t| t.bias != Bias::default());
+        }
+    }
+
+    /// Check if an interaction exists in the adj matrix.
+    /// Stops early if one is found. Worst case complete iteration over
+    /// outer vec.
+    pub fn has_interaction(&self) -> bool {
+        for neighborhood in &self.adj {
+            if !neighborhood.is_empty() {
+                return true;
+            }
+        }
+        false
+    }
+}
+
+impl MulAssign<Bias> for Quadratic {
+    fn mul_assign(&mut self, rhs: Bias) {
+        for t in self.adj.iter_mut() {
+            for term in t.neighborhood.iter_mut() {
+                term.bias *= rhs;
+            }
+        }
+    }
+}
+
+// Iterator struct
+pub struct QuadraticIter<'a> {
+    inner: std::slice::Iter<'a, TwoVarTerm>,
+}
+
+impl<'a> IntoIterator for &'a Quadratic {
+    type Item = &'a TwoVarTerm;
+    type IntoIter = QuadraticIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        QuadraticIter {
+            inner: self.adj.iter(),
+        }
+    }
+}
+
+impl<'a> Iterator for QuadraticIter<'a> {
+    type Item = &'a TwoVarTerm;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+}
+
+// Mutable Iterator struct
+pub struct QuadraticIterMut<'a> {
+    inner: std::slice::IterMut<'a, TwoVarTerm>,
+}
+
+// Implement IntoIterator for &mut Quadratic
+impl<'a> IntoIterator for &'a mut Quadratic {
+    type Item = &'a mut TwoVarTerm;
+    type IntoIter = QuadraticIterMut<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        QuadraticIterMut {
+            inner: self.adj.iter_mut(),
+        }
+    }
+}
+
+// Implement Iterator for QuadraticIterMut
+impl<'a> Iterator for QuadraticIterMut<'a> {
+    type Item = &'a mut TwoVarTerm;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+}
+
+impl Index<usize> for Quadratic {
+    type Output = Vec<OneVarTerm>;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        let pos = self.adj.binary_search_by(|term| {
+            term.index
+                .partial_cmp(&index.into())
+                .unwrap_or(Ordering::Equal)
+        });
+        match pos {
+            Ok(p) => &self.adj[p].neighborhood,
+            Err(_) => &self.default_neighborhood,
+        }
+    }
+}
+
+impl IndexMut<usize> for Quadratic {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        let pos = self
+            .adj
+            .binary_search_by(|term| {
+                term.index
+                    .partial_cmp(&index.into())
+                    .unwrap_or(Ordering::Equal)
+            })
+            .unwrap_or_else(|insert_pos| insert_pos);
+        if pos == self.adj.len() {
+            self.adj.push(TwoVarTerm::new_default(index.into()))
+        } else if self.adj[pos].index != index.into() {
+            self.adj.insert(pos, TwoVarTerm::new_default(index.into()));
+        }
+
+        &mut self.adj[pos].neighborhood
+    }
+}
+
+// todo(team): Maybe use lifetimes to get rid of borrowed default_bias.
+impl Index<(usize, usize)> for Quadratic {
+    type Output = Bias;
+
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        let mut outer = index.0;
+        let mut inner = index.1;
+        if outer > inner {
+            outer = index.1;
+            inner = index.0;
+        }
+        let pos = self.adj.binary_search_by(|term| {
+            term.index
+                .partial_cmp(&outer.into())
+                .unwrap_or(Ordering::Equal)
+        });
+
+        let neighborhood = match pos {
+            Ok(p) => &self.adj[p].neighborhood,
+            Err(_) => &self.default_neighborhood,
+        };
+
+        let pos = neighborhood.binary_search_by(|term| {
+            term.index
+                .partial_cmp(&inner.into())
+                .unwrap_or(Ordering::Equal)
+        });
+
+        match pos {
+            Ok(p) => &neighborhood[p].bias,
+            Err(_) => &self.default_bias,
+        }
+    }
+}
+
+impl Index<(VarIndex, VarIndex)> for Quadratic {
+    type Output = Bias;
+
+    fn index(&self, index: (VarIndex, VarIndex)) -> &Self::Output {
+        &self[(
+            <VarIndex as Into<usize>>::into(index.0),
+            <VarIndex as Into<usize>>::into(index.1),
+        )]
+    }
+}
+
+impl IndexMut<(VarIndex, VarIndex)> for Quadratic {
+    /// Assumes quadratic exists!
+    /// Creates the bias if it doesn't already exist
+    fn index_mut(&mut self, index: (VarIndex, VarIndex)) -> &mut Self::Output {
+        let mut outer = index.0;
+        let mut inner = index.1;
+        if outer > inner {
+            outer = index.1;
+            inner = index.0;
+        }
+
+        let outer_idx: usize = outer.into();
+        let neighborhood = &mut self[outer_idx];
+
+        let pos = neighborhood
+            .binary_search_by(|term| term.index.partial_cmp(&inner).unwrap_or(Ordering::Equal))
+            .unwrap_or_else(|insert_pos| insert_pos);
+        if pos == neighborhood.len() {
+            neighborhood.push(OneVarTerm::new_default(inner))
+        } else if neighborhood[pos].index != inner {
+            neighborhood.insert(pos, OneVarTerm::new_default(inner));
+        }
+
+        &mut neighborhood[pos].bias
+    }
+}
+
+impl PartialEq for Quadratic {
+    fn eq(&self, other: &Self) -> bool {
+        // This basic check is no gurantee for actual equality.
+        // As if this is not equal it might be due to different representations,
+        // e.g., in one expression the interaction between two variables can be explicitly
+        // contained as 0.0, while in an other expression this interaction is not
+        // represented directly. The value of the interaction is still 0.0.
+        // Thus they are equal... This is not handled by the below trivial comparison.
+        //
+        // self.adj == other.adj
+        if self.adj.len() != other.adj.len() {
+            // Quick check if they have the same number of variables.
+            return false;
+        }
+        for u_idx in 0..self.adj.len() {
+            for v_idx in u_idx..self.adj.len() {
+                // We iterate over the upper triangular matrix and check for each
+                // possible combination if they are equal in both.
+                let self_bias = self[(u_idx, v_idx)];
+                let other_bias = other[(u_idx, v_idx)];
+                if self_bias != other_bias {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+}
+
+impl Quadratic {
+    fn negate(&self) -> Self {
+        Quadratic::new_from(
+            self.adj
+                .iter()
+                .map(|t| {
+                    TwoVarTerm::new(
+                        t.index,
+                        t.neighborhood
+                            .iter()
+                            .map(|term| OneVarTerm::new(term.index, -term.bias))
+                            .collect(),
+                    )
+                })
+                .collect(),
+        )
+    }
+}
+
+impl Neg for Quadratic {
+    type Output = Quadratic;
+
+    fn neg(self) -> Self::Output {
+        self.negate()
+    }
+}
+
+impl Neg for &Quadratic {
+    type Output = Quadratic;
+
+    fn neg(self) -> Self::Output {
+        self.negate()
+    }
+}

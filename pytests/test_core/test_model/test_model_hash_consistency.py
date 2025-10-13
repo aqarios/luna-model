@@ -334,4 +334,10 @@ def test_hash_consistent_full():
     model.constraints += b * s <= 3, "constraint named"
     model.constraints += s * i >= 2
     model.constraints += b - r + i == 2
+    # print("===================")
+    # print(repr(model))
+    # print(repr(model.objective))
+    # print(repr(model.constraints[0]))
+    # print(repr(model.constraints[1]))
+    # print(repr(model.constraints[2]))
     assert hash(model) == -1167056374483366947

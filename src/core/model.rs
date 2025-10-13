@@ -1,6 +1,6 @@
 use super::constraints::Constraints;
 use super::environment::SharedEnvironment;
-use super::expression::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation};
+use super::expression::{ExpressionBaseAdd, ExpressionBaseCreation};
 use super::solution::result::OwnedResult;
 use super::solution::sample::SampleOwned;
 use super::solution::sol::Solution;
@@ -170,7 +170,7 @@ impl Model {
                 .add_variable(var_name, Some(vtype.unwrap_or(Vtype::Binary)), None)?;
         }
 
-        model.objective.resize(num_variables);
+        // model.objective.resize(num_variables);
         model
             .objective
             .add_quadratic_from_dense(matrix_flat, num_variables);
@@ -356,7 +356,6 @@ impl ContentEquality for Model {
         let obj_eq = self.objective.is_equal_contents(&other.objective);
         let const_eq = self.constraints.is_equal_contents(&other.constraints);
         let sense_eq = self.sense == other.sense;
-        // dbg!(name_eq, env_eq, obj_eq, const_eq, sense_eq);
         name_eq && env_eq && obj_eq && const_eq && sense_eq
     }
 }

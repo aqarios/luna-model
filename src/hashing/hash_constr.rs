@@ -48,7 +48,6 @@ impl HashConstr {
                 .names
                 .push(c.name.clone().unwrap_or("<NN>".to_string()));
         }
-
         serconstrs.encode_to_vec()
     }
 }

@@ -98,11 +98,11 @@ impl ModelWriter {
 
     pub fn write_linear(&mut self, env: &SharedEnvironment, linear: &Linear) -> &mut Self {
         for (i, bias) in linear.iter() {
-            if *bias != Bias::default() {
+            if bias != Bias::default() {
                 if !self.is_first {
                     self.writer.space();
                 }
-                let s = format!("{}{}", self.show_bias(bias), env.access()[i].name);
+                let s = format!("{}{}", self.show_bias(&bias), env.access()[i].name);
                 self.writer.write(&s);
                 self.is_first = false;
             }
