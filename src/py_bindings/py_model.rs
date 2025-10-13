@@ -3,7 +3,6 @@ use super::py_constr::PyConstraint;
 use super::py_model_metadata::PyModelMetadata;
 use super::py_sample::PySampleInner;
 use super::py_utilities::{repr_model, Replacement};
-use super::unwind;
 use super::{
     py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
@@ -22,10 +21,12 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use either::Either::{Left, Right};
+use pyo3::ffi::c_str;
 use pyo3::types::PyType;
+use pyo3::IntoPyObjectExt;
 use pyo3::{prelude::*, types::PyBytes};
 use std::ops::Deref;
-use unwind_macros::unwindable;
+// use unwind_macros::unwindable;
 
 /// A symbolic optimization model consisting of an objective and constraints.
 ///
@@ -113,7 +114,7 @@ impl PyModel {
 //     }
 // }
 
-#[unwindable]
+// #[unwindable]
 #[pymethods]
 impl PyModel {
     /// Initialize a new symbolic model.
@@ -612,6 +613,13 @@ impl PyModel {
     /// Compute the hash of the variable.
     fn __hash__(&self) -> PyResult<u64> {
         self.hash()
+    }
+
+    fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
+        py.run(c_str!("from aqmodels import Model"), None, None)?;
+        let decode = py.eval(c_str!("Model.decode"), None, None)?;
+        let data = self.encode(py, Some(true), Some(3))?;
+        Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((decode.into_py_any(py)?, (data,).into_py_any(py)?))
     }
 
     fn equal_contents(&self, other: &Self) -> bool {

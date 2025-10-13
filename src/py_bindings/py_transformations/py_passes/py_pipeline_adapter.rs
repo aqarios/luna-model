@@ -54,7 +54,7 @@ impl AbstractPipeline for PyPipelineAdapter {
         ir: &IntermediateRepresentation,
         log: &ExecutionLog,
     ) -> Solution {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             self.inner
                 .extract::<PyPipeline>(py)
                 .unwrap()
