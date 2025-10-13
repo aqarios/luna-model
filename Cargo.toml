@@ -41,7 +41,7 @@ sqids = "0.4.2"
 bitvec = "1.0.1"
 [dependencies.pyo3]
 version = "0.26.0"
-features = ["extension-module", "indexmap"]
+features = ["extension-module", "indexmap", "generate-import-lib"]
 optional = true
 
 [dependencies.numpy]
