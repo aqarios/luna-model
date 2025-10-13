@@ -7,7 +7,8 @@ use num::NumCast;
 pub struct QctrlTranslator {}
 
 impl QctrlTranslator {
-    pub fn from_qctrl<S>( //, E>(
+    pub fn from_qctrl<S>(
+        //, E>(
         samples: Vec<Vec<S>>,
         counts: Vec<usize>,
         // energies: Vec<E>,

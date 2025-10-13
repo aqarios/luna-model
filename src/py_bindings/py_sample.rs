@@ -1,16 +1,17 @@
+use super::py_sol::PySolution;
+use super::py_var::PyVariable;
+use super::unwind;
 use crate::core::solution::sample::SampleOwned;
-use crate::core::VarAssignment;
+use crate::core::{VarAssignment, Vtype};
 use crate::py_bindings::py_sol::PyVarAssignment;
 use derive_more::{Deref, DerefMut};
+use either::Either;
 use itertools::Itertools;
 use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
-use super::py_sol::PySolution;
 use unwind_macros::unwindable;
-use super::unwind;
-use super::py_var::PyVariable;
 
 /// An iterator over a solution's samples.
 ///
@@ -216,7 +217,7 @@ impl PySamples {
     /// -------
     /// list[list[int | float]]
     ///     The samples object as a 2-dimensional list.
-    fn tolist(&self, py: Python) -> Vec<Vec<PyObject>> {
+    fn tolist(&self, py: Python) -> Vec<Vec<Py<PyAny>>> {
         let b = self.access();
         let samples = b.samples();
         samples
@@ -249,7 +250,7 @@ impl PySamples {
     ///     If ``item`` has the wrong type.
     /// IndexError
     ///     If the row or column index is out of bounds for the variable environment.
-    fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyObject> {
+    fn __getitem__(&self, py: Python, item: Py<PyAny>) -> PyResult<Py<PyAny>> {
         if let Ok(res_idx) = item.extract::<isize>(py) {
             if res_idx < 0 {
                 return Err(PyValueError::new_err(format!(
@@ -312,6 +313,23 @@ impl PySamples {
 #[unwindable]
 #[pymethods]
 impl PySample {
+    #[new]
+    fn py_new(assignments: Vec<i32>, vars: Vec<PyVariable>) -> PySample {
+        let var_names = vars.iter().map(|x| x.name().unwrap()).collect();
+        let ca = assignments
+            .iter()
+            .zip(vars.iter())
+            .map(|(x, v)| match v.vtype().unwrap() {
+                Vtype::Binary => VarAssignment::Binary((*x > 0) as u8),
+                Vtype::Spin => VarAssignment::Spin(*x as i8),
+                Vtype::Integer => VarAssignment::Integer(*x as i64),
+                _ => panic!(),
+            })
+            .collect();
+        let var_ids = vars.iter().map(|x| (*x.0).id).collect();
+        PySample::owned(SampleOwned::new(var_names, ca, var_ids))
+    }
+
     fn __str__(&self) -> String {
         match &self.0 {
             PySampleInner::View(view) => {
@@ -336,7 +354,7 @@ impl PySample {
     ///     If ``item`` has the wrong type.
     /// IndexError
     ///     If the row or column index is out of bounds for the variable environment.
-    fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyVarAssignment> {
+    fn __getitem__(&self, py: Python, item: Py<PyAny>) -> PyResult<PyVarAssignment> {
         if let Ok(var) = item.extract::<PyVariable>(py) {
             match self.get_assignment(var.id.into()) {
                 None => Err(PyIndexError::new_err(format!(

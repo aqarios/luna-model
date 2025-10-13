@@ -5,6 +5,7 @@ use super::base::{
 };
 use super::VariableOutOfRangeErr;
 use crate::core::environment::SharedEnvironment;
+use crate::core::expression::errors::EnvMismatchError;
 use crate::core::term::types::{OneVarTerm, OneVarTermConstruction, SizeType};
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::traits::ContentEquality;
@@ -39,6 +40,24 @@ impl Expression {
             num_variables: self.num_variables.clone(),
             active: self.active.clone(),
         }
+    }
+
+    pub fn deep_clone_many(exprs: &[&Expression]) -> Result<Vec<Expression>, EnvMismatchError> {
+        if exprs.len() == 0 {
+            return Ok(Vec::new());
+        }
+        let new_env = {
+            let old_env = &exprs[0].env;
+            if !exprs.iter().all(|&e| e.env == *old_env) {
+                Err(EnvMismatchError)
+            } else {
+                Ok(old_env.deep_clone())
+            }
+        }?;
+        Ok(exprs
+            .iter()
+            .map(|e| e.deep_clone(new_env.clone()))
+            .collect())
     }
 }
 
@@ -761,6 +780,7 @@ impl ExpressionBaseMulDirect<VarIndex, Bias> for Expression {
 }
 
 impl Expression {
+    // todo(team): remove
     fn check_and_get(&self, v: VarIndex) -> Result<usize, VariableOutOfRangeErr> {
         let v_idx: usize = v.into();
         Ok(v_idx)
@@ -771,12 +791,10 @@ impl Expression {
         // }
     }
 
+    // todo(team): remove
     fn check_multi(&self, vars: &Vec<VarIndex>) -> Result<(), VariableOutOfRangeErr> {
         for v in vars {
-            let v_idx: usize = (*v).into();
-            // if !self.active[v_idx] {
-            //     return Err(VariableOutOfRangeErr(v_idx));
-            // }
+            let _: usize = (*v).into();
         }
         Ok(())
     }

@@ -1,13 +1,12 @@
-use std::{
-    fmt::{Debug, Display},
-};
+use std::fmt::{Debug, Display};
 
 use num::NumCast;
 
 use crate::{
     core::{SharedEnvironment, Solution, Timing, VarRef},
     errors::SolutionCreationErr,
-    types::Bias, utils::Share,
+    types::Bias,
+    utils::Share,
 };
 
 pub struct IbmTranslator {}

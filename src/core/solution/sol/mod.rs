@@ -1,16 +1,17 @@
 mod access;
 mod column;
 mod convenience;
-mod sol;
-mod modification;
-mod utils;
-mod print;
 mod filter;
+mod modification;
+mod print;
+mod sol;
+mod utils;
 
-pub use sol::Solution;
-pub use column::Column;
 pub use column::ColElement;
-pub use utils::ShowMetadata;
-pub use utils::PrintLayout;
-pub use utils::VarKey;
+pub use column::Column;
+pub use convenience::ValueSource;
 pub use filter::Filter;
+pub use sol::Solution;
+pub use utils::PrintLayout;
+pub use utils::ShowMetadata;
+pub use utils::VarKey;

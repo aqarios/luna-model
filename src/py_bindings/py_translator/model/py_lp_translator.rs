@@ -27,8 +27,14 @@ use unwind_macros::unwindable;
 /// Convert it back to an LP file:
 ///
 /// >>> recovered = LpTranslator.to_file(model)
-#[cfg_attr(not(feature = "lq"), pyclass(name = "LpTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "LpTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "LpTranslator", module = "aqmodels._core.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "LpTranslator", module = "luna_quantum._core.translator")
+)]
 pub struct PyLpTranslator {}
 
 #[unwindable]
@@ -57,7 +63,7 @@ impl PyLpTranslator {
     ///     If the translation fails for a different reason.
     #[staticmethod]
     #[pyo3(signature=(file))]
-    fn to_aq(py: Python, file: PyObject) -> PyResult<PyModel> {
+    fn to_aq(py: Python, file: Py<PyAny>) -> PyResult<PyModel> {
         if let Ok(file) = file.extract::<String>(py) {
             // Here we need to help the user a bit. Let's check if we can make a PathBuf from this.
             // If not possible we try to read the string as is. And throw an error if both fails.

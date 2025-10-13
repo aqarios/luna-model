@@ -1,14 +1,14 @@
-use unwind_macros::unwindable;
-use crate::py_bindings::unwind;
 use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_sol::PySolution;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::py_bindings::unwind;
 use crate::translator::NpArrayTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use std::ffi::CStr;
+use unwind_macros::unwindable;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
@@ -66,8 +66,14 @@ def extract(result, energies, timing, env):
 /// >>> result: NDArray = ...
 /// >>> energies: NDArray = ...
 /// >>> aqs = lq.translator.NumpyTranslator.to_aq(result, energies)
-#[cfg_attr(not(feature = "lq"), pyclass(name = "NumpyTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "NumpyTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "NumpyTranslator", module = "aqmodels._core.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "NumpyTranslator", module = "luna_quantum._core.translator")
+)]
 pub struct PyNumpyTranslator {}
 
 #[unwindable]
@@ -133,11 +139,11 @@ impl PyNumpyTranslator {
     #[pyo3(signature = (result, energies, timing=None, env=None))]
     fn to_aq(
         py: Python,
-        result: PyObject,
-        energies: PyObject,
+        result: Py<PyAny>,
+        energies: Py<PyAny>,
         timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();

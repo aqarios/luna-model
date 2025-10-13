@@ -56,4 +56,3 @@ impl<'a> Iterator for SampleIterator<'a> {
         }
     }
 }
-

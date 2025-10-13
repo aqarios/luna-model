@@ -19,7 +19,7 @@ dyn_clone::clone_trait_object!(MetaAnalysisPass);
 
 impl Display for dyn MetaAnalysisPass {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "🧠 {}\n  ", self.name())?;
+        write!(f, "🧠 {}", self.name())?;
         Ok(())
     }
 }

@@ -1,11 +1,22 @@
 import os
+import sys
 import pytest
 from pathlib import Path
 
 from aqmodels.translator import LpTranslator
-from pyscipopt import Model as ScipModel
+
+NOT_RUN_SCIP = False
+try:
+    from pyscipopt import Model as ScipModel
+except ImportError as _:
+    print(
+        "SCIP is not installed and thus, the Gurobi tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_SCIP = True
 
 
+@pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 @pytest.mark.translator
 def test_zero_variables():
     model = LpTranslator.to_aq(Path(__file__).parent / "lp_string.lp")

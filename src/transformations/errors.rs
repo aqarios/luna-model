@@ -39,7 +39,6 @@ impl Display for MetaAnalysisPassError {
     }
 }
 
-
 #[derive(Debug, Clone)]
 pub struct IfElsePassError(pub String);
 impl Error for IfElsePassError {}
@@ -48,7 +47,6 @@ impl Display for IfElsePassError {
         write!(f, "Error in if-else pass: {}", self.0)
     }
 }
-
 
 impl From<AnalysisPassError> for CompilationError {
     fn from(other: AnalysisPassError) -> CompilationError {

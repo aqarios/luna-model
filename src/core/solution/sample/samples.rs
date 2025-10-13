@@ -1,8 +1,8 @@
 use std::fmt::{Display, Formatter};
 
-use derive_more::{Deref, DerefMut};
-use crate::core::{writer::SolutionWriter, Solution};
 use super::{Sample, SamplesIterator, VarAssignment};
+use crate::core::{writer::SolutionWriter, Solution};
+use derive_more::{Deref, DerefMut};
 
 #[derive(Debug, Clone, Deref, DerefMut)]
 pub struct Samples<'a>(pub &'a Solution);

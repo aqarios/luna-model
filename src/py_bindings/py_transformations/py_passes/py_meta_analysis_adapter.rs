@@ -26,7 +26,7 @@ impl PyMetaAnalysisPassAdapter {
 
     /// Check that the superclass implements all required methods.
     fn check_superclass(&self) -> Result<(), PyErr> {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let base_cls = py.get_type::<PyMetaAnalysisPass>();
             let cls = self.inner.getattr(py, "__class__")?;
             let cls_name: String = cls.getattr(py, "__name__")?.extract(py)?;
@@ -59,7 +59,7 @@ impl PyMetaAnalysisPassAdapter {
 
 impl BasePass for PyMetaAnalysisPassAdapter {
     fn name(&self) -> String {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             self.inner
                 .getattr(py, "name")
                 .and_then(|res| res.extract::<String>(py))
@@ -68,7 +68,7 @@ impl BasePass for PyMetaAnalysisPassAdapter {
     }
 
     fn requires(&self) -> Vec<String> {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             self.inner
                 .getattr(py, "requires")
                 .and_then(|res| res.extract::<Vec<String>>(py))
@@ -80,16 +80,13 @@ impl BasePass for PyMetaAnalysisPassAdapter {
 impl MetaAnalysisPass for PyMetaAnalysisPassAdapter {
     fn run(&self, pipeline: &Vec<Pass>, cache: &AnalysisCache) -> MetaAnalysisPassResult {
         let passes: Vec<AnyPass> = pipeline.iter().map(|p| p.as_anypass()).collect();
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let py_res = self
                 .inner
                 .call_method1(
                     py,
                     "run",
-                    (
-                        passes,
-                        PyAnalysisCache::new(cache.clone_py(py)),
-                    ),
+                    (passes, PyAnalysisCache::new(cache.clone_py(py))),
                 )
                 .map_err(|e| self.map_err(&e))?;
             let py_any: Py<PyAny> = py_res.extract(py).map_err(|e| self.map_err(&e))?;
@@ -110,7 +107,7 @@ impl Debug for PyMetaAnalysisPassAdapter {
 
 impl Clone for PyMetaAnalysisPassAdapter {
     fn clone(&self) -> Self {
-        Python::with_gil(|py| PyMetaAnalysisPassAdapter {
+        Python::attach(|py| PyMetaAnalysisPassAdapter {
             inner: self.inner.clone_ref(py),
         })
     }
@@ -118,6 +115,6 @@ impl Clone for PyMetaAnalysisPassAdapter {
 
 impl IntoAnyPass for PyMetaAnalysisPassAdapter {
     fn as_anypass(&self) -> AnyPass {
-        Python::with_gil(|py| AnyPass::PyMetaAnalysisPass(self.inner.clone_ref(py)))
+        Python::attach(|py| AnyPass::PyMetaAnalysisPass(self.inner.clone_ref(py)))
     }
 }

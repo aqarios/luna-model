@@ -42,7 +42,7 @@ impl Filter {
         match self {
             Self::RsFilter(rs_fn) => Ok(rs_fn(res)),
             #[cfg(feature = "py")]
-            Self::PyFilter(py_fn) => Python::with_gil(|py| {
+            Self::PyFilter(py_fn) => Python::attach(|py| {
                 // this might be optimizeable.
                 let pyres = PyResultView::new(PySolution::new(res.sol.clone()), res.idx);
                 let r = py_fn
@@ -92,7 +92,7 @@ impl Clone for Filter {
         match self {
             Self::RsFilter(inner) => Self::RsFilter(inner.clone()),
             #[cfg(feature = "py")]
-            Self::PyFilter(pyany) => Self::PyFilter(Python::with_gil(|py| pyany.clone_ref(py))),
+            Self::PyFilter(pyany) => Self::PyFilter(Python::attach(|py| pyany.clone_ref(py))),
         }
     }
 }

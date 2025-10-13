@@ -220,19 +220,19 @@ impl Parser {
             matches!(tok, Token::Number(_) | Token::Variable(_) | Token::LParen)
         }
 
-        // Pretty helper for error messages
-        fn tok_str(t: &Token) -> &'static str {
-            match t {
-                Token::Number(_) => "number",
-                Token::Variable(_) => "variable",
-                Token::Plus => "+",
-                Token::Minus => "-",
-                Token::Star => "*",
-                Token::Caret => "^",
-                Token::LParen => "(",
-                Token::RParen => ")",
-            }
-        }
+        // // Pretty helper for error messages
+        // fn tok_str(t: &Token) -> &'static str {
+        //     match t {
+        //         Token::Number(_) => "number",
+        //         Token::Variable(_) => "variable",
+        //         Token::Plus => "+",
+        //         Token::Minus => "-",
+        //         Token::Star => "*",
+        //         Token::Caret => "^",
+        //         Token::LParen => "(",
+        //         Token::RParen => ")",
+        //     }
+        // }
 
         let mut vals: Vec<ExprTree> = Vec::new();
         let mut ops: Vec<Op> = Vec::new();

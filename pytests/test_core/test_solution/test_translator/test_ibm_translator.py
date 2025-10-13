@@ -1,3 +1,4 @@
+import sys
 import warnings
 from contextlib import nullcontext
 from random import Random
@@ -5,30 +6,42 @@ from random import Random
 import numpy as np
 import pytest
 from docplex.mp.model import Model as CPXModel
-from qiskit import QuantumCircuit, generate_preset_pass_manager
-from qiskit.circuit.library import QAOAAnsatz
-from qiskit.primitives import (
-    BitArray,
-    PrimitiveResult,
-    PubResult,
-    StatevectorEstimator,
-    StatevectorSampler,
-)
-from qiskit.providers import BackendV2
-from qiskit.quantum_info import SparsePauliOp
-from qiskit_aer import AerSimulator
-from qiskit_ibm_runtime import EstimatorV2, SamplerV2, Session
-from qiskit_optimization import QuadraticProgram
-from qiskit_optimization.translators import from_docplex_mp
 from scipy.optimize import minimize
 
 from aqmodels import Model, Sense, Solution, Timer, Variable, Vtype
 from aqmodels.translator import IbmTranslator
 from pytests.test_core.utils import make_seed, random_bool
 
-Backend = BackendV2 | AerSimulator | None
-Sampler = SamplerV2 | StatevectorSampler
-Estimator = EstimatorV2 | StatevectorEstimator
+NOT_RUN_QAER = False
+try:
+    from qiskit_aer import AerSimulator
+    from qiskit_ibm_runtime import EstimatorV2, SamplerV2, Session
+    from qiskit_optimization import QuadraticProgram
+    from qiskit_optimization.translators import from_docplex_mp
+    from qiskit.providers import BackendV2
+    from qiskit.quantum_info import SparsePauliOp
+    from qiskit import QuantumCircuit, generate_preset_pass_manager
+    from qiskit.circuit.library import QAOAAnsatz
+    from qiskit.primitives import (
+        BitArray,
+        PrimitiveResult,
+        PubResult,
+        StatevectorEstimator,
+        StatevectorSampler,
+    )
+except ImportError as _:
+    print(
+        "qiskit_aer is not installed and thus, the Gurobi tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_QAER = True
+
+if NOT_RUN_QAER:
+    ...
+else:
+    Backend = BackendV2 | AerSimulator | None  # type: ignore
+    Sampler = SamplerV2 | StatevectorSampler  # type: ignore
+    Estimator = EstimatorV2 | StatevectorEstimator  # type: ignore
 
 
 def rand_float_pos_or_neg(rand: Random) -> float:
@@ -133,6 +146,7 @@ def extract(result, qp):
     return samples, energies, out_counts
 
 
+@pytest.mark.skipif(NOT_RUN_QAER, reason="Qiskit Aer is required for test")
 @pytest.mark.solution_translation
 def test_ibm_solution_translator():
     warnings.filterwarnings("ignore")

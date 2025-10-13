@@ -150,12 +150,7 @@ impl ModelWriter {
             if i > 0 {
                 self.writer.new_line();
             }
-            self.writer
-                .write(&format!(
-                    "{}: ",
-                    name
-                ))
-                .increase_indent();
+            self.writer.write(&format!("{}: ", name)).increase_indent();
             self.write_constraint(constr);
             self.writer.decrease_indent();
         }

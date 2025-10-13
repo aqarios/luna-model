@@ -1,6 +1,6 @@
 use crate::utils::ShareMut;
 use hashbrown::HashMap;
-use pyo3::{prelude::*, types::PyDict};
+use pyo3::{prelude::*, types::PyDict, IntoPyObjectExt};
 use std::fmt::Display;
 
 #[cfg_attr(
@@ -13,7 +13,7 @@ use std::fmt::Display;
 )]
 #[derive(Clone, Debug)]
 pub struct PyModelMetadata {
-    pub data: ShareMut<HashMap<String, PyObject>>,
+    pub data: ShareMut<HashMap<String, Py<PyAny>>>,
 }
 
 impl PyModelMetadata {
@@ -39,11 +39,11 @@ impl PyModelMetadata {
         self.data.access().contains_key(&key)
     }
 
-    fn __getitem__(&self, py: Python, key: String) -> PyObject {
+    fn __getitem__(&self, py: Python, key: String) -> Py<PyAny> {
         self.get_item(py, key)
     }
 
-    fn __setitem__(&mut self, key: String, value: PyObject) {
+    fn __setitem__(&mut self, key: String, value: Py<PyAny>) {
         self.set_item(key, value)
     }
 
@@ -59,16 +59,16 @@ impl PyModelMetadata {
         format!("{self}")
     }
 
-    fn get_item(&self, py: Python, key: String) -> PyObject {
+    fn get_item(&self, py: Python, key: String) -> Py<PyAny> {
         #[allow(deprecated)]
         self.data
             .access()
             .get(&key)
-            .map(|v| v.into_py(py))
+            .map(|v| v.into_py_any(py).unwrap_or_else(|_| py.None()))
             .unwrap_or_else(|| py.None())
     }
 
-    fn set_item(&mut self, key: String, value: PyObject) {
+    fn set_item(&mut self, key: String, value: Py<PyAny>) {
         self.data.access_mut().insert(key, value);
     }
 

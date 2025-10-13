@@ -1,5 +1,5 @@
 use crate::{
-    transformations::pass_manager::PassManager,
+    transformations::{intermediate_representation::ExecutionLog, pass_manager::PassManager},
     unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R},
 };
 use std::fmt::Display;
@@ -51,7 +51,7 @@ impl Condition {
         match self {
             Self::RsCallback(rs_fn) => Ok(rs_fn(cache)),
             #[cfg(feature = "py")]
-            Self::PyCallback(py_fn) => Python::with_gil(|py| {
+            Self::PyCallback(py_fn) => Python::attach(|py| {
                 let r = py_fn
                     .call1(py, (PyAnalysisCache::new(cache.clone_py(py)),))
                     .map_err(|e| CompilationError(e.to_string()))?;
@@ -99,7 +99,7 @@ impl Clone for Condition {
         match self {
             Self::RsCallback(inner) => Self::RsCallback(inner.clone()),
             #[cfg(feature = "py")]
-            Self::PyCallback(pyany) => Self::PyCallback(Python::with_gil(|py| pyany.clone_ref(py))),
+            Self::PyCallback(pyany) => Self::PyCallback(Python::attach(|py| pyany.clone_ref(py))),
         }
     }
 }
@@ -192,13 +192,18 @@ impl IfElsePass {
         })
     }
 
-    pub fn backwards(&self, mut solution: Solution, ir: &IntermediateRepresentation) -> Solution {
+    pub fn backwards(
+        &self,
+        mut solution: Solution,
+        ir: &IntermediateRepresentation,
+        log: &ExecutionLog,
+    ) -> Solution {
         match ir.cache.get(&self.name) {
             Some(AnalysisCacheElement::IfElseInfoAnalysis(cache)) => {
                 if cache.fulfilled_condition {
-                    solution = self.then.backwards(solution, ir)
+                    solution = self.then.backwards(solution, ir, log)
                 } else {
-                    solution = self.otherwise.backwards(solution, ir)
+                    solution = self.otherwise.backwards(solution, ir, log)
                 }
             }
             _ => {}

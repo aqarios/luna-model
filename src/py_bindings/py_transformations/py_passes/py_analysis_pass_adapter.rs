@@ -26,7 +26,7 @@ impl PyAnalysisPassAdapter {
 
     /// Check that the superclass implements all required methods.
     fn check_superclass(&self) -> Result<(), PyErr> {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let base_cls = py.get_type::<PyAnalysisPass>();
             let cls = self.inner.getattr(py, "__class__")?;
             let cls_name: String = cls.getattr(py, "__name__")?.extract(py)?;
@@ -59,7 +59,7 @@ impl PyAnalysisPassAdapter {
 
 impl BasePass for PyAnalysisPassAdapter {
     fn name(&self) -> String {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             self.inner
                 .getattr(py, "name")
                 .and_then(|res| res.extract::<String>(py))
@@ -68,7 +68,7 @@ impl BasePass for PyAnalysisPassAdapter {
     }
 
     fn requires(&self) -> Vec<String> {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             self.inner
                 .getattr(py, "requires")
                 .and_then(|res| res.extract::<Vec<String>>(py))
@@ -79,7 +79,7 @@ impl BasePass for PyAnalysisPassAdapter {
 
 impl AnalysisPass for PyAnalysisPassAdapter {
     fn run(&self, model: &Model, cache: &AnalysisCache) -> AnalysisPassResult {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let py_res = self
                 .inner
                 .call_method1(
@@ -109,7 +109,7 @@ impl Debug for PyAnalysisPassAdapter {
 
 impl Clone for PyAnalysisPassAdapter {
     fn clone(&self) -> Self {
-        Python::with_gil(|py| PyAnalysisPassAdapter {
+        Python::attach(|py| PyAnalysisPassAdapter {
             inner: self.inner.clone_ref(py),
         })
     }
@@ -117,6 +117,6 @@ impl Clone for PyAnalysisPassAdapter {
 
 impl IntoAnyPass for PyAnalysisPassAdapter {
     fn as_anypass(&self) -> AnyPass {
-        Python::with_gil(|py| AnyPass::PyAnalysisPass(self.inner.clone_ref(py)))
+        Python::attach(|py| AnyPass::PyAnalysisPass(self.inner.clone_ref(py)))
     }
 }

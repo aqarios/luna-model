@@ -11,4 +11,3 @@ pub use expression::SerExpression;
 pub use model::SerModel;
 pub use sol::SerSolution;
 pub use timing::SerTiming;
-

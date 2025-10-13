@@ -3,17 +3,35 @@ import tempfile
 from pathlib import Path
 from random import Random
 
-import gurobipy as gp
 import pytest
 from dimod import lp as dimod_lp
-from pyscipopt import Model as ScipModel
 
 from aqmodels import Sense
 from aqmodels.errors import TranslationError
 from aqmodels.translator import LpTranslator
 from pytests.test_core.utils import generate_cqms, make_seed
 
-NOT_RUN_CPLEX = True
+NOT_RUN_SCIP = False
+try:
+    from pyscipopt import Model as ScipModel
+except ImportError as _:
+    print(
+        "SCIP is not installed and thus, the Gurobi tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_SCIP = True
+
+NOT_RUN_GUROBI = False
+try:
+    import gurobipy as gp
+except ImportError as _:
+    print(
+        "Gurobi is not installed and thus, the Gurobi tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_GUROBI = True
+
+NOT_RUN_CPLEX = False
 try:
     import cplex  # type: ignore
 except ImportError as _:
@@ -79,6 +97,7 @@ def test_cqm_to_model_to_cqm():
 ##################################### Gurobi ##########################################
 
 
+@pytest.mark.skipif(NOT_RUN_GUROBI, reason="Gurobi is required for test")
 @pytest.mark.translator
 def test_gurobi_to_model_to_gurobi():
     rand = Random(make_seed())
@@ -113,6 +132,7 @@ def test_gurobi_to_model_to_gurobi():
         assert gp_models_are_equal(gp_model, gp_model_back)
 
 
+@pytest.mark.skipif(NOT_RUN_GUROBI, reason="Gurobi is required for test")
 @pytest.mark.translator
 def test_gurobi_and_aq_lp_read_equality():
     rand = Random(make_seed())
@@ -162,6 +182,7 @@ def test_gurobi_and_aq_lp_read_equality():
 ###################################### SCIP ###########################################
 
 
+@pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 @pytest.mark.translator
 def test_scip_to_model_to_scip():
     rand = Random(make_seed())

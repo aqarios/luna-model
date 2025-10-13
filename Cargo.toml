@@ -1,6 +1,6 @@
 [package]
 name = "aqmodels"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 description = "Rust based implementation of aq-models"
 readme = "README.md"
@@ -40,12 +40,12 @@ pad = "0.1.6"
 sqids = "0.4.2"
 bitvec = "1.0.1"
 [dependencies.pyo3]
-version = "0.24.1"
+version = "0.26.0"
 features = ["extension-module", "indexmap"]
 optional = true
 
 [dependencies.numpy]
-version = "0.24.0"
+version = "0.26.0"
 optional = true
 
 [dependencies.aqm-macros]

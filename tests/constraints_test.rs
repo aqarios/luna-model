@@ -77,8 +77,6 @@ fn linear_constraints() {
     assert_noerror(constrs.add_assign(&constr_b));
     assert_noerror(constrs.add_assign(&constr_c));
 
-    dbg!(&expr);
-
     for ((_, constr), actual) in constrs.iter().zip(&original_constraints) {
         assert_eq!(constr.lhs.offset, 0.0);
         assert_eq!(
