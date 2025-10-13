@@ -34,7 +34,7 @@ impl PassManager {
 
     pub fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {
         // TODO: needs Backwards Error
-        let mut sol = backwards(&self.passes, solution, ir);
+        let mut sol = backwards(&self.passes, solution, ir, None);
         if let Some(x) = &sol.obj_values {
             if sol.n_samples > 0 && sol.raw_energies.is_none() {
                 sol.raw_energies = x.iter().map(|&y| Some(y)).collect();

@@ -11,7 +11,7 @@ use super::{
 };
 
 #[cfg(feature = "py")]
-use crate::py_bindings::{AnyPass, IntoAnyPass};
+use crate::py_bindings::{IntoAnyPass, AnyPass};
 
 use dyn_clone::DynClone;
 #[cfg(feature = "py")]

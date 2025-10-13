@@ -1,16 +1,17 @@
+use super::py_sol::PySolution;
+use super::py_var::PyVariable;
+use super::unwind;
 use crate::core::solution::sample::SampleOwned;
-use crate::core::VarAssignment;
+use crate::core::{VarAssignment, Vtype};
 use crate::py_bindings::py_sol::PyVarAssignment;
 use derive_more::{Deref, DerefMut};
+use either::Either;
 use itertools::Itertools;
 use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::IntoPyObjectExt;
-use super::py_sol::PySolution;
 use unwind_macros::unwindable;
-use super::unwind;
-use super::py_var::PyVariable;
 
 /// An iterator over a solution's samples.
 ///
@@ -312,6 +313,23 @@ impl PySamples {
 #[unwindable]
 #[pymethods]
 impl PySample {
+    #[new]
+    fn py_new(assignments: Vec<i32>, vars: Vec<PyVariable>) -> PySample {
+        let var_names = vars.iter().map(|x| x.name().unwrap()).collect();
+        let ca = assignments
+            .iter()
+            .zip(vars.iter())
+            .map(|(x, v)| match v.vtype().unwrap() {
+                Vtype::Binary => VarAssignment::Binary((*x > 0) as u8),
+                Vtype::Spin => VarAssignment::Spin(*x as i8),
+                Vtype::Integer => VarAssignment::Integer(*x as i64),
+                _ => panic!(),
+            })
+            .collect();
+        let var_ids = vars.iter().map(|x| (*x.0).id).collect();
+        PySample::owned(SampleOwned::new(var_names, ca, var_ids))
+    }
+
     fn __str__(&self) -> String {
         match &self.0 {
             PySampleInner::View(view) => {

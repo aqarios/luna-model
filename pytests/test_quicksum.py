@@ -33,7 +33,7 @@ def truth_expr(variables: list[Variable]) -> Expression:
 
 def test_quicksum(variables: list[Variable]):
     t: Expression = truth(variables)
-    with t._environment:
+    with t.environment:
         expr = quicksum(variables)
     assert isinstance(expr, Expression)
     assert expr.is_equal(t)

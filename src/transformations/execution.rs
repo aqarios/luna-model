@@ -2,7 +2,8 @@ use super::{
     analysis_cache::AnalysisCache,
     base_passes::{ActionType, BasePass, Pass},
     errors::CompilationError,
-    intermediate_representation::{ExecutionLog, IntermediateRepresentation}, pass_manager::PassManager,
+    intermediate_representation::{ExecutionLog, IntermediateRepresentation},
+    pass_manager::PassManager,
 };
 use crate::core::{Model, Solution, Timer};
 use hashbrown::HashSet;
@@ -104,7 +105,7 @@ pub fn run_passes(
         model,
         cache,
         execution_log,
-        input_model: None
+        input_model: None,
     })
 }
 
@@ -112,18 +113,29 @@ pub fn backwards(
     passes: &Vec<Pass>,
     mut solution: Solution,
     ir: &IntermediateRepresentation,
+    log: Option<&ExecutionLog>,
 ) -> Solution {
-    for (general_pass, log) in passes.iter().zip(ir.execution_log.iter()).rev() {
-        match (general_pass, &log.kind) {
+    for (general_pass, log_elem) in passes
+        .iter()
+        .zip(log.unwrap_or(&ir.execution_log).iter())
+        .rev()
+    {
+        match (general_pass, &log_elem.kind) {
             (
                 Pass::Transformation(pass),
                 ActionType::DidTransform | ActionType::DidAnalysisTransform,
             ) => {
                 solution = pass.backwards(solution, &ir.cache);
             }
-            (Pass::IfElse(pass), ActionType::DidIfElse) => solution = pass.backwards(solution, &ir),
+            (Pass::IfElse(pass), ActionType::DidIfElse) => {
+                if let Some(inner_log) = &log_elem.components {
+                    solution = pass.backwards(solution, &ir, inner_log)
+                }
+            }
             (Pass::Pipeline(pass), ActionType::DidPipeline) => {
-                solution = pass.backwards(solution, &ir)
+                if let Some(inner_log) = &log_elem.components {
+                    solution = pass.backwards(solution, &ir, inner_log)
+                }
             }
             _ => {}
         }

@@ -59,3 +59,14 @@ impl Into<VariableError> for VariableOutOfRangeErr {
         VariableError::VariableOutOfRangeError(self)
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct EnvMismatchError;
+
+impl std::error::Error for EnvMismatchError {}
+
+impl Display for EnvMismatchError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result {
+        write!(f, "Environments of the provided models do not match.",)
+    }
+}

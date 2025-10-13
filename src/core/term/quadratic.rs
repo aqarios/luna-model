@@ -300,3 +300,16 @@ impl Neg for &Quadratic {
         self.negate()
     }
 }
+
+impl Quadratic {
+    pub fn from_iter<T: IntoIterator<Item = (VarIndex, VarIndex, Bias)>>(
+        num_variables: usize,
+        iter: T,
+    ) -> Self {
+        let mut quad = Quadratic::new(num_variables);
+        for (x, y, v) in iter {
+            quad[(x, y)] = v;
+        }
+        quad
+    }
+}

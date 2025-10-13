@@ -785,6 +785,15 @@ class Timer:
         """
         ...
 
+class ValueSource(Enum):
+    """Toggle enum for choosing the quantity for solution convenience functions."""
+
+    Obj = ...
+    """Use the `obj_values` field."""
+
+    Raw = ...
+    """Use the `raw_energies` field."""
+
 # _solution.pyi
 class Solution:
     """
@@ -929,6 +938,11 @@ class Solution:
         """
         ...
 
+    @obj_values.setter
+    def obj_values(self, other: NDArray | None) -> None:
+        """Set the objective values of the single samples as a ndarray."""
+        ...
+
     @property
     def raw_energies(self, /) -> NDArray | None:
         """Get the raw energies.
@@ -936,6 +950,11 @@ class Solution:
         Get the raw energy values of the single samples as returned by the solver /
         algorithm. Will be None if the solver / algorithm did not provide a value.
         """
+        ...
+
+    @raw_energies.setter
+    def raw_energies(self, other: NDArray | None) -> None:
+        """Set the raw energies of the single samples as a ndarray."""
         ...
 
     @property
@@ -963,9 +982,14 @@ class Solution:
         """Get the names of all variables in the solution."""
         ...
 
-    def cvar(self, /, alpha: float) -> float:
+    def cvar(self, /, alpha: float, value_toggle: ValueSource = ...) -> float:
         """
         Compute the Conditional Value at Rist (CVaR) of the solution.
+
+        Parameters
+        ----------
+        float : alpha
+            The confidence level.
 
         Returns
         -------
@@ -979,7 +1003,30 @@ class Solution:
         """
         ...
 
-    def expectation_value(self, /) -> float:
+    def temperature_weighted(
+        self, /, beta: float, value_toggle: ValueSource = ...
+    ) -> float:
+        """
+        Compute the temperature weighted expectation value of the solution.
+
+        Parameters
+        ----------
+        float : beta
+            The inverse temperature for computing Boltzmann weights.
+
+        Returns
+        -------
+        float
+            The temperature weighted expectation value.
+
+        Raises
+        ------
+        ComputationError
+            If the computation fails for any reason.
+        """
+        ...
+
+    def expectation_value(self, /, value_toggle: ValueSource = ...) -> float:
         """
         Compute the expectation value of the solution.
 
@@ -1460,6 +1507,7 @@ class Solution:
         sense: Sense | None = ...,
         bit_order: Literal["LTR", "RTL"] = "RTL",
         raw_energies: list[float] | None = ...,
+        var_order: list[str] | None = ...,
     ) -> Solution:
         """
         Create a `Solution` from a dict that maps measured bitstrings to counts.
@@ -2722,6 +2770,27 @@ class Expression:
         """
         ...
 
+    @overload
+    @staticmethod
+    def const(val: float, /) -> Expression: ...
+    @overload
+    @staticmethod
+    def const(val: float, /, env: Environment) -> Expression: ...
+    @staticmethod
+    def const(val: float, /, env: Environment | None = None) -> Expression:
+        """Create constant expression.
+
+        Parameters
+        ----------
+        val : float
+            The constant
+
+        Returns
+        -------
+        Expression
+        """
+        ...
+
     def get_offset(self, /) -> float:
         """
         Get the constant (offset) term in the expression.
@@ -2914,6 +2983,22 @@ class Expression:
         """
         ...
 
+    def separate(self, variables: list[Variable]) -> tuple[Expression, Expression]:
+        """
+        Separates expression into two expressions based on presence of variables.
+
+        Parameters
+        ----------
+        variables : list[Variable]
+            The variables of which one must at least be present in a left term.
+
+        Returns
+        -------
+        tuple[Expression, Expression]
+            Two expressions, left contains one of the variables right does not, i.e.
+            (contains, does not contain)
+        """
+
     def substitute(
         self, /, target: Variable, replacement: Expression | Variable
     ) -> Expression:
@@ -3037,6 +3122,22 @@ class Expression:
         Alias for `decode()`.
 
         See `decode()` for full documentation.
+        """
+        ...
+
+    @staticmethod
+    def deep_clone_many(exprs: list[Expression]) -> list[Expression]:
+        """Deep clones all provided expressions into new environment.
+
+        Parameters
+        ----------
+        exprs: list[Expression]
+            The expressions to move to new_environment
+
+        Returns
+        -------
+        list[Expressions]
+            The same expressions but part of a new environment
         """
         ...
 
@@ -3394,12 +3495,15 @@ class Expression:
         ...
 
     @property
-    def _environment(self, /) -> Environment:
+    def environment(self, /) -> Environment:
         """Get this expression's environment."""
         ...
 
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+    def evaluate(self, solution: Solution, /) -> NDArray:
+        """Evaluate an expression based on an existing solution."""
+        ...
 
 class ExpressionIterator:
     """
@@ -3616,6 +3720,14 @@ class Environment:
     def __eq__(self, other: Environment, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
+    @property
+    def num_variables(self, /) -> int:
+        """Get the number of variables in env."""
+        ...
+
+    def variables(self, /) -> list[Variable]:
+        """Get the variables in env."""
+        ...
 
 # _constraints.pyi
 class Comparator(Enum):
