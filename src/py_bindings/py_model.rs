@@ -13,6 +13,7 @@ use crate::hashing::hash_model;
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
 use crate::py_bindings::py_var::PyVariable;
+use crate::py_bindings::unwind;
 use crate::utils::{Share, ShareMut};
 use crate::{
     core::Model,
@@ -26,7 +27,7 @@ use pyo3::types::PyType;
 use pyo3::IntoPyObjectExt;
 use pyo3::{prelude::*, types::PyBytes};
 use std::ops::Deref;
-// use unwind_macros::unwindable;
+use unwind_macros::unwindable;
 
 /// A symbolic optimization model consisting of an objective and constraints.
 ///
@@ -114,7 +115,7 @@ impl PyModel {
 //     }
 // }
 
-// #[unwindable]
+#[unwindable]
 #[pymethods]
 impl PyModel {
     /// Initialize a new symbolic model.
