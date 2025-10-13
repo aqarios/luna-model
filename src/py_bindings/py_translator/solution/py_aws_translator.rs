@@ -2,13 +2,13 @@ use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_sol::PySolution;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::py_bindings::unwind;
 use crate::translator::NpArrayTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use std::ffi::CStr;
 use unwind_macros::unwindable;
-use crate::py_bindings::unwind;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
@@ -68,8 +68,14 @@ def extract(aws_result, timing, env):
 /// >>> import luna_quantum as lq
 /// >>> aws_result = ...
 /// >>> aqs = lq.translator.AwsTranslator.to_aq(aws_result)
-#[cfg_attr(not(feature = "lq"), pyclass(name = "AwsTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "AwsTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "AwsTranslator", module = "aqmodels._core.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "AwsTranslator", module = "luna_quantum._core.translator")
+)]
 pub struct PyAwsTranslator(pub NpArrayTranslator);
 
 #[unwindable]

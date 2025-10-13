@@ -2,12 +2,12 @@ use crate::py_bindings::py_env::{PyEnvironment, CURRENT_ENV};
 use crate::py_bindings::py_exceptions::NoActiveEnvironmentFoundError;
 use crate::py_bindings::py_sol::PySolution;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::py_bindings::unwind;
 use crate::translator::solution::DwaveTranslator;
 use numpy::{PyReadonlyArray1, PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::{ffi::c_str, prelude::*};
 use std::ffi::CStr;
 use unwind_macros::unwindable;
-use crate::py_bindings::unwind;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
@@ -58,8 +58,14 @@ def extract(sampleset, timing, env):
 /// >>> import luna_quantum as lq
 /// >>> dwave_sampleset = ...
 /// >>> aqs = lq.translator.DwaveTranslator.to_aq(dwave_sampleset)
-#[cfg_attr(not(feature = "lq"), pyclass(name = "DwaveTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "DwaveTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "DwaveTranslator", module = "aqmodels._core.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "DwaveTranslator", module = "luna_quantum._core.translator")
+)]
 pub struct PyDwaveTranslator(pub DwaveTranslator);
 
 #[unwindable]

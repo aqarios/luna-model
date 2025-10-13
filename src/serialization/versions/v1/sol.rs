@@ -137,24 +137,12 @@ impl SerSolution {
                 Column::Binary(inner) => {
                     self.sample_types.push(vtype_to_u8(Vtype::Binary));
                     self.n_bins += 1;
-                    bin_vec.extend(
-                        inner
-                            .data
-                            .iter()
-                            .map(|&b| b == 1)
-                            .into_iter()
-                    )
+                    bin_vec.extend(inner.data.iter().map(|&b| b == 1).into_iter())
                 }
                 Column::Spin(inner) => {
                     self.sample_types.push(vtype_to_u8(Vtype::Spin));
                     self.n_spins += 1;
-                    spin_vec.extend(
-                        inner
-                            .data
-                            .iter()
-                            .map(|&s| s == -1)
-                            .into_iter()
-                    )
+                    spin_vec.extend(inner.data.iter().map(|&s| s == -1).into_iter())
                 }
                 Column::Integer(inner) => {
                     self.sample_types.push(vtype_to_u8(Vtype::Integer));
@@ -285,11 +273,12 @@ impl SerSolution {
         };
 
         sol.feasible = match (&sol.constraints, &sol.variable_bounds) {
-            (Some(c), Some(b)) => Some(c
-                .iter()
-                .zip(b)
-                .map(|(c, v)| c.iter().all(|&b| b) && v.iter().all(|&b| b))
-                .collect()),
+            (Some(c), Some(b)) => Some(
+                c.iter()
+                    .zip(b)
+                    .map(|(c, v)| c.iter().all(|&b| b) && v.iter().all(|&b| b))
+                    .collect(),
+            ),
             (Some(c), None) => Some(c.iter().map(|c| c.iter().all(|&b| b)).collect()),
             (None, Some(b)) => Some(b.iter().map(|b| b.iter().all(|&b| b)).collect()),
             (None, None) => None,

@@ -17,4 +17,3 @@ pub enum VarKey<'a> {
     Name(String),
     Var(&'a VarRef),
 }
-

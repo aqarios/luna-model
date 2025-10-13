@@ -1,14 +1,14 @@
-use unwind_macros::unwindable;
-use crate::py_bindings::unwind;
 use crate::core::Sense;
 use crate::py_bindings::py_env::PyEnvironment;
 use crate::py_bindings::py_sol::{PySolution, VariableKey};
 use crate::py_bindings::py_timing::PyTiming;
+use crate::py_bindings::unwind;
 use indexmap::IndexMap;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::pyclass;
 use std::ffi::CStr;
+use unwind_macros::unwindable;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(

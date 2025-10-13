@@ -1,4 +1,7 @@
-use std::{fmt::{Display, Formatter}, ops::Mul};
+use std::{
+    fmt::{Display, Formatter},
+    ops::Mul,
+};
 
 use num::NumCast;
 

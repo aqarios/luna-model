@@ -1,9 +1,9 @@
 mod extras;
 mod model;
+mod rs_operations;
 mod utils;
 mod variable;
 mod writer;
-mod rs_operations;
 
 pub mod constraints;
 pub mod environment;
@@ -14,9 +14,9 @@ pub mod solution;
 pub mod term;
 mod traits;
 
-pub use constraints::ConstraintKey;
 pub use constraints::Comparator;
 pub use constraints::Constraint;
+pub use constraints::ConstraintKey;
 pub use constraints::Constraints;
 
 pub use environment::Environment;
@@ -58,4 +58,4 @@ pub use variable::Vtype;
 pub use traits::ContentEquality;
 pub use traits::ValueByIndex;
 
-pub use utils::make_index_map;
+pub use utils::{check_variables_sol, make_index_map};

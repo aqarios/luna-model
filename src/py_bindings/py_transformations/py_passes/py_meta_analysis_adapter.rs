@@ -86,10 +86,7 @@ impl MetaAnalysisPass for PyMetaAnalysisPassAdapter {
                 .call_method1(
                     py,
                     "run",
-                    (
-                        passes,
-                        PyAnalysisCache::new(cache.clone_py(py)),
-                    ),
+                    (passes, PyAnalysisCache::new(cache.clone_py(py))),
                 )
                 .map_err(|e| self.map_err(&e))?;
             let py_any: Py<PyAny> = py_res.extract(py).map_err(|e| self.map_err(&e))?;

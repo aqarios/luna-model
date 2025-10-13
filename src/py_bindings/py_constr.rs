@@ -423,7 +423,12 @@ impl PyConstraints {
     /// IOError
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<Py<PyAny>> {
+    fn encode(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<Py<PyAny>> {
         match &self.data {
             Left(constrs) => Ok(PyBytes::new(py, &constrs.encode(compress, level)?).into()),
             Right(parent) => {

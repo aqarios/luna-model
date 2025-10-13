@@ -435,7 +435,7 @@ impl PyVariable {
             #[allow(deprecated)]
             self.make_constraint(py, rhs, Comparator::Eq)
                 .map(|c| c.into_py_any(py).unwrap())
-                // todo(team): handle unwrap here better.
+            // todo(team): handle unwrap here better.
         }
     }
 

@@ -1,5 +1,5 @@
 use crate::{
-    transformations::pass_manager::PassManager,
+    transformations::{intermediate_representation::ExecutionLog, pass_manager::PassManager},
     unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R},
 };
 use std::fmt::Display;
@@ -192,13 +192,18 @@ impl IfElsePass {
         })
     }
 
-    pub fn backwards(&self, mut solution: Solution, ir: &IntermediateRepresentation) -> Solution {
+    pub fn backwards(
+        &self,
+        mut solution: Solution,
+        ir: &IntermediateRepresentation,
+        log: &ExecutionLog,
+    ) -> Solution {
         match ir.cache.get(&self.name) {
             Some(AnalysisCacheElement::IfElseInfoAnalysis(cache)) => {
                 if cache.fulfilled_condition {
-                    solution = self.then.backwards(solution, ir)
+                    solution = self.then.backwards(solution, ir, log)
                 } else {
-                    solution = self.otherwise.backwards(solution, ir)
+                    solution = self.otherwise.backwards(solution, ir, log)
                 }
             }
             _ => {}

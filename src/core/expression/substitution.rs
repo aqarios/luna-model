@@ -1,6 +1,8 @@
 use crate::{
     core::{
-        expression::{ExpressionBaseAdd, ExpressionBaseCreation}, operations::{AddAssignToExpression, MulAssignToExpression, MulToExpression}, VarId, VarRef
+        expression::{ExpressionBaseAdd, ExpressionBaseCreation},
+        operations::{AddAssignToExpression, MulAssignToExpression, MulToExpression},
+        VarId, VarRef,
     },
     errors::{DifferentEnvsErr, VariablesFromDifferentEnvsErr},
 };

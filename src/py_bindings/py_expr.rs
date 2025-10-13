@@ -1,5 +1,6 @@
+use std::collections::HashMap;
+
 use super::unwind;
-use unwind_macros::unwindable;
 use super::{
     py_constr::PyConstraint,
     py_env::{PyEnvironment, CURRENT_ENV},
@@ -7,6 +8,9 @@ use super::{
     py_utilities::Replacement,
     py_var::PyVariable,
 };
+use crate::core::expression::{ExpressionEvaluation, Separation};
+use crate::core::{check_variables_sol, make_index_map};
+use crate::py_bindings::py_sol::PySolution;
 use crate::utils::ShareMut;
 use crate::{
     core::{
@@ -25,9 +29,11 @@ use crate::{
     serialization::{Decodable, Decompressable, Encodable, Unversionizable},
 };
 use either::Either::{self, Left, Right};
+use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes, IntoPyObjectExt};
 use pyo3::{exceptions::PyTypeError, types::PyType};
+use unwind_macros::unwindable;
 
 /// Polynomial expression supporting symbolic arithmetic, constraint creation, and encoding.
 ///
@@ -325,6 +331,20 @@ impl PyExpression {
         Ok(PyExpression::new(Expression::empty(env.0)))
     }
 
+    #[staticmethod]
+    #[pyo3(name="const", signature=(val, env=None))]
+    pub fn constant(val: f64, env: Option<&mut PyEnvironment>) -> PyResult<Self> {
+        let env: PyEnvironment = match env {
+            Some(env) => env.clone(),
+            None => CURRENT_ENV.with(|current| {
+                current.borrow().clone().ok_or_else(|| {
+                    NoActiveEnvironmentFoundError::new_err("no active environment found.")
+                })
+            })?,
+        };
+        Ok(PyExpression::new(Expression::simple(env.0, val)))
+    }
+
     /// Get the degree of the expression.
     fn degree(&self) -> usize {
         match &self.0 {
@@ -452,7 +472,12 @@ impl PyExpression {
     /// IOError
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<Py<PyAny>> {
+    fn encode(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<Py<PyAny>> {
         let base = match &self.0 {
             Left(expr) => expr,
             Right(parent) => &parent.access().objective,
@@ -1063,7 +1088,7 @@ impl PyExpression {
 
     /// Get this expression's environment.
     #[getter]
-    fn _environment(&self) -> PyEnvironment {
+    fn environment(&self) -> PyEnvironment {
         PyEnvironment(match &self.0 {
             Left(expr) => expr.env.clone(),
             Right(p) => p.access().environment.clone(),
@@ -1240,22 +1265,97 @@ impl PyExpression {
     fn has_quadratic(&self) -> bool {
         match &self.0 {
             Left(expr) => expr.has_quadratic(),
-            Right(model) => model.access().objective.has_quadratic() 
+            Right(model) => model.access().objective.has_quadratic(),
         }
     }
 
     fn has_higher_order(&self) -> bool {
         match &self.0 {
             Left(expr) => expr.has_higher_order(),
-            Right(model) => model.access().objective.has_higher_order() 
+            Right(model) => model.access().objective.has_higher_order(),
         }
     }
 
     fn is_constant(&self) -> bool {
         match &self.0 {
             Left(expr) => expr.is_constant(),
-            Right(model) => model.access().objective.is_constant() 
+            Right(model) => model.access().objective.is_constant(),
         }
+    }
+
+    /// Separates expression into two expressions based on presence of variables.
+
+    /// Parameters
+    /// ----------
+    /// variables : list[Variable]
+    ///     The variables of which one must at least be present in a left term.
+
+    /// Returns
+    /// -------
+    /// tuple[Expression, Expression]
+    ///     Two expressions, left contains one of the variables right does not, i.e.
+    ///     (contains, does not contain)
+    fn separate(&self, variables: Vec<PyVariable>) -> PyResult<(PyExpression, PyExpression)> {
+        let vars: Vec<VarRef> = variables.iter().map(|x| (**x.0).clone()).collect();
+        let (left, right) = match &self.0 {
+            Left(expr) => expr.separate(&vars),
+            Right(model) => model.access().objective.separate(&vars),
+        }?;
+        Ok((PyExpression::new(left), PyExpression::new(right)))
+    }
+
+    #[staticmethod]
+    fn deep_clone_many(py_exprs: Vec<PyExpression>) -> PyResult<Vec<PyExpression>> {
+        let parent_exprs: HashMap<usize, Expression> = py_exprs
+            .iter()
+            .enumerate()
+            .filter_map(|(i, e)| match &(e.0) {
+                Left(_) => None,
+                Right(parent) => Some((i, parent.access().objective.clone())),
+            })
+            .collect();
+        let exprs: Vec<&Expression> = py_exprs
+            .iter()
+            .enumerate()
+            .map(|(i, e)| match &(e.0) {
+                Left(expr) => expr,
+                Right(_) => parent_exprs.get(&i).unwrap(),
+            })
+            .collect();
+
+        let cloned_exprs = Expression::deep_clone_many(&exprs)?;
+        Ok(cloned_exprs
+            .into_iter()
+            .map(|e| PyExpression::new(e))
+            .collect())
+    }
+
+    /// Evaluate model based on existing solution
+    fn evaluate<'a>(&self, py: Python<'a>, sol: &PySolution) -> PyResult<Bound<'a, PyArray1<f64>>> {
+        let env = match &self.0 {
+            Either::Left(e) => e.env.clone(),
+            Either::Right(e) => e.access().environment.clone(),
+        };
+
+        {
+            let vars_sol = &sol.access().variable_names;
+            let vars_env = env.variable_names();
+            check_variables_sol(vars_sol, &vars_env)?;
+        }
+
+        let expr: &Expression = match &self.0 {
+            Either::Left(e) => e,
+            Either::Right(e) => &e.access().objective,
+        };
+        // Can fail if env in
+        let index_map = make_index_map(sol.access().varname_to_pos(), &env);
+        let res = sol
+            .access()
+            .iter_samples()
+            .map(|x| expr.evaluate_sample(&x, |i| index_map[&i].into()))
+            .collect::<Vec<f64>>()
+            .to_pyarray(py);
+        Ok(res)
     }
 }
 

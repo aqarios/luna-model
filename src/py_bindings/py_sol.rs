@@ -1,7 +1,7 @@
 use super::py_unwind::unwind;
 use super::py_utilities::repr_solution;
 use crate::core::solution::sol::Filter;
-use crate::core::solution::{ColElement, Column, PrintLayout, ShowMetadata, VarKey};
+use crate::core::solution::{ColElement, Column, PrintLayout, ShowMetadata, ValueSource, VarKey};
 use crate::core::{make_index_map, Sense, SharedEnvironment, Solution, VarAssignment, Vtype};
 use crate::errors::{
     ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, VariableNotExistingErr,
@@ -20,7 +20,7 @@ use crate::utils::ShareMut;
 use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
 use itertools::Itertools;
-use numpy::{PyArray1, ToPyArray};
+use numpy::{PyArray1, PyArrayMethods, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
@@ -548,7 +548,7 @@ impl PySolution {
     /// SampleIncorrectLengthErr
     ///     If a sample has a different number of variables than the environment.
     #[staticmethod]
-    #[pyo3(signature=(data, env=None, model=None, timing=None, sense=None, bit_order="RTL".to_owned(), energies=None)
+    #[pyo3(signature=(data, env=None, model=None, timing=None, sense=None, bit_order="RTL".to_owned(), energies=None, var_order=None)
     )]
     fn from_counts(
         data: IndexMap<String, usize>,
@@ -558,16 +558,22 @@ impl PySolution {
         sense: Option<Sense>,
         bit_order: String,
         energies: Option<Vec<f64>>,
+        var_order: Option<Vec<String>>,
     ) -> PyResult<PySolution> {
         Self::check_env_or_model(&env, &model)?;
         Self::check_sense_or_model(&sense, &model)?;
         let environment = Self::retrieve_environment(&env, &model)?;
 
+        let variable_names = var_order.unwrap_or_else(|| environment.variable_names());
+
         let mut sol = Solution::with_sense(
             sense.unwrap_or(model.as_ref().map(|m| m.access().sense).unwrap_or_default()),
         );
-        for (idx, v) in environment.access().all_variables().enumerate() {
-            match v.vtype {
+
+        for (idx, name) in variable_names.iter().enumerate() {
+            let vidx = environment.varidx_for_name(name);
+            let vtype = environment.access().get_vtype(vidx);
+            match vtype {
                 Vtype::Binary => sol.add_column(Column::Binary(ColElement::new(
                     idx.into(),
                     Vec::with_capacity(data.len()),
@@ -582,7 +588,7 @@ impl PySolution {
                     ))
                 }
             }
-            sol.variable_names.push(v.name.clone())
+            sol.variable_names.push(name.clone())
         }
 
         let order = match bit_order.as_str() {
@@ -744,25 +750,36 @@ impl PySolution {
     /// Get the objective values of the single samples as a ndarray. A value will be
     /// None if the sample hasn't yet been evaluated.
     #[getter]
-    fn get_obj_values<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<Py<PyAny>>>> {
-        self.access().obj_values.as_ref().map(|ovs| {
-            ovs.iter()
-                .map(|x| x.into_py_any(py).unwrap())
-                .collect::<Vec<_>>()
-                .to_pyarray(py)
-        })
+    fn get_obj_values<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<f64>>> {
+        self.access().obj_values.as_ref().map(|e| e.to_pyarray(py))
+    }
+
+    #[setter]
+    fn set_obj_values<'a>(&mut self, input: Option<Bound<'a, PyArray1<f64>>>) -> PyResult<()> {
+        self.access_mut().obj_values = match input {
+            Some(array) => Some(array.to_vec()?),
+            None => None,
+        };
+        Ok(())
     }
 
     /// Get the raw energy values of the single samples as returned by the solver /
     /// algorithm. Will be None if the solver / algorithm did not provide a value.
     #[getter]
-    fn get_raw_energies<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<Py<PyAny>>>> {
-        self.access().raw_energies.as_ref().map(|e| {
-            e.iter()
-                .map(|x| x.into_py_any(py).unwrap())
-                .collect::<Vec<_>>()
-                .to_pyarray(py)
-        })
+    fn get_raw_energies<'a>(&self, py: Python<'a>) -> Option<Bound<'a, PyArray1<f64>>> {
+        self.access()
+            .raw_energies
+            .as_ref()
+            .map(|e| e.to_pyarray(py))
+    }
+
+    #[setter]
+    fn set_raw_energies<'a>(&mut self, input: Option<Bound<'a, PyArray1<f64>>>) -> PyResult<()> {
+        self.access_mut().raw_energies = match input {
+            Some(array) => Some(array.to_vec()?),
+            None => None,
+        };
+        Ok(())
     }
 
     /// Return how often each sample occurred in the solution.
@@ -806,8 +823,27 @@ impl PySolution {
     /// ------
     /// ComputationError
     ///     If the computation fails for any reason.
-    fn expectation_value(&self) -> PyResult<f64> {
-        Ok(self.access().expectation_value()?)
+    #[pyo3(signature=(value_toggle=ValueSource::Obj))]
+    fn expectation_value(&self, value_toggle: ValueSource) -> PyResult<f64> {
+        Ok(self.access().expectation_value(Some(value_toggle))?)
+    }
+
+    /// Compute the temperature weighted expectation value of the solution.
+    ///
+    /// Returns
+    /// -------
+    /// float
+    ///     The expectation value.
+    ///
+    /// Raises
+    /// ------
+    /// ComputationError
+    ///     If the computation fails for any reason.
+    #[pyo3(signature=(beta, value_toggle=ValueSource::Obj))]
+    fn temperature_weighted(&self, beta: f64, value_toggle: ValueSource) -> PyResult<f64> {
+        Ok(self
+            .access()
+            .temperature_weighted(beta, Some(value_toggle))?)
     }
 
     /// Compute the Conditional Value at Rist (CVaR) of the solution.
@@ -821,8 +857,9 @@ impl PySolution {
     /// ------
     /// ComputationError
     ///     If the computation fails for any reason.
-    fn cvar(&self, alpha: f64) -> PyResult<f64> {
-        Ok(self.access().cvar(alpha)?)
+    #[pyo3(signature=(alpha, value_toggle=ValueSource::Obj))]
+    fn cvar(&self, alpha: f64, value_toggle: ValueSource) -> PyResult<f64> {
+        Ok(self.access().cvar(alpha, Some(value_toggle))?)
     }
 
     /// Compute the expectation value of the solution.
@@ -924,7 +961,12 @@ impl PySolution {
     /// IOError
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<Py<PyAny>> {
+    fn encode(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<Py<PyAny>> {
         // Ok(PyBytes::new(py, &self.access().encode(compress, level)?).into())
         Ok(PyBytes::new(py, &self.access().encode(compress, level)?).into())
     }

@@ -1,6 +1,5 @@
-use unwind_macros::unwindable;
-use crate::py_bindings::unwind;
 use crate::py_bindings::py_usize::PyUsize;
+use crate::py_bindings::unwind;
 use crate::{
     py_bindings::{
         py_env::{PyEnvironment, CURRENT_ENV},
@@ -13,6 +12,7 @@ use crate::{
 };
 use pyo3::{ffi::c_str, prelude::*};
 use std::ffi::CStr;
+use unwind_macros::unwindable;
 
 #[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
@@ -34,7 +34,7 @@ def extract(result, qp, timing, env):
         sample = []
         for i, b in enumerate(bitstring):
             sample.append(int(b))
-            
+
             if n == 0:
                 ordering.append(env.get_variable(qp.variables[i].name))
 
@@ -44,11 +44,11 @@ def extract(result, qp, timing, env):
         flat_counts.append(count)
 
     return translator.IbmTranslator.translate(
-        samples, 
-        ordering, 
-        energies, 
-        flat_counts, 
-        timing, 
+        samples,
+        ordering,
+        energies,
+        flat_counts,
+        timing,
         env
     )
 "
@@ -73,7 +73,7 @@ def extract(result, qp, timing, env):
         sample = []
         for i, b in enumerate(bitstring):
             sample.append(int(b))
-            
+
             if n == 0:
                 ordering.append(env.get_variable(qp.variables[i].name))
 
@@ -83,11 +83,11 @@ def extract(result, qp, timing, env):
         flat_counts.append(count)
 
     return translator.IbmTranslator.translate(
-        samples, 
-        ordering, 
-        energies, 
-        flat_counts, 
-        timing, 
+        samples,
+        ordering,
+        energies,
+        flat_counts,
+        timing,
         env
     )
 "
@@ -108,8 +108,14 @@ def extract(result, qp, timing, env):
 /// >>> ...
 /// >>> ibm_result = ...
 /// >>> aqs = lq.translator.IbmTranslator.to_aq(ibm_result)
-#[cfg_attr(not(feature = "lq"), pyclass(name = "IbmTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "IbmTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "IbmTranslator", module = "aqmodels._core.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "IbmTranslator", module = "luna_quantum._core.translator")
+)]
 pub struct PyIbmTranslator {}
 
 #[unwindable]

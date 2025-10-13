@@ -1,7 +1,7 @@
-use unwind_macros::unwindable;
 use crate::py_bindings::unwind;
 use pyo3::{ffi::c_str, prelude::*};
 use std::{collections::HashMap, ffi::CStr};
+use unwind_macros::unwindable;
 
 use crate::py_bindings::py_usize::PyUsize;
 use crate::{
@@ -63,8 +63,14 @@ def extract(result, timing, env):
 /// >>> ...
 /// >>> qctrl_result = ...
 /// >>> aqs = lq.translator.QctrlTranslator.to_aq(qctrl_result)
-#[cfg_attr(not(feature = "lq"), pyclass(name = "QctrlTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "QctrlTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "QctrlTranslator", module = "aqmodels._core.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "QctrlTranslator", module = "luna_quantum._core.translator")
+)]
 pub struct PyQctrlTranslator(pub QctrlTranslator);
 
 #[unwindable]

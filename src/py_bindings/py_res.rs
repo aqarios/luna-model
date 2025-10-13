@@ -1,9 +1,9 @@
+use super::unwind;
 use crate::core::solution::result::OwnedResult;
 use crate::types::Bias;
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray1, ToPyArray};
 use pyo3::{pyclass, pymethods, Bound, PyRef, PyRefMut, Python};
-use super::unwind;
 use unwind_macros::unwindable;
 
 use super::py_sample::PySample;

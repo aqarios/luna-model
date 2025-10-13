@@ -91,7 +91,7 @@ impl SharedEnvironment {
             Err(VariableCreationErr::VariableExists(_)) => {
                 let content = match enc {
                     Some(e) => e,
-                    // unwrap here is safe as variable exists. 
+                    // unwrap here is safe as variable exists.
                     None => &[(*self.access().variables_lookup.get(name).unwrap()).into()],
                 };
                 let suffix = Sqids::default().encode(content).unwrap();

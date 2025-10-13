@@ -11,11 +11,11 @@ pub mod py_sample;
 pub mod py_sol;
 mod py_timing;
 mod py_translator;
+pub mod py_unwind;
 mod py_usize;
 mod py_utilities;
 mod py_utils;
 mod py_var;
-pub mod py_unwind;
 
 pub use py_unwind::unwind;
 

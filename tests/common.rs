@@ -2,10 +2,9 @@ use std::fmt::Debug;
 
 use aqmodels::{
     core::{
-        SharedEnvironment,
         expression::ExpressionBaseCreation,
         operations::{AddToExpression, MulToExpression},
-        Expression, VarRef, Vtype,
+        Expression, SharedEnvironment, VarRef, Vtype,
     },
     types::Bias,
 };

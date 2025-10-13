@@ -3,13 +3,15 @@ use std::{collections::HashSet, fmt::Debug};
 use pyo3::prelude::*;
 
 use crate::{
-    core::{Model, Solution}, py_bindings::{AnyPass, IntoAnyPass}, transformations::{
+    core::{Model, Solution},
+    py_bindings::{AnyPass, IntoAnyPass},
+    transformations::{
         analysis_cache::AnalysisCache,
         base_passes::{self, BasePass, Pass},
-        intermediate_representation::IntermediateRepresentation,
+        intermediate_representation::{ExecutionLog, IntermediateRepresentation},
         pass_manager::PassManager,
         passes::pipeline::{AbstractPipeline, PipelineResult},
-    }
+    },
 };
 
 use super::PyPipeline;
@@ -46,13 +48,18 @@ impl AbstractPipeline for PyPipelineAdapter {
         })
     }
 
-    fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {
-        Python::attach(|py| {
+    fn backwards(
+        &self,
+        solution: Solution,
+        ir: &IntermediateRepresentation,
+        log: &ExecutionLog,
+    ) -> Solution {
+        Python::with_gil(|py| {
             self.inner
                 .extract::<PyPipeline>(py)
                 .unwrap()
                 .0
-                .backwards(solution, ir)
+                .backwards(solution, ir, log)
         })
     }
 
@@ -107,4 +114,3 @@ impl IntoAnyPass for PyPipelineAdapter {
         Python::attach(|py| AnyPass::PyPipeline(self.inner.clone_ref(py)))
     }
 }
-
