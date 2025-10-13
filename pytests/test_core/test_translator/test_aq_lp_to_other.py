@@ -1,8 +1,18 @@
 from pathlib import Path
+import sys
 
 import pytest
 from dimod import lp as dimod_lp
-from pyscipopt import Model as ScipModel
+
+NOT_RUN_SCIP = False
+try:
+    from pyscipopt import Model as ScipModel
+except ImportError as _:
+    print(
+        "SCOP is not installed and thus, the Gurobi tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_SCIP = True
 
 from aqmodels import Bounds, Model, Variable, Vtype
 from aqmodels.translator import LpTranslator
@@ -61,6 +71,7 @@ def test_translate_to_cqm(model_lp_str_bin: str):
     _ = dimod_lp.loads(model_lp_str_bin)
 
 
+@pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 @pytest.mark.translator
 def test_translate_to_zib():
     scip_model = ScipModel()

@@ -14,8 +14,8 @@ use crate::utils::Share;
 use derive_more::{Deref, DerefMut};
 use either::Either::{Left, Right};
 use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
-use pyo3::prelude::*;
 use pyo3::types::PyBool;
+use pyo3::{prelude::*, IntoPyObjectExt};
 use std::hash::{DefaultHasher, Hash, Hasher};
 use unwind_macros::unwindable;
 
@@ -203,7 +203,7 @@ impl PyVariable {
     ///     If the operands belong to different environments.
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __add__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __add__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         self.check_living()?;
         let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
@@ -236,7 +236,7 @@ impl PyVariable {
     /// ------
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __radd__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __radd__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         self.check_living()?;
         self.__add__(py, other)
     }
@@ -258,7 +258,7 @@ impl PyVariable {
     ///     If the operands belong to different environments.
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __sub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __sub__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         self.check_living()?;
         let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
@@ -292,7 +292,7 @@ impl PyVariable {
     /// ------
     /// TypeError
     ///     If ``other`` is not a scalar.
-    fn __rsub__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __rsub__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         self.check_living()?;
         if let Ok(rhs) = other.extract::<f64>(py) {
             Ok(PyExpression::new(self.rsub(rhs)))
@@ -318,7 +318,7 @@ impl PyVariable {
     ///     If the operands belong to different environments.
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __mul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __mul__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         self.check_living()?;
         let expr: Expression;
         if let Ok(rhs) = other.extract::<f64>(py) {
@@ -352,7 +352,7 @@ impl PyVariable {
     /// ------
     /// TypeError
     ///     If the operand type is unsupported.
-    fn __rmul__(&self, py: Python, other: PyObject) -> PyResult<PyExpression> {
+    fn __rmul__(&self, py: Python, other: Py<PyAny>) -> PyResult<PyExpression> {
         self.check_living()?;
         self.__mul__(py, other)
     }
@@ -427,14 +427,15 @@ impl PyVariable {
     /// ------
     /// TypeError
     ///     If the right-hand side is not of type float, int, Variable or Expression.
-    fn __eq__(&self, py: Python, rhs: PyObject) -> PyResult<PyObject> {
+    fn __eq__(&self, py: Python, rhs: Py<PyAny>) -> PyResult<Py<PyAny>> {
         self.check_living()?;
         if let Ok(var) = rhs.extract::<PyVariable>(py) {
-            Ok(PyBool::new(py, *self == var).to_owned().into())
+            Ok(PyBool::new(py, *self == var).to_owned().into_py_any(py)?)
         } else {
             #[allow(deprecated)]
             self.make_constraint(py, rhs, Comparator::Eq)
-                .map(|c| c.into_py(py))
+                .map(|c| c.into_py_any(py).unwrap())
+            // todo(team): handle unwrap here better.
         }
     }
 
@@ -457,7 +458,7 @@ impl PyVariable {
     /// ------
     /// TypeError
     ///     If the right-hand side is not of type float, int, Variable or Expression.
-    fn __le__(&self, py: Python, rhs: PyObject) -> PyResult<PyConstraint> {
+    fn __le__(&self, py: Python, rhs: Py<PyAny>) -> PyResult<PyConstraint> {
         self.make_constraint(py, rhs, Comparator::Le)
     }
 
@@ -480,7 +481,7 @@ impl PyVariable {
     /// ------
     /// TypeError
     ///     If the right-hand side is not of type float, int, Variable or Expression.
-    fn __ge__(&self, py: Python, rhs: PyObject) -> PyResult<PyConstraint> {
+    fn __ge__(&self, py: Python, rhs: Py<PyAny>) -> PyResult<PyConstraint> {
         self.make_constraint(py, rhs, Comparator::Ge)
     }
 
@@ -506,7 +507,7 @@ impl PyVariable {
     fn make_constraint(
         &self,
         py: Python,
-        rhs: PyObject,
+        rhs: Py<PyAny>,
         comparator: Comparator,
     ) -> PyResult<PyConstraint> {
         self.check_living()?;

@@ -25,7 +25,7 @@ impl PyTransformationPassAdapter {
 
     /// Check that the superclass implements all required methods.
     fn check_superclass(&self) -> Result<(), PyErr> {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let base_cls = py.get_type::<PyTransformationPass>();
             let cls = self.inner.getattr(py, "__class__")?;
             let cls_name: String = cls.getattr(py, "__name__")?.extract(py)?;
@@ -59,7 +59,7 @@ impl PyTransformationPassAdapter {
 
 impl BasePass for PyTransformationPassAdapter {
     fn name(&self) -> String {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             self.inner
                 .getattr(py, "name")
                 .and_then(|res| res.extract::<String>(py))
@@ -68,7 +68,7 @@ impl BasePass for PyTransformationPassAdapter {
     }
 
     fn requires(&self) -> Vec<String> {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             self.inner
                 .getattr(py, "requires")
                 .and_then(|res| res.extract::<Vec<String>>(py))
@@ -79,7 +79,7 @@ impl BasePass for PyTransformationPassAdapter {
 
 impl TransformationPass for PyTransformationPassAdapter {
     fn invalidates(&self) -> Vec<String> {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             self.inner
                 .getattr(py, "invalidates")
                 .and_then(|res| res.extract::<Vec<String>>(py))
@@ -88,7 +88,7 @@ impl TransformationPass for PyTransformationPassAdapter {
     }
 
     fn run(&self, model: Model, cache: &AnalysisCache) -> TransformationPassResult {
-        let py_outcome = Python::with_gil(|py| {
+        let py_outcome = Python::attach(|py| {
             let py_res = self
                 .inner
                 .call_method1(
@@ -109,7 +109,7 @@ impl TransformationPass for PyTransformationPassAdapter {
     }
 
     fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution {
-        let py_sol = Python::with_gil(|py| {
+        let py_sol = Python::attach(|py| {
             let py_res = self
                 .inner
                 .call_method1(
@@ -140,7 +140,7 @@ impl Debug for PyTransformationPassAdapter {
 
 impl Clone for PyTransformationPassAdapter {
     fn clone(&self) -> Self {
-        Python::with_gil(|py| PyTransformationPassAdapter {
+        Python::attach(|py| PyTransformationPassAdapter {
             inner: self.inner.clone_ref(py),
         })
     }
@@ -148,6 +148,6 @@ impl Clone for PyTransformationPassAdapter {
 
 impl IntoAnyPass for PyTransformationPassAdapter {
     fn as_anypass(&self) -> AnyPass {
-        Python::with_gil(|py| AnyPass::PyTransformationPass(self.inner.clone_ref(py)))
+        Python::attach(|py| AnyPass::PyTransformationPass(self.inner.clone_ref(py)))
     }
 }

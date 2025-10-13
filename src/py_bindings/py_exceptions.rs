@@ -1,4 +1,4 @@
-use crate::core::expression::{VariableOutOfRangeErr, EnvMismatchError};
+use crate::core::expression::{EnvMismatchError, VariableOutOfRangeErr};
 use crate::errors::{
     BqmTranslatorErr, ColumnCreationErr, CompressionErr, ComputationErr, DifferentEnvsErr,
     DuplicateConstraintNameErr, EvaluationErr, GetConstraintErr, IllegalConstraintNameErr,

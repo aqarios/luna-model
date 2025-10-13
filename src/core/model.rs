@@ -1,6 +1,6 @@
 use super::constraints::Constraints;
 use super::environment::SharedEnvironment;
-use super::expression::{ExpressionBaseAdd, ExpressionBaseAdjustment, ExpressionBaseCreation};
+use super::expression::{ExpressionBaseAdd, ExpressionBaseCreation};
 use super::solution::result::OwnedResult;
 use super::solution::sample::SampleOwned;
 use super::solution::sol::Solution;

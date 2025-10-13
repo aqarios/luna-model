@@ -87,8 +87,14 @@ def extract(model):
 /// Convert it back to a dense matrix:
 ///
 /// >>> recovered = CqmTranslator.from_aq(model)
-#[cfg_attr(not(feature = "lq"), pyclass(name = "CqmTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "CqmTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "CqmTranslator", module = "aqmodels._core.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "CqmTranslator", module = "luna_quantum._core.translator")
+)]
 pub struct PyCqmTranslator {}
 
 #[unwindable]
@@ -113,10 +119,11 @@ impl PyCqmTranslator {
     ///     If the translation fails for some reason.
     #[staticmethod]
     #[pyo3(signature=(model))]
-    fn from_aq<'a>(py: Python<'a>, model: PyObject) -> PyResult<PyObject> {
-        let extractor: PyObject = PyModule::from_code(py, PY_CODE_FROM_AQ, c_str!(""), c_str!(""))?
-            .getattr("extract")?
-            .into();
+    fn from_aq<'a>(py: Python<'a>, model: Py<PyAny>) -> PyResult<Py<PyAny>> {
+        let extractor: Py<PyAny> =
+            PyModule::from_code(py, PY_CODE_FROM_AQ, c_str!(""), c_str!(""))?
+                .getattr("extract")?
+                .into();
         let args = (model,);
         let result = extractor.call1(py, args)?;
         Ok(result)
@@ -142,8 +149,8 @@ impl PyCqmTranslator {
     ///     If the translation fails for some reason.
     #[staticmethod]
     #[pyo3(signature=(cqm))]
-    fn to_aq(py: Python, cqm: PyObject) -> PyResult<PyObject> {
-        let extractor: PyObject = PyModule::from_code(py, PY_CODE_TO_AQ, c_str!(""), c_str!(""))?
+    fn to_aq(py: Python, cqm: Py<PyAny>) -> PyResult<Py<PyAny>> {
+        let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE_TO_AQ, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();
         let args = (cqm,);

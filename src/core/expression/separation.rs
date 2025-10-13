@@ -57,7 +57,6 @@ impl Separation for Expression {
             }
         }
 
-
         Ok((left, right))
     }
 }

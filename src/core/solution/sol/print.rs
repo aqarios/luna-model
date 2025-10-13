@@ -323,7 +323,10 @@ impl Solution {
                 metadata[0].push(String::from(s));
             }
             let mut width_reached = 0;
-            for (j, raw) in maybe_sorted_by_idxs(&self.raw_energies, &idxs).iter().enumerate() {
+            for (j, raw) in maybe_sorted_by_idxs(&self.raw_energies, &idxs)
+                .iter()
+                .enumerate()
+            {
                 let s = match raw {
                     None => String::from("?"),
                     Some(bias) => Self::format_bias(*bias, max_col_size),
@@ -547,8 +550,14 @@ impl Solution {
                 break 'res obj;
             }
             let obj = Self::cmp_bias(
-                self.raw_energies.as_ref().map(|e| e[idx2]).map(|b| b * sense),
-                self.raw_energies.as_ref().map(|e| e[idx1]).map(|b| b * sense),
+                self.raw_energies
+                    .as_ref()
+                    .map(|e| e[idx2])
+                    .map(|b| b * sense),
+                self.raw_energies
+                    .as_ref()
+                    .map(|e| e[idx1])
+                    .map(|b| b * sense),
             );
             if obj != Ordering::Equal {
                 break 'res obj;

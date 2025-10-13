@@ -780,6 +780,7 @@ impl ExpressionBaseMulDirect<VarIndex, Bias> for Expression {
 }
 
 impl Expression {
+    // todo(team): remove
     fn check_and_get(&self, v: VarIndex) -> Result<usize, VariableOutOfRangeErr> {
         let v_idx: usize = v.into();
         Ok(v_idx)
@@ -790,12 +791,10 @@ impl Expression {
         // }
     }
 
+    // todo(team): remove
     fn check_multi(&self, vars: &Vec<VarIndex>) -> Result<(), VariableOutOfRangeErr> {
         for v in vars {
-            let v_idx: usize = (*v).into();
-            // if !self.active[v_idx] {
-            //     return Err(VariableOutOfRangeErr(v_idx));
-            // }
+            let _: usize = (*v).into();
         }
         Ok(())
     }

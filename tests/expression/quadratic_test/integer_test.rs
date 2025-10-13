@@ -24,7 +24,8 @@ fn quadratic_expression_equal_integer_varref() {
     let expected_linear: Vec<Bias> = vec![Bias::default(); biases.len()];
     let expected_quadratic: Vec<TwoVarTerm> = vec![TwoVarTerm::new(
         0.into(),
-        biases.iter()
+        biases
+            .iter()
             .enumerate()
             .map(|(i, b)| OneVarTerm::new((i).into(), *b))
             .collect(),
@@ -79,7 +80,8 @@ fn quadratic_expression_equal_integer_expr() {
     let expected_linear: Vec<Bias> = vec![Bias::default(); biases.len()];
     let expected_quadratic: Vec<TwoVarTerm> = vec![TwoVarTerm::new(
         0.into(),
-        biases.iter()
+        biases
+            .iter()
             .enumerate()
             .map(|(i, b)| OneVarTerm::new((i).into(), *b))
             .collect(),

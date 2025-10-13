@@ -29,7 +29,7 @@ impl PassManager {
         check_dependencies(&self.passes)?;
         let mut ir = run_passes(&self.passes, model, AnalysisCache::new(), self)?;
         ir.input_model = Some(input_model);
-        return Ok(ir)
+        return Ok(ir);
     }
 
     pub fn backwards(&self, solution: Solution, ir: &IntermediateRepresentation) -> Solution {

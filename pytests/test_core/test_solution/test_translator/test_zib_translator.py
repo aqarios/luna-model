@@ -1,8 +1,18 @@
 from pathlib import Path
+import sys
 
 import numpy as np
 import pytest
-from pyscipopt import Model as ScipModel
+
+NOT_RUN_SCIP = False
+try:
+    from pyscipopt import Model as ScipModel
+except ImportError as _:
+    print(
+        "SCOP is not installed and thus, the Gurobi tests will not be executed",
+        file=sys.stdout,
+    )
+    NOT_RUN_SCIP = True
 
 from aqmodels import Bounds, Model, Timer, Variable, Vtype
 from aqmodels.translator import LpTranslator, ZibTranslator
@@ -83,6 +93,7 @@ def model_quadratic() -> Model:
     return m
 
 
+@pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 @pytest.mark.solution_translation
 def test_zib_translator(model: Model):
     lp_str = LpTranslator.from_aq(model)
@@ -132,6 +143,7 @@ def test_zib_translator(model: Model):
         assert np.isclose(sample[v], value, atol=1e-5)
 
 
+@pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 @pytest.mark.solution_translation
 def test_zib_translator_quadratic(model_quadratic: Model):
     lp_str = LpTranslator.from_aq(model_quadratic)

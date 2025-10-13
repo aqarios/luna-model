@@ -9,7 +9,7 @@ use std::fmt::Debug;
 #[cfg(feature = "py")]
 use {
     crate::py_bindings::unwind,
-    pyo3::{Bound, Python},
+    pyo3::{Bound, PyAny, Python},
     unwind_macros::unwindable,
 };
 

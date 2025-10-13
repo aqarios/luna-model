@@ -97,7 +97,8 @@ impl Linear {
         self.biases.len()
     }
 
-    pub fn resize(&mut self, new_len: usize) {
+    // todo(team): remove
+    pub fn resize(&mut self, _: usize) {
         // self.biases.resize_with(new_len, Bias::default);
     }
 

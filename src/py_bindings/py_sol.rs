@@ -961,7 +961,12 @@ impl PySolution {
     /// IOError
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+    fn encode(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<Py<PyAny>> {
         // Ok(PyBytes::new(py, &self.access().encode(compress, level)?).into())
         Ok(PyBytes::new(py, &self.access().encode(compress, level)?).into())
     }
@@ -973,7 +978,7 @@ impl PySolution {
         py: Python,
         compress: Option<bool>,
         level: Option<i32>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         self.encode(py, compress, level)
     }
 
@@ -1045,7 +1050,7 @@ impl PySolution {
     ///     If `item` has the wrong type.
     /// IndexError
     ///     If the row index is out of bounds for the variable environment.
-    fn __getitem__(&self, py: Python, item: PyObject) -> PyResult<PyResultView> {
+    fn __getitem__(&self, py: Python, item: Py<PyAny>) -> PyResult<PyResultView> {
         if let Ok(res_idx) = item.extract::<isize>(py) {
             if res_idx < 0 {
                 return Err(PyValueError::new_err(format!(

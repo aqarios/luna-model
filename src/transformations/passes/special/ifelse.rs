@@ -51,7 +51,7 @@ impl Condition {
         match self {
             Self::RsCallback(rs_fn) => Ok(rs_fn(cache)),
             #[cfg(feature = "py")]
-            Self::PyCallback(py_fn) => Python::with_gil(|py| {
+            Self::PyCallback(py_fn) => Python::attach(|py| {
                 let r = py_fn
                     .call1(py, (PyAnalysisCache::new(cache.clone_py(py)),))
                     .map_err(|e| CompilationError(e.to_string()))?;
@@ -99,7 +99,7 @@ impl Clone for Condition {
         match self {
             Self::RsCallback(inner) => Self::RsCallback(inner.clone()),
             #[cfg(feature = "py")]
-            Self::PyCallback(pyany) => Self::PyCallback(Python::with_gil(|py| pyany.clone_ref(py))),
+            Self::PyCallback(pyany) => Self::PyCallback(Python::attach(|py| pyany.clone_ref(py))),
         }
     }
 }

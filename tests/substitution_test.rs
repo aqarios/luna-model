@@ -201,7 +201,8 @@ fn substitute_integer_squared_model() {
 fn substitute_integer_higher_order_model() {
     let mut model = Model::default();
 
-    let target = &model.environment
+    let target = &model
+        .environment
         .add_integer(
             "target",
             Some(LazyBounds::new(
@@ -210,11 +211,20 @@ fn substitute_integer_higher_order_model() {
             )),
         )
         .expect("adding 'a' to env failed.");
-    model.objective= (target * target * target).expect("creating base expression failed.");
+    model.objective = (target * target * target).expect("creating base expression failed.");
 
-    let x1 = &model.environment.add_binary("x_1").expect("adding 'b1' to env failed.");
-    let x2 = &model.environment.add_binary("x_2").expect("adding 'b2' to env failed.");
-    let x3 = &model.environment.add_binary("x_3").expect("adding 'b3' to env failed.");
+    let x1 = &model
+        .environment
+        .add_binary("x_1")
+        .expect("adding 'b1' to env failed.");
+    let x2 = &model
+        .environment
+        .add_binary("x_2")
+        .expect("adding 'b2' to env failed.");
+    let x3 = &model
+        .environment
+        .add_binary("x_3")
+        .expect("adding 'b3' to env failed.");
     let replacement = (x1 + 2 * x2 + 4 * x3).expect("Sum b1, b2 and b3 failed.");
 
     let expected = ((x1 ^ 3)

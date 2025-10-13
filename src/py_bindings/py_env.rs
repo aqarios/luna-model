@@ -1,8 +1,8 @@
 use super::unwind;
-use unwind_macros::unwindable;
 use crate::{
     core::{environment::SharedEnvironment, ContentEquality},
-    serialization::{Decodable, Decompressable, Encodable, Unversionizable}, utils::Share,
+    serialization::{Decodable, Decompressable, Encodable, Unversionizable},
+    utils::Share,
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{
@@ -10,6 +10,7 @@ use pyo3::{
     types::{PyBytes, PyType},
 };
 use std::{cell::RefCell, ops::Deref};
+use unwind_macros::unwindable;
 
 use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
 
@@ -156,7 +157,12 @@ impl PyEnvironment {
     /// IOError
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
-    fn encode(&self, py: Python, compress: Option<bool>, level: Option<i32>) -> PyResult<PyObject> {
+    fn encode(
+        &self,
+        py: Python,
+        compress: Option<bool>,
+        level: Option<i32>,
+    ) -> PyResult<Py<PyAny>> {
         Ok(PyBytes::new(py, &self.access().deref().encode(compress, level)?).into())
     }
 
@@ -169,7 +175,7 @@ impl PyEnvironment {
         py: Python,
         compress: Option<bool>,
         level: Option<i32>,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         self.encode(py, compress, level)
     }
 
@@ -226,10 +232,13 @@ impl PyEnvironment {
 
     #[getter]
     fn num_variables(&self) -> usize {
-        return self.varcount().into()
+        return self.varcount().into();
     }
 
     fn variables(&self) -> Vec<PyVariable> {
-        self.vrefs().into_iter().map(|v| PyVariable::new(v)).collect()
+        self.vrefs()
+            .into_iter()
+            .map(|v| PyVariable::new(v))
+            .collect()
     }
 }

@@ -1,5 +1,5 @@
 use crate::core::expression::ExpressionBaseAdd;
-use crate::core::{ExpressionBaseAdjustment, Sense, Vtype};
+use crate::core::{Sense, Vtype};
 use crate::errors::{
     BqmTranslatorErr, ModelSenseNotMinimizeErr, ModelVtypeErr, VariableCreationErr,
 };

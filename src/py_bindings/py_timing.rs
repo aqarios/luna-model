@@ -2,11 +2,11 @@ use crate::core::{Timer, Timing};
 use derive_more::{Deref, DerefMut};
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::{pyclass, pymethods, PyResult};
-use unwind_macros::unwindable;
 use std::time::{Duration, SystemTime};
+use unwind_macros::unwindable;
 
-use super::unwind;
 use super::py_utilities::repr_timing;
+use super::unwind;
 
 /// The object that holds information about an algorithm's runtime.
 ///
@@ -29,8 +29,14 @@ use super::py_utilities::repr_timing;
 /// 1.2999193
 /// >>> timing.qpu
 /// 0.02491934
-#[cfg_attr(not(feature = "lq"), pyclass(name = "Timing", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "Timing", module = "luna_quantum._core"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "Timing", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "Timing", module = "luna_quantum._core")
+)]
 #[derive(Clone, Deref, DerefMut, Debug)]
 pub struct PyTiming(pub Timing);
 
@@ -47,8 +53,11 @@ pub struct PyTiming(pub Timing);
 /// >>> timer = Timer.start()
 /// >>> solution = ... # create a solution by running an algorithm.
 /// >>> timing = timer.stop()
-#[cfg_attr(not(feature = "lq"), pyclass(name = "Timer", module = "aqmodels._core"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "Timer", module = "luna_quantum._core"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "Timer", module = "aqmodels._core")
+)]
+#[cfg_attr(feature = "lq", pyclass(name = "Timer", module = "luna_quantum._core"))]
 #[derive(Deref, DerefMut)]
 pub struct PyTimer(pub Timer);
 

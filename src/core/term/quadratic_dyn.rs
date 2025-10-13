@@ -36,7 +36,8 @@ where
         }
     }
 
-    pub fn resize(&mut self, n: usize) {
+    // todo(team): remove
+    pub fn resize(&mut self, _: usize) {
         // self.adj.resize(n, Vec::new());
     }
 

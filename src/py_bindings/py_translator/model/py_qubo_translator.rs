@@ -1,6 +1,6 @@
-use crate::py_bindings::unwind;
 use crate::core::Qubo;
 use crate::py_bindings::py_model::PyModel;
+use crate::py_bindings::unwind;
 use crate::{core::Vtype, translator::MatrixTranslator};
 use derive_more::{Deref, DerefMut};
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
@@ -8,8 +8,14 @@ use pyo3::prelude::*;
 use unwind_macros::unwindable;
 
 /// A wrapper around qubo matrices that holds all relevant metadata, e.g., the model offset.
-#[cfg_attr(not(feature = "lq"), pyclass(name = "Qubo", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "Qubo", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "Qubo", module = "aqmodels._core.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "Qubo", module = "luna_quantum._core.translator")
+)]
 #[derive(Deref, DerefMut)]
 pub struct PyQubo(pub Qubo);
 
@@ -105,8 +111,14 @@ impl PyQubo {
 ///
 /// >>> recovered = QuboTranslator.from_aq(model)
 /// >>> assert np.allclose(q, recovered.matrix)
-#[cfg_attr(not(feature = "lq"), pyclass(name = "QuboTranslator", module = "aqmodels._core.translator"))]
-#[cfg_attr(feature = "lq",      pyclass(name = "QuboTranslator", module = "luna_quantum._core.translator"))]
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "QuboTranslator", module = "aqmodels._core.translator")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "QuboTranslator", module = "luna_quantum._core.translator")
+)]
 pub struct PyQuboTranslator {}
 
 #[derive(FromPyObject)]
