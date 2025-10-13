@@ -1,7 +1,7 @@
 use super::py_unwind::unwind;
 use super::py_utilities::repr_solution;
 use crate::core::solution::sol::Filter;
-use crate::core::solution::{ColElement, Column, PrintLayout, ShowMetadata, ValueToggle, VarKey};
+use crate::core::solution::{ColElement, Column, PrintLayout, ShowMetadata, ValueSource, VarKey};
 use crate::core::{make_index_map, Sense, SharedEnvironment, Solution, VarAssignment, Vtype};
 use crate::errors::{
     ComputationErr, SampleIncorrectLengthErr, SampleUnexpectedVariableErr, VariableNotExistingErr,
@@ -823,8 +823,8 @@ impl PySolution {
     /// ------
     /// ComputationError
     ///     If the computation fails for any reason.
-    #[pyo3(signature=(value_toggle=ValueToggle::Obj))]
-    fn expectation_value(&self, value_toggle: ValueToggle) -> PyResult<f64> {
+    #[pyo3(signature=(value_toggle=ValueSource::Obj))]
+    fn expectation_value(&self, value_toggle: ValueSource) -> PyResult<f64> {
         Ok(self.access().expectation_value(Some(value_toggle))?)
     }
 
@@ -839,8 +839,8 @@ impl PySolution {
     /// ------
     /// ComputationError
     ///     If the computation fails for any reason.
-    #[pyo3(signature=(beta, value_toggle=ValueToggle::Obj))]
-    fn temperature_weighted(&self, beta: f64, value_toggle: ValueToggle) -> PyResult<f64> {
+    #[pyo3(signature=(beta, value_toggle=ValueSource::Obj))]
+    fn temperature_weighted(&self, beta: f64, value_toggle: ValueSource) -> PyResult<f64> {
         Ok(self
             .access()
             .temperature_weighted(beta, Some(value_toggle))?)
@@ -857,8 +857,8 @@ impl PySolution {
     /// ------
     /// ComputationError
     ///     If the computation fails for any reason.
-    #[pyo3(signature=(alpha, value_toggle=ValueToggle::Obj))]
-    fn cvar(&self, alpha: f64, value_toggle: ValueToggle) -> PyResult<f64> {
+    #[pyo3(signature=(alpha, value_toggle=ValueSource::Obj))]
+    fn cvar(&self, alpha: f64, value_toggle: ValueSource) -> PyResult<f64> {
         Ok(self.access().cvar(alpha, Some(value_toggle))?)
     }
 

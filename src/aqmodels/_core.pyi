@@ -785,7 +785,7 @@ class Timer:
         """
         ...
 
-class ValueToggle(Enum):
+class ValueSource(Enum):
     """Toggle enum for choosing the quantity for solution convenience functions."""
 
     Obj = ...
@@ -982,7 +982,7 @@ class Solution:
         """Get the names of all variables in the solution."""
         ...
 
-    def cvar(self, /, alpha: float, value_toggle: ValueToggle = ...) -> float:
+    def cvar(self, /, alpha: float, value_toggle: ValueSource = ...) -> float:
         """
         Compute the Conditional Value at Rist (CVaR) of the solution.
 
@@ -1004,7 +1004,7 @@ class Solution:
         ...
 
     def temperature_weighted(
-        self, /, beta: float, value_toggle: ValueToggle = ...
+        self, /, beta: float, value_toggle: ValueSource = ...
     ) -> float:
         """
         Compute the temperature weighted expectation value of the solution.
@@ -1026,7 +1026,7 @@ class Solution:
         """
         ...
 
-    def expectation_value(self, /, value_toggle: ValueToggle = ...) -> float:
+    def expectation_value(self, /, value_toggle: ValueSource = ...) -> float:
         """
         Compute the expectation value of the solution.
 

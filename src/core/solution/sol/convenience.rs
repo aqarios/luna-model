@@ -8,18 +8,18 @@ use pyo3::prelude::pyclass;
 
 #[cfg_attr(
     all(feature = "py", not(feature = "lq")),
-    pyclass(name = "ValueToggle", module = "aqmodels._core")
+    pyclass(name = "ValueSource", module = "aqmodels._core")
 )]
 #[cfg_attr(
     all(feature = "py", feature = "lq"),
-    pyclass(name = "ValueToggle", module = "luna_quantum._core")
+    pyclass(name = "ValueSource", module = "luna_quantum._core")
 )]
 #[derive(Debug, Clone)]
-pub enum ValueToggle {
+pub enum ValueSource {
     Raw,
     Obj,
 }
-impl Display for ValueToggle {
+impl Display for ValueSource {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Raw => f.write_str("raw_energies"),
@@ -41,23 +41,23 @@ impl Display for ValueToggle {
 // }
 
 impl Solution {
-    fn get_value(&self, toggle: ValueToggle) -> Result<&Vec<Bias>, ComputationErr> {
+    fn get_value(&self, toggle: ValueSource) -> Result<&Vec<Bias>, ComputationErr> {
         match toggle {
-            ValueToggle::Raw => &self.raw_energies,
-            ValueToggle::Obj => &self.obj_values,
+            ValueSource::Raw => &self.raw_energies,
+            ValueSource::Obj => &self.obj_values,
         }
         .as_ref()
         .ok_or(ComputationErr(format!("Field '{}' not evaluated.", toggle)))
     }
 
-    pub fn cvar(&self, alpha: Bias, toggle: Option<ValueToggle>) -> Result<Bias, ComputationErr> {
+    pub fn cvar(&self, alpha: Bias, toggle: Option<ValueSource>) -> Result<Bias, ComputationErr> {
         // Implementation based on definition of CVaR in https://arxiv.org/pdf/1907.04769
         // alpha has to be in (0.0, 1.0]
         if !(alpha.is_finite() && alpha > 0.0 && alpha <= 1.0) {
             return Err(ComputationErr(format!("alpha not in (0, 1], is {alpha}")));
         }
 
-        let objs = self.get_value(toggle.unwrap_or(ValueToggle::Obj))?;
+        let objs = self.get_value(toggle.unwrap_or(ValueSource::Obj))?;
         let k = objs.len();
         let m = (alpha * k as f64).ceil() as usize;
         let factor: f64 = 1.0 / m as f64;
@@ -69,11 +69,11 @@ impl Solution {
         Ok(factor * sum)
     }
 
-    pub fn expectation_value(&self, toggle: Option<ValueToggle>) -> Result<Bias, ComputationErr> {
+    pub fn expectation_value(&self, toggle: Option<ValueSource>) -> Result<Bias, ComputationErr> {
         let mut weight_sum: f64 = 0.0;
         let mut weighted_sum: Bias = Bias::default();
 
-        let obj_values = self.get_value(toggle.unwrap_or(ValueToggle::Obj))?;
+        let obj_values = self.get_value(toggle.unwrap_or(ValueSource::Obj))?;
         for (&ov, &c) in obj_values.iter().zip(&self.counts) {
             weight_sum += c as f64;
             weighted_sum += ov * c as f64;
@@ -85,7 +85,7 @@ impl Solution {
     pub fn temperature_weighted(
         &self,
         beta: Bias,
-        toggle: Option<ValueToggle>,
+        toggle: Option<ValueSource>,
     ) -> Result<Bias, ComputationErr> {
         if !(beta.is_finite() && beta >= 0.0) {
             return Err(ComputationErr(format!("beta needs to be >= 0, is {beta}")));
@@ -94,7 +94,7 @@ impl Solution {
         let mut weight_sum: f64 = 0.0;
         let mut weighted_sum: Bias = Bias::default();
 
-        let obj_values = self.get_value(toggle.unwrap_or(ValueToggle::Obj))?;
+        let obj_values = self.get_value(toggle.unwrap_or(ValueSource::Obj))?;
 
         for (&ov, &c) in obj_values.iter().zip(&self.counts) {
             let factor = (-beta * ov).exp() * (c as f64);

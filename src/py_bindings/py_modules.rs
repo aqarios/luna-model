@@ -1,6 +1,6 @@
 use pyo3::{prelude::*, PyTypeCheck};
 
-use crate::core::{solution::ValueToggle, Comparator, Sense, Vtype};
+use crate::core::{solution::ValueSource, Comparator, Sense, Vtype};
 
 use super::{
     py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_model_metadata,
@@ -13,7 +13,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Vtype>()?;
     m.add_class::<Comparator>()?;
     m.add_class::<Sense>()?;
-    m.add_class::<ValueToggle>()?;
+    m.add_class::<ValueSource>()?;
     // Add core components as wrappers.
     m.add_class::<py_env::PyEnvironment>()?;
     m.add_class::<py_expr::PyExpression>()?;
