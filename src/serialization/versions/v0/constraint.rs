@@ -16,7 +16,7 @@ static PLACEHOLDER_NAME: &str = "<NN>";
 #[derive(Clone, PartialEq, Message)]
 pub struct SerConstraints {
     /// Representation of the left-hand-sides of all constraints as a vector of byte
-    /// vectors. Each byte vector (Vec<u8>) is an encoded expression.
+    /// vectors. Each byte vector (`Vec<u8>`) is an encoded expression.
     #[prost(bytes, repeated, tag = "1")]
     lhsides: Vec<Vec<u8>>,
     /// Representation of the right-hand-sides of all constraints as a vector of double

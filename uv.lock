@@ -190,7 +190,7 @@ name = "authlib"
 version = "1.6.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cryptography" },
+    { name = "cryptography", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/cd/3f/1d3bbd0bf23bdd99276d4def22f29c27a914067b4cf66f753ff9b8bbd0f3/authlib-1.6.5.tar.gz", hash = "sha256:6aaf9c79b7cc96c900f0b284061691c5d4e61221640a948fe690b556a6d6d10b", size = 164553, upload-time = "2025-10-02T13:36:09.489Z" }
 wheels = [
@@ -382,7 +382,7 @@ name = "click"
 version = "8.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "colorama", marker = "python_full_version < '3.14' and sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/46/61/de6cd827efad202d7057d93e0fed9294b96952e188f7384832791c7b2254/click-8.3.0.tar.gz", hash = "sha256:e7b8232224eba16f4ebe410c25ced9f7875cb5f3263ffc93cc3e8da705e229c4", size = 276943, upload-time = "2025-09-18T17:32:23.696Z" }
 wheels = [
@@ -507,7 +507,7 @@ name = "cryptography"
 version = "46.0.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cffi", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "cffi", marker = "python_full_version < '3.14' and platform_python_implementation != 'PyPy'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/4a/9b/e301418629f7bfdf72db9e80ad6ed9d1b83c487c471803eaa6464c511a01/cryptography-46.0.2.tar.gz", hash = "sha256:21b6fc8c71a3f9a604f028a329e5560009cc4a3a828bfea5fcba8eb7647d88fe", size = 749293, upload-time = "2025-10-01T00:29:11.856Z" }
 wheels = [
@@ -693,21 +693,21 @@ name = "dwave-cloud-client"
 version = "0.14.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "authlib" },
-    { name = "click" },
-    { name = "diskcache" },
-    { name = "homebase" },
-    { name = "http-sf" },
-    { name = "importlib-metadata" },
-    { name = "orjson" },
-    { name = "packaging" },
-    { name = "plucky" },
-    { name = "pydantic" },
-    { name = "python-dateutil" },
-    { name = "requests", extra = ["socks"] },
-    { name = "typing-extensions" },
-    { name = "urllib3" },
-    { name = "werkzeug" },
+    { name = "authlib", marker = "python_full_version < '3.14'" },
+    { name = "click", marker = "python_full_version < '3.14'" },
+    { name = "diskcache", marker = "python_full_version < '3.14'" },
+    { name = "homebase", marker = "python_full_version < '3.14'" },
+    { name = "http-sf", marker = "python_full_version < '3.14'" },
+    { name = "importlib-metadata", marker = "python_full_version < '3.14'" },
+    { name = "orjson", marker = "python_full_version < '3.14'" },
+    { name = "packaging", marker = "python_full_version < '3.14'" },
+    { name = "plucky", marker = "python_full_version < '3.14'" },
+    { name = "pydantic", marker = "python_full_version < '3.14'" },
+    { name = "python-dateutil", marker = "python_full_version < '3.14'" },
+    { name = "requests", extra = ["socks"], marker = "python_full_version < '3.14'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.14'" },
+    { name = "urllib3", marker = "python_full_version < '3.14'" },
+    { name = "werkzeug", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/b9/ee/a64bb42d1cbd9c452aff6d7f51fe2d8a3cbe144296e8f0e6d63157f8ccf8/dwave_cloud_client-0.14.0.tar.gz", hash = "sha256:936bbb373b3a6ccedad96b3b5e706e884d59183731b7ad7ee8d6e9ee7ece5c80", size = 199190, upload-time = "2025-09-10T12:55:23.38Z" }
 wheels = [
@@ -719,17 +719,17 @@ name = "dwave-hybrid"
 version = "0.6.14"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "click" },
-    { name = "dimod" },
-    { name = "dwave-cloud-client" },
-    { name = "dwave-networkx" },
-    { name = "dwave-preprocessing" },
-    { name = "dwave-samplers" },
-    { name = "dwave-system" },
-    { name = "minorminer" },
-    { name = "networkx" },
-    { name = "numpy" },
-    { name = "plucky" },
+    { name = "click", marker = "python_full_version < '3.14'" },
+    { name = "dimod", marker = "python_full_version < '3.14'" },
+    { name = "dwave-cloud-client", marker = "python_full_version < '3.14'" },
+    { name = "dwave-networkx", marker = "python_full_version < '3.14'" },
+    { name = "dwave-preprocessing", marker = "python_full_version < '3.14'" },
+    { name = "dwave-samplers", marker = "python_full_version < '3.14'" },
+    { name = "dwave-system", marker = "python_full_version < '3.14'" },
+    { name = "minorminer", marker = "python_full_version < '3.14'" },
+    { name = "networkx", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
+    { name = "plucky", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/5e/4a/45523ebacaa031b165b617b7d92aa565a7d1a80f1191710e86f1699935b9/dwave_hybrid-0.6.14.tar.gz", hash = "sha256:1f75ac057075c3c7aefd931b03ff5e713c14ccffc17676d5a095424a45c48ad7", size = 95386, upload-time = "2025-03-26T11:31:21.311Z" }
 wheels = [
@@ -741,9 +741,9 @@ name = "dwave-networkx"
 version = "0.8.18"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "dimod" },
-    { name = "networkx" },
-    { name = "numpy" },
+    { name = "dimod", marker = "python_full_version < '3.14'" },
+    { name = "networkx", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/b5/27/9ce599cb00fbf28b13fd5abab04e769401d0dc473f7940d94c92326f7ac7/dwave_networkx-0.8.18.tar.gz", hash = "sha256:b9d00e3f9dcc642572e676ffbca15b468204411724711cee606af285c30e6eca", size = 103368, upload-time = "2025-06-06T18:09:15.3Z" }
 wheels = [
@@ -755,7 +755,7 @@ name = "dwave-optimization"
 version = "0.6.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/69/ef/297605e4004b849933767e4f30dd5998aa8514b35b2388247e5aa829dbc5/dwave_optimization-0.6.7.tar.gz", hash = "sha256:52efe46467523b825cdba02af407f8f1b4daaee8b9d788731960eaef23be11f2", size = 353757, upload-time = "2025-10-01T23:10:17.153Z" }
 wheels = [
@@ -781,8 +781,8 @@ name = "dwave-preprocessing"
 version = "0.6.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "dimod" },
-    { name = "numpy" },
+    { name = "dimod", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/1a/04/00ca2a68c45d3632629686428452166f00b5c820734de1c23af2c411b90d/dwave-preprocessing-0.6.10.tar.gz", hash = "sha256:cfc14afdd94470b30bb1c1a43559c0db0325020f52ff31793f006aa323b654ca", size = 594737, upload-time = "2025-09-10T13:58:32.521Z" }
 wheels = [
@@ -808,9 +808,9 @@ name = "dwave-samplers"
 version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "dimod" },
-    { name = "networkx" },
-    { name = "numpy" },
+    { name = "dimod", marker = "python_full_version < '3.14'" },
+    { name = "networkx", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/78/04/9a64c7b4dce864acd5218be49697b85f9c3017aa219043b03bb7c76440eb/dwave_samplers-1.6.0.tar.gz", hash = "sha256:79c6e8c6f8d2b5c3d825d1be1e4f7815071b1f5187513637895fbcba4096efa6", size = 1545471, upload-time = "2025-06-06T19:35:51.1Z" }
 wheels = [
@@ -836,16 +836,16 @@ name = "dwave-system"
 version = "1.33.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "dimod" },
-    { name = "dwave-cloud-client" },
-    { name = "dwave-networkx" },
-    { name = "dwave-optimization" },
-    { name = "dwave-preprocessing" },
-    { name = "dwave-samplers" },
-    { name = "homebase" },
-    { name = "minorminer" },
-    { name = "numpy" },
-    { name = "scipy" },
+    { name = "dimod", marker = "python_full_version < '3.14'" },
+    { name = "dwave-cloud-client", marker = "python_full_version < '3.14'" },
+    { name = "dwave-networkx", marker = "python_full_version < '3.14'" },
+    { name = "dwave-optimization", marker = "python_full_version < '3.14'" },
+    { name = "dwave-preprocessing", marker = "python_full_version < '3.14'" },
+    { name = "dwave-samplers", marker = "python_full_version < '3.14'" },
+    { name = "homebase", marker = "python_full_version < '3.14'" },
+    { name = "minorminer", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
+    { name = "scipy", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/64/cf/c4e04a404cdd089f745d46141fc398738bb3cd330f54aee21395ff64a79b/dwave_system-1.33.0.tar.gz", hash = "sha256:72a9bbe2a6f6b18f9f9082a4f16588643c4cb0b452c92dbffe58d0dffcc06420", size = 133623, upload-time = "2025-09-10T14:27:13.76Z" }
 wheels = [
@@ -1012,7 +1012,7 @@ name = "http-sf"
 version = "1.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/fa/f11af6bc4832f7a328965e24670d1d7f5d270a57958e898e6c95ad808874/http_sf-1.0.4.tar.gz", hash = "sha256:1c3ff40dc12ea913a604d667180b2cf78c12bdaf348b7649a5129583643cc847", size = 17661, upload-time = "2025-05-24T01:34:58.436Z" }
 wheels = [
@@ -1052,10 +1052,10 @@ name = "ibm-cloud-sdk-core"
 version = "3.24.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyjwt" },
-    { name = "python-dateutil" },
-    { name = "requests" },
-    { name = "urllib3" },
+    { name = "pyjwt", marker = "python_full_version < '3.14'" },
+    { name = "python-dateutil", marker = "python_full_version < '3.14'" },
+    { name = "requests", marker = "python_full_version < '3.14'" },
+    { name = "urllib3", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d5/0f/e7d1401591681442523cfb0e594c6e4dfbd3b5a983cc76a4ad648093afce/ibm_cloud_sdk_core-3.24.2.tar.gz", hash = "sha256:06265ce80162301c0e3dab336f76669137e40038ec802011e4c92f143bead116", size = 76256, upload-time = "2025-06-12T15:08:21.26Z" }
 wheels = [
@@ -1067,7 +1067,7 @@ name = "ibm-platform-services"
 version = "0.69.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ibm-cloud-sdk-core" },
+    { name = "ibm-cloud-sdk-core", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7f/c9/3c45ea5fceb2d1158ec97d19c90a943240aec3efb33da5b9df242ffc58be/ibm_platform_services-0.69.0.tar.gz", hash = "sha256:674c17cdcc05e3b8690137ef3ebe2f062d1c691b41d017ad1617839ad58799c0", size = 351740, upload-time = "2025-10-01T09:46:57.812Z" }
 wheels = [
@@ -1097,7 +1097,7 @@ name = "importlib-metadata"
 version = "8.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "zipp" },
+    { name = "zipp", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/76/66/650a33bd90f786193e4de4b3ad86ea60b53c89b669a5c7be931fac31cdb0/importlib_metadata-8.7.0.tar.gz", hash = "sha256:d13b81ad223b890aa16c5471f2ac3056cf76c5f10f82d6f9292f0b415f389000", size = 56641, upload-time = "2025-04-27T15:29:01.736Z" }
 wheels = [
@@ -1756,12 +1756,12 @@ name = "minorminer"
 version = "0.2.19"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "dwave-networkx" },
-    { name = "fasteners" },
-    { name = "homebase" },
-    { name = "networkx" },
-    { name = "numpy" },
-    { name = "scipy" },
+    { name = "dwave-networkx", marker = "python_full_version < '3.14'" },
+    { name = "fasteners", marker = "python_full_version < '3.14'" },
+    { name = "homebase", marker = "python_full_version < '3.14'" },
+    { name = "networkx", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
+    { name = "scipy", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/43/04/b83fb7f95e493912ed742471432428262ca797e2cb2b6b8c72a2d2d5cd80/minorminer-0.2.19.tar.gz", hash = "sha256:63b657cfcb17d9b7c1d5b19171879f9a5f6a4064ee57cd992360c8a3057ae456", size = 1212054, upload-time = "2025-06-05T19:27:33.762Z" }
 wheels = [
@@ -2002,7 +2002,7 @@ wheels = [
 
 [package.optional-dependencies]
 parser = [
-    { name = "antlr4-python3-runtime" },
+    { name = "antlr4-python3-runtime", marker = "python_full_version < '3.14'" },
 ]
 
 [[package]]
@@ -2382,10 +2382,10 @@ name = "pydantic"
 version = "2.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "annotated-types" },
-    { name = "pydantic-core" },
-    { name = "typing-extensions" },
-    { name = "typing-inspection" },
+    { name = "annotated-types", marker = "python_full_version < '3.14'" },
+    { name = "pydantic-core", marker = "python_full_version < '3.14'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.14'" },
+    { name = "typing-inspection", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/c3/da/b8a7ee04378a53f6fefefc0c5e05570a3ebfdfa0523a878bcd3b475683ee/pydantic-2.12.0.tar.gz", hash = "sha256:c1a077e6270dbfb37bfd8b498b3981e2bb18f68103720e51fa6c306a5a9af563", size = 814760, upload-time = "2025-10-07T15:58:03.467Z" }
 wheels = [
@@ -2397,7 +2397,7 @@ name = "pydantic-core"
 version = "2.41.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7d/14/12b4a0d2b0b10d8e1d9a24ad94e7bbb43335eaf29c0c4e57860e8a30734a/pydantic_core-2.41.1.tar.gz", hash = "sha256:1ad375859a6d8c356b7704ec0f547a58e82ee80bb41baa811ad710e124bc8f2f", size = 454870, upload-time = "2025-10-07T10:50:45.974Z" }
 wheels = [
@@ -2486,7 +2486,7 @@ name = "pydot"
 version = "4.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyparsing" },
+    { name = "pyparsing", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/35/b17cb89ff865484c6a20ef46bf9d95a5f07328292578de0b295f4a6beec2/pydot-4.0.1.tar.gz", hash = "sha256:c2148f681c4a33e08bf0e26a9e5f8e4099a82e0e2a068098f32ce86577364ad5", size = 162594, upload-time = "2025-06-17T20:09:56.454Z" }
 wheels = [
@@ -2531,7 +2531,7 @@ name = "pyscipopt"
 version = "5.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/13/7c/63321f1f0e85996160d30701a2a224fa3e379b50ab684f88cae3362bdff5/pyscipopt-5.6.0.tar.gz", hash = "sha256:082faf61d294a9661121cdf080c8faa62fc8b84a6160febfb1627ed76e15b9d5", size = 1385243, upload-time = "2025-08-25T16:54:13.972Z" }
 wheels = [
@@ -2575,8 +2575,8 @@ name = "pyspnego"
 version = "0.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cryptography" },
-    { name = "sspilib", marker = "sys_platform == 'win32'" },
+    { name = "cryptography", marker = "python_full_version < '3.14'" },
+    { name = "sspilib", marker = "python_full_version < '3.14' and sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f9/e4/8b32a91aeba6fbc6943a630c44b2fe038615e5c7dec8814316fafdcf4bf4/pyspnego-0.12.0.tar.gz", hash = "sha256:e1d9cd3520a87a1d6db8d68783b17edc4e1464eae3d51ead411a51c82dbaae67", size = 225764, upload-time = "2025-09-02T18:51:06.858Z" }
 wheels = [
@@ -2798,12 +2798,12 @@ name = "qiskit"
 version = "2.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "dill" },
-    { name = "numpy" },
-    { name = "rustworkx" },
-    { name = "scipy" },
-    { name = "stevedore" },
-    { name = "typing-extensions" },
+    { name = "dill", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
+    { name = "rustworkx", marker = "python_full_version < '3.14'" },
+    { name = "scipy", marker = "python_full_version < '3.14'" },
+    { name = "stevedore", marker = "python_full_version < '3.14'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/46/e1/82dbef6f58f382101ee7f29bb903349e66d6386ec8a30bea629ab10668ca/qiskit-2.2.1.tar.gz", hash = "sha256:d116e55bea21c2ecd7392dee8f3ec532f5e63c8a01c54c5a7440b38320c24774", size = 3775242, upload-time = "2025-09-26T09:05:52.561Z" }
 wheels = [
@@ -2818,16 +2818,16 @@ wheels = [
 
 [package.optional-dependencies]
 all = [
-    { name = "matplotlib" },
-    { name = "pillow" },
-    { name = "pydot" },
-    { name = "pylatexenc" },
-    { name = "python-constraint" },
-    { name = "qiskit-qasm3-import" },
-    { name = "seaborn" },
-    { name = "symengine" },
-    { name = "sympy" },
-    { name = "z3-solver" },
+    { name = "matplotlib", marker = "python_full_version < '3.14'" },
+    { name = "pillow", marker = "python_full_version < '3.14'" },
+    { name = "pydot", marker = "python_full_version < '3.14'" },
+    { name = "pylatexenc", marker = "python_full_version < '3.14'" },
+    { name = "python-constraint", marker = "python_full_version < '3.14'" },
+    { name = "qiskit-qasm3-import", marker = "python_full_version < '3.14'" },
+    { name = "seaborn", marker = "python_full_version < '3.14'" },
+    { name = "symengine", marker = "python_full_version < '3.14'" },
+    { name = "sympy", marker = "python_full_version < '3.14'" },
+    { name = "z3-solver", marker = "python_full_version < '3.14'" },
 ]
 
 [[package]]
@@ -2835,11 +2835,11 @@ name = "qiskit-aer"
 version = "0.17.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy" },
-    { name = "psutil" },
-    { name = "python-dateutil" },
-    { name = "qiskit" },
-    { name = "scipy" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
+    { name = "psutil", marker = "python_full_version < '3.14'" },
+    { name = "python-dateutil", marker = "python_full_version < '3.14'" },
+    { name = "qiskit", marker = "python_full_version < '3.14'" },
+    { name = "scipy", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/07/6c/6b8b35f67159401580665c59ae64d676bef9e85aac4d2a50831cbe32f652/qiskit_aer-0.17.2.tar.gz", hash = "sha256:134eef8e509311955a15be543d2ba368f988f3583a2bc1f548af3196da820eb4", size = 6551618, upload-time = "2025-09-17T13:55:25.165Z" }
 wheels = [
@@ -2873,15 +2873,15 @@ name = "qiskit-ibm-runtime"
 version = "0.42.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ibm-platform-services" },
-    { name = "numpy" },
-    { name = "packaging" },
-    { name = "pydantic" },
-    { name = "python-dateutil" },
-    { name = "qiskit" },
-    { name = "requests" },
-    { name = "requests-ntlm" },
-    { name = "urllib3" },
+    { name = "ibm-platform-services", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
+    { name = "packaging", marker = "python_full_version < '3.14'" },
+    { name = "pydantic", marker = "python_full_version < '3.14'" },
+    { name = "python-dateutil", marker = "python_full_version < '3.14'" },
+    { name = "qiskit", marker = "python_full_version < '3.14'" },
+    { name = "requests", marker = "python_full_version < '3.14'" },
+    { name = "requests-ntlm", marker = "python_full_version < '3.14'" },
+    { name = "urllib3", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/bd/46/161482cc6a889b2002374c14bbb8ab8b04baef431a7a2442eaccb3105e6f/qiskit_ibm_runtime-0.42.0.tar.gz", hash = "sha256:125c08e3a2e762ab23b15f1e2c21fdb15a2bfe63e2ac35b019001f139bb2d4f5", size = 1473290, upload-time = "2025-09-25T17:13:11.562Z" }
 wheels = [
@@ -2893,12 +2893,12 @@ name = "qiskit-optimization"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "docplex" },
-    { name = "networkx" },
-    { name = "numpy" },
-    { name = "qiskit" },
-    { name = "scipy" },
-    { name = "setuptools" },
+    { name = "docplex", marker = "python_full_version < '3.14'" },
+    { name = "networkx", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
+    { name = "qiskit", marker = "python_full_version < '3.14'" },
+    { name = "scipy", marker = "python_full_version < '3.14'" },
+    { name = "setuptools", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/c9/e0/46e635e6d447f08ef9d9b2e89d129454ec2db3a2327237cea2bd3e8c4878/qiskit_optimization-0.7.0.tar.gz", hash = "sha256:059e9329c647534965e68d8c52de1b02828635c525c210aa0730e486f9c5a686", size = 219471, upload-time = "2025-08-20T14:04:16.96Z" }
 wheels = [
@@ -2910,8 +2910,8 @@ name = "qiskit-qasm3-import"
 version = "0.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "openqasm3", extra = ["parser"] },
-    { name = "qiskit" },
+    { name = "openqasm3", extra = ["parser"], marker = "python_full_version < '3.14'" },
+    { name = "qiskit", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ea/e4/0229893ae295763a9273e47a7b1a8f10599ee49c2963750440d56a4b0023/qiskit_qasm3_import-0.6.0.tar.gz", hash = "sha256:6b763ee58538b33eaf5aaa8126b687f3c03f26c4d28e6a4f04f9be24a6b184ff", size = 37141, upload-time = "2025-06-10T16:34:11.287Z" }
 wheels = [
@@ -2949,7 +2949,7 @@ wheels = [
 
 [package.optional-dependencies]
 socks = [
-    { name = "pysocks" },
+    { name = "pysocks", marker = "python_full_version < '3.14'" },
 ]
 
 [[package]]
@@ -2957,9 +2957,9 @@ name = "requests-ntlm"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cryptography" },
-    { name = "pyspnego" },
-    { name = "requests" },
+    { name = "cryptography", marker = "python_full_version < '3.14'" },
+    { name = "pyspnego", marker = "python_full_version < '3.14'" },
+    { name = "requests", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/15/74/5d4e1815107e9d78c44c3ad04740b00efd1189e5a9ec11e5275b60864e54/requests_ntlm-1.3.0.tar.gz", hash = "sha256:b29cc2462623dffdf9b88c43e180ccb735b4007228a542220e882c58ae56c668", size = 16112, upload-time = "2024-06-09T23:52:04.854Z" }
 wheels = [
@@ -3151,7 +3151,7 @@ name = "rustworkx"
 version = "0.17.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/e7/b0/66d96f02120f79eeed86b5c5be04029b6821155f31ed4907a4e9f1460671/rustworkx-0.17.1.tar.gz", hash = "sha256:59ea01b4e603daffa4e8827316c1641eef18ae9032f0b1b14aa0181687e3108e", size = 399407, upload-time = "2025-09-15T16:29:46.429Z" }
 wheels = [
@@ -3281,9 +3281,9 @@ name = "seaborn"
 version = "0.13.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "matplotlib" },
-    { name = "numpy" },
-    { name = "pandas" },
+    { name = "matplotlib", marker = "python_full_version < '3.14'" },
+    { name = "numpy", marker = "python_full_version < '3.14'" },
+    { name = "pandas", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/86/59/a451d7420a77ab0b98f7affa3a1d78a313d2f7281a57afb1a34bae8ab412/seaborn-0.13.2.tar.gz", hash = "sha256:93e60a40988f4d65e9f4885df477e2fdaff6b73a9ded434c1ab356dd57eefff7", size = 1457696, upload-time = "2024-01-25T13:21:52.551Z" }
 wheels = [
@@ -3414,7 +3414,7 @@ name = "sympy"
 version = "1.14.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "mpmath" },
+    { name = "mpmath", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/83/d3/803453b36afefb7c2bb238361cd4ae6125a569b4db67cd9e79846ba2d68c/sympy-1.14.0.tar.gz", hash = "sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517", size = 7793921, upload-time = "2025-04-27T18:05:01.611Z" }
 wheels = [
@@ -3498,7 +3498,7 @@ name = "typing-inspection"
 version = "0.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/55/e3/70399cb7dd41c10ac53367ae42139cf4b1ca5f36bb3dc6c9d33acdb43655/typing_inspection-0.4.2.tar.gz", hash = "sha256:ba561c48a67c5958007083d386c3295464928b01faa735ab8547c5692e87f464", size = 75949, upload-time = "2025-10-01T02:14:41.687Z" }
 wheels = [
@@ -3587,7 +3587,7 @@ name = "werkzeug"
 version = "3.1.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "markupsafe" },
+    { name = "markupsafe", marker = "python_full_version < '3.14'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/9f/69/83029f1f6300c5fb2471d621ab06f6ec6b3324685a2ce0f9777fd4a8b71e/werkzeug-3.1.3.tar.gz", hash = "sha256:60723ce945c19328679790e3282cc758aa4a6040e4bb330f53d30fa546d44746", size = 806925, upload-time = "2024-11-08T15:52:18.093Z" }
 wheels = [
