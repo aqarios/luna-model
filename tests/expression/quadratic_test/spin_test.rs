@@ -6,7 +6,6 @@ use aqmodels::{
     },
     types::Bias,
 };
-use itertools::Itertools;
 
 use crate::common::*;
 
