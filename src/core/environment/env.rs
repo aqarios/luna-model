@@ -282,7 +282,7 @@ impl Environment {
         self.ghost_vars = ghost_vars;
     }
 
-    /// Alias for self[id].vtype
+    /// Alias for `self[id].vtype`.
     #[inline]
     pub fn get_vtype(&self, id: VarIndex) -> Vtype {
         self[id].vtype

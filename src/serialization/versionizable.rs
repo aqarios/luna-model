@@ -142,8 +142,8 @@ impl Slicable for &[u8] {
     }
 }
 
-/// Implementation of the Versionizable trait for the Vec<u8> data type.
-/// Since the Versionizable trait implements it's methods by default and Vec<u8> fullfills
+/// Implementation of the Versionizable trait for the `Vec<u8>` data type.
+/// Since the Versionizable trait implements it's methods by default and `Vec<u8>` fullfills
 /// the Vectorizable trait we are not required to adjust the default implementation.
 impl Versionizable for Vec<u8> {}
 
