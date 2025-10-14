@@ -334,7 +334,8 @@ impl Model {
             max_constraint_degress = max_constraint_degress.max(constr.lhs.degree());
             match constr.comparator {
                 Comparator::Eq => constraints.insert(ConstraintType::Equality),
-                Comparator::Le | Comparator::Ge => constraints.insert(ConstraintType::Inequality),
+                Comparator::Le => constraints.insert(ConstraintType::LessEqual),
+                Comparator::Ge => constraints.insert(ConstraintType::GreaterEqual),
             };
         }
 

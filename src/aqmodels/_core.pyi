@@ -2078,11 +2078,24 @@ class ConstraintType(Enum):
     This enum defines the type of constraint used within a model.
     """
 
+    Unconstrained = ...
+    """The model contains no constraints, i.e., is unconstrained."""
+
     Equality = ...
     """The model contains equality constraints (`Comparator.Eq`)."""
 
     Inequality = ...
-    """The model contains inequality constraints (`Comparator.Le`, `Comparator.Ge`)."""
+    """The model contains inequality constraints (`Comparator.Le`, `Comparator.Ge`).
+
+    implicitly includes the `ConstraintType.LessEqual` and `ConstraintType.GreaterEqual`
+    options.
+    """
+
+    LessEqual = ...
+    """The model contains less-equal-inequality constraints (`Comparator.Le`)."""
+
+    GreaterEqual = ...
+    """The model contains greater-equal-inequality constraints (`Comparator.Ge`)."""
 
 class ModelSpecs:
     """A class containing sepcifications of a model."""

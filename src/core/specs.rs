@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, slice::Iter};
 
 use super::model::Sense;
 use crate::core::Vtype;
@@ -18,11 +18,49 @@ use {crate::py_bindings::unwind, pyo3::prelude::*, unwind_macros::unwindable};
 #[derive(EnumSetType, Display, Debug, Hash, EnumString)]
 pub enum ConstraintType {
     /// Only equality constraints allowed.
+    #[strum(to_string = "Unconstrained")]
+    Unconstrained,
+    /// Only equality constraints allowed.
     #[strum(to_string = "Equality")]
     Equality,
     /// Only inequality constraints allowed.
     #[strum(to_string = "Inequality")]
     Inequality,
+    /// Only ge-inequality constraints allowed.
+    #[strum(to_string = "LessEqual")]
+    LessEqual,
+    /// Only le-inequality constraints allowed.
+    #[strum(to_string = "GreaterEqual")]
+    GreaterEqual,
+}
+
+pub trait EnumSetFromVec<T: EnumSetType> {
+    fn to_enumset(&self) -> EnumSet<T>;
+}
+
+impl EnumSetFromVec<ConstraintType> for Vec<ConstraintType> {
+    /// Naive implementation as a POC for hierarchical sets.
+    fn to_enumset(&self) -> EnumSet<ConstraintType> {
+        use ConstraintType::*;
+        let mut es = EnumSet::default();
+        for entry in self.iter() {
+            match entry {
+                Inequality => es.insert_all(LessEqual | GreaterEqual | Inequality),
+                _ => _ = es.insert(*entry),
+            }
+        }
+        es
+    }
+}
+
+impl EnumSetFromVec<Vtype> for Vec<Vtype> {
+    fn to_enumset(&self) -> EnumSet<Vtype> {
+        let mut es = EnumSet::default();
+        for entry in self.iter() {
+            _ = es.insert(*entry);
+        }
+        es
+    }
 }
 
 #[cfg(feature = "py")]

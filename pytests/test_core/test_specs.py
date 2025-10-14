@@ -6,7 +6,7 @@ from itertools import combinations
 from aqmodels import Model, ModelSpecs, Sense, Vtype, ConstraintType, Expression
 from aqmodels import Comparator, Constraint
 
-from ..utils import make_seed
+from .utils import make_seed
 
 T = TypeVar("T", bound=Enum)
 
@@ -152,3 +152,47 @@ def test_modelspecs_not_varsubset():
     model.objective += b
     modelspecs = ModelSpecs(vtypes=[Vtype.Spin, Vtype.Integer, Vtype.Real])
     assert not model.satisfies(modelspecs)
+
+
+def test_modelspecs_constr_subset_le():
+    model = Model()
+    b = model.add_variable("b")
+    model.objective += b
+    model.constraints += b <= 2
+    modelspecsA = ModelSpecs(constraints=[ConstraintType.Inequality])
+    modelspecsB = ModelSpecs(constraints=[ConstraintType.LessEqual])
+    modelspecsC = ModelSpecs(
+        constraints=[ConstraintType.LessEqual, ConstraintType.GreaterEqual]
+    )
+    modelspecsD = ModelSpecs(
+        constraints=[ConstraintType.Inequality, ConstraintType.GreaterEqual]
+    )
+    assert model.satisfies(modelspecsA), "failed to satisfy modelspecsA"
+    assert model.satisfies(modelspecsB), "failed to satisfy modelspecsB"
+    assert model.satisfies(modelspecsC), "failed to satisfy modelspecsC"
+    assert model.satisfies(modelspecsD), "failed to satisfy modelspecsD"
+
+    modelspecs_fail = ModelSpecs(constraints=[ConstraintType.GreaterEqual])
+    assert not model.satisfies(modelspecs_fail), "failed to NOT satisfy modelspecs_fail"
+
+
+def test_modelspecs_constr_subset_ge():
+    model = Model()
+    b = model.add_variable("b")
+    model.objective += b
+    model.constraints += b >= 2
+    modelspecsA = ModelSpecs(constraints=[ConstraintType.Inequality])
+    modelspecsB = ModelSpecs(constraints=[ConstraintType.GreaterEqual])
+    modelspecsC = ModelSpecs(
+        constraints=[ConstraintType.GreaterEqual, ConstraintType.LessEqual]
+    )
+    modelspecsD = ModelSpecs(
+        constraints=[ConstraintType.Inequality, ConstraintType.LessEqual]
+    )
+    assert model.satisfies(modelspecsA), "failed to satisfy modelspecsA"
+    assert model.satisfies(modelspecsB), "failed to satisfy modelspecsB"
+    assert model.satisfies(modelspecsC), "failed to satisfy modelspecsC"
+    assert model.satisfies(modelspecsD), "failed to satisfy modelspecsD"
+
+    modelspecs_fail = ModelSpecs(constraints=[ConstraintType.LessEqual])
+    assert not model.satisfies(modelspecs_fail), "failed to NOT satisfy modelspecs_fail"

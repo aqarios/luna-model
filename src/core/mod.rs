@@ -61,4 +61,4 @@ pub use traits::ValueByIndex;
 
 pub use utils::{check_variables_sol, make_index_map};
 
-pub use specs::{ConstraintType, ModelSpecs};
+pub use specs::{ConstraintType, EnumSetFromVec, ModelSpecs};

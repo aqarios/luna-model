@@ -1,9 +1,8 @@
 use super::unwind;
-use enumset::EnumSet;
 use pyo3::prelude::*;
 use unwind_macros::unwindable;
 
-use crate::core::{ConstraintType, ModelSpecs, Sense, Vtype};
+use crate::core::{ConstraintType, EnumSetFromVec, ModelSpecs, Sense, Vtype};
 
 #[cfg_attr(
     not(feature = "lq"),
@@ -29,28 +28,10 @@ impl PyModelSpecs {
         max_constraint_degree: Option<usize>,
         max_num_variables: Option<usize>,
     ) -> Self {
-        let vtypes = if let Some(vt) = vtypes {
-            let mut out = EnumSet::new();
-            for t in vt {
-                out.insert(t);
-            }
-            Some(out)
-        } else {
-            None
-        };
-        let constraints = if let Some(ct) = constraints {
-            let mut out = EnumSet::new();
-            for t in ct {
-                out.insert(t);
-            }
-            Some(out)
-        } else {
-            None
-        };
         PyModelSpecs(ModelSpecs {
             sense,
-            vtypes,
-            constraints,
+            vtypes: vtypes.map_or_else(|| None, |vs| Some(vs.to_enumset())),
+            constraints: constraints.map_or_else(|| None, |cs| Some(cs.to_enumset())),
             max_degree,
             max_constraint_degree,
             max_num_variables,
