@@ -1,4 +1,4 @@
-use std::{fmt::Display, slice::Iter};
+use std::fmt::Display;
 
 use super::model::Sense;
 use crate::core::Vtype;
