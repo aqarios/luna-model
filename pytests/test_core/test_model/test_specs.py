@@ -133,3 +133,22 @@ def test_modelspecs_constructed(
         max_num_variables=max_num_variables,
     )
     assert model.satisfies(modelspecs)
+
+
+def test_modelspecs_varsubset():
+    model = Model()
+    b = model.add_variable("b")
+    i = model.add_variable("i", vtype=Vtype.Integer)
+    model.objective += b + i
+    modelspecs = ModelSpecs(
+        vtypes=[Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]
+    )
+    assert model.satisfies(modelspecs)
+
+
+def test_modelspecs_not_varsubset():
+    model = Model()
+    b = model.add_variable("b")
+    model.objective += b
+    modelspecs = ModelSpecs(vtypes=[Vtype.Spin, Vtype.Integer, Vtype.Real])
+    assert not model.satisfies(modelspecs)
