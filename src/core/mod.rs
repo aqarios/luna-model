@@ -1,6 +1,7 @@
 mod extras;
 mod model;
 mod rs_operations;
+mod specs;
 mod utils;
 mod variable;
 mod writer;
@@ -59,3 +60,5 @@ pub use traits::ContentEquality;
 pub use traits::ValueByIndex;
 
 pub use utils::{check_variables_sol, make_index_map};
+
+pub use specs::{ConstraintType, ModelSpecs};

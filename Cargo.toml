@@ -1,6 +1,6 @@
 [package]
 name = "aqmodels"
-version = "0.2.3"
+version = "0.2.4-dev298"
 edition = "2021"
 description = "Rust based implementation of aq-models"
 readme = "README.md"
@@ -39,6 +39,7 @@ dyn-clone = "1.0.19"
 pad = "0.1.6"
 sqids = "0.4.2"
 bitvec = "1.0.1"
+enumset = "1.1.10"
 [dependencies.pyo3]
 version = "0.26.0"
 features = ["extension-module", "indexmap"]

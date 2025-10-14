@@ -1,10 +1,10 @@
 use pyo3::{prelude::*, PyTypeCheck};
 
-use crate::core::{solution::ValueSource, Comparator, Sense, Vtype};
+use crate::core::{solution::ValueSource, Comparator, ConstraintType, Sense, Vtype};
 
 use super::{
     py_bounds, py_constr, py_env, py_exceptions as pyexc, py_expr, py_model, py_model_metadata,
-    py_res, py_sample, py_sol, py_timing, py_translator, py_utils, py_var,
+    py_res, py_sample, py_sol, py_specs, py_timing, py_translator, py_utils, py_var,
 };
 
 // #[pymodule]
@@ -14,6 +14,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Comparator>()?;
     m.add_class::<Sense>()?;
     m.add_class::<ValueSource>()?;
+    m.add_class::<ConstraintType>()?;
     // Add core components as wrappers.
     m.add_class::<py_env::PyEnvironment>()?;
     m.add_class::<py_expr::PyExpression>()?;
@@ -23,6 +24,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_expr::PyQuadratic>()?;
     m.add_class::<py_expr::PyHigherOrder>()?;
     m.add_class::<py_model::PyModel>()?;
+    m.add_class::<py_specs::PyModelSpecs>()?;
     m.add_class::<py_model_metadata::PyModelMetadata>()?;
     m.add_class::<py_var::PyVariable>()?;
     m.add_class::<py_bounds::PyBounds>()?;
