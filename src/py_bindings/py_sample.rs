@@ -5,7 +5,6 @@ use crate::core::solution::sample::SampleOwned;
 use crate::core::{VarAssignment, Vtype};
 use crate::py_bindings::py_sol::PyVarAssignment;
 use derive_more::{Deref, DerefMut};
-use either::Either;
 use itertools::Itertools;
 use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::*;

@@ -22,6 +22,7 @@ use indexmap::IndexMap;
 use itertools::Itertools;
 use numpy::{PyArray1, PyArrayMethods, ToPyArray};
 use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
+use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
@@ -1151,6 +1152,13 @@ impl PySolution {
             };
             self.access_mut().remove_samplecol(var)
         }
+    }
+
+    fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
+        py.run(c_str!("from aqmodels import Solution"), None, None)?;
+        let decode = py.eval(c_str!("Solution.decode"), None, None)?;
+        let data = self.encode(py, Some(true), Some(3))?;
+        Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((decode.into_py_any(py)?, (data,).into_py_any(py)?))
     }
 }
 

@@ -6,8 +6,10 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use pyo3::{
+    ffi::c_str,
     prelude::*,
     types::{PyBytes, PyType},
+    IntoPyObjectExt,
 };
 use std::{cell::RefCell, ops::Deref};
 use unwind_macros::unwindable;
@@ -157,7 +159,7 @@ impl PyEnvironment {
     /// IOError
     ///     If serialization fails.
     #[pyo3(signature=(compress=true, level=3))]
-    fn encode(
+    pub fn encode(
         &self,
         py: Python,
         compress: Option<bool>,
@@ -196,7 +198,7 @@ impl PyEnvironment {
     /// DecodeError
     ///     If decoding fails due to corruption or incompatibility.
     #[classmethod]
-    fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
+    pub fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Ok(PyEnvironment::new(SharedEnvironment::from(
             data.as_bytes(py).unversionize().decompress()?.decode(())?,
         )))
@@ -240,5 +242,12 @@ impl PyEnvironment {
             .into_iter()
             .map(|v| PyVariable::new(v))
             .collect()
+    }
+
+    fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
+        py.run(c_str!("from aqmodels import Environment"), None, None)?;
+        let decode = py.eval(c_str!("Environment.decode"), None, None)?;
+        let data = self.encode(py, Some(true), Some(3))?;
+        Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((decode.into_py_any(py)?, (data,).into_py_any(py)?))
     }
 }

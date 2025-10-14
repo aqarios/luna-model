@@ -1,5 +1,6 @@
 use super::unwind;
 use super::{py_env::PyEnvironment, py_expr::PyExpression, py_var::PyVariable};
+use crate::core::{Environment, SharedEnvironment};
 use crate::utils::ShareMut;
 use crate::{
     core::{
@@ -10,6 +11,8 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use either::Either::{self, Left, Right};
+use pyo3::ffi::c_str;
+use pyo3::IntoPyObjectExt;
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
 use unwind_macros::unwindable;
@@ -528,6 +531,55 @@ impl PyConstraints {
             Left(d) => d.ctypes(),
             Right(d) => d.access().constraints.ctypes(),
         }
+    }
+
+    fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
+        py.run(c_str!("from aqmodels import Constraints"), None, None)?;
+        let decode = py.eval(c_str!("Constraints._decode"), None, None)?;
+        let data = self.encode(py, Some(true), Some(3))?;
+        let env_data = match &self.data {
+            Left(d) => match d.constraints.is_empty() {
+                true => PyBytes::new(py, &Environment::new().encode(Some(true), Some(3))?),
+                false => PyBytes::new(
+                    py,
+                    &d.constraints[0]
+                        .lhs
+                        .env
+                        .access()
+                        .encode(Some(true), Some(3))?,
+                ),
+            },
+            Right(m) => PyBytes::new(
+                py,
+                &m.access()
+                    .environment
+                    .access()
+                    .encode(Some(true), Some(3))?,
+            ),
+        };
+        Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((
+            decode.into_py_any(py)?,
+            (data, env_data).into_py_any(py)?,
+        ))
+    }
+
+    #[classmethod]
+    fn _decode(
+        _cls: &Bound<'_, PyType>,
+        py: Python,
+        data: Py<PyBytes>,
+        env_data: Py<PyBytes>,
+    ) -> PyResult<Self> {
+        let env = SharedEnvironment::from(
+            env_data
+                .as_bytes(py)
+                .unversionize()
+                .decompress()?
+                .decode(())?,
+        );
+        Ok(PyConstraints::new(
+            data.as_bytes(py).unversionize().decompress()?.decode(env)?,
+        ))
     }
 }
 
