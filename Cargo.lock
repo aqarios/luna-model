@@ -36,7 +36,7 @@ dependencies = [
 
 [[package]]
 name = "aqmodels"
-version = "0.2.4-dev131020205"
+version = "0.2.4-dev393"
 dependencies = [
  "aqm-macros",
  "bitvec",

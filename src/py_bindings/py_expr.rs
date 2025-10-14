@@ -1,3 +1,4 @@
+use pyo3::ffi::{c_str, PyEnum_Type};
 use std::collections::HashMap;
 
 use super::unwind;
@@ -1356,6 +1357,36 @@ impl PyExpression {
             .collect::<Vec<f64>>()
             .to_pyarray(py);
         Ok(res)
+    }
+
+    fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
+        py.run(c_str!("from aqmodels import Expression"), None, None)?;
+        let decode = py.eval(c_str!("Expression._decode"), None, None)?;
+        let data = self.encode(py, Some(true), Some(3))?;
+        let env_data = self.environment()?.encode(py, Some(true), Some(3))?;
+        Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((
+            decode.into_py_any(py)?,
+            (data, env_data).into_py_any(py)?,
+        ))
+    }
+
+    #[classmethod]
+    fn _decode(
+        _cls: &Bound<'_, PyType>,
+        py: Python,
+        data: Py<PyBytes>,
+        env_data: Py<PyBytes>,
+    ) -> PyResult<Self> {
+        let env = SharedEnvironment::from(
+            env_data
+                .as_bytes(py)
+                .unversionize()
+                .decompress()?
+                .decode(())?,
+        );
+        Ok(PyExpression::new(
+            data.as_bytes(py).unversionize().decompress()?.decode(env)?,
+        ))
     }
 }
 
