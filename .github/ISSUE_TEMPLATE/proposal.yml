@@ -1,0 +1,27 @@
+name: Proposal
+description: File a Proposal
+labels: ["proposal"]
+body:
+  - type: markdown
+    attributes:
+      values: |
+        A proposal describes a problem to be solved and explains the resulting benefits.
+        ## Remember to search before filing a new proposal
+        Please search for this proposal in the issue tracker, and us a proposal title that
+        would have made your proposal turn up in the search results for your search query.
+  - type: textarea
+    id: diagnosis
+    attributes:
+      label: Problem Diagnosis
+      description: Describe the problem domain, describe clearly what kind of issues exist currently that you would like to be adressed. Be as specific as possible and provide as many details and examples as possible. Start with a high-level overview of the context and then incrementally get more specific.
+      placeholder: Describe the problem domain and the problem that you want to be solved.
+      validations:
+        required: true
+  - type: textarea
+    id: treatment
+    attributes:
+      label: Propsed Treatment
+      description: Describe how you propose to address the diagnosed problems. How would you evaluate the problem to be resolved? What will the users gain from your proposal that they are lacking now? Be as specific as possible in describing the benefits of your proposal. Provide usage examples. If applicable, explain how this solution is better than the current practice.
+      placeholder: Be as specific as possible in describing the proposed solution.
+    validations:
+      required: true
