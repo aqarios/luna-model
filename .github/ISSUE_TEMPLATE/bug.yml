@@ -1,4 +1,4 @@
-name: Bug Report
+name: 👾 Bug Report
 description: File a bug report
 labels: ["bug"]
 body:
@@ -13,8 +13,8 @@ body:
     id: version
     attributes:
       label: AqModels Version
-      description: The output of `aqmodels.__version__` in Python, a specific commit hash when using the source or a specific tag used.
-      placeholder: 0.2.3 or 98892183hcch177 or v0.1.5-alpha2123
+      description: The output of `aqmodels.__version__` in Python or a specific tag, a specific commit hash when using the source or a specific branch.
+      placeholder: 0.2.3 or 98892183hcch177 or f/123
     validations:
       required: true
   - type: textarea
