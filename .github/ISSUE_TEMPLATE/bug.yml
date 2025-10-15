@@ -4,7 +4,7 @@ labels: ["bug"]
 body:
   - type: markdown
     attributes:
-      values: |
+      value: |
         A bug is when something works differently than it is expected to.
         ## Remember to search before filing a new report
         Please search for this bug in the issue tracker, and us a bug report title that

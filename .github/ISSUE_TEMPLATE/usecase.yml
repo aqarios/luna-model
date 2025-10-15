@@ -4,7 +4,7 @@ labels: ["use case"]
 body:
   - type: markdown
     attributes:
-      values: |
+      value: |
         A use case describes a real use case that is difficult or impossible, but does not propose a solution.
         ## Remember to search before filing a new use case
         Please search for this use case in the issue tracker, and us a use case title that

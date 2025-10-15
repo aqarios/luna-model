@@ -4,7 +4,7 @@ labels: ["proposal"]
 body:
   - type: markdown
     attributes:
-      values: |
+      value: |
         A proposal describes a problem to be solved and explains the resulting benefits.
         ## Remember to search before filing a new proposal
         Please search for this proposal in the issue tracker, and us a proposal title that
