@@ -1,6 +1,6 @@
 [package]
 name = "aqmodels"
-version = "0.2.4-dev298"
+version = "0.2.4"
 edition = "2021"
 description = "Rust based implementation of aq-models"
 readme = "README.md"
