@@ -20,17 +20,17 @@ This git branching strategy follows the [One Flow](https://www.endoflineblog.com
 There is only one long-lived branch, `main`.
 Our main difference to the One Flow approach is, that we don’t keep old release branches, since we have to use tags for the versions.
 
-| Branch | Description |
-| --- | --- |
-| main | Main branch |
-| f/y_xxxx | Feature branch. Implement here new features. |
-| ci/y_xxxx | CI branch. Implement changes to the ci system here. |
-| fix/y_xxxx | Bug fixes (not hotfixes) |
-| hot/y_xxxx | Hotfixes. These fixes need to be published as a minor version update |
-| release | Bump the version here. To release the SW create a Tag after the version was bumped. After the release this branch can be deleted (and for the next recreated). |
-| pre-release | Tag pre-releases here. Also bump the version here (only minor version increases). After the release this branch can be deleted (and for the next recreated) |
-- y is always an issue/ticket/bug number
-- x can be any description
+| Branch        | Description | Notes |
+| ------------- | ----------- | ----- |
+| `main`          | Main branch | -     |
+| `f/y[_xx]`       | Feature branch. Implement here new features. | - |
+| `ci/y[_xx]`      | CI branch. Implement changes to the ci system here. | - |
+| `fix/y[_xx]`     | Bug fixes (not hotfixes) | - |
+| `hot/y[_xx]`     | Hotfixes. These fixes need to be published as a minor version update | - |
+| ~`release`~     | ~Bump the version here. To release the SW create a Tag after the version was bumped. After the release this branch can be deleted (and for the next recreated).~ | We don't need a `release` branch, since we tag the commit to be released in the respective branch it was prepared in and then merge this commit into main. |
+| ~`pre-release`~ | ~Tag pre-releases here. Also bump the version here (only minor version increases). After the release this branch can be deleted (and for the next recreated)~ | We don't need a `pre-release` branch, since we tag the commit to be released in the respective branch it was prepared in and then merge this commit into main. |
+- `y` is always an issue/ticket/bug number, required.
+- `xx` can be any description, optional.
 - All releases have to be tagged with a version number (use the same number as used inside the `Cargo.toml`).
 - Since all versions are tagged, hotfixes and releases can be merged at any point into individual ongoing feature branches.
 
