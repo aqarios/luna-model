@@ -12,6 +12,7 @@ use crate::core::{ContentEquality, LazyBounds, Sample, Sense, Vtype};
 use crate::hashing::hash_model;
 use crate::py_bindings::py_res::PyOwnedResult;
 use crate::py_bindings::py_sample::PySample;
+use crate::py_bindings::py_specs::PyModelSpecs;
 use crate::py_bindings::py_var::PyVariable;
 use crate::py_bindings::unwind;
 use crate::utils::{Share, ShareMut};
@@ -637,6 +638,14 @@ impl PyModel {
     fn deep_clone(&self) -> PyModel {
         let model = self.concrete_model.access().deep_clone();
         PyModel::new(model)
+    }
+
+    fn get_specs(&self) -> PyModelSpecs {
+        PyModelSpecs(self.concrete_model.access().get_specs())
+    }
+
+    fn satisfies(&self, specs: PyModelSpecs) -> bool {
+        self.concrete_model.access().satisfies(specs.0)
     }
 }
 

@@ -2071,6 +2071,121 @@ class Sense(Enum):
     Max = ...
     """Indicate the objective function to be maximized."""
 
+class ConstraintType(Enum):
+    """
+    Enumeration of constraint types supported by the optimization system.
+
+    This enum defines the type of constraint used within a model.
+    """
+
+    Unconstrained = ...
+    """The model contains no constraints, i.e., is unconstrained."""
+
+    Equality = ...
+    """The model contains equality constraints (`Comparator.Eq`)."""
+
+    Inequality = ...
+    """The model contains inequality constraints (`Comparator.Le`, `Comparator.Ge`).
+
+    implicitly includes the `ConstraintType.LessEqual` and `ConstraintType.GreaterEqual`
+    options.
+    """
+
+    LessEqual = ...
+    """The model contains less-equal-inequality constraints (`Comparator.Le`)."""
+
+    GreaterEqual = ...
+    """The model contains greater-equal-inequality constraints (`Comparator.Ge`)."""
+
+class ModelSpecs:
+    """A class containing sepcifications of a model."""
+
+    def __init__(
+        self,
+        /,
+        *,
+        sense: Sense | None = ...,
+        vtypes: list[Vtype] | None = ...,
+        constraints: list[ConstraintType] | None = ...,
+        max_degree: int | None = ...,
+        max_constraint_degree: int | None = ...,
+        max_num_variables: int | None = ...,
+    ) -> None:
+        """Create a ModelSpec instance.
+
+        Parameters
+        ----------
+        sense: Sense | None
+            The exepected Sense of a model, default None.
+        vtypes: list[Vtype] | None
+            The exepected vtypes in a model, default None.
+        constraints: list[ConstraintType] | None = ...,
+            The exepected constraint types in a model, default None.
+        max_degree: int | None
+            The exepected maximum degree of the model's objective function,
+            default None.
+        max_constraint_degree: int | None
+            The exepected maximum degree of the model's constraints, default None.
+        max_num_variables: int | None
+            The exepected maximum number of the variables in the model, default None.
+        """
+        ...
+
+    @property
+    def sense(self) -> Sense | None:
+        """The sense specification, can be `None` if no sense spec is available."""
+        ...
+
+    @property
+    def max_degree(self) -> int | None:
+        """The specification for the max degree of the objective function.
+
+        Can be `None` if no max_degree spec is available.
+        """
+        ...
+
+    @property
+    def max_constraint_degree(self) -> int | None:
+        """The specification for the max degree of all constraints.
+
+        Can be `None` if no max_constraint_degree spec is available.
+        """
+        ...
+
+    @property
+    def max_num_variables(self) -> int | None:
+        """The specification for the max number of variables in the model.
+
+        Can be `None` if no max_num_variables spec is available.
+        """
+        ...
+
+    @property
+    def vtypes(self) -> list[Vtype] | None:
+        """The vtypes specification, can be `None` if no vtypes spec is available."""
+        ...
+
+    @property
+    def constraints(self) -> list[ConstraintType] | None:
+        """
+        The constraints specification.
+
+        Can be `None` if no constraints spec is available.
+        """
+        ...
+
+    def satisfies(self, other: ModelSpecs) -> bool:
+        """Check if `self` satisfies the model specs given in `other`.
+
+        Parameters
+        ----------
+        other : ModelSpecs
+            The model specifications `self` should satisfy.
+        """
+        ...
+
+    def __str__(self, /) -> str: ...
+
 class Model:
     """
     A symbolic optimization model consisting of an objective and constraints.
@@ -2536,6 +2651,21 @@ class Model:
             If the environments of `self`, `target`, and `replacement`
             are not compatible.
         """
+        ...
+
+    def get_specs(self) -> ModelSpecs:
+        """Get this model's specs."""
+        ...
+
+    def satisfies(self, specs: ModelSpecs) -> bool:
+        """Check if the model satisfies the given specs.
+
+        Parameters
+        ----------
+        specs : ModelSpecs
+            The sepcs this model's specs are compared to.
+        """
+        ...
 
     @overload
     def encode(self, /) -> bytes: ...

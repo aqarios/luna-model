@@ -11,8 +11,10 @@ use super::{Expression, ExpressionBase, Substitution, VarRef, Vtype};
 use crate::core::expression::ExpressionEvaluation;
 use crate::core::utils::make_index_map;
 use crate::core::writer::ModelWriter;
+use crate::core::{Comparator, ConstraintType, ModelSpecs};
 use crate::errors::{DifferentEnvsErr, EvaluationErr, VariableCreationErr};
 use crate::types::{Bias, VarIndex};
+use enumset::EnumSet;
 use indexmap::IndexMap;
 use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter};
@@ -319,6 +321,36 @@ impl Model {
         vars.append(&mut constraint_vars);
         // Get len of all unique vars.
         vars.iter().unique().collect_vec().len()
+    }
+
+    pub fn get_specs(&self) -> ModelSpecs {
+        let mut vtypes = EnumSet::new();
+        for vtype in self.vtypes().iter() {
+            vtypes.insert(*vtype);
+        }
+        let mut constraints = EnumSet::new();
+        let mut max_constraint_degress: usize = 0;
+        for (_, constr) in self.constraints.iter() {
+            max_constraint_degress = max_constraint_degress.max(constr.lhs.degree());
+            match constr.comparator {
+                Comparator::Eq => constraints.insert(ConstraintType::Equality),
+                Comparator::Le => constraints.insert(ConstraintType::LessEqual),
+                Comparator::Ge => constraints.insert(ConstraintType::GreaterEqual),
+            };
+        }
+
+        ModelSpecs::new(
+            self.sense,
+            vtypes,
+            constraints,
+            self.objective.degree(),
+            max_constraint_degress,
+            self.num_variables(),
+        )
+    }
+
+    pub fn satisfies(&self, specs: ModelSpecs) -> bool {
+        self.get_specs().satisfies(specs)
     }
 }
 

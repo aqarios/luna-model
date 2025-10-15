@@ -1,3 +1,4 @@
+use enumset::EnumSetType;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 use strum_macros::{Display, EnumIter};
@@ -36,7 +37,7 @@ use strum_macros::{Display, EnumIter};
     all(feature = "py", feature = "lq"),
     pyclass(eq, eq_int, name = "Vtype", module = "luna_quantum._core")
 )]
-#[derive(Debug, Copy, Clone, PartialEq, EnumIter, Display, Hash, Eq)]
+#[derive(EnumSetType, Debug, EnumIter, Display, Hash)]
 pub enum Vtype {
     /// Binary variable. Can only take values 0 or 1.
     Binary,
@@ -48,6 +49,7 @@ pub enum Vtype {
     Real,
     /// Special Ghost Variable type. Cannot be exluded from python enum specifically.
     /// todo: either keep as is or make pyenum wrapper...
+    // TODO: remove this => breaking changes in encoding/decoding (serialization/deserialization)
     __Ghost,
 }
 
