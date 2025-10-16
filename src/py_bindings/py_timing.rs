@@ -158,6 +158,10 @@ impl PyTiming {
     fn __repr__(&self) -> String {
         repr_timing(self)
     }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
 }
 
 #[unwindable]

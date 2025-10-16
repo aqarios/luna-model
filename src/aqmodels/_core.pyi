@@ -967,6 +967,11 @@ class Solution:
         """Get the solver / algorithm runtime."""
         ...
 
+    @runtime.setter
+    def runtime(self, /, timing: Timing) -> None:
+        """Get the solver / algorithm runtime."""
+        ...
+
     @property
     def sense(self, /) -> Sense:
         """Get the optimization sense."""
