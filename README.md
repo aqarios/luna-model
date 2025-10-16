@@ -6,6 +6,7 @@
 | [**Installation**](#installation)
 | [**Getting Started**](#getting-started)
 | [**Resources**](#resources)
+| [**Releases and Contributing**](#releases-and-contributing)
 
 ## Summary
 
