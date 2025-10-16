@@ -8,7 +8,7 @@ use derive_more::{Deref, DerefMut};
 pub struct Samples<'a>(pub &'a Solution);
 
 impl<'a> Samples<'a> {
-    pub fn get_sample(&self, row_idx: usize) -> Option<Sample> {
+    pub fn get_sample(&self, row_idx: usize) -> Option<Sample<'_>> {
         self.get_sample_view(row_idx).map(|x| Sample::View(x))
     }
 
@@ -16,7 +16,7 @@ impl<'a> Samples<'a> {
         self.0.get_assignment(row_idx, col_idx)
     }
 
-    pub fn iter(&self) -> SamplesIterator {
+    pub fn iter(&self) -> SamplesIterator<'_> {
         SamplesIterator::new(&self.0)
     }
 

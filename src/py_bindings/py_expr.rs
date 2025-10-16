@@ -1,4 +1,4 @@
-use pyo3::ffi::{c_str, PyEnum_Type};
+use pyo3::ffi::c_str;
 use std::collections::HashMap;
 
 use super::unwind;

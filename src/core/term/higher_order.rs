@@ -70,7 +70,7 @@ impl HigherOrder {
         self.biases.len() == 0
     }
 
-    pub fn iter(&self) -> Iter<String, Bias> {
+    pub fn iter(&self) -> Iter<'_, String, Bias> {
         self.biases.iter()
     }
 

@@ -182,8 +182,8 @@ impl SectionsHolder {
         let min_obj = self.get(Section::Objective(Sense::Min));
         let max_obj = self.get(Section::Objective(Sense::Max));
         match (min_obj, max_obj) {
-            (None, Some(max_obj)) => Ok((ObjectiveKeywords::Maximize.to_string(), max_obj)),
-            (Some(min_obj), None) => Ok((ObjectiveKeywords::Minimize.to_string(), min_obj)),
+            (Option::None, Some(max_obj)) => Ok((ObjectiveKeywords::Maximize.to_string(), max_obj)),
+            (Some(min_obj), Option::None) => Ok((ObjectiveKeywords::Minimize.to_string(), min_obj)),
             _ => Err(TranslationErr::new(format!("unexpected objectives stored"))),
         }
     }
@@ -293,9 +293,9 @@ impl SectionsHolder {
                 match self.sections.get_mut(section) {
                     Some(item) => match item.first_mut() {
                         Some(v) => v.push_str(&value),
-                        None => item.push(value),
+                        Option::None => item.push(value),
                     },
-                    None => {
+                    Option::None => {
                         let _ = self.sections.insert(section.clone(), vec![value.clone()]);
                     }
                 }
@@ -305,7 +305,7 @@ impl SectionsHolder {
                     // new constraint overwrites old constraints
                     match self.sections.get_mut(section) {
                         Some(item) => item.push(value),
-                        None => {
+                        Option::None => {
                             let _ = self.sections.insert(section.clone(), vec![value]);
                         }
                     }
@@ -321,7 +321,7 @@ impl SectionsHolder {
             }
             _ => match self.sections.get_mut(section) {
                 Some(item) => item.push(value),
-                None => {
+                Option::None => {
                     let _ = self.sections.insert(section.clone(), vec![value]);
                 }
             },
@@ -333,7 +333,7 @@ impl SectionsHolder {
         for val in vals {
             match self.variable_sections.get_mut(&vtype) {
                 Some(item) => item.push(val.to_string()),
-                None => {
+                Option::None => {
                     let _ = self
                         .variable_sections
                         .insert(vtype.clone(), vec![val.to_string()]);
@@ -346,7 +346,7 @@ impl SectionsHolder {
         self.sections.get(&section)
     }
 
-    pub fn iter_variables(&self) -> Iter<VariableType, Vec<String>> {
+    pub fn iter_variables(&self) -> Iter<'_, VariableType, Vec<String>> {
         self.variable_sections.iter()
     }
 
@@ -408,9 +408,9 @@ impl SectionsHolder {
                             VariableType::Binary => None,
                             _ => Some(Bounds::new(l, u)),
                         },
-                        None => None,
+                        Option::None => None,
                     },
-                    None => None,
+                    Option::None => None,
                 };
                 let vref = model
                     .environment
@@ -445,14 +445,14 @@ impl SectionsHolder {
         let min_obj = self.get(Section::Objective(Sense::Min));
         let max_obj = self.get(Section::Objective(Sense::Max));
         let (sense, obj): (Sense, &Vec<String>) = match (min_obj, max_obj) {
-            (Some(o), None) => (Sense::Min, o),
-            (None, Some(o)) => (Sense::Max, o),
+            (Some(o), Option::None) => (Sense::Min, o),
+            (Option::None, Some(o)) => (Sense::Max, o),
             (Some(_), Some(_)) => {
                 return Err(TranslationErr::new(String::from(
                     "cannot have multiple objectives in model",
                 )))
             }
-            (None, None) => {
+            (Option::None, Option::None) => {
                 return Err(TranslationErr::new(String::from(
                     "must have an objective in model",
                 )))

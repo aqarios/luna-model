@@ -24,7 +24,6 @@ pub struct Environment {
     variables: Vec<Variable>,
     variables_lookup: HashMap<String, VarIndex>,
     varcount: VarIndex,
-    // ghost variable indices.
     ghost_vars: Vec<usize>,
 }
 
@@ -288,20 +287,6 @@ impl Environment {
         self[id].vtype
     }
 
-    // pub fn iter<'a>(
-    //     &'a self,
-    // ) -> Map<
-    //     Filter<Enumerate<Iter<'a, Variable>>, impl FnMut(&'a (usize, &'a Variable)) -> bool>,
-    //     impl FnMut((usize, &'a Variable)) -> &'a Variable,
-    // > {
-    //     self.variables
-    //         .iter()
-    //         .enumerate()
-    //         .filter(|(i, _)| !self.ghost_vars.contains(i))
-    //         .map(|(_, e)| e)
-    // }
-    //
-
     /// Includes only non ghost variables, i.e., active variables.
     pub fn variables(&self) -> Vec<&Variable> {
         self.variables
@@ -313,7 +298,7 @@ impl Environment {
     }
 
     /// Includes ghost variables, i.e., inactive variables.
-    pub fn all_variables(&self) -> Iter<Variable> {
+    pub fn all_variables(&self) -> Iter<'_, Variable> {
         self.variables.iter()
     }
 

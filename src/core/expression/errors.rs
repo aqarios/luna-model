@@ -14,22 +14,6 @@ impl Display for VariableOutOfRangeErr {
     }
 }
 
-// IndexOutOfOrderError
-#[derive(Debug, Clone)]
-pub struct IndexOutOfOrderError(pub usize, pub usize);
-
-impl std::error::Error for IndexOutOfOrderError {}
-
-impl Display for IndexOutOfOrderError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result {
-        write!(
-            f,
-            "Index out of oder: last index <= {} (is {})",
-            self.0, self.1
-        )
-    }
-}
-
 // VariableOutOfRangeError
 #[derive(Debug, Clone)]
 pub enum VariableError {

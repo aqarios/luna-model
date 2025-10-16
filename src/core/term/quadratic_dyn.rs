@@ -58,7 +58,7 @@ where
         self.adj.get_mut(<VarIndex as Into<usize>>::into(idx))
     }
 
-    pub fn iter(&self) -> Iter<TwoVarTerm> {
+    pub fn iter(&self) -> Iter<'_, TwoVarTerm> {
         self.adj.iter()
     }
 

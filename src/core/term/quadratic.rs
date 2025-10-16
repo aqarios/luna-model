@@ -53,7 +53,7 @@ where
         self.adj.get_mut(<VarIndex as Into<usize>>::into(idx))
     }
 
-    pub fn iter(&self) -> Enumerate<Iter<Vec<OneVarTerm>>> {
+    pub fn iter(&self) -> Enumerate<Iter<'_, Vec<OneVarTerm>>> {
         self.adj.iter().enumerate()
     }
 

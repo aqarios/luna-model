@@ -88,7 +88,7 @@ impl Linear {
         self.biases.iter().map(|t| (t.index.0 as usize, t.bias))
     }
 
-    pub fn iter_mut(&mut self) -> IterMut<OneVarTerm> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, OneVarTerm> {
         let mutvec: &mut Vec<OneVarTerm> = self.biases.as_mut();
         mutvec.iter_mut()
     }

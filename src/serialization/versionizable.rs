@@ -119,11 +119,11 @@ where
 }
 
 /// For an object to be Versionizable it has to be vectorizable, i.e., it can be expressed
-/// as a bytes array. This is automatically true for a Vec<u8> as it directly represents a
+/// as a bytes array. This is automatically true for a `Vec<u8>` as it directly represents a
 /// bytes array. However, we require it to implement the method expected by the Versionizable
 /// trait.
 impl Vectorizable for Vec<u8> {
-    /// Returns self since a Vec<u8> already is a bytes array.
+    /// Returns self since a `Vec<u8>` already is a bytes array.
     #[inline]
     fn to_vec(self) -> Vec<u8> {
         self
@@ -153,8 +153,8 @@ impl Versionizable for Vec<u8> {}
 impl Unversionizable for &[u8] {}
 
 /// For an object to be Unversionizable it has to be Slicable, i.e., it can be expressed
-/// as a slice of bytes. This is automatically true for a &[u8] as it directly represents a
-/// slice of bytes. However, for a Versioned<Vec<u8>> we need to return it's data as a slice.
+/// as a slice of bytes. This is automatically true for a `&[u8]` as it directly represents a
+/// slice of bytes. However, for a `Versioned<Vec<u8>>` we need to return it's data as a slice.
 impl Slicable for Versioned<Vec<u8>> {
     /// Return the versioned data as a slice.
     fn as_slice(&self) -> &[u8] {
