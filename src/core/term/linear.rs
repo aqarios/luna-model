@@ -45,11 +45,11 @@ impl Linear {
         &self.biases
     }
 
-    pub fn iter(&self) -> Enumerate<Iter<Bias>> {
+    pub fn iter(&self) -> Enumerate<Iter<'_, Bias>> {
         self.biases.iter().enumerate()
     }
 
-    pub fn iter_mut(&mut self) -> Enumerate<IterMut<Bias>> {
+    pub fn iter_mut(&mut self) -> Enumerate<IterMut<'_, Bias>> {
         let mutvec: &mut Vec<Bias> = self.biases.as_mut();
         mutvec.iter_mut().enumerate()
     }

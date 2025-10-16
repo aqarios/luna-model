@@ -26,6 +26,15 @@ fn starts_with_failable(s: &str) -> bool {
         .any(|prefix| s.to_lowercase().starts_with(&prefix.to_lowercase()))
 }
 
+#[cfg_attr(
+    all(feature = "py", not(feature = "lq")),
+    pyclass(eq, eq_int, name = "Comparator", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    all(feature = "py", feature = "lq"),
+    pyclass(eq, eq_int, name = "Comparator", module = "luna_quantum._core")
+)]
+#[derive(Debug, Copy, Clone, PartialEq, Display, Eq, Hash)]
 /// Comparison operators used to define constraints.
 ///
 /// This enum represents the logical relation between the left-hand side (LHS)
@@ -46,15 +55,6 @@ fn starts_with_failable(s: &str) -> bool {
 /// >>> str(Comparator.Eq)
 /// '=='
 // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
-#[cfg_attr(
-    all(feature = "py", not(feature = "lq")),
-    pyclass(eq, eq_int, name = "Comparator", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    all(feature = "py", feature = "lq"),
-    pyclass(eq, eq_int, name = "Comparator", module = "luna_quantum._core")
-)]
-#[derive(Debug, Copy, Clone, PartialEq, Display, Eq, Hash)]
 pub enum Comparator {
     /// Equality (==)
     #[strum(to_string = "==")]
@@ -254,7 +254,7 @@ impl Constraints {
         self.constraints.len()
     }
 
-    pub fn iter(&self) -> ConstraintsIterator {
+    pub fn iter(&self) -> ConstraintsIterator<'_> {
         ConstraintsIterator::new(&self)
     }
 
@@ -272,12 +272,12 @@ impl Constraints {
                 let constr = self.constraints.get(*idx);
                 match constr {
                     Some(constr) => Ok(constr),
-                    None => Err(GetConstraintErr::IndexOutOfBoundsErr(
+                    Option::None => Err(GetConstraintErr::IndexOutOfBoundsErr(
                         IndexOutOfBoundsErr::new(*idx, self.len()),
                     )),
                 }
             }
-            None => Err(GetConstraintErr::NoConstraintForKeyErr(key.to_string())),
+            Option::None => Err(GetConstraintErr::NoConstraintForKeyErr(key.to_string())),
         }
     }
 
@@ -295,7 +295,7 @@ impl Constraints {
                 self.constraints[*idx] = constr;
                 Ok(())
             }
-            None => Err(GetConstraintErr::NoConstraintForKeyErr(key.to_string())),
+            Option::None => Err(GetConstraintErr::NoConstraintForKeyErr(key.to_string())),
         }
     }
 

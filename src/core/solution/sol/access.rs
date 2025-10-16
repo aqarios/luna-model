@@ -17,11 +17,11 @@ impl Solution {
         self.n_samples
     }
 
-    pub fn best(&self) -> Option<ResultView> {
+    pub fn best(&self) -> Option<ResultView<'_>> {
         self.best_sample_idx.map(|idx| ResultView::new(self, idx))
     }
 
-    pub fn get_result_view(&self, idx: usize) -> Option<ResultView> {
+    pub fn get_result_view(&self, idx: usize) -> Option<ResultView<'_>> {
         if idx >= self.n_samples {
             None
         } else {
@@ -29,7 +29,7 @@ impl Solution {
         }
     }
 
-    pub fn get_sample_view(&self, idx: usize) -> Option<SampleView> {
+    pub fn get_sample_view(&self, idx: usize) -> Option<SampleView<'_>> {
         if idx >= self.n_samples {
             None
         } else {
@@ -41,15 +41,15 @@ impl Solution {
         self.samples.get(col).and_then(|column| column.get(row))
     }
 
-    pub fn iter_result_views(&self) -> ResultViewsIterator {
+    pub fn iter_result_views(&self) -> ResultViewsIterator<'_> {
         ResultViewsIterator::new(self)
     }
 
-    pub fn iter_samples(&self) -> SamplesIterator {
+    pub fn iter_samples(&self) -> SamplesIterator<'_> {
         SamplesIterator::new(self)
     }
 
-    pub fn samples(&self) -> Samples {
+    pub fn samples(&self) -> Samples<'_> {
         Samples(&self)
     }
 }
