@@ -778,7 +778,7 @@ impl PySolution {
     fn set_raw_energies<'a>(&mut self, input: Option<Bound<'a, PyArray1<f64>>>) -> PyResult<()> {
         self.access_mut().raw_energies = match input {
             Some(array) => Some(array.to_vec()?),
-            None => None,
+            Option::None => None,
         };
         Ok(())
     }
@@ -793,6 +793,12 @@ impl PySolution {
     #[getter]
     fn get_runtime(&self) -> Option<PyTiming> {
         self.access().timing.map(|t| PyTiming(t))
+    }
+
+    /// Set the solver / algorithm runtime.
+    #[setter]
+    fn set_runtime(&self, timing: PyTiming) {
+        self.access().timing = Some(*timing);
     }
 
     /// Get the optimization sense.
@@ -1292,7 +1298,7 @@ impl PySolution {
         } else {
             match env {
                 Some(env) => env.clone(),
-                None => CURRENT_ENV.with(|current| {
+                Option::None => CURRENT_ENV.with(|current| {
                     current.borrow().clone().ok_or_else(|| {
                         NoActiveEnvironmentFoundError::new_err("no active environment found.")
                     })
