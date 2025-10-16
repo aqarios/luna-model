@@ -1,293 +1,373 @@
-# 🧠 AqModels
+![AqModels Logo](./assets/aqmodels_ascii.png)
 
-> A high-performance symbolic modeling library for optimization, powered by Rust and exposed in Python.
+# Symbolic modeling for optimization
 
-`aqmodels` provides a fast, expressive, and extensible system for defining algebraic expressions, constraints, and symbolic models — with a focus on mathematical clarity and performance.
+[**About**](#about-aqmodels)
+| [**Installation**](#installation)
+| [**Getting Started**](#getting-started)
+| [**Resources**](#resources)
 
-Built on a modern Rust core and exposed via `PyO3`, it bridges the performance of native code with the usability of Python.
+## Summary
 
----
+AqModels is a high-performance symbolic modeling library for describing, translating and transforming optimization problems.
+It provides the following high-level features:
+- System for defining symbolic algebraic expressions of arbitrary degree, constraints and optimization models (like dimod, gurobi or cplex)
+- Translations from and to an AqModel for many common optimization model formats (like LP)
+- Transformations to map an AqModel from a general model to a specific model, such as transforming a Constrained (Binary) Quadratic Model (CQM) to a (Unconstrained) Binary Quadratic Model (BQM), or from an Integer Model to a Binary Model.
+- Builtin serialization for maximum portability
+- Python-first development experience
 
-## 🚀 Features
+You can use AqModels as a standalone package or by using [luna-quantum](https://pypi.org/project/luna-quantum/) which gives you additional builtin primitives to solve your optimization problems using the [Luna Platform](https://aqarios.com/platform).
 
-- ✅ Symbolic algebra with support for arbitrary polynomial degree
-- ✅ Variable typing and bounding
-- ✅ Constraint-based modeling
-- ✅ Serialization & model portability
-- ✅ Fast Rust backend with native bindings via [maturin](https://github.com/PyO3/maturin)
-- ✅ Python-first development experience via [uv](https://astral.sh/blog/uv/)
+<!-- toc -->
 
----
+- [About AqModels](#about-aqmodels)
+- [Installation](#installation)
+  - [Binaries](#binaries)
+  - [From Source](#from-source)
+    - [Prerequisites](#prerequisites)
+  - [Get the AqModels Source](#get-the-aqmodels-source)
+  - [Install Dependencies](#install-dependencies)
+  - [Install AqModels](#install-aqmodels)
+    - [Adjust Build Options (Optional)](#adjust-build-options-optional)
+  - [Building the Documentation (Python)](#building-the-documentation-python)
+  - [Building the Documentation (Rust)](#building-the-documentation-rust)
+- [Getting Started](#getting-started)
+- [Resources](#resources)
+- [Communication](#communication)
+- [Releases and Contributing](#releases-and-contributing)
 
-## 📦 Installation
+<!-- tocstop -->
 
-```bash
-pip install git+https://github.com/aqarios/aq-models-rs.git@release
-# or with ssh
-pip install git+ssh://git@github.com/aqarios/aq-models-rs.git@release
+## About AqModels
+
+Most optimization tasks involve working with problems, which generally consist of an objective function,
+wether this objective function should be minimized or maximized and optionally constraints to the problem itself.
+You can learn more about using AqModels in [this tutorial](./examples/basics.md) where we take a deeper dive into
+a complete optimization workflow implemented using AqModels and [LunaSolve](https://pypi.org/project/luna-quantum/).
+
+AqModels consists of the following components:
+
+| Component                                                 | Description                                                               |
+| --------------------------------------------------------- | ------------------------------------------------------------------------- |
+| [**aqmodels**](#a-symbolic-modeling-library)              | A symbolic modeling library for arbitrary optimization models (problems). |
+| [**aqmodels.translator**](#the-translation-library)       | An automatic translation library that supports most common model format.  |
+| [**aqmodels.transformations**](#the-transformation-stack) | A compilation and transpilation stack to transform a model (source) into a target representation (target). _Not all targets are reachable from all sources, for more information on why see detailed in the resepective section._ |
+| [**aqmodels.utils**](./src/aqmodels/translator.pyi)       | Utility functions for expression and model creation.                      |
+| [**aqmodels.errors**](./src/aqmodels/errors.pyi)          | All error types that can be raised within aqmodels.                       |
+
+AqModels is usually used as either:
+- A replacement for plain LP files, dimod or similar frameworks to define optimization models.
+- As part of [luna-quantum](https://pypi.org/project/luna-quantum/) to solve arbitrary optimization problems.
+
+### A Symbolic Modeling Library
+
+> [!IMPORTANT]
+> The following assumes you are using from Python. If you are interested in using it from Rust look at the [**Documentation**](#building-the-documentation-rust).
+
+With AqModels you can define symbolic Expressions and Constraints (_which in consist of left-hand side (lhs), an Expression, a right-hand side (rhs) which is a constant numerical value and a Comparator_).
+A Model defining arbitrary optimization problems consists of a single Expression as the objective function (_the function to be optimized_) and, optionally, one or more Constraints.
+Expressions are created using mathematical operations on Variables. Variables represent an unknown in the Expression which is determined by an optimization. By default variables are Binary, can represent any of the following Variable types:
+
+- **Binary**: the variable can be either $0$ or $1$.
+- **Spin**: the variable can be either $-1$ or $+1$.
+- **Integer**: the variable can be any integer number $\in [-2^{64}-1, 2^{64}-1]$ (_for a 64-Bit system_).
+- **Real**: the variable can be any floating point number $\in [\approx -1.7976...E308, \approx +1.7976...E308]$ (_[-f64::MAX, f64::MAX]_).
+
+_In general not all variable types are supported by all optimizers you can find. It can be the case that a defined model cannot be natively translated into the expected format of an optimizer. To resolve this you can use [**aqmodels.transformations**]()._
+
+Let's have a look a the **Knapsack Problem** for defining an optimization problem using only Binary variables.
+We have $n$ items $x_1, x_2, \dots, x_n$, each with a weight $w_i$ and a value $v_i$, and a maximum capacity of $W$.
+The optimization problem is defined as:
+
+```math
+\begin{align*}
+&\text{maximize} \sum_{i=1}^{n} v_i x_i \\
+&\text{subject to} \sum_{i=1}^{n} w_i x_i \leq W \quad \text{and} \quad x_i \in \{ 0, 1 \}
+\end{align*}
 ```
 
-Or clone and build locally (requires Rust):
+Using AqModels and $n = 5$ and $W = 25$:
+
+```python
+from aqmodels import Expression, Model, Sense, Vtype
+# A faster alternative to creating Expressions using loops in Python.
+from aqmodels.utils import quicksum 
+# Initialize the known values:
+n: int = 5  # number of items.
+W: int = 25 # maximum capacity.
+weights: list[float] = [ 1.5, 10.0, 5.2,  3.5, 8.32] # weight of each item.
+values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
+# First, we create the Model with it's sense set to Maximize the objective function.
+# You can also give your model a name, optionally but recommended.
+model = Model(sense=Sense.Max, name="Knapsack") 
+# Next, we need to create all variables. Note, there are alternative ways to create
+# variables, you can find details in the AqModels docs.
+variables = [model.add_variable(f"x_{i+1}", vtype=Vtype.Binary) for i in range(n)]
+# Now we can define the objective function:
+model.objective = quicksum(values[i] * variables[i] for i in range(n))
+# And for the constraints:
+# Ensure the maximum capacity of `W`:
+model.constraints += quicksum(weights[i] * variables[i] for i in range(n)) <= W
+# The second constraint that all `x_i` are in [0, 1] is natively encoded by using 
+# Binary variables. 
+```
+
+As an extension, the **Bounded Knapsack Problem (BKP)** with a maximum number of each item $c = 4$ can be defined like this:
+
+```math
+\begin{align*}
+&\text{maximize} \sum_{i=1}^{n} v_i x_i \\
+&\text{subject to} \sum_{i=1}^{n} w_i x_i \leq W \quad \text{and} \quad x_i \in \{ 0, 1, 2, \dots, c \}
+\end{align*}
+```
+
+Now we have two equivalent approaches to implement this using AqModels:
+_Note that we have to use Integer variables now._
+
+- Using Bounds on the variables:
+  ```python
+  from aqmodels import Expression, Model, Sense, Vtype, Bounds
+  # A faster alternative to creating Expressions using loops in Python.
+  from aqmodels.utils import quicksum 
+  # Initialize the known values:
+  c: int = 4  # maximum number of each item.
+  n: int = 5  # number of items.
+  W: int = 25 # maximum capacity.
+  weights: list[float] = [ 1.5, 10.0, 5.2,  3.5, 8.32] # weight of each item.
+  values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
+  # First, we create the Model with it's sense set to Maximize the objective function.
+  # You can also give your model a name, optionally but recommended.
+  model = Model(sense=Sense.Max, name="Bounded Knapsack") 
+  # Next, we need to create all variables. Note, there are alternative ways to create
+  # variables, you can find details in the AqModels docs.
+  variables = [
+      # We can have each item at least `0` times and at most `c` times.
+      model.add_variable(f"x_{i+1}", vtype=Vtype.Integer, lower=0, upper=c) 
+      for i in range(n)
+  ]
+  # Now we can define the objective function:
+  model.objective = quicksum(values[i] * variables[i] for i in range(n))
+  # And for the constraints:
+  # Ensure the maximum capacity of `W`:
+  model.constraints += quicksum(weights[i] * variables[i] for i in range(n)) <= W
+  # The second constraint that all `x_i` are in [0, 1, 2, ..., c] is natively encoded 
+  # by using Bounds on the Integer variables. 
+  ```
+- Using a Constraint for each variable:
+  ```python
+  from aqmodels import Expression, Model, Sense, Vtype, Bounds
+  # A faster alternative to creating Expressions using loops in Python.
+  from aqmodels.utils import quicksum 
+  # Initialize the known values:
+  c: int = 4  # maximum number of each item.
+  n: int = 5  # number of items.
+  W: int = 25 # maximum capacity.
+  weights: list[float] = [ 1.5, 10.0, 5.2,  3.5, 8.32] # weight of each item.
+  values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
+  # First, we create the Model with it's sense set to Maximize the objective function.
+  # You can also give your model a name, optionally but recommended.
+  model = Model(sense=Sense.Max, name="Bounded Knapsack") 
+  # Next, we need to create all variables. Note, there are alternative ways to create
+  # variables, you can find details in the AqModels docs.
+  variables = [
+      model.add_variable(f"x_{i+1}", vtype=Vtype.Integer) 
+      for i in range(n)
+  ]
+  # Now we can define the objective function:
+  model.objective = quicksum(values[i] * variables[i] for i in range(n))
+  # And for the constraints:
+  # Ensure the maximum capacity of `W`:
+  model.constraints += quicksum(weights[i] * variables[i] for i in range(n)) <= W
+  # The second constraint that all `x_i` are in [0, 1, 2, ..., c]:
+  for i in range(n):
+      model.constraints += variables[i] <= c
+      model.constraints += variables[i] >= 0
+  ```
+
+AqModels also provides a native Solution class that represents solutions to an AqModel natively.
+
+### The Translation Library
+
+AqModels has builtin translators to convert from most model representations to an AqModel.
+To use optimizers not natively supporting AqModels you can use one of the provided translators to translate from AqModels to any of the supported formats. It also contains translators for converting from an optimizer native solution representation to an AqSolution.
+
+AqModels ships with the following [**aqmodels.translators**](./src/aqmodels/translator.pyi) for Models:
+
+- **QuboTranslator**: To translate from and to a [Quadratic Unconstrained Binary Optimization (QUBO)](https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization) problem.
+- **LpTranslator**: To translate from and to a [LP File](https://web.mit.edu/lpsolve/doc/CPLEX-format.htm).
+- **BqmTranslator**: To translate from and to a [Dimod BQM](https://docs.dwavequantum.com/en/latest/ocean/api_ref_dimod/models.html#module-dimod.binary.binary_quadratic_model).
+- **CqmTranslator**: To translate from and to a [Dimod CQM](https://docs.dwavequantum.com/en/latest/ocean/api_ref_dimod/models.html#module-dimod.constrained.constrained).
+
+AqModels ships with the following [**aqmodels.translators**](./src/aqmodels/translator.pyi) for Solutions:
+
+- **ZibTranslator**: for converting a [SCIP](https://www.scipopt.org/) result.
+- **QctrlTranslator**: for converting a [Q-Ctrl](https://q-ctrl.com/) result.
+- **NumpyTranslator**: for converting a result formatted as a [Numpy](https://numpy.org/) array.
+- **IbmTranslator**: for converting a [Qiskit](https://www.ibm.com/quantum/qiskit) result.
+- **DwaveTranslator**: for converting a [DWave](https://www.dwavequantum.com/) result.
+- **AwsTranslator**: for converting an [Amazon Braket](https://aws.amazon.com/braket/) result.
+
+### The Transformation Stack
+
+> [!WARNING]
+> The transformation stack is still a work in progress and does not have a mostly finalized API yet.
+> A description will follow once the API is stabilized.
+
+## Installation
+
+### Binaries
+
+You have two options for obtaining pre-built binaries:
+- Using AqModels as a builtin of the [luna-quantum](https://pypi.org/project/luna-quantum) package.
+  _Note that all imports in all examples and code snippets change from `aqmodels` to `luna_quantum`_.
+- Installing it from the Aqarios private artifact feed. **This is only available for Aqarios Employees.**
+
+### From Source
+
+The following assumes you are on Linux or MacOS. Windows is supported using pre-built [**Binaries**](#binaries).
+While you can install it from Source on Windows, we will not provide explicit installation instructions.
+
+#### Prerequisites
+
+If you are installing from source, you will need:
+
+- The [**uv**](https://docs.astral.sh/uv/) Python package and project manager.
+- [**Rust & Cargo**](https://rust-lang.org/learn/get-started/) for the Rust compiler and the Rust build tool and package manager.
+
+##### Get the AqModels Source
 
 ```bash
-git clone https://github.com/aqarios/aq-models-rs.git
+git clone https://github.com/aqarios/aq-models-rs
 cd aq-models-rs
+# If you are updating an existing checkout
+git pull
+```
+
+##### Install Dependencies
+
+###### For Development
+
+```bash
 uv sync
+# Optionally activate your environment if you don't want to use `uv run ...`
+source .venv/bin/activate
+```
+
+This installs AqModels and all dev dependencies into the `.venv`.
+
+###### For Usage Only
+
+```bash
+uv sync --no-dev
+# Optionally activate your environment if you don't want to use `uv run ...`
+source .venv/bin/activate
+```
+
+This installs only AqModels and runtime dependencies into the `.venv`.
+
+### Build and Install AqModels
+
+#### For Python
+
+```bash
 uv build
 ```
 
----
-
-## ✨ Example
-
-```python
-from aqmodels import Variable, Model
-
-model = Model("my_model")
-
-with model.environment:
-    x = Variable("x")
-    y = Variable("y")
-
-model.objective = x * y + 3 * x - 1
-model.constraints += x >= 0
-model.constraints += y <= 5
-
-blob = model.encode()
-new_model = Model.decode(blob)
-```
-
----
-
-## 📘 API Documentation
-
-### 🧱 Core Classes
-
-- **Vtype**: Variable type enum (Binary, Spin, Integer, Real)
-- **Bounds**: Variable bounds
-- **Variable**: Symbolic variable
-- **Timing**, **Timer**: Timing utilities
-- **Solution**: Solution container
-- **SamplesIterator**, **SampleIterator**, **Samples**, **Sample**: Iterators and sample containers
-- **ResultIterator**, **Result**, **ResultView**: Result containers
-- **Sense**: Model sense (Minimize/Maximize)
-- **Model**: Symbolic model container
-- **Expression**: Symbolic algebraic expression
-- **Environment**: Context manager for variable creation
-- **Comparator**: Constraint comparator enum
-- **Constraint**, **Constraints**: Constraint and constraint set
-
-### 📐 Translators
-
-All translators are available via `aqmodels.translator`:
-
-- **ZibTranslator**: Convert between Zib (SCIP) and Solution
-- **QuboTranslator**: Dense QUBO matrix ↔ symbolic Model
-- **QctrlTranslator**: Qctrl dict ↔ Solution
-- **NumpyTranslator**: Numpy arrays ↔ Solution
-- **LpTranslator**: LP file/string ↔ Model
-- **IbmTranslator**: IBM Qiskit result ↔ Solution
-- **DwaveTranslator**: D-Wave SampleSet ↔ Solution
-- **CqmTranslator**: dimod.ConstrainedQuadraticModel ↔ Model
-- **BqmTranslator**: dimod.BinaryQuadraticModel ↔ Model
-- **AwsTranslator**: AWS result dict ↔ Solution
-
-#### Example: QuboTranslator
-
-```python
-from aqmodels import QuboTranslator
-import numpy as np
-
-qubo = np.array([[1.0, -1.0], [-1.0, 2.0]])
-model = QuboTranslator.to_aq(qubo)
-q_dense = QuboTranslator.from_aq(model)
-```
-
-#### Example: BqmTranslator
-
-```python
-from aqmodels.translator import BqmTranslator
-import dimod
-
-bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
-model = BqmTranslator.to_aq(bqm)
-bqm_back = BqmTranslator.from_aq(model)
-```
-
----
-
-### 🚨 Errors
-
-All exceptions are exposed via `aqmodels.errors`:
-
-- `VariableExistsError`, `NoActiveEnvironmentFoundError`
-- `VariablesFromDifferentEnvsError`, `VariableOutOfRangeError`
-- `ModelNotQuadraticError`, `ModelNotUnconstrainedError`
-- `ModelSenseNotMinimizeError`, `ModelVtypeError`
-- `DecodeError`, `MultipleActiveEnvironmentsError`
-- ...and more
-
-Use idiomatic try/except for symbolic safety:
-
-```python
-from aqmodels import Model, Variable
-from aqmodels.errors import VariableExistsError
-
-try:
-    model = Model()
-    with model.environment:
-        x = Variable("x")
-        x2 = Variable("x")  # raises VariableExistsError
-except VariableExistsError as e:
-    print("You already created this variable.")
-```
-
----
-
-## ⚙️ Internals
-
-This library is powered by a high-performance Rust backend using:
-
-- [PyO3](https://github.com/PyO3/pyo3) — For building native Python bindings
-- [maturin](https://github.com/PyO3/maturin) — For packaging as a Python module
-- [uv](https://astral.sh/blog/uv/) — For project and dependency management
-
-The entire symbolic system is implemented in Rust for safety and speed, while Python exposes a clean, linter-friendly, IDE-friendly API via wrapper classes and `.pyi` stub generation.
-
----
-
-## 🦀 Using the Rust Library Directly
-
-AqModels is fundamentally a Rust library. All core modeling, algebra, and solution logic is implemented in Rust. The Python interface is a thin layer over this robust backend.
-
-### Structure
-
-- `src/core/`: Symbolic modeling, algebra, constraint, and solution logic.
-- `src/serialization/`: Efficient serialization and deserialization.
-- `src/translator/`: Translators for interoperability with other modeling libraries and formats.
-- `src/errors.rs`: All error types and error handling.
-- `src/prelude.rs`: Commonly used types and traits for ergonomic imports.
-
-### Usage
-
-To use AqModels as a Rust crate, add it to your `Cargo.toml` (when published):
-
-```toml
-[dependencies]
-aqmodels = "0.1"
-```
-
-Or use a local path:
-
-```toml
-[dependencies]
-aqmodels = { path = "../aq-models-rs" }
-```
-
-#### Example: Creating and Evaluating a Model in Rust
-
-> [!CAUTION]
-> The following code is provided as an illustrative example and may require adjustments to compile and run successfully in your environment.
-
-```rust
-// filepath: README.md (Rust section)
-use aqmodels::core::{Model, Vtype, Sense};
-use aqmodels::core::constraints::{Constraint, Comparator};
-use aqmodels::core::solution::{Sample, ResultIterator, ConcreteBias, ConcreteAssignmentTypes};
-
-fn main() {
-    // Create a new model
-    let mut model = Model::new(Some("my_model".to_string()));
-
-    // Add variables to the environment
-    let mut env = model.environment.borrow_mut();
-    let x = env.add_variable("x".to_string(), Some(Vtype::Real), None);
-    let y = env.add_variable("y".to_string(), Some(Vtype::Real), None);
-    drop(env); // Release the mutable borrow
-
-    // Directly build the objective using variable operations
-    // x * y + 3 * x - 1
-    let mut objective = &x * &y; // x * y
-    objective += &x * 3.0;       // + 3 * x
-    objective += -1.0;           // - 1
-
-    *model.objective.borrow_mut() = objective;
-    model.set_sense(Sense::Min);
-
-    // Add constraints: x >= 0, y <= 5
-    let constraint1 = Constraint::new((&x).into(), Comparator::Ge, 0.0);
-    let constraint2 = Constraint::new((&y).into(), Comparator::Le, 5.0);
-    model.constraints.borrow_mut().push(constraint1);
-    model.constraints.borrow_mut().push(constraint2);
-
-    // Example: Evaluate the objective for a sample assignment
-    let sample_vec = vec![1.0, 2.0]; // x=1.0, y=2.0
-    let sample = Sample::<ConcreteBias, ConcreteAssignmentTypes>::from_vec(sample_vec);
-
-    let result = model.evaluate_sample(&sample);
-    println!("Objective value: {:?}", result.obj_value());
-
-    // Working with solutions and results
-    let solution = result.solution();
-    let mut results = ResultIterator::new(solution);
-    while let Some(res_view) = results.next() {
-        println!(
-            "Sample: {:?}, Objective: {:?}, Feasible: {:?}",
-            res_view.get_sample(),
-            res_view.obj_value(),
-            res_view.feasible()
-        );
-    }
-}
-```
-
-#### Features
-
-- **No Python Required:** Use the full modeling and algebraic API in Rust.
-- **Performance:** All operations are zero-cost abstractions and use Rust's safety guarantees.
-- **Interoperability:** Use the same serialization and translation features as in Python.
-
-#### Documentation
-
-- Rustdoc is available for all public modules and types.
-- See [`src/core/`](src/core/) and [`src/prelude.rs`](src/prelude.rs) for main entry points.
-
----
-
-## 👷 Development
+To build for a specific python version, e.g., Python 3.14:
 
 ```bash
-uv dev
+uv build --python 3.14
 ```
 
-- Make changes in Rust (`src/lib.rs`, etc.)
-- Python interface lives in `src/aqmodels/`
-- Auto-generate `.pyi` and `__init__.py` files during:
+This will put the AqModels binary into `./target/wheels/`. To install it in another project
+use your favorite Python package manager and install it using the wheels path, e.g., with
+pip:
 
 ```bash
-uv sync
+pip install <path>/<to>/target/wheels/aqmodels-<version>-cp314-cp314-<platform>.whl
 ```
 
----
+#### For Rust
 
-## 📄 License
+```bash
+cargo build --release
+```
 
-_**TBD**_
+To compile AqModels with default features (for rust usage only).
 
----
+#### Adjust Build Options (Optional)
 
-## 🧠 Contributing
+You have the following options for compiling the AqModels Rust source code. By default
+no feature is enabled.
 
-We welcome contributions, fixes, and features!  
-For roadmap ideas, check out [issues](https://github.com/your-org/aqmodels/issues).
+- **transformations**: To compile with transformations.
+- **py**: To compile with Python bindings.
+- **pyt**: Extension to **py** with transformations and their Python bindings. _Does not produce the same code as using the **py** and **transformations** feature_
+- **lq**: To compile the **pyt** feature with the namespace changed to `luna_quantum` for all Python imports.
 
----
+### Building the Documentation (Python)
 
-## 🌌 Related Projects
+Currently not supported, you can fine the python documentation for the latest release online [here](https://docs.aqarios.com) as part of the `luna_quantum` documentation. 
 
-- [`rustworkx`](https://github.com/Qiskit/rustworkx) — Rust-powered graph library for Python
-- [`maturin`](https://github.com/PyO3/maturin) — Painless Rust + Python packaging
+> [!TIP]
+> The online documentation might not be up-to-date or complete. To get an exhaustive documentation of the Python API see [Building the Documentation (Rust)] and look at the dcoumentation of the AqModels Python Bindings (_`py_bindings`_).
 
----
+### Building the Documentation (Rust)
 
-> © Aqarios GmbH 2024-present. Built with ❤️ and Rust.
+Similar to building the library you can pass the `--features <feature>` argument to generate the docs for the objects included with `<feature>`.
+To open the docs in a browser after building add the `--open` flag.
+
+```bash
+cargo doc --no-deps --document-private-items
+```
+
+To also generate the docs for the `transformations` run:
+
+```bash
+cargo doc --no-deps --document-private-items --features transformations
+```
+
+To also generate the docs for the `py_bindings` run:
+
+```bash
+cargo doc --no-deps --document-private-items --features py
+```
+
+To also generate the docs for the `py_bindings` (including transformations) run:
+
+```bash
+cargo doc --no-deps --document-private-items --features pyt
+```
+
+## Getting Started
+
+Have a look at:
+- The [Get Started](https://docs.aqarios.com/get-started/) for [luna-quantum](https://pypi.org/project/luna-quantum).
+- The [Examples](./examples) contained in this repository.
+
+## Resources
+
+- [luna-quantum documentation](https://docs.aqarios.com)
+- [AqModels Discussions](https://github.com/aqarios/aq-models-rs/discussions)
+
+## Communication
+
+- GitHub Discussions: Talk about anything AqModels related (thoughts, usage issues that are neither a Bug or a Use Case, cool examples, ...) [here](https://github.com/aqarios/aq-models-rs/discussions)
+- GitHub Issues: Bug Reports, Proposals, Use Cases, etc.
+
+## Releases and Contributing
+
+Typically, AqModels releases new features as soon as the core Maintainers decide that they are stable enough to be made available publicly.
+Bug-fixes are released as soon as the fix is accepted by the core Maintainers. Please let us know if you encounter a bug by [filing a bug report](https://github.com/aqarios/aq-models-rs/issues/new?template=bug.yml).
+
+We appreciate all contribtions. If you plan to contribute back bug-fixes, please do so without any further discussion, see the [Contribution page](./CONTRIBUTING.md) for details. Once done open a PR and assign one of the core Maintainers as a Reviewer.
+
+If you plan to contribute back new features, or extensions, that are not yet mentioned in the Issues, please [file a proposal](https://github.com/aqarios/aq-models-rs/issues/new?template=proposal.yml) and discuss your idea with us once we accepted your proposal (proposal also has the "accepted" label) you can start your implementation and open a PR once deemed ready to be merged. Opening a PR not associated with an "accepted" proposal might end up being rejected because we might be taking AqModels in a different direction than you might be aware of.
+
+If you have a particular use case where it's either extremely hard or impossible to use AqModels but you don't propose a solution, please [file a use case](https://github.com/aqarios/aq-models-rs/issues/new?template=usecase.yml) and discuss the use case with us.
+It might be transformed into a proposal once enough information is gathered to have an actionable plan on resolving you issue.
+
+Do not assign or mention a core Maintainer yourself. We regularly check the Issues page and work through proposals depending on the direction we are currently focusing on.
+
+For further information about making a contribution and how releases are made, please see our [Contribution guidelines](./CONTRIBUTING.md).
