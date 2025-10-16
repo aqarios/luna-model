@@ -2,6 +2,7 @@ import pytest
 
 from aqmodels import Model, Variable, Environment, Solution, Vtype, Timer
 
+
 def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
     env = Environment()
     with env:
@@ -15,6 +16,7 @@ def model(request):
     model = Model(env=env)
     model.objective = x - y - z
     return model, (x, y, z)
+
 
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_set_runtime(model: tuple[Model, tuple[Variable, ...]]):
