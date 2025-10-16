@@ -8,16 +8,16 @@ use super::hash_expr::HashExpr;
 #[derive(Clone, PartialEq, Message)]
 pub struct HashConstr {
     /// Representation of the left-hand-sides of all constraints as a vector of byte
-    /// vectors. Each byte vector (Vec<u8>) is an encoded expression.
+    /// vectors. Each byte vector (`Vec<u8>`) is an encoded expression.
     #[prost(bytes, repeated, tag = "1")]
     lhsides: Vec<Vec<u8>>,
     /// Representation of the right-hand-sides of all constraints as a vector of double
-    /// values (f64).
+    /// values (`f64`).
     #[prost(double, repeated, tag = "2")]
     rhsides: Vec<f64>,
     /// Representation of the comparator used for all constraints. The comparator is
     /// encoded using the minimally possible data type available in this protobuf
-    /// implementation which is a u32.
+    /// implementation which is a `u32`.
     #[prost(uint32, repeated, tag = "3")]
     comparators: Vec<u32>,
     /// Representation of the constraint names used for all constraints.
