@@ -1254,39 +1254,6 @@ class Solution:
         counts: int = ...,
         sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, int | float],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: int = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, int | float],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: int = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: int = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
     @staticmethod
     def from_dict(
         data: dict[Variable | str, int | float],
@@ -1402,39 +1369,6 @@ class Solution:
     @staticmethod
     def from_dicts(
         data: list[dict[Variable | str, float]],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: list[int] = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, int | float]],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: list[int] = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, int | float]],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: list[int] = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]],
         *,
         env: Environment = ...,
         model: Model = ...,

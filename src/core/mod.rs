@@ -18,7 +18,7 @@ mod traits;
 pub use constraints::Comparator;
 pub use constraints::Constraint;
 pub use constraints::ConstraintKey;
-pub use constraints::Constraints;
+pub use constraints::ConstraintCollection;
 
 pub use environment::Environment;
 pub use environment::SharedEnvironment;

@@ -91,7 +91,7 @@ impl SharedEnvironment {
                 let content = match enc {
                     Some(e) => e,
                     // unwrap here is safe as variable exists.
-                    None => &[(*self.access().variables_lookup.get(name).unwrap()).into()],
+                    Option::None => &[(*self.access().variables_lookup.get(name).unwrap()).into()],
                 };
                 let suffix = Sqids::default().encode(content).unwrap();
                 let new_name = format!("{}_{}", name, suffix);
@@ -336,7 +336,7 @@ impl Environment {
                 Vtype::__Ghost => Err(VariableNotExistingErr {}),
                 _ => Ok(v),
             },
-            None => Err(VariableNotExistingErr {}),
+            Option::None => Err(VariableNotExistingErr {}),
         }
     }
 
@@ -348,7 +348,7 @@ impl Environment {
                 Vtype::__Ghost => Err(VariableNotExistingErr {}),
                 _ => Ok(()),
             },
-            None => Err(VariableNotExistingErr {}),
+            Option::None => Err(VariableNotExistingErr {}),
         }
     }
 }

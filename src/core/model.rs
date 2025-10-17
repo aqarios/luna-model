@@ -1,4 +1,4 @@
-use super::constraints::Constraints;
+use super::constraints::ConstraintCollection;
 use super::environment::SharedEnvironment;
 use super::expression::{ExpressionBaseAdd, ExpressionBaseCreation};
 use super::solution::result::OwnedResult;
@@ -20,7 +20,7 @@ use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter};
 use strum_macros::{Display, EnumString};
 #[cfg(feature = "py")]
-use {crate::py_bindings::unwind, pyo3::prelude::*, unwind_macros::unwindable};
+use pyo3::prelude::*;
 
 /// The default name for a model.
 pub static DEFAULT_MODEL_NAME: &str = "unnamed";
@@ -61,23 +61,6 @@ impl Default for Sense {
     }
 }
 
-#[cfg(feature = "py")]
-#[cfg_attr(feature = "py", pymethods)]
-#[cfg_attr(feature = "py", unwindable)]
-impl Sense {
-    #[getter]
-    fn get_name(&self) -> String {
-        match &self {
-            Self::Min => String::from("Min"),
-            Self::Max => String::from("Max"),
-        }
-    }
-    #[getter]
-    fn get_value(&self) -> String {
-        self.to_string()
-    }
-}
-
 /// A model describing some function to be optimized (objective) and restrictions
 /// on this objective (constraints).
 #[derive(Clone)]
@@ -91,7 +74,7 @@ pub struct Model {
     /// is an expression that can be linear, quadratic or higher order.
     pub objective: Expression,
     /// The constraints of the model describing the restrictions on the model.
-    pub constraints: Constraints,
+    pub constraints: ConstraintCollection,
     /// The sense of the model, i.e., the direction to be optimized at.
     /// By default is set to `Sense::Min`.
     pub sense: Sense,
@@ -132,7 +115,7 @@ impl Model {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
             objective: Expression::empty(env.clone()),
             environment: env,
-            constraints: Constraints::default(),
+            constraints: ConstraintCollection::default(),
             sense: sense.unwrap_or(Sense::default()),
         }
     }
@@ -144,7 +127,7 @@ impl Model {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
             objective: Expression::empty(rcenv.clone()),
             environment: rcenv,
-            constraints: Constraints::default(),
+            constraints: ConstraintCollection::default(),
             sense: sense.unwrap_or(Sense::default()),
         }
     }
@@ -164,7 +147,7 @@ impl Model {
 
         for idx in 0..num_variables.into() {
             let var_name = match &variable_names {
-                None => &format!("x_{}", idx.to_string()),
+                Option::None => &format!("x_{}", idx.to_string()),
                 Some(names) => &names[idx],
             };
             model
@@ -254,23 +237,18 @@ impl Model {
         self
     }
 
-    pub fn violated_constraints(&self, sample: &Sample) -> Constraints {
+    pub fn violated_constraints(&self, sample: &Sample) -> ConstraintCollection {
         let var_index_lookup = make_index_map(sample.varname_to_pos(), &self.environment);
-        let mut index_map = IndexMap::new();
-        let mut constraints = Vec::new();
-        for (idx, (name, constr)) in self.constraints.iter().enumerate() {
+        let mut constraints = IndexMap::new();
+        for (name, constr) in self.constraints.iter() {
             let v = constr
                 .lhs
                 .evaluate_sample(sample, |idx| var_index_lookup[&idx].into());
             if !constr.comparator.evaluate(v, constr.rhs) {
-                index_map.insert(name.to_string(), idx);
-                constraints.push(constr.clone())
+                constraints.insert(name.to_string(), constr.clone());
             }
         }
-        Constraints {
-            index_map,
-            constraints,
-        }
+        ConstraintCollection { constraints }
     }
 
     /// Substitute every occurrence of a variable in the model’s objective and constraint expressions with another expression.

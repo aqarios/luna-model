@@ -9,7 +9,7 @@ use super::versions::v0::SerTiming as SerTimingV0;
 use super::versions::v1::SerSolution as SerSolutionV1;
 use super::Version;
 use crate::core::environment::SharedEnvironment;
-use crate::core::{Constraints, Environment, Expression, Model, Solution, Timing};
+use crate::core::{ConstraintCollection, Environment, Expression, Model, Solution, Timing};
 
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of an Expression. In case a new serialization format is defined update this value
@@ -17,7 +17,7 @@ use crate::core::{Constraints, Environment, Expression, Model, Solution, Timing}
 /// serialization implementation.
 type SerExprLatest = SerExprV0;
 /// Helper type to ensure easier version updates to a new serialization implementation
-/// of Constraints. In case a new serialization format is defined update this value
+/// of ConstraintCollection. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
 type SerConstrLatest = SerConstrV0;
@@ -48,8 +48,8 @@ impl Encodable<SerExprV0> for Expression {
         Version::V0
     }
 }
-/// Makes a Constraints with Index = VarId and Bias = f64 encodable.
-impl Encodable<SerConstrV0> for Constraints {
+/// Makes a ConstraintCollection with Index = VarId and Bias = f64 encodable.
+impl Encodable<SerConstrV0> for ConstraintCollection {
     fn version(&self) -> Version {
         Version::V0
     }
@@ -103,21 +103,21 @@ impl Decodable<Expression> for Versioned<Vec<u8>> {
     }
 }
 
-/// Default implementation to make a bytes vector deserializable to a Constraints.
-/// For the decoding of a bytes vector to an Constraints a reference counted pointer to
+/// Default implementation to make a bytes vector deserializable to a ConstraintCollection.
+/// For the decoding of a bytes vector to an ConstraintCollection a reference counted pointer to
 /// it's environment is required (given by the Payload type)
-impl Decodable<Constraints> for Vec<u8> {
+impl Decodable<ConstraintCollection> for Vec<u8> {
     type Latest = SerConstrLatest;
     type Payload = SharedEnvironment;
 }
-/// Makes a versionized representation of the Constraints decodable.
-/// For the decoding of a bytes vector to a Constraints a reference counted pointer to
+/// Makes a versionized representation of the ConstraintCollection decodable.
+/// For the decoding of a bytes vector to a ConstraintCollection a reference counted pointer to
 /// it's environment is required (given by the Payload type)
-impl Decodable<Constraints> for Versioned<Vec<u8>> {
+impl Decodable<ConstraintCollection> for Versioned<Vec<u8>> {
     type Latest = SerConstrLatest;
     type Payload = SharedEnvironment;
 
-    fn decode(&self, payload: Self::Payload) -> Result<Constraints, DecodeError> {
+    fn decode(&self, payload: Self::Payload) -> Result<ConstraintCollection, DecodeError> {
         match self.version {
             Some(Version::V0) => SerConstrV0::decoder(self.data.as_slice(), payload),
             _ => SerConstrLatest::decoder(self.data.as_slice(), payload),

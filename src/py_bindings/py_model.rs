@@ -133,7 +133,7 @@ impl PyModel {
     fn py_new(name: Option<String>, sense: Option<Sense>, env: Option<PyEnvironment>) -> Self {
         let env: PyEnvironment = match env {
             Some(env) => env.clone(),
-            None => CURRENT_ENV.with(|curr| {
+            Option::None => CURRENT_ENV.with(|curr| {
                 curr.borrow()
                     .clone()
                     .unwrap_or_else(|| PyEnvironment::new(SharedEnvironment::default()))
@@ -300,7 +300,9 @@ impl PyModel {
     ///     The name of the constraint to be added.
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
-        constraint.access_mut().set_name(name)?;
+        if let Some(n) = name {
+            constraint.access_mut().set_name(n)?;
+        };
         self.access()
             .constraints
             .add_assign(constraint.access().deref())?;

@@ -1,5 +1,6 @@
+use crate::core::constraints::DEFAULT_CONSTRAINT_NAME;
 use crate::core::environment::SharedEnvironment;
-use crate::core::{Constraint, Constraints};
+use crate::core::{Constraint, ConstraintCollection};
 use crate::serialization::encodable::BytesDecodable;
 use crate::{
     core::Comparator,
@@ -9,8 +10,6 @@ use crate::{
     },
 };
 use prost::Message;
-
-static PLACEHOLDER_NAME: &str = "<NN>";
 
 /// Representation of encodable constraints based on protocol buffers.
 #[derive(Clone, PartialEq, Message)]
@@ -42,18 +41,18 @@ impl BytesEncodable for SerConstraints {
 
 /// Makes the SerConstraints conform with the requirements for it to be a Decodable.
 /// The result is a Constraints<VarId, f64> instance.
-impl BytesDecodable<Constraints, SharedEnvironment> for SerConstraints {
+impl BytesDecodable<ConstraintCollection, SharedEnvironment> for SerConstraints {
     fn decode_from_bytes(
         bytes: &[u8],
         payload: SharedEnvironment,
-    ) -> Result<Constraints, DecodeError> {
+    ) -> Result<ConstraintCollection, DecodeError> {
         Self::decode(bytes)?.extract(payload)
     }
 }
 
 /// Makes the SerConstraints conform with the requirements for it to be an Encodable.
-impl Creatable<Constraints> for SerConstraints {
-    fn new(value: &Constraints) -> Self {
+impl Creatable<ConstraintCollection> for SerConstraints {
+    fn new(value: &ConstraintCollection) -> Self {
         Self::default().fill(value)
     }
 }
@@ -70,8 +69,8 @@ impl SerConstraints {
     }
 
     /// Fills the serializable constraints based on an instance of constraints.
-    fn fill(mut self, constraints: &Constraints) -> Self {
-        for c in &constraints.constraints {
+    fn fill(mut self, constraints: &ConstraintCollection) -> Self {
+        for (_, c) in &constraints.constraints {
             let lhs_bytes = c.lhs.serialize();
 
             let comparator = match c.comparator {
@@ -82,8 +81,7 @@ impl SerConstraints {
             self.lhsides.push(lhs_bytes);
             self.rhsides.push(c.rhs);
             self.comparators.push(comparator);
-            self.names
-                .push(c.name.clone().unwrap_or(PLACEHOLDER_NAME.to_string()));
+            self.names.push(c.name.clone())
         }
 
         self
@@ -91,7 +89,7 @@ impl SerConstraints {
 
     /// Extracts the data from self to an instance of Constraints with Index VarId and
     /// Bias f64.
-    pub fn extract(&self, env: SharedEnvironment) -> Result<Constraints, DecodeError> {
+    pub fn extract(&self, env: SharedEnvironment) -> Result<ConstraintCollection, DecodeError> {
         let mut constraints = Vec::new();
 
         for (((lhs, rhs), comp), name) in self
@@ -108,7 +106,7 @@ impl SerConstraints {
                 2 => Comparator::Ge,
                 _ => panic!("undefined comparator '{}'", comp),
             };
-            let name = if name == PLACEHOLDER_NAME {
+            let name = if name == DEFAULT_CONSTRAINT_NAME {
                 None
             } else {
                 Some(name.clone())
@@ -116,6 +114,6 @@ impl SerConstraints {
             constraints.push(Constraint::new(lhs, *rhs, comparator, name)?);
         }
 
-        Ok(Constraints::new_from_vec(constraints))
+        Ok(ConstraintCollection::new_from_vec(constraints))
     }
 }

@@ -5,7 +5,7 @@ use crate::utils::ShareMut;
 use crate::{
     core::{
         expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
-        Constraint, ConstraintKey, Constraints, ContentEquality, Expression, Model,
+        Constraint, ConstraintCollection, ConstraintKey, ContentEquality, Expression, Model,
     },
     serialization::{Decodable, Decompressable, Encodable, Unversionizable},
 };
@@ -56,11 +56,11 @@ use unwind_macros::unwindable;
 )]
 #[derive(Debug, Clone)]
 pub struct PyConstraints {
-    pub data: Either<Constraints, ShareMut<Model>>,
+    pub data: Either<ConstraintCollection, ShareMut<Model>>,
 }
 
 impl PyConstraints {
-    pub fn new(constrs: Constraints) -> Self {
+    pub fn new(constrs: ConstraintCollection) -> Self {
         // Self(Arc::new(Mutex::new(constrs)))
         Self {
             data: Left(constrs),
@@ -73,7 +73,7 @@ impl PyConstraints {
         }
     }
 
-    pub fn get_cloned_constraints(&self) -> Constraints {
+    pub fn get_cloned_constraints(&self) -> ConstraintCollection {
         match &self.data {
             Left(constrs) => constrs.clone(),
             Right(parent) => parent.access().constraints.clone(),
@@ -255,7 +255,11 @@ impl PyConstraint {
     ///     Returns the name of the constraint as a string or None if it is unnamed.
     #[getter]
     fn name(&self) -> Option<String> {
-        self.access().name.clone()
+        if self.access().has_placeholder_name() {
+            None
+        } else {
+            Some(self.access().name.clone())
+        }
     }
 
     /// Get the left-hand side of the constraint
@@ -298,7 +302,7 @@ impl PyConstraint {
 impl PyConstraints {
     #[new]
     fn py_new() -> Self {
-        PyConstraints::new(Constraints::default())
+        PyConstraints::new(ConstraintCollection::default())
     }
 
     /// In-place constraint addition using `+=`.
@@ -337,7 +341,9 @@ impl PyConstraints {
     ///     The name of the constraint to be added.
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
-        constraint.access_mut().set_name(name)?;
+        if let Some(n) = name {
+            constraint.access_mut().set_name(n)?;
+        };
         match &mut self.data {
             Left(constrs) => constrs.add_assign(&constraint.access())?,
             Right(parent) => {
