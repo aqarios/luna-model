@@ -1,5 +1,6 @@
 from warnings import deprecated
 from ._core import (
+    __version__,
     Bounds,
     Comparator,
     Constant,
@@ -42,6 +43,7 @@ from .utils import quicksum
 class Constraints(ConstraintCollection): ...
 
 __all__ = [
+    "__version__",
     "Bounds",
     "Comparator",
     "Constant",

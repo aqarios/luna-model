@@ -9,6 +9,8 @@ from numpy.typing import NDArray
 
 from . import errors, transformations, translator, utils
 
+__version__ = ...
+
 # _variable.pyi
 class Vtype(Enum):
     """
