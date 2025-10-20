@@ -2,7 +2,7 @@ use super::py_expr::PyExpression;
 use super::py_var::PyVariable;
 use super::{py_model::PyModel, py_sol::PySolution};
 use crate::core::operations::MulToExpression;
-use crate::core::{Constraints, Expression, Samples, Timing};
+use crate::core::{ConstraintCollection, Expression, Samples, Timing};
 use crate::translator::model::lp::exprtree::ExprTree;
 use either::Either::Left;
 use pyo3::FromPyObject;
@@ -31,7 +31,7 @@ pub fn repr_objective(obj: &Expression) -> String {
         .replace("]", "")
 }
 
-pub fn repr_constraints(constrs: &Constraints) -> String {
+pub fn repr_constraints(constrs: &ConstraintCollection) -> String {
     format!(
         "[{}]",
         constrs
@@ -89,14 +89,14 @@ pub fn repr_samples(samples: &Samples) -> String {
 pub fn repr_opt_number<T: ToString>(num: &Option<T>) -> String {
     match num {
         Some(v) => v.to_string(),
-        None => "None".to_string(),
+        Option::None => "None".to_string(),
     }
 }
 
 pub fn repr_opt_vec<T: ToString>(vec: &Option<Vec<T>>) -> String {
     match vec {
         Some(v) => repr_vec(v),
-        None => "None".to_string(),
+        Option::None => "None".to_string(),
     }
 }
 
@@ -135,7 +135,7 @@ pub fn repr_opt_bools_vec(bools: &Option<Vec<Vec<bool>>>) -> String {
                 .collect::<Vec<String>>()
                 .join(DELIMITER)
         ),
-        None => "None".to_string(),
+        Option::None => "None".to_string(),
     }
 }
 
@@ -148,7 +148,7 @@ pub fn repr_opt_bools(bools: &Option<Vec<bool>>) -> String {
                 .collect::<Vec<_>>()
                 .join(DELIMITER)
         ),
-        None => "None".to_string(),
+        Option::None => "None".to_string(),
     }
 }
 
@@ -160,7 +160,7 @@ pub fn repr_bool(b: &bool) -> String {
 
 pub fn repr_opt_timing(timing: &Option<Timing>) -> String {
     match timing {
-        None => "None".to_string(),
+        Option::None => "None".to_string(),
         Some(t) => repr_timing(t),
     }
 }

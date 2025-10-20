@@ -29,7 +29,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<py_var::PyVariable>()?;
     m.add_class::<py_bounds::PyBounds>()?;
     m.add_class::<py_constr::PyConstraint>()?;
-    m.add_class::<py_constr::PyConstraints>()?;
+    m.add_class::<py_constr::PyConstraintCollection>()?;
     m.add_class::<py_res::PyResultView>()?;
     m.add_class::<py_res::PyOwnedResult>()?;
     m.add_class::<py_res::PyResultIterator>()?;

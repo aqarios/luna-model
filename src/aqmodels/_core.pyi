@@ -3,10 +3,13 @@ from datetime import datetime, timedelta
 from enum import Enum
 from types import TracebackType
 from typing import Literal, Self, overload
+from warnings import deprecated
 
 from numpy.typing import NDArray
 
 from . import errors, transformations, translator, utils
+
+__version__ = ...
 
 # _variable.pyi
 class Vtype(Enum):
@@ -1254,39 +1257,6 @@ class Solution:
         counts: int = ...,
         sense: Sense = ...,
     ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable, int | float],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: int = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[str, int | float],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: int = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dict(
-        data: dict[Variable | str, int | float],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: int = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
     @staticmethod
     def from_dict(
         data: dict[Variable | str, int | float],
@@ -1402,39 +1372,6 @@ class Solution:
     @staticmethod
     def from_dicts(
         data: list[dict[Variable | str, float]],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: list[int] = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable, int | float]],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: list[int] = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[str, int | float]],
-        *,
-        env: Environment = ...,
-        model: Model = ...,
-        timing: Timing = ...,
-        counts: list[int] = ...,
-        sense: Sense = ...,
-    ) -> Solution: ...
-    @overload
-    @staticmethod
-    def from_dicts(
-        data: list[dict[Variable | str, int | float]],
         *,
         env: Environment = ...,
         model: Model = ...,
@@ -2196,8 +2133,8 @@ class Model:
     A symbolic optimization model consisting of an objective and constraints.
 
     The `Model` class represents a structured symbolic optimization problem. It
-    combines a scalar objective `Expression`, a collection of `Constraints`, and
-    a shared `Environment` that scopes all variables used in the model.
+    combines a scalar objective `Expression`, a collection of `ConstraintCollection`,
+    and a shared `Environment` that scopes all variables used in the model.
 
     Models can be constructed explicitly by passing an environment, or implicitly
     by allowing the model to create its own private environment. If constructed
@@ -2483,12 +2420,12 @@ class Model:
         ...
 
     @property
-    def constraints(self, /) -> Constraints:
+    def constraints(self, /) -> ConstraintCollection:
         """Access the set of constraints associated with the model."""
         ...
 
     @constraints.setter
-    def constraints(self, value: Constraints, /) -> None:
+    def constraints(self, value: ConstraintCollection, /) -> None:
         """Replace the model's constraints with a new set."""
         ...
 
@@ -2609,7 +2546,7 @@ class Model:
         """
         ...
 
-    def violated_constraints(self, /, sample: Sample) -> Constraints:
+    def violated_constraints(self, /, sample: Sample) -> ConstraintCollection:
         """
         Get all model constraints that are violated by the given sample.
 
@@ -2620,7 +2557,7 @@ class Model:
 
         Returns
         -------
-        Constraints
+        ConstraintCollection
             The constraints violated by the given sample.
         """
         ...
@@ -4078,30 +4015,31 @@ class Constraint:
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
 
-class Constraints:
+class ConstraintCollection:
     """
     A collection of symbolic constraints used to define a model.
 
-    The `Constraints` object serves as a container for individual `Constraint`
+    The `ConstraintCollection` object serves as a container for individual `Constraint`
     instances. It supports adding constraints programmatically and exporting
     them for serialization.
 
-    Constraints are typically added using `add_constraint()` or the `+=` operator.
+    ConstraintCollection are typically added using `add_constraint()`
+    or the `+=` operator.
 
     Examples
     --------
-    >>> from luna_quantum import Constraints, Constraint, Environment, Variable
+    >>> from luna_quantum import ConstraintCollection, Constraint, Environment, Variable
     >>> with Environment():
     ...     x = Variable("x")
     ...     c = Constraint(x + 1, 0.0, Comparator.Le)
 
-    >>> cs = Constraints()
+    >>> cs = ConstraintCollection()
     >>> cs += x >= 1.0
 
     Serialization:
 
     >>> blob = cs.encode()
-    >>> expr = Constraints.decode(blob)
+    >>> expr = ConstraintCollection.decode(blob)
 
     Notes
     -----
@@ -4222,7 +4160,7 @@ class Constraints:
 
         Returns
         -------
-        Constraints
+        ConstraintCollection
             The updated collection.
 
         Raises
@@ -4234,6 +4172,10 @@ class Constraints:
 
     @overload
     def get(self, item: str, /) -> Constraint: ...
+    @deprecated(
+        "Constraint access using int will be removed, "
+        "use name (str) based indexing instead."
+    )
     @overload
     def get(self, item: int, /) -> Constraint: ...
     def get(self, item: int | str, /) -> Constraint:
@@ -4242,22 +4184,34 @@ class Constraints:
 
     @overload
     def remove(self, item: str, /) -> Constraint: ...
+    @deprecated(
+        "Constraint access using int will be removed, "
+        "use name (str) based indexing instead."
+    )
     @overload
     def remove(self, item: int, /) -> Constraint: ...
     def remove(self, item: int | str, /) -> Constraint:
         """Remove a constraint for its name or index."""
         ...
 
-    def __eq__(self, other: Constraints, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
+    def __eq__(self, other: ConstraintCollection, /) -> bool: ...  # type: ignore[reportIncompatibleMethodOverride]
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
     @overload
     def __getitem__(self, item: str, /) -> Constraint: ...
+    @deprecated(
+        "Constraint access using int will be removed, "
+        "use name (str) based indexing instead."
+    )
     @overload
     def __getitem__(self, item: int, /) -> Constraint: ...
     def __getitem__(self, item: int | str, /) -> Constraint: ...
     @overload
     def __setitem__(self, item: str, content: Constraint, /) -> None: ...
+    @deprecated(
+        "Constraint access using int will be removed, "
+        "use name (str) based indexing instead."
+    )
     @overload
     def __setitem__(self, item: int, content: Constraint, /) -> None: ...
     def __setitem__(self, item: int | str, content: Constraint, /) -> None: ...
@@ -4268,17 +4222,18 @@ class Constraints:
         Returns
         -------
         int
-            The number of constraints associated with this `Constraints` object.
+            The number of constraints associated with this `ConstraintCollection`
+            object.
         """
         ...
     def __iter__(self, /) -> Iterator[Constraint]: ...
-    def equal_contents(self, other: Constraints, /) -> bool:
+    def equal_contents(self, other: ConstraintCollection, /) -> bool:
         """
         Check whether this constraints has equal contents as `other`.
 
         Parameters
         ----------
-        other : Constraints
+        other : ConstraintCollection
 
         Returns
         -------
@@ -4294,7 +4249,7 @@ __all__ = [
     "Bounds",
     "Comparator",
     "Constraint",
-    "Constraints",
+    "ConstraintCollection",
     "Environment",
     "Expression",
     "Model",

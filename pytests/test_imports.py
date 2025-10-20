@@ -93,11 +93,11 @@ def test_import_constraint():
 @pytest.mark.imports
 def test_import_constraints():
     import aqmodels as aqm
-    from aqmodels import Constraints
+    from aqmodels import ConstraintCollection
 
-    assert aqm.Constraints == Constraints
-    assert aqm.Constraints.__module__ == Constraints.__module__
-    assert aqm.Constraints.__module__ == AQM_MODULE_NAME
+    assert aqm.ConstraintCollection == ConstraintCollection
+    assert aqm.ConstraintCollection.__module__ == ConstraintCollection.__module__
+    assert aqm.ConstraintCollection.__module__ == AQM_MODULE_NAME
 
 
 @pytest.mark.imports

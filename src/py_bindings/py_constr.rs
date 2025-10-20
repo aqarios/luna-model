@@ -5,7 +5,7 @@ use crate::utils::ShareMut;
 use crate::{
     core::{
         expression::ExpressionBaseCreation, operations::SubAssignToExpression, Comparator,
-        Constraint, ConstraintKey, Constraints, ContentEquality, Expression, Model,
+        Constraint, ConstraintCollection, ConstraintKey, ContentEquality, Expression, Model,
     },
     serialization::{Decodable, Decompressable, Encodable, Unversionizable},
 };
@@ -19,20 +19,20 @@ use unwind_macros::unwindable;
 
 /// A collection of symbolic constraints used to define a model.
 ///
-/// The `Constraints` object serves as a container for individual `Constraint`
+/// The `ConstraintCollection` object serves as a container for individual `Constraint`
 /// instances. It supports adding constraints programmatically and exporting
 /// them for serialization.
 ///
-/// Constraints are typically added using `add_constraint()` or the `+=` operator.
+/// ConstraintCollection are typically added using `add_constraint()` or the `+=` operator.
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Constraints, Constraint, Environment, Variable
+/// >>> from luna_quantum import ConstraintCollection, Constraint, Environment, Variable
 /// >>> with Environment():
 /// ...     x = Variable("x")
 /// ...     c = Constraint(x + 1, 0.0, Comparator.Le)
 ///
-/// >>> cs = Constraints()
+/// >>> cs = ConstraintCollection()
 /// >>> cs.add_constraint(c)
 ///
 /// >>> cs += x >= 1.0
@@ -40,7 +40,7 @@ use unwind_macros::unwindable;
 /// Serialization:
 ///
 /// >>> blob = cs.encode()
-/// >>> expr = Constraints.decode(blob)
+/// >>> expr = ConstraintCollection.decode(blob)
 ///
 /// Notes
 /// -----
@@ -48,19 +48,19 @@ use unwind_macros::unwindable;
 /// - Use `encode()`/`decode()` to serialize constraints alongside expressions.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(name = "Constraints", module = "aqmodels._core")
+    pyclass(subclass, name = "ConstraintCollection", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(name = "Constraints", module = "luna_quantum._core")
+    pyclass(subclass, name = "ConstraintCollection", module = "luna_quantum._core")
 )]
 #[derive(Debug, Clone)]
-pub struct PyConstraints {
-    pub data: Either<Constraints, ShareMut<Model>>,
+pub struct PyConstraintCollection {
+    pub data: Either<ConstraintCollection, ShareMut<Model>>,
 }
 
-impl PyConstraints {
-    pub fn new(constrs: Constraints) -> Self {
+impl PyConstraintCollection {
+    pub fn new(constrs: ConstraintCollection) -> Self {
         // Self(Arc::new(Mutex::new(constrs)))
         Self {
             data: Left(constrs),
@@ -73,7 +73,7 @@ impl PyConstraints {
         }
     }
 
-    pub fn get_cloned_constraints(&self) -> Constraints {
+    pub fn get_cloned_constraints(&self) -> ConstraintCollection {
         match &self.data {
             Left(constrs) => constrs.clone(),
             Right(parent) => parent.access().constraints.clone(),
@@ -255,7 +255,11 @@ impl PyConstraint {
     ///     Returns the name of the constraint as a string or None if it is unnamed.
     #[getter]
     fn name(&self) -> Option<String> {
-        self.access().name.clone()
+        if self.access().has_placeholder_name() {
+            None
+        } else {
+            Some(self.access().name.clone())
+        }
     }
 
     /// Get the left-hand side of the constraint
@@ -295,10 +299,10 @@ impl PyConstraint {
 
 #[unwindable]
 #[pymethods]
-impl PyConstraints {
+impl PyConstraintCollection {
     #[new]
     fn py_new() -> Self {
-        PyConstraints::new(Constraints::default())
+        PyConstraintCollection::new(ConstraintCollection::default())
     }
 
     /// In-place constraint addition using `+=`.
@@ -310,7 +314,7 @@ impl PyConstraints {
     ///
     /// Returns
     /// -------
-    /// Constraints
+    /// ConstraintCollection
     ///     The updated collection.
     ///
     /// Raises
@@ -337,7 +341,9 @@ impl PyConstraints {
     ///     The name of the constraint to be added.
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
-        constraint.access_mut().set_name(name)?;
+        if let Some(n) = name {
+            constraint.access_mut().set_name(n)?;
+        };
         match &mut self.data {
             Left(constrs) => constrs.add_assign(&constraint.access())?,
             Right(parent) => {
@@ -476,7 +482,7 @@ impl PyConstraints {
         data: Py<PyBytes>,
         env: PyEnvironment,
     ) -> PyResult<Self> {
-        Ok(PyConstraints::new(
+        Ok(PyConstraintCollection::new(
             data.as_bytes(py)
                 .unversionize()
                 .decompress()?
@@ -534,8 +540,8 @@ impl PyConstraints {
     }
 
     fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
-        py.run(c_str!("from aqmodels import Constraints"), None, None)?;
-        let decode = py.eval(c_str!("Constraints._decode"), None, None)?;
+        py.run(c_str!("from aqmodels import ConstraintCollection"), None, None)?;
+        let decode = py.eval(c_str!("ConstraintCollection._decode"), None, None)?;
         let data = self.encode(py, Some(true), Some(3))?;
         let env_data = match &self.data {
             Left(d) => match d.constraints.is_empty() {
@@ -577,7 +583,7 @@ impl PyConstraints {
                 .decompress()?
                 .decode(())?,
         );
-        Ok(PyConstraints::new(
+        Ok(PyConstraintCollection::new(
             data.as_bytes(py).unversionize().decompress()?.decode(env)?,
         ))
     }

@@ -1,4 +1,4 @@
-use aqmodels::core::{Comparator, Constraint, Constraints, Vtype};
+use aqmodels::core::{Comparator, Constraint, ConstraintCollection, Vtype};
 
 mod common;
 use common::*;
@@ -72,7 +72,7 @@ fn linear_constraints() {
     let constr_c = Constraint::new(expr.clone(), rhs, Comparator::Ge, None).unwrap();
     let original_constraints = vec![&constr_a, &constr_b, &constr_c];
 
-    let mut constrs = Constraints::default();
+    let mut constrs = ConstraintCollection::default();
     assert_noerror(constrs.add_assign(&constr_a));
     assert_noerror(constrs.add_assign(&constr_b));
     assert_noerror(constrs.add_assign(&constr_c));

@@ -4,6 +4,7 @@ from aqmodels import (
     Comparator,
     Constraint,
     Constraints,
+    ConstraintCollection,
     Environment,
     Expression,
     Variable,
@@ -62,11 +63,17 @@ def expression_and_expression() -> tuple[Expression, Expression]:
 
 
 # INDEXING
+@pytest.mark.constraint
+def test_constraints_deprecated(expression: Expression):
+    constr = Constraints()
+    constr += expression <= 2
+    actual = constr.get(0)
+    assert Constraint(expression, 2, Comparator.Le, name="c0") == actual
 
 
 @pytest.mark.constraint
 def test_constraints_out_of_bounds_access(expression: Expression):
-    constr = Constraints()
+    constr = ConstraintCollection()
     constr += expression <= 2
     with pytest.raises(IndexError):
         _ = constr[3]

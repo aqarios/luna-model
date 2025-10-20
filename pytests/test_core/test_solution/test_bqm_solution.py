@@ -56,7 +56,7 @@ def test_bqm_solution():
 
     assert np.allclose(bqm_qubo, aqm_qubo), "the qubos are not equal"
 
-    res = TabuSampler().sample(bqm, seed=seed)
+    res = TabuSampler().sample(bqm, seed=seed)  # type: ignore[reportPossiblyUnboundVariable] # this is save. I have a SKIP-IF.
 
     ordering = aqm_var_names.copy()
     dimod_positions = {v: i for i, v in enumerate(bqm_vars)}
@@ -159,7 +159,7 @@ def test_bqm_solution_with_substitution():
 
     assert np.allclose(bqm_qubo, aqm_qubo)
 
-    res = TabuSampler().sample(bqm, seed=42)
+    res = TabuSampler().sample(bqm, seed=42)  # type: ignore[reportPossiblyUnboundVariable] # this is safe I have a SKIP-IF.
 
     ordering = aqm_var_names.copy()
     dimod_positions = {v: i for i, v in enumerate(bqm_vars)}

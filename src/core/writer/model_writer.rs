@@ -1,4 +1,4 @@
-use crate::core::constraints::Constraints;
+use crate::core::constraints::ConstraintCollection;
 use crate::core::expression::One;
 use crate::core::term::{HigherOrder, Linear, Quadratic};
 use crate::core::writer::line_length_restrictor::LineLengthRestrictor;
@@ -145,7 +145,7 @@ impl ModelWriter {
         }
     }
 
-    pub fn write_constraints(&mut self, constraints: &Constraints) -> &mut Self {
+    pub fn write_constraints(&mut self, constraints: &ConstraintCollection) -> &mut Self {
         for (i, (name, constr)) in constraints.iter().enumerate() {
             if i > 0 {
                 self.writer.new_line();

@@ -8,7 +8,7 @@ from aqmodels import (
     Bounds,
     Comparator,
     Constraint,
-    Constraints,
+    ConstraintCollection,
     Environment,
     Expression,
     Model,
@@ -180,7 +180,7 @@ def higher_order_expression(env: Environment, variables: list[Variable]) -> Expr
 def constraints(
     params: tuple[Environment, list[Variable]] | None = None,
     seed: int | None = None,
-) -> list[Constraints]:
+) -> list[ConstraintCollection]:
     if not seed:
         seed = make_seed()
     if not params:
@@ -217,12 +217,12 @@ def constraints(
 
     items: list[list[Constraint]] = [linears, quadratics, higher_orders]
 
-    constraints_collection: list[Constraints] = list()
+    constraints_collection: list[ConstraintCollection] = list()
     for r in range(1, len(items) + 1):
         combs: combinations[tuple[list[Constraint], ...]] = combinations(items, r)
 
         for comb in combs:
-            constraints = Constraints()
+            constraints = ConstraintCollection()
             for constr_col in comb:
                 for constr in constr_col:
                     constraints.add_constraint(constr)
@@ -234,7 +234,7 @@ def constraints(
 def constraints_with_env(
     params: tuple[Environment, list[Variable]] | None = None,
     seed: int | None = None,
-) -> tuple[list[Constraints], Environment]:
+) -> tuple[list[ConstraintCollection], Environment]:
     if not seed:
         seed = make_seed()
     if not params:
@@ -287,7 +287,7 @@ def to_serialized_with_env(
 
 TO_SER_OBJECTS: dict[type[T], Callable[[], Sequence[T]]] = {
     Expression: expressions,
-    Constraints: constraints,
+    ConstraintCollection: constraints,
     Model: models,
     Environment: environments,
 }
@@ -301,5 +301,7 @@ SER_WITH_ENV_OBJECTS: dict[
     type[T], Callable[[], Sequence[tuple[T, bytes, type[T], Environment]]]
 ] = {
     Expression: lambda: to_serialized_with_env(expressions_with_env, Expression),
-    Constraints: lambda: to_serialized_with_env(constraints_with_env, Constraints),
+    ConstraintCollection: lambda: to_serialized_with_env(
+        constraints_with_env, ConstraintCollection
+    ),
 }

@@ -1,6 +1,6 @@
 use prost::Message;
 
-use crate::core::{Comparator, Constraints};
+use crate::core::{Comparator, ConstraintCollection};
 
 use super::hash_expr::HashExpr;
 
@@ -26,14 +26,14 @@ pub struct HashConstr {
 }
 
 impl HashConstr {
-    pub fn build(constrs: &Constraints) -> Vec<u8> {
+    pub fn build(constrs: &ConstraintCollection) -> Vec<u8> {
         let mut serconstrs = HashConstr {
             lhsides: Vec::new(),
             rhsides: Vec::new(),
             comparators: Vec::new(),
             names: Vec::new(),
         };
-        for c in &constrs.constraints {
+        for (_, c) in &constrs.constraints {
             let lhs_bytes = HashExpr::build(&c.lhs);
 
             let comparator = match c.comparator {
@@ -44,9 +44,7 @@ impl HashConstr {
             serconstrs.lhsides.push(lhs_bytes);
             serconstrs.rhsides.push(c.rhs);
             serconstrs.comparators.push(comparator);
-            serconstrs
-                .names
-                .push(c.name.clone().unwrap_or("<NN>".to_string()));
+            serconstrs.names.push(c.name.clone())
         }
         serconstrs.encode_to_vec()
     }

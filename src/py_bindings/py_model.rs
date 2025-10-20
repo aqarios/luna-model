@@ -4,7 +4,7 @@ use super::py_model_metadata::PyModelMetadata;
 use super::py_sample::PySampleInner;
 use super::py_utilities::{repr_model, Replacement};
 use super::{
-    py_constr::PyConstraints, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
+    py_constr::PyConstraintCollection, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
 };
 use crate::core::environment::SharedEnvironment;
 use crate::core::operations::AddAssignToExpression;
@@ -133,7 +133,7 @@ impl PyModel {
     fn py_new(name: Option<String>, sense: Option<Sense>, env: Option<PyEnvironment>) -> Self {
         let env: PyEnvironment = match env {
             Some(env) => env.clone(),
-            None => CURRENT_ENV.with(|curr| {
+            Option::None => CURRENT_ENV.with(|curr| {
                 curr.borrow()
                     .clone()
                     .unwrap_or_else(|| PyEnvironment::new(SharedEnvironment::default()))
@@ -280,13 +280,13 @@ impl PyModel {
 
     /// Access the set of constraints associated with the model.
     #[getter]
-    fn get_constraints(&self) -> PyConstraints {
-        PyConstraints::with_parent(self.concrete_model.clone())
+    fn get_constraints(&self) -> PyConstraintCollection {
+        PyConstraintCollection::with_parent(self.concrete_model.clone())
     }
 
     /// Replace the model's constraints with a new set.
     #[setter]
-    fn set_constraints(&mut self, value: &PyConstraints) {
+    fn set_constraints(&mut self, value: &PyConstraintCollection) {
         self.access_mut().constraints = value.get_cloned_constraints();
     }
 
@@ -300,7 +300,9 @@ impl PyModel {
     ///     The name of the constraint to be added.
     #[pyo3(signature=(constraint, name=None))]
     fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
-        constraint.access_mut().set_name(name)?;
+        if let Some(n) = name {
+            constraint.access_mut().set_name(n)?;
+        };
         self.access()
             .constraints
             .add_assign(constraint.access().deref())?;
@@ -418,17 +420,17 @@ impl PyModel {
     /// -------
     /// Constraints
     ///     The constraints violated by the given sample.
-    fn violated_constraints(&self, sample: &PySample) -> PyConstraints {
+    fn violated_constraints(&self, sample: &PySample) -> PyConstraintCollection {
         match &sample.0 {
             PySampleInner::View(view) => {
                 let binding = view.sol.access();
                 let samples = binding.samples();
                 let sample = samples.get_sample(view.row).unwrap();
-                PyConstraints {
+                PyConstraintCollection {
                     data: Left(self.concrete_model.access().violated_constraints(&sample)),
                 }
             }
-            PySampleInner::Owned(owned) => PyConstraints {
+            PySampleInner::Owned(owned) => PyConstraintCollection {
                 data: Left(
                     self.concrete_model
                         .access()
