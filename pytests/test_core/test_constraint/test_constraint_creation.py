@@ -3,6 +3,7 @@ import pytest
 from aqmodels import (
     Comparator,
     Constraint,
+    Constraints,
     ConstraintCollection,
     Environment,
     Expression,
@@ -62,6 +63,12 @@ def expression_and_expression() -> tuple[Expression, Expression]:
 
 
 # INDEXING
+@pytest.mark.constraint
+def test_constraints_deprecated(expression: Expression):
+    constr = Constraints()
+    constr += expression <= 2
+    actual = constr.get(0)
+    assert Constraint(expression, 2, Comparator.Le, name="c0") == actual
 
 
 @pytest.mark.constraint

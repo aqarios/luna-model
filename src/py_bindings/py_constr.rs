@@ -48,11 +48,11 @@ use unwind_macros::unwindable;
 /// - Use `encode()`/`decode()` to serialize constraints alongside expressions.
 #[cfg_attr(
     not(feature = "lq"),
-    pyclass(name = "ConstraintCollection", module = "aqmodels._core")
+    pyclass(subclass, name = "ConstraintCollection", module = "aqmodels._core")
 )]
 #[cfg_attr(
     feature = "lq",
-    pyclass(name = "ConstraintCollection", module = "luna_quantum._core")
+    pyclass(subclass, name = "ConstraintCollection", module = "luna_quantum._core")
 )]
 #[derive(Debug, Clone)]
 pub struct PyConstraintCollection {
