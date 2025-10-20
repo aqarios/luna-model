@@ -1,3 +1,4 @@
+from warnings import deprecated
 from ._core import (
     Bounds,
     Comparator,
@@ -35,11 +36,17 @@ from ._core import (
 )
 from .utils import quicksum
 
+@deprecated(
+    "`Constraints` class name is deprecated and will be removed, use `ConstraintCollection` instead."
+)
+class Constraints(ConstraintCollection): ...
+
 __all__ = [
     "Bounds",
     "Comparator",
     "Constant",
     "Constraint",
+    "Constraints",
     "ConstraintCollection",
     "ConstraintType",
     "Environment",

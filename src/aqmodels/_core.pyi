@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from types import TracebackType
 from typing import Literal, Self, overload
+from warnings import deprecated
 
 from numpy.typing import NDArray
 
@@ -4169,6 +4170,10 @@ class ConstraintCollection:
 
     @overload
     def get(self, item: str, /) -> Constraint: ...
+    @deprecated(
+        "Constraint access using int will be removed, "
+        "use name (str) based indexing instead."
+    )
     @overload
     def get(self, item: int, /) -> Constraint: ...
     def get(self, item: int | str, /) -> Constraint:
@@ -4177,6 +4182,10 @@ class ConstraintCollection:
 
     @overload
     def remove(self, item: str, /) -> Constraint: ...
+    @deprecated(
+        "Constraint access using int will be removed, "
+        "use name (str) based indexing instead."
+    )
     @overload
     def remove(self, item: int, /) -> Constraint: ...
     def remove(self, item: int | str, /) -> Constraint:
@@ -4188,11 +4197,19 @@ class ConstraintCollection:
     def __repr__(self, /) -> str: ...
     @overload
     def __getitem__(self, item: str, /) -> Constraint: ...
+    @deprecated(
+        "Constraint access using int will be removed, "
+        "use name (str) based indexing instead."
+    )
     @overload
     def __getitem__(self, item: int, /) -> Constraint: ...
     def __getitem__(self, item: int | str, /) -> Constraint: ...
     @overload
     def __setitem__(self, item: str, content: Constraint, /) -> None: ...
+    @deprecated(
+        "Constraint access using int will be removed, "
+        "use name (str) based indexing instead."
+    )
     @overload
     def __setitem__(self, item: int, content: Constraint, /) -> None: ...
     def __setitem__(self, item: int | str, content: Constraint, /) -> None: ...
