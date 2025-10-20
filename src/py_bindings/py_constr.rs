@@ -16,6 +16,12 @@ use pyo3::IntoPyObjectExt;
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
 use unwind_macros::unwindable;
+use std::ffi::CStr;
+
+#[cfg(not(feature = "lq"))]
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import ConstraintCollection");
+#[cfg(feature = "lq")]
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import ConstraintCollection");
 
 /// A collection of symbolic constraints used to define a model.
 ///
@@ -540,7 +546,7 @@ impl PyConstraintCollection {
     }
 
     fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
-        py.run(c_str!("from aqmodels import ConstraintCollection"), None, None)?;
+        py.run(PY_REDUCE_IMPORT, None, None)?;
         let decode = py.eval(c_str!("ConstraintCollection._decode"), None, None)?;
         let data = self.encode(py, Some(true), Some(3))?;
         let env_data = match &self.data {

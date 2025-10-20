@@ -4,7 +4,8 @@ use super::py_model_metadata::PyModelMetadata;
 use super::py_sample::PySampleInner;
 use super::py_utilities::{repr_model, Replacement};
 use super::{
-    py_constr::PyConstraintCollection, py_env::PyEnvironment, py_expr::PyExpression, py_sol::PySolution,
+    py_constr::PyConstraintCollection, py_env::PyEnvironment, py_expr::PyExpression,
+    py_sol::PySolution,
 };
 use crate::core::environment::SharedEnvironment;
 use crate::core::operations::AddAssignToExpression;
@@ -27,8 +28,14 @@ use pyo3::ffi::c_str;
 use pyo3::types::PyType;
 use pyo3::IntoPyObjectExt;
 use pyo3::{prelude::*, types::PyBytes};
+use std::ffi::CStr;
 use std::ops::Deref;
 use unwind_macros::unwindable;
+
+#[cfg(not(feature = "lq"))]
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import Model");
+#[cfg(feature = "lq")]
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Model");
 
 /// A symbolic optimization model consisting of an objective and constraints.
 ///
@@ -620,7 +627,7 @@ impl PyModel {
     }
 
     fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
-        py.run(c_str!("from aqmodels import Model"), None, None)?;
+        py.run(PY_REDUCE_IMPORT, None, None)?;
         let decode = py.eval(c_str!("Model.decode"), None, None)?;
         let data = self.encode(py, Some(true), Some(3))?;
         Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((decode.into_py_any(py)?, (data,).into_py_any(py)?))

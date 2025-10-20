@@ -35,6 +35,12 @@ use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes, IntoPyObjectExt};
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use unwind_macros::unwindable;
+use std::ffi::CStr;
+
+#[cfg(not(feature = "lq"))]
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import Expression");
+#[cfg(feature = "lq")]
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Expression");
 
 /// Polynomial expression supporting symbolic arithmetic, constraint creation, and encoding.
 ///
@@ -1360,7 +1366,7 @@ impl PyExpression {
     }
 
     fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
-        py.run(c_str!("from aqmodels import Expression"), None, None)?;
+        py.run(PY_REDUCE_IMPORT, None, None)?;
         let decode = py.eval(c_str!("Expression._decode"), None, None)?;
         let data = self.encode(py, Some(true), Some(3))?;
         let env_data = self.environment()?.encode(py, Some(true), Some(3))?;

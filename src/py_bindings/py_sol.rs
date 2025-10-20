@@ -30,6 +30,12 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use unwind_macros::unwindable;
+use std::ffi::CStr;
+
+#[cfg(not(feature = "lq"))]
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import Solution");
+#[cfg(feature = "lq")]
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Solution");
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(pub VarAssignment);
@@ -1161,7 +1167,7 @@ impl PySolution {
     }
 
     fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
-        py.run(c_str!("from aqmodels import Solution"), None, None)?;
+        py.run(PY_REDUCE_IMPORT, None, None)?;
         let decode = py.eval(c_str!("Solution.decode"), None, None)?;
         let data = self.encode(py, Some(true), Some(3))?;
         Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((decode.into_py_any(py)?, (data,).into_py_any(py)?))
