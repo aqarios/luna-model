@@ -1,4 +1,5 @@
 use super::unwind;
+use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
 use crate::{
     core::{environment::SharedEnvironment, ContentEquality},
     serialization::{Decodable, Decompressable, Encodable, Unversionizable},
@@ -11,10 +12,14 @@ use pyo3::{
     types::{PyBytes, PyType},
     IntoPyObjectExt,
 };
+use std::ffi::CStr;
 use std::{cell::RefCell, ops::Deref};
 use unwind_macros::unwindable;
 
-use super::{py_exceptions::MultipleActiveEnvironmentsError, py_var::PyVariable};
+#[cfg(not(feature = "lq"))]
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import Environment");
+#[cfg(feature = "lq")]
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Environment");
 
 /// Execution context for variable creation and expression scoping.
 ///
@@ -245,7 +250,7 @@ impl PyEnvironment {
     }
 
     fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
-        py.run(c_str!("from aqmodels import Environment"), None, None)?;
+        py.run(PY_REDUCE_IMPORT, None, None)?;
         let decode = py.eval(c_str!("Environment.decode"), None, None)?;
         let data = self.encode(py, Some(true), Some(3))?;
         Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((decode.into_py_any(py)?, (data,).into_py_any(py)?))
