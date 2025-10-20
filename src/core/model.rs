@@ -20,7 +20,7 @@ use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter};
 use strum_macros::{Display, EnumString};
 #[cfg(feature = "py")]
-use pyo3::prelude::*;
+use {pyo3::prelude::*, unwind_macros::unwindable, crate::py_bindings::unwind};
 
 /// The default name for a model.
 pub static DEFAULT_MODEL_NAME: &str = "unnamed";
@@ -58,6 +58,23 @@ impl Sense {
 impl Default for Sense {
     fn default() -> Self {
         Self::Min
+    }
+}
+
+#[cfg(feature = "py")]
+#[cfg_attr(feature = "py", pymethods)]
+#[cfg_attr(feature = "py", unwindable)]
+impl Sense {
+    #[getter]
+    fn get_name(&self) -> String {
+        match &self {
+            Self::Min => String::from("Min"),
+            Self::Max => String::from("Max"),
+        }
+    }
+    #[getter]
+    fn get_value(&self) -> String {
+        self.to_string()
     }
 }
 

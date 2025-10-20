@@ -39,8 +39,8 @@ impl BytesEncodable for SerConstraints {
     }
 }
 
-/// Makes the SerConstraints conform with the requirements for it to be a Decodable.
-/// The result is a Constraints<VarId, f64> instance.
+/// Makes the [SerConstraints] conform with the requirements for it to be a [Decodable].
+/// The result is a [ConstraintCollection] instance.
 impl BytesDecodable<ConstraintCollection, SharedEnvironment> for SerConstraints {
     fn decode_from_bytes(
         bytes: &[u8],

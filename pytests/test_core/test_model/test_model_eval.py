@@ -2,7 +2,7 @@ import pytest
 
 from aqmodels import (
     Bounds,
-    Constraints,
+    ConstraintCollection,
     Model,
     Sense,
     Solution,
@@ -262,7 +262,7 @@ def test_model_violated_constraints():
     sol_no_constr = Solution.from_dict(sol_dict, model=m)
     assert len(sol_no_constr.samples) == 1
     sample_no_constr = sol_no_constr.samples[0]
-    assert m.violated_constraints(sample_no_constr) == Constraints()
+    assert m.violated_constraints(sample_no_constr) == ConstraintCollection()
 
     c1 = x1 + x2 <= 1
     c2 = x1 + x2 + x3 <= 2
@@ -275,6 +275,6 @@ def test_model_violated_constraints():
     sol = Solution.from_dict(sol_dict, model=m)
     assert len(sol.samples) == 1
     sample = sol.samples[0]
-    violated = Constraints()
+    violated = ConstraintCollection()
     violated.add_constraint(c1)
     assert m.violated_constraints(sample) == violated

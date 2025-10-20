@@ -59,6 +59,7 @@ path = "unwind-macros"
 optional = true
 
 [features]
+# default = ["pyt"]
 py = ["pyo3", "numpy", "unwind-macros"]
 transformations = ["aqm-macros"]
 pyt = ["py", "aqm-macros/py", "transformations"]

@@ -3,7 +3,7 @@ import pytest
 from aqmodels import (
     Comparator,
     Constraint,
-    Constraints,
+    ConstraintCollection,
     Environment,
     Expression,
     Variable,
@@ -66,7 +66,7 @@ def expression_and_expression() -> tuple[Expression, Expression]:
 
 @pytest.mark.constraint
 def test_constraints_out_of_bounds_access(expression: Expression):
-    constr = Constraints()
+    constr = ConstraintCollection()
     constr += expression <= 2
     with pytest.raises(IndexError):
         _ = constr[3]
