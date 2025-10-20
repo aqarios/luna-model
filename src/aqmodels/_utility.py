@@ -142,4 +142,7 @@ if sys.version_info < (3, 13):
                 )
 
 else:
-    pass
+    from warnings import deprecated
+
+
+__all__ = ["deprecated"]
