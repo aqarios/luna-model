@@ -3,11 +3,11 @@ from datetime import datetime, timedelta
 from enum import Enum
 from types import TracebackType
 from typing import Literal, Self, overload
-from warnings import deprecated
 
 from numpy.typing import NDArray
 
 from . import errors, transformations, translator, utils
+from ._utility import deprecated
 
 __version__ = ...
 
@@ -4173,8 +4173,7 @@ class ConstraintCollection:
     @overload
     def get(self, item: str, /) -> Constraint: ...
     @deprecated(
-        "Constraint access using int will be removed, "
-        "use name (str) based indexing instead."
+        "Constraint access using int will be removed, use name (str) based indexing instead."  # noqa: PYI053,E501
     )
     @overload
     def get(self, item: int, /) -> Constraint: ...
@@ -4185,7 +4184,7 @@ class ConstraintCollection:
     @overload
     def remove(self, item: str, /) -> Constraint: ...
     @deprecated(
-        "Constraint access using int will be removed, "
+        "Constraint access using int will be removed, "  # noqa: PYI053
         "use name (str) based indexing instead."
     )
     @overload
@@ -4200,8 +4199,7 @@ class ConstraintCollection:
     @overload
     def __getitem__(self, item: str, /) -> Constraint: ...
     @deprecated(
-        "Constraint access using int will be removed, "
-        "use name (str) based indexing instead."
+        "Constraint access using int will be removed, use name (str) based indexing instead."  # noqa: PYI053,E501
     )
     @overload
     def __getitem__(self, item: int, /) -> Constraint: ...
@@ -4209,8 +4207,7 @@ class ConstraintCollection:
     @overload
     def __setitem__(self, item: str, content: Constraint, /) -> None: ...
     @deprecated(
-        "Constraint access using int will be removed, "
-        "use name (str) based indexing instead."
+        "Constraint access using int will be removed, use name (str) based indexing instead."  # noqa: PYI053,E501
     )
     @overload
     def __setitem__(self, item: int, content: Constraint, /) -> None: ...
