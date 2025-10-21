@@ -41,7 +41,7 @@ impl Display for ConstraintKey {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ConstraintCollection {
     // /// A map to help in indexing into this collection when [ConstraintKey::Str] is used.
-    pub constraints: IndexMap<String, Constraint>,
+    pub data: IndexMap<String, Constraint>,
     // /// All [Constraint]s contained in the collection in the order they were added to [Self].
     // pub constraints: Vec<Constraint>,
 }
@@ -50,7 +50,7 @@ impl ConstraintCollection {
     /// Create an empty ConstraintCollection collection.
     pub fn default() -> Self {
         Self {
-            constraints: IndexMap::new(),
+            data: IndexMap::new(),
         }
     }
 
@@ -60,7 +60,7 @@ impl ConstraintCollection {
     /// constraints collection.
     pub fn new_from(other: &Self) -> Self {
         Self {
-            constraints: other.constraints.clone(),
+            data: other.data.clone(),
         }
     }
 
@@ -74,7 +74,7 @@ impl ConstraintCollection {
                 if c.has_placeholder_name() {
                     c.set_name_for_idx(idx)
                 };
-                slf.constraints.insert(c.name.clone(), c);
+                slf.data.insert(c.name.clone(), c);
             });
         slf
     }
@@ -87,8 +87,8 @@ impl ConstraintCollection {
     /// [SharedEnvironment]) so we define this function to keep the `==` operator for identity checks.
     pub fn deep_clone(&self, env: SharedEnvironment) -> Self {
         Self {
-            constraints: self
-                .constraints
+            data: self
+                .data
                 .iter()
                 .map(|(k, c)| (k.clone(), c.deep_clone(env.clone())))
                 .collect(),
@@ -97,7 +97,7 @@ impl ConstraintCollection {
 
     /// Get the number of [Constraint]s contained in the constraints collection.
     pub fn len(&self) -> usize {
-        self.constraints.len()
+        self.data.len()
     }
 
     /// Iterate over all [Constraint]s in the constraint collection.
@@ -116,7 +116,7 @@ impl ConstraintCollection {
     pub fn get_constraint(&self, key: ConstraintKey) -> Result<&Constraint, GetConstraintErr> {
         match &key {
             ConstraintKey::Int(idx) => {
-                if let Some((_, constr)) = self.constraints.get_index(*idx) {
+                if let Some((_, constr)) = self.data.get_index(*idx) {
                     Ok(constr)
                 } else {
                     Err(GetConstraintErr::IndexOutOfBoundsErr(
@@ -125,7 +125,7 @@ impl ConstraintCollection {
                 }
             }
             ConstraintKey::Str(name) => {
-                if let Some(constr) = self.constraints.get(name) {
+                if let Some(constr) = self.data.get(name) {
                     Ok(constr)
                 } else {
                     Err(GetConstraintErr::NoConstraintForKeyErr(key.to_string()))
@@ -144,7 +144,7 @@ impl ConstraintCollection {
     ) -> Result<(), GetConstraintErr> {
         match &key {
             ConstraintKey::Int(idx) => {
-                if let Some((_, c)) = self.constraints.get_index_mut(*idx) {
+                if let Some((_, c)) = self.data.get_index_mut(*idx) {
                     *c = constr;
                     Ok(())
                 } else {
@@ -154,7 +154,7 @@ impl ConstraintCollection {
                 }
             }
             ConstraintKey::Str(name) => {
-                if let Some(c) = self.constraints.get_mut(name) {
+                if let Some(c) = self.data.get_mut(name) {
                     *c = constr;
                     Ok(())
                 } else {
@@ -169,19 +169,19 @@ impl ConstraintCollection {
     pub fn remove_constraint(&mut self, key: ConstraintKey) {
         match &key {
             ConstraintKey::Int(idx) => {
-                let name_key = if let Some((name, _)) = self.constraints.get_index(*idx) {
+                let name_key = if let Some((name, _)) = self.data.get_index(*idx) {
                     Some(name.clone())
                 } else {
                     // no-op
                     Option::None
                 };
                 if let Some(nk) = name_key {
-                    _ = self.constraints.swap_remove(&nk)
+                    _ = self.data.swap_remove(&nk)
                 };
             }
             ConstraintKey::Str(name) => {
-                if self.constraints.contains_key(name) {
-                    _ = self.constraints.swap_remove(name);
+                if self.data.contains_key(name) {
+                    _ = self.data.swap_remove(name);
                 }
             }
         }
@@ -198,7 +198,7 @@ impl ConstraintCollection {
         target: &VarRef,
         replacement: &Expression,
     ) -> Result<(), DifferentEnvsErr> {
-        for (_, constr) in self.constraints.iter_mut() {
+        for (_, constr) in self.data.iter_mut() {
             constr.substitute(target, replacement)?;
         }
         Ok(())
@@ -208,7 +208,7 @@ impl ConstraintCollection {
     /// with `C` (language) types. This function returns all **unique** [Comparator]s used by all
     /// [Constraint]s within this [ConstraintCollection] collection.
     pub fn ctypes(&self) -> Vec<Comparator> {
-        self.constraints
+        self.data
             .iter()
             .map(|(_, c)| c.comparator)
             .unique()
@@ -218,7 +218,7 @@ impl ConstraintCollection {
     /// This function returns all **unique** [Variable types](Vtype) used by the LHS of all
     /// [Constraint]s within this [ConstraintCollection] collection.
     pub fn vtypes(&self) -> Vec<Vtype> {
-        self.constraints
+        self.data
             .iter()
             .map(|(_, c)| c.lhs.vtypes())
             .flatten()
@@ -233,13 +233,13 @@ impl ConstraintCollection {
         if rhs.has_placeholder_name() {
             let mut cloned = rhs.clone();
             cloned.set_name_for_idx(self.len());
-            self.constraints.insert(cloned.name.to_string(), cloned);
+            self.data.insert(cloned.name.to_string(), cloned);
             Ok(())
         } else {
-            if self.constraints.contains_key(&rhs.name) {
+            if self.data.contains_key(&rhs.name) {
                 Err(DuplicateConstraintNameErr(rhs.name.to_string()))
             } else {
-                self.constraints.insert(rhs.name.to_string(), rhs.clone());
+                self.data.insert(rhs.name.to_string(), rhs.clone());
                 Ok(())
             }
         }
@@ -286,14 +286,14 @@ impl ContentEquality for ConstraintCollection {
     /// Check if two [ConstraintCollection] have equal contents. Uses [Constraint::is_equal_contents] for
     /// all [Constraint]s. See [here](Constraint::is_equal_contents) for details.
     fn is_equal_contents(&self, other: &Self) -> bool {
-        if self.constraints.len() != other.constraints.len() {
+        if self.data.len() != other.data.len() {
             return false;
         }
-        for (name, constr) in &self.constraints {
-            if !other.constraints.contains_key(name) {
+        for (name, constr) in &self.data {
+            if !other.data.contains_key(name) {
                 return false;
             }
-            if !constr.is_equal_contents(other.constraints.get(name).unwrap()) {
+            if !constr.is_equal_contents(other.data.get(name).unwrap()) {
                 return false;
             }
         }
@@ -322,7 +322,7 @@ impl<'a> Iterator for ConstraintCollectionIterator<'a> {
         if self.current >= self.collection.len() {
             return None;
         }
-        let (name, constr) = self.collection.constraints.get_index(self.current).unwrap();
+        let (name, constr) = self.collection.data.get_index(self.current).unwrap();
         self.current += 1;
         Some((name, constr))
     }

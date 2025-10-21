@@ -70,7 +70,7 @@ impl SerConstraints {
 
     /// Fills the serializable constraints based on an instance of constraints.
     fn fill(mut self, constraints: &ConstraintCollection) -> Self {
-        for (_, c) in &constraints.constraints {
+        for (_, c) in &constraints.data {
             let lhs_bytes = c.lhs.serialize();
 
             let comparator = match c.comparator {

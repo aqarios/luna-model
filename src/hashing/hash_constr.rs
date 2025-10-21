@@ -33,7 +33,7 @@ impl HashConstr {
             comparators: Vec::new(),
             names: Vec::new(),
         };
-        for (_, c) in &constrs.constraints {
+        for (_, c) in &constrs.data {
             let lhs_bytes = HashExpr::build(&c.lhs);
 
             let comparator = match c.comparator {

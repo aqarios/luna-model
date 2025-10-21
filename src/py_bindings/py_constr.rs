@@ -11,17 +11,61 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use either::Either::{self, Left, Right};
+use itertools::Itertools;
 use pyo3::ffi::c_str;
 use pyo3::IntoPyObjectExt;
 use pyo3::{exceptions::PyTypeError, types::PyType};
 use pyo3::{prelude::*, types::PyBytes};
-use unwind_macros::unwindable;
 use std::ffi::CStr;
+use unwind_macros::unwindable;
 
 #[cfg(not(feature = "lq"))]
 static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import ConstraintCollection");
 #[cfg(feature = "lq")]
 static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import ConstraintCollection");
+
+/// Iterate over the name, constraint tuples of a constraint collection.
+///
+/// Examples
+/// --------
+/// >>> from luna_quantum import ConstraintCollection
+/// >>> coll: ConstraintCollection = ...
+/// for (name, constraint) in coll.items():
+///     ...
+#[cfg_attr(
+    not(feature = "lq"),
+    pyclass(name = "ConstraintCollectionIterator", module = "aqmodels._core")
+)]
+#[cfg_attr(
+    feature = "lq",
+    pyclass(name = "ConstraintCollectionIterator", module = "luna_quantum._core")
+)]
+pub struct PyConstraintCollectionIterator {
+    items: Vec<(String, PyConstraint)>,
+    current_idx: usize,
+}
+
+impl PyConstraintCollectionIterator {
+    fn new(collection: &PyConstraintCollection) -> Self {
+        Self {
+            items: match &collection.data {
+                Left(coll) => coll
+                    .data
+                    .iter()
+                    .map(|(k, c)| (k.clone(), PyConstraint::new(c.clone())))
+                    .collect_vec(),
+                Right(model) => model
+                    .access()
+                    .constraints
+                    .data
+                    .iter()
+                    .map(|(k, c)| (k.clone(), PyConstraint::new(c.clone())))
+                    .collect_vec(),
+            },
+            current_idx: 0,
+        }
+    }
+}
 
 /// A collection of symbolic constraints used to define a model.
 ///
@@ -362,6 +406,11 @@ impl PyConstraintCollection {
         Ok(())
     }
 
+    /// Iterate over all items (`(name, constraint)`) in the collection.
+    fn items(&self) -> PyConstraintCollectionIterator {
+        PyConstraintCollectionIterator::new(&self)
+    }
+
     fn __getitem__(&self, n: ConstraintKey) -> PyResult<PyConstraint> {
         let constr = match &self.data {
             Left(constrs) => constrs.get_constraint(n)?.clone(),
@@ -550,16 +599,9 @@ impl PyConstraintCollection {
         let decode = py.eval(c_str!("ConstraintCollection._decode"), None, None)?;
         let data = self.encode(py, Some(true), Some(3))?;
         let env_data = match &self.data {
-            Left(d) => match d.constraints.is_empty() {
+            Left(d) => match d.data.is_empty() {
                 true => PyBytes::new(py, &Environment::new().encode(Some(true), Some(3))?),
-                false => PyBytes::new(
-                    py,
-                    &d.constraints[0]
-                        .lhs
-                        .env
-                        .access()
-                        .encode(Some(true), Some(3))?,
-                ),
+                false => PyBytes::new(py, &d.data[0].lhs.env.access().encode(Some(true), Some(3))?),
             },
             Right(m) => PyBytes::new(
                 py,
@@ -617,5 +659,23 @@ impl Comparator {
     #[getter]
     fn get_value(&self) -> PyResult<String> {
         self.get_name()
+    }
+}
+
+#[unwindable]
+#[pymethods]
+impl PyConstraintCollectionIterator {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> PyResult<Option<(String, PyConstraint)>> {
+        let res = slf.items.get(slf.current_idx);
+        let out = match res {
+            Option::None => Ok(None),
+            Option::Some(val) => Ok(Some(val.clone())),
+        };
+        slf.current_idx += 1;
+        out
     }
 }
