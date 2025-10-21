@@ -265,7 +265,7 @@ impl Model {
                 constraints.insert(name.to_string(), constr.clone());
             }
         }
-        ConstraintCollection { constraints }
+        ConstraintCollection { data: constraints }
     }
 
     /// Substitute every occurrence of a variable in the model’s objective and constraint expressions with another expression.

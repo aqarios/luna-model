@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import Environment, Model, Variable, Vtype
+from aqmodels import Environment, Model, Vtype
 from aqmodels.errors import DuplicateConstraintNameError, NoConstraintForKeyError
 
 

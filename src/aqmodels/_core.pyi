@@ -4015,6 +4015,21 @@ class Constraint:
     def __str__(self, /) -> str: ...
     def __repr__(self, /) -> str: ...
 
+class ConstraintCollectionIterator:
+    """
+    Iterate over the name, constraint tuples of a constraint collection.
+
+    Examples
+    --------
+    >>> from luna_quantum import ConstraintCollection
+    >>> coll: ConstraintCollection = ...
+    for (name, constraint) in coll.items():
+        ...
+    """
+
+    def __next__(self) -> tuple[str, Constraint]: ...
+    def __iter__(self) -> ConstraintCollectionIterator: ...
+
 class ConstraintCollection:
     """
     A collection of symbolic constraints used to define a model.
@@ -4063,6 +4078,10 @@ class ConstraintCollection:
         name : str, optional
             The name of the constraint to be added.
         """
+        ...
+
+    def items(self, /) -> ConstraintCollectionIterator:
+        """Iterate over all items (`(name, constraint)`) in the collection."""
         ...
 
     @overload
