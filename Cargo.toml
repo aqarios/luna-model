@@ -1,6 +1,6 @@
 [package]
 name = "aqmodels"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 description = "Rust based implementation of aq-models"
 readme = "README.md"
@@ -34,7 +34,7 @@ either = "1.15.0"
 regex = "1.12.2"
 time = { version = "0.3.44", features = ["formatting"] }
 itertools = "0.14.0"
-indexmap = "2.11.4"
+indexmap = "2.12.0"
 dyn-clone = "1.0.19"
 pad = "0.1.6"
 sqids = "0.4.2"

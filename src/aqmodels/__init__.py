@@ -45,7 +45,7 @@ transformers
     to a linear model.
 """
 
-from warnings import deprecated
+from ._utility import deprecated
 from ._core import (
     __version__,
     Bounds,

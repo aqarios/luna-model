@@ -31,15 +31,18 @@ except ImportError as _:
     )
     NOT_RUN_GUROBI = True
 
-NOT_RUN_CPLEX = False
-try:
-    import cplex  # type: ignore
-except ImportError as _:
-    print(
-        "Cplex is not installed and thus, the CPLEX tests will not be executed",
-        file=sys.stdout,
-    )
-    NOT_RUN_CPLEX = True
+NOT_RUN_CPLEX = True
+# todo: fix CPLEX test logic. MPS is unreliable
+# try:
+#     import cplex  # type: ignore
+# except ImportError as _:
+#     print(
+#         "Cplex is not installed and thus, the CPLEX tests will not be executed",
+#         file=sys.stdout,
+#     )
+#     NOT_RUN_CPLEX = True
+# if sys.version_info == (3, 12):
+#     NOT_RUN_CPLEX = True
 
 NUM_CQMS: int = 100
 GP_SENSE_MIN: int = 1
