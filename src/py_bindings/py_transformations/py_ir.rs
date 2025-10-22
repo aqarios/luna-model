@@ -12,21 +12,10 @@ use crate::{
     },
 };
 
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(
-        get_all,
-        name = "LogElement",
-        module = "aqmodels._core.transformations"
-    )
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(
-        get_all,
-        name = "LogElement",
-        module = "luna_quantum._core.transformations"
-    )
+#[pyclass(
+    get_all,
+    name = "LogElement",
+    module = "luna_model._core.transformations"
 )]
 #[derive(Clone)]
 pub struct PyLogElement {
@@ -61,14 +50,7 @@ impl PyLogElement {
     }
 }
 
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "IR", module = "aqmodels._core.transformations")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "IR", module = "luna_quantum._core.transformations")
-)]
+#[pyclass(name = "IR", module = "luna_model._core.transformations")]
 #[derive(Deref, DerefMut)]
 pub struct PyIR(pub IntermediateRepresentation);
 

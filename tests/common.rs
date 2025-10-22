@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use aqmodels::{
+use luna_model::{
     core::{
         expression::ExpressionBaseCreation,
         operations::{AddToExpression, MulToExpression},

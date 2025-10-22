@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import Bounds, Model, Unbounded, Variable, Vtype
+from luna_model import Bounds, Model, Unbounded, Variable, Vtype
 
 
 @pytest.fixture

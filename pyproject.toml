@@ -1,5 +1,5 @@
 [project]
-name = "aqmodels"
+name = "luna_model"
 dynamic = ["version", "description", "readme"]
 authors = [
     { name = "Jonas Blenninger", email = "jonas.blenninger@aqarios.com" },
@@ -17,8 +17,8 @@ cache-keys = [
     { file = "pyproject.toml" },
     { file = "Cargo.toml" },
     { file = "**/*.rs" },
-    { file = "src/aqmodels/**/*.pyi" },
-    { file = "src/aqmodels/**/*.py" },
+    { file = "src/luna_model/**/*.pyi" },
+    { file = "src/luna_model/**/*.py" },
 ]
 
 [tool.pytest.ini_options]
@@ -38,14 +38,14 @@ markers = [
 testpaths = ["pytests"]
 
 [tool.maturin]
-module-name = "aqmodels._core"
-python-packages = ["aqmodels"]
+module-name = "luna_model._core"
+python-packages = ["luna_model"]
 python-source = "src"
-features = ["py", "pyt"]
+features = ["pyt"]
 include = [
-    "src/aqmodels/**/*.pyi",
-    "src/aqmodels/**/*.py",
-    "src/aqmodels/py.typed",
+    "src/luna_model/**/*.pyi",
+    "src/luna_model/**/*.py",
+    "src/luna_model/py.typed",
 ]
 compatibility = "linux"
 

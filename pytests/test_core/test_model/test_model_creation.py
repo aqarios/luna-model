@@ -1,7 +1,7 @@
 import pytest
 
-from aqmodels import Environment, Model
-from aqmodels.errors import MultipleActiveEnvironmentsError
+from luna_model import Environment, Model
+from luna_model.errors import MultipleActiveEnvironmentsError
 
 
 @pytest.mark.model

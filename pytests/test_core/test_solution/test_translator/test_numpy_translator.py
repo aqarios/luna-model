@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from aqmodels import Bounds, Model, Variable, Vtype
-from aqmodels.translator import NumpyTranslator
+from luna_model import Bounds, Model, Variable, Vtype
+from luna_model.translator import NumpyTranslator
 
 
 @pytest.fixture

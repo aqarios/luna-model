@@ -33,7 +33,7 @@ class Vtype(Enum):
 
     Examples
     --------
-    >>> from luna_quantum import Vtype
+    >>> from luna_model import Vtype
     >>> Vtype.Real
     Real
 
@@ -73,7 +73,7 @@ class Bounds:
 
     Examples
     --------
-    >>> from luna_quantum import Bounds
+    >>> from luna_model import Bounds
     >>> Bounds(-1.0, 1.0)
     Bounds { lower: -1, upper: 1 }
 
@@ -148,7 +148,7 @@ class Variable:
 
     Examples
     --------
-    >>> from luna_quantum import Variable, Environment, Vtype, Bounds
+    >>> from luna_model import Variable, Environment, Vtype, Bounds
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y", vtype=Vtype.Integer, bounds=Bounds(0, 5))
@@ -555,7 +555,7 @@ class Constant:
 
     Examples
     --------
-    >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+    >>> from luna_model import Constant, Expression, HigherOrder, Linear, Quadratic
     >>> expr: Expression = ...
     >>> vars: Constant | Linear | Quadratic | HigherOrder
     >>> bias: float
@@ -577,7 +577,7 @@ class Linear:
 
     Examples
     --------
-    >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+    >>> from luna_model import Constant, Expression, HigherOrder, Linear, Quadratic
     >>> expr: Expression = ...
     >>> vars: Constant | Linear | Quadratic | HigherOrder
     >>> bias: float
@@ -604,7 +604,7 @@ class Quadratic:
 
     Examples
     --------
-    >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+    >>> from luna_model import Constant, Expression, HigherOrder, Linear, Quadratic
     >>> expr: Expression = ...
     >>> vars: Constant | Linear | Quadratic | HigherOrder
     >>> bias: float
@@ -633,7 +633,7 @@ class HigherOrder:
 
     Examples
     --------
-    >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+    >>> from luna_model import Constant, Expression, HigherOrder, Linear, Quadratic
     >>> expr: Expression = ...
     >>> vars: Constant | Linear | Quadratic | HigherOrder
     >>> bias: float
@@ -663,7 +663,7 @@ class Timing:
     Examples
     --------
     >>> from dwave.samplers.tree.solve import BinaryQuadraticModel
-    >>> from luna_quantum import Model, Timer, Timing
+    >>> from luna_model import Model, Timer, Timing
     >>> model = ...  # third-party model
     >>> algorithm = ...  # third-party algorithm
     >>> timer = Timer.start()
@@ -759,7 +759,7 @@ class Timer:
     Examples
     --------
     Basic usage:
-    >>> from luna_quantum import Timer
+    >>> from luna_model import Timer
     >>> timer = Timer.start()
     >>> solution = ...  # create a solution by running an algorithm.
     >>> timing = timer.stop()
@@ -816,7 +816,7 @@ class Solution:
     --------
     Basic usage, assuming that the algorithm already returns a `Solution`:
 
-    >>> from luna_quantum import Model, Solution
+    >>> from luna_model import Model, Solution
     >>> model: Model = ...
     >>> algorithm = ...
     >>> solution: Solution = algorithm.run(model)
@@ -825,8 +825,8 @@ class Solution:
 
     When you have a `dimod.Sampleset` as the raw solution format:
 
-    >>> from luna_quantum.translator import BqmTranslator
-    >>> from luna_quantum import Model, Solution, DwaveTranslator
+    >>> from luna_model.translator import BqmTranslator
+    >>> from luna_model import Model, Solution, DwaveTranslator
     >>> from dimod import SimulatedAnnealingSampler
     >>> model: Model = ...
     >>> bqm = BqmTranslator.from_aq(model)
@@ -1653,7 +1653,7 @@ class SamplesIterator:
 
     Examples
     --------
-    >>> from luna_quantum import Solution
+    >>> from luna_model import Solution
     >>> solution: Solution = ...
 
     Note: ``solution.samples`` is automatically converted into a ``SamplesIterator``.
@@ -1673,7 +1673,7 @@ class SampleIterator:
 
     Examples
     --------
-    >>> from luna_quantum import Solution
+    >>> from luna_model import Solution
     >>> solution: Solution = ...
     >>> sample = solution.samples[0]
 
@@ -1698,7 +1698,7 @@ class Samples:
 
     Examples
     --------
-    >>> from luna_quantum import Model, Sample, Solution
+    >>> from luna_model import Model, Sample, Solution
     >>> model: Model = ...
     >>> solution: Solution = ...
     >>> samples: Samples = solution.samples
@@ -1778,7 +1778,7 @@ class Sample:
 
     Examples
     --------
-    >>> from luna_quantum import Model, Sample, Solution
+    >>> from luna_model import Model, Sample, Solution
     >>> model: Model = ...
     >>> solution: Solution = ...
     >>> sample: Sample = solution.samples[0]
@@ -1847,7 +1847,7 @@ class ResultIterator:
 
     Examples
     --------
-    >>> from luna_quantum import ResultIterator, Solution
+    >>> from luna_model import ResultIterator, Solution
     >>> solution: Solution = ...
     >>> results: ResultIterator = solution.results
     >>> for result in results:
@@ -1871,7 +1871,7 @@ class Result:
 
     Examples
     --------
-    >>> from luna_quantum import Model, Result, Solution
+    >>> from luna_model import Model, Result, Solution
     >>> model: Model = ...
     >>> solution: Solution = ...
     >>> sample = solution.samples[0]
@@ -1932,7 +1932,7 @@ class ResultView:
 
     Examples
     --------
-    >>> from luna_quantum import ResultView, Solution
+    >>> from luna_model import ResultView, Solution
     >>> solution: Solution = ...
     >>> result: ResultView = solution[0]
     >>> result.obj_value
@@ -1960,7 +1960,7 @@ class ResultView:
         """
         Get the objective value of this sample if present.
 
-        This is the value computed by the corresponding AqModel.
+        This is the value computed by the corresponding LunaModel.
         """
         ...
 
@@ -1970,7 +1970,7 @@ class ResultView:
         Get the raw energy returned by the algorithm if present.
 
         This value is not guaranteed to be accurate under consideration of the
-        corresponding AqModel.
+        corresponding LunaModel.
         """
         ...
 
@@ -2154,7 +2154,7 @@ class Model:
     --------
     Basic usage:
 
-    >>> from luna_quantum import Model, Variable
+    >>> from luna_model import Model, Variable
     >>> model = Model("MyModel")
     >>> with model.environment:
     ...     x = Variable("x")
@@ -2165,7 +2165,7 @@ class Model:
 
     With explicit environment:
 
-    >>> from luna_quantum import Environment
+    >>> from luna_model import Environment
     >>> env = Environment()
     >>> model = Model("ScopedModel", env)
     >>> with env:
@@ -2751,7 +2751,7 @@ class Expression:
     --------
     Constructing expressions from variables:
 
-    >>> from luna_quantum import Environment, Variable
+    >>> from luna_model import Environment, Variable
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y")
@@ -3583,7 +3583,7 @@ class ExpressionIterator:
 
     Examples
     --------
-    >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+    >>> from luna_model import Constant, Expression, HigherOrder, Linear, Quadratic
     >>> expr: Expression = ...
     >>> vars: Constant | Linear | Quadratic | HigherOrder
     >>> bias: float
@@ -3615,7 +3615,7 @@ class Environment:
     --------
     Create variables inside an environment:
 
-    >>> from luna_quantum import Environment, Variable
+    >>> from luna_model import Environment, Variable
     >>> with Environment() as env:
     ...     x = Variable("x")
     ...     y = Variable("y")
@@ -3820,7 +3820,7 @@ class Comparator(Enum):
 
     Examples
     --------
-    >>> from luna_quantum import Comparator
+    >>> from luna_model import Comparator
     >>> str(Comparator.Eq)
     '=='
     """
@@ -3859,7 +3859,7 @@ class Constraint:
 
     Examples
     --------
-    >>> from luna_quantum import Environment, Variable, Constraint, Comparator
+    >>> from luna_model import Environment, Variable, Constraint, Comparator
     >>> with Environment():
     ...     x = Variable("x")
     ...     c = Constraint(x + 2, 5.0, Comparator.Eq)
@@ -4021,7 +4021,7 @@ class ConstraintCollectionIterator:
 
     Examples
     --------
-    >>> from luna_quantum import ConstraintCollection
+    >>> from luna_model import ConstraintCollection
     >>> coll: ConstraintCollection = ...
     for (name, constraint) in coll.items():
         ...
@@ -4043,7 +4043,7 @@ class ConstraintCollection:
 
     Examples
     --------
-    >>> from luna_quantum import ConstraintCollection, Constraint, Environment, Variable
+    >>> from luna_model import ConstraintCollection, Constraint, Environment, Variable
     >>> with Environment():
     ...     x = Variable("x")
     ...     c = Constraint(x + 1, 0.0, Comparator.Le)

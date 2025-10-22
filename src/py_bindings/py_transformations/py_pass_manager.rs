@@ -8,21 +8,10 @@ use unwind_macros::unwindable;
 use super::py_ir::PyIR;
 use super::py_module::AnyPass;
 
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(
-        unsendable,
-        name = "PassManager",
-        module = "aqmodels._core.transformations"
-    )
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(
-        unsendable,
-        name = "PassManager",
-        module = "luna_quantum._core.transformations"
-    )
+#[pyclass(
+    unsendable,
+    name = "PassManager",
+    module = "luna_model._core.transformations"
 )]
 #[derive(Deref, DerefMut)]
 pub struct PyPassManager(PassManager);

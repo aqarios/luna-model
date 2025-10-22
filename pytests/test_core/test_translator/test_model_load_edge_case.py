@@ -1,7 +1,7 @@
 import base64
 from pathlib import Path
-from aqmodels import Model
-from aqmodels.translator import LpTranslator
+from luna_model import Model
+from luna_model.translator import LpTranslator
 
 
 def test_model_edge_case():

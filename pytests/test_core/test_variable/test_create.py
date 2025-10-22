@@ -1,7 +1,7 @@
 import pytest
 
-from aqmodels import Environment, Variable
-from aqmodels.errors import (
+from luna_model import Environment, Variable
+from luna_model.errors import (
     MultipleActiveEnvironmentsError,
     NoActiveEnvironmentFoundError,
     VariableExistsError,

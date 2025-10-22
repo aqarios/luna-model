@@ -32,10 +32,7 @@ use std::ffi::CStr;
 use std::ops::Deref;
 use unwind_macros::unwindable;
 
-#[cfg(not(feature = "lq"))]
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import Model");
-#[cfg(feature = "lq")]
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Model");
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_model import Model");
 
 /// A symbolic optimization model consisting of an objective and constraints.
 ///
@@ -61,7 +58,7 @@ static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Model"
 /// --------
 /// Basic usage:
 ///
-/// >>> from luna_quantum import Model, Variable
+/// >>> from luna_model import Model, Variable
 /// >>> model = Model("MyModel")
 /// >>> with model.environment:
 /// ...     x = Variable("x")
@@ -72,7 +69,7 @@ static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Model"
 ///
 /// With explicit environment:
 ///
-/// >>> from luna_quantum import Environment
+/// >>> from luna_model import Environment
 /// >>> env = Environment()
 /// >>> model = Model("ScopedModel", env)
 /// >>> with env:
@@ -91,14 +88,7 @@ static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Model"
 /// - The `Model` class does not solve the optimization problem.
 /// - Use `.objective`, `.constraints`, and `.environment` to access the symbolic content.
 /// - Use `encode()` and `decode()` to serialize and recover models.
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(subclass, name = "Model", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(subclass, name = "Model", module = "luna_quantum._core")
-)]
+#[pyclass(subclass, name = "Model", module = "luna_model._core")]
 #[derive(Clone, Deref, DerefMut)]
 pub struct PyModel {
     #[deref]

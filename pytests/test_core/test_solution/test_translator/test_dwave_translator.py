@@ -16,9 +16,12 @@ except ImportError as _:
     )
     NOT_RUN_DWAVE = True
 
-from aqmodels import Environment, Timer, Variable, Vtype
-from aqmodels.errors import SampleIncompatibleVtypeError, SampleUnexpectedVariableError
-from aqmodels.translator import DwaveTranslator
+from luna_model import Environment, Timer, Variable, Vtype
+from luna_model.errors import (
+    SampleIncompatibleVtypeError,
+    SampleUnexpectedVariableError,
+)
+from luna_model.translator import DwaveTranslator
 from pytests.test_core.utils import generate_bqms, make_seed, random_int
 
 

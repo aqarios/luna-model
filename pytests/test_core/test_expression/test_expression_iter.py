@@ -1,4 +1,4 @@
-from aqmodels import Constant, Environment, HigherOrder, Linear, Quadratic, Variable
+from luna_model import Constant, Environment, HigherOrder, Linear, Quadratic, Variable
 
 
 def test_expression_iteration():

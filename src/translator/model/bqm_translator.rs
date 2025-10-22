@@ -9,11 +9,11 @@ use crate::{
     errors::{ModelNotQuadraticErr, ModelNotUnconstrainedErr},
 };
 
-/// A translator used to read a Binary Quadratic Model (BQM) and create an AQM.
+/// A translator used to read a Binary Quadratic Model (BQM) and create an LunaModel.
 pub struct BqmTranslator {}
 
 impl BqmTranslator {
-    /// Translates a BQM to an AQM.
+    /// Translates a BQM to an LunaModel.
     pub fn model_from_bqm(
         vars: Vec<String>,
         vtype: Vtype,
@@ -46,10 +46,10 @@ impl BqmTranslator {
         Ok(model)
     }
 
-    /// Back(translate) an AQM to a BQM.
+    /// Back(translate) an LunaModel to a BQM.
     ///
     /// This method is required for interactions with solvers that require the optimization
-    /// problem to be expressed as a BQM. We can use the AQM to define our model and send
+    /// problem to be expressed as a BQM. We can use the LunaModel to define our model and send
     /// the information between workers efficiently. The solving process can then use this function
     /// to express the optimization problem in the expected format.
     pub fn model_to_bqm(

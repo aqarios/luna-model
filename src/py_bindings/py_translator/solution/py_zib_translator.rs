@@ -10,21 +10,9 @@ use pyo3::pyclass;
 use std::ffi::CStr;
 use unwind_macros::unwindable;
 
-#[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
     "
-from aqmodels._core import translator, Sense
-
-def extract(model, timing, env):
-    sample = {x.name: model.getVal(x) for x in model.getVars() if x.name in env}
-    sense = Sense.Max if model.getObjectiveSense() == 'maximize' else Sense.Min
-    return translator.ZibTranslator.translate(sample, sense, timing, env)
-"
-);
-#[cfg(feature = "lq")]
-static PY_CODE: &'static CStr = c_str!(
-    "
-from aqmodels._core import translator
+from luna_model._core import translator, Sense
 
 def extract(model, timing, env):
     sample = {x.name: model.getVal(x) for x in model.getVars() if x.name in env}
@@ -44,20 +32,13 @@ def extract(model, timing, env):
 ///
 /// Examples
 /// --------
-/// >>> import luna_quantum as lq
+/// >>> import luna_quantum as lm
 /// >>> from pyscipopt import Model
 /// >>> model = Model()
 /// >>> model.readProblem("./path/to/my/model.lp")
 /// >>> model.optimize()
-/// >>> aqs = lq.translator.ZibTranslator.to_aq(model)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "ZibTranslator", module = "aqmodels._core.translator")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "ZibTranslator", module = "luna_quantum._core.translator")
-)]
+/// >>> aqs = lm.translator.ZibTranslator.to_aq(model)
+#[pyclass(name = "ZibTranslator", module = "luna_model._core.translator")]
 pub struct PyZibTranslator;
 
 #[unwindable]

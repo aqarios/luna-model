@@ -70,10 +70,8 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 fixable = ["ALL"]
 unfixable = []
 exclude = [
-    "src/aqmodels/__init__.py",
-    "src/aqmodels/__init__.pyi",
-    # "src/aqmodels/_core.pyi",
-    # "src/aqmodels/errors.pyi",
+    "src/luna_model/__init__.py",
+    "src/luna_model/__init__.pyi",
     "pytests/**/*",
     "bench/**/*",
 ]
@@ -90,8 +88,8 @@ allow-star-arg-any = true # At some point we should remove all args and kwargs
     "S",
     "SLF",
     "PL"]
-"src/aqmodels/**/*" = ["PYI021", "PIE790", "PYI048", "PYI029", "PYI041"] # Hard to fix. We need to do that at some point.
-# "aqmodels/client/*" = ["ANN401","D101", "D102","D103", "D105", "D205", "D401","D404", "TC001", "TC003", "PLR0913"] # Hard to fix. We need to fix that for automatic docs
+"src/luna_model/**/*" = ["PYI021", "PIE790", "PYI048", "PYI029", "PYI041"] # Hard to fix. We need to do that at some point.
+# "luna_model/client/*" = ["ANN401","D101", "D102","D103", "D105", "D205", "D401","D404", "TC001", "TC003", "PLR0913"] # Hard to fix. We need to fix that for automatic docs
 # "example/*" = ["D103", "S106", "ANN001", "S311"]
 
 [lint.pydocstyle]

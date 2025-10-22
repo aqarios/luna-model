@@ -4,7 +4,7 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from aqmodels import Bounds, Environment, Expression, Model, Variable, Vtype
+from luna_model import Bounds, Environment, Expression, Model, Variable, Vtype
 
 _model_str_1 = """Model: TestModel
 Minimize
@@ -22,7 +22,7 @@ Real
   x1"""
 _model_str_3 = """Model: TestModel
 Minimize
-  12.213 * x0 * x1 * x2 - x0 * x1 - 3 * x0 * x2 + 1848482 * x0 * x3 
+  12.213 * x0 * x1 * x2 - x0 * x1 - 3 * x0 * x2 + 1848482 * x0 * x3
   + 0.5 * x1 * x2 + x1 * x4 + x0 + 1
 Subject To
   c0: x0 + x2 <= 1
@@ -39,7 +39,7 @@ Real
   x1"""
 _model_str_4 = """Model: TestModel
 Minimize
-  12.213 * x0 * x1 * x2 - x0 * x1 - 3 * x0 * x2 + 1848482 * x0 * x3 
+  12.213 * x0 * x1 * x2 - x0 * x1 - 3 * x0 * x2 + 1848482 * x0 * x3
   + 0.5 * x1 * x2 + x1 * x4 + x0 + 1
 Subject To
   c0: x0 + x2 <= 1

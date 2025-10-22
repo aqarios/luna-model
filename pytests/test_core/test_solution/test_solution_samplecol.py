@@ -1,4 +1,4 @@
-from aqmodels import Environment, Solution, Variable, Vtype
+from luna_model import Environment, Solution, Variable, Vtype
 
 
 def test_add_var():

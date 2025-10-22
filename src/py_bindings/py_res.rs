@@ -20,7 +20,7 @@ use super::py_sol::PySolution;
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import ResultView, Solution
+/// >>> from luna_model import ResultView, Solution
 /// >>> solution: Solution = ...
 /// >>> result: ResultView = solution[0]
 /// >>> result.obj_value
@@ -31,14 +31,7 @@ use super::py_sol::PySolution;
 /// [True, False]
 /// >>> result.feasible
 /// False
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "ResultView", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "ResultView", module = "luna_quantum._core")
-)]
+#[pyclass(name = "ResultView", module = "luna_model._core")]
 pub struct PyResultView {
     pub sol: PySolution,
     pub idx: usize,
@@ -60,7 +53,7 @@ impl PyResultView {
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Model, Result, Solution
+/// >>> from luna_model import Model, Result, Solution
 /// >>> model: Model = ...
 /// >>> solution: Solution = ...
 /// >>> sample = solution.samples[0]
@@ -73,14 +66,7 @@ impl PyResultView {
 /// [True, False]
 /// >>> result.feasible
 /// False
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Result", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Result", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Result", module = "luna_model._core")]
 #[derive(DerefMut, Deref)]
 pub struct PyOwnedResult(pub OwnedResult);
 
@@ -94,21 +80,14 @@ impl PyOwnedResult {
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import ResultIterator, Solution
+/// >>> from luna_model import ResultIterator, Solution
 /// >>> solution: Solution = ...
 /// >>> results: ResultIterator = solution.results
 /// >>> for result in results:
 /// ...     result.sample
 /// [0, -5, 0.28]
 /// [1, -4, -0.42]
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "ResultIterator", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "ResultIterator", module = "luna_quantum._core")
-)]
+#[pyclass(name = "ResultIterator", module = "luna_model._core")]
 pub struct PyResultIterator {
     sol: PySolution,
     idx: usize,
@@ -166,7 +145,7 @@ impl PyResultView {
     }
 
     /// Get the objective value of this sample if present. This is the value computed
-    /// by the corresponding AqModel.
+    /// by the corresponding LunaModel.
     #[getter]
     fn obj_value(&self) -> Option<Bias> {
         let binding = self.sol.access();
@@ -175,7 +154,7 @@ impl PyResultView {
     }
 
     /// Get the raw energy returned by the algorithm if present. This value is not
-    /// guaranteed to be accurate under consideration of the corresponding AqModel.
+    /// guaranteed to be accurate under consideration of the corresponding LunaModel.
     #[getter]
     fn raw_energy(&self) -> Option<Bias> {
         let binding = self.sol.access();

@@ -49,7 +49,7 @@ wheels = [
 ]
 
 [[package]]
-name = "aqmodels"
+name = "luna_model"
 source = { editable = "." }
 dependencies = [
     { name = "numpy" },

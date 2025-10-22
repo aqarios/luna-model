@@ -9,58 +9,12 @@ use pyo3::prelude::*;
 use std::ffi::CStr;
 use unwind_macros::unwindable;
 
-#[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
     "
 import numpy as np
 from dimod import BinaryQuadraticModel
 
-from aqmodels._core import translator
-
-def extract(bqm, name):
-    if not isinstance(bqm, BinaryQuadraticModel):
-        raise TypeError(f'Expected bqm to be of type BQM, received: {type(bqm)}')
-    bqm_vars_ser = bqm.variables.to_serializable()
-    for v in bqm_vars_ser:
-        if not isinstance(v, str):
-            raise TypeError(f'All BQM variables have to be of type str, received: {type(v)}')
-    vars = np.array(bqm_vars_ser)
-    vars_pos = {var: i for i, var in enumerate(vars)}
-
-    linears = []
-    linear_indices = []
-    for var, val in bqm.linear.items():
-        linears.append(val)
-        linear_indices.append(vars_pos[var])
-    quads = []
-    quad_row = []
-    quad_col = []
-    for (var1, var2), val in bqm.quadratic.items():
-        quads.append(val)
-        quad_row.append(vars_pos[var1])
-        quad_col.append(vars_pos[var2])
-
-    vartype = bqm.vartype.name
-    offset = float(bqm.offset)
-    return translator.BqmTranslator.translate(
-        vars,
-        offset,
-        np.array(linears, dtype=np.float64),
-        np.array(linear_indices, dtype=np.uint64),
-        np.array(quads, dtype=np.float64),
-        np.array(quad_row, dtype=np.uint64),
-        np.array(quad_col, dtype=np.uint64),
-        vartype,
-        name
-    )"
-);
-#[cfg(feature = "lq")]
-static PY_CODE: &'static CStr = c_str!(
-    "
-import numpy as np
-from dimod import BinaryQuadraticModel
-
-from luna_quantum._core import translator
+from luna_model._core import translator
 
 def extract(bqm, name):
     if not isinstance(bqm, BinaryQuadraticModel):
@@ -114,7 +68,7 @@ def extract(bqm, name):
 /// --------
 /// >>> import dimod
 /// >>> import numpy as np
-/// >>> from luna_quantum import BqmTranslator, Vtype
+/// >>> from luna_model import BqmTranslator, Vtype
 /// >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 ///
 /// Create a model from a matrix:
@@ -124,14 +78,7 @@ def extract(bqm, name):
 /// Convert it back to a dense matrix:
 ///
 /// >>> recovered = BqmTranslator.from_aq(model)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "BqmTranslator", module = "aqmodels._core.translator")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "BqmTranslator", module = "luna_quantum._core.translator")
-)]
+#[pyclass(name = "BqmTranslator", module = "luna_model._core.translator")]
 pub struct PyBqmTranslator {}
 
 #[unwindable]

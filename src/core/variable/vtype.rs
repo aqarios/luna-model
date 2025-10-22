@@ -22,7 +22,7 @@ use strum_macros::{Display, EnumIter};
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Vtype
+/// >>> from luna_model import Vtype
 /// >>> Vtype.Real
 /// Real
 ///
@@ -30,12 +30,8 @@ use strum_macros::{Display, EnumIter};
 /// 'Binary'
 // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[cfg_attr(
-    all(feature = "py", not(feature = "lq")),
-    pyclass(eq, eq_int, name = "Vtype", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    all(feature = "py", feature = "lq"),
-    pyclass(eq, eq_int, name = "Vtype", module = "luna_quantum._core")
+    feature = "py",
+    pyclass(eq, eq_int, name = "Vtype", module = "luna_model._core")
 )]
 #[derive(EnumSetType, Debug, EnumIter, Display, Hash)]
 pub enum Vtype {

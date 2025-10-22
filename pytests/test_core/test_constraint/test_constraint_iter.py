@@ -1,7 +1,7 @@
 import pytest
 
 
-from aqmodels import Variable, Environment, ConstraintCollection, Constraint
+from luna_model import Variable, Environment, ConstraintCollection, Constraint
 
 
 @pytest.fixture

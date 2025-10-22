@@ -14,28 +14,10 @@ use crate::{
     translator::QctrlTranslator,
 };
 
-#[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
     "
 import numpy as np
-from aqmodels._core import translator
-
-def extract(result, timing, env):
-    return translator.QctrlTranslator.translate(
-        result.get('solution_bitstring', None),
-        result.get('solution_bitstring_cost', None),
-        result.get('final_bitstring_distribution', None),
-        result.get('variables_to_bitstring_index_map', None),
-        timing,
-        env,
-    )
-"
-);
-#[cfg(feature = "lq")]
-static PY_CODE: &'static CStr = c_str!(
-    "
-import numpy as np
-from luna_quantum._core import translator
+from luna_model._core import translator
 
 def extract(result, timing, env):
     return translator.QctrlTranslator.translate(
@@ -59,18 +41,11 @@ def extract(result, timing, env):
 ///
 /// Examples
 /// --------
-/// >>> import luna_quantum as lq
+/// >>> import luna_model as lm
 /// >>> ...
 /// >>> qctrl_result = ...
-/// >>> aqs = lq.translator.QctrlTranslator.to_aq(qctrl_result)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "QctrlTranslator", module = "aqmodels._core.translator")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "QctrlTranslator", module = "luna_quantum._core.translator")
-)]
+/// >>> aqs = lm.translator.QctrlTranslator.to_aq(qctrl_result)
+#[pyclass(name = "QctrlTranslator", module = "luna_model._core.translator")]
 pub struct PyQctrlTranslator(pub QctrlTranslator);
 
 #[unwindable]

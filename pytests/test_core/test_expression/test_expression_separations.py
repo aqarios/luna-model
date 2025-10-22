@@ -1,5 +1,5 @@
-from aqmodels import Environment
-from aqmodels._core import Expression, Variable
+from luna_model import Environment
+from luna_model._core import Expression, Variable
 
 
 def test_expression_separation_linear():

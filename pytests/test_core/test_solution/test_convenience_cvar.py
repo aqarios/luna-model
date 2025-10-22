@@ -2,7 +2,7 @@ import math
 import random
 import pytest
 
-from aqmodels import Model, Environment, Solution, Variable, Vtype
+from luna_model import Model, Environment, Solution, Variable, Vtype
 
 TOL = 1e-12
 

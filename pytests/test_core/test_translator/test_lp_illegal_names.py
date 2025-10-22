@@ -1,7 +1,7 @@
 import pytest
 
-from aqmodels import Model, Variable
-from aqmodels.errors import IllegalConstraintNameError
+from luna_model import Model, Variable
+from luna_model.errors import IllegalConstraintNameError
 
 ILLEGAL_WORD_START = [
     "0",

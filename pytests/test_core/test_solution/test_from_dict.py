@@ -2,8 +2,8 @@ from random import Random
 
 import pytest
 
-from aqmodels import Environment, Model, Solution, Variable, Vtype
-from aqmodels.errors import SampleIncorrectLengthError
+from luna_model import Environment, Model, Solution, Variable, Vtype
+from luna_model.errors import SampleIncorrectLengthError
 from pytests.test_core.utils import make_seed, random_int
 
 

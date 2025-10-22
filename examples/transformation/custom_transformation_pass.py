@@ -1,8 +1,8 @@
 """Helper script to test out transformations."""
 
-from aqmodels import Model, Solution
-from aqmodels._core import Sense, Variable
-from aqmodels.transformations import (
+from luna_model import Model, Solution
+from luna_model._core import Sense, Variable
+from luna_model.transformations import (
     AnalysisCache,
     ChangeSensePass,
     PassManager,
@@ -10,12 +10,12 @@ from aqmodels.transformations import (
     TransformationType,
 )
 
-aqm = Model()
-aqm.set_sense(sense=Sense.Max)
-with aqm.environment:
+lm = Model()
+lm.set_sense(sense=Sense.Max)
+with lm.environment:
     x = Variable("x")
     y = Variable("y")
-aqm.objective = x * 20 * y
+lm.objective = x * 20 * y
 
 
 class PyChangeSensePass(TransformationPass):
@@ -62,14 +62,14 @@ py_pm = PassManager([pycsp])
 
 print("=== PassManager (builtin pass) ===")  # noqa: T201
 print(pm)  # noqa: T201
-ir = pm.run(aqm)
+ir = pm.run(lm)
 
 print("=== PassManager (custom pass) ===")  # noqa: T201
 print(py_pm)  # noqa: T201
-py_ir = py_pm.run(aqm)
+py_ir = py_pm.run(lm)
 
 print("=== Model Before Transformation ===")  # noqa: T201
-print(aqm)  # noqa: T201
+print(lm)  # noqa: T201
 
 print("=== Model After Transformation (builtin) ===")  # noqa: T201
 print(ir.model)  # noqa: T201

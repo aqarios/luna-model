@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import Model, Variable, Environment, Solution, Vtype, Timer
+from luna_model import Model, Variable, Environment, Solution, Vtype, Timer
 
 
 def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:

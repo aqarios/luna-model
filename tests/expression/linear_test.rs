@@ -1,4 +1,4 @@
-use aqmodels::{core::Vtype, types::Bias};
+use luna_model::{core::Vtype, types::Bias};
 
 use crate::common::*;
 

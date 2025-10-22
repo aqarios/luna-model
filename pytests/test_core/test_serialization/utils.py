@@ -1,4 +1,4 @@
-from aqmodels import ConstraintCollection, Environment, Expression, Model
+from luna_model import ConstraintCollection, Environment, Expression, Model
 
 from ..data import serializable_objects, serialized_objects, serialized_objects_with_env
 

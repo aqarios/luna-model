@@ -38,12 +38,8 @@ pub fn starts_with_failable(s: &str) -> bool {
 }
 
 #[cfg_attr(
-    all(feature = "py", not(feature = "lq")),
-    pyclass(eq, eq_int, name = "Comparator", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    all(feature = "py", feature = "lq"),
-    pyclass(eq, eq_int, name = "Comparator", module = "luna_quantum._core")
+    feature = "py",
+    pyclass(eq, eq_int, name = "Comparator", module = "luna_model._core")
 )]
 /// Comparison operators used to define constraints.
 ///
@@ -61,7 +57,7 @@ pub fn starts_with_failable(s: &str) -> bool {
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Comparator
+/// >>> from luna_model import Comparator
 /// >>> str(Comparator.Eq)
 /// '=='
 // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.

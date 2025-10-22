@@ -4,13 +4,13 @@ import numpy as np
 import pytest
 from dimod import BinaryQuadraticModel
 
-from aqmodels import Model, Sense, Variable
-from aqmodels.errors import (
+from luna_model import Model, Sense, Variable
+from luna_model.errors import (
     ModelSenseNotMinimizeError,
     TranslationError,
     VariableNamesError,
 )
-from aqmodels.translator import BqmTranslator
+from luna_model.translator import BqmTranslator
 from pytests.test_core.utils import generate_bqms, make_seed
 
 

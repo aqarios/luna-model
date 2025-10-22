@@ -354,16 +354,11 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
             #(#reg_passes)*
 
             pm.add_submodule(&m)?;
-            #[cfg(not(feature = "lq"))]
+            #[cfg(feature = "py")]
             pm.py()
               .import("sys")?
               .getattr("modules")?
-              .set_item("aqmodels.transformations", m)?;
-            #[cfg(feature = "lq")]
-            pm.py()
-              .import("sys")?
-              .getattr("modules")?
-              .set_item("luna_quantum.transformations", m)?;
+              .set_item("luna_model.transformations", m)?;
             Ok(())
         }
     };
@@ -393,12 +388,8 @@ pub fn analysis_cache(_attr: TokenStream, item: TokenStream) -> TokenStream {
     // Emit a cfg_attr only when `--features py` is on.
     let expanded = quote! {
         #[cfg_attr(
-            all(feature = "py", not(feature = "lq")),
-            pyo3::pyclass(get_all, name = #name, module = "aqmodels._core.transformations")
-        )]
-        #[cfg_attr(
-            all(feature = "py", feature = "lq"),
-            pyo3::pyclass(get_all, name = #name, module = "luna_quantum._core.transformations")
+            feature = "py",
+            pyo3::pyclass(get_all, name = #name, module = "luna_model._core.transformations")
         )]
         #input
 

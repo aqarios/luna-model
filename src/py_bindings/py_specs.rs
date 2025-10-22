@@ -4,14 +4,7 @@ use unwind_macros::unwindable;
 
 use crate::core::{ConstraintType, EnumSetFromVec, ModelSpecs, Sense, Vtype};
 
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(subclass, name = "ModelSpecs", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(subclass, name = "ModelSpecs", module = "luna_quantum._core")
-)]
+#[pyclass(subclass, name = "ModelSpecs", module = "luna_model._core")]
 #[derive(Clone)]
 pub struct PyModelSpecs(pub ModelSpecs);
 

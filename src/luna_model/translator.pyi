@@ -22,12 +22,12 @@ class ZibTranslator:
 
     Examples
     --------
-    >>> import luna_quantum as lq
+    >>> import luna_model as lm
     >>> from pyscipopt import Model
     >>> model = Model()
     >>> model.readProblem("./path/to/my/model.lp")
     >>> model.optimize()
-    >>> aqs = lq.translator.ZibTranslator.to_aq(model)
+    >>> aqs = lm.translator.ZibTranslator.to_aq(model)
     """
 
     @overload
@@ -156,7 +156,7 @@ class QuboTranslator:
     Examples
     --------
     >>> import numpy as np
-    >>> from luna_quantum.translator import QuboTranslator, Vtype
+    >>> from luna_model.translator import QuboTranslator, Vtype
     >>> q = np.array([[1.0, -1.0], [-1.0, 2.0]])
 
     Create a model from a matrix:
@@ -258,10 +258,10 @@ class QctrlTranslator:
 
     Examples
     --------
-    >>> import luna_quantum as lq
+    >>> import luna_model as lm
     >>> ...
     >>> qctrl_result = ...
-    >>> aqs = lq.translator.QctrlTranslator.to_aq(qctrl_result)
+    >>> aqs = lm.translator.QctrlTranslator.to_aq(qctrl_result)
     """
 
     @overload
@@ -324,11 +324,11 @@ class NumpyTranslator:
 
     Examples
     --------
-    >>> import luna_quantum as lq
+    >>> import luna_model as lm
     >>> from numpy.typing import NDArray
     >>> result: NDArray = ...
     >>> energies: NDArray = ...
-    >>> aqs = lq.translator.NumpyTranslator.to_aq(result, energies)
+    >>> aqs = lm.translator.NumpyTranslator.to_aq(result, energies)
     """
 
     @overload
@@ -398,7 +398,7 @@ class LpTranslator:
     Examples
     --------
     >>> from pathlib import Path
-    >>> from luna_quantum.translator import LpTranslator
+    >>> from luna_model.translator import LpTranslator
     >>> lp_filepath = Path("path/to/the/lp_file")
 
     >>> model = LpTranslator.to_aq(lp_filepath)
@@ -482,10 +482,10 @@ class IbmTranslator:
 
     Examples
     --------
-    >>> import luna_quantum as lq
+    >>> import luna_model as lm
     >>> ...
     >>> ibm_result = ...
-    >>> aqs = lq.translator.IbmTranslator.to_aq(ibm_result)
+    >>> aqs = lm.translator.IbmTranslator.to_aq(ibm_result)
     """
 
     @overload
@@ -568,9 +568,9 @@ class DwaveTranslator:
     Examples
     --------
     >>> import dimod
-    >>> import luna_quantum as lq
+    >>> import luna_model as lm
     >>> dwave_sampleset = ...
-    >>> aqs = lq.translator.DwaveTranslator.to_aq(dwave_sampleset)
+    >>> aqs = lm.translator.DwaveTranslator.to_aq(dwave_sampleset)
     """
 
     @overload
@@ -642,7 +642,7 @@ class CqmTranslator:
     --------
     >>> import dimod
     >>> import numpy as np
-    >>> from luna_quantum.translator import CqmTranslator, Vtype
+    >>> from luna_model.translator import CqmTranslator, Vtype
     >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 
     Create a model from a matrix:
@@ -718,7 +718,7 @@ class BqmTranslator:
     --------
     >>> import dimod
     >>> import numpy as np
-    >>> from luna_quantum.translator import BqmTranslator, Vtype
+    >>> from luna_model.translator import BqmTranslator, Vtype
     >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 
     Create a model from a matrix:
@@ -800,9 +800,9 @@ class AwsTranslator:
 
     Examples
     --------
-    >>> import luna_quantum as lq
+    >>> import luna_model as lm
     >>> aws_result = ...
-    >>> aqs = lq.translator.AwsTranslator.to_aq(aws_result)
+    >>> aqs = lm.translator.AwsTranslator.to_aq(aws_result)
     """
 
     @overload

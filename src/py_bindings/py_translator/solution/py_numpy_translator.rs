@@ -10,32 +10,10 @@ use pyo3::prelude::*;
 use std::ffi::CStr;
 use unwind_macros::unwindable;
 
-#[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
     "
 import numpy as np
-from aqmodels._core import translator
-
-def extract(result, energies, timing, env):
-    (sol_agg, indices, num_occ) = np.unique(
-        result, return_index=True, return_counts=True, axis=0
-    )
-
-    sol_agg = sol_agg.astype(np.float64, order='C')
-    indices = indices.astype(np.uint64, order='C')
-    num_occ = num_occ.astype(np.uint64, order='C')
-    energies = energies.astype(np.float64, order='C')
-
-    return translator.AwsTranslator.translate(
-        sol_agg, indices, num_occ, energies, timing, env
-    )
-"
-);
-#[cfg(feature = "lq")]
-static PY_CODE: &'static CStr = c_str!(
-    "
-import numpy as np
-from luna_quantum._core import translator
+from luna_model._core import translator
 
 def extract(result, energies, timing, env):
     (sol_agg, indices, num_occ) = np.unique(
@@ -61,19 +39,12 @@ def extract(result, energies, timing, env):
 ///
 /// Examples
 /// --------
-/// >>> import luna_quantum as lq
+/// >>> import luna_model as lm
 /// >>> from numpy.typing import NDArray
 /// >>> result: NDArray = ...
 /// >>> energies: NDArray = ...
-/// >>> aqs = lq.translator.NumpyTranslator.to_aq(result, energies)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "NumpyTranslator", module = "aqmodels._core.translator")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "NumpyTranslator", module = "luna_quantum._core.translator")
-)]
+/// >>> aqs = lm.translator.NumpyTranslator.to_aq(result, energies)
+#[pyclass(name = "NumpyTranslator", module = "luna_model._core.translator")]
 pub struct PyNumpyTranslator {}
 
 #[unwindable]

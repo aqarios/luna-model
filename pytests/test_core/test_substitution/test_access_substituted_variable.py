@@ -1,7 +1,7 @@
 import pytest
 
-from aqmodels import Model, Variable, Vtype
-from aqmodels.errors import VariableNotExistingError
+from luna_model import Model, Variable, Vtype
+from luna_model.errors import VariableNotExistingError
 
 
 @pytest.fixture

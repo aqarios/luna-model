@@ -14,50 +14,10 @@ use pyo3::{ffi::c_str, prelude::*};
 use std::ffi::CStr;
 use unwind_macros::unwindable;
 
-#[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
     "
 import numpy as np
-from aqmodels._core import translator
-
-def extract(result, qp, timing, env):
-    meas: BitArray = result[0].data.meas
-    counts: dict[str, int] = meas.get_counts()
-
-    samples = []
-    energies = []
-    flat_counts = []
-
-    ordering = []
-
-    for n, (bitstring, count) in enumerate(counts.items()):
-        sample = []
-        for i, b in enumerate(bitstring):
-            sample.append(int(b))
-
-            if n == 0:
-                ordering.append(env.get_variable(qp.variables[i].name))
-
-        sample = sample[::-1] # reverse ordering for correct bitstrings.
-        energies.append(float(qp.objective.evaluate(sample)))
-        samples.append(sample)
-        flat_counts.append(count)
-
-    return translator.IbmTranslator.translate(
-        samples,
-        ordering,
-        energies,
-        flat_counts,
-        timing,
-        env
-    )
-"
-);
-#[cfg(feature = "lq")]
-static PY_CODE: &'static CStr = c_str!(
-    "
-import numpy as np
-from luna_quantum._core import translator
+from luna_model._core import translator
 
 def extract(result, qp, timing, env):
     meas: BitArray = result[0].data.meas
@@ -104,18 +64,11 @@ def extract(result, qp, timing, env):
 ///
 /// Examples
 /// --------
-/// >>> import luna_quantum as lq
+/// >>> import luna_model as lm
 /// >>> ...
 /// >>> ibm_result = ...
-/// >>> aqs = lq.translator.IbmTranslator.to_aq(ibm_result)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "IbmTranslator", module = "aqmodels._core.translator")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "IbmTranslator", module = "luna_quantum._core.translator")
-)]
+/// >>> aqs = lm.translator.IbmTranslator.to_aq(ibm_result)
+#[pyclass(name = "IbmTranslator", module = "luna_model._core.translator")]
 pub struct PyIbmTranslator {}
 
 #[unwindable]

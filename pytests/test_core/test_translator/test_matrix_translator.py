@@ -6,8 +6,8 @@ import pytest
 import scipy.sparse as sp  # type: ignore[import-untyped]
 from numpy.typing import NDArray
 
-from aqmodels import Model, Sense, Variable, Vtype
-from aqmodels.errors import (
+from luna_model import Model, Sense, Variable, Vtype
+from luna_model.errors import (
     ModelNotQuadraticError,
     ModelNotUnconstrainedError,
     ModelSenseNotMinimizeError,
@@ -16,7 +16,7 @@ from aqmodels.errors import (
     VariableExistsError,
     VariableNamesError,
 )
-from aqmodels.translator import QuboTranslator
+from luna_model.translator import QuboTranslator
 
 from ..utils import make_seed
 

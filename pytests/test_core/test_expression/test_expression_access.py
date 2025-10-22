@@ -1,5 +1,5 @@
-from aqmodels._core import Environment, Variable
-from aqmodels.utils import quicksum
+from luna_model._core import Environment, Variable
+from luna_model.utils import quicksum
 
 
 def test_expression_variables():

@@ -5,8 +5,8 @@ from typing import Any, Callable
 import pytest
 from numpy import unique
 
-from aqmodels import Environment, Timer, Variable
-from aqmodels.translator import QctrlTranslator
+from luna_model import Environment, Timer, Variable
+from luna_model.translator import QctrlTranslator
 from pytests.test_core.utils import make_seed, random, random_bool, random_int
 
 REPS: int = 100

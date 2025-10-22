@@ -1,8 +1,8 @@
 [package]
-name = "aqmodels"
-version = "0.3.1"
+name = "luna_model"
+version = "0.4.0"
 edition = "2021"
-description = "Rust based implementation of aq-models"
+description = "Aqarios Luna Model: Symbolic modeling for optimization"
 readme = "README.md"
 license = "Copyright"
 homepage = "https://github.com/aqarios/aq-models-rs"
@@ -60,7 +60,10 @@ optional = true
 
 [features]
 default = ["pyt"]
+# Python Flavor options
 py = ["pyo3", "numpy", "unwind-macros"]
-transformations = ["aqm-macros"]
 pyt = ["py", "aqm-macros/py", "transformations"]
-lq = ["py", "pyt"]
+# Mark as Private, needs explicit addition, includes everything from pyt, aka public stuff.
+priv = ["pyt"]
+# Only intersting for Rust Crate Builds.
+transformations = ["aqm-macros"]

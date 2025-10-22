@@ -1,7 +1,7 @@
 mod common;
 
-use aqmodels::core::{Bound, LazyBounds, Model, Substitution};
-use aqmodels::errors::VariableNotExistingErr;
+use luna_model::core::{Bound, LazyBounds, Model, Substitution};
+use luna_model::errors::VariableNotExistingErr;
 use common::create_env;
 
 #[test]

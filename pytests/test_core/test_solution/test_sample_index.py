@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import Environment, Model, Solution, Variable, Vtype
+from luna_model import Environment, Model, Solution, Variable, Vtype
 
 
 def to_str_dict(d: dict[Variable, int | float]) -> dict[str, int | float]:

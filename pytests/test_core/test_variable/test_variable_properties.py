@@ -1,4 +1,4 @@
-from aqmodels import Bounds, Environment, Variable, Vtype
+from luna_model import Bounds, Environment, Variable, Vtype
 
 
 def test_variable_properties():

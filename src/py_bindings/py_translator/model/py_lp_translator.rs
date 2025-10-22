@@ -19,7 +19,7 @@ use unwind_macros::unwindable;
 /// Examples
 /// --------
 /// >>> from pathlib import Path
-/// >>> from luna_quantum import LpTranslator
+/// >>> from luna_model import LpTranslator
 /// >>> lp_filepath = Path("path/to/the/lp_file")
 ///
 /// >>> model = LpTranslator.to_aq(lp_filepath)
@@ -27,14 +27,7 @@ use unwind_macros::unwindable;
 /// Convert it back to an LP file:
 ///
 /// >>> recovered = LpTranslator.to_file(model)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "LpTranslator", module = "aqmodels._core.translator")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "LpTranslator", module = "luna_quantum._core.translator")
-)]
+#[pyclass(name = "LpTranslator", module = "luna_model._core.translator")]
 pub struct PyLpTranslator {}
 
 #[unwindable]

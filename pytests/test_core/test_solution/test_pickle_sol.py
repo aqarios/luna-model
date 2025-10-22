@@ -1,7 +1,7 @@
 import pytest
 import pickle
 
-from aqmodels import Solution, Vtype
+from luna_model import Solution, Vtype
 
 
 @pytest.fixture

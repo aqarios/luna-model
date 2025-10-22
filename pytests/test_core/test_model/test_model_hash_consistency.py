@@ -1,4 +1,4 @@
-from aqmodels import Bounds, Model, Unbounded, Variable, Vtype
+from luna_model import Bounds, Model, Unbounded, Variable, Vtype
 
 
 def test_hash_consistent_empty():

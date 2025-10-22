@@ -20,12 +20,8 @@ use pyo3::prelude::pyclass;
 pub type AnalysisPassResult = Result<Option<AnalysisCacheElement>, AnalysisPassError>;
 
 #[cfg_attr(
-    all(feature = "py", not(feature = "lq")),
-    pyclass(name = "ActionType", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    all(feature = "py", feature = "lq"),
-    pyclass(name = "ActionType", module = "luna_quantum._core")
+    feature = "py",
+    pyclass(name = "ActionType", module = "luna_model._core")
 )]
 #[derive(Clone, Debug)]
 pub enum ActionType {

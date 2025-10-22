@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import Environment, Variable
+from luna_model import Environment, Variable
 
 
 @pytest.mark.variable

@@ -2,7 +2,7 @@ import pytest
 from .test_serialization.creators import serializable_objects
 import pickle
 
-from aqmodels import Environment
+from luna_model import Environment
 
 
 @pytest.mark.parametrize("env", serializable_objects([Environment]))

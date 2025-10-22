@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import Expression, Vtype
+from luna_model import Expression, Vtype
 
 from ...utils import (
     assert_higher_order,

@@ -19,27 +19,17 @@ use pyo3::{prelude::*, types::PyBytes};
 use std::ffi::CStr;
 use unwind_macros::unwindable;
 
-#[cfg(not(feature = "lq"))]
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import ConstraintCollection");
-#[cfg(feature = "lq")]
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import ConstraintCollection");
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_model import ConstraintCollection");
 
 /// Iterate over the name, constraint tuples of a constraint collection.
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import ConstraintCollection
+/// >>> from luna_model import ConstraintCollection
 /// >>> coll: ConstraintCollection = ...
 /// for (name, constraint) in coll.items():
 ///     ...
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "ConstraintCollectionIterator", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "ConstraintCollectionIterator", module = "luna_quantum._core")
-)]
+#[pyclass(name = "ConstraintCollectionIterator", module = "luna_model._core")]
 pub struct PyConstraintCollectionIterator {
     items: Vec<(String, PyConstraint)>,
     current_idx: usize,
@@ -77,7 +67,7 @@ impl PyConstraintCollectionIterator {
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import ConstraintCollection, Constraint, Environment, Variable
+/// >>> from luna_model import ConstraintCollection, Constraint, Environment, Variable
 /// >>> with Environment():
 /// ...     x = Variable("x")
 /// ...     c = Constraint(x + 1, 0.0, Comparator.Le)
@@ -96,14 +86,7 @@ impl PyConstraintCollectionIterator {
 /// -----
 /// - This class does not check feasibility or enforce satisfaction.
 /// - Use `encode()`/`decode()` to serialize constraints alongside expressions.
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(subclass, name = "ConstraintCollection", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(subclass, name = "ConstraintCollection", module = "luna_quantum._core")
-)]
+#[pyclass(subclass, name = "ConstraintCollection", module = "luna_model._core")]
 #[derive(Debug, Clone)]
 pub struct PyConstraintCollection {
     pub data: Either<ConstraintCollection, ShareMut<Model>>,
@@ -151,7 +134,7 @@ impl PyConstraintCollection {
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Environment, Variable, Constraint, Comparator
+/// >>> from luna_model import Environment, Variable, Constraint, Comparator
 /// >>> with Environment():
 /// ...     x = Variable("x")
 /// ...     c = Constraint(x + 2, 5.0, Comparator.Eq)
@@ -160,14 +143,7 @@ impl PyConstraintCollection {
 ///
 /// >>> expr = 2 * x + 1
 /// >>> c2 = expr <= 10.0
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Constraint", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Constraint", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Constraint", module = "luna_model._core")]
 #[derive(Debug, Deref, DerefMut, Clone)]
 pub struct PyConstraint(pub ShareMut<Constraint>);
 

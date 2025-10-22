@@ -6,9 +6,9 @@ from random import Random
 import pytest
 from dimod import lp as dimod_lp
 
-from aqmodels import Sense
-from aqmodels.errors import TranslationError
-from aqmodels.translator import LpTranslator
+from luna_model import Sense
+from luna_model.errors import TranslationError
+from luna_model.translator import LpTranslator
 from pytests.test_core.utils import generate_cqms, make_seed
 
 NOT_RUN_SCIP = False
@@ -60,12 +60,12 @@ def test_lp_file_str_path():
         tmp_lp.flush()
         tmp_lp.seek(0)
 
-        aqmodel_from_contents = LpTranslator.to_aq(tmp_lp.file.read())
-        aqmodel_from_path = LpTranslator.to_aq(Path(tmp_lp.file.name))
-        aqmodel_from_path_as_str = LpTranslator.to_aq(str(tmp_lp.file.name))
+        lm_from_contents = LpTranslator.to_aq(tmp_lp.file.read())
+        lm_from_path = LpTranslator.to_aq(Path(tmp_lp.file.name))
+        lm_from_path_as_str = LpTranslator.to_aq(str(tmp_lp.file.name))
 
-        assert aqmodel_from_contents.equal_contents(aqmodel_from_path)
-        assert aqmodel_from_path.equal_contents(aqmodel_from_path_as_str)
+        assert lm_from_contents.equal_contents(lm_from_path)
+        assert lm_from_path.equal_contents(lm_from_path_as_str)
 
 
 ##################################### Dimod ###########################################
@@ -120,10 +120,10 @@ def test_gurobi_to_model_to_gurobi():
         gp_model.write(tmp_lp.name)
         tmp_lp.flush()
         tmp_lp.seek(0)
-        # build aqmodel
+        # build luna_model
         tmp_lp.seek(0)
-        aqmodel = LpTranslator.to_aq(tmp_lp.file.read())
-        lp_str = LpTranslator.from_aq(aqmodel)
+        lmodel = LpTranslator.to_aq(tmp_lp.file.read())
+        lp_str = LpTranslator.from_aq(lmodel)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.truncate()
@@ -206,10 +206,10 @@ def test_scip_to_model_to_scip():
         scip_model.writeProblem(tmp_lp.name)
         tmp_lp.flush()
         tmp_lp.seek(0)
-        # build aqmodel
+        # build lmodel
         tmp_lp.seek(0)
-        aqmodel = LpTranslator.to_aq(tmp_lp.file.read())
-        lp_str = LpTranslator.from_aq(aqmodel)
+        lmodel = LpTranslator.to_aq(tmp_lp.file.read())
+        lp_str = LpTranslator.from_aq(lmodel)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.truncate()
@@ -252,10 +252,10 @@ def test_cplex_to_model_to_cplex():
         cpx_model.write(tmp_mps.name)
         tmp_mps.seek(0)
         cpx_mps_str = tmp_mps.read()
-        # build aqmodel
+        # build lmodel
         tmp_lp.seek(0)
-        aqmodel = LpTranslator.to_aq(tmp_lp.file.read())
-        lp_str = LpTranslator.from_aq(aqmodel)
+        lmodel = LpTranslator.to_aq(tmp_lp.file.read())
+        lp_str = LpTranslator.from_aq(lmodel)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.write(lp_str)

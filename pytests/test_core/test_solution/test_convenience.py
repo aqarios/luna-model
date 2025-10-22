@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from aqmodels import Environment, Model, Solution, Variable, Vtype
+from luna_model import Environment, Model, Solution, Variable, Vtype
 
 
 def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:

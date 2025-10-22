@@ -1,196 +1,196 @@
 import pytest
 
-AQM_MODULE_NAME: str = "aqmodels._core"
-TRANSLATOR_MODULE_NAME: str = "aqmodels._core.translator"
-ERRORS_MODULE_NAME: str = "aqmodels._core.errors"
+LM_MODULE_NAME: str = "luna_model._core"
+TRANSLATOR_MODULE_NAME: str = "luna_model._core.translator"
+ERRORS_MODULE_NAME: str = "luna_model._core.errors"
 
 
 @pytest.mark.imports
-def test_import_aqmodels():
-    import aqmodels as _  # noqa: F401
+def test_import_luna_model():
+    import luna_model as _  # noqa: F401
 
 
 @pytest.mark.imports
 def test_import_variable():
-    import aqmodels as aqm
-    from aqmodels import Variable
+    import luna_model as lm
+    from luna_model import Variable
 
-    assert aqm.Variable == Variable
-    assert aqm.Variable.__module__ == Variable.__module__
-    assert aqm.Variable.__module__ == AQM_MODULE_NAME
+    assert lm.Variable == Variable
+    assert lm.Variable.__module__ == Variable.__module__
+    assert lm.Variable.__module__ == LM_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_vtype():
-    import aqmodels as aqm
-    from aqmodels import Vtype
+    import luna_model as lm
+    from luna_model import Vtype
 
-    assert aqm.Vtype == Vtype
-    assert aqm.Vtype.__module__ == Vtype.__module__
-    assert aqm.Vtype.__module__ == AQM_MODULE_NAME
+    assert lm.Vtype == Vtype
+    assert lm.Vtype.__module__ == Vtype.__module__
+    assert lm.Vtype.__module__ == LM_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_comparator():
-    import aqmodels as aqm
-    from aqmodels import Comparator
+    import luna_model as lm
+    from luna_model import Comparator
 
-    assert aqm.Comparator == Comparator
-    assert aqm.Comparator.__module__ == Comparator.__module__
-    assert aqm.Comparator.__module__ == AQM_MODULE_NAME
+    assert lm.Comparator == Comparator
+    assert lm.Comparator.__module__ == Comparator.__module__
+    assert lm.Comparator.__module__ == LM_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_environment():
-    import aqmodels as aqm
-    from aqmodels import Environment
+    import luna_model as lm
+    from luna_model import Environment
 
-    assert aqm.Environment == Environment
-    assert aqm.Environment.__module__ == Environment.__module__
-    assert aqm.Environment.__module__ == AQM_MODULE_NAME
+    assert lm.Environment == Environment
+    assert lm.Environment.__module__ == Environment.__module__
+    assert lm.Environment.__module__ == LM_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_expression():
-    import aqmodels as aqm
-    from aqmodels import Expression
+    import luna_model as lm
+    from luna_model import Expression
 
-    assert aqm.Expression == Expression
-    assert aqm.Expression.__module__ == Expression.__module__
-    assert aqm.Expression.__module__ == AQM_MODULE_NAME
+    assert lm.Expression == Expression
+    assert lm.Expression.__module__ == Expression.__module__
+    assert lm.Expression.__module__ == LM_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_model():
-    import aqmodels as aqm
-    from aqmodels import Model
+    import luna_model as lm
+    from luna_model import Model
 
-    assert aqm.Model == Model
-    assert aqm.Model.__module__ == Model.__module__
-    assert aqm.Model.__module__ == AQM_MODULE_NAME
+    assert lm.Model == Model
+    assert lm.Model.__module__ == Model.__module__
+    assert lm.Model.__module__ == LM_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_bounds():
-    import aqmodels as aqm
-    from aqmodels import Bounds
+    import luna_model as lm
+    from luna_model import Bounds
 
-    assert aqm.Bounds == Bounds
-    assert aqm.Bounds.__module__ == Bounds.__module__
-    assert aqm.Bounds.__module__ == AQM_MODULE_NAME
+    assert lm.Bounds == Bounds
+    assert lm.Bounds.__module__ == Bounds.__module__
+    assert lm.Bounds.__module__ == LM_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_constraint():
-    import aqmodels as aqm
-    from aqmodels import Constraint
+    import luna_model as lm
+    from luna_model import Constraint
 
-    assert aqm.Constraint == Constraint
-    assert aqm.Constraint.__module__ == Constraint.__module__
-    assert aqm.Constraint.__module__ == AQM_MODULE_NAME
+    assert lm.Constraint == Constraint
+    assert lm.Constraint.__module__ == Constraint.__module__
+    assert lm.Constraint.__module__ == LM_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_constraints():
-    import aqmodels as aqm
-    from aqmodels import ConstraintCollection
+    import luna_model as lm
+    from luna_model import ConstraintCollection
 
-    assert aqm.ConstraintCollection == ConstraintCollection
-    assert aqm.ConstraintCollection.__module__ == ConstraintCollection.__module__
-    assert aqm.ConstraintCollection.__module__ == AQM_MODULE_NAME
+    assert lm.ConstraintCollection == ConstraintCollection
+    assert lm.ConstraintCollection.__module__ == ConstraintCollection.__module__
+    assert lm.ConstraintCollection.__module__ == LM_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_qubo_translator():
-    import aqmodels
-    import aqmodels as aqm
-    from aqmodels import translator  # the true way to do it.
-    from aqmodels.translator import QuboTranslator as MTID
+    import luna_model
+    import luna_model as lm
+    from luna_model import translator  # the true way to do it.
+    from luna_model.translator import QuboTranslator as MTID
 
     # The true path is the translator.QuboTranslator
-    # The aqmodels/aqm.translator is hacked into the bindings.
+    # The luna_model/lm.translator is hacked into the bindings.
     # So we check again the translator.QuboTranslator with the import from
-    # aqmodels
-    assert aqmodels.translator.QuboTranslator == translator.QuboTranslator
-    assert aqm.translator.QuboTranslator == translator.QuboTranslator
+    # luna_model
+    assert luna_model.translator.QuboTranslator == translator.QuboTranslator
+    assert lm.translator.QuboTranslator == translator.QuboTranslator
     assert MTID == translator.QuboTranslator
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.translator.QuboTranslator.__module__ == TRANSLATOR_MODULE_NAME
-    assert aqmodels.translator.QuboTranslator == translator.QuboTranslator
+    assert lm.translator.QuboTranslator.__module__ == TRANSLATOR_MODULE_NAME
+    assert luna_model.translator.QuboTranslator == translator.QuboTranslator
     assert MTID.__module__ == TRANSLATOR_MODULE_NAME
     assert translator.QuboTranslator.__module__ == TRANSLATOR_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_variable_out_of_range_exception():
-    import aqmodels
-    import aqmodels as aqm
-    from aqmodels import errors  # the true way to do it.
-    from aqmodels.errors import VariableOutOfRangeError as ID
+    import luna_model
+    import luna_model as lm
+    from luna_model import errors  # the true way to do it.
+    from luna_model.errors import VariableOutOfRangeError as ID
 
     # The true path is the errors.VariableOutOfRangeError
-    # The aqmodels/aqm.errors is hacked into the bindings.
+    # The luna_model/lm.errors is hacked into the bindings.
     # So we check again the errors.VariableOutOfRangeError with the import from
-    # aqmodels
-    assert aqmodels.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
-    assert aqm.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
+    # luna_model
+    assert luna_model.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
+    assert lm.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
     assert ID == errors.VariableOutOfRangeError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.errors.VariableOutOfRangeError.__module__ == ERRORS_MODULE_NAME
-    assert aqmodels.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
+    assert lm.errors.VariableOutOfRangeError.__module__ == ERRORS_MODULE_NAME
+    assert luna_model.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
     assert ID.__module__ == ERRORS_MODULE_NAME
     assert errors.VariableOutOfRangeError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_variable_exists_exception():
-    import aqmodels
-    import aqmodels as aqm
-    from aqmodels import errors  # the true way to do it.
-    from aqmodels.errors import VariableExistsError as ID
+    import luna_model
+    import luna_model as lm
+    from luna_model import errors  # the true way to do it.
+    from luna_model.errors import VariableExistsError as ID
 
     # The true path is the errors.VariableExistsError
-    # The aqmodels/aqm.errors is hacked into the bindings.
+    # The luna_model/lm.errors is hacked into the bindings.
     # So we check again the errors.VariableExistsError with the import from
-    # aqmodels
-    assert aqmodels.errors.VariableExistsError == errors.VariableExistsError
-    assert aqm.errors.VariableExistsError == errors.VariableExistsError
+    # luna_model
+    assert luna_model.errors.VariableExistsError == errors.VariableExistsError
+    assert lm.errors.VariableExistsError == errors.VariableExistsError
     assert ID == errors.VariableExistsError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.errors.VariableExistsError.__module__ == ERRORS_MODULE_NAME
-    assert aqmodels.errors.VariableExistsError == errors.VariableExistsError
+    assert lm.errors.VariableExistsError.__module__ == ERRORS_MODULE_NAME
+    assert luna_model.errors.VariableExistsError == errors.VariableExistsError
     assert ID.__module__ == ERRORS_MODULE_NAME
     assert errors.VariableExistsError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_variable_from_different_envs_exception():
-    import aqmodels
-    import aqmodels as aqm
-    from aqmodels import errors  # the true way to do it.
-    from aqmodels.errors import VariablesFromDifferentEnvsError as ID
+    import luna_model
+    import luna_model as lm
+    from luna_model import errors  # the true way to do it.
+    from luna_model.errors import VariablesFromDifferentEnvsError as ID
 
     # The true path is the errors.VariablesFromDifferentEnvsError
-    # The aqmodels/aqm.errors is hacked into the bindings.
+    # The luna_model/lm.errors is hacked into the bindings.
     # So we check again the errors.VariablesFromDifferentEnvsError with the import from
-    # aqmodels
+    # luna_model
     assert (
-        aqmodels.errors.VariablesFromDifferentEnvsError
+        luna_model.errors.VariablesFromDifferentEnvsError
         == errors.VariablesFromDifferentEnvsError
     )
     assert (
-        aqm.errors.VariablesFromDifferentEnvsError
+        lm.errors.VariablesFromDifferentEnvsError
         == errors.VariablesFromDifferentEnvsError
     )
     assert ID == errors.VariablesFromDifferentEnvsError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.errors.VariablesFromDifferentEnvsError.__module__ == ERRORS_MODULE_NAME
+    assert lm.errors.VariablesFromDifferentEnvsError.__module__ == ERRORS_MODULE_NAME
     assert (
-        aqmodels.errors.VariablesFromDifferentEnvsError
+        luna_model.errors.VariablesFromDifferentEnvsError
         == errors.VariablesFromDifferentEnvsError
     )
     assert ID.__module__ == ERRORS_MODULE_NAME
@@ -199,50 +199,50 @@ def test_import_variable_from_different_envs_exception():
 
 @pytest.mark.imports
 def test_import_different_envs_exception():
-    import aqmodels
-    import aqmodels as aqm
-    from aqmodels import errors  # the true way to do it.
-    from aqmodels.errors import DifferentEnvsError as ID
+    import luna_model
+    import luna_model as lm
+    from luna_model import errors  # the true way to do it.
+    from luna_model.errors import DifferentEnvsError as ID
 
     # The true path is the errors.DifferentEnvsError
-    # The aqmodels/aqm.errors is hacked into the bindings.
+    # The luna_model/lm.errors is hacked into the bindings.
     # So we check again the errors.DifferentEnvsError with the import from
-    # aqmodels
-    assert aqmodels.errors.DifferentEnvsError == errors.DifferentEnvsError
-    assert aqm.errors.DifferentEnvsError == errors.DifferentEnvsError
+    # luna_model
+    assert luna_model.errors.DifferentEnvsError == errors.DifferentEnvsError
+    assert lm.errors.DifferentEnvsError == errors.DifferentEnvsError
     assert ID == errors.DifferentEnvsError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.errors.DifferentEnvsError.__module__ == ERRORS_MODULE_NAME
-    assert aqmodels.errors.DifferentEnvsError == errors.DifferentEnvsError
+    assert lm.errors.DifferentEnvsError.__module__ == ERRORS_MODULE_NAME
+    assert luna_model.errors.DifferentEnvsError == errors.DifferentEnvsError
     assert ID.__module__ == ERRORS_MODULE_NAME
     assert errors.DifferentEnvsError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_no_active_environment_found_exception():
-    import aqmodels
-    import aqmodels as aqm
-    from aqmodels import errors  # the true way to do it.
-    from aqmodels.errors import NoActiveEnvironmentFoundError as ID
+    import luna_model
+    import luna_model as lm
+    from luna_model import errors  # the true way to do it.
+    from luna_model.errors import NoActiveEnvironmentFoundError as ID
 
     # The true path is the errors.NoActiveEnvironmentFoundError
-    # The aqmodels/aqm.errors is hacked into the bindings.
+    # The luna_model/lm.errors is hacked into the bindings.
     # So we check again the errors.NoActiveEnvironmentFoundError with the import from
-    # aqmodels
+    # luna_model
     assert (
-        aqmodels.errors.NoActiveEnvironmentFoundError
+        luna_model.errors.NoActiveEnvironmentFoundError
         == errors.NoActiveEnvironmentFoundError
     )
     assert (
-        aqm.errors.NoActiveEnvironmentFoundError == errors.NoActiveEnvironmentFoundError
+        lm.errors.NoActiveEnvironmentFoundError == errors.NoActiveEnvironmentFoundError
     )
     assert ID == errors.NoActiveEnvironmentFoundError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.errors.NoActiveEnvironmentFoundError.__module__ == ERRORS_MODULE_NAME
+    assert lm.errors.NoActiveEnvironmentFoundError.__module__ == ERRORS_MODULE_NAME
     assert (
-        aqmodels.errors.NoActiveEnvironmentFoundError
+        luna_model.errors.NoActiveEnvironmentFoundError
         == errors.NoActiveEnvironmentFoundError
     )
     assert ID.__module__ == ERRORS_MODULE_NAME
@@ -251,29 +251,29 @@ def test_import_no_active_environment_found_exception():
 
 @pytest.mark.imports
 def test_import_multiple_active_environments_exception():
-    import aqmodels
-    import aqmodels as aqm
-    from aqmodels import errors  # the true way to do it.
-    from aqmodels.errors import MultipleActiveEnvironmentsError as ID
+    import luna_model
+    import luna_model as lm
+    from luna_model import errors  # the true way to do it.
+    from luna_model.errors import MultipleActiveEnvironmentsError as ID
 
     # The true path is the errors.MultipleActiveEnvironmentsError
-    # The aqmodels/aqm.errors is hacked into the bindings.
+    # The luna_model/lm.errors is hacked into the bindings.
     # So we check again the errors.MultipleActiveEnvironmentsError with the import from
-    # aqmodels
+    # luna_model
     assert (
-        aqmodels.errors.MultipleActiveEnvironmentsError
+        luna_model.errors.MultipleActiveEnvironmentsError
         == errors.MultipleActiveEnvironmentsError
     )
     assert (
-        aqm.errors.MultipleActiveEnvironmentsError
+        lm.errors.MultipleActiveEnvironmentsError
         == errors.MultipleActiveEnvironmentsError
     )
     assert ID == errors.MultipleActiveEnvironmentsError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.errors.MultipleActiveEnvironmentsError.__module__ == ERRORS_MODULE_NAME
+    assert lm.errors.MultipleActiveEnvironmentsError.__module__ == ERRORS_MODULE_NAME
     assert (
-        aqmodels.errors.MultipleActiveEnvironmentsError
+        luna_model.errors.MultipleActiveEnvironmentsError
         == errors.MultipleActiveEnvironmentsError
     )
     assert ID.__module__ == ERRORS_MODULE_NAME
@@ -282,69 +282,71 @@ def test_import_multiple_active_environments_exception():
 
 @pytest.mark.imports
 def test_import_decode_exception():
-    import aqmodels
-    import aqmodels as aqm
-    from aqmodels import errors  # the true way to do it.
-    from aqmodels.errors import DecodeError as ID
+    import luna_model
+    import luna_model as lm
+    from luna_model import errors  # the true way to do it.
+    from luna_model.errors import DecodeError as ID
 
     # The true path is the errors.DecodeError
-    # The aqmodels/aqm.errors is hacked into the bindings.
+    # The luna_model/lm.errors is hacked into the bindings.
     # So we check again the errors.DecodeError with the import from
-    # aqmodels
-    assert aqmodels.errors.DecodeError == errors.DecodeError
-    assert aqm.errors.DecodeError == errors.DecodeError
+    # luna_model
+    assert luna_model.errors.DecodeError == errors.DecodeError
+    assert lm.errors.DecodeError == errors.DecodeError
     assert ID == errors.DecodeError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.errors.DecodeError.__module__ == ERRORS_MODULE_NAME
-    assert aqmodels.errors.DecodeError == errors.DecodeError
+    assert lm.errors.DecodeError.__module__ == ERRORS_MODULE_NAME
+    assert luna_model.errors.DecodeError == errors.DecodeError
     assert ID.__module__ == ERRORS_MODULE_NAME
     assert errors.DecodeError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_model_not_quadratic_exception():
-    import aqmodels
-    import aqmodels as aqm
-    from aqmodels import errors  # the true way to do it.
-    from aqmodels.errors import ModelNotQuadraticError as ID
+    import luna_model
+    import luna_model as lm
+    from luna_model import errors  # the true way to do it.
+    from luna_model.errors import ModelNotQuadraticError as ID
 
     # The true path is the errors.ModelNotQuadraticError
-    # The aqmodels/aqm.errors is hacked into the bindings.
+    # The luna_model/lm.errors is hacked into the bindings.
     # So we check again the errors.ModelNotQuadraticError with the import from
-    # aqmodels
-    assert aqmodels.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
-    assert aqm.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
+    # luna_model
+    assert luna_model.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
+    assert lm.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
     assert ID == errors.ModelNotQuadraticError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.errors.ModelNotQuadraticError.__module__ == ERRORS_MODULE_NAME
-    assert aqmodels.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
+    assert lm.errors.ModelNotQuadraticError.__module__ == ERRORS_MODULE_NAME
+    assert luna_model.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
     assert ID.__module__ == ERRORS_MODULE_NAME
     assert errors.ModelNotQuadraticError.__module__ == ERRORS_MODULE_NAME
 
 
 @pytest.mark.imports
 def test_import_model_not_unconstrained_exception():
-    import aqmodels
-    import aqmodels as aqm
-    from aqmodels import errors  # the true way to do it.
-    from aqmodels.errors import ModelNotUnconstrainedError as ID
+    import luna_model
+    import luna_model as lm
+    from luna_model import errors  # the true way to do it.
+    from luna_model.errors import ModelNotUnconstrainedError as ID
 
     # The true path is the errors.ModelNotUnconstrainedError
-    # The aqmodels/aqm.errors is hacked into the bindings.
+    # The luna_model/lm.errors is hacked into the bindings.
     # So we check again the errors.ModelNotUnconstrainedError with the import from
-    # aqmodels
+    # luna_model
     assert (
-        aqmodels.errors.ModelNotUnconstrainedError == errors.ModelNotUnconstrainedError
+        luna_model.errors.ModelNotUnconstrainedError
+        == errors.ModelNotUnconstrainedError
     )
-    assert aqm.errors.ModelNotUnconstrainedError == errors.ModelNotUnconstrainedError
+    assert lm.errors.ModelNotUnconstrainedError == errors.ModelNotUnconstrainedError
     assert ID == errors.ModelNotUnconstrainedError
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
-    assert aqm.errors.ModelNotUnconstrainedError.__module__ == ERRORS_MODULE_NAME
+    assert lm.errors.ModelNotUnconstrainedError.__module__ == ERRORS_MODULE_NAME
     assert (
-        aqmodels.errors.ModelNotUnconstrainedError == errors.ModelNotUnconstrainedError
+        luna_model.errors.ModelNotUnconstrainedError
+        == errors.ModelNotUnconstrainedError
     )
     assert ID.__module__ == ERRORS_MODULE_NAME
     assert errors.ModelNotUnconstrainedError.__module__ == ERRORS_MODULE_NAME

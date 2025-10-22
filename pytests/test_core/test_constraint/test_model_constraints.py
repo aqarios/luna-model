@@ -1,7 +1,7 @@
 import pytest
 
-from aqmodels import Environment, Model, Vtype
-from aqmodels.errors import DuplicateConstraintNameError, NoConstraintForKeyError
+from luna_model import Environment, Model, Vtype
+from luna_model.errors import DuplicateConstraintNameError, NoConstraintForKeyError
 
 
 def model_iadd(request) -> Model:

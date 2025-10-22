@@ -2,7 +2,7 @@ import pytest
 from ..test_serialization.creators import serializable_objects
 import pickle
 
-from aqmodels import Model
+from luna_model import Model
 
 
 def test_pickle_empty_model():

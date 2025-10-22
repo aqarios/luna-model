@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import Environment, Expression, Variable, quicksum
+from luna_model import Environment, Expression, Variable, quicksum
 
 N: int = 20
 

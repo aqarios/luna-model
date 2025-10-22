@@ -4,7 +4,7 @@ from itertools import combinations, product
 from math import prod
 from typing import Callable, Protocol, Sequence
 
-from aqmodels import (
+from luna_model import (
     Bounds,
     Comparator,
     Constraint,

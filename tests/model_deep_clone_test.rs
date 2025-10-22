@@ -1,6 +1,6 @@
 mod common;
 
-use aqmodels::core::{
+use luna_model::core::{
     operations::{AddAssignToExpression, MulAssignToExpression},
     Model,
 };

@@ -9,12 +9,8 @@ const fn unwrap_failed() -> ! {
 }
 
 #[cfg_attr(
-    all(feature = "py", not(feature = "lq")),
-    pyclass(eq, name = "Bound", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    all(feature = "py", feature = "lq"),
-    pyclass(eq, name = "Bound", module = "luna_quantum._core")
+    feature = "py",
+    pyclass(eq, name = "Bound", module = "luna_model._core")
 )]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Bound {

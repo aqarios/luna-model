@@ -34,13 +34,10 @@ use numpy::{PyArray1, ToPyArray};
 use pyo3::exceptions::PyValueError;
 use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyBytes, IntoPyObjectExt};
 use pyo3::{exceptions::PyTypeError, types::PyType};
-use unwind_macros::unwindable;
 use std::ffi::CStr;
+use unwind_macros::unwindable;
 
-#[cfg(not(feature = "lq"))]
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import Expression");
-#[cfg(feature = "lq")]
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Expression");
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_model import Expression");
 
 /// Polynomial expression supporting symbolic arithmetic, constraint creation, and encoding.
 ///
@@ -62,7 +59,7 @@ static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Expres
 /// --------
 /// Constructing expressions from variables:
 ///
-/// >>> from luna_quantum import Environment, Variable
+/// >>> from luna_model import Environment, Variable
 /// >>> with Environment():
 /// ...     x = Variable("x")
 /// ...     y = Variable("y")
@@ -131,14 +128,7 @@ static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Expres
 /// - Expressions are scoped to an environment via the variables they reference.
 /// - Comparisons like `expr == expr` return `bool`, not constraints.
 /// - Use `==`, `<=`, `>=` with numeric constants to create constraints.
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Expression", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Expression", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Expression", module = "luna_model._core")]
 #[derive(Clone)]
 pub struct PyExpression(pub Either<Expression, ShareMut<Model>>);
 
@@ -162,7 +152,7 @@ impl PyExpression {
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+/// >>> from luna_model import Constant, Expression, HigherOrder, Linear, Quadratic
 /// >>> expr: Expression = ...
 /// >>> vars: Constant | Linear | Quadratic | HigherOrder
 /// >>> bias: float
@@ -172,14 +162,7 @@ impl PyExpression {
 /// >>>     case Linear(x): do_something_with_linear_var(x, bias)
 /// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "ExpressionIterator", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "ExpressionIterator", module = "luna_quantum._core")
-)]
+#[pyclass(name = "ExpressionIterator", module = "luna_model._core")]
 pub struct PyExpressionIterator {
     items: Vec<(Vec<VarIndex>, Bias)>,
     env: SharedEnvironment,
@@ -193,7 +176,7 @@ pub struct PyExpressionIterator {
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+/// >>> from luna_model import Constant, Expression, HigherOrder, Linear, Quadratic
 /// >>> expr: Expression = ...
 /// >>> vars: Constant | Linear | Quadratic | HigherOrder
 /// >>> bias: float
@@ -203,14 +186,7 @@ pub struct PyExpressionIterator {
 /// >>>     case Linear(x): do_something_with_linear_var(x, bias)
 /// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Constant", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Constant", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Constant", module = "luna_model._core")]
 pub struct PyConstant();
 
 /// Convenience class to indicate the variable of an expression's linear term when
@@ -220,7 +196,7 @@ pub struct PyConstant();
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+/// >>> from luna_model import Constant, Expression, HigherOrder, Linear, Quadratic
 /// >>> expr: Expression = ...
 /// >>> vars: Constant | Linear | Quadratic | HigherOrder
 /// >>> bias: float
@@ -230,14 +206,7 @@ pub struct PyConstant();
 /// >>>     case Linear(x): do_something_with_linear_var(x, bias)
 /// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Linear", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Linear", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Linear", module = "luna_model._core")]
 pub struct PyLinear(pub PyVariable);
 
 /// Convenience class to indicate the variables of an expression's quadratic term when
@@ -247,7 +216,7 @@ pub struct PyLinear(pub PyVariable);
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+/// >>> from luna_model import Constant, Expression, HigherOrder, Linear, Quadratic
 /// >>> expr: Expression = ...
 /// >>> vars: Constant | Linear | Quadratic | HigherOrder
 /// >>> bias: float
@@ -257,14 +226,7 @@ pub struct PyLinear(pub PyVariable);
 /// >>>     case Linear(x): do_something_with_linear_var(x, bias)
 /// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Quadratic", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Quadratic", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Quadratic", module = "luna_model._core")]
 pub struct PyQuadratic(pub (PyVariable, PyVariable));
 
 /// Convenience class to indicate the set of variables of an expression's higher-order
@@ -274,7 +236,7 @@ pub struct PyQuadratic(pub (PyVariable, PyVariable));
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Constant, Expression, HigherOrder, Linear, Quadratic
+/// >>> from luna_model import Constant, Expression, HigherOrder, Linear, Quadratic
 /// >>> expr: Expression = ...
 /// >>> vars: Constant | Linear | Quadratic | HigherOrder
 /// >>> bias: float
@@ -284,14 +246,7 @@ pub struct PyQuadratic(pub (PyVariable, PyVariable));
 /// >>>     case Linear(x): do_something_with_linear_var(x, bias)
 /// >>>     case Quadratic(x, y): do_something_with_quadratic_vars(x, y, bias)
 /// >>>     case HigherOrder(ho): do_something_with_higher_order_vars(ho, bias)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "HigherOrder", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "HigherOrder", module = "luna_quantum._core")
-)]
+#[pyclass(name = "HigherOrder", module = "luna_model._core")]
 pub struct PyHigherOrder(pub Vec<PyVariable>);
 
 impl PyExpressionIterator {

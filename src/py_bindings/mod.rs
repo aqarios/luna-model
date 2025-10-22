@@ -31,11 +31,10 @@ pub use py_transformations::AnyPass;
 #[cfg(feature = "pyt")]
 pub use py_transformations::IntoAnyPass;
 
-#[cfg(not(feature = "lq"))]
 use pyo3::prelude::*;
 
-/// AqModels
-/// ========
+/// LunaModel
+/// =========
 ///
 /// Provides
 ///   1. A model object to define arbitrary (constrained) optimization problems.
@@ -54,9 +53,9 @@ use pyo3::prelude::*;
 /// TAB-completion and introspection capabilities.  See below for further
 /// instructions.
 ///
-/// The docstring examples assume that `aqmodels` has been imported as ``aqm``::
+/// The docstring examples assume that `luna_model` has been imported as ``lm``::
 ///
-///   >>> import aqmodels as aqm
+///   >>> import luna_model as lm
 ///
 /// Code snippets are indicated by three greater-than signs::
 ///
@@ -65,7 +64,7 @@ use pyo3::prelude::*;
 ///
 /// Use the built-in ``help`` function to view a function's docstring::
 ///
-///   >>> help(aqm.Model)
+///   >>> help(lm.Model)
 ///   ... # doctest: +SKIP
 ///
 /// Available subpackages
@@ -78,7 +77,6 @@ use pyo3::prelude::*;
 ///     another aq-models model. Such a transformer for example can map a constrained
 ///     optimization problem to an unconstrained optimization problem or a quadratic model
 ///     to a linear model.
-#[cfg(not(feature = "lq"))]
 #[pymodule]
 #[pyo3(name = "_core")]
 pub fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {

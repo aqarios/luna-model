@@ -1,9 +1,9 @@
 mod utils;
 
-/// The installed aq-models-version
+/// The installed LunaModel version
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// The core component of the library. This includes everyting related to defining and
-/// working with an AQ Model (AQ/M) and an AQ Solution (AQ/S).
+/// working with an LunaModel and an LunaModel Solution.
 pub mod core;
 /// Collection of all errors that can be returned by this library.
 pub mod errors;
@@ -18,7 +18,7 @@ pub mod serialization;
 /// Gurobi, CPLEX and Dimod. This also includes translations of the solution's focused on the
 /// translation from another library TO our solution.
 pub mod translator;
-/// Common types used in aq-models
+/// Common types used in LunaModel.
 pub mod types;
 
 #[cfg(feature = "transformations")]

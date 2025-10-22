@@ -35,38 +35,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aqmodels"
-version = "0.3.1"
-dependencies = [
- "aqm-macros",
- "bitvec",
- "derive_more",
- "dyn-clone",
- "either",
- "enumset",
- "global_counter",
- "hashbrown",
- "indexmap",
- "itertools",
- "nohash",
- "num",
- "numpy",
- "once_cell",
- "pad",
- "prost",
- "pyo3",
- "rand",
- "regex",
- "rustc-hash",
- "sqids",
- "strum",
- "strum_macros",
- "time",
- "unwind-macros",
- "zstd",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -414,6 +382,38 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965"
 dependencies = [
  "scopeguard",
+]
+
+[[package]]
+name = "luna_model"
+version = "0.4.0"
+dependencies = [
+ "aqm-macros",
+ "bitvec",
+ "derive_more",
+ "dyn-clone",
+ "either",
+ "enumset",
+ "global_counter",
+ "hashbrown",
+ "indexmap",
+ "itertools",
+ "nohash",
+ "num",
+ "numpy",
+ "once_cell",
+ "pad",
+ "prost",
+ "pyo3",
+ "rand",
+ "regex",
+ "rustc-hash",
+ "sqids",
+ "strum",
+ "strum_macros",
+ "time",
+ "unwind-macros",
+ "zstd",
 ]
 
 [[package]]

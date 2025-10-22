@@ -1,7 +1,7 @@
 import pytest
 
-from aqmodels.errors import InternalPanicError
-from aqmodels.translator import LpTranslator
+from luna_model.errors import InternalPanicError
+from luna_model.translator import LpTranslator
 
 ILLEGAL_LP = """
 // this is something totally unexpected and will definetly panic.

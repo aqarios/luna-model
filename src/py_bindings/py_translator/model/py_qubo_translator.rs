@@ -8,14 +8,7 @@ use pyo3::prelude::*;
 use unwind_macros::unwindable;
 
 /// A wrapper around qubo matrices that holds all relevant metadata, e.g., the model offset.
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Qubo", module = "aqmodels._core.translator")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Qubo", module = "luna_quantum._core.translator")
-)]
+#[pyclass(name = "Qubo", module = "luna_model._core.translator")]
 #[derive(Deref, DerefMut)]
 pub struct PyQubo(pub Qubo);
 
@@ -100,7 +93,7 @@ impl PyQubo {
 /// Examples
 /// --------
 /// >>> import numpy as np
-/// >>> from luna_quantum import QuboTranslator, Vtype
+/// >>> from luna_model import QuboTranslator, Vtype
 /// >>> q = np.array([[1.0, -1.0], [-1.0, 2.0]])
 ///
 /// Create a model from a matrix:
@@ -111,14 +104,7 @@ impl PyQubo {
 ///
 /// >>> recovered = QuboTranslator.from_aq(model)
 /// >>> assert np.allclose(q, recovered.matrix)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "QuboTranslator", module = "aqmodels._core.translator")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "QuboTranslator", module = "luna_quantum._core.translator")
-)]
+#[pyclass(name = "QuboTranslator", module = "luna_model._core.translator")]
 pub struct PyQuboTranslator {}
 
 #[derive(FromPyObject)]

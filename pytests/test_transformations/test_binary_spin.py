@@ -1,7 +1,7 @@
 import pytest
 
-from aqmodels._core import Model, Vtype
-from aqmodels.transformations import BinarySpinPass, PassManager
+from luna_model._core import Model, Vtype
+from luna_model.transformations import BinarySpinPass, PassManager
 
 
 @pytest.fixture

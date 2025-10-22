@@ -3,7 +3,7 @@ mod integer_test;
 mod real_test;
 mod spin_test;
 
-use aqmodels::{
+use luna_model::{
     core::{
         operations::{MulAssignToExpression, MulToExpression},
         term::types::{OneVarTerm, OneVarTermConstruction, TwoVarTerm, TwoVarTermConstruction},

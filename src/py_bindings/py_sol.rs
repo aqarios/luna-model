@@ -27,15 +27,12 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
 use std::collections::HashMap;
+use std::ffi::CStr;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use unwind_macros::unwindable;
-use std::ffi::CStr;
 
-#[cfg(not(feature = "lq"))]
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import Solution");
-#[cfg(feature = "lq")]
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Solution");
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_model import Solution");
 
 #[derive(Deref, DerefMut)]
 pub struct PyVarAssignment(pub VarAssignment);
@@ -72,7 +69,7 @@ enum BitOrder {
 /// --------
 /// Basic usage, assuming that the algorithm already returns a `Solution`:
 ///
-/// >>> from luna_quantum import Model, Solution
+/// >>> from luna_model import Model, Solution
 /// >>> model: Model = ...
 /// >>> algorithm = ...
 /// >>> solution: Solution = algorithm.run(model)
@@ -81,8 +78,8 @@ enum BitOrder {
 ///
 /// When you have a `dimod.Sampleset` as the raw solution format:
 ///
-/// >>> from luna_quantum.translator import BqmTranslator
-/// >>> from luna_quantum import Model, Solution, DwaveTranslator
+/// >>> from luna_model.translator import BqmTranslator
+/// >>> from luna_model import Model, Solution, DwaveTranslator
 /// >>> from dimod import SimulatedAnnealingSampler
 /// >>> model: Model = ...
 /// >>> bqm = BqmTranslator.from_aq(model)
@@ -102,14 +99,7 @@ enum BitOrder {
 /// -----
 /// - To ensure metadata like objective values or feasibility, use `model.evaluate(solution)`.
 /// - Use `encode()` and `decode()` to serialize and recover solutions.
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Solution", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Solution", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Solution", module = "luna_model._core")]
 #[derive(Deref, DerefMut, Debug, Clone)]
 pub struct PySolution(pub ShareMut<Solution>);
 

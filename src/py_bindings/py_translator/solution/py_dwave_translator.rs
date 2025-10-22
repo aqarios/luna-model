@@ -9,28 +9,10 @@ use pyo3::{ffi::c_str, prelude::*};
 use std::ffi::CStr;
 use unwind_macros::unwindable;
 
-#[cfg(not(feature = "lq"))]
 static PY_CODE: &'static CStr = c_str!(
     "
 import numpy as np
-from aqmodels._core import translator
-
-def extract(sampleset, timing, env):
-    sampleset = sampleset.aggregate()
-    variables = sampleset.variables
-    record = sampleset.record
-    sample = record.sample.astype(np.int64, order='C')
-    counts = record.num_occurrences.astype(np.int64, order='C')
-    energy = record.energy.astype(np.float64, order='C')
-    return translator.DwaveTranslator.translate(
-        sample, variables, counts, energy, timing, env
-    )"
-);
-#[cfg(feature = "lq")]
-static PY_CODE: &'static CStr = c_str!(
-    "
-import numpy as np
-from luna_quantum._core import translator
+from luna_model._core import translator
 
 def extract(sampleset, timing, env):
     sampleset = sampleset.aggregate()
@@ -55,17 +37,10 @@ def extract(sampleset, timing, env):
 /// Examples
 /// --------
 /// >>> import dimod
-/// >>> import luna_quantum as lq
+/// >>> import luna_model as lm
 /// >>> dwave_sampleset = ...
-/// >>> aqs = lq.translator.DwaveTranslator.to_aq(dwave_sampleset)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "DwaveTranslator", module = "aqmodels._core.translator")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "DwaveTranslator", module = "luna_quantum._core.translator")
-)]
+/// >>> aqs = lm.translator.DwaveTranslator.to_aq(dwave_sampleset)
+#[pyclass(name = "DwaveTranslator", module = "luna_model._core.translator")]
 pub struct PyDwaveTranslator(pub DwaveTranslator);
 
 #[unwindable]

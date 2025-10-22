@@ -3,8 +3,8 @@ from random import Random
 from typing import TypeVar
 from enum import Enum
 from itertools import combinations
-from aqmodels import Model, ModelSpecs, Sense, Vtype, ConstraintType, Expression
-from aqmodels import Comparator, Constraint
+from luna_model import Model, ModelSpecs, Sense, Vtype, ConstraintType, Expression
+from luna_model import Comparator, Constraint
 
 from .utils import make_seed
 

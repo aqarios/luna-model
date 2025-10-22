@@ -3,7 +3,7 @@ import sys
 import pytest
 from pathlib import Path
 
-from aqmodels.translator import LpTranslator
+from luna_model.translator import LpTranslator
 
 NOT_RUN_SCIP = False
 try:

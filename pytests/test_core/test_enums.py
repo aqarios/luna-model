@@ -1,5 +1,5 @@
 from enum import Enum
-from aqmodels import Vtype, Sense, Comparator
+from luna_model import Vtype, Sense, Comparator
 
 
 class ExpectedVtype(Enum):

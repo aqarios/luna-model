@@ -1,4 +1,4 @@
-use aqmodels::{
+use luna_model::{
     core::{expression::ExpressionBaseCreation, Expression},
     types::Bias,
 };

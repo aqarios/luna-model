@@ -8,12 +8,8 @@ use strum_macros::{Display, EnumString};
 use {crate::py_bindings::unwind, pyo3::prelude::*, unwind_macros::unwindable};
 
 #[cfg_attr(
-    all(feature = "py", not(feature = "lq")),
-    pyclass(eq, eq_int, name = "ConstraintType", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    all(feature = "py", feature = "lq"),
-    pyclass(eq, eq_int, name = "ConstraintType", module = "luna_quantum._core")
+    feature = "py",
+    pyclass(eq, eq_int, name = "ConstraintType", module = "luna_model._core")
 )]
 #[derive(EnumSetType, Display, Debug, Hash, EnumString)]
 pub enum ConstraintType {

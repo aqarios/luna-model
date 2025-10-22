@@ -1,6 +1,6 @@
 """
-AqModels
-========
+LunaModel
+=========
 
 Provides
   1. A model object to define arbitrary (constrained) optimization problems.
@@ -19,9 +19,9 @@ We recommend exploring the docstrings using
 TAB-completion and introspection capabilities.  See below for further
 instructions.
 
-The docstring examples assume that `aqmodels` has been imported as `aqm`::
+The docstring examples assume that `luna_model` has been imported as `lm`::
 
-  >>> import aqmodels as aqm
+  >>> import luna_model as lm
 
 Code snippets are indicated by three greater-than signs::
 
@@ -30,7 +30,7 @@ Code snippets are indicated by three greater-than signs::
 
 Use the built-in `help` function to view a function's docstring::
 
-  >>> help(aqm.Model)
+  >>> help(lm.Model)
   ... # doctest: +SKIP
 
 Available subpackages

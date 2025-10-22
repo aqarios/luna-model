@@ -1,4 +1,4 @@
-from aqmodels import Model, Vtype
+from luna_model import Model, Vtype
 
 
 def test_decode():

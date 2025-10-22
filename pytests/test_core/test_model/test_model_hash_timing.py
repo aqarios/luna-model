@@ -6,8 +6,8 @@ from numpy.typing import NDArray
 from rich.console import Console
 from rich.table import Table
 
-from aqmodels import Model, Timer
-from aqmodels.translator import QuboTranslator
+from luna_model import Model, Timer
+from luna_model.translator import QuboTranslator
 from pytests.test_core.utils import make_seed
 
 REPS = 10

@@ -16,10 +16,7 @@ use std::ffi::CStr;
 use std::{cell::RefCell, ops::Deref};
 use unwind_macros::unwindable;
 
-#[cfg(not(feature = "lq"))]
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from aqmodels import Environment");
-#[cfg(feature = "lq")]
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Environment");
+static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_model import Environment");
 
 /// Execution context for variable creation and expression scoping.
 ///
@@ -35,7 +32,7 @@ static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Enviro
 /// --------
 /// Create variables inside an environment:
 ///
-/// >>> from luna_quantum import Environment, Variable
+/// >>> from luna_model import Environment, Variable
 /// >>> with Environment() as env:
 /// ...     x = Variable("x")
 /// ...     y = Variable("y")
@@ -51,14 +48,7 @@ static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_quantum import Enviro
 /// - It does **not** own constraints or expressions — they merely reference variables tied to an environment.
 /// - Environments **cannot be nested**. Only one can be active at a time.
 /// - Use `encode()` / `decode()` to persist and recover expression trees.
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Environment", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Environment", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Environment", module = "luna_model._core")]
 #[derive(Deref, DerefMut, Clone)]
 pub struct PyEnvironment(pub SharedEnvironment);
 

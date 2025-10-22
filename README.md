@@ -1,8 +1,8 @@
-![AqModels Logo](./assets/aqmodels_ascii.png)
+![LunaModel Logo](./assets/luna_model_ascii.png)
 
 # Symbolic modeling for optimization
 
-[**About**](#about-aqmodels)
+[**About**](#about-LunaModel)
 | [**Installation**](#installation)
 | [**Getting Started**](#getting-started)
 | [**Resources**](#resources)
@@ -10,26 +10,26 @@
 
 ## Summary
 
-AqModels is a high-performance symbolic modeling library for describing, translating and transforming optimization problems.
+LunaModel is a high-performance symbolic modeling library for describing, translating and transforming optimization problems.
 It provides the following high-level features:
 - System for defining symbolic algebraic expressions of arbitrary degree, constraints and optimization models (like dimod, gurobi or cplex)
-- Translations from and to an AqModel for many common optimization model formats (like LP)
-- Transformations to map an AqModel from a general model to a specific model, such as transforming a Constrained (Binary) Quadratic Model (CQM) to a (Unconstrained) Binary Quadratic Model (BQM), or from an Integer Model to a Binary Model.
+- Translations from and to an LunaModel for many common optimization model formats (like LP)
+- Transformations to map an LunaModel from a general model to a specific model, such as transforming a Constrained (Binary) Quadratic Model (CQM) to a (Unconstrained) Binary Quadratic Model (BQM), or from an Integer Model to a Binary Model.
 - Builtin serialization for maximum portability
 - Python-first development experience
 
-You can use AqModels as a standalone package or by using [luna-quantum](https://pypi.org/project/luna-quantum/) which gives you additional builtin primitives to solve your optimization problems using the [Luna Platform](https://aqarios.com/platform).
+You can use LunaModel as a standalone package or by using [luna-quantum](https://pypi.org/project/luna-quantum/) which gives you additional builtin primitives to solve your optimization problems using the [Luna Platform](https://aqarios.com/platform).
 
 <!-- toc -->
 
-- [About AqModels](#about-aqmodels)
+- [About LunaModel](#about-luna_model)
 - [Installation](#installation)
   - [Binaries](#binaries)
   - [From Source](#from-source)
     - [Prerequisites](#prerequisites)
-  - [Get the AqModels Source](#get-the-aqmodels-source)
+  - [Get the LunaModel Source](#get-the-luna_model-source)
   - [Install Dependencies](#install-dependencies)
-  - [Install AqModels](#install-aqmodels)
+  - [Install LunaModel](#install-luna_model)
     - [Adjust Build Options (Optional)](#adjust-build-options-optional)
   - [Building the Documentation (Python)](#building-the-documentation-python)
   - [Building the Documentation (Rust)](#building-the-documentation-rust)
@@ -40,24 +40,24 @@ You can use AqModels as a standalone package or by using [luna-quantum](https://
 
 <!-- tocstop -->
 
-## About AqModels
+## About LunaModel
 
 Most optimization tasks involve working with problems, which generally consist of an objective function,
 wether this objective function should be minimized or maximized and optionally constraints to the problem itself.
-You can learn more about using AqModels in [this tutorial](./examples/basics.md) where we take a deeper dive into
-a complete optimization workflow implemented using AqModels and [LunaSolve](https://pypi.org/project/luna-quantum/).
+You can learn more about using LunaModel in [this tutorial](./examples/basics.md) where we take a deeper dive into
+a complete optimization workflow implemented using LunaModel and [LunaSolve](https://pypi.org/project/luna-quantum/).
 
-AqModels consists of the following components:
+LunaModel consists of the following components:
 
 | Component                                                 | Description                                                               |
 | --------------------------------------------------------- | ------------------------------------------------------------------------- |
-| [**aqmodels**](#a-symbolic-modeling-library)              | A symbolic modeling library for arbitrary optimization models (problems). |
-| [**aqmodels.translator**](#the-translation-library)       | An automatic translation library that supports most common model format.  |
-| [**aqmodels.transformations**](#the-transformation-stack) | A compilation and transpilation stack to transform a model (source) into a target representation (target). _Not all targets are reachable from all sources, for more information on why see detailed in the resepective section._ |
-| [**aqmodels.utils**](./src/aqmodels/translator.pyi)       | Utility functions for expression and model creation.                      |
-| [**aqmodels.errors**](./src/aqmodels/errors.pyi)          | All error types that can be raised within aqmodels.                       |
+| [**LunaModel**](#a-symbolic-modeling-library)              | A symbolic modeling library for arbitrary optimization models (problems). |
+| [**LunaModel.translator**](#the-translation-library)       | An automatic translation library that supports most common model format.  |
+| [**LunaModel.transformations**](#the-transformation-stack) | A compilation and transpilation stack to transform a model (source) into a target representation (target). _Not all targets are reachable from all sources, for more information on why see detailed in the resepective section._ |
+| [**LunaModel.utils**](./src/luna_model/translator.pyi)       | Utility functions for expression and model creation.                      |
+| [**LunaModel.errors**](./src/luna_model/errors.pyi)          | All error types that can be raised within LunaModel.                       |
 
-AqModels is usually used as either:
+LunaModel is usually used as either:
 - A replacement for plain LP files, dimod or similar frameworks to define optimization models.
 - As part of [luna-quantum](https://pypi.org/project/luna-quantum/) to solve arbitrary optimization problems.
 
@@ -66,7 +66,7 @@ AqModels is usually used as either:
 > [!IMPORTANT]
 > The following assumes you are using from Python. If you are interested in using it from Rust look at the [**Documentation**](#building-the-documentation-rust).
 
-With AqModels you can define symbolic Expressions and Constraints (_which in consist of left-hand side (lhs), an Expression, a right-hand side (rhs) which is a constant numerical value and a Comparator_).
+With LunaModel you can define symbolic Expressions and Constraints (_which in consist of left-hand side (lhs), an Expression, a right-hand side (rhs) which is a constant numerical value and a Comparator_).
 A Model defining arbitrary optimization problems consists of a single Expression as the objective function (_the function to be optimized_) and, optionally, one or more Constraints.
 Expressions are created using mathematical operations on Variables. Variables represent an unknown in the Expression which is determined by an optimization. By default variables are Binary, can represent any of the following Variable types:
 
@@ -75,7 +75,7 @@ Expressions are created using mathematical operations on Variables. Variables re
 - **Integer**: the variable can be any integer number $\in [-2^{64}-1, 2^{64}-1]$ (_for a 64-Bit system_).
 - **Real**: the variable can be any floating point number $\in [\approx -1.7976...E308, \approx +1.7976...E308]$ (_[-f64::MAX, f64::MAX]_).
 
-_In general not all variable types are supported by all optimizers you can find. It can be the case that a defined model cannot be natively translated into the expected format of an optimizer. To resolve this you can use [**aqmodels.transformations**]()._
+_In general not all variable types are supported by all optimizers you can find. It can be the case that a defined model cannot be natively translated into the expected format of an optimizer. To resolve this you can use [**LunaModel.transformations**]()._
 
 Let's have a look a the **Knapsack Problem** for defining an optimization problem using only Binary variables.
 We have $n$ items $x_1, x_2, \dots, x_n$, each with a weight $w_i$ and a value $v_i$, and a maximum capacity of $W$.
@@ -88,12 +88,12 @@ The optimization problem is defined as:
 \end{align*}
 ```
 
-Using AqModels and $n = 5$ and $W = 25$:
+Using LunaModel and $n = 5$ and $W = 25$:
 
 ```python
-from aqmodels import Expression, Model, Sense, Vtype
+from LunaModel import Expression, Model, Sense, Vtype
 # A faster alternative to creating Expressions using loops in Python.
-from aqmodels.utils import quicksum 
+from LunaModel.utils import quicksum
 # Initialize the known values:
 n: int = 5  # number of items.
 W: int = 25 # maximum capacity.
@@ -101,17 +101,17 @@ weights: list[float] = [ 1.5, 10.0, 5.2,  3.5, 8.32] # weight of each item.
 values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
 # First, we create the Model with it's sense set to Maximize the objective function.
 # You can also give your model a name, optionally but recommended.
-model = Model(sense=Sense.Max, name="Knapsack") 
+model = Model(sense=Sense.Max, name="Knapsack")
 # Next, we need to create all variables. Note, there are alternative ways to create
-# variables, you can find details in the AqModels docs.
+# variables, you can find details in the LunaModel docs.
 variables = [model.add_variable(f"x_{i+1}", vtype=Vtype.Binary) for i in range(n)]
 # Now we can define the objective function:
 model.objective = quicksum(values[i] * variables[i] for i in range(n))
 # And for the constraints:
 # Ensure the maximum capacity of `W`:
 model.constraints += quicksum(weights[i] * variables[i] for i in range(n)) <= W
-# The second constraint that all `x_i` are in [0, 1] is natively encoded by using 
-# Binary variables. 
+# The second constraint that all `x_i` are in [0, 1] is natively encoded by using
+# Binary variables.
 ```
 
 As an extension, the **Bounded Knapsack Problem (BKP)** with a maximum number of each item $c = 4$ can be defined like this:
@@ -123,14 +123,14 @@ As an extension, the **Bounded Knapsack Problem (BKP)** with a maximum number of
 \end{align*}
 ```
 
-Now we have two equivalent approaches to implement this using AqModels:
+Now we have two equivalent approaches to implement this using LunaModel:
 _Note that we have to use Integer variables now._
 
 - Using Bounds on the variables:
   ```python
-  from aqmodels import Expression, Model, Sense, Vtype, Bounds
+  from LunaModel import Expression, Model, Sense, Vtype, Bounds
   # A faster alternative to creating Expressions using loops in Python.
-  from aqmodels.utils import quicksum 
+  from LunaModel.utils import quicksum
   # Initialize the known values:
   c: int = 4  # maximum number of each item.
   n: int = 5  # number of items.
@@ -139,12 +139,12 @@ _Note that we have to use Integer variables now._
   values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
   # First, we create the Model with it's sense set to Maximize the objective function.
   # You can also give your model a name, optionally but recommended.
-  model = Model(sense=Sense.Max, name="Bounded Knapsack") 
+  model = Model(sense=Sense.Max, name="Bounded Knapsack")
   # Next, we need to create all variables. Note, there are alternative ways to create
-  # variables, you can find details in the AqModels docs.
+  # variables, you can find details in the LunaModel docs.
   variables = [
       # We can have each item at least `0` times and at most `c` times.
-      model.add_variable(f"x_{i+1}", vtype=Vtype.Integer, lower=0, upper=c) 
+      model.add_variable(f"x_{i+1}", vtype=Vtype.Integer, lower=0, upper=c)
       for i in range(n)
   ]
   # Now we can define the objective function:
@@ -152,14 +152,14 @@ _Note that we have to use Integer variables now._
   # And for the constraints:
   # Ensure the maximum capacity of `W`:
   model.constraints += quicksum(weights[i] * variables[i] for i in range(n)) <= W
-  # The second constraint that all `x_i` are in [0, 1, 2, ..., c] is natively encoded 
-  # by using Bounds on the Integer variables. 
+  # The second constraint that all `x_i` are in [0, 1, 2, ..., c] is natively encoded
+  # by using Bounds on the Integer variables.
   ```
 - Using a Constraint for each variable:
   ```python
-  from aqmodels import Expression, Model, Sense, Vtype, Bounds
+  from LunaModel import Expression, Model, Sense, Vtype, Bounds
   # A faster alternative to creating Expressions using loops in Python.
-  from aqmodels.utils import quicksum 
+  from LunaModel.utils import quicksum
   # Initialize the known values:
   c: int = 4  # maximum number of each item.
   n: int = 5  # number of items.
@@ -168,11 +168,11 @@ _Note that we have to use Integer variables now._
   values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
   # First, we create the Model with it's sense set to Maximize the objective function.
   # You can also give your model a name, optionally but recommended.
-  model = Model(sense=Sense.Max, name="Bounded Knapsack") 
+  model = Model(sense=Sense.Max, name="Bounded Knapsack")
   # Next, we need to create all variables. Note, there are alternative ways to create
-  # variables, you can find details in the AqModels docs.
+  # variables, you can find details in the LunaModel docs.
   variables = [
-      model.add_variable(f"x_{i+1}", vtype=Vtype.Integer) 
+      model.add_variable(f"x_{i+1}", vtype=Vtype.Integer)
       for i in range(n)
   ]
   # Now we can define the objective function:
@@ -186,21 +186,21 @@ _Note that we have to use Integer variables now._
       model.constraints += variables[i] >= 0
   ```
 
-AqModels also provides a native Solution class that represents solutions to an AqModel natively.
+LunaModel also provides a native Solution class that represents solutions to an LunaModel natively.
 
 ### The Translation Library
 
-AqModels has builtin translators to convert from most model representations to an AqModel.
-To use optimizers not natively supporting AqModels you can use one of the provided translators to translate from AqModels to any of the supported formats. It also contains translators for converting from an optimizer native solution representation to an AqSolution.
+LunaModel has builtin translators to convert from most model representations to an LunaModel.
+To use optimizers not natively supporting LunaModel you can use one of the provided translators to translate from luna_model to any of the supported formats. It also contains translators for converting from an optimizer native solution representation to a LunaModel Solution.
 
-AqModels ships with the following [**aqmodels.translators**](./src/aqmodels/translator.pyi) for Models:
+LunaModel ships with the following [**luna_model.translators**](./src/luna_model/translator.pyi) for Models:
 
 - **QuboTranslator**: To translate from and to a [Quadratic Unconstrained Binary Optimization (QUBO)](https://en.wikipedia.org/wiki/Quadratic_unconstrained_binary_optimization) problem.
 - **LpTranslator**: To translate from and to a [LP File](https://web.mit.edu/lpsolve/doc/CPLEX-format.htm).
 - **BqmTranslator**: To translate from and to a [Dimod BQM](https://docs.dwavequantum.com/en/latest/ocean/api_ref_dimod/models.html#module-dimod.binary.binary_quadratic_model).
 - **CqmTranslator**: To translate from and to a [Dimod CQM](https://docs.dwavequantum.com/en/latest/ocean/api_ref_dimod/models.html#module-dimod.constrained.constrained).
 
-AqModels ships with the following [**aqmodels.translators**](./src/aqmodels/translator.pyi) for Solutions:
+LunaModel ships with the following [**luna_model.translators**](./src/luna_model/translator.pyi) for Solutions:
 
 - **ZibTranslator**: for converting a [SCIP](https://www.scipopt.org/) result.
 - **QctrlTranslator**: for converting a [Q-Ctrl](https://q-ctrl.com/) result.
@@ -220,8 +220,8 @@ AqModels ships with the following [**aqmodels.translators**](./src/aqmodels/tran
 ### Binaries
 
 You have two options for obtaining pre-built binaries:
-- Using AqModels as a builtin of the [luna-quantum](https://pypi.org/project/luna-quantum) package.
-  _Note that all imports in all examples and code snippets change from `aqmodels` to `luna_quantum`_.
+- Using LunaModel as a builtin of the [luna-quantum](https://pypi.org/project/luna-quantum) package.
+  _Note that all imports in all examples and code snippets change from `LunaModel` to `luna_quantum`_.
 - Installing it from the Aqarios private artifact feed. **This is only available for Aqarios Employees.**
 
 ### From Source
@@ -236,7 +236,7 @@ If you are installing from source, you will need:
 - The [**uv**](https://docs.astral.sh/uv/) Python package and project manager.
 - [**Rust & Cargo**](https://rust-lang.org/learn/get-started/) for the Rust compiler and the Rust build tool and package manager.
 
-##### Get the AqModels Source
+##### Get the LunaModel Source
 
 ```bash
 git clone https://github.com/aqarios/aq-models-rs
@@ -255,7 +255,7 @@ uv sync
 source .venv/bin/activate
 ```
 
-This installs AqModels and all dev dependencies into the `.venv`.
+This installs LunaModel and all dev dependencies into the `.venv`.
 
 ###### For Usage Only
 
@@ -265,9 +265,9 @@ uv sync --no-dev
 source .venv/bin/activate
 ```
 
-This installs only AqModels and runtime dependencies into the `.venv`.
+This installs only LunaModel and runtime dependencies into the `.venv`.
 
-### Build and Install AqModels
+### Build and Install LunaModel
 
 #### For Python
 
@@ -281,12 +281,12 @@ To build for a specific python version, e.g., Python 3.14:
 uv build --python 3.14
 ```
 
-This will put the AqModels binary into `./target/wheels/`. To install it in another project
+This will put the LunaModel binary into `./target/wheels/`. To install it in another project
 use your favorite Python package manager and install it using the wheels path, e.g., with
 pip:
 
 ```bash
-pip install <path>/<to>/target/wheels/aqmodels-<version>-cp314-cp314-<platform>.whl
+pip install <path>/<to>/target/wheels/LunaModel-<version>-cp314-cp314-<platform>.whl
 ```
 
 #### For Rust
@@ -295,11 +295,11 @@ pip install <path>/<to>/target/wheels/aqmodels-<version>-cp314-cp314-<platform>.
 cargo build --release
 ```
 
-To compile AqModels with default features (for rust usage only).
+To compile LunaModel with default features (for rust usage only).
 
 #### Adjust Build Options (Optional)
 
-You have the following options for compiling the AqModels Rust source code. By default
+You have the following options for compiling the LunaModel Rust source code. By default
 no feature is enabled.
 
 - **transformations**: To compile with transformations.
@@ -309,10 +309,10 @@ no feature is enabled.
 
 ### Building the Documentation (Python)
 
-Currently not supported, you can fine the python documentation for the latest release online [here](https://docs.aqarios.com) as part of the `luna_quantum` documentation. 
+Currently not supported, you can fine the python documentation for the latest release online [here](https://docs.aqarios.com) as part of the `luna_quantum` documentation.
 
 > [!TIP]
-> The online documentation might not be up-to-date or complete. To get an exhaustive documentation of the Python API see [Building the Documentation (Rust)] and look at the dcoumentation of the AqModels Python Bindings (_`py_bindings`_).
+> The online documentation might not be up-to-date or complete. To get an exhaustive documentation of the Python API see [Building the Documentation (Rust)] and look at the dcoumentation of the LunaModel Python Bindings (_`py_bindings`_).
 
 ### Building the Documentation (Rust)
 
@@ -350,23 +350,23 @@ Have a look at:
 ## Resources
 
 - [luna-quantum documentation](https://docs.aqarios.com)
-- [AqModels Discussions](https://github.com/aqarios/aq-models-rs/discussions)
+- [LunaModel Discussions](https://github.com/aqarios/aq-models-rs/discussions)
 
 ## Communication
 
-- GitHub Discussions: Talk about anything AqModels related (thoughts, usage issues that are neither a Bug or a Use Case, cool examples, ...) [here](https://github.com/aqarios/aq-models-rs/discussions)
+- GitHub Discussions: Talk about anything LunaModel related (thoughts, usage issues that are neither a Bug or a Use Case, cool examples, ...) [here](https://github.com/aqarios/aq-models-rs/discussions)
 - GitHub Issues: Bug Reports, Proposals, Use Cases, etc.
 
 ## Releases and Contributing
 
-Typically, AqModels releases new features as soon as the core Maintainers decide that they are stable enough to be made available publicly.
+Typically, LunaModel releases new features as soon as the core Maintainers decide that they are stable enough to be made available publicly.
 Bug-fixes are released as soon as the fix is accepted by the core Maintainers. Please let us know if you encounter a bug by [filing a bug report](https://github.com/aqarios/aq-models-rs/issues/new?template=bug.yml).
 
 We appreciate all contribtions. If you plan to contribute back bug-fixes, please do so without any further discussion, see the [Contribution page](./CONTRIBUTING.md) for details. Once done open a PR and assign one of the core Maintainers as a Reviewer.
 
-If you plan to contribute back new features, or extensions, that are not yet mentioned in the Issues, please [file a proposal](https://github.com/aqarios/aq-models-rs/issues/new?template=proposal.yml) and discuss your idea with us once we accepted your proposal (proposal also has the "accepted" label) you can start your implementation and open a PR once deemed ready to be merged. Opening a PR not associated with an "accepted" proposal might end up being rejected because we might be taking AqModels in a different direction than you might be aware of.
+If you plan to contribute back new features, or extensions, that are not yet mentioned in the Issues, please [file a proposal](https://github.com/aqarios/aq-models-rs/issues/new?template=proposal.yml) and discuss your idea with us once we accepted your proposal (proposal also has the "accepted" label) you can start your implementation and open a PR once deemed ready to be merged. Opening a PR not associated with an "accepted" proposal might end up being rejected because we might be taking LunaModel in a different direction than you might be aware of.
 
-If you have a particular use case where it's either extremely hard or impossible to use AqModels but you don't propose a solution, please [file a use case](https://github.com/aqarios/aq-models-rs/issues/new?template=usecase.yml) and discuss the use case with us.
+If you have a particular use case where it's either extremely hard or impossible to use LunaModel but you don't propose a solution, please [file a use case](https://github.com/aqarios/aq-models-rs/issues/new?template=usecase.yml) and discuss the use case with us.
 It might be transformed into a proposal once enough information is gathered to have an actionable plan on resolving you issue.
 
 Do not assign or mention a core Maintainer yourself. We regularly check the Issues page and work through proposals depending on the direction we are currently focusing on.

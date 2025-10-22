@@ -23,7 +23,7 @@ use unwind_macros::unwindable;
 ///
 /// Examples
 /// --------
-/// >>> from luna_quantum import Bounds
+/// >>> from luna_model import Bounds
 /// >>> Bounds(-1.0, 1.0)
 /// Bounds { lower: -1, upper: 1 }
 ///
@@ -37,14 +37,7 @@ use unwind_macros::unwindable;
 /// -----
 /// - Bounds are only meaningful for variables of type `Vtype.Real` or `Vtype.Integer`.
 /// - If both bounds are omitted, the variable is unbounded.
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Bounds", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Bounds", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Bounds", module = "luna_model._core")]
 #[derive(Clone, Copy, Deref, DerefMut)]
 pub struct PyBounds(pub LazyBounds);
 
@@ -54,14 +47,7 @@ impl Into<LazyBounds> for PyBounds {
     }
 }
 
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Unbounded", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Unbounded", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Unbounded", module = "luna_model._core")]
 #[derive(Debug, Clone, Copy)]
 pub struct PyUnbounded;
 

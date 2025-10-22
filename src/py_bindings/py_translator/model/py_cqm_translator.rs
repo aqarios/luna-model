@@ -4,13 +4,12 @@ use pyo3::prelude::*;
 use std::ffi::CStr;
 use unwind_macros::unwindable;
 
-#[cfg(not(feature = "lq"))]
 static PY_CODE_TO_AQ: &'static CStr = c_str!(
     "
 from dimod import ConstrainedQuadraticModel
 from dimod import lp as dimod_lp
 
-from aqmodels._core import translator
+from luna_model._core import translator
 
 def extract(cqm):
     if not isinstance(cqm, ConstrainedQuadraticModel):
@@ -20,42 +19,12 @@ def extract(cqm):
 "
 );
 
-#[cfg(feature = "lq")]
-static PY_CODE_TO_AQ: &'static CStr = c_str!(
-    "
-from dimod import ConstrainedQuadraticModel
-from dimod import lp as dimod_lp
-
-from luna_quantum._core import translator
-
-def extract(cqm):
-    if not isinstance(cqm, ConstrainedQuadraticModel):
-        raise TypeError(f'Expected cqm to be of type CQM, received: {type(cqm)}')
-    cqm_lp = dimod_lp.dumps(cqm)
-    return translator.LpTranslator.to_aq(cqm_lp)
-"
-);
-
-#[cfg(not(feature = "lq"))]
 static PY_CODE_FROM_AQ: &'static CStr = c_str!(
     "
 from dimod import ConstrainedQuadraticModel
 from dimod import lp as dimod_lp
 
-from aqmodels._core import translator
-
-def extract(model):
-    lp = translator.LpTranslator.from_aq(model)
-    return dimod_lp.loads(lp)
-"
-);
-#[cfg(feature = "lq")]
-static PY_CODE_FROM_AQ: &'static CStr = c_str!(
-    "
-from dimod import ConstrainedQuadraticModel
-from dimod import lp as dimod_lp
-
-from luna_quantum._core import translator
+from luna_model._core import translator
 
 def extract(model):
     lp = translator.LpTranslator.from_aq(model)
@@ -77,7 +46,7 @@ def extract(model):
 /// --------
 /// >>> import dimod
 /// >>> import numpy as np
-/// >>> from luna_quantum import CqmTranslator, Vtype
+/// >>> from luna_model import CqmTranslator, Vtype
 /// >>> bqm = dimod.generators.gnm_random_bqm(5, 10, "BINARY")
 ///
 /// Create a model from a matrix:
@@ -87,14 +56,7 @@ def extract(model):
 /// Convert it back to a dense matrix:
 ///
 /// >>> recovered = CqmTranslator.from_aq(model)
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "CqmTranslator", module = "aqmodels._core.translator")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "CqmTranslator", module = "luna_quantum._core.translator")
-)]
+#[pyclass(name = "CqmTranslator", module = "luna_model._core.translator")]
 pub struct PyCqmTranslator {}
 
 #[unwindable]

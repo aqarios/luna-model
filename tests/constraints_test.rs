@@ -1,4 +1,4 @@
-use aqmodels::core::{Comparator, Constraint, ConstraintCollection, Vtype};
+use luna_model::core::{Comparator, Constraint, ConstraintCollection, Vtype};
 
 mod common;
 use common::*;

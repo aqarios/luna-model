@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import Environment, Variable, Vtype
+from luna_model import Environment, Variable, Vtype
 
 
 @pytest.mark.expression_substitution

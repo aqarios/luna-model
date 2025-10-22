@@ -5,7 +5,7 @@ mod spin_test;
 
 use hashbrown::HashMap;
 
-use aqmodels::{
+use luna_model::{
     core::{
         operations::{MulAssignToExpression, MulToExpression},
         term::{types::TwoVarTerm, HigherOrder},

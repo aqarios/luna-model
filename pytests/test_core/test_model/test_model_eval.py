@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import (
+from luna_model import (
     Bounds,
     ConstraintCollection,
     Model,
@@ -10,7 +10,7 @@ from aqmodels import (
     Variable,
     Vtype,
 )
-from aqmodels.errors import EvaluationError
+from luna_model.errors import EvaluationError
 
 
 @pytest.fixture

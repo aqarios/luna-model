@@ -1,5 +1,5 @@
 from pathlib import Path
-from aqmodels import Model, Solution
+from luna_model import Model, Solution
 import numpy as np
 
 

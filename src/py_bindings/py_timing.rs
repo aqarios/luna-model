@@ -18,7 +18,7 @@ use super::unwind;
 /// Examples
 /// --------
 /// >>> from dwave.samplers.tree.solve import BinaryQuadraticModel
-/// >>> from luna_quantum import Model, Timer, Timing
+/// >>> from luna_model import Model, Timer, Timing
 /// >>> model = ... # third-party model
 /// >>> algorithm = ... # third-party algorithm
 /// >>> timer = Timer.start()
@@ -29,14 +29,7 @@ use super::unwind;
 /// 1.2999193
 /// >>> timing.qpu
 /// 0.02491934
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Timing", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(name = "Timing", module = "luna_quantum._core")
-)]
+#[pyclass(name = "Timing", module = "luna_model._core")]
 #[derive(Clone, Deref, DerefMut, Debug)]
 pub struct PyTiming(pub Timing);
 
@@ -49,15 +42,11 @@ pub struct PyTiming(pub Timing);
 /// Examples
 /// --------
 /// Basic usage:
-/// >>> from luna_quantum import Timer
+/// >>> from luna_model import Timer
 /// >>> timer = Timer.start()
 /// >>> solution = ... # create a solution by running an algorithm.
 /// >>> timing = timer.stop()
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(name = "Timer", module = "aqmodels._core")
-)]
-#[cfg_attr(feature = "lq", pyclass(name = "Timer", module = "luna_quantum._core"))]
+#[pyclass(name = "Timer", module = "luna_model._core")]
 #[derive(Deref, DerefMut)]
 pub struct PyTimer(pub Timer);
 

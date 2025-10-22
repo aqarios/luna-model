@@ -4,8 +4,8 @@ import dimod
 import numpy as np
 
 
-from aqmodels import Solution, Vtype
-from aqmodels.translator import BqmTranslator, DwaveTranslator
+from luna_model import Solution, Vtype
+from luna_model.translator import BqmTranslator, DwaveTranslator
 
 from ..utils import make_seed
 
@@ -26,7 +26,7 @@ def test_bqm_solution():
     cqm = dimod.generators.random_bin_packing(num_items=5, seed=seed)  # type: ignore
     bqm, _ = dimod.cqm_to_bqm(cqm)
 
-    # aqmodels flow
+    # luna_model flow
     aqm = BqmTranslator.to_aq(bqm)
     bqm2 = BqmTranslator.from_aq(aqm)
     assert bqm2.is_almost_equal(bqm), "the bqms are not equal"
@@ -109,7 +109,7 @@ def test_bqm_solution_with_substitution():
     cqm = dimod.generators.random_bin_packing(num_items=2, seed=102)  # type: ignore
     bqm, _ = dimod.cqm_to_bqm(cqm)
 
-    # aqmodels flow
+    # luna_model flow
     aqm = BqmTranslator.to_aq(bqm)
     # print(aqm)
 

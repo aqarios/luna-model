@@ -76,7 +76,7 @@ class MultipleActiveEnvironmentsError(Exception):
     """
     Raised when multiple environments are active simultaneously.
 
-    This is a logic error, since `aqmodels` only supports one active environment
+    This is a logic error, since `luna_model` only supports one active environment
     at a time. This is enforced to maintain clarity and safety.
     """
 
@@ -87,7 +87,7 @@ class DecodeError(Exception):
     Raised when decoding or deserialization of binary data fails.
 
     This can occur if the encoded data is corrupted, incompatible, or not generated
-    by `aqmodels.encode()`.
+    by `luna_model.encode()`.
     """
 
     def __str__(self, /) -> str: ...

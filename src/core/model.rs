@@ -20,19 +20,15 @@ use itertools::Itertools;
 use std::fmt::{Debug, Display, Formatter};
 use strum_macros::{Display, EnumString};
 #[cfg(feature = "py")]
-use {pyo3::prelude::*, unwind_macros::unwindable, crate::py_bindings::unwind};
+use {crate::py_bindings::unwind, pyo3::prelude::*, unwind_macros::unwindable};
 
 /// The default name for a model.
 pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 
 // we require the python config here, since wrapping an enum in the py_bindings is a tedious task.
 #[cfg_attr(
-    all(feature = "py", not(feature = "lq")),
-    pyclass(eq, eq_int, name = "Sense", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    all(feature = "py", feature = "lq"),
-    pyclass(eq, eq_int, name = "Sense", module = "luna_quantum._core")
+    feature = "py",
+    pyclass(eq, eq_int, name = "Sense", module = "luna_model._core")
 )]
 #[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq, EnumString)]
 /// Enumeration of optimization senses supported by the optimization system.

@@ -6,14 +6,7 @@ use crate::{errors::ComputationErr, types::Bias};
 #[cfg(feature = "py")]
 use pyo3::prelude::pyclass;
 
-#[cfg_attr(
-    all(feature = "py", not(feature = "lq")),
-    pyclass(name = "ValueSource", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    all(feature = "py", feature = "lq"),
-    pyclass(name = "ValueSource", module = "luna_quantum._core")
-)]
+#[pyclass(name = "ValueSource", module = "luna_model._core")]
 #[derive(Debug, Clone)]
 pub enum ValueSource {
     Raw,

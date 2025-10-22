@@ -2,7 +2,7 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from aqmodels import Solution, Vtype
+from luna_model import Solution, Vtype
 
 samples_str = """
 {

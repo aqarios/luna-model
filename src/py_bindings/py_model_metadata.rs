@@ -3,14 +3,7 @@ use hashbrown::HashMap;
 use pyo3::{prelude::*, types::PyDict, IntoPyObjectExt};
 use std::fmt::Display;
 
-#[cfg_attr(
-    not(feature = "lq"),
-    pyclass(subclass, name = "ModelMetadata", module = "aqmodels._core")
-)]
-#[cfg_attr(
-    feature = "lq",
-    pyclass(subclass, name = "ModelMetadata", module = "luna_quantum._core")
-)]
+#[pyclass(subclass, name = "ModelMetadata", module = "luna_model._core")]
 #[derive(Clone, Debug)]
 pub struct PyModelMetadata {
     pub data: ShareMut<HashMap<String, Py<PyAny>>>,

@@ -1,20 +1,20 @@
 """Helper script to test out transformations."""
 
-from aqmodels import Model
-from aqmodels._core import Sense, Variable
-from aqmodels.transformations import (
+from luna_model import Model
+from luna_model._core import Sense, Variable
+from luna_model.transformations import (
     AnalysisCache,
     AnalysisPass,
     MaxBiasAnalysis,
     PassManager,
 )
 
-aqm = Model()
-aqm.set_sense(sense=Sense.Max)
-with aqm.environment:
+lm = Model()
+lm.set_sense(sense=Sense.Max)
+with lm.environment:
     x = Variable("x")
     y = Variable("y")
-aqm.objective = x * 20 * y
+lm.objective = x * 20 * y
 
 
 class PyMaxBiasAnalysis(AnalysisPass):
@@ -40,6 +40,6 @@ pm = PassManager([m, pym])
 
 print("=== PassManager ===")  # noqa: T201
 print(pm)  # noqa: T201
-ir = pm.run(aqm)
+ir = pm.run(lm)
 print("Builtin MaxBiasAnalysis =", ir.cache[m.name].val)  # noqa: T201
 print("Custom PyMaxBiasAnalysis =", ir.cache[pym.name])  # noqa: T201

@@ -9,11 +9,11 @@ use crate::{
 };
 
 /// A translator used to read a Quadratic Unconstrained Binary Optimization (QUBO) problem
-/// and create an AQM.
+/// and create a LunaModel.
 pub struct MatrixTranslator {}
 
 impl MatrixTranslator {
-    /// Translates a QUBO to an AQM.
+    /// Translates a QUBO to an LunaModel.
     pub fn model_from_dense(
         name: Option<String>,
         dense: &[Bias],
@@ -39,10 +39,10 @@ impl MatrixTranslator {
         )?)
     }
 
-    /// Back(translate) an AQM to a QUBO.
+    /// Back(translate) an LunaModel to a QUBO.
     ///
     /// This method is required for interactions with solvers that require the optimization
-    /// problem to be expressed in a QUBO. We can use the AQM to define our model and send
+    /// problem to be expressed in a QUBO. We can use the LunaModel to define our model and send
     /// the information between workers efficiently. The solving process can then use this function
     /// to express the optimization problem in the expected format.
     pub fn model_to_dense(model: &Model) -> Result<Qubo, MatrixTranslatorErr> {

@@ -1,6 +1,6 @@
 import pytest
 
-from aqmodels import (
+from luna_model import (
     Comparator,
     Constraint,
     Constraints,

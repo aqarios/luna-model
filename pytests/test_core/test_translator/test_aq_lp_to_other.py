@@ -14,8 +14,8 @@ except ImportError as _:
     )
     NOT_RUN_SCIP = True
 
-from aqmodels import Bounds, Model, Variable, Vtype
-from aqmodels.translator import LpTranslator
+from luna_model import Bounds, Model, Variable, Vtype
+from luna_model.translator import LpTranslator
 
 
 @pytest.fixture
