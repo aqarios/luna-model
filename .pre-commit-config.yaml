@@ -14,16 +14,30 @@ repos:
   - repo: local
     hooks:
       # Run the linter.
-      - id: ruff
-        name: ruff
-        entry: ruff check .
+      - id: ruff-private
+        name: ruff-private
+        entry: cd private && ruff check .
         language: system
         pass_filenames: false
         always_run: true
       # Run the formatter.
-      - id: ruff-format
-        name: ruff-format
-        entry: ruff format . --check
+      - id: ruff-format-private
+        name: ruff-format-private
+        entry: cd private && ruff format . --check
+        language: system
+        pass_filenames: false
+        always_run: true
+      # Run the linter.
+      - id: ruff-public
+        name: ruff-public
+        entry: cd public && ruff check .
+        language: system
+        pass_filenames: false
+        always_run: true
+      # Run the formatter.
+      - id: ruff-format-public
+        name: ruff-format-public
+        entry: cd public && ruff format . --check
         language: system
         pass_filenames: false
         always_run: true
