@@ -2,7 +2,7 @@
 name = "luna_model"
 version = "0.4.0"
 edition = "2021"
-description = "Aqarios Luna Model: Symbolic modeling for optimization"
+description = "Aqarios LunaModel: Symbolic modeling for optimization"
 readme = "README.md"
 license = "Copyright"
 homepage = "https://github.com/aqarios/aq-models-rs"

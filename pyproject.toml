@@ -8,6 +8,25 @@ requires-python = ">=3.11"
 dependencies = [
     "numpy>=1.0.0",
 ]
+keywords = [
+  "aqarios",
+  "luna",
+  "quantum computing",
+  "quantum optimization",
+  "optimization",
+  "modeling"
+]
+# todo: check these values.
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering",
+]
+
+[project.urls]
+Homepage = "https://aqarios.com"
+Documentation = "https://docs.aqarios.com"
 
 [tool.uv]
 package = true
