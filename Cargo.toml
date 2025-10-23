@@ -12,6 +12,9 @@ exclude = [
     "benchmarks"
 ]
 
+[lib]
+path = "src/lib.rs"
+
 # [lib]
 # name = "_core"
 # # # "cdylib" is necessary to produce a shared library for Python to import from.
