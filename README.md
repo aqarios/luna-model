@@ -1,4 +1,4 @@
-![LunaModel Logo](./assets/lunamodel_ascii.png)
+![LunaModel Logo](./assets/luna_model_ascii.png)
 
 # Symbolic modeling for optimization
 
