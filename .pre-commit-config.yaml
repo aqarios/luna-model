@@ -16,28 +16,28 @@ repos:
       # Run the linter.
       - id: ruff-private
         name: ruff-private
-        entry: cd private && ruff check .
+        entry: ruff check private --config ./ruff.toml
         language: system
         pass_filenames: false
         always_run: true
       # Run the formatter.
       - id: ruff-format-private
         name: ruff-format-private
-        entry: cd private && ruff format . --check
+        entry: ruff format private --config ./ruff.toml
         language: system
         pass_filenames: false
         always_run: true
       # Run the linter.
       - id: ruff-public
         name: ruff-public
-        entry: cd public && ruff check .
+        entry: ruff check public --config ./ruff.toml
         language: system
         pass_filenames: false
         always_run: true
       # Run the formatter.
       - id: ruff-format-public
         name: ruff-format-public
-        entry: cd public && ruff format . --check
+        entry: ruff format public --config ./ruff.toml
         language: system
         pass_filenames: false
         always_run: true

@@ -34,6 +34,8 @@ impl LineLengthRestrictor {
     }
 
     pub fn space(&mut self) -> &mut Self {
+        // todo: this function is buggy, as it adds trailing spaces to finished lines...
+        // change to LP translator probably best in the long term.
         if self.current_line_length < MAX_LINE_LENGTH {
             self.current_string += " ";
             self.current_line_length += 1;

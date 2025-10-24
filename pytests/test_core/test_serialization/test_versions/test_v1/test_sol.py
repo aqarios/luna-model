@@ -6,7 +6,7 @@ import pytest
 
 from luna_model import Environment, Model, Sense, Solution, Timer, Variable, Vtype
 
-path = Path("./pytests/test_core/test_serialization/test_versions/data/v0/sol/")
+path = Path(__file__).parent.parent / "data" / "v0" / "sol"
 
 
 @pytest.fixture
