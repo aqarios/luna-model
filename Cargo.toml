@@ -9,7 +9,7 @@ homepage = "https://github.com/aqarios/aq-models-rs"
 exclude = [
     "pytests",
     "bench_reports",
-    "benchmarks"
+    "benchmarks",
 ]
 
 [lib]
