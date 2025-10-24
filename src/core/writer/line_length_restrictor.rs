@@ -20,6 +20,7 @@ impl LineLengthRestrictor {
 
     pub fn write(&mut self, s: &str) -> &mut Self {
         if self.current_line_length + s.len() > MAX_LINE_LENGTH {
+            self.current_string = self.current_string.trim().to_string();
             self.new_line();
         }
         self.current_string += s;

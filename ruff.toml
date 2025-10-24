@@ -70,10 +70,8 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 fixable = ["ALL"]
 unfixable = []
 exclude = [
-    "public/src/luna_model/__init__.py",
-    "public/src/luna_model/__init__.pyi",
-    "private/src/luna_model/__init__.py",
-    "private/src/luna_model/__init__.pyi",
+    "src/luna_model/__init__.py",
+    "src/luna_model/__init__.pyi",
     "../pytests/**/*",
     "bench/**/*",
 ]
@@ -83,15 +81,14 @@ allow-star-arg-any = true # At some point we should remove all args and kwargs
 
 
 [lint.extend-per-file-ignores]
-"pytests/*" = [
+"../pytests/*" = [
     "D101", #Doc-Strings - Missing docstring in public class
     "D102", #Doc-Strings - Missing docstring in public method
     "D103", #Doc-Strings - Missing docstring in public function
     "S",
     "SLF",
     "PL"]
-"public/src/luna_model/**/*" = ["PYI021", "PIE790", "PYI048", "PYI029", "PYI041"] # Hard to fix. We need to do that at some point.
-"private/src/luna_model/**/*" = ["PYI021", "PIE790", "PYI048", "PYI029", "PYI041"] # Hard to fix. We need to do that at some point.
+"src/luna_model/**/*" = ["PYI021", "PIE790", "PYI048", "PYI029", "PYI041"] # Hard to fix. We need to do that at some point.
 # "luna_model/client/*" = ["ANN401","D101", "D102","D103", "D105", "D205", "D401","D404", "TC001", "TC003", "PLR0913"] # Hard to fix. We need to fix that for automatic docs
 # "example/*" = ["D103", "S106", "ANN001", "S311"]
 

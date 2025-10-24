@@ -16,46 +16,28 @@ repos:
       # Run the linter.
       - id: ruff-private
         name: ruff-private
-        entry: ruff check private --config ./ruff.toml
+        entry: bash -c "cd private && uv run ruff check . --config ../ruff.toml"
         language: system
         pass_filenames: false
         always_run: true
       # Run the formatter.
       - id: ruff-format-private
         name: ruff-format-private
-        entry: ruff format private --config ./ruff.toml
+        entry: bash -c "cd private && ruff format . --config ../ruff.toml"
         language: system
         pass_filenames: false
         always_run: true
       # Run the linter.
       - id: ruff-public
         name: ruff-public
-        entry: ruff check public --config ./ruff.toml
+        entry: bash -c "cd public && uv run ruff check . --config ../ruff.toml"
         language: system
         pass_filenames: false
         always_run: true
       # Run the formatter.
       - id: ruff-format-public
         name: ruff-format-public
-        entry: ruff format public --config ./ruff.toml
+        entry: bash -c "cd public && ruff format . --config ../ruff.toml"
         language: system
         pass_filenames: false
         always_run: true
-  # mypy config
-  # - repo: local
-  #   hooks:
-  #     - id: mypy
-  #       name: mypy
-  #       entry: mypy ./src
-  #       language: system
-  #       pass_filenames: false
-  #       always_run: true
-  # # custom local hook for pytest
-  # - repo: local
-  #   hooks:
-  #     - id: pytest-with-coverage
-  #       name: "Pytest with Coverage Check"
-  #       entry: bash -c 'pytest --cov=src/aqmodels --cov-report=term --cov-fail-under=90'
-  #       language: system
-  #       pass_filenames: false
-  #       always_run: true
