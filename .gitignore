@@ -86,3 +86,5 @@ foo.py
 foo/
 
 bench/
+
+local_build/
