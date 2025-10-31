@@ -386,7 +386,7 @@ dependencies = [
 
 [[package]]
 name = "luna_model"
-version = "0.4.1-dev.1186+91bb489"
+version = "0.4.1-dev.1187+ec11e0c"
 dependencies = [
  "aqm-macros",
  "bitvec",
