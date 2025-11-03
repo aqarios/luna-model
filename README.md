@@ -219,10 +219,30 @@ LunaModel ships with the following [**luna_model.translators**](./src/luna_model
 
 ### Binaries
 
-You have two options for obtaining pre-built binaries:
+You have multiple options for obtaining pre-built binaries:
 - Using LunaModel as a builtin of the [luna-quantum](https://pypi.org/project/luna-quantum) package.
-  _Note that all imports in all examples and code snippets change from `LunaModel` to `luna_quantum`_.
+- Obtianing a pre-built wheel from the [GitHub releases page](https://github.com/aqarios/luna-model/releases).
 - Installing it from the Aqarios private artifact feed. **This is only available for Aqarios Employees.**
+  - The package can be installed using `luna-model`.
+  - The package distribution is named `luna-model`.
+  - They are both imported as `luna_model`, e.g., `import luna-model` or `from luna_model import ...`
+
+> [!TIP]
+> If you are installing a package that uses the **public** luna-model, but want to use the **private** luna-model,
+> you can simply install it as an additional dependency. You can check if the **priavate** LunaModel is installed using 
+> the `luna_model.__version__`, which should reoslve to a version string containing `pub`. If it does not work out-of-the-box,
+> try adding:
+> ```text
+[tool.uv]
+override-dependencies = [ "luna-model; sys_platform == 'never'"]
+```
+> or (if now available in uv ([See if the code of this PR is released](https://https://github.com/astral-sh/uv/pull/16528)))
+```text
+[tool.uv]
+exclude-dependencies = [ "luna-model" ]
+```
+> Also remove the current `.venv` and run `uv clean` in case you still encounter issues. 
+> If none of the mentioned tips resolves you problem, open a [discussion here](https://github.com/aqarios/luna-model/discussions/categories/q-a).
 
 ### From Source
 
