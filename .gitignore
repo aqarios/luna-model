@@ -88,3 +88,4 @@ foo/
 bench/
 
 local_build/
+.intentionally-empty-file.o
