@@ -1,8 +1,8 @@
 import os
 import sys
-import pytest
 from pathlib import Path
 
+import pytest
 from luna_model.translator import LpTranslator
 
 NOT_RUN_SCIP = False
@@ -17,7 +17,7 @@ except ImportError as _:
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_zero_variables():
     model = LpTranslator.to_aq(Path(__file__).parent / "lp_string.lp")
     model_str = LpTranslator.from_aq(model)

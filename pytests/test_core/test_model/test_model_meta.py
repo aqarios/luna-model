@@ -1,7 +1,6 @@
 import random
 
 import pytest
-
 from luna_model import (
     Comparator,
     Constant,
@@ -15,7 +14,7 @@ from luna_model import (
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def model(request):
     print(request)
     req = request.param
@@ -32,13 +31,11 @@ def model(request):
     def choose_random_vtype():
         if sum(map.values()) == 0:
             return random.choice(vtypes)
-        else:
-            item = random.choice(vtypes)
-            if map[str(item)] != 0:
-                return choose_random_vtype()
-            else:
-                map[str(item)] += 1
-                return item
+        item = random.choice(vtypes)
+        if map[str(item)] != 0:
+            return choose_random_vtype()
+        map[str(item)] += 1
+        return item
 
     model = Model()
     vars = [

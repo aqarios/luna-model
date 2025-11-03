@@ -1,8 +1,9 @@
-import pytest
-from ..test_serialization.creators import serializable_objects
 import pickle
 
+import pytest
 from luna_model import Environment
+
+from ..test_serialization.creators import serializable_objects
 
 
 @pytest.mark.parametrize("env", serializable_objects([Environment]))

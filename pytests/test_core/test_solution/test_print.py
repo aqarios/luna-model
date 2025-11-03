@@ -1,7 +1,6 @@
 import time
 
 import pytest
-
 from luna_model import Environment, Model, Sense, Solution, Timer, Variable, Vtype
 
 
@@ -22,7 +21,7 @@ def vars() -> tuple[tuple[Variable, ...], Environment]:
     return tuple(variables), env
 
 
-@pytest.fixture
+@pytest.fixture()
 def model(request) -> tuple[Model, tuple[Variable, ...]]:
     variables, env = vars()
     model = Model(env=env)
@@ -32,7 +31,7 @@ def model(request) -> tuple[Model, tuple[Variable, ...]]:
     return model, variables
 
 
-@pytest.fixture
+@pytest.fixture()
 def solution(request, model: Model):
     m, (b0, b1, s0, s1, i0, i1, r0, r1) = model
     timer = Timer.start()
@@ -59,7 +58,7 @@ def solution(request, model: Model):
     return sol
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 def test_row_hide(solution: Solution):
     s = solution.print(layout="row", show_metadata="hide")
     assert (
@@ -79,7 +78,7 @@ Total variables: 8""".strip("\n")
     )
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 def test_row_before_max_lines(solution: Solution):
     s = solution.print(layout="row", show_metadata="before", max_lines=7)
     assert (
@@ -232,7 +231,7 @@ Total variables: 8""".strip("\n")
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_with_sol(request) -> tuple[Model, Solution]:
     minimize: bool = request.param
     m = Model()

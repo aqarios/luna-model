@@ -24,6 +24,7 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use either::Either::{Left, Right};
+use pyo3::exceptions::PyRuntimeError;
 use pyo3::ffi::c_str;
 use pyo3::types::PyType;
 use pyo3::IntoPyObjectExt;
@@ -645,6 +646,45 @@ impl PyModel {
 
     fn satisfies(&self, specs: PyModelSpecs) -> bool {
         self.concrete_model.access().satisfies(specs.0)
+    }
+
+    // LunaQuantum specifics.
+    /// Get the model's metadata.
+    #[getter]
+    fn get_metadata(&self) -> PyResult<()> {
+        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+    }
+
+    /// Set the model's metadata.
+    #[setter]
+    fn set_metadata(&self, _metadata: Bound<PyAny>) -> PyResult<()> {
+        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+    }
+
+    #[staticmethod]
+    #[allow(unused_variables)]
+    fn load_luna(model_id: String, client: Bound<PyAny>) -> PyResult<()> {
+        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+    }
+
+    #[allow(unused_variables)]
+    fn save_luna(&self, client: Bound<PyAny>) -> PyResult<()> {
+        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+    }
+
+    #[allow(unused_variables)]
+    fn delete_luna(&self, client: Bound<PyAny>) -> PyResult<()> {
+        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+    }
+
+    #[allow(unused_variables)]
+    fn load_solutions(&self, client: Bound<PyAny>) -> PyResult<()> {
+        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+    }
+
+    #[allow(unused_variables)]
+    fn load_solve_jobs(&self, client: Bound<PyAny>) -> PyResult<()> {
+        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
     }
 }
 

@@ -1,25 +1,22 @@
-from typing import Tuple
-
 import pytest
-
 from luna_model import Environment, Expression, Variable
 
 
-@pytest.fixture
-def variables(request) -> Tuple[Variable, ...]:
+@pytest.fixture()
+def variables(request) -> tuple[Variable, ...]:
     n, vtype = request.param
     with Environment():
         variables = [Variable(f"x_{i}", vtype=vtype) for i in range(n)]
     return tuple(variables)
 
 
-@pytest.fixture
+@pytest.fixture()
 def variable() -> Variable:
     with Environment():
         return Variable("variable")
 
 
-@pytest.fixture
+@pytest.fixture()
 def expression() -> Expression:
     with Environment():
         a, b = Variable("expression_a"), Variable("expression_b")

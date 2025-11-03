@@ -1,8 +1,8 @@
 from random import Random
 
 import pytest
-
 from luna_model import Environment, Model, Solution, Variable, Vtype
+
 from pytests.test_core.utils import make_seed, random_int
 
 
@@ -13,12 +13,12 @@ def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
     return tuple(variables), env
 
 
-@pytest.fixture
+@pytest.fixture()
 def variables(request) -> tuple[tuple[Variable, ...], Environment]:
     return vars(*request.param)
 
 
-@pytest.fixture
+@pytest.fixture()
 def model(request):
     (x, y, z), env = vars(*request.param)
     model = Model(env=env)
@@ -26,7 +26,7 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_to_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -39,7 +39,7 @@ def test_to_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     assert best.sample.to_dict() == {v.name: a for v, a in sample.items()}
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_to_dict_with_model_and_counts(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -54,7 +54,7 @@ def test_to_dict_with_model_and_counts(model: tuple[Model, tuple[Variable, ...]]
     assert best.sample.to_dict() == {v.name: a for v, a in sample.items()}
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_to_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -78,7 +78,7 @@ def test_to_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]]):
     assert best.sample.to_dict() == {v.name: a for v, a in best_sample.items()}
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_to_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -115,7 +115,7 @@ def test_to_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...]]
     assert best.sample.to_dict() == {v.name: a for v, a in sample_d.items()}
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_to_dicts_duplicate_with_model_and_counts(
     model: tuple[Model, tuple[Variable, ...]],

@@ -1,5 +1,4 @@
 import pytest
-
 from luna_model import Environment, Model, Solution, Variable, Vtype
 
 
@@ -10,12 +9,12 @@ def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
     return tuple(variables), env
 
 
-@pytest.fixture
+@pytest.fixture()
 def variables(request) -> tuple[tuple[Variable, ...], Environment]:
     return vars(*request.param)
 
 
-@pytest.fixture
+@pytest.fixture()
 def model(request):
     (x, y, z), env = vars(*request.param)
     model = Model(env=env)
@@ -23,7 +22,7 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -36,7 +35,7 @@ def test_from_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     )
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -62,7 +61,7 @@ def test_from_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]])
     )
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model

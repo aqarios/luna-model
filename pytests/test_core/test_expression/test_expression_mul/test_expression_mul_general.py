@@ -1,5 +1,4 @@
 import pytest
-
 from luna_model import Expression, Vtype
 
 from ...utils import (
@@ -12,7 +11,7 @@ from ...utils import (
 from .common import *  # noqa: F403
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     [
@@ -47,7 +46,7 @@ def test_expression_mul_number(variables):
     assert_higher_order_all(expr, variables, 0)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     [
@@ -82,7 +81,7 @@ def test_expression_rmul_number(variables):
     assert_higher_order_all(expr, variables, 0)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     [
@@ -118,7 +117,7 @@ def test_expression_instancemul_variable(variables):
     assert_higher_order(expr, variables, 1)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     [
@@ -153,7 +152,7 @@ def test_expression_instancemul_number(variables):
     assert_higher_order_all(expr, variables, 0)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     [
@@ -207,7 +206,7 @@ def test_expression_mul_expression(variables):
     assert_higher_order(expr, variables, 1, 4)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     [
@@ -259,7 +258,7 @@ def test_expression_instancemul_expression(variables):
     assert_higher_order(expr, variables, 1, 4)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     [

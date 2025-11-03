@@ -1,10 +1,9 @@
 import pytest
-
 from luna_model._core import Model, Vtype
 from luna_model.transformations import BinarySpinPass, PassManager
 
 
-@pytest.fixture
+@pytest.fixture()
 def default_pass_manager():
     return PassManager([BinarySpinPass(Vtype.Spin, None)])
 

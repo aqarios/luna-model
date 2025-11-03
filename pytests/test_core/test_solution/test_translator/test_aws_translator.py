@@ -1,12 +1,11 @@
 import numpy as np
 import pytest
-from numpy.typing import NDArray
-
 from luna_model import Bounds, Model, Variable, Vtype
 from luna_model.translator import AwsTranslator
+from numpy.typing import NDArray
 
 
-@pytest.fixture
+@pytest.fixture()
 def model() -> Model:
     m = Model(name="TestModel")
     with m.environment:
@@ -30,7 +29,7 @@ def model() -> Model:
     return m
 
 
-@pytest.fixture
+@pytest.fixture()
 def aws_result() -> dict[str, NDArray]:
     return {
         "samples": np.array(
@@ -45,7 +44,7 @@ def aws_result() -> dict[str, NDArray]:
     }
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_aws_translator(model: Model, aws_result: dict[str, NDArray]):
     sol = AwsTranslator.to_aq(aws_result, env=model.environment)
     (sol_agg, indices, num_counts) = np.unique(

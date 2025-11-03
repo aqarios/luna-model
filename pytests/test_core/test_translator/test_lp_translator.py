@@ -5,10 +5,10 @@ from random import Random
 
 import pytest
 from dimod import lp as dimod_lp
-
 from luna_model import Sense
 from luna_model.errors import TranslationError
 from luna_model.translator import LpTranslator
+
 from pytests.test_core.utils import generate_cqms, make_seed
 
 NOT_RUN_SCIP = False
@@ -32,7 +32,7 @@ except ImportError as _:
     NOT_RUN_GUROBI = True
 
 NOT_RUN_CPLEX = True
-# todo: fix CPLEX test logic. MPS is unreliable
+# TODO: fix CPLEX test logic. MPS is unreliable
 # try:
 #     import cplex  # type: ignore
 # except ImportError as _:
@@ -49,7 +49,7 @@ GP_SENSE_MIN: int = 1
 GP_SENSE_MAX: int = 0
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_lp_file_str_path():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -71,7 +71,7 @@ def test_lp_file_str_path():
 ##################################### Dimod ###########################################
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_cqm_to_model_to_cqm():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -101,7 +101,7 @@ def test_cqm_to_model_to_cqm():
 
 
 @pytest.mark.skipif(NOT_RUN_GUROBI, reason="Gurobi is required for test")
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_gurobi_to_model_to_gurobi():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -136,7 +136,7 @@ def test_gurobi_to_model_to_gurobi():
 
 
 @pytest.mark.skipif(NOT_RUN_GUROBI, reason="Gurobi is required for test")
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_gurobi_and_aq_lp_read_equality():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -186,7 +186,7 @@ def test_gurobi_and_aq_lp_read_equality():
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_scip_to_model_to_scip():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -230,7 +230,7 @@ def test_scip_to_model_to_scip():
 
 
 @pytest.mark.skipif(NOT_RUN_CPLEX, reason="CPLEX is required for test")
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_cplex_to_model_to_cplex():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -433,7 +433,7 @@ def scip_models_are_equal(model1: ScipModel, model2: ScipModel) -> tuple[bool, s
     }
 
     for m1_name, m1_item in m1_conss_lookup.items():
-        m2_item = m2_conss_lookup.get(m1_name, None)
+        m2_item = m2_conss_lookup.get(m1_name)
         if m2_item is None:
             return (
                 False,
@@ -465,14 +465,13 @@ def scip_models_are_equal(model1: ScipModel, model2: ScipModel) -> tuple[bool, s
             if m2_s != list():
                 return False, f"{m2_s} != []"
 
-        else:
-            if m1_item != m2_item:
-                return False, ""
+        elif m1_item != m2_item:
+            return False, ""
 
     return True, ""
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_invalid_var_name():
     rand = Random(make_seed())
     cqm = generate_cqms(1, rand)[0]

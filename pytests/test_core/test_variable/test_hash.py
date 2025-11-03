@@ -1,9 +1,8 @@
 import pytest
-
 from luna_model import Environment, Variable
 
 
-@pytest.mark.variable
+@pytest.mark.variable()
 def test_variable_hash():
     with Environment():
         x = Variable("x")

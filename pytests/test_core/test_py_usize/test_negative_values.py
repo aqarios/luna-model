@@ -1,7 +1,6 @@
 from contextlib import nullcontext as does_not_raise
 
 import pytest
-
 from luna_model import Environment, Solution, Variable
 
 
@@ -10,9 +9,9 @@ def test_negative_value_normal_method():
         _ = Variable("x")
         sol = Solution.from_dict({"x": 1})
     with pytest.raises(TypeError):
-        _ = sol.print(max_lines=1.0)  # noqa
+        _ = sol.print(max_lines=1.0)
     with pytest.raises(TypeError):
-        _ = sol.print(max_lines="foo")  # noqa
+        _ = sol.print(max_lines="foo")
     with pytest.raises(
         ValueError, match="Expected a non-negative number, received: -1"
     ):
@@ -29,9 +28,9 @@ def test_negative_value_slot_method():
     with Environment():
         x = Variable("x")
     with pytest.raises(TypeError):
-        _ = x**1.0  # noqa
+        _ = x**1.0
     with pytest.raises(TypeError):
-        _ = x ** "foo"  # noqa
+        _ = x ** "foo"
     with pytest.raises(
         ValueError, match="Expected a non-negative number, received: -1"
     ):
@@ -47,13 +46,13 @@ def test_negative_values_getitem():
         sol = Solution.from_dicts([{x: 1, y: 0}, {x: 1, y: 1}])
     samples = sol.samples
     with pytest.raises(TypeError):
-        _ = samples["foo"]  # noqa
+        _ = samples["foo"]
     with pytest.raises(TypeError):
-        _ = samples[1.0]  # noqa
+        _ = samples[1.0]
     with pytest.raises(TypeError):
-        _ = samples[(0, 1.0)]  # noqa
+        _ = samples[(0, 1.0)]
     with pytest.raises(TypeError):
-        _ = samples[(0, 0, 0)]  # noqa
+        _ = samples[(0, 0, 0)]
     with pytest.raises(
         ValueError, match="Expected a non-negative number, received: -1"
     ):

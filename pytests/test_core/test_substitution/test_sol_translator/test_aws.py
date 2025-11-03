@@ -1,12 +1,11 @@
 import numpy as np
 import pytest
-
 from luna_model.translator import AwsTranslator
 
 from .common import do_checks  # type: ignore[reportMissingImports]
 
 
-@pytest.fixture
+@pytest.fixture()
 def aws_solution() -> dict[str, np.typing.NDArray]:
     return {
         "samples": np.array(

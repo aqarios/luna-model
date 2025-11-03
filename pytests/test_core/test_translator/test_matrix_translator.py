@@ -4,8 +4,6 @@ from itertools import product
 import numpy as np
 import pytest
 import scipy.sparse as sp  # type: ignore[import-untyped]
-from numpy.typing import NDArray
-
 from luna_model import Model, Sense, Variable, Vtype
 from luna_model.errors import (
     ModelNotQuadraticError,
@@ -17,11 +15,12 @@ from luna_model.errors import (
     VariableNamesError,
 )
 from luna_model.translator import QuboTranslator
+from numpy.typing import NDArray
 
 from ..utils import make_seed
 
 
-@pytest.fixture
+@pytest.fixture()
 def qubo(request) -> NDArray:
     size, density = request.param
     np.random.seed(make_seed())
@@ -30,7 +29,7 @@ def qubo(request) -> NDArray:
     return out
 
 
-@pytest.fixture
+@pytest.fixture()
 def asymmetric_qubo(request) -> NDArray:
     size, density = request.param
     np.random.seed(make_seed())
@@ -38,7 +37,7 @@ def asymmetric_qubo(request) -> NDArray:
     return np.triu(out)
 
 
-@pytest.fixture
+@pytest.fixture()
 def linear_qubo(request) -> NDArray:
     size, density = request.param
     np.random.seed(make_seed())
@@ -47,7 +46,7 @@ def linear_qubo(request) -> NDArray:
     return mat
 
 
-@pytest.fixture
+@pytest.fixture()
 def model() -> Model:
     model = Model("test_model")
     with model.environment:
@@ -60,7 +59,7 @@ def model() -> Model:
     return model
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize(
     "qubo",
     list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
@@ -72,7 +71,7 @@ def test_translate_with_dense(qubo: NDArray):
     assert np.allclose(qubo, back)
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize(
     "qubo",
     list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
@@ -91,7 +90,7 @@ def test_translate_with_dense_and_metadata(qubo: NDArray):
     assert back.variable_names == [f"x_{x}" for x in range(len(qubo))]
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize(
     "qubo",
     list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
@@ -113,7 +112,7 @@ def test_translate_with_dense_and_valid_variable_names(qubo: NDArray):
     assert back.variable_names == variable_names
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize(
     "qubo",
     list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
@@ -130,7 +129,7 @@ def test_translate_with_dense_and_invalid_variable_names_non_alpha(qubo: NDArray
         )
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize(
     "qubo",
     list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
@@ -147,7 +146,7 @@ def test_translate_with_dense_and_invalid_variable_names(qubo: NDArray):
         )
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize("qubo", list(product([0], [0])), indirect=True)
 def test_translate_with_dense_empty(qubo: NDArray):
     model = QuboTranslator.to_aq(qubo)
@@ -155,7 +154,7 @@ def test_translate_with_dense_empty(qubo: NDArray):
     assert np.allclose(qubo, back)
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize(
     "linear_qubo",
     list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
@@ -167,7 +166,7 @@ def test_translate_with_dense_linear(linear_qubo: NDArray):
     assert np.allclose(linear_qubo, back)
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize(
     "qubo",
     list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
@@ -191,7 +190,7 @@ def test_translate_from_non_fitting_constrained(qubo: NDArray):
         _ = QuboTranslator.from_aq(model)
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize(
     "qubo",
     list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
@@ -240,7 +239,7 @@ def test_translate_from_non_fitting_vtype(qubo: NDArray):
         _ = QuboTranslator.from_aq(model_2)
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_translate_from_maximization_sense(model: Model):
     with pytest.raises(ModelSenseNotMinimizeError):
         _ = QuboTranslator.from_aq(model)
@@ -249,7 +248,7 @@ def test_translate_from_maximization_sense(model: Model):
         _ = QuboTranslator.from_aq(model)
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize(
     "asymmetric_qubo",
     list(product([100, 200, 400, 800], [0.1, 0.5, 1.0])),
@@ -262,7 +261,7 @@ def test_translator_symmetricizes(asymmetric_qubo: NDArray):
     assert np.allclose(sym, back)
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize("qubo", [(4, 0.2)], indirect=True)
 def test_variable_names_param(qubo: NDArray):
     with does_not_raise():

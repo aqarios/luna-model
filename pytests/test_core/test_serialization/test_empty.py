@@ -1,4 +1,4 @@
-from luna_model import Model, Environment, Expression
+from luna_model import Environment, Expression, Model
 
 
 def test_encode_decode_empty_model():

@@ -1,5 +1,4 @@
 import pytest
-
 from luna_model import Environment, Model, Solution, Variable, Vtype
 
 
@@ -14,7 +13,7 @@ def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
     return tuple(variables), env
 
 
-@pytest.fixture
+@pytest.fixture()
 def model(request):
     (x, y, z), env = vars(*request.param)
     model = Model(env=env)
@@ -22,7 +21,7 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_index_sample_var(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -36,7 +35,7 @@ def test_index_sample_var(model: tuple[Model, tuple[Variable, ...]]):
     assert best_sample[z] == sample[z]
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_index_sample_index(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -50,7 +49,7 @@ def test_index_sample_index(model: tuple[Model, tuple[Variable, ...]]):
     assert best_sample[2] == sample[z]
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_index_sample_name(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -64,7 +63,7 @@ def test_index_sample_name(model: tuple[Model, tuple[Variable, ...]]):
     assert best_sample[f"x_{2}"] == sample[z]
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_index_sample_on_sol(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model

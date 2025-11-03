@@ -1,10 +1,10 @@
-import pytest
 import pickle
 
+import pytest
 from luna_model import Solution, Vtype
 
 
-@pytest.fixture
+@pytest.fixture()
 def solution() -> Solution:
     return Solution._build(  # type: ignore[reportAttributeAccessIssue]
         component_types=[

@@ -1,20 +1,18 @@
 from itertools import product
-from typing import Tuple
 
 import pytest
-
 from luna_model import Environment, Expression, Variable, Vtype
 
 
-@pytest.fixture
-def variables(request) -> Tuple[Variable, ...]:
+@pytest.fixture()
+def variables(request) -> tuple[Variable, ...]:
     n, vtype = request.param
     with Environment():
         variables = [Variable(f"x_{i}", vtype=vtype) for i in range(n)]
     return tuple(variables)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -37,7 +35,7 @@ def test_expression_add_variable(variables):
     assert result.get_linear(z) == 1
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -60,7 +58,7 @@ def test_expression_add_number(variables):
     assert expr.get_linear(y) == 1
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -83,7 +81,7 @@ def test_expression_radd_number(variables):
     assert expr.get_linear(y) == 1
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -106,7 +104,7 @@ def test_expression_instanceadd_variable(variables):
     assert expr.get_linear(z) == 1
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -130,7 +128,7 @@ def test_expression_instanceadd_variable_twice(variables):
     assert expr.get_linear(z) == 2
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),

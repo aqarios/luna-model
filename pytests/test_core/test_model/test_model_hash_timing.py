@@ -2,12 +2,12 @@ from itertools import product
 
 import numpy as np
 import scipy.sparse as sp  # type: ignore[import-untyped]
+from luna_model import Model, Timer
+from luna_model.translator import QuboTranslator
 from numpy.typing import NDArray
 from rich.console import Console
 from rich.table import Table
 
-from luna_model import Model, Timer
-from luna_model.translator import QuboTranslator
 from pytests.test_core.utils import make_seed
 
 REPS = 10

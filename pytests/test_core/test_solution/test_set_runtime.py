@@ -1,6 +1,5 @@
 import pytest
-
-from luna_model import Model, Variable, Environment, Solution, Vtype, Timer
+from luna_model import Environment, Model, Solution, Timer, Variable, Vtype
 
 
 def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
@@ -10,7 +9,7 @@ def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
     return tuple(variables), env
 
 
-@pytest.fixture
+@pytest.fixture()
 def model(request):
     (x, y, z), env = vars(*request.param)
     model = Model(env=env)

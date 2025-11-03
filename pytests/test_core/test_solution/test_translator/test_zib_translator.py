@@ -1,5 +1,5 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -18,7 +18,7 @@ from luna_model import Bounds, Model, Timer, Variable, Vtype
 from luna_model.translator import LpTranslator, ZibTranslator
 
 
-@pytest.fixture
+@pytest.fixture()
 def model() -> Model:
     m = Model(name="TestModel")
     with m.environment:
@@ -53,7 +53,7 @@ def model() -> Model:
     return m
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_quadratic() -> Model:
     m = Model(name="TestModel")
     with m.environment:
@@ -94,7 +94,7 @@ def model_quadratic() -> Model:
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_zib_translator(model: Model):
     lp_str = LpTranslator.from_aq(model)
     lp_filepath = Path(__file__).parent / "model.lp"
@@ -144,7 +144,7 @@ def test_zib_translator(model: Model):
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_zib_translator_quadratic(model_quadratic: Model):
     lp_str = LpTranslator.from_aq(model_quadratic)
     lp_filepath = Path(__file__).parent / "model.lp"
@@ -199,7 +199,7 @@ def test_zib_translator_quadratic(model_quadratic: Model):
         assert np.isclose(sample[v], value, atol=1e-5)
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_read_coins():
     lp_filepath = Path(__file__).parent / "coins.lp"
     _ = LpTranslator.to_aq(lp_filepath)

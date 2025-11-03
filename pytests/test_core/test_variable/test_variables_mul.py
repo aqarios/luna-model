@@ -1,9 +1,8 @@
 import pytest
-
 from luna_model import Environment, Expression, Variable, Vtype
 
 
-@pytest.mark.variable
+@pytest.mark.variable()
 @pytest.mark.parametrize("scalar", [1, 2, 3, 1.0, 2.0, 3.0])
 def test_mul_variable_and_number(scalar: int):
     with Environment():
@@ -16,7 +15,7 @@ def test_mul_variable_and_number(scalar: int):
     assert result.get_offset() == 0
 
 
-@pytest.mark.variable
+@pytest.mark.variable()
 @pytest.mark.parametrize("scalar", [1, 2, 3, 1.0, 2.0, 3.0])
 def test_rmul_variable_and_number(scalar: int):
     with Environment():
@@ -29,7 +28,7 @@ def test_rmul_variable_and_number(scalar: int):
     assert result.get_offset() == 0
 
 
-@pytest.mark.variable
+@pytest.mark.variable()
 def test_mul_variables():
     with Environment():
         x = Variable("x")
@@ -45,7 +44,7 @@ def test_mul_variables():
     assert result.get_quadratic(x, y) == result.get_quadratic(y, x)
 
 
-@pytest.mark.variable
+@pytest.mark.variable()
 def test_mul_same_variable_binary():
     with Environment():
         x = Variable("x", vtype=Vtype.Binary)
@@ -58,7 +57,7 @@ def test_mul_same_variable_binary():
     assert result.get_quadratic(x, x) == 0
 
 
-@pytest.mark.variable
+@pytest.mark.variable()
 def test_mul_same_variable_spin():
     with Environment():
         x = Variable("x", vtype=Vtype.Spin)
@@ -71,7 +70,7 @@ def test_mul_same_variable_spin():
     assert result.get_quadratic(x, x) == 0
 
 
-@pytest.mark.variable
+@pytest.mark.variable()
 def test_mul_same_variable_real():
     with Environment():
         x = Variable("x", vtype=Vtype.Real)
@@ -84,7 +83,7 @@ def test_mul_same_variable_real():
     assert result.get_quadratic(x, x) == 1
 
 
-@pytest.mark.variable
+@pytest.mark.variable()
 def test_mul_same_variable_integer():
     with Environment():
         x = Variable("x", vtype=Vtype.Integer)

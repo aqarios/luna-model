@@ -1,6 +1,7 @@
 from pathlib import Path
-from luna_model import Model, Solution
+
 import numpy as np
+from luna_model import Model, Solution
 
 
 def test_mismatch_var_order():

@@ -1,5 +1,6 @@
 from enum import Enum
-from luna_model import Vtype, Sense, Comparator
+
+from luna_model import Comparator, Sense, Vtype
 
 
 class ExpectedVtype(Enum):

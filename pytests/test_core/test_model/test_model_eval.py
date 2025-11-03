@@ -1,5 +1,4 @@
 import pytest
-
 from luna_model import (
     Bounds,
     ConstraintCollection,
@@ -13,7 +12,7 @@ from luna_model import (
 from luna_model.errors import EvaluationError
 
 
-@pytest.fixture
+@pytest.fixture()
 def solution() -> Solution:
     return Solution._build(  # type: ignore[reportAttributeAccessIssue]
         component_types=[
@@ -38,7 +37,7 @@ def solution() -> Solution:
     # )
 
 
-@pytest.fixture
+@pytest.fixture()
 def solution_max() -> Solution:
     return Solution._build(  # type: ignore[reportAttributeAccessIssue]
         component_types=[
@@ -57,7 +56,7 @@ def solution_max() -> Solution:
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_wo_constraint() -> Model:
     model = Model("test_model")
     with model.environment:
@@ -69,7 +68,7 @@ def model_wo_constraint() -> Model:
     return model
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_wo_constraint_maximize() -> Model:
     model = Model("test_model_maximize", sense=Sense.Max)
     with model.environment:
@@ -81,7 +80,7 @@ def model_wo_constraint_maximize() -> Model:
     return model
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_wo_constraint_one_less_var() -> Model:
     model = Model("test_model")
     with model.environment:
@@ -92,7 +91,7 @@ def model_wo_constraint_one_less_var() -> Model:
     return model
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_wo_constraint_one_more_var() -> Model:
     model = Model("test_model")
     with model.environment:
@@ -105,7 +104,7 @@ def model_wo_constraint_one_more_var() -> Model:
     return model
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_w_constraint() -> Model:
     model = Model("test_model")
     with model.environment:
@@ -121,7 +120,7 @@ def model_w_constraint() -> Model:
     return model
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_w_constraint_infeasible() -> Model:
     model = Model("test_model")
     with model.environment:

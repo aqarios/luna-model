@@ -1,10 +1,8 @@
 import pytest
+from luna_model import ConstraintCollection, Environment, Variable
 
 
-from luna_model import Variable, Environment, ConstraintCollection, Constraint
-
-
-@pytest.fixture
+@pytest.fixture()
 def constraint_collection() -> ConstraintCollection:
     with Environment():
         x = Variable("x")
@@ -21,5 +19,5 @@ def constraint_collection() -> ConstraintCollection:
 
 def test_collection_iter(constraint_collection: ConstraintCollection):
     for name, constraint in constraint_collection.items():
-        assert name == constraint_collection[name].name
-        assert constraint == constraint_collection[name]
+        assert name == constraint.name
+        assert constraint == constraint

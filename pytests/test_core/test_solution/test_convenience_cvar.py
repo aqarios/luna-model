@@ -1,8 +1,8 @@
 import math
 import random
-import pytest
 
-from luna_model import Model, Environment, Solution, Variable, Vtype
+import pytest
+from luna_model import Environment, Model, Solution, Variable, Vtype
 
 TOL = 1e-12
 
@@ -14,12 +14,12 @@ def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
     return tuple(variables), env
 
 
-@pytest.fixture
+@pytest.fixture()
 def variables(request) -> tuple[tuple[Variable, ...], Environment]:
     return vars(*request.param)
 
 
-@pytest.fixture
+@pytest.fixture()
 def model(request):
     (x, y, z), env = vars(*request.param)
     model = Model(env=env)
@@ -27,7 +27,7 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_cvar_properties_min_mean_monotone(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -56,7 +56,7 @@ def test_cvar_properties_min_mean_monotone(model: tuple[Model, tuple[Variable, .
     assert cvar_025 <= cvar_050 <= cvar_100
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_cvar_matches_empirical_formula(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -80,7 +80,7 @@ def test_cvar_matches_empirical_formula(model: tuple[Model, tuple[Variable, ...]
         assert sol.cvar(alpha=alpha) == pytest.approx(empirical(alpha), abs=TOL)
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_cvar_order_invariance(model: tuple[Model, tuple[Variable, ...]]):
     """CVaR should not depend on the order the samples are given."""
@@ -103,7 +103,7 @@ def test_cvar_order_invariance(model: tuple[Model, tuple[Variable, ...]]):
         )
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_cvar_invalid_alpha_raises(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model

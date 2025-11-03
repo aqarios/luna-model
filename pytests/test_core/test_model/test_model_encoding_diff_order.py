@@ -1,9 +1,8 @@
 import pytest
-
 from luna_model import Bounds, Model, Unbounded, Variable, Vtype
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_a():
     model = Model("model_a")
     with model.environment:
@@ -18,7 +17,7 @@ def model_a():
     return model
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_b():
     model = Model("model_b")
     with model.environment:

@@ -3,7 +3,6 @@ from random import Random
 import numpy as np
 import pytest
 from dimod import BinaryQuadraticModel
-
 from luna_model import Model, Sense, Variable
 from luna_model.errors import (
     ModelSenseNotMinimizeError,
@@ -11,10 +10,11 @@ from luna_model.errors import (
     VariableNamesError,
 )
 from luna_model.translator import BqmTranslator
+
 from pytests.test_core.utils import generate_bqms, make_seed
 
 
-@pytest.fixture
+@pytest.fixture()
 def model() -> Model:
     model = Model("test_model")
     with model.environment:
@@ -27,7 +27,7 @@ def model() -> Model:
     return model
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_bqm_to_model_to_bqm():
     rand = Random(make_seed())
     bqms = generate_bqms(20, rand)
@@ -71,7 +71,7 @@ def test_bqm_to_model_to_bqm():
         )
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_bqm_translator_wrong_sense(model: Model):
     with pytest.raises(ModelSenseNotMinimizeError):
         _ = BqmTranslator.from_aq(model)
@@ -80,7 +80,7 @@ def test_bqm_translator_wrong_sense(model: Model):
         _ = BqmTranslator.from_aq(model)
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_invalid_var_name():
     bqm = BinaryQuadraticModel(
         {"0": 4.0, "1": -2.0, "2": 6.0, "3": 2.0, "4": 5.0},

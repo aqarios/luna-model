@@ -1,11 +1,10 @@
 import pytest
-
 from luna_model import Environment, Expression, Variable, quicksum
 
 N: int = 20
 
 
-@pytest.fixture
+@pytest.fixture()
 def variables() -> list[Variable]:
     with Environment():
         return [Variable(f"v0{i}") for i in range(N)]
