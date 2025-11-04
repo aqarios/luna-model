@@ -170,16 +170,6 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::DuplicateConstraintNameError::NAME,
         m.py().get_type::<pyexc::DuplicateConstraintNameError>(),
     )?;
-    #[cfg(feature = "pyt")]
-    m.add(
-        pyexc::CompilationError::NAME,
-        m.py().get_type::<pyexc::CompilationError>(),
-    )?;
-    #[cfg(feature = "pyt")]
-    m.add(
-        pyexc::StartCannotBeInferredError::NAME,
-        m.py().get_type::<pyexc::StartCannotBeInferredError>(),
-    )?;
     m.add(
         pyexc::NoConstraintForKeyError::NAME,
         m.py().get_type::<pyexc::NoConstraintForKeyError>(),
@@ -192,6 +182,21 @@ pub fn register_errors(pm: &Bound<'_, PyModule>) -> PyResult<()> {
         pyexc::InternalPanicError::NAME,
         m.py().get_type::<pyexc::InternalPanicError>(),
     )?;
+    m.add(
+        pyexc::UnsupportedOperationError::NAME,
+        m.py().get_type::<pyexc::UnsupportedOperationError>(),
+    )?;
+    #[cfg(feature = "pyt")]
+    {
+        m.add(
+            pyexc::CompilationError::NAME,
+            m.py().get_type::<pyexc::CompilationError>(),
+        )?;
+        m.add(
+            pyexc::StartCannotBeInferredError::NAME,
+            m.py().get_type::<pyexc::StartCannotBeInferredError>(),
+        )?;
+    }
     pm.add_submodule(&m)?;
     pm.py()
         .import("sys")?

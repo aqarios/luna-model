@@ -37,6 +37,8 @@ use strum_macros::{Display, EnumIter};
 pub enum Vtype {
     /// Binary variable. Can only take values 0 or 1.
     Binary,
+    /// Inverted binary variable. ¬b == 1 - b. Can only take values 0 or 1.
+    InvertedBinary,
     /// Spin variable. Can only take values -1 or +1.
     Spin,
     /// Discrete integer-valued variable. Takes integer values within bounds.

@@ -20,6 +20,9 @@ pub struct SerEnvironment {
     /// The indices of the binary variables.
     #[prost(uint32, repeated, tag = "3")]
     binary: Vec<u32>,
+    /// The indices of the inverted binary variables.
+    #[prost(uint32, repeated, tag = "21")]
+    inverted_binary: Vec<u32>,
     /// The indices of the spin variables.
     #[prost(uint32, repeated, tag = "4")]
     spin: Vec<u32>,
@@ -33,6 +36,9 @@ pub struct SerEnvironment {
     /// The names of the binary variables
     #[prost(string, repeated, tag = "7")]
     binary_names: Vec<String>,
+    /// The names of the inverted binary variables
+    #[prost(string, repeated, tag = "22")]
+    inverted_binary_names: Vec<String>,
     /// The names of the spin variables
     #[prost(string, repeated, tag = "8")]
     pub spin_names: Vec<String>,
@@ -113,6 +119,10 @@ impl Creatable<Environment> for SerEnvironment {
                     out.binary.push(force_u32(i));
                     out.binary_names.push(var.name.clone());
                 }
+                Vtype::InvertedBinary=> {
+                    out.inverted_binary.push(force_u32(i));
+                    out.inverted_binary_names.push(var.name.clone());
+                }
                 Vtype::Spin => {
                     out.spin.push(force_u32(i));
                     out.spin_names.push(var.name.clone());
@@ -164,10 +174,12 @@ impl SerEnvironment {
             varcount,
             variables_len,
             binary: Vec::new(),
+            inverted_binary: Vec::new(),
             spin: Vec::new(),
             integer: Vec::new(),
             real: Vec::new(),
             binary_names: Vec::new(),
+            inverted_binary_names: Vec::new(),
             spin_names: Vec::new(),
             integer_names: Vec::new(),
             real_names: Vec::new(),
@@ -191,6 +203,7 @@ impl SerEnvironment {
         let mut variables_lookup = HashMap::new();
         let mut variables = Vec::with_capacity(self.variables_len as usize);
         let mut ghost_vars = Vec::with_capacity(self.ghosts.len());
+        let mut inverted_vars = Vec::with_capacity(self.inverted_binary.len());
         let num_vars = if self.variables_len != 0 {
             self.variables_len as usize
         } else {
@@ -209,6 +222,14 @@ impl SerEnvironment {
                 Variable::new(name.clone(), Some(Vtype::Binary), None, env.id())
                     .expect("binary variable creation failed during deserialization");
             variables_lookup.insert(name, VarId(*v));
+        }
+        for (i, v) in self.inverted_binary.iter().enumerate() {
+            let name = self.inverted_binary_names[i].clone();
+            variables[*v as usize] =
+                Variable::new(name.clone(), Some(Vtype::InvertedBinary), None, env.id())
+                    .expect("inverted binary variable creation failed during deserialization");
+            variables_lookup.insert(name, VarId(*v));
+            inverted_vars.push(*v as usize);
         }
         for (i, v) in self.spin.iter().enumerate() {
             let name = self.spin_names[i].clone();
@@ -272,7 +293,7 @@ impl SerEnvironment {
             variables_lookup.insert(name, VarId(*v));
         }
 
-        env.set_data(varcount, variables, variables_lookup, ghost_vars);
+        env.set_data(varcount, variables, variables_lookup, ghost_vars, inverted_vars);
         env
     }
 }

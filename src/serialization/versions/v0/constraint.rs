@@ -104,7 +104,7 @@ impl SerConstraints {
                 0 => Comparator::Le,
                 1 => Comparator::Eq,
                 2 => Comparator::Ge,
-                _ => panic!("undefined comparator '{}'", comp),
+                _ => unreachable!("undefined comparator '{}'", comp),
             };
             let name = if name == DEFAULT_CONSTRAINT_NAME {
                 None

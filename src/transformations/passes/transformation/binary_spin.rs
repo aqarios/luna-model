@@ -79,7 +79,7 @@ impl TransformationPass for BinarySpinPass {
             match self.vtype {
                 Vtype::Binary => "x",
                 Vtype::Spin => "s",
-                _ => panic!("Cannot be reached."),
+                _ => unreachable!("Cannot be reached."),
             }
             .to_string(),
         );
@@ -141,7 +141,7 @@ impl TransformationPass for BinarySpinPass {
                     e
                 }
                 // This cannot be reached
-                _ => panic!("unexpected vtype"),
+                _ => unreachable!("unexpected vtype"),
             };
             model
                 .substitute(&varref, &expr)

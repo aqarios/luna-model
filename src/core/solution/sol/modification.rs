@@ -116,6 +116,8 @@ impl Solution {
             Vtype::Integer => self.add_integer_col(varid, Vec::with_capacity(capacity)),
             Vtype::Real => self.add_real_col(varid, Vec::with_capacity(capacity)),
             Vtype::__Ghost => (),
+            Vtype::InvertedBinary => (),
+            // Vtype::InvertedBinary => self.add_inverted_binary_col(varid, Vec::with_capacity(capacity)),
         }
     }
 

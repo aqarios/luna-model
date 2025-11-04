@@ -17,6 +17,7 @@ use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::types::PyBool;
 use pyo3::{prelude::*, IntoPyObjectExt};
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::ops::Not;
 use unwind_macros::unwindable;
 
 /// Represents a symbolic variable within an optimization environment.
@@ -330,6 +331,29 @@ impl PyVariable {
         Ok(PyExpression::new(expr))
     }
 
+    /// Invert this variable. This operation is only supported on
+    /// Binary variables. For all other variable types it raises the
+    /// `UnsupportedOperationError`.
+    ///
+    /// Returns
+    /// -------
+    /// Expression
+    ///     The resulting symbolic expression.
+    ///
+    /// Raises
+    /// ------
+    /// UnsupportedOperationErr
+    ///     If the operand is a variable of any type other than `Binary`.
+    fn not(&self) -> PyResult<PyVariable> {
+        self.check_living()?;
+        Ok(PyVariable::new(self.0.not()?))
+    }
+
+    fn __invert__(&self) -> PyResult<PyVariable> {
+        self.check_living()?;
+        Ok(PyVariable::new(self.0.not()?))
+    }
+
     /// Right-hand multiplication for scalars.
     ///
     /// Parameters
@@ -349,6 +373,7 @@ impl PyVariable {
         self.check_living()?;
         self.__mul__(py, other)
     }
+
 
     /// Raise the variable to the power specified by `other`.
     ///
@@ -540,6 +565,7 @@ impl Vtype {
     fn get_name(&self) -> String {
         match &self {
             Self::Binary => String::from("Binary"),
+            Self::InvertedBinary=> String::from("InvertedBinary"),
             Self::Spin => String::from("Spin"),
             Self::Integer => String::from("Integer"),
             Self::Real => String::from("Real"),

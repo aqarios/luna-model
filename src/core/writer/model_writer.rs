@@ -102,7 +102,7 @@ impl ModelWriter {
                 if !self.is_first {
                     self.writer.space();
                 }
-                let s = format!("{}{}", self.show_bias(&bias), env.access()[i].name);
+                let s = format!("{}{}", self.show_bias(&bias), env.access()[i].as_string());
                 self.writer.write(&s);
                 self.is_first = false;
             }

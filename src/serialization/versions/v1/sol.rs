@@ -21,6 +21,7 @@ fn vtype_to_u8(vtype: Vtype) -> u8 {
         Vtype::Integer => 2,
         Vtype::Real => 3,
         Vtype::__Ghost => 4,
+        Vtype::InvertedBinary => 5,
     }
 }
 
@@ -31,7 +32,8 @@ fn u8_to_vtype(u: u8) -> Vtype {
         2 => Vtype::Integer,
         3 => Vtype::Real,
         4 => Vtype::__Ghost,
-        _ => panic!("issue"),
+        5 => Vtype::InvertedBinary,
+        _ => unreachable!("issue"),
     }
 }
 
@@ -216,6 +218,7 @@ impl SerSolution {
             let vtype = u8_to_vtype(st);
             match vtype {
                 Vtype::__Ghost => (),
+                Vtype::InvertedBinary => (),
                 Vtype::Binary => {
                     sol.add_binary_col(
                         i.into(),

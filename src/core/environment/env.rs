@@ -2,7 +2,7 @@ use crate::core::expression::One;
 use crate::core::traits::ContentEquality;
 use crate::core::variable::{VarRef, Variable, Vtype};
 use crate::core::writer::LineLengthRestrictor;
-use crate::core::{Bounds, LazyBounds, ValueByIndex, VarAssignment};
+use crate::core::{Bounds, LazyBounds, ValueByIndex, VarAssignment, VarId};
 use crate::errors::{VariableCreationErr, VariableNotExistingErr};
 use crate::types::Bias;
 use crate::types::{EnvId, VarIndex};
@@ -12,9 +12,10 @@ use global_counter::primitive::exact::CounterU64;
 use hashbrown::HashMap;
 use sqids::Sqids;
 use std::fmt::{Display, Formatter};
-use std::ops::Deref;
 use std::ops::Index;
+use std::ops::{Deref, IndexMut};
 use std::slice::Iter;
+use std::sync::MutexGuard;
 
 pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
 
@@ -25,6 +26,7 @@ pub struct Environment {
     variables_lookup: HashMap<String, VarIndex>,
     varcount: VarIndex,
     ghost_vars: Vec<usize>,
+    inverted_vars: Vec<usize>,
 }
 
 #[derive(Debug, Deref, DerefMut)]
@@ -59,21 +61,7 @@ impl SharedEnvironment {
         bounds: Option<LazyBounds>,
     ) -> Result<VarRef, VariableCreationErr> {
         let mut mutable_env = self.access_mut();
-        if mutable_env.variables_lookup.contains_key(name) {
-            return Err(VariableCreationErr::VariableExists(name.to_string()));
-        }
-        ensure_name_valid(name)?;
-        let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id)?;
-        let id = if let Some(id) = mutable_env.ghost_vars.pop() {
-            mutable_env.variables[id] = var;
-            id.into()
-        } else {
-            let id = mutable_env.varcount;
-            mutable_env.variables.push(var);
-            id
-        };
-        mutable_env.variables_lookup.insert(name.to_string(), id);
-        mutable_env.varcount += VarIndex::one();
+        let id = Environment::add_variable(&mut mutable_env, name, vtype, bounds)?;
         Ok(VarRef::new(id, self.clone()))
     }
 
@@ -132,7 +120,10 @@ impl SharedEnvironment {
 
     pub fn get_vrefs_in_order(&self) -> Vec<VarRef> {
         (0..self.access().variables.len())
-            .filter(|idx| !self.access().ghost_vars.contains(idx))
+            .filter(|idx| {
+                !(self.access().ghost_vars.contains(idx)
+                    || self.access().inverted_vars.contains(idx))
+            })
             .map(|idx| VarRef::new(idx.into(), self.clone()))
             .collect()
     }
@@ -159,7 +150,7 @@ impl SharedEnvironment {
         slf.variables
             .iter()
             .enumerate()
-            .filter(|(i, _)| !slf.ghost_vars.contains(i))
+            .filter(|(i, _)| !(slf.ghost_vars.contains(i) || slf.inverted_vars.contains(i)))
             .map(|(_, e)| e.name.clone())
             .collect()
     }
@@ -176,7 +167,7 @@ impl SharedEnvironment {
     pub fn vrefs(&self) -> Vec<VarRef> {
         let slf = self.access();
         (0..slf.variables.len())
-            .filter(|idx| !slf.ghost_vars.contains(idx))
+            .filter(|idx| !(slf.ghost_vars.contains(idx) || slf.inverted_vars.contains(idx)))
             .map(|idx| VarRef::new(idx.into(), self.clone()))
             .collect()
     }
@@ -239,6 +230,7 @@ impl Environment {
             variables_lookup: HashMap::new(),
             varcount: VarIndex::default(),
             ghost_vars: Vec::new(),
+            inverted_vars: Vec::new(),
         }
     }
 
@@ -255,6 +247,7 @@ impl Environment {
             variables_lookup: self.variables_lookup.clone(),
             varcount: self.varcount.clone(),
             ghost_vars: Vec::new(),
+            inverted_vars: Vec::new(),
         }
     }
 
@@ -274,11 +267,13 @@ impl Environment {
         variables: Vec<Variable>,
         variables_lookup: HashMap<String, VarIndex>,
         ghost_vars: Vec<usize>,
+        inverted_vars: Vec<usize>,
     ) {
         self.varcount = varcount;
         self.variables = variables;
         self.variables_lookup = variables_lookup;
         self.ghost_vars = ghost_vars;
+        self.inverted_vars = inverted_vars;
     }
 
     /// Alias for `self[id].vtype`.
@@ -292,7 +287,7 @@ impl Environment {
         self.variables
             .iter()
             .enumerate()
-            .filter(|(idx, _)| !self.ghost_vars.contains(idx))
+            .filter(|(idx, _)| !(self.ghost_vars.contains(idx) || self.inverted_vars.contains(idx)))
             .map(|(_, var)| var)
             .collect()
     }
@@ -320,7 +315,7 @@ impl Environment {
         self.variables
             .iter()
             .enumerate()
-            .filter(|(i, _)| !self.ghost_vars.contains(i))
+            .filter(|(i, _)| !(self.ghost_vars.contains(i) || self.inverted_vars.contains(i)))
             .map(|(i, v)| {
                 let value: Bias = sample.value_by_index(index_map(i.into())).to_bias();
                 v.bounds.evaluate(value)
@@ -351,6 +346,63 @@ impl Environment {
             Option::None => Err(VariableNotExistingErr {}),
         }
     }
+
+    pub fn add_variable(
+        mutable_env: &mut MutexGuard<'_, Environment>,
+        name: &str,
+        vtype: Option<Vtype>,
+        bounds: Option<LazyBounds>,
+    ) -> Result<VarId, VariableCreationErr> {
+        if mutable_env.variables_lookup.contains_key(name) {
+            return Err(VariableCreationErr::VariableExists(name.to_string()));
+        }
+        ensure_name_valid(name)?;
+        let var = Variable::new(name.to_string(), vtype, bounds, mutable_env.id)?;
+        let id = if let Some(id) = mutable_env.ghost_vars.pop() {
+            mutable_env.variables[id] = var;
+            id.into()
+        } else {
+            let id = mutable_env.variables.len().into();
+            mutable_env.variables.push(var);
+            id
+        };
+        mutable_env.variables_lookup.insert(name.to_string(), id);
+        mutable_env.varcount += VarIndex::one();
+        Ok(id)
+        // Ok(VarRef::new(id, self.clone()))
+    }
+
+    pub fn add_inverted_variable(
+        mutable_env: &mut MutexGuard<'_, Environment>,
+        base: &Variable,
+    ) -> Result<VarId, VariableCreationErr> {
+        if base.vtype != Vtype::Binary {
+            return Err(VariableCreationErr::InvalidInversion(base.vtype));
+        }
+        let inverted_name = format!("~{}", base.name);
+        if mutable_env.variables_lookup.contains_key(&inverted_name) {
+            return Err(VariableCreationErr::VariableExists(inverted_name));
+        }
+        let var = Variable::new(
+            inverted_name.clone(),
+            Some(Vtype::InvertedBinary),
+            None,
+            mutable_env.id,
+        )?;
+        let id = if let Some(id) = mutable_env.ghost_vars.pop() {
+            mutable_env.variables[id] = var;
+            id.into()
+        } else {
+            let id = mutable_env.variables.len().into();
+            mutable_env.variables.push(var);
+            id
+        };
+        mutable_env.variables_lookup.insert(inverted_name, id);
+        mutable_env.inverted_vars.push(id.into());
+        // mutable_env.varcount += VarIndex::one();
+        Ok(id)
+        // Ok(VarRef::new(id, self.clone()))
+    }
 }
 
 impl Index<usize> for Environment {
@@ -358,6 +410,12 @@ impl Index<usize> for Environment {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.variables[index]
+    }
+}
+
+impl IndexMut<usize> for Environment {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.variables[index]
     }
 }
 
@@ -370,13 +428,20 @@ impl Index<VarIndex> for Environment {
     }
 }
 
+impl IndexMut<VarIndex> for Environment {
+    fn index_mut(&mut self, index: VarIndex) -> &mut Self::Output {
+        let idx: usize = index.into();
+        &mut self.variables[idx]
+    }
+}
+
 impl Display for Environment {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let variables: Vec<_> = self
             .variables
             .iter()
             .enumerate()
-            .filter(|(i, _)| !self.ghost_vars.contains(i))
+            .filter(|(i, _)| !(self.ghost_vars.contains(i) || self.inverted_vars.contains(i)))
             .map(|(_, x)| x.name.clone())
             .collect();
         let mut writer = LineLengthRestrictor::new(0);
@@ -418,6 +483,7 @@ impl Variable {
             vtype: Vtype::__Ghost,
             bounds: Bounds::__ghost(),
             env_id: 0,
+            inverted: None,
         }
     }
 }

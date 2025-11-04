@@ -244,8 +244,6 @@ impl Parser {
             match op {
                 Op::UMinus => {
                     let a = vals.pop().ok_or("unary minus: missing operand")?;
-                    // let out: ExprTree = todo!("implement unary negation of operand `a`");
-                    // example if building AST: let out = Expr::Neg(Box::new(a));
                     let out = ExprTree::Neg(Box::new(a));
                     vals.push(out);
                 }
@@ -257,10 +255,10 @@ impl Parser {
                         .pop()
                         .ok_or_else(|| format!("operator {:?}: missing left operand", op))?;
                     let out: ExprTree = match op {
-                        Op::Add => ExprTree::Add(Box::new(lhs), Box::new(rhs)), // todo!("implement addition: `lhs + rhs`"),
-                        Op::Sub => ExprTree::Sub(Box::new(lhs), Box::new(rhs)), // todo!("implement subtraction: `lhs - rhs`"),
-                        Op::Mul => ExprTree::Mul(Box::new(lhs), Box::new(rhs)), // todo!("implement multiplication: `lhs * rhs` (also used for implicit multiplication)"),
-                        Op::Pow => ExprTree::Pow(Box::new(lhs), Box::new(rhs)), // todo!("implement exponentiation: `lhs ^ rhs`"),
+                        Op::Add => ExprTree::Add(Box::new(lhs), Box::new(rhs)), 
+                        Op::Sub => ExprTree::Sub(Box::new(lhs), Box::new(rhs)),
+                        Op::Mul => ExprTree::Mul(Box::new(lhs), Box::new(rhs)),
+                        Op::Pow => ExprTree::Pow(Box::new(lhs), Box::new(rhs)),
                         _ => unreachable!(),
                     };
                     // example if building AST: let out = Expr::Bin(op_to_ast(op), Box::new(lhs), Box::new(rhs));

@@ -212,7 +212,12 @@ impl SectionsHolder {
                 }
                 Vtype::Spin => {
                     return Err(TranslationErr::new(
-                        "LP files cannot contain variables of type SPIN".to_string(),
+                        "LP files cannot contain variables of type 'Spin'".to_string(),
+                    ))
+                }
+                Vtype::InvertedBinary => {
+                    return Err(TranslationErr::new(
+                        "LP files cannot contain variables of type 'InvertedBinary'".to_string(),
                     ))
                 }
                 Vtype::Integer => sections.push(

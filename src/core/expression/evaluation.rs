@@ -1,10 +1,11 @@
 use super::{Expression, ExpressionEvaluation};
 use crate::core::expression::One;
+use crate::core::Vtype;
 use crate::{
     core::ValueByIndex,
     types::{Bias, VarIndex},
 };
-use std::ops::Mul;
+use std::ops::{Mul, Sub};
 
 impl ExpressionEvaluation<VarIndex, Bias> for Expression {
     fn evaluate_sample<'a, Elem: 'a, Sample: ValueByIndex<VarIndex, Output = Elem>, F>(
@@ -14,14 +15,24 @@ impl ExpressionEvaluation<VarIndex, Bias> for Expression {
     ) -> Bias
     where
         Elem: Mul<Bias, Output = Bias>,
+        Bias: Sub<Elem, Output = Bias>,
         F: Fn(VarIndex) -> VarIndex,
     {
         let mut value = self.offset;
         // Evaluate the linear term.
         for (idx, bias) in self.linear.iter() {
-            let mapped = index_map(idx.into());
-            value += sample.value_by_index(mapped) * bias;
+            let var = &self.env.access()[idx];
+            if var.vtype == Vtype::InvertedBinary {
+                // Get the actual non-inverted co-variable.
+                let mapped = index_map(var.inverted.unwrap());
+                // Value calculation changes to (1 - x) * bias.
+                value += (Bias::one() - sample.value_by_index(mapped)) * bias;
+            } else {
+                let mapped = index_map(idx.into());
+                value += sample.value_by_index(mapped) * bias;
+            }
         }
+
         // Evaluate the quadratic term if it exists.
         if let Some(quad) = &self.quadratic {
             for (u, v, bias) in quad.iter_flat() {
@@ -54,6 +65,7 @@ impl ExpressionEvaluation<VarIndex, Bias> for Expression {
     ) -> Vec<Bias>
     where
         Elem: Mul<Bias, Output = Bias>,
+        Bias: Sub<Elem, Output = Bias>,
         F: Fn(VarIndex) -> VarIndex,
     {
         sampleset
