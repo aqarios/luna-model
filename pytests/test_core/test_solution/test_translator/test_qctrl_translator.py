@@ -3,10 +3,10 @@ from time import sleep
 from typing import Any, Callable
 
 import pytest
-from numpy import unique
-
 from luna_model import Environment, Timer, Variable
 from luna_model.translator import QctrlTranslator
+from numpy import unique
+
 from pytests.test_core.utils import make_seed, random, random_bool, random_int
 
 REPS: int = 100
@@ -86,7 +86,7 @@ def test_qctrl_base():
     print(sol)
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_qctrl_translator_constructed():
     for _ in range(REPS):
         rand = Random(make_seed())
@@ -118,7 +118,7 @@ def test_qctrl_translator_constructed():
         assert len(results) == num_samples
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_qctrl_translator_constructed_explicit_env():
     for _ in range(REPS):
         rand = Random(make_seed())
@@ -154,7 +154,7 @@ def test_qctrl_translator_constructed_explicit_env():
         assert len(results) == num_samples
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_qctrl_translator_constructed_with_time():
     for _ in range(REPS):
         rand = Random(make_seed())
@@ -192,7 +192,7 @@ def test_qctrl_translator_constructed_with_time():
         assert len(results) == num_samples
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_qctrl_translator_constructed_vars():
     for _ in range(REPS):
         rand = Random(make_seed())

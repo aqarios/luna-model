@@ -5,12 +5,12 @@ TRANSLATOR_MODULE_NAME: str = "luna_model._core.translator"
 ERRORS_MODULE_NAME: str = "luna_model._core.errors"
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_luna_model():
     import luna_model as _  # noqa: F401
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_variable():
     import luna_model as lm
     from luna_model import Variable
@@ -20,7 +20,7 @@ def test_import_variable():
     assert lm.Variable.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_vtype():
     import luna_model as lm
     from luna_model import Vtype
@@ -30,7 +30,7 @@ def test_import_vtype():
     assert lm.Vtype.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_comparator():
     import luna_model as lm
     from luna_model import Comparator
@@ -40,7 +40,7 @@ def test_import_comparator():
     assert lm.Comparator.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_environment():
     import luna_model as lm
     from luna_model import Environment
@@ -50,7 +50,7 @@ def test_import_environment():
     assert lm.Environment.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_expression():
     import luna_model as lm
     from luna_model import Expression
@@ -60,7 +60,7 @@ def test_import_expression():
     assert lm.Expression.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_model():
     import luna_model as lm
     from luna_model import Model
@@ -70,7 +70,7 @@ def test_import_model():
     assert lm.Model.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_bounds():
     import luna_model as lm
     from luna_model import Bounds
@@ -80,7 +80,7 @@ def test_import_bounds():
     assert lm.Bounds.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_constraint():
     import luna_model as lm
     from luna_model import Constraint
@@ -90,7 +90,7 @@ def test_import_constraint():
     assert lm.Constraint.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_constraints():
     import luna_model as lm
     from luna_model import ConstraintCollection
@@ -100,7 +100,7 @@ def test_import_constraints():
     assert lm.ConstraintCollection.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_qubo_translator():
     import luna_model
     import luna_model as lm
@@ -113,7 +113,7 @@ def test_import_qubo_translator():
     # luna_model
     assert luna_model.translator.QuboTranslator == translator.QuboTranslator
     assert lm.translator.QuboTranslator == translator.QuboTranslator
-    assert MTID == translator.QuboTranslator
+    assert translator.QuboTranslator == MTID
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
     assert lm.translator.QuboTranslator.__module__ == TRANSLATOR_MODULE_NAME
@@ -122,7 +122,7 @@ def test_import_qubo_translator():
     assert translator.QuboTranslator.__module__ == TRANSLATOR_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_variable_out_of_range_exception():
     import luna_model
     import luna_model as lm
@@ -135,7 +135,7 @@ def test_import_variable_out_of_range_exception():
     # luna_model
     assert luna_model.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
     assert lm.errors.VariableOutOfRangeError == errors.VariableOutOfRangeError
-    assert ID == errors.VariableOutOfRangeError
+    assert errors.VariableOutOfRangeError == ID
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
     assert lm.errors.VariableOutOfRangeError.__module__ == ERRORS_MODULE_NAME
@@ -144,7 +144,7 @@ def test_import_variable_out_of_range_exception():
     assert errors.VariableOutOfRangeError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_variable_exists_exception():
     import luna_model
     import luna_model as lm
@@ -157,7 +157,7 @@ def test_import_variable_exists_exception():
     # luna_model
     assert luna_model.errors.VariableExistsError == errors.VariableExistsError
     assert lm.errors.VariableExistsError == errors.VariableExistsError
-    assert ID == errors.VariableExistsError
+    assert errors.VariableExistsError == ID
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
     assert lm.errors.VariableExistsError.__module__ == ERRORS_MODULE_NAME
@@ -166,7 +166,7 @@ def test_import_variable_exists_exception():
     assert errors.VariableExistsError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_variable_from_different_envs_exception():
     import luna_model
     import luna_model as lm
@@ -185,7 +185,7 @@ def test_import_variable_from_different_envs_exception():
         lm.errors.VariablesFromDifferentEnvsError
         == errors.VariablesFromDifferentEnvsError
     )
-    assert ID == errors.VariablesFromDifferentEnvsError
+    assert errors.VariablesFromDifferentEnvsError == ID
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
     assert lm.errors.VariablesFromDifferentEnvsError.__module__ == ERRORS_MODULE_NAME
@@ -197,7 +197,7 @@ def test_import_variable_from_different_envs_exception():
     assert errors.VariablesFromDifferentEnvsError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_different_envs_exception():
     import luna_model
     import luna_model as lm
@@ -210,7 +210,7 @@ def test_import_different_envs_exception():
     # luna_model
     assert luna_model.errors.DifferentEnvsError == errors.DifferentEnvsError
     assert lm.errors.DifferentEnvsError == errors.DifferentEnvsError
-    assert ID == errors.DifferentEnvsError
+    assert errors.DifferentEnvsError == ID
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
     assert lm.errors.DifferentEnvsError.__module__ == ERRORS_MODULE_NAME
@@ -219,7 +219,7 @@ def test_import_different_envs_exception():
     assert errors.DifferentEnvsError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_no_active_environment_found_exception():
     import luna_model
     import luna_model as lm
@@ -237,7 +237,7 @@ def test_import_no_active_environment_found_exception():
     assert (
         lm.errors.NoActiveEnvironmentFoundError == errors.NoActiveEnvironmentFoundError
     )
-    assert ID == errors.NoActiveEnvironmentFoundError
+    assert errors.NoActiveEnvironmentFoundError == ID
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
     assert lm.errors.NoActiveEnvironmentFoundError.__module__ == ERRORS_MODULE_NAME
@@ -249,7 +249,7 @@ def test_import_no_active_environment_found_exception():
     assert errors.NoActiveEnvironmentFoundError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_multiple_active_environments_exception():
     import luna_model
     import luna_model as lm
@@ -268,7 +268,7 @@ def test_import_multiple_active_environments_exception():
         lm.errors.MultipleActiveEnvironmentsError
         == errors.MultipleActiveEnvironmentsError
     )
-    assert ID == errors.MultipleActiveEnvironmentsError
+    assert errors.MultipleActiveEnvironmentsError == ID
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
     assert lm.errors.MultipleActiveEnvironmentsError.__module__ == ERRORS_MODULE_NAME
@@ -280,7 +280,7 @@ def test_import_multiple_active_environments_exception():
     assert errors.MultipleActiveEnvironmentsError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_decode_exception():
     import luna_model
     import luna_model as lm
@@ -293,7 +293,7 @@ def test_import_decode_exception():
     # luna_model
     assert luna_model.errors.DecodeError == errors.DecodeError
     assert lm.errors.DecodeError == errors.DecodeError
-    assert ID == errors.DecodeError
+    assert errors.DecodeError == ID
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
     assert lm.errors.DecodeError.__module__ == ERRORS_MODULE_NAME
@@ -302,7 +302,7 @@ def test_import_decode_exception():
     assert errors.DecodeError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_model_not_quadratic_exception():
     import luna_model
     import luna_model as lm
@@ -315,7 +315,7 @@ def test_import_model_not_quadratic_exception():
     # luna_model
     assert luna_model.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
     assert lm.errors.ModelNotQuadraticError == errors.ModelNotQuadraticError
-    assert ID == errors.ModelNotQuadraticError
+    assert errors.ModelNotQuadraticError == ID
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
     assert lm.errors.ModelNotQuadraticError.__module__ == ERRORS_MODULE_NAME
@@ -324,7 +324,7 @@ def test_import_model_not_quadratic_exception():
     assert errors.ModelNotQuadraticError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports
+@pytest.mark.imports()
 def test_import_model_not_unconstrained_exception():
     import luna_model
     import luna_model as lm
@@ -340,7 +340,7 @@ def test_import_model_not_unconstrained_exception():
         == errors.ModelNotUnconstrainedError
     )
     assert lm.errors.ModelNotUnconstrainedError == errors.ModelNotUnconstrainedError
-    assert ID == errors.ModelNotUnconstrainedError
+    assert errors.ModelNotUnconstrainedError == ID
 
     # the transaltor module is TRANSLATOR_MODULE_NAME
     assert lm.errors.ModelNotUnconstrainedError.__module__ == ERRORS_MODULE_NAME

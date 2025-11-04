@@ -1,10 +1,9 @@
 import pytest
-
 from luna_model import Model, Variable, Vtype
 from luna_model.errors import VariableNotExistingError
 
 
-@pytest.mark.model_substitution
+@pytest.mark.model_substitution()
 def test_model_substitution_same_var():
     m = Model()
     with m.environment:
@@ -33,7 +32,7 @@ def test_model_substitution_same_var():
     assert target == r
 
 
-@pytest.mark.model_substitution
+@pytest.mark.model_substitution()
 def test_model_substitution_var():
     m = Model()
     with m.environment:
@@ -70,7 +69,7 @@ def test_model_substitution_var():
         _ = m.environment.get_variable("target")
 
 
-@pytest.mark.model_substitution
+@pytest.mark.model_substitution()
 def test_model_substitution():
     m = Model()
     with m.environment:

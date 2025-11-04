@@ -1,10 +1,19 @@
-import pytest
-from random import Random
-from typing import TypeVar
 from enum import Enum
 from itertools import combinations
-from luna_model import Model, ModelSpecs, Sense, Vtype, ConstraintType, Expression
-from luna_model import Comparator, Constraint
+from random import Random
+from typing import TypeVar
+
+import pytest
+from luna_model import (
+    Comparator,
+    Constraint,
+    ConstraintType,
+    Expression,
+    Model,
+    ModelSpecs,
+    Sense,
+    Vtype,
+)
 
 from .utils import make_seed
 
@@ -41,7 +50,7 @@ max_num_variables = [None, 1, 2, 3, 4]
 @pytest.mark.parametrize("max_degree", max_degree)
 @pytest.mark.parametrize("max_constraint_degree", max_constraint_degree)
 @pytest.mark.parametrize("max_num_variables", max_num_variables)
-@pytest.mark.model
+@pytest.mark.model()
 def test_modelspecs_emptymodel(
     sense: Sense | None,
     vtypes: list[Vtype] | None,
@@ -68,7 +77,7 @@ def test_modelspecs_emptymodel(
 @pytest.mark.parametrize("max_degree", max_degree)
 @pytest.mark.parametrize("max_constraint_degree", max_constraint_degree)
 @pytest.mark.parametrize("max_num_variables", max_num_variables)
-@pytest.mark.model
+@pytest.mark.model()
 def test_modelspecs_constructed(
     sense: Sense | None,
     vtypes: list[Vtype] | None,

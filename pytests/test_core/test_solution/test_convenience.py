@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from luna_model import Environment, Model, Solution, Variable, Vtype
 
 
@@ -11,12 +10,12 @@ def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
     return tuple(variables), env
 
 
-@pytest.fixture
+@pytest.fixture()
 def variables(request) -> tuple[tuple[Variable, ...], Environment]:
     return vars(*request.param)
 
 
-@pytest.fixture
+@pytest.fixture()
 def model(request):
     (x, y, z), env = vars(*request.param)
     model = Model(env=env)
@@ -24,7 +23,7 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_expectation_value(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -53,7 +52,7 @@ def test_expectation_value(model: tuple[Model, tuple[Variable, ...]]):
     assert sol.expectation_value() == gt_expval
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_cvar(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -68,7 +67,7 @@ def test_cvar(model: tuple[Model, tuple[Variable, ...]]):
     assert sol.cvar(alpha=1.0) == sol.expectation_value()
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_feasibility_ratio(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -92,7 +91,7 @@ def test_feasibility_ratio(model: tuple[Model, tuple[Variable, ...]]):
     assert sol.feasibility_ratio() == 0.4
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_filter_feasible(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -121,7 +120,7 @@ def test_filter_feasible(model: tuple[Model, tuple[Variable, ...]]):
     assert sol_feasible == expected
 
 
-@pytest.mark.solution
+@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_filter_feasible_callback(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model

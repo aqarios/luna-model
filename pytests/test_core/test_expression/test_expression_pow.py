@@ -1,20 +1,18 @@
 from itertools import product
-from typing import Tuple
 
 import pytest
-
 from luna_model import Environment, Variable, Vtype
 
 
-@pytest.fixture
-def variables(request) -> Tuple[Variable, ...]:
+@pytest.fixture()
+def variables(request) -> tuple[Variable, ...]:
     n, vtype = request.param
     with Environment():
         variables = [Variable(f"x_{i}", vtype=vtype) for i in range(n)]
     return tuple(variables)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -28,7 +26,7 @@ def test_expression_pow(variables):
     assert expr.is_equal(expr_manual)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),

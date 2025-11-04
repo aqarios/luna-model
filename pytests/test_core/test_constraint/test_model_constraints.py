@@ -1,5 +1,4 @@
 import pytest
-
 from luna_model import Environment, Model, Vtype
 from luna_model.errors import DuplicateConstraintNameError, NoConstraintForKeyError
 
@@ -106,12 +105,12 @@ def model_direct_add_named(request) -> Model:
     return model
 
 
-@pytest.fixture
+@pytest.fixture()
 def models(request) -> tuple[Model, Model, Model]:
     return (model_iadd(request), model_fadd(request), model_direct_add(request))
 
 
-@pytest.fixture
+@pytest.fixture()
 def models_named(request) -> tuple[Model, Model, Model]:
     return (
         model_iadd_named(request),
@@ -131,13 +130,13 @@ def check_get_constraint_error(model, index, name, error_type):
         model.constraints.get(name)
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_get_constraint_not_existing():
     check_get_constraint_error(Model(), 0, "my_constraint", NoConstraintForKeyError)
     check_get_constraint_error(Model(), 0, "my_constraint", IndexError)
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_remove_constraint():
     model = Model()
     x = model.add_variable("x")
@@ -161,7 +160,7 @@ def test_model_remove_constraint():
     check(IndexError)
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_add_constraint_le():
     model = Model()
     x = model.add_variable("x")
@@ -173,7 +172,7 @@ def test_model_add_constraint_le():
     assert model.constraints.get(0) == model.constraints.get("my_constraint")
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_add_constraint_eq():
     model = Model()
     x = model.add_variable("x")
@@ -185,7 +184,7 @@ def test_model_add_constraint_eq():
     assert model.constraints.get(0) == model.constraints.get("my_constraint")
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_add_constraint_ge():
     model = Model()
     x = model.add_variable("x")
@@ -197,7 +196,7 @@ def test_model_add_constraint_ge():
     assert model.constraints.get(0) == model.constraints.get("my_constraint")
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_add_constraint_le_named():
     model = Model()
     x = model.add_variable("x")
@@ -210,7 +209,7 @@ def test_model_add_constraint_le_named():
     assert model.constraints.get(0) == model.constraints.get("constraint")
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_add_constraint_le_named_duplicate():
     model = Model()
     x = model.add_variable("x")
@@ -221,7 +220,7 @@ def test_model_add_constraint_le_named_duplicate():
         model.constraints += x - y == 2, "constraint"
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_add_constraint_eq_named():
     model = Model()
     x = model.add_variable("x")
@@ -232,7 +231,7 @@ def test_model_add_constraint_eq_named():
     assert model.constraints[0].name == "constraint"
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_add_constraint_eq_named_duplicate():
     model = Model()
     x = model.add_variable("x")
@@ -243,7 +242,7 @@ def test_model_add_constraint_eq_named_duplicate():
         model.constraints += x - y == 2, "constraint"
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_add_constraint_ge_named():
     model = Model()
     x = model.add_variable("x")
@@ -254,7 +253,7 @@ def test_model_add_constraint_ge_named():
     assert model.constraints[0].name == "constraint"
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_add_constraint_ge_named_duplicate():
     model = Model()
     x = model.add_variable("x")
@@ -265,7 +264,7 @@ def test_model_add_constraint_ge_named_duplicate():
         model.constraints += x - y == 2, "constraint"
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 @pytest.mark.parametrize("models", ["le", "eq", "ge"], indirect=True)
 def test_model_add_constraint_same(models: tuple[Model, Model, Model]):
     model_a, model_b, model_c = models
@@ -273,7 +272,7 @@ def test_model_add_constraint_same(models: tuple[Model, Model, Model]):
     assert model_b.constraints.equal_contents(model_c.constraints)
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 @pytest.mark.parametrize("models_named", ["le", "eq", "ge"], indirect=True)
 def test_model_add_constraint_same_named(models_named: tuple[Model, Model, Model]):
     model_a, model_b, model_c = models_named
@@ -281,7 +280,7 @@ def test_model_add_constraint_same_named(models_named: tuple[Model, Model, Model
     assert model_b.constraints.equal_contents(model_c.constraints)
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_model_constraints_len():
     m = Model()
     assert len(m.constraints) == 0

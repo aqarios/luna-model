@@ -1,6 +1,6 @@
+import sys
 from contextlib import nullcontext as does_not_raise
 from random import Random
-import sys
 
 import numpy as np
 import pytest
@@ -22,6 +22,7 @@ from luna_model.errors import (
     SampleUnexpectedVariableError,
 )
 from luna_model.translator import DwaveTranslator
+
 from pytests.test_core.utils import generate_bqms, make_seed, random_int
 
 
@@ -33,7 +34,7 @@ def mock_env(n_variables: int, vtype: Vtype = Vtype.Binary) -> Environment:
     return env
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_sampleset_translator_constructed():
     samples_raw = [
         {"x0": 0, "x1": 1, "x2": 1},
@@ -68,7 +69,7 @@ def test_sampleset_translator_constructed():
 
 
 @pytest.mark.skipif(NOT_RUN_DWAVE, reason="Dwave is required for test")
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_sampleset_translator_sa_random_models():
     rand = Random(make_seed())
     bqms = generate_bqms(20, rand)
@@ -116,7 +117,7 @@ def test_sampleset_translator_sa_random_models():
             assert result.feasible is None
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_sampleset_translator_error_handling():
     samples_raw = [{"x0": -1, "x1": 1, "x2": 1}]
     samples = [[v for v in sample.values()] for sample in samples_raw]
@@ -149,7 +150,7 @@ def test_sampleset_translator_error_handling():
         DwaveTranslator.to_aq(sampleset, env=env)
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_dwave_translator_incorrect_sample_length():
     env = Environment()
     with env:

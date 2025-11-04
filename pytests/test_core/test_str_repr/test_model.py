@@ -3,7 +3,6 @@ import string
 from contextlib import nullcontext as does_not_raise
 
 import pytest
-
 from luna_model import Bounds, Environment, Expression, Model, Variable, Vtype
 
 _model_str_1 = """Model: TestModel
@@ -58,7 +57,7 @@ Real
 _model_repr_1 = "Model(name=MyModel, sense=Minimize, objective=a + 2 b + 2 c + 2 d + 2 e + 2 f + 2 g + 2 h + 2 i + 2 j + 2 k + 2 l + 2 m + 2 n + 2 o + 2 p + 2 q + 2 r + 2 s + 2 t, constraints=[])"
 
 
-@pytest.fixture
+@pytest.fixture()
 def variables(request) -> tuple[Variable, ...]:
     with Environment():
         variables = [
@@ -67,7 +66,7 @@ def variables(request) -> tuple[Variable, ...]:
     return tuple(variables)
 
 
-@pytest.mark.str_repr
+@pytest.mark.str_repr()
 def test_vtype():
     assert str(Vtype.Real) == "Real"
     assert str(Vtype.Binary) == "Binary"
@@ -81,7 +80,7 @@ def test_vtype():
         repr(Vtype.Integer)
 
 
-@pytest.mark.str_repr
+@pytest.mark.str_repr()
 def test_variable():
     with Environment():
         a = Variable("a")
@@ -118,7 +117,7 @@ def test_variable():
             repr(j)
 
 
-@pytest.mark.str_repr
+@pytest.mark.str_repr()
 def test_bounds():
     bounds_1 = Bounds(lower=0, upper=1.5)
     assert str(bounds_1) == "{ lower: 0, upper: 1.5 }"
@@ -130,7 +129,7 @@ def test_bounds():
         repr(bounds_2)
 
 
-@pytest.mark.str_repr
+@pytest.mark.str_repr()
 @pytest.mark.parametrize("variables", [3], indirect=True)
 def test_expression(variables: tuple[Variable, ...]):
     a, b, c = variables
@@ -192,7 +191,7 @@ def test_expression(variables: tuple[Variable, ...]):
     # raise  Exception
 
 
-@pytest.mark.str_repr
+@pytest.mark.str_repr()
 @pytest.mark.parametrize("variables", [2], indirect=True)
 def test_constraints(variables: tuple[Variable, ...]):
     a, b = variables
@@ -209,7 +208,7 @@ def test_constraints(variables: tuple[Variable, ...]):
         repr(c3)
 
 
-@pytest.mark.str_repr
+@pytest.mark.str_repr()
 def test_environment():
     with Environment() as env:
         _ = Variable("a")
@@ -219,7 +218,7 @@ def test_environment():
         assert env_str == "Environment ?\n  a, b, c"
 
 
-@pytest.mark.str_repr
+@pytest.mark.str_repr()
 def test_model():
     for _ in range(10):
         with Environment():
@@ -250,7 +249,7 @@ def test_model():
             repr(m)
 
 
-@pytest.mark.str_repr
+@pytest.mark.str_repr()
 @pytest.mark.parametrize("variables", [20], indirect=True)
 def test_expression_repr(variables: tuple[Variable, ...]):
     m = Model(name="MyModel")

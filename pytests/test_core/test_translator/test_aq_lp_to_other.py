@@ -1,5 +1,5 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pytest
 from dimod import lp as dimod_lp
@@ -18,7 +18,7 @@ from luna_model import Bounds, Model, Variable, Vtype
 from luna_model.translator import LpTranslator
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_lp_str_bin() -> str:
     m = Model(name="TestModel")
     with m.environment:
@@ -42,7 +42,7 @@ def model_lp_str_bin() -> str:
     return LpTranslator.from_aq(m)
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_lp_str_fancy() -> str:
     m = Model(name="TestModel")
     with m.environment:
@@ -66,13 +66,13 @@ def model_lp_str_fancy() -> str:
     return LpTranslator.from_aq(m)
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_translate_to_cqm(model_lp_str_bin: str):
     _ = dimod_lp.loads(model_lp_str_bin)
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-@pytest.mark.translator
+@pytest.mark.translator()
 def test_translate_to_zib():
     scip_model = ScipModel()
     scip_model.hideOutput()

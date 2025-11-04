@@ -1,13 +1,12 @@
 import numpy as np
 import pytest
 from dimod import SampleSet, as_samples
-
 from luna_model.translator import DwaveTranslator
 
 from .common import do_checks  # type: ignore[reportMissingImports]
 
 
-@pytest.fixture
+@pytest.fixture()
 def dwave_solution() -> SampleSet:
     samples_raw = [
         {

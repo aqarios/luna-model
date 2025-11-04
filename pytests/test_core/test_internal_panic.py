@@ -1,5 +1,4 @@
 import pytest
-
 from luna_model.errors import InternalPanicError
 from luna_model.translator import LpTranslator
 

@@ -1,17 +1,16 @@
 import pytest
-
 from luna_model import (
     Comparator,
     Constraint,
-    Constraints,
     ConstraintCollection,
+    Constraints,
     Environment,
     Expression,
     Variable,
 )
 
 
-@pytest.fixture
+@pytest.fixture()
 def expression() -> Expression:
     with Environment():
         x = Variable("x")
@@ -19,14 +18,14 @@ def expression() -> Expression:
         return x + y
 
 
-@pytest.fixture
+@pytest.fixture()
 def variable() -> Variable:
     with Environment():
         x = Variable("x")
         return x
 
 
-@pytest.fixture
+@pytest.fixture()
 def variable_and_variable() -> tuple[Variable, Variable]:
     with Environment():
         x = Variable("x")
@@ -34,7 +33,7 @@ def variable_and_variable() -> tuple[Variable, Variable]:
     return x, y
 
 
-@pytest.fixture
+@pytest.fixture()
 def variable_and_expression() -> tuple[Variable, Expression]:
     with Environment():
         x = Variable("x")
@@ -43,7 +42,7 @@ def variable_and_expression() -> tuple[Variable, Expression]:
     return x, y + z
 
 
-@pytest.fixture
+@pytest.fixture()
 def expression_and_var() -> tuple[Expression, Variable]:
     with Environment():
         x = Variable("x")
@@ -52,7 +51,7 @@ def expression_and_var() -> tuple[Expression, Variable]:
     return x + y, z
 
 
-@pytest.fixture
+@pytest.fixture()
 def expression_and_expression() -> tuple[Expression, Expression]:
     with Environment():
         a = Variable("a")
@@ -63,7 +62,7 @@ def expression_and_expression() -> tuple[Expression, Expression]:
 
 
 # INDEXING
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraints_deprecated(expression: Expression):
     constr = Constraints()
     constr += expression <= 2
@@ -71,7 +70,7 @@ def test_constraints_deprecated(expression: Expression):
     assert Constraint(expression, 2, Comparator.Le, name="c0") == actual
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraints_out_of_bounds_access(expression: Expression):
     constr = ConstraintCollection()
     constr += expression <= 2
@@ -79,7 +78,7 @@ def test_constraints_out_of_bounds_access(expression: Expression):
         _ = constr[3]
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_neg_constant_to_rhs():
     with Environment():
         x = Variable("x")
@@ -94,7 +93,7 @@ def test_constraint_creation_neg_constant_to_rhs():
     assert constr.comparator == Comparator.Eq
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_pos_constant_to_rhs():
     with Environment():
         x = Variable("x")
@@ -112,7 +111,7 @@ def test_constraint_creation_pos_constant_to_rhs():
 # LHS: EXPRESSION, RHS: FLOAT/INT
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_eq(expression: Expression):
     constr = expression == 0
     assert isinstance(constr, Constraint)
@@ -122,7 +121,7 @@ def test_constraint_creation_eq(expression: Expression):
     assert constr.comparator == Comparator.Eq
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_le(expression: Expression):
     constr = expression <= 0.0
     assert isinstance(constr, Constraint)
@@ -132,7 +131,7 @@ def test_constraint_creation_le(expression: Expression):
     assert constr.comparator == Comparator.Le
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_ge(expression: Expression):
     constr = expression >= 0
     assert isinstance(constr, Constraint)
@@ -142,7 +141,7 @@ def test_constraint_creation_ge(expression: Expression):
     assert constr.comparator == Comparator.Ge
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_eq_direct(expression: Expression):
     constr = Constraint(expression, 0.0, Comparator.Eq)
     assert isinstance(constr, Constraint)
@@ -152,7 +151,7 @@ def test_constraint_creation_eq_direct(expression: Expression):
     assert constr.comparator == Comparator.Eq
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_le_direct(expression: Expression):
     constr = Constraint(expression, 0.0, Comparator.Le)
     assert isinstance(constr, Constraint)
@@ -162,7 +161,7 @@ def test_constraint_creation_le_direct(expression: Expression):
     assert constr.comparator == Comparator.Le
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_ge_direct(expression: Expression):
     constr = Constraint(expression, 0.0, Comparator.Ge)
     assert isinstance(constr, Constraint)
@@ -175,7 +174,7 @@ def test_constraint_creation_ge_direct(expression: Expression):
 # LHS: EXPRESSION, RHS: VARIABLE
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_eq_rhs_var(
     expression_and_var: tuple[Expression, Variable],
 ):
@@ -188,7 +187,7 @@ def test_constraint_creation_eq_rhs_var(
     assert constr.comparator == Comparator.Eq
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_le_rhs_var(
     expression_and_var: tuple[Expression, Variable],
 ):
@@ -201,7 +200,7 @@ def test_constraint_creation_le_rhs_var(
     assert constr.comparator == Comparator.Le
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_ge_rhs_var(
     expression_and_var: tuple[Expression, Variable],
 ):
@@ -214,7 +213,7 @@ def test_constraint_creation_ge_rhs_var(
     assert constr.comparator == Comparator.Ge
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_eq_direct_rhs_var(
     expression_and_var: tuple[Expression, Variable],
 ):
@@ -228,7 +227,7 @@ def test_constraint_creation_eq_direct_rhs_var(
     assert constr.comparator == Comparator.Eq
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_le_direct_rhs_var(
     expression_and_var: tuple[Expression, Variable],
 ):
@@ -242,7 +241,7 @@ def test_constraint_creation_le_direct_rhs_var(
     assert constr.comparator == Comparator.Le
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_ge_direct_rhs_var(
     expression_and_var: tuple[Expression, Variable],
 ):
@@ -259,7 +258,7 @@ def test_constraint_creation_ge_direct_rhs_var(
 # LHS: EXPRESSION, RHS: EXPRESSION
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_eq_rhs_expr(
     expression_and_expression: tuple[Expression, Expression],
 ):
@@ -272,7 +271,7 @@ def test_constraint_creation_eq_rhs_expr(
     assert constr.comparator == Comparator.Eq
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_le_rhs_expr(
     expression_and_expression: tuple[Expression, Expression],
 ):
@@ -285,7 +284,7 @@ def test_constraint_creation_le_rhs_expr(
     assert constr.comparator == Comparator.Le
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_ge_rhs_expr(
     expression_and_expression: tuple[Expression, Expression],
 ):
@@ -298,7 +297,7 @@ def test_constraint_creation_ge_rhs_expr(
     assert constr.comparator == Comparator.Ge
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_eq_direct_rhs_expr(
     expression_and_expression: tuple[Expression, Expression],
 ):
@@ -312,7 +311,7 @@ def test_constraint_creation_eq_direct_rhs_expr(
     assert constr.comparator == Comparator.Eq
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_le_direct_rhs_expr(
     expression_and_expression: tuple[Expression, Expression],
 ):
@@ -326,7 +325,7 @@ def test_constraint_creation_le_direct_rhs_expr(
     assert constr.comparator == Comparator.Le
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_ge_direct_rhs_expr(
     expression_and_expression: tuple[Expression, Expression],
 ):
@@ -343,7 +342,7 @@ def test_constraint_creation_ge_direct_rhs_expr(
 # LHS: VARIABLE, RHS: FLOAT/INT
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_eq_var(variable: Variable):
     constr = variable == 0
     assert isinstance(constr, Constraint)
@@ -353,7 +352,7 @@ def test_constraint_creation_eq_var(variable: Variable):
     assert constr.comparator == Comparator.Eq
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_le_var(variable: Variable):
     constr = variable <= 0.0
     assert isinstance(constr, Constraint)
@@ -363,7 +362,7 @@ def test_constraint_creation_le_var(variable: Variable):
     assert constr.comparator == Comparator.Le
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_ge_var(variable: Variable):
     constr = variable >= 0
     assert isinstance(constr, Constraint)
@@ -373,7 +372,7 @@ def test_constraint_creation_ge_var(variable: Variable):
     assert constr.comparator == Comparator.Ge
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_eq_var_direct(variable: Variable):
     constr = Constraint(variable, 0.0, Comparator.Eq)
     assert isinstance(constr, Constraint)
@@ -383,7 +382,7 @@ def test_constraint_creation_eq_var_direct(variable: Variable):
     assert constr.comparator == Comparator.Eq
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_le_var_direct(variable: Variable):
     constr = Constraint(variable, 0.0, Comparator.Le)
     assert isinstance(constr, Constraint)
@@ -393,7 +392,7 @@ def test_constraint_creation_le_var_direct(variable: Variable):
     assert constr.comparator == Comparator.Le
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_ge_var_direct(variable: Variable):
     constr = Constraint(variable, 0.0, Comparator.Ge)
     assert isinstance(constr, Constraint)
@@ -406,7 +405,7 @@ def test_constraint_creation_ge_var_direct(variable: Variable):
 # LHS: VARIABLE, RHS: VARIABLE
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_eq_var_rhs_var(
     variable_and_variable: tuple[Variable, Variable],
 ):
@@ -417,7 +416,7 @@ def test_constraint_creation_eq_var_rhs_var(
     assert not are_equal
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_le_var_rhs_var(
     variable_and_variable: tuple[Variable, Variable],
 ):
@@ -430,7 +429,7 @@ def test_constraint_creation_le_var_rhs_var(
     assert constr.comparator == Comparator.Le
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_ge_var_rhs_var(
     variable_and_variable: tuple[Variable, Variable],
 ):
@@ -443,7 +442,7 @@ def test_constraint_creation_ge_var_rhs_var(
     assert constr.comparator == Comparator.Ge
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_eq_var_direct_rhs_var(
     variable_and_variable: tuple[Variable, Variable],
 ):
@@ -456,7 +455,7 @@ def test_constraint_creation_eq_var_direct_rhs_var(
     assert constr.comparator == Comparator.Eq
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_le_var_direct_rhs_var(
     variable_and_variable: tuple[Variable, Variable],
 ):
@@ -470,7 +469,7 @@ def test_constraint_creation_le_var_direct_rhs_var(
     assert constr.comparator == Comparator.Le
 
 
-@pytest.mark.constraint
+@pytest.mark.constraint()
 def test_constraint_creation_ge_var_direct_rhs_var(
     variable_and_variable: tuple[Variable, Variable],
 ):

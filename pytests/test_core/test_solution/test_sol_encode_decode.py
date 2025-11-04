@@ -1,9 +1,8 @@
 import pytest
-
 from luna_model import Solution, Vtype
 
 
-@pytest.fixture
+@pytest.fixture()
 def solution() -> Solution:
     return Solution._build(  # type: ignore[reportAttributeAccessIssue]
         component_types=[
@@ -33,7 +32,7 @@ def solution() -> Solution:
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def solution_many_binary() -> Solution:
     return Solution._build(  # type: ignore[reportAttributeAccessIssue]
         component_types=[
@@ -47,14 +46,14 @@ def solution_many_binary() -> Solution:
     )
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_solution_encoding_decoding(solution):
     blob = solution.encode()
     solution_back = Solution.decode(blob)
     assert solution == solution_back
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_solution_encoding_decoding_many(solution_many_binary):
     blob = solution_many_binary.encode()
     solution_back = Solution.decode(blob)

@@ -1,10 +1,9 @@
 import pytest
-
 from luna_model import Model, Variable, Vtype
 from luna_model.errors import VariableNotExistingError
 
 
-@pytest.fixture
+@pytest.fixture()
 def base() -> tuple[Model, Variable, Variable]:
     model = Model()
     x = model.add_variable("x")

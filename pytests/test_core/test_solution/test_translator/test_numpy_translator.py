@@ -1,12 +1,11 @@
 import numpy as np
 import pytest
-from numpy.typing import NDArray
-
 from luna_model import Bounds, Model, Variable, Vtype
 from luna_model.translator import NumpyTranslator
+from numpy.typing import NDArray
 
 
-@pytest.fixture
+@pytest.fixture()
 def model() -> Model:
     m = Model(name="TestModel")
     with m.environment:
@@ -30,7 +29,7 @@ def model() -> Model:
     return m
 
 
-@pytest.fixture
+@pytest.fixture()
 def result() -> tuple[NDArray, NDArray]:
     return (
         np.array(
@@ -45,7 +44,7 @@ def result() -> tuple[NDArray, NDArray]:
     )
 
 
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_numpy_translator(model: Model, result: tuple[NDArray, NDArray]):
     res, energies = result
     sol = NumpyTranslator.to_aq(res, energies, env=model.environment)

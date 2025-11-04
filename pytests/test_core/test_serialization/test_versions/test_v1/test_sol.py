@@ -3,13 +3,12 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
 from luna_model import Environment, Model, Sense, Solution, Timer, Variable, Vtype
 
 path = Path(__file__).parent.parent / "data" / "v0" / "sol"
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_samples():
     model = Model("MyModel")
 

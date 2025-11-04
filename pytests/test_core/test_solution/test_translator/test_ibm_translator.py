@@ -6,20 +6,14 @@ from random import Random
 import numpy as np
 import pytest
 from docplex.mp.model import Model as CPXModel
-from scipy.optimize import minimize
-
 from luna_model import Model, Sense, Solution, Timer, Variable, Vtype
 from luna_model.translator import IbmTranslator
+from scipy.optimize import minimize
+
 from pytests.test_core.utils import make_seed, random_bool
 
 NOT_RUN_QAER = False
 try:
-    from qiskit_aer import AerSimulator
-    from qiskit_ibm_runtime import EstimatorV2, SamplerV2, Session
-    from qiskit_optimization import QuadraticProgram
-    from qiskit_optimization.translators import from_docplex_mp
-    from qiskit.providers import BackendV2
-    from qiskit.quantum_info import SparsePauliOp
     from qiskit import QuantumCircuit, generate_preset_pass_manager
     from qiskit.circuit.library import QAOAAnsatz
     from qiskit.primitives import (
@@ -29,6 +23,12 @@ try:
         StatevectorEstimator,
         StatevectorSampler,
     )
+    from qiskit.providers import BackendV2
+    from qiskit.quantum_info import SparsePauliOp
+    from qiskit_aer import AerSimulator
+    from qiskit_ibm_runtime import EstimatorV2, SamplerV2, Session
+    from qiskit_optimization import QuadraticProgram
+    from qiskit_optimization.translators import from_docplex_mp
 except ImportError as _:
     print(
         "qiskit_aer is not installed and thus, the Gurobi tests will not be executed",
@@ -147,7 +147,7 @@ def extract(result, qp):
 
 
 @pytest.mark.skipif(NOT_RUN_QAER, reason="Qiskit Aer is required for test")
-@pytest.mark.solution_translation
+@pytest.mark.solution_translation()
 def test_ibm_solution_translator():
     warnings.filterwarnings("ignore")
     seed = make_seed()

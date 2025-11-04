@@ -1,11 +1,10 @@
 from typing import Callable
 
 import pytest
-
 from luna_model import Bounds, Model, Unbounded, Variable, Vtype
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_empty_maker() -> Callable[[], Model]:
     def creator():
         return Model()
@@ -13,7 +12,7 @@ def model_empty_maker() -> Callable[[], Model]:
     return creator
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_empty_with_vars_maker() -> Callable[[], Model]:
     def creator():
         m = Model()
@@ -27,7 +26,7 @@ def model_empty_with_vars_maker() -> Callable[[], Model]:
     return creator
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_objective_maker() -> Callable[[], Model]:
     def creator():
         m = Model()
@@ -42,7 +41,7 @@ def model_objective_maker() -> Callable[[], Model]:
     return creator
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_objective_and_constraints_maker() -> Callable[[], Model]:
     def creator():
         m = Model()
@@ -58,7 +57,7 @@ def model_objective_and_constraints_maker() -> Callable[[], Model]:
     return creator
 
 
-@pytest.fixture
+@pytest.fixture()
 def model_objective_and_constraints_and_bounds_maker() -> Callable[[], Model]:
     def creator():
         m = Model()
@@ -74,21 +73,21 @@ def model_objective_and_constraints_and_bounds_maker() -> Callable[[], Model]:
     return creator
 
 
-@pytest.mark.model
+@pytest.mark.model()
 def test_hash_model_empty(model_empty_maker):
     m1 = model_empty_maker()
     m2 = model_empty_maker()
     assert hash(m1) == hash(m2)
 
 
-@pytest.mark.model
+@pytest.mark.model()
 def test_hash_model_empty_with_vars(model_empty_with_vars_maker):
     m1 = model_empty_with_vars_maker()
     m2 = model_empty_with_vars_maker()
     assert hash(m1) == hash(m2)
 
 
-@pytest.mark.model
+@pytest.mark.model()
 def test_hash_model_objective(model_objective_maker):
     m1 = model_objective_maker()
     m2 = model_objective_maker()

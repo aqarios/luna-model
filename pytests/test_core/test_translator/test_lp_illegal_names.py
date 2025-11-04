@@ -1,5 +1,4 @@
 import pytest
-
 from luna_model import Model, Variable
 from luna_model.errors import IllegalConstraintNameError
 
@@ -15,7 +14,7 @@ ILLEGAL_WORD_START = [
 ]
 
 
-@pytest.mark.translator
+@pytest.mark.translator()
 @pytest.mark.parametrize("word", ILLEGAL_WORD_START)
 def test_illegal_words(word: str):
     model = Model(f"test_{word}")

@@ -1,5 +1,4 @@
 import pytest
-
 from luna_model import Expression, Vtype
 
 from ...utils import (
@@ -12,7 +11,7 @@ from ...utils import (
 from .common import *  # noqa: F403
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize("variables", [(3, Vtype.Binary)], indirect=True)
 def test_expression_mul_binary_variables(variables):
     x, y, z = variables
@@ -37,7 +36,7 @@ def test_expression_mul_binary_variables(variables):
     assert_higher_order(result, variables, 1)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize("variables", [(3, Vtype.Binary)], indirect=True)
 def test_expression_rmul_binary_variables(variables):
     x, y, z = variables
@@ -62,7 +61,7 @@ def test_expression_rmul_binary_variables(variables):
     assert_higher_order(result, variables, 1)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize("variables", [(3, Vtype.Binary)], indirect=True)
 def test_expression_mul_binary_variable_twice(variables):
     x, y, z = variables
@@ -98,7 +97,7 @@ def test_expression_mul_binary_variable_twice(variables):
     assert_higher_order(result, variables, 1)
 
 
-@pytest.mark.expression
+@pytest.mark.expression()
 @pytest.mark.parametrize("variables", [(3, Vtype.Binary)], indirect=True)
 def test_expression_instancemul_binary_variable_twice(variables):
     x, y, z = variables
