@@ -1,0 +1,123 @@
+import pytest
+from luna_model import Variable, Environment, Vtype, Solution
+from luna_model.errors import UnsupportedOperationError
+
+@pytest.mark.variable()
+def test_inverse_binary():
+    env = Environment()
+    b = Variable("b", vtype=Vtype.Binary, env=env)
+    inv_b = b.inv()
+    assert f"~{b.name}" == inv_b.name
+    assert b != inv_b
+    assert inv_b != b
+    assert inv_b.inv() == b
+    assert b == ~inv_b
+    assert (b.inv()).inv() == inv_b.inv()
+    assert (b.inv()).inv() == b
+    assert inv_b.inv() == (b.inv()).inv()
+    assert b == (b.inv()).inv()
+
+@pytest.mark.variable()
+def test_inverse_binary_lin():
+    env = Environment()
+    b = Variable("b", vtype=Vtype.Binary, env=env)
+    expr = 5 * b.inv()
+    sol = expr.evaluate(Solution.from_dict({"b": 0}, env=env))[0]
+    assert 5.0 == sol, "evaluated value is not 5"
+
+
+@pytest.mark.variable()
+def test_inverse_binary_quad():
+    env = Environment()
+    b = Variable("b", vtype=Vtype.Binary, env=env)
+    expr = 5 * b.inv() * b
+    sol = expr.evaluate(Solution.from_dict({"b": 0}, env=env))[0]
+    assert 0.0 == sol, "evaluated value is not 0.0"
+
+
+@pytest.mark.variable()
+def test_inverse_binary_quad2():
+    env = Environment()
+    b = Variable("b", vtype=Vtype.Binary, env=env)
+    expr = 5 * b * b.inv()
+    sol = expr.evaluate(Solution.from_dict({"b": 0}, env=env))[0]
+    assert 0.0 == sol, "evaluated value is not 0.0"
+
+
+@pytest.mark.variable()
+def test_inverse_binary_ho():
+    env = Environment()
+    a = Variable("a", vtype=Vtype.Binary, env=env)
+    b = Variable("b", vtype=Vtype.Binary, env=env)
+    c = Variable("c", vtype=Vtype.Binary, env=env)
+    expr = 5 * a * b * c * b.inv()
+    sol = expr.evaluate(Solution.from_dict({"b": 0, "a": 1, "c": 1}, env=env))[0]
+    assert 0.0 == sol, "evaluated value is not 0.0"
+    assert 0.0 == expr.get_offset()
+    assert 0 == len(expr.linear_items())
+    assert 0 == len(expr.quadratic_items())
+    assert 0 == len(expr.higher_order_items())
+
+
+@pytest.mark.variable()
+def test_inverse_binary_ho2():
+    env = Environment()
+    a = Variable("a", vtype=Vtype.Binary, env=env)
+    b = Variable("b", vtype=Vtype.Binary, env=env)
+    c = Variable("c", vtype=Vtype.Binary, env=env)
+    expr = 5 * a * c * b * b.inv()
+    sol = expr.evaluate(Solution.from_dict({"b": 0, "a": 1, "c": 1}, env=env))[0]
+    assert 0.0 == sol, "evaluated value is not 0.0"
+    assert 0.0 == expr.get_offset()
+    assert 0 == len(expr.linear_items())
+    assert 0 == len(expr.quadratic_items())
+    assert 0 == len(expr.higher_order_items())
+
+
+@pytest.mark.variable()
+def test_inverse_binary_ho3():
+    env = Environment()
+    a = Variable("a", vtype=Vtype.Binary, env=env)
+    b = Variable("b", vtype=Vtype.Binary, env=env)
+    c = Variable("c", vtype=Vtype.Binary, env=env)
+    expr = 5 * a * ~b * c * b
+    sol = expr.evaluate(Solution.from_dict({"b": 0, "a": 1, "c": 1}, env=env))[0]
+    assert 0.0 == sol, "evaluated value is not 0.0"
+    assert 0.0 == expr.get_offset()
+    assert 0 == len(expr.linear_items())
+    assert 0 == len(expr.quadratic_items())
+    assert 0 == len(expr.higher_order_items())
+
+
+@pytest.mark.variable()
+def test_inverse_int():
+    env = Environment()
+    b = Variable("b", vtype=Vtype.Integer, env=env)
+    with pytest.raises(UnsupportedOperationError):
+        _ = b.inv()
+
+
+@pytest.mark.variable()
+def test_inverse_real():
+    env = Environment()
+    b = Variable("b", vtype=Vtype.Real, env=env)
+    with pytest.raises(UnsupportedOperationError):
+        _ = b.inv()
+
+
+@pytest.mark.variable()
+def test_inverse_spin():
+    env = Environment()
+    b = Variable("b", vtype=Vtype.Spin, env=env)
+    with pytest.raises(UnsupportedOperationError):
+        _ = b.inv()
+
+
+if __name__ == "__main__":
+    env = Environment()
+    b = Variable("b", vtype=Vtype.Binary, env=env)
+    expr = 5 * b.inv()
+    print(expr)
+    sol = Solution.from_dict({"b": 0}, env=env)
+    sol = expr.evaluate(sol)[0]
+    print(sol)

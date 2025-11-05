@@ -430,6 +430,20 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
                     self.linear[u.into()] += bias;
                 }
             }
+            // Extra check to see if both vars are inverted and if they are their partner.
+            (false, Vtype::Binary | Vtype::InvertedBinary) => {
+                // u is binary
+                // u != v
+                if let Some(inv_u) = self.env.access()[u].inverted {
+                    if inv_u == v {
+                        // The inverse of u is v.
+                        // So v has to be a InvertedBinary
+                        // !u * v = (1-x) * x = x - x^2 = x - x = 0
+                        // => we can safely ignore this multiplication.
+                        ()
+                    }
+                }
+            }
             (_, _) => {
                 if bias != Bias::default() {
                     *self.asymmetric_quadratic_ref(u, v) += bias;
@@ -442,6 +456,7 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
         self.add_variables(vars);
         self.enforce_higher_order();
         let contributions = self.reduce_higher_order_vars(vars);
+        eprintln!("add_higher_order: contributions={:?}, bias={}", contributions, bias);
         match contributions.len() {
             0 => self.add_offset(bias),
             1 => self.add_linear(contributions[0], bias),
@@ -846,6 +861,7 @@ impl Expression {
     }
 
     fn reduce_higher_order_vars(&self, indices: &Vec<VarIndex>) -> Vec<VarIndex> {
+        let env = self.env.access();
         // We have a multiplicative interaction between multiple variables here,
         // similar to the case for quadratic. So we need to check the interactions
         // for each combination...
@@ -867,7 +883,22 @@ impl Expression {
             match (*count > 1, self.vartype(*idx)) {
                 // Binary variables cancel out to a single binary variable.
                 // Thus we can just add it once.
-                (true, Vtype::Binary) => contribs.push(*idx),
+                // In addition, we need to check if the binary variable has an invers variable, if
+                // it has an inverse variable, we need to check if that invers is also present in
+                // the ocurrences. If it is in the ocurrences, we can ignore this term, since the
+                // multiplication of a binary variable with it's inverse is 0 => the term is 0
+                (true, Vtype::Binary) => {
+                    // let var = &env[*idx];
+                    // if let Some(inv_idx) = var.inverted {
+                    //     // this variable has an inverted.
+                    //     // check if the inverted is present in the `ocurrences`.
+                    //     if ocurrences.contains_key(&inv_idx) {
+                    //         // inverted is also present in the term.
+                    //         // we have no contribution!
+                    //     }
+                    // }
+                    contribs.push(*idx)
+                }
                 // Depending on the count, we have different behaviour.
                 // Two spins will result in an offset.
                 // So if we have exactly two spins, we just get the offset.
