@@ -861,7 +861,6 @@ impl Expression {
     }
 
     fn reduce_higher_order_vars(&self, indices: &Vec<VarIndex>) -> Vec<VarIndex> {
-        let env = self.env.access();
         // We have a multiplicative interaction between multiple variables here,
         // similar to the case for quadratic. So we need to check the interactions
         // for each combination...
@@ -887,18 +886,7 @@ impl Expression {
                 // it has an inverse variable, we need to check if that invers is also present in
                 // the ocurrences. If it is in the ocurrences, we can ignore this term, since the
                 // multiplication of a binary variable with it's inverse is 0 => the term is 0
-                (true, Vtype::Binary) => {
-                    // let var = &env[*idx];
-                    // if let Some(inv_idx) = var.inverted {
-                    //     // this variable has an inverted.
-                    //     // check if the inverted is present in the `ocurrences`.
-                    //     if ocurrences.contains_key(&inv_idx) {
-                    //         // inverted is also present in the term.
-                    //         // we have no contribution!
-                    //     }
-                    // }
-                    contribs.push(*idx)
-                }
+                (true, Vtype::Binary) => contribs.push(*idx)
                 // Depending on the count, we have different behaviour.
                 // Two spins will result in an offset.
                 // So if we have exactly two spins, we just get the offset.

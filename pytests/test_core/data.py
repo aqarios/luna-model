@@ -165,7 +165,6 @@ def quadratic_expression(env: Environment, variables: list[Variable]) -> Express
 
 
 def higher_order_expression(env: Environment, variables: list[Variable]) -> Expression:
-    """ """
     expr = Expression(env)
 
     higher_order_combinations: list[tuple[Variable, ...]] = []
