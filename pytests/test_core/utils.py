@@ -42,7 +42,7 @@ def check_equality(variables, p, f, value):
     base_value = f(base)
     assert base_value == value
     for permut in permuts:
-        assert f(permut) == base_value
+        assert f(permut) == base_value, f"{f(permut)=}, {base_value=}"
 
 
 def assert_offset(expr, value):

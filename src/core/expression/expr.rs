@@ -286,14 +286,19 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
 
         let was_active = self.active[vidx];
         self.active.set(vidx, true);
-        self.num_variables += (was_active == false) as usize;
+
+        if self.env.access()[vidx].vtype != Vtype::InvertedBinary {
+            self.num_variables += (was_active == false) as usize;
+        }
     }
 
     fn remove_variable(&mut self, v: VarIndex) {
         let was_active = self.active.get(v.0 as usize).map_or_else(|| false, |b| *b);
         if was_active {
             self.active.set(v.0 as usize, false);
-            self.num_variables -= 1;
+            if self.env.access()[v].vtype != Vtype::InvertedBinary {
+                self.num_variables -= 1;
+            }
         }
     }
 
@@ -311,7 +316,9 @@ impl ExpressionBaseAdjustment<VarIndex, Bias> for Expression {
             let vidx: usize = (*v).into();
             let was_active = self.active[vidx];
             self.active.set(vidx, true);
-            self.num_variables += (was_active == false) as usize;
+            if self.env.access()[vidx].vtype != Vtype::InvertedBinary {
+                self.num_variables += (was_active == false) as usize;
+            }
         }
     }
 }
@@ -421,14 +428,18 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
         self.add_variable(v);
         self.enforce_quadratic();
 
-        match (u == v, self.vartype(u)) {
+        let ok = match (u == v, self.vartype(u)) {
             // -1*-1 == +1*+1 == 1 so this is constant offset
-            (true, Vtype::Spin) => self.offset += bias,
+            (true, Vtype::Spin) => {
+                self.offset += bias;
+                true
+            },
             // 1*1 == 1 and 0*0 == 0 so this is linear
             (true, Vtype::Binary) => {
                 if bias != Bias::default() {
                     self.linear[u.into()] += bias;
                 }
+                true
             }
             // Extra check to see if both vars are inverted and if they are their partner.
             (false, Vtype::Binary | Vtype::InvertedBinary) => {
@@ -440,23 +451,31 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
                         // So v has to be a InvertedBinary
                         // !u * v = (1-x) * x = x - x^2 = x - x = 0
                         // => we can safely ignore this multiplication.
-                        ()
+                        true
+                    } else {
+                        false
                     }
+                } else {
+                    false
                 }
             }
-            (_, _) => {
-                if bias != Bias::default() {
-                    *self.asymmetric_quadratic_ref(u, v) += bias;
-                }
-            }
+            (_, _) => false
+        };
+        if !ok && bias != Bias::default() {
+            *self.asymmetric_quadratic_ref(u, v) += bias;
         }
     }
 
     fn add_higher_order(&mut self, vars: &Vec<VarIndex>, bias: Bias) {
+        let inverses = (&vars).iter().map(|idx| self.env.access()[*idx].inverted).filter(|maybe| maybe.is_some()).map(|maybe| maybe.unwrap()).collect_vec();
+        let will_be_zero = inverses.iter().any(|inv| vars.contains(inv));
+        if will_be_zero {
+            return;
+        }
+
         self.add_variables(vars);
         self.enforce_higher_order();
         let contributions = self.reduce_higher_order_vars(vars);
-        eprintln!("add_higher_order: contributions={:?}, bias={}", contributions, bias);
         match contributions.len() {
             0 => self.add_offset(bias),
             1 => self.add_linear(contributions[0], bias),
@@ -538,6 +557,11 @@ impl ExpressionBaseAdd<VarIndex, Bias> for Expression {
 
 impl ExpressionBaseSet<VarIndex, Bias> for Expression {
     fn set_higher_order(&mut self, vars: &Vec<VarIndex>, bias: Bias) {
+        let inverses = (&vars).iter().map(|idx| self.env.access()[*idx].inverted).filter(|maybe| maybe.is_some()).map(|maybe| maybe.unwrap()).collect_vec();
+        let will_be_zero = inverses.iter().any(|inv| vars.contains(inv));
+        if will_be_zero {
+            return;
+        }
         self.add_variables(vars);
         self.enforce_higher_order();
         let contributions = self.reduce_higher_order_vars(vars);
@@ -882,11 +906,7 @@ impl Expression {
             match (*count > 1, self.vartype(*idx)) {
                 // Binary variables cancel out to a single binary variable.
                 // Thus we can just add it once.
-                // In addition, we need to check if the binary variable has an invers variable, if
-                // it has an inverse variable, we need to check if that invers is also present in
-                // the ocurrences. If it is in the ocurrences, we can ignore this term, since the
-                // multiplication of a binary variable with it's inverse is 0 => the term is 0
-                (true, Vtype::Binary) => contribs.push(*idx)
+                (true, Vtype::Binary) => contribs.push(*idx),
                 // Depending on the count, we have different behaviour.
                 // Two spins will result in an offset.
                 // So if we have exactly two spins, we just get the offset.

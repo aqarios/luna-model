@@ -1,3 +1,4 @@
+from numpy import var
 import pytest
 from luna_model import Expression, Vtype
 
@@ -10,6 +11,148 @@ from ...utils import (
 )
 from .common import *  # noqa: F403
 
+@pytest.mark.expression()
+@pytest.mark.parametrize(
+    "variables",
+    [
+        (4, Vtype.Binary),
+        (4, Vtype.Spin),
+        (4, Vtype.Integer),
+        (4, Vtype.Real),
+    ],
+    indirect=True,
+)
+def test_expression_mul_zero(variables):
+    a, b, c, d = variables
+
+    expr = a
+    expr *= b
+    expr *= c
+    expr *= d
+    expr *= 0
+
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+@pytest.mark.expression()
+@pytest.mark.parametrize(
+    "variables",
+    [
+        (4, Vtype.Binary),
+    ],
+    indirect=True,
+)
+def test_expression_mul_zero_inv(variables):
+    a, b, c, d = variables
+
+    expr = a * b * c * d * ~b
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+    expr1 = a * b
+    expr2 = c * d * ~b
+    expr = expr1 * expr2
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+    expr1 = a * b * c
+    expr2 = d * ~b
+    expr = expr1 * expr2
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+    expr1 = a * b * c * d
+    expr2 = ~b
+    expr = expr1 * expr2
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+    expr1 = a * ~b * c
+    expr2 = d * b
+    expr = expr1 * expr2
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+    expr = a
+    expr *= b
+    expr *= c
+    expr *= d
+    expr *= ~b
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+@pytest.mark.expression()
+@pytest.mark.parametrize(
+    "variables",
+    [
+        (4, Vtype.Binary),
+    ],
+    indirect=True,
+)
+def test_expression_mul_zero_inv2(variables):
+    a, b, c, d = variables
+
+    expr = a * ~b * c * d * b
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+    expr1 = a * ~b
+    expr2 = c * d * b
+    expr = expr1 * expr2
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+    expr1 = a * ~b * c
+    expr2 = d * b
+    expr = expr1 * expr2
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+    expr1 = a * ~b * c * d
+    expr2 = b
+    expr = expr1 * expr2
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+    expr1 = a * b * c
+    expr2 = d * ~b
+    expr = expr1 * expr2
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
+
+    expr = a
+    expr *= ~b
+    expr *= c
+    expr *= d
+    expr *= b
+    assert isinstance(expr, Expression)
+    assert expr.num_variables == 4
+    assert 0.0 == expr.get_higher_order(variables)
+    assert 0 == len(expr.higher_order_items())
 
 @pytest.mark.expression()
 @pytest.mark.parametrize(
