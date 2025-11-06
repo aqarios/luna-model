@@ -314,21 +314,9 @@ impl Parser {
             }
 
             match t {
-                Token::Number(n) => {
-                    // let v: R = todo!("implement literal number {}", n);
-                    // example AST: let v = Expr::Number(*n);
-                    let v = ExprTree::Number(*n);
-                    vals.push(v);
-                }
-                Token::Variable(name) => {
-                    // let v: R = todo!("implement variable `{}`", name);
-                    // example AST: let v = Expr::Var(name.clone());
-                    let v = ExprTree::Variable(name.clone());
-                    vals.push(v);
-                }
-                Token::LParen => {
-                    ops.push(Op::LParen);
-                }
+                Token::Number(n) => vals.push(ExprTree::Number(*n)),
+                Token::Variable(name) => vals.push(ExprTree::Variable(name.clone()))
+                Token::LParen => ops.push(Op::LParen),
                 Token::RParen => {
                     // Pop until matching '('
                     while let Some(&top) = ops.last() {
