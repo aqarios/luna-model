@@ -315,7 +315,7 @@ impl Parser {
 
             match t {
                 Token::Number(n) => vals.push(ExprTree::Number(*n)),
-                Token::Variable(name) => vals.push(ExprTree::Variable(name.clone()))
+                Token::Variable(name) => vals.push(ExprTree::Variable(name.clone())),
                 Token::LParen => ops.push(Op::LParen),
                 Token::RParen => {
                     // Pop until matching '('
