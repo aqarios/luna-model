@@ -60,6 +60,7 @@ pub fn create_linear_expression_with_vars(
 ) -> (Expression, Vec<VarRef>) {
     let varname_prefix = match vtype {
         Vtype::Binary => "b",
+        Vtype::InvertedBinary => "ib",
         Vtype::Spin => "s",
         Vtype::Integer => "i",
         Vtype::Real => "r",

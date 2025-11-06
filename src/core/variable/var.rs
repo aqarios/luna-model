@@ -1,4 +1,8 @@
-use crate::{core::ContentEquality, errors::VariableCreationErr, types::EnvId};
+use crate::{
+    core::{ContentEquality, VarId},
+    errors::VariableCreationErr,
+    types::EnvId,
+};
 use std::fmt::{Debug, Display, Formatter};
 
 use super::{bounds::display_bound, Bounds, LazyBounds, Vtype};
@@ -10,6 +14,7 @@ pub struct Variable {
     pub vtype: Vtype,
     pub bounds: Bounds,
     pub env_id: EnvId,
+    pub inverted: Option<VarId>,
 }
 
 impl Variable {
@@ -19,6 +24,7 @@ impl Variable {
             vtype: self.vtype,
             bounds: self.bounds.clone(),
             env_id: id,
+            inverted: None,
         }
     }
 }
@@ -34,6 +40,7 @@ impl Variable {
             vtype: Vtype::default(),
             bounds: Bounds::default(&Vtype::default()),
             env_id: EnvId::default(),
+            inverted: None,
         }
     }
 
@@ -64,6 +71,7 @@ impl Variable {
             name,
             vtype,
             env_id,
+            inverted: None,
         })
     }
 
@@ -84,6 +92,18 @@ impl Variable {
             }
         }
         out
+    }
+
+    pub fn as_string(&self) -> String {
+        self.name.clone()
+        // match self.vtype {
+        //     Vtype::Binary => self.name.clone(),
+        //     Vtype::InvertedBinary => format!("~{}", self.name),
+        //     Vtype::Spin => self.name.clone(),
+        //     Vtype::Integer => self.name.clone(),
+        //     Vtype::Real => self.name.clone(),
+        //     Vtype::__Ghost => panic!("can not show ghost variables"),
+        // }
     }
 }
 

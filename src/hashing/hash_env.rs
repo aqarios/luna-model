@@ -17,6 +17,9 @@ pub struct HashEnv {
     /// The indices of the binary variables.
     #[prost(uint32, repeated, tag = "3")]
     binary: Vec<u32>,
+    /// The indices of the binary variables.
+    #[prost(uint32, repeated, tag = "20")]
+    inverted_binary: Vec<u32>,
     /// The indices of the spin variables.
     #[prost(uint32, repeated, tag = "4")]
     spin: Vec<u32>,
@@ -30,6 +33,9 @@ pub struct HashEnv {
     /// The names of the binary variables
     #[prost(string, repeated, tag = "7")]
     binary_names: Vec<String>,
+    /// The names of the binary variables
+    #[prost(string, repeated, tag = "21")]
+    inverted_binary_names: Vec<String>,
     /// The names of the spin variables
     #[prost(string, repeated, tag = "8")]
     spin_names: Vec<String>,
@@ -75,10 +81,12 @@ impl HashEnv {
             id: 0,
             varcount: env.varcount().0,
             binary: Vec::new(),
+            inverted_binary: Vec::new(),
             spin: Vec::new(),
             integer: Vec::new(),
             real: Vec::new(),
             binary_names: Vec::new(),
+            inverted_binary_names: Vec::new(),
             spin_names: Vec::new(),
             integer_names: Vec::new(),
             real_names: Vec::new(),
@@ -98,6 +106,10 @@ impl HashEnv {
                 Vtype::Binary => {
                     serenv.binary.push(force_u32(i));
                     serenv.binary_names.push(var.name.clone());
+                }
+                Vtype::InvertedBinary => {
+                    serenv.inverted_binary.push(force_u32(i));
+                    serenv.inverted_binary_names.push(var.name.clone());
                 }
                 Vtype::Spin => {
                     serenv.spin.push(force_u32(i));

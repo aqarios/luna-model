@@ -17,6 +17,7 @@ use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::types::PyBool;
 use pyo3::{prelude::*, IntoPyObjectExt};
 use std::hash::{DefaultHasher, Hash, Hasher};
+use std::ops::Not;
 use unwind_macros::unwindable;
 
 /// Represents a symbolic variable within an optimization environment.
@@ -330,6 +331,69 @@ impl PyVariable {
         Ok(PyExpression::new(expr))
     }
 
+        
+    /// Invert a binary variable.
+
+    /// This operation is only supported on Binary variables. For all other variable 
+    /// types it raises the
+    /// `UnsupportedOperationError`.
+
+    /// Inversion of a binary variable `b`: `~b` is equivalent to the
+    /// expression: `(1 - b)`.
+
+    /// Using inversion, or the alternative `b.inv()` method is a first
+    /// level primitive in luna-model, i.e., internally a `~b` is not treated
+    /// as a `(1 - b)` expression but implies internal optimizations in the model
+    /// representation. Using `~b` or `b.inv()` will give you a **new** variable
+    /// that represents the inverse of `b`. The variable type of this inversed
+    /// binary variable `~b` is `Vtype.InverseBinary`. Inversing `~b` again: `~(~b)`
+    /// will return the original variable `b` with variable type `Vtype.Binary`.
+
+    /// Returns
+    /// -------
+    /// Variable
+    ///     The inverse variable of `self`.
+
+    /// Raises
+    /// ------
+    /// UnsupportedOperationErr
+    ///     If the operand is a variable of any type other than `Binary`.
+    fn inv(&self) -> PyResult<PyVariable> {
+        self.check_living()?;
+        Ok(PyVariable::new(self.0.not()?))
+    }
+
+    /// Invert a binary variable.
+
+    /// This operation is only supported on Binary variables. For all other variable 
+    /// types it raises the
+    /// `UnsupportedOperationError`.
+
+    /// Inversion of a binary variable `b`: `~b` is equivalent to the
+    /// expression: `(1 - b)`.
+
+    /// Using inversion, or the alternative `b.inv()` method is a first
+    /// level primitive in luna-model, i.e., internally a `~b` is not treated
+    /// as a `(1 - b)` expression but implies internal optimizations in the model
+    /// representation. Using `~b` or `b.inv()` will give you a **new** variable
+    /// that represents the inverse of `b`. The variable type of this inversed
+    /// binary variable `~b` is `Vtype.InverseBinary`. Inversing `~b` again: `~(~b)`
+    /// will return the original variable `b` with variable type `Vtype.Binary`.
+
+    /// Returns
+    /// -------
+    /// Variable
+    ///     The inverse variable of `self`.
+
+    /// Raises
+    /// ------
+    /// UnsupportedOperationErr
+    ///     If the operand is a variable of any type other than `Binary`.
+    fn __invert__(&self) -> PyResult<PyVariable> {
+        self.check_living()?;
+        Ok(PyVariable::new(self.0.not()?))
+    }
+
     /// Right-hand multiplication for scalars.
     ///
     /// Parameters
@@ -540,6 +604,7 @@ impl Vtype {
     fn get_name(&self) -> String {
         match &self {
             Self::Binary => String::from("Binary"),
+            Self::InvertedBinary => String::from("InvertedBinary"),
             Self::Spin => String::from("Spin"),
             Self::Integer => String::from("Integer"),
             Self::Real => String::from("Real"),

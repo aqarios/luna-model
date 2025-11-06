@@ -116,6 +116,9 @@ impl Column {
             Vtype::__Ghost => Err(ColumnCreationErr::new(
                 "cannot create a sample column for ghost variables.",
             )),
+            Vtype::InvertedBinary => Err(ColumnCreationErr::new(
+                "cannot create a sample column for inverted binary variables.",
+            )),
         }
     }
     fn try_make_samplecol_elem<T: NumCast, N: NumCast + Copy>(

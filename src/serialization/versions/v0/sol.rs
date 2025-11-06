@@ -18,7 +18,7 @@ fn u8_to_vtype(u: u8) -> Vtype {
         2 => Vtype::Integer,
         3 => Vtype::Real,
         4 => Vtype::__Ghost,
-        _ => panic!("issue"),
+        _ => unreachable!("issue"),
     }
 }
 
@@ -132,7 +132,7 @@ impl SerSolution {
         sol.counts = self.counts.iter().map(|&v| v as usize).collect();
         sol.n_samples = self.num_samples as usize;
 
-        let (mut lb, mut ls, mut li, mut lr) = (0, 0, 0, 0);
+        let (mut lb, mut ilb, mut ls, mut li, mut lr) = (0, 0, 0, 0, 0);
         let sample_len = self.sample_len as usize;
         for _ in 0..num_samples {
             for j in 0..sample_len {
@@ -142,6 +142,12 @@ impl SerSolution {
                             .push(self.bins[lb])
                             .expect("something went wrong");
                         lb += 1;
+                    }
+                    Vtype::InvertedBinary => {
+                        sol.samples[j]
+                            .push(self.bins[ilb])
+                            .expect("something went wrong");
+                        ilb += 1;
                     }
                     Vtype::Spin => {
                         sol.samples[j]

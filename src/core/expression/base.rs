@@ -313,6 +313,7 @@ where
     ) -> Bias
     where
         Elem: Mul<Bias, Output = Bias>,
+        Bias: Sub<Elem, Output = Bias>,
         F: Fn(VarIndex) -> Idx;
 
     fn evaluate_sampleset<
@@ -328,5 +329,6 @@ where
     ) -> Vec<Bias>
     where
         Elem: Mul<Bias, Output = Bias>,
+        Bias: Sub<Elem, Output = Bias>,
         F: Fn(VarIndex) -> Idx;
 }

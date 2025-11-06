@@ -6,7 +6,7 @@ use crate::core::{ExpressionBase, SharedEnvironment, Substitution, ValueByIndex,
 use crate::errors::{DifferentEnvsErr, IllegalConstraintNameErr};
 use crate::types::{Bias, VarIndex};
 use std::fmt::{Debug, Display, Formatter};
-use std::ops::Mul;
+use std::ops::{Mul, Sub};
 use std::string::ToString;
 use strum_macros::Display;
 
@@ -208,6 +208,7 @@ impl Constraint {
     ) -> bool
     where
         Elem: Mul<Bias, Output = Bias>,
+        Bias: Sub<Elem, Output = Bias>,
         F: Fn(VarIndex) -> VarIndex,
     {
         let val = self.lhs.evaluate_sample(sample, &index_map);

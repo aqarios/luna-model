@@ -4,8 +4,8 @@ use crate::errors::{
     DuplicateConstraintNameErr, EvaluationErr, GetConstraintErr, IllegalConstraintNameErr,
     IndexOutOfBoundsErr, MatrixTranslatorErr, ModelNotQuadraticErr, ModelNotUnconstrainedErr,
     ModelSenseNotMinimizeErr, ModelVtypeErr, SampleIncompatibleVtypeErr, SampleIncorrectLengthErr,
-    SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, VariableCreationErr,
-    VariableNotExistingErr, VariablesFromDifferentEnvsErr,
+    SampleUnexpectedVariableErr, SolutionCreationErr, TranslationErr, UnsupportedOperationErr,
+    VariableCreationErr, VariableNotExistingErr, VariablesFromDifferentEnvsErr,
 };
 use crate::serialization::DecodeError as DecodeErr;
 use std::convert::From;
@@ -18,6 +18,13 @@ use {
     pyo3::exceptions::{PyException, PyIndexError, PyTypeError},
     pyo3::{create_exception, PyErr},
 };
+
+create_exception!(
+    luna_model._core.errors,
+    UnsupportedOperationError,
+    PyException,
+    "Raised when an operation is used on an unsupported type."
+);
 
 create_exception!(
     luna_model._core.errors,
@@ -210,7 +217,11 @@ create_exception!(
     "Raised when an error occured during evaluation of a model."
 );
 
-create_exception!(luna_model._core.errors, SolutionTranslationError, PyException);
+create_exception!(
+    luna_model._core.errors,
+    SolutionTranslationError,
+    PyException
+);
 
 create_exception!(
     luna_model._core.errors,
@@ -292,6 +303,7 @@ impl From<VariableCreationErr> for PyErr {
     fn from(err: VariableCreationErr) -> PyErr {
         match err {
             VariableCreationErr::VariableExists(_) => VariableExistsError::new_err(err.to_string()),
+            VariableCreationErr::InvalidInversion(_) => UnsupportedOperationError::new_err(err.to_string()),
             VariableCreationErr::InvalidBounds(_) => {
                 VariableCreationError::new_err(err.to_string())
             }
@@ -465,5 +477,11 @@ impl From<CompressionErr> for PyErr {
 impl From<EnvMismatchError> for PyErr {
     fn from(value: EnvMismatchError) -> Self {
         PyRuntimeError::new_err(format!("{}", value))
+    }
+}
+
+impl From<UnsupportedOperationErr> for PyErr {
+    fn from(value: UnsupportedOperationErr) -> Self {
+        UnsupportedOperationError::new_err(value.to_string())
     }
 }

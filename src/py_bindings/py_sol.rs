@@ -250,6 +250,7 @@ impl PySolution {
         for (i, ct) in component_types.iter().enumerate() {
             let len = match ct {
                 Vtype::__Ghost => 0,
+                Vtype::InvertedBinary => 0,
                 Vtype::Binary => {
                     let bc = binary_cols[lb].clone();
                     let bc_len = bc.len();

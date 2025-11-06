@@ -287,7 +287,9 @@ impl PySample {
                 Vtype::Binary => VarAssignment::Binary((*x > 0) as u8),
                 Vtype::Spin => VarAssignment::Spin(*x as i8),
                 Vtype::Integer => VarAssignment::Integer(*x as i64),
-                _ => panic!(),
+                Vtype::Real => VarAssignment::Real(*x as f64),
+                Vtype::__Ghost => panic!(),
+                Vtype::InvertedBinary => panic!(),
             })
             .collect();
         let var_ids = vars.iter().map(|x| (*x.0).id).collect();

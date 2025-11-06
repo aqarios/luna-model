@@ -39,6 +39,28 @@ impl Display for DuplicateConstraintNameErr {
 }
 
 #[derive(Debug, Clone)]
+pub struct UnsupportedNotOperationErr;
+
+impl UnsupportedNotOperationErr {
+    pub fn new(vtype: Vtype) -> UnsupportedOperationErr {
+        UnsupportedOperationErr(String::from("not"), vtype.to_string())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct UnsupportedOperationErr(pub String, pub String);
+impl Error for UnsupportedOperationErr {}
+impl Display for UnsupportedOperationErr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "The '{}' operation is not supported on variables with type: {}",
+            self.0, self.1
+        )
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct ComputationErr(pub String);
 impl Error for ComputationErr {}
 impl Display for ComputationErr {
@@ -85,6 +107,7 @@ impl Display for TranslationErr {
 pub enum VariableCreationErr {
     VariableExists(String),
     InvalidBounds(Vtype),
+    InvalidInversion(Vtype),
     VarName(String),
 }
 impl Error for VariableCreationErr {}
@@ -96,6 +119,9 @@ impl Display for VariableCreationErr {
             }
             VariableCreationErr::InvalidBounds(vtype) => {
                 format!("bounds cannot be set for variable of type {vtype}.")
+            }
+            VariableCreationErr::InvalidInversion(vtype) => {
+                format!("variables of type '{vtype}' cannot be inverted.")
             }
             VariableCreationErr::VarName(s) => s.clone(),
         };

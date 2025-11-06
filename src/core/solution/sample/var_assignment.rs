@@ -1,6 +1,6 @@
 use std::{
     fmt::{Display, Formatter},
-    ops::Mul,
+    ops::{Mul, Sub},
 };
 
 use num::NumCast;
@@ -54,6 +54,19 @@ impl Mul<Bias> for VarAssignment {
             VarAssignment::Spin(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
             VarAssignment::Integer(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
             VarAssignment::Real(col) => <Bias as NumCast>::from(col).unwrap() * rhs,
+        }
+    }
+}
+
+impl Sub<VarAssignment> for Bias {
+    type Output = Bias;
+
+    fn sub(self, rhs: VarAssignment) -> Self::Output {
+        match rhs {
+            VarAssignment::Binary(col) => self - <Bias as NumCast>::from(col).unwrap(),
+            VarAssignment::Spin(col) => self - <Bias as NumCast>::from(col).unwrap(),
+            VarAssignment::Integer(col) => self - <Bias as NumCast>::from(col).unwrap(),
+            VarAssignment::Real(col) => self - <Bias as NumCast>::from(col).unwrap(),
         }
     }
 }

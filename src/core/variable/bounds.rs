@@ -77,6 +77,7 @@ impl Bounds {
             Vtype::Real => Self::real(),
             Vtype::Integer => Self::integer(),
             Vtype::Binary => Self::binary(),
+            Vtype::InvertedBinary => Self::inverted_binary(),
             Vtype::Spin => Self::spin(),
             Vtype::__Ghost => Self::__ghost(),
         }
@@ -84,6 +85,10 @@ impl Bounds {
 
     /// The bounds of a binary variable.
     pub fn binary() -> Self {
+        Self::new(Bound::Some(0.0), Bound::Some(1.0))
+    }
+    /// The bounds of an inverted binary variable.
+    pub fn inverted_binary() -> Self {
         Self::new(Bound::Some(0.0), Bound::Some(1.0))
     }
     /// The bounds of a spin variable.
