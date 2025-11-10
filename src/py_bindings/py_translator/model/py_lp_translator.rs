@@ -56,7 +56,7 @@ impl PyLpTranslator {
     ///     If the translation fails for a different reason.
     #[staticmethod]
     #[pyo3(signature=(file))]
-    fn to_aq(py: Python, file: Py<PyAny>) -> PyResult<PyModel> {
+    pub fn to_aq(py: Python, file: Py<PyAny>) -> PyResult<PyModel> {
         if let Ok(file) = file.extract::<String>(py) {
             // Here we need to help the user a bit. Let's check if we can make a PathBuf from this.
             // If not possible we try to read the string as is. And throw an error if both fails.
@@ -75,9 +75,10 @@ impl PyLpTranslator {
             let file = LPTranslator::read_file(filepath)?;
             Ok(PyModel::new(LPTranslator::translate(file)?))
         } else {
-            Err(PyTypeError::new_err(
-                "file must be either a Path object or the LP String",
-            ))
+            Err(PyTypeError::new_err(format!(
+                "file must be either a Path object or the LP String, {}",
+                file
+            )))
         }
     }
 
@@ -101,7 +102,7 @@ impl PyLpTranslator {
     ///     If the translation fails for some reason.
     #[staticmethod]
     #[pyo3(signature=(model, filepath=None))]
-    fn from_aq(model: &PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
+    pub fn from_aq(model: &PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
         Ok(LPTranslator::back_translate((&model.access(), filepath))?)
     }
 }

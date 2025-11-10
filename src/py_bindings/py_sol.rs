@@ -112,6 +112,17 @@ impl PySolution {
 #[unwindable]
 #[pymethods]
 impl PySolution {
+
+    #[staticmethod]
+    fn from() -> Self {
+        todo!()
+    }
+
+    // #[staticmethod]
+    // fn to() -> Self {
+    //     todo!()
+    // }
+
     /// Build a `Solution` based on the provided input data. The solution is constructed
     /// based on a column layout of the solution. Let's take the following sample-set with three
     /// samples as an example:

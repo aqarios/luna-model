@@ -77,8 +77,9 @@ pub struct PyTransformationPass {}
 impl PyTransformationPass {
     #[new]
     #[pyo3(signature=(*args, **kwargs))]
-    #[allow(unused_variables)]
     fn py_new(args: &Bound<'_, PyAny>, kwargs: Option<&Bound<'_, PyAny>>) -> Self {
+        _ = args;
+        _ = kwargs;
         Self {}
     }
 
@@ -103,16 +104,18 @@ impl PyTransformationPass {
     }
 
     #[pyo3(name = "run")]
-    #[allow(unused_variables)]
     fn py_run(&self, model: PyModel, cache: &PyAnalysisCache) -> PyResult<Py<PyNone>> {
+        _ = model;
+        _ = cache;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'run' method is not implemented.",
         ))
     }
 
     #[pyo3(name = "backwards")]
-    #[allow(unused_variables)]
     fn py_backwards(&self, solution: &PySolution, cache: &PyAnalysisCache) -> PyResult<PySolution> {
+        _ = solution;
+        _ = cache;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'backwards' method is not implemented.",
         ))

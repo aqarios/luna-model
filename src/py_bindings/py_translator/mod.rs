@@ -4,7 +4,7 @@ pub mod solution;
 pub use model::PyBqmTranslator;
 pub use model::PyCqmTranslator;
 pub use model::PyLpTranslator;
-pub use model::{PyQubo, PyQuboTranslator};
+pub use model::{PyQubo, PyQuboTranslator, QuboType};
 
 pub use solution::PyAwsTranslator;
 pub use solution::PyDwaveTranslator;

@@ -19,8 +19,9 @@ pub struct PyAnalysisPass {}
 impl PyAnalysisPass {
     #[new]
     #[pyo3(signature=(*args, **kwargs))]
-    #[allow(unused_variables)]
     fn py_new(args: &Bound<'_, PyAny>, kwargs: Option<&Bound<'_, PyAny>>) -> Self {
+        _ = args;
+        _ = kwargs;
         Self {}
     }
 
@@ -39,8 +40,9 @@ impl PyAnalysisPass {
     }
 
     #[pyo3(name = "run")]
-    #[allow(unused_variables)]
     fn py_run(&self, model: PyModel, cache: &PyAnalysisCache) -> PyResult<Py<PyAny>> {
+        _ = model;
+        _ = cache;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'run' method is not implemented.",
         ))

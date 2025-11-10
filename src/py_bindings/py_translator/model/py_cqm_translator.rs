@@ -1,3 +1,4 @@
+use crate::py_bindings::py_model::PyModel;
 use crate::py_bindings::unwind;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
@@ -81,12 +82,12 @@ impl PyCqmTranslator {
     ///     If the translation fails for some reason.
     #[staticmethod]
     #[pyo3(signature=(model))]
-    fn from_aq<'a>(py: Python<'a>, model: Py<PyAny>) -> PyResult<Py<PyAny>> {
+    pub fn from_aq<'a>(py: Python<'a>, model: &PyModel) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> =
             PyModule::from_code(py, PY_CODE_FROM_AQ, c_str!(""), c_str!(""))?
                 .getattr("extract")?
                 .into();
-        let args = (model,);
+        let args = (model.clone(),);
         let result = extractor.call1(py, args)?;
         Ok(result)
     }
@@ -110,8 +111,7 @@ impl PyCqmTranslator {
     /// TranslationError
     ///     If the translation fails for some reason.
     #[staticmethod]
-    #[pyo3(signature=(cqm))]
-    fn to_aq(py: Python, cqm: Py<PyAny>) -> PyResult<Py<PyAny>> {
+    pub fn to_aq(py: Python, cqm: Py<PyAny>) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE_TO_AQ, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();

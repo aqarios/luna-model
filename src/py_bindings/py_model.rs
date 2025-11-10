@@ -2,6 +2,7 @@ use super::py_bounds::BoundValue;
 use super::py_constr::PyConstraint;
 use super::py_model_metadata::PyModelMetadata;
 use super::py_sample::PySampleInner;
+use super::py_translator::{PyBqmTranslator, PyCqmTranslator, PyLpTranslator, PyQuboTranslator};
 use super::py_utilities::{repr_model, Replacement};
 use super::{
     py_constr::PyConstraintCollection, py_env::PyEnvironment, py_expr::PyExpression,
@@ -24,16 +25,48 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut};
 use either::Either::{Left, Right};
-use pyo3::exceptions::PyRuntimeError;
+use pyo3::exceptions::{PyRuntimeError, PyTypeError, PyValueError};
 use pyo3::ffi::c_str;
-use pyo3::types::PyType;
+use pyo3::types::{PyDict, PyType};
 use pyo3::IntoPyObjectExt;
 use pyo3::{prelude::*, types::PyBytes};
 use std::ffi::CStr;
 use std::ops::Deref;
+use std::path::PathBuf;
+use strum_macros::Display;
 use unwind_macros::unwindable;
 
 static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_model import Model");
+
+#[pyclass(eq, name = "TranslationTarget", module = "luna_model._core")]
+#[derive(Debug, Display, Hash, PartialEq)]
+pub enum TranslationTarget {
+    Qubo,
+    Lp,
+    Bqm,
+    Cqm,
+}
+
+impl TranslationTarget {
+    fn extract(py: Python, other: &Py<PyAny>) -> PyResult<TranslationTarget> {
+        let builtins = PyModule::import(py, "builtins")?;
+        let the_type: Py<PyAny> = builtins.getattr("type")?.call1((other,))?.extract()?;
+        let type_name: String = builtins.getattr("str")?.call1((the_type,))?.extract()?;
+        if type_name.contains("dimod") && type_name.contains("BinaryQuadraticModel") {
+            Ok(TranslationTarget::Bqm)
+        } else if type_name.contains("dimod") && type_name.contains("ConstrainedQuadraticModel") {
+            Ok(TranslationTarget::Cqm)
+        } else if type_name.contains("numpy.matrix") || type_name.contains("list") {
+            Ok(TranslationTarget::Qubo)
+        } else if type_name.contains("'str'") || type_name.contains("Path") {
+            Ok(TranslationTarget::Lp)
+        } else {
+            Err(PyTypeError::new_err(
+                "translation from a '{type_name}' is not supported",
+            ))
+        }
+    }
+}
 
 /// A symbolic optimization model consisting of an objective and constraints.
 ///
@@ -108,12 +141,6 @@ impl PyModel {
     }
 }
 
-// impl Into<Rc<RefCell<Model>>> for PyModel {
-//     fn into(self) -> Rc<RefCell<Model>> {
-//         self.concrete_model
-//     }
-// }
-
 #[unwindable]
 #[pymethods]
 impl PyModel {
@@ -138,6 +165,49 @@ impl PyModel {
             }),
         };
         Self::new(Model::new_with_env(name, sense, env.0))
+    }
+
+    #[staticmethod]
+    #[pyo3(signature=(other, kwargs=None))]
+    fn from_(py: Python, other: Py<PyAny>, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+        use TranslationTarget::*;
+
+        let source = TranslationTarget::extract(py, &other)?;
+        match source {
+            Qubo => {
+                let offset = extract_maybe(&kwargs, "offset")?;
+                let variable_names = extract_maybe(&kwargs, "variable_names")?;
+                let name = extract_maybe(&kwargs, "name")?;
+                let vtype = extract_maybe(&kwargs, "vtype")?;
+                PyQuboTranslator::to_aq(other.extract(py)?, offset, variable_names, name, vtype)
+            }
+            Lp => PyLpTranslator::to_aq(py, other),
+            Bqm => PyBqmTranslator::to_aq(py, other, extract_maybe(&kwargs, "name")?)?.extract(py),
+            Cqm => PyCqmTranslator::to_aq(py, other)?.extract(py), //, extract_maybe(&kwargs, "name")?)?.extract(py),
+        }
+    }
+
+    #[pyo3(signature=(target, filepath=None))]
+    fn to(
+        &self,
+        py: Python,
+        target: &TranslationTarget,
+        filepath: Option<PathBuf>,
+    ) -> PyResult<Py<PyAny>> {
+        use TranslationTarget::*;
+
+        if *target != Lp && filepath.is_some() {
+            return Err(PyValueError::new_err(
+                "filepath can only be used with target 'Lp'",
+            ));
+        }
+
+        match target {
+            Qubo => PyQuboTranslator::from_aq(&self).map(|pyqubo| pyqubo.into_py_any(py))?,
+            Lp => PyLpTranslator::from_aq(&self, filepath).map(|lp| lp.into_py_any(py))?,
+            Bqm => PyBqmTranslator::from_aq(py, &self),
+            Cqm => PyCqmTranslator::from_aq(py, &self),
+        }
     }
 
     /// Add a new variable to the model.
@@ -652,39 +722,55 @@ impl PyModel {
     /// Get the model's metadata.
     #[getter]
     fn get_metadata(&self) -> PyResult<()> {
-        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+        Err(PyRuntimeError::new_err(
+            "This functionality is only available with luna_quantum: https://docs.aqarios.com",
+        ))
     }
 
     /// Set the model's metadata.
     #[setter]
-    fn set_metadata(&self, _metadata: Bound<PyAny>) -> PyResult<()> {
-        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+    fn set_metadata(&self, metadata: Bound<PyAny>) -> PyResult<()> {
+        _ = metadata;
+        Err(PyRuntimeError::new_err(
+            "This functionality is only available with luna_quantum: https://docs.aqarios.com",
+        ))
     }
 
     #[staticmethod]
-    #[allow(unused_variables)]
     fn load_luna(model_id: String, client: Bound<PyAny>) -> PyResult<()> {
-        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+        _ = model_id;
+        _ = client;
+        Err(PyRuntimeError::new_err(
+            "This functionality is only available with luna_quantum: https://docs.aqarios.com",
+        ))
     }
 
-    #[allow(unused_variables)]
     fn save_luna(&self, client: Bound<PyAny>) -> PyResult<()> {
-        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+        _ = client;
+        Err(PyRuntimeError::new_err(
+            "This functionality is only available with luna_quantum: https://docs.aqarios.com",
+        ))
     }
 
-    #[allow(unused_variables)]
     fn delete_luna(&self, client: Bound<PyAny>) -> PyResult<()> {
-        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+        _ = client;
+        Err(PyRuntimeError::new_err(
+            "This functionality is only available with luna_quantum: https://docs.aqarios.com",
+        ))
     }
 
-    #[allow(unused_variables)]
     fn load_solutions(&self, client: Bound<PyAny>) -> PyResult<()> {
-        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+        _ = client;
+        Err(PyRuntimeError::new_err(
+            "This functionality is only available with luna_quantum: https://docs.aqarios.com",
+        ))
     }
 
-    #[allow(unused_variables)]
     fn load_solve_jobs(&self, client: Bound<PyAny>) -> PyResult<()> {
-        Err(PyRuntimeError::new_err("This functionality is only available with luna_quantum: https://docs.aqarios.com"))
+        _ = client;
+        Err(PyRuntimeError::new_err(
+            "This functionality is only available with luna_quantum: https://docs.aqarios.com",
+        ))
     }
 }
 
@@ -698,5 +784,20 @@ impl PyModel {
     /// implementation details in the `__hash__` function.
     fn hash(&self) -> PyResult<u64> {
         Ok(hash_model(&self.access()))
+    }
+}
+
+fn extract_maybe<'a, T: FromPyObject<'a>>(
+    kwargs: &Option<&Bound<'a, PyDict>>,
+    key: &str,
+) -> PyResult<Option<T>> {
+    if let Some(kw) = kwargs {
+        if let Some(maybe_bound_val) = kw.get_item(key)? {
+            Ok(Some(maybe_bound_val.extract()?))
+        } else {
+            Ok(None)
+        }
+    } else {
+        Ok(None)
     }
 }

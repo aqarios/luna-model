@@ -108,7 +108,7 @@ impl PyQubo {
 pub struct PyQuboTranslator {}
 
 #[derive(FromPyObject)]
-enum QuboType<'py> {
+pub enum QuboType<'py> {
     F64(PyReadonlyArray2<'py, f64>),
     I64(PyReadonlyArray2<'py, i64>),
 }
@@ -144,7 +144,7 @@ impl PyQuboTranslator {
     ///     incorrect length.
     #[staticmethod]
     #[pyo3(signature=(qubo, offset=None, variable_names=None, name=None, vtype=None))]
-    fn to_aq(
+    pub fn to_aq(
         qubo: QuboType,
         offset: Option<f64>,
         variable_names: Option<Vec<String>>,
@@ -210,7 +210,7 @@ impl PyQuboTranslator {
     ///     spin.
     #[staticmethod]
     #[pyo3(signature=(model))]
-    fn from_aq(model: &PyModel) -> PyResult<PyQubo> {
+    pub fn from_aq(model: &PyModel) -> PyResult<PyQubo> {
         let qubo = MatrixTranslator::model_to_dense(&model.access())?;
         Ok(PyQubo(qubo))
     }
