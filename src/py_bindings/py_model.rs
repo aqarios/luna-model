@@ -48,7 +48,7 @@ pub enum TranslationTarget {
 }
 
 impl TranslationTarget {
-    fn extract(py: Python, other: &Py<PyAny>) -> PyResult<TranslationTarget> {
+    fn retrieve(py: Python, other: &Py<PyAny>) -> PyResult<TranslationTarget> {
         let builtins = PyModule::import(py, "builtins")?;
         let the_type: Py<PyAny> = builtins.getattr("type")?.call1((other,))?.extract()?;
         let type_name: String = builtins.getattr("str")?.call1((the_type,))?.extract()?;
@@ -56,7 +56,7 @@ impl TranslationTarget {
             Ok(TranslationTarget::Bqm)
         } else if type_name.contains("dimod") && type_name.contains("ConstrainedQuadraticModel") {
             Ok(TranslationTarget::Cqm)
-        } else if type_name.contains("numpy.matrix") || type_name.contains("list") {
+        } else if type_name.contains("numpy.matrix") || type_name.contains("numpy.ndarray") {
             Ok(TranslationTarget::Qubo)
         } else if type_name.contains("'str'") || type_name.contains("Path") {
             Ok(TranslationTarget::Lp)
@@ -172,7 +172,7 @@ impl PyModel {
     fn from_(py: Python, other: Py<PyAny>, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         use TranslationTarget::*;
 
-        let source = TranslationTarget::extract(py, &other)?;
+        let source = TranslationTarget::retrieve(py, &other)?;
         match source {
             Qubo => {
                 let offset = extract_maybe(&kwargs, "offset")?;

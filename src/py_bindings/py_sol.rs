@@ -30,6 +30,7 @@ use std::collections::HashMap;
 use std::ffi::CStr;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
+use strum_macros::Display;
 use unwind_macros::unwindable;
 
 static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_model import Solution");
@@ -52,6 +53,80 @@ impl From<String> for VariableKey {
 enum BitOrder {
     LTR,
     RTL,
+}
+
+#[derive(Display, Debug)]
+enum SolutionTarget {
+    Aws,
+    Dwave,
+    Ibm,
+    Numpy,
+    Qctrl,
+    Zib,
+    Dict,
+    DictList,
+}
+
+impl SolutionTarget {
+    fn retrieve(py: Python, other: &Py<PyAny>) -> PyResult<Self> {
+        // other can be:
+        //  - ScipModel
+        //  - dict[str, any] (QCtrl + AWS)
+        //     * qctrl contains 'solution_bitstring'
+        //     * aws does not, it contains 'samples'
+        //  - NDarray HAS EXTRA PARAM `energies`
+        //  - PrimitiveResult[PubResult] HAS EXTRA PARAM `quadratic_program`
+        //  - SampleSet
+        //  - also include from_dict, from_dicts and from_counts here.
+        let builtins = PyModule::import(py, "builtins")?;
+        let the_type: Py<PyAny> = builtins.getattr("type")?.call1((other,))?.extract()?;
+        let type_name: String = builtins.getattr("str")?.call1((the_type,))?.extract()?;
+        // dbg!(&type_name);
+        if type_name.contains("pyscipopt") && type_name.contains("Model") {
+            // type_name = "<class 'pyscipopt.scip.Model'>"
+            Ok(SolutionTarget::Zib)
+        } else if type_name.contains("dimod") && type_name.contains("SampleSet") {
+            // dwave
+            // type_name = "<class 'dimod.sampleset.SampleSet'>"
+            Ok(SolutionTarget::Dwave)
+        } else if type_name.contains("numpy.ndarray") {
+            // np
+            // type_name = "<class 'numpy.ndarray'>"
+            Ok(SolutionTarget::Numpy)
+        } else if type_name.contains("qiskit") && type_name.contains("PrimitiveResult") {
+            // ibm
+            // type_name = "<class 'qiskit.primitives.containers.primitive_result.PrimitiveResult'>"
+            Ok(SolutionTarget::Ibm)
+        } else if type_name.contains("'dict'") {
+            // either AWS or Qctrl or dict
+            // qctrl
+            // aws
+            // type_name = "<class 'dict'>"
+            let is_qctrl = other
+                .getattr(py, "__getitem__")?
+                .call1(py, ("solution_bitstring",))
+                .ok()
+                .is_some();
+            let is_aws = other
+                .getattr(py, "__getitem__")?
+                .call1(py, ("samples",))
+                .ok()
+                .is_some();
+            if is_qctrl {
+                Ok(SolutionTarget::Qctrl)
+            } else if is_aws {
+                Ok(SolutionTarget::Aws)
+            } else {
+                Ok(SolutionTarget::Dict)
+            }
+        } else if type_name.contains("'list'") {
+            Ok(SolutionTarget::DictList)
+        } else {
+            Err(PyTypeError::new_err(
+                "translation from a '{type_name}' is not supported",
+            ))
+        }
+    }
 }
 
 /// The solution object that is obtained by running an algorihtm.
@@ -112,10 +187,41 @@ impl PySolution {
 #[unwindable]
 #[pymethods]
 impl PySolution {
-
     #[staticmethod]
-    fn from() -> Self {
-        todo!()
+    #[pyo3(signature=(other, timing=None, env=None, energies=None, quadratic_program=None, counts=None, sense=None))]
+    fn from_(
+        py: Python,
+        other: Py<PyAny>,
+        timing: Option<PyTiming>,
+        env: Option<PyEnvironment>,
+        energies: Option<Py<PyAny>>,
+        quadratic_program: Option<Py<PyAny>>,
+        counts: Option<Py<PyAny>>,
+        sense: Option<Py<PyAny>>,
+    ) -> PyResult<Self> {
+        use SolutionTarget::*;
+
+        let target = SolutionTarget::retrieve(py, &other)?;
+        dbg!(&target);
+        _ = target;
+        _ = timing;
+        _ = env;
+        _ = energies;
+        _ = quadratic_program;
+        _ = counts;
+        _ = sense;
+        match target {
+            Aws => todo!(),
+            Dwave => todo!(),
+            Ibm => todo!(),
+            Numpy => todo!(),
+            Qctrl => todo!(),
+            Zib => todo!(),
+            Dict => todo!(),
+            DictList => todo!(),
+        }
+        // todo@jflxb: throw error when passed arguments have no meaning.
+        // Ok(PySolution::new(Solution::default()))
     }
 
     // #[staticmethod]
