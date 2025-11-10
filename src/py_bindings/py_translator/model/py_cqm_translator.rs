@@ -12,11 +12,13 @@ from dimod import lp as dimod_lp
 
 from luna_model._core import translator
 
-def extract(cqm):
+def extract(cqm, name):
     if not isinstance(cqm, ConstrainedQuadraticModel):
         raise TypeError(f'Expected cqm to be of type CQM, received: {type(cqm)}')
     cqm_lp = dimod_lp.dumps(cqm)
-    return translator.LpTranslator.to_aq(cqm_lp)
+    model = translator.LpTranslator.to_aq(cqm_lp)
+    model.name = name
+    return model
 "
 );
 
@@ -111,11 +113,12 @@ impl PyCqmTranslator {
     /// TranslationError
     ///     If the translation fails for some reason.
     #[staticmethod]
-    pub fn to_aq(py: Python, cqm: Py<PyAny>) -> PyResult<Py<PyAny>> {
+    #[pyo3(signature=(cqm, name=None))]
+    pub fn to_aq(py: Python, cqm: Py<PyAny>, name: Option<Py<PyAny>>) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE_TO_AQ, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();
-        let args = (cqm,);
+        let args = (cqm, name);
         let result = extractor.call1(py, args)?;
         Ok(result)
     }

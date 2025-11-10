@@ -183,7 +183,7 @@ impl PyModel {
             }
             Lp => PyLpTranslator::to_aq(py, other),
             Bqm => PyBqmTranslator::to_aq(py, other, extract_maybe(&kwargs, "name")?)?.extract(py),
-            Cqm => PyCqmTranslator::to_aq(py, other)?.extract(py), //, extract_maybe(&kwargs, "name")?)?.extract(py),
+            Cqm => PyCqmTranslator::to_aq(py, other, extract_maybe(&kwargs, "name")?)?.extract(py),
         }
     }
 
