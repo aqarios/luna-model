@@ -16,28 +16,28 @@ repos:
       # Run the linter.
       - id: ruff-private
         name: ruff-private
-        entry: bash -c "cd private && uv run ruff check . --config ../ruff.toml"
+        entry: bash -c "cd private && uv run --no-project --with ruff ruff check . --config ../ruff.toml"
         language: system
         pass_filenames: false
         always_run: true
       # Run the formatter.
       - id: ruff-format-private
         name: ruff-format-private
-        entry: bash -c "cd private && uv run ruff format . --config ../ruff.toml"
+        entry: bash -c "cd private && uv run --no-project --with ruff ruff format . --config ../ruff.toml"
         language: system
         pass_filenames: false
         always_run: true
       # Run the linter.
       - id: ruff-public
         name: ruff-public
-        entry: bash -c "cd public && uv run ruff check . --config ../ruff.toml"
+        entry: bash -c "cd public && uv run --no-project --with ruff ruff check . --config ../ruff.toml"
         language: system
         pass_filenames: false
         always_run: true
       # Run the formatter.
       - id: ruff-format-public
         name: ruff-format-public
-        entry: bash -c "cd public && uv ruff format . --config ../ruff.toml"
+        entry: bash -c "cd public && uv run --no-project --with ruff ruff format . --config ../ruff.toml"
         language: system
         pass_filenames: false
         always_run: true
