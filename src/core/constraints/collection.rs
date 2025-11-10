@@ -20,7 +20,7 @@ use pyo3::prelude::*;
 /// Note: This is subject to change in the future to allow indexing only using a constraints name
 /// (String) to ensure a more consistent and user safe API. In addition, it is required to enable
 /// enhancements in the transformation stack for operations working on constraints. For more
-/// details see <https://github.com/aqarios/aq-models-rs/issues/400>.
+/// details see <https://github.com/aqarios/luna-model/issues/400>.
 #[cfg_attr(feature = "py", derive(FromPyObject))]
 pub enum ConstraintKey {
     // #[deprecated(note = "This ")]

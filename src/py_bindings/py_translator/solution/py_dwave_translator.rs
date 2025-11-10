@@ -39,7 +39,7 @@ def extract(sampleset, timing, env):
 /// >>> import dimod
 /// >>> import luna_model as lm
 /// >>> dwave_sampleset = ...
-/// >>> aqs = lm.translator.DwaveTranslator.to_aq(dwave_sampleset)
+/// >>> lms = lm.translator.DwaveTranslator.to_aq(dwave_sampleset)
 #[pyclass(name = "DwaveTranslator", module = "luna_model._core.translator")]
 pub struct PyDwaveTranslator(pub DwaveTranslator);
 

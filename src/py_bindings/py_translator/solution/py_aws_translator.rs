@@ -44,7 +44,7 @@ def extract(aws_result, timing, env):
 /// --------
 /// >>> import luna_model as lm
 /// >>> aws_result = ...
-/// >>> aqs = lm.translator.AwsTranslator.to_aq(aws_result)
+/// >>> lms = lm.translator.AwsTranslator.to_aq(aws_result)
 #[pyclass(name = "AwsTranslator", module = "luna_model._core.translator")]
 pub struct PyAwsTranslator(pub NpArrayTranslator);
 

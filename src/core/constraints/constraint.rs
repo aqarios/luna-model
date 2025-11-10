@@ -13,7 +13,7 @@ use strum_macros::Display;
 #[cfg(feature = "py")]
 use pyo3::prelude::*;
 
-/// [Constraint] names must have a name after <https://github.com/aqarios/aq-models-rs/issues/400>.
+/// [Constraint] names must have a name after <https://github.com/aqarios/luna-model/issues/400>.
 /// We need a default name that does not clash with anything. Let's choose an illegal name.
 /// A [Constraint] cannot be encoded on it's own. So we can safely assume this name never makes it
 /// into a format where this name is illegal. Let's choose "<NN>" since it matches the previous
@@ -133,7 +133,7 @@ impl Constraint {
     /// Create a new constraint.
     ///
     /// This function will change from accepting an `Option<String>` to a `String` for the name
-    /// with <https://github.com/aqarios/aq-models-rs/400>.
+    /// with <https://github.com/aqarios/luna-model/400>.
     pub fn new(
         lhs: Expression,
         rhs: Bias,

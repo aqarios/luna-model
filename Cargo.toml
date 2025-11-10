@@ -5,7 +5,7 @@ edition = "2021"
 description = "Aqarios LunaModel: Symbolic modeling for optimization"
 readme = "README.md"
 license = "Copyright"
-homepage = "https://github.com/aqarios/aq-models-rs"
+homepage = "https://github.com/aqarios/luna-model"
 exclude = [
     "pytests",
     "bench_reports",

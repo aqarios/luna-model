@@ -67,7 +67,7 @@ def extract(result, qp, timing, env):
 /// >>> import luna_model as lm
 /// >>> ...
 /// >>> ibm_result = ...
-/// >>> aqs = lm.translator.IbmTranslator.to_aq(ibm_result)
+/// >>> lms = lm.translator.IbmTranslator.to_aq(ibm_result)
 #[pyclass(name = "IbmTranslator", module = "luna_model._core.translator")]
 pub struct PyIbmTranslator {}
 
