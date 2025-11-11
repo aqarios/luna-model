@@ -91,9 +91,9 @@ The optimization problem is defined as:
 Using LunaModel and $n = 5$ and $W = 25$:
 
 ```python
-from LunaModel import Expression, Model, Sense, Vtype
+from luna_model import Expression, Model, Sense, Vtype
 # A faster alternative to creating Expressions using loops in Python.
-from LunaModel.utils import quicksum
+from luna_model.utils import quicksum
 # Initialize the known values:
 n: int = 5  # number of items.
 W: int = 25 # maximum capacity.
@@ -128,9 +128,9 @@ _Note that we have to use Integer variables now._
 
 - Using Bounds on the variables:
   ```python
-  from LunaModel import Expression, Model, Sense, Vtype, Bounds
+  from luna_model import Expression, Model, Sense, Vtype, Bounds
   # A faster alternative to creating Expressions using loops in Python.
-  from LunaModel.utils import quicksum
+  from luna_model.utils import quicksum
   # Initialize the known values:
   c: int = 4  # maximum number of each item.
   n: int = 5  # number of items.
@@ -157,9 +157,9 @@ _Note that we have to use Integer variables now._
   ```
 - Using a Constraint for each variable:
   ```python
-  from LunaModel import Expression, Model, Sense, Vtype, Bounds
+  from luna_model import Expression, Model, Sense, Vtype, Bounds
   # A faster alternative to creating Expressions using loops in Python.
-  from LunaModel.utils import quicksum
+  from luna_model.utils import quicksum
   # Initialize the known values:
   c: int = 4  # maximum number of each item.
   n: int = 5  # number of items.
