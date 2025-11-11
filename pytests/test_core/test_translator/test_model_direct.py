@@ -1,11 +1,11 @@
 import os
 from pathlib import Path
-from itertools import product
 from random import Random
 
 from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
 import pytest
 import numpy as np
+
 import scipy.sparse as sp  # type: ignore[import-untyped]
 
 from numpy.typing import NDArray

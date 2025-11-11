@@ -1,17 +1,28 @@
 from pathlib import Path
-from luna_model._core import TranslationTarget
 import numpy as np
-from luna_model import Solution, Timer
-from pyscipopt import Model as ScipModel
+from luna_model import Solution, Timer, TranslationTarget
 
-from pytests.test_core.test_solution.test_translator.test_ibm_translator import (
-    compute_result,
-    controlled_lm,
-    controlled_qp,
-    extract,
-)
+NOT_TEST_SCIP = True
+try:
+    from pyscipopt import Model as ScipModel
+    NOT_TEST_IBM = False
+except ImportError:
+    NOT_TEST_SCIP = True
+
+NOT_TEST_IBM = True
+try:
+    from pytests.test_core.test_solution.test_translator.test_ibm_translator import (
+        compute_result,
+        controlled_lm,
+        controlled_qp,
+        extract,
+    )
+    from qiskit_optimization.translators import from_docplex_mp
+    NOT_TEST_IBM = False
+except ImportError:
+    NOT_TEST_IBM = True
+
 from pytests.test_core.utils import make_seed, random, random_int
-
 from .fixtures import *  # noqa: F403
 from ..test_from_dict import vars
 
@@ -29,6 +40,7 @@ def make_scip_model(zib_model):
     return scip_model
 
 
+@pytest.mark.skipif(NOT_TEST_SCIP, reason="pyscipopt is required for test")
 def test_sol_direct_from_scip(zib_model):
     timer = Timer.start()
     scip_model = make_scip_model(zib_model)
@@ -128,6 +140,7 @@ def test_sol_direct_from_np(np_model, np_result):
         assert result.feasible is None
 
 
+@pytest.mark.skipif(NOT_TEST_IBM, reason="qiskit is required for test")
 def test_sol_direct_from_ibm():
     lm = controlled_lm()
     timer = Timer.start()

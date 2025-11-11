@@ -31,7 +31,7 @@ try:
     from qiskit_optimization.translators import from_docplex_mp
 except ImportError as _:
     print(
-        "qiskit_aer is not installed and thus, the Gurobi tests will not be executed",
+        "qiskit_aer is not installed and thus, the qiskit tests will not be executed",
         file=sys.stdout,
     )
     NOT_RUN_QAER = True
