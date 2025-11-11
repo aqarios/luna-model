@@ -332,7 +332,7 @@ no feature is enabled.
 Currently not supported, you can fine the python documentation for the latest release online [here](https://docs.aqarios.com) as part of the `luna_quantum` documentation.
 
 > [!TIP]
-> The online documentation might not be up-to-date or complete. To get an exhaustive documentation of the Python API see [Building the Documentation (Rust)] and look at the dcoumentation of the LunaModel Python Bindings (_`py_bindings`_).
+> The online documentation might not be up-to-date or complete. To get an exhaustive documentation of the Python API see [Building the Documentation (Rust)](#building-the-documentation-rust) and look at the dcoumentation of the LunaModel Python Bindings (_`py_bindings`_).
 
 ### Building the Documentation (Rust)
 
