@@ -1609,7 +1609,7 @@ fn maybe_construct_warn<'a>(
         true => (),
         false => {
             let msg = format!(
-                "Solution from '{source}' received unexpected parameters: {}",
+                "Solution from '{source}' received unexpected parameters which have non meaning in this context: {}",
                 wrongs.join(",")
             );
             let c_string = CString::new(msg.as_str())?;
