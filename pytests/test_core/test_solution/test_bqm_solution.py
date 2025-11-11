@@ -44,7 +44,7 @@ def test_bqm_solution():
             bqm_qubo[i, j] = bqm2.quadratic.get((u, v), 0)
             bqm_qubo[j, i] = bqm2.quadratic.get((v, u), 0)
 
-    lmm_qubo = np.zeros((len(lmm_vars), len(aqm_vars)))
+    lmm_qubo = np.zeros((len(lmm_vars), len(lmm_vars)))
     for i, u in enumerate(lmm_vars):
         lmm_qubo[i, i] = lmm.objective.get_linear(u)
         for j, v in enumerate(lmm_vars):
@@ -147,7 +147,7 @@ def test_bqm_solution_with_substitution():
             bqm_qubo[i, j] = bqm2.quadratic.get((u, v), 0)
             bqm_qubo[j, i] = bqm2.quadratic.get((v, u), 0)
 
-    lmm_qubo = np.zeros((len(lmm_vars), len(aqm_vars)))
+    lmm_qubo = np.zeros((len(lmm_vars), len(lmm_vars)))
     for i, u in enumerate(lmm_vars):
         lmm_qubo[i, i] = lmm.objective.get_linear(u)
         for j, v in enumerate(lmm_vars):

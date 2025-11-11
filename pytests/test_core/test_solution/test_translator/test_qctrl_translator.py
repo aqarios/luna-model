@@ -183,4 +183,4 @@ def test_qctrl_translator_constructed_vars():
             assert result.counts == fake_result["final_bitstring_distribution"][bs]
 
         results = list(sol.results)
-fake_qctrl_result()assert len(results) == num_samples
+        assert len(results) == num_samples
