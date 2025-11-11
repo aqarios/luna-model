@@ -4,6 +4,8 @@ use std::str::Chars;
 
 use super::keywords::{CommentKeywords, EndKeywords};
 
+const SEP: &str = " ";
+
 impl From<VariablesFromDifferentEnvsErr> for TranslationErr {
     fn from(value: VariablesFromDifferentEnvsErr) -> Self {
         TranslationErr::new(value.to_string())
@@ -22,6 +24,34 @@ pub fn is_comment(line: &str) -> bool {
 
 pub fn is_end(line: &str) -> bool {
     line.trim().is_empty() || starts_with_any(line, &EndKeywords::all())
+}
+
+pub fn safe_chunks(d: &[String], max_len: usize) -> Vec<String> {
+    let mut chunks = Vec::new();
+    let mut buffer: String = String::default();
+    for entry in d {
+        let next_length = buffer.len() + entry.len();
+        if next_length > max_len {
+            // Adding `entry` to the current buffer would result in a
+            // line exceeding the maximum allowed length.
+            // => Flush the buffer into the chunks output and create a new buffer.
+            chunks.push(buffer);
+            buffer = entry.clone();
+            continue;
+        }
+        // We can safely add the current entry to the current buffer.
+        // We only need the separator if it is NOT the first entry.
+        if buffer.is_empty() {
+            buffer.push_str(entry);
+        } else {
+            buffer.push_str(&format!("{SEP}{entry}"));
+        }
+    }
+    // Finally, we push the last buffer into the chunks if it is not empty.
+    if !buffer.is_empty() {
+        chunks.push(buffer);
+    }
+    chunks
 }
 
 pub fn chunks(s: &str, max_len: usize) -> Vec<String> {

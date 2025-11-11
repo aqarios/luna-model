@@ -37,7 +37,7 @@ repos:
       # Run the formatter.
       - id: ruff-format-public
         name: ruff-format-public
-        entry: bash -c "cd public && uv ruff format . --config ../ruff.toml"
+        entry: bash -c "cd public && uv run ruff format . --config ../ruff.toml"
         language: system
         pass_filenames: false
         always_run: true

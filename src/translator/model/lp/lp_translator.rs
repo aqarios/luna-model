@@ -3,7 +3,7 @@ use super::{
     sections::{Section, SectionsHolder},
     util::{chunks, is_comment, is_end},
 };
-use crate::{core::Model, errors::TranslationErr};
+use crate::{core::Model, errors::TranslationErr, translator::model::lp::util::safe_chunks};
 use crate::{
     core::Sense,
     translator::base::{BackTranslator, Translator},
@@ -148,8 +148,7 @@ impl LPTranslator {
                 continue;
             }
             out.push_str(&format!("{}\n", vt.to_string()));
-            let data_str = data.join(" ");
-            let chunks = chunks(&data_str, MAX_LINE_LENGTH);
+            let chunks = safe_chunks(&data, MAX_LINE_LENGTH);
             for chunk in chunks {
                 out.push_str(&format!("{INDENT}{chunk}\n"));
             }
