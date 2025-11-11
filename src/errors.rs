@@ -38,7 +38,7 @@ impl Display for DuplicateConstraintNameErr {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UnsupportedNotOperationErr;
 
 impl UnsupportedNotOperationErr {
@@ -47,7 +47,7 @@ impl UnsupportedNotOperationErr {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UnsupportedOperationErr(pub String, pub String);
 impl Error for UnsupportedOperationErr {}
 impl Display for UnsupportedOperationErr {
@@ -103,7 +103,7 @@ impl Display for TranslationErr {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum VariableCreationErr {
     VariableExists(String),
     InvalidBounds(Vtype),

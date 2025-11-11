@@ -18,7 +18,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::ops::Not;
 
 /// A reference to a variable.
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct VarRef {
     pub id: VarIndex,
     pub env: SharedEnvironment,
