@@ -107,6 +107,12 @@ def test_sol_direct_from_qctrl():
     results = list(sol.results)
     assert len(results) == num_samples
 
+def test_sol_direct_from_aws_with_warning(aws_model, aws_result):
+    import warnings
+    warnings.filterwarnings("error") # so we can catch it...
+    with pytest.raises(UserWarning):
+        with aws_model.environment:
+            _ = Solution.from_(aws_result, counts=[1, 2, 3, 4])
 
 def test_sol_direct_from_aws(aws_model, aws_result):
     with aws_model.environment:

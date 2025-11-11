@@ -25,13 +25,13 @@ use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
 use itertools::Itertools;
 use numpy::{PyArray1, PyArrayMethods, ToPyArray};
-use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
+use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyUserWarning, PyValueError};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
 use std::collections::HashMap;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use strum_macros::Display;
@@ -206,7 +206,7 @@ impl PySolution {
     ) -> PyResult<Self> {
         use SolutionSource::*;
         let source = SolutionSource::retrieve(py, &other)?;
-        validate_parameters(&source, &energies, &quadratic_program, &counts, &sense)?;
+        validate_parameters(py, &source, &energies, &quadratic_program, &counts, &sense)?;
         let env = Some(Self::retrieve_environment(&env, &None)?);
         match source {
             Aws => Ok(PyAwsTranslator::to_aq(py, other, timing, env)?.extract(py)?),
@@ -1564,6 +1564,7 @@ impl PySolution {
 }
 
 fn validate_parameters(
+    py: Python,
     source: &SolutionSource,
     energies: &Option<Py<PyAny>>,
     qp: &Option<Py<PyAny>>,
@@ -1590,10 +1591,11 @@ fn validate_parameters(
         DictList => notok.extend([qp_entry].iter()),
     };
 
-    maybe_construct_err(source, &notok)
+    maybe_construct_warn(py, source, &notok)
 }
 
-fn maybe_construct_err<'a>(
+fn maybe_construct_warn<'a>(
+    py: Python,
     source: &SolutionSource,
     params: &[(&str, &Option<Py<PyAny>>)],
 ) -> PyResult<()> {
@@ -1604,13 +1606,18 @@ fn maybe_construct_err<'a>(
         }
     }
     match wrongs.is_empty() {
-        true => Ok(()),
+        true => (),
         false => {
             let msg = format!(
                 "Solution from '{source}' received unexpected parameters: {}",
                 wrongs.join(",")
             );
-            Err(PyValueError::new_err(msg))
+            let c_string = CString::new(msg.as_str())?;
+            let c_msg = c_string.as_c_str();
+            let uw = py.get_type::<PyUserWarning>();
+            PyErr::warn(py, &uw, c_msg, 0)?;
+            // Err(PyValueError::new_err(msg))
         }
     }
+    Ok(())
 }
