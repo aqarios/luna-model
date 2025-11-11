@@ -151,7 +151,7 @@ impl PyBqmTranslator {
     ///     spin.
     #[staticmethod]
     #[pyo3(signature=(model))]
-    fn from_aq<'a>(py: Python<'a>, model: &PyModel) -> PyResult<Py<PyAny>> {
+    pub fn from_aq<'a>(py: Python<'a>, model: &PyModel) -> PyResult<Py<PyAny>> {
         let (offset, linear, quad, rows, cols, vtype, vars) =
             BqmTranslator::model_to_bqm(&model.access())?;
         let linear_py = linear.to_pyarray(py);
@@ -207,7 +207,7 @@ def to_bqm(offset, linear, quad, rows, cols, vtype, vars):
     ///     A symbolic model representing the given BQM.
     #[staticmethod]
     #[pyo3(signature=(bqm, name=None))]
-    fn to_aq(py: Python, bqm: Py<PyAny>, name: Option<Py<PyAny>>) -> PyResult<Py<PyAny>> {
+    pub fn to_aq(py: Python, bqm: Py<PyAny>, name: Option<Py<PyAny>>) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();

@@ -39,7 +39,7 @@ def extract(sampleset, timing, env):
 /// >>> import dimod
 /// >>> import luna_model as lm
 /// >>> dwave_sampleset = ...
-/// >>> aqs = lm.translator.DwaveTranslator.to_aq(dwave_sampleset)
+/// >>> lms = lm.translator.DwaveTranslator.to_aq(dwave_sampleset)
 #[pyclass(name = "DwaveTranslator", module = "luna_model._core.translator")]
 pub struct PyDwaveTranslator(pub DwaveTranslator);
 
@@ -101,10 +101,10 @@ impl PyDwaveTranslator {
     ///     variable types.
     #[staticmethod]
     #[pyo3(signature = (sample_set, timing=None, env=None))]
-    fn to_aq(
+    pub fn to_aq(
         py: Python,
         sample_set: Py<PyAny>,
-        timing: Option<Py<PyAny>>,
+        timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?

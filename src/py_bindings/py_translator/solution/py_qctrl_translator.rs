@@ -44,7 +44,7 @@ def extract(result, timing, env):
 /// >>> import luna_model as lm
 /// >>> ...
 /// >>> qctrl_result = ...
-/// >>> aqs = lm.translator.QctrlTranslator.to_aq(qctrl_result)
+/// >>> lms = lm.translator.QctrlTranslator.to_aq(qctrl_result)
 #[pyclass(name = "QctrlTranslator", module = "luna_model._core.translator")]
 pub struct PyQctrlTranslator(pub QctrlTranslator);
 
@@ -160,7 +160,7 @@ impl PyQctrlTranslator {
     ///     variable types.
     #[staticmethod]
     #[pyo3(signature=(result, timing=None, env=None))]
-    fn to_aq(
+    pub fn to_aq(
         py: Python,
         result: Py<PyAny>,
         timing: Option<PyTiming>,

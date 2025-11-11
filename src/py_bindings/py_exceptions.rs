@@ -229,7 +229,7 @@ create_exception!(
     SolutionTranslationError,
     "Raised when a sample length is different from the number of model variables.
 
-When an external solution format is translated to an AqSolution, the number of
+When an external solution format is translated to an LunaModel Solution, the number of
 variable assignments in the solution's sample has to exactly match the number of
 variables in the model environment that is passed to the translator."
 );
@@ -240,7 +240,7 @@ create_exception!(
     SolutionTranslationError,
     "Raised when a sample contains a variable with a name that is not present in the environment.
 
-When a sample is translated to an AqResult, the currently active environment has to
+When a sample is translated to an LunaModel Result, the currently active environment has to
 contain the same variables as the sample."
 );
 
@@ -250,7 +250,7 @@ create_exception!(
     SolutionTranslationError,
     "Raised when a sample's assignments have variable types incompatible with the model's variable types.
 
-When an external solution format is translated to an AqSolution, the variable
+When an external solution format is translated to a LunaModel Solution, the variable
 assignments are tried to be converted into the model's corresponding variable type.
 This may fail when the assignment types are incompatible.
 

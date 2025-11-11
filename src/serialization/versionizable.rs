@@ -89,7 +89,7 @@ where
     /// version as well.
     ///
     /// If your requirement is to versionize data that is not always
-    /// the latest version, please create a new Issue [here](https://github.com/aqarios/aq-models-rs/issues)
+    /// the latest version, please create a new Issue [here](https://github.com/aqarios/luna-model/issues)
     /// explaining your use case and why you require a more flexible versionizing approach.
     fn versionize(self, version: Version) -> Vec<u8> {
         SerVersioned::new(version, self.to_vec()).encode_to_vec()

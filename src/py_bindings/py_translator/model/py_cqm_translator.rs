@@ -1,3 +1,4 @@
+use crate::py_bindings::py_model::PyModel;
 use crate::py_bindings::unwind;
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
@@ -11,11 +12,14 @@ from dimod import lp as dimod_lp
 
 from luna_model._core import translator
 
-def extract(cqm):
+def extract(cqm, name):
     if not isinstance(cqm, ConstrainedQuadraticModel):
         raise TypeError(f'Expected cqm to be of type CQM, received: {type(cqm)}')
     cqm_lp = dimod_lp.dumps(cqm)
-    return translator.LpTranslator.to_aq(cqm_lp)
+    model = translator.LpTranslator.to_aq(cqm_lp)
+    if name is not None:
+        model.name = name
+    return model
 "
 );
 
@@ -81,12 +85,12 @@ impl PyCqmTranslator {
     ///     If the translation fails for some reason.
     #[staticmethod]
     #[pyo3(signature=(model))]
-    fn from_aq<'a>(py: Python<'a>, model: Py<PyAny>) -> PyResult<Py<PyAny>> {
+    pub fn from_aq<'a>(py: Python<'a>, model: &PyModel) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> =
             PyModule::from_code(py, PY_CODE_FROM_AQ, c_str!(""), c_str!(""))?
                 .getattr("extract")?
                 .into();
-        let args = (model,);
+        let args = (model.clone(),);
         let result = extractor.call1(py, args)?;
         Ok(result)
     }
@@ -110,12 +114,12 @@ impl PyCqmTranslator {
     /// TranslationError
     ///     If the translation fails for some reason.
     #[staticmethod]
-    #[pyo3(signature=(cqm))]
-    fn to_aq(py: Python, cqm: Py<PyAny>) -> PyResult<Py<PyAny>> {
+    #[pyo3(signature=(cqm, name=None))]
+    pub fn to_aq(py: Python, cqm: Py<PyAny>, name: Option<Py<PyAny>>) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE_TO_AQ, c_str!(""), c_str!(""))?
             .getattr("extract")?
             .into();
-        let args = (cqm,);
+        let args = (cqm, name);
         let result = extractor.call1(py, args)?;
         Ok(result)
     }

@@ -229,7 +229,7 @@ You have multiple options for obtaining pre-built binaries:
 
 > [!TIP]
 > If you are installing a package that uses the **public** luna-model, but want to use the **private** luna-model,
-> you can simply install it as an additional dependency. You can check if the **priavate** LunaModel is installed using 
+> you can simply install it as an additional dependency. You can check if the **priavate** LunaModel is installed using
 > the `luna_model.__version__`, which should reoslve to a version string containing `pub`. If it does not work out-of-the-box,
 > try adding:
 > ```text
@@ -241,7 +241,7 @@ override-dependencies = [ "luna-model; sys_platform == 'never'"]
 [tool.uv]
 exclude-dependencies = [ "luna-model" ]
 ```
-> Also remove the current `.venv` and run `uv clean` in case you still encounter issues. 
+> Also remove the current `.venv` and run `uv clean` in case you still encounter issues.
 > If none of the mentioned tips resolves you problem, open a [discussion here](https://github.com/aqarios/luna-model/discussions/categories/q-a).
 
 ### From Source
@@ -259,8 +259,8 @@ If you are installing from source, you will need:
 ##### Get the LunaModel Source
 
 ```bash
-git clone https://github.com/aqarios/aq-models-rs
-cd aq-models-rs
+git clone https://github.com/aqarios/luna-model
+cd luna-model
 # If you are updating an existing checkout
 git pull
 ```
@@ -332,7 +332,7 @@ no feature is enabled.
 Currently not supported, you can fine the python documentation for the latest release online [here](https://docs.aqarios.com) as part of the `luna_quantum` documentation.
 
 > [!TIP]
-> The online documentation might not be up-to-date or complete. To get an exhaustive documentation of the Python API see [Building the Documentation (Rust)] and look at the dcoumentation of the LunaModel Python Bindings (_`py_bindings`_).
+> The online documentation might not be up-to-date or complete. To get an exhaustive documentation of the Python API see [Building the Documentation (Rust)](#building-the-documentation-rust) and look at the dcoumentation of the LunaModel Python Bindings (_`py_bindings`_).
 
 ### Building the Documentation (Rust)
 

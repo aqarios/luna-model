@@ -2,7 +2,7 @@
 \ Problem name: TestModel
 
 Minimize
- obj: [ 0.02 Pennies * Nickels + 10.1 Nickels * Dollars ] / 2 + 0.1 Dimes + 0.25 Quarters 
+ obj: [ 0.02 Pennies * Nickels + 10.1 Nickels * Dollars ] / 2 + 0.1 Dimes + 0.25 Quarters
  + Dollars + 0 Cu + 0 Ni + 0 Zi + 0 Mn
 Subject To
  Copper: 0.06 Pennies + 3.8 Nickels + 2.1 Dimes + 5.2 Quarters + 7.2 Dollars - 1 Cu = 0

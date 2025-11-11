@@ -26,14 +26,14 @@ def test_bqm_solution():
     bqm, _ = dimod.cqm_to_bqm(cqm)
 
     # luna_model flow
-    aqm = BqmTranslator.to_aq(bqm)
-    bqm2 = BqmTranslator.from_aq(aqm)
+    lmm = BqmTranslator.to_aq(bqm)
+    bqm2 = BqmTranslator.from_aq(lmm)
     assert bqm2.is_almost_equal(bqm), "the bqms are not equal"
 
     bqm_vars = bqm2.variables
-    aqm_vars = [v for v in aqm.variables()]
-    aqm_var_names = [v.name for v in aqm_vars]
-    assert bqm_vars == aqm_var_names, "the variables names are not ordered equally"
+    lmm_vars = [v for v in lmm.variables()]
+    lmm_var_names = [v.name for v in lmm_vars]
+    assert bqm_vars == lmm_var_names, "the variables names are not ordered equally"
 
     bqm_qubo = np.zeros((len(bqm_vars), len(bqm_vars)))
     for i, u in enumerate(bqm_vars):
@@ -44,20 +44,20 @@ def test_bqm_solution():
             bqm_qubo[i, j] = bqm2.quadratic.get((u, v), 0)
             bqm_qubo[j, i] = bqm2.quadratic.get((v, u), 0)
 
-    aqm_qubo = np.zeros((len(aqm_vars), len(aqm_vars)))
-    for i, u in enumerate(aqm_vars):
-        aqm_qubo[i, i] = aqm.objective.get_linear(u)
-        for j, v in enumerate(aqm_vars):
+    lmm_qubo = np.zeros((len(lmm_vars), len(lmm_vars)))
+    for i, u in enumerate(lmm_vars):
+        lmm_qubo[i, i] = lmm.objective.get_linear(u)
+        for j, v in enumerate(lmm_vars):
             if i == j:
                 continue
-            aqm_qubo[i, j] = aqm.objective.get_quadratic(u, v)
-            aqm_qubo[j, i] = aqm.objective.get_quadratic(v, u)
+            lmm_qubo[i, j] = lmm.objective.get_quadratic(u, v)
+            lmm_qubo[j, i] = lmm.objective.get_quadratic(v, u)
 
-    assert np.allclose(bqm_qubo, aqm_qubo), "the qubos are not equal"
+    assert np.allclose(bqm_qubo, lmm_qubo), "the qubos are not equal"
 
     res = TabuSampler().sample(bqm, seed=seed)  # type: ignore[reportPossiblyUnboundVariable] # this is save. I have a SKIP-IF.
 
-    ordering = aqm_var_names.copy()
+    ordering = lmm_var_names.copy()
     dimod_positions = {v: i for i, v in enumerate(bqm_vars)}
 
     dimod_np = np.zeros(len(ordering))
@@ -65,31 +65,31 @@ def test_bqm_solution():
     for v, pos in dimod_positions.items():
         dimod_np[pos] = dimod_sample[v]  # type: ignore
 
-    with aqm.environment:
+    with lmm.environment:
         sol = DwaveTranslator.to_aq(res)
 
     dimod_sample = res.samples()[0]
-    with aqm.environment:
+    with lmm.environment:
         sol_from_dict = Solution.from_dict(
             {str(v): float(val) for v, val in dimod_sample.items()}  # type: ignore
         )
 
-    sol = aqm.evaluate(sol)
-    sol_from_dict = aqm.evaluate(sol_from_dict)
+    sol = lmm.evaluate(sol)
+    sol_from_dict = lmm.evaluate(sol_from_dict)
 
     quest = sol_from_dict.samples[0].to_dict()
     for k, v in sol.samples[0].to_dict().items():
         assert quest[k] == v, "incorrect assignment in solution built from dict"
 
-    assert sol.variable_names == aqm_var_names, (
+    assert sol.variable_names == lmm_var_names, (
         "(sol) the variable names don't have the expected format or ordering"
     )
     assert sol.variable_names == bqm_vars, (
         "(sol) the variable names don't match the BQM variable names"
     )
 
-    aqm_np = np.array(sol.samples.tolist()[0])
-    assert np.allclose(dimod_np, aqm_np), (
+    lmm_np = np.array(sol.samples.tolist()[0])
+    assert np.allclose(dimod_np, lmm_np), (
         "the numpy samples representation does not match"
     )
 
@@ -109,34 +109,34 @@ def test_bqm_solution_with_substitution():
     bqm, _ = dimod.cqm_to_bqm(cqm)
 
     # luna_model flow
-    aqm = BqmTranslator.to_aq(bqm)
-    # print(aqm)
+    lmm = BqmTranslator.to_aq(bqm)
+    # print(lmm)
 
-    rep = aqm.add_variable("s", vtype=Vtype.Spin)
-    target = aqm.variables()[0]
+    rep = lmm.add_variable("s", vtype=Vtype.Spin)
+    target = lmm.variables()[0]
     target_name = target.name
     target_vtype = target.vtype
     target_lower = target.bounds.lower
     target_upper = target.bounds.upper
 
-    aqm.substitute(target, rep)
+    lmm.substitute(target, rep)
     # And now back to the original one to have a valid model and solution.
     if target_vtype not in [Vtype.Binary, Vtype.Spin]:
-        back_target = aqm.add_variable(
+        back_target = lmm.add_variable(
             target_name, vtype=target_vtype, lower=target_lower, upper=target_upper
         )
     else:
-        back_target = aqm.add_variable(target_name, vtype=target_vtype)
+        back_target = lmm.add_variable(target_name, vtype=target_vtype)
 
-    aqm.substitute(rep, back_target)
+    lmm.substitute(rep, back_target)
 
-    bqm2 = BqmTranslator.from_aq(aqm)
+    bqm2 = BqmTranslator.from_aq(lmm)
     assert bqm2.is_almost_equal(bqm)
 
     bqm_vars = bqm2.variables
-    aqm_vars = [v for v in aqm.variables()]
-    aqm_var_names = [v.name for v in aqm_vars]
-    assert bqm_vars == aqm_var_names
+    lmm_vars = [v for v in lmm.variables()]
+    lmm_var_names = [v.name for v in lmm_vars]
+    assert bqm_vars == lmm_var_names
 
     bqm_qubo = np.zeros((len(bqm_vars), len(bqm_vars)))
     for i, u in enumerate(bqm_vars):
@@ -147,20 +147,20 @@ def test_bqm_solution_with_substitution():
             bqm_qubo[i, j] = bqm2.quadratic.get((u, v), 0)
             bqm_qubo[j, i] = bqm2.quadratic.get((v, u), 0)
 
-    aqm_qubo = np.zeros((len(aqm_vars), len(aqm_vars)))
-    for i, u in enumerate(aqm_vars):
-        aqm_qubo[i, i] = aqm.objective.get_linear(u)
-        for j, v in enumerate(aqm_vars):
+    lmm_qubo = np.zeros((len(lmm_vars), len(lmm_vars)))
+    for i, u in enumerate(lmm_vars):
+        lmm_qubo[i, i] = lmm.objective.get_linear(u)
+        for j, v in enumerate(lmm_vars):
             if i == j:
                 continue
-            aqm_qubo[i, j] = aqm.objective.get_quadratic(u, v)
-            aqm_qubo[j, i] = aqm.objective.get_quadratic(v, u)
+            lmm_qubo[i, j] = lmm.objective.get_quadratic(u, v)
+            lmm_qubo[j, i] = lmm.objective.get_quadratic(v, u)
 
-    assert np.allclose(bqm_qubo, aqm_qubo)
+    assert np.allclose(bqm_qubo, lmm_qubo)
 
     res = TabuSampler().sample(bqm, seed=42)  # type: ignore[reportPossiblyUnboundVariable] # this is safe I have a SKIP-IF.
 
-    ordering = aqm_var_names.copy()
+    ordering = lmm_var_names.copy()
     dimod_positions = {v: i for i, v in enumerate(bqm_vars)}
 
     dimod_np = np.zeros(len(ordering))
@@ -168,23 +168,23 @@ def test_bqm_solution_with_substitution():
     for v, pos in dimod_positions.items():
         dimod_np[pos] = dimod_sample[v]  # type: ignore
 
-    with aqm.environment:
+    with lmm.environment:
         sol = DwaveTranslator.to_aq(res)
 
     dimod_sample = res.samples()[0]
-    with aqm.environment:
+    with lmm.environment:
         sol_from_dict = Solution.from_dict(
             {str(v): float(val) for v, val in dimod_sample.items()}  # type: ignore
         )
 
-    sol = aqm.evaluate(sol)
-    sol_from_dict = aqm.evaluate(sol_from_dict)
+    sol = lmm.evaluate(sol)
+    sol_from_dict = lmm.evaluate(sol_from_dict)
 
-    assert sol.variable_names == aqm_var_names
+    assert sol.variable_names == lmm_var_names
     assert sol.variable_names == bqm_vars
 
-    aqm_np = np.array(sol.samples.tolist()[0])
-    assert np.allclose(dimod_np, aqm_np)
+    lmm_np = np.array(sol.samples.tolist()[0])
+    assert np.allclose(dimod_np, lmm_np)
 
     sol_best = sol.best()
     assert sol_best is not None

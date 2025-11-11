@@ -43,7 +43,7 @@ def extract(result, energies, timing, env):
 /// >>> from numpy.typing import NDArray
 /// >>> result: NDArray = ...
 /// >>> energies: NDArray = ...
-/// >>> aqs = lm.translator.NumpyTranslator.to_aq(result, energies)
+/// >>> lms = lm.translator.NumpyTranslator.to_aq(result, energies)
 #[pyclass(name = "NumpyTranslator", module = "luna_model._core.translator")]
 pub struct PyNumpyTranslator {}
 
@@ -108,7 +108,7 @@ impl PyNumpyTranslator {
     ///     variable types.
     #[staticmethod]
     #[pyo3(signature = (result, energies, timing=None, env=None))]
-    fn to_aq(
+    pub fn to_aq(
         py: Python,
         result: Py<PyAny>,
         energies: Py<PyAny>,

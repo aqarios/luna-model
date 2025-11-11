@@ -12,6 +12,10 @@ use crate::py_bindings::py_model::PyModel;
 use crate::py_bindings::py_res::{PyResultIterator, PyResultView};
 use crate::py_bindings::py_sample::PySamples;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::py_bindings::py_translator::{
+    PyAwsTranslator, PyDwaveTranslator, PyIbmTranslator, PyNumpyTranslator, PyQctrlTranslator,
+    PyZibTranslator,
+};
 use crate::py_bindings::py_usize::PyUsize;
 use crate::py_bindings::py_var::PyVariable;
 use crate::serialization::{Decodable, Decompressable, Encodable, Unversionizable};
@@ -21,15 +25,16 @@ use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
 use itertools::Itertools;
 use numpy::{PyArray1, PyArrayMethods, ToPyArray};
-use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyValueError};
+use pyo3::exceptions::{PyIndexError, PyRuntimeError, PyTypeError, PyUserWarning, PyValueError};
 use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 use pyo3::IntoPyObjectExt;
 use std::collections::HashMap;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
+use strum_macros::Display;
 use unwind_macros::unwindable;
 
 static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_model import Solution");
@@ -52,6 +57,81 @@ impl From<String> for VariableKey {
 enum BitOrder {
     LTR,
     RTL,
+}
+
+#[pyclass(eq, name = "SoulutionSource", module = "luna_model._core")]
+#[derive(Display, Debug, PartialEq, Eq)]
+pub enum SolutionSource {
+    Aws,
+    Dimod,
+    Qiskit,
+    Numpy,
+    Qctrl,
+    Zib,
+    Dict,
+    DictList,
+}
+
+impl SolutionSource {
+    fn retrieve(py: Python, other: &Py<PyAny>) -> PyResult<Self> {
+        // other can be:
+        //  - ScipModel
+        //  - dict[str, any] (QCtrl + AWS)
+        //     * qctrl contains 'solution_bitstring'
+        //     * aws does not, it contains 'samples'
+        //  - NDarray HAS EXTRA PARAM `energies`
+        //  - PrimitiveResult[PubResult] HAS EXTRA PARAM `quadratic_program`
+        //  - SampleSet
+        //  - also include from_dict, from_dicts and from_counts here.
+        let builtins = PyModule::import(py, "builtins")?;
+        let the_type: Py<PyAny> = builtins.getattr("type")?.call1((other,))?.extract()?;
+        let type_name: String = builtins.getattr("str")?.call1((the_type,))?.extract()?;
+        // dbg!(&type_name);
+        if type_name.contains("pyscipopt") && type_name.contains("Model") {
+            // type_name = "<class 'pyscipopt.scip.Model'>"
+            Ok(SolutionSource::Zib)
+        } else if type_name.contains("dimod") && type_name.contains("SampleSet") {
+            // dwave
+            // type_name = "<class 'dimod.sampleset.SampleSet'>"
+            Ok(SolutionSource::Dimod)
+        } else if type_name.contains("numpy.ndarray") {
+            // np
+            // type_name = "<class 'numpy.ndarray'>"
+            Ok(SolutionSource::Numpy)
+        } else if type_name.contains("qiskit") && type_name.contains("PrimitiveResult") {
+            // ibm
+            // type_name = "<class 'qiskit.primitives.containers.primitive_result.PrimitiveResult'>"
+            Ok(SolutionSource::Qiskit)
+        } else if type_name.contains("'dict'") {
+            // either AWS or Qctrl or dict
+            // qctrl
+            // aws
+            // type_name = "<class 'dict'>"
+            let is_qctrl = other
+                .getattr(py, "__getitem__")?
+                .call1(py, ("solution_bitstring",))
+                .ok()
+                .is_some();
+            let is_aws = other
+                .getattr(py, "__getitem__")?
+                .call1(py, ("samples",))
+                .ok()
+                .is_some();
+            if is_qctrl {
+                Ok(SolutionSource::Qctrl)
+            } else if is_aws {
+                Ok(SolutionSource::Aws)
+            } else {
+                Ok(SolutionSource::Dict)
+            }
+        } else if type_name.contains("'list'") {
+            Ok(SolutionSource::DictList)
+        } else {
+            Err(PyTypeError::new_err(
+                "translation from a '{type_name}' is not supported",
+            ))
+        }
+    }
 }
 
 /// The solution object that is obtained by running an algorihtm.
@@ -112,6 +192,77 @@ impl PySolution {
 #[unwindable]
 #[pymethods]
 impl PySolution {
+    #[staticmethod]
+    #[pyo3(signature=(other, timing=None, env=None, energies=None, quadratic_program=None, counts=None, sense=None))]
+    fn from_(
+        py: Python,
+        other: Py<PyAny>,
+        timing: Option<PyTiming>,
+        env: Option<PyEnvironment>,
+        energies: Option<Py<PyAny>>,
+        quadratic_program: Option<Py<PyAny>>,
+        counts: Option<Py<PyAny>>,
+        sense: Option<Py<PyAny>>,
+    ) -> PyResult<Self> {
+        use SolutionSource::*;
+        let source = SolutionSource::retrieve(py, &other)?;
+        validate_parameters(py, &source, &energies, &quadratic_program, &counts, &sense)?;
+        let env = Some(Self::retrieve_environment(&env, &None)?);
+        match source {
+            Aws => Ok(PyAwsTranslator::to_aq(py, other, timing, env)?.extract(py)?),
+            Dimod => Ok(PyDwaveTranslator::to_aq(py, other, timing, env)?.extract(py)?),
+            Qiskit => {
+                match quadratic_program {
+                    Some(qp) => Ok(PyIbmTranslator::to_aq(py, other, qp, timing, env)?.extract(py)?),
+                    None => Err(PyValueError::new_err("Creating a solution from a Qiskit result requires the 'quadratic_program' parameter to be set.")),
+                }
+            },
+            Numpy => {
+                match energies {
+                    Some(engs) => Ok(PyNumpyTranslator::to_aq(py, other, engs, timing, env)?.extract(py)?),
+                    None => Err(PyValueError::new_err("Creating a solution from a Numpy result requires the 'energies' parameter to be set.")),
+                }
+            },
+            Qctrl => Ok(PyQctrlTranslator::to_aq(py, other, timing, env)?.extract(py)?),
+            Zib => Ok(PyZibTranslator::to_aq(py, other, timing, env)?.extract(py)?),
+            Dict => {
+                let mapped_counts = match counts {
+                    Some(cnts) => Some(cnts.extract(py)?),
+                    None => None,
+                };
+                let mapped_sense = match sense {
+                    Some(sns) => Some(sns.extract(py)?),
+                    None => None,
+                };
+                let mapped_energies = match energies {
+                    Some(engs) => Some(engs.extract(py)?),
+                    None => None,
+                };
+                Ok(Self::from_dict(other.extract(py)?, env, None, timing, mapped_counts, mapped_sense, mapped_energies)?)
+            },
+            DictList => {
+                let mapped_counts = match counts {
+                    Some(cnts) => Some(cnts.extract(py)?),
+                    None => None,
+                };
+                let mapped_sense = match sense {
+                    Some(sns) => Some(sns.extract(py)?),
+                    None => None,
+                };
+                let mapped_energies = match energies {
+                    Some(engs) => Some(engs.extract(py)?),
+                    None => None,
+                };
+                Ok(Self::from_dicts(other.extract(py)?, env, None, timing, mapped_counts, mapped_sense, mapped_energies)?)
+            },
+        }
+    }
+
+    // #[staticmethod]
+    // fn to() -> Self {
+    //     todo!()
+    // }
+
     /// Build a `Solution` based on the provided input data. The solution is constructed
     /// based on a column layout of the solution. Let's take the following sample-set with three
     /// samples as an example:
@@ -1410,4 +1561,63 @@ impl PySolution {
 
         Ok(sample)
     }
+}
+
+fn validate_parameters(
+    py: Python,
+    source: &SolutionSource,
+    energies: &Option<Py<PyAny>>,
+    qp: &Option<Py<PyAny>>,
+    counts: &Option<Py<PyAny>>,
+    sense: &Option<Py<PyAny>>,
+) -> PyResult<()> {
+    use SolutionSource::*;
+
+    let mut notok: Vec<(&str, &Option<Py<PyAny>>)> = Vec::new();
+    let e_entry = ("energies", energies);
+    let qp_entry = ("quadratic_program", qp);
+    let c_entry = ("counts", counts);
+    let s_entry = ("sense", sense);
+
+    match source {
+        Aws => notok.extend([e_entry, qp_entry, c_entry, s_entry].iter()),
+        Dimod => notok.extend([e_entry, qp_entry, c_entry, s_entry].iter()),
+        Qctrl => notok.extend([e_entry, qp_entry, c_entry, s_entry].iter()),
+        Zib => notok.extend([e_entry, qp_entry, c_entry, s_entry].iter()),
+
+        Qiskit => notok.extend([e_entry, c_entry, s_entry].iter()),
+        Numpy => notok.extend([qp_entry, c_entry, s_entry].iter()),
+        Dict => notok.extend([qp_entry].iter()),
+        DictList => notok.extend([qp_entry].iter()),
+    };
+
+    maybe_construct_warn(py, source, &notok)
+}
+
+fn maybe_construct_warn<'a>(
+    py: Python,
+    source: &SolutionSource,
+    params: &[(&str, &Option<Py<PyAny>>)],
+) -> PyResult<()> {
+    let mut wrongs = Vec::new();
+    for &(name, p) in params {
+        if let Some(_) = p {
+            wrongs.push(name);
+        }
+    }
+    match wrongs.is_empty() {
+        true => (),
+        false => {
+            let msg = format!(
+                "Solution from '{source}' received unexpected parameters which have non meaning in this context: {}",
+                wrongs.join(",")
+            );
+            let c_string = CString::new(msg.as_str())?;
+            let c_msg = c_string.as_c_str();
+            let uw = py.get_type::<PyUserWarning>();
+            PyErr::warn(py, &uw, c_msg, 0)?;
+            // Err(PyValueError::new_err(msg))
+        }
+    }
+    Ok(())
 }

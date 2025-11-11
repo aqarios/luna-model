@@ -17,8 +17,9 @@ pub struct PyMetaAnalysisPass {}
 impl PyMetaAnalysisPass {
     #[new]
     #[pyo3(signature=(*args, **kwargs))]
-    #[allow(unused_variables)]
     fn py_new(args: &Bound<'_, PyAny>, kwargs: Option<&Bound<'_, PyAny>>) -> Self {
+        _ = args;
+        _ = kwargs;
         Self {}
     }
 
@@ -37,8 +38,9 @@ impl PyMetaAnalysisPass {
     }
 
     #[pyo3(name = "run")]
-    #[allow(unused_variables)]
     fn py_run(&self, pipeline: Vec<AnyPass>, cache: &PyAnalysisCache) -> PyResult<Py<PyAny>> {
+        _ = pipeline;
+        _ = cache;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'run' method is not implemented.",
         ))

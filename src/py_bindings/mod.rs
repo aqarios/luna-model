@@ -39,7 +39,7 @@ use pyo3::prelude::*;
 /// Provides
 ///   1. A model object to define arbitrary (constrained) optimization problems.
 ///   2. A solution object to define arbitrary solutions to optimization problems.
-///   3. Extendable translators to map arbitrary models of other libraries to an aq model.
+///   3. Extendable translators to map arbitrary models of other libraries to a LunaModel Model.
 ///   4. Extendable transformers to transform arbitrary (constrained) optimization problems.
 ///
 ///
@@ -71,10 +71,10 @@ use pyo3::prelude::*;
 /// ---------------------
 /// translators
 ///     Built-in translators to map a model of a (constrained) optimization problem from
-///     another library to an aq-models model.
+///     another library to a LunaModel Model.
 /// transformers
 ///     Built-in transformers to map a model of a (constrained) optimization problem to
-///     another aq-models model. Such a transformer for example can map a constrained
+///     another LunaModel Model. Such a transformer for example can map a constrained
 ///     optimization problem to an unconstrained optimization problem or a quadratic model
 ///     to a linear model.
 #[pymodule]

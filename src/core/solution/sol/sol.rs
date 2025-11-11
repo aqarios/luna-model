@@ -4,7 +4,7 @@ use crate::{
     types::Bias,
 };
 
-/// The solutions object for AQMs. It doesn't have any knowledge about the corresponding AQM or
+/// The solutions object for Models. It doesn't have any knowledge about the corresponding AQM or
 /// about the environment the model was created in. Instead, for each sample, we expect the indices
 /// of the solution to be aligned with the variable indices of the model's environment.
 #[derive(Debug, Clone, Default)]
@@ -18,9 +18,9 @@ pub struct Solution {
     pub counts: Vec<usize>,
     /// Objetive values as computed by the solver. May be empty if the solver does not provide
     /// energies in its solution format. May be different from `obj_values`, e.g., because an offset
-    /// was neglected, or the AQM was transformed before being solved.
+    /// was neglected, or the Model was transformed before being solved.
     pub raw_energies: Option<Vec<Bias>>,
-    /// Objetive values as computed by the corresponding AQM. May be empty for solutions that
+    /// Objetive values as computed by the corresponding Model. May be empty for solutions that
     /// haven't yet been evaluated.
     pub obj_values: Option<Vec<Bias>>,
     /// Boolean flag for each single constraint whether it's satisfied. Each inner vec corresponds

@@ -74,6 +74,7 @@ exclude = [
     "src/luna_model/__init__.pyi",
     "../pytests/**/*",
     "bench/**/*",
+    "pytests/**/*",
 ]
 
 [lint.flake8-annotations]
