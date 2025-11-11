@@ -17,7 +17,8 @@ def extract(cqm, name):
         raise TypeError(f'Expected cqm to be of type CQM, received: {type(cqm)}')
     cqm_lp = dimod_lp.dumps(cqm)
     model = translator.LpTranslator.to_aq(cqm_lp)
-    model.name = name
+    if name is not None:
+        model.name = name
     return model
 "
 );
