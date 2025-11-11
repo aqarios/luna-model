@@ -1,9 +1,7 @@
 from pathlib import Path
 from luna_model._core import TranslationTarget
 import numpy as np
-from luna_model import Model, Solution, Timer
-from luna_model.translator import AwsTranslator
-from numpy.typing import NDArray
+from luna_model import Solution, Timer
 from pyscipopt import Model as ScipModel
 
 from pytests.test_core.test_solution.test_translator.test_ibm_translator import (

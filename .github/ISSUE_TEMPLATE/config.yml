@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Support
-    url: https://github.com/aqarios/aq-models-rs/discussions
+    url: https://github.com/aqarios/luna-model/discussions
     about: Please ask and answer questions here and discuss big-picture ideas.
   - name: Documentation (Internal)
-    url: https://github.com/aqarios/aq-models-rs/discussions/272
+    url: https://github.com/aqarios/luna-model/discussions/272
     about: Please go through the docs here and leave a comment or ask a question.
   - name: Documentation (External)
     url: https://docs.aqarios.com
-    about: Please go through the docs regarding modeling in the `luna-quantum` docs (uses aqmodels internally, might be incomplete).
+    about: Please go through the docs regarding modeling in the `luna-quantum` docs (uses LunaModel internally, might be incomplete).
