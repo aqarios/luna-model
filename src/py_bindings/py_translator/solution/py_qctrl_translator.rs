@@ -160,7 +160,7 @@ impl PyQctrlTranslator {
     ///     variable types.
     #[staticmethod]
     #[pyo3(signature=(result, timing=None, env=None))]
-    fn to_aq(
+    pub fn to_aq(
         py: Python,
         result: Py<PyAny>,
         timing: Option<PyTiming>,

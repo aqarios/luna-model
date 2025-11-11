@@ -58,7 +58,7 @@ def controlled_qp() -> QuadraticProgram:
     return qp
 
 
-def controlled_aqm() -> Model:
+def controlled_lm() -> Model:
     model = Model("a_aqm")
     with model.environment:
         x = Variable("x", vtype=Vtype.Binary)
@@ -154,7 +154,7 @@ def test_ibm_solution_translator():
     np.random.seed(seed)
     _ = Random(seed)
 
-    aqm = controlled_aqm()
+    aqm = controlled_lm()
 
     timer = Timer.start()
     qp = controlled_qp()

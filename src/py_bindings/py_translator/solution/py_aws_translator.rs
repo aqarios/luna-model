@@ -106,7 +106,7 @@ impl PyAwsTranslator {
     ///     variable types.
     #[staticmethod]
     #[pyo3(signature = (aws_result, timing=None, env=None))]
-    fn to_aq(
+    pub fn to_aq(
         py: Python,
         aws_result: Py<PyAny>,
         timing: Option<PyTiming>,

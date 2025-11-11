@@ -101,10 +101,10 @@ impl PyDwaveTranslator {
     ///     variable types.
     #[staticmethod]
     #[pyo3(signature = (sample_set, timing=None, env=None))]
-    fn to_aq(
+    pub fn to_aq(
         py: Python,
         sample_set: Py<PyAny>,
-        timing: Option<Py<PyAny>>,
+        timing: Option<PyTiming>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Py<PyAny>> {
         let extractor: Py<PyAny> = PyModule::from_code(py, PY_CODE, c_str!(""), c_str!(""))?

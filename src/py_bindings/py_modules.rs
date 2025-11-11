@@ -16,6 +16,7 @@ pub fn register_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<ValueSource>()?;
     m.add_class::<ConstraintType>()?;
     m.add_class::<py_model::TranslationTarget>()?;
+    m.add_class::<py_sol::SolutionSource>()?;
     // Add core components as wrappers.
     m.add_class::<py_env::PyEnvironment>()?;
     m.add_class::<py_expr::PyExpression>()?;

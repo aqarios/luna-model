@@ -12,6 +12,10 @@ use crate::py_bindings::py_model::PyModel;
 use crate::py_bindings::py_res::{PyResultIterator, PyResultView};
 use crate::py_bindings::py_sample::PySamples;
 use crate::py_bindings::py_timing::PyTiming;
+use crate::py_bindings::py_translator::{
+    PyAwsTranslator, PyDwaveTranslator, PyIbmTranslator, PyNumpyTranslator, PyQctrlTranslator,
+    PyZibTranslator,
+};
 use crate::py_bindings::py_usize::PyUsize;
 use crate::py_bindings::py_var::PyVariable;
 use crate::serialization::{Decodable, Decompressable, Encodable, Unversionizable};
@@ -55,11 +59,12 @@ enum BitOrder {
     RTL,
 }
 
-#[derive(Display, Debug)]
-enum SolutionTarget {
+#[pyclass(eq, name = "SoulutionSource", module = "luna_model._core")]
+#[derive(Display, Debug, PartialEq, Eq)]
+pub enum SolutionSource {
     Aws,
-    Dwave,
-    Ibm,
+    Dimod,
+    Qiskit,
     Numpy,
     Qctrl,
     Zib,
@@ -67,7 +72,7 @@ enum SolutionTarget {
     DictList,
 }
 
-impl SolutionTarget {
+impl SolutionSource {
     fn retrieve(py: Python, other: &Py<PyAny>) -> PyResult<Self> {
         // other can be:
         //  - ScipModel
@@ -84,19 +89,19 @@ impl SolutionTarget {
         // dbg!(&type_name);
         if type_name.contains("pyscipopt") && type_name.contains("Model") {
             // type_name = "<class 'pyscipopt.scip.Model'>"
-            Ok(SolutionTarget::Zib)
+            Ok(SolutionSource::Zib)
         } else if type_name.contains("dimod") && type_name.contains("SampleSet") {
             // dwave
             // type_name = "<class 'dimod.sampleset.SampleSet'>"
-            Ok(SolutionTarget::Dwave)
+            Ok(SolutionSource::Dimod)
         } else if type_name.contains("numpy.ndarray") {
             // np
             // type_name = "<class 'numpy.ndarray'>"
-            Ok(SolutionTarget::Numpy)
+            Ok(SolutionSource::Numpy)
         } else if type_name.contains("qiskit") && type_name.contains("PrimitiveResult") {
             // ibm
             // type_name = "<class 'qiskit.primitives.containers.primitive_result.PrimitiveResult'>"
-            Ok(SolutionTarget::Ibm)
+            Ok(SolutionSource::Qiskit)
         } else if type_name.contains("'dict'") {
             // either AWS or Qctrl or dict
             // qctrl
@@ -113,14 +118,14 @@ impl SolutionTarget {
                 .ok()
                 .is_some();
             if is_qctrl {
-                Ok(SolutionTarget::Qctrl)
+                Ok(SolutionSource::Qctrl)
             } else if is_aws {
-                Ok(SolutionTarget::Aws)
+                Ok(SolutionSource::Aws)
             } else {
-                Ok(SolutionTarget::Dict)
+                Ok(SolutionSource::Dict)
             }
         } else if type_name.contains("'list'") {
-            Ok(SolutionTarget::DictList)
+            Ok(SolutionSource::DictList)
         } else {
             Err(PyTypeError::new_err(
                 "translation from a '{type_name}' is not supported",
@@ -199,29 +204,58 @@ impl PySolution {
         counts: Option<Py<PyAny>>,
         sense: Option<Py<PyAny>>,
     ) -> PyResult<Self> {
-        use SolutionTarget::*;
-
-        let target = SolutionTarget::retrieve(py, &other)?;
-        dbg!(&target);
-        _ = target;
-        _ = timing;
-        _ = env;
-        _ = energies;
-        _ = quadratic_program;
-        _ = counts;
-        _ = sense;
-        match target {
-            Aws => todo!(),
-            Dwave => todo!(),
-            Ibm => todo!(),
-            Numpy => todo!(),
-            Qctrl => todo!(),
-            Zib => todo!(),
-            Dict => todo!(),
-            DictList => todo!(),
+        use SolutionSource::*;
+        let source = SolutionSource::retrieve(py, &other)?;
+        validate_parameters(&source, &energies, &quadratic_program, &counts, &sense)?;
+        let env = Some(Self::retrieve_environment(&env, &None)?);
+        match source {
+            Aws => Ok(PyAwsTranslator::to_aq(py, other, timing, env)?.extract(py)?),
+            Dimod => Ok(PyDwaveTranslator::to_aq(py, other, timing, env)?.extract(py)?),
+            Qiskit => {
+                match quadratic_program {
+                    Some(qp) => Ok(PyIbmTranslator::to_aq(py, other, qp, timing, env)?.extract(py)?),
+                    None => Err(PyValueError::new_err("Creating a solution from a Qiskit result requires the 'quadratic_program' parameter to be set.")),
+                }
+            },
+            Numpy => {
+                match energies {
+                    Some(engs) => Ok(PyNumpyTranslator::to_aq(py, other, engs, timing, env)?.extract(py)?),
+                    None => Err(PyValueError::new_err("Creating a solution from a Numpy result requires the 'energies' parameter to be set.")),
+                }
+            },
+            Qctrl => Ok(PyQctrlTranslator::to_aq(py, other, timing, env)?.extract(py)?),
+            Zib => Ok(PyZibTranslator::to_aq(py, other, timing, env)?.extract(py)?),
+            Dict => {
+                let mapped_counts = match counts {
+                    Some(cnts) => Some(cnts.extract(py)?),
+                    None => None,
+                };
+                let mapped_sense = match sense {
+                    Some(sns) => Some(sns.extract(py)?),
+                    None => None,
+                };
+                let mapped_energies = match energies {
+                    Some(engs) => Some(engs.extract(py)?),
+                    None => None,
+                };
+                Ok(Self::from_dict(other.extract(py)?, env, None, timing, mapped_counts, mapped_sense, mapped_energies)?)
+            },
+            DictList => {
+                let mapped_counts = match counts {
+                    Some(cnts) => Some(cnts.extract(py)?),
+                    None => None,
+                };
+                let mapped_sense = match sense {
+                    Some(sns) => Some(sns.extract(py)?),
+                    None => None,
+                };
+                let mapped_energies = match energies {
+                    Some(engs) => Some(engs.extract(py)?),
+                    None => None,
+                };
+                Ok(Self::from_dicts(other.extract(py)?, env, None, timing, mapped_counts, mapped_sense, mapped_energies)?)
+            },
         }
-        // todo@jflxb: throw error when passed arguments have no meaning.
-        // Ok(PySolution::new(Solution::default()))
     }
 
     // #[staticmethod]
@@ -1526,5 +1560,57 @@ impl PySolution {
         }
 
         Ok(sample)
+    }
+}
+
+fn validate_parameters(
+    source: &SolutionSource,
+    energies: &Option<Py<PyAny>>,
+    qp: &Option<Py<PyAny>>,
+    counts: &Option<Py<PyAny>>,
+    sense: &Option<Py<PyAny>>,
+) -> PyResult<()> {
+    use SolutionSource::*;
+
+    let mut notok: Vec<(&str, &Option<Py<PyAny>>)> = Vec::new();
+    let e_entry = ("energies", energies);
+    let qp_entry = ("quadratic_program", qp);
+    let c_entry = ("counts", counts);
+    let s_entry = ("sense", sense);
+
+    match source {
+        Aws => notok.extend([e_entry, qp_entry, c_entry, s_entry].iter()),
+        Dimod => notok.extend([e_entry, qp_entry, c_entry, s_entry].iter()),
+        Qctrl => notok.extend([e_entry, qp_entry, c_entry, s_entry].iter()),
+        Zib => notok.extend([e_entry, qp_entry, c_entry, s_entry].iter()),
+
+        Qiskit => notok.extend([e_entry, c_entry, s_entry].iter()),
+        Numpy => notok.extend([qp_entry, c_entry, s_entry].iter()),
+        Dict => notok.extend([qp_entry].iter()),
+        DictList => notok.extend([qp_entry].iter()),
+    };
+
+    maybe_construct_err(source, &notok)
+}
+
+fn maybe_construct_err<'a>(
+    source: &SolutionSource,
+    params: &[(&str, &Option<Py<PyAny>>)],
+) -> PyResult<()> {
+    let mut wrongs = Vec::new();
+    for &(name, p) in params {
+        if let Some(_) = p {
+            wrongs.push(name);
+        }
+    }
+    match wrongs.is_empty() {
+        true => Ok(()),
+        false => {
+            let msg = format!(
+                "Solution from '{source}' received unexpected parameters: {}",
+                wrongs.join(",")
+            );
+            Err(PyValueError::new_err(msg))
+        }
     }
 }

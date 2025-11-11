@@ -89,7 +89,7 @@ impl PyZibTranslator {
     ///     variable types.
     #[staticmethod]
     #[pyo3(signature=(model, timing=None, env=None))]
-    fn to_aq(
+    pub fn to_aq(
         py: Python,
         model: Py<PyAny>,
         timing: Option<PyTiming>,
