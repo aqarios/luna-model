@@ -120,6 +120,11 @@ impl PyResultIterator {
 #[unwindable]
 #[pymethods]
 impl PyResultView {
+    #[getter]
+    fn index(&self) -> usize {
+        self.idx
+    }
+
     fn __str__(&self) -> String {
         let binding = self.sol.access();
         let res = binding.get_result_view(self.idx).unwrap();
