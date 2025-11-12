@@ -246,7 +246,7 @@ impl PyModel {
             self.concrete_model
                 .access_mut()
                 .environment
-                .add_variable(&name, vtype, bounds)?,
+                .add_variable(&name, vtype.unwrap_or_else(|| Vtype::default()), bounds)?,
         ))
     }
 
@@ -286,7 +286,7 @@ impl PyModel {
             self.concrete_model
                 .access_mut()
                 .environment
-                .add_variable_with_fallback(&name, vtype, bounds, None)?,
+                .add_variable_with_fallback(&name, vtype.unwrap_or_else(|| Vtype::default()), bounds, None)?,
         ))
     }
 

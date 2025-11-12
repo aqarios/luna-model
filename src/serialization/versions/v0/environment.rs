@@ -119,7 +119,7 @@ impl Creatable<Environment> for SerEnvironment {
                     out.binary.push(force_u32(i));
                     out.binary_names.push(var.name.clone());
                 }
-                Vtype::InvertedBinary=> {
+                Vtype::InvertedBinary => {
                     out.inverted_binary.push(force_u32(i));
                     out.inverted_binary_names.push(var.name.clone());
                 }
@@ -218,22 +218,21 @@ impl SerEnvironment {
 
         for (i, v) in self.binary.iter().enumerate() {
             let name = self.binary_names[i].clone();
-            variables[*v as usize] =
-                Variable::new(name.clone(), Some(Vtype::Binary), None, env.id())
-                    .expect("binary variable creation failed during deserialization");
+            variables[*v as usize] = Variable::new(name.clone(), Vtype::Binary, None, env.id())
+                .expect("binary variable creation failed during deserialization");
             variables_lookup.insert(name, VarId(*v));
         }
         for (i, v) in self.inverted_binary.iter().enumerate() {
             let name = self.inverted_binary_names[i].clone();
             variables[*v as usize] =
-                Variable::new(name.clone(), Some(Vtype::InvertedBinary), None, env.id())
+                Variable::new(name.clone(), Vtype::InvertedBinary, None, env.id())
                     .expect("inverted binary variable creation failed during deserialization");
             variables_lookup.insert(name, VarId(*v));
             inverted_vars.push(*v as usize);
         }
         for (i, v) in self.spin.iter().enumerate() {
             let name = self.spin_names[i].clone();
-            variables[*v as usize] = Variable::new(name.clone(), Some(Vtype::Spin), None, env.id())
+            variables[*v as usize] = Variable::new(name.clone(), Vtype::Spin, None, env.id())
                 .expect("spin variable creation failed during deserialization");
             variables_lookup.insert(name, VarId(*v));
         }
@@ -257,7 +256,7 @@ impl SerEnvironment {
             let name = self.integer_names[i].clone();
             variables[*v as usize] = Variable::new(
                 name.clone(),
-                Some(Vtype::Integer),
+                Vtype::Integer,
                 Some(LazyBounds::new(lower, upper)),
                 env.id(),
             )
@@ -285,7 +284,7 @@ impl SerEnvironment {
             let name = self.real_names[i].clone();
             variables[*v as usize] = Variable::new(
                 name.clone(),
-                Some(Vtype::Real),
+                Vtype::Real,
                 Some(LazyBounds::new(lower, upper)),
                 env.id(),
             )
@@ -293,7 +292,13 @@ impl SerEnvironment {
             variables_lookup.insert(name, VarId(*v));
         }
 
-        env.set_data(varcount, variables, variables_lookup, ghost_vars, inverted_vars);
+        env.set_data(
+            varcount,
+            variables,
+            variables_lookup,
+            ghost_vars,
+            inverted_vars,
+        );
         env
     }
 }

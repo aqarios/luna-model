@@ -419,7 +419,7 @@ impl SectionsHolder {
                 };
                 let vref = model
                     .environment
-                    .add_variable(var, Some((*vtype).into()), bounds.map(|b| b.into()))
+                    .add_variable(var, (*vtype).into(), bounds.map(|b| b.into()))
                     .map_err(|e| TranslationErr::new(e.to_string()))?;
                 varlookup.insert(var.to_string(), vref);
             }
@@ -431,7 +431,7 @@ impl SectionsHolder {
                         .environment
                         .add_variable(
                             var,
-                            Some(Vtype::Real),
+                            Vtype::Real,
                             Some(LazyBounds::new(Some(*lower), Some(*upper))),
                         )
                         .map_err(|e| TranslationErr::new(e.to_string()))?;
@@ -527,7 +527,7 @@ impl SectionsHolder {
                     var = if let Ok(v) = res {
                         Some(v)
                     } else {
-                        expr.env.add_variable(n, Some(Vtype::Real), None).ok()
+                        expr.env.add_variable(n, Vtype::Real, None).ok()
                     };
                 }
                 var.unwrap()

@@ -27,7 +27,7 @@ impl BqmTranslator {
     ) -> Result<Model, VariableCreationErr> {
         let mut model = Model::new(name, Some(Sense::Min));
         for var in vars.iter() {
-            model.environment.add_variable(var, Some(vtype), None)?;
+            model.environment.add_variable(var, vtype, None)?;
         }
         // model.objective.resize(vars.len().into());
         model.objective.add_offset(offset);

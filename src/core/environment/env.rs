@@ -57,7 +57,7 @@ impl SharedEnvironment {
     pub fn add_variable(
         &self,
         name: &str,
-        vtype: Option<Vtype>,
+        vtype: Vtype,
         bounds: Option<LazyBounds>,
     ) -> Result<VarRef, VariableCreationErr> {
         let mut mutable_env = self.access_mut();
@@ -68,7 +68,7 @@ impl SharedEnvironment {
     pub fn add_variable_with_fallback(
         &self,
         name: &str,
-        vtype: Option<Vtype>,
+        vtype: Vtype,
         bounds: Option<LazyBounds>,
         enc: Option<&[u64]>,
     ) -> Result<VarRef, VariableCreationErr> {
@@ -90,11 +90,11 @@ impl SharedEnvironment {
     }
 
     pub fn add_binary(&self, name: &str) -> Result<VarRef, VariableCreationErr> {
-        self.add_variable(name, Some(Vtype::Binary), None)
+        self.add_variable(name, Vtype::Binary, None)
     }
 
     pub fn add_spin(&self, name: &str) -> Result<VarRef, VariableCreationErr> {
-        self.add_variable(name, Some(Vtype::Spin), None)
+        self.add_variable(name, Vtype::Spin, None)
     }
 
     pub fn add_real(
@@ -102,7 +102,7 @@ impl SharedEnvironment {
         name: &str,
         bounds: Option<LazyBounds>,
     ) -> Result<VarRef, VariableCreationErr> {
-        self.add_variable(name, Some(Vtype::Real), bounds)
+        self.add_variable(name, Vtype::Real, bounds)
     }
 
     pub fn add_integer(
@@ -110,7 +110,7 @@ impl SharedEnvironment {
         name: &str,
         bounds: Option<LazyBounds>,
     ) -> Result<VarRef, VariableCreationErr> {
-        self.add_variable(name, Some(Vtype::Integer), bounds)
+        self.add_variable(name, Vtype::Integer, bounds)
     }
 
     pub fn get_vref_by_name(&self, name: &str) -> Result<VarRef, VariableNotExistingErr> {
@@ -350,7 +350,7 @@ impl Environment {
     pub fn add_variable(
         mutable_env: &mut MutexGuard<'_, Environment>,
         name: &str,
-        vtype: Option<Vtype>,
+        vtype: Vtype,
         bounds: Option<LazyBounds>,
     ) -> Result<VarId, VariableCreationErr> {
         if mutable_env.variables_lookup.contains_key(name) {
@@ -385,7 +385,7 @@ impl Environment {
         }
         let var = Variable::new(
             inverted_name.clone(),
-            Some(Vtype::InvertedBinary),
+            Vtype::InvertedBinary,
             None,
             mutable_env.id,
         )?;

@@ -165,7 +165,7 @@ impl Model {
             };
             model
                 .environment
-                .add_variable(var_name, Some(vtype.unwrap_or(Vtype::Binary)), None)?;
+                .add_variable(var_name, vtype.unwrap_or(Vtype::Binary), None)?;
         }
 
         // model.objective.resize(num_variables);
