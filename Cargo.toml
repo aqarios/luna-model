@@ -4,13 +4,16 @@ version = "0.4.2-dev.6+1624115"
 edition = "2021"
 description = "Aqarios LunaModel: Symbolic modeling for optimization"
 readme = "README.md"
-license = "Copyright"
+license = "license"
 homepage = "https://github.com/aqarios/luna-model"
 exclude = [
     "pytests",
     "bench_reports",
     "benchmarks",
 ]
+
+# [package.metadata.maturin]
+# exclude = ["LICENSE"]
 
 [lib]
 path = "src/lib.rs"
