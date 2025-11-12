@@ -127,7 +127,7 @@ impl TransformationPass for BinarySpinPass {
                 .map_err(|e| self.map_err(&e))?;
             let var = model
                 .environment
-                .add_variable(t, Some(cache.new_vtype), None)
+                .add_variable(t, cache.new_vtype, None)
                 .map_err(|e| self.map_err(&e))?;
             let expr = match cache.new_vtype {
                 Vtype::Spin => {

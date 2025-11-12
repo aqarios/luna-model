@@ -1,3 +1,5 @@
-mod creation_test;
-mod hash_test;
-mod inverse_test;
+mod addition;
+mod creation;
+mod hash;
+mod inverse;
+mod properties;

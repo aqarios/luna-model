@@ -34,30 +34,30 @@ fn create_variable_explicit_lazy_bounds() {
 #[test]
 fn create_variable_explicit() {
     let env = SharedEnvironment::default();
-    _ = assert_noerror(env.add_variable("b", Some(Vtype::Binary), None));
-    _ = assert_noerror(env.add_variable("s", Some(Vtype::Spin), None));
-    _ = assert_noerror(env.add_variable("i", Some(Vtype::Integer), None));
-    _ = assert_noerror(env.add_variable("r", Some(Vtype::Real), None));
+    _ = assert_noerror(env.add_variable("b", Vtype::Binary, None));
+    _ = assert_noerror(env.add_variable("s", Vtype::Spin, None));
+    _ = assert_noerror(env.add_variable("i", Vtype::Integer, None));
+    _ = assert_noerror(env.add_variable("r", Vtype::Real, None));
 }
 
 #[test]
 fn create_variable_twice_with_delete() {
     let mut env = SharedEnvironment::default();
 
-    let b = assert_noerror(env.add_variable("b", Some(Vtype::Binary), None));
-    let s = assert_noerror(env.add_variable("s", Some(Vtype::Spin), None));
-    let i = assert_noerror(env.add_variable("i", Some(Vtype::Integer), None));
-    let r = assert_noerror(env.add_variable("r", Some(Vtype::Real), None));
+    let b = assert_noerror(env.add_variable("b", Vtype::Binary, None));
+    let s = assert_noerror(env.add_variable("s", Vtype::Spin, None));
+    let i = assert_noerror(env.add_variable("i", Vtype::Integer, None));
+    let r = assert_noerror(env.add_variable("r", Vtype::Real, None));
 
     _ = env.remove(&b);
     _ = env.remove(&s);
     _ = env.remove(&i);
     _ = env.remove(&r);
 
-    _ = assert_noerror(env.add_variable("b", Some(Vtype::Binary), None));
-    _ = assert_noerror(env.add_variable("s", Some(Vtype::Spin), None));
-    _ = assert_noerror(env.add_variable("i", Some(Vtype::Integer), None));
-    _ = assert_noerror(env.add_variable("r", Some(Vtype::Real), None));
+    _ = assert_noerror(env.add_variable("b", Vtype::Binary, None));
+    _ = assert_noerror(env.add_variable("s", Vtype::Spin, None));
+    _ = assert_noerror(env.add_variable("i", Vtype::Integer, None));
+    _ = assert_noerror(env.add_variable("r", Vtype::Real, None));
 }
 
 #[test]
@@ -65,15 +65,15 @@ fn create_variable_twice_diff_envs() {
     let env_a = SharedEnvironment::default();
     let env_b = SharedEnvironment::default();
 
-    _ = assert_noerror(env_a.add_variable("b", Some(Vtype::Binary), None));
-    _ = assert_noerror(env_a.add_variable("s", Some(Vtype::Spin), None));
-    _ = assert_noerror(env_a.add_variable("i", Some(Vtype::Integer), None));
-    _ = assert_noerror(env_a.add_variable("r", Some(Vtype::Real), None));
+    _ = assert_noerror(env_a.add_variable("b", Vtype::Binary, None));
+    _ = assert_noerror(env_a.add_variable("s", Vtype::Spin, None));
+    _ = assert_noerror(env_a.add_variable("i", Vtype::Integer, None));
+    _ = assert_noerror(env_a.add_variable("r", Vtype::Real, None));
 
-    _ = assert_noerror(env_b.add_variable("b", Some(Vtype::Binary), None));
-    _ = assert_noerror(env_b.add_variable("s", Some(Vtype::Spin), None));
-    _ = assert_noerror(env_b.add_variable("i", Some(Vtype::Integer), None));
-    _ = assert_noerror(env_b.add_variable("r", Some(Vtype::Real), None));
+    _ = assert_noerror(env_b.add_variable("b", Vtype::Binary, None));
+    _ = assert_noerror(env_b.add_variable("s", Vtype::Spin, None));
+    _ = assert_noerror(env_b.add_variable("i", Vtype::Integer, None));
+    _ = assert_noerror(env_b.add_variable("r", Vtype::Real, None));
 }
 
 #[test]

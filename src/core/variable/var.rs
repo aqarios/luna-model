@@ -48,11 +48,10 @@ impl Variable {
     /// id.
     pub fn new(
         name: String,
-        vtype: Option<Vtype>,
+        vtype: Vtype,
         bounds: Option<LazyBounds>,
         env_id: EnvId,
     ) -> Result<Self, VariableCreationErr> {
-        let vtype = vtype.map_or(Vtype::default(), |t| t);
         match (vtype, bounds.is_some()) {
             (Vtype::Binary, true) | (Vtype::Spin, true) => {
                 Err(VariableCreationErr::InvalidBounds(vtype))

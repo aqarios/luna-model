@@ -146,7 +146,7 @@ impl PyVariable {
 
         Ok(PyVariable::new(env.0.add_variable(
             &name,
-            vtype,
+            vtype.unwrap_or_else(|| Vtype::default()),
             bounds.map(|pb| pb.into()),
         )?))
     }
@@ -331,10 +331,10 @@ impl PyVariable {
         Ok(PyExpression::new(expr))
     }
 
-        
+
     /// Invert a binary variable.
 
-    /// This operation is only supported on Binary variables. For all other variable 
+    /// This operation is only supported on Binary variables. For all other variable
     /// types it raises the
     /// `UnsupportedOperationError`.
 
@@ -365,7 +365,7 @@ impl PyVariable {
 
     /// Invert a binary variable.
 
-    /// This operation is only supported on Binary variables. For all other variable 
+    /// This operation is only supported on Binary variables. For all other variable
     /// types it raises the
     /// `UnsupportedOperationError`.
 

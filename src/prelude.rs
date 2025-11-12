@@ -4,6 +4,7 @@
 pub use crate::core::expression::ExpressionEvaluation;
 pub use crate::core::Bound;
 pub use crate::core::Expression;
+pub use crate::core::ExpressionBase;
 pub use crate::core::LazyBounds;
 pub use crate::core::Model;
 pub use crate::core::SharedEnvironment;

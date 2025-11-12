@@ -1,11 +1,15 @@
 use core::fmt;
-use std::ops::{Add, BitXor, Mul};
+use std::{
+    error::Error,
+    fmt::Display,
+    ops::{Add, BitXor, Mul},
+};
 
 use num::pow::Pow;
 
 use crate::{
     core::{operations::AddToExpression, Expression},
-    errors::VariablesFromDifferentEnvsErr,
+    errors::{UnsupportedOperationErr, VariablesFromDifferentEnvsErr},
 };
 
 use super::{
@@ -42,16 +46,58 @@ impl<T, E> AqResult<T, E> {
     }
 }
 
-impl<T, E> From<Result<T, E>> for AqResult<T, E> {
+impl<T, E, O> From<Result<T, E>> for AqResult<T, O>
+where
+    O: From<E>,
+{
     fn from(value: Result<T, E>) -> Self {
         match value {
-            Err(err) => Self::Err(err),
+            Err(err) => Self::Err(err.into()),
             Ok(val) => Self::Ok(val),
         }
     }
 }
 
-pub type OperationResult = AqResult<Expression, VariablesFromDifferentEnvsErr>;
+#[derive(Debug)]
+pub enum OperationErr {
+    VariablesFromDifferentEnvs(VariablesFromDifferentEnvsErr),
+    UnsupportedOperation(UnsupportedOperationErr),
+}
+impl Error for OperationErr {}
+impl Display for OperationErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let msg = match self {
+            OperationErr::VariablesFromDifferentEnvs(err) => err.to_string(),
+            OperationErr::UnsupportedOperation(err) => err.to_string(),
+        };
+        write!(f, "{}", msg)
+    }
+}
+
+impl From<VariablesFromDifferentEnvsErr> for OperationErr {
+    fn from(value: VariablesFromDifferentEnvsErr) -> Self {
+        Self::VariablesFromDifferentEnvs(value)
+    }
+}
+
+impl From<UnsupportedOperationErr> for OperationErr {
+    fn from(value: UnsupportedOperationErr) -> Self {
+        Self::UnsupportedOperation(value)
+    }
+}
+
+// pub type OperationResult<T> = AqResult<T, OperationErr>;
+// note: This is not ideal.. I don't really want to force return an expression here.
+// But for this the error forwarding operations implemented in this file need to be
+// rewritten to support some generic type supporting the operation on that generic type
+// used internally. Once that is done, we can return the inv directly instead of
+// creating a new linear expression.
+//
+// Needed since the [Not] operation on a [VarRef] returns another [VarRef] not an Expression.
+// The [Not] operation must remain as is on the &VarRef (or VarRef (to be added)) and the other
+// operations should be capable of handling such a specific error type... Maybe we even need to
+// remove the speical AqResult and replace it with the actual Result type...
+pub type OperationResult = AqResult<Expression, OperationErr>;
 
 impl Add<f64> for &VarRef {
     type Output = Expression;
@@ -360,6 +406,26 @@ impl Mul<OperationResult> for usize {
     }
 }
 
+// impl Not for VarRef {
+//     type Output = OperationResult;
+//
+//     fn not(self) -> Self::Output {
+//         match (&self).not() {
+//             // note: This is not ideal.. I don't really want to return an expression here. But for
+//             // this the other error forwarding operations implemented in this file need to be
+//             // rewritten to support some generic type supporting the operation on that generic type
+//             // used internally. Once that is done, we can return the inv directly instead of
+//             // creating a new linear expression.
+//             Ok(inv) => AqResult::Ok(Expression::new_linear_single(
+//                 self.env.clone(),
+//                 inv.id,
+//                 Bias::one(),
+//             )),
+//             Err(e) => AqResult::Err(e.into()),
+//         }
+//     }
+// }
+
 //impl Mul<OperationResult> for f64 {
 //    type Output = OperationResult;
 //
@@ -407,7 +473,7 @@ impl Pow<usize> for &VarRef {
                 for _ in 0..rhs {
                     match out.mul_assign(self) {
                         Ok(_) => (),
-                        Err(err) => return AqResult::Err(err),
+                        Err(err) => return AqResult::Err(err.into()),
                     }
                 }
                 AqResult::Ok(out)
