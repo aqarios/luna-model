@@ -6,6 +6,7 @@ use crate::{
 
 #[cfg(feature = "py")]
 use {
+    crate::py_bindings::py_res::PyResultIterator,
     crate::py_bindings::py_res::PyResultView,
     crate::py_bindings::py_sol::PySolution,
     pyo3::prelude::*,
@@ -37,22 +38,33 @@ pub enum Filter {
     PyFilter(Py<PyAny>),
 }
 
-impl Filter {
-    fn call(&self, res: &ResultView) -> Result<bool, ComputationErr> {
-        match self {
-            Self::RsFilter(rs_fn) => Ok(rs_fn(res)),
-            #[cfg(feature = "py")]
-            Self::PyFilter(py_fn) => Python::attach(|py| {
-                // this might be optimizeable.
-                let pyres = PyResultView::new(PySolution::new(res.sol.clone()), res.idx);
+fn filter_sol_rs(rs_fn: &FilterFn, sol: &Solution) -> Vec<bool> {
+    sol.iter_result_views().map(|x| rs_fn(&x)).collect()
+}
+
+#[cfg(feature = "py")]
+fn filter_sol_py(py_fn: &Py<PyAny>, sol: &Solution) -> Result<Vec<bool>, ComputationErr> {
+    Python::attach(|py| {
+        let pyresiter = PyResultIterator::new(PySolution::new(sol.clone()));
+
+        pyresiter
+            .map(|x| {
                 let r = py_fn
-                    .call1(py, (pyres,))
+                    .call1(py, (x,))
                     .map_err(|e| ComputationErr(e.to_string()))?;
-                let b = r
-                    .extract::<bool>(py)
-                    .map_err(|e| ComputationErr(e.to_string()))?;
-                Ok(b)
-            }),
+                r.extract::<bool>(py)
+                    .map_err(|e| ComputationErr(e.to_string()))
+            })
+            .collect::<Result<Vec<bool>, ComputationErr>>()
+    })
+}
+
+impl Filter {
+    fn call(&self, sol: &Solution) -> Result<Vec<bool>, ComputationErr> {
+        match self {
+            Self::RsFilter(rs_fn) => Ok(filter_sol_rs(rs_fn, sol)),
+            #[cfg(feature = "py")]
+            Self::PyFilter(py_fn) => filter_sol_py(py_fn, sol),
         }
     }
 }
@@ -99,10 +111,7 @@ impl Clone for Filter {
 
 impl Solution {
     pub fn filter(&self, f: Filter) -> Result<Solution, ComputationErr> {
-        let mask = self
-            .iter_result_views()
-            .map(|resview| f.call(&resview))
-            .collect::<Result<Vec<_>, ComputationErr>>()?;
+        let mask = f.call(&self)?;
         Ok(self.filter_samples(&mask))
     }
 
