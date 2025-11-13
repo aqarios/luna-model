@@ -1,10 +1,10 @@
 [package]
 name = "luna_model"
-version = "0.4.2-dev.7+68c3ccb"
+version = "0.4.2-dev.8+69385fd"
 edition = "2021"
 description = "Aqarios LunaModel: Symbolic modeling for optimization"
 readme = "README.md"
-license = "license"
+# license = "license"
 homepage = "https://github.com/aqarios/luna-model"
 exclude = [
     "pytests",
