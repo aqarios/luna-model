@@ -267,3 +267,17 @@ impl PyResultIterator {
         res
     }
 }
+
+impl Iterator for PyResultIterator {
+    type Item = PyResultView;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.idx >= self.sol.access().n_samples {
+            None
+        } else {
+            let res = PyResultView::new(self.sol.clone(), self.idx);
+            self.idx += 1;
+            Some(res)
+        }
+    }
+}
