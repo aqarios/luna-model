@@ -1,91 +1,52 @@
-/target
-
-# Byte-compiled / optimized / DLL files
-__pycache__/
-.pytest_cache/
-*.py[cod]
-
-# C extensions
+*.iml
 *.so
-
-# Distribution / packaging
-.Python
-.venv/
-env/
-bin/
-build/
-develop-eggs/
-dist/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-# include/
-man/
-venv/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-pip-selfcheck.json
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.cache
-nosetests.xml
+*.pyd
+*.pdb
+*.ipynb
+.ENV
+.env
+.ipynb_checkpoints/
+.python-version
+.yarn/
+coverage.lcov
 coverage.xml
+profile.json
+polars/vendor
 
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-# Rope
-.ropeproject
-
-# Django stuff:
-*.log
-*.pot
-
+# OS
 .DS_Store
 
-# Sphinx documentation
-docs/_build/
-
-# PyCharm
+# IDE
 .idea/
-
-# VSCode
 .vscode/
+.vim
 
-# Pyenv
-.python-version
-.ipynb_checkpoints
+# Python
+.hypothesis/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.venv*/
+__pycache__/
+.coverage
+*.egg-info
 
-timings
+# Rust
+target/
 
-pytests/test_core/test_translator/model.lp
+# Data
+*.csv
+*.parquet
+*.feather
+*.tbl
 
-pytests/test_core/test_solution/test_translator/model.lp
+# Project
+/docs/assets/data/
+/docs/assets/people.md
 
-tmp.py
-out.txt
-
-aqm-macros/target/
-foo.py
-foo/
-
-bench/
-
-local_build/
-.intentionally-empty-file.o
+# User specific source setups
+# You can put anything here that needs to be done to prepare your env.
+.user_env.*
+# pixi environments
+.pixi/*
+!.pixi/config.toml

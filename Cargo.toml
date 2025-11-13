@@ -1,30 +1,27 @@
-[package]
-name = "luna_model"
-version = "0.4.2-dev.8+69385fd"
-edition = "2021"
-description = "Aqarios LunaModel: Symbolic modeling for optimization"
-readme = "README.md"
-# license = "license"
-homepage = "https://github.com/aqarios/luna-model"
-exclude = [
-    "pytests",
-    "bench_reports",
-    "benchmarks",
+[workspace]
+resolver = "3"
+members = [
+  "crates/*",
+  # "docs/source/src/rust",
+  "py-lunamodel/model-core",
+  "pyo3-lunamodel",
+]
+default-members = [
+  "crates/*",
 ]
 
-# [package.metadata.maturin]
-# exclude = ["LICENSE"]
+[workspace.package]
+version = "0.5.0"
+authors = [
+  "Jonas Blenninger <jonas.blenninger@aqarios.com>",
+  "David Bucher <david.bucher@aqarios.com>",
+]
+edition = "2024"
+description = "Aqarios LunaModel: Symbolic modeling for optimization"
+homepage = "https://www.aqarios.com"
+repository = "https://github.com/aqaiors/luna-model"
 
-[lib]
-path = "src/lib.rs"
-
-# [lib]
-# name = "_core"
-# # # "cdylib" is necessary to produce a shared library for Python to import from.
-# crate-type = ["cdylib"]
-
-[dependencies]
-derive_more = { version = "2.0.1", features = ["deref", "deref_mut"] }
+[workspace.dependencies]
 global_counter = "0.2.2"
 hashbrown = "0.16.0"
 nohash = "0.2.0"
@@ -46,30 +43,17 @@ pad = "0.1.6"
 sqids = "0.4.2"
 bitvec = "1.0.1"
 enumset = "1.1.10"
-[dependencies.pyo3]
-version = "0.26.0"
-features = ["extension-module", "indexmap", "generate-import-lib"]
-optional = true
+pyo3 = "0.27.1"
+numpy = "0.27.0"
 
-[dependencies.numpy]
-version = "0.26.0"
-optional = true
-
-[dependencies.aqm-macros]
-path = "aqm-macros"
-default-features = false
-optional = true
-
-[dependencies.unwind-macros]
-path = "unwind-macros"
-optional = true
-
-[features]
-default = ["pyt"]
-# Python Flavor options
-py = ["pyo3", "numpy", "unwind-macros"]
-pyt = ["py", "aqm-macros/py", "transformations"]
-# Mark as Private, needs explicit addition, includes everything from pyt, aka public stuff.
-priv = ["pyt"]
-# Only intersting for Rust Crate Builds.
-transformations = ["aqm-macros"]
+lunamodel = { version = "0.5.0", path = "crates/lunamodel", default-features = false }
+lunamodel-core = { version = "0.5.0", path = "crates/lunamodel-core", default-features = false }
+lunamodel-error = { version = "0.5.0", path = "crates/lunamodel-error", default-features = false }
+lunamodel-hashing = { version = "0.5.0", path = "crates/lunamodel-hashing", default-features = false }
+lunamodel-ops = { version = "0.5.0", path = "crates/lunamodel-ops", default-features = false }
+lunamodel-python = { version = "0.5.0", path = "crates/lunamodel-python", default-features = false }
+lunamodel-serializer = { version = "0.5.0", path = "crates/lunamodel-serializer", default-features = false }
+lunamodel-tpass = { version = "0.5.0", path = "crates/lunamodel-tpass", default-features = false }
+lunamodel-transform = { version = "0.5.0", path = "crates/lunamodel-transform", default-features = false }
+lunamodel-translate = { version = "0.5.0", path = "crates/lunamodel-translate", default-features = false }
+lunamodel-unwind = { version = "0.5.0", path = "crates/lunamodel-unwind", default-features = false }
