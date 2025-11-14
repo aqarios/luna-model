@@ -12,3 +12,4 @@ lunamodel-types = { workspace = true }
 lunamodel-error = { workspace = true }
 hashbrown = { workspace = true }
 global_counter = { workspace = true }
+derive_more = { workspace = true, features = ["deref", "deref_mut"] }

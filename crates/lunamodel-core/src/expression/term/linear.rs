@@ -1,6 +1,7 @@
-use super::types::OneVarTerm;
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
-use std::cmp::Ordering;
+
+use super::types::Neighborhood;
+
 use std::ops::{AddAssign, Index, IndexMut, MulAssign, Neg};
 
 // neighborhood of Quadratic two var term and linear biases is the exact same thing.
@@ -10,33 +11,22 @@ use std::ops::{AddAssign, Index, IndexMut, MulAssign, Neg};
 #[derive(Debug, Clone)]
 pub struct Linear {
     /// Linear [biases](Self::biases) for each [VarIdx] as a dynamically growing array.
-    biases: Vec<OneVarTerm>,
+    biases: Neighborhood,
 }
 
 impl Linear {
     pub fn default() -> Self {
         Self {
-            biases: Vec::default(),
-            // hidx: HIdx::None,
+            biases: Neighborhood::default(),
         }
     }
-
-    // // This seems too unsafe to be used as a public creation function.
-    // // We don't have guarantees that:
-    // //  - the passed biases are sorted,
-    // //  - each position is eq. to the VarIdx
-    // pub fn new(biases: &[Bias]) -> Self {
-    //     _ = biases;
-    //     todo!("do we really need this? or shouldn't it be a &[(VarIdx, Bias)]?")
-    // }
 
     pub fn len(&self) -> usize {
         self.biases.len()
     }
 
     pub fn is_zero(&self) -> bool {
-        let sum: Bias = self.biases.iter().map(|t| t.bias).sum();
-        Bias::default() == sum
+        self.biases.is_zero()
     }
 
     pub fn for_var(var: VarIdx, bias: Bias) -> Self {
@@ -63,35 +53,34 @@ impl Linear {
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (VarIdx, Bias)> {
-        self.biases.iter().map(|t| (t.idx, t.bias))
+        self.biases.iter()
     }
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (VarIdx, &mut Bias)> {
-        let mvec: &mut Vec<OneVarTerm> = self.biases.as_mut();
-        mvec.iter_mut().map(|t| (t.idx, &mut t.bias))
+        self.biases.iter_mut()
     }
 
     fn push_back(&mut self, var: VarIdx, bias: Bias) -> &mut Self {
-        self.biases.push(OneVarTerm::new(var, bias));
+        self.biases.push_back(var, bias);
         self
     }
 
     fn insert(&mut self, pos: usize, var: VarIdx, bias: Bias) -> &mut Self {
-        self.biases.insert(pos, OneVarTerm::new(var, bias));
+        self.biases.insert(pos, var, bias);
         self
     }
 
     // again, do we really need this??
     // fn add(&mut self, idx: VarIdx, bias: Bias) -> bool {}
 
-    pub(super) fn find(hay: &[OneVarTerm], needle: VarIdx) -> Result<usize, usize> {
-        hay.binary_search_by(|t| t.idx.partial_cmp(&needle).unwrap_or(Ordering::Equal))
-    }
+    // pub(super) fn find(hay: &[OneVarTerm], needle: VarIdx) -> Result<usize, usize> {
+    //     hay.binary_search_by(|t| t.idx.partial_cmp(&needle).unwrap_or(Ordering::Equal))
+    // }
 }
 
 impl AddAssign<(VarIdx, Bias)> for Linear {
     fn add_assign(&mut self, rhs: (VarIdx, Bias)) {
-        let pos = Self::find(&self.biases, rhs.0).unwrap_or_else(|l| l);
+        let pos = self.biases.find(rhs.0).unwrap_or_else(|l| l);
         if pos == self.len() {
             self.push_back(rhs.0, rhs.1);
         } else if self.biases[pos].idx != rhs.0 {
@@ -112,7 +101,7 @@ impl Index<VarIdx> for Linear {
     type Output = Bias;
 
     fn index(&self, index: VarIdx) -> &Self::Output {
-        match Self::find(&self.biases, index).ok() {
+        match self.biases.find(index).ok() {
             Some(p) => &self.biases[p].bias,
             None => &DEFAULT_BIAS,
         }
@@ -121,7 +110,7 @@ impl Index<VarIdx> for Linear {
 
 impl IndexMut<VarIdx> for Linear {
     fn index_mut(&mut self, index: VarIdx) -> &mut Self::Output {
-        let pos = Self::find(&self.biases, index).unwrap_or_else(|l| l);
+        let pos = self.biases.find(index).unwrap_or_else(|l| l);
         if pos == self.len() {
             self.push_back(index, Bias::default());
         } else if self.biases[pos].idx != index {
@@ -141,11 +130,7 @@ impl Neg for Linear {
     type Output = Self;
     fn neg(self) -> Self::Output {
         Self {
-            biases: self
-                .biases
-                .iter()
-                .map(|t| OneVarTerm::new(t.idx, -t.bias))
-                .collect(),
+            biases: self.biases.iter().map(|(idx, b)| (idx, -b)).collect(),
         }
     }
 }

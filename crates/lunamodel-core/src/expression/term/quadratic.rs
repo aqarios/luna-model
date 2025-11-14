@@ -1,7 +1,5 @@
+use super::types::{Neighborhood, TwoVarTerm};
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
-
-use crate::expression::term::linear::Linear;
-use crate::expression::term::types::{OneVarTerm, TwoVarTerm};
 
 use std::cmp::Ordering;
 use std::ops::{IndexMut, Neg};
@@ -11,7 +9,7 @@ use std::{
 };
 
 // Maybe neighborhood should be it's own type...
-static DEFAULT_NEIGHBORHOOD: LazyLock<Vec<OneVarTerm>> = LazyLock::new(|| Vec::new());
+static DEFAULT_NEIGHBORHOOD: LazyLock<Neighborhood> = LazyLock::new(|| Neighborhood::default());
 
 #[derive(Debug, Clone)]
 pub struct Quadratic {
@@ -38,18 +36,18 @@ impl Quadratic {
         true
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (VarIdx, &Vec<OneVarTerm>)> {
+    pub fn iter(&self) -> impl Iterator<Item = (VarIdx, &Neighborhood)> {
         self.adj.iter().map(|t| (t.idx, &t.neighborhood))
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = (VarIdx, &mut Vec<OneVarTerm>)> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (VarIdx, &mut Neighborhood)> {
         self.adj.iter_mut().map(|t| (t.idx, &mut t.neighborhood))
     }
 
     pub fn iter_flat(&self) -> impl Iterator<Item = (VarIdx, VarIdx, Bias)> {
         self.adj
             .iter()
-            .flat_map(|t| t.neighborhood.iter().map(|n| (t.idx, n.idx, n.bias)))
+            .flat_map(|t| t.neighborhood.iter().map(|(n, b)| (t.idx, n, b)))
     }
 
     pub fn clean(&mut self) {
@@ -58,12 +56,13 @@ impl Quadratic {
     }
 
     pub fn push_back_empty(&mut self, idx: VarIdx) -> &mut Self {
-        self.adj.push(TwoVarTerm::new(idx, Vec::default()));
+        self.adj.push(TwoVarTerm::new(idx, Neighborhood::default()));
         self
     }
 
     pub fn insert_empty(&mut self, pos: usize, idx: VarIdx) -> &mut Self {
-        self.adj.insert(pos, TwoVarTerm::new(idx, Vec::default()));
+        self.adj
+            .insert(pos, TwoVarTerm::new(idx, Neighborhood::default()));
         self
     }
 
@@ -75,12 +74,12 @@ impl Quadratic {
 impl MulAssign<Bias> for Quadratic {
     fn mul_assign(&mut self, rhs: Bias) {
         self.iter_mut()
-            .for_each(|(_, n)| n.iter_mut().for_each(|t| t.bias *= rhs));
+            .for_each(|(_, n)| n.iter_mut().for_each(|(_, b)| *b *= rhs));
     }
 }
 
 impl Index<VarIdx> for Quadratic {
-    type Output = Vec<OneVarTerm>;
+    type Output = Neighborhood;
 
     fn index(&self, index: VarIdx) -> &Self::Output {
         let pos = Self::find(&self.adj, index).ok();
@@ -112,7 +111,7 @@ impl Index<(VarIdx, VarIdx)> for Quadratic {
             Some(p) => &self.adj[p].neighborhood,
             None => &DEFAULT_NEIGHBORHOOD,
         };
-        let pos = Linear::find(&nei, inner).ok();
+        let pos = nei.find(inner).ok();
         match pos {
             Some(p) => &nei[p].bias,
             None => &DEFAULT_BIAS,
@@ -124,13 +123,11 @@ impl IndexMut<(VarIdx, VarIdx)> for Quadratic {
     fn index_mut(&mut self, index: (VarIdx, VarIdx)) -> &mut Self::Output {
         let (outer, inner) = get_indices(index.0, index.1);
         let nei = &mut self[outer];
-        let pos = Linear::find(&nei, inner).unwrap_or_else(|l| l);
+        let pos = nei.find(inner).unwrap_or_else(|l| l);
         if pos == nei.len() {
-            // make Vec<OneVarTerm> be it's own type... Then we can simplify most things!
-            // -> nei.push_back
-            nei.push(OneVarTerm::default(inner));
+            nei.push_back_empty(inner);
         } else if nei[pos].idx != inner {
-            nei.insert(pos, OneVarTerm::default(inner));
+            nei.insert_empty(pos, inner);
         }
         &mut nei[pos].bias
     }
@@ -169,7 +166,7 @@ impl Neg for Quadratic {
                         t.idx,
                         t.neighborhood
                             .iter()
-                            .map(|t| OneVarTerm::new(t.idx, -t.bias))
+                            .map(|(idx, bias)| (idx, -bias))
                             .collect(),
                     )
                 })
