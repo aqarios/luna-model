@@ -48,6 +48,7 @@ numpy = "0.27.0"
 syn = "2.0"
 proc-macro2 = "1.0"
 quote = "1.0"
+derive_more = "2.0.1"
 
 lunamodel = { version = "0.5.0", path = "crates/lunamodel", default-features = false }
 lunamodel-core = { version = "0.5.0", path = "crates/lunamodel-core", default-features = false }
@@ -60,6 +61,6 @@ lunamodel-tpass = { version = "0.5.0", path = "crates/lunamodel-tpass", default-
 lunamodel-transform = { version = "0.5.0", path = "crates/lunamodel-transform", default-features = false }
 lunamodel-translate = { version = "0.5.0", path = "crates/lunamodel-translate", default-features = false }
 lunamodel-unwind = { version = "0.5.0", path = "crates/lunamodel-unwind", default-features = false }
-lunamodel-io = { version = "0.5.0", path = "crates/lunamodel-unwind", default-features = false }
-lunamodel-types = { version = "0.5.0", path = "crates/lunamodel-unwind", default-features = false }
+lunamodel-io = { version = "0.5.0", path = "crates/lunamodel-io", default-features = false }
+lunamodel-types = { version = "0.5.0", path = "crates/lunamodel-types", default-features = false }
 lunamodel-utils = { version = "0.5.0", path = "crates/lunamodel-unwind", default-features = false }
