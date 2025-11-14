@@ -1,22 +1,21 @@
 [package]
-name = "aqm-macros"
-version = "0.0.1"
-edition = "2021"
+name = "lunamodel-tpass"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+homepage.workspace = true
+repository.workspace = true
 
 [lib]
 proc-macro = true
 
 [features]
-# py = ["unwind-macros"]
 py = []
 
 [dependencies]
-syn = { version = "2.0.104", features = ["full"] }
-quote = "1.0"
-proc-macro2 = "1.0"
-once_cell = "1.21.3"
-pyo3 = "0.26.0"
-
-# [dependencies.unwind-macros]
-# path = "../unwind-macros"
-# optional = true
+syn = { workspace = true, features = ["full"] }
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+once_cell = { workspace = true }
+pyo3 = { workspace = true }

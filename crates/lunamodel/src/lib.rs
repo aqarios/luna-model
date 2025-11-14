@@ -9,7 +9,7 @@
 //!       Constrained (Binary) Quadratic Model (CQM) to a (Unconstrained) Binary Quadratic Model (BQM), 
 //!       or from an Integer Model to a Binary Model.
 //!     - Builtin serialization for maximum portability
-//!     - Python-first development experience
-//!
-//! You can use LunaModel as a standalone package or by using [luna-quantum](https://pypi.org/project/luna-quantum/) 
-//! which gives you additional builtin primitives to solve your optimization problems using the [Luna Platform](https://aqarios.com/platform).
+
+pub mod prelude;
+
+// pub use lunamodel_core::{};
