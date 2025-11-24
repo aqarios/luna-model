@@ -317,10 +317,13 @@ version = "0.5.0"
 dependencies = [
  "bitvec",
  "derive_more",
+ "enumset",
  "global_counter",
  "hashbrown",
  "indexmap",
+ "itertools",
  "lunamodel-error",
+ "lunamodel-io",
  "lunamodel-types",
  "parking_lot 0.12.5",
  "strum",
@@ -345,6 +348,10 @@ version = "0.5.0"
 [[package]]
 name = "lunamodel-ops"
 version = "0.5.0"
+dependencies = [
+ "lunamodel-core",
+ "lunamodel-error",
+]
 
 [[package]]
 name = "lunamodel-python"
@@ -393,6 +400,7 @@ version = "0.5.0"
 dependencies = [
  "derive_more",
  "enumset",
+ "strum",
  "strum_macros",
 ]
 

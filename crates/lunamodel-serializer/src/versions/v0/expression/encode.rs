@@ -2,8 +2,8 @@ use lunamodel_core::Expression;
 
 use crate::{encode::BytesEncodable, utils::force_u32};
 
-use prost::Message;
 use super::SerExpression;
+use prost::Message;
 
 /// Makes the SerExpression conform with the requirements for it to be an Encodable.
 impl BytesEncodable for SerExpression {

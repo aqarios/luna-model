@@ -1,7 +1,10 @@
+use enumset::{EnumSet, EnumSetType};
 use strum_macros::Display;
 
+use crate::utils::EnumSetFromVec;
+
 /// Enumeration of variables types supported by the optimization system.
-#[derive(Debug, Display, Clone, Copy, PartialEq)]
+#[derive(Debug, Display, Hash, EnumSetType)]
 pub enum Vtype {
     /// A binary variable that can take values 0 or 1.
     Binary,
@@ -19,5 +22,15 @@ pub enum Vtype {
 impl Vtype {
     pub fn default() -> Self {
         Self::Binary
+    }
+}
+
+impl EnumSetFromVec<Vtype> for Vec<Vtype> {
+    fn to_enumset(&self) -> EnumSet<Vtype> {
+        let mut es = EnumSet::default();
+        for entry in self.iter() {
+            _ = es.insert(*entry);
+        }
+        es
     }
 }

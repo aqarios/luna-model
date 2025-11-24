@@ -11,3 +11,4 @@ repository.workspace = true
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 enumset = { workspace = true }
 strum_macros = { workspace = true }
+strum = { workspace = true }

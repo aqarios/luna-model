@@ -1,14 +1,9 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod add;
+mod mul;
+mod neg;
+mod sub;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use add::{MaybeAdd, MaybeAddAssign, MaybeRAdd};
+pub use mul::{MaybeMul, MaybeMulAssign, MaybeRMul};
+pub use neg::MaybeNeg;
+pub use sub::{MaybeRSub, MaybeSub, MaybeSubAssign};

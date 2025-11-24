@@ -1,6 +1,8 @@
 mod bound;
 mod dtypes;
-mod res;
+mod sense;
+mod specs;
+mod utils;
 mod varid;
 mod varname;
 mod vtype;
@@ -11,6 +13,8 @@ pub use bound::Bound;
 pub use dtypes::{
     Bias, BinaryAssignment, EnvIdx, IntegerAssignment, RealAssignment, SpinAssignment, VarIdx,
 };
+pub use sense::Sense;
+pub use specs::{Ctype, Specs};
 pub use varid::VarId;
 pub use varname::VarName;
 pub use vtype::Vtype;
