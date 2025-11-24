@@ -8,3 +8,10 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
+prost = { workspace = true }
+zstd = { workspace = true }
+bitvec = { workspace = true }
+
+lunamodel-error = { workspace = true }
+lunamodel-core = { workspace = true }
+parking_lot = { workspace = true }

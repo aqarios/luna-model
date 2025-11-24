@@ -12,9 +12,9 @@ use crate::{
 
 pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Environment {
-    id: EnvIdx,
+    pub(crate) id: EnvIdx,
     variables: HashMap<VarIdx, Variable>,
     lookup: HashMap<String, VarIdx>,
     inverted: Vec<VarIdx>,
@@ -22,7 +22,7 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn new() -> Self {
+    pub fn default() -> Self {
         Self {
             id: ENV_COUNTER.inc(),
             variables: HashMap::new(),
@@ -32,22 +32,23 @@ impl Environment {
         }
     }
 
-    pub fn insert<'a>(
-        &'a mut self,
+    pub fn insert(
+        &mut self,
         name: &str,
         vtype: Vtype,
         bounds: Option<LazyBounds>,
-    ) -> LunaModelResult<VarRef<'a>> {
+    ) -> LunaModelResult<VarIdx> {
         ensure_name_valid(name)?;
         ensure_unused(&self.lookup, name)?;
         let var = Variable::new(name, vtype, bounds, self.id)?;
         let idx = freeidx(&mut self.freeidx, self.variables.len() as VarIdx);
         self.variables.insert(idx, var);
         self.lookup.insert(name.into(), idx);
-        Ok(VarRef::new(idx, self))
+        // Ok(VarRef::new(idx, Arc::new(RwLock::new(self))))
+        Ok(idx)
     }
 
-    pub fn insert_inverted<'a>(&'a mut self, base: &VarRef) -> LunaModelResult<VarRef<'a>> {
+    pub fn insert_inverted(&mut self, base: &VarRef) -> LunaModelResult<VarIdx> {
         let nvars = self.variables.len() as VarIdx;
         let basevar = self.variables.get_mut(&base.id).unwrap();
         if basevar.vtype != Vtype::Binary {
@@ -65,7 +66,8 @@ impl Environment {
 
         self.variables.insert(idx, var);
         self.lookup.insert(inv_name.into(), idx);
-        Ok(VarRef::new(idx, self))
+        // Ok(VarRef::new(idx, self))
+        Ok(idx)
     }
 
     pub fn remove(&mut self, target: &VarRef) {

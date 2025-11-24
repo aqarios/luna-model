@@ -1,6 +1,6 @@
 use lunamodel_types::{Bound, Vtype};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {
     pub(crate) lower: Bound,
     pub(crate) upper: Bound,

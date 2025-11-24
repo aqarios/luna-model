@@ -3,6 +3,7 @@ use std::{
     fmt::{Display, Formatter},
     ops::Deref,
 };
+mod froms;
 
 #[derive(Debug, Clone)]
 // pub struct ErrString(Cow<'static, str>);
@@ -48,8 +49,11 @@ impl Display for ErrString {
 pub enum LunaModelError {
     VariableExists(ErrString),
     VariableNameInvalid(ErrString),
+    ConstraintNameInvalid(ErrString),
     InvalidBounds(ErrString),
     InvalidInversion(ErrString),
+    Compression(ErrString),
+    Decoding(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -60,8 +64,11 @@ impl Display for LunaModelError {
         match self {
             VariableExists(msg) => write!(f, "variable exists: {}", msg),
             VariableNameInvalid(msg) => write!(f, "variable name invalid: {}", msg),
+            ConstraintNameInvalid(msg) => write!(f, "constraint name invalid: {}", msg),
             InvalidBounds(msg) => write!(f, "invalid bounds: {}", msg),
             InvalidInversion(msg) => write!(f, "invalid inversion: {}", msg),
+            Compression(msg) => write!(f, "compression failed: {}", msg),
+            Decoding(msg) => write!(f, "decoding failed: {}", msg),
         }
     }
 }

@@ -1,14 +1,14 @@
-use crate::environment::Environment;
+use crate::environment::ArcEnv;
 use lunamodel_types::VarIdx;
 
 #[derive(Debug, Clone)]
-pub struct VarRef<'a> {
+pub struct VarRef {
     pub(crate) id: VarIdx,
-    env: &'a Environment,
+    env: ArcEnv,
 }
 
-impl<'a> VarRef<'a> {
-    pub fn new(id: VarIdx, env: &'a Environment) -> VarRef<'a> {
+impl VarRef {
+    pub fn new(id: VarIdx, env: ArcEnv) -> VarRef {
         Self { id, env }
     }
 }

@@ -8,3 +8,8 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
+lunamodel-core = { workspace = true }
+lunamodel-types = { workspace = true }
+
+pyo3 = { workspace = true, features = ["multiple-pymethods"] }
+parking_lot = { workspace = true, features = ["arc_lock"] }

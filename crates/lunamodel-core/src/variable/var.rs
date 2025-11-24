@@ -4,7 +4,7 @@ use lunamodel_types::{EnvIdx, VarIdx, VarName, Vtype};
 
 use super::bounds::{Bounds, Concretize};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Variable {
     pub(crate) name: VarName,
     pub(crate) vtype: Vtype,
