@@ -1,7 +1,7 @@
 use lunamodel_types::Bias;
 use strum_macros::Display;
 
-use crate::expression::Expression;
+use crate::{ArcEnv, expression::Expression};
 
 /// [Constraint] names must have a name after <https://github.com/aqarios/aq-models-rs/issues/400>.
 /// We need a default name that does not clash with anything. Let's choose an illegal name.
@@ -70,4 +70,10 @@ pub struct Constraint {
     /// A Constraint can also be named for easier, more native indexing into a collection of
     /// constraints.
     pub name: String,
+}
+
+impl Constraint {
+    pub fn deep_clone(&self, env: ArcEnv) -> Self {
+
+    }
 }

@@ -8,7 +8,7 @@ use std::ops::{AddAssign, Index, IndexMut, MulAssign, Neg};
 // We can reduce code complexity and duplications a lot, if we combine them to a single, unified
 // datatype.
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Linear {
     /// Linear [biases](Self::biases) for each [VarIdx] as a dynamically growing array.
     biases: Neighborhood,

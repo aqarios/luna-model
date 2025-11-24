@@ -1,34 +1,6 @@
-use std::fmt::Debug;
+use crate::traits::ContentEquality;
 
-use bitvec::vec::BitVec;
-use lunamodel_types::Bias;
-
-use crate::ArcEnv;
-
-use super::term::{HigherOrder, Linear, Quadratic};
-
-/// A mathematical Expression of arbitrary degree.
-#[derive(Debug, Clone)]
-pub struct Expression {
-    /// The [Environment] as an [Arc<RwLock<_>>].
-    env: ArcEnv,
-    /// The constant offset ([Bias]).
-    offset: Bias,
-    /// The [Linear] terms of this [Expression].
-    linear: Linear,
-    /// The [Quadratic] terms of this [Expression].
-    quadratic: Option<Quadratic>,
-    /// The [HigherOrder] terms of this [Expression].
-    higher_order: Option<HigherOrder>,
-    /// The number of variables in this [Expression].
-    num_vars: usize,
-
-    /// Utility lookup [BitVec] to indicate which variables are used within
-    /// the [Expression].
-    active: BitVec,
-}
-
-impl Expression {}
+use super::Expression;
 
 // Custom [Debug] implementation, todo.
 // impl<'e> Debug for Expression<'e> {
@@ -71,5 +43,12 @@ impl PartialEq for Expression {
         // Everything has to be eq at this point. Otherwise, we would have returned
         // earlier
         true
+    }
+}
+
+impl ContentEquality for Expression {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        _ = other;
+        unimplemented!()
     }
 }

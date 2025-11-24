@@ -31,7 +31,7 @@ impl Neg for OneVarTerm {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Deref, DerefMut)]
+#[derive(Default, Debug, Clone, PartialEq, PartialOrd, Deref, DerefMut)]
 pub struct Neighborhood(pub Vec<OneVarTerm>);
 
 impl Neighborhood {

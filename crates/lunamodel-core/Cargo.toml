@@ -10,11 +10,15 @@ repository.workspace = true
 [dependencies]
 lunamodel-types = { workspace = true }
 lunamodel-error = { workspace = true }
+lunamodel-io = { workspace = true }
+
 hashbrown = { workspace = true }
 global_counter = { workspace = true }
 bitvec = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 indexmap = { workspace = true }
-parking_lot = { workspace = true }
+parking_lot = { workspace = true, features = ["arc_lock"] }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
+itertools = { workspace = true }
+enumset = { workspace = true }

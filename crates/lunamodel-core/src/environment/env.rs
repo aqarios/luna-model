@@ -12,7 +12,7 @@ use crate::{
 
 pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Environment {
     pub(crate) id: EnvIdx,
     variables: HashMap<VarIdx, Variable>,

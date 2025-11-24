@@ -1,5 +1,8 @@
+use crate::{environment::ArcEnv, traits::ContentEquality, variable::VarRef};
 use indexmap::IndexMap;
+use lunamodel_types::Vtype;
 use std::fmt::{Display, Formatter};
+
 use super::constraint::Constraint;
 
 /// A [Constraint] can be either identified by an Int or a String. Access is unified by this enum.
@@ -25,11 +28,48 @@ impl Display for ConstraintKey {
 }
 
 /// The ConstraintCollection struct is an insertion ordered collection of one or more [Constraint]s.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct ConstraintCollection {
     /// A map to help in indexing into this collection when [ConstraintKey].
-    /// Supports both [ConstraintKey::Str] and [ConstraintKey::Int] but [ConstraintKey::Int] is 
+    /// Supports both [ConstraintKey::Str] and [ConstraintKey::Int] but [ConstraintKey::Int] is
     /// not reliable as the order might change when constraints are removed or readded.
     /// [ConstraintKey::Int] will be deprecated going forward.
-    pub data: IndexMap<String, Constraint>,
+    data: IndexMap<String, Constraint>,
+}
+
+impl ConstraintCollection {
+    /// Since the [ConstraintCollection] collection (indirectly via the [Constraint]s' LHS [Expression]s) have a reference to
+    /// a [SharedEnvironment] we cannot simply check by equality using the builin (derived) equality
+    /// primitives. Since two [Constraint]s might be equal albeit being defined in different
+    /// [SharedEnvironment]s.
+    /// We still want to maintain the option to check if two [Constraint]s are identical (including the
+    /// [SharedEnvironment]) so we define this function to keep the `==` operator for identity checks.
+    pub fn deep_clone(&self, env: ArcEnv) -> Self {
+        Self {
+            data: self
+                .data
+                .iter()
+                .map(|(k, c)| (k.clone(), c.deep_clone(env.clone())))
+                .collect(),
+        }
+    }
+
+    pub fn vtypes(&self) -> impl Iterator<Item = Vtype> {
+        unimplemented!()
+    }
+
+    pub fn vars(&self) -> impl Iterator<Item = VarRef> {
+        unimplemented!()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &Constraint)> {
+        self.data.iter()
+    }
+}
+
+impl ContentEquality for ConstraintCollection {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        _ = other;
+        unimplemented!()
+    }
 }

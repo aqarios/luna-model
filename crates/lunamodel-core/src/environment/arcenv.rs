@@ -2,12 +2,15 @@ use parking_lot::RwLock;
 use std::sync::Arc;
 
 use super::Environment;
-use crate::variable::{LazyBounds, VarRef};
+use crate::{
+    traits::ContentEquality,
+    variable::{LazyBounds, VarRef},
+};
 
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{EnvIdx, Vtype};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ArcEnv {
     env: Arc<RwLock<Environment>>,
 }
@@ -27,6 +30,10 @@ impl From<Environment> for ArcEnv {
 }
 
 impl ArcEnv {
+    pub fn deep_clone(&self) -> Self {
+        self.env.read_arc().clone().into()
+    }
+
     pub fn default() -> Self {
         Self {
             env: Arc::new(RwLock::new(Environment::default())),
@@ -58,5 +65,12 @@ impl ArcEnv {
 
     pub fn id(&self) -> EnvIdx {
         self.env.read_arc().id
+    }
+}
+
+impl ContentEquality for ArcEnv {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        _ = other;
+        unimplemented!()
     }
 }
