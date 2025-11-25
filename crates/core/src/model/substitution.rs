@@ -4,6 +4,8 @@ use crate::{expression::Expression, variable::VarRef};
 
 use super::Model;
 
+
+
 impl Model {
     // TODO: this might need some improvements...
 
