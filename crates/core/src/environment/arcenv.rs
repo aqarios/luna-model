@@ -1,3 +1,4 @@
+use derive_more::Deref;
 use parking_lot::RwLock;
 use std::sync::Arc;
 
@@ -10,7 +11,7 @@ use crate::{
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{EnvIdx, Vtype};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Deref)]
 pub struct ArcEnv {
     env: Arc<RwLock<Environment>>,
 }

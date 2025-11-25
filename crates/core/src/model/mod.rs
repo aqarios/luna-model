@@ -2,7 +2,7 @@ mod access;
 mod creation;
 mod equality;
 mod specs;
-mod substitution;
+// mod substitution;
 // mod evaluation;
 mod deepclone;
 mod sense;
@@ -45,6 +45,7 @@ impl Debug for Model {
 
 impl Display for Model {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        _ = f;
         unimplemented!()
         // f.write_str(ModelWriter::new(&self).to_string())
     }

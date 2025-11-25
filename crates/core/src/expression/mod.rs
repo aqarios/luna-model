@@ -1,7 +1,7 @@
-mod deepclone;
-mod creation;
-mod equality;
 mod access;
+mod creation;
+mod deepclone;
+mod equality;
 
 pub mod term;
 
@@ -14,15 +14,15 @@ use term::{HigherOrder, Linear, Quadratic};
 #[derive(Debug, Clone, Default)]
 pub struct Expression {
     /// The [Environment] as an [Arc<RwLock<_>>].
-    env: ArcEnv,
+    pub env: ArcEnv,
     /// The constant offset ([Bias]).
-    offset: Bias,
+    pub offset: Bias,
     /// The [Linear] terms of this [Expression].
-    linear: Linear,
+    pub linear: Linear,
     /// The [Quadratic] terms of this [Expression].
-    quadratic: Option<Quadratic>,
+    pub quadratic: Option<Quadratic>,
     /// The [HigherOrder] terms of this [Expression].
-    higher_order: Option<HigherOrder>,
+    pub higher_order: Option<HigherOrder>,
     /// The number of variables in this [Expression].
-    num_vars: usize,
+    pub num_vars: usize,
 }

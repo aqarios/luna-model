@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use global_counter::primitive::exact::CounterU64;
 use hashbrown::HashMap;
 
@@ -15,10 +17,10 @@ pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Environment {
     pub(crate) id: EnvIdx,
-    variables: HashMap<VarIdx, Variable>,
-    lookup: HashMap<String, VarIdx>,
-    inverted: Vec<VarIdx>,
-    freeidx: Vec<VarIdx>,
+    pub(crate) variables: HashMap<VarIdx, Variable>,
+    pub(crate) lookup: HashMap<String, VarIdx>,
+    pub(crate) inverted: Vec<VarIdx>,
+    pub(crate) freeidx: Vec<VarIdx>,
 }
 
 impl Environment {
@@ -75,5 +77,15 @@ impl Environment {
         self.lookup.remove(&name.0);
         self.variables.remove(&target.id);
         self.freeidx.push(target.id);
+    }
+}
+
+impl Index<VarIdx> for Environment {
+    type Output = Variable;
+
+    fn index(&self, index: VarIdx) -> &Self::Output {
+        self.variables
+            .get(&index)
+            .expect(&format!("no variable for index '{index}'"))
     }
 }

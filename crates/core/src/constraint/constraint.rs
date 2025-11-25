@@ -74,6 +74,7 @@ pub struct Constraint {
 
 impl Constraint {
     pub fn deep_clone(&self, env: ArcEnv) -> Self {
-
+        _ = env;
+        unimplemented!()
     }
 }

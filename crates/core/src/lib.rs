@@ -1,6 +1,7 @@
 //! lunamodel-core
 pub mod prelude;
 
+mod ops;
 mod traits;
 mod constraint;
 mod environment;
