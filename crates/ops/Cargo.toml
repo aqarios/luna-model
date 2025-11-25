@@ -9,4 +9,5 @@ repository.workspace = true
 
 [dependencies]
 lunamodel-core = { workspace = true }
+lunamodel-types = { workspace = true }
 lunamodel-error = { workspace = true }
