@@ -47,6 +47,7 @@ impl Display for ErrString {
 
 #[derive(Debug, Clone)]
 pub enum LunaModelError {
+    DifferentEnvironments,
     VariableExists(ErrString),
     VariableNameInvalid(ErrString),
     ConstraintNameInvalid(ErrString),
@@ -69,6 +70,7 @@ impl Display for LunaModelError {
             InvalidInversion(msg) => write!(f, "invalid inversion: {}", msg),
             Compression(msg) => write!(f, "compression failed: {}", msg),
             Decoding(msg) => write!(f, "decoding failed: {}", msg),
+            DifferentEnvironments => write!(f, "different environments encountered"),
         }
     }
 }
