@@ -9,3 +9,8 @@ pub trait LmAddAssign<Rhs> {
 pub trait LmMulAssign<Rhs> {
     fn mul_assign(&mut self, rhs: Rhs) -> LunaModelResult<()>;
 }
+
+/// Custom [std::ops::SubAssign] which might fail with an error.
+pub trait LmSubAssign<Rhs> {
+    fn sub_assign(&mut self, rhs: Rhs) -> LunaModelResult<()>;
+}

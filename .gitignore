@@ -50,3 +50,5 @@ target/
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+NOTES.md
