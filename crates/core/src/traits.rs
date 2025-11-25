@@ -16,3 +16,24 @@ impl<T: ContentEquality + ?Sized> ContentEquality for &T {
         (*self).is_equal_contents(*other)
     }
 }
+
+pub trait Editable {
+    fn edit<F>(mut self, f: F) -> Self
+    where
+        Self: Sized,
+        F: FnOnce(&mut Self),
+    {
+        f(&mut self);
+        self
+    }
+}
+
+pub trait DefaultEditable: Default + Editable {
+    fn with<F>(f: F) -> Self
+    where
+        F: FnOnce(&mut Self),
+    {
+        Self::default().edit(f)
+    }
+}
+impl<T: Editable + Default> DefaultEditable for T {}

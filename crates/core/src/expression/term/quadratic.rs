@@ -1,8 +1,10 @@
+use crate::traits::Editable;
+
 use super::types::{Neighborhood, TwoVarTerm};
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
 
 use std::cmp::Ordering;
-use std::ops::{IndexMut, Neg};
+use std::ops::{AddAssign, IndexMut, Neg};
 use std::{
     ops::{Index, MulAssign},
     sync::LazyLock,
@@ -11,18 +13,13 @@ use std::{
 // Maybe neighborhood should be it's own type...
 static DEFAULT_NEIGHBORHOOD: LazyLock<Neighborhood> = LazyLock::new(|| Neighborhood::default());
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct Quadratic {
     adj: Vec<TwoVarTerm>,
 }
+impl Editable for Quadratic {}
 
 impl Quadratic {
-    pub fn default() -> Self {
-        Self {
-            adj: Vec::default(),
-        }
-    }
-
     pub fn len(&self) -> usize {
         self.adj.len()
     }
@@ -179,5 +176,25 @@ fn get_indices(a: VarIdx, b: VarIdx) -> (VarIdx, VarIdx) {
     match a < b {
         true => (a, b),
         false => (b, a),
+    }
+}
+
+impl AddAssign<(VarIdx, VarIdx, Bias)> for Quadratic {
+    fn add_assign(&mut self, rhs: (VarIdx, VarIdx, Bias)) {
+        self[(rhs.0, rhs.1)] += rhs.2
+    }
+}
+
+impl AddAssign<&Quadratic> for Quadratic {
+    fn add_assign(&mut self, rhs: &Quadratic) {
+        for (u, v, bias) in rhs.iter_flat() {
+            *self += (u, v, bias)
+        }
+    }
+}
+
+impl AddAssign<Quadratic> for Quadratic {
+    fn add_assign(&mut self, rhs: Quadratic) {
+        self.add_assign(&rhs);
     }
 }

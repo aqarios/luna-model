@@ -1,5 +1,7 @@
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
 
+use crate::traits::{DefaultEditable, Editable};
+
 use super::types::Neighborhood;
 
 use std::ops::{AddAssign, Index, IndexMut, MulAssign, Neg};
@@ -13,14 +15,9 @@ pub struct Linear {
     /// Linear [biases](Self::biases) for each [VarIdx] as a dynamically growing array.
     biases: Neighborhood,
 }
+impl Editable for Linear {}
 
 impl Linear {
-    pub fn default() -> Self {
-        Self {
-            biases: Neighborhood::default(),
-        }
-    }
-
     pub fn len(&self) -> usize {
         self.biases.len()
     }
@@ -69,13 +66,6 @@ impl Linear {
         self.biases.insert(pos, var, bias);
         self
     }
-
-    // again, do we really need this??
-    // fn add(&mut self, idx: VarIdx, bias: Bias) -> bool {}
-
-    // pub(super) fn find(hay: &[OneVarTerm], needle: VarIdx) -> Result<usize, usize> {
-    //     hay.binary_search_by(|t| t.idx.partial_cmp(&needle).unwrap_or(Ordering::Equal))
-    // }
 }
 
 impl AddAssign<(VarIdx, Bias)> for Linear {
@@ -88,6 +78,20 @@ impl AddAssign<(VarIdx, Bias)> for Linear {
         } else {
             self.biases[pos].bias += rhs.1;
         }
+    }
+}
+
+impl AddAssign<&Linear> for Linear {
+    fn add_assign(&mut self, rhs: &Linear) {
+        for (idx, bias) in rhs.iter() {
+            *self += (idx, bias);
+        }
+    }
+}
+
+impl AddAssign<Linear> for Linear {
+    fn add_assign(&mut self, rhs: Linear) {
+        self.add_assign(&rhs)
     }
 }
 

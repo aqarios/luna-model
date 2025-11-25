@@ -32,8 +32,18 @@ impl LmAddAssign<&Expression> for Expression {
     fn add_assign(&mut self, rhs: &Expression) -> LunaModelResult<()> {
         check_envs(self, rhs)?;
         self.offset += rhs.offset;
-        unimplemented!()
-        // Ok(())
+        self.linear += &rhs.linear;
+        match (self.quadratic.as_mut(), rhs.quadratic.as_ref()) {
+            (Some(lq), Some(rq)) => *lq += rq,
+            (None, Some(rq)) => self.quadratic = Some(rq.clone()),
+            (Some(_), None) | (None, None) => (),
+        }
+        match (self.higher_order.as_mut(), rhs.higher_order.as_ref()) {
+            (Some(lh), Some(rh)) => *lh += rh,
+            (None, Some(rh)) => self.higher_order = Some(rh.clone()),
+            (Some(_), None) | (None, None) => (),
+        }
+        Ok(())
     }
 }
 

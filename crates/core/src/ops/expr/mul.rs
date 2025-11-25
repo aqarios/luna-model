@@ -1,8 +1,9 @@
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
 
-use crate::{muls, rmuls};
+use crate::ops::utils::check_envs;
 use crate::{Expression, ops::LmMulAssign, prelude::VarRef};
+use crate::{muls, rmuls};
 
 impl LmMulAssign<&Bias> for Expression {
     fn mul_assign(&mut self, rhs: &Bias) -> LunaModelResult<()> {
@@ -26,6 +27,10 @@ impl LmMulAssign<&usize> for Expression {
 
 impl LmMulAssign<&VarRef> for Expression {
     fn mul_assign(&mut self, rhs: &VarRef) -> LunaModelResult<()> {
+        check_envs(self, rhs)?;
+
+        let nl = rhs * self.offset;
+        self.offset = Bias::default();
         _ = rhs;
         unimplemented!("implement expr *= &vref")
     }

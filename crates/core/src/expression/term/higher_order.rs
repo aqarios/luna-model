@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut, MulAssign, Neg};
+use std::ops::{AddAssign, Index, IndexMut, MulAssign, Neg};
 
 use hashbrown::HashMap;
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
@@ -125,4 +125,18 @@ fn key(mut indices: Vec<VarIdx>) -> String {
         .map(|i| i.to_string())
         .collect::<Vec<String>>()
         .join(SEP)
+}
+
+impl AddAssign<&HigherOrder> for HigherOrder {
+    fn add_assign(&mut self, rhs: &HigherOrder) {
+        for (contrib, bias) in rhs.iter() {
+            self[contrib] += bias;
+        }
+    }
+}
+
+impl AddAssign<HigherOrder> for HigherOrder {
+    fn add_assign(&mut self, rhs: HigherOrder) {
+        self.add_assign(&rhs);
+    }
 }

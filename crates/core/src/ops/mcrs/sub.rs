@@ -3,15 +3,15 @@ macro_rules! subs {
     ($L:ty => $( $R:ty ) ,+ $(,)?) => {
         // std::ops::Sub
         // L: owned + R: owned
-        $( subs!(@add_oo $L, $R); )*
+        $( subs!(@sub_oo $L, $R); )*
         // L: owned + R: borrowed
-        $( subs!(@add_ob $L, $R); )*
+        $( subs!(@sub_ob $L, $R); )*
         // L: borrowed + R: owned
-        $( subs!(@add_bo $L, $R); )*
+        $( subs!(@sub_bo $L, $R); )*
         // L: borrowed + R: borrowed
-        $( subs!(@add_bb $L, $R); )*
+        $( subs!(@sub_bb $L, $R); )*
         // std::ops::SubAssign
-        $( subs!(@add_assign_o $L, $R); )*
+        $( subs!(@sub_assign_o $L, $R); )*
     };
 
     // sub rules for each trait
@@ -92,21 +92,22 @@ macro_rules! rsubs {
     ($L:ty => $( $R:ty ) ,+ $(,)?) => {
         // std::ops::Sub
         // L: owned + R: owned
-        $( rsubs!(@add_oo $L, $R); )*
+        $( rsubs!(@sub_oo $L, $R); )*
         // L: owned + R: borrowed
-        $( rsubs!(@add_ob $L, $R); )*
+        $( rsubs!(@sub_ob $L, $R); )*
         // L: borrowed + R: owned
-        $( rsubs!(@add_bo $L, $R); )*
+        $( rsubs!(@sub_bo $L, $R); )*
         // L: borrowed + R: borrowed
-        $( rsubs!(@add_bb $L, $R); )*
+        $( rsubs!(@sub_bb $L, $R); )*
     };
 
     // sub rules for each trait
     // L: owned + R: owned
+    // R - L = R + (-L)
     (@sub_oo $L:ty, $R:ty) => {
         impl std::ops::Sub<$L> for $R
         where
-            for<'r> $L: crate::ops::LmSubAssign<&'r $R>,
+            for<'r> $L: crate::ops::LmSubAssign<&'r $R> + std::ops::Neg,
         {
             type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
             fn sub(self, mut rhs: $L) -> Self::Output {
@@ -117,10 +118,11 @@ macro_rules! rsubs {
         }
     };
     // L: owned + R: borrowed
+    // R - L = R + (-L)
     (@sub_ob $L:ty, $R:ty) => {
         impl std::ops::Sub<&$L> for $R
         where
-            for<'r> $L: crate::ops::LmSubAssign<&'r $R>,
+            for<'r> $L: crate::ops::LmSubAssign<&'r $R> + std::ops::Neg,
         {
             type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
             fn sub(self, rhs: &$L) -> Self::Output {
@@ -132,10 +134,11 @@ macro_rules! rsubs {
         }
     };
     // L: borrowed + R: owned
+    // R - L = R + (-L)
     (@sub_bo $L:ty, $R:ty) => {
         impl std::ops::Sub<$L> for &$R
         where
-            for<'r> $L: crate::ops::LmSubAssign<&'r $R>,
+            for<'r> $L: crate::ops::LmSubAssign<&'r $R> + std::ops::Neg,
         {
             type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
             fn sub(self, mut rhs: $L) -> Self::Output {
@@ -146,10 +149,11 @@ macro_rules! rsubs {
         }
     };
     // L: borrowed + R: borrowed
+    // R - L = R + (-L)
     (@sub_bb $L:ty, $R:ty) => {
         impl std::ops::Sub<&$L> for &$R
         where
-            for<'r> $L: crate::ops::LmSubAssign<&'r $R>,
+            for<'r> $L: crate::ops::LmSubAssign<&'r $R> + std::ops::Neg,
         {
             type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
             fn sub(self, rhs: &$L) -> Self::Output {

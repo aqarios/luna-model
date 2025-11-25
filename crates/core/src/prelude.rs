@@ -4,4 +4,4 @@ pub use crate::expression::Expression;
 pub use crate::expression::term::{HigherOrder, Linear, Quadratic};
 pub use crate::model::Model;
 pub use crate::variable::VarRef;
-pub use crate::ops::{LmAddAssign, LmMulAssign};
+pub use crate::ops::{LmAddAssign, LmMulAssign, LmSubAssign};
