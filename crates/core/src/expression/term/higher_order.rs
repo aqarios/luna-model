@@ -3,20 +3,17 @@ use std::ops::{AddAssign, Index, IndexMut, MulAssign, Neg};
 use hashbrown::HashMap;
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
 
+use crate::traits::Editable;
+
 static SEP: &str = "-";
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct HigherOrder {
     entries: HashMap<String, Bias>,
 }
+impl Editable for HigherOrder {}
 
 impl HigherOrder {
-    pub fn default() -> Self {
-        Self {
-            entries: HashMap::new(),
-        }
-    }
-
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             entries: HashMap::with_capacity(capacity),
@@ -138,5 +135,11 @@ impl AddAssign<&HigherOrder> for HigherOrder {
 impl AddAssign<HigherOrder> for HigherOrder {
     fn add_assign(&mut self, rhs: HigherOrder) {
         self.add_assign(&rhs);
+    }
+}
+
+impl AddAssign<(Vec<u32>, Bias)> for HigherOrder {
+    fn add_assign(&mut self, rhs: (Vec<u32>, Bias)) {
+        self[rhs.0.as_slice()] = rhs.1
     }
 }

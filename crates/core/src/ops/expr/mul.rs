@@ -1,7 +1,11 @@
-use lunamodel_error::LunaModelResult;
+use std::ops::AddAssign;
+
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 
-use crate::ops::utils::check_envs;
+use crate::ops::utils::{VarMulRes, VarMulRes::*, check_envs};
+use crate::prelude::Linear;
+use crate::traits::Editable;
 use crate::{Expression, ops::LmMulAssign, prelude::VarRef};
 use crate::{muls, rmuls};
 
@@ -28,11 +32,51 @@ impl LmMulAssign<&usize> for Expression {
 impl LmMulAssign<&VarRef> for Expression {
     fn mul_assign(&mut self, rhs: &VarRef) -> LunaModelResult<()> {
         check_envs(self, rhs)?;
+        *self = Expression::empty(self.env.clone()).maybe_edit(|mut expr| {
+            expr += self.offset * rhs;
+            expr += (&self.linear * rhs)?;
+            expr += (&self.quadratic * rhs)?;
+            expr += (&self.higher_order * rhs)?;
+            Ok::<(), LunaModelError>(())
+        })?;
+        Ok(())
+    }
+}
 
-        let nl = rhs * self.offset;
-        self.offset = Bias::default();
-        _ = rhs;
-        unimplemented!("implement expr *= &vref")
+impl AddAssign<Linear> for &mut Expression {
+    fn add_assign(&mut self, rhs: Linear) {
+        self.linear += rhs;
+    }
+}
+
+impl AddAssign<Vec<VarMulRes>> for &mut Expression {
+    fn add_assign(&mut self, rhs: Vec<VarMulRes>) {
+        for item in rhs {
+            match item {
+                Const(c) => self.offset += c,
+                Lin(l) => self.linear += l,
+                Quad(q) => {
+                    if let Some(expr_q) = self.quadratic.as_mut() {
+                        *expr_q += q
+                    }
+                }
+                HiOr(h) => {
+                    if let Some(expr_h) = self.higher_order.as_mut() {
+                        *expr_h += h
+                    }
+                }
+            }
+        }
+    }
+}
+
+impl AddAssign<Option<Vec<VarMulRes>>> for &mut Expression {
+    fn add_assign(&mut self, rhs: Option<Vec<VarMulRes>>) {
+        if let Some(vs) = rhs
+            && !vs.is_empty()
+        {
+            *self += vs
+        }
     }
 }
 
@@ -154,6 +198,7 @@ mod tests {
         let mut env = ArcEnv::default();
         let v: VarRef = env.insert("b".into(), Vtype::Binary, None).unwrap();
         let mut e = Expression::empty(env);
+        dbg!(&v, &e);
         e.mul_assign(&v).unwrap();
         e.mul_assign(v).unwrap();
     }

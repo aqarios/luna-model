@@ -322,6 +322,7 @@ dependencies = [
  "lunamodel-error",
  "lunamodel-io",
  "lunamodel-types",
+ "lunamodel-utils",
  "parking_lot 0.12.5",
  "strum",
  "strum_macros",
@@ -390,6 +391,9 @@ dependencies = [
 [[package]]
 name = "lunamodel-utils"
 version = "0.5.0"
+dependencies = [
+ "hashbrown",
+]
 
 [[package]]
 name = "memoffset"

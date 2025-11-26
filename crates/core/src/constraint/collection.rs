@@ -1,7 +1,7 @@
 use crate::{environment::ArcEnv, traits::ContentEquality, variable::VarRef};
-use hashbrown::HashSet;
 use indexmap::IndexMap;
 use lunamodel_types::Vtype;
+use lunamodel_utils::{unique, unique_by};
 use std::fmt::{Display, Formatter};
 
 use super::constraint::Constraint;
@@ -56,27 +56,11 @@ impl ConstraintCollection {
     }
 
     pub fn vtypes(&self) -> impl Iterator<Item = Vtype> {
-        self.data
-            .iter()
-            .map(|(_, c)| c.lhs.vtypes())
-            .flatten()
-            .scan(HashSet::new(), |seen, item| {
-                if seen.insert(item) { Some(item) } else { None }
-            })
+        unique(self.data.iter().map(|(_, c)| c.lhs.vtypes()).flatten())
     }
 
     pub fn vars(&self) -> impl Iterator<Item = VarRef> {
-        self.data
-            .iter()
-            .map(|(_, c)| c.lhs.vars())
-            .flatten()
-            .scan(HashSet::new(), |seen, item| {
-                if seen.insert(item.id) {
-                    Some(item)
-                } else {
-                    None
-                }
-            })
+        unique_by(self.data.iter().map(|(_, c)| c.lhs.vars()).flatten(), |v| v.id)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&String, &Constraint)> {

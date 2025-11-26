@@ -1,5 +1,6 @@
 use hashbrown::HashSet;
 use lunamodel_types::{VarIdx, Vtype};
+use lunamodel_utils::unique;
 use std::iter::once;
 
 use crate::variable::VarRef;
@@ -8,31 +9,26 @@ use super::Expression;
 
 impl Expression {
     pub fn vtypes(&self) -> impl Iterator<Item = Vtype> {
-        self.vars()
-            .map(|v| self.env.read_arc()[v.id].vtype)
-            .scan(HashSet::new(), |seen, item| {
-                if seen.insert(item) { Some(item) } else { None }
-            })
+        unique(self.vars().map(|v| self.env.read_arc()[v.id].vtype))
     }
 
     pub fn vars(&self) -> impl Iterator<Item = VarRef> {
-        self.linear
-            .iter()
-            .map(|(idx, _)| idx)
-            .chain(
-                self.quadratic
-                    .iter()
-                    .flat_map(|q| q.iter_flat().flat_map(|(u, v, _)| once(u).chain(once(v)))),
-            )
-            .chain(
-                self.higher_order
-                    .iter()
-                    .flat_map(|h| h.iter_contrib().map(|(c, _)| c.into_iter()).flatten()),
-            )
-            .scan(HashSet::new(), |seen, item| {
-                if seen.insert(item) { Some(item) } else { None }
-            })
-            .map(|id| VarRef::new(id, self.env.clone()))
+        unique(
+            self.linear
+                .iter()
+                .map(|(idx, _)| idx)
+                .chain(
+                    self.quadratic
+                        .iter()
+                        .flat_map(|q| q.iter_flat().flat_map(|(u, v, _)| once(u).chain(once(v)))),
+                )
+                .chain(
+                    self.higher_order
+                        .iter()
+                        .flat_map(|h| h.iter_contrib().map(|(c, _)| c.into_iter()).flatten()),
+                ),
+        )
+        .map(|id| VarRef::new(id, self.env.clone()))
     }
 
     pub fn degree(&self) -> usize {

@@ -2,6 +2,7 @@ mod mcrs;
 mod utils;
 
 mod expr;
+mod term;
 mod vref;
 mod traits;
 

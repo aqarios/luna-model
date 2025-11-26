@@ -11,6 +11,7 @@ repository.workspace = true
 lunamodel-types = { workspace = true }
 lunamodel-error = { workspace = true }
 lunamodel-io = { workspace = true }
+lunamodel-utils = { workspace = true }
 
 hashbrown = { workspace = true }
 global_counter = { workspace = true }

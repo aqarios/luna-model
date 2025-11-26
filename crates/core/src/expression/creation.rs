@@ -1,7 +1,7 @@
 use lunamodel_types::Bias;
 
 use super::Expression;
-use super::term::{HigherOrder, Linear, Quadratic};
+use super::term::Linear;
 use crate::ArcEnv;
 
 impl Expression {

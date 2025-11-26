@@ -1,6 +1,6 @@
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
 
-use crate::traits::{DefaultEditable, Editable};
+use crate::traits::Editable;
 
 use super::types::Neighborhood;
 
