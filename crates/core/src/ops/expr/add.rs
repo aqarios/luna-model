@@ -1,3 +1,7 @@
+use std::ops::AddAssign;
+
+use crate::ops::utils::{VarMulRes, VarMulRes::*};
+use crate::prelude::Linear;
 use crate::{adds, radds};
 use crate::{expression::Expression, variable::VarRef};
 use lunamodel_error::LunaModelResult;
@@ -49,6 +53,49 @@ impl LmAddAssign<&Expression> for Expression {
 
 adds!(Expression => Bias, usize, VarRef, Expression);
 radds!(Expression => Bias, usize, VarRef);
+
+impl AddAssign<Bias> for Expression {
+    fn add_assign(&mut self, rhs: Bias) {
+        self.offset += rhs;
+    }
+}
+
+impl AddAssign<Linear> for Expression {
+    fn add_assign(&mut self, rhs: Linear) {
+        self.linear += rhs;
+    }
+}
+
+impl AddAssign<Vec<VarMulRes>> for Expression {
+    fn add_assign(&mut self, rhs: Vec<VarMulRes>) {
+        for item in rhs {
+            match item {
+                Const(c) => self.offset += c,
+                Lin(l) => self.linear += l,
+                Quad(q) => {
+                    if let Some(expr_q) = self.quadratic.as_mut() {
+                        *expr_q += q
+                    }
+                }
+                HiOr(h) => {
+                    if let Some(expr_h) = self.higher_order.as_mut() {
+                        *expr_h += h
+                    }
+                }
+            }
+        }
+    }
+}
+
+impl AddAssign<Option<Vec<VarMulRes>>> for Expression {
+    fn add_assign(&mut self, rhs: Option<Vec<VarMulRes>>) {
+        if let Some(vs) = rhs
+            && !vs.is_empty()
+        {
+            *self += vs
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
