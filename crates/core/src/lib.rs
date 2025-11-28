@@ -1,13 +1,13 @@
 //! lunamodel-core
 pub mod prelude;
 
-mod ops;
-mod traits;
 mod constraint;
 mod environment;
 mod expression;
 mod model;
+pub mod ops;
 mod solution;
+mod traits;
 mod variable;
 
 pub use constraint::ConstraintCollection;

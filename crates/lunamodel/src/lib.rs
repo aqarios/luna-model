@@ -9,7 +9,6 @@
 //!       Constrained (Binary) Quadratic Model (CQM) to a (Unconstrained) Binary Quadratic Model (BQM), 
 //!       or from an Integer Model to a Binary Model.
 //!     - Builtin serialization for maximum portability
-
 pub mod prelude;
 
 // pub use lunamodel_core::{};

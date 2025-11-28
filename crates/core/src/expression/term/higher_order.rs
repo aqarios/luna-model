@@ -1,4 +1,4 @@
-use std::ops::{AddAssign, Index, IndexMut, MulAssign, Neg};
+use std::ops::{AddAssign, Index, IndexMut, Mul, MulAssign, Neg};
 
 use hashbrown::HashMap;
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
@@ -22,6 +22,10 @@ impl HigherOrder {
 
     pub fn len(&self) -> usize {
         self.entries.len()
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.iter().map(|(_, b)| b).sum::<Bias>() == Bias::default()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -55,6 +59,14 @@ impl MulAssign<Bias> for HigherOrder {
         for (_, bias) in self.iter_mut() {
             *bias *= rhs;
         }
+    }
+}
+
+impl Mul<Bias> for HigherOrder {
+    type Output = Self;
+    fn mul(mut self, rhs: Bias) -> Self::Output {
+        self *= rhs;
+        self
     }
 }
 

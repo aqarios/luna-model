@@ -4,7 +4,7 @@ use crate::traits::Editable;
 
 use super::types::Neighborhood;
 
-use std::ops::{AddAssign, Index, IndexMut, MulAssign, Neg};
+use std::ops::{AddAssign, Index, IndexMut, MulAssign, Neg, Mul};
 
 // neighborhood of Quadratic two var term and linear biases is the exact same thing.
 // We can reduce code complexity and duplications a lot, if we combine them to a single, unified
@@ -70,13 +70,17 @@ impl Linear {
 
 impl AddAssign<(VarIdx, Bias)> for Linear {
     fn add_assign(&mut self, rhs: (VarIdx, Bias)) {
-        let pos = self.biases.find(rhs.0).unwrap_or_else(|l| l);
+        let (u, b) = rhs;
+        if b == Bias::default() {
+            return;
+        }
+        let pos = self.biases.find(u).unwrap_or_else(|l| l);
         if pos == self.len() {
-            self.push_back(rhs.0, rhs.1);
-        } else if self.biases[pos].idx != rhs.0 {
-            self.insert(pos, rhs.0, rhs.1);
+            self.push_back(u, b);
+        } else if self.biases[pos].idx != u {
+            self.insert(pos, u, b);
         } else {
-            self.biases[pos].bias += rhs.1;
+            self.biases[pos].bias += b;
         }
     }
 }
@@ -98,6 +102,14 @@ impl AddAssign<Linear> for Linear {
 impl MulAssign<Bias> for Linear {
     fn mul_assign(&mut self, rhs: Bias) {
         self.iter_mut().for_each(|(_, bias)| *bias *= rhs);
+    }
+}
+
+impl Mul<Bias> for Linear {
+    type Output = Self;
+    fn mul(mut self, rhs: Bias) -> Self::Output {
+        self *= rhs;
+        self
     }
 }
 

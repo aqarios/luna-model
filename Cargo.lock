@@ -300,12 +300,7 @@ name = "lunamodel"
 version = "0.5.0"
 dependencies = [
  "lunamodel-core",
- "lunamodel-error",
- "lunamodel-ops",
- "lunamodel-python",
- "lunamodel-serializer",
- "lunamodel-transform",
- "lunamodel-translate",
+ "lunamodel-types",
 ]
 
 [[package]]

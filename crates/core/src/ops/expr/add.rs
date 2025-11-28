@@ -1,13 +1,12 @@
-use std::ops::AddAssign;
-
-use crate::ops::utils::{VarMulRes, VarMulRes::*};
-use crate::prelude::Linear;
-use crate::{adds, radds};
-use crate::{expression::Expression, variable::VarRef};
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
 
+use crate::ops::traits::internal::PrvAddAssign;
+use crate::ops::utils::{VarMulRes, VarMulRes::*};
 use crate::ops::{LmAddAssign, utils::check_envs};
+use crate::prelude::{HigherOrder, Linear, Quadratic};
+use crate::{adds, radds};
+use crate::{expression::Expression, variable::VarRef};
 
 // Bias
 impl LmAddAssign<&Bias> for Expression {
@@ -54,20 +53,20 @@ impl LmAddAssign<&Expression> for Expression {
 adds!(Expression => Bias, usize, VarRef, Expression);
 radds!(Expression => Bias, usize, VarRef);
 
-impl AddAssign<Bias> for Expression {
-    fn add_assign(&mut self, rhs: Bias) {
+impl PrvAddAssign<Bias> for Expression {
+    fn aa(&mut self, rhs: Bias) {
         self.offset += rhs;
     }
 }
 
-impl AddAssign<Linear> for Expression {
-    fn add_assign(&mut self, rhs: Linear) {
+impl PrvAddAssign<Linear> for Expression {
+    fn aa(&mut self, rhs: Linear) {
         self.linear += rhs;
     }
 }
 
-impl AddAssign<Vec<VarMulRes>> for Expression {
-    fn add_assign(&mut self, rhs: Vec<VarMulRes>) {
+impl PrvAddAssign<Vec<VarMulRes>> for Expression {
+    fn aa(&mut self, rhs: Vec<VarMulRes>) {
         for item in rhs {
             match item {
                 Const(c) => self.offset += c,
@@ -75,11 +74,25 @@ impl AddAssign<Vec<VarMulRes>> for Expression {
                 Quad(q) => {
                     if let Some(expr_q) = self.quadratic.as_mut() {
                         *expr_q += q
+                    } else {
+                        let mut new_q = Quadratic::default();
+                        new_q += q;
+                        match new_q.is_zero() {
+                            true => (),
+                            false => self.quadratic = Some(new_q),
+                        }
                     }
                 }
                 HiOr(h) => {
                     if let Some(expr_h) = self.higher_order.as_mut() {
                         *expr_h += h
+                    } else {
+                        let mut new_h = HigherOrder::default();
+                        new_h += h;
+                        match new_h.is_zero() {
+                            true => (),
+                            false => self.higher_order = Some(new_h),
+                        }
                     }
                 }
             }
@@ -87,12 +100,12 @@ impl AddAssign<Vec<VarMulRes>> for Expression {
     }
 }
 
-impl AddAssign<Option<Vec<VarMulRes>>> for Expression {
-    fn add_assign(&mut self, rhs: Option<Vec<VarMulRes>>) {
+impl PrvAddAssign<Option<Vec<VarMulRes>>> for Expression {
+    fn aa(&mut self, rhs: Option<Vec<VarMulRes>>) {
         if let Some(vs) = rhs
             && !vs.is_empty()
         {
-            *self += vs
+            self.aa(vs)
         }
     }
 }

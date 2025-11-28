@@ -5,13 +5,16 @@ mod equality;
 
 pub mod term;
 
-use crate::{ArcEnv, traits::{DefaultEditable, Editable}};
+use crate::{
+    ArcEnv,
+    traits::{DefaultEditable, Editable},
+};
 use lunamodel_types::Bias;
 use std::fmt::Debug;
 use term::{HigherOrder, Linear, Quadratic};
 
 /// A mathematical Expression of arbitrary degree.
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Default)]
 pub struct Expression {
     /// The [Environment] as an [Arc<RwLock<_>>].
     pub env: ArcEnv,
@@ -55,5 +58,19 @@ impl From<Quadratic> for Expression {
 impl From<HigherOrder> for Expression {
     fn from(ho: HigherOrder) -> Self {
         Self::with(|e| e.higher_order = Some(ho))
+    }
+}
+
+impl Debug for Expression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Expression")
+            .field("envidx", &self.env.read_arc().id)
+            .field("offset", &self.offset)
+            .field("linear", &self.linear)
+            .field("quadratic", &self.quadratic)
+            .field("higher_order", &self.higher_order)
+            .field("num_vars", &self.num_vars)
+
+            .finish()
     }
 }

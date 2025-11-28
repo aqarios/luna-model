@@ -4,7 +4,7 @@ use super::types::{Neighborhood, TwoVarTerm};
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
 
 use std::cmp::Ordering;
-use std::ops::{AddAssign, IndexMut, Neg};
+use std::ops::{AddAssign, IndexMut, Mul, Neg};
 use std::{
     ops::{Index, MulAssign},
     sync::LazyLock,
@@ -31,6 +31,10 @@ impl Quadratic {
             }
         }
         true
+    }
+
+    pub fn is_zero(&self) -> bool {
+        self.iter_flat().map(|(_, _, b)| b).sum::<Bias>() == 0.0
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (VarIdx, &Neighborhood)> {
@@ -72,6 +76,15 @@ impl MulAssign<Bias> for Quadratic {
     fn mul_assign(&mut self, rhs: Bias) {
         self.iter_mut()
             .for_each(|(_, n)| n.iter_mut().for_each(|(_, b)| *b *= rhs));
+    }
+}
+
+impl Mul<Bias> for Quadratic {
+    type Output = Self;
+
+    fn mul(mut self, rhs: Bias) -> Self::Output {
+        self *= rhs;
+        self
     }
 }
 
@@ -181,7 +194,11 @@ fn get_indices(a: VarIdx, b: VarIdx) -> (VarIdx, VarIdx) {
 
 impl AddAssign<(VarIdx, VarIdx, Bias)> for Quadratic {
     fn add_assign(&mut self, rhs: (VarIdx, VarIdx, Bias)) {
-        self[(rhs.0, rhs.1)] += rhs.2
+        let (u, v, b) = rhs;
+        if b == Bias::default() {
+            return;
+        }
+        self[(u, v)] += b
     }
 }
 
