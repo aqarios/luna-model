@@ -105,19 +105,19 @@ pub struct PyExpressionIterator {
     current_idx: usize,
 }
 
-impl PyExpressionIterator {
-    fn new(expr: &PyExpression) -> Self {
-        use super::ExprContent::*;
-        Self {
-            items: match &expr.expr {
-                Expr(expr) => expr.items(),
-                Model(p) => p.read_arc().objective.items(),
-            },
-            env: match &expr.expr {
-                Expr(expr) => expr.env.clone(),
-                Model(p) => p.read_arc().environment.clone(),
-            },
-            current_idx: 0,
-        }
-    }
-}
+// impl PyExpressionIterator {
+//     fn new(expr: &PyExpression) -> Self {
+//         use super::ExprContent::*;
+//         Self {
+//             items: match &expr.expr {
+//                 Expr(expr) => expr.items(),
+//                 Model(p) => p.read_arc().objective.items(),
+//             },
+//             env: match &expr.expr {
+//                 Expr(expr) => expr.env.clone(),
+//                 Model(p) => p.read_arc().environment.clone(),
+//             },
+//             current_idx: 0,
+//         }
+//     }
+// }

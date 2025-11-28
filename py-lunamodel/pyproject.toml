@@ -1,0 +1,65 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "lm"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["./LICENSE"]
+dynamic = ["version", "description"]
+authors = [
+    { name = "Aqarios GmbH", email = "pypi@aqarios.com" },
+]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.0.0",
+]
+keywords = [
+  "aqarios",
+  "luna",
+  "quantum computing",
+  "quantum optimization",
+  "optimization",
+  "modeling"
+]
+# todo: check these values.
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering",
+]
+
+[project.urls]
+Homepage = "https://aqarios.com"
+Documentation = "https://docs.aqarios.com"
+
+[tool.maturin]
+strip = true
+manifest-path = "pycore/Cargo.toml"
+module-name = "lm._core"
+python-packages = ["lm"]
+python-source = "src"
+# features = ["pyt"]
+all-features = false
+no-default-features = true
+include = [
+    "src/lm/**/*.pyi",
+    "src/lm/**/*.py",
+    "src/lm/py.typed",
+]
+exclude = [
+    "**/__pycache__",
+     "**/*.pyc",
+]
+
+[tool.uv]
+package = true
+cache-keys = [
+    { file = "Cargo.toml" },
+    { file = "src/**/*.rs" },
+    { file = "pyproject.toml" },
+    { file = "src/lm/**/*.pyi" },
+    { file = "src/lm/**/*.py" },
+]

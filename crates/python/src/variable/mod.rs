@@ -1,10 +1,17 @@
+mod creation;
+
 use lunamodel_core::prelude::VarRef;
-use parking_lot::RwLock;
 use pyo3::pyclass;
 
 // #[pyclass(subclass, name = "Model", module = "luna_model._core")]
-#[pyclass]
+#[pyclass(frozen)]
 #[repr(transparent)]
 pub struct PyVariable {
-    pub v: RwLock<VarRef>,
+    pub v: VarRef,
+}
+
+impl PyVariable {
+    fn new(vref: VarRef) -> Self {
+        Self { v: vref }
+    }
 }

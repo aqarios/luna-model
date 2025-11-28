@@ -2,8 +2,7 @@
 resolver = "3"
 members = [
   "crates/*",
-  # "docs/source/src/rust",
-  "py-lunamodel/model-core",
+  "py-lunamodel/pycore",
   "pyo3-lunamodel",
 ]
 default-members = [

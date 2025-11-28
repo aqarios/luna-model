@@ -1,5 +1,5 @@
 [package]
-name = "model-core"
+name = "pycore"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -8,3 +8,5 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
+pyo3 = { workspace = true }
+lunamodel-python = { workspace = true }

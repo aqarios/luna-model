@@ -1,9 +1,9 @@
 mod context;
 mod general;
-mod ser;
+// mod ser;
 
 use lunamodel_core::{ArcEnv, Environment};
-use pyo3::{PyResult, pyclass};
+use pyo3::{PyErr, PyResult, pyclass};
 use std::cell::RefCell;
 
 use crate::exceptions::NoActiveEnvironmentFoundError;
@@ -48,14 +48,24 @@ impl From<ArcEnv> for PyEnvironment {
     }
 }
 
-impl From<Option<PyEnvironment>> for PyEnvironment {
-    fn from(value: Option<PyEnvironment>) -> Self {
+impl TryFrom<Option<PyEnvironment>> for PyEnvironment {
+    type Error = PyErr;
+    fn try_from(value: Option<PyEnvironment>) -> Result<Self, Self::Error> {
         match value {
-            Some(env) => env.clone(),
-            None => get_active_env()?,
+            Some(env) => Ok(env.clone()),
+            None => get_active_env(),
         }
     }
 }
+
+// impl From<Option<PyEnvironment>> for PyEnvironment {
+//     fn from(value: Option<PyEnvironment>) -> Self {
+//         match value {
+//             Some(env) => env.clone(),
+//             None => get_active_env()?,
+//         }
+//     }
+// }
 
 // impl From<PyEnvironment> for Environment {
 //     fn from(value: PyEnvironment) -> Self {
