@@ -1,0 +1,14 @@
+[project]
+name = "tests"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "accext",
+    "lm",
+]
+
+[tool.uv.sources]
+accext = { path = "../extensions/example-extension" }
+lm = { path = "../py-lunamodel" }

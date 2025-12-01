@@ -8,3 +8,9 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
+pyo3 = { workspace = true }
+once_cell = { workspace = true }
+parking_lot = { workspace = true }
+
+lunamodel-core = { workspace = true }
+lunamodel-types = { workspace = true }

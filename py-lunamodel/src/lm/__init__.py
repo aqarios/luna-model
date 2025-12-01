@@ -1,10 +1,11 @@
 """
-LunaModel: Blazingly fast Optimization Models
-=============================================
+LunaModel: Blazingly fast Optimization Modeling
+===============================================
 """
 
 from lm.expression import Expression
 from lm.environment import Environment
+from lm.variable import Variable
 
 
-__all__ = ["Expression", "Environment"]
+__all__ = ["Expression", "Environment", "Variable"]

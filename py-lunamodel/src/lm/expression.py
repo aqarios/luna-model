@@ -9,4 +9,7 @@ class Expression:
 
 
     def __init__(self, env: Environment | None = None) -> None:
-        self._expr = PyExpression(env._env)
+        if env is None:
+            self._expr = PyExpression()
+        else:
+            self._expr = PyExpression(env._env)

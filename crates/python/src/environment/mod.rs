@@ -1,5 +1,6 @@
 mod context;
 mod general;
+mod ffi;
 // mod ser;
 
 use lunamodel_core::{ArcEnv, Environment};

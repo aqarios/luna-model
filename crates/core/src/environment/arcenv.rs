@@ -13,7 +13,7 @@ use lunamodel_types::{EnvIdx, Vtype};
 
 #[derive(Debug, Clone, Default, Deref)]
 pub struct ArcEnv {
-    env: Arc<RwLock<Environment>>,
+    pub env: Arc<RwLock<Environment>>,
 }
 
 impl From<Arc<RwLock<Environment>>> for ArcEnv {
