@@ -11,6 +11,12 @@ class Environment:
         elif isinstance(data, int):
             self._env = PyEnvironment._from_raw_ptr(data)
 
+    @classmethod
+    def _from_pyenv(cls, py_env: PyEnvironment) -> Environment:
+        env = cls.__new__(cls)
+        env._env = py_env
+        return env
+
     def __enter__(self) -> Environment:
         return self._env.__enter__()
 
