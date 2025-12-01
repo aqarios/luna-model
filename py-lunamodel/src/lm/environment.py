@@ -5,8 +5,11 @@ from lm._core import PyEnvironment
 class Environment:
     _env: PyEnvironment
 
-    def __init__(self) -> None:
-        self._env = PyEnvironment()
+    def __init__(self, data: int | None = None) -> None:
+        if data is None:
+            self._env = PyEnvironment()
+        elif isinstance(data, int):
+            self._env = PyEnvironment._from_raw_ptr(data)
 
     def __enter__(self) -> Environment:
         return self._env.__enter__()

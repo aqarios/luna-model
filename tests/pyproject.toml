@@ -5,8 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "accext",
-    "lm",
+  "accext",
+  "lm",
 ]
 
 [tool.uv.sources]

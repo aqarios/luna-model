@@ -19,7 +19,7 @@ def create_variables_par(env: Environment):
         else:
             idx -= 10
             a, b = idx * 2, (idx * 2) + 1
-            add_many_variables(env._env, [f"plugin_{a}", f"plugin_{b}"])
+            add_many_variables(env, [f"plugin_{a}", f"plugin_{b}"])
 
     _spawn_threads_and_wait(worker, threads=threads)
 
@@ -37,9 +37,9 @@ def main():
     print("Hello from tests!")
 
     env = Environment()
-    dbg_print(env._env)
+    dbg_print(env)
     create_variables_par(env)
-    dbg_print(env._env)
+    dbg_print(env)
 
     # add_many_variables(env._env, ["a", "b", "c", "d", "e"])
     # dbg_print(env._env)

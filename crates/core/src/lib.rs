@@ -1,6 +1,8 @@
 //! lunamodel-core
 pub mod prelude;
 
+pub mod ffi;
+
 mod constraint;
 mod environment;
 mod expression;
