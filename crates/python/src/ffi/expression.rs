@@ -14,11 +14,6 @@ use crate::{PyExprContent, PyExpression};
 const CAPUSULE_NAME_EXPR: &CStr = c"builtins.capsule.PyExprContent.Expr";
 const CAPUSULE_NAME_MODEL: &CStr = c"builtins.capsule.PyExprContent.Model";
 
-pub enum PyExprVariant {
-    Expr,
-    Model,
-}
-
 impl PyExprContent {
     pub fn to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
         match &self {
