@@ -1,6 +1,6 @@
 import concurrent.futures
-from lm import Environment, Variable
-from accext import dbg_print, add_many_variables
+from luna_model import Environment, Variable, Expression
+from accext import dbg_print, dbg_print_e, add_many_variables, add_constant_two
 
 
 def _spawn_threads_and_wait(worker, threads=4):
@@ -24,6 +24,18 @@ def create_variables_par(env: Environment):
     _spawn_threads_and_wait(worker, threads=threads)
 
 
+def add_two_many_times_par(expr: Expression):
+    threads = 20
+
+    def worker(idx):
+        if idx < 10:
+            expr.__iadd__(2)
+        else:
+            add_constant_two(expr)
+
+    _spawn_threads_and_wait(worker, threads=threads)
+
+
 # def create_variables_in_plugin(env: Environment):
 #     threads = 5
 #     def worker(idx):
@@ -40,6 +52,13 @@ def main():
     dbg_print(env)
     create_variables_par(env)
     dbg_print(env)
+
+    print("------")
+
+    expr = Expression(Environment())
+    dbg_print_e(expr)
+    add_two_many_times_par(expr)
+    dbg_print_e(expr)
 
     # add_many_variables(env._env, ["a", "b", "c", "d", "e"])
     # dbg_print(env._env)

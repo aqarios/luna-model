@@ -1,15 +1,12 @@
 from __future__ import annotations
-from lm._core import PyEnvironment
+from luna_model._lm import PyEnvironment
 
 
 class Environment:
     _env: PyEnvironment
 
-    def __init__(self, data: int | None = None) -> None:
-        if data is None:
-            self._env = PyEnvironment()
-        elif isinstance(data, int):
-            self._env = PyEnvironment._from_raw_ptr(data)
+    def __init__(self) -> None:
+        self._env = PyEnvironment()
 
     @classmethod
     def _from_pyenv(cls, py_env: PyEnvironment) -> Environment:

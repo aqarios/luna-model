@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Protocol
-from ..variable import Variable
+
+from luna_model.variable import Variable
 
 
 class Constant(Protocol): ...
@@ -20,6 +21,7 @@ class Quadratic(Protocol):
     def var_a(self) -> Variable: ...
     @property
     def var_b(self) -> Variable: ...
+
 
 class HigherOrder(Protocol):
     __match_args__ = ("vars",)

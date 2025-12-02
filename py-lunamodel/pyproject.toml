@@ -3,7 +3,7 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "lm"
+name = "luna_model"
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["./LICENSE"]
@@ -37,17 +37,16 @@ Documentation = "https://docs.aqarios.com"
 
 [tool.maturin]
 strip = true
-manifest-path = "pycore/Cargo.toml"
-module-name = "lm._core"
-python-packages = ["lm"]
+manifest-path = "pylm/Cargo.toml"
+module-name = "luna_model._lm"
+python-packages = ["luna_model"]
 python-source = "src"
-# features = ["pyt"]
 all-features = false
 no-default-features = true
 include = [
-    "src/lm/**/*.pyi",
-    "src/lm/**/*.py",
-    "src/lm/py.typed",
+    "src/luna_model/**/*.pyi",
+    "src/luna_model/**/*.py",
+    "src/luna_model/py.typed",
 ]
 exclude = [
     "**/__pycache__",
@@ -60,6 +59,6 @@ cache-keys = [
     { file = "Cargo.toml" },
     { file = "src/**/*.rs" },
     { file = "pyproject.toml" },
-    { file = "src/lm/**/*.pyi" },
-    { file = "src/lm/**/*.py" },
+    { file = "src/luna_model/**/*.pyi" },
+    { file = "src/luna_model/**/*.py" },
 ]

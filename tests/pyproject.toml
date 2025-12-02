@@ -6,9 +6,9 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
   "accext",
-  "lm",
+  "luna_model",
 ]
 
 [tool.uv.sources]
 accext = { path = "../extensions/example-extension" }
-lm = { path = "../py-lunamodel" }
+luna_model = { path = "../py-lunamodel" }

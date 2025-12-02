@@ -3,7 +3,7 @@ revision = 3
 requires-python = ">=3.11"
 
 [[package]]
-name = "lm"
+name = "luna-model"
 source = { editable = "." }
 dependencies = [
     { name = "numpy" },

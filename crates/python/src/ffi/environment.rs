@@ -5,6 +5,7 @@ use crate::PyEnvironment;
 
 #[pymethods]
 impl PyEnvironment {
+    // todo: change to PyCapsule and move to `lunamodel_python` for consistency.
     /// Investigate if PyCapusle is better suited.
     pub fn _into_raw_ptr(&self) -> usize {
         self.env.into_raw_ptr().into()

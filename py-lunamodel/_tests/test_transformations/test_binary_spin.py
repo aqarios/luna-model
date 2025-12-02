@@ -1,5 +1,5 @@
 import pytest
-from luna_model._core import Model, Vtype
+from luna_model._lm import Model, Vtype
 from luna_model.transformations import BinarySpinPass, PassManager
 
 

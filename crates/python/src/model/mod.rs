@@ -1,5 +1,8 @@
 mod ser;
 mod construction;
+mod access;
+
+use std::sync::Arc;
 
 use lunamodel_core::prelude::Model;
 use parking_lot::RwLock;
@@ -9,13 +12,13 @@ use pyo3::pyclass;
 #[pyclass]
 #[repr(transparent)]
 pub struct PyModel {
-    pub m: RwLock<Model>,
+    pub m: Arc<RwLock<Model>>,
 }
 
 impl Clone for PyModel {
     fn clone(&self) -> Self {
         PyModel {
-            m: RwLock::new(self.m.read().clone()),
+            m: Arc::new(RwLock::new(self.m.read().clone())),
         }
     }
 }
@@ -23,13 +26,13 @@ impl Clone for PyModel {
 impl From<Model> for PyModel {
     fn from(value: Model) -> Self {
         Self {
-            m: RwLock::new(value),
+            m: Arc::new(RwLock::new(value)),
         }
     }
 }
 
-impl From<PyModel> for Model {
-    fn from(value: PyModel) -> Self {
-        value.m.into_inner()
-    }
-}
+// impl From<PyModel> for Model {
+//     fn from(value: PyModel) -> Self {
+//         value.m.into_inner()
+//     }
+// }

@@ -498,7 +498,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pycore"
+name = "pylm"
 version = "0.5.0"
 dependencies = [
  "lunamodel-python",
@@ -547,6 +547,7 @@ name = "pyo3-lunamodel"
 version = "0.5.0"
 dependencies = [
  "lunamodel-core",
+ "lunamodel-python",
  "lunamodel-types",
  "once_cell",
  "parking_lot 0.12.5",

@@ -1,10 +1,13 @@
 use lunamodel_core::prelude::*;
-use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, types::PyAnyMethods};
+use lunamodel_python::prelude::PyExprContent;
+use pyo3::{
+    Bound, FromPyObject, IntoPyObject, PyAny, PyErr,
+    types::{PyAnyMethods, PyCapsule},
+};
 
 use crate::LUNA_MODEL;
 
 #[repr(transparent)]
-#[derive(Debug, Clone)]
 /// A wrapper around a [`ArcEnv`] that can be converted to and from python with `pyo3`.
 pub struct PyEnvironment(pub ArcEnv);
 
@@ -13,10 +16,12 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyEnvironment {
 
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
         // check if it is the wrapper type or the PyEnvironment type from the crate.
-        let raw_ptr: usize = obj
-            .getattr("_env")?
-            .call_method0("_into_raw_ptr")?
-            .extract()?;
+        let raw_ptr: usize = if let Some(pye) = obj.getattr("_env").ok() {
+            pye.call_method0("_into_raw_ptr")
+        } else {
+            obj.call_method0("_into_raw_ptr")
+        }?
+        .extract()?;
         let arc: ArcEnv = ArcEnv::from_raw_ptr(raw_ptr.into());
         Ok(PyEnvironment(arc))
     }
@@ -29,7 +34,49 @@ impl<'py> IntoPyObject<'py> for PyEnvironment {
 
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
         let ptr: usize = self.0.into_raw_ptr().into();
+        // We **must** call into the other library to ensure the exact same types are used.
         let lm = LUNA_MODEL.bind(py);
-        lm.call_method1("Environment", (ptr,))
+        let pye = lm
+            .getattr("_lm")?
+            .getattr("PyEnvironment")?
+            .call_method1("_from_raw_ptr", (ptr,))?;
+        lm.getattr("Environment")?
+            .call_method1("_from_pyenv", (pye,))
+    }
+}
+
+#[repr(transparent)]
+pub struct PyExpression(pub PyExprContent);
+
+impl<'a, 'py> FromPyObject<'a, 'py> for PyExpression {
+    type Error = PyErr;
+
+    fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
+        let capsule: Bound<'py, PyCapsule> = if let Some(pye) = obj.getattr("_expr").ok() {
+            pye.call_method0("_to_capsule")
+        } else {
+            obj.call_method0("_to_capsule")
+        }?
+        .extract()?;
+        let pyexprcont = PyExprContent::from_capsule(&capsule)?;
+        Ok(PyExpression(pyexprcont))
+    }
+}
+
+impl<'py> IntoPyObject<'py> for PyExpression {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
+        let capsule = self.0.to_capsule(py)?;
+        // We **must** call into the other library to ensure the exact same types are used.
+        let lm = LUNA_MODEL.bind(py);
+        let pye = lm
+            .getattr("_lm")?
+            .getattr("PyExpression")?
+            .call_method1("_from_capsule", (capsule,))?;
+        lm.getattr("Environment")?
+            .call_method1("_from_pyexpr", (pye,))
     }
 }

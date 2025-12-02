@@ -1,6 +1,10 @@
 from __future__ import annotations
-from lm._core import PyVariable
-from .environment import Environment
+
+from luna_model._lm import PyVariable
+from luna_model.environment import Environment
+
+
+# from .environment import Environment
 
 
 class Variable:
@@ -11,6 +15,7 @@ class Variable:
 
     @classmethod
     def _from_pyvar(cls, py_var: PyVariable) -> Variable:
+        """Construct LunaModel Variable from FFI PyVariable object."""
         var = cls.__new__(cls)
         var._v = py_var
         return var

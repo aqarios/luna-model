@@ -1,4 +1,4 @@
-from lm import Environment, Expression
+from luna_model import Environment, Expression
 
 
 def test_context_passing():

@@ -2,7 +2,7 @@
 resolver = "3"
 members = [
   "crates/*",
-  "py-lunamodel/pycore",
+  "py-lunamodel/pylm",
   "pyo3-lunamodel",
 ]
 default-members = [

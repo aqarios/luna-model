@@ -14,3 +14,4 @@ parking_lot = { workspace = true }
 
 lunamodel-core = { workspace = true }
 lunamodel-types = { workspace = true }
+lunamodel-python = { workspace = true }
