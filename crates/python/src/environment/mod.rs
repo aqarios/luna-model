@@ -23,7 +23,7 @@ pub(crate) fn get_active_env() -> PyResult<PyEnvironment> {
 
 // #[pyclass(name = "Environment", module = "luna_model._core")]
 #[pyclass]
-#[repr(transparent)]
+#[repr(C)]
 pub struct PyEnvironment {
     pub env: ArcEnv,
 }

@@ -379,6 +379,7 @@ version = "0.5.0"
 dependencies = [
  "derive_more",
  "enumset",
+ "pyo3",
  "strum",
  "strum_macros",
 ]

@@ -1,5 +1,4 @@
-use hashbrown::HashSet;
-use lunamodel_types::{VarIdx, Vtype};
+use lunamodel_types::Vtype;
 use lunamodel_utils::unique;
 use std::iter::once;
 

@@ -3,8 +3,15 @@ use strum_macros::Display;
 
 use crate::utils::EnumSetFromVec;
 
+#[cfg(feature = "py")]
+use pyo3::prelude::pyclass;
+
 /// Enumeration of variables types supported by the optimization system.
 #[derive(Debug, Display, Hash, EnumSetType)]
+#[cfg_attr(
+    feature = "py",
+    pyclass(eq, eq_int, name = "PyVtype") // , module = "luna_model.Vtype")
+)]
 pub enum Vtype {
     /// A binary variable that can take values 0 or 1.
     Binary,

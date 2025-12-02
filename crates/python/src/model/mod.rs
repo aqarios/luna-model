@@ -10,7 +10,7 @@ use pyo3::pyclass;
 
 // #[pyclass(subclass, name = "Model", module = "luna_model._core")]
 #[pyclass]
-#[repr(transparent)]
+#[repr(C)]
 pub struct PyModel {
     pub m: Arc<RwLock<Model>>,
 }

@@ -7,7 +7,12 @@ LunaModel is a fast library for optimization model creation, manipulation and tr
 
 from luna_model.expression import Expression
 from luna_model.environment import Environment
-from luna_model.variable import Variable
+from luna_model.variable import Variable, Vtype
 
 
-__all__ = ["Expression", "Environment", "Variable"]
+__all__ = [
+    "Expression",
+    "Environment",
+    "Variable",
+    "Vtype",
+]

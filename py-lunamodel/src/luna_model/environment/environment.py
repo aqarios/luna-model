@@ -1,5 +1,6 @@
 from __future__ import annotations
 from luna_model._lm import PyEnvironment
+from luna_model.variable.var import Variable
 
 
 class Environment:
@@ -19,3 +20,35 @@ class Environment:
 
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
         return self._env.__exit__(exc_type, exc_value, exc_traceback)
+
+    def get_variable(self, name: str) -> Variable:
+        return Variable._from_pyvar(self._env.get_variable(name))
+
+    @property
+    def num_variables(self) -> int:
+        return self._env.num_variables
+
+    def variables(self) -> list[Variable]:
+        return [Variable._from_pyvar(v) for v in self._env.variables()]
+
+    def equal_contents(self, other: Environment) -> bool:
+        return self._env.equal_contents(other._env)
+
+    def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
+        return self._env.encode(compress, level)
+
+    def serialize(
+        self, /, compress: bool | None = True, level: int | None = 3
+    ) -> bytes:
+        return self.encode(compress, level)
+
+    @classmethod
+    def decode(cls, data: bytes) -> Environment:
+        return cls._from_pyenv(PyEnvironment.decode(data))
+
+    @classmethod
+    def deserialize(cls, data: bytes) -> Environment:
+        return cls.decode(data)
+
+    def __eq__(self, other: Environment) -> bool:  # type: ignore[override]
+        return self._env.__eq__(other._env)

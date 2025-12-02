@@ -171,7 +171,7 @@ class Expression:
     def __neg__(self) -> Expression:
         return self._from_pyexpr(self._expr.__neg__())
 
-    def _op(self, other: Expression | Variable | int | float, fn) -> Expression:
+    def _op(self, other: Expression | Variable | int | float, fn) -> PyExpression:
         if isinstance(other, Expression):
             res = fn(other._expr)
         elif isinstance(other, Variable):

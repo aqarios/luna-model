@@ -12,3 +12,10 @@ derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 enumset = { workspace = true }
 strum_macros = { workspace = true }
 strum = { workspace = true }
+
+[dependencies.pyo3]
+workspace = true
+optional = true
+
+[features]
+py = ["pyo3"]

@@ -1,3 +1,4 @@
+mod access;
 mod creation;
 
 use lunamodel_core::prelude::VarRef;
@@ -5,7 +6,7 @@ use pyo3::pyclass;
 
 // #[pyclass(subclass, name = "Model", module = "luna_model._core")]
 #[pyclass(frozen)]
-#[repr(transparent)]
+#[repr(C)]
 pub struct PyVariable {
     pub v: VarRef,
 }

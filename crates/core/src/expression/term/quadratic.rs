@@ -105,7 +105,7 @@ impl IndexMut<VarIdx> for Quadratic {
         let pos = Self::find(&self.adj, index).unwrap_or_else(|l| l);
         if pos == self.len() {
             self.push_back_empty(index);
-        } else if self.adj[pos].idx != index.into() {
+        } else if self.adj[pos].idx != index {
             self.insert_empty(pos, index);
         }
         &mut self.adj[pos].neighborhood
