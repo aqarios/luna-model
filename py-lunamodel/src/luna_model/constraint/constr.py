@@ -5,6 +5,8 @@ from typing import Any as PyConstraint
 
 
 class Constraint:
+    """ """
+
     _c: PyConstraint
 
     @classmethod

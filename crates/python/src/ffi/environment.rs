@@ -1,19 +1,22 @@
+use std::ffi::CStr;
+
 use lunamodel_core::ArcEnv;
-use pyo3::prelude::*;
+use pyo3::{prelude::*, types::PyCapsule};
 
 use crate::PyEnvironment;
 
+const CAPUSULE_NAME_ENV: &CStr = c"builtins.capsule.PyEnvironment";
+
 #[pymethods]
 impl PyEnvironment {
-    // todo: change to PyCapsule and move to `lunamodel_python` for consistency.
-    /// Investigate if PyCapusle is better suited.
-    pub fn _into_raw_ptr(&self) -> usize {
-        self.env.into_raw_ptr().into()
+    pub fn _to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
+        PyCapsule::new(py, self.env.clone(), Some(CAPUSULE_NAME_ENV.to_owned()))
     }
 
     #[staticmethod]
-    pub fn _from_raw_ptr(raw_ptr: usize) -> PyEnvironment {
-        let arc: ArcEnv = ArcEnv::from_raw_ptr(raw_ptr.into());
-        PyEnvironment { env: arc }
+    pub fn _from_capsule<'py>(capsule: &Bound<'py, PyCapsule>) -> PyResult<Self> {
+        let ptr = capsule.pointer_checked(Some(CAPUSULE_NAME_ENV))?;
+        let arc: ArcEnv = unsafe { ptr.cast::<ArcEnv>().as_ref().clone() };
+        Ok(PyEnvironment { env: arc })
     }
 }

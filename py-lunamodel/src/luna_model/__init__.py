@@ -2,7 +2,7 @@
 LunaModel: Blazingly fast Optimization Modeling
 ===============================================
 
-LunaModel is a fast library for optimization model creation and manipulation.
+LunaModel is a fast library for optimization model creation, manipulation and transformation.
 """
 
 from luna_model.expression import Expression
