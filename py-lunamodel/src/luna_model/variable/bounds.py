@@ -3,10 +3,46 @@ from __future__ import annotations
 from luna_model._lm import PyBounds, PyUnbounded
 
 
-class Unbounded(PyUnbounded): ...
+class Unbounded(PyUnbounded):
+    """ """
+
+    ...
 
 
 class Bounds:
+    """
+    Represents bounds for a variable (only supported for real and integer variables).
+
+    A `Bounds` object defines the valid interval for a variable. Bounds are inclusive,
+    and can be partially specified by providing only a lower or upper limit. If neither
+    is specified, the variable is considered unbounded.
+
+    Parameters
+    ----------
+    lower : float, optional
+        Lower bound of the variable. Defaults to negative infinity if not specified.
+    upper : float, optional
+        Upper bound of the variable. Defaults to positive infinity if not specified.
+
+    Examples
+    --------
+    >>> from luna_model import Bounds
+    >>> Bounds(-1.0, 1.0)
+    Bounds { lower: -1, upper: 1 }
+
+    >>> Bounds(lower=0.0)
+    Bounds { lower: -1, upper: unlimited }
+
+    >>> Bounds(upper=10.0)
+    Bounds { lower: unlimited, upper: 1 }
+
+    Notes
+    -----
+    - Bounds are only meaningful for variables of type `Vtype.Real` or `Vtype.Integer`.
+    - If both bounds are omitted, i.e., `lower=None, upper=None`, the variable is created
+      with the default bounds for this variable type.
+    """
+
     _b: PyBounds
 
     def __init__(
@@ -25,8 +61,12 @@ class Bounds:
 
     @property
     def lower(self) -> float | type[Unbounded] | None:
+        """Get the lower bound."""
         return self._b.lower
 
     @property
     def upper(self) -> float | type[Unbounded] | None:
+        """Get the upper bound."""
         return self._b.lower
+
+    # todo: access to the default bounds given a vtype.
