@@ -3,10 +3,7 @@ use parking_lot::RwLock;
 use std::sync::Arc;
 
 use super::Environment;
-use crate::{
-    traits::ContentEquality,
-    variable::{LazyBounds, VarRef},
-};
+use crate::{bounds::LazyBounds, traits::ContentEquality, variable::VarRef};
 
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{EnvIdx, Vtype};

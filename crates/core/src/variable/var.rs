@@ -1,8 +1,7 @@
-use crate::variable::LazyBounds;
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{EnvIdx, VarIdx, VarName, Vtype};
 
-use super::bounds::{Bounds, Concretize};
+use crate::bounds::{Bounds, Concretize, LazyBounds};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Variable {

@@ -1,8 +1,8 @@
 use pyo3::{Bound, PyAny, PyResult, pymethods};
 
-use crate::exceptions::MultipleActiveEnvironmentsError;
+use lunamodel_error::py::PyMultipleActiveEnvironmentsError;
 
-use super::{PyEnvironment, ACTIVE_ENV};
+use super::{ACTIVE_ENV, PyEnvironment};
 
 #[pymethods]
 impl PyEnvironment {
@@ -21,7 +21,7 @@ impl PyEnvironment {
         ACTIVE_ENV.with(|curr| {
             let mut mc = curr.borrow_mut();
             if mc.is_some() {
-                return Err(MultipleActiveEnvironmentsError::new_err(
+                return Err(PyMultipleActiveEnvironmentsError::new_err(
                     "multiple active environments are not allowed",
                 ));
             }

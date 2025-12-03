@@ -5,6 +5,9 @@ use std::{
 };
 mod froms;
 
+#[cfg(feature = "py")]
+pub mod py;
+
 #[derive(Debug, Clone)]
 // pub struct ErrString(Cow<'static, str>);
 pub struct ErrString(String);
@@ -49,12 +52,14 @@ impl Display for ErrString {
 pub enum LunaModelError {
     DifferentEnvironments,
     VariableExists(ErrString),
+    VariableNotExisting(ErrString),
     VariableNameInvalid(ErrString),
     ConstraintNameInvalid(ErrString),
     InvalidBounds(ErrString),
     InvalidInversion(ErrString),
     Compression(ErrString),
     Decoding(ErrString),
+    UnsupportedOperation(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -64,6 +69,7 @@ impl Display for LunaModelError {
         use LunaModelError::*;
         match self {
             VariableExists(msg) => write!(f, "variable exists: {}", msg),
+            VariableNotExisting(msg) => write!(f, "variable does not exist: {}", msg),
             VariableNameInvalid(msg) => write!(f, "variable name invalid: {}", msg),
             ConstraintNameInvalid(msg) => write!(f, "constraint name invalid: {}", msg),
             InvalidBounds(msg) => write!(f, "invalid bounds: {}", msg),
@@ -71,6 +77,7 @@ impl Display for LunaModelError {
             Compression(msg) => write!(f, "compression failed: {}", msg),
             Decoding(msg) => write!(f, "decoding failed: {}", msg),
             DifferentEnvironments => write!(f, "different environments encountered"),
+            UnsupportedOperation(msg) => write!(f, "the operation '{}' is not supported", msg),
         }
     }
 }

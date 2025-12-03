@@ -1,4 +1,5 @@
 mod access;
+mod content;
 mod creation;
 mod iteration;
 mod ops;
@@ -9,23 +10,11 @@ use parking_lot::RwLock;
 use pyo3::pyclass;
 use std::sync::Arc;
 
-#[derive(Debug)]
-pub enum PyExprContent {
-    Expr(Arc<RwLock<Expression>>),
-    Model(Arc<RwLock<Model>>),
-}
-
-impl Clone for PyExprContent {
-    fn clone(&self) -> Self {
-        match self {
-            Self::Expr(e) => Self::Expr(e.clone()),
-            Self::Model(e) => Self::Model(e.clone()),
-        }
-    }
-}
+pub use content::PyExprContent;
 
 #[pyclass]
 #[repr(C)]
+#[derive(Clone)]
 pub struct PyExpression {
     pub expr: PyExprContent,
 }
@@ -47,7 +36,7 @@ impl From<Arc<RwLock<Model>>> for PyExpression {
 }
 
 impl PyExpression {
-    fn new(expr: Expression) -> Self {
+    pub fn new(expr: Expression) -> Self {
         Self {
             expr: PyExprContent::Expr(Arc::new(RwLock::new(expr))),
         }

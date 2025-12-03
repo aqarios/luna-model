@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::ops::{Index, IndexMut};
 
 use global_counter::primitive::exact::CounterU64;
 use hashbrown::HashMap;
@@ -8,8 +8,9 @@ use lunamodel_types::{EnvIdx, VarIdx, Vtype};
 
 use super::util::ensure_name_valid;
 use crate::{
+    bounds::LazyBounds,
     environment::util::{ensure_unused, freeidx},
-    variable::{LazyBounds, VarRef, Variable},
+    variable::{VarRef, Variable},
 };
 
 pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
@@ -78,14 +79,30 @@ impl Environment {
         self.variables.remove(&target.id);
         self.freeidx.push(target.id);
     }
+
+    pub fn get(&self, index: VarIdx) -> LunaModelResult<&Variable> {
+        self.variables
+            .get(&index)
+            .ok_or_else(|| LunaModelError::VariableNotExisting(index.to_string().into()))
+    }
+
+    pub fn get_mut(&mut self, index: VarIdx) -> LunaModelResult<&mut Variable> {
+        self.variables
+            .get_mut(&index)
+            .ok_or_else(|| LunaModelError::VariableNotExisting(index.to_string().into()))
+    }
 }
 
 impl Index<VarIdx> for Environment {
     type Output = Variable;
 
     fn index(&self, index: VarIdx) -> &Self::Output {
-        self.variables
-            .get(&index)
-            .expect(&format!("no variable for index '{index}'"))
+        self.get(index).unwrap()
+    }
+}
+
+impl IndexMut<VarIdx> for Environment {
+    fn index_mut(&mut self, index: VarIdx) -> &mut Self::Output {
+        self.get_mut(index).unwrap()
     }
 }

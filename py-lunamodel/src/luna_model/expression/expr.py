@@ -141,11 +141,11 @@ class Expression:
     def __mul__(self, other: Expression | Variable | int | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__mul__))
 
-    def __pow__(self, other: int) -> Expression:
-        return self._from_pyexpr(self._op(other, self._expr.__pow__))
-
     def __radd__(self, other: Expression | Variable | int | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__radd__))
+
+    def __rsub__(self, other: Expression | Variable | int | float) -> Expression:
+        return self._from_pyexpr(self._op(other, self._expr.__rsub__))
 
     def __rmul__(self, other: Expression | Variable | int | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__rmul__))
@@ -158,6 +158,12 @@ class Expression:
 
     def __imul__(self, other: Expression | Variable | int | float):
         self._op(other, self._expr.__imul__)
+
+    def __pow__(self, other: int) -> Expression:
+        return self._from_pyexpr(self._op(other, self._expr.__pow__))
+
+    def __ipow__(self, other: int):
+        self._op(other, self._expr.__ipow__)
 
     def __eq__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
         return self._cmp(other, self._expr.__eq__)

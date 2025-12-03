@@ -1,15 +1,46 @@
+use std::ops::Mul;
+
 use crate::{
+    Expression,
     ops::{
+        LmAddAssign, LmMulAssign,
         traits::internal::PrvMul,
         utils::{
             VarMulRes::{self, *},
-            reduce_vars_mul,
+            check_envs, reduce_vars_mul,
         },
     },
     prelude::{Linear, VarRef},
-    traits::DefaultEditable,
+    traits::{DefaultEditable, Editable},
 };
+use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bias, VarIdx, Vtype::*};
+
+impl Mul<Self> for &VarRef {
+    type Output = LunaModelResult<Expression>;
+    fn mul(self, rhs: Self) -> Self::Output {
+        check_envs(self, rhs)?;
+        let mut out = Expression::empty(self.env.clone()).maybe_edit(|e| e.add_assign(self))?;
+        out.mul_assign(rhs)?;
+        Ok(out)
+    }
+}
+
+impl Mul<Bias> for &VarRef {
+    type Output = LunaModelResult<Expression>;
+    fn mul(self, rhs: Bias) -> Self::Output {
+        let mut out = Expression::empty(self.env.clone()).maybe_edit(|e| e.add_assign(self))?;
+        out.mul_assign(rhs)?;
+        Ok(out)
+    }
+}
+
+impl Mul<usize> for &VarRef {
+    type Output = LunaModelResult<Expression>;
+    fn mul(self, rhs: usize) -> Self::Output {
+        self.mul(rhs as Bias)
+    }
+}
 
 impl PrvMul<Bias> for VarRef {
     type Output = Linear;

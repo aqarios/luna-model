@@ -6,4 +6,4 @@ mod term;
 mod vref;
 mod traits;
 
-pub use traits::{LmAddAssign, LmMulAssign, LmSubAssign};
+pub use traits::{LmAddAssign, LmMulAssign, LmSubAssign, LmPowAssign, LmPow};

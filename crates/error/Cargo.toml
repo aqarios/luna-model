@@ -9,3 +9,10 @@ repository.workspace = true
 
 [dependencies]
 prost = { workspace = true }
+
+[dependencies.pyo3]
+workspace = true
+optional = true
+
+[features]
+py = ["pyo3"]

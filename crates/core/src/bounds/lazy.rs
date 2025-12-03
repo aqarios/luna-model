@@ -1,8 +1,9 @@
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bound, Vtype};
 
-use crate::variable::Bounds;
+use crate::bounds::Bounds;
 
+#[derive(Clone)]
 pub struct LazyBounds {
     lower: Option<Bound>,
     upper: Option<Bound>,

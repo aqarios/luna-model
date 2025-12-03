@@ -1,12 +1,14 @@
 mod access;
 mod creation;
+mod ops;
 
 use lunamodel_core::prelude::VarRef;
 use pyo3::pyclass;
 
 // #[pyclass(subclass, name = "Model", module = "luna_model._core")]
-#[pyclass(frozen)]
+#[pyclass]
 #[repr(C)]
+#[derive(Clone)]
 pub struct PyVariable {
     pub v: VarRef,
 }

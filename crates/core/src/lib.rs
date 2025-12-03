@@ -3,6 +3,7 @@ pub mod prelude;
 
 // pub mod ffi;
 
+mod bounds;
 mod constraint;
 mod environment;
 mod expression;

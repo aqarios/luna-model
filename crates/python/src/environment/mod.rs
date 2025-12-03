@@ -2,11 +2,11 @@ mod context;
 mod general;
 // mod ser;
 
+use lunamodel_error::py::PyNoActiveEnvironmentFoundError;
 use lunamodel_core::{ArcEnv, Environment};
 use pyo3::{PyErr, PyResult, pyclass};
 use std::cell::RefCell;
 
-use crate::exceptions::NoActiveEnvironmentFoundError;
 
 thread_local! {
     pub(crate) static ACTIVE_ENV: RefCell<Option<PyEnvironment>> = RefCell::new(None);
@@ -17,7 +17,7 @@ pub(crate) fn get_active_env() -> PyResult<PyEnvironment> {
         current
             .borrow()
             .clone()
-            .ok_or_else(|| NoActiveEnvironmentFoundError::new_err("no active environment found."))
+            .ok_or_else(|| PyNoActiveEnvironmentFoundError::new_err("no active environment found."))
     })?)
 }
 

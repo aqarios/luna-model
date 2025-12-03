@@ -1,5 +1,16 @@
 use lunamodel_error::LunaModelResult;
 
+/// Custom Pow which might fail with an error.
+pub trait LmPow {
+    type Output;
+    fn pow(self, sup: usize) -> LunaModelResult<Self::Output>;
+}
+
+/// Custom PowAssign which might fail with an error.
+pub trait LmPowAssign {
+    fn pow_assign(&mut self, sup: usize) -> LunaModelResult<()>;
+}
+
 /// Custom [std::ops::AddAssign] which might fail with an error.
 pub trait LmAddAssign<Rhs> {
     fn add_assign(&mut self, rhs: Rhs) -> LunaModelResult<()>;

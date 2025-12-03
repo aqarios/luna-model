@@ -1,4 +1,5 @@
 use crate::environment::ArcEnv;
+use lunamodel_error::LunaModelResult;
 use lunamodel_types::VarIdx;
 
 #[derive(Debug, Clone)]
@@ -14,5 +15,10 @@ impl VarRef {
 
     pub fn id(&self) -> VarIdx {
         self.id
+    }
+
+    pub fn check_living(&self) -> LunaModelResult<()> {
+        _ = self.env.read_arc().get(self.id)?;
+        Ok(())
     }
 }
