@@ -1,6 +1,7 @@
 use lunamodel_core::ops::LmPow;
+use lunamodel_error::py::PyLunaModelError;
 use pyo3::prelude::*;
-use std::ops::{Add, Mul, Sub, Neg, Not};
+use std::ops::{Add, Mul, Neg, Not, Sub};
 
 use super::PyVariable;
 use crate::{expression::PyExpression as PyE, utils::OpsOther as OO};
@@ -54,7 +55,13 @@ impl PyVariable {
         Ok(Self::new(self.v.not()?))
     }
 
-    pub fn __pow__(&self, val: usize, _m: Option<isize>) -> PyResult<PyE> {
+    pub fn __pow__(&self, val: usize, modulo: Option<isize>) -> PyResult<PyE> {
+        if modulo.is_some() {
+            return Err(PyLunaModelError::new_err(
+                "the 'modulo' parameter is not supported.",
+            ));
+        }
+
         self.v.check_living()?;
         Ok(PyE::new(self.v.pow(val)?))
     }

@@ -5,15 +5,16 @@ use crate::bounds::Bounds;
 
 #[derive(Clone)]
 pub struct LazyBounds {
-    lower: Option<Bound>,
-    upper: Option<Bound>,
+    pub(super) lower: Option<Bound>,
+    pub(super) upper: Option<Bound>,
 }
 
 pub trait Concretize {
     fn concretize(self, vtype: &Vtype) -> LunaModelResult<Bounds>;
 }
 
-impl LazyBounds {}
+impl LazyBounds {
+}
 
 impl Concretize for Option<LazyBounds> {
     fn concretize(self, vtype: &Vtype) -> LunaModelResult<Bounds> {

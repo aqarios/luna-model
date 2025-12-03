@@ -1,4 +1,5 @@
 mod bound;
+mod cmp;
 mod dtypes;
 mod sense;
 mod specs;
@@ -10,6 +11,7 @@ mod vtype;
 use std::sync::LazyLock;
 
 pub use bound::Bound;
+pub use cmp::Comparator;
 pub use dtypes::{
     Bias, BinaryAssignment, EnvIdx, IntegerAssignment, RealAssignment, SpinAssignment, VarIdx,
 };

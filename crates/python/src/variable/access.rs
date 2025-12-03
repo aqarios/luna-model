@@ -1,34 +1,39 @@
 use lunamodel_types::Vtype;
 use pyo3::prelude::*;
 
-use crate::{
-    bounds::PyBounds
-};
 use super::PyVariable;
+use crate::{PyEnvironment, bounds::PyBounds};
 
 #[pymethods]
 impl PyVariable {
     #[getter]
-    fn get_id(&self) -> usize {
+    fn id(&self) -> usize {
         self.v.id() as usize
     }
 
     #[getter]
-    fn get_name(&self) -> &str {
-        self.v.name()
+    fn name(&self) -> PyResult<String> {
+        Ok(self.v.name()?)
     }
     #[getter]
-    fn get_bounds(&self) -> PyBounds {
+    fn bounds(&self) -> PyResult<PyBounds> {
         // todo: special bounds right away or rely on outside protocol?
-        self.v.bounds()
+        Ok(PyBounds(self.v.bounds()?.into()))
     }
 
     #[getter]
-    fn get_vtype(&self) -> Vtype {
-        self.vtype()
+    fn vtype(&self) -> PyResult<Vtype> {
+        Ok(self.v.vtype()?)
+    }
+
+    #[getter]
+    fn environment(&self) -> PyEnvironment {
+        PyEnvironment {
+            env: self.v.env.clone(),
+        }
     }
 
     fn __hash__(&self) -> PyResult<u64> {
-        self.v.hash()?
+        Ok(self.v.hash()?)
     }
 }

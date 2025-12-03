@@ -21,7 +21,8 @@ pub struct Environment {
     pub(crate) variables: HashMap<VarIdx, Variable>,
     pub(crate) lookup: HashMap<String, VarIdx>,
     pub(crate) inverted: Vec<VarIdx>,
-    pub(crate) freeidx: Vec<VarIdx>,
+    pub(crate) freeidx: Vec<VarIdx>, // todo: this has to be removed. This is not safe.
+                                     // indices should never be reusable...
 }
 
 impl Environment {

@@ -1,5 +1,7 @@
 use lunamodel_types::{Bound, Vtype};
 
+use crate::bounds::LazyBounds;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {
     pub(crate) lower: Bound,
@@ -53,6 +55,15 @@ impl Bounds {
         Self {
             lower: Bound::Unbounded,
             upper: Bound::Unbounded,
+        }
+    }
+}
+
+impl Into<LazyBounds> for Bounds {
+    fn into(self) -> LazyBounds {
+        LazyBounds {
+            lower: Some(self.lower),
+            upper: Some(self.upper),
         }
     }
 }

@@ -1,5 +1,7 @@
 mod access;
+mod cmp;
 mod creation;
+mod io;
 mod ops;
 
 use lunamodel_core::prelude::VarRef;

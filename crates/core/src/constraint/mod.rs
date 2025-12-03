@@ -2,4 +2,4 @@ mod collection;
 mod constraint;
 
 pub use collection::ConstraintCollection;
-pub use constraint::{Comparator, Constraint};
+pub use constraint::Constraint;

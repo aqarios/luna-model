@@ -1,8 +1,8 @@
 use lunamodel_types::Vtype;
 use pyo3::prelude::*;
 
-use crate::{bounds::PyBounds, environment::PyEnvironment, expression::PyExpression};
-use super::PyVariable
+use super::PyVariable;
+use crate::{bounds::PyBounds, environment::PyEnvironment};
 
 #[pymethods]
 impl PyVariable {
@@ -15,7 +15,7 @@ impl PyVariable {
         env: Option<PyEnvironment>,
     ) -> PyResult<Self> {
         let mut penv: PyEnvironment = env.try_into()?;
-        let vref = penv.env.insert(&name, vtype, bounds.map(|b| b.0))?;
+        let vref = penv.env.insert(&name, vtype, bounds.map(|b| b.0.into()))?;
         Ok(PyVariable::new(vref))
     }
 }

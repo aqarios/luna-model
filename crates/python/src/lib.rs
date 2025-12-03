@@ -4,6 +4,7 @@ mod expression;
 mod model;
 mod variable;
 mod utils;
+mod constraint;
 
 mod ffi;
 
@@ -14,5 +15,6 @@ pub use expression::{PyExprContent, PyExpression};
 pub use model::PyModel;
 pub use variable::PyVariable;
 pub use bounds::PyBounds;
+pub use constraint::PyConstraint;
 
 pub use lunamodel_types::Vtype;

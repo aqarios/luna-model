@@ -1,5 +1,4 @@
-use lunamodel_types::Bias;
-use strum_macros::Display;
+use lunamodel_types::{Bias, Comparator};
 
 use crate::{ArcEnv, expression::Expression};
 
@@ -25,36 +24,6 @@ pub fn starts_with_failable(s: &str) -> bool {
     FAILABLE_CONSTRAINT_NAMES
         .iter()
         .any(|prefix| s.to_lowercase().starts_with(&prefix.to_lowercase()))
-}
-
-/// Comparison operators used to define constraints.
-///
-/// This enum represents the logical relation between the left-hand side (LHS)
-/// and the right-hand side (RHS) of a [Constraint].
-#[derive(Debug, Copy, Clone, PartialEq, Display, Eq, Hash)]
-pub enum Comparator {
-    /// The Equality comparison (==) for a constraint where LHS == RHS.
-    #[strum(to_string = "==")]
-    Eq,
-    /// The Less-than or equal comparison (<=) for a constraint where LHS <= RHS.
-    #[strum(to_string = "<=")]
-    Le,
-    /// The Greater-than or equal comparison (>=) for a constraint where LHS >= RHS.
-    #[strum(to_string = ">=")]
-    Ge,
-}
-
-impl Comparator {
-    /// Utility function used to determine if the [Constraint] is met given concrete LHS
-    /// and RHS values. This function is used as part of the [Model](crate::core::Model) evaluation of samples
-    /// or a solution.
-    pub fn evaluate(&self, lhs: Bias, rhs: Bias) -> bool {
-        match self {
-            Self::Eq => lhs == rhs,
-            Self::Le => lhs <= rhs,
-            Self::Ge => lhs >= rhs,
-        }
-    }
 }
 
 /// A constraint
