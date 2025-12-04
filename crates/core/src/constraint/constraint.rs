@@ -1,16 +1,12 @@
 use std::ops::Sub;
 
+use global_counter::primitive::exact::CounterU64;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Comparator};
 
 use crate::{ArcEnv, expression::Expression};
 
-/// [Constraint] names must have a name after <https://github.com/aqarios/aq-models-rs/issues/400>.
-/// We need a default name that does not clash with anything. Let's choose an illegal name.
-/// A [Constraint] cannot be encoded on it's own. So we can safely assume this name never makes it
-/// into a format where this name is illegal. Let's choose "<NN>" since it matches the previous
-/// default value exactly.
-pub const DEFAULT_CONSTRAINT_NAME: &str = "<NN>";
+pub static CONSTRAINT_COUNTER: CounterU64 = CounterU64::new(0);
 
 /// [Constraint] names that can fail when translating to other formats due to bugs in
 /// their LP file reading, interpreting any words that start with the constants elements
@@ -59,12 +55,16 @@ impl Constraint {
             lhs,
             rhs,
             comparator,
-            name: name.unwrap_or_else(|| DEFAULT_CONSTRAINT_NAME.into()),
+            name: name.unwrap_or_else(|| format!("c{}", CONSTRAINT_COUNTER.inc())),
         })
     }
 
     pub fn deep_clone(&self, env: ArcEnv) -> Self {
         unimplemented!()
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
     }
 }
 

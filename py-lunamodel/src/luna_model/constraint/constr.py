@@ -35,7 +35,7 @@ class Constraint:
         return c
 
     @property
-    def name(self) -> str | None:
+    def name(self) -> str:
         return self._c.name
 
     @property

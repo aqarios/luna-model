@@ -13,7 +13,7 @@ class ConstraintCollection:
         self._cc = PyConstraintCollection()
 
     def add_constraint(self, constraint: Constraint, name: str):
-        self._cc.add_constraint(constraint._c, name)
+        self._cc.add_constraint(constraint._c, name)  # type: ignore
 
     def items(self) -> ConstraintCollectionIter:
         return self._cc.items()
