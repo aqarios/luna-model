@@ -15,3 +15,4 @@ lunamodel-types = { workspace = true, features = ["py"] }
 
 pyo3 = { workspace = true, features = ["multiple-pymethods"] }
 parking_lot = { workspace = true, features = ["arc_lock"] }
+hashbrown = { workspace = true }

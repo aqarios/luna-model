@@ -5,6 +5,7 @@ mod creation;
 mod iteration;
 mod ops;
 mod ser;
+mod deepclone;
 
 use lunamodel_core::prelude::{Expression, Model};
 use parking_lot::RwLock;
