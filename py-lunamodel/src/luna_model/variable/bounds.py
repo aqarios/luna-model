@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from luna_model._lm import PyBounds, PyUnbounded
+from luna_model.variable.vtype import Vtype
 
 
 class Unbounded(PyUnbounded):
@@ -68,6 +69,23 @@ class Bounds:
     def upper(self) -> float | type[Unbounded] | None:
         """Get the upper bound."""
         return self._b.lower
+
+    @classmethod
+    def default(cls, vtype: Vtype) -> Bounds:
+        match vtype:
+            case (
+                Vtype.BINARY
+                | Vtype.Binary
+                | Vtype.INVERTED_BINARY
+                | Vtype.InvertedBinary
+            ):
+                return cls.binary()
+            case Vtype.SPIN | Vtype.Spin:
+                return cls.spin()
+            case Vtype.INTEGER | Vtype.Integer:
+                return cls.integer()
+            case Vtype.REAL | Vtype.Real:
+                return cls.real()
 
     @classmethod
     def binary(cls) -> Bounds:
