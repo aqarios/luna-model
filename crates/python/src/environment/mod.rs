@@ -1,12 +1,13 @@
 mod context;
-mod general;
+mod creation;
+mod access;
+mod cmp;
 // mod ser;
 
-use lunamodel_error::py::PyNoActiveEnvironmentFoundError;
 use lunamodel_core::{ArcEnv, Environment};
+use lunamodel_error::py::PyNoActiveEnvironmentFoundError;
 use pyo3::{PyErr, PyResult, pyclass};
 use std::cell::RefCell;
-
 
 thread_local! {
     pub(crate) static ACTIVE_ENV: RefCell<Option<PyEnvironment>> = RefCell::new(None);
@@ -57,22 +58,6 @@ impl TryFrom<Option<PyEnvironment>> for PyEnvironment {
         }
     }
 }
-
-// impl From<Option<PyEnvironment>> for PyEnvironment {
-//     fn from(value: Option<PyEnvironment>) -> Self {
-//         match value {
-//             Some(env) => env.clone(),
-//             None => get_active_env()?,
-//         }
-//     }
-// }
-
-// impl From<PyEnvironment> for Environment {
-//     fn from(value: PyEnvironment) -> Self {
-//         value.e.clone().into_inner()
-//     }
-// }
-//
 
 impl PyEnvironment {
     pub(crate) fn new(e: Environment) -> Self {

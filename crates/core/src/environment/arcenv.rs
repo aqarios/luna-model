@@ -38,6 +38,19 @@ impl ArcEnv {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.env.read_arc().len()
+    }
+
+    pub fn vars(&self) -> Vec<VarRef> {
+        // maybe we can return iter when passing closure for vref gen.
+        self.env
+            .read_arc()
+            .vars()
+            .map(|v| VarRef::new(v, self.clone()))
+            .collect()
+    }
+
     pub fn insert(
         &mut self,
         name: &str,
@@ -64,11 +77,20 @@ impl ArcEnv {
     pub fn id(&self) -> EnvIdx {
         self.env.read_arc().id
     }
+
+    pub fn lookup(&self, name: &str) -> LunaModelResult<VarRef> {
+        Ok(VarRef::new(self.env.read_arc().lookup(name)?, self.clone()))
+    }
 }
 
 impl ContentEquality for ArcEnv {
     fn is_equal_contents(&self, other: &Self) -> bool {
-        _ = other;
-        unimplemented!()
+        let slf = &self.env.read_arc();
+        let otr = &other.env.read_arc();
+
+        slf.next_idx == otr.next_idx
+            && slf.variables == otr.variables
+            && slf.lookup == otr.lookup
+            && slf.inverted == otr.inverted
     }
 }

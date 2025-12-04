@@ -9,7 +9,7 @@ use lunamodel_types::{EnvIdx, VarIdx, Vtype};
 use super::util::ensure_name_valid;
 use crate::{
     bounds::LazyBounds,
-    environment::util::{ensure_unused, freeidx},
+    environment::util::ensure_unused,
     variable::{VarRef, Variable},
 };
 
@@ -21,8 +21,7 @@ pub struct Environment {
     pub(crate) variables: HashMap<VarIdx, Variable>,
     pub(crate) lookup: HashMap<String, VarIdx>,
     pub(crate) inverted: Vec<VarIdx>,
-    pub(crate) freeidx: Vec<VarIdx>, // todo: this has to be removed. This is not safe.
-                                     // indices should never be reusable...
+    pub(crate) next_idx: VarIdx,
 }
 
 impl Environment {
@@ -32,8 +31,16 @@ impl Environment {
             variables: HashMap::new(),
             lookup: HashMap::new(),
             inverted: Vec::new(),
-            freeidx: Vec::new(),
+            next_idx: 0,
         }
+    }
+
+    pub fn len(&self) -> usize {
+        self.variables.len()
+    }
+
+    pub fn vars(&self) -> impl Iterator<Item = VarIdx> {
+        self.variables.keys().map(|k| *k)
     }
 
     pub fn insert(
@@ -45,15 +52,14 @@ impl Environment {
         ensure_name_valid(name)?;
         ensure_unused(&self.lookup, name)?;
         let var = Variable::new(name, vtype, bounds, self.id)?;
-        let idx = freeidx(&mut self.freeidx, self.variables.len() as VarIdx);
+        let idx = self.next_idx;
         self.variables.insert(idx, var);
         self.lookup.insert(name.into(), idx);
-        // Ok(VarRef::new(idx, Arc::new(RwLock::new(self))))
+        self.next_idx += 1;
         Ok(idx)
     }
 
     pub fn insert_inverted(&mut self, base: &VarRef) -> LunaModelResult<VarIdx> {
-        let nvars = self.variables.len() as VarIdx;
         let basevar = self.variables.get_mut(&base.id).unwrap();
         if basevar.vtype != Vtype::Binary {
             return Err(LunaModelError::InvalidInversion(
@@ -62,7 +68,7 @@ impl Environment {
         }
         let inv_name = basevar.name.inverted();
         ensure_unused(&self.lookup, &inv_name)?;
-        let idx = freeidx(&mut self.freeidx, nvars);
+        let idx = self.next_idx;
         let mut var = Variable::new(&inv_name, Vtype::InvertedBinary, None, self.id)?;
 
         var.inverted = Some(base.id);
@@ -70,7 +76,7 @@ impl Environment {
 
         self.variables.insert(idx, var);
         self.lookup.insert(inv_name.into(), idx);
-        // Ok(VarRef::new(idx, self))
+        self.next_idx += 1;
         Ok(idx)
     }
 
@@ -78,7 +84,13 @@ impl Environment {
         let name = &self.variables[&target.id].name;
         self.lookup.remove(&name.0);
         self.variables.remove(&target.id);
-        self.freeidx.push(target.id);
+    }
+
+    pub fn lookup(&self, name: &str) -> LunaModelResult<VarIdx> {
+        self.lookup
+            .get(name)
+            .ok_or_else(|| LunaModelError::VariableNotExisting(name.into()))
+            .copied()
     }
 
     pub fn get(&self, index: VarIdx) -> LunaModelResult<&Variable> {

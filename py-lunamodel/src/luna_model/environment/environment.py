@@ -21,12 +21,12 @@ class Environment:
     def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
         return self._env.__exit__(exc_type, exc_value, exc_traceback)
 
-    def get_variable(self, name: str) -> Variable:
-        return Variable._from_pyvar(self._env.get_variable(name))
-
     @property
     def num_variables(self) -> int:
         return self._env.num_variables
+
+    def get_variable(self, name: str) -> Variable:
+        return Variable._from_pyvar(self._env.get_variable(name))
 
     def variables(self) -> list[Variable]:
         return [Variable._from_pyvar(v) for v in self._env.variables()]

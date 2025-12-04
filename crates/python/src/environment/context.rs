@@ -6,17 +6,6 @@ use super::{ACTIVE_ENV, PyEnvironment};
 
 #[pymethods]
 impl PyEnvironment {
-    /// Activate this environment for variable creation.
-    ///
-    /// Returns
-    /// -------
-    /// Environment
-    ///     The current environment (self).
-    ///
-    /// Raises
-    /// ------
-    /// MultipleActiveEnvironmentsError
-    ///     If another environment is already active.
     fn __enter__(&self) -> PyResult<Self> {
         ACTIVE_ENV.with(|curr| {
             let mut mc = curr.borrow_mut();
@@ -31,9 +20,6 @@ impl PyEnvironment {
         Ok(self.clone())
     }
 
-    /// Deactivate this environment.
-    ///
-    /// Called automatically at the end of a `with` block.
     fn __exit__(
         &self,
         _exc_type: &Bound<'_, PyAny>,
