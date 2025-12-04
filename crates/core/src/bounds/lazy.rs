@@ -14,6 +14,17 @@ pub trait Concretize {
 }
 
 impl LazyBounds {
+    pub fn new(lower: Option<Bound>, upper: Option<Bound>) -> Self {
+        Self { lower, upper }
+    }
+
+    pub fn lower(&self) -> Option<Bound> {
+        self.lower
+    }
+
+    pub fn upper(&self) -> Option<Bound> {
+        self.upper
+    }
 }
 
 impl Concretize for Option<LazyBounds> {

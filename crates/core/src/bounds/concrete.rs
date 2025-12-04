@@ -23,6 +23,14 @@ impl Bounds {
     pub fn new(lower: Bound, upper: Bound) -> Self {
         Self { lower, upper }
     }
+
+    pub fn lower(&self) -> Bound {
+        self.lower
+    }
+
+    pub fn upper(&self) -> Bound {
+        self.upper
+    }
 }
 
 impl Bounds {
