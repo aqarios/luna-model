@@ -102,5 +102,3 @@ class Bounds:
     @classmethod
     def real(cls) -> Bounds:
         return cls._from_pyb(PyBounds.real())
-
-    # todo: access to the default bounds given a vtype.
