@@ -11,8 +11,8 @@ impl PyExpression {
         let expr = match rhs {
             OO::Expr(expr) => (&self.expr).add(&expr.expr),
             OO::Var(var) => (&self.expr).add(&var.v),
-            OO::Float(bias) => (&self.expr).add(bias),
-            OO::Int(bias) => (&self.expr).add(bias),
+            OO::Num(bias) => (&self.expr).add(bias),
+            // OO::Int(bias) => (&self.expr).add(bias),
         }?;
         Ok(Self::new(expr))
     }
@@ -21,8 +21,8 @@ impl PyExpression {
         let expr = match rhs {
             OO::Expr(expr) => (&self.expr).sub(&expr.expr),
             OO::Var(var) => (&self.expr).sub(&var.v),
-            OO::Float(bias) => (&self.expr).sub(bias),
-            OO::Int(bias) => (&self.expr).sub(bias),
+            OO::Num(bias) => (&self.expr).sub(bias),
+            // OO::Int(bias) => (&self.expr).sub(bias),
         }?;
         Ok(Self::new(expr))
     }
@@ -31,8 +31,8 @@ impl PyExpression {
         let expr = match rhs {
             OO::Expr(expr) => (&self.expr).mul(&expr.expr),
             OO::Var(var) => (&self.expr).mul(&var.v),
-            OO::Float(bias) => (&self.expr).mul(bias),
-            OO::Int(bias) => (&self.expr).mul(bias),
+            OO::Num(bias) => (&self.expr).mul(bias),
+            // OO::Int(bias) => (&self.expr).mul(bias),
         }?;
         Ok(Self::new(expr))
     }
@@ -53,8 +53,8 @@ impl PyExpression {
         match rhs {
             OO::Expr(expr) => (&mut self.expr).add_assign(&expr.expr),
             OO::Var(var) => (&mut self.expr).add_assign(&var.v),
-            OO::Float(bias) => (&mut self.expr).add_assign(bias),
-            OO::Int(bias) => (&mut self.expr).add_assign(bias),
+            OO::Num(bias) => (&mut self.expr).add_assign(bias),
+            // OO::Int(bias) => (&mut self.expr).add_assign(bias),
         }?;
         Ok(())
     }
@@ -63,8 +63,8 @@ impl PyExpression {
         match rhs {
             OO::Expr(expr) => (&mut self.expr).sub_assign(&expr.expr),
             OO::Var(var) => (&mut self.expr).sub_assign(&var.v),
-            OO::Float(bias) => (&mut self.expr).sub_assign(bias),
-            OO::Int(bias) => (&mut self.expr).sub_assign(bias),
+            OO::Num(bias) => (&mut self.expr).sub_assign(bias),
+            // OO::Int(bias) => (&mut self.expr).sub_assign(bias),
         }?;
         Ok(())
     }
@@ -73,8 +73,8 @@ impl PyExpression {
         match rhs {
             OO::Expr(expr) => (&mut self.expr).mul_assign(&expr.expr),
             OO::Var(var) => (&mut self.expr).mul_assign(&var.v),
-            OO::Float(bias) => (&mut self.expr).mul_assign(bias),
-            OO::Int(bias) => (&mut self.expr).mul_assign(bias),
+            OO::Num(bias) => (&mut self.expr).mul_assign(bias),
+            // OO::Int(bias) => (&mut self.expr).mul_assign(bias),
         }?;
         Ok(())
     }

@@ -1,9 +1,9 @@
 mod access;
+mod cmp;
 mod content;
 mod creation;
 mod iteration;
 mod ops;
-// mod ser;
 
 use lunamodel_core::prelude::{Expression, Model};
 use parking_lot::RwLock;
@@ -24,6 +24,12 @@ impl From<Expression> for PyExpression {
         Self {
             expr: PyExprContent::Expr(Arc::new(RwLock::new(expr))),
         }
+    }
+}
+
+impl Into<Expression> for PyExpression {
+    fn into(self) -> Expression {
+        self.expr.into()
     }
 }
 

@@ -1,3 +1,6 @@
+use std::ops::Sub;
+
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Comparator};
 
 use crate::{ArcEnv, expression::Expression};
@@ -42,8 +45,67 @@ pub struct Constraint {
 }
 
 impl Constraint {
+    pub fn new(
+        lhs: Expression,
+        rhs: Bias,
+        comparator: Comparator,
+        name: Option<String>,
+    ) -> LunaModelResult<Self> {
+        validate_name(&name)?;
+        let lhs_constant = lhs.offset;
+        let rhs = rhs - lhs_constant;
+        let lhs = lhs.sub(lhs_constant)?;
+        Ok(Self {
+            lhs,
+            rhs,
+            comparator,
+            name: name.unwrap_or_else(|| DEFAULT_CONSTRAINT_NAME.into()),
+        })
+    }
+
     pub fn deep_clone(&self, env: ArcEnv) -> Self {
-        _ = env;
         unimplemented!()
     }
+}
+
+/// Utility function to validate the correctness/legality of a [Constraint] name.
+/// A [Constraint] name is considered legal if it is:
+/// - not an empty string
+/// - the first char is alphabetical
+/// - starts with any of the failable word beginnings defined in
+/// (FAILABLE_CONSTRAINT_NAMES)[crate::core::constraints::constraint::FAILABLE_CONSTRAINT_NAMES].
+/// checked in [starts_with_failable].
+/// This function returns an error when an illegal [Constraint] name is given as an argument.
+fn validate_name(name: &Option<String>) -> LunaModelResult<()> {
+    if let Some(name) = &name {
+        if name.is_empty() {
+            return Err(LunaModelError::ConstraintNameInvalid(
+                "constraint names cannot be empty strings".into(),
+            ));
+        }
+        let first_char = name.chars().next().unwrap();
+        let first_char_alpha = first_char.is_alphabetic();
+
+        if !first_char_alpha {
+            return Err(LunaModelError::ConstraintNameInvalid(
+                format!(
+                    "constraint names must start with an alphabetical character, is {}",
+                    first_char
+                )
+                .into(),
+            ));
+        }
+
+        if starts_with_failable(name) {
+            return Err(LunaModelError::ConstraintNameInvalid(
+                format!(
+                    "constraint names cannot start with one of '{}', is {}",
+                    FAILABLE_CONSTRAINT_NAMES.join(", "),
+                    name
+                )
+                .into(),
+            ));
+        }
+    }
+    Ok(())
 }

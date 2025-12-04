@@ -1,5 +1,5 @@
 use lunamodel_core::{
-    ops::{LmAddAssign, LmMulAssign, LmPowAssign, LmSubAssign, LmPow},
+    ops::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign},
     prelude::{Expression, Model},
 };
 use lunamodel_error::LunaModelResult;
@@ -20,6 +20,15 @@ impl Clone for PyExprContent {
         match self {
             Self::Expr(e) => Self::Expr(e.clone()),
             Self::Model(e) => Self::Model(e.clone()),
+        }
+    }
+}
+
+impl Into<Expression> for PyExprContent {
+    fn into(self) -> Expression {
+        match self {
+            Self::Expr(e) => e.read_arc().clone(),
+            Self::Model(m) => m.read_arc().objective.clone(),
         }
     }
 }

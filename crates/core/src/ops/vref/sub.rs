@@ -20,6 +20,13 @@ impl Sub<Self> for &VarRef {
     }
 }
 
+impl Sub<Self> for VarRef {
+    type Output = LunaModelResult<Expression>;
+    fn sub(self, rhs: Self) -> Self::Output {
+        (&self).sub(&rhs)
+    }
+}
+
 impl Sub<Bias> for &VarRef {
     type Output = LunaModelResult<Expression>;
     fn sub(self, rhs: Bias) -> Self::Output {

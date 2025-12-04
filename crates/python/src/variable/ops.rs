@@ -13,8 +13,8 @@ impl PyVariable {
         match rhs {
             OO::Expr(expr) => expr.__add__(OO::Var(self.clone())),
             OO::Var(var) => Ok(PyE::new((&self.v).add(&var.v)?)),
-            OO::Float(bias) => Ok(PyE::new((&self.v).add(bias)?)),
-            OO::Int(bias) => Ok(PyE::new((&self.v).add(bias)?)),
+            OO::Num(bias) => Ok(PyE::new((&self.v).add(bias)?)),
+            // OO::Int(bias) => Ok(PyE::new((&self.v).add(bias)?)),
         }
     }
 
@@ -23,8 +23,8 @@ impl PyVariable {
         match rhs {
             OO::Expr(expr) => expr.__rsub__(OO::Var(self.clone())),
             OO::Var(var) => Ok(PyE::new((&self.v).sub(&var.v)?)),
-            OO::Float(bias) => Ok(PyE::new((&self.v).sub(bias)?)),
-            OO::Int(bias) => Ok(PyE::new((&self.v).sub(bias)?)),
+            OO::Num(bias) => Ok(PyE::new((&self.v).sub(bias)?)),
+            // OO::Int(bias) => Ok(PyE::new((&self.v).sub(bias)?)),
         }
     }
 
@@ -33,8 +33,8 @@ impl PyVariable {
         match rhs {
             OO::Expr(expr) => expr.__mul__(OO::Var(self.clone())),
             OO::Var(var) => Ok(PyE::new((&self.v).mul(&var.v)?)),
-            OO::Float(bias) => Ok(PyE::new((&self.v).mul(bias)?)),
-            OO::Int(bias) => Ok(PyE::new((&self.v).mul(bias)?)),
+            OO::Num(bias) => Ok(PyE::new((&self.v).mul(bias)?)),
+            // OO::Int(bias) => Ok(PyE::new((&self.v).mul(bias)?)),
         }
     }
 
