@@ -69,4 +69,20 @@ class Bounds:
         """Get the upper bound."""
         return self._b.lower
 
+    @classmethod
+    def binary(cls) -> Bounds:
+        return cls._from_pyb(PyBounds.binary())
+
+    @classmethod
+    def spin(cls) -> Bounds:
+        return cls._from_pyb(PyBounds.spin())
+
+    @classmethod
+    def integer(cls) -> Bounds:
+        return cls._from_pyb(PyBounds.integer())
+
+    @classmethod
+    def real(cls) -> Bounds:
+        return cls._from_pyb(PyBounds.real())
+
     # todo: access to the default bounds given a vtype.

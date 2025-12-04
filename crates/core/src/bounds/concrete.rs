@@ -35,7 +35,7 @@ impl Bounds {
 
 impl Bounds {
     #[inline]
-    fn binary() -> Self {
+    pub fn binary() -> Self {
         Self {
             lower: Bound::Bounded(0.0),
             upper: Bound::Bounded(1.0),
@@ -43,7 +43,7 @@ impl Bounds {
     }
 
     #[inline]
-    fn spin() -> Self {
+    pub fn spin() -> Self {
         Self {
             lower: Bound::Bounded(-1.0),
             upper: Bound::Bounded(1.0),
@@ -51,7 +51,7 @@ impl Bounds {
     }
 
     #[inline]
-    fn integer() -> Self {
+    pub fn integer() -> Self {
         Self {
             lower: Bound::Bounded(0.0),
             upper: Bound::Unbounded,
@@ -59,7 +59,7 @@ impl Bounds {
     }
 
     #[inline]
-    fn real() -> Self {
+    pub fn real() -> Self {
         Self {
             lower: Bound::Unbounded,
             upper: Bound::Unbounded,

@@ -1,3 +1,4 @@
+use lunamodel_core::prelude::Bounds;
 use pyo3::pymethods;
 
 use crate::bounds::{BoundsContent, unbounded::BoundValue};
@@ -20,5 +21,25 @@ impl PyBounds {
             BoundsContent::Concrete(conc) => conc.upper().into(),
             BoundsContent::Lazy(conc) => conc.upper().into(),
         }
+    }
+
+    #[staticmethod]
+    fn binary() -> Self {
+        PyBounds(Bounds::binary().into())
+    }
+
+    #[staticmethod]
+    fn spin() -> Self {
+        PyBounds(Bounds::spin().into())
+    }
+
+    #[staticmethod]
+    fn integer() -> Self {
+        PyBounds(Bounds::integer().into())
+    }
+
+    #[staticmethod]
+    fn real() -> Self {
+        PyBounds(Bounds::real().into())
     }
 }
