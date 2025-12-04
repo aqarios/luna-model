@@ -30,6 +30,13 @@ impl Expression {
         .map(|id| VarRef::new(id, self.env.clone()))
     }
 
+    pub fn items(&self) -> impl Iterator<Item = (Vec<VarRef>, Bias)> {
+        self.linear_items()
+            .map(|(v, b)| (vec![v], b))
+            .chain(self.quadratic_items().map(|(u, v, b)| (vec![u, v], b)))
+            .chain(self.higher_order_items())
+    }
+
     pub fn linear_items(&self) -> impl Iterator<Item = (VarRef, Bias)> {
         self.linear
             .iter()
