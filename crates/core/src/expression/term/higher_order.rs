@@ -155,3 +155,9 @@ impl AddAssign<(Vec<u32>, Bias)> for HigherOrder {
         self[rhs.0.as_slice()] = rhs.1
     }
 }
+
+impl AddAssign<(&[u32], Bias)> for HigherOrder {
+    fn add_assign(&mut self, rhs: (&[u32], Bias)) {
+        self[rhs.0] = rhs.1
+    }
+}

@@ -363,6 +363,7 @@ dependencies = [
  "bitvec",
  "lunamodel-core",
  "lunamodel-error",
+ "lunamodel-types",
  "parking_lot 0.12.5",
  "prost",
  "zstd",

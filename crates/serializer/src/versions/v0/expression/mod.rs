@@ -9,6 +9,9 @@ use crate::encode::Creatable;
 /// Representation of a bytes encodable/decodable Expression.
 #[derive(Clone, PartialEq, Message)]
 pub struct SerExpression {
+    #[prost(bool, tag = "19", default = false)]
+    is_new: bool,
+
     /// The number of variables in the expression.
     #[prost(uint32, tag = "1")]
     num_variables: u32,
@@ -22,8 +25,10 @@ pub struct SerExpression {
     offset: f64,
     /// The linear term of the expression.
     #[prost(double, repeated, tag = "4")]
-    linear: Vec<f64>,
-
+    linear_values: Vec<f64>,
+    /// The linear term indices of the expression.
+    #[prost(uint32, repeated, tag = "14")]
+    linear_indices: Vec<u32>,
     /// The size of the quadratic term. This is either 0 or equal to the number of
     /// variables in the expression.
     #[prost(uint32, tag = "5")]
@@ -43,7 +48,6 @@ pub struct SerExpression {
     /// vector. Required to recover the neighborhoods for all variables during decoding.
     #[prost(uint32, repeated, tag = "9")]
     quad_neighborhoods_len: Vec<u32>,
-
     /// The size of the higher order term, i.e., how many elements the higher order
     /// term consists of. This is especially useful during decoding, as the appropriate
     /// sized HashMap can be created improving write performances significantly.
@@ -69,26 +73,5 @@ pub struct SerExpression {
 impl Creatable<Expression> for SerExpression {
     fn new(value: &Expression) -> Self {
         Self::default().fill(&value)
-    }
-}
-
-impl SerExpression {
-    /// Creates an empty serializable expression struct.
-    fn default() -> Self {
-        Self {
-            num_variables: u32::default(),
-            active: Vec::new(),
-            offset: f64::default(),
-            linear: Vec::new(),
-            quad_size: u32::default(),
-            quad_neighborhood_indices: Vec::new(),
-            quad_neighborhoods: Vec::new(),
-            quad_neighborhoods_values: Vec::new(),
-            quad_neighborhoods_len: Vec::new(),
-            ho_size: u32::default(),
-            ho_values: Vec::new(),
-            ho_indices: Vec::new(),
-            ho_lens: Vec::new(),
-        }
     }
 }

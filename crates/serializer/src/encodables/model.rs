@@ -1,12 +1,9 @@
-use std::sync::Arc;
-
 use crate::encode::{Decodable, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerModel as SerModelV0;
 
-use lunamodel_core::{Environment, Model};
-use lunamodel_error::LunaModelError;
-use parking_lot::RwLock;
+use lunamodel_core::{Model};
+use lunamodel_error::LunaModelResult;
 
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of a [Model]. In case a new serialization format is defined update this value
@@ -31,7 +28,7 @@ impl Decodable<Model> for Versioned<Vec<u8>> {
     type Latest = SerModelLatest;
     type Payload = ();
 
-    fn decode(&self, payload: Self::Payload) -> Result<Model, LunaModelError> {
+    fn decode(&self, payload: Self::Payload) -> LunaModelResult<Model> {
         match self.version {
             Some(Version::V0) => SerModelV0::decoder(self.data.as_slice(), payload),
             _ => SerModelLatest::decoder(self.data.as_slice(), payload),

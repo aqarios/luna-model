@@ -1,6 +1,6 @@
 use lunamodel_core::prelude::*;
 use lunamodel_error::LunaModelResult;
-
+use lunamodel_types::VarIdx;
 use prost::Message;
 
 use super::SerExpression;
@@ -20,17 +20,16 @@ impl SerExpression {
         }
         let mut quad = Quadratic::default();
         let mut start = 0;
-        for (u, len) in self
+        for (&u, &len) in self
             .quad_neighborhood_indices
             .iter()
             .zip(&self.quad_neighborhoods_len)
         {
             let end = start + len;
             for i in start..end {
-                quad[*u as usize].push(OneVarTerm::new(
-                    VarId(self.quad_neighborhoods[i as usize]),
-                    self.quad_neighborhoods_values[i as usize],
-                ));
+                let v = self.quad_neighborhoods[i as usize];
+                let b = self.quad_neighborhoods_values[i as usize];
+                quad += (u, v, b);
             }
             start = end;
         }
@@ -43,31 +42,56 @@ impl SerExpression {
             return None;
         }
 
-        let mut ho = HigherOrder::with_size(self.ho_size as usize);
-
+        let mut ho = HigherOrder::with_capacity(self.ho_size as usize);
         let mut start: usize = 0;
-        for (len, value) in self.ho_lens.iter().zip(&self.ho_values) {
-            let end = start + (*len as usize);
+        for (&len, &value) in self.ho_lens.iter().zip(&self.ho_values) {
+            let end = start + (len as usize);
             let contribs = self.ho_indices[start..end]
                 .iter()
-                .map(|u| VarId(*u))
-                .collect::<Vec<VarId>>();
-            ho[&contribs] = *value;
+                .map(|u| *u)
+                .collect::<Vec<VarIdx>>();
+            ho += (contribs.as_slice(), value);
             start = end;
         }
 
         Some(ho)
     }
 
+    fn decode_linear_old(&self) -> Linear {
+        let mut lin = Linear::default();
+        for (idx, (&active, &bias)) in self.active.iter().zip(&self.linear_values).enumerate() {
+            if !active {
+                continue;
+            }
+            lin += (idx as u32, bias)
+        }
+        lin
+    }
+
+    fn decode_linear_new(&self) -> Linear {
+        let mut lin = Linear::default();
+        for (&idx, &bias) in self.linear_indices.iter().zip(&self.linear_values) {
+            lin += (idx as u32, bias)
+        }
+        lin
+    }
+
+    fn decode_linear(&self) -> Linear {
+        match self.is_new {
+            true => self.decode_linear_new(),
+            false => self.decode_linear_old(),
+        }
+    }
+
     /// Extracts the data from self to and instance of Expression with Index VarId and
     /// Bias f64.
     pub fn extract(self, env: ArcEnv) -> Expression {
-        let mut expr = Expression::empty(env);
-        expr.num_variables = self.num_variables as usize;
-        expr.offset = self.offset;
-        expr.linear = Linear::new(self.linear.clone()); // todo(team): might be optimizable with mem copies. See somewhere in code where I do something similar.
-        expr.quadratic = self.decode_quadratic();
-        expr.higher_order = self.decode_higher_order();
-        expr
+        Expression::empty(env).edit(|e| {
+            e.offset = self.offset;
+            e.linear = self.decode_linear();
+            e.quadratic = self.decode_quadratic();
+            e.higher_order = self.decode_higher_order();
+            e.num_vars = self.num_variables as usize;
+        })
     }
 }

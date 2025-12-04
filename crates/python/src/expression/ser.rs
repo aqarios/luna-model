@@ -36,9 +36,9 @@ impl PyExpression {
     ) -> PyResult<Py<PyAny>> {
         let bytes = match &self.expr {
             PyEC::Expr(expr) => expr.read_arc().encode(compress, level),
-            PyEC::Model(parent) => &parent.read_arc().objective.encode(compress, level),
+            PyEC::Model(parent) => parent.read_arc().objective.encode(compress, level),
         }?;
-        Ok(PyBytes::new(py, bytes).into())
+        Ok(PyBytes::new(py, bytes.as_slice()).into())
     }
 
     /// Alias for `encode()`.

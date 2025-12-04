@@ -4,7 +4,7 @@ use super::{
     versionize::{Version, Versionizable},
 };
 
-use lunamodel_error::LunaModelError;
+use lunamodel_error::LunaModelResult;
 
 /// Defines the common interface to create a bytes encoded instance of self.
 pub trait BytesEncodable {
@@ -13,7 +13,7 @@ pub trait BytesEncodable {
 
 /// Defines the common interface to decode to S based on it's representation as bytes.
 pub trait BytesDecodable<S, P = ()> {
-    fn decode_from_bytes(bytes: &[u8], payload: P) -> Result<S, LunaModelError>;
+    fn decode_from_bytes(bytes: &[u8], payload: P) -> LunaModelResult<S>;
 }
 
 /// Defines the common interface required by the Encodable trait for an object to
@@ -45,7 +45,7 @@ where
         &self,
         compress: Option<bool>,
         level: Option<i32>,
-    ) -> Result<Vec<u8>, LunaModelError> {
+    ) -> LunaModelResult<Vec<u8>> {
         Ok(self
             .serialize()
             .maybe_compress(compress, level)?
@@ -60,7 +60,7 @@ where
     Self: BytesDecodable<S, P>,
 {
     /// Decode the bytes data to an instance of type S using the payload of type P.
-    fn decoder(data: &[u8], payload: P) -> Result<S, LunaModelError> {
+    fn decoder(data: &[u8], payload: P) -> LunaModelResult<S> {
         Self::decode_from_bytes(data, payload)
     }
 }
@@ -76,7 +76,7 @@ where
     type Payload;
     type Latest: Decoder<E, Self::Payload>;
 
-    fn decode(&self, payload: Self::Payload) -> Result<E, LunaModelError> {
+    fn decode(&self, payload: Self::Payload) -> LunaModelResult<E> {
         Self::Latest::decoder(self.as_slice(), payload)
     }
 }

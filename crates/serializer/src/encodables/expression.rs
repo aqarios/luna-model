@@ -2,8 +2,8 @@ use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerExpression as SerExprV0;
 
-use lunamodel_core::{Expression, ArcEnv};
-use lunamodel_error::LunaModelError;
+use lunamodel_core::{ArcEnv, Expression};
+use lunamodel_error::LunaModelResult;
 
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of an [Expression]. In case a new serialization format is defined update this value
@@ -14,7 +14,7 @@ type SerExprLatest = SerExprV0;
 /// Makes an [Expression] encodable.
 impl Encodable<SerExprV0> for Expression {
     fn version(&self) -> Version {
-        Version::V0
+        Version::V1
     }
 }
 
@@ -32,7 +32,7 @@ impl Decodable<Expression> for Versioned<Vec<u8>> {
     type Latest = SerExprLatest;
     type Payload = ArcEnv;
 
-    fn decode(&self, payload: Self::Payload) -> Result<Expression, LunaModelError> {
+    fn decode(&self, payload: Self::Payload) -> LunaModelResult<Expression> {
         match self.version {
             Some(Version::V0) => SerExprV0::decoder(self.data.as_slice(), payload),
             _ => SerExprLatest::decoder(self.data.as_slice(), payload),

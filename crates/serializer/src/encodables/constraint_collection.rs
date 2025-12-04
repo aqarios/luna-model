@@ -3,7 +3,7 @@ use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerConstraintCollection as SerConstrCollV0;
 
 use lunamodel_core::{ConstraintCollection, ArcEnv};
-use lunamodel_error::LunaModelError;
+use lunamodel_error::LunaModelResult;
 
 /// Helper type to ensure easier version updates to a new serialization implementation
 /// of [ConstraintCollection]. In case a new serialization format is defined update this value
@@ -32,7 +32,7 @@ impl Decodable<ConstraintCollection> for Versioned<Vec<u8>> {
     type Latest = SerConstrLatest;
     type Payload = ArcEnv;
 
-    fn decode(&self, payload: Self::Payload) -> Result<ConstraintCollection, LunaModelError> {
+    fn decode(&self, payload: Self::Payload) -> LunaModelResult<ConstraintCollection> {
         match self.version {
             Some(Version::V0) => SerConstrCollV0::decoder(self.data.as_slice(), payload),
             _ => SerConstrLatest::decoder(self.data.as_slice(), payload),

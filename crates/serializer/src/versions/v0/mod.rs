@@ -2,10 +2,10 @@ mod constraints;
 mod environment;
 mod expression;
 mod model;
-mod solution;
+// mod solution;
 
-pub use constraints::SerConstraintCollection;
-pub use environment::SerEnvironment;
 pub use expression::SerExpression;
-pub use model::SerModel;
-pub use solution::SerSolution;
+// pub use constraints::SerConstraintCollection;
+// pub use environment::SerEnvironment;
+// pub use model::SerModel;
+// pub use solution::SerSolution;

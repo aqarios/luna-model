@@ -11,7 +11,8 @@ repository.workspace = true
 prost = { workspace = true }
 zstd = { workspace = true }
 bitvec = { workspace = true }
+parking_lot = { workspace = true }
 
 lunamodel-error = { workspace = true }
 lunamodel-core = { workspace = true }
-parking_lot = { workspace = true }
+lunamodel-types = { workspace = true }
