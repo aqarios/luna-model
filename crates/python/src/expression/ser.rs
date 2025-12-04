@@ -1,9 +1,10 @@
+use lunamodel_serializer::prelude::*;
 use pyo3::{
     prelude::*,
     types::{PyBytes, PyType},
 };
 
-use super::{ExprContent, ExprContent::*};
+use super::content::PyExprContent as PyEC;
 use crate::{PyEnvironment, PyExpression};
 
 #[pymethods]
@@ -33,11 +34,11 @@ impl PyExpression {
         compress: Option<bool>,
         level: Option<i32>,
     ) -> PyResult<Py<PyAny>> {
-        let base = match &self.expr {
-            Expr(expr) => expr,
-            Model(parent) => &parent.read_arc().objective,
-        };
-        Ok(PyBytes::new(py, &base.encode(compress, level)?).into())
+        let bytes = match &self.expr {
+            PyEC::Expr(expr) => expr.read_arc().encode(compress, level),
+            PyEC::Model(parent) => &parent.read_arc().objective.encode(compress, level),
+        }?;
+        Ok(PyBytes::new(py, bytes).into())
     }
 
     /// Alias for `encode()`.
