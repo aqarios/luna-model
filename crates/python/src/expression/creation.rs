@@ -1,10 +1,9 @@
-use lunamodel_core::Expression;
+use lunamodel_core::{Expression, ops::LmAddAssign};
 use pyo3::prelude::*;
 
 use crate::{
     PyEnvironment,
     PyExpression,
-    // environment::{ACTIVE_ENV, get_active_env},
 };
 
 #[pymethods]
@@ -27,10 +26,12 @@ impl PyExpression {
         Ok(PyExpression::new(Expression::empty(penv.env)))
     }
 
-    // #[staticmethod]
-    // #[pyo3(name="const", signature=(val, env=None))]
-    // pub fn constant(val: f64, env: Option<PyEnvironment>) -> PyResult<Self> {
-    //     let penv: PyEnvironment = env.try_into()?;
-    //     Ok(PyExpression::new(Expression::empty(penv.env, val)))
-    // }
+    #[staticmethod]
+    #[pyo3(name="const", signature=(val, env=None))]
+    pub fn constant(val: f64, env: Option<PyEnvironment>) -> PyResult<Self> {
+        let pyenv: PyEnvironment = env.try_into()?;
+        let mut expr = Expression::empty(pyenv.env);
+        expr.add_assign(val)?;
+        Ok(expr.into())
+    }
 }
