@@ -2,7 +2,8 @@ use lunamodel_core::ArcEnv;
 use lunamodel_types::{Bias, VarIdx};
 use pyo3::prelude::*;
 
-use crate::{PyExpression, PyVariable};
+use super::{PyExpression, content::PyExprContent as PyEC};
+use crate::variable::PyVariable;
 
 /// Convenience class to indicate the empty set of variables of an expression's
 /// constant term when iterating over the expression's components.
@@ -105,19 +106,16 @@ pub struct PyExpressionIterator {
     current_idx: usize,
 }
 
-// impl PyExpressionIterator {
-//     fn new(expr: &PyExpression) -> Self {
-//         use super::ExprContent::*;
-//         Self {
-//             items: match &expr.expr {
-//                 Expr(expr) => expr.items(),
-//                 Model(p) => p.read_arc().objective.items(),
-//             },
-//             env: match &expr.expr {
-//                 Expr(expr) => expr.env.clone(),
-//                 Model(p) => p.read_arc().environment.clone(),
-//             },
-//             current_idx: 0,
-//         }
-//     }
-// }
+impl PyExpressionIterator {
+    pub fn new(expr: &PyExpression) -> Self {
+        let (items, env) = match &expr.expr {
+            PyEC::Expr(expr) => (todo!(), todo!()), // (expr.items(), expr.),
+            PyEC::Model(p) => (todo!(), todo!()),   // p.read_arc().objective.items(),
+        };
+        Self {
+            items,
+            env,
+            current_idx: 0,
+        }
+    }
+}

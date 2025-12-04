@@ -1,4 +1,4 @@
-use lunamodel_types::Vtype;
+use lunamodel_types::{Bias, VarIdx, Vtype};
 use lunamodel_utils::unique;
 use std::iter::once;
 
@@ -30,18 +30,43 @@ impl Expression {
         .map(|id| VarRef::new(id, self.env.clone()))
     }
 
+    pub fn linear_items(&self) -> impl Iterator<Item = (VarRef, Bias)> {
+        self.linear
+            .iter()
+            .map(|(idx, bias)| (VarRef::new(idx, self.env.clone()), bias))
+    }
+
+    pub fn quadratic_items(&self) -> impl Iterator<Item = (VarRef, VarRef, Bias)> {
+        self.quadratic.iter().flat_map(|q| {
+            q.iter_flat().map(|(u, v, b)| {
+                (
+                    VarRef::new(u, self.env.clone()),
+                    VarRef::new(v, self.env.clone()),
+                    b,
+                )
+            })
+        })
+    }
+
+    pub fn higher_order_items(&self) -> impl Iterator<Item = (Vec<VarRef>, Bias)> {
+        self.higher_order.iter().flat_map(|q| {
+            q.iter_contrib().map(|(vars, b)| {
+                (
+                    vars.iter()
+                        .map(|&u| VarRef::new(u, self.env.clone()))
+                        .collect(),
+                    b,
+                )
+            })
+        })
+    }
+
     pub fn degree(&self) -> usize {
-        let has_qterms = if let Some(q) = &self.quadratic {
-            !q.is_empty()
-        } else {
-            false
-        };
-        let has_hterms = if let Some(h) = &self.higher_order {
-            !h.is_empty()
-        } else {
-            false
-        };
-        match (!self.linear.is_zero(), has_qterms, has_hterms) {
+        match (
+            !self.linear.is_zero(),
+            self.has_quadratic(),
+            self.has_higher_order(),
+        ) {
             // no terms -> deg is 0, i.e. expression is constant.
             (false, false, false) => 0,
             // only linear terms -> deg is 1, i.e. expression is linear.
@@ -51,5 +76,37 @@ impl Expression {
             // has higher_order terms -> deg is ?, i.e. expression is of higher order.
             (_, _, true) => self.higher_order.as_ref().unwrap().degree(),
         }
+    }
+
+    pub fn is_constant(&self) -> bool {
+        self.degree() == 0
+    }
+
+    pub fn has_quadratic(&self) -> bool {
+        self.quadratic
+            .as_ref()
+            .map_or_else(|| false, |q| !q.is_empty())
+    }
+
+    pub fn has_higher_order(&self) -> bool {
+        self.higher_order
+            .as_ref()
+            .map_or_else(|| false, |h| !h.is_empty())
+    }
+
+    pub fn linear(&self, idx: VarIdx) -> Bias {
+        self.linear[idx]
+    }
+
+    pub fn quadratic(&self, u: VarIdx, v: VarIdx) -> Bias {
+        self.quadratic
+            .as_ref()
+            .map_or_else(Bias::default, |q| q[(u, v)])
+    }
+
+    pub fn higher_order(&self, vars: &[VarIdx]) -> Bias {
+        self.higher_order
+            .as_ref()
+            .map_or_else(Bias::default, |h| h[vars])
     }
 }

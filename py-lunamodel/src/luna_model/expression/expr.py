@@ -61,13 +61,13 @@ class Expression:
     def get_offset(self) -> float:
         return self._expr.get_offset()
 
-    def get_linear(self, /, variable: Variable) -> float:
+    def get_linear(self, variable: Variable) -> float:
         return self._expr.get_linear(variable._v)
 
-    def get_quadratic(self, /, u: Variable, v: Variable) -> float:
+    def get_quadratic(self, u: Variable, v: Variable) -> float:
         return self._expr.get_quadratic(u._v, v._v)
 
-    def get_higher_order(self, /, *variables: Variable) -> float:
+    def get_higher_order(self, *variables: Variable) -> float:
         return self._expr.get_higher_order([v._v for v in variables])
 
     def items(self) -> ExprIter:

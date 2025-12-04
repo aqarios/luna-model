@@ -16,7 +16,7 @@ pub struct PyVariable {
 }
 
 impl PyVariable {
-    fn new(vref: VarRef) -> Self {
+    pub fn new(vref: VarRef) -> Self {
         Self { v: vref }
     }
 }
