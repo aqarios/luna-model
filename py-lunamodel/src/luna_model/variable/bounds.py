@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from luna_model._lm import PyBounds, PyUnbounded
 from luna_model.variable.vtype import Vtype
+
+from luna_model._lm import PyBounds, PyUnbounded
 
 
 class Unbounded(PyUnbounded): ...

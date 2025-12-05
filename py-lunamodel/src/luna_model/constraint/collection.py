@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from luna_model.environment.environment import Environment
+
 from luna_model.constraint.constr import Constraint
 from luna_model.constraint.cmp import Comparator
 from luna_model.constraint.iter import ConstraintCollectionIter

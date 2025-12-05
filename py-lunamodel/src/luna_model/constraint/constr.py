@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from luna_model._lm import PyConstraint
-
 from luna_model.expression.expr import Expression
 from luna_model.variable.var import Variable
+
 from luna_model.constraint.cmp import Comparator
+
+from luna_model._lm import PyConstraint
 
 
 class Constraint:

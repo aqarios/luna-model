@@ -1,9 +1,10 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
-from luna_model.environment import Environment
-from luna_model.variable import Variable
-from luna_model.solution import Solution
+from luna_model.environment.environment import Environment
+from luna_model.variable.var import Variable
+from luna_model.solution.sol import Solution
+
 from luna_model._lm import PyExpression
 
 

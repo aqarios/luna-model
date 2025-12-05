@@ -3,18 +3,15 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from luna_model.environment.environment import Environment
-from luna_model.constraint.constr import Constraint
-from luna_model.constraint.collection import ConstraintCollection
+from luna_model.constraint.constr import Constraint, ConstraintCollection
 from luna_model.expression.expr import Expression
-from luna_model.solution.sol import Solution
-from luna_model.solution.res import Result
-from luna_model.solution.sample import Sample
-from luna_model.variable.var import Variable
-from luna_model.variable.vtype import Vtype
-from luna_model.variable.bounds import Unbounded
+from luna_model.solution.sol import Solution, Result, Sample
+from luna_model.variable.var import Variable, Vtype, Unbounded
+
 from luna_model.model.sense import Sense
 from luna_model.model.specs import ModelSpecs
-from luna_model.translator.ttarget import TranslationTarget
+
+from luna_model.translator import TranslationTarget
 
 from luna_model._lm import PyModel
 

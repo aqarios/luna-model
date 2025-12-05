@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from luna_model.variable import Vtype
+
 from luna_model.model.sense import Sense
-from luna_model.variable.vtype import Vtype
-from luna_model.model.constr import ConstraintType
+from luna_model.model.ctype import Ctype
 
 from luna_model._lm import PyModelSpecs
 
@@ -14,7 +15,7 @@ class ModelSpecs:
         self,
         sense: Sense | None = None,
         vtypes: list[Vtype] | None = None,
-        constraints: list[ConstraintType] | None = None,
+        constraints: list[Ctype] | None = None,
         max_degree: int | None = None,
         max_constraint_degree: int | None = None,
         max_num_variables: int | None = None,
@@ -59,8 +60,8 @@ class ModelSpecs:
         return [Vtype(v) for v in self._sp.vtypes]
 
     @property
-    def constraints(self) -> list[ConstraintType] | None:
-        return [ConstraintType(c) for c in self._sp.constraints]
+    def constraints(self) -> list[Ctype] | None:
+        return [Ctype(c) for c in self._sp.constraints]
 
     def satisfies(self, other: ModelSpecs) -> bool:
         return self._sp.satisfies(other._sp)

@@ -1,14 +1,14 @@
 from __future__ import annotations
-from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, Literal, TypeAlias
 
 from numpy.typing import NDArray
 
 from luna_model.model.model import Model
 from luna_model.model.sense import Sense
-from luna_model.solution.iter import ResultIter, ResultView
+from luna_model.solution.res import ResultIter, ResultView
+from luna_model.solution.src import ValueSource
 
-from luna_model._lm import PySolution, PyValueSource
+from luna_model._lm import PySolution
 from luna_model.variable.vtype import Vtype
 
 if TYPE_CHECKING:
@@ -41,14 +41,6 @@ SoutionFromTypes: TypeAlias = (
     | _Sample
     | _SampleList
 )
-
-
-class ValueSource(Enum):
-    OBJ = PyValueSource.Obj
-    RAW = PyValueSource.Raw
-    # todo: remove this
-    Obj = PyValueSource.Obj
-    Raw = PyValueSource.Raw
 
 
 class Solution:

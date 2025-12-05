@@ -6,13 +6,13 @@ from numpy.typing import NDArray
 from luna_model.model.sense import Sense
 from luna_model.model.model import Model
 from luna_model.variable.var import Variable
-from luna_model.solution.sample import SampleSet
 from luna_model.solution.timer import Timing
 from luna_model.environment.environment import Environment
 
 from qiskit.primitives import PrimitiveResult, PubResult  # type: ignore[import]
 from qiskit_optimization import QuadraticProgram  # type: ignore[import]
 from pyscipopt import Model as ScipModel  # type: ignore[import]
+from dimod import SampleSet  # type: ignore[import]
 
 SoutionFromTypes: TypeAlias = (
     dict[str, Any]

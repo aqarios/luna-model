@@ -4,9 +4,8 @@ from pathlib import Path
 from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel  # type: ignore[import]
 from numpy.typing import NDArray  # type: ignore[import]
 
-from luna_model.variable.vtype import Vtype
-from luna_model.translator.qubo import Qubo
-from luna_model.translator.ttarget import TranslationTarget
+from luna_model.variable import Vtype
+from luna_model.translator import Qubo, TranslationTarget
 
 class Model:
     @overload

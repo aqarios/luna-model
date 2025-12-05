@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Protocol
 
-from luna_model.variable import Variable
+from luna_model.variable.var import Variable
 
 
 class Constant(Protocol): ...
