@@ -5,7 +5,7 @@ use pyo3::{
     pyclass, pymethods, types::PyAnyMethods,
 };
 
-#[pyclass]
+#[pyclass(subclass)]
 #[derive(Debug, Clone, Copy)]
 pub struct PyUnbounded;
 

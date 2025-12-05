@@ -13,7 +13,7 @@ mod ffi;
 
 pub mod prelude;
 
-pub use bounds::PyBounds;
+pub use bounds::{PyBounds, PyUnbounded};
 pub use constraint::{PyConstraint, PyConstraintCollection};
 pub use environment::PyEnvironment;
 pub use expression::{PyExprContent, PyExpression};

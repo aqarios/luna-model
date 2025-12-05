@@ -5,6 +5,8 @@ mod unbounded;
 use lunamodel_core::prelude::{Bounds, LazyBounds};
 use pyo3::pyclass;
 
+pub use unbounded::PyUnbounded;
+
 #[derive(Clone)]
 pub enum BoundsContent {
     Concrete(Bounds),
