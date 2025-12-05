@@ -1,12 +1,13 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from luna_model._lm import PyVariable, PyExpression
 from luna_model.constraint.constr import Constraint
 from luna_model.environment import Environment
 from luna_model.expression.expr import Expression
 from luna_model.variable.vtype import Vtype
 from luna_model.variable.bounds import Bounds, Unbounded
+
+from luna_model._lm import PyVariable, PyExpression
 
 if TYPE_CHECKING:
     from typing import Protocol

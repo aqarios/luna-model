@@ -61,6 +61,12 @@ class Solution:
     @classmethod
     def from_(cls) -> Solution: ...
 
+    @classmethod
+    def _from_pys(cls, py_s: PySolution) -> Solution:
+        s = cls.__new__(cls)
+        s._s = py_s
+        return s
+
     def __len__(self) -> int:
         return self._s.__len__()
 

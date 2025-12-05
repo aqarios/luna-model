@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from luna_model.environment import Environment
 from luna_model.variable import Variable
@@ -186,7 +186,8 @@ class Expression:
             res = fn(other)
         return res
 
-    def _cmp(self, other: Expression | Variable | int | float, fn) -> Constraint:
+    @classmethod
+    def _cmp(cls, other: Expression | Variable | int | float, fn) -> Constraint:
         if isinstance(other, Expression):
             pyc = fn(other._expr)
         elif isinstance(other, Variable):
