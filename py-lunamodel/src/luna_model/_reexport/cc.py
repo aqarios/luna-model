@@ -1,1 +1,0 @@
-from luna_model.constraint import ConstraintCollection
