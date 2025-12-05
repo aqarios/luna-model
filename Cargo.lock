@@ -319,6 +319,7 @@ dependencies = [
  "lunamodel-types",
  "lunamodel-utils",
  "parking_lot 0.12.5",
+ "pyo3",
  "strum",
  "strum_macros",
 ]
@@ -343,6 +344,7 @@ dependencies = [
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-serializer",
+ "lunamodel-translate",
  "lunamodel-types",
  "parking_lot 0.12.5",
  "pyo3",
@@ -368,6 +370,10 @@ version = "0.5.0"
 [[package]]
 name = "lunamodel-translate"
 version = "0.5.0"
+dependencies = [
+ "pyo3",
+ "strum_macros",
+]
 
 [[package]]
 name = "lunamodel-types"

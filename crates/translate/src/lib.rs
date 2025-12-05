@@ -1,14 +1,6 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod source;
+mod target;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub use target::TranslationTarget;
+pub use source::SolutionSource;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}

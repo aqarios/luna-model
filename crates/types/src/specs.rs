@@ -3,9 +3,16 @@ use std::fmt::Display;
 use enumset::{EnumSet, EnumSetType};
 use strum_macros::{Display, EnumString};
 
+#[cfg(feature = "py")]
+use pyo3::prelude::pyclass;
+
 use crate::{Sense, Vtype, utils::EnumSetFromVec};
 
 #[derive(EnumSetType, Display, Debug, Hash, EnumString)]
+#[cfg_attr(
+    feature = "py",
+    pyclass(eq, eq_int, name = "PyCtype") // , module = "luna_model.Vtype")
+)]
 pub enum Ctype {
     /// Only equality constraints allowed.
     #[strum(to_string = "Unconstrained")]

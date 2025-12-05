@@ -17,3 +17,4 @@ pub use constraint::ConstraintCollection;
 pub use environment::{ArcEnv, Environment};
 pub use expression::Expression;
 pub use model::Model;
+pub use solution::{Solution, ValueSource};

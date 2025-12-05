@@ -8,10 +8,11 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
-lunamodel-core = { workspace = true }
 lunamodel-serializer = { workspace = true }
+lunamodel-core = { workspace = true, features = ["py"] }
 lunamodel-error = { workspace = true, features = ["py"] }
 lunamodel-types = { workspace = true, features = ["py"] }
+lunamodel-translate = { workspace = true, features = ["py"] }
 
 pyo3 = { workspace = true, features = ["multiple-pymethods"] }
 parking_lot = { workspace = true, features = ["arc_lock"] }

@@ -23,3 +23,10 @@ parking_lot = { workspace = true, features = ["arc_lock"] }
 derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 itertools = { workspace = true }
 enumset = { workspace = true }
+
+[dependencies.pyo3]
+workspace = true
+optional = true
+
+[features]
+py = ["pyo3"]
