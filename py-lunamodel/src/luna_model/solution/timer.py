@@ -140,7 +140,7 @@ class Timer:
         """
         return cls._from_pyt(PyTimer())
 
-    def stop(self, /) -> Timing:
+    def stop(self) -> Timing:
         """
         Stop the timer, and get the resulting `Timing` object.
 

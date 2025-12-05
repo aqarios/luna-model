@@ -178,7 +178,7 @@ class Model:
         name: str | None = None,
         **kwargs,
     ) -> Model:
-        return cls._m.from_(other, name=name, **kwargs)
+        return cls._from_pym(cls._m.from_(other, name=name, **kwargs))
 
     def to(
         self,
