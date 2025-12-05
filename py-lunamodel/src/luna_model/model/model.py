@@ -2,20 +2,23 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from luna_model.environment.environment import Environment
-from luna_model.constraint.constr import Constraint, ConstraintCollection
-from luna_model.expression.expr import Expression
-from luna_model.solution.sol import Solution, Result, Sample
-from luna_model.variable.var import Variable, Vtype, Unbounded
-
-from luna_model.model.sense import Sense
-from luna_model.model.specs import ModelSpecs
-
-from luna_model.translator import TranslationTarget
-
+from luna_model._utils import wrap_expr, wrap_cc, wrap_env, wrap_var, wrap_sp, wrap_s
+import luna_model._reexport as lm
 from luna_model._lm import PyModel
+from luna_model.model.sense import Sense
+from luna_model.variable.vtype import Vtype
 
 if TYPE_CHECKING:
+    from luna_model.environment.environment import Environment
+    from luna_model.constraint.constr import Constraint
+    from luna_model.constraint.collection import ConstraintCollection
+    from luna_model.expression.expr import Expression
+    from luna_model.solution.sol import Solution
+    from luna_model.solution.res import Result, Sample
+    from luna_model.variable.var import Variable
+    from luna_model.variable.bounds import Unbounded
+    from luna_model.model.specs import ModelSpecs
+    from luna_model.translator import TranslationTarget
     from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel  # type: ignore[import]
     from numpy.typing import NDArray  # type: ignore[import]
     from luna_model.translator.qubo import Qubo
@@ -52,7 +55,7 @@ class Model:
 
     @property
     def objective(self) -> Expression:
-        return Expression._from_pyexpr(self._m.objective)
+        return wrap_expr(self._m.objective)
 
     @objective.setter
     def objective(self, value: Expression) -> None:
@@ -60,7 +63,7 @@ class Model:
 
     @property
     def constraints(self) -> ConstraintCollection:
-        return ConstraintCollection._from_pycc(self._m.constraints)
+        return wrap_cc(self._m.constraints)
 
     @constraints.setter
     def constraints(self, value: ConstraintCollection) -> None:
@@ -68,7 +71,7 @@ class Model:
 
     @property
     def environment(self) -> Environment:
-        return Environment._from_pyenv(self._m.environment)
+        return wrap_env(self._m.environment)
 
     @property
     def num_variables(self) -> int:
@@ -79,7 +82,7 @@ class Model:
         return self._m.num_constraints
 
     def variables(self) -> list[Variable]:
-        return [Variable._from_pyvar(v) for v in self._m.variables]
+        return [wrap_var(v) for v in self._m.variables]
 
     def vtypes(self) -> list[Vtype]:
         return [Vtype(t) for t in self._m.vtypes()]
@@ -95,7 +98,7 @@ class Model:
         lower: float | type[Unbounded] | None = None,
         upper: float | type[Unbounded] | None = None,
     ) -> Variable:
-        return Variable._from_pyvar(
+        return wrap_var(
             self._m.add_variable(name=name, vtype=vtype.value, lower=lower, upper=upper)
         )
 
@@ -107,17 +110,17 @@ class Model:
         lower: float | type[Unbounded] | None = None,
         upper: float | type[Unbounded] | None = None,
     ) -> Variable:
-        return Variable._from_pyvar(
+        return wrap_var(
             self._m.add_variable_with_fallback(
                 name=name, vtype=vtype.value, lower=lower, upper=upper
             )
         )
 
     def get_variable(self, name: str) -> Variable:
-        return Variable._from_pyvar(self._m.get_variable(name))
+        return wrap_var(self._m.get_variable(name))
 
     def get_specs(self) -> ModelSpecs:
-        return ModelSpecs._from_pysp(self._m.get_specs())
+        return wrap_sp(self._m.get_specs())
 
     def add_constraint(self, constraint: Constraint, name: str | None = None) -> None:
         self._m.add_constraint(constraint._c, name)
@@ -126,21 +129,21 @@ class Model:
         self._m.set_objective(expression._expr, sense.value if sense else None)
 
     def evaluate(self, solution: Solution) -> Solution:
-        return Solution._from_pys(self._m.evaluate(solution._s))
+        return wrap_s(self._m.evaluate(solution._s))
 
     def evaluate_sample(self, sample: Sample) -> Result:
         return self._m.evaluate(sample)
 
     def violated_constraints(self, sample: Sample) -> ConstraintCollection:
-        return ConstraintCollection._from_pycc(self._m.violated_constraints(sample))
+        return wrap_cc(self._m.violated_constraints(sample))
 
     def substitute(
         self, /, target: Variable, replacement: Expression | Variable
     ) -> None:
-        if isinstance(replacement, Expression):
-            self._m.substitute(target._v, replacement._expr)
-        elif isinstance(replacement, Variable):
-            self._m.substitute(target._v, replacement._v)
+        if isinstance(replacement, lm.e.Expression):  # type: ignore[attribute]
+            self._m.substitute(target._v, replacement._expr)  # type: ignore[attribute]
+        elif isinstance(replacement, lm.v.Variable):  # type: ignore[attribute]
+            self._m.substitute(target._v, replacement._v)  # type: ignore[attribute]
         else:
             raise TypeError(
                 f"cannot use '{type(replacement)}' as a replacement in substitution"
@@ -166,7 +169,7 @@ class Model:
         return cls.decode(data)
 
     def deep_clone(self) -> Model:
-        return Model._from_pym(self._m.deep_clone())
+        return self._from_pym(self._m.deep_clone())
 
     @classmethod
     def from_(

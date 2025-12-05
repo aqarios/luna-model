@@ -1,11 +1,14 @@
 from __future__ import annotations
-
-from luna_model.expression.expr import Expression
-from luna_model.variable.var import Variable
+from typing import TYPE_CHECKING
 
 from luna_model.constraint.cmp import Comparator
 
 from luna_model._lm import PyConstraint
+import luna_model._reexport as lm
+
+if TYPE_CHECKING:
+    from luna_model.expression.expr import Expression
+    from luna_model.variable.var import Variable
 
 
 class Constraint:
@@ -18,10 +21,10 @@ class Constraint:
         comparator: Comparator,
         name: str,
     ) -> None:
-        lhs = lhs._v if isinstance(lhs, Variable) else lhs._expr
+        lhs = lhs._v if isinstance(lhs, lm.v.Variable) else lhs._expr  # type: ignore[attribute]
         rhs = (
-            (rhs._v if isinstance(rhs, Variable) else rhs._expr)
-            if isinstance(rhs, Variable | Expression)
+            (rhs._v if isinstance(rhs, lm.v.Variable) else rhs._expr)  # type: ignore[attribute]
+            if isinstance(rhs, lm.v.Variable | lm.e.Expression)  # type: ignore[attribute]
             else rhs
         )
         self._c = PyConstraint(lhs, rhs, comparator.value, name)

@@ -1,46 +1,22 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Callable, Literal, TypeAlias
+from typing import TYPE_CHECKING, Literal
 
-from numpy.typing import NDArray
-
-from luna_model.model.model import Model
-from luna_model.model.sense import Sense
-from luna_model.solution.res import ResultIter, ResultView
-from luna_model.solution.src import ValueSource
-
+import luna_model._reexport as lm
 from luna_model._lm import PySolution
 from luna_model.variable.vtype import Vtype
+from luna_model.solution.src import ValueSource
 
 if TYPE_CHECKING:
     from luna_model.variable.var import Variable
     from luna_model.solution.sample import Samples
     from luna_model.solution.timer import Timing
     from luna_model.environment.environment import Environment
+    from luna_model.model.model import Model
+    from luna_model.model.sense import Sense
+    from luna_model.solution.res import ResultIter, ResultView
+    from luna_model._typing import FilterFn, SoutionFromTypes
 
-    _Sample: TypeAlias = (
-        dict[str | Variable, float | int]
-        | dict[str | Variable, float]
-        | dict[str | Variable, int]
-        | dict[str, float]
-        | dict[str, int]
-        | dict[str, float | int]
-        | dict[Variable, float]
-        | dict[Variable, int]
-        | dict[Variable, float | int]
-    )
-    _SampleList: TypeAlias = list[_Sample]
-    from qiskit.primitives import PrimitiveResult, PubResult  # type: ignore[import]
-    from pyscipopt import Model as ScipModel  # type: ignore[import]
-    from dimod import SampleSet  # type: ignore[import]
-
-SoutionFromTypes: TypeAlias = (
-    dict[str, Any]
-    | SampleSet
-    | PrimitiveResult[PubResult]
-    | ScipModel
-    | _Sample
-    | _SampleList
-)
+    from numpy.typing import NDArray
 
 
 class Solution:
@@ -117,7 +93,7 @@ class Solution:
     def feasibility_ratio(self) -> float:
         return self._s.feasibility_ratio()
 
-    def filter(self, f: Callable[[ResultView], bool]) -> Solution:
+    def filter(self, f: FilterFn) -> Solution:
         return self._from_pys(self._s.filter(f))
 
     def filter_feasible(self) -> Solution:
@@ -150,7 +126,11 @@ class Solution:
     def add_var(
         self, var: str | Variable, data: list[int | float], vtype: Vtype = Vtype.BINARY
     ) -> None:
-        self._s.add_var(var._v if isinstance(var, Variable) else var, data, vtype.value)
+        self._s.add_var(
+            var._v if isinstance(var, lm.v.Variable) else var,  # type: ignore[attribute]
+            data,
+            vtype.value,  # type: ignore[attribute]
+        )
 
     def add_vars(
         self,
@@ -159,17 +139,17 @@ class Solution:
         vtypes: list[Vtype | None] | None = None,
     ) -> None:
         self._s.add_vars(
-            [var._v if isinstance(var, Variable) else var for var in variables],
+            [var._v if isinstance(var, lm.v.Variable) else var for var in variables],  # type: ignore[attribute]
             data,
             [v.value if v else None for v in vtypes] if vtypes else None,
         )
 
     def remove_var(self, var: str | Variable) -> None:
-        self._s.remove_var(var._v if isinstance(var, Variable) else var)
+        self._s.remove_var(var._v if isinstance(var, lm.v.Variable) else var)  # type: ignore[attribute]
 
     def remove_vars(self, variables: list[str | Variable]) -> None:
         self._s.remove_vars(
-            [var._v if isinstance(var, Variable) else var for var in variables]
+            [var._v if isinstance(var, lm.v.Variable) else var for var in variables]  # type: ignore[attribute]
         )
 
     def __len__(self) -> int:
@@ -222,7 +202,7 @@ class Solution:
             PySolution.from_dict(
                 data=data,
                 env=env._env if env else None,
-                model=model._m if model else None,
+                model=model._m if model else None,  # type: ignore[attribute]
                 timing=timing,
                 counts=counts,
                 sense=sense.value if sense else None,
@@ -244,7 +224,7 @@ class Solution:
             PySolution.from_dicts(
                 data=data,
                 env=env._env if env else None,
-                model=model._m if model else None,
+                model=model._m if model else None,  # type: ignore[attribute]
                 timing=timing,
                 counts=counts,
                 sense=sense.value if sense else None,
@@ -268,7 +248,7 @@ class Solution:
             PySolution.from_counts(
                 data=data,
                 env=env._env if env else None,
-                model=model._m if model else None,
+                model=model._m if model else None,  # type: ignore[attribute]
                 timing=timing,
                 sense=sense.value if sense else None,
                 bit_order=bit_order,

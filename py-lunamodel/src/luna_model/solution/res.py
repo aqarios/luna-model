@@ -1,9 +1,9 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
-from luna_model.solution.sample import Sample
 
 if TYPE_CHECKING:
+    from luna_model.solution.sample import Sample
     from numpy.typing import NDArray
 
 

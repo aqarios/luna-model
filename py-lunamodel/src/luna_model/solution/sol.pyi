@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, TypeAlias, overload
+from typing import TYPE_CHECKING, Any, overload
 
 from numpy.typing import NDArray
 
@@ -14,27 +14,8 @@ from qiskit_optimization import QuadraticProgram  # type: ignore[import]
 from pyscipopt import Model as ScipModel  # type: ignore[import]
 from dimod import SampleSet  # type: ignore[import]
 
-SoutionFromTypes: TypeAlias = (
-    dict[str, Any]
-    | SampleSet
-    | PrimitiveResult[PubResult]
-    | ScipModel
-    | _Sample
-    | _SampleList
-)
-
-_Sample: TypeAlias = (
-    dict[str | Variable, float | int]
-    | dict[str | Variable, float]
-    | dict[str | Variable, int]
-    | dict[str, float]
-    | dict[str, int]
-    | dict[str, float | int]
-    | dict[Variable, float]
-    | dict[Variable, int]
-    | dict[Variable, float | int]
-)
-_SampleList: TypeAlias = list[_Sample]
+if TYPE_CHECKING:
+    from luna_model._typing import _SampleList, _Sample
 
 class Solution:
     @overload

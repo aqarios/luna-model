@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from luna_model._lm import Variable
+if TYPE_CHECKING:
+    from luna_model.variable import Variable
 
 
 class Sample(Protocol):

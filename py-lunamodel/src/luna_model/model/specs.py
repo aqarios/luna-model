@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from luna_model.variable import Vtype
-
-from luna_model.model.sense import Sense
 from luna_model.model.ctype import Ctype
+from luna_model.model.sense import Sense
 
 from luna_model._lm import PyModelSpecs
 

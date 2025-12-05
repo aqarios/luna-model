@@ -1,16 +1,16 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from luna_model.environment.environment import Environment
-from luna_model.variable.var import Variable
-from luna_model.solution.sol import Solution
-
+from luna_model._utils import wrap_env, wrap_var, wrap_c
+import luna_model._reexport as lm
 from luna_model._lm import PyExpression
-
 
 if TYPE_CHECKING:
     from luna_model.expression.iter import ExprIter
     from luna_model.constraint import Constraint
+    from luna_model.variable.var import Variable
+    from luna_model.solution.sol import Solution
+    from luna_model.environment.environment import Environment
     from numpy.typing import NDArray
 
 
@@ -20,7 +20,7 @@ class Expression:
     def __init__(self, env: Environment | None = None) -> None:
         if env is None:
             self._expr = PyExpression()
-        elif isinstance(env, Environment):
+        else:
             self._expr = PyExpression(env._env)
 
     @classmethod
@@ -36,7 +36,7 @@ class Expression:
 
     @property
     def environment(self) -> Environment:
-        return Environment._from_pyenv(self._expr.env)
+        return wrap_env(self._expr.env)
 
     @property
     def num_variables(self) -> int:
@@ -52,7 +52,7 @@ class Expression:
         return self._from_pyexpr(self._expr.subsitute(target, replacement))
 
     def evaluate(self, solution: Solution) -> NDArray:
-        return self._expr.evaluate(solution._s)
+        return self._expr.evaluate(solution._s)  # type: ignore[attribute]
 
     def get_offset(self) -> float:
         return self._expr.get_offset()
@@ -70,23 +70,22 @@ class Expression:
         return self._expr.items()
 
     def variables(self) -> list[Variable]:
-        return [Variable._from_pyvar(v) for v in self._expr.variables()]
+        return [wrap_var(v) for v in self._expr.variables()]
 
     def degree(self) -> int:
         return self._expr.degree()
 
     def linear_items(self) -> list[tuple[Variable, float]]:
-        return [(Variable._from_pyvar(v), b) for v, b in self._expr.linear_items()]
+        return [(wrap_var(v), b) for v, b in self._expr.linear_items()]
 
     def quadratic_items(self) -> list[tuple[Variable, Variable, float]]:
         return [
-            (Variable._from_pyvar(u), Variable._from_pyvar(v), b)
-            for u, v, b in self._expr.quadratic_items()
+            (wrap_var(u), wrap_var(v), b) for u, v, b in self._expr.quadratic_items()
         ]
 
     def higher_order_items(self) -> list[tuple[list[Variable], float]]:
         return [
-            ([Variable._from_pyvar(v) for v in vars], b)
+            ([wrap_var(v) for v in vars], b)
             for vars, b in self._expr.higher_order_items()
         ]
 
@@ -174,20 +173,20 @@ class Expression:
         return self._from_pyexpr(self._expr.__neg__())
 
     def _op(self, other: Expression | Variable | int | float, fn) -> PyExpression:
-        if isinstance(other, Expression):
-            res = fn(other._expr)
-        elif isinstance(other, Variable):
-            res = fn(other._v)
+        if isinstance(other, lm.e.Expression):  # type: ignore[attribute]
+            res = fn(other._expr)  # type: ignore[attribute]
+        elif isinstance(other, lm.v.Variable):  # type: ignore[attribute]
+            res = fn(other._v)  # type: ignore[attribute]
         else:
             res = fn(other)
         return res
 
     @classmethod
     def _cmp(cls, other: Expression | Variable | int | float, fn) -> Constraint:
-        if isinstance(other, Expression):
-            pyc = fn(other._expr)
-        elif isinstance(other, Variable):
-            pyc = fn(other._v)
+        if isinstance(other, lm.e.Expression):  # type: ignore[attribute]
+            pyc = fn(other._expr)  # type: ignore[attribute]
+        elif isinstance(other, lm.v.Variable):  # type: ignore[attribute]
+            pyc = fn(other._v)  # type: ignore[attribute]
         else:
             pyc = fn(other)
-        return Constraint._from_pyc(pyc)
+        return wrap_c(pyc)

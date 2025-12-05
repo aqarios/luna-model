@@ -1,8 +1,11 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 
+from luna_model._utils import wrap_var
 from luna_model._lm import PyEnvironment
 
-from luna_model.variable.var import Variable
+if TYPE_CHECKING:
+    from luna_model.variable import Variable
 
 
 class Environment:
@@ -28,10 +31,10 @@ class Environment:
         return self._env.num_variables
 
     def get_variable(self, name: str) -> Variable:
-        return Variable._from_pyvar(self._env.get_variable(name))
+        return wrap_var(self._env.get_variable(name))
 
     def variables(self) -> list[Variable]:
-        return [Variable._from_pyvar(v) for v in self._env.variables()]
+        return [wrap_var(v) for v in self._env.variables()]
 
     def equal_contents(self, other: Environment) -> bool:
         return self._env.equal_contents(other._env)

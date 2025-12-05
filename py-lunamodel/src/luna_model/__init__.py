@@ -25,7 +25,7 @@ from luna_model.variable import (
 from luna_model.model import (
     Model,
     ModelSpecs,
-    ConstraintType,
+    Ctype,
     Sense,
 )
 from luna_model.constraint import (
@@ -66,7 +66,7 @@ __all__ = [
     "Unbounded",
     "ModelSpecs",
     "Model",
-    "ConstraintType",
+    "Ctype",
     "Sense",
     "Constraint",
     "Comparator",

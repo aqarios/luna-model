@@ -1,12 +1,14 @@
 from __future__ import annotations
-
-from luna_model.environment.environment import Environment
+from typing import TYPE_CHECKING
 
 from luna_model.constraint.constr import Constraint
-from luna_model.constraint.cmp import Comparator
-from luna_model.constraint.iter import ConstraintCollectionIter
-
+from luna_model._utils import wrap_c
 from luna_model._lm import PyConstraintCollection
+
+if TYPE_CHECKING:
+    from luna_model.environment.environment import Environment
+    from luna_model.constraint.cmp import Comparator
+    from luna_model.constraint.iter import ConstraintCollectionIter
 
 
 class ConstraintCollection:
@@ -37,7 +39,7 @@ class ConstraintCollection:
         return self.encode(compress, level)
 
     def get(self, item: str) -> Constraint:
-        return Constraint._from_pyc(self._cc.get(item))
+        return wrap_c(self._cc.get(item))
 
     def remove(self, item: str) -> None:
         self._cc.remove(item)

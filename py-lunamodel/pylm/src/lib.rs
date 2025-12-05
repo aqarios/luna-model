@@ -10,9 +10,11 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<Sense>()?;
     m.add_class::<Ctype>()?;
     m.add_class::<Comparator>()?;
-    // // Enums from lunamodel-translate
+    // Enums from lunamodel-translate
     m.add_class::<TranslationTarget>()?;
     m.add_class::<SolutionSource>()?;
+    // extaa
+    m.add_class::<PyUnbounded>()?;
     // Classes
     m.add_class::<PyExpression>()?;
     m.add_class::<PyVariable>()?;

@@ -1,26 +1,20 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from luna_model.constraint.constr import Constraint
-from luna_model.environment.environment import Environment
-from luna_model.expression.expr import Expression
 
+import luna_model._reexport as lm
+from luna_model._utils import wrap_b, wrap_env, wrap_expr, wrap_c
 from luna_model.variable.vtype import Vtype
-from luna_model.variable.bounds import Bounds, Unbounded
-
-from luna_model._lm import PyVariable, PyExpression
+from luna_model._lm import PyVariable
 
 if TYPE_CHECKING:
-    from typing import Protocol
-    from luna_model._lm import PyBounds
+    from luna_model._typing import VBounds
+    from luna_model.constraint.constr import Constraint
+    from luna_model.environment.environment import Environment
+    from luna_model.expression.expr import Expression
+    from luna_model.variable.bounds import Bounds
 
-    class VBounds(Protocol):
-        @property
-        def _b(self) -> PyBounds: ...
-        @property
-        def upper(self) -> float | type[Unbounded]: ...
-        @property
-        def lower(self) -> float | type[Unbounded]: ...
+    from luna_model._lm import PyExpression
 
 
 class Variable:
@@ -56,7 +50,7 @@ class Variable:
 
     @property
     def bounds(self) -> VBounds:
-        return Bounds._from_pyb(self._v.bounds)
+        return wrap_b(self._v.bounds)
 
     @property
     def vtype(self) -> Vtype:
@@ -64,34 +58,34 @@ class Variable:
 
     @property
     def environment(self) -> Environment:
-        return Environment._from_pyenv(self._v.environment)
+        return wrap_env(self._v.environment)
 
     def inv(self) -> Variable:
         return self._from_pyvar(self._v.inv())
 
     def __add__(self, other: Expression | Variable | int | float) -> Expression:
-        return Expression._from_pyexpr(self._op(other, self._v.__add__))
+        return wrap_expr(self._op(other, self._v.__add__))
 
     def __sub__(self, other: Expression | Variable | int | float) -> Expression:
-        return Expression._from_pyexpr(self._op(other, self._v.__sub__))
+        return wrap_expr(self._op(other, self._v.__sub__))
 
     def __mul__(self, other: Expression | Variable | int | float) -> Expression:
-        return Expression._from_pyexpr(self._op(other, self._v.__mul__))
+        return wrap_expr(self._op(other, self._v.__mul__))
 
     def __radd__(self, other: Expression | Variable | int | float) -> Expression:
-        return Expression._from_pyexpr(self._op(other, self._v.__radd__))
+        return wrap_expr(self._op(other, self._v.__radd__))
 
     def __rsub__(self, other: Expression | Variable | int | float) -> Expression:
-        return Expression._from_pyexpr(self._op(other, self._v.__rsub__))
+        return wrap_expr(self._op(other, self._v.__rsub__))
 
     def __rmul__(self, other: Expression | Variable | int | float) -> Expression:
-        return Expression._from_pyexpr(self._op(other, self._v.__rmul__))
+        return wrap_expr(self._op(other, self._v.__rmul__))
 
     def __pow__(self, other: int) -> Expression:
-        return Expression._from_pyexpr(self._v.__pow__(other))
+        return wrap_expr(self._v.__pow__(other))
 
     def __neg__(self) -> Expression:
-        return Expression._from_pyexpr(self._v.__neg__())
+        return wrap_expr(self._v.__neg__())
 
     def __invert__(self) -> Variable:
         return self._from_pyvar(self._v.__invert__())
@@ -109,19 +103,19 @@ class Variable:
         return self._v.__hash__()
 
     def _op(self, other: Expression | Variable | int | float, fn) -> PyExpression:
-        if isinstance(other, Expression):
-            res = fn(other._expr)
-        elif isinstance(other, Variable):
-            res = fn(other._v)
+        if isinstance(other, lm.e.Expression):
+            res = fn(other._expr)  # type: ignore[attribute]
+        elif isinstance(other, lm.v.Variable):
+            res = fn(other._v)  # type: ignore[attribute]
         else:
             res = fn(other)
         return res
 
     def _cmp(self, other: Expression | Variable | int | float, fn) -> Constraint:
-        if isinstance(other, Expression):
-            pyc = fn(other._expr)
-        elif isinstance(other, Variable):
-            pyc = fn(other._v)
+        if isinstance(other, lm.e.Expression):
+            pyc = fn(other._expr)  # type: ignore[attribute]
+        elif isinstance(other, lm.v.Variable):
+            pyc = fn(other._v)  # type: ignore[attribute]
         else:
             pyc = fn(other)
-        return Constraint._from_pyc(pyc)
+        return wrap_c(pyc)
