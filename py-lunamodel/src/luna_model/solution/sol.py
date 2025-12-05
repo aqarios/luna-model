@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     _SampleList: TypeAlias = list[_Sample]
     from qiskit.primitives import PrimitiveResult, PubResult  # type: ignore[import]
     from pyscipopt import Model as ScipModel  # type: ignore[import]
-    from dimod import SampleSet # type: ignore[import]
+    from dimod import SampleSet  # type: ignore[import]
 
 SoutionFromTypes: TypeAlias = (
     dict[str, Any]

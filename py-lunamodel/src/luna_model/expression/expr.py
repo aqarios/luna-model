@@ -14,10 +14,6 @@ if TYPE_CHECKING:
 
 
 class Expression:
-    """
-    todo
-    """
-
     _expr: PyExpression
 
     def __init__(self, env: Environment | None = None) -> None:
@@ -35,7 +31,6 @@ class Expression:
 
     @classmethod
     def const(cls, value: float, /, env: Environment | None = None) -> Expression:
-        """ """
         return cls._from_pyexpr(PyExpression.const(value, env))
 
     @property

@@ -9,8 +9,6 @@ from luna_model._lm import PyConstraintCollection
 
 
 class ConstraintCollection:
-    """ """
-
     _cc: PyConstraintCollection
 
     def __init__(self) -> None:
@@ -18,6 +16,7 @@ class ConstraintCollection:
 
     @classmethod
     def _from_pycc(cls, py_cc: PyConstraintCollection) -> ConstraintCollection:
+        """Construct LunaModel ConstraintCollection from FFI PyConstraintCollection object."""
         cc = cls.__new__(cls)
         cc._cc = py_cc
         return cc

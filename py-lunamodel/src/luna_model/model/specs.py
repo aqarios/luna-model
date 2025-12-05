@@ -37,7 +37,6 @@ class ModelSpecs:
 
     @property
     def sense(self) -> Sense | None:
-        """The sense specification, can be `None` if no sense spec is available."""
         pys = self._sp.sense
         if pys:
             return Sense(pys)
@@ -45,48 +44,23 @@ class ModelSpecs:
 
     @property
     def max_degree(self) -> int | None:
-        """The specification for the max degree of the objective function.
-
-        Can be `None` if no max_degree spec is available.
-        """
-        self._sp.max_degree
+        return self._sp.max_degree
 
     @property
     def max_constraint_degree(self) -> int | None:
-        """The specification for the max degree of all constraints.
-
-        Can be `None` if no max_constraint_degree spec is available.
-        """
-        self._sp.max_constraint_degree
+        return self._sp.max_constraint_degree
 
     @property
     def max_num_variables(self) -> int | None:
-        """The specification for the max number of variables in the model.
-
-        Can be `None` if no max_num_variables spec is available.
-        """
-        self._sp.max_num_variables
+        return self._sp.max_num_variables
 
     @property
     def vtypes(self) -> list[Vtype] | None:
-        """The vtypes specification, can be `None` if no vtypes spec is available."""
         return [Vtype(v) for v in self._sp.vtypes]
 
     @property
     def constraints(self) -> list[ConstraintType] | None:
-        """
-        The constraints specification.
-
-        Can be `None` if no constraints spec is available.
-        """
         return [ConstraintType(c) for c in self._sp.constraints]
 
     def satisfies(self, other: ModelSpecs) -> bool:
-        """Check if `self` satisfies the model specs given in `other`.
-
-        Parameters
-        ----------
-        other : ModelSpecs
-            The model specifications `self` should satisfy.
-        """
         return self._sp.satisfies(other._sp)

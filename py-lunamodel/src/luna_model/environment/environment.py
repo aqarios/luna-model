@@ -1,6 +1,8 @@
 from __future__ import annotations
-from luna_model._lm import PyEnvironment
+
 from luna_model.variable.var import Variable
+
+from luna_model._lm import PyEnvironment
 
 
 class Environment:

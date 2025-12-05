@@ -8,8 +8,6 @@ from luna_model.constraint.cmp import Comparator
 
 
 class Constraint:
-    """ """
-
     _c: PyConstraint
 
     def __init__(
