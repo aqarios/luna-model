@@ -17,10 +17,6 @@ def test_creation(lower, upper):
 @pytest.mark.parametrize("lower, upper", itertools.product(bound_value, bound_value))
 def test_access(lower, upper):
     b = Bounds(lower, upper)
-    print(b)
-    print(type(b.lower))
-    print(type(b.upper))
-    print(type(Unbounded))
     assert lower == b.lower
     assert upper == b.upper
 

@@ -1,8 +1,8 @@
 use lunamodel_error::py::PyLunaModelError;
 use lunamodel_types::Bound;
 use pyo3::{
-    FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, PyTypeInfo, Python,
-    pyclass, pymethods, types::PyAnyMethods,
+    BoundObject, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, PyTypeInfo,
+    Python, pyclass, pymethods, types::PyAnyMethods,
 };
 
 #[pyclass(subclass)]
@@ -80,7 +80,7 @@ impl<'py> IntoPyObject<'py> for BoundValue {
     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         match self {
             Self::None => Ok(py.None().into_bound(py)),
-            Self::Unbounded => Ok(PyUnbounded.into_py_any(py)?.into_bound(py)),
+            Self::Unbounded => Ok(PyUnbounded::type_object(py).into_py_any(py)?.into_bound(py)),
             Self::Value(val) => Ok(val.into_py_any(py)?.into_bound(py)),
         }
     }

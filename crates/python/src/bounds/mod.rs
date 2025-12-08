@@ -1,20 +1,22 @@
 mod access;
 mod creation;
+mod io;
 mod unbounded;
+mod cmp;
 
 use lunamodel_core::prelude::{Bounds, LazyBounds};
 use pyo3::pyclass;
 
 pub use unbounded::PyUnbounded;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum BoundsContent {
     Concrete(Bounds),
     Lazy(LazyBounds),
 }
 
 #[pyclass]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PyBounds(pub BoundsContent);
 
 impl From<Bounds> for BoundsContent {
