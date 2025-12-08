@@ -1,11 +1,11 @@
 from __future__ import annotations
-
+from typing import TypeAlias
 
 from luna_model.variable.vtype import Vtype
 from luna_model._lm import PyBounds, PyUnbounded
 
 
-class Unbounded(PyUnbounded): ...
+Unbounded: TypeAlias = PyUnbounded
 
 
 class Bounds:
@@ -31,7 +31,7 @@ class Bounds:
 
     @property
     def upper(self) -> float | type[Unbounded] | None:
-        return self._b.lower
+        return self._b.upper
 
     @classmethod
     def default(cls, vtype: Vtype) -> Bounds:
@@ -65,3 +65,12 @@ class Bounds:
     @classmethod
     def real(cls) -> Bounds:
         return cls._from_pyb(PyBounds.real())
+
+    def __str__(self) -> str:
+        return self._b.__str__()
+
+    def __repr__(self) -> str:
+        return self._b.__repr__()
+
+    def __eq__(self, other: Bounds) -> bool:  # type: ignore[override]
+        return self._b.__eq__(other._b)

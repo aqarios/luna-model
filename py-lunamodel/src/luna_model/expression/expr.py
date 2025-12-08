@@ -177,6 +177,12 @@ class Expression:
         env_data = self.environment.encode()
         return Expression.decode, (data, env_data)
 
+    def __str__(self) -> str:
+        return self._expr.__str__()
+
+    def __repr__(self) -> str:
+        return self._expr.__repr__()
+
     def _op(self, other: Expression | Variable | int | float, fn) -> PyExpression:
         if isinstance(other, lm.e.Expression):  # type: ignore[attribute]
             res = fn(other._expr)  # type: ignore[attribute]
