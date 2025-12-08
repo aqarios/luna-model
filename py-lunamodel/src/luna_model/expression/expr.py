@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 from luna_model._utils import wrap_env, wrap_var, wrap_c
 import luna_model._reexport as lm
@@ -41,18 +41,6 @@ class Expression:
     @property
     def num_variables(self) -> int:
         return self._expr.num_variables
-
-    def separate(self, variables: list[Variable]) -> tuple[Expression, Expression]:
-        lhs, rhs = self._expr.separate([v._v for v in variables])
-        return (self._from_pyexpr(lhs), self._from_pyexpr(rhs))
-
-    def subsitute(
-        self, target: Variable, replacement: Expression | Variable
-    ) -> Expression:
-        return self._from_pyexpr(self._expr.subsitute(target, replacement))
-
-    def evaluate(self, solution: Solution) -> NDArray:
-        return self._expr.evaluate(solution._s)  # type: ignore[attribute]
 
     def get_offset(self) -> float:
         return self._expr.get_offset()
@@ -97,6 +85,18 @@ class Expression:
 
     def has_higher_order(self) -> bool:
         return self._expr.has_higher_order()
+
+    def separate(self, variables: list[Variable]) -> tuple[Expression, Expression]:
+        lhs, rhs = self._expr.separate([v._v for v in variables])
+        return (self._from_pyexpr(lhs), self._from_pyexpr(rhs))
+
+    def subsitute(
+        self, target: Variable, replacement: Expression | Variable
+    ) -> Expression:
+        return self._from_pyexpr(self._expr.subsitute(target, replacement))
+
+    def evaluate(self, solution: Solution) -> NDArray:
+        return self._expr.evaluate(solution._s)  # type: ignore[attribute]
 
     def is_equal(self, other: Expression) -> bool:
         return self._expr.is_equal(other._expr)
@@ -160,6 +160,9 @@ class Expression:
     def __ipow__(self, other: int):
         self._op(other, self._expr.__ipow__)
 
+    def __neg__(self) -> Expression:
+        return self._from_pyexpr(self._expr.__neg__())
+
     def __eq__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
         return self._cmp(other, self._expr.__eq__)
 
@@ -169,8 +172,10 @@ class Expression:
     def __ge__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
         return self._cmp(other, self._expr.__ge__)
 
-    def __neg__(self) -> Expression:
-        return self._from_pyexpr(self._expr.__neg__())
+    def __reduce__(self) -> tuple[Callable, Any]:
+        data = self.encode()
+        env_data = self.environment.encode()
+        return Expression.decode, (data, env_data)
 
     def _op(self, other: Expression | Variable | int | float, fn) -> PyExpression:
         if isinstance(other, lm.e.Expression):  # type: ignore[attribute]

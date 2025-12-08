@@ -27,10 +27,10 @@ pub trait LmSubAssign<Rhs> {
 }
 
 pub(super) mod internal {
-    pub trait PrvAdd<Rhs> {
-        type Output;
-        fn a(self, rhs: Rhs) -> Self::Output;
-    }
+    // pub trait PrvAdd<Rhs> {
+    //     type Output;
+    //     fn a(self, rhs: Rhs) -> Self::Output;
+    // }
     pub trait PrvAddAssign<Rhs> {
         fn aa(&mut self, rhs: Rhs);
     }
@@ -38,7 +38,7 @@ pub(super) mod internal {
         type Output;
         fn m(self, rhs: Rhs) -> Self::Output;
     }
-    pub trait PrvMulAssign<Rhs> {
-        fn ma(&mut self, rhs: Rhs);
-    }
+    // pub trait PrvMulAssign<Rhs> {
+    //     fn ma(&mut self, rhs: Rhs);
+    // }
 }

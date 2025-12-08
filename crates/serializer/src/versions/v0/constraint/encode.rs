@@ -1,0 +1,31 @@
+use lunamodel_core::prelude::ConstraintCollection;
+use lunamodel_types::Comparator;
+use prost::Message;
+
+use crate::encode::{BytesEncodable, Encodable};
+
+use super::SerConstraintCollection;
+
+impl BytesEncodable for SerConstraintCollection {
+    fn encode_to_bytes(&self) -> Vec<u8> {
+        self.encode_to_vec()
+    }
+}
+
+impl SerConstraintCollection {
+    pub fn fill(mut self, cc: &ConstraintCollection) -> Self {
+        for (_, c) in cc.iter() {
+            let lhs_bytes = c.lhs.serialize();
+            let cmp = match c.comparator {
+                Comparator::Le => 0,
+                Comparator::Eq => 1,
+                Comparator::Ge => 2,
+            };
+            self.lhsides.push(lhs_bytes);
+            self.rhsides.push(c.rhs);
+            self.comparators.push(cmp);
+            self.names.push(c.name.clone());
+        }
+        self
+    }
+}

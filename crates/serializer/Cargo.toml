@@ -12,6 +12,8 @@ prost = { workspace = true }
 zstd = { workspace = true }
 bitvec = { workspace = true }
 parking_lot = { workspace = true }
+hashbrown = { workspace = true }
+indexmap = { workspace = true }
 
 lunamodel-error = { workspace = true }
 lunamodel-core = { workspace = true }

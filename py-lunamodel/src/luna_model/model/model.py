@@ -129,7 +129,7 @@ class Model:
         self._m.set_objective(expression._expr, sense.value if sense else None)
 
     def evaluate(self, solution: Solution) -> Solution:
-        return wrap_s(self._m.evaluate(solution._s))
+        return wrap_s(self._m.evaluate(solution._s))  # type: ignore[attribute]
 
     def evaluate_sample(self, sample: Sample) -> Result:
         return self._m.evaluate(sample)

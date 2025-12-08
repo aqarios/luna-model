@@ -88,9 +88,6 @@ impl ContentEquality for ArcEnv {
         let slf = &self.env.read_arc();
         let otr = &other.env.read_arc();
 
-        slf.next_idx == otr.next_idx
-            && slf.variables == otr.variables
-            && slf.lookup == otr.lookup
-            && slf.inverted == otr.inverted
+        slf.next_idx == otr.next_idx && slf.variables == otr.variables && slf.lookup == otr.lookup
     }
 }

@@ -17,6 +17,7 @@ pub use dtypes::{
 };
 pub use sense::Sense;
 pub use specs::{Ctype, Specs};
+pub use utils::EnumSetFromVec;
 pub use varid::VarId;
 pub use varname::VarName;
 pub use vtype::Vtype;

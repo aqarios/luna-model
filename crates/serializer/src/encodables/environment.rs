@@ -1,4 +1,4 @@
-use crate::encode::{Decodable, Encodable};
+use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerEnvironment as SerEnvV0;
 

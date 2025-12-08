@@ -2,6 +2,9 @@ mod access;
 mod creation;
 mod deepclone;
 mod equality;
+mod evaluate;
+mod separate;
+mod subsitute;
 
 pub mod term;
 
@@ -70,7 +73,6 @@ impl Debug for Expression {
             .field("quadratic", &self.quadratic)
             .field("higher_order", &self.higher_order)
             .field("num_vars", &self.num_vars)
-
             .finish()
     }
 }

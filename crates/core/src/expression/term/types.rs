@@ -108,23 +108,23 @@ impl TwoVarTerm {
         Self { idx, neighborhood }
     }
 
-    pub fn empty(idx: VarIdx) -> Self {
-        Self {
-            idx,
-            neighborhood: Neighborhood::default(),
-        }
-    }
+    // pub fn empty(idx: VarIdx) -> Self {
+    //     Self {
+    //         idx,
+    //         neighborhood: Neighborhood::default(),
+    //     }
+    // }
 
-    pub fn is_empty(&self) -> bool {
-        self.neighborhood.is_empty()
-    }
+    // pub fn is_empty(&self) -> bool {
+    //     self.neighborhood.is_empty()
+    // }
 
-    pub fn push(&mut self, neighbor: OneVarTerm) -> &mut Self {
-        self.neighborhood.push(neighbor);
-        self
-    }
+    // pub fn push(&mut self, neighbor: OneVarTerm) -> &mut Self {
+    //     self.neighborhood.push(neighbor);
+    //     self
+    // }
 
-    pub fn last(&self) -> Option<&OneVarTerm> {
-        self.neighborhood.last()
-    }
+    // pub fn last(&self) -> Option<&OneVarTerm> {
+    //     self.neighborhood.last()
+    // }
 }

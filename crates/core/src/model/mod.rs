@@ -4,7 +4,7 @@ mod equality;
 mod specs;
 // mod substitution;
 // mod evaluation;
-mod deepclone;
+// mod deepclone;
 mod sense;
 
 use std::fmt::{Debug, Display, Formatter};

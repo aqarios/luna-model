@@ -1,8 +1,8 @@
-use crate::encode::{Decodable, Encodable};
+use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerConstraintCollection as SerConstrCollV0;
 
-use lunamodel_core::{ConstraintCollection, ArcEnv};
+use lunamodel_core::{ArcEnv, ConstraintCollection};
 use lunamodel_error::LunaModelResult;
 
 /// Helper type to ensure easier version updates to a new serialization implementation

@@ -2,9 +2,9 @@ use hashbrown::HashMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::VarIdx;
 
-pub(super) fn freeidx(freeidx: &mut Vec<VarIdx>, nvars: VarIdx) -> VarIdx {
-    freeidx.pop().map_or_else(|| nvars, |i| i)
-}
+// pub(super) fn freeidx(freeidx: &mut Vec<VarIdx>, nvars: VarIdx) -> VarIdx {
+//     freeidx.pop().map_or_else(|| nvars, |i| i)
+// }
 
 // the error strings shoud be contants I guess. Too much magic here?
 pub(super) fn ensure_name_valid(name: &str) -> LunaModelResult<()> {

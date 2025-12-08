@@ -15,24 +15,41 @@ use crate::{
 
 pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Environment {
     pub(crate) id: EnvIdx,
     pub(crate) variables: HashMap<VarIdx, Variable>,
     pub(crate) lookup: HashMap<String, VarIdx>,
-    pub(crate) inverted: Vec<VarIdx>,
     pub(crate) next_idx: VarIdx,
 }
 
-impl Environment {
-    pub fn default() -> Self {
+impl Default for Environment {
+    fn default() -> Self {
         Self {
             id: ENV_COUNTER.inc(),
             variables: HashMap::new(),
             lookup: HashMap::new(),
-            inverted: Vec::new(),
             next_idx: 0,
         }
+    }
+}
+
+impl Environment {
+    pub fn new(
+        variables: HashMap<VarIdx, Variable>,
+        lookup: HashMap<String, VarIdx>,
+        next_idx: VarIdx,
+    ) -> Self {
+        Self {
+            id: ENV_COUNTER.inc(),
+            variables,
+            lookup,
+            next_idx,
+        }
+    }
+
+    pub fn next_idx(&self) -> VarIdx {
+        self.next_idx
     }
 
     pub fn len(&self) -> usize {
@@ -51,7 +68,7 @@ impl Environment {
     ) -> LunaModelResult<VarIdx> {
         ensure_name_valid(name)?;
         ensure_unused(&self.lookup, name)?;
-        let var = Variable::new(name, vtype, bounds, self.id)?;
+        let var = Variable::new(name, vtype, bounds)?; //, self.id)?;
         let idx = self.next_idx;
         self.variables.insert(idx, var);
         self.lookup.insert(name.into(), idx);
@@ -69,7 +86,7 @@ impl Environment {
         let inv_name = basevar.name.inverted();
         ensure_unused(&self.lookup, &inv_name)?;
         let idx = self.next_idx;
-        let mut var = Variable::new(&inv_name, Vtype::InvertedBinary, None, self.id)?;
+        let mut var = Variable::new(&inv_name, Vtype::InvertedBinary, None)?; //, self.id)?;
 
         var.inverted = Some(base.id);
         basevar.inverted = Some(idx);

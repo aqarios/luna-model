@@ -1,3 +1,4 @@
+use lunamodel_core::prelude::*;
 use lunamodel_serializer::prelude::*;
 use pyo3::{
     prelude::*,
@@ -6,6 +7,12 @@ use pyo3::{
 
 use super::content::PyExprContent as PyEC;
 use crate::{PyEnvironment, PyExpression};
+
+#[derive(FromPyObject)]
+enum DecodeEnvData {
+    Env(PyEnvironment),
+    Bytes(Py<PyBytes>),
+}
 
 #[pymethods]
 impl PyExpression {
@@ -75,13 +82,21 @@ impl PyExpression {
         _cls: &Bound<'_, PyType>,
         py: Python,
         data: Py<PyBytes>,
-        env: PyEnvironment,
+        env: DecodeEnvData,
     ) -> PyResult<Self> {
+        let env: ArcEnv = match env {
+            DecodeEnvData::Env(pyenv) => pyenv.env,
+            DecodeEnvData::Bytes(pybytes) => {
+                let env: Environment = pybytes
+                    .as_bytes(py)
+                    .unversionize()
+                    .decompress()?
+                    .decode(())?;
+                ArcEnv::from(env)
+            }
+        };
         Ok(PyExpression::new(
-            data.as_bytes(py)
-                .unversionize()
-                .decompress()?
-                .decode(env.env)?,
+            data.as_bytes(py).unversionize().decompress()?.decode(env)?,
         ))
     }
 
@@ -93,7 +108,7 @@ impl PyExpression {
         cls: &Bound<'_, PyType>,
         py: Python,
         data: Py<PyBytes>,
-        env: PyEnvironment,
+        env: DecodeEnvData,
     ) -> PyResult<Self> {
         Self::decode(cls, py, data, env)
     }

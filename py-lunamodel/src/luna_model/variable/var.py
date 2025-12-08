@@ -102,6 +102,12 @@ class Variable:
     def __hash__(self) -> int:
         return self._v.__hash__()
 
+    def __str__(self) -> str:
+        return self._v.__str__()
+
+    def __repr__(self) -> str:
+        return self._v.__repr__()
+
     def _op(self, other: Expression | Variable | int | float, fn) -> PyExpression:
         if isinstance(other, lm.e.Expression):
             res = fn(other._expr)  # type: ignore[attribute]

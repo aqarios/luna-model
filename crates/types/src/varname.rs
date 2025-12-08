@@ -22,3 +22,9 @@ impl Into<String> for VarName {
         self.0
     }
 }
+
+impl Into<String> for &VarName {
+    fn into(self) -> String {
+        self.0.clone()
+    }
+}

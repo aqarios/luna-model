@@ -60,7 +60,9 @@ impl ConstraintCollection {
     }
 
     pub fn vars(&self) -> impl Iterator<Item = VarRef> {
-        unique_by(self.data.iter().map(|(_, c)| c.lhs.vars()).flatten(), |v| v.id)
+        unique_by(self.data.iter().map(|(_, c)| c.lhs.vars()).flatten(), |v| {
+            v.id
+        })
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&String, &Constraint)> {
@@ -72,5 +74,11 @@ impl ContentEquality for ConstraintCollection {
     fn is_equal_contents(&self, other: &Self) -> bool {
         _ = other;
         unimplemented!()
+    }
+}
+
+impl From<IndexMap<String, Constraint>> for ConstraintCollection {
+    fn from(data: IndexMap<String, Constraint>) -> Self {
+        Self { data }
     }
 }

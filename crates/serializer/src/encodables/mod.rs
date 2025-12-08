@@ -1,6 +1,6 @@
+mod constraint_collection;
+mod environment;
 mod expression;
-// mod constraint_collection;
-// mod environment;
-// mod model;
+mod model;
 // mod solution;
 // mod timing;
