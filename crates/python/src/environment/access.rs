@@ -7,6 +7,11 @@ use super::PyEnvironment;
 #[pymethods]
 impl PyEnvironment {
     #[getter]
+    fn id(&self) -> usize {
+        self.env.read_arc().id()
+    }
+
+    #[getter]
     fn num_variables(&self) -> usize {
         self.env.len()
     }

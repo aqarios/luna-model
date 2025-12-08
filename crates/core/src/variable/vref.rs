@@ -1,10 +1,13 @@
-use std::hash::{DefaultHasher, Hash, Hasher};
+use std::{
+    fmt::{Debug, Display},
+    hash::{DefaultHasher, Hash, Hasher},
+};
 
 use crate::{bounds::Bounds, environment::ArcEnv, traits::ContentEquality};
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{VarIdx, Vtype};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct VarRef {
     pub(crate) id: VarIdx,
     pub env: ArcEnv,
@@ -46,5 +49,25 @@ impl VarRef {
 impl PartialEq for VarRef {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id && self.env.is_equal_contents(&other.env)
+    }
+}
+
+impl Display for VarRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(name) = self.name().ok() {
+            f.write_str(&format!("{}", name))
+        } else {
+            f.write_str("deleted")
+        }
+    }
+}
+
+impl Debug for VarRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&format!(
+            "Var(id={}, env_id={})",
+            self.id,
+            self.env.read_arc().id
+        ))
     }
 }

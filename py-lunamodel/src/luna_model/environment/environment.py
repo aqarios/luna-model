@@ -30,6 +30,10 @@ class Environment:
     def num_variables(self) -> int:
         return self._env.num_variables
 
+    @property
+    def id(self) -> int:
+        return self._env.id
+
     def get_variable(self, name: str) -> Variable:
         return wrap_var(self._env.get_variable(name))
 

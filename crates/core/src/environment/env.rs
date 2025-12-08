@@ -48,6 +48,10 @@ impl Environment {
         }
     }
 
+    pub fn id(&self) -> usize {
+        self.id as usize
+    }
+
     pub fn next_idx(&self) -> VarIdx {
         self.next_idx
     }
