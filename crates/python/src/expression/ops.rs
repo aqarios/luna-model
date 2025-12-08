@@ -42,7 +42,6 @@ impl PyExpression {
     }
 
     pub fn __rsub__(&self, lhs: OO) -> PyResult<Self> {
-        eprintln!("landed in expr.__rsub__");
         self.__neg__().__add__(lhs)
     }
 

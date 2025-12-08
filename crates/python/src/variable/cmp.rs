@@ -1,13 +1,22 @@
+use lunamodel_error::py::PyLunaModelError;
 use lunamodel_types::Comparator as Cmp;
 use pyo3::{PyResult, pymethods};
 
 use super::PyVariable;
-use crate::{constraint::PyConstraint, utils::{OpsOther as OO, OtherOrTuple}};
+use crate::{
+    constraint::PyConstraint,
+    utils::{OpsOther as OO, OtherOrTuple},
+};
 
 #[pymethods]
 impl PyVariable {
     fn __eq__(&self, other: OtherOrTuple) -> PyResult<PyConstraint> {
         let (o, n) = other.into();
+        if let OO::Var(_) = o {
+            return Err(PyLunaModelError::new_err(
+                "cannot use '__eq__' on two PyVariables directly. Use '.is_equal'",
+            ));
+        };
         PyConstraint::py_new(OO::Var(self.clone()), o, Cmp::Eq, n)
     }
 

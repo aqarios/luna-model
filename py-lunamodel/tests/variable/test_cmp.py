@@ -1,6 +1,6 @@
 import pytest
 
-from luna_model import Variable, Vtype, Environment, Comparator, Constraint, Expression
+from luna_model import Variable, Vtype, Environment, Comparator, Constraint
 
 vtypes = [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]
 
@@ -45,7 +45,7 @@ def test_cmp_to_expr_constr_le(lhs_vtype, rhs_vtype):
         lhs = Variable("lhs", lhs_vtype)
         rhs = Variable("rhs", rhs_vtype)
 
-    res = lhs <= (rhs * 1)
+    res = lhs <= rhs
     assert isinstance(res, Constraint)
     assert (lhs - rhs).is_equal(res.lhs)
     assert 0 == res.rhs
@@ -60,7 +60,7 @@ def test_cmp_to_expr_constr_ge(lhs_vtype, rhs_vtype):
         lhs = Variable("lhs", lhs_vtype)
         rhs = Variable("rhs", rhs_vtype)
 
-    res = lhs >= (rhs * 1)
+    res = lhs >= rhs
     assert isinstance(res, Constraint)
     assert (lhs - rhs).is_equal(res.lhs)
     assert 0 == res.rhs
