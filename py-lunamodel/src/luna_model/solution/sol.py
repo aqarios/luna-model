@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
-import luna_model._reexport as lm
 from luna_model._lm import PySolution
 from luna_model.variable.vtype import Vtype
 from luna_model.solution.src import ValueSource
@@ -126,8 +125,9 @@ class Solution:
     def add_var(
         self, var: str | Variable, data: list[int | float], vtype: Vtype = Vtype.BINARY
     ) -> None:
+        from luna_model.variable import Variable
         self._s.add_var(
-            var._v if isinstance(var, lm.v.Variable) else var,  # type: ignore[attribute]
+            var._v if isinstance(var, Variable) else var,  # type: ignore[attribute]
             data,
             vtype.value,  # type: ignore[attribute]
         )
@@ -138,18 +138,21 @@ class Solution:
         data: list[list[int | float]],
         vtypes: list[Vtype | None] | None = None,
     ) -> None:
+        from luna_model.variable import Variable
         self._s.add_vars(
-            [var._v if isinstance(var, lm.v.Variable) else var for var in variables],  # type: ignore[attribute]
+            [var._v if isinstance(var, Variable) else var for var in variables],  # type: ignore[attribute]
             data,
             [v.value if v else None for v in vtypes] if vtypes else None,
         )
 
     def remove_var(self, var: str | Variable) -> None:
-        self._s.remove_var(var._v if isinstance(var, lm.v.Variable) else var)  # type: ignore[attribute]
+        from luna_model.variable import Variable
+        self._s.remove_var(var._v if isinstance(var, Variable) else var)  # type: ignore[attribute]
 
     def remove_vars(self, variables: list[str | Variable]) -> None:
+        from luna_model.variable import Variable
         self._s.remove_vars(
-            [var._v if isinstance(var, lm.v.Variable) else var for var in variables]  # type: ignore[attribute]
+            [var._v if isinstance(var, Variable) else var for var in variables]  # type: ignore[attribute]
         )
 
     def __len__(self) -> int:

@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from luna_model._utils import wrap_expr, wrap_cc, wrap_env, wrap_var, wrap_sp, wrap_s
-import luna_model._reexport as lm
 from luna_model._lm import PyModel
 from luna_model.model.sense import Sense
 from luna_model.variable.vtype import Vtype
@@ -140,9 +139,12 @@ class Model:
     def substitute(
         self, /, target: Variable, replacement: Expression | Variable
     ) -> None:
-        if isinstance(replacement, lm.e.Expression):  # type: ignore[attribute]
+        from luna_model.expression import Expression
+        from luna_model.variable import Variable
+
+        if isinstance(replacement, Expression):  # type: ignore[attribute]
             self._m.substitute(target._v, replacement._expr)  # type: ignore[attribute]
-        elif isinstance(replacement, lm.v.Variable):  # type: ignore[attribute]
+        elif isinstance(replacement, Variable):  # type: ignore[attribute]
             self._m.substitute(target._v, replacement._v)  # type: ignore[attribute]
         else:
             raise TypeError(

@@ -22,23 +22,37 @@ impl PyConstraint {
                 let lhs = (l_expr - r_expr)?;
                 Constraint::new(lhs, 0.0, cmp, name)
             }
-            (OO::Expr(expr), OO::Var(var)) | (OO::Var(var), OO::Expr(expr)) => {
+            (OO::Expr(expr), OO::Var(var)) => {
                 let l_expr: Expression = expr.into();
                 let r_var: VarRef = var.v;
                 let lhs = (l_expr - r_var)?;
                 Constraint::new(lhs, 0.0, cmp, name)
             }
-            (OO::Expr(expr), OO::Num(bias)) | (OO::Num(bias), OO::Expr(expr)) => {
+            (OO::Var(var), OO::Expr(expr)) => {
+                let r_expr: Expression = expr.into();
+                let l_var: VarRef = var.v;
+                let lhs = (l_var - r_expr)?;
+                Constraint::new(lhs, 0.0, cmp, name)
+            }
+            (OO::Expr(expr), OO::Num(bias)) => {
                 let l_expr: Expression = expr.into();
                 Constraint::new(l_expr, bias, cmp, name)
+            }
+            (OO::Num(bias), OO::Expr(expr)) => {
+                let r_expr: Expression = expr.into();
+                Constraint::new(-r_expr, -bias, cmp, name)
             }
             (OO::Var(l_var), OO::Var(r_var)) => {
                 let l_expr: Expression = (l_var.v - r_var.v)?;
                 Constraint::new(l_expr, 0.0, cmp, name)
             }
-            (OO::Var(var), OO::Num(bias)) | (OO::Num(bias), OO::Var(var)) => {
+            (OO::Var(var), OO::Num(bias)) => {
                 let l_expr: Expression = (Expression::empty(var.v.env.clone()) + var.v)?;
                 Constraint::new(l_expr, bias, cmp, name)
+            }
+            (OO::Num(bias), OO::Var(var)) => {
+                let r_expr: Expression = (Expression::empty(var.v.env.clone()) + var.v)?;
+                Constraint::new(-r_expr, -bias, cmp, name)
             }
             (OO::Num(_), OO::Num(_)) => {
                 return Err(PyLunaModelError::new_err(

@@ -14,17 +14,14 @@ impl PyVariable {
             OO::Expr(expr) => expr.__add__(OO::Var(self.clone())),
             OO::Var(var) => Ok(PyE::new((&self.v).add(&var.v)?)),
             OO::Num(bias) => Ok(PyE::new((&self.v).add(bias)?)),
-            // OO::Int(bias) => Ok(PyE::new((&self.v).add(bias)?)),
         }
     }
 
     pub fn __sub__(&self, rhs: OO) -> PyResult<PyE> {
-        self.v.check_living()?;
         match rhs {
-            OO::Expr(expr) => expr.__rsub__(OO::Var(self.clone())),
+            OO::Expr(expr) => Ok(PyE::new((&self.v).sub(&expr.expr)?)),
             OO::Var(var) => Ok(PyE::new((&self.v).sub(&var.v)?)),
             OO::Num(bias) => Ok(PyE::new((&self.v).sub(bias)?)),
-            // OO::Int(bias) => Ok(PyE::new((&self.v).sub(bias)?)),
         }
     }
 
@@ -34,7 +31,6 @@ impl PyVariable {
             OO::Expr(expr) => expr.__mul__(OO::Var(self.clone())),
             OO::Var(var) => Ok(PyE::new((&self.v).mul(&var.v)?)),
             OO::Num(bias) => Ok(PyE::new((&self.v).mul(bias)?)),
-            // OO::Int(bias) => Ok(PyE::new((&self.v).mul(bias)?)),
         }
     }
 
@@ -61,7 +57,6 @@ impl PyVariable {
                 "the 'modulo' parameter is not supported.",
             ));
         }
-
         self.v.check_living()?;
         Ok(PyE::new(self.v.pow(val)?))
     }

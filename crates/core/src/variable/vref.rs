@@ -1,6 +1,6 @@
 use std::hash::{DefaultHasher, Hash, Hasher};
 
-use crate::{bounds::Bounds, environment::ArcEnv};
+use crate::{bounds::Bounds, environment::ArcEnv, traits::ContentEquality};
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{VarIdx, Vtype};
 
@@ -40,5 +40,11 @@ impl VarRef {
         let mut state = DefaultHasher::new();
         self.name()?.hash(&mut state);
         Ok(state.finish())
+    }
+}
+
+impl PartialEq for VarRef {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && self.env.is_equal_contents(&other.env)
     }
 }

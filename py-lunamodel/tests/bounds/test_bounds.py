@@ -1,9 +1,7 @@
 import pytest
 import itertools
 
-from luna_model import Bounds
-from luna_model.variable.vtype import Vtype
-from luna_model import Unbounded
+from luna_model import Bounds, Vtype, Unbounded
 
 
 bound_value = [-1.0, 0.0, 1.0, Unbounded, None]

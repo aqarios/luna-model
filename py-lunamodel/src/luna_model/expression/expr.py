@@ -1,8 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Self
 
 from luna_model._utils import wrap_env, wrap_var, wrap_c
-import luna_model._reexport as lm
 from luna_model._lm import PyExpression
 
 if TYPE_CHECKING:
@@ -145,20 +144,24 @@ class Expression:
     def __rmul__(self, other: Expression | Variable | int | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__rmul__))
 
-    def __iadd__(self, other: Expression | Variable | int | float):
+    def __iadd__(self, other: Expression | Variable | int | float) -> Self:
         self._op(other, self._expr.__iadd__)
+        return self
 
-    def __isub__(self, other: Expression | Variable | int | float):
+    def __isub__(self, other: Expression | Variable | int | float) -> Self:
         self._op(other, self._expr.__isub__)
+        return self
 
-    def __imul__(self, other: Expression | Variable | int | float):
+    def __imul__(self, other: Expression | Variable | int | float) -> Self:
         self._op(other, self._expr.__imul__)
+        return self
 
     def __pow__(self, other: int) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__pow__))
 
-    def __ipow__(self, other: int):
+    def __ipow__(self, other: int) -> Self:
         self._op(other, self._expr.__ipow__)
+        return self
 
     def __neg__(self) -> Expression:
         return self._from_pyexpr(self._expr.__neg__())
@@ -184,9 +187,12 @@ class Expression:
         return self._expr.__repr__()
 
     def _op(self, other: Expression | Variable | int | float, fn) -> PyExpression:
-        if isinstance(other, lm.e.Expression):  # type: ignore[attribute]
+        from luna_model.expression import Expression
+        from luna_model.variable import Variable
+
+        if isinstance(other, Expression):  # type: ignore[attribute]
             res = fn(other._expr)  # type: ignore[attribute]
-        elif isinstance(other, lm.v.Variable):  # type: ignore[attribute]
+        elif isinstance(other, Variable):  # type: ignore[attribute]
             res = fn(other._v)  # type: ignore[attribute]
         else:
             res = fn(other)
@@ -194,9 +200,12 @@ class Expression:
 
     @classmethod
     def _cmp(cls, other: Expression | Variable | int | float, fn) -> Constraint:
-        if isinstance(other, lm.e.Expression):  # type: ignore[attribute]
+        from luna_model.expression import Expression
+        from luna_model.variable import Variable
+
+        if isinstance(other, Expression):  # type: ignore[attribute]
             pyc = fn(other._expr)  # type: ignore[attribute]
-        elif isinstance(other, lm.v.Variable):  # type: ignore[attribute]
+        elif isinstance(other, Variable):  # type: ignore[attribute]
             pyc = fn(other._v)  # type: ignore[attribute]
         else:
             pyc = fn(other)

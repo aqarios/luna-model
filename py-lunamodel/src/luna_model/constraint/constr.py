@@ -2,9 +2,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from luna_model.constraint.cmp import Comparator
+from luna_model._utils import wrap_expr
 
 from luna_model._lm import PyConstraint
-import luna_model._reexport as lm
 
 if TYPE_CHECKING:
     from luna_model.expression.expr import Expression
@@ -21,10 +21,13 @@ class Constraint:
         comparator: Comparator,
         name: str,
     ) -> None:
-        lhs = lhs._v if isinstance(lhs, lm.v.Variable) else lhs._expr  # type: ignore[attribute]
+        from luna_model.variable import Variable
+        from luna_model.expression import Expression
+
+        lhs = lhs._v if isinstance(lhs, Variable) else lhs._expr  # type: ignore[attribute]
         rhs = (
-            (rhs._v if isinstance(rhs, lm.v.Variable) else rhs._expr)  # type: ignore[attribute]
-            if isinstance(rhs, lm.v.Variable | lm.e.Expression)  # type: ignore[attribute]
+            (rhs._v if isinstance(rhs, Variable) else rhs._expr)  # type: ignore[attribute]
+            if isinstance(rhs, Variable | Expression)  # type: ignore[attribute]
             else rhs
         )
         self._c = PyConstraint(lhs, rhs, comparator.value, name)
@@ -42,7 +45,7 @@ class Constraint:
 
     @property
     def lhs(self) -> Expression:
-        return self._c.lhs
+        return wrap_expr(self._c.lhs)
 
     @property
     def rhs(self) -> float:
@@ -50,7 +53,7 @@ class Constraint:
 
     @property
     def comparator(self) -> Comparator:
-        return self._c.comparator
+        return Comparator(self._c.comparator)
 
     def __eq__(self, other: Constraint) -> bool:  # type: ignore[override]
         return self._c.__eq__(other._c)

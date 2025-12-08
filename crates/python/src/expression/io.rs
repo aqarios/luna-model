@@ -5,10 +5,10 @@ use super::PyExpression;
 #[pymethods]
 impl PyExpression {
     fn __str__(&self) -> String {
-        unimplemented!()
+        format!("{:?}", self.expr)
     }
 
     fn __repr__(&self) -> String {
-        unimplemented!()
+        format!("{:?}", self.expr)
     }
 }

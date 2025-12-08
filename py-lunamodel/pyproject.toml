@@ -63,3 +63,8 @@ cache-keys = [
     { file = "src/luna_model/**/*.py" },
     { file = "../crates/**/*.rs" },
 ]
+
+[dependency-groups]
+dev = [
+    "ipython>=9.8.0",
+]

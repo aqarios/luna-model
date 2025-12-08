@@ -1,16 +1,24 @@
 use crate::{
     Expression,
-    ops::{LmAddAssign, LmPow, LmPowAssign},
+    ops::{LmAddAssign, LmMulAssign, LmPow},
     prelude::VarRef,
-    traits::Editable,
 };
 use lunamodel_error::LunaModelResult;
 
 impl LmPow for &VarRef {
     type Output = Expression;
     fn pow(self, sup: usize) -> LunaModelResult<Self::Output> {
-        let mut expr = Expression::empty(self.env.clone()).maybe_edit(|e| e.add_assign(self))?;
-        expr.pow_assign(sup)?;
-        Ok(expr)
+        let mut base = Expression::empty(self.env.clone());
+        match sup {
+            0 => base.offset = 1.0,
+            1 => base.add_assign(self)?,
+            s => {
+                base.add_assign(self)?;
+                for _ in 0..(s - 1) {
+                    base.mul_assign(self)?;
+                }
+            }
+        };
+        Ok(base)
     }
 }

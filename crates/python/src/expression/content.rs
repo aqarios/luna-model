@@ -1,6 +1,6 @@
 use lunamodel_core::{
     ops::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign},
-    prelude::{Expression, Model},
+    prelude::{Expression, Model, VarRef},
 };
 use lunamodel_error::LunaModelResult;
 use parking_lot::RwLock;
@@ -268,6 +268,35 @@ impl LmMulAssign<&PyExprContent> for Expression {
                 let rs: &Expression = &r.read_arc().objective;
                 self.mul_assign(rs)
             }
+        }
+    }
+}
+
+impl PartialEq for PyExprContent {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (PyExprContent::Expr(le), PyExprContent::Expr(re)) => le.read_arc().eq(&re.read_arc()),
+            (PyExprContent::Expr(e), PyExprContent::Model(m))
+            | (PyExprContent::Model(m), PyExprContent::Expr(e)) => {
+                m.read_arc().objective.eq(&e.read_arc())
+            }
+            (PyExprContent::Model(lm), PyExprContent::Model(rm)) => {
+                lm.read_arc().objective.eq(&rm.read_arc().objective)
+            }
+        }
+    }
+}
+
+impl Sub<&PyExprContent> for &VarRef {
+    type Output = LunaModelResult<Expression>;
+
+    fn sub(self, rhs: &PyExprContent) -> Self::Output {
+        match rhs {
+            PyExprContent::Expr(e) => {
+                let e: &Expression = &e.read_arc();
+                self.sub(e)
+            },
+            PyExprContent::Model(m) => self.sub(&m.read_arc().objective),
         }
     }
 }

@@ -1,8 +1,6 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
-
-import luna_model._reexport as lm
 from luna_model._utils import wrap_b, wrap_env, wrap_expr, wrap_c
 from luna_model.variable.vtype import Vtype
 from luna_model._lm import PyVariable
@@ -50,7 +48,7 @@ class Variable:
 
     @property
     def bounds(self) -> VBounds:
-        return wrap_b(self._v.bounds)
+        return wrap_b(self._v.bounds)  # type: ignore[return]
 
     @property
     def vtype(self) -> Vtype:
@@ -59,6 +57,9 @@ class Variable:
     @property
     def environment(self) -> Environment:
         return wrap_env(self._v.environment)
+
+    def is_equal(self, other: Variable) -> bool:
+        return self._v.is_equal(other._v)
 
     def inv(self) -> Variable:
         return self._from_pyvar(self._v.inv())
@@ -90,7 +91,15 @@ class Variable:
     def __invert__(self) -> Variable:
         return self._from_pyvar(self._v.__invert__())
 
-    def __eq__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
+    @overload
+    def __eq__(self, other: Variable) -> bool: ...  # type: ignore[override]
+    @overload
+    def __eq__(self, other: Expression | int | float) -> Constraint: ...  # type: ignore[override]
+    def __eq__(self, other: Expression | Variable | int | float) -> Constraint | bool:  # type: ignore[override]
+        from luna_model.variable import Variable
+
+        if isinstance(other, Variable):
+            return self.is_equal(other)
         return self._cmp(other, self._v.__eq__)
 
     def __le__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
@@ -109,18 +118,24 @@ class Variable:
         return self._v.__repr__()
 
     def _op(self, other: Expression | Variable | int | float, fn) -> PyExpression:
-        if isinstance(other, lm.e.Expression):
+        from luna_model.expression import Expression
+        from luna_model.variable import Variable
+
+        if isinstance(other, Expression):
             res = fn(other._expr)  # type: ignore[attribute]
-        elif isinstance(other, lm.v.Variable):
+        elif isinstance(other, Variable):
             res = fn(other._v)  # type: ignore[attribute]
         else:
             res = fn(other)
         return res
 
     def _cmp(self, other: Expression | Variable | int | float, fn) -> Constraint:
-        if isinstance(other, lm.e.Expression):
+        from luna_model.expression import Expression
+        from luna_model.variable import Variable
+
+        if isinstance(other, Expression):
             pyc = fn(other._expr)  # type: ignore[attribute]
-        elif isinstance(other, lm.v.Variable):
+        elif isinstance(other, Variable):
             pyc = fn(other._v)  # type: ignore[attribute]
         else:
             pyc = fn(other)

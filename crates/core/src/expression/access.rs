@@ -70,7 +70,7 @@ impl Expression {
 
     pub fn degree(&self) -> usize {
         match (
-            !self.linear.is_zero(),
+            !self.linear.is_empty(),
             self.has_quadratic(),
             self.has_higher_order(),
         ) {

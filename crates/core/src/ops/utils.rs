@@ -218,7 +218,9 @@ where
                     reduced.push(idx)
                 }
             }
-            _ => todo!(),
+            (c, _) => for _ in 0..c {
+                reduced.push(idx);
+            }
         }
     }
     reduced

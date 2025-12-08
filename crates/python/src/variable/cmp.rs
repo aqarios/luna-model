@@ -20,4 +20,8 @@ impl PyVariable {
         let (o, n) = other.into();
         PyConstraint::py_new(OO::Var(self.clone()), o, Cmp::Ge, n)
     }
+
+    fn is_equal(&self, other: &Self) -> bool {
+        self.v == other.v
+    }
 }

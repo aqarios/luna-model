@@ -107,13 +107,13 @@ macro_rules! rsubs {
     (@sub_oo $L:ty, $R:ty) => {
         impl std::ops::Sub<$L> for $R
         where
-            for<'r> $L: crate::ops::LmSubAssign<&'r $R> + std::ops::Neg,
+            for<'r> $L: crate::ops::LmAddAssign<&'r $R> + std::ops::Neg,
         {
             type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
-            fn sub(self, mut rhs: $L) -> Self::Output {
-                use crate::ops::LmSubAssign;
-                <$L as LmSubAssign<&$R>>::sub_assign(&mut rhs, &self)?;
-                Ok(rhs)
+            fn sub(self, lhs: $L) -> Self::Output {
+                let mut tmp = -lhs;
+                <$L as LmAddAssign<&$R>>::add_assign(&mut tmp, &self)?;
+                Ok(tmp)
             }
         }
     };
@@ -122,13 +122,12 @@ macro_rules! rsubs {
     (@sub_ob $L:ty, $R:ty) => {
         impl std::ops::Sub<&$L> for $R
         where
-            for<'r> $L: crate::ops::LmSubAssign<&'r $R> + std::ops::Neg,
+            for<'r> $L: crate::ops::LmAddAssign<&'r $R> + std::ops::Neg,
         {
             type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
-            fn sub(self, rhs: &$L) -> Self::Output {
-                use crate::ops::LmSubAssign;
-                let mut new = rhs.clone();
-                <$L as LmSubAssign<&$R>>::sub_assign(&mut new, &self)?;
+            fn sub(self, lhs: &$L) -> Self::Output {
+                let mut new = -lhs;
+                <$L as LmAddAssign<&$R>>::add_assign(&mut new, &self)?;
                 Ok(new)
             }
         }
@@ -138,13 +137,13 @@ macro_rules! rsubs {
     (@sub_bo $L:ty, $R:ty) => {
         impl std::ops::Sub<$L> for &$R
         where
-            for<'r> $L: crate::ops::LmSubAssign<&'r $R> + std::ops::Neg,
+            for<'r> $L: crate::ops::LmAddAssign<&'r $R> + std::ops::Neg,
         {
             type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
-            fn sub(self, mut rhs: $L) -> Self::Output {
-                use crate::ops::LmSubAssign;
-                <$L as LmSubAssign<&$R>>::sub_assign(&mut rhs, &self)?;
-                Ok(rhs)
+            fn sub(self, lhs: $L) -> Self::Output {
+                let mut tmp = -lhs;
+                <$L as LmAddAssign<&$R>>::add_assign(&mut tmp, &self)?;
+                Ok(tmp)
             }
         }
     };
@@ -153,13 +152,12 @@ macro_rules! rsubs {
     (@sub_bb $L:ty, $R:ty) => {
         impl std::ops::Sub<&$L> for &$R
         where
-            for<'r> $L: crate::ops::LmSubAssign<&'r $R> + std::ops::Neg,
+            for<'r> $L: crate::ops::LmAddAssign<&'r $R> + std::ops::Neg,
         {
             type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
             fn sub(self, rhs: &$L) -> Self::Output {
-                use crate::ops::LmSubAssign;
-                let mut new = rhs.clone();
-                <$L as LmSubAssign<&$R>>::sub_assign(&mut new, self)?;
+                let mut new = -rhs;
+                <$L as LmAddAssign<&$R>>::add_assign(&mut new, self)?;
                 Ok(new)
             }
         }

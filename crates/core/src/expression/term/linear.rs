@@ -4,7 +4,7 @@ use crate::traits::Editable;
 
 use super::types::Neighborhood;
 
-use std::ops::{AddAssign, Index, IndexMut, MulAssign, Neg, Mul};
+use std::ops::{AddAssign, Index, IndexMut, Mul, MulAssign, Neg};
 
 // neighborhood of Quadratic two var term and linear biases is the exact same thing.
 // We can reduce code complexity and duplications a lot, if we combine them to a single, unified
@@ -24,6 +24,10 @@ impl Linear {
 
     pub fn is_zero(&self) -> bool {
         self.biases.is_zero()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.biases.is_empty()
     }
 
     pub fn for_var(var: VarIdx, bias: Bias) -> Self {
