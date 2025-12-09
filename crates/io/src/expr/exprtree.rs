@@ -15,32 +15,27 @@ pub enum ExprTree {
 
 impl From<&Expression> for ExprTree {
     fn from(e: &Expression) -> Self {
-        let mut base = Self::Num(Bias::default());
-        for (vs, b) in e.items() {
-            let (new, dosub) = match &vs[..] {
-                [] => (Self::Num(b.abs()), b < 0.0),
+        let mut base = Self::Num(0.0);
+        for (vs, n) in e.items() {
+            let b = n.abs();
+            let new = match &vs[..] {
+                [] => Self::Num(b),
                 [u] => {
                     // linear
-                    let o = if b < 0.0 {
-                        Self::Neg(Box::new(Self::Var(u.name().unwrap())))
-                    } else {
-                        Self::Mul(
-                            Box::new(Self::Num(b)),
-                            Box::new(Self::Var(u.name().unwrap())),
-                        )
-                    };
-                    (o, false)
+                    Self::Mul(
+                        Box::new(Self::Num(b)),
+                        Box::new(Self::Var(u.name().unwrap())),
+                    )
                 }
                 [u, v] => {
                     // quadratic
-                    let o = Self::Mul(
-                        Box::new(Self::Num(b.abs())),
+                    Self::Mul(
+                        Box::new(Self::Num(b)),
                         Box::new(Self::Mul(
                             Box::new(Self::Var(u.name().unwrap())),
                             Box::new(Self::Var(v.name().unwrap())),
                         )),
-                    );
-                    (o, b < 0.0)
+                    )
                 }
                 vars => {
                     // higher order
@@ -68,15 +63,13 @@ impl From<&Expression> for ExprTree {
                             }
                         }
                     }
-                    (
-                        Self::Mul(Box::new(Self::Num(b.abs())), Box::new(ho)),
-                        b < 0.0,
-                    )
+                    Self::Mul(Box::new(Self::Num(b)), Box::new(ho))
                 }
             };
-            match dosub {
-                false => base = Self::Add(Box::new(base), Box::new(new)),
-                true => base = Self::Sub(Box::new(base), Box::new(new)),
+            if n < 0.0 {
+                base = Self::Sub(Box::new(base), Box::new(new))
+            } else {
+                base = Self::Add(Box::new(base), Box::new(new))
             }
         }
         base.optimize()
@@ -103,6 +96,7 @@ impl ExprTree {
             T::Sub(lhs, rhs) => match (lhs.optimize(), rhs.optimize()) {
                 (T::Num(a), T::Num(b)) => T::Num(a - b),
                 (e, T::Num(n)) if n == 0.0 => e.optimize(), // e - 0
+                (T::Num(n), e) if n == 0.0 => T::Neg(Box::new(e.optimize())), // 0-e
                 (lhs, rhs) => {
                     if rhs.is_zero() {
                         lhs
@@ -136,14 +130,13 @@ impl ToString for ExprTree {
     fn to_string(&self) -> String {
         use ExprTree as T;
         match self {
-            T::Num(n) => n.to_string(),
+            T::Num(n) => format!("{}", n),
             T::Var(name) => name.into(),
             T::Add(lhs, rhs) => match (&**lhs, &**rhs) {
                 (T::Num(n), e) | (e, T::Num(n)) => format!("{} + {}", e.to_string(), n),
                 (l, T::Neg(r)) => format!("{} - {}", l.to_string(), r.to_string().replace("-", "")),
                 (l, r) => format!("{} + {}", l.to_string(), r.to_string()),
             },
-            // yes the `-` below is correct. see that final `replace`
             T::Sub(lhs, rhs) => format!("{} - {}", lhs.to_string(), rhs.to_string()),
             T::Mul(lhs, rhs) => match (&**lhs, &**rhs) {
                 (T::Num(n), T::Var(v)) | (T::Var(v), T::Num(n)) => format!("{} {}", n, v),

@@ -12,7 +12,7 @@ impl LmPowAssign for Expression {
             1 => (),
             s => {
                 let other = self.clone();
-                for _ in 0..s {
+                for _ in 0..(s - 1) {
                     self.mul_assign(&other)?;
                 }
             }

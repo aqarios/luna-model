@@ -14,4 +14,10 @@ impl Expression {
             higher_order: None,
         }
     }
+
+    pub fn constant(env: ArcEnv, val: Bias) -> Self {
+        let mut slf = Self::empty(env);
+        slf.offset += val;
+        slf
+    }
 }

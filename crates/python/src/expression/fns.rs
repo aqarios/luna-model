@@ -13,13 +13,13 @@ enum Replacement {
 
 #[pymethods]
 impl PyExpression {
-    fn separate(&self, variables: Vec<PyVariable>) -> (PyExpression, PyExpression) {
+    fn separate(&self, variables: Vec<PyVariable>) -> PyResult<(PyExpression, PyExpression)> {
         let vars: Vec<VarRef> = variables.iter().map(|v| v.v.clone()).collect();
         let (left, right) = match &self.expr {
             PyEC::Expr(e) => e.read_arc().separate(vars.as_slice()),
             PyEC::Model(m) => m.read_arc().objective.separate(vars.as_slice()),
-        };
-        (left.into(), right.into())
+        }?;
+        Ok((left.into(), right.into()))
     }
 
     fn evaluate(&self, py: Python<'_>, sol: &PySolution) -> PyResult<Bound<'_, PyArray1<f64>>> {
