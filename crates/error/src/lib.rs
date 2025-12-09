@@ -59,6 +59,7 @@ pub enum LunaModelError {
     InvalidInversion(ErrString),
     Compression(ErrString),
     Decoding(ErrString),
+    Formatter(ErrString),
     UnsupportedOperation(ErrString),
 }
 
@@ -76,6 +77,7 @@ impl Display for LunaModelError {
             InvalidInversion(msg) => write!(f, "invalid inversion: {}", msg),
             Compression(msg) => write!(f, "compression failed: {}", msg),
             Decoding(msg) => write!(f, "decoding failed: {}", msg),
+            Formatter(msg) => write!(f, "formatting failed: {}", msg),
             DifferentEnvironments => write!(f, "different environments encountered"),
             UnsupportedOperation(msg) => write!(f, "the operation '{}' is not supported", msg),
         }

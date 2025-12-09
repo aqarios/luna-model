@@ -1,13 +1,13 @@
 mod access;
-mod fns;
 mod cmp;
 mod content;
 mod creation;
+mod deepclone;
+mod fns;
+mod io;
 mod iteration;
 mod ops;
 mod ser;
-mod deepclone;
-mod io;
 
 use lunamodel_core::prelude::{Expression, Model};
 use parking_lot::RwLock;
@@ -15,6 +15,7 @@ use pyo3::pyclass;
 use std::sync::Arc;
 
 pub use content::PyExprContent;
+pub use iteration::{PyConstant, PyHigherOrder, PyLinear, PyQuadratic};
 
 #[pyclass]
 #[repr(C)]

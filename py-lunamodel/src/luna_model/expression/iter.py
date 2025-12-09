@@ -1,13 +1,15 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from luna_model.variable.var import Variable
 
 
+@runtime_checkable
 class Constant(Protocol): ...
 
 
+@runtime_checkable
 class Linear(Protocol):
     __match_args__ = ("var",)
 
@@ -15,6 +17,7 @@ class Linear(Protocol):
     def var(self) -> Variable: ...
 
 
+@runtime_checkable
 class Quadratic(Protocol):
     __match_args__ = ("var_a", "var_b")
 
@@ -24,6 +27,7 @@ class Quadratic(Protocol):
     def var_b(self) -> Variable: ...
 
 
+@runtime_checkable
 class HigherOrder(Protocol):
     __match_args__ = ("vars",)
 

@@ -16,7 +16,9 @@ pub mod prelude;
 pub use bounds::{PyBounds, PyUnbounded};
 pub use constraint::{PyConstraint, PyConstraintCollection};
 pub use environment::PyEnvironment;
-pub use expression::{PyExprContent, PyExpression};
+pub use expression::{
+    PyConstant, PyExprContent, PyExpression, PyHigherOrder, PyLinear, PyQuadratic,
+};
 pub use model::PyModel;
 pub use sol::PySolution;
 pub use specs::PyModelSpecs;

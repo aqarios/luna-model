@@ -13,3 +13,9 @@ impl From<prost::DecodeError> for LunaModelError {
         LunaModelError::Decoding(err.to_string().into())
     }
 }
+
+impl From<std::fmt::Error> for LunaModelError {
+    fn from(err: std::fmt::Error) -> Self {
+        LunaModelError::Formatter(err.to_string().into())
+    }
+}

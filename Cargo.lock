@@ -315,7 +315,6 @@ dependencies = [
  "indexmap",
  "itertools",
  "lunamodel-error",
- "lunamodel-io",
  "lunamodel-types",
  "lunamodel-utils",
  "parking_lot 0.12.5",
@@ -335,6 +334,13 @@ dependencies = [
 [[package]]
 name = "lunamodel-io"
 version = "0.5.0"
+dependencies = [
+ "hashbrown",
+ "indexmap",
+ "lunamodel-core",
+ "lunamodel-error",
+ "lunamodel-types",
+]
 
 [[package]]
 name = "lunamodel-python"
@@ -343,6 +349,7 @@ dependencies = [
  "hashbrown",
  "lunamodel-core",
  "lunamodel-error",
+ "lunamodel-io",
  "lunamodel-serializer",
  "lunamodel-translate",
  "lunamodel-types",

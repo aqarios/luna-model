@@ -55,9 +55,9 @@ impl PartialEq for VarRef {
 impl Display for VarRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(name) = self.name().ok() {
-            f.write_str(&format!("{}", name))
+            f.write_str(&format!("Var({})", name))
         } else {
-            f.write_str("deleted")
+            f.write_str("<deleted>")
         }
     }
 }

@@ -10,7 +10,6 @@ repository.workspace = true
 [dependencies]
 lunamodel-types = { workspace = true }
 lunamodel-error = { workspace = true }
-lunamodel-io = { workspace = true }
 lunamodel-utils = { workspace = true }
 
 hashbrown = { workspace = true }

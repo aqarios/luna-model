@@ -1,16 +1,9 @@
-use std::fmt::Display;
+mod custom;
+mod options;
 
-pub struct ModelWriter {}
+mod bounds;
+mod expr;
+mod var;
 
-impl ModelWriter {
-    // pub fn new(model: &Model) -> Self {
-    //     unimplemented!()
-    // }
-}
-
-impl Display for ModelWriter {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        _ = f;
-        unimplemented!()
-    }
-}
+pub use custom::{CustomFormat, CustomFormatWrapper};
+pub use options::FormatOpt;

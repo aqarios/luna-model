@@ -1,10 +1,11 @@
 mod access;
+mod cmp;
 mod creation;
 mod io;
 mod unbounded;
-mod cmp;
 
 use lunamodel_core::prelude::{Bounds, LazyBounds};
+use lunamodel_io::{CustomFormat, FormatOpt};
 use pyo3::pyclass;
 
 pub use unbounded::PyUnbounded;
@@ -36,6 +37,22 @@ impl From<BoundsContent> for LazyBounds {
         match bounds {
             BoundsContent::Lazy(lazy) => lazy,
             BoundsContent::Concrete(conc) => conc.into(),
+        }
+    }
+}
+
+impl CustomFormat<FormatOpt> for BoundsContent {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+        match self {
+            Self::Concrete(c) => c.fmt(fmt, format_type),
+            Self::Lazy(l) => l.fmt(fmt, format_type),
+        }
+    }
+
+    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+        match self {
+            Self::Concrete(c) => c.dbg(fmt, format_type),
+            Self::Lazy(l) => l.dbg(fmt, format_type),
         }
     }
 }

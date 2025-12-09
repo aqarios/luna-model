@@ -3,6 +3,7 @@ use lunamodel_core::{
     prelude::{ContentEquality, Expression, Model, VarRef},
 };
 use lunamodel_error::LunaModelResult;
+use lunamodel_io::{CustomFormat, FormatOpt};
 use parking_lot::RwLock;
 use std::{
     ops::{Add, Mul, Neg, Sub},
@@ -304,14 +305,33 @@ impl Sub<&PyExprContent> for &VarRef {
 impl ContentEquality for PyExprContent {
     fn is_equal_contents(&self, other: &Self) -> bool {
         match (self, other) {
-            (PyExprContent::Expr(le), PyExprContent::Expr(re)) => le.read_arc().is_equal_contents(&re.read_arc()),
+            (PyExprContent::Expr(le), PyExprContent::Expr(re)) => {
+                le.read_arc().is_equal_contents(&re.read_arc())
+            }
             (PyExprContent::Expr(e), PyExprContent::Model(m))
             | (PyExprContent::Model(m), PyExprContent::Expr(e)) => {
                 m.read_arc().objective.is_equal_contents(&e.read_arc())
             }
-            (PyExprContent::Model(lm), PyExprContent::Model(rm)) => {
-                lm.read_arc().objective.is_equal_contents(&rm.read_arc().objective)
-            }
+            (PyExprContent::Model(lm), PyExprContent::Model(rm)) => lm
+                .read_arc()
+                .objective
+                .is_equal_contents(&rm.read_arc().objective),
+        }
+    }
+}
+
+impl CustomFormat<FormatOpt> for PyExprContent {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+        match self {
+            Self::Expr(e) => e.read_arc().fmt(fmt, format_type),
+            Self::Model(m) => m.read_arc().objective.fmt(fmt, format_type),
+        }
+    }
+
+    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+        match self {
+            Self::Expr(e) => e.read_arc().dbg(fmt, format_type),
+            Self::Model(m) => m.read_arc().objective.dbg(fmt, format_type),
         }
     }
 }
