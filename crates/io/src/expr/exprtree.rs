@@ -1,4 +1,3 @@
-// use hashbrown::HashMap;
 use indexmap::IndexMap as HashMap;
 use lunamodel_core::Expression;
 use lunamodel_types::Bias;
@@ -18,18 +17,30 @@ impl From<&Expression> for ExprTree {
     fn from(e: &Expression) -> Self {
         let mut base = Self::Num(Bias::default());
         for (vs, b) in e.items() {
-            let vars = match &vs[..] {
-                [] => Self::Num(1.0),
+            let (new, dosub) = match &vs[..] {
+                [] => (Self::Num(b.abs()), b < 0.0),
                 [u] => {
                     // linear
-                    Self::Var(u.name().unwrap())
+                    let o = if b < 0.0 {
+                        Self::Neg(Box::new(Self::Var(u.name().unwrap())))
+                    } else {
+                        Self::Mul(
+                            Box::new(Self::Num(b)),
+                            Box::new(Self::Var(u.name().unwrap())),
+                        )
+                    };
+                    (o, false)
                 }
                 [u, v] => {
                     // quadratic
-                    Self::Mul(
-                        Box::new(Self::Var(u.name().unwrap())),
-                        Box::new(Self::Var(v.name().unwrap())),
-                    )
+                    let o = Self::Mul(
+                        Box::new(Self::Num(b.abs())),
+                        Box::new(Self::Mul(
+                            Box::new(Self::Var(u.name().unwrap())),
+                            Box::new(Self::Var(v.name().unwrap())),
+                        )),
+                    );
+                    (o, b < 0.0)
                 }
                 vars => {
                     // higher order
@@ -57,11 +68,16 @@ impl From<&Expression> for ExprTree {
                             }
                         }
                     }
-                    ho
+                    (
+                        Self::Mul(Box::new(Self::Num(b.abs())), Box::new(ho)),
+                        b < 0.0,
+                    )
                 }
             };
-            let new = Self::Mul(Box::new(Self::Num(b)), Box::new(vars));
-            base = Self::Add(Box::new(base), Box::new(new));
+            match dosub {
+                false => base = Self::Add(Box::new(base), Box::new(new)),
+                true => base = Self::Sub(Box::new(base), Box::new(new)),
+            }
         }
         base.optimize()
     }
@@ -124,10 +140,11 @@ impl ToString for ExprTree {
             T::Var(name) => name.into(),
             T::Add(lhs, rhs) => match (&**lhs, &**rhs) {
                 (T::Num(n), e) | (e, T::Num(n)) => format!("{} + {}", e.to_string(), n),
+                (l, T::Neg(r)) => format!("{} - {}", l.to_string(), r.to_string().replace("-", "")),
                 (l, r) => format!("{} + {}", l.to_string(), r.to_string()),
             },
             // yes the `-` below is correct. see that final `replace`
-            T::Sub(lhs, rhs) => format!("{} -{}", lhs.to_string(), rhs.to_string()),
+            T::Sub(lhs, rhs) => format!("{} - {}", lhs.to_string(), rhs.to_string()),
             T::Mul(lhs, rhs) => match (&**lhs, &**rhs) {
                 (T::Num(n), T::Var(v)) | (T::Var(v), T::Num(n)) => format!("{} {}", n, v),
                 (T::Num(n), T::Pow(base, exp)) | (T::Pow(base, exp), T::Num(n)) => {
@@ -145,6 +162,5 @@ impl ToString for ExprTree {
             },
             T::Neg(a) => format!("-{}", a.to_string()),
         }
-        .replace("-", "- ")
     }
 }
