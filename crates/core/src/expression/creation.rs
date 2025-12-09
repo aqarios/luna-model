@@ -12,7 +12,6 @@ impl Expression {
             linear: Linear::default(),
             quadratic: None,
             higher_order: None,
-            num_vars: 0,
         }
     }
 }

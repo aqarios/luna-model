@@ -2,20 +2,13 @@ use crate::traits::ContentEquality;
 
 use super::Expression;
 
-// Custom [Debug] implementation, todo.
-// impl<'e> Debug for Expression<'e> {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//
-//     }
-// }
-
 impl PartialEq for Expression {
     fn eq(&self, other: &Self) -> bool {
         if self.env.id() != other.env.id() {
             // Non-equal envs directly implicate non-equal expressions.
             return false;
         }
-        if self.num_vars != other.num_vars {
+        if self.num_vars() != other.num_vars() {
             // Non-equal number of active variables, cannot be identical.
             return false;
         }
@@ -48,7 +41,11 @@ impl PartialEq for Expression {
 
 impl ContentEquality for Expression {
     fn is_equal_contents(&self, other: &Self) -> bool {
-        _ = other;
-        unimplemented!()
+        let eok = self.env.is_equal_contents(&other.env);
+        let ook = self.offset == other.offset;
+        let lok = self.linear == other.linear;
+        let qok = self.quadratic == other.quadratic;
+        let hok = self.higher_order == other.higher_order;
+        eok && ook && lok && qok && hok
     }
 }

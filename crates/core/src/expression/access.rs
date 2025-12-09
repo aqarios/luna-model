@@ -7,6 +7,10 @@ use crate::variable::VarRef;
 use super::Expression;
 
 impl Expression {
+    pub fn num_vars(&self) -> usize {
+        self.vars().count()
+    }
+
     pub fn vtypes(&self) -> impl Iterator<Item = Vtype> {
         unique(self.vars().map(|v| self.env.read_arc()[v.id].vtype))
     }

@@ -15,7 +15,7 @@ impl BytesEncodable for SerExpression {
 impl SerExpression {
     pub fn fill(mut self, expr: &Expression) -> Self {
         self.is_new = true;
-        self.num_variables = expr.num_vars as u32;
+        self.num_variables = expr.num_vars() as u32;
         self.offset = expr.offset;
         Self::fill_linear(&mut self.linear_indices, &mut self.linear_values, expr);
         Self::fill_quadratic(

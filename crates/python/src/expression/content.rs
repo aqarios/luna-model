@@ -1,6 +1,6 @@
 use lunamodel_core::{
     ops::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign},
-    prelude::{Expression, Model, VarRef},
+    prelude::{ContentEquality, Expression, Model, VarRef},
 };
 use lunamodel_error::LunaModelResult;
 use parking_lot::RwLock;
@@ -295,8 +295,23 @@ impl Sub<&PyExprContent> for &VarRef {
             PyExprContent::Expr(e) => {
                 let e: &Expression = &e.read_arc();
                 self.sub(e)
-            },
+            }
             PyExprContent::Model(m) => self.sub(&m.read_arc().objective),
+        }
+    }
+}
+
+impl ContentEquality for PyExprContent {
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        match (self, other) {
+            (PyExprContent::Expr(le), PyExprContent::Expr(re)) => le.read_arc().is_equal_contents(&re.read_arc()),
+            (PyExprContent::Expr(e), PyExprContent::Model(m))
+            | (PyExprContent::Model(m), PyExprContent::Expr(e)) => {
+                m.read_arc().objective.is_equal_contents(&e.read_arc())
+            }
+            (PyExprContent::Model(lm), PyExprContent::Model(rm)) => {
+                lm.read_arc().objective.is_equal_contents(&rm.read_arc().objective)
+            }
         }
     }
 }

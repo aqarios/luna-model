@@ -17,8 +17,8 @@ impl PyExpression {
     #[getter]
     fn num_variables(&self) -> usize {
         match &self.expr {
-            PyE::Expr(e) => e.read_arc().num_vars,
-            PyE::Model(m) => m.read_arc().objective.num_vars,
+            PyE::Expr(e) => e.read_arc().num_vars(),
+            PyE::Model(m) => m.read_arc().objective.num_vars(),
         }
     }
 

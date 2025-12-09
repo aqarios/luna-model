@@ -1,7 +1,7 @@
 use lunamodel_error::py::PyLunaModelError;
 use lunamodel_types::Bound;
 use pyo3::{
-    BoundObject, FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, PyTypeInfo,
+    FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, PyTypeInfo,
     Python, pyclass, pymethods, types::PyAnyMethods,
 };
 

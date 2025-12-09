@@ -91,7 +91,7 @@ impl SerExpression {
             e.linear = self.decode_linear();
             e.quadratic = self.decode_quadratic();
             e.higher_order = self.decode_higher_order();
-            e.num_vars = self.num_variables as usize;
+            // e.num_vars = self.num_variables as usize;
         })
     }
 }

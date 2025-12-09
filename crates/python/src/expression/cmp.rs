@@ -1,3 +1,4 @@
+use lunamodel_core::prelude::ContentEquality;
 use lunamodel_types::Comparator as Cmp;
 use pyo3::{PyResult, pymethods};
 
@@ -27,5 +28,9 @@ impl PyExpression {
 
     fn is_equal(&self, other: &Self) -> bool {
         self.expr == other.expr
+    }
+
+    fn is_equal_contents(&self, other: &Self) -> bool {
+        (&self.expr).is_equal_contents(&other.expr)
     }
 }

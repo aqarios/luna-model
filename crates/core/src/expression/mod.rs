@@ -29,8 +29,9 @@ pub struct Expression {
     pub quadratic: Option<Quadratic>,
     /// The [HigherOrder] terms of this [Expression].
     pub higher_order: Option<HigherOrder>,
-    /// The number of variables in this [Expression].
-    pub num_vars: usize,
+    // todo: reintroduce this
+    // /// The number of variables in this [Expression].
+    // pub num_vars: usize,
 }
 impl Editable for Expression {}
 
@@ -72,7 +73,7 @@ impl Debug for Expression {
             .field("linear", &self.linear)
             .field("quadratic", &self.quadratic)
             .field("higher_order", &self.higher_order)
-            .field("num_vars", &self.num_vars)
+            .field("num_vars", &self.num_vars())
             .finish()
     }
 }
