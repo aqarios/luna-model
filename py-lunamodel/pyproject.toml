@@ -67,4 +67,5 @@ cache-keys = [
 [dependency-groups]
 dev = [
     "ipython>=9.8.0",
+    "pytest>=9.0.2",
 ]

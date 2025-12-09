@@ -31,11 +31,11 @@ class Expression:
 
     @classmethod
     def const(cls, value: float, /, env: Environment | None = None) -> Expression:
-        return cls._from_pyexpr(PyExpression.const(value, env))
+        return cls._from_pyexpr(PyExpression.const(value, env._env if env else None))
 
     @property
     def environment(self) -> Environment:
-        return wrap_env(self._expr.env)
+        return wrap_env(self._expr.environment)
 
     @property
     def num_variables(self) -> int:
@@ -85,6 +85,12 @@ class Expression:
     def has_higher_order(self) -> bool:
         return self._expr.has_higher_order()
 
+    def is_equal(self, other: Expression) -> bool:
+        return self._expr.is_equal(other._expr)
+
+    def is_equal_contents(self, other: Expression) -> bool:
+        return self._expr.is_equal_contents(other._expr)
+
     def separate(self, variables: list[Variable]) -> tuple[Expression, Expression]:
         lhs, rhs = self._expr.separate([v._v for v in variables])
         return (self._from_pyexpr(lhs), self._from_pyexpr(rhs))
@@ -96,12 +102,6 @@ class Expression:
 
     def evaluate(self, solution: Solution) -> NDArray:
         return self._expr.evaluate(solution._s)  # type: ignore[attribute]
-
-    def is_equal(self, other: Expression) -> bool:
-        return self._expr.is_equal(other._expr)
-
-    def equal_contents(self, other: Expression) -> bool:
-        return self._expr.equal_contents(other._expr)
 
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         return self._expr.encode(compress, level)
