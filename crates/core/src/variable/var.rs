@@ -8,23 +8,16 @@ pub struct Variable {
     pub(crate) name: VarName,
     pub(crate) vtype: Vtype,
     pub(crate) bounds: Bounds,
-    // pub(crate) envid: EnvIdx,
     pub inverted: Option<VarIdx>,
 }
 
 impl Variable {
-    pub fn new(
-        name: &str,
-        vtype: Vtype,
-        bounds: Option<LazyBounds>,
-        // envid: EnvIdx,
-    ) -> LunaModelResult<Self> {
+    pub fn new(name: &str, vtype: Vtype, bounds: Option<LazyBounds>) -> LunaModelResult<Self> {
         let bounds = bounds.concretize(&vtype)?;
         Ok(Self {
             name: name.into(),
             vtype,
             bounds,
-            // envid,
             inverted: None,
         })
     }
@@ -43,11 +36,4 @@ impl Variable {
     pub fn bounds(&self) -> &Bounds {
         &self.bounds
     }
-
-    // pub fn envid(&self) -> EnvIdx {
-    //     self.envid
-    // }
-    // pub fn inverted(&self) -> Option<VarIdx> {
-    //     self.inverted
-    // }
 }
