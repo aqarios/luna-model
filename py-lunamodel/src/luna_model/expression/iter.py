@@ -1,12 +1,13 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, TypeAlias, runtime_checkable
+
+from luna_model._lm import PyConstant
 
 if TYPE_CHECKING:
     from luna_model.variable.var import Variable
 
 
-@runtime_checkable
-class Constant(Protocol): ...
+Constant: TypeAlias = PyConstant
 
 
 @runtime_checkable

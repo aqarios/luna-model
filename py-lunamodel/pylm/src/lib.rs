@@ -27,10 +27,11 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PySolution>()?;
     m.add_class::<PyTimer>()?;
 
-    // // For Protocol @runtime_checkable
-    // m.add_class::<PyConstant>()?;
-    // m.add_class::<PyLinear>()?;
-    // m.add_class::<PyQuadratic>()?;
-    // m.add_class::<PyHigherOrder>()?;
+    // For Expression iteration
+    m.add_class::<PyExpressionIterator>()?;
+    m.add_class::<PyConstant>()?;
+    m.add_class::<PyLinear>()?;
+    m.add_class::<PyQuadratic>()?;
+    m.add_class::<PyHigherOrder>()?;
     Ok(())
 }

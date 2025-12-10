@@ -1,4 +1,12 @@
-from luna_model import Environment, Expression, Variable, Linear, HigherOrder, Quadratic
+from luna_model import (
+    Environment,
+    Expression,
+    Variable,
+    Linear,
+    HigherOrder,
+    Quadratic,
+    Constant,
+)
 
 
 def test_expr_access():
@@ -8,7 +16,7 @@ def test_expr_access():
     assert 0 == expr.num_variables
     assert 0 == expr.get_offset()
     assert 0 == expr.degree()
-    assert 0 == len(list(expr.items()))
+    assert 1 == len(list(expr.items()))  # don't forget the constant
     assert 0 == len(list(expr.variables()))
     assert 0 == len(list(expr.linear_items()))
     assert 0 == len(list(expr.quadratic_items()))
@@ -30,14 +38,19 @@ def test_expr_access_lin():
     assert 2 == expr.num_variables
     assert 0 == expr.get_offset()
     assert 1 == expr.degree()
-    assert 2 == len(list(expr.items()))
+    assert 3 == len(list(expr.items()))  # don't forget the constant
     assert 2 == len(list(expr.variables()))
 
     for elem, bias in expr.items():
-        assert 1.0 == bias
-        assert isinstance(elem, Linear)
-        assert not isinstance(elem, Quadratic)
-        assert not isinstance(elem, HigherOrder)
+        match elem:
+            case Linear(_):
+                assert 1.0 == bias
+            case Quadratic(_, _):
+                assert False
+            case HigherOrder(_):
+                assert False
+            case Constant():
+                assert 0.0 == bias
 
     assert a in list(expr.variables())
     assert b in list(expr.variables())

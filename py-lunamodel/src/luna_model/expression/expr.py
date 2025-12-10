@@ -3,9 +3,10 @@ from typing import TYPE_CHECKING, Any, Callable, Self
 
 from luna_model._utils import wrap_env, wrap_var, wrap_c
 from luna_model._lm import PyExpression
+from luna_model.expression.iter2 import ExprIter
 
 if TYPE_CHECKING:
-    from luna_model.expression.iter import ExprIter
+    # from luna_model.expression.iter import ExprIter
     from luna_model.constraint import Constraint
     from luna_model.variable.var import Variable
     from luna_model.solution.sol import Solution
@@ -54,7 +55,7 @@ class Expression:
         return self._expr.get_higher_order([v._v for v in variables])
 
     def items(self) -> ExprIter:
-        return self._expr.items()
+        return ExprIter._from_pyei(self._expr.items())
 
     def variables(self) -> list[Variable]:
         return [wrap_var(v) for v in self._expr.variables()]

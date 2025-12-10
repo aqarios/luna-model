@@ -58,7 +58,7 @@ class Variable:
     def environment(self) -> Environment:
         return wrap_env(self._v.environment)
 
-    def is_equal(self, other: Variable) -> bool:
+    def is_equal(self, other: Variable | PyVariable) -> bool:
         return self._v.is_equal(other._v)
 
     def inv(self) -> Variable:
