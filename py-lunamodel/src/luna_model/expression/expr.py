@@ -3,10 +3,9 @@ from typing import TYPE_CHECKING, Any, Callable, Self
 
 from luna_model._utils import wrap_env, wrap_var, wrap_c
 from luna_model._lm import PyExpression
-from luna_model.expression.iter2 import ExprIter
+from luna_model.expression.iter import ExprIter
 
 if TYPE_CHECKING:
-    # from luna_model.expression.iter import ExprIter
     from luna_model.constraint import Constraint
     from luna_model.variable.var import Variable
     from luna_model.solution.sol import Solution
