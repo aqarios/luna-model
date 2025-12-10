@@ -5,7 +5,7 @@ use pyo3::{IntoPyObjectExt, prelude::*};
 use super::{PyExpression, content::PyExprContent as PyEC};
 use crate::variable::PyVariable;
 
-#[pyclass]
+#[pyclass(subclass)]
 pub struct PyConstant();
 
 #[pymethods]
@@ -15,7 +15,7 @@ impl PyConstant {
     }
 }
 
-#[pyclass]
+#[pyclass(subclass)]
 pub struct PyLinear(pub PyVariable);
 
 #[pymethods]
@@ -35,7 +35,7 @@ impl PyLinear {
     }
 }
 
-#[pyclass]
+#[pyclass(subclass)]
 pub struct PyQuadratic(pub (PyVariable, PyVariable));
 
 #[pymethods]
@@ -59,7 +59,7 @@ impl PyQuadratic {
     }
 }
 
-#[pyclass]
+#[pyclass(subclass)]
 pub struct PyHigherOrder(pub Vec<PyVariable>);
 
 #[pymethods]

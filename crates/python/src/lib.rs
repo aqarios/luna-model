@@ -17,7 +17,8 @@ pub use bounds::{PyBounds, PyUnbounded};
 pub use constraint::{PyConstraint, PyConstraintCollection};
 pub use environment::PyEnvironment;
 pub use expression::{
-    PyConstant, PyExprContent, PyExpression, PyHigherOrder, PyLinear, PyQuadratic,
+    PyConstant, PyExprContent, PyExpression, PyExpressionIterator, PyHigherOrder, PyLinear,
+    PyQuadratic,
 };
 pub use model::PyModel;
 pub use sol::PySolution;

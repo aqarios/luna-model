@@ -15,7 +15,7 @@ use pyo3::pyclass;
 use std::sync::Arc;
 
 pub use content::PyExprContent;
-pub use iteration::{PyConstant, PyHigherOrder, PyLinear, PyQuadratic};
+pub use iteration::{PyConstant, PyExpressionIterator, PyHigherOrder, PyLinear, PyQuadratic};
 
 #[pyclass]
 #[repr(C)]
