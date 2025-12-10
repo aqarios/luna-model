@@ -6,8 +6,8 @@ use crate::{
 use lunamodel_error::LunaModelResult;
 
 impl LmPowAssign for Expression {
-    fn pow_assign(&mut self, sup: usize) -> LunaModelResult<()> {
-        match sup {
+    fn pow_assign(&mut self, exp: usize) -> LunaModelResult<()> {
+        match exp {
             0 => *self = Expression::empty(self.env.clone()).edit(|e| e.offset = 1.0),
             1 => (),
             s => {

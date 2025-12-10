@@ -33,7 +33,6 @@ def test_expression_separation_quadratic_simple():
 
 
 def test_expression_separation_quadratic():
-    print()
     with Environment():
         a = Variable("a")
         b = Variable("b")

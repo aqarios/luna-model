@@ -95,10 +95,15 @@ class Expression:
         lhs, rhs = self._expr.separate([v._v for v in variables])
         return (self._from_pyexpr(lhs), self._from_pyexpr(rhs))
 
-    def subsitute(
+    def substitute(
         self, target: Variable, replacement: Expression | Variable
     ) -> Expression:
-        return self._from_pyexpr(self._expr.subsitute(target, replacement))
+        from luna_model.variable import Variable
+        if isinstance(replacement, Variable):
+            return self._from_pyexpr(self._expr.substitute(target._v, replacement._v))
+        elif isinstance(replacement, Expression):
+            return self._from_pyexpr(self._expr.substitute(target._v, replacement._expr))
+        raise TypeError(f"type '{type(replacement)}' not supported in substitution")
 
     def evaluate(self, solution: Solution) -> NDArray:
         return self._expr.evaluate(solution._s)  # type: ignore[attribute]

@@ -1,11 +1,13 @@
-use std::ops::Mul;
+// use std::ops::Mul;
 
 use hashbrown::HashSet;
+use itertools::Itertools;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::VarIdx;
 
 use crate::expression::Expression;
-use crate::ops::LmAddAssign;
+// use crate::ops::LmAddAssign;
+use crate::prelude::{HigherOrder, Quadratic};
 use crate::variable::VarRef;
 
 impl Expression {
@@ -25,11 +27,11 @@ impl Expression {
                 continue;
             }
             if set.contains(&x.id) {
-                // left.linear += (x, v);
-                left.add_assign((&x * v)?)?;
+                left.linear += (x.id, v);
+                // left.add_assign((&x * v)?)?;
             } else {
-                // right.linear += (x, v);
-                right.add_assign((&x * v)?)?;
+                right.linear += (x.id, v);
+                // right.add_assign((&x * v)?)?;
             }
         }
         for (x, y, v) in self.quadratic_items() {
@@ -37,58 +39,57 @@ impl Expression {
                 continue;
             }
             if set.contains(&x.id) || set.contains(&y.id) {
-                left.add_assign(((&x * &y)? * v)?)?;
-                // if let Some(q) = left.quadratic.as_mut() {
-                //     *q += (x.id, y.id, v);
-                // } else {
-                //     let mut q = Quadratic::default();
-                //     q += (x.id, y.id, v);
-                //     left.quadratic = Some(q);
-                // }
+                // left.add_assign(((&x * &y)? * v)?)?;
+                if let Some(q) = left.quadratic.as_mut() {
+                    *q += (x.id, y.id, v);
+                } else {
+                    let mut q = Quadratic::default();
+                    q += (x.id, y.id, v);
+                    left.quadratic = Some(q);
+                }
             } else {
-                right.add_assign(((&x * &y)? * v)?)?;
-                // if let Some(q) = right.quadratic.as_mut() {
-                //     *q += (x.id, y.id, v);
-                // } else {
-                //     let mut q = Quadratic::default();
-                //     q += (x.id, y.id, v);
-                //     right.quadratic = Some(q);
-                // }
+                // right.add_assign(((&x * &y)? * v)?)?;
+                if let Some(q) = right.quadratic.as_mut() {
+                    *q += (x.id, y.id, v);
+                } else {
+                    let mut q = Quadratic::default();
+                    q += (x.id, y.id, v);
+                    right.quadratic = Some(q);
+                }
             }
         }
         for (xs, v) in self.higher_order_items() {
             if v == 0.0 {
                 continue;
             }
-            let ex = (xs
-                .iter()
-                .fold(Expression::constant(self.env.clone(), 1.0), |n, e| {
-                    n.mul(e).unwrap()
-                })
-                * v)?;
-            dbg!(&ex);
-            if xs.iter().any(|x| set.contains(&x.id)) {
-                left.add_assign(ex)?;
-                // if let Some(h) = left.higher_order.as_mut() {
-                //     *h += (xs.as_slice(), v);
-                // } else {
-                //     let mut h = HigherOrder::default();
-                //     h += (xs.as_slice(), v);
-                //     left.higher_order = Some(h);
-                // }
+            // let ex = (xs
+            //     .iter()
+            //     .fold(Expression::constant(self.env.clone(), 1.0), |n, e| {
+            //         n.mul(e).unwrap()
+            //     })
+            //     * v)?;
+            // if xs.iter().any(|x| set.contains(&x.id)) {
+            let xs = xs.iter().map(|v| v.id).collect_vec();
+            if xs.iter().any(|x| set.contains(x)) {
+                // left.add_assign(ex)?;
+                if let Some(h) = left.higher_order.as_mut() {
+                    *h += (xs.as_slice(), v);
+                } else {
+                    let mut h = HigherOrder::default();
+                    h += (xs.as_slice(), v);
+                    left.higher_order = Some(h);
+                }
             } else {
-                right.add_assign(ex)?;
-                // if let Some(h) = right.higher_order.as_mut() {
-                //     *h += (xs.as_slice(), v);
-                // } else {
-                //     let mut h = HigherOrder::default();
-                //     h += (xs.as_slice(), v);
-                //     right.higher_order = Some(h);
-                // }
+                // right.add_assign(ex)?;
+                if let Some(h) = right.higher_order.as_mut() {
+                    *h += (xs.as_slice(), v);
+                } else {
+                    let mut h = HigherOrder::default();
+                    h += (xs.as_slice(), v);
+                    right.higher_order = Some(h);
+                }
             }
         }
-
-        dbg!(&self, &set, &left, &right);
         Ok((left, right))
     }
 }

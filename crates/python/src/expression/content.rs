@@ -156,6 +156,17 @@ impl PyExprContent {
             }
         }
     }
+
+    pub fn substitute(
+        &self,
+        target: &VarRef,
+        replacement: &Expression,
+    ) -> LunaModelResult<Expression> {
+        match self {
+            Self::Expr(e) => e.read_arc().substitute(target, replacement),
+            Self::Model(m) => m.read_arc().objective.substitute(target, replacement),
+        }
+    }
 }
 
 impl Add<&PyExprContent> for &Expression {

@@ -28,16 +28,11 @@ impl PyExpression {
         unimplemented!()
     }
 
-    fn subsitute(
-        &self,
-        target: &PyVariable,
-        replacement: Replacement,
-    ) -> PyResult<Bound<'_, PyArray1<f64>>> {
-        _ = target;
-        match replacement {
-            Replacement::Var(v) => _ = v,
-            Replacement::Expr(e) => _ = e,
-        }
-        unimplemented!()
+    fn substitute(&self, target: &PyVariable, replacement: Replacement) -> PyResult<PyExpression> {
+        let r = match replacement {
+            Replacement::Var(v) => &(v.v.into()),
+            Replacement::Expr(e) => &(e.expr.into()),
+        };
+        Ok(self.expr.substitute(&target.v, r)?.into())
     }
 }

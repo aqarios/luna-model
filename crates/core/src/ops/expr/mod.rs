@@ -5,3 +5,4 @@ mod pow;
 mod sub;
 
 mod separate;
+mod substitute;
