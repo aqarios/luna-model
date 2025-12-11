@@ -61,6 +61,7 @@ pub enum LunaModelError {
     Decoding(ErrString),
     Formatter(ErrString),
     UnsupportedOperation(ErrString),
+    Internal(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -80,6 +81,7 @@ impl Display for LunaModelError {
             Formatter(msg) => write!(f, "formatting failed: {}", msg),
             DifferentEnvironments => write!(f, "different environments encountered"),
             UnsupportedOperation(msg) => write!(f, "the operation '{}' is not supported", msg),
+            Internal(msg) => write!(f, "internal LunaModel error: '{}'", msg),
         }
     }
 }
