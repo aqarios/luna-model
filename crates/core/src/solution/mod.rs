@@ -1,13 +1,15 @@
 mod access;
 mod col;
+mod modification;
 mod result;
 mod sample;
 mod src;
 mod timing;
-
-use hashbrown::HashMap;
+mod creation;
 
 pub use col::Column;
+use hashbrown::HashMap;
+use indexmap::IndexMap;
 use lunamodel_types::Sense;
 pub use src::ValueSource;
 pub use timing::{Timer, Timing};
@@ -31,7 +33,7 @@ pub struct Solution {
     /// A collection of samples. The data is stored in column orientation. Each column contains all
     /// values for the variable over all samples. The number of samples is equal to the number of
     /// elements in the [Column]s.
-    pub samples: HashMap<String, Column>,
+    pub samples: IndexMap<String, Column>,
     /// How often each sample occurs in the solution. The counts length matches the number of
     /// samples, i.e., it matches the length of the [Column]s in the samples.
     pub counts: Vec<usize>,
