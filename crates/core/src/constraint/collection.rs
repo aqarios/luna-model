@@ -2,7 +2,10 @@ use crate::{environment::ArcEnv, traits::ContentEquality, variable::VarRef};
 use indexmap::IndexMap;
 use lunamodel_types::Vtype;
 use lunamodel_utils::{unique, unique_by};
-use std::fmt::{Display, Formatter};
+use std::{
+    fmt::{Display, Formatter},
+    ops::Index,
+};
 
 use super::constraint::Constraint;
 
@@ -80,5 +83,13 @@ impl ContentEquality for ConstraintCollection {
 impl From<IndexMap<String, Constraint>> for ConstraintCollection {
     fn from(data: IndexMap<String, Constraint>) -> Self {
         Self { data }
+    }
+}
+
+impl Index<&str> for ConstraintCollection {
+    type Output = Constraint;
+
+    fn index(&self, index: &str) -> &Self::Output {
+        self.data.get(index).unwrap()
     }
 }

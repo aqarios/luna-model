@@ -8,22 +8,22 @@ use crate::prelude::Expression;
 impl Expression {
     pub fn evaluate_sample<S>(&self, sample: &S) -> LunaModelResult<Bias>
     where
-        S: Index<String, Output = Bias>,
+        for<'s> S: Index<&'s str, Output = &'s Bias>,
     {
         let mut val = Bias::default();
         for (vs, bias) in self.items() {
             match &vs[..] {
                 [] => val += bias,
-                [v] => val += adjusted(sample[v.name()?], v.vtype()?) * bias,
+                [v] => val += adjusted(sample[&v.name()?], v.vtype()?) * bias,
                 [u, v] => {
-                    val += adjusted(sample[u.name()?], u.vtype()?)
-                        * adjusted(sample[v.name()?], v.vtype()?)
+                    val += adjusted(sample[&u.name()?], u.vtype()?)
+                        * adjusted(sample[&v.name()?], v.vtype()?)
                         * bias
                 }
                 vs => {
-                    let varval: LunaModelResult<f64> = vs
-                        .iter()
-                        .try_fold(bias, |b, v| Ok(b * adjusted(sample[v.name()?], v.vtype()?)));
+                    let varval: LunaModelResult<f64> = vs.iter().try_fold(bias, |b, v| {
+                        Ok(b * adjusted(sample[&v.name()?], v.vtype()?))
+                    });
                     val += varval?;
                 }
             }
@@ -33,17 +33,17 @@ impl Expression {
 
     pub fn evaluate_sampleset<'s, Sample, S>(&self, sampleset: S) -> LunaModelResult<Vec<Bias>>
     where
-        Sample: 's + Index<String, Output = Bias>,
+        for<'v> Sample: 's + Index<&'v str, Output = &'v Bias>,
         S: Iterator<Item = &'s Sample>,
     {
         sampleset.map(|s| self.evaluate_sample(s)).collect()
     }
 }
 
-fn adjusted(value: Bias, vtype: Vtype) -> Bias {
+fn adjusted(value: &Bias, vtype: Vtype) -> Bias {
     if vtype == Vtype::InvertedBinary {
         1.0 - value
     } else {
-        value
+        *value
     }
 }

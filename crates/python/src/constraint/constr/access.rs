@@ -1,7 +1,8 @@
 use lunamodel_types::{Bias, Comparator};
 use pyo3::pymethods;
 
-use crate::{PyConstraint, PyExpression};
+use super::PyConstraint;
+use crate::expression::PyExpression;
 
 #[pymethods]
 impl PyConstraint {
