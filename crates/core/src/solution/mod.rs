@@ -1,16 +1,16 @@
 mod access;
 mod col;
+mod creation;
 mod modification;
 mod result;
 mod sample;
 mod src;
 mod timing;
-mod creation;
 
 pub use col::Column;
 use hashbrown::HashMap;
 use indexmap::IndexMap;
-use lunamodel_types::Sense;
+use lunamodel_types::{Bias, Sense};
 pub use src::ValueSource;
 pub use timing::{Timer, Timing};
 
@@ -40,10 +40,10 @@ pub struct Solution {
     /// Objetive values as computed by the solver. May be empty if the solver does not provide
     /// energies in its solution format. May be different from `obj_values`, e.g., because an offset
     /// was neglected, or the Model was transformed before being solved.
-    pub raw_energies: Option<Vec<usize>>,
+    pub raw_energies: Option<Vec<f64>>,
     /// Objetive values as computed by the corresponding Model. May be empty for solutions that
     /// haven't yet been evaluated.
-    pub obj_values: Option<Vec<usize>>,
+    pub obj_values: Option<Vec<f64>>,
     /// Boolean flag for each sample whether it's feasible, i.e., whether all constraints are
     /// satisfied. In other words, `feasible[i]` iff. `all(constraints[i])`. May be empty for
     /// solutions that haven't yet been evaluated.

@@ -18,6 +18,7 @@ pub enum Column {
     Real(ColElement<RealAssignment>),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Assignment {
     Binary(BinaryAssignment),
     Spin(SpinAssignment),
@@ -39,6 +40,15 @@ impl Index<usize> for Column {
 }
 
 impl Column {
+    pub fn with(assignment: Assignment) -> Self {
+        match assignment {
+            Assignment::Binary(v) => Self::binary(vec![v as Bias]),
+            Assignment::Spin(v) => Self::spin(vec![v as Bias]),
+            Assignment::Integer(v) => Self::integer(vec![v as Bias]),
+            Assignment::Real(v) => Self::real(vec![v as Bias]),
+        }
+    }
+
     pub fn as_assignment(&self, index: usize) -> Assignment {
         match self {
             Self::Binary(col) => Assignment::Binary(col.as_t(index)),
@@ -98,7 +108,6 @@ impl<T: NumCast> ColElement<T> {
 
 impl ColElement<u8> {
     pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
-        // we need to check that the value
         let msg = match value {
             Assignment::Binary(v) => {
                 self.0.push(v as Bias);
@@ -108,8 +117,56 @@ impl ColElement<u8> {
             Assignment::Integer(_) => Some("integer"),
             Assignment::Real(_) => Some("real"),
         };
-        // msg.ok_or(|| LunaModelError::Dtype(msg.into()))
-        // Err(LunaModelError::Dtype("can not push a ".into())),
-        // msg.ok()
+        msg.and_then(|_| Some(()))
+            .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
+    }
+}
+
+impl ColElement<i8> {
+    pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
+        let msg = match value {
+            Assignment::Binary(_) => Some("binary"),
+            Assignment::Spin(v) => {
+                self.0.push(v as Bias);
+                None
+            }
+            Assignment::Integer(_) => Some("integer"),
+            Assignment::Real(_) => Some("real"),
+        };
+        msg.and_then(|_| Some(()))
+            .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
+    }
+}
+
+impl ColElement<i64> {
+    pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
+        let msg = match value {
+            Assignment::Binary(_) => Some("binary"),
+            Assignment::Spin(_) => Some("spin"),
+            Assignment::Integer(v) => {
+                self.0.push(v as Bias);
+                None
+            }
+
+            Assignment::Real(_) => Some("real"),
+        };
+        msg.and_then(|_| Some(()))
+            .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
+    }
+}
+
+impl ColElement<f64> {
+    pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
+        let msg = match value {
+            Assignment::Binary(_) => Some("binary"),
+            Assignment::Spin(_) => Some("spin"),
+            Assignment::Integer(_) => Some("integer"),
+            Assignment::Real(v) => {
+                self.0.push(v as Bias);
+                None
+            }
+        };
+        msg.and_then(|_| Some(()))
+            .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
     }
 }
