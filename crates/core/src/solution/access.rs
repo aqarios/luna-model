@@ -22,6 +22,39 @@ impl Solution {
         self.n_samples
     }
 
+    pub fn assignment(&self, sample: usize, var: &str) -> Option<&Bias> {
+        match sample >= self.len() {
+            true => None,
+            false => Some(&self[(sample, var)]),
+        }
+    }
+
+    pub fn result(&self, index: usize) -> Option<ResultView<'_>> {
+        match index >= self.len() {
+            true => None,
+            false => Some((self, index).into()),
+        }
+    }
+
+    pub fn results<'s>(&'s self) -> impl Iterator<Item = ResultView<'s>> {
+        (0..self.len()).map(move |i| (self, i).into())
+    }
+
+    pub fn sample(&self, index: usize) -> Option<SampleView<'_>> {
+        match index >= self.len() {
+            true => None,
+            false => Some((self, index).into()),
+        }
+    }
+
+    pub fn samples<'s>(&'s self) -> impl Iterator<Item = SampleView<'s>> {
+        (0..self.len()).map(move |i| (self, i).into())
+    }
+
+    pub fn variable_names(&self) -> Vec<String> {
+        self.samples.keys().cloned().collect()
+    }
+
     pub fn best(&self) -> Option<Vec<ResultView<'_>>> {
         match (&self.feasible, &self.obj_values) {
             (Some(f), Some(ov)) => {
@@ -49,39 +82,6 @@ impl Solution {
             }
             _ => None,
         }
-    }
-
-    pub fn assignment(&self, sample: usize, var: &str) -> Option<&Bias> {
-        match sample >= self.len() {
-            true => None,
-            false => Some(&self[(sample, var)]),
-        }
-    }
-
-    pub fn result(&self, index: usize) -> Option<ResultView<'_>> {
-        match index >= self.len() {
-            true => None,
-            false => Some((self, index).into()),
-        }
-    }
-
-    pub fn results<'s>(&'s self) -> impl Iterator<Item = ResultView<'s>> {
-        (0..self.len()).map(move |i| (self, i).into())
-    }
-
-    pub fn sample(&self, index: usize) -> Option<SampleView<'_>> {
-        match index >= self.len() {
-            true => None,
-            false => Some((self, index).into()),
-        }
-    }
-
-    // pub fn samples(&self) -> impl Iterator<Item = SampleView<'_>> {
-    //     unimplemented!()
-    // }
-
-    pub fn variable_names(&self) -> Vec<String> {
-        self.samples.keys().cloned().collect()
     }
 }
 

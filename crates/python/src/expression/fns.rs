@@ -1,5 +1,5 @@
 use lunamodel_core::prelude::VarRef;
-use numpy::PyArray1;
+use numpy::{PyArray1, ToPyArray};
 use pyo3::{Bound, FromPyObject, PyResult, Python, pymethods};
 
 use super::{PyExprContent as PyEC, PyExpression};
@@ -22,10 +22,12 @@ impl PyExpression {
         Ok((left.into(), right.into()))
     }
 
-    fn evaluate(&self, py: Python<'_>, sol: &PySolution) -> PyResult<Bound<'_, PyArray1<f64>>> {
-        _ = py;
-        _ = sol;
-        unimplemented!()
+    fn evaluate<'py>(&self, py: Python<'py>, sol: &PySolution) -> PyResult<Bound<'py, PyArray1<f64>>> {
+        let values = match &self.expr {
+            PyEC::Expr(e) => e.read_arc().evaluate_sampleset(sol.s.read_arc().samples()),
+            PyEC::Model(m) => m.read_arc().objective.evaluate_sampleset(sol.s.read_arc().samples()),
+        }?;
+        Ok(values.to_pyarray(py))
     }
 
     fn substitute(&self, target: &PyVariable, replacement: Replacement) -> PyResult<PyExpression> {

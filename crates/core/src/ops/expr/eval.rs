@@ -8,7 +8,7 @@ use crate::prelude::Expression;
 impl Expression {
     pub fn evaluate_sample<S>(&self, sample: &S) -> LunaModelResult<Bias>
     where
-        for<'s> S: Index<&'s str, Output = &'s Bias>,
+        for<'s> S: Index<&'s str, Output = Bias>,
     {
         let mut val = Bias::default();
         for (vs, bias) in self.items() {
@@ -33,17 +33,17 @@ impl Expression {
 
     pub fn evaluate_sampleset<'s, Sample, S>(&self, sampleset: S) -> LunaModelResult<Vec<Bias>>
     where
-        for<'v> Sample: 's + Index<&'v str, Output = &'v Bias>,
-        S: Iterator<Item = &'s Sample>,
+        for<'v> Sample: 's + Index<&'v str, Output = Bias>,
+        S: Iterator<Item = Sample>,
     {
-        sampleset.map(|s| self.evaluate_sample(s)).collect()
+        sampleset.map(|s| self.evaluate_sample(&s)).collect()
     }
 }
 
-fn adjusted(value: &Bias, vtype: Vtype) -> Bias {
+fn adjusted(value: Bias, vtype: Vtype) -> Bias {
     if vtype == Vtype::InvertedBinary {
         1.0 - value
     } else {
-        *value
+        value
     }
 }
