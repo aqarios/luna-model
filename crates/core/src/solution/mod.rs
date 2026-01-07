@@ -1,16 +1,20 @@
 mod access;
 mod col;
+mod convenience;
 mod creation;
+mod filter;
 mod modification;
-mod result;
+pub mod result;
+mod io;
 mod sample;
+mod samples;
 mod src;
 mod timing;
 
 pub use col::Column;
 use hashbrown::HashMap;
 use indexmap::IndexMap;
-use lunamodel_types::{Bias, Sense};
+use lunamodel_types::Sense;
 pub use src::ValueSource;
 pub use timing::{Timer, Timing};
 
@@ -34,6 +38,7 @@ pub struct Solution {
     /// values for the variable over all samples. The number of samples is equal to the number of
     /// elements in the [Column]s.
     pub samples: IndexMap<String, Column>,
+    // pub samples: Samples,
     /// How often each sample occurs in the solution. The counts length matches the number of
     /// samples, i.e., it matches the length of the [Column]s in the samples.
     pub counts: Vec<usize>,
@@ -49,7 +54,7 @@ pub struct Solution {
     /// solutions that haven't yet been evaluated.
     pub feasible: Option<Vec<bool>>,
     // constr
-    /// Boolean flag for each single constraint whether it's satisfied. Each inner vec corresponds
+    /// Boolean flag for each single constraint whether it's satisfied. Each inner map corresponds
     /// to one sample, i.e., `constraints[name]` corresponds to `samples[?].len()`. May be empty for
     /// solutions that haven't yet been evaluated.
     pub constraints: Vec<HashMap<String, bool>>,

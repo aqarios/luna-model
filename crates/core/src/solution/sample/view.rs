@@ -5,8 +5,8 @@ use lunamodel_types::Bias;
 use crate::solution::Solution;
 
 pub struct SampleView<'s> {
-    sol: &'s Solution,
-    idx: usize,
+    pub sol: &'s Solution,
+    pub idx: usize,
 }
 
 impl<'s> SampleView<'s> {

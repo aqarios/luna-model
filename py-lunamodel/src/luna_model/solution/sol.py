@@ -75,7 +75,7 @@ class Solution:
     def best_sample_idx(self) -> list[int]:
         return self._s.best_sample_idx
 
-    def best(self) -> list[ResultView]:
+    def best(self) -> list[ResultView] | None:
         return self._s.best
 
     def cvar(self, alpha: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
@@ -126,6 +126,7 @@ class Solution:
         self, var: str | Variable, data: list[int | float], vtype: Vtype = Vtype.BINARY
     ) -> None:
         from luna_model.variable import Variable
+
         self._s.add_var(
             var._v if isinstance(var, Variable) else var,  # type: ignore[attribute]
             data,
@@ -139,6 +140,7 @@ class Solution:
         vtypes: list[Vtype | None] | None = None,
     ) -> None:
         from luna_model.variable import Variable
+
         self._s.add_vars(
             [var._v if isinstance(var, Variable) else var for var in variables],  # type: ignore[attribute]
             data,
@@ -147,10 +149,12 @@ class Solution:
 
     def remove_var(self, var: str | Variable) -> None:
         from luna_model.variable import Variable
+
         self._s.remove_var(var._v if isinstance(var, Variable) else var)  # type: ignore[attribute]
 
     def remove_vars(self, variables: list[str | Variable]) -> None:
         from luna_model.variable import Variable
+
         self._s.remove_vars(
             [var._v if isinstance(var, Variable) else var for var in variables]  # type: ignore[attribute]
         )
@@ -166,6 +170,9 @@ class Solution:
 
     def __eq__(self, other: Solution) -> bool:  # type: ignore[override]
         return self._s.__eq__(other._s)
+
+    def __reduce__(self) -> bool:  # type: ignore[override]
+        raise NotImplementedError
 
     def encode(self, compress: bool = True, level: int = 3) -> bytes:
         return self._s.encode(compress, level)

@@ -347,6 +347,7 @@ dependencies = [
 name = "lunamodel-python"
 version = "0.5.0"
 dependencies = [
+ "derive_more",
  "hashbrown",
  "lunamodel-core",
  "lunamodel-error",

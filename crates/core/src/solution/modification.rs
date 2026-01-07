@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 use lunamodel_error::LunaModelResult;
-use lunamodel_types::Bias;
+use lunamodel_types::{Bias, Vtype};
 
 use crate::solution::{Column, col::Assignment};
 
@@ -31,21 +31,52 @@ impl Solution {
         _ = sample;
         _ = counts;
         _ = energy;
+        todo!("implement push_vec in modification.rs")
     }
 
-    pub fn add_binary(&mut self, var: String) {
+    pub fn add_empty_binary(&mut self, var: String) {
         self.samples.insert(var, Column::empty_binary());
     }
 
-    pub fn add_spin(&mut self, var: String) {
+    pub fn add_empty_spin(&mut self, var: String) {
         self.samples.insert(var, Column::empty_spin());
     }
 
-    pub fn add_integer(&mut self, var: String) {
+    pub fn add_empty_integer(&mut self, var: String) {
         self.samples.insert(var, Column::empty_integer());
     }
 
-    pub fn add_real(&mut self, var: String) {
+    pub fn add_empty_real(&mut self, var: String) {
         self.samples.insert(var, Column::empty_real());
+    }
+
+    pub fn add_binary(&mut self, var: String, data: Vec<f64>) {
+        self.samples.insert(var, Column::binary(data));
+    }
+
+    pub fn add_spin(&mut self, var: String, data: Vec<f64>) {
+        self.samples.insert(var, Column::spin(data));
+    }
+
+    pub fn add_integer(&mut self, var: String, data: Vec<f64>) {
+        self.samples.insert(var, Column::integer(data));
+    }
+
+    pub fn add_real(&mut self, var: String, data: Vec<f64>) {
+        self.samples.insert(var, Column::real(data));
+    }
+
+    pub fn add_col(&mut self, vtype: Vtype, var: String, data: Vec<f64>) {
+        match vtype {
+            Vtype::Binary => self.add_binary(var, data),
+            Vtype::Spin => self.add_spin(var, data),
+            Vtype::Integer => self.add_integer(var, data),
+            Vtype::Real => self.add_real(var, data),
+            Vtype::InvertedBinary => (),
+        }
+    }
+
+    pub fn remove_col(&mut self, var: String) {
+        self.samples.shift_remove(&var);
     }
 }

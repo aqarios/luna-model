@@ -1,10 +1,12 @@
 use std::ops::Index;
 
+use derive_more::Deref;
 use lunamodel_types::Bias;
 
 use crate::solution::Solution;
 use crate::solution::sample::SampleView;
 
+#[derive(Deref)]
 pub struct ResultView<'s> {
     sample: SampleView<'s>,
 }

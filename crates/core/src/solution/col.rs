@@ -5,6 +5,8 @@ use num::NumCast;
 
 use lunamodel_types::{Bias, BinaryAssignment, IntegerAssignment, RealAssignment, SpinAssignment};
 
+use crate::traits::FilterByMask;
+
 // #[derive(Debug, Clone, PartialEq)]
 // pub struct ColElement<T>(pub Vec<T>);
 #[derive(Debug, Clone, PartialEq)]
@@ -98,11 +100,26 @@ impl Column {
     pub fn real(data: Vec<f64>) -> Self {
         Self::Real(ColElement(data, PhantomData::default()))
     }
+
+    pub fn filter_by_mask(&self, mask: &[bool]) -> Self {
+        match self {
+            Self::Binary(col) => Self::Binary(col.filter_by_mask(mask)),
+            Self::Spin(col) => Self::Spin(col.filter_by_mask(mask)),
+            Self::Integer(col) => Self::Integer(col.filter_by_mask(mask)),
+            Self::Real(col) => Self::Real(col.filter_by_mask(mask)),
+        }
+    }
 }
 
 impl<T: NumCast> ColElement<T> {
     pub fn as_t(&self, index: usize) -> T {
         <T as NumCast>::from(self.0[index]).unwrap()
+    }
+}
+
+impl<T> ColElement<T> {
+    pub fn filter_by_mask(&self, mask: &[bool]) -> Self {
+        Self(self.0.filter_by_mask(mask), self.1)
     }
 }
 

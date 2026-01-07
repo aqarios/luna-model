@@ -1,12 +1,9 @@
-// use std::ops::Mul;
-
 use hashbrown::HashSet;
 use itertools::Itertools;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::VarIdx;
 
 use crate::expression::Expression;
-// use crate::ops::LmAddAssign;
 use crate::prelude::{HigherOrder, Quadratic};
 use crate::variable::VarRef;
 

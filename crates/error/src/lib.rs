@@ -63,6 +63,7 @@ pub enum LunaModelError {
     UnsupportedOperation(ErrString),
     Internal(ErrString),
     Dtype(ErrString),
+    Computation(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -84,6 +85,7 @@ impl Display for LunaModelError {
             UnsupportedOperation(msg) => write!(f, "the operation '{}' is not supported", msg),
             Internal(msg) => write!(f, "internal LunaModel error: '{}'", msg),
             Dtype(msg) => write!(f, "invalid data type: {}", msg),
+            Computation(msg) => write!(f, "error during computation: {}", msg),
         }
     }
 }

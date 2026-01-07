@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error};
 
 pub trait ContentEquality {
     fn is_equal_contents(&self, other: &Self) -> bool;
@@ -58,3 +58,16 @@ pub trait DefaultEditable: Default + Editable {
     }
 }
 impl<T: Editable + Default> DefaultEditable for T {}
+
+pub trait FilterByMask<T> {
+    fn filter_by_mask(&self, mask: &[bool]) -> Vec<T>;
+}
+
+impl<T: Clone> FilterByMask<T> for Vec<T> {
+    fn filter_by_mask(&self, mask: &[bool]) -> Vec<T> {
+        self.iter()
+            .zip(mask)
+            .filter_map(|(x, flag)| flag.then_some(x.clone()))
+            .collect()
+    }
+}

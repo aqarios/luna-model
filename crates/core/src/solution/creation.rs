@@ -14,10 +14,10 @@ impl TryFrom<ArcEnv> for Solution {
         let mut slf = Self::default();
         for v in env.vars() {
             match v.vtype()? {
-                Vtype::Binary => slf.add_binary(v.name()?),
-                Vtype::Spin => slf.add_spin(v.name()?),
-                Vtype::Integer => slf.add_integer(v.name()?),
-                Vtype::Real => slf.add_real(v.name()?),
+                Vtype::Binary => slf.add_empty_binary(v.name()?),
+                Vtype::Spin => slf.add_empty_spin(v.name()?),
+                Vtype::Integer => slf.add_empty_integer(v.name()?),
+                Vtype::Real => slf.add_empty_real(v.name()?),
                 Vtype::InvertedBinary => (),
             }
         }
