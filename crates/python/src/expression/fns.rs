@@ -22,10 +22,17 @@ impl PyExpression {
         Ok((left.into(), right.into()))
     }
 
-    fn evaluate<'py>(&self, py: Python<'py>, sol: &PySolution) -> PyResult<Bound<'py, PyArray1<f64>>> {
+    fn evaluate<'py>(
+        &self,
+        py: Python<'py>,
+        sol: &PySolution,
+    ) -> PyResult<Bound<'py, PyArray1<f64>>> {
         let values = match &self.expr {
             PyEC::Expr(e) => e.read_arc().evaluate_sampleset(sol.s.read_arc().samples()),
-            PyEC::Model(m) => m.read_arc().objective.evaluate_sampleset(sol.s.read_arc().samples()),
+            PyEC::Model(m) => m
+                .read_arc()
+                .objective
+                .evaluate_sampleset(sol.s.read_arc().samples()),
         }?;
         Ok(values.to_pyarray(py))
     }
