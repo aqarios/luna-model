@@ -4,7 +4,7 @@ mod equality;
 mod specs;
 mod modification;
 // mod substitution;
-// mod evaluation;
+mod evaluation;
 // mod deepclone;
 mod sense;
 

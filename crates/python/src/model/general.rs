@@ -4,7 +4,7 @@ use lunamodel_core::Expression;
 use lunamodel_error::LunaModelResult;
 use pyo3::{FromPyObject, PyResult, pymethods};
 
-use crate::{PyExpression, PyVariable};
+use crate::{PyExpression, PySolution, PyVariable, sol};
 
 use super::PyModel;
 
@@ -30,5 +30,13 @@ impl PyModel {
             .m
             .write_arc()
             .substitute(&target.v, &replacement.as_expr()?)?)
+    }
+
+    fn evaluate(&self, solution: PySolution) -> PyResult<PySolution> {
+        Ok(self
+            .m
+            .read_arc()
+            .evaluate_solution(&solution.s.read_arc())?
+            .into())
     }
 }

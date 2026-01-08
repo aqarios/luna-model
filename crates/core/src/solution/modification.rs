@@ -27,12 +27,12 @@ impl Solution {
         Ok(())
     }
 
-    pub fn push_vec(&mut self, sample: Vec<Bias>, counts: usize, energy: Option<Bias>) {
-        _ = sample;
-        _ = counts;
-        _ = energy;
-        todo!("implement push_vec in modification.rs")
-    }
+    // pub fn push_vec(&mut self, sample: Vec<Bias>, counts: usize, energy: Option<Bias>) {
+    //     _ = sample;
+    //     _ = counts;
+    //     _ = energy;
+    //     todo!("implement push_vec in modification.rs")
+    // }
 
     pub fn add_empty_binary(&mut self, var: String) {
         self.samples.insert(var, Column::empty_binary());
