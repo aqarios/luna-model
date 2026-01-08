@@ -1,9 +1,9 @@
 mod access;
 mod creation;
+mod io;
 mod iter;
 mod modification;
 mod ser;
-mod io;
 
 use std::sync::Arc;
 
@@ -21,5 +21,17 @@ impl PyConstraintCollection {
         Self {
             c: Arc::new(RwLock::new(coll)),
         }
+    }
+}
+
+impl Into<PyConstraintCollection> for ConstraintCollection {
+    fn into(self) -> PyConstraintCollection {
+        PyConstraintCollection::new(self)
+    }
+}
+
+impl Into<ConstraintCollection> for &PyConstraintCollection {
+    fn into(self) -> ConstraintCollection {
+        self.c.read_arc().clone()
     }
 }

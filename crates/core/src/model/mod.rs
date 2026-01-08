@@ -2,6 +2,7 @@ mod access;
 mod creation;
 mod equality;
 mod specs;
+mod modification;
 // mod substitution;
 // mod evaluation;
 // mod deepclone;

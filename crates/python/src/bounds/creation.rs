@@ -9,7 +9,7 @@ use super::PyBounds;
 impl PyBounds {
     #[new]
     #[pyo3(signature=(lower=BoundValue::None, upper=BoundValue::None))]
-    fn pynew(lower: BoundValue, upper: BoundValue) -> Self {
+    pub fn pynew(lower: BoundValue, upper: BoundValue) -> Self {
         PyBounds(super::BoundsContent::Lazy(LazyBounds::new(
             lower.into(),
             upper.into(),

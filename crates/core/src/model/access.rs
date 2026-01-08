@@ -1,5 +1,8 @@
+use lunamodel_error::LunaModelResult;
 use lunamodel_types::Vtype;
 use lunamodel_utils::{unique, unique_by};
+
+use crate::prelude::VarRef;
 
 use super::Model;
 
@@ -19,5 +22,16 @@ impl Model {
             e.id
         })
         .count()
+    }
+
+    pub fn vars(&self) -> impl Iterator<Item = VarRef> {
+        let objvars = self.objective.vars();
+        let constrvars = self.constraints.vars();
+        let vars = unique_by(objvars.chain(constrvars), |e| e.id());
+        vars
+    }
+
+    pub fn var(&self, name: &str) -> LunaModelResult<VarRef> {
+        self.environment.lookup(name)
     }
 }

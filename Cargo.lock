@@ -355,6 +355,7 @@ dependencies = [
  "lunamodel-serializer",
  "lunamodel-translate",
  "lunamodel-types",
+ "lunamodel-utils",
  "numpy",
  "parking_lot 0.12.5",
  "pyo3",

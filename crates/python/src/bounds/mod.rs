@@ -8,7 +8,7 @@ use lunamodel_core::prelude::{Bounds, LazyBounds};
 use lunamodel_io::{CustomFormat, FormatOpt};
 use pyo3::pyclass;
 
-pub use unbounded::PyUnbounded;
+pub use unbounded::{BoundValue, PyUnbounded};
 
 #[derive(Clone, Debug)]
 pub enum BoundsContent {

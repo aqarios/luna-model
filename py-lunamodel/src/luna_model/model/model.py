@@ -52,6 +52,10 @@ class Model:
     def sense(self) -> Sense:
         return Sense(self._m.sense)
 
+    @sense.setter
+    def sense(self, sense: Sense) -> None:
+        self._m.sense = sense.value
+
     @property
     def objective(self) -> Expression:
         return wrap_expr(self._m.objective)

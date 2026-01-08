@@ -20,3 +20,9 @@ impl PyVariable {
         Self { v: vref }
     }
 }
+
+impl From<VarRef> for PyVariable {
+    fn from(value: VarRef) -> Self {
+        Self::new(value)
+    }
+}

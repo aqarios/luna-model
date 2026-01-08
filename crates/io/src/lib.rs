@@ -5,6 +5,7 @@ mod bounds;
 mod expr;
 mod constr_coll;
 mod constr;
+mod model;
 mod sol;
 mod env;
 mod var;
