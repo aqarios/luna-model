@@ -64,6 +64,8 @@ pub enum LunaModelError {
     Internal(ErrString),
     Dtype(ErrString),
     Computation(ErrString),
+    NoConstraintForKey(ErrString),
+    DuplicateConstraintName(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -86,6 +88,8 @@ impl Display for LunaModelError {
             Internal(msg) => write!(f, "internal LunaModel error: '{}'", msg),
             Dtype(msg) => write!(f, "invalid data type: {}", msg),
             Computation(msg) => write!(f, "error during computation: {}", msg),
+            NoConstraintForKey(msg) => write!(f, "no constraint for key: {}", msg),
+            DuplicateConstraintName(msg) => write!(f, "duplicate constraint name: {}", msg),
         }
     }
 }

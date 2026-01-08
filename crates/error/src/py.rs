@@ -285,7 +285,9 @@ impl From<Lme> for PyErr {
             Lme::UnsupportedOperation(_) => PyUnsupportedOperationError::new_err,
             Lme::Dtype(_) => PySampleColCreationError::new_err,
             Lme::Formatter(_) | Lme::Internal(_) => PyLunaModelError::new_err,
-            Lme::Computation(_) => PyLunaModelError::new_err,
+            Lme::Computation(_) => PyComputationError::new_err,
+            Lme::NoConstraintForKey(_) => PyNoConstraintForKeyError::new_err,
+            Lme::DuplicateConstraintName(_) => PyDuplicateConstraintNameError::new_err,
         };
         err(lme.to_string())
     }

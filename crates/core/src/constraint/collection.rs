@@ -1,35 +1,11 @@
-use crate::{environment::ArcEnv, traits::ContentEquality, variable::VarRef};
+use crate::{Expression, environment::ArcEnv, traits::ContentEquality, variable::VarRef};
 use indexmap::IndexMap;
-use lunamodel_types::Vtype;
+use lunamodel_error::{LunaModelError, LunaModelResult};
+use lunamodel_types::{Comparator, Vtype};
 use lunamodel_utils::{unique, unique_by};
-use std::{
-    fmt::{Display, Formatter},
-    ops::Index,
-};
+use std::ops::Index;
 
 use super::constraint::Constraint;
-
-/// A [Constraint] can be either identified by an Int or a String. Access is unified by this enum.
-///
-/// Note: This is subject to change in the future to allow indexing only using a constraints name
-/// (String) to ensure a more consistent and user safe API. In addition, it is required to enable
-/// enhancements in the transformation stack for operations working on constraints. For more
-/// details see <https://github.com/aqarios/aq-models-rs/issues/400>.
-pub enum ConstraintKey {
-    /// Will be deprecated going forward.
-    Int(usize),
-    /// The only viable method to access constraints going forward.
-    Str(String),
-}
-
-impl Display for ConstraintKey {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Int(idx) => write!(f, "{}", idx),
-            Self::Str(name) => write!(f, "{}", name),
-        }
-    }
-}
 
 /// The ConstraintCollection struct is an insertion ordered collection of one or more [Constraint]s.
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -62,6 +38,10 @@ impl ConstraintCollection {
         unique(self.data.iter().map(|(_, c)| c.lhs.vtypes()).flatten())
     }
 
+    pub fn ctypes(&self) -> impl Iterator<Item = Comparator> {
+        unique(self.data.iter().map(|(_, c)| c.comparator))
+    }
+
     pub fn vars(&self) -> impl Iterator<Item = VarRef> {
         unique_by(self.data.iter().map(|(_, c)| c.lhs.vars()).flatten(), |v| {
             v.id
@@ -70,6 +50,56 @@ impl ConstraintCollection {
 
     pub fn iter(&self) -> impl Iterator<Item = (&String, &Constraint)> {
         self.data.iter()
+    }
+
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
+    pub fn add_constraint(
+        &mut self,
+        mut constr: Constraint,
+        name: Option<String>,
+    ) -> LunaModelResult<()> {
+        let name = name.unwrap_or_else(|| constr.name.clone());
+        if self.data.contains_key(&name) {
+            Err(LunaModelError::DuplicateConstraintName(name.into()))
+        } else {
+            constr.name = name.clone();
+            self.data.insert(name, constr);
+            Ok(())
+        }
+    }
+
+    pub fn set_constraint(&mut self, key: &str, constr: Constraint) -> LunaModelResult<()> {
+        if let Some(c) = self.data.get_mut(key) {
+            *c = constr;
+            Ok(())
+        } else {
+            Err(LunaModelError::NoConstraintForKey(key.to_string().into()))
+        }
+    }
+
+    pub fn remove_constraint(&mut self, key: &str) -> LunaModelResult<()> {
+        if self.data.contains_key(key) {
+            _ = self.data.shift_remove(key);
+            Ok(())
+        } else {
+            Err(LunaModelError::NoConstraintForKey(key.to_string().into()))
+        }
+    }
+
+    /// A [VarRef] in the LHS [Expression] of all [Constraint]s in the [ConstraintCollection] collection can be
+    /// replaced by a new [Expression] using this function.
+    /// This is a convenience function to enable the [substitution operation](Constraint::substitute)
+    /// on the LHS expression of all constraints within the constraints collection.
+    /// All substitution logic and operations are defined on the [Expression]
+    /// [here](Expression::substitute).
+    pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> LunaModelResult<()> {
+        for (_, constr) in self.data.iter_mut() {
+            constr.substitute(target, replacement)?;
+        }
+        Ok(())
     }
 }
 

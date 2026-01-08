@@ -4,7 +4,7 @@ use global_counter::primitive::exact::CounterU64;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Comparator};
 
-use crate::{ArcEnv, expression::Expression};
+use crate::{ArcEnv, expression::Expression, prelude::VarRef};
 
 pub static CONSTRAINT_COUNTER: CounterU64 = CounterU64::new(0);
 
@@ -66,6 +66,15 @@ impl Constraint {
 
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    /// A [VarRef] in our LHS [Expression] can be replaced by a new [Expression] using this function.
+    /// It's a convenience function to enable the [substitution](Expression::substitute) operation on
+    /// the LHS [Expression] of a constraint. All substitution logic and operations are defined on
+    /// the [Expression] [here](Expression::substitute).
+    pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> LunaModelResult<()> {
+        self.lhs = (&self.lhs).substitute(target, replacement)?;
+        Ok(())
     }
 }
 

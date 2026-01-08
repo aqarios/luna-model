@@ -9,8 +9,9 @@ use parking_lot::RwLock;
 use pyo3::pyclass;
 
 #[pyclass]
+#[derive(Clone)]
 pub struct PyConstraint {
-    c: Arc<RwLock<Constraint>>,
+    pub c: Arc<RwLock<Constraint>>,
 }
 
 impl PyConstraint {
@@ -21,8 +22,14 @@ impl PyConstraint {
     }
 }
 
-// impl From<&Constraint> for PyConstraint {
-//     fn from(constr: &Constraint) -> Self {
-//         Self::new(constr.clone())
-//     }
-// }
+impl From<&Constraint> for PyConstraint {
+    fn from(constr: &Constraint) -> Self {
+        constr.clone().into()
+    }
+}
+
+impl From<Constraint> for PyConstraint {
+    fn from(constr: Constraint) -> Self {
+        Self::new(constr)
+    }
+}

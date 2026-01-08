@@ -1,6 +1,6 @@
-mod ser;
-mod construction;
 mod access;
+mod construction;
+mod ser;
 
 use std::sync::Arc;
 
