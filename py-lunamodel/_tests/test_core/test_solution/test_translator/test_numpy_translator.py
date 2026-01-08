@@ -7,7 +7,6 @@ from numpy.typing import NDArray
 from .fixtures import np_model, np_result
 
 
-@pytest.mark.solution_translation()
 def test_numpy_translator(np_model: Model, np_result: tuple[NDArray, NDArray]):
     res, energies = np_result
     sol = NumpyTranslator.to_aq(res, energies, env=np_model.environment)

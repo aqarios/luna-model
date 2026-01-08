@@ -19,7 +19,7 @@ class Constraint:
         lhs: Variable | Expression,
         rhs: float | Expression | Variable,
         comparator: Comparator,
-        name: str,
+        name: str | None = None,
     ) -> None:
         from luna_model.variable import Variable
         from luna_model.expression import Expression

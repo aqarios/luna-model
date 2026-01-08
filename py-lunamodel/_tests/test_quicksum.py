@@ -11,7 +11,7 @@ def variables() -> list[Variable]:
 
 
 def make_expression(variables: list[Variable]) -> Expression:
-    env = variables[0]._environment
+    env = variables[0].environment
     with env:
         expr = Expression()
         for var in variables:
@@ -24,7 +24,7 @@ def truth(variables: list[Variable]) -> Expression:
 
 
 def truth_expr(variables: list[Variable]) -> Expression:
-    base = Expression(variables[0]._environment)
+    base = Expression(variables[0].environment)
     for _ in range(N):
         base += make_expression(variables)
     return base

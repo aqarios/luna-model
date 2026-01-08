@@ -12,7 +12,6 @@ def variables(request) -> tuple[Variable, ...]:
     return tuple(variables)
 
 
-@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),

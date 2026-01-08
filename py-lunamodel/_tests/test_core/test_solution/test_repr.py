@@ -22,7 +22,6 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -35,7 +34,6 @@ def test_from_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     )
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -61,7 +59,6 @@ def test_from_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]])
     )
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model

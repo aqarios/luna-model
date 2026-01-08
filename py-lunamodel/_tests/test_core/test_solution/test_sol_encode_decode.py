@@ -46,14 +46,12 @@ def solution_many_binary() -> Solution:
     )
 
 
-@pytest.mark.solution_translation()
 def test_solution_encoding_decoding(solution):
     blob = solution.encode()
     solution_back = Solution.decode(blob)
     assert solution == solution_back
 
 
-@pytest.mark.solution_translation()
 def test_solution_encoding_decoding_many(solution_many_binary):
     blob = solution_many_binary.encode()
     solution_back = Solution.decode(blob)

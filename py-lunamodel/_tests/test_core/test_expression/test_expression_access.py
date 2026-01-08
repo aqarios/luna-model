@@ -1,4 +1,4 @@
-from luna_model._core import Environment, Variable
+from luna_model import Environment, Variable
 from luna_model.utils import quicksum
 
 

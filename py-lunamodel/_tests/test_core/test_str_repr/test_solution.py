@@ -47,21 +47,18 @@ def solution(request) -> Solution:
     )
 
 
-@pytest.mark.str_repr()
 @pytest.mark.parametrize("solution", [()], indirect=True)
 def test_sample(solution: Solution):
     sample = list(solution.samples)[0]
     assert str(sample) == "[1, 1, 2, 2.0]"
 
 
-@pytest.mark.str_repr()
 @pytest.mark.parametrize("solution", [()], indirect=True)
 def test_samples(solution: Solution):
     samples = solution.samples
     assert str(samples) == samples_str
 
 
-@pytest.mark.str_repr()
 @pytest.mark.parametrize("solution", [()], indirect=True)
 def test_model(solution: Solution):
     assert str(solution) == sol_str_1

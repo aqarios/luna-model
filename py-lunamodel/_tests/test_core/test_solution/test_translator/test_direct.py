@@ -11,7 +11,7 @@ except ImportError:
 
 NOT_TEST_IBM = True
 try:
-    from pytests.test_core.test_solution.test_translator.test_ibm_translator import (
+    from _tests.test_core.test_solution.test_translator.test_ibm_translator import (
         compute_result,
         controlled_lm,
         controlled_qp,
@@ -22,7 +22,7 @@ try:
 except ImportError:
     NOT_TEST_IBM = True
 
-from pytests.test_core.utils import make_seed, random, random_int
+from _tests.test_core.utils import make_seed, random, random_int
 from .fixtures import *  # noqa: F403
 from ..test_from_dict import vars
 

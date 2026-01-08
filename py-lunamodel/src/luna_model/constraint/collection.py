@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from luna_model.constraint.constr import Constraint
 from luna_model._utils import wrap_c
@@ -24,7 +24,7 @@ class ConstraintCollection:
         cc._cc = py_cc
         return cc
 
-    def add_constraint(self, constraint: Constraint, name: str):
+    def add_constraint(self, constraint: Constraint, name: str | None = None):
         self._cc.add_constraint(constraint._c, name)  # type: ignore
 
     def items(self) -> ConstraintCollectionIter:
@@ -58,7 +58,7 @@ class ConstraintCollection:
     def deserialize(cls, data: bytes, env: Environment) -> ConstraintCollection:
         return cls.decode(data, env)
 
-    def __iadd__(self, other: Constraint | tuple[Constraint, str]):
+    def __iadd__(self, other: Constraint | tuple[Constraint, str]) -> Self:
         if isinstance(other, Constraint):
             self._cc.__iadd__(other._c)
         elif isinstance(other, tuple):
@@ -66,6 +66,7 @@ class ConstraintCollection:
             self._cc.__iadd__((constr._c, name))
         else:
             raise TypeError(f"type of other '{type(other)}' not supported")
+        return self
 
     def __getitem__(self, key: str) -> Constraint:
         return self._cc.__getitem__(key)

@@ -66,13 +66,11 @@ def model_lp_str_fancy() -> str:
     return LpTranslator.from_aq(m)
 
 
-@pytest.mark.translator()
 def test_translate_to_cqm(model_lp_str_bin: str):
     _ = dimod_lp.loads(model_lp_str_bin)
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-@pytest.mark.translator()
 def test_translate_to_zib():
     scip_model = ScipModel()
     scip_model.hideOutput()

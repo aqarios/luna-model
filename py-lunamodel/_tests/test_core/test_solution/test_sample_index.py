@@ -21,7 +21,6 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_index_sample_var(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -35,7 +34,6 @@ def test_index_sample_var(model: tuple[Model, tuple[Variable, ...]]):
     assert best_sample[z] == sample[z]
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_index_sample_index(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -49,7 +47,6 @@ def test_index_sample_index(model: tuple[Model, tuple[Variable, ...]]):
     assert best_sample[2] == sample[z]
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_index_sample_name(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -63,7 +60,6 @@ def test_index_sample_name(model: tuple[Model, tuple[Variable, ...]]):
     assert best_sample[f"x_{2}"] == sample[z]
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_index_sample_on_sol(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model

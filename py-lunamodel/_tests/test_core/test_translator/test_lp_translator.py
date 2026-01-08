@@ -9,7 +9,7 @@ from luna_model import Sense
 from luna_model.errors import TranslationError
 from luna_model.translator import LpTranslator
 
-from pytests.test_core.utils import generate_cqms, make_seed
+from _tests.test_core.utils import generate_cqms, make_seed
 
 NOT_RUN_SCIP = False
 try:
@@ -49,7 +49,6 @@ GP_SENSE_MIN: int = 1
 GP_SENSE_MAX: int = 0
 
 
-@pytest.mark.translator()
 def test_lp_file_str_path():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -71,7 +70,6 @@ def test_lp_file_str_path():
 ##################################### Dimod ###########################################
 
 
-@pytest.mark.translator()
 def test_cqm_to_model_to_cqm():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -101,7 +99,6 @@ def test_cqm_to_model_to_cqm():
 
 
 @pytest.mark.skipif(NOT_RUN_GUROBI, reason="Gurobi is required for test")
-@pytest.mark.translator()
 def test_gurobi_to_model_to_gurobi():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -136,7 +133,6 @@ def test_gurobi_to_model_to_gurobi():
 
 
 @pytest.mark.skipif(NOT_RUN_GUROBI, reason="Gurobi is required for test")
-@pytest.mark.translator()
 def test_gurobi_and_aq_lp_read_equality():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -186,7 +182,6 @@ def test_gurobi_and_aq_lp_read_equality():
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-@pytest.mark.translator()
 def test_scip_to_model_to_scip():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -230,7 +225,6 @@ def test_scip_to_model_to_scip():
 
 
 @pytest.mark.skipif(NOT_RUN_CPLEX, reason="CPLEX is required for test")
-@pytest.mark.translator()
 def test_cplex_to_model_to_cplex():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
@@ -471,7 +465,6 @@ def scip_models_are_equal(model1: ScipModel, model2: ScipModel) -> tuple[bool, s
     return True, ""
 
 
-@pytest.mark.translator()
 def test_invalid_var_name():
     rand = Random(make_seed())
     cqm = generate_cqms(1, rand)[0]

@@ -24,10 +24,9 @@ from luna_model.errors import (
 )
 from luna_model.translator import DwaveTranslator
 
-from pytests.test_core.utils import generate_bqms, make_seed, random_int
+from _tests.test_core.utils import generate_bqms, make_seed, random_int
 
 
-@pytest.mark.solution_translation()
 def test_sampleset_translator_constructed(dwave_result: DwaveResult):
     with mock_env(3):
         sol = DwaveTranslator.to_aq(dwave_result.sampleset)
@@ -48,7 +47,6 @@ def test_sampleset_translator_constructed(dwave_result: DwaveResult):
 
 
 @pytest.mark.skipif(NOT_RUN_DWAVE, reason="Dwave is required for test")
-@pytest.mark.solution_translation()
 def test_sampleset_translator_sa_random_models():
     rand = Random(make_seed())
     bqms = generate_bqms(20, rand)
@@ -95,7 +93,6 @@ def test_sampleset_translator_sa_random_models():
             assert result.feasible is None
 
 
-@pytest.mark.solution_translation()
 def test_sampleset_translator_error_handling():
     samples_raw = [{"x0": -1, "x1": 1, "x2": 1}]
     energy = [-5]
@@ -125,7 +122,6 @@ def test_sampleset_translator_error_handling():
         DwaveTranslator.to_aq(sampleset, env=env)
 
 
-@pytest.mark.solution_translation()
 def test_dwave_translator_incorrect_sample_length():
     env = Environment()
     with env:

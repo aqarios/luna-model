@@ -2,7 +2,6 @@ import pytest
 from luna_model import Environment, Expression, Variable, Vtype
 
 
-@pytest.mark.variable()
 def test_variable_pow_n1():
     with Environment():
         x = Variable("x", vtype=Vtype.Integer)
@@ -13,7 +12,6 @@ def test_variable_pow_n1():
         _ = x**-1
 
 
-@pytest.mark.variable()
 def test_variable_pow_0():
     with Environment():
         x = Variable("x", vtype=Vtype.Integer)
@@ -25,7 +23,6 @@ def test_variable_pow_0():
     assert result.get_offset() == 1
 
 
-@pytest.mark.variable()
 def test_variable_pow_1():
     with Environment():
         x = Variable("x", vtype=Vtype.Integer)
@@ -37,7 +34,6 @@ def test_variable_pow_1():
     assert result.get_offset() == 0
 
 
-@pytest.mark.variable()
 def test_variable_pow_2():
     with Environment():
         x = Variable("x", vtype=Vtype.Integer)
@@ -50,7 +46,6 @@ def test_variable_pow_2():
     assert result.get_quadratic(x, x) == 1
 
 
-@pytest.mark.variable()
 def test_variable_pow_3():
     with Environment():
         x = Variable("x", vtype=Vtype.Integer)
@@ -64,7 +59,6 @@ def test_variable_pow_3():
     assert result.get_higher_order((x, x, x)) == 1
 
 
-@pytest.mark.variable()
 @pytest.mark.parametrize("scalar", list(range(4, 10)))
 def test_variable_pow_n(scalar: int):
     with Environment():

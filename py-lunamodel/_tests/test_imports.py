@@ -5,12 +5,10 @@ TRANSLATOR_MODULE_NAME: str = "luna_model._core.translator"
 ERRORS_MODULE_NAME: str = "luna_model._core.errors"
 
 
-@pytest.mark.imports()
 def test_import_luna_model():
     import luna_model as _  # noqa: F401
 
 
-@pytest.mark.imports()
 def test_import_variable():
     import luna_model as lm
     from luna_model import Variable
@@ -20,7 +18,6 @@ def test_import_variable():
     assert lm.Variable.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_vtype():
     import luna_model as lm
     from luna_model import Vtype
@@ -30,7 +27,6 @@ def test_import_vtype():
     assert lm.Vtype.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_comparator():
     import luna_model as lm
     from luna_model import Comparator
@@ -40,7 +36,6 @@ def test_import_comparator():
     assert lm.Comparator.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_environment():
     import luna_model as lm
     from luna_model import Environment
@@ -50,7 +45,6 @@ def test_import_environment():
     assert lm.Environment.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_expression():
     import luna_model as lm
     from luna_model import Expression
@@ -60,7 +54,6 @@ def test_import_expression():
     assert lm.Expression.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_model():
     import luna_model as lm
     from luna_model import Model
@@ -70,7 +63,6 @@ def test_import_model():
     assert lm.Model.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_bounds():
     import luna_model as lm
     from luna_model import Bounds
@@ -80,7 +72,6 @@ def test_import_bounds():
     assert lm.Bounds.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_constraint():
     import luna_model as lm
     from luna_model import Constraint
@@ -90,7 +81,6 @@ def test_import_constraint():
     assert lm.Constraint.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_constraints():
     import luna_model as lm
     from luna_model import ConstraintCollection
@@ -100,7 +90,6 @@ def test_import_constraints():
     assert lm.ConstraintCollection.__module__ == LM_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_qubo_translator():
     import luna_model
     import luna_model as lm
@@ -122,7 +111,6 @@ def test_import_qubo_translator():
     assert translator.QuboTranslator.__module__ == TRANSLATOR_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_variable_out_of_range_exception():
     import luna_model
     import luna_model as lm
@@ -144,7 +132,6 @@ def test_import_variable_out_of_range_exception():
     assert errors.VariableOutOfRangeError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_variable_exists_exception():
     import luna_model
     import luna_model as lm
@@ -166,7 +153,6 @@ def test_import_variable_exists_exception():
     assert errors.VariableExistsError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_variable_from_different_envs_exception():
     import luna_model
     import luna_model as lm
@@ -197,7 +183,6 @@ def test_import_variable_from_different_envs_exception():
     assert errors.VariablesFromDifferentEnvsError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_different_envs_exception():
     import luna_model
     import luna_model as lm
@@ -219,7 +204,6 @@ def test_import_different_envs_exception():
     assert errors.DifferentEnvsError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_no_active_environment_found_exception():
     import luna_model
     import luna_model as lm
@@ -249,7 +233,6 @@ def test_import_no_active_environment_found_exception():
     assert errors.NoActiveEnvironmentFoundError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_multiple_active_environments_exception():
     import luna_model
     import luna_model as lm
@@ -280,7 +263,6 @@ def test_import_multiple_active_environments_exception():
     assert errors.MultipleActiveEnvironmentsError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_decode_exception():
     import luna_model
     import luna_model as lm
@@ -302,7 +284,6 @@ def test_import_decode_exception():
     assert errors.DecodeError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_model_not_quadratic_exception():
     import luna_model
     import luna_model as lm
@@ -324,7 +305,6 @@ def test_import_model_not_quadratic_exception():
     assert errors.ModelNotQuadraticError.__module__ == ERRORS_MODULE_NAME
 
 
-@pytest.mark.imports()
 def test_import_model_not_unconstrained_exception():
     import luna_model
     import luna_model as lm

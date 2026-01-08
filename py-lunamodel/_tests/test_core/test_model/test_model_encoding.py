@@ -15,7 +15,6 @@ def assert_encode_decode(model: Model):
     assert decoded_model_b64.equal_contents(model)
 
 
-@pytest.mark.model()
 def test_encode_decode_empty():
     with Environment():
         model = Model()
@@ -23,7 +22,6 @@ def test_encode_decode_empty():
     assert_encode_decode(model)
 
 
-@pytest.mark.model()
 def test_encode_decode_empty_max():
     with Environment():
         model = Model(sense=Sense.Max)
@@ -31,7 +29,6 @@ def test_encode_decode_empty_max():
     assert_encode_decode(model)
 
 
-@pytest.mark.model()
 def test_encode_decode_with_objective():
     with Environment():
         x = Variable("x")
@@ -47,7 +44,6 @@ def test_encode_decode_with_objective():
     assert_encode_decode(model)
 
 
-@pytest.mark.model()
 def test_encode_decode_with_objective_max():
     with Environment():
         x = Variable("x")

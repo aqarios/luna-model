@@ -2,7 +2,6 @@ import pytest
 from luna_model import Environment, Expression, Variable
 
 
-@pytest.mark.variable()
 @pytest.mark.parametrize("scalar", [1, 2, 3])
 def test_sub_variable_and_number(scalar: int):
     with Environment():
@@ -15,7 +14,6 @@ def test_sub_variable_and_number(scalar: int):
     assert result.get_offset() == -scalar
 
 
-@pytest.mark.variable()
 @pytest.mark.parametrize("scalar", [1, 2, 3])
 def test_rsub_variable_and_number(scalar: int):
     with Environment():
@@ -28,7 +26,6 @@ def test_rsub_variable_and_number(scalar: int):
     assert result.get_offset() == scalar
 
 
-@pytest.mark.variable()
 def test_sub_two_variables():
     with Environment():
         x = Variable("x")
@@ -42,7 +39,6 @@ def test_sub_two_variables():
     assert result.get_linear(y) == -1
 
 
-@pytest.mark.variable()
 def test_sub_two_variables_unordered():
     with Environment():
         x = Variable("x")
@@ -56,7 +52,6 @@ def test_sub_two_variables_unordered():
     assert result.get_linear(y) == 1
 
 
-@pytest.mark.variable()
 def test_sub_last_two_variables():
     with Environment():
         _ = Variable("x_ignore")
@@ -71,7 +66,6 @@ def test_sub_last_two_variables():
     assert result.get_linear(y) == 1
 
 
-@pytest.mark.variable()
 def test_sub_any_and_last_variables():
     with Environment():
         _ = Variable("x_ignore")
@@ -87,7 +81,6 @@ def test_sub_any_and_last_variables():
     assert result.get_linear(y) == 1
 
 
-# @pytest.mark.variable
 # def test_variable_sub_expression():
 #     with Environment():
 #         x, y, z = Variable("x"), Variable("y"), Variable("z")
@@ -107,7 +100,6 @@ def test_sub_any_and_last_variables():
 #     assert result.get_linear(z) == 1
 
 
-# @pytest.mark.variable
 # def test_variable_rsub_expression():
 #     with Environment():
 #         x, y, z = Variable("x"), Variable("y"), Variable("z")

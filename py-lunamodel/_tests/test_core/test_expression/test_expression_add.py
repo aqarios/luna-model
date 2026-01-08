@@ -12,7 +12,6 @@ def variables(request) -> tuple[Variable, ...]:
     return tuple(variables)
 
 
-@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -35,7 +34,6 @@ def test_expression_add_variable(variables):
     assert result.get_linear(z) == 1
 
 
-@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -58,7 +56,6 @@ def test_expression_add_number(variables):
     assert expr.get_linear(y) == 1
 
 
-@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -81,7 +78,6 @@ def test_expression_radd_number(variables):
     assert expr.get_linear(y) == 1
 
 
-@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -104,7 +100,6 @@ def test_expression_instanceadd_variable(variables):
     assert expr.get_linear(z) == 1
 
 
-@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -128,7 +123,6 @@ def test_expression_instanceadd_variable_twice(variables):
     assert expr.get_linear(z) == 2
 
 
-@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),

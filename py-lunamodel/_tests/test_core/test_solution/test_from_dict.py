@@ -4,7 +4,7 @@ import pytest
 from luna_model import Environment, Model, Solution, Variable, Vtype
 from luna_model.errors import SampleIncorrectLengthError
 
-from pytests.test_core.utils import make_seed, random_int
+from _tests.test_core.utils import make_seed, random_int
 
 
 def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:
@@ -27,7 +27,6 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("variables", [(3, Vtype.Binary)], indirect=True)
 def test_from_dict_no_model(variables: tuple[tuple[Variable, ...], Environment]):
     (x, y, z), env = variables
@@ -52,7 +51,6 @@ def test_from_dict_no_model(variables: tuple[tuple[Variable, ...], Environment])
     assert sol.samples.tolist() == [[0, 0, 1]]
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -62,7 +60,6 @@ def test_from_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     assert sol.obj_values.tolist() == [-1.0]
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dict_with_model_and_counts(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -74,7 +71,6 @@ def test_from_dict_with_model_and_counts(model: tuple[Model, tuple[Variable, ...
     assert sol.counts == counts
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -94,7 +90,6 @@ def test_from_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]])
     assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
@@ -128,7 +123,6 @@ def test_from_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...
     assert sol.obj_values.tolist() == [-1, -1, 1, -2]
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_dicts_duplicate_with_model_and_counts(
     model: tuple[Model, tuple[Variable, ...]],
@@ -159,7 +153,6 @@ def test_from_dicts_duplicate_with_model_and_counts(
     assert sol.obj_values.tolist() == [-1, -1, 1, -2]
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary), (3, Vtype.Spin)], indirect=True)
 def test_from_counts_with_model(model):
     m, (x, _, _) = model
@@ -191,7 +184,6 @@ def test_from_counts_with_model(model):
         assert sol.obj_values.tolist() == [1, 1, -3, 3]
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Integer)], indirect=True)
 def test_from_counts_wrong_vtype(model):
     m, (x, _, _) = model
@@ -206,7 +198,6 @@ def test_from_counts_wrong_vtype(model):
         Solution.from_counts(counts, model=m)
 
 
-@pytest.mark.solution()
 @pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
 def test_from_counts_wrong_size(model):
     m, (x, _, _) = model

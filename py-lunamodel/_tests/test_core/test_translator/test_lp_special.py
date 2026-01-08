@@ -17,7 +17,6 @@ except ImportError as _:
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-@pytest.mark.translator()
 def test_zero_variables():
     model = LpTranslator.to_aq(Path(__file__).parent / "lp_string.lp")
     model_str = LpTranslator.from_aq(model)

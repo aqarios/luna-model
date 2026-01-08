@@ -19,14 +19,12 @@ def model() -> Model:
     return make_model()
 
 
-@pytest.mark.model()
 def test_access_name(model: Model):
     name = model.name
     assert isinstance(name, str)
     assert name == "unnamed"
 
 
-@pytest.mark.model()
 def test_access_objective(model: Model):
     objective_a = model.objective
     objective_b = model.objective
@@ -36,7 +34,6 @@ def test_access_objective(model: Model):
     assert model == model
 
 
-@pytest.mark.model()
 def test_use_model_environment():
     model = make_model()
     with model.environment:
@@ -44,7 +41,6 @@ def test_use_model_environment():
         _ = Model()
 
 
-@pytest.mark.model()
 def test_use_instanceadd_bias_to_aq():
     model = make_model()
     with model.environment:
@@ -54,7 +50,6 @@ def test_use_instanceadd_bias_to_aq():
     assert_offset(model.objective, 1)
 
 
-@pytest.mark.model()
 def test_use_instanceadd_variable_to_aq():
     model = make_model()
     with model.environment:
@@ -65,7 +60,6 @@ def test_use_instanceadd_variable_to_aq():
     assert_linear(model.objective, (x,), 1)
 
 
-@pytest.mark.model()
 def test_use_instanceadd_expression_to_aq():
     model = make_model()
     with model.environment:
@@ -78,7 +72,6 @@ def test_use_instanceadd_expression_to_aq():
     assert_quadratic(model.objective, (x, y), 1)
 
 
-@pytest.mark.model()
 def test_use_set_expression():
     model = make_model()
     with model.environment:
@@ -92,7 +85,6 @@ def test_use_set_expression():
     assert_quadratic(model.objective, (x, y), 1)
 
 
-@pytest.mark.model()
 def test_use_set_expression_with_sense_min():
     model = make_model()
     with model.environment:
@@ -106,7 +98,6 @@ def test_use_set_expression_with_sense_min():
     assert_quadratic(model.objective, (x, y), 1)
 
 
-@pytest.mark.model()
 def test_use_set_expression_with_sense_max():
     model = make_model()
     with model.environment:
@@ -120,7 +111,6 @@ def test_use_set_expression_with_sense_max():
     assert_quadratic(model.objective, (x, y), 1)
 
 
-@pytest.mark.model()
 def test_access_variables():
     with Environment() as env:
         x = Variable("x")
@@ -158,7 +148,6 @@ def test_access_variables():
         assert m2.num_variables == 1
 
 
-@pytest.mark.model()
 def test_add_variables_direct():
     m = Model("test")
     a = m.add_variable("a")

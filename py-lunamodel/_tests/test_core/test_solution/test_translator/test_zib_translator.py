@@ -21,7 +21,6 @@ from .fixtures import zib_model, zib_model_quadratic
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-@pytest.mark.solution_translation()
 def test_zib_translator(zib_model: Model):
     lp_str = LpTranslator.from_aq(zib_model)
     lp_filepath = Path(__file__).parent / "model.lp"
@@ -71,7 +70,6 @@ def test_zib_translator(zib_model: Model):
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-@pytest.mark.solution_translation()
 def test_zib_translator_quadratic(zib_model_quadratic: Model):
     lp_str = LpTranslator.from_aq(zib_model_quadratic)
     lp_filepath = Path(__file__).parent / "model.lp"
@@ -126,7 +124,6 @@ def test_zib_translator_quadratic(zib_model_quadratic: Model):
         assert np.isclose(sample[v], value, atol=1e-5)
 
 
-@pytest.mark.solution_translation()
 def test_read_coins():
     lp_filepath = Path(__file__).parent / "coins.lp"
     _ = LpTranslator.to_aq(lp_filepath)

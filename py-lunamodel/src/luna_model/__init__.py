@@ -50,7 +50,10 @@ from luna_model.solution import (
 
 
 from luna_model.translator import TranslationTarget
+from luna_model.utils import quicksum
 
+from . import utils
+from . import errors
 
 __all__ = [
     "Expression",
@@ -85,4 +88,7 @@ __all__ = [
     "Timing",
     "TranslationTarget",
     "translator",
+    "utils",
+    "errors",
+    "quicksum",
 ]

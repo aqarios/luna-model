@@ -73,21 +73,18 @@ def model_objective_and_constraints_and_bounds_maker() -> Callable[[], Model]:
     return creator
 
 
-@pytest.mark.model()
 def test_hash_model_empty(model_empty_maker):
     m1 = model_empty_maker()
     m2 = model_empty_maker()
     assert hash(m1) == hash(m2)
 
 
-@pytest.mark.model()
 def test_hash_model_empty_with_vars(model_empty_with_vars_maker):
     m1 = model_empty_with_vars_maker()
     m2 = model_empty_with_vars_maker()
     assert hash(m1) == hash(m2)
 
 
-@pytest.mark.model()
 def test_hash_model_objective(model_objective_maker):
     m1 = model_objective_maker()
     m2 = model_objective_maker()

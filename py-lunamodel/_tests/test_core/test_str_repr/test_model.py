@@ -66,7 +66,6 @@ def variables(request) -> tuple[Variable, ...]:
     return tuple(variables)
 
 
-@pytest.mark.str_repr()
 def test_vtype():
     assert str(Vtype.Real) == "Real"
     assert str(Vtype.Binary) == "Binary"
@@ -80,7 +79,6 @@ def test_vtype():
         repr(Vtype.Integer)
 
 
-@pytest.mark.str_repr()
 def test_variable():
     with Environment():
         a = Variable("a")
@@ -117,7 +115,6 @@ def test_variable():
             repr(j)
 
 
-@pytest.mark.str_repr()
 def test_bounds():
     bounds_1 = Bounds(lower=0, upper=1.5)
     assert str(bounds_1) == "{ lower: 0, upper: 1.5 }"
@@ -129,7 +126,6 @@ def test_bounds():
         repr(bounds_2)
 
 
-@pytest.mark.str_repr()
 @pytest.mark.parametrize("variables", [3], indirect=True)
 def test_expression(variables: tuple[Variable, ...]):
     a, b, c = variables
@@ -191,7 +187,6 @@ def test_expression(variables: tuple[Variable, ...]):
     # raise  Exception
 
 
-@pytest.mark.str_repr()
 @pytest.mark.parametrize("variables", [2], indirect=True)
 def test_constraints(variables: tuple[Variable, ...]):
     a, b = variables
@@ -208,7 +203,6 @@ def test_constraints(variables: tuple[Variable, ...]):
         repr(c3)
 
 
-@pytest.mark.str_repr()
 def test_environment():
     with Environment() as env:
         _ = Variable("a")
@@ -218,7 +212,6 @@ def test_environment():
         assert env_str == "Environment ?\n  a, b, c"
 
 
-@pytest.mark.str_repr()
 def test_model():
     for _ in range(10):
         with Environment():
@@ -249,7 +242,6 @@ def test_model():
             repr(m)
 
 
-@pytest.mark.str_repr()
 @pytest.mark.parametrize("variables", [20], indirect=True)
 def test_expression_repr(variables: tuple[Variable, ...]):
     m = Model(name="MyModel")

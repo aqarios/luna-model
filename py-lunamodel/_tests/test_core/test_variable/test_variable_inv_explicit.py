@@ -2,7 +2,6 @@ import pytest
 from luna_model import Variable, Environment, Vtype, Solution
 from luna_model.errors import UnsupportedOperationError
 
-@pytest.mark.variable()
 def test_inverse_binary():
     env = Environment()
     b = Variable("b", vtype=Vtype.Binary, env=env)
@@ -17,7 +16,6 @@ def test_inverse_binary():
     assert inv_b.inv() == (b.inv()).inv()
     assert b == (b.inv()).inv()
 
-@pytest.mark.variable()
 def test_inverse_binary_lin():
     env = Environment()
     b = Variable("b", vtype=Vtype.Binary, env=env)
@@ -26,7 +24,6 @@ def test_inverse_binary_lin():
     assert 5.0 == sol, "evaluated value is not 5"
 
 
-@pytest.mark.variable()
 def test_inverse_binary_quad():
     env = Environment()
     b = Variable("b", vtype=Vtype.Binary, env=env)
@@ -35,7 +32,6 @@ def test_inverse_binary_quad():
     assert 0.0 == sol, "evaluated value is not 0.0"
 
 
-@pytest.mark.variable()
 def test_inverse_binary_quad2():
     env = Environment()
     b = Variable("b", vtype=Vtype.Binary, env=env)
@@ -44,7 +40,6 @@ def test_inverse_binary_quad2():
     assert 0.0 == sol, "evaluated value is not 0.0"
 
 
-@pytest.mark.variable()
 def test_inverse_binary_ho():
     env = Environment()
     a = Variable("a", vtype=Vtype.Binary, env=env)
@@ -59,7 +54,6 @@ def test_inverse_binary_ho():
     assert 0 == len(expr.higher_order_items())
 
 
-@pytest.mark.variable()
 def test_inverse_binary_ho2():
     env = Environment()
     a = Variable("a", vtype=Vtype.Binary, env=env)
@@ -74,7 +68,6 @@ def test_inverse_binary_ho2():
     assert 0 == len(expr.higher_order_items())
 
 
-@pytest.mark.variable()
 def test_inverse_binary_ho3():
     env = Environment()
     a = Variable("a", vtype=Vtype.Binary, env=env)
@@ -89,7 +82,6 @@ def test_inverse_binary_ho3():
     assert 0 == len(expr.higher_order_items())
 
 
-@pytest.mark.variable()
 def test_inverse_int():
     env = Environment()
     b = Variable("b", vtype=Vtype.Integer, env=env)
@@ -97,7 +89,6 @@ def test_inverse_int():
         _ = b.inv()
 
 
-@pytest.mark.variable()
 def test_inverse_real():
     env = Environment()
     b = Variable("b", vtype=Vtype.Real, env=env)
@@ -105,7 +96,6 @@ def test_inverse_real():
         _ = b.inv()
 
 
-@pytest.mark.variable()
 def test_inverse_spin():
     env = Environment()
     b = Variable("b", vtype=Vtype.Spin, env=env)

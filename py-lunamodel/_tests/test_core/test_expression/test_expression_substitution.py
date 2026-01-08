@@ -2,7 +2,6 @@ import pytest
 from luna_model import Environment, Variable, Vtype
 
 
-@pytest.mark.expression_substitution()
 def test_expression_simple_var():
     with Environment():
         target = Variable("target", vtype=Vtype.Integer)
@@ -16,7 +15,6 @@ def test_expression_simple_var():
     assert expected.is_equal(result)
 
 
-@pytest.mark.expression_substitution()
 def test_expression_simple():
     with Environment():
         a = Variable("a", vtype=Vtype.Integer)
@@ -34,7 +32,6 @@ def test_expression_simple():
     assert expected.is_equal(result)
 
 
-@pytest.mark.expression_substitution()
 def test_expression_quadratic():
     with Environment():
         target = Variable("n", vtype=Vtype.Integer)
@@ -51,7 +48,6 @@ def test_expression_quadratic():
     assert expected.is_equal(result)
 
 
-@pytest.mark.expression_substitution()
 def test_expression_higher_order():
     with Environment():
         target = Variable("n", vtype=Vtype.Integer)

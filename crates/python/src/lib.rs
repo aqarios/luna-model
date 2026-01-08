@@ -29,3 +29,5 @@ pub use variable::PyVariable;
 pub use lunamodel_core::ValueSource;
 pub use lunamodel_translate::{SolutionSource, TranslationTarget};
 pub use lunamodel_types::{Comparator, Ctype, Sense, Vtype};
+
+pub use lunamodel_error::py::*;

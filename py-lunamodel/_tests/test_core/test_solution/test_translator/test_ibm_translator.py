@@ -10,7 +10,7 @@ from luna_model import Model, Sense, Solution, Timer, Variable, Vtype
 from luna_model.translator import IbmTranslator
 from scipy.optimize import minimize
 
-from pytests.test_core.utils import make_seed, random_bool
+from _tests.test_core.utils import make_seed, random_bool
 
 NOT_RUN_QAER = False
 try:
@@ -147,7 +147,6 @@ def extract(result, qp):
 
 
 @pytest.mark.skipif(NOT_RUN_QAER, reason="Qiskit Aer is required for test")
-@pytest.mark.solution_translation()
 def test_ibm_solution_translator():
     warnings.filterwarnings("ignore")
     seed = make_seed()

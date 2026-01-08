@@ -5,7 +5,7 @@ import pytest
 from luna_model import Environment, Timer, Variable
 from luna_model.translator import QctrlTranslator
 
-from pytests.test_core.utils import make_seed, random, random_int
+from _tests.test_core.utils import make_seed, random, random_int
 
 from .fixtures import fake_qctrl_result
 
@@ -45,7 +45,6 @@ def test_qctrl_base():
     print(sol)
 
 
-@pytest.mark.solution_translation()
 def test_qctrl_translator_constructed():
     for _ in range(REPS):
         rand = Random(make_seed())
@@ -77,7 +76,6 @@ def test_qctrl_translator_constructed():
         assert len(results) == num_samples
 
 
-@pytest.mark.solution_translation()
 def test_qctrl_translator_constructed_explicit_env():
     for _ in range(REPS):
         rand = Random(make_seed())
@@ -113,7 +111,6 @@ def test_qctrl_translator_constructed_explicit_env():
         assert len(results) == num_samples
 
 
-@pytest.mark.solution_translation()
 def test_qctrl_translator_constructed_with_time():
     for _ in range(REPS):
         rand = Random(make_seed())
@@ -151,7 +148,6 @@ def test_qctrl_translator_constructed_with_time():
         assert len(results) == num_samples
 
 
-@pytest.mark.solution_translation()
 def test_qctrl_translator_constructed_vars():
     for _ in range(REPS):
         rand = Random(make_seed())

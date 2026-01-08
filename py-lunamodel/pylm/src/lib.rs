@@ -1,5 +1,5 @@
 pub use lunamodel_python::*;
-use pyo3::prelude::*;
+use pyo3::{PyTypeInfo, prelude::*};
 
 #[pymodule]
 fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
@@ -33,5 +33,124 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyLinear>()?;
     m.add_class::<PyQuadratic>()?;
     m.add_class::<PyHigherOrder>()?;
+
+    // Errors
+    m.add(
+        PyLunaModelError::NAME,
+        m.py().get_type::<PyLunaModelError>(),
+    )?;
+    m.add(
+        PyUnsupportedOperationError::NAME,
+        m.py().get_type::<PyUnsupportedOperationError>(),
+    )?;
+    m.add(
+        PyCompressionError::NAME,
+        m.py().get_type::<PyCompressionError>(),
+    )?;
+    m.add(
+        PyInternalPanicError::NAME,
+        m.py().get_type::<PyInternalPanicError>(),
+    )?;
+    m.add(
+        PyComputationError::NAME,
+        m.py().get_type::<PyComputationError>(),
+    )?;
+    m.add(
+        PyDuplicateConstraintNameError::NAME,
+        m.py().get_type::<PyDuplicateConstraintNameError>(),
+    )?;
+    m.add(
+        PyVariableOutOfRangeError::NAME,
+        m.py().get_type::<PyVariableOutOfRangeError>(),
+    )?;
+    m.add(
+        PyVariableExistsError::NAME,
+        m.py().get_type::<PyVariableExistsError>(),
+    )?;
+    m.add(
+        PyVariableNotExistingError::NAME,
+        m.py().get_type::<PyVariableNotExistingError>(),
+    )?;
+    m.add(
+        PyVariableCreationError::NAME,
+        m.py().get_type::<PyVariableCreationError>(),
+    )?;
+    m.add(
+        PyVariablesFromDifferentEnvsError::NAME,
+        m.py().get_type::<PyVariablesFromDifferentEnvsError>(),
+    )?;
+    m.add(
+        PyDifferentEnvsError::NAME,
+        m.py().get_type::<PyDifferentEnvsError>(),
+    )?;
+    m.add(
+        PyNoActiveEnvironmentFoundError::NAME,
+        m.py().get_type::<PyNoActiveEnvironmentFoundError>(),
+    )?;
+    m.add(
+        PyMultipleActiveEnvironmentsError::NAME,
+        m.py().get_type::<PyMultipleActiveEnvironmentsError>(),
+    )?;
+    m.add(PyDecodeError::NAME, m.py().get_type::<PyDecodeError>())?;
+    m.add(
+        PyIllegalConstraintNameError::NAME,
+        m.py().get_type::<PyIllegalConstraintNameError>(),
+    )?;
+    m.add(
+        PyTranslationError::NAME,
+        m.py().get_type::<PyTranslationError>(),
+    )?;
+    m.add(
+        PyModelNotQuadraticError::NAME,
+        m.py().get_type::<PyModelNotQuadraticError>(),
+    )?;
+    m.add(
+        PyModelNotUnconstrainedError::NAME,
+        m.py().get_type::<PyModelNotUnconstrainedError>(),
+    )?;
+    m.add(
+        PyModelSenseNotMinimizeError::NAME,
+        m.py().get_type::<PyModelSenseNotMinimizeError>(),
+    )?;
+    m.add(
+        PyModelVtypeError::NAME,
+        m.py().get_type::<PyModelVtypeError>(),
+    )?;
+    m.add(
+        PyVariableNamesError::NAME,
+        m.py().get_type::<PyVariableNamesError>(),
+    )?;
+    m.add(
+        PyEvaluationError::NAME,
+        m.py().get_type::<PyEvaluationError>(),
+    )?;
+    m.add(
+        PySolutionTranslationError::NAME,
+        m.py().get_type::<PySolutionTranslationError>(),
+    )?;
+    m.add(
+        PySampleIncorrectLengthError::NAME,
+        m.py().get_type::<PySampleIncorrectLengthError>(),
+    )?;
+    m.add(
+        PySampleUnexpectedVariableError::NAME,
+        m.py().get_type::<PySampleUnexpectedVariableError>(),
+    )?;
+    m.add(
+        PySampleIncompatibleVtypeError::NAME,
+        m.py().get_type::<PySampleIncompatibleVtypeError>(),
+    )?;
+    m.add(
+        PyStartCannotBeInferredError::NAME,
+        m.py().get_type::<PyStartCannotBeInferredError>(),
+    )?;
+    m.add(
+        PySampleColCreationError::NAME,
+        m.py().get_type::<PySampleColCreationError>(),
+    )?;
+    m.add(
+        PyNoConstraintForKeyError::NAME,
+        m.py().get_type::<PyNoConstraintForKeyError>(),
+    )?;
     Ok(())
 }

@@ -9,7 +9,7 @@ from typing import Any, Callable
 
 import pytest
 from numpy import unique
-from pytests.test_core.utils import random_bool, random_int
+from _tests.test_core.utils import random_bool, random_int
 
 
 @pytest.fixture()

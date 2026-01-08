@@ -58,7 +58,6 @@ def solution(request, model: Model):
     return sol
 
 
-@pytest.mark.solution()
 def test_row_hide(solution: Solution):
     s = solution.print(layout="row", show_metadata="hide")
     assert (
@@ -78,7 +77,6 @@ Total variables: 8""".strip("\n")
     )
 
 
-@pytest.mark.solution()
 def test_row_before_max_lines(solution: Solution):
     s = solution.print(layout="row", show_metadata="before", max_lines=7)
     assert (

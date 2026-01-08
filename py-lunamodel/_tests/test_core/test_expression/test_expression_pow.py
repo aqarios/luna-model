@@ -12,7 +12,6 @@ def variables(request) -> tuple[Variable, ...]:
     return tuple(variables)
 
 
-@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
@@ -26,7 +25,6 @@ def test_expression_pow(variables):
     assert expr.is_equal(expr_manual)
 
 
-@pytest.mark.expression()
 @pytest.mark.parametrize(
     "variables",
     product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),

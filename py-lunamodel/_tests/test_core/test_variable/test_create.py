@@ -8,13 +8,11 @@ from luna_model.errors import (
 )
 
 
-@pytest.mark.variable()
 def test_create_variable_explicit():
     env = Environment()
     _ = Variable("x", env=env)
 
 
-@pytest.mark.variable()
 def test_create_variable_explicit_del_create():
     env = Environment()
     x = Variable("x", env=env)
@@ -23,26 +21,22 @@ def test_create_variable_explicit_del_create():
         _ = Variable("x", env=env)
 
 
-@pytest.mark.variable()
 def test_create_variable_in_context():
     with Environment():
         _ = Variable("x")
 
 
-@pytest.mark.variable()
 def test_create_variable_no_context_no_env():
     with pytest.raises(NoActiveEnvironmentFoundError):
         _ = Variable("x")
 
 
-@pytest.mark.variable()
 def test_create_variable_in_double_context():
     with pytest.raises(MultipleActiveEnvironmentsError), Environment():
         with Environment():
             _ = Variable("x")
 
 
-@pytest.mark.variable()
 def test_create_variable_with_same_name_different_environment():
     env1 = Environment()
     env2 = Environment()
@@ -50,7 +44,6 @@ def test_create_variable_with_same_name_different_environment():
     _ = Variable("x", env=env2)
 
 
-@pytest.mark.variable()
 def test_create_variable_with_same_name_different_environment_context():
     with Environment():
         _ = Variable("x")
@@ -58,7 +51,6 @@ def test_create_variable_with_same_name_different_environment_context():
         _ = Variable("x")
 
 
-@pytest.mark.variable()
 def test_create_variable_with_invalid_name():
     with Environment():
         with pytest.raises(
