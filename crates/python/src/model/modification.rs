@@ -1,8 +1,8 @@
-use lunamodel_core::prelude::LazyBounds;
-use lunamodel_types::Vtype;
+use lunamodel_core::{Expression, ops::LmAddAssign, prelude::LazyBounds};
+use lunamodel_types::{Sense, Vtype};
 use pyo3::{PyResult, pymethods};
 
-use crate::{PyVariable, bounds::BoundValue};
+use crate::{PyConstraint, PyExpression, PyVariable, bounds::BoundValue};
 
 use super::PyModel;
 
@@ -44,5 +44,24 @@ impl PyModel {
             .write_arc()
             .add_var_with_fallback(&name, vtype.unwrap_or_else(|| Vtype::Binary), bounds, None)?
             .into())
+    }
+
+    #[pyo3(signature=(constraint, name=None))]
+    fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
+        Ok(self
+            .m
+            .write_arc()
+            .constraints
+            .add_constraint(constraint.c.read_arc().clone(), name)?)
+    }
+
+    #[pyo3(name = "set_objective", signature=(expression, sense=None))]
+    fn set_objective_direct(&mut self, expression: PyExpression, sense: Option<Sense>) {
+        self.m.write_arc().set_objective(expression.into(), sense)
+    }
+
+    fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {
+        let expr: Expression = expression.into();
+        Ok(self.m.write_arc().objective.add_assign(expr)?)
     }
 }

@@ -3,7 +3,6 @@ mod creation;
 mod deepclone;
 mod equality;
 mod evaluate;
-mod subsitute;
 
 pub mod term;
 

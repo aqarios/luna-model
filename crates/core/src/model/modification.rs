@@ -1,7 +1,7 @@
 use lunamodel_error::LunaModelResult;
-use lunamodel_types::Vtype;
+use lunamodel_types::{Sense, Vtype};
 
-use crate::{bounds::LazyBounds, variable::VarRef};
+use crate::{Expression, bounds::LazyBounds, variable::VarRef};
 
 use super::Model;
 
@@ -24,5 +24,18 @@ impl Model {
     ) -> LunaModelResult<VarRef> {
         self.environment
             .insert_with_fallback(name, vtype, bounds, enc)
+    }
+
+    pub fn set_objective(&mut self, expr: Expression, sense: Option<Sense>) {
+        if let Some(s) = sense {
+            self.sense = s;
+        }
+        self.objective = expr;
+    }
+
+    pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> LunaModelResult<()> {
+        self.objective = self.objective.substitute(target, replacement)?;
+        self.constraints.substitute(target, replacement)?;
+        Ok(())
     }
 }
