@@ -3,6 +3,8 @@ mod options;
 
 mod bounds;
 mod expr;
+mod constr_coll;
+mod constr;
 mod sol;
 mod var;
 

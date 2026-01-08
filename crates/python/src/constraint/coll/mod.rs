@@ -2,6 +2,8 @@ mod access;
 mod creation;
 mod iter;
 mod modification;
+mod ser;
+mod io;
 
 use std::sync::Arc;
 

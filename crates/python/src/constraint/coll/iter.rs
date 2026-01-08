@@ -1,4 +1,4 @@
-use pyo3::pyclass;
+use pyo3::{PyRef, PyRefMut, PyResult, pyclass};
 
 use crate::constraint::{PyConstraint, PyConstraintCollection};
 
@@ -19,5 +19,22 @@ impl PyConstraintCollectionIterator {
                 .collect(),
             idx: 0,
         }
+    }
+}
+
+#[pymethods]
+impl PyConstraintCollectionIterator {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> PyResult<Option<(String, PyConstraint)>> {
+        let res = slf.items.get(slf.idx);
+        let out = match res {
+            Option::None => Ok(None),
+            Option::Some(val) => Ok(Some(val.clone())),
+        };
+        slf.idx += 1;
+        out
     }
 }
