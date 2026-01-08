@@ -3,4 +3,4 @@ mod environment;
 mod expression;
 mod model;
 // mod solution;
-// mod timing;
+mod timing;

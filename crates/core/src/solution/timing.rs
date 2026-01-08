@@ -10,7 +10,7 @@ pub struct Timing {
 }
 
 impl Timing {
-    pub(crate) fn new(start: SystemTime, end: SystemTime, qpu: Option<f64>) -> Self {
+    pub fn new(start: SystemTime, end: SystemTime, qpu: Option<f64>) -> Self {
         Self { start, end, qpu }
     }
 

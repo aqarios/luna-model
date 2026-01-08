@@ -14,7 +14,7 @@ type SerExprLatest = SerExprV0;
 /// Makes an [Expression] encodable.
 impl Encodable<SerExprV0> for Expression {
     fn version(&self) -> Version {
-        Version::V1
+        Version::V0
     }
 }
 

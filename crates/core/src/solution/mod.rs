@@ -3,9 +3,9 @@ mod col;
 mod convenience;
 mod creation;
 mod filter;
+mod io;
 mod modification;
 pub mod result;
-mod io;
 mod sample;
 mod samples;
 mod src;
@@ -53,10 +53,6 @@ pub struct Solution {
     /// satisfied. In other words, `feasible[i]` iff. `all(constraints[i])`. May be empty for
     /// solutions that haven't yet been evaluated.
     pub feasible: Option<Vec<bool>>,
-    // constr
-    /// Boolean flag for each single constraint whether it's satisfied. Each inner map corresponds
-    /// to one sample, i.e., `constraints[name]` corresponds to `samples[?].len()`. May be empty for
-    /// solutions that haven't yet been evaluated.
     pub constraints: Vec<HashMap<String, bool>>,
     /// Boolean flag for each variable whether it's bounds are satisfied for each sample.
     /// variable_bounds[name].len() == samples[name].len() == n_samples
