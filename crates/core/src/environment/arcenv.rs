@@ -63,6 +63,21 @@ impl ArcEnv {
         ))
     }
 
+    pub fn insert_with_fallback(
+        &mut self,
+        name: &str,
+        vtype: Vtype,
+        bounds: Option<LazyBounds>,
+        enc: Option<&[u64]>,
+    ) -> LunaModelResult<VarRef> {
+        Ok(VarRef::new(
+            self.env
+                .write_arc()
+                .insert_with_fallback(name, vtype, bounds, enc)?,
+            self.clone(),
+        ))
+    }
+
     pub fn insert_inverted(&mut self, base: &VarRef) -> LunaModelResult<VarRef> {
         Ok(VarRef::new(
             self.env.write_arc().insert_inverted(base)?,

@@ -23,6 +23,7 @@ derive_more = { workspace = true, features = ["deref", "deref_mut"] }
 itertools = { workspace = true }
 enumset = { workspace = true }
 num = { workspace = true }
+sqids = { workspace = true }
 
 [dependencies.pyo3]
 workspace = true

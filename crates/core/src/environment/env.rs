@@ -1,7 +1,11 @@
-use std::{fmt::Display, ops::{Index, IndexMut}};
+use std::{
+    fmt::Display,
+    ops::{Index, IndexMut},
+};
 
 use global_counter::primitive::exact::CounterU64;
 use hashbrown::HashMap;
+use sqids::Sqids;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{EnvIdx, VarIdx, Vtype};
@@ -78,6 +82,30 @@ impl Environment {
         self.lookup.insert(name.into(), idx);
         self.next_idx += 1;
         Ok(idx)
+    }
+
+    pub fn insert_with_fallback(
+        &mut self,
+        name: &str,
+        vtype: Vtype,
+        bounds: Option<LazyBounds>,
+        enc: Option<&[u64]>,
+    ) -> LunaModelResult<VarIdx> {
+        let ret = self.insert(name, vtype, bounds);
+
+        match ret {
+            Err(LunaModelError::VariableExists(_)) => {
+                let content = match enc {
+                    Some(e) => e,
+                    // unwrap here is safe as variable exists.
+                    Option::None => &[(*self.lookup.get(name).unwrap()).into()],
+                };
+                let suffix = Sqids::default().encode(content).unwrap();
+                let new_name = format!("{}_{}", name, suffix);
+                self.insert(&new_name, vtype, bounds)
+            }
+            _ => ret,
+        }
     }
 
     pub fn insert_inverted(&mut self, base: &VarRef) -> LunaModelResult<VarIdx> {

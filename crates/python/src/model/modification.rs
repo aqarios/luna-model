@@ -26,4 +26,23 @@ impl PyModel {
             .add_var(&name, vtype.unwrap_or_else(|| Vtype::Binary), bounds)?
             .into())
     }
+
+    #[pyo3(signature = (name, vtype=None, lower=BoundValue::None, upper=BoundValue::None))]
+    fn add_variable_with_fallback(
+        &mut self,
+        name: String,
+        vtype: Option<Vtype>,
+        lower: BoundValue,
+        upper: BoundValue,
+    ) -> PyResult<PyVariable> {
+        let bounds = match (lower, upper) {
+            (BoundValue::None, BoundValue::None) => None,
+            (l, u) => Some(LazyBounds::new(l.into(), u.into())),
+        };
+        Ok(self
+            .m
+            .write_arc()
+            .add_var_with_fallback(&name, vtype.unwrap_or_else(|| Vtype::Binary), bounds, None)?
+            .into())
+    }
 }
