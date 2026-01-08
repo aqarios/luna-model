@@ -2,7 +2,8 @@ mod context;
 mod creation;
 mod access;
 mod cmp;
-// mod ser;
+mod io;
+mod ser;
 
 use lunamodel_core::{ArcEnv, Environment};
 use lunamodel_error::py::PyNoActiveEnvironmentFoundError;

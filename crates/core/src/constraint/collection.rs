@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Comparator, Vtype};
 use lunamodel_utils::{unique, unique_by};
-use std::ops::Index;
+use std::{fmt::Display, ops::Index};
 
 use super::constraint::Constraint;
 
@@ -121,5 +121,12 @@ impl Index<&str> for ConstraintCollection {
 
     fn index(&self, index: &str) -> &Self::Output {
         self.data.get(index).unwrap()
+    }
+}
+
+impl Display for ConstraintCollection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        _ = f;
+        unimplemented!()
     }
 }

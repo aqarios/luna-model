@@ -1,8 +1,10 @@
+use lunamodel_core::Environment;
+use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use pyo3::{
+    IntoPyObjectExt,
     ffi::c_str,
     prelude::*,
     types::{PyBytes, PyType},
-    IntoPyObjectExt,
 };
 use std::ffi::CStr;
 
@@ -73,12 +75,8 @@ impl PyEnvironment {
     ///     If decoding fails due to corruption or incompatibility.
     #[classmethod]
     pub fn decode(_cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
-        Ok(data
-            .as_bytes(py)
-            .unversionize()
-            .decompress()?
-            .decode(())?
-            .into())
+        let env: Environment = data.as_bytes(py).unversionize().decompress()?.decode(())?;
+        Ok(env.into())
     }
 
     /// Alias for `decode()`.

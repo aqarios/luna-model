@@ -6,6 +6,7 @@ mod expr;
 mod constr_coll;
 mod constr;
 mod sol;
+mod env;
 mod var;
 
 pub use custom::{CustomFormat, CustomFormatWrapper};

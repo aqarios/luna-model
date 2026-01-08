@@ -1,4 +1,4 @@
-use pyo3::{PyRef, PyRefMut, PyResult, pyclass};
+use pyo3::{pymethods, PyRef, PyRefMut, PyResult, pyclass};
 
 use crate::constraint::{PyConstraint, PyConstraintCollection};
 

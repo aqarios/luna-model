@@ -27,4 +27,8 @@ impl PyEnvironment {
             .map(|v| PyVariable::new(v))
             .collect()
     }
+
+    fn __contains__(&self, varname: String) -> bool {
+        self.env.contains(&varname)
+    }
 }

@@ -81,6 +81,10 @@ impl ArcEnv {
     pub fn lookup(&self, name: &str) -> LunaModelResult<VarRef> {
         Ok(VarRef::new(self.env.read_arc().lookup(name)?, self.clone()))
     }
+
+    pub fn contains(&self, name: &str) -> bool {
+        self.env.read_arc().lookup.contains_key(name)
+    }
 }
 
 impl ContentEquality for ArcEnv {
