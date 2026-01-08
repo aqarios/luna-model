@@ -76,5 +76,7 @@ dev = [
     "qiskit[all]>=2.1.2; python_version < '3.14'",
     "qiskit-aer>=0.17.1; python_version < '3.14'",
     "qiskit-ibm-runtime>=0.41.1; python_version < '3.14'",
-    "qiskit-optimization>=0.6.1; python_version < '3.14'",   "scipy>=1.16.3",
+    "qiskit-optimization>=0.6.1; python_version < '3.14'",
+    "scipy>=1.16.3",
+    "rich>=14.2.0",
 ]

@@ -3,7 +3,6 @@ from luna_model import (
     Comparator,
     Constraint,
     ConstraintCollection,
-    Constraints,
     Environment,
     Expression,
     Variable,
@@ -63,9 +62,9 @@ def expression_and_expression() -> tuple[Expression, Expression]:
 
 # INDEXING
 def test_constraints_deprecated(expression: Expression):
-    constr = Constraints()
+    constr = ConstraintCollection()
     constr += expression <= 2
-    actual = constr.get(0)
+    actual = constr.get("c0")
     assert Constraint(expression, 2, Comparator.Le, name="c0") == actual
 
 
@@ -73,7 +72,7 @@ def test_constraints_out_of_bounds_access(expression: Expression):
     constr = ConstraintCollection()
     constr += expression <= 2
     with pytest.raises(IndexError):
-        _ = constr[3]
+        _ = constr["c3"]
 
 
 def test_constraint_creation_neg_constant_to_rhs():

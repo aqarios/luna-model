@@ -1,6 +1,6 @@
 import pytest
 
-LM_MODULE_NAME: str = "luna_model._core"
+LM_MODULE_NAME: str = "luna_model"
 TRANSLATOR_MODULE_NAME: str = "luna_model._core.translator"
 ERRORS_MODULE_NAME: str = "luna_model._core.errors"
 
