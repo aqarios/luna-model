@@ -4,3 +4,4 @@ mod neg;
 mod not;
 mod pow;
 mod sub;
+mod eval;

@@ -7,14 +7,6 @@ use super::Model;
 
 impl Model {
     pub fn evaluate_solution(&self, sol: &Solution) -> LunaModelResult<Solution> {
-        // let vars_sol = &sol.variable_names();
-        // let vars_env = &self.environment.variable_names();
-        // check_variables_sol(vars_sol, vars_env)?;
-        //
-        // let index_map = make_index_map(sol.varname_to_pos(), &self.environment);
-        // let mut obj_values = Vec::with_capacity(sol.n_samples);
-        // let mut constr = Vec::with_capacity(sol.n_samples);
-        // let mut vb = Vec::with_capacity(sol.n_samples);
         let mut newsol = Solution::default();
         newsol.samples = sol.samples.clone();
         newsol.counts = sol.counts.clone();
@@ -24,43 +16,35 @@ impl Model {
         newsol.sense = sol.sense.clone();
 
         let mut obj_vals = Vec::new();
+        let mut constrs: Vec<HashMap<String, bool>> = Vec::new();
         let mut vbounds = self
             .vars()
             .map(|n| (n.name().unwrap(), Vec::default()))
             .collect::<HashMap<String, Vec<bool>>>();
+        let mut feasible: Vec<bool> = Vec::new();
 
         for sample in sol.samples() {
             obj_vals.push(self.objective.evaluate_sample(&sample)?);
-            // TODO: need to compute the variable bounds and constraints + feasible
+            let per_constr = self.constraints.evaluate_sample(&sample)?;
+            let all_constr_ok = per_constr.iter().all(|(_, v)| *v);
+            constrs.push(per_constr);
+            let mut all_vars_ok = true;
+            for v in self.vars() {
+                let name = v.name()?;
+                let bs = vbounds.get_mut(&name).unwrap();
+                let vok = v.evaluate(sample[&name])?;
+                bs.push(vok);
+                all_vars_ok = all_vars_ok && vok;
+            }
+            feasible.push(all_vars_ok && all_constr_ok);
         }
 
-
         newsol.obj_values = Some(obj_vals);
+        newsol.feasible = Some(feasible);
+        newsol.constraints = constrs;
         newsol.variable_bounds = vbounds;
 
         Ok(newsol)
-
-        // for sample in sol.iter_samples() {
-        //     let obj_val = self
-        //         .objective
-        //         .evaluate_sample(&sample, |var_idx| index_map[&var_idx].into());
-        //     constr.push(
-        //         self.constraints
-        //             .iter()
-        //             .map(|(_, constr)| {
-        //                 constr.evaluate_sample(&sample, |var_idx| index_map[&var_idx].into())
-        //             })
-        //             .collect(),
-        //     );
-        //     vb.push(
-        //         self.environment
-        //             .access()
-        //             .evaluate_bounds(&sample, |var_idx| index_map[&var_idx].into()),
-        //     );
-        //     obj_values.push(obj_val);
-        // }
-        // sol.add_eval_data(obj_values, constr, vb);
-        // Ok(sol)
     }
 
     // pub fn evaluate_sample<'a>(&self, sample: &Sample) -> Result<OwnedResult, EvaluationErr> {

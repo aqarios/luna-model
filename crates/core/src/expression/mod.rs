@@ -2,7 +2,6 @@ mod access;
 mod creation;
 mod deepclone;
 mod equality;
-mod evaluate;
 
 pub mod term;
 

@@ -1,9 +1,11 @@
 mod mcrs;
 mod utils;
 
+mod bounds;
+mod constr;
 mod expr;
 mod term;
-mod vref;
 mod traits;
+mod vref;
 
-pub use traits::{LmAddAssign, LmMulAssign, LmSubAssign, LmPowAssign, LmPow};
+pub use traits::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign};
