@@ -41,10 +41,6 @@ class Environment:
         return [wrap_var(v) for v in self._env.variables()]
 
     def equal_contents(self, other: Environment) -> bool:
-        print(type(other), other)
-        print(type(other._env), other._env)
-        import time
-        time.sleep(10)
         return self._env.equal_contents(other._env)
 
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
