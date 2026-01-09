@@ -41,6 +41,10 @@ class Environment:
         return [wrap_var(v) for v in self._env.variables()]
 
     def equal_contents(self, other: Environment) -> bool:
+        print(type(other), other)
+        print(type(other._env), other._env)
+        import time
+        time.sleep(10)
         return self._env.equal_contents(other._env)
 
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
@@ -58,6 +62,9 @@ class Environment:
     @classmethod
     def deserialize(cls, data: bytes) -> Environment:
         return cls.decode(data)
+
+    def __reduce__(self):
+        return (Environment.decode, (self.encode(),))
 
     def __eq__(self, other: Environment) -> bool:  # type: ignore[override]
         return self._env.__eq__(other._env)

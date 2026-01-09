@@ -87,10 +87,10 @@ impl PyEnvironment {
         Self::decode(cls, py, data)
     }
 
-    fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
-        py.run(PY_REDUCE_IMPORT, None, None)?;
-        let decode = py.eval(c_str!("Environment.decode"), None, None)?;
-        let data = self.encode(py, Some(true), Some(3))?;
-        Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((decode.into_py_any(py)?, (data,).into_py_any(py)?))
-    }
+    // fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
+    //     py.run(PY_REDUCE_IMPORT, None, None)?;
+    //     let decode = py.eval(c_str!("Environment.decode"), None, None)?;
+    //     let data = self.encode(py, Some(true), Some(3))?;
+    //     Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((decode.into_py_any(py)?, (data,).into_py_any(py)?))
+    // }
 }

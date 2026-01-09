@@ -64,17 +64,17 @@ impl SerEnvironment {
                     let vbounds = var.bounds();
                     match vbounds.lower() {
                         Bound::Bounded(l) => {
-                            self.integer_bounds_has_lower.push(true);
-                            self.integer_bounds_lower.push(l);
+                            self.real_bounds_has_lower.push(true);
+                            self.real_bounds_lower.push(l);
                         }
-                        Bound::Unbounded => self.integer_bounds_has_lower.push(false),
+                        Bound::Unbounded => self.real_bounds_has_lower.push(false),
                     }
                     match vbounds.upper() {
                         Bound::Bounded(u) => {
-                            self.integer_bounds_has_upper.push(true);
-                            self.integer_bounds_upper.push(u);
+                            self.real_bounds_has_upper.push(true);
+                            self.real_bounds_upper.push(u);
                         }
-                        Bound::Unbounded => self.integer_bounds_has_upper.push(false),
+                        Bound::Unbounded => self.real_bounds_has_upper.push(false),
                     }
                 }
             }

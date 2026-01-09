@@ -1,4 +1,4 @@
-from luna_model.environment.environment import Environment
+from luna_model.environment.env import Environment
 
 __all__ = [
     "Environment",

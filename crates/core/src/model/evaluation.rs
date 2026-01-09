@@ -1,9 +1,8 @@
 use hashbrown::HashMap;
 use lunamodel_error::LunaModelResult;
 
-use crate::Solution;
-
 use super::Model;
+use crate::Solution;
 
 impl Model {
     pub fn evaluate_solution(&self, sol: &Solution) -> LunaModelResult<Solution> {
