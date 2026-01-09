@@ -56,7 +56,7 @@ def test_variable_pow_3():
     assert result.get_offset() == 0
     assert result.get_linear(x) == 0
     assert result.get_quadratic(x, x) == 0
-    assert result.get_higher_order((x, x, x)) == 1
+    assert result.get_higher_order(x, x, x) == 1
 
 
 @pytest.mark.parametrize("scalar", list(range(4, 10)))
@@ -72,5 +72,5 @@ def test_variable_pow_n(scalar: int):
     assert result.get_quadratic(x, x) == 0
     for r in range(3, scalar):
         key = tuple([x for _ in range(r)])
-        assert result.get_higher_order(key) == 0
-    assert result.get_higher_order(tuple([x for _ in range(scalar)])) == 1
+        assert result.get_higher_order(*key) == 0
+    assert result.get_higher_order(*tuple([x for _ in range(scalar)])) == 1

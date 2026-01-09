@@ -1,0 +1,356 @@
+use hashbrown::HashMap;
+use indexmap::IndexMap;
+use lunamodel_core::Solution;
+use lunamodel_error::{LunaModelError, LunaModelResult};
+use lunamodel_types::{Sense, Vtype};
+use numpy::ndarray::Axis;
+use numpy::{PyReadonlyArray2, PyUntypedArrayMethods};
+use pyo3::exceptions::PyValueError;
+use pyo3::{PyResult, pymethods};
+
+use crate::sol::timing::PyTiming;
+use crate::{PyEnvironment, PyModel};
+
+use super::PySolution;
+use super::utils::VarKey;
+
+#[pymethods]
+impl PySolution {
+    #[new]
+    fn pynew(
+        samples: Vec<IndexMap<VarKey, f64>>,
+        counts: Option<Vec<usize>>,
+        raw_energies: Option<Vec<f64>>,
+        obj_values: Option<Vec<f64>>,
+        feasible: Option<Vec<bool>>,
+        constraints: Option<Vec<IndexMap<String, bool>>>,
+        variables_bounds: Option<IndexMap<String, Vec<bool>>>,
+        timing: Option<PyTiming>,
+        sense: Option<Sense>,
+        env: Option<PyEnvironment>,
+        vtypes: Option<Vec<Vtype>>,
+    ) -> PyResult<Self> {
+        let mut sol = Solution::with_sense(sense.unwrap_or_default());
+        sol.timing = timing.map(|t| t.into());
+
+        if samples.is_empty() {
+            return Ok(sol.into());
+        }
+
+        let sample_len = samples[0].len();
+        if let Some(vs) = &vtypes
+            && sample_len != vs.len()
+        {
+            return Err(PyValueError::new_err(
+                "The number of variables does not match the number of variable types.",
+            ));
+        }
+        match counts {
+            Some(counts) => {
+                if counts.len() != samples.len() {
+                    return Err(PyValueError::new_err(
+                        "counts length does not match number of samples.",
+                    ));
+                } else {
+                    sol.counts = counts;
+                }
+            }
+            None => sol.counts = vec![1; samples.len()],
+        }
+        match raw_energies {
+            Some(es) => {
+                if es.len() != samples.len() {
+                    return Err(PyValueError::new_err(
+                        "energies length does not match number of samples.",
+                    ));
+                } else {
+                    sol.raw_energies = Some(es);
+                }
+            }
+            None => sol.raw_energies = None,
+        }
+        match obj_values {
+            Some(es) => {
+                if es.len() != samples.len() {
+                    return Err(PyValueError::new_err(
+                        "obj_values length does not match number of samples.",
+                    ));
+                } else {
+                    sol.raw_energies = Some(es);
+                }
+            }
+            None => sol.raw_energies = None,
+        }
+
+        let sample_vars: Vec<_> = samples[0].keys().collect();
+        let mut s: IndexMap<String, Vec<f64>> = sample_vars
+            .iter()
+            .map(|k| match k.name() {
+                Ok(name) => Ok((name, Vec::new())),
+                Err(e) => Err(e),
+            })
+            .collect::<LunaModelResult<_>>()?;
+
+        for sample in samples.iter() {
+            if sample.len() != sample_len {
+                return Err(PyValueError::new_err("samples have different lengths."));
+            }
+            for (var, value) in sample.iter() {
+                let varname = var.name()?;
+                s.get_mut(&varname)
+                    .ok_or_else(|| LunaModelError::VariableNotExisting(varname.into()))?
+                    .push(*value);
+            }
+        }
+
+        let variable_types: HashMap<String, Vtype> = match vtypes {
+            Some(vs) => sample_vars
+                .into_iter()
+                .zip(vs)
+                .map(|(v, t)| match v.name() {
+                    Ok(n) => Ok((n, t)),
+                    Err(e) => Err(e),
+                })
+                .collect::<LunaModelResult<_>>()?,
+            None => {
+                let pyenv: PyEnvironment = env.try_into()?;
+                let mut vs = HashMap::new();
+                for v in sample_vars.into_iter() {
+                    let vname = v.name()?;
+                    let vt = pyenv.env.vtype_of(&vname)?;
+                    vs.insert(vname, vt);
+                }
+                vs
+            }
+        };
+        for (varname, values) in s {
+            match variable_types[&varname] {
+                Vtype::Binary => sol.add_binary(varname, values),
+                Vtype::Spin => sol.add_spin(varname, values),
+                Vtype::Integer => sol.add_integer(varname, values),
+                Vtype::Real => sol.add_real(varname, values),
+                Vtype::InvertedBinary => (),
+            }
+        }
+
+        sol.feasible = feasible;
+
+        if let Some(constraints) = constraints {
+            if constraints.len() != samples.len() {
+                return Err(PyValueError::new_err(
+                    "constraints length does not match number of samples.",
+                ));
+            }
+            sol.constraints = constraints
+                .into_iter()
+                .map(|m| m.into_iter().collect())
+                .collect();
+        }
+
+        if let Some(varbounds) = variables_bounds {
+            let mut vbs = HashMap::with_capacity(varbounds.len());
+            for (i, (key, values)) in varbounds.into_iter().enumerate() {
+                if values.len() != samples.len() {
+                    return Err(PyValueError::new_err(format!(
+                        "variables_bounds at index '{i}' length does not match number of samples."
+                    )));
+                }
+                vbs.insert(key, values);
+            }
+            sol.variable_bounds = vbs;
+        }
+
+        Ok(sol.into())
+    }
+
+    #[staticmethod]
+    fn from_dict(
+        data: IndexMap<VarKey, f64>,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+        timing: Option<PyTiming>,
+        counts: Option<usize>,
+        sense: Option<Sense>,
+        energy: Option<f64>,
+    ) -> PyResult<Self> {
+        check_env_or_model(&env, &model)?;
+        check_sense_or_model(&sense, &model)?;
+        let environment = retrieve_environment(env, &model)?.env;
+
+        let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
+            model
+                .as_ref()
+                .map(|m| m.m.read_arc().sense)
+                .unwrap_or_default()
+        }));
+        sol.timing = timing.map(|t| t.into());
+        sol.counts.push(counts.unwrap_or_else(|| 1));
+        if let Some(e) = energy {
+            sol.raw_energies.as_mut().map(|ens| ens.push(e));
+        }
+
+        for (var, value) in data.iter() {
+            let varname = var.name()?;
+            match environment.vtype_of(&varname)? {
+                Vtype::Binary => sol.add_binary(varname, vec![*value]),
+                Vtype::Spin => sol.add_spin(varname, vec![*value]),
+                Vtype::Integer => sol.add_integer(varname, vec![*value]),
+                Vtype::Real => sol.add_real(varname, vec![*value]),
+                Vtype::InvertedBinary => (),
+            }
+        }
+
+        if let Some(m) = model {
+            sol = m.m.read_arc().evaluate_solution(&sol)?;
+        }
+
+        Ok(sol.into())
+    }
+
+    #[staticmethod]
+    fn from_dicts(
+        data: Vec<IndexMap<VarKey, f64>>,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+        timing: Option<PyTiming>,
+        counts: Option<Vec<usize>>,
+        sense: Option<Sense>,
+        energies: Option<Vec<f64>>,
+    ) -> PyResult<Self> {
+        check_env_or_model(&env, &model)?;
+        check_sense_or_model(&sense, &model)?;
+        let environment = retrieve_environment(env, &model)?.env;
+
+        let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
+            model
+                .as_ref()
+                .map(|m| m.m.read_arc().sense)
+                .unwrap_or_default()
+        }));
+        if data.is_empty() {
+            return Ok(sol.into());
+        }
+
+        sol.timing = timing.map(|t| t.into());
+        sol.counts
+            .append(&mut counts.unwrap_or_else(|| vec![1; data.len()]));
+        if let Some(es) = energies {
+            sol.raw_energies = Some(es)
+        }
+
+        let mut samples: IndexMap<String, Vec<f64>> = data[0]
+            .keys()
+            .map(|k| match k.name() {
+                Ok(name) => Ok((name, Vec::new())),
+                Err(e) => Err(e),
+            })
+            .collect::<LunaModelResult<_>>()?;
+
+        let sample_len = data[0].len();
+        for sample in data.iter() {
+            if sample.len() != sample_len {
+                return Err(PyValueError::new_err("samples have different lengths."));
+            }
+            for (var, value) in sample.iter() {
+                let varname = var.name()?;
+                samples
+                    .get_mut(&varname)
+                    .ok_or_else(|| LunaModelError::VariableNotExisting(varname.into()))?
+                    .push(*value);
+            }
+        }
+
+        for (varname, values) in samples {
+            match environment.vtype_of(&varname)? {
+                Vtype::Binary => sol.add_binary(varname, values),
+                Vtype::Spin => sol.add_spin(varname, values),
+                Vtype::Integer => sol.add_integer(varname, values),
+                Vtype::Real => sol.add_real(varname, values),
+                Vtype::InvertedBinary => (),
+            }
+        }
+
+        if let Some(m) = model {
+            sol = m.m.read_arc().evaluate_solution(&sol)?;
+        }
+
+        Ok(sol.into())
+    }
+
+    #[staticmethod]
+    fn from_arrays(
+        data: PyReadonlyArray2<f64>,
+        variables: Vec<VarKey>,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+        timing: Option<PyTiming>,
+        counts: Option<Vec<usize>>,
+        sense: Option<Sense>,
+        energies: Option<Vec<f64>>,
+    ) -> PyResult<Self> {
+        check_env_or_model(&env, &model)?;
+        check_sense_or_model(&sense, &model)?;
+        let environment = retrieve_environment(env, &model)?.env;
+
+        let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
+            model
+                .as_ref()
+                .map(|m| m.m.read_arc().sense)
+                .unwrap_or_default()
+        }));
+        sol.timing = timing.map(|t| t.into());
+        sol.counts
+            .append(&mut counts.unwrap_or_else(|| vec![1; data.shape()[0]]));
+        if let Some(es) = energies {
+            sol.raw_energies = Some(es)
+        }
+
+        for (col, var) in data.as_array().axis_iter(Axis(1)).zip(variables) {
+            let varname = var.name()?;
+            match environment.vtype_of(&varname)? {
+                Vtype::Binary => sol.add_binary(varname, col.to_vec()),
+                Vtype::Spin => sol.add_spin(varname, col.to_vec()),
+                Vtype::Integer => sol.add_integer(varname, col.to_vec()),
+                Vtype::Real => sol.add_real(varname, col.to_vec()),
+                Vtype::InvertedBinary => (),
+            }
+        }
+
+        if let Some(m) = model {
+            sol = m.m.read_arc().evaluate_solution(&sol)?;
+        }
+
+        Ok(sol.into())
+    }
+}
+
+fn check_env_or_model(env: &Option<PyEnvironment>, model: &Option<PyModel>) -> PyResult<()> {
+    if env.is_some() && model.is_some() {
+        Err(PyValueError::new_err(
+            "either `env` or `model` has to be `None`",
+        ))
+    } else {
+        Ok(())
+    }
+}
+
+fn check_sense_or_model(sense: &Option<Sense>, model: &Option<PyModel>) -> PyResult<()> {
+    if sense.is_some() && model.is_some() {
+        Err(PyValueError::new_err(
+            "either `sense` or `model` has to be `None`",
+        ))
+    } else {
+        Ok(())
+    }
+}
+
+fn retrieve_environment(
+    env: Option<PyEnvironment>,
+    model: &Option<PyModel>,
+) -> PyResult<PyEnvironment> {
+    if let Some(model) = model {
+        Ok(model.m.read_arc().environment.clone().into())
+    } else {
+        env.try_into()
+    }
+}

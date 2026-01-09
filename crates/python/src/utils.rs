@@ -2,7 +2,7 @@ use super::PyVariable;
 use crate::expression::PyExpression;
 use pyo3::prelude::FromPyObject;
 
-#[derive(FromPyObject)]
+#[derive(Debug, FromPyObject)]
 pub enum OpsOther {
     Expr(PyExpression),
     Var(PyVariable),

@@ -6,30 +6,27 @@ from luna_model import Solution, Vtype
 
 @pytest.fixture()
 def solution() -> Solution:
-    return Solution._build(  # type: ignore[reportAttributeAccessIssue]
-        component_types=[
-            Vtype.Binary,
-            Vtype.Spin,
-            Vtype.Integer,
-            Vtype.Real,
-            Vtype.Binary,
+    return Solution(
+        samples=[
+            {"b0": 1, "s0": +1, "i0": 2, "r0": +2.2, "b1": 0},
+            {"b0": 0, "s0": -1, "i0": 3, "r0": +3.3, "b1": 0},
+            {"b0": 1, "s0": +1, "i0": 4, "r0": -4.4, "b1": 0},
         ],
-        binary_cols=[[1, 0, 1], [0, 0, 0]],
-        spin_cols=[[+1, -1, +1]],
-        int_cols=[[2, 3, -4]],
-        real_cols=[[2.2, 3.3, -4.4]],
+        vtypes=[Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real, Vtype.Binary],
         raw_energies=[0.3, 1.2, -200],
         counts=[1, 2, 3],
         constraints=[
-            [True, True, True],
-            [False, True, False],
-            [False, True, True],
+            {"c0": True, "c1": True, "c2": True},
+            {"c0": False, "c1": True, "c2": False},
+            {"c0": False, "c1": True, "c2": True},
         ],
-        variable_bounds=[
-            [True, True, True, True, True],
-            [True, True, True, True, True],
-            [True, True, True, True, True],
-        ],
+        variables_bounds={
+            "b0": [True, True, True],
+            "s0": [True, True, True],
+            "i0": [True, True, True],
+            "r0": [True, True, True],
+            "b1": [True, True, True],
+        },
         feasible=[True, False, False],
     )
 

@@ -153,6 +153,18 @@ impl Environment {
             .get_mut(&index)
             .ok_or_else(|| LunaModelError::VariableNotExisting(index.to_string().into()))
     }
+
+    pub fn vtype_of(&self, name: &str) -> LunaModelResult<Vtype> {
+        Ok(self
+            .variables
+            .get(
+                self.lookup
+                    .get(name)
+                    .ok_or(LunaModelError::VariableNotExisting(name.to_string().into()))?,
+            )
+            .ok_or(LunaModelError::VariableNotExisting(name.to_string().into()))?
+            .vtype)
+    }
 }
 
 impl Index<VarIdx> for Environment {

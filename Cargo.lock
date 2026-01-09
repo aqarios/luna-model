@@ -422,6 +422,7 @@ version = "0.5.0"
 dependencies = [
  "derive_more",
  "hashbrown",
+ "indexmap",
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-io",
@@ -729,6 +730,7 @@ version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37a6df7eab65fc7bee654a421404947e10a0f7085b6951bf2ea395f4659fb0cf"
 dependencies = [
+ "indexmap",
  "indoc",
  "inventory",
  "libc",

@@ -7,7 +7,7 @@ from luna_model.model.sense import Sense
 from luna_model.model.model import Model
 from luna_model.variable.var import Variable
 from luna_model.solution.timer import Timing
-from luna_model.environment.environment import Environment
+from luna_model.environment.env import Environment
 
 from qiskit.primitives import PrimitiveResult, PubResult  # type: ignore[import]
 from qiskit_optimization import QuadraticProgram  # type: ignore[import]

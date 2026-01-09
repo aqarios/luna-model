@@ -1,6 +1,4 @@
-use lunamodel_core::Model;
 use lunamodel_types::{Sense, Vtype};
-use lunamodel_utils::unique_by;
 use pyo3::{PyResult, pymethods};
 
 use crate::{PyConstraintCollection, PyEnvironment, PyExpression, PyVariable};
@@ -36,7 +34,7 @@ impl PyModel {
 
     #[getter]
     fn get_constraints(&self) -> PyConstraintCollection {
-        self.m.read_arc().constraints.clone().into()
+        PyConstraintCollection::for_model(self.m.clone())
     }
 
     #[getter]

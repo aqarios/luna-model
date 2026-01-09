@@ -30,13 +30,9 @@ impl PyConstraintCollection {
     ///     If the value is not a `Constraint` or valid symbolic comparison.
     fn __iadd__(&mut self, other: Other) -> PyResult<()> {
         Ok(match other {
-            Other::Constr(constr) => self
-                .c
-                .write_arc()
-                .add_constraint(constr.c.read_arc().clone(), None)?,
+            Other::Constr(constr) => self.c.add_constraint(constr.c.read_arc().clone(), None)?,
             Other::Tuple((constr, name)) => self
                 .c
-                .write_arc()
                 .add_constraint(constr.c.read_arc().clone(), Some(name))?,
         })
     }
@@ -50,17 +46,14 @@ impl PyConstraintCollection {
     /// name : str, optional
     ///     The name of the constraint to be added.
     fn add_constraint(&mut self, constr: PyConstraint, name: Option<String>) -> PyResult<()> {
-        Ok(self
-            .c
-            .write_arc()
-            .add_constraint(constr.c.read_arc().clone(), name)?)
+        Ok(self.c.add_constraint(constr.c.read_arc().clone(), name)?)
     }
 
     fn __setitem(&mut self, key: String, constr: PyConstraint) -> PyResult<()> {
-        Ok(self.c.write_arc().set_constraint(&key, constr.c.read_arc().clone())?)
+        Ok(self.c.set_constraint(&key, constr.c.read_arc().clone())?)
     }
 
     fn remove(&mut self, key: String) -> PyResult<()> {
-        Ok(self.c.write_arc().remove_constraint(&key)?)
+        Ok(self.c.remove_constraint(&key)?)
     }
 }

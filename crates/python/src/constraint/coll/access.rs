@@ -1,6 +1,5 @@
-use lunamodel_core::prelude::ContentEquality;
 use lunamodel_types::Comparator;
-use pyo3::pymethods;
+use pyo3::{PyResult, pymethods};
 
 use crate::{PyConstraint, constraint::coll::iter::PyConstraintCollectionIterator};
 
@@ -13,32 +12,36 @@ impl PyConstraintCollection {
     //     let constr = &(&self.c.read_arc())[key];
     //     PyConstraint::new(constr.clone())
     // }
-    //
+
     fn items(&self) -> PyConstraintCollectionIterator {
         PyConstraintCollectionIterator::new(&self)
     }
 
-    fn get(&self, key: String) -> PyConstraint {
-        self.c.read_arc()[&key].clone().into()
+    fn get(&self, key: String) -> PyResult<PyConstraint> {
+        Ok(self.c.get(&key)?.clone().into())
     }
 
     fn ctypes(&self) -> Vec<Comparator> {
-        self.c.read_arc().ctypes().collect()
+        self.c.ctypes()
     }
 
     fn equal_contents(&self, other: &Self) -> bool {
-        self.c.read_arc().is_equal_contents(&other.c.read_arc())
+        self.c.is_equal_contents(&other.c)
     }
 
-    fn __getitem__(&self, key: String) -> PyConstraint {
+    fn __getitem__(&self, key: String) -> PyResult<PyConstraint> {
         self.get(key)
     }
 
     fn __len__(&self) -> usize {
-        self.c.read_arc().len()
+        self.c.len()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
-        self.c.read_arc().eq(&other.c.read_arc())
+        self.c.eq(&other.c)
+    }
+
+    fn __iter__(&self) -> PyConstraintCollectionIterator {
+        self.items()
     }
 }

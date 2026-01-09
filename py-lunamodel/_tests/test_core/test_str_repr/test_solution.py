@@ -30,20 +30,16 @@ Total variables: 30""".strip("\n")
 
 @pytest.fixture()
 def solution(request) -> Solution:
-    return Solution._build(  # type: ignore[reportAttributeAccessIssue]
-        component_types=[
-            Vtype.Binary,
-            Vtype.Spin,
-            Vtype.Integer,
-            Vtype.Real,
+    _ = request
+    return Solution(
+        samples=[
+            {"x0": 1, "x1": +1, "x2": 2, "x3": +2.0},
+            {"x0": 0, "x1": -1, "x2": 3, "x3": +3.0},
+            {"x0": 1, "x1": +1, "x2": 4, "x3": -4.23},
         ],
-        binary_cols=[[1, 0, 1]],
-        spin_cols=[[+1, -1, +1]],
-        int_cols=[[2, 3, -4]],
-        real_cols=[[2.0, 3.0, 4.23]],
+        vtypes=[Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real],
         counts=[1, 2, 3],
         raw_energies=[6.0, 5.0, 2.0],
-        variable_names=list(f"x_{i}" for i in range(4)),
     )
 
 
@@ -63,9 +59,12 @@ def test_samples(solution: Solution):
 def test_model(solution: Solution):
     assert str(solution) == sol_str_1
 
-    solution_2 = Solution._build(  # type: ignore[reportAttributeAccessIssue]
-        component_types=[Vtype.Binary] * 30,
-        binary_cols=[[1, 0]] * 30,
+    solution_2 = Solution(
+        samples=[
+            {f"b{i}": 1 for i in range(30)},
+            {f"b{i}": 0 for i in range(30)},
+        ],
+        vtypes=[Vtype.Binary] * 30,
     )
     assert str(solution_2) == sol_str_2
 

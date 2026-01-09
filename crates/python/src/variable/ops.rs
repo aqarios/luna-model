@@ -51,6 +51,10 @@ impl PyVariable {
         Ok(Self::new(self.v.not()?))
     }
 
+    pub fn inv(&self) -> PyResult<Self> {
+        self.__invert__()
+    }
+
     pub fn __pow__(&self, val: usize, modulo: Option<isize>) -> PyResult<PyE> {
         if modulo.is_some() {
             return Err(PyLunaModelError::new_err(

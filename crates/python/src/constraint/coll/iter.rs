@@ -1,4 +1,4 @@
-use pyo3::{pymethods, PyRef, PyRefMut, PyResult, pyclass};
+use pyo3::{PyRef, PyRefMut, PyResult, pyclass, pymethods};
 
 use crate::constraint::{PyConstraint, PyConstraintCollection};
 
@@ -11,12 +11,7 @@ pub struct PyConstraintCollectionIterator {
 impl PyConstraintCollectionIterator {
     pub fn new(coll: &PyConstraintCollection) -> Self {
         Self {
-            items: coll
-                .c
-                .read_arc()
-                .iter()
-                .map(|(name, constr)| (name.clone(), constr.into()))
-                .collect(),
+            items: coll.c.pyitems(),
             idx: 0,
         }
     }

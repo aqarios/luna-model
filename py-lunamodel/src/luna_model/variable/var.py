@@ -8,7 +8,7 @@ from luna_model._lm import PyVariable
 if TYPE_CHECKING:
     from luna_model._typing import VBounds
     from luna_model.constraint.constr import Constraint
-    from luna_model.environment.environment import Environment
+    from luna_model.environment.env import Environment
     from luna_model.expression.expr import Expression
     from luna_model.variable.bounds import Bounds
 

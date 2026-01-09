@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from luna_model.constraint import Constraint
     from luna_model.variable.var import Variable
     from luna_model.solution.sol import Solution
-    from luna_model.environment.environment import Environment
+    from luna_model.environment.env import Environment
     from numpy.typing import NDArray
 
 
@@ -88,7 +88,7 @@ class Expression:
     def is_equal(self, other: Expression) -> bool:
         return self._expr.is_equal(other._expr)
 
-    def is_equal_contents(self, other: Expression) -> bool:
+    def equal_contents(self, other: Expression) -> bool:
         return self._expr.is_equal_contents(other._expr)
 
     def separate(self, variables: list[Variable]) -> tuple[Expression, Expression]:

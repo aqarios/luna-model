@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use lunamodel_types::{Bias, VarIdx, Vtype};
 use lunamodel_utils::unique;
 use std::iter::once;
@@ -120,5 +121,9 @@ impl Expression {
         self.higher_order
             .as_ref()
             .map_or_else(Bias::default, |h| h[vars])
+    }
+
+    pub fn contains(&self, var: &VarRef) -> bool {
+        self.vars().map(|v| v.id).contains(&var.id)
     }
 }

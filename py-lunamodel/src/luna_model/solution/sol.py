@@ -6,10 +6,11 @@ from luna_model.variable.vtype import Vtype
 from luna_model.solution.src import ValueSource
 
 if TYPE_CHECKING:
+    from luna_model._lm import PyVariable
     from luna_model.variable.var import Variable
     from luna_model.solution.sample import Samples
     from luna_model.solution.timer import Timing
-    from luna_model.environment.environment import Environment
+    from luna_model.environment.env import Environment
     from luna_model.model.model import Model
     from luna_model.model.sense import Sense
     from luna_model.solution.res import ResultIter, ResultView
@@ -17,9 +18,47 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
+    SampleT = (
+        dict[Variable | str, int | float]
+        | dict[Variable, int | float]
+        | dict[Variable, int]
+        | dict[Variable, float]
+        | dict[str, int | float]
+        | dict[str, int]
+        | dict[str, float]
+    )
+
 
 class Solution:
     _s: PySolution
+
+    def __init__(
+        self,
+        samples: list[SampleT],
+        counts: list[int] | None = None,
+        raw_energies: list[float] | None = None,
+        obj_values: list[float] | None = None,
+        feasible: list[bool] | None = None,
+        constraints: list[dict[str, bool]] | None = None,
+        variables_bounds: dict[str, list[bool]] | None = None,
+        timing: Timing | None = None,
+        sense: Sense | None = None,
+        env: Environment | None = None,
+        vtypes: list[Vtype] | None = None,
+    ) -> None:
+        self._s = PySolution(
+            samples=map_samples(samples),
+            counts=counts,
+            raw_energies=raw_energies,
+            obj_values=obj_values,
+            feasible=feasible,
+            constraints=constraints,
+            variables_bounds=variables_bounds,
+            timing=timing,
+            sense=sense.value if sense else None,
+            env=env._env if env else None,
+            vtypes=[vtype.value for vtype in vtypes] if vtypes else None,
+        )
 
     @classmethod
     def _from_pys(cls, py_s: PySolution) -> Solution:
@@ -201,28 +240,30 @@ class Solution:
     @classmethod
     def from_dict(
         cls,
-        data: dict[Variable | str, int | float],
+        data: SampleT,
         env: Environment | None = None,
         model: Model | None = None,
         timing: Timing | None = None,
         counts: int | None = None,
         sense: Sense | None = None,
+        energy: float | None = None,
     ) -> Solution:
         return cls._from_pys(
             PySolution.from_dict(
-                data=data,
+                data=map_sample(data),
                 env=env._env if env else None,
                 model=model._m if model else None,  # type: ignore[attribute]
                 timing=timing,
                 counts=counts,
                 sense=sense.value if sense else None,
+                energy=energy,
             )
         )
 
     @classmethod
     def from_dicts(
         cls,
-        data: list[dict[Variable | str, int | float]],
+        data: list[SampleT],
         env: Environment | None = None,
         model: Model | None = None,
         timing: Timing | None = None,
@@ -232,7 +273,7 @@ class Solution:
     ) -> Solution:
         return cls._from_pys(
             PySolution.from_dicts(
-                data=data,
+                data=map_samples(data),
                 env=env._env if env else None,
                 model=model._m if model else None,  # type: ignore[attribute]
                 timing=timing,
@@ -266,3 +307,11 @@ class Solution:
                 var_order=var_order,
             )
         )
+
+
+def map_sample(sample: SampleT) -> dict[str | PyVariable, int | float]:
+    return {s if isinstance(s, str) else s._v: v for s, v in sample.items()}
+
+
+def map_samples(samples: list[SampleT]) -> list[dict[str | PyVariable, int | float]]:
+    return [map_sample(s) for s in samples]

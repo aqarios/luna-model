@@ -3,6 +3,7 @@ use pyo3::{PyTypeInfo, prelude::*};
 
 #[pymodule]
 fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(quicksum, m)?)?;
     // Enums from lunamodel-core
     m.add_class::<ValueSource>()?;
     // Enums from lunamodel-types
@@ -26,6 +27,9 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyConstraintCollection>()?;
     m.add_class::<PySolution>()?;
     m.add_class::<PyTimer>()?;
+
+    // For ConstraintCollection iteration
+    m.add_class::<PyConstraintCollectionIterator>()?;
 
     // For Expression iteration
     m.add_class::<PyExpressionIterator>()?;

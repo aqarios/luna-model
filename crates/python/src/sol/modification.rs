@@ -1,20 +1,7 @@
-use crate::variable::PyVariable;
-
 use super::PySolution;
+use super::utils::VarKey;
 use lunamodel_types::Vtype;
-use pyo3::{FromPyObject, PyAny, PyErr, PyResult, exceptions::PyTypeError, pymethods};
-
-#[derive(Debug, Clone)]
-pub enum VarKey {
-    Str(String),
-    Var(PyVariable),
-}
-
-impl From<String> for VarKey {
-    fn from(value: String) -> Self {
-        Self::Str(value)
-    }
-}
+use pyo3::{PyResult, pymethods};
 
 #[pymethods]
 impl PySolution {
@@ -53,19 +40,5 @@ impl PySolution {
             self.remove_var(v)?;
         }
         Ok(())
-    }
-}
-
-impl<'a, 'py> FromPyObject<'a, 'py> for VarKey {
-    type Error = PyErr;
-
-    fn extract(obj: pyo3::Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if let Ok(s) = obj.extract::<String>() {
-            Ok(VarKey::Str(s))
-        } else if let Ok(v) = obj.extract::<PyVariable>() {
-            Ok(VarKey::Var(v))
-        } else {
-            Err(PyTypeError::new_err("keys have to be 'str' or 'Variable'"))
-        }
     }
 }

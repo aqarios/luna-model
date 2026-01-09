@@ -2,13 +2,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from luna_model.constraint.constr import Constraint
+from luna_model.constraint.cmp import Comparator
+from luna_model.constraint.iter import ConstraintCollectionIter
 from luna_model._utils import wrap_c
 from luna_model._lm import PyConstraintCollection
 
 if TYPE_CHECKING:
-    from luna_model.environment.environment import Environment
-    from luna_model.constraint.cmp import Comparator
-    from luna_model.constraint.iter import ConstraintCollectionIter
+    from luna_model.environment.env import Environment
 
 
 class ConstraintCollection:
@@ -28,7 +28,7 @@ class ConstraintCollection:
         self._cc.add_constraint(constraint._c, name)  # type: ignore
 
     def items(self) -> ConstraintCollectionIter:
-        return self._cc.items()
+        return ConstraintCollectionIter._from_pycci(self._cc.items())
 
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         return self._cc.encode(compress, level)
@@ -79,3 +79,6 @@ class ConstraintCollection:
 
     def __eq__(self, other: ConstraintCollection) -> bool:  # type: ignore[override]
         return self._cc.__eq__(other._cc)
+
+    def __iter__(self) -> ConstraintCollectionIter:
+        return ConstraintCollectionIter._from_pycci(self._cc.__iter__())

@@ -19,7 +19,7 @@ pub use iteration::{PyConstant, PyExpressionIterator, PyHigherOrder, PyLinear, P
 
 #[pyclass]
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PyExpression {
     pub expr: PyExprContent,
 }

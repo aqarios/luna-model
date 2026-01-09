@@ -100,6 +100,10 @@ impl ArcEnv {
     pub fn contains(&self, name: &str) -> bool {
         self.env.read_arc().lookup.contains_key(name)
     }
+
+    pub fn vtype_of(&self, name: &str) -> LunaModelResult<Vtype> {
+        self.env.read_arc().vtype_of(name)
+    }
 }
 
 impl ContentEquality for ArcEnv {

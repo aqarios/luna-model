@@ -113,7 +113,7 @@ def test_s_neg(base: tuple[Model, Variable, Variable]):
 def test_s_env(base: tuple[Model, Variable, Variable]):
     _, _, s = base
     with pytest.raises(VariableNotExistingError):
-        _ = s._environment
+        _ = s.environment
 
 
 def test_s_prep(base: tuple[Model, Variable, Variable]):

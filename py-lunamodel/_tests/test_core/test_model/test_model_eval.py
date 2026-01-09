@@ -14,43 +14,31 @@ from luna_model.errors import EvaluationError
 
 @pytest.fixture()
 def solution() -> Solution:
-    return Solution._build(  # type: ignore[reportAttributeAccessIssue]
-        component_types=[
-            Vtype.Binary,
-            Vtype.Spin,
-            Vtype.Integer,
-            Vtype.Real,
+    return Solution(
+        samples=[
+            {"b": 1, "s": +1, "i": +2, "r": 2.0},
+            {"b": 0, "s": -1, "i": +3, "r": 3.0},
+            {"b": 1, "s": +1, "i": -4, "r": 4.0},
         ],
-        variable_names=["b", "s", "i", "r"],
-        binary_cols=[[1, 0, 1]],
-        spin_cols=[[+1, -1, +1]],
-        int_cols=[[2, 3, -4]],
-        real_cols=[[2.0, 3.0, 4.0]],
+        vtypes=[Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real],
         raw_energies=[6.0, 5.0, 2.0],
     )
-    # return Solution.from_dicts(
-    #     [
-    #         {"b": 1, "s": +1, "i": 2, "r": 2.0},
-    #         {"b": 0, "s": +1, "i": 2, "r": 2.0},
-    #         {"b": 1, "s": +1, "i": 2, "r": 2.0},
-    #     ]
-    # )
 
 
 @pytest.fixture()
 def solution_max() -> Solution:
-    return Solution._build(  # type: ignore[reportAttributeAccessIssue]
-        component_types=[
+    return Solution(
+        samples=[
+            {"b": 1, "s": +1, "i": +2, "r": 2.0},
+            {"b": 0, "s": -1, "i": +3, "r": 3.0},
+            {"b": 1, "s": +1, "i": -4, "r": 4.0},
+        ],
+        vtypes=[
             Vtype.Binary,
             Vtype.Spin,
             Vtype.Integer,
             Vtype.Real,
         ],
-        variable_names=["b", "s", "i", "r"],
-        binary_cols=[[1, 0, 1]],
-        spin_cols=[[+1, -1, +1]],
-        int_cols=[[2, 3, -4]],
-        real_cols=[[2.0, 3.0, 4.0]],
         raw_energies=[6.0, 5.0, 2.0],
         sense=Sense.Max,
     )

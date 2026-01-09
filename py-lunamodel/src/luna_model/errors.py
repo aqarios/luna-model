@@ -1,68 +1,34 @@
 from luna_model._lm import (
-    PyLunaModelError, 
-    PyVariableOutOfRangeError,
-    PyUnsupportedOperationError,
-    PyComputationError,
-    PyComputationError,
-    PyDecodeError,
-    PyDifferentEnvsError,
-    PyDuplicateConstraintNameError,
-    PyEvaluationError,
-    PyIllegalConstraintNameError,
-    PyInternalPanicError,
-    PyModelNotQuadraticError,
-    PyModelNotUnconstrainedError,
-    PyModelSenseNotMinimizeError,
-    PyModelVtypeError,
-    PyMultipleActiveEnvironmentsError,
-    PyNoActiveEnvironmentFoundError,
-    PyNoConstraintForKeyError,
-    PySampleColCreationError,
-    PySampleIncompatibleVtypeError,
-    PySampleIncorrectLengthError,
-    PySampleUnexpectedVariableError,
-    PySolutionTranslationError,
-    PyTranslationError,
-    PyVariableCreationError,
-    PyVariableExistsError,
-    PyVariableNamesError,
-    PyVariableNotExistingError,
-    PyVariableOutOfRangeError,
-    PyVariablesFromDifferentEnvsError,
-    PyStartCannotBeInferredError,
+    PyLunaModelError as LunaModelError,
+    PyUnsupportedOperationError as UnsupportedOperationError,
+    PyStartCannotBeInferredError as StartCannotBeInferredError,
+    PyVariableOutOfRangeError as VariableOutOfRangeError,
+    PyDuplicateConstraintNameError as DuplicateConstraintNameError,
+    PyNoConstraintForKeyError as NoConstraintForKeyError,
+    PyComputationError as ComputationError,
+    PyDecodeError as DecodeError,
+    PyDifferentEnvsError as DifferentEnvsError,
+    PyEvaluationError as EvaluationError,
+    PyIllegalConstraintNameError as IllegalConstraintNameError,
+    PyInternalPanicError as InternalPanicError,
+    PyModelNotQuadraticError as ModelNotQuadraticError,
+    PyModelNotUnconstrainedError as ModelNotUnconstrainedError,
+    PyModelSenseNotMinimizeError as ModelSenseNotMinimizeError,
+    PyModelVtypeError as ModelVtypeError,
+    PyMultipleActiveEnvironmentsError as MultipleActiveEnvironmentsError,
+    PyNoActiveEnvironmentFoundError as NoActiveEnvironmentFoundError,
+    PySampleColCreationError as SampleColCreationError,
+    PySampleIncompatibleVtypeError as SampleIncompatibleVtypeError,
+    PySampleIncorrectLengthError as SampleIncorrectLengthError,
+    PySampleUnexpectedVariableError as SampleUnexpectedVariableError,
+    PySolutionTranslationError as SolutionTranslationError,
+    PyTranslationError as TranslationError,
+    PyVariableCreationError as VariableCreationError,
+    PyVariableExistsError as VariableExistsError,
+    PyVariableNamesError as VariableNamesError,
+    PyVariableNotExistingError as VariableNotExistingError,
+    PyVariablesFromDifferentEnvsError as VariablesFromDifferentEnvsError,
 )
-
-class LunaModelError(PyLunaModelError): ...
-class VariableOutOfRangeError(PyVariableOutOfRangeError): ...
-class VariableExistsError(PyVariableExistsError): ...
-class VariableNotExistingError(PyVariableNotExistingError): ...
-class VariableCreationError(PyVariableCreationError): ...
-class VariablesFromDifferentEnvsError(PyVariablesFromDifferentEnvsError): ...
-class DifferentEnvsError(PyDifferentEnvsError):...
-class NoActiveEnvironmentFoundError(PyNoActiveEnvironmentFoundError): ...
-class MultipleActiveEnvironmentsError(PyMultipleActiveEnvironmentsError): ...
-class DecodeError(PyDecodeError): ...
-class VariableNamesError(PyVariableNamesError): ...
-class IllegalConstraintNameError(PyIllegalConstraintNameError): ...
-class TranslationError(PyTranslationError): ...
-class ModelNotQuadraticError(PyModelNotQuadraticError): ...
-class ModelNotUnconstrainedError(PyModelNotUnconstrainedError): ...
-class ModelSenseNotMinimizeError(PyModelSenseNotMinimizeError): ...
-class ModelVtypeError(PyModelVtypeError): ...
-class SolutionTranslationError(PySolutionTranslationError): ...
-class SampleIncorrectLengthError(PySampleIncorrectLengthError, SolutionTranslationError): ...
-class SampleUnexpectedVariableError(PySampleUnexpectedVariableError, SolutionTranslationError): ...
-class SampleIncompatibleVtypeError(PySampleIncompatibleVtypeError, SolutionTranslationError): ...
-class UnsupportedOperationError(PyUnsupportedOperationError): ...
-class ComputationError(PyComputationError): ...
-class EvaluationError(PyEvaluationError): ...
-class DuplicateConstraintNameError(PyDuplicateConstraintNameError): ...
-class StartCannotBeInferredError(PyStartCannotBeInferredError, TypeError): ...
-class NoConstraintForKeyError(PyNoConstraintForKeyError, IndexError): ...
-class SampleColCreationError(PySampleColCreationError, IndexError): ...
-class InternalPanicError(PyInternalPanicError, RuntimeError): ...
-# class CompilationError(PyCompilationError, RuntimeError): ...
-# class EnvMismatchError(PyEnvMismatchError, RuntimeError): ...
 
 __all__ = [
     "ComputationError",
@@ -92,5 +58,7 @@ __all__ = [
     "VariableNotExistingError",
     "VariableOutOfRangeError",
     "VariablesFromDifferentEnvsError",
+    "LunaModelError",
+    "UnsupportedOperationError",
+    "StartCannotBeInferredError",
 ]
-

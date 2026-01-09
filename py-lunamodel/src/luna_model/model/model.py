@@ -8,7 +8,7 @@ from luna_model.model.sense import Sense
 from luna_model.variable.vtype import Vtype
 
 if TYPE_CHECKING:
-    from luna_model.environment.environment import Environment
+    from luna_model.environment.env import Environment
     from luna_model.constraint.constr import Constraint
     from luna_model.constraint.collection import ConstraintCollection
     from luna_model.expression.expr import Expression
@@ -201,3 +201,6 @@ class Model:
 
     def __hash__(self) -> int:
         return self._m.__hash__()
+
+    def __reduce__(self):
+        return (Model.decode, (self.encode(),))

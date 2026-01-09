@@ -32,10 +32,4 @@ impl Model {
         }
         self.objective = expr;
     }
-
-    pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> LunaModelResult<()> {
-        self.objective = self.objective.substitute(target, replacement)?;
-        self.constraints.substitute(target, replacement)?;
-        Ok(())
-    }
 }

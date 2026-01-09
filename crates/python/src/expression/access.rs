@@ -7,7 +7,7 @@ use crate::{PyEnvironment, PyExpression, PyVariable};
 #[pymethods]
 impl PyExpression {
     #[getter]
-    fn environment(&self) -> PyEnvironment {
+    pub fn environment(&self) -> PyEnvironment {
         match &self.expr {
             PyE::Expr(e) => e.read_arc().env.clone().into(),
             PyE::Model(m) => m.read_arc().environment.clone().into(),

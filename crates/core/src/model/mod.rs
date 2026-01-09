@@ -3,7 +3,7 @@ mod creation;
 mod equality;
 mod specs;
 mod modification;
-// mod substitution;
+mod substitution;
 mod evaluation;
 // mod deepclone;
 mod sense;

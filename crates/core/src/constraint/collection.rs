@@ -101,6 +101,12 @@ impl ConstraintCollection {
         }
         Ok(())
     }
+
+    pub fn get(&self, key: &str) -> LunaModelResult<&Constraint> {
+        self.data
+            .get(key)
+            .ok_or_else(|| LunaModelError::NoConstraintForKey(key.to_string().into()))
+    }
 }
 
 impl ContentEquality for ConstraintCollection {

@@ -46,7 +46,7 @@ def wrap_s(py_s: PySolution) -> Solution:
 
 
 def wrap_env(py_env: PyEnvironment) -> Environment:
-    from luna_model.environment.environment import Environment
+    from luna_model.environment.env import Environment
     return Environment._from_pyenv(py_env)  # type: ignore[attribute]
 
 

@@ -16,7 +16,6 @@ from luna_model import (
 
 @pytest.fixture()
 def model(request):
-    print(request)
     req = request.param
 
     vtypes: list[Vtype] = req.get("vtypes", None)
@@ -67,7 +66,7 @@ def model(request):
 def naive_query_ctypes(model: Model) -> list[Comparator]:
     contained: list[str] = []
     ctypes: list[Comparator] = []
-    for c in model.constraints:
+    for _, c in model.constraints:
         cc = c.comparator
         if str(cc) not in contained:
             contained.append(str(cc))
@@ -83,7 +82,7 @@ def naive_query_vtypes(model: Model) -> list[Vtype]:
         if str(vt) not in contained:
             contained.append(str(vt))
             vtypes.append(vt)
-    for c in model.constraints:
+    for _, c in model.constraints:
         for v in c.lhs.variables():
             vt = v.vtype
             if str(vt) not in contained:

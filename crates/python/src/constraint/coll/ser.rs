@@ -42,7 +42,7 @@ impl PyConstraintCollection {
         compress: Option<bool>,
         level: Option<i32>,
     ) -> PyResult<Py<PyAny>> {
-        let bytes = self.c.read_arc().encode(compress, level)?;
+        let bytes = self.c.encode(compress, level)?;
         Ok(PyBytes::new(py, bytes.as_slice()).into())
     }
 
