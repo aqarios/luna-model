@@ -26,7 +26,7 @@ impl PyConstraintCollection {
     }
 
     fn equal_contents(&self, other: &Self) -> bool {
-        self.c.is_equal_contents(&other.c)
+        self.c.equal_contents(&other.c)
     }
 
     fn __getitem__(&self, key: String) -> PyResult<PyConstraint> {

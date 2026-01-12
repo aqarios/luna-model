@@ -6,7 +6,7 @@ use super::PyEnvironment;
 #[pymethods]
 impl PyEnvironment {
     fn equal_contents(&self, other: &Self) -> bool {
-        self.env.is_equal_contents(&other.env)
+        self.env.equal_contents(&other.env)
     }
 
     fn __eq__(&self, other: &Self) -> bool {

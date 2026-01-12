@@ -1,4 +1,4 @@
-use crate::encode::{Decodable, Encodable};
+use crate::encode::{Decodable, Decoder, Encodable};
 
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerSolution as SerSolutionV0;
@@ -12,6 +12,8 @@ use lunamodel_error::LunaModelResult;
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
 type SerSolutionLatest = SerSolutionV1;
+
+impl Decoder<Solution, ()> for SerSolutionV0 {}
 
 /// Makes a Solution encodable.
 impl Encodable<SerSolutionV1> for Solution {

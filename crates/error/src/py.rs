@@ -288,6 +288,9 @@ impl From<Lme> for PyErr {
             Lme::Computation(_) => PyComputationError::new_err,
             Lme::NoConstraintForKey(_) => PyNoConstraintForKeyError::new_err,
             Lme::DuplicateConstraintName(_) => PyDuplicateConstraintNameError::new_err,
+            Lme::ModelNotQuadratic => PyModelNotQuadraticError::new_err,
+            Lme::ModelNotUnconstrained => PyModelNotUnconstrainedError::new_err,
+            Lme::Vtype(_) => PyModelVtypeError::new_err,
         };
         err(lme.to_string())
     }

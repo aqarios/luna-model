@@ -107,7 +107,7 @@ impl ArcEnv {
 }
 
 impl ContentEquality for ArcEnv {
-    fn is_equal_contents(&self, other: &Self) -> bool {
+    fn equal_contents(&self, other: &Self) -> bool {
         let slf = &self.env.read_arc();
         let otr = &other.env.read_arc();
 

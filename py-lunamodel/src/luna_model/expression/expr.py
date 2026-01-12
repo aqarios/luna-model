@@ -1,9 +1,10 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, Callable, Self
+from typing import TYPE_CHECKING, Callable, Self
 
 from luna_model._utils import wrap_env, wrap_var, wrap_c
 from luna_model._lm import PyExpression
 from luna_model.expression.iter import ExprIter
+from luna_model.environment.env import Environment
 
 if TYPE_CHECKING:
     from luna_model.constraint import Constraint
@@ -39,6 +40,11 @@ class Expression:
 
     @property
     def num_variables(self) -> int:
+        """
+        Only includes the variables that are contributing to the expression.
+        I.e., anything oped that is zero biased or results in zero biased stuff will not
+        be respected here.
+        """
         return self._expr.num_variables
 
     def get_offset(self) -> float:
@@ -89,7 +95,7 @@ class Expression:
         return self._expr.is_equal(other._expr)
 
     def equal_contents(self, other: Expression) -> bool:
-        return self._expr.is_equal_contents(other._expr)
+        return self._expr.equal_contents(other._expr)
 
     def separate(self, variables: list[Variable]) -> tuple[Expression, Expression]:
         lhs, rhs = self._expr.separate([v._v for v in variables])
@@ -99,10 +105,13 @@ class Expression:
         self, target: Variable, replacement: Expression | Variable
     ) -> Expression:
         from luna_model.variable import Variable
+
         if isinstance(replacement, Variable):
             return self._from_pyexpr(self._expr.substitute(target._v, replacement._v))
         elif isinstance(replacement, Expression):
-            return self._from_pyexpr(self._expr.substitute(target._v, replacement._expr))
+            return self._from_pyexpr(
+                self._expr.substitute(target._v, replacement._expr)
+            )
         raise TypeError(f"type '{type(replacement)}' not supported in substitution")
 
     def evaluate(self, solution: Solution) -> NDArray:
@@ -180,10 +189,11 @@ class Expression:
     def __ge__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
         return self._cmp(other, self._expr.__ge__)
 
-    def __reduce__(self) -> tuple[Callable, Any]:
+    def __reduce__(self) -> tuple[Callable, tuple[bytes, ...]]:
         data = self.encode()
         env_data = self.environment.encode()
-        return Expression.decode, (data, env_data)
+
+        return Expression._unreduce, (data, env_data)
 
     def __str__(self) -> str:
         return self._expr.__str__()
@@ -215,3 +225,8 @@ class Expression:
         else:
             pyc = fn(other)
         return wrap_c(pyc)
+
+    @staticmethod
+    def _unreduce(data, data_env) -> Expression:
+        env = Environment.decode(data_env)
+        return Expression.decode(data, env)

@@ -24,8 +24,8 @@ def test_model_substitution_same_var():
     m.substitute(target, replacement)
 
     assert expected_obj.is_equal(m.objective)
-    assert expected_constr_a.is_equal(m.constraints[0].lhs)
-    assert expected_constr_b.is_equal(m.constraints[1].lhs)
+    assert expected_constr_a.is_equal(m.constraints["a"].lhs)
+    assert expected_constr_b.is_equal(m.constraints["b"].lhs)
 
     r = m.environment.get_variable("target")
     assert target == r
@@ -51,17 +51,17 @@ def test_model_substitution_var():
     m.constraints += constr_b <= 0, "b"
     print()
     print(repr(m.objective))
-    print(repr(m.constraints[0]))
-    print(repr(m.constraints[1]))
+    print(repr(m.constraints["a"]))
+    print(repr(m.constraints["b"]))
     m.substitute(target, replacement)
     print("------------")
     print(repr(m.objective))
-    print(repr(m.constraints[0]))
-    print(repr(m.constraints[1]))
+    print(repr(m.constraints["a"]))
+    print(repr(m.constraints["b"]))
 
     assert expected_obj.is_equal(m.objective)
-    assert expected_constr_a.is_equal(m.constraints[0].lhs)
-    assert expected_constr_b.is_equal(m.constraints[1].lhs)
+    assert expected_constr_a.is_equal(m.constraints["a"].lhs)
+    assert expected_constr_b.is_equal(m.constraints["b"].lhs)
 
     with pytest.raises(VariableNotExistingError):
         _ = m.environment.get_variable("target")
@@ -101,8 +101,8 @@ def test_model_substitution():
     m.substitute(target, replacement)
 
     assert expected_obj.is_equal(m.objective)
-    assert expected_constr_a.is_equal(m.constraints[0].lhs)
-    assert expected_constr_b.is_equal(m.constraints[1].lhs)
+    assert expected_constr_a.is_equal(m.constraints["a"].lhs)
+    assert expected_constr_b.is_equal(m.constraints["b"].lhs)
     assert m.num_variables == 4
 
     with pytest.raises(VariableNotExistingError):

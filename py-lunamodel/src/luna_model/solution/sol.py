@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Callable, Literal, Sequence
 
 from luna_model._lm import PySolution
 from luna_model.variable.vtype import Vtype
@@ -55,9 +55,9 @@ class Solution:
             constraints=constraints,
             variables_bounds=variables_bounds,
             timing=timing,
-            sense=sense.value if sense else None,
+            sense=sense._val if sense else None,
             env=env._env if env else None,
-            vtypes=[vtype.value for vtype in vtypes] if vtypes else None,
+            vtypes=[vtype._val for vtype in vtypes] if vtypes else None,
         )
 
     @classmethod
@@ -118,15 +118,15 @@ class Solution:
         return self._s.best
 
     def cvar(self, alpha: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
-        return self._s.cvar(alpha, value_toggle.value)
+        return self._s.cvar(alpha, value_toggle._val)
 
     def temperature_weighted(
         self, beta: float, value_toggle: ValueSource = ValueSource.OBJ
     ) -> float:
-        return self._s.temperature_weighted(beta, value_toggle.value)
+        return self._s.temperature_weighted(beta, value_toggle._val)
 
     def expectation_value(self, value_toggle: ValueSource = ValueSource.OBJ) -> float:
-        return self._s.expectation_value(value_toggle.value)
+        return self._s.expectation_value(value_toggle._val)
 
     def feasibility_ratio(self) -> float:
         return self._s.feasibility_ratio()
@@ -169,7 +169,7 @@ class Solution:
         self._s.add_var(
             var._v if isinstance(var, Variable) else var,  # type: ignore[attribute]
             data,
-            vtype.value,  # type: ignore[attribute]
+            vtype._val,  # type: ignore[attribute]
         )
 
     def add_vars(
@@ -183,7 +183,7 @@ class Solution:
         self._s.add_vars(
             [var._v if isinstance(var, Variable) else var for var in variables],  # type: ignore[attribute]
             data,
-            [v.value if v else None for v in vtypes] if vtypes else None,
+            [v._val if v else None for v in vtypes] if vtypes else None,
         )
 
     def remove_var(self, var: str | Variable) -> None:
@@ -210,8 +210,9 @@ class Solution:
     def __eq__(self, other: Solution) -> bool:  # type: ignore[override]
         return self._s.__eq__(other._s)
 
-    def __reduce__(self) -> bool:  # type: ignore[override]
-        raise NotImplementedError
+    def __reduce__(self) -> tuple[Callable, tuple[bytes, ...]]:
+        data = self.encode()
+        return Solution.decode, (data,)
 
     def encode(self, compress: bool = True, level: int = 3) -> bytes:
         return self._s.encode(compress, level)
@@ -255,7 +256,7 @@ class Solution:
                 model=model._m if model else None,  # type: ignore[attribute]
                 timing=timing,
                 counts=counts,
-                sense=sense.value if sense else None,
+                sense=sense._val if sense else None,
                 energy=energy,
             )
         )
@@ -263,7 +264,7 @@ class Solution:
     @classmethod
     def from_dicts(
         cls,
-        data: list[SampleT],
+        data: Sequence[SampleT],
         env: Environment | None = None,
         model: Model | None = None,
         timing: Timing | None = None,
@@ -278,7 +279,7 @@ class Solution:
                 model=model._m if model else None,  # type: ignore[attribute]
                 timing=timing,
                 counts=counts,
-                sense=sense.value if sense else None,
+                sense=sense._val if sense else None,
                 energies=energies,
             )
         )
@@ -301,7 +302,7 @@ class Solution:
                 env=env._env if env else None,
                 model=model._m if model else None,  # type: ignore[attribute]
                 timing=timing,
-                sense=sense.value if sense else None,
+                sense=sense._val if sense else None,
                 bit_order=bit_order,
                 energies=energies,
                 var_order=var_order,
@@ -313,5 +314,7 @@ def map_sample(sample: SampleT) -> dict[str | PyVariable, int | float]:
     return {s if isinstance(s, str) else s._v: v for s, v in sample.items()}
 
 
-def map_samples(samples: list[SampleT]) -> list[dict[str | PyVariable, int | float]]:
+def map_samples(
+    samples: Sequence[SampleT],
+) -> list[dict[str | PyVariable, int | float]]:
     return [map_sample(s) for s in samples]

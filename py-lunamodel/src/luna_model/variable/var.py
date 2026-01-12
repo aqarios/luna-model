@@ -27,7 +27,7 @@ class Variable:
     ) -> None:
         self._v = PyVariable(
             name,
-            vtype.value,
+            vtype._val,
             bounds._b if bounds else None,
             env._env if env else None,
         )
@@ -52,7 +52,7 @@ class Variable:
 
     @property
     def vtype(self) -> Vtype:
-        return Vtype(self._v.vtype)
+        return Vtype._from_pyvtype(self._v.vtype)
 
     @property
     def environment(self) -> Environment:

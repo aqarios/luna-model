@@ -32,19 +32,19 @@ impl PyConstraintCollectionContent {
         }
     }
 
-    pub fn is_equal_contents(&self, other: &Self) -> bool {
+    pub fn equal_contents(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Coll(l), Self::Coll(r)) => l.read_arc().is_equal_contents(&r.read_arc()),
+            (Self::Coll(l), Self::Coll(r)) => l.read_arc().equal_contents(&r.read_arc()),
             (Self::Model(l), Self::Coll(r)) => {
-                l.read_arc().constraints.is_equal_contents(&r.read_arc())
+                l.read_arc().constraints.equal_contents(&r.read_arc())
             }
             (Self::Coll(l), Self::Model(r)) => {
-                l.read_arc().is_equal_contents(&r.read_arc().constraints)
+                l.read_arc().equal_contents(&r.read_arc().constraints)
             }
             (Self::Model(l), Self::Model(r)) => l
                 .read_arc()
                 .constraints
-                .is_equal_contents(&r.read_arc().constraints),
+                .equal_contents(&r.read_arc().constraints),
         }
     }
 

@@ -33,6 +33,7 @@ impl Expression {
                 ),
         )
         .map(|id| VarRef::new(id, self.env.clone()))
+        .filter(|v| v.vtype().unwrap() != Vtype::InvertedBinary)
     }
 
     pub fn items(&self) -> impl Iterator<Item = (Vec<VarRef>, Bias)> {

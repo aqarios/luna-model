@@ -30,7 +30,7 @@ class Constraint:
             if isinstance(rhs, Variable | Expression)  # type: ignore[attribute]
             else rhs
         )
-        self._c = PyConstraint(lhs, rhs, comparator.value, name)
+        self._c = PyConstraint(lhs, rhs, comparator._val, name)
 
     @classmethod
     def _from_pyc(cls, py_c: PyConstraint) -> Constraint:
@@ -53,7 +53,7 @@ class Constraint:
 
     @property
     def comparator(self) -> Comparator:
-        return Comparator(self._c.comparator)
+        return Comparator._from_pycmp(self._c.comparator)
 
     def __eq__(self, other: Constraint) -> bool:  # type: ignore[override]
         return self._c.__eq__(other._c)

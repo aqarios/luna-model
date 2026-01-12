@@ -20,7 +20,6 @@ where
     B: EnvIdexable + Debug,
 {
     if a.env_id() != b.env_id() {
-        dbg!(a, b);
         Err(LunaModelError::DifferentEnvironments)
     } else {
         Ok(())
@@ -191,22 +190,27 @@ where
     F: Fn(VarIdx) -> Vtype,
     I: Fn(VarIdx) -> Option<VarIdx>,
 {
+    // TODO: I don't like this very much. Very unclear. Include extra flag for binary *
+    // inverted binary occured.
     let mut ocs: HashMap<VarIdx, (usize, Vtype)> = HashMap::new();
     for &v in vars {
-        let entry = ocs.entry(v);
-        if let Entry::Occupied(entry, ..) = entry {
-            let vt = entry.get().1;
-            if (vt == Binary || vt == InvertedBinary)
-                && let Some(inverted) = inv(v)
-                // && ocs.contains_key(&inverted)
-                && let Entry::Occupied(_) = ocs.entry(inverted)
-            {
-                // if the variable is a binary or an inverted binary and it has
-                // an inverted and this inverted is also in the ocs than
-                // everything is 0 and we have an empty vec.
-                return Vec::default();
-            }
+        if let Some(inverted) = inv(v)
+            && ocs.contains_key(&inverted)
+        {
+            return Vec::default();
         }
+        // if let Some(entry) = entry {
+        //     let vt = entry.1;
+        //     if (vt == Binary || vt == InvertedBinary)
+        //         && let Some(inverted) = inv(v)
+        //         && ocs.contains_key(&inverted)
+        //     {
+        //         // if the variable is a binary or an inverted binary and it has
+        //         // an inverted and this inverted is also in the ocs than
+        //         // everything is 0 and we have an empty vec.
+        //         return Vec::default();
+        //     }
+        // }
         ocs.entry(v).or_insert((0, vtype(v))).0 += 1;
     }
     let mut reduced: Vec<VarIdx> = Vec::new();
@@ -218,8 +222,10 @@ where
                     reduced.push(idx)
                 }
             }
-            (c, _) => for _ in 0..c {
-                reduced.push(idx);
+            (c, _) => {
+                for _ in 0..c {
+                    reduced.push(idx);
+                }
             }
         }
     }

@@ -66,6 +66,9 @@ pub enum LunaModelError {
     Computation(ErrString),
     NoConstraintForKey(ErrString),
     DuplicateConstraintName(ErrString),
+    ModelNotQuadratic,
+    ModelNotUnconstrained,
+    Vtype(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -90,6 +93,9 @@ impl Display for LunaModelError {
             Computation(msg) => write!(f, "error during computation: {}", msg),
             NoConstraintForKey(msg) => write!(f, "no constraint for key: {}", msg),
             DuplicateConstraintName(msg) => write!(f, "duplicate constraint name: {}", msg),
+            ModelNotQuadratic => write!(f, "the model is not linear or quadratic"),
+            ModelNotUnconstrained => write!(f, "the model is not unconstrained"),
+            Vtype(msg) => write!(f, "unexpected Vtype: {}", msg),
         }
     }
 }

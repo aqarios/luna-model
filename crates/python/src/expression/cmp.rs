@@ -30,7 +30,7 @@ impl PyExpression {
         self.expr == other.expr
     }
 
-    fn is_equal_contents(&self, other: &Self) -> bool {
-        (&self.expr).is_equal_contents(&other.expr)
+    fn equal_contents(&self, other: &Self) -> bool {
+        (&self.expr).equal_contents(&other.expr)
     }
 }

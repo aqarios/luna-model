@@ -32,7 +32,7 @@ class Model:
         sense: Sense = Sense.MIN,
         env: Environment | None = None,
     ):
-        self._m = PyModel(name=name, sense=sense.value, env=env._env if env else None)
+        self._m = PyModel(name=name, sense=sense._val, env=env._env if env else None)
 
     @classmethod
     def _from_pym(cls, py_m: PyModel) -> Model:
@@ -50,11 +50,11 @@ class Model:
 
     @property
     def sense(self) -> Sense:
-        return Sense(self._m.sense)
+        return Sense._from_pysense(self._m.sense)
 
     @sense.setter
     def sense(self, sense: Sense) -> None:
-        self._m.sense = sense.value
+        self._m.sense = sense._val
 
     @property
     def objective(self) -> Expression:
@@ -88,11 +88,11 @@ class Model:
         return [wrap_var(v) for v in self._m.variables]
 
     def vtypes(self) -> list[Vtype]:
-        return [Vtype(t) for t in self._m.vtypes()]
+        return [Vtype._from_pyvtype(t) for t in self._m.vtypes()]
 
     # todo: deprecate for property setter
     def set_sense(self, sense: Sense) -> None:
-        self._m.set_sense(sense.value)
+        self._m.set_sense(sense._val)
 
     def add_variable(
         self,
@@ -102,7 +102,7 @@ class Model:
         upper: float | type[Unbounded] | None = None,
     ) -> Variable:
         return wrap_var(
-            self._m.add_variable(name=name, vtype=vtype.value, lower=lower, upper=upper)
+            self._m.add_variable(name=name, vtype=vtype._val, lower=lower, upper=upper)
         )
 
     # todo: deprecate this and make it param in add_variable.
@@ -115,7 +115,7 @@ class Model:
     ) -> Variable:
         return wrap_var(
             self._m.add_variable_with_fallback(
-                name=name, vtype=vtype.value, lower=lower, upper=upper
+                name=name, vtype=vtype._val, lower=lower, upper=upper
             )
         )
 
@@ -129,7 +129,7 @@ class Model:
         self._m.add_constraint(constraint._c, name)
 
     def set_objective(self, expression: Expression, sense: Sense | None = None) -> None:
-        self._m.set_objective(expression._expr, sense.value if sense else None)
+        self._m.set_objective(expression._expr, sense._val if sense else None)
 
     def evaluate(self, solution: Solution) -> Solution:
         return wrap_s(self._m.evaluate(solution._s))  # type: ignore[attribute]
@@ -191,7 +191,7 @@ class Model:
         target: TranslationTarget,
         filepath: Path | None = None,
     ) -> Qubo | str | BinaryQuadraticModel | ConstrainedQuadraticModel | None:
-        return self._m.to(target.value, filepath)
+        return self._m.to(target._val, filepath)
 
     def equal_contents(self, other: Model) -> bool:
         return self._m.equal_contents(other._m)

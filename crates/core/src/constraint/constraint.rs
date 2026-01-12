@@ -4,7 +4,7 @@ use global_counter::primitive::exact::CounterU64;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Comparator};
 
-use crate::{ArcEnv, expression::Expression, prelude::VarRef};
+use crate::{ArcEnv, expression::Expression, prelude::VarRef, traits::ContentEquality};
 
 pub static CONSTRAINT_COUNTER: CounterU64 = CounterU64::new(0);
 
@@ -124,5 +124,14 @@ impl Display for Constraint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         _ = f;
         unimplemented!()
+    }
+}
+
+impl ContentEquality for Constraint {
+    fn equal_contents(&self, other: &Self) -> bool {
+        self.lhs.equal_contents(&other.lhs)
+            && self.rhs == other.rhs
+            && self.comparator == other.comparator
+            && self.name == other.name
     }
 }

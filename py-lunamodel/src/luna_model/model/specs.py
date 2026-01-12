@@ -20,9 +20,9 @@ class ModelSpecs:
         max_num_variables: int | None = None,
     ) -> None:
         self._v = PyModelSpecs(
-            sense=sense.value if sense else None,
-            vtypes=[v.value for v in vtypes] if vtypes else None,
-            constraints=[c.value for c in constraints] if constraints else None,
+            sense=sense._val if sense else None,
+            vtypes=[v._val for v in vtypes] if vtypes else None,
+            constraints=[c._val for c in constraints] if constraints else None,
             max_degree=max_degree,
             max_constraint_degree=max_constraint_degree,
             max_num_variables=max_num_variables,
@@ -39,7 +39,7 @@ class ModelSpecs:
     def sense(self) -> Sense | None:
         pys = self._sp.sense
         if pys:
-            return Sense(pys)
+            return Sense._from_pysense(pys)
         return None
 
     @property
@@ -56,11 +56,11 @@ class ModelSpecs:
 
     @property
     def vtypes(self) -> list[Vtype] | None:
-        return [Vtype(v) for v in self._sp.vtypes]
+        return [Vtype._from_pyvtype(v) for v in self._sp.vtypes]
 
     @property
     def constraints(self) -> list[Ctype] | None:
-        return [Ctype(c) for c in self._sp.constraints]
+        return [Ctype._from_pyctype(c) for c in self._sp.constraints]
 
     def satisfies(self, other: ModelSpecs) -> bool:
         return self._sp.satisfies(other._sp)

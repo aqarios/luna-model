@@ -1,10 +1,10 @@
 use std::ops::Mul;
 
-use lunamodel_core::Expression;
+use lunamodel_core::{Expression, prelude::ContentEquality};
 use lunamodel_error::LunaModelResult;
 use pyo3::{FromPyObject, PyResult, pymethods};
 
-use crate::{PyExpression, PySolution, PyVariable, sol};
+use crate::{PyExpression, PySolution, PyVariable};
 
 use super::PyModel;
 
@@ -38,5 +38,9 @@ impl PyModel {
             .read_arc()
             .evaluate_solution(&solution.s.read_arc())?
             .into())
+    }
+
+    fn equal_contents(&self, other: &Self) -> bool {
+        self.m.read_arc().equal_contents(&other.m.read_arc())
     }
 }

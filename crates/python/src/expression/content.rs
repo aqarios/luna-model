@@ -314,19 +314,19 @@ impl Sub<&PyExprContent> for &VarRef {
 }
 
 impl ContentEquality for PyExprContent {
-    fn is_equal_contents(&self, other: &Self) -> bool {
+    fn equal_contents(&self, other: &Self) -> bool {
         match (self, other) {
             (PyExprContent::Expr(le), PyExprContent::Expr(re)) => {
-                le.read_arc().is_equal_contents(&re.read_arc())
+                le.read_arc().equal_contents(&re.read_arc())
             }
             (PyExprContent::Expr(e), PyExprContent::Model(m))
             | (PyExprContent::Model(m), PyExprContent::Expr(e)) => {
-                m.read_arc().objective.is_equal_contents(&e.read_arc())
+                m.read_arc().objective.equal_contents(&e.read_arc())
             }
             (PyExprContent::Model(lm), PyExprContent::Model(rm)) => lm
                 .read_arc()
                 .objective
-                .is_equal_contents(&rm.read_arc().objective),
+                .equal_contents(&rm.read_arc().objective),
         }
     }
 }

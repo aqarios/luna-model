@@ -25,7 +25,7 @@ def test_expr_access():
     assert not expr.has_quadratic()
     assert not expr.has_higher_order()
     assert expr.is_equal(expr)
-    assert expr.is_equal_contents(expr)
+    assert expr.equal_contents(expr)
 
 
 def test_expr_access_lin():
@@ -65,4 +65,4 @@ def test_expr_access_lin():
     assert not expr.has_quadratic()
     assert not expr.has_higher_order()
     assert expr.is_equal(expr)
-    assert expr.is_equal_contents(expr)
+    assert expr.equal_contents(expr)

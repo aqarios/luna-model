@@ -59,14 +59,16 @@ def assert_quadratic(expr, variables, value):
 
 def assert_higher_order(expr, variables, value, p_size=None):
     if not p_size:
-        check_equality(variables, len(variables), expr.get_higher_order, value)
+        check_equality(
+            variables, len(variables), lambda vs: expr.get_higher_order(*vs), value
+        )
     else:
-        check_equality(variables, p_size, expr.get_higher_order, value)
+        check_equality(variables, p_size, lambda vs: expr.get_higher_order(*vs), value)
 
 
 def assert_higher_order_all(expr, variables, value):
     for p_size in range(3, len(variables) + 1):
-        check_equality(variables, p_size, expr.get_higher_order, value)
+        check_equality(variables, p_size, lambda vs: expr.get_higher_order(*vs), value)
 
 
 def generate_bqms(

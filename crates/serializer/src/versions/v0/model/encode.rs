@@ -17,7 +17,7 @@ impl SerModel {
         self.constraints = m.constraints.serialize();
         self.environment = m.environment.read_arc().serialize();
         self.name = m.name.clone();
-        self.sense = self.sense.to_string();
+        self.sense = m.sense.to_string();
         self
     }
 }

@@ -59,7 +59,6 @@ impl Column {
             Self::Real(col) => Assignment::Real(col.as_t(index)),
         }
     }
-
     pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
         match self {
             Self::Binary(col) => col.push(value),
@@ -137,6 +136,10 @@ impl ColElement<u8> {
         msg.and_then(|_| Some(()))
             .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = u8> {
+        self.0.iter().map(|&e| e as u8)
+    }
 }
 
 impl ColElement<i8> {
@@ -152,6 +155,10 @@ impl ColElement<i8> {
         };
         msg.and_then(|_| Some(()))
             .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = i8> {
+        self.0.iter().map(|&e| e as i8)
     }
 }
 
@@ -170,6 +177,10 @@ impl ColElement<i64> {
         msg.and_then(|_| Some(()))
             .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
     }
+
+    pub fn as_ints(&self) -> impl Iterator<Item = i64> {
+        self.0.iter().map(|&e| e as i64)
+    }
 }
 
 impl ColElement<f64> {
@@ -185,5 +196,9 @@ impl ColElement<f64> {
         };
         msg.and_then(|_| Some(()))
             .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = f64> {
+        self.0.iter().map(|&v| v)
     }
 }

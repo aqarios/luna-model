@@ -1,3 +1,4 @@
+use lunamodel_python::translate::model::*;
 pub use lunamodel_python::*;
 use pyo3::{PyTypeInfo, prelude::*};
 
@@ -37,6 +38,11 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyLinear>()?;
     m.add_class::<PyQuadratic>()?;
     m.add_class::<PyHigherOrder>()?;
+
+    // Model Translator
+    m.add_class::<PyLpTranslator>()?;
+    m.add_class::<PyQuboTranslator>()?;
+    m.add_class::<PyQubo>()?;
 
     // Errors
     m.add(

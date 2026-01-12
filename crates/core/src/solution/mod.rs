@@ -56,6 +56,7 @@ pub struct Solution {
     pub constraints: Vec<HashMap<String, bool>>,
     /// Boolean flag for each variable whether it's bounds are satisfied for each sample.
     /// variable_bounds[name].len() == samples[name].len() == n_samples
+    // TODO: maybe change this from inner to outer as with constraints
     pub variable_bounds: HashMap<String, Vec<bool>>,
     // metadata
     /// Runtime metrics of the solution.
@@ -75,7 +76,7 @@ impl Solution {
 }
 
 impl ContentEquality for Solution {
-    fn is_equal_contents(&self, other: &Self) -> bool {
+    fn equal_contents(&self, other: &Self) -> bool {
         self == other
     }
 }

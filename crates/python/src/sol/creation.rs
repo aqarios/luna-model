@@ -8,7 +8,7 @@ use numpy::{PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::exceptions::PyValueError;
 use pyo3::{PyResult, pymethods};
 
-use crate::sol::timing::PyTiming;
+use crate::timer::PyTiming;
 use crate::{PyEnvironment, PyModel};
 
 use super::PySolution;

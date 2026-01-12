@@ -1,7 +1,7 @@
 use numpy::{PyArray1, PyArrayMethods};
 use pyo3::{Bound, PyResult, pymethods};
 
-use crate::sol::timing::PyTiming;
+use crate::timer::PyTiming;
 
 use super::PySolution;
 

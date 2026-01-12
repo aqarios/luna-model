@@ -4,6 +4,7 @@ use super::utils::{Slicable, Vectorizable};
 
 /// A unique version identifier used to specify which serialization was used.
 #[repr(u32)]
+#[derive(Debug)]
 pub enum Version {
     V0 = 0,
     V1 = 1,

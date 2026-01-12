@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::encode::{BytesDecodable, BytesEncodable, Decodable};
+use crate::{encode::{BytesDecodable, BytesEncodable, Decodable}, utils::u8_to_vtype};
 use hashbrown::HashMap;
 use indexmap::IndexMap;
 use lunamodel_core::Solution;
@@ -113,7 +113,7 @@ impl SerSolution {
         let (mut nbins, mut nspins, mut nints, mut nreals) = (0, 0, 0, 0);
         let sample_len = self.sample_len as usize;
         for (varname, st) in self.variable_names.iter().zip(self.sample_types) {
-            let vtype = st_to_vtype(st);
+            let vtype = u8_to_vtype(st);
             if vtype.is_none() {
                 continue;
             }
@@ -248,16 +248,5 @@ impl SerSolution {
         }
 
         Ok(sol)
-    }
-}
-
-fn st_to_vtype(st: u8) -> Option<Vtype> {
-    match st {
-        0 => Some(Vtype::Binary),
-        1 => Some(Vtype::Spin),
-        2 => Some(Vtype::Integer),
-        3 => Some(Vtype::Real),
-        4 => None, // this was the __Ghost.
-        _ => unreachable!("invalid sample type for vtype"),
     }
 }

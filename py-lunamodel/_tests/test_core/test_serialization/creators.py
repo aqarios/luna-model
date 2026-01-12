@@ -7,10 +7,6 @@ def create_serializable_objects():
     return serializable_objects([Expression, ConstraintCollection, Model, Environment])
 
 
-def create_serialized_objects():
-    return serialized_objects([Model, Environment])
-
-
 def create_serialized_objects_with_env():
     return serialized_objects_with_env([ConstraintCollection])
 

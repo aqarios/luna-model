@@ -71,7 +71,6 @@ impl PrvMul<(&HigherOrder, &ArcEnv)> for &HigherOrder {
             for (mut vs, vb) in ho.iter_contrib() {
                 vs.append(&mut vs.clone());
                 res.push(vref.m((vs, ub * vb)));
-
             }
         }
         res

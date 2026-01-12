@@ -1,19 +1,36 @@
 from luna_model.translator.ttarget import TranslationTarget
-from luna_model.translator.qubo import Qubo
+from luna_model.translator.model.qubo import Qubo
 
+from luna_model.translator.model import (
+    LpTranslator,
+    QuboTranslator,
+    BqmTranslator,
+    CqmTranslator,
+)
 
-class LpTranslator: ...
-class NumpyTranslator: ...
-class AwsTranslator: ...
-class ZibTranslator: ...
-class QctrlTranslator: ...
-class CqmTranslator: ...
-class BqmTranslator: ...
-class QuboTranslator: ...
-class DwaveTranslator: ...
-class IbmTranslator: ...
+from luna_model.translator.solution import (
+    AwsTranslator,
+    DwaveTranslator,
+    IbmTranslator,
+    NumpyTranslator,
+    QctrlTranslator,
+    ZibTranslator,
+)
+
 
 __all__ = [
     "TranslationTarget",
+    # Model
     "Qubo",
+    "LpTranslator",
+    "QuboTranslator",
+    "BqmTranslator",
+    "CqmTranslator",
+    # Solution
+    "AwsTranslator",
+    "DwaveTranslator",
+    "IbmTranslator",
+    "NumpyTranslator",
+    "QctrlTranslator",
+    "ZibTranslator",
 ]

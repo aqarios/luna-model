@@ -48,7 +48,7 @@ class ConstraintCollection:
         return self._cc.equal_contents(other._cc)
 
     def ctypes(self) -> list[Comparator]:
-        return [Comparator(c) for c in self._cc.ctypes()]
+        return [Comparator._from_pycmp(c) for c in self._cc.ctypes()]
 
     @classmethod
     def decode(cls, data: bytes, env: Environment) -> ConstraintCollection:

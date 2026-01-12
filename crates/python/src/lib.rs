@@ -6,6 +6,7 @@ mod model;
 mod sol;
 mod specs;
 mod timer;
+pub mod translate;
 mod utilities;
 mod utils;
 mod variable;

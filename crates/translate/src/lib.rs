@@ -1,6 +1,8 @@
 mod source;
 mod target;
 
-pub use target::TranslationTarget;
-pub use source::SolutionSource;
+pub mod model;
+pub mod solution;
 
+pub use source::SolutionSource;
+pub use target::TranslationTarget;

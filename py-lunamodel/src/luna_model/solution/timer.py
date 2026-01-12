@@ -38,7 +38,7 @@ class Timer:
 
     @classmethod
     def start(cls) -> Timer:
-        return cls._from_pyt(PyTimer())
+        return cls._from_pyt(PyTimer.start())
 
     def stop(self) -> Timing:
         return self._t.stop()

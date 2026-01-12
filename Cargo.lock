@@ -458,6 +458,9 @@ version = "0.5.0"
 name = "lunamodel-translate"
 version = "0.5.0"
 dependencies = [
+ "lunamodel-core",
+ "lunamodel-error",
+ "lunamodel-types",
  "pyo3",
  "strum_macros",
 ]

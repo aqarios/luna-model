@@ -52,6 +52,10 @@ impl ConstraintCollection {
         self.data.iter()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+
     pub fn len(&self) -> usize {
         self.data.len()
     }
@@ -110,9 +114,21 @@ impl ConstraintCollection {
 }
 
 impl ContentEquality for ConstraintCollection {
-    fn is_equal_contents(&self, other: &Self) -> bool {
-        _ = other;
-        unimplemented!()
+    fn equal_contents(&self, other: &Self) -> bool {
+        if self.data.len() != other.data.len() {
+            return false;
+        }
+        for (name, constr) in &self.data {
+            match other.data.get(name) {
+                Some(other_constr) => {
+                    if !constr.equal_contents(&other_constr) {
+                        return false;
+                    }
+                }
+                None => return false,
+            }
+        }
+        true
     }
 }
 

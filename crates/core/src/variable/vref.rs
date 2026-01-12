@@ -48,7 +48,7 @@ impl VarRef {
 
 impl PartialEq for VarRef {
     fn eq(&self, other: &Self) -> bool {
-        self.id == other.id && self.env.is_equal_contents(&other.env)
+        self.id == other.id && self.env.equal_contents(&other.env)
     }
 }
 

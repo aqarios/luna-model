@@ -6,10 +6,10 @@ mod modification;
 mod result;
 mod sample;
 mod setter;
-mod timing;
 mod general;
 mod creation;
 mod utils;
+mod ser;
 
 use std::sync::Arc;
 

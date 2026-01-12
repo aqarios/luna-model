@@ -96,7 +96,7 @@ def test_translate_with_dense_and_metadata(qubo: NDArray):
 def test_translate_with_dense_and_valid_variable_names(qubo: NDArray):
     offset = 4.2
     name = "test"
-    vtype = Vtype.Binary
+    vtype = Vtype.BINARY
     variable_names = [f"x_{i},y_{i}" for i in range(len(qubo))]
     model = QuboTranslator.to_aq(
         qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
