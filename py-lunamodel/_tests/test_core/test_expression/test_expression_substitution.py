@@ -73,3 +73,15 @@ def test_expression_higher_order():
 
     result = base.substitute(target, replacement)
     assert expected.is_equal(result)
+
+
+def test_expression_higher_order_debug():
+    with Environment():
+        x1 = Variable("x_1")
+        x2 = Variable("x_2")
+        x3 = Variable("x_3")
+
+    elem = x1 + 2 * x2 + 4 * x3
+    base = elem * elem
+    out = base * elem
+    assert 48 == out.get_higher_order(x1, x2, x3)

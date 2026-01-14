@@ -139,10 +139,6 @@ impl PrvMul<(Vec<u32>, Bias)> for &VarRef {
         // TODO: I don't like this very much. Very unclear. Include extra flag for binary *
         // inverted binary occured.
         let vars = reduce_vars_mul(&contrib, |v| env[v].vtype, |v| env[v].inverted);
-        if vars.is_empty() || bias == Bias::default() {
-            (vars, Bias::default()).into()
-        } else {
-            (vars, bias).into()
-        }
+        (vars, bias).into()
     }
 }

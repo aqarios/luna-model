@@ -24,7 +24,6 @@ impl PySolution {
         let max_lines: usize = max_lines.into();
         let max_var_name_len: usize = max_var_name_len.into();
 
-        eprintln!("IN PRINT");
         if max_line_len < 5 {
             Err(PyValueError::new_err(format!(
                 "`max_line_len needs` to be at least 5; actual value: {max_line_len}"
