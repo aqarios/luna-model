@@ -12,6 +12,7 @@ use pyo3::PyResult;
 
 use crate::PyConstraint;
 
+#[derive(Debug)]
 pub(crate) enum PyConstraintCollectionContent {
     Coll(Arc<RwLock<ConstraintCollection>>),
     Model(Arc<RwLock<Model>>),

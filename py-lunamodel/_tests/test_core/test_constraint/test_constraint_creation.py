@@ -63,7 +63,7 @@ def expression_and_expression() -> tuple[Expression, Expression]:
 # INDEXING
 def test_constraints_deprecated(expression: Expression):
     constr = ConstraintCollection()
-    constr += expression <= 2
+    constr += expression <= 2, "c0"
     actual = constr.get("c0")
     assert Constraint(expression, 2, Comparator.Le, name="c0") == actual
 

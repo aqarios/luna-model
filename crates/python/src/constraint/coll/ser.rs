@@ -1,5 +1,5 @@
 use lunamodel_core::{ArcEnv, Environment};
-use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
+use lunamodel_serializer::prelude::{Decodable, Decompressable, Unversionizable};
 use pyo3::{
     Bound, FromPyObject, Py, PyAny, PyResult, Python, pymethods,
     types::{PyBytes, PyType},

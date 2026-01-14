@@ -26,7 +26,6 @@ impl SerSolution {
             Sense::from_str(&self.sense)
                 .map_err(|e| LunaModelError::Decoding(e.to_string().into()))?,
         );
-        sol.n_samples = self.num_samples as usize;
         sol.counts = self.counts.iter().map(|&c| c as usize).collect();
         sol.obj_values = match self.obj_values.is_empty() {
             true => None,
@@ -42,11 +41,11 @@ impl SerSolution {
         }
 
         let mut bv: BitVec<u8, Lsb0> = BitVec::from_vec(self.bins);
-        bv.truncate(sol.n_samples * self.n_bins as usize);
+        bv.truncate(self.num_samples as usize * self.n_bins as usize);
         let bins: Vec<u8> = bv.into_iter().map(|v| v as u8).collect();
 
         let mut sv: BitVec<u8, Lsb0> = BitVec::from_vec(self.spins);
-        sv.truncate(sol.n_samples * self.n_spins as usize);
+        sv.truncate(self.num_samples as usize * self.n_spins as usize);
         let spins: Vec<i8> = sv.into_iter().map(|v| 1 - (2 * v as i8)).collect();
 
         let (mut start_bin, mut start_spin, mut start_int, mut start_real) = (0, 0, 0, 0);
@@ -64,42 +63,42 @@ impl SerSolution {
                 Vtype::Binary => {
                     sol.add_binary(
                         name,
-                        bins[start_bin..start_bin + sol.n_samples]
+                        bins[start_bin..start_bin + self.num_samples as usize]
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
                     );
-                    start_bin += sol.n_samples;
+                    start_bin += self.num_samples as usize;
                 }
                 Vtype::Spin => {
                     sol.add_spin(
                         name,
-                        spins[start_spin..start_spin + sol.n_samples]
+                        spins[start_spin..start_spin + self.num_samples as usize]
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
                     );
-                    start_spin += sol.n_samples;
+                    start_spin += self.num_samples as usize;
                 }
                 Vtype::Integer => {
                     sol.add_integer(
                         name,
-                        self.ints[start_int..start_int + sol.n_samples]
+                        self.ints[start_int..start_int + self.num_samples as usize]
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
                     );
-                    start_int += sol.n_samples;
+                    start_int += self.num_samples as usize;
                 }
                 Vtype::Real => {
                     sol.add_real(
                         name,
-                        self.reals[start_real..start_real + sol.n_samples]
+                        self.reals[start_real..start_real + self.num_samples as usize]
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
                     );
-                    start_real += sol.n_samples;
+                    start_real += self.num_samples as usize;
                 }
                 Vtype::InvertedBinary => (),
             }
@@ -115,7 +114,7 @@ impl SerSolution {
         };
 
         let mut cv: BitVec<u8, Lsb0> = BitVec::from_vec(self.constraints);
-        cv.truncate(self.n_constraints as usize * sol.n_samples);
+        cv.truncate(self.n_constraints as usize * self.num_samples as usize);
         let constraint_chunks: Vec<Vec<bool>> = cv
             .into_iter()
             .collect::<Vec<_>>()
@@ -134,7 +133,7 @@ impl SerSolution {
             .collect();
 
         let mut cv: BitVec<u8, Lsb0> = BitVec::from_vec(self.variable_bounds);
-        cv.truncate(self.n_variable_bounds as usize * sol.n_samples);
+        cv.truncate(self.n_variable_bounds as usize * self.num_samples as usize);
         let variable_bounds: Vec<Vec<bool>> = cv
             .into_iter()
             .collect::<Vec<_>>()
@@ -151,15 +150,12 @@ impl SerSolution {
             .zip(variable_bounds)
             .collect();
 
-        let mut feasible: Vec<bool> = sol
-            .constraints
-            .iter()
-            .map(|per_sample| {
-                per_sample
-                    .iter()
-                    .fold(true, |start, (_, &feas)| start && feas)
-            })
-            .collect();
+        let mut feasible: Vec<bool> = vec![true; self.num_samples as usize];
+        for (_, per_constraint) in &sol.constraints {
+            for (i, &item) in per_constraint.iter().enumerate() {
+                feasible[i] = feasible[i] && item;
+            }
+        }
         for (_, per_sample) in &sol.variable_bounds {
             for (i, &item) in per_sample.iter().enumerate() {
                 feasible[i] = feasible[i] && item;

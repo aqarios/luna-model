@@ -1,10 +1,12 @@
 use lunamodel_core::ops::LmPow;
-use lunamodel_error::py::PyLunaModelError;
 use pyo3::prelude::*;
 use std::ops::{Add, Mul, Neg, Not, Sub};
 
 use super::PyVariable;
-use crate::{expression::PyExpression as PyE, utils::OpsOther as OO};
+use crate::{
+    expression::PyExpression as PyE,
+    utils::{OpsOther as OO, PyUsize},
+};
 
 #[pymethods]
 impl PyVariable {
@@ -55,14 +57,9 @@ impl PyVariable {
         self.__invert__()
     }
 
-    pub fn __pow__(&self, val: usize, modulo: Option<isize>) -> PyResult<PyE> {
-        if modulo.is_some() {
-            return Err(PyLunaModelError::new_err(
-                "the 'modulo' parameter is not supported.",
-            ));
-        }
+    pub fn pow(&self, val: PyUsize) -> PyResult<PyE> {
         self.v.check_living()?;
-        Ok(PyE::new(self.v.pow(val)?))
+        Ok(PyE::new(self.v.pow(val.into())?))
     }
 
     pub fn __neg__(&self) -> PyResult<PyE> {

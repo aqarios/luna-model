@@ -3,7 +3,7 @@ use std::ops::Index;
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bias, Vtype};
 
-use crate::prelude::Expression;
+use crate::prelude::{Expression, VarRef};
 
 impl Expression {
     pub fn evaluate_sample<S>(&self, sample: &S) -> LunaModelResult<Bias>
@@ -14,16 +14,12 @@ impl Expression {
         for (vs, bias) in self.items() {
             match &vs[..] {
                 [] => val += bias,
-                [v] => val += adjusted(sample[&v.name()?], v.vtype()?) * bias,
-                [u, v] => {
-                    val += adjusted(sample[&u.name()?], u.vtype()?)
-                        * adjusted(sample[&v.name()?], v.vtype()?)
-                        * bias
-                }
+                [v] => val += adjusted(sample, v)? * bias,
+                [u, v] => val += adjusted(sample, u)? * adjusted(sample, v)? * bias,
                 vs => {
-                    let varval: LunaModelResult<f64> = vs.iter().try_fold(bias, |b, v| {
-                        Ok(b * adjusted(sample[&v.name()?], v.vtype()?))
-                    });
+                    let varval: LunaModelResult<f64> = vs
+                        .iter()
+                        .try_fold(bias, |b, v| Ok(b * adjusted(sample, v)?));
                     val += varval?;
                 }
             }
@@ -40,10 +36,13 @@ impl Expression {
     }
 }
 
-fn adjusted(value: Bias, vtype: Vtype) -> Bias {
-    if vtype == Vtype::InvertedBinary {
-        1.0 - value
+fn adjusted<S>(sample: &S, v: &VarRef) -> LunaModelResult<Bias>
+where
+    for<'s> S: Index<&'s str, Output = Bias>,
+{
+    if v.vtype()? == Vtype::InvertedBinary {
+        Ok(1.0 - sample[&v.inverted()?.unwrap().name()?])
     } else {
-        value
+        Ok(sample[&v.name()?])
     }
 }

@@ -4,8 +4,8 @@ use crate::bounds::LazyBounds;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bounds {
-    pub(crate) lower: Bound,
-    pub(crate) upper: Bound,
+    pub lower: Bound,
+    pub upper: Bound,
 }
 
 impl Bounds {
@@ -61,7 +61,9 @@ impl Bounds {
     #[inline]
     pub fn real() -> Self {
         Self {
-            lower: Bound::Unbounded,
+            // TODO: Ask Maxi what default bounds for real lower should be...
+            // lower: Bound::Unbounded,
+            lower: Bound::Bounded(0.0),
             upper: Bound::Unbounded,
         }
     }

@@ -26,7 +26,8 @@ impl SerEnvironment {
         self.extract_spin(&mut variables, &mut lookup);
         self.extract_int(&mut variables, &mut lookup);
         self.extract_real(&mut variables, &mut lookup);
-        Environment::new(variables, lookup, self.next_idx)
+        let ivs = variables.into_iter().collect();
+        Environment::new(ivs, lookup, self.next_idx)
     }
 
     fn extract_bin(
@@ -38,7 +39,7 @@ impl SerEnvironment {
         for (i, vidx) in self.binary.iter().enumerate() {
             let name = self.binary_names[i].clone();
             let mut var = Variable::new(&name, Vtype::Binary, None).unwrap();
-            if self.binary_is_inverted[i] {
+            if !self.binary_is_inverted.is_empty() && self.binary_is_inverted[i] {
                 let inv = inverted.pop_front().unwrap();
                 var.inverted = Some(inv);
                 let invname = var.name().inverted();

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use derive_more::{Deref, DerefMut};
 
 const INV_PREFIX: &str = "~";
@@ -26,5 +28,11 @@ impl Into<String> for VarName {
 impl Into<String> for &VarName {
     fn into(self) -> String {
         self.0.clone()
+    }
+}
+
+impl Display for VarName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

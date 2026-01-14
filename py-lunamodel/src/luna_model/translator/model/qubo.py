@@ -1,3 +1,4 @@
+from __future__ import annotations
 from luna_model._lm import PyQuboTranslator, PyQubo
 from luna_model.model.model import Model
 from luna_model.model.sense import Sense
@@ -7,6 +8,12 @@ from numpy.typing import NDArray
 
 class Qubo:
     _q: PyQubo
+
+    @classmethod
+    def _from_pyq(cls, py_q: PyQubo) -> Qubo:
+        q = cls.__new__(cls)
+        q._q = py_q
+        return q
 
     @property
     def name(self) -> str:
@@ -55,4 +62,4 @@ class QuboTranslator:
 
     @staticmethod
     def from_aq(model: Model) -> Qubo:
-        return PyQuboTranslator.from_aq(model._m)
+        return Qubo._from_pyq(PyQuboTranslator.from_aq(model._m))

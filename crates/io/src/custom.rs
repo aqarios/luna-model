@@ -2,30 +2,30 @@ use std::fmt::{self, Debug, Display};
 // Based on Source - https://stackoverflow.com/a
 // Posted by Kevin Reid
 // Retrieved 2025-12-09, License - CC BY-SA 4.0
-pub struct CustomFormatWrapper<'a, F: Copy, T: CustomFormat<F> + ?Sized>(F, &'a T);
+pub struct CustomFormatWrapper<'a, F: Clone, T: CustomFormat<F> + ?Sized>(F, &'a T);
 
-impl<'a, F: Copy, T: CustomFormat<F>> Display for CustomFormatWrapper<'a, F, T> {
+impl<'a, F: Clone, T: CustomFormat<F>> Display for CustomFormatWrapper<'a, F, T> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        <T as CustomFormat<F>>::fmt(self.1, fmt, self.0)
+        <T as CustomFormat<F>>::fmt(self.1, fmt, &self.0)
     }
 }
 
-impl<'a, F: Copy, T: CustomFormat<F>> Debug for CustomFormatWrapper<'a, F, T> {
+impl<'a, F: Clone, T: CustomFormat<F>> Debug for CustomFormatWrapper<'a, F, T> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        <T as CustomFormat<F>>::dbg(self.1, fmt, self.0)
+        <T as CustomFormat<F>>::dbg(self.1, fmt, &self.0)
     }
 }
 
-pub trait CustomFormat<F: Copy> {
+pub trait CustomFormat<F: Clone> {
     fn format(&self, format_type: F) -> CustomFormatWrapper<'_, F, Self> {
         CustomFormatWrapper(format_type, self)
     }
 
-    fn dbg(&self, fmt: &mut fmt::Formatter<'_>, format_type: F) -> fmt::Result {
+    fn dbg(&self, fmt: &mut fmt::Formatter<'_>, format_type: &F) -> fmt::Result {
         self.fmt(fmt, format_type)
     }
 
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>, format_type: F) -> fmt::Result;
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>, format_type: &F) -> fmt::Result;
 }
 
 // pub trait PyFormat {
@@ -37,7 +37,7 @@ pub trait CustomFormat<F: Copy> {
 // where
 //     T: Display + Debug,
 // {
-//     fn fmt(&self, fmt: &mut fmt::Formatter<'_>, format_type: FormatOpt) -> fmt::Result {
+//     fn fmt(&self, fmt: &mut fmt::Formatter<'_>, format_type: &FormatOpt) -> fmt::Result {
 //         match format_type {
 //             FormatOpt::Rs => write!(fmt, "{}", self),
 //             #[cfg(feature = "py")]
@@ -45,7 +45,7 @@ pub trait CustomFormat<F: Copy> {
 //         }
 //     }
 //
-//     fn dbg(&self, fmt: &mut fmt::Formatter<'_>, format_type: FormatOpt) -> fmt::Result {
+//     fn dbg(&self, fmt: &mut fmt::Formatter<'_>, format_type: &FormatOpt) -> fmt::Result {
 //         match format_type {
 //             FormatOpt::Rs => write!(fmt, "{:?}", self),
 //             #[cfg(feature = "py")]

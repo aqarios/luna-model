@@ -2,21 +2,42 @@ use super::{CustomFormat, FormatOpt};
 use lunamodel_core::prelude::VarRef;
 
 impl CustomFormat<FormatOpt> for VarRef {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         match format_type {
             FormatOpt::Rs => write!(fmt, "{}", self),
             #[cfg(feature = "py")]
             FormatOpt::Py => {
-                if let Some(name) = self.name().ok() {
-                    write!(fmt, "{}", name)
+                use lunamodel_core::prelude::Variable;
+                use lunamodel_types::{Bound, Vtype};
+
+                let var: Option<Variable> = self.try_into().ok();
+                if let Some(var) = var {
+                    let mut base = format!("{}: {}", var.name(), var.vtype());
+                    if !(var.vtype() == Vtype::Binary || var.vtype() == Vtype::Spin) {
+                        match (var.bounds().lower(), var.bounds().upper()) {
+                            (Bound::Bounded(l), Bound::Bounded(u)) => {
+                                base.push_str(&format!("(lower={l}, upper={u})"))
+                            }
+                            (Bound::Bounded(l), Bound::Unbounded) => {
+                                base.push_str(&format!("(lower={l})"))
+                            }
+                            (Bound::Unbounded, Bound::Bounded(u)) => {
+                                base.push_str(&format!("(upper={u})"))
+                            }
+                            (Bound::Unbounded, Bound::Unbounded) => (),
+                        };
+                    }
+                    write!(fmt, "{}", base)
                 } else {
                     write!(fmt, "<deleted>")
                 }
             }
+            #[cfg(feature = "py")]
+            FormatOpt::PySol(_) => unreachable!("cannot format VarRef as Solution."),
         }
     }
 
-    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         match format_type {
             FormatOpt::Rs => write!(fmt, "{:?}", self),
             #[cfg(feature = "py")]
@@ -39,6 +60,8 @@ impl CustomFormat<FormatOpt> for VarRef {
                     )
                 }
             }
+            #[cfg(feature = "py")]
+            FormatOpt::PySol(_) => unreachable!("cannot format VarRef as Solution."),
         }
     }
 }

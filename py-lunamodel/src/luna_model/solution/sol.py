@@ -104,15 +104,15 @@ class Solution:
 
     @property
     def samples(self) -> Samples:
-        return self._s._samples
+        return self._s.samples
 
     @property
     def variable_names(self) -> list[str]:
         return self._s.variable_names
 
-    @property
-    def best_sample_idx(self) -> list[int]:
-        return self._s.best_sample_idx
+    # @property
+    # def best_sample_idx(self) -> list[int]:
+    #     return self._s.best_sample_idx
 
     def best(self) -> list[ResultView] | None:
         return self._s.best
@@ -146,18 +146,18 @@ class Solution:
     def print(
         self,
         layout: Literal["row", "column"] = "column",
-        max_line_length: int = 80,
-        max_column_length: int = 5,
+        max_line_len: int = 80,
+        max_col_len: int = 5,
         max_lines: int = 10,
-        max_var_name_length: int = 10,
+        max_var_name_len: int = 10,
         show_metadata: Literal["before", "after", "hide"] = "after",
-    ) -> None:
-        self._s.print(
+    ) -> str:
+        return self._s.print(
             layout=layout,
-            max_line_length=max_line_length,
-            max_column_length=max_column_length,
+            max_line_len=max_line_len,
+            max_col_len=max_col_len,
             max_lines=max_lines,
-            max_var_name_length=max_var_name_length,
+            max_var_name_len=max_var_name_len,
             show_metadata=show_metadata,
         )
 
@@ -308,6 +308,12 @@ class Solution:
                 var_order=var_order,
             )
         )
+
+    def __str__(self) -> str:
+        return self._s.__str__()
+
+    def __repr__(self) -> str:
+        return self._s.__str__()
 
 
 def map_sample(sample: SampleT) -> dict[str | PyVariable, int | float]:

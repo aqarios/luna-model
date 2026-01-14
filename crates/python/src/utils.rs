@@ -1,6 +1,11 @@
+use std::fmt::Display;
+
 use super::PyVariable;
 use crate::expression::PyExpression;
-use pyo3::prelude::FromPyObject;
+use pyo3::{
+    exceptions::PyValueError,
+    prelude::{FromPyObject, PyErr},
+};
 
 #[derive(Debug, FromPyObject)]
 pub enum OpsOther {
@@ -22,5 +27,41 @@ impl Into<(OpsOther, Option<String>)> for OtherOrTuple {
             OtherOrTuple::Other(o) => (o, None),
             OtherOrTuple::Tuple((o, n)) => (o, Some(n)),
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct PyUsize(pub usize);
+
+impl Into<usize> for PyUsize {
+    fn into(self) -> usize {
+        self.0
+    }
+}
+
+impl From<usize> for PyUsize {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for PyUsize {
+    type Error = PyErr;
+
+    fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
+        let n: i128 = obj.extract()?;
+        if n < 0 {
+            Err(PyValueError::new_err(format!(
+                "Expected a non-negative number, received: {n}"
+            )))
+        } else {
+            Ok(Self(n as usize))
+        }
+    }
+}
+
+impl Display for PyUsize {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

@@ -6,7 +6,7 @@ mod expr;
 mod constr_coll;
 mod constr;
 mod model;
-mod sol;
+pub mod sol;
 mod env;
 mod var;
 

@@ -69,6 +69,7 @@ pub enum LunaModelError {
     ModelNotQuadratic,
     ModelNotUnconstrained,
     Vtype(ErrString),
+    Translation(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -96,6 +97,7 @@ impl Display for LunaModelError {
             ModelNotQuadratic => write!(f, "the model is not linear or quadratic"),
             ModelNotUnconstrained => write!(f, "the model is not unconstrained"),
             Vtype(msg) => write!(f, "unexpected Vtype: {}", msg),
+            Translation(msg) => write!(f, "translation error: {}", msg),
         }
     }
 }

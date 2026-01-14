@@ -23,6 +23,7 @@ def vars() -> tuple[tuple[Variable, ...], Environment]:
 
 @pytest.fixture()
 def model(request) -> tuple[Model, tuple[Variable, ...]]:
+    _ = request
     variables, env = vars()
     model = Model(env=env)
     model.objective = variables[0] * 1
@@ -32,7 +33,8 @@ def model(request) -> tuple[Model, tuple[Variable, ...]]:
 
 
 @pytest.fixture()
-def solution(request, model: Model):
+def solution(request, model: tuple[Model, tuple[Variable, ...]]):
+    _ = request
     m, (b0, b1, s0, s1, i0, i1, r0, r1) = model
     timer = Timer.start()
     time.sleep(1)
@@ -102,7 +104,7 @@ Total variables: 8""".strip("\n")
 
 
 def test_row_after_max_line_length(solution: Solution):
-    s = solution.print(layout="row", show_metadata="after", max_line_length=27)
+    s = solution.print(layout="row", show_metadata="after", max_line_len=27)
     assert (
         s
         == """
@@ -126,7 +128,7 @@ Total variables: 8""".strip("\n")
 
 
 def test_row_after_max_line_length_dots_too_long(solution: Solution):
-    s = solution.print(layout="row", show_metadata="after", max_line_length=26)
+    s = solution.print(layout="row", show_metadata="after", max_line_len=26)
     assert (
         s
         == """
@@ -197,7 +199,7 @@ Total variables: 8""".strip("\n")
 
 def test_col_after_truncated(solution: Solution):
     s = solution.print(
-        layout="column", show_metadata="after", max_lines=2, max_line_length=50
+        layout="column", show_metadata="after", max_lines=2, max_line_len=50
     )
     assert (
         s
@@ -214,7 +216,7 @@ Total variables: 8""".strip("\n")
 
 def test_col_after_truncated_dots_too_long(solution: Solution):
     s = solution.print(
-        layout="column", show_metadata="after", max_lines=2, max_line_length=48
+        layout="column", show_metadata="after", max_lines=2, max_line_len=48
     )
     assert (
         s

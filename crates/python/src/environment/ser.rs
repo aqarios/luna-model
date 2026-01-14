@@ -1,16 +1,11 @@
 use lunamodel_core::Environment;
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use pyo3::{
-    IntoPyObjectExt,
-    ffi::c_str,
     prelude::*,
     types::{PyBytes, PyType},
 };
-use std::ffi::CStr;
 
 use crate::PyEnvironment;
-
-static PY_REDUCE_IMPORT: &'static CStr = c_str!("from luna_model import Environment");
 
 #[pymethods]
 impl PyEnvironment {
@@ -86,11 +81,4 @@ impl PyEnvironment {
     fn deserialize(cls: &Bound<'_, PyType>, py: Python, data: Py<PyBytes>) -> PyResult<Self> {
         Self::decode(cls, py, data)
     }
-
-    // fn __reduce__(&self, py: Python) -> PyResult<(Py<PyAny>, Py<PyAny>)> {
-    //     py.run(PY_REDUCE_IMPORT, None, None)?;
-    //     let decode = py.eval(c_str!("Environment.decode"), None, None)?;
-    //     let data = self.encode(py, Some(true), Some(3))?;
-    //     Ok::<(Py<PyAny>, Py<PyAny>), PyErr>((decode.into_py_any(py)?, (data,).into_py_any(py)?))
-    // }
 }

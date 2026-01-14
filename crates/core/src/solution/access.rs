@@ -18,8 +18,15 @@ fn is_close(a: f64, b: f64, rtol: f64, atol: f64) -> bool {
 }
 
 impl Solution {
+    pub fn n_samples(&self) -> usize {
+        match self.samples.first() {
+            Some((_, col)) => col.len(),
+            None => 0,
+        }
+    }
+
     pub fn len(&self) -> usize {
-        self.n_samples
+        self.n_samples()
     }
 
     pub fn assignment(&self, sample: usize, var: &str) -> Option<&Bias> {
@@ -91,5 +98,14 @@ impl Index<(usize, &str)> for Solution {
     fn index(&self, index: (usize, &str)) -> &Self::Output {
         let (row, var_name) = index;
         &self.samples[var_name][row]
+    }
+}
+
+impl Index<(usize, usize)> for Solution {
+    type Output = Bias;
+
+    fn index(&self, index: (usize, usize)) -> &Self::Output {
+        let (row, col) = index;
+        &self.samples[col][row]
     }
 }

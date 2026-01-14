@@ -99,20 +99,11 @@ impl Solution {
 
     pub fn highest_constraint_violations(&self) -> LunaModelResult<Option<String>> {
         if !self.constraints.is_empty() {
-            let mut n_violations: HashMap<String, usize> =
-                HashMap::with_capacity(self.constraints.len());
-            for (satisfied, &count) in self.constraints.iter().zip(&self.counts) {
-                satisfied
-                    .iter()
-                    .filter(|(_, sat)| !**sat)
-                    .for_each(|(key, _)| {
-                        if let Some(v) = n_violations.get_mut(key) {
-                            *v += count;
-                        } else {
-                            n_violations.insert(key.into(), count);
-                        }
-                    })
-            }
+            let n_violations: HashMap<String, usize> = self
+                .constraints
+                .iter()
+                .map(|(cname, vs)| (cname.clone(), vs.iter().map(|e| (!*e) as usize).sum()))
+                .collect();
 
             Ok(n_violations
                 .iter()

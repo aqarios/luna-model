@@ -67,10 +67,10 @@ def variables(request) -> tuple[Variable, ...]:
 
 
 def test_vtype():
-    assert str(Vtype.Real) == "Real"
-    assert str(Vtype.Binary) == "Binary"
-    assert str(Vtype.Spin) == "Spin"
-    assert str(Vtype.Integer) == "Integer"
+    assert Vtype.Real.value == "Real"
+    assert Vtype.Binary.value == "Binary"
+    assert Vtype.Spin.value == "Spin"
+    assert Vtype.Integer.value == "Integer"
 
     with does_not_raise():
         repr(Vtype.Real)
@@ -86,21 +86,21 @@ def test_variable():
         b = Variable("b", vtype=Vtype.Spin)
         assert str(b) == "b: Spin"
         c = Variable("c", vtype=Vtype.Integer)
-        assert str(c) == "c: Integer { lower: 0 }"
+        assert str(c) == "c: Integer(lower=0)"
         d = Variable("d", vtype=Vtype.Integer, bounds=Bounds(lower=0, upper=10))
-        assert str(d) == "d: Integer { lower: 0, upper: 10 }"
+        assert str(d) == "d: Integer(lower=0, upper=10)"
         e = Variable("e", vtype=Vtype.Integer, bounds=Bounds(lower=3))
-        assert str(e) == "e: Integer { lower: 3 }"
+        assert str(e) == "e: Integer(lower=3)"
         f = Variable("f", vtype=Vtype.Integer, bounds=Bounds(upper=10))
-        assert str(f) == "f: Integer { lower: 0, upper: 10 }"
+        assert str(f) == "f: Integer(lower=0, upper=10)"
         g = Variable("g", vtype=Vtype.Real)
-        assert str(g) == "g: Real { lower: 0 }"
+        assert str(g) == "g: Real(lower=0)"
         h = Variable("h", vtype=Vtype.Real, bounds=Bounds(lower=-1.5, upper=1))
-        assert str(h) == "h: Real { lower: -1.5, upper: 1 }"
+        assert str(h) == "h: Real(lower=-1.5, upper=1)"
         i = Variable("i", vtype=Vtype.Real, bounds=Bounds(lower=10))
-        assert str(i) == "i: Real { lower: 10 }"
+        assert str(i) == "i: Real(lower=10)"
         j = Variable("j", vtype=Vtype.Real, bounds=Bounds(upper=3.8))
-        assert str(j) == "j: Real { lower: 0, upper: 3.8 }"
+        assert str(j) == "j: Real(lower=0, upper=3.8)"
 
         with does_not_raise():
             repr(a)
@@ -117,9 +117,9 @@ def test_variable():
 
 def test_bounds():
     bounds_1 = Bounds(lower=0, upper=1.5)
-    assert str(bounds_1) == "{ lower: 0, upper: 1.5 }"
+    assert str(bounds_1) == "Bounds(lower=0, upper=1.5)"
     bounds_2 = Bounds(lower=-1, upper=10)
-    assert str(bounds_2) == "{ lower: -1, upper: 10 }"
+    assert str(bounds_2) == "Bounds(lower=-1, upper=10)"
 
     with does_not_raise():
         repr(bounds_1)

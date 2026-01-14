@@ -414,6 +414,7 @@ dependencies = [
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-types",
+ "pyo3",
 ]
 
 [[package]]
@@ -423,6 +424,7 @@ dependencies = [
  "derive_more",
  "hashbrown",
  "indexmap",
+ "itertools",
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-io",
@@ -458,6 +460,7 @@ version = "0.5.0"
 name = "lunamodel-translate"
 version = "0.5.0"
 dependencies = [
+ "hashbrown",
  "lunamodel-core",
  "lunamodel-error",
  "lunamodel-types",

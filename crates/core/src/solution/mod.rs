@@ -11,7 +11,7 @@ mod samples;
 mod src;
 mod timing;
 
-pub use col::Column;
+pub use col::{Assignment, Column};
 use hashbrown::HashMap;
 use indexmap::IndexMap;
 use lunamodel_types::Sense;
@@ -32,7 +32,7 @@ use crate::traits::ContentEquality;
 /// [ . . . . . ]
 ///
 /// counts.len() == samples[?].len()
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default)]
 pub struct Solution {
     /// A collection of samples. The data is stored in column orientation. Each column contains all
     /// values for the variable over all samples. The number of samples is equal to the number of
@@ -53,16 +53,15 @@ pub struct Solution {
     /// satisfied. In other words, `feasible[i]` iff. `all(constraints[i])`. May be empty for
     /// solutions that haven't yet been evaluated.
     pub feasible: Option<Vec<bool>>,
-    pub constraints: Vec<HashMap<String, bool>>,
+    pub constraints: HashMap<String, Vec<bool>>,
     /// Boolean flag for each variable whether it's bounds are satisfied for each sample.
     /// variable_bounds[name].len() == samples[name].len() == n_samples
-    // TODO: maybe change this from inner to outer as with constraints
     pub variable_bounds: HashMap<String, Vec<bool>>,
     // metadata
     /// Runtime metrics of the solution.
     pub timing: Option<Timing>,
-    /// Keeps track of the current number of unique samples.
-    pub n_samples: usize,
+    // /// Keeps track of the current number of unique samples.
+    // pub n_samples: usize,
     /// The model's optimization sense the solution was created with.
     pub sense: Sense,
 }
@@ -78,5 +77,41 @@ impl Solution {
 impl ContentEquality for Solution {
     fn equal_contents(&self, other: &Self) -> bool {
         self == other
+    }
+}
+
+impl PartialEq for Solution {
+    fn eq(&self, other: &Self) -> bool {
+        dbg!(self);
+        dbg!(other);
+        for (cname, vs) in self.constraints.iter() {
+            if let Some(otr_vs) = other.constraints.get(cname) {
+                if vs != otr_vs {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        for (vname, vvals) in self.variable_bounds.iter() {
+            if let Some(otr_vvals) = other.variable_bounds.get(vname) {
+                if vvals != otr_vvals {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        // variable_bounds: HashMap<String, Vec<bool>>,
+        self.samples == other.samples
+            && self.timing == other.timing
+            // && self.n_samples == other.n_samples
+            && self.sense == other.sense
+            && self.counts == other.counts
+            && self.raw_energies == other.raw_energies
+            && self.obj_values == other.obj_values
+            && self.feasible == other.feasible
     }
 }

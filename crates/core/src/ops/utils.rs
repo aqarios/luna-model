@@ -6,7 +6,7 @@ use crate::{
     prelude::{HigherOrder, Linear, Quadratic, VarRef},
     traits::DefaultEditable,
 };
-use hashbrown::{HashMap, hash_map::Entry};
+use hashbrown::HashMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, EnvIdx, VarIdx, Vtype, Vtype::*};
 

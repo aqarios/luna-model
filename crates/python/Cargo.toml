@@ -22,3 +22,4 @@ parking_lot = { workspace = true, features = ["arc_lock"] }
 hashbrown = { workspace = true }
 derive_more = { workspace = true }
 indexmap = { workspace = true }
+itertools = { workspace = true }

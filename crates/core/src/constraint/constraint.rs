@@ -38,6 +38,7 @@ pub struct Constraint {
     /// A Constraint can also be named for easier, more native indexing into a collection of
     /// constraints.
     pub name: String,
+    // pub assigned_name: bool,
 }
 
 impl Constraint {
@@ -55,6 +56,7 @@ impl Constraint {
             lhs,
             rhs,
             comparator,
+            // assigned_name: name.is_none(),
             name: name.unwrap_or_else(|| format!("c{}", CONSTRAINT_COUNTER.inc())),
         })
     }

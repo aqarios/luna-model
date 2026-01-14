@@ -42,14 +42,14 @@ impl From<BoundsContent> for LazyBounds {
 }
 
 impl CustomFormat<FormatOpt> for BoundsContent {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         match self {
             Self::Concrete(c) => c.fmt(fmt, format_type),
             Self::Lazy(l) => l.fmt(fmt, format_type),
         }
     }
 
-    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         match self {
             Self::Concrete(c) => c.dbg(fmt, format_type),
             Self::Lazy(l) => l.dbg(fmt, format_type),

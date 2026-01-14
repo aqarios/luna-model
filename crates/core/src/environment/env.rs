@@ -5,6 +5,7 @@ use std::{
 
 use global_counter::primitive::exact::CounterU64;
 use hashbrown::HashMap;
+use indexmap::IndexMap;
 use sqids::Sqids;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
@@ -22,7 +23,7 @@ pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
 #[derive(Debug, Clone, PartialEq)]
 pub struct Environment {
     pub(crate) id: EnvIdx,
-    pub(crate) variables: HashMap<VarIdx, Variable>,
+    pub(crate) variables: IndexMap<VarIdx, Variable>,
     pub(crate) lookup: HashMap<String, VarIdx>,
     pub(crate) next_idx: VarIdx,
 }
@@ -31,7 +32,7 @@ impl Default for Environment {
     fn default() -> Self {
         Self {
             id: ENV_COUNTER.inc(),
-            variables: HashMap::new(),
+            variables: IndexMap::new(),
             lookup: HashMap::new(),
             next_idx: 0,
         }
@@ -40,7 +41,7 @@ impl Default for Environment {
 
 impl Environment {
     pub fn new(
-        variables: HashMap<VarIdx, Variable>,
+        variables: IndexMap<VarIdx, Variable>,
         lookup: HashMap<String, VarIdx>,
         next_idx: VarIdx,
     ) -> Self {
@@ -132,7 +133,7 @@ impl Environment {
     pub fn remove(&mut self, target: &VarRef) {
         let name = &self.variables[&target.id].name;
         self.lookup.remove(&name.0);
-        self.variables.remove(&target.id);
+        self.variables.shift_remove(&target.id);
     }
 
     pub fn lookup(&self, name: &str) -> LunaModelResult<VarIdx> {

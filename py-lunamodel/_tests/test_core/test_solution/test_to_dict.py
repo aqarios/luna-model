@@ -96,7 +96,7 @@ def test_to_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...]]
     ]
     counts = [2, 3, 1, 4]
     sol = Solution.from_dicts(samples, model=m)
-    assert len(sol.samples) == 4
+    assert len(list(sol.samples)) == 4
     assert len(sol.counts) == 4
     assert sol.samples.tolist() == [
         [0, 0, 1],  # -1

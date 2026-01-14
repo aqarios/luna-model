@@ -17,7 +17,7 @@ impl BytesEncodable for SerSolution {
 
 impl SerSolution {
     pub fn fill(mut self, sol: &Solution) -> SerSolution {
-        self.num_samples = sol.n_samples as u64;
+        self.num_samples = sol.n_samples() as u64;
         self.variable_names = sol.variable_names();
         self.sense = sol.sense.to_string();
         self.timing = sol.timing.map(|t| t.serialize());
@@ -42,7 +42,7 @@ impl SerSolution {
                 }
                 Column::Integer(inner) => {
                     self.sample_types.push(vtype_to_u8(Vtype::Integer));
-                    self.ints.extend(inner.as_ints());
+                    self.ints.extend(inner.iter());
                 }
                 Column::Real(inner) => {
                     self.sample_types.push(vtype_to_u8(Vtype::Real));
@@ -55,15 +55,13 @@ impl SerSolution {
         self.spins = spinvec.into_vec();
 
         let mut flat: Vec<bool> = Vec::default();
-        sol.constraints.iter().for_each(|c| {
-            self.n_constraints = c.len() as u64;
-            for (name, &sat) in c.iter() {
-                flat.push(sat);
-                if self.constraint_names.len() != c.len() {
-                    self.constraint_names.push(name.clone());
-                }
+        for (name, vals) in &sol.constraints {
+            self.n_constraints = vals.len() as u64;
+            flat.extend(vals);
+            if self.constraint_names.len() != vals.len() {
+                self.constraint_names.push(name.clone());
             }
-        });
+        }
         self.constraints = flat.into_iter().collect::<BitVec<u8, Lsb0>>().into_vec();
 
         let mut flat: Vec<bool> = Vec::default();

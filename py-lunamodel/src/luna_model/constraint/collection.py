@@ -69,7 +69,7 @@ class ConstraintCollection:
         return self
 
     def __getitem__(self, key: str) -> Constraint:
-        return self._cc.__getitem__(key)
+        return wrap_c(self._cc.__getitem__(key))
 
     def __setitem__(self, key: str, value: Constraint) -> None:
         return self._cc.__setitem__(key, value._c)

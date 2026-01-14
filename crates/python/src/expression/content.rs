@@ -332,14 +332,14 @@ impl ContentEquality for PyExprContent {
 }
 
 impl CustomFormat<FormatOpt> for PyExprContent {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         match self {
             Self::Expr(e) => e.read_arc().fmt(fmt, format_type),
             Self::Model(m) => m.read_arc().objective.fmt(fmt, format_type),
         }
     }
 
-    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         match self {
             Self::Expr(e) => e.read_arc().dbg(fmt, format_type),
             Self::Model(m) => m.read_arc().objective.dbg(fmt, format_type),

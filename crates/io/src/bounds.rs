@@ -3,7 +3,7 @@ use lunamodel_core::prelude::{Bounds, LazyBounds};
 use lunamodel_types::Bound;
 
 impl CustomFormat<FormatOpt> for Bounds {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         _ = format_type;
         write!(
             fmt,
@@ -15,13 +15,13 @@ impl CustomFormat<FormatOpt> for Bounds {
 }
 
 impl CustomFormat<FormatOpt> for LazyBounds {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         _ = format_type;
         let (l, u) = fmt_maybe_bounds(self.lower(), self.upper());
         write!(fmt, "Bounds(lower={}, upper={})", l, u)
     }
 
-    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: FormatOpt) -> std::fmt::Result {
+    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         _ = format_type;
         let (l, u) = fmt_maybe_bounds(self.lower(), self.upper());
         write!(fmt, "LazyBounds(lower={}, upper={})", l, u)

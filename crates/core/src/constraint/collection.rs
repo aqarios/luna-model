@@ -65,7 +65,13 @@ impl ConstraintCollection {
         mut constr: Constraint,
         name: Option<String>,
     ) -> LunaModelResult<()> {
-        let name = name.unwrap_or_else(|| constr.name.clone());
+        let name = name.unwrap_or_else(|| {
+            // if constr.assigned_name {
+            //     format!("c{}", self.len())
+            // } else {
+                constr.name.clone()
+            // }
+        });
         if self.data.contains_key(&name) {
             Err(LunaModelError::DuplicateConstraintName(name.into()))
         } else {

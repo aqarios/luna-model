@@ -1,6 +1,9 @@
 use std::str::FromStr;
 
-use crate::{encode::{BytesDecodable, BytesEncodable, Decodable}, utils::u8_to_vtype};
+use crate::{
+    encode::{BytesDecodable, BytesEncodable, Decodable},
+    utils::u8_to_vtype,
+};
 use hashbrown::HashMap;
 use indexmap::IndexMap;
 use lunamodel_core::Solution;
@@ -107,7 +110,6 @@ impl SerSolution {
     pub fn extract(self) -> LunaModelResult<Solution> {
         let mut sol = Solution::default();
 
-        sol.n_samples = self.num_samples as usize;
         sol.samples = IndexMap::default();
 
         let (mut nbins, mut nspins, mut nints, mut nreals) = (0, 0, 0, 0);
@@ -177,40 +179,50 @@ impl SerSolution {
         if self.has_obj_value.iter().all(|&b| b) {
             sol.obj_values = Some(self.obj_values);
         }
-        if self.constraints.iter().all(|vs| vs.vector.is_some()) {
-            sol.constraints = self
-                .constraints
-                .into_iter()
-                .map(|cs| {
-                    if let Some(bs) = cs.vector {
-                        bs.values
-                            .iter()
-                            .enumerate()
-                            .map(|(i, c)| (format!("c{i}"), *c))
-                            .collect::<HashMap<String, bool>>()
-                    } else {
-                        HashMap::default()
-                    }
-                })
-                .collect();
+        if !self.constraints.is_empty() && self.constraints.iter().all(|vs| vs.vector.is_some()) {
+            // outer is samples, inner is values.
+            // constraints[i] -> samples[i]
+            // constraints[i][constraint]
+            let len: usize = self.constraints[0].vector.as_ref().unwrap().values.len();
+            let cnames: Vec<_> = (0..len).map(|i| format!("c{i}")).collect();
+            for sample in self.constraints {
+                for (cname, value) in cnames.iter().zip(sample.vector.unwrap().values) {
+                    sol.constraints.get_mut(cname).unwrap().push(value);
+                }
+            }
         } else {
-            sol.constraints = Vec::default();
+            sol.constraints = HashMap::default();
         }
-        if self.variable_bounds.iter().all(|vs| vs.vector.is_some()) {
+        if !self.variable_bounds.is_empty()
+            && self.variable_bounds.iter().all(|vs| vs.vector.is_some())
+        {
+            // outer is samples, inner is values.
+            // variable_bounds[i] -> samples[i]
+            // variable_bounds[i][var] -> samples[i][var]
             sol.variable_bounds = self
-                .variable_bounds
-                .into_iter()
-                .zip(self.variable_names)
-                .map(|(vbs, vn)| (vn, vbs.vector.unwrap().values))
+                .variable_names
+                .iter()
+                .map(|v| (v.clone(), Vec::default()))
                 .collect();
+
+            for sample in self.variable_bounds {
+                for (varname, value) in self
+                    .variable_names
+                    .iter()
+                    .zip(sample.vector.unwrap().values)
+                {
+                    sol.variable_bounds.get_mut(varname).unwrap().push(value);
+                }
+            }
         } else {
             sol.variable_bounds = HashMap::default();
         }
-        let mut feasible = vec![true; sol.n_samples];
-        sol.constraints
-            .iter()
-            .enumerate()
-            .for_each(|(i, map)| feasible[i] = feasible[i] && map.iter().all(|(_, b)| *b));
+        let mut feasible = vec![true; sol.n_samples()];
+        sol.constraints.iter().for_each(|(_, bs)| {
+            bs.iter()
+                .enumerate()
+                .for_each(|(si, b)| feasible[si] = feasible[si] && *b)
+        });
         sol.variable_bounds.iter().for_each(|(_, bs)| {
             bs.iter()
                 .enumerate()

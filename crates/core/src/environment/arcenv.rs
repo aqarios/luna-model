@@ -104,6 +104,12 @@ impl ArcEnv {
     pub fn vtype_of(&self, name: &str) -> LunaModelResult<Vtype> {
         self.env.read_arc().vtype_of(name)
     }
+
+    pub fn sort(&self, mut vars: Vec<String>) -> Vec<String> {
+        let env = &self.env.read_arc();
+        vars.sort_by(|a, b| env.lookup(a).unwrap().cmp(&env.lookup(b).unwrap()));
+        vars
+    }
 }
 
 impl ContentEquality for ArcEnv {

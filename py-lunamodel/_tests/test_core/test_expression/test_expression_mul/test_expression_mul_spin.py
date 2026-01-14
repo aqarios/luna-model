@@ -67,7 +67,7 @@ def test_expression_mul_same_spin_variable(variables):
 
     expr = x * x
     assert isinstance(expr, Expression)
-    assert expr.num_variables == 1
+    assert expr.num_variables == 0
     assert expr.get_offset() == 1
     assert expr.get_linear(x) == 0
     assert expr.get_quadratic(x, x) == 0
@@ -80,7 +80,7 @@ def test_expression_mul_same_spin_variable(variables):
     assert result.get_offset() == 0
     assert result.get_linear(x) == 1
     assert result.get_quadratic(x, x) == 0
-    assert result.get_higher_order((x, x, x)) == 0
+    assert result.get_higher_order(x, x, x) == 0
 
 
 @pytest.mark.parametrize("variables", [(2, Vtype.Spin)], indirect=True)

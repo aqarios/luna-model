@@ -74,6 +74,10 @@ impl Quadratic {
 
 impl MulAssign<Bias> for Quadratic {
     fn mul_assign(&mut self, rhs: Bias) {
+        if rhs == Bias::default() {
+            *self = Self::default();
+            return;
+        }
         self.iter_mut()
             .for_each(|(_, n)| n.iter_mut().for_each(|(_, b)| *b *= rhs));
     }

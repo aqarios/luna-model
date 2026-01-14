@@ -164,7 +164,7 @@ def test_from_counts_with_model(model):
         "110": random_int(rand),
     }
     sol = Solution.from_counts(counts, model=m)
-    assert len(sol.samples) == 4
+    assert len(list(sol.samples)) == 4
     assert len(sol.counts) == 4
     if x.vtype == Vtype.Binary:
         assert sol.samples.tolist() == [

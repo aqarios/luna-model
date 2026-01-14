@@ -105,6 +105,10 @@ impl AddAssign<Linear> for Linear {
 
 impl MulAssign<Bias> for Linear {
     fn mul_assign(&mut self, rhs: Bias) {
+        if rhs == Bias::default() {
+            *self = Self::default();
+            return;
+        }
         self.iter_mut().for_each(|(_, bias)| *bias *= rhs);
     }
 }

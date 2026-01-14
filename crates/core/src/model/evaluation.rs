@@ -11,22 +11,28 @@ impl Model {
         newsol.counts = sol.counts.clone();
         newsol.raw_energies = sol.raw_energies.clone();
         newsol.timing = sol.timing.clone();
-        newsol.n_samples = sol.n_samples.clone();
         newsol.sense = sol.sense.clone();
 
         let mut obj_vals = Vec::new();
-        let mut constrs: Vec<HashMap<String, bool>> = Vec::new();
-        let mut vbounds = self
+        let mut constrs: HashMap<String, Vec<bool>> = self
+            .constraints
+            .iter()
+            .map(|(n, _)| (n.clone(), Vec::default()))
+            .collect();
+        let mut vbounds: HashMap<String, Vec<bool>> = self
             .vars()
             .map(|n| (n.name().unwrap(), Vec::default()))
-            .collect::<HashMap<String, Vec<bool>>>();
+            .collect();
         let mut feasible: Vec<bool> = Vec::new();
 
         for sample in sol.samples() {
             obj_vals.push(self.objective.evaluate_sample(&sample)?);
-            let per_constr = self.constraints.evaluate_sample(&sample)?;
-            let all_constr_ok = per_constr.iter().all(|(_, v)| *v);
-            constrs.push(per_constr);
+            let mut all_constr_ok = true;
+            for (cname, val) in self.constraints.evaluate_sample(&sample)? {
+                constrs.get_mut(&cname).unwrap().push(val);
+                all_constr_ok = all_constr_ok && val;
+            }
+
             let mut all_vars_ok = true;
             for v in self.vars() {
                 let name = v.name()?;

@@ -1,4 +1,4 @@
-use std::{error::Error};
+use std::error::Error;
 
 pub trait ContentEquality {
     fn equal_contents(&self, other: &Self) -> bool;

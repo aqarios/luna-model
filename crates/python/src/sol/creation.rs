@@ -1,6 +1,8 @@
 use hashbrown::HashMap;
 use indexmap::IndexMap;
 use lunamodel_core::Solution;
+use lunamodel_core::solution::{Assignment, Column};
+use lunamodel_error::py::PySampleIncorrectLengthError;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Sense, Vtype};
 use numpy::ndarray::Axis;
@@ -13,6 +15,11 @@ use crate::{PyEnvironment, PyModel};
 
 use super::PySolution;
 use super::utils::VarKey;
+
+enum BitOrder {
+    LTR,
+    RTL,
+}
 
 #[pymethods]
 impl PySolution {
@@ -314,6 +321,88 @@ impl PySolution {
                 Vtype::Real => sol.add_real(varname, col.to_vec()),
                 Vtype::InvertedBinary => (),
             }
+        }
+
+        if let Some(m) = model {
+            sol = m.m.read_arc().evaluate_solution(&sol)?;
+        }
+
+        Ok(sol.into())
+    }
+
+    #[staticmethod]
+    fn from_counts(
+        data: IndexMap<String, usize>,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+        timing: Option<PyTiming>,
+        sense: Option<Sense>,
+        bit_order: String,
+        energies: Option<Vec<f64>>,
+        var_order: Option<Vec<String>>,
+    ) -> PyResult<PySolution> {
+        check_env_or_model(&env, &model)?;
+        check_sense_or_model(&sense, &model)?;
+        let environment = retrieve_environment(env, &model)?.env;
+
+        let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
+            model
+                .as_ref()
+                .map(|m| m.m.read_arc().sense)
+                .unwrap_or_default()
+        }));
+        sol.timing = timing.map(|t| t.into());
+        if let Some(es) = energies {
+            sol.raw_energies = Some(es)
+        }
+
+        let vars = match var_order {
+            Some(vs) => vs,
+            None => environment
+                .vars()
+                .iter()
+                .map(|v| v.name().unwrap())
+                .collect(),
+        };
+        let nvars = vars.len();
+        for v in environment.sort(vars.clone()) {
+            match environment.vtype_of(&v)? {
+                Vtype::Binary => sol.add_empty_binary(v),
+                Vtype::Spin => sol.add_empty_spin(v),
+                Vtype::Integer | Vtype::Real | Vtype::InvertedBinary => {
+                    return Err(PyValueError::new_err(
+                        "solution contains reference to non-binary or non-spin variables.",
+                    ));
+                }
+            }
+        }
+
+        let order = match bit_order.as_str() {
+            "LTR" => BitOrder::LTR,
+            "RTL" => BitOrder::RTL,
+            _ => return Err(PyValueError::new_err("`bit_order` must be 'RTL' or 'LTR'.")),
+        };
+
+        for (idx, (bitstr, &count)) in data.iter().enumerate() {
+            if bitstr.len() != nvars {
+                return Err(PySampleIncorrectLengthError::new_err(format!(
+                    "sample at index '{idx}' has an unexpected length"
+                )));
+            }
+            let it = match order {
+                BitOrder::LTR => itertools::Either::Left(bitstr.chars()),
+                BitOrder::RTL => itertools::Either::Right(bitstr.chars().rev()),
+            };
+            for (c, varname) in it.into_iter().zip(&vars) {
+                match (c, sol.samples.get_mut(varname).unwrap()) {
+                    ('0', Column::Binary(vec)) => vec.push(Assignment::Binary(0))?,
+                    ('1', Column::Binary(vec)) => vec.push(Assignment::Binary(1))?,
+                    ('0', Column::Spin(vec)) => vec.push(Assignment::Spin(1))?,
+                    ('1', Column::Spin(vec)) => vec.push(Assignment::Spin(-1))?,
+                    _ => return Err(PyValueError::new_err("unexpected char in bitstring.")),
+                }
+            }
+            sol.counts.push(count);
         }
 
         if let Some(m) = model {

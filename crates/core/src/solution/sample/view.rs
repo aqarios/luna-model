@@ -4,6 +4,7 @@ use lunamodel_types::Bias;
 
 use crate::solution::Solution;
 
+#[derive(Debug)]
 pub struct SampleView<'s> {
     pub sol: &'s Solution,
     pub idx: usize,
@@ -12,6 +13,10 @@ pub struct SampleView<'s> {
 impl<'s> SampleView<'s> {
     pub fn new(sol: &'s Solution, idx: usize) -> Self {
         Self { sol, idx }
+    }
+
+    pub fn to_vec(&self) -> Vec<f64> {
+        self.sol.variable_names().iter().map(|v| self[v]).collect()
     }
 }
 

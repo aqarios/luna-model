@@ -28,6 +28,17 @@ pub enum Assignment {
     Real(RealAssignment),
 }
 
+impl Into<Assignment> for u8 {
+    fn into(self) -> Assignment {
+        Assignment::Binary(self)
+    }
+}
+impl Into<Assignment> for i8 {
+    fn into(self) -> Assignment {
+        Assignment::Spin(self)
+    }
+}
+
 impl Index<usize> for Column {
     type Output = Bias;
 
@@ -51,6 +62,15 @@ impl Column {
         }
     }
 
+    pub fn len(&self) -> usize {
+        match self {
+            Self::Binary(v) => v.0.len(),
+            Self::Spin(v) => v.0.len(),
+            Self::Integer(v) => v.0.len(),
+            Self::Real(v) => v.0.len(),
+        }
+    }
+
     pub fn as_assignment(&self, index: usize) -> Assignment {
         match self {
             Self::Binary(col) => Assignment::Binary(col.as_t(index)),
@@ -59,6 +79,25 @@ impl Column {
             Self::Real(col) => Assignment::Real(col.as_t(index)),
         }
     }
+
+    pub fn as_assignments(&self) -> Vec<Assignment> {
+        match self {
+            Self::Binary(col) => (0..self.len())
+                .map(|index| Assignment::Binary(col.as_t(index)))
+                .collect(),
+            Self::Spin(col) => (0..self.len())
+                .map(|index| Assignment::Spin(col.as_t(index)))
+                .collect(),
+            Self::Integer(col) => (0..self.len())
+                .map(|index| Assignment::Integer(col.as_t(index)))
+                .collect(),
+
+            Self::Real(col) => (0..self.len())
+                .map(|index| Assignment::Real(col.as_t(index)))
+                .collect(),
+        }
+    }
+
     pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
         match self {
             Self::Binary(col) => col.push(value),
@@ -133,12 +172,18 @@ impl ColElement<u8> {
             Assignment::Integer(_) => Some("integer"),
             Assignment::Real(_) => Some("real"),
         };
-        msg.and_then(|_| Some(()))
-            .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
+        match msg {
+            Some(m) => Err(LunaModelError::Dtype(m.into())),
+            None => Ok(()),
+        }
     }
 
     pub fn iter(&self) -> impl Iterator<Item = u8> {
         self.0.iter().map(|&e| e as u8)
+    }
+
+    pub fn data(&self) -> Vec<u8> {
+        self.iter().collect()
     }
 }
 
@@ -153,12 +198,18 @@ impl ColElement<i8> {
             Assignment::Integer(_) => Some("integer"),
             Assignment::Real(_) => Some("real"),
         };
-        msg.and_then(|_| Some(()))
-            .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
+        match msg {
+            Some(m) => Err(LunaModelError::Dtype(m.into())),
+            None => Ok(()),
+        }
     }
 
     pub fn iter(&self) -> impl Iterator<Item = i8> {
         self.0.iter().map(|&e| e as i8)
+    }
+
+    pub fn data(&self) -> Vec<i8> {
+        self.iter().collect()
     }
 }
 
@@ -174,12 +225,18 @@ impl ColElement<i64> {
 
             Assignment::Real(_) => Some("real"),
         };
-        msg.and_then(|_| Some(()))
-            .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
+        match msg {
+            Some(m) => Err(LunaModelError::Dtype(m.into())),
+            None => Ok(()),
+        }
     }
 
-    pub fn as_ints(&self) -> impl Iterator<Item = i64> {
+    pub fn iter(&self) -> impl Iterator<Item = i64> {
         self.0.iter().map(|&e| e as i64)
+    }
+
+    pub fn data(&self) -> Vec<i64> {
+        self.iter().collect()
     }
 }
 
@@ -194,11 +251,17 @@ impl ColElement<f64> {
                 None
             }
         };
-        msg.and_then(|_| Some(()))
-            .ok_or_else(|| LunaModelError::Dtype(msg.unwrap().into()))
+        match msg {
+            Some(m) => Err(LunaModelError::Dtype(m.into())),
+            None => Ok(()),
+        }
     }
 
     pub fn iter(&self) -> impl Iterator<Item = f64> {
         self.0.iter().map(|&v| v)
+    }
+
+    pub fn data(&self) -> Vec<f64> {
+        self.iter().collect()
     }
 }

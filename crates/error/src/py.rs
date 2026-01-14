@@ -291,6 +291,7 @@ impl From<Lme> for PyErr {
             Lme::ModelNotQuadratic => PyModelNotQuadraticError::new_err,
             Lme::ModelNotUnconstrained => PyModelNotUnconstrainedError::new_err,
             Lme::Vtype(_) => PyModelVtypeError::new_err,
+            Lme::Translation(_) => PyTranslationError::new_err,
         };
         err(lme.to_string())
     }

@@ -56,6 +56,10 @@ impl HigherOrder {
 
 impl MulAssign<Bias> for HigherOrder {
     fn mul_assign(&mut self, rhs: Bias) {
+        if rhs == Bias::default() {
+            *self = Self::default();
+            return;
+        }
         for (_, bias) in self.iter_mut() {
             *bias *= rhs;
         }

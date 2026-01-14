@@ -4,8 +4,10 @@ use std::{
 };
 
 use crate::{bounds::Bounds, environment::ArcEnv, traits::ContentEquality};
-use lunamodel_error::LunaModelResult;
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{VarIdx, Vtype};
+
+use super::var::Variable;
 
 #[derive(Clone)]
 pub struct VarRef {
@@ -39,6 +41,15 @@ impl VarRef {
         Ok(self.env.read_arc().get(self.id)?.bounds)
     }
 
+    pub fn inverted(&self) -> LunaModelResult<Option<VarRef>> {
+        Ok(self
+            .env
+            .read_arc()
+            .get(self.id)?
+            .inverted
+            .map(|id| VarRef::new(id, self.env.clone())))
+    }
+
     pub fn hash(&self) -> LunaModelResult<u64> {
         let mut state = DefaultHasher::new();
         self.name()?.hash(&mut state);
@@ -69,5 +80,12 @@ impl Debug for VarRef {
             self.id,
             self.env.read_arc().id
         ))
+    }
+}
+
+impl TryInto<Variable> for &VarRef {
+    type Error = LunaModelError;
+    fn try_into(self) -> Result<Variable, Self::Error> {
+        Ok(self.env.read_arc().get(self.id)?.clone())
     }
 }
