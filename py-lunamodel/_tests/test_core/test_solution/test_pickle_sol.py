@@ -34,6 +34,4 @@ def solution() -> Solution:
 def test_pickle_solution(solution: Solution):
     blob = pickle.dumps(solution)
     solution_loaded = pickle.loads(blob)
-    print(solution)
-    print(solution_loaded)
     assert solution == solution_loaded

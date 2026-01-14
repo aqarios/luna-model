@@ -59,7 +59,7 @@ def test_mul_same_variable_spin():
 
     result = x * x
     assert isinstance(result, Expression)
-    assert result.num_variables == 1
+    assert result.num_variables == 0
     assert result.get_offset() == 1
     assert result.get_linear(x) == 0
     assert result.get_quadratic(x, x) == 0

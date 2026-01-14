@@ -89,7 +89,7 @@ def test_expression_mul_same_spin_variable_larger_index(variables):
 
     expr = y * y
     assert isinstance(expr, Expression)
-    assert expr.num_variables == 1
+    assert expr.num_variables == 0
     assert expr.get_offset() == 1
     assert expr.get_linear(x) == 0
     assert expr.get_linear(y) == 0
