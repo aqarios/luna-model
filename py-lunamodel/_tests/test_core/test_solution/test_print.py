@@ -10,12 +10,12 @@ def vars() -> tuple[tuple[Variable, ...], Environment]:
         variables = [
             Variable("b_0"),
             Variable("b_1"),
-            Variable("s_0", vtype=Vtype.Spin),
-            Variable("s_1", vtype=Vtype.Spin),
-            Variable("i_0", vtype=Vtype.Integer),
-            Variable("i_1", vtype=Vtype.Integer),
-            Variable("r_0", vtype=Vtype.Real),
-            Variable("r_1", vtype=Vtype.Real),
+            Variable("s_0", vtype=Vtype.SPIN),
+            Variable("s_1", vtype=Vtype.SPIN),
+            Variable("i_0", vtype=Vtype.INTEGER),
+            Variable("i_1", vtype=Vtype.INTEGER),
+            Variable("r_0", vtype=Vtype.REAL),
+            Variable("r_1", vtype=Vtype.REAL),
         ]
 
     return tuple(variables), env

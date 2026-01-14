@@ -7,6 +7,7 @@ from luna_model import (
     Expression,
     Variable,
 )
+from luna_model.errors import NoConstraintForKeyError
 
 
 @pytest.fixture()
@@ -71,7 +72,7 @@ def test_constraints_deprecated(expression: Expression):
 def test_constraints_out_of_bounds_access(expression: Expression):
     constr = ConstraintCollection()
     constr += expression <= 2
-    with pytest.raises(IndexError):
+    with pytest.raises(NoConstraintForKeyError):
         _ = constr["c3"]
 
 
@@ -203,9 +204,9 @@ def test_constraint_creation_eq_direct_rhs_var(
     expression_and_var: tuple[Expression, Variable],
 ):
     expression, var = expression_and_var
-    constr = Constraint(expression, var, Comparator.Eq)
+    constr = Constraint(expression, var, Comparator.Eq, "c0")
     assert isinstance(constr, Constraint)
-    assert constr == (expression == var)
+    assert constr.equal_contents(expression == var)
     assert constr.name is not None
     assert constr.lhs.is_equal(expression - var)
     assert constr.rhs == 0.0
@@ -218,7 +219,7 @@ def test_constraint_creation_le_direct_rhs_var(
     expression, var = expression_and_var
     constr = Constraint(expression, var, Comparator.Le)
     assert isinstance(constr, Constraint)
-    assert constr == (expression <= var)
+    assert constr.equal_contents(expression <= var)
     assert constr.name is not None
     assert constr.lhs.is_equal(expression - var)
     assert constr.rhs == 0.0
@@ -231,7 +232,7 @@ def test_constraint_creation_ge_direct_rhs_var(
     expression, var = expression_and_var
     constr = Constraint(expression, var, Comparator.Ge)
     assert isinstance(constr, Constraint)
-    assert constr == (expression >= var)
+    assert constr.equal_contents(expression >= var)
     assert constr.name is not None
     assert constr.lhs.is_equal(expression - var)
     assert constr.rhs == 0.0
@@ -283,7 +284,7 @@ def test_constraint_creation_eq_direct_rhs_expr(
     lhs, rhs = expression_and_expression
     constr = Constraint(lhs, rhs, Comparator.Eq)
     assert isinstance(constr, Constraint)
-    assert constr == (lhs == rhs)
+    assert constr.equal_contents(lhs == rhs)
     assert constr.name is not None
     assert constr.lhs.is_equal(lhs - rhs)
     assert constr.rhs == 0.0
@@ -296,7 +297,7 @@ def test_constraint_creation_le_direct_rhs_expr(
     lhs, rhs = expression_and_expression
     constr = Constraint(lhs, rhs, Comparator.Le)
     assert isinstance(constr, Constraint)
-    assert constr == (lhs <= rhs)
+    assert constr.equal_contents(lhs <= rhs)
     assert constr.name is not None
     assert constr.lhs.is_equal(lhs - rhs)
     assert constr.rhs == 0.0
@@ -309,7 +310,7 @@ def test_constraint_creation_ge_direct_rhs_expr(
     lhs, rhs = expression_and_expression
     constr = Constraint(lhs, rhs, Comparator.Ge)
     assert isinstance(constr, Constraint)
-    assert constr == (lhs >= rhs)
+    assert constr.equal_contents(lhs >= rhs)
     assert constr.name is not None
     assert constr.lhs.is_equal(lhs - rhs)
     assert constr.rhs == 0.0
@@ -428,7 +429,7 @@ def test_constraint_creation_le_var_direct_rhs_var(
     lhs, rhs = variable_and_variable
     constr = Constraint(lhs, rhs, Comparator.Le)
     assert isinstance(constr, Constraint)
-    assert constr == (lhs <= rhs)
+    assert constr.equal_contents(lhs <= rhs)
     assert constr.name is not None
     assert constr.lhs.is_equal(lhs - rhs)
     assert constr.rhs == rhs
@@ -441,7 +442,7 @@ def test_constraint_creation_ge_var_direct_rhs_var(
     lhs, rhs = variable_and_variable
     constr = Constraint(lhs, rhs, Comparator.Ge)
     assert isinstance(constr, Constraint)
-    assert constr == (lhs >= rhs)
+    assert constr.equal_contents(lhs >= rhs)
     assert constr.name is not None
     assert constr.lhs.is_equal(lhs - rhs)
     assert constr.rhs == rhs

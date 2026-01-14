@@ -3,8 +3,7 @@ use std::fmt::Display;
 use super::PyVariable;
 use crate::expression::PyExpression;
 use pyo3::{
-    exceptions::PyValueError,
-    prelude::{FromPyObject, PyErr},
+    PyResult, exceptions::PyValueError, prelude::{FromPyObject, PyErr}
 };
 
 #[derive(Debug, FromPyObject)]
@@ -49,19 +48,24 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyUsize {
     type Error = PyErr;
 
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
-        let n: i128 = obj.extract()?;
-        if n < 0 {
-            Err(PyValueError::new_err(format!(
-                "Expected a non-negative number, received: {n}"
-            )))
-        } else {
-            Ok(Self(n as usize))
-        }
-    }
+        let n: isize = obj.extract()?;
+        Ok(PyUsize(as_usize(n)?))
+   }
 }
 
 impl Display for PyUsize {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
+}
+
+
+pub fn as_usize(n: isize) -> PyResult<usize> {
+        if n < 0 {
+            Err(PyValueError::new_err(format!(
+                "Expected a non-negative number, received: {n}"
+            )))
+        } else {
+            Ok(n as usize)
+        }
 }

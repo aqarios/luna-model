@@ -55,7 +55,7 @@ def test_sampleset_translator_sa_random_models():
         sampler = SimulatedAnnealingSampler()
         sampleset: SampleSet = sampler.sample(bqm, num_reads=128, seed=random_int(rand))
         timing = timer.stop()
-        vtype = Vtype.Binary if bqm.vartype == Vartype.BINARY else Vtype.Spin
+        vtype = Vtype.BINARY if bqm.vartype == Vartype.BINARY else Vtype.SPIN
         env = mock_env(bqm.num_variables, vtype=vtype)
         sol = DwaveTranslator.to_aq(sampleset, timing, env=env)
 
@@ -105,7 +105,7 @@ def test_sampleset_translator_error_handling():
     ):
         DwaveTranslator.to_aq(sampleset, env=env)
 
-    env = mock_env(3, vtype=Vtype.Spin)
+    env = mock_env(3, vtype=Vtype.SPIN)
     sol = DwaveTranslator.to_aq(sampleset, env=env)
     with pytest.raises(IndexError):
         _ = sol.samples[1]
@@ -116,7 +116,7 @@ def test_sampleset_translator_error_handling():
         DwaveTranslator.to_aq(sampleset, env=env)
 
     samples_raw = [{"x0": -10, "x1": 10, "x2": 6.43}]
-    env = mock_env(3, vtype=Vtype.Integer)
+    env = mock_env(3, vtype=Vtype.INTEGER)
     sampleset = SampleSet.from_samples(as_samples(samples_raw), "INTEGER", energy)
     with does_not_raise():
         DwaveTranslator.to_aq(sampleset, env=env)

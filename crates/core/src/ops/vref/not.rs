@@ -9,6 +9,7 @@ impl Not for &VarRef {
     type Output = LunaModelResult<VarRef>;
 
     fn not(self) -> Self::Output {
+        self.check_living()?;
         let vtype = self.env.read_arc()[self.id].vtype;
         match vtype {
             Vtype::Binary => {

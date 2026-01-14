@@ -24,7 +24,7 @@ impl SerConstraintCollection {
             self.lhsides.push(lhs_bytes);
             self.rhsides.push(c.rhs);
             self.comparators.push(cmp);
-            self.names.push(c.name.clone());
+            self.names.push(c.name().to_string());
         }
         self
     }

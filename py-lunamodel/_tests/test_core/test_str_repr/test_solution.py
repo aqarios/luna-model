@@ -37,7 +37,7 @@ def solution(request) -> Solution:
             {"x0": 0, "x1": -1, "x2": 3, "x3": +3.0},
             {"x0": 1, "x1": +1, "x2": 4, "x3": -4.23},
         ],
-        vtypes=[Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real],
+        vtypes=[Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL],
         counts=[1, 2, 3],
         raw_energies=[6.0, 5.0, 2.0],
     )
@@ -64,7 +64,7 @@ def test_model(solution: Solution):
             {f"b{i}": 1 for i in range(30)},
             {f"b{i}": 0 for i in range(30)},
         ],
-        vtypes=[Vtype.Binary] * 30,
+        vtypes=[Vtype.BINARY] * 30,
     )
     assert str(solution_2) == sol_str_2
 

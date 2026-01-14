@@ -33,7 +33,7 @@ def test_set_sense_init(items, values, weights, capacity):
     model = Model("Vacation Knapsack1", sense=Sense.Max)
 
     with model.environment:
-        x = {idx: Variable(name=i, vtype=Vtype.Binary) for idx, i in enumerate(items)}
+        x = {idx: Variable(name=i, vtype=Vtype.BINARY) for idx, i in enumerate(items)}
 
     model.set_objective(quicksum(x[i] * values[i] for i in x))
     # The total weight of selected items should not exceed a specified threshold
@@ -49,7 +49,7 @@ def test_set_sense_init_lp(items, values, weights, capacity):
     model = Model("Vacation Knapsack1", sense=Sense.Max)
 
     with model.environment:
-        x = {idx: Variable(name=i, vtype=Vtype.Binary) for idx, i in enumerate(items)}
+        x = {idx: Variable(name=i, vtype=Vtype.BINARY) for idx, i in enumerate(items)}
 
     model.set_objective(quicksum(x[i] * values[i] for i in x))
     # The total weight of selected items should not exceed a specified threshold
@@ -67,7 +67,7 @@ def test_set_sense_after_creation(items, values, weights, capacity):
     model.set_sense(Sense.Max)
 
     with model.environment:
-        x = {idx: Variable(name=i, vtype=Vtype.Binary) for idx, i in enumerate(items)}
+        x = {idx: Variable(name=i, vtype=Vtype.BINARY) for idx, i in enumerate(items)}
 
     model.set_objective(quicksum(x[i] * values[i] for i in x))
     # The total weight of selected items should not exceed a specified threshold
@@ -83,7 +83,7 @@ def test_set_sense_after_objective(items, values, weights, capacity):
     model = Model("Vacation Knapsack1", sense=Sense.Max)
 
     with model.environment:
-        x = {idx: Variable(name=i, vtype=Vtype.Binary) for idx, i in enumerate(items)}
+        x = {idx: Variable(name=i, vtype=Vtype.BINARY) for idx, i in enumerate(items)}
 
     model.set_objective(quicksum(x[i] * values[i] for i in x))
     # Maximize the total value of selected items
@@ -101,7 +101,7 @@ def test_set_sense_after_constraints(items, values, weights, capacity):
     model = Model("Vacation Knapsack1", sense=Sense.Max)
 
     with model.environment:
-        x = {idx: Variable(name=i, vtype=Vtype.Binary) for idx, i in enumerate(items)}
+        x = {idx: Variable(name=i, vtype=Vtype.BINARY) for idx, i in enumerate(items)}
 
     model.set_objective(quicksum(x[i] * values[i] for i in x))
     # The total weight of selected items should not exceed a specified threshold

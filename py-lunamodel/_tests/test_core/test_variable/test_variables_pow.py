@@ -4,7 +4,7 @@ from luna_model import Environment, Expression, Variable, Vtype
 
 def test_variable_pow_n1():
     with Environment():
-        x = Variable("x", vtype=Vtype.Integer)
+        x = Variable("x", vtype=Vtype.INTEGER)
 
     with pytest.raises(
         ValueError, match="Expected a non-negative number, received: -1"
@@ -14,7 +14,7 @@ def test_variable_pow_n1():
 
 def test_variable_pow_0():
     with Environment():
-        x = Variable("x", vtype=Vtype.Integer)
+        x = Variable("x", vtype=Vtype.INTEGER)
 
     result = x**0
     assert isinstance(result, Expression)
@@ -25,7 +25,7 @@ def test_variable_pow_0():
 
 def test_variable_pow_1():
     with Environment():
-        x = Variable("x", vtype=Vtype.Integer)
+        x = Variable("x", vtype=Vtype.INTEGER)
 
     result = x**1
     assert isinstance(result, Expression)
@@ -36,7 +36,7 @@ def test_variable_pow_1():
 
 def test_variable_pow_2():
     with Environment():
-        x = Variable("x", vtype=Vtype.Integer)
+        x = Variable("x", vtype=Vtype.INTEGER)
 
     result = x**2
     assert isinstance(result, Expression)
@@ -48,7 +48,7 @@ def test_variable_pow_2():
 
 def test_variable_pow_3():
     with Environment():
-        x = Variable("x", vtype=Vtype.Integer)
+        x = Variable("x", vtype=Vtype.INTEGER)
 
     result = x**3
     assert isinstance(result, Expression)
@@ -62,7 +62,7 @@ def test_variable_pow_3():
 @pytest.mark.parametrize("scalar", list(range(4, 10)))
 def test_variable_pow_n(scalar: int):
     with Environment():
-        x = Variable("x", vtype=Vtype.Integer)
+        x = Variable("x", vtype=Vtype.INTEGER)
 
     result = x**scalar
     assert isinstance(result, Expression)

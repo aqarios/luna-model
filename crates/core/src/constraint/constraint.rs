@@ -26,7 +26,7 @@ pub fn starts_with_failable(s: &str) -> bool {
 }
 
 /// A constraint
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Constraint {
     /// The LHS expression of the constraint.
     pub lhs: Expression,
@@ -37,7 +37,7 @@ pub struct Constraint {
     pub comparator: Comparator,
     /// A Constraint can also be named for easier, more native indexing into a collection of
     /// constraints.
-    pub name: String,
+    name: String,
     // pub assigned_name: bool,
 }
 
@@ -48,7 +48,7 @@ impl Constraint {
         comparator: Comparator,
         name: Option<String>,
     ) -> LunaModelResult<Self> {
-        validate_name(&name)?;
+        validate_name(name.as_ref())?;
         let lhs_constant = lhs.offset;
         let rhs = rhs - lhs_constant;
         let lhs = lhs.sub(lhs_constant)?;
@@ -70,6 +70,12 @@ impl Constraint {
         &self.name
     }
 
+    pub fn set_name(&mut self, name: String) -> LunaModelResult<()> {
+        validate_name(Some(&name))?;
+        self.name = name;
+        Ok(())
+    }
+
     /// A [VarRef] in our LHS [Expression] can be replaced by a new [Expression] using this function.
     /// It's a convenience function to enable the [substitution](Expression::substitute) operation on
     /// the LHS [Expression] of a constraint. All substitution logic and operations are defined on
@@ -88,7 +94,7 @@ impl Constraint {
 /// (FAILABLE_CONSTRAINT_NAMES)[crate::core::constraints::constraint::FAILABLE_CONSTRAINT_NAMES].
 /// checked in [starts_with_failable].
 /// This function returns an error when an illegal [Constraint] name is given as an argument.
-fn validate_name(name: &Option<String>) -> LunaModelResult<()> {
+fn validate_name(name: Option<&String>) -> LunaModelResult<()> {
     if let Some(name) = &name {
         if name.is_empty() {
             return Err(LunaModelError::ConstraintNameInvalid(
@@ -132,6 +138,14 @@ impl Display for Constraint {
 impl ContentEquality for Constraint {
     fn equal_contents(&self, other: &Self) -> bool {
         self.lhs.equal_contents(&other.lhs)
+            && self.rhs == other.rhs
+            && self.comparator == other.comparator
+    }
+}
+
+impl PartialEq for Constraint {
+    fn eq(&self, other: &Self) -> bool {
+        self.lhs == other.lhs
             && self.rhs == other.rhs
             && self.comparator == other.comparator
             && self.name == other.name

@@ -36,6 +36,7 @@ impl LmMulAssign<&usize> for Expression {
 impl LmMulAssign<&VarRef> for Expression {
     fn mul_assign(&mut self, rhs: &VarRef) -> LunaModelResult<()> {
         check_envs(self, rhs)?;
+        rhs.check_living()?;
         *self = Expression::empty(self.env.clone()).edit(|expr| {
             expr.aa(rhs.m(self.offset));
             expr.aa(self.linear.m(rhs));

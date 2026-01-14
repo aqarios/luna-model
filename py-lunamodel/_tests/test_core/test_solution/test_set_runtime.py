@@ -17,7 +17,7 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
 def test_set_runtime(model: tuple[Model, tuple[Variable, ...]]):
     timer = Timer.start()
     m, (x, y, z) = model

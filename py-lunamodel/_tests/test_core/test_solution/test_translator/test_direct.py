@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from luna_model import Solution, Timer, TranslationTarget
+from luna_model import Solution, Timer, TranslationTarget, Vtype
 
 NOT_TEST_SCIP = True
 try:
@@ -202,7 +202,7 @@ def test_sol_direct_from_dwave(dwave_result):
 
 
 def test_sol_direct_from_dict():
-    (x, y, z), env = vars(3, Vtype.Binary)
+    (x, y, z), env = vars(3, Vtype.BINARY)
     sample = {x: 0, y: 0, z: 1}
     with env:
         sol = Solution.from_(sample)
@@ -210,7 +210,7 @@ def test_sol_direct_from_dict():
 
 
 def test_sol_direct_from_dicts():
-    (x, y, z), env = vars(3, Vtype.Binary)
+    (x, y, z), env = vars(3, Vtype.BINARY)
     samples = [
         {x: 0, y: 0, z: 1},  # -1
         {x: 1, y: 1, z: 1},  # -1

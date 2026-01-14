@@ -22,6 +22,7 @@ impl LmSubAssign<&usize> for Expression {
 impl LmSubAssign<&VarRef> for Expression {
     fn sub_assign(&mut self, rhs: &VarRef) -> LunaModelResult<()> {
         check_envs(self, rhs)?;
+        rhs.check_living()?;
         self.linear += (rhs.id(), -1.0);
         Ok(())
     }

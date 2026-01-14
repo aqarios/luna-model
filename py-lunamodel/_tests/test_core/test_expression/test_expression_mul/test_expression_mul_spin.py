@@ -11,7 +11,7 @@ from ...utils import (
 from .common import *  # noqa: F403
 
 
-@pytest.mark.parametrize("variables", [(3, Vtype.Spin)], indirect=True)
+@pytest.mark.parametrize("variables", [(3, Vtype.SPIN)], indirect=True)
 def test_expression_mul_spin_variables(variables):
     x, y, z = variables
 
@@ -36,7 +36,7 @@ def test_expression_mul_spin_variables(variables):
     assert_higher_order(result, variables, 1)
 
 
-@pytest.mark.parametrize("variables", [(3, Vtype.Spin)], indirect=True)
+@pytest.mark.parametrize("variables", [(3, Vtype.SPIN)], indirect=True)
 def test_expression_rmul_spin_variables(variables):
     x, y, z = variables
 
@@ -61,7 +61,7 @@ def test_expression_rmul_spin_variables(variables):
     assert_higher_order(result, variables, 1)
 
 
-@pytest.mark.parametrize("variables", [(1, Vtype.Spin)], indirect=True)
+@pytest.mark.parametrize("variables", [(1, Vtype.SPIN)], indirect=True)
 def test_expression_mul_same_spin_variable(variables):
     x = variables[0]
 
@@ -83,7 +83,7 @@ def test_expression_mul_same_spin_variable(variables):
     assert result.get_higher_order(x, x, x) == 0
 
 
-@pytest.mark.parametrize("variables", [(2, Vtype.Spin)], indirect=True)
+@pytest.mark.parametrize("variables", [(2, Vtype.SPIN)], indirect=True)
 def test_expression_mul_same_spin_variable_larger_index(variables):
     x, y = variables
 
@@ -113,7 +113,7 @@ def test_expression_mul_same_spin_variable_larger_index(variables):
     assert result.get_quadratic(x, y) == expr.get_quadratic(y, x)
 
 
-@pytest.mark.parametrize("variables", [(1, Vtype.Spin)], indirect=True)
+@pytest.mark.parametrize("variables", [(1, Vtype.SPIN)], indirect=True)
 def test_mul_multispins(variables):
     x = variables[0]
     expr = x * x * x

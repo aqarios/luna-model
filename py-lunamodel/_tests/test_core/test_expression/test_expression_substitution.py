@@ -4,8 +4,8 @@ from luna_model import Environment, Variable, Vtype
 
 def test_expression_simple_var():
     with Environment():
-        target = Variable("target", vtype=Vtype.Integer)
-        a = Variable("a", vtype=Vtype.Integer)
+        target = Variable("target", vtype=Vtype.INTEGER)
+        a = Variable("a", vtype=Vtype.INTEGER)
 
     base = a * 3.4 + 10.10 * target
     replacement = a
@@ -17,8 +17,8 @@ def test_expression_simple_var():
 
 def test_expression_simple():
     with Environment():
-        a = Variable("a", vtype=Vtype.Integer)
-        target = Variable("target", vtype=Vtype.Integer)
+        a = Variable("a", vtype=Vtype.INTEGER)
+        target = Variable("target", vtype=Vtype.INTEGER)
 
         b1 = Variable("b1")
         b2 = Variable("b2")
@@ -34,7 +34,7 @@ def test_expression_simple():
 
 def test_expression_quadratic():
     with Environment():
-        target = Variable("n", vtype=Vtype.Integer)
+        target = Variable("n", vtype=Vtype.INTEGER)
 
         x1 = Variable("x_1")
         x2 = Variable("x_2")
@@ -50,7 +50,7 @@ def test_expression_quadratic():
 
 def test_expression_higher_order():
     with Environment():
-        target = Variable("n", vtype=Vtype.Integer)
+        target = Variable("n", vtype=Vtype.INTEGER)
 
         x1 = Variable("x_1")
         x2 = Variable("x_2")

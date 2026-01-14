@@ -78,7 +78,7 @@ def test_translate_with_dense(qubo: NDArray):
 def test_translate_with_dense_and_metadata(qubo: NDArray):
     offset = 4.2
     name = "test"
-    vtype = Vtype.Binary
+    vtype = Vtype.BINARY
     model = QuboTranslator.to_aq(qubo, offset=offset, name=name, vtype=vtype)
     back = QuboTranslator.from_aq(model)
     assert np.allclose(qubo, back.matrix)
@@ -117,7 +117,7 @@ def test_translate_with_dense_and_valid_variable_names(qubo: NDArray):
 def test_translate_with_dense_and_invalid_variable_names_non_alpha(qubo: NDArray):
     offset = 4.2
     name = "test"
-    vtype = Vtype.Binary
+    vtype = Vtype.BINARY
     variable_names = [str(i) for i in range(len(qubo))]
     with pytest.raises(TranslationError):
         _ = QuboTranslator.to_aq(
@@ -133,7 +133,7 @@ def test_translate_with_dense_and_invalid_variable_names_non_alpha(qubo: NDArray
 def test_translate_with_dense_and_invalid_variable_names(qubo: NDArray):
     offset = 4.2
     name = "test"
-    vtype = Vtype.Binary
+    vtype = Vtype.BINARY
     variable_names = [f"x_{i}+y_{i}" for i in range(len(qubo))]
     with pytest.raises(TranslationError):
         _ = QuboTranslator.to_aq(
@@ -167,10 +167,10 @@ def test_translate_with_dense_linear(linear_qubo: NDArray):
 def test_translate_from_non_fitting_constrained(qubo: NDArray):
     model = QuboTranslator.to_aq(qubo)
     with model.environment:
-        b = Variable("b", vtype=Vtype.Binary)
-        s = Variable("s", vtype=Vtype.Spin)
-        i = Variable("i", vtype=Vtype.Integer)
-        r = Variable("r", vtype=Vtype.Real)
+        b = Variable("b", vtype=Vtype.BINARY)
+        s = Variable("s", vtype=Vtype.SPIN)
+        i = Variable("i", vtype=Vtype.INTEGER)
+        r = Variable("r", vtype=Vtype.REAL)
         model.constraints += b + s + i + r <= 3
         model.constraints += b * s == 3
         model.constraints += b * i * r >= 3
@@ -190,7 +190,7 @@ def test_translate_from_non_fitting_constrained(qubo: NDArray):
 def test_translate_from_non_fitting_higher_order(qubo: NDArray):
     model = QuboTranslator.to_aq(qubo)
     with model.environment:
-        b = Variable("b", vtype=Vtype.Binary)
+        b = Variable("b", vtype=Vtype.BINARY)
         model.objective *= b
 
     with pytest.raises(ModelNotQuadraticError):
@@ -208,7 +208,7 @@ def test_translate_from_non_fitting_higher_order(qubo: NDArray):
 def test_translate_from_non_fitting_vtype(qubo: NDArray):
     model = QuboTranslator.to_aq(qubo)
     with model.environment:
-        r = Variable("r", vtype=Vtype.Real)
+        r = Variable("r", vtype=Vtype.REAL)
         model.objective += r
 
     with pytest.raises(ModelVtypeError):
@@ -217,10 +217,10 @@ def test_translate_from_non_fitting_vtype(qubo: NDArray):
     with pytest.raises(TranslationError):
         _ = QuboTranslator.from_aq(model)
 
-    model_2 = QuboTranslator.to_aq(qubo, vtype=Vtype.Binary)
+    model_2 = QuboTranslator.to_aq(qubo, vtype=Vtype.BINARY)
 
     with model_2.environment:
-        s = Variable("s", vtype=Vtype.Spin)
+        s = Variable("s", vtype=Vtype.SPIN)
         model_2.objective += s
 
     with pytest.raises(ModelVtypeError):

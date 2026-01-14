@@ -26,7 +26,7 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
 def test_to_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     sample = {x: 0, y: 0, z: 1}
@@ -38,7 +38,7 @@ def test_to_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     assert best.sample.to_dict() == {v.name: a for v, a in sample.items()}
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
 def test_to_dict_with_model_and_counts(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     sample = {x: 0, y: 0, z: 1}
@@ -52,7 +52,7 @@ def test_to_dict_with_model_and_counts(model: tuple[Model, tuple[Variable, ...]]
     assert best.sample.to_dict() == {v.name: a for v, a in sample.items()}
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
 def test_to_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     best_sample = {x: 0, y: 1, z: 1}  # -2
@@ -75,7 +75,7 @@ def test_to_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]]):
     assert best.sample.to_dict() == {v.name: a for v, a in best_sample.items()}
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
 def test_to_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     sample_a = {x: 0, y: 0, z: 1}  # -1
@@ -111,7 +111,7 @@ def test_to_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...]]
     assert best.sample.to_dict() == {v.name: a for v, a in sample_d.items()}
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
 def test_to_dicts_duplicate_with_model_and_counts(
     model: tuple[Model, tuple[Variable, ...]],
 ):

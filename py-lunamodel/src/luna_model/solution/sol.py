@@ -285,6 +285,31 @@ class Solution:
         )
 
     @classmethod
+    def from_arrays(
+        cls,
+        data: NDArray,
+        variables: list[Variable | str] | None = None,
+        env: Environment | None = None,
+        model: Model | None = None,
+        timing: Timing | None = None,
+        counts: list[int] | None = None,
+        sense: Sense | None = None,
+        energies: list[float] | None = None,
+    ) -> Solution:
+        return cls._from_pys(
+            PySolution.from_arrays(
+                data=data,
+                variables=[v if isinstance(v, str) else v._v for v in variables],
+                env=env._env if env is not None else None,
+                model=model._m if model is not None else None,
+                timing=timing,
+                counts=counts,
+                sense=sense._val if sense is not None else None,
+                energies=energies,
+            )
+        )
+
+    @classmethod
     def from_counts(
         cls,
         data: dict[str, int],

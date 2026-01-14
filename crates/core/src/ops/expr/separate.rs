@@ -16,6 +16,7 @@ impl Expression {
         if !vrefs.iter().all(|v| v.env.id() == self.env.id()) {
             return Err(LunaModelError::DifferentEnvironments);
         }
+        vrefs.iter().map(|v| v.check_living().map(|_| ())).collect::<LunaModelResult<()>>()?;
 
         let set: HashSet<VarIdx> = HashSet::from_iter(vrefs.iter().map(|x| x.id));
 

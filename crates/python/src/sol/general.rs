@@ -34,4 +34,8 @@ impl PySolution {
     fn __iter__(slf: PyRef<'_, Self>) -> PyResultIterator {
         PyResultIterator::new(slf.clone())
     }
+
+    fn __len__(&self) -> usize {
+        self.s.read_arc().len()
+    }
 }

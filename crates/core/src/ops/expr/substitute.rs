@@ -16,6 +16,7 @@ impl Expression {
     ) -> LunaModelResult<Expression> {
         check_envs(self, target)?;
         check_envs(self, replacement)?;
+        target.check_living()?;
 
         let mut result = Expression::empty(self.env.clone());
         for (vars, bias) in self.items() {

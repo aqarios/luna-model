@@ -14,10 +14,10 @@ from .common import *  # noqa: F403
 @pytest.mark.parametrize(
     "variables",
     [
-        (4, Vtype.Binary),
-        (4, Vtype.Spin),
-        (4, Vtype.Integer),
-        (4, Vtype.Real),
+        (4, Vtype.BINARY),
+        (4, Vtype.SPIN),
+        (4, Vtype.INTEGER),
+        (4, Vtype.REAL),
     ],
     indirect=True,
 )
@@ -39,7 +39,7 @@ def test_expression_mul_zero(variables):
 @pytest.mark.parametrize(
     "variables",
     [
-        (4, Vtype.Binary),
+        (4, Vtype.BINARY),
     ],
     indirect=True,
 )
@@ -98,7 +98,7 @@ def test_expression_mul_zero_inv(variables):
 @pytest.mark.parametrize(
     "variables",
     [
-        (4, Vtype.Binary),
+        (4, Vtype.BINARY),
     ],
     indirect=True,
 )
@@ -157,10 +157,10 @@ def test_expression_mul_zero_inv2(variables):
 @pytest.mark.parametrize(
     "variables",
     [
-        (2, Vtype.Binary),
-        (2, Vtype.Spin),
-        (2, Vtype.Integer),
-        (2, Vtype.Real),
+        (2, Vtype.BINARY),
+        (2, Vtype.SPIN),
+        (2, Vtype.INTEGER),
+        (2, Vtype.REAL),
     ],
     indirect=True,
 )
@@ -191,10 +191,10 @@ def test_expression_mul_number(variables):
 @pytest.mark.parametrize(
     "variables",
     [
-        (2, Vtype.Binary),
-        (2, Vtype.Spin),
-        (2, Vtype.Integer),
-        (2, Vtype.Real),
+        (2, Vtype.BINARY),
+        (2, Vtype.SPIN),
+        (2, Vtype.INTEGER),
+        (2, Vtype.REAL),
     ],
     indirect=True,
 )
@@ -225,10 +225,10 @@ def test_expression_rmul_number(variables):
 @pytest.mark.parametrize(
     "variables",
     [
-        (3, Vtype.Binary),
-        (3, Vtype.Spin),
-        (3, Vtype.Integer),
-        (3, Vtype.Real),
+        (3, Vtype.BINARY),
+        (3, Vtype.SPIN),
+        (3, Vtype.INTEGER),
+        (3, Vtype.REAL),
     ],
     indirect=True,
 )
@@ -260,10 +260,10 @@ def test_expression_instancemul_variable(variables):
 @pytest.mark.parametrize(
     "variables",
     [
-        (2, Vtype.Binary),
-        (2, Vtype.Spin),
-        (2, Vtype.Integer),
-        (2, Vtype.Real),
+        (2, Vtype.BINARY),
+        (2, Vtype.SPIN),
+        (2, Vtype.INTEGER),
+        (2, Vtype.REAL),
     ],
     indirect=True,
 )
@@ -294,10 +294,10 @@ def test_expression_instancemul_number(variables):
 @pytest.mark.parametrize(
     "variables",
     [
-        (4, Vtype.Binary),
-        (4, Vtype.Spin),
-        (4, Vtype.Integer),
-        (4, Vtype.Real),
+        (4, Vtype.BINARY),
+        (4, Vtype.SPIN),
+        (4, Vtype.INTEGER),
+        (4, Vtype.REAL),
     ],
     indirect=True,
 )
@@ -347,10 +347,10 @@ def test_expression_mul_expression(variables):
 @pytest.mark.parametrize(
     "variables",
     [
-        (4, Vtype.Binary),
-        (4, Vtype.Spin),
-        (4, Vtype.Integer),
-        (4, Vtype.Real),
+        (4, Vtype.BINARY),
+        (4, Vtype.SPIN),
+        (4, Vtype.INTEGER),
+        (4, Vtype.REAL),
     ],
     indirect=True,
 )
@@ -398,10 +398,10 @@ def test_expression_instancemul_expression(variables):
 @pytest.mark.parametrize(
     "variables",
     [
-        (3, Vtype.Binary),
-        (3, Vtype.Spin),
-        (3, Vtype.Integer),
-        (3, Vtype.Real),
+        (3, Vtype.BINARY),
+        (3, Vtype.SPIN),
+        (3, Vtype.INTEGER),
+        (3, Vtype.REAL),
     ],
     indirect=True,
 )

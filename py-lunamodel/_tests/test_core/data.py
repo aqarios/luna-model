@@ -55,16 +55,16 @@ def make_env_with_vars() -> tuple[Environment, list[Variable]]:
     env = Environment()
     with env:
         variables: list[Variable] = [
-            Variable("x", vtype=Vtype.Binary),
-            Variable("s", vtype=Vtype.Spin),
-            Variable("i", vtype=Vtype.Integer),
-            Variable("r", vtype=Vtype.Real),
-            Variable("ibl", vtype=Vtype.Integer, bounds=Bounds(lower=0.0)),
-            Variable("ibu", vtype=Vtype.Integer, bounds=Bounds(upper=1.0)),
-            Variable("ib", vtype=Vtype.Integer, bounds=Bounds(lower=1.0, upper=2.0)),
-            Variable("rbl", vtype=Vtype.Real, bounds=Bounds(lower=0.0)),
-            Variable("rbu", vtype=Vtype.Real, bounds=Bounds(upper=1.0)),
-            Variable("rb", vtype=Vtype.Real, bounds=Bounds(lower=1.0, upper=2.0)),
+            Variable("x", vtype=Vtype.BINARY),
+            Variable("s", vtype=Vtype.SPIN),
+            Variable("i", vtype=Vtype.INTEGER),
+            Variable("r", vtype=Vtype.REAL),
+            Variable("ibl", vtype=Vtype.INTEGER, bounds=Bounds(lower=0.0)),
+            Variable("ibu", vtype=Vtype.INTEGER, bounds=Bounds(upper=1.0)),
+            Variable("ib", vtype=Vtype.INTEGER, bounds=Bounds(lower=1.0, upper=2.0)),
+            Variable("rbl", vtype=Vtype.REAL, bounds=Bounds(lower=0.0)),
+            Variable("rbu", vtype=Vtype.REAL, bounds=Bounds(upper=1.0)),
+            Variable("rb", vtype=Vtype.REAL, bounds=Bounds(lower=1.0, upper=2.0)),
         ]
 
     return env, variables
@@ -72,27 +72,27 @@ def make_env_with_vars() -> tuple[Environment, list[Variable]]:
 
 def environments() -> list[Environment]:
     variables_gen: list[Callable[[Environment], Variable]] = [
-        lambda env: Variable("x", env=env, vtype=Vtype.Binary),
-        lambda env: Variable("s", env=env, vtype=Vtype.Spin),
-        lambda env: Variable("i", env=env, vtype=Vtype.Integer),
-        lambda env: Variable("r", env=env, vtype=Vtype.Real),
+        lambda env: Variable("x", env=env, vtype=Vtype.BINARY),
+        lambda env: Variable("s", env=env, vtype=Vtype.SPIN),
+        lambda env: Variable("i", env=env, vtype=Vtype.INTEGER),
+        lambda env: Variable("r", env=env, vtype=Vtype.REAL),
         lambda env: Variable(
-            "ibl", env=env, vtype=Vtype.Integer, bounds=Bounds(lower=0.0)
+            "ibl", env=env, vtype=Vtype.INTEGER, bounds=Bounds(lower=0.0)
         ),
         lambda env: Variable(
-            "ibu", env=env, vtype=Vtype.Integer, bounds=Bounds(upper=1.0)
+            "ibu", env=env, vtype=Vtype.INTEGER, bounds=Bounds(upper=1.0)
         ),
         lambda env: Variable(
-            "ib", env=env, vtype=Vtype.Integer, bounds=Bounds(lower=1.0, upper=2.0)
+            "ib", env=env, vtype=Vtype.INTEGER, bounds=Bounds(lower=1.0, upper=2.0)
         ),
         lambda env: Variable(
-            "rbl", env=env, vtype=Vtype.Real, bounds=Bounds(lower=0.0)
+            "rbl", env=env, vtype=Vtype.REAL, bounds=Bounds(lower=0.0)
         ),
         lambda env: Variable(
-            "rbu", env=env, vtype=Vtype.Real, bounds=Bounds(upper=1.0)
+            "rbu", env=env, vtype=Vtype.REAL, bounds=Bounds(upper=1.0)
         ),
         lambda env: Variable(
-            "rb", env=env, vtype=Vtype.Real, bounds=Bounds(lower=1.0, upper=2.0)
+            "rb", env=env, vtype=Vtype.REAL, bounds=Bounds(lower=1.0, upper=2.0)
         ),
     ]
 

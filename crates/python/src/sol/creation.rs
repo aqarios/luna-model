@@ -287,7 +287,7 @@ impl PySolution {
     #[staticmethod]
     fn from_arrays(
         data: PyReadonlyArray2<f64>,
-        variables: Vec<VarKey>,
+        variables: Option<Vec<VarKey>>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
@@ -312,8 +312,19 @@ impl PySolution {
             sol.raw_energies = Some(es)
         }
 
-        for (col, var) in data.as_array().axis_iter(Axis(1)).zip(variables) {
-            let varname = var.name()?;
+        let variables: Vec<String> = match variables {
+            Some(vars) => vars
+                .iter()
+                .map(|v| v.name())
+                .collect::<LunaModelResult<_>>()?,
+            None => environment
+                .vars()
+                .iter()
+                .map(|v| v.name())
+                .collect::<LunaModelResult<_>>()?,
+        };
+
+        for (col, varname) in data.as_array().axis_iter(Axis(1)).zip(variables) {
             match environment.vtype_of(&varname)? {
                 Vtype::Binary => sol.add_binary(varname, col.to_vec()),
                 Vtype::Spin => sol.add_spin(varname, col.to_vec()),

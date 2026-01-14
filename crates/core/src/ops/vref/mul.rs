@@ -20,6 +20,8 @@ impl Mul<Self> for &VarRef {
     type Output = LunaModelResult<Expression>;
     fn mul(self, rhs: Self) -> Self::Output {
         check_envs(self, rhs)?;
+        self.check_living()?;
+        rhs.check_living()?;
         let mut out = Expression::empty(self.env.clone()).maybe_edit(|e| e.add_assign(self))?;
         out.mul_assign(rhs)?;
         Ok(out)
@@ -29,6 +31,7 @@ impl Mul<Self> for &VarRef {
 impl Mul<Bias> for &VarRef {
     type Output = LunaModelResult<Expression>;
     fn mul(self, rhs: Bias) -> Self::Output {
+        self.check_living()?;
         let mut out = Expression::empty(self.env.clone()).maybe_edit(|e| e.add_assign(self))?;
         out.mul_assign(rhs)?;
         Ok(out)

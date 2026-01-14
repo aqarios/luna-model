@@ -20,7 +20,7 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Integer)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.INTEGER)], indirect=True)
 def test_model_bsi_all_feasible(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     # feasible when value smaller than 4.
@@ -33,7 +33,7 @@ def test_model_bsi_all_feasible(model: tuple[Model, tuple[Variable, ...]]):
     assert sol.best_sample_idx == 0
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Integer)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.INTEGER)], indirect=True)
 def test_model_bsi_no_feasible(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     # feasible when value smaller than 4.
@@ -46,7 +46,7 @@ def test_model_bsi_no_feasible(model: tuple[Model, tuple[Variable, ...]]):
     assert sol.best_sample_idx is None
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Integer)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.INTEGER)], indirect=True)
 def test_model_bsi_max_feasible(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     # feasible when value smaller than 4.
@@ -59,7 +59,7 @@ def test_model_bsi_max_feasible(model: tuple[Model, tuple[Variable, ...]]):
     assert sol.best_sample_idx == 1
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Integer)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.INTEGER)], indirect=True)
 def test_model_bsi_min_feasible(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     m, (x, y, z) = model

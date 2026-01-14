@@ -7,7 +7,6 @@ from numpy.typing import NDArray
 from random import Random, shuffle
 from typing import Any, Callable
 
-import pytest
 from numpy import unique
 from _tests.test_core.utils import random_bool, random_int
 
@@ -17,10 +16,10 @@ def aws_model() -> Model:
     m = Model(name="TestModel")
     x0 = m.add_variable("x0")
     m.objective = x0 * 1
-    x1 = m.add_variable("x1", vtype=Vtype.Real)
+    x1 = m.add_variable("x1", vtype=Vtype.REAL)
     m.objective += x0 * x1 * -1
     x2 = m.add_variable("x2")
-    x3 = m.add_variable("x3", vtype=Vtype.Integer, lower=0, upper=30)
+    x3 = m.add_variable("x3", vtype=Vtype.INTEGER, lower=0, upper=30)
     x4 = m.add_variable("x4")
     m.objective += (
         x0 * x1 * 12.213
@@ -77,7 +76,7 @@ def dwave_result() -> DwaveResult:
     return DwaveResult(sampleset, counts, energy, samples)
 
 
-def mock_env(n_variables: int, vtype: Vtype = Vtype.Binary) -> Environment:
+def mock_env(n_variables: int, vtype: Vtype = Vtype.BINARY) -> Environment:
     env = Environment()
     with env:
         for i in range(n_variables):
@@ -91,10 +90,10 @@ def np_model() -> Model:
     with m.environment:
         x0 = Variable("x0")
         m.objective = x0 * 1
-        x1 = Variable("x1", vtype=Vtype.Real)
+        x1 = Variable("x1", vtype=Vtype.REAL)
         m.objective += x0 * x1 * -1
         x2 = Variable("x2")
-        x3 = Variable("x3", vtype=Vtype.Integer, bounds=Bounds(0, 30))
+        x3 = Variable("x3", vtype=Vtype.INTEGER, bounds=Bounds(0, 30))
         x4 = Variable("x4")
         m.objective += (
             x0 * x1 * 12.213
@@ -167,15 +166,15 @@ def fake_qctrl_result(
 def zib_model() -> Model:
     m = Model(name="TestModel")
     with m.environment:
-        pennies = Variable("Pennies", vtype=Vtype.Integer, bounds=Bounds(lower=1))
-        nickels = Variable("Nickels", vtype=Vtype.Integer, bounds=Bounds(lower=1))
-        dimes = Variable("Dimes", vtype=Vtype.Integer, bounds=Bounds(lower=1))
-        quarters = Variable("Quarters", vtype=Vtype.Integer, bounds=Bounds(lower=1))
-        dollars = Variable("Dollars", vtype=Vtype.Integer, bounds=Bounds(lower=1))
-        cu = Variable("Cu", vtype=Vtype.Real, bounds=Bounds(upper=1000))
-        ni = Variable("Ni", vtype=Vtype.Real, bounds=Bounds(upper=50))
-        zi = Variable("Zi", vtype=Vtype.Real, bounds=Bounds(upper=50))
-        mn = Variable("Mn", vtype=Vtype.Real, bounds=Bounds(upper=50))
+        pennies = Variable("Pennies", vtype=Vtype.INTEGER, bounds=Bounds(lower=1))
+        nickels = Variable("Nickels", vtype=Vtype.INTEGER, bounds=Bounds(lower=1))
+        dimes = Variable("Dimes", vtype=Vtype.INTEGER, bounds=Bounds(lower=1))
+        quarters = Variable("Quarters", vtype=Vtype.INTEGER, bounds=Bounds(lower=1))
+        dollars = Variable("Dollars", vtype=Vtype.INTEGER, bounds=Bounds(lower=1))
+        cu = Variable("Cu", vtype=Vtype.REAL, bounds=Bounds(upper=1000))
+        ni = Variable("Ni", vtype=Vtype.REAL, bounds=Bounds(upper=50))
+        zi = Variable("Zi", vtype=Vtype.REAL, bounds=Bounds(upper=50))
+        mn = Variable("Mn", vtype=Vtype.REAL, bounds=Bounds(upper=50))
     m.objective = (
         0.01 * pennies + 0.05 * nickels + 0.1 * dimes + 0.25 * quarters + 1 * dollars
     )
@@ -202,15 +201,15 @@ def zib_model() -> Model:
 def zib_model_quadratic() -> Model:
     m = Model(name="TestModel")
     with m.environment:
-        pennies = Variable("Pennies", vtype=Vtype.Integer, bounds=Bounds(lower=1))
-        nickels = Variable("Nickels", vtype=Vtype.Integer, bounds=Bounds(lower=1))
-        dimes = Variable("Dimes", vtype=Vtype.Integer, bounds=Bounds(lower=1))
-        quarters = Variable("Quarters", vtype=Vtype.Integer, bounds=Bounds(lower=1))
-        dollars = Variable("Dollars", vtype=Vtype.Integer, bounds=Bounds(lower=1))
-        cu = Variable("Cu", vtype=Vtype.Real, bounds=Bounds(upper=1000))
-        ni = Variable("Ni", vtype=Vtype.Real, bounds=Bounds(upper=50))
-        zi = Variable("Zi", vtype=Vtype.Real, bounds=Bounds(upper=50))
-        mn = Variable("Mn", vtype=Vtype.Real, bounds=Bounds(upper=50))
+        pennies = Variable("Pennies", vtype=Vtype.INTEGER, bounds=Bounds(lower=1))
+        nickels = Variable("Nickels", vtype=Vtype.INTEGER, bounds=Bounds(lower=1))
+        dimes = Variable("Dimes", vtype=Vtype.INTEGER, bounds=Bounds(lower=1))
+        quarters = Variable("Quarters", vtype=Vtype.INTEGER, bounds=Bounds(lower=1))
+        dollars = Variable("Dollars", vtype=Vtype.INTEGER, bounds=Bounds(lower=1))
+        cu = Variable("Cu", vtype=Vtype.REAL, bounds=Bounds(upper=1000))
+        ni = Variable("Ni", vtype=Vtype.REAL, bounds=Bounds(upper=50))
+        zi = Variable("Zi", vtype=Vtype.REAL, bounds=Bounds(upper=50))
+        mn = Variable("Mn", vtype=Vtype.REAL, bounds=Bounds(upper=50))
     m.objective = (
         0.01 * pennies * nickels
         + 0.05 * nickels * dollars

@@ -7,7 +7,7 @@ from luna_model.errors import VariableNotExistingError
 def base() -> tuple[Model, Variable, Variable]:
     model = Model()
     x = model.add_variable("x")
-    s = model.add_variable("s", vtype=Vtype.Spin)
+    s = model.add_variable("s", vtype=Vtype.SPIN)
     model.objective = x - s
     rep = model.add_variable("b")
     model.substitute(s, rep)

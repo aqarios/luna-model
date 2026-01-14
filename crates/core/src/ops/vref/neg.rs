@@ -1,14 +1,16 @@
 use std::ops::Neg;
 
+use lunamodel_error::LunaModelResult;
+
 use crate::{Expression, ops::LmSubAssign, prelude::VarRef, traits::Editable};
 
 impl Neg for &VarRef {
-    type Output = Expression;
+    type Output = LunaModelResult<Expression>;
 
     fn neg(self) -> Self::Output {
-        Expression::empty(self.env.clone()).edit(|e| {
+        self.check_living()?;
+        Expression::empty(self.env.clone()).maybe_edit(|e| {
             e.sub_assign(self)
-                .expect("variable.neg() should work without errors.")
         })
     }
 }

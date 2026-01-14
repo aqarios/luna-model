@@ -6,9 +6,9 @@ def test_add_var():
     with env:
         vars = [
             Variable("b"),
-            Variable("s", vtype=Vtype.Spin),
-            Variable("i", vtype=Vtype.Integer),
-            Variable("r", vtype=Vtype.Real),
+            Variable("s", vtype=Vtype.SPIN),
+            Variable("i", vtype=Vtype.INTEGER),
+            Variable("r", vtype=Vtype.REAL),
         ]
 
     base_names = [v.name for v in vars]
@@ -20,18 +20,18 @@ def test_add_var():
     assert sol.samples.tolist()[0] == [*base_vals, 1]
     assert sol[0].sample.to_dict() == {**base, "b2": 1}
 
-    s2 = Variable("s2", vtype=Vtype.Spin, env=env)
+    s2 = Variable("s2", vtype=Vtype.SPIN, env=env)
     sol.add_var(s2, [+1])
     assert sol.variable_names == [*base_names, "b2", "s2"]
     assert sol.samples.tolist()[0] == [*base_vals, 1, +1]
     assert sol[0].sample.to_dict() == {**base, "b2": 1, "s2": +1}
 
-    sol.add_var("i2", [6], vtype=Vtype.Spin)
+    sol.add_var("i2", [6], vtype=Vtype.SPIN)
     assert sol.variable_names == [*base_names, "b2", "s2", "i2"]
     assert sol.samples.tolist()[0] == [*base_vals, 1, +1, 6]
     assert sol[0].sample.to_dict() == {**base, "b2": 1, "s2": +1, "i2": 6}
 
-    sol.add_var("r2", [6.28], vtype=Vtype.Real)
+    sol.add_var("r2", [6.28], vtype=Vtype.REAL)
     assert sol.variable_names == [*base_names, "b2", "s2", "i2", "r2"]
     assert sol.samples.tolist()[0] == [*base_vals, 1, +1, 6, 6.28]
     assert sol[0].sample.to_dict() == {**base, "b2": 1, "s2": +1, "i2": 6, "r2": 6.28}
@@ -42,20 +42,20 @@ def test_add_vars():
     with env:
         vars = [
             Variable("b"),
-            Variable("s", vtype=Vtype.Spin),
-            Variable("i", vtype=Vtype.Integer),
-            Variable("r", vtype=Vtype.Real),
+            Variable("s", vtype=Vtype.SPIN),
+            Variable("i", vtype=Vtype.INTEGER),
+            Variable("r", vtype=Vtype.REAL),
         ]
 
     base_names = [v.name for v in vars]
     base_vals = [0, -1, 3, 3.14]
     base = {n: v for n, v in zip(base_names, base_vals)}
     sol = Solution.from_dict(base, env=env)
-    i2 = Variable("i2", vtype=Vtype.Integer, env=env)
+    i2 = Variable("i2", vtype=Vtype.INTEGER, env=env)
     sol.add_vars(
         ["b2", "s2", i2, "r2"],
         [[1], [+1], [6], [6.28]],
-        vtypes=[Vtype.Binary, Vtype.Spin, None, Vtype.Real],
+        vtypes=[Vtype.BINARY, Vtype.SPIN, None, Vtype.REAL],
     )
     assert sol.variable_names == [*base_names, "b2", "s2", "i2", "r2"]
     assert sol.samples.tolist()[0] == [*base_vals, 1, +1, 6, 6.28]
@@ -67,9 +67,9 @@ def test_add_vars_only_var():
     with env:
         vars = [
             Variable("b"),
-            Variable("s", vtype=Vtype.Spin),
-            Variable("i", vtype=Vtype.Integer),
-            Variable("r", vtype=Vtype.Real),
+            Variable("s", vtype=Vtype.SPIN),
+            Variable("i", vtype=Vtype.INTEGER),
+            Variable("r", vtype=Vtype.REAL),
         ]
 
     base_names = [v.name for v in vars]
@@ -78,9 +78,9 @@ def test_add_vars_only_var():
     sol = Solution.from_dict(base, env=env)
 
     b2 = Variable("b2", env=env)
-    s2 = Variable("s2", vtype=Vtype.Spin, env=env)
-    i2 = Variable("i2", vtype=Vtype.Integer, env=env)
-    r2 = Variable("r2", vtype=Vtype.Real, env=env)
+    s2 = Variable("s2", vtype=Vtype.SPIN, env=env)
+    i2 = Variable("i2", vtype=Vtype.INTEGER, env=env)
+    r2 = Variable("r2", vtype=Vtype.REAL, env=env)
 
     sol.add_vars([b2, s2, i2, r2], [[1], [+1], [6], [6.28]])
     assert sol.variable_names == [*base_names, "b2", "s2", "i2", "r2"]
@@ -93,9 +93,9 @@ def test_remove_var():
     with env:
         vars = [
             Variable("b"),
-            Variable("s", vtype=Vtype.Spin),
-            Variable("i", vtype=Vtype.Integer),
-            Variable("r", vtype=Vtype.Real),
+            Variable("s", vtype=Vtype.SPIN),
+            Variable("i", vtype=Vtype.INTEGER),
+            Variable("r", vtype=Vtype.REAL),
         ]
 
     base_names = [v.name for v in vars]
@@ -129,9 +129,9 @@ def test_remove_vars():
     with env:
         vars = [
             Variable("b"),
-            Variable("s", vtype=Vtype.Spin),
-            Variable("i", vtype=Vtype.Integer),
-            Variable("r", vtype=Vtype.Real),
+            Variable("s", vtype=Vtype.SPIN),
+            Variable("i", vtype=Vtype.INTEGER),
+            Variable("r", vtype=Vtype.REAL),
         ]
 
     base_names = [v.name for v in vars]

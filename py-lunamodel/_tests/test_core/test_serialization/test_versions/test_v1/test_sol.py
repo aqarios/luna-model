@@ -13,14 +13,14 @@ def model_samples():
     model = Model("MyModel")
 
     with model.environment:
-        b1 = Variable("b1", vtype=Vtype.Binary)
-        b2 = Variable("b2", vtype=Vtype.Binary)
-        s1 = Variable("s1", vtype=Vtype.Spin)
-        s2 = Variable("s2", vtype=Vtype.Spin)
-        i1 = Variable("i1", vtype=Vtype.Integer)
-        i2 = Variable("i2", vtype=Vtype.Integer)
-        r1 = Variable("r1", vtype=Vtype.Real)
-        r2 = Variable("r2", vtype=Vtype.Real)
+        b1 = Variable("b1", vtype=Vtype.BINARY)
+        b2 = Variable("b2", vtype=Vtype.BINARY)
+        s1 = Variable("s1", vtype=Vtype.SPIN)
+        s2 = Variable("s2", vtype=Vtype.SPIN)
+        i1 = Variable("i1", vtype=Vtype.INTEGER)
+        i2 = Variable("i2", vtype=Vtype.INTEGER)
+        r1 = Variable("r1", vtype=Vtype.REAL)
+        r2 = Variable("r2", vtype=Vtype.REAL)
 
     model.objective = (
         1 * b1 - 2 * b2 + 3 * s1 - 4 * s2 + 5 * i1 - 6 * i2 + 7 * r1 - 8 * r2

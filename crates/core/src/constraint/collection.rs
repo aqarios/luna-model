@@ -8,7 +8,7 @@ use std::{fmt::Display, ops::Index};
 use super::constraint::Constraint;
 
 /// The ConstraintCollection struct is an insertion ordered collection of one or more [Constraint]s.
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone)]
 pub struct ConstraintCollection {
     /// A map to help in indexing into this collection when [ConstraintKey].
     /// Supports both [ConstraintKey::Str] and [ConstraintKey::Int] but [ConstraintKey::Int] is
@@ -65,17 +65,11 @@ impl ConstraintCollection {
         mut constr: Constraint,
         name: Option<String>,
     ) -> LunaModelResult<()> {
-        let name = name.unwrap_or_else(|| {
-            // if constr.assigned_name {
-            //     format!("c{}", self.len())
-            // } else {
-                constr.name.clone()
-            // }
-        });
+        let name = name.unwrap_or_else(|| constr.name().to_string());
         if self.data.contains_key(&name) {
             Err(LunaModelError::DuplicateConstraintName(name.into()))
         } else {
-            constr.name = name.clone();
+            constr.set_name(name.clone())?;
             self.data.insert(name, constr);
             Ok(())
         }
@@ -156,5 +150,20 @@ impl Display for ConstraintCollection {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         _ = f;
         unimplemented!()
+    }
+}
+
+impl PartialEq for ConstraintCollection {
+    fn eq(&self, other: &Self) -> bool {
+        for (cname, constr) in self.data.iter() {
+            if let Ok(otr_constr) = other.get(cname) {
+                if constr != otr_constr {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        true
     }
 }

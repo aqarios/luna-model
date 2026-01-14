@@ -43,6 +43,10 @@ class Constraint:
     def name(self) -> str:
         return self._c.name
 
+    @name.setter
+    def name(self, name: str) -> None:
+        self._c.name = name
+
     @property
     def lhs(self) -> Expression:
         return wrap_expr(self._c.lhs)
@@ -54,6 +58,9 @@ class Constraint:
     @property
     def comparator(self) -> Comparator:
         return Comparator._from_pycmp(self._c.comparator)
+
+    def equal_contents(self, other: Constraint) -> bool:
+        return self._c.equal_contents(other._c)
 
     def __eq__(self, other: Constraint) -> bool:  # type: ignore[override]
         return self._c.__eq__(other._c)

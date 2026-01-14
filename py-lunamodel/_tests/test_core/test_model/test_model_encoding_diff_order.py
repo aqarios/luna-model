@@ -6,10 +6,10 @@ from luna_model import Bounds, Model, Unbounded, Variable, Vtype
 def model_a():
     model = Model("model_a")
     with model.environment:
-        x = Variable("x", vtype=Vtype.Spin)
-        y = Variable("y", vtype=Vtype.Integer, bounds=Bounds(lower=Unbounded))
-        z = Variable("z", vtype=Vtype.Binary)
-        a = Variable("a", vtype=Vtype.Real, bounds=Bounds(10, 20))
+        x = Variable("x", vtype=Vtype.SPIN)
+        y = Variable("y", vtype=Vtype.INTEGER, bounds=Bounds(lower=Unbounded))
+        z = Variable("z", vtype=Vtype.BINARY)
+        a = Variable("a", vtype=Vtype.REAL, bounds=Bounds(10, 20))
 
     model.objective += x + y + z + x * y + x * z + a
     model.constraints += x + y <= 3, "c1"
@@ -21,10 +21,10 @@ def model_a():
 def model_b():
     model = Model("model_b")
     with model.environment:
-        z = Variable("z", vtype=Vtype.Binary)
-        x = Variable("x", vtype=Vtype.Spin)
-        a = Variable("a", vtype=Vtype.Real, bounds=Bounds(10, 20))
-        y = Variable("y", vtype=Vtype.Integer, bounds=Bounds(lower=Unbounded))
+        z = Variable("z", vtype=Vtype.BINARY)
+        x = Variable("x", vtype=Vtype.SPIN)
+        a = Variable("a", vtype=Vtype.REAL, bounds=Bounds(10, 20))
+        y = Variable("y", vtype=Vtype.INTEGER, bounds=Bounds(lower=Unbounded))
 
     model.objective = y + x + y * x + z * x + z + a
     model.constraints += y + x <= 3, "c1"

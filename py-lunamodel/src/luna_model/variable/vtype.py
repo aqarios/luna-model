@@ -14,40 +14,18 @@ class Vtype(Enum):
     INTEGER = "Integer"
     REAL = "Real"
 
-    # todo: deprecate the below
-
-    Binary = "Binary"
-    InvertedBinary = "InvertedBinary"
-    Spin = "Spin"
-    Integer = "Integer"
-    Real = "Real"
-
-    @property
-    def name(self) -> str:
-        match self:
-            case Vtype.BINARY | Vtype.Binary:
-                return "Binary"
-            case Vtype.INVERTED_BINARY | Vtype.InvertedBinary:
-                return "InvertedBinary"
-            case Vtype.SPIN | Vtype.Spin:
-                return "Spin"
-            case Vtype.INTEGER | Vtype.Integer:
-                return "Integer"
-            case Vtype.REAL | Vtype.Real:
-                return "Real"
-
     @property
     def _val(self) -> PyVtype:
         match self:
-            case Vtype.BINARY | Vtype.Binary:
+            case Vtype.BINARY:
                 return PyVtype.Binary
-            case Vtype.INVERTED_BINARY | Vtype.InvertedBinary:
+            case Vtype.INVERTED_BINARY:
                 return PyVtype.InvertedBinary
-            case Vtype.SPIN | Vtype.Spin:
+            case Vtype.SPIN:
                 return PyVtype.Spin
-            case Vtype.INTEGER | Vtype.Integer:
+            case Vtype.INTEGER:
                 return PyVtype.Integer
-            case Vtype.REAL | Vtype.Real:
+            case Vtype.REAL:
                 return PyVtype.Real
 
     @classmethod

@@ -14,7 +14,7 @@ def variables(request) -> tuple[Variable, ...]:
 
 @pytest.mark.parametrize(
     "variables",
-    product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    product([3], [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]),
     indirect=True,
 )
 def test_expression_pow(variables):
@@ -27,7 +27,7 @@ def test_expression_pow(variables):
 
 @pytest.mark.parametrize(
     "variables",
-    product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    product([3], [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]),
     indirect=True,
 )
 def test_expression_pow_n1(variables):

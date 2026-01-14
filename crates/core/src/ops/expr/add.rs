@@ -26,6 +26,7 @@ impl LmAddAssign<&usize> for Expression {
 impl LmAddAssign<&VarRef> for Expression {
     fn add_assign(&mut self, rhs: &VarRef) -> LunaModelResult<()> {
         check_envs(self, rhs)?;
+        rhs.check_living()?;
         self.linear += (rhs.id(), 1.0);
         Ok(())
     }

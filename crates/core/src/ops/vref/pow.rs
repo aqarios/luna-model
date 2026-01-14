@@ -8,6 +8,7 @@ use lunamodel_error::LunaModelResult;
 impl LmPow for &VarRef {
     type Output = Expression;
     fn pow(self, sup: usize) -> LunaModelResult<Self::Output> {
+        self.check_living()?;
         let mut base = Expression::empty(self.env.clone());
         match sup {
             0 => base.offset = 1.0,

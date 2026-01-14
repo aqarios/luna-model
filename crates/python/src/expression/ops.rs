@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 use std::ops::Neg;
 
 use crate::PyExpression;
-use crate::utils::OpsOther as OO;
+use crate::utils::{OpsOther as OO, as_usize};
 
 #[pymethods]
 impl PyExpression {
@@ -79,22 +79,22 @@ impl PyExpression {
         Ok(())
     }
 
-    pub fn __pow__(&mut self, other: usize, modulo: Option<isize>) -> PyResult<Self> {
+    pub fn __pow__(&mut self, other: isize, modulo: Option<isize>) -> PyResult<Self> {
         if modulo.is_some() {
             return Err(PyLunaModelError::new_err(
                 "the 'modulo' parameter is not supported.",
             ));
         }
-        Ok(Self::new(self.expr.pow(other)?))
+        Ok(Self::new(self.expr.pow(as_usize(other)?)?))
     }
 
-    pub fn __ipow__(&mut self, other: usize, modulo: Option<isize>) -> PyResult<()> {
+    pub fn __ipow__(&mut self, other: isize, modulo: Option<isize>) -> PyResult<()> {
         if modulo.is_some() {
             return Err(PyLunaModelError::new_err(
                 "the 'modulo' parameter is not supported.",
             ));
         }
-        Ok(self.expr.pow_assign(other)?)
+        Ok(self.expr.pow_assign(as_usize(other)?)?)
     }
 
     pub fn __neg__(&self) -> Self {

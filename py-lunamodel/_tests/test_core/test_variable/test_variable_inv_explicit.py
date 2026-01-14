@@ -4,7 +4,7 @@ from luna_model.errors import UnsupportedOperationError
 
 def test_inverse_binary():
     env = Environment()
-    b = Variable("b", vtype=Vtype.Binary, env=env)
+    b = Variable("b", vtype=Vtype.BINARY, env=env)
     inv_b = b.inv()
     assert f"~{b.name}" == inv_b.name
     assert b != inv_b
@@ -18,7 +18,7 @@ def test_inverse_binary():
 
 def test_inverse_binary_lin():
     env = Environment()
-    b = Variable("b", vtype=Vtype.Binary, env=env)
+    b = Variable("b", vtype=Vtype.BINARY, env=env)
     expr = 5 * b.inv()
     sol = expr.evaluate(Solution.from_dict({"b": 0}, env=env))[0]
     assert 5.0 == sol, "evaluated value is not 5"
@@ -26,7 +26,7 @@ def test_inverse_binary_lin():
 
 def test_inverse_binary_quad():
     env = Environment()
-    b = Variable("b", vtype=Vtype.Binary, env=env)
+    b = Variable("b", vtype=Vtype.BINARY, env=env)
     expr = 5 * b.inv() * b
     sol = expr.evaluate(Solution.from_dict({"b": 0}, env=env))[0]
     assert 0.0 == sol, "evaluated value is not 0.0"
@@ -34,7 +34,7 @@ def test_inverse_binary_quad():
 
 def test_inverse_binary_quad2():
     env = Environment()
-    b = Variable("b", vtype=Vtype.Binary, env=env)
+    b = Variable("b", vtype=Vtype.BINARY, env=env)
     expr = 5 * b * b.inv()
     sol = expr.evaluate(Solution.from_dict({"b": 0}, env=env))[0]
     assert 0.0 == sol, "evaluated value is not 0.0"
@@ -42,9 +42,9 @@ def test_inverse_binary_quad2():
 
 def test_inverse_binary_ho():
     env = Environment()
-    a = Variable("a", vtype=Vtype.Binary, env=env)
-    b = Variable("b", vtype=Vtype.Binary, env=env)
-    c = Variable("c", vtype=Vtype.Binary, env=env)
+    a = Variable("a", vtype=Vtype.BINARY, env=env)
+    b = Variable("b", vtype=Vtype.BINARY, env=env)
+    c = Variable("c", vtype=Vtype.BINARY, env=env)
     expr = 5 * a * b * c * b.inv()
     sol = expr.evaluate(Solution.from_dict({"b": 0, "a": 1, "c": 1}, env=env))[0]
     assert 0.0 == sol, "evaluated value is not 0.0"
@@ -56,9 +56,9 @@ def test_inverse_binary_ho():
 
 def test_inverse_binary_ho2():
     env = Environment()
-    a = Variable("a", vtype=Vtype.Binary, env=env)
-    b = Variable("b", vtype=Vtype.Binary, env=env)
-    c = Variable("c", vtype=Vtype.Binary, env=env)
+    a = Variable("a", vtype=Vtype.BINARY, env=env)
+    b = Variable("b", vtype=Vtype.BINARY, env=env)
+    c = Variable("c", vtype=Vtype.BINARY, env=env)
     expr = 5 * a * c * b * b.inv()
     sol = expr.evaluate(Solution.from_dict({"b": 0, "a": 1, "c": 1}, env=env))[0]
     assert 0.0 == sol, "evaluated value is not 0.0"
@@ -70,9 +70,9 @@ def test_inverse_binary_ho2():
 
 def test_inverse_binary_ho3():
     env = Environment()
-    a = Variable("a", vtype=Vtype.Binary, env=env)
-    b = Variable("b", vtype=Vtype.Binary, env=env)
-    c = Variable("c", vtype=Vtype.Binary, env=env)
+    a = Variable("a", vtype=Vtype.BINARY, env=env)
+    b = Variable("b", vtype=Vtype.BINARY, env=env)
+    c = Variable("c", vtype=Vtype.BINARY, env=env)
     expr = 5 * a * ~b * c * b
     sol = expr.evaluate(Solution.from_dict({"b": 0, "a": 1, "c": 1}, env=env))[0]
     assert 0.0 == sol, "evaluated value is not 0.0"
@@ -84,28 +84,28 @@ def test_inverse_binary_ho3():
 
 def test_inverse_int():
     env = Environment()
-    b = Variable("b", vtype=Vtype.Integer, env=env)
+    b = Variable("b", vtype=Vtype.INTEGER, env=env)
     with pytest.raises(UnsupportedOperationError):
         _ = b.inv()
 
 
 def test_inverse_real():
     env = Environment()
-    b = Variable("b", vtype=Vtype.Real, env=env)
+    b = Variable("b", vtype=Vtype.REAL, env=env)
     with pytest.raises(UnsupportedOperationError):
         _ = b.inv()
 
 
 def test_inverse_spin():
     env = Environment()
-    b = Variable("b", vtype=Vtype.Spin, env=env)
+    b = Variable("b", vtype=Vtype.SPIN, env=env)
     with pytest.raises(UnsupportedOperationError):
         _ = b.inv()
 
 
 if __name__ == "__main__":
     env = Environment()
-    b = Variable("b", vtype=Vtype.Binary, env=env)
+    b = Variable("b", vtype=Vtype.BINARY, env=env)
     expr = 5 * b.inv()
     print(expr)
     sol = Solution.from_dict({"b": 0}, env=env)

@@ -6,8 +6,8 @@ from luna_model.errors import VariableNotExistingError
 def test_model_substitution_same_var():
     m = Model()
     with m.environment:
-        target = Variable("target", vtype=Vtype.Integer)
-        a = Variable("a", vtype=Vtype.Integer)
+        target = Variable("target", vtype=Vtype.INTEGER)
+        a = Variable("a", vtype=Vtype.INTEGER)
 
     replacement = 2 * target
 
@@ -34,8 +34,8 @@ def test_model_substitution_same_var():
 def test_model_substitution_var():
     m = Model()
     with m.environment:
-        target = Variable("target", vtype=Vtype.Integer)
-        a = Variable("a", vtype=Vtype.Integer)
+        target = Variable("target", vtype=Vtype.INTEGER)
+        a = Variable("a", vtype=Vtype.INTEGER)
 
     replacement = a
 
@@ -70,8 +70,8 @@ def test_model_substitution_var():
 def test_model_substitution():
     m = Model()
     with m.environment:
-        a = Variable("a", vtype=Vtype.Integer)
-        target = Variable("target", vtype=Vtype.Integer)
+        a = Variable("a", vtype=Vtype.INTEGER)
+        target = Variable("target", vtype=Vtype.INTEGER)
 
         x1 = Variable("x_1")
         x2 = Variable("x_2")

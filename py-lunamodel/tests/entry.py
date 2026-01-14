@@ -4,7 +4,7 @@ from luna_model._lm import PyVtype
 
 env = Environment()
 expr = Expression(env)
-vara = Variable("vara", Vtype.Binary, env=env)
+vara = Variable("vara", Vtype.BINARY, env=env)
 var = Variable("var", Vtype.BINARY, env=env)
 
 print(vara)

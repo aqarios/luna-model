@@ -61,8 +61,8 @@ def controlled_qp() -> QuadraticProgram:
 def controlled_lm() -> Model:
     model = Model("a_aqm")
     with model.environment:
-        x = Variable("x", vtype=Vtype.Binary)
-        y = Variable("y", vtype=Vtype.Binary)
+        x = Variable("x", vtype=Vtype.BINARY)
+        y = Variable("y", vtype=Vtype.BINARY)
     model.set_sense(Sense.Min)
     model.objective = 1 * x + 2 * y + x * y - 3
     return model

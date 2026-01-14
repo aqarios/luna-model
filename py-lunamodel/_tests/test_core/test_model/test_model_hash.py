@@ -17,10 +17,10 @@ def model_empty_with_vars_maker() -> Callable[[], Model]:
     def creator():
         m = Model()
         with m.environment:
-            _ = Variable("b", vtype=Vtype.Binary)
-            _ = Variable("s", vtype=Vtype.Spin)
-            _ = Variable("i", vtype=Vtype.Integer)
-            _ = Variable("r", vtype=Vtype.Real)
+            _ = Variable("b", vtype=Vtype.BINARY)
+            _ = Variable("s", vtype=Vtype.SPIN)
+            _ = Variable("i", vtype=Vtype.INTEGER)
+            _ = Variable("r", vtype=Vtype.REAL)
         return m
 
     return creator
@@ -31,10 +31,10 @@ def model_objective_maker() -> Callable[[], Model]:
     def creator():
         m = Model()
         with m.environment:
-            b = Variable("b", vtype=Vtype.Binary)
-            s = Variable("s", vtype=Vtype.Spin)
-            i = Variable("i", vtype=Vtype.Integer)
-            r = Variable("r", vtype=Vtype.Real)
+            b = Variable("b", vtype=Vtype.BINARY)
+            s = Variable("s", vtype=Vtype.SPIN)
+            i = Variable("i", vtype=Vtype.INTEGER)
+            r = Variable("r", vtype=Vtype.REAL)
         m.objective += b * s + i * r
         return m
 
@@ -46,10 +46,10 @@ def model_objective_and_constraints_maker() -> Callable[[], Model]:
     def creator():
         m = Model()
         with m.environment:
-            b = Variable("b", vtype=Vtype.Binary)
-            s = Variable("s", vtype=Vtype.Spin)
-            i = Variable("i", vtype=Vtype.Integer)
-            r = Variable("r", vtype=Vtype.Real)
+            b = Variable("b", vtype=Vtype.BINARY)
+            s = Variable("s", vtype=Vtype.SPIN)
+            i = Variable("i", vtype=Vtype.INTEGER)
+            r = Variable("r", vtype=Vtype.REAL)
         m.objective += b * s + i * r
         m.add_constraint(b + s >= 2, "constraint")
         return m
@@ -62,10 +62,10 @@ def model_objective_and_constraints_and_bounds_maker() -> Callable[[], Model]:
     def creator():
         m = Model()
         with m.environment:
-            b = Variable("b", vtype=Vtype.Binary)
-            s = Variable("s", vtype=Vtype.Spin)
-            i = Variable("i", vtype=Vtype.Integer, bounds=Bounds(lower=Unbounded))
-            r = Variable("r", vtype=Vtype.Real, bounds=Bounds(lower=10, upper=5))
+            b = Variable("b", vtype=Vtype.BINARY)
+            s = Variable("s", vtype=Vtype.SPIN)
+            i = Variable("i", vtype=Vtype.INTEGER, bounds=Bounds(lower=Unbounded))
+            r = Variable("r", vtype=Vtype.REAL, bounds=Bounds(lower=10, upper=5))
         m.objective += b * s + i * r
         m.add_constraint(b + s >= 2, "constraint")
         return m

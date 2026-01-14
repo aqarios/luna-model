@@ -83,7 +83,7 @@ class Variable:
         return wrap_expr(self._op(other, self._v.__rmul__))
 
     def __pow__(self, other: int) -> Expression:
-        return wrap_expr(self._v.pow(other))
+        return wrap_expr(self._v.__pow__(other))
 
     def __neg__(self) -> Expression:
         return wrap_expr(self._v.__neg__())

@@ -112,7 +112,7 @@ def test_bqm_solution_with_substitution():
     lmm = BqmTranslator.to_aq(bqm)
     # print(lmm)
 
-    rep = lmm.add_variable("s", vtype=Vtype.Spin)
+    rep = lmm.add_variable("s", vtype=Vtype.SPIN)
     target = lmm.variables()[0]
     target_name = target.name
     target_vtype = target.vtype
@@ -121,7 +121,7 @@ def test_bqm_solution_with_substitution():
 
     lmm.substitute(target, rep)
     # And now back to the original one to have a valid model and solution.
-    if target_vtype not in [Vtype.Binary, Vtype.Spin]:
+    if target_vtype not in [Vtype.BINARY, Vtype.SPIN]:
         back_target = lmm.add_variable(
             target_name, vtype=target_vtype, lower=target_lower, upper=target_upper
         )

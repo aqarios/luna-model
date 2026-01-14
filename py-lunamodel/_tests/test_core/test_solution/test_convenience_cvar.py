@@ -27,7 +27,7 @@ def model(request):
     return model, (x, y, z)
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
 def test_cvar_properties_min_mean_monotone(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     samples = [
@@ -55,7 +55,7 @@ def test_cvar_properties_min_mean_monotone(model: tuple[Model, tuple[Variable, .
     assert cvar_025 <= cvar_050 <= cvar_100
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
 def test_cvar_matches_empirical_formula(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     samples = [
@@ -78,7 +78,7 @@ def test_cvar_matches_empirical_formula(model: tuple[Model, tuple[Variable, ...]
         assert sol.cvar(alpha=alpha) == pytest.approx(empirical(alpha), abs=TOL)
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
 def test_cvar_order_invariance(model: tuple[Model, tuple[Variable, ...]]):
     """CVaR should not depend on the order the samples are given."""
     m, (x, y, z) = model
@@ -100,7 +100,7 @@ def test_cvar_order_invariance(model: tuple[Model, tuple[Variable, ...]]):
         )
 
 
-@pytest.mark.parametrize("model", [(3, Vtype.Binary)], indirect=True)
+@pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
 def test_cvar_invalid_alpha_raises(model: tuple[Model, tuple[Variable, ...]]):
     m, (x, y, z) = model
     samples = [

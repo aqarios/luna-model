@@ -43,7 +43,7 @@ def test_mul_variables():
 
 def test_mul_same_variable_binary():
     with Environment():
-        x = Variable("x", vtype=Vtype.Binary)
+        x = Variable("x", vtype=Vtype.BINARY)
 
     result = x * x
     assert isinstance(result, Expression)
@@ -55,7 +55,7 @@ def test_mul_same_variable_binary():
 
 def test_mul_same_variable_spin():
     with Environment():
-        x = Variable("x", vtype=Vtype.Spin)
+        x = Variable("x", vtype=Vtype.SPIN)
 
     result = x * x
     assert isinstance(result, Expression)
@@ -67,7 +67,7 @@ def test_mul_same_variable_spin():
 
 def test_mul_same_variable_real():
     with Environment():
-        x = Variable("x", vtype=Vtype.Real)
+        x = Variable("x", vtype=Vtype.REAL)
 
     result = x * x
     assert isinstance(result, Expression)
@@ -79,7 +79,7 @@ def test_mul_same_variable_real():
 
 def test_mul_same_variable_integer():
     with Environment():
-        x = Variable("x", vtype=Vtype.Integer)
+        x = Variable("x", vtype=Vtype.INTEGER)
 
     result = x * x
     assert isinstance(result, Expression)

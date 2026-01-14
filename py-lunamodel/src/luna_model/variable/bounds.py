@@ -36,18 +36,13 @@ class Bounds:
     @classmethod
     def default(cls, vtype: Vtype) -> Bounds:
         match vtype:
-            case (
-                Vtype.BINARY
-                | Vtype.Binary
-                | Vtype.INVERTED_BINARY
-                | Vtype.InvertedBinary
-            ):
+            case Vtype.BINARY | Vtype.INVERTED_BINARY:
                 return cls.binary()
-            case Vtype.SPIN | Vtype.Spin:
+            case Vtype.SPIN:
                 return cls.spin()
-            case Vtype.INTEGER | Vtype.Integer:
+            case Vtype.INTEGER:
                 return cls.integer()
-            case Vtype.REAL | Vtype.Real:
+            case Vtype.REAL:
                 return cls.real()
 
     @classmethod

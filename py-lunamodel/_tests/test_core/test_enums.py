@@ -4,10 +4,10 @@ from luna_model import Comparator, Sense, Vtype
 
 
 class ExpectedVtype(Enum):
-    Real = "Real"
-    Integer = "Integer"
-    Binary = "Binary"
-    Spin = "Spin"
+    REAL = "Real"
+    INTEGER = "Integer"
+    BINARY = "Binary"
+    SPIN = "Spin"
 
 
 class ExpectedSense(Enum):
@@ -22,17 +22,17 @@ class ExpectedComparator(Enum):
 
 
 def test_name_vtype():
-    assert Vtype.Real.name == ExpectedVtype.Real.name
-    assert Vtype.Integer.name == ExpectedVtype.Integer.name
-    assert Vtype.Binary.name == ExpectedVtype.Binary.name
-    assert Vtype.Spin.name == ExpectedVtype.Spin.name
+    assert Vtype.REAL.name == ExpectedVtype.REAL.name
+    assert Vtype.INTEGER.name == ExpectedVtype.INTEGER.name
+    assert Vtype.BINARY.name == ExpectedVtype.BINARY.name
+    assert Vtype.SPIN.name == ExpectedVtype.SPIN.name
 
 
 def test_value_vtype():
-    assert Vtype.Real.value == ExpectedVtype.Real.value
-    assert Vtype.Integer.value == ExpectedVtype.Integer.value
-    assert Vtype.Binary.value == ExpectedVtype.Binary.value
-    assert Vtype.Spin.value == ExpectedVtype.Spin.value
+    assert Vtype.REAL.value == ExpectedVtype.REAL.value
+    assert Vtype.INTEGER.value == ExpectedVtype.INTEGER.value
+    assert Vtype.BINARY.value == ExpectedVtype.BINARY.value
+    assert Vtype.SPIN.value == ExpectedVtype.SPIN.value
 
 
 def test_name_sense():

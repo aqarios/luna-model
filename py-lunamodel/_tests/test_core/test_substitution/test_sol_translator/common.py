@@ -41,10 +41,10 @@ def build_truth_model() -> Model:
     truth = Model("testing_model")
     b1 = truth.add_variable("b1")
     b2 = truth.add_variable("b2")
-    s1 = truth.add_variable("s1", vtype=Vtype.Spin)
-    s2 = truth.add_variable("s2", vtype=Vtype.Spin)
-    i1 = truth.add_variable("i1", vtype=Vtype.Integer)
-    i2 = truth.add_variable("i2", vtype=Vtype.Integer)
+    s1 = truth.add_variable("s1", vtype=Vtype.SPIN)
+    s2 = truth.add_variable("s2", vtype=Vtype.SPIN)
+    i1 = truth.add_variable("i1", vtype=Vtype.INTEGER)
+    i2 = truth.add_variable("i2", vtype=Vtype.INTEGER)
 
     offset = 10
     linear = quicksum([b1, 2 * b2, 3 * s1, 4 * s2, 5 * i1, 6 * i2])
@@ -59,11 +59,11 @@ def build_subst_model() -> Model:
     subs = Model("testing_model")
     b1 = subs.add_variable("b1")
     b2 = subs.add_variable("b2")
-    s1 = subs.add_variable("s1", vtype=Vtype.Spin)
-    s2 = subs.add_variable("s2", vtype=Vtype.Spin)
-    i1 = subs.add_variable("i1", vtype=Vtype.Integer)
+    s1 = subs.add_variable("s1", vtype=Vtype.SPIN)
+    s2 = subs.add_variable("s2", vtype=Vtype.SPIN)
+    i1 = subs.add_variable("i1", vtype=Vtype.INTEGER)
     # this will be used as the target for substition
-    target = subs.add_variable("target", vtype=Vtype.Real)
+    target = subs.add_variable("target", vtype=Vtype.REAL)
 
     offset = 10
     linear = quicksum([b1, 2 * b2, 3 * s1, 4 * s2, 5 * i1, 3 * target])
@@ -77,7 +77,7 @@ def build_subst_model() -> Model:
     subs.objective = linear + quadratic + ho + offset
 
     # this will be used as the variable in the replacement for substition
-    i2 = subs.add_variable("i2", vtype=Vtype.Integer)
+    i2 = subs.add_variable("i2", vtype=Vtype.INTEGER)
     # this is the expression which will be used as the replacement for substition
     replacement = 2 * i2
     subs.substitute(target, replacement)

@@ -20,7 +20,7 @@ def solution() -> Solution:
             {"b": 0, "s": -1, "i": +3, "r": 3.0},
             {"b": 1, "s": +1, "i": -4, "r": 4.0},
         ],
-        vtypes=[Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real],
+        vtypes=[Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL],
         raw_energies=[6.0, 5.0, 2.0],
     )
 
@@ -34,10 +34,10 @@ def solution_max() -> Solution:
             {"b": 1, "s": +1, "i": -4, "r": 4.0},
         ],
         vtypes=[
-            Vtype.Binary,
-            Vtype.Spin,
-            Vtype.Integer,
-            Vtype.Real,
+            Vtype.BINARY,
+            Vtype.SPIN,
+            Vtype.INTEGER,
+            Vtype.REAL,
         ],
         raw_energies=[6.0, 5.0, 2.0],
         sense=Sense.Max,
@@ -48,10 +48,10 @@ def solution_max() -> Solution:
 def model_wo_constraint() -> Model:
     model = Model("test_model")
     with model.environment:
-        b = Variable("b", vtype=Vtype.Binary)
-        s = Variable("s", vtype=Vtype.Spin)
-        i = Variable("i", vtype=Vtype.Integer)
-        r = Variable("r", vtype=Vtype.Real)
+        b = Variable("b", vtype=Vtype.BINARY)
+        s = Variable("s", vtype=Vtype.SPIN)
+        i = Variable("i", vtype=Vtype.INTEGER)
+        r = Variable("r", vtype=Vtype.REAL)
     model.objective = b + s + i + r
     return model
 
@@ -60,10 +60,10 @@ def model_wo_constraint() -> Model:
 def model_wo_constraint_maximize() -> Model:
     model = Model("test_model_maximize", sense=Sense.Max)
     with model.environment:
-        b = Variable("b", vtype=Vtype.Binary)
-        s = Variable("s", vtype=Vtype.Spin)
-        i = Variable("i", vtype=Vtype.Integer)
-        r = Variable("r", vtype=Vtype.Real)
+        b = Variable("b", vtype=Vtype.BINARY)
+        s = Variable("s", vtype=Vtype.SPIN)
+        i = Variable("i", vtype=Vtype.INTEGER)
+        r = Variable("r", vtype=Vtype.REAL)
     model.objective = b + s + i + r
     return model
 
@@ -72,9 +72,9 @@ def model_wo_constraint_maximize() -> Model:
 def model_wo_constraint_one_less_var() -> Model:
     model = Model("test_model")
     with model.environment:
-        b = Variable("b", vtype=Vtype.Binary)
-        s = Variable("s", vtype=Vtype.Spin)
-        i = Variable("i", vtype=Vtype.Integer)
+        b = Variable("b", vtype=Vtype.BINARY)
+        s = Variable("s", vtype=Vtype.SPIN)
+        i = Variable("i", vtype=Vtype.INTEGER)
     model.objective = b + s + i + b * s
     return model
 
@@ -83,11 +83,11 @@ def model_wo_constraint_one_less_var() -> Model:
 def model_wo_constraint_one_more_var() -> Model:
     model = Model("test_model")
     with model.environment:
-        b = Variable("b", vtype=Vtype.Binary)
-        s = Variable("s", vtype=Vtype.Spin)
-        i = Variable("i", vtype=Vtype.Integer)
-        r = Variable("r", vtype=Vtype.Real)
-        b2 = Variable("b2", vtype=Vtype.Binary)
+        b = Variable("b", vtype=Vtype.BINARY)
+        s = Variable("s", vtype=Vtype.SPIN)
+        i = Variable("i", vtype=Vtype.INTEGER)
+        r = Variable("r", vtype=Vtype.REAL)
+        b2 = Variable("b2", vtype=Vtype.BINARY)
     model.objective = b + s + i + r + b * b2 + i * r
     return model
 
@@ -96,12 +96,12 @@ def model_wo_constraint_one_more_var() -> Model:
 def model_w_constraint() -> Model:
     model = Model("test_model")
     with model.environment:
-        b = Variable("b", vtype=Vtype.Binary)
-        s = Variable("s", vtype=Vtype.Spin)
+        b = Variable("b", vtype=Vtype.BINARY)
+        s = Variable("s", vtype=Vtype.SPIN)
         i = Variable(
-            "i", vtype=Vtype.Integer, bounds=Bounds(lower=Unbounded, upper=Unbounded)
+            "i", vtype=Vtype.INTEGER, bounds=Bounds(lower=Unbounded, upper=Unbounded)
         )
-        r = Variable("r", vtype=Vtype.Real)
+        r = Variable("r", vtype=Vtype.REAL)
     model.objective = b + s + i + r
     model.constraints += b + s + i + r <= 10.0
     model.constraints += b + s + i + r <= 10.0
@@ -112,10 +112,10 @@ def model_w_constraint() -> Model:
 def model_w_constraint_infeasible() -> Model:
     model = Model("test_model")
     with model.environment:
-        b = Variable("b", vtype=Vtype.Binary)
-        s = Variable("s", vtype=Vtype.Spin)
-        i = Variable("i", vtype=Vtype.Integer)
-        r = Variable("r", vtype=Vtype.Real)
+        b = Variable("b", vtype=Vtype.BINARY)
+        s = Variable("s", vtype=Vtype.SPIN)
+        i = Variable("i", vtype=Vtype.INTEGER)
+        r = Variable("r", vtype=Vtype.REAL)
     model.objective = b + s + i + r
     model.constraints += b + s + i + r <= 0.0
     model.constraints += b + s + i + r <= 0.0
@@ -149,7 +149,6 @@ def test_model_eval_wo_constraint(model_wo_constraint: Model, solution: Solution
 #     )
 # 
 # 
-# TODO: fix
 # def test_model_eval_wo_constraint_best_maximize(
 #     model_wo_constraint_maximize: Model, solution_max: Solution
 # ):
@@ -214,9 +213,9 @@ def test_model_eval_w_constraint_infeasible(
 def test_model_eval_infeasible_bounds():
     m = Model("test_eval_bounds")
     with m.environment:
-        x1 = Variable("x1", vtype=Vtype.Integer, bounds=Bounds(2, 3))
-        x2 = Variable("x2", vtype=Vtype.Integer, bounds=Bounds(2, 3))
-        x3 = Variable("x3", vtype=Vtype.Integer)
+        x1 = Variable("x1", vtype=Vtype.INTEGER, bounds=Bounds(2, 3))
+        x2 = Variable("x2", vtype=Vtype.INTEGER, bounds=Bounds(2, 3))
+        x3 = Variable("x3", vtype=Vtype.INTEGER)
 
     m.objective = 5 * x1 + 3 * x2 + 2 * x3
     m.add_constraint(x1 + x2 == 6, "c1")

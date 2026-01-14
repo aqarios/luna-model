@@ -19,21 +19,17 @@ def test_access(lower, upper):
     assert upper == b.upper
 
 
-@pytest.mark.parametrize(
-    "vtype",
-    [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]
-    + [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real],
-)
+@pytest.mark.parametrize("vtype", [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL])
 def test_default(vtype):
     default: Bounds
     match vtype:
-        case Vtype.BINARY | Vtype.Binary:
+        case Vtype.BINARY:
             default = Bounds.binary()
-        case Vtype.SPIN | Vtype.Spin:
+        case Vtype.SPIN:
             default = Bounds.spin()
-        case Vtype.INTEGER | Vtype.Integer:
+        case Vtype.INTEGER:
             default = Bounds.integer()
-        case Vtype.REAL | Vtype.Real:
+        case Vtype.REAL:
             default = Bounds.real()
         case _:
             raise TypeError(f"unexpected vtype: {vtype}")

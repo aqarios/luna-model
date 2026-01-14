@@ -24,10 +24,10 @@ def model_lp_str_bin() -> str:
     with m.environment:
         x0 = Variable("x0")
         m.objective = x0 * 1
-        x1 = Variable("x1", vtype=Vtype.Binary)
+        x1 = Variable("x1", vtype=Vtype.BINARY)
         m.objective += x0 * x1 * -1
         x2 = Variable("x2")
-        x3 = Variable("x3", vtype=Vtype.Binary)
+        x3 = Variable("x3", vtype=Vtype.BINARY)
         x4 = Variable("x4")
         m.objective += (
             x0 * x1 * 12.213
@@ -48,10 +48,10 @@ def model_lp_str_fancy() -> str:
     with m.environment:
         x0 = Variable("x0")
         m.objective = x0 * 1
-        x1 = Variable("x1", vtype=Vtype.Real)
+        x1 = Variable("x1", vtype=Vtype.REAL)
         m.objective += x0 * x1 * -1
         x2 = Variable("x2")
-        x3 = Variable("x3", vtype=Vtype.Integer, bounds=Bounds(0, 30))
+        x3 = Variable("x3", vtype=Vtype.INTEGER, bounds=Bounds(0, 30))
         x4 = Variable("x4")
         m.objective += (
             x0 * x1 * 12.213

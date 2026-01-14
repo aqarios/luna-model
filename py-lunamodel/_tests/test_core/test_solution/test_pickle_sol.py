@@ -12,7 +12,7 @@ def solution() -> Solution:
             {"b0": 0, "s0": -1, "i0": 3, "r0": +3.3, "b1": 0},
             {"b0": 1, "s0": +1, "i0": 4, "r0": -4.4, "b1": 0},
         ],
-        vtypes=[Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real, Vtype.Binary],
+        vtypes=[Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL, Vtype.BINARY],
         raw_energies=[0.3, 1.2, -200],
         counts=[1, 2, 3],
         constraints=[

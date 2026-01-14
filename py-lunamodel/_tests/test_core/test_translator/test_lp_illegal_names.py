@@ -30,7 +30,7 @@ def test_illegal_vars(word: str):
     model = Model(f"test_{word}")
     with model.environment:
         x = Variable("x")
-        y = Variable("y", vtype=Vtype.Spin)
+        y = Variable("y", vtype=Vtype.SPIN)
     model.objective = x * y
     with pytest.raises(TranslationError):
         _ = LpTranslator.from_aq(model)

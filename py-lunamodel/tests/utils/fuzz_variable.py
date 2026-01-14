@@ -12,10 +12,10 @@ def fuzz_variables(env: Environment) -> Generator[Variable]:
     cnt: int = 0
     for vtype in vtypes():
         match vtype:
-            case Vtype.BINARY | Vtype.Binary | Vtype.SPIN | Vtype.Spin:
+            case Vtype.BINARY | Vtype.SPIN:
                 yield Variable(f"v{cnt}", vtype, env=env)
                 cnt += 1
-            case Vtype.INTEGER | Vtype.Integer | Vtype.REAL | Vtype.Real:
+            case Vtype.INTEGER | Vtype.REAL:
                 # no bounds set
                 yield Variable(f"v{cnt}", vtype, bounds=None, env=env)
                 cnt += 1

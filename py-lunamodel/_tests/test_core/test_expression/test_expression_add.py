@@ -14,7 +14,7 @@ def variables(request) -> tuple[Variable, ...]:
 
 @pytest.mark.parametrize(
     "variables",
-    product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    product([3], [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]),
     indirect=True,
 )
 def test_expression_add_variable(variables):
@@ -36,7 +36,7 @@ def test_expression_add_variable(variables):
 
 @pytest.mark.parametrize(
     "variables",
-    product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    product([2], [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]),
     indirect=True,
 )
 def test_expression_add_number(variables):
@@ -58,7 +58,7 @@ def test_expression_add_number(variables):
 
 @pytest.mark.parametrize(
     "variables",
-    product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    product([2], [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]),
     indirect=True,
 )
 def test_expression_radd_number(variables):
@@ -80,7 +80,7 @@ def test_expression_radd_number(variables):
 
 @pytest.mark.parametrize(
     "variables",
-    product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    product([3], [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]),
     indirect=True,
 )
 def test_expression_instanceadd_variable(variables):
@@ -102,7 +102,7 @@ def test_expression_instanceadd_variable(variables):
 
 @pytest.mark.parametrize(
     "variables",
-    product([3], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    product([3], [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]),
     indirect=True,
 )
 def test_expression_instanceadd_variable_twice(variables):
@@ -125,7 +125,7 @@ def test_expression_instanceadd_variable_twice(variables):
 
 @pytest.mark.parametrize(
     "variables",
-    product([2], [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]),
+    product([2], [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]),
     indirect=True,
 )
 def test_expression_instanceadd_number(variables):

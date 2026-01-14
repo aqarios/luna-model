@@ -8,14 +8,14 @@ from luna_model import Bounds, Environment, Expression, Model, Variable, Vtype
 _model_str_1 = """Model: TestModel
 Minimize
   x0
-Binary
+BINARY
   x0"""
 _model_str_2 = """Model: TestModel
 Minimize
   -x0 * x1 + x0
 Bounds
   0 <= x1
-Binary
+BINARY
   x0
 Real
   x1"""
@@ -28,7 +28,7 @@ Subject To
 Bounds
   0 <= x1
   0 <= x3 <= 30
-Binary
+BINARY
   x0 x2
 Spin
   x4
@@ -46,7 +46,7 @@ Subject To
 Bounds
   0 <= x1
   0 <= x3 <= 30
-Binary
+BINARY
   x0 x2
 Spin
   x4
@@ -67,39 +67,39 @@ def variables(request) -> tuple[Variable, ...]:
 
 
 def test_vtype():
-    assert Vtype.Real.value == "Real"
-    assert Vtype.Binary.value == "Binary"
-    assert Vtype.Spin.value == "Spin"
-    assert Vtype.Integer.value == "Integer"
+    assert Vtype.REAL.value == "Real"
+    assert Vtype.BINARY.value == "Binary"
+    assert Vtype.SPIN.value == "Spin"
+    assert Vtype.INTEGER.value == "Integer"
 
     with does_not_raise():
-        repr(Vtype.Real)
-        repr(Vtype.Binary)
-        repr(Vtype.Spin)
-        repr(Vtype.Integer)
+        repr(Vtype.REAL)
+        repr(Vtype.BINARY)
+        repr(Vtype.SPIN)
+        repr(Vtype.INTEGER)
 
 
 def test_variable():
     with Environment():
         a = Variable("a")
         assert str(a) == "a: Binary"
-        b = Variable("b", vtype=Vtype.Spin)
+        b = Variable("b", vtype=Vtype.SPIN)
         assert str(b) == "b: Spin"
-        c = Variable("c", vtype=Vtype.Integer)
+        c = Variable("c", vtype=Vtype.INTEGER)
         assert str(c) == "c: Integer(lower=0)"
-        d = Variable("d", vtype=Vtype.Integer, bounds=Bounds(lower=0, upper=10))
+        d = Variable("d", vtype=Vtype.INTEGER, bounds=Bounds(lower=0, upper=10))
         assert str(d) == "d: Integer(lower=0, upper=10)"
-        e = Variable("e", vtype=Vtype.Integer, bounds=Bounds(lower=3))
+        e = Variable("e", vtype=Vtype.INTEGER, bounds=Bounds(lower=3))
         assert str(e) == "e: Integer(lower=3)"
-        f = Variable("f", vtype=Vtype.Integer, bounds=Bounds(upper=10))
+        f = Variable("f", vtype=Vtype.INTEGER, bounds=Bounds(upper=10))
         assert str(f) == "f: Integer(lower=0, upper=10)"
-        g = Variable("g", vtype=Vtype.Real)
+        g = Variable("g", vtype=Vtype.REAL)
         assert str(g) == "g: Real(lower=0)"
-        h = Variable("h", vtype=Vtype.Real, bounds=Bounds(lower=-1.5, upper=1))
+        h = Variable("h", vtype=Vtype.REAL, bounds=Bounds(lower=-1.5, upper=1))
         assert str(h) == "h: Real(lower=-1.5, upper=1)"
-        i = Variable("i", vtype=Vtype.Real, bounds=Bounds(lower=10))
+        i = Variable("i", vtype=Vtype.REAL, bounds=Bounds(lower=10))
         assert str(i) == "i: Real(lower=10)"
-        j = Variable("j", vtype=Vtype.Real, bounds=Bounds(upper=3.8))
+        j = Variable("j", vtype=Vtype.REAL, bounds=Bounds(upper=3.8))
         assert str(j) == "j: Real(lower=0, upper=3.8)"
 
         with does_not_raise():
@@ -206,7 +206,7 @@ def test_constraints(variables: tuple[Variable, ...]):
 def test_environment():
     with Environment() as env:
         _ = Variable("a")
-        _ = Variable("b", vtype=Vtype.Integer)
+        _ = Variable("b", vtype=Vtype.INTEGER)
         _ = Variable("c")
         env_str = re.sub(r"(Environment\s+)[^\n]+", r"\1?", str(env))
         assert env_str == "Environment ?\n  a, b, c"
@@ -219,12 +219,12 @@ def test_model():
             m = Model(name="TestModel")
             m.objective = x0 * 1
             assert str(m) == _model_str_1
-            x1 = Variable("x1", vtype=Vtype.Real)
+            x1 = Variable("x1", vtype=Vtype.REAL)
             m.objective += x0 * x1 * -1
             assert str(m) == _model_str_2
             x2 = Variable("x2")
-            x3 = Variable("x3", vtype=Vtype.Integer, bounds=Bounds(0, 30))
-            x4 = Variable("x4", vtype=Vtype.Spin)
+            x3 = Variable("x3", vtype=Vtype.INTEGER, bounds=Bounds(0, 30))
+            x4 = Variable("x4", vtype=Vtype.SPIN)
             m.objective += (
                 x0 * x1 * x2 * 12.213
                 + x1 * x2 * 0.5

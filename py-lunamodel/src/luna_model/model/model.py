@@ -85,7 +85,7 @@ class Model:
         return self._m.num_constraints
 
     def variables(self) -> list[Variable]:
-        return [wrap_var(v) for v in self._m.variables]
+        return [wrap_var(v) for v in self._m.variables()]
 
     def vtypes(self) -> list[Vtype]:
         return [Vtype._from_pyvtype(t) for t in self._m.vtypes()]

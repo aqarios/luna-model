@@ -264,7 +264,7 @@ def test_model_constraints_len():
     assert len(m.constraints) == 0
     x = m.add_variable("x")
     y = m.add_variable("y")
-    z = m.add_variable("z", vtype=Vtype.Integer)
+    z = m.add_variable("z", vtype=Vtype.INTEGER)
     assert len(m.constraints) == 0
     m.constraints += x + y <= 1
     assert len(m.constraints) == 1

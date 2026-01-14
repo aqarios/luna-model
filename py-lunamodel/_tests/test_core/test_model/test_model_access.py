@@ -143,66 +143,66 @@ def test_add_variables_direct():
     a = m.add_variable("a")
     assert a == m.get_variable("a")
 
-    b = m.add_variable("b", vtype=Vtype.Binary)
+    b = m.add_variable("b", vtype=Vtype.BINARY)
     assert b == m.get_variable("b")
-    c = m.add_variable("c", vtype=Vtype.Spin)
+    c = m.add_variable("c", vtype=Vtype.SPIN)
     assert c == m.get_variable("c")
-    d = m.add_variable("d", vtype=Vtype.Integer)
+    d = m.add_variable("d", vtype=Vtype.INTEGER)
     assert d == m.get_variable("d")
-    e = m.add_variable("e", vtype=Vtype.Real)
+    e = m.add_variable("e", vtype=Vtype.REAL)
     assert e == m.get_variable("e")
 
     with pytest.raises(VariableExistsError):
         _ = m.add_variable("a")
 
     with pytest.raises(VariableExistsError):
-        _ = m.add_variable("b", vtype=Vtype.Binary)
+        _ = m.add_variable("b", vtype=Vtype.BINARY)
 
     with pytest.raises(VariableExistsError):
-        _ = m.add_variable("c", vtype=Vtype.Spin)
+        _ = m.add_variable("c", vtype=Vtype.SPIN)
 
     with pytest.raises(VariableExistsError):
-        _ = m.add_variable("d", vtype=Vtype.Integer)
+        _ = m.add_variable("d", vtype=Vtype.INTEGER)
 
     with pytest.raises(VariableExistsError):
-        _ = m.add_variable("e", vtype=Vtype.Real)
+        _ = m.add_variable("e", vtype=Vtype.REAL)
 
     with pytest.raises(VariableCreationError):
-        _ = m.add_variable("bf1", vtype=Vtype.Binary, lower=0)
+        _ = m.add_variable("bf1", vtype=Vtype.BINARY, lower=0)
     with pytest.raises(VariableCreationError):
-        _ = m.add_variable("bf2", vtype=Vtype.Binary, upper=1)
+        _ = m.add_variable("bf2", vtype=Vtype.BINARY, upper=1)
     with pytest.raises(VariableCreationError):
-        _ = m.add_variable("bf3", vtype=Vtype.Binary, lower=0, upper=1)
+        _ = m.add_variable("bf3", vtype=Vtype.BINARY, lower=0, upper=1)
 
     with pytest.raises(VariableCreationError):
-        _ = m.add_variable("sf1", vtype=Vtype.Spin, lower=0)
+        _ = m.add_variable("sf1", vtype=Vtype.SPIN, lower=0)
     with pytest.raises(VariableCreationError):
-        _ = m.add_variable("sf2", vtype=Vtype.Spin, upper=1)
+        _ = m.add_variable("sf2", vtype=Vtype.SPIN, upper=1)
     with pytest.raises(VariableCreationError):
-        _ = m.add_variable("sf3", vtype=Vtype.Spin, lower=0, upper=1)
+        _ = m.add_variable("sf3", vtype=Vtype.SPIN, lower=0, upper=1)
 
-    if1 = m.add_variable("if1", vtype=Vtype.Integer, lower=0)
+    if1 = m.add_variable("if1", vtype=Vtype.INTEGER, lower=0)
     assert if1 == m.get_variable("if1")
-    if2 = m.add_variable("if2", vtype=Vtype.Integer, upper=1)
+    if2 = m.add_variable("if2", vtype=Vtype.INTEGER, upper=1)
     assert if2 == m.get_variable("if2")
-    if3 = m.add_variable("if3", vtype=Vtype.Integer, lower=0, upper=1)
+    if3 = m.add_variable("if3", vtype=Vtype.INTEGER, lower=0, upper=1)
     assert if3 == m.get_variable("if3")
-    if4 = m.add_variable("if4", vtype=Vtype.Integer, lower=Unbounded)
+    if4 = m.add_variable("if4", vtype=Vtype.INTEGER, lower=Unbounded)
     assert if4 == m.get_variable("if4")
-    if5 = m.add_variable("if5", vtype=Vtype.Integer, upper=Unbounded)
+    if5 = m.add_variable("if5", vtype=Vtype.INTEGER, upper=Unbounded)
     assert if5 == m.get_variable("if5")
-    if6 = m.add_variable("if6", vtype=Vtype.Integer, lower=Unbounded, upper=Unbounded)
+    if6 = m.add_variable("if6", vtype=Vtype.INTEGER, lower=Unbounded, upper=Unbounded)
     assert if6 == m.get_variable("if6")
 
-    rf1 = m.add_variable("rf1", vtype=Vtype.Real, lower=0)
+    rf1 = m.add_variable("rf1", vtype=Vtype.REAL, lower=0)
     assert rf1 == m.get_variable("rf1")
-    rf2 = m.add_variable("rf2", vtype=Vtype.Real, upper=1)
+    rf2 = m.add_variable("rf2", vtype=Vtype.REAL, upper=1)
     assert rf2 == m.get_variable("rf2")
-    rf3 = m.add_variable("rf3", vtype=Vtype.Real, lower=0, upper=1)
+    rf3 = m.add_variable("rf3", vtype=Vtype.REAL, lower=0, upper=1)
     assert rf3 == m.get_variable("rf3")
-    rf4 = m.add_variable("rf4", vtype=Vtype.Real, lower=Unbounded)
+    rf4 = m.add_variable("rf4", vtype=Vtype.REAL, lower=Unbounded)
     assert rf4 == m.get_variable("rf4")
-    rf5 = m.add_variable("rf5", vtype=Vtype.Real, upper=Unbounded)
+    rf5 = m.add_variable("rf5", vtype=Vtype.REAL, upper=Unbounded)
     assert rf5 == m.get_variable("rf5")
-    rf6 = m.add_variable("rf6", vtype=Vtype.Real, lower=Unbounded, upper=Unbounded)
+    rf6 = m.add_variable("rf6", vtype=Vtype.REAL, lower=Unbounded, upper=Unbounded)
     assert rf6 == m.get_variable("rf6")
