@@ -121,16 +121,15 @@ impl SerSolution {
             .chunks_exact(self.n_constraints as usize)
             .map(|chunk| chunk.to_vec())
             .collect();
-        sol.constraints = constraint_chunks
-            .into_iter()
-            .map(|chunk| {
-                constraint_names
-                    .iter()
-                    .cloned()
-                    .zip(chunk.into_iter())
-                    .collect()
-            })
-            .collect();
+
+        for sample in constraint_chunks {
+            for (cname, value) in constraint_names.iter().zip(sample) {
+                sol.constraints
+                    .entry(cname.clone())
+                    .or_insert(Vec::default())
+                    .push(value);
+            }
+        }
 
         let mut cv: BitVec<u8, Lsb0> = BitVec::from_vec(self.variable_bounds);
         cv.truncate(self.n_variable_bounds as usize * self.num_samples as usize);
@@ -145,10 +144,14 @@ impl SerSolution {
         } else {
             self.variable_bound_names
         };
-        sol.variable_bounds = variable_bound_names
-            .into_iter()
-            .zip(variable_bounds)
-            .collect();
+        for sample in variable_bounds {
+            for (vname, value) in variable_bound_names.iter().zip(sample) {
+                sol.variable_bounds
+                    .entry(vname.clone())
+                    .or_insert(Vec::default())
+                    .push(value);
+            }
+        }
 
         let mut feasible: Vec<bool> = vec![true; self.num_samples as usize];
         for (_, per_constraint) in &sol.constraints {

@@ -41,7 +41,7 @@ pub struct PyQuboTranslator;
 #[pymethods]
 impl PyQuboTranslator {
     #[staticmethod]
-    fn to_aq(
+    fn to_lm(
         qubo: QuboType,
         offset: Option<f64>,
         variable_names: Option<Vec<String>>,
@@ -56,7 +56,7 @@ impl PyQuboTranslator {
     }
 
     #[staticmethod]
-    fn from_aq(model: &PyModel) -> PyResult<PyQubo> {
+    fn from_lm(model: &PyModel) -> PyResult<PyQubo> {
         let qubo = QuboTranslator::back_translate(&model.m.read_arc())?;
         Ok(PyQubo(qubo))
     }

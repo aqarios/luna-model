@@ -26,8 +26,8 @@ def test_bqm_solution():
     bqm, _ = dimod.cqm_to_bqm(cqm)
 
     # luna_model flow
-    lmm = BqmTranslator.to_aq(bqm)
-    bqm2 = BqmTranslator.from_aq(lmm)
+    lmm = BqmTranslator.to_lm(bqm)
+    bqm2 = BqmTranslator.from_lm(lmm)
     assert bqm2.is_almost_equal(bqm), "the bqms are not equal"
 
     bqm_vars = bqm2.variables
@@ -66,7 +66,7 @@ def test_bqm_solution():
         dimod_np[pos] = dimod_sample[v]  # type: ignore
 
     with lmm.environment:
-        sol = DwaveTranslator.to_aq(res)
+        sol = DwaveTranslator.to_lm(res)
 
     dimod_sample = res.samples()[0]
     with lmm.environment:
@@ -109,7 +109,7 @@ def test_bqm_solution_with_substitution():
     bqm, _ = dimod.cqm_to_bqm(cqm)
 
     # luna_model flow
-    lmm = BqmTranslator.to_aq(bqm)
+    lmm = BqmTranslator.to_lm(bqm)
     # print(lmm)
 
     rep = lmm.add_variable("s", vtype=Vtype.SPIN)
@@ -130,7 +130,7 @@ def test_bqm_solution_with_substitution():
 
     lmm.substitute(rep, back_target)
 
-    bqm2 = BqmTranslator.from_aq(lmm)
+    bqm2 = BqmTranslator.from_lm(lmm)
     assert bqm2.is_almost_equal(bqm)
 
     bqm_vars = bqm2.variables
@@ -169,7 +169,7 @@ def test_bqm_solution_with_substitution():
         dimod_np[pos] = dimod_sample[v]  # type: ignore
 
     with lmm.environment:
-        sol = DwaveTranslator.to_aq(res)
+        sol = DwaveTranslator.to_lm(res)
 
     dimod_sample = res.samples()[0]
     with lmm.environment:

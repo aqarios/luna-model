@@ -38,7 +38,8 @@ pub struct Constraint {
     /// A Constraint can also be named for easier, more native indexing into a collection of
     /// constraints.
     name: String,
-    // pub assigned_name: bool,
+    /// If the constraint name was set automatically, (implicit determined).
+    pub auto_name: bool,
 }
 
 impl Constraint {
@@ -56,7 +57,7 @@ impl Constraint {
             lhs,
             rhs,
             comparator,
-            // assigned_name: name.is_none(),
+            auto_name: name.is_none(),
             name: name.unwrap_or_else(|| format!("c{}", CONSTRAINT_COUNTER.inc())),
         })
     }
@@ -73,6 +74,7 @@ impl Constraint {
     pub fn set_name(&mut self, name: String) -> LunaModelResult<()> {
         validate_name(Some(&name))?;
         self.name = name;
+        self.auto_name = false;
         Ok(())
     }
 

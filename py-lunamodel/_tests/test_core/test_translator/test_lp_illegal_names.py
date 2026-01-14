@@ -33,4 +33,4 @@ def test_illegal_vars(word: str):
         y = Variable("y", vtype=Vtype.SPIN)
     model.objective = x * y
     with pytest.raises(TranslationError):
-        _ = LpTranslator.from_aq(model)
+        _ = LpTranslator.from_lm(model)

@@ -82,6 +82,7 @@ impl ContentEquality for Solution {
 
 impl PartialEq for Solution {
     fn eq(&self, other: &Self) -> bool {
+        // eprintln!("A");
         for (cname, vs) in self.constraints.iter() {
             if let Some(otr_vs) = other.constraints.get(cname) {
                 if vs != otr_vs {
@@ -92,6 +93,8 @@ impl PartialEq for Solution {
             }
         }
 
+        // eprintln!("B");
+
         for (vname, vvals) in self.variable_bounds.iter() {
             if let Some(otr_vvals) = other.variable_bounds.get(vname) {
                 if vvals != otr_vvals {
@@ -101,6 +104,22 @@ impl PartialEq for Solution {
                 return false;
             }
         }
+        // dbg!(self.samples == other.samples);
+        // dbg!(self.timing == other.timing);
+        // dbg!(self.sense == other.sense);
+        // dbg!(self.counts == other.counts);
+        // dbg!(self.raw_energies == other.raw_energies);
+        // dbg!(self.obj_values == other.obj_values);
+        // dbg!(&self.feasible);
+        // dbg!(&other.feasible);
+        // dbg!(self.feasible == other.feasible);
+
+        let feasible_eq = match (&self.feasible, &other.feasible) {
+            (Some(slf), Some(otr)) => slf == otr,
+            (Some(slf), None) => slf.is_empty(),
+            (None, Some(otr)) => otr.is_empty(),
+            (None, None) => true,
+        };
 
         // variable_bounds: HashMap<String, Vec<bool>>,
         self.samples == other.samples
@@ -110,6 +129,6 @@ impl PartialEq for Solution {
             && self.counts == other.counts
             && self.raw_energies == other.raw_energies
             && self.obj_values == other.obj_values
-            && self.feasible == other.feasible
+            && feasible_eq
     }
 }

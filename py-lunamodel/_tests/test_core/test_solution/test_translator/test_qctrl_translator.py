@@ -41,7 +41,7 @@ def test_qctrl_base():
     res = actual_qctrl_result()
     with Environment():
         _ = [Variable(f"x{i}") for i in range(2)]
-        sol = QctrlTranslator.to_aq(res)
+        sol = QctrlTranslator.to_lm(res)
     print(sol)
 
 
@@ -57,7 +57,7 @@ def test_qctrl_translator_constructed():
         env = Environment()
         with env:
             _ = [Variable(f"x{i}") for i in range(sample_len)]
-            sol = QctrlTranslator.to_aq(fake_result)
+            sol = QctrlTranslator.to_lm(fake_result)
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
@@ -89,7 +89,7 @@ def test_qctrl_translator_constructed_explicit_env():
         with env:
             _ = [Variable(f"x{i}") for i in range(sample_len)]
 
-        sol = QctrlTranslator.to_aq(fake_result, env=env)
+        sol = QctrlTranslator.to_lm(fake_result, env=env)
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
@@ -126,7 +126,7 @@ def test_qctrl_translator_constructed_with_time():
         env = Environment()
         with env:
             _ = [Variable(f"x{i}") for i in range(sample_len)]
-            sol = QctrlTranslator.to_aq(fake_result, timing)
+            sol = QctrlTranslator.to_lm(fake_result, timing)
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
@@ -160,7 +160,7 @@ def test_qctrl_translator_constructed_vars():
         env = Environment()
         with env:
             _ = [Variable(f"x{i}") for i in range(sample_len)]
-            sol = QctrlTranslator.to_aq(fake_result)
+            sol = QctrlTranslator.to_lm(fake_result)
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"

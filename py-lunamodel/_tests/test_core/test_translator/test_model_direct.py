@@ -61,41 +61,41 @@ def cqm() -> ConstrainedQuadraticModel:
 def test_model_from_qubo():
     q = qubo()
     m = Model.from_(q)
-    t = QuboTranslator.to_aq(q)
+    t = QuboTranslator.to_lm(q)
     assert m.equal_contents(t)
 
 
 def test_model_from_lp_str():
     s = lp_str()
     m = Model.from_(s)
-    t = LpTranslator.to_aq(s)
+    t = LpTranslator.to_lm(s)
     assert m.equal_contents(t)
 
 
 def test_model_from_lp_path():
     p = lp_path()
     m = Model.from_(p)
-    t = LpTranslator.to_aq(p)
+    t = LpTranslator.to_lm(p)
     assert m.equal_contents(t)
 
 
 def test_model_from_bqm():
     b = bqm()
     m = Model.from_(b)
-    t = BqmTranslator.to_aq(b)
+    t = BqmTranslator.to_lm(b)
     assert m.equal_contents(t)
 
 
 def test_model_from_cqm():
     c = cqm()
     m = Model.from_(c)
-    t = CqmTranslator.to_aq(c)
+    t = CqmTranslator.to_lm(c)
     assert m.equal_contents(t)
 
 
 def test_model_to_qubo(model: Model):
     mq = model.to(TranslationTarget.Qubo)
-    tq = QuboTranslator.from_aq(model)
+    tq = QuboTranslator.from_lm(model)
     assert np.allclose(mq.matrix, tq.matrix)
     assert np.isclose(mq.offset, tq.offset)
     assert mq.name == tq.name
@@ -105,7 +105,7 @@ def test_model_to_qubo(model: Model):
 
 def test_model_to_lp_str(model: Model):
     mstr = model.to(TranslationTarget.Lp)
-    tstr = LpTranslator.from_aq(model)
+    tstr = LpTranslator.from_lm(model)
     assert mstr == tstr
 
 
@@ -115,7 +115,7 @@ def test_model_to_lp_path(model: Model):
     ttmp = Path(__file__).parent / "ttmp"
     ttmp.touch(exist_ok=True)
     model.to(TranslationTarget.Lp, filepath=mtmp)
-    LpTranslator.from_aq(model, filepath=ttmp)
+    LpTranslator.from_lm(model, filepath=ttmp)
     is_equal = mtmp.read_text() == ttmp.read_text()
     os.remove(mtmp)
     os.remove(ttmp)
@@ -124,11 +124,11 @@ def test_model_to_lp_path(model: Model):
 
 def test_model_to_bqm(model: Model):
     mbqm = model.to(TranslationTarget.Bqm)
-    tbqm = BqmTranslator.from_aq(model)
+    tbqm = BqmTranslator.from_lm(model)
     assert Model.from_(mbqm).equal_contents(Model.from_(tbqm))
 
 
 def test_model_to_cqm(model: Model):
     mcqm = model.to(TranslationTarget.Cqm)
-    tcqm = CqmTranslator.from_aq(model)
+    tcqm = CqmTranslator.from_lm(model)
     assert Model.from_(mcqm).equal_contents(Model.from_(tcqm))

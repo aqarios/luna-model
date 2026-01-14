@@ -148,14 +148,15 @@ impl PySolution {
                     "constraints length does not match number of samples.",
                 ));
             }
-            sol.constraints = constraints
-                .into_iter()
-                .map(|m| m.into_iter().collect())
-                .collect();
+            for c in constraints {
+                for (cname, val) in c {
+                    sol.constraints.entry(cname).or_insert(Vec::default()).push(val);
+                }
+            }
         }
 
         if let Some(varbounds) = variables_bounds {
-            let mut vbs = HashMap::with_capacity(varbounds.len());
+            let mut vbs: HashMap<String, Vec<bool>> = HashMap::with_capacity(varbounds.len());
             for (i, (key, values)) in varbounds.into_iter().enumerate() {
                 if values.len() != samples.len() {
                     return Err(PyValueError::new_err(format!(

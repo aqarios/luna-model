@@ -29,7 +29,7 @@ from _tests.test_core.utils import generate_bqms, make_seed, random_int
 
 def test_sampleset_translator_constructed(dwave_result: DwaveResult):
     with mock_env(3):
-        sol = DwaveTranslator.to_aq(dwave_result.sampleset)
+        sol = DwaveTranslator.to_lm(dwave_result.sampleset)
 
     assert sol.samples.tolist() == dwave_result.samples
     assert sol.counts.tolist() == dwave_result.counts
@@ -57,7 +57,7 @@ def test_sampleset_translator_sa_random_models():
         timing = timer.stop()
         vtype = Vtype.BINARY if bqm.vartype == Vartype.BINARY else Vtype.SPIN
         env = mock_env(bqm.num_variables, vtype=vtype)
-        sol = DwaveTranslator.to_aq(sampleset, timing, env=env)
+        sol = DwaveTranslator.to_lm(sampleset, timing, env=env)
 
         sampleset_agg = sampleset.aggregate()
 
@@ -103,23 +103,23 @@ def test_sampleset_translator_error_handling():
         SampleIncompatibleVtypeError,
         match="sample contains variable assignments incompatible",
     ):
-        DwaveTranslator.to_aq(sampleset, env=env)
+        DwaveTranslator.to_lm(sampleset, env=env)
 
     env = mock_env(3, vtype=Vtype.SPIN)
-    sol = DwaveTranslator.to_aq(sampleset, env=env)
+    sol = DwaveTranslator.to_lm(sampleset, env=env)
     with pytest.raises(IndexError):
         _ = sol.samples[1]
 
     samples_raw = [{"x0": 0, "x1": 1, "x2": 1}]
     sampleset = SampleSet.from_samples(as_samples(samples_raw), "BINARY", energy)
     with does_not_raise():
-        DwaveTranslator.to_aq(sampleset, env=env)
+        DwaveTranslator.to_lm(sampleset, env=env)
 
     samples_raw = [{"x0": -10, "x1": 10, "x2": 6.43}]
     env = mock_env(3, vtype=Vtype.INTEGER)
     sampleset = SampleSet.from_samples(as_samples(samples_raw), "INTEGER", energy)
     with does_not_raise():
-        DwaveTranslator.to_aq(sampleset, env=env)
+        DwaveTranslator.to_lm(sampleset, env=env)
 
 
 def test_dwave_translator_incorrect_sample_length():
@@ -130,4 +130,4 @@ def test_dwave_translator_incorrect_sample_length():
 
     sampleset = SampleSet.from_samples({"a": 1, "b": 0}, "BINARY", 0)
     with pytest.raises(SampleUnexpectedVariableError):
-        _ = DwaveTranslator.to_aq(sampleset, env=env)
+        _ = DwaveTranslator.to_lm(sampleset, env=env)

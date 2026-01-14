@@ -18,8 +18,8 @@ except ImportError as _:
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 def test_zero_variables():
-    model = LpTranslator.to_aq(Path(__file__).parent / "lp_string.lp")
-    model_str = LpTranslator.from_aq(model)
+    model = LpTranslator.to_lm(Path(__file__).parent / "lp_string.lp")
+    model_str = LpTranslator.from_lm(model)
 
     out_file = Path(__file__).parent / "lp_out.lp"
     out_file.touch()
@@ -31,7 +31,7 @@ def test_zero_variables():
     scip_file.touch()
     scip.writeProblem(scip_file)
 
-    model_from_scip = LpTranslator.to_aq(scip_file)
+    model_from_scip = LpTranslator.to_lm(scip_file)
     model_from_scip.name = model.name
     os.remove(out_file)
     os.remove(scip_file)

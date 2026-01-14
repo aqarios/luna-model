@@ -10,7 +10,7 @@ from luna_model.environment.env import Environment
 
 class DwaveTranslator:
     @staticmethod
-    def to_aq(
+    def to_lm(
         sample_set: SampleSet,
         timing: Timing | None = None,
         *,

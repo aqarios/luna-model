@@ -9,7 +9,7 @@ from .fixtures import np_model, np_result
 
 def test_numpy_translator(np_model: Model, np_result: tuple[NDArray, NDArray]):
     res, energies = np_result
-    sol = NumpyTranslator.to_aq(res, energies, env=np_model.environment)
+    sol = NumpyTranslator.to_lm(res, energies, env=np_model.environment)
     (sol_agg, indices, num_counts) = np.unique(
         res, return_index=True, return_counts=True, axis=0
     )

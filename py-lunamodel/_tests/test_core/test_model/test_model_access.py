@@ -41,7 +41,7 @@ def test_use_model_environment():
         _ = Model()
 
 
-def test_use_instanceadd_bias_to_aq():
+def test_use_instanceadd_bias_to_lm():
     model = make_model()
     with model.environment:
         _ = Variable("x")
@@ -50,7 +50,7 @@ def test_use_instanceadd_bias_to_aq():
     assert_offset(model.objective, 1)
 
 
-def test_use_instanceadd_variable_to_aq():
+def test_use_instanceadd_variable_to_lm():
     model = make_model()
     with model.environment:
         x = Variable("x")
@@ -60,7 +60,7 @@ def test_use_instanceadd_variable_to_aq():
     assert_linear(model.objective, (x,), 1)
 
 
-def test_use_instanceadd_expression_to_aq():
+def test_use_instanceadd_expression_to_lm():
     model = make_model()
     with model.environment:
         x = Variable("x")

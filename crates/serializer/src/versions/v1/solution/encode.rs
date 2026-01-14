@@ -54,27 +54,30 @@ impl SerSolution {
         self.bins = binvec.into_vec();
         self.spins = spinvec.into_vec();
 
-        let mut flat: Vec<bool> = Vec::default();
-        for (name, vals) in &sol.constraints {
-            self.n_constraints = vals.len() as u64;
-            flat.extend(vals);
-            if self.constraint_names.len() != vals.len() {
-                self.constraint_names.push(name.clone());
+        self.n_constraints = sol.constraints.len() as u64;
+        let mut constrs: Vec<Vec<bool>> =
+            vec![vec![true; sol.constraints.len()]; self.num_samples as usize];
+        self.constraint_names = Vec::new();
+        for (idx, (name, vals)) in sol.constraints.iter().enumerate() {
+            self.constraint_names.push(name.clone());
+            for (s_idx, value) in vals.iter().enumerate() {
+                constrs[s_idx][idx] = *value;
             }
         }
-        self.constraints = flat.into_iter().collect::<BitVec<u8, Lsb0>>().into_vec();
+        self.constraints = constrs.into_iter().flatten().collect::<BitVec<u8, Lsb0>>().into_vec();
 
-        let mut flat: Vec<bool> = Vec::default();
-        for (name, vals) in &sol.variable_bounds {
-            self.n_variable_bounds = vals.len() as u64;
-            flat.extend(vals);
-            if self.variable_bound_names.len() != vals.len() {
-                self.variable_bound_names.push(name.clone());
+        self.n_variable_bounds = sol.variable_bounds.len() as u64;
+        let mut vbounds: Vec<Vec<bool>> =
+            vec![vec![true; sol.variable_bounds.len()]; self.num_samples as usize];
+        self.variable_bound_names = Vec::new();
+        for (idx, (name, vals)) in sol.variable_bounds.iter().enumerate() {
+            self.variable_bound_names.push(name.clone());
+            for (s_idx, value) in vals.iter().enumerate() {
+                vbounds[s_idx][idx] = *value;
             }
         }
-        self.variable_bounds = flat.into_iter().collect::<BitVec<u8, Lsb0>>().into_vec();
+        self.variable_bounds = vbounds.into_iter().flatten().collect::<BitVec<u8, Lsb0>>().into_vec();
 
-        // done
         self
     }
 }

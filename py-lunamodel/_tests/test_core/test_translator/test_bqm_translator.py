@@ -31,28 +31,28 @@ def test_bqm_to_model_to_bqm():
     rand = Random(make_seed())
     bqms = generate_bqms(20, rand)
     for bqm in bqms:
-        model = BqmTranslator.to_aq(bqm)
+        model = BqmTranslator.to_lm(bqm)
         # First let's make sure this translation works correctly.
         # We can query the biases for each linear and quadratic interaction
         # (and the offset) in the two models and compare the returned bias value (f64)
         assert bqm.offset == model.objective.get_offset()
         for v in bqm.variables:
-            aqv = model.environment.get_variable(str(v))
-            aqm_bias = model.objective.get_linear(aqv)
+            lmv = model.environment.get_variable(str(v))
+            lmm_bias = model.objective.get_linear(aqv)
             bqm_bias = bqm.get_linear(v)
-            assert bqm_bias == aqm_bias, f"linear bias does not match for '{v}'"
+            assert bqm_bias == lmm_bias, f"linear bias does not match for '{v}'"
 
         for v in bqm.variables:
-            aqv = model.environment.get_variable(str(v))
+            lmv = model.environment.get_variable(str(v))
             for u in bqm.variables:
                 if v == u:
                     continue
-                aqu = model.environment.get_variable(str(u))
-                aqm_q_bias = model.objective.get_quadratic(aqv, aqu)
+                lmu = model.environment.get_variable(str(u))
+                lmm_q_bias = model.objective.get_quadratic(aqv, aqu)
                 bqm_q_bias = bqm.get_quadratic(v, u, default=0)
-                assert bqm_q_bias == aqm_q_bias, "quadratic bias does not match"
+                assert bqm_q_bias == lmm_q_bias, "quadratic bias does not match"
 
-        bqm_back = BqmTranslator.from_aq(model)
+        bqm_back = BqmTranslator.from_lm(model)
 
         bqm_np = bqm.to_numpy_vectors()
         bqm_back_np = bqm_back.to_numpy_vectors()
@@ -72,10 +72,10 @@ def test_bqm_to_model_to_bqm():
 
 def test_bqm_translator_wrong_sense(model: Model):
     with pytest.raises(ModelSenseNotMinimizeError):
-        _ = BqmTranslator.from_aq(model)
+        _ = BqmTranslator.from_lm(model)
 
     with pytest.raises(TranslationError):
-        _ = BqmTranslator.from_aq(model)
+        _ = BqmTranslator.from_lm(model)
 
 
 def test_invalid_var_name():
@@ -86,7 +86,7 @@ def test_invalid_var_name():
         vartype="BINARY",
     )
     with pytest.raises(VariableNamesError, match="variable creation failed:"):
-        _ = BqmTranslator.to_aq(bqm)
+        _ = BqmTranslator.to_lm(bqm)
 
 
 def test_error_handling_int_vars():
@@ -96,4 +96,4 @@ def test_error_handling_int_vars():
         with pytest.raises(
             TypeError, match="All BQM variables have to be of type str, received:"
         ):
-            _ = BqmTranslator.to_aq(bqm)
+            _ = BqmTranslator.to_lm(bqm)

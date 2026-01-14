@@ -22,7 +22,7 @@ from .fixtures import zib_model, zib_model_quadratic
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 def test_zib_translator(zib_model: Model):
-    lp_str = LpTranslator.from_aq(zib_model)
+    lp_str = LpTranslator.from_lm(zib_model)
     lp_filepath = Path(__file__).parent / "model.lp"
     with open(lp_filepath, "w") as f:
         f.write(lp_str)
@@ -36,7 +36,7 @@ def test_zib_translator(zib_model: Model):
 
     truth_sample = {x.name: scip_model.getVal(x) for x in scip_model.getVars()}
 
-    sol = ZibTranslator.to_aq(scip_model, timing=timing, env=zib_model.environment)
+    sol = ZibTranslator.to_lm(scip_model, timing=timing, env=zib_model.environment)
     assert len(sol.samples) == 1
     assert sol.raw_energies == None
     assert len(sol.counts) == 1
@@ -71,7 +71,7 @@ def test_zib_translator(zib_model: Model):
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 def test_zib_translator_quadratic(zib_model_quadratic: Model):
-    lp_str = LpTranslator.from_aq(zib_model_quadratic)
+    lp_str = LpTranslator.from_lm(zib_model_quadratic)
     lp_filepath = Path(__file__).parent / "model.lp"
     with open(lp_filepath, "w") as f:
         f.write(lp_str)
@@ -82,14 +82,14 @@ def test_zib_translator_quadratic(zib_model_quadratic: Model):
     scip_model.readProblem(lp_filepath)
     scip_model.optimize()
     timing = timer.stop()
-    _ = ZibTranslator.to_aq(scip_model, timing=timing, env=zib_model_quadratic.environment)
+    _ = ZibTranslator.to_lm(scip_model, timing=timing, env=zib_model_quadratic.environment)
     truth_sample = {
         x.name: scip_model.getVal(x)
         for x in scip_model.getVars()
         if x.name in zib_model_quadratic.environment
     }
 
-    sol = ZibTranslator.to_aq(
+    sol = ZibTranslator.to_lm(
         scip_model, timing=timing, env=zib_model_quadratic.environment
     )
     assert len(sol.samples) == 1
@@ -126,4 +126,4 @@ def test_zib_translator_quadratic(zib_model_quadratic: Model):
 
 def test_read_coins():
     lp_filepath = Path(__file__).parent / "coins.lp"
-    _ = LpTranslator.to_aq(lp_filepath)
+    _ = LpTranslator.to_lm(lp_filepath)

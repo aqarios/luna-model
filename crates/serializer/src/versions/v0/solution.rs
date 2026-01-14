@@ -113,7 +113,13 @@ impl SerSolution {
         sol.samples = IndexMap::default();
 
         let (mut nbins, mut nspins, mut nints, mut nreals) = (0, 0, 0, 0);
-        let sample_len = self.sample_len as usize;
+        let num_samples = self.num_samples as usize;
+
+        let bin_step: usize = self.bins.len() / num_samples;
+        let spin_step: usize = self.spins.len() / num_samples;
+        let int_step: usize = self.ints.len() / num_samples;
+        let real_step: usize = self.reals.len() / num_samples;
+        
         for (varname, st) in self.variable_names.iter().zip(self.sample_types) {
             let vtype = u8_to_vtype(st);
             if vtype.is_none() {
@@ -121,48 +127,48 @@ impl SerSolution {
             }
             match vtype.unwrap() {
                 Vtype::Binary => {
-                    let start_idx = nbins * sample_len;
-                    let end_idx = start_idx + sample_len;
                     sol.add_binary(
                         varname.clone(),
-                        self.bins[start_idx..end_idx]
+                        self.bins
                             .iter()
+                            .skip(nbins)
+                            .step_by(bin_step)
                             .map(|&e| e as f64)
                             .collect(),
                     );
                     nbins += 1;
                 }
                 Vtype::Spin => {
-                    let start_idx = nspins * sample_len;
-                    let end_idx = start_idx + sample_len;
                     sol.add_spin(
                         varname.clone(),
-                        self.spins[start_idx..end_idx]
+                        self.spins // [start_idx..end_idx]
                             .iter()
+                            .skip(nspins)
+                            .step_by(spin_step)
                             .map(|&e| e as f64)
                             .collect(),
                     );
                     nspins += 1;
                 }
                 Vtype::Integer => {
-                    let start_idx = nints * sample_len;
-                    let end_idx = start_idx + sample_len;
-                    sol.add_spin(
+                    sol.add_integer(
                         varname.clone(),
-                        self.ints[start_idx..end_idx]
+                        self.ints
                             .iter()
+                            .skip(nints)
+                            .step_by(int_step)
                             .map(|&e| e as f64)
                             .collect(),
                     );
                     nints += 1;
                 }
                 Vtype::Real => {
-                    let start_idx = nreals * sample_len;
-                    let end_idx = start_idx + sample_len;
                     sol.add_real(
                         varname.clone(),
-                        self.reals[start_idx..end_idx]
+                        self.reals
                             .iter()
+                            .skip(nreals)
+                            .step_by(real_step)
                             .map(|&e| e as f64)
                             .collect(),
                     );
@@ -217,18 +223,20 @@ impl SerSolution {
         } else {
             sol.variable_bounds = HashMap::default();
         }
-        let mut feasible = vec![true; sol.n_samples()];
-        sol.constraints.iter().for_each(|(_, bs)| {
-            bs.iter()
-                .enumerate()
-                .for_each(|(si, b)| feasible[si] = feasible[si] && *b)
-        });
-        sol.variable_bounds.iter().for_each(|(_, bs)| {
-            bs.iter()
-                .enumerate()
-                .for_each(|(si, b)| feasible[si] = feasible[si] && *b)
-        });
-        sol.feasible = Some(feasible);
+        if !(sol.constraints.is_empty() && sol.variable_bounds.is_empty()) {
+            let mut feasible = vec![true; sol.n_samples()];
+            sol.constraints.iter().for_each(|(_, bs)| {
+                bs.iter()
+                    .enumerate()
+                    .for_each(|(si, b)| feasible[si] = feasible[si] && *b)
+            });
+            sol.variable_bounds.iter().for_each(|(_, bs)| {
+                bs.iter()
+                    .enumerate()
+                    .for_each(|(si, b)| feasible[si] = feasible[si] && *b)
+            });
+            sol.feasible = Some(feasible);
+        }
         if let Some(t) = self.timing {
             sol.timing = Some(t.decode(())?);
         }

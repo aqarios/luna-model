@@ -39,7 +39,7 @@ def model_lp_str_bin() -> str:
         )
         m.constraints.add_constraint(x0 + x2 <= 1)
         m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")
-    return LpTranslator.from_aq(m)
+    return LpTranslator.from_lm(m)
 
 
 @pytest.fixture()
@@ -63,7 +63,7 @@ def model_lp_str_fancy() -> str:
         )
         m.constraints.add_constraint(x0 + x2 <= 1)
         m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")
-    return LpTranslator.from_aq(m)
+    return LpTranslator.from_lm(m)
 
 
 def test_translate_to_cqm(model_lp_str_bin: str):

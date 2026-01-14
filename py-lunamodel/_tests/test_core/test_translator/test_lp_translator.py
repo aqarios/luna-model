@@ -59,9 +59,9 @@ def test_lp_file_str_path():
         tmp_lp.flush()
         tmp_lp.seek(0)
 
-        lm_from_contents = LpTranslator.to_aq(tmp_lp.file.read())
-        lm_from_path = LpTranslator.to_aq(Path(tmp_lp.file.name))
-        lm_from_path_as_str = LpTranslator.to_aq(str(tmp_lp.file.name))
+        lm_from_contents = LpTranslator.to_lm(tmp_lp.file.read())
+        lm_from_path = LpTranslator.to_lm(Path(tmp_lp.file.name))
+        lm_from_path_as_str = LpTranslator.to_lm(str(tmp_lp.file.name))
 
         assert lm_from_contents.equal_contents(lm_from_path)
         assert lm_from_path.equal_contents(lm_from_path_as_str)
@@ -77,8 +77,8 @@ def test_cqm_to_model_to_cqm():
         cqm_lp = dimod_lp.dumps(cqm)
         cqm = dimod_lp.loads(cqm_lp)
         # print(f"cqm_lp =\n{cqm_lp}\n")
-        model = LpTranslator.to_aq(cqm_lp)
-        cqm_lp_back = LpTranslator.from_aq(model)
+        model = LpTranslator.to_lm(cqm_lp)
+        cqm_lp_back = LpTranslator.from_lm(model)
         # print(f"cqm_lp_back =\n{cqm_lp_back}\n")
         cqm_back = dimod_lp.loads(cqm_lp_back)
         # this is ugly, but the constraints are weird in dimod.
@@ -119,8 +119,8 @@ def test_gurobi_to_model_to_gurobi():
         tmp_lp.seek(0)
         # build luna_model
         tmp_lp.seek(0)
-        lmodel = LpTranslator.to_aq(tmp_lp.file.read())
-        lp_str = LpTranslator.from_aq(lmodel)
+        lmodel = LpTranslator.to_lm(tmp_lp.file.read())
+        lp_str = LpTranslator.from_lm(lmodel)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.truncate()
@@ -133,7 +133,7 @@ def test_gurobi_to_model_to_gurobi():
 
 
 @pytest.mark.skipif(NOT_RUN_GUROBI, reason="Gurobi is required for test")
-def test_gurobi_and_aq_lp_read_equality():
+def test_gurobi_and_lm_lp_read_equality():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
     for cqm in cqms:
@@ -146,11 +146,11 @@ def test_gurobi_and_aq_lp_read_equality():
 
         gp_model = gp.read(tmp_lp.name)
         tmp_lp.seek(0)
-        aq_model = LpTranslator.to_aq(tmp_lp.file.read())
+        lm_model = LpTranslator.to_lm(tmp_lp.file.read())
 
         # Check that the sense is equal
         assert gp_model.ModelSense == GP_SENSE_MIN
-        assert aq_model.sense == Sense.Min
+        assert lm_model.sense == Sense.Min
 
         gp_objective = gp_model.getObjective()
         if isinstance(gp_objective, gp.QuadExpr):
@@ -159,21 +159,21 @@ def test_gurobi_and_aq_lp_read_equality():
             for i in range(gp_lin_obj.size()):
                 v_name = gp_lin_obj.getVar(i).VarName
                 gp_coef = gp_lin_obj.getCoeff(i)
-                aq_coef = aq_model.objective.get_linear(
-                    aq_model.environment.get_variable(v_name)
+                lm_coef = lm_model.objective.get_linear(
+                    lm_model.environment.get_variable(v_name)
                 )
-                assert gp_coef == aq_coef
+                assert gp_coef == lm_coef
 
             print("----------- QUADRATIC -----------", file=sys.stderr)
             for i in range(gp_objective.size()):
                 v_name_1 = gp_objective.getVar1(i).VarName
                 v_name_2 = gp_objective.getVar2(i).VarName
                 gp_coef = gp_objective.getCoeff(i)
-                aq_coef = aq_model.objective.get_quadratic(
-                    aq_model.environment.get_variable(v_name_1),
-                    aq_model.environment.get_variable(v_name_2),
+                lm_coef = lm_model.objective.get_quadratic(
+                    lm_model.environment.get_variable(v_name_1),
+                    lm_model.environment.get_variable(v_name_2),
                 )
-                assert gp_coef == aq_coef
+                assert gp_coef == lm_coef
 
 
 ##################################### Gurobi ##########################################
@@ -203,8 +203,8 @@ def test_scip_to_model_to_scip():
         tmp_lp.seek(0)
         # build lmodel
         tmp_lp.seek(0)
-        lmodel = LpTranslator.to_aq(tmp_lp.file.read())
-        lp_str = LpTranslator.from_aq(lmodel)
+        lmodel = LpTranslator.to_lm(tmp_lp.file.read())
+        lp_str = LpTranslator.from_lm(lmodel)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.truncate()
@@ -248,8 +248,8 @@ def test_cplex_to_model_to_cplex():
         cpx_mps_str = tmp_mps.read()
         # build lmodel
         tmp_lp.seek(0)
-        lmodel = LpTranslator.to_aq(tmp_lp.file.read())
-        lp_str = LpTranslator.from_aq(lmodel)
+        lmodel = LpTranslator.to_lm(tmp_lp.file.read())
+        lp_str = LpTranslator.from_lm(lmodel)
         # write to lp file
         tmp_lp.seek(0)
         tmp_lp.write(lp_str)
@@ -477,4 +477,4 @@ def test_invalid_var_name():
 
     lp_str = tmp_lp.file.read().replace("x_0", "0x")
     with pytest.raises(TranslationError):
-        _ = LpTranslator.to_aq(lp_str)
+        _ = LpTranslator.to_lm(lp_str)

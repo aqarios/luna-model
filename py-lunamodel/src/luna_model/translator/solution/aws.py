@@ -9,7 +9,7 @@ from luna_model.environment.env import Environment
 
 class AwsTranslator:
     @staticmethod
-    def to_aq(
+    def to_lm(
         result: dict[str, Any],
         timing: Timing | None = None,
         *,

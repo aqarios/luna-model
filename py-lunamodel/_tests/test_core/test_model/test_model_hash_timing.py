@@ -22,7 +22,7 @@ def qubo(config) -> NDArray:
 
 
 def model(config) -> Model:
-    return QuboTranslator.to_aq(qubo(config))
+    return QuboTranslator.to_lm(qubo(config))
 
 
 def test_large_model_hash():

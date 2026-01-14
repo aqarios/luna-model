@@ -40,7 +40,7 @@ def test_set_sense_init(items, values, weights, capacity):
     model.add_constraint(quicksum(x[i] * weights[i] for i in x) <= capacity)
 
     assert model.sense == Sense.Max
-    lp_str = LpTranslator.from_aq(model)
+    lp_str = LpTranslator.from_lm(model)
     assert "Maximize" in lp_str
 
 
@@ -56,7 +56,7 @@ def test_set_sense_init_lp(items, values, weights, capacity):
     model.add_constraint(quicksum(x[i] * weights[i] for i in x) <= capacity)
 
     assert model.sense == Sense.Max
-    lp_str = LpTranslator.from_aq(model)
+    lp_str = LpTranslator.from_lm(model)
     assert "Maximize" in lp_str
 
 
@@ -74,7 +74,7 @@ def test_set_sense_after_creation(items, values, weights, capacity):
     model.add_constraint(quicksum(x[i] * weights[i] for i in x) <= capacity)
 
     assert model.sense == Sense.Max
-    lp_str = LpTranslator.from_aq(model)
+    lp_str = LpTranslator.from_lm(model)
     assert "Maximize" in lp_str
 
 
@@ -92,7 +92,7 @@ def test_set_sense_after_objective(items, values, weights, capacity):
     model.add_constraint(quicksum(x[i] * weights[i] for i in x) <= capacity)
 
     assert model.sense == Sense.Max
-    lp_str = LpTranslator.from_aq(model)
+    lp_str = LpTranslator.from_lm(model)
     assert "Maximize" in lp_str
 
 
@@ -110,7 +110,7 @@ def test_set_sense_after_constraints(items, values, weights, capacity):
     model.set_sense(Sense.Max)
 
     assert model.sense == Sense.Max
-    lp_str = LpTranslator.from_aq(model)
+    lp_str = LpTranslator.from_lm(model)
     assert "Maximize" in lp_str
 
 

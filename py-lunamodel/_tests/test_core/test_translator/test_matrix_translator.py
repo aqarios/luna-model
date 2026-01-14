@@ -65,8 +65,8 @@ def model() -> Model:
     indirect=True,
 )
 def test_translate_with_dense(qubo: NDArray):
-    model = QuboTranslator.to_aq(qubo)
-    back = QuboTranslator.from_aq(model).matrix
+    model = QuboTranslator.to_lm(qubo)
+    back = QuboTranslator.from_lm(model).matrix
     assert np.allclose(qubo, back)
 
 
@@ -79,8 +79,8 @@ def test_translate_with_dense_and_metadata(qubo: NDArray):
     offset = 4.2
     name = "test"
     vtype = Vtype.BINARY
-    model = QuboTranslator.to_aq(qubo, offset=offset, name=name, vtype=vtype)
-    back = QuboTranslator.from_aq(model)
+    model = QuboTranslator.to_lm(qubo, offset=offset, name=name, vtype=vtype)
+    back = QuboTranslator.from_lm(model)
     assert np.allclose(qubo, back.matrix)
     assert back.offset == offset
     assert back.vtype == vtype
@@ -98,10 +98,10 @@ def test_translate_with_dense_and_valid_variable_names(qubo: NDArray):
     name = "test"
     vtype = Vtype.BINARY
     variable_names = [f"x_{i},y_{i}" for i in range(len(qubo))]
-    model = QuboTranslator.to_aq(
+    model = QuboTranslator.to_lm(
         qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
     )
-    back = QuboTranslator.from_aq(model)
+    back = QuboTranslator.from_lm(model)
     assert np.allclose(qubo, back.matrix)
     assert back.offset == offset
     assert back.vtype == vtype
@@ -120,7 +120,7 @@ def test_translate_with_dense_and_invalid_variable_names_non_alpha(qubo: NDArray
     vtype = Vtype.BINARY
     variable_names = [str(i) for i in range(len(qubo))]
     with pytest.raises(TranslationError):
-        _ = QuboTranslator.to_aq(
+        _ = QuboTranslator.to_lm(
             qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
         )
 
@@ -136,15 +136,15 @@ def test_translate_with_dense_and_invalid_variable_names(qubo: NDArray):
     vtype = Vtype.BINARY
     variable_names = [f"x_{i}+y_{i}" for i in range(len(qubo))]
     with pytest.raises(TranslationError):
-        _ = QuboTranslator.to_aq(
+        _ = QuboTranslator.to_lm(
             qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
         )
 
 
 @pytest.mark.parametrize("qubo", list(product([0], [0])), indirect=True)
 def test_translate_with_dense_empty(qubo: NDArray):
-    model = QuboTranslator.to_aq(qubo)
-    back = QuboTranslator.from_aq(model).matrix
+    model = QuboTranslator.to_lm(qubo)
+    back = QuboTranslator.from_lm(model).matrix
     assert np.allclose(qubo, back)
 
 
@@ -154,8 +154,8 @@ def test_translate_with_dense_empty(qubo: NDArray):
     indirect=True,
 )
 def test_translate_with_dense_linear(linear_qubo: NDArray):
-    model = QuboTranslator.to_aq(linear_qubo)
-    back = QuboTranslator.from_aq(model).matrix
+    model = QuboTranslator.to_lm(linear_qubo)
+    back = QuboTranslator.from_lm(model).matrix
     assert np.allclose(linear_qubo, back)
 
 
@@ -165,7 +165,7 @@ def test_translate_with_dense_linear(linear_qubo: NDArray):
     indirect=True,
 )
 def test_translate_from_non_fitting_constrained(qubo: NDArray):
-    model = QuboTranslator.to_aq(qubo)
+    model = QuboTranslator.to_lm(qubo)
     with model.environment:
         b = Variable("b", vtype=Vtype.BINARY)
         s = Variable("s", vtype=Vtype.SPIN)
@@ -176,10 +176,10 @@ def test_translate_from_non_fitting_constrained(qubo: NDArray):
         model.constraints += b * i * r >= 3
 
     with pytest.raises(ModelNotUnconstrainedError):
-        _ = QuboTranslator.from_aq(model)
+        _ = QuboTranslator.from_lm(model)
 
     with pytest.raises(TranslationError):
-        _ = QuboTranslator.from_aq(model)
+        _ = QuboTranslator.from_lm(model)
 
 
 @pytest.mark.parametrize(
@@ -188,16 +188,16 @@ def test_translate_from_non_fitting_constrained(qubo: NDArray):
     indirect=True,
 )
 def test_translate_from_non_fitting_higher_order(qubo: NDArray):
-    model = QuboTranslator.to_aq(qubo)
+    model = QuboTranslator.to_lm(qubo)
     with model.environment:
         b = Variable("b", vtype=Vtype.BINARY)
         model.objective *= b
 
     with pytest.raises(ModelNotQuadraticError):
-        _ = QuboTranslator.from_aq(model)
+        _ = QuboTranslator.from_lm(model)
 
     with pytest.raises(TranslationError):
-        _ = QuboTranslator.from_aq(model) @ pytest.mark.translator
+        _ = QuboTranslator.from_lm(model) @ pytest.mark.translator
 
 
 @pytest.mark.parametrize(
@@ -206,36 +206,36 @@ def test_translate_from_non_fitting_higher_order(qubo: NDArray):
     indirect=True,
 )
 def test_translate_from_non_fitting_vtype(qubo: NDArray):
-    model = QuboTranslator.to_aq(qubo)
+    model = QuboTranslator.to_lm(qubo)
     with model.environment:
         r = Variable("r", vtype=Vtype.REAL)
         model.objective += r
 
     with pytest.raises(ModelVtypeError):
-        _ = QuboTranslator.from_aq(model)
+        _ = QuboTranslator.from_lm(model)
 
     with pytest.raises(TranslationError):
-        _ = QuboTranslator.from_aq(model)
+        _ = QuboTranslator.from_lm(model)
 
-    model_2 = QuboTranslator.to_aq(qubo, vtype=Vtype.BINARY)
+    model_2 = QuboTranslator.to_lm(qubo, vtype=Vtype.BINARY)
 
     with model_2.environment:
         s = Variable("s", vtype=Vtype.SPIN)
         model_2.objective += s
 
     with pytest.raises(ModelVtypeError):
-        _ = QuboTranslator.from_aq(model_2)
+        _ = QuboTranslator.from_lm(model_2)
 
     with pytest.raises(TranslationError):
-        _ = QuboTranslator.from_aq(model_2)
+        _ = QuboTranslator.from_lm(model_2)
 
 
 def test_translate_from_maximization_sense(model: Model):
     with pytest.raises(ModelSenseNotMinimizeError):
-        _ = QuboTranslator.from_aq(model)
+        _ = QuboTranslator.from_lm(model)
 
     with pytest.raises(TranslationError):
-        _ = QuboTranslator.from_aq(model)
+        _ = QuboTranslator.from_lm(model)
 
 
 @pytest.mark.parametrize(
@@ -244,8 +244,8 @@ def test_translate_from_maximization_sense(model: Model):
     indirect=True,
 )
 def test_translator_symmetricizes(asymmetric_qubo: NDArray):
-    model = QuboTranslator.to_aq(asymmetric_qubo)
-    back = QuboTranslator.from_aq(model).matrix
+    model = QuboTranslator.to_lm(asymmetric_qubo)
+    back = QuboTranslator.from_lm(model).matrix
     sym = (asymmetric_qubo + asymmetric_qubo.T) / 2
     assert np.allclose(sym, back)
 
@@ -253,9 +253,9 @@ def test_translator_symmetricizes(asymmetric_qubo: NDArray):
 @pytest.mark.parametrize("qubo", [(4, 0.2)], indirect=True)
 def test_variable_names_param(qubo: NDArray):
     with does_not_raise():
-        _ = QuboTranslator.to_aq(qubo)
+        _ = QuboTranslator.to_lm(qubo)
 
-    model_1 = QuboTranslator.to_aq(qubo, variable_names=["a", "b", "c", "d"])
+    model_1 = QuboTranslator.to_lm(qubo, variable_names=["a", "b", "c", "d"])
     assert model_1.environment.get_variable("a").name == "a"
     assert model_1.environment.get_variable("b").name == "b"
     assert model_1.environment.get_variable("c").name == "c"
@@ -263,18 +263,18 @@ def test_variable_names_param(qubo: NDArray):
 
     num_vars_msg = "Number of variable names must match the number of variables"
     with pytest.raises(VariableNamesError, match=num_vars_msg):
-        _ = QuboTranslator.to_aq(qubo, variable_names=[])
+        _ = QuboTranslator.to_lm(qubo, variable_names=[])
     with pytest.raises(VariableNamesError, match=num_vars_msg):
-        _ = QuboTranslator.to_aq(qubo, variable_names=["a", "b", "c"])
+        _ = QuboTranslator.to_lm(qubo, variable_names=["a", "b", "c"])
     with pytest.raises(VariableNamesError, match=num_vars_msg):
-        _ = QuboTranslator.to_aq(qubo, variable_names=["a", "b", "c", "d", "e"])
+        _ = QuboTranslator.to_lm(qubo, variable_names=["a", "b", "c", "d", "e"])
     with pytest.raises(VariableNamesError, match=num_vars_msg):
-        _ = QuboTranslator.to_aq(qubo, variable_names=["a", "b", "c", "d", "a"])
+        _ = QuboTranslator.to_lm(qubo, variable_names=["a", "b", "c", "d", "a"])
     with pytest.raises(VariableNamesError, match=num_vars_msg):
-        _ = QuboTranslator.to_aq(qubo, variable_names=["a", "a"])
+        _ = QuboTranslator.to_lm(qubo, variable_names=["a", "a"])
 
     with pytest.raises(
         VariableExistsError,
         match="variable creation failed: variable 'a' already exists",
     ):
-        _ = QuboTranslator.to_aq(qubo, variable_names=["a", "a", "c", "d"])
+        _ = QuboTranslator.to_lm(qubo, variable_names=["a", "a", "c", "d"])

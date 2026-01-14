@@ -11,7 +11,7 @@ use pyo3::{FromPyObject, PyResult, pyclass, pymethods};
 use crate::PyModel;
 
 #[derive(FromPyObject)]
-enum PyLpTranslatorToAqInput {
+enum PyLpTranslatorToLmInput {
     Str(String),
     Buf(PathBuf),
 }
@@ -22,16 +22,16 @@ pub struct PyLpTranslator;
 #[pymethods]
 impl PyLpTranslator {
     #[staticmethod]
-    fn to_aq(file: PyLpTranslatorToAqInput) -> PyResult<PyModel> {
+    fn to_lm(file: PyLpTranslatorToLmInput) -> PyResult<PyModel> {
         let model = match file {
-            PyLpTranslatorToAqInput::Str(raw) => LpTranslator::translate(raw)?,
-            PyLpTranslatorToAqInput::Buf(buf) => LpTranslator::translate(read_buf(buf)?)?,
+            PyLpTranslatorToLmInput::Str(raw) => LpTranslator::translate(raw)?,
+            PyLpTranslatorToLmInput::Buf(buf) => LpTranslator::translate(read_buf(buf)?)?,
         };
         Ok(model.into())
     }
 
     #[staticmethod]
-    fn from_aq(model: PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
+    fn from_lm(model: PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
         Ok(LpTranslator::back_translate(&model.m.read_arc(), filepath)?)
     }
 }

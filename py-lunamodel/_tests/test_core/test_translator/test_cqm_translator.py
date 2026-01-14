@@ -11,13 +11,13 @@ from _tests.test_core.utils import generate_cqms, make_seed
 NUM_CQMS: int = 100
 
 
-def test_cqm_to_aq_to_cqm():
+def test_cqm_to_lm_to_cqm():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
     for cqm in cqms:
         cqm = dimod_lp.loads(dimod_lp.dumps(cqm))
-        model = CqmTranslator.to_aq(cqm)
-        cqm_back = CqmTranslator.from_aq(model)
+        model = CqmTranslator.to_lm(cqm)
+        cqm_back = CqmTranslator.from_lm(model)
         check_dimod_expr(cqm.objective, cqm_back.objective)
         for name, constr in cqm.constraints.items():
             constr_back = cqm_back.constraints[name]
@@ -36,4 +36,4 @@ def test_invalid_var_name():
     cqm.set_objective(objective)
     cqm.add_constraint(x + y + i <= 5, label="constraint1")
     with pytest.raises(ValueError, match="Label '0' cannot be output to an LP file"):
-        _ = CqmTranslator.to_aq(cqm)
+        _ = CqmTranslator.to_lm(cqm)

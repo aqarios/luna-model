@@ -8,7 +8,7 @@ from .fixtures import aws_model, aws_result
 
 
 def test_aws_translator(aws_model: Model, aws_result: dict[str, NDArray]):
-    sol = AwsTranslator.to_aq(aws_result, env=aws_model.environment)
+    sol = AwsTranslator.to_lm(aws_result, env=aws_model.environment)
     (sol_agg, indices, num_counts) = np.unique(
         aws_result["samples"], return_index=True, return_counts=True, axis=0
     )

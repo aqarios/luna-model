@@ -88,29 +88,29 @@ def build_subst_model() -> Model:
 def do_checks(translator, sol):
     truth_model = build_truth_model()
     subst_model = build_subst_model()
-    aqsol_for_truth_model = build_truth_solution(truth_model)
-    aqsol_for_subst_model = build_truth_solution(subst_model)
+    lmsol_for_truth_model = build_truth_solution(truth_model)
+    lmsol_for_subst_model = build_truth_solution(subst_model)
 
     with truth_model.environment:
         if isinstance(sol, tuple):
-            aqsol_for_sol_truth = translator.to_aq(*sol)
+            lmsol_for_sol_truth = translator.to_lm(*sol)
         else:
-            aqsol_for_sol_truth = translator.to_aq(sol)
+            lmsol_for_sol_truth = translator.to_lm(sol)
     with subst_model.environment:
         if isinstance(sol, tuple):
-            aqsol_for_sol_subst = translator.to_aq(*sol)
+            lmsol_for_sol_subst = translator.to_lm(*sol)
         else:
-            aqsol_for_sol_subst = translator.to_aq(sol)
+            lmsol_for_sol_subst = translator.to_lm(sol)
 
-    # aqsol_for_dwave_eval_truth = truth_model.evaluate(aqsol_for_sol_truth)
+    # lmsol_for_dwave_eval_truth = truth_model.evaluate(lmsol_for_sol_truth)
     print("IMPORTANT")
-    aqsol_for_dwave_eval_subst = truth_model.evaluate(aqsol_for_sol_subst)
+    lmsol_for_dwave_eval_subst = truth_model.evaluate(lmsol_for_sol_subst)
 
-    assert check_solution_contents(aqsol_for_truth_model, aqsol_for_subst_model)
+    assert check_solution_contents(lmsol_for_truth_model, lmsol_for_subst_model)
     # assert check_solution_contents(
-    #     aqsol_for_dwave_eval_truth, aqsol_for_dwave_eval_subst
+    #     lmsol_for_dwave_eval_truth, lmsol_for_dwave_eval_subst
     # )
-    # assert check_solution_contents(aqsol_for_truth_model, aqsol_for_dwave_eval_truth)
-    # assert check_solution_contents(aqsol_for_subst_model, aqsol_for_dwave_eval_subst)
-    # assert check_solution_contents(aqsol_for_truth_model, aqsol_for_dwave_eval_subst)
-    # assert check_solution_contents(aqsol_for_subst_model, aqsol_for_dwave_eval_truth)
+    # assert check_solution_contents(lmsol_for_truth_model, lmsol_for_dwave_eval_truth)
+    # assert check_solution_contents(lmsol_for_subst_model, lmsol_for_dwave_eval_subst)
+    # assert check_solution_contents(lmsol_for_truth_model, lmsol_for_dwave_eval_subst)
+    # assert check_solution_contents(lmsol_for_subst_model, lmsol_for_dwave_eval_truth)

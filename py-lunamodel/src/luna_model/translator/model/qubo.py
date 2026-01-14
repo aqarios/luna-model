@@ -42,7 +42,7 @@ class Qubo:
 
 class QuboTranslator:
     @staticmethod
-    def to_aq(
+    def to_lm(
         qubo: NDArray,
         *,
         offset: float | None = None,
@@ -51,7 +51,7 @@ class QuboTranslator:
         vtype: Vtype | None = None,
     ) -> Model:
         return Model._from_pym(
-            PyQuboTranslator.to_aq(
+            PyQuboTranslator.to_lm(
                 qubo,
                 offset,
                 variable_names,
@@ -61,5 +61,5 @@ class QuboTranslator:
         )
 
     @staticmethod
-    def from_aq(model: Model) -> Qubo:
-        return Qubo._from_pyq(PyQuboTranslator.from_aq(model._m))
+    def from_lm(model: Model) -> Qubo:
+        return Qubo._from_pyq(PyQuboTranslator.from_lm(model._m))
