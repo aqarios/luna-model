@@ -14,9 +14,7 @@ lunamodel-types = { workspace = true }
 
 strum_macros = { workspace = true }
 hashbrown = { workspace = true }
-# regex.workspace = true
-# lp_parser_rs = { version = "3.1.4", path = "../../../lp_parser_rs/rust" }
-# lp_parser_rs = { workspace = true }
+regex = { workspace = true }
 
 [dependencies.pyo3]
 workspace = true

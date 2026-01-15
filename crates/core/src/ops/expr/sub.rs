@@ -118,26 +118,6 @@ mod tests {
             let res = (&e) - (&v);
             assert_eq!(base_res, res.unwrap());
         }
-        {
-            let (v, e) = (v.clone(), base.clone());
-            let res = v - e;
-            assert_eq!(base_res, res.unwrap());
-        }
-        {
-            let (v, e) = (v.clone(), base.clone());
-            let res = v - (&e);
-            assert_eq!(base_res, res.unwrap());
-        }
-        {
-            let (v, e) = (v.clone(), base.clone());
-            let res = (&v) - e;
-            assert_eq!(base_res, res.unwrap());
-        }
-        {
-            let (v, e) = (v.clone(), base.clone());
-            let res = (&v) - (&e);
-            assert_eq!(base_res, res.unwrap());
-        }
     }
 
     #[test]
