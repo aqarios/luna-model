@@ -4,6 +4,7 @@ use hashbrown::HashSet;
 use lunamodel_core::{ArcEnv, ConstraintCollection, Expression, Model, prelude::Bounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bound, Comparator, VarId, Vtype};
+use regex::Regex;
 
 use super::LpTranslator;
 
@@ -207,7 +208,7 @@ impl LpTranslator {
             // resstr.push_str(&format!("+{const_str}"));
             resstrs.push(const_str);
         }
-        if obj {
+        let out = if obj {
             let mut outs = Vec::new();
             let chunks = safe_chunks(&resstrs, MAX_LINE_LENGTH);
             for chunk in chunks {
@@ -218,13 +219,18 @@ impl LpTranslator {
                 let chunk = chunk.trim().to_string();
                 outs.push(format!("{INDENT}{chunk}"));
             }
-            Ok(outs.join("\n"))
+            outs.join("\n")
         } else {
             let mut out = resstrs.join(" ");
             out = out.replace("-", "- ");
             out = out.replace("+", "+ ");
-            Ok(out)
-        }
+            out
+        };
+
+        let re = Regex::new(r"\s+").unwrap();
+        let mut out = re.replace_all(&out, " ").to_string();
+        out = out.replace("+ -", "-");
+        Ok(out.to_string())
     }
 
     fn constr_string(constr: &ConstraintCollection) -> LunaModelResult<String> {

@@ -24,7 +24,18 @@ impl PyLpTranslator {
     #[staticmethod]
     fn to_lm(file: PyLpTranslatorToLmInput) -> PyResult<PyModel> {
         let model = match file {
-            PyLpTranslatorToLmInput::Str(raw) => LpTranslator::translate(raw)?,
+            PyLpTranslatorToLmInput::Str(mayberaw) => {
+                let pathbuf = PathBuf::from(&mayberaw);
+                let file = if pathbuf.exists() {
+                    // We have a real path. So we can call the translate on the pathbuf.
+                    read_buf(pathbuf)?
+                } else {
+                    // We have a string representing a model.
+                    // We don't need to do anything here.
+                    mayberaw
+                };
+                LpTranslator::translate(file)?
+            }
             PyLpTranslatorToLmInput::Buf(buf) => LpTranslator::translate(read_buf(buf)?)?,
         };
         Ok(model.into())
