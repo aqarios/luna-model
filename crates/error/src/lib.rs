@@ -70,6 +70,7 @@ pub enum LunaModelError {
     ModelNotUnconstrained,
     Vtype(ErrString),
     Translation(ErrString),
+    IndexOutOfBounds(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -98,6 +99,7 @@ impl Display for LunaModelError {
             ModelNotUnconstrained => write!(f, "the model is not unconstrained"),
             Vtype(msg) => write!(f, "unexpected Vtype: {}", msg),
             Translation(msg) => write!(f, "translation error: {}", msg),
+            IndexOutOfBounds(msg) => write!(f, "index out of bounds: {}", msg),
         }
     }
 }

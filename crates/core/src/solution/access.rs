@@ -1,5 +1,6 @@
 use std::ops::Index;
 
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 
 use super::{Solution, result::ResultView, sample::SampleView};
@@ -29,11 +30,41 @@ impl Solution {
         self.n_samples()
     }
 
+    pub fn sample_len(&self) -> usize {
+        self.samples.len()
+    }
+
     pub fn assignment(&self, sample: usize, var: &str) -> Option<&Bias> {
         match sample >= self.len() {
             true => None,
             false => Some(&self[(sample, var)]),
         }
+    }
+
+    pub fn try_assignment(&self, sample: usize, var: &str) -> LunaModelResult<Bias> {
+        if sample >= self.len() {
+            return Err(LunaModelError::IndexOutOfBounds(
+                format!("{}, is {}", sample, self.len()).into(),
+            ));
+        }
+        if !self.samples.contains_key(var) {
+            return Err(LunaModelError::VariableNotExisting(var.into()));
+        }
+        Ok(self[(sample, var)])
+    }
+
+    pub fn try_assignment_idx(&self, sample: usize, var: usize) -> LunaModelResult<Bias> {
+        if sample >= self.n_samples() {
+            return Err(LunaModelError::IndexOutOfBounds(
+                format!("{}, number of samples is {}", sample, self.n_samples()).into(),
+            ));
+        }
+        if var >= self.samples.len() {
+            return Err(LunaModelError::IndexOutOfBounds(
+                format!("{}, sample length is {}", var, self.sample_len()).into(),
+            ));
+        }
+        Ok(self[(sample, var)])
     }
 
     pub fn result(&self, index: usize) -> Option<ResultView<'_>> {

@@ -1,5 +1,8 @@
 // the entire module is feature bound to `py`.
-use pyo3::{PyErr, create_exception, exceptions::PyException};
+use pyo3::{
+    PyErr, create_exception,
+    exceptions::{PyException, PyIndexError},
+};
 
 use crate::LunaModelError as Lme;
 
@@ -292,6 +295,7 @@ impl From<Lme> for PyErr {
             Lme::ModelNotUnconstrained => PyModelNotUnconstrainedError::new_err,
             Lme::Vtype(_) => PyModelVtypeError::new_err,
             Lme::Translation(_) => PyTranslationError::new_err,
+            Lme::IndexOutOfBounds(_) => PyIndexError::new_err,
         };
         err(lme.to_string())
     }

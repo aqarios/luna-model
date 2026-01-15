@@ -5,8 +5,9 @@ use pyo3::{
     pymethods,
 };
 
-use crate::sol::PySolution;
 use super::view::PySampleView;
+use crate::sol::PySolution;
+use crate::sol::sample::view::PySampleIndex;
 
 pub enum PySamplesIndex {
     Sample(usize),
@@ -44,19 +45,19 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PySamplesIndex {
 }
 
 #[pyclass]
-pub struct PySampleIterator {
+pub struct PySamplesIterator {
     sol: PySolution,
     idx: usize,
 }
 
-impl PySampleIterator {
+impl PySamplesIterator {
     pub fn new(sol: PySolution) -> Self {
         Self { sol, idx: 0 }
     }
 }
 
 #[pymethods]
-impl PySampleIterator {
+impl PySamplesIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -91,5 +92,34 @@ impl PySampleIterator {
 
     fn __len__(slf: PyRef<'_, Self>) -> usize {
         slf.sol.s.read_arc().len()
+    }
+}
+
+#[pyclass]
+pub struct PySampleIterator {
+    sample: PySampleView,
+    idx: usize,
+}
+
+impl PySampleIterator {
+    pub fn new(sample: PySampleView) -> Self {
+        Self { sample, idx: 0 }
+    }
+}
+
+#[pymethods]
+impl PySampleIterator {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<f64> {
+        let res = slf.sample.__getitem__(PySampleIndex::Num(slf.idx)).ok();
+        slf.idx += 1;
+        res
+    }
+
+    fn __len__(slf: PyRef<'_, Self>) -> usize {
+        slf.sample.__len__()
     }
 }

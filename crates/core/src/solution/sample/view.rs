@@ -1,8 +1,15 @@
 use std::ops::Index;
 
+use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
 
-use crate::solution::Solution;
+use crate::{prelude::VarRef, solution::Solution};
+
+pub enum SampleViewIdx {
+    Num(usize),
+    Var(VarRef),
+    Str(String),
+}
 
 #[derive(Debug)]
 pub struct SampleView<'s> {
@@ -17,6 +24,21 @@ impl<'s> SampleView<'s> {
 
     pub fn to_vec(&self) -> Vec<f64> {
         self.sol.variable_names().iter().map(|v| self[v]).collect()
+    }
+
+    pub fn try_get(&self, var: SampleViewIdx) -> LunaModelResult<Bias> {
+        match var {
+            SampleViewIdx::Num(v) => self.sol.try_assignment_idx(self.idx, v),
+            SampleViewIdx::Var(v) => self.sol.try_assignment(self.idx, &v.name()?),
+            SampleViewIdx::Str(v) => self.sol.try_assignment(self.idx, &v),
+        }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = Bias> {
+        self.sol
+            .samples
+            .iter()
+            .map(|(_, samples)| samples[self.idx])
     }
 }
 

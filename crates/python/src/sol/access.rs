@@ -4,7 +4,7 @@ use pyo3::{Bound, Python, pymethods};
 
 use super::PySolution;
 use super::result::PyResultIterator;
-use super::sample::PySampleIterator;
+use super::sample::PySamplesIterator;
 use crate::timer::PyTiming;
 
 #[pymethods]
@@ -50,8 +50,8 @@ impl PySolution {
     }
 
     #[getter]
-    fn get_samples(&self) -> PySampleIterator {
-        PySampleIterator::new(self.clone())
+    fn get_samples(&self) -> PySamplesIterator {
+        PySamplesIterator::new(self.clone())
     }
 
     #[getter]

@@ -6,7 +6,7 @@ mod filter;
 mod io;
 mod modification;
 pub mod result;
-mod sample;
+pub mod sample;
 mod samples;
 mod src;
 mod timing;
