@@ -42,6 +42,7 @@ impl PyLpTranslator {
     }
 
     #[staticmethod]
+    #[pyo3(signature=(model, filepath=None))]
     fn from_lm(model: PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
         Ok(LpTranslator::back_translate(&model.m.read_arc(), filepath)?)
     }

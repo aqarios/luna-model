@@ -41,7 +41,7 @@ def test_index_sample_index(model: tuple[Model, tuple[Variable, ...]]):
     sol = Solution.from_dict(sample, model=m)
     best = sol.best()
     assert best is not None
-    best_sample = best.sample
+    best_sample = best[0].sample
     assert best_sample[0] == sample[x]
     assert best_sample[1] == sample[y]
     assert best_sample[2] == sample[z]
@@ -54,7 +54,7 @@ def test_index_sample_name(model: tuple[Model, tuple[Variable, ...]]):
     sol = Solution.from_dict(sample, model=m)
     best = sol.best()
     assert best is not None
-    best_sample = best.sample
+    best_sample = best[0].sample
     assert best_sample[f"x_{0}"] == sample[x]
     assert best_sample[f"x_{1}"] == sample[y]
     assert best_sample[f"x_{2}"] == sample[z]

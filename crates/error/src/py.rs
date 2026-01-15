@@ -296,6 +296,7 @@ impl From<Lme> for PyErr {
             Lme::Vtype(_) => PyModelVtypeError::new_err,
             Lme::Translation(_) => PyTranslationError::new_err,
             Lme::IndexOutOfBounds(_) => PyIndexError::new_err,
+            Lme::ModelSenseNotMinimize => PyModelSenseNotMinimizeError::new_err,
         };
         err(lme.to_string())
     }

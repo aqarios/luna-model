@@ -38,7 +38,7 @@ def test_bqm_to_model_to_bqm():
         assert bqm.offset == model.objective.get_offset()
         for v in bqm.variables:
             lmv = model.environment.get_variable(str(v))
-            lmm_bias = model.objective.get_linear(aqv)
+            lmm_bias = model.objective.get_linear(lmv)
             bqm_bias = bqm.get_linear(v)
             assert bqm_bias == lmm_bias, f"linear bias does not match for '{v}'"
 
@@ -48,7 +48,7 @@ def test_bqm_to_model_to_bqm():
                 if v == u:
                     continue
                 lmu = model.environment.get_variable(str(u))
-                lmm_q_bias = model.objective.get_quadratic(aqv, aqu)
+                lmm_q_bias = model.objective.get_quadratic(lmv, lmu)
                 bqm_q_bias = bqm.get_quadratic(v, u, default=0)
                 assert bqm_q_bias == lmm_q_bias, "quadratic bias does not match"
 
@@ -85,7 +85,10 @@ def test_invalid_var_name():
         offset=0,
         vartype="BINARY",
     )
-    with pytest.raises(VariableNamesError, match="variable creation failed:"):
+    with pytest.raises(
+        VariableNamesError,
+        match="variable name invalid: must start with an alphabetic character.",
+    ):
         _ = BqmTranslator.to_lm(bqm)
 
 

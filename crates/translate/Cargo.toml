@@ -15,6 +15,7 @@ lunamodel-types = { workspace = true }
 strum_macros = { workspace = true }
 hashbrown = { workspace = true }
 regex = { workspace = true }
+indexmap = { workspace = true }
 
 [dependencies.pyo3]
 workspace = true

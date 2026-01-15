@@ -33,18 +33,32 @@ class BqmTranslator:
             quad_row.append(vars_pos[var1])
             quad_col.append(vars_pos[var2])
 
-        vartype = Vtype(bqm.vartype.name)
+        vartype = Vtype(bqm.vartype.name.title())
         offset = float(bqm.offset)
         return Model._from_pym(
             PyBqmTranslator.to_lm(
                 vars=vars,
-                vtype=vartype,
+                vtype=vartype._val,
                 offset=offset,
                 linears=np.array(linears, dtype=np.float64),
                 linear_indices=np.array(linear_indices, dtype=np.uint64),
                 quads=np.array(quads, dtype=np.float64),
-                quad_rows=np.array(quad_row, dtype=np.uint64),
-                quad_cols=np.array(quad_col, dtype=np.uint64),
+                quads_rows=np.array(quad_row, dtype=np.uint64),
+                quads_cols=np.array(quad_col, dtype=np.uint64),
                 name=name,
             )
+        )
+
+    @staticmethod
+    def from_lm(model: Model) -> BinaryQuadraticModel:
+        offset, linear, quad, rows, cols, vtype, variables = PyBqmTranslator.from_lm(
+            model._m
+        )
+        vtype = Vtype._from_pyvtype(vtype).value.upper()
+        return BinaryQuadraticModel.from_numpy_vectors(
+            linear,
+            (rows, cols, quad),
+            offset,
+            vtype,
+            variable_order=variables,
         )

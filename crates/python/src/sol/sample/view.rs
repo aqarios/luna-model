@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use lunamodel_core::solution::sample::{SampleView, SampleViewIdx};
-use pyo3::{FromPyObject, PyResult, pyclass, pymethods};
+use pyo3::{FromPyObject, Py, PyAny, PyResult, Python, pyclass, pymethods};
 
 use crate::{
     PyVariable,
@@ -26,6 +26,7 @@ pub(super) enum PySampleIndex {
     Num(usize),
     Str(String),
     Var(PyVariable),
+    Other(Py<PyAny>),
 }
 
 #[pymethods]
@@ -40,13 +41,17 @@ impl PySampleView {
             .collect()
     }
 
-    pub(super) fn __getitem__(&self, item: PySampleIndex) -> PyResult<f64> {
+    pub(super) fn __getitem__(&self, py: Python, item: PySampleIndex) -> PyResult<f64> {
         let binding = self.sol.s.read_arc();
         let sample = SampleView::new(&binding, self.idx);
         Ok(match item {
             PySampleIndex::Num(index) => sample.try_get(SampleViewIdx::Num(index))?,
             PySampleIndex::Str(name) => sample.try_get(SampleViewIdx::Str(name))?,
             PySampleIndex::Var(var) => sample.try_get(SampleViewIdx::Var(var.v))?,
+            PySampleIndex::Other(other) => {
+                let pyvar: PyVariable = other.getattr(py, "_v")?.extract(py)?;
+                sample.try_get(SampleViewIdx::Var(pyvar.v))?
+            }
         })
     }
 

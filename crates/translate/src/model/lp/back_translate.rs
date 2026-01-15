@@ -3,7 +3,7 @@ use std::{fs::File, io::Write, path::PathBuf};
 use hashbrown::HashSet;
 use lunamodel_core::{ArcEnv, ConstraintCollection, Expression, Model, prelude::Bounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_types::{Bound, Comparator, VarId, Vtype};
+use lunamodel_types::{Bias, Bound, Comparator, VarId, Vtype};
 use regex::Regex;
 
 use super::LpTranslator;
@@ -143,7 +143,11 @@ impl LpTranslator {
         let mut exprvarids = HashSet::new();
         for (vars, b) in expr.items() {
             match &vars[..] {
-                [] => const_str.push_str(&format!("+{}", &b.to_string()).replace("+-", "-")),
+                [] => {
+                    if b != Bias::default() {
+                        const_str.push_str(&format!("+{}", &b.to_string()).replace("+-", "-"))
+                    }
+                }
                 [v] => {
                     exprvarids.insert(v.id());
                     if lins.is_empty() {

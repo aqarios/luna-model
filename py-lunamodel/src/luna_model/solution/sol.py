@@ -115,7 +115,7 @@ class Solution:
     #     return self._s.best_sample_idx
 
     def best(self) -> list[ResultView] | None:
-        return self._s.best
+        return self._s.best()
 
     def cvar(self, alpha: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
         return self._s.cvar(alpha, value_toggle._val)
@@ -349,3 +349,4 @@ def map_samples(
     samples: Sequence[SampleT],
 ) -> list[dict[str | PyVariable, int | float]]:
     return [map_sample(s) for s in samples]
+

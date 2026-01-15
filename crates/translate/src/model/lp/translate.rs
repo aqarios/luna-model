@@ -1,4 +1,5 @@
 use hashbrown::HashMap;
+use indexmap::IndexMap;
 use lunamodel_core::{
     Expression, Model,
     ops::LmAddAssign,
@@ -199,32 +200,38 @@ impl LpTranslator {
                     let has_label = if let Some(colon_pos) = trimmed.find(':') {
                         // Make sure the colon is before any comparison operators
                         let before_colon = &trimmed[..colon_pos];
-                        !before_colon.contains("<=") && !before_colon.contains(">=") && !before_colon.contains("=<") && !before_colon.contains("=>")
+                        !before_colon.contains("<=")
+                            && !before_colon.contains(">=")
+                            && !before_colon.contains("=<")
+                            && !before_colon.contains("=>")
                     } else {
                         false
                     };
-                    
+
                     // Check if next line also has an objective label (multiple objectives)
                     let next_has_label = if let Some(next_line) = lines.peek() {
                         let next_trimmed = next_line.trim();
                         if let Some(colon_pos) = next_trimmed.find(':') {
                             let before_colon = &next_trimmed[..colon_pos];
-                            !before_colon.contains("<=") && !before_colon.contains(">=") 
-                                && !before_colon.contains("=<") && !before_colon.contains("=>")
-                                && !next_trimmed.starts_with('+') && !next_trimmed.starts_with('-')
+                            !before_colon.contains("<=")
+                                && !before_colon.contains(">=")
+                                && !before_colon.contains("=<")
+                                && !before_colon.contains("=>")
+                                && !next_trimmed.starts_with('+')
+                                && !next_trimmed.starts_with('-')
                         } else {
                             false
                         }
                     } else {
                         false
                     };
-                    
+
                     if has_label && next_has_label && objective_found {
                         return Err(LunaModelError::Translation(
                             "Multiple objectives found in LP file. Only single objective is supported.".into()
                         ));
                     }
-                    
+
                     // For objectives: check if next line is a section header or another objective label
                     if let Some(next_line) = lines.peek() {
                         let next_upper = next_line.trim().to_uppercase();
@@ -237,7 +244,7 @@ impl LpTranslator {
                             || next_upper.starts_with("GENERAL")
                             || next_upper.starts_with("BINARY")
                             || next_upper.starts_with("END")
-                            || next_has_label  // Another objective label
+                            || next_has_label // Another objective label
                     } else {
                         true // End of file
                     }
@@ -759,7 +766,7 @@ impl LpTranslator {
         let mut model = Model::new(model_name, Some(problem.sense));
 
         // Collect all variables
-        let mut all_vars = HashMap::new();
+        let mut all_vars = IndexMap::new();
 
         // From objective
         for var in problem.objective.linear.keys() {
@@ -1197,7 +1204,11 @@ End
         // The term [x0 * x1 + 4 x1 * x2] / 2 should give us:
         // 0.5 * x0 * x1 + 2.0 * x1 * x2
         // Note: Due to internal representation, just check we have quadratic terms
-        assert!(quad.len() >= 1, "Expected at least 1 quadratic term in objective, got {}", quad.len());
+        assert!(
+            quad.len() >= 1,
+            "Expected at least 1 quadratic term in objective, got {}",
+            quad.len()
+        );
     }
 
     #[test]
