@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
-use lunamodel_core::solution::sample::{SampleView, SampleViewIdx};
-use pyo3::{FromPyObject, Py, PyAny, PyResult, Python, pyclass, pymethods};
+use lunamodel_core::solution::{
+    Assignment,
+    sample::{SampleView, SampleViewIdx},
+};
+use pyo3::{FromPyObject, IntoPyObjectExt, Py, PyAny, PyResult, Python, pyclass, pymethods};
 
 use crate::{
     PyVariable,
@@ -41,10 +44,10 @@ impl PySampleView {
             .collect()
     }
 
-    pub(super) fn __getitem__(&self, py: Python, item: PySampleIndex) -> PyResult<f64> {
+    pub(super) fn __getitem__(&self, py: Python, item: PySampleIndex) -> PyResult<Py<PyAny>> {
         let binding = self.sol.s.read_arc();
         let sample = SampleView::new(&binding, self.idx);
-        Ok(match item {
+        let assignemnt = match item {
             PySampleIndex::Num(index) => sample.try_get(SampleViewIdx::Num(index))?,
             PySampleIndex::Str(name) => sample.try_get(SampleViewIdx::Str(name))?,
             PySampleIndex::Var(var) => sample.try_get(SampleViewIdx::Var(var.v))?,
@@ -52,7 +55,14 @@ impl PySampleView {
                 let pyvar: PyVariable = other.getattr(py, "_v")?.extract(py)?;
                 sample.try_get(SampleViewIdx::Var(pyvar.v))?
             }
-        })
+        };
+
+        match assignemnt {
+            Assignment::Binary(b) => b.into_py_any(py),
+            Assignment::Spin(s) => s.into_py_any(py),
+            Assignment::Integer(i) => i.into_py_any(py),
+            Assignment::Real(r) => r.into_py_any(py),
+        }
     }
 
     pub(super) fn __len__(&self) -> usize {

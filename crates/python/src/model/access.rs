@@ -1,4 +1,4 @@
-// use lunamodel_core::has
+use lunamodel_hashing::hash_model;
 use lunamodel_types::{Sense, Vtype};
 use pyo3::{PyResult, pymethods};
 
@@ -56,8 +56,7 @@ impl PyModel {
     }
 
     fn hash(&self) -> PyResult<u64> {
-        unimplemented!()
-        // Ok(hash_model(&self.m.read_arc()))
+        Ok(hash_model(&self.m.read_arc()))
     }
 
     fn __hash__(&self) -> PyResult<u64> {

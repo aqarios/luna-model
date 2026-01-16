@@ -1,5 +1,5 @@
 [package]
-name = "lunamodel-io"
+name = "lunamodel-hashing"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -9,15 +9,8 @@ repository.workspace = true
 
 [dependencies]
 lunamodel-core = { workspace = true }
-lunamodel-error = { workspace = true }
 lunamodel-types = { workspace = true }
 
+prost = { workspace = true }
+itertools = { workspace = true }
 hashbrown = { workspace = true }
-indexmap = { workspace = true }
-pyo3 = { workspace = true }
-regex = { workspace = true }
-# itertools = { workspace = true }
-
-[features]
-default = ["py"]
-py = []

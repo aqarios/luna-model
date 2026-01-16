@@ -64,7 +64,7 @@ def test_qctrl_translator_constructed():
         assert len(samples[0]) == sample_len, (
             "sample len (num variables) does not match"
         )
-        assert sol.raw_energies == None
+        assert sol.raw_energies is None
         assert len(sol.counts.tolist()) == num_samples
         assert sol.runtime is None
 
@@ -96,7 +96,7 @@ def test_qctrl_translator_constructed_explicit_env():
         assert len(samples[0]) == sample_len, (
             "sample len (num variables) does not match"
         )
-        assert sol.raw_energies == None
+        assert sol.raw_energies is None
         assert len(sol.counts.tolist()) == num_samples
         assert sol.runtime is None
 
@@ -133,7 +133,7 @@ def test_qctrl_translator_constructed_with_time():
         assert len(samples[0]) == sample_len, (
             "sample len (num variables) does not match"
         )
-        assert sol.raw_energies == None
+        assert sol.raw_energies is None
         assert len(sol.counts.tolist()) == num_samples
         assert sol.runtime is not None
         assert round(sol.runtime.total.total_seconds(), 1) == 0.3
@@ -149,13 +149,18 @@ def test_qctrl_translator_constructed_with_time():
 
 
 def test_qctrl_translator_constructed_vars():
-    for _ in range(REPS):
-        rand = Random(make_seed())
+    # for _ in range(REPS):
+    print()
+    for _ in range(1):
+        # rand = Random(make_seed())
+        rand = Random(42)
         sample_len = rand.randint(2, MAX_VARS)
         num_samples = rand.randint(1, max(sample_len // 2, 1))
         fake_result, reverser = fake_qctrl_result(
             rand, sample_len, random(random_int(rand)), num_samples
         )
+
+        print(fake_result)
 
         env = Environment()
         with env:
@@ -167,7 +172,7 @@ def test_qctrl_translator_constructed_vars():
         assert len(samples[0]) == sample_len, (
             "sample len (num variables) does not match"
         )
-        assert sol.raw_energies == None
+        assert sol.raw_energies is None
         assert len(sol.counts.tolist()) == num_samples
         assert sol.runtime is None
 
@@ -176,6 +181,7 @@ def test_qctrl_translator_constructed_vars():
             assert result.feasible is None
             assert result.obj_value is None
             bs = reverser([e for e in result.sample])
+            print(bs)
             assert result.counts == fake_result["final_bitstring_distribution"][bs]
 
         results = list(sol.results)

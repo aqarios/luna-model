@@ -56,7 +56,7 @@ lunamodel-error = { version = "0.5.0", path = "crates/error", default-features =
 lunamodel-core = { version = "0.5.0", path = "crates/core", default-features = false }
 lunamodel-ops = { version = "0.5.0", path = "crates/ops", default-features = false }
 lunamodel-io = { version = "0.5.0", path = "crates/io", default-features = false }
-# lunamodel-hashing = { version = "0.5.0", path = "crates/hashing", default-features = false }
+lunamodel-hashing = { version = "0.5.0", path = "crates/hashing", default-features = false }
 # lunamodel-unwind = { version = "0.5.0", path = "crates/unwind", default-features = false }
 lunamodel-serializer = { version = "0.5.0", path = "crates/serializer", default-features = false }
 lunamodel-transform = { version = "0.5.0", path = "crates/transform", default-features = false }

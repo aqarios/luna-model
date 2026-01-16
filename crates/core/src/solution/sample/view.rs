@@ -3,7 +3,10 @@ use std::ops::Index;
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
 
-use crate::{prelude::VarRef, solution::Solution};
+use crate::{
+    prelude::VarRef,
+    solution::{Assignment, Solution},
+};
 
 pub enum SampleViewIdx {
     Num(usize),
@@ -26,7 +29,7 @@ impl<'s> SampleView<'s> {
         self.sol.variable_names().iter().map(|v| self[v]).collect()
     }
 
-    pub fn try_get(&self, var: SampleViewIdx) -> LunaModelResult<Bias> {
+    pub fn try_get(&self, var: SampleViewIdx) -> LunaModelResult<Assignment> {
         match var {
             SampleViewIdx::Num(v) => self.sol.try_assignment_idx(self.idx, v),
             SampleViewIdx::Var(v) => self.sol.try_assignment(self.idx, &v.name()?),

@@ -10,7 +10,7 @@ from luna_model.environment.env import Environment
 class AwsTranslator:
     @staticmethod
     def to_lm(
-        result: dict[str, Any],
+        aws_result: dict[str, Any],
         timing: Timing | None = None,
         *,
         env: Environment | None = None,
@@ -30,4 +30,4 @@ class AwsTranslator:
             timing=timing,
             counts=num_occ,
             energies=energies,
-       )
+        )

@@ -83,10 +83,10 @@ impl PySolution {
                         "obj_values length does not match number of samples.",
                     ));
                 } else {
-                    sol.raw_energies = Some(es);
+                    sol.obj_values = Some(es);
                 }
             }
-            None => sol.raw_energies = None,
+            None => sol.obj_values = None,
         }
 
         let sample_vars: Vec<_> = samples[0].keys().collect();

@@ -415,6 +415,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "lunamodel-hashing"
+version = "0.5.0"
+dependencies = [
+ "hashbrown",
+ "itertools",
+ "lunamodel-core",
+ "lunamodel-types",
+ "prost",
+]
+
+[[package]]
 name = "lunamodel-io"
 version = "0.5.0"
 dependencies = [
@@ -424,6 +435,7 @@ dependencies = [
  "lunamodel-error",
  "lunamodel-types",
  "pyo3",
+ "regex",
 ]
 
 [[package]]
@@ -436,6 +448,7 @@ dependencies = [
  "itertools",
  "lunamodel-core",
  "lunamodel-error",
+ "lunamodel-hashing",
  "lunamodel-io",
  "lunamodel-serializer",
  "lunamodel-translate",

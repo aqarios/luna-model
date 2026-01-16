@@ -18,9 +18,13 @@ impl PySolution {
         &mut self,
         vars: Vec<VarKey>,
         data: Vec<Vec<f64>>,
-        vtype: Vec<Option<Vtype>>,
+        vtypes: Option<Vec<Option<Vtype>>>,
     ) -> PyResult<()> {
-        for ((v, d), vt) in vars.into_iter().zip(data).zip(vtype) {
+        let vtypes: Vec<_> = match vtypes {
+            Some(vs) => vs,
+            None => vec![None; vars.len()],
+        };
+        for ((v, d), vt) in vars.into_iter().zip(data).zip(vtypes) {
             self.add_var(v, d, vt)?;
         }
         Ok(())

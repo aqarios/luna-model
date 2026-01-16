@@ -6,7 +6,7 @@ use super::Environment;
 use crate::{bounds::LazyBounds, traits::ContentEquality, variable::VarRef};
 
 use lunamodel_error::LunaModelResult;
-use lunamodel_types::{EnvIdx, Vtype};
+use lunamodel_types::{EnvIdx, VarIdx, Vtype};
 
 #[derive(Debug, Clone, Default, Deref)]
 pub struct ArcEnv {
@@ -95,6 +95,10 @@ impl ArcEnv {
 
     pub fn lookup(&self, name: &str) -> LunaModelResult<VarRef> {
         Ok(VarRef::new(self.env.read_arc().lookup(name)?, self.clone()))
+    }
+
+    pub fn get(&self, idx: VarIdx) -> VarRef {
+        VarRef::new(idx, self.clone())
     }
 
     pub fn contains(&self, name: &str) -> bool {

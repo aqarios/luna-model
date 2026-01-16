@@ -32,10 +32,11 @@ def test_to_dict_with_model(model: tuple[Model, tuple[Variable, ...]]):
     sample = {x: 0, y: 0, z: 1}
     sol = Solution.from_dict(sample, model=m)
     assert sol.samples.tolist() == [[0, 0, 1]]
+    assert sol.obj_values is not None
     assert sol.obj_values.tolist() == [-1.0]
     best = sol.best()
     assert best is not None
-    assert best.sample.to_dict() == {v.name: a for v, a in sample.items()}
+    assert best[0].sample.to_dict() == {v.name: a for v, a in sample.items()}
 
 
 @pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
@@ -45,11 +46,12 @@ def test_to_dict_with_model_and_counts(model: tuple[Model, tuple[Variable, ...]]
     counts = random_int(rand=Random(make_seed()))
     sol = Solution.from_dict(sample, model=m, counts=counts)
     assert sol.samples.tolist() == [[0, 0, 1]]
+    assert sol.obj_values is not None
     assert sol.obj_values.tolist() == [-1.0]
     assert sol.counts == counts
     best = sol.best()
     assert best is not None
-    assert best.sample.to_dict() == {v.name: a for v, a in sample.items()}
+    assert best[0].sample.to_dict() == {v.name: a for v, a in sample.items()}
 
 
 @pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
@@ -69,10 +71,11 @@ def test_to_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]]):
         [1, 0, 0],
         [0, 1, 1],
     ]
+    assert sol.obj_values is not None
     assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]
     best = sol.best()
     assert best is not None
-    assert best.sample.to_dict() == {v.name: a for v, a in best_sample.items()}
+    assert best[0].sample.to_dict() == {v.name: a for v, a in best_sample.items()}
 
 
 @pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
@@ -105,10 +108,11 @@ def test_to_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...]]
         [0, 1, 1],  # -2
     ]
     assert sol.counts.tolist() == counts
+    assert sol.obj_values is not None
     assert sol.obj_values.tolist() == [-1, -1, 1, -2]
     best = sol.best()
     assert best is not None
-    assert best.sample.to_dict() == {v.name: a for v, a in sample_d.items()}
+    assert best[0].sample.to_dict() == {v.name: a for v, a in sample_d.items()}
 
 
 @pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)
@@ -138,7 +142,8 @@ def test_to_dicts_duplicate_with_model_and_counts(
         [0, 1, 1],  # -2
     ]
     assert sol.counts.tolist() == counts
+    assert sol.obj_values is not None
     assert sol.obj_values.tolist() == [-1, -1, 1, -2]
     best = sol.best()
     assert best is not None
-    assert best.sample.to_dict() == {v.name: a for v, a in sample_d.items()}
+    assert best[0].sample.to_dict() == {v.name: a for v, a in sample_d.items()}

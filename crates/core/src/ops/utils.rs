@@ -6,7 +6,7 @@ use crate::{
     prelude::{HigherOrder, Linear, Quadratic, VarRef},
     traits::DefaultEditable,
 };
-use hashbrown::HashMap;
+use indexmap::IndexMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, EnvIdx, VarIdx, Vtype, Vtype::*};
 
@@ -185,14 +185,14 @@ impl Mul<Bias> for VarMulRes {
 
 /// Reduce the given variables to the minimal set representing
 /// the same logical operation for multilication.
-/// 
+///
 /// None if inverted binary occured.
 pub fn reduce_vars_mul<F, I>(vars: &[VarIdx], vtype: F, inv: I) -> Option<Vec<VarIdx>>
 where
     F: Fn(VarIdx) -> Vtype,
     I: Fn(VarIdx) -> Option<VarIdx>,
 {
-    let mut ocs: HashMap<VarIdx, (usize, Vtype)> = HashMap::new();
+    let mut ocs: IndexMap<VarIdx, (usize, Vtype)> = IndexMap::new();
     for &v in vars {
         if let Some(inverted) = inv(v)
             && ocs.contains_key(&inverted)

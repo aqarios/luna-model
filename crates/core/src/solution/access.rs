@@ -3,6 +3,8 @@ use std::ops::Index;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 
+use crate::solution::Assignment;
+
 use super::{Solution, result::ResultView, sample::SampleView};
 
 const RTOL: f64 = f64::EPSILON;
@@ -41,7 +43,7 @@ impl Solution {
         }
     }
 
-    pub fn try_assignment(&self, sample: usize, var: &str) -> LunaModelResult<Bias> {
+    pub fn try_assignment(&self, sample: usize, var: &str) -> LunaModelResult<Assignment> {
         if sample >= self.len() {
             return Err(LunaModelError::IndexOutOfBounds(
                 format!("{}, is {}", sample, self.len()).into(),
@@ -50,10 +52,10 @@ impl Solution {
         if !self.samples.contains_key(var) {
             return Err(LunaModelError::VariableNotExisting(var.into()));
         }
-        Ok(self[(sample, var)])
+        Ok(self.samples[var].as_assignment(sample))
     }
 
-    pub fn try_assignment_idx(&self, sample: usize, var: usize) -> LunaModelResult<Bias> {
+    pub fn try_assignment_idx(&self, sample: usize, var: usize) -> LunaModelResult<Assignment> {
         if sample >= self.n_samples() {
             return Err(LunaModelError::IndexOutOfBounds(
                 format!("{}, number of samples is {}", sample, self.n_samples()).into(),
@@ -64,7 +66,7 @@ impl Solution {
                 format!("{}, sample length is {}", var, self.sample_len()).into(),
             ));
         }
-        Ok(self[(sample, var)])
+        Ok(self.samples[var].as_assignment(sample))
     }
 
     pub fn result(&self, index: usize) -> Option<ResultView<'_>> {

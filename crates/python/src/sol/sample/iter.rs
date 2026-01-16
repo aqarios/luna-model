@@ -113,7 +113,7 @@ impl PySampleIterator {
         slf
     }
 
-    fn __next__(mut slf: PyRefMut<'_, Self>, py: Python) -> Option<f64> {
+    fn __next__(mut slf: PyRefMut<'_, Self>, py: Python) -> Option<Py<PyAny>> {
         let res = slf.sample.__getitem__(py, PySampleIndex::Num(slf.idx)).ok();
         slf.idx += 1;
         res
