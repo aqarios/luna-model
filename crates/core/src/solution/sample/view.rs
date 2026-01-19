@@ -6,7 +6,7 @@ use lunamodel_types::Bias;
 use crate::{
     prelude::VarRef,
     solution::{Assignment, Solution},
-    traits::{TryIndex, Variables},
+    traits::TryIndex,
 };
 
 #[derive(Debug)]
@@ -80,11 +80,5 @@ impl<'s> TryIndex<&str> for SampleView<'s> {
         } else {
             Err(LunaModelError::VariableNotExisting(var.into()))
         }
-    }
-}
-
-impl<'s> Variables for SampleView<'s> {
-    fn vars(&self) -> Vec<String> {
-        self.sol.variable_names()
     }
 }

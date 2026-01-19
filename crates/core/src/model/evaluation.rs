@@ -1,11 +1,16 @@
 use hashbrown::HashMap;
-use lunamodel_error::LunaModelResult;
+use lunamodel_error::{LunaModelError, LunaModelResult};
 
 use super::Model;
 use crate::Solution;
 
 impl Model {
     pub fn evaluate_solution(&self, sol: &Solution) -> LunaModelResult<Solution> {
+        check_alignment(
+            &self.vars().map(|v| v.name().unwrap()).collect::<Vec<_>>(),
+            &sol.variable_names(),
+        )?;
+
         let mut newsol = Solution::default();
         newsol.samples = sol.samples.clone();
         newsol.counts = sol.counts.clone();
@@ -51,37 +56,27 @@ impl Model {
 
         Ok(newsol)
     }
+}
 
-    // pub fn evaluate_sample<'a>(&self, sample: &SampleView) -> Result<ResultOwned> {
-    //     let sample_var_names = sample.variable_names();
-    //     let env_var_names = &self.environment.variable_names();
-    //     check_variables_sample(&sample_var_names, env_var_names)?;
-
-    //     let index_map = make_index_map(sample.varname_to_pos(), &self.environment);
-
-    //     let obj_val = self
-    //         .objective
-    //         .evaluate_sample(sample, |idx| index_map[&idx]);
-    //     let cf: Vec<_> = self
-    //         .constraints
-    //         .iter()
-    //         .map(|(_, constraint)| {
-    //             let v = constraint
-    //                 .lhs
-    //                 .evaluate_sample(sample, |idx| index_map[&idx]);
-    //             constraint.comparator.evaluate(v, constraint.rhs)
-    //         })
-    //         .collect();
-    //     let vf: Vec<_> = self
-    //         .environment
-    //         .access()
-    //         .evaluate_bounds(sample, |idx| index_map[&idx]);
-    //     let feasible = cf.iter().all(|&b| b) && vf.iter().all(|&b| b);
-    //     let owned_sample = SampleOwned::new(
-    //         sample_var_names.to_vec(),
-    //         sample.iter().collect(),
-    //         sample.var_indices(),
-    //     );
-    //     Ok(OwnedResult::new(owned_sample, obj_val, cf, vf, feasible))
-    // }
+fn check_alignment(expr_vars: &[String], sample_vars: &[String]) -> LunaModelResult<()> {
+    if expr_vars.len() != sample_vars.len() {
+        return Err(LunaModelError::Evaluation(
+            "number of variables does not match".into(),
+        ));
+    }
+    for ev in expr_vars {
+        if !sample_vars.contains(ev) {
+            return Err(LunaModelError::Evaluation(
+                format!("variable '{ev}' is not contained in sample").into(),
+            ));
+        }
+    }
+    for sv in sample_vars {
+        if !expr_vars.contains(sv) {
+            return Err(LunaModelError::Evaluation(
+                format!("variable '{sv}' is not contained in expression").into(),
+            ));
+        }
+    }
+    Ok(())
 }

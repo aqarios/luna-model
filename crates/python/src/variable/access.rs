@@ -7,33 +7,38 @@ use crate::{PyEnvironment, bounds::PyBounds};
 #[pymethods]
 impl PyVariable {
     #[getter]
-    fn id(&self) -> usize {
-        self.v.id() as usize
+    fn id(&self) -> PyResult<usize> {
+        self.v.check_living()?;
+        Ok(self.v.id() as usize)
     }
 
     #[getter]
     fn name(&self) -> PyResult<String> {
+        self.v.check_living()?;
         Ok(self.v.name()?)
     }
     #[getter]
     fn bounds(&self) -> PyResult<PyBounds> {
-        // todo: special bounds right away or rely on outside protocol?
+        self.v.check_living()?;
         Ok(PyBounds(self.v.bounds()?.into()))
     }
 
     #[getter]
     fn vtype(&self) -> PyResult<Vtype> {
+        self.v.check_living()?;
         Ok(self.v.vtype()?)
     }
 
     #[getter]
-    fn environment(&self) -> PyEnvironment {
-        PyEnvironment {
+    fn environment(&self) -> PyResult<PyEnvironment> {
+        self.v.check_living()?;
+        Ok(PyEnvironment {
             env: self.v.env.clone(),
-        }
+        })
     }
 
     fn __hash__(&self) -> PyResult<u64> {
+        self.v.check_living()?;
         Ok(self.v.hash()?)
     }
 }

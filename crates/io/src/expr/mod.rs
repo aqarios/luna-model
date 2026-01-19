@@ -25,8 +25,10 @@ fn expr_string(expr: &Expression) -> String {
 
     let mut exprvarids = HashSet::new();
     for (vars, b) in expr.items() {
-        let bstr = match b.abs() {
+        let bstr = match b {
+            0.0 => String::new(),
             1.0 => String::new(),
+            -1.0 => String::from("-"),
             _ => format!("{} ", b),
         };
         match &vars[..] {
@@ -75,6 +77,9 @@ fn expr_string(expr: &Expression) -> String {
         resstrs.append(&mut hos);
     }
     if !quads.is_empty() {
+        if !resstrs.is_empty() {
+            resstrs.push("+".to_string());
+        }
         resstrs.append(&mut quads);
     }
     if !lins.is_empty() {
@@ -87,8 +92,8 @@ fn expr_string(expr: &Expression) -> String {
         resstrs.push(const_str);
     }
     let mut out = resstrs.join(" ");
-    out = out.replace("-", "- ");
-    out = out.replace("+", "+ ");
+    out = out.replace(" -", " - ");
+    out = out.replace(" +", " + ");
     let re = Regex::new(r"\s+").unwrap();
     out = re.replace_all(&out, " ").to_string();
     out = out.replace("+ -", "-");

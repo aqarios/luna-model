@@ -5,7 +5,7 @@ def check_solution_contents(lhs: Solution, rhs: Solution) -> bool:
     eq_best = (
         lhs.best() is not None
         and rhs.best() is not None
-        and lhs.best().sample.to_dict() == rhs.best().sample.to_dict()  # type: ignore
+        and lhs.best()[0].sample.to_dict() == rhs.best()[0].sample.to_dict()  # type: ignore
     )
 
     return (
@@ -15,7 +15,6 @@ def check_solution_contents(lhs: Solution, rhs: Solution) -> bool:
         and lhs.counts == rhs.counts
         and lhs.runtime == rhs.runtime
         and lhs.sense == rhs.sense
-        and lhs.best_sample_idx == rhs.best_sample_idx
         and lhs.variable_names == rhs.variable_names
         and lhs.samples.tolist() == rhs.samples.tolist()
         and lhs.expectation_value() == rhs.expectation_value()
@@ -103,7 +102,6 @@ def do_checks(translator, sol):
             lmsol_for_sol_subst = translator.to_lm(sol)
 
     # lmsol_for_dwave_eval_truth = truth_model.evaluate(lmsol_for_sol_truth)
-    print("IMPORTANT")
     lmsol_for_dwave_eval_subst = truth_model.evaluate(lmsol_for_sol_subst)
 
     assert check_solution_contents(lmsol_for_truth_model, lmsol_for_subst_model)

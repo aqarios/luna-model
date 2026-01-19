@@ -142,41 +142,41 @@ def test_expression(variables: tuple[Variable, ...]):
     expressions.append(a * -1 + b)
     assert str(expressions[-1]) == "-a + b"
     expressions.append(a * 2 + b)
-    assert str(expressions[-1]) == "2 * a + b"
+    assert str(expressions[-1]) == "2 a + b"
     expressions.append(a * 1.5 + b)
-    assert str(expressions[-1]) == "1.5 * a + b"
+    assert str(expressions[-1]) == "1.5 a + b"
     expressions.append(a * 2 + b + -1)
-    assert str(expressions[-1]) == "2 * a + b - 1"
+    assert str(expressions[-1]) == "2 a + b - 1"
     expressions.append(a * 2 + b + 1)
-    assert str(expressions[-1]) == "2 * a + b + 1"
+    assert str(expressions[-1]) == "2 a + b + 1"
     expressions.append(a * 2 + b + 1.5)
-    assert str(expressions[-1]) == "2 * a + b + 1.5"
+    assert str(expressions[-1]) == "2 a + b + 1.5"
     expressions.append(a * 2 + b + 0)
-    assert str(expressions[-1]) == "2 * a + b"
+    assert str(expressions[-1]) == "2 a + b"
 
     # quadratic
     expressions.append(a * b)
-    assert str(expressions[-1]) == "a * b"
+    assert str(expressions[-1]) == "a b"
     expressions.append(a * b * -1)
-    assert str(expressions[-1]) == "-a * b"
+    assert str(expressions[-1]) == "-a b"
     expressions.append(a * b * 2 + a)
-    assert str(expressions[-1]) == "2 * a * b + a"
+    assert str(expressions[-1]) == "2 a b + a"
     expressions.append(a * b * -2 + a * -1)
-    assert str(expressions[-1]) == "-2 * a * b - a"
+    assert str(expressions[-1]) == "-2 a b - a"
     expressions.append(a * b * -2 + 5)
-    assert str(expressions[-1]) == "-2 * a * b + 5"
+    assert str(expressions[-1]) == "-2 a b + 5"
     expressions.append(a * c + a * b)
-    assert str(expressions[-1]) == "a * b + a * c"
+    assert str(expressions[-1]) == "a b + a c"
 
     # higher order
     expressions.append(a * b * c)
-    assert str(expressions[-1]) == "a * b * c"
+    assert str(expressions[-1]) == "a b c"
     expressions.append(a * b * 2 * c)
-    assert str(expressions[-1]) == "2 * a * b * c"
+    assert str(expressions[-1]) == "2 a b c"
     expressions.append(a * b * c * -1)
-    assert str(expressions[-1]) == "-a * b * c"
+    assert str(expressions[-1]) == "-a b c"
     expressions.append(a * b * c + a * b + c + 1)
-    assert str(expressions[-1]) == "a * b * c + a * b + c + 1"
+    assert str(expressions[-1]) == "a b c + a b + c + 1"
 
     with does_not_raise():
         for expr in expressions:

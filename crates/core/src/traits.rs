@@ -78,7 +78,3 @@ pub trait TryIndex<I> {
 
     fn try_index(&self, index: I) -> Result<&Self::Output, Self::Err>;
 }
-
-pub trait Variables {
-    fn vars(&self) -> Vec<String>;
-}

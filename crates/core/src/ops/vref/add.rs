@@ -4,7 +4,10 @@ use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
 
 use crate::{
-    ops::{utils::check_envs, LmAddAssign}, prelude::VarRef, traits::Editable, Expression
+    Expression,
+    ops::{LmAddAssign, utils::check_envs},
+    prelude::VarRef,
+    traits::Editable,
 };
 
 impl Add<Self> for &VarRef {

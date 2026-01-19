@@ -159,7 +159,7 @@ def test_ibm_solution_translator():
     qp = controlled_qp()
     res = compute_result(qp)
     timing = timer.stop()
-    sol: Solution = IbmTranslator.to_lm(res, qp, timing, env=aqm.environment)
+    sol: Solution = IbmTranslator.to_lm(res, qp, timing, env=lmm.environment)
 
     truth_samples, truth_energies, truth_counts = extract(res, qp)
     assert len(sol.samples) == len(truth_samples), "sample lengths not matching"
