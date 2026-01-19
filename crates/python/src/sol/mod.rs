@@ -5,7 +5,7 @@ mod filter;
 mod general;
 mod io;
 mod modification;
-mod result;
+pub mod result;
 pub mod sample;
 mod ser;
 mod setter;

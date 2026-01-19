@@ -72,6 +72,9 @@ pub enum LunaModelError {
     Vtype(ErrString),
     Translation(ErrString),
     IndexOutOfBounds(ErrString),
+    Evaluation(ErrString),
+    SampleIncorrectLength(ErrString),
+    SampleUnexpectedVariable(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -102,6 +105,9 @@ impl Display for LunaModelError {
             Vtype(msg) => write!(f, "unexpected Vtype: {}", msg),
             Translation(msg) => write!(f, "translation error: {}", msg),
             IndexOutOfBounds(msg) => write!(f, "index out of bounds: {}", msg),
+            Evaluation(msg) => write!(f, "error in evaluation: {}", msg),
+            SampleIncorrectLength(msg) => write!(f, "sample incorrect length: {}", msg),
+            SampleUnexpectedVariable(msg) => write!(f, "sample contains unexpected variable: {}", msg),
         }
     }
 }

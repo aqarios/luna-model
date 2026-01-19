@@ -1,5 +1,3 @@
-from typing import Any, TYPE_CHECKING
-
 import numpy as np
 from dimod import SampleSet
 

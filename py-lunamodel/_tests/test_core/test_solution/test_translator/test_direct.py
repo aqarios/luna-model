@@ -5,7 +5,8 @@ from luna_model import Solution, Timer, TranslationTarget, Vtype
 NOT_TEST_SCIP = True
 try:
     from pyscipopt import Model as ScipModel
-    NOT_TEST_IBM = False
+
+    NOT_TEST_SCIP = False
 except ImportError:
     NOT_TEST_SCIP = True
 
@@ -18,6 +19,7 @@ try:
         extract,
     )
     from qiskit_optimization.translators import from_docplex_mp
+
     NOT_TEST_IBM = False
 except ImportError:
     NOT_TEST_IBM = True
@@ -28,7 +30,7 @@ from ..test_from_dict import vars
 
 
 def make_scip_model(zib_model):
-    lp_str = zib_model.to(TranslationTarget.Lp)
+    lp_str = zib_model.to(TranslationTarget.LP)
     lp_filepath = Path(__file__).parent / "model.lp"
     with open(lp_filepath, "w") as f:
         f.write(lp_str)
@@ -107,23 +109,28 @@ def test_sol_direct_from_qctrl():
     results = list(sol.results)
     assert len(results) == num_samples
 
+
 def test_sol_direct_from_aws_with_warning(aws_model, aws_result):
     import warnings
-    warnings.filterwarnings("error") # so we can catch it...
-    with pytest.raises(UserWarning):
+
+    warnings.filterwarnings("error")  # so we can catch it...
+    with pytest.raises(TypeError):
         with aws_model.environment:
             _ = Solution.from_(aws_result, counts=[1, 2, 3, 4])
+
 
 def test_sol_direct_from_aws(aws_model, aws_result):
     with aws_model.environment:
         sol = Solution.from_(aws_result)
 
-    (sol_agg, indices, _) = np.unique(
-        aws_result["samples"], return_index=True, return_counts=True, axis=0
-    )
-    assert sol.samples.tolist() == sol_agg.tolist()
-    for i, result in enumerate(sol.results):
-        assert result.raw_energy == aws_result["energies"][indices[i]]
+    assert [
+        [0, 1.0, 1, 0, 0],
+        [1, 0.0, 1, 0, 0],
+        [0, 0.0, 1, 0, 0],
+    ] == sol.samples.tolist()
+    assert all([-2.0, -1.0, -1.0] == sol.raw_energies)
+    for result in sol.results:
+        assert result.raw_energy in [-2.0, -1.0]
         assert result.obj_value is None
         assert result.constraints is None
         assert result.feasible is None

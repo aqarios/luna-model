@@ -5,7 +5,8 @@ use lunamodel_error::LunaModelResult;
 use pyo3::{FromPyObject, PyResult, pymethods};
 
 use crate::{
-    PyConstraintCollection, PyExpression, PySolution, PyVariable, sol::sample::PySampleView,
+    PyConstraintCollection, PyExpression, PySolution, PyVariable,
+    sol::{result::PyResultView, sample::PySampleView},
 };
 
 use super::PyModel;
@@ -40,6 +41,12 @@ impl PyModel {
             .read_arc()
             .evaluate_solution(&solution.s.read_arc())?
             .into())
+    }
+
+    fn evaluate_sample(&self, sample: PySampleView) -> PyResult<PyResultView> {
+        let mut sol = sample.sol.s.read_arc().extract(sample.idx);
+        sol = self.m.read_arc().evaluate_solution(&sol)?;
+        Ok(PyResultView::new(sol.into(), 0))
     }
 
     fn equal_contents(&self, other: &Self) -> bool {

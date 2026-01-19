@@ -33,7 +33,7 @@ def test_creation_with_bounds(vtype, bounds):
     upper = Unbounded if bounds.upper is None else bounds.upper
 
     lower: float | Unbounded
-    if vtype == Vtype.INTEGER and bounds.lower is None:
+    if vtype in [Vtype.INTEGER, Vtype.REAL] and bounds.lower is None:
         lower = 0
     else:
         lower = Unbounded if bounds.lower is None else bounds.lower

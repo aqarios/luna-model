@@ -54,26 +54,20 @@ class Model:
         **kwargs,
     ) -> Model: ...
     @overload
-    def to(
-        self, target: Literal[TranslationTarget.QUBO] | Literal[TranslationTarget.Qubo]
-    ) -> Qubo: ...
+    def to(self, target: Literal[TranslationTarget.QUBO]) -> Qubo: ...
     @overload
     def to(
         self,
-        target: Literal[TranslationTarget.LP] | Literal[TranslationTarget.Lp],
+        target: Literal[TranslationTarget.LP],
         filepath: Path,
     ) -> None: ...
     @overload
-    def to(
-        self, target: Literal[TranslationTarget.LP] | Literal[TranslationTarget.Lp]
-    ) -> str: ...
+    def to(self, target: Literal[TranslationTarget.LP]) -> str: ...
+    @overload
+    def to(self, target: Literal[TranslationTarget.BQM]) -> BinaryQuadraticModel: ...
     @overload
     def to(
-        self, target: Literal[TranslationTarget.BQM] | Literal[TranslationTarget.Bqm]
-    ) -> BinaryQuadraticModel: ...
-    @overload
-    def to(
-        self, target: Literal[TranslationTarget.CQM] | Literal[TranslationTarget.Cqm]
+        self, target: Literal[TranslationTarget.CQM]
     ) -> ConstrainedQuadraticModel: ...
     def to(
         self, target: TranslationTarget

@@ -1,11 +1,12 @@
 use std::ops::Index;
 
-use lunamodel_error::LunaModelResult;
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 
 use crate::{
     prelude::VarRef,
     solution::{Assignment, Solution},
+    traits::{TryIndex, Variables},
 };
 
 #[derive(Debug)]
@@ -26,8 +27,16 @@ impl<'s> SampleView<'s> {
         Self { sol, idx }
     }
 
-    pub fn to_vec(&self) -> Vec<f64> {
-        self.sol.variable_names().iter().map(|v| self[v]).collect()
+    pub fn to_vec(&self) -> Vec<Assignment> {
+        self.sol
+            .variable_names()
+            .iter()
+            .map(|v| self.get(v))
+            .collect()
+    }
+
+    pub fn get(&self, var: &str) -> Assignment {
+        self.sol.assignment(self.idx, var)
     }
 
     pub fn try_get(&self, var: SampleViewIdx) -> LunaModelResult<Assignment> {
@@ -58,5 +67,24 @@ impl<'s> Index<&str> for SampleView<'s> {
 
     fn index(&self, var: &str) -> &Self::Output {
         &self.sol[(self.idx, var)]
+    }
+}
+
+impl<'s> TryIndex<&str> for SampleView<'s> {
+    type Err = LunaModelError;
+    type Output = Bias;
+
+    fn try_index(&self, var: &str) -> Result<&Self::Output, Self::Err> {
+        if self.sol.samples.contains_key(var) {
+            Ok(&self.sol[(self.idx, var)])
+        } else {
+            Err(LunaModelError::VariableNotExisting(var.into()))
+        }
+    }
+}
+
+impl<'s> Variables for SampleView<'s> {
+    fn vars(&self) -> Vec<String> {
+        self.sol.variable_names()
     }
 }

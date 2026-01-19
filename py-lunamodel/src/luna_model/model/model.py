@@ -1,11 +1,15 @@
 from __future__ import annotations
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, overload
 
 from luna_model._utils import wrap_expr, wrap_cc, wrap_env, wrap_var, wrap_sp, wrap_s
 from luna_model._lm import PyModel
 from luna_model.model.sense import Sense
 from luna_model.variable.vtype import Vtype
+from luna_model.translator.ttarget import TranslationTarget
+
+from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel  # type: ignore[import]
+from numpy import ndarray
 
 if TYPE_CHECKING:
     from luna_model.environment.env import Environment
@@ -17,10 +21,8 @@ if TYPE_CHECKING:
     from luna_model.variable.var import Variable
     from luna_model.variable.bounds import Unbounded
     from luna_model.model.specs import ModelSpecs
-    from luna_model.translator import TranslationTarget
-    from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel  # type: ignore[import]
+    from luna_model.translator.model.qubo import Qubo
     from numpy.typing import NDArray  # type: ignore[import]
-    from luna_model.translator.qubo import Qubo
 
 
 class Model:
@@ -135,7 +137,7 @@ class Model:
         return wrap_s(self._m.evaluate(solution._s))  # type: ignore[attribute]
 
     def evaluate_sample(self, sample: Sample) -> Result:
-        return self._m.evaluate(sample)
+        return self._m.evaluate_sample(sample)
 
     def violated_constraints(self, sample: Sample) -> ConstraintCollection:
         return wrap_cc(self._m.violated_constraints(sample))
@@ -177,6 +179,24 @@ class Model:
     def deep_clone(self) -> Model:
         return self._from_pym(self._m.deep_clone())
 
+    @overload
+    @classmethod
+    def from_(
+        cls,
+        other: ConstrainedQuadraticModel | BinaryQuadraticModel | str | Path,
+        name: str | None = None,
+    ) -> Model: ...
+    @overload
+    @classmethod
+    def from_(
+        cls,
+        other: NDArray,
+        name: str | None = None,
+        *,
+        offset: float | None = None,
+        variable_names: list[str] | None = None,
+        vtype: Vtype | None = None,
+    ) -> Model: ...
     @classmethod
     def from_(
         cls,
@@ -184,14 +204,65 @@ class Model:
         name: str | None = None,
         **kwargs,
     ) -> Model:
-        return cls._from_pym(PyModel.from_(other, name=name, **kwargs))
+        if isinstance(other, ConstrainedQuadraticModel):
+            from luna_model.translator.model.cqm import CqmTranslator
 
+            return CqmTranslator.to_lm(other, name=name)
+        elif isinstance(other, BinaryQuadraticModel):
+            from luna_model.translator.model.bqm import BqmTranslator
+
+            return BqmTranslator.to_lm(other, name=name)
+        elif isinstance(other, str) or isinstance(other, Path):
+            from luna_model.translator.model.lp import LpTranslator
+
+            return LpTranslator.to_lm(other)
+        elif isinstance(other, ndarray):
+            from luna_model.translator.model.qubo import QuboTranslator
+
+            return QuboTranslator.to_lm(other, name=name, **kwargs)
+        else:
+            raise ValueError(f"Unexpected type of other: '{type(other)}'")
+
+    @overload
+    def to(
+        self,
+        target: Literal[TranslationTarget.LP],
+        filepath: Path,
+    ) -> None: ...
+    @overload
+    def to(self, target: Literal[TranslationTarget.LP]) -> str: ...
+    @overload
+    def to(
+        self, target: Literal[TranslationTarget.CQM]
+    ) -> ConstrainedQuadraticModel: ...
+    @overload
+    def to(self, target: Literal[TranslationTarget.BQM]) -> BinaryQuadraticModel: ...
+    @overload
+    def to(self, target: Literal[TranslationTarget.QUBO]) -> Qubo: ...
     def to(
         self,
         target: TranslationTarget,
         filepath: Path | None = None,
     ) -> Qubo | str | BinaryQuadraticModel | ConstrainedQuadraticModel | None:
-        return self._m.to(target._val, filepath)
+        if target != TranslationTarget.LP and filepath is not None:
+            raise ValueError("filepath can only be used with target 'LP'")
+        match target:
+            case TranslationTarget.BQM:
+                from luna_model.translator.model.bqm import BqmTranslator
+
+                return BqmTranslator.from_lm(self)
+            case TranslationTarget.CQM:
+                from luna_model.translator.model.cqm import CqmTranslator
+
+                return CqmTranslator.from_lm(self)
+            case TranslationTarget.QUBO:
+                from luna_model.translator.model.qubo import QuboTranslator
+
+                return QuboTranslator.from_lm(self)
+            case TranslationTarget.LP:
+                from luna_model.translator.model.lp import LpTranslator
+
+                return LpTranslator.from_lm(self)
 
     def equal_contents(self, other: Model) -> bool:
         return self._m.equal_contents(other._m)

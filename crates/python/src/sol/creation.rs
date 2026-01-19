@@ -1,8 +1,7 @@
 use hashbrown::HashMap;
 use indexmap::IndexMap;
-use lunamodel_core::Solution;
 use lunamodel_core::solution::{Assignment, Column};
-use lunamodel_error::py::PySampleIncorrectLengthError;
+use lunamodel_core::{ArcEnv, Solution};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Sense, Vtype};
 use numpy::ndarray::Axis;
@@ -150,7 +149,10 @@ impl PySolution {
             }
             for c in constraints {
                 for (cname, val) in c {
-                    sol.constraints.entry(cname).or_insert(Vec::default()).push(val);
+                    sol.constraints
+                        .entry(cname)
+                        .or_insert(Vec::default())
+                        .push(val);
                 }
             }
         }
@@ -167,6 +169,7 @@ impl PySolution {
             }
             sol.variable_bounds = vbs;
         }
+        sol.combine_to_single()?;
 
         Ok(sol.into())
     }
@@ -185,32 +188,56 @@ impl PySolution {
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
 
-        let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
-            model
-                .as_ref()
-                .map(|m| m.m.read_arc().sense)
-                .unwrap_or_default()
-        }));
-        sol.timing = timing.map(|t| t.into());
-        sol.counts.push(counts.unwrap_or_else(|| 1));
-        if let Some(e) = energy {
-            sol.raw_energies.as_mut().map(|ens| ens.push(e));
-        }
-
-        for (var, value) in data.iter() {
-            let varname = var.name()?;
-            match environment.vtype_of(&varname)? {
-                Vtype::Binary => sol.add_binary(varname, vec![*value]),
-                Vtype::Spin => sol.add_spin(varname, vec![*value]),
-                Vtype::Integer => sol.add_integer(varname, vec![*value]),
-                Vtype::Real => sol.add_real(varname, vec![*value]),
-                Vtype::InvertedBinary => (),
+        fn inner(
+            data: IndexMap<VarKey, f64>,
+            environment: ArcEnv,
+            model: Option<PyModel>,
+            timing: Option<PyTiming>,
+            counts: Option<usize>,
+            sense: Option<Sense>,
+            energy: Option<f64>,
+        ) -> LunaModelResult<Solution> {
+            let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
+                model
+                    .as_ref()
+                    .map(|m| m.m.read_arc().sense)
+                    .unwrap_or_default()
+            }));
+            sol.timing = timing.map(|t| t.into());
+            sol.counts.push(counts.unwrap_or_else(|| 1));
+            if let Some(e) = energy {
+                sol.raw_energies.as_mut().map(|ens| ens.push(e));
             }
+
+            for (var, value) in data.iter() {
+                let varname = var.name()?;
+                match environment.vtype_of(&varname)? {
+                    Vtype::Binary => sol.add_binary(varname, vec![*value]),
+                    Vtype::Spin => sol.add_spin(varname, vec![*value]),
+                    Vtype::Integer => sol.add_integer(varname, vec![*value]),
+                    Vtype::Real => sol.add_real(varname, vec![*value]),
+                    Vtype::InvertedBinary => (),
+                }
+            }
+
+            sol.combine_to_single()?;
+
+            if let Some(m) = model {
+                sol = m.m.read_arc().evaluate_solution(&sol)?;
+            }
+
+            Ok(sol)
         }
 
-        if let Some(m) = model {
-            sol = m.m.read_arc().evaluate_solution(&sol)?;
-        }
+        let sol =
+            inner(data, environment, model, timing, counts, sense, energy).map_err(
+                |e| match e {
+                    LunaModelError::VariableNotExisting(e) => {
+                        LunaModelError::SampleUnexpectedVariable(e)
+                    }
+                    e => e,
+                },
+            )?;
 
         Ok(sol.into())
     }
@@ -229,58 +256,83 @@ impl PySolution {
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
 
-        let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
-            model
-                .as_ref()
-                .map(|m| m.m.read_arc().sense)
-                .unwrap_or_default()
-        }));
-        if data.is_empty() {
-            return Ok(sol.into());
-        }
-
-        sol.timing = timing.map(|t| t.into());
-        sol.counts
-            .append(&mut counts.unwrap_or_else(|| vec![1; data.len()]));
-        if let Some(es) = energies {
-            sol.raw_energies = Some(es)
-        }
-
-        let mut samples: IndexMap<String, Vec<f64>> = data[0]
-            .keys()
-            .map(|k| match k.name() {
-                Ok(name) => Ok((name, Vec::new())),
-                Err(e) => Err(e),
-            })
-            .collect::<LunaModelResult<_>>()?;
-
-        let sample_len = data[0].len();
-        for sample in data.iter() {
-            if sample.len() != sample_len {
-                return Err(PyValueError::new_err("samples have different lengths."));
+        fn inner(
+            data: Vec<IndexMap<VarKey, f64>>,
+            environment: ArcEnv,
+            model: Option<PyModel>,
+            timing: Option<PyTiming>,
+            counts: Option<Vec<usize>>,
+            sense: Option<Sense>,
+            energies: Option<Vec<f64>>,
+        ) -> LunaModelResult<Solution> {
+            let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
+                model
+                    .as_ref()
+                    .map(|m| m.m.read_arc().sense)
+                    .unwrap_or_default()
+            }));
+            if data.is_empty() {
+                return Ok(sol.into());
             }
-            for (var, value) in sample.iter() {
-                let varname = var.name()?;
-                samples
-                    .get_mut(&varname)
-                    .ok_or_else(|| LunaModelError::VariableNotExisting(varname.into()))?
-                    .push(*value);
+
+            sol.timing = timing.map(|t| t.into());
+            sol.counts
+                .append(&mut counts.unwrap_or_else(|| vec![1; data.len()]));
+            if let Some(es) = energies {
+                sol.raw_energies = Some(es)
             }
+
+            let mut samples: IndexMap<String, Vec<f64>> = data[0]
+                .keys()
+                .map(|k| match k.name() {
+                    Ok(name) => Ok((name, Vec::new())),
+                    Err(e) => Err(e),
+                })
+                .collect::<LunaModelResult<_>>()?;
+
+            let sample_len = data[0].len();
+            for sample in data.iter() {
+                if sample.len() != sample_len {
+                    return Err(LunaModelError::SampleIncorrectLength(
+                        format!("expected {}, is {}", sample_len, sample.len()).into(),
+                    ));
+                }
+                for (var, value) in sample.iter() {
+                    let varname = var.name()?;
+                    samples
+                        .get_mut(&varname)
+                        .ok_or_else(|| LunaModelError::SampleUnexpectedVariable(varname.into()))?
+                        .push(*value);
+                }
+            }
+
+            for (varname, values) in samples {
+                match environment.vtype_of(&varname)? {
+                    Vtype::Binary => sol.add_binary(varname, values),
+                    Vtype::Spin => sol.add_spin(varname, values),
+                    Vtype::Integer => sol.add_integer(varname, values),
+                    Vtype::Real => sol.add_real(varname, values),
+                    Vtype::InvertedBinary => (),
+                }
+            }
+
+            sol.combine_to_single()?;
+
+            if let Some(m) = model {
+                sol = m.m.read_arc().evaluate_solution(&sol)?;
+            }
+
+            Ok(sol)
         }
 
-        for (varname, values) in samples {
-            match environment.vtype_of(&varname)? {
-                Vtype::Binary => sol.add_binary(varname, values),
-                Vtype::Spin => sol.add_spin(varname, values),
-                Vtype::Integer => sol.add_integer(varname, values),
-                Vtype::Real => sol.add_real(varname, values),
-                Vtype::InvertedBinary => (),
-            }
-        }
-
-        if let Some(m) = model {
-            sol = m.m.read_arc().evaluate_solution(&sol)?;
-        }
+        let sol = inner(data, environment, model, timing, counts, sense, energies).map_err(
+            |e| match e {
+                LunaModelError::VariableNotExisting(e) => {
+                    LunaModelError::SampleUnexpectedVariable(e)
+                }
+                e => e,
+            },
+        )?;
 
         Ok(sol.into())
     }
@@ -300,44 +352,70 @@ impl PySolution {
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
 
-        let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
-            model
-                .as_ref()
-                .map(|m| m.m.read_arc().sense)
-                .unwrap_or_default()
-        }));
-        sol.timing = timing.map(|t| t.into());
-        sol.counts
-            .append(&mut counts.unwrap_or_else(|| vec![1; data.shape()[0]]));
-        if let Some(es) = energies {
-            sol.raw_energies = Some(es)
-        }
-
-        let variables: Vec<String> = match variables {
-            Some(vars) => vars
-                .iter()
-                .map(|v| v.name())
-                .collect::<LunaModelResult<_>>()?,
-            None => environment
-                .vars()
-                .iter()
-                .map(|v| v.name())
-                .collect::<LunaModelResult<_>>()?,
-        };
-
-        for (col, varname) in data.as_array().axis_iter(Axis(1)).zip(variables) {
-            match environment.vtype_of(&varname)? {
-                Vtype::Binary => sol.add_binary(varname, col.to_vec()),
-                Vtype::Spin => sol.add_spin(varname, col.to_vec()),
-                Vtype::Integer => sol.add_integer(varname, col.to_vec()),
-                Vtype::Real => sol.add_real(varname, col.to_vec()),
-                Vtype::InvertedBinary => (),
+        fn inner(
+            data: PyReadonlyArray2<f64>,
+            variables: Option<Vec<VarKey>>,
+            environment: ArcEnv,
+            model: Option<PyModel>,
+            timing: Option<PyTiming>,
+            counts: Option<Vec<usize>>,
+            sense: Option<Sense>,
+            energies: Option<Vec<f64>>,
+        ) -> LunaModelResult<Solution> {
+            let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
+                model
+                    .as_ref()
+                    .map(|m| m.m.read_arc().sense)
+                    .unwrap_or_default()
+            }));
+            sol.timing = timing.map(|t| t.into());
+            sol.counts
+                .append(&mut counts.unwrap_or_else(|| vec![1; data.shape()[0]]));
+            if let Some(es) = energies {
+                sol.raw_energies = Some(es)
             }
+
+            let variables: Vec<String> = match variables {
+                Some(vars) => vars
+                    .iter()
+                    .map(|v| v.name())
+                    .collect::<LunaModelResult<_>>()?,
+                None => environment
+                    .vars()
+                    .iter()
+                    .map(|v| v.name())
+                    .collect::<LunaModelResult<_>>()?,
+            };
+
+            for (col, varname) in data.as_array().axis_iter(Axis(1)).zip(variables) {
+                match environment.vtype_of(&varname)? {
+                    Vtype::Binary => sol.add_binary(varname, col.to_vec()),
+                    Vtype::Spin => sol.add_spin(varname, col.to_vec()),
+                    Vtype::Integer => sol.add_integer(varname, col.to_vec()),
+                    Vtype::Real => sol.add_real(varname, col.to_vec()),
+                    Vtype::InvertedBinary => (),
+                }
+            }
+
+            sol.combine_to_single()?;
+
+            Ok(sol)
         }
 
-        if let Some(m) = model {
-            sol = m.m.read_arc().evaluate_solution(&sol)?;
-        }
+        let sol = inner(
+            data,
+            variables,
+            environment,
+            model,
+            timing,
+            counts,
+            sense,
+            energies,
+        )
+        .map_err(|e| match e {
+            LunaModelError::VariableNotExisting(e) => LunaModelError::SampleUnexpectedVariable(e),
+            e => e,
+        })?;
 
         Ok(sol.into())
     }
@@ -357,69 +435,107 @@ impl PySolution {
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
 
-        let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
-            model
-                .as_ref()
-                .map(|m| m.m.read_arc().sense)
-                .unwrap_or_default()
-        }));
-        sol.timing = timing.map(|t| t.into());
-        if let Some(es) = energies {
-            sol.raw_energies = Some(es)
-        }
+        fn inner(
+            data: IndexMap<String, usize>,
+            environment: ArcEnv,
+            model: Option<PyModel>,
+            timing: Option<PyTiming>,
+            sense: Option<Sense>,
+            bit_order: String,
+            energies: Option<Vec<f64>>,
+            var_order: Option<Vec<String>>,
+        ) -> LunaModelResult<Solution> {
+            let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
+                model
+                    .as_ref()
+                    .map(|m| m.m.read_arc().sense)
+                    .unwrap_or_default()
+            }));
+            sol.timing = timing.map(|t| t.into());
+            if let Some(es) = energies {
+                sol.raw_energies = Some(es)
+            }
 
-        let vars = match var_order {
-            Some(vs) => vs,
-            None => environment
-                .vars()
-                .iter()
-                .map(|v| v.name().unwrap())
-                .collect(),
-        };
-        let nvars = vars.len();
-        for v in environment.sort(vars.clone()) {
-            match environment.vtype_of(&v)? {
-                Vtype::Binary => sol.add_empty_binary(v),
-                Vtype::Spin => sol.add_empty_spin(v),
-                Vtype::Integer | Vtype::Real | Vtype::InvertedBinary => {
-                    return Err(PyValueError::new_err(
-                        "solution contains reference to non-binary or non-spin variables.",
+            let vars = match var_order {
+                Some(vs) => vs,
+                None => environment
+                    .vars()
+                    .iter()
+                    .map(|v| v.name().unwrap())
+                    .collect(),
+            };
+            let nvars = vars.len();
+            for v in environment.sort(vars.clone()) {
+                match environment.vtype_of(&v)? {
+                    Vtype::Binary => sol.add_empty_binary(v),
+                    Vtype::Spin => sol.add_empty_spin(v),
+                    Vtype::Integer | Vtype::Real | Vtype::InvertedBinary => {
+                        return Err(LunaModelError::Translation(
+                            "solution contains reference to non-binary or non-spin variables."
+                                .into(),
+                        ));
+                    }
+                }
+            }
+
+            let order = match bit_order.as_str() {
+                "LTR" => BitOrder::LTR,
+                "RTL" => BitOrder::RTL,
+                _ => {
+                    return Err(LunaModelError::Translation(
+                        "`bit_order` must be 'RTL' or 'LTR'.".into(),
                     ));
                 }
-            }
-        }
-
-        let order = match bit_order.as_str() {
-            "LTR" => BitOrder::LTR,
-            "RTL" => BitOrder::RTL,
-            _ => return Err(PyValueError::new_err("`bit_order` must be 'RTL' or 'LTR'.")),
-        };
-
-        for (idx, (bitstr, &count)) in data.iter().enumerate() {
-            if bitstr.len() != nvars {
-                return Err(PySampleIncorrectLengthError::new_err(format!(
-                    "sample at index '{idx}' has an unexpected length"
-                )));
-            }
-            let it = match order {
-                BitOrder::LTR => itertools::Either::Left(bitstr.chars()),
-                BitOrder::RTL => itertools::Either::Right(bitstr.chars().rev()),
             };
-            for (c, varname) in it.into_iter().zip(&vars) {
-                match (c, sol.samples.get_mut(varname).unwrap()) {
-                    ('0', Column::Binary(vec)) => vec.push(Assignment::Binary(0))?,
-                    ('1', Column::Binary(vec)) => vec.push(Assignment::Binary(1))?,
-                    ('0', Column::Spin(vec)) => vec.push(Assignment::Spin(1))?,
-                    ('1', Column::Spin(vec)) => vec.push(Assignment::Spin(-1))?,
-                    _ => return Err(PyValueError::new_err("unexpected char in bitstring.")),
+
+            for (idx, (bitstr, &count)) in data.iter().enumerate() {
+                if bitstr.len() != nvars {
+                    return Err(LunaModelError::SampleIncorrectLength(
+                        format!("sample at index '{idx}' has an unexpected length").into(),
+                    ));
                 }
+                let it = match order {
+                    BitOrder::LTR => itertools::Either::Left(bitstr.chars()),
+                    BitOrder::RTL => itertools::Either::Right(bitstr.chars().rev()),
+                };
+                for (c, varname) in it.into_iter().zip(&vars) {
+                    match (c, sol.samples.get_mut(varname).unwrap()) {
+                        ('0', Column::Binary(vec)) => vec.push(Assignment::Binary(0))?,
+                        ('1', Column::Binary(vec)) => vec.push(Assignment::Binary(1))?,
+                        ('0', Column::Spin(vec)) => vec.push(Assignment::Spin(1))?,
+                        ('1', Column::Spin(vec)) => vec.push(Assignment::Spin(-1))?,
+                        _ => {
+                            return Err(LunaModelError::Translation(
+                                "unexpected char in bitstring.".into(),
+                            ));
+                        }
+                    }
+                }
+                sol.counts.push(count);
             }
-            sol.counts.push(count);
+
+            sol.combine_to_single()?;
+
+            if let Some(m) = model {
+                sol = m.m.read_arc().evaluate_solution(&sol)?;
+            }
+            Ok(sol)
         }
 
-        if let Some(m) = model {
-            sol = m.m.read_arc().evaluate_solution(&sol)?;
-        }
+        let sol = inner(
+            data,
+            environment,
+            model,
+            timing,
+            sense,
+            bit_order,
+            energies,
+            var_order,
+        )
+        .map_err(|e| match e {
+            LunaModelError::VariableNotExisting(e) => LunaModelError::SampleUnexpectedVariable(e),
+            e => e,
+        })?;
 
         Ok(sol.into())
     }

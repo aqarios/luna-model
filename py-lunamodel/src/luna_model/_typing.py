@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Protocol, TypeAlias, Any, Callable
+from typing import Protocol, TypeAlias, Any, Callable, Sequence
 
 from luna_model.variable import Variable, Unbounded
 from luna_model.solution import ResultView
@@ -30,9 +30,9 @@ _Sample: TypeAlias = (
     | dict[Variable, int]
     | dict[Variable, float | int]
 )
-_SampleList: TypeAlias = list[_Sample]
+_SampleList: TypeAlias = Sequence[_Sample]
 
-SoutionFromTypes: TypeAlias = (
+SolutionFromTypes: TypeAlias = (
     dict[str, Any]
     | SampleSet
     | PrimitiveResult[PubResult]

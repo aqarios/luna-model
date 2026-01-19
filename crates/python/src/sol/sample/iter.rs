@@ -1,4 +1,5 @@
 use lunamodel_core::Solution;
+use lunamodel_core::solution::Assignment;
 use pyo3::exceptions::PyValueError;
 use pyo3::{
     FromPyObject, IntoPyObjectExt, Py, PyAny, PyErr, PyRef, PyRefMut, PyResult, Python, pyclass,
@@ -69,12 +70,23 @@ impl PySamplesIterator {
         res.map(|_| PySampleView::new(slf.sol.clone(), slf.idx))
     }
 
-    fn tolist(slf: PyRef<'_, Self>) -> Vec<Vec<f64>> {
+    fn tolist(slf: PyRef<'_, Self>, py: Python) -> PyResult<Vec<Vec<Py<PyAny>>>> {
         let mut out = Vec::new();
         for sample in slf.sol.s.read_arc().samples() {
-            out.push(sample.to_vec());
+            out.push(
+                sample
+                    .to_vec()
+                    .iter()
+                    .map(|e| match e {
+                        Assignment::Binary(b) => b.into_py_any(py),
+                        Assignment::Spin(s) => s.into_py_any(py),
+                        Assignment::Integer(i) => i.into_py_any(py),
+                        Assignment::Real(r) => r.into_py_any(py),
+                    })
+                    .collect::<Result<_, _>>()?,
+            );
         }
-        out
+        Ok(out)
     }
 
     fn __getitem__(slf: PyRef<'_, Self>, py: Python, index: PySamplesIndex) -> PyResult<Py<PyAny>> {

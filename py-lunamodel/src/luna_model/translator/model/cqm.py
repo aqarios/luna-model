@@ -10,11 +10,11 @@ class CqmTranslator:
         if not isinstance(cqm, ConstrainedQuadraticModel):
             raise TypeError(f"Expected cqm to be of type CQM, received: {type(cqm)}")
         cqm_lp = dimod_lp.dumps(cqm)
-        model = PyLpTranslator.to_lm(cqm_lp)
+        model = Model._from_pym(PyLpTranslator.to_lm(cqm_lp))
         if name is not None:
             model.name = name
         return model
 
     @staticmethod
     def from_lm(model: Model) -> ConstrainedQuadraticModel:
-        return dimod_lp.loads(PyLpTranslator.from_lm(model))
+        return dimod_lp.loads(PyLpTranslator.from_lm(model._m))

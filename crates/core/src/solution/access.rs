@@ -36,11 +36,15 @@ impl Solution {
         self.samples.len()
     }
 
-    pub fn assignment(&self, sample: usize, var: &str) -> Option<&Bias> {
+    pub fn value(&self, sample: usize, var: &str) -> Option<&Bias> {
         match sample >= self.len() {
             true => None,
             false => Some(&self[(sample, var)]),
         }
+    }
+
+    pub fn assignment(&self, sample: usize, var: &str) -> Assignment {
+        self.samples[var].as_assignment(sample)
     }
 
     pub fn try_assignment(&self, sample: usize, var: &str) -> LunaModelResult<Assignment> {
@@ -123,12 +127,47 @@ impl Solution {
             _ => None,
         }
     }
+
+    pub fn extract(&self, row: usize) -> Solution {
+        Solution {
+            samples: self
+                .samples
+                .iter()
+                .map(|(v, c)| (v.clone(), c.extract(row)))
+                .collect(),
+            counts: vec![self.counts[row]],
+            raw_energies: self.raw_energies.as_ref().map(|e| vec![e[row]]),
+            obj_values: self.obj_values.as_ref().map(|e| vec![e[row]]),
+            feasible: self.feasible.as_ref().map(|e| vec![e[row]]),
+            constraints: self
+                .constraints
+                .iter()
+                .map(|(cname, cs)| (cname.clone(), vec![cs[row]]))
+                .collect(),
+            variable_bounds: self
+                .variable_bounds
+                .iter()
+                .map(|(vname, cs)| (vname.clone(), vec![cs[row]]))
+                .collect(),
+            timing: self.timing.clone(),
+            sense: self.sense,
+        }
+    }
 }
 
 impl Index<(usize, &str)> for Solution {
     type Output = Bias;
 
     fn index(&self, index: (usize, &str)) -> &Self::Output {
+        let (row, var_name) = index;
+        &self.samples[var_name][row]
+    }
+}
+
+impl Index<(usize, &String)> for Solution {
+    type Output = Bias;
+
+    fn index(&self, index: (usize, &String)) -> &Self::Output {
         let (row, var_name) = index;
         &self.samples[var_name][row]
     }

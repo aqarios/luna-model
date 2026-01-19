@@ -15,19 +15,14 @@ class AwsTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
-        (sol_agg, num_occ) = np.unique(
-            aws_result["samples"], return_counts=True, axis=0
-        )
-        energies = aws_result["energies"]
-
-        sol_agg = sol_agg.astype(np.float64, order="C")
-        num_occ = num_occ.astype(np.uint64, order="C")
-        energies = energies.astype(np.float64, order="C")
+        sol_agg = aws_result["samples"].astype(np.float64, order="C")
+        counts = np.ones(sol_agg.shape[0], dtype=np.int64)
+        energies = aws_result["energies"].astype(np.float64, order="C")
 
         return Solution.from_arrays(
             data=sol_agg,
             env=env,
             timing=timing,
-            counts=num_occ,
+            counts=counts,
             energies=energies,
         )

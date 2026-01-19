@@ -52,7 +52,7 @@ impl Model {
         Ok(newsol)
     }
 
-    // pub fn evaluate_sample<'a>(&self, sample: &Sample) -> Result<OwnedResult, EvaluationErr> {
+    // pub fn evaluate_sample<'a>(&self, sample: &SampleView) -> Result<ResultOwned> {
     //     let sample_var_names = sample.variable_names();
     //     let env_var_names = &self.environment.variable_names();
     //     check_variables_sample(&sample_var_names, env_var_names)?;

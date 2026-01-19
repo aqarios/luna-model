@@ -9,33 +9,26 @@ class TranslationTarget(Enum):
     BQM = PyTranslationTarget.Bqm
     CQM = PyTranslationTarget.Cqm
 
-    # todo: deprecate
-
-    Qubo = PyTranslationTarget.Qubo
-    Lp = PyTranslationTarget.Lp
-    Bqm = PyTranslationTarget.Bqm
-    Cqm = PyTranslationTarget.Cqm
-
     @property
     def name(self) -> str:
         match self:
-            case TranslationTarget.QUBO | TranslationTarget.Qubo:
+            case TranslationTarget.QUBO:
                 return "Qubo"
-            case TranslationTarget.LP | TranslationTarget.Lp:
+            case TranslationTarget.LP:
                 return "Lp"
-            case TranslationTarget.BQM | TranslationTarget.Bqm:
+            case TranslationTarget.BQM:
                 return "Bqm"
-            case TranslationTarget.CQM | TranslationTarget.Cqm:
+            case TranslationTarget.CQM:
                 return "Cqm"
 
     @property
     def _val(self) -> PyTranslationTarget:
         match self:
-            case TranslationTarget.QUBO | TranslationTarget.Qubo:
+            case TranslationTarget.QUBO:
                 return PyTranslationTarget.Qubo
-            case TranslationTarget.LP | TranslationTarget.Lp:
+            case TranslationTarget.LP:
                 return PyTranslationTarget.Lp
-            case TranslationTarget.BQM | TranslationTarget.Bqm:
+            case TranslationTarget.BQM:
                 return PyTranslationTarget.Bqm
-            case TranslationTarget.CQM | TranslationTarget.Cqm:
+            case TranslationTarget.CQM:
                 return PyTranslationTarget.Cqm

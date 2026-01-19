@@ -10,8 +10,9 @@ import scipy.sparse as sp  # type: ignore[import-untyped]
 
 from numpy.typing import NDArray
 
-from luna_model import Model, TranslationTarget
+from luna_model import Model
 from luna_model.translator import (
+    TranslationTarget,
     BqmTranslator,
     CqmTranslator,
     LpTranslator,
@@ -94,7 +95,7 @@ def test_model_from_cqm():
 
 
 def test_model_to_qubo(model: Model):
-    mq = model.to(TranslationTarget.Qubo)
+    mq = model.to(TranslationTarget.QUBO)
     tq = QuboTranslator.from_lm(model)
     assert np.allclose(mq.matrix, tq.matrix)
     assert np.isclose(mq.offset, tq.offset)
@@ -104,7 +105,7 @@ def test_model_to_qubo(model: Model):
 
 
 def test_model_to_lp_str(model: Model):
-    mstr = model.to(TranslationTarget.Lp)
+    mstr = model.to(TranslationTarget.LP)
     tstr = LpTranslator.from_lm(model)
     assert mstr == tstr
 
@@ -114,7 +115,7 @@ def test_model_to_lp_path(model: Model):
     mtmp.touch(exist_ok=True)
     ttmp = Path(__file__).parent / "ttmp"
     ttmp.touch(exist_ok=True)
-    model.to(TranslationTarget.Lp, filepath=mtmp)
+    model.to(TranslationTarget.LP, filepath=mtmp)
     LpTranslator.from_lm(model, filepath=ttmp)
     is_equal = mtmp.read_text() == ttmp.read_text()
     os.remove(mtmp)
@@ -123,12 +124,12 @@ def test_model_to_lp_path(model: Model):
 
 
 def test_model_to_bqm(model: Model):
-    mbqm = model.to(TranslationTarget.Bqm)
+    mbqm = model.to(TranslationTarget.BQM)
     tbqm = BqmTranslator.from_lm(model)
     assert Model.from_(mbqm).equal_contents(Model.from_(tbqm))
 
 
 def test_model_to_cqm(model: Model):
-    mcqm = model.to(TranslationTarget.Cqm)
+    mcqm = model.to(TranslationTarget.CQM)
     tcqm = CqmTranslator.from_lm(model)
     assert Model.from_(mcqm).equal_contents(Model.from_(tcqm))

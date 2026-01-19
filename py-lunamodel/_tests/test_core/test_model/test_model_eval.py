@@ -202,10 +202,10 @@ def test_model_eval_w_constraint_infeasible(
     assert all(new_sol.obj_values == solution.raw_energies)
     for res in new_sol.results:
         assert res.constraints is not None
-        for constr in res.constraints:
+        for _, constr in res.constraints.items():
             assert not constr
         assert res.variable_bounds is not None
-        for varbounds in res.variable_bounds:
+        for _, varbounds in res.variable_bounds.items():
             assert varbounds or not varbounds
         assert res.feasible is not None
         assert not res.feasible
@@ -230,14 +230,14 @@ def test_model_eval_infeasible_bounds():
     assert res.constraints is not None
     assert list(res.constraints.values()) == [True]
     assert res.variable_bounds is not None
-    assert list(res.variable_bounds.values()) == [False, False, True]
+    assert res.variable_bounds == {"x1": False, "x2": False, "x3": True}
 
     sample = m.evaluate_sample(sol.samples[0])
     assert sample.feasible is False
     assert sample.constraints is not None
-    assert list(sample.constraints.tolist()) == [True]
+    assert list(sample.constraints.values()) == [True]
     assert sample.variable_bounds is not None
-    assert list(sample.variable_bounds.tolist()) == [False, False, True]
+    assert res.variable_bounds == {"x1": False, "x2": False, "x3": True}
 
 
 def test_model_violated_constraints():

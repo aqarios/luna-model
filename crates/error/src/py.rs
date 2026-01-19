@@ -297,6 +297,9 @@ impl From<Lme> for PyErr {
             Lme::Translation(_) => PyTranslationError::new_err,
             Lme::IndexOutOfBounds(_) => PyIndexError::new_err,
             Lme::ModelSenseNotMinimize => PyModelSenseNotMinimizeError::new_err,
+            Lme::Evaluation(_) => PyEvaluationError::new_err,
+            Lme::SampleIncorrectLength(_) => PySampleIncorrectLengthError::new_err,
+            Lme::SampleUnexpectedVariable(_) => PySampleUnexpectedVariableError::new_err,
         };
         err(lme.to_string())
     }

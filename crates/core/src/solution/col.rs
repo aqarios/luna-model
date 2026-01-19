@@ -107,6 +107,24 @@ impl Column {
         }
     }
 
+    pub fn remove(&mut self, index: usize) {
+        match self {
+            Self::Binary(col) => col.remove(index),
+            Self::Spin(col) => col.remove(index),
+            Self::Integer(col) => col.remove(index),
+            Self::Real(col) => col.remove(index),
+        }
+    }
+
+    pub fn extract(&self, row: usize) -> Self {
+        match self {
+            Self::Binary(col) => Self::binary(vec![col[row]]),
+            Self::Spin(col) => Self::spin(vec![col[row]]),
+            Self::Integer(col) => Self::integer(vec![col[row]]),
+            Self::Real(col) => Self::real(vec![col[row]]),
+        }
+    }
+
     pub fn empty_binary() -> Self {
         Self::Binary(ColElement(Vec::default(), PhantomData::default()))
     }
@@ -158,6 +176,18 @@ impl<T: NumCast> ColElement<T> {
 impl<T> ColElement<T> {
     pub fn filter_by_mask(&self, mask: &[bool]) -> Self {
         Self(self.0.filter_by_mask(mask), self.1)
+    }
+
+    pub fn remove(&mut self, index: usize) {
+        _ = self.0.remove(index);
+    }
+}
+
+impl<T> Index<usize> for ColElement<T> {
+    type Output = f64;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
     }
 }
 

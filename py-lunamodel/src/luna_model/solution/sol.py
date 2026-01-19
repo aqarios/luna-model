@@ -5,6 +5,13 @@ from luna_model._lm import PySolution
 from luna_model.variable.vtype import Vtype
 from luna_model.solution.src import ValueSource
 
+# TODO: try import these, else some default.
+from dimod import SampleSet  # type: ignore[import]
+from qiskit.primitives import PrimitiveResult  # type: ignore[import]
+from pyscipopt import Model as ScipModel  # type: ignore[import]
+
+from numpy import ndarray
+
 if TYPE_CHECKING:
     from luna_model._lm import PyVariable
     from luna_model.variable.var import Variable
@@ -14,19 +21,20 @@ if TYPE_CHECKING:
     from luna_model.model.model import Model
     from luna_model.model.sense import Sense
     from luna_model.solution.res import ResultIter, ResultView
-    from luna_model._typing import FilterFn, SoutionFromTypes
+    from luna_model._typing import FilterFn, SolutionFromTypes
 
+    from luna_model._typing import _Sample
     from numpy.typing import NDArray
 
-    SampleT = (
-        dict[Variable | str, int | float]
-        | dict[Variable, int | float]
-        | dict[Variable, int]
-        | dict[Variable, float]
-        | dict[str, int | float]
-        | dict[str, int]
-        | dict[str, float]
-    )
+    # SampleT = (
+    #     dict[Variable | str, int | float]
+    #     | dict[Variable, int | float]
+    #     | dict[Variable, int]
+    #     | dict[Variable, float]
+    #     | dict[str, int | float]
+    #     | dict[str, int]
+    #     | dict[str, float]
+    # )
 
 
 class Solution:
@@ -34,7 +42,7 @@ class Solution:
 
     def __init__(
         self,
-        samples: list[SampleT],
+        samples: Sequence[_Sample],
         counts: list[int] | None = None,
         raw_energies: list[float] | None = None,
         obj_values: list[float] | None = None,
@@ -231,17 +239,47 @@ class Solution:
     @classmethod
     def from_(
         cls,
-        other: SoutionFromTypes,
+        other: SolutionFromTypes,
         timing: Timing | None = None,
         env: Environment | None = None,
         **kwargs,
     ) -> Solution:
-        return cls._from_pys(PySolution.from_(other, timing=timing, env=env, **kwargs))
+        if isinstance(other, ScipModel):
+            from luna_model.translator.solution.zib import ZibTranslator
+
+            return ZibTranslator.to_lm(other, env=env, timing=timing, **kwargs)
+        elif isinstance(other, SampleSet):
+            from luna_model.translator.solution.dwave import DwaveTranslator
+
+            return DwaveTranslator.to_lm(other, env=env, timing=timing, **kwargs)
+        elif isinstance(other, PrimitiveResult):
+            from luna_model.translator.solution.ibm import IbmTranslator
+
+            return IbmTranslator.to_lm(other, env=env, timing=timing, **kwargs)
+        elif isinstance(other, ndarray):
+            from luna_model.translator.solution.numpy import NumpyTranslator
+
+            return NumpyTranslator.to_lm(other, env=env, timing=timing, **kwargs)
+        elif isinstance(other, dict) and "solution_bitstring" in other:
+            from luna_model.translator.solution.qctrl import QctrlTranslator
+
+            return QctrlTranslator.to_lm(other, env=env, timing=timing, **kwargs)  # type: ignore[reportArgumentType]
+        elif isinstance(other, dict) and "samples" in other:
+            from luna_model.translator.solution.aws import AwsTranslator
+
+            return AwsTranslator.to_lm(other, env=env, timing=timing, **kwargs)  # type: ignore[reportArgumentType]
+
+        elif isinstance(other, dict):
+            # TODO: need to include the from_counts distinction here also...
+            return Solution.from_dict(other, env=env, timing=timing, **kwargs)
+        elif isinstance(other, list):
+            return Solution.from_dicts(other, env=env, timing=timing, **kwargs)
+        raise ValueError(f"unsupported type '{type(other)}'")
 
     @classmethod
     def from_dict(
         cls,
-        data: SampleT,
+        data: _Sample,
         env: Environment | None = None,
         model: Model | None = None,
         timing: Timing | None = None,
@@ -264,7 +302,7 @@ class Solution:
     @classmethod
     def from_dicts(
         cls,
-        data: Sequence[SampleT],
+        data: Sequence[_Sample],
         env: Environment | None = None,
         model: Model | None = None,
         timing: Timing | None = None,
@@ -299,7 +337,9 @@ class Solution:
         return cls._from_pys(
             PySolution.from_arrays(
                 data=data,
-                variables=[v if isinstance(v, str) else v._v for v in variables],
+                variables=[v if isinstance(v, str) else v._v for v in variables]
+                if variables is not None
+                else None,
                 env=env._env if env is not None else None,
                 model=model._m if model is not None else None,
                 timing=timing,
@@ -341,12 +381,11 @@ class Solution:
         return self._s.__str__()
 
 
-def map_sample(sample: SampleT) -> dict[str | PyVariable, int | float]:
+def map_sample(sample: _Sample) -> dict[str | PyVariable, int | float]:
     return {s if isinstance(s, str) else s._v: v for s, v in sample.items()}
 
 
 def map_samples(
-    samples: Sequence[SampleT],
+    samples: Sequence[_Sample],
 ) -> list[dict[str | PyVariable, int | float]]:
     return [map_sample(s) for s in samples]
-
