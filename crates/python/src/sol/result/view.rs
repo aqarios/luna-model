@@ -7,6 +7,7 @@ use super::super::sample::PySampleView;
 use crate::sol::PySolution;
 
 #[pyclass]
+#[derive(Debug)]
 pub struct PyResultView {
     pub sol: PySolution,
     pub idx: usize,

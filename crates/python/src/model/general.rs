@@ -1,10 +1,12 @@
 use std::ops::Mul;
 
-use lunamodel_core::{Expression, prelude::ContentEquality};
+use lunamodel_core::{Expression, prelude::ContentEquality, solution::sample::SampleView};
 use lunamodel_error::LunaModelResult;
 use pyo3::{FromPyObject, PyResult, pymethods};
 
-use crate::{PyExpression, PySolution, PyVariable};
+use crate::{
+    PyConstraintCollection, PyExpression, PySolution, PyVariable, sol::sample::PySampleView,
+};
 
 use super::PyModel;
 
@@ -42,5 +44,11 @@ impl PyModel {
 
     fn equal_contents(&self, other: &Self) -> bool {
         self.m.read_arc().equal_contents(&other.m.read_arc())
+    }
+
+    fn violated_constraints(&self, sample: PySampleView) -> PyResult<PyConstraintCollection> {
+        let binding = sample.sol.s.read_arc();
+        let sample = SampleView::new(&binding, sample.idx);
+        Ok(self.m.read_arc().violated_constraints(&sample)?.into())
     }
 }

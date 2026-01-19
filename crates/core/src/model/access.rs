@@ -2,7 +2,7 @@ use lunamodel_error::LunaModelResult;
 use lunamodel_types::Vtype;
 use lunamodel_utils::{unique, unique_by};
 
-use crate::prelude::VarRef;
+use crate::{ConstraintCollection, prelude::VarRef, solution::sample::SampleView};
 
 use super::Model;
 
@@ -33,5 +33,19 @@ impl Model {
 
     pub fn var(&self, name: &str) -> LunaModelResult<VarRef> {
         self.environment.lookup(name)
+    }
+
+    pub fn violated_constraints(
+        &self,
+        sample: &SampleView,
+    ) -> LunaModelResult<ConstraintCollection> {
+        let mut cs = ConstraintCollection::default();
+        for (cname, c) in self.constraints.iter() {
+            let ok = c.evaluate_sample(sample)?;
+            if !ok {
+                cs.add_constraint(c.clone(), Some(cname.to_string()))?;
+            }
+        }
+        Ok(cs)
     }
 }

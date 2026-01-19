@@ -1,15 +1,15 @@
 mod access;
 mod convenience;
+mod creation;
 mod filter;
+mod general;
 mod io;
 mod modification;
 mod result;
-mod sample;
-mod setter;
-mod general;
-mod creation;
-mod utils;
+pub mod sample;
 mod ser;
+mod setter;
+mod utils;
 
 use std::sync::Arc;
 
@@ -19,7 +19,7 @@ use pyo3::pyclass;
 
 #[pyclass]
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PySolution {
     pub s: Arc<RwLock<Solution>>,
 }

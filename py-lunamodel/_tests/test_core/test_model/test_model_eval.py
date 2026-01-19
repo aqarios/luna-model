@@ -228,16 +228,16 @@ def test_model_eval_infeasible_bounds():
     res = sol[0]
     assert res.feasible is False
     assert res.constraints is not None
-    assert res.constraints.values() == [True]
+    assert list(res.constraints.values()) == [True]
     assert res.variable_bounds is not None
-    assert res.variable_bounds.values() == [False, False, True]
+    assert list(res.variable_bounds.values()) == [False, False, True]
 
     sample = m.evaluate_sample(sol.samples[0])
     assert sample.feasible is False
     assert sample.constraints is not None
-    assert sample.constraints.tolist() == [True]
+    assert list(sample.constraints.tolist()) == [True]
     assert sample.variable_bounds is not None
-    assert sample.variable_bounds.tolist() == [False, False, True]
+    assert list(sample.variable_bounds.tolist()) == [False, False, True]
 
 
 def test_model_violated_constraints():

@@ -8,6 +8,7 @@ use crate::{
     solution::{Assignment, Solution},
 };
 
+#[derive(Debug)]
 pub enum SampleViewIdx {
     Num(usize),
     Var(VarRef),

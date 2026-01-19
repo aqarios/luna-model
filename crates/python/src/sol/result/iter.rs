@@ -26,7 +26,8 @@ impl PyResultIterator {
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PyResultView> {
         let binding: &Solution = &slf.sol.s.read_arc();
         let res = binding.result(slf.idx);
+        let out = res.map(|_| PyResultView::new(slf.sol.clone(), slf.idx));
         slf.idx += 1;
-        res.map(|_| PyResultView::new(slf.sol.clone(), slf.idx))
+        out
     }
 }

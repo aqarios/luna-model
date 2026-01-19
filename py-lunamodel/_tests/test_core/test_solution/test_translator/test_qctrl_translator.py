@@ -149,18 +149,13 @@ def test_qctrl_translator_constructed_with_time():
 
 
 def test_qctrl_translator_constructed_vars():
-    # for _ in range(REPS):
-    print()
-    for _ in range(1):
-        # rand = Random(make_seed())
-        rand = Random(42)
+    for _ in range(REPS):
+        rand = Random(make_seed())
         sample_len = rand.randint(2, MAX_VARS)
         num_samples = rand.randint(1, max(sample_len // 2, 1))
         fake_result, reverser = fake_qctrl_result(
             rand, sample_len, random(random_int(rand)), num_samples
         )
-
-        print(fake_result)
 
         env = Environment()
         with env:
@@ -181,7 +176,6 @@ def test_qctrl_translator_constructed_vars():
             assert result.feasible is None
             assert result.obj_value is None
             bs = reverser([e for e in result.sample])
-            print(bs)
             assert result.counts == fake_result["final_bitstring_distribution"][bs]
 
         results = list(sol.results)
