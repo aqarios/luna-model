@@ -35,4 +35,5 @@ def test_zero_variables():
     model_from_scip.name = model.name
     os.remove(out_file)
     os.remove(scip_file)
-    assert model.equal_contents(model_from_scip)
+    print(model.equal_contents(model_from_scip))
+    assert False
