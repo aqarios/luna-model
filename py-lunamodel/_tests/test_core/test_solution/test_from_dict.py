@@ -2,7 +2,7 @@ from random import Random
 
 import pytest
 from luna_model import Environment, Model, Solution, Variable, Vtype
-from luna_model.errors import SampleIncorrectLengthError
+from luna_model.errors import SampleIncorrectLengthError, TranslationError
 
 from _tests.test_core.utils import make_seed, random_int
 
@@ -87,6 +87,7 @@ def test_from_dicts_unique_with_model(model: tuple[Model, tuple[Variable, ...]])
         [1, 0, 0],
         [0, 1, 1],
     ]
+    assert sol.obj_values is not None
     assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]
 
 
@@ -194,7 +195,7 @@ def test_from_counts_wrong_vtype(model):
         "001": random_int(rand),
         "110": random_int(rand),
     }
-    with pytest.raises(ValueError):
+    with pytest.raises(TranslationError):
         Solution.from_counts(counts, model=m)
 
 

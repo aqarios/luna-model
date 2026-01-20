@@ -378,7 +378,7 @@ class Solution:
         return self._s.__str__()
 
     def __repr__(self) -> str:
-        return self._s.__str__()
+        return self._s.__repr__()
 
 
 def map_sample(sample: _Sample) -> dict[str | PyVariable, int | float]:

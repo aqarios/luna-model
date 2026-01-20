@@ -1,6 +1,6 @@
 use lunamodel_core::Solution;
 use lunamodel_core::solution::Assignment;
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::{
     FromPyObject, IntoPyObjectExt, Py, PyAny, PyErr, PyRef, PyRefMut, PyResult, Python, pyclass,
     pymethods,
@@ -66,8 +66,9 @@ impl PySamplesIterator {
     fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<PySampleView> {
         let binding: &Solution = &slf.sol.s.read_arc();
         let res = binding.result(slf.idx);
+        let out = res.map(|_| PySampleView::new(slf.sol.clone(), slf.idx));
         slf.idx += 1;
-        res.map(|_| PySampleView::new(slf.sol.clone(), slf.idx))
+        out
     }
 
     fn tolist(slf: PyRef<'_, Self>, py: Python) -> PyResult<Vec<Vec<Py<PyAny>>>> {
@@ -90,11 +91,23 @@ impl PySamplesIterator {
     }
 
     fn __getitem__(slf: PyRef<'_, Self>, py: Python, index: PySamplesIndex) -> PyResult<Py<PyAny>> {
+        let n_samples = slf.sol.s.read_arc().n_samples();
+        let sample_len = slf.sol.s.read_arc().sample_len();
         match index {
             PySamplesIndex::Sample(index) => {
+                if index >= n_samples {
+                    return Err(PyIndexError::new_err(format!(
+                        "index '{index}' out of bounds for '{n_samples}' num samples"
+                    )));
+                }
                 PySampleView::new(slf.sol.clone(), index.into()).into_py_any(py)
             }
             PySamplesIndex::Assignment((row, col)) => {
+                if row >= n_samples || col >= sample_len {
+                    return Err(PyIndexError::new_err(format!(
+                        "index '({row}, {col})' out of bounds for '({n_samples}, {sample_len})' (num samples, sample len)"
+                    )));
+                }
                 let row: usize = row.into();
                 let col: usize = col.into();
                 slf.sol.s.read_arc()[(row, col)].into_py_any(py)

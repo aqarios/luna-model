@@ -1,7 +1,7 @@
-use hashbrown::{HashMap, HashSet};
+use hashbrown::HashMap;
 use indexmap::IndexMap;
 use itertools::Itertools;
-use lunamodel_error::{LunaModelError, LunaModelResult};
+use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bias, Vtype};
 
 use crate::solution::{Column, col::Assignment};
@@ -85,42 +85,41 @@ impl Solution {
     /// Combine duplicate samples to a single entry.
     pub fn combine_to_single(&mut self) -> LunaModelResult<()> {
         let mut dups: HashMap<String, usize> = HashMap::new();
-        let mut to_rm: IndexMap<usize, Vec<usize>> = IndexMap::new();
+        let mut to_rm: IndexMap<usize, usize> = IndexMap::new();
+        let mut indices: Vec<usize> = Vec::new();
 
         for sample in self.samples() {
             let samplekey = sample.iter().map(|v| v.to_string()).join("");
             if let Some(&first) = dups.get(&samplekey) {
-                to_rm
-                    .entry(first)
-                    .or_insert(Vec::default())
-                    .push(sample.idx);
+                to_rm.insert(sample.idx, first);
+                indices.push(sample.idx);
             } else {
                 dups.insert(samplekey, sample.idx);
             }
         }
 
-        for (&base, rmis) in to_rm.iter().rev() {
-            for &rmi in rmis.iter().rev() {
-                self.counts[base] += self.counts[rmi];
-                self.counts.remove(rmi);
-                for (_, c) in self.samples.iter_mut() {
-                    c.remove(rmi);
-                }
-                for (_, c) in self.constraints.iter_mut() {
-                    c.remove(rmi);
-                }
-                for (_, c) in self.variable_bounds.iter_mut() {
-                    c.remove(rmi);
-                }
-                if let Some(v) = self.raw_energies.as_mut() {
-                    v.remove(rmi);
-                }
-                if let Some(v) = self.obj_values.as_mut() {
-                    v.remove(rmi);
-                }
-                if let Some(v) = self.feasible.as_mut() {
-                    v.remove(rmi);
-                }
+        indices.sort();
+        for &rmi in indices.iter().rev() {
+            let base = *to_rm.get(&rmi).unwrap();
+            self.counts[base] += self.counts[rmi];
+            self.counts.remove(rmi);
+            for (_, c) in self.samples.iter_mut() {
+                c.remove(rmi);
+            }
+            for (_, c) in self.constraints.iter_mut() {
+                c.remove(rmi);
+            }
+            for (_, c) in self.variable_bounds.iter_mut() {
+                c.remove(rmi);
+            }
+            if let Some(v) = self.raw_energies.as_mut() {
+                v.remove(rmi);
+            }
+            if let Some(v) = self.obj_values.as_mut() {
+                v.remove(rmi);
+            }
+            if let Some(v) = self.feasible.as_mut() {
+                v.remove(rmi);
             }
         }
 

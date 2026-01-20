@@ -93,7 +93,7 @@ def test_zib_translator_quadratic(zib_model_quadratic: Model):
         scip_model, timing=timing, env=zib_model_quadratic.environment
     )
     assert len(sol.samples) == 1
-    assert sol.raw_energies == None
+    assert sol.raw_energies is None
     assert len(sol.counts) == 1
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None

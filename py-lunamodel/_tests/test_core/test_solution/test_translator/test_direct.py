@@ -141,13 +141,13 @@ def test_sol_direct_from_np(np_model, np_result):
     with np_model.environment:
         sol = Solution.from_(res, energies=energies)
 
-    (sol_agg, indices, _) = np.unique(
-        res, return_index=True, return_counts=True, axis=0
-    )
-
-    assert sol.samples.tolist() == sol_agg.tolist()
-    for i, result in enumerate(sol.results):
-        assert result.raw_energy == energies[indices[i]]
+    assert [
+        [0, 1.0, 1, 0, 0],
+        [1, 0.0, 1, 0, 0],
+        [0, 0.0, 1, 0, 0],
+    ] == sol.samples.tolist()
+    assert all([-2.0, -1.0, -1.0] == sol.raw_energies)
+    for result in sol.results:
         assert result.obj_value is None
         assert result.constraints is None
         assert result.feasible is None

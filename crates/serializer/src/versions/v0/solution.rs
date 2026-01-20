@@ -119,7 +119,7 @@ impl SerSolution {
         let spin_step: usize = self.spins.len() / num_samples;
         let int_step: usize = self.ints.len() / num_samples;
         let real_step: usize = self.reals.len() / num_samples;
-        
+
         for (varname, st) in self.variable_names.iter().zip(self.sample_types) {
             let vtype = u8_to_vtype(st);
             if vtype.is_none() {
@@ -193,7 +193,11 @@ impl SerSolution {
             let cnames: Vec<_> = (0..len).map(|i| format!("c{i}")).collect();
             for sample in self.constraints {
                 for (cname, value) in cnames.iter().zip(sample.vector.unwrap().values) {
-                    sol.constraints.get_mut(cname).unwrap().push(value);
+                    sol.constraints
+                        .entry(cname.to_string())
+                        .or_insert(Vec::default())
+                        .push(value);
+                    // sol.constraints.get_mut(cname).unwrap().push(value);
                 }
             }
         } else {
@@ -270,3 +274,4 @@ impl SerSolution {
         Ok(sol)
     }
 }
+

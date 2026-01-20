@@ -209,15 +209,26 @@ impl PySolution {
                 sol.raw_energies.as_mut().map(|ens| ens.push(e));
             }
 
-            for (var, value) in data.iter() {
-                let varname = var.name()?;
-                match environment.vtype_of(&varname)? {
-                    Vtype::Binary => sol.add_binary(varname, vec![*value]),
-                    Vtype::Spin => sol.add_spin(varname, vec![*value]),
-                    Vtype::Integer => sol.add_integer(varname, vec![*value]),
-                    Vtype::Real => sol.add_real(varname, vec![*value]),
+            environment.vars().iter().for_each(|v| {
+                let vname = v.name().unwrap();
+                let vtype = v.vtype().unwrap();
+                match vtype {
+                    Vtype::Binary => sol.add_empty_binary(vname),
+                    Vtype::Spin => sol.add_empty_spin(vname),
+                    Vtype::Integer => sol.add_empty_integer(vname),
+                    Vtype::Real => sol.add_empty_real(vname),
+                    // TODO: this should never happen. If it does it will return an error later.
                     Vtype::InvertedBinary => (),
                 }
+            });
+
+            for (var, value) in data.iter() {
+                let varname = var.name()?;
+                let solcol = sol
+                    .samples
+                    .get_mut(&varname)
+                    .ok_or_else(|| LunaModelError::SampleUnexpectedVariable(varname.into()))?;
+                solcol.try_push(*value)?;
             }
 
             sol.combine_to_single()?;
@@ -282,13 +293,18 @@ impl PySolution {
                 sol.raw_energies = Some(es)
             }
 
-            let mut samples: IndexMap<String, Vec<f64>> = data[0]
-                .keys()
-                .map(|k| match k.name() {
-                    Ok(name) => Ok((name, Vec::new())),
-                    Err(e) => Err(e),
-                })
-                .collect::<LunaModelResult<_>>()?;
+            environment.vars().iter().for_each(|v| {
+                let vname = v.name().unwrap();
+                let vtype = v.vtype().unwrap();
+                match vtype {
+                    Vtype::Binary => sol.add_empty_binary(vname),
+                    Vtype::Spin => sol.add_empty_spin(vname),
+                    Vtype::Integer => sol.add_empty_integer(vname),
+                    Vtype::Real => sol.add_empty_real(vname),
+                    // TODO: this should never happen. If it does it will return an error later.
+                    Vtype::InvertedBinary => (),
+                }
+            });
 
             let sample_len = data[0].len();
             for sample in data.iter() {
@@ -299,20 +315,10 @@ impl PySolution {
                 }
                 for (var, value) in sample.iter() {
                     let varname = var.name()?;
-                    samples
+                    sol.samples
                         .get_mut(&varname)
                         .ok_or_else(|| LunaModelError::SampleUnexpectedVariable(varname.into()))?
-                        .push(*value);
-                }
-            }
-
-            for (varname, values) in samples {
-                match environment.vtype_of(&varname)? {
-                    Vtype::Binary => sol.add_binary(varname, values),
-                    Vtype::Spin => sol.add_spin(varname, values),
-                    Vtype::Integer => sol.add_integer(varname, values),
-                    Vtype::Real => sol.add_real(varname, values),
-                    Vtype::InvertedBinary => (),
+                        .try_push(*value)?;
                 }
             }
 
@@ -387,13 +393,26 @@ impl PySolution {
                     .collect::<LunaModelResult<_>>()?,
             };
 
-            for (col, varname) in data.as_array().axis_iter(Axis(1)).zip(variables) {
-                match environment.vtype_of(&varname)? {
-                    Vtype::Binary => sol.add_binary(varname, col.to_vec()),
-                    Vtype::Spin => sol.add_spin(varname, col.to_vec()),
-                    Vtype::Integer => sol.add_integer(varname, col.to_vec()),
-                    Vtype::Real => sol.add_real(varname, col.to_vec()),
+            environment.vars().iter().for_each(|v| {
+                let vname = v.name().unwrap();
+                let vtype = v.vtype().unwrap();
+                match vtype {
+                    Vtype::Binary => sol.add_empty_binary(vname),
+                    Vtype::Spin => sol.add_empty_spin(vname),
+                    Vtype::Integer => sol.add_empty_integer(vname),
+                    Vtype::Real => sol.add_empty_real(vname),
+                    // TODO: this should never happen. If it does it will return an error later.
                     Vtype::InvertedBinary => (),
+                }
+            });
+
+            for (col, varname) in data.as_array().axis_iter(Axis(1)).zip(variables) {
+                let solcol = sol
+                    .samples
+                    .get_mut(&varname)
+                    .ok_or_else(|| LunaModelError::SampleUnexpectedVariable(varname.into()))?;
+                for &v in col.iter() {
+                    solcol.try_push(v)?;
                 }
             }
 

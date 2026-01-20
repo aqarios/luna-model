@@ -25,8 +25,112 @@ impl CustomFormat<FormatOpt> for Solution {
         }
     }
 
-    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, _: &FormatOpt) -> std::fmt::Result {
-        write!(fmt, "{:?}", self)
+    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
+        match format_type {
+            FormatOpt::Rs => write!(fmt, "{:?}", self),
+            #[cfg(feature = "py")]
+            FormatOpt::Py | FormatOpt::PySol(_) => {
+                let samples = format!(
+                    "[{}]",
+                    self.samples()
+                        .map(|s| s.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                );
+                let objvalues = match &self.obj_values {
+                    Some(vs) => format!(
+                        "[{}]",
+                        vs.iter()
+                            .map(|&v| v.to_string())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    ),
+                    None => "None".to_string(),
+                };
+                let rawengs = match &self.raw_energies {
+                    Some(vs) => format!(
+                        "[{}]",
+                        vs.iter()
+                            .map(|&v| v.to_string())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    ),
+                    None => "None".to_string(),
+                };
+                let feasible = match &self.feasible {
+                    Some(vs) => format!(
+                        "[{}]",
+                        vs.iter()
+                            .map(|&b| fmtbool(b))
+                            .collect::<Vec<String>>()
+                            .join(", ")
+                    ),
+                    None => "None".to_string(),
+                };
+                let counts = format!("{:?}", self.counts);
+
+                let constraints = match self.constraints.is_empty() {
+                    true => "[]".to_string(),
+                    false => format!(
+                        "[{}]",
+                        (0..self.n_samples())
+                            .map(|i| {
+                                format!(
+                                    "{{{}}}",
+                                    self.constraints
+                                        .iter()
+                                        .map(|(cname, vs)| format!("{}: {}", cname, fmtbool(vs[i])))
+                                        .collect::<Vec<String>>()
+                                        .join(", ")
+                                )
+                            })
+                            .collect::<Vec<String>>()
+                            .join(", ")
+                    ),
+                };
+
+                let vbounds = match self.variable_bounds.is_empty() {
+                    true => "[]".to_string(),
+                    false => format!(
+                        "[{}]",
+                        (0..self.n_samples())
+                            .map(|i| {
+                                format!(
+                                    "[{}]",
+                                    self.variable_names()
+                                        .iter()
+                                        .map(|vname| format!(
+                                            "{}",
+                                            fmtbool(self.variable_bounds[vname][i])
+                                        ))
+                                        .collect::<Vec<String>>()
+                                        .join(", ")
+                                )
+                            })
+                            .collect::<Vec<String>>()
+                            .join(", ")
+                    ),
+                };
+
+                let runtime = match &self.timing {
+                    Some(t) => format!(
+                        "{}",
+                        t.total()
+                            .map_or_else(|e| e.to_string(), |d| d.as_secs_f64().to_string())
+                    ),
+                    None => "None".to_string(),
+                };
+
+                let nsamples = self.n_samples().to_string();
+                let varnames = format!("[{}]", self.variable_names().join(", "));
+                let sense = self.sense.to_string();
+
+                write!(
+                    fmt,
+                    "Solution(samples={samples}, obj_values={objvalues}, raw_energies={rawengs}, counts={counts}, constraints={constraints}, variable_bounds={vbounds}, feasible={feasible}, runtime={runtime}, n_samples={nsamples}, variable_names={varnames}, sense={sense})"
+                )
+            }
+        }
     }
 }
 
@@ -604,4 +708,11 @@ fn remove_trailing_zeros(mut s: String) -> String {
         }
     }
     s
+}
+
+fn fmtbool(b: bool) -> String {
+    match b {
+        true => "True".to_string(),
+        false => "False".to_string(),
+    }
 }

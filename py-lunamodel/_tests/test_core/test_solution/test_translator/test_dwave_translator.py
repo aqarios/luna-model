@@ -12,7 +12,7 @@ try:
     from dwave.samplers import SimulatedAnnealingSampler
 except ImportError as _:
     print(
-        "Dwave is not installed and thus, the CPLEX tests will not be executed",
+        "Dwave is not installed and thus, the Dwave sampler tests will not be executed",
         file=sys.stdout,
     )
     NOT_RUN_DWAVE = True
@@ -101,7 +101,7 @@ def test_sampleset_translator_error_handling():
     env = mock_env(3)
     with pytest.raises(
         SampleIncompatibleVtypeError,
-        match="sample contains variable assignments incompatible",
+        match="sample contains incompatible variable assignments",
     ):
         DwaveTranslator.to_lm(sampleset, env=env)
 

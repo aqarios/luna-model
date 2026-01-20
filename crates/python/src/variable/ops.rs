@@ -6,7 +6,7 @@ use std::ops::{Add, Mul, Neg, Not, Sub};
 use super::PyVariable;
 use crate::{
     expression::PyExpression as PyE,
-    utils::{OpsOther as OO, as_usize},
+    utils::{OpsOther as OO, as_usize, as_usize_from_pyany},
 };
 
 #[pymethods]
@@ -58,14 +58,15 @@ impl PyVariable {
         self.__invert__()
     }
 
-    pub fn __pow__(&self, val: isize, modulo: Option<isize>) -> PyResult<PyE> {
+    // #[pyo3(signature=(val, modulo=None))]
+    pub fn __pow__(&self, py: Python, rhs: Py<PyAny>, modulo: Option<isize>) -> PyResult<PyE> {
         self.v.check_living()?;
         if modulo.is_some() {
             return Err(PyLunaModelError::new_err(
                 "the 'modulo' parameter is not supported.",
             ));
         }
-        Ok(PyE::new(self.v.pow(as_usize(val)?)?))
+        Ok(PyE::new(self.v.pow(as_usize_from_pyany(py, rhs)?)?))
     }
 
     pub fn __neg__(&self) -> PyResult<PyE> {

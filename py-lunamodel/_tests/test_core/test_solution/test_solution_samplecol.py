@@ -1,3 +1,4 @@
+import pytest
 from luna_model import Environment, Solution, Variable, Vtype
 
 
@@ -120,8 +121,9 @@ def test_remove_var():
 
     sol.remove_var("s")
     assert sol.variable_names == []
-    assert sol.samples.tolist()[0] == []
-    assert sol[0].sample.to_dict() == {}
+    assert sol.samples.tolist() == []
+    with pytest.raises(IndexError):
+        _ = sol[0].sample.to_dict()
 
 
 def test_remove_vars():
@@ -141,5 +143,6 @@ def test_remove_vars():
 
     sol.remove_vars([vars[0], "s", vars[2], "r"])
     assert sol.variable_names == []
-    assert sol.samples.tolist()[0] == []
-    assert sol[0].sample.to_dict() == {}
+    assert sol.samples.tolist() == []
+    with pytest.raises(IndexError):
+        _ = sol[0].sample.to_dict()

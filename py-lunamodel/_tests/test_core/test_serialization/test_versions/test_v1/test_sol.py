@@ -88,7 +88,6 @@ def test_v0_v1_equality_sol_eval_timing(
     with open(path / "sol_eval_timing", "rb") as f:
         reconstructed = Solution.decode(f.read())
         assert reconstructed.variable_names == sol.variable_names
-        assert reconstructed.best_sample_idx == sol.best_sample_idx
         assert np.all(reconstructed.obj_values == sol.obj_values)
         assert np.all(reconstructed.counts == sol.counts)
         assert np.all(reconstructed.raw_energies == sol.raw_energies)

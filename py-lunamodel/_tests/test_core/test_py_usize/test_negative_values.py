@@ -25,20 +25,16 @@ def test_negative_value_normal_method():
 
 
 def test_negative_value_slot_method():
-    print("A")
     with Environment():
         x = Variable("x")
-    print("B")
     with pytest.raises(TypeError):
-        _ = x**1.3
+        r = x**1.3
     with pytest.raises(TypeError):
         _ = x ** "foo"
-    print("D")
     with pytest.raises(
         ValueError, match="Expected a non-negative number, received: -1"
     ):
         _ = x ** (-1)
-    print("E")
     with does_not_raise():
         _ = (x**i for i in range(10))
 

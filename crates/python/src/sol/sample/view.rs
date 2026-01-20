@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use itertools::Itertools;
 use lunamodel_core::solution::{
     Assignment,
     sample::{SampleView, SampleViewIdx},
@@ -73,7 +74,16 @@ impl PySampleView {
         PySampleIterator::new(self.clone())
     }
 
-    // fn __str__(&self) -> PyResult<String> {
-    //     unimplemented!()
-    // }
+    fn __str__(&self) -> String {
+        format!(
+            "[{}]",
+            self.sol
+                .s
+                .read_arc()
+                .samples
+                .iter()
+                .map(|(_, col)| col.as_assignment(self.idx).to_string())
+                .join(", ")
+        )
+    }
 }

@@ -1,7 +1,11 @@
-use std::{marker::PhantomData, ops::Index};
+use std::{
+    fmt::{Debug, Display},
+    marker::PhantomData,
+    ops::Index,
+};
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use num::NumCast;
+use num::{Num, NumCast, ToPrimitive};
 
 use lunamodel_types::{Bias, BinaryAssignment, IntegerAssignment, RealAssignment, SpinAssignment};
 
@@ -104,6 +108,29 @@ impl Column {
             Self::Spin(col) => col.push(value),
             Self::Integer(col) => col.push(value),
             Self::Real(col) => col.push(value),
+        }
+    }
+
+    pub fn try_push<N: ToPrimitive + Debug>(&mut self, value: N) -> LunaModelResult<()> {
+        dbg!(&value);
+        match self {
+            Self::Binary(col) => match <u8 as NumCast>::from(value) {
+                None => return Err(LunaModelError::SampleIncompatibleVtype),
+                Some(v) => col.push(Assignment::Binary(v)),
+            },
+            Self::Spin(col) => match <i8 as NumCast>::from(value) {
+                None => return Err(LunaModelError::SampleIncompatibleVtype),
+                Some(v) => col.push(Assignment::Spin(v)),
+            },
+            Self::Integer(col) => match <i64 as NumCast>::from(value) {
+                None => return Err(LunaModelError::SampleIncompatibleVtype),
+                Some(v) => col.push(Assignment::Integer(v)),
+            },
+
+            Self::Real(col) => match <f64 as NumCast>::from(value) {
+                None => return Err(LunaModelError::SampleIncompatibleVtype),
+                Some(v) => col.push(Assignment::Real(v)),
+            },
         }
     }
 
@@ -293,5 +320,22 @@ impl ColElement<f64> {
 
     pub fn data(&self) -> Vec<f64> {
         self.iter().collect()
+    }
+}
+
+impl Display for Assignment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Binary(b) => write!(f, "{b}"),
+            Self::Spin(s) => write!(f, "{s}"),
+            Self::Integer(i) => write!(f, "{i}"),
+            Self::Real(r) => {
+                let s = format!("{r:.}");
+                match s.contains(".") {
+                    true => write!(f, "{}", s),
+                    false => write!(f, "{}.0", s),
+                }
+            }
+        }
     }
 }

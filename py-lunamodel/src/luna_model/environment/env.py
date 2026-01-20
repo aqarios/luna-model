@@ -64,3 +64,6 @@ class Environment:
 
     def __eq__(self, other: Environment) -> bool:  # type: ignore[override]
         return self._env.__eq__(other._env)
+
+    def __contains__(self, var: str) -> bool:
+        return self._env.__contains__(var)

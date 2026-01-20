@@ -1,5 +1,6 @@
-use std::ops::Index;
+use std::{fmt::Display, ops::Index};
 
+use itertools::Itertools;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 
@@ -80,5 +81,19 @@ impl<'s> TryIndex<&str> for SampleView<'s> {
         } else {
             Err(LunaModelError::VariableNotExisting(var.into()))
         }
+    }
+}
+
+impl<'a> Display for SampleView<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[{}]",
+            self.sol
+                .variable_names()
+                .iter()
+                .map(|v| self.get(v).to_string())
+                .join(", ")
+        )
     }
 }
