@@ -16,8 +16,7 @@ class ZibTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
-        if env is None:
-            raise NoActiveEnvironmentFoundError
+        env = env if env is not None else Environment._from_ctx()
         sample = {x.name: model.getVal(x) for x in model.getVars() if x.name in env}
         sense = Sense.Max if model.getObjectiveSense() == "maximize" else Sense.Min
         return Solution.from_dict(

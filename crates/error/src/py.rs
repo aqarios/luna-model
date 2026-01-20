@@ -301,6 +301,7 @@ impl From<Lme> for PyErr {
             Lme::SampleIncorrectLength(_) => PySampleIncorrectLengthError::new_err,
             Lme::SampleUnexpectedVariable(_) => PySampleUnexpectedVariableError::new_err,
             Lme::SampleIncompatibleVtype => PySampleIncompatibleVtypeError::new_err,
+            Lme::VariableNames(_) => PyVariableNamesError::new_err,
         };
         err(lme.to_string())
     }

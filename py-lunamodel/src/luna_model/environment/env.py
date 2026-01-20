@@ -20,6 +20,10 @@ class Environment:
         env._env = py_env
         return env
 
+    @classmethod
+    def _from_ctx(cls) -> Environment | None:
+        return Environment._from_pyenv(PyEnvironment._from_ctx())
+
     def __enter__(self) -> Environment:
         return Environment._from_pyenv(self._env.__enter__())
 
@@ -67,3 +71,9 @@ class Environment:
 
     def __contains__(self, var: str) -> bool:
         return self._env.__contains__(var)
+
+    def __str__(self) -> str:
+        return self._env.__str__()
+
+    def __repr__(self) -> str:
+        return self._env.__repr__()

@@ -436,6 +436,7 @@ dependencies = [
  "lunamodel-types",
  "pyo3",
  "regex",
+ "strum",
 ]
 
 [[package]]

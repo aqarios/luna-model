@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use super::PyVariable;
-use crate::expression::PyExpression;
+use crate::{PyEnvironment, PyModel, expression::PyExpression};
 use pyo3::{
     PyResult,
     exceptions::PyValueError,
@@ -84,3 +84,13 @@ pub fn as_usize(n: isize) -> PyResult<usize> {
     }
 }
 
+pub fn retrieve_environment(
+    env: Option<PyEnvironment>,
+    model: &Option<PyModel>,
+) -> PyResult<PyEnvironment> {
+    if let Some(model) = model {
+        Ok(model.m.read_arc().environment.clone().into())
+    } else {
+        env.try_into()
+    }
+}

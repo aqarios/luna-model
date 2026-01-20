@@ -64,3 +64,9 @@ class Constraint:
 
     def __eq__(self, other: Constraint) -> bool:  # type: ignore[override]
         return self._c.__eq__(other._c)
+
+    def __str__(self) -> str:
+        return self._c.__str__()
+
+    def __repr__(self) -> str:
+        return self._c.__repr__()

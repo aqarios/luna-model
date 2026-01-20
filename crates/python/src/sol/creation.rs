@@ -10,6 +10,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::{PyResult, pymethods};
 
 use crate::timer::PyTiming;
+use crate::utils::retrieve_environment;
 use crate::{PyEnvironment, PyModel};
 
 use super::PySolution;
@@ -577,16 +578,5 @@ fn check_sense_or_model(sense: &Option<Sense>, model: &Option<PyModel>) -> PyRes
         ))
     } else {
         Ok(())
-    }
-}
-
-fn retrieve_environment(
-    env: Option<PyEnvironment>,
-    model: &Option<PyModel>,
-) -> PyResult<PyEnvironment> {
-    if let Some(model) = model {
-        Ok(model.m.read_arc().environment.clone().into())
-    } else {
-        env.try_into()
     }
 }

@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Comparator, Vtype};
 use lunamodel_utils::{unique, unique_by};
-use std::{fmt::Display, ops::Index};
+use std::ops::Index;
 
 use super::constraint::Constraint;
 
@@ -150,12 +150,15 @@ impl Index<&str> for ConstraintCollection {
     }
 }
 
-impl Display for ConstraintCollection {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        _ = f;
-        unimplemented!()
-    }
-}
+// impl Display for ConstraintCollection {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(
+//             f,
+//             "[{}]",
+//             self.data.iter().map(|(cname, c)| format!("{}: {}", cname, c)).join(", ")
+//         )
+//     }
+// }
 
 impl PartialEq for ConstraintCollection {
     fn eq(&self, other: &Self) -> bool {

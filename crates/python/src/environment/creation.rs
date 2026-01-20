@@ -1,7 +1,7 @@
 use lunamodel_core::prelude::Environment;
-use pyo3::{PyResult, pymethods};
+use pyo3::{Bound, PyResult, pymethods, types::PyType};
 
-use crate::PyEnvironment;
+use crate::{PyEnvironment, environment::get_active_env};
 
 #[pymethods]
 impl PyEnvironment {
@@ -11,5 +11,10 @@ impl PyEnvironment {
     #[new]
     fn py_new() -> PyResult<Self> {
         Ok(PyEnvironment::new(Environment::default()))
+    }
+
+    #[classmethod]
+    fn _from_ctx(_cls: &Bound<'_, PyType>) -> PyResult<PyEnvironment> {
+        get_active_env()
     }
 }

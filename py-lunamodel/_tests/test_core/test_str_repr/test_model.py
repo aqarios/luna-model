@@ -8,14 +8,14 @@ from luna_model import Bounds, Environment, Expression, Model, Variable, Vtype
 _model_str_1 = """Model: TestModel
 Minimize
   x0
-BINARY
+Binary
   x0"""
 _model_str_2 = """Model: TestModel
 Minimize
   -x0 * x1 + x0
 Bounds
   0 <= x1
-BINARY
+Binary
   x0
 Real
   x1"""
@@ -28,7 +28,7 @@ Subject To
 Bounds
   0 <= x1
   0 <= x3 <= 30
-BINARY
+Binary
   x0 x2
 Spin
   x4
@@ -46,7 +46,7 @@ Subject To
 Bounds
   0 <= x1
   0 <= x3 <= 30
-BINARY
+Binary
   x0 x2
 Spin
   x4
@@ -54,7 +54,7 @@ Integer
   x3
 Real
   x1"""
-_model_repr_1 = "Model(name=MyModel, sense=Minimize, objective=a + 2 b + 2 c + 2 d + 2 e + 2 f + 2 g + 2 h + 2 i + 2 j + 2 k + 2 l + 2 m + 2 n + 2 o + 2 p + 2 q + 2 r + 2 s + 2 t, constraints=[])"
+_model_repr_1 = "Model(name=MyModel, sense=Minimize, objective=a + 2 b + 2 c + 2 d + 2 e + 2 f + 2 g + 2 h + 2 i + 2 j + 2 k + 2 l + 2 m + 2 n + 2 o + 2 p + 2 q + 2 r + 2 s + 2 t, constraints={})"
 
 
 @pytest.fixture()
@@ -195,7 +195,7 @@ def test_constraints(variables: tuple[Variable, ...]):
     c2 = a + b <= 10
     assert str(c2) == "a + b <= 10"
     c3 = a * b * 2 + 1 >= -1
-    assert str(c3) == "2 * a * b >= -2"
+    assert str(c3) == "2 a b >= -2"
 
     with does_not_raise():
         repr(c1)

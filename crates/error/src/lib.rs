@@ -76,6 +76,7 @@ pub enum LunaModelError {
     SampleIncorrectLength(ErrString),
     SampleUnexpectedVariable(ErrString),
     SampleIncompatibleVtype,
+    VariableNames(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -114,6 +115,7 @@ impl Display for LunaModelError {
             SampleIncompatibleVtype => {
                 write!(f, "sample contains incompatible variable assignments")
             }
+            VariableNames(msg) => write!(f, "{}", msg),
         }
     }
 }

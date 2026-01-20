@@ -6,7 +6,7 @@ use std::ops::{Add, Mul, Neg, Not, Sub};
 use super::PyVariable;
 use crate::{
     expression::PyExpression as PyE,
-    utils::{OpsOther as OO, as_usize, as_usize_from_pyany},
+    utils::{OpsOther as OO, as_usize_from_pyany},
 };
 
 #[pymethods]

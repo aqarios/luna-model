@@ -1,5 +1,5 @@
 use lunamodel_core::{Expression, Model};
-use lunamodel_error::LunaModelResult;
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Sense, Vtype};
 
 use super::QuboTranslator;
@@ -14,6 +14,13 @@ impl QuboTranslator {
         name: Option<String>,
     ) -> LunaModelResult<Model> {
         let mut model = Model::new(name, Some(Sense::Min));
+        if let Some(vnames) = variable_names.as_ref()
+            && vnames.len() != num_vars
+        {
+            return Err(LunaModelError::VariableNames(
+                format!("number of variable names does not match number of variables: is {}, expected {}", vnames.len(), num_vars).into(),
+            ));
+        }
         for i in 0..num_vars {
             let vname = match &variable_names {
                 None => &format!("x_{i}"),

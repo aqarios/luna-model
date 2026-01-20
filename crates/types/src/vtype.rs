@@ -1,5 +1,5 @@
 use enumset::{EnumSet, EnumSetType};
-use strum_macros::Display;
+use strum_macros::{Display, EnumIter};
 
 use crate::utils::EnumSetFromVec;
 
@@ -7,7 +7,7 @@ use crate::utils::EnumSetFromVec;
 use pyo3::prelude::pyclass;
 
 /// Enumeration of variables types supported by the optimization system.
-#[derive(Debug, Display, Hash, EnumSetType)]
+#[derive(Debug, Display, Hash, EnumSetType, EnumIter)]
 #[cfg_attr(
     feature = "py",
     pyclass(eq, eq_int, name = "PyVtype") // , module = "luna_model.Vtype")

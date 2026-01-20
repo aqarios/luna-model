@@ -275,3 +275,9 @@ class Model:
 
     def __reduce__(self):
         return (Model.decode, (self.encode(),))
+
+    def __str__(self) -> str:
+        return self._m.__str__()
+
+    def __repr__(self) -> str:
+        return self._m.__repr__()

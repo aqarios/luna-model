@@ -261,7 +261,7 @@ def test_variable_names_param(qubo: NDArray):
     assert model_1.environment.get_variable("c").name == "c"
     assert model_1.environment.get_variable("d").name == "d"
 
-    num_vars_msg = "Number of variable names must match the number of variables"
+    num_vars_msg = "number of variable names does not match number of variables"
     with pytest.raises(VariableNamesError, match=num_vars_msg):
         _ = QuboTranslator.to_lm(qubo, variable_names=[])
     with pytest.raises(VariableNamesError, match=num_vars_msg):
@@ -275,6 +275,6 @@ def test_variable_names_param(qubo: NDArray):
 
     with pytest.raises(
         VariableExistsError,
-        match="variable creation failed: variable 'a' already exists",
+        match="variable exists: a",
     ):
         _ = QuboTranslator.to_lm(qubo, variable_names=["a", "a", "c", "d"])

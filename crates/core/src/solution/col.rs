@@ -5,7 +5,7 @@ use std::{
 };
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use num::{Num, NumCast, ToPrimitive};
+use num::{NumCast, ToPrimitive};
 
 use lunamodel_types::{Bias, BinaryAssignment, IntegerAssignment, RealAssignment, SpinAssignment};
 
@@ -112,7 +112,6 @@ impl Column {
     }
 
     pub fn try_push<N: ToPrimitive + Debug>(&mut self, value: N) -> LunaModelResult<()> {
-        dbg!(&value);
         match self {
             Self::Binary(col) => match <u8 as NumCast>::from(value) {
                 None => return Err(LunaModelError::SampleIncompatibleVtype),

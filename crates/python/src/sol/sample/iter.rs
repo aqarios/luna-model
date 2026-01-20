@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use lunamodel_core::Solution;
 use lunamodel_core::solution::Assignment;
 use pyo3::exceptions::{PyIndexError, PyValueError};
@@ -117,6 +118,17 @@ impl PySamplesIterator {
 
     fn __len__(slf: PyRef<'_, Self>) -> usize {
         slf.sol.s.read_arc().len()
+    }
+
+    fn __str__(slf: PyRef<'_, Self>) -> String {
+        let sol = &slf.sol.s.read_arc();
+        format!(
+            "{{\n{}\n}}",
+            sol.samples()
+                .zip(&sol.counts)
+                .map(|(sample, cnts)| format!("  {}: {}", sample.to_string(), cnts))
+                .join(",\n")
+        )
     }
 }
 

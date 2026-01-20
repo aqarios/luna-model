@@ -1,4 +1,4 @@
-use std::{fmt::Display, ops::Sub};
+use std::ops::Sub;
 
 use global_counter::primitive::exact::CounterU64;
 use lunamodel_error::{LunaModelError, LunaModelResult};
@@ -128,13 +128,6 @@ fn validate_name(name: Option<&String>) -> LunaModelResult<()> {
         }
     }
     Ok(())
-}
-
-impl Display for Constraint {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        _ = f;
-        unimplemented!()
-    }
 }
 
 impl ContentEquality for Constraint {
