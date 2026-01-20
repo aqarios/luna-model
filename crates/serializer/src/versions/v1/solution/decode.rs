@@ -115,12 +115,15 @@ impl SerSolution {
 
         let mut cv: BitVec<u8, Lsb0> = BitVec::from_vec(self.constraints);
         cv.truncate(self.n_constraints as usize * self.num_samples as usize);
-        let constraint_chunks: Vec<Vec<bool>> = cv
-            .into_iter()
-            .collect::<Vec<_>>()
-            .chunks_exact(self.n_constraints as usize)
-            .map(|chunk| chunk.to_vec())
-            .collect();
+        let constraint_chunks: Vec<Vec<bool>> = match self.n_constraints == 0 {
+            true => Vec::default(),
+            false => cv
+                .into_iter()
+                .collect::<Vec<_>>()
+                .chunks_exact(self.n_constraints as usize)
+                .map(|chunk| chunk.to_vec())
+                .collect(),
+        };
 
         for sample in constraint_chunks {
             for (cname, value) in constraint_names.iter().zip(sample) {
@@ -133,12 +136,15 @@ impl SerSolution {
 
         let mut cv: BitVec<u8, Lsb0> = BitVec::from_vec(self.variable_bounds);
         cv.truncate(self.n_variable_bounds as usize * self.num_samples as usize);
-        let variable_bounds: Vec<Vec<bool>> = cv
-            .into_iter()
-            .collect::<Vec<_>>()
-            .chunks_exact(self.n_variable_bounds as usize)
-            .map(|chunk| chunk.to_vec())
-            .collect();
+        let variable_bounds: Vec<Vec<bool>> = match self.n_variable_bounds == 0 {
+            true => Vec::default(),
+            false => cv
+                .into_iter()
+                .collect::<Vec<_>>()
+                .chunks_exact(self.n_variable_bounds as usize)
+                .map(|chunk| chunk.to_vec())
+                .collect(),
+        };
         let variable_bound_names = if self.variable_bound_names.is_empty() {
             self.variable_names
         } else {
@@ -153,18 +159,22 @@ impl SerSolution {
             }
         }
 
-        let mut feasible: Vec<bool> = vec![true; self.num_samples as usize];
-        for (_, per_constraint) in &sol.constraints {
-            for (i, &item) in per_constraint.iter().enumerate() {
-                feasible[i] = feasible[i] && item;
+        sol.feasible = if sol.variable_bounds.is_empty() && sol.constraints.is_empty() {
+            None
+        } else {
+            let mut feasible: Vec<bool> = vec![true; self.num_samples as usize];
+            for (_, per_constraint) in &sol.constraints {
+                for (i, &item) in per_constraint.iter().enumerate() {
+                    feasible[i] = feasible[i] && item;
+                }
             }
-        }
-        for (_, per_sample) in &sol.variable_bounds {
-            for (i, &item) in per_sample.iter().enumerate() {
-                feasible[i] = feasible[i] && item;
+            for (_, per_sample) in &sol.variable_bounds {
+                for (i, &item) in per_sample.iter().enumerate() {
+                    feasible[i] = feasible[i] && item;
+                }
             }
-        }
-        sol.feasible = Some(feasible);
+            Some(feasible)
+        };
 
         Ok(sol)
     }
