@@ -89,7 +89,16 @@ impl PySolution {
             None => sol.obj_values = None,
         }
 
-        let sample_vars: Vec<_> = samples[0].keys().collect();
+        let pyenv: PyResult<PyEnvironment> = env.try_into();
+        let sample_vars: Vec<_> = if let Ok(e) = &pyenv {
+            e.env
+                .vars()
+                .iter()
+                .map(|v| VarKey::Str(v.name().unwrap()))
+                .collect()
+        } else {
+            samples[0].keys().cloned().collect()
+        };
         let mut s: IndexMap<String, Vec<f64>> = sample_vars
             .iter()
             .map(|k| match k.name() {
@@ -120,7 +129,7 @@ impl PySolution {
                 })
                 .collect::<LunaModelResult<_>>()?,
             None => {
-                let pyenv: PyEnvironment = env.try_into()?;
+                let pyenv: PyEnvironment = pyenv?;
                 let mut vs = HashMap::new();
                 for v in sample_vars.into_iter() {
                     let vname = v.name()?;

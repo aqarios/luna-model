@@ -7,6 +7,24 @@ def check_solution_contents(lhs: Solution, rhs: Solution) -> bool:
         and rhs.best() is not None
         and lhs.best()[0].sample.to_dict() == rhs.best()[0].sample.to_dict()  # type: ignore
     )
+    # print(f"{lhs=}")
+    # print(f"{rhs=}")
+
+    # print(f"{lhs.obj_values=}")
+    # print(f"{rhs.obj_values=}")
+    # print(f"{lhs.expectation_value()=}")
+    # print(f"{rhs.expectation_value()=}")
+
+    # print(f"{eq_best=}")
+    # print(f"{(len(lhs) == len(rhs))=}")
+    # print(f"{(lhs.obj_values == rhs.obj_values)=}")
+    # print(f"{(lhs.counts == rhs.counts)=}")
+    # print(f"{(lhs.runtime == rhs.runtime)=}")
+    # print(f"{(lhs.sense == rhs.sense)=}")
+    # print(f"{(lhs.variable_names == rhs.variable_names)=}")
+    # print(f"{(lhs.samples.tolist() == rhs.samples.tolist())=}")
+    # print(f"{(lhs.expectation_value() == rhs.expectation_value())=}")
+    # print(f"{(lhs.feasibility_ratio() == rhs.feasibility_ratio())=}")
 
     return (
         eq_best
@@ -55,7 +73,7 @@ def build_truth_model() -> Model:
 
 
 def build_subst_model() -> Model:
-    subs = Model("testing_model")
+    subs = Model("subst_model")
     b1 = subs.add_variable("b1")
     b2 = subs.add_variable("b2")
     s1 = subs.add_variable("s1", vtype=Vtype.SPIN)
@@ -102,7 +120,7 @@ def do_checks(translator, sol):
             lmsol_for_sol_subst = translator.to_lm(sol)
 
     # lmsol_for_dwave_eval_truth = truth_model.evaluate(lmsol_for_sol_truth)
-    lmsol_for_dwave_eval_subst = truth_model.evaluate(lmsol_for_sol_subst)
+    # lmsol_for_dwave_eval_subst = truth_model.evaluate(lmsol_for_sol_subst)
 
     assert check_solution_contents(lmsol_for_truth_model, lmsol_for_subst_model)
     # assert check_solution_contents(

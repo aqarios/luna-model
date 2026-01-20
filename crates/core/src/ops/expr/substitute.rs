@@ -45,7 +45,7 @@ impl Expression {
                     match vidxs.contains(&target.id) {
                         true => {
                             let newho = vs.iter().fold(
-                                Expression::constant(self.env.clone(), 1.0),
+                                Expression::constant(self.env.clone(), bias),
                                 |e, v| match v.id == target.id {
                                     true => e.mul(replacement).unwrap(),
                                     false => e.mul(v).unwrap(),
