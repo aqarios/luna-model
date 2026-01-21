@@ -120,8 +120,6 @@ impl ContentEquality for ArcEnv {
     fn equal_contents(&self, other: &Self) -> bool {
         for v in self.vars() {
             let vname = v.name().unwrap();
-            // is this variable (v) contained in the other env?
-            dbg!(&vname, other.contains(&vname));
             match other.lookup(&vname) {
                 Err(_) => return false,
                 Ok(o) => {

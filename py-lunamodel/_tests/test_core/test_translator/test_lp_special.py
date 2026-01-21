@@ -18,22 +18,39 @@ except ImportError as _:
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 def test_zero_variables():
-    model = LpTranslator.to_lm(Path(__file__).parent / "lp_string.lp")
-    model_str = LpTranslator.from_lm(model)
+    base_file = Path(__file__).parent / "lp_string.lp"
+    model = LpTranslator.to_lm(base_file)
 
-    out_file = Path(__file__).parent / "lp_out.lp"
-    out_file.touch()
-    out_file.write_text(model_str)
     scip = ScipModel()
-    scip.readProblem(out_file)
+    scip.readProblem(base_file)
 
-    scip_file = Path(__file__).parent / "lp_scip.lp"
-    scip_file.touch()
-    scip.writeProblem(scip_file)
+    scip_file_out = Path(__file__).parent / "lp_scip.lp"
+    scip_file_out.touch()
+    scip.writeProblem(scip_file_out)
 
-    model_from_scip = LpTranslator.to_lm(scip_file)
+    model_from_scip = LpTranslator.to_lm(scip_file_out)
     model_from_scip.name = model.name
-    os.remove(out_file)
-    os.remove(scip_file)
+
+    os.remove(scip_file_out)
     print(model.equal_contents(model_from_scip))
     assert False
+    # OLD
+    # model = LpTranslator.to_lm(Path(__file__).parent / "lp_string.lp")
+    # model_str = LpTranslator.from_lm(model)
+
+    # out_file = Path(__file__).parent / "lp_out.lp"
+    # out_file.touch()
+    # out_file.write_text(model_str)
+    # scip = ScipModel()
+    # scip.readProblem(out_file)
+
+    # scip_file = Path(__file__).parent / "lp_scip.lp"
+    # scip_file.touch()
+    # scip.writeProblem(scip_file)
+
+    # model_from_scip = LpTranslator.to_lm(scip_file)
+    # model_from_scip.name = model.name
+    # os.remove(out_file)
+    # os.remove(scip_file)
+    # print(model.equal_contents(model_from_scip))
+    # assert False
