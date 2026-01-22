@@ -1,6 +1,6 @@
 // mod exprtree;
 
-use hashbrown::HashSet;
+use indexmap::IndexMap;
 use lunamodel_core::Expression;
 use lunamodel_types::Bias;
 use regex::Regex;
@@ -23,7 +23,6 @@ fn expr_string(expr: &Expression) -> String {
     let mut quads = Vec::new();
     let mut hos = Vec::new();
 
-    let mut exprvarids = HashSet::new();
     for (vars, b) in expr.items() {
         let bstr = match b {
             0.0 => String::new(),
@@ -38,7 +37,6 @@ fn expr_string(expr: &Expression) -> String {
                 }
             }
             [v] => {
-                exprvarids.insert(v.id());
                 if lins.is_empty() {
                     lins.push(format!("{bstr}{}", v.name().unwrap()));
                 } else {
@@ -46,21 +44,32 @@ fn expr_string(expr: &Expression) -> String {
                 }
             }
             [u, v] => {
-                exprvarids.insert(u.id());
-                exprvarids.insert(v.id());
+                let vstr = match u.id() == v.id() {
+                    true => format!("{}^2", u.name().unwrap()),
+                    false => format!("{} {}", u.name().unwrap(), v.name().unwrap()),
+                };
                 if quads.is_empty() {
-                    quads.push(format!("{bstr}{} {}", u.name().unwrap(), v.name().unwrap()));
+                    quads.push(format!("{bstr}{}", vstr));
                 } else {
-                    quads.push(
-                        format!("+{bstr}{} {}", u.name().unwrap(), v.name().unwrap())
-                            .replace("+-", "-"),
-                    );
+                    quads.push(format!("+{bstr}{}", vstr).replace("+-", "-"));
                 }
             }
             vars => {
                 let vs = vars
                     .iter()
                     .map(|v| v.name().unwrap())
+                    .collect::<Vec<String>>();
+                // .join(" ");
+                let mut varwithcount: IndexMap<String, usize> = IndexMap::new();
+                for v in vs {
+                    *varwithcount.entry(v).or_insert(0) += 1;
+                }
+                let vs = varwithcount
+                    .into_iter()
+                    .map(|(varname, count)| match count {
+                        1 => varname,
+                        n => format!("{}^{}", varname, n),
+                    })
                     .collect::<Vec<String>>()
                     .join(" ");
                 if hos.is_empty() {
@@ -97,5 +106,8 @@ fn expr_string(expr: &Expression) -> String {
     let re = Regex::new(r"\s+").unwrap();
     out = re.replace_all(&out, " ").to_string();
     out = out.replace("+ -", "-");
-    out.to_string()
+    match out.is_empty() {
+        true => String::from("0"),
+        false => out.to_string(),
+    }
 }
