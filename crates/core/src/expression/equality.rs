@@ -42,16 +42,64 @@ impl PartialEq for Expression {
 impl ContentEquality for Expression {
     fn equal_contents(&self, other: &Self) -> bool {
         let eok = self.env.equal_contents(&other.env);
-        dbg!(eok);
-        let ook = self.offset == other.offset;
-        dbg!(ook);
-        let lok = self.linear == other.linear;
-        dbg!(&self.linear, &other.linear);
-        dbg!(lok);
-        let qok = self.quadratic == other.quadratic;
-        dbg!(qok);
-        let hok = self.higher_order == other.higher_order;
-        dbg!(hok);
-        eok && ook && lok && qok && hok
+        // dbg!(eok);
+        // let ook = self.offset == other.offset;
+        // dbg!(ook);
+
+        for (vars, bias) in self.items() {
+            match &vars[..] {
+                [] => {
+                    if bias != other.offset {
+                        return false;
+                    }
+                }
+                [u] => {
+                    let othervar = other.env.lookup(&u.name().unwrap()).ok();
+                    match othervar {
+                        Some(o) => {
+                            if bias != other.linear(o.id) {
+                                return false;
+                            }
+                        }
+                        None => return false,
+                    }
+                }
+                [u, v] => {
+                    let othervar_u = other.env.lookup(&u.name().unwrap()).ok();
+                    let othervar_v = other.env.lookup(&v.name().unwrap()).ok();
+                    match (othervar_u, othervar_v) {
+                        (Some(ou), Some(ov)) => {
+                            if bias != other.quadratic(ou.id, ov.id) {
+                                return false;
+                            }
+                        }
+                        _ => return false,
+                    }
+                }
+                vars => {
+                    let mut others = Vec::new();
+                    for v in vars.iter() {
+                        let ov = other.env.lookup(&v.name().unwrap()).ok();
+                        match ov {
+                            Some(o) => others.push(o.id),
+                            None => return false,
+                        }
+                    }
+                    if bias != other.higher_order(&others) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        true
+        // let lok = self.linear == other.linear;
+        // // dbg!(&self.linear, &other.linear);
+        // dbg!(lok);
+        // let qok = self.quadratic == other.quadratic;
+        // dbg!(qok);
+        // let hok = self.higher_order == other.higher_order;
+        // dbg!(hok);
+        // eok && ook && lok && qok && hok
     }
 }

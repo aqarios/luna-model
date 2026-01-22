@@ -262,7 +262,7 @@ class Model:
             case TranslationTarget.LP:
                 from luna_model.translator.model.lp import LpTranslator
 
-                return LpTranslator.from_lm(self)
+                return LpTranslator.from_lm(self, filepath)
 
     def equal_contents(self, other: Model) -> bool:
         return self._m.equal_contents(other._m)

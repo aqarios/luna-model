@@ -489,6 +489,7 @@ dependencies = [
  "lunamodel-error",
  "lunamodel-io",
  "lunamodel-types",
+ "lunamodel-utils",
  "pyo3",
  "regex",
  "strum_macros",

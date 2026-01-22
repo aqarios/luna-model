@@ -12,9 +12,10 @@ impl QuboTranslator {
         if !model.constraints.is_empty() {
             return Err(LunaModelError::ModelNotUnconstrained);
         }
-        // if !model.sense.is_min() {
-        //     return Err(LunaModelError::ModelSenseNotMinimize);
-        // }
+        // TODO: do we really want to return an error here forever?
+        if !model.sense.is_min() {
+            return Err(LunaModelError::ModelSenseNotMinimize);
+        }
 
         let vtypes: Vec<_> = model.vtypes().collect();
         if vtypes.len() > 1 {
@@ -34,9 +35,7 @@ impl QuboTranslator {
         dense.resize(vars.len() * vars.len(), Bias::default());
         for (vs, bias) in model.objective.items() {
             match &vs[..] {
-                [v] => {
-                    dense[v.id() as usize * (vars.len() + 1)] = bias
-                }
+                [v] => dense[v.id() as usize * (vars.len() + 1)] = bias,
                 [u, v] => {
                     dense[u.id() as usize * vars.len() + v.id() as usize] = bias * 0.5;
                     dense[v.id() as usize * vars.len() + u.id() as usize] = bias * 0.5;

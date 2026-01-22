@@ -1,5 +1,5 @@
 import pytest
-from luna_model.errors import InternalPanicError
+from luna_model.errors import TranslationError, LunaModelError
 from luna_model.translator import LpTranslator
 
 ILLEGAL_LP = """
@@ -28,11 +28,13 @@ End
 """
 
 
-def test_internal_panic():
-    with pytest.raises(InternalPanicError):
+# def test_internal_panic():
+def test_translation_err():
+    with pytest.raises(TranslationError):
         _ = LpTranslator.to_lm(ILLEGAL_LP)
 
 
-def test_internal_panic_rt_err():
-    with pytest.raises(RuntimeError):
+# def test_internal_panic_rt_err():
+def test_translation_err_le():
+    with pytest.raises(LunaModelError):
         _ = LpTranslator.to_lm(ILLEGAL_LP)

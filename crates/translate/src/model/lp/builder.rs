@@ -5,6 +5,7 @@ use lunamodel_core::{
 };
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bound, Vtype};
+use lunamodel_utils::unique;
 
 use crate::model::lp::reader::{LpConstraint, LpExpression, LpProblem};
 

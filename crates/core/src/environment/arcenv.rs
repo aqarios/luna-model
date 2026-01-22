@@ -118,34 +118,34 @@ impl ArcEnv {
 
 impl ContentEquality for ArcEnv {
     fn equal_contents(&self, other: &Self) -> bool {
-        // for v in self.vars() {
-        //     let vname = v.name().unwrap();
-        //     match other.lookup(&vname) {
-        //         Err(_) => return false,
-        //         Ok(o) => {
-        //             if v.vtype().unwrap() != o.vtype().unwrap() {
-        //                 return false;
-        //             }
-        //             if v.bounds().unwrap() != o.bounds().unwrap() {
-        //                 return false;
-        //             }
-        //         }
-        //     }
-        // }
-        // true
-        let slf = &self.env.read_arc();
-        let otr = &other.env.read_arc();
+        for v in self.vars() {
+            let vname = v.name().unwrap();
+            match other.lookup(&vname) {
+                Err(_) => return false,
+                Ok(o) => {
+                    if v.vtype().unwrap() != o.vtype().unwrap() {
+                        return false;
+                    }
+                    if v.bounds().unwrap() != o.bounds().unwrap() {
+                        return false;
+                    }
+                }
+            }
+        }
+        true
+        // let slf = &self.env.read_arc();
+        // let otr = &other.env.read_arc();
 
-        // dbg!(&slf);
-        // dbg!(&otr);
+        // // dbg!(&slf);
+        // // dbg!(&otr);
 
-        let nxt_eq = slf.next_idx == otr.next_idx;
-        // dbg!(nxt_eq);
-        let vars_eq = slf.variables == otr.variables;
-        // dbg!(vars_eq);
-        let look_eq = slf.lookup == otr.lookup;
-        // dbg!(look_eq);
+        // let nxt_eq = slf.next_idx == otr.next_idx;
+        // // dbg!(nxt_eq);
+        // let vars_eq = slf.variables == otr.variables;
+        // // dbg!(vars_eq);
+        // let look_eq = slf.lookup == otr.lookup;
+        // // dbg!(look_eq);
 
-        nxt_eq && vars_eq && look_eq
+        // nxt_eq && vars_eq && look_eq
     }
 }

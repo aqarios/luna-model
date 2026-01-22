@@ -405,7 +405,11 @@ fn parse_bounds(
     Ok(())
 }
 
-fn parse_var_list(allvars: &mut HashSet<String>, vars: &mut HashSet<String>, line: &str) {
+fn parse_var_list(
+    allvars: &mut HashSet<String>, 
+    vars: &mut HashSet<String>,
+    line: &str
+    ) {
     line.split_whitespace()
         .filter(|v| !v.is_empty())
         .map(|v| v.to_string())
