@@ -186,31 +186,24 @@ def test_scip_to_model_to_scip():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
     for cqm in cqms:
-        # We use CQM's assuming the LP file is correctly formatted for Gurobi.
+        # We use CQM's assuming the LP file is correctly formatted.
         # SETUP
         tmp_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
+        lm_lp = tempfile.NamedTemporaryFile(mode="w+", suffix=".lp")
+
         dimod_lp.dump(cqm, tmp_lp.file)  # type: ignore
         tmp_lp.flush()
         tmp_lp.seek(0)
+
         scip_model = ScipModel()
         scip_model.readProblem(tmp_lp.name)
-        # ACTUAL
-        # build cplex base model (ground truth)
+
+        lp_str = LpTranslator.from_lm(LpTranslator.to_lm(tmp_lp.file.read()))
+        assert lp_str is not None
+        lm_lp.write(lp_str)
+        lm_lp.flush()
         tmp_lp.seek(0)
-        tmp_lp.truncate()
-        scip_model.writeProblem(tmp_lp.name)
-        tmp_lp.flush()
-        tmp_lp.seek(0)
-        # build lmodel
-        tmp_lp.seek(0)
-        lmodel = LpTranslator.to_lm(tmp_lp.file.read())
-        lp_str = LpTranslator.from_lm(lmodel)
-        # write to lp file
-        tmp_lp.seek(0)
-        tmp_lp.truncate()
-        tmp_lp.write(lp_str)
-        tmp_lp.flush()
-        tmp_lp.seek(0)
+
         # build cplex model back
         scip_model_back = ScipModel()
         scip_model_back.readProblem(tmp_lp.name)

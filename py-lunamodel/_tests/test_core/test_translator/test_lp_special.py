@@ -32,8 +32,7 @@ def test_zero_variables():
     model_from_scip.name = model.name
 
     os.remove(scip_file_out)
-    print(model.equal_contents(model_from_scip))
-    assert False
+    assert model.equal_contents(model_from_scip)
     # OLD
     # model = LpTranslator.to_lm(Path(__file__).parent / "lp_string.lp")
     # model_str = LpTranslator.from_lm(model)

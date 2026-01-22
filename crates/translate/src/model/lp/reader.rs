@@ -31,7 +31,7 @@ impl Section {
             Some(Section::Constraints)
         } else if lu.starts_with("BOUNDS") || lu.starts_with("BOUND") {
             Some(Section::Bounds)
-        } else if lu.starts_with("GENERAL") || lu.starts_with("GENERALS") || lu.starts_with("GEN") {
+        } else if lu.starts_with("GENERAL") || lu.starts_with("GENERALS") || lu.starts_with("GEN") || lu.starts_with("INTEGERS") {
             Some(Section::General)
         } else if lu.starts_with("BINARY") || lu.starts_with("BINARIES") || lu.starts_with("BIN") {
             Some(Section::Binary)
@@ -58,7 +58,7 @@ pub struct LpExpression(pub Vec<Token>);
 
 #[derive(Debug)]
 pub struct LpConstraint {
-    pub(super) name: String,
+    pub(super) name: Option<String>,
     pub(super) lhs: LpExpression,
     pub(super) comparator: Comparator,
     pub(super) rhs: Bias,
@@ -84,6 +84,7 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
 
     let mut section = Section::None;
     let mut accumulated_line = String::new();
+    let mut line_cache = String::new();
     let mut obj_found = false;
     let mut obj_section_found = false;
 
@@ -110,10 +111,9 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
 
         // If we have a new section header we process the accumulated line(s).
         if let Some(next_section) = Section::try_header(&line) {
-            eprintln!(
-                "next section, content up to now = {}",
-                &accumulated_line.trim()
-            );
+            accumulated_line.push(' ');
+            accumulated_line.push_str(&line_cache);
+            line_cache = String::new();
             if !accumulated_line.trim().is_empty() {
                 match section {
                 Section::Unsupported => return Err(LunaModelError::Translation(format!("Unsupported section '{line}'").into())),
@@ -127,6 +127,7 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
                     }
                 },
                 Section::Constraints => parse_constr(&mut prob.constraints, &mut prob.vars, &accumulated_line)?,
+                
                 Section::Bounds => parse_bounds(&mut prob.bounds, &mut prob.vars, &accumulated_line)?,
                 Section::General => parse_var_list(&mut prob.vars, &mut prob.generals, &accumulated_line),
                 Section::Binary => parse_var_list(&mut prob.vars, &mut prob.binaries, &accumulated_line),
@@ -158,9 +159,24 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
                 accumulated_line.push(' ');
                 accumulated_line.push_str(line);
             }
-            Section::Constraints | Section::Bounds => {
+            Section::Constraints => {
+
+                let mut nxt = line_cache.clone();
+                nxt.push(' ');
+                nxt.push_str(line);
+
+                // is this constraint complete?
+                if is_complete_constraint(&nxt) {
+                    accumulated_line.push('\n');
+                    accumulated_line.push_str(&nxt);
+                    line_cache = String::new();
+                } else {
+                    line_cache = nxt;
+                }
+            }
+            Section::Bounds => {
                 accumulated_line.push('\n');
-                accumulated_line.push_str(line);
+                accumulated_line.push_str(&line);
             }
             Section::General | Section::Binary => {
                 accumulated_line.push(' ');
@@ -185,6 +201,24 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
     }
 
     Ok(prob)
+}
+
+fn is_complete_constraint(line: &str) -> bool {
+    if line.contains("==") {
+        line.split("==").collect::<Vec<_>>().len() == 2
+    } else if line.contains("<=") {
+        line.split("<=").collect::<Vec<_>>().len() == 2
+    } else if line.contains(">=") {
+        line.split(">=").collect::<Vec<_>>().len() == 2
+    } else if line.contains("=") {
+        line.split("=").collect::<Vec<_>>().len() == 2
+    } else if line.contains("<") {
+        line.split("<").collect::<Vec<_>>().len() == 2
+    } else if line.contains(">") {
+        line.split(">").collect::<Vec<_>>().len() == 2
+    } else {
+        false
+    }
 }
 
 fn is_comment(line: &str) -> bool {
@@ -228,12 +262,11 @@ fn parse_constr(
         }
 
         let (name, rest) = match constr.find(':') {
-            Some(pos) => (constr[..pos].trim().to_string(), constr[pos + 1..].trim()),
-            None => {
-                return Err(LunaModelError::Translation(
-                    format!("Unnamed constraint encountered: {}", constr).into(),
-                ));
-            }
+            Some(pos) => (
+                Some(constr[..pos].trim().to_string()),
+                constr[pos + 1..].trim(),
+            ),
+            None => (None, constr.trim()),
         };
 
         let (lhs, comp, rhs) = if let Some(pos) = rest.find("==") {
@@ -244,13 +277,13 @@ fn parse_constr(
             (&rest[..pos], Comparator::Ge, &rest[pos + 2..])
         } else if let Some(pos) = rest.find("=") {
             (&rest[..pos], Comparator::Eq, &rest[pos + 1..])
+        } else if let Some(pos) = rest.find("<") {
+            (&rest[..pos], Comparator::Le, &rest[pos + 1..])
+        } else if let Some(pos) = rest.find(">") {
+            (&rest[..pos], Comparator::Ge, &rest[pos + 1..])
         } else {
             return Err(LunaModelError::Translation(
-                format!(
-                    "No expected comparison operator found in constraint: {}",
-                    constr
-                )
-                .into(),
+                format!("No comparison operator found in constraint: {}", constr).into(),
             ));
         };
 

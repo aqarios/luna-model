@@ -42,10 +42,16 @@ impl PartialEq for Expression {
 impl ContentEquality for Expression {
     fn equal_contents(&self, other: &Self) -> bool {
         let eok = self.env.equal_contents(&other.env);
+        dbg!(eok);
         let ook = self.offset == other.offset;
+        dbg!(ook);
         let lok = self.linear == other.linear;
+        dbg!(&self.linear, &other.linear);
+        dbg!(lok);
         let qok = self.quadratic == other.quadratic;
+        dbg!(qok);
         let hok = self.higher_order == other.higher_order;
+        dbg!(hok);
         eok && ook && lok && qok && hok
     }
 }

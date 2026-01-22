@@ -15,8 +15,12 @@ def test_cqm_to_lm_to_cqm():
     rand = Random(make_seed())
     cqms = generate_cqms(NUM_CQMS, rand)
     for cqm in cqms:
+        print("=" * 40)
+        print(f"cqm_lp:\n{dimod_lp.dumps(cqm)}")
         cqm = dimod_lp.loads(dimod_lp.dumps(cqm))
         model = CqmTranslator.to_lm(cqm)
+        print("-" * 40)
+        print(model)
         cqm_back = CqmTranslator.from_lm(model)
         check_dimod_expr(cqm.objective, cqm_back.objective)
         for name, constr in cqm.constraints.items():

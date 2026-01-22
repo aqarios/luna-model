@@ -82,7 +82,6 @@ impl ContentEquality for Solution {
 
 impl PartialEq for Solution {
     fn eq(&self, other: &Self) -> bool {
-        // eprintln!("A");
         for (cname, vs) in self.constraints.iter() {
             if let Some(otr_vs) = other.constraints.get(cname) {
                 if vs != otr_vs {
@@ -92,8 +91,6 @@ impl PartialEq for Solution {
                 return false;
             }
         }
-
-        // eprintln!("B");
 
         for (vname, vvals) in self.variable_bounds.iter() {
             if let Some(otr_vvals) = other.variable_bounds.get(vname) {

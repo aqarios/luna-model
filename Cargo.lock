@@ -487,6 +487,7 @@ dependencies = [
  "indexmap",
  "lunamodel-core",
  "lunamodel-error",
+ "lunamodel-io",
  "lunamodel-types",
  "pyo3",
  "regex",
