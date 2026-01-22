@@ -41,7 +41,9 @@ impl PartialEq for Expression {
 
 impl ContentEquality for Expression {
     fn equal_contents(&self, other: &Self) -> bool {
-        let eok = self.env.equal_contents(&other.env);
+        if !self.env.equal_contents(&other.env) {
+            return false;
+        }
         // dbg!(eok);
         // let ook = self.offset == other.offset;
         // dbg!(ook);
