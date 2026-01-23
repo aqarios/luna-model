@@ -31,6 +31,18 @@ classifiers = [
   "Topic :: Scientific/Engineering",
 ]
 
+[project.optional-dependencies]
+dimod = [
+    "dimod>=0.12.21",
+]
+qiskit = [
+    "qiskit-optimization>=0.6.1; python_version < '3.14'",
+    "qiskit>=2.1.2; python_version < '3.14'",
+]
+scip = [
+    "pyscipopt>=6.0.0",
+]
+
 [project.urls]
 Homepage = "https://aqarios.com"
 Documentation = "https://docs.aqarios.com"
