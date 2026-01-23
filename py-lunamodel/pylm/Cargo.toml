@@ -10,3 +10,4 @@ repository.workspace = true
 [dependencies]
 pyo3 = { workspace = true }
 lunamodel-python = { workspace = true }
+lunamodel-transform = { workspace = true, features = ["py"] }

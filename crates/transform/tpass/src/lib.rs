@@ -341,8 +341,8 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
         }
 
         // #[cfg(feature = "transformations")]
-        pub fn register_transformations(pm: &Bound<'_, PyModule>) -> PyResult<()> {
-            let m = PyModule::new(pm.py(), "transformations")?;
+        pub fn register_transformations(m: &Bound<'_, PyModule>) -> PyResult<()> {
+            // let m = PyModule::new(pm.py(), "transformations")?;
 
             // user-specified specials
             #(#reg_specials)*
@@ -353,12 +353,12 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
             // normal passes
             #(#reg_passes)*
 
-            pm.add_submodule(&m)?;
-            #[cfg(feature = "py")]
-            pm.py()
-              .import("sys")?
-              .getattr("modules")?
-              .set_item("luna_model.transformations", m)?;
+            // pm.add_submodule(&m)?;
+            // #[cfg(feature = "py")]
+            // pm.py()
+            //   .import("sys")?
+            //   .getattr("modules")?
+            //   .set_item("luna_model.transformations", m)?;
             Ok(())
         }
     };

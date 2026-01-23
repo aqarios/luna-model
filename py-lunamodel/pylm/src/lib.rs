@@ -1,5 +1,6 @@
 use lunamodel_python::translate::model::*;
 pub use lunamodel_python::*;
+pub use lunamodel_transform::py::*;
 use pyo3::{PyTypeInfo, prelude::*};
 
 #[pymodule]
@@ -44,6 +45,9 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyBqmTranslator>()?;
     m.add_class::<PyQuboTranslator>()?;
     m.add_class::<PyQubo>()?;
+
+    // Transformations
+    register_transformations(m)?;
 
     // Errors
     m.add(
@@ -162,6 +166,30 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add(
         PyNoConstraintForKeyError::NAME,
         m.py().get_type::<PyNoConstraintForKeyError>(),
+    )?;
+    m.add(
+        PyTransformationError::NAME,
+        m.py().get_type::<PyTransformationError>(),
+    )?;
+    m.add(
+        PyTransformationPassError::NAME,
+        m.py().get_type::<PyTransformationPassError>(),
+    )?;
+    m.add(
+        PyAnalysisPassError::NAME,
+        m.py().get_type::<PyAnalysisPassError>(),
+    )?;
+    m.add(
+        PyIfElsePassError::NAME,
+        m.py().get_type::<PyIfElsePassError>(),
+    )?;
+    m.add(
+        PyMetaAnalysisPassError::NAME,
+        m.py().get_type::<PyMetaAnalysisPassError>(),
+    )?;
+    m.add(
+        PyCompilationError::NAME,
+        m.py().get_type::<PyCompilationError>(),
     )?;
     Ok(())
 }

@@ -1,0 +1,81 @@
+from luna_model._lm import PyPassManager
+
+from luna_model.model.model import Model
+from luna_model.solution.sol import Solution
+
+from luna_model.transformation.base import BasePass
+from luna_model.transformation.transformation import TransformationPass
+from luna_model.transformation.analysis import AnalysisPass
+from luna_model.transformation.ir import IR
+
+
+class PassManager:
+    _pm: PyPassManager
+
+    """Manage and execute a sequence of passes on a model.
+
+    The PassManager implements a compiler-style pass pattern, enabling both
+    general-purpose and algorithm-specific manipulations of optimization
+    models. Each pass is an atomic operation (for example, ChangeSensePass)
+    that transforms the model or its intermediate representation (IR). The
+    PassManager runs each pass in order and produces a rich IR that records
+    the transformations applied and supports back-transformations.
+    """
+
+    def __init__(
+        self,
+        passes: list[BasePass | TransformationPass | AnalysisPass] | None = None,
+    ) -> None:
+        """Manage and execute a sequence of passes on a model.
+
+        The PassManager implements a compiler-style pass pattern, enabling both
+        general-purpose and algorithm-specific manipulations of optimization
+        models. Each pass is an atomic operation (for example, ChangeSensePass)
+        that transforms the model or its intermediate representation (IR). The
+        PassManager runs each pass in order and produces a rich IR that records
+        the transformations applied and supports back-transformations.
+
+        Parameters
+        ----------
+        passes : list[TransformationPass | AnalysisPass] | None
+            An ordered sequence of Pass instances to apply. Each Pass must conform to
+            the `TransformationPass` or `AnalysisPass` interface, default None.
+        """
+        self._pm = PyPassManager(passes)
+
+    def run(self, model: Model) -> IR:
+        """Apply all configures passes.
+
+        Apply all configured passes to the given model and return the
+        resulting intermediate representation.
+
+        Parameters
+        ----------
+        model : Model
+            The model to be transformed.
+
+        Returns
+        -------
+        IR
+            The intermediate representation of the model after transformation.
+        """
+        return IR._from_pyir(self._pm.run(model._m))
+
+    def backwards(self, solution: Solution, ir: IR) -> Solution:
+        """Apply the back transformation to the given solution.
+
+        Parameters
+        ----------
+        solution : Solution
+            The solution to transform back to a representation fitting the original
+            (input) model of this `PassManager`.
+        ir : IR
+            The intermediate representation (IR) resulted from the `run` call.
+
+        Returns
+        -------
+        Solution
+            A solution object representing a solution to the original problem passed
+            to this `PassManager`'s run method.
+        """
+        return Solution._from_pys(self._pm.backwards(solution._s, ir._ir))

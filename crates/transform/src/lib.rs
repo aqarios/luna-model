@@ -9,7 +9,7 @@ mod pass_manager;
 mod passes;
 
 #[cfg(feature = "py")]
-mod py;
+pub mod py;
 
 // use lunamodel_tpass::register_pytransformations;
 

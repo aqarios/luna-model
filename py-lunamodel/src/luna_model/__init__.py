@@ -6,6 +6,7 @@ LunaModel is a fast library for optimization model creation, manipulation and tr
 """
 
 from luna_model import translator
+from luna_model import transformation
 
 from luna_model.environment import Environment
 from luna_model.expression import (
@@ -91,4 +92,5 @@ __all__ = [
     "utils",
     "errors",
     "quicksum",
+    "transformation",
 ]
