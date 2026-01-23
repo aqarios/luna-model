@@ -1,10 +1,10 @@
 use lunamodel_core::{Expression, ops::LmAddAssign, prelude::LazyBounds};
 use lunamodel_types::{Sense, Vtype};
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyModel;
-use crate::{PyConstraint, PyExpression, PyVariable, bounds::BoundValue, unwind::unwind};
+use crate::{PyConstraint, PyExpression, PyVariable, bounds::BoundValue};
 
 #[unwindable]
 #[pymethods]

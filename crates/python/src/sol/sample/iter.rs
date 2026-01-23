@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use lunamodel_core::Solution;
 use lunamodel_core::solution::Assignment;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::{
     FromPyObject, IntoPyObjectExt, Py, PyAny, PyErr, PyRef, PyRefMut, PyResult, Python, pyclass,
@@ -11,7 +11,6 @@ use pyo3::{
 use super::view::PySampleView;
 use crate::sol::PySolution;
 use crate::sol::sample::view::PySampleIndex;
-use crate::unwind::unwind;
 
 pub enum PySamplesIndex {
     Sample(usize),

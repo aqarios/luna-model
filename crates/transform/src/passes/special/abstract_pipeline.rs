@@ -1,0 +1,26 @@
+use std::collections::HashSet;
+
+use dyn_clone::DynClone;
+use lunamodel_core::{Model, Solution};
+
+use crate::{
+    base::{BasePass, Pass},
+    cache::AnalysisCache,
+    ir::IR,
+    log::ExecutionLog,
+    pass_manager::PassManager,
+};
+
+use super::pipeline::PipelineResult;
+
+pub trait AbstractPipeline: BasePass + DynClone {
+    fn run(&self, model: Model, cache: &AnalysisCache, executor: &PassManager) -> PipelineResult;
+    fn backwards(&self, solution: Solution, ir: &IR, log: &ExecutionLog) -> Solution;
+    fn clear(&mut self);
+    fn add(&mut self, pass: Pass);
+    fn satisfies(&self) -> HashSet<String>;
+    fn content_string(&self) -> String;
+    fn len(&self) -> usize;
+    fn passes(&self) -> Vec<Pass>;
+}
+dyn_clone::clone_trait_object!(AbstractPipeline);

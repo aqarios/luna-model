@@ -1,10 +1,9 @@
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{IntoPyObjectExt, prelude::*};
 
 use super::{PyExpression, content::PyExprContent as PyEC};
-use crate::unwind::unwind;
 use crate::variable::PyVariable;
 
 #[pyclass(subclass)]

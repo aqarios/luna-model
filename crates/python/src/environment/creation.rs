@@ -1,8 +1,8 @@
 use lunamodel_core::prelude::Environment;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{Bound, PyResult, pymethods, types::PyType};
 
-use crate::{PyEnvironment, environment::get_active_env, unwind::unwind};
+use crate::{PyEnvironment, environment::get_active_env};
 
 #[unwindable]
 #[pymethods]

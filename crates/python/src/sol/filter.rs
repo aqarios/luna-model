@@ -1,13 +1,12 @@
 use lunamodel_core::Solution;
 use lunamodel_error::LunaModelError;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::exceptions::PyTypeError;
 use pyo3::types::PyAnyMethods;
 use pyo3::{Bound, PyAny, PyResult, pymethods};
 
 use super::PySolution;
 use crate::sol::result::PyResultView;
-use crate::unwind::unwind;
 
 #[unwindable]
 #[pymethods]

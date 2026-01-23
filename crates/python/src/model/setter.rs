@@ -1,9 +1,9 @@
 use lunamodel_types::Sense;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::pymethods;
 
 use super::PyModel;
-use crate::{PyConstraintCollection, PyExpression, unwind::unwind};
+use crate::{PyConstraintCollection, PyExpression};
 
 #[unwindable]
 #[pymethods]

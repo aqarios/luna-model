@@ -1,10 +1,9 @@
 use lunamodel_core::prelude::LazyBounds;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::pymethods;
 
 use super::PyBounds;
 use crate::bounds::unbounded::BoundValue;
-use crate::unwind::unwind;
 
 #[unwindable]
 #[pymethods]

@@ -303,8 +303,8 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
     // --- Emit everything
     let expanded = quote! {
         use pyo3::prelude::*;
-        use crate::transformations::base_passes::BasePass;
-        use crate::transformations::passes::{#(#import_passes)*};
+        use crate::base::{BasePass, Pass};
+        use crate::passes::{#(#import_passes)*};
 
 
         #[allow(dead_code)]
@@ -340,7 +340,7 @@ pub fn register_pytransformations(input: TokenStream) -> TokenStream {
             }
         }
 
-        #[cfg(feature = "transformations")]
+        // #[cfg(feature = "transformations")]
         pub fn register_transformations(pm: &Bound<'_, PyModule>) -> PyResult<()> {
             let m = PyModule::new(pm.py(), "transformations")?;
 

@@ -1,9 +1,9 @@
 use lunamodel_types::Comparator;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyConstraintCollection;
-use crate::{PyConstraint, constraint::coll::iter::PyConstraintCollectionIterator, unwind::unwind};
+use crate::{PyConstraint, constraint::coll::iter::PyConstraintCollectionIterator};
 
 #[unwindable]
 #[pymethods]

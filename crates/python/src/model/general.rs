@@ -2,14 +2,13 @@ use std::ops::Mul;
 
 use lunamodel_core::{Expression, prelude::ContentEquality, solution::sample::SampleView};
 use lunamodel_error::LunaModelResult;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{FromPyObject, PyResult, pymethods};
 
 use super::PyModel;
 use crate::{
     PyConstraintCollection, PyExpression, PySolution, PyVariable,
     sol::{result::PyResultView, sample::PySampleView},
-    unwind::unwind,
 };
 
 #[derive(FromPyObject)]

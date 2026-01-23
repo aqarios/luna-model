@@ -1,10 +1,9 @@
 use lunamodel_core::ValueSource;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PySolution;
 use crate::sol::result::PyResultView;
-use crate::unwind::unwind;
 
 #[unwindable]
 #[pymethods]

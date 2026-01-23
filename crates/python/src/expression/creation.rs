@@ -1,8 +1,8 @@
 use lunamodel_core::{Expression, ops::LmAddAssign};
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::prelude::*;
 
-use crate::{PyEnvironment, PyExpression, unwind::unwind};
+use crate::{PyEnvironment, PyExpression};
 
 #[unwindable]
 #[pymethods]

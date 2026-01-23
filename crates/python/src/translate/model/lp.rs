@@ -6,11 +6,10 @@ use std::{
 
 use lunamodel_error::LunaModelResult;
 use lunamodel_translate::model::LpTranslator;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{FromPyObject, PyResult, pyclass, pymethods};
 
 use crate::PyModel;
-use crate::unwind::unwind;
 
 #[derive(FromPyObject)]
 enum PyLpTranslatorToLmInput {

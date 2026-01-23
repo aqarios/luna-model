@@ -1,11 +1,10 @@
 use lunamodel_translate::model::{Qubo, QuboTranslator};
 use lunamodel_types::Vtype;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::{Bound, FromPyObject, PyResult, Python, pyclass, pymethods};
 
 use crate::PyModel;
-use crate::unwind::unwind;
 
 #[derive(FromPyObject)]
 enum QuboType<'py> {

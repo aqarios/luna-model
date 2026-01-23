@@ -4,7 +4,7 @@ use lunamodel_core::solution::{Assignment, Column};
 use lunamodel_core::{ArcEnv, Solution};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Sense, Vtype};
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use numpy::ndarray::Axis;
 use numpy::{PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::exceptions::PyValueError;
@@ -13,7 +13,6 @@ use pyo3::{PyResult, pymethods};
 use super::PySolution;
 use super::utils::VarKey;
 use crate::timer::PyTiming;
-use crate::unwind::unwind;
 use crate::utils::retrieve_environment;
 use crate::{PyEnvironment, PyModel};
 

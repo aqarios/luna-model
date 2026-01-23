@@ -9,7 +9,6 @@ mod timer;
 pub mod translate;
 mod utilities;
 mod utils;
-mod unwind;
 mod variable;
 
 mod ffi;
@@ -26,7 +25,7 @@ pub use expression::{
 pub use model::PyModel;
 pub use sol::PySolution;
 pub use specs::PyModelSpecs;
-pub use timer::PyTimer;
+pub use timer::{PyTimer, PyTiming};
 pub use variable::PyVariable;
 
 pub use lunamodel_core::ValueSource;

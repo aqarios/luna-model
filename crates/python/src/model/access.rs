@@ -1,10 +1,9 @@
 use lunamodel_hashing::hash_model;
 use lunamodel_types::{Sense, Vtype};
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyModel;
-use crate::unwind::unwind;
 use crate::{PyConstraintCollection, PyEnvironment, PyExpression, PyVariable};
 
 #[unwindable]

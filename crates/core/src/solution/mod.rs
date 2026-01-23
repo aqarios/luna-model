@@ -9,9 +9,9 @@ pub mod result;
 pub mod sample;
 mod samples;
 mod src;
-mod timing;
+pub mod timing;
 
-pub use col::{Assignment, Column};
+pub use col::{Assignment, ColElement, Column};
 use hashbrown::HashMap;
 use indexmap::IndexMap;
 use lunamodel_types::Sense;

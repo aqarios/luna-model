@@ -1,5 +1,5 @@
 use lunamodel_types::Sense;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::{Bound, Python, pymethods};
 
@@ -7,7 +7,6 @@ use super::PySolution;
 use super::result::PyResultIterator;
 use super::sample::PySamplesIterator;
 use crate::timer::PyTiming;
-use crate::unwind::unwind;
 
 #[unwindable]
 #[pymethods]

@@ -1,9 +1,8 @@
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{FromPyObject, PyResult, pymethods};
 
 use super::PyConstraintCollection;
 use crate::PyConstraint;
-use crate::unwind::unwind;
 
 #[derive(FromPyObject)]
 enum Other {

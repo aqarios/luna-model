@@ -1,12 +1,11 @@
 use lunamodel_error::py::PyLunaModelError;
 use lunamodel_types::Comparator as Cmp;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyVariable;
 use crate::{
     constraint::PyConstraint,
-    unwind::unwind,
     utils::{OpsOther as OO, OtherOrTuple},
 };
 

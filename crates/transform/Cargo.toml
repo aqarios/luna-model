@@ -8,3 +8,30 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
+lunamodel-core = { workspace = true }
+lunamodel-types = { workspace = true }
+lunamodel-error = { workspace = true }
+lunamodel-tpass = { workspace = true }
+lunamodel-python = { workspace = true }
+
+indexmap = { workspace = true }
+dyn-clone = { workspace = true }
+pad = { workspace = true }
+global_counter = { workspace = true }
+derive_more = { workspace = true }
+num = { workspace = true }
+sqids = { workspace = true }
+parking_lot = { workspace = true }
+
+[dependencies.pyo3]
+workspace = true
+optional = true
+
+[dependencies.lunamodel-unwind]
+workspace = true
+optional = true
+
+[features]
+default = ["py"]
+py = ["lunamodel-tpass/py", "pyo3", "lunamodel-unwind"]
+

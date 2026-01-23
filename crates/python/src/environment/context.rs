@@ -1,10 +1,9 @@
 use pyo3::{Bound, PyAny, PyResult, pymethods};
 
 use lunamodel_error::py::PyMultipleActiveEnvironmentsError;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 
 use super::{ACTIVE_ENV, PyEnvironment};
-use crate::unwind::unwind;
 
 #[unwindable]
 #[pymethods]

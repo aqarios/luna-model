@@ -1,12 +1,11 @@
 use std::collections::HashMap;
 
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use lunamodel_core::solution::result::ResultView;
 use pyo3::{pyclass, pymethods};
 
 use super::super::sample::PySampleView;
 use crate::sol::PySolution;
-use crate::unwind::unwind;
 
 #[pyclass]
 #[derive(Debug)]

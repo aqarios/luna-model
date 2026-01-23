@@ -1,10 +1,9 @@
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use numpy::{PyArray1, PyArrayMethods};
 use pyo3::{Bound, PyResult, pymethods};
 
 use super::PySolution;
 use crate::timer::PyTiming;
-use crate::unwind::unwind;
 
 #[unwindable]
 #[pymethods]

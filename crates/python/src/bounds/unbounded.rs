@@ -1,12 +1,11 @@
 use lunamodel_error::py::PyLunaModelError;
 use lunamodel_types::Bound;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{
     FromPyObject, IntoPyObject, IntoPyObjectExt, PyAny, PyErr, PyResult, PyTypeInfo, Python,
     pyclass, pymethods, types::PyAnyMethods,
 };
 
-use crate::unwind::unwind;
 
 #[pyclass(subclass)]
 #[derive(Debug, Clone, Copy)]

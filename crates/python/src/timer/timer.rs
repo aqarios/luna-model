@@ -1,10 +1,9 @@
 use pyo3::pymethods;
 
 use lunamodel_core::Timer;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 
 use super::{PyTimer, PyTiming};
-use crate::unwind::unwind;
 
 #[unwindable]
 #[pymethods]

@@ -2,12 +2,11 @@ use hashbrown::HashMap;
 use lunamodel_core::{Model, ops::LmAddAssign};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Sense, Vtype};
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use numpy::PyReadonlyArray1;
 use pyo3::{PyResult, pyclass, pymethods};
 
 use crate::PyModel;
-use crate::unwind::unwind;
 
 #[pyclass]
 pub struct PyBqmTranslator;

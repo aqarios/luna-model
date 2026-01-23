@@ -5,13 +5,12 @@ use lunamodel_core::solution::{
     Assignment,
     sample::{SampleView, SampleViewIdx},
 };
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{FromPyObject, IntoPyObjectExt, Py, PyAny, PyResult, Python, pyclass, pymethods};
 
 use crate::{
     PyVariable,
     sol::{PySolution, sample::iter::PySampleIterator},
-    unwind::unwind,
 };
 
 #[pyclass]

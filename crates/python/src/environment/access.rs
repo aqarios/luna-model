@@ -1,9 +1,8 @@
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyEnvironment;
 use crate::PyVariable;
-use crate::unwind::unwind;
 
 #[unwindable]
 #[pymethods]

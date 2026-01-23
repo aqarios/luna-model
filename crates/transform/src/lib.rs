@@ -1,14 +1,23 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod unicode;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+mod base;
+mod cache;
+mod execution;
+mod ir;
+mod log;
+mod pass_manager;
+mod passes;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+#[cfg(feature = "py")]
+mod py;
+
+// use lunamodel_tpass::register_pytransformations;
+
+// #[cfg(feature = "py")]
+// register_pytransformations!(
+//     specials = {PyAnalysisPass, PyTransformationPass, PyPipeline, PyMetaAnalysisPass},
+//     extras = {PyAnalysisCache, PyPassManager, ActionType, MaxBias, PyIR, PyLogElement, BinarySpinInfo, StructuredPyTransformationOutcome, PyBasePass},
+//     passes = {
+//         PyChangeSensePass, PyMaxBiasAnalysis, PyBinarySpinPass, PyIfElsePass
+//     },
+// );

@@ -1,13 +1,12 @@
 use lunamodel_core::Solution;
 use lunamodel_serializer::prelude::*;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{
     Bound, Py, PyAny, PyResult, Python, pymethods,
     types::{PyBytes, PyType},
 };
 
 use super::PySolution;
-use crate::unwind::unwind;
 
 #[unwindable]
 #[pymethods]

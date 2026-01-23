@@ -1,10 +1,9 @@
 use lunamodel_error::py::PyLunaModelError;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::prelude::*;
 use std::ops::Neg;
 
 use crate::PyExpression;
-use crate::unwind::unwind;
 use crate::utils::{OpsOther as OO, as_usize};
 
 #[unwindable]

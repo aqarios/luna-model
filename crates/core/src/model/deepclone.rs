@@ -8,7 +8,7 @@ impl Model {
     /// but a new SharedEnvironment object with a deep cloned environment having a new
     /// environment id that is guaranteed to be different from all other possibly
     /// exisiting environments.
-    fn deep_clone(&self) -> Self {
+    pub fn deep_clone(&self) -> Self {
         let new_env = self.environment.deep_clone();
         Self {
             name: self.name.clone(),

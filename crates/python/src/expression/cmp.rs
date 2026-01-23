@@ -1,12 +1,11 @@
 use lunamodel_core::prelude::ContentEquality;
 use lunamodel_types::Comparator as Cmp;
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyExpression;
 use crate::{
     PyConstraint,
-    unwind::unwind,
     utils::{OpsOther as OO, OtherOrTuple},
 };
 

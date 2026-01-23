@@ -71,6 +71,11 @@ pub enum LunaModelError {
     SampleUnexpectedVariable(ErrString),
     SampleIncompatibleVtype,
     VariableNames(ErrString),
+    TransformationPass(String, ErrString),
+    AnalysisPass(String, ErrString),
+    IfElsePass(ErrString),
+    MetaAnalysisPass(String, ErrString),
+    Compilation(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -110,6 +115,15 @@ impl Display for LunaModelError {
                 write!(f, "sample contains incompatible variable assignments")
             }
             VariableNames(msg) => write!(f, "{}", msg),
+            TransformationPass(name, msg) => {
+                write!(f, "error in Transformation pass '{}': {}", name, msg)
+            }
+            AnalysisPass(name, msg) => {
+                write!(f, "error in Analysis pass '{}': {}", name, msg)
+            }
+            IfElsePass(msg) => write!(f, "error in IfElse pass: {}", msg),
+            MetaAnalysisPass(name, msg) => write!(f, "error in MetaAnalysis pass '{}': {}", name, msg),
+            Compilation(msg) => write!(f, "compilation error: {}", msg),
         }
     }
 }

@@ -1,4 +1,4 @@
-use lunamodel_unwind::unwindable;
+use lunamodel_unwind::*;
 use pyo3::{
     Py, PyAny, PyRef, PyResult, Python,
     exceptions::{PyIndexError, PyTypeError, PyValueError},
@@ -8,7 +8,6 @@ use pyo3::{
 use super::PySolution;
 use crate::{
     sol::result::{PyResultIterator, PyResultView},
-    unwind::unwind,
 };
 
 #[unwindable]

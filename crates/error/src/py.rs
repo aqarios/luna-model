@@ -273,6 +273,48 @@ create_exception!(
     "Raised getting a constraint from the constraints that does not exist."
 );
 
+create_exception!(
+    builtins.errors,
+    PyTransformationError,
+    PyLunaModelError,
+    "Raised when an error occured during a transformation."
+);
+
+create_exception!(
+    builtins.errors,
+    PyTransformationPassError,
+    PyTransformationError,
+    "Raised when an error occured during execution of a transformation pass."
+);
+
+create_exception!(
+    builtins.errors,
+    PyAnalysisPassError,
+    PyTransformationError,
+    "Raised when an error occured during execution of an analysis pass."
+);
+
+create_exception!(
+    builtins.errors,
+    PyIfElsePassError,
+    PyTransformationError,
+    "Raised when an error occured during execution of an analysis pass."
+);
+
+create_exception!(
+    builtins.errors,
+    PyMetaAnalysisPassError,
+    PyTransformationError,
+    "Raised when an error occured during execution of a meta analysis pass."
+);
+
+create_exception!(
+    builtins.errors,
+    PyCompilationError,
+    PyTransformationError,
+    "Raised when an error occured during compilation."
+);
+
 impl From<Lme> for PyErr {
     fn from(lme: Lme) -> Self {
         let err = match lme {
@@ -302,6 +344,11 @@ impl From<Lme> for PyErr {
             Lme::SampleUnexpectedVariable(_) => PySampleUnexpectedVariableError::new_err,
             Lme::SampleIncompatibleVtype => PySampleIncompatibleVtypeError::new_err,
             Lme::VariableNames(_) => PyVariableNamesError::new_err,
+            Lme::TransformationPass(_, _) => PyTransformationPassError::new_err,
+            Lme::AnalysisPass(_, _) => PyAnalysisPassError::new_err,
+            Lme::IfElsePass(_) => PyIfElsePassError::new_err,
+            Lme::MetaAnalysisPass(_, _) => PyMetaAnalysisPassError::new_err,
+            Lme::Compilation(_) => PyCompilationError::new_err,
         };
         err(lme.to_string())
     }
