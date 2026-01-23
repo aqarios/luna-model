@@ -675,6 +675,18 @@ dependencies = [
     { name = "numpy" },
 ]
 
+[package.optional-dependencies]
+dimod = [
+    { name = "dimod" },
+]
+qiskit = [
+    { name = "qiskit", marker = "python_full_version < '3.14'" },
+    { name = "qiskit-optimization", marker = "python_full_version < '3.14'" },
+]
+scip = [
+    { name = "pyscipopt" },
+]
+
 [package.dev-dependencies]
 dev = [
     { name = "dimod" },
@@ -693,7 +705,14 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "numpy", specifier = ">=1.0.0" }]
+requires-dist = [
+    { name = "dimod", marker = "extra == 'dimod'", specifier = ">=0.12.21" },
+    { name = "numpy", specifier = ">=1.0.0" },
+    { name = "pyscipopt", marker = "extra == 'scip'", specifier = ">=6.0.0" },
+    { name = "qiskit", marker = "python_full_version < '3.14' and extra == 'qiskit'", specifier = ">=2.1.2" },
+    { name = "qiskit-optimization", marker = "python_full_version < '3.14' and extra == 'qiskit'", specifier = ">=0.6.1" },
+]
+provides-extras = ["dimod", "qiskit", "scip"]
 
 [package.metadata.requires-dev]
 dev = [

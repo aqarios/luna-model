@@ -1,6 +1,6 @@
 use pyo3::Python;
 
-use crate::cache::{PyAnalysisCache, AnalysisCacheElement};
+use crate::cache::{AnalysisCacheElement, PyAnalysisCache};
 
 impl PyAnalysisCache {
     pub fn _repr(&self, py: Python) -> String {
