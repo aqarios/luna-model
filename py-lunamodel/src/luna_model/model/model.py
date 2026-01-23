@@ -26,6 +26,9 @@ if TYPE_CHECKING:
 
 
 class Model:
+    """
+    This is a test doc string.
+    """
     _m: PyModel
 
     def __init__(
