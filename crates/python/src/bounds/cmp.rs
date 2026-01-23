@@ -1,10 +1,12 @@
 use lunamodel_types::Bound;
+use lunamodel_unwind::unwindable;
 use pyo3::pymethods;
 
-use crate::bounds::BoundsContent;
-
 use super::PyBounds;
+use crate::bounds::BoundsContent;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyBounds {
     fn __eq__(&self, other: &Self) -> bool {

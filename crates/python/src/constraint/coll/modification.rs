@@ -1,8 +1,9 @@
+use lunamodel_unwind::unwindable;
 use pyo3::{FromPyObject, PyResult, pymethods};
 
-use crate::PyConstraint;
-
 use super::PyConstraintCollection;
+use crate::PyConstraint;
+use crate::unwind::unwind;
 
 #[derive(FromPyObject)]
 enum Other {
@@ -10,6 +11,7 @@ enum Other {
     Tuple((PyConstraint, String)),
 }
 
+#[unwindable]
 #[pymethods]
 impl PyConstraintCollection {
     /// In-place constraint addition using `+=`.

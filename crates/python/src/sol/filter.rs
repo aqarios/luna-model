@@ -1,13 +1,15 @@
 use lunamodel_core::Solution;
 use lunamodel_error::LunaModelError;
+use lunamodel_unwind::unwindable;
 use pyo3::exceptions::PyTypeError;
 use pyo3::types::PyAnyMethods;
 use pyo3::{Bound, PyAny, PyResult, pymethods};
 
-use crate::sol::result::PyResultView;
-
 use super::PySolution;
+use crate::sol::result::PyResultView;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PySolution {
     pub fn filter<'py>(&self, f: Bound<'py, PyAny>) -> PyResult<PySolution> {

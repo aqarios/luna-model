@@ -1,8 +1,12 @@
-use super::PySolution;
-use super::utils::VarKey;
 use lunamodel_types::Vtype;
+use lunamodel_unwind::unwindable;
 use pyo3::{PyResult, pymethods};
 
+use super::PySolution;
+use super::utils::VarKey;
+use crate::unwind::unwind;
+
+#[unwindable]
 #[pymethods]
 impl PySolution {
     fn add_var(&mut self, var: VarKey, data: Vec<f64>, vtype: Option<Vtype>) -> PyResult<()> {

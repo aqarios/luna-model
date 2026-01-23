@@ -1,8 +1,11 @@
 use lunamodel_core::Expression;
+use lunamodel_unwind::unwindable;
 use pyo3::pymethods;
 
 use super::PyExpression;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyExpression {
     #[staticmethod]

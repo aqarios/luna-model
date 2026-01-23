@@ -1,13 +1,14 @@
 use lunamodel_core::{ArcEnv, Environment};
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Unversionizable};
+use lunamodel_unwind::unwindable;
 use pyo3::{
     Bound, FromPyObject, Py, PyAny, PyResult, Python, pymethods,
     types::{PyBytes, PyType},
 };
 
-use crate::PyEnvironment;
-
 use super::PyConstraintCollection;
+use crate::PyEnvironment;
+use crate::unwind::unwind;
 
 #[derive(FromPyObject)]
 enum DecodeEnvData {
@@ -15,6 +16,7 @@ enum DecodeEnvData {
     Bytes(Py<PyBytes>),
 }
 
+#[unwindable]
 #[pymethods]
 impl PyConstraintCollection {
     /// Serialize the constraint collection to a binary blob.

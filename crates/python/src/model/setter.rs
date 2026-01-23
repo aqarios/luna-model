@@ -1,9 +1,11 @@
 use lunamodel_types::Sense;
+use lunamodel_unwind::unwindable;
 use pyo3::pymethods;
 
 use super::PyModel;
-use crate::{PyConstraintCollection, PyExpression};
+use crate::{PyConstraintCollection, PyExpression, unwind::unwind};
 
+#[unwindable]
 #[pymethods]
 impl PyModel {
     #[setter]
@@ -28,6 +30,6 @@ impl PyModel {
 
     #[pyo3(name = "set_sense")]
     fn set_sense_py(&mut self, sense: Sense) {
-        self.set_sense(sense);
+        self.m.write_arc().sense = sense;
     }
 }

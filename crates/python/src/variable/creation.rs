@@ -1,9 +1,12 @@
 use lunamodel_types::Vtype;
+use lunamodel_unwind::unwindable;
 use pyo3::prelude::*;
 
 use super::PyVariable;
 use crate::{bounds::PyBounds, environment::PyEnvironment};
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyVariable {
     #[new]

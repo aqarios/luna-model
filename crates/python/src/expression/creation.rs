@@ -1,11 +1,10 @@
 use lunamodel_core::{Expression, ops::LmAddAssign};
+use lunamodel_unwind::unwindable;
 use pyo3::prelude::*;
 
-use crate::{
-    PyEnvironment,
-    PyExpression,
-};
+use crate::{PyEnvironment, PyExpression, unwind::unwind};
 
+#[unwindable]
 #[pymethods]
 impl PyExpression {
     /// Create a new empty expression scoped to an environment.

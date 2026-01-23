@@ -1,9 +1,12 @@
 use lunamodel_types::{Bias, Comparator};
+use lunamodel_unwind::unwindable;
 use pyo3::pymethods;
 
 use super::PyConstraint;
 use crate::expression::PyExpression;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyConstraint {
     #[getter]

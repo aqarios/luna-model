@@ -2,14 +2,15 @@ use std::ops::Mul;
 
 use lunamodel_core::{Expression, prelude::ContentEquality, solution::sample::SampleView};
 use lunamodel_error::LunaModelResult;
+use lunamodel_unwind::unwindable;
 use pyo3::{FromPyObject, PyResult, pymethods};
 
+use super::PyModel;
 use crate::{
     PyConstraintCollection, PyExpression, PySolution, PyVariable,
     sol::{result::PyResultView, sample::PySampleView},
+    unwind::unwind,
 };
-
-use super::PyModel;
 
 #[derive(FromPyObject)]
 enum Replacement {
@@ -26,6 +27,7 @@ impl Replacement {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyModel {
     fn substitute(&mut self, target: &PyVariable, replacement: Replacement) -> PyResult<()> {

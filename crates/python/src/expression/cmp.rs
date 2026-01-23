@@ -1,14 +1,16 @@
 use lunamodel_core::prelude::ContentEquality;
 use lunamodel_types::Comparator as Cmp;
+use lunamodel_unwind::unwindable;
 use pyo3::{PyResult, pymethods};
 
+use super::PyExpression;
 use crate::{
     PyConstraint,
+    unwind::unwind,
     utils::{OpsOther as OO, OtherOrTuple},
 };
 
-use super::PyExpression;
-
+#[unwindable]
 #[pymethods]
 impl PyExpression {
     fn __eq__(&self, other: OtherOrTuple) -> PyResult<PyConstraint> {

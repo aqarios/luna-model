@@ -1,10 +1,12 @@
+use lunamodel_unwind::unwindable;
 use numpy::{PyArray1, PyArrayMethods};
 use pyo3::{Bound, PyResult, pymethods};
 
-use crate::timer::PyTiming;
-
 use super::PySolution;
+use crate::timer::PyTiming;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PySolution {
     // The getter is defined here [super::access::PySolution::get_obj_values]

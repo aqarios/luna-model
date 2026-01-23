@@ -1,13 +1,16 @@
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
+use lunamodel_unwind::unwindable;
 use pyo3::{IntoPyObjectExt, prelude::*};
 
 use super::{PyExpression, content::PyExprContent as PyEC};
+use crate::unwind::unwind;
 use crate::variable::PyVariable;
 
 #[pyclass(subclass)]
 pub struct PyConstant();
 
+#[unwindable]
 #[pymethods]
 impl PyConstant {
     fn __str__(&self) -> String {
@@ -18,6 +21,7 @@ impl PyConstant {
 #[pyclass(subclass)]
 pub struct PyLinear(pub PyVariable);
 
+#[unwindable]
 #[pymethods]
 impl PyLinear {
     #[getter]
@@ -38,6 +42,7 @@ impl PyLinear {
 #[pyclass(subclass)]
 pub struct PyQuadratic(pub (PyVariable, PyVariable));
 
+#[unwindable]
 #[pymethods]
 impl PyQuadratic {
     #[getter]
@@ -62,6 +67,7 @@ impl PyQuadratic {
 #[pyclass(subclass)]
 pub struct PyHigherOrder(pub Vec<PyVariable>);
 
+#[unwindable]
 #[pymethods]
 impl PyHigherOrder {
     #[getter]
@@ -108,6 +114,7 @@ impl PyExpressionIterator {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyExpressionIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {

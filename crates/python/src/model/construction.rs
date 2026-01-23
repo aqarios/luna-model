@@ -1,11 +1,13 @@
 use lunamodel_core::{Environment, Model};
 use lunamodel_types::Sense;
+use lunamodel_unwind::unwindable;
 use pyo3::{PyResult, pymethods};
 
-use crate::PyEnvironment;
-
 use super::PyModel;
+use crate::PyEnvironment;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyModel {
     #[new]

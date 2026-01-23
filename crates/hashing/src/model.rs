@@ -33,7 +33,6 @@ impl HashModel {
             sense: model.sense.to_string(),
             name: model.name.clone(),
         };
-        // dbg!(&m);
         m.encode_to_vec()
     }
 }

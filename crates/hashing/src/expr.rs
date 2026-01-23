@@ -61,14 +61,6 @@ pub struct HashExpr {
 
 impl HashExpr {
     pub fn build(expr: &Expression) -> Vec<u8> {
-        // let comp: HashMap<String, usize> = expr
-        //     .vars()
-        //     // .sorted_by(|l, b| l.id().cmp(&b.id()))
-        //     // .enumerate()
-        //     // .map(|(i, v)| (v.name().unwrap(), i))
-        //     .map(|v| (v.name().unwrap(), v.id() as usize))
-        //     .collect();
-
         let maxidx = *expr.vars().map(|v| v.id()).max().get_or_insert(0) as usize;
         let num_vars = match maxidx {
             0 => 0,
@@ -90,7 +82,6 @@ impl HashExpr {
         let mut ho_lens = Vec::new();
 
         for (u, bias) in expr.linear_items() {
-            // let idx = comp[&u.name().unwrap()];
             active[u.id() as usize] = true;
             linear[u.id() as usize] = bias;
         }
@@ -99,14 +90,10 @@ impl HashExpr {
             quad_size = active.len() as u32;
             for (vidx, neigborhood) in quad.iter() {
                 if !neigborhood.is_empty() {
-                    // let vname = expr.env.get(vidx).name().unwrap();
-                    // let idx = comp[&vname] as u32;
                     active[vidx as usize] = true;
                     quad_neighborhood_indices.push(vidx);
                     quad_neighborhoods_len.push(neigborhood.len() as u32);
                     for (uidx, bias) in neigborhood.iter() {
-                        // let uname = expr.env.get(uidx).name().unwrap();
-                        // let idx = comp[&uname] as u32;
                         active[uidx as usize] = true;
                         quad_neighborhoods.push(uidx);
                         quad_neighborhoods_values.push(bias);
@@ -118,12 +105,6 @@ impl HashExpr {
         if let Some(ho) = &expr.higher_order {
             ho_size = ho.len() as u32;
             for (ids, bias) in ho.iter_contrib() {
-                // dbg!(&ids);
-                // let ids: Vec<_> = ids
-                //     .iter()
-                //     .map(|&i| comp[&expr.env.get(i).name().unwrap()] as u32)
-                //     .collect();
-                // dbg!(&ids);
                 ho_lens.push(ids.len() as u32);
                 ho_values.push(bias);
                 for &id in ids.iter() {
@@ -148,7 +129,6 @@ impl HashExpr {
             ho_indices,
             ho_lens,
         };
-        // dbg!(&o);
         o.encode_to_vec()
     }
 }

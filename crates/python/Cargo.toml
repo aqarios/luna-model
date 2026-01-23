@@ -16,6 +16,7 @@ lunamodel-translate = { workspace = true, features = ["py"] }
 lunamodel-io = { workspace = true, features = ["py"] }
 lunamodel-utils = { workspace = true }
 lunamodel-hashing = { workspace = true }
+lunamodel-unwind = { workspace = true }
 
 pyo3 = { workspace = true, features = ["multiple-pymethods", "indexmap"] }
 numpy = { workspace = true }

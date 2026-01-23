@@ -1,7 +1,10 @@
+use lunamodel_unwind::unwindable;
 use pyo3::{PyResult, pymethods};
 
 use super::PyConstraint;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyConstraint {
     #[setter]

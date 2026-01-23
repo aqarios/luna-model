@@ -1,12 +1,15 @@
 use lunamodel_core::Model;
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
+use lunamodel_unwind::unwindable;
 use pyo3::{
     Bound, Py, PyAny, PyResult, Python, pymethods,
     types::{PyBytes, PyType},
 };
 
 use super::PyModel;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyModel {
     /// Serialize the model into a compact binary format.

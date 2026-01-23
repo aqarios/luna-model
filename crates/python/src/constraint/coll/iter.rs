@@ -1,6 +1,8 @@
+use lunamodel_unwind::unwindable;
 use pyo3::{PyRef, PyRefMut, PyResult, pyclass, pymethods};
 
 use crate::constraint::{PyConstraint, PyConstraintCollection};
+use crate::unwind::unwind;
 
 #[pyclass]
 pub struct PyConstraintCollectionIterator {
@@ -17,6 +19,7 @@ impl PyConstraintCollectionIterator {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyConstraintCollectionIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {

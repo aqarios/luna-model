@@ -5,11 +5,13 @@ use lunamodel_core::solution::{
     Assignment,
     sample::{SampleView, SampleViewIdx},
 };
+use lunamodel_unwind::unwindable;
 use pyo3::{FromPyObject, IntoPyObjectExt, Py, PyAny, PyResult, Python, pyclass, pymethods};
 
 use crate::{
     PyVariable,
     sol::{PySolution, sample::iter::PySampleIterator},
+    unwind::unwind,
 };
 
 #[pyclass]
@@ -33,6 +35,7 @@ pub(super) enum PySampleIndex {
     Other(Py<PyAny>),
 }
 
+#[unwindable]
 #[pymethods]
 impl PySampleView {
     fn to_dict(&self) -> HashMap<String, f64> {

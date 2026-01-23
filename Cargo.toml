@@ -4,6 +4,7 @@ members = [
   "crates/*",
   "py-lunamodel/pylm",
   "pyo3-lunamodel",
+  "crates/python/unwind",
 ]
 default-members = [
   "crates/*",
@@ -57,7 +58,7 @@ lunamodel-core = { version = "0.5.0", path = "crates/core", default-features = f
 lunamodel-ops = { version = "0.5.0", path = "crates/ops", default-features = false }
 lunamodel-io = { version = "0.5.0", path = "crates/io", default-features = false }
 lunamodel-hashing = { version = "0.5.0", path = "crates/hashing", default-features = false }
-# lunamodel-unwind = { version = "0.5.0", path = "crates/unwind", default-features = false }
+lunamodel-unwind = { version = "0.5.0", path = "crates/python/unwind", default-features = false }
 lunamodel-serializer = { version = "0.5.0", path = "crates/serializer", default-features = false }
 lunamodel-transform = { version = "0.5.0", path = "crates/transform", default-features = false }
 # lunamodel-tpass = { version = "0.5.0", path = "crates/tpass", default-features = false }

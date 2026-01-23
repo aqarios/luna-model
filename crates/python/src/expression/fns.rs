@@ -1,8 +1,10 @@
 use lunamodel_core::prelude::VarRef;
+use lunamodel_unwind::unwindable;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::{Bound, FromPyObject, PyResult, Python, pymethods};
 
 use super::{PyExprContent as PyEC, PyExpression};
+use crate::unwind::unwind;
 use crate::{sol::PySolution, variable::PyVariable};
 
 #[derive(FromPyObject)]
@@ -11,6 +13,7 @@ enum Replacement {
     Expr(PyExpression),
 }
 
+#[unwindable]
 #[pymethods]
 impl PyExpression {
     fn separate(&self, variables: Vec<PyVariable>) -> PyResult<(PyExpression, PyExpression)> {

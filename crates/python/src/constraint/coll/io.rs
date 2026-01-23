@@ -1,10 +1,12 @@
 use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_unwind::unwindable;
 use pyo3::pymethods;
 
-use crate::constraint::coll::PyConstraintCollectionContent;
-
 use super::PyConstraintCollection;
+use crate::constraint::coll::PyConstraintCollectionContent;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyConstraintCollection {
     fn __str__(&self) -> String {

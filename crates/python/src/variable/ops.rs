@@ -1,14 +1,17 @@
 use lunamodel_core::ops::LmPow;
 use lunamodel_error::py::PyLunaModelError;
+use lunamodel_unwind::unwindable;
 use pyo3::prelude::*;
 use std::ops::{Add, Mul, Neg, Not, Sub};
 
 use super::PyVariable;
 use crate::{
     expression::PyExpression as PyE,
+    unwind::unwind,
     utils::{OpsOther as OO, as_usize_from_pyany},
 };
 
+#[unwindable]
 #[pymethods]
 impl PyVariable {
     pub fn __add__(&self, rhs: OO) -> PyResult<PyE> {

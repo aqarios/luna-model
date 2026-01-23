@@ -1,15 +1,12 @@
-// mod exprtree;
-
 use indexmap::IndexMap;
 use lunamodel_core::Expression;
 use lunamodel_types::Bias;
 use regex::Regex;
 
-use crate::{CustomFormat, FormatOpt}; // , expr::exprtree::ExprTree};
+use crate::{CustomFormat, FormatOpt};
 
 impl CustomFormat<FormatOpt> for Expression {
     fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, _: &FormatOpt) -> std::fmt::Result {
-        // let tree: ExprTree = self.into();
         write!(fmt, "{}", expr_string(self))
     }
 
@@ -111,3 +108,4 @@ fn expr_string(expr: &Expression) -> String {
         false => out.to_string(),
     }
 }
+

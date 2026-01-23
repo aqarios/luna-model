@@ -150,16 +150,6 @@ impl Index<&str> for ConstraintCollection {
     }
 }
 
-// impl Display for ConstraintCollection {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(
-//             f,
-//             "[{}]",
-//             self.data.iter().map(|(cname, c)| format!("{}: {}", cname, c)).join(", ")
-//         )
-//     }
-// }
-
 impl PartialEq for ConstraintCollection {
     fn eq(&self, other: &Self) -> bool {
         for (cname, constr) in self.data.iter() {

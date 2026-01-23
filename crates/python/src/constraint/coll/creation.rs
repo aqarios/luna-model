@@ -1,9 +1,11 @@
+use lunamodel_core::ConstraintCollection;
+use lunamodel_unwind::unwindable;
 use pyo3::pymethods;
 
 use super::PyConstraintCollection;
+use crate::unwind::unwind;
 
-use lunamodel_core::ConstraintCollection;
-
+#[unwindable]
 #[pymethods]
 impl PyConstraintCollection {
     #[new]

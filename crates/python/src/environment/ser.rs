@@ -1,12 +1,15 @@
 use lunamodel_core::Environment;
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
+use lunamodel_unwind::unwindable;
 use pyo3::{
     prelude::*,
     types::{PyBytes, PyType},
 };
 
 use crate::PyEnvironment;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyEnvironment {
     /// Serialize the environment into a compact binary format.

@@ -1,4 +1,5 @@
 use lunamodel_types::Sense;
+use lunamodel_unwind::unwindable;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::{Bound, Python, pymethods};
 
@@ -6,7 +7,9 @@ use super::PySolution;
 use super::result::PyResultIterator;
 use super::sample::PySamplesIterator;
 use crate::timer::PyTiming;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PySolution {
     // The setter is defined here [super::modification::PySolution::set_obj_values]

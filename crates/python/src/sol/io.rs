@@ -2,12 +2,14 @@ use lunamodel_io::{
     CustomFormat, FormatOpt,
     sol::{PrintLayout, PySolFormatOpts, ShowMetadata},
 };
+use lunamodel_unwind::unwindable;
 use pyo3::{PyResult, exceptions::PyValueError, pymethods};
 
+use super::PySolution;
+use crate::unwind::unwind;
 use crate::utils::PyUsize;
 
-use super::PySolution;
-
+#[unwindable]
 #[pymethods]
 impl PySolution {
     fn print(

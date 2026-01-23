@@ -1,12 +1,15 @@
 use std::ffi::CStr;
 
 use lunamodel_core::ArcEnv;
+use lunamodel_unwind::unwindable;
 use pyo3::{prelude::*, types::PyCapsule};
 
 use crate::PyEnvironment;
+use crate::unwind::unwind;
 
 const CAPUSULE_NAME_ENV: &CStr = c"builtins.capsule.PyEnvironment";
 
+#[unwindable]
 #[pymethods]
 impl PyEnvironment {
     pub fn _to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {

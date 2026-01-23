@@ -1,13 +1,15 @@
 use lunamodel_core::Solution;
+use lunamodel_serializer::prelude::*;
+use lunamodel_unwind::unwindable;
 use pyo3::{
     Bound, Py, PyAny, PyResult, Python, pymethods,
     types::{PyBytes, PyType},
 };
 
-use lunamodel_serializer::prelude::*;
-
 use super::PySolution;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PySolution {
     fn encode(

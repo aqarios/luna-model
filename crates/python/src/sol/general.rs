@@ -1,12 +1,17 @@
-use crate::sol::result::{PyResultIterator, PyResultView};
-
-use super::PySolution;
+use lunamodel_unwind::unwindable;
 use pyo3::{
     Py, PyAny, PyRef, PyResult, Python,
     exceptions::{PyIndexError, PyTypeError, PyValueError},
     pymethods,
 };
 
+use super::PySolution;
+use crate::{
+    sol::result::{PyResultIterator, PyResultView},
+    unwind::unwind,
+};
+
+#[unwindable]
 #[pymethods]
 impl PySolution {
     fn __eq__(&self, other: &Self) -> bool {

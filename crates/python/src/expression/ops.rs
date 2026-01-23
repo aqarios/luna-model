@@ -1,10 +1,13 @@
 use lunamodel_error::py::PyLunaModelError;
+use lunamodel_unwind::unwindable;
 use pyo3::prelude::*;
 use std::ops::Neg;
 
 use crate::PyExpression;
+use crate::unwind::unwind;
 use crate::utils::{OpsOther as OO, as_usize};
 
+#[unwindable]
 #[pymethods]
 impl PyExpression {
     pub fn __add__(&self, rhs: OO) -> PyResult<Self> {
@@ -42,7 +45,7 @@ impl PyExpression {
     }
 
     pub fn __rsub__(&self, lhs: OO) -> PyResult<Self> {
-        self.__neg__().__add__(lhs)
+        self.__neg__()?.__add__(lhs)
     }
 
     pub fn __rmul__(&self, lhs: OO) -> PyResult<Self> {

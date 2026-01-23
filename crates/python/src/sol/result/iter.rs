@@ -1,9 +1,10 @@
 use lunamodel_core::Solution;
+use lunamodel_unwind::unwindable;
 use pyo3::{PyRef, PyRefMut, pyclass, pymethods};
 
-use crate::sol::PySolution;
-
 use super::view::PyResultView;
+use crate::sol::PySolution;
+use crate::unwind::unwind;
 
 #[pyclass]
 pub struct PyResultIterator {
@@ -17,6 +18,7 @@ impl PyResultIterator {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyResultIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {

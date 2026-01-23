@@ -1,18 +1,13 @@
 use lunamodel_types::Comparator;
+use lunamodel_unwind::unwindable;
 use pyo3::{PyResult, pymethods};
 
-use crate::{PyConstraint, constraint::coll::iter::PyConstraintCollectionIterator};
-
 use super::PyConstraintCollection;
+use crate::{PyConstraint, constraint::coll::iter::PyConstraintCollectionIterator, unwind::unwind};
 
+#[unwindable]
 #[pymethods]
 impl PyConstraintCollection {
-    // // todo: actually this should also return a view like object.
-    // pub fn constraint(&self, key: &str) -> PyConstraint {
-    //     let constr = &(&self.c.read_arc())[key];
-    //     PyConstraint::new(constr.clone())
-    // }
-
     fn items(&self) -> PyConstraintCollectionIterator {
         PyConstraintCollectionIterator::new(&self)
     }
@@ -42,6 +37,6 @@ impl PyConstraintCollection {
     }
 
     fn __iter__(&self) -> PyConstraintCollectionIterator {
-        self.items()
+        PyConstraintCollectionIterator::new(&self)
     }
 }

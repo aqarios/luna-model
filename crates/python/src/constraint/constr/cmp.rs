@@ -1,8 +1,11 @@
 use lunamodel_core::prelude::{Constraint, ContentEquality};
+use lunamodel_unwind::unwindable;
 use pyo3::pymethods;
 
 use super::PyConstraint;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyConstraint {
     fn __eq__(&self, other: &Self) -> bool {

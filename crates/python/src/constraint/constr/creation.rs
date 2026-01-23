@@ -4,12 +4,15 @@ use lunamodel_core::{
 };
 use lunamodel_error::py::PyLunaModelError;
 use lunamodel_types::Comparator;
+use lunamodel_unwind::unwindable;
 use pyo3::{PyResult, pymethods};
 
+use crate::unwind::unwind;
 use crate::utils::OpsOther as OO;
 
 use super::PyConstraint;
 
+#[unwindable]
 #[pymethods]
 impl PyConstraint {
     #[new]

@@ -1,11 +1,12 @@
 use lunamodel_core::{Expression, ops::LmAddAssign, prelude::LazyBounds};
 use lunamodel_types::{Sense, Vtype};
+use lunamodel_unwind::unwindable;
 use pyo3::{PyResult, pymethods};
 
-use crate::{PyConstraint, PyExpression, PyVariable, bounds::BoundValue};
-
 use super::PyModel;
+use crate::{PyConstraint, PyExpression, PyVariable, bounds::BoundValue, unwind::unwind};
 
+#[unwindable]
 #[pymethods]
 impl PyModel {
     #[pyo3(signature = (name, vtype=None, lower=BoundValue::None, upper=BoundValue::None))]

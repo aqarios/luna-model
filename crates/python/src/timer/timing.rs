@@ -1,3 +1,4 @@
+use lunamodel_unwind::unwindable;
 use pyo3::{
     PyResult,
     exceptions::{PyRuntimeError, PyValueError},
@@ -6,7 +7,9 @@ use pyo3::{
 use std::time::{Duration, SystemTime};
 
 use super::PyTiming;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyTiming {
     #[getter]

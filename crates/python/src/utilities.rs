@@ -29,11 +29,11 @@ pub fn quicksum(
                     if let Ok(rhs) = obj.extract::<PyVariable>() {
                         env = Some(rhs.v.env.clone());
                     } else if let Ok(rhs) = obj.extract::<PyExpression>() {
-                        env = Some(rhs.environment().env);
+                        env = Some(rhs.environment()?.env);
                     } else {
                         if let Ok(e) = obj.getattr("_expr") {
                             let expr: PyExpression = e.extract()?;
-                            env = Some(expr.environment().env);
+                            env = Some(expr.environment()?.env);
                         } else if let Ok(v) = obj.getattr("_v") {
                             let v: PyVariable = v.extract()?;
                             env = Some(v.v.env.clone());

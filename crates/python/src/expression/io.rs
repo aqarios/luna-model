@@ -1,8 +1,11 @@
 use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_unwind::unwindable;
 use pyo3::pymethods;
 
 use super::PyExpression;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PyExpression {
     fn __str__(&self) -> String {

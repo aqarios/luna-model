@@ -2,12 +2,12 @@ mod custom;
 mod options;
 
 mod bounds;
-mod expr;
-mod constr_coll;
 mod constr;
+mod constr_coll;
+mod env;
+mod expr;
 mod model;
 pub mod sol;
-mod env;
 mod var;
 
 pub use custom::{CustomFormat, CustomFormatWrapper};

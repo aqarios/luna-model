@@ -1,10 +1,12 @@
 use lunamodel_core::ValueSource;
+use lunamodel_unwind::unwindable;
 use pyo3::{PyResult, pymethods};
 
-use crate::sol::result::PyResultView;
-
 use super::PySolution;
+use crate::sol::result::PyResultView;
+use crate::unwind::unwind;
 
+#[unwindable]
 #[pymethods]
 impl PySolution {
     pub fn best(&self) -> Option<Vec<PyResultView>> {

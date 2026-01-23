@@ -454,6 +454,7 @@ dependencies = [
  "lunamodel-serializer",
  "lunamodel-translate",
  "lunamodel-types",
+ "lunamodel-unwind",
  "lunamodel-utils",
  "numpy",
  "parking_lot 0.12.5",
@@ -504,6 +505,17 @@ dependencies = [
  "pyo3",
  "strum",
  "strum_macros",
+]
+
+[[package]]
+name = "lunamodel-unwind"
+version = "0.5.0"
+dependencies = [
+ "once_cell",
+ "proc-macro2",
+ "pyo3",
+ "quote",
+ "syn",
 ]
 
 [[package]]

@@ -1,6 +1,7 @@
 use itertools::Itertools;
 use lunamodel_core::Solution;
 use lunamodel_core::solution::Assignment;
+use lunamodel_unwind::unwindable;
 use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::{
     FromPyObject, IntoPyObjectExt, Py, PyAny, PyErr, PyRef, PyRefMut, PyResult, Python, pyclass,
@@ -10,6 +11,7 @@ use pyo3::{
 use super::view::PySampleView;
 use crate::sol::PySolution;
 use crate::sol::sample::view::PySampleIndex;
+use crate::unwind::unwind;
 
 pub enum PySamplesIndex {
     Sample(usize),
@@ -58,6 +60,7 @@ impl PySamplesIterator {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PySamplesIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
@@ -144,6 +147,7 @@ impl PySampleIterator {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PySampleIterator {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
@@ -157,6 +161,6 @@ impl PySampleIterator {
     }
 
     fn __len__(slf: PyRef<'_, Self>) -> usize {
-        slf.sample.__len__()
+        slf.sample.sol.s.read_arc().sample_len()
     }
 }

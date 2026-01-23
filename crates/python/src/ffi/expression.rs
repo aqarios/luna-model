@@ -1,6 +1,7 @@
 use std::{ffi::CStr, sync::Arc};
 
 use lunamodel_core::{Expression, Model};
+use lunamodel_unwind::unwindable;
 use parking_lot::RwLock;
 use pyo3::{
     Bound, PyResult, Python,
@@ -9,6 +10,7 @@ use pyo3::{
     types::{PyCapsule, PyCapsuleMethods},
 };
 
+use crate::unwind::unwind;
 use crate::{PyExprContent, PyExpression};
 
 const CAPUSULE_NAME_EXPR: &CStr = c"builtins.capsule.PyExprContent.Expr";
@@ -45,6 +47,7 @@ impl PyExprContent {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyExpression {
     pub fn _to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {

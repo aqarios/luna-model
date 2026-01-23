@@ -12,12 +12,6 @@ pub mod py;
 // pub struct ErrString(Cow<'static, str>);
 pub struct ErrString(String);
 
-// impl ErrString {
-//     pub const fn new_static(s: &'static str) -> Self {
-//         Self(Cow::Borrowed(s))
-//     }
-// }
-
 impl<T> From<T> for ErrString
 where
     // T: Into<Cow<'static, str>>,

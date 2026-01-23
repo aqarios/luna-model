@@ -1,11 +1,13 @@
 use lunamodel_core::prelude::*;
 use lunamodel_serializer::prelude::*;
+use lunamodel_unwind::unwindable;
 use pyo3::{
     prelude::*,
     types::{PyBytes, PyType},
 };
 
 use super::content::PyExprContent as PyEC;
+use crate::unwind::unwind;
 use crate::{PyEnvironment, PyExpression};
 
 #[derive(FromPyObject)]
@@ -14,6 +16,7 @@ enum DecodeEnvData {
     Bytes(Py<PyBytes>),
 }
 
+#[unwindable]
 #[pymethods]
 impl PyExpression {
     /// Serialize the expression into a compact binary format.
