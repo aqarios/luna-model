@@ -1,9 +1,16 @@
 import numpy as np
-from dimod import SampleSet
 
 from luna_model.solution.sol import Solution
 from luna_model.solution.timer import Timing
 from luna_model.environment.env import Environment
+
+_DIMOD_AVAILABLE: bool = False
+try:
+    from dimod import SampleSet  # type: ignore[reportMissingImports]
+
+    _DIMOD_AVAILABLE = True
+except ImportError:
+    _DIMOD_AVAILABLE = False
 
 
 class DwaveTranslator:
@@ -14,6 +21,11 @@ class DwaveTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
+        if not _DIMOD_AVAILABLE:
+            raise RuntimeError(
+                "dimod is required for the DwaveTranslator. "
+                "You can install it using the 'dimod' extra.",
+            )
         sampleset = sample_set.aggregate()
         variables = sampleset.variables
         record = sampleset.record

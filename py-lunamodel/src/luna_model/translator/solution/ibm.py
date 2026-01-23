@@ -2,9 +2,14 @@ from luna_model.solution.sol import Solution
 from luna_model.solution.timer import Timing
 from luna_model.environment.env import Environment
 
-# TODO: try, else default and error...
-from qiskit.primitives import PrimitiveResult, PubResult  # type: ignore[import]
-from qiskit_optimization import QuadraticProgram  # type: ignore[import]
+_QISKIT_AVAILABLE: bool = False
+try:
+    from qiskit.primitives import PrimitiveResult, PubResult  # type: ignore[reportMissingImports]
+    from qiskit_optimization import QuadraticProgram  # type: ignore[reportMissingImports]
+
+    _QISKIT_AVAILABLE = True
+except ImportError:
+    _QISKIT_AVAILABLE = False
 
 
 class IbmTranslator:
@@ -16,6 +21,11 @@ class IbmTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
+        if not _QISKIT_AVAILABLE:
+            raise RuntimeError(
+                "qiskit and qiskit_optimization are required for the IbmTranslator. "
+                "You can install it using the 'qiskit' extra."
+            )
         meas = result[0].data.meas
         counts: dict[str, int] = meas.get_counts()
 
