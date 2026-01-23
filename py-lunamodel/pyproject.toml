@@ -92,3 +92,7 @@ dev = [
     "scipy>=1.16.3",
     "rich>=14.2.0",
 ]
+docs = [
+    "mkdocstrings[python]>=1.0.1",
+    "zensical>=0.0.17",
+]

@@ -38,6 +38,9 @@ if TYPE_CHECKING:
 
 
 class Solution:
+    """
+    This is a test doc string.
+    """
     _s: PySolution
 
     def __init__(
