@@ -3,7 +3,7 @@ from random import Random
 import pytest
 from luna_model import Environment, Model, Solution, Variable, Vtype
 
-from _tests.test_core.utils import make_seed, random_int
+from tests.test_core.utils import make_seed, random_int
 
 
 def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:

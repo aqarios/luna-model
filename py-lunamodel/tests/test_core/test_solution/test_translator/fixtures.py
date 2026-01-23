@@ -8,7 +8,7 @@ from random import Random, shuffle
 from typing import Any, Callable
 
 from numpy import unique
-from _tests.test_core.utils import random_bool, random_int
+from tests.test_core.utils import random_bool, random_int
 
 
 @pytest.fixture()

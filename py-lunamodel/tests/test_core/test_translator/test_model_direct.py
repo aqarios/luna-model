@@ -19,7 +19,7 @@ from luna_model.translator import (
     QuboTranslator,
 )
 
-from _tests.test_core.utils import generate_bqms, generate_cqms, make_seed
+from tests.test_core.utils import generate_bqms, generate_cqms, make_seed
 
 
 @pytest.fixture()

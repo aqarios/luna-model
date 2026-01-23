@@ -9,7 +9,7 @@ from luna_model import Sense
 from luna_model.errors import TranslationError
 from luna_model.translator import LpTranslator
 
-from _tests.test_core.utils import generate_cqms, make_seed
+from tests.test_core.utils import generate_cqms, make_seed
 
 NOT_RUN_SCIP = False
 try:

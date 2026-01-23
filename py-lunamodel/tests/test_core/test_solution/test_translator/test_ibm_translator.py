@@ -10,7 +10,7 @@ from luna_model import Model, Sense, Solution, Timer, Variable, Vtype
 from luna_model.translator import IbmTranslator
 from scipy.optimize import minimize
 
-from _tests.test_core.utils import make_seed, random_bool
+from tests.test_core.utils import make_seed, random_bool
 
 NOT_RUN_QAER = False
 try:

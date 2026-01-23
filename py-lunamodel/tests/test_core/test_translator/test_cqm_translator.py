@@ -5,8 +5,8 @@ from dimod import Binary, ConstrainedQuadraticModel, Integer, Real
 from dimod import lp as dimod_lp
 from luna_model.translator import CqmTranslator
 
-from _tests.test_core.test_translator.test_lp_translator import check_dimod_expr
-from _tests.test_core.utils import generate_cqms, make_seed
+from tests.test_core.test_translator.test_lp_translator import check_dimod_expr
+from tests.test_core.utils import generate_cqms, make_seed
 
 NUM_CQMS: int = 100
 

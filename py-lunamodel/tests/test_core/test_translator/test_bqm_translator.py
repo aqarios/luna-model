@@ -11,7 +11,7 @@ from luna_model.errors import (
 )
 from luna_model.translator import BqmTranslator
 
-from _tests.test_core.utils import generate_bqms, make_seed
+from tests.test_core.utils import generate_bqms, make_seed
 
 
 @pytest.fixture()

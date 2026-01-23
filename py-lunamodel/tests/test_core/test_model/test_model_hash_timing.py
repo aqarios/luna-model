@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from rich.console import Console
 from rich.table import Table
 
-from _tests.test_core.utils import make_seed
+from tests.test_core.utils import make_seed
 
 REPS = 10
 
