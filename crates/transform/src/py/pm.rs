@@ -8,7 +8,7 @@ use crate::pass_manager::PassManager;
 use super::AnyPass;
 use super::ir::PyIR;
 
-#[pyclass(unsendable, name = "PassManager")]
+#[pyclass(unsendable)]
 #[derive(Deref, DerefMut)]
 pub struct PyPassManager(PassManager);
 

@@ -1,12 +1,5 @@
 use std::fmt::Debug;
 
-#[cfg(feature = "py")]
-use crate::py::IntoAnyPass;
-
-#[cfg(feature = "py")]
-pub trait Placeholder: IntoAnyPass {}
-
-#[cfg(not(feature = "py"))]
 pub trait Placeholder {}
 
 pub trait BasePass: Debug + Placeholder {

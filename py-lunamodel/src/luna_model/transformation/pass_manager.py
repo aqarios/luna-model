@@ -1,12 +1,12 @@
-from luna_model._lm import PyPassManager
-
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 
-from luna_model.transformation.base import BasePass
-from luna_model.transformation.transformation import TransformationPass
-from luna_model.transformation.analysis import AnalysisPass
-from luna_model.transformation.ir import IR
+from luna_model._lm import PyPassManager
+
+from .ir import IR
+from .base import BasePass
+from .transform import TransformationPass
+from .analysis import AnalysisPass
 
 
 class PassManager:
@@ -23,8 +23,7 @@ class PassManager:
     """
 
     def __init__(
-        self,
-        passes: list[BasePass | TransformationPass | AnalysisPass] | None = None,
+        self, passes: list[BasePass | TransformationPass | AnalysisPass] | None = None
     ) -> None:
         """Manage and execute a sequence of passes on a model.
 
@@ -79,3 +78,9 @@ class PassManager:
             to this `PassManager`'s run method.
         """
         return Solution._from_pys(self._pm.backwards(solution._s, ir._ir))
+
+    def __str__(self) -> str:
+        return self._pm.__str__()
+
+    def __repr__(self) -> str:
+        return self._pm.__repr__()

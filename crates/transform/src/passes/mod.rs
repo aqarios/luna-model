@@ -5,9 +5,3 @@ pub mod transformation;
 pub use analysis::{MaxBias, MaxBiasAnalysis};
 pub use special::IfElsePass;
 pub use transformation::{BinarySpinInfo, BinarySpinPass, ChangeSensePass};
-
-#[cfg(feature = "py")]
-pub use {
-    analysis::PyMaxBiasAnalysis,
-    transformation::{PyBinarySpinPass, PyChangeSensePass},
-};

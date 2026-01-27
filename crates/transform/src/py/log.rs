@@ -3,7 +3,7 @@ use pyo3::prelude::{pyclass, pymethods};
 
 use crate::{base::ActionType, log::LogElement};
 
-#[pyclass(get_all, name = "LogElement")]
+#[pyclass(get_all)]
 #[derive(Clone)]
 pub struct PyLogElement {
     pass_name: String,

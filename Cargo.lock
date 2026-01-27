@@ -458,6 +458,7 @@ dependencies = [
  "lunamodel-hashing",
  "lunamodel-io",
  "lunamodel-serializer",
+ "lunamodel-transform",
  "lunamodel-translate",
  "lunamodel-types",
  "lunamodel-unwind",
@@ -503,8 +504,6 @@ dependencies = [
  "indexmap",
  "lunamodel-core",
  "lunamodel-error",
- "lunamodel-python",
- "lunamodel-tpass",
  "lunamodel-types",
  "lunamodel-unwind",
  "num",
@@ -825,7 +824,6 @@ name = "pylm"
 version = "0.5.0"
 dependencies = [
  "lunamodel-python",
- "lunamodel-transform",
  "pyo3",
 ]
 

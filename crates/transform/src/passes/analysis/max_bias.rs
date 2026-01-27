@@ -1,5 +1,5 @@
 use lunamodel_core::Model;
-use lunamodel_tpass::analysis_cache;
+// use lunamodel_tpass::analysis_cache;
 use num::{NumCast, abs};
 
 use crate::{
@@ -7,10 +7,10 @@ use crate::{
     cache::{AnalysisCache, AnalysisCacheElement},
 };
 
-#[cfg(feature = "py")]
-use {crate::base::Pass, lunamodel_tpass::py_pass, lunamodel_unwind::*};
+// #[cfg(feature = "py")]
+// use {crate::base::Pass, lunamodel_tpass::py_pass, lunamodel_unwind::*};
 
-#[cfg_attr(feature = "py", py_pass(pass_variant = "Analysis"))]
+// #[cfg_attr(feature = "py", py_pass(pass_variant = "Analysis"))]
 #[derive(Debug, Clone)]
 pub struct MaxBiasAnalysis {}
 
@@ -26,8 +26,8 @@ impl BasePass for MaxBiasAnalysis {
     }
 }
 
+#[cfg_attr(feature = "py", pyo3::pyclass(get_all))]
 #[derive(Debug, Clone, Copy)]
-#[analysis_cache]
 pub struct MaxBias {
     pub val: f64,
 }

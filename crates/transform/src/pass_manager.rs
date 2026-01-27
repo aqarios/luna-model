@@ -55,6 +55,7 @@ impl PassManager {
 }
 
 impl Display for PassManager {
+    // TODO: move Dispaly to lunamodel_io
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "PassManager\n")?;
         if self.passes.len() >= 2 {

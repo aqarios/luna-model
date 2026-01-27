@@ -4,7 +4,7 @@ use std::{
 };
 
 use lunamodel_core::{Model, Solution, solution::Column};
-use lunamodel_tpass::analysis_cache;
+// use lunamodel_tpass::analysis_cache;
 use lunamodel_types::Vtype;
 use sqids::Sqids;
 
@@ -15,11 +15,11 @@ use crate::{
     cache::{AnalysisCache, AnalysisCacheElement},
 };
 
-#[cfg(feature = "py")]
-use {crate::base::Pass, lunamodel_tpass::py_pass, lunamodel_unwind::*};
+// #[cfg(feature = "py")]
+// use {crate::base::Pass, lunamodel_tpass::py_pass, lunamodel_unwind::*};
 
+#[cfg_attr(feature = "py", pyo3::pyclass)]
 #[derive(Debug, Clone)]
-#[analysis_cache]
 pub struct BinarySpinInfo {
     map: HashMap<String, String>,
     old_vtype: Vtype,
@@ -46,7 +46,7 @@ impl BinarySpinInfo {
 }
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
+// #[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
 pub struct BinarySpinPass {
     pub vtype: Vtype,
     pub prefix: Option<String>,
@@ -79,9 +79,10 @@ impl TransformationPass for BinarySpinPass {
 
         let env = model.environment.read_arc();
         let vars = env.vars().collect::<Vec<_>>();
-        // make the compiler happy :) and clear the lock.
-        // So we can use it in the loop.
-        drop(env);
+        // We dont need this anymore. We have a RwLock now.
+        // // make the compiler happy :) and clear the lock.
+        // // So we can use it in the loop.
+        // drop(env);
 
         for x in vars.iter() {
             let vref_old = model.environment.get(*x);

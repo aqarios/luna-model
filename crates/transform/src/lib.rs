@@ -6,11 +6,17 @@ mod execution;
 mod ir;
 mod log;
 mod pass_manager;
-mod passes;
 
-#[cfg(feature = "py")]
-pub mod py;
+pub mod passes;
+pub use base::Pass;
+pub use base::{BasePass, TransformationOutcome, TransformationPass, TransformationPassResult, ActionType, AnalysisPass, AnalysisPassResult};
+pub use cache::{AnalysisCache, AnalysisCacheElement};
+pub use ir::IR;
+pub use pass_manager::PassManager;
 
+// #[cfg(feature = "py")]
+// pub mod py;
+//
 // use lunamodel_tpass::register_pytransformations;
 
 // #[cfg(feature = "py")]

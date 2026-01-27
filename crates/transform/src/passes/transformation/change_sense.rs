@@ -8,10 +8,10 @@ use crate::{
     cache::AnalysisCache,
 };
 
-#[cfg(feature = "py")]
-use {crate::base::Pass, lunamodel_tpass::py_pass, lunamodel_unwind::*};
-
-#[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
+// #[cfg(feature = "py")]
+// use {crate::base::Pass, lunamodel_tpass::py_pass, lunamodel_unwind::*};
+//
+// #[cfg_attr(feature = "py", py_pass(pass_variant = "Transformation"))]
 #[derive(Debug, Clone)]
 pub struct ChangeSensePass {
     pub sense: Sense,

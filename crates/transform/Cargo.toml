@@ -11,8 +11,8 @@ repository.workspace = true
 lunamodel-core = { workspace = true }
 lunamodel-types = { workspace = true }
 lunamodel-error = { workspace = true }
-lunamodel-tpass = { workspace = true }
-lunamodel-python = { workspace = true }
+# lunamodel-tpass = { workspace = true }
+# lunamodel-python = { workspace = true }
 
 indexmap = { workspace = true }
 dyn-clone = { workspace = true }
@@ -32,6 +32,6 @@ workspace = true
 optional = true
 
 [features]
-default = ["py"]
-py = ["lunamodel-tpass/py", "pyo3", "lunamodel-unwind"]
-
+# default = ["py"]
+# py = ["lunamodel-tpass/py", "pyo3", "lunamodel-unwind"]
+py = ["pyo3"]

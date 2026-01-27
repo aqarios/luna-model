@@ -6,7 +6,7 @@ use pyo3::prelude::{Python, pyclass, pymethods};
 use super::log::PyLogElement;
 use crate::{cache::PyAnalysisCache, ir::IR};
 
-#[pyclass(name = "IR")]
+#[pyclass]
 #[derive(Deref, DerefMut)]
 pub struct PyIR(pub IR);
 

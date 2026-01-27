@@ -2,17 +2,68 @@ use indexmap::{
     IndexMap,
     map::{IntoIter, Iter},
 };
-use lunamodel_tpass::*;
+#[cfg(feature = "py")]
+use pyo3::{IntoPyObjectExt, Py, PyAny, PyResult, Python};
+
+use super::passes::{analysis::MaxBias, special::IfElseInfo, transformation::BinarySpinInfo};
+
+#[derive(Debug)]
+pub enum AnalysisCacheElement {
+    IfElseInfoAnalysis(IfElseInfo),
+    MaxBiasAnalysis(MaxBias),
+    BinarySpinInfoAnalysis(BinarySpinInfo),
+    #[cfg(feature = "py")]
+    PyAnalysis(Py<PyAny>),
+}
+
+impl Clone for AnalysisCacheElement {
+    fn clone(&self) -> Self {
+        match self {
+            AnalysisCacheElement::MaxBiasAnalysis(v) => {
+                AnalysisCacheElement::MaxBiasAnalysis(v.clone())
+            }
+            AnalysisCacheElement::BinarySpinInfoAnalysis(v) => {
+                AnalysisCacheElement::BinarySpinInfoAnalysis(v.clone())
+            }
+            AnalysisCacheElement::IfElseInfoAnalysis(v) => {
+                AnalysisCacheElement::IfElseInfoAnalysis(v.clone())
+            }
+            #[cfg(feature = "py")]
+            AnalysisCacheElement::PyAnalysis(v) => {
+                Python::attach(|py| AnalysisCacheElement::PyAnalysis(v.clone_ref(py)))
+            }
+        }
+    }
+}
 
 #[cfg(feature = "py")]
-use {
-    lunamodel_unwind::*,
-    pyo3::{Bound, PyAny, Python},
-};
+impl AnalysisCacheElement {
+    pub fn clone_py(&self, py: Python) -> Self {
+        match self {
+            AnalysisCacheElement::MaxBiasAnalysis(v) => {
+                AnalysisCacheElement::MaxBiasAnalysis(v.clone())
+            }
+            AnalysisCacheElement::BinarySpinInfoAnalysis(v) => {
+                AnalysisCacheElement::BinarySpinInfoAnalysis(v.clone())
+            }
+            AnalysisCacheElement::IfElseInfoAnalysis(v) => {
+                AnalysisCacheElement::IfElseInfoAnalysis(v.clone())
+            }
+            AnalysisCacheElement::PyAnalysis(v) => {
+                AnalysisCacheElement::PyAnalysis(v.clone_ref(py))
+            }
+        }
+    }
 
-use super::passes::{special::IfElseInfo, analysis::MaxBias, transformation::BinarySpinInfo};
-
-register_caches!(IfElseInfo, MaxBias, BinarySpinInfo);
+    pub fn into_py_any(&self, py: Python) -> PyResult<Py<PyAny>> {
+        Ok(match self {
+            AnalysisCacheElement::MaxBiasAnalysis(v) => v.clone().into_py_any(py)?,
+            AnalysisCacheElement::BinarySpinInfoAnalysis(v) => v.clone().into_py_any(py)?,
+            AnalysisCacheElement::IfElseInfoAnalysis(v) => v.clone().into_py_any(py)?,
+            AnalysisCacheElement::PyAnalysis(v) => v.into_py_any(py)?,
+        })
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub enum Reason {
@@ -80,5 +131,21 @@ impl AnalysisCache {
 
     pub fn into_iter(self) -> IntoIter<String, AnalysisCacheElement> {
         self.store.into_iter()
+    }
+
+    #[cfg(feature = "py")]
+    pub fn clone_py(&self, py: Python) -> Self {
+        Self {
+            store: self
+                .store
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone_py(py)))
+                .collect(),
+            history: self
+                .history
+                .iter()
+                .map(|(k, r, e)| (k.clone(), *r, e.clone_py(py)))
+                .collect(),
+        }
     }
 }

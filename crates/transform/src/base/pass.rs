@@ -7,9 +7,6 @@ use crate::{
     passes::special::{AbstractPipeline, IfElsePass, MetaAnalysisPass},
 };
 
-#[cfg(feature = "py")]
-use crate::py::{AnyPass, IntoAnyPass};
-
 #[derive(Debug)]
 pub enum Pass {
     Transformation(Box<dyn TransformationPass>),
@@ -65,15 +62,15 @@ impl Display for Pass {
     }
 }
 
-#[cfg(feature = "py")]
-impl IntoAnyPass for Pass {
-    fn as_anypass(&self) -> AnyPass {
-        match self {
-            Self::Transformation(x) => x.as_anypass(),
-            Self::Analysis(x) => x.as_anypass(),
-            Self::IfElse(x) => x.as_anypass(),
-            Self::Pipeline(x) => x.as_anypass(),
-            Self::MetaAnalysis(x) => x.as_anypass(),
-        }
-    }
-}
+// #[cfg(feature = "py")]
+// impl IntoAnyPass for Pass {
+//     fn as_anypass(&self) -> AnyPass {
+//         match self {
+//             Self::Transformation(x) => x.as_anypass(),
+//             Self::Analysis(x) => x.as_anypass(),
+//             Self::IfElse(x) => x.as_anypass(),
+//             Self::Pipeline(x) => x.as_anypass(),
+//             Self::MetaAnalysis(x) => x.as_anypass(),
+//         }
+//     }
+// }

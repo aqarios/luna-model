@@ -1,6 +1,5 @@
 use lunamodel_python::translate::model::*;
 pub use lunamodel_python::*;
-pub use lunamodel_transform::py::*;
 use pyo3::{PyTypeInfo, prelude::*};
 
 #[pymodule]
@@ -47,7 +46,19 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyQubo>()?;
 
     // Transformations
-    register_transformations(m)?;
+    // Core classes.
+    m.add_class::<transform::PyPassManager>()?;
+    m.add_class::<transform::PyIR>()?;
+    m.add_class::<transform::PyAnalysisCache>()?;
+    m.add_class::<transform::PyLogElement>()?;
+    m.add_class::<transform::ActionType>()?;
+    m.add_class::<transform::PyStructuredTransformationOutcome>()?;
+    // Abstract base classes.
+    m.add_class::<transform::PyTransformationPass>()?;
+    m.add_class::<transform::PyAnalysisPass>()?;
+    // Predefnied and implemented Transformations
+    m.add_class::<transform::PyChangeSensePass>()?;
+    m.add_class::<transform::PyMaxBiasAnalysis>()?;
 
     // Errors
     m.add(

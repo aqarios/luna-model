@@ -8,7 +8,7 @@ use crate::{
     py::{PyAnalysisCache, passes::PyPass},
 };
 
-#[pyclass(subclass, name = "TransformationPass")]
+#[pyclass(subclass)]
 #[derive(Clone, Debug)]
 pub struct PyTransformationPass {}
 
