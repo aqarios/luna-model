@@ -7,6 +7,9 @@ use lunamodel_error::{LunaModelError, LunaModelResult};
 use super::{action::ActionType, base::BasePass};
 use crate::cache::{AnalysisCache, AnalysisCacheElement};
 
+#[cfg(feature = "py")]
+use std::any::Any;
+
 pub struct TransformationOutcome {
     pub model: Model,
     pub analysis: Option<AnalysisCacheElement>,
@@ -34,6 +37,11 @@ pub trait TransformationPass: BasePass + DynClone {
 
     fn map_err(&self, err: &dyn Display) -> LunaModelError {
         LunaModelError::TransformationPass(self.name(), err.to_string().into())
+    }
+
+    #[cfg(feature = "py")]
+    fn as_any(&self) -> Option<&dyn Any> {
+        None
     }
 }
 

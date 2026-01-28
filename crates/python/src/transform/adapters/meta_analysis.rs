@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use lunamodel_transform::{
-    AnalysisCache, BasePass, Pass,
+    AnalysisCache, AnalysisCacheElement, BasePass, Pass,
     passes::special::{MetaAnalysisPass, MetaAnalysisPassResult},
 };
 use pyo3::{
@@ -10,10 +10,10 @@ use pyo3::{
     types::{PyAnyMethods, PyType},
 };
 
-use crate::transform::interfaces::PyMetaAnalysisPass;
+use crate::transform::{PyAnalysisCache, interfaces::PyMetaAnalysisPass, pass::PyPass};
 
 pub struct PyMetaAnalysisPassAdapter {
-    inner: Py<PyMetaAnalysisPass>,
+    pub(crate) inner: Py<PyMetaAnalysisPass>,
 }
 
 impl PyMetaAnalysisPassAdapter {
@@ -78,7 +78,27 @@ impl BasePass for PyMetaAnalysisPassAdapter {
 
 impl MetaAnalysisPass for PyMetaAnalysisPassAdapter {
     fn run(&self, passes: &[Pass], cache: &AnalysisCache) -> MetaAnalysisPassResult {
-        unimplemented!()
+        Python::attach(|py| {
+            let py_passes: PyResult<Vec<PyPass>> =
+                passes.iter().map(|p| PyPass::from_pass(p)).collect();
+
+            let py_passes = py_passes.map_err(|e| self.map_err(&e))?;
+            let pyc: PyAnalysisCache = cache.clone_py(py).into();
+            let py_res = self
+                .inner
+                .call_method1(py, "_run", (py_passes, pyc))
+                .map_err(|e| self.map_err(&e))?;
+            let py_any: Py<PyAny> = py_res.extract(py).map_err(|e| self.map_err(&e))?;
+            if py_any.is_none(py) {
+                Ok(None)
+            } else {
+                Ok(Some(AnalysisCacheElement::PyAnalysis(py_any)))
+            }
+        })
+    }
+
+    fn as_any(&self) -> Option<&dyn std::any::Any> {
+        Some(self)
     }
 }
 

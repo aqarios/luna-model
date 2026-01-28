@@ -18,7 +18,7 @@ use crate::{
 // #[cfg(feature = "py")]
 // use {crate::base::Pass, lunamodel_tpass::py_pass, lunamodel_unwind::*};
 
-#[cfg_attr(feature = "py", pyo3::pyclass)]
+#[cfg_attr(feature = "py", pyo3::pyclass(get_all))]
 #[derive(Debug, Clone)]
 pub struct BinarySpinInfo {
     map: HashMap<String, String>,
@@ -77,12 +77,7 @@ impl TransformationPass for BinarySpinPass {
             .to_string(),
         );
 
-        let env = model.environment.read_arc();
-        let vars = env.vars().collect::<Vec<_>>();
-        // We dont need this anymore. We have a RwLock now.
-        // // make the compiler happy :) and clear the lock.
-        // // So we can use it in the loop.
-        // drop(env);
+        let vars = model.environment.read_arc().vars().collect::<Vec<_>>();
 
         for x in vars.iter() {
             let vref_old = model.environment.get(*x);

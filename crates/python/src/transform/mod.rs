@@ -22,6 +22,8 @@ pub use pipeline::PyPipeline;
 
 pub use interfaces::PyAnalysisPass;
 pub use interfaces::PyTransformationPass;
+pub use interfaces::PyMetaAnalysisPass;
 
 pub use passes::PyChangeSensePass;
 pub use passes::PyMaxBiasAnalysis;
+pub use passes::PyBinarySpinPass;

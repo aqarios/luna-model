@@ -2,9 +2,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Any
 
-from luna_model._lm import PyMetaAnalysisPass, PyModel, PyAnalysisCache
+from luna_model._lm import PyMetaAnalysisPass, PyAnalysisCache
 
-from luna_model.model.model import Model
 from .base import BasePass
 from .cache import AnalysisCache
 

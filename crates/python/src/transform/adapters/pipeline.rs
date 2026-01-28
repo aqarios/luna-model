@@ -10,7 +10,7 @@ use pyo3::{Py, PyResult, Python};
 use crate::transform::pipeline::PyPipeline;
 
 pub struct PyPipelineAdapter {
-    inner: Py<PyPipeline>,
+    pub(crate) inner: Py<PyPipeline>,
 }
 
 impl PyPipelineAdapter {
@@ -80,6 +80,10 @@ impl AbstractPipeline for PyPipelineAdapter {
     fn passes(&self) -> Vec<Pass> {
         let x = Python::attach(|py| self.inner.extract::<PyPipeline>(py).unwrap());
         x.p.passes().clone()
+    }
+
+    fn as_any(&self) -> Option<&dyn std::any::Any> {
+        Some(self)
     }
 }
 

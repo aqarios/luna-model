@@ -1,4 +1,3 @@
-use lunamodel_error::LunaModelResult;
 use lunamodel_transform::PassManager;
 use pyo3::{PyResult, pyclass, pymethods};
 

@@ -1,22 +1,14 @@
-use lunamodel_error::LunaModelResult;
-use lunamodel_transform::{Pass, TransformationPass};
+use lunamodel_transform::Pass;
 use pyo3::{FromPyObject, IntoPyObject, Py, PyResult, Python};
 
-use crate::transform::{
-    PyChangeSensePass, adapters::PyMetaAnalysisPassAdapter, interfaces::PyMetaAnalysisPass,
-};
+use crate::transform::{adapters::PyMetaAnalysisPassAdapter, interfaces::PyMetaAnalysisPass};
 
 use super::{
     PyIfElsePass, PyPipeline,
     adapters::{PyAnalysisPassAdapter, PyPipelineAdapter, PyTransformationPassAdapter},
-    interfaces::{
-        PyAnalysisPass,
-        PyTransformationPass,
-        // PyMetaAnalaysisPass,
-    },
+    interfaces::{PyAnalysisPass, PyTransformationPass},
 };
 
-// #[pyclass(unsendable)]
 #[derive(Debug, FromPyObject, IntoPyObject)]
 pub enum PyPass {
     Transformation(Py<PyTransformationPass>),
@@ -24,8 +16,6 @@ pub enum PyPass {
     MetaAnalysis(Py<PyMetaAnalysisPass>),
     IfElse(PyIfElsePass),
     Pipeline(Py<PyPipeline>),
-    // trial
-    Cs(PyChangeSensePass),
 }
 
 impl PyPass {
@@ -44,19 +34,61 @@ impl PyPass {
             Self::Pipeline(p) => Ok(Pass::Pipeline(Box::new(PyPipelineAdapter::new(
                 Python::attach(|py| p.clone_ref(py)),
             )?))),
-            // trial
-            Self::Cs(c) => Ok(Pass::Transformation(Box::new(c.p.clone()))),
         }
     }
 
-    pub fn from_pass(pass: &Pass) -> PyPass {
-        match pass {
-            Pass::Transformation(t) => todo!(),
-            Pass::Analysis(a) => todo!(),
-            Pass::IfElse(e) => todo!(),
-            Pass::Pipeline(p) => todo!(),
-            Pass::MetaAnalysis(m) => todo!(),
-        }
+    pub fn from_pass(pass: &Pass) -> PyResult<PyPass> {
+        Python::attach(|py| match pass {
+            Pass::Transformation(t) => {
+                if let Some(adapter) = t
+                    .as_any()
+                    .and_then(|a| a.downcast_ref::<PyTransformationPassAdapter>())
+                {
+                    Ok(PyPass::Transformation(adapter.inner.clone_ref(py)))
+                } else {
+                    Err(pyo3::exceptions::PyTypeError::new_err(
+                        "Cannot convert native Rust TransformationPass to PyPass",
+                    ))
+                }
+            }
+            Pass::Analysis(a) => {
+                if let Some(adapter) = a
+                    .as_any()
+                    .and_then(|a| a.downcast_ref::<PyAnalysisPassAdapter>())
+                {
+                    Ok(PyPass::Analysis(adapter.inner.clone_ref(py)))
+                } else {
+                    Err(pyo3::exceptions::PyTypeError::new_err(
+                        "Cannot convert native Rust AnalysisPass to PyPass",
+                    ))
+                }
+            }
+            Pass::IfElse(e) => Ok(PyPass::IfElse(PyIfElsePass(e.clone()))),
+            Pass::Pipeline(p) => {
+                if let Some(adapter) = p
+                    .as_any()
+                    .and_then(|a| a.downcast_ref::<PyPipelineAdapter>())
+                {
+                    Ok(PyPass::Pipeline(adapter.inner.clone_ref(py)))
+                } else {
+                    Err(pyo3::exceptions::PyTypeError::new_err(
+                        "Cannot convert native Rust Pipeline to PyPass",
+                    ))
+                }
+            }
+            Pass::MetaAnalysis(m) => {
+                if let Some(adapter) = m
+                    .as_any()
+                    .and_then(|a| a.downcast_ref::<PyMetaAnalysisPassAdapter>())
+                {
+                    Ok(PyPass::MetaAnalysis(adapter.inner.clone_ref(py)))
+                } else {
+                    Err(pyo3::exceptions::PyTypeError::new_err(
+                        "Cannot convert native Rust MetaAnalysisPass to PyPass",
+                    ))
+                }
+            }
+        })
     }
 }
 
@@ -70,8 +102,4 @@ impl Clone for PyPass {
             Self::Pipeline(p) => Self::Pipeline(Python::attach(|py| p.clone_ref(py))),
         }
     }
-}
-
-pub trait AsPyPass {
-    fn as_pypass(&self) -> PyPass;
 }

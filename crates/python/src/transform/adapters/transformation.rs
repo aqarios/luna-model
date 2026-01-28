@@ -19,7 +19,7 @@ use crate::{
 };
 
 pub struct PyTransformationPassAdapter {
-    inner: Py<PyTransformationPass>,
+    pub(crate) inner: Py<PyTransformationPass>,
 }
 
 impl PyTransformationPassAdapter {
@@ -127,6 +127,10 @@ impl TransformationPass for PyTransformationPassAdapter {
             .into_inner();
         // unwrap();
         sol
+    }
+
+    fn as_any(&self) -> Option<&dyn std::any::Any> {
+        Some(self)
     }
 }
 

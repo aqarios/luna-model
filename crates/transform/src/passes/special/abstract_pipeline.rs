@@ -13,6 +13,9 @@ use crate::{
 
 use super::pipeline::PipelineResult;
 
+#[cfg(feature = "py")]
+use std::any::Any;
+
 pub trait AbstractPipeline: BasePass + DynClone {
     fn run(&self, model: Model, cache: &AnalysisCache, executor: &PassManager) -> PipelineResult;
     fn backwards(&self, solution: Solution, ir: &IR, log: &ExecutionLog) -> Solution;
@@ -22,5 +25,10 @@ pub trait AbstractPipeline: BasePass + DynClone {
     fn content_string(&self) -> String;
     fn len(&self) -> usize;
     fn passes(&self) -> Vec<Pass>;
+
+    #[cfg(feature = "py")]
+    fn as_any(&self) -> Option<&dyn Any> {
+        None
+    }
 }
 dyn_clone::clone_trait_object!(AbstractPipeline);

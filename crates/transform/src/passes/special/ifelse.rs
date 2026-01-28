@@ -17,7 +17,7 @@ use crate::{
     unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R},
 };
 
-#[cfg_attr(feature = "py", pyo3::pyclass)]
+#[cfg_attr(feature = "py", pyo3::pyclass(get_all))]
 #[derive(Debug, Clone)]
 pub struct IfElseInfo {
     fulfilled_condition: bool,

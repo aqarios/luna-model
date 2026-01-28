@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub struct PyAnalysisPassAdapter {
-    inner: Py<PyAnalysisPass>,
+    pub(crate) inner: Py<PyAnalysisPass>,
 }
 
 impl PyAnalysisPassAdapter {
@@ -95,6 +95,10 @@ impl AnalysisPass for PyAnalysisPassAdapter {
                 Ok(Some(AnalysisCacheElement::PyAnalysis(py_any)))
             }
         })
+    }
+
+    fn as_any(&self) -> Option<&dyn std::any::Any> {
+        Some(self)
     }
 }
 

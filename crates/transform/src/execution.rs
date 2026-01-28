@@ -2,7 +2,7 @@ use lunamodel_core::prelude::{Model, Solution, Timer};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use std::collections::HashSet;
 
-use crate::{base::BasePass, passes::special::Pipeline};
+use crate::base::BasePass;
 
 use super::{
     base::{ActionType, Pass},

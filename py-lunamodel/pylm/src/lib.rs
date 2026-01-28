@@ -58,9 +58,11 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     // Abstract base classes.
     m.add_class::<transform::PyTransformationPass>()?;
     m.add_class::<transform::PyAnalysisPass>()?;
+    m.add_class::<transform::PyMetaAnalysisPass>()?;
     // Predefnied and implemented Transformations
     m.add_class::<transform::PyChangeSensePass>()?;
     m.add_class::<transform::PyMaxBiasAnalysis>()?;
+    m.add_class::<transform::PyBinarySpinPass>()?;
 
     // Errors
     m.add(

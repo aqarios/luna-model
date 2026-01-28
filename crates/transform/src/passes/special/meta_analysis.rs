@@ -8,6 +8,9 @@ use crate::{
     cache::{AnalysisCache, AnalysisCacheElement},
 };
 
+#[cfg(feature = "py")]
+use std::any::Any;
+
 pub type MetaAnalysisPassResult = LunaModelResult<Option<AnalysisCacheElement>>;
 
 pub trait MetaAnalysisPass: BasePass + DynClone {
@@ -15,6 +18,11 @@ pub trait MetaAnalysisPass: BasePass + DynClone {
 
     fn map_err(&self, err: &dyn Display) -> LunaModelError {
         LunaModelError::MetaAnalysisPass(self.name(), err.to_string().into())
+    }
+
+    #[cfg(feature = "py")]
+    fn as_any(&self) -> Option<&dyn Any> {
+        None
     }
 }
 dyn_clone::clone_trait_object!(MetaAnalysisPass);
