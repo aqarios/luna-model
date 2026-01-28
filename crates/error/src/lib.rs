@@ -76,6 +76,7 @@ pub enum LunaModelError {
     IfElsePass(ErrString),
     MetaAnalysisPass(String, ErrString),
     Compilation(ErrString),
+    RandomSampling(ErrString),
 }
 
 impl Error for LunaModelError {}
@@ -124,6 +125,7 @@ impl Display for LunaModelError {
             IfElsePass(msg) => write!(f, "error in IfElse pass: {}", msg),
             MetaAnalysisPass(name, msg) => write!(f, "error in MetaAnalysis pass '{}': {}", name, msg),
             Compilation(msg) => write!(f, "compilation error: {}", msg),
+            RandomSampling(msg) => write!(f, "random sampling failed due to: {}", msg),
         }
     }
 }

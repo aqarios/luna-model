@@ -38,4 +38,10 @@ impl PySolution {
     pub fn highest_constraint_violation(&self) -> PyResult<Option<String>> {
         Ok(self.s.read_arc().highest_constraint_violations()?)
     }
+
+    fn aggregate(&self) -> PyResult<Self> {
+        let mut out = self.s.read_arc().clone();
+        out.aggregate()?;
+        Ok(out.into())
+    }
 }

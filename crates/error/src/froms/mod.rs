@@ -19,3 +19,9 @@ impl From<std::fmt::Error> for LunaModelError {
         LunaModelError::Formatter(err.to_string().into())
     }
 }
+
+impl From<rand::distr::uniform::Error> for LunaModelError {
+    fn from(value: rand::distr::uniform::Error) -> Self {
+        LunaModelError::RandomSampling(value.to_string().into())
+    }
+}

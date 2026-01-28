@@ -1,7 +1,8 @@
 use hashbrown::HashMap;
 use indexmap::IndexMap;
+use itertools::Either;
 use lunamodel_core::solution::{Assignment, Column};
-use lunamodel_core::{ArcEnv, Solution};
+use lunamodel_core::{ArcEnv, Model, Solution};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Sense, Vtype};
 use lunamodel_unwind::*;
@@ -180,7 +181,7 @@ impl PySolution {
             }
             sol.variable_bounds = vbs;
         }
-        sol.combine_to_single()?;
+        sol.aggregate()?;
 
         Ok(sol.into())
     }
@@ -242,7 +243,7 @@ impl PySolution {
                 solcol.try_push(*value)?;
             }
 
-            sol.combine_to_single()?;
+            sol.aggregate()?;
 
             if let Some(m) = model {
                 sol = m.m.read_arc().evaluate_solution(&sol)?;
@@ -333,7 +334,7 @@ impl PySolution {
                 }
             }
 
-            sol.combine_to_single()?;
+            sol.aggregate()?;
 
             if let Some(m) = model {
                 sol = m.m.read_arc().evaluate_solution(&sol)?;
@@ -427,7 +428,7 @@ impl PySolution {
                 }
             }
 
-            sol.combine_to_single()?;
+            sol.aggregate()?;
 
             Ok(sol)
         }
@@ -544,7 +545,7 @@ impl PySolution {
                 sol.counts.push(count);
             }
 
-            sol.combine_to_single()?;
+            sol.aggregate()?;
 
             if let Some(m) = model {
                 sol = m.m.read_arc().evaluate_solution(&sol)?;
@@ -563,6 +564,31 @@ impl PySolution {
             var_order,
         )
         .map_err(|e| match e {
+            LunaModelError::VariableNotExisting(e) => LunaModelError::SampleUnexpectedVariable(e),
+            e => e,
+        })?;
+
+        Ok(sol.into())
+    }
+
+    #[staticmethod]
+    fn from_random(
+        n_samples: usize,
+        seed: Option<u64>,
+        env: Option<PyEnvironment>,
+        model: Option<PyModel>,
+        sense: Option<Sense>,
+    ) -> PyResult<PySolution> {
+        check_env_or_model(&env, &model)?;
+        check_sense_or_model(&sense, &model)?;
+        let context = if let Some(m) = model {
+            Either::Right(m.m.read_arc().clone())
+        } else {
+            let environment = retrieve_environment(env, &model)?.env;
+            Either::Left(environment)
+        };
+
+        let sol = Solution::from_random(n_samples, seed, context, sense).map_err(|e| match e {
             LunaModelError::VariableNotExisting(e) => LunaModelError::SampleUnexpectedVariable(e),
             e => e,
         })?;

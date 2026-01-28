@@ -76,7 +76,7 @@ impl Solution {
     }
 
     /// Combine duplicate samples to a single entry.
-    pub fn combine_to_single(&mut self) -> LunaModelResult<()> {
+    pub fn aggregate(&mut self) -> LunaModelResult<()> {
         let mut dups: HashMap<String, usize> = HashMap::new();
         let mut to_rm: IndexMap<usize, usize> = IndexMap::new();
         let mut indices: Vec<usize> = Vec::new();

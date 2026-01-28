@@ -9,6 +9,7 @@ repository.workspace = true
 
 [dependencies]
 prost = { workspace = true }
+rand = { workspace = true }
 
 [dependencies.pyo3]
 workspace = true

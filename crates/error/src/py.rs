@@ -275,6 +275,13 @@ create_exception!(
 
 create_exception!(
     builtins.errors,
+    PyRandomSamplingError,
+    PyLunaModelError,
+    "Raised when an error occured during random sampling."
+);
+
+create_exception!(
+    builtins.errors,
     PyTransformationError,
     PyLunaModelError,
     "Raised when an error occured during a transformation."
@@ -349,6 +356,7 @@ impl From<Lme> for PyErr {
             Lme::IfElsePass(_) => PyIfElsePassError::new_err,
             Lme::MetaAnalysisPass(_, _) => PyMetaAnalysisPassError::new_err,
             Lme::Compilation(_) => PyCompilationError::new_err,
+            Lme::RandomSampling(_) => PyRandomSamplingError::new_err,
         };
         err(lme.to_string())
     }

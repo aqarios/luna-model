@@ -26,21 +26,12 @@ if TYPE_CHECKING:
     from luna_model._typing import _Sample
     from numpy.typing import NDArray
 
-    # SampleT = (
-    #     dict[Variable | str, int | float]
-    #     | dict[Variable, int | float]
-    #     | dict[Variable, int]
-    #     | dict[Variable, float]
-    #     | dict[str, int | float]
-    #     | dict[str, int]
-    #     | dict[str, float]
-    # )
-
 
 class Solution:
     """
     This is a test doc string.
     """
+
     _s: PySolution
 
     def __init__(
@@ -376,6 +367,59 @@ class Solution:
                 var_order=var_order,
             )
         )
+
+    @classmethod
+    def from_random(
+        cls,
+        n_samples: int,
+        seed: int | None = None,
+        env: Environment | None = None,
+        model: Model | None = None,
+        sense: Sense | None = None,
+    ) -> Solution:
+        """Create a `Solution` from random sampling.
+
+        If a Model is passed, the solution will be evaluated immediately. Otherwise,
+        there has to be an environment present to determine the correct variable types.
+
+        Parameters
+        ----------
+        n_samples : int
+            The number of samples drawn randomly.
+        seed : int, optional
+            The random seed
+        env : Environment, optional
+            The environment the variable types shall be determined from.
+        model : Model, optional
+            A model to evaluate the sample with.
+        sense : Senes, optional
+            The sense if no model is specified
+
+        Returns
+        -------
+        Solution
+            The solution object created from random sampling.
+
+        Raises
+        ------
+        """
+        return cls._from_pys(
+            PySolution.from_random(
+                n_samples=n_samples,
+                seed=seed,
+                env=env._env if env else None,
+                model=model._m if model else None,
+                sense=sense._val if sense else None,
+            )
+        )
+
+    def aggregate(self) -> Solution:
+        """Aggregate a `Solution`.
+
+        Condense solution entries into one with more counts if a solution multiple
+        duplicate entries.
+        """
+        return self._from_pys(self._s.aggregate())
 
     def __str__(self) -> str:
         return self._s.__str__()

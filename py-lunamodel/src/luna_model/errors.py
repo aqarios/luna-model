@@ -28,6 +28,7 @@ from luna_model._lm import (
     PyVariableNamesError as VariableNamesError,
     PyVariableNotExistingError as VariableNotExistingError,
     PyVariablesFromDifferentEnvsError as VariablesFromDifferentEnvsError,
+    PyRandomSamplingError as RandomSamplingError,
 )
 
 __all__ = [
@@ -61,4 +62,5 @@ __all__ = [
     "LunaModelError",
     "UnsupportedOperationError",
     "StartCannotBeInferredError",
+    "RandomSamplingError",
 ]

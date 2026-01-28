@@ -208,5 +208,9 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
         PyCompilationError::NAME,
         m.py().get_type::<PyCompilationError>(),
     )?;
+    m.add(
+        PyRandomSamplingError::NAME,
+        m.py().get_type::<PyRandomSamplingError>(),
+    )?;
     Ok(())
 }
