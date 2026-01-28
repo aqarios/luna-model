@@ -53,7 +53,7 @@ target/
 !.pixi/config.toml
 
 NOTES.md
-
+py-lunamodel/tests/test_core/test_solution/test_translator/model.lp
 # iykyk
 :w
 *dbg*
