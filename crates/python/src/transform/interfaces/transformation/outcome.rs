@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use lunamodel_unwind::*;
 use lunamodel_transform::{ActionType, AnalysisCacheElement, TransformationOutcome};
 use pyo3::{FromPyObject, IntoPyObject, Py, PyAny, PyErr, PyResult, Python, pyclass, pymethods};
 
@@ -13,6 +14,7 @@ pub struct PyStructuredTransformationOutcome {
     pub analysis: Option<Py<PyAny>>,
 }
 
+#[unwindable]
 #[pymethods]
 impl PyStructuredTransformationOutcome {
     #[new]

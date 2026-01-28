@@ -1,4 +1,5 @@
 use pyo3::{Bound, Py, PyAny, PyResult, pyclass, pymethods};
+use lunamodel_unwind::*;
 
 use crate::transform::{PyAnalysisCache, pass::PyPass};
 
@@ -6,6 +7,7 @@ use crate::transform::{PyAnalysisCache, pass::PyPass};
 #[derive(Debug)]
 pub struct PyMetaAnalysisPass {}
 
+#[unwindable]
 #[pymethods]
 impl PyMetaAnalysisPass {
     #[new]

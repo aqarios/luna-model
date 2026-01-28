@@ -1,4 +1,5 @@
 use lunamodel_transform::{AnalysisCache, AnalysisCacheElement};
+use lunamodel_unwind::*;
 use pyo3::{IntoPyObjectExt, Py, PyAny, PyResult, Python, pyclass, pymethods};
 
 #[pyclass]
@@ -13,6 +14,7 @@ impl From<AnalysisCache> for PyAnalysisCache {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyAnalysisCache {
     #[new]

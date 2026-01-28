@@ -1,4 +1,5 @@
 use lunamodel_transform::IR;
+use lunamodel_unwind::*;
 use pyo3::{pyclass, pymethods};
 
 use crate::{
@@ -18,6 +19,7 @@ impl From<IR> for PyIR {
     }
 }
 
+#[unwindable]
 #[pymethods]
 impl PyIR {
     #[getter]

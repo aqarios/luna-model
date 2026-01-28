@@ -1,4 +1,5 @@
 use lunamodel_transform::{BasePass, TransformationPass, passes::ChangeSensePass};
+use lunamodel_unwind::*;
 use lunamodel_types::Sense;
 use pyo3::{PyResult, Python, pyclass, pymethods};
 
@@ -14,6 +15,7 @@ pub struct PyChangeSensePass {
     pub p: ChangeSensePass,
 }
 
+#[unwindable]
 #[pymethods]
 impl PyChangeSensePass {
     #[new]

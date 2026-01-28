@@ -13,7 +13,7 @@ default-members = [
 ]
 
 [workspace.package]
-version = "0.5.0"
+version = "0.5.0-alpha1"
 authors = [
   "Jonas Blenninger <jonas.blenninger@aqarios.com>",
   "David Bucher <david.bucher@aqarios.com>",
@@ -53,20 +53,21 @@ quote = "1.0"
 derive_more = "2.0.1"
 parking_lot = "0.12.5"
 
-lunamodel = { version = "0.5.0", path = "crates/lunamodel", default-features = false }
-lunamodel-types = { version = "0.5.0", path = "crates/types", default-features = false }
-lunamodel-error = { version = "0.5.0", path = "crates/error", default-features = false }
-lunamodel-core = { version = "0.5.0", path = "crates/core", default-features = false }
-lunamodel-ops = { version = "0.5.0", path = "crates/ops", default-features = false }
-lunamodel-io = { version = "0.5.0", path = "crates/io", default-features = false }
-lunamodel-hashing = { version = "0.5.0", path = "crates/hashing", default-features = false }
-lunamodel-serializer = { version = "0.5.0", path = "crates/serializer", default-features = false }
-lunamodel-transform = { version = "0.5.0", path = "crates/transform", default-features = false }
-lunamodel-translate = { version = "0.5.0", path = "crates/translate", default-features = false }
-lunamodel-python = { version = "0.5.0", path = "crates/python", default-features = false }
-lunamodel-utils = { version = "0.5.0", path = "crates/utils", default-features = false }
-lunamodel-unwind = { version = "0.5.0", path = "crates/unwind", default-features = false }
+# TODO: BEFORE RELEASE ADD THE `version = "0.5.0" filed here again and fix the version on top.
+# So we can have individual versions for each crate if desired.
+lunamodel = { path = "crates/lunamodel", default-features = false }
+lunamodel-types = { path = "crates/types", default-features = false }
+lunamodel-error = { path = "crates/error", default-features = false }
+lunamodel-core = { path = "crates/core", default-features = false }
+lunamodel-ops = { path = "crates/ops", default-features = false }
+lunamodel-io = { path = "crates/io", default-features = false }
+lunamodel-hashing = { path = "crates/hashing", default-features = false }
+lunamodel-serializer = { path = "crates/serializer", default-features = false }
+lunamodel-transform = { path = "crates/transform", default-features = false }
+lunamodel-translate = { path = "crates/translate", default-features = false }
+lunamodel-python = { path = "crates/python", default-features = false }
+lunamodel-utils = { path = "crates/utils", default-features = false }
+lunamodel-unwind = { path = "crates/unwind", default-features = false }
 
-lunamodel-tpass = { version = "0.5.0", path = "crates/transform/tpass", default-features = false }
-lunamodel-unwindable = { version = "0.5.0", path = "crates/unwind/unwindable", default-features = false }
-lunamodel-unwinder = { version = "0.5.0", path = "crates/unwind/unwinder", default-features = false }
+lunamodel-unwindable = { path = "crates/unwind/unwindable", default-features = false }
+lunamodel-unwinder = { path = "crates/unwind/unwinder", default-features = false }

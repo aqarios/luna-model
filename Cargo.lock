@@ -384,7 +384,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "lunamodel-core",
  "lunamodel-types",
@@ -392,7 +392,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-core"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -414,7 +414,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "prost",
  "pyo3",
@@ -422,7 +422,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-hashing"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "hashbrown",
  "itertools",
@@ -433,7 +433,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-io"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "hashbrown",
  "indexmap",
@@ -447,7 +447,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-python"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "derive_more",
  "hashbrown",
@@ -470,7 +470,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-serializer"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "bitvec",
  "hashbrown",
@@ -485,7 +485,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-tpass"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "once_cell",
  "proc-macro2",
@@ -496,7 +496,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-transform"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "derive_more",
  "dyn-clone",
@@ -517,7 +517,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-translate"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "hashbrown",
  "indexmap",
@@ -533,7 +533,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-types"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "derive_more",
  "enumset",
@@ -544,7 +544,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwind"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "lunamodel-unwindable",
  "lunamodel-unwinder",
@@ -552,7 +552,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwindable"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "once_cell",
  "proc-macro2",
@@ -563,7 +563,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwinder"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "lunamodel-error",
  "pyo3",
@@ -571,7 +571,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "hashbrown",
 ]
@@ -823,7 +823,7 @@ dependencies = [
 
 [[package]]
 name = "pylm"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "lunamodel-python",
  "pyo3",
@@ -869,7 +869,7 @@ dependencies = [
 
 [[package]]
 name = "pyo3-lunamodel"
-version = "0.5.0"
+version = "0.5.0-alpha1"
 dependencies = [
  "lunamodel-core",
  "lunamodel-python",

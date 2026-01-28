@@ -1,4 +1,5 @@
 use lunamodel_error::LunaModelError;
+use lunamodel_unwind::*;
 use lunamodel_transform::{
     BasePass,
     passes::special::{Condition, IfElsePass},
@@ -13,6 +14,7 @@ use crate::transform::{PyAnalysisCache, PyPipeline, adapters::PyPipelineAdapter}
 #[derive(Debug, Clone)]
 pub struct PyIfElsePass(pub IfElsePass);
 
+#[unwindable]
 #[pymethods]
 impl PyIfElsePass {
     #[new]

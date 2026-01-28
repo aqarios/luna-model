@@ -1,4 +1,5 @@
 use lunamodel_transform::{AnalysisPass, BasePass, passes::MaxBiasAnalysis};
+use lunamodel_unwind::*;
 use pyo3::{Py, PyAny, PyResult, Python, pyclass, pymethods};
 
 use crate::{PyModel, transform::PyAnalysisCache};
@@ -8,6 +9,7 @@ pub struct PyMaxBiasAnalysis {
     p: MaxBiasAnalysis,
 }
 
+#[unwindable]
 #[pymethods]
 impl PyMaxBiasAnalysis {
     #[new]

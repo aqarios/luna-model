@@ -1,4 +1,5 @@
 use lunamodel_transform::PassManager;
+use lunamodel_unwind::*;
 use pyo3::{PyResult, pyclass, pymethods};
 
 use super::ir::PyIR;
@@ -11,6 +12,7 @@ pub struct PyPassManager {
     pub pm: PassManager,
 }
 
+#[unwindable]
 #[pymethods]
 impl PyPassManager {
     #[new]

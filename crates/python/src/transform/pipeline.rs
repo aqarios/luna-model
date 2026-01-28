@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use lunamodel_unwind::*;
 use lunamodel_transform::{
     BasePass,
     passes::special::{AbstractPipeline, Pipeline},
@@ -15,6 +16,7 @@ pub struct PyPipeline {
     passes: Vec<PyPass>,
 }
 
+#[unwindable]
 #[pymethods]
 impl PyPipeline {
     #[new]
