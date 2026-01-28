@@ -5,7 +5,7 @@ from luna_model._lm import PyIfElsePass
 
 from .base import BasePass
 from .pipeline import Pipeline
-from .analysis import AnalysisCache
+from .cache import AnalysisCache
 
 
 class IfElsePass(PyIfElsePass, BasePass):

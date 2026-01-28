@@ -35,8 +35,6 @@ pub trait TransformationPass: BasePass + DynClone {
     fn map_err(&self, err: &dyn Display) -> LunaModelError {
         LunaModelError::TransformationPass(self.name(), err.to_string().into())
     }
-
-    // fn clone_box(&self) -> Box<dyn TransformationPass>;
 }
 
 impl Display for dyn TransformationPass

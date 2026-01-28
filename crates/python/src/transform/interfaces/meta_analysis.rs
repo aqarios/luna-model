@@ -1,13 +1,13 @@
 use pyo3::{Bound, Py, PyAny, PyResult, pyclass, pymethods};
 
-use crate::{model::PyModel, transform::cache::PyAnalysisCache};
+use crate::transform::{PyAnalysisCache, pass::PyPass};
 
 #[pyclass(subclass)]
 #[derive(Debug)]
-pub struct PyAnalysisPass {}
+pub struct PyMetaAnalysisPass {}
 
 #[pymethods]
-impl PyAnalysisPass {
+impl PyMetaAnalysisPass {
     #[new]
     #[pyo3(signature=(*args, **kwargs))]
     fn py_new(args: &Bound<'_, PyAny>, kwargs: Option<&Bound<'_, PyAny>>) -> Self {
@@ -28,8 +28,8 @@ impl PyAnalysisPass {
         Vec::new()
     }
 
-    fn run(&self, model: PyModel, cache: &PyAnalysisCache) -> PyResult<Py<PyAny>> {
-        _ = model;
+    fn run(&self, passes: Vec<PyPass>, cache: &PyAnalysisCache) -> PyResult<Py<PyAny>> {
+        _ = passes;
         _ = cache;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "'run' method is not implemented.",

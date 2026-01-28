@@ -20,7 +20,8 @@ from typing_extensions import override
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 
-from .analysis import AnalysisCache, AnalysisPass
+from .analysis import AnalysisPass
+from .cache import AnalysisCache
 from .action_type import ActionType
 from .base import BasePass
 from .transform import TransformationPass, TransformationOutcome

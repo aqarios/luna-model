@@ -11,7 +11,7 @@ use crate::{
 pub type MetaAnalysisPassResult = LunaModelResult<Option<AnalysisCacheElement>>;
 
 pub trait MetaAnalysisPass: BasePass + DynClone {
-    fn run(&self, pipeline: &[Pass], cache: &AnalysisCache) -> MetaAnalysisPassResult;
+    fn run(&self, passes: &[Pass], cache: &AnalysisCache) -> MetaAnalysisPassResult;
 
     fn map_err(&self, err: &dyn Display) -> LunaModelError {
         LunaModelError::MetaAnalysisPass(self.name(), err.to_string().into())

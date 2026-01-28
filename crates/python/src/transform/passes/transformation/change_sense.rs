@@ -8,9 +8,10 @@ use crate::{
     transform::{cache::PyAnalysisCache, interfaces::PyTransformationOutcome},
 };
 
+#[derive(Debug)]
 #[pyclass]
 pub struct PyChangeSensePass {
-    p: ChangeSensePass,
+    pub p: ChangeSensePass,
 }
 
 #[pymethods]

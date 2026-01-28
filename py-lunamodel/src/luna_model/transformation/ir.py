@@ -3,7 +3,7 @@ from luna_model.model.model import Model
 
 from luna_model._lm import PyIR
 
-from .analysis import AnalysisCache
+from .cache import AnalysisCache
 from .log import LogElement
 
 

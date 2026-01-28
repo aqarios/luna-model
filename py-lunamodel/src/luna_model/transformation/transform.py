@@ -15,7 +15,7 @@ from luna_model._lm import (
 )
 
 from .base import BasePass
-from .analysis import AnalysisCache
+from .cache import AnalysisCache
 from .action_type import ActionType
 
 
