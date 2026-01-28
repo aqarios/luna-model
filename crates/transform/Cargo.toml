@@ -22,6 +22,8 @@ derive_more = { workspace = true }
 num = { workspace = true }
 sqids = { workspace = true }
 parking_lot = { workspace = true }
+strum_macros = { workspace = true }
+strum = { workspace = true }
 
 [dependencies.pyo3]
 workspace = true

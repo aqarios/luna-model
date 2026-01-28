@@ -48,6 +48,8 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     // Transformations
     // Core classes.
     m.add_class::<transform::PyPassManager>()?;
+    m.add_class::<transform::PyPipeline>()?;
+    m.add_class::<transform::PyIfElsePass>()?;
     m.add_class::<transform::PyIR>()?;
     m.add_class::<transform::PyAnalysisCache>()?;
     m.add_class::<transform::PyLogElement>()?;

@@ -1,9 +1,10 @@
+use std::clone::Clone;
 use std::fmt::Display;
 
+use dyn_clone::DynClone;
 use global_counter::primitive::exact::CounterU64;
 use lunamodel_core::{Model, Solution};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-// use lunamodel_tpass::analysis_cache;
 use pad::PadStr;
 
 use super::abstract_pipeline::AbstractPipeline;
@@ -15,95 +16,6 @@ use crate::{
     pass_manager::PassManager,
     unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R},
 };
-
-// #[cfg(feature = "py")]
-// use {
-//     crate::cache::PyAnalysisCache, pyo3::IntoPyObjectExt, pyo3::exceptions::PyTypeError,
-//     pyo3::prelude::*,
-// };
-
-pub type RustCallback = fn(&AnalysisCache) -> bool;
-
-// #[cfg(feature = "py")]
-// #[cfg_attr(feature = "py", pyclass(unsendable))]
-struct RustCallbackWrapper {
-    callback: RustCallback,
-}
-
-// #[cfg(feature = "py")]
-// #[cfg_attr(feature = "py", pymethods)]
-// impl RustCallbackWrapper {
-//     fn __call__(&self, cache_py: &PyAnalysisCache) -> PyResult<bool> {
-//         Ok((self.callback)(&cache_py.0))
-//     }
-// }
-
-#[derive(Debug)]
-pub enum Condition {
-    RsCallback(RustCallback),
-    // #[cfg(feature = "py")]
-    // PyCallback(Py<PyAny>),
-}
-
-impl Condition {
-    fn call(&self, cache: &AnalysisCache) -> LunaModelResult<bool> {
-        match self {
-            Self::RsCallback(rs_fn) => Ok(rs_fn(cache)),
-            // #[cfg(feature = "py")]
-            // Self::PyCallback(py_fn) => Python::attach(|py| {
-            //     let r = py_fn
-            //         .call1(py, (PyAnalysisCache::new(cache.clone_py(py)),))
-            //         .map_err(|e| LunaModelError::Compilation(e.to_string().into()))?;
-            //     let b = r
-            //         .extract::<bool>(py)
-            //         .map_err(|e| LunaModelError::Compilation(e.to_string().into()))?;
-            //     Ok(b)
-            // }),
-        }
-    }
-}
-
-// #[cfg(feature = "py")]
-// impl<'py> IntoPyObject<'py> for Condition {
-//     type Error = PyErr;
-//     type Target = PyAny;
-//     type Output = Bound<'py, PyAny>;
-//
-//     fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-//         match self {
-//             Condition::PyCallback(cb) => Ok(cb.into_pyobject(py)?),
-//             Condition::RsCallback(rs) => {
-//                 let wrapper = Py::new(py, RustCallbackWrapper { callback: rs })?;
-//                 Ok(wrapper.into_py_any(py)?.into_pyobject(py)?)
-//             }
-//         }
-//     }
-// }
-//
-// #[cfg(feature = "py")]
-// impl<'a, 'py> FromPyObject<'a, 'py> for Condition {
-//     type Error = PyErr;
-//
-//     fn extract(obj: Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-//         let py = obj.py();
-//         if obj.is_callable() {
-//             let cb: Py<PyAny> = obj.into_py_any(py)?;
-//             Ok(Condition::PyCallback(cb))
-//         } else {
-//             Err(PyTypeError::new_err("Condition must be callable"))
-//         }
-//     }
-// }
-
-impl Clone for Condition {
-    fn clone(&self) -> Self {
-        match self {
-            Self::RsCallback(inner) => Self::RsCallback(inner.clone()),
-            // #[cfg(feature = "py")]
-            // Self::PyCallback(pyany) => Self::PyCallback(Python::attach(|py| pyany.clone_ref(py))),
-        }
-    }
-}
 
 #[cfg_attr(feature = "py", pyo3::pyclass)]
 #[derive(Debug, Clone)]
@@ -121,11 +33,15 @@ pub type IfElsePassResult = LunaModelResult<IfElseOutcome>;
 /// Counter to ensure multiple if-else branches can be used in the same pass.
 pub static IF_ELSE_COUNTER: CounterU64 = CounterU64::new(0);
 
-// #[cfg_attr(feature = "py", py_pass(pass_variant = "IfElse"))]
+pub trait Condition: std::fmt::Debug + DynClone {
+    fn call(&self, cache: &AnalysisCache) -> LunaModelResult<bool>;
+}
+dyn_clone::clone_trait_object!(Condition);
+
 #[derive(Debug, Clone)]
 pub struct IfElsePass {
     requires: Vec<String>,
-    condition: Condition,
+    condition: Box<dyn Condition>,
     then: Box<dyn AbstractPipeline>,
     otherwise: Box<dyn AbstractPipeline>,
     // #[py_pass(init_ignore)]
@@ -135,7 +51,7 @@ pub struct IfElsePass {
 impl IfElsePass {
     pub fn new(
         requires: Vec<String>,
-        condition: Condition,
+        condition: Box<dyn Condition>,
         then: Box<dyn AbstractPipeline>,
         otherwise: Box<dyn AbstractPipeline>,
         name: Option<String>,
@@ -162,8 +78,6 @@ impl BasePass for IfElsePass {
         self.requires.clone()
     }
 }
-
-// impl IntoAnyPass for IfElsePass {}
 
 impl IfElsePass {
     pub fn run(

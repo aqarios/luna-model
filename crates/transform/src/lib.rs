@@ -9,10 +9,16 @@ mod pass_manager;
 
 pub mod passes;
 pub use base::Pass;
-pub use base::{BasePass, TransformationOutcome, TransformationPass, TransformationPassResult, ActionType, AnalysisPass, AnalysisPassResult};
+pub use base::{
+    ActionType, AnalysisPass, AnalysisPassResult, BasePass, TransformationOutcome,
+    TransformationPass, TransformationPassResult,
+};
 pub use cache::{AnalysisCache, AnalysisCacheElement};
 pub use ir::IR;
+pub use log::{ExecutionLog, LogElement};
 pub use pass_manager::PassManager;
+
+// pub use base::AsPyPass;
 
 // #[cfg(feature = "py")]
 // pub mod py;

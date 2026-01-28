@@ -10,6 +10,10 @@ class ActionType(Enum):
     """Indicate that the pass did analyse the model."""
     DID_ANALYSIS_TRANSFORM = ...
     """Indicate that the pass did analyse and transfrom the model."""
+    DID_IF_ELSE = ...
+    """Indicate that the pass did ifelse pass."""
+    DID_PIPELINE = ...
+    """Indicate that the pass did a pipeline pass."""
     DID_NOTHING = ...
     """Indicate that the pass did NOT do anything."""
 
@@ -24,16 +28,24 @@ class ActionType(Enum):
                 return PyActionType.DidAnalysisTransform
             case ActionType.DID_NOTHING:
                 return PyActionType.DidNothing
+            case ActionType.DID_IF_ELSE:
+                return PyActionType.DidIfElse
+            case ActionType.DID_PIPELINE:
+                return PyActionType.DidPipeline
 
     @classmethod
     def _from_pyat(cls, py_action_type: PyActionType) -> ActionType:
         match py_action_type:
-            case PyActionType.did_transform:
+            case PyActionType.DidTransform:
                 return ActionType.DID_TRANSFORM
-            case PyActionType.did_analysis:
+            case PyActionType.DidAnalysis:
                 return ActionType.DID_ANALYSIS
-            case PyActionType.did_analysis_transform:
+            case PyActionType.DidAnalysisTransform:
                 return ActionType.DID_ANALYSIS_TRANSFORM
-            case PyActionType.did_nothing:
+            case PyActionType.DidIfElse:
+                return ActionType.DID_IF_ELSE
+            case PyActionType.DidPipeline:
+                return ActionType.DID_PIPELINE
+            case PyActionType.DidNothing:
                 return ActionType.DID_NOTHING
-        raise RuntimeError("unknown action type")
+        raise RuntimeError(f"unknown action type: {py_action_type}")

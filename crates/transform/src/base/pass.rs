@@ -62,7 +62,6 @@ impl Display for Pass {
     }
 }
 
-// #[cfg(feature = "py")]
 // impl IntoAnyPass for Pass {
 //     fn as_anypass(&self) -> AnyPass {
 //         match self {
@@ -71,6 +70,21 @@ impl Display for Pass {
 //             Self::IfElse(x) => x.as_anypass(),
 //             Self::Pipeline(x) => x.as_anypass(),
 //             Self::MetaAnalysis(x) => x.as_anypass(),
+//         }
+//     }
+// }
+
+// #[cfg(feature = "py")]
+// impl AsPyPass for Pass {
+//     type PyPass = ;
+// 
+//     fn as_pypass(&self) -> PyPass {
+//         match self {
+//             Self::Transformation(x) => x.as_pypass(),
+//             Self::Analysis(x) => x.as_pypass(),
+//             Self::IfElse(x) => x.as_pypass(),
+//             Self::Pipeline(x) => x.as_pypass(),
+//             Self::MetaAnalysis(x) => x.as_pypass(),
 //         }
 //     }
 // }

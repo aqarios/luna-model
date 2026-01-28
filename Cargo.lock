@@ -511,6 +511,8 @@ dependencies = [
  "parking_lot 0.12.5",
  "pyo3",
  "sqids",
+ "strum",
+ "strum_macros",
 ]
 
 [[package]]
