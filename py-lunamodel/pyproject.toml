@@ -100,7 +100,7 @@ docs = [
 ]
 
 [tool.mypy]
-exclude = [".venv", "tests", "docs"]
+exclude = [".venv", "tests", "docs", "examples"]
 disable_error_code = "import-untyped"
 
 [[tool.mypy.overrides]]
@@ -108,4 +108,4 @@ module = [
     "luna_model._lm",
     "luna_model._lm.*",
 ]
-disable_error_code = "import-not-found"
+ignore_missing_imports = true
