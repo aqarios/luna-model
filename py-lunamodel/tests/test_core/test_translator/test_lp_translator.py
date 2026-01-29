@@ -150,7 +150,7 @@ def test_gurobi_and_lm_lp_read_equality():
 
         # Check that the sense is equal
         assert gp_model.ModelSense == GP_SENSE_MIN
-        assert lm_model.sense == Sense.Min
+        assert lm_model.sense == Sense.MIN
 
         gp_objective = gp_model.getObjective()
         if isinstance(gp_objective, gp.QuadExpr):

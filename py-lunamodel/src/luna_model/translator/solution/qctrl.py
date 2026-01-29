@@ -3,7 +3,7 @@ from typing import Any
 
 from luna_model.environment.env import Environment
 from luna_model.solution.sol import Solution
-from luna_model.solution.timer import Timing
+from luna_model.timer import Timing
 
 
 class QctrlTranslator:

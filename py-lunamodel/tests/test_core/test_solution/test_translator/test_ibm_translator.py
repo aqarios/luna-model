@@ -63,7 +63,7 @@ def controlled_lm() -> Model:
     with model.environment:
         x = Variable("x", vtype=Vtype.BINARY)
         y = Variable("y", vtype=Vtype.BINARY)
-    model.set_sense(Sense.Min)
+    model.set_sense(Sense.MIN)
     model.objective = 1 * x + 2 * y + x * y - 3
     return model
 

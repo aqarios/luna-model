@@ -23,7 +23,7 @@ def model() -> Model:
         x3 = Variable("x3")
         x4 = Variable("x4")
     model.objective = x1 + x2 + x3 - x4 + x1 * x2 - x3 * x4
-    model.set_sense(Sense.Max)
+    model.set_sense(Sense.MAX)
     return model
 
 

@@ -11,7 +11,7 @@ from luna_model._lm import PyModel
 from luna_model._utils import wrap_cc, wrap_env, wrap_expr, wrap_s, wrap_sp, wrap_var
 from luna_model.expression.expr import Expression
 from luna_model.model.sense import Sense
-from luna_model.translator.ttarget import TranslationTarget
+from luna_model.ttarget import TranslationTarget
 from luna_model.variable.var import Variable
 from luna_model.variable.vtype import Vtype
 

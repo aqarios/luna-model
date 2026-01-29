@@ -25,6 +25,7 @@ from luna_model.errors import (
 )
 from luna_model.translator import DwaveTranslator
 from tests.test_core.utils import generate_bqms, make_seed, random_int
+from .fixtures import *  # noqa: F403
 
 
 def test_sampleset_translator_constructed(dwave_result: DwaveResult):

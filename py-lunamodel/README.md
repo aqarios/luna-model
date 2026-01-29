@@ -101,7 +101,7 @@ weights: list[float] = [ 1.5, 10.0, 5.2,  3.5, 8.32] # weight of each item.
 values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
 # First, we create the Model with it's sense set to Maximize the objective function.
 # You can also give your model a name, optionally but recommended.
-model = Model(sense=Sense.Max, name="Knapsack")
+model = Model(sense=Sense.MAX, name="Knapsack")
 # Next, we need to create all variables. Note, there are alternative ways to create
 # variables, you can find details in the LunaModel docs.
 variables = [model.add_variable(f"x_{i+1}", vtype=Vtype.Binary) for i in range(n)]
@@ -139,7 +139,7 @@ _Note that we have to use Integer variables now._
   values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
   # First, we create the Model with it's sense set to Maximize the objective function.
   # You can also give your model a name, optionally but recommended.
-  model = Model(sense=Sense.Max, name="Bounded Knapsack")
+  model = Model(sense=Sense.MAX, name="Bounded Knapsack")
   # Next, we need to create all variables. Note, there are alternative ways to create
   # variables, you can find details in the LunaModel docs.
   variables = [
@@ -168,7 +168,7 @@ _Note that we have to use Integer variables now._
   values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
   # First, we create the Model with it's sense set to Maximize the objective function.
   # You can also give your model a name, optionally but recommended.
-  model = Model(sense=Sense.Max, name="Bounded Knapsack")
+  model = Model(sense=Sense.MAX, name="Bounded Knapsack")
   # Next, we need to create all variables. Note, there are alternative ways to create
   # variables, you can find details in the LunaModel docs.
   variables = [

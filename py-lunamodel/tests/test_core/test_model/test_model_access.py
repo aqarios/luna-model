@@ -80,7 +80,7 @@ def test_use_set_expression():
         y = Variable("y")
 
     model.set_objective(x * y)
-    assert model.sense == Sense.Min
+    assert model.sense == Sense.MIN
     assert_offset(model.objective, 0)
     assert_linear(model.objective, (x,), 0)
     assert_quadratic(model.objective, (x, y), 1)
@@ -92,8 +92,8 @@ def test_use_set_expression_with_sense_min():
         x = Variable("x")
         y = Variable("y")
 
-    model.set_objective(x * y, sense=Sense.Min)
-    assert model.sense == Sense.Min
+    model.set_objective(x * y, sense=Sense.MIN)
+    assert model.sense == Sense.MIN
     assert_offset(model.objective, 0)
     assert_linear(model.objective, (x,), 0)
     assert_quadratic(model.objective, (x, y), 1)
@@ -105,8 +105,8 @@ def test_use_set_expression_with_sense_max():
         x = Variable("x")
         y = Variable("y")
 
-    model.set_objective(x * y, sense=Sense.Max)
-    assert model.sense == Sense.Max
+    model.set_objective(x * y, sense=Sense.MAX)
+    assert model.sense == Sense.MAX
     assert_offset(model.objective, 0)
     assert_linear(model.objective, (x,), 0)
     assert_quadratic(model.objective, (x, y), 1)

@@ -72,7 +72,7 @@ def wrap_sp(py_sp: PyModelSpecs) -> ModelSpecs:
 
 
 def wrap_t(py_t: PyTimer) -> Timer:
-    from luna_model.solution.timer import Timer  # noqa: PLC0415
+    from luna_model.timer import Timer  # noqa: PLC0415
 
     return Timer._from_pyt(py_t)
 

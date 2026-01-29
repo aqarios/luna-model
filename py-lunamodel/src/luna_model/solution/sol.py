@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from luna_model.model.sense import Sense
     from luna_model.solution.res import ResultIter, ResultView
     from luna_model.solution.sample import Samples
-    from luna_model.solution.timer import Timing
+    from luna_model.timer import Timing
     from luna_model.variable.var import Variable
 
 

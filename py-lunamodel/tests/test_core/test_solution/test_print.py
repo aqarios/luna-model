@@ -241,7 +241,7 @@ def model_with_sol(request) -> tuple[Model, Solution]:
     m.objective = -a - 5 * b - 6 * c + 2 * d + 2 * e
     m.constraints += a + b <= 1
     if not minimize:
-        m.set_sense(Sense.Max)
+        m.set_sense(Sense.MAX)
 
     sol = Solution.from_dicts(
         [

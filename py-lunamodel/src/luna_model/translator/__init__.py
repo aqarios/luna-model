@@ -13,7 +13,6 @@ from luna_model.translator.solution import (
     QctrlTranslator,
     ZibTranslator,
 )
-from luna_model.translator.ttarget import TranslationTarget
 
 __all__ = [
     "AwsTranslator",
@@ -26,6 +25,5 @@ __all__ = [
     "QctrlTranslator",
     "Qubo",
     "QuboTranslator",
-    "TranslationTarget",
     "ZibTranslator",
 ]

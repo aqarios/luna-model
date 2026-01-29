@@ -11,14 +11,14 @@ class ExpectedVtype(Enum):
 
 
 class ExpectedSense(Enum):
-    Min = "Minimize"
-    Max = "Maximize"
+    MIN = "Minimize"
+    MAX = "Maximize"
 
 
 class ExpectedComparator(Enum):
-    Eq = "Eq"
-    Le = "Le"
-    Ge = "Ge"
+    EQ = "Eq"
+    LE = "Le"
+    GE = "Ge"
 
 
 def test_name_vtype():
@@ -36,22 +36,22 @@ def test_value_vtype():
 
 
 def test_name_sense():
-    assert Sense.Min.name == ExpectedSense.Min.name
-    assert Sense.Max.name == ExpectedSense.Max.name
+    assert Sense.MIN.name == ExpectedSense.MIN.name
+    assert Sense.MAX.name == ExpectedSense.MAX.name
 
 
 def test_value_sense():
-    assert Sense.Min.value == ExpectedSense.Min.value
-    assert Sense.Max.value == ExpectedSense.Max.value
+    assert Sense.MIN.value == ExpectedSense.MIN.value
+    assert Sense.MAX.value == ExpectedSense.MAX.value
 
 
 def test_name_comparator():
-    assert Comparator.Eq.name == ExpectedComparator.Eq.name
-    assert Comparator.Le.name == ExpectedComparator.Le.name
-    assert Comparator.Ge.name == ExpectedComparator.Ge.name
+    assert Comparator.EQ.name == ExpectedComparator.EQ.name
+    assert Comparator.LE.name == ExpectedComparator.LE.name
+    assert Comparator.GE.name == ExpectedComparator.GE.name
 
 
 def test_value_comparator():
-    assert Comparator.Eq.value == ExpectedComparator.Eq.value
-    assert Comparator.Le.value == ExpectedComparator.Le.value
-    assert Comparator.Ge.value == ExpectedComparator.Ge.value
+    assert Comparator.EQ.value == ExpectedComparator.EQ.value
+    assert Comparator.LE.value == ExpectedComparator.LE.value
+    assert Comparator.GE.value == ExpectedComparator.GE.value
