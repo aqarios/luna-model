@@ -33,6 +33,10 @@ from luna_model.solution import (
     Solution,
     ValueSource,
 )
+from luna_model.timer import (
+    Timer,
+    Timing,
+)
 from luna_model.ttarget import TranslationTarget
 from luna_model.utils import quicksum
 from luna_model.variable import (
@@ -42,12 +46,7 @@ from luna_model.variable import (
     Vtype,
 )
 
-from luna_model.timer import (
-    Timer,
-    Timing,
-)
-
-from . import errors, transformation, utils, translator
+from . import errors, transformation, translator, utils
 
 __all__ = [
     "Bounds",
