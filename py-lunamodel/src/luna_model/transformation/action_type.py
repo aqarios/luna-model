@@ -6,17 +6,19 @@ from luna_model._lm import PyActionType
 
 
 class ActionType(Enum):
-    DID_TRANSFORM = ...
+    """ActionType."""
+
+    DID_TRANSFORM = "DidTransform"
     """Indicate that the pass did transform the model."""
-    DID_ANALYSIS = ...
+    DID_ANALYSIS = "DidAnalysis"
     """Indicate that the pass did analyse the model."""
-    DID_ANALYSIS_TRANSFORM = ...
+    DID_ANALYSIS_TRANSFORM = "DidAnalysisTransform"
     """Indicate that the pass did analyse and transfrom the model."""
-    DID_IF_ELSE = ...
+    DID_IF_ELSE = "DidIfElse"
     """Indicate that the pass did ifelse pass."""
-    DID_PIPELINE = ...
+    DID_PIPELINE = "DidPipeline"
     """Indicate that the pass did a pipeline pass."""
-    DID_NOTHING = ...
+    DID_NOTHING = "DidNothing"
     """Indicate that the pass did NOT do anything."""
 
     @property
@@ -50,4 +52,5 @@ class ActionType(Enum):
                 return ActionType.DID_PIPELINE
             case PyActionType.DidNothing:
                 return ActionType.DID_NOTHING
-        raise RuntimeError(f"unknown action type: {py_action_type}")
+        msg = f"unknown action type: {py_action_type}"
+        raise RuntimeError(msg)

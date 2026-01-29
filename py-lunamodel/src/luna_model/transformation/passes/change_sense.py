@@ -19,6 +19,4 @@ class ChangeSensePass(ConcreteTransformationPass):
     @property
     def sense(self) -> Sense:
         """Get the specified target sense of this pass."""
-        return Sense._from_pysense(
-            self._csp.sense  # type: ignore[reportAttributeAccessIssue]
-        )
+        return Sense._from_pysense(self._csp.sense)

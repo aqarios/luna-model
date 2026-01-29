@@ -6,28 +6,17 @@ from luna_model._lm import PySense
 
 
 class Sense(Enum):
+    """Optimization sense."""
+
     MIN = "Minimize"
     MAX = "Maximize"
-
-    # below to be deprecated
-
-    Min = "Minimize"
-    Max = "Maximize"
-
-    @property
-    def name(self) -> str:
-        match self:
-            case Sense.MIN | Sense.Min:
-                return "Min"
-            case Sense.MAX | Sense.Max:
-                return "Max"
 
     @property
     def _val(self) -> PySense:
         match self:
-            case Sense.MIN | Sense.Min:
+            case Sense.MIN:
                 return PySense.Min
-            case Sense.MAX | Sense.Max:
+            case Sense.MAX:
                 return PySense.Max
 
     @classmethod
@@ -37,4 +26,5 @@ class Sense(Enum):
                 return Sense.MIN
             case PySense.Max:
                 return Sense.MAX
-        raise RuntimeError("unknown sense")
+        msg = f"unknown sense: {py_sense}"
+        raise RuntimeError(msg)

@@ -1,14 +1,19 @@
 from __future__ import annotations
 
-from numpy.typing import NDArray
+from typing import TYPE_CHECKING
 
 from luna_model._lm import PyQubo, PyQuboTranslator
 from luna_model.model.model import Model
 from luna_model.model.sense import Sense
 from luna_model.variable.vtype import Vtype
 
+if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
 
 class Qubo:
+    """Qubo."""
+
     _q: PyQubo
 
     @classmethod
@@ -19,30 +24,38 @@ class Qubo:
 
     @property
     def name(self) -> str:
+        """Get name."""
         return self._q.name
 
     @property
     def variable_names(self) -> list[str]:
+        """Get variable names."""
         return self._q.variable_names
 
     @property
     def matrix(self) -> NDArray:
+        """Get qubo matrix."""
         return self._q.matrix
 
     @property
     def offset(self) -> float:
+        """Get offset."""
         return self._q.offset
 
     @property
     def vtype(self) -> Vtype:
+        """Get vtype."""
         return Vtype._from_pyvtype(self._q.vtype)
 
     @property
     def sense(self) -> Sense:
+        """Get sense."""
         return Sense._from_pysense(self._q.sense)
 
 
 class QuboTranslator:
+    """Qubo translator."""
+
     @staticmethod
     def to_lm(
         qubo: NDArray,
@@ -52,6 +65,7 @@ class QuboTranslator:
         name: str | None = None,
         vtype: Vtype | None = None,
     ) -> Model:
+        """From QUBO to model."""
         return Model._from_pym(
             PyQuboTranslator.to_lm(
                 qubo,
@@ -64,4 +78,5 @@ class QuboTranslator:
 
     @staticmethod
     def from_lm(model: Model) -> Qubo:
+        """From model to QUBO."""
         return Qubo._from_pyq(PyQuboTranslator.from_lm(model._m))

@@ -19,12 +19,15 @@ Constant: TypeAlias = PyConstant
 
 
 class Linear:
+    """Linear term."""
+
     _l: PyLinear
 
     __match_args__ = ("var",)
 
     @property
     def var(self) -> Variable:
+        """The linear variable."""
         return wrap_var(self._l.var)
 
     @classmethod
@@ -36,16 +39,20 @@ class Linear:
 
 
 class Quadratic:
+    """Quadratic term."""
+
     _q: PyQuadratic
 
     __match_args__ = ("var_a", "var_b")
 
     @property
     def var_a(self) -> Variable:
+        """The first variable."""
         return wrap_var(self._q.var_a)
 
     @property
     def var_b(self) -> Variable:
+        """The second variable."""
         return wrap_var(self._q.var_b)
 
     @classmethod
@@ -57,12 +64,15 @@ class Quadratic:
 
 
 class HigherOrder:
+    """Higher order term."""
+
     _h: PyHigherOrder
 
     __match_args__ = ("vars",)
 
     @property
     def vars(self) -> list[Variable]:
+        """The variables."""
         return [wrap_var(v) for v in self._h.vars]
 
     @classmethod
@@ -74,9 +84,12 @@ class HigherOrder:
 
 
 class ExprIter:
+    """Expression iterator."""
+
     _i: PyExpressionIterator
 
     def __next__(self) -> tuple[Constant | Linear | Quadratic | HigherOrder, float]:
+        """Get the next item."""
         nxt, b = self._i.__next__()
         match nxt:
             case PyLinear(_):
@@ -87,9 +100,11 @@ class ExprIter:
                 return HigherOrder._from_pyh(nxt), b
             case PyConstant():
                 return nxt, b
-        raise RuntimeError(f"unknown element type: '{type(nxt)}'")
+        msg = f"unknown element type: '{type(nxt)}'"
+        raise RuntimeError(msg)
 
     def __iter__(self) -> ExprIter:
+        """Iterate."""
         return self
 
     @classmethod

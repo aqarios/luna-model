@@ -1,13 +1,19 @@
 from __future__ import annotations
 
-from luna_model._lm import PyIR
+from typing import TYPE_CHECKING
+
 from luna_model.model.model import Model
 
 from .cache import AnalysisCache
 from .log import LogElement
 
+if TYPE_CHECKING:
+    from luna_model._lm import PyIR
+
 
 class IR:
+    """IR."""
+
     _ir: PyIR
     """The intermediate representation (IR) of a model after transformation.
 

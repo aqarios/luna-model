@@ -1,3 +1,4 @@
+# type: ignore[reportPossiblyUnboundVariable]
 import numpy as np
 
 from luna_model.environment.env import Environment
@@ -6,7 +7,7 @@ from luna_model.solution.timer import Timing
 
 _DIMOD_AVAILABLE: bool = False
 try:
-    from dimod import SampleSet  # type: ignore[reportMissingImports]
+    from dimod import SampleSet
 
     _DIMOD_AVAILABLE = True
 except ImportError:
@@ -14,6 +15,8 @@ except ImportError:
 
 
 class DwaveTranslator:
+    """Dwave solution translator."""
+
     @staticmethod
     def to_lm(
         sample_set: SampleSet,
@@ -21,10 +24,10 @@ class DwaveTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
+        """Translate dwave solution to luna model solution."""
         if not _DIMOD_AVAILABLE:
-            raise RuntimeError(
-                "dimod is required for the DwaveTranslator. You can install it using the 'dimod' extra.",
-            )
+            msg = "dimod is required for the DwaveTranslator. You can install it using the 'dimod' extra."
+            raise RuntimeError(msg)
         sampleset = sample_set.aggregate()
         variables = sampleset.variables
         record = sampleset.record

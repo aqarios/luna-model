@@ -9,8 +9,6 @@ from .transform import TransformationPass
 
 
 class PassManager:
-    _pm: PyPassManager
-
     """Manage and execute a sequence of passes on a model.
 
     The PassManager implements a compiler-style pass pattern, enabling both
@@ -20,6 +18,8 @@ class PassManager:
     PassManager runs each pass in order and produces a rich IR that records
     the transformations applied and supports back-transformations.
     """
+
+    _pm: PyPassManager
 
     def __init__(self, passes: list[BasePass | TransformationPass | AnalysisPass] | None = None) -> None:
         """Manage and execute a sequence of passes on a model.
@@ -77,7 +77,9 @@ class PassManager:
         return Solution._from_pys(self._pm.backwards(solution._s, ir._ir))
 
     def __str__(self) -> str:
+        """Human readable string."""
         return self._pm.__str__()
 
     def __repr__(self) -> str:
+        """Debug string."""
         return self._pm.__repr__()

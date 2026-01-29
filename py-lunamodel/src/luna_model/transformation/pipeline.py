@@ -8,6 +8,8 @@ from .base import BasePass
 
 
 class Pipeline(PyPipeline, BasePass):
+    """Pipeline."""
+
     _pipeline: PyPipeline
 
     @overload
@@ -46,4 +48,5 @@ class Pipeline(PyPipeline, BasePass):
         self._pipeline.clear()
 
     def __len__(self) -> int:
+        """Get the length."""
         return self._pipeline.__len__()

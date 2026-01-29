@@ -1,15 +1,21 @@
+# type: ignore[reportPossiblyUnboundVariable]
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import Any, Protocol, TypeAlias
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias
 
-from dimod import SampleSet  # type: ignore[import]
-from pyscipopt import Model as ScipModel  # type: ignore[import]
-from qiskit.primitives import PrimitiveResult, PubResult  # type: ignore[import]
+try:
+    from dimod import SampleSet
+    from pyscipopt import Model as ScipModel
+    from qiskit.primitives import PrimitiveResult, PubResult
+except ImportError:
+    pass
 
-from luna_model._lm import PyBounds
 from luna_model.solution import ResultView
 from luna_model.variable import Unbounded, Variable
+
+if TYPE_CHECKING:
+    from luna_model._lm import PyBounds
 
 
 class VBounds(Protocol):

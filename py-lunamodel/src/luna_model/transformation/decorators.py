@@ -117,7 +117,7 @@ class DynamicTransformationPass(TransformationPass):
         self._requires = requires
         self._invalidates = invalidates
         self._func = func
-        self._backwards = backwards
+        self._backwards = backwards  # type: ignore[reportAttributeAccessIssue]
 
     @property
     def name(self) -> str:
