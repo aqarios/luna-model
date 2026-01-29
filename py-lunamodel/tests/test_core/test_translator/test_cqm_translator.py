@@ -3,8 +3,8 @@ from random import Random
 import pytest
 from dimod import Binary, ConstrainedQuadraticModel, Integer, Real
 from dimod import lp as dimod_lp
-from luna_model.translator import CqmTranslator
 
+from luna_model.translator import CqmTranslator
 from tests.test_core.test_translator.test_lp_translator import check_dimod_expr
 from tests.test_core.utils import generate_cqms, make_seed
 

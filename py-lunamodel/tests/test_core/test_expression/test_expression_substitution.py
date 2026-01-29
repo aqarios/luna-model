@@ -1,4 +1,3 @@
-import pytest
 from luna_model import Environment, Variable, Vtype
 
 
@@ -84,4 +83,4 @@ def test_expression_higher_order_debug():
     elem = x1 + 2 * x2 + 4 * x3
     base = elem * elem
     out = base * elem
-    assert 48 == out.get_higher_order(x1, x2, x3)
+    assert out.get_higher_order(x1, x2, x3) == 48

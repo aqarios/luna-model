@@ -1,4 +1,4 @@
-from luna_model import Expression, Variable, Environment, Vtype
+from luna_model import Environment, Expression, Variable, Vtype
 
 
 def test_imul_binaries():
@@ -10,7 +10,7 @@ def test_imul_binaries():
     expr *= a
     expr *= a
 
-    assert 1 == expr.degree()
+    assert expr.degree() == 1
 
 
 def test_imul_spins():
@@ -22,7 +22,7 @@ def test_imul_spins():
     expr *= a
     expr *= a
 
-    assert 0 == expr.degree()
+    assert expr.degree() == 0
 
 
 def test_imul_ints():
@@ -34,7 +34,7 @@ def test_imul_ints():
     expr *= a
     expr *= a
 
-    assert 2 == expr.degree()
+    assert expr.degree() == 2
 
 
 def test_imul_reals():
@@ -46,4 +46,4 @@ def test_imul_reals():
     expr *= a
     expr *= a
 
-    assert 2 == expr.degree()
+    assert expr.degree() == 2

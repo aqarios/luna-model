@@ -1,10 +1,8 @@
 from random import Random
 from time import sleep
 
-import pytest
 from luna_model import Environment, Timer, Variable
 from luna_model.translator import QctrlTranslator
-
 from tests.test_core.utils import make_seed, random, random_int
 
 from .fixtures import fake_qctrl_result

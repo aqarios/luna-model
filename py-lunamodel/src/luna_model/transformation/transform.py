@@ -1,22 +1,22 @@
 from __future__ import annotations
+
 from abc import abstractmethod
 from typing import Any, overload
 
+from luna_model._lm import (
+    PyActionType,
+    PyAnalysisCache,
+    PyModel,
+    PySolution,
+    PyTransformationOutcome,
+    PyTransformationPass,
+)
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 
-from luna_model._lm import (
-    PyTransformationPass,
-    PyTransformationOutcome,
-    PyModel,
-    PySolution,
-    PyAnalysisCache,
-    PyActionType,
-)
-
+from .action_type import ActionType
 from .base import BasePass
 from .cache import AnalysisCache
-from .action_type import ActionType
 
 
 class TransformationOutcome:
@@ -112,11 +112,10 @@ class TransformationPass(PyTransformationPass, BasePass):
         if isinstance(inter, tuple) and len(inter) == 2:
             model, at = inter
             return model._m, at._val
-        elif isinstance(inter, tuple) and len(inter) == 3:
+        if isinstance(inter, tuple) and len(inter) == 3:
             model, at, c = inter
             return model._m, at._val, c
-        else:
-            return inter._to
+        return inter._to
 
     def _backwards(self, solution: PySolution, cache: PyAnalysisCache) -> PySolution:
         return self.backwards(Solution._from_pys(solution), AnalysisCache._from_pyac(cache))._s
@@ -136,11 +135,10 @@ class ConcreteTransformationPass(TransformationPass):
         if isinstance(inter, tuple) and len(inter) == 2:
             model, at = inter
             return Model._from_pym(model), ActionType._from_pyat(at)
-        elif isinstance(inter, tuple) and len(inter) == 3:
+        if isinstance(inter, tuple) and len(inter) == 3:
             model, at, c = inter
             return Model._from_pym(model), ActionType._from_pyat(at), c
-        else:
-            return TransformationOutcome._from_pyto(inter)
+        return TransformationOutcome._from_pyto(inter)
 
     def backwards(self, solution: Solution, cache: AnalysisCache) -> Solution:
         """Convert a solution back to fit this pass' input.

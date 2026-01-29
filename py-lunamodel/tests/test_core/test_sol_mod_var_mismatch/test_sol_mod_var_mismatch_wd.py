@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import numpy as np
+
 from luna_model import Model, Solution
 
 

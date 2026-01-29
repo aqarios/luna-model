@@ -1,5 +1,4 @@
-from luna_model import Environment
-from luna_model import Expression, Variable
+from luna_model import Environment, Expression, Variable
 
 
 def test_expression_separation_linear():

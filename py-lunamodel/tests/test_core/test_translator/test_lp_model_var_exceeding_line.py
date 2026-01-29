@@ -1,7 +1,6 @@
 import base64
 from pathlib import Path
 
-
 from luna_model import Model
 from luna_model.translator import LpTranslator
 

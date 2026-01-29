@@ -6,7 +6,7 @@ from luna_model._lm import PyValueSource
 class ValueSource(Enum):
     OBJ = "Obj"
     RAW = "Raw"
-    # todo: remove this
+    # TODO: remove this
     Obj = "Obj"
     Raw = "Raw"
 

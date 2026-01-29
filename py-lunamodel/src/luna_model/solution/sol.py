@@ -1,30 +1,30 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, Literal, Sequence
 
-from luna_model._lm import PySolution
-from luna_model.variable.vtype import Vtype
-from luna_model.solution.src import ValueSource
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Literal
 
 # TODO: try import these, else some default.
 from dimod import SampleSet  # type: ignore[import]
-from qiskit.primitives import PrimitiveResult  # type: ignore[import]
-from pyscipopt import Model as ScipModel  # type: ignore[import]
-
 from numpy import ndarray
+from pyscipopt import Model as ScipModel  # type: ignore[import]
+from qiskit.primitives import PrimitiveResult  # type: ignore[import]
+
+from luna_model._lm import PySolution
+from luna_model.solution.src import ValueSource
+from luna_model.variable.vtype import Vtype
 
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
     from luna_model._lm import PyVariable
-    from luna_model.variable.var import Variable
-    from luna_model.solution.sample import Samples
-    from luna_model.solution.timer import Timing
+    from luna_model._typing import FilterFn, SolutionFromTypes, _Sample
     from luna_model.environment.env import Environment
     from luna_model.model.model import Model
     from luna_model.model.sense import Sense
     from luna_model.solution.res import ResultIter, ResultView
-    from luna_model._typing import FilterFn, SolutionFromTypes
-
-    from luna_model._typing import _Sample
-    from numpy.typing import NDArray
+    from luna_model.solution.sample import Samples
+    from luna_model.solution.timer import Timing
+    from luna_model.variable.var import Variable
 
 
 class Solution:
@@ -238,31 +238,31 @@ class Solution:
             from luna_model.translator.solution.zib import ZibTranslator
 
             return ZibTranslator.to_lm(other, env=env, timing=timing, **kwargs)
-        elif isinstance(other, SampleSet):
+        if isinstance(other, SampleSet):
             from luna_model.translator.solution.dwave import DwaveTranslator
 
             return DwaveTranslator.to_lm(other, env=env, timing=timing, **kwargs)
-        elif isinstance(other, PrimitiveResult):
+        if isinstance(other, PrimitiveResult):
             from luna_model.translator.solution.ibm import IbmTranslator
 
             return IbmTranslator.to_lm(other, env=env, timing=timing, **kwargs)
-        elif isinstance(other, ndarray):
+        if isinstance(other, ndarray):
             from luna_model.translator.solution.numpy import NumpyTranslator
 
             return NumpyTranslator.to_lm(other, env=env, timing=timing, **kwargs)
-        elif isinstance(other, dict) and "solution_bitstring" in other:
+        if isinstance(other, dict) and "solution_bitstring" in other:
             from luna_model.translator.solution.qctrl import QctrlTranslator
 
             return QctrlTranslator.to_lm(other, env=env, timing=timing, **kwargs)  # type: ignore[reportArgumentType]
-        elif isinstance(other, dict) and "samples" in other:
+        if isinstance(other, dict) and "samples" in other:
             from luna_model.translator.solution.aws import AwsTranslator
 
             return AwsTranslator.to_lm(other, env=env, timing=timing, **kwargs)  # type: ignore[reportArgumentType]
 
-        elif isinstance(other, dict):
+        if isinstance(other, dict):
             # TODO: need to include the from_counts distinction here also...
             return Solution.from_dict(other, env=env, timing=timing, **kwargs)
-        elif isinstance(other, list):
+        if isinstance(other, list):
             return Solution.from_dicts(other, env=env, timing=timing, **kwargs)
         raise ValueError(f"unsupported type '{type(other)}'")
 

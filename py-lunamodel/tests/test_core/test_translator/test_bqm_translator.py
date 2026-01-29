@@ -3,6 +3,7 @@ from random import Random
 import numpy as np
 import pytest
 from dimod import BinaryQuadraticModel
+
 from luna_model import Model, Sense, Variable
 from luna_model.errors import (
     ModelSenseNotMinimizeError,
@@ -10,7 +11,6 @@ from luna_model.errors import (
     VariableNamesError,
 )
 from luna_model.translator import BqmTranslator
-
 from tests.test_core.utils import generate_bqms, make_seed
 
 

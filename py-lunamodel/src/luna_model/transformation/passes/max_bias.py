@@ -1,5 +1,4 @@
 from luna_model._lm import PyMaxBiasAnalysis
-
 from luna_model.transformation.analysis import ConcreteAnalysisPass
 
 

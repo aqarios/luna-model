@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Environment, Variable
 from luna_model.errors import (
     MultipleActiveEnvironmentsError,
@@ -32,9 +33,8 @@ def test_create_variable_no_context_no_env():
 
 
 def test_create_variable_in_double_context():
-    with pytest.raises(MultipleActiveEnvironmentsError), Environment():
-        with Environment():
-            _ = Variable("x")
+    with pytest.raises(MultipleActiveEnvironmentsError), Environment(), Environment():
+        _ = Variable("x")
 
 
 def test_create_variable_with_same_name_different_environment():

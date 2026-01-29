@@ -1,6 +1,7 @@
 import itertools
-from typing import Generator
-from luna_model import Variable, Vtype, Unbounded, Bounds, Environment
+from collections.abc import Generator
+
+from luna_model import Bounds, Environment, Unbounded, Variable, Vtype
 from tests.utils.general import vtypes
 
 _bound_value = [-1.0, 0.0, 1.0, Unbounded, None]

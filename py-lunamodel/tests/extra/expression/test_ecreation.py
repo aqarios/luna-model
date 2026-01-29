@@ -1,4 +1,5 @@
 import random
+
 from luna_model import Environment, Expression
 
 

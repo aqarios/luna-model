@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Model, Vtype
 from luna_model.transformation import PassManager
 from luna_model.transformation.passes import BinarySpinPass

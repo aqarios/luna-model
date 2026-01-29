@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Model, Variable, Vtype
 from luna_model.errors import VariableNotExistingError
 

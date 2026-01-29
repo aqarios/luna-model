@@ -1,11 +1,10 @@
-from luna_model import Model, Solution, Sense, Variable
+from luna_model import Model, Sense, Solution, Variable
 from luna_model.transformation import (
+    ActionType,
     AnalysisCache,
     PassManager,
     TransformationPass,
-    ActionType,
 )
-
 from luna_model.transformation.passes import ChangeSensePass
 
 lm = Model()

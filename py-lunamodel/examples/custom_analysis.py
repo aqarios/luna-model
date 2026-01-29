@@ -4,7 +4,6 @@ from luna_model.transformation import (
     AnalysisPass,
     PassManager,
 )
-
 from luna_model.transformation.passes import MaxBiasAnalysis
 
 lm = Model()

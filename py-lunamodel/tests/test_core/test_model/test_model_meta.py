@@ -1,6 +1,7 @@
 import random
 
 import pytest
+
 from luna_model import (
     Comparator,
     Constant,

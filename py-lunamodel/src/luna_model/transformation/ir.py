@@ -1,7 +1,7 @@
 from __future__ import annotations
-from luna_model.model.model import Model
 
 from luna_model._lm import PyIR
+from luna_model.model.model import Model
 
 from .cache import AnalysisCache
 from .log import LogElement

@@ -3,7 +3,8 @@ from luna_model.model.model import Model
 
 _DIMOD_AVAILABLE: bool = False
 try:
-    from dimod import ConstrainedQuadraticModel, lp as dimod_lp  # type: ignore[reportMissingImports]
+    from dimod import ConstrainedQuadraticModel  # type: ignore[reportMissingImports]
+    from dimod import lp as dimod_lp
 
     _DIMOD_AVAILABLE = True
 except ImportError:

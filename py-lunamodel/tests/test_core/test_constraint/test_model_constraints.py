@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Environment, Model, Vtype
 from luna_model.errors import DuplicateConstraintNameError, NoConstraintForKeyError
 

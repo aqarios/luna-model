@@ -1,5 +1,6 @@
 import pytest
-from luna_model import Variable, Environment, Vtype, Solution
+
+from luna_model import Environment, Solution, Variable, Vtype
 from luna_model.errors import UnsupportedOperationError
 
 
@@ -23,7 +24,7 @@ def test_inverse_binary_lin():
     b = Variable("b", vtype=Vtype.BINARY, env=env)
     expr = 5 * ~b
     sol = expr.evaluate(Solution.from_dict({"b": 0}, env=env))[0]
-    assert 5.0 == sol, "evaluated value is not 5"
+    assert sol == 5.0, "evaluated value is not 5"
 
 
 def test_inverse_binary_quad():
@@ -31,7 +32,7 @@ def test_inverse_binary_quad():
     b = Variable("b", vtype=Vtype.BINARY, env=env)
     expr = 5 * ~b * b
     sol = expr.evaluate(Solution.from_dict({"b": 0}, env=env))[0]
-    assert 0.0 == sol, "evaluated value is not 0.0"
+    assert sol == 0.0, "evaluated value is not 0.0"
 
 
 def test_inverse_binary_quad2():
@@ -39,7 +40,7 @@ def test_inverse_binary_quad2():
     b = Variable("b", vtype=Vtype.BINARY, env=env)
     expr = 5 * b * ~b
     sol = expr.evaluate(Solution.from_dict({"b": 0}, env=env))[0]
-    assert 0.0 == sol, "evaluated value is not 0.0"
+    assert sol == 0.0, "evaluated value is not 0.0"
 
 
 def test_inverse_binary_ho():
@@ -49,11 +50,11 @@ def test_inverse_binary_ho():
     c = Variable("c", vtype=Vtype.BINARY, env=env)
     expr = 5 * a * b * c * ~b
     sol = expr.evaluate(Solution.from_dict({"b": 0, "a": 1, "c": 1}, env=env))[0]
-    assert 0.0 == sol, "evaluated value is not 0.0"
-    assert 0.0 == expr.get_offset()
-    assert 0 == len(expr.linear_items())
-    assert 0 == len(expr.quadratic_items())
-    assert 0 == len(expr.higher_order_items())
+    assert sol == 0.0, "evaluated value is not 0.0"
+    assert expr.get_offset() == 0.0
+    assert len(expr.linear_items()) == 0
+    assert len(expr.quadratic_items()) == 0
+    assert len(expr.higher_order_items()) == 0
 
 
 def test_inverse_binary_ho2():
@@ -63,11 +64,11 @@ def test_inverse_binary_ho2():
     c = Variable("c", vtype=Vtype.BINARY, env=env)
     expr = 5 * a * c * b * ~b
     sol = expr.evaluate(Solution.from_dict({"b": 0, "a": 1, "c": 1}, env=env))[0]
-    assert 0.0 == sol, "evaluated value is not 0.0"
-    assert 0.0 == expr.get_offset()
-    assert 0 == len(expr.linear_items())
-    assert 0 == len(expr.quadratic_items())
-    assert 0 == len(expr.higher_order_items())
+    assert sol == 0.0, "evaluated value is not 0.0"
+    assert expr.get_offset() == 0.0
+    assert len(expr.linear_items()) == 0
+    assert len(expr.quadratic_items()) == 0
+    assert len(expr.higher_order_items()) == 0
 
 
 def test_inverse_binary_ho3():
@@ -77,11 +78,11 @@ def test_inverse_binary_ho3():
     c = Variable("c", vtype=Vtype.BINARY, env=env)
     expr = 5 * a * ~b * c * b
     sol = expr.evaluate(Solution.from_dict({"b": 0, "a": 1, "c": 1}, env=env))[0]
-    assert 0.0 == sol, "evaluated value is not 0.0"
-    assert 0.0 == expr.get_offset()
-    assert 0 == len(expr.linear_items())
-    assert 0 == len(expr.quadratic_items())
-    assert 0 == len(expr.higher_order_items())
+    assert sol == 0.0, "evaluated value is not 0.0"
+    assert expr.get_offset() == 0.0
+    assert len(expr.linear_items()) == 0
+    assert len(expr.quadratic_items()) == 0
+    assert len(expr.higher_order_items()) == 0
 
 
 def test_inverse_int():

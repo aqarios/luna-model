@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import overload
 
 from luna_model._lm import PyPipeline

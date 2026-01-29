@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from luna_model.translator import AwsTranslator
 
 from .common import do_checks  # type: ignore[reportMissingImports]

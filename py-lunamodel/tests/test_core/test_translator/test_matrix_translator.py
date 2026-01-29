@@ -4,6 +4,8 @@ from itertools import product
 import numpy as np
 import pytest
 import scipy.sparse as sp  # type: ignore[import-untyped]
+from numpy.typing import NDArray
+
 from luna_model import Model, Sense, Variable, Vtype
 from luna_model.errors import (
     ModelNotQuadraticError,
@@ -15,7 +17,6 @@ from luna_model.errors import (
     VariableNamesError,
 )
 from luna_model.translator import QuboTranslator
-from numpy.typing import NDArray
 
 from ..utils import make_seed
 

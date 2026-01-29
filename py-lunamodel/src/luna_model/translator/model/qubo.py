@@ -1,9 +1,11 @@
 from __future__ import annotations
-from luna_model._lm import PyQuboTranslator, PyQubo
+
+from numpy.typing import NDArray
+
+from luna_model._lm import PyQubo, PyQuboTranslator
 from luna_model.model.model import Model
 from luna_model.model.sense import Sense
 from luna_model.variable.vtype import Vtype
-from numpy.typing import NDArray
 
 
 class Qubo:

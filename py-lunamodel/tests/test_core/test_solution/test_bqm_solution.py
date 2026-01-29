@@ -3,6 +3,7 @@ import sys
 import dimod
 import numpy as np
 import pytest
+
 from luna_model import Solution, Vtype
 from luna_model.translator import BqmTranslator, DwaveTranslator
 

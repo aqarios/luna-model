@@ -1,8 +1,8 @@
-import pytest
 import itertools
 
-from luna_model import Variable, Vtype, Bounds, Unbounded, Environment
+import pytest
 
+from luna_model import Bounds, Environment, Unbounded, Variable, Vtype
 
 bound_value = [-1.0, 0.0, 1.0, Unbounded, None]
 bounds = [Bounds(lo, up) for (lo, up) in itertools.product(bound_value, bound_value)]

@@ -1,13 +1,15 @@
+from collections.abc import Callable
 from dataclasses import dataclass
-from dimod import SampleSet, as_samples
+from random import Random, shuffle
+from typing import Any
+
 import numpy as np
 import pytest
-from luna_model import Model, Vtype, Environment, Variable, Bounds
-from numpy.typing import NDArray
-from random import Random, shuffle
-from typing import Any, Callable
-
+from dimod import SampleSet, as_samples
 from numpy import unique
+from numpy.typing import NDArray
+
+from luna_model import Bounds, Environment, Model, Variable, Vtype
 from tests.test_core.utils import random_bool, random_int
 
 

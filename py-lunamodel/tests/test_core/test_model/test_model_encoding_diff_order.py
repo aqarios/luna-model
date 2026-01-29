@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Bounds, Model, Unbounded, Variable, Vtype
 
 

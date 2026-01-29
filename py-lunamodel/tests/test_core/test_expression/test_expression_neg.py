@@ -1,6 +1,7 @@
 from itertools import product
 
 import pytest
+
 from luna_model import Environment, Variable, Vtype
 
 

@@ -1,5 +1,4 @@
 from luna_model._lm import PyChangeSensePass
-
 from luna_model.model.model import Sense
 from luna_model.transformation.transform import ConcreteTransformationPass
 

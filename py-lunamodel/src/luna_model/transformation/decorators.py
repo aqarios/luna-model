@@ -14,18 +14,17 @@
 """Decorators."""
 
 from collections.abc import Callable
-from typing import Any, Generic, TypeAlias, TypeVar
-from typing_extensions import override
+from typing import Any, Generic, TypeAlias, TypeVar, override
 
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 
-from .analysis import AnalysisPass
-from .meta_analysis import MetaAnalysisPass
-from .cache import AnalysisCache
 from .action_type import ActionType
+from .analysis import AnalysisPass
 from .base import BasePass
-from .transform import TransformationPass, TransformationOutcome
+from .cache import AnalysisCache
+from .meta_analysis import MetaAnalysisPass
+from .transform import TransformationOutcome, TransformationPass
 
 T = TypeVar("T")
 

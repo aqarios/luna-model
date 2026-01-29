@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Environment, Model, Solution, Timer, Variable, Vtype
 
 

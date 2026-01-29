@@ -1,6 +1,6 @@
 import pytest
 
-from luna_model import Variable, Vtype, Environment, Comparator, Constraint
+from luna_model import Comparator, Constraint, Environment, Variable, Vtype
 
 vtypes = [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]
 
@@ -33,8 +33,8 @@ def test_cmp_to_expr_constr_eq(lhs_vtype, rhs_vtype):
     res = lhs == (rhs * 1)
     assert isinstance(res, Constraint)
     assert (lhs - rhs).is_equal(res.lhs)
-    assert 0 == res.rhs
-    assert Comparator.EQ == res.comparator
+    assert res.rhs == 0
+    assert res.comparator == Comparator.EQ
 
 
 @pytest.mark.parametrize("lhs_vtype", vtypes)
@@ -48,8 +48,8 @@ def test_cmp_to_expr_constr_le(lhs_vtype, rhs_vtype):
     res = lhs <= rhs
     assert isinstance(res, Constraint)
     assert (lhs - rhs).is_equal(res.lhs)
-    assert 0 == res.rhs
-    assert Comparator.LE == res.comparator
+    assert res.rhs == 0
+    assert res.comparator == Comparator.LE
 
 
 @pytest.mark.parametrize("lhs_vtype", vtypes)
@@ -63,5 +63,5 @@ def test_cmp_to_expr_constr_ge(lhs_vtype, rhs_vtype):
     res = lhs >= rhs
     assert isinstance(res, Constraint)
     assert (lhs - rhs).is_equal(res.lhs)
-    assert 0 == res.rhs
-    assert Comparator.GE == res.comparator
+    assert res.rhs == 0
+    assert res.comparator == Comparator.GE

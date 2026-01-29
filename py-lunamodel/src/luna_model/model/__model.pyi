@@ -1,11 +1,11 @@
-from typing import Literal, overload
 from pathlib import Path
+from typing import Literal, overload
 
 from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel  # type: ignore[import]
 from numpy.typing import NDArray  # type: ignore[import]
 
-from luna_model.variable import Vtype
 from luna_model.translator import Qubo, TranslationTarget
+from luna_model.variable import Vtype
 
 class Model:
     @overload

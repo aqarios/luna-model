@@ -1,11 +1,11 @@
-from luna_model import Model, Sense, Variable
-from luna_model.transformation.analysis import AnalysisCache
-from luna_model.transformation.passes import ChangeSensePass  # , MaxBiasAnalysis
-from luna_model.transformation.pass_manager import PassManager
-from luna_model.transformation.transform import TransformationPass
-
 # from luna_model._lm import ChangeSensePass, MaxBiasAnalysis, PassManager
 from luna_model._lm import PyTransformationPass
+
+from luna_model import Model, Sense, Variable
+from luna_model.transformation.analysis import AnalysisCache
+from luna_model.transformation.pass_manager import PassManager
+from luna_model.transformation.passes import ChangeSensePass  # , MaxBiasAnalysis
+from luna_model.transformation.transform import TransformationPass
 
 lm = Model("Model To transform")
 lm.set_sense(sense=Sense.Max)

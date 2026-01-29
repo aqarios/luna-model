@@ -1,4 +1,4 @@
-from luna_model import Variable, Environment
+from luna_model import Environment, Variable
 
 
 def test_var_hash():

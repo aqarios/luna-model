@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Environment, Model
 from luna_model.errors import MultipleActiveEnvironmentsError
 
@@ -15,6 +16,5 @@ def test_create_model_no_env():
 
 
 def test_create_model_in_double_context():
-    with pytest.raises(MultipleActiveEnvironmentsError), Environment():
-        with Environment():
-            _ = Model()
+    with pytest.raises(MultipleActiveEnvironmentsError), Environment(), Environment():
+        _ = Model()

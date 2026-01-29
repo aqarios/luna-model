@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from luna_model._lm import PyLogElement
 from luna_model.solution.timer import Timing
 
@@ -32,5 +33,4 @@ class LogElement:
         at = self._le.kind
         if at is None:
             return None
-        else:
-            return ActionType._from_pyat(at)
+        return ActionType._from_pyat(at)

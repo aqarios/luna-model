@@ -1,28 +1,30 @@
 from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, overload
-
-from luna_model._utils import wrap_expr, wrap_cc, wrap_env, wrap_var, wrap_sp, wrap_s
-from luna_model._lm import PyModel
-from luna_model.model.sense import Sense
-from luna_model.variable.vtype import Vtype
-from luna_model.translator.ttarget import TranslationTarget
 
 from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel  # type: ignore[import]
 from numpy import ndarray
 
+from luna_model._lm import PyModel
+from luna_model._utils import wrap_cc, wrap_env, wrap_expr, wrap_s, wrap_sp, wrap_var
+from luna_model.model.sense import Sense
+from luna_model.translator.ttarget import TranslationTarget
+from luna_model.variable.vtype import Vtype
+
 if TYPE_CHECKING:
-    from luna_model.environment.env import Environment
-    from luna_model.constraint.constr import Constraint
-    from luna_model.constraint.collection import ConstraintCollection
-    from luna_model.expression.expr import Expression
-    from luna_model.solution.sol import Solution
-    from luna_model.solution.res import Result, Sample
-    from luna_model.variable.var import Variable
-    from luna_model.variable.bounds import Unbounded
-    from luna_model.model.specs import ModelSpecs
-    from luna_model.translator.model.qubo import Qubo
     from numpy.typing import NDArray  # type: ignore[import]
+
+    from luna_model.constraint.collection import ConstraintCollection
+    from luna_model.constraint.constr import Constraint
+    from luna_model.environment.env import Environment
+    from luna_model.expression.expr import Expression
+    from luna_model.model.specs import ModelSpecs
+    from luna_model.solution.res import Result, Sample
+    from luna_model.solution.sol import Solution
+    from luna_model.translator.model.qubo import Qubo
+    from luna_model.variable.bounds import Unbounded
+    from luna_model.variable.var import Variable
 
 
 class Model:
@@ -96,7 +98,7 @@ class Model:
     def vtypes(self) -> list[Vtype]:
         return [Vtype._from_pyvtype(t) for t in self._m.vtypes()]
 
-    # todo: deprecate for property setter
+    # TODO: deprecate for property setter
     def set_sense(self, sense: Sense) -> None:
         self._m.set_sense(sense._val)
 
@@ -109,7 +111,7 @@ class Model:
     ) -> Variable:
         return wrap_var(self._m.add_variable(name=name, vtype=vtype._val, lower=lower, upper=upper))
 
-    # todo: deprecate this and make it param in add_variable.
+    # TODO: deprecate this and make it param in add_variable.
     def add_variable_with_fallback(
         self,
         name: str,
@@ -200,20 +202,19 @@ class Model:
             from luna_model.translator.model.cqm import CqmTranslator
 
             return CqmTranslator.to_lm(other, name=name)
-        elif isinstance(other, BinaryQuadraticModel):
+        if isinstance(other, BinaryQuadraticModel):
             from luna_model.translator.model.bqm import BqmTranslator
 
             return BqmTranslator.to_lm(other, name=name)
-        elif isinstance(other, str) or isinstance(other, Path):
+        if isinstance(other, str) or isinstance(other, Path):
             from luna_model.translator.model.lp import LpTranslator
 
             return LpTranslator.to_lm(other)
-        elif isinstance(other, ndarray):
+        if isinstance(other, ndarray):
             from luna_model.translator.model.qubo import QuboTranslator
 
             return QuboTranslator.to_lm(other, name=name, **kwargs)
-        else:
-            raise ValueError(f"Unexpected type of other: '{type(other)}'")
+        raise ValueError(f"Unexpected type of other: '{type(other)}'")
 
     @overload
     def to(

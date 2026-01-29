@@ -1,7 +1,8 @@
 import pytest
+
 from luna_model import Model, Variable, Vtype
-from luna_model.translator import LpTranslator
 from luna_model.errors import IllegalConstraintNameError, TranslationError
+from luna_model.translator import LpTranslator
 
 ILLEGAL_WORD_START = [
     "0",

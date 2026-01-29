@@ -1,17 +1,20 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable, Self
 
-from luna_model._utils import wrap_env, wrap_var, wrap_c
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Self
+
 from luna_model._lm import PyExpression
-from luna_model.expression.iter import ExprIter
+from luna_model._utils import wrap_c, wrap_env, wrap_var
 from luna_model.environment.env import Environment
+from luna_model.expression.iter import ExprIter
 
 if TYPE_CHECKING:
-    from luna_model.constraint import Constraint
-    from luna_model.variable.var import Variable
-    from luna_model.solution.sol import Solution
-    from luna_model.environment.env import Environment
     from numpy.typing import NDArray
+
+    from luna_model.constraint import Constraint
+    from luna_model.environment.env import Environment
+    from luna_model.solution.sol import Solution
+    from luna_model.variable.var import Variable
 
 
 class Expression:
@@ -101,7 +104,7 @@ class Expression:
 
         if isinstance(replacement, Variable):
             return self._from_pyexpr(self._expr.substitute(target._v, replacement._v))
-        elif isinstance(replacement, Expression):
+        if isinstance(replacement, Expression):
             return self._from_pyexpr(self._expr.substitute(target._v, replacement._expr))
         raise TypeError(f"type '{type(replacement)}' not supported in substitution")
 
@@ -126,33 +129,33 @@ class Expression:
     def deep_clone_many(cls, exprs: list[Expression]) -> list[Expression]:
         return [cls._from_pyexpr(cloned) for cloned in PyExpression.deep_clone_many([e._expr for e in exprs])]
 
-    def __add__(self, other: Expression | Variable | int | float) -> Expression:
+    def __add__(self, other: Expression | Variable | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__add__))
 
-    def __sub__(self, other: Expression | Variable | int | float) -> Expression:
+    def __sub__(self, other: Expression | Variable | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__sub__))
 
-    def __mul__(self, other: Expression | Variable | int | float) -> Expression:
+    def __mul__(self, other: Expression | Variable | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__mul__))
 
-    def __radd__(self, other: Expression | Variable | int | float) -> Expression:
+    def __radd__(self, other: Expression | Variable | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__radd__))
 
-    def __rsub__(self, other: Expression | Variable | int | float) -> Expression:
+    def __rsub__(self, other: Expression | Variable | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__rsub__))
 
-    def __rmul__(self, other: Expression | Variable | int | float) -> Expression:
+    def __rmul__(self, other: Expression | Variable | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__rmul__))
 
-    def __iadd__(self, other: Expression | Variable | int | float) -> Self:
+    def __iadd__(self, other: Expression | Variable | float) -> Self:
         self._op(other, self._expr.__iadd__)
         return self
 
-    def __isub__(self, other: Expression | Variable | int | float) -> Self:
+    def __isub__(self, other: Expression | Variable | float) -> Self:
         self._op(other, self._expr.__isub__)
         return self
 
-    def __imul__(self, other: Expression | Variable | int | float) -> Self:
+    def __imul__(self, other: Expression | Variable | float) -> Self:
         self._op(other, self._expr.__imul__)
         return self
 
@@ -166,13 +169,13 @@ class Expression:
     def __neg__(self) -> Expression:
         return self._from_pyexpr(self._expr.__neg__())
 
-    def __eq__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
+    def __eq__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
         return self._cmp(other, self._expr.__eq__)
 
-    def __le__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
+    def __le__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
         return self._cmp(other, self._expr.__le__)
 
-    def __ge__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
+    def __ge__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
         return self._cmp(other, self._expr.__ge__)
 
     def __reduce__(self) -> tuple[Callable, tuple[bytes, ...]]:
@@ -187,7 +190,7 @@ class Expression:
     def __repr__(self) -> str:
         return self._expr.__repr__()
 
-    def _op(self, other: Expression | Variable | int | float, fn) -> PyExpression:
+    def _op(self, other: Expression | Variable | float, fn) -> PyExpression:
         from luna_model.expression import Expression
         from luna_model.variable import Variable
 
@@ -200,7 +203,7 @@ class Expression:
         return res
 
     @classmethod
-    def _cmp(cls, other: Expression | Variable | int | float, fn) -> Constraint:
+    def _cmp(cls, other: Expression | Variable | float, fn) -> Constraint:
         from luna_model.expression import Expression
         from luna_model.variable import Variable
 

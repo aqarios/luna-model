@@ -1,7 +1,7 @@
+from luna_model.environment.env import Environment
 from luna_model.model.sense import Sense
 from luna_model.solution.sol import Solution
 from luna_model.solution.timer import Timing
-from luna_model.environment.env import Environment
 
 _SCIP_AVAILABLE: bool = False
 try:

@@ -1,11 +1,13 @@
 from __future__ import annotations
-from typing import overload, Callable
+
+from collections.abc import Callable
+from typing import overload
 
 from luna_model._lm import PyIfElsePass
 
 from .base import BasePass
-from .pipeline import Pipeline
 from .cache import AnalysisCache
+from .pipeline import Pipeline
 
 
 class IfElsePass(PyIfElsePass, BasePass):

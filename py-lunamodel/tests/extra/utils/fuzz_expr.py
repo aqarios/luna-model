@@ -1,8 +1,8 @@
 import itertools
-from typing import Generator
+from collections.abc import Generator
 from dataclasses import dataclass, field
 
-from luna_model import Environment, Expression, Variable, Vtype
+from luna_model import Environment, Expression, Variable
 from tests.utils.fuzz_variable import fuzz_variables
 
 

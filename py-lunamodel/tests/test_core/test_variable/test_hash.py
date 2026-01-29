@@ -1,4 +1,3 @@
-import pytest
 from luna_model import Environment, Variable
 
 

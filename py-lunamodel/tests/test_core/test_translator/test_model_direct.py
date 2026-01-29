@@ -2,23 +2,20 @@ import os
 from pathlib import Path
 from random import Random
 
-from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
-import pytest
 import numpy as np
-
+import pytest
 import scipy.sparse as sp  # type: ignore[import-untyped]
-
+from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
 from numpy.typing import NDArray
 
 from luna_model import Model
 from luna_model.translator import (
-    TranslationTarget,
     BqmTranslator,
     CqmTranslator,
     LpTranslator,
     QuboTranslator,
+    TranslationTarget,
 )
-
 from tests.test_core.utils import generate_bqms, generate_cqms, make_seed
 
 

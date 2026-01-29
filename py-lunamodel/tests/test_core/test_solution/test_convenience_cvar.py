@@ -2,6 +2,7 @@ import math
 import random
 
 import pytest
+
 from luna_model import Environment, Model, Solution, Variable, Vtype
 
 TOL = 1e-12

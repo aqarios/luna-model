@@ -6,10 +6,10 @@ from random import Random
 import numpy as np
 import pytest
 from docplex.mp.model import Model as CPXModel
-from luna_model import Model, Sense, Solution, Timer, Variable, Vtype
-from luna_model.translator import IbmTranslator
 from scipy.optimize import minimize
 
+from luna_model import Model, Sense, Solution, Timer, Variable, Vtype
+from luna_model.translator import IbmTranslator
 from tests.test_core.utils import make_seed, random_bool
 
 NOT_RUN_QAER = False

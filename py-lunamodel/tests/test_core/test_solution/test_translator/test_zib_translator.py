@@ -17,8 +17,6 @@ except ImportError as _:
 from luna_model import Model, Timer
 from luna_model.translator import LpTranslator, ZibTranslator
 
-from .fixtures import zib_model, zib_model_quadratic
-
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
 def test_zib_translator(zib_model: Model):

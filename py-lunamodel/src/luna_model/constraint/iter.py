@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 from luna_model._lm import PyConstraintCollectionIterator
 from luna_model._utils import wrap_c
 

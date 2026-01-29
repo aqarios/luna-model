@@ -1,9 +1,9 @@
-from luna_model import Environment, Variable, Expression, Vtype
+from luna_model import Environment, Expression, Variable, Vtype
 
 
 def test_expr_str():
     empty = Expression(Environment())
-    assert "0" == str(empty)
+    assert str(empty) == "0"
 
 
 def test_expr_lin_str():
@@ -15,7 +15,7 @@ def test_expr_lin_str():
         e = Variable("e")
 
     lin = a + b + c + d + e
-    assert ["a", "b", "c", "d", "e"] == sorted(str(lin).split(" + "))
+    assert sorted(str(lin).split(" + ")) == ["a", "b", "c", "d", "e"]
 
 
 def test_expr_quad_str():
@@ -27,7 +27,7 @@ def test_expr_quad_str():
         e = Variable("e")
 
     lin = a * b + c * d + e * a
-    assert ["a b", "a e", "c d"] == sorted(str(lin).split(" + "))
+    assert sorted(str(lin).split(" + ")) == ["a b", "a e", "c d"]
 
 
 def test_expr_quad_ho():
@@ -39,7 +39,7 @@ def test_expr_quad_ho():
         e = Variable("e")
 
     lin = a * b * c + a * d * e
-    assert ["a b c", "a d e"] == sorted(str(lin).split(" + "))
+    assert sorted(str(lin).split(" + ")) == ["a b c", "a d e"]
 
 
 def test_expr_lin_quad():
@@ -51,7 +51,7 @@ def test_expr_lin_quad():
         e = Variable("e")
 
     lin = a + b + c + d * e
-    assert ["a", "b", "c", "d e"] == sorted(str(lin).split(" + "))
+    assert sorted(str(lin).split(" + ")) == ["a", "b", "c", "d e"]
 
 
 def test_expr_lin_ho():
@@ -63,7 +63,7 @@ def test_expr_lin_ho():
         e = Variable("e")
 
     lin = a + b + c * d * e
-    assert ["a", "b", "c d e"] == sorted(str(lin).split(" + "))
+    assert sorted(str(lin).split(" + ")) == ["a", "b", "c d e"]
 
 
 def test_expr_lin_quad_ho():
@@ -75,21 +75,21 @@ def test_expr_lin_quad_ho():
         e = Variable("e")
 
     lin = a + b + a * b + c * d * e
-    assert ["a", "a b", "b", "c d e"] == sorted(str(lin).split(" + "))
+    assert sorted(str(lin).split(" + ")) == ["a", "a b", "b", "c d e"]
 
 
 def test_expr_pow_bin():
     with Environment():
         a = Variable("a")
     lin = a**20
-    assert "a" == str(lin)
+    assert str(lin) == "a"
 
 
 def test_expr_pow_int():
     with Environment():
         a = Variable("a", Vtype.INTEGER)
     lin = a**20
-    assert "a^20" == str(lin)
+    assert str(lin) == "a^20"
 
 
 def test_expr_lin_quad_ho_pow_int():
@@ -97,14 +97,14 @@ def test_expr_lin_quad_ho_pow_int():
         a = Variable("a", Vtype.INTEGER)
         b = Variable("b", Vtype.REAL)
     res = b + a * b + a**20
-    assert ["a b", "a^20", "b"] == sorted(str(res).split(" + "))
+    assert sorted(str(res).split(" + ")) == ["a b", "a^20", "b"]
 
 
 def test_expr_neg():
     with Environment():
         a = Variable("a", Vtype.INTEGER)
     res = -a
-    assert "-a" == str(res)
+    assert str(res) == "-a"
 
 
 def test_expr_sub():
@@ -112,7 +112,7 @@ def test_expr_sub():
         a = Variable("a", Vtype.INTEGER)
         b = Variable("b", Vtype.SPIN)
     res = a - b
-    assert "a - b" == str(res)
+    assert str(res) == "a - b"
 
 
 def test_expr_sub2():
@@ -121,7 +121,7 @@ def test_expr_sub2():
         b = Variable("b", Vtype.SPIN)
         c = Variable("c", Vtype.SPIN)
     res = a - b + c
-    assert "a - b + c" == str(res)
+    assert str(res) == "a - b + c"
 
 
 def test_expr_sub3():
@@ -130,4 +130,4 @@ def test_expr_sub3():
         b = Variable("b", Vtype.SPIN)
         c = Variable("c", Vtype.SPIN)
     res = c + a - b
-    assert "a - b + c" == str(res)
+    assert str(res) == "a - b + c"

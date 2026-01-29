@@ -1,8 +1,8 @@
 import numpy as np
 
+from luna_model.environment.env import Environment
 from luna_model.solution.sol import Solution
 from luna_model.solution.timer import Timing
-from luna_model.environment.env import Environment
 
 _DIMOD_AVAILABLE: bool = False
 try:

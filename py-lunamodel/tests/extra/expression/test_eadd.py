@@ -1,4 +1,5 @@
 from itertools import product
+
 import pytest
 
 from luna_model import Environment, Expression, Variable, Vtype

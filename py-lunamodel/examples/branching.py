@@ -7,8 +7,8 @@ from luna_model.transformation import (
 )
 from luna_model.transformation.decorators import analyse
 from luna_model.transformation.passes import (
-    MaxBiasAnalysis,
     ChangeSensePass,
+    MaxBiasAnalysis,
 )
 
 lm = Model("Model To transform")

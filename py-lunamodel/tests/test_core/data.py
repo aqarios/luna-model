@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from itertools import combinations, product
 from math import prod
-from typing import Callable, Protocol, Sequence
+from typing import Protocol
 
 from luna_model import (
     Bounds,

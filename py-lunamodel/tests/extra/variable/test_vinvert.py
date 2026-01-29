@@ -1,4 +1,4 @@
-from luna_model import Variable, Environment, Vtype
+from luna_model import Environment, Variable, Vtype
 
 
 def test_inverse_binary():

@@ -1,8 +1,8 @@
-import pytest
 import itertools
 
-from luna_model import Variable, Vtype, Environment
+import pytest
 
+from luna_model import Environment, Variable, Vtype
 
 vtypes = [Vtype.BINARY, Vtype.SPIN, Vtype.INTEGER, Vtype.REAL]
 
@@ -15,14 +15,14 @@ def test_add(lhs_vtype, rhs_vtype):
         rhs = Variable("rhs", rhs_vtype)
 
     res = lhs + rhs
-    assert 0 == res.get_offset()
-    assert 1 == res.get_linear(lhs)
-    assert 1 == res.get_linear(rhs)
-    assert 0 == res.get_quadratic(lhs, rhs)
-    assert 0 == res.get_higher_order(lhs, rhs)
-    assert 0 == res.get_higher_order(rhs, lhs)
-    assert 2 == res.num_variables
-    assert 1 == res.degree()
+    assert res.get_offset() == 0
+    assert res.get_linear(lhs) == 1
+    assert res.get_linear(rhs) == 1
+    assert res.get_quadratic(lhs, rhs) == 0
+    assert res.get_higher_order(lhs, rhs) == 0
+    assert res.get_higher_order(rhs, lhs) == 0
+    assert res.num_variables == 2
+    assert res.degree() == 1
     assert lhs in res.variables()
     assert rhs in res.variables()
 
@@ -35,14 +35,14 @@ def test_sub(lhs_vtype, rhs_vtype):
         rhs = Variable("rhs", rhs_vtype)
 
     res = lhs - rhs
-    assert 0 == res.get_offset()
-    assert 1 == res.get_linear(lhs)
-    assert -1 == res.get_linear(rhs)
-    assert 0 == res.get_quadratic(lhs, rhs)
-    assert 0 == res.get_higher_order(lhs, rhs)
-    assert 0 == res.get_higher_order(rhs, lhs)
-    assert 2 == res.num_variables
-    assert 1 == res.degree()
+    assert res.get_offset() == 0
+    assert res.get_linear(lhs) == 1
+    assert res.get_linear(rhs) == -1
+    assert res.get_quadratic(lhs, rhs) == 0
+    assert res.get_higher_order(lhs, rhs) == 0
+    assert res.get_higher_order(rhs, lhs) == 0
+    assert res.num_variables == 2
+    assert res.degree() == 1
     assert lhs in res.variables()
     assert rhs in res.variables()
 
@@ -55,15 +55,15 @@ def test_mul_2(lhs_vtype, rhs_vtype):
         rhs = Variable("rhs", rhs_vtype)
 
     res = lhs * rhs
-    assert 0 == res.get_offset()
-    assert 0 == res.get_linear(lhs)
-    assert 0 == res.get_linear(rhs)
-    assert 1 == res.get_quadratic(lhs, rhs)
-    assert 1 == res.get_quadratic(rhs, lhs)
-    assert 0 == res.get_higher_order(lhs, rhs)
-    assert 0 == res.get_higher_order(rhs, lhs)
-    assert 2 == res.num_variables
-    assert 2 == res.degree()
+    assert res.get_offset() == 0
+    assert res.get_linear(lhs) == 0
+    assert res.get_linear(rhs) == 0
+    assert res.get_quadratic(lhs, rhs) == 1
+    assert res.get_quadratic(rhs, lhs) == 1
+    assert res.get_higher_order(lhs, rhs) == 0
+    assert res.get_higher_order(rhs, lhs) == 0
+    assert res.num_variables == 2
+    assert res.degree() == 2
     assert lhs in res.variables()
     assert rhs in res.variables()
 
@@ -78,16 +78,16 @@ def test_mul_3(a_vtype, b_vtype, c_vtype):
         c = Variable("c", c_vtype)
 
     res = a * b * c
-    assert 3 == res.degree()
-    assert 0 == res.get_offset()
-    assert 3 == res.num_variables
+    assert res.degree() == 3
+    assert res.get_offset() == 0
+    assert res.num_variables == 3
     for e in [a, b, c]:
         assert e in res.variables()
-        assert 0 == res.get_linear(a)
+        assert res.get_linear(a) == 0
     for es in itertools.combinations([a, b, c], 2):
-        assert 0 == res.get_quadratic(*es)
+        assert res.get_quadratic(*es) == 0
     for es in itertools.combinations([a, b, c], 3):
-        assert 1 == res.get_higher_order(*es)
+        assert res.get_higher_order(*es) == 1
 
 
 @pytest.mark.parametrize("vtype", vtypes)
@@ -98,19 +98,19 @@ def test_pow(vtype, p):
     res = a**p
     match (vtype, p):
         case (_, 0):
-            assert 0 == res.num_variables
-            assert 0 == res.degree()
+            assert res.num_variables == 0
+            assert res.degree() == 0
         case (Vtype.BINARY, _):
-            assert 1 == res.num_variables
-            assert 1 == res.degree()
+            assert res.num_variables == 1
+            assert res.degree() == 1
         case (Vtype.SPIN, 2 | 4):
-            assert 0 == res.num_variables
-            assert 0 == res.degree()
+            assert res.num_variables == 0
+            assert res.degree() == 0
         case (Vtype.SPIN, 1 | 3):
-            assert 1 == res.num_variables
-            assert 1 == res.degree()
+            assert res.num_variables == 1
+            assert res.degree() == 1
         case (Vtype.INTEGER | Vtype.REAL, _):
-            assert 1 == res.num_variables
+            assert res.num_variables == 1
             assert p == res.degree()
 
 
@@ -120,7 +120,7 @@ def test_neg(vtype):
         a = Variable("a", vtype)
 
     res = -a
-    assert 0 == res.get_offset()
-    assert -1 == res.get_linear(a)
-    assert 1 == res.degree()
+    assert res.get_offset() == 0
+    assert res.get_linear(a) == -1
+    assert res.degree() == 1
     assert a in res.variables()

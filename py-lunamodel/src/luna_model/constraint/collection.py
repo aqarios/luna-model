@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Self
 
-from luna_model.constraint.constr import Constraint
-from luna_model.constraint.cmp import Comparator
-from luna_model.constraint.iter import ConstraintCollectionIter
-from luna_model._utils import wrap_c
 from luna_model._lm import PyConstraintCollection
+from luna_model._utils import wrap_c
+from luna_model.constraint.cmp import Comparator
+from luna_model.constraint.constr import Constraint
+from luna_model.constraint.iter import ConstraintCollectionIter
 
 if TYPE_CHECKING:
     from luna_model.environment.env import Environment

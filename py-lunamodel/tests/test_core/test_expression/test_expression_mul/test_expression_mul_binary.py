@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Expression, Vtype
 
 from ...utils import (

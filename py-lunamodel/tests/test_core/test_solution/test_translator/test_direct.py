@@ -1,5 +1,7 @@
 from pathlib import Path
+
 import numpy as np
+
 from luna_model import Solution, Timer, TranslationTarget, Vtype
 
 NOT_TEST_SCIP = True
@@ -12,21 +14,23 @@ except ImportError:
 
 NOT_TEST_IBM = True
 try:
+    from qiskit_optimization.translators import from_docplex_mp
+
     from tests.test_core.test_solution.test_translator.test_ibm_translator import (
         compute_result,
         controlled_lm,
         controlled_qp,
         extract,
     )
-    from qiskit_optimization.translators import from_docplex_mp
 
     NOT_TEST_IBM = False
 except ImportError:
     NOT_TEST_IBM = True
 
 from tests.test_core.utils import make_seed, random, random_int
-from .fixtures import *  # noqa: F403
+
 from ..test_from_dict import vars
+from .fixtures import *  # noqa: F403
 
 
 def make_scip_model(zib_model):
@@ -108,21 +112,20 @@ def test_sol_direct_from_aws_with_warning(aws_model, aws_result):
     import warnings
 
     warnings.filterwarnings("error")  # so we can catch it...
-    with pytest.raises(TypeError):
-        with aws_model.environment:
-            _ = Solution.from_(aws_result, counts=[1, 2, 3, 4])
+    with pytest.raises(TypeError), aws_model.environment:
+        _ = Solution.from_(aws_result, counts=[1, 2, 3, 4])
 
 
 def test_sol_direct_from_aws(aws_model, aws_result):
     with aws_model.environment:
         sol = Solution.from_(aws_result)
 
-    assert [
+    assert sol.samples.tolist() == [
         [0, 1.0, 1, 0, 0],
         [1, 0.0, 1, 0, 0],
         [0, 0.0, 1, 0, 0],
-    ] == sol.samples.tolist()
-    assert all([-2.0, -1.0, -1.0] == sol.raw_energies)
+    ]
+    assert all(sol.raw_energies == [-2.0, -1.0, -1.0])
     for result in sol.results:
         assert result.raw_energy in [-2.0, -1.0]
         assert result.obj_value is None
@@ -135,12 +138,12 @@ def test_sol_direct_from_np(np_model, np_result):
     with np_model.environment:
         sol = Solution.from_(res, energies=energies)
 
-    assert [
+    assert sol.samples.tolist() == [
         [0, 1.0, 1, 0, 0],
         [1, 0.0, 1, 0, 0],
         [0, 0.0, 1, 0, 0],
-    ] == sol.samples.tolist()
-    assert all([-2.0, -1.0, -1.0] == sol.raw_energies)
+    ]
+    assert all(sol.raw_energies == [-2.0, -1.0, -1.0])
     for result in sol.results:
         assert result.obj_value is None
         assert result.constraints is None
@@ -199,7 +202,7 @@ def test_sol_direct_from_dwave(dwave_result):
         assert result.feasible is None
 
     results = list(sol.results)
-    assert 3 == len(results)
+    assert len(results) == 3
 
 
 def test_sol_direct_from_dict():

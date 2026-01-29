@@ -1,13 +1,15 @@
 from __future__ import annotations
-from typing import Protocol, TypeAlias, Any, Callable, Sequence
 
-from luna_model.variable import Variable, Unbounded
-from luna_model.solution import ResultView
-from luna_model._lm import PyBounds
+from collections.abc import Callable, Sequence
+from typing import Any, Protocol, TypeAlias
 
 from dimod import SampleSet  # type: ignore[import]
-from qiskit.primitives import PrimitiveResult, PubResult  # type: ignore[import]
 from pyscipopt import Model as ScipModel  # type: ignore[import]
+from qiskit.primitives import PrimitiveResult, PubResult  # type: ignore[import]
+
+from luna_model._lm import PyBounds
+from luna_model.solution import ResultView
+from luna_model.variable import Unbounded, Variable
 
 
 class VBounds(Protocol):

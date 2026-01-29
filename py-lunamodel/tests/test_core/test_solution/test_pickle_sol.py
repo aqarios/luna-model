@@ -1,6 +1,7 @@
 import pickle
 
 import pytest
+
 from luna_model import Solution, Vtype
 
 

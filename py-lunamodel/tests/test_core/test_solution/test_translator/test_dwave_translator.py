@@ -5,7 +5,8 @@ from random import Random
 import numpy as np
 import pytest
 from dimod import SampleSet, Vartype, as_samples
-from .fixtures import DwaveResult, mock_env, dwave_result
+
+from .fixtures import DwaveResult, mock_env
 
 NOT_RUN_DWAVE = False
 try:
@@ -23,7 +24,6 @@ from luna_model.errors import (
     SampleUnexpectedVariableError,
 )
 from luna_model.translator import DwaveTranslator
-
 from tests.test_core.utils import generate_bqms, make_seed, random_int
 
 
@@ -43,7 +43,7 @@ def test_sampleset_translator_constructed(dwave_result: DwaveResult):
         assert result.feasible is None
 
     results = list(sol.results)
-    assert 3 == len(results)
+    assert len(results) == 3
 
 
 @pytest.mark.skipif(NOT_RUN_DWAVE, reason="Dwave is required for test")

@@ -1,14 +1,15 @@
 import numpy as np
 import pytest
+
 from luna_model import (
+    Bounds,
     Environment,
     Model,
     Solution,
+    Unbounded,
     Variable,
     Vtype,
     quicksum,
-    Bounds,
-    Unbounded,
 )
 from luna_model.errors import RandomSamplingError
 

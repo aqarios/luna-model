@@ -1,11 +1,11 @@
 from luna_model import (
+    Constant,
     Environment,
     Expression,
-    Variable,
-    Linear,
     HigherOrder,
+    Linear,
     Quadratic,
-    Constant,
+    Variable,
 )
 
 
@@ -13,14 +13,14 @@ def test_expr_access():
     env = Environment()
     expr = Expression(env)
     assert env == expr.environment
-    assert 0 == expr.num_variables
-    assert 0 == expr.get_offset()
-    assert 0 == expr.degree()
-    assert 1 == len(list(expr.items()))  # don't forget the constant
-    assert 0 == len(list(expr.variables()))
-    assert 0 == len(list(expr.linear_items()))
-    assert 0 == len(list(expr.quadratic_items()))
-    assert 0 == len(list(expr.higher_order_items()))
+    assert expr.num_variables == 0
+    assert expr.get_offset() == 0
+    assert expr.degree() == 0
+    assert len(list(expr.items())) == 1  # don't forget the constant
+    assert len(list(expr.variables())) == 0
+    assert len(list(expr.linear_items())) == 0
+    assert len(list(expr.quadratic_items())) == 0
+    assert len(list(expr.higher_order_items())) == 0
     assert expr.is_constant()
     assert not expr.has_quadratic()
     assert not expr.has_higher_order()
@@ -35,32 +35,32 @@ def test_expr_access_lin():
     b = Variable("b", env=env)
     expr += a + b
     assert env == expr.environment
-    assert 2 == expr.num_variables
-    assert 0 == expr.get_offset()
-    assert 1 == expr.degree()
-    assert 3 == len(list(expr.items()))  # don't forget the constant
-    assert 2 == len(list(expr.variables()))
+    assert expr.num_variables == 2
+    assert expr.get_offset() == 0
+    assert expr.degree() == 1
+    assert len(list(expr.items())) == 3  # don't forget the constant
+    assert len(list(expr.variables())) == 2
 
     for elem, bias in expr.items():
         match elem:
             case Linear(_):
-                assert 1.0 == bias
+                assert bias == 1.0
             case Quadratic(_, _):
                 assert False
             case HigherOrder(_):
                 assert False
             case Constant():
-                assert 0.0 == bias
+                assert bias == 0.0
 
     assert a in list(expr.variables())
     assert b in list(expr.variables())
 
-    assert 2 == len(list(expr.linear_items()))
+    assert len(list(expr.linear_items())) == 2
     assert (a, 1.0) in list(expr.linear_items())
     assert (b, 1.0) in list(expr.linear_items())
 
-    assert 0 == len(list(expr.quadratic_items()))
-    assert 0 == len(list(expr.higher_order_items()))
+    assert len(list(expr.quadratic_items())) == 0
+    assert len(list(expr.higher_order_items())) == 0
     assert not expr.is_constant()
     assert not expr.has_quadratic()
     assert not expr.has_higher_order()

@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 import pytest
+
 from luna_model.translator import LpTranslator
 
 NOT_RUN_SCIP = False

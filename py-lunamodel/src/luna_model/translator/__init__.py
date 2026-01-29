@@ -1,13 +1,10 @@
-from luna_model.translator.ttarget import TranslationTarget
-from luna_model.translator.model.qubo import Qubo
-
 from luna_model.translator.model import (
-    LpTranslator,
-    QuboTranslator,
     BqmTranslator,
     CqmTranslator,
+    LpTranslator,
+    QuboTranslator,
 )
-
+from luna_model.translator.model.qubo import Qubo
 from luna_model.translator.solution import (
     AwsTranslator,
     DwaveTranslator,
@@ -16,7 +13,7 @@ from luna_model.translator.solution import (
     QctrlTranslator,
     ZibTranslator,
 )
-
+from luna_model.translator.ttarget import TranslationTarget
 
 __all__ = [
     "TranslationTarget",

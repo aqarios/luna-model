@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
-from luna_model._utils import wrap_var
 from luna_model._lm import PyEnvironment
+from luna_model._utils import wrap_var
 
 if TYPE_CHECKING:
     from luna_model.variable import Variable

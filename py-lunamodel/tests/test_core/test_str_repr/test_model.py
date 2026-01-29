@@ -3,6 +3,7 @@ import string
 from contextlib import nullcontext as does_not_raise
 
 import pytest
+
 from luna_model import Bounds, Environment, Expression, Model, Variable, Vtype
 
 _model_str_1 = """Model: TestModel

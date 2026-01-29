@@ -6,7 +6,7 @@
 #
 #
 # def test_import_luna_model():
-#     import luna_model as _  # noqa: F401
+#     import luna_model as _
 #
 #
 # def test_import_variable():

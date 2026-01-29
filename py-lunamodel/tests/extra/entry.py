@@ -1,6 +1,6 @@
-from luna_model import Expression, Environment, Variable, Vtype
 from luna_model._lm import PyVtype
 
+from luna_model import Environment, Expression, Variable, Vtype
 
 env = Environment()
 expr = Expression(env)

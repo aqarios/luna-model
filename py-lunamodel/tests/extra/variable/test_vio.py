@@ -1,9 +1,9 @@
-from luna_model import Variable, Environment
+from luna_model import Environment, Variable
 
 
 def test_var_str():
     v = Variable("v", env=Environment())
-    assert "v: Binary" == str(v)
+    assert str(v) == "v: Binary"
 
 
 def test_var_repr():

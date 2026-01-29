@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Environment, Expression, Model, Sense, Unbounded, Variable, Vtype
 from luna_model.errors import VariableCreationError, VariableExistsError
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from typing import Any, Literal, Protocol, overload
+
 from luna_model._lm import PyAnalysisCache
 from luna_model.variable.vtype import Vtype
 

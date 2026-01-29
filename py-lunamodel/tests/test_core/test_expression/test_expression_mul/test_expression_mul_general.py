@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Expression, Vtype
 
 from ...utils import (
@@ -32,8 +33,8 @@ def test_expression_mul_zero(variables):
 
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
 
 @pytest.mark.parametrize(
@@ -49,40 +50,40 @@ def test_expression_mul_zero_inv(variables):
     expr = a * b * c * d * ~b
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
     expr1 = a * b
     expr2 = c * d * ~b
     expr = expr1 * expr2
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
     expr1 = a * b * c
     expr2 = d * ~b
     expr = expr1 * expr2
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
     expr1 = a * b * c * d
     expr2 = ~b
     expr = expr1 * expr2
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
     expr1 = a * ~b * c
     expr2 = d * b
     expr = expr1 * expr2
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
     expr = a
     expr *= b
@@ -91,8 +92,8 @@ def test_expression_mul_zero_inv(variables):
     expr *= ~b
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
 
 @pytest.mark.parametrize(
@@ -108,40 +109,40 @@ def test_expression_mul_zero_inv2(variables):
     expr = a * ~b * c * d * b
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
     expr1 = a * ~b
     expr2 = c * d * b
     expr = expr1 * expr2
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
     expr1 = a * ~b * c
     expr2 = d * b
     expr = expr1 * expr2
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
     expr1 = a * ~b * c * d
     expr2 = b
     expr = expr1 * expr2
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
     expr1 = a * b * c
     expr2 = d * ~b
     expr = expr1 * expr2
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
     expr = a
     expr *= ~b
@@ -150,8 +151,8 @@ def test_expression_mul_zero_inv2(variables):
     expr *= b
     assert isinstance(expr, Expression)
     assert expr.num_variables == 0
-    assert 0.0 == expr.get_higher_order(*variables)
-    assert 0 == sum([b for _, b in expr.higher_order_items()])
+    assert expr.get_higher_order(*variables) == 0.0
+    assert sum([b for _, b in expr.higher_order_items()]) == 0
 
 
 @pytest.mark.parametrize(

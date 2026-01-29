@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Environment, Expression, Variable, quicksum
 from luna_model.errors import StartCannotBeInferredError
 

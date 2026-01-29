@@ -1,4 +1,4 @@
-from luna_model import Environment, Variable, Constant, Linear, Quadratic, HigherOrder
+from luna_model import Constant, Environment, HigherOrder, Linear, Quadratic, Variable
 
 
 def test_expr_iter():
@@ -22,4 +22,4 @@ def test_expr_iter():
                 assert vars[1].is_equal(d)
                 assert vars[2].is_equal(e)
             case Constant():
-                assert 0.0 == bias
+                assert bias == 0.0

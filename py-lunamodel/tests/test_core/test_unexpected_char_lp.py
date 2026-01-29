@@ -1,5 +1,6 @@
 import pytest
-from luna_model.errors import TranslationError, LunaModelError
+
+from luna_model.errors import LunaModelError, TranslationError
 from luna_model.translator import LpTranslator
 
 ILLEGAL_LP = """

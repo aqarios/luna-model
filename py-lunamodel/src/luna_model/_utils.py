@@ -1,32 +1,32 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
-
 from luna_model._lm import (
-    PyEnvironment,
-    PyVariable,
     PyBounds,
-    PySolution,
     PyConstraint,
     PyConstraintCollection,
-    PyModelSpecs,
-    PyTimer,
-    PyModel,
+    PyEnvironment,
     PyExpression,
+    PyModel,
+    PyModelSpecs,
+    PySolution,
+    PyTimer,
+    PyVariable,
 )
 
 if TYPE_CHECKING:
     from luna_model import (
-        Environment,
-        Variable,
         Bounds,
-        Solution,
         Constraint,
         ConstraintCollection,
-        ModelSpecs,
-        Timer,
-        Model,
+        Environment,
         Expression,
+        Model,
+        ModelSpecs,
+        Solution,
+        Timer,
+        Variable,
     )
 
 

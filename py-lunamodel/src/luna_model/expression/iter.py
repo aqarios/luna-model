@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, TypeAlias
 
-from luna_model._utils import wrap_var
 from luna_model._lm import (
     PyConstant,
+    PyExpressionIterator,
+    PyHigherOrder,
     PyLinear,
     PyQuadratic,
-    PyHigherOrder,
-    PyExpressionIterator,
 )
+from luna_model._utils import wrap_var
 
 if TYPE_CHECKING:
     from luna_model.variable.var import Variable

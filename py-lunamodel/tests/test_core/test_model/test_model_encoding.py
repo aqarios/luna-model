@@ -1,6 +1,5 @@
 import base64
 
-import pytest
 from luna_model import Environment, Model, Sense, Variable
 
 

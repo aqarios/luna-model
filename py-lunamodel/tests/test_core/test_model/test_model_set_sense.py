@@ -1,4 +1,5 @@
 import pytest
+
 from luna_model import Model, Sense, Variable, Vtype
 from luna_model.translator import LpTranslator
 from luna_model.utils import quicksum

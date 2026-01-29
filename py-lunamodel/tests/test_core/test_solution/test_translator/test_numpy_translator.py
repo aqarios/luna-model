@@ -1,21 +1,18 @@
-import numpy as np
-import pytest
-from luna_model import Bounds, Model, Variable, Vtype
-from luna_model.translator import NumpyTranslator
 from numpy.typing import NDArray
 
-from .fixtures import np_model, np_result
+from luna_model import Model
+from luna_model.translator import NumpyTranslator
 
 
 def test_numpy_translator(np_model: Model, np_result: tuple[NDArray, NDArray]):
     res, energies = np_result
     sol = NumpyTranslator.to_lm(res, energies, env=np_model.environment)
-    assert [
+    assert sol.samples.tolist() == [
         [0, 1.0, 1, 0, 0],
         [1, 0.0, 1, 0, 0],
         [0, 0.0, 1, 0, 0],
-    ] == sol.samples.tolist()
-    assert all([-2.0, -1.0, -1.0] == sol.raw_energies)
+    ]
+    assert all(sol.raw_energies == [-2.0, -1.0, -1.0])
     for result in sol.results:
         assert result.obj_value is None
         assert result.constraints is None

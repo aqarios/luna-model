@@ -1,9 +1,9 @@
 from random import Random
 
 import pytest
+
 from luna_model import Environment, Model, Solution, Variable, Vtype
 from luna_model.errors import SampleIncorrectLengthError, TranslationError
-
 from tests.test_core.utils import make_seed, random_int
 
 

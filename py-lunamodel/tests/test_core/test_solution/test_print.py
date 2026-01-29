@@ -1,6 +1,7 @@
 import time
 
 import pytest
+
 from luna_model import Environment, Model, Sense, Solution, Timer, Variable, Vtype
 
 

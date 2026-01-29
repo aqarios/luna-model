@@ -1,6 +1,7 @@
 from contextlib import nullcontext as does_not_raise
 
 import pytest
+
 from luna_model import Environment, Solution, Variable
 
 

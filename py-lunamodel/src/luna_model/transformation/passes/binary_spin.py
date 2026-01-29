@@ -1,6 +1,6 @@
 from typing import Literal
-from luna_model._lm import PyBinarySpinPass
 
+from luna_model._lm import PyBinarySpinPass
 from luna_model.model.model import Vtype
 from luna_model.transformation.transform import ConcreteTransformationPass
 

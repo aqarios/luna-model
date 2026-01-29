@@ -1,18 +1,18 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, overload
 
-from luna_model._utils import wrap_b, wrap_env, wrap_expr, wrap_c
-from luna_model.variable.vtype import Vtype
 from luna_model._lm import PyVariable
+from luna_model._utils import wrap_b, wrap_c, wrap_env, wrap_expr
+from luna_model.variable.vtype import Vtype
 
 if TYPE_CHECKING:
+    from luna_model._lm import PyExpression
     from luna_model._typing import VBounds
     from luna_model.constraint.constr import Constraint
     from luna_model.environment.env import Environment
     from luna_model.expression.expr import Expression
     from luna_model.variable.bounds import Bounds
-
-    from luna_model._lm import PyExpression
 
 
 class Variable:
@@ -64,22 +64,22 @@ class Variable:
     def inv(self) -> Variable:
         return self._from_pyvar(self._v.inv())
 
-    def __add__(self, other: Expression | Variable | int | float) -> Expression:
+    def __add__(self, other: Expression | Variable | float) -> Expression:
         return wrap_expr(self._op(other, self._v.__add__))
 
-    def __sub__(self, other: Expression | Variable | int | float) -> Expression:
+    def __sub__(self, other: Expression | Variable | float) -> Expression:
         return wrap_expr(self._op(other, self._v.__sub__))
 
-    def __mul__(self, other: Expression | Variable | int | float) -> Expression:
+    def __mul__(self, other: Expression | Variable | float) -> Expression:
         return wrap_expr(self._op(other, self._v.__mul__))
 
-    def __radd__(self, other: Expression | Variable | int | float) -> Expression:
+    def __radd__(self, other: Expression | Variable | float) -> Expression:
         return wrap_expr(self._op(other, self._v.__radd__))
 
-    def __rsub__(self, other: Expression | Variable | int | float) -> Expression:
+    def __rsub__(self, other: Expression | Variable | float) -> Expression:
         return wrap_expr(self._op(other, self._v.__rsub__))
 
-    def __rmul__(self, other: Expression | Variable | int | float) -> Expression:
+    def __rmul__(self, other: Expression | Variable | float) -> Expression:
         return wrap_expr(self._op(other, self._v.__rmul__))
 
     def __pow__(self, other: int) -> Expression:
@@ -94,18 +94,18 @@ class Variable:
     @overload
     def __eq__(self, other: Variable) -> bool: ...  # type: ignore[override]
     @overload
-    def __eq__(self, other: Expression | int | float) -> Constraint: ...  # type: ignore[override]
-    def __eq__(self, other: Expression | Variable | int | float) -> Constraint | bool:  # type: ignore[override]
+    def __eq__(self, other: Expression | float) -> Constraint: ...  # type: ignore[override]
+    def __eq__(self, other: Expression | Variable | float) -> Constraint | bool:  # type: ignore[override]
         from luna_model.variable import Variable
 
         if isinstance(other, Variable):
             return self.is_equal(other)
         return self._cmp(other, self._v.__eq__)
 
-    def __le__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
+    def __le__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
         return self._cmp(other, self._v.__le__)
 
-    def __ge__(self, other: Expression | Variable | int | float) -> Constraint:  # type: ignore[override]
+    def __ge__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
         return self._cmp(other, self._v.__ge__)
 
     def __hash__(self) -> int:
@@ -117,7 +117,7 @@ class Variable:
     def __repr__(self) -> str:
         return self._v.__repr__()
 
-    def _op(self, other: Expression | Variable | int | float, fn) -> PyExpression:
+    def _op(self, other: Expression | Variable | float, fn) -> PyExpression:
         from luna_model.expression import Expression
         from luna_model.variable import Variable
 
@@ -129,7 +129,7 @@ class Variable:
             res = fn(other)
         return res
 
-    def _cmp(self, other: Expression | Variable | int | float, fn) -> Constraint:
+    def _cmp(self, other: Expression | Variable | float, fn) -> Constraint:
         from luna_model.expression import Expression
         from luna_model.variable import Variable
 

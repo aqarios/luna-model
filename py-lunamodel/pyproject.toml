@@ -98,3 +98,14 @@ docs = [
     "mkdocstrings[python]>=1.0.1",
     "zensical>=0.0.17",
 ]
+
+[tool.mypy]
+exclude = [".venv", "tests", "docs"]
+disable_error_code = "import-untyped"
+
+[[tool.mypy.overrides]]
+module = [
+    "luna_model._lm",
+    "luna_model._lm.*",
+]
+disable_error_code = "import-not-found"

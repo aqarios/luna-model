@@ -1,9 +1,9 @@
 from __future__ import annotations
+
 from typing import TypeAlias
 
-from luna_model.variable.vtype import Vtype
 from luna_model._lm import PyBounds, PyUnbounded
-
+from luna_model.variable.vtype import Vtype
 
 Unbounded: TypeAlias = PyUnbounded
 

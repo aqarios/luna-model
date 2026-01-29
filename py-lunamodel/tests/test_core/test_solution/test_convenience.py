@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from luna_model import Environment, Model, Solution, Variable, Vtype
 
 
