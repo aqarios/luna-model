@@ -6,32 +6,20 @@ from luna_model._lm import PyComparator
 
 
 class Comparator(Enum):
+    """Comparator emum."""
+
     EQ = "Eq"
     LE = "Le"
     GE = "Ge"
 
-    Eq = "Eq"
-    Le = "Le"
-    Ge = "Ge"
-
-    @property
-    def name(self) -> str:
-        match self:
-            case Comparator.EQ | Comparator.Eq:
-                return "Eq"
-            case Comparator.LE | Comparator.Le:
-                return "Le"
-            case Comparator.GE | Comparator.Ge:
-                return "Ge"
-
     @property
     def _val(self) -> PyComparator:
         match self:
-            case Comparator.EQ | Comparator.Eq:
+            case Comparator.EQ:
                 return PyComparator.Eq
-            case Comparator.LE | Comparator.Le:
+            case Comparator.LE:
                 return PyComparator.Le
-            case Comparator.GE | Comparator.Ge:
+            case Comparator.GE:
                 return PyComparator.Ge
 
     @classmethod
@@ -43,4 +31,5 @@ class Comparator(Enum):
                 return Comparator.LE
             case PyComparator.Ge:
                 return Comparator.GE
-        raise RuntimeError("unknown sense")
+        msg = f"unknown comparator '{py_cmp}'"
+        raise RuntimeError(msg)

@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from luna_model._lm import PyConstraint
 from luna_model._utils import wrap_expr
 from luna_model.constraint.cmp import Comparator
-
-if TYPE_CHECKING:
-    from luna_model.expression.expr import Expression
-    from luna_model.variable.var import Variable
+from luna_model.expression.expr import Expression
+from luna_model.variable.var import Variable
 
 
 class Constraint:
+    """Constraint docstring."""
+
     _c: PyConstraint
 
     def __init__(
@@ -21,9 +19,6 @@ class Constraint:
         comparator: Comparator,
         name: str | None = None,
     ) -> None:
-        from luna_model.expression import Expression
-        from luna_model.variable import Variable
-
         lhs = lhs._v if isinstance(lhs, Variable) else lhs._expr  # type: ignore[attribute]
         rhs = (
             (rhs._v if isinstance(rhs, Variable) else rhs._expr)  # type: ignore[attribute]
