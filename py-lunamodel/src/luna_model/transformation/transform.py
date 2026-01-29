@@ -34,9 +34,7 @@ class TransformationOutcome:
     def __init__(self, model: Model, action: ActionType) -> None: ...
     @overload
     def __init__(self, model: Model, action: ActionType, analysis: object) -> None: ...
-    def __init__(
-        self, model: Model, action: ActionType, analysis: object | None = None
-    ) -> None:
+    def __init__(self, model: Model, action: ActionType, analysis: object | None = None) -> None:
         self._to = PyTransformationOutcome(model._m, action._val, analysis)
 
     @classmethod
@@ -94,11 +92,7 @@ class TransformationPass(PyTransformationPass, BasePass):
     @abstractmethod
     def run(
         self, model: Model, cache: AnalysisCache
-    ) -> (
-        TransformationOutcome
-        | tuple[PyModel, PyActionType]
-        | tuple[PyModel, PyActionType, Any]
-    ):
+    ) -> TransformationOutcome | tuple[PyModel, PyActionType] | tuple[PyModel, PyActionType, Any]:
         """Run/Execute this transformation pass."""
         ...
 
@@ -113,11 +107,7 @@ class TransformationPass(PyTransformationPass, BasePass):
 
     def _run(
         self, model: PyModel, cache: PyAnalysisCache
-    ) -> (
-        PyTransformationOutcome
-        | tuple[PyModel, PyActionType]
-        | tuple[PyModel, PyActionType, Any]
-    ):
+    ) -> PyTransformationOutcome | tuple[PyModel, PyActionType] | tuple[PyModel, PyActionType, Any]:
         inter = self.run(Model._from_pym(model), AnalysisCache._from_pyac(cache))
         if isinstance(inter, tuple) and len(inter) == 2:
             model, at = inter
@@ -129,9 +119,7 @@ class TransformationPass(PyTransformationPass, BasePass):
             return inter._to
 
     def _backwards(self, solution: PySolution, cache: PyAnalysisCache) -> PySolution:
-        return self.backwards(
-            Solution._from_pys(solution), AnalysisCache._from_pyac(cache)
-        )._s
+        return self.backwards(Solution._from_pys(solution), AnalysisCache._from_pyac(cache))._s
 
 
 class ConcreteTransformationPass(TransformationPass):
@@ -142,11 +130,7 @@ class ConcreteTransformationPass(TransformationPass):
 
     def run(
         self, model: Model, cache: AnalysisCache
-    ) -> (
-        TransformationOutcome
-        | tuple[PyModel, PyActionType]
-        | tuple[PyModel, PyActionType, Any]
-    ):
+    ) -> TransformationOutcome | tuple[PyModel, PyActionType] | tuple[PyModel, PyActionType, Any]:
         """Run/Execute this transformation pass."""
         inter = self._base.run(model._m, cache._ac)
         if isinstance(inter, tuple) and len(inter) == 2:

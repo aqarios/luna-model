@@ -159,9 +159,7 @@ def test_gurobi_and_lm_lp_read_equality():
             for i in range(gp_lin_obj.size()):
                 v_name = gp_lin_obj.getVar(i).VarName
                 gp_coef = gp_lin_obj.getCoeff(i)
-                lm_coef = lm_model.objective.get_linear(
-                    lm_model.environment.get_variable(v_name)
-                )
+                lm_coef = lm_model.objective.get_linear(lm_model.environment.get_variable(v_name))
                 assert gp_coef == lm_coef
 
             print("----------- QUADRATIC -----------", file=sys.stderr)
@@ -263,15 +261,13 @@ def test_cplex_to_model_to_cplex():
 def check_dimod_expr(cqm, cqm_back):
     assert cqm.offset == cqm_back.offset
     for u in cqm.variables:
-        assert cqm.get_linear(u) == cqm_back.get_linear(u), (
-            f"linear not equal for '{u}'"
-        )
+        assert cqm.get_linear(u) == cqm_back.get_linear(u), f"linear not equal for '{u}'"
         for v in cqm.variables:
             if u == v:
                 continue
-            assert cqm.get_quadratic(u, v, default=0) == cqm_back.get_quadratic(
-                u, v, default=0
-            ), f"quadratic not equal for '{u=}' and '{v=}'"
+            assert cqm.get_quadratic(u, v, default=0) == cqm_back.get_quadratic(u, v, default=0), (
+                f"quadratic not equal for '{u=}' and '{v=}'"
+            )
 
 
 def lin_expr_equal(e1, e2):
@@ -286,12 +282,8 @@ def quad_expr_equal(e1: gp.QuadExpr, e2: gp.QuadExpr):
     # Compare linear part
     e1_lin = e1.getLinExpr()
     e2_lin = e2.getLinExpr()
-    lin1 = sorted(
-        [(e1_lin.getVar(i).VarName, e1_lin.getCoeff(i)) for i in range(e1_lin.size())]
-    )
-    lin2 = sorted(
-        [(e2_lin.getVar(i).VarName, e2_lin.getCoeff(i)) for i in range(e2_lin.size())]
-    )
+    lin1 = sorted([(e1_lin.getVar(i).VarName, e1_lin.getCoeff(i)) for i in range(e1_lin.size())])
+    lin2 = sorted([(e2_lin.getVar(i).VarName, e2_lin.getCoeff(i)) for i in range(e2_lin.size())])
     if lin1 != lin2:
         return False
 
@@ -302,22 +294,10 @@ def quad_expr_equal(e1: gp.QuadExpr, e2: gp.QuadExpr):
     #     return False  # one has quadratic, one doesn't
 
     quad1 = sorted(
-        [
-            tuple(
-                sorted((e1.getVar1(i).VarName, e1.getVar2(i).VarName))
-                + [e1.getCoeff(i)]
-            )
-            for i in range(e1.size())
-        ]
+        [tuple(sorted((e1.getVar1(i).VarName, e1.getVar2(i).VarName)) + [e1.getCoeff(i)]) for i in range(e1.size())]
     )
     quad2 = sorted(
-        [
-            tuple(
-                sorted((e2.getVar1(i).VarName, e2.getVar2(i).VarName))
-                + [e2.getCoeff(i)]
-            )
-            for i in range(e2.size())
-        ]
+        [tuple(sorted((e2.getVar1(i).VarName, e2.getVar2(i).VarName)) + [e2.getCoeff(i)]) for i in range(e2.size())]
     )
     return quad1 == quad2
 
@@ -346,17 +326,9 @@ def gp_models_are_equal(m1: gp.Model, m2: gp.Model) -> bool:
     m2_obj = m2.getObjective()
     if type(m1_obj) is not type(m2_obj):
         return False
-    if (
-        isinstance(m1_obj, gp.QuadExpr)
-        and isinstance(m2_obj, gp.QuadExpr)
-        and not quad_expr_equal(m1_obj, m2_obj)
-    ):
+    if isinstance(m1_obj, gp.QuadExpr) and isinstance(m2_obj, gp.QuadExpr) and not quad_expr_equal(m1_obj, m2_obj):
         return False
-    if (
-        isinstance(m1_obj, gp.LinExpr)
-        and isinstance(m2_obj, gp.LinExpr)
-        and not lin_expr_equal(m1_obj, m2_obj)
-    ):
+    if isinstance(m1_obj, gp.LinExpr) and isinstance(m2_obj, gp.LinExpr) and not lin_expr_equal(m1_obj, m2_obj):
         return False
 
     # Compare constraints
@@ -407,15 +379,11 @@ def scip_models_are_equal(model1: ScipModel, model2: ScipModel) -> tuple[bool, s
             return False, f"({m1_var}) => {m1_value_m1_var} vs {m2_value_m2_var}"
 
     m1_conss_lookup = {
-        str(con): model1.getValsLinear(con)
-        if con.isLinear()
-        else model1.getTermsQuadratic(con)
+        str(con): model1.getValsLinear(con) if con.isLinear() else model1.getTermsQuadratic(con)
         for con in model1.getConss()
     }
     m2_conss_lookup = {
-        str(con): model2.getValsLinear(con)
-        if con.isLinear()
-        else model2.getTermsQuadratic(con)
+        str(con): model2.getValsLinear(con) if con.isLinear() else model2.getTermsQuadratic(con)
         for con in model2.getConss()
     }
 

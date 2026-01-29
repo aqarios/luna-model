@@ -2,6 +2,7 @@ import pytest
 from luna_model import Variable, Environment, Vtype, Solution
 from luna_model.errors import UnsupportedOperationError
 
+
 def test_inverse_binary():
     env = Environment()
     b = Variable("b", vtype=Vtype.BINARY, env=env)
@@ -15,6 +16,7 @@ def test_inverse_binary():
     assert (b.inv()).inv() == b
     assert inv_b.inv() == (b.inv()).inv()
     assert b == (b.inv()).inv()
+
 
 def test_inverse_binary_lin():
     env = Environment()

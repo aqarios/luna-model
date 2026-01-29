@@ -29,6 +29,7 @@ class Model:
     """
     This is a test doc string.
     """
+
     _m: PyModel
 
     def __init__(
@@ -106,9 +107,7 @@ class Model:
         lower: float | type[Unbounded] | None = None,
         upper: float | type[Unbounded] | None = None,
     ) -> Variable:
-        return wrap_var(
-            self._m.add_variable(name=name, vtype=vtype._val, lower=lower, upper=upper)
-        )
+        return wrap_var(self._m.add_variable(name=name, vtype=vtype._val, lower=lower, upper=upper))
 
     # todo: deprecate this and make it param in add_variable.
     def add_variable_with_fallback(
@@ -118,11 +117,7 @@ class Model:
         lower: float | type[Unbounded] | None = None,
         upper: float | type[Unbounded] | None = None,
     ) -> Variable:
-        return wrap_var(
-            self._m.add_variable_with_fallback(
-                name=name, vtype=vtype._val, lower=lower, upper=upper
-            )
-        )
+        return wrap_var(self._m.add_variable_with_fallback(name=name, vtype=vtype._val, lower=lower, upper=upper))
 
     def get_variable(self, name: str) -> Variable:
         return wrap_var(self._m.get_variable(name))
@@ -145,9 +140,7 @@ class Model:
     def violated_constraints(self, sample: Sample) -> ConstraintCollection:
         return wrap_cc(self._m.violated_constraints(sample))
 
-    def substitute(
-        self, /, target: Variable, replacement: Expression | Variable
-    ) -> None:
+    def substitute(self, /, target: Variable, replacement: Expression | Variable) -> None:
         from luna_model.expression import Expression
         from luna_model.variable import Variable
 
@@ -156,9 +149,7 @@ class Model:
         elif isinstance(replacement, Variable):  # type: ignore[attribute]
             self._m.substitute(target._v, replacement._v)  # type: ignore[attribute]
         else:
-            raise TypeError(
-                f"cannot use '{type(replacement)}' as a replacement in substitution"
-            )
+            raise TypeError(f"cannot use '{type(replacement)}' as a replacement in substitution")
 
     def satisfies(self, specs: ModelSpecs) -> bool:
         return self._m.satisfies(specs._sp)
@@ -166,9 +157,7 @@ class Model:
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         return self._m.encode(compress, level)
 
-    def serialize(
-        self, /, compress: bool | None = True, level: int | None = 3
-    ) -> bytes:
+    def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         return self.encode(compress, level)
 
     @classmethod
@@ -235,9 +224,7 @@ class Model:
     @overload
     def to(self, target: Literal[TranslationTarget.LP]) -> str: ...
     @overload
-    def to(
-        self, target: Literal[TranslationTarget.CQM]
-    ) -> ConstrainedQuadraticModel: ...
+    def to(self, target: Literal[TranslationTarget.CQM]) -> ConstrainedQuadraticModel: ...
     @overload
     def to(self, target: Literal[TranslationTarget.BQM]) -> BinaryQuadraticModel: ...
     @overload

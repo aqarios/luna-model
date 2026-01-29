@@ -72,15 +72,10 @@ class Expression:
         return [(wrap_var(v), b) for v, b in self._expr.linear_items()]
 
     def quadratic_items(self) -> list[tuple[Variable, Variable, float]]:
-        return [
-            (wrap_var(u), wrap_var(v), b) for u, v, b in self._expr.quadratic_items()
-        ]
+        return [(wrap_var(u), wrap_var(v), b) for u, v, b in self._expr.quadratic_items()]
 
     def higher_order_items(self) -> list[tuple[list[Variable], float]]:
-        return [
-            ([wrap_var(v) for v in vars], b)
-            for vars, b in self._expr.higher_order_items()
-        ]
+        return [([wrap_var(v) for v in vars], b) for vars, b in self._expr.higher_order_items()]
 
     def is_constant(self) -> bool:
         return self._expr.is_constant()
@@ -101,17 +96,13 @@ class Expression:
         lhs, rhs = self._expr.separate([v._v for v in variables])
         return (self._from_pyexpr(lhs), self._from_pyexpr(rhs))
 
-    def substitute(
-        self, target: Variable, replacement: Expression | Variable
-    ) -> Expression:
+    def substitute(self, target: Variable, replacement: Expression | Variable) -> Expression:
         from luna_model.variable import Variable
 
         if isinstance(replacement, Variable):
             return self._from_pyexpr(self._expr.substitute(target._v, replacement._v))
         elif isinstance(replacement, Expression):
-            return self._from_pyexpr(
-                self._expr.substitute(target._v, replacement._expr)
-            )
+            return self._from_pyexpr(self._expr.substitute(target._v, replacement._expr))
         raise TypeError(f"type '{type(replacement)}' not supported in substitution")
 
     def evaluate(self, solution: Solution) -> NDArray:
@@ -120,9 +111,7 @@ class Expression:
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         return self._expr.encode(compress, level)
 
-    def serialize(
-        self, /, compress: bool | None = True, level: int | None = 3
-    ) -> bytes:
+    def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         return self.encode(compress, level)
 
     @classmethod
@@ -135,10 +124,7 @@ class Expression:
 
     @classmethod
     def deep_clone_many(cls, exprs: list[Expression]) -> list[Expression]:
-        return [
-            cls._from_pyexpr(cloned)
-            for cloned in PyExpression.deep_clone_many([e._expr for e in exprs])
-        ]
+        return [cls._from_pyexpr(cloned) for cloned in PyExpression.deep_clone_many([e._expr for e in exprs])]
 
     def __add__(self, other: Expression | Variable | int | float) -> Expression:
         return self._from_pyexpr(self._op(other, self._expr.__add__))

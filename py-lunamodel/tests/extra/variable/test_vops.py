@@ -113,6 +113,7 @@ def test_pow(vtype, p):
             assert 1 == res.num_variables
             assert p == res.degree()
 
+
 @pytest.mark.parametrize("vtype", vtypes)
 def test_neg(vtype):
     with Environment():

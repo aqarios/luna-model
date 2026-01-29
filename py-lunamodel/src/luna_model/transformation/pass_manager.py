@@ -22,9 +22,7 @@ class PassManager:
     the transformations applied and supports back-transformations.
     """
 
-    def __init__(
-        self, passes: list[BasePass | TransformationPass | AnalysisPass] | None = None
-    ) -> None:
+    def __init__(self, passes: list[BasePass | TransformationPass | AnalysisPass] | None = None) -> None:
         """Manage and execute a sequence of passes on a model.
 
         The PassManager implements a compiler-style pass pattern, enabling both

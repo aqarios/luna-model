@@ -27,6 +27,4 @@ class QctrlTranslator:
             reordered_bitstring = "".join(str(bit) for bit in sample)
             reordered[reordered_bitstring] = count
 
-        return Solution.from_counts(
-            data=reordered, timing=timing, env=env, bit_order="LTR"
-        )
+        return Solution.from_counts(data=reordered, timing=timing, env=env, bit_order="LTR")

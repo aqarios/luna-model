@@ -95,9 +95,7 @@ def test_cvar_order_invariance(model: tuple[Model, tuple[Variable, ...]]):
     sol_b = Solution.from_dicts(shuffled, model=m)
 
     for alpha in [0.1, 0.25, 0.5, 0.9, 1.0]:
-        assert sol_a.cvar(alpha=alpha) == pytest.approx(
-            sol_b.cvar(alpha=alpha), abs=TOL
-        )
+        assert sol_a.cvar(alpha=alpha) == pytest.approx(sol_b.cvar(alpha=alpha), abs=TOL)
 
 
 @pytest.mark.parametrize("model", [(3, Vtype.BINARY)], indirect=True)

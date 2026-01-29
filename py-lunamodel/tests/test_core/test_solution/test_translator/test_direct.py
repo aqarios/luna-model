@@ -57,12 +57,8 @@ def test_sol_direct_from_scip(zib_model):
     assert len(sol.counts) == 1
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
-    assert np.isclose(
-        sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5
-    )
-    assert np.isclose(
-        sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5
-    )
+    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5)
+    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5)
     assert sol.runtime.qpu is None
     assert sol.obj_values is None
     assert sol.raw_energies is None
@@ -88,9 +84,7 @@ def test_sol_direct_from_qctrl():
     rand = Random(make_seed())
     sample_len = rand.randint(2, 5)
     num_samples = rand.randint(1, max(sample_len // 2, 1))
-    fake_result, _ = fake_qctrl_result(
-        rand, sample_len, random(random_int(rand)), num_samples
-    )
+    fake_result, _ = fake_qctrl_result(rand, sample_len, random(random_int(rand)), num_samples)
     with Environment():
         _ = [Variable(f"x{i}") for i in range(sample_len)]
         sol = Solution.from_(fake_result)

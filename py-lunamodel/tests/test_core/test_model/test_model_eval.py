@@ -98,9 +98,7 @@ def model_w_constraint() -> Model:
     with model.environment:
         b = Variable("b", vtype=Vtype.BINARY)
         s = Variable("s", vtype=Vtype.SPIN)
-        i = Variable(
-            "i", vtype=Vtype.INTEGER, bounds=Bounds(lower=Unbounded, upper=Unbounded)
-        )
+        i = Variable("i", vtype=Vtype.INTEGER, bounds=Bounds(lower=Unbounded, upper=Unbounded))
         r = Variable("r", vtype=Vtype.REAL)
     model.objective = b + s + i + r
     model.constraints += b + s + i + r <= 10.0
@@ -161,16 +159,12 @@ def test_model_eval_wo_constraint(model_wo_constraint: Model, solution: Solution
 #     assert new_sol.best() == new_sol[new_sol.best_sample_idx]
 
 
-def test_model_eval_wo_constraint_one_less_var_in_model(
-    model_wo_constraint_one_less_var: Model, solution: Solution
-):
+def test_model_eval_wo_constraint_one_less_var_in_model(model_wo_constraint_one_less_var: Model, solution: Solution):
     with pytest.raises(EvaluationError):
         _ = model_wo_constraint_one_less_var.evaluate(solution)
 
 
-def test_model_eval_wo_constraint_one_more_var_in_model(
-    model_wo_constraint_one_more_var: Model, solution: Solution
-):
+def test_model_eval_wo_constraint_one_more_var_in_model(model_wo_constraint_one_more_var: Model, solution: Solution):
     with pytest.raises(EvaluationError):
         _ = model_wo_constraint_one_more_var.evaluate(solution)
 
@@ -194,9 +188,7 @@ def test_model_eval_w_constraint(model_w_constraint: Model, solution: Solution):
         assert res.feasible
 
 
-def test_model_eval_w_constraint_infeasible(
-    model_w_constraint_infeasible: Model, solution: Solution
-):
+def test_model_eval_w_constraint_infeasible(model_w_constraint_infeasible: Model, solution: Solution):
     new_sol = model_w_constraint_infeasible.evaluate(solution)
     assert all(new_sol.raw_energies == solution.raw_energies)
     assert all(new_sol.obj_values == solution.raw_energies)

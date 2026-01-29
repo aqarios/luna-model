@@ -3,7 +3,7 @@
 # from itertools import combinations
 # from random import Random
 # from typing import TypeVar
-# 
+#
 # import pytest
 # from luna_model import (
 #     Comparator,
@@ -15,12 +15,12 @@
 #     Sense,
 #     Vtype,
 # )
-# 
+#
 # from .utils import make_seed
-# 
+#
 # T = TypeVar("T", bound=Enum)
-# 
-# 
+#
+#
 # def gen_test_combinations(
 #     values: list[T],
 # ) -> tuple[list[None | list[T]], list[str]]:
@@ -31,8 +31,8 @@
 #             test_cases.append(list(comb))
 #             test_ids.append("-".join(v.name for v in comb))
 #     return test_cases, test_ids
-# 
-# 
+#
+#
 # sense, sense_ids = [None, Sense.Min, Sense.Max], ["None", "Sense.Min", "Sense.Max"]
 # vtypes, vtypes_ids = gen_test_combinations(
 #     [Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]
@@ -43,8 +43,8 @@
 # max_constraint_degree = [None, 1, 2]
 # max_degree = [None, 1, 2, 3]
 # max_num_variables = [None, 1, 2, 3, 4]
-# 
-# 
+#
+#
 # @pytest.mark.parametrize("sense", sense, ids=sense_ids)
 # @pytest.mark.parametrize("vtypes", vtypes, ids=vtypes_ids)
 # @pytest.mark.parametrize("constraints", constraints, ids=constraints_ids)
@@ -69,8 +69,8 @@
 #         max_num_variables=max_num_variables,
 #     )
 #     assert model.satisfies(modelspecs)
-# 
-# 
+#
+#
 # @pytest.mark.parametrize("sense", sense, ids=sense_ids)
 # @pytest.mark.parametrize("vtypes", vtypes, ids=vtypes_ids)
 # @pytest.mark.parametrize("constraints", constraints, ids=constraints_ids)
@@ -118,13 +118,13 @@
 #             else:
 #                 expr *= model.get_variable(f"v{i}")
 #         model.objective += expr
-# 
+#
 #     if constraints:
 #         for i in range(len(constraints)):
 #             expr: Expression = Expression(env=model.environment)
 #             for i in range(constraint_degree):
 #                 expr *= model.get_variable(f"v{i}")
-# 
+#
 #             model.constraints += Constraint(
 #                 expr,
 #                 0,
@@ -141,8 +141,8 @@
 #         max_num_variables=max_num_variables,
 #     )
 #     assert model.satisfies(modelspecs)
-# 
-# 
+#
+#
 # def test_modelspecs_varsubset():
 #     model = Model()
 #     b = model.add_variable("b")
@@ -152,16 +152,16 @@
 #         vtypes=[Vtype.Binary, Vtype.Spin, Vtype.Integer, Vtype.Real]
 #     )
 #     assert model.satisfies(modelspecs)
-# 
-# 
+#
+#
 # def test_modelspecs_not_varsubset():
 #     model = Model()
 #     b = model.add_variable("b")
 #     model.objective += b
 #     modelspecs = ModelSpecs(vtypes=[Vtype.Spin, Vtype.Integer, Vtype.Real])
 #     assert not model.satisfies(modelspecs)
-# 
-# 
+#
+#
 # def test_modelspecs_constr_subset_le():
 #     model = Model()
 #     b = model.add_variable("b")
@@ -179,11 +179,11 @@
 #     assert model.satisfies(modelspecsB), "failed to satisfy modelspecsB"
 #     assert model.satisfies(modelspecsC), "failed to satisfy modelspecsC"
 #     assert model.satisfies(modelspecsD), "failed to satisfy modelspecsD"
-# 
+#
 #     modelspecs_fail = ModelSpecs(constraints=[ConstraintType.GreaterEqual])
 #     assert not model.satisfies(modelspecs_fail), "failed to NOT satisfy modelspecs_fail"
-# 
-# 
+#
+#
 # def test_modelspecs_constr_subset_ge():
 #     model = Model()
 #     b = model.add_variable("b")
@@ -201,6 +201,6 @@
 #     assert model.satisfies(modelspecsB), "failed to satisfy modelspecsB"
 #     assert model.satisfies(modelspecsC), "failed to satisfy modelspecsC"
 #     assert model.satisfies(modelspecsD), "failed to satisfy modelspecsD"
-# 
+#
 #     modelspecs_fail = ModelSpecs(constraints=[ConstraintType.LessEqual])
 #     assert not model.satisfies(modelspecs_fail), "failed to NOT satisfy modelspecs_fail"

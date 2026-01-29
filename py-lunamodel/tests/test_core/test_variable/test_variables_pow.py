@@ -6,9 +6,7 @@ def test_variable_pow_n1():
     with Environment():
         x = Variable("x", vtype=Vtype.INTEGER)
 
-    with pytest.raises(
-        ValueError, match="Expected a non-negative number, received: -1"
-    ):
+    with pytest.raises(ValueError, match="Expected a non-negative number, received: -1"):
         _ = x**-1
 
 

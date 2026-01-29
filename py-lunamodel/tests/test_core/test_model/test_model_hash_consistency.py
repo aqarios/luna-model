@@ -58,9 +58,7 @@ def test_hash_consistent_single_int_var_upper_unbounded():
 def test_hash_consistent_single_int_var_lower_and_upper_bounded():
     model = Model()
     with model.environment:
-        _ = Variable(
-            "int_var", vtype=Vtype.INTEGER, bounds=Bounds(lower=-10.0, upper=10.0)
-        )
+        _ = Variable("int_var", vtype=Vtype.INTEGER, bounds=Bounds(lower=-10.0, upper=10.0))
     assert hash(model) == -4436694255535605608
 
 
@@ -113,9 +111,7 @@ def test_hash_consistent_single_real_var_upper_unbounded():
 def test_hash_consistent_single_real_var_lower_and_upper_bounded():
     model = Model()
     with model.environment:
-        _ = Variable(
-            "real_var", vtype=Vtype.REAL, bounds=Bounds(lower=-10.0, upper=10.0)
-        )
+        _ = Variable("real_var", vtype=Vtype.REAL, bounds=Bounds(lower=-10.0, upper=10.0))
     assert hash(model) == 9015731630494461160
 
 
@@ -150,9 +146,7 @@ def test_hash_consistent_all_vars_2():
         _ = Variable("int_var3", vtype=Vtype.INTEGER, bounds=Bounds(upper=10.0))
         _ = Variable("int_var4", vtype=Vtype.INTEGER, bounds=Bounds(lower=Unbounded))
         _ = Variable("int_var5", vtype=Vtype.INTEGER, bounds=Bounds(upper=Unbounded))
-        _ = Variable(
-            "int_var6", vtype=Vtype.INTEGER, bounds=Bounds(lower=-10.0, upper=10.0)
-        )
+        _ = Variable("int_var6", vtype=Vtype.INTEGER, bounds=Bounds(lower=-10.0, upper=10.0))
         _ = Variable(
             "int_var7",
             vtype=Vtype.INTEGER,
@@ -163,9 +157,7 @@ def test_hash_consistent_all_vars_2():
         _ = Variable("real_var3", vtype=Vtype.REAL, bounds=Bounds(upper=10.0))
         _ = Variable("real_var4", vtype=Vtype.REAL, bounds=Bounds(lower=Unbounded))
         _ = Variable("real_var5", vtype=Vtype.REAL, bounds=Bounds(upper=Unbounded))
-        _ = Variable(
-            "real_var6", vtype=Vtype.REAL, bounds=Bounds(lower=-10.0, upper=10.0)
-        )
+        _ = Variable("real_var6", vtype=Vtype.REAL, bounds=Bounds(lower=-10.0, upper=10.0))
         _ = Variable(
             "real_var7",
             vtype=Vtype.REAL,

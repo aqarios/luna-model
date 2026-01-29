@@ -23,7 +23,7 @@ def default_pass_manager():
 #     for i in range(100):
 #         model.add_variable(f"s_x_{i}", vtype=Vtype.SPIN)
 #         model.add_variable(f"x_{i}", vtype=Vtype.BINARY)
-# 
+#
 #     ir = default_pass_manager.run(model)
 #     res = ir.cache["binary-spin"]
 #     assert all(x.count("_") == 3 for x in res.map.values())

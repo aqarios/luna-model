@@ -88,18 +88,13 @@ def cost_function(
     return cost
 
 
-def solve_ansatz(
-    ansatz: QuantumCircuit, op: SparsePauliOp
-) -> PrimitiveResult[PubResult]:
+def solve_ansatz(ansatz: QuantumCircuit, op: SparsePauliOp) -> PrimitiveResult[PubResult]:
     backend, sampler, estimator, session = get_backend()
     pass_manager = generate_preset_pass_manager(backend=backend)
     try:
         isa_ansatz = pass_manager.run(ansatz)
     except KeyError:
-        msg = (
-            "The input optimization problem is too large to be solved with this "
-            "backend.",
-        )
+        msg = ("The input optimization problem is too large to be solved with this backend.",)
         raise RuntimeError(msg)
     x0 = 2 * np.pi * np.random.rand(isa_ansatz.num_parameters)
     hamiltonian = op.apply_layout(isa_ansatz.layout)

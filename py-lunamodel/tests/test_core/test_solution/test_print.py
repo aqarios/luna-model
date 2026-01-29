@@ -198,9 +198,7 @@ Total variables: 8""".strip("\n")
 
 
 def test_col_after_truncated(solution: Solution):
-    s = solution.print(
-        layout="column", show_metadata="after", max_lines=2, max_line_len=50
-    )
+    s = solution.print(layout="column", show_metadata="after", max_lines=2, max_line_len=50)
     assert (
         s
         == """
@@ -215,9 +213,7 @@ Total variables: 8""".strip("\n")
 
 
 def test_col_after_truncated_dots_too_long(solution: Solution):
-    s = solution.print(
-        layout="column", show_metadata="after", max_lines=2, max_line_len=48
-    )
+    s = solution.print(layout="column", show_metadata="after", max_lines=2, max_line_len=48)
     assert (
         s
         == """

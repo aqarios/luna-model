@@ -22,9 +22,7 @@ def model_samples():
         r1 = Variable("r1", vtype=Vtype.REAL)
         r2 = Variable("r2", vtype=Vtype.REAL)
 
-    model.objective = (
-        1 * b1 - 2 * b2 + 3 * s1 - 4 * s2 + 5 * i1 - 6 * i2 + 7 * r1 - 8 * r2
-    )
+    model.objective = 1 * b1 - 2 * b2 + 3 * s1 - 4 * s2 + 5 * i1 - 6 * i2 + 7 * r1 - 8 * r2
 
     samples = [
         {b1: 0, b2: 1, s1: -1, s2: 1, i1: 3, i2: 42, r1: 0, r2: 12.34},

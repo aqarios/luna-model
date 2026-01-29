@@ -45,6 +45,4 @@ def test_same_model_diff_var_order(model_a: Model, model_b: Model):
     ser_model_a = model_a.encode()
     ser_model_b = model_b.encode()
 
-    assert (model_a == model_a and ser_model_a == ser_model_b) or (
-        model_a != model_b and ser_model_a != ser_model_b
-    )
+    assert (model_a == model_a and ser_model_a == ser_model_b) or (model_a != model_b and ser_model_a != ser_model_b)

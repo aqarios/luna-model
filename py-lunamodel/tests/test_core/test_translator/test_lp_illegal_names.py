@@ -25,6 +25,7 @@ def test_illegal_words(word: str):
     with pytest.raises(IllegalConstraintNameError):
         model.constraints.add_constraint(x + y * 3 <= 10, word)
 
+
 @pytest.mark.parametrize("word", ILLEGAL_WORD_START)
 def test_illegal_vars(word: str):
     model = Model(f"test_{word}")

@@ -114,6 +114,7 @@ def test_expr_sub():
     res = a - b
     assert "a - b" == str(res)
 
+
 def test_expr_sub2():
     with Environment():
         a = Variable("a", Vtype.INTEGER)
@@ -121,6 +122,7 @@ def test_expr_sub2():
         c = Variable("c", Vtype.SPIN)
     res = a - b + c
     assert "a - b + c" == str(res)
+
 
 def test_expr_sub3():
     with Environment():

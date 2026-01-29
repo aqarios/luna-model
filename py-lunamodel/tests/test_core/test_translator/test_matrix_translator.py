@@ -98,9 +98,7 @@ def test_translate_with_dense_and_valid_variable_names(qubo: NDArray):
     name = "test"
     vtype = Vtype.BINARY
     variable_names = [f"x_{i},y_{i}" for i in range(len(qubo))]
-    model = QuboTranslator.to_lm(
-        qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
-    )
+    model = QuboTranslator.to_lm(qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names)
     back = QuboTranslator.from_lm(model)
     assert np.allclose(qubo, back.matrix)
     assert back.offset == offset
@@ -120,9 +118,7 @@ def test_translate_with_dense_and_invalid_variable_names_non_alpha(qubo: NDArray
     vtype = Vtype.BINARY
     variable_names = [str(i) for i in range(len(qubo))]
     with pytest.raises(TranslationError):
-        _ = QuboTranslator.to_lm(
-            qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
-        )
+        _ = QuboTranslator.to_lm(qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names)
 
 
 @pytest.mark.parametrize(
@@ -136,9 +132,7 @@ def test_translate_with_dense_and_invalid_variable_names(qubo: NDArray):
     vtype = Vtype.BINARY
     variable_names = [f"x_{i}+y_{i}" for i in range(len(qubo))]
     with pytest.raises(TranslationError):
-        _ = QuboTranslator.to_lm(
-            qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names
-        )
+        _ = QuboTranslator.to_lm(qubo, offset=offset, name=name, vtype=vtype, variable_names=variable_names)
 
 
 @pytest.mark.parametrize("qubo", list(product([0], [0])), indirect=True)

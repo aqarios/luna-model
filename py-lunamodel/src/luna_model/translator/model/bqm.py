@@ -17,17 +17,13 @@ class BqmTranslator:
     @staticmethod
     def to_lm(bqm: BinaryQuadraticModel, *, name: str | None = None) -> Model:
         if not _DIMOD_AVAILABLE:
-            raise RuntimeError(
-                "dimod is required for the BqmTranslator. You can install it using the 'dimod' extra."
-            )
+            raise RuntimeError("dimod is required for the BqmTranslator. You can install it using the 'dimod' extra.")
         if not isinstance(bqm, BinaryQuadraticModel):  # type: ignore[reportPossiblyUnboundVariable]
             raise TypeError(f"Expected bqm to be of type BQM, received: {type(bqm)}")
         bqm_vars_ser = bqm.variables.to_serializable()
         for v in bqm_vars_ser:
             if not isinstance(v, str):
-                raise TypeError(
-                    f"All BQM variables have to be of type str, received: {type(v)}"
-                )
+                raise TypeError(f"All BQM variables have to be of type str, received: {type(v)}")
         vars = np.array(bqm_vars_ser)
         vars_pos = {var: i for i, var in enumerate(vars)}
 
@@ -63,12 +59,8 @@ class BqmTranslator:
     @staticmethod
     def from_lm(model: Model) -> BinaryQuadraticModel:
         if not _DIMOD_AVAILABLE:
-            raise RuntimeError(
-                "dimod is required for the BqmTranslator. You can install it using the 'dimod' extra."
-            )
-        offset, linear, quad, rows, cols, vtype, variables = PyBqmTranslator.from_lm(
-            model._m
-        )
+            raise RuntimeError("dimod is required for the BqmTranslator. You can install it using the 'dimod' extra.")
+        offset, linear, quad, rows, cols, vtype, variables = PyBqmTranslator.from_lm(model._m)
         vtype = Vtype._from_pyvtype(vtype).value.upper()
         return BinaryQuadraticModel.from_numpy_vectors(  # type: ignore[reportPossiblyUnboundVariable]
             linear,

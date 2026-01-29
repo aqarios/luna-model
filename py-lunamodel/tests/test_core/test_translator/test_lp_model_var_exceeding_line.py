@@ -15,9 +15,7 @@ def test_model_many_vars_comma():
 
 
 def test_model_vars_exceeding_length():
-    model_bytes_b64: str = (
-        Path(__file__).parent / "variables_exceeding_line.model"
-    ).read_text()
+    model_bytes_b64: str = (Path(__file__).parent / "variables_exceeding_line.model").read_text()
     model_bytes: bytes = base64.b64decode(model_bytes_b64)
     model = Model.decode(model_bytes)
     _ = LpTranslator.from_lm(model)

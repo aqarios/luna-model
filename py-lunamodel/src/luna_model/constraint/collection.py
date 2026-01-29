@@ -33,9 +33,7 @@ class ConstraintCollection:
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         return self._cc.encode(compress, level)
 
-    def serialize(
-        self, /, compress: bool | None = True, level: int | None = 3
-    ) -> bytes:
+    def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         return self.encode(compress, level)
 
     def get(self, item: str) -> Constraint:

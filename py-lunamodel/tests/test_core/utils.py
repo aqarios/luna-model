@@ -59,9 +59,7 @@ def assert_quadratic(expr, variables, value):
 
 def assert_higher_order(expr, variables, value, p_size=None):
     if not p_size:
-        check_equality(
-            variables, len(variables), lambda vs: expr.get_higher_order(*vs), value
-        )
+        check_equality(variables, len(variables), lambda vs: expr.get_higher_order(*vs), value)
     else:
         check_equality(variables, p_size, lambda vs: expr.get_higher_order(*vs), value)
 
@@ -81,9 +79,7 @@ def generate_bqms(
         num_interactions = int(density * n_vars**2 / 2)
         vartype = Vartype.BINARY if rand.randint(0, 1) == 0 else Vartype.SPIN
         vars = n_vars if int_vars else [f"x{i}" for i in range(n_vars)]
-        bqm = generators.gnm_random_bqm(
-            vars, num_interactions, vartype, random_state=random_int(rand)
-        )
+        bqm = generators.gnm_random_bqm(vars, num_interactions, vartype, random_state=random_int(rand))
         out.append(bqm)
     return out
 
@@ -104,9 +100,7 @@ def generate_cqms(n_models: int, rand: r.Random) -> list[ConstrainedQuadraticMod
         weights = [rand.randint(1, 10) for _ in range(num_items)]
 
         # Generate a symmetric profit matrix with zeros on the diagonal
-        profits = np.array(
-            [[rand.randint(0, 5) for _ in range(num_items)] for _ in range(num_items)]
-        )
+        profits = np.array([[rand.randint(0, 5) for _ in range(num_items)] for _ in range(num_items)])
         profits = np.triu(profits, 1)
         profits += profits.T
         profits = profits

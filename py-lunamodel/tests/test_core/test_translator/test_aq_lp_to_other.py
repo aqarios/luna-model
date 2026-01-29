@@ -29,14 +29,7 @@ def model_lp_str_bin() -> str:
         x2 = Variable("x2")
         x3 = Variable("x3", vtype=Vtype.BINARY)
         x4 = Variable("x4")
-        m.objective += (
-            x0 * x1 * 12.213
-            + x1 * x2 * 0.5
-            + x0 * x2 * -3
-            + 1
-            + x0 * x3 * 1848482
-            + x1 * x4
-        )
+        m.objective += x0 * x1 * 12.213 + x1 * x2 * 0.5 + x0 * x2 * -3 + 1 + x0 * x3 * 1848482 + x1 * x4
         m.constraints.add_constraint(x0 + x2 <= 1)
         m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")
     return LpTranslator.from_lm(m)
@@ -53,14 +46,7 @@ def model_lp_str_fancy() -> str:
         x2 = Variable("x2")
         x3 = Variable("x3", vtype=Vtype.INTEGER, bounds=Bounds(0, 30))
         x4 = Variable("x4")
-        m.objective += (
-            x0 * x1 * 12.213
-            + x1 * x2 * 0.5
-            + x0 * x2 * -3
-            + 1
-            + x0 * x3 * 1848482
-            + x1 * x4
-        )
+        m.objective += x0 * x1 * 12.213 + x1 * x2 * 0.5 + x0 * x2 * -3 + 1 + x0 * x3 * 1848482 + x1 * x4
         m.constraints.add_constraint(x0 + x2 <= 1)
         m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")
     return LpTranslator.from_lm(m)

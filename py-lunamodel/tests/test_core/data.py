@@ -76,24 +76,12 @@ def environments() -> list[Environment]:
         lambda env: Variable("s", env=env, vtype=Vtype.SPIN),
         lambda env: Variable("i", env=env, vtype=Vtype.INTEGER),
         lambda env: Variable("r", env=env, vtype=Vtype.REAL),
-        lambda env: Variable(
-            "ibl", env=env, vtype=Vtype.INTEGER, bounds=Bounds(lower=0.0)
-        ),
-        lambda env: Variable(
-            "ibu", env=env, vtype=Vtype.INTEGER, bounds=Bounds(upper=1.0)
-        ),
-        lambda env: Variable(
-            "ib", env=env, vtype=Vtype.INTEGER, bounds=Bounds(lower=1.0, upper=2.0)
-        ),
-        lambda env: Variable(
-            "rbl", env=env, vtype=Vtype.REAL, bounds=Bounds(lower=0.0)
-        ),
-        lambda env: Variable(
-            "rbu", env=env, vtype=Vtype.REAL, bounds=Bounds(upper=1.0)
-        ),
-        lambda env: Variable(
-            "rb", env=env, vtype=Vtype.REAL, bounds=Bounds(lower=1.0, upper=2.0)
-        ),
+        lambda env: Variable("ibl", env=env, vtype=Vtype.INTEGER, bounds=Bounds(lower=0.0)),
+        lambda env: Variable("ibu", env=env, vtype=Vtype.INTEGER, bounds=Bounds(upper=1.0)),
+        lambda env: Variable("ib", env=env, vtype=Vtype.INTEGER, bounds=Bounds(lower=1.0, upper=2.0)),
+        lambda env: Variable("rbl", env=env, vtype=Vtype.REAL, bounds=Bounds(lower=0.0)),
+        lambda env: Variable("rbu", env=env, vtype=Vtype.REAL, bounds=Bounds(upper=1.0)),
+        lambda env: Variable("rb", env=env, vtype=Vtype.REAL, bounds=Bounds(lower=1.0, upper=2.0)),
     ]
 
     envs: list[Environment] = list()
@@ -108,9 +96,7 @@ def environments() -> list[Environment]:
     return envs
 
 
-def expressions(
-    params: tuple[Environment, list[Variable]] | None = None, seed: int | None = None
-) -> list[Expression]:
+def expressions(params: tuple[Environment, list[Variable]] | None = None, seed: int | None = None) -> list[Expression]:
     if not seed:
         seed = make_seed()
 
@@ -271,9 +257,7 @@ def models() -> list[Model]:
     return model_collection
 
 
-def to_serialized(
-    f: Callable[[], Sequence[T]], t: type[T]
-) -> list[tuple[T, bytes, type[T]]]:
+def to_serialized(f: Callable[[], Sequence[T]], t: type[T]) -> list[tuple[T, bytes, type[T]]]:
     return [(e, e.encode(), t) for e in f()]
 
 
@@ -296,11 +280,7 @@ SER_OBJECTS: dict[type[T], Callable[[], Sequence[tuple[T, bytes, type[T]]]]] = {
     Environment: lambda: to_serialized(environments, Environment),
 }
 
-SER_WITH_ENV_OBJECTS: dict[
-    type[T], Callable[[], Sequence[tuple[T, bytes, type[T], Environment]]]
-] = {
+SER_WITH_ENV_OBJECTS: dict[type[T], Callable[[], Sequence[tuple[T, bytes, type[T], Environment]]]] = {
     Expression: lambda: to_serialized_with_env(expressions_with_env, Expression),
-    ConstraintCollection: lambda: to_serialized_with_env(
-        constraints_with_env, ConstraintCollection
-    ),
+    ConstraintCollection: lambda: to_serialized_with_env(constraints_with_env, ConstraintCollection),
 }

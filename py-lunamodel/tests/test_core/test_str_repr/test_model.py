@@ -60,9 +60,7 @@ _model_repr_1 = "Model(name=MyModel, sense=Minimize, objective=a + 2 b + 2 c + 2
 @pytest.fixture()
 def variables(request) -> tuple[Variable, ...]:
     with Environment():
-        variables = [
-            Variable(f"{string.ascii_lowercase[i]}") for i in range(request.param)
-        ]
+        variables = [Variable(f"{string.ascii_lowercase[i]}") for i in range(request.param)]
     return tuple(variables)
 
 
@@ -225,14 +223,7 @@ def test_model():
             x2 = Variable("x2")
             x3 = Variable("x3", vtype=Vtype.INTEGER, bounds=Bounds(0, 30))
             x4 = Variable("x4", vtype=Vtype.SPIN)
-            m.objective += (
-                x0 * x1 * x2 * 12.213
-                + x1 * x2 * 0.5
-                + x0 * x2 * -3
-                + 1
-                + x0 * x3 * 1848482
-                + x1 * x4
-            )
+            m.objective += x0 * x1 * x2 * 12.213 + x1 * x2 * 0.5 + x0 * x2 * -3 + 1 + x0 * x3 * 1848482 + x1 * x4
             m.constraints.add_constraint(x0 + x2 <= 1)
             assert _model_str_3 == str(m)
             m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")

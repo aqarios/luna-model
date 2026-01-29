@@ -33,12 +33,7 @@ _Sample: TypeAlias = (
 _SampleList: TypeAlias = Sequence[_Sample]
 
 SolutionFromTypes: TypeAlias = (
-    dict[str, Any]
-    | SampleSet
-    | PrimitiveResult[PubResult]
-    | ScipModel
-    | _Sample
-    | _SampleList
+    dict[str, Any] | SampleSet | PrimitiveResult[PubResult] | ScipModel | _Sample | _SampleList
 )
 
 FilterFn: TypeAlias = Callable[[ResultView], bool]

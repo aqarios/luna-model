@@ -16,9 +16,7 @@ def test_expr_iter():
             case Linear(v):
                 assert a.is_equal(v)
             case Quadratic(u, v):
-                assert (a.is_equal(u) and b.is_equal(v)) or (
-                    a.is_equal(v) and b.is_equal(u)
-                )
+                assert (a.is_equal(u) and b.is_equal(v)) or (a.is_equal(v) and b.is_equal(u))
             case HigherOrder(vars):
                 assert vars[0].is_equal(c)
                 assert vars[1].is_equal(d)

@@ -31,9 +31,7 @@ if_else_s = IfElsePass(
     then=Pipeline([identify_sense]),
     otherwise=Pipeline([]),
 )
-p_change_to_max = Pipeline(
-    [MaxBiasAnalysis(), ChangeSensePass(Sense.Max), identify_sense]
-)
+p_change_to_max = Pipeline([MaxBiasAnalysis(), ChangeSensePass(Sense.Max), identify_sense])
 p_change_to_min = Pipeline([ChangeSensePass(Sense.Min), if_else_s, MaxBiasAnalysis()])
 if_else_r = IfElsePass(
     requires=["identify-sense"],

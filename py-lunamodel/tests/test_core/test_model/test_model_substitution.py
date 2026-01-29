@@ -85,15 +85,7 @@ def test_model_substitution():
     constr_a = target * target
     expected_constr_a = x1 + 4 * x2 + 16 * x3 + 4 * x1 * x2 + 8 * x1 * x3 + 16 * x2 * x3
     constr_b = target * target * target
-    expected_constr_b = (
-        x1
-        + 8 * x2
-        + 64 * x3
-        + 18 * x1 * x2
-        + 60 * x1 * x3
-        + 144 * x2 * x3
-        + 48 * x1 * x2 * x3
-    )
+    expected_constr_b = x1 + 8 * x2 + 64 * x3 + 18 * x1 * x2 + 60 * x1 * x3 + 144 * x2 * x3 + 48 * x1 * x2 * x3
 
     m.objective = base_obj
     m.constraints += constr_a <= 0, "a"

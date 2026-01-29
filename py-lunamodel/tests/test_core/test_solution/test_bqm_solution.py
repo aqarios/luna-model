@@ -81,26 +81,18 @@ def test_bqm_solution():
     for k, v in sol.samples[0].to_dict().items():
         assert quest[k] == v, "incorrect assignment in solution built from dict"
 
-    assert sol.variable_names == lmm_var_names, (
-        "(sol) the variable names don't have the expected format or ordering"
-    )
-    assert sol.variable_names == bqm_vars, (
-        "(sol) the variable names don't match the BQM variable names"
-    )
+    assert sol.variable_names == lmm_var_names, "(sol) the variable names don't have the expected format or ordering"
+    assert sol.variable_names == bqm_vars, "(sol) the variable names don't match the BQM variable names"
 
     lmm_np = np.array(sol.samples.tolist()[0])
-    assert np.allclose(dimod_np, lmm_np), (
-        "the numpy samples representation does not match"
-    )
+    assert np.allclose(dimod_np, lmm_np), "the numpy samples representation does not match"
 
     sol_best = sol.best()
     assert sol_best is not None, "the best energy is not None"
     assert sol_best.obj_value == bqm.energy(res), "the objective values are not correct"
     sol_dict_best = sol_from_dict.best()
     assert sol_dict_best is not None, "the best solution is falsly set"
-    assert sol_dict_best.obj_value == bqm.energy(res), (
-        "the objective values do not match"
-    )
+    assert sol_dict_best.obj_value == bqm.energy(res), "the objective values do not match"
 
 
 @pytest.mark.skipif(NOT_RUN_DWAVE, reason="Dwave is required for test")
@@ -122,9 +114,7 @@ def test_bqm_solution_with_substitution():
     lmm.substitute(target, rep)
     # And now back to the original one to have a valid model and solution.
     if target_vtype not in [Vtype.BINARY, Vtype.SPIN]:
-        back_target = lmm.add_variable(
-            target_name, vtype=target_vtype, lower=target_lower, upper=target_upper
-        )
+        back_target = lmm.add_variable(target_name, vtype=target_vtype, lower=target_lower, upper=target_upper)
     else:
         back_target = lmm.add_variable(target_name, vtype=target_vtype)
 

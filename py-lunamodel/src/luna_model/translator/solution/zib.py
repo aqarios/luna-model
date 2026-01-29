@@ -22,8 +22,7 @@ class ZibTranslator:
     ) -> Solution:
         if not _SCIP_AVAILABLE:
             raise RuntimeError(
-                "scip is required for the ZibTranslator. "
-                "You can install it using the 'scip' extra.",
+                "scip is required for the ZibTranslator. You can install it using the 'scip' extra.",
             )
         env = env if env is not None else Environment._from_ctx()
         sample = {x.name: model.getVal(x) for x in model.getVars() if x.name in env}

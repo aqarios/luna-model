@@ -35,9 +35,7 @@ def test_expectation_value(model: tuple[Model, tuple[Variable, ...]]):
     sol = Solution.from_dicts(samples, model=m)
     assert sol.obj_values is not None
     gt_expval = np.average(sol.obj_values, weights=sol.counts)
-    gt_manual_expval = float(
-        sum(w * o for w, o in zip(sol.counts, sol.obj_values)) / sum(sol.counts)
-    )
+    gt_manual_expval = float(sum(w * o for w, o in zip(sol.counts, sol.obj_values)) / sum(sol.counts))
     assert gt_expval == gt_manual_expval
 
     assert sol.samples.tolist() == [
@@ -110,9 +108,7 @@ def test_filter_feasible(model: tuple[Model, tuple[Variable, ...]]):
     assert sol.obj_values.tolist() == [-1.0, -1.0, 1.0, -2.0]
 
     sol_feasible = sol.filter_feasible()
-    expected = Solution.from_dicts(
-        [{x: 0, y: 0, z: 1}, {x: 1, y: 0, z: 0}], model=m, counts=[1, 3]
-    )
+    expected = Solution.from_dicts([{x: 0, y: 0, z: 1}, {x: 1, y: 0, z: 0}], model=m, counts=[1, 3])
     assert sol_feasible == expected
 
 

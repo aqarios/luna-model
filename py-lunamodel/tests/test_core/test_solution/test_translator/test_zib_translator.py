@@ -42,12 +42,8 @@ def test_zib_translator(zib_model: Model):
     assert len(sol.counts) == 1
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
-    assert np.isclose(
-        sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5
-    )
-    assert np.isclose(
-        sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5
-    )
+    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5)
+    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5)
     assert sol.runtime.qpu is None
     assert sol.obj_values is None
     assert sol.raw_energies is None
@@ -84,25 +80,17 @@ def test_zib_translator_quadratic(zib_model_quadratic: Model):
     timing = timer.stop()
     _ = ZibTranslator.to_lm(scip_model, timing=timing, env=zib_model_quadratic.environment)
     truth_sample = {
-        x.name: scip_model.getVal(x)
-        for x in scip_model.getVars()
-        if x.name in zib_model_quadratic.environment
+        x.name: scip_model.getVal(x) for x in scip_model.getVars() if x.name in zib_model_quadratic.environment
     }
 
-    sol = ZibTranslator.to_lm(
-        scip_model, timing=timing, env=zib_model_quadratic.environment
-    )
+    sol = ZibTranslator.to_lm(scip_model, timing=timing, env=zib_model_quadratic.environment)
     assert len(sol.samples) == 1
     assert sol.raw_energies is None
     assert len(sol.counts) == 1
     assert len(sol.counts) == len(sol.samples)
     assert sol.runtime is not None
-    assert np.isclose(
-        sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5
-    )
-    assert np.isclose(
-        sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5
-    )
+    assert np.isclose(sol.runtime.total.total_seconds(), timing.total_seconds, atol=1e-5)
+    assert np.isclose(sol.runtime.total_seconds, timing.total.total_seconds(), atol=1e-5)
     assert sol.runtime.qpu is None
     assert sol.obj_values is None
     assert sol.raw_energies is None

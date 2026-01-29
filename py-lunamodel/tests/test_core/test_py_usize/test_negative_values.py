@@ -12,13 +12,9 @@ def test_negative_value_normal_method():
         _ = sol.print(max_lines=1.0)
     with pytest.raises(TypeError):
         _ = sol.print(max_lines="foo")
-    with pytest.raises(
-        ValueError, match="Expected a non-negative number, received: -1"
-    ):
+    with pytest.raises(ValueError, match="Expected a non-negative number, received: -1"):
         _ = sol.print(max_lines=-1)
-    with pytest.raises(
-        ValueError, match="`max_lines` needs to be at least 1; actual value: 0"
-    ):
+    with pytest.raises(ValueError, match="`max_lines` needs to be at least 1; actual value: 0"):
         _ = sol.print(max_lines=0)
     with does_not_raise():
         _ = sol.print(max_lines=1)
@@ -31,9 +27,7 @@ def test_negative_value_slot_method():
         r = x**1.3
     with pytest.raises(TypeError):
         _ = x ** "foo"
-    with pytest.raises(
-        ValueError, match="Expected a non-negative number, received: -1"
-    ):
+    with pytest.raises(ValueError, match="Expected a non-negative number, received: -1"):
         _ = x ** (-1)
     with does_not_raise():
         _ = (x**i for i in range(10))
@@ -53,17 +47,11 @@ def test_negative_values_getitem():
         _ = samples[(0, 1.0)]
     with pytest.raises(ValueError):
         _ = samples[(0, 0, 0)]
-    with pytest.raises(
-        ValueError, match="Expected a non-negative number, received: -1"
-    ):
+    with pytest.raises(ValueError, match="Expected a non-negative number, received: -1"):
         _ = samples[-1]
-    with pytest.raises(
-        ValueError, match="Expected a non-negative number, received: -1"
-    ):
+    with pytest.raises(ValueError, match="Expected a non-negative number, received: -1"):
         _ = samples[(-1, -2)]
-    with pytest.raises(
-        ValueError, match="Expected a non-negative number, received: -1"
-    ):
+    with pytest.raises(ValueError, match="Expected a non-negative number, received: -1"):
         _ = samples[(0, -1)]
     with does_not_raise():
         _ = samples[0]

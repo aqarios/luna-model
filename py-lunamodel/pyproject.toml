@@ -91,6 +91,8 @@ dev = [
     "qiskit-optimization>=0.6.1; python_version < '3.14'",
     "scipy>=1.16.3",
     "rich>=14.2.0",
+    "ruff>=0.14.14",
+    "mypy>=1.19.1",
 ]
 docs = [
     "mkdocstrings[python]>=1.0.1",

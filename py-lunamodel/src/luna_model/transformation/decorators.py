@@ -33,9 +33,7 @@ AnalysisSignature: TypeAlias = Callable[[Model, AnalysisCache], T]
 
 MetaAnalysisSignature: TypeAlias = Callable[[list[BasePass], AnalysisCache], T]
 
-Outcome: TypeAlias = (
-    TransformationOutcome | tuple[Model, ActionType] | tuple[Model, ActionType, Any]
-)
+Outcome: TypeAlias = TransformationOutcome | tuple[Model, ActionType] | tuple[Model, ActionType, Any]
 TransformationSignature: TypeAlias = Callable[
     [Model, AnalysisCache],
     Outcome,

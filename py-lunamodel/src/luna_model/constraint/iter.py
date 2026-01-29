@@ -18,9 +18,7 @@ class ConstraintCollectionIter:
         return self
 
     @classmethod
-    def _from_pycci(
-        cls, py_cci: PyConstraintCollectionIterator
-    ) -> ConstraintCollectionIter:
+    def _from_pycci(cls, py_cci: PyConstraintCollectionIterator) -> ConstraintCollectionIter:
         """Construct LunaModel ConstraintCollectionIter from FFI PyConstraintCollectionIterator object."""
         i = cls.__new__(cls)
         i._i = py_cci

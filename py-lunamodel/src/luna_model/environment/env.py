@@ -50,9 +50,7 @@ class Environment:
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         return self._env.encode(compress, level)
 
-    def serialize(
-        self, /, compress: bool | None = True, level: int | None = 3
-    ) -> bytes:
+    def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         return self.encode(compress, level)
 
     @classmethod

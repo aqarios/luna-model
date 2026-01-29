@@ -152,9 +152,7 @@ def test_model_add_constraint_le():
     model.constraints += x + y <= 1, "my_constraint"
     assert model.num_constraints == 1
     assert model.constraints["my_constraint"] == model.constraints["my_constraint"]
-    assert model.constraints.get("my_constraint") == model.constraints.get(
-        "my_constraint"
-    )
+    assert model.constraints.get("my_constraint") == model.constraints.get("my_constraint")
 
 
 def test_model_add_constraint_eq():
@@ -165,9 +163,7 @@ def test_model_add_constraint_eq():
     model.constraints += x + y == 0, "my_constraint"
     assert model.num_constraints == 1
     assert model.constraints["my_constraint"] == model.constraints["my_constraint"]
-    assert model.constraints.get("my_constraint") == model.constraints.get(
-        "my_constraint"
-    )
+    assert model.constraints.get("my_constraint") == model.constraints.get("my_constraint")
 
 
 def test_model_add_constraint_ge():
@@ -178,9 +174,7 @@ def test_model_add_constraint_ge():
     model.constraints += x + y >= 1, "my_constraint"
     assert model.num_constraints == 1
     assert model.constraints["my_constraint"] == model.constraints["my_constraint"]
-    assert model.constraints.get("my_constraint") == model.constraints.get(
-        "my_constraint"
-    )
+    assert model.constraints.get("my_constraint") == model.constraints.get("my_constraint")
 
 
 def test_model_add_constraint_le_named():

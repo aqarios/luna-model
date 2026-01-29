@@ -23,8 +23,7 @@ class DwaveTranslator:
     ) -> Solution:
         if not _DIMOD_AVAILABLE:
             raise RuntimeError(
-                "dimod is required for the DwaveTranslator. "
-                "You can install it using the 'dimod' extra.",
+                "dimod is required for the DwaveTranslator. You can install it using the 'dimod' extra.",
             )
         sampleset = sample_set.aggregate()
         variables = sampleset.variables

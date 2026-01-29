@@ -38,24 +38,16 @@ def model(request):
 
     model = Model()
     vars = [
-        model.add_variable(f"x_{i}", vtype=choose_random_vtype())
-        for i in range(max(target_degree, len(vtypes)) + 2)
+        model.add_variable(f"x_{i}", vtype=choose_random_vtype()) for i in range(max(target_degree, len(vtypes)) + 2)
     ]
 
     for deg in range(target_degree):
-        model.objective += quicksum(
-            [random.random() * var for var in random.sample(vars, deg + 1)]
-        )
+        model.objective += quicksum([random.random() * var for var in random.sample(vars, deg + 1)])
 
     for ct in ctypes:
         model.constraints.add_constraint(
             Constraint(
-                quicksum(
-                    [
-                        random.random() * var
-                        for var in random.sample(vars, random.randint(2, len(vars)))
-                    ]
-                ),
+                quicksum([random.random() * var for var in random.sample(vars, random.randint(2, len(vars)))]),
                 random.randint(0, 100),
                 ct,
             )

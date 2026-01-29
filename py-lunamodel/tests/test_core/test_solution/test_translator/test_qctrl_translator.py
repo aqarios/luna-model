@@ -50,9 +50,7 @@ def test_qctrl_translator_constructed():
         rand = Random(make_seed())
         sample_len = rand.randint(2, MAX_VARS)
         num_samples = rand.randint(1, max(sample_len // 2, 1))
-        fake_result, reverser = fake_qctrl_result(
-            rand, sample_len, random(random_int(rand)), num_samples
-        )
+        fake_result, reverser = fake_qctrl_result(rand, sample_len, random(random_int(rand)), num_samples)
 
         env = Environment()
         with env:
@@ -61,9 +59,7 @@ def test_qctrl_translator_constructed():
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
-        assert len(samples[0]) == sample_len, (
-            "sample len (num variables) does not match"
-        )
+        assert len(samples[0]) == sample_len, "sample len (num variables) does not match"
         assert sol.raw_energies is None
         assert len(sol.counts.tolist()) == num_samples
         assert sol.runtime is None
@@ -81,9 +77,7 @@ def test_qctrl_translator_constructed_explicit_env():
         rand = Random(make_seed())
         sample_len = rand.randint(2, MAX_VARS)
         num_samples = rand.randint(1, max(sample_len // 2, 1))
-        fake_result, reverser = fake_qctrl_result(
-            rand, sample_len, random(random_int(rand)), num_samples
-        )
+        fake_result, reverser = fake_qctrl_result(rand, sample_len, random(random_int(rand)), num_samples)
 
         env = Environment()
         with env:
@@ -93,9 +87,7 @@ def test_qctrl_translator_constructed_explicit_env():
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
-        assert len(samples[0]) == sample_len, (
-            "sample len (num variables) does not match"
-        )
+        assert len(samples[0]) == sample_len, "sample len (num variables) does not match"
         assert sol.raw_energies is None
         assert len(sol.counts.tolist()) == num_samples
         assert sol.runtime is None
@@ -116,9 +108,7 @@ def test_qctrl_translator_constructed_with_time():
         rand = Random(make_seed())
         sample_len = rand.randint(2, MAX_VARS)
         num_samples = rand.randint(1, max(sample_len // 2, 1))
-        fake_result, reverser = fake_qctrl_result(
-            rand, sample_len, random(random_int(rand)), num_samples
-        )
+        fake_result, reverser = fake_qctrl_result(rand, sample_len, random(random_int(rand)), num_samples)
         timer = Timer.start()
         sleep(0.3)
         timing = timer.stop()
@@ -130,9 +120,7 @@ def test_qctrl_translator_constructed_with_time():
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
-        assert len(samples[0]) == sample_len, (
-            "sample len (num variables) does not match"
-        )
+        assert len(samples[0]) == sample_len, "sample len (num variables) does not match"
         assert sol.raw_energies is None
         assert len(sol.counts.tolist()) == num_samples
         assert sol.runtime is not None
@@ -153,9 +141,7 @@ def test_qctrl_translator_constructed_vars():
         rand = Random(make_seed())
         sample_len = rand.randint(2, MAX_VARS)
         num_samples = rand.randint(1, max(sample_len // 2, 1))
-        fake_result, reverser = fake_qctrl_result(
-            rand, sample_len, random(random_int(rand)), num_samples
-        )
+        fake_result, reverser = fake_qctrl_result(rand, sample_len, random(random_int(rand)), num_samples)
 
         env = Environment()
         with env:
@@ -164,9 +150,7 @@ def test_qctrl_translator_constructed_vars():
 
         samples = sol.samples.tolist()
         assert len(samples) == num_samples, "number of samples does not match"
-        assert len(samples[0]) == sample_len, (
-            "sample len (num variables) does not match"
-        )
+        assert len(samples[0]) == sample_len, "sample len (num variables) does not match"
         assert sol.raw_energies is None
         assert len(sol.counts.tolist()) == num_samples
         assert sol.runtime is None

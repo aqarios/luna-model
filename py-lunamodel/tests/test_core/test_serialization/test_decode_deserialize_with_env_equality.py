@@ -6,12 +6,8 @@ from .creators import (
 )
 
 
-@pytest.mark.parametrize(
-    "initial,serialized_object,class_type,env", create_serialized_objects_with_env()
-)
-def test_decode_and_deserialize_with_env_equality(
-    initial, serialized_object, class_type, env
-):
+@pytest.mark.parametrize("initial,serialized_object,class_type,env", create_serialized_objects_with_env())
+def test_decode_and_deserialize_with_env_equality(initial, serialized_object, class_type, env):
     decoded = class_type.decode(serialized_object, env)
     deserialized = class_type.deserialize(serialized_object, env)
     assert isinstance(decoded, class_type)
@@ -26,9 +22,7 @@ def test_decode_and_deserialize_with_env_equality(
     "initial,serialized_object,class_type,env",
     create_serialized_objects_with_env_contents(),
 )
-def test_decode_and_deserialize_with_env_equality_b(
-    initial, serialized_object, class_type, env
-):
+def test_decode_and_deserialize_with_env_equality_b(initial, serialized_object, class_type, env):
     decoded = class_type.decode(serialized_object, env)
     deserialized = class_type.deserialize(serialized_object, env)
     assert isinstance(decoded, class_type)

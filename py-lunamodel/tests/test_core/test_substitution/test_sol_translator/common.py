@@ -85,12 +85,7 @@ def build_subst_model() -> Model:
     offset = 10
     linear = quicksum([b1, 2 * b2, 3 * s1, 4 * s2, 5 * i1, 3 * target])
     quadratic = 2 * b1 * s1 + 3 * b2 * s2 + 2 * i1 * target
-    ho = (
-        6 * b1 * b2 * i1
-        + 3.5 * s1 * i1 * target
-        + 4 * b2 * i1 * target
-        + 4.5 * s2 * target * b2
-    )
+    ho = 6 * b1 * b2 * i1 + 3.5 * s1 * i1 * target + 4 * b2 * i1 * target + 4.5 * s2 * target * b2
     subs.objective = linear + quadratic + ho + offset
 
     # this will be used as the variable in the replacement for substition

@@ -8,9 +8,7 @@ from luna_model.transformation.transform import ConcreteTransformationPass
 class BinarySpinPass(ConcreteTransformationPass):
     """An transformation pass changing the binary/spin variables to spin/binary."""
 
-    def __init__(
-        self, vtype: Literal[Vtype.BINARY, Vtype.SPIN], prefix: str | None
-    ) -> None:
+    def __init__(self, vtype: Literal[Vtype.BINARY, Vtype.SPIN], prefix: str | None) -> None:
         super().__init__(base=PyBinarySpinPass(vtype._val, prefix))
 
     @property

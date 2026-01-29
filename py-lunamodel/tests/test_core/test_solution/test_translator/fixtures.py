@@ -21,14 +21,7 @@ def aws_model() -> Model:
     x2 = m.add_variable("x2")
     x3 = m.add_variable("x3", vtype=Vtype.INTEGER, lower=0, upper=30)
     x4 = m.add_variable("x4")
-    m.objective += (
-        x0 * x1 * 12.213
-        + x1 * x2 * 0.5
-        + x0 * x2 * -3
-        + 1
-        + x0 * x3 * 1848482
-        + x1 * x4
-    )
+    m.objective += x0 * x1 * 12.213 + x1 * x2 * 0.5 + x0 * x2 * -3 + 1 + x0 * x3 * 1848482 + x1 * x4
     m.constraints.add_constraint(x0 + x2 <= 1)
     m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")
     return m
@@ -95,14 +88,7 @@ def np_model() -> Model:
         x2 = Variable("x2")
         x3 = Variable("x3", vtype=Vtype.INTEGER, bounds=Bounds(0, 30))
         x4 = Variable("x4")
-        m.objective += (
-            x0 * x1 * 12.213
-            + x1 * x2 * 0.5
-            + x0 * x2 * -3
-            + 1
-            + x0 * x3 * 1848482
-            + x1 * x4
-        )
+        m.objective += x0 * x1 * 12.213 + x1 * x2 * 0.5 + x0 * x2 * -3 + 1 + x0 * x3 * 1848482 + x1 * x4
         m.constraints.add_constraint(x0 + x2 <= 1)
         m.constraints.add_constraint(x0 + x2 <= 1, "my_constraint")
     return m
@@ -175,17 +161,9 @@ def zib_model() -> Model:
         ni = Variable("Ni", vtype=Vtype.REAL, bounds=Bounds(upper=50))
         zi = Variable("Zi", vtype=Vtype.REAL, bounds=Bounds(upper=50))
         mn = Variable("Mn", vtype=Vtype.REAL, bounds=Bounds(upper=50))
-    m.objective = (
-        0.01 * pennies + 0.05 * nickels + 0.1 * dimes + 0.25 * quarters + 1 * dollars
-    )
+    m.objective = 0.01 * pennies + 0.05 * nickels + 0.1 * dimes + 0.25 * quarters + 1 * dollars
     m.constraints += (
-        0.06 * pennies
-        + 3.8 * nickels
-        + 2.1 * dimes
-        + 5.2 * quarters
-        + 7.2 * dollars
-        - cu
-        == 0,
+        0.06 * pennies + 3.8 * nickels + 2.1 * dimes + 5.2 * quarters + 7.2 * dollars - cu == 0,
         "Copper",
     )
     m.constraints += (
@@ -219,13 +197,7 @@ def zib_model_quadratic() -> Model:
         + 5 * nickels * dollars
     )
     m.constraints += (
-        0.06 * pennies
-        + 3.8 * nickels
-        + 2.1 * dimes
-        + 5.2 * quarters
-        + 7.2 * dollars
-        - cu
-        == 0,
+        0.06 * pennies + 3.8 * nickels + 2.1 * dimes + 5.2 * quarters + 7.2 * dollars - cu == 0,
         "Copper",
     )
     m.constraints += (

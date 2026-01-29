@@ -13,9 +13,7 @@ from luna_model import (
 from luna_model.errors import RandomSamplingError
 
 
-def get_vars(
-    n, vtype, lb=Unbounded, ub=Unbounded, start=0, env=None
-) -> tuple[tuple[Variable, ...], Environment]:
+def get_vars(n, vtype, lb=Unbounded, ub=Unbounded, start=0, env=None) -> tuple[tuple[Variable, ...], Environment]:
     if env is None:
         env = Environment()
     with env:
@@ -23,10 +21,7 @@ def get_vars(
             bounds = Bounds(lower=lb, upper=ub)
         else:
             bounds = None
-        variables = [
-            Variable(f"x_{i}", vtype=vtype, bounds=bounds)
-            for i in range(start, n + start)
-        ]
+        variables = [Variable(f"x_{i}", vtype=vtype, bounds=bounds) for i in range(start, n + start)]
     return tuple(variables), env
 
 
@@ -127,6 +122,4 @@ def test_random_seed(model: tuple[Model, tuple[Variable, ...]]):
     sol = Solution.from_random(100, model=m, seed=123456)
     sol_assert = Solution.decode(SOL_BLOB)
 
-    assert np.all(
-        np.array(sol_assert.samples.tolist()) == np.array(sol.samples.tolist())
-    )
+    assert np.all(np.array(sol_assert.samples.tolist()) == np.array(sol.samples.tolist()))

@@ -32,9 +32,7 @@ class PyChangeSensePass(TransformationPass):
         """Get the name."""
         return "py-change-sense"
 
-    def run(
-        self, model: Model, cache: AnalysisCache
-    ) -> tuple[Model, ActionType]:
+    def run(self, model: Model, cache: AnalysisCache) -> tuple[Model, ActionType]:
         """Run method."""
         _ = cache
         if self.target_sense == model.sense:
@@ -75,4 +73,3 @@ print(ir.model)  # noqa: T201
 
 print("=== Model After Transformation (custom pass) ===")  # noqa: T201
 print(py_ir.model)  # noqa: T201
-

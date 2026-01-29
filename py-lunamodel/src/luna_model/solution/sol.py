@@ -122,9 +122,7 @@ class Solution:
     def cvar(self, alpha: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
         return self._s.cvar(alpha, value_toggle._val)
 
-    def temperature_weighted(
-        self, beta: float, value_toggle: ValueSource = ValueSource.OBJ
-    ) -> float:
+    def temperature_weighted(self, beta: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
         return self._s.temperature_weighted(beta, value_toggle._val)
 
     def expectation_value(self, value_toggle: ValueSource = ValueSource.OBJ) -> float:
@@ -163,9 +161,7 @@ class Solution:
             show_metadata=show_metadata,
         )
 
-    def add_var(
-        self, var: str | Variable, data: list[int | float], vtype: Vtype = Vtype.BINARY
-    ) -> None:
+    def add_var(self, var: str | Variable, data: list[int | float], vtype: Vtype = Vtype.BINARY) -> None:
         from luna_model.variable import Variable
 
         self._s.add_var(
@@ -331,9 +327,7 @@ class Solution:
         return cls._from_pys(
             PySolution.from_arrays(
                 data=data,
-                variables=[v if isinstance(v, str) else v._v for v in variables]
-                if variables is not None
-                else None,
+                variables=[v if isinstance(v, str) else v._v for v in variables] if variables is not None else None,
                 env=env._env if env is not None else None,
                 model=model._m if model is not None else None,
                 timing=timing,
