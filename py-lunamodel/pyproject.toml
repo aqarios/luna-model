@@ -59,7 +59,6 @@ include = [
     "src/luna_model/**/*.py",
     "src/luna_model/py.typed",
     "assets/luna_model_logo.svg",
-    "./LICENSE"
 ]
 exclude = [
     "**/__pycache__",
