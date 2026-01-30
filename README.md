@@ -1,7 +1,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;700&display=swap">
 
-<div align="center" style="font-size: 60px; font-weight: bold; margin: 20px 0; font-family: 'Onest', sans-serif; color: #a855f7;">
-  luna<sup style="font-size: 0.6em;">MODEL</sup>
+<div align="center">
+  <svg width="400" height="80" xmlns="http://www.w3.org/2000/svg">
+    <text x="200" y="60" font-family="'Onest', sans-serif" font-size="48" font-weight="bold" fill="#a855f7" text-anchor="middle">
+      luna<tspan baseline-shift="super" font-size="29">MODEL</tspan>
+    </text>
+  </svg>
 </div>
 
 # Symbolic modeling for optimization
