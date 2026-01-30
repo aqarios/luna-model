@@ -5,8 +5,7 @@ build-backend = "maturin"
 [project]
 name = "luna_model"
 readme = "README.md"
-license = "Apache-2.0"
-license-files = ["./LICENSE"]
+license = { text = "Apache-2.0" }
 dynamic = ["version", "description"]
 authors = [
     { name = "Aqarios GmbH", email = "pypi@aqarios.com" },
@@ -60,6 +59,7 @@ include = [
     "src/luna_model/**/*.py",
     "src/luna_model/py.typed",
     "assets/luna_model_logo.svg",
+    "./LICENSE"
 ]
 exclude = [
     "**/__pycache__",
