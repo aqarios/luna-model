@@ -2,6 +2,7 @@ from numpy.typing import NDArray
 
 from luna_model import Model
 from luna_model.translator import NumpyTranslator
+from .fixtures import *  # noqa: F403
 
 
 def test_numpy_translator(np_model: Model, np_result: tuple[NDArray, NDArray]):

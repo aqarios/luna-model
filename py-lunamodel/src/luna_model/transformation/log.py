@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from luna_model._lm import PyLogElement
-from luna_model.solution.timer import Timing
+from typing import TYPE_CHECKING
 
 from .action_type import ActionType
+
+if TYPE_CHECKING:
+    from luna_model._lm import PyLogElement
+    from luna_model.timer import Timing
 
 
 class LogElement:

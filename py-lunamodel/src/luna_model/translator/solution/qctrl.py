@@ -3,10 +3,12 @@ from typing import Any
 
 from luna_model.environment.env import Environment
 from luna_model.solution.sol import Solution
-from luna_model.solution.timer import Timing
+from luna_model.timer import Timing
 
 
 class QctrlTranslator:
+    """Qctrl solution translator."""
+
     @staticmethod
     def to_lm(
         result: dict[str, Any],
@@ -14,6 +16,7 @@ class QctrlTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
+        """Translate qctrl solution to luna model solution."""
         counts = result.get("final_bitstring_distribution", {})
         mapper = {
             int(re.search(r"\[([^\]]+)\]", k).group(1)): int(v)  # type: ignore[report]

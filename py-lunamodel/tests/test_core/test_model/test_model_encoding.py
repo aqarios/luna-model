@@ -23,7 +23,7 @@ def test_encode_decode_empty():
 
 def test_encode_decode_empty_max():
     with Environment():
-        model = Model(sense=Sense.Max)
+        model = Model(sense=Sense.MAX)
 
     assert_encode_decode(model)
 
@@ -48,7 +48,7 @@ def test_encode_decode_with_objective_max():
         x = Variable("x")
         y = Variable("y")
         z = Variable("z")
-        model = Model(name="objective", sense=Sense.Max)
+        model = Model(name="objective", sense=Sense.MAX)
 
     model.objective += 1
     model.objective += x

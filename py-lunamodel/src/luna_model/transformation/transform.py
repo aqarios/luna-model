@@ -44,34 +44,42 @@ class TransformationOutcome:
 
     @property
     def model(self) -> Model:
+        """Get the model."""
         return Model._from_pym(self._to.model)
 
     @model.setter
     def model(self, model: Model) -> None:
+        """Set the model."""
         self._to.model = model._m
 
     @property
     def action(self) -> ActionType:
+        """Get the action type."""
         return ActionType._from_pyat(self._to.action)
 
     @action.setter
     def action(self, action_type: ActionType) -> None:
+        """Set the action type."""
         self._to.action = action_type._val
 
     @property
-    def analysis(self) -> Any:
+    def analysis(self) -> Any:  # noqa: ANN401
+        """Get the analysis."""
         return self._to.analysis
 
     @analysis.setter
-    def analysis(self, value: Any) -> None:
+    def analysis(self, value: Any) -> None:  # noqa: ANN401
+        """Set the analysis."""
         self._to.analysis = value
 
 
 class TransformationPass(PyTransformationPass, BasePass):
+    """TransformationPass."""
+
     _base: TransformationPass
 
-    def __init__(self, base: TransformationPass = PyTransformationPass()) -> None:
-        self._base = base
+    def __init__(self, base: TransformationPass | None = None) -> None:
+        self._base = base if base else PyTransformationPass()
 
     @property
     @abstractmethod
@@ -109,10 +117,10 @@ class TransformationPass(PyTransformationPass, BasePass):
         self, model: PyModel, cache: PyAnalysisCache
     ) -> PyTransformationOutcome | tuple[PyModel, PyActionType] | tuple[PyModel, PyActionType, Any]:
         inter = self.run(Model._from_pym(model), AnalysisCache._from_pyac(cache))
-        if isinstance(inter, tuple) and len(inter) == 2:
+        if isinstance(inter, tuple) and len(inter) == 2:  # noqa: PLR2004
             model, at = inter
             return model._m, at._val
-        if isinstance(inter, tuple) and len(inter) == 3:
+        if isinstance(inter, tuple) and len(inter) == 3:  # noqa: PLR2004
             model, at, c = inter
             return model._m, at._val, c
         return inter._to
@@ -122,6 +130,8 @@ class TransformationPass(PyTransformationPass, BasePass):
 
 
 class ConcreteTransformationPass(TransformationPass):
+    """ConcreteTransformationPass."""
+
     @property
     def name(self) -> str:
         """Get the name of this pass."""
@@ -132,10 +142,10 @@ class ConcreteTransformationPass(TransformationPass):
     ) -> TransformationOutcome | tuple[PyModel, PyActionType] | tuple[PyModel, PyActionType, Any]:
         """Run/Execute this transformation pass."""
         inter = self._base.run(model._m, cache._ac)
-        if isinstance(inter, tuple) and len(inter) == 2:
+        if isinstance(inter, tuple) and len(inter) == 2:  # noqa: PLR2004
             model, at = inter
             return Model._from_pym(model), ActionType._from_pyat(at)
-        if isinstance(inter, tuple) and len(inter) == 3:
+        if isinstance(inter, tuple) and len(inter) == 3:  # noqa: PLR2004
             model, at, c = inter
             return Model._from_pym(model), ActionType._from_pyat(at), c
         return TransformationOutcome._from_pyto(inter)

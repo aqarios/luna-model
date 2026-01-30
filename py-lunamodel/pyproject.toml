@@ -36,8 +36,8 @@ dimod = [
     "dimod>=0.12.21",
 ]
 qiskit = [
-    "qiskit-optimization>=0.6.1; python_version < '3.14'",
-    "qiskit>=2.1.2; python_version < '3.14'",
+    "qiskit-optimization>=0.6.1",
+    "qiskit>=2.1.2",
 ]
 scip = [
     "pyscipopt>=6.0.0",
@@ -59,6 +59,7 @@ include = [
     "src/luna_model/**/*.pyi",
     "src/luna_model/**/*.py",
     "src/luna_model/py.typed",
+    "assets/luna_model_logo.svg",
 ]
 exclude = [
     "**/__pycache__",
@@ -80,27 +81,30 @@ cache-keys = [
 dev = [
     "dimod>=0.12.21",
     "docplex>=2.30.251",
-    "gurobipy>=13.0.0",
     "ipython>=9.8.0",
     "numpy>=2.3.5",
     "pyscipopt>=6.0.0",
     "pytest>=9.0.2",
-    "qiskit[all]>=2.1.2; python_version < '3.14'",
-    "qiskit-aer>=0.17.1; python_version < '3.14'",
-    "qiskit-ibm-runtime>=0.41.1; python_version < '3.14'",
-    "qiskit-optimization>=0.6.1; python_version < '3.14'",
+    "qiskit>=2.1.2",
+    "qiskit-ibm-runtime>=0.41.1",
+    "qiskit-optimization>=0.6.1",
     "scipy>=1.16.3",
     "rich>=14.2.0",
     "ruff>=0.14.14",
     "mypy>=1.19.1",
+    "gurobipy>=13.0.0; python_version < '3.14'",
+    "qiskit-aer>=0.17.1; python_version < '3.14'",
 ]
 docs = [
     "mkdocstrings[python]>=1.0.1",
     "zensical>=0.0.17",
 ]
+build = [
+  "maturin[zig]>=1.9.6"
+]
 
 [tool.mypy]
-exclude = [".venv", "tests", "docs"]
+exclude = [".venv", "tests", "docs", "examples"]
 disable_error_code = "import-untyped"
 
 [[tool.mypy.overrides]]
@@ -108,4 +112,4 @@ module = [
     "luna_model._lm",
     "luna_model._lm.*",
 ]
-disable_error_code = "import-not-found"
+ignore_missing_imports = true

@@ -1,11 +1,8 @@
-"""
-LunaModel: Blazingly fast Optimization Modeling
-===============================================
+"""LunaModel: Blazingly fast Optimization Modeling.
 
 LunaModel is a fast library for optimization model creation, manipulation and transformation.
 """
 
-from luna_model import transformation, translator
 from luna_model._lm import __version__
 from luna_model.constraint import (
     Comparator,
@@ -33,15 +30,14 @@ from luna_model.solution import (
     ResultIter,
     ResultView,
     Sample,
-    SampleIter,
-    Samples,
-    SamplesIter,
     Solution,
-    Timer,
-    Timing,
     ValueSource,
 )
-from luna_model.translator import TranslationTarget
+from luna_model.timer import (
+    Timer,
+    Timing,
+)
+from luna_model.ttarget import TranslationTarget
 from luna_model.utils import quicksum
 from luna_model.variable import (
     Bounds,
@@ -50,7 +46,7 @@ from luna_model.variable import (
     Vtype,
 )
 
-from . import errors, utils
+from . import errors, transformation, translator, utils
 
 __all__ = [
     "Bounds",
@@ -72,9 +68,6 @@ __all__ = [
     "ResultIter",
     "ResultView",
     "Sample",
-    "SampleIter",
-    "Samples",
-    "SamplesIter",
     "Sense",
     "Solution",
     "Timer",

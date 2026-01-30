@@ -1,4 +1,6 @@
-![LunaModel Logo](./assets/luna_model_ascii.png)
+<div align="center">
+  <img src="./assets/luna_model_logo.svg" alt="lunaᴹᴼᴰᴱᴸ" width="400">
+</div>
 
 # Symbolic modeling for optimization
 

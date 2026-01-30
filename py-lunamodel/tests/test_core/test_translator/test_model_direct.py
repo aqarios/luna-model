@@ -8,13 +8,12 @@ import scipy.sparse as sp  # type: ignore[import-untyped]
 from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
 from numpy.typing import NDArray
 
-from luna_model import Model
+from luna_model import Model, TranslationTarget
 from luna_model.translator import (
     BqmTranslator,
     CqmTranslator,
     LpTranslator,
     QuboTranslator,
-    TranslationTarget,
 )
 from tests.test_core.utils import generate_bqms, generate_cqms, make_seed
 

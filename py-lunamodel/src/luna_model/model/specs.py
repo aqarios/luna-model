@@ -7,9 +7,11 @@ from luna_model.variable import Vtype
 
 
 class ModelSpecs:
+    """Model specifications."""
+
     _sp: PyModelSpecs
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         sense: Sense | None = None,
         vtypes: list[Vtype] | None = None,
@@ -18,6 +20,7 @@ class ModelSpecs:
         max_constraint_degree: int | None = None,
         max_num_variables: int | None = None,
     ) -> None:
+        """Create model specifications."""
         self._v = PyModelSpecs(
             sense=sense._val if sense else None,
             vtypes=[v._val for v in vtypes] if vtypes else None,
@@ -36,6 +39,7 @@ class ModelSpecs:
 
     @property
     def sense(self) -> Sense | None:
+        """Get sense."""
         pys = self._sp.sense
         if pys:
             return Sense._from_pysense(pys)
@@ -43,23 +47,29 @@ class ModelSpecs:
 
     @property
     def max_degree(self) -> int | None:
+        """Get max degree."""
         return self._sp.max_degree
 
     @property
     def max_constraint_degree(self) -> int | None:
+        """Get max constraint degree."""
         return self._sp.max_constraint_degree
 
     @property
     def max_num_variables(self) -> int | None:
+        """Get max num variables."""
         return self._sp.max_num_variables
 
     @property
     def vtypes(self) -> list[Vtype] | None:
+        """Get vtypes."""
         return [Vtype._from_pyvtype(v) for v in self._sp.vtypes]
 
     @property
     def constraints(self) -> list[Ctype] | None:
+        """Get constraints."""
         return [Ctype._from_pyctype(c) for c in self._sp.constraints]
 
     def satisfies(self, other: ModelSpecs) -> bool:
+        """Get satisfies."""
         return self._sp.satisfies(other._sp)

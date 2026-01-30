@@ -2,7 +2,7 @@ use hashbrown::HashMap;
 use indexmap::IndexMap;
 use itertools::Either;
 use lunamodel_core::solution::{Assignment, Column};
-use lunamodel_core::{ArcEnv, Model, Solution};
+use lunamodel_core::{ArcEnv, Solution};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Sense, Vtype};
 use lunamodel_unwind::*;

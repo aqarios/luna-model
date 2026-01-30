@@ -2,6 +2,8 @@ from typing import Protocol
 
 
 class BasePass(Protocol):
+    """BasePass."""
+
     @property
     def name(self) -> str:
         """Get the name of this pass."""

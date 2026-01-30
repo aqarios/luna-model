@@ -31,7 +31,7 @@ def capacity():
 
 def test_set_sense_init(items, values, weights, capacity):
     # Create the binary Variables (selected/not selected item)
-    model = Model("Vacation Knapsack1", sense=Sense.Max)
+    model = Model("Vacation Knapsack1", sense=Sense.MAX)
 
     with model.environment:
         x = {idx: Variable(name=i, vtype=Vtype.BINARY) for idx, i in enumerate(items)}
@@ -40,14 +40,15 @@ def test_set_sense_init(items, values, weights, capacity):
     # The total weight of selected items should not exceed a specified threshold
     model.add_constraint(quicksum(x[i] * weights[i] for i in x) <= capacity)
 
-    assert model.sense == Sense.Max
+    assert model.sense == Sense.MAX
     lp_str = LpTranslator.from_lm(model)
+    assert lp_str is not None
     assert "Maximize" in lp_str
 
 
 def test_set_sense_init_lp(items, values, weights, capacity):
     # Create the binary Variables (selected/not selected item)
-    model = Model("Vacation Knapsack1", sense=Sense.Max)
+    model = Model("Vacation Knapsack1", sense=Sense.MAX)
 
     with model.environment:
         x = {idx: Variable(name=i, vtype=Vtype.BINARY) for idx, i in enumerate(items)}
@@ -56,16 +57,17 @@ def test_set_sense_init_lp(items, values, weights, capacity):
     # The total weight of selected items should not exceed a specified threshold
     model.add_constraint(quicksum(x[i] * weights[i] for i in x) <= capacity)
 
-    assert model.sense == Sense.Max
+    assert model.sense == Sense.MAX
     lp_str = LpTranslator.from_lm(model)
+    assert lp_str is not None
     assert "Maximize" in lp_str
 
 
 def test_set_sense_after_creation(items, values, weights, capacity):
     # Create the binary Variables (selected/not selected item)
-    model = Model("Vacation Knapsack1", sense=Sense.Max)
-    # Maximize the total value of selected items
-    model.set_sense(Sense.Max)
+    model = Model("Vacation Knapsack1", sense=Sense.MAX)
+    # MAXimize the total value of selected items
+    model.set_sense(Sense.MAX)
 
     with model.environment:
         x = {idx: Variable(name=i, vtype=Vtype.BINARY) for idx, i in enumerate(items)}
@@ -74,32 +76,34 @@ def test_set_sense_after_creation(items, values, weights, capacity):
     # The total weight of selected items should not exceed a specified threshold
     model.add_constraint(quicksum(x[i] * weights[i] for i in x) <= capacity)
 
-    assert model.sense == Sense.Max
+    assert model.sense == Sense.MAX
     lp_str = LpTranslator.from_lm(model)
+    assert lp_str is not None
     assert "Maximize" in lp_str
 
 
 def test_set_sense_after_objective(items, values, weights, capacity):
     # Create the binary Variables (selected/not selected item)
-    model = Model("Vacation Knapsack1", sense=Sense.Max)
+    model = Model("Vacation Knapsack1", sense=Sense.MAX)
 
     with model.environment:
         x = {idx: Variable(name=i, vtype=Vtype.BINARY) for idx, i in enumerate(items)}
 
     model.set_objective(quicksum(x[i] * values[i] for i in x))
-    # Maximize the total value of selected items
-    model.set_sense(Sense.Max)
+    # MAXimize the total value of selected items
+    model.set_sense(Sense.MAX)
     # The total weight of selected items should not exceed a specified threshold
     model.add_constraint(quicksum(x[i] * weights[i] for i in x) <= capacity)
 
-    assert model.sense == Sense.Max
+    assert model.sense == Sense.MAX
     lp_str = LpTranslator.from_lm(model)
+    assert lp_str is not None
     assert "Maximize" in lp_str
 
 
 def test_set_sense_after_constraints(items, values, weights, capacity):
     # Create the binary Variables (selected/not selected item)
-    model = Model("Vacation Knapsack1", sense=Sense.Max)
+    model = Model("Vacation Knapsack1", sense=Sense.MAX)
 
     with model.environment:
         x = {idx: Variable(name=i, vtype=Vtype.BINARY) for idx, i in enumerate(items)}
@@ -107,11 +111,12 @@ def test_set_sense_after_constraints(items, values, weights, capacity):
     model.set_objective(quicksum(x[i] * values[i] for i in x))
     # The total weight of selected items should not exceed a specified threshold
     model.add_constraint(quicksum(x[i] * weights[i] for i in x) <= capacity)
-    # Maximize the total value of selected items
-    model.set_sense(Sense.Max)
+    # MAXimize the total value of selected items
+    model.set_sense(Sense.MAX)
 
-    assert model.sense == Sense.Max
+    assert model.sense == Sense.MAX
     lp_str = LpTranslator.from_lm(model)
+    assert lp_str is not None
     assert "Maximize" in lp_str
 
 

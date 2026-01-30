@@ -6,10 +6,9 @@ from luna_model._lm import PyVtype
 
 
 class Vtype(Enum):
+    """The variable type enum."""
+
     BINARY = "Binary"
-    # TODO: have this only be part of a specialization? So that it can be returned but not used
-    # directly? I.e., forbid generation of a inverted binary variable by passing this vtype to
-    # the variable's constructor?
     INVERTED_BINARY = "InvertedBinary"
     SPIN = "Spin"
     INTEGER = "Integer"
@@ -42,4 +41,5 @@ class Vtype(Enum):
                 return Vtype.INTEGER
             case PyVtype.Real:
                 return Vtype.REAL
-        raise RuntimeError("unknown sense")
+        msg = f"unknown vtype '{py_vtype}'"
+        raise RuntimeError(msg)

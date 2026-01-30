@@ -1,9 +1,11 @@
 exclude = [
     ".venv",
-    ".local"
+    ".local",
+    "tests",
+    "examples",
 ]
 
-target-version = "py313"
+target-version = "py311"
 line-length = 120
 output-format = "concise"
 
@@ -62,6 +64,10 @@ ignore = [
     "D100", # Missing docstring in public module - every file would require a docstring at the top
     "D104", # Missing docstring in public package - every __init__.py would require a docstring at the top
     "TD003", # Link for TODO comments
+    "SLF001", # Private member access is required to make the wrapping a bit less verbose.
+    "FBT001", # We have boolen types and they are also defaulted - no other way.
+    "FBT002", # We have boolen types and they are also defaulted - no other way.
+    "PLW1641", # We don't care for the hash
 ]
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
@@ -83,9 +89,6 @@ allow-star-arg-any = true # At some point we should remove all args and kwargs
     "SLF",
     "PL"
 ]
-"luna_bench/entities/**/*.py" = ["TC001", "TC002"] # Disable Type checking block checks for pydantic objs
-"luna_bench/_internal/domain_models/**/*.py" = ["TC001"] # Disable Type checking block checks for pydantic objs
-"luna_bench/components/*.py" = ["TC001"] # Disable Type checking block checks for pydantic objs
 
 [lint.pydocstyle]
 convention = "numpy"

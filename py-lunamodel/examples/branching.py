@@ -12,7 +12,7 @@ from luna_model.transformation.passes import (
 )
 
 lm = Model("Model To transform")
-lm.set_sense(sense=Sense.Max)
+lm.set_sense(sense=Sense.MAX)
 with lm.environment:
     x = Variable("x")
     y = Variable("y")
@@ -27,15 +27,15 @@ def identify_sense(model: Model, _: AnalysisCache) -> Sense:
 
 if_else_s = IfElsePass(
     requires=["identify-sense"],
-    condition=lambda c: c["identify-sense"] == Sense.Min,
+    condition=lambda c: c["identify-sense"] == Sense.MIN,
     then=Pipeline([identify_sense]),
     otherwise=Pipeline([]),
 )
-p_change_to_max = Pipeline([MaxBiasAnalysis(), ChangeSensePass(Sense.Max), identify_sense])
-p_change_to_min = Pipeline([ChangeSensePass(Sense.Min), if_else_s, MaxBiasAnalysis()])
+p_change_to_max = Pipeline([MaxBiasAnalysis(), ChangeSensePass(Sense.MAX), identify_sense])
+p_change_to_min = Pipeline([ChangeSensePass(Sense.MIN), if_else_s, MaxBiasAnalysis()])
 if_else_r = IfElsePass(
     requires=["identify-sense"],
-    condition=lambda c: c["identify-sense"] == Sense.Min,
+    condition=lambda c: c["identify-sense"] == Sense.MIN,
     then=p_change_to_max,
     otherwise=p_change_to_min,
 )

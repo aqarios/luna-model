@@ -12,10 +12,9 @@ try:
 except ImportError:
     NOT_TEST_SCIP = True
 
-NOT_TEST_IBM = True
+NOT_TEST_IBM_AER = True
 try:
-    from qiskit_optimization.translators import from_docplex_mp
-
+    from qiskit_aer import AerSimulator as _
     from tests.test_core.test_solution.test_translator.test_ibm_translator import (
         compute_result,
         controlled_lm,
@@ -23,9 +22,9 @@ try:
         extract,
     )
 
-    NOT_TEST_IBM = False
+    NOT_TEST_IBM_AER = False
 except ImportError:
-    NOT_TEST_IBM = True
+    NOT_TEST_IBM_AER = True
 
 from tests.test_core.utils import make_seed, random, random_int
 
@@ -150,7 +149,7 @@ def test_sol_direct_from_np(np_model, np_result):
         assert result.feasible is None
 
 
-@pytest.mark.skipif(NOT_TEST_IBM, reason="qiskit is required for test")
+@pytest.mark.skipif(NOT_TEST_IBM_AER, reason="qiskit_aer is required for test")
 def test_sol_direct_from_ibm():
     lm = controlled_lm()
     timer = Timer.start()

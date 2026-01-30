@@ -6,51 +6,31 @@ from luna_model._lm import PyCtype
 
 
 class Ctype(Enum):
+    """Constrained types."""
+
     UNCONSTRAINED = "Unconstrained"
     EQUALITY = "Equality"
     INEQUALITY = "Inequality"
     LESS_EQUAL = "LessEqual"
     GREATER_EQUAL = "GreaterEqual"
 
-    # below is to be deprecated
-
-    Unconstrained = "Unconstrained"
-    Equality = "Equality"
-    Inequality = "Inequality"
-    LessEqual = "LessEqual"
-    GreaterEqual = "GreaterEqual"
-
-    @property
-    def name(self) -> str:
-        match self:
-            case Ctype.UNCONSTRAINED | Ctype.Unconstrained:
-                return "Unconstrained"
-            case Ctype.EQUALITY | Ctype.Equality:
-                return "Equality"
-            case Ctype.INEQUALITY | Ctype.Inequality:
-                return "Inequality"
-            case Ctype.LESS_EQUAL | Ctype.LessEqual:
-                return "LessEqual"
-            case Ctype.GREATER_EQUAL | Ctype.GreaterEqual:
-                return "GreaterEqual"
-
     @property
     def _val(self) -> PyCtype:
         match self:
-            case Ctype.UNCONSTRAINED | Ctype.Unconstrained:
+            case Ctype.UNCONSTRAINED:
                 return PyCtype.Unconstrained
-            case Ctype.EQUALITY | Ctype.Equality:
+            case Ctype.EQUALITY:
                 return PyCtype.Equality
-            case Ctype.INEQUALITY | Ctype.Inequality:
+            case Ctype.INEQUALITY:
                 return PyCtype.Inequality
-            case Ctype.LESS_EQUAL | Ctype.LessEqual:
+            case Ctype.LESS_EQUAL:
                 return PyCtype.LessEqual
-            case Ctype.GREATER_EQUAL | Ctype.GreaterEqual:
+            case Ctype.GREATER_EQUAL:
                 return PyCtype.GreaterEqual
 
     @classmethod
-    def _from_pyctype(cls, py_vtype: PyCtype) -> Ctype:
-        match py_vtype:
+    def _from_pyctype(cls, py_ctype: PyCtype) -> Ctype:
+        match py_ctype:
             case PyCtype.Unconstrained:
                 return Ctype.UNCONSTRAINED
             case PyCtype.Equality:
@@ -61,4 +41,5 @@ class Ctype(Enum):
                 return Ctype.LESS_EQUAL
             case PyCtype.GreaterEqual:
                 return Ctype.GREATER_EQUAL
-        raise RuntimeError("unknown sense")
+        msg = f"unknown ctype: {py_ctype}"
+        raise RuntimeError(msg)

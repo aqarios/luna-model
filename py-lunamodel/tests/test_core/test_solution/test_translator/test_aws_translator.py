@@ -2,6 +2,7 @@ from numpy.typing import NDArray
 
 from luna_model import Model
 from luna_model.translator import AwsTranslator
+from .fixtures import *  # noqa: F403
 
 
 def test_aws_translator(aws_model: Model, aws_result: dict[str, NDArray]):

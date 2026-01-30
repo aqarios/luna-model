@@ -8,7 +8,7 @@ from luna_model.transformation import (
 from luna_model.transformation.passes import ChangeSensePass
 
 lm = Model()
-lm.set_sense(sense=Sense.Max)
+lm.set_sense(sense=Sense.MAX)
 with lm.environment:
     x = Variable("x")
     y = Variable("y")

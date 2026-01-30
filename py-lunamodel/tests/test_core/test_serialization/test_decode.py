@@ -2,7 +2,7 @@ import pytest
 
 from luna_model import Environment, Model
 
-from .creators import serialized_objects
+from .utils import serialized_objects
 
 
 @pytest.mark.parametrize("initial,serialized_object,class_type", serialized_objects([Environment]))

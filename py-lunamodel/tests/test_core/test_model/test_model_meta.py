@@ -103,25 +103,25 @@ def naive_query_obj_degree(model: Model) -> int:
     "model",
     [
         {"vtypes": [Vtype.BINARY]},
-        {"vtypes": [Vtype.SPIN], "ctypes": [Comparator.Eq]},
+        {"vtypes": [Vtype.SPIN], "ctypes": [Comparator.EQ]},
         {
             "vtypes": [Vtype.SPIN, Vtype.BINARY, Vtype.INTEGER, Vtype.REAL],
-            "ctypes": [Comparator.Eq, Comparator.Le, Comparator.Ge],
+            "ctypes": [Comparator.EQ, Comparator.LE, Comparator.GE],
             "target_degree": 1,
         },
         {
             "vtypes": [Vtype.SPIN, Vtype.BINARY, Vtype.INTEGER, Vtype.REAL],
-            "ctypes": [Comparator.Eq, Comparator.Le, Comparator.Ge],
+            "ctypes": [Comparator.EQ, Comparator.LE, Comparator.GE],
             "target_degree": 2,
         },
         {
             "vtypes": [Vtype.SPIN, Vtype.BINARY, Vtype.INTEGER, Vtype.REAL],
-            "ctypes": [Comparator.Eq, Comparator.Le, Comparator.Ge],
+            "ctypes": [Comparator.EQ, Comparator.LE, Comparator.GE],
             "target_degree": 3,
         },
         {
             "vtypes": [Vtype.SPIN, Vtype.BINARY, Vtype.INTEGER, Vtype.REAL],
-            "ctypes": [Comparator.Eq, Comparator.Le, Comparator.Ge],
+            "ctypes": [Comparator.EQ, Comparator.LE, Comparator.GE],
             "target_degree": 10,
         },
         {"vtypes": [Vtype.INTEGER], "target_degree": 0},
@@ -129,12 +129,12 @@ def naive_query_obj_degree(model: Model) -> int:
         {"vtypes": [Vtype.REAL], "target_degree": 1},
         {
             "vtypes": [Vtype.SPIN, Vtype.BINARY],
-            "ctypes": [Comparator.Eq, Comparator.Le, Comparator.Ge],
+            "ctypes": [Comparator.EQ, Comparator.LE, Comparator.GE],
             "target_degree": 4,
         },
         {
             "vtypes": [Vtype.REAL, Vtype.BINARY],
-            "ctypes": [Comparator.Eq, Comparator.Ge],
+            "ctypes": [Comparator.EQ, Comparator.GE],
             "target_degree": 1,
         },
     ],

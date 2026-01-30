@@ -66,7 +66,7 @@ def test_v0_v1_equality_sol_sense_max(
     model_samples: tuple[Model, list[dict[Variable, int | float]]],
 ):
     model, samples = model_samples
-    model.set_sense(Sense.Max)
+    model.set_sense(Sense.MAX)
     sol = Solution.from_dicts(samples, model=model)
     with open(path / "sol_eval_sense_max", "rb") as f:
         reconstructed = Solution.decode(f.read())

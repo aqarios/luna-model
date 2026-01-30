@@ -3,10 +3,12 @@ from numpy.typing import NDArray
 
 from luna_model.environment.env import Environment
 from luna_model.solution.sol import Solution
-from luna_model.solution.timer import Timing
+from luna_model.timer import Timing
 
 
 class NumpyTranslator:
+    """Numpy solution translator."""
+
     @staticmethod
     def to_lm(
         result: NDArray,
@@ -15,11 +17,12 @@ class NumpyTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
+        """Translate numpy solution to luna model solution."""
         data = result.astype(np.float64, order="C")
         energies = energies.astype(np.float64, order="C")
         return Solution.from_arrays(
             data,
-            energies=energies,
+            energies=energies.tolist(),
             timing=timing,
             env=env,
         )

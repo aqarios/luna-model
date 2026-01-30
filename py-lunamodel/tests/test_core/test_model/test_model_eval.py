@@ -41,7 +41,7 @@ def solution_max() -> Solution:
             Vtype.REAL,
         ],
         raw_energies=[6.0, 5.0, 2.0],
-        sense=Sense.Max,
+        sense=Sense.MAX,
     )
 
 
@@ -59,7 +59,7 @@ def model_wo_constraint() -> Model:
 
 @pytest.fixture()
 def model_wo_constraint_maximize() -> Model:
-    model = Model("test_model_maximize", sense=Sense.Max)
+    model = Model("test_model_maximize", sense=Sense.MAX)
     with model.environment:
         b = Variable("b", vtype=Vtype.BINARY)
         s = Variable("s", vtype=Vtype.SPIN)

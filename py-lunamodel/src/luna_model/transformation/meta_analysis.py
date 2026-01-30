@@ -1,19 +1,23 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any
+from typing import Generic, TypeVar
 
 from luna_model._lm import PyAnalysisCache, PyMetaAnalysisPass
 
 from .base import BasePass
 from .cache import AnalysisCache
 
+T = TypeVar("T")
 
-class MetaAnalysisPass(PyMetaAnalysisPass, BasePass):
+
+class MetaAnalysisPass(PyMetaAnalysisPass, BasePass, Generic[T]):
+    """MetaAnalysisPass."""
+
     _base: MetaAnalysisPass
 
-    def __init__(self, base: MetaAnalysisPass = PyMetaAnalysisPass()) -> None:
-        self._base = base
+    def __init__(self, base: MetaAnalysisPass | None = None) -> None:
+        self._base = base if base else PyMetaAnalysisPass()
 
     @property
     @abstractmethod
@@ -27,20 +31,22 @@ class MetaAnalysisPass(PyMetaAnalysisPass, BasePass):
         return self._base.requires
 
     @abstractmethod
-    def run(self, passes: list[BasePass], cache: AnalysisCache) -> Any:
+    def run(self, passes: list[BasePass], cache: AnalysisCache) -> T:
         """Run/Execute this analysis pass."""
         ...
 
-    def _run(self, passes: list[BasePass], cache: PyAnalysisCache) -> Any:
+    def _run(self, passes: list[BasePass], cache: PyAnalysisCache) -> T:
         return self.run(passes, AnalysisCache._from_pyac(cache))
 
 
-class ConcreteMetaAnalysisPass(MetaAnalysisPass):
+class ConcreteMetaAnalysisPass(MetaAnalysisPass, Generic[T]):
+    """ConcreteMetaAnalysisPass."""
+
     @property
     def name(self) -> str:
         """Get the name of this pass."""
         return self._base.name
 
-    def run(self, passes: list[BasePass], cache: AnalysisCache) -> Any:
+    def run(self, passes: list[BasePass], cache: AnalysisCache) -> T:
         """Run/Execute this analysis pass."""
         return self._base.run(passes, cache._ac)

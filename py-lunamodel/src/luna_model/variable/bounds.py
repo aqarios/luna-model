@@ -9,6 +9,8 @@ Unbounded: TypeAlias = PyUnbounded
 
 
 class Bounds:
+    """The bounds."""
+
     _b: PyBounds
 
     def __init__(
@@ -27,14 +29,17 @@ class Bounds:
 
     @property
     def lower(self) -> float | type[Unbounded] | None:
+        """Get the lower bound."""
         return self._b.lower
 
     @property
     def upper(self) -> float | type[Unbounded] | None:
+        """Get the upper bound."""
         return self._b.upper
 
     @classmethod
     def default(cls, vtype: Vtype) -> Bounds:
+        """Get the default bounds for the vtype."""
         match vtype:
             case Vtype.BINARY | Vtype.INVERTED_BINARY:
                 return cls.binary()
@@ -47,25 +52,36 @@ class Bounds:
 
     @classmethod
     def binary(cls) -> Bounds:
+        """Get the bounds for binary typed variables."""
         return cls._from_pyb(PyBounds.binary())
 
     @classmethod
     def spin(cls) -> Bounds:
+        """Get the bounds for spin typed variables."""
         return cls._from_pyb(PyBounds.spin())
 
     @classmethod
     def integer(cls) -> Bounds:
+        """Get the bounds for integer typed variables."""
         return cls._from_pyb(PyBounds.integer())
 
     @classmethod
     def real(cls) -> Bounds:
+        """Get the bounds for real typed variables."""
         return cls._from_pyb(PyBounds.real())
 
     def __str__(self) -> str:
+        """Compute string representation human readable."""
         return self._b.__str__()
 
     def __repr__(self) -> str:
+        """Compute repr."""
         return self._b.__repr__()
 
     def __eq__(self, other: Bounds) -> bool:  # type: ignore[override]
+        """Compute eq."""
         return self._b.__eq__(other._b)
+
+    def __hash__(self) -> int:
+        """Compute hash."""
+        return self._b.__hash__()
