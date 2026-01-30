@@ -1,4 +1,8 @@
-![LunaModel Logo](./assets/luna_model_ascii.png)
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;700&display=swap">
+
+<div align="center" style="font-size: 60px; font-weight: bold; margin: 20px 0; font-family: 'Onest', sans-serif; color: #a855f7;">
+  luna<sup style="font-size: 0.6em;">MODEL</sup>
+</div>
 
 # Symbolic modeling for optimization
 
