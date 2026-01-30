@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, overload
 
-from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
 from numpy import ndarray
 from typing_extensions import deprecated
 
@@ -18,6 +17,7 @@ from luna_model.variable.vtype import Vtype
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
     from numpy.typing import NDArray
 
     from luna_model.constraint.collection import ConstraintCollection
@@ -28,6 +28,32 @@ if TYPE_CHECKING:
     from luna_model.solution.sol import Solution
     from luna_model.translator.model.qubo import Qubo
     from luna_model.variable.bounds import Unbounded
+
+
+_msg = (
+    "dimod is required for the translation from a BinaryQuadraticModel or ConstrainedQuadraticModel. "
+    "You can install it using the 'dimod' extra."
+)
+
+
+def _bqm_type() -> type[BinaryQuadraticModel]:
+    try:
+        from dimod import BinaryQuadraticModel  # noqa: PLC0415
+
+    except ImportError as e:
+        raise RuntimeError(_msg) from e
+    else:
+        return BinaryQuadraticModel
+
+
+def _cqm_type() -> type[ConstrainedQuadraticModel]:
+    try:
+        from dimod import ConstrainedQuadraticModel  # noqa: PLC0415
+
+    except ImportError as e:
+        raise RuntimeError(_msg) from e
+    else:
+        return ConstrainedQuadraticModel
 
 
 class Model:
@@ -240,14 +266,6 @@ class Model:
         **kwargs,
     ) -> Model:
         """Create a model from other."""
-        if isinstance(other, ConstrainedQuadraticModel):
-            from luna_model.translator.model.cqm import CqmTranslator  # noqa: PLC0415
-
-            return CqmTranslator.to_lm(other, name=name)
-        if isinstance(other, BinaryQuadraticModel):
-            from luna_model.translator.model.bqm import BqmTranslator  # noqa: PLC0415
-
-            return BqmTranslator.to_lm(other, name=name)
         if isinstance(other, str | Path):
             from luna_model.translator.model.lp import LpTranslator  # noqa: PLC0415
 
@@ -256,6 +274,15 @@ class Model:
             from luna_model.translator.model.qubo import QuboTranslator  # noqa: PLC0415
 
             return QuboTranslator.to_lm(other, name=name, **kwargs)
+
+        if isinstance(other, _cqm_type()):
+            from luna_model.translator.model.cqm import CqmTranslator  # noqa: PLC0415
+
+            return CqmTranslator.to_lm(other, name=name)
+        if isinstance(other, _bqm_type()):
+            from luna_model.translator.model.bqm import BqmTranslator  # noqa: PLC0415
+
+            return BqmTranslator.to_lm(other, name=name)
         msg = f"Unexpected type of other: '{type(other)}'"
         raise ValueError(msg)
 

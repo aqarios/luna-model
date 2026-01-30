@@ -12,23 +12,24 @@ from luna_model import Model, Sense, Solution, Timer, Variable, Vtype
 from luna_model.translator import IbmTranslator
 from tests.test_core.utils import make_seed, random_bool
 
-NOT_RUN_QAER = False
-try:
-    from qiskit import QuantumCircuit, generate_preset_pass_manager
-    from qiskit.circuit.library import QAOAAnsatz
-    from qiskit.primitives import (
+from qiskit_ibm_runtime import EstimatorV2, SamplerV2, Session
+from qiskit_optimization import QuadraticProgram
+from qiskit_optimization.translators import from_docplex_mp
+from qiskit import QuantumCircuit, generate_preset_pass_manager
+from qiskit.circuit.library import QAOAAnsatz
+from qiskit.primitives import (
         BitArray,
         PrimitiveResult,
         PubResult,
         StatevectorEstimator,
         StatevectorSampler,
     )
-    from qiskit.providers import BackendV2
-    from qiskit.quantum_info import SparsePauliOp
+from qiskit.providers import BackendV2
+from qiskit.quantum_info import SparsePauliOp
+
+NOT_RUN_QAER = False
+try:
     from qiskit_aer import AerSimulator
-    from qiskit_ibm_runtime import EstimatorV2, SamplerV2, Session
-    from qiskit_optimization import QuadraticProgram
-    from qiskit_optimization.translators import from_docplex_mp
 except ImportError as _:
     print(
         "qiskit_aer is not installed and thus, the qiskit tests will not be executed",

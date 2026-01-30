@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal
 
-from dimod import SampleSet
 from numpy import ndarray
-from pyscipopt import Model as ScipModel
-from qiskit.primitives import PrimitiveResult
 
 from luna_model._lm import PySolution
 from luna_model.solution.src import ValueSource
@@ -14,7 +11,10 @@ from luna_model.variable.vtype import Vtype
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
+    from dimod import SampleSet
     from numpy.typing import NDArray
+    from pyscipopt import Model as ScipModel
+    from qiskit.primitives import PrimitiveResult
 
     from luna_model._lm import PyVariable
     from luna_model._typing import FilterFn, SolutionFromTypes, _Sample
@@ -256,7 +256,7 @@ class Solution:
         return cls.decode(data)
 
     @classmethod
-    def from_(  # noqa: PLR0911
+    def from_(
         cls,
         other: SolutionFromTypes,
         timing: Timing | None = None,
@@ -264,41 +264,8 @@ class Solution:
         **kwargs: Any,
     ) -> Solution:
         """Create solution form other."""
-        if isinstance(other, ScipModel):
-            from luna_model.translator.solution.zib import ZibTranslator  # noqa: PLC0415
-
-            return ZibTranslator.to_lm(other, env=env, timing=timing, **kwargs)
-        if isinstance(other, SampleSet):
-            from luna_model.translator.solution.dwave import DwaveTranslator  # noqa: PLC0415
-
-            return DwaveTranslator.to_lm(other, env=env, timing=timing, **kwargs)
-        if isinstance(other, PrimitiveResult):
-            from luna_model.translator.solution.ibm import IbmTranslator  # noqa: PLC0415
-
-            return IbmTranslator.to_lm(other, env=env, timing=timing, **kwargs)
-        if isinstance(other, ndarray):
-            from luna_model.translator.solution.numpy import NumpyTranslator  # noqa: PLC0415
-
-            return NumpyTranslator.to_lm(other, env=env, timing=timing, **kwargs)
-        if isinstance(other, dict) and "solution_bitstring" in other:
-            from luna_model.translator.solution.qctrl import QctrlTranslator  # noqa: PLC0415
-
-            return QctrlTranslator.to_lm(other, env=env, timing=timing, **kwargs)  # type: ignore[reportArgumentType]
-        if isinstance(other, dict) and "samples" in other:
-            from luna_model.translator.solution.aws import AwsTranslator  # noqa: PLC0415
-
-            return AwsTranslator.to_lm(other, env=env, timing=timing, **kwargs)  # type: ignore[reportArgumentType]
-
-        if isinstance(other, dict):
-            key_types = list(other.keys())
-            if len(key_types) > 0 and isinstance(key_types[0], str):
-                return Solution.from_counts(other, env=env, timing=timing, **kwargs)  # type: ignore[reportArgumentType]
-
-            return Solution.from_dict(other, env=env, timing=timing, **kwargs)
-        if isinstance(other, list):
-            return Solution.from_dicts(other, env=env, timing=timing, **kwargs)
-        msg = f"unsupported type '{type(other)}'"
-        raise ValueError(msg)
+        translator = _find_translator(other)
+        return translator(other, env=env, timing=timing, **kwargs)  # type: ignore[argument]
 
     @classmethod
     def from_dict(  # noqa:PLR0913
@@ -467,3 +434,93 @@ def _map_samples(
     samples: Sequence[_Sample],
 ) -> list[dict[str | PyVariable, int | float]]:
     return [_map_sample(s) for s in samples]
+
+
+def _find_translator(other: SolutionFromTypes) -> Callable:  # noqa: PLR0911, C901
+    scip_model_type = _maybe_scip_model_type()
+    sampleset_type = _maybe_sampleset_type()
+    primitive_type = _maybe_primitive_type()
+
+    if scip_model_type is not None and isinstance(other, scip_model_type):
+        from luna_model.translator.solution.zib import ZibTranslator  # noqa: PLC0415
+
+        return ZibTranslator.to_lm
+
+    if sampleset_type is not None and isinstance(other, sampleset_type):
+        from luna_model.translator.solution.dwave import DwaveTranslator  # noqa: PLC0415
+
+        return DwaveTranslator.to_lm
+
+    if primitive_type is not None and isinstance(other, primitive_type):
+        from luna_model.translator.solution.ibm import IbmTranslator  # noqa: PLC0415
+
+        return IbmTranslator.to_lm
+
+    if isinstance(other, ndarray):
+        from luna_model.translator.solution.numpy import NumpyTranslator  # noqa: PLC0415
+
+        return NumpyTranslator.to_lm
+    if isinstance(other, dict) and "solution_bitstring" in other:
+        from luna_model.translator.solution.qctrl import QctrlTranslator  # noqa: PLC0415
+
+        return QctrlTranslator.to_lm
+    if isinstance(other, dict) and "samples" in other:
+        from luna_model.translator.solution.aws import AwsTranslator  # noqa: PLC0415
+
+        return AwsTranslator.to_lm
+
+    if isinstance(other, dict):
+        key_types = list(other.keys())
+        if len(key_types) > 0 and isinstance(key_types[0], str):
+            return Solution.from_counts
+
+        return Solution.from_dict
+    if isinstance(other, list):
+        return Solution.from_dicts
+
+    type_str = str(type(other))
+    if "scip" in type_str:
+        msg = "scip is required for translating from a ScipModel. You can install it using the 'scip' extra."
+        raise RuntimeError(msg)
+    if "qiskit" in type_str:
+        msg = (
+            "qiskit and qiskit_optimization are required for translating from a PrimitiveResult. "
+            "You can install it using the 'qiskit' extra."
+        )
+        raise RuntimeError(msg)
+    if "dimod" in type_str:
+        msg = "dimod is required for translating from a SampleSet. You can install it using the 'dimod' extra."
+        raise RuntimeError(msg)
+
+    msg = f"unsupported type '{type(other)}'. "
+    raise ValueError(msg)
+
+
+def _maybe_scip_model_type() -> type[ScipModel] | None:
+    try:
+        from pyscipopt import Model as ScipModel  # noqa: PLC0415
+
+    except ImportError:
+        return None
+    else:
+        return ScipModel
+
+
+def _maybe_sampleset_type() -> type[SampleSet] | None:
+    try:
+        from dimod import SampleSet  # noqa: PLC0415
+
+    except ImportError:
+        return None
+    else:
+        return SampleSet
+
+
+def _maybe_primitive_type() -> type[PrimitiveResult] | None:
+    try:
+        from qiskit.primitives import PrimitiveResult  # noqa: PLC0415
+
+    except ImportError:
+        return None
+    else:
+        return PrimitiveResult
