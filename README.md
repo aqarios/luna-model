@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/luna-logo.svg" alt="lunaᴹᴼᴰᴱᴸ">
+  <img src="./assets/luna_model_logo.svg" alt="lunaᴹᴼᴰᴱᴸ">
 </div>
 
 # Symbolic modeling for optimization
