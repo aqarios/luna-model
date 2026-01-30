@@ -487,17 +487,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lunamodel-tpass"
-version = "0.5.0-alpha1"
-dependencies = [
- "once_cell",
- "proc-macro2",
- "pyo3",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "lunamodel-transform"
 version = "0.5.0-alpha1"
 dependencies = [
@@ -866,6 +855,7 @@ version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f77d387774f6f6eec64a004eac0ed525aab7fa1966d94b42f743797b3e395afb"
 dependencies = [
+ "python3-dll-a",
  "target-lexicon",
 ]
 
@@ -914,6 +904,15 @@ dependencies = [
  "pyo3-build-config",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "python3-dll-a"
+version = "0.2.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d381ef313ae70b4da5f95f8a4de773c6aa5cd28f73adec4b4a31df70b66780d8"
+dependencies = [
+ "cc",
 ]
 
 [[package]]

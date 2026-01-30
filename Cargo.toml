@@ -4,7 +4,6 @@ members = [
   "crates/*",
   "py-lunamodel/pylm",
   "pyo3-lunamodel",
-  "crates/transform/tpass",
   "crates/unwind/unwindable",
   "crates/unwind/unwinder",
 ]
@@ -46,7 +45,7 @@ pad = "0.1.6"
 sqids = "0.4.2"
 bitvec = "1.0.1"
 enumset = "1.1.10"
-pyo3 = "0.27.1"
+pyo3 = { version = "0.27.1", features = ["extension-module", "generate-import-lib"] }
 numpy = "0.27.0"
 syn = "2.0"
 proc-macro2 = "1.0"
