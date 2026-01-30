@@ -98,6 +98,9 @@ docs = [
     "mkdocstrings[python]>=1.0.1",
     "zensical>=0.0.17",
 ]
+build = [
+  "maturin[zig]>=1.9.6"
+]
 
 [tool.mypy]
 exclude = [".venv", "tests", "docs", "examples"]

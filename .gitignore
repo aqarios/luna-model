@@ -58,3 +58,4 @@ py-lunamodel/tests/test_core/test_solution/test_translator/model.lp
 :w
 *dbg*
 *.txt
+build/
