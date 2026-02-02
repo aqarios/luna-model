@@ -1,3 +1,9 @@
+"""Constraint collections for managing multiple constraints.
+
+This module provides the ConstraintCollection class for storing and managing
+multiple constraints in an optimization model.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
@@ -13,11 +19,50 @@ if TYPE_CHECKING:
 
 
 class ConstraintCollection:
-    """Collection of constraints."""
+    """Collection for managing multiple constraints.
+
+    A ConstraintCollection stores named constraints and provides methods for
+    adding, retrieving, and iterating over constraints in an optimization model.
+
+    Attributes
+    ----------
+    None directly exposed. Access constraints via indexing or iteration.
+
+    Examples
+    --------
+    Create and manage constraints:
+
+    >>> from luna_model import Variable
+    >>> from luna_model.constraint import ConstraintCollection
+    >>> x, y = Variable("x"), Variable("y")
+    >>> 
+    >>> cc = ConstraintCollection()
+    >>> cc += (x + y <= 10, "capacity")
+    >>> cc += (x >= 0, "x_lower")
+    >>> 
+    >>> print(len(cc))  # Number of constraints
+    >>> constraint = cc["capacity"]  # Access by name
+
+    Iterate over constraints:
+
+    >>> for name, constr in cc:
+    ...     print(f"{name}: {constr}")
+
+    Notes
+    -----
+    Constraints are stored with unique string names. Adding a constraint with
+    an existing name will replace the previous constraint.
+
+    See Also
+    --------
+    Constraint : Individual constraint class.
+    Model : Model class that uses constraint collections.
+    """
 
     _cc: PyConstraintCollection
 
     def __init__(self) -> None:
+        """Initialize an empty constraint collection."""
         self._cc = PyConstraintCollection()
 
     @classmethod
@@ -28,11 +73,25 @@ class ConstraintCollection:
         return cc
 
     def add_constraint(self, constraint: Constraint, name: str | None = None) -> None:
-        """Add a constraint."""
+        """Add a constraint to the collection.
+        
+        Parameters
+        ----------
+        constraint : Constraint
+            The constraint to add.
+        name : str | None, optional
+            Name for the constraint. If None, uses constraint's own name.
+        """
         self._cc.add_constraint(constraint._c, name)
 
     def items(self) -> ConstraintCollectionIter:
-        """Get the items of the ConstraintCollection as an iterator. Same as __iter__."""
+        """Get an iterator over (name, constraint) pairs.
+        
+        Returns
+        -------
+        ConstraintCollectionIter
+            Iterator yielding (name, constraint) tuples.
+        """
         return ConstraintCollectionIter._from_pycci(self._cc.items())
 
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
@@ -44,11 +103,38 @@ class ConstraintCollection:
         return self.encode(compress, level)
 
     def get(self, name: str) -> Constraint:
-        """Get a constraint for its name."""
+        """Get a constraint by name.
+        
+        Parameters
+        ----------
+        name : str
+            The name of the constraint.
+            
+        Returns
+        -------
+        Constraint
+            The constraint with the given name.
+            
+        Raises
+        ------
+        KeyError
+            If no constraint with the given name exists.
+        """
         return wrap_c(self._cc.get(name))
 
     def remove(self, name: str) -> None:
-        """Remove a constraint by its name."""
+        """Remove a constraint by name.
+        
+        Parameters
+        ----------
+        name : str
+            The name of the constraint to remove.
+            
+        Raises
+        ------
+        KeyError
+            If no constraint with the given name exists.
+        """
         self._cc.remove(name)
 
     def equal_contents(self, other: ConstraintCollection) -> bool:
@@ -56,7 +142,13 @@ class ConstraintCollection:
         return self._cc.equal_contents(other._cc)
 
     def ctypes(self) -> list[Comparator]:
-        """Get the comparator types for each Comparator."""
+        """Get the comparator types of all constraints.
+        
+        Returns
+        -------
+        list[Comparator]
+            List of comparators for each constraint.
+        """
         return [Comparator._from_pycmp(c) for c in self._cc.ctypes()]
 
     @classmethod
@@ -70,7 +162,18 @@ class ConstraintCollection:
         return cls.decode(data, env)
 
     def __iadd__(self, other: Constraint | tuple[Constraint, str]) -> Self:
-        """Add a new constraint."""
+        """Add a constraint using += operator.
+        
+        Parameters
+        ----------
+        other : Constraint | tuple[Constraint, str]
+            Either a Constraint or a (Constraint, name) tuple.
+            
+        Returns
+        -------
+        Self
+            The collection itself for chaining.
+        """
         if isinstance(other, Constraint):
             self._cc.__iadd__(other._c)
         elif isinstance(other, tuple):
@@ -82,15 +185,40 @@ class ConstraintCollection:
         return self
 
     def __getitem__(self, key: str) -> Constraint:
-        """Get a constraint by its name 'key'."""
+        """Get a constraint by name using indexing.
+        
+        Parameters
+        ----------
+        key : str
+            The constraint name.
+            
+        Returns
+        -------
+        Constraint
+            The constraint with the given name.
+        """
         return wrap_c(self._cc.__getitem__(key))
 
     def __setitem__(self, key: str, value: Constraint) -> None:
-        """Set a constraint for name 'key'."""
+        """Set a constraint by name using indexing.
+        
+        Parameters
+        ----------
+        key : str
+            The constraint name.
+        value : Constraint
+            The constraint to store.
+        """
         return self._cc.__setitem__(key, value._c)
 
     def __len__(self) -> int:
-        """Get the length."""
+        """Get the number of constraints in the collection.
+        
+        Returns
+        -------
+        int
+            The number of constraints.
+        """
         return self._cc.__len__()
 
     def __eq__(self, other: ConstraintCollection) -> bool:  # type: ignore[override]
@@ -98,7 +226,13 @@ class ConstraintCollection:
         return self._cc.__eq__(other._cc)
 
     def __iter__(self) -> ConstraintCollectionIter:
-        """Iterate the constraints."""
+        """Iterate over (name, constraint) pairs.
+        
+        Returns
+        -------
+        ConstraintCollectionIter
+            Iterator over the constraints.
+        """
         return ConstraintCollectionIter._from_pycci(self._cc.__iter__())
 
     def __hash__(self) -> int:

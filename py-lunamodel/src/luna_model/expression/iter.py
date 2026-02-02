@@ -1,3 +1,10 @@
+"""Expression term types and iterators.
+
+This module defines classes representing different types of terms in an
+expression (constant, linear, quadratic, higher-order) and provides an
+iterator for traversing expression terms.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeAlias
@@ -19,7 +26,23 @@ Constant: TypeAlias = PyConstant
 
 
 class Linear:
-    """Linear term."""
+    """Linear term in an expression.
+
+    Represents a term of the form: coefficient * variable
+
+    Attributes
+    ----------
+    var : Variable
+        The variable in this linear term.
+
+    Examples
+    --------
+    >>> x = Variable("x")
+    >>> expr = 3*x + 5
+    >>> for term, coeff in expr.items():
+    ...     if isinstance(term, Linear):
+    ...         print(f"Linear term: {coeff}*{term.var.name}")
+    """
 
     _l: PyLinear
 
@@ -27,7 +50,13 @@ class Linear:
 
     @property
     def var(self) -> Variable:
-        """The linear variable."""
+        """Get the variable in this linear term.
+        
+        Returns
+        -------
+        Variable
+            The variable.
+        """
         return wrap_var(self._l.var)
 
     @classmethod
@@ -39,7 +68,25 @@ class Linear:
 
 
 class Quadratic:
-    """Quadratic term."""
+    """Quadratic term in an expression.
+
+    Represents a term of the form: coefficient * var_a * var_b
+
+    Attributes
+    ----------
+    var_a : Variable
+        The first variable in the quadratic term.
+    var_b : Variable
+        The second variable in the quadratic term.
+
+    Examples
+    --------
+    >>> x, y = Variable("x"), Variable("y")
+    >>> expr = x*y + 2
+    >>> for term, coeff in expr.items():
+    ...     if isinstance(term, Quadratic):
+    ...         print(f"Quadratic: {coeff}*{term.var_a.name}*{term.var_b.name}")
+    """
 
     _q: PyQuadratic
 
@@ -47,12 +94,24 @@ class Quadratic:
 
     @property
     def var_a(self) -> Variable:
-        """The first variable."""
+        """Get the first variable in the quadratic term.
+        
+        Returns
+        -------
+        Variable
+            The first variable.
+        """
         return wrap_var(self._q.var_a)
 
     @property
     def var_b(self) -> Variable:
-        """The second variable."""
+        """Get the second variable in the quadratic term.
+        
+        Returns
+        -------
+        Variable
+            The second variable.
+        """
         return wrap_var(self._q.var_b)
 
     @classmethod
@@ -64,7 +123,24 @@ class Quadratic:
 
 
 class HigherOrder:
-    """Higher order term."""
+    """Higher-order term in an expression.
+
+    Represents a term with degree > 2 of the form: coefficient * var1 * var2 * ...
+
+    Attributes
+    ----------
+    vars : list[Variable]
+        The list of variables in this higher-order term.
+
+    Examples
+    --------
+    >>> x, y, z = Variable("x"), Variable("y"), Variable("z")
+    >>> expr = x*y*z
+    >>> for term, coeff in expr.items():
+    ...     if isinstance(term, HigherOrder):
+    ...         var_names = [v.name for v in term.vars]
+    ...         print(f"Higher-order: {coeff}*{'*'.join(var_names)}")
+    """
 
     _h: PyHigherOrder
 
@@ -72,7 +148,13 @@ class HigherOrder:
 
     @property
     def vars(self) -> list[Variable]:
-        """The variables."""
+        """Get the variables in this higher-order term.
+        
+        Returns
+        -------
+        list[Variable]
+            The list of variables.
+        """
         return [wrap_var(v) for v in self._h.vars]
 
     @classmethod
@@ -84,12 +166,38 @@ class HigherOrder:
 
 
 class ExprIter:
-    """Expression iterator."""
+    """Iterator over terms in an expression.
+
+    Iterates over all terms in an expression, yielding (term, coefficient)
+    tuples where term is a Constant, Linear, Quadratic, or HigherOrder object.
+
+    Examples
+    --------
+    >>> x, y = Variable("x"), Variable("y")
+    >>> expr = 3*x + 2*x*y + 5
+    >>> for term, coeff in expr.items():
+    ...     print(f"Coefficient: {coeff}, Term type: {type(term).__name__}")
+
+    See Also
+    --------
+    Expression.items : Method that returns this iterator.
+    """
 
     _i: PyExpressionIterator
 
     def __next__(self) -> tuple[Constant | Linear | Quadratic | HigherOrder, float]:
-        """Get the next item."""
+        """Get the next term and coefficient.
+        
+        Returns
+        -------
+        tuple[Constant | Linear | Quadratic | HigherOrder, float]
+            The term and its coefficient.
+            
+        Raises
+        ------
+        StopIteration
+            When there are no more terms.
+        """
         nxt, b = self._i.__next__()
         match nxt:
             case PyLinear(_):
@@ -104,7 +212,7 @@ class ExprIter:
         raise RuntimeError(msg)
 
     def __iter__(self) -> ExprIter:
-        """Iterate."""
+        """Return the iterator object itself."""
         return self
 
     @classmethod

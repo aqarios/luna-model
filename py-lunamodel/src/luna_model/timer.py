@@ -1,3 +1,9 @@
+"""Timing utilities for performance measurement.
+
+This module provides timing utilities for measuring execution time,
+including QPU (quantum processing unit) time tracking.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
@@ -9,45 +15,76 @@ if TYPE_CHECKING:
 
 
 class Timing(Protocol):
-    """Timing."""
+    """Timing information for an operation.
+
+    Records the start time, end time, and optional QPU time for an operation.
+
+    Attributes
+    ----------
+    start : datetime
+        When the operation started.
+    end : datetime
+        When the operation ended.
+    total : timedelta
+        Total elapsed time.
+    total_seconds : float
+        Total elapsed time in seconds.
+    qpu : float | None
+        QPU time in seconds, if applicable.
+    """
 
     @property
     def start(self) -> datetime:
-        """Get start."""
+        """Get the start time."""
         ...
 
     @property
     def end(self) -> datetime:
-        """Get end."""
+        """Get the end time."""
         ...
 
     @property
     def total(self) -> timedelta:
-        """Get total."""
+        """Get the total elapsed time."""
         ...
 
     @property
     def total_seconds(self) -> float:
-        """Get total as seconds."""
+        """Get the total elapsed time in seconds."""
         ...
 
     @property
     def qpu(self) -> float | None:
-        """Get total qpu time as seconds."""
+        """Get the QPU time in seconds."""
         ...
 
     @qpu.setter
     def qpu(self, value: float | None) -> None:
-        """Set total qpu time as seconds."""
+        """Set the QPU time in seconds."""
         ...
 
     def add_qpu(self, value: float) -> None:
-        """Add to qpu time."""
+        """Add time to the QPU counter."""
         ...
 
 
 class Timer:
-    """Timer."""
+    """Timer for measuring execution time.
+
+    Provides start/stop functionality for timing operations.
+
+    Examples
+    --------
+    >>> from luna_model.timer import Timer
+    >>> timer = Timer.start()
+    >>> # ... perform operations ...
+    >>> timing = timer.stop()
+    >>> print(f"Elapsed: {timing.total_seconds} seconds")
+
+    See Also
+    --------
+    Timing : The timing information returned by stop().
+    """
 
     _t: PyTimer
 
@@ -59,9 +96,21 @@ class Timer:
 
     @classmethod
     def start(cls) -> Timer:
-        """Start the timer."""
+        """Start a new timer.
+        
+        Returns
+        -------
+        Timer
+            A running timer instance.
+        """
         return cls._from_pyt(PyTimer.start())
 
     def stop(self) -> Timing:
-        """Stop the timer."""
+        """Stop the timer and return timing information.
+        
+        Returns
+        -------
+        Timing
+            The timing information for the measured interval.
+        """
         return self._t.stop()

@@ -1,3 +1,8 @@
+"""Iterator for constraint collections.
+
+This module provides an iterator class for traversing constraint collections.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -10,17 +15,42 @@ if TYPE_CHECKING:
 
 
 class ConstraintCollectionIter:
-    """Iterator for constraint collections."""
+    """Iterator for traversing constraint collections.
+
+    Yields (name, constraint) tuples when iterating over a ConstraintCollection.
+
+    Examples
+    --------
+    >>> cc = ConstraintCollection()
+    >>> # Add constraints...
+    >>> for name, constraint in cc:
+    ...     print(f"{name}: {constraint}")
+
+    See Also
+    --------
+    ConstraintCollection : The collection class that uses this iterator.
+    """
 
     _i: PyConstraintCollectionIterator
 
     def __next__(self) -> tuple[str, Constraint]:
-        """Get the next item from the iterator."""
+        """Get the next (name, constraint) pair.
+        
+        Returns
+        -------
+        tuple[str, Constraint]
+            The constraint name and constraint object.
+            
+        Raises
+        ------
+        StopIteration
+            When there are no more constraints.
+        """
         name, c = self._i.__next__()
         return name, wrap_c(c)
 
     def __iter__(self) -> ConstraintCollectionIter:
-        """Iterate the constraints collection."""
+        """Return the iterator object itself."""
         return self
 
     @classmethod
