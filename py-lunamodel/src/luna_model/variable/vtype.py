@@ -24,6 +24,7 @@ class Vtype(Enum):
         Binary variable that can be 0 or 1. Used for yes/no decisions.
     INVERTED_BINARY : str
         Inverted binary variable. Internal representation that maps 0→1 and 1→0.
+        Not typically used directly by users.
     SPIN : str
         Spin variable that can be -1 or +1. Common in quantum computing formulations.
     INTEGER : str

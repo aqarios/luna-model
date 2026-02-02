@@ -33,7 +33,10 @@ class Sample(Protocol):
     """
 
     def to_dict(self) -> dict[str, int | float]:
-        """Convert sample to a dictionary mapping variable names to values.
+        """Protocol method to convert sample to dictionary.
+        
+        Implementations must provide this method to convert the sample's
+        variable assignments to a dictionary mapping variable names to values.
         
         Returns
         -------
