@@ -7,8 +7,7 @@ use pyo3::{FromPyObject, PyResult, pymethods};
 
 use super::PyModel;
 use crate::{
-    PyConstraintCollection, PyExpression, PySolution, PyVariable,
-    sol::{result::PyResultView, sample::PySampleView},
+    PyConstraintCollection, PyExpression, PyModelSpecs, PySolution, PyVariable, sol::{result::PyResultView, sample::PySampleView}
 };
 
 #[derive(FromPyObject)]
@@ -58,5 +57,9 @@ impl PyModel {
         let binding = sample.sol.s.read_arc();
         let sample = SampleView::new(&binding, sample.idx);
         Ok(self.m.read_arc().violated_constraints(&sample)?.into())
+    }
+
+    fn satisfies(&self, specs: PyModelSpecs) -> bool {
+        self.m.read_arc().satisfies(specs.s)
     }
 }

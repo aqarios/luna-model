@@ -4,7 +4,7 @@ use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyModel;
-use crate::{PyConstraintCollection, PyEnvironment, PyExpression, PyVariable};
+use crate::{PyConstraintCollection, PyEnvironment, PyExpression, PyModelSpecs, PyVariable};
 
 #[unwindable]
 #[pymethods]
@@ -62,5 +62,9 @@ impl PyModel {
 
     fn __hash__(&self) -> PyResult<u64> {
         self.hash()
+    }
+
+    fn get_specs(&self) -> PyModelSpecs {
+        self.m.read_arc().specs().into()
     }
 }
