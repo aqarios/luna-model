@@ -36,13 +36,11 @@ class LpTranslator:
 
     >>> from luna_model import Model, Variable, Vtype
     >>> from luna_model.translator import LpTranslator
-    >>> 
     >>> model = Model(name="example")
     >>> x = model.add_variable("x", vtype=Vtype.BINARY)
     >>> y = model.add_variable("y", vtype=Vtype.BINARY)
-    >>> model.objective = 3*x + 2*y
+    >>> model.objective = 3 * x + 2 * y
     >>> model.constraints += x + y <= 1
-    >>> 
     >>> LpTranslator.from_lm(model, "problem.lp")
 
     Convert to LP string without writing to file:

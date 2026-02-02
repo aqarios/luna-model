@@ -23,9 +23,9 @@ class Qubo:
 
     A QUBO (Quadratic Unconstrained Binary Optimization) problem is represented
     by an upper-triangular matrix Q where the objective is to minimize/maximize:
-    
+
         x^T Q x + offset
-    
+
     where x is a binary vector and offset is a constant term.
 
     Parameters
@@ -54,12 +54,10 @@ class Qubo:
 
     >>> from luna_model import Model, Variable
     >>> from luna_model.translator import QuboTranslator
-    >>> 
     >>> model = Model()
     >>> x = model.add_variable("x")
     >>> y = model.add_variable("y")
-    >>> model.objective = x*y - 2*x + y
-    >>> 
+    >>> model.objective = x * y - 2 * x + y
     >>> qubo = QuboTranslator.from_lm(model)
     >>> print(qubo.matrix)
     >>> print(qubo.offset)
@@ -172,10 +170,9 @@ class QuboTranslator:
 
     >>> import numpy as np
     >>> from luna_model.translator import QuboTranslator
-    >>> 
     >>> # Define QUBO matrix (upper-triangular)
-    >>> Q = np.array([[−1, 2],
-    ...               [0, −1]])
+    >>> Q = np.array([[-1, 2],
+    ...               [0, -1]])
     >>> model = QuboTranslator.to_lm(Q, variable_names=["x", "y"])
 
     Convert model to QUBO:
@@ -184,8 +181,7 @@ class QuboTranslator:
     >>> model = Model()
     >>> x = model.add_variable("x")
     >>> y = model.add_variable("y")
-    >>> model.objective = x*y - 2*x + y
-    >>> 
+    >>> model.objective = x * y - 2 * x + y
     >>> qubo = QuboTranslator.from_lm(model)
 
     Notes
@@ -239,18 +235,12 @@ class QuboTranslator:
         Basic usage:
 
         >>> import numpy as np
-        >>> Q = np.array([[-2, 1],
-        ...               [0, -1]])
+        >>> Q = np.array([[-2, 1], [0, -1]])
         >>> model = QuboTranslator.to_lm(Q)
 
         With custom names and offset:
 
-        >>> model = QuboTranslator.to_lm(
-        ...     Q,
-        ...     offset=5.0,
-        ...     variable_names=["x1", "x2"],
-        ...     name="MyQUBO"
-        ... )
+        >>> model = QuboTranslator.to_lm(Q, offset=5.0, variable_names=["x1", "x2"], name="MyQUBO")
         """
         return Model._from_pym(
             PyQuboTranslator.to_lm(
@@ -293,8 +283,7 @@ class QuboTranslator:
         >>> model = Model()
         >>> x = model.add_variable("x")
         >>> y = model.add_variable("y")
-        >>> model.objective = x*y - 2*x + y
-        >>> 
+        >>> model.objective = x * y - 2 * x + y
         >>> qubo = QuboTranslator.from_lm(model)
         >>> print(qubo.matrix)
 
