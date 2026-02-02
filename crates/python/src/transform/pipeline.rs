@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 
-use lunamodel_unwind::*;
 use lunamodel_transform::{
     BasePass,
     passes::special::{AbstractPipeline, Pipeline},
 };
-use pyo3::{PyResult, pyclass, pymethods};
+use lunamodel_unwind::*;
+use pyo3::{PyErr, PyResult, pyclass, pymethods};
 
 use crate::transform::pass::PyPass;
 
@@ -13,7 +13,6 @@ use crate::transform::pass::PyPass;
 #[derive(Debug, Clone)]
 pub struct PyPipeline {
     pub(crate) p: Pipeline,
-    passes: Vec<PyPass>,
 }
 
 #[unwindable]
@@ -28,7 +27,6 @@ impl PyPipeline {
             .collect::<PyResult<Vec<_>>>()?;
         Ok(Self {
             p: Pipeline::new(mapped, name),
-            passes,
         })
     }
 
@@ -61,8 +59,12 @@ impl PyPipeline {
     }
 
     #[getter]
-    fn passes(&self) -> Vec<PyPass> {
-        self.passes.clone()
+    fn passes(&self) -> PyResult<Vec<PyPass>> {
+        self.p
+            .passes()
+            .iter()
+            .map(|p| PyPass::from_pass(p))
+            .collect::<Result<Vec<_>, PyErr>>()
     }
 
     fn __repr__(&self) -> String {
