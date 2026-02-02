@@ -498,82 +498,325 @@ class Expression:
         return [cls._from_pyexpr(cloned) for cloned in PyExpression.deep_clone_many([e._expr for e in exprs])]
 
     def __add__(self, other: Expression | Variable | float) -> Expression:
-        """Add other to this expression, returning a new expression."""
+        """Add another term to this expression.
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The term to add.
+
+        Returns
+        -------
+        Expression
+            A new expression representing the sum.
+
+        Examples
+        --------
+        >>> from luna_model import Expression, Variable
+        >>> x = Variable("x")
+        >>> y = Variable("y")
+        >>> expr = Expression()
+        >>> expr = expr + x  # Add variable
+        >>> expr = expr + y  # Add another variable
+        >>> expr = expr + 5.0  # Add constant
+        """
         return self._from_pyexpr(self._op(other, self._expr.__add__))
 
     def __sub__(self, other: Expression | Variable | float) -> Expression:
-        """Subtract other from this expression, returning a new expression."""
+        """Subtract another term from this expression.
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The term to subtract.
+
+        Returns
+        -------
+        Expression
+            A new expression representing the difference.
+        """
         return self._from_pyexpr(self._op(other, self._expr.__sub__))
 
     def __mul__(self, other: Expression | Variable | float) -> Expression:
-        """Multiply this expression by other, returning a new expression."""
+        """Multiply this expression by another term.
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The term to multiply by.
+
+        Returns
+        -------
+        Expression
+            A new expression representing the product.
+
+        Examples
+        --------
+        >>> x = Variable("x")
+        >>> y = Variable("y")
+        >>> expr = 2 * x
+        >>> expr = expr * y  # Creates quadratic term
+        >>> expr = expr * 3  # Scale by constant
+        """
         return self._from_pyexpr(self._op(other, self._expr.__mul__))
 
     def __radd__(self, other: Expression | Variable | float) -> Expression:
-        """Right add other with this expression producing a new one."""
+        """Add this expression to another term (right operand).
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The term to add this expression to.
+
+        Returns
+        -------
+        Expression
+            A new expression representing the sum.
+        """
         return self._from_pyexpr(self._op(other, self._expr.__radd__))
 
     def __rsub__(self, other: Expression | Variable | float) -> Expression:
-        """Right sub other with this expression producing a new one."""
+        """Subtract this expression from another term (right operand).
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The term to subtract this expression from.
+
+        Returns
+        -------
+        Expression
+            A new expression representing the difference.
+        """
         return self._from_pyexpr(self._op(other, self._expr.__rsub__))
 
     def __rmul__(self, other: Expression | Variable | float) -> Expression:
-        """Right mul other with this expression producing a new one."""
+        """Multiply another term by this expression (right operand).
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The term to multiply by this expression.
+
+        Returns
+        -------
+        Expression
+            A new expression representing the product.
+        """
         return self._from_pyexpr(self._op(other, self._expr.__rmul__))
 
     def __iadd__(self, other: Expression | Variable | float) -> Self:
-        """Add other to this expression."""
+        """Add another term to this expression in-place.
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The term to add.
+
+        Returns
+        -------
+        Expression
+            This expression modified in-place.
+
+        Examples
+        --------
+        >>> expr = Expression()
+        >>> expr += x
+        >>> expr += y
+        """
         self._op(other, self._expr.__iadd__)
         return self
 
     def __isub__(self, other: Expression | Variable | float) -> Self:
-        """Sub other from this expression."""
+        """Subtract another term from this expression in-place.
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The term to subtract.
+
+        Returns
+        -------
+        Expression
+            This expression modified in-place.
+        """
         self._op(other, self._expr.__isub__)
         return self
 
     def __imul__(self, other: Expression | Variable | float) -> Self:
-        """Mul other to this expression."""
+        """Multiply this expression by another term in-place.
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The term to multiply by.
+
+        Returns
+        -------
+        Expression
+            This expression modified in-place.
+        """
         self._op(other, self._expr.__imul__)
         return self
 
     def __pow__(self, value: int) -> Expression:
-        """Raise this expression to an integer power, returning a new expression."""
+        """Raise this expression to an integer power.
+
+        Parameters
+        ----------
+        value : int
+            The exponent (must be a non-negative integer).
+
+        Returns
+        -------
+        Expression
+            A new expression representing this expression raised to the power.
+
+        Examples
+        --------
+        >>> x = Variable("x")
+        >>> expr = x ** 2  # Quadratic
+        >>> expr = x ** 3  # Cubic
+        """
         return self._from_pyexpr(self._op(value, self._expr.__pow__))
 
     def __ipow__(self, other: int) -> Self:
-        """Raise this expression by the value."""
+        """Raise this expression to an integer power in-place.
+
+        Parameters
+        ----------
+        other : int
+            The exponent (must be a non-negative integer).
+
+        Returns
+        -------
+        Expression
+            This expression modified in-place.
+        """
         self._op(other, self._expr.__ipow__)
         return self
 
     def __neg__(self) -> Expression:
-        """Negate this expression, returning a new expression."""
+        """Negate this expression.
+
+        Returns
+        -------
+        Expression
+            A new expression representing the negation.
+
+        Examples
+        --------
+        >>> x = Variable("x")
+        >>> expr = -x
+        >>> expr = -(x + y)
+        """
         return self._from_pyexpr(self._expr.__neg__())
 
     def __eq__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
-        """Create an equality constraint (self == other)."""
+        """Create an equality constraint.
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The right-hand side of the equality.
+
+        Returns
+        -------
+        Constraint
+            A constraint representing ``self == other``.
+
+        Examples
+        --------
+        >>> x = Variable("x")
+        >>> y = Variable("y")
+        >>> constraint = (x + y) == 10
+        """
         return self._cmp(other, self._expr.__eq__)
 
     def __le__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
-        """Create a less-than-or-equal constraint (self <= other)."""
+        """Create a less-than-or-equal-to constraint.
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The right-hand side of the inequality.
+
+        Returns
+        -------
+        Constraint
+            A constraint representing ``self <= other``.
+
+        Examples
+        --------
+        >>> x = Variable("x")
+        >>> y = Variable("y")
+        >>> constraint = (x + y) <= 100
+        """
         return self._cmp(other, self._expr.__le__)
 
     def __ge__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
-        """Create a greater-than-or-equal constraint (self >= other)."""
+        """Create a greater-than-or-equal-to constraint.
+
+        Parameters
+        ----------
+        other : Expression | Variable | float
+            The right-hand side of the inequality.
+
+        Returns
+        -------
+        Constraint
+            A constraint representing ``self >= other``.
+
+        Examples
+        --------
+        >>> x = Variable("x")
+        >>> constraint = (x + y) >= 0
+        """
         return self._cmp(other, self._expr.__ge__)
 
     def __reduce__(self) -> tuple[Callable[[bytes, bytes], Expression], tuple[bytes, ...]]:
-        """Reduce this expression. Used by pickle."""
+        """Support for pickle serialization.
+
+        Returns
+        -------
+        tuple
+            A tuple of (decoder_function, encoded_data) for pickle.
+
+        Notes
+        -----
+        This method is called automatically by Python's pickle module.
+        """
         data = self.encode()
         env_data = self.environment.encode()
 
         return Expression._unreduce, (data, env_data)
 
     def __str__(self) -> str:
-        """Expression to string."""
+        """Get human-readable string representation.
+
+        Returns
+        -------
+        str
+            A string showing the expression structure.
+
+        Examples
+        --------
+        >>> x = Variable("x")
+        >>> y = Variable("y")
+        >>> expr = 3*x + 2*y + 5
+        >>> str(expr)
+        '3*x + 2*y + 5'
+        """
         return self._expr.__str__()
 
     def __repr__(self) -> str:
-        """Expression to debug string."""
+        """Get detailed debug representation.
+
+        Returns
+        -------
+        str
+            A string representation suitable for debugging.
+        """
         return self._expr.__repr__()
 
     def _op(
