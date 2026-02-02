@@ -1,3 +1,6 @@
+[![ci](https://github.com/aqarios/luna-model/actions/workflows/ci.yml/badge.svg)](https://github.com/aqarios/luna-model/actions/workflows/ci.yml)
+[![docs](https://github.com/aqarios/luna-model/actions/workflows/pages.yml/badge.svg)](https://github.com/aqarios/luna-model/actions/workflows/pages.yml)
+
 <div align="center">
   <img src="./assets/luna_model_logo.svg" alt="lunaᴹᴼᴰᴱᴸ" width="400">
 </div>
