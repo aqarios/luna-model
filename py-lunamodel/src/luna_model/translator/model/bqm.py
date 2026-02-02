@@ -18,7 +18,7 @@ class BqmTranslator:
     """BqmTranslator."""
 
     @staticmethod
-    def to_lm(bqm: BinaryQuadraticModel, *, name: str | None = None) -> Model:
+    def to_lm(bqm: "BinaryQuadraticModel", *, name: str | None = None) -> Model:
         """Translate to lm."""
         if not _DIMOD_AVAILABLE:
             msg = "dimod is required for the BqmTranslator. You can install it using the 'dimod' extra."
@@ -64,7 +64,7 @@ class BqmTranslator:
         )
 
     @staticmethod
-    def from_lm(model: Model) -> BinaryQuadraticModel:
+    def from_lm(model: Model) -> "BinaryQuadraticModel":
         """Translate to BinaryQuadraticModel form model."""
         if not _DIMOD_AVAILABLE:
             msg = "dimod is required for the BqmTranslator. You can install it using the 'dimod' extra."

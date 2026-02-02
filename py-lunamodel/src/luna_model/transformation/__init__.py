@@ -1,5 +1,6 @@
 from .action_type import ActionType
 from .analysis import AnalysisPass
+from .base import BasePass
 from .cache import AnalysisCache
 from .decorators import analyse, meta_analyse, transform
 from .ifelse import IfElsePass
@@ -14,6 +15,7 @@ __all__ = [
     "ActionType",
     "AnalysisCache",
     "AnalysisPass",
+    "BasePass",
     "IfElsePass",
     "MetaAnalysisPass",
     "PassManager",

@@ -1,4 +1,6 @@
 # type: ignore[reportPossiblyUnboundVariable]
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from luna_model.environment.env import Environment
@@ -13,13 +15,16 @@ try:
 except ImportError:
     _DIMOD_AVAILABLE = False
 
+if TYPE_CHECKING:
+    from dimod import SampleSet
+
 
 class DwaveTranslator:
     """Dwave solution translator."""
 
     @staticmethod
     def to_lm(
-        sample_set: SampleSet,
+        sample_set: "SampleSet",
         timing: Timing | None = None,
         *,
         env: Environment | None = None,

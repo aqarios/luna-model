@@ -1,4 +1,6 @@
 # type: ignore[reportPossiblyUnboundVariable]
+from typing import TYPE_CHECKING
+
 from luna_model.environment.env import Environment
 from luna_model.model.sense import Sense
 from luna_model.solution.sol import Solution
@@ -12,13 +14,16 @@ try:
 except ImportError:
     _SCIP_AVAILABLE = False
 
+if TYPE_CHECKING:
+    from pyscipopt import Model as ScipModel
+
 
 class ZibTranslator:
     """Zib solution translator."""
 
     @staticmethod
     def to_lm(
-        model: ScipModel,
+        model: "ScipModel",
         timing: Timing | None = None,
         *,
         env: Environment | None = None,

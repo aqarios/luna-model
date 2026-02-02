@@ -1,4 +1,6 @@
 # type: ignore[reportPossiblyUnboundVariable]
+from typing import TYPE_CHECKING
+
 from luna_model.environment.env import Environment
 from luna_model.solution.sol import Solution
 from luna_model.timer import Timing
@@ -12,14 +14,18 @@ try:
 except ImportError:
     _QISKIT_AVAILABLE = False
 
+if TYPE_CHECKING:
+    from qiskit.primitives import PrimitiveResult, PubResult
+    from qiskit_optimization import QuadraticProgram
+
 
 class IbmTranslator:
     """Ibm solution translator."""
 
     @staticmethod
     def to_lm(
-        result: PrimitiveResult[PubResult],
-        quadratic_program: QuadraticProgram,
+        result: "PrimitiveResult[PubResult]",
+        quadratic_program: "QuadraticProgram",
         timing: Timing | None = None,
         *,
         env: Environment | None = None,

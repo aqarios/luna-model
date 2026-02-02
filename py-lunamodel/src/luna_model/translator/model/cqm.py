@@ -16,7 +16,7 @@ class CqmTranslator:
     """CqmTranslator."""
 
     @staticmethod
-    def to_lm(cqm: ConstrainedQuadraticModel, *, name: str | None = None) -> Model:
+    def to_lm(cqm: "ConstrainedQuadraticModel", *, name: str | None = None) -> Model:
         """Translate to model from cqm."""
         if not _DIMOD_AVAILABLE:
             msg = "dimod is required for the CqmTranslator. You can install it using the 'dimod' extra."
@@ -31,7 +31,7 @@ class CqmTranslator:
         return model
 
     @staticmethod
-    def from_lm(model: Model) -> ConstrainedQuadraticModel:
+    def from_lm(model: Model) -> "ConstrainedQuadraticModel":
         """Translate to cqm from model."""
         if not _DIMOD_AVAILABLE:
             msg = "dimod is required for the CqmTranslator. You can install it using the 'dimod' extra."
