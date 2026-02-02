@@ -40,7 +40,7 @@ class TransformationOutcome:
     @classmethod
     def nothing(cls, model: Model) -> TransformationOutcome:
         """Easy nothing action return."""
-        return cls._from_pyto(PyTransformationOutcome.nothing(model))
+        return cls._from_pyto(PyTransformationOutcome.nothing(model._m))
 
     @property
     def model(self) -> Model:
