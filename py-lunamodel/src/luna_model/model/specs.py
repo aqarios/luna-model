@@ -14,14 +14,14 @@ class ModelSpecs:
     def __init__(  # noqa: PLR0913
         self,
         sense: Sense | None = None,
-        vtypes: list[Vtype] | None = None,
-        constraints: list[Ctype] | None = None,
+        vtypes: set[Vtype] | None = None,
+        constraints: set[Ctype] | None = None,
         max_degree: int | None = None,
         max_constraint_degree: int | None = None,
         max_num_variables: int | None = None,
     ) -> None:
         """Create model specifications."""
-        self._v = PyModelSpecs(
+        self._sp = PyModelSpecs(
             sense=sense._val if sense else None,
             vtypes=[v._val for v in vtypes] if vtypes else None,
             constraints=[c._val for c in constraints] if constraints else None,
