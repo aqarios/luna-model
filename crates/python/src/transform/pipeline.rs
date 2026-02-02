@@ -67,7 +67,11 @@ impl PyPipeline {
             .collect::<Result<Vec<_>, PyErr>>()
     }
 
-    fn __repr__(&self) -> String {
+    fn __str__(&self) -> String {
         format!("{}", self.p)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.p)
     }
 }

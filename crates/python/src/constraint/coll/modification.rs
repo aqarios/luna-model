@@ -50,7 +50,7 @@ impl PyConstraintCollection {
         Ok(self.c.add_constraint(constr.c.read_arc().clone(), name)?)
     }
 
-    fn __setitem(&mut self, key: String, constr: PyConstraint) -> PyResult<()> {
+    fn __setitem__(&mut self, key: String, constr: PyConstraint) -> PyResult<()> {
         Ok(self.c.set_constraint(&key, constr.c.read_arc().clone())?)
     }
 

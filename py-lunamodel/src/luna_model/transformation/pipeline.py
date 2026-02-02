@@ -10,43 +10,49 @@ from .base import BasePass
 class Pipeline(PyPipeline, BasePass):
     """Pipeline."""
 
-    _pipeline: PyPipeline
-
     @overload
     def __init__(self, passes: list[BasePass]) -> None: ...
     @overload
     def __init__(self, passes: list[BasePass], name: str) -> None: ...
     def __init__(self, passes: list[BasePass], name: str | None = None) -> None:
-        self._pipeline = PyPipeline(passes, name)
+        super().__init__(passes, name)
 
     @property
     def name(self) -> str:
         """Get the name of this pass."""
-        return self._pipeline.name
+        return super().name
 
     @property
     def requires(self) -> list[str]:
         """Get a list of required passes that need to be run before this pass."""
-        return self._pipeline.requires
+        return super().requires
 
     @property
     def satisfies(self) -> set[str]:
         """Get a list of required passes that need to be run before this pass."""
-        return self._pipeline.satisfies
+        return super().satisfies
 
     @property
     def passes(self) -> list[BasePass]:
         """Get all passes that are part of the pipeline."""
-        return self._pipeline.passes
+        return super().passes
 
     def add(self, new_pass: BasePass) -> None:
         """Add new pass to pipeline."""
-        self._pipeline.add(new_pass)
+        super().add(new_pass)
 
     def clear(self) -> None:
         """Clear pipeline."""
-        self._pipeline.clear()
+        super().clear()
 
     def __len__(self) -> int:
         """Get the length."""
-        return self._pipeline.__len__()
+        return super().__len__()
+
+    def __str__(self) -> str:
+        """Pipeline as string."""
+        return super().__str__()
+
+    def __repr__(self) -> str:
+        """Pipeline as debug string."""
+        return super().__repr__()
