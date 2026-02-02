@@ -42,6 +42,7 @@ impl Expression {
             .chain(self.quadratic_items().map(|(u, v, b)| (vec![u, v], b)))
             .chain(self.higher_order_items())
             .chain(once((Vec::new(), self.offset)))
+            .filter(|(_, bias)| *bias != Bias::default())
     }
 
     pub fn linear_items(&self) -> impl Iterator<Item = (VarRef, Bias)> {

@@ -9,7 +9,7 @@ def test_expr_iter():
         d = Variable("d")
         e = Variable("e")
 
-    expr = a + a * b + c * d * e
+    expr = a + a * b + c * d * e + 0
 
     for elem, bias in expr.items():
         match elem:
@@ -22,4 +22,5 @@ def test_expr_iter():
                 assert vars[1].is_equal(d)
                 assert vars[2].is_equal(e)
             case Constant():
-                assert bias == 0.0
+                assert False, "should not be reachable in case constant is 0"
+                # assert bias == 0.0

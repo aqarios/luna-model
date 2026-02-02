@@ -16,7 +16,7 @@ def test_expr_access():
     assert expr.num_variables == 0
     assert expr.get_offset() == 0
     assert expr.degree() == 0
-    assert len(list(expr.items())) == 1  # don't forget the constant
+    assert len(list(expr.items())) == 0  # offset is 0 so this is zero as well (everything is zero)
     assert len(list(expr.variables())) == 0
     assert len(list(expr.linear_items())) == 0
     assert len(list(expr.quadratic_items())) == 0
@@ -38,7 +38,7 @@ def test_expr_access_lin():
     assert expr.num_variables == 2
     assert expr.get_offset() == 0
     assert expr.degree() == 1
-    assert len(list(expr.items())) == 3  # don't forget the constant
+    assert len(list(expr.items())) == 2  # constant is zero so not included.
     assert len(list(expr.variables())) == 2
 
     for elem, bias in expr.items():
