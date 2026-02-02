@@ -63,8 +63,13 @@ impl Constraint {
     }
 
     pub fn deep_clone(&self, env: ArcEnv) -> Self {
-        _ = env;
-        unimplemented!()
+        Self {
+            lhs: self.lhs.deep_clone(env),
+            rhs: self.rhs,
+            comparator: self.comparator,
+            name: self.name.clone(),
+            auto_name: self.auto_name,
+        }
     }
 
     pub fn name(&self) -> &str {

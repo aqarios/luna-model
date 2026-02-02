@@ -14,7 +14,9 @@
 """Decorators."""
 
 from collections.abc import Callable
-from typing import Any, Generic, TypeAlias, TypeVar, override
+from typing import Any, Generic, TypeAlias, TypeVar
+
+from typing_extensions import override
 
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
@@ -51,6 +53,7 @@ class DynamicAnalysisPass(AnalysisPass, Generic[T]):
         requires: list[str],
         func: AnalysisSignature[T],
     ) -> None:
+        super().__init__()
         self._name = name
         self._requires = requires
         self._func = func
@@ -81,6 +84,7 @@ class DynamicMetaAnalysisPass(MetaAnalysisPass, Generic[T]):
         requires: list[str],
         func: MetaAnalysisSignature[T],
     ) -> None:
+        super().__init__()
         self._name = name
         self._requires = requires
         self._func = func
@@ -113,6 +117,7 @@ class DynamicTransformationPass(TransformationPass):
         func: TransformationSignature,
         backwards: BackwardsSignature,
     ) -> None:
+        super().__init__()
         self._name = name
         self._requires = requires
         self._invalidates = invalidates
