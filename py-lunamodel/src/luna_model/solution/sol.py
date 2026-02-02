@@ -1,3 +1,10 @@
+"""Solution objects containing optimization results.
+
+This module provides the Solution class for storing and analyzing results
+from optimization solvers. Solutions contain samples (variable assignments),
+objective values, feasibility information, and performance metrics.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal
@@ -28,7 +35,88 @@ if TYPE_CHECKING:
 
 
 class Solution:
-    """Solution."""
+    """Container for optimization solver results.
+
+    A Solution stores the results from solving an optimization problem, including
+    variable assignments (samples), objective function values, feasibility status,
+    constraint satisfaction, and runtime information.
+
+    Solutions can be created directly, converted from various solver formats
+    (D-Wave, Qiskit, SCIP), or obtained by evaluating a model.
+
+    Parameters
+    ----------
+    samples : Sequence[_Sample]
+        List of variable assignment dictionaries.
+    counts : list[int] | None, optional
+        Number of times each sample was observed.
+    raw_energies : list[float] | None, optional
+        Raw energy values from the solver.
+    obj_values : list[float] | None, optional
+        Evaluated objective function values.
+    feasible : list[bool] | None, optional
+        Feasibility status for each sample.
+    constraints : list[dict[str, bool]] | None, optional
+        Constraint satisfaction by constraint name for each sample.
+    variables_bounds : dict[str, list[bool]] | None, optional
+        Variable bound satisfaction by variable name.
+    timing : Timing | None, optional
+        Runtime and timing information.
+    sense : Sense | None, optional
+        Optimization sense (MIN or MAX).
+    env : Environment | None, optional
+        The environment for variables.
+    vtypes : list[Vtype] | None, optional
+        Variable types.
+
+    Attributes
+    ----------
+    obj_values : NDArray | None
+        Objective function values for each sample.
+    raw_energies : NDArray | None
+        Raw energy values from solver.
+    counts : NDArray
+        Observation counts for each sample.
+    runtime : Timing | None
+        Timing information.
+    sense : Sense
+        Optimization sense.
+    results : ResultIter
+        Iterator over result views.
+    samples : Samples
+        Collection of variable assignment samples.
+    variable_names : list[str]
+        Names of variables in the solution.
+
+    Examples
+    --------
+    Create solution from samples:
+
+    >>> from luna_model import Solution
+    >>> samples = [{"x": 0, "y": 1}, {"x": 1, "y": 0}]
+    >>> solution = Solution(samples, obj_values=[5.0, 3.0])
+
+    Get best results:
+
+    >>> best_results = solution.best()
+    >>> for result in best_results:
+    ...     print(f"Value: {result.obj_value}, Sample: {result.sample.to_dict()}")
+
+    Filter feasible solutions:
+
+    >>> feasible = solution.filter_feasible()
+
+    Compute statistics:
+
+    >>> mean_value = solution.expectation_value()
+    >>> feas_ratio = solution.feasibility_ratio()
+
+    See Also
+    --------
+    Result : Individual result from the solution.
+    Sample : Variable assignments in a result.
+    Model : Model class that produces solutions.
+    """
 
     _s: PySolution
 
@@ -46,7 +134,7 @@ class Solution:
         env: Environment | None = None,
         vtypes: list[Vtype] | None = None,
     ) -> None:
-        """Create solution."""
+        """Initialize a solution with samples and metadata."""
         self._s = PySolution(
             samples=_map_samples(samples),
             counts=counts,
@@ -69,7 +157,13 @@ class Solution:
 
     @property
     def obj_values(self) -> NDArray | None:
-        """Get objective values."""
+        """Get objective function values for each sample.
+        
+        Returns
+        -------
+        NDArray | None
+            Array of objective values, one per sample.
+        """
         return self._s.obj_values
 
     @obj_values.setter
@@ -123,11 +217,30 @@ class Solution:
         return self._s.variable_names
 
     def best(self) -> list[ResultView] | None:
-        """Get the best results."""
+        """Get the best results according to the optimization sense.
+        
+        Returns
+        -------
+        list[ResultView] | None
+            List of best results (lowest for MIN, highest for MAX).
+        """
         return self._s.best()
 
     def cvar(self, alpha: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
-        """Compute the cvar."""
+        """Compute Conditional Value at Risk (CVaR).
+        
+        Parameters
+        ----------
+        alpha : float
+            Risk level (0 < alpha <= 1).
+        value_toggle : ValueSource, optional
+            Whether to use objective values or raw energies.
+            
+        Returns
+        -------
+        float
+            The CVaR value.
+        """
         return self._s.cvar(alpha, value_toggle._val)
 
     def temperature_weighted(self, beta: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
@@ -135,19 +248,53 @@ class Solution:
         return self._s.temperature_weighted(beta, value_toggle._val)
 
     def expectation_value(self, value_toggle: ValueSource = ValueSource.OBJ) -> float:
-        """Compute the expectation value."""
+        """Compute the expectation value weighted by counts.
+        
+        Parameters
+        ----------
+        value_toggle : ValueSource, optional
+            Whether to use objective values or raw energies.
+            
+        Returns
+        -------
+        float
+            The weighted mean value.
+        """
         return self._s.expectation_value(value_toggle._val)
 
     def feasibility_ratio(self) -> float:
-        """Compute the feasibility ratio."""
+        """Compute the ratio of feasible samples.
+        
+        Returns
+        -------
+        float
+            Ratio of feasible samples (0.0 to 1.0).
+        """
         return self._s.feasibility_ratio()
 
     def filter(self, f: FilterFn) -> Solution:
-        """Filter the solution creating a new one."""
+        """Filter results by a custom predicate function.
+        
+        Parameters
+        ----------
+        f : FilterFn
+            Function that takes a ResultView and returns bool.
+            
+        Returns
+        -------
+        Solution
+            New solution containing only filtered results.
+        """
         return self._from_pys(self._s.filter(f))
 
     def filter_feasible(self) -> Solution:
-        """Filter the solution by its feasible."""
+        """Filter to keep only feasible results.
+        
+        Returns
+        -------
+        Solution
+            New solution containing only feasible results.
+        """
         return self._from_pys(self._s.filter_feasible())
 
     def highest_constraint_violation(self) -> str | None:
