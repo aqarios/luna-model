@@ -216,8 +216,10 @@ def test_model_get_specs_basic():
     assert specs.sense == Sense.MIN
     assert specs.vtypes is not None
     assert Vtype.BINARY in specs.vtypes
-    # Unconstrained models return empty list for constraints
-    assert specs.constraints is None or specs.constraints == [] or Ctype.UNCONSTRAINED in specs.constraints
+    # Unconstrained models may return None, empty list, or list with UNCONSTRAINED
+    # depending on internal representation
+    if specs.constraints is not None and len(specs.constraints) > 0:
+        assert Ctype.UNCONSTRAINED in specs.constraints
 
 
 def test_model_get_specs_with_constraints():

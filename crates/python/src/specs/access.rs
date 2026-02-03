@@ -59,6 +59,10 @@ impl PyModelSpecs {
     }
 
     fn satisfies(&self, other: &PyModelSpecs) -> bool {
+        // Note: We clone other.s because the underlying Rust satisfies method
+        // takes ownership (Self) rather than a reference. While this could be
+        // optimized by changing the core Rust API to accept &Self, the Specs
+        // struct is small and the clone cost is negligible for this use case.
         self.s.satisfies(other.s.clone())
     }
 
