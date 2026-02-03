@@ -150,19 +150,51 @@ class DynamicTransformationPass(TransformationPass):
 def analyse(
     name: str | None = None, requires: list[str] | None = None
 ) -> Callable[[AnalysisSignature[T]], DynamicAnalysisPass[T]]:
-    """Create an AnalysisPass instance from a function.
+    """Create an AnalysisPass from a function decorator.
+
+    This decorator converts a regular function into an ``AnalysisPass`` that can be used
+    in transformation pipelines. Analysis passes inspect models without modifying them,
+    computing properties or metadata that other passes can use.
 
     Parameters
     ----------
-    name: str | None
-        The name of the analysis pass. If no name provided, uses the function name.
-    requires: list[str] | None
-        List of required analysis passes (defaults to empty list)
+    name : str, optional
+        The name of the analysis pass. If not provided, uses the function name with
+        underscores replaced by hyphens (e.g., ``my_analysis`` becomes ``my-analysis``).
+    requires : list[str], optional
+        List of analysis pass names that must run before this analysis. The results
+        of required passes are available in the ``AnalysisCache``. Defaults to ``[]``.
 
     Returns
     -------
-    Callable[[Callable[[Model, AnalysisCache], Any]], AnalysisPass]
-        An instance of a dynamically created AnalysisPass subclass
+    Callable[[Callable[[Model, AnalysisCache], T]], DynamicAnalysisPass[T]]
+        A decorator that transforms the decorated function into an ``AnalysisPass``.
+
+    Examples
+    --------
+    Create a simple analysis pass:
+
+    >>> from luna_model.transformation import analyse
+    >>> 
+    >>> @analyse(name="count-variables")
+    ... def count_vars(model, cache):
+    ...     return model.num_variables()
+
+    Notes
+    -----
+    The decorated function must have the signature::
+
+        def my_analysis(model: Model, cache: AnalysisCache) -> Any: ...
+
+    The return value is stored in the ``AnalysisCache`` under the pass's name
+    and can be accessed by subsequent passes.
+
+    See Also
+    --------
+    transform : Decorator for creating transformation passes
+    meta_analyse : Decorator for meta-analysis passes
+    AnalysisPass : Base class for analysis passes
+    AnalysisCache : Storage for analysis results
     """
     if requires is None:
         requires = []
@@ -217,24 +249,70 @@ def transform(
     invalidates: list[str] | None = None,
     backwards: BackwardsSignature | None = None,
 ) -> Callable[[TransformationSignature], DynamicTransformationPass]:
-    """Create an TransformationPass instance from a function.
+    """Create a TransformationPass from a function decorator.
+
+    This decorator converts a regular function into a ``TransformationPass`` that modifies
+    models in transformation pipelines. Transformation passes can restructure models,
+    add/remove constraints, change variable types, or perform other model modifications.
 
     Parameters
     ----------
-    name: str | None = None
-        The name of the analysis pass. If no name provided, uses the function name.
-    requires: list[str] | None = None
-        List of required analysis passes (defaults to empty list)
-    invalidates: list[str] | None = None
-        List of analysis results to invalidate (defaults to empty list)
-    backwards: BackwardsSignature | None = None,
-        Solution backwards mapping function. If none provided, pass solution upstream
-        without modification.
+    name : str, optional
+        The name of the transformation pass. If not provided, uses the function name
+        with underscores replaced by hyphens.
+    requires : list[str], optional
+        List of analysis pass names that must run before this transformation.
+        Required analyses are available in the ``AnalysisCache``. Defaults to ``[]``.
+    invalidates : list[str], optional
+        List of analysis pass names whose results become invalid after this transformation.
+        These analyses will be recomputed if needed later. Defaults to ``[]``.
+    backwards : Callable[[Solution, AnalysisCache], Solution], optional
+        Optional function to map solutions from the transformed model back to the
+        original model's variable space. If not provided, solutions pass through unchanged.
 
     Returns
     -------
     Callable[[TransformationSignature], DynamicTransformationPass]
-        An instance of a dynamically created TransformationPass subclass
+        A decorator that transforms the decorated function into a ``TransformationPass``.
+
+    Examples
+    --------
+    Create a simple transformation:
+
+    >>> from luna_model.transformation import transform, ActionType
+    >>> 
+    >>> @transform(name="scale-objective")
+    ... def scale_obj(model, cache):
+    ...     model.objective = model.objective * 2.0
+    ...     return model, ActionType.DID_TRANSFORM
+
+    Notes
+    -----
+    The decorated function must return one of:
+
+    - ``TransformationOutcome`` (from ``luna_model.transformation``)
+    - ``(Model, ActionType)`` tuple
+    - ``(Model, ActionType, metadata)`` tuple
+
+    The ``ActionType`` indicates what happened:
+
+    - ``ActionType.DID_TRANSFORM``: Pass transformed the model
+    - ``ActionType.DID_ANALYSIS``: Pass analyzed the model
+    - ``ActionType.DID_ANALYSIS_TRANSFORM``: Pass analyzed and transformed
+    - ``ActionType.DID_NOTHING``: Pass did nothing
+    - ``ActionType.DID_IF_ELSE``: Conditional pass executed
+    - ``ActionType.DID_PIPELINE``: Pipeline pass executed
+
+    The backwards function is crucial when transformations change the variable space
+    (e.g., adding/removing variables, changing variable types). It ensures solutions
+    from downstream solvers can be correctly interpreted in the original model's context.
+
+    See Also
+    --------
+    analyse : Decorator for creating analysis passes
+    TransformationPass : Base class for transformation passes
+    ActionType : Enumeration of transformation actions
+    TransformationOutcome : Result type for transformations
     """
     if requires is None:
         requires = []

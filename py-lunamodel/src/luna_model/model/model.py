@@ -57,7 +57,96 @@ def _cqm_type() -> type[ConstrainedQuadraticModel]:
 
 
 class Model:
-    """Model docstring."""
+    """A symbolic optimization model combining an objective and constraints.
+
+    The `Model` class represents a structured symbolic optimization problem. It
+    combines a scalar objective `Expression`, a collection of `Constraint` objects,
+    and a shared `Environment` that scopes all variables used in the model.
+
+    Models can be constructed explicitly by passing an environment, or implicitly
+    by allowing the model to create its own private environment. If constructed
+    inside an active `Environment` context, that context is used automatically.
+
+    Parameters
+    ----------
+    name : str, optional
+        An optional name assigned to the model for identification and debugging.
+    sense : Sense, default=Sense.MIN
+        The optimization sense - `Sense.MIN` to minimize or `Sense.MAX` to maximize
+        the objective function.
+    env : Environment, optional
+        The environment in which variables and expressions are created. If not
+        provided, the model will either use the current context (if active), or
+        create a new private environment.
+
+    Attributes
+    ----------
+    name : str
+        The name of the model.
+    sense : Sense
+        The optimization sense (MIN or MAX).
+    objective : Expression
+        The objective function to optimize.
+    constraints : ConstraintCollection
+        Collection of constraints that must be satisfied.
+    environment : Environment
+        The environment containing all variables.
+    num_variables : int
+        Number of variables in the model.
+    num_constraints : int
+        Number of constraints in the model.
+
+    Examples
+    --------
+    Basic usage:
+
+    >>> from luna_model import Model, Variable, Sense
+    >>> model = Model("MyModel", sense=Sense.MAX)
+    >>> with model.environment:
+    >>>     x = Variable("x")
+    >>>     y = Variable("y")
+    >>> model.objective = x * y + x
+    >>> model.constraints += x >= 0
+    >>> model.constraints += y <= 5
+    >>> print(model)
+    Model: MyModel
+    Maximize
+      x * y + x
+    Subject To
+      c0: x >= 0
+      c1: y <= 5
+    Binary
+      x y
+
+    With explicit environment:
+
+    >>> from luna_model import Environment
+    >>> env = Environment()
+    >>> model = Model("ScopedModel", env=env)
+    >>> with env:
+    ...     x = Variable("x")
+    ...     model.objective = x * x
+
+    Serialization:
+
+    >>> blob = model.encode()
+    >>> restored = Model.decode(blob)
+    >>> restored.name
+    'MyModel'
+
+    See Also
+    --------
+    - Variable : Create decision variables
+    - Expression : Build mathematical expressions
+    - Constraint : Define constraints
+    - Environment : Manage variable scope
+
+    Notes
+    -----
+    - A model's environment scopes all its variables
+    - Variables from different environments cannot be mixed
+    - Models are mutable - objective and constraints can be modified after creation
+    """
 
     _m: PyModel
 
@@ -67,7 +156,6 @@ class Model:
         sense: Sense = Sense.MIN,
         env: Environment | None = None,
     ) -> None:
-        """Create a new model."""
         self._m = PyModel(name=name, sense=sense._val, env=env._env if env else None)
 
     @classmethod
@@ -78,37 +166,95 @@ class Model:
 
     @property
     def name(self) -> str:
-        """Get the model's name."""
+        """Get or set the model's name.
+
+        Returns
+        -------
+        str
+            The name of the model.
+
+        Examples
+        --------
+        >>> model = Model("MyModel")
+        >>> model.name
+        'MyModel'
+        >>> model.name = "UpdatedModel"
+        """
         return self._m.name
 
     @name.setter
     def name(self, name: str) -> None:
-        """Set the model's name."""
         self._m.name = name
 
     @property
     def sense(self) -> Sense:
-        """Get the model's sense."""
+        """Get or set the model's optimization sense.
+
+        The sense determines whether the objective function is minimized or maximized.
+
+        Returns
+        -------
+        Sense
+            The optimization sense (Sense.MIN or Sense.MAX).
+
+        Examples
+        --------
+        >>> model = Model(sense=Sense.MIN)
+        >>> model.sense
+        Sense.MIN
+        >>> model.sense = Sense.MAX
+        """
         return Sense._from_pysense(self._m.sense)
 
     @sense.setter
     def sense(self, sense: Sense) -> None:
-        """Set the model's sense."""
         self._m.sense = sense._val
 
     @property
     def objective(self) -> Expression:
-        """Get the model's objective."""
+        """Get or set the model's objective function.
+
+        The objective function is the expression to be optimized (minimized or maximized).
+
+        Returns
+        -------
+        Expression
+            The objective function expression.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> with model.environment:
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        >>> model.objective = 2 * x + 3 * y
+        >>> model.objective.degree()
+        1
+        """
         return wrap_expr(self._m.objective)
 
     @objective.setter
     def objective(self, value: Expression) -> None:
-        """Set the model's objective."""
         self._m.objective = value._expr
 
     @property
     def constraints(self) -> ConstraintCollection:
-        """Get the model's constraints."""
+        """Get or set the model's constraint collection.
+
+        Returns
+        -------
+        ConstraintCollection
+            The collection of constraints in the model.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> with model.environment:
+        ...     x = Variable("x")
+        >>> model.constraints += x <= 5
+        >>> len(model.constraints)
+        1
+        """
         return wrap_cc(self._m.constraints)
 
     @constraints.setter
@@ -118,25 +264,97 @@ class Model:
 
     @property
     def environment(self) -> Environment:
-        """Get the model's environment."""
+        """Get the model's environment.
+
+        Returns
+        -------
+        Environment
+            The environment containing all variables in this model.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> with model.environment:
+        ...     x = Variable("x")
+        """
         return wrap_env(self._m.environment)
 
     @property
     def num_variables(self) -> int:
-        """Get the model's number of variables."""
+        """Get the number of variables in the model.
+
+        Returns
+        -------
+        int
+            The total number of variables.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> model.add_variable("x")
+        >>> model.add_variable("y")
+        >>> model.objective += x + y
+        >>> model.num_variables
+        2
+        """
         return self._m.num_variables
 
     @property
     def num_constraints(self) -> int:
-        """Get the model's number of constraints."""
+        """Get the number of constraints in the model.
+
+        Returns
+        -------
+        int
+            The total number of constraints.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> with model.environment:
+        ...     x = Variable("x")
+        >>> model.constraints += x <= 5
+        >>> model.num_constraints
+        1
+        """
         return self._m.num_constraints
 
     def variables(self) -> list[Variable]:
-        """Get the model's variables."""
+        """Get all variables in the model.
+
+        Returns
+        -------
+        list[Variable]
+            A list of all variables in the model.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> x = model.add_variable("x")
+        >>> y = model.add_variable("y")
+        >>> model.objective += x + y
+        >>> vars = model.variables()
+        >>> len(vars)
+        2
+        """
         return [wrap_var(v) for v in self._m.variables()]
 
     def vtypes(self) -> list[Vtype]:
-        """Get the model's vtypes."""
+        """Get the types of all variables in the model.
+
+        Returns
+        -------
+        list[Vtype]
+            A list of variable types in the same order as variables().
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> model.add_variable("x", vtype=Vtype.BINARY)
+        >>> model.add_variable("y", vtype=Vtype.INTEGER)
+        >>> model.vtypes()
+        [Vtype.BINARY, Vtype.INTEGER]
+        """
         return [Vtype._from_pyvtype(t) for t in self._m.vtypes()]
 
     @deprecated(
@@ -157,7 +375,54 @@ class Model:
         upper: float | type[Unbounded] | None = None,
         with_fallback: bool = False,
     ) -> Variable:
-        """Add a variable to the model."""
+        """Add a variable to the model.
+
+        Creates a new variable and adds it to the model's environment. If the variable
+        name already exists and `with_fallback=True`, a unique name will be generated.
+
+        Parameters
+        ----------
+        name : str
+            The name of the variable.
+        vtype : Vtype, default=Vtype.BINARY
+            The type of the variable (BINARY, SPIN, INTEGER, or CONTINUOUS).
+        lower : float or Unbounded, optional
+            The lower bound for the variable. Only applicable for INTEGER and CONTINUOUS types.
+        upper : float or Unbounded, optional
+            The upper bound for the variable. Only applicable for INTEGER and CONTINUOUS types.
+        with_fallback : bool, default=False
+            If True and the name exists, a unique fallback name is generated.
+
+        Returns
+        -------
+        Variable
+            The newly created variable.
+
+        Raises
+        ------
+        VariableExistsError
+            If a variable with the same name already exists and `with_fallback=False`.
+        VariableNameInvalidError
+            If the variable name is invalid.
+        InvalidBoundsError
+            If bounds are invalid or incompatible with the variable type.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> x = model.add_variable("x", vtype=Vtype.BINARY)
+        >>> y = model.add_variable("y", vtype=Vtype.INTEGER, lower=0, upper=10)
+        >>> z = model.add_variable("z", vtype=Vtype.CONTINUOUS, lower=-1.5, upper=1.5)
+
+        Using fallback for duplicate names:
+
+        >>> x1 = model.add_variable("x", with_fallback=True)
+
+        See Also
+        --------
+        Variable : Create variables directly
+        get_variable : Retrieve an existing variable by name
+        """
         if with_fallback:
             return wrap_var(self._m.add_variable_with_fallback(name=name, vtype=vtype._val, lower=lower, upper=upper))
         return wrap_var(self._m.add_variable(name=name, vtype=vtype._val, lower=lower, upper=upper))
@@ -177,35 +442,264 @@ class Model:
         return self.add_variable(name, vtype, lower, upper, with_fallback=True)
 
     def get_variable(self, name: str) -> Variable:
-        """Get a model's variable by its name."""
+        """Get a variable from the model by its name.
+
+        Parameters
+        ----------
+        name : str
+            The name of the variable to retrieve.
+
+        Returns
+        -------
+        Variable
+            The variable with the specified name.
+
+        Raises
+        ------
+        VariableNotExistingError
+            If no variable with the given name exists in the model.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> x = model.add_variable("x")
+        >>> retrieved = model.get_variable("x")
+        >>> retrieved.name
+        'x'
+        """
         return wrap_var(self._m.get_variable(name))
 
     def get_specs(self) -> ModelSpecs:
-        """Get a model's specs."""
+        """Get the model's specifications.
+
+        Returns the specifications describing the model's structure, including
+        variable types, degree of expressions, and constraint properties.
+
+        Returns
+        -------
+        ModelSpecs
+            The model's specifications.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> specs = model.get_specs()
+        >>> specs.num_variables
+        0
+        """
         return wrap_sp(self._m.get_specs())
 
     def add_constraint(self, constraint: Constraint, name: str | None = None) -> None:
-        """Add a constraint to the model."""
+        """Add a constraint to the model.
+
+        Parameters
+        ----------
+        constraint : Constraint
+            The constraint to add to the model.
+        name : str, optional
+            An optional name for the constraint. If not provided, an automatic
+            name will be generated.
+
+        Raises
+        ------
+        DuplicateConstraintNameError
+            If a constraint with the same name already exists.
+        ConstraintNameInvalidError
+            If the constraint name is invalid.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> with model.environment:
+        ...     x = Variable("x")
+        >>> constraint = x <= 5
+        >>> model.add_constraint(constraint, name="x_upper_bound")
+
+        See Also
+        --------
+        constraints : Access the constraint collection directly
+        """
         self._m.add_constraint(constraint._c, name)
 
     def set_objective(self, expression: Expression, sense: Sense | None = None) -> None:
-        """Set the model's objective."""
+        """Set the model's objective function.
+
+        Parameters
+        ----------
+        expression : Expression
+            The expression to use as the objective function.
+        sense : Sense, optional
+            The optimization sense. If provided, also updates the model's sense.
+            If None, the model's current sense is used.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> with model.environment:
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        >>> model.set_objective(x + 2 * y, sense=Sense.MAX)
+
+        See Also
+        --------
+        objective : Access objective directly as a property
+        """
         self._m.set_objective(expression._expr, sense._val if sense else None)
 
     def evaluate(self, solution: Solution) -> Solution:
-        """Evaluate a solution producing a new solution."""
+        """Evaluate a solution against the model.
+
+        Computes objective values and checks constraint satisfaction for all
+        samples in the solution.
+
+        Parameters
+        ----------
+        solution : Solution
+            The solution to evaluate.
+
+        Returns
+        -------
+        Solution
+            A new solution with updated objective values and feasibility information.
+
+        Raises
+        ------
+        EvaluationError
+            If evaluation fails due to incompatible solution format.
+        SampleIncorrectLengthError
+            If samples have incorrect number of variables.
+        SampleUnexpectedVariableError
+            If samples contain variables not in the model.
+
+        Examples
+        --------
+        >>> model = Model(sense=Sense.MAX)
+        >>> with model.environment:
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        >>> model.objective = x + 2 * y
+        >>> model.constraints += x + y <= 5
+        >>> samples = [{"x": 1, "y": 2}]
+        >>> solution = Solution(samples=samples)
+        >>> result = model.evaluate(solution)
+        >>> result.obj_values[0]  # Value of x + 2*y = 1 + 4 = 5
+        5.0
+        >>> result.feasible[0]  # x + y = 3 <= 5, so True
+        True
+
+        See Also
+        --------
+        evaluate_sample : Evaluate a single sample
+        violated_constraints : Get violated constraints for a sample
+        """
         return wrap_s(self._m.evaluate(solution._s))
 
     def evaluate_sample(self, sample: Sample) -> Result:
-        """Evaluate a sample."""
+        """Evaluate a single sample against the model.
+
+        Computes the objective value and checks constraint satisfaction for
+        a single variable assignment.
+
+        Parameters
+        ----------
+        sample : Sample
+            A dictionary mapping variable names to their values.
+
+        Returns
+        -------
+        Result
+            Evaluation result containing objective value and feasibility information.
+
+        Raises
+        ------
+        SampleIncorrectLengthError
+            If the sample has incorrect number of variables.
+        SampleUnexpectedVariableError
+            If the sample contains variables not in the model.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> with model.environment:
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        >>> model.objective = x + 2 * y
+        >>> result = model.evaluate_sample({"x": 1, "y": 2})
+        >>> result.obj_value
+        5.0
+
+        See Also
+        --------
+        evaluate : Evaluate a full solution with multiple samples
+        """
         return self._m.evaluate_sample(sample)
 
     def violated_constraints(self, sample: Sample) -> ConstraintCollection:
-        """Get all constraints violated by a sample."""
+        """Get all constraints violated by a sample.
+
+        Parameters
+        ----------
+        sample : Sample
+            A dictionary mapping variable names to their values.
+
+        Returns
+        -------
+        ConstraintCollection
+            Collection containing only the constraints that are violated by the sample.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> with model.environment:
+        ...     x = Variable("x")
+        >>> model.constraints += x <= 5
+        >>> model.constraints += x >= 0
+        >>> violated = model.violated_constraints({"x": 10})
+        >>> len(violated)  # Only x <= 5 is violated
+        1
+
+        See Also
+        --------
+        evaluate_sample : Evaluate a sample
+        """
         return wrap_cc(self._m.violated_constraints(sample))
 
     def substitute(self, /, target: Variable, replacement: Expression | Variable) -> None:
-        """Get all constraints violated by a sample."""
+        """Substitute a variable with an expression or another variable.
+
+        Replaces all occurrences of the target variable in the objective and
+        constraints with the replacement expression or variable.
+
+        Parameters
+        ----------
+        target : Variable
+            The variable to be replaced.
+        replacement : Expression or Variable
+            The expression or variable to substitute in place of the target.
+
+        Raises
+        ------
+        TypeError
+            If replacement is neither an Expression nor a Variable.
+        DifferentEnvironmentsError
+            If the replacement is from a different environment.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> with model.environment:
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     z = Variable("z")
+        >>> model.objective = x + 2 * y
+        >>> model.substitute(y, z + 1)  # Replace y with (z + 1)
+        >>> # Objective becomes: x + 2*(z + 1) = x + 2*z + 2
+
+        Notes
+        -----
+        This operation modifies the model in place. The target variable remains
+        in the model's environment but is no longer used.
+        """
         if isinstance(replacement, Expression):  # type: ignore[attribute]
             self._m.substitute(target._v, replacement._expr)  # type: ignore[attribute]
         elif isinstance(replacement, Variable):  # type: ignore[attribute]
@@ -215,29 +709,173 @@ class Model:
             raise TypeError(msg)
 
     def satisfies(self, specs: ModelSpecs) -> bool:
-        """Check if the model satisfies the specs."""
+        """Check if the model satisfies given specifications.
+
+        Parameters
+        ----------
+        specs : ModelSpecs
+            The specifications to check against.
+
+        Returns
+        -------
+        bool
+            True if the model satisfies all specifications, False otherwise.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> specs = model.get_specs()
+        >>> model.satisfies(specs)
+        True
+
+        See Also
+        --------
+        get_specs : Get the model's specifications
+        """
         return self._m.satisfies(specs._sp)
 
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
-        """Encode the model."""
+        """Serialize the model into a compact binary format.
+
+        Parameters
+        ----------
+        compress : bool, default=True
+            Whether to compress the binary output using zstd compression.
+        level : int, default=3
+            Compression level (0-9). Higher values provide better compression
+            but take longer. Only used if compress=True.
+
+        Returns
+        -------
+        bytes
+            Encoded model representation.
+
+        Raises
+        ------
+        CompressionError
+            If compression fails.
+
+        Examples
+        --------
+        >>> model = Model("MyModel")
+        >>> blob = model.encode()
+        >>> restored = Model.decode(blob)
+        >>> restored.name
+        'MyModel'
+
+        See Also
+        --------
+        decode : Deserialize a model from bytes
+        serialize : Alias for encode
+        """
         return self._m.encode(compress, level)
 
     def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
-        """Serialize the model."""
+        """Serialize the model into a compact binary format.
+
+        This is an alias for :meth:`encode`.
+
+        Parameters
+        ----------
+        compress : bool, default=True
+            Whether to compress the binary output.
+        level : int, default=3
+            Compression level (0-9).
+
+        Returns
+        -------
+        bytes
+            Encoded model representation.
+
+        See Also
+        --------
+        encode : Primary serialization method
+        deserialize : Alias for decode
+        """
         return self.encode(compress, level)
 
     @classmethod
     def decode(cls, data: bytes) -> Model:
-        """Decode the model."""
+        """Reconstruct a model from encoded bytes.
+
+        Parameters
+        ----------
+        data : bytes
+            Binary blob returned by :meth:`encode` or :meth:`serialize`.
+
+        Returns
+        -------
+        Model
+            Deserialized model object.
+
+        Raises
+        ------
+        DecodingError
+            If decoding fails due to corruption or incompatibility.
+
+        Examples
+        --------
+        >>> original = Model("MyModel")
+        >>> blob = original.encode()
+        >>> restored = Model.decode(blob)
+        >>> restored.name == original.name
+        True
+
+        See Also
+        --------
+        encode : Serialize a model
+        deserialize : Alias for decode
+        """
         return cls._from_pym(PyModel.decode(data))
 
     @classmethod
     def deserialize(cls, data: bytes) -> Model:
-        """Deserialize the model."""
+        """Reconstruct a model from encoded bytes.
+
+        This is an alias for :meth:`decode`.
+
+        Parameters
+        ----------
+        data : bytes
+            Binary blob returned by encode().
+
+        Returns
+        -------
+        Model
+            Deserialized model object.
+
+        See Also
+        --------
+        decode : Primary deserialization method
+        serialize : Alias for encode
+        """
         return cls.decode(data)
 
     def deep_clone(self) -> Model:
-        """Deep clone the model."""
+        """Create a deep copy of the model.
+
+        Returns
+        -------
+        Model
+            A new model that is an independent copy of this model, including
+            its own environment, variables, constraints, and objective.
+
+        Examples
+        --------
+        >>> original = Model("Original")
+        >>> with original.environment:
+        ...     x = Variable("x")
+        >>> original.objective = x
+        >>> clone = original.deep_clone()
+        >>> clone.name = "Clone"
+        >>> original.name
+        'Original'
+
+        Notes
+        -----
+        The cloned model has its own separate environment. Variables in the
+        clone are distinct from variables in the original.
+        """
         return self._from_pym(self._m.deep_clone())
 
     @overload
@@ -332,21 +970,122 @@ class Model:
         return self._m.equal_contents(other._m)
 
     def __eq__(self, other: Model) -> bool:  # type: ignore[override]
-        """Check if two models are equal."""
+        """Check if two models are exactly equal.
+
+        Two models are equal if they have the same structure, variables,
+        constraints, and objective.
+
+        Parameters
+        ----------
+        other : Model
+            The model to compare with.
+
+        Returns
+        -------
+        bool
+            True if models are equal, False otherwise.
+
+        Examples
+        --------
+        >>> model1 = Model("A")
+        >>> model2 = Model("B")
+        >>> model1 == model2
+        False
+
+        Notes
+        -----
+        This checks structural equality, not just reference equality.
+        Two independently created but structurally identical models will
+        be considered equal.
+        """
         return self._m.__eq__(other._m)
 
     def __hash__(self) -> int:
-        """Compute model hash."""
+        """Compute hash value for the model.
+
+        Returns
+        -------
+        int
+            Hash value based on the model's structure.
+
+        Examples
+        --------
+        >>> model = Model("MyModel")
+        >>> hash(model)  # doctest: +SKIP
+        12345...
+
+        Notes
+        -----
+        The hash is computed from the model's structure and content,
+        allowing models to be used in sets and as dictionary keys.
+        """
         return self._m.__hash__()
 
     def __reduce__(self) -> tuple[Callable[[bytes], Model], tuple[bytes]]:
-        """Compute model hash."""
+        """Support for pickle serialization.
+
+        Returns
+        -------
+        tuple
+            A tuple of (decoder_function, encoded_data) for pickle.
+
+        Examples
+        --------
+        >>> import pickle
+        >>> model = Model("MyModel")
+        >>> pickled = pickle.dumps(model)
+        >>> restored = pickle.loads(pickled)
+        >>> restored.name
+        'MyModel'
+
+        Notes
+        -----
+        This method is called automatically by Python's pickle module.
+        It uses the model's encode/decode methods internally.
+        """
         return (Model.decode, (self.encode(),))
 
     def __str__(self) -> str:
-        """Model as string."""
+        """Get human-readable string representation of the model.
+
+        Returns
+        -------
+        str
+            A formatted string showing the model's name, sense, objective,
+            constraints, and variables.
+
+        Examples
+        --------
+        >>> model = Model("MyModel", sense=Sense.MAX)
+        >>> with model.environment:
+        ...     x = Variable("x")
+        >>> model.objective = x
+        >>> print(model)
+        Model: MyModel
+          Sense: Maximize
+          Objective: x
+          Constraints: 0
+          Variables: 1 (1 BINARY)
+        """
         return self._m.__str__()
 
     def __repr__(self) -> str:
-        """Model as debug string."""
+        """Get detailed debug representation of the model.
+
+        Returns
+        -------
+        str
+            A string representation suitable for debugging.
+
+        Examples
+        --------
+        >>> model = Model("MyModel")
+        >>> repr(model)  # doctest: +SKIP
+        'Model(name="MyModel", sense=MIN, ...)'
+
+        Notes
+        -----
+        This representation may include internal details useful for debugging
+        but is not guaranteed to be stable across versions.
+        """
         return self._m.__repr__()

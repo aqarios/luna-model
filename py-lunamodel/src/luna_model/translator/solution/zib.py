@@ -1,3 +1,9 @@
+"""SCIP/ZIB solution translator for LunaModel.
+
+This module provides translation from SCIP solver results to
+LunaModel's Solution format.
+"""
+
 # type: ignore[reportPossiblyUnboundVariable]
 from typing import TYPE_CHECKING
 
@@ -19,7 +25,25 @@ if TYPE_CHECKING:
 
 
 class ZibTranslator:
-    """Zib solution translator."""
+    """Translator for SCIP/ZIB solution format.
+
+    Converts SCIP Model objects to LunaModel Solutions.
+
+    Requires the ``pyscipopt`` package.
+
+    Examples
+    --------
+    >>> from pyscipopt import Model as ScipModel
+    >>> from luna_model.translator import ZibTranslator
+    >>> scip = ScipModel("example")
+    >>> # ... build and solve model ...
+    >>> scip.optimize()
+    >>> solution = ZibTranslator.to_lm(scip)
+
+    See Also
+    --------
+    LpTranslator : LP format translator (compatible with SCIP)
+    """
 
     @staticmethod
     def to_lm(
@@ -28,7 +52,39 @@ class ZibTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
-        """Translate zib solution to luna model solution."""
+        """Convert SCIP solution to LunaModel solution.
+
+        Parameters
+        ----------
+        model : ScipModel
+            A solved SCIP model (from pyscipopt).
+        timing : Timing | None, optional
+            Timing information for the solution process.
+        env : Environment | None, optional
+            Environment for variable filtering. Required either as parameter or active context.
+            Only variables in the environment are included in the solution.
+
+        Returns
+        -------
+        Solution
+            LunaModel Solution with variable values from SCIP.
+
+        Raises
+        ------
+        RuntimeError
+            If ``pyscipopt`` package is not installed.
+
+        Examples
+        --------
+        >>> from pyscipopt import Model as ScipModel
+        >>> from luna_model import Environment
+        >>> scip = ScipModel()
+        >>> with Environment():
+        ...     x = scip.addVar("x", lb=0, ub=10, vtype="I")
+        ...     scip.setObjective(3 * x, "maximize")
+        ...     scip.optimize()
+        ...     solution = ZibTranslator.to_lm(scip)
+        """
         if not _SCIP_AVAILABLE:
             msg = "scip is required for the ZibTranslator. You can install it using the 'scip' extra."
             raise RuntimeError(msg)

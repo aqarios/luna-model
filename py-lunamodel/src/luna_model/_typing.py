@@ -1,3 +1,10 @@
+"""Type definitions and protocols for LunaModel.
+
+This module defines type aliases and protocols used throughout LunaModel
+for type hints and type checking. It includes protocols for bounds,
+samples, solutions, and filter functions.
+"""
+
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence

@@ -1,3 +1,9 @@
+"""IBM Qiskit solution translator for LunaModel.
+
+This module provides translation from IBM Qiskit results
+to LunaModel's Solution format.
+"""
+
 # type: ignore[reportPossiblyUnboundVariable]
 from typing import TYPE_CHECKING
 
@@ -20,7 +26,23 @@ if TYPE_CHECKING:
 
 
 class IbmTranslator:
-    """Ibm solution translator."""
+    """Translator for IBM Qiskit solution format.
+
+    Converts IBM Qiskit PrimitiveResult objects to LunaModel Solutions.
+
+    Requires the ``qiskit`` and ``qiskit-optimization`` packages.
+
+    Examples
+    --------
+    >>> from luna_model.translator import IbmTranslator
+    >>> # result = optimizer.solve(quadratic_program)
+    >>> solution = IbmTranslator.to_lm(result.min_eigen_solver_result, quadratic_program)
+
+    See Also
+    --------
+    AwsTranslator : Amazon Braket solution translator
+    QctrlTranslator : Q-Ctrl solution translator
+    """
 
     @staticmethod
     def to_lm(
@@ -30,7 +52,41 @@ class IbmTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
-        """Translate ibm solution to luna model solution."""
+        """Convert IBM Qiskit result to LunaModel solution.
+
+        Parameters
+        ----------
+        result : PrimitiveResult[PubResult]
+            Qiskit primitive result containing measurement outcomes.
+        quadratic_program : QuadraticProgram
+            Original QuadraticProgram used to evaluate objective values.
+        timing : Timing | None, optional
+            Timing information for the solution process.
+        env : Environment | None, optional
+            Environment for variable mapping. Required either as parameter or active context.
+
+        Returns
+        -------
+        Solution
+            LunaModel Solution with bitstring counts and energies.
+
+        Raises
+        ------
+        RuntimeError
+            If ``qiskit`` or ``qiskit-optimization`` packages are not installed.
+
+        Examples
+        --------
+        >>> from luna_model import Environment
+        >>> with Environment():
+        ...     # Create variables in environment
+        ...     solution = IbmTranslator.to_lm(result.min_eigen_solver_result, qp)
+        >>> print(solution.best())
+
+        Notes
+        -----
+        Bitstring order is reversed to match LunaModel's variable ordering.
+        """
         if not _QISKIT_AVAILABLE:
             msg = (
                 "qiskit and qiskit_optimization are required for the IbmTranslator. "
