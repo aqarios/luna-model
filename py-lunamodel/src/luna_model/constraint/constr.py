@@ -52,9 +52,9 @@ class Constraint:
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y")
-    ...     c1 = x + y <= 10  # Sum constraint
-    ...     c2 = 2 * x - y == 5  # Equality constraint
-    ...     c3 = x >= 0  # Lower bound
+    >>> c1 = x + y <= 10  # Sum constraint
+    >>> c2 = 2 * x - y == 5  # Equality constraint
+    >>> c3 = x >= 0  # Lower bound
 
     Create named constraint:
 
@@ -62,7 +62,7 @@ class Constraint:
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y")
-    ...     constraint = Constraint(x + y, 10, Comparator.LE, name="capacity")
+    >>> constraint = Constraint(x + y, 10, Comparator.LE, name="capacity")
 
     Notes
     -----

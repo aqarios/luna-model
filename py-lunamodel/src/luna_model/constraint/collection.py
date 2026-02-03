@@ -36,11 +36,11 @@ class ConstraintCollection:
     >>> from luna_model.constraint import ConstraintCollection
     >>> with Environment():
     ...     x, y = Variable("x"), Variable("y")
-    ...     cc = ConstraintCollection()
-    ...     cc += x + y <= 10, "capacity"
-    ...     cc += x >= 0, "x_lower"
-    ...     print(len(cc))  # Number of constraints
-    ...     constraint = cc["capacity"]  # Access by name
+    >>> cc = ConstraintCollection()
+    >>> cc += x + y <= 10, "capacity"
+    >>> cc += x >= 0, "x_lower"
+    >>> print(len(cc))  # Number of constraints
+    >>> constraint = cc["capacity"]  # Access by name
 
     Iterate over constraints:
 
