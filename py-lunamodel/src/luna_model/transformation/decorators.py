@@ -175,7 +175,6 @@ def analyse(
     Create a simple analysis pass:
 
     >>> from luna_model.transformation import analyse
-    >>> 
     >>> @analyse(name="count-variables")
     ... def count_vars(model, cache):
     ...     return model.num_variables()
@@ -280,7 +279,6 @@ def transform(
     Create a simple transformation:
 
     >>> from luna_model.transformation import transform, ActionType
-    >>> 
     >>> @transform(name="scale-objective")
     ... def scale_obj(model, cache):
     ...     model.objective = model.objective * 2.0

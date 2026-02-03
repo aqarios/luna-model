@@ -21,7 +21,7 @@ except ImportError:
 
 
 class BqmTranslator:
-    """Translator for Binary Quadratic Model format.
+    r"""Translator for Binary Quadratic Model format.
 
     Converts between LunaModel and BinaryQuadraticModel (BQM) format.
 
