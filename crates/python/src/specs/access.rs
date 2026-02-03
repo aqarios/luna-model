@@ -59,7 +59,7 @@ impl PyModelSpecs {
     }
 
     fn satisfies(&self, other: &PyModelSpecs) -> bool {
-        self.s.satisfies(other.s)
+        self.s.satisfies(other.s.clone())
     }
 
     fn __str__(&self) -> String {
