@@ -157,7 +157,24 @@ class Expression:
 
     @classmethod
     def deep_clone_many(cls, exprs: list[Expression]) -> list[Expression]:
-        """Deep clone many expressions (creating new envs for each expr)."""
+        """Deep clones all provided expressions into a new environment.
+
+        Parameters
+        ----------
+        exprs : list[Expression]
+            The expressions to move to the new environment.
+
+        Returns
+        -------
+        list[Expression]
+            The passed expressions as part of a new environment.
+
+        Raises
+        ------
+        DifferentEnvsError
+            If any expression is from a different environment as the first expression
+            in the passed list of expressions.
+        """
         return [cls._from_pyexpr(cloned) for cloned in PyExpression.deep_clone_many([e._expr for e in exprs])]
 
     def __add__(self, other: Expression | Variable | float) -> Expression:

@@ -1,9 +1,7 @@
-use hashbrown::HashMap;
-use lunamodel_types::EnvIdx;
-
-use crate::ArcEnv;
+use lunamodel_error::{LunaModelError, LunaModelResult};
 
 use super::Expression;
+use crate::ArcEnv;
 
 impl Expression {
     pub fn deep_clone(&self, env: ArcEnv) -> Self {
@@ -12,22 +10,22 @@ impl Expression {
         out
     }
 
-    pub fn deep_clone_many(exprs: &[&Expression]) -> Vec<Expression> {
-        let mut hm: HashMap<EnvIdx, ArcEnv> = HashMap::default();
-        let mut v = Vec::new();
-        for &expr in exprs {
-            let newnev = hm
-                .get(&expr.env.id())
-                .and_then(|e| Some(e.clone()))
-                .or_else(|| {
-                    let out = expr.env.deep_clone();
-                    hm.insert(expr.env.id(), out.clone());
-                    Some(out)
-                })
-                .unwrap();
-            let new = expr.deep_clone(newnev);
-            v.push(new);
+    pub fn deep_clone_many(exprs: &[&Expression]) -> LunaModelResult<Vec<Expression>> {
+        if exprs.is_empty() {
+            return Ok(Vec::new());
         }
-        v
+
+        let old_env = &exprs[0].env;
+        let new_env = old_env.deep_clone();
+
+        let mut res = Vec::new();
+        for expr in exprs {
+            if !expr.env.read_arc().eq(&old_env.read_arc()) {
+                return Err(LunaModelError::DifferentEnvironments);
+            }
+            res.push(expr.deep_clone(new_env.clone()));
+        }
+
+        Ok(res)
     }
 }
