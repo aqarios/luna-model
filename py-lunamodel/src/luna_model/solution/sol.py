@@ -257,7 +257,7 @@ class Solution:
     def temperature_weighted(self, beta: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
         """Compute temperature-weighted expectation value.
 
-        Computes the Boltzmann-weighted expectation value using the formula::
+        Computes the temperature-weighted expectation value using the formula::
 
             sum(value[i] * exp(-beta * value[i]) * count[i]) / sum(exp(-beta * value[i]) * count[i])
 
