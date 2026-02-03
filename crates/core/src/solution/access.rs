@@ -1,7 +1,7 @@
 use std::ops::Index;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_types::Bias;
+use lunamodel_types::{Bias, Sense};
 
 use crate::solution::Assignment;
 
@@ -102,23 +102,21 @@ impl Solution {
     pub fn best(&self) -> Option<Vec<ResultView<'_>>> {
         match (&self.feasible, &self.obj_values) {
             (Some(f), Some(ov)) => {
-                let min = *ov
-                    .iter()
-                    .zip(f)
-                    .filter(|(_, f)| **f)
-                    .map(|(a, _)| a)
-                    .min_by(|&a, &b| a.total_cmp(b))
-                    .unwrap();
-                let allmins: Vec<usize> = ov
+                let target_map = ov.iter().zip(f).filter(|(_, f)| **f).map(|(a, _)| a);
+                let target = *match self.sense {
+                    Sense::Min => target_map.min_by(|&a, &b| a.total_cmp(b)).unwrap(),
+                    Sense::Max => target_map.max_by(|&a, &b| a.total_cmp(b)).unwrap(),
+                };
+                let alltargets: Vec<usize> = ov
                     .iter()
                     .zip(f)
                     .enumerate()
                     .filter(|(_, (_, f))| **f)
                     .map(|(idx, (val, _))| (idx, val))
-                    .filter(|(_, val)| is_close(**val, min, RTOL, ATOL))
+                    .filter(|(_, val)| is_close(**val, target, RTOL, ATOL))
                     .map(|(idx, _)| idx)
                     .collect();
-                let views = allmins
+                let views = alltargets
                     .iter()
                     .map(|idx| ResultView::new(&self, *idx))
                     .collect();

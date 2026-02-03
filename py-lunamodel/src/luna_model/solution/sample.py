@@ -10,6 +10,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, overload
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from luna_model.variable import Variable
 
 
@@ -78,12 +80,12 @@ class Samples(Protocol):
     Solution : Solution class containing samples.
     """
 
-    def tolist(self) -> list[list[int | float]]:
+    def tolist(self) -> Sequence[Sequence[int | float]]:
         """Convert all samples to a list of lists.
 
         Returns
         -------
-        list[list[int | float]]
+        Sequence[Sequence[int | float]]
             List where each inner list is a sample.
         """
         ...

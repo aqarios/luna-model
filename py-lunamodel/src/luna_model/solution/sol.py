@@ -127,7 +127,7 @@ class Solution:
         raw_energies: list[float] | None = None,
         obj_values: list[float] | None = None,
         feasible: list[bool] | None = None,
-        constraints: list[dict[str, bool]] | None = None,
+        constraints: Sequence[dict[str, bool]] | None = None,
         variables_bounds: dict[str, list[bool]] | None = None,
         timing: Timing | None = None,
         sense: Sense | None = None,
@@ -324,7 +324,7 @@ class Solution:
             show_metadata=show_metadata,
         )
 
-    def add_var(self, var: str | Variable, data: list[int | float], vtype: Vtype = Vtype.BINARY) -> None:
+    def add_var(self, var: str | Variable, data: Sequence[int | float], vtype: Vtype = Vtype.BINARY) -> None:
         """Add a variable entry."""
         from luna_model.variable import Variable  # noqa: PLC0415
 
@@ -336,9 +336,9 @@ class Solution:
 
     def add_vars(
         self,
-        variables: list[Variable | str],
-        data: list[list[int | float]],
-        vtypes: list[Vtype | None] | None = None,
+        variables: Sequence[Variable | str],
+        data: Sequence[Sequence[int | float]],
+        vtypes: Sequence[Vtype | None] | None = None,
     ) -> None:
         """Add multiple a variable entries."""
         from luna_model.variable import Variable  # noqa: PLC0415
@@ -355,7 +355,7 @@ class Solution:
 
         self._s.remove_var(var._v if isinstance(var, Variable) else var)  # type: ignore[attribute]
 
-    def remove_vars(self, variables: list[str | Variable]) -> None:
+    def remove_vars(self, variables: Sequence[str | Variable]) -> None:
         """Remove variable entries."""
         from luna_model.variable import Variable  # noqa: PLC0415
 
@@ -466,7 +466,7 @@ class Solution:
     def from_arrays(  # noqa: PLR0913
         cls,
         data: NDArray,
-        variables: list[Variable | str] | None = None,
+        variables: Sequence[Variable | str] | None = None,
         env: Environment | None = None,
         model: Model | None = None,
         timing: Timing | None = None,
@@ -579,7 +579,7 @@ def _map_sample(sample: _Sample) -> dict[str | PyVariable, int | float]:
 
 def _map_samples(
     samples: Sequence[_Sample],
-) -> list[dict[str | PyVariable, int | float]]:
+) -> Sequence[dict[str | PyVariable, int | float]]:
     return [_map_sample(s) for s in samples]
 
 
