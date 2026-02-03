@@ -214,7 +214,8 @@ class QuboTranslator:
         qubo : NDArray
             Upper-triangular QUBO matrix where Q[i,j] represents the
             coefficient for x[i]*x[j]. Diagonal elements Q[i,i] are
-            linear coefficients.
+            linear coefficients. If the matrix is not symmetric, it will
+            be made symmetric by summing Q[i,j] and Q[j,i].
         offset : float | None, optional
             Constant offset term to add to objective. Default is 0.
         variable_names : list[str] | None, optional
@@ -240,6 +241,11 @@ class QuboTranslator:
         With custom names and offset:
 
         >>> model = QuboTranslator.to_lm(Q, offset=5.0, variable_names=["x1", "x2"], name="MyQUBO")
+        
+        Notes
+        -----
+        Non-symmetric matrices are automatically symmetrized: the coefficient for
+        x[i]*x[j] becomes Q[i,j] + Q[j,i].
         """
         return Model._from_pym(
             PyQuboTranslator.to_lm(

@@ -1,8 +1,7 @@
-"""D-Wave Binary Quadratic Model translator for LunaModel.
+"""Binary Quadratic Model translator for LunaModel.
 
 This module provides translation between LunaModel's internal representation
-and D-Wave Ocean SDK's Binary Quadratic Model (BQM) format, used by D-Wave
-quantum annealers and hybrid solvers.
+and Binary Quadratic Model (BQM) format used by quantum annealers.
 """
 
 # type: ignore[reportPossiblyUnboundVariable]
@@ -22,37 +21,26 @@ except ImportError:
 
 
 class BqmTranslator:
-    """Translator for D-Wave Binary Quadratic Model format.
+    """Translator for Binary Quadratic Model format.
 
-    BqmTranslator provides static methods to convert between LunaModel's internal
-    Model representation and D-Wave Ocean SDK's BinaryQuadraticModel (BQM) format.
-    BQMs are used to represent optimization problems for D-Wave quantum annealers
-    and hybrid solvers.
+    Converts between LunaModel and BinaryQuadraticModel (BQM) format.
 
-    A BQM represents an objective function of the form:
-        E(x) = sum_i h_i * x_i + sum_{i,j} J_{i,j} * x_i * x_j + offset
+    A BQM represents an objective function:
 
-    where x is a vector of binary or spin variables, h are linear coefficients,
-    J are quadratic coefficients, and offset is a constant term.
+    .. math::
+        E(x) = \\sum_{i} h_i x_i + \\sum_{i<j} J_{ij} x_i x_j + \\text{offset}
 
-    The BQM format supports:
-    - Binary (0/1) or spin (-1/+1) variables
-    - Linear and quadratic terms
-    - No constraints (unconstrained problems)
+    where x are binary or spin variables, h are linear coefficients, J are
+    quadratic coefficients, and offset is a constant.
 
-    Requires the ``dimod`` package from D-Wave Ocean SDK.
+    Requires the ``dimod`` package.
 
     Examples
     --------
-    Convert D-Wave BQM to LunaModel:
-
     >>> from dimod import BinaryQuadraticModel
     >>> from luna_model.translator import BqmTranslator
-    >>> # Create a BQM
     >>> bqm = BinaryQuadraticModel({"x": -1, "y": -1}, {("x", "y"): 2}, 0.0, "BINARY")
     >>> model = BqmTranslator.to_lm(bqm, name="my_model")
-
-    Convert LunaModel to D-Wave BQM:
 
     >>> from luna_model import Model
     >>> model = Model()
@@ -60,23 +48,15 @@ class BqmTranslator:
     >>> y = model.add_variable("y")
     >>> model.objective = -x - y + 2 * x * y
     >>> bqm = BqmTranslator.from_lm(model)
-    >>> # Use with D-Wave solvers
-    >>> # sampler = DWaveSampler()
-    >>> # response = sampler.sample(bqm)
 
     Notes
     -----
-    BQMs are specifically designed for D-Wave systems but can also be solved
-    using classical algorithms like simulated annealing or tabu search through
-    the D-Wave Ocean SDK.
-
-    The model must be unconstrained and have at most quadratic terms. Use
-    transformations to convert constrained or higher-order models first.
+    The model must be unconstrained with at most quadratic terms.
 
     See Also
     --------
     QuboTranslator : QUBO matrix format translator
-    CqmTranslator : D-Wave Constrained Quadratic Model format
+    CqmTranslator : Constrained Quadratic Model format
     DwaveTranslator : D-Wave solution translator
     """
 

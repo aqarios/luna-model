@@ -1,8 +1,7 @@
-"""D-Wave Constrained Quadratic Model translator for LunaModel.
+"""Constrained Quadratic Model translator for LunaModel.
 
 This module provides translation between LunaModel's internal representation
-and D-Wave Ocean SDK's Constrained Quadratic Model (CQM) format, used by
-D-Wave's hybrid solvers to solve constrained optimization problems.
+and Constrained Quadratic Model (CQM) format for constrained optimization.
 """
 
 # type: ignore[reportPossiblyUnboundVariable]
@@ -20,33 +19,24 @@ except ImportError:
 
 
 class CqmTranslator:
-    """Translator for D-Wave Constrained Quadratic Model format.
+    """Translator for Constrained Quadratic Model format.
 
-    CqmTranslator provides static methods to convert between LunaModel's internal
-    Model representation and D-Wave Ocean SDK's ConstrainedQuadraticModel (CQM)
-    format. CQMs extend BQMs to support constraints and are solved using D-Wave's
-    hybrid quantum-classical solvers.
+    Converts between LunaModel and ConstrainedQuadraticModel (CQM) format.
 
-    A CQM represents a constrained optimization problem with:
-    - Quadratic objective function
-    - Linear and quadratic constraints
-    - Binary, integer, and continuous variables
-    - Equality and inequality constraints
+    A CQM represents a constrained optimization problem:
 
-    Unlike BQMs, CQMs can handle:
-    - Multiple constraint types
-    - Integer and continuous variables (not just binary)
-    - Complex constrained optimization problems
+    .. math::
+        \\min \\sum_{i} h_i x_i + \\sum_{i<j} J_{ij} x_i x_j
 
-    Requires the ``dimod`` package from D-Wave Ocean SDK.
+    subject to linear and quadratic constraints with binary, integer, and
+    continuous variables.
+
+    Requires the ``dimod`` package.
 
     Examples
     --------
-    Convert D-Wave CQM to LunaModel:
-
     >>> from dimod import ConstrainedQuadraticModel, Binary
     >>> from luna_model.translator import CqmTranslator
-    >>> # Create a CQM
     >>> cqm = ConstrainedQuadraticModel()
     >>> x = Binary("x")
     >>> y = Binary("y")
@@ -54,9 +44,7 @@ class CqmTranslator:
     >>> cqm.add_constraint(x + y <= 1, label="c1")
     >>> model = CqmTranslator.to_lm(cqm, name="my_model")
 
-    Convert LunaModel to D-Wave CQM:
-
-    >>> from luna_model import Model, Variable, Vtype
+    >>> from luna_model import Model, Vtype
     >>> from luna_model.translator import CqmTranslator
     >>> model = Model()
     >>> x = model.add_variable("x", vtype=Vtype.BINARY)
@@ -64,23 +52,14 @@ class CqmTranslator:
     >>> model.objective = x * y - 2 * x + y
     >>> model.constraints += x + y <= 1
     >>> cqm = CqmTranslator.from_lm(model)
-    >>> # Use with D-Wave hybrid solver
-    >>> # from dwave.system import LeapHybridCQMSampler
-    >>> # sampler = LeapHybridCQMSampler()
-    >>> # response = sampler.sample_cqm(cqm)
 
     Notes
     -----
-    CQMs are specifically designed for D-Wave's hybrid solvers, which combine
-    quantum annealing with classical optimization techniques to handle larger
-    and more complex problems than pure quantum annealers.
-
-    The translator uses LP format as an intermediate representation for
-    conversion, ensuring compatibility with D-Wave's CQM specification.
+    The translator uses LP format as an intermediate representation.
 
     See Also
     --------
-    BqmTranslator : D-Wave Binary Quadratic Model format
+    BqmTranslator : Binary Quadratic Model format
     LpTranslator : LP file format translator
     DwaveTranslator : D-Wave solution translator
     """
