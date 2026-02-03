@@ -77,8 +77,12 @@ class Expression:
 
     Access expression terms:
 
-    >>> for variables, bias in expr.items():
-    ...     print(f"{variables}: {bias}")
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     y = Variable("y")
+    ...     expr = 3 * x + 2 * y - 5
+    ...     for variables, bias in expr.items():
+    ...         print(f"{variables}: {bias}")
 
     Notes
     -----
@@ -144,7 +148,9 @@ class Expression:
         Examples
         --------
         >>> from luna_model.expression import Expression
-        >>> const = Expression.const(5.0)
+        >>> from luna_model import Environment
+        >>> with Environment():
+        ...     const = Expression.const(5.0)
         """
         return cls._from_pyexpr(PyExpression.const(value, env._env if env else None))
 
@@ -161,7 +167,7 @@ class Expression:
 
     @property
     def num_variables(self) -> int:
-        """Get the number of variables in the model.
+        """Get the number of variables with non-zero coefficients in the expression.
 
         Only includes the variables that are contributing to the expression.
         I.e., anything oped that is zero biased or results in zero biased stuff will not
@@ -236,20 +242,23 @@ class Expression:
 
         Examples
         --------
-        >>> x, y = Variable("x"), Variable("y")
-        >>> expr = 3 * x + 2 * x * y + 5
-        >>> for vars, coeff in expr.items():
-        ...     print(f"{vars}: {coeff}")
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     expr = 3 * x + 2 * x * y + 5
+        ...     for vars, coeff in expr.items():
+        ...         print(f"{vars}: {coeff}")
         """
         return ExprIter._from_pyei(self._expr.items())
 
     def variables(self) -> list[Variable]:
-        """Get all variables in the expression.
+        """Get all variables with non-zero coefficients in the expression.
 
         Returns
         -------
         list[Variable]
-            List of all variables appearing in the expression.
+            List of all variables with non-zero coefficients appearing in the expression.
         """
         return [wrap_var(v) for v in self._expr.variables()]
 
@@ -389,9 +398,13 @@ class Expression:
 
         Examples
         --------
-        >>> x, y, z = Variable("x"), Variable("y"), Variable("z")
-        >>> expr = 2 * x + 3 * y
-        >>> new_expr = expr.substitute(x, z + 1)  # Replace x with z+1
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     z = Variable("z")
+        ...     expr = 2 * x + 3 * y
+        ...     new_expr = expr.substitute(x, z + 1)  # Replace x with z+1
         """
         from luna_model.variable import Variable  # noqa: PLC0415
 
@@ -524,13 +537,14 @@ class Expression:
 
         Examples
         --------
-        >>> from luna_model import Expression, Variable
-        >>> x = Variable("x")
-        >>> y = Variable("y")
-        >>> expr = Expression()
-        >>> expr = expr + x  # Add variable
-        >>> expr = expr + y  # Add another variable
-        >>> expr = expr + 5.0  # Add constant
+        >>> from luna_model import Expression, Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     expr = Expression()
+        ...     expr = expr + x  # Add variable
+        ...     expr = expr + y  # Add another variable
+        ...     expr = expr + 5.0  # Add constant
         """
         return self._from_pyexpr(self._op(other, self._expr.__add__))
 
@@ -564,11 +578,13 @@ class Expression:
 
         Examples
         --------
-        >>> x = Variable("x")
-        >>> y = Variable("y")
-        >>> expr = 2 * x
-        >>> expr = expr * y  # Creates quadratic term
-        >>> expr = expr * 3  # Scale by constant
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     expr = 2 * x
+        ...     expr = expr * y  # Creates quadratic term
+        ...     expr = expr * 3  # Scale by constant
         """
         return self._from_pyexpr(self._op(other, self._expr.__mul__))
 
@@ -632,9 +648,13 @@ class Expression:
 
         Examples
         --------
-        >>> expr = Expression()
-        >>> expr += x
-        >>> expr += y
+        >>> from luna_model import Expression, Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     expr = Expression()
+        ...     expr += x
+        ...     expr += y
         """
         self._op(other, self._expr.__iadd__)
         return self
@@ -686,9 +706,11 @@ class Expression:
 
         Examples
         --------
-        >>> x = Variable("x")
-        >>> expr = x**2  # Quadratic
-        >>> expr = x**3  # Cubic
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     expr = x**2  # Quadratic
+        ...     expr = x**3  # Cubic
         """
         return self._from_pyexpr(self._op(value, self._expr.__pow__))
 
@@ -718,9 +740,12 @@ class Expression:
 
         Examples
         --------
-        >>> x = Variable("x")
-        >>> expr = -x
-        >>> expr = -(x + y)
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     expr = -x
+        ...     expr = -(x + y)
         """
         return self._from_pyexpr(self._expr.__neg__())
 
@@ -739,9 +764,11 @@ class Expression:
 
         Examples
         --------
-        >>> x = Variable("x")
-        >>> y = Variable("y")
-        >>> constraint = (x + y) == 10
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     constraint = (x + y) == 10
         """
         return self._cmp(other, self._expr.__eq__)
 
@@ -760,9 +787,11 @@ class Expression:
 
         Examples
         --------
-        >>> x = Variable("x")
-        >>> y = Variable("y")
-        >>> constraint = (x + y) <= 100
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     constraint = (x + y) <= 100
         """
         return self._cmp(other, self._expr.__le__)
 
@@ -781,8 +810,11 @@ class Expression:
 
         Examples
         --------
-        >>> x = Variable("x")
-        >>> constraint = (x + y) >= 0
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     constraint = (x + y) >= 0
         """
         return self._cmp(other, self._expr.__ge__)
 
@@ -813,11 +845,12 @@ class Expression:
 
         Examples
         --------
-        >>> x = Variable("x")
-        >>> y = Variable("y")
-        >>> expr = 3 * x + 2 * y + 5
-        >>> str(expr)
-        '3*x + 2*y + 5'
+        >>> from luna_model import Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     expr = 3 * x + 2 * y + 5
+        ...     print(expr)
         """
         return self._expr.__str__()
 
