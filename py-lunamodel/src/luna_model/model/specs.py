@@ -25,9 +25,9 @@ class ModelSpecs:
     sense : Sense | None, optional
         The optimization direction (MIN or MAX).
     vtypes : set[Vtype] | None, optional
-        Set of allowed variable types.
+        Set of allowed variable types (BINARY, INTEGER, CONTINUOUS, SPIN).
     constraints : set[Ctype] | None, optional
-        Set of allowed constraint types.
+        Set of allowed constraint types (UNCONSTRAINED, EQUALITY, INEQUALITY, LESS_EQUAL, GREATER_EQUAL).
     max_degree : int | None, optional
         Maximum degree of objective polynomial.
     max_constraint_degree : int | None, optional

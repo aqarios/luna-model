@@ -31,7 +31,7 @@ class Ctype(Enum):
 
     Examples
     --------
-    >>> from luna_model.model import Ctype, ModelSpecs
+    >>> from luna_model import Ctype, ModelSpecs
     >>> specs = ModelSpecs(constraints={Ctype.LESS_EQUAL})
 
     See Also

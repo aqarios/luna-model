@@ -41,8 +41,8 @@ class Solution:
     variable assignments (samples), objective function values, feasibility status,
     constraint satisfaction, and runtime information.
 
-    Solutions can be created directly, converted from various solver formats
-    (D-Wave, Qiskit, SCIP), or obtained by evaluating a model.
+    Solutions can be created directly or converted from various solver formats
+    (D-Wave, Qiskit, SCIP).
 
     Parameters
     ----------
@@ -92,9 +92,12 @@ class Solution:
     --------
     Create solution from samples:
 
-    >>> from luna_model import Solution
+    >>> from luna_model import Solution, Environment, Variable
+    >>> env = Environment()
+    >>> x = Variable("x", env=env)
+    >>> y = Variable("y", env=env)
     >>> samples = [{"x": 0, "y": 1}, {"x": 1, "y": 0}]
-    >>> solution = Solution(samples, obj_values=[5.0, 3.0])
+    >>> solution = Solution(samples, obj_values=[5.0, 3.0], env=env)
 
     Get best results:
 
@@ -229,22 +232,46 @@ class Solution:
     def cvar(self, alpha: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
         """Compute Conditional Value at Risk (CVaR).
 
+        CVaR is the expected value of the best (lowest for MIN, highest for MAX)
+        alpha fraction of samples, weighted by their counts.
+
         Parameters
         ----------
         alpha : float
-            Risk level (0 < alpha <= 1).
+            Risk level (0 < alpha <= 1). The fraction of best samples to consider.
         value_toggle : ValueSource, optional
-            Whether to use objective values or raw energies.
+            Whether to use objective values or raw energies. Default is OBJ.
 
         Returns
         -------
         float
-            The CVaR value.
+            The CVaR value (expected value of the alpha-tail).
+
+        Raises
+        ------
+        ValueError
+            If alpha is not in the range (0, 1].
         """
         return self._s.cvar(alpha, value_toggle._val)
 
     def temperature_weighted(self, beta: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
-        """Compute the temperature weighted."""
+        """Compute temperature-weighted expectation value.
+
+        Computes the Boltzmann-weighted expectation value using the formula:
+        sum(value[i] * exp(-beta * value[i]) * count[i]) / sum(exp(-beta * value[i]) * count[i])
+
+        Parameters
+        ----------
+        beta : float
+            Inverse temperature parameter (beta = 1/T). Higher values emphasize lower-energy states.
+        value_toggle : ValueSource, optional
+            Whether to use objective values or raw energies. Default is OBJ.
+
+        Returns
+        -------
+        float
+            The temperature-weighted expectation value.
+        """
         return self._s.temperature_weighted(beta, value_toggle._val)
 
     def expectation_value(self, value_toggle: ValueSource = ValueSource.OBJ) -> float:
@@ -298,11 +325,24 @@ class Solution:
         return self._from_pys(self._s.filter_feasible())
 
     def highest_constraint_violation(self) -> str | None:
-        """Compute highest constraint violation."""
+        """Get the constraint with the highest violation rate.
+
+        Returns
+        -------
+        str | None
+            Name of the constraint with the highest violation rate across all samples,
+            or None if no constraints are violated or no constraint information exists.
+        """
         return self._s.highest_constraint_violation()
 
     def repr_html(self) -> str:
-        """Represent for html view."""
+        """Get HTML representation of the solution for Jupyter notebooks.
+
+        Returns
+        -------
+        str
+            HTML formatted string representation of the solution.
+        """
         return self._s.repr_html()
 
     def print(  # noqa: PLR0913
@@ -314,7 +354,28 @@ class Solution:
         max_var_name_len: int = 10,
         show_metadata: Literal["before", "after", "hide"] = "after",
     ) -> str:
-        """Get formatted solution string."""
+        """Get formatted string representation of the solution.
+
+        Parameters
+        ----------
+        layout : {"row", "column"}, optional
+            Layout orientation for displaying samples. Default is "column".
+        max_line_len : int, optional
+            Maximum line length in characters. Default is 80.
+        max_col_len : int, optional
+            Maximum number of samples to display. Default is 5.
+        max_lines : int, optional
+            Maximum number of variable rows to display. Default is 10.
+        max_var_name_len : int, optional
+            Maximum variable name length. Default is 10.
+        show_metadata : {"before", "after", "hide"}, optional
+            Where to show metadata (objective, feasibility, etc.). Default is "after".
+
+        Returns
+        -------
+        str
+            Formatted string representation.
+        """
         return self._s.print(
             layout=layout,
             max_line_len=max_line_len,
@@ -325,7 +386,17 @@ class Solution:
         )
 
     def add_var(self, var: str | Variable, data: Sequence[int | float], vtype: Vtype = Vtype.BINARY) -> None:
-        """Add a variable entry."""
+        """Add a variable to all samples in the solution.
+
+        Parameters
+        ----------
+        var : str | Variable
+            The variable name or Variable object to add.
+        data : Sequence[int | float]
+            Values for this variable across all samples. Length must match number of samples.
+        vtype : Vtype, optional
+            Variable type. Default is BINARY.
+        """
         from luna_model.variable import Variable  # noqa: PLC0415
 
         self._s.add_var(
@@ -340,7 +411,18 @@ class Solution:
         data: Sequence[Sequence[int | float]],
         vtypes: Sequence[Vtype | None] | None = None,
     ) -> None:
-        """Add multiple a variable entries."""
+        """Add multiple variables to all samples in the solution.
+
+        Parameters
+        ----------
+        variables : Sequence[Variable | str]
+            List of variable names or Variable objects to add.
+        data : Sequence[Sequence[int | float]]
+            Values for each variable across all samples. Outer sequence length must
+            match number of variables, inner sequence length must match number of samples.
+        vtypes : Sequence[Vtype | None] | None, optional
+            Variable types for each variable. If None, types are inferred.
+        """
         from luna_model.variable import Variable  # noqa: PLC0415
 
         self._s.add_vars(
@@ -350,13 +432,25 @@ class Solution:
         )
 
     def remove_var(self, var: str | Variable) -> None:
-        """Remove variable entry."""
+        """Remove a variable from all samples in the solution.
+
+        Parameters
+        ----------
+        var : str | Variable
+            The variable name or Variable object to remove.
+        """
         from luna_model.variable import Variable  # noqa: PLC0415
 
         self._s.remove_var(var._v if isinstance(var, Variable) else var)  # type: ignore[attribute]
 
     def remove_vars(self, variables: Sequence[str | Variable]) -> None:
-        """Remove variable entries."""
+        """Remove multiple variables from all samples in the solution.
+
+        Parameters
+        ----------
+        variables : Sequence[str | Variable]
+            List of variable names or Variable objects to remove.
+        """
         from luna_model.variable import Variable  # noqa: PLC0415
 
         self._s.remove_vars(
@@ -364,42 +458,130 @@ class Solution:
         )
 
     def __len__(self) -> int:
-        """Get solution length."""
+        """Get the number of samples in the solution.
+
+        Returns
+        -------
+        int
+            Number of samples.
+        """
         return self._s.__len__()
 
     def __iter__(self, /) -> ResultIter:
-        """Iterate results in solution."""
+        """Iterate over all results in the solution.
+
+        Returns
+        -------
+        ResultIter
+            Iterator over ResultView objects.
+        """
         return self._s.__iter__()
 
     def __getitem__(self, item: int) -> ResultView:
-        """Get solution item."""
+        """Get a result by index.
+
+        Parameters
+        ----------
+        item : int
+            Index of the result to retrieve.
+
+        Returns
+        -------
+        ResultView
+            The result at the given index.
+        """
         return self._s.__getitem__(item)
 
     def __eq__(self, other: Solution) -> bool:  # type: ignore[override]
-        """Check solution equality."""
+        """Check if two solutions are equal.
+
+        Parameters
+        ----------
+        other : Solution
+            Solution to compare with.
+
+        Returns
+        -------
+        bool
+            True if solutions have identical samples, values, and metadata.
+        """
         return self._s.__eq__(other._s)
 
     def __reduce__(self) -> tuple[Callable[[bytes], Solution], tuple[bytes]]:
-        """Reduce solution. Used by pickle."""
+        """Reduce solution for pickling.
+
+        Returns
+        -------
+        tuple[Callable[[bytes], Solution], tuple[bytes]]
+            Tuple of (decoder function, (encoded data,)) for pickle.
+        """
         data = self.encode()
         return Solution.decode, (data,)
 
     def encode(self, compress: bool = True, level: int = 3) -> bytes:
-        """Encode solution."""
+        """Encode solution to bytes for serialization.
+
+        Parameters
+        ----------
+        compress : bool, optional
+            Whether to compress the output. Default is True.
+        level : int, optional
+            Compression level (0-9). Default is 3.
+
+        Returns
+        -------
+        bytes
+            Encoded solution data.
+        """
         return self._s.encode(compress, level)
 
     def serialize(self, compress: bool = True, level: int = 3) -> bytes:
-        """Serialize solution."""
+        """Serialize solution to bytes. Alias for encode().
+
+        Parameters
+        ----------
+        compress : bool, optional
+            Whether to compress the output. Default is True.
+        level : int, optional
+            Compression level (0-9). Default is 3.
+
+        Returns
+        -------
+        bytes
+            Serialized solution data.
+        """
         return self.encode(compress, level)
 
     @classmethod
     def decode(cls, data: bytes) -> Solution:
-        """Decode solution."""
+        """Decode solution from bytes.
+
+        Parameters
+        ----------
+        data : bytes
+            Encoded solution data.
+
+        Returns
+        -------
+        Solution
+            Decoded solution object.
+        """
         return cls._from_pys(PySolution.decode(data))
 
     @classmethod
     def deserialize(cls, data: bytes) -> Solution:
-        """Deserialize solution."""
+        """Deserialize solution from bytes. Alias for decode().
+
+        Parameters
+        ----------
+        data : bytes
+            Serialized solution data.
+
+        Returns
+        -------
+        Solution
+            Deserialized solution object.
+        """
         return cls.decode(data)
 
     @classmethod
@@ -410,7 +592,36 @@ class Solution:
         env: Environment | None = None,
         **kwargs: Any,
     ) -> Solution:
-        """Create solution form other."""
+        """Create solution from various solver result formats.
+
+        Automatically detects the format and converts to a Solution object.
+        Supports D-Wave SampleSet, Qiskit PrimitiveResult, SCIP Model, numpy arrays,
+        dictionaries, and more.
+
+        Parameters
+        ----------
+        other : SolutionFromTypes
+            Result object from a solver (SampleSet, PrimitiveResult, etc.) or
+            data structure (dict, list, ndarray).
+        timing : Timing | None, optional
+            Runtime information to attach to the solution.
+        env : Environment | None, optional
+            Environment for variables. Required for some formats.
+        **kwargs : Any
+            Additional keyword arguments specific to the source format.
+
+        Returns
+        -------
+        Solution
+            Converted solution object.
+
+        Raises
+        ------
+        ValueError
+            If the format is not recognized or supported.
+        RuntimeError
+            If required dependencies are not installed.
+        """
         translator = _find_translator(other)
         return translator(other, env=env, timing=timing, **kwargs)  # type: ignore[argument]
 
@@ -425,7 +636,30 @@ class Solution:
         sense: Sense | None = None,
         energy: float | None = None,
     ) -> Solution:
-        """Create solution from dict."""
+        """Create solution from a single sample dictionary.
+
+        Parameters
+        ----------
+        data : dict
+            Single sample as a dictionary mapping variable names/objects to values.
+        env : Environment | None, optional
+            Environment containing the variables.
+        model : Model | None, optional
+            Model to evaluate the sample against.
+        timing : Timing | None, optional
+            Runtime information.
+        counts : int | None, optional
+            Number of times this sample was observed. Default is 1.
+        sense : Sense | None, optional
+            Optimization sense. Inferred from model if provided.
+        energy : float | None, optional
+            Raw energy value for this sample.
+
+        Returns
+        -------
+        Solution
+            Solution containing one sample.
+        """
         return cls._from_pys(
             PySolution.from_dict(
                 data=_map_sample(data),
@@ -449,7 +683,30 @@ class Solution:
         sense: Sense | None = None,
         energies: list[float] | None = None,
     ) -> Solution:
-        """Create solution from dicts."""
+        """Create solution from multiple sample dictionaries.
+
+        Parameters
+        ----------
+        data : Sequence[dict]
+            List of samples, each as a dictionary mapping variable names/objects to values.
+        env : Environment | None, optional
+            Environment containing the variables.
+        model : Model | None, optional
+            Model to evaluate the samples against.
+        timing : Timing | None, optional
+            Runtime information.
+        counts : list[int] | None, optional
+            Number of times each sample was observed. Default is 1 for each.
+        sense : Sense | None, optional
+            Optimization sense. Inferred from model if provided.
+        energies : list[float] | None, optional
+            Raw energy values for each sample.
+
+        Returns
+        -------
+        Solution
+            Solution containing multiple samples.
+        """
         return cls._from_pys(
             PySolution.from_dicts(
                 data=_map_samples(data),
@@ -474,7 +731,32 @@ class Solution:
         sense: Sense | None = None,
         energies: list[float] | None = None,
     ) -> Solution:
-        """Create solution from arrays."""
+        """Create solution from numpy arrays.
+
+        Parameters
+        ----------
+        data : NDArray
+            2D array where rows are samples and columns are variables.
+        variables : Sequence[Variable | str] | None, optional
+            Variable names/objects corresponding to columns. Inferred from env or model if not provided.
+        env : Environment | None, optional
+            Environment containing the variables.
+        model : Model | None, optional
+            Model to evaluate the samples against.
+        timing : Timing | None, optional
+            Runtime information.
+        counts : list[int] | None, optional
+            Number of times each sample was observed. Default is 1 for each.
+        sense : Sense | None, optional
+            Optimization sense. Inferred from model if provided.
+        energies : list[float] | None, optional
+            Raw energy values for each sample.
+
+        Returns
+        -------
+        Solution
+            Solution created from array data.
+        """
         return cls._from_pys(
             PySolution.from_arrays(
                 data=data,
@@ -500,7 +782,32 @@ class Solution:
         energies: list[float] | None = None,
         var_order: list[str] | None = None,
     ) -> Solution:
-        """Create solution from counts."""
+        """Create solution from a counts dictionary.
+
+        Parameters
+        ----------
+        data : dict[str, int]
+            Dictionary mapping bitstrings (e.g., "0101") to observation counts.
+        env : Environment | None, optional
+            Environment containing the variables.
+        model : Model | None, optional
+            Model to evaluate the samples against.
+        timing : Timing | None, optional
+            Runtime information.
+        sense : Sense | None, optional
+            Optimization sense. Inferred from model if provided.
+        bit_order : {"LTR", "RTL"}, optional
+            Bit order interpretation: "RTL" (right-to-left, default) or "LTR" (left-to-right).
+        energies : list[float] | None, optional
+            Raw energy values for each unique bitstring.
+        var_order : list[str] | None, optional
+            Order of variable names corresponding to bit positions. Inferred from env or model if not provided.
+
+        Returns
+        -------
+        Solution
+            Solution created from counts data.
+        """
         return cls._from_pys(
             PySolution.from_counts(
                 data=data,
@@ -557,19 +864,36 @@ class Solution:
         )
 
     def aggregate(self) -> Solution:
-        """Aggregate a `Solution`.
+        """Aggregate duplicate samples by combining their counts.
 
-        Condense solution entries into one with more counts if a solution multiple
-        duplicate entries.
+        Condenses solution by merging duplicate samples into single entries
+        with summed counts.
+
+        Returns
+        -------
+        Solution
+            New solution with duplicate samples aggregated.
         """
         return self._from_pys(self._s.aggregate())
 
     def __str__(self) -> str:
-        """Get solution as string."""
+        """Get string representation of the solution.
+
+        Returns
+        -------
+        str
+            Formatted string showing samples and metadata.
+        """
         return self._s.__str__()
 
     def __repr__(self) -> str:
-        """Get solution as debug string."""
+        """Get debug string representation of the solution.
+
+        Returns
+        -------
+        str
+            Debug representation including type and memory address.
+        """
         return self._s.__repr__()
 
 

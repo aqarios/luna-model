@@ -25,7 +25,7 @@ class Environment:
     model. It ensures that variables used together come from the same environment
     and maintains consistency across expressions and constraints.
 
-    Environments can be used as context managers to automatically manage
+    Environments serve as context managers to automatically manage
     variable scoping.
 
     Attributes
