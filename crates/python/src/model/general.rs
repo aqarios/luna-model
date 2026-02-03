@@ -59,7 +59,7 @@ impl PyModel {
         Ok(self.m.read_arc().violated_constraints(&sample)?.into())
     }
 
-    fn satisfies(&self, specs: PyModelSpecs) -> bool {
-        self.m.read_arc().satisfies(specs.s)
+    fn satisfies(&self, specs: &PyModelSpecs) -> bool {
+        self.m.read_arc().satisfies(&specs.s)
     }
 }

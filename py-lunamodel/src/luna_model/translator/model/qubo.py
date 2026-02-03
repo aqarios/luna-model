@@ -241,7 +241,7 @@ class QuboTranslator:
         With custom names and offset:
 
         >>> model = QuboTranslator.to_lm(Q, offset=5.0, variable_names=["x1", "x2"], name="MyQUBO")
-        
+
         Notes
         -----
         Non-symmetric matrices are automatically symmetrized: the coefficient for
@@ -297,8 +297,10 @@ class QuboTranslator:
         If your model doesn't meet the QUBO requirements, use
         transformations to convert it:
 
-        >>> from luna_model.transformation import PassManager
-        >>> # Apply transformations to make model QUBO-compatible
-        >>> # Then translate
+        .. code-block:: python
+
+            from luna_model.transformation import PassManager
+            # Apply transformations to make model QUBO-compatible
+            # Then translate
         """
         return Qubo._from_pyq(PyQuboTranslator.from_lm(model._m))

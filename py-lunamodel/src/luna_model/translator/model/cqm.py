@@ -19,7 +19,7 @@ except ImportError:
 
 
 class CqmTranslator:
-    """Translator for Constrained Quadratic Model format.
+    r"""Translator for Constrained Quadratic Model format.
 
     Converts between LunaModel and ConstrainedQuadraticModel (CQM) format.
 

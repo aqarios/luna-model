@@ -30,7 +30,7 @@ impl Model {
         )
     }
 
-    pub fn satisfies(&self, specs: Specs) -> bool {
+    pub fn satisfies(&self, specs: &Specs) -> bool {
         self.specs().satisfies(specs)
     }
 }

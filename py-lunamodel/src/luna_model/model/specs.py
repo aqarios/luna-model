@@ -126,11 +126,15 @@ class ModelSpecs:
     @property
     def vtypes(self) -> list[Vtype] | None:
         """Get the list of allowed variable types."""
+        if self._sp.vtypes is None:
+            return None
         return [Vtype._from_pyvtype(v) for v in self._sp.vtypes]
 
     @property
     def constraints(self) -> list[Ctype] | None:
         """Get the list of allowed constraint types."""
+        if self._sp.constraints is None:
+            return None
         return [Ctype._from_pyctype(c) for c in self._sp.constraints]
 
     def satisfies(self, other: ModelSpecs) -> bool:
