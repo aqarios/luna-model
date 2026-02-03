@@ -29,7 +29,7 @@ impl From<Environment> for ArcEnv {
 
 impl ArcEnv {
     pub fn deep_clone(&self) -> Self {
-        self.env.read_arc().clone().into()
+        self.env.read_arc().deep_clone().into()
     }
 
     pub fn default() -> Self {

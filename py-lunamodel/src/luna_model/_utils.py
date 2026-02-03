@@ -1,3 +1,10 @@
+"""Internal utility functions for wrapping Rust objects.
+
+This module provides wrapper functions for converting between the internal
+Rust/PyO3 objects and the Python API objects. These are internal utilities
+not intended for direct use by users.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

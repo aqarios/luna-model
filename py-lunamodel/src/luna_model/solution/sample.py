@@ -1,40 +1,93 @@
+"""Sample protocols for solution variable assignments.
+
+This module defines protocols for sample objects that provide access to
+variable assignments in a solution. Samples can be indexed by variable
+ID, name, or Variable object.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, overload
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from luna_model.variable import Variable
 
 
 class Sample(Protocol):
-    """Sample."""
+    """Protocol for a single solution sample.
+
+    Represents variable assignments for one solution. Can be accessed
+    by variable ID, name, or Variable object.
+
+    Examples
+    --------
+    >>> result = solution.get_result(0)
+    >>> sample = result.sample
+    >>> value = sample["x"]  # Access by name
+    >>> print(sample.to_dict())
+
+    See Also
+    --------
+    Samples : Collection of multiple samples.
+    Result : Result object that contains a sample.
+    """
 
     def to_dict(self) -> dict[str, int | float]:
-        """Placeholding docsting."""
+        """Convert sample to dictionary mapping variable names to values.
+
+        Returns
+        -------
+        dict[str, int | float]
+            Dictionary of variable assignments.
+        """
         ...
 
     def __getitem__(self, item: int | Variable | str) -> int | float:
-        """Placeholding docsting."""
+        """Get a variable value by ID, Variable, or name."""
         ...
 
     def __len__(self) -> int:
-        """Placeholding docsting."""
+        """Get the number of variables in the sample."""
         ...
 
     def __iter__(self) -> SampleIter:
-        """Placeholding docsting."""
+        """Iterate over variable values in the sample."""
         ...
 
     def __str__(self, /) -> str:
-        """Placeholding docsting."""
+        """Return string representation of the sample."""
         ...
 
 
 class Samples(Protocol):
-    """Samples."""
+    """Protocol for a collection of samples.
 
-    def tolist(self) -> list[list[int | float]]:
-        """Placeholding docsting."""
+    Represents multiple solution samples. Can be indexed to access
+    individual samples or specific variable values.
+
+    Examples
+    --------
+    >>> samples = solution.get_samples()
+    >>> first_sample = samples[0]
+    >>> specific_value = samples[0, 1]  # Row 0, column (var) 1
+    >>> all_samples = samples.tolist()
+
+    See Also
+    --------
+    Sample : Individual sample protocol.
+    Solution : Solution class containing samples.
+    """
+
+    def tolist(self) -> Sequence[Sequence[int | float]]:
+        """Convert all samples to a list of lists.
+
+        Returns
+        -------
+        Sequence[Sequence[int | float]]
+            List where each inner list is a sample.
+        """
         ...
 
     @overload
@@ -42,37 +95,47 @@ class Samples(Protocol):
     @overload
     def __getitem__(self, item: tuple[int, int]) -> float: ...
     def __getitem__(self, item: int | tuple[int, int]) -> Sample | float:
-        """Placeholding docsting."""
+        """Get a sample by index or a specific value by (sample_idx, var_idx)."""
         ...
 
     def __len__(self) -> int:
-        """Placeholding docsting."""
+        """Get the number of samples."""
         ...
 
     def __iter__(self) -> SamplesIter:
-        """Placeholding docsting."""
+        """Iterate over all samples."""
         ...
 
 
 class SamplesIter(Protocol):
-    """Samples iterator."""
+    """Iterator over multiple samples.
+
+    See Also
+    --------
+    Samples : The samples collection that uses this iterator.
+    """
 
     def __iter__(self) -> SamplesIter:
-        """Placeholding docsting."""
+        """Return the iterator object itself."""
         ...
 
     def __next__(self) -> Sample:
-        """Placeholding docsting."""
+        """Get the next sample."""
         ...
 
 
 class SampleIter(Protocol):
-    """Sample iterator."""
+    """Iterator over values in a single sample.
+
+    See Also
+    --------
+    Sample : The sample that uses this iterator.
+    """
 
     def __iter__(self) -> SampleIter:
-        """Placeholding docsting."""
+        """Return the iterator object itself."""
         ...
 
     def __next__(self) -> int | float:
-        """Placeholding docsting."""
+        """Get the next variable value."""
         ...

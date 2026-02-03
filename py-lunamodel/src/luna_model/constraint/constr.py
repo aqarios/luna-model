@@ -1,3 +1,10 @@
+"""Constraints for optimization models.
+
+This module provides the Constraint class for representing constraints in
+optimization problems. Constraints specify relationships that must be satisfied
+by the solution.
+"""
+
 from __future__ import annotations
 
 from luna_model._lm import PyConstraint
@@ -8,7 +15,66 @@ from luna_model.variable.var import Variable
 
 
 class Constraint:
-    """Constraint docstring."""
+    """Constraint relating expressions with comparison operators.
+
+    A constraint specifies a relationship between a left-hand side expression
+    and a right-hand side value using a comparison operator (``==``, ``<=``, ``>=``).
+    Constraints are typically created using comparison operators on expressions
+    or variables.
+
+    Parameters
+    ----------
+    lhs : Variable | Expression
+        The left-hand side of the constraint.
+    rhs : float | Expression | Variable
+        The right-hand side of the constraint.
+    comparator : Comparator
+        The comparison operator (EQ, LE, or GE).
+    name : str | None, optional
+        An optional name for the constraint for easier identification.
+
+    Attributes
+    ----------
+    name : str
+        The name of the constraint.
+    lhs : Expression
+        The left-hand side expression.
+    rhs : float
+        The right-hand side value (expressions are moved to lhs).
+    comparator : Comparator
+        The comparison operator.
+
+    Examples
+    --------
+    Create constraints using comparison operators:
+
+    >>> from luna_model import Variable, Environment
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     y = Variable("y")
+    >>> c1 = x + y <= 10  # Sum constraint
+    >>> c2 = 2 * x - y == 5  # Equality constraint
+    >>> c3 = x >= 0  # Lower bound
+
+    Create named constraint:
+
+    >>> from luna_model.constraint import Constraint, Comparator
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     y = Variable("y")
+    >>> constraint = Constraint(x + y, 10, Comparator.LE, name="capacity")
+
+    Notes
+    -----
+    The right-hand side is always normalized to a constant. If an expression
+    is provided as rhs, it is moved to the left-hand side.
+
+    See Also
+    --------
+    Expression : Expressions that form constraint sides.
+    Comparator : Comparison operators for constraints.
+    ConstraintCollection : Collection for managing multiple constraints.
+    """
 
     _c: PyConstraint
 
@@ -29,48 +95,112 @@ class Constraint:
 
     @classmethod
     def _from_pyc(cls, py_c: PyConstraint) -> Constraint:
-        """Construct LunaModel Constraint from FFI PyConstraint object."""
+        """Construct Constraint from FFI PyConstraint object."""
         c = cls.__new__(cls)
         c._c = py_c
         return c
 
     @property
     def name(self) -> str:
-        """Get the constraint's name."""
+        """Get the constraint's name.
+
+        Returns
+        -------
+        str
+            The constraint name.
+        """
         return self._c.name
 
     @name.setter
     def name(self, name: str) -> None:
-        """Set the constraint's name."""
+        """Set the constraint's name.
+
+        Parameters
+        ----------
+        name : str
+            The new name for the constraint.
+        """
         self._c.name = name
 
     @property
     def lhs(self) -> Expression:
-        """Get the constraint's left-hand side."""
+        """Get the left-hand side expression.
+
+        Returns
+        -------
+        Expression
+            The left-hand side expression.
+        """
         return wrap_expr(self._c.lhs)
 
     @property
     def rhs(self) -> float:
-        """Get the constraint's right-hand side."""
+        """Get the right-hand side value.
+
+        Returns
+        -------
+        float
+            The right-hand side constant value.
+        """
         return self._c.rhs
 
     @property
     def comparator(self) -> Comparator:
-        """Get the constraint's comparator."""
+        """Get the comparison operator.
+
+        Returns
+        -------
+        Comparator
+            The comparison operator (EQ, LE, or GE).
+        """
         return Comparator._from_pycmp(self._c.comparator)
 
     def equal_contents(self, other: Constraint) -> bool:
-        """Check if two constraints have equal contents."""
+        """Check if two constraints have equal content.
+
+        Parameters
+        ----------
+        other : Constraint
+            The constraint to compare with.
+
+        Returns
+        -------
+        bool
+            True if constraints have the same lhs, rhs, and comparator.
+        """
         return self._c.equal_contents(other._c)
 
     def __eq__(self, other: Constraint) -> bool:  # type: ignore[override]
-        """Check two constraints are equal (exactly)."""
+        """Check if two constraints are exactly equal.
+
+        Parameters
+        ----------
+        other : Constraint
+            The constraint to compare with.
+
+        Returns
+        -------
+        bool
+            True if constraints are structurally identical.
+        """
         return self._c.__eq__(other._c)
 
     def __str__(self) -> str:
-        """Get constraint as string (human readable)."""
+        """Return human-readable string representation.
+
+        Returns
+        -------
+        str
+            String representation of the constraint.
+        """
         return self._c.__str__()
 
     def __repr__(self) -> str:
-        """Get constraint debug representation."""
+        """Return detailed string representation.
+
+        Returns
+        -------
+        str
+            Detailed representation of the constraint.
+        """
         return self._c.__repr__()

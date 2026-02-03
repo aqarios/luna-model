@@ -1,3 +1,9 @@
+"""Q-Ctrl solution translator for LunaModel.
+
+This module provides translation from Q-Ctrl results to
+LunaModel's Solution format.
+"""
+
 import re
 from typing import Any
 
@@ -7,7 +13,25 @@ from luna_model.timer import Timing
 
 
 class QctrlTranslator:
-    """Qctrl solution translator."""
+    """Translator for Q-Ctrl solution format.
+
+    Converts Q-Ctrl result dictionaries to LunaModel Solutions.
+    Handles variable-to-bitstring mapping and reordering.
+
+    Examples
+    --------
+    >>> from luna_model.translator import QctrlTranslator
+    >>> qctrl_result = {
+    ...     "final_bitstring_distribution": {"01": 45, "10": 35},
+    ...     "variables_to_bitstring_index_map": {"x[0]": 0, "y[1]": 1},
+    ... }
+    >>> solution = QctrlTranslator.to_lm(qctrl_result)
+
+    See Also
+    --------
+    IbmTranslator : IBM Qiskit solution translator
+    AwsTranslator : Amazon Braket solution translator
+    """
 
     @staticmethod
     def to_lm(
@@ -16,7 +40,39 @@ class QctrlTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
-        """Translate qctrl solution to luna model solution."""
+        """Convert Q-Ctrl result to LunaModel solution.
+
+        Parameters
+        ----------
+        result : dict[str, Any]
+            Q-Ctrl result dictionary containing 'final_bitstring_distribution'
+            and 'variables_to_bitstring_index_map'.
+        timing : Timing | None, optional
+            Timing information for the solution process.
+        env : Environment | None, optional
+            Environment for variable mapping. Required either as parameter or active context.
+
+        Returns
+        -------
+        Solution
+            LunaModel Solution with bitstring counts.
+
+        Examples
+        --------
+        >>> from luna_model import Environment
+        >>> qctrl_result = {
+        ...     "final_bitstring_distribution": {"00": 10, "01": 25},
+        ...     "variables_to_bitstring_index_map": {"x[0]": 0, "y[1]": 1},
+        ... }
+        >>> with Environment():
+        ...     # Create variables in environment
+        ...     solution = QctrlTranslator.to_lm(qctrl_result)
+
+        Notes
+        -----
+        Extracts indices from bracket notation (e.g., 'var[0]') and reorders
+        bitstrings accordingly.
+        """
         counts = result.get("final_bitstring_distribution", {})
         mapper = {
             int(re.search(r"\[([^\]]+)\]", k).group(1)): int(v)  # type: ignore[report]

@@ -1,3 +1,9 @@
+"""Optimization sense enumeration.
+
+This module defines whether an optimization problem seeks to minimize
+or maximize the objective function.
+"""
+
 from __future__ import annotations
 
 from enum import Enum
@@ -6,7 +12,26 @@ from luna_model._lm import PySense
 
 
 class Sense(Enum):
-    """Optimization sense."""
+    """Optimization direction for the objective function.
+
+    Specifies whether the goal is to minimize or maximize the objective.
+
+    Attributes
+    ----------
+    MIN : str
+        Minimize the objective function.
+    MAX : str
+        Maximize the objective function.
+
+    Examples
+    --------
+    >>> from luna_model import Model, Sense
+    >>> model = Model(sense=Sense.MIN)  # Minimization problem
+
+    See Also
+    --------
+    Model : Model class that uses this sense.
+    """
 
     MIN = "Minimize"
     MAX = "Maximize"

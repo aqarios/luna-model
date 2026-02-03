@@ -1,3 +1,9 @@
+"""D-Wave solution translator for LunaModel.
+
+This module provides translation from D-Wave SampleSet format
+to LunaModel's Solution format.
+"""
+
 # type: ignore[reportPossiblyUnboundVariable]
 from typing import TYPE_CHECKING
 
@@ -20,7 +26,26 @@ if TYPE_CHECKING:
 
 
 class DwaveTranslator:
-    """Dwave solution translator."""
+    """Translator for D-Wave solution format.
+
+    Converts D-Wave SampleSet objects to LunaModel Solutions.
+    Automatically aggregates duplicate solutions.
+
+    Requires the ``dimod`` package.
+
+    Examples
+    --------
+    >>> from luna_model.translator import BqmTranslator, DwaveTranslator
+    >>> bqm = BqmTranslator.from_lm(model)
+    >>> # sampler = DWaveSampler()
+    >>> # sampleset = sampler.sample(bqm, num_reads=100)
+    >>> solution = DwaveTranslator.to_lm(sampleset)
+
+    See Also
+    --------
+    BqmTranslator : D-Wave BQM format translator
+    CqmTranslator : D-Wave CQM format translator
+    """
 
     @staticmethod
     def to_lm(
@@ -29,7 +54,36 @@ class DwaveTranslator:
         *,
         env: Environment | None = None,
     ) -> Solution:
-        """Translate dwave solution to luna model solution."""
+        """Convert D-Wave SampleSet to LunaModel solution.
+
+        Parameters
+        ----------
+        sample_set : SampleSet
+            D-Wave SampleSet returned by a sampler.
+        timing : Timing | None, optional
+            Timing information for the solution process.
+        env : Environment | None, optional
+            Environment for variable mapping. Required either as parameter or active context.
+
+        Returns
+        -------
+        Solution
+            LunaModel Solution with aggregated samples.
+
+        Raises
+        ------
+        RuntimeError
+            If ``dimod`` package is not installed.
+
+        Examples
+        --------
+        >>> from luna_model import Environment
+        >>> # Assuming sampleset is obtained from D-Wave sampler
+        >>> with Environment():
+        ...     # Create variables in environment
+        ...     solution = DwaveTranslator.to_lm(sampleset)
+        >>> print(f"Best energy: {solution.best_energy()}")
+        """
         if not _DIMOD_AVAILABLE:
             msg = "dimod is required for the DwaveTranslator. You can install it using the 'dimod' extra."
             raise RuntimeError(msg)

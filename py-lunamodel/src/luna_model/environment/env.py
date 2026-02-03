@@ -1,3 +1,10 @@
+"""Environment for managing optimization model variables.
+
+This module provides the Environment class that manages variables and their
+relationships in an optimization model. Environments ensure consistency
+across variables and expressions.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -12,12 +19,54 @@ if TYPE_CHECKING:
 
 
 class Environment:
-    """The environment."""
+    """Environment for managing model variables and their relationships.
+
+    An Environment is a container that manages all variables in an optimization
+    model. It ensures that variables used together come from the same environment
+    and maintains consistency across expressions and constraints.
+
+    Environments serve as context managers to automatically manage
+    variable scoping.
+
+    Attributes
+    ----------
+    num_variables : int
+        The number of variables registered in this environment.
+    id : int
+        Unique identifier for this environment.
+
+    Examples
+    --------
+    Use as a context manager:
+
+    >>> from luna_model import Environment, Variable
+    >>> with Environment() as env:
+    ...     x = Variable("x", env=env)
+    ...     y = Variable("y", env=env)
+
+    Create and manage explicitly:
+
+    >>> env = Environment()
+    >>> x = Variable("x", env=env)
+    >>> print(env.num_variables)  # 1
+    >>> var = env.get_variable("x")
+
+    Notes
+    -----
+    Variables from different environments cannot be combined in the same
+    expression or constraint. This prevents accidental mixing of unrelated
+    models.
+
+    See Also
+    --------
+    Variable : Variables that belong to environments.
+    Model : Models that use environments.
+    """
 
     _env: PyEnvironment
 
     def __init__(self) -> None:
-        """Init The environment."""
+        """Initialize a new environment."""
         self._env = PyEnvironment()
 
     @classmethod
@@ -40,24 +89,69 @@ class Environment:
 
     @property
     def num_variables(self) -> int:
-        """Get the number of variables registered in the environment."""
+        """Get the number of variables in this environment.
+
+        Returns
+        -------
+        int
+            The number of registered variables.
+        """
         return self._env.num_variables
 
     @property
     def id(self) -> int:
-        """Get the id of the environment."""
+        """Get the unique identifier for this environment.
+
+        Returns
+        -------
+        int
+            The environment ID.
+        """
         return self._env.id
 
     def get_variable(self, name: str) -> Variable:
-        """Get a variable from the environment by its name."""
+        """Get a variable by name.
+
+        Parameters
+        ----------
+        name : str
+            The variable name.
+
+        Returns
+        -------
+        Variable
+            The variable with the given name.
+
+        Raises
+        ------
+        VariableNotExistingError
+            If no variable with the given name exists.
+        """
         return wrap_var(self._env.get_variable(name))
 
     def variables(self) -> list[Variable]:
-        """Get all variables in the environment."""
+        """Get all variables in this environment.
+
+        Returns
+        -------
+        list[Variable]
+            List of all registered variables.
+        """
         return [wrap_var(v) for v in self._env.variables()]
 
     def equal_contents(self, other: Environment) -> bool:
-        """Check if the two environments have equal content."""
+        """Check if two environments have equal content.
+
+        Parameters
+        ----------
+        other : Environment
+            The environment to compare with.
+
+        Returns
+        -------
+        bool
+            True if environments have the same variables.
+        """
         return self._env.equal_contents(other._env)
 
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
@@ -87,7 +181,18 @@ class Environment:
         return self._env.__eq__(other._env)
 
     def __contains__(self, var: str) -> bool:
-        """Check if a variable for the name var is contained in the environment."""
+        """Check if a variable name exists in this environment.
+
+        Parameters
+        ----------
+        var : str
+            The variable name to check.
+
+        Returns
+        -------
+        bool
+            True if a variable with the given name exists.
+        """
         return self._env.__contains__(var)
 
     def __str__(self) -> str:

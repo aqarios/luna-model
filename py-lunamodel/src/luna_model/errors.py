@@ -1,3 +1,19 @@
+"""Exception types for LunaModel.
+
+This module defines all exception types that can be raised by LunaModel
+operations. All exceptions inherit from the base LunaModelError.
+
+Exception hierarchy:
+    - LunaModelError: Base exception for all LunaModel errors
+    - ComputationError: Errors during mathematical computations
+    - DecodeError: Errors during decoding/deserialization
+    - DifferentEnvsError: Operations on objects from different environments
+    - EvaluationError: Errors during expression evaluation
+    - TranslationError: Errors during model translation
+    - VariableCreationError: Errors during variable creation
+    - And many more specific error types...
+"""
+
 from luna_model._lm import (
     PyComputationError as ComputationError,
 )

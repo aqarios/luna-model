@@ -53,6 +53,16 @@ impl Environment {
         }
     }
 
+    pub fn deep_clone(&self) -> Self {
+        let id = ENV_COUNTER.inc();
+        Self {
+            id,
+            variables: self.variables.clone(),
+            lookup: self.lookup.clone(),
+            next_idx: self.next_idx,
+        }
+    }
+
     pub fn id(&self) -> usize {
         self.id as usize
     }
