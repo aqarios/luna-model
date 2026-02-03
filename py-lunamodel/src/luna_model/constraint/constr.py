@@ -18,7 +18,7 @@ class Constraint:
     """Constraint relating expressions with comparison operators.
 
     A constraint specifies a relationship between a left-hand side expression
-    and a right-hand side value using a comparison operator (==, <=, >=).
+    and a right-hand side value using a comparison operator (``==``, ``<=``, ``>=``).
     Constraints are typically created using comparison operators on expressions
     or variables.
 
@@ -48,17 +48,21 @@ class Constraint:
     --------
     Create constraints using comparison operators:
 
-    >>> from luna_model import Variable
-    >>> x = Variable("x")
-    >>> y = Variable("y")
-    >>> c1 = x + y <= 10  # Sum constraint
-    >>> c2 = 2 * x - y == 5  # Equality constraint
-    >>> c3 = x >= 0  # Lower bound
+    >>> from luna_model import Variable, Environment
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     y = Variable("y")
+    ...     c1 = x + y <= 10  # Sum constraint
+    ...     c2 = 2 * x - y == 5  # Equality constraint
+    ...     c3 = x >= 0  # Lower bound
 
     Create named constraint:
 
     >>> from luna_model.constraint import Constraint, Comparator
-    >>> constraint = Constraint(x + y, 10, Comparator.LE, name="capacity")
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     y = Variable("y")
+    ...     constraint = Constraint(x + y, 10, Comparator.LE, name="capacity")
 
     Notes
     -----
@@ -91,18 +95,7 @@ class Constraint:
 
     @classmethod
     def _from_pyc(cls, py_c: PyConstraint) -> Constraint:
-        """Construct Constraint from internal PyConstraint object.
-
-        Parameters
-        ----------
-        py_c : PyConstraint
-            Internal constraint representation.
-
-        Returns
-        -------
-        Constraint
-            New Constraint wrapping the PyConstraint.
-        """
+        """Construct Constraint from FFI PyConstraint object."""
         c = cls.__new__(cls)
         c._c = py_c
         return c

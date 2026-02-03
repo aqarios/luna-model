@@ -29,7 +29,7 @@ class Expression:
     """Mathematical expression combining variables and constants.
 
     An Expression represents a mathematical formula built from variables,
-    constants, and arithmetic operations (+, -, *, **). Expressions can be
+    constants, and arithmetic operations (``+``, ``-``, ``*``, ``**``). Expressions can be
     linear, quadratic, or higher-order polynomial forms.
 
     Expressions are used to define:
@@ -40,13 +40,14 @@ class Expression:
     Parameters
     ----------
     env : Environment | None, optional
-        The environment for this expression. If None, creates or uses the
-        current active environment.
+        The environment for this expression. If None and created via ``__init__``,
+        requires an active environment context or raises ``NoActiveEnvironmentError``.
 
     Attributes
     ----------
     environment : Environment
-        The environment containing this expression.
+        The environment that this expression is associated with (contains variable
+        metadata referenced by this expression).
     num_variables : int
         Number of variables with non-zero coefficients in the expression.
 
@@ -54,20 +55,25 @@ class Expression:
     --------
     Create expressions from variables:
 
-    >>> from luna_model import Variable
-    >>> x = Variable("x")
-    >>> y = Variable("y")
-    >>> expr = 3 * x + 2 * y - 5
+    >>> from luna_model import Variable, Environment
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     y = Variable("y")
+    ...     expr = 3 * x + 2 * y - 5
 
     Create quadratic expression:
 
-    >>> z = Variable("z")
-    >>> quad_expr = x * y + z**2
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     y = Variable("y")
+    ...     z = Variable("z")
+    ...     quad_expr = x * y + z**2
 
     Create constant expression:
 
     >>> from luna_model.expression import Expression
-    >>> const_expr = Expression.const(42.0)
+    >>> with Environment():
+    ...     const_expr = Expression.const(42.0)
 
     Access expression terms:
 
@@ -77,7 +83,7 @@ class Expression:
     Notes
     -----
     Expressions are immutable by default. Arithmetic operations create new
-    Expression objects unless using in-place operators (+=, -=, *=).
+    Expression objects unless using in-place operators (``+=``, ``-=``, ``*=``, ``**=``).
 
     See Also
     --------

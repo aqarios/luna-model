@@ -30,11 +30,12 @@ class Comparator(Enum):
     --------
     Comparators are typically created automatically through operator overloading:
 
-    >>> from luna_model import Variable
-    >>> x = Variable("x")
-    >>> c1 = x == 1  # Creates EQ constraint
-    >>> c2 = x <= 5  # Creates LE constraint
-    >>> c3 = x >= 0  # Creates GE constraint
+    >>> from luna_model import Variable, Environment
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     c1 = x == 1  # Creates EQ constraint
+    ...     c2 = x <= 5  # Creates LE constraint
+    ...     c3 = x >= 0  # Creates GE constraint
 
     Notes
     -----

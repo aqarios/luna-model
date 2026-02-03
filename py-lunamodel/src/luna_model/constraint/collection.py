@@ -32,14 +32,15 @@ class ConstraintCollection:
     --------
     Create and manage constraints:
 
-    >>> from luna_model import Variable
+    >>> from luna_model import Variable, Environment
     >>> from luna_model.constraint import ConstraintCollection
-    >>> x, y = Variable("x"), Variable("y")
-    >>> cc = ConstraintCollection()
-    >>> cc += (x + y <= 10, "capacity")
-    >>> cc += (x >= 0, "x_lower")
-    >>> print(len(cc))  # Number of constraints
-    >>> constraint = cc["capacity"]  # Access by name
+    >>> with Environment():
+    ...     x, y = Variable("x"), Variable("y")
+    ...     cc = ConstraintCollection()
+    ...     cc += x + y <= 10, "capacity"
+    ...     cc += x >= 0, "x_lower"
+    ...     print(len(cc))  # Number of constraints
+    ...     constraint = cc["capacity"]  # Access by name
 
     Iterate over constraints:
 
@@ -78,7 +79,9 @@ class ConstraintCollection:
         constraint : Constraint
             The constraint to add.
         name : str | None, optional
-            Name for the constraint. If None, uses constraint's own name.
+            Name for the constraint. If None, uses constraint's own name if it has one,
+            otherwise generates a name following the pattern ``c{i}`` where i is the
+            constraint's index (starting from 0).
         """
         self._cc.add_constraint(constraint._c, name)
 
@@ -93,11 +96,37 @@ class ConstraintCollection:
         return ConstraintCollectionIter._from_pycci(self._cc.items())
 
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
-        """Encode the constraint. Same as serialize."""
+        """Encode the constraint collection to bytes.
+
+        Parameters
+        ----------
+        compress : bool | None, default=True
+            Whether to compress the output.
+        level : int | None, default=3
+            Compression level (0-9).
+
+        Returns
+        -------
+        bytes
+            Encoded constraint collection.
+        """
         return self._cc.encode(compress, level)
 
     def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
-        """Serialize the constraint."""
+        """Serialize the constraint collection to bytes.
+
+        Parameters
+        ----------
+        compress : bool | None, default=True
+            Whether to compress the output.
+        level : int | None, default=3
+            Compression level (0-9).
+
+        Returns
+        -------
+        bytes
+            Serialized constraint collection.
+        """
         return self.encode(compress, level)
 
     def get(self, name: str) -> Constraint:
@@ -136,7 +165,18 @@ class ConstraintCollection:
         self._cc.remove(name)
 
     def equal_contents(self, other: ConstraintCollection) -> bool:
-        """Check if two ConstraintCollections have the same contents without checking for equality."""
+        """Check if two constraint collections have the same contents.
+
+        Parameters
+        ----------
+        other : ConstraintCollection
+            The collection to compare with.
+
+        Returns
+        -------
+        bool
+            True if both collections contain the same constraints.
+        """
         return self._cc.equal_contents(other._cc)
 
     def ctypes(self) -> list[Comparator]:
