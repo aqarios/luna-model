@@ -90,7 +90,7 @@ class Environment:
     @property
     def num_variables(self) -> int:
         """Get the number of variables in this environment.
-        
+
         Returns
         -------
         int
@@ -101,7 +101,7 @@ class Environment:
     @property
     def id(self) -> int:
         """Get the unique identifier for this environment.
-        
+
         Returns
         -------
         int
@@ -111,17 +111,17 @@ class Environment:
 
     def get_variable(self, name: str) -> Variable:
         """Get a variable by name.
-        
+
         Parameters
         ----------
         name : str
             The variable name.
-            
+
         Returns
         -------
         Variable
             The variable with the given name.
-            
+
         Raises
         ------
         VariableNotExistingError
@@ -131,7 +131,7 @@ class Environment:
 
     def variables(self) -> list[Variable]:
         """Get all variables in this environment.
-        
+
         Returns
         -------
         list[Variable]
@@ -141,12 +141,12 @@ class Environment:
 
     def equal_contents(self, other: Environment) -> bool:
         """Check if two environments have equal content.
-        
+
         Parameters
         ----------
         other : Environment
             The environment to compare with.
-            
+
         Returns
         -------
         bool
@@ -182,12 +182,12 @@ class Environment:
 
     def __contains__(self, var: str) -> bool:
         """Check if a variable name exists in this environment.
-        
+
         Parameters
         ----------
         var : str
             The variable name to check.
-            
+
         Returns
         -------
         bool

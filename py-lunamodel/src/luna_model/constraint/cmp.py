@@ -32,9 +32,9 @@ class Comparator(Enum):
 
     >>> from luna_model import Variable
     >>> x = Variable("x")
-    >>> c1 = x == 1      # Creates EQ constraint
-    >>> c2 = x <= 5      # Creates LE constraint
-    >>> c3 = x >= 0      # Creates GE constraint
+    >>> c1 = x == 1  # Creates EQ constraint
+    >>> c2 = x <= 5  # Creates LE constraint
+    >>> c3 = x >= 0  # Creates GE constraint
 
     Notes
     -----

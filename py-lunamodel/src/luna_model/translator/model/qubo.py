@@ -171,8 +171,7 @@ class QuboTranslator:
     >>> import numpy as np
     >>> from luna_model.translator import QuboTranslator
     >>> # Define QUBO matrix (upper-triangular)
-    >>> Q = np.array([[-1, 2],
-    ...               [0, -1]])
+    >>> Q = np.array([[-1, 2], [0, -1]])
     >>> model = QuboTranslator.to_lm(Q, variable_names=["x", "y"])
 
     Convert model to QUBO:

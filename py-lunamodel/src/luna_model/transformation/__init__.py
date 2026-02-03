@@ -5,6 +5,7 @@ from .cache import AnalysisCache
 from .decorators import analyse, meta_analyse, transform
 from .ifelse import IfElsePass
 from .ir import IR
+from .log import LogElement
 from .meta_analysis import MetaAnalysisPass
 from .pass_manager import PassManager
 from .pipeline import Pipeline
@@ -17,6 +18,7 @@ __all__ = [
     "AnalysisPass",
     "BasePass",
     "IfElsePass",
+    "LogElement",
     "MetaAnalysisPass",
     "PassManager",
     "Pipeline",

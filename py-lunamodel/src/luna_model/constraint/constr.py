@@ -51,9 +51,9 @@ class Constraint:
     >>> from luna_model import Variable
     >>> x = Variable("x")
     >>> y = Variable("y")
-    >>> c1 = x + y <= 10              # Sum constraint
-    >>> c2 = 2*x - y == 5             # Equality constraint
-    >>> c3 = x >= 0                   # Lower bound
+    >>> c1 = x + y <= 10  # Sum constraint
+    >>> c2 = 2 * x - y == 5  # Equality constraint
+    >>> c3 = x >= 0  # Lower bound
 
     Create named constraint:
 
@@ -92,12 +92,12 @@ class Constraint:
     @classmethod
     def _from_pyc(cls, py_c: PyConstraint) -> Constraint:
         """Construct Constraint from internal PyConstraint object.
-        
+
         Parameters
         ----------
         py_c : PyConstraint
             Internal constraint representation.
-            
+
         Returns
         -------
         Constraint
@@ -110,7 +110,7 @@ class Constraint:
     @property
     def name(self) -> str:
         """Get the constraint's name.
-        
+
         Returns
         -------
         str
@@ -121,7 +121,7 @@ class Constraint:
     @name.setter
     def name(self, name: str) -> None:
         """Set the constraint's name.
-        
+
         Parameters
         ----------
         name : str
@@ -132,7 +132,7 @@ class Constraint:
     @property
     def lhs(self) -> Expression:
         """Get the left-hand side expression.
-        
+
         Returns
         -------
         Expression
@@ -143,7 +143,7 @@ class Constraint:
     @property
     def rhs(self) -> float:
         """Get the right-hand side value.
-        
+
         Returns
         -------
         float
@@ -154,7 +154,7 @@ class Constraint:
     @property
     def comparator(self) -> Comparator:
         """Get the comparison operator.
-        
+
         Returns
         -------
         Comparator
@@ -164,12 +164,12 @@ class Constraint:
 
     def equal_contents(self, other: Constraint) -> bool:
         """Check if two constraints have equal content.
-        
+
         Parameters
         ----------
         other : Constraint
             The constraint to compare with.
-            
+
         Returns
         -------
         bool
@@ -179,12 +179,12 @@ class Constraint:
 
     def __eq__(self, other: Constraint) -> bool:  # type: ignore[override]
         """Check if two constraints are exactly equal.
-        
+
         Parameters
         ----------
         other : Constraint
             The constraint to compare with.
-            
+
         Returns
         -------
         bool
@@ -194,7 +194,7 @@ class Constraint:
 
     def __str__(self) -> str:
         """Return human-readable string representation.
-        
+
         Returns
         -------
         str
@@ -204,7 +204,7 @@ class Constraint:
 
     def __repr__(self) -> str:
         """Return detailed string representation.
-        
+
         Returns
         -------
         str

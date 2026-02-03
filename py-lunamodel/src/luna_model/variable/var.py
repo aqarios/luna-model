@@ -34,26 +34,26 @@ class Variable:
         The unique name identifying this variable within its environment.
     vtype : Vtype, default=Vtype.BINARY
         The type of the variable. Must be one of:
-        
+
         - ``Vtype.BINARY``: Variable can be 0 or 1
         - ``Vtype.SPIN``: Variable can be -1 or +1
         - ``Vtype.INTEGER``: Variable can be any integer
         - ``Vtype.REAL``: Variable can be any real number
-        
+
     bounds : Bounds | tuple[float | None, float | None] | None, optional
         The bounds constraining the variable's value. Can be:
-        
+
         - A :class:`Bounds` object specifying lower and upper bounds
         - A tuple ``(lower, upper)`` where ``None`` indicates unbounded
         - ``None`` to use default bounds based on ``vtype``
-        
+
         Default bounds by type:
-        
+
         - ``BINARY``: [0, 1]
         - ``SPIN``: [-1, 1]
         - ``INTEGER``: [-2^63, 2^63-1]
         - ``REAL``: [-inf, inf]
-        
+
     env : Environment | None, optional
         The environment managing this variable. If ``None``, uses the currently
         active environment context or creates a new one.
@@ -88,7 +88,7 @@ class Variable:
 
     >>> x = Variable("x")
     >>> y = Variable("y")
-    >>> expr = 3*x + 2*y - 5  # Creates an Expression
+    >>> expr = 3 * x + 2 * y - 5  # Creates an Expression
 
     Create constraints using comparisons:
 
@@ -141,7 +141,7 @@ class Variable:
         -------
         int
             Unique integer identifier within the variable's environment.
-            
+
         Notes
         -----
         Variable IDs are assigned sequentially within an environment and
@@ -168,7 +168,7 @@ class Variable:
         -------
         tuple[float | None, float | None]
             A tuple ``(lower, upper)`` where ``None`` indicates unbounded.
-            
+
         Examples
         --------
         >>> from luna_model import Variable, Vtype
@@ -213,12 +213,12 @@ class Variable:
         bool
             ``True`` if both variables refer to the same underlying variable
             (same ID and environment), ``False`` otherwise.
-            
+
         Notes
         -----
         This compares variable identity, not just name equality. Two variables
         with the same name in different environments are not equal.
-        
+
         Examples
         --------
         >>> from luna_model import Variable
@@ -241,12 +241,12 @@ class Variable:
         -------
         Variable
             A new inverted variable.
-            
+
         Notes
         -----
         Inverted variables maintain a relationship with their original variable
         in the environment. This is primarily used for spin transformations.
-        
+
         Examples
         --------
         >>> from luna_model import Variable, Vtype
@@ -268,7 +268,7 @@ class Variable:
         -------
         Expression
             A new expression representing the sum.
-            
+
         Examples
         --------
         >>> from luna_model import Variable
@@ -306,7 +306,7 @@ class Variable:
         -------
         Expression
             A new expression representing the product.
-            
+
         Examples
         --------
         >>> from luna_model import Variable
@@ -374,7 +374,7 @@ class Variable:
         -------
         Expression
             A new expression representing this variable raised to the power.
-            
+
         Examples
         --------
         >>> from luna_model import Variable
@@ -391,7 +391,7 @@ class Variable:
         -------
         Expression
             A new expression representing the negation of this variable.
-            
+
         Examples
         --------
         >>> from luna_model import Variable
@@ -407,7 +407,7 @@ class Variable:
         -------
         Variable
             A new inverted variable.
-            
+
         See Also
         --------
         inv : Detailed documentation of variable inversion
@@ -434,17 +434,15 @@ class Variable:
         Constraint | bool
             - ``bool`` if comparing with another Variable (identity check)
             - ``Constraint`` if comparing with Expression or float (constraint creation)
-            
+
         Examples
         --------
         >>> from luna_model import Variable
         >>> x = Variable("x")
         >>> y = Variable("y")
-        >>> 
         >>> # Identity comparison
         >>> x == x  # True
         >>> x == y  # False
-        >>> 
         >>> # Constraint creation
         >>> constraint = x == 5  # Creates equality constraint
         >>> constraint2 = x + y == 10
@@ -465,7 +463,7 @@ class Variable:
         -------
         Constraint
             A constraint representing ``self <= other``.
-            
+
         Examples
         --------
         >>> from luna_model import Variable
@@ -488,7 +486,7 @@ class Variable:
         -------
         Constraint
             A constraint representing ``self >= other``.
-            
+
         Examples
         --------
         >>> from luna_model import Variable

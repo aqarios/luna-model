@@ -38,7 +38,7 @@ class Linear:
     Examples
     --------
     >>> x = Variable("x")
-    >>> expr = 3*x + 5
+    >>> expr = 3 * x + 5
     >>> for term, coeff in expr.items():
     ...     if isinstance(term, Linear):
     ...         print(f"Linear term: {coeff}*{term.var.name}")
@@ -51,7 +51,7 @@ class Linear:
     @property
     def var(self) -> Variable:
         """Get the variable in this linear term.
-        
+
         Returns
         -------
         Variable
@@ -82,7 +82,7 @@ class Quadratic:
     Examples
     --------
     >>> x, y = Variable("x"), Variable("y")
-    >>> expr = x*y + 2
+    >>> expr = x * y + 2
     >>> for term, coeff in expr.items():
     ...     if isinstance(term, Quadratic):
     ...         print(f"Quadratic: {coeff}*{term.var_a.name}*{term.var_b.name}")
@@ -95,7 +95,7 @@ class Quadratic:
     @property
     def var_a(self) -> Variable:
         """Get the first variable in the quadratic term.
-        
+
         Returns
         -------
         Variable
@@ -106,7 +106,7 @@ class Quadratic:
     @property
     def var_b(self) -> Variable:
         """Get the second variable in the quadratic term.
-        
+
         Returns
         -------
         Variable
@@ -135,7 +135,7 @@ class HigherOrder:
     Examples
     --------
     >>> x, y, z = Variable("x"), Variable("y"), Variable("z")
-    >>> expr = x*y*z
+    >>> expr = x * y * z
     >>> for term, coeff in expr.items():
     ...     if isinstance(term, HigherOrder):
     ...         var_names = [v.name for v in term.vars]
@@ -149,7 +149,7 @@ class HigherOrder:
     @property
     def vars(self) -> list[Variable]:
         """Get the variables in this higher-order term.
-        
+
         Returns
         -------
         list[Variable]
@@ -174,7 +174,7 @@ class ExprIter:
     Examples
     --------
     >>> x, y = Variable("x"), Variable("y")
-    >>> expr = 3*x + 2*x*y + 5
+    >>> expr = 3 * x + 2 * x * y + 5
     >>> for term, coeff in expr.items():
     ...     print(f"Coefficient: {coeff}, Term type: {type(term).__name__}")
 
@@ -187,12 +187,12 @@ class ExprIter:
 
     def __next__(self) -> tuple[Constant | Linear | Quadratic | HigherOrder, float]:
         """Get the next term and coefficient.
-        
+
         Returns
         -------
         tuple[Constant | Linear | Quadratic | HigherOrder, float]
             The term and its coefficient.
-            
+
         Raises
         ------
         StopIteration

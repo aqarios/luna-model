@@ -41,27 +41,18 @@ class IfElsePass(PyIfElsePass, BasePass):
     Execute different transformations based on model degree:
 
     >>> from luna_model import Model
-    >>> from luna_model.transformation import (
-    ...     PassManager, Pipeline, IfElsePass
-    ... )
-    >>> from luna_model.transformation.passes import (
-    ...     MaxBiasAnalysis, BinarySpinPass
-    ... )
-    >>> 
+    >>> from luna_model.transformation import PassManager, Pipeline, IfElsePass
+    >>> from luna_model.transformation.passes import MaxBiasAnalysis, BinarySpinPass
     >>> # Create conditional pass
     >>> conditional = IfElsePass(
     ...     requires=["max-bias"],
     ...     condition=lambda cache: cache["max-bias"] > 10.0,
     ...     then=Pipeline([BinarySpinPass()]),
     ...     otherwise=Pipeline([]),
-    ...     name="conditional-spin-conversion"
+    ...     name="conditional-spin-conversion",
     ... )
-    >>> 
     >>> # Use in PassManager
-    >>> pm = PassManager([
-    ...     MaxBiasAnalysis(),
-    ...     conditional
-    ... ])
+    >>> pm = PassManager([MaxBiasAnalysis(), conditional])
     >>> result = pm.run(model)
 
     Branch based on model complexity:
@@ -69,22 +60,14 @@ class IfElsePass(PyIfElsePass, BasePass):
     >>> def is_complex(cache: AnalysisCache) -> bool:
     ...     specs = cache.get("model-specs")
     ...     return specs.objective_degree > 2 or specs.num_constraints > 100
-    >>> 
-    >>> complex_pipeline = Pipeline([
-    ...     DegreeReductionPass(),
-    ...     SimplificationPass()
-    ... ])
-    >>> 
-    >>> simple_pipeline = Pipeline([
-    ...     SimplificationPass()
-    ... ])
-    >>> 
+    >>> complex_pipeline = Pipeline([DegreeReductionPass(), SimplificationPass()])
+    >>> simple_pipeline = Pipeline([SimplificationPass()])
     >>> adaptive = IfElsePass(
     ...     requires=["model-specs"],
     ...     condition=is_complex,
     ...     then=complex_pipeline,
     ...     otherwise=simple_pipeline,
-    ...     name="adaptive-optimization"
+    ...     name="adaptive-optimization",
     ... )
 
     Notes

@@ -35,12 +35,12 @@ class ConstraintCollectionIter:
 
     def __next__(self) -> tuple[str, Constraint]:
         """Get the next (name, constraint) pair.
-        
+
         Returns
         -------
         tuple[str, Constraint]
             The constraint name and constraint object.
-            
+
         Raises
         ------
         StopIteration

@@ -34,7 +34,7 @@ class Sample(Protocol):
 
     def to_dict(self) -> dict[str, int | float]:
         """Convert sample to dictionary mapping variable names to values.
-        
+
         Returns
         -------
         dict[str, int | float]
@@ -80,7 +80,7 @@ class Samples(Protocol):
 
     def tolist(self) -> list[list[int | float]]:
         """Convert all samples to a list of lists.
-        
+
         Returns
         -------
         list[list[int | float]]

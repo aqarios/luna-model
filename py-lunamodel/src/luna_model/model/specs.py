@@ -56,12 +56,7 @@ class ModelSpecs:
 
     >>> from luna_model.model import ModelSpecs, Sense, Ctype
     >>> from luna_model.variable import Vtype
-    >>> specs = ModelSpecs(
-    ...     sense=Sense.MIN,
-    ...     vtypes={Vtype.BINARY},
-    ...     constraints={Ctype.UNCONSTRAINED},
-    ...     max_degree=2
-    ... )
+    >>> specs = ModelSpecs(sense=Sense.MIN, vtypes={Vtype.BINARY}, constraints={Ctype.UNCONSTRAINED}, max_degree=2)
 
     Check if a model satisfies specifications:
 
@@ -140,12 +135,12 @@ class ModelSpecs:
 
     def satisfies(self, other: ModelSpecs) -> bool:
         """Check if these specifications satisfy another set of requirements.
-        
+
         Parameters
         ----------
         other : ModelSpecs
             The required specifications to check against.
-            
+
         Returns
         -------
         bool

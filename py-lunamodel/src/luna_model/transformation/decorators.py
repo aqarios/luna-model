@@ -175,7 +175,6 @@ def analyse(
     Create a simple analysis pass:
 
     >>> from luna_model.transformation import analyse
-    >>> 
     >>> @analyse(name="count-variables")
     ... def count_vars(model, cache):
     ...     return model.num_variables()
@@ -194,7 +193,6 @@ def analyse(
     Use in a PassManager:
 
     >>> from luna_model.transformation import PassManager
-    >>> 
     >>> pm = PassManager([count_vars, analyze_variables])
     >>> result = pm.run(model)
     >>> stats = result.cache["variable-stats"]
@@ -204,8 +202,7 @@ def analyse(
     -----
     The decorated function must have the signature::
 
-        def my_analysis(model: Model, cache: AnalysisCache) -> Any:
-            ...
+        def my_analysis(model: Model, cache: AnalysisCache) -> Any: ...
 
     The return value is stored in the ``AnalysisCache`` under the pass's name
     and can be accessed by subsequent passes.
@@ -301,7 +298,6 @@ def transform(
     Create a simple transformation:
 
     >>> from luna_model.transformation import transform, ActionType
-    >>> 
     >>> @transform(name="scale-objective")
     ... def scale_obj(model, cache):
     ...     model.objective = model.objective * 2.0
@@ -312,12 +308,11 @@ def transform(
     >>> def backwards_map(solution, cache):
     ...     # Map solution back to original variable space
     ...     return solution
-    >>> 
     >>> @transform(
     ...     name="add-slack-variables",
     ...     requires=["constraint-analysis"],
     ...     invalidates=["variable-count"],
-    ...     backwards=backwards_map
+    ...     backwards=backwards_map,
     ... )
     ... def add_slack(model, cache):
     ...     # Add slack variables to constraints

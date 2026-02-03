@@ -52,12 +52,12 @@ class Bounds:
 
     >>> from luna_model.variable.bounds import Bounds
     >>> binary_bounds = Bounds.binary()  # [0, 1]
-    >>> spin_bounds = Bounds.spin()      # [-1, 1]
+    >>> spin_bounds = Bounds.spin()  # [-1, 1]
 
     Notes
     -----
     Default bounds depend on variable type:
-    
+
     - ``BINARY``: [0, 1]
     - ``SPIN``: [-1, 1]
     - ``INTEGER``: [-2^63, 2^63-1]
@@ -81,12 +81,12 @@ class Bounds:
     @classmethod
     def _from_pyb(cls, py_b: PyBounds) -> Bounds:
         """Construct Bounds from internal PyBounds object.
-        
+
         Parameters
         ----------
         py_b : PyBounds
             Internal bounds representation.
-            
+
         Returns
         -------
         Bounds
@@ -99,7 +99,7 @@ class Bounds:
     @property
     def lower(self) -> float | type[Unbounded] | None:
         """Get the lower bound.
-        
+
         Returns
         -------
         float | type[Unbounded] | None
@@ -110,7 +110,7 @@ class Bounds:
     @property
     def upper(self) -> float | type[Unbounded] | None:
         """Get the upper bound.
-        
+
         Returns
         -------
         float | type[Unbounded] | None
@@ -121,12 +121,12 @@ class Bounds:
     @classmethod
     def default(cls, vtype: Vtype) -> Bounds:
         """Get the default bounds for a variable type.
-        
+
         Parameters
         ----------
         vtype : Vtype
             The variable type.
-            
+
         Returns
         -------
         Bounds
@@ -149,7 +149,7 @@ class Bounds:
     @classmethod
     def binary(cls) -> Bounds:
         """Get the bounds for binary variables [0, 1].
-        
+
         Returns
         -------
         Bounds
@@ -160,7 +160,7 @@ class Bounds:
     @classmethod
     def spin(cls) -> Bounds:
         """Get the bounds for spin variables [-1, 1].
-        
+
         Returns
         -------
         Bounds
@@ -171,7 +171,7 @@ class Bounds:
     @classmethod
     def integer(cls) -> Bounds:
         """Get the bounds for integer variables [-2^63, 2^63-1].
-        
+
         Returns
         -------
         Bounds
@@ -182,7 +182,7 @@ class Bounds:
     @classmethod
     def real(cls) -> Bounds:
         """Get the bounds for real variables [-inf, inf].
-        
+
         Returns
         -------
         Bounds
@@ -192,7 +192,7 @@ class Bounds:
 
     def __str__(self) -> str:
         """Return human-readable string representation.
-        
+
         Returns
         -------
         str
@@ -202,7 +202,7 @@ class Bounds:
 
     def __repr__(self) -> str:
         """Return detailed string representation.
-        
+
         Returns
         -------
         str
@@ -212,12 +212,12 @@ class Bounds:
 
     def __eq__(self, other: Bounds) -> bool:  # type: ignore[override]
         """Check equality with another Bounds object.
-        
+
         Parameters
         ----------
         other : Bounds
             The bounds to compare with.
-            
+
         Returns
         -------
         bool
@@ -227,7 +227,7 @@ class Bounds:
 
     def __hash__(self) -> int:
         """Compute hash for use in sets and dictionaries.
-        
+
         Returns
         -------
         int

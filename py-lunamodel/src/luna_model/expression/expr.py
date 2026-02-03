@@ -57,12 +57,12 @@ class Expression:
     >>> from luna_model import Variable
     >>> x = Variable("x")
     >>> y = Variable("y")
-    >>> expr = 3*x + 2*y - 5
+    >>> expr = 3 * x + 2 * y - 5
 
     Create quadratic expression:
 
     >>> z = Variable("z")
-    >>> quad_expr = x*y + z**2
+    >>> quad_expr = x * y + z**2
 
     Create constant expression:
 
@@ -90,7 +90,7 @@ class Expression:
 
     def __init__(self, env: Environment | None = None) -> None:
         """Initialize an empty expression.
-        
+
         Parameters
         ----------
         env : Environment | None, optional
@@ -104,12 +104,12 @@ class Expression:
     @classmethod
     def _from_pyexpr(cls, py_expr: PyExpression) -> Expression:
         """Construct Expression from internal PyExpression object.
-        
+
         Parameters
         ----------
         py_expr : PyExpression
             Internal expression representation.
-            
+
         Returns
         -------
         Expression
@@ -122,19 +122,19 @@ class Expression:
     @classmethod
     def const(cls, value: float, /, env: Environment | None = None) -> Expression:
         """Create a constant expression.
-        
+
         Parameters
         ----------
         value : float
             The constant value.
         env : Environment | None, optional
             The environment for this expression.
-            
+
         Returns
         -------
         Expression
             An expression representing the constant value.
-            
+
         Examples
         --------
         >>> from luna_model.expression import Expression
@@ -145,7 +145,7 @@ class Expression:
     @property
     def environment(self) -> Environment:
         """Get the environment containing this expression.
-        
+
         Returns
         -------
         Environment
@@ -165,7 +165,7 @@ class Expression:
 
     def get_offset(self) -> float:
         """Get the constant offset of the expression.
-        
+
         Returns
         -------
         float
@@ -175,12 +175,12 @@ class Expression:
 
     def get_linear(self, variable: Variable) -> float:
         """Get the linear coefficient for a variable.
-        
+
         Parameters
         ----------
         variable : Variable
             The variable to query.
-            
+
         Returns
         -------
         float
@@ -190,14 +190,14 @@ class Expression:
 
     def get_quadratic(self, u: Variable, v: Variable) -> float:
         """Get the quadratic coefficient for a variable pair.
-        
+
         Parameters
         ----------
         u : Variable
             The first variable.
         v : Variable
             The second variable.
-            
+
         Returns
         -------
         float
@@ -207,12 +207,12 @@ class Expression:
 
     def get_higher_order(self, *variables: Variable) -> float:
         """Get the higher-order coefficient for a variable tuple.
-        
+
         Parameters
         ----------
         *variables : Variable
             The variables in the higher-order term.
-            
+
         Returns
         -------
         float
@@ -222,16 +222,16 @@ class Expression:
 
     def items(self) -> ExprIter:
         """Get an iterator over all terms in the expression.
-        
+
         Returns
         -------
         ExprIter
             Iterator yielding (variables, coefficient) tuples for each term.
-            
+
         Examples
         --------
         >>> x, y = Variable("x"), Variable("y")
-        >>> expr = 3*x + 2*x*y + 5
+        >>> expr = 3 * x + 2 * x * y + 5
         >>> for vars, coeff in expr.items():
         ...     print(f"{vars}: {coeff}")
         """
@@ -239,7 +239,7 @@ class Expression:
 
     def variables(self) -> list[Variable]:
         """Get all variables in the expression.
-        
+
         Returns
         -------
         list[Variable]
@@ -249,7 +249,7 @@ class Expression:
 
     def degree(self) -> int:
         """Get the degree of the expression.
-        
+
         Returns
         -------
         int
@@ -259,7 +259,7 @@ class Expression:
 
     def linear_items(self) -> list[tuple[Variable, float]]:
         """Get all linear terms in the expression.
-        
+
         Returns
         -------
         list[tuple[Variable, float]]
@@ -269,7 +269,7 @@ class Expression:
 
     def quadratic_items(self) -> list[tuple[Variable, Variable, float]]:
         """Get all quadratic terms in the expression.
-        
+
         Returns
         -------
         list[tuple[Variable, Variable, float]]
@@ -279,7 +279,7 @@ class Expression:
 
     def higher_order_items(self) -> list[tuple[list[Variable], float]]:
         """Get all higher-order terms in the expression.
-        
+
         Returns
         -------
         list[tuple[list[Variable], float]]
@@ -289,7 +289,7 @@ class Expression:
 
     def is_constant(self) -> bool:
         """Check if the expression is a constant (no variables).
-        
+
         Returns
         -------
         bool
@@ -299,7 +299,7 @@ class Expression:
 
     def has_quadratic(self) -> bool:
         """Check if the expression has quadratic terms.
-        
+
         Returns
         -------
         bool
@@ -309,7 +309,7 @@ class Expression:
 
     def has_higher_order(self) -> bool:
         """Check if the expression has higher-order terms.
-        
+
         Returns
         -------
         bool
@@ -319,12 +319,12 @@ class Expression:
 
     def is_equal(self, other: Expression) -> bool:
         """Check if two expressions are structurally equal.
-        
+
         Parameters
         ----------
         other : Expression
             The expression to compare with.
-            
+
         Returns
         -------
         bool
@@ -334,12 +334,12 @@ class Expression:
 
     def equal_contents(self, other: Expression) -> bool:
         """Check if two expressions have equal terms and coefficients.
-        
+
         Parameters
         ----------
         other : Expression
             The expression to compare with.
-            
+
         Returns
         -------
         bool
@@ -349,15 +349,15 @@ class Expression:
 
     def separate(self, variables: list[Variable]) -> tuple[Expression, Expression]:
         """Separate expression into two parts based on variables.
-        
+
         Splits the expression so that all specified variables appear only in
         the first returned expression.
-        
+
         Parameters
         ----------
         variables : list[Variable]
             Variables to isolate in the first expression.
-            
+
         Returns
         -------
         tuple[Expression, Expression]
@@ -368,23 +368,23 @@ class Expression:
 
     def substitute(self, target: Variable, replacement: Expression | Variable) -> Expression:
         """Substitute a variable with an expression or another variable.
-        
+
         Parameters
         ----------
         target : Variable
             The variable to replace.
         replacement : Expression | Variable
             The expression or variable to substitute in place of target.
-            
+
         Returns
         -------
         Expression
             New expression with the substitution applied.
-            
+
         Examples
         --------
         >>> x, y, z = Variable("x"), Variable("y"), Variable("z")
-        >>> expr = 2*x + 3*y
+        >>> expr = 2 * x + 3 * y
         >>> new_expr = expr.substitute(x, z + 1)  # Replace x with z+1
         """
         from luna_model.variable import Variable  # noqa: PLC0415
@@ -398,12 +398,12 @@ class Expression:
 
     def evaluate(self, solution: Solution) -> NDArray:
         """Evaluate the expression using variable values from a solution.
-        
+
         Parameters
         ----------
         solution : Solution
             The solution containing variable assignments.
-            
+
         Returns
         -------
         NDArray
@@ -413,14 +413,14 @@ class Expression:
 
     def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         """Encode the expression to bytes for serialization.
-        
+
         Parameters
         ----------
         compress : bool | None, optional
             Whether to compress the data, by default True.
         level : int | None, optional
             Compression level (0-9), by default 3.
-            
+
         Returns
         -------
         bytes
@@ -430,14 +430,14 @@ class Expression:
 
     def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
         """Serialize the expression to bytes. Alias for encode.
-        
+
         Parameters
         ----------
         compress : bool | None, optional
             Whether to compress the data, by default True.
         level : int | None, optional
             Compression level (0-9), by default 3.
-            
+
         Returns
         -------
         bytes
@@ -448,14 +448,14 @@ class Expression:
     @classmethod
     def decode(cls, data: bytes, env: Environment) -> Expression:
         """Decode an expression from bytes.
-        
+
         Parameters
         ----------
         data : bytes
             Encoded expression data.
         env : Environment
             The environment to decode the expression into.
-            
+
         Returns
         -------
         Expression
@@ -466,14 +466,14 @@ class Expression:
     @classmethod
     def deserialize(cls, data: bytes, env: Environment) -> Expression:
         """Deserialize an expression from bytes. Alias for decode.
-        
+
         Parameters
         ----------
         data : bytes
             Serialized expression data.
         env : Environment
             The environment to deserialize into.
-            
+
         Returns
         -------
         Expression
@@ -484,12 +484,12 @@ class Expression:
     @classmethod
     def deep_clone_many(cls, exprs: list[Expression]) -> list[Expression]:
         """Deep clone multiple expressions, each with its own new environment.
-        
+
         Parameters
         ----------
         exprs : list[Expression]
             The expressions to clone.
-            
+
         Returns
         -------
         list[Expression]
@@ -675,8 +675,8 @@ class Expression:
         Examples
         --------
         >>> x = Variable("x")
-        >>> expr = x ** 2  # Quadratic
-        >>> expr = x ** 3  # Cubic
+        >>> expr = x**2  # Quadratic
+        >>> expr = x**3  # Cubic
         """
         return self._from_pyexpr(self._op(value, self._expr.__pow__))
 
@@ -803,7 +803,7 @@ class Expression:
         --------
         >>> x = Variable("x")
         >>> y = Variable("y")
-        >>> expr = 3*x + 2*y + 5
+        >>> expr = 3 * x + 2 * y + 5
         >>> str(expr)
         '3*x + 2*y + 5'
         """

@@ -35,11 +35,9 @@ class ConstraintCollection:
     >>> from luna_model import Variable
     >>> from luna_model.constraint import ConstraintCollection
     >>> x, y = Variable("x"), Variable("y")
-    >>> 
     >>> cc = ConstraintCollection()
     >>> cc += (x + y <= 10, "capacity")
     >>> cc += (x >= 0, "x_lower")
-    >>> 
     >>> print(len(cc))  # Number of constraints
     >>> constraint = cc["capacity"]  # Access by name
 
@@ -74,7 +72,7 @@ class ConstraintCollection:
 
     def add_constraint(self, constraint: Constraint, name: str | None = None) -> None:
         """Add a constraint to the collection.
-        
+
         Parameters
         ----------
         constraint : Constraint
@@ -86,7 +84,7 @@ class ConstraintCollection:
 
     def items(self) -> ConstraintCollectionIter:
         """Get an iterator over (name, constraint) pairs.
-        
+
         Returns
         -------
         ConstraintCollectionIter
@@ -104,17 +102,17 @@ class ConstraintCollection:
 
     def get(self, name: str) -> Constraint:
         """Get a constraint by name.
-        
+
         Parameters
         ----------
         name : str
             The name of the constraint.
-            
+
         Returns
         -------
         Constraint
             The constraint with the given name.
-            
+
         Raises
         ------
         KeyError
@@ -124,12 +122,12 @@ class ConstraintCollection:
 
     def remove(self, name: str) -> None:
         """Remove a constraint by name.
-        
+
         Parameters
         ----------
         name : str
             The name of the constraint to remove.
-            
+
         Raises
         ------
         KeyError
@@ -143,7 +141,7 @@ class ConstraintCollection:
 
     def ctypes(self) -> list[Comparator]:
         """Get the comparator types of all constraints.
-        
+
         Returns
         -------
         list[Comparator]
@@ -163,12 +161,12 @@ class ConstraintCollection:
 
     def __iadd__(self, other: Constraint | tuple[Constraint, str]) -> Self:
         """Add a constraint using += operator.
-        
+
         Parameters
         ----------
         other : Constraint | tuple[Constraint, str]
             Either a Constraint or a (Constraint, name) tuple.
-            
+
         Returns
         -------
         Self
@@ -186,12 +184,12 @@ class ConstraintCollection:
 
     def __getitem__(self, key: str) -> Constraint:
         """Get a constraint by name using indexing.
-        
+
         Parameters
         ----------
         key : str
             The constraint name.
-            
+
         Returns
         -------
         Constraint
@@ -201,7 +199,7 @@ class ConstraintCollection:
 
     def __setitem__(self, key: str, value: Constraint) -> None:
         """Set a constraint by name using indexing.
-        
+
         Parameters
         ----------
         key : str
@@ -213,7 +211,7 @@ class ConstraintCollection:
 
     def __len__(self) -> int:
         """Get the number of constraints in the collection.
-        
+
         Returns
         -------
         int
@@ -227,7 +225,7 @@ class ConstraintCollection:
 
     def __iter__(self) -> ConstraintCollectionIter:
         """Iterate over (name, constraint) pairs.
-        
+
         Returns
         -------
         ConstraintCollectionIter

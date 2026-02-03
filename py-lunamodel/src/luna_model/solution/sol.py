@@ -158,7 +158,7 @@ class Solution:
     @property
     def obj_values(self) -> NDArray | None:
         """Get objective function values for each sample.
-        
+
         Returns
         -------
         NDArray | None
@@ -218,7 +218,7 @@ class Solution:
 
     def best(self) -> list[ResultView] | None:
         """Get the best results according to the optimization sense.
-        
+
         Returns
         -------
         list[ResultView] | None
@@ -228,14 +228,14 @@ class Solution:
 
     def cvar(self, alpha: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
         """Compute Conditional Value at Risk (CVaR).
-        
+
         Parameters
         ----------
         alpha : float
             Risk level (0 < alpha <= 1).
         value_toggle : ValueSource, optional
             Whether to use objective values or raw energies.
-            
+
         Returns
         -------
         float
@@ -249,12 +249,12 @@ class Solution:
 
     def expectation_value(self, value_toggle: ValueSource = ValueSource.OBJ) -> float:
         """Compute the expectation value weighted by counts.
-        
+
         Parameters
         ----------
         value_toggle : ValueSource, optional
             Whether to use objective values or raw energies.
-            
+
         Returns
         -------
         float
@@ -264,7 +264,7 @@ class Solution:
 
     def feasibility_ratio(self) -> float:
         """Compute the ratio of feasible samples.
-        
+
         Returns
         -------
         float
@@ -274,12 +274,12 @@ class Solution:
 
     def filter(self, f: FilterFn) -> Solution:
         """Filter results by a custom predicate function.
-        
+
         Parameters
         ----------
         f : FilterFn
             Function that takes a ResultView and returns bool.
-            
+
         Returns
         -------
         Solution
@@ -289,7 +289,7 @@ class Solution:
 
     def filter_feasible(self) -> Solution:
         """Filter to keep only feasible results.
-        
+
         Returns
         -------
         Solution

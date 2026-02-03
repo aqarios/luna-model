@@ -97,7 +97,7 @@ class Timer:
     @classmethod
     def start(cls) -> Timer:
         """Start a new timer.
-        
+
         Returns
         -------
         Timer
@@ -107,7 +107,7 @@ class Timer:
 
     def stop(self) -> Timing:
         """Stop the timer and return timing information.
-        
+
         Returns
         -------
         Timing
