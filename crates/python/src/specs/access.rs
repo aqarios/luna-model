@@ -39,6 +39,11 @@ impl PyModelSpecs {
     }
 
     #[getter]
+    fn constraints(&self) -> Option<Vec<Ctype>> {
+        self.s.constraints.map(|c| c.iter().collect())
+    }
+
+    #[getter]
     fn max_degree(&self) -> Option<usize> {
         self.s.max_degree
     }
@@ -53,8 +58,8 @@ impl PyModelSpecs {
         self.s.max_num_variables
     }
 
-    fn satisfies(&self, other: Self) -> bool {
-        self.s.satisfies(other.s)
+    fn satisfies(&self, other: &Self) -> bool {
+        self.s.satisfies(&other.s)
     }
 
     fn __str__(&self) -> String {

@@ -187,9 +187,11 @@ class BqmTranslator:
         -----
         If your model doesn't meet BQM requirements, apply transformations first:
 
-        >>> from luna_model.transformation import PassManager
-        >>> # Add necessary transformations
-        >>> # Then translate
+        .. code-block:: python
+
+            from luna_model.transformation import PassManager
+            # Add necessary transformations
+            # Then translate
         """
         if not _DIMOD_AVAILABLE:
             msg = "dimod is required for the BqmTranslator. You can install it using the 'dimod' extra."

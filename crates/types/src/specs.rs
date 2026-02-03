@@ -79,7 +79,7 @@ impl Specs {
     /// If other's spec is `None` we don't care what `self` defines. In the other case
     /// it is not ok. E.g., when `self` does not specify a sense, but `other` does, then
     /// `self` does not satify `other`.
-    pub fn satisfies(&self, other: Self) -> bool {
+    pub fn satisfies(&self, other: &Self) -> bool {
         if !check_spec_eq(self.sense, other.sense) {
             return false;
         }
