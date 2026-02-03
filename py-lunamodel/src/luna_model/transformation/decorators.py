@@ -175,28 +175,10 @@ def analyse(
     Create a simple analysis pass:
 
     >>> from luna_model.transformation import analyse
+    >>> 
     >>> @analyse(name="count-variables")
     ... def count_vars(model, cache):
     ...     return model.num_variables()
-
-    Create an analysis that depends on another:
-
-    >>> @analyse(name="variable-stats", requires=["count-variables"])
-    ... def analyze_variables(model, cache):
-    ...     count = cache["count-variables"]
-    ...     return {
-    ...         "count": count,
-    ...         "binary": model.specs().num_binary,
-    ...         "integer": model.specs().num_integer,
-    ...     }
-
-    Use in a PassManager:
-
-    >>> from luna_model.transformation import PassManager
-    >>> pm = PassManager([count_vars, analyze_variables])
-    >>> result = pm.run(model)
-    >>> stats = result.cache["variable-stats"]
-    >>> print(f"Total variables: {stats['count']}")
 
     Notes
     -----
@@ -298,39 +280,11 @@ def transform(
     Create a simple transformation:
 
     >>> from luna_model.transformation import transform, ActionType
+    >>> 
     >>> @transform(name="scale-objective")
     ... def scale_obj(model, cache):
     ...     model.objective = model.objective * 2.0
-    ...     return model, ActionType.MODIFIED
-
-    Create a transformation with backwards mapping:
-
-    >>> def backwards_map(solution, cache):
-    ...     # Map solution back to original variable space
-    ...     return solution
-    >>> @transform(
-    ...     name="add-slack-variables",
-    ...     requires=["constraint-analysis"],
-    ...     invalidates=["variable-count"],
-    ...     backwards=backwards_map,
-    ... )
-    ... def add_slack(model, cache):
-    ...     # Add slack variables to constraints
-    ...     for i, constraint in enumerate(model.constraints):
-    ...         slack = model.add_variable(f"slack_{i}", vtype=Vtype.REAL, lower=0)
-    ...         # Modify constraint to include slack
-    ...     return model, ActionType.MODIFIED
-
-    Conditional transformation based on analysis:
-
-    >>> @transform(name="simplify-if-small", requires=["variable-count"])
-    ... def conditional_simplify(model, cache):
-    ...     var_count = cache["variable-count"]
-    ...     if var_count < 100:
-    ...         # Apply aggressive simplification
-    ...         model = simplify_model(model)
-    ...         return model, ActionType.MODIFIED
-    ...     return model, ActionType.UNCHANGED
+    ...     return model, ActionType.DID_TRANSFORM
 
     Notes
     -----
@@ -342,9 +296,12 @@ def transform(
 
     The ``ActionType`` indicates what happened:
 
-    - ``ActionType.UNCHANGED``: Model was not modified
-    - ``ActionType.MODIFIED``: Model was modified in-place
-    - ``ActionType.REPLACED``: A new model instance was returned
+    - ``ActionType.DID_TRANSFORM``: Pass transformed the model
+    - ``ActionType.DID_ANALYSIS``: Pass analyzed the model
+    - ``ActionType.DID_ANALYSIS_TRANSFORM``: Pass analyzed and transformed
+    - ``ActionType.DID_NOTHING``: Pass did nothing
+    - ``ActionType.DID_IF_ELSE``: Conditional pass executed
+    - ``ActionType.DID_PIPELINE``: Pipeline pass executed
 
     The backwards function is crucial when transformations change the variable space
     (e.g., adding/removing variables, changing variable types). It ensures solutions
