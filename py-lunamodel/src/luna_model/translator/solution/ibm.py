@@ -63,7 +63,7 @@ class IbmTranslator:
         timing : Timing | None, optional
             Timing information for the solution process.
         env : Environment | None, optional
-            Environment for variable mapping.
+            Environment for variable mapping. Required either as parameter or active context.
 
         Returns
         -------
@@ -77,7 +77,10 @@ class IbmTranslator:
 
         Examples
         --------
-        >>> solution = IbmTranslator.to_lm(result.min_eigen_solver_result, qp)
+        >>> from luna_model import Environment
+        >>> with Environment():
+        ...     # Create variables in environment
+        ...     solution = IbmTranslator.to_lm(result.min_eigen_solver_result, qp)
         >>> print(solution.best())
 
         Notes

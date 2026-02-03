@@ -46,7 +46,7 @@ class AwsTranslator:
         timing : Timing | None, optional
             Timing information for the solution process.
         env : Environment | None, optional
-            Environment for variable mapping.
+            Environment for variable mapping. Required either as parameter or active context.
 
         Returns
         -------
@@ -56,8 +56,11 @@ class AwsTranslator:
         Examples
         --------
         >>> import numpy as np
+        >>> from luna_model import Environment
         >>> aws_result = {"samples": np.array([[0, 1], [1, 0]]), "energies": np.array([-2.5, -1.0])}
-        >>> solution = AwsTranslator.to_lm(aws_result)
+        >>> with Environment() as env:
+        ...     # Create variables in environment
+        ...     solution = AwsTranslator.to_lm(aws_result)
         """
         sol_agg = aws_result["samples"].astype(np.float64, order="C")
         counts = np.ones(sol_agg.shape[0], dtype=np.int64)

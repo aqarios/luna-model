@@ -61,8 +61,8 @@ class ZibTranslator:
         timing : Timing | None, optional
             Timing information for the solution process.
         env : Environment | None, optional
-            Environment for variable filtering. If provided, only variables
-            in the environment are included.
+            Environment for variable filtering. Required either as parameter or active context.
+            Only variables in the environment are included in the solution.
 
         Returns
         -------
@@ -77,11 +77,13 @@ class ZibTranslator:
         Examples
         --------
         >>> from pyscipopt import Model as ScipModel
+        >>> from luna_model import Environment
         >>> scip = ScipModel()
-        >>> x = scip.addVar("x", lb=0, ub=10, vtype="I")
-        >>> scip.setObjective(3 * x, "maximize")
-        >>> scip.optimize()
-        >>> solution = ZibTranslator.to_lm(scip)
+        >>> with Environment():
+        ...     x = scip.addVar("x", lb=0, ub=10, vtype="I")
+        ...     scip.setObjective(3 * x, "maximize")
+        ...     scip.optimize()
+        ...     solution = ZibTranslator.to_lm(scip)
         """
         if not _SCIP_AVAILABLE:
             msg = "scip is required for the ZibTranslator. You can install it using the 'scip' extra."

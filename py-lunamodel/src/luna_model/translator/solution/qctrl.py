@@ -50,7 +50,7 @@ class QctrlTranslator:
         timing : Timing | None, optional
             Timing information for the solution process.
         env : Environment | None, optional
-            Environment for variable mapping.
+            Environment for variable mapping. Required either as parameter or active context.
 
         Returns
         -------
@@ -59,11 +59,14 @@ class QctrlTranslator:
 
         Examples
         --------
+        >>> from luna_model import Environment
         >>> qctrl_result = {
         ...     "final_bitstring_distribution": {"00": 10, "01": 25},
         ...     "variables_to_bitstring_index_map": {"x[0]": 0, "y[1]": 1},
         ... }
-        >>> solution = QctrlTranslator.to_lm(qctrl_result)
+        >>> with Environment():
+        ...     # Create variables in environment
+        ...     solution = QctrlTranslator.to_lm(qctrl_result)
 
         Notes
         -----

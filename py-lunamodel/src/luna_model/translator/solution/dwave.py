@@ -63,7 +63,7 @@ class DwaveTranslator:
         timing : Timing | None, optional
             Timing information for the solution process.
         env : Environment | None, optional
-            Environment for variable mapping.
+            Environment for variable mapping. Required either as parameter or active context.
 
         Returns
         -------
@@ -77,7 +77,11 @@ class DwaveTranslator:
 
         Examples
         --------
-        >>> solution = DwaveTranslator.to_lm(sampleset)
+        >>> from luna_model import Environment
+        >>> # Assuming sampleset is obtained from D-Wave sampler
+        >>> with Environment():
+        ...     # Create variables in environment
+        ...     solution = DwaveTranslator.to_lm(sampleset)
         >>> print(f"Best energy: {solution.best_energy()}")
         """
         if not _DIMOD_AVAILABLE:

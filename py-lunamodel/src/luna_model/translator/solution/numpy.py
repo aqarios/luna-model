@@ -50,7 +50,7 @@ class NumpyTranslator:
         timing : Timing | None, optional
             Timing information for the solution process.
         env : Environment | None, optional
-            Environment for mapping array indices to variable names.
+            Environment for mapping array indices to variable names. Required either as parameter or active context.
 
         Returns
         -------
@@ -60,9 +60,12 @@ class NumpyTranslator:
         Examples
         --------
         >>> import numpy as np
+        >>> from luna_model import Environment, Variable
         >>> samples = np.array([[1, 0, 1], [0, 1, 1]])
         >>> energies = np.array([-5.0, -3.0])
-        >>> solution = NumpyTranslator.to_lm(samples, energies)
+        >>> with Environment():
+        ...     x, y, z = Variable("x"), Variable("y"), Variable("z")
+        ...     solution = NumpyTranslator.to_lm(samples, energies)
         """
         data = result.astype(np.float64, order="C")
         energies = energies.astype(np.float64, order="C")
