@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, overload
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from luna_model.variable import Variable
 
 
@@ -33,7 +35,7 @@ class Sample(Protocol):
 class Samples(Protocol):
     """Samples."""
 
-    def tolist(self) -> list[list[int | float]]:
+    def tolist(self) -> Sequence[Sequence[int | float]]:
         """Placeholding docsting."""
         ...
 

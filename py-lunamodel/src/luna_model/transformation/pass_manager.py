@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from luna_model._lm import PyPassManager
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
@@ -21,7 +23,7 @@ class PassManager:
 
     _pm: PyPassManager
 
-    def __init__(self, passes: list[BasePass | TransformationPass | AnalysisPass] | None = None) -> None:
+    def __init__(self, passes: Sequence[BasePass | TransformationPass | AnalysisPass] | None = None) -> None:
         """Manage and execute a sequence of passes on a model.
 
         The PassManager implements a compiler-style pass pattern, enabling both
