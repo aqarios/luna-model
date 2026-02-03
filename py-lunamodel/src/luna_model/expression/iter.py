@@ -37,11 +37,13 @@ class Linear:
 
     Examples
     --------
-    >>> x = Variable("x")
-    >>> expr = 3 * x + 5
-    >>> for term, coeff in expr.items():
-    ...     if isinstance(term, Linear):
-    ...         print(f"Linear term: {coeff}*{term.var.name}")
+    >>> from luna_model import Variable, Environment
+    >>> with Environment():
+    ...     x = Variable("x")
+    ...     expr = 3 * x + 5
+    ...     for term, coeff in expr.items():
+    ...         if isinstance(term, Linear):
+    ...             print(f"Linear term: {coeff}*{term.var.name}")
     """
 
     _l: PyLinear
@@ -81,11 +83,13 @@ class Quadratic:
 
     Examples
     --------
-    >>> x, y = Variable("x"), Variable("y")
-    >>> expr = x * y + 2
-    >>> for term, coeff in expr.items():
-    ...     if isinstance(term, Quadratic):
-    ...         print(f"Quadratic: {coeff}*{term.var_a.name}*{term.var_b.name}")
+    >>> from luna_model import Variable, Environment
+    >>> with Environment():
+    ...     x, y = Variable("x"), Variable("y")
+    ...     expr = x * y + 2
+    ...     for term, coeff in expr.items():
+    ...         if isinstance(term, Quadratic):
+    ...             print(f"Quadratic: {coeff}*{term.var_a.name}*{term.var_b.name}")
     """
 
     _q: PyQuadratic
@@ -134,12 +138,14 @@ class HigherOrder:
 
     Examples
     --------
-    >>> x, y, z = Variable("x"), Variable("y"), Variable("z")
-    >>> expr = x * y * z
-    >>> for term, coeff in expr.items():
-    ...     if isinstance(term, HigherOrder):
-    ...         var_names = [v.name for v in term.vars]
-    ...         print(f"Higher-order: {coeff}*{'*'.join(var_names)}")
+    >>> from luna_model import Variable, Environment
+    >>> with Environment():
+    ...     x, y, z = Variable("x"), Variable("y"), Variable("z")
+    ...     expr = x * y * z
+    ...     for term, coeff in expr.items():
+    ...         if isinstance(term, HigherOrder):
+    ...             var_names = [v.name for v in term.vars]
+    ...             print(f"Higher-order: {coeff}*{'*'.join(var_names)}")
     """
 
     _h: PyHigherOrder
@@ -173,10 +179,12 @@ class ExprIter:
 
     Examples
     --------
-    >>> x, y = Variable("x"), Variable("y")
-    >>> expr = 3 * x + 2 * x * y + 5
-    >>> for term, coeff in expr.items():
-    ...     print(f"Coefficient: {coeff}, Term type: {type(term).__name__}")
+    >>> from luna_model import Variable, Environment
+    >>> with Environment():
+    ...     x, y = Variable("x"), Variable("y")
+    ...     expr = 3 * x + 2 * x * y + 5
+    ...     for term, coeff in expr.items():
+    ...         print(f"Coefficient: {coeff}, Term type: {type(term).__name__}")
 
     See Also
     --------
