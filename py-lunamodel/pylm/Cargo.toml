@@ -1,6 +1,6 @@
 [package]
 name = "pylm"
-version = "0.5.0-alpha1484+bf5c2c0e"
+version = "0.5.0-alpha1487+fbb23fe1"
 authors.workspace = true
 edition.workspace = true
 description.workspace = true
