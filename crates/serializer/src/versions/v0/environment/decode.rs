@@ -1,4 +1,5 @@
 use hashbrown::HashMap;
+use indexmap::IndexMap;
 use lunamodel_core::{
     Environment,
     prelude::{LazyBounds, Variable},
@@ -26,8 +27,12 @@ impl SerEnvironment {
         self.extract_spin(&mut variables, &mut lookup);
         self.extract_int(&mut variables, &mut lookup);
         self.extract_real(&mut variables, &mut lookup);
-        let ivs = variables.into_iter().collect();
-        Environment::new(ivs, lookup, self.next_idx)
+        let ivs: IndexMap<u32, Variable> = variables.into_iter().collect();
+        let nxt_idx = match self.next_idx {
+            Some(idx) => idx,
+            None => *ivs.keys().max().unwrap() + 1,
+        };
+        Environment::new(ivs, lookup, nxt_idx)
     }
 
     fn extract_bin(

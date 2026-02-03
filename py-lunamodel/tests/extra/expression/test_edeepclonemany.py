@@ -3,12 +3,13 @@ from luna_model import Expression, Environment, Variable
 from luna_model.errors import DifferentEnvsError
 
 def test_same_env():
-    with Environment():
+    env = Environment()
+    with env:
         a = Variable("a")
         b = Variable("b")
         c = Variable("c")
         d = Variable("d")
-    
+
     expr_a = a * b
     expr_b = a * c
     expr_c = b * d

@@ -15,7 +15,7 @@ impl BytesEncodable for SerEnvironment {
 impl SerEnvironment {
     pub fn fill(mut self, env: &Environment) -> Self {
         self.varcount = env.len() as u32;
-        self.next_idx = env.next_idx();
+        self.next_idx = Some(env.next_idx());
 
         for idx in env.vars() {
             let var = &env[idx];

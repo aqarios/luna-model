@@ -14,8 +14,8 @@ pub struct SerEnvironment {
     #[prost(uint32, tag = "2")]
     varcount: u32,
     /// The length of the variables vector.
-    #[prost(uint32, tag = "20")]
-    next_idx: u32,
+    #[prost(uint32, optional, tag = "20")]
+    next_idx: Option<u32>,
 
     /// The indices of the binary variables.
     #[prost(uint32, repeated, tag = "3")]
