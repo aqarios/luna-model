@@ -1,10 +1,16 @@
 from __future__ import annotations
 
+import sys
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
+
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, overload
 
 from numpy import ndarray
-from typing_extensions import deprecated
 
 from luna_model._lm import PyModel
 from luna_model._utils import wrap_cc, wrap_env, wrap_expr, wrap_s, wrap_sp, wrap_var

@@ -13,10 +13,14 @@
 # limitations under the License.
 """Decorators."""
 
+import sys
 from collections.abc import Callable
 from typing import Any, Generic, TypeAlias, TypeVar
 
-from typing_extensions import override
+if sys.version_info < (3, 12):
+    from typing_extensions import override
+else:
+    from typing import override
 
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
