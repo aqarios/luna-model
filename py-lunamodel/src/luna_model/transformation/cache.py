@@ -64,7 +64,7 @@ class AnalysisCache:
     @overload
     def __getitem__(self, key: Literal["binary-spin"]) -> BinarySpinInfo: ...
     @overload
-    def __getitem__(self, key: str) -> Any | IfElseInfo: ...  # noqa: ANN401
+    def __getitem__(self, key: str) -> Any: ...  # noqa: ANN401
     def __getitem__(self, key: str) -> Any:
         """Get the cache item for the key."""
         return self._ac[key]
