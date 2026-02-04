@@ -561,6 +561,7 @@ name = "luna-model"
 source = { editable = "." }
 dependencies = [
     { name = "numpy" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 
 [package.optional-dependencies]
@@ -608,6 +609,7 @@ requires-dist = [
     { name = "pyscipopt", marker = "extra == 'scip'", specifier = ">=6.0.0" },
     { name = "qiskit", marker = "extra == 'qiskit'", specifier = ">=2.1.2" },
     { name = "qiskit-optimization", marker = "extra == 'qiskit'", specifier = ">=0.6.1" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'", specifier = ">=4.15.0" },
 ]
 provides-extras = ["dimod", "qiskit", "scip"]
 
