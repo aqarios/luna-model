@@ -115,67 +115,69 @@ impl SerSolution {
         let (mut nbins, mut nspins, mut nints, mut nreals) = (0, 0, 0, 0);
         let num_samples = self.num_samples as usize;
 
-        let bin_step: usize = self.bins.len() / num_samples;
-        let spin_step: usize = self.spins.len() / num_samples;
-        let int_step: usize = self.ints.len() / num_samples;
-        let real_step: usize = self.reals.len() / num_samples;
+        if num_samples != 0 {
+            let bin_step: usize = self.bins.len() / num_samples;
+            let spin_step: usize = self.spins.len() / num_samples;
+            let int_step: usize = self.ints.len() / num_samples;
+            let real_step: usize = self.reals.len() / num_samples;
 
-        for (varname, st) in self.variable_names.iter().zip(self.sample_types) {
-            let vtype = u8_to_vtype(st);
-            if vtype.is_none() {
-                continue;
+            for (varname, st) in self.variable_names.iter().zip(self.sample_types) {
+                let vtype = u8_to_vtype(st);
+                if vtype.is_none() {
+                    continue;
+                }
+                match vtype.unwrap() {
+                    Vtype::Binary => {
+                        sol.add_binary(
+                            varname.clone(),
+                            self.bins
+                                .iter()
+                                .skip(nbins)
+                                .step_by(bin_step)
+                                .map(|&e| e as f64)
+                                .collect(),
+                        );
+                        nbins += 1;
+                    }
+                    Vtype::Spin => {
+                        sol.add_spin(
+                            varname.clone(),
+                            self.spins // [start_idx..end_idx]
+                                .iter()
+                                .skip(nspins)
+                                .step_by(spin_step)
+                                .map(|&e| e as f64)
+                                .collect(),
+                        );
+                        nspins += 1;
+                    }
+                    Vtype::Integer => {
+                        sol.add_integer(
+                            varname.clone(),
+                            self.ints
+                                .iter()
+                                .skip(nints)
+                                .step_by(int_step)
+                                .map(|&e| e as f64)
+                                .collect(),
+                        );
+                        nints += 1;
+                    }
+                    Vtype::Real => {
+                        sol.add_real(
+                            varname.clone(),
+                            self.reals
+                                .iter()
+                                .skip(nreals)
+                                .step_by(real_step)
+                                .map(|&e| e as f64)
+                                .collect(),
+                        );
+                        nreals += 1;
+                    }
+                    Vtype::InvertedBinary => (),
+                };
             }
-            match vtype.unwrap() {
-                Vtype::Binary => {
-                    sol.add_binary(
-                        varname.clone(),
-                        self.bins
-                            .iter()
-                            .skip(nbins)
-                            .step_by(bin_step)
-                            .map(|&e| e as f64)
-                            .collect(),
-                    );
-                    nbins += 1;
-                }
-                Vtype::Spin => {
-                    sol.add_spin(
-                        varname.clone(),
-                        self.spins // [start_idx..end_idx]
-                            .iter()
-                            .skip(nspins)
-                            .step_by(spin_step)
-                            .map(|&e| e as f64)
-                            .collect(),
-                    );
-                    nspins += 1;
-                }
-                Vtype::Integer => {
-                    sol.add_integer(
-                        varname.clone(),
-                        self.ints
-                            .iter()
-                            .skip(nints)
-                            .step_by(int_step)
-                            .map(|&e| e as f64)
-                            .collect(),
-                    );
-                    nints += 1;
-                }
-                Vtype::Real => {
-                    sol.add_real(
-                        varname.clone(),
-                        self.reals
-                            .iter()
-                            .skip(nreals)
-                            .step_by(real_step)
-                            .map(|&e| e as f64)
-                            .collect(),
-                    );
-                    nreals += 1;
-                }
-                Vtype::InvertedBinary => (),
-            };
         }
 
         sol.counts = self.counts.iter().map(|&c| c as usize).collect();
@@ -274,4 +276,3 @@ impl SerSolution {
         Ok(sol)
     }
 }
-

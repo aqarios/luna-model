@@ -30,7 +30,10 @@ impl SerEnvironment {
         let ivs: IndexMap<u32, Variable> = variables.into_iter().collect();
         let nxt_idx = match self.next_idx {
             Some(idx) => idx,
-            None => *ivs.keys().max().unwrap() + 1,
+            None => match ivs.keys().max() {
+                Some(val) => val + 1,
+                None => 0,
+            },
         };
         Environment::new(ivs, lookup, nxt_idx)
     }

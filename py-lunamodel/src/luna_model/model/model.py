@@ -8,11 +8,11 @@ else:
     from warnings import deprecated
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, overload
+from typing import TYPE_CHECKING, Any, Literal, Protocol, overload
 
 from numpy import ndarray
 
-from luna_model._lm import PyModel
+from luna_model._lm import PyModel, PyModelMetadata
 from luna_model._utils import wrap_cc, wrap_env, wrap_expr, wrap_s, wrap_sp, wrap_var
 from luna_model.expression.expr import Expression
 from luna_model.model.sense import Sense
@@ -1095,3 +1095,45 @@ class Model:
         but is not guaranteed to be stable across versions.
         """
         return self._m.__repr__()
+
+    class _ModelMetadata(PyModelMetadata):
+        def __len__(self) -> int:
+            return super().__len__()
+
+        def __contains__(self, key: str) -> bool:
+            return super().__contains__(key)
+
+        def __getitem__(self, key: str) -> Any:  # noqa: ANN401
+            return super().__getitem__(key)
+
+        def __setitem__(self, key: str, value: Any) -> None:  # noqa: ANN401
+            return super().__setitem__(key, value)
+
+        def __delitem__(self, key: str) -> None:
+            return super().__delitem__(key)
+
+        def __str__(self) -> str:
+            return super().__str__()
+
+        def __repr__(self) -> str:
+            return super().__repr__()
+
+        def get_item(self, key: str) -> Any:  # noqa: ANN401
+            return super().get_item(key)
+
+        def set_item(self, key: str, value: Any) -> None:  # noqa: ANN401
+            return super().set_item(key, value)
+
+        def del_item(self, key: str) -> None:
+            return super().del_item(key)
+
+        def to_dict(self) -> dict[str, Any]:
+            return super().to_dict()
+
+    @property
+    def _metadata(self) -> _ModelMetadata:
+        return self._m._metadata
+
+    @_metadata.setter
+    def _metadata(self, value: _ModelMetadata) -> None:
+        self._m._metadata = value

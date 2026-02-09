@@ -25,6 +25,7 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyEnvironment>()?;
     m.add_class::<PyBounds>()?;
     m.add_class::<PyModel>()?;
+    m.add_class::<PyModelMetadata>()?;
     m.add_class::<PyConstraint>()?;
     m.add_class::<PyModelSpecs>()?;
     m.add_class::<PyConstraintCollection>()?;

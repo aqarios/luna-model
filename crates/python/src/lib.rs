@@ -23,7 +23,7 @@ pub use expression::{
     PyConstant, PyExprContent, PyExpression, PyExpressionIterator, PyHigherOrder, PyLinear,
     PyQuadratic,
 };
-pub use model::PyModel;
+pub use model::{PyModel, PyModelMetadata};
 pub use sol::PySolution;
 pub use specs::PyModelSpecs;
 pub use timer::{PyTimer, PyTiming};
