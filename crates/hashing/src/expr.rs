@@ -62,9 +62,9 @@ pub struct HashExpr {
 impl HashExpr {
     pub fn build(expr: &Expression) -> Vec<u8> {
         let maxidx = *expr.vars().map(|v| v.id()).max().get_or_insert(0) as usize;
-        let num_vars = match maxidx {
+        let num_vars = match expr.num_vars() {
             0 => 0,
-            m => m + 1,
+            _ => maxidx + 1,
         };
 
         let mut linear = vec![0.0; num_vars];
