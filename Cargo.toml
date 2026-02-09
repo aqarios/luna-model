@@ -12,7 +12,7 @@ default-members = [
 ]
 
 [workspace.package]
-version = "0.5.0-alpha1"
+version = "0.5.0"
 authors = [
   "Jonas Blenninger <jonas.blenninger@aqarios.com>",
   "David Bucher <david.bucher@aqarios.com>",
