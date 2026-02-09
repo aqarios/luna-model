@@ -3,6 +3,7 @@ exclude = [
     ".local",
     "tests",
     "examples",
+    "docs",
 ]
 
 target-version = "py311"
