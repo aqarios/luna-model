@@ -10,7 +10,7 @@ dynamic = ["version", "description"]
 authors = [
     { name = "Aqarios GmbH", email = "pypi@aqarios.com" },
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.15"
 dependencies = [
     "numpy>=1.0.0",
     "typing-extensions>=4.15.0; python_version < '3.13'",
@@ -26,7 +26,6 @@ keywords = [
 # todo: check these values.
 classifiers = [
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: Apache Software License",
   "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering",
 ]
@@ -59,7 +58,6 @@ include = [
     "src/luna_model/**/*.pyi",
     "src/luna_model/**/*.py",
     "src/luna_model/py.typed",
-    "assets/luna_model_logo.svg",
 ]
 exclude = [
     "**/__pycache__",

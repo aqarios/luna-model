@@ -1,9 +1,0 @@
-<svg width="300" height="80" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Onest:wght@700&amp;display=swap');
-  </style>
-  <text font-family="'Onest', sans-serif" font-weight="bold" fill="#a855f7">
-    <tspan x="10" y="60" font-size="48">luna</tspan>
-    <tspan font-size="29" dy="-20">MODEL</tspan>
-  </text>
-</svg>
