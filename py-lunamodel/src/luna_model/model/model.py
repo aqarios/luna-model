@@ -8,7 +8,7 @@ else:
     from warnings import deprecated
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Protocol, overload
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 from numpy import ndarray
 
