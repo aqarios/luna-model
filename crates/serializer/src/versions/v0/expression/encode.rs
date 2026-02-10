@@ -33,7 +33,6 @@ impl SerExpression {
             expr,
         );
         Self::fill_active(&mut self.active, expr);
-        dbg!(&self);
         self
     }
 
@@ -60,7 +59,6 @@ impl SerExpression {
                     linear.push(0.0);
                 }
             }
-            dbg!(u, diff, &linear);
             linear[u as usize] = b;
         }
     }

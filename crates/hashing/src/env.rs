@@ -124,7 +124,6 @@ impl HashEnv {
                 }
             }
         }
-        // dbg!(&e);
         e.encode_to_vec()
     }
 }

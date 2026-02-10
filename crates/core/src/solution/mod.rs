@@ -102,16 +102,6 @@ impl PartialEq for Solution {
                 return false;
             }
         }
-        // dbg!(self.samples == other.samples);
-        // dbg!(self.timing == other.timing);
-        // dbg!(self.sense == other.sense);
-        // dbg!(self.counts == other.counts);
-        // dbg!(self.raw_energies == other.raw_energies);
-        // dbg!(self.obj_values == other.obj_values);
-        // dbg!(&self.feasible);
-        // dbg!(&other.feasible);
-        // dbg!(self.feasible == other.feasible);
-
         let feasible_eq = match (&self.feasible, &other.feasible) {
             (Some(slf), Some(otr)) => slf == otr,
             (Some(slf), None) => slf.is_empty(),
@@ -119,10 +109,8 @@ impl PartialEq for Solution {
             (None, None) => true,
         };
 
-        // variable_bounds: HashMap<String, Vec<bool>>,
         self.samples == other.samples
             && self.timing == other.timing
-            // && self.n_samples == other.n_samples
             && self.sense == other.sense
             && self.counts == other.counts
             && self.raw_energies == other.raw_energies

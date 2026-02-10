@@ -83,8 +83,6 @@ impl SerEnvironment {
             }
         }
 
-        dbg!(&self);
-
         self
     }
 }

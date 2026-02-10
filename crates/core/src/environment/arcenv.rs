@@ -133,19 +133,5 @@ impl ContentEquality for ArcEnv {
             }
         }
         true
-        // let slf = &self.env.read_arc();
-        // let otr = &other.env.read_arc();
-
-        // // dbg!(&slf);
-        // // dbg!(&otr);
-
-        // let nxt_eq = slf.next_idx == otr.next_idx;
-        // // dbg!(nxt_eq);
-        // let vars_eq = slf.variables == otr.variables;
-        // // dbg!(vars_eq);
-        // let look_eq = slf.lookup == otr.lookup;
-        // // dbg!(look_eq);
-
-        // nxt_eq && vars_eq && look_eq
     }
 }

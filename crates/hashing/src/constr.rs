@@ -46,7 +46,6 @@ impl HashConstr {
             o.comparators.push(cmp);
             o.names.push(c.name().to_string());
         }
-        // dbg!(&o);
         o.encode_to_vec()
     }
 }

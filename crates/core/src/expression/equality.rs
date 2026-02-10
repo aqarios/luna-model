@@ -44,10 +44,6 @@ impl ContentEquality for Expression {
         if !self.env.equal_contents(&other.env) {
             return false;
         }
-        // dbg!(eok);
-        // let ook = self.offset == other.offset;
-        // dbg!(ook);
-
         for (vars, bias) in self.items() {
             match &vars[..] {
                 [] => {
@@ -95,13 +91,5 @@ impl ContentEquality for Expression {
         }
 
         true
-        // let lok = self.linear == other.linear;
-        // // dbg!(&self.linear, &other.linear);
-        // dbg!(lok);
-        // let qok = self.quadratic == other.quadratic;
-        // dbg!(qok);
-        // let hok = self.higher_order == other.higher_order;
-        // dbg!(hok);
-        // eok && ook && lok && qok && hok
     }
 }
