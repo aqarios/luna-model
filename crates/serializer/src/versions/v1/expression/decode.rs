@@ -59,7 +59,7 @@ impl SerExpression {
 
     fn decode_linear_old(&self) -> Linear {
         let mut lin = Linear::default();
-        for (idx, (&active, &bias)) in self.active.iter().zip(&self.linear).enumerate() {
+        for (idx, (&active, &bias)) in self.active.iter().zip(&self.linear_values).enumerate() {
             if !active {
                 continue;
             }
@@ -68,8 +68,19 @@ impl SerExpression {
         lin
     }
 
+    fn decode_linear_new(&self) -> Linear {
+        let mut lin = Linear::default();
+        for (&idx, &bias) in self.linear_indices.iter().zip(&self.linear_values) {
+            lin += (idx as u32, bias)
+        }
+        lin
+    }
+
     fn decode_linear(&self) -> Linear {
-        self.decode_linear_old()
+        match self.is_new {
+            true => self.decode_linear_new(),
+            false => self.decode_linear_old(),
+        }
     }
 
     /// Extracts the data from self to and instance of Expression with Index VarId and

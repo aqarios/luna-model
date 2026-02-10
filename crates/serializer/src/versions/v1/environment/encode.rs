@@ -15,8 +15,7 @@ impl BytesEncodable for SerEnvironment {
 impl SerEnvironment {
     pub fn fill(mut self, env: &Environment) -> Self {
         self.varcount = env.len() as u32;
-        self.variables_len = env.len() as u64;
-        // self.next_idx = Some(env.next_idx());
+        self.next_idx = Some(env.next_idx());
 
         for idx in env.vars() {
             let var = &env[idx];
@@ -24,19 +23,17 @@ impl SerEnvironment {
                 Vtype::Binary => {
                     self.binary.push(idx);
                     self.binary_names.push(var.name().into());
-                    // match var.inverted {
-                    //     Some(inv) => {
-                    //         self.binary_is_inverted.push(true);
-                    //         self.inverted_binary.push(inv);
-                    //     }
-                    //     None => self.binary_is_inverted.push(false),
-                    // }
+                    match var.inverted {
+                        Some(inv) => {
+                            self.binary_is_inverted.push(true);
+                            self.inverted_binary.push(inv);
+                        }
+                        None => self.binary_is_inverted.push(false),
+                    }
                 }
                 Vtype::InvertedBinary => {
-                    self.inverted_binary.push(idx);
-                    self.binary_names.push(var.name().into());
                     // taken care of in the Binary match.
-                    // continue;
+                    continue;
                 }
                 Vtype::Spin => {
                     self.spin.push(idx);
@@ -82,8 +79,6 @@ impl SerEnvironment {
                 }
             }
         }
-
-        dbg!(&self);
 
         self
     }

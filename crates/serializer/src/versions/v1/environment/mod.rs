@@ -1,5 +1,5 @@
-mod encode;
 mod decode;
+mod encode;
 
 use lunamodel_core::prelude::Environment;
 use prost::Message;
@@ -13,10 +13,16 @@ pub struct SerEnvironment {
     /// The number of variables registered in the environment.
     #[prost(uint32, tag = "2")]
     varcount: u32,
+    /// The length of the variables vector.
+    #[prost(uint32, optional, tag = "20")]
+    next_idx: Option<u32>,
 
     /// The indices of the binary variables.
     #[prost(uint32, repeated, tag = "3")]
     binary: Vec<u32>,
+    /// The indices of the binary variables.
+    #[prost(bool, repeated, tag = "23")]
+    binary_is_inverted: Vec<bool>,
     /// The indices of the inverted binary variables.
     #[prost(uint32, repeated, tag = "21")]
     inverted_binary: Vec<u32>,
@@ -33,9 +39,6 @@ pub struct SerEnvironment {
     /// The names of the binary variables
     #[prost(string, repeated, tag = "7")]
     binary_names: Vec<String>,
-    /// The names of the inverted binary variables
-    #[prost(string, repeated, tag = "22")]
-    inverted_binary_names: Vec<String>,
     /// The names of the spin variables
     #[prost(string, repeated, tag = "8")]
     spin_names: Vec<String>,
@@ -71,10 +74,6 @@ pub struct SerEnvironment {
     /// The reals' upper bounds.
     #[prost(double, repeated, tag = "18")]
     real_bounds_upper: Vec<f64>,
-
-    /// The length of the variables vector.
-    #[prost(uint64, tag = "19")]
-    variables_len: u64,
 }
 
 impl Creatable<Environment> for SerEnvironment {

@@ -21,16 +21,19 @@ impl BytesDecodable<Environment> for SerEnvironment {
 
 impl SerEnvironment {
     pub fn extract(&self) -> Environment {
-        let mut variables = HashMap::with_capacity(self.variables_len as usize);
-        let mut lookup = HashMap::with_capacity(self.variables_len as usize);
+        let mut variables = HashMap::with_capacity(self.varcount as usize);
+        let mut lookup = HashMap::with_capacity(self.varcount as usize);
         self.extract_bin(&mut variables, &mut lookup);
         self.extract_spin(&mut variables, &mut lookup);
         self.extract_int(&mut variables, &mut lookup);
         self.extract_real(&mut variables, &mut lookup);
         let ivs: IndexMap<u32, Variable> = variables.into_iter().collect();
-        let nxt_idx = match ivs.keys().max() {
-            Some(val) => val + 1,
-            None => 0,
+        let nxt_idx = match self.next_idx {
+            Some(idx) => idx,
+            None => match ivs.keys().max() {
+                Some(val) => val + 1,
+                None => 0,
+            },
         };
         Environment::new(ivs, lookup, nxt_idx)
     }
@@ -40,22 +43,17 @@ impl SerEnvironment {
         variables: &mut HashMap<VarIdx, Variable>,
         lookup: &mut HashMap<String, VarIdx>,
     ) {
-        // let mut inverted = VecDeque::from(self.inverted_binary.clone());
+        let mut inverted = VecDeque::from(self.inverted_binary.clone());
         for (i, vidx) in self.binary.iter().enumerate() {
             let name = self.binary_names[i].clone();
-            let var = Variable::new(&name, Vtype::Binary, None).unwrap();
-            variables.insert(*vidx, var);
-            lookup.insert(name, *vidx);
-        }
-
-        for (i, vidx) in self.inverted_binary.iter().enumerate() {
-            let name = self.inverted_binary_names[i].clone();
-            let mut var = Variable::new(&name, Vtype::InvertedBinary, None).unwrap();
-            if let Some(binidx) = lookup.get(&var.name().inverted().0) {
-                let binvar = variables.get_mut(binidx).unwrap();
-                binvar.inverted = Some(*vidx);
-                var.inverted = Some(*binidx);
-
+            let mut var = Variable::new(&name, Vtype::Binary, None).unwrap();
+            if !self.binary_is_inverted.is_empty() && self.binary_is_inverted[i] {
+                let inv = inverted.pop_front().unwrap();
+                var.inverted = Some(inv);
+                let invname = var.name().inverted();
+                let invvar = Variable::new(&invname, Vtype::InvertedBinary, None).unwrap();
+                variables.insert(inv, invvar);
+                lookup.insert(invname.into(), inv);
             }
             variables.insert(*vidx, var);
             lookup.insert(name, *vidx);

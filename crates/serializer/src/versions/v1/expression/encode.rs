@@ -14,9 +14,10 @@ impl BytesEncodable for SerExpression {
 
 impl SerExpression {
     pub fn fill(mut self, expr: &Expression) -> Self {
+        self.is_new = true;
         self.num_variables = expr.num_vars() as u32;
         self.offset = expr.offset;
-        Self::fill_linear(&mut self.linear, expr);
+        Self::fill_linear(&mut self.linear_indices, &mut self.linear_values, expr);
         Self::fill_quadratic(
             &mut self.quad_size,
             &mut self.quad_neighborhood_indices,
@@ -32,36 +33,13 @@ impl SerExpression {
             &mut self.ho_lens,
             expr,
         );
-        Self::fill_active(&mut self.active, expr);
-        dbg!(&self);
         self
     }
 
-    fn fill_active(active: &mut Vec<bool>, expr: &Expression) {
-        expr.vars().for_each(|b| {
-            let u = b.id() as usize;
-            let diff = u as isize - active.len() as isize;
-            if diff >= 0 {
-                // u is larger than linear. So we need to fill for diff + 1.
-                for _ in 0..(diff + 1) {
-                    active.push(false);
-                }
-            }
-            active[u] = true;
-        });
-    }
-
-    fn fill_linear(linear: &mut Vec<f64>, expr: &Expression) {
+    fn fill_linear(lin: &mut Vec<u32>, linvals: &mut Vec<f64>, expr: &Expression) {
         for (u, b) in expr.linear.iter() {
-            let diff = u as isize - linear.len() as isize;
-            if diff >= 0 {
-                // u is larger than linear. So we need to fill for diff + 1.
-                for _ in 0..(diff + 1) {
-                    linear.push(0.0);
-                }
-            }
-            dbg!(u, diff, &linear);
-            linear[u as usize] = b;
+            lin.push(u);
+            linvals.push(b);
         }
     }
 

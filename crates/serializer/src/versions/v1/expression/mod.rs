@@ -9,6 +9,9 @@ use crate::encode::Creatable;
 /// Representation of a bytes encodable/decodable Expression.
 #[derive(Clone, PartialEq, Message)]
 pub struct SerExpression {
+    #[prost(bool, tag = "19", default = false)]
+    is_new: bool,
+
     /// The number of variables in the expression.
     #[prost(uint32, tag = "1")]
     num_variables: u32,
@@ -22,7 +25,10 @@ pub struct SerExpression {
     offset: f64,
     /// The linear term of the expression.
     #[prost(double, repeated, tag = "4")]
-    linear: Vec<f64>,
+    linear_values: Vec<f64>,
+    /// The linear term indices of the expression.
+    #[prost(uint32, repeated, tag = "14")]
+    linear_indices: Vec<u32>,
     /// The size of the quadratic term. This is either 0 or equal to the number of
     /// variables in the expression.
     #[prost(uint32, tag = "5")]
