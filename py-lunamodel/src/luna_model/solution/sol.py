@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from numpy import ndarray
 
 from luna_model._lm import PySolution
+from luna_model.model.sense import Sense
 from luna_model.solution.src import ValueSource
 from luna_model.variable.vtype import Vtype
 
@@ -27,7 +28,6 @@ if TYPE_CHECKING:
     from luna_model._typing import FilterFn, SolutionFromTypes, _Sample
     from luna_model.environment.env import Environment
     from luna_model.model.model import Model
-    from luna_model.model.sense import Sense
     from luna_model.solution.res import ResultIter, ResultView
     from luna_model.solution.sample import Samples
     from luna_model.timer import Timing
@@ -202,7 +202,7 @@ class Solution:
     @property
     def sense(self) -> Sense:
         """Get sense."""
-        return self._s.sense
+        return Sense._from_pysense(self._s.sense)
 
     @property
     def results(self) -> ResultIter:

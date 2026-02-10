@@ -276,3 +276,24 @@ class ConstraintCollection:
     def __hash__(self) -> int:
         """Compute hash."""
         return self._cc.__hash__()
+
+    def __str__(self) -> str:
+        """Return human-readable string representation.
+
+        Returns
+        -------
+        str
+            String representation of the constraint collection.
+        """
+        return self._cc.__str__()
+
+    def __repr__(self) -> str:
+        """Return detailed string representation.
+
+        Returns
+        -------
+        str
+            Detailed representation of the constraint collection.
+        """
+        return self._cc.__repr__()
+

@@ -1,3 +1,4 @@
+use lunamodel_io::{CustomFormat, FormatOpt};
 use lunamodel_unwind::*;
 use pyo3::{
     PyResult,
@@ -88,11 +89,15 @@ impl PyTiming {
         }
     }
 
-    // fn __repr__(&self) -> String {
-    //     repr_timing(self)
-    // }
-
     fn __eq__(&self, other: &Self) -> bool {
         self.0 == other.0
+    }
+
+    fn __str__(&self) -> String {
+        format!("{}", self.0.format(FormatOpt::Py))
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0.format(FormatOpt::Py))
     }
 }

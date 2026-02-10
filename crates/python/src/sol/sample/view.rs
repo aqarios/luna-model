@@ -37,13 +37,24 @@ pub(super) enum PySampleIndex {
 #[unwindable]
 #[pymethods]
 impl PySampleView {
-    fn to_dict(&self) -> HashMap<String, f64> {
+    fn to_dict(&self, py: Python) -> PyResult<HashMap<String, Py<PyAny>>> {
         self.sol
             .s
             .read_arc()
             .samples
             .iter()
-            .map(|(varname, col)| (varname.clone(), col[self.idx]))
+            .map(|(varname, col)| {
+                let assignment = match col.as_assignment(self.idx) {
+                    Assignment::Binary(b) => b.into_py_any(py),
+                    Assignment::Spin(s) => s.into_py_any(py),
+                    Assignment::Integer(i) => i.into_py_any(py),
+                    Assignment::Real(r) => r.into_py_any(py),
+                };
+                match assignment {
+                    Ok(assignment) => Ok((varname.clone(), assignment)),
+                    Err(e) => Err(e),
+                }
+            })
             .collect()
     }
 
@@ -76,7 +87,7 @@ impl PySampleView {
         PySampleIterator::new(self.clone())
     }
 
-    fn __str__(&self) -> String {
+    pub fn __str__(&self) -> String {
         format!(
             "[{}]",
             self.sol

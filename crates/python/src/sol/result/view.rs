@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use lunamodel_unwind::*;
 use lunamodel_core::solution::result::ResultView;
-use pyo3::{pyclass, pymethods};
+use lunamodel_unwind::*;
+use pyo3::{pyclass, pymethods, PyResult};
 
 use super::super::sample::PySampleView;
 use crate::sol::PySolution;
@@ -62,5 +62,9 @@ impl PyResultView {
     #[getter]
     fn sample(&self) -> PySampleView {
         PySampleView::new(self.sol.clone(), self.idx)
+    }
+
+    fn __str__(&self) -> PyResult<String> {
+        PySampleView::new(self.sol.clone(), self.idx).__str__()
     }
 }

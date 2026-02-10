@@ -151,3 +151,23 @@ class ModelSpecs:
             True if this model satisfies all requirements in other.
         """
         return self._sp.satisfies(other._sp)
+
+    def __str__(self) -> str:
+        """Return human-readable string representation.
+
+        Returns
+        -------
+        str
+            String representation of the model specs.
+        """
+        return self._sp.__str__()
+
+    def __repr__(self) -> str:
+        """Return detailed string representation.
+
+        Returns
+        -------
+        str
+            Detailed representation of the model specs.
+        """
+        return self._sp.__repr__()

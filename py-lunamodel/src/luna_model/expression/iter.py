@@ -68,6 +68,16 @@ class Linear:
         lin._l = py_l
         return lin
 
+    def __str__(self) -> str:
+        """Return human-readable string representation.
+
+        Returns
+        -------
+        str
+            String representation of the linear term.
+        """
+        return self._l.__str__()
+
 
 class Quadratic:
     """Quadratic term in an expression.
@@ -125,6 +135,16 @@ class Quadratic:
         q._q = py_q
         return q
 
+    def __str__(self) -> str:
+        """Return human-readable string representation.
+
+        Returns
+        -------
+        str
+            String representation of the quadratic term.
+        """
+        return self._q.__str__()
+
 
 class HigherOrder:
     """Higher-order term in an expression.
@@ -169,6 +189,16 @@ class HigherOrder:
         h = cls.__new__(cls)
         h._h = py_h
         return h
+
+    def __str__(self) -> str:
+        """Return human-readable string representation.
+
+        Returns
+        -------
+        str
+            String representation of the higher-order term.
+        """
+        return self._h.__str__()
 
 
 class ExprIter:

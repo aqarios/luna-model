@@ -13,7 +13,7 @@ impl CustomFormat<FormatOpt> for VarRef {
                 let var: Option<Variable> = self.try_into().ok();
                 if let Some(var) = var {
                     let mut base = format!("{}: {}", var.name(), var.vtype());
-                    if !(var.vtype() == Vtype::Binary || var.vtype() == Vtype::Spin) {
+                    if !(var.vtype() == Vtype::Binary || var.vtype() == Vtype::Spin || var.vtype() == Vtype::InvertedBinary) {
                         match (var.bounds().lower(), var.bounds().upper()) {
                             (Bound::Bounded(l), Bound::Bounded(u)) => {
                                 base.push_str(&format!("(lower={l}, upper={u})"))

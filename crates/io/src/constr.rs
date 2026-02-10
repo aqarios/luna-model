@@ -25,7 +25,13 @@ impl CustomFormat<FormatOpt> for Constraint {
         }
     }
 
-    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, _: &FormatOpt) -> std::fmt::Result {
-        write!(fmt, "{:?}", self)
+    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
+        match format_type {
+            FormatOpt::Rs => write!(fmt, "{:?}", self),
+            #[cfg(feature = "py")]
+            FormatOpt::Py => self.fmt(fmt, &FormatOpt::Py),
+            #[cfg(feature = "py")]
+            FormatOpt::PySol(_) => unreachable!("cannot format Constraint for PySol opts"),
+        }
     }
 }

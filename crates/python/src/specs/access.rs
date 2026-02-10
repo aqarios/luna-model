@@ -61,8 +61,4 @@ impl PyModelSpecs {
     fn satisfies(&self, other: &Self) -> bool {
         self.s.satisfies(&other.s)
     }
-
-    fn __str__(&self) -> String {
-        self.s.to_string()
-    }
 }

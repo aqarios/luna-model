@@ -67,6 +67,16 @@ class Timing(Protocol):
         """Add time to the QPU counter."""
         ...
 
+    def __str__(self) -> str:
+        """Return human-readable string representation.
+
+        Returns
+        -------
+        str
+            String representation of the timing.
+        """
+        ...
+
 
 class Timer:
     """Timer for measuring execution time.
@@ -87,6 +97,10 @@ class Timer:
     """
 
     _t: PyTimer
+
+    def __init__(self) -> None:
+        msg = "cannot create 'Timer' instances directly, use 'Timer.start()'"
+        raise TypeError(msg)
 
     @classmethod
     def _from_pyt(cls, py_t: PyTimer) -> Timer:
