@@ -11,7 +11,7 @@ impl PyEnvironment {
         format!("{}", self.env.read_arc().format(FormatOpt::Py))
     }
 
-    fn __repr__(&self) -> String {
-        format!("{:?}", self.env.read_arc().format(FormatOpt::Py))
-    }
+    // fn __repr__(&self) -> String {
+    //     format!("{:?}", self.env.read_arc().format(FormatOpt::Py))
+    // }
 }

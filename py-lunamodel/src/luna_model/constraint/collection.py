@@ -286,14 +286,3 @@ class ConstraintCollection:
             String representation of the constraint collection.
         """
         return self._cc.__str__()
-
-    def __repr__(self) -> str:
-        """Return detailed string representation.
-
-        Returns
-        -------
-        str
-            Detailed representation of the constraint collection.
-        """
-        return self._cc.__repr__()
-

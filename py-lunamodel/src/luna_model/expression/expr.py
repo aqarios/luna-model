@@ -854,16 +854,6 @@ class Expression:
         """
         return self._expr.__str__()
 
-    def __repr__(self) -> str:
-        """Get detailed debug representation.
-
-        Returns
-        -------
-        str
-            A string representation suitable for debugging.
-        """
-        return self._expr.__repr__()
-
     def _op(
         self, other: Expression | Variable | float, fn: Callable[[PyExpression | PyVariable | float], PyExpression]
     ) -> PyExpression:

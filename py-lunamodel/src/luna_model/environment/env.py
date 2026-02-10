@@ -198,7 +198,3 @@ class Environment:
     def __str__(self) -> str:
         """Environment as a string."""
         return self._env.__str__()
-
-    def __repr__(self) -> str:
-        """Environment as a debug string."""
-        return self._env.__repr__()

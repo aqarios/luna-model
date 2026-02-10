@@ -11,7 +11,7 @@ impl PyExpression {
         format!("{}", self.expr.format(FormatOpt::Py))
     }
 
-    fn __repr__(&self) -> String {
-        format!("{:?}", self.expr.format(FormatOpt::Py))
-    }
+    // fn __repr__(&self) -> String {
+    //     format!("{:?}", self.expr.format(FormatOpt::Py))
+    // }
 }
