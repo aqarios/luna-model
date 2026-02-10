@@ -25,7 +25,7 @@ impl PyConstraintCollection {
     /// compress : bool, optional
     ///     Whether to compress the result. Default is True.
     /// level : int, optional
-    ///     Compression level (0–9). Default is 3.
+    ///     Compression level (0–3). Default is 3.
     ///
     /// Returns
     /// -------

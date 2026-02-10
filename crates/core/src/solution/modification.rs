@@ -45,29 +45,44 @@ impl Solution {
         self.samples.insert(var, Column::empty_real());
     }
 
-    pub fn add_binary(&mut self, var: String, data: Vec<f64>) {
-        self.samples.insert(var, Column::binary(data));
+    pub fn add_binary(&mut self, var: String, data: Vec<f64>) -> LunaModelResult<()> {
+        let mut col = Column::empty_binary();
+        data.iter()
+            .map(|e| col.try_push(*e))
+            .collect::<LunaModelResult<()>>()?;
+        self.samples.insert(var, col);
+        Ok(())
     }
 
-    pub fn add_spin(&mut self, var: String, data: Vec<f64>) {
-        self.samples.insert(var, Column::spin(data));
+    pub fn add_spin(&mut self, var: String, data: Vec<f64>) -> LunaModelResult<()> {
+        let mut col = Column::empty_spin();
+        data.iter()
+            .map(|e| col.try_push(*e))
+            .collect::<LunaModelResult<()>>()?;
+        self.samples.insert(var, col);
+        Ok(())
     }
 
-    pub fn add_integer(&mut self, var: String, data: Vec<f64>) {
-        self.samples.insert(var, Column::integer(data));
+    pub fn add_integer(&mut self, var: String, data: Vec<f64>) -> LunaModelResult<()> {
+        let mut col = Column::empty_integer();
+        data.iter()
+            .map(|e| col.try_push(*e))
+            .collect::<LunaModelResult<()>>()?;
+        self.samples.insert(var, col);
+        Ok(())
     }
 
     pub fn add_real(&mut self, var: String, data: Vec<f64>) {
         self.samples.insert(var, Column::real(data));
     }
 
-    pub fn add_col(&mut self, vtype: Vtype, var: String, data: Vec<f64>) {
+    pub fn add_col(&mut self, vtype: Vtype, var: String, data: Vec<f64>) -> LunaModelResult<()> {
         match vtype {
             Vtype::Binary => self.add_binary(var, data),
             Vtype::Spin => self.add_spin(var, data),
             Vtype::Integer => self.add_integer(var, data),
-            Vtype::Real => self.add_real(var, data),
-            Vtype::InvertedBinary => (),
+            Vtype::Real => Ok(self.add_real(var, data)),
+            Vtype::InvertedBinary => Ok(()),
         }
     }
 
@@ -82,7 +97,8 @@ impl Solution {
         let mut indices: Vec<usize> = Vec::new();
 
         for sample in self.samples() {
-            let samplekey = sample.iter().map(|v| v.to_string()).join("");
+            // TODO: round f64 (v) up to predefined decimal place followed by stringigy.
+            let samplekey = sample.iter().map(|v| v.to_string()).join(",");
             if let Some(&first) = dups.get(&samplekey) {
                 to_rm.insert(sample.idx, first);
                 indices.push(sample.idx);

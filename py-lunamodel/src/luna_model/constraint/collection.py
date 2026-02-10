@@ -1,9 +1,16 @@
-"""Constraint collections for managing multiple constraints.
-
-This module provides the ConstraintCollection class for storing and managing
-multiple constraints in an optimization model.
-"""
-
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
@@ -21,8 +28,8 @@ if TYPE_CHECKING:
 class ConstraintCollection:
     """Collection for managing multiple constraints.
 
-    A ConstraintCollection stores named constraints and provides methods for
-    adding, retrieving, and iterating over constraints in an optimization model.
+    A ConstraintCollection stores named constraints and provides methods
+    for adding, retrieving, and iterating over constraints.
 
     Attributes
     ----------
@@ -50,12 +57,7 @@ class ConstraintCollection:
     Notes
     -----
     Constraints are stored with unique string names. Adding a constraint with
-    an existing name will replace the previous constraint.
-
-    See Also
-    --------
-    Constraint : Individual constraint class.
-    Model : Model class that uses constraint collections.
+    an existing name will raise a ``DuplicateConstraintNameError``.
     """
 
     _cc: PyConstraintCollection
@@ -79,9 +81,9 @@ class ConstraintCollection:
         constraint : Constraint
             The constraint to add.
         name : str | None, optional
-            Name for the constraint. If None, uses constraint's own name if it has one,
-            otherwise generates a name following the pattern ``c{i}`` where i is the
-            constraint's index (starting from 0).
+            Name for the constraint. If None, uses constraint's own name if it has one
+            that is not auto-generated, otherwise generates a name following the pattern
+            ``c{i}`` where i is the constraint's index in the collection (starting from 0).
         """
         self._cc.add_constraint(constraint._c, name)
 
@@ -95,42 +97,28 @@ class ConstraintCollection:
         """
         return ConstraintCollectionIter._from_pycci(self._cc.items())
 
-    def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
+    def encode(self) -> bytes:
         """Encode the constraint collection to bytes.
-
-        Parameters
-        ----------
-        compress : bool | None, default=True
-            Whether to compress the output.
-        level : int | None, default=3
-            Compression level (0-9).
 
         Returns
         -------
         bytes
             Encoded constraint collection.
         """
-        return self._cc.encode(compress, level)
+        return self._cc.encode()
 
-    def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
+    def serialize(self) -> bytes:
         """Serialize the constraint collection to bytes.
-
-        Parameters
-        ----------
-        compress : bool | None, default=True
-            Whether to compress the output.
-        level : int | None, default=3
-            Compression level (0-9).
 
         Returns
         -------
         bytes
             Serialized constraint collection.
         """
-        return self.encode(compress, level)
+        return self.encode()
 
     def get(self, name: str) -> Constraint:
-        """Get a constraint by name.
+        """Get a constraint by its name.
 
         Parameters
         ----------
@@ -150,7 +138,7 @@ class ConstraintCollection:
         return wrap_c(self._cc.get(name))
 
     def remove(self, name: str) -> None:
-        """Remove a constraint by name.
+        """Remove a constraint by its name.
 
         Parameters
         ----------

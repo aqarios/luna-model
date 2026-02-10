@@ -1,10 +1,16 @@
-"""Mathematical expressions for optimization models.
-
-This module provides the Expression class for representing mathematical expressions
-composed of variables, constants, and arithmetic operations. Expressions form the
-building blocks of objective functions and constraints in optimization models.
-"""
-
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
@@ -29,13 +35,8 @@ class Expression:
     """Mathematical expression combining variables and constants.
 
     An Expression represents a mathematical formula built from variables,
-    constants, and arithmetic operations (``+``, ``-``, ``*``, ``**``). Expressions can be
-    linear, quadratic, or higher-order polynomial forms.
-
-    Expressions are used to define:
-    - Objective functions to minimize or maximize
-    - Left-hand and right-hand sides of constraints
-    - Substitution formulas for variable transformations
+    constants, and arithmetic operations (``+``, ``-``, ``*``, ``**``).
+    Expressions can be linear, quadratic, or higher-order polynomial forms.
 
     Parameters
     ----------
@@ -46,8 +47,8 @@ class Expression:
     Attributes
     ----------
     environment : Environment
-        The environment that this expression is associated with (contains variable
-        metadata referenced by this expression).
+        The environment that this expression is associated with
+        (contains variable metadata referenced by this expression).
     num_variables : int
         Number of variables with non-zero coefficients in the expression.
 
@@ -67,11 +68,11 @@ class Expression:
     ...     x = Variable("x")
     ...     y = Variable("y")
     ...     z = Variable("z")
-    ...     quad_expr = x * y + z**2
+    ... quad_expr = x * y + z**2
 
     Create constant expression:
 
-    >>> from luna_model.expression import Expression
+    >>> from luna_model import Expression
     >>> with Environment():
     ...     const_expr = Expression.const(42.0)
 
@@ -80,20 +81,14 @@ class Expression:
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y")
-    ...     expr = 3 * x + 2 * y - 5
-    ...     for variables, bias in expr.items():
-    ...         print(f"{variables}: {bias}")
+    ... expr = 3 * x + 2 * y - 5
+    ... for variables, bias in expr.items():
+    ...     print(f"{variables}: {bias}")
 
     Notes
     -----
-    Expressions are immutable by default. Arithmetic operations create new
-    Expression objects unless using in-place operators (``+=``, ``-=``, ``*=``, ``**=``).
-
-    See Also
-    --------
-    Variable : Variables that compose expressions.
-    Constraint : Constraints created by comparing expressions.
-    Model : Models that use expressions as objectives.
+    Expressions are immutable by default. Arithmetic operations create new Expression
+    objects unless using in-place operators (``+=``, ``-=``, ``*=``, ``**=``).
     """
 
     _expr: PyExpression
@@ -113,18 +108,7 @@ class Expression:
 
     @classmethod
     def _from_pyexpr(cls, py_expr: PyExpression) -> Expression:
-        """Construct Expression from internal PyExpression object.
-
-        Parameters
-        ----------
-        py_expr : PyExpression
-            Internal expression representation.
-
-        Returns
-        -------
-        Expression
-            New Expression wrapping the PyExpression.
-        """
+        """Construct Expression from internal PyExpression object."""
         expr = cls.__new__(cls)
         expr._expr = py_expr
         return expr
@@ -147,8 +131,7 @@ class Expression:
 
         Examples
         --------
-        >>> from luna_model.expression import Expression
-        >>> from luna_model import Environment
+        >>> from luna_model import Environment, Expression
         >>> with Environment():
         ...     const = Expression.const(5.0)
         """
@@ -156,23 +139,18 @@ class Expression:
 
     @property
     def environment(self) -> Environment:
-        """Get the environment containing this expression.
+        """Get the environment associated with this expression.
 
         Returns
         -------
         Environment
-            The environment this expression belongs to.
+            The environment this expression's variables are contained in.
         """
         return wrap_env(self._expr.environment)
 
     @property
     def num_variables(self) -> int:
-        """Get the number of variables with non-zero coefficients in the expression.
-
-        Only includes the variables that are contributing to the expression.
-        I.e., anything oped that is zero biased or results in zero biased stuff will not
-        be respected here.
-        """
+        """Get the number of variables with non-zero coefficients in the expression."""
         return self._expr.num_variables
 
     def get_offset(self) -> float:
@@ -403,8 +381,8 @@ class Expression:
         ...     x = Variable("x")
         ...     y = Variable("y")
         ...     z = Variable("z")
-        ...     expr = 2 * x + 3 * y
-        ...     new_expr = expr.substitute(x, z + 1)  # Replace x with z+1
+        ... expr = 2 * x + 3 * y
+        ... new_expr = expr.substitute(x, z + 1)  # Replace x with z+1
         """
         from luna_model.variable import Variable  # noqa: PLC0415
 
@@ -430,50 +408,38 @@ class Expression:
         """
         return self._expr.evaluate(solution._s)
 
-    def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
-        """Encode the expression to bytes for serialization.
-
-        Parameters
-        ----------
-        compress : bool | None, optional
-            Whether to compress the data, by default True.
-        level : int | None, optional
-            Compression level (0-9), by default 3.
+    def encode(self) -> bytes:
+        """Serialize the expression into a compact binary format.
 
         Returns
         -------
         bytes
-            Encoded expression data.
+            Encoded expression representation.
         """
-        return self._expr.encode(compress, level)
+        return self._expr.encode()
 
-    def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
-        """Serialize the expression to bytes. Alias for encode.
+    def serialize(self) -> bytes:
+        """Serialize the expression into a compact binary format.
 
-        Parameters
-        ----------
-        compress : bool | None, optional
-            Whether to compress the data, by default True.
-        level : int | None, optional
-            Compression level (0-9), by default 3.
+        This is an alias for :meth:`encode`.
 
         Returns
         -------
         bytes
-            Serialized expression data.
+            Encoded expression representation.
         """
-        return self.encode(compress, level)
+        return self.encode()
 
     @classmethod
     def decode(cls, data: bytes, env: Environment) -> Expression:
-        """Decode an expression from bytes.
+        """Reconstruct an expression from encoded bytes.
 
         Parameters
         ----------
         data : bytes
             Encoded expression data.
         env : Environment
-            The environment to decode the expression into.
+            The environment containing the vairables associated with the encoded expression.
 
         Returns
         -------
@@ -484,19 +450,21 @@ class Expression:
 
     @classmethod
     def deserialize(cls, data: bytes, env: Environment) -> Expression:
-        """Deserialize an expression from bytes. Alias for decode.
+        """Reconstruct an expression from encoded bytes.
+
+        This is an alias for :meth:`decode`.
 
         Parameters
         ----------
         data : bytes
-            Serialized expression data.
+            Encoded expression data.
         env : Environment
-            The environment to deserialize into.
+            The environment containing the vairables associated with the encoded expression.
 
         Returns
         -------
         Expression
-            The deserialized expression.
+            The decoded expression.
         """
         return cls.decode(data, env)
 
@@ -517,8 +485,8 @@ class Expression:
         Raises
         ------
         DifferentEnvsError
-            If any expression is from a different environment as the first expression
-            in the passed list of expressions.
+            If any expression is from a different environment as the
+            first expression in the passed list of expressions.
         """
         return [cls._from_pyexpr(cloned) for cloned in PyExpression.deep_clone_many([e._expr for e in exprs])]
 
@@ -542,9 +510,9 @@ class Expression:
         ...     x = Variable("x")
         ...     y = Variable("y")
         ...     expr = Expression()
-        ...     expr = expr + x  # Add variable
-        ...     expr = expr + y  # Add another variable
-        ...     expr = expr + 5.0  # Add constant
+        ... expr = expr + x  # Add variable
+        ... expr = expr + y  # Add another variable
+        ... expr = expr + 5.0  # Add constant
         """
         return self._from_pyexpr(self._op(other, self._expr.__add__))
 
@@ -560,6 +528,17 @@ class Expression:
         -------
         Expression
             A new expression representing the difference.
+
+        Examples
+        --------
+        >>> from luna_model import Expression, Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     expr = Expression()
+        ... expr = expr - x  # Sub variable
+        ... expr = expr - y  # Sub another variable
+        ... expr = expr - 5.0  # Sub constant
         """
         return self._from_pyexpr(self._op(other, self._expr.__sub__))
 
@@ -582,9 +561,9 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ...     expr = 2 * x
-        ...     expr = expr * y  # Creates quadratic term
-        ...     expr = expr * 3  # Scale by constant
+        ... expr = 2 * x
+        ... expr = expr * y  # Creates quadratic term
+        ... expr = expr * 3  # Scale by constant
         """
         return self._from_pyexpr(self._op(other, self._expr.__mul__))
 
@@ -653,8 +632,8 @@ class Expression:
         ...     x = Variable("x")
         ...     y = Variable("y")
         ...     expr = Expression()
-        ...     expr += x
-        ...     expr += y
+        ... expr += x
+        ... expr += y
         """
         self._op(other, self._expr.__iadd__)
         return self
@@ -671,6 +650,16 @@ class Expression:
         -------
         Expression
             This expression modified in-place.
+
+        Examples
+        --------
+        >>> from luna_model import Expression, Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     expr = Expression()
+        ... expr -= x
+        ... expr -= y
         """
         self._op(other, self._expr.__isub__)
         return self
@@ -687,6 +676,16 @@ class Expression:
         -------
         Expression
             This expression modified in-place.
+
+        Examples
+        --------
+        >>> from luna_model import Expression, Variable, Environment
+        >>> with Environment():
+        ...     x = Variable("x")
+        ...     y = Variable("y")
+        ...     expr = Expression.const(42)
+        ... expr *= x
+        ... expr *= y
         """
         self._op(other, self._expr.__imul__)
         return self
@@ -706,11 +705,12 @@ class Expression:
 
         Examples
         --------
-        >>> from luna_model import Variable, Environment
+        >>> from luna_model import Variable, Vtype, Environment
         >>> with Environment():
-        ...     x = Variable("x")
-        ...     expr = x**2  # Quadratic
-        ...     expr = x**3  # Cubic
+        ...     x = Variable("x", vtype=Vtype.INTEGER)
+        ...     y = Variable("y", vtype=Vtype.INTEGER)
+        ... expr = x**2  # Quadratic
+        ... expr += y**3  # Cubic
         """
         return self._from_pyexpr(self._op(value, self._expr.__pow__))
 
@@ -726,6 +726,15 @@ class Expression:
         -------
         Expression
             This expression modified in-place.
+
+        Examples
+        --------
+        >>> from luna_model import Variable, Vtype, Environment
+        >>> with Environment():
+        ...     a = Variable("a", vtype=Vtype.INTEGER)
+        ...     b = Variable("b", vtype=Vtype.INTEGER)
+        ... expr = a + b
+        ... expr **= 2
         """
         self._op(other, self._expr.__ipow__)
         return self
@@ -744,8 +753,10 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ...     expr = -x
-        ...     expr = -(x + y)
+        ... expr = -x
+        ... print(expr)
+        ... expr = -(x + y)
+        ... print(expr)
         """
         return self._from_pyexpr(self._expr.__neg__())
 
@@ -768,7 +779,7 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ...     constraint = (x + y) == 10
+        ... constraint = (x + y) == 10
         """
         return self._cmp(other, self._expr.__eq__)
 
@@ -791,7 +802,7 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ...     constraint = (x + y) <= 100
+        ... constraint = (x + y) <= 100
         """
         return self._cmp(other, self._expr.__le__)
 
@@ -814,11 +825,11 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ...     constraint = (x + y) >= 0
+        ... constraint = (x + y) >= 0
         """
         return self._cmp(other, self._expr.__ge__)
 
-    def __reduce__(self) -> tuple[Callable[[bytes, bytes], Expression], tuple[bytes, ...]]:
+    def __reduce__(self) -> tuple[Callable[[bytes, bytes], Expression], tuple[bytes, bytes]]:
         """Support for pickle serialization.
 
         Returns
@@ -849,8 +860,8 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ...     expr = 3 * x + 2 * y + 5
-        ...     print(expr)
+        ... expr = 3 * x + 2 * y + 5
+        ... print(expr)
         """
         return self._expr.__str__()
 

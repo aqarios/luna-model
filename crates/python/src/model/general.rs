@@ -7,7 +7,8 @@ use pyo3::{FromPyObject, PyResult, pymethods};
 
 use super::PyModel;
 use crate::{
-    PyConstraintCollection, PyExpression, PyModelSpecs, PySolution, PyVariable, sol::{result::PyResultView, sample::PySampleView}
+    PyConstraintCollection, PyExpression, PyModelSpecs, PySolution, PyVariable,
+    sol::{result::PyResultView, sample::PySampleView},
 };
 
 #[derive(FromPyObject)]
@@ -61,5 +62,9 @@ impl PyModel {
 
     fn satisfies(&self, specs: &PyModelSpecs) -> bool {
         self.m.read_arc().satisfies(&specs.s)
+    }
+
+    fn deep_clone(&self) -> Self {
+        self.m.read_arc().deep_clone().into()
     }
 }

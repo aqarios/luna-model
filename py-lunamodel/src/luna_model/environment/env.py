@@ -1,10 +1,16 @@
-"""Environment for managing optimization model variables.
-
-This module provides the Environment class that manages variables and their
-relationships in an optimization model. Environments ensure consistency
-across variables and expressions.
-"""
-
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -21,9 +27,9 @@ if TYPE_CHECKING:
 class Environment:
     """Environment for managing model variables and their relationships.
 
-    An Environment is a container that manages all variables in an optimization
-    model. It ensures that variables used together come from the same environment
-    and maintains consistency across expressions and constraints.
+    An Environment is a container that manages all variables created by the user.
+    It ensures that variables used together come from the same environment
+    and maintains consistency across multiple expressions.
 
     Environments serve as context managers to automatically manage
     variable scoping.
@@ -56,11 +62,6 @@ class Environment:
     Variables from different environments cannot be combined in the same
     expression or constraint. This prevents accidental mixing of unrelated
     models.
-
-    See Also
-    --------
-    Variable : Variables that belong to environments.
-    Model : Models that use environments.
     """
 
     _env: PyEnvironment
@@ -154,30 +155,95 @@ class Environment:
         """
         return self._env.equal_contents(other._env)
 
-    def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
-        """Encode the environment."""
-        return self._env.encode(compress, level)
+    def encode(self) -> bytes:
+        """Serialize the environment into a compact binary format.
 
-    def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
-        """Serliaze the environment. Same as encode."""
-        return self.encode(compress, level)
+        Returns
+        -------
+        bytes
+            Encoded environment representation.
+
+        Raises
+        ------
+        CompressionError
+            If compression fails.
+        """
+        return self._env.encode()
+
+    def serialize(self) -> bytes:
+        """Serialize the environment into a compact binary format.
+
+        This is an alias for :meth:`encode`.
+
+        Returns
+        -------
+        bytes
+            Encoded environment representation.
+        """
+        return self.encode()
 
     @classmethod
     def decode(cls, data: bytes) -> Environment:
-        """Decode the environment from its byte representation."""
+        """Reconstruct an environment from encoded bytes.
+
+        Parameters
+        ----------
+        data : bytes
+            Binary blob returned by :meth:`encode` or :meth:`serialize`.
+
+        Returns
+        -------
+        Environment
+            Deserialized environment object.
+
+        Raises
+        ------
+        DecodingError
+            If decoding fails due to corruption or incompatibility.
+
+        Examples
+        --------
+        >>> original = Environment()
+        >>> ...
+        >>> blob = original.encode()
+        >>> restored = Environment.decode(blob)
+        """
         return cls._from_pyenv(PyEnvironment.decode(data))
 
     @classmethod
     def deserialize(cls, data: bytes) -> Environment:
-        """Deserialize the environment from its byte representation. Same as decode."""
+        """Reconstruct an environment from encoded bytes.
+
+        This is an alias for :meth:`decode`.
+
+        Parameters
+        ----------
+        data : bytes
+            Binary blob returned by encode().
+
+        Returns
+        -------
+        Model
+            Deserialized environment object.
+        """
         return cls.decode(data)
 
     def __reduce__(self) -> tuple[Callable[[bytes], Environment], tuple[bytes]]:
-        """Reduce environment to its byte representation. Used by pickle."""
+        """Support for pickle serialization.
+
+        Returns
+        -------
+        tuple
+            A tuple of (decoder_function, encoded_data) for pickle.
+
+        Notes
+        -----
+        This method is called automatically by Python's pickle module.
+        """
         return (Environment.decode, (self.encode(),))
 
     def __eq__(self, other: Environment) -> bool:  # type: ignore[override]
-        """Reduce environment to its byte representation. Used by pickle."""
+        """Check if two environments are exactly equal."""
         return self._env.__eq__(other._env)
 
     def __contains__(self, var: str) -> bool:

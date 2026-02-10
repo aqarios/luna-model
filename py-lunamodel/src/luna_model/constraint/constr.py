@@ -1,10 +1,16 @@
-"""Constraints for optimization models.
-
-This module provides the Constraint class for representing constraints in
-optimization problems. Constraints specify relationships that must be satisfied
-by the solution.
-"""
-
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from __future__ import annotations
 
 from luna_model._lm import PyConstraint
@@ -29,7 +35,7 @@ class Constraint:
     rhs : float | Expression | Variable
         The right-hand side of the constraint.
     comparator : Comparator
-        The comparison operator (EQ, LE, or GE).
+        The comparison operator (``EQ``, ``LE``, or ``GE``).
     name : str | None, optional
         An optional name for the constraint for easier identification.
 
@@ -38,23 +44,23 @@ class Constraint:
     name : str
         The name of the constraint.
     lhs : Expression
-        The left-hand side expression.
+        The left-hand side expression (constant is moved to rhs).
     rhs : float
-        The right-hand side value (expressions are moved to lhs).
+        The right-hand side value (expressions and variables are moved to lhs).
     comparator : Comparator
         The comparison operator.
 
     Examples
     --------
-    Create constraints using comparison operators:
+    Create constraints using comparison operators (_auto-assigned name_):
 
     >>> from luna_model import Variable, Environment
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y")
-    >>> c1 = x + y <= 10  # Sum constraint
-    >>> c2 = 2 * x - y == 5  # Equality constraint
-    >>> c3 = x >= 0  # Lower bound
+    >>> c1 = x + y <= 10
+    >>> c2 = 2 * x - y == 5
+    >>> c3 = x >= 0
 
     Create named constraint:
 
@@ -67,13 +73,9 @@ class Constraint:
     Notes
     -----
     The right-hand side is always normalized to a constant. If an expression
-    is provided as rhs, it is moved to the left-hand side.
-
-    See Also
-    --------
-    Expression : Expressions that form constraint sides.
-    Comparator : Comparison operators for constraints.
-    ConstraintCollection : Collection for managing multiple constraints.
+    or variable is provided as rhs, it is moved to the left-hand side.
+    If the left-hand side contains a non-zero constant value it is moved to
+    the right-hand side.
     """
 
     _c: PyConstraint
@@ -151,7 +153,7 @@ class Constraint:
         Returns
         -------
         Comparator
-            The comparison operator (EQ, LE, or GE).
+            The comparison operator (``EQ``, ``LE``, or ``GE``).
         """
         return Comparator._from_pycmp(self._c.comparator)
 
@@ -166,7 +168,8 @@ class Constraint:
         Returns
         -------
         bool
-            True if constraints have the same lhs, rhs, and comparator.
+            True if constraints have the same rhs, and comparator and
+            the lhs has the same conents.
         """
         return self._c.equal_contents(other._c)
 

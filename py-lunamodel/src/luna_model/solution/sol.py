@@ -1,10 +1,16 @@
-"""Solution objects containing optimization results.
-
-This module provides the Solution class for storing and analyzing results
-from optimization solvers. Solutions contain samples (variable assignments),
-objective values, feasibility information, and performance metrics.
-"""
-
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal
@@ -509,49 +515,40 @@ class Solution:
         return self._s.__eq__(other._s)
 
     def __reduce__(self) -> tuple[Callable[[bytes], Solution], tuple[bytes]]:
-        """Reduce solution for pickling.
+        """Support for pickle serialization.
 
         Returns
         -------
         tuple[Callable[[bytes], Solution], tuple[bytes]]
             Tuple of (decoder function, (encoded data,)) for pickle.
+
+        Notes
+        -----
+        This method is called automatically by Python's pickle module.
+        It uses the solution's encode/decode methods internally.
         """
         data = self.encode()
         return Solution.decode, (data,)
 
-    def encode(self, compress: bool = True, level: int = 3) -> bytes:
+    def encode(self) -> bytes:
         """Encode solution to bytes for serialization.
-
-        Parameters
-        ----------
-        compress : bool, optional
-            Whether to compress the output. Default is True.
-        level : int, optional
-            Compression level (0-9). Default is 3.
 
         Returns
         -------
         bytes
             Encoded solution data.
         """
-        return self._s.encode(compress, level)
+        return self._s.encode()
 
-    def serialize(self, compress: bool = True, level: int = 3) -> bytes:
+    def serialize(self) -> bytes:
         """Serialize solution to bytes. Alias for encode().
-
-        Parameters
-        ----------
-        compress : bool, optional
-            Whether to compress the output. Default is True.
-        level : int, optional
-            Compression level (0-9). Default is 3.
 
         Returns
         -------
         bytes
             Serialized solution data.
         """
-        return self.encode(compress, level)
+        return self.encode()
 
     @classmethod
     def decode(cls, data: bytes) -> Solution:
@@ -863,19 +860,6 @@ class Solution:
                 sense=sense._val if sense else None,
             )
         )
-
-    def aggregate(self) -> Solution:
-        """Aggregate duplicate samples by combining their counts.
-
-        Condenses solution by merging duplicate samples into single entries
-        with summed counts.
-
-        Returns
-        -------
-        Solution
-            New solution with duplicate samples aggregated.
-        """
-        return self._from_pys(self._s.aggregate())
 
     def __str__(self) -> str:
         """Get string representation of the solution.

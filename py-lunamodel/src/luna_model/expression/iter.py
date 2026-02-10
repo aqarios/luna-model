@@ -1,10 +1,16 @@
-"""Expression term types and iterators.
-
-This module defines classes representing different types of terms in an
-expression (constant, linear, quadratic, higher-order) and provides an
-iterator for traversing expression terms.
-"""
-
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeAlias
@@ -23,6 +29,10 @@ if TYPE_CHECKING:
 
 
 Constant: TypeAlias = PyConstant
+"""Constant term in an expression.
+
+Represents a term of the form: coefficient
+"""
 
 
 class Linear:
@@ -34,16 +44,6 @@ class Linear:
     ----------
     var : Variable
         The variable in this linear term.
-
-    Examples
-    --------
-    >>> from luna_model import Variable, Environment
-    >>> with Environment():
-    ...     x = Variable("x")
-    ...     expr = 3 * x + 5
-    ...     for term, coeff in expr.items():
-    ...         if isinstance(term, Linear):
-    ...             print(f"Linear term: {coeff}*{term.var.name}")
     """
 
     _l: PyLinear
@@ -90,16 +90,6 @@ class Quadratic:
         The first variable in the quadratic term.
     var_b : Variable
         The second variable in the quadratic term.
-
-    Examples
-    --------
-    >>> from luna_model import Variable, Environment
-    >>> with Environment():
-    ...     x, y = Variable("x"), Variable("y")
-    ...     expr = x * y + 2
-    ...     for term, coeff in expr.items():
-    ...         if isinstance(term, Quadratic):
-    ...             print(f"Quadratic: {coeff}*{term.var_a.name}*{term.var_b.name}")
     """
 
     _q: PyQuadratic
@@ -155,17 +145,6 @@ class HigherOrder:
     ----------
     vars : list[Variable]
         The list of variables in this higher-order term.
-
-    Examples
-    --------
-    >>> from luna_model import Variable, Environment
-    >>> with Environment():
-    ...     x, y, z = Variable("x"), Variable("y"), Variable("z")
-    ...     expr = x * y * z
-    ...     for term, coeff in expr.items():
-    ...         if isinstance(term, HigherOrder):
-    ...             var_names = [v.name for v in term.vars]
-    ...             print(f"Higher-order: {coeff}*{'*'.join(var_names)}")
     """
 
     _h: PyHigherOrder
@@ -210,15 +189,20 @@ class ExprIter:
     Examples
     --------
     >>> from luna_model import Variable, Environment
+    >>> from luna_model import Constant, Linear, Quadratic, HigherOrder
     >>> with Environment():
-    ...     x, y = Variable("x"), Variable("y")
-    ...     expr = 3 * x + 2 * x * y + 5
+    ...     x, y, z = Variable("x"), Variable("y"), Variable("z")
+    ...     expr = 3 * x + 2 * x * y + 4 * x * y * z + 5
     ...     for term, coeff in expr.items():
-    ...         print(f"Coefficient: {coeff}, Term type: {type(term).__name__}")
-
-    See Also
-    --------
-    Expression.items : Method that returns this iterator.
+    ...         match term:
+    ...             case Constant():
+    ...                 print("constant:", coeff)
+    ...             case Linear(var):
+    ...                 print("linear:", coeff, var)
+    ...             case Quadratic(var_a, var_b):
+    ...                 print("quadratic:", coeff, var_a, var_b)
+    ...             case HigherOrder(vars):
+    ...                 print("higher-order:", coeff, *vars)
     """
 
     _i: PyExpressionIterator

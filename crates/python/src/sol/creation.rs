@@ -143,9 +143,9 @@ impl PySolution {
         };
         for (varname, values) in s {
             match variable_types[&varname] {
-                Vtype::Binary => sol.add_binary(varname, values),
-                Vtype::Spin => sol.add_spin(varname, values),
-                Vtype::Integer => sol.add_integer(varname, values),
+                Vtype::Binary => sol.add_binary(varname, values)?,
+                Vtype::Spin => sol.add_spin(varname, values)?,
+                Vtype::Integer => sol.add_integer(varname, values)?,
                 Vtype::Real => sol.add_real(varname, values),
                 Vtype::InvertedBinary => (),
             }

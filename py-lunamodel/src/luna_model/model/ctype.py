@@ -1,9 +1,16 @@
-"""Constraint type enumeration.
-
-This module defines the types of constraints that can appear in optimization
-models, indicating the nature of constraint satisfaction requirements.
-"""
-
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from __future__ import annotations
 
 from enum import Enum
@@ -21,23 +28,18 @@ class Ctype(Enum):
     UNCONSTRAINED : str
         No constraints (unconstrained optimization).
     EQUALITY : str
-        Equality constraints (==).
+        Equality constraints (``==``).
     INEQUALITY : str
-        Inequality constraints (<= or >=).
+        Inequality constraints (``<=`` or ``>=``).
     LESS_EQUAL : str
-        Less-than-or-equal constraints (<=).
+        Less-than-or-equal constraints (``<=``).
     GREATER_EQUAL : str
-        Greater-than-or-equal constraints (>=).
+        Greater-than-or-equal constraints (``>=``).
 
     Examples
     --------
     >>> from luna_model import Ctype, ModelSpecs
     >>> specs = ModelSpecs(constraints={Ctype.LESS_EQUAL})
-
-    See Also
-    --------
-    ModelSpecs : Model specifications that use constraint types.
-    Comparator : Comparator enum for individual constraints.
     """
 
     UNCONSTRAINED = "Unconstrained"

@@ -1,10 +1,16 @@
-"""Model specifications for optimization problems.
-
-This module provides the ModelSpecs class for specifying requirements and
-constraints on optimization models, such as allowed variable types, maximum
-degree, and constraint types.
-"""
-
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from __future__ import annotations
 
 from luna_model._lm import PyModelSpecs
@@ -14,7 +20,7 @@ from luna_model.variable import Vtype
 
 
 class ModelSpecs:
-    """Specifications and requirements for optimization models.
+    """Specifications and requirements for models.
 
     Defines the characteristics and limitations of an optimization model,
     including optimization sense, allowed variable types, constraint types,
@@ -25,7 +31,7 @@ class ModelSpecs:
     sense : Sense | None, optional
         The optimization direction (MIN or MAX).
     vtypes : set[Vtype] | None, optional
-        Set of allowed variable types (BINARY, INTEGER, CONTINUOUS, SPIN).
+        Set of allowed variable types (BINARY, INTEGER, REAL, SPIN).
     constraints : set[Ctype] | None, optional
         Set of allowed constraint types (UNCONSTRAINED, EQUALITY, INEQUALITY, LESS_EQUAL, GREATER_EQUAL).
     max_degree : int | None, optional
@@ -56,20 +62,15 @@ class ModelSpecs:
 
     >>> from luna_model.model import ModelSpecs, Sense, Ctype
     >>> from luna_model.variable import Vtype
-    >>> specs = ModelSpecs(sense=Sense.MIN, vtypes={Vtype.BINARY}, constraints={Ctype.UNCONSTRAINED}, max_degree=2)
+    >>> target_specs = ModelSpecs(
+    ...     sense=Sense.MIN, vtypes={Vtype.BINARY}, constraints={Ctype.UNCONSTRAINED}, max_degree=2
+    ... )
 
     Check if a model satisfies specifications:
 
-    >>> model_specs = model.specs()
+    >>> model_specs = model.get_specs()
     >>> if model_specs.satisfies(target_specs):
     ...     print("Model meets requirements")
-
-    See Also
-    --------
-    Model : Model class that has specifications.
-    Sense : Optimization sense enumeration.
-    Ctype : Constraint type enumeration.
-    Vtype : Variable type enumeration.
     """
 
     _sp: PyModelSpecs

@@ -67,7 +67,7 @@ impl SerSolution {
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
-                    );
+                    )?;
                     start_bin += self.num_samples as usize;
                 }
                 Vtype::Spin => {
@@ -77,7 +77,7 @@ impl SerSolution {
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
-                    );
+                    )?;
                     start_spin += self.num_samples as usize;
                 }
                 Vtype::Integer => {
@@ -87,7 +87,7 @@ impl SerSolution {
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
-                    );
+                    )?;
                     start_int += self.num_samples as usize;
                 }
                 Vtype::Real => {

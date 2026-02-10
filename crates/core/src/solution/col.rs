@@ -115,11 +115,17 @@ impl Column {
         match self {
             Self::Binary(col) => match <u8 as NumCast>::from(value) {
                 None => return Err(LunaModelError::SampleIncompatibleVtype),
-                Some(v) => col.push(Assignment::Binary(v)),
+                Some(v) => match v == 0 || v == 1 {
+                    true => col.push(Assignment::Binary(v)),
+                    false => return Err(LunaModelError::SampleIncompatibleVtype),
+                },
             },
             Self::Spin(col) => match <i8 as NumCast>::from(value) {
                 None => return Err(LunaModelError::SampleIncompatibleVtype),
-                Some(v) => col.push(Assignment::Spin(v)),
+                Some(v) => match v == -1 || v == 1 {
+                    true => col.push(Assignment::Spin(v)),
+                    false => return Err(LunaModelError::SampleIncompatibleVtype),
+                },
             },
             Self::Integer(col) => match <i64 as NumCast>::from(value) {
                 None => return Err(LunaModelError::SampleIncompatibleVtype),

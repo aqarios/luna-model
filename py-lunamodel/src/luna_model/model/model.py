@@ -1,3 +1,16 @@
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from __future__ import annotations
 
 import sys
@@ -65,13 +78,14 @@ def _cqm_type() -> type[ConstrainedQuadraticModel]:
 class Model:
     """A symbolic optimization model combining an objective and constraints.
 
-    The `Model` class represents a structured symbolic optimization problem. It
-    combines a scalar objective `Expression`, a collection of `Constraint` objects,
-    and a shared `Environment` that scopes all variables used in the model.
+    The ``Model`` class represents a structured symbolic optimization problem.
+    It contains an objective, a collection of ``Constraint`` objects, and an
+    ``Environment`` that scopes all variables used in the model.
 
-    Models can be constructed explicitly by passing an environment, or implicitly
-    by allowing the model to create its own private environment. If constructed
-    inside an active `Environment` context, that context is used automatically.
+    Models can be constructed implicitly by allowing the model to create its
+    own private environment, or explicitly by passing an environment.
+    If constructed inside an active `Environment` context, that context is
+    used automatically.
 
     Parameters
     ----------
@@ -108,9 +122,8 @@ class Model:
 
     >>> from luna_model import Model, Variable, Sense
     >>> model = Model("MyModel", sense=Sense.MAX)
-    >>> with model.environment:
-    >>>     x = Variable("x")
-    >>>     y = Variable("y")
+    >>> x = model.add_variable("x")
+    >>> y = model.add_variable("y")
     >>> model.objective = x * y + x
     >>> model.constraints += x >= 0
     >>> model.constraints += y <= 5
@@ -129,29 +142,20 @@ class Model:
     >>> from luna_model import Environment
     >>> env = Environment()
     >>> model = Model("ScopedModel", env=env)
-    >>> with env:
-    ...     x = Variable("x")
-    ...     model.objective = x * x
+    >>> x = model.add_variable("x")
+    >>> model.objective = x * x
+    >>> print(model)
+    Model: ScopedModel
+    Minimize
+      x
+    Binary
+      x
 
     Serialization:
 
     >>> blob = model.encode()
     >>> restored = Model.decode(blob)
     >>> restored.name
-    'MyModel'
-
-    See Also
-    --------
-    - Variable : Create decision variables
-    - Expression : Build mathematical expressions
-    - Constraint : Define constraints
-    - Environment : Manage variable scope
-
-    Notes
-    -----
-    - A model's environment scopes all its variables
-    - Variables from different environments cannot be mixed
-    - Models are mutable - objective and constraints can be modified after creation
     """
 
     _m: PyModel
@@ -185,6 +189,8 @@ class Model:
         >>> model.name
         'MyModel'
         >>> model.name = "UpdatedModel"
+        >>> model.name
+        'UpdatedModel'
         """
         return self._m.name
 
@@ -196,7 +202,7 @@ class Model:
     def sense(self) -> Sense:
         """Get or set the model's optimization sense.
 
-        The sense determines whether the objective function is minimized or maximized.
+        The sense indicates whether the objective function is to be minimized or maximized.
 
         Returns
         -------
@@ -230,9 +236,8 @@ class Model:
         Examples
         --------
         >>> model = Model()
-        >>> with model.environment:
-        ...     x = Variable("x")
-        ...     y = Variable("y")
+        >>> x = model.add_variable("x")
+        >>> y = model.add_variable("y")
         >>> model.objective = 2 * x + 3 * y
         >>> model.objective.degree()
         1
@@ -241,6 +246,9 @@ class Model:
 
     @objective.setter
     def objective(self, value: Expression) -> None:
+        if not isinstance(value, Expression):
+            msg = f"cannot set value of type '{type(value)}' as model's objective"
+            raise TypeError(msg)
         self._m.objective = value._expr
 
     @property
@@ -255,8 +263,7 @@ class Model:
         Examples
         --------
         >>> model = Model()
-        >>> with model.environment:
-        ...     x = Variable("x")
+        >>> x = model.add_variable("x")
         >>> model.constraints += x <= 5
         >>> len(model.constraints)
         1
@@ -276,12 +283,6 @@ class Model:
         -------
         Environment
             The environment containing all variables in this model.
-
-        Examples
-        --------
-        >>> model = Model()
-        >>> with model.environment:
-        ...     x = Variable("x")
         """
         return wrap_env(self._m.environment)
 
@@ -297,8 +298,8 @@ class Model:
         Examples
         --------
         >>> model = Model()
-        >>> model.add_variable("x")
-        >>> model.add_variable("y")
+        >>> x = model.add_variable("x")
+        >>> y = model.add_variable("y")
         >>> model.objective += x + y
         >>> model.num_variables
         2
@@ -317,8 +318,7 @@ class Model:
         Examples
         --------
         >>> model = Model()
-        >>> with model.environment:
-        ...     x = Variable("x")
+        >>> x = model.add_variable("x")
         >>> model.constraints += x <= 5
         >>> model.num_constraints
         1
@@ -356,8 +356,9 @@ class Model:
         Examples
         --------
         >>> model = Model()
-        >>> model.add_variable("x", vtype=Vtype.BINARY)
-        >>> model.add_variable("y", vtype=Vtype.INTEGER)
+        >>> x = model.add_variable("x", vtype=Vtype.BINARY)
+        >>> y = model.add_variable("y", vtype=Vtype.INTEGER)
+        >>> model.objective += x + y
         >>> model.vtypes()
         [Vtype.BINARY, Vtype.INTEGER]
         """
@@ -369,7 +370,7 @@ class Model:
     def set_sense(self, sense: Sense) -> None:
         """Set the model's sense.
 
-        Deprecated in favor of the direct attribute setter. Will be removed in the next release.
+        Deprecated in favor of the direct attribute setter. Will be removed in a following release.
         """
         self._m.set_sense(sense._val)
 
@@ -384,18 +385,18 @@ class Model:
         """Add a variable to the model.
 
         Creates a new variable and adds it to the model's environment. If the variable
-        name already exists and `with_fallback=True`, a unique name will be generated.
+        name already exists and ``with_fallback=True``, a unique name will be generated.
 
         Parameters
         ----------
         name : str
             The name of the variable.
         vtype : Vtype, default=Vtype.BINARY
-            The type of the variable (BINARY, SPIN, INTEGER, or CONTINUOUS).
+            The type of the variable (BINARY, SPIN, INTEGER, or REAL).
         lower : float or Unbounded, optional
-            The lower bound for the variable. Only applicable for INTEGER and CONTINUOUS types.
+            The lower bound for the variable. Only applicable for INTEGER and REAL types.
         upper : float or Unbounded, optional
-            The upper bound for the variable. Only applicable for INTEGER and CONTINUOUS types.
+            The upper bound for the variable. Only applicable for INTEGER and REAL types.
         with_fallback : bool, default=False
             If True and the name exists, a unique fallback name is generated.
 
@@ -418,16 +419,11 @@ class Model:
         >>> model = Model()
         >>> x = model.add_variable("x", vtype=Vtype.BINARY)
         >>> y = model.add_variable("y", vtype=Vtype.INTEGER, lower=0, upper=10)
-        >>> z = model.add_variable("z", vtype=Vtype.CONTINUOUS, lower=-1.5, upper=1.5)
+        >>> z = model.add_variable("z", vtype=Vtype.REAL, lower=-1.5, upper=1.5)
 
         Using fallback for duplicate names:
 
         >>> x1 = model.add_variable("x", with_fallback=True)
-
-        See Also
-        --------
-        Variable : Create variables directly
-        get_variable : Retrieve an existing variable by name
         """
         if with_fallback:
             return wrap_var(self._m.add_variable_with_fallback(name=name, vtype=vtype._val, lower=lower, upper=upper))
@@ -443,7 +439,7 @@ class Model:
     ) -> Variable:
         """Add a variable to the model with a fallback name in case it already exists.
 
-        Deprecated in favor of the add_variable(..., with_fallback=True) method.
+        Deprecated in favor of the :meth:add_variable(..., with_fallback=True) method.
         """
         return self.add_variable(name, vtype, lower, upper, with_fallback=True)
 
@@ -490,7 +486,7 @@ class Model:
         --------
         >>> model = Model()
         >>> specs = model.get_specs()
-        >>> specs.num_variables
+        >>> specs.max_num_variables
         0
         """
         return wrap_sp(self._m.get_specs())
@@ -516,8 +512,7 @@ class Model:
         Examples
         --------
         >>> model = Model()
-        >>> with model.environment:
-        ...     x = Variable("x")
+        >>> x = model.add_variable("x")
         >>> constraint = x <= 5
         >>> model.add_constraint(constraint, name="x_upper_bound")
 
@@ -541,14 +536,9 @@ class Model:
         Examples
         --------
         >>> model = Model()
-        >>> with model.environment:
-        ...     x = Variable("x")
-        ...     y = Variable("y")
+        >>> x = model.add_variable("x")
+        >>> y = model.add_variable("y")
         >>> model.set_objective(x + 2 * y, sense=Sense.MAX)
-
-        See Also
-        --------
-        objective : Access objective directly as a property
         """
         self._m.set_objective(expression._expr, sense._val if sense else None)
 
@@ -579,24 +569,20 @@ class Model:
 
         Examples
         --------
+        >>> from luna_model import Model, Solution, Sense, Variable, Vtype
         >>> model = Model(sense=Sense.MAX)
-        >>> with model.environment:
-        ...     x = Variable("x")
-        ...     y = Variable("y")
+        >>> x = model.add_variable("x", vtype=Vtype.INTEGER)
+        >>> y = model.add_variable("y", vtype=Vtype.INTEGER)
         >>> model.objective = x + 2 * y
         >>> model.constraints += x + y <= 5
         >>> samples = [{"x": 1, "y": 2}]
-        >>> solution = Solution(samples=samples)
-        >>> result = model.evaluate(solution)
-        >>> result.obj_values[0]  # Value of x + 2*y = 1 + 4 = 5
+        >>> with model.environment:
+        ...     solution = Solution(samples=samples)
+        >>> solution = model.evaluate(solution)
+        >>> solution.obj_values[0]  # Value of x + 2*y = 1 + 4 = 5
         5.0
-        >>> result.feasible[0]  # x + y = 3 <= 5, so True
+        >>> solution[0].feasible  # x + y = 3 <= 5, so True
         True
-
-        See Also
-        --------
-        evaluate_sample : Evaluate a single sample
-        violated_constraints : Get violated constraints for a sample
         """
         return wrap_s(self._m.evaluate(solution._s))
 
@@ -622,21 +608,6 @@ class Model:
             If the sample has incorrect number of variables.
         SampleUnexpectedVariableError
             If the sample contains variables not in the model.
-
-        Examples
-        --------
-        >>> model = Model()
-        >>> with model.environment:
-        ...     x = Variable("x")
-        ...     y = Variable("y")
-        >>> model.objective = x + 2 * y
-        >>> result = model.evaluate_sample({"x": 1, "y": 2})
-        >>> result.obj_value
-        5.0
-
-        See Also
-        --------
-        evaluate : Evaluate a full solution with multiple samples
         """
         return self._m.evaluate_sample(sample)
 
@@ -652,21 +623,6 @@ class Model:
         -------
         ConstraintCollection
             Collection containing only the constraints that are violated by the sample.
-
-        Examples
-        --------
-        >>> model = Model()
-        >>> with model.environment:
-        ...     x = Variable("x")
-        >>> model.constraints += x <= 5
-        >>> model.constraints += x >= 0
-        >>> violated = model.violated_constraints({"x": 10})
-        >>> len(violated)  # Only x <= 5 is violated
-        1
-
-        See Also
-        --------
-        evaluate_sample : Evaluate a sample
         """
         return wrap_cc(self._m.violated_constraints(sample))
 
@@ -693,13 +649,12 @@ class Model:
         Examples
         --------
         >>> model = Model()
-        >>> with model.environment:
-        ...     x = Variable("x")
-        ...     y = Variable("y")
-        ...     z = Variable("z")
+        >>> x = model.add_variable("x")
+        >>> y = model.add_variable("y")
+        >>> z = model.add_variable("z")
         >>> model.objective = x + 2 * y
         >>> model.substitute(y, z + 1)  # Replace y with (z + 1)
-        >>> # Objective becomes: x + 2*(z + 1) = x + 2*z + 2
+        >>> # Objective becomes: x + 2*(z + 1) = x + 2z + 2
 
         Notes
         -----
@@ -733,23 +688,11 @@ class Model:
         >>> specs = model.get_specs()
         >>> model.satisfies(specs)
         True
-
-        See Also
-        --------
-        get_specs : Get the model's specifications
         """
         return self._m.satisfies(specs._sp)
 
-    def encode(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
+    def encode(self) -> bytes:
         """Serialize the model into a compact binary format.
-
-        Parameters
-        ----------
-        compress : bool, default=True
-            Whether to compress the binary output using zstd compression.
-        level : int, default=3
-            Compression level (0-9). Higher values provide better compression
-            but take longer. Only used if compress=True.
 
         Returns
         -------
@@ -768,37 +711,20 @@ class Model:
         >>> restored = Model.decode(blob)
         >>> restored.name
         'MyModel'
-
-        See Also
-        --------
-        decode : Deserialize a model from bytes
-        serialize : Alias for encode
         """
-        return self._m.encode(compress, level)
+        return self._m.encode()
 
-    def serialize(self, /, compress: bool | None = True, level: int | None = 3) -> bytes:
+    def serialize(self) -> bytes:
         """Serialize the model into a compact binary format.
 
         This is an alias for :meth:`encode`.
-
-        Parameters
-        ----------
-        compress : bool, default=True
-            Whether to compress the binary output.
-        level : int, default=3
-            Compression level (0-9).
 
         Returns
         -------
         bytes
             Encoded model representation.
-
-        See Also
-        --------
-        encode : Primary serialization method
-        deserialize : Alias for decode
         """
-        return self.encode(compress, level)
+        return self.encode()
 
     @classmethod
     def decode(cls, data: bytes) -> Model:
@@ -826,11 +752,6 @@ class Model:
         >>> restored = Model.decode(blob)
         >>> restored.name == original.name
         True
-
-        See Also
-        --------
-        encode : Serialize a model
-        deserialize : Alias for decode
         """
         return cls._from_pym(PyModel.decode(data))
 
@@ -868,19 +789,14 @@ class Model:
 
         Examples
         --------
+        >>> from luna_model import Model
         >>> original = Model("Original")
-        >>> with original.environment:
-        ...     x = Variable("x")
-        >>> original.objective = x
+        >>> x = original.add_variable("x")
+        >>> original.objective = 2 * x
         >>> clone = original.deep_clone()
         >>> clone.name = "Clone"
         >>> original.name
         'Original'
-
-        Notes
-        -----
-        The cloned model has its own separate environment. Variables in the
-        clone are distinct from variables in the original.
         """
         return self._from_pym(self._m.deep_clone())
 
@@ -997,12 +913,6 @@ class Model:
         >>> model2 = Model("B")
         >>> model1 == model2
         False
-
-        Notes
-        -----
-        This checks structural equality, not just reference equality.
-        Two independently created but structurally identical models will
-        be considered equal.
         """
         return self._m.__eq__(other._m)
 
@@ -1018,12 +928,7 @@ class Model:
         --------
         >>> model = Model("MyModel")
         >>> hash(model)  # doctest: +SKIP
-        12345...
-
-        Notes
-        -----
-        The hash is computed from the model's structure and content,
-        allowing models to be used in sets and as dictionary keys.
+        4726318758077234822
         """
         return self._m.__hash__()
 
@@ -1062,16 +967,16 @@ class Model:
 
         Examples
         --------
+        >>> from luna_model import Model, Sense
         >>> model = Model("MyModel", sense=Sense.MAX)
-        >>> with model.environment:
-        ...     x = Variable("x")
-        >>> model.objective = x
+        >>> x = model.add_variable("x")
+        >>> model.objective = 2 * x
         >>> print(model)
         Model: MyModel
-          Sense: Maximize
-          Objective: x
-          Constraints: 0
-          Variables: 1 (1 BINARY)
+        Maximize
+          2 * x
+        Binary
+          x
         """
         return self._m.__str__()
 
@@ -1087,7 +992,7 @@ class Model:
         --------
         >>> model = Model("MyModel")
         >>> repr(model)  # doctest: +SKIP
-        'Model(name="MyModel", sense=MIN, ...)'
+        'Model(name=MyModel, sense=Minimize, objective=0, constraints={})'
 
         Notes
         -----

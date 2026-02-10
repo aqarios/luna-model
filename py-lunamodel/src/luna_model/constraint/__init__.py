@@ -1,16 +1,16 @@
-"""Constraints for optimization models.
-
-This module provides classes for creating and managing constraints in
-optimization problems. Constraints specify relationships that must be
-satisfied by the solution.
-
-Key classes:
-    - Constraint: Individual constraint with lhs, comparator, and rhs
-    - ConstraintCollection: Container for multiple named constraints
-    - Comparator: Comparison operators (EQ, LE, GE)
-    - ConstraintCollectionIter: Iterator for constraint collections
-"""
-
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from luna_model.constraint.cmp import Comparator
 from luna_model.constraint.collection import ConstraintCollection
 from luna_model.constraint.constr import Constraint

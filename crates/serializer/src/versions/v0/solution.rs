@@ -136,7 +136,7 @@ impl SerSolution {
                                 .step_by(bin_step)
                                 .map(|&e| e as f64)
                                 .collect(),
-                        );
+                        )?;
                         nbins += 1;
                     }
                     Vtype::Spin => {
@@ -148,7 +148,7 @@ impl SerSolution {
                                 .step_by(spin_step)
                                 .map(|&e| e as f64)
                                 .collect(),
-                        );
+                        )?;
                         nspins += 1;
                     }
                     Vtype::Integer => {
@@ -160,7 +160,7 @@ impl SerSolution {
                                 .step_by(int_step)
                                 .map(|&e| e as f64)
                                 .collect(),
-                        );
+                        )?;
                         nints += 1;
                     }
                     Vtype::Real => {

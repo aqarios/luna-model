@@ -13,7 +13,7 @@ impl PySolution {
             VarKey::Str(name) => (name.clone(), vtype.unwrap_or_else(|| Vtype::Binary)),
             VarKey::Var(v) => (v.v.name()?, v.v.vtype()?),
         };
-        self.s.write_arc().add_col(vt, vn, data);
+        self.s.write_arc().add_col(vt, vn, data)?;
         Ok(())
     }
 
