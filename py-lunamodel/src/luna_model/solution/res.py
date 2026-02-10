@@ -41,7 +41,7 @@ class Result(Protocol):
 
     @property
     def sample(self) -> Sample:
-        """Get the variable assignments."""
+        """Get the variable assignments as a Sample."""
         ...
 
     @property

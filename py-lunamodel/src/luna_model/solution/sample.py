@@ -29,9 +29,10 @@ class Sample(Protocol):
 
     Examples
     --------
-    >>> result = solution.get_result(0)
+    >>> result = solution[0]
     >>> sample = result.sample
     >>> value = sample["x"]  # Access by name
+    >>> print(value)
     >>> print(sample.to_dict())
     """
 
@@ -70,7 +71,7 @@ class Samples(Protocol):
 
     Examples
     --------
-    >>> samples = solution.get_samples()
+    >>> samples = solution.samples
     >>> first_sample = samples[0]
     >>> specific_value = samples[0, 1]  # Row 0, column (var) 1
     >>> all_samples = samples.tolist()

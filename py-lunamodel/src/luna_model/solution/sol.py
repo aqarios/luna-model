@@ -41,14 +41,14 @@ if TYPE_CHECKING:
 
 
 class Solution:
-    """Container for optimization solver results.
+    """Optimization algorithm results.
 
-    A Solution stores the results from solving an optimization problem, including
-    variable assignments (samples), objective function values, feasibility status,
+    A Solution stores the results from solving a model, including variable
+    assignments (samples), objective function values, feasibility status,
     constraint satisfaction, and runtime information.
 
     Solutions can be created directly or converted from various solver formats
-    (D-Wave, Qiskit, SCIP).
+    (e.g., D-Wave, Qiskit, SCIP).
 
     Parameters
     ----------
