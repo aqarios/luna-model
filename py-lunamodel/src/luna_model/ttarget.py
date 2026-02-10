@@ -41,10 +41,6 @@ class TranslationTarget(Enum):
     --------
     >>> from luna_model.ttarget import TranslationTarget
     >>> target = TranslationTarget.QUBO
-
-    See Also
-    --------
-    Model : Model class that can be translated to these formats.
     """
 
     QUBO = "Qubo"

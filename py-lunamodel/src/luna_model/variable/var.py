@@ -113,15 +113,6 @@ class Variable:
     -----
     Variables are immutable once created. Their name, type, and environment
     cannot be changed. Bounds can be modified through the model that contains them.
-
-    See Also
-    --------
-    Expression : Symbolic mathematical expressions built from variables
-    Constraint : Constraints on variable values
-    Model : Optimization models containing variables
-    Environment : Container managing variables and their metadata
-    Vtype : Enumeration of variable types
-    Bounds : Explicit bounds specification
     """
 
     _v: PyVariable
@@ -420,10 +411,6 @@ class Variable:
         -------
         Variable
             A new inverted variable.
-
-        See Also
-        --------
-        inv : Detailed documentation of variable inversion
         """
         return self._from_pyvar(self._v.__invert__())
 

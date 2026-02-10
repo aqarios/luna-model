@@ -34,10 +34,6 @@ class Sense(Enum):
     --------
     >>> from luna_model import Model, Sense
     >>> model = Model(sense=Sense.MIN)  # Minimization problem
-
-    See Also
-    --------
-    Model : Model class that uses this sense.
     """
 
     MIN = "Minimize"

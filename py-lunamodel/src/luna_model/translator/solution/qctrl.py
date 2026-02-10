@@ -33,11 +33,6 @@ class QctrlTranslator:
     ...     "variables_to_bitstring_index_map": {"x[0]": 0, "y[1]": 1},
     ... }
     >>> solution = QctrlTranslator.to_lm(qctrl_result)
-
-    See Also
-    --------
-    IbmTranslator : IBM Qiskit solution translator
-    AwsTranslator : Amazon Braket solution translator
     """
 
     @staticmethod

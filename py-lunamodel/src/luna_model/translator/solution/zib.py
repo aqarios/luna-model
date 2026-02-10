@@ -47,10 +47,6 @@ class ZibTranslator:
     >>> # ... build and solve model ...
     >>> scip.optimize()
     >>> solution = ZibTranslator.to_lm(scip)
-
-    See Also
-    --------
-    LpTranslator : LP format translator (compatible with SCIP)
     """
 
     @staticmethod

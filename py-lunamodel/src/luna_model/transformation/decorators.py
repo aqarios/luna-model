@@ -189,13 +189,6 @@ def analyse(
 
     The return value is stored in the ``AnalysisCache`` under the pass's name
     and can be accessed by subsequent passes.
-
-    See Also
-    --------
-    transform : Decorator for creating transformation passes
-    meta_analyse : Decorator for meta-analysis passes
-    AnalysisPass : Base class for analysis passes
-    AnalysisCache : Storage for analysis results
     """
     if requires is None:
         requires = []
@@ -306,13 +299,6 @@ def transform(
     The backwards function is crucial when transformations change the variable space
     (e.g., adding/removing variables, changing variable types). It ensures solutions
     from downstream solvers can be correctly interpreted in the original model's context.
-
-    See Also
-    --------
-    analyse : Decorator for creating analysis passes
-    TransformationPass : Base class for transformation passes
-    ActionType : Enumeration of transformation actions
-    TransformationOutcome : Result type for transformations
     """
     if requires is None:
         requires = []

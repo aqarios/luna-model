@@ -55,9 +55,5 @@ def quicksum(iterable: Iterable, start: Expression | Variable | None = None) -> 
     -----
     This is significantly faster than using ``sum()`` or repeated ``+`` operations
     for large numbers of terms.
-
-    See Also
-    --------
-    Expression : The expression class returned by this function.
     """
     return Expression._from_pyexpr(q(iterable, start))

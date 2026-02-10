@@ -97,10 +97,6 @@ class Timer:
     >>> # ... perform operations ...
     >>> timing = timer.stop()
     >>> print(f"Elapsed: {timing.total_seconds} seconds")
-
-    See Also
-    --------
-    Timing : The timing information returned by stop().
     """
 
     _t: PyTimer

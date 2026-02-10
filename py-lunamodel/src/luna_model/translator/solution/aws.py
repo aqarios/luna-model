@@ -30,11 +30,6 @@ class AwsTranslator:
     >>> from luna_model.translator import AwsTranslator
     >>> # braket_result = sampler.sample(bqm, shots=100)
     >>> solution = AwsTranslator.to_lm(braket_result)
-
-    See Also
-    --------
-    DwaveTranslator : D-Wave solution translator
-    BqmTranslator : BQM format translator
     """
 
     @staticmethod

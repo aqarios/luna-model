@@ -60,12 +60,6 @@ class LpTranslator:
     - Higher-order (degree > 2) terms are not supported
     - Some special constraint types may need transformation
     - Variable names must follow LP naming conventions
-
-    See Also
-    --------
-    QuboTranslator : Translator for QUBO format
-    BqmTranslator : Translator for D-Wave BQM format
-    CqmTranslator : Translator for D-Wave CQM format
     """
 
     @staticmethod

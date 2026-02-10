@@ -33,11 +33,6 @@ class Sample(Protocol):
     >>> sample = result.sample
     >>> value = sample["x"]  # Access by name
     >>> print(sample.to_dict())
-
-    See Also
-    --------
-    Samples : Collection of multiple samples.
-    Result : Result object that contains a sample.
     """
 
     def to_dict(self) -> dict[str, int | float]:
@@ -79,11 +74,6 @@ class Samples(Protocol):
     >>> first_sample = samples[0]
     >>> specific_value = samples[0, 1]  # Row 0, column (var) 1
     >>> all_samples = samples.tolist()
-
-    See Also
-    --------
-    Sample : Individual sample protocol.
-    Solution : Solution class containing samples.
     """
 
     def tolist(self) -> Sequence[Sequence[int | float]]:
@@ -114,12 +104,7 @@ class Samples(Protocol):
 
 
 class SamplesIter(Protocol):
-    """Iterator over multiple samples.
-
-    See Also
-    --------
-    Samples : The samples collection that uses this iterator.
-    """
+    """Iterator over multiple samples."""
 
     def __iter__(self) -> SamplesIter:
         """Return the iterator object itself."""
@@ -131,12 +116,7 @@ class SamplesIter(Protocol):
 
 
 class SampleIter(Protocol):
-    """Iterator over values in a single sample.
-
-    See Also
-    --------
-    Sample : The sample that uses this iterator.
-    """
+    """Iterator over values in a single sample."""
 
     def __iter__(self) -> SampleIter:
         """Return the iterator object itself."""

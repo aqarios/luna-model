@@ -31,11 +31,6 @@ class NumpyTranslator:
     >>> samples = np.array([[0, 1], [1, 0], [1, 1]])
     >>> energies = np.array([-2.5, -1.0, 0.5])
     >>> solution = NumpyTranslator.to_lm(samples, energies)
-
-    See Also
-    --------
-    DwaveTranslator : D-Wave SampleSet solution translator
-    Solution : LunaModel solution object
     """
 
     @staticmethod

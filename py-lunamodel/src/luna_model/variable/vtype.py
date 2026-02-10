@@ -51,11 +51,6 @@ class Vtype(Enum):
     Notes
     -----
     The default variable type is ``BINARY`` when not specified.
-
-    See Also
-    --------
-    Variable : Decision variable class that uses this type enumeration.
-    Bounds : Bounds class for constraining variable values.
     """
 
     BINARY = "Binary"

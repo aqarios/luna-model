@@ -72,11 +72,6 @@ class Qubo:
     -----
     QUBO is a fundamental format for quantum and quantum-inspired optimization.
     It's used by D-Wave quantum annealers and many other optimization solvers.
-
-    See Also
-    --------
-    QuboTranslator : Translator to/from QUBO format
-    BqmTranslator : Similar format used by D-Wave Ocean SDK
     """
 
     _q: PyQubo
@@ -195,11 +190,6 @@ class QuboTranslator:
     - Quantum annealing (D-Wave systems)
     - Simulated annealing algorithms
     - Other metaheuristic optimization methods
-
-    See Also
-    --------
-    Qubo : QUBO object representation
-    BqmTranslator : D-Wave Binary Quadratic Model format
     """
 
     @staticmethod

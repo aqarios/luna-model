@@ -91,14 +91,6 @@ class IfElsePass(PyIfElsePass, BasePass):
 
     The condition is evaluated once per ``IfElsePass`` execution. If you need to
     re-evaluate during pipeline execution, nest multiple ``IfElsePass`` instances.
-
-    See Also
-    --------
-    Pipeline : Sequential composition of passes
-    PassManager : Orchestrates pass execution
-    AnalysisCache : Stores analysis results used by condition
-    TransformationPass : Base class for transformation passes
-    AnalysisPass : Base class for analysis passes
     """
 
     _ifelse: PyIfElsePass

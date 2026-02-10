@@ -60,12 +60,6 @@ class BqmTranslator:
     Notes
     -----
     The model must be unconstrained with at most quadratic terms.
-
-    See Also
-    --------
-    QuboTranslator : QUBO matrix format translator
-    CqmTranslator : Constrained Quadratic Model format
-    DwaveTranslator : D-Wave solution translator
     """
 
     @staticmethod

@@ -64,12 +64,6 @@ class CqmTranslator:
     Notes
     -----
     The translator uses LP format as an intermediate representation.
-
-    See Also
-    --------
-    BqmTranslator : Binary Quadratic Model format
-    LpTranslator : LP file format translator
-    DwaveTranslator : D-Wave solution translator
     """
 
     @staticmethod

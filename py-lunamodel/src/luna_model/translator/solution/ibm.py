@@ -45,11 +45,6 @@ class IbmTranslator:
     >>> from luna_model.translator import IbmTranslator
     >>> # result = optimizer.solve(quadratic_program)
     >>> solution = IbmTranslator.to_lm(result.min_eigen_solver_result, quadratic_program)
-
-    See Also
-    --------
-    AwsTranslator : Amazon Braket solution translator
-    QctrlTranslator : Q-Ctrl solution translator
     """
 
     @staticmethod

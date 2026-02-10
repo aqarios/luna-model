@@ -515,10 +515,6 @@ class Model:
         >>> x = model.add_variable("x")
         >>> constraint = x <= 5
         >>> model.add_constraint(constraint, name="x_upper_bound")
-
-        See Also
-        --------
-        constraints : Access the constraint collection directly
         """
         self._m.add_constraint(constraint._c, name)
 
@@ -770,11 +766,6 @@ class Model:
         -------
         Model
             Deserialized model object.
-
-        See Also
-        --------
-        decode : Primary deserialization method
-        serialize : Alias for encode
         """
         return cls.decode(data)
 

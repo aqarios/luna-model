@@ -119,12 +119,6 @@ class Solution:
 
     >>> mean_value = solution.expectation_value()
     >>> feas_ratio = solution.feasibility_ratio()
-
-    See Also
-    --------
-    Result : Individual result from the solution.
-    Sample : Variable assignments in a result.
-    Model : Model class that produces solutions.
     """
 
     _s: PySolution

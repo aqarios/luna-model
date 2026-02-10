@@ -28,10 +28,6 @@ class ValueSource(Enum):
         Values from objective function evaluation.
     RAW : str
         Raw values from solver output.
-
-    See Also
-    --------
-    Solution : Solution class that uses value sources.
     """
 
     OBJ = "Obj"

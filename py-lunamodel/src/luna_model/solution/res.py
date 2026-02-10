@@ -37,11 +37,6 @@ class Result(Protocol):
         Variable bound satisfaction status by variable name.
     feasible : bool | None
         Whether the solution is feasible, if known.
-
-    See Also
-    --------
-    ResultView : Extended result with additional metadata.
-    Solution : Solution class containing results.
     """
 
     @property
@@ -81,10 +76,6 @@ class ResultView(Result, Protocol):
         Number of times this result was observed.
     raw_energy : float | None
         Raw energy value from the solver, if available.
-
-    See Also
-    --------
-    Result : Base result protocol.
     """
 
     @property
@@ -114,11 +105,6 @@ class ResultIter(Protocol):
     """Iterator over result views.
 
     Iterates over ResultView objects in a solution.
-
-    See Also
-    --------
-    ResultView : The result objects yielded by this iterator.
-    Solution : Solution class that provides result iterators.
     """
 
     def __iter__(self) -> ResultIter:

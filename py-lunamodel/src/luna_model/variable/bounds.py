@@ -68,11 +68,6 @@ class Bounds:
     - ``SPIN``: [-1, 1]
     - ``INTEGER``: [-2^63, 2^63-1]
     - ``REAL``: [-inf, inf]
-
-    See Also
-    --------
-    Variable : Decision variable class that uses bounds.
-    Vtype : Variable type enumeration.
     """
 
     _b: PyBounds

@@ -48,11 +48,6 @@ class DwaveTranslator:
     >>> # sampler = DWaveSampler()
     >>> # sampleset = sampler.sample(bqm, num_reads=100)
     >>> solution = DwaveTranslator.to_lm(sampleset)
-
-    See Also
-    --------
-    BqmTranslator : D-Wave BQM format translator
-    CqmTranslator : D-Wave CQM format translator
     """
 
     @staticmethod
