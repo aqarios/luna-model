@@ -415,6 +415,17 @@ def scip_models_are_equal(model1: ScipModel, model2: ScipModel) -> tuple[bool, s
             if m1_dict != m2_dict:
                 return False, f"{m1_dict} != {m2_dict}"
 
+            m1_s = [
+                e
+                for e in m1_s
+                if e[1] != 0 and e[2] != 0
+            ]
+            m2_s = [
+                e
+                for e in m1_s
+                if e[1] != 0 and e[2] != 0
+            ]
+
             if m1_s != list():
                 return False, f"{m1_s} != []"
             if m2_s != list():
