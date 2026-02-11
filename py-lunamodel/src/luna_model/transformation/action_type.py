@@ -19,7 +19,11 @@ from luna_model._lm import PyActionType
 
 
 class ActionType(Enum):
-    """ActionType."""
+    """Enumeration of action types that describe what a pass performed.
+
+    This enum classifies the types of operations performed by transformation/analysis
+    passes on the model, such as analysis, transformation, or composite operations.
+    """
 
     DID_TRANSFORM = "DidTransform"
     """Indicate that the pass did transform the model."""
@@ -28,7 +32,7 @@ class ActionType(Enum):
     DID_ANALYSIS_TRANSFORM = "DidAnalysisTransform"
     """Indicate that the pass did analyse and transfrom the model."""
     DID_IF_ELSE = "DidIfElse"
-    """Indicate that the pass did ifelse pass."""
+    """Indicate that the pass did an ifelse pass."""
     DID_PIPELINE = "DidPipeline"
     """Indicate that the pass did a pipeline pass."""
     DID_NOTHING = "DidNothing"

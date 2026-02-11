@@ -33,7 +33,21 @@ from .cache import AnalysisCache
 
 
 class TransformationOutcome:
-    """Output object for transformation pass."""
+    """
+    Output object for transformation pass.
+
+    Encapsulates the result of applying a transformation pass, including
+    the transformed model, the action taken, and optional analysis data.
+
+    Parameters
+    ----------
+    model : Model
+        The transformed model.
+    action : ActionType
+        The type of action performed during transformation.
+    analysis : object, optional
+        Additional analysis data produced during transformation.
+    """
 
     _to: PyTransformationOutcome
 
@@ -52,42 +66,106 @@ class TransformationOutcome:
 
     @classmethod
     def nothing(cls, model: Model) -> TransformationOutcome:
-        """Easy nothing action return."""
+        """
+        Create a transformation outcome indicating no changes were made.
+
+        Parameters
+        ----------
+        model : Model
+            The unchanged model.
+
+        Returns
+        -------
+        TransformationOutcome
+            A transformation outcome with action type set to nothing.
+        """
         return cls._from_pyto(PyTransformationOutcome.nothing(model._m))
 
     @property
     def model(self) -> Model:
-        """Get the model."""
+        """
+        Get the transformed model.
+
+        Returns
+        -------
+        Model
+            The model after transformation.
+        """
         return Model._from_pym(self._to.model)
 
     @model.setter
     def model(self, model: Model) -> None:
-        """Set the model."""
+        """
+        Set the transformed model.
+
+        Parameters
+        ----------
+        model : Model
+            The model to set as the transformation result.
+        """
         self._to.model = model._m
 
     @property
     def action(self) -> ActionType:
-        """Get the action type."""
+        """
+        Get the action type performed.
+
+        Returns
+        -------
+        ActionType
+            The type of transformation action that was performed.
+        """
         return ActionType._from_pyat(self._to.action)
 
     @action.setter
     def action(self, action_type: ActionType) -> None:
-        """Set the action type."""
+        """
+        Set the action type.
+
+        Parameters
+        ----------
+        action_type : ActionType
+            The type of transformation action to set.
+        """
         self._to.action = action_type._val
 
     @property
     def analysis(self) -> Any:  # noqa: ANN401
-        """Get the analysis."""
+        """
+        Get the analysis data.
+
+        Returns
+        -------
+        Any
+            Additional analysis data produced during transformation.
+        """
         return self._to.analysis
 
     @analysis.setter
     def analysis(self, value: Any) -> None:  # noqa: ANN401
-        """Set the analysis."""
+        """
+        Set the analysis data.
+
+        Parameters
+        ----------
+        value : Any
+            Analysis data to associate with this transformation outcome.
+        """
         self._to.analysis = value
 
 
 class TransformationPass(PyTransformationPass, BasePass):
-    """TransformationPass."""
+    """
+    Base class for transformation passes that modify models.
+
+    Transformation passes apply changes to models and can also convert
+    solutions backwards to match the input representation.
+
+    Notes
+    -----
+    This is an abstract class. Subclasses must implement the `name`, `run`,
+    and `backwards` methods.
+    """
 
     _base: TransformationPass
 
@@ -97,32 +175,81 @@ class TransformationPass(PyTransformationPass, BasePass):
     @property
     @abstractmethod
     def name(self) -> str:
-        """Get the name of this pass."""
+        """
+        Get the name of this pass.
+
+        Returns
+        -------
+        str
+            The unique identifier name for this pass.
+        """
         return self._base.name
 
     @property
     def requires(self) -> list[str]:
-        """Get a list of required passes that need to be run before this pass."""
+        """
+        Get a list of required passes that need to be run before this pass.
+
+        Returns
+        -------
+        list of str
+            Names of passes that must be executed before this pass.
+        """
         return self._base.requires
 
     @property
     def invalidates(self) -> list[str]:
-        """Get a list of passes that are invalidated by this pass."""
+        """
+        Get a list of passes that are invalidated by this pass.
+
+        Returns
+        -------
+        list of str
+            Names of passes whose results become invalid after this pass runs.
+        """
         return self._base.invalidates
 
     @abstractmethod
     def run(
         self, model: Model, cache: AnalysisCache
     ) -> TransformationOutcome | tuple[PyModel, PyActionType] | tuple[PyModel, PyActionType, Any]:
-        """Run/Execute this transformation pass."""
+        """
+        Run/Execute this transformation pass.
+
+        Parameters
+        ----------
+        model : Model
+            The model to transform.
+        cache : AnalysisCache
+            Cache containing analysis results.
+
+        Returns
+        -------
+        TransformationOutcome or tuple
+            The transformation result, either as a TransformationOutcome object
+            or as a tuple of (model, action_type) or (model, action_type, analysis).
+        """
         ...
 
     @abstractmethod
     def backwards(self, solution: Solution, cache: AnalysisCache) -> Solution:
-        """Convert a solution back to fit this pass' input.
+        """
+        Convert a solution back to fit this pass' input.
 
-        Convert a solution from a representation fitting this pass' output to
+        Converts a solution from a representation fitting this pass' output to
         a solution representation fitting this pass' input.
+
+        Parameters
+        ----------
+        solution : Solution
+            The solution in the output representation.
+        cache : AnalysisCache
+            Cache containing analysis results.
+
+        Returns
+        -------
+        Solution
+            The solution converted to the input representation.
         """
         ...
 
@@ -143,17 +270,39 @@ class TransformationPass(PyTransformationPass, BasePass):
 
 
 class ConcreteTransformationPass(TransformationPass):
-    """ConcreteTransformationPass."""
+    """Concrete implementation of a transformation pass."""
 
     @property
     def name(self) -> str:
-        """Get the name of this pass."""
+        """
+        Get the name of this pass.
+
+        Returns
+        -------
+        str
+            The unique identifier name for this pass.
+        """
         return self._base.name
 
     def run(
         self, model: Model, cache: AnalysisCache
     ) -> TransformationOutcome | tuple[PyModel, PyActionType] | tuple[PyModel, PyActionType, Any]:
-        """Run/Execute this transformation pass."""
+        """
+        Run/Execute this transformation pass.
+
+        Parameters
+        ----------
+        model : Model
+            The model to transform.
+        cache : AnalysisCache
+            Cache containing analysis results.
+
+        Returns
+        -------
+        TransformationOutcome or tuple
+            The transformation result, either as a TransformationOutcome object
+            or as a tuple of (model, action_type) or (model, action_type, analysis).
+        """
         inter = self._base.run(model._m, cache._ac)
         if isinstance(inter, tuple) and len(inter) == 2:  # noqa: PLR2004
             model, at = inter
@@ -164,9 +313,22 @@ class ConcreteTransformationPass(TransformationPass):
         return TransformationOutcome._from_pyto(inter)
 
     def backwards(self, solution: Solution, cache: AnalysisCache) -> Solution:
-        """Convert a solution back to fit this pass' input.
+        """
+        Convert a solution back to fit this pass' input.
 
-        Convert a solution from a representation fitting this pass' output to
+        Converts a solution from a representation fitting this pass' output to
         a solution representation fitting this pass' input.
+
+        Parameters
+        ----------
+        solution : Solution
+            The solution in the output representation.
+        cache : AnalysisCache
+            Cache containing analysis results.
+
+        Returns
+        -------
+        Solution
+            The solution converted to the input representation.
         """
         return Solution._from_pys(self._base.backwards(solution._s, cache._ac))

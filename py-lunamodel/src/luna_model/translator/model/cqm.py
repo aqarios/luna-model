@@ -31,15 +31,7 @@ class CqmTranslator:
 
     Converts between LunaModel and ConstrainedQuadraticModel (CQM) format.
 
-    A CQM represents a constrained optimization problem:
-
-    .. math::
-        \\min \\sum_{i} h_i x_i + \\sum_{i<j} J_{ij} x_i x_j
-
-    subject to linear and quadratic constraints with binary, integer, and
-    continuous variables.
-
-    Requires the ``dimod`` package.
+    Requires the ``dimod`` extra.
 
     Examples
     --------
@@ -60,17 +52,13 @@ class CqmTranslator:
     >>> model.objective = x * y - 2 * x + y
     >>> model.constraints += x + y <= 1
     >>> cqm = CqmTranslator.from_lm(model)
-
-    Notes
-    -----
-    The translator uses LP format as an intermediate representation.
     """
 
     @staticmethod
     def to_lm(cqm: "ConstrainedQuadraticModel", *, name: str | None = None) -> Model:
         """Convert D-Wave CQM to LunaModel.
 
-        Converts a D-Wave Ocean SDK ConstrainedQuadraticModel to a LunaModel Model.
+        Converts a D-Wave ConstrainedQuadraticModel to a LunaModel Model.
 
         Parameters
         ----------
@@ -127,14 +115,13 @@ class CqmTranslator:
     def from_lm(model: Model) -> "ConstrainedQuadraticModel":
         """Convert LunaModel to D-Wave CQM.
 
-        Converts a LunaModel Model to a D-Wave Ocean SDK ConstrainedQuadraticModel.
+        Converts a LunaModel Model to a D-Wave ConstrainedQuadraticModel.
 
         Parameters
         ----------
         model : Model
             The model to convert. Should have:
             - At most quadratic objective and constraints
-            - Supported variable types (binary, integer, continuous)
 
         Returns
         -------
@@ -161,15 +148,6 @@ class CqmTranslator:
         >>> # Weight constraint
         >>> model.constraints += sum(w * x[i] for i, w in enumerate(weights)) <= 10
         >>> cqm = CqmTranslator.from_lm(model)
-        >>> # Submit to D-Wave Leap hybrid solver
-        >>> # from dwave.system import LeapHybridCQMSampler
-        >>> # sampler = LeapHybridCQMSampler()
-        >>> # sampleset = sampler.sample_cqm(cqm, label="Knapsack")
-
-        Notes
-        -----
-        The translator uses LP format as an intermediate representation,
-        ensuring all model components are properly converted to CQM format.
         """
         if not _DIMOD_AVAILABLE:
             msg = "dimod is required for the CqmTranslator. You can install it using the 'dimod' extra."

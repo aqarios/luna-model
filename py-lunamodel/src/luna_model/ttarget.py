@@ -19,8 +19,7 @@ from luna_model._lm import PyTranslationTarget
 class TranslationTarget(Enum):
     """Target format for model translation.
 
-    Specifies the mathematical programming format to translate a model into.
-    Different solvers and platforms require different formats.
+    Specifies the format to translate a model into.
 
     Attributes
     ----------
@@ -36,11 +35,6 @@ class TranslationTarget(Enum):
     CQM : str
         Constrained Quadratic Model format (D-Wave).
         Quadratic model with constraints.
-
-    Examples
-    --------
-    >>> from luna_model.ttarget import TranslationTarget
-    >>> target = TranslationTarget.QUBO
     """
 
     QUBO = "Qubo"

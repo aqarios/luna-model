@@ -22,48 +22,98 @@ if TYPE_CHECKING:
 
 
 class MaxBias(Protocol):
-    """MaxBias."""
+    """Protocol for maximum bias information stored in the analysis cache.
+
+    This protocol defines the interface for accessing maximum bias values
+    computed during model analysis.
+    """
 
     @property
     def val(self) -> float:
-        """Get the value."""
+        """Get the maximum bias value.
+
+        Returns
+        -------
+        float
+            The maximum bias value.
+        """
         ...
 
 
 class BinarySpinInfo(Protocol):
-    """BinarySpinInfo."""
+    """Protocol for binary spin transformation information.
+
+    This protocol defines the interface for accessing information about
+    binary-to-spin/spin-to-binary variable transformations, including the
+    source and target variable types and the mapping between variable names.
+    """
 
     @property
     def old_vtype(self) -> Vtype:
-        """Get the source vtype."""
+        """Get the source variable type before transformation.
+
+        Returns
+        -------
+        Vtype
+            The original variable type.
+        """
         ...
 
     @property
     def new_vtype(self) -> Vtype:
-        """Get the target vtype."""
+        """Get the target variable type after transformation.
+
+        Returns
+        -------
+        Vtype
+            The transformed variable type.
+        """
         ...
 
     @property
     def map(self) -> dict[str, str]:
-        """Get the variable name mapping."""
+        """Get the variable name mapping from old to new names.
+
+        Returns
+        -------
+        dict[str, str]
+            Dictionary mapping old variable names to new variable names.
+        """
         ...
 
 
 class IfElseInfo(Protocol):
-    """IfElseInfo."""
+    """Protocol for if-else pass information.
+
+    This protocol defines the interface for accessing information about
+    whether an if-else condition was fulfilled during model transformation.
+    """
 
     @property
     def fulfilled_condition(self) -> bool:
-        """If the if-else condition is fulfilled."""
+        """Check if the if-else condition was fulfilled.
+
+        Returns
+        -------
+        bool
+            True if the condition was fulfilled, False otherwise.
+        """
         ...
 
 
 class AnalysisCache:
-    """AnalysisCache."""
+    """Cache for storing analysis metadata during model transformations.
+
+    The AnalysisCache provides a dictionary-like interface for storing and
+    retrieving metadata generated during model analysis and transformation
+    operations. It supports type-safe access to known cache keys through
+    overloaded `__getitem__` methods.
+    """
 
     _ac: PyAnalysisCache
 
     def __init__(self) -> None:
+        """Initialize a new empty analysis cache."""
         self._ac = PyAnalysisCache()
 
     @classmethod
@@ -79,5 +129,21 @@ class AnalysisCache:
     @overload
     def __getitem__(self, key: str) -> Any: ...  # noqa: ANN401
     def __getitem__(self, key: str) -> Any:
-        """Get the cache item for the key."""
+        """Get the cache item for the specified key.
+
+        Parameters
+        ----------
+        key : str
+            The cache key to retrieve.
+
+        Returns
+        -------
+        Any
+            The cached value associated with the key.
+
+        Raises
+        ------
+        KeyError
+            If the key is not found in the cache.
+        """
         return self._ac[key]

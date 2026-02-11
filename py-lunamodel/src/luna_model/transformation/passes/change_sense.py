@@ -17,19 +17,34 @@ from luna_model.transformation.transform import ConcreteTransformationPass
 
 
 class ChangeSensePass(ConcreteTransformationPass):
-    """A transformation pass to change the model's Sense to a target Sense."""
+    """Change the optimization sense between minimization and maximization.
+
+    Converts the optimization sense by negating the objective function.
+
+    Parameters
+    ----------
+    sense : Sense
+        The target sense to convert the optimization sense to.
+
+
+    Examples
+    --------
+    >>> from luna_model import Model, Vtype, Sense
+    >>> from luna_model.transformation import PassManager
+    >>> from luna_model.transformation.passes import ChangeSensePass
+    >>> model = Model(sense=Sense.MAX)
+    >>> x = model.add_variable("x", vtype=Vtype.BINARY)
+    >>> y = model.add_variable("y", vtype=Vtype.BINARY)
+    >>> model.objective = x * y + x - 2 * y
+    >>> pm = PassManager([ChangeSensePass(Sense.MIN)])
+    >>> ir = pm.run(model)
+    >>> min_model = ir.model
+    """
 
     def __init__(self, sense: Sense) -> None:
-        """Transform the model's Sense to a target Sense.
-
-        Parameters
-        ----------
-        sense : Sense
-            The target sense of the model after calling the `run` method on it.
-        """
         super().__init__(base=PyChangeSensePass(sense._val))
 
     @property
     def sense(self) -> Sense:
-        """Get the specified target sense of this pass."""
+        """Get the target optimization sense."""
         return Sense._from_pysense(self._csp.sense)

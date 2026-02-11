@@ -25,7 +25,16 @@ T = TypeVar("T")
 
 
 class MetaAnalysisPass(PyMetaAnalysisPass, BasePass, Generic[T]):
-    """MetaAnalysisPass."""
+    """Base class for meta-analysis passes that analyze other passes.
+
+    Meta-analysis passes can examine the results and metadata of other passes
+    to produce higher-level insights or summaries.
+
+    Notes
+    -----
+    This is an abstract class. Subclasses must implement the `name` property
+    and `run` method.
+    """
 
     _base: MetaAnalysisPass
 
@@ -35,17 +44,45 @@ class MetaAnalysisPass(PyMetaAnalysisPass, BasePass, Generic[T]):
     @property
     @abstractmethod
     def name(self) -> str:
-        """Get the name of this pass."""
+        """
+        Get the name of this pass.
+
+        Returns
+        -------
+        str
+            The unique identifier name for this pass.
+        """
         ...
 
     @property
     def requires(self) -> list[str]:
-        """Get a list of required passes that need to be run before this pass."""
+        """
+        Get a list of required passes that need to be run before this pass.
+
+        Returns
+        -------
+        list of str
+            Names of passes that must be executed before this pass.
+        """
         return self._base.requires
 
     @abstractmethod
     def run(self, passes: list[BasePass], cache: AnalysisCache) -> T:
-        """Run/Execute this analysis pass."""
+        """
+        Run/Execute this meta-analysis pass.
+
+        Parameters
+        ----------
+        passes : list of BasePass
+            List of passes to analyze.
+        cache : AnalysisCache
+            Cache containing analysis results.
+
+        Returns
+        -------
+        T
+            The result of the meta-analysis.
+        """
         ...
 
     def _run(self, passes: list[BasePass], cache: PyAnalysisCache) -> T:
@@ -53,13 +90,34 @@ class MetaAnalysisPass(PyMetaAnalysisPass, BasePass, Generic[T]):
 
 
 class ConcreteMetaAnalysisPass(MetaAnalysisPass, Generic[T]):
-    """ConcreteMetaAnalysisPass."""
+    """Concrete implementation of a meta-analysis pass."""
 
     @property
     def name(self) -> str:
-        """Get the name of this pass."""
+        """
+        Get the name of this pass.
+
+        Returns
+        -------
+        str
+            The unique identifier name for this pass.
+        """
         return self._base.name
 
     def run(self, passes: list[BasePass], cache: AnalysisCache) -> T:
-        """Run/Execute this analysis pass."""
+        """
+        Run/Execute this meta-analysis pass.
+
+        Parameters
+        ----------
+        passes : list of BasePass
+            List of passes to analyze.
+        cache : AnalysisCache
+            Cache containing analysis results.
+
+        Returns
+        -------
+        T
+            The result of the meta-analysis.
+        """
         return self._base.run(passes, cache._ac)

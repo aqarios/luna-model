@@ -26,7 +26,12 @@ T = TypeVar("T")
 
 
 class AnalysisPass(PyAnalysisPass, BasePass, Generic[T]):
-    """AnalysisPass."""
+    """Base class for analysis passes that compute information about models.
+
+    Analysis passes inspect models and compute results without modifying them.
+    They can depend on other analysis passes and cache their results for
+    efficient access in subsequent passes.
+    """
 
     _base: AnalysisPass
 
@@ -36,17 +41,42 @@ class AnalysisPass(PyAnalysisPass, BasePass, Generic[T]):
     @property
     @abstractmethod
     def name(self) -> str:
-        """Get the name of this pass."""
+        """Get the unique name of this analysis pass.
+
+        Returns
+        -------
+        str
+            A unique identifier for this pass.
+        """
         ...
 
     @property
     def requires(self) -> list[str]:
-        """Get a list of required passes that need to be run before this pass."""
+        """Get the list of passes this pass depends on.
+
+        Returns
+        -------
+        list[str]
+            List of pass names that must be executed before this pass.
+        """
         return self._base.requires
 
     @abstractmethod
     def run(self, model: Model, cache: AnalysisCache) -> T:
-        """Run/Execute this analysis pass."""
+        """Execute this analysis pass on a model.
+
+        Parameters
+        ----------
+        model : Model
+            The model to analyze.
+        cache : AnalysisCache
+            Cache containing results from previous analysis passes.
+
+        Returns
+        -------
+        T
+            The result of the analysis.
+        """
         ...
 
     def _run(self, model: PyModel, cache: PyAnalysisCache) -> T:
@@ -54,13 +84,36 @@ class AnalysisPass(PyAnalysisPass, BasePass, Generic[T]):
 
 
 class ConcreteAnalysisPass(AnalysisPass, Generic[T]):
-    """A concrete analysis pass."""
+    """A concrete analysis pass that wraps an existing implementation.
+
+    This class provides a concrete implementation of AnalysisPass by delegating
+    to an underlying base pass.
+    """
 
     @property
     def name(self) -> str:
-        """Get the name of this pass."""
+        """Get the unique name of this analysis pass.
+
+        Returns
+        -------
+        str
+            The name from the underlying base pass.
+        """
         return self._base.name
 
     def run(self, model: Model, cache: AnalysisCache) -> T:
-        """Run/Execute this analysis pass."""
+        """Execute this analysis pass on a model.
+
+        Parameters
+        ----------
+        model : Model
+            The model to analyze.
+        cache : AnalysisCache
+            Cache containing results from previous analysis passes.
+
+        Returns
+        -------
+        T
+            The result of the analysis from the underlying base pass.
+        """
         return self._base.run(model._m, cache._ac)

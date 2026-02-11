@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pathlib import Path
+from typing import overload
 
 from luna_model._lm import PyLpTranslator
 from luna_model.model.model import Model
@@ -22,8 +23,7 @@ class LpTranslator:
 
     LpTranslator provides static methods to convert between LunaModel's internal
     Model representation and the LP file format. The LP format is a widely-used
-    text-based format for representing linear and quadratic optimization problems,
-    supported by many solvers including CPLEX, Gurobi, and SCIP.
+    text-based format for representing linear and quadratic optimization problems.
 
     The LP format supports:
     - Linear and quadratic objective functions
@@ -53,13 +53,6 @@ class LpTranslator:
 
     >>> lp_string = LpTranslator.from_lm(model)
     >>> print(lp_string)
-
-    Notes
-    -----
-    The LP format has some limitations:
-    - Higher-order (degree > 2) terms are not supported
-    - Some special constraint types may need transformation
-    - Variable names must follow LP naming conventions
     """
 
     @staticmethod
@@ -113,6 +106,12 @@ class LpTranslator:
         return Model._from_pym(PyLpTranslator.to_lm(file))
 
     @staticmethod
+    @overload
+    def from_lm(model: Model) -> str: ...
+    @staticmethod
+    @overload
+    def from_lm(model: Model, filepath: Path) -> None: ...
+    @staticmethod
     def from_lm(model: Model, filepath: Path | None = None) -> str | None:
         """Convert LunaModel to LP file or string.
 
@@ -152,11 +151,5 @@ class LpTranslator:
 
         >>> lp_string = LpTranslator.from_lm(model)
         >>> print(lp_string)
-
-        Notes
-        -----
-        Variable and constraint names are automatically sanitized to comply
-        with LP format naming rules. The original names are preserved in the
-        Model object and can be used when working with solutions.
         """
         return PyLpTranslator.from_lm(model._m, filepath)

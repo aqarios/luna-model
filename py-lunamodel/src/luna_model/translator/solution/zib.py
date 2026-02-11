@@ -37,16 +37,7 @@ class ZibTranslator:
 
     Converts SCIP Model objects to LunaModel Solutions.
 
-    Requires the ``pyscipopt`` package.
-
-    Examples
-    --------
-    >>> from pyscipopt import Model as ScipModel
-    >>> from luna_model.translator import ZibTranslator
-    >>> scip = ScipModel("example")
-    >>> # ... build and solve model ...
-    >>> scip.optimize()
-    >>> solution = ZibTranslator.to_lm(scip)
+    Requires the ``scip`` extra.
     """
 
     @staticmethod
@@ -77,17 +68,6 @@ class ZibTranslator:
         ------
         RuntimeError
             If ``pyscipopt`` package is not installed.
-
-        Examples
-        --------
-        >>> from pyscipopt import Model as ScipModel
-        >>> from luna_model import Environment
-        >>> scip = ScipModel()
-        >>> with Environment():
-        ...     x = scip.addVar("x", lb=0, ub=10, vtype="I")
-        ...     scip.setObjective(3 * x, "maximize")
-        ...     scip.optimize()
-        ...     solution = ZibTranslator.to_lm(scip)
         """
         if not _SCIP_AVAILABLE:
             msg = "scip is required for the ZibTranslator. You can install it using the 'scip' extra."

@@ -31,14 +31,14 @@ class IfElsePass(PyIfElsePass, BasePass):
 
     The ``IfElsePass`` evaluates a condition function against the analysis cache at runtime
     and executes either the ``then`` pipeline or the ``otherwise`` pipeline based on the result.
-    This enables branching logic in transformation workflows, allowing different optimization
+    This enables branching logic in transformation workflows, allowing different transformation
     strategies based on model properties discovered during analysis.
 
     Parameters
     ----------
     requires : list[str]
-        List of analysis pass names that must be run before this pass. These analyses
-        provide the data used by the condition function.
+        List of pass names that must be run before this pass. These passes provide the data used 
+        by the condition function.
     condition : Callable[[AnalysisCache], bool]
         A function that takes an ``AnalysisCache`` and returns a boolean. If ``True``,
         the ``then`` pipeline is executed; otherwise, the ``otherwise`` pipeline runs.
@@ -53,35 +53,20 @@ class IfElsePass(PyIfElsePass, BasePass):
     --------
     Execute different transformations based on model degree:
 
-    >>> from luna_model import Model
+    >>> from luna_model import Model, Vtype
     >>> from luna_model.transformation import PassManager, Pipeline, IfElsePass
     >>> from luna_model.transformation.passes import MaxBiasAnalysis, BinarySpinPass
     >>> # Create conditional pass
     >>> conditional = IfElsePass(
     ...     requires=["max-bias"],
-    ...     condition=lambda cache: cache["max-bias"] > 10.0,
-    ...     then=Pipeline([BinarySpinPass()]),
+    ...     condition=lambda cache: cache["max-bias"].val > 10.0,
+    ...     then=Pipeline([BinarySpinPass(vtype=Vtype.BINARY)]),
     ...     otherwise=Pipeline([]),
     ...     name="conditional-spin-conversion",
     ... )
     >>> # Use in PassManager
     >>> pm = PassManager([MaxBiasAnalysis(), conditional])
     >>> result = pm.run(model)
-
-    Branch based on model complexity:
-
-    >>> def is_complex(cache: AnalysisCache) -> bool:
-    ...     specs = cache.get("model-specs")
-    ...     return specs.objective_degree > 2 or specs.num_constraints > 100
-    >>> complex_pipeline = Pipeline([DegreeReductionPass(), SimplificationPass()])
-    >>> simple_pipeline = Pipeline([SimplificationPass()])
-    >>> adaptive = IfElsePass(
-    ...     requires=["model-specs"],
-    ...     condition=is_complex,
-    ...     then=complex_pipeline,
-    ...     otherwise=simple_pipeline,
-    ...     name="adaptive-optimization",
-    ... )
 
     Notes
     -----
@@ -123,8 +108,8 @@ class IfElsePass(PyIfElsePass, BasePass):
         self._ifelse = PyIfElsePass(
             requires=requires,
             condition=lambda cache: condition(AnalysisCache._from_pyac(cache)),
-            then=then._pipeline,
-            otherwise=otherwise._pipeline,
+            then=then,
+            otherwise=otherwise,
             name=name,
         )
 
@@ -146,6 +131,6 @@ class IfElsePass(PyIfElsePass, BasePass):
         Returns
         -------
         list[str]
-            List of analysis pass names.
+            List of pass names.
         """
         return self._ifelse.requires

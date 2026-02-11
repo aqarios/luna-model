@@ -21,7 +21,20 @@ from .base import BasePass
 
 
 class Pipeline(PyPipeline, BasePass):
-    """Pipeline."""
+    """
+    A pipeline for executing multiple transformation passes in sequence.
+
+    Pipelines organize and execute multiple passes, managing dependencies
+    and ensuring they run in the correct order.
+
+    Parameters
+    ----------
+    passes : list of BasePass
+        The transformation passes to include in the pipeline.
+    name : str, optional
+        A custom name for the pipeline. If not provided, a default name
+        will be generated.
+    """
 
     @overload
     def __init__(self, passes: list[BasePass]) -> None: ...
@@ -32,40 +45,100 @@ class Pipeline(PyPipeline, BasePass):
 
     @property
     def name(self) -> str:
-        """Get the name of this pass."""
+        """
+        Get the name of this pipeline.
+
+        Returns
+        -------
+        str
+            The unique identifier name for this pipeline.
+        """
         return super().name
 
     @property
     def requires(self) -> list[str]:
-        """Get a list of required passes that need to be run before this pass."""
+        """
+        Get a list of required passes that need to be run before this pipeline.
+
+        Returns
+        -------
+        list of str
+            Names of passes that must be executed before this pipeline.
+        """
         return super().requires
 
     @property
     def satisfies(self) -> set[str]:
-        """Get a list of required passes that need to be run before this pass."""
+        """
+        Get the set of pass requirements that this pipeline satisfies.
+
+        Returns
+        -------
+        set of str
+            Names of pass requirements satisfied by executing this pipeline.
+        """
         return super().satisfies
 
     @property
     def passes(self) -> list[BasePass]:
-        """Get all passes that are part of the pipeline."""
+        """
+        Get all passes that are part of the pipeline.
+
+        Returns
+        -------
+        list of BasePass
+            The transformation passes in this pipeline.
+        """
         return super().passes
 
     def add(self, new_pass: BasePass) -> None:
-        """Add new pass to pipeline."""
+        """
+        Add a new pass to the pipeline.
+
+        Parameters
+        ----------
+        new_pass : BasePass
+            The transformation pass to add to the pipeline.
+        """
         super().add(new_pass)
 
     def clear(self) -> None:
-        """Clear pipeline."""
+        """
+        Clear all passes from the pipeline.
+
+        Removes all transformation passes, leaving an empty pipeline.
+        """
         super().clear()
 
     def __len__(self) -> int:
-        """Get the length."""
+        """
+        Get the number of passes in the pipeline.
+
+        Returns
+        -------
+        int
+            The number of transformation passes in this pipeline.
+        """
         return super().__len__()
 
     def __str__(self) -> str:
-        """Pipeline as string."""
+        """
+        Get a string representation of the pipeline.
+
+        Returns
+        -------
+        str
+            A human-readable string describing the pipeline.
+        """
         return super().__str__()
 
     def __repr__(self) -> str:
-        """Pipeline as debug string."""
+        """
+        Get a detailed string representation of the pipeline for debugging.
+
+        Returns
+        -------
+        str
+            A detailed string representation suitable for debugging.
+        """
         return super().__repr__()

@@ -19,6 +19,7 @@ from luna_model._lm import PyBounds, PyUnbounded
 from luna_model.variable.vtype import Vtype
 
 Unbounded: TypeAlias = PyUnbounded
+"""Indicating the unbounded lower (-inf) or upper bound (+inf)."""
 
 
 class Bounds:
@@ -30,44 +31,22 @@ class Bounds:
     Parameters
     ----------
     lower : float | type[Unbounded] | None, optional
-        The lower bound. Use ``None`` or ``Unbounded`` for negative infinity.
+        The lower bound. Use ``Unbounded`` for negative infinity.
+        Use ``None`` for the default value based on a variable's vtype.
     upper : float | type[Unbounded] | None, optional
-        The upper bound. Use ``None`` or ``Unbounded`` for positive infinity.
+        The upper bound. Use ``Unbounded`` for positive infinity.
+        Use ``None`` for the default value based on a variable's vtype.
 
     Attributes
     ----------
     lower : float | type[Unbounded] | None
-        The lower bound value.
+        The lower bound value. If set to ``None`` the lower bound will be determined
+        based on the variable's vtype this bounds object is be associated with during
+        variable creation.
     upper : float | type[Unbounded] | None
-        The upper bound value.
-
-    Examples
-    --------
-    Create bounded integer variable:
-
-    >>> from luna_model import Variable, Vtype, Bounds
-    >>> bounds = Bounds(lower=0, upper=10)
-    >>> x = Variable("x", vtype=Vtype.INTEGER, bounds=bounds)
-
-    Create bounds from tuple:
-
-    >>> from luna_model import Variable, Vtype
-    >>> y = Variable("y", vtype=Vtype.REAL, bounds=(0.0, 1.0))
-
-    Use predefined bounds for standard types:
-
-    >>> from luna_model.variable.bounds import Bounds
-    >>> binary_bounds = Bounds.binary()  # [0, 1]
-    >>> spin_bounds = Bounds.spin()  # [-1, 1]
-
-    Notes
-    -----
-    Default bounds depend on variable type:
-
-    - ``BINARY``: [0, 1]
-    - ``SPIN``: [-1, 1]
-    - ``INTEGER``: [-2^63, 2^63-1]
-    - ``REAL``: [-inf, inf]
+        The upper bound value. If set to ``None`` the upper bound will be determined
+        based on the variable's vtype this bounds object is be associated with during
+        variable creation.
     """
 
     _b: PyBounds
@@ -81,18 +60,6 @@ class Bounds:
 
     @classmethod
     def _from_pyb(cls, py_b: PyBounds) -> Bounds:
-        """Construct Bounds from internal PyBounds object.
-
-        Parameters
-        ----------
-        py_b : PyBounds
-            Internal bounds representation.
-
-        Returns
-        -------
-        Bounds
-            New Bounds instance wrapping the PyBounds object.
-        """
         b = cls.__new__(cls)
         b._b = py_b
         return b
@@ -104,7 +71,7 @@ class Bounds:
         Returns
         -------
         float | type[Unbounded] | None
-            The lower bound value, or None/Unbounded for negative infinity.
+            The lower bound value if set (Unbounded for negative infinity).
         """
         return self._b.lower
 
@@ -115,7 +82,7 @@ class Bounds:
         Returns
         -------
         float | type[Unbounded] | None
-            The upper bound value, or None/Unbounded for positive infinity.
+            The upper bound value if set (Unbounded for positive infinity).
         """
         return self._b.upper
 
@@ -131,11 +98,7 @@ class Bounds:
         Returns
         -------
         Bounds
-            Default bounds for the specified type:
-            - BINARY/INVERTED_BINARY: [0, 1]
-            - SPIN: [-1, 1]
-            - INTEGER: [-2^63, 2^63-1]
-            - REAL: [-inf, inf]
+            Default bounds for the specified vtype.
         """
         match vtype:
             case Vtype.BINARY | Vtype.INVERTED_BINARY:
@@ -149,7 +112,7 @@ class Bounds:
 
     @classmethod
     def binary(cls) -> Bounds:
-        """Get the bounds for binary variables [0, 1].
+        """Get the bounds for binary variables.
 
         Returns
         -------
@@ -160,7 +123,7 @@ class Bounds:
 
     @classmethod
     def spin(cls) -> Bounds:
-        """Get the bounds for spin variables [-1, 1].
+        """Get the bounds for spin variables.
 
         Returns
         -------
@@ -171,7 +134,7 @@ class Bounds:
 
     @classmethod
     def integer(cls) -> Bounds:
-        """Get the bounds for integer variables [-2^63, 2^63-1].
+        """Get the bounds for integer variables.
 
         Returns
         -------
@@ -182,12 +145,12 @@ class Bounds:
 
     @classmethod
     def real(cls) -> Bounds:
-        """Get the bounds for real variables [-inf, inf].
+        """Get the bounds for real variables.
 
         Returns
         -------
         Bounds
-            Unbounded bounds for real-valued variables.
+            Bounds for real-valued variables.
         """
         return cls._from_pyb(PyBounds.real())
 

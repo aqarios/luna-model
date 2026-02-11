@@ -19,7 +19,10 @@ from luna_model.solution.sol import Solution
 
 from .analysis import AnalysisPass
 from .base import BasePass
+from .ifelse import IfElsePass
 from .ir import IR
+from .meta_analysis import MetaAnalysisPass
+from .pipeline import Pipeline
 from .transform import TransformationPass
 
 
@@ -28,31 +31,37 @@ class PassManager:
 
     The PassManager implements a compiler-style pass pattern, enabling both
     general-purpose and algorithm-specific manipulations of optimization
-    models. Each pass is an atomic operation (for example, ChangeSensePass)
-    that transforms the model or its intermediate representation (IR). The
-    PassManager runs each pass in order and produces a rich IR that records
-    the transformations applied and supports back-transformations.
+    models. Each pass is an atomic operation that transforms the model or
+    its intermediate representation (IR). The PassManager runs each pass in
+    order and produces a rich IR that records the transformations applied
+    and supports back-transformations.
+
+    Parameters
+    ----------
+    passes : Sequence[BasePass | TransformationPass | AnalysisPass | MetaAnalysisPass | IfElsePass | Pipeline] | None
+        An ordered sequence of Pass instances to apply, default None.
     """
 
     _pm: PyPassManager
 
-    def __init__(self, passes: Sequence[BasePass | TransformationPass | AnalysisPass] | None = None) -> None:
-        """Manage and execute a sequence of passes on a model.
+    def __init__(
+        self,
+        passes: Sequence[BasePass | TransformationPass | AnalysisPass | MetaAnalysisPass | IfElsePass | Pipeline]
+        | None = None,
+    ) -> None:
+        self._pm = PyPassManager(passes)
 
-        The PassManager implements a compiler-style pass pattern, enabling both
-        general-purpose and algorithm-specific manipulations of optimization
-        models. Each pass is an atomic operation (for example, ChangeSensePass)
-        that transforms the model or its intermediate representation (IR). The
-        PassManager runs each pass in order and produces a rich IR that records
-        the transformations applied and supports back-transformations.
+    def add(
+        self, pass_: BasePass | TransformationPass | AnalysisPass | MetaAnalysisPass | IfElsePass | Pipeline
+    ) -> None:
+        """Append a pass to the configured passes.
 
         Parameters
         ----------
-        passes : list[TransformationPass | AnalysisPass] | None
-            An ordered sequence of Pass instances to apply. Each Pass must conform to
-            the `TransformationPass` or `AnalysisPass` interface, default None.
+        pass_ : BasePass | TransformationPass | AnalysisPass | MetaAnalysisPass | IfElsePass | Pipeline
+            The pass to add to this PassManager's configured passes.
         """
-        self._pm = PyPassManager(passes)
+        self._pm.add(pass_)
 
     def run(self, model: Model) -> IR:
         """Apply all configures passes.

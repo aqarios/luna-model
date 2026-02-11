@@ -28,7 +28,7 @@ class Qubo:
     """QUBO representation of an optimization problem.
 
     A QUBO (Quadratic Unconstrained Binary Optimization) problem is represented
-    by an upper-triangular matrix Q where the objective is to minimize/maximize:
+    by a matrix Q where the objective is to minimize/maximize:
 
         x^T Q x + offset
 
@@ -46,11 +46,11 @@ class Qubo:
     variable_names : list[str]
         Names of binary variables in order.
     matrix : NDArray
-        The Q matrix (upper-triangular) defining the QUBO.
+        The Q matrix defining the QUBO.
     offset : float
         Constant offset term.
     vtype : Vtype
-        Variable type (typically BINARY or SPIN).
+        Variable type (BINARY or SPIN).
     sense : Sense
         Optimization sense (MIN or MAX).
 
@@ -67,11 +67,6 @@ class Qubo:
     >>> qubo = QuboTranslator.from_lm(model)
     >>> print(qubo.matrix)
     >>> print(qubo.offset)
-
-    Notes
-    -----
-    QUBO is a fundamental format for quantum and quantum-inspired optimization.
-    It's used by D-Wave quantum annealers and many other optimization solvers.
     """
 
     _q: PyQubo
@@ -111,7 +106,7 @@ class Qubo:
         Returns
         -------
         NDArray
-            Upper-triangular Q matrix where Q[i,j] is the coefficient
+            Q matrix where Q[i,j] is the coefficient
             for x[i]*x[j]. Diagonal entries Q[i,i] are linear coefficients.
         """
         return self._q.matrix
@@ -183,13 +178,6 @@ class QuboTranslator:
     >>> y = model.add_variable("y")
     >>> model.objective = x * y - 2 * x + y
     >>> qubo = QuboTranslator.from_lm(model)
-
-    Notes
-    -----
-    QUBO format is particularly important for:
-    - Quantum annealing (D-Wave systems)
-    - Simulated annealing algorithms
-    - Other metaheuristic optimization methods
     """
 
     @staticmethod
@@ -208,10 +196,9 @@ class QuboTranslator:
         Parameters
         ----------
         qubo : NDArray
-            Upper-triangular QUBO matrix where Q[i,j] represents the
-            coefficient for x[i]*x[j]. Diagonal elements Q[i,i] are
-            linear coefficients. If the matrix is not symmetric, it will
-            be made symmetric by summing Q[i,j] and Q[j,i].
+            QUBO matrix where Q[i,j] represents the coefficient for x[i]*x[j].
+            Diagonal elements Q[i,i] are linear coefficients. If the matrix is
+            not symmetric, it will be made symmetric by summing Q[i,j] and Q[j,i].
         offset : float | None, optional
             Constant offset term to add to objective. Default is 0.
         variable_names : list[str] | None, optional
@@ -292,11 +279,5 @@ class QuboTranslator:
         -----
         If your model doesn't meet the QUBO requirements, use
         transformations to convert it:
-
-        .. code-block:: python
-
-            from luna_model.transformation import PassManager
-            # Apply transformations to make model QUBO-compatible
-            # Then translate
         """
         return Qubo._from_pyq(PyQuboTranslator.from_lm(model._m))

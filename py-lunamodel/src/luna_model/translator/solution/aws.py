@@ -24,12 +24,6 @@ class AwsTranslator:
     """Translator for Amazon Braket solution format.
 
     Converts Amazon Braket result dictionaries to LunaModel Solutions.
-
-    Examples
-    --------
-    >>> from luna_model.translator import AwsTranslator
-    >>> # braket_result = sampler.sample(bqm, shots=100)
-    >>> solution = AwsTranslator.to_lm(braket_result)
     """
 
     @staticmethod
@@ -54,15 +48,6 @@ class AwsTranslator:
         -------
         Solution
             LunaModel Solution with samples and energies.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from luna_model import Environment
-        >>> aws_result = {"samples": np.array([[0, 1], [1, 0]]), "energies": np.array([-2.5, -1.0])}
-        >>> with Environment() as env:
-        ...     # Create variables in environment
-        ...     solution = AwsTranslator.to_lm(aws_result)
         """
         sol_agg = aws_result["samples"].astype(np.float64, order="C")
         counts = np.ones(sol_agg.shape[0], dtype=np.int64)

@@ -19,38 +19,24 @@ from luna_model._lm import PyVtype
 
 
 class Vtype(Enum):
-    """Enumeration of variable types for optimization models.
+    """Enumeration of variable types.
 
     The variable type determines the domain of values a variable can take
-    during optimization. Different problem types and solvers support different
-    variable types.
+    during optimization.
 
     Attributes
     ----------
     BINARY : str
         Binary variable that can be 0 or 1. Used for yes/no decisions.
     INVERTED_BINARY : str
-        Inverted binary variable. Internal representation that maps 0→1 and 1→0.
-        Not typically used directly by users.
+        Inverted binary variable. Created by inverting a BINARY variable.
+        Creating a variable with ``vtype=Vtype.INVERTED_BINARY`` will raise an error.
     SPIN : str
         Spin variable that can be -1 or +1. Common in quantum computing formulations.
     INTEGER : str
         Integer variable that can be any integer value within bounds.
     REAL : str
         Real-valued (continuous) variable that can be any floating-point value within bounds.
-
-    Examples
-    --------
-    Create different types of variables:
-
-    >>> from luna_model import Variable, Vtype
-    >>> x = Variable("x", vtype=Vtype.BINARY)
-    >>> y = Variable("y", vtype=Vtype.INTEGER, bounds=(0, 10))
-    >>> z = Variable("z", vtype=Vtype.REAL, bounds=(0.0, 1.0))
-
-    Notes
-    -----
-    The default variable type is ``BINARY`` when not specified.
     """
 
     BINARY = "Binary"

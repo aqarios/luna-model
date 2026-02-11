@@ -16,7 +16,21 @@ from luna_model.transformation.analysis import ConcreteAnalysisPass
 
 
 class MaxBiasAnalysis(ConcreteAnalysisPass):
-    """An analysis pass computing the maximum bias contained in the model."""
+    """Analysis pass that computes the maximum absolute coefficient value in the objective.
+
+    Examples
+    --------
+    >>> from luna_model import Model, Vtype
+    >>> from luna_model.transformation import PassManager
+    >>> from luna_model.transformation.passes import MaxBiasAnalysis
+    >>> model = Model()
+    >>> x = model.add_variable("x", vtype=Vtype.BINARY)
+    >>> y = model.add_variable("y", vtype=Vtype.BINARY)
+    >>> model.objective = x * y + x - 2 * y
+    >>> pm = PassManager([MaxBiasAnalysis()])
+    >>> ir = pm.run(model)
+    >>> max_bias = ir.cache["max-bias"]
+    """
 
     def __init__(self) -> None:
         super().__init__(base=PyMaxBiasAnalysis())

@@ -24,15 +24,6 @@ class QctrlTranslator:
 
     Converts Q-Ctrl result dictionaries to LunaModel Solutions.
     Handles variable-to-bitstring mapping and reordering.
-
-    Examples
-    --------
-    >>> from luna_model.translator import QctrlTranslator
-    >>> qctrl_result = {
-    ...     "final_bitstring_distribution": {"01": 45, "10": 35},
-    ...     "variables_to_bitstring_index_map": {"x[0]": 0, "y[1]": 1},
-    ... }
-    >>> solution = QctrlTranslator.to_lm(qctrl_result)
     """
 
     @staticmethod
@@ -58,17 +49,6 @@ class QctrlTranslator:
         -------
         Solution
             LunaModel Solution with bitstring counts.
-
-        Examples
-        --------
-        >>> from luna_model import Environment
-        >>> qctrl_result = {
-        ...     "final_bitstring_distribution": {"00": 10, "01": 25},
-        ...     "variables_to_bitstring_index_map": {"x[0]": 0, "y[1]": 1},
-        ... }
-        >>> with Environment():
-        ...     # Create variables in environment
-        ...     solution = QctrlTranslator.to_lm(qctrl_result)
 
         Notes
         -----

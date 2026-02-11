@@ -25,14 +25,19 @@ if TYPE_CHECKING:
 
 
 class IR:
-    """IR."""
+    """Intermediate representation of a transformed model.
+
+    The IR contains the resulting model after transformation along with the
+    analysis cache and execution log generated during execution of the PassManager.
+
+    Notes
+    -----
+    IR objects are typically created as the result of running the PassManager
+    on a model. Use the `model`, `cache`, and `execution_log` properties to
+    access the transformation results.
+    """
 
     _ir: PyIR
-    """The intermediate representation (IR) of a model after transformation.
-
-    The IR contains the resulting model after transformation (`ir.model`) as well
-    as the analysis cache (`ir.cache`) and an execution log (`ir.execution_log`).
-    """
 
     @classmethod
     def _from_pyir(cls, pyir: PyIR) -> IR:
@@ -42,15 +47,37 @@ class IR:
 
     @property
     def model(self) -> Model:
-        """Get the model stored in the IR."""
+        """
+        Get the transformed model.
+
+        Returns
+        -------
+        Model
+            The model after execution of the PassManager.
+        """
         return Model._from_pym(self._ir.model)
 
     @property
     def cache(self) -> AnalysisCache:
-        """Get the analysis cache stored the IR."""
+        """
+        Get the analysis cache.
+
+        Returns
+        -------
+        AnalysisCache
+            The analysis cache containing analysis results from
+            running the PassManager.
+        """
         return AnalysisCache._from_pyac(self._ir.cache)
 
     @property
     def execution_log(self) -> list[LogElement]:
-        """Get the analysis cache stored the IR."""
+        """
+        Get the execution log.
+
+        Returns
+        -------
+        list[LogElement]
+            A list of log elements documenting the pass manager process.
+        """
         return [LogElement._from_pyle(e) for e in self._ir.execution_log]

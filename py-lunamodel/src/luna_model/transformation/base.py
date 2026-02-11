@@ -15,14 +15,28 @@ from typing import Protocol
 
 
 class BasePass(Protocol):
-    """BasePass."""
+    """Protocol for passes."""
 
     @property
     def name(self) -> str:
-        """Get the name of this pass."""
+        """
+        Unique identifier for this pass.
+
+        Returns
+        -------
+        str
+            The unique pass name.
+        """
         ...
 
     @property
     def requires(self) -> list[str]:
-        """Get a list of required passes that need to be run before this pass."""
+        """
+        List of passes that must run before this pass.
+
+        Returns
+        -------
+        list[str]
+            Pass names that must execute first, or empty list if no dependencies.
+        """
         ...

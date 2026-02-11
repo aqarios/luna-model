@@ -179,7 +179,7 @@ def analyse(
     >>> from luna_model.transformation import analyse
     >>> @analyse(name="count-variables")
     ... def count_vars(model, cache):
-    ...     return model.num_variables()
+    ...     return model.num_variables
 
     Notes
     -----
@@ -208,19 +208,45 @@ def analyse(
 def meta_analyse(
     name: str | None = None, requires: list[str] | None = None
 ) -> Callable[[MetaAnalysisSignature[T]], DynamicMetaAnalysisPass[T]]:
-    """Create an MetaAnalysisPass instance from a function.
+    """Create a MetaAnalysisPass from a function decorator.
+
+    This decorator converts a regular function into a ``MetaAnalysisPass`` that analyzes
+    the structure and properties of transformation pipelines themselves. Unlike regular
+    analysis passes that inspect models, meta-analysis passes inspect the list of passes
+    in a pipeline to optimize execution order, detect conflicts, or compute pipeline metadata.
 
     Parameters
     ----------
-    name: str | None
-        The name of the analysis pass. If no name provided, uses the function name.
-    requires: list[str] | None
-        List of required analysis passes (defaults to empty list)
+    name : str, optional
+        The name of the meta-analysis pass. If not provided, uses the function name
+        with underscores replaced by hyphens (e.g., ``my_meta`` becomes ``my-meta``).
+    requires : list[str], optional
+        List of analysis or meta-analysis pass names that must run before this pass.
+        Required passes' results are available in the ``AnalysisCache``. Defaults to ``[]``.
 
     Returns
     -------
-    Callable[[Callable[[list[BasePass], AnalysisCache], Any]], MetaAnalysisPass]
-        An instance of a dynamically created AnalysisPass subclass
+    Callable[[Callable[[list[BasePass], AnalysisCache], T]], DynamicMetaAnalysisPass[T]]
+        A decorator that transforms the decorated function into a ``MetaAnalysisPass``.
+
+    Examples
+    --------
+    Create a pass that counts transformation passes in a pipeline:
+
+    >>> from luna_model.transformation import meta_analyse
+    >>> @meta_analyse(name="count-transformations")
+    ... def count_transforms(passes, cache):
+    ...     from luna_model.transformation import TransformationPass
+    ...     return sum(1 for p in passes if isinstance(p, TransformationPass))
+
+    Notes
+    -----
+    The decorated function must have the signature::
+
+        def my_meta_analysis(passes: list[BasePass], cache: AnalysisCache) -> Any: ...
+
+    The return value is stored in the ``AnalysisCache`` under the pass's name.
+    Meta-analysis passes are useful for pipeline optimization, validation, and debugging.
     """
     if requires is None:
         requires = []

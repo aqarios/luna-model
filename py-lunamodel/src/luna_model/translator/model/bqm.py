@@ -33,15 +33,7 @@ class BqmTranslator:
 
     Converts between LunaModel and BinaryQuadraticModel (BQM) format.
 
-    A BQM represents an objective function:
-
-    .. math::
-        E(x) = \\sum_{i} h_i x_i + \\sum_{i<j} J_{ij} x_i x_j + \\text{offset}
-
-    where x are binary or spin variables, h are linear coefficients, J are
-    quadratic coefficients, and offset is a constant.
-
-    Requires the ``dimod`` package.
+    Requires the ``dimod`` extra.
 
     Examples
     --------
@@ -148,7 +140,7 @@ class BqmTranslator:
     def from_lm(model: Model) -> "BinaryQuadraticModel":
         """Convert LunaModel to D-Wave BQM.
 
-        Converts a LunaModel Model to a D-Wave Ocean SDK BinaryQuadraticModel.
+        Converts a LunaModel Model to a D-Wave BinaryQuadraticModel.
 
         Parameters
         ----------
@@ -180,20 +172,6 @@ class BqmTranslator:
         >>> y = model.add_variable("y")
         >>> model.objective = x * y - 2 * x + y
         >>> bqm = BqmTranslator.from_lm(model)
-        >>> # Submit to D-Wave
-        >>> # from dwave.system import DWaveSampler
-        >>> # sampler = DWaveSampler()
-        >>> # response = sampler.sample(bqm, num_reads=100)
-
-        Notes
-        -----
-        If your model doesn't meet BQM requirements, apply transformations first:
-
-        .. code-block:: python
-
-            from luna_model.transformation import PassManager
-            # Add necessary transformations
-            # Then translate
         """
         if not _DIMOD_AVAILABLE:
             msg = "dimod is required for the BqmTranslator. You can install it using the 'dimod' extra."

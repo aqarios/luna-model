@@ -23,7 +23,12 @@ if TYPE_CHECKING:
 
 
 class LogElement:
-    """An element of the execution log of an intermediate representation (IR)."""
+    """
+    An element of the execution log of an intermediate representation (IR).
+
+    Log elements record information about transformation passes, including
+    the pass name, timing information, and the type of action performed.
+    """
 
     _le: PyLogElement
 
@@ -35,17 +40,38 @@ class LogElement:
 
     @property
     def pass_name(self) -> str:
-        """The name of the pass."""
+        """
+        The name of the pass.
+
+        Returns
+        -------
+        str
+            The name of the pass that was executed.
+        """
         return self._le.pass_name
 
     @property
     def timing(self) -> Timing:
-        """Timing information for this log element."""
+        """
+        Get timing information for this log element.
+
+        Returns
+        -------
+        Timing
+            Timing information for the pass.
+        """
         return self._le.timing
 
     @property
     def kind(self) -> ActionType | None:
-        """Transformation type information for this log element, if available."""
+        """
+        Get the type of transformation action performed.
+
+        Returns
+        -------
+        ActionType or None
+            The type of transformation action, or None if not available.
+        """
         at = self._le.kind
         if at is None:
             return None

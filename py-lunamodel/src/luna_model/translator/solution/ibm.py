@@ -38,13 +38,7 @@ class IbmTranslator:
 
     Converts IBM Qiskit PrimitiveResult objects to LunaModel Solutions.
 
-    Requires the ``qiskit`` and ``qiskit-optimization`` packages.
-
-    Examples
-    --------
-    >>> from luna_model.translator import IbmTranslator
-    >>> # result = optimizer.solve(quadratic_program)
-    >>> solution = IbmTranslator.to_lm(result.min_eigen_solver_result, quadratic_program)
+    Requires the ``qiskit`` extra.
     """
 
     @staticmethod
@@ -77,18 +71,6 @@ class IbmTranslator:
         ------
         RuntimeError
             If ``qiskit`` or ``qiskit-optimization`` packages are not installed.
-
-        Examples
-        --------
-        >>> from luna_model import Environment
-        >>> with Environment():
-        ...     # Create variables in environment
-        ...     solution = IbmTranslator.to_lm(result.min_eigen_solver_result, qp)
-        >>> print(solution.best())
-
-        Notes
-        -----
-        Bitstring order is reversed to match LunaModel's variable ordering.
         """
         if not _QISKIT_AVAILABLE:
             msg = (
