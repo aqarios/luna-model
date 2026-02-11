@@ -67,7 +67,8 @@ exclude = [
 [tool.uv]
 package = true
 cache-keys = [
-    { file = "Cargo.toml" },
+    { file = "pylm/Cargo.toml" },
+    { file = "pylm/Cargo.lock" },
     { file = "src/**/*.rs" },
     { file = "pyproject.toml" },
     { file = "src/luna_model/**/*.pyi" },
