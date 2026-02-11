@@ -237,6 +237,7 @@ def meta_analyse(
     >>> @meta_analyse(name="count-transformations")
     ... def count_transforms(passes, cache):
     ...     from luna_model.transformation import TransformationPass
+    ...
     ...     return sum(1 for p in passes if isinstance(p, TransformationPass))
 
     Notes

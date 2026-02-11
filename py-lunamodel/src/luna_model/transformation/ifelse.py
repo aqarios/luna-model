@@ -37,7 +37,7 @@ class IfElsePass(PyIfElsePass, BasePass):
     Parameters
     ----------
     requires : list[str]
-        List of pass names that must be run before this pass. These passes provide the data used 
+        List of pass names that must be run before this pass. These passes provide the data used
         by the condition function.
     condition : Callable[[AnalysisCache], bool]
         A function that takes an ``AnalysisCache`` and returns a boolean. If ``True``,
