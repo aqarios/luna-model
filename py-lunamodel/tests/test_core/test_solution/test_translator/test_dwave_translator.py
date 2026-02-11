@@ -114,13 +114,12 @@ def test_sampleset_translator_error_handling():
     samples_raw = [{"x0": 0, "x1": 1, "x2": 1}]
     sampleset = SampleSet.from_samples(as_samples(samples_raw), "BINARY", energy)
     with does_not_raise():
-        DwaveTranslator.to_lm(sampleset, env=env)
+        DwaveTranslator.to_lm(sampleset, env=mock_env(3, vtype=Vtype.BINARY))
 
     samples_raw = [{"x0": -10, "x1": 10, "x2": 6.43}]
-    env = mock_env(3, vtype=Vtype.INTEGER)
     sampleset = SampleSet.from_samples(as_samples(samples_raw), "INTEGER", energy)
     with does_not_raise():
-        DwaveTranslator.to_lm(sampleset, env=env)
+        DwaveTranslator.to_lm(sampleset, env=mock_env(3, vtype=Vtype.INTEGER))
 
 
 def test_dwave_translator_incorrect_sample_length():

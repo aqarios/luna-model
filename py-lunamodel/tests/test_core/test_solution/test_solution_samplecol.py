@@ -28,7 +28,7 @@ def test_add_var():
     assert sol.samples.tolist()[0] == [*base_vals, 1, +1]
     assert sol[0].sample.to_dict() == {**base, "b2": 1, "s2": +1}
 
-    sol.add_var("i2", [6], vtype=Vtype.SPIN)
+    sol.add_var("i2", [6], vtype=Vtype.INTEGER)
     assert sol.variable_names == [*base_names, "b2", "s2", "i2"]
     assert sol.samples.tolist()[0] == [*base_vals, 1, +1, 6]
     assert sol[0].sample.to_dict() == {**base, "b2": 1, "s2": +1, "i2": 6}

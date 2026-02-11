@@ -695,11 +695,6 @@ class Model:
         bytes
             Encoded model representation.
 
-        Raises
-        ------
-        CompressionError
-            If compression fails.
-
         Examples
         --------
         >>> model = Model("MyModel")

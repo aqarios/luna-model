@@ -89,23 +89,20 @@ class ResultView(Result, Protocol):
         ...
 
     def __str__(self, /) -> str:
-        """Get str."""
+        """Get human-readable string representation of the result view."""
         ...
 
     def __repr__(self, /) -> str:
-        """Get debug str."""
+        """Get debug string representation of the result view."""
         ...
 
     def __eq__(self, other: ResultView, /) -> bool:  # type: ignore[reportIncompatibleMethodOverride]
-        """Check equality."""
+        """Check if two result views are exactly equal."""
         ...
 
 
 class ResultIter(Protocol):
-    """Iterator over result views.
-
-    Iterates over ResultView objects in a solution.
-    """
+    """Iterates over ResultView objects in a solution."""
 
     def __iter__(self) -> ResultIter:
         """Return the iterator object itself."""

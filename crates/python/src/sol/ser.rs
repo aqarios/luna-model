@@ -11,6 +11,7 @@ use super::PySolution;
 #[unwindable]
 #[pymethods]
 impl PySolution {
+    #[pyo3(signature=(compress=true, level=3))]
     fn encode(
         &self,
         py: Python,
@@ -24,6 +25,7 @@ impl PySolution {
     /// Alias for `encode()`.
     ///
     /// See `encode()` for full documentation.
+    #[pyo3(signature=(compress=true, level=3))]
     fn serialize(
         &self,
         py: Python,

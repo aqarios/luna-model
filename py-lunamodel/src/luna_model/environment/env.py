@@ -162,11 +162,6 @@ class Environment:
         -------
         bytes
             Encoded environment representation.
-
-        Raises
-        ------
-        CompressionError
-            If compression fails.
         """
         return self._env.encode()
 

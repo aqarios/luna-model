@@ -257,10 +257,6 @@ class Solution:
     def temperature_weighted(self, beta: float, value_toggle: ValueSource = ValueSource.OBJ) -> float:
         """Compute temperature-weighted expectation value.
 
-        Computes the temperature-weighted expectation value using the formula::
-
-            sum(value[i] * exp(-beta * value[i]) * count[i]) / sum(exp(-beta * value[i]) * count[i])
-
         Parameters
         ----------
         beta : float
@@ -335,16 +331,6 @@ class Solution:
             or None if no constraints are violated or no constraint information exists.
         """
         return self._s.highest_constraint_violation()
-
-    def repr_html(self) -> str:
-        """Get HTML representation of the solution for Jupyter notebooks.
-
-        Returns
-        -------
-        str
-            HTML formatted string representation of the solution.
-        """
-        return self._s.repr_html()
 
     def print(  # noqa: PLR0913
         self,
@@ -836,7 +822,7 @@ class Solution:
         env : Environment, optional
             The environment the variable types shall be determined from.
         model : Model, optional
-            A model to evaluate the sample with.
+            A model to evaluate the samples with.
         sense : Senes, optional
             The sense if no model is specified
 
