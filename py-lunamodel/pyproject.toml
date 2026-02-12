@@ -10,6 +10,7 @@ dynamic = ["version", "description"]
 authors = [
     { name = "Aqarios GmbH", email = "pypi@aqarios.com" },
 ]
+license-files = ["LICENSE", "THIRD_PARTY_LICENSES.txt"]
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "numpy>=1.0.0",
@@ -58,7 +59,6 @@ include = [
     "src/luna_model/**/*.pyi",
     "src/luna_model/**/*.py",
     "src/luna_model/py.typed",
-    "THIRD_PARTY_LICENSES.txt",
 ]
 exclude = [
     "**/__pycache__",
