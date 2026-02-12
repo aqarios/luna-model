@@ -58,6 +58,7 @@ include = [
     "src/luna_model/**/*.pyi",
     "src/luna_model/**/*.py",
     "src/luna_model/py.typed",
+    "THIRD_PARTY_LICENSES.txt",
 ]
 exclude = [
     "**/__pycache__",

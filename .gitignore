@@ -60,3 +60,5 @@ py-lunamodel/tests/test_core/test_solution/test_translator/model.lp
 *.txt
 build/
 py-lunamodel/.intentionally-empty-file.o
+
+!THIRD_PARTY_LICENSES.txt
