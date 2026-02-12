@@ -24,7 +24,6 @@ and transforming optimization problems. It provides the following high-level fea
   or from an Integer Model to a Binary Model.
 - Builtin serialization for maximum portability
 - Python-first development experience
-
 """
 
 from luna_model._lm import __version__
