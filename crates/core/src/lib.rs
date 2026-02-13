@@ -17,3 +17,5 @@ pub use environment::{ArcEnv, Environment};
 pub use expression::Expression;
 pub use model::Model;
 pub use solution::{Solution, Timer, Timing, ValueSource};
+
+pub use traits::TryIndex;

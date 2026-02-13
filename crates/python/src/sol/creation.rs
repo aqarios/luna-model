@@ -12,7 +12,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::{PyResult, pymethods};
 
 use super::PySolution;
-use super::utils::VarKey;
+use crate::utils::VarKey;
 use crate::timer::PyTiming;
 use crate::utils::retrieve_environment;
 use crate::{PyEnvironment, PyModel};

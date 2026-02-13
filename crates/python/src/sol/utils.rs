@@ -4,12 +4,7 @@ use lunamodel_error::LunaModelResult;
 use pyo3::{FromPyObject, PyAny, PyErr, exceptions::PyTypeError};
 
 use crate::PyVariable;
-
-#[derive(Debug, Clone)]
-pub enum VarKey {
-    Str(String),
-    Var(PyVariable),
-}
+use crate::utils::VarKey;
 
 impl From<String> for VarKey {
     fn from(value: String) -> Self {

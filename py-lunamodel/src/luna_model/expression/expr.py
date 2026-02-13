@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 
     from luna_model._lm import PyConstraint, PyVariable
     from luna_model.constraint import Constraint
+    from luna_model.solution.sample import Sample
     from luna_model.solution.sol import Solution
     from luna_model.variable.var import Variable
 
@@ -407,6 +408,23 @@ class Expression:
             The evaluated value(s) of the expression.
         """
         return self._expr.evaluate(solution._s)
+
+    def evaluate_sample(self, sample: Sample | dict[Variable | str, int | float]) -> float:
+        """Evaluate the expression using variable values from a sample.
+
+        Parameters
+        ----------
+        sample : Sample | dict[Variable | str, int | float]
+            The solution containing variable assignments.
+
+        Returns
+        -------
+        float
+            The evaluated value of the expression.
+        """
+        if isinstance(sample, dict):
+            sample = {v if isinstance(v, str) else v._v: value for v, value in sample.items()}
+        return self._expr.evaluate_sample(sample)
 
     def encode(self) -> bytes:
         """Serialize the expression into a compact binary format.
