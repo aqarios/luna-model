@@ -21,7 +21,7 @@ from luna_model.environment.env import Environment
 from luna_model.expression.iter import ExprIter
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
     from numpy.typing import NDArray
 
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 
 class Expression:
-    """Mathematical expression combining variables and constants.
+    """Mathematical expression combining variables and coefficients.
 
     An Expression represents a mathematical formula built from variables,
     constants, and arithmetic operations (``+``, ``-``, ``*``, ``**``).
@@ -87,8 +87,8 @@ class Expression:
 
     Notes
     -----
-    Expressions are immutable by default. Arithmetic operations create new Expression
-    objects unless using in-place operators (``+=``, ``-=``, ``*=``, ``**=``).
+    Arithmetic operations do not mutate the expressions and create new ``Expression`` objects.
+    In-place operators (``+=``, ``-=``, ``*=``, ``**=``) mutate the given expression.
     """
 
     _expr: PyExpression
@@ -340,7 +340,7 @@ class Expression:
         """
         return self._expr.equal_contents(other._expr)
 
-    def separate(self, variables: list[Variable]) -> tuple[Expression, Expression]:
+    def separate(self, variables: Sequence[Variable]) -> tuple[Expression, Expression]:
         """Separate expression into two parts based on variables.
 
         Splits the expression so that all specified variables appear only in
@@ -348,7 +348,7 @@ class Expression:
 
         Parameters
         ----------
-        variables : list[Variable]
+        variables : Sequence[Variable]
             Variables to isolate in the first expression.
 
         Returns
@@ -469,12 +469,12 @@ class Expression:
         return cls.decode(data, env)
 
     @classmethod
-    def deep_clone_many(cls, exprs: list[Expression]) -> list[Expression]:
+    def deep_clone_many(cls, exprs: Sequence[Expression]) -> list[Expression]:
         """Deep clones all provided expressions into a new environment.
 
         Parameters
         ----------
-        exprs : list[Expression]
+        exprs : Sequence[Expression]
             The expressions to move to the new environment.
 
         Returns

@@ -19,7 +19,7 @@ from luna_model._lm import PyBounds, PyUnbounded
 from luna_model.variable.vtype import Vtype
 
 Unbounded: TypeAlias = PyUnbounded
-"""Indicating the unbounded lower (-inf) or upper bound (+inf)."""
+"""Indicating the lower (-inf) or upper bound (+inf)."""
 
 
 class Bounds:

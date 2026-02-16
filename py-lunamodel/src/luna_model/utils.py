@@ -40,9 +40,10 @@ def quicksum(iterable: Iterable, start: Expression | Variable | None = None) -> 
     --------
     Sum a list of variables:
 
-    >>> from luna_model import Variable
+    >>> from luna_model import Environment, Variable
     >>> from luna_model.utils import quicksum
-    >>> vars = [Variable(f"x{i}") for i in range(10)]
+    >>> with Environment():
+    >>>     vars = [Variable(f"x{i}") for i in range(10)]
     >>> total = quicksum(vars)
 
     Sum with coefficients:

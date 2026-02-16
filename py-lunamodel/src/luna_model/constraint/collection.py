@@ -132,7 +132,7 @@ class ConstraintCollection:
 
         Raises
         ------
-        KeyError
+        NoConstraintForKeyError
             If no constraint with the given name exists.
         """
         return wrap_c(self._cc.get(name))

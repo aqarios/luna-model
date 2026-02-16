@@ -208,12 +208,22 @@ class Variable:
         return self._v.is_equal(other._v)
 
     def inv(self) -> Variable:
-        """Create an inverted version of this variable.
+        """Get an inverted version of this variable.
+
+        Only a binary variable (``Vtype.BINARY``) can be inverted. Inverting a
+        variable of any other ``vtype`` will raise an UnsupportedOperationError.
+        If the inverted variable already exists it is not re-created but returned
+        directly.
 
         Returns
         -------
         Variable
-            A new inverted variable.
+            The inverted variable.
+
+        Raises
+        ------
+        UnsupportedOperationError
+            If any variable is inverted that is not of type ``Vtype.BINARY``
 
         Notes
         -----
@@ -338,12 +348,27 @@ class Variable:
         return wrap_expr(self._v.__neg__())
 
     def __invert__(self) -> Variable:
-        """Invert this variable using the ~ operator.
+        """Get an inverted version of this variable.
+
+        Only a binary variable (``Vtype.BINARY``) can be inverted. Inverting a
+        variable of any other ``vtype`` will raise an UnsupportedOperationError.
+        If the inverted variable already exists it is not re-created but returned
+        directly.
 
         Returns
         -------
         Variable
-            A new inverted variable.
+            The inverted variable.
+
+        Raises
+        ------
+        UnsupportedOperationError
+            If any variable is inverted that is not of type ``Vtype.BINARY``
+
+        Notes
+        -----
+        Inverted variables maintain a relationship with their original variable
+        in the environment.
         """
         return self._from_pyvar(self._v.__invert__())
 

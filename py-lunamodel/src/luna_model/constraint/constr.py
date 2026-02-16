@@ -21,7 +21,7 @@ from luna_model.variable.var import Variable
 
 
 class Constraint:
-    """Constraint relating expressions with comparison operators.
+    """Constraint relating expressions with comparison operators and right-hand sides.
 
     A constraint specifies a relationship between a left-hand side expression
     and a right-hand side value using a comparison operator (``==``, ``<=``, ``>=``).
