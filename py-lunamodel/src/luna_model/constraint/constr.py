@@ -73,7 +73,7 @@ class Constraint:
     Notes
     -----
     The right-hand side is always normalized to a constant. If an expression
-    or variable is provided as rhs, it is moved to the left-hand side.
+    or variable is provided as the right-hand side, it is moved to the left-hand side.
     If the left-hand side contains a non-zero constant value it is moved to
     the right-hand side.
     """
