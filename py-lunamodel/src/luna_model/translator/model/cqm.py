@@ -64,7 +64,7 @@ class CqmTranslator:
         ----------
         cqm : ConstrainedQuadraticModel
             D-Wave CQM to convert.
-        name : str | None, optional
+        name : str, optional
             Name for the resulting model. If None, uses the CQM's name or
             a default name.
 

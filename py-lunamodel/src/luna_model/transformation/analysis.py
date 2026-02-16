@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, override
 
 from luna_model._lm import PyAnalysisCache, PyAnalysisPass, PyModel
 from luna_model.model.model import Model
@@ -39,26 +39,14 @@ class AnalysisPass(PyAnalysisPass, BasePass, Generic[T]):
         self._base = base if base else PyAnalysisPass()
 
     @property
+    @override
     @abstractmethod
     def name(self) -> str:
-        """Get the unique name of this analysis pass.
-
-        Returns
-        -------
-        str
-            A unique identifier for this pass.
-        """
-        ...
+        return self._base.name
 
     @property
+    @override
     def requires(self) -> list[str]:
-        """Get the list of passes this pass depends on.
-
-        Returns
-        -------
-        list[str]
-            List of pass names that must be executed before this pass.
-        """
         return self._base.requires
 
     @abstractmethod
@@ -91,29 +79,10 @@ class ConcreteAnalysisPass(AnalysisPass, Generic[T]):
     """
 
     @property
+    @override
     def name(self) -> str:
-        """Get the unique name of this analysis pass.
-
-        Returns
-        -------
-        str
-            The name from the underlying base pass.
-        """
         return self._base.name
 
+    @override
     def run(self, model: Model, cache: AnalysisCache) -> T:
-        """Execute this analysis pass on a model.
-
-        Parameters
-        ----------
-        model : Model
-            The model to analyze.
-        cache : AnalysisCache
-            Cache containing results from previous analysis passes.
-
-        Returns
-        -------
-        T
-            The result of the analysis from the underlying base pass.
-        """
         return self._base.run(model._m, cache._ac)

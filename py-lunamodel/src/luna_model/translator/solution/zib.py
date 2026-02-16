@@ -53,9 +53,9 @@ class ZibTranslator:
         ----------
         model : ScipModel
             A solved SCIP model (from pyscipopt).
-        timing : Timing | None, optional
+        timing : Timing, optional
             Timing information for the solution process.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment for variable filtering. Required either as parameter or active context.
             Only variables in the environment are included in the solution.
 

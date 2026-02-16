@@ -80,7 +80,7 @@ class ConstraintCollection:
         ----------
         constraint : Constraint
             The constraint to add.
-        name : str | None, optional
+        name : str, optional
             Name for the constraint. If None, uses constraint's own name if it has one
             that is not auto-generated, otherwise generates a name following the pattern
             ``c{i}`` where i is the constraint's index in the collection (starting from 0).
@@ -192,7 +192,7 @@ class ConstraintCollection:
 
         Parameters
         ----------
-        other : Constraint | tuple[Constraint, str]
+        other : Constraint or tuple[Constraint, str]
             Either a Constraint or a (Constraint, name) tuple.
 
         Returns

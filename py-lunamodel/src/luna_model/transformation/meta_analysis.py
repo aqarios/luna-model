@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, override
 
 from luna_model._lm import PyAnalysisCache, PyMetaAnalysisPass
 
@@ -42,28 +42,14 @@ class MetaAnalysisPass(PyMetaAnalysisPass, BasePass, Generic[T]):
         self._base = base if base else PyMetaAnalysisPass()
 
     @property
+    @override
     @abstractmethod
     def name(self) -> str:
-        """
-        Get the name of this pass.
-
-        Returns
-        -------
-        str
-            The unique identifier name for this pass.
-        """
-        ...
+        return self._base.name
 
     @property
+    @override
     def requires(self) -> list[str]:
-        """
-        Get a list of required passes that need to be run before this pass.
-
-        Returns
-        -------
-        list of str
-            Names of passes that must be executed before this pass.
-        """
         return self._base.requires
 
     @abstractmethod
@@ -73,7 +59,7 @@ class MetaAnalysisPass(PyMetaAnalysisPass, BasePass, Generic[T]):
 
         Parameters
         ----------
-        passes : list of BasePass
+        passes : list[BasePass]
             List of passes to analyze.
         cache : AnalysisCache
             Cache containing analysis results.
@@ -110,7 +96,7 @@ class ConcreteMetaAnalysisPass(MetaAnalysisPass, Generic[T]):
 
         Parameters
         ----------
-        passes : list of BasePass
+        passes : list[BasePass]
             List of passes to analyze.
         cache : AnalysisCache
             Cache containing analysis results.

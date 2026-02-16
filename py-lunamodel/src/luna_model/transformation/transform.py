@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, overload
+from typing import Any, overload, override
 
 from luna_model._lm import (
     PyActionType,
@@ -173,28 +173,14 @@ class TransformationPass(PyTransformationPass, BasePass):
         self._base = base if base else PyTransformationPass()
 
     @property
+    @override
     @abstractmethod
     def name(self) -> str:
-        """
-        Get the name of this pass.
-
-        Returns
-        -------
-        str
-            The unique identifier name for this pass.
-        """
         return self._base.name
 
     @property
+    @override
     def requires(self) -> list[str]:
-        """
-        Get a list of required passes that need to be run before this pass.
-
-        Returns
-        -------
-        list of str
-            Names of passes that must be executed before this pass.
-        """
         return self._base.requires
 
     @property
@@ -273,36 +259,14 @@ class ConcreteTransformationPass(TransformationPass):
     """Concrete implementation of a transformation pass."""
 
     @property
+    @override
     def name(self) -> str:
-        """
-        Get the name of this pass.
-
-        Returns
-        -------
-        str
-            The unique identifier name for this pass.
-        """
         return self._base.name
 
+    @override
     def run(
         self, model: Model, cache: AnalysisCache
     ) -> TransformationOutcome | tuple[PyModel, PyActionType] | tuple[PyModel, PyActionType, Any]:
-        """
-        Run/Execute this transformation pass.
-
-        Parameters
-        ----------
-        model : Model
-            The model to transform.
-        cache : AnalysisCache
-            Cache containing analysis results.
-
-        Returns
-        -------
-        TransformationOutcome or tuple
-            The transformation result, either as a TransformationOutcome object
-            or as a tuple of (model, action_type) or (model, action_type, analysis).
-        """
         inter = self._base.run(model._m, cache._ac)
         if isinstance(inter, tuple) and len(inter) == 2:  # noqa: PLR2004
             model, at = inter
@@ -312,23 +276,6 @@ class ConcreteTransformationPass(TransformationPass):
             return Model._from_pym(model), ActionType._from_pyat(at), c
         return TransformationOutcome._from_pyto(inter)
 
+    @override
     def backwards(self, solution: Solution, cache: AnalysisCache) -> Solution:
-        """
-        Convert a solution back to fit this pass' input.
-
-        Converts a solution from a representation fitting this pass' output to
-        a solution representation fitting this pass' input.
-
-        Parameters
-        ----------
-        solution : Solution
-            The solution in the output representation.
-        cache : AnalysisCache
-            Cache containing analysis results.
-
-        Returns
-        -------
-        Solution
-            The solution converted to the input representation.
-        """
         return Solution._from_pys(self._base.backwards(solution._s, cache._ac))

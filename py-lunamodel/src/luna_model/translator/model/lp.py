@@ -64,7 +64,7 @@ class LpTranslator:
 
         Parameters
         ----------
-        file : str | Path
+        file : str or Path
             Either a path to an LP file or an LP-formatted string. If the string
             contains newlines or looks like LP content, it will be parsed as a
             string. Otherwise, it will be treated as a file path.
@@ -122,13 +122,13 @@ class LpTranslator:
         ----------
         model : Model
             The LunaModel to convert.
-        filepath : Path | None, optional
+        filepath : Path, optional
             If provided, writes the LP representation to this file path.
             If ``None``, returns the LP string without writing to a file.
 
         Returns
         -------
-        str | None
+        str or None
             If ``filepath`` is ``None``, returns the LP-formatted string.
             If ``filepath`` is provided, writes to file and returns ``None``.
 

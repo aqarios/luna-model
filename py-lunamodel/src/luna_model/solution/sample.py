@@ -41,7 +41,7 @@ class Sample(Protocol):
 
         Returns
         -------
-        dict[str, int | float]
+        dict[str, int or float]
             Dictionary of variable assignments.
         """
         ...
@@ -82,7 +82,7 @@ class Samples(Protocol):
 
         Returns
         -------
-        Sequence[Sequence[int | float]]
+        Sequence[Sequence[int or float]]
             List where each inner list is a sample.
         """
         ...

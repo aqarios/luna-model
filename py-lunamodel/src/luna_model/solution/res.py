@@ -29,13 +29,13 @@ class Result(Protocol):
     ----------
     sample : Sample
         The variable assignments in this result.
-    obj_value : float | None
+    obj_value : float or None
         The objective function value, if available.
-    constraints : dict[str, bool] | None
+    constraints : dict[str, bool] or None
         Constraint satisfaction status by constraint name.
-    variable_bounds : dict[str, bool] | None
+    variable_bounds : dict[str, bool] or None
         Variable bound satisfaction status by variable name.
-    feasible : bool | None
+    feasible : bool or None
         Whether the solution is feasible, if known.
     """
 
@@ -74,7 +74,7 @@ class ResultView(Result, Protocol):
     ----------
     counts : int
         Number of times this result was observed.
-    raw_energy : float | None
+    raw_energy : float or None
         Raw energy value from the solver, if available.
     """
 

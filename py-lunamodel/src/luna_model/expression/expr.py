@@ -40,7 +40,7 @@ class Expression:
 
     Parameters
     ----------
-    env : Environment | None, optional
+    env : Environment, optional
         The environment for this expression. If None and created via ``__init__``,
         requires an active environment context or raises ``NoActiveEnvironmentError``.
 
@@ -98,7 +98,7 @@ class Expression:
 
         Parameters
         ----------
-        env : Environment | None, optional
+        env : Environment, optional
             The environment for this expression.
         """
         if env is None:
@@ -121,7 +121,7 @@ class Expression:
         ----------
         value : float
             The constant value.
-        env : Environment | None, optional
+        env : Environment, optional
             The environment for this expression.
 
         Returns
@@ -366,7 +366,7 @@ class Expression:
         ----------
         target : Variable
             The variable to replace.
-        replacement : Expression | Variable
+        replacement : Expression or Variable
             The expression or variable to substitute in place of target.
 
         Returns
@@ -495,7 +495,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to add.
 
         Returns
@@ -521,7 +521,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to subtract.
 
         Returns
@@ -547,7 +547,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to multiply by.
 
         Returns
@@ -572,7 +572,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to add this expression to.
 
         Returns
@@ -587,7 +587,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to subtract this expression from.
 
         Returns
@@ -602,7 +602,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to multiply by this expression.
 
         Returns
@@ -617,7 +617,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to add.
 
         Returns
@@ -643,7 +643,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to subtract.
 
         Returns
@@ -669,7 +669,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to multiply by.
 
         Returns
@@ -765,7 +765,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The right-hand side of the equality.
 
         Returns
@@ -788,7 +788,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The right-hand side of the inequality.
 
         Returns
@@ -811,7 +811,7 @@ class Expression:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The right-hand side of the inequality.
 
         Returns

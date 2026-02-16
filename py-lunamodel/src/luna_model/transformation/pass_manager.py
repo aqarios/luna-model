@@ -38,7 +38,7 @@ class PassManager:
 
     Parameters
     ----------
-    passes : Sequence[BasePass | TransformationPass | AnalysisPass | MetaAnalysisPass | IfElsePass | Pipeline] | None
+    passes : Sequence[BasePass], optional
         An ordered sequence of Pass instances to apply, default None.
     """
 
@@ -46,25 +46,22 @@ class PassManager:
 
     def __init__(
         self,
-        passes: Sequence[BasePass | TransformationPass | AnalysisPass | MetaAnalysisPass | IfElsePass | Pipeline]
-        | None = None,
+        passes: Sequence[BasePass] | None = None,
     ) -> None:
         self._pm = PyPassManager(passes)
 
-    def add(
-        self, pass_: BasePass | TransformationPass | AnalysisPass | MetaAnalysisPass | IfElsePass | Pipeline
-    ) -> None:
+    def add(self, pass_: BasePass) -> None:
         """Append a pass to the configured passes.
 
         Parameters
         ----------
-        pass_ : BasePass | TransformationPass | AnalysisPass | MetaAnalysisPass | IfElsePass | Pipeline
+        pass_ : BasePass
             The pass to add to this PassManager's configured passes.
         """
         self._pm.add(pass_)
 
     def run(self, model: Model) -> IR:
-        """Apply all configures passes.
+        """Apply all configured passes.
 
         Apply all configured passes to the given model and return the
         resulting intermediate representation.

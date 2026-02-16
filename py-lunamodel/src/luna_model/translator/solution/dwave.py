@@ -55,9 +55,9 @@ class DwaveTranslator:
         ----------
         sample_set : SampleSet
             D-Wave SampleSet returned by a sampler.
-        timing : Timing | None, optional
+        timing : Timing, optional
             Timing information for the solution process.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment for variable mapping. Required either as parameter or active context.
 
         Returns

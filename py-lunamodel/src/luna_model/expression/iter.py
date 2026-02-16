@@ -212,7 +212,7 @@ class ExprIter:
 
         Returns
         -------
-        tuple[Constant | Linear | Quadratic | HigherOrder, float]
+        tuple[Constant or Linear or Quadratic or HigherOrder, float]
             The term and its coefficient.
 
         Raises

@@ -58,7 +58,7 @@ class Variable:
     bounds : Bounds, optional
         The bounds constraining the variable's value.
 
-    env : Environment | None, optional
+    env : Environment, optional
         The environment managing this variable. If ``None``, requires an
         active environment context.
 
@@ -237,7 +237,7 @@ class Variable:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to add to this variable.
 
         Returns
@@ -252,7 +252,7 @@ class Variable:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to subtract from this variable.
 
         Returns
@@ -267,7 +267,7 @@ class Variable:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to multiply with this variable.
 
         Returns
@@ -282,7 +282,7 @@ class Variable:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to add this variable to.
 
         Returns
@@ -297,7 +297,7 @@ class Variable:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to subtract this variable from.
 
         Returns
@@ -312,7 +312,7 @@ class Variable:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to multiply by this variable.
 
         Returns
@@ -384,12 +384,12 @@ class Variable:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The term to compare with.
 
         Returns
         -------
-        Constraint | bool
+        Constraint or bool
             - ``bool`` if comparing with another Variable (identity check)
             - ``Constraint`` if comparing with Expression or float (constraint creation)
         """
@@ -402,7 +402,7 @@ class Variable:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The right-hand side of the inequality.
 
         Returns
@@ -417,7 +417,7 @@ class Variable:
 
         Parameters
         ----------
-        other : Expression | Variable | float
+        other : Expression or Variable or float
             The right-hand side of the inequality.
 
         Returns

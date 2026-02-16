@@ -38,10 +38,10 @@ class AwsTranslator:
         Parameters
         ----------
         aws_result : dict[str, Any]
-            Amazon Braket result dictionary containing 'samples' and 'energies'.
-        timing : Timing | None, optional
+            Amazon Braket result dictionary containing 'samples' and 'energies', default None.
+        timing : Timing, optional
             Timing information for the solution process.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment for variable mapping. Required either as parameter or active context.
 
         Returns

@@ -28,7 +28,7 @@ def quicksum(iterable: Iterable, start: Expression | Variable | None = None) -> 
     ----------
     iterable : Iterable
         An iterable containing Expression, Variable, and/or float objects.
-    start : Expression | Variable | None, optional
+    start : Expression or Variable, optional
         Optional starting value for the sum.
 
     Returns

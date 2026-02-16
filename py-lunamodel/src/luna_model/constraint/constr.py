@@ -30,9 +30,9 @@ class Constraint:
 
     Parameters
     ----------
-    lhs : Variable | Expression
+    lhs : Variable or Expression
         The left-hand side of the constraint.
-    rhs : float | Expression | Variable
+    rhs : float or Expression or Variable
         The right-hand side of the constraint.
     comparator : Comparator
         The comparison operator (``EQ``, ``LE``, or ``GE``).

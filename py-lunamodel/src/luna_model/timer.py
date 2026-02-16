@@ -36,7 +36,7 @@ class Timing(Protocol):
         Total elapsed time.
     total_seconds : float
         Total elapsed time in seconds.
-    qpu : float | None
+    qpu : float or None
         QPU time in seconds, if applicable.
     """
 

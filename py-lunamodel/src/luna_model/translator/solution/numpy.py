@@ -49,9 +49,9 @@ class NumpyTranslator:
             2D array of solution samples, shape (n_samples, n_variables).
         energies : NDArray
             1D array of energy/objective values, shape (n_samples,).
-        timing : Timing | None, optional
+        timing : Timing, optional
             Timing information for the solution process.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment for mapping array indices to variable names. Required either as parameter or active context.
 
         Returns

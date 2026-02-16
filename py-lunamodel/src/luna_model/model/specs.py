@@ -28,32 +28,32 @@ class ModelSpecs:
 
     Parameters
     ----------
-    sense : Sense | None, optional
+    sense : Sense, optional
         The optimization direction (MIN or MAX).
-    vtypes : set[Vtype] | None, optional
+    vtypes : set[Vtype], optional
         Set of allowed variable types (BINARY, INTEGER, REAL, SPIN).
-    constraints : set[Ctype] | None, optional
+    constraints : set[Ctype], optional
         Set of allowed constraint types (UNCONSTRAINED, EQUALITY, INEQUALITY, LESS_EQUAL, GREATER_EQUAL).
-    max_degree : int | None, optional
+    max_degree : int, optional
         Maximum degree of objective polynomial.
-    max_constraint_degree : int | None, optional
+    max_constraint_degree : int, optional
         Maximum degree of constraint polynomials.
-    max_num_variables : int | None, optional
+    max_num_variables : int, optional
         Maximum number of variables allowed.
 
     Attributes
     ----------
-    sense : Sense | None
+    sense : Sense or None
         The optimization sense.
-    max_degree : int | None
+    max_degree : int or None
         Maximum objective degree.
-    max_constraint_degree : int | None
+    max_constraint_degree : int, optional
         Maximum constraint degree.
-    max_num_variables : int | None
+    max_num_variables : int or None
         Maximum variable count.
-    vtypes : list[Vtype] | None
+    vtypes : list[Vtype] or None
         Allowed variable types.
-    constraints : list[Ctype] | None
+    constraints : list[Ctype] or None
         Allowed constraint types.
 
     Examples

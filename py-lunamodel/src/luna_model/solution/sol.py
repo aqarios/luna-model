@@ -54,36 +54,36 @@ class Solution:
     ----------
     samples : Sequence[_Sample]
         List of variable assignment dictionaries.
-    counts : list[int] | None, optional
+    counts : list[int], optional
         Number of times each sample was observed.
-    raw_energies : list[float] | None, optional
+    raw_energies : list[float], optional
         Raw energy values from the solver.
-    obj_values : list[float] | None, optional
+    obj_values : list[float], optional
         Evaluated objective function values.
-    feasible : list[bool] | None, optional
+    feasible : list[bool], optional
         Feasibility status for each sample.
-    constraints : list[dict[str, bool]] | None, optional
+    constraints : list[dict[str, bool]], optional
         Constraint satisfaction by constraint name for each sample.
-    variables_bounds : dict[str, list[bool]] | None, optional
+    variables_bounds : dict[str, list[bool]], optional
         Variable bound satisfaction by variable name.
-    timing : Timing | None, optional
+    timing : Timing, optional
         Runtime and timing information.
-    sense : Sense | None, optional
+    sense : Sense, optional
         Optimization sense (MIN or MAX).
-    env : Environment | None, optional
+    env : Environment, optional
         The environment for variables.
-    vtypes : list[Vtype] | None, optional
+    vtypes : list[Vtype], optional
         Variable types.
 
     Attributes
     ----------
-    obj_values : NDArray | None
+    obj_values : NDArray or None
         Objective function values for each sample.
-    raw_energies : NDArray | None
+    raw_energies : NDArray or None
         Raw energy values from solver.
     counts : NDArray
         Observation counts for each sample.
-    runtime : Timing | None
+    runtime : Timing or None
         Timing information.
     sense : Sense
         Optimization sense.
@@ -164,7 +164,7 @@ class Solution:
 
         Returns
         -------
-        NDArray | None
+        NDArray or None
             Array of objective values, one per sample.
         """
         return self._s.obj_values
@@ -224,7 +224,7 @@ class Solution:
 
         Returns
         -------
-        list[ResultView] | None
+        list[ResultView] or None
             List of best results (lowest for MIN, highest for MAX).
         """
         return self._s.best()
@@ -326,7 +326,7 @@ class Solution:
 
         Returns
         -------
-        str | None
+        str or None
             Name of the constraint with the highest violation rate across all samples,
             or None if no constraints are violated or no constraint information exists.
         """
@@ -377,9 +377,9 @@ class Solution:
 
         Parameters
         ----------
-        var : str | Variable
+        var : str or Variable
             The variable name or Variable object to add.
-        data : Sequence[int | float]
+        data : Sequence[int or float]
             Values for this variable across all samples. Length must match number of samples.
         vtype : Vtype, optional
             Variable type. Default is BINARY.
@@ -402,12 +402,12 @@ class Solution:
 
         Parameters
         ----------
-        variables : Sequence[Variable | str]
+        variables : Sequence[Variable or str]
             List of variable names or Variable objects to add.
-        data : Sequence[Sequence[int | float]]
+        data : Sequence[Sequence[int or float]]
             Values for each variable across all samples. Outer sequence length must
             match number of variables, inner sequence length must match number of samples.
-        vtypes : Sequence[Vtype | None] | None, optional
+        vtypes : Sequence[Vtype or None], optional
             Variable types for each variable. If None, types are inferred.
         """
         from luna_model.variable import Variable  # noqa: PLC0415
@@ -423,7 +423,7 @@ class Solution:
 
         Parameters
         ----------
-        var : str | Variable
+        var : str or Variable
             The variable name or Variable object to remove.
         """
         from luna_model.variable import Variable  # noqa: PLC0415
@@ -435,7 +435,7 @@ class Solution:
 
         Parameters
         ----------
-        variables : Sequence[str | Variable]
+        variables : Sequence[str or Variable]
             List of variable names or Variable objects to remove.
         """
         from luna_model.variable import Variable  # noqa: PLC0415
@@ -581,9 +581,9 @@ class Solution:
         other : SolutionFromTypes
             Result object from a solver (SampleSet, PrimitiveResult, etc.) or
             data structure (dict, list, ndarray).
-        timing : Timing | None, optional
+        timing : Timing, optional
             Runtime information to attach to the solution.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment for variables. Required for some formats.
         **kwargs : Any
             Additional keyword arguments specific to the source format.
@@ -620,17 +620,17 @@ class Solution:
         ----------
         data : dict
             Single sample as a dictionary mapping variable names/objects to values.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment containing the variables.
-        model : Model | None, optional
+        model : Model, optional
             Model to evaluate the sample against.
-        timing : Timing | None, optional
+        timing : Timing, optional
             Runtime information.
-        counts : int | None, optional
+        counts : int, optional
             Number of times this sample was observed. Default is 1.
-        sense : Sense | None, optional
+        sense : Sense, optional
             Optimization sense. Inferred from model if provided.
-        energy : float | None, optional
+        energy : float, optional
             Raw energy value for this sample.
 
         Returns
@@ -665,19 +665,19 @@ class Solution:
 
         Parameters
         ----------
-        data : Sequence[dict]
+        data : Sequence[_Sample]
             List of samples, each as a dictionary mapping variable names/objects to values.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment containing the variables.
-        model : Model | None, optional
+        model : Model, optional
             Model to evaluate the samples against.
-        timing : Timing | None, optional
+        timing : Timing, optional
             Runtime information.
-        counts : list[int] | None, optional
+        counts : list[int], optional
             Number of times each sample was observed. Default is 1 for each.
-        sense : Sense | None, optional
+        sense : Sense, optional
             Optimization sense. Inferred from model if provided.
-        energies : list[float] | None, optional
+        energies : list[float], optional
             Raw energy values for each sample.
 
         Returns
@@ -715,19 +715,19 @@ class Solution:
         ----------
         data : NDArray
             2D array where rows are samples and columns are variables.
-        variables : Sequence[Variable | str] | None, optional
+        variables : Sequence[Variable or str], optional
             Variable names/objects corresponding to columns. Inferred from env or model if not provided.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment containing the variables.
-        model : Model | None, optional
+        model : Model, optional
             Model to evaluate the samples against.
-        timing : Timing | None, optional
+        timing : Timing, optional
             Runtime information.
-        counts : list[int] | None, optional
+        counts : list[int], optional
             Number of times each sample was observed. Default is 1 for each.
-        sense : Sense | None, optional
+        sense : Sense, optional
             Optimization sense. Inferred from model if provided.
-        energies : list[float] | None, optional
+        energies : list[float], optional
             Raw energy values for each sample.
 
         Returns
@@ -766,19 +766,19 @@ class Solution:
         ----------
         data : dict[str, int]
             Dictionary mapping bitstrings (e.g., "0101") to observation counts.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment containing the variables.
-        model : Model | None, optional
+        model : Model, optional
             Model to evaluate the samples against.
-        timing : Timing | None, optional
+        timing : Timing, optional
             Runtime information.
-        sense : Sense | None, optional
+        sense : Sense, optional
             Optimization sense. Inferred from model if provided.
         bit_order : {"LTR", "RTL"}, optional
             Bit order interpretation: "RTL" (right-to-left, default) or "LTR" (left-to-right).
-        energies : list[float] | None, optional
+        energies : list[float], optional
             Raw energy values for each unique bitstring.
-        var_order : list[str] | None, optional
+        var_order : list[str], optional
             Order of variable names corresponding to bit positions. Inferred from env or model if not provided.
 
         Returns
