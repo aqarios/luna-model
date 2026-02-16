@@ -35,7 +35,7 @@ LunaModel consists of the following components:
 | ---------------------------- | ------------------------------------------------------------------------- |
 | **LunaModel**                | A symbolic modeling library for arbitrary optimization models (problems). |
 | **LunaModel.translator**     | A translation library that supports many common model formats.            |
-| **LunaModel.transformation** | A compilation and transpilation stack to transform a model (source) into a target representation (target). _Not all targets are reachable from all sources, for more information on why see detailed in the resepective section._ |
+| **LunaModel.transformation** | A compilation and transpilation stack to transform a model (source) into a target representation (target). |
 | **LunaModel.utils**          | Utility functions for expression and model creation.                      |
 | **LunaModel.errors**         | All error types that can be raised within LunaModel.                      |
 
