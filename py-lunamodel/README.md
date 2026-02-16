@@ -176,6 +176,5 @@ For more information and help in getting started with LunaModel see our [Getting
 
 - [LunaModel](https://pypi.org/project/luna-model/)
 - [LunaModel Documentation](https://docs.aqarios.com/luna-model)
-
 - [LunaQuantum](https://pypi.org/project/luna-quantum/)
 - [LunaQuantum Documentation](https://docs.aqarios.com/luna-quantum)
