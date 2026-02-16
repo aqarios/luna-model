@@ -27,8 +27,8 @@ class PassManager:
     The PassManager implements a compiler-style pass pattern, enabling both
     general-purpose and algorithm-specific manipulations of optimization
     models. Each pass is an atomic operation that transforms the model or
-    its intermediate representation (IR). The PassManager runs each pass in
-    order and produces a rich IR that records the transformations applied
+    extracts information from the model. The PassManager runs each pass in
+    order and produces an IR that records the transformations applied
     and supports back-transformations.
 
     Parameters
