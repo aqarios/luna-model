@@ -28,7 +28,7 @@ class TranslationTarget(Enum):
         Binary variables only, no constraints.
     LP : str
         Linear Programming format.
-        Linear objective and constraints.
+        Linear or quadratic objective and linear or quadratic constraints.
     BQM : str
         Binary Quadratic Model format (D-Wave).
         Binary/spin variables with quadratic terms.
