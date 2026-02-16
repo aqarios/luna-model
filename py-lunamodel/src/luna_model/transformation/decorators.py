@@ -317,11 +317,8 @@ def transform(
     The ``ActionType`` indicates what happened:
 
     - ``ActionType.DID_TRANSFORM``: Pass transformed the model
-    - ``ActionType.DID_ANALYSIS``: Pass analyzed the model
     - ``ActionType.DID_ANALYSIS_TRANSFORM``: Pass analyzed and transformed
     - ``ActionType.DID_NOTHING``: Pass did nothing
-    - ``ActionType.DID_IF_ELSE``: Conditional pass executed
-    - ``ActionType.DID_PIPELINE``: Pipeline pass executed
 
     The backwards function is crucial when transformations change the variable space
     (e.g., adding/removing variables, changing variable types). It ensures solutions

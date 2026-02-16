@@ -40,9 +40,9 @@ class QctrlTranslator:
         result : dict[str, Any]
             Q-Ctrl result dictionary containing 'final_bitstring_distribution'
             and 'variables_to_bitstring_index_map'.
-        timing : Timing | None, optional
+        timing : Timing, optional
             Timing information for the solution process.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment for variable mapping. Required either as parameter or active context.
 
         Returns

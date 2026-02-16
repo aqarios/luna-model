@@ -199,13 +199,13 @@ class QuboTranslator:
             QUBO matrix where Q[i,j] represents the coefficient for x[i]*x[j].
             Diagonal elements Q[i,i] are linear coefficients. If the matrix is
             not symmetric, it will be made symmetric by summing Q[i,j] and Q[j,i].
-        offset : float | None, optional
+        offset : float, optional
             Constant offset term to add to objective. Default is 0.
-        variable_names : list[str] | None, optional
+        variable_names : list[str], optional
             Names for variables. If None, generates names like "x0", "x1", etc.
-        name : str | None, optional
+        name : str, optional
             Name for the model.
-        vtype : Vtype | None, optional
+        vtype : Vtype, optional
             Variable type (BINARY or SPIN). Default is BINARY.
 
         Returns

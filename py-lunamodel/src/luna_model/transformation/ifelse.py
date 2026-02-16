@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, overload, override
 
 from luna_model._lm import PyIfElsePass
 
@@ -114,23 +114,11 @@ class IfElsePass(PyIfElsePass, BasePass):
         )
 
     @property
+    @override
     def name(self) -> str:
-        """Get the name of this pass.
-
-        Returns
-        -------
-        str
-            The pass name.
-        """
         return self._ifelse.name
 
     @property
+    @override
     def requires(self) -> list[str]:
-        """Get required passes that must run before this pass.
-
-        Returns
-        -------
-        list[str]
-            List of pass names.
-        """
         return self._ifelse.requires

@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import overload
+from typing import overload, override
 
 from luna_model._lm import PyPipeline
 
@@ -29,7 +29,7 @@ class Pipeline(PyPipeline, BasePass):
 
     Parameters
     ----------
-    passes : list of BasePass
+    passes : list[BasePass]
         The transformation passes to include in the pipeline.
     name : str, optional
         A custom name for the pipeline. If not provided, a default name
@@ -44,27 +44,13 @@ class Pipeline(PyPipeline, BasePass):
         super().__init__(passes, name)
 
     @property
+    @override
     def name(self) -> str:
-        """
-        Get the name of this pipeline.
-
-        Returns
-        -------
-        str
-            The unique identifier name for this pipeline.
-        """
         return super().name
 
     @property
+    @override
     def requires(self) -> list[str]:
-        """
-        Get a list of required passes that need to be run before this pipeline.
-
-        Returns
-        -------
-        list of str
-            Names of passes that must be executed before this pipeline.
-        """
         return super().requires
 
     @property

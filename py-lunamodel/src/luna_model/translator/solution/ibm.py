@@ -57,9 +57,9 @@ class IbmTranslator:
             Qiskit primitive result containing measurement outcomes.
         quadratic_program : QuadraticProgram
             Original QuadraticProgram used to evaluate objective values.
-        timing : Timing | None, optional
+        timing : Timing, optional
             Timing information for the solution process.
-        env : Environment | None, optional
+        env : Environment, optional
             Environment for variable mapping. Required either as parameter or active context.
 
         Returns

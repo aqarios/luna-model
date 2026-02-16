@@ -64,7 +64,7 @@ class BqmTranslator:
         ----------
         bqm : BinaryQuadraticModel
             D-Wave BQM to convert. All variable names must be strings.
-        name : str | None, optional
+        name : str, optional
             Name for the resulting model. If None, uses default name.
 
         Returns

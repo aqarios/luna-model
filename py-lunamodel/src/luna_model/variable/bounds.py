@@ -30,20 +30,20 @@ class Bounds:
 
     Parameters
     ----------
-    lower : float | type[Unbounded] | None, optional
+    lower : float or type[Unbounded], optional
         The lower bound. Use ``Unbounded`` for negative infinity.
         Use ``None`` for the default value based on a variable's vtype.
-    upper : float | type[Unbounded] | None, optional
+    upper : float or type[Unbounded], optional
         The upper bound. Use ``Unbounded`` for positive infinity.
         Use ``None`` for the default value based on a variable's vtype.
 
     Attributes
     ----------
-    lower : float | type[Unbounded] | None
+    lower : float or type[Unbounded] or None
         The lower bound value. If set to ``None`` the lower bound will be determined
         based on the variable's vtype this bounds object is be associated with during
         variable creation.
-    upper : float | type[Unbounded] | None
+    upper : float or type[Unbounded] or None
         The upper bound value. If set to ``None`` the upper bound will be determined
         based on the variable's vtype this bounds object is be associated with during
         variable creation.
@@ -70,7 +70,7 @@ class Bounds:
 
         Returns
         -------
-        float | type[Unbounded] | None
+        float or type[Unbounded], optional
             The lower bound value if set (Unbounded for negative infinity).
         """
         return self._b.lower
@@ -81,7 +81,7 @@ class Bounds:
 
         Returns
         -------
-        float | type[Unbounded] | None
+        float or type[Unbounded], optional
             The upper bound value if set (Unbounded for positive infinity).
         """
         return self._b.upper
