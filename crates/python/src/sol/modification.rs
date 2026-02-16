@@ -3,7 +3,7 @@ use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PySolution;
-use super::utils::VarKey;
+use crate::utils::VarKey;
 
 #[unwindable]
 #[pymethods]

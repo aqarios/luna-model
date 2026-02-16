@@ -10,6 +10,12 @@ use pyo3::{
 
 use pyo3::{Py, PyAny, Python};
 
+#[derive(Debug, Clone)]
+pub enum VarKey {
+    Str(String),
+    Var(PyVariable),
+}
+
 #[derive(Debug, FromPyObject)]
 pub enum OpsOther {
     Expr(PyExpression),
