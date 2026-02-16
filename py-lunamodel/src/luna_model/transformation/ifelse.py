@@ -51,7 +51,7 @@ class IfElsePass(PyIfElsePass, BasePass):
 
     Examples
     --------
-    Execute different transformations based on model degree:
+    Execute different transformations based on the maximum bias:
 
     >>> from luna_model import Model, Vtype
     >>> from luna_model.transformation import PassManager, Pipeline, IfElsePass
