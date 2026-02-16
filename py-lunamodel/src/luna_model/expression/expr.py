@@ -60,7 +60,7 @@ class Expression:
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y")
-    ...     expr = 3 * x + 2 * y - 5
+    ... expr = 3 * x + 2 * y - 5
 
     Create quadratic expression:
 

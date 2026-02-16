@@ -36,7 +36,7 @@ class Constraint:
         The right-hand side of the constraint.
     comparator : Comparator
         The comparison operator (``EQ``, ``LE``, or ``GE``).
-    name : str | None, optional
+    name : str, optional
         An optional name for the constraint for easier identification.
 
     Attributes
@@ -168,8 +168,8 @@ class Constraint:
         Returns
         -------
         bool
-            True if constraints have the same rhs, and comparator and
-            the lhs has the same conents.
+            True if constraints have the same ``rhs``, and ``comparator`` and
+            the ``lhs`` has the same contents.
         """
         return self._c.equal_contents(other._c)
 
