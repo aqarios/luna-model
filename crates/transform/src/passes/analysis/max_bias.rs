@@ -1,16 +1,11 @@
 use lunamodel_core::Model;
-// use lunamodel_tpass::analysis_cache;
-use num::{NumCast, abs};
+use num::abs;
 
 use crate::{
     base::{AnalysisPass, AnalysisPassResult, BasePass},
     cache::{AnalysisCache, AnalysisCacheElement},
 };
 
-// #[cfg(feature = "py")]
-// use {crate::base::Pass, lunamodel_tpass::py_pass, lunamodel_unwind::*};
-
-// #[cfg_attr(feature = "py", py_pass(pass_variant = "Analysis"))]
 #[derive(Debug, Clone)]
 pub struct MaxBiasAnalysis {}
 
@@ -37,26 +32,16 @@ impl AnalysisPass for MaxBiasAnalysis {
         let obj = &model.objective;
         let mut max_val = 0.0;
 
-        let max_linear = obj
-            .linear
-            .iter()
-            .map(|(_, v)| abs(NumCast::from(v).unwrap()))
-            .fold(0.0, f64::max);
+        let max_linear = obj.linear.iter().map(|(_, v)| abs(v)).fold(0.0, f64::max);
         max_val = f64::max(max_val, max_linear);
 
         if let Some(quad) = &obj.quadratic {
-            let max_quadratic = quad
-                .iter_flat()
-                .map(|(_, _, v)| abs(NumCast::from(v).unwrap()))
-                .fold(0.0, f64::max);
+            let max_quadratic = quad.iter_flat().map(|(_, _, v)| abs(v)).fold(0.0, f64::max);
             max_val = f64::max(max_val, max_quadratic);
         }
 
         if let Some(ho) = &obj.higher_order {
-            let max_ho = ho
-                .iter()
-                .map(|(_, v)| abs(NumCast::from(v).unwrap()))
-                .fold(0.0, f64::max);
+            let max_ho = ho.iter().map(|(_, v)| abs(v)).fold(0.0, f64::max);
             max_val = f64::max(max_val, max_ho);
         }
 
