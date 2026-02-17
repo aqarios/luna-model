@@ -507,7 +507,10 @@ class Model:
         DuplicateConstraintNameError
             If a constraint with the same name already exists.
         ConstraintNameInvalidError
-            If the constraint name is invalid.
+            If the constraint name is invalid. Constraint names cannot be empty
+            strings and must start with an alphabetical character. Additionally,
+            constraint names cannot start with ``inf`` or ``nan`` due to
+            limitations of other modeling software.
 
         Examples
         --------
