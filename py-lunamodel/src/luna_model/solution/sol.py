@@ -103,13 +103,20 @@ class Solution:
     >>> x = Variable("x", env=env)
     >>> y = Variable("y", env=env)
     >>> samples = [{"x": 0, "y": 1}, {"x": 1, "y": 0}]
-    >>> solution = Solution(samples, obj_values=[5.0, 3.0], env=env)
+    >>> solution = Solution(
+    ...     samples,
+    ...     counts=[1, 1],
+    ...     obj_values=[5.0, 3.0],
+    ...     feasible=[True, True],
+    ...     env=env,
+    ... )
 
     Get best results:
 
     >>> best_results = solution.best()
     >>> for result in best_results:
     ...     print(f"Value: {result.obj_value}, Sample: {result.sample.to_dict()}")
+    Value: 3.0, Sample: {'x': 1, 'y': 0}
 
     Filter feasible solutions:
 

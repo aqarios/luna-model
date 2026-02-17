@@ -60,7 +60,7 @@ impl LpTranslator {
         out.push_str(&format!("Bounds\n"));
         out.push_str(&format!("{}\n", Self::bounds_string(&model.environment)?));
         out.push_str(&format!("{}\n", Self::variables_string(&model)?));
-        out.push_str("End\n");
+        out.push_str("End");
         Ok(out)
     }
 
@@ -82,14 +82,14 @@ impl LpTranslator {
         }
         let mut out = String::new();
         if !bins.is_empty() {
-            let mut binstr = String::from("Binaries\n");
+            let mut binstr = String::from("Binaries\n ");
             let chunks = safe_chunks(&bins, MAX_LINE_LENGTH);
             binstr.push_str(&chunks.join("\n"));
             out.push_str(&binstr);
             out.push_str("\n");
         }
         if !gens.is_empty() {
-            let mut genstr = String::from("Generals\n");
+            let mut genstr = String::from("Generals\n ");
             let chunks = safe_chunks(&gens, MAX_LINE_LENGTH);
             genstr.push_str(&chunks.join("\n"));
             out.push_str(&genstr);

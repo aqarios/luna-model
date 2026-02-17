@@ -29,10 +29,17 @@ class ConstraintCollectionIter:
 
     Examples
     --------
+    >>> from luna_model import Variable, Environment
+    >>> from luna_model import ConstraintCollection
+    >>> with Environment():
+    ...     x, y = Variable("x"), Variable("y")
     >>> cc = ConstraintCollection()
-    >>> # Add constraints...
+    >>> cc += x + y <= 10, "capacity"
+    >>> cc += x >= 0, "x_lower"
     >>> for name, constraint in cc:
     ...     print(f"{name}: {constraint}")
+    capacity: x + y <= 10
+    x_lower: x >= 0
     """
 
     _i: PyConstraintCollectionIterator

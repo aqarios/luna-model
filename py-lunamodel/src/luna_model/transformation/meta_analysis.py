@@ -13,8 +13,14 @@
 # limitations under the License.
 from __future__ import annotations
 
+import sys
 from abc import abstractmethod
-from typing import Generic, TypeVar, override
+from typing import Generic, TypeVar
+
+if sys.version_info < (3, 12):
+    from typing_extensions import override
+else:
+    from typing import override
 
 from luna_model._lm import PyAnalysisCache, PyMetaAnalysisPass
 

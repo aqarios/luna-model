@@ -13,8 +13,14 @@
 # limitations under the License.
 from __future__ import annotations
 
+import sys
 from abc import abstractmethod
-from typing import Any, overload, override
+from typing import Any, overload
+
+if sys.version_info < (3, 12):
+    from typing_extensions import override
+else:
+    from typing import override
 
 from luna_model._lm import (
     PyActionType,

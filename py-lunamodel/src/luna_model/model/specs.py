@@ -60,17 +60,21 @@ class ModelSpecs:
     --------
     Create specifications for a QUBO model:
 
-    >>> from luna_model.model import ModelSpecs, Sense, Ctype
-    >>> from luna_model.variable import Vtype
+    >>> from luna_model import ModelSpecs, Sense, Ctype, Vtype
     >>> target_specs = ModelSpecs(
     ...     sense=Sense.MIN, vtypes={Vtype.BINARY}, constraints={Ctype.UNCONSTRAINED}, max_degree=2
     ... )
 
     Check if a model satisfies specifications:
 
+    >>> from luna_model import Model
+    >>> model = Model("test_model", sense=Sense.MIN)
+    >>> x = model.add_variable("x", vtype=Vtype.BINARY)
+    >>> model.objective = 10 * x
     >>> model_specs = model.get_specs()
     >>> if model_specs.satisfies(target_specs):
     ...     print("Model meets requirements")
+    Model meets requirements
     """
 
     _sp: PyModelSpecs

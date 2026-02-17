@@ -27,10 +27,23 @@ class NumpyTranslator:
     Examples
     --------
     >>> import numpy as np
+    >>> from luna_model import Environment, Variable
     >>> from luna_model.translator import NumpyTranslator
     >>> samples = np.array([[0, 1], [1, 0], [1, 1]])
     >>> energies = np.array([-2.5, -1.0, 0.5])
-    >>> solution = NumpyTranslator.to_lm(samples, energies)
+    >>> env = Environment()
+    >>> with env:
+    ...     _ = Variable("x")
+    ...     _ = Variable("y")
+    >>> solution = NumpyTranslator.to_lm(samples, energies, env=env)
+    >>> print(solution)
+    x y │ feas  raw obj count
+    0 1 │    ? -2.5   ?     1
+    1 0 │    ? -1.0   ?     1
+    1 1 │    ?  0.5   ?     1
+    <BLANKLINE>
+    Total samples: 3
+    Total variables: 2
     """
 
     @staticmethod

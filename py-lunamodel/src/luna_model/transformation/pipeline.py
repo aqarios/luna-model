@@ -13,7 +13,13 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import overload, override
+import sys
+from typing import overload
+
+if sys.version_info < (3, 12):
+    from typing_extensions import override
+else:
+    from typing import override
 
 from luna_model._lm import PyPipeline
 

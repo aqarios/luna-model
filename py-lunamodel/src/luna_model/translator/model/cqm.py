@@ -41,8 +41,16 @@ class CqmTranslator:
     >>> x = Binary("x")
     >>> y = Binary("y")
     >>> cqm.set_objective(-x - y + 2 * x * y)
-    >>> cqm.add_constraint(x + y <= 1, label="c1")
+    >>> _ = cqm.add_constraint(x + y <= 1, label="c1")
     >>> model = CqmTranslator.to_lm(cqm, name="my_model")
+    >>> print(model)
+    Model: my_model
+    Minimize
+      2 * x * y - x - y
+    Subject To
+      c1: x + y <= 1
+    Binary
+      x y
 
     >>> from luna_model import Model, Vtype
     >>> from luna_model.translator import CqmTranslator
@@ -52,6 +60,17 @@ class CqmTranslator:
     >>> model.objective = x * y - 2 * x + y
     >>> model.constraints += x + y <= 1
     >>> cqm = CqmTranslator.from_lm(model)
+    >>> print(cqm)
+    Constrained quadratic model: 2 variables, 1 constraints, 5 biases
+    <BLANKLINE>
+    Objective
+      -2*Binary('x') + Binary('y') + Binary('x')*Binary('y')
+    <BLANKLINE>
+    Constraints
+      c0: Binary('x') + Binary('y') <= 1.0
+    <BLANKLINE>
+    Bounds
+    <BLANKLINE>
     """
 
     @staticmethod
@@ -89,10 +108,12 @@ class CqmTranslator:
         >>> x = Binary("x")
         >>> y = Integer("y", lower_bound=0, upper_bound=10)
         >>> cqm.set_objective(x + 2 * y)
-        >>> cqm.add_constraint(x + y >= 3, label="min_sum")
+        >>> _ = cqm.add_constraint(x + y >= 3, label="min_sum")
         >>> model = CqmTranslator.to_lm(cqm, name="example")
         >>> print(model.objective)
+        x + 2 y
         >>> print(len(model.constraints))
+        1
 
         Notes
         -----

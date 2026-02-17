@@ -66,7 +66,10 @@ class Qubo:
     >>> model.objective = x * y - 2 * x + y
     >>> qubo = QuboTranslator.from_lm(model)
     >>> print(qubo.matrix)
+    [[-2.   0.5]
+     [ 0.5  1. ]]
     >>> print(qubo.offset)
+    0.0
     """
 
     _q: PyQubo
@@ -274,6 +277,8 @@ class QuboTranslator:
         >>> model.objective = x * y - 2 * x + y
         >>> qubo = QuboTranslator.from_lm(model)
         >>> print(qubo.matrix)
+        [[-2.   0.5]
+         [ 0.5  1. ]]
 
         Notes
         -----

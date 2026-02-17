@@ -18,33 +18,33 @@ enum Section {
 
 impl Section {
     fn try_header(line: &str) -> Option<Section> {
-        let lu = line.to_uppercase();
-        if lu.starts_with("MINIMIZE") || lu.starts_with("MINIMUM") || lu.starts_with("MIN") {
+        let lu = line.trim().to_uppercase();
+        if lu == "MINIMIZE" || lu == "MINIMUM" || lu == "MIN" {
             Some(Section::Objective(Sense::Min))
-        } else if lu.starts_with("MAXIMIZE") || lu.starts_with("MAXIMUM") || lu.starts_with("MAX") {
+        } else if lu == "MAXIMIZE" || lu == "MAXIMUM" || lu == "MAX" {
             Some(Section::Objective(Sense::Max))
-        } else if lu.starts_with("SUBJECT TO")
-            || lu.starts_with("SUCH THAT")
-            || lu.starts_with("ST")
-            || lu.starts_with("S.T.")
+        } else if lu == "SUBJECT TO"
+            || lu == "SUCH THAT"
+            || lu == "ST"
+            || lu == "S.T."
         {
             Some(Section::Constraints)
-        } else if lu.starts_with("BOUNDS") || lu.starts_with("BOUND") {
+        } else if lu == "BOUNDS" || lu == "BOUND" {
             Some(Section::Bounds)
-        } else if lu.starts_with("GENERAL") || lu.starts_with("GENERALS") || lu.starts_with("GEN") || lu.starts_with("INTEGERS") {
+        } else if lu == "GENERAL" || lu == "GENERALS" || lu == "GEN" || lu == "INTEGERS" {
             Some(Section::General)
-        } else if lu.starts_with("BINARY") || lu.starts_with("BINARIES") || lu.starts_with("BIN") {
+        } else if lu == "BINARY" || lu == "BINARIES" || lu == "BIN" {
             Some(Section::Binary)
-        } else if lu.starts_with("END") {
+        } else if lu == "END" {
             Some(Section::End)
-        } else if lu.contains("MULTI-OBJECTIVES")
-            || lu.starts_with("LAZY CONSTRAINTS")
-            || lu.starts_with("USER CUTS")
-            || lu.starts_with("SOS")
-            || lu.starts_with("GENERAL CONSTRAINTS")
-            || lu.starts_with("GENERAL CONSTRAINT")
-            || lu.starts_with("G.C.")
-            || lu.starts_with("SCENARIO")
+        } else if lu == "MULTI-OBJECTIVES"
+            || lu == "LAZY CONSTRAINTS"
+            || lu == "USER CUTS"
+            || lu == "SOS"
+            || lu == "GENERAL CONSTRAINTS"
+            || lu == "GENERAL CONSTRAINT"
+            || lu == "G.C."
+            || lu == "SCENARIO"
         {
             Some(Section::Unsupported)
         } else {
@@ -127,7 +127,6 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
                     }
                 },
                 Section::Constraints => parse_constr(&mut prob.constraints, &mut prob.vars, &accumulated_line)?,
-                
                 Section::Bounds => parse_bounds(&mut prob.bounds, &mut prob.vars, &accumulated_line)?,
                 Section::General => parse_var_list(&mut prob.vars, &mut prob.generals, &accumulated_line),
                 Section::Binary => parse_var_list(&mut prob.vars, &mut prob.binaries, &accumulated_line),
@@ -160,7 +159,6 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
                 accumulated_line.push_str(line);
             }
             Section::Constraints => {
-
                 let mut nxt = line_cache.clone();
                 nxt.push(' ');
                 nxt.push_str(line);

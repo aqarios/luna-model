@@ -29,11 +29,17 @@ class Sample(Protocol):
 
     Examples
     --------
+    >>> from luna_model import Environment, Solution, Vtype
+    >>> solution = Solution(
+    ...     [{"x": 1, "y": 0, "z": 1}], counts=[1], raw_energies=[3], vtypes=[Vtype.BINARY, Vtype.BINARY, Vtype.BINARY]
+    ... )
     >>> result = solution[0]
     >>> sample = result.sample
     >>> value = sample["x"]  # Access by name
     >>> print(value)
+    1
     >>> print(sample.to_dict())
+    {'x': 1, 'y': 0, 'z': 1}
     """
 
     def to_dict(self) -> dict[str, int | float]:
@@ -71,10 +77,27 @@ class Samples(Protocol):
 
     Examples
     --------
+    >>> from luna_model import Environment, Solution, Vtype
+    >>> solution = Solution(
+    ...     [
+    ...         {"x": 1, "y": 0, "z": 1},
+    ...         {"x": 0, "y": 0, "z": 1},
+    ...         {"x": 1, "y": 1, "z": 1},
+    ...     ],
+    ...     counts=[1, 1, 2],
+    ...     raw_energies=[2, 1, 3],
+    ...     vtypes=[Vtype.BINARY, Vtype.BINARY, Vtype.BINARY],
+    ... )
     >>> samples = solution.samples
     >>> first_sample = samples[0]
+    >>> print(first_sample)
+    [1, 0, 1]
     >>> specific_value = samples[0, 1]  # Row 0, column (var) 1
+    >>> print(specific_value)
+    0.0
     >>> all_samples = samples.tolist()
+    >>> print(all_samples)
+    [[1, 0, 1], [0, 0, 1], [1, 1, 1]]
     """
 
     def tolist(self) -> Sequence[Sequence[int | float]]:

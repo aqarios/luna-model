@@ -196,13 +196,17 @@ class ExprIter:
     ...     for term, coeff in expr.items():
     ...         match term:
     ...             case Constant():
-    ...                 print("constant:", coeff)
+    ...                 print(f"constant: {coeff}")
     ...             case Linear(var):
-    ...                 print("linear:", coeff, var)
+    ...                 print("linear:", coeff, var.name)
     ...             case Quadratic(var_a, var_b):
-    ...                 print("quadratic:", coeff, var_a, var_b)
+    ...                 print("quadratic:", coeff, var_a.name, var_b.name)
     ...             case HigherOrder(vars):
-    ...                 print("higher-order:", coeff, *vars)
+    ...                 print("higher-order:", coeff, *[v.name for v in vars])
+    linear: 3.0 x
+    quadratic: 2.0 x y
+    higher-order: 4.0 x y z
+    constant: 5.0
     """
 
     _i: PyExpressionIterator

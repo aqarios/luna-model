@@ -1,5 +1,4 @@
-use std::collections::HashMap;
-
+use indexmap::IndexMap;
 use itertools::Itertools;
 use lunamodel_core::solution::{
     Assignment,
@@ -37,7 +36,7 @@ pub(super) enum PySampleIndex {
 #[unwindable]
 #[pymethods]
 impl PySampleView {
-    fn to_dict(&self, py: Python) -> PyResult<HashMap<String, Py<PyAny>>> {
+    fn to_dict(&self, py: Python) -> PyResult<IndexMap<String, Py<PyAny>>> {
         self.sol
             .s
             .read_arc()

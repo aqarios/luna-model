@@ -77,6 +77,9 @@ fn expr_string(expr: &Expression) -> String {
             }
         }
     }
+    if hos.is_empty() && quads.is_empty() && lins.is_empty() && !const_str.is_empty() {
+        return const_str.replace("+", "");
+    }
 
     let mut resstrs = Vec::new();
     if !hos.is_empty() {
@@ -108,4 +111,3 @@ fn expr_string(expr: &Expression) -> String {
         false => out.to_string(),
     }
 }
-

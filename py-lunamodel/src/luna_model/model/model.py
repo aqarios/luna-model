@@ -155,7 +155,8 @@ class Model:
 
     >>> blob = model.encode()
     >>> restored = Model.decode(blob)
-    >>> restored.name
+    >>> print(restored.name)
+    ScopedModel
     """
 
     _m: PyModel
@@ -213,8 +214,10 @@ class Model:
         --------
         >>> model = Model(sense=Sense.MIN)
         >>> model.sense
-        Sense.MIN
+        <Sense.MIN: 'Minimize'>
         >>> model.sense = Sense.MAX
+        >>> model.sense
+        <Sense.MAX: 'Maximize'>
         """
         return Sense._from_pysense(self._m.sense)
 
@@ -360,7 +363,7 @@ class Model:
         >>> y = model.add_variable("y", vtype=Vtype.INTEGER)
         >>> model.objective += x + y
         >>> model.vtypes()
-        [Vtype.BINARY, Vtype.INTEGER]
+        [<Vtype.BINARY: 'Binary'>, <Vtype.INTEGER: 'Integer'>]
         """
         return [Vtype._from_pyvtype(t) for t in self._m.vtypes()]
 
@@ -579,7 +582,7 @@ class Model:
         ...     solution = Solution(samples=samples)
         >>> solution = model.evaluate(solution)
         >>> solution.obj_values[0]  # Value of x + 2*y = 1 + 4 = 5
-        5.0
+        np.float64(5.0)
         >>> solution[0].feasible  # x + y = 3 <= 5, so True
         True
         """

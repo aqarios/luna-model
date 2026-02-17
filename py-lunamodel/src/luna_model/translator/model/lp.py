@@ -19,7 +19,7 @@ from luna_model.model.model import Model
 
 
 class LpTranslator:
-    """Translator for LP file format.
+    r"""Translator for LP file format.
 
     LpTranslator provides static methods to convert between LunaModel's internal
     Model representation and the LP file format. The LP format is a widely-used
@@ -53,6 +53,19 @@ class LpTranslator:
 
     >>> lp_string = LpTranslator.from_lm(model)
     >>> print(lp_string)
+    \ Model example
+    \ Problem name: example
+    <BLANKLINE>
+    Minimize
+     3 x + 2 y
+    Subject To
+     c0: 1 x + 1 y <= 1
+    Bounds
+    <BLANKLINE>
+    Binaries
+     x y
+    <BLANKLINE>
+    End
     """
 
     @staticmethod
@@ -113,7 +126,7 @@ class LpTranslator:
     def from_lm(model: Model, filepath: Path) -> None: ...
     @staticmethod
     def from_lm(model: Model, filepath: Path | None = None) -> str | None:
-        """Convert LunaModel to LP file or string.
+        r"""Convert LunaModel to LP file or string.
 
         Converts a LunaModel Model to LP format, either writing to a file or
         returning the LP-formatted string.
@@ -151,5 +164,16 @@ class LpTranslator:
 
         >>> lp_string = LpTranslator.from_lm(model)
         >>> print(lp_string)
+        \ Model example
+        \ Problem name: example
+        <BLANKLINE>
+        Minimize
+        <BLANKLINE>
+        Subject To
+        <BLANKLINE>
+        Bounds
+        <BLANKLINE>
+        <BLANKLINE>
+        End
         """
         return PyLpTranslator.from_lm(model._m, filepath)

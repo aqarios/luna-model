@@ -55,6 +55,7 @@ class Environment:
     >>> env = Environment()
     >>> x = Variable("x", env=env)
     >>> print(env.num_variables)  # 1
+    1
     >>> var = env.get_variable("x")
 
     Notes
@@ -199,7 +200,6 @@ class Environment:
         Examples
         --------
         >>> original = Environment()
-        >>> ...
         >>> blob = original.encode()
         >>> restored = Environment.decode(blob)
         """

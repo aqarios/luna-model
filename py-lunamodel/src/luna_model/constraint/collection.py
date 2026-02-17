@@ -40,19 +40,22 @@ class ConstraintCollection:
     Create and manage constraints:
 
     >>> from luna_model import Variable, Environment
-    >>> from luna_model.constraint import ConstraintCollection
+    >>> from luna_model import ConstraintCollection
     >>> with Environment():
     ...     x, y = Variable("x"), Variable("y")
     >>> cc = ConstraintCollection()
     >>> cc += x + y <= 10, "capacity"
     >>> cc += x >= 0, "x_lower"
     >>> print(len(cc))  # Number of constraints
+    2
     >>> constraint = cc["capacity"]  # Access by name
 
     Iterate over constraints:
 
     >>> for name, constr in cc:
     ...     print(f"{name}: {constr}")
+    capacity: x + y <= 10
+    x_lower: x >= 0
 
     Notes
     -----

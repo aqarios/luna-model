@@ -43,14 +43,18 @@ def quicksum(iterable: Iterable, start: Expression | Variable | None = None) -> 
     >>> from luna_model import Environment, Variable
     >>> from luna_model.utils import quicksum
     >>> with Environment():
-    >>>     vars = [Variable(f"x{i}") for i in range(10)]
-    >>> total = quicksum(vars)
+    ...     vars = [Variable(f"x{i}") for i in range(10)]
+    >>> expr = quicksum(vars)
+    >>> print(expr)
+    x0 + x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9
 
     Sum with coefficients:
 
     >>> coeffs = [1, 2, 3, 4, 5]
     >>> terms = [c * v for c, v in zip(coeffs, vars[:5])]
     >>> expr = quicksum(terms)
+    >>> print(expr)
+    x0 + 2 x1 + 3 x2 + 4 x3 + 5 x4
 
     Notes
     -----

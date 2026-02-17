@@ -17,6 +17,32 @@ mod tests {
     use lunamodel_types::{Comparator, Sense, Vtype};
 
     #[test]
+    fn test_an_explicit_string() {
+        let lp_content = r#"
+Minimize
+ obj: + 1 x + 2 y
+
+Subject To
+ min_sum: + 1 x + 1 y  >= 3.0
+
+Bounds
+ 0.0 <= y <= 10.0
+
+Binary
+ x
+General
+ y
+End
+"#;
+
+        let model = LpTranslator::translate(lp_content.to_string()).unwrap();
+        assert_eq!(model.sense, Sense::Min);
+        assert_eq!(model.environment.vars().len(), 2);
+        assert_eq!(model.constraints.len(), 1);
+        assert_eq!(model.objective.linear.len(), 2);
+    }
+
+    #[test]
     fn test_parse_simple_linear() {
         let lp_content = r#"
 Minimize

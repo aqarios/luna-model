@@ -13,7 +13,13 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload, override
+import sys
+from typing import TYPE_CHECKING, overload
+
+if sys.version_info < (3, 12):
+    from typing_extensions import override
+else:
+    from typing import override
 
 from luna_model._lm import PyIfElsePass
 
@@ -64,9 +70,46 @@ class IfElsePass(PyIfElsePass, BasePass):
     ...     otherwise=Pipeline([]),
     ...     name="conditional-spin-conversion",
     ... )
-    >>> # Use in PassManager
+
+    Let's create a model that satisfies the condition:
+
+    >>> model = Model("example")
+    >>> x = model.add_variable("x", vtype=Vtype.SPIN)
+    >>> y = model.add_variable("y")
+    >>> z = model.add_variable("z")
+    >>> model.objective = 2 * x + 12 * y * z
+
+    And use it in the pass manager:
+
     >>> pm = PassManager([MaxBiasAnalysis(), conditional])
     >>> result = pm.run(model)
+    >>> print(result.model)
+    Model: example
+    Minimize
+      12 * y * z - 4 * x_x + 2
+    Binary
+      y z x_x
+
+    And now a model that does not satisfy the condition:
+
+    >>> model = Model("example")
+    >>> x = model.add_variable("x", vtype=Vtype.SPIN)
+    >>> y = model.add_variable("y")
+    >>> z = model.add_variable("z")
+    >>> model.objective = 2 * x + 8 * y * z
+
+    And use it in the pass manager:
+
+    >>> pm = PassManager([MaxBiasAnalysis(), conditional])
+    >>> result = pm.run(model)
+    >>> print(result.model)
+    Model: example
+    Minimize
+      8 * y * z + 2 * x
+    Binary
+      y z
+    Spin
+      x
 
     Notes
     -----

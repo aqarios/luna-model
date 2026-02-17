@@ -87,6 +87,7 @@ class BqmTranslator:
         >>> bqm = BinaryQuadraticModel({"x": -1, "y": 2}, {("x", "y"): 1}, 0.5, "BINARY")
         >>> model = BqmTranslator.to_lm(bqm, name="example")
         >>> print(model.objective)
+        x y - x + 2 y + 0.5
 
         Notes
         -----

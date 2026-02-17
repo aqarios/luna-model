@@ -61,7 +61,9 @@ class Expression:
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y")
-    ... expr = 3 * x + 2 * y - 5
+    >>> expr = 3 * x + 2 * y - 5
+    >>> print(expr)
+    3 x + 2 y - 5
 
     Create quadratic expression:
 
@@ -69,22 +71,29 @@ class Expression:
     ...     x = Variable("x")
     ...     y = Variable("y")
     ...     z = Variable("z")
-    ... quad_expr = x * y + z**2
+    >>> quad_expr = x * y + z**2
+    >>> print(quad_expr)
+    x y + z
 
     Create constant expression:
 
     >>> from luna_model import Expression
     >>> with Environment():
     ...     const_expr = Expression.const(42.0)
+    >>> print(const_expr)
+    42
 
     Access expression terms:
 
     >>> with Environment():
     ...     x = Variable("x")
     ...     y = Variable("y")
-    ... expr = 3 * x + 2 * y - 5
-    ... for variables, bias in expr.items():
+    >>> expr = 3 * x + 2 * y - 5
+    >>> for variables, bias in expr.items():
     ...     print(f"{variables}: {bias}")
+    Linear(x): 3.0
+    Linear(y): 2.0
+    Constant(): -5.0
 
     Notes
     -----
@@ -225,9 +234,12 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ...     expr = 3 * x + 2 * x * y + 5
-        ...     for vars, coeff in expr.items():
-        ...         print(f"{vars}: {coeff}")
+        >>> expr = 3 * x + 2 * x * y + 5
+        >>> for vars, coeff in expr.items():
+        ...     print(f"{vars}: {coeff}")
+        Linear(x): 3.0
+        Quadratic(x, y): 2.0
+        Constant(): 5.0
         """
         return ExprIter._from_pyei(self._expr.items())
 
@@ -382,8 +394,12 @@ class Expression:
         ...     x = Variable("x")
         ...     y = Variable("y")
         ...     z = Variable("z")
-        ... expr = 2 * x + 3 * y
-        ... new_expr = expr.substitute(x, z + 1)  # Replace x with z+1
+        >>> expr = 2 * x + 3 * y
+        >>> print(expr)
+        2 x + 3 y
+        >>> new_expr = expr.substitute(x, z + 1)  # Replace x with z+1
+        >>> print(new_expr)
+        3 y + 2 z + 2
         """
         from luna_model.variable import Variable  # noqa: PLC0415
 
@@ -528,9 +544,11 @@ class Expression:
         ...     x = Variable("x")
         ...     y = Variable("y")
         ...     expr = Expression()
-        ... expr = expr + x  # Add variable
-        ... expr = expr + y  # Add another variable
-        ... expr = expr + 5.0  # Add constant
+        >>> expr = expr + x  # Add variable
+        >>> expr = expr + y  # Add another variable
+        >>> expr = expr + 5.0  # Add constant
+        >>> print(expr)
+        x + y + 5
         """
         return self._from_pyexpr(self._op(other, self._expr.__add__))
 
@@ -554,9 +572,11 @@ class Expression:
         ...     x = Variable("x")
         ...     y = Variable("y")
         ...     expr = Expression()
-        ... expr = expr - x  # Sub variable
-        ... expr = expr - y  # Sub another variable
-        ... expr = expr - 5.0  # Sub constant
+        >>> expr = expr - x  # Sub variable
+        >>> expr = expr - y  # Sub another variable
+        >>> expr = expr - 5.0  # Sub constant
+        >>> print(expr)
+        -x - y - 5
         """
         return self._from_pyexpr(self._op(other, self._expr.__sub__))
 
@@ -579,9 +599,11 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ... expr = 2 * x
-        ... expr = expr * y  # Creates quadratic term
-        ... expr = expr * 3  # Scale by constant
+        >>> expr = 2 * x
+        >>> expr = expr * y  # Creates quadratic term
+        >>> expr = expr * 3  # Scale by constant
+        >>> print(expr)
+        6 x y
         """
         return self._from_pyexpr(self._op(other, self._expr.__mul__))
 
@@ -650,8 +672,10 @@ class Expression:
         ...     x = Variable("x")
         ...     y = Variable("y")
         ...     expr = Expression()
-        ... expr += x
-        ... expr += y
+        >>> expr += x
+        >>> expr += y
+        >>> print(expr)
+        x + y
         """
         self._op(other, self._expr.__iadd__)
         return self
@@ -676,8 +700,10 @@ class Expression:
         ...     x = Variable("x")
         ...     y = Variable("y")
         ...     expr = Expression()
-        ... expr -= x
-        ... expr -= y
+        >>> expr -= x
+        >>> expr -= y
+        >>> print(expr)
+        -x - y
         """
         self._op(other, self._expr.__isub__)
         return self
@@ -702,8 +728,10 @@ class Expression:
         ...     x = Variable("x")
         ...     y = Variable("y")
         ...     expr = Expression.const(42)
-        ... expr *= x
-        ... expr *= y
+        >>> expr *= x
+        >>> expr *= y
+        >>> print(expr)
+        42 x y
         """
         self._op(other, self._expr.__imul__)
         return self
@@ -727,8 +755,10 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x", vtype=Vtype.INTEGER)
         ...     y = Variable("y", vtype=Vtype.INTEGER)
-        ... expr = x**2  # Quadratic
-        ... expr += y**3  # Cubic
+        >>> expr = x**2  # Quadratic
+        >>> expr += y**3  # Cubic
+        >>> print(expr)
+        y^3 + x^2
         """
         return self._from_pyexpr(self._op(value, self._expr.__pow__))
 
@@ -751,8 +781,10 @@ class Expression:
         >>> with Environment():
         ...     a = Variable("a", vtype=Vtype.INTEGER)
         ...     b = Variable("b", vtype=Vtype.INTEGER)
-        ... expr = a + b
-        ... expr **= 2
+        >>> expr = a + b
+        >>> expr **= 2
+        >>> print(expr)
+        a^2 + 2 a b + b^2
         """
         self._op(other, self._expr.__ipow__)
         return self
@@ -771,10 +803,12 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ... expr = -x
-        ... print(expr)
-        ... expr = -(x + y)
-        ... print(expr)
+        >>> expr = -x
+        >>> print(expr)
+        -x
+        >>> expr = -(x + y)
+        >>> print(expr)
+        -x - y
         """
         return self._from_pyexpr(self._expr.__neg__())
 
@@ -797,7 +831,9 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ... constraint = (x + y) == 10
+        >>> constraint = x + y == 10
+        >>> print(constraint)
+        x + y == 10
         """
         return self._cmp(other, self._expr.__eq__)
 
@@ -820,7 +856,9 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ... constraint = (x + y) <= 100
+        >>> constraint = x + y <= 100
+        >>> print(constraint)
+        x + y <= 100
         """
         return self._cmp(other, self._expr.__le__)
 
@@ -843,7 +881,9 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ... constraint = (x + y) >= 0
+        >>> constraint = x + y >= 0
+        >>> print(constraint)
+        x + y >= 0
         """
         return self._cmp(other, self._expr.__ge__)
 
@@ -878,8 +918,9 @@ class Expression:
         >>> with Environment():
         ...     x = Variable("x")
         ...     y = Variable("y")
-        ... expr = 3 * x + 2 * y + 5
-        ... print(expr)
+        >>> expr = 3 * x + 2 * y + 5
+        >>> print(expr)
+        3 x + 2 y + 5
         """
         return self._expr.__str__()
 
