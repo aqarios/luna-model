@@ -1,9 +1,5 @@
 # Symbolic modeling for optimization
 
-[**About**](#about-LunaModel)
-| [**Getting Started**](#getting-started)
-| [**Resources**](#resources)
-
 ## Summary
 
 LunaModel is a high-performance symbolic modeling library for describing, translating and transforming optimization problems.
@@ -15,14 +11,6 @@ It provides the following high-level features:
 - Python-first development experience
 
 You can use LunaModel as a standalone package or by using [luna-quantum](https://pypi.org/project/luna-quantum/) which gives you additional builtin functionality to solve your optimization problems using the [Luna Platform](https://aqarios.com/platform).
-
-<!-- toc -->
-
-- [About LunaModel](#about-luna_model)
-- [Getting Started](#getting-started)
-- [Resources](#resources)
-
-<!-- tocstop -->
 
 ## About LunaModel
 
@@ -167,14 +155,3 @@ _Note that we have to use Integer variables now._
       model.constraints += variables[i] >= 0
   print(model)
   ```
-
-## Getting Started
-
-For more information and help in getting started with LunaModel see our [Getting Started Guide](https://docs.aqarios.com/luna-model/getting-started) and the [documentation](https://docs.aqarios.com/luna-model).
-
-## Resources
-
-- [LunaModel](https://pypi.org/project/luna-model/)
-- [LunaModel Documentation](https://docs.aqarios.com/luna-model)
-- [LunaQuantum](https://pypi.org/project/luna-quantum/)
-- [LunaQuantum Documentation](https://docs.aqarios.com/luna-quantum)
