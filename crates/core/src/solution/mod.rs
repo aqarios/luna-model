@@ -10,6 +10,7 @@ pub mod result;
 pub mod sample;
 mod samples;
 mod src;
+mod merge;
 pub mod timing;
 
 pub use col::{Assignment, ColElement, Column};
