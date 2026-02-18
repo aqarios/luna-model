@@ -94,6 +94,7 @@ dev = [
     "mypy>=1.19.1",
     "gurobipy>=13.0.0; python_version < '3.14'",
     "qiskit-aer>=0.17.1; python_version < '3.14'",
+    "auditwheel>=6.6.0",
 ]
 docs = [
     "mkdocstrings[python]>=1.0.1",
