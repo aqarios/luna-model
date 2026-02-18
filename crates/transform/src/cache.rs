@@ -2,8 +2,11 @@ use indexmap::{
     IndexMap,
     map::{IntoIter, Iter},
 };
+use lunamodel_types::Specs;
 #[cfg(feature = "py")]
-use pyo3::{IntoPyObjectExt, Py, PyAny, PyResult, Python};
+use pyo3::{Py, PyAny, Python};
+
+use crate::passes::analysis::MinConstraintValues;
 
 use super::passes::{analysis::MaxBias, special::IfElseInfo, transformation::BinarySpinInfo};
 
@@ -12,6 +15,8 @@ pub enum AnalysisCacheElement {
     IfElseInfoAnalysis(IfElseInfo),
     MaxBiasAnalysis(MaxBias),
     BinarySpinInfoAnalysis(BinarySpinInfo),
+    MinValueInConstraintAnalysis(MinConstraintValues),
+    SpecsAnalysis(Specs),
     #[cfg(feature = "py")]
     PyAnalysis(Py<PyAny>),
 }
@@ -27,6 +32,12 @@ impl Clone for AnalysisCacheElement {
             }
             AnalysisCacheElement::IfElseInfoAnalysis(v) => {
                 AnalysisCacheElement::IfElseInfoAnalysis(v.clone())
+            }
+            AnalysisCacheElement::MinValueInConstraintAnalysis(v) => {
+                AnalysisCacheElement::MinValueInConstraintAnalysis(v.clone())
+            }
+            AnalysisCacheElement::SpecsAnalysis(v) => {
+                AnalysisCacheElement::SpecsAnalysis(v.clone())
             }
             #[cfg(feature = "py")]
             AnalysisCacheElement::PyAnalysis(v) => {
@@ -49,19 +60,16 @@ impl AnalysisCacheElement {
             AnalysisCacheElement::IfElseInfoAnalysis(v) => {
                 AnalysisCacheElement::IfElseInfoAnalysis(v.clone())
             }
+            AnalysisCacheElement::MinValueInConstraintAnalysis(v) => {
+                AnalysisCacheElement::MinValueInConstraintAnalysis(v.clone())
+            }
+            AnalysisCacheElement::SpecsAnalysis(v) => {
+                AnalysisCacheElement::SpecsAnalysis(v.clone())
+            }
             AnalysisCacheElement::PyAnalysis(v) => {
                 AnalysisCacheElement::PyAnalysis(v.clone_ref(py))
             }
         }
-    }
-
-    pub fn into_py_any(&self, py: Python) -> PyResult<Py<PyAny>> {
-        Ok(match self {
-            AnalysisCacheElement::MaxBiasAnalysis(v) => v.clone().into_py_any(py)?,
-            AnalysisCacheElement::BinarySpinInfoAnalysis(v) => v.clone().into_py_any(py)?,
-            AnalysisCacheElement::IfElseInfoAnalysis(v) => v.clone().into_py_any(py)?,
-            AnalysisCacheElement::PyAnalysis(v) => v.into_py_any(py)?,
-        })
     }
 }
 

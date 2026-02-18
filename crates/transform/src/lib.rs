@@ -8,6 +8,7 @@ mod log;
 mod pass_manager;
 
 pub mod passes;
+pub mod pipelines;
 pub use base::Pass;
 pub use base::{
     ActionType, AnalysisPass, AnalysisPassResult, BasePass, TransformationOutcome,

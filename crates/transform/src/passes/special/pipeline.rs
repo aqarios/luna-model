@@ -139,3 +139,9 @@ impl Display for Pipeline {
         Ok(())
     }
 }
+
+impl Into<Pass> for Pipeline {
+    fn into(self) -> Pass {
+        Pass::Pipeline(Box::new(self))
+    }
+}

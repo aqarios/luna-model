@@ -4,7 +4,7 @@ use lunamodel_unwind::*;
 use lunamodel_transform::{ActionType, AnalysisCacheElement, TransformationOutcome};
 use pyo3::{FromPyObject, IntoPyObject, Py, PyAny, PyErr, PyResult, Python, pyclass, pymethods};
 
-use crate::model::PyModel;
+use crate::{model::PyModel, transform::cache::AnalysisCacheElementPyMethods};
 
 #[pyclass(name = "PyTransformationOutcome", get_all, set_all)]
 #[derive(FromPyObject)]

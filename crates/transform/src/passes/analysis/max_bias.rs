@@ -2,12 +2,13 @@ use lunamodel_core::Model;
 use num::abs;
 
 use crate::{
+    Pass,
     base::{AnalysisPass, AnalysisPassResult, BasePass},
     cache::{AnalysisCache, AnalysisCacheElement},
 };
 
 #[derive(Debug, Clone)]
-pub struct MaxBiasAnalysis {}
+pub struct MaxBiasAnalysis;
 
 impl MaxBiasAnalysis {
     pub fn new() -> Self {
@@ -48,5 +49,11 @@ impl AnalysisPass for MaxBiasAnalysis {
         Ok(Some(AnalysisCacheElement::MaxBiasAnalysis(MaxBias {
             val: max_val,
         })))
+    }
+}
+
+impl Into<Pass> for MaxBiasAnalysis {
+    fn into(self) -> Pass {
+        Pass::Analysis(Box::new(self))
     }
 }

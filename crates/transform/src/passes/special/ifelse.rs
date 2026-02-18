@@ -9,12 +9,7 @@ use pad::PadStr;
 
 use super::abstract_pipeline::AbstractPipeline;
 use crate::{
-    base::BasePass,
-    cache::{AnalysisCache, AnalysisCacheElement},
-    ir::IR,
-    log::ExecutionLog,
-    pass_manager::PassManager,
-    unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R},
+    Pass, base::BasePass, cache::{AnalysisCache, AnalysisCacheElement}, ir::IR, log::ExecutionLog, pass_manager::PassManager, unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R}
 };
 
 #[cfg_attr(feature = "py", pyo3::pyclass(get_all))]
@@ -193,5 +188,11 @@ impl Display for IfElsePass {
             write!(f, "        {limiter_a} {t}  {limiter_b} {o}{end}")?;
         }
         Ok(())
+    }
+}
+
+impl Into<Pass> for IfElsePass {
+    fn into(self) -> Pass {
+        Pass::IfElse(self)
     }
 }
