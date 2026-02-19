@@ -90,6 +90,12 @@ impl Solution {
         self.samples.shift_remove(&var);
     }
 
+    pub fn remove_cols(&mut self, vars: &[String]) {
+        for var in vars {
+            self.samples.shift_remove(var);
+        }
+    }
+
     /// Combine duplicate samples to a single entry.
     pub fn aggregate(&mut self) -> LunaModelResult<()> {
         let mut dups: HashMap<String, usize> = HashMap::new();

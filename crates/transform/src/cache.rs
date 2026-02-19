@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use indexmap::{
     IndexMap,
     map::{IntoIter, Iter},
@@ -17,6 +19,8 @@ pub enum AnalysisCacheElement {
     BinarySpinInfoAnalysis(BinarySpinInfo),
     MinValueInConstraintAnalysis(MinConstraintValues),
     SpecsAnalysis(Specs),
+    General(Vec<String>),
+    GeneralMap(HashMap<String, String>),
     #[cfg(feature = "py")]
     PyAnalysis(Py<PyAny>),
 }
@@ -38,6 +42,12 @@ impl Clone for AnalysisCacheElement {
             }
             AnalysisCacheElement::SpecsAnalysis(v) => {
                 AnalysisCacheElement::SpecsAnalysis(v.clone())
+            }
+            AnalysisCacheElement::General(v) => {
+                AnalysisCacheElement::General(v.clone())
+            }
+            AnalysisCacheElement::GeneralMap(v) => {
+                AnalysisCacheElement::GeneralMap(v.clone())
             }
             #[cfg(feature = "py")]
             AnalysisCacheElement::PyAnalysis(v) => {
@@ -65,6 +75,12 @@ impl AnalysisCacheElement {
             }
             AnalysisCacheElement::SpecsAnalysis(v) => {
                 AnalysisCacheElement::SpecsAnalysis(v.clone())
+            }
+            AnalysisCacheElement::General(v) => {
+                AnalysisCacheElement::General(v.clone())
+            }
+            AnalysisCacheElement::GeneralMap(v) => {
+                AnalysisCacheElement::GeneralMap(v.clone())
             }
             AnalysisCacheElement::PyAnalysis(v) => {
                 AnalysisCacheElement::PyAnalysis(v.clone_ref(py))

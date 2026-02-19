@@ -23,6 +23,7 @@ impl TransformationPass for IntegerToBinary {
     ) -> crate::TransformationPassResult {
         todo!()
     }
+
     fn backwards(
         &self,
         solution: lunamodel_core::Solution,
@@ -30,6 +31,7 @@ impl TransformationPass for IntegerToBinary {
     ) -> lunamodel_core::Solution {
         todo!()
     }
+
     fn invalidates(&self) -> Vec<String> {
         todo!()
     }

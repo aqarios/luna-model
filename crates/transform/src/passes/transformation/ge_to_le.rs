@@ -1,4 +1,10 @@
-use crate::{BasePass, Pass, TransformationPass, passes::MaxBiasAnalysis};
+use lunamodel_core::{Model, Solution, ops::LmMulAssign};
+use lunamodel_types::Comparator;
+
+use crate::{
+    ActionType, AnalysisCache, BasePass, Pass, TransformationOutcome, TransformationPass,
+    TransformationPassResult,
+};
 
 #[derive(Debug, Clone)]
 pub struct GeToLeConstraints;
@@ -20,24 +26,30 @@ impl BasePass for GeToLeConstraints {
 }
 
 impl TransformationPass for GeToLeConstraints {
-    fn run(
-        &self,
-        model: lunamodel_core::Model,
-        cache: &crate::AnalysisCache,
-    ) -> crate::TransformationPassResult {
-        todo!()
+    fn run(&self, mut model: Model, _: &AnalysisCache) -> TransformationPassResult {
+        let mut did_transform: bool = false;
+        for (_, constraint) in model.constraints.iter_mut() {
+            if constraint.comparator == Comparator::Ge {
+                constraint.lhs.mul_assign(-1.0)?;
+                constraint.rhs *= -1.0;
+
+                did_transform = true;
+            }
+        }
+
+        let action = match did_transform {
+            true => ActionType::DidTransform,
+            false => ActionType::DidNothing,
+        };
+        TransformationPassResult::Ok(TransformationOutcome::new(model, None, action))
     }
 
-    fn backwards(
-        &self,
-        solution: lunamodel_core::Solution,
-        cache: &crate::AnalysisCache,
-    ) -> lunamodel_core::Solution {
-        todo!()
+    fn backwards(&self, solution: Solution, _: &AnalysisCache) -> Solution {
+        solution
     }
 
     fn invalidates(&self) -> Vec<String> {
-        todo!()
+        Vec::default()
     }
 }
 

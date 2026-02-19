@@ -52,6 +52,10 @@ impl ConstraintCollection {
         self.data.iter()
     }
 
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (&String, &mut Constraint)> {
+        self.data.iter_mut()
+    }
+
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
