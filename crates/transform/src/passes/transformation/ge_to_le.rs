@@ -7,15 +7,15 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct GeToLeConstraints;
+pub struct GeToLeConstraintsPass;
 
-impl GeToLeConstraints {
+impl GeToLeConstraintsPass {
     pub fn new() -> Self {
         Self {}
     }
 }
 
-impl BasePass for GeToLeConstraints {
+impl BasePass for GeToLeConstraintsPass {
     fn name(&self) -> String {
         String::from("ge-to-le-constraints")
     }
@@ -25,14 +25,14 @@ impl BasePass for GeToLeConstraints {
     }
 }
 
-impl TransformationPass for GeToLeConstraints {
+impl TransformationPass for GeToLeConstraintsPass {
     fn run(&self, mut model: Model, _: &AnalysisCache) -> TransformationPassResult {
         let mut did_transform: bool = false;
         for (_, constraint) in model.constraints.iter_mut() {
             if constraint.comparator == Comparator::Ge {
                 constraint.lhs.mul_assign(-1.0)?;
                 constraint.rhs *= -1.0;
-
+                constraint.comparator = Comparator::Le;
                 did_transform = true;
             }
         }
@@ -53,7 +53,7 @@ impl TransformationPass for GeToLeConstraints {
     }
 }
 
-impl Into<Pass> for GeToLeConstraints {
+impl Into<Pass> for GeToLeConstraintsPass {
     fn into(self) -> Pass {
         Pass::Transformation(Box::new(self))
     }

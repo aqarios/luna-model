@@ -11,14 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .binary_spin import BinarySpinPass
-from .change_sense import ChangeSensePass
-from .integer_to_binary import IntegerToBinaryPass
-from .max_bias import MaxBiasAnalysis
+from .constr_to_unconstr import ConstrainedToUnconstrainedPipeline
 
-__all__ = [
-    "BinarySpinPass",
-    "ChangeSensePass",
-    "IntegerToBinaryPass",
-    "MaxBiasAnalysis",
-]
+
+__all__ = ["ConstrainedToUnconstrainedPipeline"]

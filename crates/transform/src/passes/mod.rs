@@ -4,4 +4,4 @@ pub mod transformation;
 
 pub use analysis::{MaxBias, MaxBiasAnalysis};
 pub use special::IfElsePass;
-pub use transformation::{BinarySpinInfo, BinarySpinPass, ChangeSensePass};
+pub use transformation::{BinarySpinInfo, BinarySpinPass, ChangeSensePass, IntegerToBinaryPass, IntegerToBinaryInfo};

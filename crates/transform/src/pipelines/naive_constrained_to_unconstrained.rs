@@ -1,13 +1,15 @@
 use lunamodel_types::{EnumSetFromVec, Specs, Vtype};
 
-use super::IneqToEqConstraintsPipeline;
 use crate::passes::{
-    IfElsePass,
-    analysis::{CheckModelSpecsAnalysis, MaxBiasAnalysis, SpecsAnalysis},
-    special::{Condition, Pipeline},
-    transformation::NaiveConstraintsToObjective,
+    IntegerToBinaryPass,
+    analysis::{
+        CheckModelSpecsAnalysis, MaxBiasAnalysis, MinValueInConstraintAnalysis, SpecsAnalysis,
+    },
+    special::Pipeline,
+    transformation::{GeToLeConstraintsPass, LeToEqConstraintsPass, NaiveConstraintsToObjective},
 };
 
+#[derive(Debug, Clone)]
 pub struct NaiveConstrainedToUnconstrainedPipeline;
 
 impl NaiveConstrainedToUnconstrainedPipeline {
@@ -20,37 +22,45 @@ impl NaiveConstrainedToUnconstrainedPipeline {
             constraints: None,
             max_num_variables: None,
         };
-        Pipeline::new(
+        let mut pipeline = Pipeline::new(
             vec![
                 // Check that the requirements are fulfilled else return Error.
                 CheckModelSpecsAnalysis::new(requirements).into(),
                 SpecsAnalysis::new().into(),
-                IfElsePass::new(
-                    vec!["specs".to_string()],
-                    Box::new(UnconstrainedCondition {}),
-                    Box::new(Pipeline::new(Vec::new(), None)),
-                    Box::new(IneqToEqConstraintsPipeline::new()),
-                    Some("maybe-ineq-to-eq".to_string()),
-                )
-                .into(),
-                // TODO: change below to use an IfElsePass that wraps this.
-                // Can save a lot of unnecessary work.
-
+                // TODO: Use an IfElsePass and only do this if it has constraints.
+                // IfElsePass::new(
+                //     vec!["specs".to_string()],
+                //     Box::new(UnconstrainedCondition {}),
+                //     Box::new(Pipeline::new(Vec::new(), None)),
+                //     Box::new(IneqToEqConstraintsPipeline::new()),
+                //     Some("maybe-ineq-to-eq".to_string()),
+                // )
+                // .into(),
+                GeToLeConstraintsPass::new().into(),
+                MinValueInConstraintAnalysis::new().into(),
+                LeToEqConstraintsPass::new().into(),
+                IntegerToBinaryPass::new().into(),
                 // TODO: Use an IfElsePass and only do this if it has constraints.
                 // Otherwise we can skip it.
                 MaxBiasAnalysis::new().into(),
                 NaiveConstraintsToObjective::new(penalty_factor).into(),
             ],
-            Some("ConstrainedToUnconstrained".to_string()),
-        )
+            Some("constrained-to-unconstrained".to_string()),
+        );
+        pipeline.hide_inner = true;
+        pipeline
     }
 }
 
-#[derive(Clone, Debug)]
-struct UnconstrainedCondition;
+// #[derive(Clone, Debug)]
+// struct UnconstrainedCondition;
 
-impl Condition for UnconstrainedCondition {
-    fn call(&self, cache: &crate::AnalysisCache) -> lunamodel_error::LunaModelResult<bool> {
-        todo!()
-    }
-}
+// impl Condition for UnconstrainedCondition {
+//     fn call(&self, cache: &crate::AnalysisCache) -> lunamodel_error::LunaModelResult<bool> {
+//         if let Some(AnalysisCacheElement::SpecsAnalysis(specs)) = cache.get("specs") {
+//             Ok(specs.constraints.unwrap() == Ctype::Unconstrained)
+//         } else {
+//             Err(LunaModelError::Internal("no cache entry for specs".into()))
+//         }
+//     }
+// }

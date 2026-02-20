@@ -197,6 +197,15 @@ impl Column {
             Self::Real(col) => Self::Real(col.filter_by_mask(mask)),
         }
     }
+
+    // pub fn iter(&self) -> impl Iterator<Item = &f64> {
+    //     match self {
+    //         Self::Binary(col) => col.0.iter(),
+    //         Self::Spin(col) => col.0.iter(),
+    //         Self::Integer(col) => col.0.iter(),
+    //         Self::Real(col) => col.0.iter(),
+    //     }
+    // }
 }
 
 impl<T: NumCast> ColElement<T> {

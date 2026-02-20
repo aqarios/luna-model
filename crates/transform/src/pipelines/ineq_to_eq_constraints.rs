@@ -1,7 +1,7 @@
 use crate::passes::{
     analysis::MinValueInConstraintAnalysis,
     special::Pipeline,
-    transformation::{GeToLeConstraints, IntegerToBinary, LeToEqConstraints},
+    transformation::{GeToLeConstraintsPass, IntegerToBinaryPass, LeToEqConstraintsPass},
 };
 
 pub struct IneqToEqConstraintsPipeline;
@@ -10,12 +10,12 @@ impl IneqToEqConstraintsPipeline {
     pub fn new() -> Pipeline {
         Pipeline::new(
             vec![
-                GeToLeConstraints::new().into(),
+                GeToLeConstraintsPass::new().into(),
                 MinValueInConstraintAnalysis::new().into(),
-                LeToEqConstraints::new().into(),
-                IntegerToBinary::new().into(),
+                LeToEqConstraintsPass::new().into(),
+                IntegerToBinaryPass::new().into(),
             ],
-            Some("IneqToEqConstaints".to_string()),
+            Some("ineq-to-eq-constaints".to_string()),
         )
     }
 }

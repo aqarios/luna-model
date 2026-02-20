@@ -18,6 +18,11 @@ pub struct ConstraintCollection {
 }
 
 impl ConstraintCollection {
+    pub fn new() -> Self {
+        Self {
+            data: IndexMap::new(),
+        }
+    }
     /// Since the [ConstraintCollection] collection (indirectly via the [Constraint]s' LHS [Expression]s) have a reference to
     /// a [SharedEnvironment] we cannot simply check by equality using the builin (derived) equality
     /// primitives. Since two [Constraint]s might be equal albeit being defined in different

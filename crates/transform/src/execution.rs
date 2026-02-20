@@ -48,6 +48,7 @@ pub fn run_passes(
 ) -> LunaModelResult<IR> {
     let mut execution_log = ExecutionLog::new();
     for pass in passes.iter() {
+        // eprintln!("pass: {}: model is: {:?}", pass.name(), model);
         let timer = Timer::start();
         let (kind, components) = match pass {
             Pass::Transformation(x) => {
@@ -62,6 +63,7 @@ pub fn run_passes(
                             ActionType::DidTransform
                         }
                     }
+                    // TODO@jflxb: allow DidAnalysisTransform from TransformationPass.
                     ActionType::DidNothing => ActionType::DidNothing,
                     _ => panic!("unexpected action type from TransformationPass!"),
                 };

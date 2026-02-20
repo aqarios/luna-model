@@ -38,7 +38,7 @@ impl PySolution {
             VarKey::Str(name) => name.clone(),
             VarKey::Var(v) => v.v.name()?,
         };
-        self.s.write_arc().remove_col(vn);
+        self.s.write_arc().remove_col(&vn);
         Ok(())
     }
 

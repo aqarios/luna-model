@@ -49,6 +49,8 @@ impl AnalysisCacheElementPyMethods for AnalysisCacheElement {
             AnalysisCacheElement::SpecsAnalysis(v) => {
                 PyModelSpecs::from(v.clone()).into_py_any(py)?
             }
+            AnalysisCacheElement::IntegerToBinaryInfoAnalysis(v) => v.clone().into_py_any(py)?,
+            AnalysisCacheElement::General(v) => v.clone().into_py_any(py)?,
             AnalysisCacheElement::PyAnalysis(v) => v.into_py_any(py)?,
         })
     }

@@ -8,15 +8,15 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct LeToEqConstraints;
+pub struct LeToEqConstraintsPass;
 
-impl LeToEqConstraints {
+impl LeToEqConstraintsPass {
     pub fn new() -> Self {
         Self {}
     }
 }
 
-impl BasePass for LeToEqConstraints {
+impl BasePass for LeToEqConstraintsPass {
     fn name(&self) -> String {
         String::from("le-to-eq-constraints")
     }
@@ -26,7 +26,7 @@ impl BasePass for LeToEqConstraints {
     }
 }
 
-impl TransformationPass for LeToEqConstraints {
+impl TransformationPass for LeToEqConstraintsPass {
     fn run(
         &self,
         mut model: lunamodel_core::Model,
@@ -55,6 +55,7 @@ impl TransformationPass for LeToEqConstraints {
                     )?;
                     constr.lhs.add_assign(&slack_var)?;
                     constr.rhs = 0.0;
+                    constr.comparator = Comparator::Eq;
 
                     slackvars.push(slack_var.name()?);
                 }
@@ -62,7 +63,7 @@ impl TransformationPass for LeToEqConstraints {
 
             let action = match slackvars.is_empty() {
                 true => ActionType::DidNothing,
-                false => ActionType::DidAnalysisTransform,
+                false => ActionType::DidTransform,
             };
             Ok(TransformationOutcome::new(
                 model,
@@ -93,7 +94,7 @@ impl TransformationPass for LeToEqConstraints {
     }
 }
 
-impl Into<Pass> for LeToEqConstraints {
+impl Into<Pass> for LeToEqConstraintsPass {
     fn into(self) -> Pass {
         Pass::Transformation(Box::new(self))
     }

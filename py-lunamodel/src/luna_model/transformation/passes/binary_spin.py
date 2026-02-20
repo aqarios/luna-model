@@ -21,7 +21,7 @@ from luna_model.transformation.transform import ConcreteTransformationPass
 class BinarySpinPass(ConcreteTransformationPass):
     """Convert between Binary and Spin variable types.
 
-    Transform the variables of type binary to spin typed variablers or vice versa.
+    Transform the variables of type binary to spin typed variables or vice versa.
     Target vtype is set by the ``vtype`` parameter.
 
     Parameters

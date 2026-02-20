@@ -22,6 +22,7 @@ pub struct Pipeline {
     required: HashSet<String>,
     satisfied: HashSet<String>,
     name: String,
+    pub(crate) hide_inner: bool,
 }
 
 /// Counter to ensure multiple if-else branches can be used in the same pass.
@@ -52,6 +53,7 @@ impl Pipeline {
             passes,
             satisfied,
             name: name.unwrap_or(format!("pipeline-{}", PIPELINE_COUNTER.inc())),
+            hide_inner: false,
         }
     }
 }
@@ -135,7 +137,11 @@ impl Display for dyn AbstractPipeline {
 
 impl Display for Pipeline {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", (self as &dyn AbstractPipeline))?;
+        if !self.hide_inner {
+            write!(f, "{}", (self as &dyn AbstractPipeline))?;
+        } else {
+            write!(f, "🛢️ {}\n  ", self.name())?;
+        }
         Ok(())
     }
 }

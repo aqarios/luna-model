@@ -86,14 +86,18 @@ impl Solution {
         }
     }
 
-    pub fn remove_col(&mut self, var: String) {
-        self.samples.shift_remove(&var);
+    pub fn remove_col(&mut self, var: &str) -> Option<Column> {
+        self.samples.shift_remove(var)
     }
 
-    pub fn remove_cols(&mut self, vars: &[String]) {
-        for var in vars {
-            self.samples.shift_remove(var);
-        }
+    pub fn remove_cols(&mut self, vars: &[String]) -> Vec<Option<Column>> {
+        vars.iter()
+            .map(|var| self.samples.shift_remove(var))
+            .collect()
+    }
+
+    pub fn iter_remove_cols(&mut self, vars: &[String]) -> impl Iterator<Item = Option<Column>> {
+        vars.iter().map(|var| self.samples.shift_remove(var))
     }
 
     /// Combine duplicate samples to a single entry.

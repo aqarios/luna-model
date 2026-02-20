@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use indexmap::{
     IndexMap,
     map::{IntoIter, Iter},
@@ -8,7 +6,7 @@ use lunamodel_types::Specs;
 #[cfg(feature = "py")]
 use pyo3::{Py, PyAny, Python};
 
-use crate::passes::analysis::MinConstraintValues;
+use crate::passes::{IntegerToBinaryInfo, analysis::MinConstraintValues};
 
 use super::passes::{analysis::MaxBias, special::IfElseInfo, transformation::BinarySpinInfo};
 
@@ -20,7 +18,7 @@ pub enum AnalysisCacheElement {
     MinValueInConstraintAnalysis(MinConstraintValues),
     SpecsAnalysis(Specs),
     General(Vec<String>),
-    GeneralMap(HashMap<String, String>),
+    IntegerToBinaryInfoAnalysis(IntegerToBinaryInfo),
     #[cfg(feature = "py")]
     PyAnalysis(Py<PyAny>),
 }
@@ -43,11 +41,9 @@ impl Clone for AnalysisCacheElement {
             AnalysisCacheElement::SpecsAnalysis(v) => {
                 AnalysisCacheElement::SpecsAnalysis(v.clone())
             }
-            AnalysisCacheElement::General(v) => {
-                AnalysisCacheElement::General(v.clone())
-            }
-            AnalysisCacheElement::GeneralMap(v) => {
-                AnalysisCacheElement::GeneralMap(v.clone())
+            AnalysisCacheElement::General(v) => AnalysisCacheElement::General(v.clone()),
+            AnalysisCacheElement::IntegerToBinaryInfoAnalysis(v) => {
+                AnalysisCacheElement::IntegerToBinaryInfoAnalysis(v.clone())
             }
             #[cfg(feature = "py")]
             AnalysisCacheElement::PyAnalysis(v) => {
@@ -76,11 +72,9 @@ impl AnalysisCacheElement {
             AnalysisCacheElement::SpecsAnalysis(v) => {
                 AnalysisCacheElement::SpecsAnalysis(v.clone())
             }
-            AnalysisCacheElement::General(v) => {
-                AnalysisCacheElement::General(v.clone())
-            }
-            AnalysisCacheElement::GeneralMap(v) => {
-                AnalysisCacheElement::GeneralMap(v.clone())
+            AnalysisCacheElement::General(v) => AnalysisCacheElement::General(v.clone()),
+            AnalysisCacheElement::IntegerToBinaryInfoAnalysis(v) => {
+                AnalysisCacheElement::IntegerToBinaryInfoAnalysis(v.clone())
             }
             AnalysisCacheElement::PyAnalysis(v) => {
                 AnalysisCacheElement::PyAnalysis(v.clone_ref(py))
