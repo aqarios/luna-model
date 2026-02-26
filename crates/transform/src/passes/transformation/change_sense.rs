@@ -54,4 +54,8 @@ impl TransformationPass for ChangeSensePass {
             .map(|x| x.into_iter().map(|y| y * (-1.0)).collect::<Vec<_>>());
         solution
     }
+
+    fn invalidates(&self) -> Vec<String> {
+        vec![String::from("specs")]
+    }
 }

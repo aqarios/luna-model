@@ -90,7 +90,9 @@ impl TransformationPass for LeToEqConstraintsPass {
     }
 
     fn invalidates(&self) -> Vec<String> {
-        self.requires()
+        let mut inv = vec![String::from("specs")];
+        inv.append(&mut self.requires());
+        inv
     }
 }
 

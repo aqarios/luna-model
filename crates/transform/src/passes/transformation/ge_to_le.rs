@@ -49,7 +49,7 @@ impl TransformationPass for GeToLeConstraintsPass {
     }
 
     fn invalidates(&self) -> Vec<String> {
-        Vec::default()
+        vec![String::from("specs")]
     }
 }
 

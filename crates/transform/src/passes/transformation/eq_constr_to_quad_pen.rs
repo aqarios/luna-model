@@ -65,6 +65,10 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenalty {
     fn backwards(&self, solution: Solution, _: &AnalysisCache) -> Solution {
         solution
     }
+
+    fn invalidates(&self) -> Vec<String> {
+        vec![String::from("specs")]
+    }
 }
 
 impl Into<Pass> for EqualityConstraintsToQuadraticPenalty {
