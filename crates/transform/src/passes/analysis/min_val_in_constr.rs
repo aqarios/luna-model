@@ -18,7 +18,7 @@ impl MinValueInConstraintAnalysis {
 
 impl BasePass for MinValueInConstraintAnalysis {
     fn name(&self) -> String {
-        String::from("min-value")
+        String::from("min-value-in-constraint")
     }
 }
 

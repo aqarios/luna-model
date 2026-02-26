@@ -6,7 +6,7 @@ use crate::passes::{
         CheckModelSpecsAnalysis, MaxBiasAnalysis, MinValueInConstraintAnalysis, SpecsAnalysis,
     },
     special::Pipeline,
-    transformation::{GeToLeConstraintsPass, LeToEqConstraintsPass, NaiveConstraintsToObjective},
+    transformation::{GeToLeConstraintsPass, LeToEqConstraintsPass, EqualityConstraintsToQuadraticPenalty},
 };
 
 #[derive(Debug, Clone)]
@@ -43,7 +43,7 @@ impl NaiveConstrainedToUnconstrainedPipeline {
                 // TODO: Use an IfElsePass and only do this if it has constraints.
                 // Otherwise we can skip it.
                 MaxBiasAnalysis::new().into(),
-                NaiveConstraintsToObjective::new(penalty_factor).into(),
+                EqualityConstraintsToQuadraticPenalty::new(penalty_factor).into(),
             ],
             Some("constrained-to-unconstrained".to_string()),
         );

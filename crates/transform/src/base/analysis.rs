@@ -5,7 +5,7 @@ use lunamodel_core::prelude::Model;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 
 use super::base::BasePass;
-use crate::{cache::{AnalysisCache, AnalysisCacheElement}};
+use crate::cache::{AnalysisCache, AnalysisCacheElement};
 
 #[cfg(feature = "py")]
 use std::any::Any;
@@ -35,4 +35,3 @@ where
 }
 
 dyn_clone::clone_trait_object!(AnalysisPass);
-

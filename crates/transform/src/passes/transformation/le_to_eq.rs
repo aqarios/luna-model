@@ -45,7 +45,7 @@ impl TransformationPass for LeToEqConstraintsPass {
                         )
                     })?;
                     let slack_var = model.environment.insert_with_fallback(
-                        "slack",
+                        &format!("slack_{}", name),
                         Vtype::Integer,
                         Some(LazyBounds::new(
                             Some(Bound::Bounded(minval)),
