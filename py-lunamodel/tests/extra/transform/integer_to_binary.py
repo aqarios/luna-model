@@ -1,20 +1,58 @@
 from luna_model import Model, Vtype
 from luna_model.transformation import PassManager, passes
 
-constrained_model = Model("constrained_model")
-x = constrained_model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=2)
-y = constrained_model.add_variable("y", vtype=Vtype.INTEGER, lower=0, upper=8)
-z = constrained_model.add_variable("z", vtype=Vtype.INTEGER, lower=0, upper=7)
+def test_upper2():
+    model = Model("model")
+    x = model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=2)
+    model.objective = 1 * x
 
-constrained_model.objective = x + y + z
+    pm = PassManager([passes.IntegerToBinaryPass()])
+    ir = pm.run(model)
+    variables = ir.model.variables()
+    assert 2 == len(variables)
+    assert [Vtype.BINARY] == ir.model.get_specs().vtypes
 
-# constrained_model.constraints += x + y + z <= 3
-# constrained_model.constraints += x - y - z >= 0
-# constrained_model.constraints += x + y == 2
+    expected_expr = 1 * variables[0] + 1 * variables[1]
+    assert expected_expr.equal_contents(ir.model.objective)
 
+def test_upper3():
+    model = Model("model")
+    x = model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=3)
+    model.objective = 1 * x
 
-pm = PassManager([passes.IntegerToBinaryPass()])
-ir = pm.run(constrained_model)
-unconstrained_model = ir.model
-print(unconstrained_model.objective)
+    pm = PassManager([passes.IntegerToBinaryPass()])
+    ir = pm.run(model)
+    variables = ir.model.variables()
+    assert 2 == len(variables)
+    assert [Vtype.BINARY] == ir.model.get_specs().vtypes
 
+    expected_expr = 1 * variables[0] + 2 * variables[1]
+    assert expected_expr.equal_contents(ir.model.objective)
+
+def test_upper12():
+    model = Model("model")
+    x = model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=12)
+    model.objective = 1 * x
+
+    pm = PassManager([passes.IntegerToBinaryPass()])
+    ir = pm.run(model)
+    variables = ir.model.variables()
+    assert 4 == len(variables)
+    assert [Vtype.BINARY] == ir.model.get_specs().vtypes
+
+    expected_expr = 1 * variables[0] + 2 * variables[1] + 4 * variables[2] + 5 * variables[3]
+    assert expected_expr.equal_contents(ir.model.objective)
+
+def test_upper20():
+    model = Model("model")
+    x = model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=20)
+    model.objective = 1 * x
+
+    pm = PassManager([passes.IntegerToBinaryPass()])
+    ir = pm.run(model)
+    variables = ir.model.variables()
+    assert 5 == len(variables)
+    assert [Vtype.BINARY] == ir.model.get_specs().vtypes
+
+    expected_expr = 1 * variables[0] + 2 * variables[1] + 4 * variables[2] + 8 * variables[3] + 5 * variables[4]
+    assert expected_expr.equal_contents(ir.model.objective)
