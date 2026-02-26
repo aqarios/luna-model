@@ -17,7 +17,9 @@ pub struct EqualityConstraintsToQuadraticPenalty {
 
 impl EqualityConstraintsToQuadraticPenalty {
     pub fn new(penalty: f64) -> Self {
-        Self { penalty_scaling: penalty }
+        Self {
+            penalty_scaling: penalty,
+        }
     }
 }
 
@@ -36,7 +38,13 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenalty {
         let max_bias = if let Some(AnalysisCacheElement::MaxBiasAnalysis(MaxBias { val })) =
             cache.get("max-bias")
         {
-            Ok(val)
+            // If the max-bias is None, then everything would be None. I don't think that we want
+            // that...
+            // So in this case let's set it to 1.
+            Ok(match *val == 0.0 {
+                true => 1.0,
+                false => *val,
+            })
         } else {
             Err(LunaModelError::Internal("expected cache entry 'max-bias' missing, requires 'MaxBiasAnalysis' to be executed first.".into()))
         }?;

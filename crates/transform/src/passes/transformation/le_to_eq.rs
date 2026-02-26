@@ -101,3 +101,68 @@ impl Into<Pass> for LeToEqConstraintsPass {
         Pass::Transformation(Box::new(self))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::ops::Add;
+
+    use global_counter::primitive::exact;
+    use lunamodel_core::{
+        Expression, Model,
+        prelude::{Constraint, ContentEquality},
+    };
+    use lunamodel_types::{Comparator, Vtype};
+
+    use crate::{
+        PassManager,
+        passes::{
+            IntegerToBinaryPass, analysis::MinValueInConstraintAnalysis,
+            transformation::LeToEqConstraintsPass,
+        },
+    };
+
+    #[test]
+    fn simple() {
+        let mut model = Model::new(None, None);
+        let x = model.add_var("x", Vtype::Binary, None).unwrap();
+        let y = model.add_var("y", Vtype::Binary, None).unwrap();
+        let z = model.add_var("z", Vtype::Binary, None).unwrap();
+        let lhs = ((&x + &y).unwrap() + &z).unwrap();
+        // x + y + z <= 3
+        model
+            .constraints
+            .add_constraint(
+                Constraint::new(lhs, 3.0, Comparator::Le, Some("c0".to_string())).unwrap(),
+                None,
+            )
+            .unwrap();
+        let pm = PassManager::new(Some(vec![
+            MinValueInConstraintAnalysis::new().into(),
+            LeToEqConstraintsPass::new().into(),
+        ]));
+        let ir = pm.run(model).unwrap();
+        let constr = ir.model.constraints.get("c0").unwrap();
+        assert_eq!(0.0, constr.rhs);
+        assert_eq!(Comparator::Eq, constr.comparator);
+        let x = ir.model.environment.lookup("x").unwrap();
+        let y = ir.model.environment.lookup("y").unwrap();
+        let z = ir.model.environment.lookup("z").unwrap();
+        let slack = ir.model.environment.lookup("slack_c0").unwrap();
+        // let b1 = ir.model.environment.lookup("slack_c0_b1").unwrap();
+        let expected = (((&x + &y).unwrap() + &z).unwrap() + &slack).unwrap();
+        assert!(expected.equal_contents(&constr.lhs));
+
+        // now integer to binary.
+        let pm = PassManager::new(Some(vec![IntegerToBinaryPass::new().into()]));
+        let ir = pm.run(ir.model).unwrap();
+        let constr = ir.model.constraints.get("c0").unwrap();
+        let x = ir.model.environment.lookup("x").unwrap();
+        let y = ir.model.environment.lookup("y").unwrap();
+        let z = ir.model.environment.lookup("z").unwrap();
+        let b0 = ir.model.environment.lookup("slack_c0_b0").unwrap();
+        let b1 = ir.model.environment.lookup("slack_c0_b1").unwrap();
+        let expected =
+            ((((&x + &y).unwrap() + &z).unwrap() + &b0).unwrap() + (&b1 * 2.0).unwrap()).unwrap();
+        assert!(expected.equal_contents(&constr.lhs));
+    }
+}
