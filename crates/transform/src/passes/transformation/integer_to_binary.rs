@@ -161,7 +161,6 @@ impl IntegerToBinaryInfo {
 fn bounded_coefficient_encoding(kappa: usize, mu: usize) -> Vec<usize> {
     // let upper = 2f64.powf((mu as f64).log2().floor() + 1f64);
     let upper = 2usize.pow(mu.ilog2() + 1);
-    dbg!(kappa, upper);
     if kappa < upper {
         // let nbits = kappa.log2().floor() as usize;
         let nbits = kappa.ilog2();
