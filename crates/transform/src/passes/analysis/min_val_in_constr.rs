@@ -8,17 +8,17 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct MinValueInConstraintAnalysis;
+pub struct MinValueForConstraintAnalysis;
 
-impl MinValueInConstraintAnalysis {
+impl MinValueForConstraintAnalysis {
     pub fn new() -> Self {
-        MinValueInConstraintAnalysis {}
+        MinValueForConstraintAnalysis {}
     }
 }
 
-impl BasePass for MinValueInConstraintAnalysis {
+impl BasePass for MinValueForConstraintAnalysis {
     fn name(&self) -> String {
-        String::from("min-value-in-constraint")
+        String::from("min-value-for-constraint")
     }
 }
 
@@ -28,7 +28,7 @@ pub struct MinConstraintValues {
     pub vals: HashMap<String, f64>,
 }
 
-impl AnalysisPass for MinValueInConstraintAnalysis {
+impl AnalysisPass for MinValueForConstraintAnalysis {
     fn run(&self, model: &Model, _: &AnalysisCache) -> AnalysisPassResult {
         let mut minvalues = HashMap::new();
         for (name, constr) in model.constraints.iter() {
@@ -58,7 +58,7 @@ impl AnalysisPass for MinValueInConstraintAnalysis {
     }
 }
 
-impl Into<Pass> for MinValueInConstraintAnalysis {
+impl Into<Pass> for MinValueForConstraintAnalysis {
     fn into(self) -> Pass {
         Pass::Analysis(Box::new(self))
     }

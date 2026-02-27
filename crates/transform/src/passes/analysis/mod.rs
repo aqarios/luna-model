@@ -5,5 +5,5 @@ mod specs;
 
 pub use check_model_specs::CheckModelSpecsAnalysis;
 pub use max_bias::{MaxBias, MaxBiasAnalysis};
-pub use min_val_in_constr::{MinConstraintValues, MinValueInConstraintAnalysis};
+pub use min_val_in_constr::{MinConstraintValues, MinValueForConstraintAnalysis};
 pub use specs::SpecsAnalysis;

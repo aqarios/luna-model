@@ -4,7 +4,7 @@ use lunamodel_types::{Bound, Comparator, Vtype};
 
 use crate::{
     ActionType, AnalysisCacheElement, BasePass, Pass, TransformationOutcome, TransformationPass,
-    passes::analysis::MinValueInConstraintAnalysis,
+    passes::analysis::MinValueForConstraintAnalysis,
 };
 
 #[derive(Debug, Clone)]
@@ -22,7 +22,7 @@ impl BasePass for LeToEqConstraintsPass {
     }
 
     fn requires(&self) -> Vec<String> {
-        vec![MinValueInConstraintAnalysis::new().name()]
+        vec![MinValueForConstraintAnalysis::new().name()]
     }
 }
 
@@ -33,7 +33,7 @@ impl TransformationPass for LeToEqConstraintsPass {
         cache: &crate::AnalysisCache,
     ) -> crate::TransformationPassResult {
         if let Some(AnalysisCacheElement::MinValueInConstraintAnalysis(minvaldata)) =
-            cache.get(&MinValueInConstraintAnalysis::new().name())
+            cache.get(&MinValueForConstraintAnalysis::new().name())
         {
             let mut slackvars = Vec::new();
             for (name, constr) in model.constraints.iter_mut() {
@@ -116,7 +116,7 @@ mod tests {
     use crate::{
         PassManager,
         passes::{
-            IntegerToBinaryPass, analysis::MinValueInConstraintAnalysis,
+            IntegerToBinaryPass, analysis::MinValueForConstraintAnalysis,
             transformation::LeToEqConstraintsPass,
         },
     };
@@ -137,7 +137,7 @@ mod tests {
             )
             .unwrap();
         let pm = PassManager::new(Some(vec![
-            MinValueInConstraintAnalysis::new().into(),
+            MinValueForConstraintAnalysis::new().into(),
             LeToEqConstraintsPass::new().into(),
         ]));
         let ir = pm.run(model).unwrap();

@@ -2,6 +2,7 @@ use lunamodel_core::{Model, Solution, ops::LmMulAssign};
 use lunamodel_types::Sense;
 
 use crate::{
+    Pass,
     base::{
         ActionType, BasePass, TransformationOutcome, TransformationPass, TransformationPassResult,
     },
@@ -57,5 +58,11 @@ impl TransformationPass for ChangeSensePass {
 
     fn invalidates(&self) -> Vec<String> {
         vec![String::from("specs")]
+    }
+}
+
+impl Into<Pass> for ChangeSensePass {
+    fn into(self) -> Pass {
+        Pass::Transformation(Box::new(self))
     }
 }

@@ -70,10 +70,6 @@ impl TransformationPass for IntegerToBinaryPass {
             // let mu = 2f64.powf(new_upper.log2().floor() + 1.0);
             let mu = 2usize.pow(new_upper.ilog2() + 1); // already rounded down, so we can skip the `floor`.
             let coefs = bounded_coefficient_encoding(new_upper, mu);
-            // eprintln!(
-            //     "coefs for bounds {:?} with adjustment: {new_upper} are: {coefs:?}",
-            //     vref.bounds()?
-            // );
 
             let mut replacement = Expression::empty(model.environment.clone());
             let mut binvarmap = HashMap::new();
