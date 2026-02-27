@@ -1,3 +1,3 @@
-mod constraint_to_unconstrained;
+mod to_unconstrained_binary;
 
-pub use constraint_to_unconstrained::PyConstrainedToUnconstrainedPipeline;
+pub use to_unconstrained_binary::PyToUnconstrainedBinaryPipeline;

@@ -32,4 +32,4 @@ pub use passes::PyIntegerToBinaryPass;
 pub use passes::PyLeToEqConstraintsPass;
 pub use passes::PyMaxBiasAnalysis;
 
-pub use pipelines::PyConstrainedToUnconstrainedPipeline;
+pub use pipelines::PyToUnconstrainedBinaryPipeline;

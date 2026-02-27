@@ -67,7 +67,7 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transform::PyMaxBiasAnalysis>()?;
     m.add_class::<transform::PyBinarySpinPass>()?;
     // Predefnied and implemented Pipelines
-    m.add_class::<transform::PyConstrainedToUnconstrainedPipeline>()?;
+    m.add_class::<transform::PyToUnconstrainedBinaryPipeline>()?;
 
     // TODO@jflxb: will this passes be public to the users?
     m.add_class::<transform::PyIntegerToBinaryPass>()?;

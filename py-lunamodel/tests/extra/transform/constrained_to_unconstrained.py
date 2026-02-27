@@ -13,8 +13,8 @@ def test_very_simple_model():
     model.constraints += x - y - z >= 0
     model.constraints += x + y == 2
     
-    penalty_factor = 10
-    pm = PassManager([pipelines.ConstrainedToUnconstrainedPipeline(penalty_factor=penalty_factor)])
+    penalty_factor = 13
+    pm = PassManager([pipelines.ToUnconstrainedBinaryPipeline(penalty_factor=penalty_factor)])
     ir = pm.run(model)
 
     assert 6 == len(ir.model.variables())
@@ -48,8 +48,8 @@ def test_very_simple_model_max_sense():
     model.constraints += x - y - z >= 0
     model.constraints += x + y == 2
     
-    penalty_factor = 10
-    pm = PassManager([pipelines.ConstrainedToUnconstrainedPipeline(penalty_factor=penalty_factor)])
+    penalty_factor = 1221
+    pm = PassManager([pipelines.ToUnconstrainedBinaryPipeline(penalty_factor=penalty_factor)])
     ir = pm.run(model)
 
     assert 6 == len(ir.model.variables())
@@ -83,8 +83,8 @@ def test_very_simple_model_intvars():
     model.constraints += x - y - z >= 0
     model.constraints += x + y == 2
     
-    penalty_factor = 10
-    pm = PassManager([pipelines.ConstrainedToUnconstrainedPipeline(penalty_factor=penalty_factor)])
+    penalty_factor = 2
+    pm = PassManager([pipelines.ToUnconstrainedBinaryPipeline(penalty_factor=penalty_factor)])
     ir = pm.run(model)
 
     assert 10 == len(ir.model.variables())
@@ -129,7 +129,7 @@ def test_very_simple_model_mixed():
     model.constraints += x + y == 2, "c2"
     
     penalty_factor = 10
-    pm = PassManager([pipelines.ConstrainedToUnconstrainedPipeline(penalty_factor=penalty_factor)])
+    pm = PassManager([pipelines.ToUnconstrainedBinaryPipeline(penalty_factor=penalty_factor)])
     ir = pm.run(model)
 
     x = ir.model.get_variable("x")

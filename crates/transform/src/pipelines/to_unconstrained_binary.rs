@@ -15,9 +15,9 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-pub struct NaiveConstrainedToUnconstrainedPipeline;
+pub struct ToUnconstrainedBinaryPipeline;
 
-impl NaiveConstrainedToUnconstrainedPipeline {
+impl ToUnconstrainedBinaryPipeline {
     pub fn new(penalty_factor: f64) -> Pipeline {
         let requirements = Specs {
             vtypes: Some(vec![Vtype::Binary, Vtype::Spin, Vtype::Integer].to_enumset()),
