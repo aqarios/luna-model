@@ -24,14 +24,27 @@ class ToUnconstrainedBinaryPipeline:
     Paramters
     ---------
     penalty_scaling : float
-        The factor used to scale the quadratic penalties with.
-
+        The factor used to scale the quadratic penalties with, by default 10.
 
     Raises
     ------
     AnalysisPassError
         If the model's constraints are not all linear.
 
+    Example
+    -------
+    >>> from luna_model import Model, Vtype
+    >>> from luna_model.transformation import PassManager, pipelines
+    >>> model = Model()
+    >>> x = model.add_variable("x", vtype=Vtype.BINARY)
+    >>> y = model.add_variable("y", vtype=Vtype.SPIN)
+    >>> z = model.add_variable("z", vtype=Vtype.INTEGER, lower=0, upper=12)
+    >>> model.objective = x + y + z
+    >>> model.constraints += x + y + z <= 3, "c0"
+    >>> model.constraints += x - y - z >= 0, "c1"
+    >>> model.constraints += x + y == 2, "c2"
+    >>> pm = PassManager([pipelines.ToUnconstrainedBinaryPipeline()])
+    >>> ir = pm.run(model)
     """
 
     def __new__(cls, penalty_scaling: float = 10.0) -> PipelineProto:
