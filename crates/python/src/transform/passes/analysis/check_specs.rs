@@ -1,24 +1,24 @@
-use lunamodel_transform::{AnalysisPass, BasePass, passes::MaxBiasAnalysis};
+use lunamodel_transform::{AnalysisPass, BasePass, passes::analysis::CheckModelSpecsAnalysis};
 use lunamodel_unwind::*;
 use pyo3::{Py, PyAny, PyResult, Python, pyclass, pymethods};
 
 use crate::{
-    PyModel,
+    PyModel, PyModelSpecs,
     transform::{PyAnalysisCache, cache::AnalysisCacheElementPyMethods},
 };
 
 #[pyclass]
-pub struct PyMaxBiasAnalysis {
-    p: MaxBiasAnalysis,
+pub struct PyCheckModelSpecsAnalysis {
+    p: CheckModelSpecsAnalysis,
 }
 
 #[unwindable]
 #[pymethods]
-impl PyMaxBiasAnalysis {
+impl PyCheckModelSpecsAnalysis {
     #[new]
-    fn new() -> Self {
+    fn new(specs: PyModelSpecs) -> Self {
         Self {
-            p: MaxBiasAnalysis::new(),
+            p: CheckModelSpecsAnalysis::new(specs.into()),
         }
     }
 

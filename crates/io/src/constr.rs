@@ -18,7 +18,10 @@ impl CustomFormat<FormatOpt> for Constraint {
                 "{} {} {}",
                 self.lhs.format(FormatOpt::Py),
                 self.comparator.to_string(),
-                self.rhs.to_string()
+                match self.rhs {
+                    0.0 => "0",
+                    r => &r.to_string(),
+                }
             ),
             #[cfg(feature = "py")]
             FormatOpt::PySol(_) => unreachable!("cannot format Constraint for PySol opts"),

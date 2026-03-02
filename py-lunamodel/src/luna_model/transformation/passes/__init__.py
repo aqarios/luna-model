@@ -11,14 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .binary_spin import BinarySpinPass
-from .change_sense import ChangeSensePass
-from .integer_to_binary import IntegerToBinaryPass
-from .max_bias import MaxBiasAnalysis
+from .analysis import CheckModelSpecsAnalysis, MaxBiasAnalysis, MinValueForConstraintAnalysis, SpecsAnalysis
+from .transformation import (
+    BinarySpinPass,
+    ChangeSensePass,
+    EqualityConstraintsToQuadraticPenaltyPass,
+    GeToLeConstraintsPass,
+    IntegerToBinaryPass,
+    LeToEqConstraintsPass,
+)
 
 __all__ = [
     "BinarySpinPass",
     "ChangeSensePass",
+    "CheckModelSpecsAnalysis",
+    "EqualityConstraintsToQuadraticPenaltyPass",
+    "GeToLeConstraintsPass",
     "IntegerToBinaryPass",
+    "LeToEqConstraintsPass",
     "MaxBiasAnalysis",
+    "MinValueForConstraintAnalysis",
+    "SpecsAnalysis",
 ]

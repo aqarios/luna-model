@@ -11,26 +11,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from luna_model._lm import PyMaxBiasAnalysis
-from luna_model.transformation.analysis import ConcreteAnalysisPass
+from luna_model._lm import PyGeToLeConstraintsPass
+from luna_model.transformation.transform import ConcreteTransformationPass
 
 
-class MaxBiasAnalysis(ConcreteAnalysisPass):
-    """Analysis pass that computes the maximum absolute coefficient value in the objective.
+class GeToLeConstraintsPass(ConcreteTransformationPass):
+    """Convert the model's constraints by chaning all greater-equal (`>=`) constraints to less-equal (`<=`) constraints.
 
     Examples
     --------
-    >>> from luna_model import Model, Vtype
+    >>> from luna_model import Model, Vtype, Sense
     >>> from luna_model.transformation import PassManager
-    >>> from luna_model.transformation.passes import MaxBiasAnalysis
-    >>> model = Model()
+    >>> from luna_model.transformation.passes import GeToLeConstraintsPass
+    >>> model = Model(sense=Sense.MAX)
     >>> x = model.add_variable("x", vtype=Vtype.BINARY)
     >>> y = model.add_variable("y", vtype=Vtype.BINARY)
     >>> model.objective = x * y + x - 2 * y
-    >>> pm = PassManager([MaxBiasAnalysis()])
+    >>> model.constraints += x + y >= 0, "ge_constr"
+    >>> pm = PassManager([GeToLeConstraintsPass()])
     >>> ir = pm.run(model)
-    >>> max_bias = ir.cache["max-bias"]
+    >>> ir.model.constraints["ge_constr"]
+    -x - y <= 0
     """
 
     def __init__(self) -> None:
-        super().__init__(base=PyMaxBiasAnalysis())
+        super().__init__(base=PyGeToLeConstraintsPass())

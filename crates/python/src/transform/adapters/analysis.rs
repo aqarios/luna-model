@@ -12,7 +12,10 @@ use pyo3::{
 
 use crate::{
     model::PyModel,
-    transform::{cache::PyAnalysisCache, interfaces::PyAnalysisPass},
+    transform::{
+        cache::{AnalysisCacheElementPyMethods, PyAnalysisCache},
+        interfaces::PyAnalysisPass,
+    },
 };
 
 pub struct PyAnalysisPassAdapter {
@@ -92,7 +95,7 @@ impl AnalysisPass for PyAnalysisPassAdapter {
             if py_any.is_none(py) {
                 Ok(None)
             } else {
-                Ok(Some(AnalysisCacheElement::PyAnalysis(py_any)))
+                Ok(Some(AnalysisCacheElement::specific_or_else_any(py, py_any)))
             }
         })
     }

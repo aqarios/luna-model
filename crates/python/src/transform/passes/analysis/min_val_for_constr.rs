@@ -1,4 +1,6 @@
-use lunamodel_transform::{AnalysisPass, BasePass, passes::MaxBiasAnalysis};
+use lunamodel_transform::{
+    AnalysisPass, BasePass, passes::analysis::MinValueForConstraintAnalysis,
+};
 use lunamodel_unwind::*;
 use pyo3::{Py, PyAny, PyResult, Python, pyclass, pymethods};
 
@@ -8,17 +10,17 @@ use crate::{
 };
 
 #[pyclass]
-pub struct PyMaxBiasAnalysis {
-    p: MaxBiasAnalysis,
+pub struct PyMinValueForConstraintsAnalysis {
+    p: MinValueForConstraintAnalysis,
 }
 
 #[unwindable]
 #[pymethods]
-impl PyMaxBiasAnalysis {
+impl PyMinValueForConstraintsAnalysis {
     #[new]
     fn new() -> Self {
         Self {
-            p: MaxBiasAnalysis::new(),
+            p: MinValueForConstraintAnalysis::new(),
         }
     }
 

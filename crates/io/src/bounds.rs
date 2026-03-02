@@ -8,8 +8,14 @@ impl CustomFormat<FormatOpt> for Bounds {
         write!(
             fmt,
             "Bounds(lower={}, upper={})",
-            self.lower(),
-            self.upper()
+            match self.lower() {
+                Bound::Bounded(0.0) => "0",
+                r => &r.to_string(),
+            },
+            match self.upper() {
+                Bound::Bounded(0.0) => "0",
+                r => &r.to_string(),
+            },
         )
     }
 }

@@ -71,6 +71,13 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
 
     // TODO@jflxb: will this passes be public to the users?
     m.add_class::<transform::PyIntegerToBinaryPass>()?;
+    m.add_class::<transform::PyCheckModelSpecsAnalysis>()?;
+    m.add_class::<transform::PyEqualityConstraintsToQuadraticPenaltyPass>()?;
+    m.add_class::<transform::PyGeToLeConstraintsPass>()?;
+    m.add_class::<transform::PyLeToEqConstraintsPass>()?;
+    m.add_class::<transform::PyMinValueForConstraintsAnalysis>()?;
+    m.add_class::<transform::PySpecsAnalysis>()?;
+    m.add_class::<transform::PyCheckModelSpecsAnalysis>()?;
 
     // Errors
     m.add(

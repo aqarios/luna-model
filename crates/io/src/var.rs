@@ -13,17 +13,36 @@ impl CustomFormat<FormatOpt> for VarRef {
                 let var: Option<Variable> = self.try_into().ok();
                 if let Some(var) = var {
                     let mut base = format!("{}: {}", var.name(), var.vtype());
-                    if !(var.vtype() == Vtype::Binary || var.vtype() == Vtype::Spin || var.vtype() == Vtype::InvertedBinary) {
+                    if !(var.vtype() == Vtype::Binary
+                        || var.vtype() == Vtype::Spin
+                        || var.vtype() == Vtype::InvertedBinary)
+                    {
                         match (var.bounds().lower(), var.bounds().upper()) {
-                            (Bound::Bounded(l), Bound::Bounded(u)) => {
-                                base.push_str(&format!("(lower={l}, upper={u})"))
-                            }
-                            (Bound::Bounded(l), Bound::Unbounded) => {
-                                base.push_str(&format!("(lower={l})"))
-                            }
-                            (Bound::Unbounded, Bound::Bounded(u)) => {
-                                base.push_str(&format!("(upper={u})"))
-                            }
+                            (Bound::Bounded(l), Bound::Bounded(u)) => base.push_str(&format!(
+                                "(lower={}, upper={})",
+                                match l {
+                                    0.0 => "0",
+                                    l => &l.to_string(),
+                                },
+                                match u {
+                                    0.0 => "0",
+                                    l => &l.to_string(),
+                                }
+                            )),
+                            (Bound::Bounded(l), Bound::Unbounded) => base.push_str(&format!(
+                                "(lower={})",
+                                match l {
+                                    0.0 => "0".to_string(),
+                                    l => l.to_string(),
+                                }
+                            )),
+                            (Bound::Unbounded, Bound::Bounded(u)) => base.push_str(&format!(
+                                "(upper={})",
+                                match u {
+                                    0.0 => "0".to_string(),
+                                    u => u.to_string(),
+                                }
+                            )),
                             (Bound::Unbounded, Bound::Unbounded) => (),
                         };
                     }

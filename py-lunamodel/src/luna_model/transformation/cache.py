@@ -101,6 +101,25 @@ class IfElseInfo(Protocol):
         ...
 
 
+class MinConstraintValues(Protocol):
+    """Protocol for MinValueForConstraints information stored in the analysis cache.
+
+    This protocol defines the interface for accessing min value for constraints values
+    computed during model analysis.
+    """
+
+    @property
+    def vals(self) -> dict[str, float]:
+        """Get the minimum values possible for the constraints.
+
+        Returns
+        -------
+        dict[str, float]
+            The minimum possible value for all constraints.
+        """
+        ...
+
+
 class AnalysisCache:
     """Cache for storing analysis metadata during model transformations.
 
@@ -126,6 +145,8 @@ class AnalysisCache:
     def __getitem__(self, key: Literal["max-bias"]) -> MaxBias: ...
     @overload
     def __getitem__(self, key: Literal["binary-spin"]) -> BinarySpinInfo: ...
+    @overload
+    def __getitem__(self, key: Literal["min-value-for-constraint"]) -> MinConstraintValues: ...
     @overload
     def __getitem__(self, key: str) -> Any: ...  # noqa: ANN401
     def __getitem__(self, key: str) -> Any:
