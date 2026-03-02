@@ -5,7 +5,6 @@ use lunamodel_transform::{
         special::IfElseInfo,
     },
 };
-use lunamodel_types::Specs;
 use lunamodel_unwind::*;
 use pyo3::{IntoPyObjectExt, Py, PyAny, PyResult, Python, pyclass, pymethods};
 
