@@ -33,7 +33,7 @@ class SpecsAnalysis(ConcreteAnalysisPass):
     --------
     >>> from luna_model import Model, Vtype
     >>> from luna_model.transformation import PassManager
-    >>> from luna_model.transformation.passes import CheckModelSpecsAnalysis
+    >>> from luna_model.transformation.passes import SpecsAnalysis
     >>> model = Model()
     >>> x = model.add_variable("x", vtype=Vtype.BINARY)
     >>> y = model.add_variable("y", vtype=Vtype.BINARY)
