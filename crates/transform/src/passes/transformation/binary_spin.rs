@@ -145,38 +145,34 @@ impl TransformationPass for BinarySpinPass {
                 let mut rev_map = HashMap::new();
                 cache.map.iter().for_each(|(k, v)| {
                     rev_map.insert(v.clone(), k.clone());
-                });
-                let idxs: Vec<usize> = solution
-                    .variable_names()
-                    .iter_mut()
-                    .enumerate()
-                    .filter_map(|(i, x)| {
-                        rev_map.get(x).map(|k| {
-                            *x = k.clone();
-                            i
-                        })
-                    })
-                    .collect();
-                for i in idxs.into_iter() {
-                    let col = solution.samples.get_index_mut(i);
                     match cache.old_vtype {
                         Vtype::Spin => {
-                            if let Some((_, Column::Binary(inner))) = col {
-                                solution.samples[i] = Column::spin(
-                                    inner.iter().map(|x| (1 - 2 * x as i8) as f64).collect(),
+                            if let Some(Column::Binary(inner)) = solution.samples.get(v) {
+                                solution.samples.insert(
+                                    k.to_string(),
+                                    Column::spin(
+                                        inner.iter().map(|x| (1 - 2 * x as i8) as f64).collect(),
+                                    ),
                                 );
                             }
                         }
                         Vtype::Binary => {
-                            if let Some((_, Column::Spin(inner))) = col {
-                                solution.samples[i] = Column::binary(
-                                    inner.iter().map(|x| (((1 - x) as u8) / 2) as f64).collect(),
+                            if let Some(Column::Spin(inner)) = solution.samples.get(v) {
+                                solution.samples.insert(
+                                    k.to_string(),
+                                    Column::binary(
+                                        inner
+                                            .iter()
+                                            .map(|x| (((1 - x) as u8) / 2) as f64)
+                                            .collect(),
+                                    ),
                                 );
                             }
                         }
                         _ => panic!("unexpected vtype"),
                     }
-                }
+                    solution.remove_col(v);
+                });
             }
             _ => {}
         }
