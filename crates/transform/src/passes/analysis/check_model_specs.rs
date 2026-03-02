@@ -26,7 +26,8 @@ impl AnalysisPass for CheckModelSpecsAnalysis {
         _: &crate::AnalysisCache,
     ) -> crate::AnalysisPassResult {
         if !model.specs().satisfies(&self.specs) {
-            return Err(lunamodel_error::LunaModelError::UnsupportedOperation(
+            return Err(lunamodel_error::LunaModelError::AnalysisPass(
+                self.name(),
                 "model specs do not match the requirements.".into(),
             ));
         }

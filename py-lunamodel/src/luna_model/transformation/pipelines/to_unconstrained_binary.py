@@ -14,13 +14,24 @@ class ToUnconstrainedBinaryPipeline:
     This pipeline transforms any model with constraints to an unconstrained binary model.
     It allows the input model to contain binary, spin or integer variables. Spin and integer
     variables are automatically converted to a binary representation. If the input model has
-    constraints they are added to the model's objective as quadratic penalties scaled by
-    the the maximum bias of the input model's objective times the `penalty_factor` paramter.
+    linear constraints they are added to the model's objective as quadratic penalties scaled by
+    the the maximum bias of the input model's objective times the `penalty_scaling` paramter.
+
+    Notes
+    -----
+    If the model's constraints are not linear, an error is raised.
 
     Paramters
     ---------
-    penalty_factor : float
+    penalty_scaling : float
         The factor used to scale the quadratic penalties with.
+
+
+    Raises
+    ------
+    AnalysisPassError
+        If the model's constraints are not all linear.
+
     """
 
     def __new__(cls, penalty_scaling: float = 10.0) -> PipelineProto:
