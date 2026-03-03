@@ -222,6 +222,12 @@ LunaModel ships with the following [**luna_model.translators**](./src/luna_model
 
 ## Installation
 
+### Latest pre-built version
+
+```bash
+$ uv add luna-model
+```
+
 ### Binaries
 
 You have multiple options for obtaining pre-built binaries:
