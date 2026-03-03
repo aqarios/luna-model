@@ -375,6 +375,7 @@ Have a look at:
 ## Resources
 
 - [luna-quantum documentation](https://docs.aqarios.com)
+- [LunaModel Documentation](https://solid-adventure-3e28gr8.pages.github.io/)
 - [LunaModel Discussions](https://github.com/aqarios/aq-models-rs/discussions)
 
 ## Communication
