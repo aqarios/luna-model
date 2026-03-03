@@ -58,6 +58,9 @@ from luna_model._lm import (
     PyIllegalConstraintNameError as IllegalConstraintNameError,
 )
 from luna_model._lm import (
+    PyInternalPanicError as InternalPanicError,
+)
+from luna_model._lm import (
     PyLunaModelError as LunaModelError,
 )
 from luna_model._lm import (
@@ -76,6 +79,12 @@ from luna_model._lm import (
     PyModelVtypeError as ModelVtypeError,
 )
 from luna_model._lm import (
+    PyMultipleActiveEnvironmentsError as MultipleActiveEnvironmentsError,
+)
+from luna_model._lm import (
+    PyNoActiveEnvironmentFoundError as NoActiveEnvironmentFoundError,
+)
+from luna_model._lm import (
     PyNoConstraintForKeyError as NoConstraintForKeyError,
 )
 from luna_model._lm import (
@@ -92,6 +101,15 @@ from luna_model._lm import (
 )
 from luna_model._lm import (
     PySampleUnexpectedVariableError as SampleUnexpectedVariableError,
+)
+from luna_model._lm import (
+    PySolutionTranslationError as SolutionTranslationError,
+)
+from luna_model._lm import (
+    PyStartCannotBeInferredError as StartCannotBeInferredError,
+)
+from luna_model._lm import (
+    PyTransformationError as TransformationError,
 )
 from luna_model._lm import (
     PyTransformationPassError as TransformationPassError,
@@ -114,6 +132,12 @@ from luna_model._lm import (
 from luna_model._lm import (
     PyVariableNotExistingError as VariableNotExistingError,
 )
+from luna_model._lm import (
+    PyVariableOutOfRangeError as VariableOutOfRangeError,
+)
+from luna_model._lm import (
+    PyVariablesFromDifferentEnvsError as VariablesFromDifferentEnvsError,
+)
 
 __all__ = [
     "AnalysisPassError",
@@ -126,19 +150,24 @@ __all__ = [
     "EvaluationError",
     "IfElsePassError",
     "IllegalConstraintNameError",
-    "LunaModelError",
+    "InternalPanicError",
     "LunaModelError",
     "MetaAnalysisPassError",
     "ModelNotQuadraticError",
     "ModelNotUnconstrainedError",
     "ModelSenseNotMinimizeError",
     "ModelVtypeError",
+    "MultipleActiveEnvironmentsError",
+    "NoActiveEnvironmentFoundError",
     "NoConstraintForKeyError",
     "RandomSamplingError",
     "SampleColCreationError",
     "SampleIncompatibleVtypeError",
     "SampleIncorrectLengthError",
     "SampleUnexpectedVariableError",
+    "SolutionTranslationError",
+    "StartCannotBeInferredError",
+    "TransformationError",
     "TransformationPassError",
     "TranslationError",
     "UnsupportedOperationError",
@@ -146,4 +175,6 @@ __all__ = [
     "VariableExistsError",
     "VariableNamesError",
     "VariableNotExistingError",
+    "VariableOutOfRangeError",
+    "VariablesFromDifferentEnvsError",
 ]
