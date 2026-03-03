@@ -4,7 +4,7 @@
 
 # Symbolic modeling for optimization
 
-[![ci](https://github.com/aqarios/luna-model/actions/workflows/ci.yml/badge.svg)](https://github.com/aqarios/luna-model/actions/workflows/ci.yml)
+[![Main CI/CD](https://github.com/aqarios/luna-model/actions/workflows/main-ci.yml/badge.svg)](https://github.com/aqarios/luna-model/actions/workflows/main-ci.yml)
 [![docs](https://github.com/aqarios/luna-model/actions/workflows/pages.yml/badge.svg)](https://github.com/aqarios/luna-model/actions/workflows/pages.yml)
 
 [**About**](#about-LunaModel)
