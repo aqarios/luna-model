@@ -109,7 +109,7 @@ values:  list[float] = [10.0, 22.0, 3.2, 1.99, 6.25] # value of each item.
 model = Model(sense=Sense.Max, name="Knapsack")
 # Next, we need to create all variables. Note, there are alternative ways to create
 # variables, you can find details in the LunaModel docs.
-variables = [model.add_variable(f"x_{i+1}", vtype=Vtype.Binary) for i in range(n)]
+variables = [model.add_variable(f"x_{i+1}", vtype=Vtype.BINARY) for i in range(n)]
 # Now we can define the objective function:
 model.objective = quicksum(values[i] * variables[i] for i in range(n))
 # And for the constraints:
@@ -149,7 +149,7 @@ _Note that we have to use Integer variables now._
   # variables, you can find details in the LunaModel docs.
   variables = [
       # We can have each item at least `0` times and at most `c` times.
-      model.add_variable(f"x_{i+1}", vtype=Vtype.Integer, lower=0, upper=c)
+      model.add_variable(f"x_{i+1}", vtype=Vtype.INTEGER, lower=0, upper=c)
       for i in range(n)
   ]
   # Now we can define the objective function:
@@ -177,7 +177,7 @@ _Note that we have to use Integer variables now._
   # Next, we need to create all variables. Note, there are alternative ways to create
   # variables, you can find details in the LunaModel docs.
   variables = [
-      model.add_variable(f"x_{i+1}", vtype=Vtype.Integer)
+      model.add_variable(f"x_{i+1}", vtype=Vtype.INTEGER)
       for i in range(n)
   ]
   # Now we can define the objective function:
