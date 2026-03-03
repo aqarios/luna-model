@@ -9,12 +9,12 @@ impl CustomFormat<FormatOpt> for Bounds {
             fmt,
             "Bounds(lower={}, upper={})",
             match self.lower() {
-                Bound::Bounded(0.0) => "0",
-                r => &r.to_string(),
+                Bound::Bounded(0.0) => "0".to_string(),
+                r => r.to_string(),
             },
             match self.upper() {
-                Bound::Bounded(0.0) => "0",
-                r => &r.to_string(),
+                Bound::Bounded(0.0) => "0".to_string(),
+                r => r.to_string(),
             },
         )
     }

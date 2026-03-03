@@ -19,8 +19,8 @@ impl CustomFormat<FormatOpt> for Constraint {
                 self.lhs.format(FormatOpt::Py),
                 self.comparator.to_string(),
                 match self.rhs {
-                    0.0 => "0",
-                    r => &r.to_string(),
+                    0.0 => "0".to_string(),
+                    r => r.to_string(),
                 }
             ),
             #[cfg(feature = "py")]

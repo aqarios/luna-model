@@ -21,12 +21,12 @@ impl CustomFormat<FormatOpt> for VarRef {
                             (Bound::Bounded(l), Bound::Bounded(u)) => base.push_str(&format!(
                                 "(lower={}, upper={})",
                                 match l {
-                                    0.0 => "0",
-                                    l => &l.to_string(),
+                                    0.0 => "0".to_string(),
+                                    l => l.to_string(),
                                 },
                                 match u {
-                                    0.0 => "0",
-                                    l => &l.to_string(),
+                                    0.0 => "0".to_string(),
+                                    l => l.to_string(),
                                 }
                             )),
                             (Bound::Bounded(l), Bound::Unbounded) => base.push_str(&format!(
