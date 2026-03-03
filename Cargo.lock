@@ -847,7 +847,7 @@ dependencies = [
 
 [[package]]
 name = "pylm"
-version = "0.5.1-alpha.3"
+version = "0.5.1-alpha.4"
 dependencies = [
  "lunamodel-python",
  "pyo3",
