@@ -21,14 +21,14 @@ impl ToUnconstrainedBinaryPipeline {
     pub fn new(penalty_factor: f64) -> Pipeline {
         let requirements = Specs {
             vtypes: Some(vec![Vtype::Binary, Vtype::Spin, Vtype::Integer].to_enumset()),
-            // max_degree: Some(2),
             max_degree: None,
             max_constraint_degree: Some(1),
             sense: None,
             constraints: None,
             max_num_variables: None,
         };
-        let pipeline = Pipeline::new(
+        // let pipeline =
+        Pipeline::new(
             vec![
                 // Check that the requirements are fulfilled else return Error.
                 CheckModelSpecsAnalysis::new(requirements).into(),
@@ -44,9 +44,9 @@ impl ToUnconstrainedBinaryPipeline {
                 EqualityConstraintsToQuadraticPenalty::new(penalty_factor).into(),
             ],
             Some("constrained-to-unconstrained".to_string()),
-        );
+        )
         // pipeline.hide_inner = true;
-        pipeline
+        // pipeline
     }
 }
 
