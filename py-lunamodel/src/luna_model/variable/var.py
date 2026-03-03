@@ -428,11 +428,11 @@ class Variable:
         return self._cmp(other, self._v.__ge__)
 
     def __hash__(self) -> int:
-        """Compoute hash."""
+        """Compute hash."""
         return self._v.__hash__()
 
     def __str__(self) -> str:
-        """Get human-readble string representation."""
+        """Get human-readable string representation."""
         return self._v.__str__()
 
     def __repr__(self) -> str:
