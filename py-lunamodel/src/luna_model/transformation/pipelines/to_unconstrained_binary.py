@@ -21,6 +21,12 @@ class ToUnconstrainedBinaryPipeline:
     -----
     If the model's constraints are not linear, an error is raised.
 
+    Known Limitations
+    -----------------
+    If the constraints contain real-valued coefficients, the optimal solution may not be reached,
+    as the transformation pipeline only creates integer-valued slack variables, not real-valued
+    slack variables.
+
     Paramters
     ---------
     penalty_scaling : float
