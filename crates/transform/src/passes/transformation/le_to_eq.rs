@@ -1,4 +1,4 @@
-use lunamodel_core::{ops::LmAddAssign, prelude::LazyBounds};
+use lunamodel_core::{ops::LmSubAssign, prelude::LazyBounds};
 use lunamodel_error::LunaModelError;
 use lunamodel_types::{Bound, Comparator, Vtype};
 
@@ -49,11 +49,16 @@ impl TransformationPass for LeToEqConstraintsPass {
                         Vtype::Integer,
                         Some(LazyBounds::new(
                             Some(Bound::Bounded(minval)),
+                            // Some(Bound::Bounded(0.0)),
                             Some(Bound::Bounded(constr.rhs)),
                         )),
                         None,
                     )?;
-                    constr.lhs.add_assign(&slack_var)?;
+                    // a <= b
+                    // a + s == b
+                    // constr.lhs.add_assign(&slack_var)?;
+                    // a - s(minval, rhs) == 0
+                    constr.lhs.sub_assign(&slack_var)?;
                     constr.rhs = 0.0;
                     constr.comparator = Comparator::Eq;
 
