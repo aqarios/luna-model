@@ -32,7 +32,7 @@ class LeToEqConstraintsPass(ConcreteTransformationPass):
     >>> pm = PassManager([MinValueForConstraintAnalysis(), LeToEqConstraintsPass()])
     >>> ir = pm.run(model)
     >>> ir.model.constraints["le_constr"]
-    x + y + slack_le_constr == 0
+    x + y - slack_le_constr == 0
     >>> print(ir.model.get_variable("slack_le_constr"))
     slack_le_constr: Integer(lower=0, upper=3)
     """
