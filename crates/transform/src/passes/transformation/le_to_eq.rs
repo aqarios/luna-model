@@ -49,14 +49,10 @@ impl TransformationPass for LeToEqConstraintsPass {
                         Vtype::Integer,
                         Some(LazyBounds::new(
                             Some(Bound::Bounded(minval)),
-                            // Some(Bound::Bounded(0.0)),
                             Some(Bound::Bounded(constr.rhs)),
                         )),
                         None,
                     )?;
-                    // a <= b
-                    // a + s == b
-                    // constr.lhs.add_assign(&slack_var)?;
                     // a - s(minval, rhs) == 0
                     constr.lhs.sub_assign(&slack_var)?;
                     constr.rhs = 0.0;
