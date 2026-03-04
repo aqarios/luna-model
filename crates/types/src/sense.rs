@@ -1,3 +1,5 @@
+use std::ops::Not;
+
 use strum_macros::{Display, EnumString};
 
 #[cfg(feature = "py")]
@@ -31,5 +33,15 @@ impl Sense {
 impl Default for Sense {
     fn default() -> Self {
         Self::Min
+    }
+}
+
+impl Not for Sense {
+    type Output = Self;
+    fn not(self) -> Self::Output {
+        match self {
+            Self::Min => Self::Max,
+            Self::Max => Self::Min,
+        }
     }
 }

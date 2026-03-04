@@ -41,11 +41,13 @@ impl PassManager {
     pub fn backwards(&self, solution: Solution, ir: &IR) -> Solution {
         // TODO: needs Backwards Error
         let mut sol = backwards(&self.passes, solution, ir, None);
-        if let Some(x) = &sol.obj_values {
-            if sol.n_samples() > 0 && sol.raw_energies.is_none() {
-                sol.raw_energies = x.iter().map(|&y| Some(y)).collect();
-            }
-        }
+        // NOTE: might want to add this again...
+        // if let Some(x) = &sol.obj_values {
+        //     if sol.n_samples() > 0 && sol.raw_energies.is_none() {
+        //         sol.raw_energies = x.iter().map(|&y| Some(y)).collect();
+        //     }
+        // }
+        sol.raw_energies = None;
         if let Some(input) = &ir.input_model {
             input.evaluate_solution(&sol).unwrap()
         } else {

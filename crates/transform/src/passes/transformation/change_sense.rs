@@ -53,6 +53,7 @@ impl TransformationPass for ChangeSensePass {
         solution.obj_values = solution
             .obj_values
             .map(|x| x.into_iter().map(|y| y * (-1.0)).collect::<Vec<_>>());
+        solution.sense = !solution.sense;
         solution
     }
 

@@ -90,6 +90,7 @@ impl TransformationPass for LeToEqConstraintsPass {
         // NOTE: dropping slack vars from the solution.
         if let Some(AnalysisCacheElement::General(slackvars)) = cache.get(&self.name()) {
             solution.remove_cols(slackvars);
+            solution.aggregate().unwrap();
         }
         solution
     }

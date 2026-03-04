@@ -114,6 +114,7 @@ impl TransformationPass for IntegerToBinaryPass {
                         .add_col(Vtype::Integer, intvar.to_string(), intcol)
                         .expect("adding this column in the IntegerToBinaryPass.backwards must be possible.");
                 }
+                solution.aggregate().unwrap();
             }
             _ => {}
         }
