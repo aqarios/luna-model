@@ -630,10 +630,7 @@ where
 
 fn format_other_metadata(sol: &Solution) -> String {
     let mut out = String::new();
-    out.push_str(&format!(
-        "\n\nTotal samples: {}",
-        sol.counts.iter().sum::<usize>()
-    ));
+    out.push_str(&format!("\n\nTotal samples: {}", sol.n_samples()));
     out.push_str(&format!("\nTotal variables: {}", sol.samples.len()));
     if let Some(t) = sol.timing {
         out.push_str("\n\nTiming:");

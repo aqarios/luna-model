@@ -22,10 +22,7 @@ fn is_close(a: f64, b: f64, rtol: f64, atol: f64) -> bool {
 
 impl Solution {
     pub fn n_samples(&self) -> usize {
-        match self.samples.first() {
-            Some((_, col)) => col.len(),
-            None => 0,
-        }
+        self.counts.iter().sum()
     }
 
     pub fn len(&self) -> usize {
