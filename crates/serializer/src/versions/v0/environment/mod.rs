@@ -75,6 +75,10 @@ pub struct SerEnvironment {
     /// The length of the variables vector.
     #[prost(uint64, tag = "19")]
     variables_len: u64,
+
+    /// The indices of the ghost variables.
+    #[prost(uint32, repeated, tag = "20")]
+    ghosts: Vec<u32>,
 }
 
 impl Creatable<Environment> for SerEnvironment {

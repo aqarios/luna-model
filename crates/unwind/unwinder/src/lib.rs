@@ -39,7 +39,8 @@ where
         Ok(v) => v,
         Err(payload) => {
             // Build the panic message
-            let mut msg = if let Some(s) = payload.downcast_ref::<&str>() {
+            // let mut msg = if let Some(s) = payload.downcast_ref::<&str>() {
+            let msg = if let Some(s) = payload.downcast_ref::<&str>() {
                 s.to_string()
             } else if let Some(s) = payload.downcast_ref::<String>() {
                 s.clone()
@@ -47,11 +48,11 @@ where
                 "rust panic occurred".to_string()
             };
 
-            // Append captured backtrace, if any
-            if let Some(bt) = LAST_PANIC_BT.with(|slot| slot.borrow_mut().take()) {
-                msg.push_str("\n\n--- Rust backtrace ---\n");
-                msg.push_str(&bt);
-            }
+            // // Append captured backtrace, if any
+            // if let Some(bt) = LAST_PANIC_BT.with(|slot| slot.borrow_mut().take()) {
+            //     msg.push_str("\n\n--- Rust backtrace ---\n");
+            //     msg.push_str(&bt);
+            // }
 
             Err(PyInternalPanicError::new_err(format!(
                 "internal panic: {msg}"

@@ -22,11 +22,18 @@ impl SerEnvironment {
         // // self.next_idx = Some(env.next_idx());
 
         let mut max_idx = 0;
+        let mut last_idx = 0;
 
         for idx in env.vars() {
             if idx >= max_idx {
                 max_idx = idx;
             }
+
+            // fill space with ghost vars.
+            for i in (last_idx + 1)..idx {
+                self.ghosts.push(i);
+            }
+            last_idx = idx;
             let var = &env[idx];
             match var.vtype() {
                 Vtype::Binary => {
@@ -91,7 +98,7 @@ impl SerEnvironment {
             }
         }
 
-        self.varcount = max_idx + 1;
+        self.varcount = env.len() as u32;
         self.variables_len = max_idx as u64 + 1;
 
         self
