@@ -14,11 +14,19 @@ impl BytesEncodable for SerEnvironment {
 
 impl SerEnvironment {
     pub fn fill(mut self, env: &Environment) -> Self {
-        self.varcount = env.len() as u32;
-        self.variables_len = env.len() as u64;
-        // self.next_idx = Some(env.next_idx());
+        // NOTE: We need to set this to the max index to account for the
+        // possible gaps in indices. Let's do this in the end, so we don't
+        // need to loop twice.
+        // self.varcount = env.len() as u32;
+        // self.variables_len = env.len() as u64;
+        // // self.next_idx = Some(env.next_idx());
+
+        let mut max_idx = 0;
 
         for idx in env.vars() {
+            if idx >= max_idx {
+                max_idx = idx;
+            }
             let var = &env[idx];
             match var.vtype() {
                 Vtype::Binary => {
@@ -82,6 +90,9 @@ impl SerEnvironment {
                 }
             }
         }
+
+        self.varcount = max_idx + 1;
+        self.variables_len = max_idx as u64 + 1;
 
         self
     }
