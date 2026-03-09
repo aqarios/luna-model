@@ -230,7 +230,7 @@ impl SerSolution {
             sol.variable_bounds = HashMap::default();
         }
         if !(sol.constraints.is_empty() && sol.variable_bounds.is_empty()) {
-            let mut feasible = vec![true; sol.n_samples()];
+            let mut feasible = vec![true; sol.len()];
             sol.constraints.iter().for_each(|(_, bs)| {
                 bs.iter()
                     .enumerate()

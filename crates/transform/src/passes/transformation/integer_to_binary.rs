@@ -100,7 +100,7 @@ impl TransformationPass for IntegerToBinaryPass {
         match cache.get(&self.name()) {
             Some(AnalysisCacheElement::IntegerToBinaryInfoAnalysis(cache)) => {
                 for (intvar, binaries) in cache.varmap.iter() {
-                    let mut intcol = vec![cache.offsetmap[intvar] as f64; solution.n_samples()];
+                    let mut intcol = vec![cache.offsetmap[intvar] as f64; solution.len()];
                     for (binary_name, coef) in binaries {
                         let bincol = solution
                             .remove_col(binary_name)

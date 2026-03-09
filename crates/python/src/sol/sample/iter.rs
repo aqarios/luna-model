@@ -94,7 +94,7 @@ impl PySamplesIterator {
     }
 
     fn __getitem__(slf: PyRef<'_, Self>, py: Python, index: PySamplesIndex) -> PyResult<Py<PyAny>> {
-        let n_samples = slf.sol.s.read_arc().n_samples();
+        let n_samples = slf.sol.s.read_arc().len();
         let sample_len = slf.sol.s.read_arc().sample_len();
         match index {
             PySamplesIndex::Sample(index) => {

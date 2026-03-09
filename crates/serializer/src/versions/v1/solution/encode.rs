@@ -17,7 +17,7 @@ impl BytesEncodable for SerSolution {
 
 impl SerSolution {
     pub fn fill(mut self, sol: &Solution) -> SerSolution {
-        self.num_samples = sol.n_samples() as u64;
+        self.num_samples = sol.len() as u64;
         self.variable_names = sol.variable_names();
         self.sense = sol.sense.to_string();
         self.timing = sol.timing.map(|t| t.serialize());

@@ -22,14 +22,14 @@ fn is_close(a: f64, b: f64, rtol: f64, atol: f64) -> bool {
 
 impl Solution {
     pub fn n_samples(&self) -> usize {
+        self.counts.iter().sum()
+    }
+
+    pub fn len(&self) -> usize {
         match self.samples.first() {
             Some((_, col)) => col.len(),
             None => 0,
         }
-    }
-
-    pub fn len(&self) -> usize {
-        self.n_samples()
     }
 
     pub fn sample_len(&self) -> usize {
@@ -60,9 +60,9 @@ impl Solution {
     }
 
     pub fn try_assignment_idx(&self, sample: usize, var: usize) -> LunaModelResult<Assignment> {
-        if sample >= self.n_samples() {
+        if sample >= self.len() {
             return Err(LunaModelError::IndexOutOfBounds(
-                format!("{}, number of samples is {}", sample, self.n_samples()).into(),
+                format!("{}, number of samples is {}", sample, self.len()).into(),
             ));
         }
         if var >= self.samples.len() {

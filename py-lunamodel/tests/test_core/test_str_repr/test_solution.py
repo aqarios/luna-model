@@ -17,7 +17,8 @@ x0 x1 x2    x3 │ feas raw obj count
  0 -1  3   3.0 │    ? 5.0   ?     2
  1  1  2   2.0 │    ? 6.0   ?     1
 
-Total samples: 3
+Total samples: 6
+Unique samples: 3
 Total variables: 4""".strip("\n")
 
 sol_str_2 = """
@@ -26,6 +27,7 @@ b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15     │ feas raw obj count
  0  0  0  0  0  0  0  0  0  0   0   0   0   0   0   0 ... │    ?   ?   ?     1
 
 Total samples: 2
+Unique samples: 2
 Total variables: 30""".strip("\n")
 
 

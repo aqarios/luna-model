@@ -43,6 +43,7 @@ class NumpyTranslator:
     1 1 │    ?  0.5   ?     1
     <BLANKLINE>
     Total samples: 3
+    Unique samples: 3
     Total variables: 2
     """
 

@@ -16,7 +16,7 @@ impl Solution {
     }
 
     pub fn filter_by_mask(&self, mask: &[bool]) -> LunaModelResult<Self> {
-        if self.n_samples() != mask.len() {
+        if self.len() != mask.len() {
             return Err(LunaModelError::Computation(
                 "The mask's length does not match the number of samples".into(),
             ));

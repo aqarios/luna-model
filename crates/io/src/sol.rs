@@ -73,7 +73,7 @@ impl CustomFormat<FormatOpt> for Solution {
                     true => "[]".to_string(),
                     false => format!(
                         "[{}]",
-                        (0..self.n_samples())
+                        (0..self.len())
                             .map(|i| {
                                 format!(
                                     "{{{}}}",
@@ -93,7 +93,7 @@ impl CustomFormat<FormatOpt> for Solution {
                     true => "[]".to_string(),
                     false => format!(
                         "[{}]",
-                        (0..self.n_samples())
+                        (0..self.len())
                             .map(|i| {
                                 format!(
                                     "[{}]",
@@ -155,7 +155,7 @@ fn print_row_layout(sol: &Solution, opts: &PySolFormatOpts) -> String {
         collected[i].push(vname);
     }
 
-    let mut n_cols = sol.n_samples() + 1;
+    let mut n_cols = sol.len() + 1;
     for (i, (_, sample_col)) in sol.samples.iter().enumerate() {
         if i == opts.max_lines {
             break;
@@ -286,11 +286,11 @@ fn print_row_layout(sol: &Solution, opts: &PySolFormatOpts) -> String {
     }
 
     let mut total_width = col_widths[..n_cols].iter().sum::<usize>() + n_cols - 1;
-    while n_cols <= sol.n_samples() + 1 && total_width > opts.max_line_len - 4 {
+    while n_cols <= sol.len() + 1 && total_width > opts.max_line_len - 4 {
         n_cols -= 1;
         total_width = col_widths[..n_cols].iter().sum::<usize>() + n_cols - 1;
     }
-    if n_cols <= sol.n_samples() {
+    if n_cols <= sol.len() {
         total_width += 4;
     }
 
@@ -299,7 +299,7 @@ fn print_row_layout(sol: &Solution, opts: &PySolFormatOpts) -> String {
         for row in metadata.iter() {
             for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
                 if j >= n_cols {
-                    if n_cols <= sol.n_samples() + 1 {
+                    if n_cols <= sol.len() + 1 {
                         out.push_str(&String::from(" ..."));
                     }
                     break;
@@ -322,7 +322,7 @@ fn print_row_layout(sol: &Solution, opts: &PySolFormatOpts) -> String {
         }
         for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
             if j >= n_cols {
-                if n_cols <= sol.n_samples() + 1 {
+                if n_cols <= sol.len() + 1 {
                     out.push_str(&String::from(" ..."));
                 }
                 break;
@@ -342,7 +342,7 @@ fn print_row_layout(sol: &Solution, opts: &PySolFormatOpts) -> String {
         for (i, row) in metadata.iter().enumerate() {
             for (j, (&width, col)) in col_widths.iter().zip(row).enumerate() {
                 if j >= n_cols {
-                    if n_cols <= sol.n_samples() + 1 {
+                    if n_cols <= sol.len() + 1 {
                         out.push_str(&String::from(" ..."));
                     }
                     break;
@@ -367,7 +367,7 @@ fn print_col_layout(sol: &Solution, opts: &PySolFormatOpts) -> String {
     let mut meta_widths = Vec::with_capacity(3);
     let mut width_reached = 0;
 
-    let n_rows = opts.max_lines.min(sol.n_samples());
+    let n_rows = opts.max_lines.min(sol.len());
     let mut collected = vec![Vec::new(); n_rows];
     let mut metadata = vec![Vec::new(); n_rows];
     let meta_names = vec![
@@ -551,7 +551,7 @@ fn print_col_layout(sol: &Solution, opts: &PySolFormatOpts) -> String {
             out.push_str(&meta_c.join(" "));
         }
     }
-    if n_rows < sol.n_samples() {
+    if n_rows < sol.len() {
         out.push_str("\n...");
     }
     out.push_str(&format_other_metadata(sol));
@@ -560,7 +560,7 @@ fn print_col_layout(sol: &Solution, opts: &PySolFormatOpts) -> String {
 
 fn get_sample_indices_sorted(sol: &Solution) -> Vec<usize> {
     let sense = if sol.sense == Sense::Min { -1.0 } else { 1.0 };
-    let mut idxs = (0..sol.n_samples()).collect::<Vec<_>>();
+    let mut idxs = (0..sol.len()).collect::<Vec<_>>();
     idxs.sort_by(|&idx1, &idx2| 'res: {
         let feas = sol
             .feasible
@@ -631,6 +631,7 @@ where
 fn format_other_metadata(sol: &Solution) -> String {
     let mut out = String::new();
     out.push_str(&format!("\n\nTotal samples: {}", sol.n_samples()));
+    out.push_str(&format!("\nUnique samples: {}", sol.len()));
     out.push_str(&format!("\nTotal variables: {}", sol.samples.len()));
     if let Some(t) = sol.timing {
         out.push_str("\n\nTiming:");

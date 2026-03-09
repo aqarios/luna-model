@@ -76,6 +76,7 @@ r_0 -3.2e2 -3.12 -3.12
 r_1  1.0e8 -10.1 -10.1
 
 Total samples: 3
+Unique samples: 3
 Total variables: 8""".strip("\n")
     )
 
@@ -100,6 +101,7 @@ raw energy      ?     ?     ?
 ...
 
 Total samples: 3
+Unique samples: 3
 Total variables: 8""".strip("\n")
     )
 
@@ -124,6 +126,7 @@ raw energy      ?     ? ...
      count      1     1 ...
 
 Total samples: 3
+Unique samples: 3
 Total variables: 8""".strip("\n")
     )
 
@@ -148,6 +151,7 @@ raw energy      ? ...
      count      1 ...
 
 Total samples: 3
+Unique samples: 3
 Total variables: 8""".strip("\n")
     )
 
@@ -163,6 +167,7 @@ b_0 b_1 s_0 s_1  i_0 i_1    r_0   r_1
   1   1  -1   1 -100  42  -3.12 -10.1
 
 Total samples: 3
+Unique samples: 3
 Total variables: 8""".strip("\n")
     )
 
@@ -178,6 +183,7 @@ b_0 b_1 s_0 s_1  i_0 i_1    r_0   r_1 │ feas raw obj count
   1   1  -1   1 -100  42  -3.12 -10.1 │    ?   ?   ?     1
 
 Total samples: 3
+Unique samples: 3
 Total variables: 8""".strip("\n")
     )
 
@@ -194,6 +200,7 @@ feas raw obj count │ b_0 b_1 s_0 s_1  i_0 i_1    r_0   r_1
    ?   ?   ?     1 │   1   1  -1   1 -100  42  -3.12 -10.1
 
 Total samples: 3
+Unique samples: 3
 Total variables: 8""".strip("\n")
     )
 
@@ -209,6 +216,7 @@ b_0 b_1 s_0 s_1  i_0 i_1     │ feas raw obj count
 ...
 
 Total samples: 3
+Unique samples: 3
 Total variables: 8""".strip("\n")
     )
 
@@ -224,6 +232,7 @@ b_0 b_1 s_0 s_1  i_0     │ feas raw obj count
 ...
 
 Total samples: 3
+Unique samples: 3
 Total variables: 8""".strip("\n")
     )
 
@@ -279,7 +288,8 @@ a b c d e │ feas raw   obj count
 1 1 1 0 1 │    f   ? -10.0     1
 1 1 0 0 0 │    f   ?  -6.0     1
 
-Total samples: 7
+Total samples: 10
+Unique samples: 7
 Total variables: 5""".strip("\n")
     )
 
@@ -301,7 +311,8 @@ raw energy     ?     ?     ?     ?     ?     ?     ?
  objective -11.0  -9.0  -9.0  -5.0 -10.0 -10.0  -6.0
      count     1     3     1     1     2     1     1
 
-Total samples: 7
+Total samples: 10
+Unique samples: 7
 Total variables: 5""".strip("\n")
     )
 
@@ -321,7 +332,8 @@ a b c d e │ feas raw   obj count
 1 1 1 1 0 │    f   ? -10.0     2
 1 1 1 0 1 │    f   ? -10.0     1
 
-Total samples: 7
+Total samples: 10
+Unique samples: 7
 Total variables: 5""".strip("\n")
     )
 
@@ -344,6 +356,7 @@ raw energy     ?     ?     ?     ?     ?     ?     ?
  objective  -5.0  -9.0  -9.0 -11.0  -6.0 -10.0 -10.0
      count     1     3     1     1     1     2     1
 
-Total samples: 7
+Total samples: 10
+Unique samples: 7
 Total variables: 5""".strip("\n")
     )

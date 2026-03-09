@@ -95,5 +95,5 @@ def test_from_dicts_duplicate_with_model(model: tuple[Model, tuple[Variable, ...
     sol_repr = repr(sol)
     assert (
         sol_repr
-        == "Solution(samples=[[0, 0, 1], [1, 1, 1], [1, 0, 0], [0, 1, 1]], obj_values=[-1, -1, 1, -2], raw_energies=None, counts=[2, 3, 1, 4], constraints=[], variable_bounds=[[True, True, True], [True, True, True], [True, True, True], [True, True, True]], feasible=[True, True, True, True], runtime=None, n_samples=4, variable_names=[x_0, x_1, x_2], sense=Minimize)"
+        == "Solution(samples=[[0, 0, 1], [1, 1, 1], [1, 0, 0], [0, 1, 1]], obj_values=[-1, -1, 1, -2], raw_energies=None, counts=[2, 3, 1, 4], constraints=[], variable_bounds=[[True, True, True], [True, True, True], [True, True, True], [True, True, True]], feasible=[True, True, True, True], runtime=None, n_samples=10, variable_names=[x_0, x_1, x_2], sense=Minimize)"
     )
