@@ -20,6 +20,7 @@ from luna_model._lm import PyAnalysisCache
 if TYPE_CHECKING:
     from luna_model.variable.vtype import Vtype
 
+
 @runtime_checkable
 class MaxBias(Protocol):
     """Protocol for maximum bias information stored in the analysis cache.

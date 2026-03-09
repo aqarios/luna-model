@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
     from luna_model.variable import Variable
 
+
 @runtime_checkable
 class Sample(Protocol):
     """Protocol for a single solution sample.
@@ -67,6 +68,7 @@ class Sample(Protocol):
     def __str__(self, /) -> str:
         """Return string representation of the sample."""
         ...
+
 
 @runtime_checkable
 class Samples(Protocol):
@@ -138,6 +140,7 @@ class SamplesIter(Protocol):
     def __next__(self) -> Sample:
         """Get the next sample."""
         ...
+
 
 @runtime_checkable
 class SampleIter(Protocol):
