@@ -13,7 +13,7 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from luna_model._lm import PyTimer
 
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from datetime import datetime, timedelta
 
 
+@runtime_checkable
 class Timing(Protocol):
     """Timing information for an operation.
 

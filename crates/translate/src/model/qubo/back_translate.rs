@@ -24,6 +24,14 @@ impl QuboTranslator {
             ));
         }
         let vtype = vtypes.get(0).cloned();
+        if let Some(vt) = vtype
+            && !(vt == Vtype::Binary || vt == Vtype::Spin)
+        {
+            return Err(LunaModelError::Vtype(
+                "model's vtype must be binary or spin".into(),
+            ));
+        }
+
         let vars: Vec<_> = model
             .environment
             .vars()

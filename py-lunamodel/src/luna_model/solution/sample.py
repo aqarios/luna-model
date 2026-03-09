@@ -13,14 +13,14 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, overload
+from typing import TYPE_CHECKING, Protocol, overload, runtime_checkable
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from luna_model.variable import Variable
 
-
+@runtime_checkable
 class Sample(Protocol):
     """Protocol for a single solution sample.
 
@@ -68,7 +68,7 @@ class Sample(Protocol):
         """Return string representation of the sample."""
         ...
 
-
+@runtime_checkable
 class Samples(Protocol):
     """Protocol for a collection of samples.
 
@@ -127,6 +127,7 @@ class Samples(Protocol):
         ...
 
 
+@runtime_checkable
 class SamplesIter(Protocol):
     """Iterator over multiple samples."""
 
@@ -138,7 +139,7 @@ class SamplesIter(Protocol):
         """Get the next sample."""
         ...
 
-
+@runtime_checkable
 class SampleIter(Protocol):
     """Iterator over values in a single sample."""
 

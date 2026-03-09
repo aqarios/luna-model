@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Any, Protocol, TypeAlias
+from typing import TYPE_CHECKING, Any, Protocol, TypeAlias, runtime_checkable
 
 try:
     from dimod import SampleSet
@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from luna_model._lm import PyBounds
 
 
+@runtime_checkable
 class VBounds(Protocol):
     @property
     def _b(self) -> PyBounds: ...

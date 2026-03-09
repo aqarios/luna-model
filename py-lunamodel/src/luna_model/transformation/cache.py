@@ -13,14 +13,14 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, Protocol, overload
+from typing import TYPE_CHECKING, Any, Literal, Protocol, overload, runtime_checkable
 
 from luna_model._lm import PyAnalysisCache
 
 if TYPE_CHECKING:
     from luna_model.variable.vtype import Vtype
 
-
+@runtime_checkable
 class MaxBias(Protocol):
     """Protocol for maximum bias information stored in the analysis cache.
 
@@ -40,6 +40,7 @@ class MaxBias(Protocol):
         ...
 
 
+@runtime_checkable
 class BinarySpinInfo(Protocol):
     """Protocol for binary spin transformation information.
 
@@ -82,6 +83,7 @@ class BinarySpinInfo(Protocol):
         ...
 
 
+@runtime_checkable
 class IfElseInfo(Protocol):
     """Protocol for if-else pass information.
 
@@ -101,6 +103,7 @@ class IfElseInfo(Protocol):
         ...
 
 
+@runtime_checkable
 class MinConstraintValues(Protocol):
     """Protocol for MinValueForConstraints information stored in the analysis cache.
 

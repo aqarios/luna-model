@@ -13,12 +13,13 @@
 # limitations under the License.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from luna_model.solution.sample import Sample
 
 
+@runtime_checkable
 class Result(Protocol):
     """Protocol for solution results.
 
@@ -65,6 +66,7 @@ class Result(Protocol):
         ...
 
 
+@runtime_checkable
 class ResultView(Result, Protocol):
     """Extended result view with additional metadata.
 
@@ -101,6 +103,7 @@ class ResultView(Result, Protocol):
         ...
 
 
+@runtime_checkable
 class ResultIter(Protocol):
     """Iterates over ResultView objects in a solution."""
 

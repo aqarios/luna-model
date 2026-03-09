@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 import sys
-from typing import Protocol, overload
+from typing import Protocol, overload, runtime_checkable
 
 if sys.version_info < (3, 12):
     from typing_extensions import override
@@ -26,17 +26,45 @@ from luna_model._lm import PyPipeline
 from .base import BasePass
 
 
+@runtime_checkable
 class PipelineProto(Protocol):
-    """todo."""
+    """
+    A pipeline for executing multiple transformation passes in sequence.
+
+    Pipelines organize and execute multiple passes, managing dependencies
+    and ensuring they run in the correct order.
+
+    Parameters
+    ----------
+    passes : list[BasePass]
+        The transformation passes to include in the pipeline.
+    name : str, optional
+        A custom name for the pipeline. If not provided, a default name
+        will be generated.
+    """
 
     @property
     def name(self) -> str:
-        """Todo."""
+        """
+        Unique identifier for this pipeline.
+
+        Returns
+        -------
+        str
+            The unique pipeline name.
+        """
         ...
 
     @property
     def requires(self) -> list[str]:
-        """Todo."""
+        """
+        List of passes that must run before this pipeline.
+
+        Returns
+        -------
+        list[str]
+            Pass names that must execute first, or empty list if no dependencies.
+        """
         ...
 
     @property

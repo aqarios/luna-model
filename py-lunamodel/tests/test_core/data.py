@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from itertools import combinations, product
 from math import prod
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from luna_model import (
     Bounds,
@@ -20,6 +20,7 @@ from luna_model import (
 from .utils import make_seed, random
 
 
+@runtime_checkable
 class T(Protocol):
     def encode(self, *args, **kwargs) -> bytes: ...
     def serialize(self, *args, **kwargs) -> bytes: ...
