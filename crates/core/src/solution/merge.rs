@@ -1,8 +1,113 @@
+use lunamodel_error::{LunaModelError, LunaModelResult};
+
 use super::Solution;
-
-
+use crate::{Model, Timing};
 
 impl Solution {
-    pub fn merge(&mut self, other: &Solution) {
+    pub fn merge_many(solutions: &[Solution], model: &Option<Model>) -> LunaModelResult<Solution> {
+        if solutions.len() == 0 {
+            return Ok(Solution::default());
+        }
+
+        let mut merged = solutions[0].clone();
+
+        for i in 1..solutions.len() {
+            // first solution was cloned.
+            let solution = &solutions[i];
+            // Let's check if compatible.
+            if merged.sense != solution.sense {
+                return Err(LunaModelError::UnsupportedOperation(
+                    "solutions with different sense cannot be merged.".into(),
+                ));
+            }
+            if merged.variable_names().sort() != solution.variable_names().sort() {
+                return Err(LunaModelError::UnsupportedOperation(
+                    "solutions with different variables cannot be merged.".into(),
+                ));
+            }
+
+            for (var, col) in solution.samples.iter() {
+                if let Some(curr) = merged.samples.get_mut(var) {
+                    for val in col.as_assignments() {
+                        curr.push(val)?;
+                    }
+                } else {
+                    merged.samples[var] = col.clone();
+                }
+            }
+
+            for (constr, oks) in solution.constraints.iter() {
+                if let Some(curr) = merged.constraints.get_mut(constr) {
+                    for &val in oks {
+                        curr.push(val);
+                    }
+                } else {
+                    merged.constraints.insert(constr.clone(), oks.clone());
+                }
+            }
+
+            for (var, bounds) in solution.variable_bounds.iter() {
+                if let Some(curr) = merged.variable_bounds.get_mut(var) {
+                    for &val in bounds {
+                        curr.push(val);
+                    }
+                } else {
+                    merged.variable_bounds.insert(var.clone(), bounds.clone());
+                }
+            }
+
+            merged.counts.append(&mut solution.counts.clone());
+
+            match solution.raw_energies.as_ref() {
+                None => merged.raw_energies = None,
+                Some(e) => {
+                    if let Some(me) = merged.raw_energies.as_mut() {
+                        me.append(&mut e.clone());
+                    }
+                }
+            }
+
+            match solution.obj_values.as_ref() {
+                None => merged.obj_values = None,
+                Some(e) => {
+                    if let Some(me) = merged.obj_values.as_mut() {
+                        me.append(&mut e.clone());
+                    }
+                }
+            }
+
+            match solution.feasible.as_ref() {
+                None => merged.obj_values = None,
+                Some(e) => {
+                    if let Some(me) = merged.feasible.as_mut() {
+                        me.append(&mut e.clone());
+                    }
+                }
+            }
+
+            match solution.timing {
+                None => merged.timing = None,
+                Some(t) => {
+                    if let Some(mt) = merged.timing.as_mut() {
+                        *mt = Timing::new(
+                            t.start().min(mt.start()),
+                            t.end().max(mt.end()),
+                            match (t.qpu, mt.qpu) {
+                                (Some(tq), Some(mtq)) => Some(tq + mtq),
+                                (Some(tq), None) => Some(tq),
+                                (None, Some(mtq)) => Some(mtq),
+                                (None, None) => None,
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        merged.aggregate()?;
+        if let Some(m) = model {
+            merged = m.evaluate_solution(&merged)?;
+        }
+        Ok(merged)
     }
 }

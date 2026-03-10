@@ -12,8 +12,8 @@ use pyo3::exceptions::PyValueError;
 use pyo3::{PyResult, pymethods};
 
 use super::PySolution;
-use crate::utils::VarKey;
 use crate::timer::PyTiming;
+use crate::utils::VarKey;
 use crate::utils::retrieve_environment;
 use crate::{PyEnvironment, PyModel};
 
@@ -594,6 +594,16 @@ impl PySolution {
         })?;
 
         Ok(sol.into())
+    }
+
+    #[staticmethod]
+    fn from_many(solutions: Vec<Self>, model: Option<PyModel>) -> PyResult<PySolution> {
+        let sols = solutions
+            .iter()
+            .map(|s| s.s.read_arc().clone())
+            .collect::<Vec<_>>();
+        let model = model.map(|m| m.m.read_arc().clone());
+        Ok(Solution::merge_many(&sols, &model)?.into())
     }
 }
 

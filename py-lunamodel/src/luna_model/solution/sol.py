@@ -848,6 +848,31 @@ class Solution:
             )
         )
 
+    @classmethod
+    def from_many(cls, solutions: Sequence[Solution], model: Model | None = None) -> Solution:
+        """Create a `Solution` from a sequence of solutions.
+
+        If a Model is passed, the merged solution will be (re-)evaluated.
+
+        Parameters
+        ----------
+        solutions : Sequence[Solution]
+            A sequence of solutions to be merged into a new solution.
+        model : Model, optional
+            A model to (re-)evaluate the new solution with.
+
+        Returns
+        -------
+        Solution
+            The merged solution object.
+        """
+        return cls._from_pys(
+            PySolution.from_many(
+                solutions=[sol._s for sol in solutions],
+                model=model._m if model else None,
+            )
+        )
+
     def __str__(self) -> str:
         """Get string representation of the solution.
 
