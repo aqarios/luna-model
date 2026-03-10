@@ -1,4 +1,5 @@
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
+use lunamodel_error::LunaModelResult;
 use lunamodel_types::Sense;
 
 use crate::{
@@ -49,12 +50,16 @@ impl TransformationPass for ChangeSensePass {
         }
     }
 
-    fn backwards(&self, mut solution: Solution, _cache: &AnalysisCache) -> Solution {
+    fn backwards(
+        &self,
+        mut solution: Solution,
+        _cache: &AnalysisCache,
+    ) -> LunaModelResult<Solution> {
         solution.obj_values = solution
             .obj_values
             .map(|x| x.into_iter().map(|y| y * (-1.0)).collect::<Vec<_>>());
         solution.sense = !solution.sense;
-        solution
+        Ok(solution)
     }
 
     fn invalidates(&self) -> Vec<String> {

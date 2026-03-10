@@ -1,4 +1,5 @@
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
+use lunamodel_error::LunaModelResult;
 use lunamodel_types::Comparator;
 
 use crate::{
@@ -44,8 +45,8 @@ impl TransformationPass for GeToLeConstraintsPass {
         TransformationPassResult::Ok(TransformationOutcome::new(model, None, action))
     }
 
-    fn backwards(&self, solution: Solution, _: &AnalysisCache) -> Solution {
-        solution
+    fn backwards(&self, solution: Solution, _: &AnalysisCache) -> LunaModelResult<Solution> {
+        Ok(solution)
     }
 
     fn invalidates(&self) -> Vec<String> {
@@ -58,4 +59,3 @@ impl Into<Pass> for GeToLeConstraintsPass {
         Pass::Transformation(Box::new(self))
     }
 }
-

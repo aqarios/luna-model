@@ -41,7 +41,7 @@ impl PyPassManager {
     fn backwards(&self, solution: PySolution, ir: &PyIR) -> PyResult<PySolution> {
         Ok(self
             .pm
-            .backwards(solution.s.read_arc().clone(), &ir.ir)
+            .backwards(solution.s.read_arc().clone(), &ir.ir)?
             .into())
     }
 

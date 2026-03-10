@@ -1,5 +1,5 @@
-use lunamodel_core::{ops::LmSubAssign, prelude::LazyBounds};
-use lunamodel_error::LunaModelError;
+use lunamodel_core::{Solution, ops::LmSubAssign, prelude::LazyBounds};
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bound, Comparator, Vtype};
 
 use crate::{
@@ -80,15 +80,15 @@ impl TransformationPass for LeToEqConstraintsPass {
 
     fn backwards(
         &self,
-        mut solution: lunamodel_core::Solution,
+        mut solution: Solution,
         cache: &crate::AnalysisCache,
-    ) -> lunamodel_core::Solution {
+    ) -> LunaModelResult<Solution> {
         // NOTE: dropping slack vars from the solution.
         if let Some(AnalysisCacheElement::General(slackvars)) = cache.get(&self.name()) {
             solution.remove_cols(slackvars);
             solution.aggregate().unwrap();
         }
-        solution
+        Ok(solution)
     }
 
     fn invalidates(&self) -> Vec<String> {
@@ -106,11 +106,8 @@ impl Into<Pass> for LeToEqConstraintsPass {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Add;
-
-    use global_counter::primitive::exact;
     use lunamodel_core::{
-        Expression, Model,
+        Model,
         prelude::{Constraint, ContentEquality},
     };
     use lunamodel_types::{Comparator, Vtype};

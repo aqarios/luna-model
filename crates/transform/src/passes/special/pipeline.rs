@@ -79,7 +79,12 @@ impl AbstractPipeline for Pipeline {
         run_passes(&self.passes, model, cache.clone(), executor)
     }
 
-    fn backwards(&self, solution: Solution, ir: &IR, log: &ExecutionLog) -> Solution {
+    fn backwards(
+        &self,
+        solution: Solution,
+        ir: &IR,
+        log: &ExecutionLog,
+    ) -> LunaModelResult<Solution> {
         backwards(&self.passes, solution, ir, Some(log))
     }
 

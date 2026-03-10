@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use dyn_clone::DynClone;
 use lunamodel_core::{Model, Solution};
+use lunamodel_error::LunaModelResult;
 
 use crate::{
     base::{BasePass, Pass},
@@ -18,7 +19,12 @@ use std::any::Any;
 
 pub trait AbstractPipeline: BasePass + DynClone {
     fn run(&self, model: Model, cache: &AnalysisCache, executor: &PassManager) -> PipelineResult;
-    fn backwards(&self, solution: Solution, ir: &IR, log: &ExecutionLog) -> Solution;
+    fn backwards(
+        &self,
+        solution: Solution,
+        ir: &IR,
+        log: &ExecutionLog,
+    ) -> LunaModelResult<Solution>;
     fn clear(&mut self);
     fn add(&mut self, pass: Pass);
     fn satisfies(&self) -> HashSet<String>;

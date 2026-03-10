@@ -33,7 +33,7 @@ pub trait TransformationPass: BasePass + DynClone {
     }
     fn run(&self, model: Model, cache: &AnalysisCache) -> TransformationPassResult;
 
-    fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution;
+    fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> LunaModelResult<Solution>;
 
     fn map_err(&self, err: &dyn Display) -> LunaModelError {
         LunaModelError::TransformationPass(self.name(), err.to_string().into())

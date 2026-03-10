@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use lunamodel_core::{Expression, Model, Solution, ops::LmAddAssign, prelude::Bounds};
-use lunamodel_error::LunaModelError;
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bound, Vtype};
 
 use crate::{
@@ -96,7 +96,11 @@ impl TransformationPass for IntegerToBinaryPass {
         })
     }
 
-    fn backwards(&self, mut solution: Solution, cache: &AnalysisCache) -> Solution {
+    fn backwards(
+        &self,
+        mut solution: Solution,
+        cache: &AnalysisCache,
+    ) -> LunaModelResult<Solution> {
         match cache.get(&self.name()) {
             Some(AnalysisCacheElement::IntegerToBinaryInfoAnalysis(cache)) => {
                 for (intvar, binaries) in cache.varmap.iter() {
@@ -118,7 +122,7 @@ impl TransformationPass for IntegerToBinaryPass {
             }
             _ => {}
         }
-        solution
+        Ok(solution)
     }
 
     fn invalidates(&self) -> Vec<String> {

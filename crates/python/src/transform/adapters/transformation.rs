@@ -1,7 +1,7 @@
 use std::{fmt::Debug, sync::Arc};
 
 use lunamodel_core::{Model, Solution};
-use lunamodel_error::LunaModelError;
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transform::{AnalysisCache, BasePass, TransformationPass, TransformationPassResult};
 use pyo3::{
     Bound, Py, PyAny, PyErr, PyResult, Python,
@@ -109,7 +109,7 @@ impl TransformationPass for PyTransformationPassAdapter {
         Ok(outcome)
     }
 
-    fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> Solution {
+    fn backwards(&self, solution: Solution, cache: &AnalysisCache) -> LunaModelResult<Solution> {
         let py_sol = Python::attach(|py| {
             let pysol: PySolution = solution.into();
             let pycache: PyAnalysisCache = cache.clone_py(py).into();
@@ -119,14 +119,12 @@ impl TransformationPass for PyTransformationPassAdapter {
                 .map_err(|e| self.map_err(&e))?;
             let py_sol: PySolution = py_res.extract(py).map_err(|e| self.map_err(&e))?;
             Ok::<PySolution, LunaModelError>(py_sol)
-        })
-        .unwrap(); // Backwards cannot have error currently.
+        })?;
         let sol: Solution = Arc::into_inner(py_sol.s)
-            .ok_or(self.map_err(&"Solution reference leaked out of backwards scope."))
-            .unwrap()
+            .ok_or(self.map_err(&"Solution reference leaked out of backwards scope."))?
             .into_inner();
         // unwrap();
-        sol
+        Ok(sol)
     }
 
     fn as_any(&self) -> Option<&dyn std::any::Any> {

@@ -1,6 +1,7 @@
 use std::{collections::HashSet, fmt::Debug};
 
 use lunamodel_core::{Model, Solution};
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transform::{
     AnalysisCache, BasePass, ExecutionLog, IR, Pass, PassManager,
     passes::special::{AbstractPipeline, PipelineResult},
@@ -41,11 +42,16 @@ impl AbstractPipeline for PyPipelineAdapter {
         })
     }
 
-    fn backwards(&self, solution: Solution, ir: &IR, log: &ExecutionLog) -> Solution {
+    fn backwards(
+        &self,
+        solution: Solution,
+        ir: &IR,
+        log: &ExecutionLog,
+    ) -> LunaModelResult<Solution> {
         Python::attach(|py| {
             self.inner
                 .extract::<PyPipeline>(py)
-                .unwrap()
+                .map_err(|e| LunaModelError::Internal(e.to_string().into()))?
                 .p
                 .backwards(solution, ir, log)
         })

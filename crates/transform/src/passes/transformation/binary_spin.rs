@@ -4,6 +4,7 @@ use std::{
 };
 
 use lunamodel_core::{Model, Solution, solution::Column};
+use lunamodel_error::LunaModelResult;
 // use lunamodel_tpass::analysis_cache;
 use lunamodel_types::Vtype;
 use sqids::Sqids;
@@ -139,7 +140,11 @@ impl TransformationPass for BinarySpinPass {
         ))
     }
 
-    fn backwards(&self, mut solution: Solution, cache: &AnalysisCache) -> Solution {
+    fn backwards(
+        &self,
+        mut solution: Solution,
+        cache: &AnalysisCache,
+    ) -> LunaModelResult<Solution> {
         match cache.get("binary-spin") {
             Some(AnalysisCacheElement::BinarySpinInfoAnalysis(cache)) => {
                 let mut rev_map = HashMap::new();
@@ -176,6 +181,6 @@ impl TransformationPass for BinarySpinPass {
             }
             _ => {}
         }
-        solution
+        Ok(solution)
     }
 }

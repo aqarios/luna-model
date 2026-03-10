@@ -52,7 +52,7 @@ impl PyIntegerToBinaryPass {
     fn backwards(&self, solution: &PySolution, cache: &PyAnalysisCache) -> PyResult<PySolution> {
         Ok(self
             .p
-            .backwards(solution.s.read_arc().clone(), &cache.c)
+            .backwards(solution.s.read_arc().clone(), &cache.c)?
             .into())
     }
 }

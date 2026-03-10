@@ -9,7 +9,13 @@ use pad::PadStr;
 
 use super::abstract_pipeline::AbstractPipeline;
 use crate::{
-    Pass, base::BasePass, cache::{AnalysisCache, AnalysisCacheElement}, ir::IR, log::ExecutionLog, pass_manager::PassManager, unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R}
+    Pass,
+    base::BasePass,
+    cache::{AnalysisCache, AnalysisCacheElement},
+    ir::IR,
+    log::ExecutionLog,
+    pass_manager::PassManager,
+    unicode::{BALLOT_X, CHECK_MARK, D_AND_L, H_BAR, U_AND_R, V_AND_R},
 };
 
 #[cfg_attr(feature = "py", pyo3::pyclass(get_all))]
@@ -102,18 +108,23 @@ impl IfElsePass {
         })
     }
 
-    pub fn backwards(&self, mut solution: Solution, ir: &IR, log: &ExecutionLog) -> Solution {
+    pub fn backwards(
+        &self,
+        mut solution: Solution,
+        ir: &IR,
+        log: &ExecutionLog,
+    ) -> LunaModelResult<Solution> {
         match ir.cache.get(&self.name) {
             Some(AnalysisCacheElement::IfElseInfoAnalysis(cache)) => {
                 if cache.fulfilled_condition {
-                    solution = self.then.backwards(solution, ir, log)
+                    solution = self.then.backwards(solution, ir, log)?;
                 } else {
-                    solution = self.otherwise.backwards(solution, ir, log)
+                    solution = self.otherwise.backwards(solution, ir, log)?;
                 }
             }
             _ => {}
         }
-        solution
+        Ok(solution)
     }
 }
 

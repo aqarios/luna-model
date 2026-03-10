@@ -1,6 +1,6 @@
 use lunamodel_transform::{BasePass, TransformationPass, passes::BinarySpinPass};
-use lunamodel_unwind::*;
 use lunamodel_types::Vtype;
+use lunamodel_unwind::*;
 use pyo3::{PyResult, Python, pyclass, pymethods};
 
 use crate::{
@@ -53,7 +53,7 @@ impl PyBinarySpinPass {
     fn backwards(&self, solution: &PySolution, cache: &PyAnalysisCache) -> PyResult<PySolution> {
         Ok(self
             .p
-            .backwards(solution.s.read_arc().clone(), &cache.c)
+            .backwards(solution.s.read_arc().clone(), &cache.c)?
             .into())
     }
 }

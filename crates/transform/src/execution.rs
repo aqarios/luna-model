@@ -123,7 +123,7 @@ pub fn backwards(
     mut solution: Solution,
     ir: &IR,
     log: Option<&ExecutionLog>,
-) -> Solution {
+) -> LunaModelResult<Solution> {
     for (general_pass, log_elem) in passes
         .iter()
         .zip(log.unwrap_or(&ir.execution_log).iter())
@@ -134,20 +134,20 @@ pub fn backwards(
                 Pass::Transformation(pass),
                 ActionType::DidTransform | ActionType::DidAnalysisTransform,
             ) => {
-                solution = pass.backwards(solution, &ir.cache);
+                solution = pass.backwards(solution, &ir.cache)?;
             }
             (Pass::IfElse(pass), ActionType::DidIfElse) => {
                 if let Some(inner_log) = &log_elem.components {
-                    solution = pass.backwards(solution, &ir, inner_log)
+                    solution = pass.backwards(solution, &ir, inner_log)?
                 }
             }
             (Pass::Pipeline(pass), ActionType::DidPipeline) => {
                 if let Some(inner_log) = &log_elem.components {
-                    solution = pass.backwards(solution, &ir, inner_log)
+                    solution = pass.backwards(solution, &ir, inner_log)?
                 }
             }
             _ => {}
         }
     }
-    solution
+    Ok(solution)
 }
