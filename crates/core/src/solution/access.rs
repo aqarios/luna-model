@@ -103,10 +103,14 @@ impl Solution {
         match (&self.feasible, &self.obj_values) {
             (Some(f), Some(ov)) => {
                 let target_map = ov.iter().zip(f).filter(|(_, f)| **f).map(|(a, _)| a);
-                let target = *match self.sense {
-                    Sense::Min => target_map.min_by(|&a, &b| a.total_cmp(b)).unwrap(),
-                    Sense::Max => target_map.max_by(|&a, &b| a.total_cmp(b)).unwrap(),
+                let target = match self.sense {
+                    Sense::Min => target_map.min_by(|&a, &b| a.total_cmp(b)),
+                    Sense::Max => target_map.max_by(|&a, &b| a.total_cmp(b)),
                 };
+                if target.is_none() {
+                    return None;
+                }
+                let target = *target.unwrap();
                 let alltargets: Vec<usize> = ov
                     .iter()
                     .zip(f)

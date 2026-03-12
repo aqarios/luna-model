@@ -69,7 +69,6 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     // Predefnied and implemented Pipelines
     m.add_class::<transform::PyToUnconstrainedBinaryPipeline>()?;
 
-    // TODO@jflxb: will this passes be public to the users?
     m.add_class::<transform::PyIntegerToBinaryPass>()?;
     m.add_class::<transform::PyCheckModelSpecsAnalysis>()?;
     m.add_class::<transform::PyEqualityConstraintsToQuadraticPenaltyPass>()?;
