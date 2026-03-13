@@ -10,20 +10,20 @@ use pyo3::{
     types::{PyCapsule, PyCapsuleMethods},
 };
 
-use crate::{PyExprContent, PyExpression};
+use crate::{PyExprContent, PyExpression, ffi::capsule_ffi::CapsuleFFI};
 
 const CAPUSULE_NAME_EXPR: &CStr = c"builtins.capsule.PyExprContent.Expr";
 const CAPUSULE_NAME_MODEL: &CStr = c"builtins.capsule.PyExprContent.Model";
 
-impl PyExprContent {
-    pub fn to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
+impl<'py> CapsuleFFI<'py> for PyExprContent {
+    fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
         match &self {
-            PyExprContent::Expr(arc_expr) => {
+            Self::Expr(arc_expr) => {
                 let capsule =
                     PyCapsule::new(py, arc_expr.clone(), Some(CAPUSULE_NAME_EXPR.to_owned()))?;
                 Ok(capsule)
             }
-            PyExprContent::Model(arc_model) => {
+            Self::Model(arc_model) => {
                 let capsule =
                     PyCapsule::new(py, arc_model.clone(), Some(CAPUSULE_NAME_MODEL.to_owned()))?;
                 Ok(capsule)
@@ -31,13 +31,13 @@ impl PyExprContent {
         }
     }
 
-    pub fn from_capsule<'py>(capsule: &Bound<'py, PyCapsule>) -> PyResult<Self> {
+    fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
         if let Ok(ptr) = capsule.pointer_checked(Some(CAPUSULE_NAME_EXPR)) {
             let arc_expr = unsafe { ptr.cast::<Arc<RwLock<Expression>>>().as_ref().clone() };
-            Ok(PyExprContent::Expr(arc_expr))
+            Ok(Self::Expr(arc_expr))
         } else if let Ok(ptr) = capsule.pointer_checked(Some(CAPUSULE_NAME_MODEL)) {
             let arc_model = unsafe { ptr.cast::<Arc<RwLock<Model>>>().as_ref().clone() };
-            Ok(PyExprContent::Model(arc_model))
+            Ok(Self::Model(arc_model))
         } else {
             Err(PyValueError::new_err(
                 "input is an unexpected capsule type.",
@@ -54,8 +54,8 @@ impl PyExpression {
     }
 
     #[staticmethod]
-    pub fn _from_capsule<'py>(capsule: &Bound<'py, PyCapsule>) -> PyResult<PyExpression> {
-        Ok(PyExpression {
+    pub fn _from_capsule<'py>(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
+        Ok(Self {
             expr: PyExprContent::from_capsule(capsule)?,
         })
     }

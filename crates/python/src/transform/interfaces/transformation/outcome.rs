@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use lunamodel_unwind::*;
 use lunamodel_transform::{ActionType, AnalysisCacheElement, TransformationOutcome};
+use lunamodel_unwind::*;
 use pyo3::{FromPyObject, IntoPyObject, Py, PyAny, PyErr, PyResult, Python, pyclass, pymethods};
 
 use crate::{model::PyModel, transform::cache::AnalysisCacheElementPyMethods};
@@ -53,7 +53,7 @@ impl TryInto<TransformationOutcome> for PyTransformationOutcome {
             PyTransformationOutcome::Tuple2(a, b) => (a, b, None),
             PyTransformationOutcome::Tuple3(a, b, c) => (a, b, c),
         };
-        let model = Arc::into_inner(pymodel.m)
+        let model = Arc::into_inner(pymodel.0.m)
             .ok_or("Model reference leaked out of transformation scope.".to_string())?
             .into_inner();
 

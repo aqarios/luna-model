@@ -51,11 +51,10 @@ pub struct SerSolution {
     /// The raw energies for each sample in the solution
     #[prost(double, repeated, tag = 14)]
     raw_energies: Vec<f64>, // inherently optional
-                            
+
     // /// The index of the best sample
     // #[prost(uint64, optional, tag = 16)]
     // best_sample_idx: Option<u64>,
-
     #[prost(bytes, tag = 17)]
     constraints: Vec<u8>,
     #[prost(uint64, tag = 18)]

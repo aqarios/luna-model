@@ -1,6 +1,7 @@
-use lunamodel_types::Vtype;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
+
+use crate::types::PyVtype;
 
 use super::PySolution;
 use crate::utils::VarKey;
@@ -8,10 +9,13 @@ use crate::utils::VarKey;
 #[unwindable]
 #[pymethods]
 impl PySolution {
-    fn add_var(&mut self, var: VarKey, data: Vec<f64>, vtype: Option<Vtype>) -> PyResult<()> {
+    fn add_var(&mut self, var: VarKey, data: Vec<f64>, vtype: Option<PyVtype>) -> PyResult<()> {
         let (vn, vt) = match &var {
-            VarKey::Str(name) => (name.clone(), vtype.unwrap_or_else(|| Vtype::Binary)),
-            VarKey::Var(v) => (v.v.name()?, v.v.vtype()?),
+            VarKey::Str(name) => (
+                name.clone(),
+                vtype.unwrap_or_else(|| PyVtype::Binary).into(),
+            ),
+            VarKey::Var(v) => (v.v.name()?, v.v.vtype()?.into()),
         };
         self.s.write_arc().add_col(vt, vn, data)?;
         Ok(())
@@ -21,7 +25,7 @@ impl PySolution {
         &mut self,
         vars: Vec<VarKey>,
         data: Vec<Vec<f64>>,
-        vtypes: Option<Vec<Option<Vtype>>>,
+        vtypes: Option<Vec<Option<PyVtype>>>,
     ) -> PyResult<()> {
         let vtypes: Vec<_> = match vtypes {
             Some(vs) => vs,

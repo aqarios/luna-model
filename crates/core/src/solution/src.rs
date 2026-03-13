@@ -1,9 +1,5 @@
 use std::fmt::Display;
 
-#[cfg(feature = "py")]
-use pyo3::prelude::pyclass;
-
-#[cfg_attr(feature = "py", pyclass(name = "PyValueSource"))]
 #[derive(Debug, Clone)]
 pub enum ValueSource {
     Raw,

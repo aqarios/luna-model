@@ -11,9 +11,6 @@ impl PyBounds {
     #[new]
     #[pyo3(signature=(lower=BoundValue::None, upper=BoundValue::None))]
     pub fn pynew(lower: BoundValue, upper: BoundValue) -> Self {
-        PyBounds(super::BoundsContent::Lazy(LazyBounds::new(
-            lower.into(),
-            upper.into(),
-        )))
+        LazyBounds::new(lower.into(), upper.into()).into()
     }
 }

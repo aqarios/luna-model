@@ -64,7 +64,11 @@ impl SerSolution {
                 constrs[s_idx][idx] = *value;
             }
         }
-        self.constraints = constrs.into_iter().flatten().collect::<BitVec<u8, Lsb0>>().into_vec();
+        self.constraints = constrs
+            .into_iter()
+            .flatten()
+            .collect::<BitVec<u8, Lsb0>>()
+            .into_vec();
 
         self.n_variable_bounds = sol.variable_bounds.len() as u64;
         let mut vbounds: Vec<Vec<bool>> =
@@ -76,7 +80,11 @@ impl SerSolution {
                 vbounds[s_idx][idx] = *value;
             }
         }
-        self.variable_bounds = vbounds.into_iter().flatten().collect::<BitVec<u8, Lsb0>>().into_vec();
+        self.variable_bounds = vbounds
+            .into_iter()
+            .flatten()
+            .collect::<BitVec<u8, Lsb0>>()
+            .into_vec();
 
         self
     }

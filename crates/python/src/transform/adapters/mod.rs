@@ -5,6 +5,6 @@ mod pipeline;
 mod transformation;
 
 pub use analysis::PyAnalysisPassAdapter;
-pub use transformation::PyTransformationPassAdapter;
 pub use meta_analysis::PyMetaAnalysisPassAdapter;
 pub use pipeline::PyPipelineAdapter;
+pub use transformation::PyTransformationPassAdapter;

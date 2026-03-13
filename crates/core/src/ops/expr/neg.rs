@@ -24,4 +24,3 @@ impl Neg for &Expression {
         -self.clone()
     }
 }
-

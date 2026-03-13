@@ -19,12 +19,11 @@ use crate::{
 // #[cfg(feature = "py")]
 // use {crate::base::Pass, lunamodel_tpass::py_pass, lunamodel_unwind::*};
 
-#[cfg_attr(feature = "py", pyo3::pyclass(get_all))]
 #[derive(Debug, Clone)]
 pub struct BinarySpinInfo {
-    map: HashMap<String, String>,
-    old_vtype: Vtype,
-    new_vtype: Vtype,
+    pub map: HashMap<String, String>,
+    pub old_vtype: Vtype,
+    pub new_vtype: Vtype,
 }
 
 impl BinarySpinInfo {

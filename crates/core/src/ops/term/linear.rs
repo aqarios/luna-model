@@ -36,14 +36,14 @@ impl PrvMul<Bias> for &Linear {
 //     fn len(&self) -> usize;
 //     fn iter(&self) -> dyn Iterator<Item = A>;
 // }
-// 
+//
 // impl<T, A> PrvMul<(&T, &ArcEnv)> for &Linear
 // where
 //     for<'i> &'i T: L<A>,
 //     for<'v> &'v VarRef: PrvMul<A, Output = VarMulRes>,
 // {
 //     type Output = Vec<VarMulRes>;
-// 
+//
 //     fn m(self, rhs: (&T, &ArcEnv)) -> Self::Output {
 //         let (r, env) = rhs;
 //         let mut res = Vec::with_capacity(self.len() + r.len());

@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
+
 from enum import Enum
 
 from luna_model._lm import PyTranslationTarget
@@ -54,3 +56,17 @@ class TranslationTarget(Enum):
                 return PyTranslationTarget.Bqm
             case TranslationTarget.CQM:
                 return PyTranslationTarget.Cqm
+
+    @classmethod
+    def _from_pyttarget(cls, py_ttarget: PyTranslationTarget) -> TranslationTarget:
+        match py_ttarget:
+            case PyTranslationTarget.QUBO:
+                return TranslationTarget.QUBO
+            case PyTranslationTarget.LP:
+                return TranslationTarget.LP
+            case PyTranslationTarget.BQM:
+                return TranslationTarget.BQM
+            case PyTranslationTarget.CQM:
+                return TranslationTarget.CQM
+        msg = f"unknown sense: {py_ttarget}"
+        raise RuntimeError(msg)

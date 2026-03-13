@@ -77,7 +77,7 @@ impl Display for Pass {
 // #[cfg(feature = "py")]
 // impl AsPyPass for Pass {
 //     type PyPass = ;
-// 
+//
 //     fn as_pypass(&self) -> PyPass {
 //         match self {
 //             Self::Transformation(x) => x.as_pypass(),

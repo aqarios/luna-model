@@ -1,14 +1,14 @@
 use lunamodel_transform::{BasePass, TransformationPass, passes::BinarySpinPass};
-use lunamodel_types::Vtype;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, Python, pyclass, pymethods};
 
 use crate::{
     PyModel, PySolution,
     transform::{PyAnalysisCache, interfaces::PyTransformationOutcome},
+    types::PyVtype,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[pyclass]
 pub struct PyBinarySpinPass {
     pub p: BinarySpinPass,
@@ -18,9 +18,9 @@ pub struct PyBinarySpinPass {
 #[pymethods]
 impl PyBinarySpinPass {
     #[new]
-    fn new(vtype: Vtype, prefix: Option<String>) -> Self {
+    fn new(vtype: PyVtype, prefix: Option<String>) -> Self {
         Self {
-            p: BinarySpinPass::new(vtype, prefix),
+            p: BinarySpinPass::new(vtype.into(), prefix),
         }
     }
 

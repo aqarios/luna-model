@@ -1,9 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{
-    parse_macro_input, parse_quote, ImplItem, ItemImpl, ReturnType,
-    Type, TypePath,
-};
+use syn::{ImplItem, ItemImpl, ReturnType, Type, TypePath, parse_macro_input, parse_quote};
 
 #[proc_macro_attribute]
 pub fn unwindable(_attr: TokenStream, item: TokenStream) -> TokenStream {

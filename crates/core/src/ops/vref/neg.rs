@@ -9,8 +9,6 @@ impl Neg for &VarRef {
 
     fn neg(self) -> Self::Output {
         self.check_living()?;
-        Expression::empty(self.env.clone()).maybe_edit(|e| {
-            e.sub_assign(self)
-        })
+        Expression::empty(self.env.clone()).maybe_edit(|e| e.sub_assign(self))
     }
 }

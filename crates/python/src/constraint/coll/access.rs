@@ -1,9 +1,10 @@
-use lunamodel_types::Comparator;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyConstraintCollection;
-use crate::{PyConstraint, constraint::coll::iter::PyConstraintCollectionIterator};
+use crate::{
+    PyConstraint, constraint::coll::iter::PyConstraintCollectionIterator, types::PyComparator,
+};
 
 #[unwindable]
 #[pymethods]
@@ -16,8 +17,8 @@ impl PyConstraintCollection {
         Ok(self.c.get(&key)?.clone().into())
     }
 
-    fn ctypes(&self) -> Vec<Comparator> {
-        self.c.ctypes()
+    fn ctypes(&self) -> Vec<PyComparator> {
+        self.c.ctypes().into_iter().map(|c| c.into()).collect()
     }
 
     fn equal_contents(&self, other: &Self) -> bool {

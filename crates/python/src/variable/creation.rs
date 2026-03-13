@@ -1,10 +1,13 @@
 use lunamodel_error::LunaModelError;
-use lunamodel_types::Vtype;
 use lunamodel_unwind::*;
 use pyo3::prelude::*;
 
 use super::PyVariable;
-use crate::{bounds::PyBounds, environment::PyEnvironment};
+use crate::{
+    bounds::{BoundsContent, PyBounds},
+    environment::PyEnvironment,
+    types::PyVtype,
+};
 
 #[unwindable]
 #[pymethods]
@@ -13,17 +16,24 @@ impl PyVariable {
     #[pyo3(signature=(name, vtype, bounds=None, env=None))]
     fn py_new(
         name: String,
-        vtype: Vtype,
+        vtype: PyVtype,
         bounds: Option<PyBounds>,
         env: Option<PyEnvironment>,
     ) -> PyResult<Self> {
-        if vtype == Vtype::InvertedBinary {
+        if vtype == PyVtype::InvertedBinary {
             return Err(LunaModelError::UnsupportedOperation(
                 "cannot create an inverted binary variable directly. Use the '.inv` method or the '~' operator.".into(),
             ))?;
         };
         let mut penv: PyEnvironment = env.try_into()?;
-        let vref = penv.env.insert(&name, vtype, bounds.map(|b| b.0.into()))?;
+        let vref = penv.env.insert(
+            &name,
+            vtype.into(),
+            bounds.map(|b| {
+                let bc: &BoundsContent = &b.0.read_arc();
+                bc.clone().into()
+            }),
+        )?;
         Ok(PyVariable::new(vref))
     }
 }

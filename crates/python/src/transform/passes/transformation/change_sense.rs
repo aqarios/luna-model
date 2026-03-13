@@ -1,12 +1,11 @@
 use lunamodel_transform::{BasePass, TransformationPass, passes::ChangeSensePass};
 use lunamodel_unwind::*;
-use lunamodel_types::Sense;
 use pyo3::{PyResult, Python, pyclass, pymethods};
 
 use crate::{
     model::PyModel,
     sol::PySolution,
-    transform::{cache::PyAnalysisCache, interfaces::PyTransformationOutcome},
+    transform::{cache::PyAnalysisCache, interfaces::PyTransformationOutcome}, types::PySense,
 };
 
 #[derive(Debug)]
@@ -19,9 +18,9 @@ pub struct PyChangeSensePass {
 #[pymethods]
 impl PyChangeSensePass {
     #[new]
-    fn new(sense: Sense) -> Self {
+    fn new(sense: PySense) -> Self {
         Self {
-            p: ChangeSensePass::new(sense),
+            p: ChangeSensePass::new(sense.into()),
         }
     }
 

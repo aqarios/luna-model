@@ -1,10 +1,9 @@
 use lunamodel_core::{Expression, ops::LmAddAssign, prelude::LazyBounds};
-use lunamodel_types::{Sense, Vtype};
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyModel;
-use crate::{PyConstraint, PyExpression, PyVariable, bounds::BoundValue};
+use crate::{PyConstraint, PyExpression, PyVariable, bounds::BoundValue, types::{PySense, PyVtype}};
 
 #[unwindable]
 #[pymethods]
@@ -13,7 +12,7 @@ impl PyModel {
     fn add_variable(
         &mut self,
         name: String,
-        vtype: Option<Vtype>,
+        vtype: Option<PyVtype>,
         lower: BoundValue,
         upper: BoundValue,
     ) -> PyResult<PyVariable> {
@@ -24,7 +23,11 @@ impl PyModel {
         Ok(self
             .m
             .write_arc()
-            .add_var(&name, vtype.unwrap_or_else(|| Vtype::Binary), bounds)?
+            .add_var(
+                &name,
+                vtype.unwrap_or_else(|| PyVtype::Binary).into(),
+                bounds,
+            )?
             .into())
     }
 
@@ -32,7 +35,7 @@ impl PyModel {
     fn add_variable_with_fallback(
         &mut self,
         name: String,
-        vtype: Option<Vtype>,
+        vtype: Option<PyVtype>,
         lower: BoundValue,
         upper: BoundValue,
     ) -> PyResult<PyVariable> {
@@ -43,7 +46,12 @@ impl PyModel {
         Ok(self
             .m
             .write_arc()
-            .add_var_with_fallback(&name, vtype.unwrap_or_else(|| Vtype::Binary), bounds, None)?
+            .add_var_with_fallback(
+                &name,
+                vtype.unwrap_or_else(|| PyVtype::Binary).into(),
+                bounds,
+                None,
+            )?
             .into())
     }
 
@@ -57,8 +65,8 @@ impl PyModel {
     }
 
     #[pyo3(name = "set_objective", signature=(expression, sense=None))]
-    fn set_objective_direct(&mut self, expression: PyExpression, sense: Option<Sense>) {
-        self.m.write_arc().set_objective(expression.into(), sense)
+    fn set_objective_direct(&mut self, expression: PyExpression, sense: Option<PySense>) {
+        self.m.write_arc().set_objective(expression.into(), sense.map(|s| s.into()))
     }
 
     fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {

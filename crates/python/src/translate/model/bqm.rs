@@ -6,7 +6,7 @@ use lunamodel_unwind::*;
 use numpy::PyReadonlyArray1;
 use pyo3::{PyResult, pyclass, pymethods};
 
-use crate::PyModel;
+use crate::{PyModel, types::PyVtype};
 
 #[pyclass]
 pub struct PyBqmTranslator;
@@ -17,7 +17,7 @@ impl PyBqmTranslator {
     #[staticmethod]
     fn to_lm(
         vars: Vec<String>,
-        vtype: Vtype,
+        vtype: PyVtype,
         offset: Bias,
         linears: PyReadonlyArray1<f64>,
         linear_indices: PyReadonlyArray1<u64>,
@@ -30,7 +30,7 @@ impl PyBqmTranslator {
 
         let vars: Vec<_> = vars
             .iter()
-            .map(|vname| model.add_var(vname, vtype, None))
+            .map(|vname| model.add_var(vname, vtype.into(), None))
             .collect::<LunaModelResult<_>>()?;
 
         model.objective.add_assign(offset)?;
@@ -60,7 +60,7 @@ impl PyBqmTranslator {
         Vec<Bias>,
         Vec<i32>,
         Vec<i32>,
-        Vtype,
+        PyVtype,
         Vec<String>,
     )> {
         let model: &Model = &model.m.read_arc();
@@ -117,6 +117,14 @@ impl PyBqmTranslator {
             }
         }
 
-        Ok((offset, lin, quad, quad_rows, quad_cols, vtype, varnames))
+        Ok((
+            offset,
+            lin,
+            quad,
+            quad_rows,
+            quad_cols,
+            vtype.into(),
+            varnames,
+        ))
     }
 }

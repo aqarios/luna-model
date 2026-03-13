@@ -8,11 +8,12 @@ mod specs;
 mod timer;
 pub mod transform;
 pub mod translate;
+mod types;
 mod utilities;
 mod utils;
 mod variable;
 
-mod ffi;
+pub mod ffi;
 
 pub mod prelude;
 
@@ -30,8 +31,12 @@ pub use timer::{PyTimer, PyTiming};
 pub use variable::PyVariable;
 
 pub use lunamodel_core::ValueSource;
-pub use lunamodel_translate::{SolutionSource, TranslationTarget};
+pub use lunamodel_translate::TranslationTarget;
 pub use lunamodel_types::{Comparator, Ctype, Sense, Vtype};
+
+pub use types::{
+    PyComparator, PyCtype, PySense, PyTranslationTarget, PyValueSource, PyVtype,
+};
 
 pub use lunamodel_error::py::*;
 pub use utilities::quicksum;

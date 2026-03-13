@@ -17,7 +17,7 @@ impl PyBounds {
 
 impl PyBounds {
     fn bs(self: &Self) -> (Option<Bound>, Option<Bound>) {
-        match &self.0 {
+        match *self.0.read_arc() {
             BoundsContent::Lazy(lazy) => (lazy.lower(), lazy.upper()),
             BoundsContent::Concrete(conc) => (Some(conc.lower()), Some(conc.upper())),
         }

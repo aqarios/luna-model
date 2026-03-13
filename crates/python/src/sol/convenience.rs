@@ -1,9 +1,8 @@
-use lunamodel_core::ValueSource;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PySolution;
-use crate::sol::result::PyResultView;
+use crate::{sol::result::PyResultView, types::PyValueSource};
 
 #[unwindable]
 #[pymethods]
@@ -16,19 +15,19 @@ impl PySolution {
         })
     }
 
-    pub fn cvar(&self, alpha: f64, value_toggle: ValueSource) -> PyResult<f64> {
-        Ok(self.s.read_arc().cvar(alpha, Some(value_toggle))?)
+    pub fn cvar(&self, alpha: f64, value_toggle: PyValueSource) -> PyResult<f64> {
+        Ok(self.s.read_arc().cvar(alpha, Some(value_toggle.into()))?)
     }
 
-    pub fn temperature_weighted(&self, beta: f64, value_toggle: ValueSource) -> PyResult<f64> {
+    pub fn temperature_weighted(&self, beta: f64, value_toggle: PyValueSource) -> PyResult<f64> {
         Ok(self
             .s
             .read_arc()
-            .temperature_weighted(beta, Some(value_toggle))?)
+            .temperature_weighted(beta, Some(value_toggle.into()))?)
     }
 
-    pub fn expectation_value(&self, value_toggle: ValueSource) -> PyResult<f64> {
-        Ok(self.s.read_arc().expectation_value(Some(value_toggle))?)
+    pub fn expectation_value(&self, value_toggle: PyValueSource) -> PyResult<f64> {
+        Ok(self.s.read_arc().expectation_value(Some(value_toggle.into()))?)
     }
 
     pub fn feasibility_ratio(&self) -> PyResult<f64> {

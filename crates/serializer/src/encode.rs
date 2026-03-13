@@ -41,11 +41,7 @@ where
     }
 
     /// Encode `self` to a bytes vector.
-    fn encode(
-        &self,
-        compress: Option<bool>,
-        level: Option<i32>,
-    ) -> LunaModelResult<Vec<u8>> {
+    fn encode(&self, compress: Option<bool>, level: Option<i32>) -> LunaModelResult<Vec<u8>> {
         Ok(self
             .serialize()
             .maybe_compress(compress, level)?

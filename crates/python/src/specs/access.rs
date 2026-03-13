@@ -1,6 +1,8 @@
-use lunamodel_types::{Ctype, EnumSetFromVec, Sense, Specs, Vtype};
+use lunamodel_types::{Ctype, EnumSetFromVec, Specs, Vtype};
 use lunamodel_unwind::*;
 use pyo3::pymethods;
+
+use crate::types::{PyCtype, PySense, PyVtype};
 
 use super::PyModelSpecs;
 
@@ -9,18 +11,38 @@ use super::PyModelSpecs;
 impl PyModelSpecs {
     #[new]
     fn new(
-        sense: Option<Sense>,
-        vtypes: Option<Vec<Vtype>>,
-        constraints: Option<Vec<Ctype>>,
+        sense: Option<PySense>,
+        vtypes: Option<Vec<PyVtype>>,
+        constraints: Option<Vec<PyCtype>>,
         max_degree: Option<usize>,
         max_constraint_degree: Option<usize>,
         max_num_variables: Option<usize>,
     ) -> Self {
         Self {
             s: Specs {
-                sense,
-                vtypes: vtypes.map_or_else(|| None, |vs| Some(vs.to_enumset())),
-                constraints: constraints.map_or_else(|| None, |cs| Some(cs.to_enumset())),
+                sense: sense.map(|s| s.into()),
+                vtypes: vtypes.map_or_else(
+                    || None,
+                    |vs| {
+                        Some(
+                            vs.into_iter()
+                                .map(|v| v.into())
+                                .collect::<Vec<Vtype>>()
+                                .to_enumset(),
+                        )
+                    },
+                ),
+                constraints: constraints.map_or_else(
+                    || None,
+                    |cs| {
+                        Some(
+                            cs.into_iter()
+                                .map(|c| c.into())
+                                .collect::<Vec<Ctype>>()
+                                .to_enumset(),
+                        )
+                    },
+                ),
                 max_degree,
                 max_constraint_degree,
                 max_num_variables,
@@ -29,18 +51,22 @@ impl PyModelSpecs {
     }
 
     #[getter]
-    fn sense(&self) -> Option<Sense> {
-        self.s.sense
+    fn sense(&self) -> Option<PySense> {
+        self.s.sense.map(|s| s.into())
     }
 
     #[getter]
-    fn vtypes(&self) -> Option<Vec<Vtype>> {
-        self.s.vtypes.map(|t| t.iter().collect())
+    fn vtypes(&self) -> Option<Vec<PyVtype>> {
+        self.s
+            .vtypes
+            .map(|t| t.into_iter().map(|v| v.into()).collect())
     }
 
     #[getter]
-    fn constraints(&self) -> Option<Vec<Ctype>> {
-        self.s.constraints.map(|c| c.iter().collect())
+    fn constraints(&self) -> Option<Vec<PyCtype>> {
+        self.s
+            .constraints
+            .map(|c| c.iter().map(|c| c.into()).collect())
     }
 
     #[getter]

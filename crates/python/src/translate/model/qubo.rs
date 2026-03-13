@@ -1,10 +1,9 @@
 use lunamodel_translate::model::{Qubo, QuboTranslator};
-use lunamodel_types::Vtype;
 use lunamodel_unwind::*;
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::{Bound, FromPyObject, PyResult, Python, pyclass, pymethods};
 
-use crate::PyModel;
+use crate::{PyModel, types::PyVtype};
 
 #[derive(FromPyObject)]
 enum QuboType<'py> {
@@ -47,13 +46,18 @@ impl PyQuboTranslator {
         offset: Option<f64>,
         variable_names: Option<Vec<String>>,
         name: Option<String>,
-        vtype: Option<Vtype>,
+        vtype: Option<PyVtype>,
     ) -> PyResult<PyModel> {
         let (dense, num_vars) = qubo.to_dense();
-        Ok(
-            QuboTranslator::translate(&dense, num_vars, vtype, offset, variable_names, name)?
-                .into(),
-        )
+        Ok(QuboTranslator::translate(
+            &dense,
+            num_vars,
+            vtype.map(|v| v.into()),
+            offset,
+            variable_names,
+            name,
+        )?
+        .into())
     }
 
     #[staticmethod]
@@ -94,7 +98,7 @@ impl PyQubo {
     }
 
     #[getter]
-    fn vtype(&self) -> Vtype {
-        self.0.vtype
+    fn vtype(&self) -> PyVtype {
+        self.0.vtype.into()
     }
 }

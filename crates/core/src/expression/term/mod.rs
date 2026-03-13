@@ -1,8 +1,8 @@
+mod higher_order;
 mod linear;
 mod quadratic;
-mod higher_order;
 pub mod types;
 
+pub use higher_order::HigherOrder;
 pub use linear::Linear;
 pub use quadratic::Quadratic;
-pub use higher_order::HigherOrder;

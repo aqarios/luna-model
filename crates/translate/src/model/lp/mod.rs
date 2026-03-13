@@ -1,7 +1,7 @@
 mod back_translate;
-mod translate;
+mod builder;
 mod reader;
 mod tokenizer;
-mod builder;
+mod translate;
 
 pub struct LpTranslator;

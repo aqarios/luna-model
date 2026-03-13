@@ -123,7 +123,9 @@ impl Display for LunaModelError {
                 write!(f, "error in Analysis pass '{}': {}", name, msg)
             }
             IfElsePass(msg) => write!(f, "error in IfElse pass: {}", msg),
-            MetaAnalysisPass(name, msg) => write!(f, "error in MetaAnalysis pass '{}': {}", name, msg),
+            MetaAnalysisPass(name, msg) => {
+                write!(f, "error in MetaAnalysis pass '{}': {}", name, msg)
+            }
             Compilation(msg) => write!(f, "compilation error: {}", msg),
             RandomSampling(msg) => write!(f, "random sampling failed due to: {}", msg),
         }

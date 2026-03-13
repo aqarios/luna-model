@@ -1,12 +1,12 @@
 mod access;
 mod creation;
-mod equality;
-mod specs;
-mod modification;
-mod substitution;
-mod evaluation;
 mod deepclone;
+mod equality;
+mod evaluation;
+mod modification;
 mod sense;
+mod specs;
+mod substitution;
 
 use std::fmt::{Debug, Display, Formatter};
 

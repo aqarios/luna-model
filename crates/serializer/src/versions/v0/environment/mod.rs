@@ -1,5 +1,5 @@
-mod encode;
 mod decode;
+mod encode;
 
 use lunamodel_core::prelude::Environment;
 use prost::Message;

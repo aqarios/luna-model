@@ -4,8 +4,11 @@ mod creation;
 mod io;
 mod unbounded;
 
+use std::sync::Arc;
+
 use lunamodel_core::prelude::{Bounds, LazyBounds};
 use lunamodel_io::{CustomFormat, FormatOpt};
+use parking_lot::RwLock;
 use pyo3::pyclass;
 
 pub use unbounded::{BoundValue, PyUnbounded};
@@ -18,7 +21,27 @@ pub enum BoundsContent {
 
 #[pyclass]
 #[derive(Clone, Debug)]
-pub struct PyBounds(pub BoundsContent);
+pub struct PyBounds(pub Arc<RwLock<BoundsContent>>);
+
+impl From<BoundsContent> for PyBounds {
+    fn from(value: BoundsContent) -> Self {
+        Self(Arc::new(RwLock::new(value)))
+    }
+}
+
+impl From<Bounds> for PyBounds {
+    fn from(bounds: Bounds) -> Self {
+        let content: BoundsContent = bounds.into();
+        content.into()
+    }
+}
+
+impl From<LazyBounds> for PyBounds {
+    fn from(bounds: LazyBounds) -> Self {
+        let content: BoundsContent = bounds.into();
+        content.into()
+    }
+}
 
 impl From<Bounds> for BoundsContent {
     fn from(bounds: Bounds) -> Self {

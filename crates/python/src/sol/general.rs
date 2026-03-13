@@ -6,9 +6,7 @@ use pyo3::{
 };
 
 use super::PySolution;
-use crate::{
-    sol::result::{PyResultIterator, PyResultView},
-};
+use crate::sol::result::{PyResultIterator, PyResultView};
 
 #[unwindable]
 #[pymethods]

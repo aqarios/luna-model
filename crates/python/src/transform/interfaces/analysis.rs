@@ -1,5 +1,5 @@
-use pyo3::{Bound, Py, PyAny, PyResult, pyclass, pymethods};
 use lunamodel_unwind::*;
+use pyo3::{Bound, Py, PyAny, PyResult, pyclass, pymethods};
 
 use crate::{model::PyModel, transform::cache::PyAnalysisCache};
 

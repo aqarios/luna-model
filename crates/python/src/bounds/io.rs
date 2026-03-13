@@ -8,10 +8,10 @@ use super::PyBounds;
 #[pymethods]
 impl PyBounds {
     fn __str__(&self) -> String {
-        format!("{}", self.0.format(FormatOpt::Py))
+        format!("{}", self.0.read_arc().format(FormatOpt::Py))
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.0.format(FormatOpt::Py))
+        format!("{:?}", self.0.read_arc().format(FormatOpt::Py))
     }
 }

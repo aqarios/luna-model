@@ -12,12 +12,12 @@ use lunamodel_core::{ConstraintCollection, Model};
 use parking_lot::RwLock;
 use pyo3::pyclass;
 
-use content::PyConstraintCollectionContent;
+pub use content::PyConstraintCollectionContent;
 pub use iter::PyConstraintCollectionIterator;
 
 #[pyclass]
 pub struct PyConstraintCollection {
-    c: PyConstraintCollectionContent,
+    pub c: PyConstraintCollectionContent,
 }
 
 impl PyConstraintCollection {

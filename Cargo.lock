@@ -480,6 +480,7 @@ dependencies = [
  "numpy",
  "parking_lot 0.12.5",
  "pyo3",
+ "strum_macros",
 ]
 
 [[package]]
@@ -529,7 +530,6 @@ dependencies = [
  "lunamodel-io",
  "lunamodel-types",
  "lunamodel-utils",
- "pyo3",
  "regex",
  "strum_macros",
 ]
@@ -894,8 +894,9 @@ dependencies = [
 
 [[package]]
 name = "pyo3-lunamodel"
-version = "0.5.0"
+version = "0.5.0-alpha.4"
 dependencies = [
+ "derive_more",
  "lunamodel-core",
  "lunamodel-python",
  "lunamodel-types",

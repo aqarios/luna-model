@@ -1,9 +1,9 @@
-use lunamodel_types::{Bias, Comparator};
+use lunamodel_types::Bias;
 use lunamodel_unwind::*;
 use pyo3::pymethods;
 
 use super::PyConstraint;
-use crate::expression::PyExpression;
+use crate::{expression::PyExpression, types::PyComparator};
 
 #[unwindable]
 #[pymethods]
@@ -24,7 +24,7 @@ impl PyConstraint {
     }
 
     #[getter]
-    fn comparator(&self) -> Comparator {
-        self.c.read_arc().comparator
+    fn comparator(&self) -> PyComparator {
+        self.c.read_arc().comparator.into()
     }
 }

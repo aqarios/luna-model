@@ -1,22 +1,29 @@
 use lunamodel_hashing::hash_model;
-use lunamodel_types::{Sense, Vtype};
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
 use super::PyModel;
-use crate::{PyConstraintCollection, PyEnvironment, PyExpression, PyModelSpecs, PyVariable};
+use crate::{
+    PyConstraintCollection, PyEnvironment, PyExpression, PyModelMetadata, PyModelSpecs, PyVariable,
+    types::{PySense, PyVtype},
+};
 
 #[unwindable]
 #[pymethods]
 impl PyModel {
+    #[getter]
+    fn _metadata(&self) -> PyModelMetadata {
+        self._metadata.clone()
+    }
+
     #[getter]
     fn get_name(&self) -> String {
         self.m.read_arc().name.clone()
     }
 
     #[getter]
-    fn get_sense(&self) -> Sense {
-        self.m.read_arc().sense
+    fn get_sense(&self) -> PySense {
+        self.m.read_arc().sense.into()
     }
 
     #[getter]
@@ -48,8 +55,8 @@ impl PyModel {
         self.m.read_arc().vars().map(|v| v.into()).collect()
     }
 
-    fn vtypes(&self) -> Vec<Vtype> {
-        self.m.read_arc().vtypes().collect()
+    fn vtypes(&self) -> Vec<PyVtype> {
+        self.m.read_arc().vtypes().map(|v| v.into()).collect()
     }
 
     fn get_variable(&self, name: String) -> PyResult<PyVariable> {

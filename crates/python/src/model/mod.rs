@@ -9,35 +9,38 @@ mod setter;
 
 use std::sync::Arc;
 
+use derive_more::{Deref, DerefMut};
 use lunamodel_core::prelude::Model;
 use parking_lot::RwLock;
 use pyo3::pyclass;
 
 pub use metadata::PyModelMetadata;
 
-// #[pyclass(subclass, name = "Model", module = "luna_model._core")]
-#[pyclass]
-#[repr(C)]
-pub struct PyModel {
+pub struct PyModelContent {
     pub m: Arc<RwLock<Model>>,
-    #[pyo3(get, set)]
     pub _metadata: PyModelMetadata,
 }
 
+// #[pyclass(subclass, name = "Model", module = "luna_model._core")]
+#[pyclass]
+#[repr(C)]
+#[derive(Deref, DerefMut)]
+pub struct PyModel(pub PyModelContent);
+
 impl Clone for PyModel {
     fn clone(&self) -> Self {
-        PyModel {
+        PyModel(PyModelContent {
             m: Arc::new(RwLock::new(self.m.read().clone())),
             _metadata: PyModelMetadata::new(),
-        }
+        })
     }
 }
 
 impl From<Model> for PyModel {
     fn from(value: Model) -> Self {
-        Self {
+        Self(PyModelContent {
             m: Arc::new(RwLock::new(value)),
             _metadata: PyModelMetadata::new(),
-        }
+        })
     }
 }

@@ -1,3 +1,3 @@
+mod higher_order;
 mod linear;
 mod quadratic;
-mod higher_order;

@@ -1,4 +1,3 @@
-use lunamodel_types::Sense;
 use lunamodel_unwind::*;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::{Bound, Python, pymethods};
@@ -7,6 +6,7 @@ use super::PySolution;
 use super::result::PyResultIterator;
 use super::sample::PySamplesIterator;
 use crate::timer::PyTiming;
+use crate::types::PySense;
 
 #[unwindable]
 #[pymethods]
@@ -42,8 +42,8 @@ impl PySolution {
     }
 
     #[getter]
-    fn get_sense(&self) -> Sense {
-        self.s.read_arc().sense
+    fn get_sense(&self) -> PySense {
+        self.s.read_arc().sense.into()
     }
 
     #[getter]

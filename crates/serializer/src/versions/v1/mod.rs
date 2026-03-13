@@ -1,7 +1,7 @@
-mod solution;
 mod environment;
 mod expression;
+mod solution;
 
-pub use solution::SerSolution;
 pub use environment::SerEnvironment;
 pub use expression::SerExpression;
+pub use solution::SerSolution;

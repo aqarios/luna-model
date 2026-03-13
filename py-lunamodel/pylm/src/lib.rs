@@ -8,15 +8,14 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
 
     m.add_function(wrap_pyfunction!(quicksum, m)?)?;
     // Enums from lunamodel-core
-    m.add_class::<ValueSource>()?;
+    m.add_class::<PyValueSource>()?;
     // Enums from lunamodel-types
-    m.add_class::<Vtype>()?;
-    m.add_class::<Sense>()?;
-    m.add_class::<Ctype>()?;
-    m.add_class::<Comparator>()?;
+    m.add_class::<PyVtype>()?;
+    m.add_class::<PySense>()?;
+    m.add_class::<PyCtype>()?;
+    m.add_class::<PyComparator>()?;
     // Enums from lunamodel-translate
-    m.add_class::<TranslationTarget>()?;
-    m.add_class::<SolutionSource>()?;
+    m.add_class::<PyTranslationTarget>()?;
     // extaa
     m.add_class::<PyUnbounded>()?;
     // Classes

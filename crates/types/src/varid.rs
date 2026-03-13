@@ -4,7 +4,6 @@ use derive_more::{Deref, DerefMut};
 #[derive(Debug, Clone, Copy, Deref, DerefMut, Hash, PartialEq, Eq)]
 pub struct VarId(pub VarIdx);
 
-
 // impl AddAssign<VarId> for VarId {
 //     fn add_assign(&mut self, rhs: VarId) {
 //         self.0 += rhs.0

@@ -1,9 +1,8 @@
-use lunamodel_types::Vtype;
 use lunamodel_unwind::*;
 use pyo3::prelude::*;
 
 use super::PyVariable;
-use crate::{PyEnvironment, bounds::PyBounds};
+use crate::{PyEnvironment, bounds::PyBounds, types::PyVtype};
 
 #[unwindable]
 #[pymethods]
@@ -22,13 +21,13 @@ impl PyVariable {
     #[getter]
     fn bounds(&self) -> PyResult<PyBounds> {
         self.v.check_living()?;
-        Ok(PyBounds(self.v.bounds()?.into()))
+        Ok(self.v.bounds()?.into())
     }
 
     #[getter]
-    fn vtype(&self) -> PyResult<Vtype> {
+    fn vtype(&self) -> PyResult<PyVtype> {
         self.v.check_living()?;
-        Ok(self.v.vtype()?)
+        Ok(self.v.vtype()?.into())
     }
 
     #[getter]

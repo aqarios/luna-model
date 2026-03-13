@@ -7,7 +7,7 @@ use lunamodel_types::Comparator;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
-use crate::utils::OpsOther as OO;
+use crate::{types::PyComparator, utils::OpsOther as OO};
 
 use super::PyConstraint;
 
@@ -16,7 +16,8 @@ use super::PyConstraint;
 impl PyConstraint {
     #[new]
     #[pyo3(signature=(lhs, rhs, cmp, name=None))]
-    pub fn py_new(lhs: OO, rhs: OO, cmp: Comparator, name: Option<String>) -> PyResult<Self> {
+    pub fn py_new(lhs: OO, rhs: OO, cmp: PyComparator, name: Option<String>) -> PyResult<Self> {
+        let cmp: Comparator = cmp.into();
         let constr = match (lhs, rhs) {
             (OO::Expr(l), OO::Expr(r)) => {
                 let l_expr: Expression = l.into();

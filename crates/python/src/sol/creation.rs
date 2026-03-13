@@ -13,6 +13,7 @@ use pyo3::{PyResult, pymethods};
 
 use super::PySolution;
 use crate::timer::PyTiming;
+use crate::types::{PySense, PyVtype};
 use crate::utils::VarKey;
 use crate::utils::retrieve_environment;
 use crate::{PyEnvironment, PyModel};
@@ -35,11 +36,11 @@ impl PySolution {
         constraints: Option<Vec<IndexMap<String, bool>>>,
         variables_bounds: Option<IndexMap<String, Vec<bool>>>,
         timing: Option<PyTiming>,
-        sense: Option<Sense>,
+        sense: Option<PySense>,
         env: Option<PyEnvironment>,
-        vtypes: Option<Vec<Vtype>>,
+        vtypes: Option<Vec<PyVtype>>,
     ) -> PyResult<Self> {
-        let mut sol = Solution::with_sense(sense.unwrap_or_default());
+        let mut sol = Solution::with_sense(sense.map_or_else(|| Sense::default(), |s| s.into()));
         sol.timing = timing.map(|t| t.into());
 
         if samples.is_empty() {
@@ -126,7 +127,7 @@ impl PySolution {
                 .into_iter()
                 .zip(vs)
                 .map(|(v, t)| match v.name() {
-                    Ok(n) => Ok((n, t)),
+                    Ok(n) => Ok((n, t.into())),
                     Err(e) => Err(e),
                 })
                 .collect::<LunaModelResult<_>>()?,
@@ -193,9 +194,10 @@ impl PySolution {
         model: Option<PyModel>,
         timing: Option<PyTiming>,
         counts: Option<usize>,
-        sense: Option<Sense>,
+        sense: Option<PySense>,
         energy: Option<f64>,
     ) -> PyResult<Self> {
+        let sense = sense.map(|s| s.into());
         check_env_or_model(&env, &model)?;
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
@@ -272,9 +274,10 @@ impl PySolution {
         model: Option<PyModel>,
         timing: Option<PyTiming>,
         counts: Option<Vec<usize>>,
-        sense: Option<Sense>,
+        sense: Option<PySense>,
         energies: Option<Vec<f64>>,
     ) -> PyResult<Self> {
+        let sense = sense.map(|s| s.into());
         check_env_or_model(&env, &model)?;
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
@@ -363,9 +366,10 @@ impl PySolution {
         model: Option<PyModel>,
         timing: Option<PyTiming>,
         counts: Option<Vec<usize>>,
-        sense: Option<Sense>,
+        sense: Option<PySense>,
         energies: Option<Vec<f64>>,
     ) -> PyResult<Self> {
+        let sense = sense.map(|s| s.into());
         check_env_or_model(&env, &model)?;
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
@@ -457,11 +461,12 @@ impl PySolution {
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
         timing: Option<PyTiming>,
-        sense: Option<Sense>,
+        sense: Option<PySense>,
         bit_order: String,
         energies: Option<Vec<f64>>,
         var_order: Option<Vec<String>>,
     ) -> PyResult<PySolution> {
+        let sense = sense.map(|s| s.into());
         check_env_or_model(&env, &model)?;
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
@@ -577,8 +582,9 @@ impl PySolution {
         seed: Option<u64>,
         env: Option<PyEnvironment>,
         model: Option<PyModel>,
-        sense: Option<Sense>,
+        sense: Option<PySense>,
     ) -> PyResult<PySolution> {
+        let sense = sense.map(|s| s.into());
         check_env_or_model(&env, &model)?;
         check_sense_or_model(&sense, &model)?;
         let context = if let Some(m) = model {

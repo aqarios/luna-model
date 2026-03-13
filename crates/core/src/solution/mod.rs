@@ -1,11 +1,11 @@
 mod access;
-mod random;
 mod col;
 mod convenience;
 mod creation;
 mod filter;
 mod io;
 mod modification;
+mod random;
 pub mod result;
 pub mod sample;
 mod samples;

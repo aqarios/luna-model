@@ -12,9 +12,9 @@ lunamodel-serializer = { workspace = true }
 lunamodel-core = { workspace = true, features = ["py"] }
 lunamodel-error = { workspace = true, features = ["py"] }
 lunamodel-types = { workspace = true, features = ["py"] }
-lunamodel-translate = { workspace = true, features = ["py"] }
 lunamodel-io = { workspace = true, features = ["py"] }
 lunamodel-transform = { workspace = true, features = ["py"] }
+lunamodel-translate = { workspace = true }
 lunamodel-utils = { workspace = true }
 lunamodel-hashing = { workspace = true }
 lunamodel-unwind = { workspace = true }
@@ -26,5 +26,6 @@ hashbrown = { workspace = true }
 derive_more = { workspace = true }
 indexmap = { workspace = true }
 itertools = { workspace = true }
+strum_macros = { workspace = true }
 
 # [features]

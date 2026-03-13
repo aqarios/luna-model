@@ -55,7 +55,6 @@ impl SerEnvironment {
                 let binvar = variables.get_mut(binidx).unwrap();
                 binvar.inverted = Some(*vidx);
                 var.inverted = Some(*binidx);
-
             }
             variables.insert(*vidx, var);
             lookup.insert(name, *vidx);

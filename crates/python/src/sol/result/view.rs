@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use lunamodel_core::solution::result::ResultView;
 use lunamodel_unwind::*;
-use pyo3::{pyclass, pymethods, PyResult};
+use pyo3::{PyResult, pyclass, pymethods};
 
 use super::super::sample::PySampleView;
 use crate::sol::PySolution;
