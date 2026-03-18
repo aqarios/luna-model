@@ -43,6 +43,7 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
 
     // Model Translator
     m.add_class::<PyLpTranslator>()?;
+    m.add_class::<PyMpsTranslator>()?;
     m.add_class::<PyBqmTranslator>()?;
     m.add_class::<PyQuboTranslator>()?;
     m.add_class::<PyQubo>()?;

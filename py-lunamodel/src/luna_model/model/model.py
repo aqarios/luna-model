@@ -27,6 +27,7 @@ from numpy import ndarray
 
 from luna_model._lm import PyModel, PyModelMetadata
 from luna_model._utils import wrap_cc, wrap_env, wrap_expr, wrap_s, wrap_sp, wrap_var
+from luna_model.errors import TranslationError
 from luna_model.expression.expr import Expression
 from luna_model.model.sense import Sense
 from luna_model.ttarget import TranslationTarget
@@ -811,17 +812,50 @@ class Model:
         vtype: Vtype | None = None,
     ) -> Model: ...
     @classmethod
-    def from_(
+    def from_(  # noqa: PLR0911
         cls,
         other: ConstrainedQuadraticModel | BinaryQuadraticModel | str | Path | NDArray,
         name: str | None = None,
         **kwargs,
     ) -> Model:
         """Create a model from other."""
-        if isinstance(other, str | Path):
-            from luna_model.translator.model.lp import LpTranslator  # noqa: PLC0415
+        if isinstance(other, str):
+            # Either LP or MPS as string
+            lp_error = None
+            mps_error = None
+            try:
+                from luna_model.translator.model.lp import LpTranslator  # noqa: PLC0415
 
-            return LpTranslator.to_lm(other)
+                return LpTranslator.to_lm(other)
+            except TranslationError as e:
+                lp_error = e
+
+            try:
+                from luna_model.translator.model.mps import MpsTranslator  # noqa: PLC0415
+
+                return MpsTranslator.to_lm(other)
+            except TranslationError as e:
+                mps_error = e
+
+            msg = "the string contents cannot be parsed to a Model."
+            msg += " "
+            msg += f"Encountered the following errors:\n\tLP: {lp_error}\n\tMPS: {mps_error}"
+            raise ValueError(msg)
+
+        if isinstance(other, Path):
+            # Either LP or MPS file
+            if other.suffix == ".lp":
+                from luna_model.translator.model.lp import LpTranslator  # noqa: PLC0415
+
+                return LpTranslator.to_lm(other)
+
+            if other.suffix == ".mps":
+                from luna_model.translator.model.mps import MpsTranslator  # noqa: PLC0415
+
+                return MpsTranslator.to_lm(other)
+            msg = f"unknown file type '{other.suffix}', only '.mps' and '.lp' files are supported"
+            raise ValueError(msg)
+
         if isinstance(other, ndarray):
             from luna_model.translator.model.qubo import QuboTranslator  # noqa: PLC0415
 
@@ -845,7 +879,15 @@ class Model:
         filepath: Path,
     ) -> None: ...
     @overload
+    def to(
+        self,
+        target: Literal[TranslationTarget.MPS],
+        filepath: Path,
+    ) -> None: ...
+    @overload
     def to(self, target: Literal[TranslationTarget.LP]) -> str: ...
+    @overload
+    def to(self, target: Literal[TranslationTarget.MPS]) -> str: ...
     @overload
     def to(self, target: Literal[TranslationTarget.CQM]) -> ConstrainedQuadraticModel: ...
     @overload
@@ -858,8 +900,8 @@ class Model:
         filepath: Path | None = None,
     ) -> Qubo | str | BinaryQuadraticModel | ConstrainedQuadraticModel | None:
         """Translate model to target."""
-        if target != TranslationTarget.LP and filepath is not None:
-            msg = "filepath can only be used with target 'LP'"
+        if target not in (TranslationTarget.LP, TranslationTarget.MPS) and filepath is not None:
+            msg = "filepath can only be used with target 'LP' and 'MPS'"
             raise ValueError(msg)
         match target:
             case TranslationTarget.BQM:
@@ -878,6 +920,10 @@ class Model:
                 from luna_model.translator.model.lp import LpTranslator  # noqa: PLC0415
 
                 return LpTranslator.from_lm(self, filepath)
+            case TranslationTarget.MPS:
+                from luna_model.translator.model.mps import MpsTranslator  # noqa: PLC0415
+
+                return MpsTranslator.from_lm(self, filepath)
 
     def equal_contents(self, other: Model) -> bool:
         """Check if two models have equal contents."""

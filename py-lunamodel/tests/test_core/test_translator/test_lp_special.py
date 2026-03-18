@@ -1,20 +1,10 @@
 import os
-import sys
 from pathlib import Path
 
 import pytest
 
 from luna_model.translator import LpTranslator
-
-NOT_RUN_SCIP = False
-try:
-    from pyscipopt import Model as ScipModel
-except ImportError as _:
-    print(
-        "SCIP is not installed and thus, the Gurobi tests will not be executed",
-        file=sys.stdout,
-    )
-    NOT_RUN_SCIP = True
+from tests.test_core.test_translator.utils_model_comparison import NOT_RUN_SCIP, ScipModel
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")

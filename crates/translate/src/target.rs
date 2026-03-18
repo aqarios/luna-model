@@ -4,6 +4,7 @@ use strum_macros::Display;
 pub enum TranslationTarget {
     Qubo,
     Lp,
+    Mps,
     Bqm,
     Cqm,
 }

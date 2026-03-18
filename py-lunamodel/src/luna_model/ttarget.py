@@ -31,6 +31,9 @@ class TranslationTarget(Enum):
     LP : str
         Linear Programming format.
         Linear or quadratic objective and linear or quadratic constraints.
+    MPS : str
+        Mathematical Programming System format.
+        Linear or quadratic objective and linear or quadratic constraints.
     BQM : str
         Binary Quadratic Model format (D-Wave).
         Binary/spin variables with quadratic terms.
@@ -41,6 +44,7 @@ class TranslationTarget(Enum):
 
     QUBO = "Qubo"
     LP = "Lp"
+    MPS = "Mps"
     BQM = "Bqm"
     CQM = "Cqm"
 
@@ -52,6 +56,8 @@ class TranslationTarget(Enum):
                 return PyTranslationTarget.Qubo
             case TranslationTarget.LP:
                 return PyTranslationTarget.Lp
+            case TranslationTarget.MPS:
+                return PyTranslationTarget.MPS
             case TranslationTarget.BQM:
                 return PyTranslationTarget.Bqm
             case TranslationTarget.CQM:
@@ -64,6 +70,8 @@ class TranslationTarget(Enum):
                 return TranslationTarget.QUBO
             case PyTranslationTarget.LP:
                 return TranslationTarget.LP
+            case PyTranslationTarget.MPS:
+                return TranslationTarget.MPS
             case PyTranslationTarget.BQM:
                 return TranslationTarget.BQM
             case PyTranslationTarget.CQM:

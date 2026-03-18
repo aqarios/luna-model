@@ -15,6 +15,7 @@ from luna_model.translator.model import (
     BqmTranslator,
     CqmTranslator,
     LpTranslator,
+    MpsTranslator,
     QuboTranslator,
 )
 from luna_model.translator.model.qubo import Qubo
@@ -34,6 +35,7 @@ __all__ = [
     "DwaveTranslator",
     "IbmTranslator",
     "LpTranslator",
+    "MpsTranslator",
     "NumpyTranslator",
     "QctrlTranslator",
     "Qubo",

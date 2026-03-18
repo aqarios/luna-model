@@ -10,13 +10,15 @@ use lunamodel_types::VarIdx;
 pub(super) fn ensure_name_valid(name: &str) -> LunaModelResult<()> {
     if !name.starts_with(|c: char| c.is_ascii_alphabetic()) {
         Err(LunaModelError::VariableNameInvalid(
+            name.to_string(),
             "must start with an alphabetic character.".into(),
         ))
     } else if !name
         .chars()
-        .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ',')
+        .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ',' || c == ')' || c == '(')
     {
         Err(LunaModelError::VariableNameInvalid(
+            name.to_string(),
             "must only contain alphanumeric characters, '_' or ','".into(),
         ))
     } else {

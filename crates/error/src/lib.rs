@@ -47,7 +47,7 @@ pub enum LunaModelError {
     DifferentEnvironments,
     VariableExists(ErrString),
     VariableNotExisting(ErrString),
-    VariableNameInvalid(ErrString),
+    VariableNameInvalid(String, ErrString),
     ConstraintNameInvalid(ErrString),
     InvalidBounds(ErrString),
     InvalidInversion(ErrString),
@@ -87,7 +87,7 @@ impl Display for LunaModelError {
         match self {
             VariableExists(msg) => write!(f, "variable exists: {}", msg),
             VariableNotExisting(msg) => write!(f, "variable does not exist: {}", msg),
-            VariableNameInvalid(msg) => write!(f, "variable name invalid: {}", msg),
+            VariableNameInvalid(name, msg) => write!(f, "variable name '{}' invalid: {}", name, msg),
             ConstraintNameInvalid(msg) => write!(f, "constraint name invalid: {}", msg),
             InvalidBounds(msg) => write!(f, "invalid bounds: {}", msg),
             InvalidInversion(msg) => write!(f, "invalid inversion: {}", msg),

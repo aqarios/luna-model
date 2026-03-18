@@ -83,7 +83,7 @@ def test_invalid_var_name():
     )
     with pytest.raises(
         VariableNamesError,
-        match="variable name invalid: must start with an alphabetic character.",
+        match="variable name '.*?' invalid: must start with an alphabetic character.",
     ):
         _ = BqmTranslator.to_lm(bqm)
 

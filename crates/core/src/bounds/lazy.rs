@@ -3,10 +3,10 @@ use lunamodel_types::{Bound, Vtype};
 
 use crate::bounds::Bounds;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct LazyBounds {
-    pub(super) lower: Option<Bound>,
-    pub(super) upper: Option<Bound>,
+    pub lower: Option<Bound>,
+    pub upper: Option<Bound>,
 }
 
 pub trait Concretize {

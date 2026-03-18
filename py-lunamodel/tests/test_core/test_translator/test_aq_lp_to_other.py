@@ -1,20 +1,10 @@
-import sys
 from pathlib import Path
 
 import pytest
 from dimod import lp as dimod_lp
 
-NOT_RUN_SCIP = False
-try:
-    from pyscipopt import Model as ScipModel
-except ImportError as _:
-    print(
-        "SCOP is not installed and thus, the Gurobi tests will not be executed",
-        file=sys.stdout,
-    )
-    NOT_RUN_SCIP = True
-
 from luna_model import Bounds, Model, Variable, Vtype
+from tests.test_core.test_translator.utils_model_comparison import NOT_RUN_SCIP, ScipModel
 from luna_model.translator import LpTranslator
 
 

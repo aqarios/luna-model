@@ -328,7 +328,7 @@ impl From<Lme> for PyErr {
             Lme::DifferentEnvironments => PyDifferentEnvsError::new_err,
             Lme::VariableExists(_) => PyVariableExistsError::new_err,
             Lme::VariableNotExisting(_) => PyVariableNotExistingError::new_err,
-            Lme::VariableNameInvalid(_) => PyVariableNamesError::new_err,
+            Lme::VariableNameInvalid(_, _) => PyVariableNamesError::new_err,
             Lme::ConstraintNameInvalid(_) => PyIllegalConstraintNameError::new_err,
             Lme::InvalidBounds(_) => PyVariableCreationError::new_err,
             Lme::InvalidInversion(_) => PyUnsupportedOperationError::new_err,

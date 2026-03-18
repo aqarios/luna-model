@@ -11,25 +11,12 @@ from luna_model.errors import TranslationError
 from luna_model.translator import LpTranslator
 from tests.test_core.utils import generate_cqms, make_seed
 
-NOT_RUN_SCIP = False
-try:
-    from pyscipopt import Model as ScipModel
-except ImportError as _:
-    print(
-        "SCIP is not installed and thus, the Gurobi tests will not be executed",
-        file=sys.stdout,
-    )
-    NOT_RUN_SCIP = True
-
-NOT_RUN_GUROBI = False
-try:
-    import gurobipy as gp
-except ImportError as _:
-    print(
-        "Gurobi is not installed and thus, the Gurobi tests will not be executed",
-        file=sys.stdout,
-    )
-    NOT_RUN_GUROBI = True
+from tests.test_core.test_translator.utils_model_comparison import (
+    NOT_RUN_GUROBI,
+    NOT_RUN_SCIP,
+    ScipModel,
+    gp,
+)
 
 NOT_RUN_CPLEX = True
 # TODO: fix CPLEX test logic. MPS is unreliable

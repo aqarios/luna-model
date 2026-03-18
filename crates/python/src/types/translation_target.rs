@@ -7,6 +7,7 @@ use strum_macros::Display;
 pub enum PyTranslationTarget {
     Qubo,
     Lp,
+    Mps,
     Bqm,
     Cqm,
 }
@@ -16,6 +17,7 @@ impl From<TranslationTarget> for PyTranslationTarget {
         match value {
             TranslationTarget::Qubo => Self::Qubo,
             TranslationTarget::Lp => Self::Lp,
+            TranslationTarget::Mps => Self::Mps,
             TranslationTarget::Bqm => Self::Bqm,
             TranslationTarget::Cqm => Self::Cqm,
         }
@@ -27,6 +29,7 @@ impl Into<TranslationTarget> for PyTranslationTarget {
         match self {
             Self::Qubo => TranslationTarget::Qubo,
             Self::Lp => TranslationTarget::Lp,
+            Self::Mps => TranslationTarget::Mps,
             Self::Bqm => TranslationTarget::Bqm,
             Self::Cqm => TranslationTarget::Cqm,
         }

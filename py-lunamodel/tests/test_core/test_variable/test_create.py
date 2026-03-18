@@ -55,11 +55,11 @@ def test_create_variable_with_invalid_name():
     with Environment():
         with pytest.raises(
             VariableNamesError,
-            match="variable name invalid: must start with an alphabetic character.",
+            match="variable name '0' invalid: must start with an alphabetic character.",
         ):
             _ = Variable("0")
         with pytest.raises(
             VariableNamesError,
-            match="variable name invalid: must only contain alphanumeric characters, '_' or ','",
+            match="variable name 'xß' invalid: must only contain alphanumeric characters, '_' or ','",
         ):
             _ = Variable("xß")
