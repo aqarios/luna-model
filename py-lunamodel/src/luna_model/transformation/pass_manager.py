@@ -76,6 +76,12 @@ class PassManager:
     def backwards(self, solution: Solution, ir: IR) -> Solution:
         """Apply the back transformation to the given solution.
 
+        !!! warning "Disclaimer"
+            When multiple samples are condensed into a single record (e.g., by omitting
+            slack variables), only the first sample's `raw_energy` is retained. As a
+            result, the `raw_energy` value may no longer accurately represent the
+            condensed group.
+
         Parameters
         ----------
         solution : Solution

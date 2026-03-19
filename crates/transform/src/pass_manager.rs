@@ -41,12 +41,12 @@ impl PassManager {
     pub fn backwards(&self, solution: Solution, ir: &IR) -> LunaModelResult<Solution> {
         let mut sol = backwards(&self.passes, solution, ir, None)?;
         // NOTE: might want to add this again...
-        // if let Some(x) = &sol.obj_values {
-        //     if sol.n_samples() > 0 && sol.raw_energies.is_none() {
-        //         sol.raw_energies = x.iter().map(|&y| Some(y)).collect();
-        //     }
-        // }
-        sol.raw_energies = None;
+        if let Some(x) = &sol.obj_values {
+            if sol.n_samples() > 0 && sol.raw_energies.is_none() {
+                sol.raw_energies = x.iter().map(|&y| Some(y)).collect();
+            }
+        }
+        // sol.raw_energies = None;
         if let Some(input) = &ir.input_model {
             Ok(input.evaluate_solution(&sol)?)
         } else {
