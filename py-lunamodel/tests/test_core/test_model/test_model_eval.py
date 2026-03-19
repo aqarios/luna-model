@@ -10,7 +10,7 @@ from luna_model import (
     Variable,
     Vtype,
 )
-from luna_model.errors import EvaluationError
+from luna_model.errors import EvaluationError, VariableNotExistingError
 
 
 @pytest.fixture()
@@ -131,7 +131,7 @@ def test_model_eval_wo_constraint(model_wo_constraint: Model, solution: Solution
 
 
 def test_model_eval_wo_constraint_one_less_var_in_model(model_wo_constraint_one_less_var: Model, solution: Solution):
-    with pytest.raises(EvaluationError):
+    with pytest.raises(VariableNotExistingError):
         _ = model_wo_constraint_one_less_var.evaluate(solution)
 
 

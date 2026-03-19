@@ -24,9 +24,10 @@ impl Model {
             .iter()
             .map(|(n, _)| (n.clone(), Vec::default()))
             .collect();
-        let mut vbounds: HashMap<String, Vec<bool>> = self
-            .vars()
-            .map(|n| (n.name().unwrap(), Vec::default()))
+        let mut vbounds: HashMap<String, Vec<bool>> = sol
+            .variable_names()
+            .into_iter()
+            .map(|n| (n, Vec::default()))
             .collect();
         let mut feasible: Vec<bool> = Vec::new();
 
@@ -39,9 +40,9 @@ impl Model {
             }
 
             let mut all_vars_ok = true;
-            for v in self.vars() {
-                let name = v.name()?;
+            for name in sol.variable_names() {
                 let bs = vbounds.get_mut(&name).unwrap();
+                let v = self.environment.lookup(&name)?;
                 let vok = v.evaluate(sample[&name])?;
                 bs.push(vok);
                 all_vars_ok = all_vars_ok && vok;
@@ -59,11 +60,12 @@ impl Model {
 }
 
 fn check_alignment(expr_vars: &[String], sample_vars: &[String]) -> LunaModelResult<()> {
-    if expr_vars.len() != sample_vars.len() {
-        return Err(LunaModelError::Evaluation(
-            "number of variables does not match".into(),
-        ));
-    }
+    // Removed checks to allow solutions with more variables than the model.
+    // if expr_vars.len() != sample_vars.len() {
+    //     return Err(LunaModelError::Evaluation(
+    //         "number of variables does not match".into(),
+    //     ));
+    // }
     for ev in expr_vars {
         if !sample_vars.contains(ev) {
             return Err(LunaModelError::Evaluation(
@@ -71,12 +73,12 @@ fn check_alignment(expr_vars: &[String], sample_vars: &[String]) -> LunaModelRes
             ));
         }
     }
-    for sv in sample_vars {
-        if !expr_vars.contains(sv) {
-            return Err(LunaModelError::Evaluation(
-                format!("variable '{sv}' is not contained in expression").into(),
-            ));
-        }
-    }
+    // for sv in sample_vars {
+    //     if !expr_vars.contains(sv) {
+    //         return Err(LunaModelError::Evaluation(
+    //             format!("variable '{sv}' is not contained in expression").into(),
+    //         ));
+    //     }
+    // }
     Ok(())
 }
