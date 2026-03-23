@@ -22,9 +22,9 @@ def test_inverse_binary():
 def test_inverse_binary_lin():
     env = Environment()
     b = Variable("b", vtype=Vtype.BINARY, env=env)
-    expr = 5 * b.inv()
+    expr = 5 * b.inv() + 22
     sol = expr.evaluate(Solution.from_dict({"b": 0}, env=env))[0]
-    assert sol == 5.0, "evaluated value is not 5"
+    assert sol == 27.0, "evaluated value is not 27"
 
 
 def test_inverse_binary_quad():

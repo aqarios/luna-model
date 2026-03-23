@@ -51,6 +51,10 @@ impl Expression {
             .map(|(idx, bias)| (VarRef::new(idx, self.env.clone()), bias))
     }
 
+    pub fn raw_linear_items(&self) -> impl Iterator<Item = (u32, Bias)> {
+        self.linear.iter()
+    }
+
     pub fn quadratic_items(&self) -> impl Iterator<Item = (VarRef, VarRef, Bias)> {
         self.quadratic.iter().flat_map(|q| {
             q.iter_flat().map(|(u, v, b)| {
@@ -61,6 +65,12 @@ impl Expression {
                 )
             })
         })
+    }
+
+    pub fn raw_quadratic_items(&self) -> impl Iterator<Item = (u32, u32, Bias)> {
+        self.quadratic
+            .iter()
+            .flat_map(|q| q.iter_flat().map(|(u, v, b)| (u, v, b)))
     }
 
     pub fn higher_order_items(&self) -> impl Iterator<Item = (Vec<VarRef>, Bias)> {
@@ -74,6 +84,12 @@ impl Expression {
                 )
             })
         })
+    }
+
+    pub fn raw_higher_order_items(&self) -> impl Iterator<Item = (Vec<u32>, Bias)> {
+        self.higher_order
+            .iter()
+            .flat_map(|q| q.iter_contrib().map(|(vars, b)| (vars, b)))
     }
 
     pub fn degree(&self) -> usize {

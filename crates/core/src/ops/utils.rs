@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::ops::Mul;
 
 use crate::{
-    Expression,
+    Environment, Expression, TryIndex,
     prelude::{HigherOrder, Linear, Quadratic, VarRef},
     traits::DefaultEditable,
 };
@@ -218,4 +218,24 @@ where
         }
     }
     Some(reduced)
+}
+
+pub fn make_lookup<S>(env: &Environment, sample: &S, lu: &mut Vec<Bias>) -> LunaModelResult<()>
+where
+    for<'s> S: TryIndex<&'s str, Output = Bias, Err = LunaModelError>,
+{
+    if lu.len() < env.next_idx as usize {
+        lu.resize(env.next_idx as usize, 0.0);
+    }
+    for i in env.vars() {
+        let v = &env.variables[&i];
+        let val = match v.vtype {
+            Vtype::InvertedBinary => {
+                1.0 - sample.try_index(&env.variables[&v.inverted.unwrap()].name)?
+            }
+            _ => *sample.try_index(&v.name)?,
+        };
+        lu[i as usize] = val;
+    }
+    Ok(())
 }

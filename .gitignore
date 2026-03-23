@@ -65,3 +65,4 @@ py-lunamodel/output.lp
 py-lunamodel/problem.lp
 
 py-lunamodel/tests/test_core/test_solution/test_translator/model.lp
+py-lunamodel/tmp.py

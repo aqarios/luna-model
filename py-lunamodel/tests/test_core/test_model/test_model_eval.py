@@ -1,3 +1,4 @@
+from luna_model.solution import sol
 import pytest
 
 from luna_model import (
@@ -65,7 +66,7 @@ def model_wo_constraint_maximize() -> Model:
         s = Variable("s", vtype=Vtype.SPIN)
         i = Variable("i", vtype=Vtype.INTEGER)
         r = Variable("r", vtype=Vtype.REAL)
-    model.objective = b + s + i + r
+    model.objective = b + s + i + r + 3.0
     return model
 
 
@@ -76,7 +77,7 @@ def model_wo_constraint_one_less_var() -> Model:
         b = Variable("b", vtype=Vtype.BINARY)
         s = Variable("s", vtype=Vtype.SPIN)
         i = Variable("i", vtype=Vtype.INTEGER)
-    model.objective = b + s + i + b * s
+    model.objective = b + s + i + b * s + 3.0
     return model
 
 
@@ -89,7 +90,7 @@ def model_wo_constraint_one_more_var() -> Model:
         i = Variable("i", vtype=Vtype.INTEGER)
         r = Variable("r", vtype=Vtype.REAL)
         b2 = Variable("b2", vtype=Vtype.BINARY)
-    model.objective = b + s + i + r + b * b2 + i * r
+    model.objective = b + s + i + r + b * b2 + i * r + 5.12
     return model
 
 

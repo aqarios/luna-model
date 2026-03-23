@@ -20,9 +20,9 @@ from .fixtures import *  # noqa: F403
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-def test_zib_translator(zib_model: Model):
+def test_zib_translator(zib_model: Model, tmp_path: Path):
     lp_str = LpTranslator.from_lm(zib_model)
-    lp_filepath = Path(__file__).parent / "model.lp"
+    lp_filepath = tmp_path / "model.lp"
     with open(lp_filepath, "w") as f:
         f.write(lp_str)
 
@@ -65,9 +65,9 @@ def test_zib_translator(zib_model: Model):
 
 
 @pytest.mark.skipif(NOT_RUN_SCIP, reason="SCIP is required for test")
-def test_zib_translator_quadratic(zib_model_quadratic: Model):
+def test_zib_translator_quadratic(zib_model_quadratic: Model, tmp_path: Path):
     lp_str = LpTranslator.from_lm(zib_model_quadratic)
-    lp_filepath = Path(__file__).parent / "model.lp"
+    lp_filepath = tmp_path / "model.lp"
     with open(lp_filepath, "w") as f:
         f.write(lp_str)
 

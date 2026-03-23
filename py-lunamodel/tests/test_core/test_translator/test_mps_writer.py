@@ -29,7 +29,6 @@ def test_roundtrip_gurobi(mps_file: str, tmp_path: Path):
     lm_model = MpsTranslator.to_lm(mps_path)
     roundtrip_path = tmp_path / mps_file
     MpsTranslator.from_lm(lm_model, roundtrip_path)
-    Path("./debug.mps").write_text(roundtrip_path.read_text())
     gp_norm = extract_gurobi(gp.read(str(roundtrip_path)))
     lm_norm = extract_luna(lm_model)
     ok, kind, msg = compare_models(gp_norm, lm_norm)

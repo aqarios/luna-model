@@ -32,9 +32,9 @@ from ..test_from_dict import vars
 from .fixtures import *  # noqa: F403
 
 
-def make_scip_model(zib_model):
+def make_scip_model(zib_model, tmp_path: Path):
     lp_str = zib_model.to(TranslationTarget.LP)
-    lp_filepath = Path(__file__).parent / "model.lp"
+    lp_filepath = tmp_path / "model.lp"
     with open(lp_filepath, "w") as f:
         f.write(lp_str)
 
@@ -46,9 +46,9 @@ def make_scip_model(zib_model):
 
 
 @pytest.mark.skipif(NOT_TEST_SCIP, reason="pyscipopt is required for test")
-def test_sol_direct_from_scip(zib_model):
+def test_sol_direct_from_scip(zib_model, tmp_path: Path):
     timer = Timer.start()
-    scip_model = make_scip_model(zib_model)
+    scip_model = make_scip_model(zib_model, tmp_path)
     timing = timer.stop()
     truth_sample = {x.name: scip_model.getVal(x) for x in scip_model.getVars()}
 

@@ -1,10 +1,7 @@
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_types::{Bias, Vtype};
+use lunamodel_types::Bias;
 
-use crate::{
-    prelude::{Expression, VarRef},
-    traits::TryIndex,
-};
+use crate::{ops::utils::make_lookup, prelude::Expression, traits::TryIndex};
 
 impl Expression {
     pub fn evaluate_sampleset<'s, Sample, S>(&self, sampleset: S) -> LunaModelResult<Vec<Bias>>
@@ -12,41 +9,37 @@ impl Expression {
         for<'v> Sample: 's + TryIndex<&'v str, Output = Bias, Err = LunaModelError>,
         S: Iterator<Item = Sample>,
     {
-        sampleset.map(|s| self.evaluate_sample(&s)).collect()
+        let mut res = Vec::new();
+
+        let mut lu = vec![0.0; self.env.len()];
+        for sample in sampleset {
+            make_lookup(&self.env.read_arc(), &sample, &mut lu)?;
+            res.push(self.evaluate_sample_quick(&lu)?);
+        }
+        Ok(res)
     }
 
     pub fn evaluate_sample<S>(&self, sample: &S) -> LunaModelResult<Bias>
     where
         for<'s> S: TryIndex<&'s str, Output = Bias, Err = LunaModelError>,
     {
-        let mut val = Bias::default();
-        for (vs, bias) in self.items() {
-            match &vs[..] {
-                [] => val += bias,
-                [v] => val += adjusted(sample, v)? * bias,
-                [u, v] => val += adjusted(sample, u)? * adjusted(sample, v)? * bias,
-                vs => {
-                    let varval: LunaModelResult<f64> = vs
-                        .iter()
-                        .try_fold(bias, |b, v| Ok(b * adjusted(sample, v)?));
-                    val += varval?;
-                }
-            }
+        let mut lu = vec![0.0; self.env.len()];
+        make_lookup(&self.env.read_arc(), sample, &mut lu)?;
+        self.evaluate_sample_quick(&lu)
+    }
+    pub fn evaluate_sample_quick(&self, lu: &Vec<Bias>) -> LunaModelResult<Bias> {
+        let mut val = self.offset;
+        for (v, bias) in self.raw_linear_items() {
+            val += lu[v as usize] * bias;
+        }
+        for (u, v, bias) in self.raw_quadratic_items() {
+            val += lu[u as usize] * lu[v as usize] * bias;
+        }
+        for (vs, bias) in self.raw_higher_order_items() {
+            let varval: LunaModelResult<f64> =
+                vs.iter().try_fold(bias, |b, v| Ok(b * lu[*v as usize]));
+            val += varval?;
         }
         Ok(val)
-    }
-}
-
-fn adjusted<S>(sample: &S, v: &VarRef) -> LunaModelResult<Bias>
-where
-    for<'s> S: TryIndex<&'s str, Output = Bias, Err = LunaModelError>,
-{
-    if v.vtype()? == Vtype::InvertedBinary {
-        Ok(1.0 - sample.try_index(&v.inverted()?.unwrap().name()?)?)
-    } else {
-        sample
-            .try_index(&v.name()?)
-            .copied()
-            .map_err(|e| LunaModelError::Evaluation(e.to_string().into()))
     }
 }

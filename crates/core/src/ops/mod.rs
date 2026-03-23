@@ -9,3 +9,5 @@ mod traits;
 mod vref;
 
 pub use traits::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign};
+
+pub use utils::make_lookup;

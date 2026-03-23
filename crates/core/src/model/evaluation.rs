@@ -1,8 +1,9 @@
 use hashbrown::HashMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
+use lunamodel_types::Bias;
 
 use super::Model;
-use crate::Solution;
+use crate::{Solution, ops::make_lookup};
 
 impl Model {
     pub fn evaluate_solution(&self, sol: &Solution) -> LunaModelResult<Solution> {
@@ -31,14 +32,15 @@ impl Model {
             .collect();
         let mut feasible: Vec<bool> = Vec::new();
 
+        let mut lu: Vec<Bias> = vec![0.0; self.environment.read_arc().next_idx as usize];
         for sample in sol.samples() {
-            obj_vals.push(self.objective.evaluate_sample(&sample)?);
+            make_lookup(&self.environment.read_arc(), &sample, &mut lu)?;
+            obj_vals.push(self.objective.evaluate_sample_quick(&lu)?);
             let mut all_constr_ok = true;
-            for (cname, val) in self.constraints.evaluate_sample(&sample)? {
+            for (cname, val) in self.constraints.evaluate_sample_quick(&lu)? {
                 constrs.get_mut(&cname).unwrap().push(val);
                 all_constr_ok = all_constr_ok && val;
             }
-
             let mut all_vars_ok = true;
             for name in sol.variable_names() {
                 let bs = vbounds.get_mut(&name).unwrap();
