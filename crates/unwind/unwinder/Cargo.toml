@@ -8,5 +8,5 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
-lunamodel-error = { workspace = true }
+lunamodel-error = { workspace = true, features = ["py"] }
 pyo3 = { workspace = true }

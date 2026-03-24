@@ -16,9 +16,6 @@ use crate::{
     cache::{AnalysisCache, AnalysisCacheElement},
 };
 
-// #[cfg(feature = "py")]
-// use {crate::base::Pass, lunamodel_tpass::py_pass, lunamodel_unwind::*};
-
 #[derive(Debug, Clone)]
 pub struct BinarySpinInfo {
     pub map: HashMap<String, String>,

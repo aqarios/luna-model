@@ -1,4 +1,4 @@
-// #[cfg(feature = "py")]
+#[cfg(feature = "py")]
 use pyo3::{FromPyObject, PyErr, exceptions::PyValueError};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]

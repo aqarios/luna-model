@@ -9,14 +9,62 @@ repository.workspace = true
 
 [dependencies]
 lunamodel-core = { workspace = true }
+lunamodel-error = { workspace = true }
 lunamodel-types = { workspace = true }
-# lunamodel-error = { workspace = true }
-# lunamodel-ops = { workspace = true }
-# lunamodel-python = { workspace = true }
-# lunamodel-serializer = { workspace = true }
-# lunamodel-transform = { workspace = true }
-# lunamodel-translate = { workspace = true }
+lunamodel-utils = { workspace = true }
 
-# lunamodel-unwind = { workspace = true }
-# lunamodel-hashing = { workspace = true }
-# lunamodel-tpass = { workspace = true }
+[dependencies.lunamodel-hashing]
+workspace = true
+optional = true
+
+[dependencies.lunamodel-io]
+workspace = true
+optional = true
+
+[dependencies.lunamodel-python]
+workspace = true
+optional = true
+
+[dependencies.lunamodel-serializer]
+workspace = true
+optional = true
+
+[dependencies.lunamodel-transform]
+workspace = true
+optional = true
+
+[dependencies.lunamodel-translate]
+workspace = true
+optional = true
+
+[dependencies.lunamodel-unwind]
+workspace = true
+optional = true
+
+[features]
+hashing = ["lunamodel-hashing"]
+io = ["lunamodel-io"]
+python = ["lunamodel-python"]
+serializer = ["lunamodel-serializer"]
+transform = ["lunamodel-transform"]
+translate = ["lunamodel-translate"]
+unwind = ["lunamodel-unwind"]
+
+py-io = ["io", "lunamodel-io/py"]
+py-transform = ["transform", "lunamodel-transform/py"]
+py-types = ["lunamodel-types/py"]
+py-error = ["lunamodel-error/py"]
+
+full = [
+  "hashing",
+  "io",
+  "python",
+  "serializer",
+  "transform",
+  "translate",
+  "unwind",
+  "py-io",
+  "py-transform",
+  "py-types",
+  "py-error"
+]

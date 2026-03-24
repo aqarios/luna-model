@@ -14,7 +14,6 @@ use crate::{
 
 use super::pipeline::PipelineResult;
 
-#[cfg(feature = "py")]
 use std::any::Any;
 
 pub trait AbstractPipeline: BasePass + DynClone {
@@ -32,7 +31,6 @@ pub trait AbstractPipeline: BasePass + DynClone {
     fn len(&self) -> usize;
     fn passes(&self) -> Vec<Pass>;
 
-    #[cfg(feature = "py")]
     fn as_any(&self) -> Option<&dyn Any> {
         None
     }

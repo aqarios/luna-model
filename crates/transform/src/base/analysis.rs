@@ -7,7 +7,6 @@ use lunamodel_error::{LunaModelError, LunaModelResult};
 use super::base::BasePass;
 use crate::cache::{AnalysisCache, AnalysisCacheElement};
 
-#[cfg(feature = "py")]
 use std::any::Any;
 
 pub type AnalysisPassResult = LunaModelResult<Option<AnalysisCacheElement>>;

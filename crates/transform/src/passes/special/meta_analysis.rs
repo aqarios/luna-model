@@ -8,7 +8,6 @@ use crate::{
     cache::{AnalysisCache, AnalysisCacheElement},
 };
 
-#[cfg(feature = "py")]
 use std::any::Any;
 
 pub type MetaAnalysisPassResult = LunaModelResult<Option<AnalysisCacheElement>>;

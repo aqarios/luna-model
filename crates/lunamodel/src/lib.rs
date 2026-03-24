@@ -9,6 +9,29 @@
 //!       Constrained (Binary) Quadratic Model (CQM) to a (Unconstrained) Binary Quadratic Model (BQM),
 //!       or from an Integer Model to a Binary Model.
 //!     - Builtin serialization for maximum portability
-pub mod prelude;
 
-// pub use lunamodel_core::{};
+pub use lunamodel_core as core;
+pub use lunamodel_error as error;
+pub use lunamodel_types as types;
+pub use lunamodel_utils as utils;
+
+#[cfg(feature = "hashing")]
+pub use lunamodel_hashing as hashing;
+
+#[cfg(any(feature = "io", feature = "py-io"))]
+pub use lunamodel_io as io;
+
+#[cfg(feature = "python")]
+pub use lunamodel_python as python;
+
+#[cfg(feature = "serializer")]
+pub use lunamodel_serializer as serializer;
+
+#[cfg(any(feature = "transform", feature = "py-transform"))]
+pub use lunamodel_transform as transform;
+
+#[cfg(feature = "translate")]
+pub use lunamodel_translate as translate;
+
+#[cfg(feature = "unwind")]
+pub use lunamodel_unwind as unwind;

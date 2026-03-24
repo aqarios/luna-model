@@ -14,11 +14,13 @@ lunamodel-types = { workspace = true }
 
 hashbrown = { workspace = true }
 indexmap = { workspace = true }
-pyo3 = { workspace = true }
 regex = { workspace = true }
 strum = { workspace = true }
 time = { workspace = true }
 
+[dependencies.pyo3]
+workspace = true
+optional = true
+
 [features]
-default = ["py"]
-py = []
+py = ["pyo3"]
