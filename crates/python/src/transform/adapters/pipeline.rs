@@ -6,7 +6,7 @@ use lunamodel_transform::{
     AnalysisCache, BasePass, ExecutionLog, IR, Pass, PassManager,
     passes::special::{AbstractPipeline, PipelineResult},
 };
-use pyo3::{Py, PyResult, Python};
+use pyo3::{Py, PyErr, PyResult, Python};
 
 use crate::transform::pipeline::PyPipeline;
 
@@ -51,7 +51,11 @@ impl AbstractPipeline for PyPipelineAdapter {
         Python::attach(|py| {
             self.inner
                 .extract::<PyPipeline>(py)
-                .map_err(|e| LunaModelError::Internal(e.to_string().into()))?
+                .map_err(|e: pyo3::pyclass::PyClassGuardError<'_, '_>| {
+                    let mapped = LunaModelError::Internal(e.to_string().into());
+                    let pye: PyErr = e.into();
+                    LunaModelError::WithCause(Box::new(mapped), pye.into())
+                })?
                 .p
                 .backwards(solution, ir, log)
         })

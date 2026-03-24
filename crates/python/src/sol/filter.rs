@@ -22,9 +22,19 @@ impl PySolution {
                 let pyview: PyResultView = PyResultView::new(view.sol.clone().into(), view.idx);
                 let r: bool = f
                     .call1((pyview,))
-                    .map_err(|e| LunaModelError::Computation(e.to_string().into()))?
+                    .map_err(|e| {
+                        LunaModelError::WithCause(
+                            Box::new(LunaModelError::Computation(e.to_string().into())),
+                            e.into(),
+                        )
+                    })?
                     .extract::<bool>()
-                    .map_err(|e| LunaModelError::Computation(e.to_string().into()))?;
+                    .map_err(|e| {
+                        LunaModelError::WithCause(
+                            Box::new(LunaModelError::Computation(e.to_string().into())),
+                            e.into(),
+                        )
+                    })?;
                 Ok(r)
             })?
             .into())

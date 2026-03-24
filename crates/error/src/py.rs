@@ -1,6 +1,6 @@
 // the entire module is feature bound to `py`.
 use pyo3::{
-    PyErr, create_exception,
+    PyErr, Python, create_exception,
     exceptions::{PyException, PyIndexError},
 };
 
@@ -357,7 +357,31 @@ impl From<Lme> for PyErr {
             Lme::MetaAnalysisPass(_, _) => PyMetaAnalysisPassError::new_err,
             Lme::Compilation(_) => PyCompilationError::new_err,
             Lme::RandomSampling(_) => PyRandomSamplingError::new_err,
+            Lme::WithCause(e, cause) => {
+                let pyerr: PyErr = (*e).into();
+                Python::attach(|py| pyerr.set_cause(py, Some(cause.err)));
+                return pyerr;
+            }
         };
         err(lme.to_string())
+    }
+}
+
+#[derive(Debug)]
+pub struct PyErrW {
+    pub err: PyErr,
+}
+
+impl Clone for PyErrW {
+    fn clone(&self) -> Self {
+        PyErrW {
+            err: Python::attach(|py| self.err.clone_ref(py)),
+        }
+    }
+}
+
+impl From<PyErr> for PyErrW {
+    fn from(err: PyErr) -> Self {
+        Self { err }
     }
 }

@@ -20,7 +20,6 @@ pub trait MetaAnalysisPass: BasePass + DynClone {
         LunaModelError::MetaAnalysisPass(self.name(), err.to_string().into())
     }
 
-    #[cfg(feature = "py")]
     fn as_any(&self) -> Option<&dyn Any> {
         None
     }

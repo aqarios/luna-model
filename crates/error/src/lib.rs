@@ -77,6 +77,8 @@ pub enum LunaModelError {
     MetaAnalysisPass(String, ErrString),
     Compilation(ErrString),
     RandomSampling(ErrString),
+    #[cfg(feature = "py")]
+    WithCause(Box<LunaModelError>, py::PyErrW),
 }
 
 impl Error for LunaModelError {}
@@ -87,7 +89,9 @@ impl Display for LunaModelError {
         match self {
             VariableExists(msg) => write!(f, "variable exists: {}", msg),
             VariableNotExisting(msg) => write!(f, "variable does not exist: {}", msg),
-            VariableNameInvalid(name, msg) => write!(f, "variable name '{}' invalid: {}", name, msg),
+            VariableNameInvalid(name, msg) => {
+                write!(f, "variable name '{}' invalid: {}", name, msg)
+            }
             ConstraintNameInvalid(msg) => write!(f, "constraint name invalid: {}", msg),
             InvalidBounds(msg) => write!(f, "invalid bounds: {}", msg),
             InvalidInversion(msg) => write!(f, "invalid inversion: {}", msg),
@@ -128,6 +132,8 @@ impl Display for LunaModelError {
             }
             Compilation(msg) => write!(f, "compilation error: {}", msg),
             RandomSampling(msg) => write!(f, "random sampling failed due to: {}", msg),
+            #[cfg(feature = "py")]
+            WithCause(err, _) => write!(f, "{}", err.to_string()),
         }
     }
 }

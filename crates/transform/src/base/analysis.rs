@@ -19,7 +19,6 @@ pub trait AnalysisPass: BasePass + DynClone {
         LunaModelError::AnalysisPass(self.name(), err.to_string().into())
     }
 
-    #[cfg(feature = "py")]
     fn as_any(&self) -> Option<&dyn Any> {
         None
     }

@@ -70,9 +70,19 @@ impl Condition for PyCondition {
             let r = self
                 .0
                 .call1(py, (pyc,))
-                .map_err(|e| LunaModelError::Computation(e.to_string().into()))?
+                .map_err(|e| {
+                    LunaModelError::WithCause(
+                        Box::new(LunaModelError::Computation(e.to_string().into())),
+                        e.into(),
+                    )
+                })?
                 .extract::<bool>(py)
-                .map_err(|e| LunaModelError::Computation(e.to_string().into()))?;
+                .map_err(|e| {
+                    LunaModelError::WithCause(
+                        Box::new(LunaModelError::Computation(e.to_string().into())),
+                        e.into(),
+                    )
+                })?;
             Ok(r)
         })
     }

@@ -1,13 +1,14 @@
 use std::fmt::Debug;
 
 use lunamodel_core::Model;
+use lunamodel_error::LunaModelError;
 use lunamodel_transform::{
     AnalysisCache, AnalysisCacheElement, AnalysisPass, AnalysisPassResult, BasePass,
 };
 use pyo3::{
-    Bound, Py, PyAny, PyErr, PyResult, Python,
+    Bound, CastError, Py, PyAny, PyErr, PyResult, Python,
     exceptions::PyRuntimeError,
-    types::{PyAnyMethods, PyType},
+    types::{PyAnyMethods, PyTracebackMethods, PyType},
 };
 
 use crate::{
@@ -90,8 +91,12 @@ impl AnalysisPass for PyAnalysisPassAdapter {
             let py_res = self
                 .inner
                 .call_method1(py, "_run", (pym, pyc))
-                .map_err(|e| self.map_err(&e))?;
-            let py_any: Py<PyAny> = py_res.extract(py).map_err(|e| self.map_err(&e))?;
+                .map_err(|e| LunaModelError::WithCause(Box::new(self.map_err(&e)), e.into()))?;
+            let py_any: Py<PyAny> = py_res.extract(py).map_err(|e: CastError| {
+                let mapped = self.map_err(&e);
+                let pye: PyErr = e.into();
+                LunaModelError::WithCause(Box::new(mapped), pye.into())
+            })?;
             if py_any.is_none(py) {
                 Ok(None)
             } else {

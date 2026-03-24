@@ -30,8 +30,11 @@ impl PyTiming {
     ///     If total cannot be computed due to an inconsistent start or end time.
     #[getter]
     fn get_total(&self) -> PyResult<Duration> {
-        self.total()
-            .map_err(|_| PyRuntimeError::new_err("Solution timing could not be computed correctly"))
+        self.total().map_err(|e| {
+            PyRuntimeError::new_err(format!(
+                "Solution timing could not be computed correctly. Reason: {e}"
+            ))
+        })
     }
 
     /// The total time in seconds an algorithm needed to run. Computed as the

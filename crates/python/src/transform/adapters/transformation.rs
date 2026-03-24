@@ -6,7 +6,8 @@ use lunamodel_transform::{AnalysisCache, BasePass, TransformationPass, Transform
 use pyo3::{
     Bound, Py, PyAny, PyErr, PyResult, Python,
     exceptions::PyRuntimeError,
-    types::{PyAnyMethods, PyType},
+    pyclass::PyClassGuardError,
+    types::{PyAnyMethods, PyTracebackMethods, PyType},
 };
 
 use crate::{
@@ -100,9 +101,10 @@ impl TransformationPass for PyTransformationPassAdapter {
             let py_res = self
                 .inner
                 .call_method1(py, "_run", (pym, pyc))
-                .map_err(|e| self.map_err(&e))?;
-            let py_outcome: PyTransformationOutcome =
-                py_res.extract(py).map_err(|e| self.map_err(&e))?;
+                .map_err(|e| LunaModelError::WithCause(Box::new(self.map_err(&e)), e.into()))?;
+            let py_outcome: PyTransformationOutcome = py_res.extract(py).map_err(|e: PyErr| {
+                LunaModelError::WithCause(Box::new(self.map_err(&e)), e.into())
+            })?;
             Ok::<PyTransformationOutcome, LunaModelError>(py_outcome)
         })?;
         let outcome = py_outcome.try_into().map_err(|e| self.map_err(&e))?;
@@ -116,8 +118,12 @@ impl TransformationPass for PyTransformationPassAdapter {
             let py_res = self
                 .inner
                 .call_method1(py, "_backwards", (pysol, pycache))
-                .map_err(|e| self.map_err(&e))?;
-            let py_sol: PySolution = py_res.extract(py).map_err(|e| self.map_err(&e))?;
+                .map_err(|e| LunaModelError::WithCause(Box::new(self.map_err(&e)), e.into()))?;
+            let py_sol: PySolution = py_res.extract(py).map_err(|e: PyClassGuardError| {
+                let mapped = self.map_err(&e);
+                let pye: PyErr = e.into();
+                LunaModelError::WithCause(Box::new(mapped), pye.into())
+            })?;
             Ok::<PySolution, LunaModelError>(py_sol)
         })?;
         let sol: Solution = Arc::into_inner(py_sol.s)

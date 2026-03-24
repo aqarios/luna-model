@@ -1,11 +1,12 @@
 use std::fmt::Debug;
 
+use lunamodel_error::LunaModelError;
 use lunamodel_transform::{
     AnalysisCache, AnalysisCacheElement, BasePass, Pass,
     passes::special::{MetaAnalysisPass, MetaAnalysisPassResult},
 };
 use pyo3::{
-    Bound, Py, PyAny, PyErr, PyResult, Python,
+    Bound, CastError, Py, PyAny, PyErr, PyResult, Python,
     exceptions::PyRuntimeError,
     types::{PyAnyMethods, PyType},
 };
@@ -82,13 +83,18 @@ impl MetaAnalysisPass for PyMetaAnalysisPassAdapter {
             let py_passes: PyResult<Vec<PyPass>> =
                 passes.iter().map(|p| PyPass::from_pass(p)).collect();
 
-            let py_passes = py_passes.map_err(|e| self.map_err(&e))?;
+            let py_passes = py_passes
+                .map_err(|e| LunaModelError::WithCause(Box::new(self.map_err(&e)), e.into()))?;
             let pyc: PyAnalysisCache = cache.clone_py(py).into();
             let py_res = self
                 .inner
                 .call_method1(py, "_run", (py_passes, pyc))
-                .map_err(|e| self.map_err(&e))?;
-            let py_any: Py<PyAny> = py_res.extract(py).map_err(|e| self.map_err(&e))?;
+                .map_err(|e| LunaModelError::WithCause(Box::new(self.map_err(&e)), e.into()))?;
+            let py_any: Py<PyAny> = py_res.extract(py).map_err(|e: CastError| {
+                let mapped = self.map_err(&e);
+                let pye: PyErr = e.into();
+                LunaModelError::WithCause(Box::new(mapped), pye.into())
+            })?;
             if py_any.is_none(py) {
                 Ok(None)
             } else {
