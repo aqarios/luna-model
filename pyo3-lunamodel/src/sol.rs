@@ -8,7 +8,7 @@ use pyo3::{
     types::{PyAnyMethods, PyCapsule},
 };
 
-use crate::LUNA_MODEL;
+use crate::{LUNA_MODEL, utils::TypeCheck};
 
 #[repr(transparent)]
 /// A wrapper around a [`Arc<RwLock<Solution>>`] that can be converted to and from python with `pyo3`.
@@ -18,6 +18,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PySolution {
     type Error = PyErr;
 
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
+        obj.check_type("Solution")?;
         // check if it is the wrapper type or the PySolution type from the crate.
         let capsule: Bound<'py, PyCapsule> = if let Some(pys) = obj.getattr("_s").ok() {
             pys.call_method0("_to_capsule")

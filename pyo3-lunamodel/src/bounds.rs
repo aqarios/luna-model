@@ -9,7 +9,7 @@ use std::sync::Arc;
 use lunamodel_python::prelude::BoundsContent;
 use parking_lot::RwLock;
 
-use crate::LUNA_MODEL;
+use crate::{LUNA_MODEL, utils::TypeCheck};
 
 #[repr(transparent)]
 /// A wrapper around [`BoundsContent`] that can be converted to and from python with `pyo3`.
@@ -19,6 +19,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyBounds {
     type Error = PyErr;
 
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
+        obj.check_type("Bounds")?;
         // check if it is the wrapper type or the PyBounds type from the crate.
         let capsule: Bound<'py, PyCapsule> = if let Some(pye) = obj.getattr("_b").ok() {
             pye.call_method0("_to_capsule")

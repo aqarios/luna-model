@@ -4,7 +4,7 @@ use pyo3::{
     types::{PyAnyMethods, PyCapsule},
 };
 
-use crate::LUNA_MODEL;
+use crate::{LUNA_MODEL, utils::TypeCheck};
 
 #[repr(transparent)]
 pub struct PyModel(pub PyModelContent);
@@ -13,6 +13,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyModel {
     type Error = PyErr;
 
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
+        obj.check_type("Model")?;
         let capsule: (Bound<'py, PyCapsule>, Bound<'py, PyCapsule>) =
             if let Some(pye) = obj.getattr("_m").ok() {
                 pye.call_method0("_to_capsule")

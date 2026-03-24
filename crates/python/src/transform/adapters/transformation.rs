@@ -7,7 +7,7 @@ use pyo3::{
     Bound, Py, PyAny, PyErr, PyResult, Python,
     exceptions::PyRuntimeError,
     pyclass::PyClassGuardError,
-    types::{PyAnyMethods, PyTracebackMethods, PyType},
+    types::{PyAnyMethods, PyType},
 };
 
 use crate::{

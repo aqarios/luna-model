@@ -2,7 +2,7 @@ use derive_more::Deref;
 use lunamodel_python::{PyTranslationTarget as PyTT, TranslationTarget, ffi::CapsuleFFI};
 use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, types::PyAnyMethods};
 
-use crate::LUNA_MODEL;
+use crate::{LUNA_MODEL, utils::TypeCheck};
 
 #[repr(transparent)]
 /// A wrapper around a [`TranslationTarget`] that can be converted to and from python with `pyo3`.
@@ -13,6 +13,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyTranslationTarget {
     type Error = PyErr;
 
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
+        obj.check_type("TranslationTarget")?;
         // check if it is the wrapper type or the PyEnvironment type from the crate.
         let capsule: String = if let Some(pye) = obj.getattr("_val").ok() {
             pye.call_method0("_to_capsule")

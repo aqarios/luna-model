@@ -8,7 +8,7 @@ use lunamodel_transform::{
 use pyo3::{
     Bound, CastError, Py, PyAny, PyErr, PyResult, Python,
     exceptions::PyRuntimeError,
-    types::{PyAnyMethods, PyTracebackMethods, PyType},
+    types::{PyAnyMethods, PyType},
 };
 
 use crate::{
