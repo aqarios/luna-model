@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use indexmap::IndexMap;
 use itertools::Either;
 use lunamodel_core::solution::{Assignment, Column};
@@ -223,18 +223,23 @@ impl PySolution {
                 sol.raw_energies.as_mut().map(|ens| ens.push(e));
             }
 
-            environment.vars().iter().for_each(|v| {
+            let sample_vars: HashSet<String> = data
+                .keys()
+                .map(|v| v.name())
+                .collect::<LunaModelResult<_>>()?;
+            for v in environment.vars().iter() {
                 let vname = v.name().unwrap();
                 let vtype = v.vtype().unwrap();
+                if sample_vars.contains(&vname) {
                 match vtype {
                     Vtype::Binary => sol.add_empty_binary(vname),
                     Vtype::Spin => sol.add_empty_spin(vname),
                     Vtype::Integer => sol.add_empty_integer(vname),
                     Vtype::Real => sol.add_empty_real(vname),
-                    // TODO: this should never happen. If it does it will return an error later.
-                    Vtype::InvertedBinary => (),
+                    Vtype::InvertedBinary => return Err(LunaModelError::SampleUnexpectedVariable(format!("cannot set values for inverted binary variables directly. Value is determined based on it's counterpart '{vname}'").into())),
                 }
-            });
+                }
+            }
 
             for (var, value) in data.iter() {
                 let varname = var.name()?;
@@ -297,29 +302,36 @@ impl PySolution {
                     .map(|m| m.m.read_arc().sense)
                     .unwrap_or_default()
             }));
+            sol.timing = timing.map(|t| t.into());
+
             if data.is_empty() {
                 return Ok(sol.into());
             }
 
-            sol.timing = timing.map(|t| t.into());
             sol.counts
                 .append(&mut counts.unwrap_or_else(|| vec![1; data.len()]));
             if let Some(es) = energies {
                 sol.raw_energies = Some(es)
             }
 
-            environment.vars().iter().for_each(|v| {
+            let sample_vars: HashSet<String> = data[0]
+                .keys()
+                .map(|v| v.name())
+                .collect::<LunaModelResult<_>>()?;
+
+            for v in environment.vars().iter() {
                 let vname = v.name().unwrap();
                 let vtype = v.vtype().unwrap();
-                match vtype {
+                if sample_vars.contains(&vname) {
+                    match vtype {
                     Vtype::Binary => sol.add_empty_binary(vname),
                     Vtype::Spin => sol.add_empty_spin(vname),
                     Vtype::Integer => sol.add_empty_integer(vname),
                     Vtype::Real => sol.add_empty_real(vname),
-                    // TODO: this should never happen. If it does it will return an error later.
-                    Vtype::InvertedBinary => (),
+                    Vtype::InvertedBinary => return Err(LunaModelError::SampleUnexpectedVariable(format!("cannot set values for inverted binary variables directly. Value is determined based on it's counterpart '{vname}'").into())),
                 }
-            });
+                }
+            }
 
             let sample_len = data[0].len();
             for sample in data.iter() {

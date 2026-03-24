@@ -99,7 +99,7 @@ impl Display for LunaModelError {
             Decoding(msg) => write!(f, "decoding failed: {}", msg),
             Formatter(msg) => write!(f, "formatting failed: {}", msg),
             DifferentEnvironments => write!(f, "different environments encountered"),
-            UnsupportedOperation(msg) => write!(f, "the operation '{}' is not supported", msg),
+            UnsupportedOperation(msg) => write!(f, "unsupported operation: {}", msg),
             Internal(msg) => write!(f, "internal LunaModel error: '{}'", msg),
             Dtype(msg) => write!(f, "invalid data type: {}", msg),
             Computation(msg) => write!(f, "error during computation: {}", msg),

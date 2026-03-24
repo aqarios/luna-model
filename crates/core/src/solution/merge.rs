@@ -20,7 +20,11 @@ impl Solution {
                     "solutions with different sense cannot be merged.".into(),
                 ));
             }
-            if merged.variable_names().sort() != solution.variable_names().sort() {
+            let mut merged_names = merged.variable_names();
+            merged_names.sort();
+            let mut sol_names = solution.variable_names();
+            sol_names.sort();
+            if merged_names != sol_names {
                 return Err(LunaModelError::UnsupportedOperation(
                     "solutions with different variables cannot be merged.".into(),
                 ));
