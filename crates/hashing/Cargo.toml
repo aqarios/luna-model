@@ -13,4 +13,3 @@ lunamodel-types = { workspace = true }
 
 prost = { workspace = true }
 itertools = { workspace = true }
-hashbrown = { workspace = true }

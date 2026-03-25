@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use indexmap::IndexMap;
 use itertools::Either;
 use lunamodel_error::{LunaModelError, LunaModelResult};

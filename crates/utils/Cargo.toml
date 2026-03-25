@@ -6,6 +6,3 @@ edition.workspace = true
 description.workspace = true
 homepage.workspace = true
 repository.workspace = true
-
-[dependencies]
-hashbrown = { workspace = true }

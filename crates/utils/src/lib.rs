@@ -1,6 +1,6 @@
 use std::hash::Hash;
 
-use hashbrown::HashSet;
+use std::collections::HashSet;
 
 struct UniqueIter<T, I>
 where

@@ -15,6 +15,5 @@ lunamodel-io = { workspace = true, features = ["py"] }
 lunamodel-utils = { workspace = true }
 
 strum_macros = { workspace = true }
-hashbrown = { workspace = true }
 regex = { workspace = true }
 indexmap = { workspace = true }

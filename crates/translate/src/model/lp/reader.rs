@@ -1,4 +1,4 @@
-use hashbrown::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Comparator, Sense};
 

@@ -1,6 +1,6 @@
 use std::ops::{AddAssign, Index, IndexMut, Mul, MulAssign, Neg};
 
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
 
 use crate::traits::Editable;

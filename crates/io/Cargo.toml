@@ -12,7 +12,6 @@ lunamodel-core = { workspace = true }
 lunamodel-error = { workspace = true }
 lunamodel-types = { workspace = true }
 
-hashbrown = { workspace = true }
 indexmap = { workspace = true }
 regex = { workspace = true }
 strum = { workspace = true }

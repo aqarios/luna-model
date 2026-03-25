@@ -40,18 +40,12 @@ impl PyResultView {
 
     #[getter]
     fn constraints(&self) -> Option<HashMap<String, bool>> {
-        // TODO: can we make the hashbrown::HashMap returnable?
-        ResultView::new(&self.sol.s.read_arc(), self.idx)
-            .constraints()
-            .map(|c| c.into_iter().collect())
+        ResultView::new(&self.sol.s.read_arc(), self.idx).constraints()
     }
 
     #[getter]
     fn variable_bounds(&self) -> Option<HashMap<String, bool>> {
-        // TODO: can we make the hashbrown::HashMap returnable?
-        ResultView::new(&self.sol.s.read_arc(), self.idx)
-            .variable_bounds()
-            .map(|v| v.into_iter().collect())
+        ResultView::new(&self.sol.s.read_arc(), self.idx).variable_bounds()
     }
 
     #[getter]

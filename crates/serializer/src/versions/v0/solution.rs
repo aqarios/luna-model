@@ -4,7 +4,7 @@ use crate::{
     encode::{BytesDecodable, BytesEncodable, Decodable},
     utils::u8_to_vtype,
 };
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use indexmap::IndexMap;
 use lunamodel_core::Solution;
 use lunamodel_error::{LunaModelError, LunaModelResult};

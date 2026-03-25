@@ -1,6 +1,6 @@
 use std::{ffi::CStr, sync::Arc};
 
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use lunamodel_core::Model;
 use lunamodel_unwind::*;
 use parking_lot::RwLock;

@@ -24,7 +24,6 @@ repository = "https://github.com/aqaiors/luna-model"
 
 [workspace.dependencies]
 global_counter = "0.2.2"
-hashbrown = "0.16.1"
 nohash = "0.2.0"
 num = "0.4.3"
 num-traits = "0.2.19"

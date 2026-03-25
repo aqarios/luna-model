@@ -4,7 +4,7 @@ use std::{
 };
 
 use global_counter::primitive::exact::CounterU64;
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use indexmap::IndexMap;
 use sqids::Sqids;
 

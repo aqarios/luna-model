@@ -1,4 +1,4 @@
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use lunamodel_core::{
     ArcEnv, ConstraintCollection, Expression, Model,
     ops::{LmAddAssign, LmMulAssign, LmSubAssign},

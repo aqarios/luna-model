@@ -40,7 +40,7 @@ impl CustomFormat<FormatOpt> for Model {
 mod pymodelio {
     use std::fmt::{Display, Formatter};
 
-    use hashbrown::HashMap;
+    use std::collections::HashMap;
     use lunamodel_core::{
         ArcEnv, ConstraintCollection, Expression, Model,
         prelude::{Constraint, HigherOrder, Linear, Quadratic},

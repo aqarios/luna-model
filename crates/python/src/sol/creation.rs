@@ -1,4 +1,4 @@
-use hashbrown::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use indexmap::IndexMap;
 use itertools::Either;
 use lunamodel_core::solution::{Assignment, Column};

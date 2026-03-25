@@ -1,4 +1,4 @@
-use hashbrown::HashSet;
+use std::collections::HashSet;
 use itertools::Itertools;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::VarIdx;

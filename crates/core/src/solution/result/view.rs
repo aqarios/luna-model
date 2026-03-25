@@ -1,7 +1,7 @@
 use std::ops::Index;
 
 use derive_more::Deref;
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use lunamodel_types::Bias;
 
 use crate::solution::Solution;

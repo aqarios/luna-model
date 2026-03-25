@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write, path::PathBuf};
 
-use hashbrown::HashSet;
+use std::collections::HashSet;
 use lunamodel_core::{ArcEnv, ConstraintCollection, Expression, Model, prelude::Bounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Bound, Comparator, VarId, Vtype};

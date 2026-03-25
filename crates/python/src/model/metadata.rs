@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use pyo3::{IntoPyObjectExt, prelude::*, types::PyDict};
 
 use parking_lot::RwLock;

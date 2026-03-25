@@ -14,7 +14,7 @@ mod merge;
 pub mod timing;
 
 pub use col::{Assignment, ColElement, Column};
-use hashbrown::HashMap;
+use std::collections::HashMap;
 use indexmap::IndexMap;
 use lunamodel_types::Sense;
 pub use src::ValueSource;
