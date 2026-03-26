@@ -13,6 +13,7 @@
 # limitations under the License.
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Self
 
 from luna_model._lm import PyConstraintCollection
@@ -190,24 +191,59 @@ class ConstraintCollection:
         """Deserialize into a ConstraintCollection based on the bytes data given an environment."""
         return cls.decode(data, env)
 
-    def __iadd__(self, other: Constraint | tuple[Constraint, str]) -> Self:
+    def __iadd__(
+        self,
+        other: Constraint
+        | tuple[Constraint, str]
+        | ConstraintCollection
+        | tuple[ConstraintCollection, str]
+        | Sequence[Constraint | tuple[Constraint, str]],
+    ) -> Self:
         """Add a constraint using += operator.
 
         Parameters
         ----------
         other : Constraint or tuple[Constraint, str]
-            Either a Constraint or a (Constraint, name) tuple.
+                or ConstraintCollection or tuple[ConstraintCollection, str]
+                or Sequence[Constraint | tuple[Constraint, str]]
+            Either a Constraint, a (Constraint, name) tuple, a ConstraintCollection,
+            a (ConstraintCollection, prefix) tuple or a sequence of either Constraint or
+            (Constraint, str).
+
+            The constraint names of the added Constraint, ConstraintCollection or Sequence have to be different from
+            this collection's constraint names. Otherwise the DuplicateConstraintNameError is
+            raised.
+
 
         Returns
         -------
         Self
             The collection itself for chaining.
+
+        Raises
+        ------
+        DuplicateConstraintNameError
+            If a constraint is added for a name that is already contained in this collection.
+            Or if a ConstraintCollection is added containing a constraint with a name that is
+            already in this collection.
+            Or if a Sequence is added containing a constraint with a name that is
+            already in this collection.
         """
         if isinstance(other, Constraint):
             self._cc.__iadd__(other._c)
+        elif isinstance(other, ConstraintCollection):
+            self._cc.__iadd__(other._cc)
         elif isinstance(other, tuple):
-            constr, name = other
-            self._cc.__iadd__((constr._c, name))
+            first, second = other
+            if isinstance(first, Constraint):
+                self._cc.__iadd__((first._c, second))
+            elif isinstance(first, ConstraintCollection):
+                self._cc.__iadd__((first._cc, second))
+            else:
+                msg = f"type of other '{type(other)}' not supported"
+                raise TypeError(msg)
+        elif isinstance(other, Sequence):
+            self._cc.__iadd__([c._c if isinstance(c, Constraint) else (c[0]._c, c[1]) for c in other])
         else:
             msg = f"type of other '{type(other)}' not supported"
             raise TypeError(msg)

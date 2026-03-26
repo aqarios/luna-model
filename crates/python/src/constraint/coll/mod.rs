@@ -15,6 +15,7 @@ use pyo3::pyclass;
 pub use content::PyConstraintCollectionContent;
 pub use iter::PyConstraintCollectionIterator;
 
+#[derive(Clone, Debug)]
 #[pyclass]
 pub struct PyConstraintCollection {
     pub c: PyConstraintCollectionContent,

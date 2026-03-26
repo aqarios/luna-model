@@ -12,7 +12,7 @@ use pyo3::PyResult;
 
 use crate::PyConstraint;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum PyConstraintCollectionContent {
     Coll(Arc<RwLock<ConstraintCollection>>),
     Model(Arc<RwLock<Model>>),
@@ -91,6 +91,27 @@ impl PyConstraintCollectionContent {
         match self {
             Self::Coll(c) => c.write_arc().add_constraint(constr, name),
             Self::Model(m) => m.write_arc().constraints.add_constraint(constr, name),
+        }
+    }
+
+    pub fn add_collection(&mut self, coll: Self, prefix: Option<String>) -> LunaModelResult<()> {
+        let collection = match coll {
+            Self::Coll(c) => c.read_arc().clone(),
+            Self::Model(m) => m.write_arc().constraints.clone(),
+        };
+        match self {
+            Self::Coll(c) => c.write_arc().add_collection(collection, prefix),
+            Self::Model(m) => m.write_arc().constraints.add_collection(collection, prefix),
+        }
+    }
+
+    pub fn add_many(
+        &mut self,
+        others: impl Iterator<Item = (Constraint, Option<String>)>,
+    ) -> LunaModelResult<()> {
+        match self {
+            Self::Coll(c) => c.write_arc().add_many_constraints(others),
+            Self::Model(m) => m.write_arc().constraints.add_many_constraints(others),
         }
     }
 

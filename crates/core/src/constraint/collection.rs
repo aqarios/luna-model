@@ -57,6 +57,10 @@ impl ConstraintCollection {
         self.data.iter()
     }
 
+    pub fn into_iter(self) -> impl Iterator<Item = (String, Constraint)> {
+        self.data.into_iter()
+    }
+
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (&String, &mut Constraint)> {
         self.data.iter_mut()
     }
@@ -86,6 +90,31 @@ impl ConstraintCollection {
             self.data.insert(name, constr);
             Ok(())
         }
+    }
+
+    pub fn add_many_constraints(
+        &mut self,
+        other: impl Iterator<Item = (Constraint, Option<String>)>,
+    ) -> LunaModelResult<()> {
+        for (constr, name) in other {
+            self.add_constraint(constr, name)?
+        }
+        Ok(())
+    }
+
+    pub fn add_collection(
+        &mut self,
+        other: ConstraintCollection,
+        prefix: Option<String>,
+    ) -> LunaModelResult<()> {
+        for (mut name, constr) in other.into_iter() {
+            match prefix.as_ref() {
+                Some(p) => name = format!("{}{}", p, name),
+                None => (),
+            }
+            self.add_constraint(constr, Some(name))?
+        }
+        Ok(())
     }
 
     pub fn set_constraint(&mut self, key: &str, constr: Constraint) -> LunaModelResult<()> {
