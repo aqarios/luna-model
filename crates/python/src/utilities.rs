@@ -1,6 +1,9 @@
 use lunamodel_core::{ArcEnv, Expression};
 use lunamodel_error::py::PyStartCannotBeInferredError;
-use pyo3::{Bound, PyAny, PyResult, Python, pyfunction, types::PyAnyMethods};
+use pyo3::{
+    Bound, PyAny, PyResult, Python, pyfunction,
+    types::{PyAnyMethods, PyTypeMethods},
+};
 
 use crate::{PyEnvironment, PyExpression, PyVariable, environment::ACTIVE_ENV, utils::OpsOther};
 
@@ -11,7 +14,13 @@ pub fn quicksum(
     iterable: &Bound<PyAny>,
     start: Option<PyExpression>,
 ) -> PyResult<PyExpression> {
-    let items: Vec<_> = iterable.try_iter()?.collect();
+    let typestr = iterable.get_type().name()?.to_string().to_uppercase();
+    let items: Vec<_> = if typestr.contains("ARRAY") {
+        iterable.call_method0("flatten")?.try_iter()?.collect()
+    } else {
+        iterable.try_iter()?.collect()
+    };
+    // let items: Vec<_> = iterable.try_iter()?.collect();
 
     let start: PyResult<PyExpression> = if let Some(s) = start {
         Ok(s)

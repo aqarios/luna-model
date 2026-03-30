@@ -11,7 +11,7 @@ use parking_lot::RwLock;
 use pyo3::pyclass;
 
 #[pyclass]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PyConstraint {
     pub c: Arc<RwLock<Constraint>>,
 }

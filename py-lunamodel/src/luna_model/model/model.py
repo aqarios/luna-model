@@ -31,6 +31,7 @@ from luna_model.errors import TranslationError
 from luna_model.expression.expr import Expression
 from luna_model.model.sense import Sense
 from luna_model.ttarget import TranslationTarget
+from luna_model.variable.matrix import NDLmArray
 from luna_model.variable.var import Variable
 from luna_model.variable.vtype import Vtype
 
@@ -432,6 +433,82 @@ class Model:
         if with_fallback:
             return wrap_var(self._m.add_variable_with_fallback(name=name, vtype=vtype._val, lower=lower, upper=upper))
         return wrap_var(self._m.add_variable(name=name, vtype=vtype._val, lower=lower, upper=upper))
+
+    def add_variables(  # noqa: PLR0913
+        self,
+        name: str,
+        shape: tuple[int, ...] | int,
+        vtype: Vtype = Vtype.BINARY,
+        lower: float | type[Unbounded] | None = None,
+        upper: float | type[Unbounded] | None = None,
+        with_fallback: bool = False,
+        delimiter: str | None = None,
+    ) -> NDLmArray:
+        """Add many variables to the model.
+
+        Creates new variables and adds them to the model's environment. If the variables'
+        base name already exists and ``with_fallback=True``, a unique base name will be generated.
+
+        Parameters
+        ----------
+        name : str
+            The base name of the variables.
+        shape : tuple[int, ...]
+            The shape of the returned variables array.
+        vtype : Vtype, default=Vtype.BINARY
+            The type of the variables (BINARY, SPIN, INTEGER, or REAL).
+        lower : float or Unbounded, optional
+            The lower bound for the variablse. Only applicable for INTEGER and REAL types.
+        upper : float or Unbounded, optional
+            The upper bound for the variables. Only applicable for INTEGER and REAL types.
+        with_fallback : bool, default=False
+            If True and the name exists, a unique fallback base name is generated.
+        delimiter : str, optional
+            A delimiter used for separation of the indicies in the variable name.
+
+        Returns
+        -------
+        NDArray[Variable]
+            The newly created variable array.
+
+        Raises
+        ------
+        VariableExistsError
+            If a variable with the same name already exists and `with_fallback=False`.
+        VariableNameInvalidError
+            If the variable name is invalid.
+        InvalidBoundsError
+            If bounds are invalid or incompatible with the variable type.
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> x = model.add_variables("x", shape=(2))
+        >>> x.shape
+        (2,)
+
+        >>> model = Model()
+        >>> x = model.add_variables("x", shape=(2, 2))
+        >>> x.shape
+        (2, 2)
+
+        Using fallback for duplicate names:
+
+        >>> x = model.add_variables("x", shape=(2, 2, 3), with_fallback=True)
+        >>> x.shape
+        (2, 2, 3)
+        """
+        return NDLmArray(
+            self._m.add_variables(
+                name=name,
+                shape=shape,
+                vtype=vtype._val,
+                lower=lower,
+                upper=upper,
+                with_fallback=with_fallback,
+                delimiter=delimiter,
+            )
+        )
 
     @deprecated("This method is deprecated in favor of the add_variable(..., with_fallback=True) method.")
     def add_variable_with_fallback(

@@ -19,7 +19,7 @@ pub(super) fn ensure_name_valid(name: &str) -> LunaModelResult<()> {
     {
         Err(LunaModelError::VariableNameInvalid(
             name.to_string(),
-            "must only contain alphanumeric characters, '_' or ','".into(),
+            "must only contain alphanumeric characters, '_', ',', ')' or '('".into(),
         ))
     } else {
         Ok(())

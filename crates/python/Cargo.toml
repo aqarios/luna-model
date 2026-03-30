@@ -26,5 +26,3 @@ derive_more = { workspace = true }
 indexmap = { workspace = true }
 itertools = { workspace = true }
 strum_macros = { workspace = true }
-
-# [features]

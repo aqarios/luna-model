@@ -29,7 +29,7 @@ impl PyUnbounded {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum BoundValue {
     Value(f64),
     None,

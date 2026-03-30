@@ -16,6 +16,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Self
 
+import numpy as np
+
 from luna_model._lm import PyConstraintCollection
 from luna_model._utils import wrap_c
 from luna_model.constraint.cmp import Comparator
@@ -23,6 +25,8 @@ from luna_model.constraint.constr import Constraint
 from luna_model.constraint.iter import ConstraintCollectionIter
 
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
     from luna_model.environment.env import Environment
 
 
@@ -197,7 +201,10 @@ class ConstraintCollection:
         | tuple[Constraint, str]
         | ConstraintCollection
         | tuple[ConstraintCollection, str]
-        | Sequence[Constraint | tuple[Constraint, str]],
+        | Sequence[Constraint | tuple[Constraint, str]]
+        | NDArray
+        | tuple[Sequence[Constraint], str]
+        | tuple[NDArray, str],
     ) -> Self:
         """Add a constraint using += operator.
 
@@ -206,9 +213,10 @@ class ConstraintCollection:
         other : Constraint or tuple[Constraint, str]
                 or ConstraintCollection or tuple[ConstraintCollection, str]
                 or Sequence[Constraint | tuple[Constraint, str]]
+                or tuple[Sequence[Constraint], str]
             Either a Constraint, a (Constraint, name) tuple, a ConstraintCollection,
-            a (ConstraintCollection, prefix) tuple or a sequence of either Constraint or
-            (Constraint, str).
+            a (ConstraintCollection, prefix) tuple, a sequence of either Constraint or
+            (Constraint, str) or a (Sequence[Constraint], base_name) tuple.
 
             The constraint names of the added Constraint, ConstraintCollection or Sequence have to be different from
             this collection's constraint names. Otherwise the DuplicateConstraintNameError is
@@ -239,9 +247,15 @@ class ConstraintCollection:
                 self._cc.__iadd__((first._c, second))
             elif isinstance(first, ConstraintCollection):
                 self._cc.__iadd__((first._cc, second))
+            elif isinstance(first, np.ndarray):
+                self._cc.__iadd__((first, second))
+            elif isinstance(first, Sequence):
+                self._cc.__iadd__(([c._c if isinstance(c, Constraint) else c for c in first], second))
             else:
                 msg = f"type of other '{type(other)}' not supported"
                 raise TypeError(msg)
+        elif isinstance(other, np.ndarray):
+            self._cc.__iadd__(other)
         elif isinstance(other, Sequence):
             self._cc.__iadd__([c._c if isinstance(c, Constraint) else (c[0]._c, c[1]) for c in other])
         else:
