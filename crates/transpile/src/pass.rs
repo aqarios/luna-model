@@ -13,7 +13,7 @@ pub trait ReversiblePass: Send + Sync {
     type Artifact: Artifact;
 
     /// Unique identifier for this pass.
-    fn name(&self) -> &str;
+    fn name(&self) -> &'static str;
 
     /// Forward transformation: Model -> TransformedModel + Artifact
     fn forward(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<Self::Artifact>;
@@ -21,6 +21,15 @@ pub trait ReversiblePass: Send + Sync {
     /// Inverse transformation: Solution + Artifact -> BackwardTransformedSolution.
     /// All configuration is encoded in the Artifact itself.
     fn backward(artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution>;
+
+    /// Which pass/analysis keys must be satisfied before this pass can execute?
+    fn requires(&self) -> &'static [&'static str] {
+        &[]
+    }
+
+    fn invalidates(&self) -> &'static [&'static str] {
+        &[]
+    }
 }
 
 /// An analysis pass computes information without transforming the model.
@@ -29,7 +38,15 @@ pub trait AnalysisPass: Send + Sync {
     type Result: Send + Sync + 'static;
 
     /// Unique identifier for this analysis
-    fn name(&self) -> &str;
+    fn name(&self) -> &'static str;
+
+    /// Stable key this analysis writes to in the `AnalysisManager`.
+    fn provides(&self) -> &'static str;
+
+    /// Which pass/analysis keys must be satisfied before this analysis can execute?
+    fn requires(&self) -> &'static [&'static str] {
+        &[]
+    }
 
     /// Compute the analysis result
     fn run(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<Self::Result>;
@@ -39,6 +56,4 @@ pub trait AnalysisPass: Send + Sync {
         &[]
     }
 
-    /// Is this analysis invalidated by the given pass?
-    fn is_invalidated_by(&self, pass_name: &str) -> bool;
 }

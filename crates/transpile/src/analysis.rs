@@ -1,9 +1,4 @@
-use std::{
-    any::Any,
-    collections::{HashMap, HashSet},
-    marker::PhantomData,
-    sync::Arc,
-};
+use std::{any::Any, collections::HashMap, marker::PhantomData, sync::Arc};
 
 use lunamodel_error::LunaModelResult;
 
@@ -26,7 +21,7 @@ impl<T: 'static> AnalysisKey<T> {
 }
 
 /// Type-safe analysis storage (LLVM's AnalysisManager equivalent)
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct AnalysisManager {
     results: HashMap<&'static str, Arc<dyn Any + Send + Sync>>,
 }
@@ -50,15 +45,10 @@ impl AnalysisManager {
         self.results.insert(key.name, Arc::new(value));
     }
 
-    /// Invalidate analyses affected by a transformation pass.
-    /// `invalidates_by_pass["simplify"] = {"sparsity", "row_norms"}`.
-    pub fn invalidate(
-        &mut self,
-        pass_name: &str,
-        invalidates_by_pass: &HashMap<&'static str, HashSet<&'static str>>,
-    ) {
-        if let Some(invalidated) = invalidates_by_pass.get(pass_name) {
-            self.results.retain(|name, _| !invalidated.contains(name));
+    /// Invalidate analysis entries by key.
+    pub fn invalidate_many(&mut self, keys: &[&'static str]) {
+        for key in keys {
+            self.results.remove(key);
         }
     }
 }

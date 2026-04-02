@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    sync::Arc,
-};
+use std::{collections::HashSet, sync::Arc};
 
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
@@ -10,13 +7,16 @@ use crate::{
     analysis::AnalysisManager,
     artifact::ErasedArtifact,
     context::PassContext,
-    pass::ReversiblePass,
+    error::TransformationError,
+    pass::{AnalysisPass, ReversiblePass},
     record::{CompilationRecord, PassEntry},
 };
 
 /// Object-safe erased transform pass used by the pipeline runtime.
 pub trait ErasedTransformPass: Send + Sync {
-    fn name<'a>(&'a self) -> &'a str;
+    fn name(&self) -> &'static str;
+    fn requires(&self) -> &'static [&'static str];
+    fn invalidates(&self) -> &'static [&'static str];
     fn forward_erased(
         &self,
         model: &mut Model,
@@ -29,8 +29,16 @@ impl<P> ErasedTransformPass for P
 where
     P: ReversiblePass + Send + Sync + 'static,
 {
-    fn name<'a>(&'a self) -> &'a str {
+    fn name(&self) -> &'static str {
         self.name()
+    }
+
+    fn requires(&self) -> &'static [&'static str] {
+        self.requires()
+    }
+
+    fn invalidates(&self) -> &'static [&'static str] {
+        self.invalidates()
     }
 
     fn forward_erased(
@@ -45,12 +53,43 @@ where
 
 pub trait ErasedAnalysisPass: Send + Sync {
     fn name(&self) -> &'static str;
+    fn provides(&self) -> &'static str;
+    fn requires(&self) -> &'static [&'static str];
     fn run_erased(
         &self,
         model: &Model,
         ctx: &PassContext,
         analyses: &mut AnalysisManager,
     ) -> LunaModelResult<()>;
+}
+
+impl<P> ErasedAnalysisPass for P
+where
+    P: AnalysisPass + Send + Sync + 'static,
+{
+    fn name(&self) -> &'static str {
+        self.name()
+    }
+
+    fn provides(&self) -> &'static str {
+        self.provides()
+    }
+
+    fn requires(&self) -> &'static [&'static str] {
+        self.requires()
+    }
+
+    fn run_erased(
+        &self,
+        model: &Model,
+        ctx: &PassContext,
+        analyses: &mut AnalysisManager,
+    ) -> LunaModelResult<()> {
+        let value = self.run(model, ctx)?;
+        let key = crate::analysis::AnalysisKey::<P::Result>::new(self.provides());
+        analyses.insert(&key, value);
+        Ok(())
+    }
 }
 
 #[derive(Clone)]
@@ -66,14 +105,95 @@ pub enum PipelineStep {
 // Note: PipelineStep is intentionally Arc-backed so `from_steps(steps.clone())`
 // is cheap and does not require cloning non-cloneable closures or trait objects.
 
+#[derive(Default)]
 pub struct PassManager {
     passes: Vec<PipelineStep>,
     analysis_manager: AnalysisManager,
-    invalidates_by_pass: HashMap<&'static str, HashSet<&'static str>>,
 }
 
 impl PassManager {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn from_steps(steps: Vec<PipelineStep>) -> Self {
+        Self {
+            passes: steps,
+            ..Self::default()
+        }
+    }
+
+    pub fn add_transform<T>(mut self, pass: T) -> Self
+    where
+        T: ErasedTransformPass + 'static,
+    {
+        self.passes.push(PipelineStep::Transform(Arc::new(pass)));
+        self
+    }
+
+    pub fn add_analysis<A>(mut self, pass: A) -> Self
+    where
+        A: ErasedAnalysisPass + 'static,
+    {
+        self.passes.push(PipelineStep::Analysis(Arc::new(pass)));
+        self
+    }
+
+    pub fn add_pipeline(mut self, name: impl Into<String>, passes: Vec<PipelineStep>) -> Self {
+        self.passes.push(PipelineStep::Pipeline {
+            name: name.into(),
+            passes,
+        });
+        self
+    }
+
+    fn validate_requirements(&self) -> LunaModelResult<()> {
+        let mut satisfied: HashSet<&'static str> = HashSet::new();
+        self.validate_steps(&self.passes, &mut satisfied)
+    }
+
+    fn validate_steps(
+        &self,
+        steps: &[PipelineStep],
+        satisfied: &mut HashSet<&'static str>,
+    ) -> LunaModelResult<()> {
+        for step in steps {
+            match step {
+                PipelineStep::Transform(pass) => {
+                    for requirement in pass.requires() {
+                        if !satisfied.contains(requirement) {
+                            return Err(TransformationError::UnsatisfiedRequirement {
+                                pass_name: pass.name(),
+                                requirement,
+                            }
+                            .into());
+                        }
+                    }
+                    satisfied.insert(pass.name());
+                }
+                PipelineStep::Analysis(pass) => {
+                    for requirement in pass.requires() {
+                        if !satisfied.contains(requirement) {
+                            return Err(TransformationError::UnsatisfiedRequirement {
+                                pass_name: pass.name(),
+                                requirement,
+                            }
+                            .into());
+                        }
+                    }
+                    satisfied.insert(pass.name());
+                    satisfied.insert(pass.provides());
+                }
+                PipelineStep::Pipeline { passes, .. } => {
+                    self.validate_steps(passes, satisfied)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
     pub fn run(&mut self, model: &mut Model) -> LunaModelResult<CompilationRecord> {
+        self.validate_requirements()?;
         let mut entries = Vec::new();
         for step in &self.passes {
             match step {
@@ -84,8 +204,7 @@ impl PassManager {
                         pass_name: pass.name().to_string(),
                         artifact,
                     });
-                    self.analysis_manager
-                        .invalidate(pass.name(), &self.invalidates_by_pass);
+                    self.analysis_manager.invalidate_many(pass.invalidates());
                 }
                 PipelineStep::Analysis(pass) => {
                     let analysis_snapshot = self.analysis_manager.clone();
@@ -99,7 +218,6 @@ impl PassManager {
                     let mut sub_manager = PassManager {
                         passes: passes.clone(),
                         analysis_manager: self.analysis_manager.clone(),
-                        invalidates_by_pass: self.invalidates_by_pass.clone(),
                     };
                     let sub_record = sub_manager.run(model)?;
                     entries.push(PassEntry::Pipeline {
