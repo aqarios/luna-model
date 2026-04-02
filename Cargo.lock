@@ -521,6 +521,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "lunamodel-transpile"
+version = "0.5.0"
+dependencies = [
+ "lunamodel-core",
+ "lunamodel-error",
+ "lunamodel-types",
+]
+
+[[package]]
 name = "lunamodel-types"
 version = "0.5.0"
 dependencies = [
