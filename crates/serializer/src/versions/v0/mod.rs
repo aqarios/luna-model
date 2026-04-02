@@ -1,11 +1,12 @@
+mod compilation_record;
 mod constraint;
 mod environment;
 mod expression;
 mod model;
 mod solution;
 mod timing;
-mod compilation_record;
 
+pub use compilation_record::SerCompilationRecord;
 pub use constraint::SerConstraintCollection;
 pub use environment::SerEnvironment;
 pub use expression::SerExpression;
