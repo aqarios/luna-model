@@ -13,7 +13,10 @@ zstd = { workspace = true }
 bitvec = { workspace = true }
 parking_lot = { workspace = true }
 indexmap = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
 
 lunamodel-error = { workspace = true }
 lunamodel-core = { workspace = true }
 lunamodel-types = { workspace = true }
+lunamodel-transpiler = { workspace = true }

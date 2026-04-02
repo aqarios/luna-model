@@ -30,6 +30,10 @@ pub enum PassEntry {
 }
 
 impl CompilationRecord {
+    pub fn entries(&self) -> impl Iterator<Item = &PassEntry> {
+        self.entries.iter()
+    }
+
     /// Execute backwards transformation
     ///
     /// This is a standalone function that doesn't need the original PassManager.
@@ -59,5 +63,11 @@ impl CompilationRecord {
         }
 
         Ok(solution)
+    }
+}
+
+impl From<Vec<PassEntry>> for CompilationRecord {
+    fn from(entries: Vec<PassEntry>) -> Self {
+        Self { entries }
     }
 }

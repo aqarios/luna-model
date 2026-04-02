@@ -422,6 +422,7 @@ dependencies = [
  "prost",
  "pyo3",
  "rand",
+ "strum",
 ]
 
 [[package]]
@@ -479,9 +480,12 @@ dependencies = [
  "indexmap",
  "lunamodel-core",
  "lunamodel-error",
+ "lunamodel-transpiler",
  "lunamodel-types",
  "parking_lot 0.12.5",
  "prost",
+ "strum",
+ "strum_macros",
  "zstd",
 ]
 
@@ -521,7 +525,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lunamodel-transpile"
+name = "lunamodel-transpiler"
 version = "0.5.0"
 dependencies = [
  "lunamodel-core",

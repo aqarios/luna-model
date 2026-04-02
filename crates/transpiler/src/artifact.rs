@@ -7,7 +7,10 @@ use crate::error::TransformationError;
 /// This is serialized alongside the transformed model to enable backwards execution.
 pub trait Artifact: Send + Sync + 'static {
     /// Unique type identifier for this artifact value.
-    fn type_tag(&self) -> &'static str where Self: Sized {
+    fn type_tag(&self) -> &'static str
+    where
+        Self: Sized,
+    {
         Self::static_type_tag()
     }
     /// Unique type identifier for this artifact type.
@@ -31,6 +34,10 @@ pub struct ErasedArtifact {
 }
 
 impl ErasedArtifact {
+    pub fn create(type_tag: String, data: Vec<u8>) -> Self {
+        Self { type_tag, data }
+    }
+
     pub fn new<A: Artifact>(artifact: &A) -> LunaModelResult<Self> {
         Ok(Self {
             type_tag: artifact.type_tag().to_string(),
@@ -51,5 +58,9 @@ impl ErasedArtifact {
 
     pub fn type_tag(&self) -> &str {
         &self.type_tag
+    }
+
+    pub fn data(&self) -> &Vec<u8> {
+        &self.data
     }
 }
