@@ -177,11 +177,11 @@ pub trait Artifact: Send + Sync + 'static {
     /// Unique type identifier for deserialization
     fn type_tag(&self) -> &'static str;
     
-    /// Serialize this artifact
-    fn serialize(&self) -> Result<Vec<u8>>;
+    /// Encode this artifact payload (pass-owned format, e.g. rkyv).
+    fn encode_payload(&self) -> Result<Vec<u8>>;
     
-    /// Deserialize this artifact type
-    fn deserialize(bytes: &[u8]) -> Result<Self> where Self: Sized;
+    /// Decode this artifact payload (pass-owned format, e.g. rkyv).
+    fn decode_payload(bytes: &[u8]) -> Result<Self> where Self: Sized;
 }
 
 /// Type-erased artifact for storage in CompilationRecord
@@ -194,12 +194,12 @@ impl ErasedArtifact {
     pub fn new<A: Artifact>(artifact: &A) -> Result<Self> {
         Ok(Self {
             type_tag: artifact.type_tag().to_string(),
-            data: artifact.serialize()?,
+            data: artifact.encode_payload()?,
         })
     }
     
     pub fn restore<A: Artifact>(&self) -> Result<A> {
-        A::deserialize(&self.data)
+        A::decode_payload(&self.data)
     }
 }
 ```
@@ -220,12 +220,14 @@ impl Artifact for NormalizeBoundsArtifact {
         "lunamodel::normalize_bounds"
     }
     
-    fn serialize(&self) -> Result<Vec<u8>> {
-        Ok(bincode::serialize(self)?)
+    fn encode_payload(&self) -> Result<Vec<u8>> {
+        // Example: use rkyv for pass-owned artifact payloads
+        Ok(rkyv::to_bytes::<rkyv::rancor::Error>(self)?.to_vec())
     }
     
-    fn deserialize(bytes: &[u8]) -> Result<Self> {
-        Ok(bincode::deserialize(bytes)?)
+    fn decode_payload(bytes: &[u8]) -> Result<Self> {
+        let archived = rkyv::access::<ArchivedNormalizeBoundsArtifact, rkyv::rancor::Error>(bytes)?;
+        Ok(rkyv::deserialize::<NormalizeBoundsArtifact, rkyv::rancor::Error>(archived)?)
     }
 }
 ```
@@ -294,17 +296,19 @@ impl CompilationRecord {
         Ok(sol)
     }
     
-    /// Serialize this compilation record
-    pub fn serialize(&self) -> Result<Vec<u8>> {
-        bincode::serialize(self).map_err(Into::into)
-    }
-    
-    /// Deserialize a compilation record
-    pub fn deserialize(bytes: &[u8]) -> Result<Self> {
-        bincode::deserialize(bytes).map_err(Into::into)
-    }
+    // NOTE: user-facing encode/decode is implemented in `lunamodel-serializer`.
+    // `lunamodel-transpile` owns the data model and backwards execution logic.
 }
 ```
+
+### Serialization Boundary (Important)
+
+- `lunamodel-transpile` owns runtime types (`CompilationRecord`, `ErasedArtifact`) and
+  backwards execution (`CompilationRecord::backward`).
+- `lunamodel-serializer` owns user-facing record serialization/deserialization, including
+  versioning and optional compression.
+- Individual passes own artifact payload encoding/decoding (recommended: `rkyv`), because
+  this cannot be generalized across all custom artifact types.
 
 ---
 
@@ -368,7 +372,7 @@ register_backward::<NormalizeBoundsPass>("normalize_bounds");
 register_backward::<SimplifyConstraintsPass>("simplify_constraints");
 
 // Later, after deserialization:
-let record = CompilationRecord::deserialize(&bytes)?;
+let record = lunamodel_serializer::decode_compilation_record(&bytes)?;
 let original_solution = record.backward(solver_solution)?;
 // ✅ Works! No PassManager needed.
 ```
@@ -540,12 +544,13 @@ impl Artifact for PyArtifact {
         "python_artifact"
     }
     
-    fn serialize(&self) -> Result<Vec<u8>> {
-        bincode::serialize(self).map_err(Into::into)
+    fn encode_payload(&self) -> Result<Vec<u8>> {
+        Ok(rkyv::to_bytes::<rkyv::rancor::Error>(self)?.to_vec())
     }
     
-    fn deserialize(bytes: &[u8]) -> Result<Self> {
-        bincode::deserialize(bytes).map_err(Into::into)
+    fn decode_payload(bytes: &[u8]) -> Result<Self> {
+        let archived = rkyv::access::<ArchivedPyArtifact, rkyv::rancor::Error>(bytes)?;
+        Ok(rkyv::deserialize::<PyArtifact, rkyv::rancor::Error>(archived)?)
     }
 }
 
@@ -650,7 +655,7 @@ fn main() -> Result<()> {
     
     // Save transformed model and record
     model.save("transformed.lm")?;
-    let record_bytes = record.serialize()?;
+    let record_bytes = lunamodel_serializer::encode_compilation_record(&record, None, None)?;
     std::fs::write("compilation.record", &record_bytes)?;
     
     // ... solve the transformed model ...
@@ -660,7 +665,7 @@ fn main() -> Result<()> {
     
     // Load the compilation record
     let record_bytes = std::fs::read("compilation.record")?;
-    let record = CompilationRecord::deserialize(&record_bytes)?;
+    let record = lunamodel_serializer::decode_compilation_record(&record_bytes)?;
     
     // Execute backwards (no PassManager needed!)
     let original_solution = record.backward(solver_solution)?;
@@ -743,10 +748,10 @@ class MyArtifact(Artifact):
 
 ```rust
 let record = pipeline.run(&mut model)?;
-let bytes = record.serialize()?;
+let bytes = lunamodel_serializer::encode_compilation_record(&record, None, None)?;
 
 // Later...
-let record = CompilationRecord::deserialize(&bytes)?;
+let record = lunamodel_serializer::decode_compilation_record(&bytes)?;
 record.backward(solution)?;  // ✅ Works!
 ```
 
@@ -958,12 +963,13 @@ impl Artifact for IfElseArtifact {
         "lunamodel::if_else"
     }
     
-    fn serialize(&self) -> Result<Vec<u8>> {
-        bincode::serialize(self).map_err(Into::into)
+    fn encode_payload(&self) -> Result<Vec<u8>> {
+        Ok(rkyv::to_bytes::<rkyv::rancor::Error>(self)?.to_vec())
     }
     
-    fn deserialize(bytes: &[u8]) -> Result<Self> {
-        bincode::deserialize(bytes).map_err(Into::into)
+    fn decode_payload(bytes: &[u8]) -> Result<Self> {
+        let archived = rkyv::access::<ArchivedIfElseArtifact, rkyv::rancor::Error>(bytes)?;
+        Ok(rkyv::deserialize::<IfElseArtifact, rkyv::rancor::Error>(archived)?)
     }
 }
 ```
