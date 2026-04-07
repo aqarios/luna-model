@@ -38,13 +38,13 @@ impl Into<HashMap<String, usize>> for SerVarMapEntry {
 
 #[derive(Message)]
 pub struct SerIntegerToBinaryArtifact {
-    #[prost(string, repeated, tag = 0)]
+    #[prost(string, repeated, tag = "1")]
     varmap_keys: Vec<String>,
-    #[prost(message, repeated, tag = 1)]
+    #[prost(message, repeated, tag = "2")]
     varmap_vals: Vec<SerVarMapEntry>,
-    #[prost(message, repeated, tag = 2)]
+    #[prost(message, repeated, tag = "3")]
     offsetmap_keys: Vec<String>,
-    #[prost(uint64, repeated, tag = 3)]
+    #[prost(uint64, repeated, tag = "4")]
     offsetmap_vals: Vec<u64>,
 }
 
