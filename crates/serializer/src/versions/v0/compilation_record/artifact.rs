@@ -6,9 +6,9 @@ use crate::encode::{BytesDecodable, BytesEncodable};
 
 #[derive(Clone, PartialEq, Message)]
 pub struct SerErasedArtifact {
-    #[prost(string, tag = "0")]
+    #[prost(string, tag = "1")]
     type_tag: String,
-    #[prost(bytes, tag = "1")]
+    #[prost(bytes, tag = "2")]
     data: Vec<u8>,
 }
 

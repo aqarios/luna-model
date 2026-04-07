@@ -32,6 +32,15 @@ pub struct Expression {
 }
 impl Editable for Expression {}
 
+impl Expression {
+    pub fn new(env: ArcEnv) -> Self {
+        Self {
+            env,
+            ..Default::default()
+        }
+    }
+}
+
 impl From<Bias> for Expression {
     fn from(bias: Bias) -> Self {
         Self::with(|e| e.offset = bias)

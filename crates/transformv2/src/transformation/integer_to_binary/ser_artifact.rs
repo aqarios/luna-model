@@ -10,9 +10,9 @@ use super::artifact::IntegerToBinaryArtifact;
 
 #[derive(Message)]
 struct SerVarMapEntry {
-    #[prost(string, repeated, tag = 0)]
+    #[prost(string, repeated, tag = "1")]
     keys: Vec<String>,
-    #[prost(uint64, repeated, tag = 1)]
+    #[prost(uint64, repeated, tag = "2")]
     vals: Vec<u64>,
 }
 

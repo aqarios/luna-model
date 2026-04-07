@@ -6,12 +6,14 @@ use crate::{artifact::ErasedArtifact, registry};
 /// A record of the forward compilation, structured for backwards execution.
 ///
 /// This is the serializable artifact of a full pass pipeline run.
+#[derive(Debug)]
 pub struct CompilationRecord {
     /// The sequence of transformations applied, in forward order
     pub(crate) entries: Vec<PassEntry>,
 }
 
 /// A single entry in the compilation record
+#[derive(Debug)]
 pub enum PassEntry {
     /// A transformation pass with its artifact
     Transform {

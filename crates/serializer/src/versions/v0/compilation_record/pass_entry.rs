@@ -22,11 +22,11 @@ enum PassEntryType {
 
 #[derive(Clone, PartialEq, Message)]
 pub struct SerPassEntry {
-    #[prost(string, tag = "0")]
-    entry_type: String,
     #[prost(string, tag = "1")]
+    entry_type: String,
+    #[prost(string, tag = "2")]
     name: String,
-    #[prost(bytes, optional, tag = "2")]
+    #[prost(bytes, optional, tag = "3")]
     content: Option<Vec<u8>>,
 }
 

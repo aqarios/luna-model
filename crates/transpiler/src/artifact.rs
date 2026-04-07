@@ -28,6 +28,7 @@ pub trait Artifact: Send + Sync + 'static {
 }
 
 /// Type-erased artifact for storage in CompilationRecord
+#[derive(Debug)]
 pub struct ErasedArtifact {
     type_tag: String,
     data: Vec<u8>,

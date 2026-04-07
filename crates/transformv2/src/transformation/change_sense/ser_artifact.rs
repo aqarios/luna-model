@@ -8,7 +8,7 @@ use super::artifact::ChangeSensePassArtifact;
 
 #[derive(Message)]
 pub struct SerChangeSenseArtifact {
-    #[prost(bool, tag = 0)]
+    #[prost(bool, tag = "1")]
     did_change: bool,
 }
 

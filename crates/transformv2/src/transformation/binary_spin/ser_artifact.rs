@@ -11,13 +11,13 @@ use super::artifact::BinarySpinPassArtifact;
 
 #[derive(Message)]
 pub struct SerBinSpinArtifact {
-    #[prost(string, repeated, tag = 0)]
+    #[prost(string, repeated, tag = "1")]
     keys: Vec<String>,
-    #[prost(string, repeated, tag = 1)]
+    #[prost(string, repeated, tag = "2")]
     vals: Vec<String>,
-    #[prost(string, tag = 2)]
+    #[prost(string, tag = "3")]
     old_vtype: String,
-    #[prost(string, tag = 3)]
+    #[prost(string, tag = "4")]
     new_vtype: String,
 }
 

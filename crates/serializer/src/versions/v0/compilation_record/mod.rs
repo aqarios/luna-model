@@ -11,7 +11,7 @@ use crate::encode::Creatable;
 
 #[derive(Clone, PartialEq, Message)]
 pub struct SerCompilationRecord {
-    #[prost(bytes, repeated, tag = "0")]
+    #[prost(bytes, repeated, tag = "1")]
     entries: Vec<Vec<u8>>,
 }
 

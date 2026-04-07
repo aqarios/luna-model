@@ -2,7 +2,7 @@ use std::ops::{Add, Mul};
 
 use lunamodel_core::{Environment, Model, Solution, solution::Column};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{PassContext, ReversiblePass};
+use lunamodel_transpiler::{PassContext, ReversiblePass, register_backward};
 use lunamodel_types::Vtype;
 use sqids::Sqids;
 
@@ -18,7 +18,9 @@ where
     Self: ReversiblePass,
 {
     pub fn new(vtype: Vtype, prefix: Option<String>) -> Self {
-        BinarySpinPass { vtype, prefix }
+        let out = BinarySpinPass { vtype, prefix };
+        register_backward::<BinarySpinPass>(out.name());
+        out
     }
 
     fn fill_artifact(
