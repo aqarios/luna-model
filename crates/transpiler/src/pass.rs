@@ -1,7 +1,7 @@
 use lunamodel_core::{Model, Solution};
 use lunamodel_error::LunaModelResult;
 
-use crate::{artifact::Artifact, context::PassContext};
+use crate::{AnalysisKey, artifact::Artifact, context::PassContext};
 
 /// A reversible transformation pass.
 ///
@@ -37,11 +37,20 @@ pub trait AnalysisPass: Send + Sync {
     /// The type of analysis result this pass produces
     type Result: Send + Sync + 'static;
 
+    const NAME: &'static str;
+    const PROVIDES: &'static str;
+
     /// Unique identifier for this analysis
-    fn name(&self) -> &str;
+    fn name(&self) -> &str {
+        Self::NAME
+    }
 
     /// Stable key this analysis writes to in the `AnalysisManager`.
-    fn provides(&self) -> &str;
+    fn provides(&self) -> &str {
+        Self::PROVIDES
+    }
+
+    fn key<T>() -> AnalysisKey<T>;
 
     /// Which pass/analysis keys must be satisfied before this analysis can execute?
     fn requires(&self) -> &[String] {
@@ -55,5 +64,4 @@ pub trait AnalysisPass: Send + Sync {
     fn required_analyses(&self) -> &[&'static str] {
         &[]
     }
-
 }

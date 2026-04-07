@@ -1,10 +1,10 @@
 use enumset::{EnumSet, EnumSetType};
-use strum_macros::{Display, EnumIter};
+use strum_macros::{Display, EnumIter, EnumString};
 
 use crate::utils::EnumSetFromVec;
 
 /// Enumeration of variables types supported by the optimization system.
-#[derive(Debug, Display, Hash, EnumSetType, EnumIter)]
+#[derive(Debug, Display, Hash, EnumSetType, EnumIter, EnumString)]
 pub enum Vtype {
     /// A binary variable that can take values 0 or 1.
     Binary,

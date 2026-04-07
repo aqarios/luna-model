@@ -1,7 +1,7 @@
 use lunamodel_core::prelude::Constraint;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_unwind::*;
-use numpy::{PyArray1, PyArrayMethods, PyReadonlyArray1};
+use numpy::{PyArray1, PyArrayMethods};
 use pyo3::{FromPyObject, Py, PyAny, PyErr, PyResult, Python, pymethods};
 
 use super::PyConstraintCollection;

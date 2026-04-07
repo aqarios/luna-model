@@ -17,3 +17,6 @@ lunamodel-serializer = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
 global_counter = { workspace = true }
+sqids = { workspace = true }
+prost = { workspace = true }
+num = { workspace = true }

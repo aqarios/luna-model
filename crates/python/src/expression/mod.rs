@@ -8,7 +8,6 @@ mod io;
 mod iteration;
 mod ops;
 mod ser;
-mod np;
 
 use lunamodel_core::prelude::{Expression, Model};
 use parking_lot::RwLock;
