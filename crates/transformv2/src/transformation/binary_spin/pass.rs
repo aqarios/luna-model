@@ -129,12 +129,4 @@ impl ReversiblePass for BinarySpinPass {
 
         Ok(solution)
     }
-
-    fn requires(&self) -> &[String] {
-        &[]
-    }
-
-    fn invalidates(&self) -> &[String] {
-        &[]
-    }
 }
