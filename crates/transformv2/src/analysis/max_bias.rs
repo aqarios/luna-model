@@ -8,13 +8,8 @@ pub struct MaxBias {
     pub val: f64,
 }
 
+#[derive(Default)]
 pub struct MaxBiasAnalysis;
-
-impl MaxBiasAnalysis {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
 
 impl AnalysisPass for MaxBiasAnalysis {
     type Result = MaxBias;
