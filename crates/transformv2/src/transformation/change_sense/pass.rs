@@ -1,7 +1,9 @@
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{PassContext, ReversiblePass};
+use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass};
 use lunamodel_types::Sense;
+
+use crate::analysis::SpecsAnalysis;
 
 use super::artifact::ChangeSensePassArtifact;
 
@@ -14,7 +16,7 @@ impl ChangeSensePass {
     pub fn new(sense: Sense) -> Self {
         ChangeSensePass {
             sense,
-            inval: vec!["specs".into()],
+            inval: vec![SpecsAnalysis::NAME.to_string()],
         }
     }
 }
