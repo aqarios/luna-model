@@ -3,7 +3,7 @@ use lunamodel_core::{
     ops::{LmAddAssign, LmPowAssign},
 };
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass};
+use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass, register_backward};
 use lunamodel_types::Comparator;
 
 use crate::analysis::{MaxBias, MaxBiasAnalysis};
@@ -17,10 +17,12 @@ pub struct EqualityConstraintsToQuadraticPenaltyPass {
 
 impl EqualityConstraintsToQuadraticPenaltyPass {
     pub fn new(penalty_scaling: f64) -> Self {
-        Self {
+        let out = Self {
             penalty_scaling,
             req: vec![MaxBiasAnalysis::NAME.to_string()],
-        }
+        };
+        register_backward::<Self>(out.name());
+        out
     }
 }
 

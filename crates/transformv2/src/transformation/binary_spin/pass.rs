@@ -18,8 +18,8 @@ where
     Self: ReversiblePass,
 {
     pub fn new(vtype: Vtype, prefix: Option<String>) -> Self {
-        let out = BinarySpinPass { vtype, prefix };
-        register_backward::<BinarySpinPass>(out.name());
+        let out = Self { vtype, prefix };
+        register_backward::<Self>(out.name());
         out
     }
 

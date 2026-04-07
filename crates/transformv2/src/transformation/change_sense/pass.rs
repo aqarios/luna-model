@@ -14,11 +14,11 @@ pub struct ChangeSensePass {
 
 impl ChangeSensePass {
     pub fn new(sense: Sense) -> Self {
-        let out = ChangeSensePass {
+        let out = Self {
             sense,
             inval: vec![SpecsAnalysis::NAME.to_string()],
         };
-        register_backward::<ChangeSensePass>(out.name());
+        register_backward::<Self>(out.name());
         out
     }
 }
