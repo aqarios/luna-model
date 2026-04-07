@@ -49,10 +49,6 @@ impl ReversiblePass for ChangeSensePass {
         Ok(solution)
     }
 
-    fn requires(&self) -> &[String] {
-        &[]
-    }
-
     fn invalidates(&self) -> &[String] {
         &self.inval
     }
