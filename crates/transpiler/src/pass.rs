@@ -13,7 +13,7 @@ pub trait ReversiblePass: Send + Sync {
     type Artifact: Artifact;
 
     /// Unique identifier for this pass.
-    fn name(&self) -> &'static str;
+    fn name(&self) -> &str;
 
     /// Forward transformation: Model -> TransformedModel + Artifact
     fn forward(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<Self::Artifact>;
@@ -23,11 +23,11 @@ pub trait ReversiblePass: Send + Sync {
     fn backward(artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution>;
 
     /// Which pass/analysis keys must be satisfied before this pass can execute?
-    fn requires(&self) -> &'static [&'static str] {
+    fn requires(&self) -> &[String] {
         &[]
     }
 
-    fn invalidates(&self) -> &'static [&'static str] {
+    fn invalidates(&self) -> &[String] {
         &[]
     }
 }
@@ -38,13 +38,13 @@ pub trait AnalysisPass: Send + Sync {
     type Result: Send + Sync + 'static;
 
     /// Unique identifier for this analysis
-    fn name(&self) -> &'static str;
+    fn name(&self) -> &str;
 
     /// Stable key this analysis writes to in the `AnalysisManager`.
-    fn provides(&self) -> &'static str;
+    fn provides(&self) -> &str;
 
     /// Which pass/analysis keys must be satisfied before this analysis can execute?
-    fn requires(&self) -> &'static [&'static str] {
+    fn requires(&self) -> &[String] {
         &[]
     }
 

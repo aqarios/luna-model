@@ -14,9 +14,9 @@ use crate::{
 
 /// Object-safe erased transform pass used by the pipeline runtime.
 pub trait ErasedTransformPass: Send + Sync {
-    fn name(&self) -> &'static str;
-    fn requires(&self) -> &'static [&'static str];
-    fn invalidates(&self) -> &'static [&'static str];
+    fn name(&self) -> &str;
+    fn requires(&self) -> &[String];
+    fn invalidates(&self) -> &[String];
     fn forward_erased(
         &self,
         model: &mut Model,
@@ -29,16 +29,16 @@ impl<P> ErasedTransformPass for P
 where
     P: ReversiblePass + Send + Sync + 'static,
 {
-    fn name(&self) -> &'static str {
-        self.name()
+    fn name(&self) -> &str {
+        &self.name()
     }
 
-    fn requires(&self) -> &'static [&'static str] {
-        self.requires()
+    fn requires(&self) -> &[String] {
+        &self.requires()
     }
 
-    fn invalidates(&self) -> &'static [&'static str] {
-        self.invalidates()
+    fn invalidates(&self) -> &[String] {
+        &self.invalidates()
     }
 
     fn forward_erased(
@@ -52,9 +52,9 @@ where
 }
 
 pub trait ErasedAnalysisPass: Send + Sync {
-    fn name(&self) -> &'static str;
-    fn provides(&self) -> &'static str;
-    fn requires(&self) -> &'static [&'static str];
+    fn name(&self) -> &str;
+    fn provides(&self) -> &str;
+    fn requires(&self) -> &[String];
     fn run_erased(
         &self,
         model: &Model,
@@ -67,15 +67,15 @@ impl<P> ErasedAnalysisPass for P
 where
     P: AnalysisPass + Send + Sync + 'static,
 {
-    fn name(&self) -> &'static str {
+    fn name(&self) -> &str {
         self.name()
     }
 
-    fn provides(&self) -> &'static str {
+    fn provides(&self) -> &str {
         self.provides()
     }
 
-    fn requires(&self) -> &'static [&'static str] {
+    fn requires(&self) -> &[String] {
         self.requires()
     }
 
@@ -86,7 +86,7 @@ where
         analyses: &mut AnalysisManager,
     ) -> LunaModelResult<()> {
         let value = self.run(model, ctx)?;
-        let key = crate::analysis::AnalysisKey::<P::Result>::new(self.provides());
+        let key = crate::analysis::AnalysisKey::<P::Result>::new(self.provides().into());
         analyses.insert(&key, value);
         Ok(())
     }
@@ -148,14 +148,14 @@ impl PassManager {
     }
 
     fn validate_requirements(&self) -> LunaModelResult<()> {
-        let mut satisfied: HashSet<&'static str> = HashSet::new();
+        let mut satisfied: HashSet<String> = HashSet::new();
         self.validate_steps(&self.passes, &mut satisfied)
     }
 
     fn validate_steps(
         &self,
         steps: &[PipelineStep],
-        satisfied: &mut HashSet<&'static str>,
+        satisfied: &mut HashSet<String>,
     ) -> LunaModelResult<()> {
         for step in steps {
             match step {
@@ -163,26 +163,26 @@ impl PassManager {
                     for requirement in pass.requires() {
                         if !satisfied.contains(requirement) {
                             return Err(TransformationError::UnsatisfiedRequirement {
-                                pass_name: pass.name(),
-                                requirement,
+                                pass_name: pass.name().to_string(),
+                                requirement: requirement.to_string(),
                             }
                             .into());
                         }
                     }
-                    satisfied.insert(pass.name());
+                    satisfied.insert(pass.name().to_string());
                 }
                 PipelineStep::Analysis(pass) => {
                     for requirement in pass.requires() {
                         if !satisfied.contains(requirement) {
                             return Err(TransformationError::UnsatisfiedRequirement {
-                                pass_name: pass.name(),
-                                requirement,
+                                pass_name: pass.name().to_string(),
+                                requirement: requirement.to_string(),
                             }
                             .into());
                         }
                     }
-                    satisfied.insert(pass.name());
-                    satisfied.insert(pass.provides());
+                    satisfied.insert(pass.name().to_string());
+                    satisfied.insert(pass.provides().to_string());
                 }
                 PipelineStep::Pipeline { passes, .. } => {
                     self.validate_steps(passes, satisfied)?;

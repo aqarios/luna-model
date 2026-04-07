@@ -1,8 +1,8 @@
-# lunamodel-transpile (transform-v2 working name)
+# lunamodel-transpiler
 
-Transformation stack of the LunaModel project.
+Transformation/Transpilation stack of the LunaModel project.
 
-`lunamodel-transpile` is an **internal sub-crate** of the [LunaModel](https://github.com/aqarios/luna-model)
+`lunamodel-transpiler` is an **internal sub-crate** of the [LunaModel](https://github.com/aqarios/luna-model)
 library.
 
 **Important Note**: This crate is **not intended for external usage**. Please refer to the main

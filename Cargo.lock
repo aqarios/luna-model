@@ -511,6 +511,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "lunamodel-transformv2"
+version = "0.5.0"
+dependencies = [
+ "global_counter",
+ "lunamodel-core",
+ "lunamodel-error",
+ "lunamodel-serializer",
+ "lunamodel-transpiler",
+ "lunamodel-types",
+ "strum",
+ "strum_macros",
+]
+
+[[package]]
 name = "lunamodel-translate"
 version = "0.5.0"
 dependencies = [

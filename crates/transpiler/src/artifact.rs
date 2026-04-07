@@ -48,7 +48,7 @@ impl ErasedArtifact {
     pub fn restore<A: Artifact>(&self) -> LunaModelResult<A> {
         if self.type_tag != A::static_type_tag() {
             return Err(TransformationError::ArtifactTypeMismatch {
-                expected: A::static_type_tag(),
+                expected: A::static_type_tag().to_string(),
                 found: self.type_tag.clone(),
             }
             .into());

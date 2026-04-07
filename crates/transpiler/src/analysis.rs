@@ -7,12 +7,12 @@ use crate::error::TransformationError;
 /// Typed key for accessing analysis results.
 /// The type parameter ensures compile-time type safety.
 pub struct AnalysisKey<T: 'static> {
-    name: &'static str,
+    name: String,
     _marker: PhantomData<fn() -> T>,
 }
 
 impl<T: 'static> AnalysisKey<T> {
-    pub const fn new(name: &'static str) -> Self {
+    pub const fn new(name: String) -> Self {
         Self {
             name,
             _marker: PhantomData,
@@ -23,30 +23,30 @@ impl<T: 'static> AnalysisKey<T> {
 /// Type-safe analysis storage (LLVM's AnalysisManager equivalent)
 #[derive(Clone, Default)]
 pub struct AnalysisManager {
-    results: HashMap<&'static str, Arc<dyn Any + Send + Sync>>,
+    results: HashMap<String, Arc<dyn Any + Send + Sync>>,
 }
 
 impl AnalysisManager {
     /// Get an analysis result (returns None if not computed)
     pub fn get<T: Send + Sync + 'static>(&self, key: &AnalysisKey<T>) -> Option<&T> {
         self.results
-            .get(key.name)
+            .get(&key.name)
             .and_then(|boxed| boxed.downcast_ref::<T>())
     }
 
     /// Get an analysis result (error if not available)
     pub fn require<T: Send + Sync + 'static>(&self, key: &AnalysisKey<T>) -> LunaModelResult<&T> {
         self.get(key)
-            .ok_or_else(|| TransformationError::MissingAnalysis { name: key.name }.into())
+            .ok_or_else(|| TransformationError::MissingAnalysis { name: key.name.clone() }.into())
     }
 
     /// Store an analysis result
     pub fn insert<T: Send + Sync + 'static>(&mut self, key: &AnalysisKey<T>, value: T) {
-        self.results.insert(key.name, Arc::new(value));
+        self.results.insert(key.name.clone(), Arc::new(value));
     }
 
     /// Invalidate analysis entries by key.
-    pub fn invalidate_many(&mut self, keys: &[&'static str]) {
+    pub fn invalidate_many(&mut self, keys: &[String]) {
         for key in keys {
             self.results.remove(key);
         }

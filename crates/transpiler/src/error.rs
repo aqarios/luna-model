@@ -1,14 +1,18 @@
 use lunamodel_error::{ErrString, LunaModelError};
 
 pub enum TransformationError {
-    MissingAnalysis { name: &'static str },
-    UnsatisfiedRequirement {
-        pass_name: &'static str,
-        requirement: &'static str,
+    MissingAnalysis {
+        name: String,
     },
-    UnregisteredPass { name: String },
+    UnsatisfiedRequirement {
+        pass_name: String,
+        requirement: String,
+    },
+    UnregisteredPass {
+        name: String,
+    },
     ArtifactTypeMismatch {
-        expected: &'static str,
+        expected: String,
         found: String,
     },
 }
@@ -20,7 +24,9 @@ impl Into<ErrString> for TransformationError {
             Self::UnsatisfiedRequirement {
                 pass_name,
                 requirement,
-            } => format!("pass '{pass_name}' requires '{requirement}' to be satisfied first").into(),
+            } => {
+                format!("pass '{pass_name}' requires '{requirement}' to be satisfied first").into()
+            }
             Self::UnregisteredPass { name } => {
                 format!("unregistered pass for backwards '{name}'").into()
             }
