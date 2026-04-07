@@ -24,9 +24,11 @@ enum PassEntryType {
 pub struct SerPassEntry {
     #[prost(string, tag = "1")]
     entry_type: String,
-    #[prost(string, tag = "2")]
+    #[prost(string, optional, tag = "2")]
+    id: Option<String>,
+    #[prost(string, tag = "3")]
     name: String,
-    #[prost(bytes, optional, tag = "3")]
+    #[prost(bytes, optional, tag = "4")]
     content: Option<Vec<u8>>,
 }
 
@@ -40,22 +42,25 @@ impl From<&PassEntry> for SerPassEntry {
     fn from(value: &PassEntry) -> Self {
         match value {
             PassEntry::Transform {
+                pass_id,
                 pass_name,
                 artifact,
             } => Self {
                 entry_type: PassEntryType::T.to_string(),
+                id: Some(pass_id.to_string()),
                 name: pass_name.to_string(),
                 content: Some(SerErasedArtifact::from(artifact).encode_to_bytes()),
             },
             PassEntry::Analysis { pass_name } => Self {
                 entry_type: PassEntryType::A.to_string(),
                 name: pass_name.to_string(),
-                content: None,
+                ..Default::default()
             },
             PassEntry::Pipeline { name, record } => Self {
                 entry_type: PassEntryType::P.to_string(),
                 name: name.into(),
                 content: Some(SerCompilationRecord::new(record.as_ref()).encode_to_bytes()),
+                ..Default::default()
             },
         }
     }
@@ -66,6 +71,7 @@ impl SerPassEntry {
         Ok(match PassEntryType::from_str(&self.entry_type)? {
             PassEntryType::T => PassEntry::Transform {
                 pass_name: self.name.clone(),
+                pass_id: self.id.as_ref().expect("id was not serialized").to_string(),
                 artifact: SerErasedArtifact::decode_from_bytes(
                     self.content
                         .as_ref()

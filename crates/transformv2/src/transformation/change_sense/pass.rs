@@ -1,6 +1,6 @@
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass, register_backward};
+use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass};
 use lunamodel_types::Sense;
 
 use crate::analysis::SpecsAnalysis;
@@ -14,17 +14,17 @@ pub struct ChangeSensePass {
 
 impl ChangeSensePass {
     pub fn new(sense: Sense) -> Self {
-        let out = Self {
+        Self {
             sense,
             inval: vec![SpecsAnalysis::NAME.to_string()],
-        };
-        register_backward::<Self>(out.name());
-        out
+        }
     }
 }
 
 impl ReversiblePass for ChangeSensePass {
     type Artifact = ChangeSensePassArtifact;
+
+    const ID: &'static str = "lunamodel::change-sense";
 
     fn name(&self) -> &str {
         "change-sense"

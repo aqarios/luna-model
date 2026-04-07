@@ -49,12 +49,12 @@ impl BackwardRegistry {
 /// Global singleton registry
 static BACKWARD_REGISTRY: OnceLock<Mutex<BackwardRegistry>> = OnceLock::new();
 
-pub fn register_backward<P: ReversiblePass>(pass_name: &str) {
+pub fn register_backward<P: ReversiblePass>() {
     BACKWARD_REGISTRY
         .get_or_init(|| Mutex::new(BackwardRegistry::default()))
         .lock()
         .unwrap()
-        .register::<P>(pass_name);
+        .register::<P>(P::ID);
 }
 
 pub fn apply(

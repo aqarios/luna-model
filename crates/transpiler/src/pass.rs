@@ -13,6 +13,9 @@ pub trait ReversiblePass: Send + Sync {
     type Artifact: Artifact;
 
     /// Unique identifier for this pass.
+    const ID: &'static str;
+
+    /// Name for this pass.
     fn name(&self) -> &str;
 
     /// Forward transformation: Model -> TransformedModel + Artifact

@@ -11,6 +11,8 @@ pub struct GeToLeConstraintsPass;
 impl ReversiblePass for GeToLeConstraintsPass {
     type Artifact = GTLCArtifact;
 
+    const ID: &'static str = "lunamodel::ge-to-le-constraints";
+
     fn name(&self) -> &str {
         "ge-to-le-constraints"
     }

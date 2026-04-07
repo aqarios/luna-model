@@ -14,6 +14,7 @@ use crate::{
 
 /// Object-safe erased transform pass used by the pipeline runtime.
 pub trait ErasedTransformPass: Send + Sync {
+    fn id(&self) -> &str;
     fn name(&self) -> &str;
     fn requires(&self) -> &[String];
     fn invalidates(&self) -> &[String];
@@ -29,6 +30,10 @@ impl<P> ErasedTransformPass for P
 where
     P: ReversiblePass + Send + Sync + 'static,
 {
+    fn id(&self) -> &str {
+        P::ID
+    }
+
     fn name(&self) -> &str {
         &self.name()
     }
@@ -201,6 +206,7 @@ impl PassManager {
                     let ctx = PassContext::new(&self.analysis_manager);
                     let artifact = pass.forward_erased(model, &ctx)?;
                     entries.push(PassEntry::Transform {
+                        pass_id: pass.id().to_string(),
                         pass_name: pass.name().to_string(),
                         artifact,
                     });

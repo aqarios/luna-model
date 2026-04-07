@@ -43,6 +43,8 @@ impl IfElsePass {
 impl ReversiblePass for IfElsePass {
     type Artifact = IfElseArtifact;
 
+    const ID: &'static str = "lunamodel::if-else";
+
     fn name(&self) -> &str {
         &self.name
     }

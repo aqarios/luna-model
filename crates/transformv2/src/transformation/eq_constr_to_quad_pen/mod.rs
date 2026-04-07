@@ -12,7 +12,7 @@ mod tests {
     };
     use lunamodel_error::LunaModelResult;
     use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
-    use lunamodel_transpiler::{CompilationRecord, PassManager};
+    use lunamodel_transpiler::{CompilationRecord, PassManager, register_backward};
     use lunamodel_types::{Comparator, Sense, Vtype};
 
     use crate::{
@@ -21,6 +21,8 @@ mod tests {
 
     #[test]
     fn roundtrip_equality_constraints_to_quadratic_penalty_pass() -> LunaModelResult<()> {
+        register_backward::<EqualityConstraintsToQuadraticPenaltyPass>();
+
         let mut model = Model::default();
         let x = model.add_var("i0", Vtype::Integer, None)?;
         let y = model.add_var("i1", Vtype::Integer, None)?;

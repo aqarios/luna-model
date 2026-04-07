@@ -22,6 +22,8 @@ impl Default for LeToEqConstraintsPass {
 impl ReversiblePass for LeToEqConstraintsPass {
     type Artifact = LeToEqConstraintsArtifact;
 
+    const ID: &'static str = "lunamodel::le-to-eq-constraints";
+
     fn name(&self) -> &str {
         "le-to-eq-constraints"
     }

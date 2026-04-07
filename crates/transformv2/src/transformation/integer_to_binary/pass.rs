@@ -13,6 +13,8 @@ pub struct IntegerToBinaryPass;
 impl ReversiblePass for IntegerToBinaryPass {
     type Artifact = IntegerToBinaryArtifact;
 
+    const ID: &'static str = "lunamodel::integer-to-binary";
+
     fn name(&self) -> &str {
         "integer-to-binary"
     }

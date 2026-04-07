@@ -9,13 +9,15 @@ mod tests {
     use lunamodel_core::{Model, Solution, ops::LmAddAssign, prelude::ContentEquality};
     use lunamodel_error::LunaModelResult;
     use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
-    use lunamodel_transpiler::{CompilationRecord, PassManager};
+    use lunamodel_transpiler::{CompilationRecord, PassManager, register_backward};
     use lunamodel_types::Vtype;
 
     use crate::transformation::BinarySpinPass;
 
     #[test]
     fn roundtrip_binary_spin_pass_bin() -> LunaModelResult<()> {
+        register_backward::<BinarySpinPass>();
+
         let mut model = Model::default();
         let x = model.add_var("b0", Vtype::Binary, None)?;
         let y = model.add_var("b1", Vtype::Binary, None)?;

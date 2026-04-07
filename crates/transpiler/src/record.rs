@@ -17,6 +17,7 @@ pub struct CompilationRecord {
 pub enum PassEntry {
     /// A transformation pass with its artifact
     Transform {
+        pass_id: String,
         pass_name: String,
         artifact: ErasedArtifact,
     },
@@ -45,11 +46,10 @@ impl CompilationRecord {
         for entry in self.entries.iter().rev() {
             solution = match entry {
                 PassEntry::Transform {
-                    pass_name,
-                    artifact,
+                    pass_id, artifact, ..
                 } => {
                     // Look up the backwards function and apply it
-                    registry::apply(pass_name, artifact, solution)?
+                    registry::apply(pass_id, artifact, solution)?
                 }
 
                 PassEntry::Analysis { .. } => {
