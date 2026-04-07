@@ -42,18 +42,13 @@ mod tests {
         let recovered: CompilationRecord =
             blob.as_slice().unversionize().decompress()?.decode(())?;
 
-        dbg!(&model.environment);
-
         let mut solution = Solution::default();
         solution.add_binary("i0_b0".into(), vec![1.0, 0.0])?;
         solution.add_binary("i0_b1".into(), vec![0.0, 1.0])?;
         solution.counts = vec![1, 1];
 
-        eprintln!("a");
         let back_direct = cr.backward(solution.clone())?;
-        eprintln!("b");
         let back_recovered = recovered.backward(solution.clone())?;
-        eprintln!("c");
 
         assert!(back_direct.equal_contents(&back_recovered));
 
