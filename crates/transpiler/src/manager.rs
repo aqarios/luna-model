@@ -8,7 +8,7 @@ use crate::{
     context::PassContext,
     erased::{ErasedAnalysisPass, ErasedControlFlowPass, ErasedTransformPass},
     error::TransformationError,
-    ir::TransformationOutput,
+    output::TransformationOutput,
     record::{PassEntry, TransformationRecord},
 };
 
@@ -139,8 +139,13 @@ impl PassManager {
 
     pub fn run(&self, mut model: Model) -> LunaModelResult<TransformationOutput> {
         self.validate_requirements()?;
-        let record = execute_steps(&mut model, &self.passes, &mut AnalysisManager::default())?;
-        Ok(TransformationOutput { record, model })
+        let mut analysis = AnalysisManager::default();
+        let record = execute_steps(&mut model, &self.passes, &mut analysis)?;
+        Ok(TransformationOutput {
+            record,
+            model,
+            analysis,
+        })
     }
 }
 

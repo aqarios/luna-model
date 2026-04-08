@@ -20,7 +20,7 @@ impl<T: 'static> AnalysisKey<T> {
     }
 }
 
-/// Type-safe analysis storage (LLVM's AnalysisManager equivalent)
+/// Type-safe analysis storage
 #[derive(Clone, Default)]
 pub struct AnalysisManager {
     results: HashMap<String, Arc<dyn Any + Send + Sync>>,
@@ -36,8 +36,12 @@ impl AnalysisManager {
 
     /// Get an analysis result (error if not available)
     pub fn require<T: Send + Sync + 'static>(&self, key: &AnalysisKey<T>) -> LunaModelResult<&T> {
-        self.get(key)
-            .ok_or_else(|| TransformationError::MissingAnalysis { name: key.name.clone() }.into())
+        self.get(key).ok_or_else(|| {
+            TransformationError::MissingAnalysis {
+                name: key.name.clone(),
+            }
+            .into()
+        })
     }
 
     /// Store an analysis result

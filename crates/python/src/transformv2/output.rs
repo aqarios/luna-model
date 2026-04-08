@@ -2,7 +2,7 @@ use lunamodel_transpiler::TransformationOutput;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pyclass, pymethods};
 
-use crate::{PyModel, PySolution, transformv2::record::PyTransformationRecord};
+use crate::{PyModel, PySolution, transformv2::{analysis::PyAnalysisManager, record::PyTransformationRecord}};
 
 #[pyclass]
 #[repr(C)]
@@ -34,7 +34,13 @@ impl PyTransformationOutput {
         self.to.model.clone().into()
     }
 
+    #[getter]
     fn record(&self) -> PyTransformationRecord {
         self.to.record.clone().into()
+    }
+
+    #[getter]
+    fn analysis(&self) -> PyAnalysisManager {
+        self.to.analysis.clone().into()
     }
 }
