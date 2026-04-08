@@ -9,7 +9,7 @@ use crate::{
     erased::{ErasedAnalysisPass, ErasedControlFlowPass, ErasedTransformPass},
     error::TransformationError,
     ir::TransformationOutput,
-    record::{TransformationRecord, PassEntry},
+    record::{PassEntry, TransformationRecord},
 };
 
 #[derive(Clone)]
@@ -177,14 +177,14 @@ fn execute_steps(
                 entries.push(PassEntry::ControlFlow {
                     name: plan.pipeline.name,
                     pass_name: pass.name().to_string(),
-                    record: Box::new(sub_record),
+                    record: sub_record,
                 });
             }
             PipelineStep::Pipeline { name, passes } => {
                 let sub_record = execute_steps(model, passes, analysis_manager)?;
                 entries.push(PassEntry::Pipeline {
                     name: name.clone(),
-                    record: Box::new(sub_record),
+                    record: sub_record,
                 });
             }
         }

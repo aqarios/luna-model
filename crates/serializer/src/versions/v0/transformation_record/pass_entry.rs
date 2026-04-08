@@ -61,7 +61,7 @@ impl From<&PassEntry> for SerPassEntry {
             PassEntry::Pipeline { name, record } => Self {
                 entry_type: PassEntryType::P.to_string(),
                 name: name.into(),
-                content: Some(SerTransformationRecord::new(record.as_ref()).encode_to_bytes()),
+                content: Some(SerTransformationRecord::new(record).encode_to_bytes()),
                 ..Default::default()
             },
             PassEntry::ControlFlow {
@@ -72,7 +72,7 @@ impl From<&PassEntry> for SerPassEntry {
                 entry_type: PassEntryType::CF.to_string(),
                 id: Some(pass_name.to_string()),
                 name: name.into(),
-                content: Some(SerTransformationRecord::new(record.as_ref()).encode_to_bytes()),
+                content: Some(SerTransformationRecord::new(record).encode_to_bytes()),
                 ..Default::default()
             },
         }
@@ -98,13 +98,13 @@ impl SerPassEntry {
             },
             PassEntryType::P => PassEntry::Pipeline {
                 name: self.name.clone(),
-                record: Box::new(SerTransformationRecord::decode_from_bytes(
+                record: SerTransformationRecord::decode_from_bytes(
                     self.content
                         .as_ref()
                         .expect("record was not serialized")
                         .as_slice(),
                     (),
-                )?),
+                )?,
             },
             PassEntryType::CF => PassEntry::ControlFlow {
                 pass_name: self.name.clone(),
@@ -113,13 +113,13 @@ impl SerPassEntry {
                     .as_ref()
                     .expect("name was not serialized")
                     .to_string(),
-                record: Box::new(SerTransformationRecord::decode_from_bytes(
+                record: SerTransformationRecord::decode_from_bytes(
                     self.content
                         .as_ref()
                         .expect("record was not serialized")
                         .as_slice(),
                     (),
-                )?),
+                )?,
             },
         })
     }

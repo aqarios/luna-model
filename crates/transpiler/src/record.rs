@@ -28,14 +28,14 @@ pub enum PassEntry {
     /// A nested sub-pipeline
     Pipeline {
         name: String,
-        record: Box<TransformationRecord>,
+        record: TransformationRecord,
     },
 
     /// A nested sub-pipeline originating from a ControlFlow
     ControlFlow {
         pass_name: String,
         name: String,
-        record: Box<TransformationRecord>,
+        record: TransformationRecord,
     },
 }
 
