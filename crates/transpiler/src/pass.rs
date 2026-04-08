@@ -30,6 +30,7 @@ pub trait ReversiblePass: Send + Sync {
         &[]
     }
 
+    /// Which pass/analysis keys are invalidated after this pass was executed.
     fn invalidates(&self) -> &[String] {
         &[]
     }

@@ -7,7 +7,7 @@ use strum_macros::{Display, EnumString};
 
 use crate::{
     encode::{BytesDecodable, BytesEncodable, Creatable},
-    versions::v0::compilation_record::{SerCompilationRecord, artifact::SerErasedArtifact},
+    versions::v0::transformation_record::{SerTransformationRecord, artifact::SerErasedArtifact},
 };
 
 #[derive(EnumString, Display)]
@@ -18,6 +18,8 @@ enum PassEntryType {
     A,
     #[strum(to_string = "PassEntry::Pipeline")]
     P,
+    #[strum(to_string = "PassEntry::ControlFlow")]
+    CF,
 }
 
 #[derive(Clone, PartialEq, Message)]
@@ -59,7 +61,18 @@ impl From<&PassEntry> for SerPassEntry {
             PassEntry::Pipeline { name, record } => Self {
                 entry_type: PassEntryType::P.to_string(),
                 name: name.into(),
-                content: Some(SerCompilationRecord::new(record.as_ref()).encode_to_bytes()),
+                content: Some(SerTransformationRecord::new(record.as_ref()).encode_to_bytes()),
+                ..Default::default()
+            },
+            PassEntry::ControlFlow {
+                pass_name,
+                name,
+                record,
+            } => Self {
+                entry_type: PassEntryType::CF.to_string(),
+                id: Some(pass_name.to_string()),
+                name: name.into(),
+                content: Some(SerTransformationRecord::new(record.as_ref()).encode_to_bytes()),
                 ..Default::default()
             },
         }
@@ -85,7 +98,22 @@ impl SerPassEntry {
             },
             PassEntryType::P => PassEntry::Pipeline {
                 name: self.name.clone(),
-                record: Box::new(SerCompilationRecord::decode_from_bytes(
+                record: Box::new(SerTransformationRecord::decode_from_bytes(
+                    self.content
+                        .as_ref()
+                        .expect("record was not serialized")
+                        .as_slice(),
+                    (),
+                )?),
+            },
+            PassEntryType::CF => PassEntry::ControlFlow {
+                pass_name: self.name.clone(),
+                name: self
+                    .id
+                    .as_ref()
+                    .expect("name was not serialized")
+                    .to_string(),
+                record: Box::new(SerTransformationRecord::decode_from_bytes(
                     self.content
                         .as_ref()
                         .expect("record was not serialized")

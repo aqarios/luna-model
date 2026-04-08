@@ -1,6 +1,6 @@
 mod ifelse;
 
-pub mod transformation;
 pub mod analysis;
+pub mod transformation;
 
 pub use ifelse::IfElsePass;

@@ -6,14 +6,14 @@ use crate::{artifact::ErasedArtifact, registry};
 /// A record of the forward compilation, structured for backwards execution.
 ///
 /// This is the serializable artifact of a full pass pipeline run.
-#[derive(Debug)]
-pub struct CompilationRecord {
+#[derive(Debug, Clone)]
+pub struct TransformationRecord {
     /// The sequence of transformations applied, in forward order
     pub(crate) entries: Vec<PassEntry>,
 }
 
 /// A single entry in the compilation record
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PassEntry {
     /// A transformation pass with its artifact
     Transform {
@@ -28,11 +28,18 @@ pub enum PassEntry {
     /// A nested sub-pipeline
     Pipeline {
         name: String,
-        record: Box<CompilationRecord>,
+        record: Box<TransformationRecord>,
+    },
+
+    /// A nested sub-pipeline originating from a ControlFlow
+    ControlFlow {
+        pass_name: String,
+        name: String,
+        record: Box<TransformationRecord>,
     },
 }
 
-impl CompilationRecord {
+impl TransformationRecord {
     pub fn entries(&self) -> impl Iterator<Item = &PassEntry> {
         self.entries.iter()
     }
@@ -61,6 +68,10 @@ impl CompilationRecord {
                     // Recursively apply backwards through sub-pipeline
                     record.backward(solution)?
                 }
+                PassEntry::ControlFlow { record, .. } => {
+                    // Recursively apply backwards through sub-pipeline
+                    record.backward(solution)?
+                }
             };
         }
 
@@ -68,7 +79,7 @@ impl CompilationRecord {
     }
 }
 
-impl From<Vec<PassEntry>> for CompilationRecord {
+impl From<Vec<PassEntry>> for TransformationRecord {
     fn from(entries: Vec<PassEntry>) -> Self {
         Self { entries }
     }

@@ -7,7 +7,7 @@ use crate::error::TransformationError;
 /// Typed key for accessing analysis results.
 /// The type parameter ensures compile-time type safety.
 pub struct AnalysisKey<T: 'static> {
-    name: String,
+    pub(crate) name: String,
     _marker: PhantomData<fn() -> T>,
 }
 
