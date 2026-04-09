@@ -5,7 +5,7 @@ use lunamodel_types::Comparator;
 
 use super::artifact::GeToLeConstraintsArtifact as GTLCArtifact;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct GeToLeConstraintsPass;
 
 impl ReversiblePass for GeToLeConstraintsPass {

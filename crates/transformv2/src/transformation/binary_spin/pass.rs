@@ -8,9 +8,20 @@ use sqids::Sqids;
 
 use super::artifact::BinarySpinPassArtifact;
 
+#[derive(Clone)]
 pub struct BinarySpinPass {
     vtype: Vtype,
     prefix: Option<String>,
+}
+
+impl BinarySpinPass {
+    pub fn vtype(&self) -> Vtype {
+        self.vtype
+    }
+
+    pub fn prefix(&self) -> Option<String> {
+        self.prefix.clone()
+    }
 }
 
 impl BinarySpinPass

@@ -7,6 +7,7 @@ use crate::analysis::SpecsAnalysis;
 
 use super::artifact::ChangeSensePassArtifact;
 
+#[derive(Clone)]
 pub struct ChangeSensePass {
     sense: Sense,
     invalidates: Vec<String>,
@@ -18,6 +19,9 @@ impl ChangeSensePass {
             sense,
             invalidates: vec![SpecsAnalysis::NAME.to_string()],
         }
+    }
+    pub fn sense(&self) -> Sense {
+        self.sense
     }
 }
 

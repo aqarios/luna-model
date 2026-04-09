@@ -10,6 +10,7 @@ use crate::analysis::{MaxBias, MaxBiasAnalysis};
 
 use super::artifact::EqualityConstraintsToQuadraticPenaltyArtifact as ECTQPArtifact;
 
+#[derive(Clone)]
 pub struct EqualityConstraintsToQuadraticPenaltyPass {
     penalty_scaling: f64,
     req: Vec<String>,

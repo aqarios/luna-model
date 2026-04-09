@@ -93,6 +93,11 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transformv2::builtin::analysis::PySpecsAnalysis>()?;
     // builtin transformation
     m.add_class::<transformv2::builtin::transformation::PyIntegerToBinaryPass>()?;
+    m.add_class::<transformv2::builtin::transformation::PyBinarySpinPass>()?;
+    m.add_class::<transformv2::builtin::transformation::PyChangeSensePass>()?;
+    m.add_class::<transformv2::builtin::transformation::PyEqualityConstraintsToQuadraticPenaltyPass>()?;
+    m.add_class::<transformv2::builtin::transformation::PyGeToLeConstraintsPass>()?;
+    m.add_class::<transformv2::builtin::transformation::PyLeToEqConstraintsPass>()?;
 
     transformv2::register_backward();
 

@@ -8,14 +8,14 @@ pub struct MinConstraintValues {
     pub vals: HashMap<String, f64>,
 }
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct MinValueInConstraintAnalysis;
 
 impl AnalysisPass for MinValueInConstraintAnalysis {
     type Result = MinConstraintValues;
 
     const NAME: &'static str = "min-value-for-constraint";
-    const PROVIDES: &'static str = "min-value-for-constraint";
+    const PROVIDES: &'static str = "lunamodel::min-value-for-constraint";
 
     fn key<MinConstraintValues>() -> AnalysisKey<MinConstraintValues> {
         AnalysisKey::new(Self::PROVIDES.to_string())

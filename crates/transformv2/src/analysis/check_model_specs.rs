@@ -3,6 +3,7 @@ use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext};
 use lunamodel_types::Specs;
 
+#[derive(Clone)]
 pub struct CheckModelSpecsAnalysis {
     specs: Specs,
 }
@@ -19,7 +20,7 @@ impl AnalysisPass for CheckModelSpecsAnalysis {
     type Result = ();
 
     const NAME: &'static str = "check-specs";
-    const PROVIDES: &'static str = "check-specs";
+    const PROVIDES: &'static str = "lunamodel::check-specs";
 
     fn key<Nothing>() -> AnalysisKey<Nothing> {
         AnalysisKey::new(Self::PROVIDES.to_string())

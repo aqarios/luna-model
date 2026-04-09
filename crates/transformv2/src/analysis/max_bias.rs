@@ -8,14 +8,14 @@ pub struct MaxBias {
     pub val: f64,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct MaxBiasAnalysis;
 
 impl AnalysisPass for MaxBiasAnalysis {
     type Result = MaxBias;
 
     const NAME: &'static str = "max-bias";
-    const PROVIDES: &'static str = "max-bias";
+    const PROVIDES: &'static str = "lunamodel::max-bias";
 
     fn key<MaxBias>() -> AnalysisKey<MaxBias> {
         AnalysisKey::new(Self::PROVIDES.to_string())

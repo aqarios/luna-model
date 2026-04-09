@@ -7,6 +7,7 @@ use crate::analysis::{MinConstraintValues, MinValueInConstraintAnalysis};
 
 use super::artifact::LeToEqConstraintsArtifact;
 
+#[derive(Clone)]
 pub struct LeToEqConstraintsPass {
     req: Vec<String>,
 }
