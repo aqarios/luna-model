@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use lunamodel_core::{Model, Solution};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_io::sol;
 use lunamodel_transpiler::{PassContext, ReversiblePass};
 use pyo3::{
     Py, PyAny, PyErr, Python,

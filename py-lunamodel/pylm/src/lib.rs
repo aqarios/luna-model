@@ -83,6 +83,8 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transformv2::PyTransformationRecord>()?;
     m.add_class::<transformv2::PyPassContext>()?;
     m.add_class::<transformv2::PyTransformationPass>()?;
+    m.add_class::<transformv2::PyAnalysisPass>()?;
+
     m.add_class::<transformv2::builtin::transformation::PyIntegerToBinaryPass>()?;
 
     transformv2::register_backward();

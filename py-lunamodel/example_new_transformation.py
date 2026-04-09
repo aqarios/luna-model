@@ -1,7 +1,13 @@
 from __future__ import annotations
 
 from luna_model import Model, Sense, Solution, Vtype
-from luna_model.transformation import TransformationPass, PassContext, PassManager, TransformationRecord, TransformationPassArtifact
+from luna_model.transformation import (
+        TransformationPass, 
+        PassContext, 
+        PassManager, 
+        TransformationRecord, 
+        TransformationPassArtifact, 
+)
 from luna_model.transformation.passes import IntegerToBinaryPass
 
 class ChangeSenseArtifact(TransformationPassArtifact):

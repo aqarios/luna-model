@@ -33,8 +33,9 @@ class TransformationPass(PyTransformationPass, Generic[Artifact]):
 
     Notes
     -----
-    This is an abstract class. Subclasses must implement the `name`, `run`,
-    and `backwards` methods.
+    This is an abstract class. Subclasses must implement the `name`, `forward` methods
+    and the `backward` function. Additionally, the `requires` and `invalidates` methods
+    can be implemented.
     """
 
     @abstractmethod
@@ -59,7 +60,7 @@ class TransformationPass(PyTransformationPass, Generic[Artifact]):
         model : Model
             The model to transform.
         ctx : PassContext
-            Context for this pass providing access to the analysis cache.
+            Context for this pass providing read-access to the analysis cache.
 
         Returns
         -------

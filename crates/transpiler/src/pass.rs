@@ -63,9 +63,4 @@ pub trait AnalysisPass: Send + Sync {
 
     /// Compute the analysis result
     fn run(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<Self::Result>;
-
-    /// Which analyses does this analysis depend on?
-    fn required_analyses(&self) -> &[&'static str] {
-        &[]
-    }
 }

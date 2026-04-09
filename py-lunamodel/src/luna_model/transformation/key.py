@@ -12,8 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .integer_to_binary import IntegerToBinaryPass
+from typing import Generic, TypeVar
 
-__all__ = [
-    "IntegerToBinaryPass",
-]
+
+R = TypeVar("R")
+
+
+class AnalysisKey(Generic[R]):
+    """The key to retrieve an analysis result from the PassContext."""
+
+    name: str
+
+    def __init__(self, name: str) -> None:
+        self.name = name
