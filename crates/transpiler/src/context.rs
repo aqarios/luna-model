@@ -26,4 +26,8 @@ impl<'a> PassContext<'a> {
     ) -> LunaModelResult<&T> {
         self.analysis_manager.require(key)
     }
+
+    pub fn manager(&self) -> &AnalysisManager {
+        self.analysis_manager
+    }
 }

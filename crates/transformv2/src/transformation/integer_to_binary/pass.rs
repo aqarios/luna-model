@@ -7,7 +7,7 @@ use lunamodel_types::{Bound, Vtype};
 
 use super::artifact::IntegerToBinaryArtifact;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct IntegerToBinaryPass;
 
 impl ReversiblePass for IntegerToBinaryPass {

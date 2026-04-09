@@ -211,6 +211,11 @@ class Solution:
         """Get sense."""
         return Sense._from_pysense(self._s.sense)
 
+    @sense.setter
+    def sense(self, sense: Sense) -> None:
+        """Set sense."""
+        self._s.sense = sense._val
+
     @property
     def results(self) -> ResultIter:
         """Get results."""

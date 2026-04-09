@@ -9,14 +9,14 @@ use super::artifact::ChangeSensePassArtifact;
 
 pub struct ChangeSensePass {
     sense: Sense,
-    inval: Vec<String>,
+    invalidates: Vec<String>,
 }
 
 impl ChangeSensePass {
     pub fn new(sense: Sense) -> Self {
         Self {
             sense,
-            inval: vec![SpecsAnalysis::NAME.to_string()],
+            invalidates: vec![SpecsAnalysis::NAME.to_string()],
         }
     }
 }
@@ -52,6 +52,6 @@ impl ReversiblePass for ChangeSensePass {
     }
 
     fn invalidates(&self) -> &[String] {
-        &self.inval
+        &self.invalidates
     }
 }

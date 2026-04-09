@@ -1,13 +1,25 @@
-use lunamodel_transpiler::PipelineStep;
-use pyo3::pyclass;
+use std::sync::Arc;
 
-#[pyclass]
-pub struct PyPass {
-    inner: PipelineStep,
+use lunamodel_transpiler::PipelineStep;
+use pyo3::{FromPyObject, Py, PyResult, Python};
+
+use super::builtin::transformation::PyIntegerToBinaryPass;
+use crate::transformv2::{PyTransformationPassAdapter, adapter::PyTransformationPass};
+
+#[derive(FromPyObject)]
+pub enum PyPass {
+    IntToBin(Py<PyIntegerToBinaryPass>),
+    CustomTransformation(Py<PyTransformationPass>),
 }
 
 impl PyPass {
-    pub fn to_step(&self) -> PipelineStep {
-        self.inner.clone()
+    pub fn to_step(&self, py: Python) -> PyResult<PipelineStep> {
+        match self {
+            Self::IntToBin(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
+            Self::CustomTransformation(p) => Ok(PipelineStep::Transform(Arc::new(
+                PyTransformationPassAdapter::new(py, p.clone_ref(py))?,
+            ))),
+        }
+        // self.inner.clone()
     }
 }
