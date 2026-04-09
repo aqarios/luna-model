@@ -72,8 +72,7 @@ from luna_model.variable import (
     Vtype,
 )
 
-# from . import errors, transformation, translator, utils
-from . import errors, translator, utils
+from . import errors, transformation, translator, utils
 
 __all__ = [
     "Bounds",
@@ -110,7 +109,7 @@ __all__ = [
     "__version__",
     "errors",
     "quicksum",
-    # "transformation",
+    "transformation",
     "translator",
     "utils",
 ]

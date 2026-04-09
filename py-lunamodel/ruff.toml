@@ -4,6 +4,7 @@ exclude = [
     "tests",
     "examples",
     "docs",
+    "example_*",
 ]
 
 target-version = "py311"

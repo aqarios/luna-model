@@ -6,12 +6,12 @@ use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::TransformationRecord;
 
 /// Helper type to ensure easier version updates to a new serialization implementation
-/// of [CompilationRecord]. In case a new serialization format is defined update this value
+/// of [TransformationRecord]. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
 type SerCompRecLatest = SerComRecV0;
 
-/// Makes a [CompilationRecord] encodable.
+/// Makes a [TransformationRecord] encodable.
 impl Encodable<SerComRecV0> for TransformationRecord {
     fn version(&self) -> Version {
         Version::V0

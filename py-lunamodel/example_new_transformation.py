@@ -1,67 +1,10 @@
 from __future__ import annotations
 
-from abc import abstractmethod
-from typing import Generic, TypeVar
+from luna_model import Model, Sense, Solution, Vtype
+from luna_model.transformation import TransformationPass, PassContext, PassManager, TransformationRecord, TransformationPassArtifact
+from luna_model.transformation.passes import IntegerToBinaryPass
 
-from luna_model._lm import (
-    PyIntegerToBinaryPass,
-    PyModel,
-    PyPassContext,
-    PyPassManager,
-    PySolution,
-    PyTransformationPass,
-    PyTransformationRecord,
-)
-
-from luna_model import Environment, Model, Sense, Solution, Vtype
-
-
-class PassContext:
-    _c: PyPassContext
-
-    @classmethod
-    def _from_pyctx(cls, py_ctx: PyPassContext) -> PassContext:
-        ctx = cls.__new__(cls)
-        ctx._c = py_ctx
-        return ctx
-
-
-A = TypeVar("A")
-
-
-class AbstractTransformationPass(PyTransformationPass, Generic[A]):
-    @abstractmethod
-    def name(self) -> str: ...
-
-    @abstractmethod
-    def forward(self, model: Model, ctx: PassContext) -> tuple[Model, A]: ...
-
-    @classmethod
-    @abstractmethod
-    def backward(cls, artifact: A, solution: Solution) -> Solution: ...
-
-    def requires(self) -> list[str]:
-        return []
-
-    def invalidates(self) -> list[str]:
-        return []
-
-    def _forward(self, model: PyModel, ctx: PyPassContext) -> tuple[PyModel, A]:
-        m, a = self.forward(Model._from_pym(model), PassContext._from_pyctx(ctx))
-        return m._m, a
-
-    @classmethod
-    def _backward(cls, artifact: A, solution: PySolution) -> PySolution:
-        return cls.backward(artifact, Solution._from_pys(solution))._s
-
-
-class IntegerToBinaryPass(PyIntegerToBinaryPass):
-    """Todo."""
-
-
-class ChangeSenseArtifact:
-    """Todo."""
-
+class ChangeSenseArtifact(TransformationPassArtifact):
     _did_chage: bool
 
     def __init__(self, did_change: bool) -> None:
@@ -72,12 +15,10 @@ class ChangeSenseArtifact:
         return self._did_chage
 
     def serialize(self) -> bytes:
-        """Todo."""
         return b"\x01" if self._did_chage else b"\x00"
 
     @classmethod
     def deserialize(cls, buf: bytes) -> ChangeSenseArtifact:
-        """Todo."""
         if len(buf) != 1:
             msg = f"Invalid ChangeSenseArtifact payload length: {len(buf)}"
             raise ValueError(msg)
@@ -87,7 +28,7 @@ class ChangeSenseArtifact:
         return cls(did_change=bool(buf[0]))
 
 
-class ChangeSense(AbstractTransformationPass[ChangeSenseArtifact]):
+class ChangeSense(TransformationPass[ChangeSenseArtifact]):
     """todo."""
 
     _target: Sense
@@ -98,7 +39,9 @@ class ChangeSense(AbstractTransformationPass[ChangeSenseArtifact]):
     def name(self):
         return "change-sense"
 
-    def forward(self, model: Model, _: PassContext) -> tuple[Model, ChangeSenseArtifact]:
+    def forward(self, model: Model, ctx: PassContext) -> tuple[Model, ChangeSenseArtifact]:
+        _ = ctx
+
         if model.sense == self._target:
             return model, ChangeSenseArtifact(did_change=False)
 
@@ -120,8 +63,8 @@ x = model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=2)
 y = model.add_variable("y", vtype=Vtype.INTEGER, lower=0, upper=3)
 model.objective = x + y
 
-pm = PyPassManager([ChangeSense(Sense.MAX), IntegerToBinaryPass()])
-out = pm.run(model._m)
+pm = PassManager([ChangeSense(Sense.MAX), IntegerToBinaryPass()])
+out = pm.run(model)
 print("---------")
 print("OUT MODEL")
 print("---------")
@@ -130,7 +73,7 @@ print("-------------------------")
 print("BASE SOLUTION (FROM ALG.)")
 print("-------------------------")
 solution_in = out.model.evaluate(
-    Solution([{"x_b0": 0, "x_b1": 1, "y_b0": 1, "y_b1": 1}], env=Environment._from_pyenv(out.model.environment))._s
+    Solution([{"x_b0": 0, "x_b1": 1, "y_b0": 1, "y_b1": 1}], env=out.model.environment)
 )
 print(solution_in)
 print("--------------------------------------")
@@ -142,6 +85,6 @@ print("--------------------------------------")
 print("BACKWARD SOLUTION VIA BLOB (FOR ORIGINAL MODEL)")
 print("--------------------------------------")
 blob = out.record.encode()
-record = PyTransformationRecord.decode(blob)
+record = TransformationRecord.decode(blob)
 sol = record.backward(solution_in)
 print(sol)

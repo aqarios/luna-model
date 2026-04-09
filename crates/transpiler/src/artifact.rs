@@ -27,7 +27,7 @@ pub trait Artifact: Send + Sync + 'static {
         Self: Sized;
 }
 
-/// Type-erased artifact for storage in CompilationRecord
+/// Type-erased artifact for storage in TransformationRecord
 #[derive(Debug, Clone)]
 pub struct ErasedArtifact {
     type_tag: String,
