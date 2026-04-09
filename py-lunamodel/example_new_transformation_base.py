@@ -6,6 +6,7 @@ from luna_model._lm import PyPassManager, PyModel, PySolution
 from luna_model._lm import PyIntegerToBinaryPass
 from luna_model._lm import PyTransformationPass
 from luna_model._lm import PyPassContext
+from luna_model._lm import PyTransformationRecord
 
 from luna_model import Model, Vtype, Sense, Solution, Environment
 
@@ -131,4 +132,11 @@ print("--------------------------------------")
 print("BACKWARD SOLUTION (FOR ORIGINAL MODEL)")
 print("--------------------------------------")
 sol = out.record.backward(solution_in)
+print(sol)
+print("--------------------------------------")
+print("BACKWARD SOLUTION VIA BLOB (FOR ORIGINAL MODEL)")
+print("--------------------------------------")
+blob = out.record.encode()
+record = PyTransformationRecord.decode(blob)
+sol = record.backward(solution_in)
 print(sol)
