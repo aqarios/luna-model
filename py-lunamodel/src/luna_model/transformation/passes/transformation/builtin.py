@@ -39,7 +39,7 @@ class BuiltinTransformation(Generic[Artifact]):
     solutions backwards to match the input representation.
     """
 
-    def __init__(self, *args: *tuple, **kwargs: dict) -> None:
+    def __init__(self, *args: tuple, **kwargs: dict) -> None:
         super().__init__(*args, **kwargs)
 
     def name(self) -> str:

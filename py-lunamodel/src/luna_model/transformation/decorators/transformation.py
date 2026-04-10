@@ -215,7 +215,7 @@ def transform(
 
     Returns
     -------
-    Callable[[TransformationSignature], DynamicTransformationPass[A]]
+    Callable[[TransformationSignature], _DynamicTransformationPass[A]]
         A decorator that transforms the decorated function into a ``TransformationPass``.
         The generic ``A`` is the artifact produced by this transformation pass.
 
