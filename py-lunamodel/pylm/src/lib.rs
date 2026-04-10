@@ -68,6 +68,7 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transform::PyBinarySpinPass>()?;
     // Predefnied and implemented Pipelines
     m.add_class::<transform::PyToUnconstrainedBinaryPipeline>()?;
+    m.add_class::<transform::PyToBinaryMinimizationPipeline>()?;
 
     m.add_class::<transform::PyIntegerToBinaryPass>()?;
     m.add_class::<transform::PyCheckModelSpecsAnalysis>()?;

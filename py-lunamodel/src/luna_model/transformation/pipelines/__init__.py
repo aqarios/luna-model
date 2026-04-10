@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from .to_binary_minimization import ToBinaryMinimizationPipeline
 from .to_unconstrained_binary import ToUnconstrainedBinaryPipeline
 
-__all__ = ["ToUnconstrainedBinaryPipeline"]
+__all__ = ["ToBinaryMinimizationPipeline", "ToUnconstrainedBinaryPipeline"]

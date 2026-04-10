@@ -38,3 +38,4 @@ pub use passes::PyIntegerToBinaryPass;
 pub use passes::PyLeToEqConstraintsPass;
 
 pub use pipelines::PyToUnconstrainedBinaryPipeline;
+pub use pipelines::PyToBinaryMinimizationPipeline;
