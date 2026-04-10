@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from luna_model._lm import PyCheckModelSpecsAnalysis
 from luna_model.model.specs import ModelSpecs
 from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis

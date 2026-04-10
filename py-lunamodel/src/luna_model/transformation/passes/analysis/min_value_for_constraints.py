@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import Protocol, runtime_checkable
 
 from luna_model._lm import PyMinValueForConstraintAnalysis

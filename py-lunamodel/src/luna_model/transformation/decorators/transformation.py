@@ -73,7 +73,6 @@ def _resolve(module_path: str, qualname: str) -> object:
 
 @dataclass(frozen=True)
 class _ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
-
     artifact_module: str
     artifact_qualname: str
     backward_module: str
@@ -133,7 +132,6 @@ class _ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
 
 
 class _DynamicTransformationPass(TransformationPass, Generic[A]):
-
     _name: str
     _requires: list[str]
     _invalidates: list[str]
