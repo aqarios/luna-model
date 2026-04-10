@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Generic, Protocol, TypeVar, cast
+from typing import Any, Generic, Protocol, TypeVar, cast
 
 from luna_model._lm import PyModel, PyPassContext, PySolution
 from luna_model.model.model import Model
@@ -39,7 +39,7 @@ class BuiltinTransformation(Generic[Artifact]):
     solutions backwards to match the input representation.
     """
 
-    def __init__(self, *args: tuple, **kwargs: dict) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
     def name(self) -> str:
