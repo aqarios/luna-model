@@ -54,8 +54,8 @@ class MinValueForConstraintAnalysis(PyMinValueForConstraintAnalysis):
     >>> model.objective = x * y + x - 2 * y
     >>> model.constraints += -5 * x + y <= 2, "my-constraint"
     >>> pm = PassManager([MinValueForConstraintAnalysis()])
-    >>> ir = pm.run(model)
-    >>> ir.cache["min-value-for-constraint"].vals
+    >>> output = pm.run(model)
+    >>> output.cache.require_analysis(MinValueForConstraintAnalysis.key()).vals
     {'my-constraint': -5.0}
     """
 
