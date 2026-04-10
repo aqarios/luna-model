@@ -2,6 +2,7 @@ mod artifact;
 mod pass;
 
 pub use pass::EqualityConstraintsToQuadraticPenaltyPass;
+pub use artifact::EqualityConstraintsToQuadraticPenaltyArtifact;
 
 #[cfg(test)]
 mod tests {

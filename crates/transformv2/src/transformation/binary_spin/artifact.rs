@@ -29,6 +29,18 @@ impl BinarySpinPassArtifact {
             )),
         }
     }
+
+    pub fn map(&self) -> &HashMap<String, String> {
+        &self.map
+    }
+
+    pub fn old_vtype(&self) -> Vtype {
+        self.old_vtype
+    }
+
+    pub fn new_vtype(&self) -> Vtype {
+        self.new_vtype
+    }
 }
 
 impl Artifact for BinarySpinPassArtifact {

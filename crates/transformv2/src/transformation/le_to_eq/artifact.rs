@@ -6,6 +6,12 @@ pub struct LeToEqConstraintsArtifact {
     pub(super) slackvars: Vec<String>,
 }
 
+impl LeToEqConstraintsArtifact {
+    pub fn slackvars(&self) -> &[String] {
+        &self.slackvars
+    }
+}
+
 impl Artifact for LeToEqConstraintsArtifact {
     fn static_type_tag() -> &'static str
     where

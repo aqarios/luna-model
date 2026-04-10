@@ -72,8 +72,7 @@ def _resolve(module_path: str, qualname: str) -> object:
 
 
 @dataclass(frozen=True)
-class ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
-    """TODO."""
+class _ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
 
     artifact_module: str
     artifact_qualname: str
@@ -82,8 +81,7 @@ class ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
     artifact_payload: bytes
 
     @classmethod
-    def from_parts(cls, artifact: A, backward: BackwardSignature[A]) -> ArtifactEnvelope[A]:
-        """Todo."""
+    def from_parts(cls, artifact: A, backward: BackwardSignature[A]) -> _ArtifactEnvelope[A]:
         acls = artifact.__class__
         bmod = backward.__module__
         bqual = backward.__qualname__
@@ -99,7 +97,6 @@ class ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
         )
 
     def serialize(self) -> bytes:
-        """Serialize this artifact to a bytes representation."""
         out = bytearray(_MAGIC)
         out.append(_VERSION)
         _write_field(out, self.artifact_module.encode())
@@ -110,8 +107,7 @@ class ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
         return bytes(out)
 
     @classmethod
-    def deserialize(cls, buf: bytes) -> ArtifactEnvelope:
-        """Deserialize this artifact from its bytes representation."""
+    def deserialize(cls, buf: bytes) -> _ArtifactEnvelope:
         if len(buf) < _HEADER_LEN or buf[:4] != _MAGIC or buf[4] != _VERSION:
             msg = "Invalid envelope header"
             raise ValueError(msg)
@@ -128,18 +124,15 @@ class ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
 
     @property
     def artifact(self) -> A:
-        """TODO."""
         artifact_cls: type[A] = cast("type[A]", _resolve(self.artifact_module, self.artifact_qualname))
         return artifact_cls.deserialize(self.artifact_payload)
 
     @property
     def backward_fn(self) -> BackwardSignature[A]:
-        """TODO."""
         return cast("BackwardSignature[A]", _resolve(self.backward_module, self.backward_qualname))
 
 
-class DynamicTransformationPass(TransformationPass, Generic[A]):
-    """TODO."""
+class _DynamicTransformationPass(TransformationPass, Generic[A]):
 
     _name: str
     _requires: list[str]
@@ -167,14 +160,14 @@ class DynamicTransformationPass(TransformationPass, Generic[A]):
         return self._name
 
     @override
-    def forward(self, model: Model, ctx: PassContext) -> tuple[Model, ArtifactEnvelope[A]]:
+    def forward(self, model: Model, ctx: PassContext) -> tuple[Model, _ArtifactEnvelope[A]]:
         result: tuple[Model, A] = self._forward_f(model, ctx)
         model, artifact = result
-        return model, ArtifactEnvelope.from_parts(artifact, self._backward_f)
+        return model, _ArtifactEnvelope.from_parts(artifact, self._backward_f)
 
     @override
     @classmethod
-    def backward(cls, artifact: ArtifactEnvelope[A], solution: Solution) -> Solution:
+    def backward(cls, artifact: _ArtifactEnvelope[A], solution: Solution) -> Solution:
         return artifact.backward_fn(artifact.artifact, solution)
 
     @override
@@ -200,7 +193,7 @@ def transform(
     requires: list[str] | None = None,
     invalidates: list[str] | None = None,
     backward: BackwardSignature[A] | None = None,
-) -> Callable[[TransformationSignature[A]], DynamicTransformationPass[A]]:
+) -> Callable[[TransformationSignature[A]], _DynamicTransformationPass[A]]:
     """Create a TransformationPass from a function decorator.
 
     This decorator converts a regular function into a ``TransformationPass`` that modifies
@@ -256,9 +249,9 @@ def transform(
     else:
         _validate_backward(backward)
 
-    def _decorator(forward: TransformationSignature) -> DynamicTransformationPass:
+    def _decorator(forward: TransformationSignature) -> _DynamicTransformationPass:
         loc_name = name or forward.__name__.replace("_", "-")
-        return DynamicTransformationPass(
+        return _DynamicTransformationPass(
             name=loc_name,
             requires=requires,
             invalidates=invalidates,

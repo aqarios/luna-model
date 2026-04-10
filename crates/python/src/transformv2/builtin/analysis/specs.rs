@@ -1,6 +1,8 @@
 use lunamodel_transformv2::analysis::SpecsAnalysis;
 use lunamodel_transpiler::AnalysisPass;
-use pyo3::{Bound, pyclass, pymethods, types::PyType};
+use pyo3::{Bound, PyResult, pyclass, pymethods, types::PyType};
+
+use crate::{PyModel, PyModelSpecs, transformv2::PyPassContext};
 
 #[pyclass(subclass)]
 #[derive(Default)]
@@ -16,6 +18,18 @@ impl PySpecsAnalysis {
     #[classmethod]
     fn provides(_cls: &Bound<'_, PyType>) -> String {
         SpecsAnalysis::PROVIDES.to_string()
+    }
+
+    fn name(&self) -> String {
+        self.0.name().to_string()
+    }
+
+    fn run(&self, model: PyModel, ctx: &PyPassContext) -> PyResult<PyModelSpecs> {
+        Ok(self.0.run(&model.0.m.read_arc(), &ctx.into())?.into())
+    }
+
+    fn requires(&self) -> Vec<String> {
+        self.0.requires().to_vec()
     }
 }
 

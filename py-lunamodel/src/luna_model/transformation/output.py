@@ -14,10 +14,14 @@
 
 from __future__ import annotations
 
-from luna_model._lm import PyTransformationOutput
+from typing import TYPE_CHECKING
+
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.record import TransformationRecord
+
+if TYPE_CHECKING:
+    from luna_model._lm import PyTransformationOutput
 
 
 class TransformationOutput:

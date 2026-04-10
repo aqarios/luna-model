@@ -11,8 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Protocol
+
 from luna_model._lm import PyChangeSensePass
 from luna_model.model.model import Sense
+from luna_model.transformation.artifact import TransformationPassArtifact
+
+
+class ChangeSensePassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the ChangeSensePass.
+
+    This protocol defines the interface for accessing information about
+    change sense transformations.
+    """
+
+    @property
+    def did_change(self) -> bool:
+        """Get if the sense was changed.
+
+        Returns
+        -------
+        bool
+            If the sense was changed.
+        """
+        ...
 
 
 class ChangeSensePass(PyChangeSensePass):

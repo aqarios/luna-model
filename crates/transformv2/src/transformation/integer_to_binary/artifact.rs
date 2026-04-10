@@ -8,6 +8,15 @@ pub struct IntegerToBinaryArtifact {
     pub(super) varmap: HashMap<String, HashMap<String, usize>>,
     pub(super) offsetmap: HashMap<String, usize>,
 }
+impl IntegerToBinaryArtifact {
+    pub fn varmap(&self) -> &HashMap<String, HashMap<String, usize>> {
+        &self.varmap
+    }
+
+    pub fn offsetmap(&self) -> &HashMap<String, usize> {
+        &self.offsetmap
+    }
+}
 
 impl Artifact for IntegerToBinaryArtifact {
     fn static_type_tag() -> &'static str

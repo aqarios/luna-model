@@ -11,10 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Protocol
+
 from luna_model._lm import PyGeToLeConstraintsPass
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
-class GeToLeConstraintsPass(PyGeToLeConstraintsPass):
+class GeToLeConstraintsPassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the GeToLeConstraintsPass.
+
+    This protocol defines the interface for accessing information about GeToLeConstraintsPass transformations,
+    including the source and target variable types and the mapping between variable names.
+    """
+
+
+class GeToLeConstraintsPass(BuiltinTransformation[GeToLeConstraintsPassArtifact], PyGeToLeConstraintsPass):
     """Convert the model's constraints by chaning all greater-equal (`>=`) constraints to less-equal (`<=`) constraints.
 
     Examples

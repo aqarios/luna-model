@@ -2,6 +2,7 @@ mod artifact;
 mod pass;
 
 pub use pass::GeToLeConstraintsPass;
+pub use artifact::GeToLeConstraintsArtifact;
 
 #[cfg(test)]
 mod tests {

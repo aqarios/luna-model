@@ -11,13 +11,56 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Literal
+from typing import Literal, Protocol
 
 from luna_model._lm import PyBinarySpinPass
 from luna_model.model.model import Vtype
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
-class BinarySpinPass(PyBinarySpinPass):
+class BinarySpinPassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the BinarySpinPass.
+
+    This protocol defines the interface for accessing information about
+    binary-to-spin/spin-to-binary variable transformations, including the
+    source and target variable types and the mapping between variable names.
+    """
+
+    @property
+    def map(self) -> dict[str, str]:
+        """Get the variable name mapping from old to new names.
+
+        Returns
+        -------
+        dict[str, str]
+            Dictionary mapping old variable names to new variable names.
+        """
+        ...
+
+    @property
+    def old_vtype(self) -> Vtype:
+        """Get the source variable type before transformation.
+
+        Returns
+        -------
+        Vtype
+            The original variable type.
+        """
+        ...
+
+    def new_vtype(self) -> Vtype:
+        """Get the target variable type after transformation.
+
+        Returns
+        -------
+        Vtype
+            The transformed variable type.
+        """
+        ...
+
+
+class BinarySpinPass(BuiltinTransformation[BinarySpinPassArtifact], PyBinarySpinPass):
     """Convert between Binary and Spin variable types.
 
     Transform the variables of type binary to spin typed variables or vice versa.

@@ -14,6 +14,7 @@ from luna_model._lm import (
 )
 
 from luna_model import Environment, Model, Sense, Solution, Vtype
+from luna_model.transformation.passes import MaxBiasAnalysis
 
 
 class PassContext:
@@ -120,7 +121,7 @@ x = model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=2)
 y = model.add_variable("y", vtype=Vtype.INTEGER, lower=0, upper=3)
 model.objective = x + y
 
-pm = PyPassManager([ChangeSense(Sense.MAX), IntegerToBinaryPass()])
+pm = PyPassManager([MaxBiasAnalysis(), ChangeSense(Sense.MAX), IntegerToBinaryPass()])
 out = pm.run(model._m)
 print("---------")
 print("OUT MODEL")
@@ -145,3 +146,4 @@ blob = out.record.encode()
 record = PyTransformationRecord.decode(blob)
 sol = record.backward(solution_in)
 print(sol)
+print(out.context)

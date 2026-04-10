@@ -5,9 +5,11 @@ mod ge_to_le;
 mod integer_to_binary;
 mod le_to_eq;
 
-pub use binary_spin::BinarySpinPass;
-pub use change_sense::ChangeSensePass;
-pub use eq_constr_to_quad_pen::EqualityConstraintsToQuadraticPenaltyPass;
-pub use ge_to_le::GeToLeConstraintsPass;
-pub use integer_to_binary::IntegerToBinaryPass;
-pub use le_to_eq::LeToEqConstraintsPass;
+pub use binary_spin::{BinarySpinPass, BinarySpinPassArtifact};
+pub use change_sense::{ChangeSensePass, ChangeSensePassArtifact};
+pub use eq_constr_to_quad_pen::{
+    EqualityConstraintsToQuadraticPenaltyArtifact, EqualityConstraintsToQuadraticPenaltyPass,
+};
+pub use ge_to_le::{GeToLeConstraintsArtifact, GeToLeConstraintsPass};
+pub use integer_to_binary::{IntegerToBinaryArtifact, IntegerToBinaryPass};
+pub use le_to_eq::{LeToEqConstraintsArtifact, LeToEqConstraintsPass};

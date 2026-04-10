@@ -12,34 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import abstractmethod
-from typing import Generic, TypeVar
+from typing import Generic, Protocol, TypeVar, cast
 
-from luna_model._lm import PyAnalysisPass, PyModel, PyPassContext
+from luna_model._lm import PyModel, PyPassContext
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.key import AnalysisKey
 
-Result = TypeVar("Result")
+R = TypeVar("R", covariant=True)  # noqa: PLC0105
 
 
-class AnalysisPass(PyAnalysisPass, Generic[Result]):
-    """
-    Abstract base class for analysis passes that analyse models.
+class _BuiltinSuper(Protocol[R]):
+    @classmethod
+    def provides(cls) -> str: ...
+    def name(self) -> str: ...
+    def run(self, model: PyModel, ctx: PyPassContext) -> R: ...
+    def requires(self) -> list[str]: ...
+
+
+class BuiltinAnalysis(Generic[R]):
+    """A builtin analysis pass.
 
     Analysis passes retrieve information from models can used by transformation passes.
-
-    Notes
-    -----
-    This is an abstract class. Subclasses must implement the `name` and `run` methods and
-    the `PROVIDES` class variable.
-    Additionally, the `requires` method can be implemented to indicate which passes must
-    be executed before the analysis is run.
     """
 
-    PROVIDES: str
+    def __init__(self, *args: tuple, **kwargs: dict) -> None:
+        super().__init__(*args, **kwargs)
 
-    @abstractmethod
     def name(self) -> str:
         """
         Get the name for this pass.
@@ -49,10 +48,10 @@ class AnalysisPass(PyAnalysisPass, Generic[Result]):
         str
             The unique pass name.
         """
-        ...
+        sup = cast("_BuiltinSuper[R]", super())
+        return sup.name()
 
-    @abstractmethod
-    def run(self, model: Model, ctx: PassContext) -> Result:
+    def run(self, model: Model, ctx: PassContext) -> R:
         """
         Run/Execute this analysis pass.
 
@@ -68,7 +67,8 @@ class AnalysisPass(PyAnalysisPass, Generic[Result]):
         Result
             The analysis result.
         """
-        ...
+        sup = cast("_BuiltinSuper[R]", super())
+        return sup.run(model._m, ctx._c)
 
     def requires(self) -> list[str]:
         """
@@ -79,7 +79,8 @@ class AnalysisPass(PyAnalysisPass, Generic[Result]):
         list[str]
             Pass names that must execute first, or empty list if no dependencies.
         """
-        return []
+        sup = cast("_BuiltinSuper[R]", super())
+        return sup.requires()
 
     @classmethod
     def provides(cls) -> str:
@@ -91,12 +92,10 @@ class AnalysisPass(PyAnalysisPass, Generic[Result]):
         str
             The identifier of the cache elment
         """
-        return cls.PROVIDES
+        sup = cast("_BuiltinSuper[R]", super())
+        return sup.provides()
 
     @classmethod
-    def key(cls) -> AnalysisKey[Result]:
+    def key(cls) -> AnalysisKey[R]:
         """Get the analysis key used to access the analysis result from the PassContext."""
-        return AnalysisKey(cls.PROVIDES)
-
-    def _run(self, model: PyModel, ctx: PyPassContext) -> Result:
-        return self.run(Model._from_pym(model), PassContext._from_pyctx(ctx))
+        return AnalysisKey(cls.provides())

@@ -14,10 +14,13 @@
 
 from __future__ import annotations
 
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from luna_model._lm import PyPassContext
-from luna_model.transformation.key import AnalysisKey
+
+if TYPE_CHECKING:
+    from luna_model.transformation.key import AnalysisKey
+
 
 T = TypeVar("T")
 
@@ -26,6 +29,9 @@ class PassContext:
     """The pass context provides access to the analysis results in Transformation and analysis passes."""
 
     _c: PyPassContext
+
+    def __init__(self) -> None:
+        self._c = PyPassContext()
 
     @classmethod
     def _from_pyctx(cls, py_ctx: PyPassContext) -> PassContext:

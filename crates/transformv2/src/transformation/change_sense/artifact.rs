@@ -6,6 +6,12 @@ pub struct ChangeSensePassArtifact {
     pub(super) did_change: bool,
 }
 
+impl ChangeSensePassArtifact {
+    pub fn did_change(&self) -> bool {
+        self.did_change
+    }
+}
+
 impl Artifact for ChangeSensePassArtifact {
     fn static_type_tag() -> &'static str
     where

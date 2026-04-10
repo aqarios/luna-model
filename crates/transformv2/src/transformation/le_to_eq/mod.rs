@@ -2,6 +2,7 @@ mod artifact;
 mod pass;
 
 pub use pass::LeToEqConstraintsPass;
+pub use artifact::LeToEqConstraintsArtifact;
 
 #[cfg(test)]
 mod tests {

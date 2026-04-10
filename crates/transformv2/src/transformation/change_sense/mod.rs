@@ -3,6 +3,7 @@ mod pass;
 mod ser_artifact;
 
 pub use pass::ChangeSensePass;
+pub use artifact::ChangeSensePassArtifact;
 
 #[cfg(test)]
 mod tests {

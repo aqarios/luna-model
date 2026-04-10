@@ -11,10 +11,33 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Protocol
+
 from luna_model._lm import PyLeToEqConstraintsPass
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
-class LeToEqConstraintsPass(PyLeToEqConstraintsPass):
+class LeToEqConstraintsPassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the LeToEqConstraintsPassArtifact.
+
+    This protocol defines the interface for accessing information about LeToEqConstraintsPassArtifact transformations,
+    including the source and target variable types and the mapping between variable names.
+    """
+
+    @property
+    def slackvars(self) -> list[str]:
+        """Get the created slackvar names.
+
+        Returns
+        -------
+        list[str]
+            List of slackvar names created by this pass.
+        """
+        ...
+
+
+class LeToEqConstraintsPass(BuiltinTransformation[LeToEqConstraintsPassArtifact], PyLeToEqConstraintsPass):
     """Convert the model's constraints by chaning all less-equal (`<=`) constraints to equality (`==`) constraints.
 
     Examples

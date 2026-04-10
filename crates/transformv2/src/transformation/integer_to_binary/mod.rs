@@ -3,6 +3,7 @@ mod pass;
 mod ser_artifact;
 
 pub use pass::IntegerToBinaryPass;
+pub use artifact::IntegerToBinaryArtifact;
 
 #[cfg(test)]
 mod tests {

@@ -12,10 +12,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Protocol
+
 from luna_model._lm import PyIntegerToBinaryPass
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
-class IntegerToBinaryPass(PyIntegerToBinaryPass):
+class IntegerToBinaryPassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the IntegerToBinaryPassArtifact.
+
+    This protocol defines the interface for accessing information about IntegerToBinaryPassArtifact transformations,
+    including the source and target variable types and the mapping between variable names.
+    """
+
+    @property
+    def varmap(self) -> dict[str, dict[str, int]]:
+        """Get the variable name mapping from old to new names with extra info used for reconstruction.
+
+        Returns
+        -------
+        dict[str, dict[str, int]]
+            Dictionary mapping old variable names to new variable names with extra info.
+        """
+        ...
+
+    @property
+    def offsetmap(self) -> dict[str, int]:
+        """Get the offset mapping used in reconstruction.
+
+        Returns
+        -------
+        dict[str, int]
+            Dictionary mapping used in reconstruction.
+        """
+        ...
+
+
+class IntegerToBinaryPass(BuiltinTransformation[IntegerToBinaryPassArtifact], PyIntegerToBinaryPass):
     """Convert integer variables to a binary representation.
 
     Transform the variables of type integer to be represented by binary typed

@@ -13,10 +13,10 @@
 # limitations under the License.
 from luna_model._lm import PyCheckModelSpecsAnalysis
 from luna_model.model.specs import ModelSpecs
-from luna_model.transformation.key import AnalysisKey
+from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
 
 
-class CheckModelSpecsAnalysis(PyCheckModelSpecsAnalysis):
+class CheckModelSpecsAnalysis(BuiltinAnalysis[None], PyCheckModelSpecsAnalysis):
     """Analysis pass that checks the model's specs for correctness.
 
     This analysis pass checks if the input model satisfies the
@@ -40,7 +40,3 @@ class CheckModelSpecsAnalysis(PyCheckModelSpecsAnalysis):
 
     def __init__(self, specs: ModelSpecs) -> None:
         super().__init__(specs._sp)
-
-    @classmethod
-    def key(cls) -> AnalysisKey[None]:
-        return AnalysisKey(PyCheckModelSpecsAnalysis.provides())

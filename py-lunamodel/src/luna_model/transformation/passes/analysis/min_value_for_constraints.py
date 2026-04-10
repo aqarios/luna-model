@@ -14,7 +14,7 @@
 from typing import Protocol, runtime_checkable
 
 from luna_model._lm import PyMinValueForConstraintAnalysis
-from luna_model.transformation.key import AnalysisKey
+from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
 
 
 @runtime_checkable
@@ -37,7 +37,7 @@ class MinConstraintValues(Protocol):
         ...
 
 
-class MinValueForConstraintAnalysis(PyMinValueForConstraintAnalysis):
+class MinValueForConstraintAnalysis(BuiltinAnalysis[MinConstraintValues], PyMinValueForConstraintAnalysis):
     """Analysis pass that computes the min value possible for all constraints.
 
     This analysis pass computes the minimal value possible for all constraints
@@ -58,7 +58,3 @@ class MinValueForConstraintAnalysis(PyMinValueForConstraintAnalysis):
     >>> output.cache.require_analysis(MinValueForConstraintAnalysis.key()).vals
     {'my-constraint': -5.0}
     """
-
-    @classmethod
-    def key(cls) -> AnalysisKey[MinConstraintValues]:
-        return AnalysisKey(PyMinValueForConstraintAnalysis.provides())

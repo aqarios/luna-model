@@ -11,10 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Protocol
+
 from luna_model._lm import PyEqualityConstraintsToQuadraticPenaltyPass
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
-class EqualityConstraintsToQuadraticPenaltyPass(PyEqualityConstraintsToQuadraticPenaltyPass):
+class EqualityConstraintsToQuadraticPenaltyPassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the EqualityConstraintsToQuadraticPenaltyPass.
+
+    This protocol defines the interface for accessing information about EqualityConstraintsToQuadraticPenaltyPass
+    transformations, including the source and target variable types and the mapping between variable names.
+    """
+
+
+class EqualityConstraintsToQuadraticPenaltyPass(
+    BuiltinTransformation[EqualityConstraintsToQuadraticPenaltyPassArtifact],
+    PyEqualityConstraintsToQuadraticPenaltyPass,
+):
     """Move all equality constraints to the model's objective as a quadratic penalties.
 
     Converts the model by moving all equality constraints to the objective as quadratic penalties.
