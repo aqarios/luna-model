@@ -3,7 +3,7 @@ use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass};
 use lunamodel_types::{Bound, Comparator, Vtype};
 
-use crate::analysis::{MinConstraintValues, MinValueInConstraintAnalysis};
+use crate::analysis::{MinConstraintValues, MinValueForConstraintAnalysis};
 
 use super::artifact::LeToEqConstraintsArtifact;
 
@@ -15,7 +15,7 @@ pub struct LeToEqConstraintsPass {
 impl Default for LeToEqConstraintsPass {
     fn default() -> Self {
         Self {
-            req: vec![MinValueInConstraintAnalysis::NAME.to_string()],
+            req: vec![MinValueForConstraintAnalysis::NAME.to_string()],
         }
     }
 }
@@ -36,7 +36,7 @@ impl ReversiblePass for LeToEqConstraintsPass {
     fn forward(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<Self::Artifact> {
         let mut artifact = LeToEqConstraintsArtifact::default();
         let minvaldata: &MinConstraintValues =
-            ctx.require_analysis(&MinValueInConstraintAnalysis::key())?;
+            ctx.require_analysis(&MinValueForConstraintAnalysis::key())?;
 
         for (name, constr) in model.constraints.iter_mut() {
             if constr.comparator == Comparator::Le {

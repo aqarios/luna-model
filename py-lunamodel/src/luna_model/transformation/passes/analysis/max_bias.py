@@ -11,14 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Protocol
+from typing import Protocol, runtime_checkable
+
 from luna_model._lm import PyMaxBiasAnalysis
 from luna_model.transformation.key import AnalysisKey
 
 
+@runtime_checkable
 class MaxBias(Protocol):
+    """Protocol for maximum bias information stored in the analysis cache.
+
+    This protocol defines the interface for accessing maximum bias values
+    computed during model analysis.
+    """
+
     @property
-    def val(self) -> float: ...
+    def val(self) -> float:
+        """Get the maximum bias value.
+
+        Returns
+        -------
+        float
+            The maximum bias value.
+        """
+        ...
 
 
 class MaxBiasAnalysis(PyMaxBiasAnalysis):

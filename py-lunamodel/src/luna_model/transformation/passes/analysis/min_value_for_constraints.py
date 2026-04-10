@@ -11,17 +11,33 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Protocol
-from luna_model._lm import PyMinValueForConstraintsAnalysis
+from typing import Protocol, runtime_checkable
+
+from luna_model._lm import PyMinValueForConstraintAnalysis
 from luna_model.transformation.key import AnalysisKey
 
 
+@runtime_checkable
 class MinConstraintValues(Protocol):
+    """Protocol for MinValueForConstraints information stored in the analysis cache.
+
+    This protocol defines the interface for accessing min value for constraints values
+    computed during model analysis.
+    """
+
     @property
-    def vals(self) -> dict[str, float]: ...
+    def vals(self) -> dict[str, float]:
+        """Get the minimum values possible for the constraints.
+
+        Returns
+        -------
+        dict[str, float]
+            The minimum possible value for all constraints.
+        """
+        ...
 
 
-class MinValueForConstraintAnalysis(PyMinValueForConstraintsAnalysis):
+class MinValueForConstraintAnalysis(PyMinValueForConstraintAnalysis):
     """Analysis pass that computes the min value possible for all constraints.
 
     This analysis pass computes the minimal value possible for all constraints
@@ -45,4 +61,4 @@ class MinValueForConstraintAnalysis(PyMinValueForConstraintsAnalysis):
 
     @classmethod
     def key(cls) -> AnalysisKey[MinConstraintValues]:
-        return AnalysisKey(PyMinValueForConstraintsAnalysis.provides())
+        return AnalysisKey(PyMinValueForConstraintAnalysis.provides())

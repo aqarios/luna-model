@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from luna_model._lm import PyTransformationOutput
 from luna_model.model.model import Model
+from luna_model.transformation.context import PassContext
 from luna_model.transformation.record import TransformationRecord
 
 
@@ -56,3 +57,15 @@ class TransformationOutput:
             The transformation record after execution of the PassManager.
         """
         return TransformationRecord._from_pytr(self._to.record)
+
+    @property
+    def context(self) -> PassContext:
+        """
+        Get the final context produced during the PassManager execution.
+
+        Returns
+        -------
+        PassContext
+            The final context after execution of the PassManager.
+        """
+        return PassContext._from_pyctx(self._to.context)

@@ -2,7 +2,10 @@ use lunamodel_transpiler::TransformationOutput;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pyclass, pymethods};
 
-use crate::{PyModel, PySolution, transformv2::{analysis::PyAnalysisManager, record::PyTransformationRecord}};
+use crate::{
+    PyModel, PySolution,
+    transformv2::{PyPassContext, record::PyTransformationRecord},
+};
 
 #[pyclass]
 #[repr(C)]
@@ -40,7 +43,7 @@ impl PyTransformationOutput {
     }
 
     #[getter]
-    fn analysis(&self) -> PyAnalysisManager {
+    fn context(&self) -> PyPassContext {
         self.to.analysis.clone().into()
     }
 }

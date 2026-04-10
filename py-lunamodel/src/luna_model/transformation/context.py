@@ -34,5 +34,16 @@ class PassContext:
         return ctx
 
     def require_analysis(self, key: AnalysisKey[T]) -> T:
-        """Get the analysis entry for the key."""
+        """Get the analysis entry for the specified key.
+
+        Parameters
+        ----------
+        key : AnalysisKey[T]
+            The cache key to retrieve.
+
+        Returns
+        -------
+        T
+            The cached value associated with the key.
+        """
         return self._c.require_analysis(key.name)

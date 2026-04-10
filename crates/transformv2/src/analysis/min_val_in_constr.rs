@@ -9,9 +9,9 @@ pub struct MinConstraintValues {
 }
 
 #[derive(Clone, Default)]
-pub struct MinValueInConstraintAnalysis;
+pub struct MinValueForConstraintAnalysis;
 
-impl AnalysisPass for MinValueInConstraintAnalysis {
+impl AnalysisPass for MinValueForConstraintAnalysis {
     type Result = MinConstraintValues;
 
     const NAME: &'static str = "min-value-for-constraint";

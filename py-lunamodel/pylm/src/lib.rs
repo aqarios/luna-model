@@ -88,7 +88,7 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transformv2::builtin::analysis::PyCheckModelSpecsAnalysis>()?;
     m.add_class::<transformv2::builtin::analysis::PyMaxBiasAnalysis>()?;
     m.add_class::<transformv2::builtin::analysis::PyMaxBias>()?;
-    m.add_class::<transformv2::builtin::analysis::PyMinValueInConstraintAnalysis>()?;
+    m.add_class::<transformv2::builtin::analysis::PyMinValueForConstraintAnalysis>()?;
     m.add_class::<transformv2::builtin::analysis::PyMinConstraintValues>()?;
     m.add_class::<transformv2::builtin::analysis::PySpecsAnalysis>()?;
     // builtin transformation

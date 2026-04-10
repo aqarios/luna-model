@@ -5,7 +5,7 @@ use pyo3::{FromPyObject, Py, PyResult, Python};
 
 use super::builtin::{
     analysis::{
-        PyCheckModelSpecsAnalysis, PyMaxBiasAnalysis, PyMinValueInConstraintAnalysis,
+        PyCheckModelSpecsAnalysis, PyMaxBiasAnalysis, PyMinValueForConstraintAnalysis,
         PySpecsAnalysis,
     },
     transformation::PyIntegerToBinaryPass,
@@ -20,7 +20,7 @@ pub enum PyPass {
     // analysis
     CheckSpecs(Py<PyCheckModelSpecsAnalysis>),
     MaxBias(Py<PyMaxBiasAnalysis>),
-    MinValInConstr(Py<PyMinValueInConstraintAnalysis>),
+    MinValInConstr(Py<PyMinValueForConstraintAnalysis>),
     Specs(Py<PySpecsAnalysis>),
     // transformation
     IntToBin(Py<PyIntegerToBinaryPass>),

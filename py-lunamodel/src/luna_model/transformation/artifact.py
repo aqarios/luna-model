@@ -26,3 +26,30 @@ class TransformationPassArtifact(Protocol):
     def deserialize(cls, buf: bytes) -> Self:
         """Deserialize this artifact from its bytes representation."""
         ...
+
+
+class NothingArtifact(TransformationPassArtifact):
+    """An artifact implementation that can be used as a placeholder artifact.
+
+    Use this artifact if your transformation pass does not require additional (stateful)
+    information to implement the ``backward`` function.
+    """
+
+    def serialize(self) -> bytes:
+        """Serialize this artifact to a bytes representation.
+
+        The NothingArtifact serialization produces empty bytes.
+        """
+        return b""
+
+    @classmethod
+    def deserialize(cls, buf: bytes) -> Self:
+        """Deserialize this artifact from its bytes representation.
+
+        The NothingArtifact deserialization can be produced from empty bytes.
+        """
+        if len(buf) == 0:
+            return cls()
+
+        msg = f"A NothingArtifact cannot be built from non-empty bytes. Bytes length is: {len(buf)}"
+        raise ValueError(msg)

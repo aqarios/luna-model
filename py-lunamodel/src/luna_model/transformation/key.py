@@ -14,7 +14,6 @@
 
 from typing import Generic, TypeVar
 
-
 R = TypeVar("R")
 
 

@@ -14,18 +14,21 @@
 
 from . import passes
 from .analysis import AnalysisPass
-from .artifact import TransformationPassArtifact
+from .artifact import NothingArtifact, TransformationPassArtifact
 from .context import PassContext
+from .decorators import transform
 from .pass_manager import PassManager
 from .record import TransformationRecord
 from .transformation import TransformationPass
 
 __all__ = [
     "AnalysisPass",
+    "NothingArtifact",
     "PassContext",
     "PassManager",
     "TransformationPass",
     "TransformationPassArtifact",
     "TransformationRecord",
     "passes",
+    "transform",
 ]

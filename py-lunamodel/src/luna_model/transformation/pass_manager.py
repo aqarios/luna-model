@@ -26,7 +26,6 @@ from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 from luna_model.transformation.analysis import AnalysisPass
 from luna_model.transformation.control_flow import ControlFlowPass
-from luna_model.transformation.legacy import IR
 from luna_model.transformation.output import TransformationOutput
 from luna_model.transformation.transformation import TransformationPass
 
@@ -87,7 +86,7 @@ class PassManager:
         "This method is deprecated and will be removed in the next non-patch release. "
         "Use the `backward` method of the `CompilationRecord` produced by the PassManager execution instead."
     )
-    def backwards(self, solution: Solution, ir: IR) -> Solution:
+    def backwards(self, solution: Solution, output: TransformationOutput) -> Solution:
         """Apply the back transformation to the given solution.
 
         !!! warning "Disclaimer"
@@ -101,7 +100,7 @@ class PassManager:
         solution : Solution
             The solution to transform back to a representation fitting the original
             (input) model of this `PassManager`.
-        ir : TransformationOutput
+        output : TransformationOutput
             The transformation output returned from the `run` call.
 
         Returns
@@ -110,7 +109,7 @@ class PassManager:
             A solution object representing a solution to the original problem passed
             to this `PassManager`'s run method.
         """
-        return Solution._from_pys(ir.record.backward(solution._s))
+        return Solution._from_pys(output.record.backward(solution._s))
 
     def __str__(self) -> str:
         """Human readable string."""

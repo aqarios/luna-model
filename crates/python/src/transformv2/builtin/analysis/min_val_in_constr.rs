@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use lunamodel_transformv2::analysis::{MinConstraintValues, MinValueInConstraintAnalysis};
+use lunamodel_transformv2::analysis::{MinConstraintValues, MinValueForConstraintAnalysis};
 use lunamodel_transpiler::AnalysisPass;
 use pyo3::{Bound, pyclass, pymethods, types::PyType};
 
@@ -17,10 +17,10 @@ impl PyMinConstraintValues {
 
 #[pyclass(subclass)]
 #[derive(Default)]
-pub struct PyMinValueInConstraintAnalysis(pub MinValueInConstraintAnalysis);
+pub struct PyMinValueForConstraintAnalysis(pub MinValueForConstraintAnalysis);
 
 #[pymethods]
-impl PyMinValueInConstraintAnalysis {
+impl PyMinValueForConstraintAnalysis {
     #[new]
     fn new() -> Self {
         Self::default()
@@ -28,12 +28,12 @@ impl PyMinValueInConstraintAnalysis {
 
     #[classmethod]
     fn provides(_cls: &Bound<'_, PyType>) -> String {
-        MinValueInConstraintAnalysis::PROVIDES.to_string()
+        MinValueForConstraintAnalysis::PROVIDES.to_string()
     }
 }
 
-impl PyMinValueInConstraintAnalysis {
-    pub fn to_rs(&self) -> MinValueInConstraintAnalysis {
+impl PyMinValueForConstraintAnalysis {
+    pub fn to_rs(&self) -> MinValueForConstraintAnalysis {
         self.0.clone()
     }
 }
