@@ -19,18 +19,18 @@ from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.key import AnalysisKey
 
-R = TypeVar("R", covariant=True)  # noqa: PLC0105
+Result = TypeVar("Result", covariant=True)  # noqa: PLC0105
 
 
-class _BuiltinSuper(Protocol[R]):
+class _BuiltinSuper(Protocol[Result]):
     @classmethod
     def provides(cls) -> str: ...
     def name(self) -> str: ...
-    def run(self, model: PyModel, ctx: PyPassContext) -> R: ...
+    def run(self, model: PyModel, ctx: PyPassContext) -> Result: ...
     def requires(self) -> list[str]: ...
 
 
-class BuiltinAnalysis(Generic[R]):
+class BuiltinAnalysis(Generic[Result]):
     """A builtin analysis pass.
 
     Analysis passes retrieve information from models can used by transformation passes.
@@ -48,10 +48,10 @@ class BuiltinAnalysis(Generic[R]):
         str
             The unique pass name.
         """
-        sup = cast("_BuiltinSuper[R]", super())
+        sup = cast("_BuiltinSuper[Result]", super())
         return sup.name()
 
-    def run(self, model: Model, ctx: PassContext) -> R:
+    def run(self, model: Model, ctx: PassContext) -> Result:
         """
         Run/Execute this analysis pass.
 
@@ -67,7 +67,7 @@ class BuiltinAnalysis(Generic[R]):
         Result
             The analysis result.
         """
-        sup = cast("_BuiltinSuper[R]", super())
+        sup = cast("_BuiltinSuper[Result]", super())
         return sup.run(model._m, ctx._c)
 
     def requires(self) -> list[str]:
@@ -79,7 +79,7 @@ class BuiltinAnalysis(Generic[R]):
         list[str]
             Pass names that must execute first, or empty list if no dependencies.
         """
-        sup = cast("_BuiltinSuper[R]", super())
+        sup = cast("_BuiltinSuper[Result]", super())
         return sup.requires()
 
     @classmethod
@@ -92,10 +92,10 @@ class BuiltinAnalysis(Generic[R]):
         str
             The identifier of the cache elment
         """
-        sup = cast("_BuiltinSuper[R]", super())
+        sup = cast("_BuiltinSuper[Result]", super())
         return sup.provides()
 
     @classmethod
-    def key(cls) -> AnalysisKey[R]:
+    def key(cls) -> AnalysisKey[Result]:
         """Get the analysis key used to access the analysis result from the PassContext."""
         return AnalysisKey(cls.provides())
