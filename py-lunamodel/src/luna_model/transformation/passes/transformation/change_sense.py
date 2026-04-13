@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol
+from __future__ import annotations
+
+from typing import Protocol, Self
 
 from luna_model._lm import PyChangeSensePass
 from luna_model.model.model import Sense
 from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
 class ChangeSensePassArtifact(TransformationPassArtifact, Protocol):
@@ -38,7 +41,7 @@ class ChangeSensePassArtifact(TransformationPassArtifact, Protocol):
         ...
 
 
-class ChangeSensePass(PyChangeSensePass):
+class ChangeSensePass(PyChangeSensePass, BuiltinTransformation[ChangeSensePassArtifact]):
     """Change the optimization sense between minimization and maximization.
 
     Converts the optimization sense by negating the objective function.
@@ -47,7 +50,6 @@ class ChangeSensePass(PyChangeSensePass):
     ----------
     sense : Sense
         The target sense to convert the optimization sense to.
-
 
     Examples
     --------
@@ -63,10 +65,17 @@ class ChangeSensePass(PyChangeSensePass):
     >>> min_model = output.model
     """
 
-    def __init__(self, sense: Sense) -> None:
-        super().__init__(sense._val)
+    def __new__(cls, sense: Sense) -> Self:
+        """Create a new change sense pass instance.
+
+        Parameters
+        ----------
+        sense : Sense
+            The target sense to convert the optimization sense to.
+        """
+        return super().__new__(cls, sense._val)
 
     @property
     def sense(self) -> Sense:
         """Get the target optimization sense."""
-        return Sense._from_pysense(self._csp.sense)
+        return Sense._from_pysense(super().sense)

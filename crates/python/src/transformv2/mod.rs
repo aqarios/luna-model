@@ -5,12 +5,15 @@ mod manager;
 mod output;
 mod pass;
 mod record;
+mod pipeline;
+mod utils;
 
 mod adapter;
 pub mod builtin;
 
 pub use adapter::{
-    PyAnalysisPass, PyAnalysisPassAdapter, PyTransformationPass, PyTransformationPassAdapter,
+    PyAnalysisPass, PyAnalysisPassAdapter, PyControlFlowPass, PyControlFlowPassAdapter,
+    PyControlFlowPlan, PyTransformationPass, PyTransformationPassAdapter,
 };
 pub use context::PyPassContext;
 pub use manager::PyPassManager;

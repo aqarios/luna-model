@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol
+from typing import Protocol, Self
 
 from luna_model._lm import PyGeToLeConstraintsPass
 from luna_model.transformation.artifact import TransformationPassArtifact
@@ -27,7 +27,7 @@ class GeToLeConstraintsPassArtifact(TransformationPassArtifact, Protocol):
     """
 
 
-class GeToLeConstraintsPass(BuiltinTransformation[GeToLeConstraintsPassArtifact], PyGeToLeConstraintsPass):
+class GeToLeConstraintsPass(PyGeToLeConstraintsPass, BuiltinTransformation[GeToLeConstraintsPassArtifact]):
     """Convert the model's constraints by chaning all greater-equal (`>=`) constraints to less-equal (`<=`) constraints.
 
     Examples
@@ -45,3 +45,7 @@ class GeToLeConstraintsPass(BuiltinTransformation[GeToLeConstraintsPassArtifact]
     >>> output.model.constraints["ge_constr"]
     -x - y <= 0
     """
+
+    def __new__(cls) -> Self:
+        """Create a new ge to le constraints pass."""
+        return super().__new__(cls)

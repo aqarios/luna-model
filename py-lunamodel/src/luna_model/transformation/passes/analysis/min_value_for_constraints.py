@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol, runtime_checkable
+from typing import Protocol, Self, runtime_checkable
 
 from luna_model._lm import PyMinValueForConstraintAnalysis
 from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
@@ -38,7 +38,7 @@ class MinConstraintValues(Protocol):
         ...
 
 
-class MinValueForConstraintAnalysis(BuiltinAnalysis[MinConstraintValues], PyMinValueForConstraintAnalysis):
+class MinValueForConstraintAnalysis(PyMinValueForConstraintAnalysis, BuiltinAnalysis[MinConstraintValues]):
     """Analysis pass that computes the min value possible for all constraints.
 
     This analysis pass computes the minimal value possible for all constraints
@@ -59,3 +59,7 @@ class MinValueForConstraintAnalysis(BuiltinAnalysis[MinConstraintValues], PyMinV
     >>> output.cache.require_analysis(MinValueForConstraintAnalysis.key()).vals
     {'my-constraint': -5.0}
     """
+
+    def __new__(cls) -> Self:
+        """Create a new min value for constraint analysis pass."""
+        return super().__init__(cls)

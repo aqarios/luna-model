@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol
+from typing import Protocol, Self
 
 from luna_model._lm import PyIntegerToBinaryPass
 from luna_model.transformation.artifact import TransformationPassArtifact
@@ -49,7 +49,7 @@ class IntegerToBinaryPassArtifact(TransformationPassArtifact, Protocol):
         ...
 
 
-class IntegerToBinaryPass(BuiltinTransformation[IntegerToBinaryPassArtifact], PyIntegerToBinaryPass):
+class IntegerToBinaryPass(PyIntegerToBinaryPass, BuiltinTransformation[IntegerToBinaryPassArtifact]):
     """Convert integer variables to a binary representation.
 
     Transform the variables of type integer to be represented by binary typed
@@ -69,3 +69,7 @@ class IntegerToBinaryPass(BuiltinTransformation[IntegerToBinaryPassArtifact], Py
     >>> print(output.model.objective)
     y x_b0 + 2 y x_b1 - 2 y + x_b0 + 2 x_b1
     """
+
+    def __new__(cls) -> Self:
+        """Create a new integer to binary pass."""
+        return super().__new__(cls)

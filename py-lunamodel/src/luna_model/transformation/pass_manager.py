@@ -24,10 +24,9 @@ from collections.abc import Sequence
 from luna_model._lm import PyPassManager
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
-from luna_model.transformation.analysis import AnalysisPass
-from luna_model.transformation.control_flow import ControlFlowPass
 from luna_model.transformation.output import TransformationOutput
-from luna_model.transformation.transformation import TransformationPass
+from luna_model.transformation.pipeline import Pipeline
+from luna_model.transformation.typing import Pass
 
 
 class PassManager:
@@ -48,13 +47,10 @@ class PassManager:
 
     _pm: PyPassManager
 
-    def __init__(
-        self,
-        passes: Sequence[TransformationPass | AnalysisPass | ControlFlowPass] | None = None,
-    ) -> None:
+    def __init__(self, passes: Sequence[Pass] | Pipeline | None = None) -> None:
         self._pm = PyPassManager(passes)
 
-    def add(self, pass_: TransformationPass | AnalysisPass | ControlFlowPass) -> None:
+    def add(self, pass_: Pass) -> None:
         """Append a pass to the configured passes.
 
         Parameters

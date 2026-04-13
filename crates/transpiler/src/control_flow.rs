@@ -3,6 +3,7 @@ use lunamodel_error::LunaModelResult;
 
 use crate::{PassContext, Pipeline, PipelineStep};
 
+#[derive(Clone)]
 pub struct ControlFlowPlan {
     pub pipeline: Pipeline,
 }
@@ -13,6 +14,14 @@ impl ControlFlowPlan {
             pipeline: Pipeline { name, steps },
         }
     }
+
+    pub fn name(&self) -> &str {
+        &self.pipeline.name
+    }
+
+    pub fn steps(&self) -> &[PipelineStep] {
+        &self.pipeline.steps
+    }
 }
 
 /// A control flow pass.
@@ -22,7 +31,7 @@ pub trait ControlFlowPass: Send + Sync {
     /// Name for this pass.
     fn name(&self) -> &str;
 
-    /// Forward transformation: Model -> TransformedModel + Artifact
+    /// Run control flow: Model + PassContext -> ControlFlowPlan
     fn run(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan>;
 
     /// Which pass/analysis keys must be satisfied before this pass can execute?

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol, runtime_checkable
+from typing import Protocol, Self, runtime_checkable
 
 from luna_model._lm import PyMaxBiasAnalysis
 from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
@@ -38,7 +38,7 @@ class MaxBias(Protocol):
         ...
 
 
-class MaxBiasAnalysis(BuiltinAnalysis[MaxBias], PyMaxBiasAnalysis):
+class MaxBiasAnalysis(PyMaxBiasAnalysis, BuiltinAnalysis[MaxBias]):
     """Analysis pass that computes the maximum absolute coefficient value in the objective.
 
     Examples
@@ -55,3 +55,7 @@ class MaxBiasAnalysis(BuiltinAnalysis[MaxBias], PyMaxBiasAnalysis):
     >>> output.context.require_analysis(MaxBiasAnalysis.key()).val
     2.0
     """
+
+    def __new__(cls) -> Self:
+        """Create a new max bias analysis pass."""
+        return super().__init__(cls)

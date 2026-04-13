@@ -6,8 +6,7 @@ use pyo3::{
 };
 
 use crate::transformv2::{
-    adapter::{transformation::envelope::BackwardEnvelope, utils::map_pyerr},
-    envelope::Envelope,
+    adapter::transformation::envelope::BackwardEnvelope, envelope::Envelope, utils::map_pyerr,
 };
 
 mod envelope;

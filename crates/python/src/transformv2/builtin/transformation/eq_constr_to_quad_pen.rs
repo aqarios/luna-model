@@ -42,6 +42,11 @@ impl PyEqualityConstraintsToQuadraticPenaltyPass {
         ))
     }
 
+    #[getter]
+    fn penalty_scaling(&self) -> f64 {
+        self.0.penalty_scaling()
+    }
+
     fn name(&self) -> String {
         self.0.name().to_string()
     }

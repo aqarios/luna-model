@@ -3,7 +3,7 @@ mod ifelse;
 pub mod analysis;
 pub mod transformation;
 
-pub use ifelse::IfElsePass;
+pub use ifelse::{IfElsePass, ConditionPredicate};
 
 pub fn register_backward() {
     lunamodel_transpiler::register_backward::<transformation::BinarySpinPass>();

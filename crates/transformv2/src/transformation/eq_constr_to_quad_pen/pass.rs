@@ -23,6 +23,10 @@ impl EqualityConstraintsToQuadraticPenaltyPass {
             req: vec![MaxBiasAnalysis::NAME.to_string()],
         }
     }
+
+    pub fn penalty_scaling(&self) -> f64 {
+        self.penalty_scaling
+    }
 }
 
 impl ReversiblePass for EqualityConstraintsToQuadraticPenaltyPass {

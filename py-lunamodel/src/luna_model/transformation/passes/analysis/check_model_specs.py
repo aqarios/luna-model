@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Self
+
 from luna_model._lm import PyCheckModelSpecsAnalysis
 from luna_model.model.specs import ModelSpecs
 from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
 
 
-class CheckModelSpecsAnalysis(BuiltinAnalysis[None], PyCheckModelSpecsAnalysis):
+class CheckModelSpecsAnalysis(PyCheckModelSpecsAnalysis, BuiltinAnalysis[None]):
     """Analysis pass that checks the model's specs for correctness.
 
     This analysis pass checks if the input model satisfies the
@@ -39,5 +41,12 @@ class CheckModelSpecsAnalysis(BuiltinAnalysis[None], PyCheckModelSpecsAnalysis):
     >>> # no errors raised
     """
 
-    def __init__(self, specs: ModelSpecs) -> None:
-        super().__init__(specs._sp)
+    def __new__(cls, specs: ModelSpecs) -> Self:
+        """Create a new check model specs analysis pass.
+
+        Parameters
+        ----------
+        specs : ModelSpecs
+            The model specs the model passed to this analysis pass has to fulfill.
+        """
+        return super().__init__(cls, specs._sp)

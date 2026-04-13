@@ -6,7 +6,7 @@ use pyo3::{Py, PyAny, Python, types::PyAnyMethods};
 use super::{PyAnalysisPass, PyAnalysisPassAdapterResult};
 use crate::{
     PyModel,
-    transformv2::{PyPassContext, adapter::utils::map_pyerr},
+    transformv2::{PyPassContext, utils::map_pyerr},
 };
 
 pub struct PyAnalysisPassAdapter {

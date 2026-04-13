@@ -84,6 +84,8 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transformv2::PyPassContext>()?;
     m.add_class::<transformv2::PyTransformationPass>()?;
     m.add_class::<transformv2::PyAnalysisPass>()?;
+    m.add_class::<transformv2::PyControlFlowPass>()?;
+    m.add_class::<transformv2::PyControlFlowPlan>()?;
     // builtin analysis
     m.add_class::<transformv2::builtin::analysis::PyCheckModelSpecsAnalysis>()?;
     m.add_class::<transformv2::builtin::analysis::PyMaxBiasAnalysis>()?;
@@ -98,6 +100,8 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transformv2::builtin::transformation::PyEqualityConstraintsToQuadraticPenaltyPass>()?;
     m.add_class::<transformv2::builtin::transformation::PyGeToLeConstraintsPass>()?;
     m.add_class::<transformv2::builtin::transformation::PyLeToEqConstraintsPass>()?;
+    // builtin control flow
+    m.add_class::<transformv2::builtin::control_flow::PyIfElsePass>()?;
 
     transformv2::register_backward();
 

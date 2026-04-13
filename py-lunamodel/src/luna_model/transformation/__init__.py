@@ -16,14 +16,18 @@ from . import passes
 from .analysis import AnalysisPass
 from .artifact import NothingArtifact, TransformationPassArtifact
 from .context import PassContext
+from .control_flow import ControlFlowPass
 from .decorators import analyze, transform
 from .pass_manager import PassManager
 from .record import TransformationRecord
 from .transformation import TransformationPass
+from .typing import Pass
 
 __all__ = [
     "AnalysisPass",
+    "ControlFlowPass",
     "NothingArtifact",
+    "Pass",
     "PassContext",
     "PassManager",
     "TransformationPass",

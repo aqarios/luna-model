@@ -90,7 +90,7 @@ class BuiltinAnalysis(Generic[Result]):
         Returns
         -------
         str
-            The identifier of the cache elment
+            The identifier of the cache element
         """
         sup = cast("_BuiltinSuper[Result]", super())
         return sup.provides()

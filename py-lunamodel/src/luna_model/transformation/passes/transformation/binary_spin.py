@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Literal, Protocol
+from __future__ import annotations
+
+from typing import Literal, Protocol, Self
 
 from luna_model._lm import PyBinarySpinPass
 from luna_model.model.model import Vtype
@@ -61,7 +63,7 @@ class BinarySpinPassArtifact(TransformationPassArtifact, Protocol):
         ...
 
 
-class BinarySpinPass(BuiltinTransformation[BinarySpinPassArtifact], PyBinarySpinPass):
+class BinarySpinPass(PyBinarySpinPass, BuiltinTransformation[BinarySpinPassArtifact]):
     """Convert between Binary and Spin variable types.
 
     Transform the variables of type binary to spin typed variables or vice versa.
@@ -91,15 +93,27 @@ class BinarySpinPass(BuiltinTransformation[BinarySpinPassArtifact], PyBinarySpin
     >>> spin_model = output.model
     """
 
-    def __init__(self, vtype: Literal[Vtype.BINARY, Vtype.SPIN], prefix: str | None = None) -> None:
-        super().__init__(vtype._val, prefix)
+    def __new__(cls, vtype: Literal[Vtype.BINARY, Vtype.SPIN], prefix: str | None = None) -> Self:
+        """Create a new binary spin pass instance.
+
+        Parameters
+        ----------
+        vtype : Literal[Vtype.BINARY, Vtype.SPIN]
+            The target vtype to convert the variables to. If set to ``Vtype.SPIN`` all
+            binary variables in the model are converted to spin variables. If set to
+            ``Vtype.BINARY`` all spin variables are converted to binary variables.
+        prefix : str, optional
+            An optional prefix to prepend to the name of the new variables created.
+            If none specified a default prefix is used.
+        """
+        return super().__new__(cls, vtype=vtype._val, prefix=prefix)
 
     @property
     def vtype(self) -> Vtype:
         """Get the target variable type to convert to."""
-        return Vtype._from_pyvtype(self._base.vtype)
+        return Vtype._from_pyvtype(super().vtype)
 
     @property
     def prefix(self) -> str | None:
         """Get the optional naming prefix."""
-        return self._base.prefix
+        return super().prefix

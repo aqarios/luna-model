@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol
+from typing import Protocol, Self
 
 from luna_model._lm import PyEqualityConstraintsToQuadraticPenaltyPass
 from luna_model.transformation.artifact import TransformationPassArtifact
@@ -28,8 +28,8 @@ class EqualityConstraintsToQuadraticPenaltyPassArtifact(TransformationPassArtifa
 
 
 class EqualityConstraintsToQuadraticPenaltyPass(
-    BuiltinTransformation[EqualityConstraintsToQuadraticPenaltyPassArtifact],
     PyEqualityConstraintsToQuadraticPenaltyPass,
+    BuiltinTransformation[EqualityConstraintsToQuadraticPenaltyPassArtifact],
 ):
     """Move all equality constraints to the model's objective as a quadratic penalties.
 
@@ -44,12 +44,10 @@ class EqualityConstraintsToQuadraticPenaltyPass(
     -----
     This pass requires the `MaxBiasAnalysis` pass to be executed before this pass.
 
-
     Parameters
     ----------
     penalty_scaling : float
         The factor used to scale the penalties with, default 10.0.
-
 
     Examples
     --------
@@ -73,5 +71,17 @@ class EqualityConstraintsToQuadraticPenaltyPass(
     41 x y + 21 x + 18 y
     """
 
-    def __init__(self, penalty_scaling: float = 10.0) -> None:
-        super().__init__(penalty_scaling)
+    def __new__(cls, penalty_scaling: float = 10.0) -> Self:
+        """Create a new equality constraints to quadratic penalty pass.
+
+        Parameters
+        ----------
+        penalty_scaling : float
+            The factor used to scale the penalties with, default 10.0.
+        """
+        return super().__new__(cls, penalty_scaling)
+
+    @property
+    def penalty_scaling(self) -> float:
+        """Get the penalty scaling factor."""
+        return super().penalty_scaling

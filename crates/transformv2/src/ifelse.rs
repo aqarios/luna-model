@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, sync::Arc};
 
 use global_counter::primitive::exact::CounterU64;
 use lunamodel_core::Model;
@@ -10,9 +10,22 @@ use lunamodel_transpiler::{
 /// Counter to ensure multiple if-else branches can be used in the same pass.
 pub static IF_ELSE_COUNTER: CounterU64 = CounterU64::new(0);
 
+pub trait ConditionPredicate: Send + Sync {
+    fn eval(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<bool>;
+}
+impl<F> ConditionPredicate for F
+where
+    F: Fn(&Model, &PassContext) -> LunaModelResult<bool> + Send + Sync,
+{
+    fn eval(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<bool> {
+        self(model, ctx)
+    }
+}
+
+#[derive(Clone)]
 pub struct IfElsePass {
     name: String,
-    predicate: fn(&Model, &PassContext) -> LunaModelResult<bool>,
+    predicate: Arc<dyn ConditionPredicate>,
     then_steps: Vec<PipelineStep>,
     else_steps: Vec<PipelineStep>,
     requires: Vec<String>,
@@ -22,7 +35,7 @@ pub struct IfElsePass {
 
 impl IfElsePass {
     pub fn new(
-        predicate: fn(&Model, &PassContext) -> LunaModelResult<bool>,
+        predicate: Arc<dyn ConditionPredicate>,
         then_steps: Vec<PipelineStep>,
         else_steps: Vec<PipelineStep>,
         name: Option<String>,
@@ -57,7 +70,7 @@ impl ControlFlowPass for IfElsePass {
     }
 
     fn run(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan> {
-        let cond = (self.predicate)(model, ctx)?;
+        let cond = self.predicate.eval(model, ctx)?;
 
         let (steps, name) = if cond {
             (self.then_steps.clone(), format!("{}-then", self.name))
@@ -80,4 +93,3 @@ impl ControlFlowPass for IfElsePass {
         &self.invalidates
     }
 }
-

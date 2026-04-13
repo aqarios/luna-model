@@ -12,8 +12,8 @@ use super::{PyTransformationPass, artifact::PyTransformationPassAdapterArtifact}
 use crate::{
     PyModel, PySolution,
     transformv2::{
-        adapter::{transformation::envelope::BackwardEnvelope, utils::map_pyerr},
-        context::PyPassContext,
+        adapter::transformation::envelope::BackwardEnvelope, context::PyPassContext,
+        utils::map_pyerr,
     },
 };
 

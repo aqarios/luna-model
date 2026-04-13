@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol
+from typing import Protocol, Self
 
 from luna_model._lm import PyLeToEqConstraintsPass
 from luna_model.transformation.artifact import TransformationPassArtifact
@@ -38,7 +38,7 @@ class LeToEqConstraintsPassArtifact(TransformationPassArtifact, Protocol):
         ...
 
 
-class LeToEqConstraintsPass(BuiltinTransformation[LeToEqConstraintsPassArtifact], PyLeToEqConstraintsPass):
+class LeToEqConstraintsPass(PyLeToEqConstraintsPass, BuiltinTransformation[LeToEqConstraintsPassArtifact]):
     """Convert the model's constraints by chaning all less-equal (`<=`) constraints to equality (`==`) constraints.
 
     Examples
@@ -59,3 +59,7 @@ class LeToEqConstraintsPass(BuiltinTransformation[LeToEqConstraintsPassArtifact]
     >>> print(output.model.get_variable("slack_le_constr"))
     slack_le_constr: Integer(lower=0, upper=3)
     """
+
+    def __new__(cls) -> Self:
+        """Create a new le to eq constraints pass."""
+        return super().__new__(cls)

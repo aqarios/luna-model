@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Self
+
 from luna_model._lm import PySpecsAnalysis
 from luna_model.model.specs import ModelSpecs
 from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
 
 
-class SpecsAnalysis(BuiltinAnalysis[ModelSpecs], PySpecsAnalysis):
+class SpecsAnalysis(PySpecsAnalysis, BuiltinAnalysis[ModelSpecs]):
     """Analysis pass that computes the model's specs and stores them in the cache.
 
     This analysis pass computes the `ModelSpecs` of the input model and writes it
@@ -45,3 +47,7 @@ class SpecsAnalysis(BuiltinAnalysis[ModelSpecs], PySpecsAnalysis):
     >>> output.context.require_analysis(SpecsAnalysis.key())
     ModelSpecs(sense=Minimize, vtype=Binary, constraints=, max_degree=2, max_constraint_degree=0, max_num_variables=2)
     """
+
+    def __new__(cls) -> Self:
+        """Create a new specs analysis pass."""
+        return super().__init__(cls)

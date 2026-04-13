@@ -12,49 +12,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import annotations
 
-from abc import abstractmethod
-from typing import TYPE_CHECKING
+from typing import Protocol, cast
 
-from luna_model._lm import PyControlFlowPass, PyControlFlowPlan, PyModel, PyPassContext
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
-
-if TYPE_CHECKING:
-    from luna_model.transformation.pipeline import Pipeline
-    from luna_model.transformation.typing import Pass
+from luna_model.transformation.control_flow import ControlFlowPlan
 
 
-class ControlFlowPlan:
-    """Todo."""
+class _BuiltinControlFlowSuper(Protocol):
+    def name(self) -> str: ...
+    def requires(self) -> list[str]: ...
+    def invalidates(self) -> list[str]: ...
+    def provides(self) -> list[str]: ...
+    def run(self, model: Model, ctx: PassContext) -> ControlFlowPlan: ...
 
-    _p: PyControlFlowPlan
 
-    def __init__(self, name: str, steps: list[Pass] | Pipeline) -> None:
-        self._p = PyControlFlowPlan(name, steps)
-
-    @classmethod
-    def _from_pyp(cls, py_plan: PyControlFlowPlan) -> ControlFlowPlan:
-        p = cls.__new__(cls)
-        p._p = py_plan
-        return p
-
-class ControlFlowPass(PyControlFlowPass):
-    """
-    Abstract base class for control-flow passes.
+class BuiltinControlFlow:
+    """A builtin control-flow pass.
 
     Control-Flow passes guide the transformation at runtime. Execution of a
     ``ControlFlowPass`` return a ``ControlFlowPlan`` that consist of transformation
     and analysis (or more control-flow passes) to be executed.
-
-    Notes
-    -----
-    This is an abstract class. Subclasses must implement the `name`, `run` methods.
-    Additionally, the `requires` and `invalidates` and `provides` methods can be implemented.
     """
 
-    @abstractmethod
+    def run(self, model: Model, ctx: PassContext) -> ControlFlowPlan:
+        """
+        Run/Execute this control-flow pass.
+
+        Parameters
+        ----------
+        model : Model
+            The model to analyse.
+        ctx : PassContext
+            Context for this pass providing read-access to the analysis cache.
+
+        Returns
+        -------
+        Result
+            The plan to be executed.
+        """
+        sup = cast("_BuiltinControlFlowSuper", super())
+        return sup.run(model._m, ctx._c)
+
     def name(self) -> str:
         """
         Get the unique identifier for this pass.
@@ -64,27 +64,8 @@ class ControlFlowPass(PyControlFlowPass):
         str
             The unique pass name.
         """
-        ...
-
-    @abstractmethod
-    def run(self, model: Model, ctx: PassContext) -> ControlFlowPlan:
-        """
-        Run/Execute this transformation pass.
-
-        Parameters
-        ----------
-        model : Model
-            The model to transform.
-        ctx : PassContext
-            Context for this pass providing read-access to the analysis cache.
-
-        Returns
-        -------
-        tuple[Model, Artifact]
-            The transformation result containing the model and the artifact
-            used for running the backward pass.
-        """
-        ...
+        sup = cast("_BuiltinControlFlowSuper", super())
+        return sup.name()
 
     def requires(self) -> list[str]:
         """
@@ -95,7 +76,8 @@ class ControlFlowPass(PyControlFlowPass):
         list[str]
             Pass names that must execute first, or empty list if no dependencies.
         """
-        return []
+        sup = cast("_BuiltinControlFlowSuper", super())
+        return sup.requires()
 
     def invalidates(self) -> list[str]:
         """
@@ -106,7 +88,8 @@ class ControlFlowPass(PyControlFlowPass):
         list of str
             Names of passes whose results become invalid after this pass runs.
         """
-        return []
+        sup = cast("_BuiltinControlFlowSuper", super())
+        return sup.invalidates()
 
     def provides(self) -> list[str]:
         """
@@ -117,8 +100,5 @@ class ControlFlowPass(PyControlFlowPass):
         str
             The identifiers of the cache elements
         """
-        return []
-
-    def _run(self, model: PyModel, ctx: PyPassContext) -> PyControlFlowPlan:
-        plan = self.run(Model._from_pym(model), PassContext._from_pyctx(ctx))
-        return plan._p
+        sup = cast("_BuiltinControlFlowSuper", super())
+        return sup.invalidates()

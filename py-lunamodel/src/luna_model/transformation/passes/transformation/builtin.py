@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Generic, Protocol, TypeVar, cast
+from typing import Generic, Protocol, TypeVar, cast
 
 from luna_model._lm import PyModel, PyPassContext, PySolution
 from luna_model.model.model import Model
@@ -23,7 +23,7 @@ from luna_model.transformation.context import PassContext
 Artifact = TypeVar("Artifact", bound=TransformationPassArtifact)
 
 
-class _BuiltinSuper(Protocol[Artifact]):
+class _BuiltinTransformationSuper(Protocol[Artifact]):
     @classmethod
     def backward(cls, artifact: Artifact, solution: PySolution) -> PySolution: ...
     def name(self) -> str: ...
@@ -39,9 +39,6 @@ class BuiltinTransformation(Generic[Artifact]):
     solutions backwards to match the input representation.
     """
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-
     def name(self) -> str:
         """
         Get the unique identifier for this pass.
@@ -51,7 +48,7 @@ class BuiltinTransformation(Generic[Artifact]):
         str
             The unique pass name.
         """
-        sup = cast("_BuiltinSuper[Artifact]", super())
+        sup = cast("_BuiltinTransformationSuper[Artifact]", super())
         return sup.name()
 
     def forward(self, model: Model, ctx: PassContext) -> tuple[Model, Artifact]:
@@ -71,7 +68,7 @@ class BuiltinTransformation(Generic[Artifact]):
             The transformation result containing the model and the artifact
             used for running the backward pass.
         """
-        sup = cast("_BuiltinSuper[Artifact]", super())
+        sup = cast("_BuiltinTransformationSuper[Artifact]", super())
         result: tuple[PyModel, Artifact] = sup.forward(model._m, ctx._c)
         model, artifact = result
         return Model._from_pym(model), artifact
@@ -95,7 +92,7 @@ class BuiltinTransformation(Generic[Artifact]):
             A solution object representing a solution to the original problem passed
             to this TransformationPass' forward method.
         """
-        sup = cast("_BuiltinSuper[Artifact]", super())
+        sup = cast("_BuiltinTransformationSuper[Artifact]", super())
         return Solution._from_pys(sup.backward(artifact, solution._s))
 
     def requires(self) -> list[str]:
@@ -107,7 +104,7 @@ class BuiltinTransformation(Generic[Artifact]):
         list[str]
             Pass names that must execute first, or empty list if no dependencies.
         """
-        sup = cast("_BuiltinSuper[Artifact]", super())
+        sup = cast("_BuiltinTransformationSuper[Artifact]", super())
         return sup.requires()
 
     def invalidates(self) -> list[str]:
@@ -119,5 +116,5 @@ class BuiltinTransformation(Generic[Artifact]):
         list of str
             Names of passes whose results become invalid after this pass runs.
         """
-        sup = cast("_BuiltinSuper[Artifact]", super())
+        sup = cast("_BuiltinTransformationSuper[Artifact]", super())
         return sup.invalidates()

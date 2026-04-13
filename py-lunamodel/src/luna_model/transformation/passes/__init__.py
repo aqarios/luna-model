@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from . import analysis, transformation
+from . import analysis, control_flow, transformation
 from .analysis import (
     CheckModelSpecsAnalysis,
     MaxBias,
@@ -21,6 +21,7 @@ from .analysis import (
     MinValueForConstraintAnalysis,
     SpecsAnalysis,
 )
+from .control_flow import IfElsePass
 from .transformation import (
     BinarySpinPass,
     ChangeSensePass,
@@ -36,6 +37,7 @@ __all__ = [
     "CheckModelSpecsAnalysis",
     "EqualityConstraintsToQuadraticPenaltyPass",
     "GeToLeConstraintsPass",
+    "IfElsePass",
     "IntegerToBinaryPass",
     "LeToEqConstraintsPass",
     "MaxBias",
@@ -44,5 +46,6 @@ __all__ = [
     "MinValueForConstraintAnalysis",
     "SpecsAnalysis",
     "analysis",
+    "control_flow",
     "transformation",
 ]
