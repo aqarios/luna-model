@@ -3,7 +3,7 @@ use pyo3::{Py, PyAny, PyResult, Python, pyclass, pymethods};
 
 use crate::transformv2::adapter::PyAnalysisPassAdapterResult;
 
-#[pyclass]
+#[pyclass(subclass)]
 pub struct PyPassContext {
     manager: AnalysisManager,
 }

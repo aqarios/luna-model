@@ -4,8 +4,8 @@ mod envelope;
 mod manager;
 mod output;
 mod pass;
-mod record;
 mod pipeline;
+mod record;
 mod utils;
 
 mod adapter;
@@ -18,6 +18,7 @@ pub use adapter::{
 pub use context::PyPassContext;
 pub use manager::PyPassManager;
 pub use output::PyTransformationOutput;
+pub use pipeline::PyPipeline;
 pub use record::PyTransformationRecord;
 
 pub fn register_backward() {

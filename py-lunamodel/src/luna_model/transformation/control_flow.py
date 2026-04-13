@@ -27,7 +27,30 @@ if TYPE_CHECKING:
 
 
 class ControlFlowPlan:
-    """Todo."""
+    """Execution plan produced by a control-flow pass.
+
+    A ``ControlFlowPlan`` describes which sub-pipeline should be executed next
+    based on a runtime decision (for example, an if/else condition). It is the
+    output of a control-flow pass and contains a plan name plus an ordered list
+    of passes/steps to run.
+
+    This object does not execute anything itself. Instead, the pass manager
+    consumes it and runs the selected steps, then records the nested execution
+    in the transformation record so backward replay remains deterministic after
+    serialization/deserialization.
+
+    Parameters
+    ----------
+    name : str
+        Human-readable identifier for the selected branch/plan.
+    steps : Sequence[Pass]
+        Ordered steps that should be executed for this plan.
+
+    Notes
+    -----
+    The plan should be deterministic for a given model/context state, and should
+    only include steps that are valid within the current pipeline scope.
+    """
 
     _p: PyControlFlowPlan
 
@@ -39,6 +62,7 @@ class ControlFlowPlan:
         p = cls.__new__(cls)
         p._p = py_plan
         return p
+
 
 class ControlFlowPass(PyControlFlowPass):
     """

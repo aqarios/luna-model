@@ -1,3 +1,8 @@
-from luna_model.transformation.passes import BinarySpinPass
+from luna_model.transformation import Pipeline
+from luna_model.transformation.passes import EqualityConstraintsToQuadraticPenaltyPass
 
-bsp = BinarySpinPass()
+pipeline = Pipeline(name="pipeline_trial", steps=[EqualityConstraintsToQuadraticPenaltyPass()])
+pipeline.requires()
+# print(pipeline.requires())
+# print(pipeline.invalidates())
+# print(pipeline.provides())

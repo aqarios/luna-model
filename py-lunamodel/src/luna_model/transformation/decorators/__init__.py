@@ -13,9 +13,11 @@
 # limitations under the License.
 
 from .analysis import analyze
+from .control_flow import control_flow
 from .transformation import transform
 
 __all__ = [
     "analyze",
+    "control_flow",
     "transform",
 ]

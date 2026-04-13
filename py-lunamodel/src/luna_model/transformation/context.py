@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-class PassContext:
+class PassContext(PyPassContext):
     """The pass context provides access to the analysis results in Transformation and analysis passes."""
 
     _c: PyPassContext

@@ -17,6 +17,24 @@ impl From<Pipeline> for PipelineStep {
     }
 }
 
+impl Pipeline {
+    pub fn new(name: String, steps: Vec<PipelineStep>) -> Self {
+        Self { name, steps }
+    }
+
+    pub fn requires(&self) -> impl Iterator<Item = String> {
+        self.steps.collect_requires()
+    }
+
+    pub fn provides(&self) -> impl Iterator<Item = String> {
+        self.steps.collect_provides()
+    }
+
+    pub fn invalidates(&self) -> impl Iterator<Item = String> {
+        self.steps.collect_invalidates()
+    }
+}
+
 pub trait PipelineStepMethods {
     fn collect_requires(&self) -> impl Iterator<Item = String>;
     fn collect_provides(&self) -> impl Iterator<Item = String>;
