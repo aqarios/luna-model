@@ -10,7 +10,7 @@ use pyo3::{
 use crate::{PyModel, PySolution, transformv2::PyPassContext};
 
 #[pyclass]
-struct PyArtifact(IntegerToBinaryArtifact);
+pub struct PyArtifact(pub IntegerToBinaryArtifact);
 
 #[pymethods]
 impl PyArtifact {

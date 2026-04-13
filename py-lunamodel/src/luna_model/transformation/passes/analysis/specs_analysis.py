@@ -50,4 +50,4 @@ class SpecsAnalysis(PySpecsAnalysis, BuiltinAnalysis[ModelSpecs]):
 
     def __new__(cls) -> Self:
         """Create a new specs analysis pass."""
-        return super().__init__(cls)
+        return super().__new__(cls)

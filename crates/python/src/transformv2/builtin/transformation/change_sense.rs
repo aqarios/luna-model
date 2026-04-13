@@ -8,7 +8,7 @@ use pyo3::{
 use crate::{PyModel, PySense, PySolution, transformv2::PyPassContext};
 
 #[pyclass]
-struct PyChangeSensePassArtifact(ChangeSensePassArtifact);
+pub struct PyChangeSensePassArtifact(pub ChangeSensePassArtifact);
 
 #[pymethods]
 impl PyChangeSensePassArtifact {

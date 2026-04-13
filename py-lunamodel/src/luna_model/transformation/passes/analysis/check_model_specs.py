@@ -49,4 +49,4 @@ class CheckModelSpecsAnalysis(PyCheckModelSpecsAnalysis, BuiltinAnalysis[None]):
         specs : ModelSpecs
             The model specs the model passed to this analysis pass has to fulfill.
         """
-        return super().__init__(cls, specs._sp)
+        return super().__new__(cls, specs._sp)

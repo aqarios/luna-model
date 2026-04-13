@@ -62,4 +62,4 @@ class MinValueForConstraintAnalysis(PyMinValueForConstraintAnalysis, BuiltinAnal
 
     def __new__(cls) -> Self:
         """Create a new min value for constraint analysis pass."""
-        return super().__init__(cls)
+        return super().__new__(cls)

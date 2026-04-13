@@ -20,6 +20,7 @@ pub use manager::PyPassManager;
 pub use output::PyTransformationOutput;
 pub use pipeline::PyPipeline;
 pub use record::PyTransformationRecord;
+pub use entry::PyPassEntry;
 
 pub fn register_backward() {
     lunamodel_transformv2::register_backward();

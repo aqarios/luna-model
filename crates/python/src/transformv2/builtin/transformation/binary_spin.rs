@@ -10,7 +10,7 @@ use pyo3::{
 use crate::{PyModel, PySolution, PyVtype, transformv2::PyPassContext};
 
 #[pyclass]
-struct PyBinarySpinPassArtifact(BinarySpinPassArtifact);
+pub struct PyBinarySpinPassArtifact(pub BinarySpinPassArtifact);
 
 #[pymethods]
 impl PyBinarySpinPassArtifact {

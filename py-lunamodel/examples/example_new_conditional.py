@@ -2,6 +2,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from luna_model import Model, Sense, Vtype
+import luna_model
 from luna_model.transformation import PassManager, PassContext, ControlFlowPass, Pass
 from luna_model.transformation.analysis import AnalysisPass
 from luna_model.transformation.control_flow import ControlFlowPlan
@@ -9,6 +10,7 @@ from luna_model.transformation.passes import IntegerToBinaryPass, BinarySpinPass
 from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
 from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 from luna_model.transformation.pipeline import Pipeline
+from luna_model.transformation.record import ControlFlow, Transform
 from luna_model.transformation.transformation import TransformationPass
 
 model = Model(sense=Sense.MIN)
@@ -101,9 +103,19 @@ conditional = IfElsePass(has_binary_condition, then=[BinarySpinPass(Vtype.SPIN)]
 
 pm = PassManager([IntegerToBinaryPass(), conditional])
 out = pm.run(model)
-print("---------")
-print("OUT MODEL")
-print("---------")
-print(out.model)
-print(out.model.variables())
-print(out.model.vtypes())
+# print("---------")
+# print("OUT MODEL")
+# print("---------")
+# print(out.model)
+# print(out.model.variables())
+# print(out.model.vtypes())
+
+for e in out.record.entries:
+    if isinstance(e, Transform):
+        print(e.pass_id)
+    if isinstance(e, ControlFlow):
+        print(e.pass_name)
+        print(e.record)
+    print("A")
+
+# print(luna_model._lm.PyPassEntry.Transform)

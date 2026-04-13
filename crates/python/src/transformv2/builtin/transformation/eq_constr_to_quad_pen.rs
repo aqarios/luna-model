@@ -10,8 +10,8 @@ use pyo3::{
 use crate::{PyModel, PySolution, transformv2::PyPassContext};
 
 #[pyclass]
-struct PyEqualityConstraintsToQuadraticPenaltyArtifact(
-    EqualityConstraintsToQuadraticPenaltyArtifact,
+pub struct PyEqualityConstraintsToQuadraticPenaltyArtifact(
+    pub EqualityConstraintsToQuadraticPenaltyArtifact,
 );
 
 #[pymethods]

@@ -1,7 +1,20 @@
+use lunamodel_error::LunaModelError;
+use lunamodel_transformv2::transformation::{
+    BinarySpinPassArtifact, ChangeSensePassArtifact, EqualityConstraintsToQuadraticPenaltyArtifact,
+    GeToLeConstraintsArtifact, IntegerToBinaryArtifact, LeToEqConstraintsArtifact,
+};
 use lunamodel_transpiler::{ErasedArtifact, PassEntry};
-use pyo3::pyclass;
+use pyo3::{IntoPyObjectExt, Py, PyAny, PyResult, Python, pyclass, pymethods};
 
-use crate::transformv2::record::PyTransformationRecord;
+use crate::transformv2::{
+    adapter::PyTransformationPassAdapterArtifact,
+    builtin::transformation::{
+        PyBinarySpinPassArtifact, PyChangeSensePassArtifact,
+        PyEqualityConstraintsToQuadraticPenaltyArtifact, PyGeToLeConstraintsArtifact,
+        PyIntegerToBinaryArtifact, PyLeToEqConstraintsArtifact,
+    },
+    record::PyTransformationRecord,
+};
 
 #[pyclass(get_all)]
 #[derive(Clone)]
@@ -15,6 +28,32 @@ impl From<&ErasedArtifact> for PyErasedArtifact {
         Self {
             type_tag: value.type_tag().to_string(),
             data: value.data().clone(),
+        }
+    }
+}
+
+#[pymethods]
+impl PyErasedArtifact {
+    fn restore(&self, py: Python) -> PyResult<Py<PyAny>> {
+        let ea = ErasedArtifact::create(self.type_tag.clone(), self.data.clone());
+        if let Ok(b) = ea.restore::<BinarySpinPassArtifact>() {
+            PyBinarySpinPassArtifact(b).into_py_any(py)
+        } else if let Ok(b) = ea.restore::<ChangeSensePassArtifact>() {
+            PyChangeSensePassArtifact(b).into_py_any(py)
+        } else if let Ok(b) = ea.restore::<EqualityConstraintsToQuadraticPenaltyArtifact>() {
+            PyEqualityConstraintsToQuadraticPenaltyArtifact(b).into_py_any(py)
+        } else if let Ok(b) = ea.restore::<GeToLeConstraintsArtifact>() {
+            PyGeToLeConstraintsArtifact(b).into_py_any(py)
+        } else if let Ok(b) = ea.restore::<IntegerToBinaryArtifact>() {
+            PyIntegerToBinaryArtifact(b).into_py_any(py)
+        } else if let Ok(b) = ea.restore::<LeToEqConstraintsArtifact>() {
+            PyLeToEqConstraintsArtifact(b).into_py_any(py)
+        } else if let Ok(b) = ea.restore::<PyTransformationPassAdapterArtifact>() {
+            b.into_py_any(py)
+        } else {
+            Err(LunaModelError::Internal(
+                format!("failed to restore artifact for tag: {}", self.type_tag).into(),
+            ))?
         }
     }
 }

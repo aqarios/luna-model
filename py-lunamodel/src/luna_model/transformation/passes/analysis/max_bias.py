@@ -58,4 +58,4 @@ class MaxBiasAnalysis(PyMaxBiasAnalysis, BuiltinAnalysis[MaxBias]):
 
     def __new__(cls) -> Self:
         """Create a new max bias analysis pass."""
-        return super().__init__(cls)
+        return super().__new__(cls)

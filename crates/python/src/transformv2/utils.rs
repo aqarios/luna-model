@@ -20,7 +20,7 @@ pub enum PipelineOrPassVec {
 impl PipelineOrPassVec {
     pub fn to_steps(self, py: Python) -> PyResult<Vec<PipelineStep>> {
         match self {
-            Self::Pipeline(p) => Ok(p.steps()),
+            Self::Pipeline(p) => Ok(p.steps().to_vec()),
             Self::PassVec(v) => v
                 .into_iter()
                 .map(|p| p.to_step(py))

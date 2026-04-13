@@ -21,7 +21,6 @@ from luna_model._lm import PyPassContext
 if TYPE_CHECKING:
     from luna_model.transformation.key import AnalysisKey
 
-
 T = TypeVar("T")
 
 

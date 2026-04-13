@@ -1,7 +1,11 @@
 use std::sync::Arc;
 
 use lunamodel_transpiler::PipelineStep;
-use pyo3::{FromPyObject, Py, PyResult, Python};
+use pyo3::{
+    FromPyObject, Py, PyAny, PyErr, PyResult, Python,
+    exceptions::PyTypeError,
+    types::{PyAnyMethods, PyTypeMethods},
+};
 
 use super::builtin::{
     analysis::{
@@ -11,7 +15,7 @@ use super::builtin::{
     transformation::PyIntegerToBinaryPass,
 };
 use crate::transformv2::{
-    PyControlFlowPass, PyControlFlowPassAdapter, PyTransformationPassAdapter,
+    PyControlFlowPass, PyControlFlowPassAdapter, PyPipeline, PyTransformationPassAdapter,
     adapter::{PyAnalysisPass, PyAnalysisPassAdapter, PyTransformationPass},
     builtin::{
         control_flow::PyIfElsePass,
@@ -41,6 +45,8 @@ pub enum PyPass {
     LeToEq(Py<PyLeToEqConstraintsPass>),
     // control-flow
     IfElse(Py<PyIfElsePass>),
+    // special containers
+    Pipeline(PyPipeline),
     // ///////////////////////////
     // /// CUSTOM FROM PYTHON  ///
     // ///////////////////////////
@@ -50,6 +56,8 @@ pub enum PyPass {
     CustomTransformation(Py<PyTransformationPass>),
     // custom analysis from python
     CustomAnalysis(Py<PyAnalysisPass>),
+    // fallback for non-leaking error.
+    Default(Py<PyAny>),
 }
 
 impl PyPass {
@@ -74,6 +82,11 @@ impl PyPass {
             Self::LeToEq(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
             // control-flow
             Self::IfElse(p) => Ok(PipelineStep::ControlFlow(Arc::new(p.borrow(py).to_rs()))),
+            // special container
+            Self::Pipeline(p) => Ok(PipelineStep::Pipeline {
+                name: p.name(),
+                passes: p.steps().to_vec(),
+            }),
             // ///////////////////////////
             // /// CUSTOM FROM PYTHON  ///
             // ///////////////////////////
@@ -89,7 +102,30 @@ impl PyPass {
             Self::CustomAnalysis(p) => Ok(PipelineStep::Analysis(Arc::new(
                 PyAnalysisPassAdapter::new(py, p.clone_ref(py))?,
             ))),
+            // default for non-leaking error
+            Self::Default(d) => Err(invalid_pass_error(d, py)),
         }
         // self.inner.clone()
     }
+}
+
+fn invalid_pass_error(obj: &Py<PyAny>, py: Python<'_>) -> PyErr {
+    let bound = obj.bind(py);
+
+    let type_name = bound
+        .get_type()
+        .name()
+        .map(|n| n.to_string())
+        .unwrap_or_else(|_| "<unknown>".to_string());
+
+    let module = bound
+        .getattr("__class__")
+        .and_then(|c| c.getattr("__module__"))
+        .and_then(|m| m.extract::<String>())
+        .unwrap_or_else(|_| "<unknown>".to_string());
+
+    PyTypeError::new_err(format!(
+        "Invalid pass object of type '{module}.{type_name}'. Expected 
+Pass/AnalysisPass/TransformationPass/ControlFlowPass."
+    ))
 }

@@ -5,6 +5,7 @@ mod artifact;
 mod envelope;
 
 pub use adapter::PyTransformationPassAdapter;
+pub use artifact::PyTransformationPassAdapterArtifact;
 
 #[pyclass(subclass)]
 pub struct PyTransformationPass;

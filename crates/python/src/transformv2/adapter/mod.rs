@@ -4,4 +4,4 @@ mod transformation;
 
 pub use analysis::{PyAnalysisPass, PyAnalysisPassAdapter, PyAnalysisPassAdapterResult};
 pub use control_flow::{PyControlFlowPass, PyControlFlowPassAdapter, PyControlFlowPlan};
-pub use transformation::{PyTransformationPass, PyTransformationPassAdapter};
+pub use transformation::{PyTransformationPass, PyTransformationPassAdapter, PyTransformationPassAdapterArtifact};

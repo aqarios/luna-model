@@ -20,19 +20,24 @@ from .control_flow import ControlFlowPass, ControlFlowPlan
 from .decorators import analyze, control_flow, transform
 from .pass_manager import PassManager
 from .pipeline import Pipeline
-from .record import TransformationRecord
+from .record import AnalysisEntry, ControlFlowEntry, PassEntry, PipelineEntry, TransformationRecord, TransformEntry
 from .transformation import TransformationPass
 from .typing import Pass
 
 __all__ = [
+    "AnalysisEntry",
     "AnalysisPass",
+    "ControlFlowEntry",
     "ControlFlowPass",
     "ControlFlowPlan",
     "NothingArtifact",
     "Pass",
     "PassContext",
+    "PassEntry",
     "PassManager",
     "Pipeline",
+    "PipelineEntry",
+    "TransformEntry",
     "TransformationPass",
     "TransformationPassArtifact",
     "TransformationRecord",

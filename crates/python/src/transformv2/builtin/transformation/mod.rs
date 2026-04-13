@@ -5,9 +5,11 @@ mod ge_to_le;
 mod integer_to_binary;
 mod le_to_eq;
 
-pub use binary_spin::PyBinarySpinPass;
-pub use change_sense::PyChangeSensePass;
-pub use eq_constr_to_quad_pen::PyEqualityConstraintsToQuadraticPenaltyPass;
-pub use ge_to_le::PyGeToLeConstraintsPass;
-pub use integer_to_binary::PyIntegerToBinaryPass;
-pub use le_to_eq::PyLeToEqConstraintsPass;
+pub use binary_spin::{PyBinarySpinPass, PyBinarySpinPassArtifact};
+pub use change_sense::{PyChangeSensePass, PyChangeSensePassArtifact};
+pub use eq_constr_to_quad_pen::{
+    PyEqualityConstraintsToQuadraticPenaltyArtifact, PyEqualityConstraintsToQuadraticPenaltyPass,
+};
+pub use ge_to_le::{PyArtifact as PyGeToLeConstraintsArtifact, PyGeToLeConstraintsPass};
+pub use integer_to_binary::{PyArtifact as PyIntegerToBinaryArtifact, PyIntegerToBinaryPass};
+pub use le_to_eq::{PyArtifact as PyLeToEqConstraintsArtifact, PyLeToEqConstraintsPass};

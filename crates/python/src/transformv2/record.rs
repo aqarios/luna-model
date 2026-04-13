@@ -46,4 +46,8 @@ impl PyTransformationRecord {
             data.as_bytes(py).unversionize().decompress()?.decode(())?;
         Ok(record.into())
     }
+
+    fn find(&self, query: String, exact: bool) -> PyResult<PyPassEntry> {
+        Ok(self.tr.find(&query, exact)?.into())
+    }
 }

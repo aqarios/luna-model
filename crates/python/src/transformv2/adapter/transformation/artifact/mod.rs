@@ -1,7 +1,7 @@
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::Artifact;
 use pyo3::{
-    Py, PyAny, PyErr, Python,
+    Py, PyAny, PyErr, Python, pyclass,
     types::{PyAnyMethods, PyBytes, PyBytesMethods, PyModule},
 };
 
@@ -13,6 +13,7 @@ mod envelope;
 
 use envelope::ArtifactEnvelope;
 
+#[pyclass]
 pub struct PyTransformationPassAdapterArtifact {
     pub artifact: Py<PyAny>,
     pub backward: BackwardEnvelope,

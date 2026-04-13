@@ -8,7 +8,7 @@ use pyo3::{
 use crate::{PyModel, PySolution, transformv2::PyPassContext};
 
 #[pyclass]
-struct PyArtifact(GeToLeConstraintsArtifact);
+pub struct PyArtifact(pub GeToLeConstraintsArtifact);
 
 #[pymethods]
 impl PyArtifact {

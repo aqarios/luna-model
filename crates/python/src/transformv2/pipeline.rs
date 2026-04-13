@@ -8,8 +8,12 @@ use crate::transformv2::pass::PyPass;
 pub struct PyPipeline(Pipeline);
 
 impl PyPipeline {
-    pub fn steps(self) -> Vec<PipelineStep> {
-        self.0.steps
+    pub fn steps(&self) -> &[PipelineStep] {
+        &self.0.steps
+    }
+
+    pub fn name(&self) -> String {
+        self.0.name.clone()
     }
 }
 
@@ -36,5 +40,9 @@ impl PyPipeline {
 
     fn provides(&self) -> Vec<String> {
         self.0.provides().collect()
+    }
+
+    fn add(&mut self, py: Python, pass: PyPass) -> PyResult<()> {
+        Ok(self.0.steps.push(pass.to_step(py)?))
     }
 }
