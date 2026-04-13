@@ -48,36 +48,7 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyQuboTranslator>()?;
     m.add_class::<PyQubo>()?;
 
-    // // Transformations
-    // // Core classes.
-    // m.add_class::<transform::PyPassManager>()?;
-    // m.add_class::<transform::PyPipeline>()?;
-    // m.add_class::<transform::PyIfElsePass>()?;
-    // m.add_class::<transform::PyIR>()?;
-    // m.add_class::<transform::PyAnalysisCache>()?;
-    // m.add_class::<transform::PyLogElement>()?;
-    // m.add_class::<transform::ActionType>()?;
-    // m.add_class::<transform::PyStructuredTransformationOutcome>()?;
-    // // Abstract base classes.
-    // m.add_class::<transform::PyTransformationPass>()?;
-    // m.add_class::<transform::PyAnalysisPass>()?;
-    // m.add_class::<transform::PyMetaAnalysisPass>()?;
-    // // Predefnied and implemented Transformations
-    // m.add_class::<transform::PyChangeSensePass>()?;
-    // m.add_class::<transform::PyMaxBiasAnalysis>()?;
-    // m.add_class::<transform::PyBinarySpinPass>()?;
-    // // Predefnied and implemented Pipelines
-    // m.add_class::<transform::PyToUnconstrainedBinaryPipeline>()?;
-
-    // m.add_class::<transform::PyIntegerToBinaryPass>()?;
-    // m.add_class::<transform::PyCheckModelSpecsAnalysis>()?;
-    // m.add_class::<transform::PyEqualityConstraintsToQuadraticPenaltyPass>()?;
-    // m.add_class::<transform::PyGeToLeConstraintsPass>()?;
-    // m.add_class::<transform::PyLeToEqConstraintsPass>()?;
-    // m.add_class::<transform::PyMinValueForConstraintsAnalysis>()?;
-    // m.add_class::<transform::PySpecsAnalysis>()?;
-    // m.add_class::<transform::PyCheckModelSpecsAnalysis>()?;
-    //
+    // Transformations
     m.add_class::<transformv2::PyPassManager>()?;
     m.add_class::<transformv2::PyTransformationOutput>()?;
     m.add_class::<transformv2::PyTransformationRecord>()?;
