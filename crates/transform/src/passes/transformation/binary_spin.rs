@@ -62,7 +62,6 @@ impl BasePass for BinarySpinPass {
 }
 
 impl TransformationPass for BinarySpinPass {
-    // #[allow(unreachable_code)]
     fn run(&self, mut model: Model, _cache: &AnalysisCache) -> TransformationPassResult {
         let mut cache = BinarySpinInfo::try_new(self.vtype).map_err(|x| self.map_err(&x))?;
         let pref = self.prefix.clone().unwrap_or(
