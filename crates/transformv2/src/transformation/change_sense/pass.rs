@@ -1,12 +1,13 @@
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass};
+use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass, transformation};
 use lunamodel_types::Sense;
 
 use crate::analysis::SpecsAnalysis;
 
 use super::artifact::ChangeSensePassArtifact;
 
+#[transformation]
 #[derive(Clone)]
 pub struct ChangeSensePass {
     sense: Sense,

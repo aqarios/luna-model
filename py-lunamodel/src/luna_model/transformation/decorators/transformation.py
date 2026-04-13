@@ -221,9 +221,9 @@ def transform(
     --------
     Create a simple transformation:
 
-    >>> from luna_model.transformation import transform, ActionType
+    >>> from luna_model.transformation import transform
     >>> @transform(name="scale-objective")
-    ... def scale_obj(model, cache):
+    ... def scale_obj(model: Model, ctx: PassContext):
     ...     model.objective = model.objective * 2.0
     ...     return model, NothingArtifact()
 

@@ -1,4 +1,4 @@
-use std::{any::Any, collections::HashMap, marker::PhantomData, sync::Arc};
+use std::{any::Any, collections::HashMap, fmt::Debug, marker::PhantomData, sync::Arc};
 
 use lunamodel_error::LunaModelResult;
 
@@ -6,6 +6,7 @@ use crate::error::TransformationError;
 
 /// Typed key for accessing analysis results.
 /// The type parameter ensures compile-time type safety.
+#[derive(Debug)]
 pub struct AnalysisKey<T: 'static> {
     pub(crate) name: String,
     _marker: PhantomData<fn() -> T>,

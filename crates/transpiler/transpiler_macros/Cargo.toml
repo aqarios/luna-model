@@ -1,5 +1,5 @@
 [package]
-name = "lunamodel-unwindable"
+name = "lunamodel-transpiler-macros"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true

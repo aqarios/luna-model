@@ -56,7 +56,7 @@ class MinValueForConstraintAnalysis(PyMinValueForConstraintAnalysis, BuiltinAnal
     >>> model.constraints += -5 * x + y <= 2, "my-constraint"
     >>> pm = PassManager([MinValueForConstraintAnalysis()])
     >>> output = pm.run(model)
-    >>> output.cache.require_analysis(MinValueForConstraintAnalysis.key()).vals
+    >>> output.context.require_analysis(MinValueForConstraintAnalysis.key()).vals
     {'my-constraint': -5.0}
     """
 

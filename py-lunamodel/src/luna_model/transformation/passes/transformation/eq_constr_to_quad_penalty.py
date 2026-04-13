@@ -81,6 +81,9 @@ class EqualityConstraintsToQuadraticPenaltyPass(
         """
         return super().__new__(cls, penalty_scaling)
 
+    def __init__(self, penalty_scaling: float = 10.0) -> None:
+        _ = penalty_scaling
+
     @property
     def penalty_scaling(self) -> float:
         """Get the penalty scaling factor."""

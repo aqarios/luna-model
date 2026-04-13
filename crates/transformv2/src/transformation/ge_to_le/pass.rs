@@ -1,10 +1,11 @@
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{PassContext, ReversiblePass};
+use lunamodel_transpiler::{PassContext, ReversiblePass, transformation};
 use lunamodel_types::Comparator;
 
 use super::artifact::GeToLeConstraintsArtifact as GTLCArtifact;
 
+#[transformation]
 #[derive(Default, Clone)]
 pub struct GeToLeConstraintsPass;
 

@@ -2,11 +2,12 @@ use std::collections::HashMap;
 
 use lunamodel_core::{Expression, Model, Solution, ops::LmAddAssign, prelude::Bounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{PassContext, ReversiblePass};
+use lunamodel_transpiler::{PassContext, ReversiblePass, transformation};
 use lunamodel_types::{Bound, Vtype};
 
 use super::artifact::IntegerToBinaryArtifact;
 
+#[transformation]
 #[derive(Default, Clone)]
 pub struct IntegerToBinaryPass;
 

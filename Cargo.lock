@@ -518,6 +518,7 @@ dependencies = [
 name = "lunamodel-transformv2"
 version = "0.5.0"
 dependencies = [
+ "derive_more",
  "global_counter",
  "lunamodel-core",
  "lunamodel-error",
@@ -551,7 +552,17 @@ version = "0.5.0"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
+ "lunamodel-transpiler-macros",
  "lunamodel-types",
+]
+
+[[package]]
+name = "lunamodel-transpiler-macros"
+version = "0.5.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -577,9 +588,7 @@ dependencies = [
 name = "lunamodel-unwindable"
 version = "0.5.0"
 dependencies = [
- "once_cell",
  "proc-macro2",
- "pyo3",
  "quote",
  "syn",
 ]

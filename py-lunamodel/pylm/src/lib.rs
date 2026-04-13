@@ -75,6 +75,9 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transformv2::builtin::transformation::PyLeToEqConstraintsPass>()?;
     // builtin control flow
     m.add_class::<transformv2::builtin::control_flow::PyIfElsePass>()?;
+    // builtin pipelines
+    m.add_class::<transformv2::builtin::pipeline::PyToUnconstrainedBinaryPipeline>()?;
+    m.add_class::<transformv2::builtin::pipeline::PyToBinaryMinimizationPipeline>()?;
 
     transformv2::register_backward();
 

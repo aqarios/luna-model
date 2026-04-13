@@ -2,6 +2,7 @@ mod ifelse;
 
 pub mod analysis;
 pub mod transformation;
+pub mod pipelines;
 
 pub use ifelse::{IfElsePass, ConditionPredicate};
 

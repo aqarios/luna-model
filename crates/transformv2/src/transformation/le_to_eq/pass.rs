@@ -1,12 +1,13 @@
 use lunamodel_core::{Model, Solution, ops::LmSubAssign, prelude::LazyBounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass};
+use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass, transformation};
 use lunamodel_types::{Bound, Comparator, Vtype};
 
 use crate::analysis::{MinConstraintValues, MinValueForConstraintAnalysis};
 
 use super::artifact::LeToEqConstraintsArtifact;
 
+#[transformation]
 #[derive(Clone)]
 pub struct LeToEqConstraintsPass {
     req: Vec<String>,

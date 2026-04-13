@@ -2,12 +2,14 @@ use std::collections::HashMap;
 
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext};
+use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, analysis};
 
+#[derive(Clone, Debug)]
 pub struct MinConstraintValues {
     pub vals: HashMap<String, f64>,
 }
 
+#[analysis]
 #[derive(Clone, Default)]
 pub struct MinValueForConstraintAnalysis;
 

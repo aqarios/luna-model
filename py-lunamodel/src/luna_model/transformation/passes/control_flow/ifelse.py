@@ -54,12 +54,12 @@ class IfElsePass(PyIfElsePass, BuiltinControlFlow):
     Execute different transformations based on the maximum bias:
 
     >>> from luna_model import Model, Vtype
-    >>> from luna_model.transformation import PassManager, IfElsePass
-    >>> from luna_model.transformation.passes import MaxBiasAnalysis, BinarySpinPass
+    >>> from luna_model.transformation import PassManager
+    >>> from luna_model.transformation.passes import MaxBiasAnalysis, BinarySpinPass, IfElsePass
     >>> # Create conditional pass
     >>> conditional = IfElsePass(
     ...     condition=lambda _, ctx: ctx.require_analysis(MaxBiasAnalysis.key()).val > 10.0,
-    ...     then=[BinarySpinPass(vtype=Vtype.BINARY)],
+    ...     then=[BinarySpinPass(Vtype.BINARY)],
     ...     otherwise=[],
     ...     name="conditional-spin-conversion",
     ... )
@@ -79,7 +79,7 @@ class IfElsePass(PyIfElsePass, BuiltinControlFlow):
     >>> print(result.model)
     Model: example
     Minimize
-      12 * y * z - 4 * x_x + 2
+      12 * y * z - x_x + 1
     Binary
       y z x_x
 

@@ -6,25 +6,12 @@ use lunamodel_error::LunaModelResult;
 use crate::{
     analysis::AnalysisManager,
     context::PassContext,
-    erased::{ErasedAnalysisPass, ErasedControlFlowPass, ErasedTransformPass},
+    erased::{ErasedAnalysisPass, ErasedTransformPass},
     error::TransformationError,
     output::TransformationOutput,
     record::{PassEntry, TransformationRecord},
+    step::PipelineStep,
 };
-
-#[derive(Clone)]
-pub enum PipelineStep {
-    Transform(Arc<dyn ErasedTransformPass>),
-    Analysis(Arc<dyn ErasedAnalysisPass>),
-    ControlFlow(Arc<dyn ErasedControlFlowPass>),
-    Pipeline {
-        name: String,
-        passes: Vec<PipelineStep>,
-    },
-}
-
-// Note: PipelineStep is intentionally Arc-backed so `from_steps(steps.clone())`
-// is cheap and does not require cloning non-cloneable closures or trait objects.
 
 #[derive(Default)]
 pub struct PassManager {

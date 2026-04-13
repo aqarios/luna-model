@@ -3,13 +3,14 @@ use lunamodel_core::{
     ops::{LmAddAssign, LmPowAssign},
 };
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass};
+use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass, transformation};
 use lunamodel_types::Comparator;
 
 use crate::analysis::{MaxBias, MaxBiasAnalysis};
 
 use super::artifact::EqualityConstraintsToQuadraticPenaltyArtifact as ECTQPArtifact;
 
+#[transformation]
 #[derive(Clone)]
 pub struct EqualityConstraintsToQuadraticPenaltyPass {
     penalty_scaling: f64,

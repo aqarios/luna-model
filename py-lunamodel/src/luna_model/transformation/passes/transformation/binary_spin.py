@@ -108,6 +108,9 @@ class BinarySpinPass(PyBinarySpinPass, BuiltinTransformation[BinarySpinPassArtif
         """
         return super().__new__(cls, vtype=vtype._val, prefix=prefix)
 
+    def __init__(self, vtype: Literal[Vtype.BINARY, Vtype.SPIN], prefix: str | None = None) -> None:
+        _ = vtype, prefix
+
     @property
     def vtype(self) -> Vtype:
         """Get the target variable type to convert to."""

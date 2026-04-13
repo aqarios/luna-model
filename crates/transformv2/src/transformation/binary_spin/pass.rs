@@ -2,12 +2,13 @@ use std::ops::{Add, Mul};
 
 use lunamodel_core::{Environment, Model, Solution, solution::Column};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{PassContext, ReversiblePass};
+use lunamodel_transpiler::{PassContext, ReversiblePass, transformation};
 use lunamodel_types::Vtype;
 use sqids::Sqids;
 
 use super::artifact::BinarySpinPassArtifact;
 
+#[transformation]
 #[derive(Clone)]
 pub struct BinarySpinPass {
     vtype: Vtype,

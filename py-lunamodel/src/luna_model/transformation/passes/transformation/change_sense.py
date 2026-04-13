@@ -75,6 +75,9 @@ class ChangeSensePass(PyChangeSensePass, BuiltinTransformation[ChangeSensePassAr
         """
         return super().__new__(cls, sense._val)
 
+    def __init__(self, sense: Sense) -> None:
+        _ = sense
+
     @property
     def sense(self) -> Sense:
         """Get the target optimization sense."""

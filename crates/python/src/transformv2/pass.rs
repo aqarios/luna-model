@@ -7,21 +7,19 @@ use pyo3::{
     types::{PyAnyMethods, PyTypeMethods},
 };
 
-use super::builtin::{
-    analysis::{
-        PyCheckModelSpecsAnalysis, PyMaxBiasAnalysis, PyMinValueForConstraintAnalysis,
-        PySpecsAnalysis,
-    },
-    transformation::PyIntegerToBinaryPass,
-};
 use crate::transformv2::{
     PyControlFlowPass, PyControlFlowPassAdapter, PyPipeline, PyTransformationPassAdapter,
     adapter::{PyAnalysisPass, PyAnalysisPassAdapter, PyTransformationPass},
     builtin::{
+        analysis::{
+            PyCheckModelSpecsAnalysis, PyMaxBiasAnalysis, PyMinValueForConstraintAnalysis,
+            PySpecsAnalysis,
+        },
         control_flow::PyIfElsePass,
+        pipeline::{PyToBinaryMinimizationPipeline, PyToUnconstrainedBinaryPipeline},
         transformation::{
             PyBinarySpinPass, PyChangeSensePass, PyEqualityConstraintsToQuadraticPenaltyPass,
-            PyGeToLeConstraintsPass, PyLeToEqConstraintsPass,
+            PyGeToLeConstraintsPass, PyIntegerToBinaryPass, PyLeToEqConstraintsPass,
         },
     },
 };
@@ -45,6 +43,9 @@ pub enum PyPass {
     LeToEq(Py<PyLeToEqConstraintsPass>),
     // control-flow
     IfElse(Py<PyIfElsePass>),
+    // known pipelines
+    ToBinaryMin(Py<PyToBinaryMinimizationPipeline>),
+    ToUnconsBin(Py<PyToUnconstrainedBinaryPipeline>),
     // special containers
     Pipeline(PyPipeline),
     // ///////////////////////////
@@ -82,6 +83,21 @@ impl PyPass {
             Self::LeToEq(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
             // control-flow
             Self::IfElse(p) => Ok(PipelineStep::ControlFlow(Arc::new(p.borrow(py).to_rs()))),
+            // known pipelines
+            Self::ToBinaryMin(p) => {
+                let pipe = p.borrow(py).clone();
+                Ok(PipelineStep::Pipeline {
+                    name: pipe.name,
+                    passes: pipe.steps,
+                })
+            }
+            Self::ToUnconsBin(p) => {
+                let pipe = p.borrow(py).0.clone();
+                Ok(PipelineStep::Pipeline {
+                    name: pipe.name,
+                    passes: pipe.steps,
+                })
+            }
             // special container
             Self::Pipeline(p) => Ok(PipelineStep::Pipeline {
                 name: p.name(),
