@@ -44,3 +44,55 @@ impl ToUnconstrainedBinaryPipeline {
         ))
     }
 }
+
+impl Into<Pipeline> for ToUnconstrainedBinaryPipeline {
+    fn into(self) -> Pipeline {
+        self.0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use lunamodel_core::{
+        Model,
+        ops::LmAddAssign,
+        prelude::{Constraint, LazyBounds},
+    };
+    use lunamodel_error::LunaModelResult;
+    use lunamodel_transpiler::PassManager;
+    use lunamodel_types::{Bound, Comparator, Vtype};
+
+    use crate::pipelines::ToUnconstrainedBinaryPipeline;
+
+    #[test]
+    fn run_to_unconstrained_binary_pipeline() -> LunaModelResult<()> {
+        let mut model = Model::default();
+        let x = model.add_var("x", Vtype::Binary, None)?;
+        let y = model.add_var("y", Vtype::Spin, None)?;
+        let z = model.add_var(
+            "z",
+            Vtype::Integer,
+            Some(LazyBounds::new(
+                Some(Bound::Bounded(0.)),
+                Some(Bound::Bounded(12.)),
+            )),
+        )?;
+        model.objective.add_assign(((&x + &y)? + &z)?)?;
+        model.constraints.add_constraint(
+            Constraint::new(((&x + &y)? + &z)?, 3.0, Comparator::Le, None)?,
+            None,
+        )?;
+        model.constraints.add_constraint(
+            Constraint::new(((&x - &y)? - &z)?, 0.0, Comparator::Ge, None)?,
+            None,
+        )?;
+        model.constraints.add_constraint(
+            Constraint::new((&x + &y)?, 2.0, Comparator::Eq, None)?,
+            None,
+        )?;
+
+        let pm = PassManager::new().add_pipeline(ToUnconstrainedBinaryPipeline::new(10.0).into());
+        let _ = pm.run(model)?;
+        Ok(())
+    }
+}

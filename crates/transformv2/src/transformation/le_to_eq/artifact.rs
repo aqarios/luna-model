@@ -1,4 +1,5 @@
 use lunamodel_error::LunaModelResult;
+use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use lunamodel_transpiler::Artifact;
 
 #[derive(Default)]
@@ -21,14 +22,13 @@ impl Artifact for LeToEqConstraintsArtifact {
     }
 
     fn serialize(&self) -> LunaModelResult<Vec<u8>> {
-        Ok(Vec::new())
+        self.encode(Some(true), Some(3))
     }
 
-    fn deserialize(_: &[u8]) -> LunaModelResult<Self>
+    fn deserialize(bytes: &[u8]) -> LunaModelResult<Self>
     where
         Self: Sized,
     {
-        // Ok(Self {})
-        todo!()
+        bytes.unversionize().decompress()?.decode(())
     }
 }

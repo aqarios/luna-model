@@ -4,6 +4,7 @@ use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 
 use crate::{
+    Pipeline,
     analysis::AnalysisManager,
     context::PassContext,
     erased::{ErasedAnalysisPass, ErasedTransformPass},
@@ -47,10 +48,10 @@ impl PassManager {
         self
     }
 
-    pub fn add_pipeline(mut self, name: impl Into<String>, passes: Vec<PipelineStep>) -> Self {
+    pub fn add_pipeline(mut self, pipeline: Pipeline) -> Self {
         self.passes.push(PipelineStep::Pipeline {
-            name: name.into(),
-            passes,
+            name: pipeline.name.into(),
+            passes: pipeline.steps,
         });
         self
     }

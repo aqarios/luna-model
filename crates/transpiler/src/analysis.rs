@@ -22,7 +22,7 @@ impl<T: 'static> AnalysisKey<T> {
 }
 
 /// Type-safe analysis storage
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct AnalysisManager {
     results: HashMap<String, Arc<dyn Any + Send + Sync>>,
 }

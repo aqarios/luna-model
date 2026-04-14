@@ -97,7 +97,7 @@ impl ReversiblePass for BinarySpinPass {
 
             let expr = match artifact.new_vtype {
                 Vtype::Spin => (&var).mul(-0.5)?.add(0.5)?,
-                Vtype::Binary => (&var).mul(-0.5)?.add(0.5)?,
+                Vtype::Binary => (&var).mul(-2.0)?.add(1.0)?,
                 _ => unreachable!("unexpected target vtype in binary-spin"),
             };
 

@@ -79,7 +79,7 @@ class IfElsePass(PyIfElsePass, BuiltinControlFlow):
     >>> print(result.model)
     Model: example
     Minimize
-      12 * y * z - x_x + 1
+      12 * y * z - 4 * x_x + 2
     Binary
       y z x_x
 

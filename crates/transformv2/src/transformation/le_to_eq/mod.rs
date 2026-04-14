@@ -1,8 +1,9 @@
 mod artifact;
 mod pass;
+mod ser_artifact;
 
-pub use pass::LeToEqConstraintsPass;
 pub use artifact::LeToEqConstraintsArtifact;
+pub use pass::LeToEqConstraintsPass;
 
 #[cfg(test)]
 mod tests {
@@ -16,7 +17,7 @@ mod tests {
     use lunamodel_transpiler::{PassManager, TransformationRecord, register_backward};
     use lunamodel_types::{Comparator, Sense, Vtype};
 
-    use crate::transformation::LeToEqConstraintsPass;
+    use crate::{analysis::MinValueForConstraintAnalysis, transformation::LeToEqConstraintsPass};
 
     #[test]
     fn roundtrip_le_to_eq_constraints_pass() -> LunaModelResult<()> {
@@ -32,7 +33,9 @@ mod tests {
         )?;
         model.sense = Sense::Min;
 
-        let pm = PassManager::default().add_transform(LeToEqConstraintsPass::default());
+        let pm = PassManager::default()
+            .add_analysis(MinValueForConstraintAnalysis::default())
+            .add_transform(LeToEqConstraintsPass::default());
         let output = pm.run(model)?;
 
         let blob = output.record.encode(Some(true), Some(3))?;
@@ -42,6 +45,7 @@ mod tests {
         let mut solution = Solution::default();
         solution.add_integer("i0".into(), vec![2.0, 7.0])?;
         solution.add_integer("i1".into(), vec![2.0, 2.0])?;
+        solution.add_integer("slack_c0".into(), vec![0.0, 1.0])?;
         solution = output.model.evaluate_solution(&solution)?;
 
         let back_direct = output.record.backward(solution.clone())?;

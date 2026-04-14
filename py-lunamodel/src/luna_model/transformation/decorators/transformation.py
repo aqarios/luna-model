@@ -34,6 +34,33 @@ TransformationSignature: TypeAlias = Callable[[Model, PassContext], tuple[Model,
 BackwardSignature: TypeAlias = Callable[[A, Solution], Solution]
 
 
+_ALLOWED_IMPORT_PREFIXES: set[str] = {"luna_model."}
+
+
+def register_allowed_import_prefix(prefix: str) -> None:
+    """Allow dynamic import resolution for modules under a given prefix.
+
+    Parameters
+    ----------
+    prefix : str
+        Allowed module prefix, e.g. ``"my_package.transforms."``.
+    """
+    if not prefix:
+        msg = "prefix must not be empty"
+        raise ValueError(msg)
+    normalized = prefix if prefix.endswith(".") else f"{prefix}."
+    _ALLOWED_IMPORT_PREFIXES.add(normalized)
+
+
+def allowed_import_prefixes() -> tuple[str, ...]:
+    """Get currently allowed import prefixes used by artifact resolution."""
+    return tuple(sorted(_ALLOWED_IMPORT_PREFIXES))
+
+
+def _is_allowed_module_path(module_path: str) -> bool:
+    return any(module_path.startswith(p) for p in _ALLOWED_IMPORT_PREFIXES)
+
+
 def __identity_backward(_: TransformationPassArtifact, solution: Solution) -> Solution:
     return solution
 
@@ -65,6 +92,19 @@ def _read_field(buf: bytes, i: int) -> tuple[bytes, int]:
 
 
 def _resolve(module_path: str, qualname: str) -> object:
+    if not _is_allowed_module_path(module_path):
+        msg = f"Disallowed module path '{module_path}'. Allowed prefixes: {', '.join(sorted(_ALLOWED_IMPORT_PREFIXES))}"
+        raise ValueError(msg)
+
+    if module_path.startswith(".") or ".." in module_path:
+        msg = f"Invalid module path '{module_path}'"
+        raise ValueError(msg)
+
+    if "<locals>" in qualname:
+        msg = f"Cannot resolve local symbol '{qualname}'"
+        raise ValueError(msg)
+
+    # trusted scope constrained by allowlist above
     obj = import_module(module_path)
     for part in qualname.split("."):
         obj = getattr(obj, part)
@@ -198,6 +238,11 @@ def transform(
     models in transformation pipelines. Transformation passes can restructure models,
     add/remove constraints, change variable types, or perform other model modifications.
 
+    !!! warning "Disclaimer"
+        Dynamic artifact/backward resolution is restricted to an import allowlist.
+        By default, only modules under ``luna_model.`` are allowed.
+        Use ``register_allowed_import_prefix(...)`` to allow custom plugin namespaces.
+
     Parameters
     ----------
     name : str, optional
@@ -229,6 +274,10 @@ def transform(
 
     Notes
     -----
+    Dynamic artifact/backward resolution is restricted to an import allowlist.
+    By default, only modules under ``luna_model.`` are allowed.
+    Use ``register_allowed_import_prefix(...)`` to allow custom plugin namespaces.
+
     The decorated function must return:
 
     - ``(Model, Artifact)`` tuple

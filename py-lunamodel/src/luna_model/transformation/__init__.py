@@ -17,7 +17,7 @@ from .analysis import AnalysisPass
 from .artifact import NothingArtifact, TransformationPassArtifact
 from .context import PassContext
 from .control_flow import ControlFlowPass, ControlFlowPlan
-from .decorators import analyze, control_flow, transform
+from .decorators import allowed_import_prefixes, analyze, control_flow, register_allowed_import_prefix, transform
 from .pass_manager import PassManager
 from .pipeline import Pipeline
 from .record import AnalysisEntry, ControlFlowEntry, PassEntry, PipelineEntry, TransformationRecord, TransformEntry
@@ -41,8 +41,10 @@ __all__ = [
     "TransformationPass",
     "TransformationPassArtifact",
     "TransformationRecord",
+    "allowed_import_prefixes",
     "analyze",
     "control_flow",
     "passes",
+    "register_allowed_import_prefix",
     "transform",
 ]

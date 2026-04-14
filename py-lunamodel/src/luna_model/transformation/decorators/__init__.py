@@ -14,10 +14,12 @@
 
 from .analysis import analyze
 from .control_flow import control_flow
-from .transformation import transform
+from .transformation import allowed_import_prefixes, register_allowed_import_prefix, transform
 
 __all__ = [
+    "allowed_import_prefixes",
     "analyze",
     "control_flow",
+    "register_allowed_import_prefix",
     "transform",
 ]
