@@ -16,8 +16,6 @@ from __future__ import annotations
 
 import sys
 
-from luna_model.transformation.key import AnalysisKey
-
 if sys.version_info < (3, 13):
     from typing_extensions import deprecated
 else:
@@ -28,6 +26,7 @@ from typing import TYPE_CHECKING, TypeVar
 from luna_model.errors import LunaModelError
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
+from luna_model.transformation.key import AnalysisKey
 from luna_model.transformation.record import TransformationRecord, TransformEntry
 
 if TYPE_CHECKING:

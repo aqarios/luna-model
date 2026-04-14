@@ -20,6 +20,7 @@ from .context import PassContext
 from .control_flow import ControlFlowPass, ControlFlowPlan
 from .decorators import (
     allowed_import_prefixes,
+    analyse,
     analyze,
     composite,
     control_flow,
@@ -51,6 +52,7 @@ __all__ = [
     "TransformationPassArtifact",
     "TransformationRecord",
     "allowed_import_prefixes",
+    "analyse",
     "analyze",
     "composite",
     "control_flow",

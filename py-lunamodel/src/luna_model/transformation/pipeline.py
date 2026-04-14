@@ -11,14 +11,6 @@ class Pipeline(PyPipeline):
 
     Pipelines organize and execute multiple passes, managing dependencies
     and ensuring they run in the correct order.
-
-    Parameters
-    ----------
-    passes : list[BasePass]
-        The transformation passes to include in the pipeline.
-    name : str, optional
-        A custom name for the pipeline. If not provided, a default name
-        will be generated.
     """
 
     def __new__(cls, steps: list[Pass], name: str) -> Self:

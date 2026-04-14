@@ -36,19 +36,6 @@ class IfElsePass(PyIfElsePass, BuiltinControlFlow):
     on the result. This enables branching logic in transformation workflows, allowing different
     transformation strategies based on model properties discovered during analysis.
 
-    Parameters
-    ----------
-    condition : Callable[[Model, PassContext], bool]
-        A function that takes the current model and the ``PassContext`` and returns a boolean.
-        If ``True`` the ``then`` pipeline is returned in the plan; otherwise, the ``otherwise``
-        pipeline is returned in the plan.
-    then : Pipeline | list[Pass]
-        The pipeline or passes to execute when the condition evaluates to ``True``.
-    otherwise : Pipeline
-        The pipeline to execute when the condition evaluates to ``False``.
-    name : str, optional
-        Optional name for this pass. If not provided, a default name is generated.
-
     Examples
     --------
     Execute different transformations based on the maximum bias:
@@ -120,7 +107,20 @@ class IfElsePass(PyIfElsePass, BuiltinControlFlow):
         otherwise: Pipeline | list[Pass],
         name: str | None = None,
     ) -> Self:
-        """Construct a new BinarySpinPass instance."""
+        """Construct a new ``IfElsePass`` instance.
+
+        Parameters
+        ----------
+        condition : Callable[[Model, PassContext], bool]
+            Predicate evaluated at runtime. If it returns ``True``, ``then`` is selected;
+            otherwise ``otherwise`` is selected.
+        then : Pipeline | list[Pass]
+            Pipeline/steps executed when the condition is ``True``.
+        otherwise : Pipeline | list[Pass]
+            Pipeline/steps executed when the condition is ``False``.
+        name : str | None, optional
+            Optional pass name. If omitted, a default name is used.
+        """
         return super().__new__(
             cls,
             condition=cls._mapped_predicate(condition),

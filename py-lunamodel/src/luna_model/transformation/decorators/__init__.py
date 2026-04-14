@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .analysis import analyze
+from .analysis import analyse, analyze
 from .composite import composite
 from .control_flow import control_flow
 from .transformation import allowed_import_prefixes, register_allowed_import_prefix, transform
 
 __all__ = [
     "allowed_import_prefixes",
+    "analyse",
     "analyze",
     "composite",
     "control_flow",

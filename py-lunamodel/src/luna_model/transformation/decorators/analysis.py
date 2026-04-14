@@ -14,6 +14,13 @@
 
 from __future__ import annotations
 
+import sys
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
+
 from collections.abc import Callable
 from typing import Generic, TypeAlias, TypeVar
 
@@ -109,3 +116,11 @@ def analyze(
         )
 
     return _decorator
+
+
+@deprecated("use ``@analyze``. This decorator will be removed in the next release.")
+def analyse(
+    name: str | None = None, provides: str | None = None, requires: list[str] | None = None
+) -> Callable[[AnalysisSignature[R]], _DynamicAnalysisPass[R]]:
+    """Use ``@analyze``. This decorator will be removed in the next release."""
+    return analyze(name=name, provides=provides, requires=requires)
