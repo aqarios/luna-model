@@ -202,12 +202,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dyn-clone"
-version = "1.0.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
-
-[[package]]
 name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -385,7 +379,6 @@ dependencies = [
  "lunamodel-io",
  "lunamodel-python",
  "lunamodel-serializer",
- "lunamodel-transform",
  "lunamodel-transformv2",
  "lunamodel-translate",
  "lunamodel-transpiler",
@@ -465,7 +458,6 @@ dependencies = [
  "lunamodel-hashing",
  "lunamodel-io",
  "lunamodel-serializer",
- "lunamodel-transform",
  "lunamodel-transformv2",
  "lunamodel-translate",
  "lunamodel-transpiler",
@@ -493,27 +485,6 @@ dependencies = [
  "strum",
  "strum_macros",
  "zstd",
-]
-
-[[package]]
-name = "lunamodel-transform"
-version = "0.6.0"
-dependencies = [
- "derive_more",
- "dyn-clone",
- "global_counter",
- "indexmap",
- "lunamodel-core",
- "lunamodel-error",
- "lunamodel-types",
- "lunamodel-unwind",
- "num",
- "pad",
- "parking_lot 0.12.5",
- "pyo3",
- "sqids",
- "strum",
- "strum_macros",
 ]
 
 [[package]]

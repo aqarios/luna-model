@@ -6,7 +6,6 @@ mod model;
 mod sol;
 mod specs;
 mod timer;
-pub mod transform;
 pub mod transformv2;
 pub mod translate;
 mod types;

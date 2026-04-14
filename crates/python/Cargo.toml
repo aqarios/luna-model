@@ -13,7 +13,6 @@ lunamodel-core = { workspace = true, features = ["py"] }
 lunamodel-error = { workspace = true, features = ["py"] }
 lunamodel-types = { workspace = true, features = ["py"] }
 lunamodel-io = { workspace = true, features = ["py"] }
-lunamodel-transform = { workspace = true, features = ["py"] }
 lunamodel-translate = { workspace = true }
 lunamodel-utils = { workspace = true }
 lunamodel-hashing = { workspace = true }
