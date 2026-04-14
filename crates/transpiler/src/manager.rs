@@ -133,10 +133,23 @@ impl PassManager {
                     satisfied.insert(pass.name().to_string());
                     satisfied.extend(pass.provides().to_owned());
                 }
+                PipelineStep::Composite(pass) => {
+                    for requirement in pass.requires() {
+                        if !satisfied.contains(requirement) {
+                            return Err(TransformationError::UnsatisfiedRequirement {
+                                pass_name: pass.name().to_string(),
+                                requirement: requirement.to_string(),
+                            }
+                            .into());
+                        }
+                    }
+                    for invalidated in pass.invalidates() {
+                        satisfied.remove(invalidated);
+                    }
+                    satisfied.insert(pass.name().to_string());
+                    satisfied.insert(pass.provides().to_string());
+                }
                 PipelineStep::Pipeline(p) => self.validate_steps(&p.steps, satisfied)?,
-                // PipelineStep::Pipeline { passes, .. } => {
-                //     self.validate_steps(passes, satisfied)?;
-                // }
             }
         }
         Ok(())
@@ -179,19 +192,24 @@ fn execute_steps(
                     record: sub_record,
                 });
             }
+            PipelineStep::Composite(pass) => {
+                let analysis_snapshot = analysis_manager.clone();
+                let ctx = PassContext::new(&analysis_snapshot);
+                let artifact = pass.forward_erased(model, &ctx, analysis_manager)?;
+                entries.push(PassEntry::Composite {
+                    pass_id: pass.id().to_string(),
+                    pass_name: pass.name().to_string(),
+                    artifact,
+                });
+                analysis_manager.invalidate_many(pass.invalidates());
+            }
             PipelineStep::Pipeline(p) => {
                 let sub_record = execute_steps(model, &p.steps, analysis_manager)?;
                 entries.push(PassEntry::Pipeline {
                     name: p.name.clone(),
                     record: sub_record,
                 });
-            } // PipelineStep::Pipeline { name, passes } => {
-              //     let sub_record = execute_steps(model, passes, analysis_manager)?;
-              //     entries.push(PassEntry::Pipeline {
-              //         name: name.clone(),
-              //         record: sub_record,
-              //     });
-              // }
+            }
         }
     }
     Ok(TransformationRecord { entries })

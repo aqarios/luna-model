@@ -1,16 +1,13 @@
 use pyo3::{Bound, PyAny, pyclass, pymethods};
 
 mod adapter;
-mod artifact;
-pub(crate) mod envelope;
 
-pub use adapter::PyTransformationPassAdapter;
-pub use artifact::PyTransformationPassAdapterArtifact;
+pub use adapter::PyCompositePassAdapter;
 
 #[pyclass(subclass)]
-pub struct PyTransformationPass;
+pub struct PyCompositePass;
 #[pymethods]
-impl PyTransformationPass {
+impl PyCompositePass {
     #[new]
     #[pyo3(signature=(*args, **kwargs))]
     fn py_new(args: &Bound<'_, PyAny>, kwargs: Option<&Bound<'_, PyAny>>) -> Self {

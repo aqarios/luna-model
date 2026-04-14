@@ -59,6 +59,7 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transform::PyControlFlowPlan>()?;
     m.add_class::<transform::PyPipeline>()?;
     m.add_class::<transform::PyPassEntry>()?;
+    m.add_class::<transform::PyCompositePass>()?;
     // builtin analysis
     m.add_class::<transform::builtin::analysis::PyCheckModelSpecsAnalysis>()?;
     m.add_class::<transform::builtin::analysis::PyMaxBiasAnalysis>()?;

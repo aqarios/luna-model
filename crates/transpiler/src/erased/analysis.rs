@@ -1,7 +1,7 @@
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 
-use crate::{AnalysisManager, AnalysisPass, PassContext};
+use crate::{AnalysisKey, AnalysisManager, AnalysisPass, PassContext};
 
 pub trait ErasedAnalysisPass: Send + Sync {
     fn name(&self) -> &str;
@@ -39,7 +39,7 @@ where
         analyses: &mut AnalysisManager,
     ) -> LunaModelResult<()> {
         let value = self.run(model, ctx)?;
-        let key = crate::analysis::AnalysisKey::<P::Result>::new(self.provides().into());
+        let key = AnalysisKey::<P::Result>::new(self.provides().into());
         analyses.insert(&key, value);
         Ok(())
     }

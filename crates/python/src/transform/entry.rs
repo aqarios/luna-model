@@ -82,6 +82,12 @@ pub enum PyPassEntry {
         name: String,
         record: PyTransformationRecord,
     },
+
+    Composite {
+        pass_id: String,
+        pass_name: String,
+        artifact: PyErasedArtifact,
+    },
 }
 
 #[pymethods]
@@ -89,6 +95,7 @@ impl PyPassEntry {
     fn __str__(&self) -> String {
         match self {
             Self::Transform { pass_name, .. } => format!("TransformEntry({pass_name})"),
+            Self::Composite { pass_name, .. } => format!("CompositeEntry({pass_name})"),
             Self::Analysis { pass_name } => format!("AnalysisEntry({pass_name})"),
             Self::Pipeline { name, .. } => format!("PipelineEntry({name})"),
             Self::ControlFlow { pass_name, .. } => format!("ControlFlowEntry({pass_name})"),
@@ -104,6 +111,15 @@ impl From<&PassEntry> for PyPassEntry {
                 pass_name,
                 artifact,
             } => Self::Transform {
+                pass_id: pass_id.clone(),
+                pass_name: pass_name.clone(),
+                artifact: artifact.into(),
+            },
+            PassEntry::Composite {
+                pass_id,
+                pass_name,
+                artifact,
+            } => Self::Composite {
                 pass_id: pass_id.clone(),
                 pass_name: pass_name.clone(),
                 artifact: artifact.into(),

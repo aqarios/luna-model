@@ -7,8 +7,8 @@ const VERSION: u8 = 1;
 
 #[derive(Debug, Clone)]
 pub struct BackwardEnvelope {
-    pub(super) module: String,
-    pub(super) qualname: String,
+    pub(crate) module: String,
+    pub(crate) qualname: String,
 }
 
 impl Envelope for BackwardEnvelope {

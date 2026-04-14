@@ -37,6 +37,13 @@ pub enum PassEntry {
         name: String,
         record: TransformationRecord,
     },
+
+    /// A composite pass with its artifact
+    Composite {
+        pass_id: String,
+        pass_name: String,
+        artifact: ErasedArtifact,
+    },
 }
 
 impl TransformationRecord {
@@ -53,6 +60,12 @@ impl TransformationRecord {
         for entry in self.entries.iter().rev() {
             solution = match entry {
                 PassEntry::Transform {
+                    pass_id, artifact, ..
+                } => {
+                    // Look up the backwards function and apply it
+                    registry::apply(pass_id, artifact, solution)?
+                }
+                PassEntry::Composite {
                     pass_id, artifact, ..
                 } => {
                     // Look up the backwards function and apply it
@@ -152,6 +165,9 @@ fn entry_matches_exact(entry: &PassEntry, query: &str) -> bool {
     match entry {
         PassEntry::Transform {
             pass_id, pass_name, ..
+        }
+        | PassEntry::Composite {
+            pass_id, pass_name, ..
         } => pass_name == query || pass_id == query,
         PassEntry::Analysis { pass_name } => pass_name == query,
         PassEntry::Pipeline { name, .. } => name == query,
@@ -164,6 +180,9 @@ fn entry_matches_exact(entry: &PassEntry, query: &str) -> bool {
 fn entry_matches_partial(entry: &PassEntry, needle_lower: &str) -> bool {
     match entry {
         PassEntry::Transform {
+            pass_id, pass_name, ..
+        }
+        | PassEntry::Composite {
             pass_id, pass_name, ..
         } => {
             pass_name.to_lowercase().contains(needle_lower)

@@ -12,15 +12,16 @@ mod adapter;
 pub mod builtin;
 
 pub use adapter::{
-    PyAnalysisPass, PyAnalysisPassAdapter, PyControlFlowPass, PyControlFlowPassAdapter,
-    PyControlFlowPlan, PyTransformationPass, PyTransformationPassAdapter,
+    PyAnalysisPass, PyAnalysisPassAdapter, PyCompositePass, PyCompositePassAdapter,
+    PyControlFlowPass, PyControlFlowPassAdapter, PyControlFlowPlan, PyTransformationPass,
+    PyTransformationPassAdapter,
 };
 pub use context::PyPassContext;
+pub use entry::PyPassEntry;
 pub use manager::PyPassManager;
 pub use output::PyTransformationOutput;
 pub use pipeline::PyPipeline;
 pub use record::PyTransformationRecord;
-pub use entry::PyPassEntry;
 
 pub fn register_backward() {
     lunamodel_transform::register_backward();

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     Pipeline,
-    erased::{ErasedAnalysisPass, ErasedControlFlowPass, ErasedTransformPass},
+    erased::{ErasedAnalysisPass, ErasedCompositePass, ErasedControlFlowPass, ErasedTransformPass},
 };
 
 // Note: PipelineStep is intentionally Arc-backed so `from_steps(steps.clone())`
@@ -13,11 +13,8 @@ pub enum PipelineStep {
     Transform(Arc<dyn ErasedTransformPass>),
     Analysis(Arc<dyn ErasedAnalysisPass>),
     ControlFlow(Arc<dyn ErasedControlFlowPass>),
+    Composite(Arc<dyn ErasedCompositePass>),
     Pipeline(Arc<Pipeline>),
-    // Pipeline {
-    //     name: String,
-    //     passes: Vec<PipelineStep>,
-    // },
 }
 
 impl PipelineStep {
@@ -26,10 +23,8 @@ impl PipelineStep {
             Self::Transform(p) => p.display(),
             Self::Analysis(p) => p.display(),
             Self::ControlFlow(p) => p.display(),
+            Self::Composite(p) => p.display(),
             Self::Pipeline(p) => p.display(),
-            // Self::Pipeline { name, passes } => {
-            //     format!("🛢️ {name}  \n{}", _format_pipeline_steps(passes))
-            // }
         }
     }
 }

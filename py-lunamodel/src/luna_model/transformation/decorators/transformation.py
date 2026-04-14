@@ -20,8 +20,6 @@ from dataclasses import dataclass
 from importlib import import_module
 from typing import Generic, TypeAlias, TypeVar, cast
 
-from typing_extensions import override
-
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 from luna_model.transformation.artifact import TransformationPassArtifact
@@ -193,26 +191,21 @@ class _DynamicTransformationPass(TransformationPass, Generic[A]):
         self._forward_f = forward
         self._backward_f = backward
 
-    @override
     def name(self) -> str:
         return self._name
 
-    @override
     def forward(self, model: Model, ctx: PassContext) -> tuple[Model, _ArtifactEnvelope[A]]:
         result: tuple[Model, A] = self._forward_f(model, ctx)
         model, artifact = result
         return model, _ArtifactEnvelope.from_parts(artifact, self._backward_f)
 
-    @override
     @classmethod
     def backward(cls, artifact: _ArtifactEnvelope[A], solution: Solution) -> Solution:
         return artifact.backward_fn(artifact.artifact, solution)
 
-    @override
     def requires(self) -> list[str]:
         return self._requires
 
-    @override
     def invalidates(self) -> list[str]:
         return self._invalidates
 
@@ -252,7 +245,7 @@ def transform(
         List of pass names that must run before this transformation. Defaults to ``[]``.
     invalidates : list[str], optional
         List of analysis pass names whose results become invalid after this transformation. Defaults to ``[]``.
-    backwards : Callable[[A, Solution], Solution], optional
+    backward : Callable[[A, Solution], Solution], optional
         Optional function to map solutions from the transformed model back to the
         original model's variable space. If not provided, solutions pass through unchanged.
 
@@ -268,7 +261,7 @@ def transform(
 
     >>> from luna_model.transformation import transform
     >>> @transform(name="scale-objective")
-    ... def scale_obj(model: Model, ctx: PassContext):
+    ... def scale_obj(model: Model, ctx: PassContext) -> tuple[Model, NothingArtifact]:
     ...     model.objective = model.objective * 2.0
     ...     return model, NothingArtifact()
 
@@ -296,7 +289,7 @@ def transform(
     else:
         _validate_backward(backward)
 
-    def _decorator(forward: TransformationSignature) -> _DynamicTransformationPass:
+    def _decorator(forward: TransformationSignature[A]) -> _DynamicTransformationPass[A]:
         loc_name = name or forward.__name__.replace("_", "-")
         return _DynamicTransformationPass(
             name=loc_name,

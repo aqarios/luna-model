@@ -18,6 +18,8 @@ enum PassEntryType {
     A,
     #[strum(to_string = "PassEntry::Pipeline")]
     P,
+    #[strum(to_string = "PassEntry::Composite")]
+    C,
     #[strum(to_string = "PassEntry::ControlFlow")]
     CF,
 }
@@ -53,6 +55,16 @@ impl From<&PassEntry> for SerPassEntry {
                 name: pass_name.to_string(),
                 content: Some(SerErasedArtifact::from(artifact).encode_to_bytes()),
             },
+            PassEntry::Composite {
+                pass_id,
+                pass_name,
+                artifact,
+            } => Self {
+                entry_type: PassEntryType::C.to_string(),
+                id: Some(pass_id.to_string()),
+                name: pass_name.to_string(),
+                content: Some(SerErasedArtifact::from(artifact).encode_to_bytes()),
+            },
             PassEntry::Analysis { pass_name } => Self {
                 entry_type: PassEntryType::A.to_string(),
                 name: pass_name.to_string(),
@@ -83,6 +95,17 @@ impl SerPassEntry {
     pub fn extract(&self) -> LunaModelResult<PassEntry> {
         Ok(match PassEntryType::from_str(&self.entry_type)? {
             PassEntryType::T => PassEntry::Transform {
+                pass_name: self.name.clone(),
+                pass_id: self.id.as_ref().expect("id was not serialized").to_string(),
+                artifact: SerErasedArtifact::decode_from_bytes(
+                    self.content
+                        .as_ref()
+                        .expect("artifact was not serialized")
+                        .as_slice(),
+                    (),
+                )?,
+            },
+            PassEntryType::C => PassEntry::Composite {
                 pass_name: self.name.clone(),
                 pass_id: self.id.as_ref().expect("id was not serialized").to_string(),
                 artifact: SerErasedArtifact::decode_from_bytes(

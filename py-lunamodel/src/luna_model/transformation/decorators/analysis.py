@@ -79,7 +79,7 @@ def analyze(
 
     >>> from luna_model.transformation import analyze
     >>> @analyze(name="count-variables")
-    ... def count_vars(model, cache):
+    ... def count_vars(model, cache) -> float:
     ...     return model.num_variables
 
     Notes

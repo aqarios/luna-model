@@ -180,6 +180,37 @@ class TransformEntry(Generic[A]):
         return self._t.__str__()
 
 
+class CompositeEntry(Generic[A]):
+    """Composite entry containing pass identity and serialized artifact."""
+
+    _c: PyPassEntry.Composite
+
+    @classmethod
+    def _from_pyc(cls, py_c: PyPassEntry.Composite) -> CompositeEntry:
+        c = cls.__new__(cls)
+        c._c = py_c
+        return c
+
+    @property
+    def pass_id(self) -> str:
+        """Unique pass identifier used by backward dispatch."""
+        return self._c.pass_id
+
+    @property
+    def pass_name(self) -> str:
+        """Human-readable pass name."""
+        return self._c.pass_name
+
+    @property
+    def artifact(self) -> A:
+        """Artifact produced by the transform pass."""
+        return self._c.artifact
+
+    def __str__(self) -> str:
+        """Human readable string."""
+        return self._c.__str__()
+
+
 class AnalysisEntry:
     """Analysis entry representing a non-reversible analysis execution."""
 
@@ -258,7 +289,7 @@ class ControlFlowEntry:
         return self._cf.__str__()
 
 
-PassEntry: TypeAlias = TransformEntry | AnalysisEntry | ControlFlowEntry | PipelineEntry
+PassEntry: TypeAlias = TransformEntry | AnalysisEntry | ControlFlowEntry | PipelineEntry | CompositeEntry
 
 
 def _from_pyentry(py_e: PyPassEntry) -> PassEntry:
@@ -266,6 +297,8 @@ def _from_pyentry(py_e: PyPassEntry) -> PassEntry:
     match type(py_e):
         case PyPassEntry.Transform:
             return TransformEntry._from_pyt(py_e)
+        case PyPassEntry.Composite:
+            return CompositeEntry._from_pyc(py_e)
         case PyPassEntry.Analysis:
             return AnalysisEntry._from_pya(py_e)
         case PyPassEntry.Pipeline:

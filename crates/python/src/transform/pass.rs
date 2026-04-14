@@ -9,7 +9,10 @@ use pyo3::{
 
 use crate::transform::{
     PyControlFlowPass, PyControlFlowPassAdapter, PyPipeline, PyTransformationPassAdapter,
-    adapter::{PyAnalysisPass, PyAnalysisPassAdapter, PyTransformationPass},
+    adapter::{
+        PyAnalysisPass, PyAnalysisPassAdapter, PyCompositePass, PyCompositePassAdapter,
+        PyTransformationPass,
+    },
     builtin::{
         analysis::{
             PyCheckModelSpecsAnalysis, PyMaxBiasAnalysis, PyMinValueForConstraintAnalysis,
@@ -57,6 +60,8 @@ pub enum PyPass {
     CustomTransformation(Py<PyTransformationPass>),
     // custom analysis from python
     CustomAnalysis(Py<PyAnalysisPass>),
+    // custom composite from python
+    CustomComposite(Py<PyCompositePass>),
     // fallback for non-leaking error.
     Default(Py<PyAny>),
 }
@@ -108,6 +113,10 @@ impl PyPass {
             // custom analysis from python
             Self::CustomAnalysis(p) => Ok(PipelineStep::Analysis(Arc::new(
                 PyAnalysisPassAdapter::new(py, p.clone_ref(py))?,
+            ))),
+            // custom composite from python
+            Self::CustomComposite(p) => Ok(PipelineStep::Composite(Arc::new(
+                PyCompositePassAdapter::new(py, p.clone_ref(py))?,
             ))),
             // default for non-leaking error
             Self::Default(d) => Err(invalid_pass_error(d, py)),
