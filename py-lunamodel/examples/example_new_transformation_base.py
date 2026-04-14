@@ -56,13 +56,9 @@ class AbstractTransformationPass(PyTransformationPass, Generic[A]):
         return cls.backward(artifact, Solution._from_pys(solution))._s
 
 
-class IntegerToBinaryPass(PyIntegerToBinaryPass):
-    """Todo."""
-
+class IntegerToBinaryPass(PyIntegerToBinaryPass): ...
 
 class ChangeSenseArtifact:
-    """Todo."""
-
     _did_chage: bool
 
     def __init__(self, did_change: bool) -> None:
@@ -73,12 +69,10 @@ class ChangeSenseArtifact:
         return self._did_chage
 
     def serialize(self) -> bytes:
-        """Todo."""
         return b"\x01" if self._did_chage else b"\x00"
 
     @classmethod
     def deserialize(cls, buf: bytes) -> ChangeSenseArtifact:
-        """Todo."""
         if len(buf) != 1:
             msg = f"Invalid ChangeSenseArtifact payload length: {len(buf)}"
             raise ValueError(msg)
@@ -89,8 +83,6 @@ class ChangeSenseArtifact:
 
 
 class ChangeSense(AbstractTransformationPass[ChangeSenseArtifact]):
-    """todo."""
-
     _target: Sense
 
     def __init__(self, sense: Sense):

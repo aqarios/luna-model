@@ -26,9 +26,6 @@ pub struct Expression {
     pub quadratic: Option<Quadratic>,
     /// The [HigherOrder] terms of this [Expression].
     pub higher_order: Option<HigherOrder>,
-    // todo: reintroduce this
-    // /// The number of variables in this [Expression].
-    // pub num_vars: usize,
 }
 impl Editable for Expression {}
 

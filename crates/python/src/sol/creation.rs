@@ -1,4 +1,3 @@
-use std::collections::{HashMap, HashSet};
 use indexmap::IndexMap;
 use itertools::Either;
 use lunamodel_core::solution::{Assignment, Column};
@@ -10,6 +9,7 @@ use numpy::ndarray::Axis;
 use numpy::{PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::exceptions::PyValueError;
 use pyo3::{PyResult, pymethods};
+use std::collections::{HashMap, HashSet};
 
 use super::PySolution;
 use crate::timer::PyTiming;
@@ -231,7 +231,7 @@ impl PySolution {
                 let vname = v.name().unwrap();
                 let vtype = v.vtype().unwrap();
                 if sample_vars.contains(&vname) {
-                match vtype {
+                    match vtype {
                     Vtype::Binary => sol.add_empty_binary(vname),
                     Vtype::Spin => sol.add_empty_spin(vname),
                     Vtype::Integer => sol.add_empty_integer(vname),
@@ -429,8 +429,7 @@ impl PySolution {
                     Vtype::Spin => sol.add_empty_spin(vname),
                     Vtype::Integer => sol.add_empty_integer(vname),
                     Vtype::Real => sol.add_empty_real(vname),
-                    // TODO: this should never happen. If it does it will return an error later.
-                    Vtype::InvertedBinary => (),
+                    Vtype::InvertedBinary => unreachable!(),
                 }
             });
 

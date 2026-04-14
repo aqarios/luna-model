@@ -24,7 +24,6 @@ keywords = [
   "optimization",
   "modeling"
 ]
-# todo: check these values.
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",

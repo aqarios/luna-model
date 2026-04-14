@@ -1,8 +1,9 @@
-use std::collections::HashMap;
 use indexmap::IndexMap;
 use itertools::Itertools;
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bias, Vtype};
+use num::Float;
+use std::collections::HashMap;
 
 use crate::solution::{Column, col::Assignment};
 
@@ -107,8 +108,7 @@ impl Solution {
         let mut indices: Vec<usize> = Vec::new();
 
         for sample in self.samples() {
-            // TODO: round f64 (v) up to predefined decimal place followed by stringigy.
-            let samplekey = sample.iter().map(|v| v.to_string()).join(",");
+            let samplekey = sample.iter().map(|v| v.ceil().to_string()).join(",");
             if let Some(&first) = dups.get(&samplekey) {
                 to_rm.insert(sample.idx, first);
                 indices.push(sample.idx);

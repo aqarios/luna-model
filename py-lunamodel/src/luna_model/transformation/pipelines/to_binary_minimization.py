@@ -30,7 +30,13 @@ class ToBinaryMinimizationPipeline(PyToBinaryMinimizationPipeline):
     """
 
     def __new__(cls) -> Self:
-        """Todo."""
+        """Create the binary-minimization conversion pipeline.
+
+        Returns
+        -------
+        Self
+            New pipeline instance.
+        """
         return super().__new__(cls)
 
     @wraps()

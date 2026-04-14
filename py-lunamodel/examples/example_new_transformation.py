@@ -35,8 +35,6 @@ class ChangeSenseArtifact(TransformationPassArtifact):
 
 
 class ChangeSense(TransformationPass[ChangeSenseArtifact]):
-    """todo."""
-
     _target: Sense
 
     def __init__(self, sense: Sense):

@@ -52,7 +52,19 @@ class ToUnconstrainedBinaryPipeline(PyToUnconstrainedBinaryPipeline):
     """
 
     def __new__(cls, penalty_scaling: float = 10.0) -> Self:
-        """Todo."""
+        """Create the unconstrained-binary conversion pipeline.
+
+        Parameters
+        ----------
+        penalty_scaling : float, optional
+            Multiplier used when adding quadratic penalty terms for converted
+            constraints. Defaults to ``10.0``.
+
+        Returns
+        -------
+        Self
+            New pipeline instance.
+        """
         return super().__new__(cls, penalty_scaling=penalty_scaling)
 
     @wraps()

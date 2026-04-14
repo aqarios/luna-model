@@ -22,7 +22,20 @@ class Pipeline(PyPipeline):
     """
 
     def __new__(cls, steps: list[Pass], name: str) -> Self:
-        """Todo."""
+        """Create a new pipeline from a sequence of passes.
+
+        Parameters
+        ----------
+        steps : list[Pass]
+            Ordered passes/pipelines to execute.
+        name : str
+            Human-readable pipeline name.
+
+        Returns
+        -------
+        Self
+            New pipeline instance.
+        """
         return super().__new__(cls, name=name, steps=steps)
 
     @wraps()
@@ -51,12 +64,24 @@ class Pipeline(PyPipeline):
 
     @wraps()
     def invalidates(self) -> list[str]:
-        """Todo."""
+        """Get analysis keys invalidated by this pipeline.
+
+        Returns
+        -------
+        list[str]
+            Analysis/pass keys invalidated by at least one step.
+        """
         raise NotImplementedError
 
     @wraps()
     def provides(self) -> list[str]:
-        """Todo."""
+        """Get analysis keys provided by this pipeline.
+
+        Returns
+        -------
+        list[str]
+            Analysis/pass keys produced by at least one step.
+        """
         raise NotImplementedError
 
     @wraps()
@@ -66,5 +91,5 @@ class Pipeline(PyPipeline):
 
     @wraps()
     def __repr__(self) -> str:
-        """Todo."""
+        """Debug representation string."""
         raise NotImplementedError

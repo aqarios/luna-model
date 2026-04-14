@@ -61,8 +61,6 @@ impl Bounds {
     #[inline]
     pub fn real() -> Self {
         Self {
-            // TODO: Ask Maxi what default bounds for real lower should be...
-            // lower: Bound::Unbounded,
             lower: Bound::Bounded(0.0),
             upper: Bound::Unbounded,
         }
