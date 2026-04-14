@@ -49,10 +49,6 @@ impl PassManager {
     }
 
     pub fn add_pipeline(mut self, pipeline: Pipeline) -> Self {
-        // self.passes.push(PipelineStep::Pipeline {
-        //     name: pipeline.name.into(),
-        //     passes: pipeline.steps,
-        // });
         self.passes.push(PipelineStep::Pipeline(Arc::new(pipeline)));
         self
     }
