@@ -105,7 +105,7 @@ def _resolve(module_path: str, qualname: str) -> object:
         raise ValueError(msg)
 
     # trusted scope constrained by allowlist above
-    obj = import_module(module_path)
+    obj = import_module(module_path)  # nosem
     for part in qualname.split("."):
         obj = getattr(obj, part)
     return obj
