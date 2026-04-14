@@ -36,5 +36,5 @@ pub mod prelude {
         Pipeline, PipelineStep, PipelineStepMethods, ReversiblePass, TransformationError,
         TransformationOutput, TransformationRecord, apply_backward, register_backward,
     };
-    pub use lunamodel_transpiler_macros::{analysis, control_flow, transformation};
+    pub use lunamodel_transpiler_macros::{analysis, control_flow, transformation, composite};
 }
