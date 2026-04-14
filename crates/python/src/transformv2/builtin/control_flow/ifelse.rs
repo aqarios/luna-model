@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
-use lunamodel_transformv2::{ConditionPredicate, IfElsePass};
+use lunamodel_transformv2::control_flow::{ConditionPredicate, IfElsePass};
 use lunamodel_transpiler::{ControlFlowPass, PassContext};
 use pyo3::{Py, PyAny, PyResult, Python, pyclass, pymethods};
 
@@ -53,6 +53,10 @@ impl PyIfElsePass {
 
     fn invalidates(&self) -> Vec<String> {
         self.0.invalidates().to_vec()
+    }
+
+    fn __str__(&self) -> String {
+        self.0.display()
     }
 }
 

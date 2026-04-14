@@ -30,6 +30,7 @@ class _BuiltinTransformationSuper(Protocol[Artifact]):
     def forward(self, model: PyModel, ctx: PyPassContext) -> tuple[Model, Artifact]: ...
     def requires(self) -> list[str]: ...
     def invalidates(self) -> list[str]: ...
+    def __str__(self) -> str: ...
 
 
 class BuiltinTransformation(Generic[Artifact]):
@@ -118,3 +119,8 @@ class BuiltinTransformation(Generic[Artifact]):
         """
         sup = cast("_BuiltinTransformationSuper[Artifact]", super())
         return sup.invalidates()
+
+    def __str__(self) -> str:
+        """Human readable string."""
+        sup = cast("_BuiltinTransformationSuper[Artifact]", super())
+        return sup.__str__()

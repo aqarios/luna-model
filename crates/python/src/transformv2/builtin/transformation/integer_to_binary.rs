@@ -73,6 +73,10 @@ impl PyIntegerToBinaryPass {
     ) -> PyResult<PySolution> {
         Ok(IntegerToBinaryPass::backward(&artifact.0, solution.s.read_arc().clone())?.into())
     }
+
+    fn __str__(&self) -> String {
+        self.0.display()
+    }
 }
 
 impl PyIntegerToBinaryPass {

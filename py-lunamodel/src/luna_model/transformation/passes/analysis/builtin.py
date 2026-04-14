@@ -28,6 +28,7 @@ class _BuiltinSuper(Protocol[Result]):
     def name(self) -> str: ...
     def run(self, model: PyModel, ctx: PyPassContext) -> Result: ...
     def requires(self) -> list[str]: ...
+    def __str__(self) -> str: ...
 
 
 class BuiltinAnalysis(Generic[Result]):
@@ -99,3 +100,8 @@ class BuiltinAnalysis(Generic[Result]):
     def key(cls) -> AnalysisKey[Result]:
         """Get the analysis key used to access the analysis result from the PassContext."""
         return AnalysisKey(cls.provides())
+
+    def __str__(self) -> str:
+        """Human readable string."""
+        sup = cast("_BuiltinSuper[Result]", super())
+        return sup.__str__()

@@ -5,14 +5,14 @@ use std::fmt::{self, Debug, Display};
 pub struct CustomFormatWrapper<'a, F: Clone, T: CustomFormat<F> + ?Sized>(F, &'a T);
 
 impl<'a, F: Clone, T: CustomFormat<F>> Display for CustomFormatWrapper<'a, F, T> {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        <T as CustomFormat<F>>::fmt(self.1, fmt, &self.0)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        <T as CustomFormat<F>>::fmt(self.1, f, &self.0)
     }
 }
 
 impl<'a, F: Clone, T: CustomFormat<F>> Debug for CustomFormatWrapper<'a, F, T> {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        <T as CustomFormat<F>>::dbg(self.1, fmt, &self.0)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        <T as CustomFormat<F>>::dbg(self.1, f, &self.0)
     }
 }
 
@@ -21,11 +21,11 @@ pub trait CustomFormat<F: Clone> {
         CustomFormatWrapper(format_type, self)
     }
 
-    fn dbg(&self, fmt: &mut fmt::Formatter<'_>, format_type: &F) -> fmt::Result {
-        self.fmt(fmt, format_type)
+    fn dbg(&self, f: &mut fmt::Formatter<'_>, format_type: &F) -> fmt::Result {
+        self.fmt(f, format_type)
     }
 
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>, format_type: &F) -> fmt::Result;
+    fn fmt(&self, f: &mut fmt::Formatter<'_>, format_type: &F) -> fmt::Result;
 }
 
 // pub trait PyFormat {

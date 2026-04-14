@@ -1,10 +1,7 @@
-mod ifelse;
-
 pub mod analysis;
-pub mod transformation;
+pub mod control_flow;
 pub mod pipelines;
-
-pub use ifelse::{IfElsePass, ConditionPredicate};
+pub mod transformation;
 
 pub fn register_backward() {
     lunamodel_transpiler::register_backward::<transformation::BinarySpinPass>();

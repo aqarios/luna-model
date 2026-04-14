@@ -1,3 +1,4 @@
+use lunamodel_io::{CustomFormat, FormatOpt};
 use lunamodel_transpiler::{Pipeline, PipelineStep};
 use pyo3::{PyResult, Python, pyclass, pymethods};
 
@@ -5,7 +6,7 @@ use crate::transformv2::pass::PyPass;
 
 #[pyclass(subclass)]
 #[derive(Clone)]
-pub struct PyPipeline(Pipeline);
+pub struct PyPipeline(pub(crate) Pipeline);
 
 impl PyPipeline {
     pub fn steps(&self) -> &[PipelineStep] {
@@ -44,5 +45,13 @@ impl PyPipeline {
 
     fn add(&mut self, py: Python, pass: PyPass) -> PyResult<()> {
         Ok(self.0.steps.push(pass.to_step(py)?))
+    }
+
+    fn __str__(&self) -> String {
+        format!("{}", self.0.format(FormatOpt::Py))
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0.format(FormatOpt::Py))
     }
 }

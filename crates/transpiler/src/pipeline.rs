@@ -1,6 +1,6 @@
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, sync::Arc};
 
-use crate::PipelineStep;
+use crate::{DisplaySteps, PipelineStep};
 
 #[derive(Clone)]
 pub struct Pipeline {
@@ -10,10 +10,11 @@ pub struct Pipeline {
 
 impl From<Pipeline> for PipelineStep {
     fn from(value: Pipeline) -> Self {
-        PipelineStep::Pipeline {
-            name: value.name,
-            passes: value.steps,
-        }
+        PipelineStep::Pipeline(Arc::new(value))
+        // PipelineStep::Pipeline {
+        //     name: value.name,
+        //     passes: value.steps,
+        // }
     }
 }
 
@@ -33,6 +34,10 @@ impl Pipeline {
     pub fn invalidates(&self) -> impl Iterator<Item = String> {
         self.steps.collect_invalidates()
     }
+
+    pub fn display(&self) -> String {
+        format!("🛢️ {}  \n{}", self.name, self.steps.display())
+    }
 }
 
 pub trait PipelineStepMethods {
@@ -49,7 +54,8 @@ impl PipelineStepMethods for [PipelineStep] {
                 match step {
                     PipelineStep::Transform(p) => out.extend(p.requires().to_owned()),
                     PipelineStep::Analysis(p) => out.extend(p.requires().to_owned()),
-                    PipelineStep::Pipeline { passes, .. } => walk(passes, out),
+                    PipelineStep::Pipeline(p) => walk(&p.steps, out),
+                    // PipelineStep::Pipeline { passes, .. } => walk(passes, out),
                     PipelineStep::ControlFlow(p) => out.extend(p.requires().to_owned()),
                 }
             }
@@ -65,7 +71,8 @@ impl PipelineStepMethods for [PipelineStep] {
                 match step {
                     PipelineStep::Transform(_) => (),
                     PipelineStep::Analysis(p) => _ = out.insert(p.provides().to_owned()),
-                    PipelineStep::Pipeline { passes, .. } => walk(passes, out),
+                    PipelineStep::Pipeline(p) => walk(&p.steps, out),
+                    // PipelineStep::Pipeline { passes, .. } => walk(passes, out),
                     PipelineStep::ControlFlow(p) => out.extend(p.provides().to_owned()),
                 }
             }
@@ -81,7 +88,8 @@ impl PipelineStepMethods for [PipelineStep] {
                 match step {
                     PipelineStep::Transform(p) => out.extend(p.invalidates().to_owned()),
                     PipelineStep::Analysis(_) => (),
-                    PipelineStep::Pipeline { passes, .. } => walk(passes, out),
+                    PipelineStep::Pipeline(p) => walk(&p.steps, out),
+                    // PipelineStep::Pipeline { passes, .. } => walk(passes, out),
                     PipelineStep::ControlFlow(p) => out.extend(p.requires().to_owned()),
                 }
             }

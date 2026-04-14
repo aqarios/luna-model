@@ -1,3 +1,4 @@
+use lunamodel_io::{CustomFormat, FormatOpt};
 use lunamodel_transpiler::PassManager;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, Python, pyclass, pymethods};
@@ -46,14 +47,10 @@ impl PyPassManager {
     }
 
     pub fn __str__(&self) -> String {
-        // TODO: move display to lunamodel_io
-        // format!("{}", self.pm)
-        String::from("PassManager")
+        format!("{}", self.pm.format(FormatOpt::Py))
     }
 
-    // pub fn __repr__(&self) -> String {
-    //     // TODO: move/overwrite Debug to/in lunamodel_io
-    //     // for python specific formatting.
-    //     format!("{:?}", self.pm)
-    // }
+    pub fn __repr__(&self) -> String {
+        format!("{:?}", self.pm.format(FormatOpt::Py))
+    }
 }

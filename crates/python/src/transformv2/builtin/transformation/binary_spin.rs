@@ -90,6 +90,10 @@ impl PyBinarySpinPass {
     ) -> PyResult<PySolution> {
         Ok(BinarySpinPass::backward(&artifact.0, solution.s.read_arc().clone())?.into())
     }
+
+    fn __str__(&self) -> String {
+        self.0.display()
+    }
 }
 
 impl PyBinarySpinPass {

@@ -48,4 +48,9 @@ pub trait ControlFlowPass: Send + Sync {
     fn invalidates(&self) -> &[String] {
         &[]
     }
+
+    /// Overridable to_string method for displaying the pass as human readble.
+    fn display(&self) -> String {
+        format!("🔀 {}", self.name())
+    }
 }

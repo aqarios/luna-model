@@ -9,11 +9,8 @@ pub trait ErasedControlFlowPass: Send + Sync {
     fn requires(&self) -> &[String];
     fn provides(&self) -> &[String];
     fn invalidates(&self) -> &[String];
-    fn run_erased(
-        &self,
-        model: &mut Model,
-        ctx: &PassContext,
-    ) -> LunaModelResult<ControlFlowPlan>;
+    fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan>;
+    fn display(&self) -> String;
 }
 
 /// Typed pass can be wrapped into ErasedTransformPass.
@@ -37,11 +34,11 @@ where
         &self.invalidates()
     }
 
-    fn run_erased(
-        &self,
-        model: &mut Model,
-        ctx: &PassContext,
-    ) -> LunaModelResult<ControlFlowPlan> {
+    fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan> {
         self.run(model, ctx)
+    }
+
+    fn display(&self) -> String {
+        self.display()
     }
 }

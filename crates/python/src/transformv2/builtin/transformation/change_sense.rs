@@ -72,6 +72,10 @@ impl PyChangeSensePass {
     ) -> PyResult<PySolution> {
         Ok(ChangeSensePass::backward(&artifact.0, solution.s.read_arc().clone())?.into())
     }
+
+    fn __str__(&self) -> String {
+        self.0.display()
+    }
 }
 
 impl PyChangeSensePass {

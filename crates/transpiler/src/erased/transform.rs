@@ -14,6 +14,7 @@ pub trait ErasedTransformPass: Send + Sync {
         model: &mut Model,
         ctx: &PassContext,
     ) -> LunaModelResult<ErasedArtifact>;
+    fn display(&self) -> String;
 }
 
 /// Typed pass can be wrapped into ErasedTransformPass.
@@ -44,5 +45,9 @@ where
     ) -> LunaModelResult<ErasedArtifact> {
         let artifact = self.forward(model, ctx)?;
         ErasedArtifact::new(&artifact)
+    }
+
+    fn display(&self) -> String {
+        self.display()
     }
 }

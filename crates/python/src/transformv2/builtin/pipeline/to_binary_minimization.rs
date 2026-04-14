@@ -12,4 +12,8 @@ impl PyToBinaryMinimizationPipeline {
     fn new() -> Self {
         Self(ToBinaryMinimizationPipeline::new())
     }
+
+    fn __str__(&self) -> String {
+        self.display()
+    }
 }

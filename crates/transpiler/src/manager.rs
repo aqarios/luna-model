@@ -49,16 +49,32 @@ impl PassManager {
     }
 
     pub fn add_pipeline(mut self, pipeline: Pipeline) -> Self {
-        self.passes.push(PipelineStep::Pipeline {
-            name: pipeline.name.into(),
-            passes: pipeline.steps,
-        });
+        // self.passes.push(PipelineStep::Pipeline {
+        //     name: pipeline.name.into(),
+        //     passes: pipeline.steps,
+        // });
+        self.passes.push(PipelineStep::Pipeline(Arc::new(pipeline)));
         self
     }
 
     pub fn add_step(mut self, step: PipelineStep) -> Self {
         self.passes.push(step);
         self
+    }
+
+    pub fn steps(&self) -> &[PipelineStep] {
+        &self.passes
+    }
+
+    pub fn run(&self, mut model: Model) -> LunaModelResult<TransformationOutput> {
+        self.validate_requirements()?;
+        let mut analysis = AnalysisManager::default();
+        let record = execute_steps(&mut model, &self.passes, &mut analysis)?;
+        Ok(TransformationOutput {
+            record,
+            model,
+            analysis,
+        })
     }
 
     fn validate_requirements(&self) -> LunaModelResult<()> {
@@ -117,23 +133,13 @@ impl PassManager {
                     satisfied.insert(pass.name().to_string());
                     satisfied.extend(pass.provides().to_owned());
                 }
-                PipelineStep::Pipeline { passes, .. } => {
-                    self.validate_steps(passes, satisfied)?;
-                }
+                PipelineStep::Pipeline(p) => self.validate_steps(&p.steps, satisfied)?,
+                // PipelineStep::Pipeline { passes, .. } => {
+                //     self.validate_steps(passes, satisfied)?;
+                // }
             }
         }
         Ok(())
-    }
-
-    pub fn run(&self, mut model: Model) -> LunaModelResult<TransformationOutput> {
-        self.validate_requirements()?;
-        let mut analysis = AnalysisManager::default();
-        let record = execute_steps(&mut model, &self.passes, &mut analysis)?;
-        Ok(TransformationOutput {
-            record,
-            model,
-            analysis,
-        })
     }
 }
 
@@ -173,13 +179,19 @@ fn execute_steps(
                     record: sub_record,
                 });
             }
-            PipelineStep::Pipeline { name, passes } => {
-                let sub_record = execute_steps(model, passes, analysis_manager)?;
+            PipelineStep::Pipeline(p) => {
+                let sub_record = execute_steps(model, &p.steps, analysis_manager)?;
                 entries.push(PassEntry::Pipeline {
-                    name: name.clone(),
+                    name: p.name.clone(),
                     record: sub_record,
                 });
-            }
+            } // PipelineStep::Pipeline { name, passes } => {
+              //     let sub_record = execute_steps(model, passes, analysis_manager)?;
+              //     entries.push(PassEntry::Pipeline {
+              //         name: name.clone(),
+              //         record: sub_record,
+              //     });
+              // }
         }
     }
     Ok(TransformationRecord { entries })

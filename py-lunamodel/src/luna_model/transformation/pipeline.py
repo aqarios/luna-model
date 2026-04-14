@@ -58,3 +58,13 @@ class Pipeline(PyPipeline):
     def provides(self) -> list[str]:
         """Todo."""
         raise NotImplementedError
+
+    @wraps()
+    def __str__(self) -> str:
+        """Human readable string."""
+        raise NotImplementedError
+
+    @wraps()
+    def __repr__(self) -> str:
+        """Todo."""
+        raise NotImplementedError

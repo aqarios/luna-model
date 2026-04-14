@@ -12,4 +12,8 @@ impl PyToUnconstrainedBinaryPipeline {
     fn new(penalty_scaling: f64) -> Self {
         Self(ToUnconstrainedBinaryPipeline::new(penalty_scaling))
     }
+
+    fn __str__(&self) -> String {
+        self.display()
+    }
 }

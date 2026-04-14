@@ -175,6 +175,10 @@ class TransformEntry(Generic[A]):
         """Artifact produced by the transform pass."""
         return self._t.artifact
 
+    def __str__(self) -> str:
+        """Human readable string."""
+        return self._t.__str__()
+
 
 class AnalysisEntry:
     """Analysis entry representing a non-reversible analysis execution."""
@@ -191,6 +195,10 @@ class AnalysisEntry:
     def pass_name(self) -> str:
         """Human-readable analysis pass name."""
         return self._a.pass_name
+
+    def __str__(self) -> str:
+        """Human readable string."""
+        return self._a.__str__()
 
 
 class PipelineEntry:
@@ -213,6 +221,10 @@ class PipelineEntry:
     def record(self) -> TransformationRecord:
         """Nested transformation record for this pipeline step."""
         return TransformationRecord._from_pytr(self._p.record)
+
+    def __str__(self) -> str:
+        """Human readable string."""
+        return self._p.__str__()
 
 
 class ControlFlowEntry:
@@ -240,6 +252,10 @@ class ControlFlowEntry:
     def record(self) -> TransformationRecord:
         """Nested transformation record executed for the selected branch."""
         return TransformationRecord._from_pytr(self._cf.record)
+
+    def __str__(self) -> str:
+        """Human readable string."""
+        return self._cf.__str__()
 
 
 PassEntry: TypeAlias = TransformEntry | AnalysisEntry | ControlFlowEntry | PipelineEntry

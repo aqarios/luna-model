@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Self
 
 from luna_model._lm import PyToBinaryMinimizationPipeline
+from luna_model.wrapper import wraps
 
 
 class ToBinaryMinimizationPipeline(PyToBinaryMinimizationPipeline):
@@ -31,3 +32,8 @@ class ToBinaryMinimizationPipeline(PyToBinaryMinimizationPipeline):
     def __new__(cls) -> Self:
         """Todo."""
         return super().__new__(cls)
+
+    @wraps()
+    def __str__(self) -> str:
+        """Human readable string."""
+        raise NotImplementedError

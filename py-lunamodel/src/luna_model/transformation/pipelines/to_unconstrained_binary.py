@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Self
 
 from luna_model._lm import PyToUnconstrainedBinaryPipeline
+from luna_model.wrapper import wraps
 
 
 class ToUnconstrainedBinaryPipeline(PyToUnconstrainedBinaryPipeline):
@@ -53,3 +54,8 @@ class ToUnconstrainedBinaryPipeline(PyToUnconstrainedBinaryPipeline):
     def __new__(cls, penalty_scaling: float = 10.0) -> Self:
         """Todo."""
         return super().__new__(cls, penalty_scaling=penalty_scaling)
+
+    @wraps()
+    def __str__(self) -> str:
+        """Human readable string."""
+        raise NotImplementedError

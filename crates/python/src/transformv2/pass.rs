@@ -86,23 +86,14 @@ impl PyPass {
             // known pipelines
             Self::ToBinaryMin(p) => {
                 let pipe = p.borrow(py).clone();
-                Ok(PipelineStep::Pipeline {
-                    name: pipe.name,
-                    passes: pipe.steps,
-                })
+                Ok(PipelineStep::Pipeline(Arc::new(pipe)))
             }
             Self::ToUnconsBin(p) => {
                 let pipe = p.borrow(py).0.clone();
-                Ok(PipelineStep::Pipeline {
-                    name: pipe.name,
-                    passes: pipe.steps,
-                })
+                Ok(PipelineStep::Pipeline(Arc::new(pipe)))
             }
             // special container
-            Self::Pipeline(p) => Ok(PipelineStep::Pipeline {
-                name: p.name(),
-                passes: p.steps().to_vec(),
-            }),
+            Self::Pipeline(p) => Ok(PipelineStep::Pipeline(Arc::new(p.0.clone()))),
             // ///////////////////////////
             // /// CUSTOM FROM PYTHON  ///
             // ///////////////////////////

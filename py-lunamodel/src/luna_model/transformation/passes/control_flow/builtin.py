@@ -26,6 +26,7 @@ class _BuiltinControlFlowSuper(Protocol):
     def invalidates(self) -> list[str]: ...
     def provides(self) -> list[str]: ...
     def run(self, model: Model, ctx: PassContext) -> ControlFlowPlan: ...
+    def __str__(self) -> str: ...
 
 
 class BuiltinControlFlow:
@@ -102,3 +103,8 @@ class BuiltinControlFlow:
         """
         sup = cast("_BuiltinControlFlowSuper", super())
         return sup.invalidates()
+
+    def __str__(self) -> str:
+        """Human readable string."""
+        sup = cast("_BuiltinControlFlowSuper", super())
+        return sup.__str__()

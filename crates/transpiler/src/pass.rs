@@ -34,6 +34,11 @@ pub trait ReversiblePass: Send + Sync {
     fn invalidates(&self) -> &[String] {
         &[]
     }
+
+    /// Overridable to_string method for displaying the pass as human readble.
+    fn display(&self) -> String {
+        format!("⚙️ {}", self.name())
+    }
 }
 
 /// An analysis pass computes information without transforming the model.
@@ -63,4 +68,9 @@ pub trait AnalysisPass: Send + Sync {
 
     /// Compute the analysis result
     fn run(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<Self::Result>;
+
+    /// Overridable to_string method for displaying the pass as human readble.
+    fn display(&self) -> String {
+        format!("🔎 {}", self.name())
+    }
 }

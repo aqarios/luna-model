@@ -21,3 +21,4 @@ sqids = { workspace = true }
 prost = { workspace = true }
 num = { workspace = true }
 derive_more = { workspace = true }
+pad = { workspace = true }

@@ -24,7 +24,7 @@ pub use pass::{AnalysisPass, ReversiblePass};
 pub use pipeline::{Pipeline, PipelineStepMethods};
 pub use record::{PassEntry, TransformationRecord};
 pub use registry::{BackwardRegistry, apply as apply_backward, register_backward};
-pub use step::PipelineStep;
+pub use step::{DisplaySteps, PipelineStep};
 
 pub use lunamodel_transpiler_macros::{analysis, control_flow, transformation};
 

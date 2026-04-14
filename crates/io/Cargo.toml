@@ -11,6 +11,8 @@ repository.workspace = true
 lunamodel-core = { workspace = true }
 lunamodel-error = { workspace = true }
 lunamodel-types = { workspace = true }
+lunamodel-transpiler = { workspace = true }
+lunamodel-transformv2 = { workspace = true }
 
 indexmap = { workspace = true }
 regex = { workspace = true }

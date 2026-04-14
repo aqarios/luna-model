@@ -31,6 +31,10 @@ impl PySpecsAnalysis {
     fn requires(&self) -> Vec<String> {
         self.0.requires().to_vec()
     }
+
+    fn __str__(&self) -> String {
+        self.0.display()
+    }
 }
 
 impl PySpecsAnalysis {

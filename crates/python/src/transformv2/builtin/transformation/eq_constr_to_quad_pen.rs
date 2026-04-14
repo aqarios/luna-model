@@ -84,6 +84,10 @@ impl PyEqualityConstraintsToQuadraticPenaltyPass {
         )?
         .into())
     }
+
+    fn __str__(&self) -> String {
+        self.0.display()
+    }
 }
 
 impl PyEqualityConstraintsToQuadraticPenaltyPass {

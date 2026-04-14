@@ -13,6 +13,7 @@ pub trait ErasedAnalysisPass: Send + Sync {
         ctx: &PassContext,
         analyses: &mut AnalysisManager,
     ) -> LunaModelResult<()>;
+    fn display(&self) -> String;
 }
 
 impl<P> ErasedAnalysisPass for P
@@ -41,5 +42,9 @@ where
         let key = crate::analysis::AnalysisKey::<P::Result>::new(self.provides().into());
         analyses.insert(&key, value);
         Ok(())
+    }
+
+    fn display(&self) -> String {
+        self.display()
     }
 }

@@ -84,6 +84,18 @@ pub enum PyPassEntry {
     },
 }
 
+#[pymethods]
+impl PyPassEntry {
+    fn __str__(&self) -> String {
+        match self {
+            Self::Transform { pass_name, .. } => format!("TransformEntry({pass_name})"),
+            Self::Analysis { pass_name } => format!("AnalysisEntry({pass_name})"),
+            Self::Pipeline { name, .. } => format!("PipelineEntry({name})"),
+            Self::ControlFlow { pass_name, .. } => format!("ControlFlowEntry({pass_name})"),
+        }
+    }
+}
+
 impl From<&PassEntry> for PyPassEntry {
     fn from(value: &PassEntry) -> Self {
         match value {
