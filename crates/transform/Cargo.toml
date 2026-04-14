@@ -1,5 +1,5 @@
 [package]
-name = "lunamodel-io"
+name = "lunamodel-transform"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -9,19 +9,16 @@ repository.workspace = true
 
 [dependencies]
 lunamodel-core = { workspace = true }
-lunamodel-error = { workspace = true }
 lunamodel-types = { workspace = true }
+lunamodel-error = { workspace = true }
 lunamodel-transpiler = { workspace = true }
-lunamodel-transform = { workspace = true }
+lunamodel-serializer = { workspace = true }
 
-indexmap = { workspace = true }
-regex = { workspace = true }
 strum = { workspace = true }
-time = { workspace = true }
-
-[dependencies.pyo3]
-workspace = true
-optional = true
-
-[features]
-py = ["pyo3"]
+strum_macros = { workspace = true }
+global_counter = { workspace = true }
+sqids = { workspace = true }
+prost = { workspace = true }
+num = { workspace = true }
+derive_more = { workspace = true }
+pad = { workspace = true }

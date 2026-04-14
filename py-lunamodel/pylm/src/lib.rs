@@ -49,37 +49,37 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyQubo>()?;
 
     // Transformations
-    m.add_class::<transformv2::PyPassManager>()?;
-    m.add_class::<transformv2::PyTransformationOutput>()?;
-    m.add_class::<transformv2::PyTransformationRecord>()?;
-    m.add_class::<transformv2::PyPassContext>()?;
-    m.add_class::<transformv2::PyTransformationPass>()?;
-    m.add_class::<transformv2::PyAnalysisPass>()?;
-    m.add_class::<transformv2::PyControlFlowPass>()?;
-    m.add_class::<transformv2::PyControlFlowPlan>()?;
-    m.add_class::<transformv2::PyPipeline>()?;
-    m.add_class::<transformv2::PyPassEntry>()?;
+    m.add_class::<transform::PyPassManager>()?;
+    m.add_class::<transform::PyTransformationOutput>()?;
+    m.add_class::<transform::PyTransformationRecord>()?;
+    m.add_class::<transform::PyPassContext>()?;
+    m.add_class::<transform::PyTransformationPass>()?;
+    m.add_class::<transform::PyAnalysisPass>()?;
+    m.add_class::<transform::PyControlFlowPass>()?;
+    m.add_class::<transform::PyControlFlowPlan>()?;
+    m.add_class::<transform::PyPipeline>()?;
+    m.add_class::<transform::PyPassEntry>()?;
     // builtin analysis
-    m.add_class::<transformv2::builtin::analysis::PyCheckModelSpecsAnalysis>()?;
-    m.add_class::<transformv2::builtin::analysis::PyMaxBiasAnalysis>()?;
-    m.add_class::<transformv2::builtin::analysis::PyMaxBias>()?;
-    m.add_class::<transformv2::builtin::analysis::PyMinValueForConstraintAnalysis>()?;
-    m.add_class::<transformv2::builtin::analysis::PyMinConstraintValues>()?;
-    m.add_class::<transformv2::builtin::analysis::PySpecsAnalysis>()?;
+    m.add_class::<transform::builtin::analysis::PyCheckModelSpecsAnalysis>()?;
+    m.add_class::<transform::builtin::analysis::PyMaxBiasAnalysis>()?;
+    m.add_class::<transform::builtin::analysis::PyMaxBias>()?;
+    m.add_class::<transform::builtin::analysis::PyMinValueForConstraintAnalysis>()?;
+    m.add_class::<transform::builtin::analysis::PyMinConstraintValues>()?;
+    m.add_class::<transform::builtin::analysis::PySpecsAnalysis>()?;
     // builtin transformation
-    m.add_class::<transformv2::builtin::transformation::PyIntegerToBinaryPass>()?;
-    m.add_class::<transformv2::builtin::transformation::PyBinarySpinPass>()?;
-    m.add_class::<transformv2::builtin::transformation::PyChangeSensePass>()?;
-    m.add_class::<transformv2::builtin::transformation::PyEqualityConstraintsToQuadraticPenaltyPass>()?;
-    m.add_class::<transformv2::builtin::transformation::PyGeToLeConstraintsPass>()?;
-    m.add_class::<transformv2::builtin::transformation::PyLeToEqConstraintsPass>()?;
+    m.add_class::<transform::builtin::transformation::PyIntegerToBinaryPass>()?;
+    m.add_class::<transform::builtin::transformation::PyBinarySpinPass>()?;
+    m.add_class::<transform::builtin::transformation::PyChangeSensePass>()?;
+    m.add_class::<transform::builtin::transformation::PyEqualityConstraintsToQuadraticPenaltyPass>()?;
+    m.add_class::<transform::builtin::transformation::PyGeToLeConstraintsPass>()?;
+    m.add_class::<transform::builtin::transformation::PyLeToEqConstraintsPass>()?;
     // builtin control flow
-    m.add_class::<transformv2::builtin::control_flow::PyIfElsePass>()?;
+    m.add_class::<transform::builtin::control_flow::PyIfElsePass>()?;
     // builtin pipelines
-    m.add_class::<transformv2::builtin::pipeline::PyToUnconstrainedBinaryPipeline>()?;
-    m.add_class::<transformv2::builtin::pipeline::PyToBinaryMinimizationPipeline>()?;
+    m.add_class::<transform::builtin::pipeline::PyToUnconstrainedBinaryPipeline>()?;
+    m.add_class::<transform::builtin::pipeline::PyToBinaryMinimizationPipeline>()?;
 
-    transformv2::register_backward();
+    transform::register_backward();
 
     // Errors
     m.add(

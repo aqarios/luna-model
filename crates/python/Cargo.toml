@@ -18,7 +18,7 @@ lunamodel-utils = { workspace = true }
 lunamodel-hashing = { workspace = true }
 lunamodel-unwind = { workspace = true }
 
-lunamodel-transformv2 = { workspace = true }
+lunamodel-transform = { workspace = true }
 lunamodel-transpiler = { workspace = true }
 
 pyo3 = { workspace = true, features = ["multiple-pymethods", "indexmap"] }

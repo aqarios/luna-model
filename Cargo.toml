@@ -63,7 +63,7 @@ lunamodel-ops = { path = "crates/ops", default-features = false }
 lunamodel-io = { path = "crates/io", default-features = false }
 lunamodel-hashing = { path = "crates/hashing", default-features = false }
 lunamodel-serializer = { path = "crates/serializer", default-features = false }
-lunamodel-transformv2 = { path = "crates/transformv2", default-features = false }
+lunamodel-transform = { path = "crates/transform", default-features = false }
 lunamodel-transpiler = { path = "crates/transpiler", default-features = false }
 lunamodel-translate = { path = "crates/translate", default-features = false }
 lunamodel-python = { path = "crates/python", default-features = false }

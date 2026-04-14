@@ -379,7 +379,7 @@ dependencies = [
  "lunamodel-io",
  "lunamodel-python",
  "lunamodel-serializer",
- "lunamodel-transformv2",
+ "lunamodel-transform",
  "lunamodel-translate",
  "lunamodel-transpiler",
  "lunamodel-types",
@@ -437,7 +437,7 @@ dependencies = [
  "indexmap",
  "lunamodel-core",
  "lunamodel-error",
- "lunamodel-transformv2",
+ "lunamodel-transform",
  "lunamodel-transpiler",
  "lunamodel-types",
  "pyo3",
@@ -458,7 +458,7 @@ dependencies = [
  "lunamodel-hashing",
  "lunamodel-io",
  "lunamodel-serializer",
- "lunamodel-transformv2",
+ "lunamodel-transform",
  "lunamodel-translate",
  "lunamodel-transpiler",
  "lunamodel-types",
@@ -488,7 +488,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lunamodel-transformv2"
+name = "lunamodel-transform"
 version = "0.6.0"
 dependencies = [
  "derive_more",
