@@ -22,6 +22,8 @@ enum PassEntryType {
     C,
     #[strum(to_string = "PassEntry::ControlFlow")]
     CF,
+    #[strum(to_string = "PassEntry::MetaAnalysis")]
+    MA,
 }
 
 #[derive(Clone, PartialEq, Message)]
@@ -67,6 +69,11 @@ impl From<&PassEntry> for SerPassEntry {
             },
             PassEntry::Analysis { pass_name } => Self {
                 entry_type: PassEntryType::A.to_string(),
+                name: pass_name.to_string(),
+                ..Default::default()
+            },
+            PassEntry::MetaAnalysis { pass_name } => Self {
+                entry_type: PassEntryType::MA.to_string(),
                 name: pass_name.to_string(),
                 ..Default::default()
             },
@@ -117,6 +124,9 @@ impl SerPassEntry {
                 )?,
             },
             PassEntryType::A => PassEntry::Analysis {
+                pass_name: self.name.clone(),
+            },
+            PassEntryType::MA => PassEntry::MetaAnalysis {
                 pass_name: self.name.clone(),
             },
             PassEntryType::P => PassEntry::Pipeline {

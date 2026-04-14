@@ -25,6 +25,9 @@ pub enum PassEntry {
     /// An analysis pass (no artifact, not reversed)
     Analysis { pass_name: String },
 
+    /// A meta analysis pass (no artifact, not reversed)
+    MetaAnalysis { pass_name: String },
+
     /// A nested sub-pipeline
     Pipeline {
         name: String,
@@ -65,6 +68,7 @@ impl TransformationRecord {
                     // Look up the backwards function and apply it
                     registry::apply(pass_id, artifact, solution)?
                 }
+
                 PassEntry::Composite {
                     pass_id, artifact, ..
                 } => {
@@ -74,6 +78,11 @@ impl TransformationRecord {
 
                 PassEntry::Analysis { .. } => {
                     // Analysis passes don't affect backwards
+                    solution
+                }
+
+                PassEntry::MetaAnalysis { .. } => {
+                    // MetaAnalysis passes don't affect backwards
                     solution
                 }
 
@@ -169,7 +178,9 @@ fn entry_matches_exact(entry: &PassEntry, query: &str) -> bool {
         | PassEntry::Composite {
             pass_id, pass_name, ..
         } => pass_name == query || pass_id == query,
-        PassEntry::Analysis { pass_name } => pass_name == query,
+        PassEntry::Analysis { pass_name } | PassEntry::MetaAnalysis { pass_name } => {
+            pass_name == query
+        }
         PassEntry::Pipeline { name, .. } => name == query,
         PassEntry::ControlFlow {
             pass_name, name, ..
@@ -188,7 +199,9 @@ fn entry_matches_partial(entry: &PassEntry, needle_lower: &str) -> bool {
             pass_name.to_lowercase().contains(needle_lower)
                 || pass_id.to_lowercase().contains(needle_lower)
         }
-        PassEntry::Analysis { pass_name } => pass_name.to_lowercase().contains(needle_lower),
+        PassEntry::Analysis { pass_name } | PassEntry::MetaAnalysis { pass_name } => {
+            pass_name.to_lowercase().contains(needle_lower)
+        }
         PassEntry::Pipeline { name, .. } => name.to_lowercase().contains(needle_lower),
         PassEntry::ControlFlow {
             pass_name, name, ..

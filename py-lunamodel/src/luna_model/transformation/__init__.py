@@ -24,9 +24,12 @@ from .decorators import (
     analyze,
     composite,
     control_flow,
+    meta_analyse,
+    meta_analyze,
     register_allowed_import_prefix,
     transform,
 )
+from .meta_analysis import MetaAnalysisPass
 from .pass_manager import PassManager
 from .pipeline import Pipeline
 from .record import AnalysisEntry, ControlFlowEntry, PassEntry, PipelineEntry, TransformationRecord, TransformEntry
@@ -40,6 +43,7 @@ __all__ = [
     "ControlFlowEntry",
     "ControlFlowPass",
     "ControlFlowPlan",
+    "MetaAnalysisPass",
     "NothingArtifact",
     "Pass",
     "PassContext",
@@ -56,6 +60,8 @@ __all__ = [
     "analyze",
     "composite",
     "control_flow",
+    "meta_analyse",
+    "meta_analyze",
     "passes",
     "register_allowed_import_prefix",
     "transform",

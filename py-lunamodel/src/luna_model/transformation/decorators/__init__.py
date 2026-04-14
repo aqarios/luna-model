@@ -15,6 +15,7 @@
 from .analysis import analyse, analyze
 from .composite import composite
 from .control_flow import control_flow
+from .meta_analysis import meta_analyse, meta_analyze
 from .transformation import allowed_import_prefixes, register_allowed_import_prefix, transform
 
 __all__ = [
@@ -23,6 +24,8 @@ __all__ = [
     "analyze",
     "composite",
     "control_flow",
+    "meta_analyse",
+    "meta_analyze",
     "register_allowed_import_prefix",
     "transform",
 ]

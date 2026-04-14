@@ -7,7 +7,9 @@ use crate::{
     Pipeline,
     analysis::AnalysisManager,
     context::PassContext,
-    erased::{ErasedAnalysisPass, ErasedTransformPass},
+    erased::{
+        ErasedAnalysisPass, ErasedCompositePass, ErasedMetaAnalysisPass, ErasedTransformPass,
+    },
     error::TransformationError,
     output::TransformationOutput,
     record::{PassEntry, TransformationRecord},
@@ -45,6 +47,22 @@ impl PassManager {
         A: ErasedAnalysisPass + 'static,
     {
         self.passes.push(PipelineStep::Analysis(Arc::new(pass)));
+        self
+    }
+
+    pub fn add_composite<C>(mut self, pass: C) -> Self
+    where
+        C: ErasedCompositePass + 'static,
+    {
+        self.passes.push(PipelineStep::Composite(Arc::new(pass)));
+        self
+    }
+
+    pub fn add_meta_analysis<M>(mut self, pass: M) -> Self
+    where
+        M: ErasedMetaAnalysisPass + 'static,
+    {
+        self.passes.push(PipelineStep::MetaAnalysis(Arc::new(pass)));
         self
     }
 
@@ -113,6 +131,10 @@ impl PassManager {
                     satisfied.insert(pass.name().to_string());
                     satisfied.insert(pass.provides().to_string());
                 }
+                PipelineStep::MetaAnalysis(pass) => {
+                    satisfied.insert(pass.name().to_string());
+                    satisfied.insert(pass.provides().to_string());
+                }
                 PipelineStep::ControlFlow(pass) => {
                     for requirement in pass.requires() {
                         if !satisfied.contains(requirement) {
@@ -158,7 +180,7 @@ fn execute_steps(
     analysis_manager: &mut AnalysisManager,
 ) -> LunaModelResult<TransformationRecord> {
     let mut entries = Vec::new();
-    for step in passes {
+    for (pos, step) in passes.iter().enumerate() {
         match step {
             PipelineStep::Transform(pass) => {
                 let ctx = PassContext::new(&analysis_manager);
@@ -175,6 +197,12 @@ fn execute_steps(
                 let ctx = PassContext::new(&analysis_snapshot);
                 pass.run_erased(model, &ctx, analysis_manager)?;
                 entries.push(PassEntry::Analysis {
+                    pass_name: pass.name().to_string(),
+                });
+            }
+            PipelineStep::MetaAnalysis(pass) => {
+                pass.run_erased(&passes[pos..], analysis_manager)?;
+                entries.push(PassEntry::MetaAnalysis {
                     pass_name: pass.name().to_string(),
                 });
             }

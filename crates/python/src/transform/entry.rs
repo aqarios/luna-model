@@ -61,6 +61,7 @@ impl PyErasedArtifact {
 #[pyclass]
 #[derive(Clone)]
 pub enum PyPassEntry {
+    /// A transformation pass entry
     Transform {
         pass_id: String,
         pass_name: String,
@@ -69,6 +70,9 @@ pub enum PyPassEntry {
 
     /// An analysis pass (no artifact, not reversed)
     Analysis { pass_name: String },
+
+    /// A meta-analysis pass (no artifact, not reversed)
+    MetaAnalysis { pass_name: String },
 
     /// A nested sub-pipeline
     Pipeline {
@@ -97,6 +101,7 @@ impl PyPassEntry {
             Self::Transform { pass_name, .. } => format!("TransformEntry({pass_name})"),
             Self::Composite { pass_name, .. } => format!("CompositeEntry({pass_name})"),
             Self::Analysis { pass_name } => format!("AnalysisEntry({pass_name})"),
+            Self::MetaAnalysis { pass_name } => format!("MetaAnalysisEntry({pass_name})"),
             Self::Pipeline { name, .. } => format!("PipelineEntry({name})"),
             Self::ControlFlow { pass_name, .. } => format!("ControlFlowEntry({pass_name})"),
         }
@@ -125,6 +130,9 @@ impl From<&PassEntry> for PyPassEntry {
                 artifact: artifact.into(),
             },
             PassEntry::Analysis { pass_name } => Self::Analysis {
+                pass_name: pass_name.clone(),
+            },
+            PassEntry::MetaAnalysis { pass_name } => Self::MetaAnalysis {
                 pass_name: pass_name.clone(),
             },
             PassEntry::ControlFlow {

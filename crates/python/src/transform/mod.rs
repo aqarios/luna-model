@@ -13,8 +13,8 @@ pub mod builtin;
 
 pub use adapter::{
     PyAnalysisPass, PyAnalysisPassAdapter, PyCompositePass, PyCompositePassAdapter,
-    PyControlFlowPass, PyControlFlowPassAdapter, PyControlFlowPlan, PyTransformationPass,
-    PyTransformationPassAdapter,
+    PyControlFlowPass, PyControlFlowPassAdapter, PyControlFlowPlan, PyMetaAnalysisPass,
+    PyMetaAnalysisPassAdapter, PyTransformationPass, PyTransformationPassAdapter,
 };
 pub use context::PyPassContext;
 pub use entry::PyPassEntry;

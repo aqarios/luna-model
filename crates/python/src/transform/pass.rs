@@ -8,10 +8,11 @@ use pyo3::{
 };
 
 use crate::transform::{
-    PyControlFlowPass, PyControlFlowPassAdapter, PyPipeline, PyTransformationPassAdapter,
+    PyControlFlowPass, PyControlFlowPassAdapter, PyMetaAnalysisPassAdapter, PyPipeline,
+    PyTransformationPassAdapter,
     adapter::{
         PyAnalysisPass, PyAnalysisPassAdapter, PyCompositePass, PyCompositePassAdapter,
-        PyTransformationPass,
+        PyMetaAnalysisPass, PyTransformationPass,
     },
     builtin::{
         analysis::{
@@ -60,6 +61,8 @@ pub enum PyPass {
     CustomTransformation(Py<PyTransformationPass>),
     // custom analysis from python
     CustomAnalysis(Py<PyAnalysisPass>),
+    // custom meta-analysis from python
+    CustomMetaAnalysis(Py<PyMetaAnalysisPass>),
     // custom composite from python
     CustomComposite(Py<PyCompositePass>),
     // fallback for non-leaking error.
@@ -113,6 +116,10 @@ impl PyPass {
             // custom analysis from python
             Self::CustomAnalysis(p) => Ok(PipelineStep::Analysis(Arc::new(
                 PyAnalysisPassAdapter::new(py, p.clone_ref(py))?,
+            ))),
+            // custom meta-analysis from python
+            Self::CustomMetaAnalysis(p) => Ok(PipelineStep::MetaAnalysis(Arc::new(
+                PyMetaAnalysisPassAdapter::new(py, p.clone_ref(py))?,
             ))),
             // custom composite from python
             Self::CustomComposite(p) => Ok(PipelineStep::Composite(Arc::new(

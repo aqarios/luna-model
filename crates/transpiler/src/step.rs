@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use crate::{
     Pipeline,
-    erased::{ErasedAnalysisPass, ErasedCompositePass, ErasedControlFlowPass, ErasedTransformPass},
+    erased::{
+        ErasedAnalysisPass, ErasedCompositePass, ErasedControlFlowPass, ErasedMetaAnalysisPass,
+        ErasedTransformPass,
+    },
 };
 
 // Note: PipelineStep is intentionally Arc-backed so `from_steps(steps.clone())`
@@ -12,6 +15,7 @@ use crate::{
 pub enum PipelineStep {
     Transform(Arc<dyn ErasedTransformPass>),
     Analysis(Arc<dyn ErasedAnalysisPass>),
+    MetaAnalysis(Arc<dyn ErasedMetaAnalysisPass>),
     ControlFlow(Arc<dyn ErasedControlFlowPass>),
     Composite(Arc<dyn ErasedCompositePass>),
     Pipeline(Arc<Pipeline>),
@@ -22,6 +26,7 @@ impl PipelineStep {
         match self {
             Self::Transform(p) => p.display(),
             Self::Analysis(p) => p.display(),
+            Self::MetaAnalysis(p) => p.display(),
             Self::ControlFlow(p) => p.display(),
             Self::Composite(p) => p.display(),
             Self::Pipeline(p) => p.display(),

@@ -53,6 +53,7 @@ impl PipelineStepMethods for [PipelineStep] {
                     PipelineStep::ControlFlow(p) => out.extend(p.requires().to_owned()),
                     PipelineStep::Composite(p) => out.extend(p.requires().to_owned()),
                     PipelineStep::Pipeline(p) => walk(&p.steps, out),
+                    PipelineStep::MetaAnalysis(_) => (),
                 }
             }
         }
@@ -67,6 +68,7 @@ impl PipelineStepMethods for [PipelineStep] {
                 match step {
                     PipelineStep::Transform(_) => (),
                     PipelineStep::Analysis(p) => _ = out.insert(p.provides().to_owned()),
+                    PipelineStep::MetaAnalysis(p) => _ = out.insert(p.provides().to_owned()),
                     PipelineStep::ControlFlow(p) => out.extend(p.provides().to_owned()),
                     PipelineStep::Composite(p) => _ = out.insert(p.provides().to_owned()),
                     PipelineStep::Pipeline(p) => walk(&p.steps, out),
@@ -82,7 +84,7 @@ impl PipelineStepMethods for [PipelineStep] {
         fn walk(steps: &[PipelineStep], out: &mut BTreeSet<String>) {
             for step in steps {
                 match step {
-                    PipelineStep::Analysis(_) => (),
+                    PipelineStep::Analysis(_) | PipelineStep::MetaAnalysis(_) => (),
                     PipelineStep::Transform(p) => out.extend(p.invalidates().to_owned()),
                     PipelineStep::ControlFlow(p) => out.extend(p.invalidates().to_owned()),
                     PipelineStep::Composite(p) => out.extend(p.invalidates().to_owned()),

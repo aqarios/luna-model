@@ -6,6 +6,7 @@ mod control_flow;
 mod erased;
 mod error;
 mod manager;
+mod meta;
 mod output;
 mod pass;
 mod pipeline;
@@ -20,6 +21,7 @@ pub use context::PassContext;
 pub use control_flow::{ControlFlowPass, ControlFlowPlan};
 pub use error::TransformationError;
 pub use manager::PassManager;
+pub use meta::MetaAnalysisPass;
 pub use output::TransformationOutput;
 pub use pass::{AnalysisPass, ReversiblePass};
 pub use pipeline::{Pipeline, PipelineStepMethods};
@@ -32,9 +34,10 @@ pub use lunamodel_transpiler_macros::{analysis, control_flow, transformation};
 pub mod prelude {
     pub use crate::{
         AnalysisKey, AnalysisManager, AnalysisPass, Artifact, BackwardRegistry, CompositePass,
-        ControlFlowPass, ControlFlowPlan, ErasedArtifact, PassContext, PassEntry, PassManager,
-        Pipeline, PipelineStep, PipelineStepMethods, ReversiblePass, TransformationError,
-        TransformationOutput, TransformationRecord, apply_backward, register_backward,
+        ControlFlowPass, ControlFlowPlan, ErasedArtifact, MetaAnalysisPass, PassContext, PassEntry,
+        PassManager, Pipeline, PipelineStep, PipelineStepMethods, ReversiblePass,
+        TransformationError, TransformationOutput, TransformationRecord, apply_backward,
+        register_backward,
     };
-    pub use lunamodel_transpiler_macros::{analysis, control_flow, transformation, composite};
+    pub use lunamodel_transpiler_macros::{analysis, composite, control_flow, transformation};
 }

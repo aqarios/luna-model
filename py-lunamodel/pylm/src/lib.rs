@@ -60,6 +60,7 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transform::PyPipeline>()?;
     m.add_class::<transform::PyPassEntry>()?;
     m.add_class::<transform::PyCompositePass>()?;
+    m.add_class::<transform::PyMetaAnalysisPass>()?;
     // builtin analysis
     m.add_class::<transform::builtin::analysis::PyCheckModelSpecsAnalysis>()?;
     m.add_class::<transform::builtin::analysis::PyMaxBiasAnalysis>()?;
@@ -76,6 +77,8 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transform::builtin::transformation::PyLeToEqConstraintsPass>()?;
     // builtin control flow
     m.add_class::<transform::builtin::control_flow::PyIfElsePass>()?;
+    // builtin composite
+    // builtin meta-analysis
     // builtin pipelines
     m.add_class::<transform::builtin::pipeline::PyToUnconstrainedBinaryPipeline>()?;
     m.add_class::<transform::builtin::pipeline::PyToBinaryMinimizationPipeline>()?;
