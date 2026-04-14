@@ -2,7 +2,6 @@ use indexmap::IndexMap;
 use itertools::Itertools;
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bias, Vtype};
-use num::Float;
 use std::collections::HashMap;
 
 use crate::solution::{Column, col::Assignment};
