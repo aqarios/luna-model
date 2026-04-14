@@ -106,9 +106,9 @@ def composite(
     --------
     Create a simple composite:
 
-    >>> from luna_model.transformation import composite
+    >>> from luna_model.transformation import composite, NothingArtifact
     >>> @composite(name="scale-objective")
-    ... def scale_obj(model: Model, ctx: PassContext) -> tuple[model, NothingArtifact, float]:
+    ... def scale_obj(model: Model, ctx: PassContext) -> tuple[Model, NothingArtifact, float]:
     ...     model.objective = model.objective * 2.0
     ...     return model, NothingArtifact(), model.num_variables
 
