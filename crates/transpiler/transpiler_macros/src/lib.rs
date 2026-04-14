@@ -41,3 +41,11 @@ pub fn control_flow(_attr: TokenStream, item: TokenStream) -> TokenStream {
         quote!(::lunamodel_transpiler::PipelineStep::ControlFlow),
     )
 }
+
+#[proc_macro_attribute]
+pub fn composite(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    expand(
+        item,
+        quote!(::lunamodel_transpiler::PipelineStep::Composite),
+    )
+}
