@@ -29,7 +29,7 @@ from .decorators import (
     register_allowed_import_prefix,
     transform,
 )
-from .meta_analysis import MetaAnalysisPass
+from .meta_analysis import MetaAnalysisPass, StepView
 from .pass_manager import PassManager
 from .pipeline import Pipeline
 from .record import AnalysisEntry, ControlFlowEntry, PassEntry, PipelineEntry, TransformationRecord, TransformEntry
@@ -51,6 +51,7 @@ __all__ = [
     "PassManager",
     "Pipeline",
     "PipelineEntry",
+    "StepView",
     "TransformEntry",
     "TransformationPass",
     "TransformationPassArtifact",
