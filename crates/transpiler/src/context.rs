@@ -15,6 +15,7 @@ impl<'a> PassContext<'a> {
     }
 
     /// Get an analysis result
+    // pub fn get_analysis<T: Send + Sync + 'static>(&self, key: &AnalysisKey<T>) -> Option<&T> {
     pub fn get_analysis<T: Send + Sync + 'static>(&self, key: &AnalysisKey<T>) -> Option<&T> {
         self.analysis_manager.get(key)
     }

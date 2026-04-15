@@ -14,9 +14,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Literal, TypeVar, overload
 
 from luna_model._lm import PyPassContext
+from luna_model.errors import CompilationError
 
 if TYPE_CHECKING:
     from luna_model.transformation.key import AnalysisKey
@@ -38,17 +39,32 @@ class PassContext(PyPassContext):
         ctx._c = py_ctx
         return ctx
 
-    def require_analysis(self, key: AnalysisKey[T]) -> T:
+    @overload
+    def require_analysis(self, key: AnalysisKey[T]) -> T | None: ...
+    @overload
+    def require_analysis(self, key: AnalysisKey[T], *, allow_none: Literal[True]) -> T | None: ...
+    @overload
+    def require_analysis(self, key: AnalysisKey[T], *, allow_none: Literal[False]) -> T: ...
+    def require_analysis(self, key: AnalysisKey[T], *, allow_none: bool = False) -> T | None:
         """Get the analysis entry for the specified key.
 
         Parameters
         ----------
         key : AnalysisKey[T]
             The cache key to retrieve.
+        allow_none : bool
+            If set to ``True`` None is returned instead of raising an error if no
+            result for ``key`` can be found.
+
 
         Returns
         -------
         T
             The cached value associated with the key.
         """
-        return self._c.require_analysis(key.name)
+        try:
+            return self._c.require_analysis(key.name)
+        except CompilationError as e:
+            if allow_none:
+                return None
+            raise e from e

@@ -33,6 +33,23 @@ impl AnalysisManager {
         self.results
             .get(&key.name)
             .and_then(|boxed| boxed.downcast_ref::<T>())
+        // self.results
+        //     .get(&key.name)
+        //     .ok_or_else(|| {
+        //         TransformationError::MissingAnalysis {
+        //             name: key.name.to_string(),
+        //         }
+        //         .into()
+        //     })
+        //     .and_then(|boxed| {
+        //         boxed.downcast_ref::<T>().ok_or_else(|| {
+        //             TransformationError::MismatchedAnalysis {
+        //                 name: key.name.to_string(),
+        //                 tpe: type_name::<T>().to_string(),
+        //             }
+        //             .into()
+        //         })
+        //     })
     }
 
     /// Get an analysis result (error if not available)
@@ -43,6 +60,7 @@ impl AnalysisManager {
             }
             .into()
         })
+        // self.get(key)
     }
 
     /// Store an analysis result

@@ -5,6 +5,7 @@ mod result;
 mod view;
 
 pub use adapter::PyMetaAnalysisPassAdapter;
+pub use result::PyMetaAnalysisPassAdapterResult;
 
 #[pyclass(subclass)]
 pub struct PyMetaAnalysisPass;

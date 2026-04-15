@@ -77,6 +77,15 @@ class Pipeline(PyPipeline):
         raise NotImplementedError
 
     @wraps()
+    def clear(self) -> None:
+        """
+        Clear all passes from the pipeline.
+
+        Removes all transformation passes, leaving an empty pipeline.
+        """
+        raise NotImplementedError
+
+    @wraps()
     def __str__(self) -> str:
         """Human readable string."""
         raise NotImplementedError

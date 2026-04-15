@@ -23,18 +23,78 @@ pub enum PipelineStep {
 
 impl PipelineStep {
     pub fn display(&self) -> String {
+        self.idisplay(0)
+    }
+
+    pub fn idisplay(&self, indent: usize) -> String {
         match self {
-            Self::Transform(p) => p.display(),
-            Self::Analysis(p) => p.display(),
-            Self::MetaAnalysis(p) => p.display(),
-            Self::ControlFlow(p) => p.display(),
-            Self::Composite(p) => p.display(),
-            Self::Pipeline(p) => p.display(),
+            Self::Transform(p) => p.idisplay(indent),
+            Self::Analysis(p) => p.idisplay(indent),
+            Self::MetaAnalysis(p) => p.idisplay(indent),
+            Self::ControlFlow(p) => p.idisplay(indent),
+            Self::Composite(p) => p.idisplay(indent),
+            Self::Pipeline(p) => p.idisplay(indent),
         }
     }
 }
 
-fn _format_pipeline_steps(steps: &[PipelineStep]) -> String {
+pub trait IndentDisplay {
+    fn idisplay(&self, indent: usize) -> String;
+}
+
+// TODO(team): fix these via implementation on common "Display" trait.
+
+impl IndentDisplay for dyn ErasedTransformPass {
+    fn idisplay(&self, indent: usize) -> String {
+        let prefix = match indent {
+            0 => String::default(),
+            i => " ".repeat(i),
+        };
+        format!("{prefix}{}", self.display())
+    }
+}
+
+impl IndentDisplay for dyn ErasedAnalysisPass {
+    fn idisplay(&self, indent: usize) -> String {
+        let prefix = match indent {
+            0 => String::default(),
+            i => " ".repeat(i),
+        };
+        format!("{prefix}{}", self.display())
+    }
+}
+
+impl IndentDisplay for dyn ErasedMetaAnalysisPass {
+    fn idisplay(&self, indent: usize) -> String {
+        let prefix = match indent {
+            0 => String::default(),
+            i => " ".repeat(i),
+        };
+        format!("{prefix}{}", self.display())
+    }
+}
+
+impl IndentDisplay for dyn ErasedControlFlowPass {
+    fn idisplay(&self, indent: usize) -> String {
+        let prefix = match indent {
+            0 => String::default(),
+            i => " ".repeat(i),
+        };
+        format!("{prefix}{}", self.display())
+    }
+}
+
+impl IndentDisplay for dyn ErasedCompositePass {
+    fn idisplay(&self, indent: usize) -> String {
+        let prefix = match indent {
+            0 => String::default(),
+            i => " ".repeat(i),
+        };
+        format!("{prefix}{}", self.display())
+    }
+}
+
+fn _format_pipeline_steps(steps: &[PipelineStep], indent: usize) -> String {
     if steps.is_empty() {
         return String::default();
     }
@@ -42,25 +102,34 @@ fn _format_pipeline_steps(steps: &[PipelineStep]) -> String {
     let mut items = Vec::new();
     if steps.len() >= 2 {
         for i in 0..=steps.len() - 2 {
-            items.push(steps[i].display())
+            items.push(format!("{}", steps[i].idisplay(indent)))
         }
     }
-    items.push(steps[steps.len() - 1].display());
+    items.push(format!("{}", steps[steps.len() - 1].idisplay(indent)));
     items.join("\n")
 }
 
 pub trait DisplaySteps {
     fn display(&self) -> String;
+    fn idisplay(&self, indent: usize) -> String;
 }
 
 impl DisplaySteps for Vec<PipelineStep> {
     fn display(&self) -> String {
-        _format_pipeline_steps(&self)
+        _format_pipeline_steps(&self, 0)
+    }
+
+    fn idisplay(&self, indent: usize) -> String {
+        _format_pipeline_steps(&self, indent)
     }
 }
 
 impl DisplaySteps for &[PipelineStep] {
     fn display(&self) -> String {
-        _format_pipeline_steps(&self)
+        _format_pipeline_steps(&self, 0)
+    }
+
+    fn idisplay(&self, indent: usize) -> String {
+        _format_pipeline_steps(&self, indent)
     }
 }

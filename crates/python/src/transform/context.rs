@@ -1,3 +1,4 @@
+use lunamodel_error::LunaModelError;
 use lunamodel_transform::analysis::{
     CheckModelSpecsAnalysis, MaxBias, MaxBiasAnalysis, MinConstraintValues,
     MinValueForConstraintAnalysis, SpecsAnalysis,
@@ -9,7 +10,7 @@ use pyo3::{IntoPyObjectExt, Py, PyAny, PyResult, Python, pyclass, pymethods};
 use crate::{
     PyModelSpecs,
     transform::{
-        adapter::PyAnalysisPassAdapterResult,
+        adapter::{PyAnalysisPassAdapterResult, PyMetaAnalysisPassAdapterResult},
         builtin::analysis::{PyMaxBias, PyMinConstraintValues},
     },
 };
@@ -61,10 +62,25 @@ impl PyPassContext {
                 &PyModelSpecs::from(a.clone()).into_py_any(py)?
             }
             _ => {
-                &self
+                // It can either be a PyAnalysisPassAdapterResult or a PyMetaAnalysisPassAdapaterResult.
+                let from_analysis = &self.manager.require(&AnalysisKey::<
+                    PyAnalysisPassAdapterResult,
+                >::new(key.clone()));
+                let from_meta = &self
                     .manager
-                    .require(&AnalysisKey::<&PyAnalysisPassAdapterResult>::new(key))?
-                    .0
+                    .require(&AnalysisKey::<PyMetaAnalysisPassAdapterResult>::new(key));
+                match (from_analysis, from_meta) {
+                    (Ok(a), Err(_)) => &a.0,
+                    (Err(_), Ok(m)) => &m.0,
+                    (Ok(_), Ok(_)) => {
+                        return Err(LunaModelError::Internal(
+                            "found multiple entries for the same key.".into(),
+                        ))?;
+                    }
+                    (Err(ea), Err(_)) => {
+                        return Err(ea.clone())?;
+                    }
+                }
             }
         };
         Ok(res.clone_ref(py))

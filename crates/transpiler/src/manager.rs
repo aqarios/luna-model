@@ -10,7 +10,7 @@ use crate::{
     erased::{
         ErasedAnalysisPass, ErasedCompositePass, ErasedMetaAnalysisPass, ErasedTransformPass,
     },
-    error::TransformationError,
+    error::{TransformationError, ValidationError},
     output::TransformationOutput,
     record::{PassEntry, TransformationRecord},
     step::PipelineStep,
@@ -106,10 +106,12 @@ impl PassManager {
                 PipelineStep::Transform(pass) => {
                     for requirement in pass.requires() {
                         if !satisfied.contains(requirement) {
-                            return Err(TransformationError::UnsatisfiedRequirement {
-                                pass_name: pass.name().to_string(),
-                                requirement: requirement.to_string(),
-                            }
+                            return Err(ValidationError(
+                                TransformationError::UnsatisfiedRequirement {
+                                    pass_name: pass.name().to_string(),
+                                    requirement: requirement.to_string(),
+                                },
+                            )
                             .into());
                         }
                     }
@@ -121,10 +123,12 @@ impl PassManager {
                 PipelineStep::Analysis(pass) => {
                     for requirement in pass.requires() {
                         if !satisfied.contains(requirement) {
-                            return Err(TransformationError::UnsatisfiedRequirement {
-                                pass_name: pass.name().to_string(),
-                                requirement: requirement.to_string(),
-                            }
+                            return Err(ValidationError(
+                                TransformationError::UnsatisfiedRequirement {
+                                    pass_name: pass.name().to_string(),
+                                    requirement: requirement.to_string(),
+                                },
+                            )
                             .into());
                         }
                     }
@@ -138,10 +142,12 @@ impl PassManager {
                 PipelineStep::ControlFlow(pass) => {
                     for requirement in pass.requires() {
                         if !satisfied.contains(requirement) {
-                            return Err(TransformationError::UnsatisfiedRequirement {
-                                pass_name: pass.name().to_string(),
-                                requirement: requirement.to_string(),
-                            }
+                            return Err(ValidationError(
+                                TransformationError::UnsatisfiedRequirement {
+                                    pass_name: pass.name().to_string(),
+                                    requirement: requirement.to_string(),
+                                },
+                            )
                             .into());
                         }
                     }
@@ -154,10 +160,12 @@ impl PassManager {
                 PipelineStep::Composite(pass) => {
                     for requirement in pass.requires() {
                         if !satisfied.contains(requirement) {
-                            return Err(TransformationError::UnsatisfiedRequirement {
-                                pass_name: pass.name().to_string(),
-                                requirement: requirement.to_string(),
-                            }
+                            return Err(ValidationError(
+                                TransformationError::UnsatisfiedRequirement {
+                                    pass_name: pass.name().to_string(),
+                                    requirement: requirement.to_string(),
+                                },
+                            )
                             .into());
                         }
                     }

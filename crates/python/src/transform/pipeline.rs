@@ -47,6 +47,10 @@ impl PyPipeline {
         Ok(self.0.steps.push(pass.to_step(py)?))
     }
 
+    fn clear(&mut self) {
+        self.0.clear();
+    }
+
     fn __str__(&self) -> String {
         format!("{}", self.0.format(FormatOpt::Py))
     }

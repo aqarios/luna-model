@@ -32,7 +32,23 @@ impl Pipeline {
     }
 
     pub fn display(&self) -> String {
-        format!("🛢️ {}  \n{}", self.name, self.steps.display())
+        self.idisplay(0)
+    }
+
+    pub fn idisplay(&self, indent: usize) -> String {
+        let prefix = match indent {
+            0 => String::default(),
+            i => " ".repeat(i),
+        };
+        format!(
+            "{prefix}🛢️ {}  \n{}",
+            self.name,
+            self.steps.idisplay(indent + 2)
+        )
+    }
+
+    pub fn clear(&mut self) {
+        self.steps = Vec::new();
     }
 }
 
