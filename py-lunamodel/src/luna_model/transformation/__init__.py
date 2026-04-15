@@ -30,6 +30,7 @@ from .decorators import (
     transform,
 )
 from .meta_analysis import MetaAnalysisPass, StepView
+from .output import AnalysisCache, TransformationOutput
 from .pass_manager import PassManager
 from .pipeline import Pipeline
 from .record import AnalysisEntry, ControlFlowEntry, PassEntry, PipelineEntry, TransformationRecord, TransformEntry
@@ -37,6 +38,7 @@ from .transformation import TransformationPass
 from .typing import Pass
 
 __all__ = [
+    "AnalysisCache",
     "AnalysisEntry",
     "AnalysisPass",
     "CompositePass",
@@ -53,6 +55,7 @@ __all__ = [
     "PipelineEntry",
     "StepView",
     "TransformEntry",
+    "TransformationOutput",
     "TransformationPass",
     "TransformationPassArtifact",
     "TransformationRecord",
