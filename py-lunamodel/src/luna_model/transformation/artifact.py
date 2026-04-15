@@ -72,7 +72,7 @@ class PickleArtifact(TransformationPassArtifact, ABC):
 
         The NothingArtifact serialization produces empty bytes.
         """
-        return pickle.dumps(self)
+        return pickle.dumps(self)  # nosem
 
     @classmethod
     def deserialize(cls, buf: bytes) -> Self:
@@ -80,4 +80,4 @@ class PickleArtifact(TransformationPassArtifact, ABC):
 
         The NothingArtifact deserialization can be produced from empty bytes.
         """
-        return cast("Self", pickle.loads(buf))  # noqa: S301
+        return cast("Self", pickle.loads(buf))  # noqa: S301 # nosem
