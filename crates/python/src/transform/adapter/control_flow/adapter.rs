@@ -47,6 +47,10 @@ impl PyControlFlowPassAdapter {
             provides,
         })
     }
+
+    pub fn inner(&self, py: Python) -> Py<PyControlFlowPass> {
+        self.inner.clone_ref(py)
+    }
 }
 
 impl ControlFlowPass for PyControlFlowPassAdapter {

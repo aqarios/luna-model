@@ -1,23 +1,17 @@
-use lunamodel_core::{Model, Solution};
+use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 
-use crate::{AnalysisKey, Artifact, PassContext};
+use crate::{AnalysisKey, PassContext, reversible::Reversible};
 
 /// A composite pass.
 ///
 /// The forward pass generates an artifact and a analysis result.
-pub trait CompositePass: Send + Sync {
-    /// The artifact type this pass produces.
-    /// This is the "backwards IR" -- it encodes the inverse transformation.
-    type Artifact: Artifact;
+pub trait CompositePass: Send + Sync + Reversible {
     /// The type of analysis result this pass produces
     type Result: Send + Sync + 'static;
 
     const NAME: &'static str;
     const PROVIDES: &'static str;
-    /// Unique identifier for this pass.
-    const ID: &'static str;
-
     /// Name for this pass.
     fn name(&self) -> &str {
         Self::NAME
@@ -29,10 +23,6 @@ pub trait CompositePass: Send + Sync {
         model: &mut Model,
         ctx: &PassContext,
     ) -> LunaModelResult<(Self::Artifact, Self::Result)>;
-
-    /// Inverse transformation: Solution + Artifact -> BackwardTransformedSolution.
-    /// All configuration is encoded in the Artifact itself.
-    fn backward(artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution>;
 
     /// Which pass/analysis keys must be satisfied before this pass can execute?
     fn requires(&self) -> &[String] {

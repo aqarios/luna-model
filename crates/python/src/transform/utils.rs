@@ -1,6 +1,6 @@
-use lunamodel_error::LunaModelError;
+use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::PipelineStep;
-use pyo3::{FromPyObject, PyErr, PyResult, Python};
+use pyo3::{FromPyObject, PyErr, PyResult, Python, Py, PyAny};
 
 use crate::transform::{pass::PyPass, pipeline::PyPipeline};
 
@@ -26,5 +26,17 @@ impl PipelineOrPassVec {
                 .map(|p| p.to_step(py))
                 .collect::<PyResult<_>>(),
         }
+    }
+}
+
+pub trait FromSteps {
+    /// Convert a slice of pipeline steps into Python-facing PyPass.
+    fn to_pypasses(&self, py: Python) -> LunaModelResult<Vec<Py<PyAny>>>;
+}
+
+impl FromSteps for &[PipelineStep] {
+    /// Convert all steps in this slice into Python-facing views.
+    fn to_pypasses(&self, py: Python) -> LunaModelResult<Vec<Py<PyAny>>> {
+        self.iter().map(|s| PyPass::from_step(py, s)).collect()
     }
 }

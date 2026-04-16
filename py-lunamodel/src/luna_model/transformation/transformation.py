@@ -24,7 +24,12 @@ from luna_model.transformation.context import PassContext
 Artifact = TypeVar("Artifact", bound=TransformationPassArtifact)
 
 
-class TransformationPass(PyTransformationPass, Generic[Artifact]):
+class _TransformationPassMeta(type(PyTransformationPass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, PyTransformationPass) or super().__instancecheck__(instance)
+
+
+class TransformationPass(PyTransformationPass, Generic[Artifact], metaclass=_TransformationPassMeta):
     """
     Abstract base class for transformation passes that modify models.
 

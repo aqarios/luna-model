@@ -1,11 +1,38 @@
-from typing import Self
+from typing import Self, TypeAlias
 
 from luna_model._lm import PyPipeline
-from luna_model.transformation.typing import Pass
+from luna_model.transformation.analysis import AnalysisPass
+from luna_model.transformation.composite import CompositePass
+from luna_model.transformation.control_flow import ControlFlowPass
+from luna_model.transformation.meta_analysis import MetaAnalysisPass
+from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
+from luna_model.transformation.passes.composite.builtin import BuiltinComposite
+from luna_model.transformation.passes.control_flow.builtin import BuiltinControlFlow
+from luna_model.transformation.passes.meta_analysis.builtin import BuiltinMetaAnalysis
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
+from luna_model.transformation.transformation import TransformationPass
 from luna_model.wrapper import wraps
 
+Pass: TypeAlias = (
+    AnalysisPass
+    | CompositePass
+    | ControlFlowPass
+    | MetaAnalysisPass
+    | TransformationPass
+    | BuiltinAnalysis
+    | BuiltinComposite
+    | BuiltinControlFlow
+    | BuiltinMetaAnalysis
+    | BuiltinTransformation
+)
 
-class Pipeline(PyPipeline):
+
+class _PipelineMeta(type(PyPipeline)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, PyPipeline) or super().__instancecheck__(instance)
+
+
+class Pipeline(PyPipeline, metaclass=_PipelineMeta):
     """
     A pipeline for executing multiple transformation passes in sequence.
 
@@ -13,12 +40,12 @@ class Pipeline(PyPipeline):
     and ensuring they run in the correct order.
     """
 
-    def __new__(cls, steps: list[Pass], name: str) -> Self:
+    def __new__(cls, steps: list[Pass | Self], name: str) -> Self:
         """Create a new pipeline from a sequence of passes.
 
         Parameters
         ----------
-        steps : list[Pass]
+        steps : list[Pass | Self]
             Ordered passes/pipelines to execute.
         name : str
             Human-readable pipeline name.
@@ -31,13 +58,18 @@ class Pipeline(PyPipeline):
         return super().__new__(cls, name=name, steps=steps)
 
     @wraps()
-    def add(self, new_pass: Pass) -> None:
+    def name(self) -> str:
+        """Get the name of this pipeline."""
+        raise NotImplementedError
+
+    @wraps()
+    def add(self, new_pass: Pass | Self) -> None:
         """
         Add a new pass to the pipeline.
 
         Parameters
         ----------
-        new_pass : Pass
+        new_pass : Pass | Self
             The pass to add to the pipeline.
         """
         raise NotImplementedError(f"add({new_pass})")
@@ -82,6 +114,18 @@ class Pipeline(PyPipeline):
         Clear all passes from the pipeline.
 
         Removes all transformation passes, leaving an empty pipeline.
+        """
+        raise NotImplementedError
+
+    @wraps()
+    def passes(self) -> list[Pass | Self]:
+        """
+        Get all passes that are part of the pipeline.
+
+        Returns
+        -------
+        list[Pass | Self]
+            The transformation passes in this pipeline.
         """
         raise NotImplementedError
 

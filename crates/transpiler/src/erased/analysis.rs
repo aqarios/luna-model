@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 
@@ -14,6 +16,7 @@ pub trait ErasedAnalysisPass: Send + Sync {
         analyses: &mut AnalysisManager,
     ) -> LunaModelResult<()>;
     fn display(&self) -> String;
+    fn as_any(&self) -> &dyn Any;
 }
 
 impl<P> ErasedAnalysisPass for P
@@ -46,5 +49,9 @@ where
 
     fn display(&self) -> String {
         self.display()
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

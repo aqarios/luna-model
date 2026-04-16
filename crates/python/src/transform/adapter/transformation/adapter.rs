@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use lunamodel_core::{Model, Solution};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{PassContext, ReversiblePass};
+use lunamodel_transpiler::{PassContext, Reversible, TransformationPass};
 use pyo3::{
     Py, PyAny, PyErr, Python,
     types::{PyAnyMethods, PyModule, PyTuple, PyTupleMethods},
@@ -49,13 +49,13 @@ impl PyTransformationPassAdapter {
             invalidates,
         })
     }
+
+    pub fn inner(&self, py: Python) -> Py<PyTransformationPass> {
+        self.inner.clone_ref(py)
+    }
 }
 
-impl ReversiblePass for PyTransformationPassAdapter {
-    type Artifact = PyTransformationPassAdapterArtifact;
-
-    const ID: &'static str = "lunamodel::PyTransformationPassAdapter";
-
+impl TransformationPass for PyTransformationPassAdapter {
     fn name(&self) -> &str {
         &self.name
     }
@@ -128,6 +128,20 @@ impl ReversiblePass for PyTransformationPassAdapter {
         })
     }
 
+    fn requires(&self) -> &[String] {
+        &self.requires
+    }
+
+    fn invalidates(&self) -> &[String] {
+        &self.invalidates
+    }
+}
+
+impl Reversible for PyTransformationPassAdapter {
+    type Artifact = PyTransformationPassAdapterArtifact;
+
+    const ID: &'static str = "lunamodel::PyTransformationPassAdapter";
+
     fn backward(artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
         let PyTransformationPassAdapterArtifact { artifact, backward } = artifact;
         let py_sol: PySolution = Python::attach(|py| {
@@ -146,13 +160,5 @@ impl ReversiblePass for PyTransformationPassAdapter {
             ))?
             .into_inner();
         Ok(sol)
-    }
-
-    fn requires(&self) -> &[String] {
-        &self.requires
-    }
-
-    fn invalidates(&self) -> &[String] {
-        &self.invalidates
     }
 }

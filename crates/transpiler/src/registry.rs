@@ -6,7 +6,7 @@ use std::{
 use lunamodel_core::Solution;
 use lunamodel_error::LunaModelResult;
 
-use crate::{artifact::ErasedArtifact, error::TransformationError, pass::ReversiblePass};
+use crate::{artifact::ErasedArtifact, error::TransformationError, reversible::Reversible};
 
 type BackwardFn = fn(&ErasedArtifact, Solution) -> LunaModelResult<Solution>;
 
@@ -20,7 +20,7 @@ pub struct BackwardRegistry {
 
 impl BackwardRegistry {
     /// Register a backwards function for a pass type
-    pub fn register<P: ReversiblePass>(&mut self, pass_name: &str) {
+    pub fn register<P: Reversible>(&mut self, pass_name: &str) {
         self.functions
             .insert(pass_name.to_string(), |artifact, solution| {
                 let typed_artifact = artifact.restore::<P::Artifact>()?;
@@ -49,7 +49,7 @@ impl BackwardRegistry {
 /// Global singleton registry
 static BACKWARD_REGISTRY: OnceLock<Mutex<BackwardRegistry>> = OnceLock::new();
 
-pub fn register_backward<P: ReversiblePass>() {
+pub fn register_backward<P: Reversible>() {
     BACKWARD_REGISTRY
         .get_or_init(|| Mutex::new(BackwardRegistry::default()))
         .lock()

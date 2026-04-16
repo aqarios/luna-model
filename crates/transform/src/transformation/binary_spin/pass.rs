@@ -2,7 +2,7 @@ use std::ops::{Add, Mul};
 
 use lunamodel_core::{Environment, Model, Solution, solution::Column};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{PassContext, ReversiblePass, transformation};
+use lunamodel_transpiler::{PassContext, Reversible, TransformationPass, transformation};
 use lunamodel_types::Vtype;
 use sqids::Sqids;
 
@@ -25,10 +25,7 @@ impl BinarySpinPass {
     }
 }
 
-impl BinarySpinPass
-where
-    Self: ReversiblePass,
-{
+impl BinarySpinPass {
     pub fn new(vtype: Vtype, prefix: Option<String>) -> Self {
         Self { vtype, prefix }
     }
@@ -36,7 +33,7 @@ where
     fn fill_artifact(
         &self,
         model: &Model,
-        artifact: &mut <Self as ReversiblePass>::Artifact,
+        artifact: &mut <Self as Reversible>::Artifact,
     ) -> LunaModelResult<()> {
         let pref = self.prefix.clone().unwrap_or_else(|| match self.vtype {
             Vtype::Binary => "x".to_string(),
@@ -68,11 +65,7 @@ where
     }
 }
 
-impl ReversiblePass for BinarySpinPass {
-    type Artifact = BinarySpinPassArtifact;
-
-    const ID: &'static str = "lunamodel::binary-spin";
-
+impl TransformationPass for BinarySpinPass {
     fn name(&self) -> &str {
         "binary-spin"
     }
@@ -108,7 +101,12 @@ impl ReversiblePass for BinarySpinPass {
 
         Ok(artifact)
     }
+}
 
+impl Reversible for BinarySpinPass {
+    type Artifact = BinarySpinPassArtifact;
+
+    const ID: &'static str = "lunamodel::binary-spin";
     fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
         if artifact.map.is_empty() {
             return Ok(solution);

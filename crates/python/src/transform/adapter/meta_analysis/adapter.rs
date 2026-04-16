@@ -2,13 +2,9 @@ use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{AnalysisKey, MetaAnalysisPass, PipelineStep};
 use pyo3::{Py, PyAny, Python, types::PyAnyMethods};
 
-use crate::transform::utils::map_pyerr;
+use crate::transform::utils::{FromSteps, map_pyerr};
 
-use super::{
-    PyMetaAnalysisPass,
-    result::PyMetaAnalysisPassAdapterResult,
-    view::{FromSteps, PyStepView},
-};
+use super::{PyMetaAnalysisPass, result::PyMetaAnalysisPassAdapterResult};
 
 pub struct PyMetaAnalysisPassAdapter {
     inner: Py<PyMetaAnalysisPass>,
@@ -34,6 +30,10 @@ impl PyMetaAnalysisPassAdapter {
             name,
             provides,
         })
+    }
+
+    pub fn inner(&self, py: Python) -> Py<PyMetaAnalysisPass> {
+        self.inner.clone_ref(py)
     }
 }
 
@@ -61,7 +61,7 @@ impl MetaAnalysisPass for PyMetaAnalysisPassAdapter {
     fn run(&self, steps: &[PipelineStep]) -> LunaModelResult<Self::Result> {
         let py_result: Py<PyAny> = Python::attach(|py| {
             let obj = self.inner.bind(py);
-            let py_steps: Vec<PyStepView> = steps.to_views();
+            let py_steps: Vec<Py<PyAny>> = steps.to_pypasses(py)?;
             let res = obj.call_method1("_run", (py_steps,)).map_err(map_pyerr)?;
             Ok::<Py<PyAny>, LunaModelError>(res.unbind())
         })?;

@@ -17,7 +17,12 @@ from typing import Protocol, cast
 
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
-from luna_model.transformation.control_flow import ControlFlowPlan
+from luna_model.transformation.control_flow import ControlFlowPass, ControlFlowPlan
+
+
+class _BuiltinControlFlowMeta(type(ControlFlowPass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, ControlFlowPass) or super().__instancecheck__(instance)
 
 
 class _BuiltinControlFlowSuper(Protocol):
@@ -29,7 +34,7 @@ class _BuiltinControlFlowSuper(Protocol):
     def __str__(self) -> str: ...
 
 
-class BuiltinControlFlow:
+class BuiltinControlFlow(metaclass=_BuiltinControlFlowMeta):
     """A builtin control-flow pass.
 
     Control-Flow passes guide the transformation at runtime. Execution of a

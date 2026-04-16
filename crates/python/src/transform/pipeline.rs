@@ -1,8 +1,8 @@
 use lunamodel_io::{CustomFormat, FormatOpt};
 use lunamodel_transpiler::{Pipeline, PipelineStep};
-use pyo3::{PyResult, Python, pyclass, pymethods};
+use pyo3::{Py, PyAny, PyResult, Python, pyclass, pymethods};
 
-use crate::transform::pass::PyPass;
+use crate::transform::{pass::PyPass, utils::FromSteps};
 
 #[pyclass(subclass)]
 #[derive(Clone)]
@@ -31,6 +31,11 @@ impl PyPipeline {
         )))
     }
 
+    #[pyo3(name = "name")]
+    fn pyname(&self) -> String {
+        self.name()
+    }
+
     fn requires(&self) -> Vec<String> {
         self.0.requires().collect()
     }
@@ -49,6 +54,10 @@ impl PyPipeline {
 
     fn clear(&mut self) {
         self.0.clear();
+    }
+
+    fn passes(&self, py: Python) -> PyResult<Vec<Py<PyAny>>> {
+        Ok(self.steps().to_pypasses(py)?)
     }
 
     fn __str__(&self) -> String {

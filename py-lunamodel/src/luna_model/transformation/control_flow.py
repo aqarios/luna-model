@@ -64,7 +64,12 @@ class ControlFlowPlan:
         return p
 
 
-class ControlFlowPass(PyControlFlowPass):
+class _ControlFlowPassMeta(type(PyControlFlowPass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, PyControlFlowPass) or super().__instancecheck__(instance)
+
+
+class ControlFlowPass(PyControlFlowPass, metaclass=_ControlFlowPassMeta):
     """
     Abstract base class for control-flow passes.
 

@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 
@@ -11,6 +13,7 @@ pub trait ErasedControlFlowPass: Send + Sync {
     fn invalidates(&self) -> &[String];
     fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan>;
     fn display(&self) -> String;
+    fn as_any(&self) -> &dyn Any;
 }
 
 /// Typed pass can be wrapped into ErasedTransformPass.
@@ -40,5 +43,9 @@ where
 
     fn display(&self) -> String {
         self.display()
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

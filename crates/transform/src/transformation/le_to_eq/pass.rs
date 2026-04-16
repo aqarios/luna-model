@@ -1,6 +1,8 @@
 use lunamodel_core::{Model, Solution, ops::LmSubAssign, prelude::LazyBounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass, transformation};
+use lunamodel_transpiler::{
+    AnalysisPass, PassContext, Reversible, TransformationPass, transformation,
+};
 use lunamodel_types::{Bound, Comparator, Vtype};
 
 use crate::analysis::{MinConstraintValues, MinValueForConstraintAnalysis};
@@ -21,11 +23,7 @@ impl Default for LeToEqConstraintsPass {
     }
 }
 
-impl ReversiblePass for LeToEqConstraintsPass {
-    type Artifact = LeToEqConstraintsArtifact;
-
-    const ID: &'static str = "lunamodel::le-to-eq-constraints";
-
+impl TransformationPass for LeToEqConstraintsPass {
     fn name(&self) -> &str {
         "le-to-eq-constraints"
     }
@@ -66,6 +64,12 @@ impl ReversiblePass for LeToEqConstraintsPass {
 
         Ok(artifact)
     }
+}
+
+impl Reversible for LeToEqConstraintsPass {
+    type Artifact = LeToEqConstraintsArtifact;
+
+    const ID: &'static str = "lunamodel::le-to-eq-constraints";
 
     fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
         solution.remove_cols(&artifact.slackvars);

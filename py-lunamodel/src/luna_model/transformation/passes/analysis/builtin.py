@@ -16,10 +16,16 @@ from typing import Any, Generic, Protocol, TypeVar, cast
 
 from luna_model._lm import PyModel, PyPassContext
 from luna_model.model.model import Model
+from luna_model.transformation.analysis import AnalysisPass
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.key import AnalysisKey
 
 Result = TypeVar("Result", covariant=True)  # noqa: PLC0105
+
+
+class _BuiltinAnalysisMeta(type(AnalysisPass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, AnalysisPass) or super().__instancecheck__(instance)
 
 
 class _BuiltinSuper(Protocol[Result]):
@@ -31,7 +37,7 @@ class _BuiltinSuper(Protocol[Result]):
     def __str__(self) -> str: ...
 
 
-class BuiltinAnalysis(Generic[Result]):
+class BuiltinAnalysis(Generic[Result], metaclass=_BuiltinAnalysisMeta):
     """A builtin analysis pass.
 
     Analysis passes retrieve information from models can used by transformation passes.

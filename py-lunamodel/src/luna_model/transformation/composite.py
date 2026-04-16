@@ -26,7 +26,12 @@ Artifact = TypeVar("Artifact", bound=TransformationPassArtifact)
 Result = TypeVar("Result")
 
 
-class CompositePass(PyCompositePass, Generic[Artifact, Result]):
+class _CompositePassMeta(type(PyCompositePass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, PyCompositePass) or super().__instancecheck__(instance)
+
+
+class CompositePass(PyCompositePass, Generic[Artifact, Result], metaclass=_CompositePassMeta):
     """
     Abstract base class for composite passes that modify and analyze models.
 

@@ -23,7 +23,12 @@ from luna_model.transformation.key import AnalysisKey
 Result = TypeVar("Result")
 
 
-class AnalysisPass(PyAnalysisPass, Generic[Result]):
+class _AnalysisPassMeta(type(PyAnalysisPass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, PyAnalysisPass) or super().__instancecheck__(instance)
+
+
+class AnalysisPass(PyAnalysisPass, Generic[Result], metaclass=_AnalysisPassMeta):
     """
     Abstract base class for analysis passes that analyse models.
 

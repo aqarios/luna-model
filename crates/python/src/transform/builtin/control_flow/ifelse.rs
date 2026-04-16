@@ -15,7 +15,7 @@ use crate::{
 };
 
 #[pyclass(subclass)]
-pub struct PyIfElsePass(IfElsePass);
+pub struct PyIfElsePass(pub IfElsePass);
 
 #[pymethods]
 impl PyIfElsePass {

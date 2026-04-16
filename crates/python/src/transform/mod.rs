@@ -26,4 +26,5 @@ pub use record::PyTransformationRecord;
 pub fn register_backward() {
     lunamodel_transform::register_backward();
     lunamodel_transpiler::register_backward::<PyTransformationPassAdapter>();
+    lunamodel_transpiler::register_backward::<PyCompositePassAdapter>();
 }

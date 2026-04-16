@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use lunamodel_core::{Model, Solution};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{AnalysisKey, CompositePass, PassContext};
+use lunamodel_transpiler::{AnalysisKey, CompositePass, PassContext, Reversible};
 use pyo3::{
     Py, PyAny, PyErr, Python,
     types::{PyAnyMethods, PyModule, PyTuple, PyTupleMethods},
@@ -61,13 +61,15 @@ impl PyCompositePassAdapter {
             invalidates,
         })
     }
+
+    pub fn inner(&self, py: Python) -> Py<PyCompositePass> {
+        self.inner.clone_ref(py)
+    }
 }
 
 impl CompositePass for PyCompositePassAdapter {
-    type Artifact = PyTransformationPassAdapterArtifact;
     type Result = PyAnalysisPassAdapterResult;
 
-    const ID: &'static str = "lunamodel::PyCompositePassAdapter";
     const NAME: &'static str = "lunamodel::PyCompositePassAdapter";
     const PROVIDES: &'static str = "lunamodel::PyCompositeProvided";
 
@@ -168,6 +170,18 @@ impl CompositePass for PyCompositePassAdapter {
         Ok((artifact, result))
     }
 
+    fn key<T>() -> AnalysisKey<T> {
+        unimplemented!(
+            "the key on the PyCompositePassAdapter is not stable and should not be called."
+        )
+    }
+}
+
+impl Reversible for PyCompositePassAdapter {
+    type Artifact = PyTransformationPassAdapterArtifact;
+
+    const ID: &'static str = "lunamodel::PyCompositePassAdapter";
+
     fn backward(artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
         let PyTransformationPassAdapterArtifact { artifact, backward } = artifact;
         let py_sol: PySolution = Python::attach(|py| {
@@ -186,11 +200,5 @@ impl CompositePass for PyCompositePassAdapter {
             ))?
             .into_inner();
         Ok(sol)
-    }
-
-    fn key<T>() -> AnalysisKey<T> {
-        unimplemented!(
-            "the key on the PyCompositePassAdapter is not stable and should not be called."
-        )
     }
 }

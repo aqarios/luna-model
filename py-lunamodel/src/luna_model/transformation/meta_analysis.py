@@ -15,158 +15,23 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Generic, Protocol, TypeAlias, TypeVar, runtime_checkable
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from luna_model._lm import PyMetaAnalysisPass
 from luna_model.transformation.key import AnalysisKey
 
+if TYPE_CHECKING:
+    from luna_model.transformation.typing import Pass
+
 Result = TypeVar("Result")
 
 
-@runtime_checkable
-class TransformStep(Protocol):
-    """View of a transformation step."""
-
-    @property
-    def name(self) -> str:
-        """Transformation pass name."""
-        ...
-
-    @property
-    def requires(self) -> list[str]:
-        """Required keys that must be satisfied before this step can run."""
-        ...
-
-    @property
-    def invalidates(self) -> list[str]:
-        """Keys invalidated after this step executes."""
-        ...
+class _MetaAnalysisPassMeta(type(PyMetaAnalysisPass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, PyMetaAnalysisPass) or super().__instancecheck__(instance)
 
 
-@runtime_checkable
-class AnalysisStep(Protocol):
-    """View of an analysis step."""
-
-    @property
-    def name(self) -> str:
-        """Analysis pass name."""
-        ...
-
-    @property
-    def provides(self) -> str:
-        """Key written by this analysis step."""
-        ...
-
-    @property
-    def requires(self) -> list[str]:
-        """Required keys that must be available before this step runs."""
-        ...
-
-
-@runtime_checkable
-class MetaAnalysisStep(Protocol):
-    """View of a meta-analysis step."""
-
-    @property
-    def name(self) -> str:
-        """Meta-analysis pass name."""
-        ...
-
-    @property
-    def provides(self) -> str:
-        """Key written by this meta-analysis step."""
-        ...
-
-
-@runtime_checkable
-class ControlFlowStep(Protocol):
-    """View of a control-flow step."""
-
-    @property
-    def name(self) -> str:
-        """Control-flow pass name."""
-        ...
-
-    @property
-    def requires(self) -> list[str]:
-        """Required keys that must be satisfied before this step can run."""
-        ...
-
-    @property
-    def provides(self) -> list[str]:
-        """Keys this control-flow step may provide."""
-        ...
-
-    @property
-    def invalidates(self) -> list[str]:
-        """Keys invalidated after this step executes."""
-        ...
-
-
-@runtime_checkable
-class CompositeStep(Protocol):
-    """View of a composite step (transform + analysis result)."""
-
-    @property
-    def name(self) -> str:
-        """Composite pass name."""
-        ...
-
-    @property
-    def requires(self) -> list[str]:
-        """Required keys that must be satisfied before this step can run."""
-        ...
-
-    @property
-    def provides(self) -> str:
-        """Key written by the analysis part of this composite step."""
-        ...
-
-    @property
-    def invalidates(self) -> list[str]:
-        """Keys invalidated after this step executes."""
-        ...
-
-
-@runtime_checkable
-class PipelineStep(Protocol):
-    """View of a nested pipeline step."""
-
-    @property
-    def name(self) -> str:
-        """Nested pipeline name."""
-        ...
-
-    @property
-    def requires(self) -> list[str]:
-        """Union of required keys across nested steps."""
-        ...
-
-    @property
-    def provides(self) -> list[str]:
-        """Union of keys provided across nested steps."""
-        ...
-
-    @property
-    def invalidates(self) -> list[str]:
-        """Union of keys invalidated across nested steps."""
-        ...
-
-    @property
-    def nested(self) -> list[StepView]:
-        """Direct child steps in this nested pipeline."""
-        ...
-
-
-StepView: TypeAlias = TransformStep | AnalysisStep | ControlFlowStep | CompositeStep | MetaAnalysisStep | PipelineStep
-"""Union describing one pipeline step visible to a ``MetaAnalysisPass``.
-
-A step is represented by one of the nested protocol variants above. Meta
-analysis implementations can inspect these views.
-"""
-
-
-class MetaAnalysisPass(PyMetaAnalysisPass, Generic[Result]):
+class MetaAnalysisPass(PyMetaAnalysisPass, Generic[Result], metaclass=_MetaAnalysisPassMeta):
     """Abstract base class for meta-analysis passes.
 
     Meta-analysis passes inspect upcoming pipeline steps and produce analysis
@@ -191,12 +56,12 @@ class MetaAnalysisPass(PyMetaAnalysisPass, Generic[Result]):
         ...
 
     @abstractmethod
-    def run(self, steps: list[StepView]) -> Result:
+    def run(self, steps: list[Pass]) -> Result:
         """Execute this meta-analysis pass.
 
         Parameters
         ----------
-        steps : list[StepView]
+        steps : list[Pass]
             Remaining pipeline steps (including nested pipelines) represented
             as typed step views.
 
@@ -223,5 +88,5 @@ class MetaAnalysisPass(PyMetaAnalysisPass, Generic[Result]):
         """Get the typed key for retrieving this pass result."""
         return AnalysisKey(cls.PROVIDES)
 
-    def _run(self, steps: list[StepView]) -> Result:
+    def _run(self, steps: list[Pass]) -> Result:
         return self.run(steps)

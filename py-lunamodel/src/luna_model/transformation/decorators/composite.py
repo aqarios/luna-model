@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from hashlib import sha1
 from typing import Generic, TypeAlias, TypeVar
 
 from luna_model.model.model import Model
@@ -138,11 +139,23 @@ def composite(
 
     def _decorator(forward: CompositeSignature[A, R]) -> _DynamicCompositePass[A, R]:
         loc_name = name or forward.__name__.replace("_", "-")
+        provides_key = f"decorated_composite::{loc_name}" if provides is None else provides
 
-        class _TheComposite(_DynamicCompositePass):
-            PROVIDES = f"decorated_composite::{loc_name}" if provides is None else provides
+        seed = f"{forward.__module__}:{forward.__qualname__}:{loc_name}:{provides_key}"
+        cls_name = f"_DecoratedComposite_{sha1(seed.encode()).hexdigest()[:16]}"  # noqa: S324
 
-        return _TheComposite(
+        the_composite = type(
+            cls_name,
+            (_DynamicCompositePass,),
+            {
+                "PROVIDES": provides_key,
+                "__module__": __name__,
+                "__qualname__": cls_name,
+            },
+        )
+        globals()[cls_name] = the_composite  # critical: makes it importable by module attr lookup
+
+        return the_composite(
             name=loc_name,
             requires=requires,
             invalidates=invalidates,

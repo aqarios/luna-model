@@ -24,11 +24,12 @@ else:
 from collections.abc import Callable
 from typing import Generic, TypeAlias, TypeVar
 
-from luna_model.transformation.meta_analysis import MetaAnalysisPass, StepView
+from luna_model.transformation.meta_analysis import MetaAnalysisPass
+from luna_model.transformation.typing import Pass
 
 R = TypeVar("R")
 
-MetaAnalysisSignature: TypeAlias = Callable[[list[StepView]], R]
+MetaAnalysisSignature: TypeAlias = Callable[[list[Pass]], R]
 
 
 class _DynamicMetaAnalysisPass(MetaAnalysisPass, Generic[R]):
@@ -42,7 +43,7 @@ class _DynamicMetaAnalysisPass(MetaAnalysisPass, Generic[R]):
     def name(self) -> str:
         return self._name
 
-    def run(self, steps: list[StepView]) -> R:
+    def run(self, steps: list[Pass]) -> R:
         return self._run_f(steps)
 
 
@@ -73,16 +74,16 @@ def meta_analyze(
     --------
     Create a simple meta-analysis pass:
 
-    >>> from luna_model.transformation import StepView, meta_analyze
+    >>> from luna_model.transformation import meta_analyze, TransformationPass
     >>> @meta_analyze(name="count-transforms")
     ... def count_transforms(steps):
-    ...     return sum(1 for s in steps if isinstance(s, StepView.Transform))
+    ...     return sum(1 for s in steps if isinstance(s, TransformationPass))
 
     Notes
     -----
     The decorated function must have the signature:
 
-        ``def my_meta_analysis(steps: list[StepView]) -> R``
+        ``def my_meta_analysis(steps: list[Pass]) -> R``
 
     The return value is stored under ``provides`` and can be retrieved from
     ``PassContext`` by later passes.

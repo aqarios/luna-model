@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 
@@ -17,6 +19,7 @@ pub trait ErasedCompositePass: Send + Sync {
         analyses: &mut AnalysisManager,
     ) -> LunaModelResult<ErasedArtifact>;
     fn display(&self) -> String;
+    fn as_any(&self) -> &dyn Any;
 }
 
 /// Typed pass can be wrapped into ErasedCompositePass.
@@ -58,5 +61,9 @@ where
 
     fn display(&self) -> String {
         self.display()
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

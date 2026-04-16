@@ -41,6 +41,10 @@ impl PyAnalysisPassAdapter {
             provides,
         })
     }
+
+    pub fn inner(&self, py: Python) -> Py<PyAnalysisPass> {
+        self.inner.clone_ref(py)
+    }
 }
 
 impl AnalysisPass for PyAnalysisPassAdapter {

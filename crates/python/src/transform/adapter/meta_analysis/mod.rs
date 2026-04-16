@@ -2,7 +2,6 @@ use pyo3::{Bound, PyAny, pyclass, pymethods};
 
 mod adapter;
 mod result;
-mod view;
 
 pub use adapter::PyMetaAnalysisPassAdapter;
 pub use result::PyMetaAnalysisPassAdapterResult;

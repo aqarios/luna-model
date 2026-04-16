@@ -105,7 +105,7 @@ class PassManager:
             A solution object representing a solution to the original problem passed
             to this `PassManager`'s run method.
         """
-        return Solution._from_pys(output.record.backward(solution._s))
+        return output.record.backward(solution)
 
     def __str__(self) -> str:
         """Human readable string."""

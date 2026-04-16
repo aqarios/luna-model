@@ -19,8 +19,14 @@ from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 from luna_model.transformation.artifact import TransformationPassArtifact
 from luna_model.transformation.context import PassContext
+from luna_model.transformation.transformation import TransformationPass
 
 Artifact = TypeVar("Artifact", bound=TransformationPassArtifact)
+
+
+class _BuiltinTransformationMeta(type(TransformationPass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, TransformationPass) or super().__instancecheck__(instance)
 
 
 class _BuiltinTransformationSuper(Protocol[Artifact]):
@@ -33,7 +39,7 @@ class _BuiltinTransformationSuper(Protocol[Artifact]):
     def __str__(self) -> str: ...
 
 
-class BuiltinTransformation(Generic[Artifact]):
+class BuiltinTransformation(Generic[Artifact], metaclass=_BuiltinTransformationMeta):
     """A builtin transformation pass.
 
     Transformation passes apply changes to models and can also convert

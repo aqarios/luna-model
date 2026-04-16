@@ -12,23 +12,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 
-from typing import Any, Generic, Protocol, TypeVar, cast
+from typing import Any, Generic, Protocol, Self, TypeAlias, TypeVar, cast
 
+from luna_model.transformation.analysis import AnalysisPass
+from luna_model.transformation.composite import CompositePass
+from luna_model.transformation.control_flow import ControlFlowPass
 from luna_model.transformation.key import AnalysisKey
-from luna_model.transformation.meta_analysis import StepView
+from luna_model.transformation.meta_analysis import MetaAnalysisPass
+from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
+from luna_model.transformation.passes.composite.builtin import BuiltinComposite
+from luna_model.transformation.passes.control_flow.builtin import BuiltinControlFlow
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
+from luna_model.transformation.transformation import TransformationPass
 
 Result = TypeVar("Result", covariant=True)  # noqa: PLC0105
 
 
+Pass: TypeAlias = (
+    AnalysisPass
+    | CompositePass
+    | ControlFlowPass
+    | MetaAnalysisPass
+    | TransformationPass
+    | BuiltinAnalysis
+    | BuiltinComposite
+    | BuiltinControlFlow
+    | BuiltinTransformation
+)
+
+
+class _BuiltinMetaAnalysisMeta(type(MetaAnalysisPass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, MetaAnalysisPass) or super().__instancecheck__(instance)
+
+
 class _BuiltinMetaAnalysisSuper(Protocol[Result]):
     def name(self) -> str: ...
-    def run(self, steps: list[StepView]) -> Result: ...
+    def run(self, steps: list[Pass | Self]) -> Result: ...
     @classmethod
     def provides(cls) -> str: ...
 
 
-class BuiltinMetaAnalysis(Generic[Result]):
+class BuiltinMetaAnalysis(Generic[Result], metaclass=_BuiltinMetaAnalysisMeta):
     """A builtin meta-analysis pass.
 
     Meta-analysis passes inspect upcoming pipeline steps and produce analysis
@@ -49,12 +76,12 @@ class BuiltinMetaAnalysis(Generic[Result]):
         sup = cast("_BuiltinMetaAnalysisSuper[Result]", super())
         return sup.name()
 
-    def run(self, steps: list[StepView]) -> Result:
+    def run(self, steps: list[Pass | Self]) -> Result:
         """Execute this meta-analysis pass.
 
         Parameters
         ----------
-        steps : list[StepView]
+        steps : list[Pass | Self]
             Remaining pipeline steps (including nested pipelines) represented
             as typed step views.
 

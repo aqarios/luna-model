@@ -3,7 +3,9 @@ use lunamodel_core::{
     ops::{LmAddAssign, LmPowAssign},
 };
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{AnalysisPass, PassContext, ReversiblePass, transformation};
+use lunamodel_transpiler::{
+    AnalysisPass, PassContext, Reversible, TransformationPass, transformation,
+};
 use lunamodel_types::Comparator;
 
 use crate::analysis::{MaxBias, MaxBiasAnalysis};
@@ -30,11 +32,7 @@ impl EqualityConstraintsToQuadraticPenaltyPass {
     }
 }
 
-impl ReversiblePass for EqualityConstraintsToQuadraticPenaltyPass {
-    type Artifact = ECTQPArtifact;
-
-    const ID: &'static str = "lunamodel::equality-constraints-to-quadratic-penalty";
-
+impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
     fn name(&self) -> &str {
         "equality-constraints-to-quadratic-penalty"
     }
@@ -66,11 +64,17 @@ impl ReversiblePass for EqualityConstraintsToQuadraticPenaltyPass {
         Ok(Self::Artifact {})
     }
 
-    fn backward(_artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
-        Ok(solution)
-    }
-
     fn requires(&self) -> &[String] {
         &self.req
+    }
+}
+
+impl Reversible for EqualityConstraintsToQuadraticPenaltyPass {
+    type Artifact = ECTQPArtifact;
+
+    const ID: &'static str = "lunamodel::equality-constraints-to-quadratic-penalty";
+
+    fn backward(_artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
+        Ok(solution)
     }
 }

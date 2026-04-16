@@ -1,5 +1,5 @@
 use lunamodel_transform::transformation::{ChangeSensePass, ChangeSensePassArtifact};
-use lunamodel_transpiler::{Artifact, ReversiblePass};
+use lunamodel_transpiler::{Artifact, Reversible, TransformationPass};
 use pyo3::{
     Bound, Py, PyAny, PyResult, Python, pyclass, pymethods,
     types::{PyBytes, PyType},

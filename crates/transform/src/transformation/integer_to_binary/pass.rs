@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use lunamodel_core::{Expression, Model, Solution, ops::LmAddAssign, prelude::Bounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{PassContext, ReversiblePass, transformation};
+use lunamodel_transpiler::{PassContext, Reversible, TransformationPass, transformation};
 use lunamodel_types::{Bound, Vtype};
 
 use super::artifact::IntegerToBinaryArtifact;
@@ -11,11 +11,7 @@ use super::artifact::IntegerToBinaryArtifact;
 #[derive(Default, Clone)]
 pub struct IntegerToBinaryPass;
 
-impl ReversiblePass for IntegerToBinaryPass {
-    type Artifact = IntegerToBinaryArtifact;
-
-    const ID: &'static str = "lunamodel::integer-to-binary";
-
+impl TransformationPass for IntegerToBinaryPass {
     fn name(&self) -> &str {
         "integer-to-binary"
     }
@@ -58,6 +54,12 @@ impl ReversiblePass for IntegerToBinaryPass {
 
         Ok(artifact)
     }
+}
+
+impl Reversible for IntegerToBinaryPass {
+    type Artifact = IntegerToBinaryArtifact;
+
+    const ID: &'static str = "lunamodel::integer-to-binary";
 
     fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
         for (intvar, binaries) in artifact.varmap.iter() {

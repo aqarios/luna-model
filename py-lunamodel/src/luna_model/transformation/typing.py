@@ -9,6 +9,7 @@ from luna_model.transformation.passes.composite.builtin import BuiltinComposite
 from luna_model.transformation.passes.control_flow.builtin import BuiltinControlFlow
 from luna_model.transformation.passes.meta_analysis.builtin import BuiltinMetaAnalysis
 from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
+from luna_model.transformation.pipeline import Pipeline
 from luna_model.transformation.transformation import TransformationPass
 
 Pass: TypeAlias = (
@@ -22,4 +23,5 @@ Pass: TypeAlias = (
     | BuiltinControlFlow
     | BuiltinMetaAnalysis
     | BuiltinTransformation
+    | Pipeline
 )

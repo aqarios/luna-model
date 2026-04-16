@@ -1,6 +1,6 @@
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{PassContext, ReversiblePass, transformation};
+use lunamodel_transpiler::{PassContext, Reversible, TransformationPass, transformation};
 use lunamodel_types::Comparator;
 
 use super::artifact::GeToLeConstraintsArtifact as GTLCArtifact;
@@ -9,11 +9,7 @@ use super::artifact::GeToLeConstraintsArtifact as GTLCArtifact;
 #[derive(Default, Clone)]
 pub struct GeToLeConstraintsPass;
 
-impl ReversiblePass for GeToLeConstraintsPass {
-    type Artifact = GTLCArtifact;
-
-    const ID: &'static str = "lunamodel::ge-to-le-constraints";
-
+impl TransformationPass for GeToLeConstraintsPass {
     fn name(&self) -> &str {
         "ge-to-le-constraints"
     }
@@ -28,6 +24,12 @@ impl ReversiblePass for GeToLeConstraintsPass {
         }
         Ok(Self::Artifact {})
     }
+}
+
+impl Reversible for GeToLeConstraintsPass {
+    type Artifact = GTLCArtifact;
+
+    const ID: &'static str = "lunamodel::ge-to-le-constraints";
 
     fn backward(_artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
         Ok(solution)

@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar, cast
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
 from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.composite import CompositePass
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.key import AnalysisKey
 
@@ -25,6 +26,11 @@ if TYPE_CHECKING:
 
 Result = TypeVar("Result", covariant=True)  # noqa: PLC0105
 Artifact = TypeVar("Artifact", bound=TransformationPassArtifact)
+
+
+class _BuiltinCompositeMeta(type(CompositePass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, CompositePass) or super().__instancecheck__(instance)
 
 
 class _BuiltinCompositeSuper(Protocol[Artifact, Result]):
@@ -39,7 +45,7 @@ class _BuiltinCompositeSuper(Protocol[Artifact, Result]):
     def __str__(self) -> str: ...
 
 
-class BuiltinComposite(Generic[Artifact, Result]):
+class BuiltinComposite(Generic[Artifact, Result], metaclass=_BuiltinCompositeMeta):
     """A builtin analysis pass.
 
     Composite passes apply changes to models analyze them and can also convert
