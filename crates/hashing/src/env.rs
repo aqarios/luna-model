@@ -69,7 +69,10 @@ impl HashEnv {
     pub fn build(env: &ArcEnv) -> Vec<u8> {
         let mut e = HashEnv::default();
 
-        for (i, var) in env.vars().iter().enumerate() {
+        let mut sorted_vars = env.vars();
+        sorted_vars.sort_by(|a, b| a.id().cmp(&b.id()));
+
+        for (i, var) in sorted_vars.iter().enumerate() {
             e.varcount += 1;
             let vname = var.name().unwrap();
             match var.vtype().unwrap() {
