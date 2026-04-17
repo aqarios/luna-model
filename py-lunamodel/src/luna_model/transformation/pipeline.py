@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import Self, TypeAlias
 
 from luna_model._lm import PyPipeline
@@ -12,6 +13,7 @@ from luna_model.transformation.passes.meta_analysis.builtin import BuiltinMetaAn
 from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 from luna_model.transformation.transformation import TransformationPass
 from luna_model.wrapper import wraps
+
 
 Pass: TypeAlias = (
     AnalysisPass
@@ -40,12 +42,12 @@ class Pipeline(PyPipeline, metaclass=_PipelineMeta):
     and ensuring they run in the correct order.
     """
 
-    def __new__(cls, steps: list[Pass | Self], name: str) -> Self:
+    def __new__(cls, steps: Sequence[Pass | Self], name: str) -> Self:
         """Create a new pipeline from a sequence of passes.
 
         Parameters
         ----------
-        steps : list[Pass | Self]
+        steps : Sequence[Pass | Self]
             Ordered passes/pipelines to execute.
         name : str
             Human-readable pipeline name.

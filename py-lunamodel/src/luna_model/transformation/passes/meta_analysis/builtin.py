@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Generic, Protocol, Self, TypeAlias, TypeVar, cast
+from typing import Any, Generic, Protocol, Self, Sequence, TypeAlias, TypeVar, cast
 
 from luna_model.transformation.analysis import AnalysisPass
 from luna_model.transformation.composite import CompositePass
@@ -50,7 +50,7 @@ class _BuiltinMetaAnalysisMeta(type(MetaAnalysisPass)):
 
 class _BuiltinMetaAnalysisSuper(Protocol[Result]):
     def name(self) -> str: ...
-    def run(self, steps: list[Pass | Self]) -> Result: ...
+    def run(self, steps: Sequence[Pass | Self]) -> Result: ...
     @classmethod
     def provides(cls) -> str: ...
 
@@ -76,12 +76,12 @@ class BuiltinMetaAnalysis(Generic[Result], metaclass=_BuiltinMetaAnalysisMeta):
         sup = cast("_BuiltinMetaAnalysisSuper[Result]", super())
         return sup.name()
 
-    def run(self, steps: list[Pass | Self]) -> Result:
+    def run(self, steps: Sequence[Pass | Self]) -> Result:
         """Execute this meta-analysis pass.
 
         Parameters
         ----------
-        steps : list[Pass | Self]
+        steps : Sequence[Pass | Self]
             Remaining pipeline steps (including nested pipelines) represented
             as typed step views.
 

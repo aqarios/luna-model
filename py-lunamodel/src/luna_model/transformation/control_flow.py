@@ -22,6 +22,8 @@ from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from luna_model.transformation.pipeline import Pipeline
     from luna_model.transformation.typing import Pass
 
@@ -54,7 +56,7 @@ class ControlFlowPlan:
 
     _p: PyControlFlowPlan
 
-    def __init__(self, name: str, steps: list[Pass] | Pipeline) -> None:
+    def __init__(self, name: str, steps: Sequence[Pass] | Pipeline) -> None:
         self._p = PyControlFlowPlan(name, steps)
 
     @classmethod

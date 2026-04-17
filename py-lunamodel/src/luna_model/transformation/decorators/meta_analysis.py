@@ -21,7 +21,7 @@ if sys.version_info < (3, 13):
 else:
     from warnings import deprecated
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Generic, TypeAlias, TypeVar
 
 from luna_model.transformation.meta_analysis import MetaAnalysisPass
@@ -29,7 +29,7 @@ from luna_model.transformation.typing import Pass
 
 R = TypeVar("R")
 
-MetaAnalysisSignature: TypeAlias = Callable[[list[Pass]], R]
+MetaAnalysisSignature: TypeAlias = Callable[[Sequence[Pass]], R]
 
 
 class _DynamicMetaAnalysisPass(MetaAnalysisPass, Generic[R]):
@@ -43,7 +43,7 @@ class _DynamicMetaAnalysisPass(MetaAnalysisPass, Generic[R]):
     def name(self) -> str:
         return self._name
 
-    def run(self, steps: list[Pass]) -> R:
+    def run(self, steps: Sequence[Pass]) -> R:
         return self._run_f(steps)
 
 
@@ -83,7 +83,7 @@ def meta_analyze(
     -----
     The decorated function must have the signature:
 
-        ``def my_meta_analysis(steps: list[Pass]) -> R``
+        ``def my_meta_analysis(steps: Sequence[Pass]) -> R``
 
     The return value is stored under ``provides`` and can be retrieved from
     ``PassContext`` by later passes.

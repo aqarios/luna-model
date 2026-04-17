@@ -1,8 +1,8 @@
 from __future__ import annotations
 from collections.abc import Callable
+from typing import Sequence
 
 from luna_model import Model, Sense, Vtype
-import luna_model
 from luna_model.transformation import PassManager, PassContext, ControlFlowPass, Pass
 from luna_model.transformation.analysis import AnalysisPass
 from luna_model.transformation.control_flow import ControlFlowPlan
@@ -21,11 +21,11 @@ model.objective = x + y
 
 class IfElsePass(ControlFlowPass):
     _condition: Callable[[Model, PassContext], bool]
-    _then: list[Pass] | Pipeline
-    _otherwise: list[Pass] | Pipeline
+    _then: Sequence[Pass] | Pipeline
+    _otherwise: Sequence[Pass] | Pipeline
     _name: str
 
-    def __init__(self, condition: Callable[[Model, PassContext], bool], then: list[Pass] | Pipeline, otherwise: list[Pass] | Pipeline, name: str) -> None:
+    def __init__(self, condition: Callable[[Model, PassContext], bool], then: Sequence[Pass] | Pipeline, otherwise: Sequence[Pass] | Pipeline, name: str) -> None:
         self._condition = condition
         self._then = then
         self._otherwise = otherwise

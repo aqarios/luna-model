@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Self, Sequence
 
 from luna_model._lm import PyIfElsePass, PyModel, PyPassContext
 from luna_model.model.model import Model
@@ -103,8 +103,8 @@ class IfElsePass(PyIfElsePass, BuiltinControlFlow):
     def __new__(
         cls,
         condition: Callable[[Model, PassContext], bool],
-        then: Pipeline | list[Pass],
-        otherwise: Pipeline | list[Pass],
+        then: Pipeline | Sequence[Pass],
+        otherwise: Pipeline | Sequence[Pass],
         name: str | None = None,
     ) -> Self:
         """Construct a new ``IfElsePass`` instance.
@@ -114,9 +114,9 @@ class IfElsePass(PyIfElsePass, BuiltinControlFlow):
         condition : Callable[[Model, PassContext], bool]
             Predicate evaluated at runtime. If it returns ``True``, ``then`` is selected;
             otherwise ``otherwise`` is selected.
-        then : Pipeline | list[Pass]
+        then : Pipeline | Sequence[Pass]
             Pipeline/steps executed when the condition is ``True``.
-        otherwise : Pipeline | list[Pass]
+        otherwise : Pipeline | Sequence[Pass]
             Pipeline/steps executed when the condition is ``False``.
         name : str | None, optional
             Optional pass name. If omitted, a default name is used.

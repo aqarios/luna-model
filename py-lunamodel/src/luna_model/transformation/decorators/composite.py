@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from hashlib import sha1
+from hashlib import sha256
 from typing import Generic, TypeAlias, TypeVar
 
 from luna_model.model.model import Model
@@ -142,7 +142,7 @@ def composite(
         provides_key = f"decorated_composite::{loc_name}" if provides is None else provides
 
         seed = f"{forward.__module__}:{forward.__qualname__}:{loc_name}:{provides_key}"
-        cls_name = f"_DecoratedComposite_{sha1(seed.encode()).hexdigest()[:16]}"  # noqa: S324
+        cls_name = f"_DecoratedComposite_{sha256(seed.encode()).hexdigest()}"
 
         the_composite = type(
             cls_name,

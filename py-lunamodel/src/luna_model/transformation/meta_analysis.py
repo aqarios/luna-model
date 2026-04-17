@@ -21,6 +21,8 @@ from luna_model._lm import PyMetaAnalysisPass
 from luna_model.transformation.key import AnalysisKey
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from luna_model.transformation.typing import Pass
 
 Result = TypeVar("Result")
@@ -56,7 +58,7 @@ class MetaAnalysisPass(PyMetaAnalysisPass, Generic[Result], metaclass=_MetaAnaly
         ...
 
     @abstractmethod
-    def run(self, steps: list[Pass]) -> Result:
+    def run(self, steps: Sequence[Pass]) -> Result:
         """Execute this meta-analysis pass.
 
         Parameters
@@ -88,5 +90,5 @@ class MetaAnalysisPass(PyMetaAnalysisPass, Generic[Result], metaclass=_MetaAnaly
         """Get the typed key for retrieving this pass result."""
         return AnalysisKey(cls.PROVIDES)
 
-    def _run(self, steps: list[Pass]) -> Result:
+    def _run(self, steps: Sequence[Pass]) -> Result:
         return self.run(steps)
