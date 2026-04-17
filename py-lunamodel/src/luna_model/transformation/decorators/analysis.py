@@ -33,10 +33,10 @@ R = TypeVar("R")
 AnalysisSignature: TypeAlias = Callable[[Model, PassContext], R]
 
 
-class _DynamicAnalysisPass(AnalysisPass, Generic[R]):
+class _DynamicAnalysisPass(AnalysisPass[R], Generic[R]):
     _name: str
     _requires: list[str]
-    _run_f: AnalysisSignature
+    _run_f: AnalysisSignature[R]
 
     def __init__(self, name: str, requires: list[str], run: AnalysisSignature[R]) -> None:
         self._name = name

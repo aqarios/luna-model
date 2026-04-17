@@ -32,9 +32,9 @@ R = TypeVar("R")
 MetaAnalysisSignature: TypeAlias = Callable[[Sequence[Pass]], R]
 
 
-class _DynamicMetaAnalysisPass(MetaAnalysisPass, Generic[R]):
+class _DynamicMetaAnalysisPass(MetaAnalysisPass[R], Generic[R]):
     _name: str
-    _run_f: MetaAnalysisSignature
+    _run_f: MetaAnalysisSignature[R]
 
     def __init__(self, name: str, run: MetaAnalysisSignature[R]) -> None:
         self._name = name

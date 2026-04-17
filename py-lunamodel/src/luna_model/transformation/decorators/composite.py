@@ -1,38 +1,39 @@
 from collections.abc import Callable
 from hashlib import sha256
-from typing import Generic, TypeAlias, TypeVar
+from typing import Generic, TypeAlias, TypeVar, overload
 
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
+from luna_model.transformation.artifact import TransformationPassArtifact
 from luna_model.transformation.composite import CompositePass
 from luna_model.transformation.context import PassContext
 from luna_model.transformation.decorators.transformation import (
-    A,
     BackwardSignature,
     __identity_backward,
     _ArtifactEnvelope,
     _validate_backward,
 )
 
+A = TypeVar("A", bound=TransformationPassArtifact)
 R = TypeVar("R")
 
 CompositeSignature: TypeAlias = Callable[[Model, PassContext], tuple[Model, A, R]]
 
 
-class _DynamicCompositePass(CompositePass, Generic[A, R]):
+class _DynamicCompositePass(CompositePass[_ArtifactEnvelope, R], Generic[A, R]):
     _name: str
     _requires: list[str]
     _invalidates: list[str]
-    _forward_f: CompositeSignature
-    _backward_f: BackwardSignature
+    _forward_f: CompositeSignature[A, R]
+    _backward_f: BackwardSignature[A]
 
     def __init__(
         self,
         name: str,
         requires: list[str],
         invalidates: list[str],
-        forward: CompositeSignature,
-        backward: BackwardSignature,
+        forward: CompositeSignature[A, R],
+        backward: BackwardSignature[A],
     ) -> None:
         super().__init__()
         self._name = name
@@ -51,13 +52,33 @@ class _DynamicCompositePass(CompositePass, Generic[A, R]):
         return self._invalidates
 
     def forward(self, model: Model, ctx: PassContext) -> tuple[Model, _ArtifactEnvelope[A], R]:
-        result: tuple[Model, A, R] = self._forward_f(model, ctx)
-        model, artifact, res = result
-        return model, _ArtifactEnvelope.from_parts(artifact, self._backward_f), res
+        model, artifact, res = self._forward_f(model, ctx)
+        envelope = _ArtifactEnvelope.from_parts(artifact, self._backward_f)
+        return model, envelope, res
 
     @classmethod
     def backward(cls, artifact: _ArtifactEnvelope[A], solution: Solution) -> Solution:
         return artifact.backward_fn(artifact.artifact, solution)
+
+
+@overload
+def composite(
+    name: str | None = ...,
+    requires: list[str] | None = ...,
+    provides: str | None = ...,
+    invalidates: list[str] | None = ...,
+) -> Callable[[CompositeSignature[A, R]], _DynamicCompositePass[A, R]]: ...
+
+
+@overload
+def composite(
+    name: str | None = ...,
+    requires: list[str] | None = ...,
+    provides: str | None = ...,
+    invalidates: list[str] | None = ...,
+    *,
+    backward: BackwardSignature[A],
+) -> Callable[[CompositeSignature[A, R]], _DynamicCompositePass[A, R]]: ...
 
 
 def composite(

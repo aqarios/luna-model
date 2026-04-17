@@ -18,7 +18,7 @@ import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
 from importlib import import_module
-from typing import Generic, TypeAlias, TypeVar, cast
+from typing import Generic, TypeAlias, TypeVar, cast, overload
 
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
@@ -27,6 +27,7 @@ from luna_model.transformation.context import PassContext
 from luna_model.transformation.transformation import TransformationPass
 
 A = TypeVar("A", bound=TransformationPassArtifact)
+A2 = TypeVar("A2", bound=TransformationPassArtifact)
 
 TransformationSignature: TypeAlias = Callable[[Model, PassContext], tuple[Model, A]]
 BackwardSignature: TypeAlias = Callable[[A, Solution], Solution]
@@ -117,15 +118,15 @@ class _ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
     backward_qualname: str
     artifact_payload: bytes
 
-    @classmethod
-    def from_parts(cls, artifact: A, backward: BackwardSignature[A]) -> _ArtifactEnvelope[A]:
+    @staticmethod
+    def from_parts(artifact: A2, backward: BackwardSignature[A2]) -> _ArtifactEnvelope[A2]:
         acls = artifact.__class__
         bmod = backward.__module__
         bqual = backward.__qualname__
         if backward.__name__ == "<lambda>" or "<locals>" in bqual:
             msg = "backward must be a module-level named function"
             raise TypeError(msg)
-        return cls(
+        return _ArtifactEnvelope(
             artifact_module=acls.__module__,
             artifact_qualname=acls.__qualname__,
             backward_module=bmod,
@@ -169,20 +170,20 @@ class _ArtifactEnvelope(TransformationPassArtifact, Generic[A]):
         return cast("BackwardSignature[A]", _resolve(self.backward_module, self.backward_qualname))
 
 
-class _DynamicTransformationPass(TransformationPass, Generic[A]):
+class _DynamicTransformationPass(TransformationPass[_ArtifactEnvelope], Generic[A]):
     _name: str
     _requires: list[str]
     _invalidates: list[str]
-    _forward_f: TransformationSignature
-    _backward_f: BackwardSignature
+    _forward_f: TransformationSignature[A]
+    _backward_f: BackwardSignature[A]
 
     def __init__(
         self,
         name: str,
         requires: list[str],
         invalidates: list[str],
-        forward: TransformationSignature,
-        backward: BackwardSignature,
+        forward: TransformationSignature[A],
+        backward: BackwardSignature[A],
     ) -> None:
         super().__init__()
         self._name = name
@@ -195,9 +196,9 @@ class _DynamicTransformationPass(TransformationPass, Generic[A]):
         return self._name
 
     def forward(self, model: Model, ctx: PassContext) -> tuple[Model, _ArtifactEnvelope[A]]:
-        result: tuple[Model, A] = self._forward_f(model, ctx)
-        model, artifact = result
-        return model, _ArtifactEnvelope.from_parts(artifact, self._backward_f)
+        model, artifact = self._forward_f(model, ctx)
+        envelope = _ArtifactEnvelope.from_parts(artifact, self._backward_f)
+        return model, envelope
 
     @classmethod
     def backward(cls, artifact: _ArtifactEnvelope[A], solution: Solution) -> Solution:
@@ -217,6 +218,24 @@ def _validate_backward(fn: object) -> None:
     if fn.__name__ == "<lambda>" or "<locals>" in fn.__qualname__:
         msg = "backward must be a module-level named function. lambdas or local functions are not allowed."
         raise TypeError(msg)
+
+
+@overload
+def transform(
+    name: str | None = ...,
+    requires: list[str] | None = ...,
+    invalidates: list[str] | None = ...,
+) -> Callable[[TransformationSignature[A]], _DynamicTransformationPass[A]]: ...
+
+
+@overload
+def transform(
+    name: str | None = ...,
+    requires: list[str] | None = ...,
+    invalidates: list[str] | None = ...,
+    *,
+    backward: BackwardSignature[A],
+) -> Callable[[TransformationSignature[A]], _DynamicTransformationPass[A]]: ...
 
 
 def transform(

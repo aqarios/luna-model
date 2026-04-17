@@ -14,7 +14,6 @@ from luna_model.transformation.passes.transformation.builtin import BuiltinTrans
 from luna_model.transformation.transformation import TransformationPass
 from luna_model.wrapper import wraps
 
-
 Pass: TypeAlias = (
     AnalysisPass
     | CompositePass

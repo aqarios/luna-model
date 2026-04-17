@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self, Sequence
+from typing import TYPE_CHECKING, Self
 
 from luna_model._lm import PyIfElsePass, PyModel, PyPassContext
 from luna_model.model.model import Model
@@ -22,7 +22,7 @@ from luna_model.transformation.context import PassContext
 from luna_model.transformation.passes.control_flow.builtin import BuiltinControlFlow
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
     from luna_model.transformation.pipeline import Pipeline
     from luna_model.transformation.typing import Pass

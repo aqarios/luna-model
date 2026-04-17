@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Generic, Protocol, Self, Sequence, TypeAlias, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Generic, Protocol, Self, TypeAlias, TypeVar, cast
 
 from luna_model.transformation.analysis import AnalysisPass
 from luna_model.transformation.composite import CompositePass
@@ -26,6 +26,9 @@ from luna_model.transformation.passes.composite.builtin import BuiltinComposite
 from luna_model.transformation.passes.control_flow.builtin import BuiltinControlFlow
 from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 from luna_model.transformation.transformation import TransformationPass
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 Result = TypeVar("Result", covariant=True)  # noqa: PLC0105
 
