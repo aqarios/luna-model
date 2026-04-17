@@ -64,35 +64,22 @@ impl TransformationRecord {
             solution = match entry {
                 PassEntry::Transform {
                     pass_id, artifact, ..
-                } => {
-                    // Look up the backwards function and apply it
-                    registry::apply(pass_id, artifact, solution)?
                 }
-
-                PassEntry::Composite {
+                | PassEntry::Composite {
                     pass_id, artifact, ..
                 } => {
                     // Look up the backwards function and apply it
                     registry::apply(pass_id, artifact, solution)?
                 }
 
-                PassEntry::Analysis { .. } => {
-                    // Analysis passes don't affect backwards
-                    solution
-                }
-
-                PassEntry::MetaAnalysis { .. } => {
-                    // MetaAnalysis passes don't affect backwards
-                    solution
-                }
-
-                PassEntry::Pipeline { record, .. } => {
+                PassEntry::Pipeline { record, .. } | PassEntry::ControlFlow { record, .. } => {
                     // Recursively apply backwards through sub-pipeline
                     record.backward(solution)?
                 }
-                PassEntry::ControlFlow { record, .. } => {
-                    // Recursively apply backwards through sub-pipeline
-                    record.backward(solution)?
+
+                PassEntry::Analysis { .. } | PassEntry::MetaAnalysis { .. } => {
+                    // Analysis & MetaAnalysis passes don't affect backwards
+                    solution
                 }
             };
         }
