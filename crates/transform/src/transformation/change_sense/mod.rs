@@ -33,8 +33,8 @@ mod tests {
             blob.as_slice().unversionize().decompress()?.decode(())?;
 
         let mut solution = Solution::default();
-        solution.add_integer("i0".into(), vec![2.0, 7.0])?;
-        solution.add_integer("i1".into(), vec![2.0, 2.0])?;
+        solution.add_integer("i0".into(), vec![2.0, 7.0], None)?;
+        solution.add_integer("i1".into(), vec![2.0, 2.0], None)?;
         solution = model.evaluate_solution(&solution)?;
 
         let back_direct = output.record.backward(solution.clone())?;
@@ -61,8 +61,8 @@ mod tests {
             blob.as_slice().unversionize().decompress()?.decode(())?;
 
         let mut solution = Solution::default();
-        solution.add_integer("i0".into(), vec![2.0, 7.0])?;
-        solution.add_integer("i1".into(), vec![2.0, 2.0])?;
+        solution.add_integer("i0".into(), vec![2.0, 7.0], None)?;
+        solution.add_integer("i1".into(), vec![2.0, 2.0], None)?;
         solution = output.model.evaluate_solution(&solution)?;
 
         let back_direct = output.record.backward(solution.clone())?;

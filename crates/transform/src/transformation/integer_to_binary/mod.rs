@@ -44,8 +44,8 @@ mod tests {
             blob.as_slice().unversionize().decompress()?.decode(())?;
 
         let mut solution = Solution::default();
-        solution.add_binary("i0_b0".into(), vec![1.0, 0.0])?;
-        solution.add_binary("i0_b1".into(), vec![0.0, 1.0])?;
+        solution.add_binary("i0_b0".into(), vec![1.0, 0.0], None)?;
+        solution.add_binary("i0_b1".into(), vec![0.0, 1.0], None)?;
         solution.counts = vec![1, 1];
 
         let back_direct = output.record.backward(solution.clone())?;

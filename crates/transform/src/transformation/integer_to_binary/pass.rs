@@ -74,7 +74,7 @@ impl Reversible for IntegerToBinaryPass {
                 }
             }
             solution
-                .add_col(Vtype::Integer, intvar.to_string(), intcol)
+                .add_col(Vtype::Integer, intvar.to_string(), intcol, None)
                 .expect(
                     "adding this column in the backward of integer-to-binary pass must be possible.",
                 );

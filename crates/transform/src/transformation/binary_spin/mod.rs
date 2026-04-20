@@ -32,8 +32,8 @@ mod tests {
             blob.as_slice().unversionize().decompress()?.decode(())?;
 
         let mut solution = Solution::default();
-        solution.add_spin("s_b0".into(), vec![-1.0, 1.0])?;
-        solution.add_spin("s_b1".into(), vec![1.0, -1.0])?;
+        solution.add_spin("s_b0".into(), vec![-1.0, 1.0], None)?;
+        solution.add_spin("s_b1".into(), vec![1.0, -1.0], None)?;
 
         let back_direct = output.record.backward(solution.clone())?;
         let back_recovered = recovered.backward(solution.clone())?;
@@ -58,8 +58,8 @@ mod tests {
             blob.as_slice().unversionize().decompress()?.decode(())?;
 
         let mut solution = Solution::default();
-        solution.add_binary("x_s0".into(), vec![1.0, 0.0])?;
-        solution.add_binary("x_s1".into(), vec![0.0, 1.0])?;
+        solution.add_binary("x_s0".into(), vec![1.0, 0.0], None)?;
+        solution.add_binary("x_s1".into(), vec![0.0, 1.0], None)?;
 
         let back_direct = output.record.backward(solution.clone())?;
         let back_recovered = recovered.backward(solution.clone())?;
