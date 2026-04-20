@@ -147,6 +147,9 @@ class MpsTranslator:
     @overload
     def from_lm(model: Model, filepath: Path) -> None: ...
     @staticmethod
+    @overload
+    def from_lm(model: Model, filepath: Path | None) -> None: ...
+    @staticmethod
     def from_lm(model: Model, filepath: Path | None = None) -> str | None:
         r"""Convert LunaModel to MPS file or string.
 
