@@ -32,8 +32,12 @@ impl SerConstraintCollection {
                 2 => Comparator::Ge,
                 _ => unreachable!("undefined comparator '{}'", cmp),
             };
-            let constr = Constraint::new(lhs, *rhs, comparator, Some(name.clone())).unwrap();
-            constraints.insert(name.into(), constr);
+            let name = match name {
+                n if n == "<NN>" => None,
+                x => Some(x.clone()),
+            };
+            let constr = Constraint::new(lhs, *rhs, comparator, name.clone()).unwrap();
+            constraints.insert(constr.name().to_string(), constr);
         }
         Ok(constraints.into())
     }
