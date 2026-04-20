@@ -93,6 +93,11 @@ class Solution:
         Collection of variable assignment samples.
     variable_names : list[str]
         Names of variables in the solution.
+    tol : float, default=1e-12
+        Tolerance used to treat values as near-integral when casting to binary, spin,
+        or integer assignments. A value ``x`` is accepted as integral if
+        ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
+        machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
 
     Examples
     --------
@@ -143,6 +148,7 @@ class Solution:
         sense: Sense | None = None,
         env: Environment | None = None,
         vtypes: list[Vtype] | None = None,
+        tol: float = 1e-12,
     ) -> None:
         """Initialize a solution with samples and metadata."""
         self._s = PySolution(
@@ -157,6 +163,7 @@ class Solution:
             sense=sense._val if sense else None,
             env=env._env if env else None,
             vtypes=[vtype._val for vtype in vtypes] if vtypes else None,
+            tol=tol,
         )
 
     @classmethod
@@ -625,6 +632,7 @@ class Solution:
         counts: int | None = None,
         sense: Sense | None = None,
         energy: float | None = None,
+        tol: float = 1e-12,
     ) -> Solution:
         """Create solution from a single sample dictionary.
 
@@ -644,6 +652,11 @@ class Solution:
             Optimization sense. Inferred from model if provided.
         energy : float, optional
             Raw energy value for this sample.
+        tol : float, default=1e-12
+            Tolerance used to treat values as near-integral when casting to binary, spin,
+            or integer assignments. A value ``x`` is accepted as integral if
+            ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
+            machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
 
         Returns
         -------
@@ -659,6 +672,7 @@ class Solution:
                 counts=counts,
                 sense=sense._val if sense else None,
                 energy=energy,
+                tol=tol,
             )
         )
 
@@ -672,6 +686,7 @@ class Solution:
         counts: list[int] | None = None,
         sense: Sense | None = None,
         energies: list[float] | None = None,
+        tol: float = 1e-12,
     ) -> Solution:
         """Create solution from multiple sample dictionaries.
 
@@ -691,6 +706,11 @@ class Solution:
             Optimization sense. Inferred from model if provided.
         energies : list[float], optional
             Raw energy values for each sample.
+        tol : float, default=1e-12
+            Tolerance used to treat values as near-integral when casting to binary, spin,
+            or integer assignments. A value ``x`` is accepted as integral if
+            ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
+            machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
 
         Returns
         -------
@@ -706,6 +726,7 @@ class Solution:
                 counts=counts,
                 sense=sense._val if sense else None,
                 energies=energies,
+                tol=tol,
             )
         )
 
@@ -720,6 +741,7 @@ class Solution:
         counts: list[int] | None = None,
         sense: Sense | None = None,
         energies: list[float] | None = None,
+        tol: float = 1e-12,
     ) -> Solution:
         """Create solution from numpy arrays.
 
@@ -741,6 +763,11 @@ class Solution:
             Optimization sense. Inferred from model if provided.
         energies : list[float], optional
             Raw energy values for each sample.
+        tol : float, default=1e-12
+            Tolerance used to treat values as near-integral when casting to binary, spin,
+            or integer assignments. A value ``x`` is accepted as integral if
+            ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
+            machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
 
         Returns
         -------
@@ -757,6 +784,7 @@ class Solution:
                 counts=counts,
                 sense=sense._val if sense is not None else None,
                 energies=energies,
+                tol=tol,
             )
         )
 

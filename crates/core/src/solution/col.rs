@@ -9,7 +9,7 @@ use num::{NumCast, ToPrimitive};
 
 use lunamodel_types::{Bias, BinaryAssignment, IntegerAssignment, RealAssignment, SpinAssignment};
 
-use crate::traits::FilterByMask;
+use crate::{traits::FilterByMask, utils::cast_near_integral};
 
 // #[derive(Debug, Clone, PartialEq)]
 // pub struct ColElement<T>(pub Vec<T>);
@@ -111,23 +111,27 @@ impl Column {
         }
     }
 
-    pub fn try_push<N: ToPrimitive + Debug>(&mut self, value: N) -> LunaModelResult<()> {
+    pub fn try_push<N: ToPrimitive + Copy + Debug>(
+        &mut self,
+        value: N,
+        tol: Option<f64>,
+    ) -> LunaModelResult<()> {
         match self {
-            Self::Binary(col) => match <u8 as NumCast>::from(value) {
+            Self::Binary(col) => match cast_near_integral::<u8, _>(value, tol)? {
                 None => return Err(LunaModelError::SampleIncompatibleVtype),
                 Some(v) => match v == 0 || v == 1 {
                     true => col.push(Assignment::Binary(v)),
                     false => return Err(LunaModelError::SampleIncompatibleVtype),
                 },
             },
-            Self::Spin(col) => match <i8 as NumCast>::from(value) {
+            Self::Spin(col) => match cast_near_integral::<i8, _>(value, tol)? {
                 None => return Err(LunaModelError::SampleIncompatibleVtype),
                 Some(v) => match v == -1 || v == 1 {
                     true => col.push(Assignment::Spin(v)),
                     false => return Err(LunaModelError::SampleIncompatibleVtype),
                 },
             },
-            Self::Integer(col) => match <i64 as NumCast>::from(value) {
+            Self::Integer(col) => match cast_near_integral::<i64, _>(value, tol)? {
                 None => return Err(LunaModelError::SampleIncompatibleVtype),
                 Some(v) => col.push(Assignment::Integer(v)),
             },

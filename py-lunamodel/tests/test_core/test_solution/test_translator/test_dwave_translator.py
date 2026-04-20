@@ -24,6 +24,7 @@ from luna_model.errors import (
     SampleUnexpectedVariableError,
 )
 from luna_model.translator import DwaveTranslator
+from luna_model.errors import SampleIncompatibleVtypeError
 from tests.test_core.utils import generate_bqms, make_seed, random_int
 from .fixtures import *  # noqa: F403
 
@@ -118,8 +119,13 @@ def test_sampleset_translator_error_handling():
 
     samples_raw = [{"x0": -10, "x1": 10, "x2": 6.43}]
     sampleset = SampleSet.from_samples(as_samples(samples_raw), "INTEGER", energy)
-    with does_not_raise():
+    with pytest.raises(SampleIncompatibleVtypeError):
         DwaveTranslator.to_lm(sampleset, env=mock_env(3, vtype=Vtype.INTEGER))
+
+    samples_raw = [{"x0": -10, "x1": 10, "x2": 6.43}]
+    sampleset = SampleSet.from_samples(as_samples(samples_raw), "REAL", energy)
+    with does_not_raise():
+        DwaveTranslator.to_lm(sampleset, env=mock_env(3, vtype=Vtype.REAL))
 
 
 def test_dwave_translator_incorrect_sample_length():

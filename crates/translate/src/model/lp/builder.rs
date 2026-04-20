@@ -89,6 +89,7 @@ fn check_integer_bounds(
 
 fn check_int_bound(bound: &Option<f64>, varname: &str) -> LunaModelResult<Option<Bound>> {
     if let Some(l) = bound {
+        // TODO(team): Maybe use the near integral fun.
         if l.fract() >= 0.0 + f64::EPSILON {
             return Err(LunaModelError::Translation(
                 format!("Invalid bound for variable '{varname}'. Is {l}, expected integer").into(),
