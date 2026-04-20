@@ -4,12 +4,12 @@ use crate::{
     encode::{BytesDecodable, BytesEncodable, Decodable},
     utils::u8_to_vtype,
 };
-use std::collections::HashMap;
 use indexmap::IndexMap;
 use lunamodel_core::Solution;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Sense, Vtype};
 use prost::Message;
+use std::collections::HashMap;
 
 #[derive(Clone, PartialEq, Message)]
 struct BoolVec {
@@ -136,6 +136,7 @@ impl SerSolution {
                                 .step_by(bin_step)
                                 .map(|&e| e as f64)
                                 .collect(),
+                            None,
                         )?;
                         nbins += 1;
                     }
@@ -148,6 +149,7 @@ impl SerSolution {
                                 .step_by(spin_step)
                                 .map(|&e| e as f64)
                                 .collect(),
+                            None,
                         )?;
                         nspins += 1;
                     }
@@ -160,6 +162,7 @@ impl SerSolution {
                                 .step_by(int_step)
                                 .map(|&e| e as f64)
                                 .collect(),
+                            None,
                         )?;
                         nints += 1;
                     }

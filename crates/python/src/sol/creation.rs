@@ -1,4 +1,3 @@
-use std::collections::{HashMap, HashSet};
 use indexmap::IndexMap;
 use itertools::Either;
 use lunamodel_core::solution::{Assignment, Column};
@@ -10,6 +9,7 @@ use numpy::ndarray::Axis;
 use numpy::{PyReadonlyArray2, PyUntypedArrayMethods};
 use pyo3::exceptions::PyValueError;
 use pyo3::{PyResult, pymethods};
+use std::collections::{HashMap, HashSet};
 
 use super::PySolution;
 use crate::timer::PyTiming;
@@ -39,6 +39,7 @@ impl PySolution {
         sense: Option<PySense>,
         env: Option<PyEnvironment>,
         vtypes: Option<Vec<PyVtype>>,
+        tol: Option<f64>,
     ) -> PyResult<Self> {
         let mut sol = Solution::with_sense(sense.map_or_else(|| Sense::default(), |s| s.into()));
         sol.timing = timing.map(|t| t.into());
@@ -144,9 +145,9 @@ impl PySolution {
         };
         for (varname, values) in s {
             match variable_types[&varname] {
-                Vtype::Binary => sol.add_binary(varname, values)?,
-                Vtype::Spin => sol.add_spin(varname, values)?,
-                Vtype::Integer => sol.add_integer(varname, values)?,
+                Vtype::Binary => sol.add_binary(varname, values, tol)?,
+                Vtype::Spin => sol.add_spin(varname, values, tol)?,
+                Vtype::Integer => sol.add_integer(varname, values, tol)?,
                 Vtype::Real => sol.add_real(varname, values),
                 Vtype::InvertedBinary => (),
             }
@@ -196,6 +197,7 @@ impl PySolution {
         counts: Option<usize>,
         sense: Option<PySense>,
         energy: Option<f64>,
+        tol: Option<f64>,
     ) -> PyResult<Self> {
         let sense = sense.map(|s| s.into());
         check_env_or_model(&env, &model)?;
@@ -210,6 +212,7 @@ impl PySolution {
             counts: Option<usize>,
             sense: Option<Sense>,
             energy: Option<f64>,
+            tol: Option<f64>,
         ) -> LunaModelResult<Solution> {
             let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
                 model
@@ -231,7 +234,7 @@ impl PySolution {
                 let vname = v.name().unwrap();
                 let vtype = v.vtype().unwrap();
                 if sample_vars.contains(&vname) {
-                match vtype {
+                    match vtype {
                     Vtype::Binary => sol.add_empty_binary(vname),
                     Vtype::Spin => sol.add_empty_spin(vname),
                     Vtype::Integer => sol.add_empty_integer(vname),
@@ -247,7 +250,7 @@ impl PySolution {
                     .samples
                     .get_mut(&varname)
                     .ok_or_else(|| LunaModelError::SampleUnexpectedVariable(varname.into()))?;
-                solcol.try_push(*value)?;
+                solcol.try_push(*value, tol)?;
             }
 
             sol.aggregate()?;
@@ -259,15 +262,14 @@ impl PySolution {
             Ok(sol)
         }
 
-        let sol =
-            inner(data, environment, model, timing, counts, sense, energy).map_err(
-                |e| match e {
-                    LunaModelError::VariableNotExisting(e) => {
-                        LunaModelError::SampleUnexpectedVariable(e)
-                    }
-                    e => e,
-                },
-            )?;
+        let sol = inner(data, environment, model, timing, counts, sense, energy, tol).map_err(
+            |e| match e {
+                LunaModelError::VariableNotExisting(e) => {
+                    LunaModelError::SampleUnexpectedVariable(e)
+                }
+                e => e,
+            },
+        )?;
 
         Ok(sol.into())
     }
@@ -281,6 +283,7 @@ impl PySolution {
         counts: Option<Vec<usize>>,
         sense: Option<PySense>,
         energies: Option<Vec<f64>>,
+        tol: Option<f64>,
     ) -> PyResult<Self> {
         let sense = sense.map(|s| s.into());
         check_env_or_model(&env, &model)?;
@@ -295,6 +298,7 @@ impl PySolution {
             counts: Option<Vec<usize>>,
             sense: Option<Sense>,
             energies: Option<Vec<f64>>,
+            tol: Option<f64>,
         ) -> LunaModelResult<Solution> {
             let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
                 model
@@ -345,7 +349,7 @@ impl PySolution {
                     sol.samples
                         .get_mut(&varname)
                         .ok_or_else(|| LunaModelError::SampleUnexpectedVariable(varname.into()))?
-                        .try_push(*value)?;
+                        .try_push(*value, tol)?;
                 }
             }
 
@@ -358,14 +362,20 @@ impl PySolution {
             Ok(sol)
         }
 
-        let sol = inner(data, environment, model, timing, counts, sense, energies).map_err(
-            |e| match e {
-                LunaModelError::VariableNotExisting(e) => {
-                    LunaModelError::SampleUnexpectedVariable(e)
-                }
-                e => e,
-            },
-        )?;
+        let sol = inner(
+            data,
+            environment,
+            model,
+            timing,
+            counts,
+            sense,
+            energies,
+            tol,
+        )
+        .map_err(|e| match e {
+            LunaModelError::VariableNotExisting(e) => LunaModelError::SampleUnexpectedVariable(e),
+            e => e,
+        })?;
 
         Ok(sol.into())
     }
@@ -380,6 +390,7 @@ impl PySolution {
         counts: Option<Vec<usize>>,
         sense: Option<PySense>,
         energies: Option<Vec<f64>>,
+        tol: Option<f64>,
     ) -> PyResult<Self> {
         let sense = sense.map(|s| s.into());
         check_env_or_model(&env, &model)?;
@@ -395,6 +406,7 @@ impl PySolution {
             counts: Option<Vec<usize>>,
             sense: Option<Sense>,
             energies: Option<Vec<f64>>,
+            tol: Option<f64>,
         ) -> LunaModelResult<Solution> {
             let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
                 model
@@ -440,7 +452,7 @@ impl PySolution {
                     .get_mut(&varname)
                     .ok_or_else(|| LunaModelError::SampleUnexpectedVariable(varname.into()))?;
                 for &v in col.iter() {
-                    solcol.try_push(v)?;
+                    solcol.try_push(v, tol)?;
                 }
             }
 
@@ -458,6 +470,7 @@ impl PySolution {
             counts,
             sense,
             energies,
+            tol,
         )
         .map_err(|e| match e {
             LunaModelError::VariableNotExisting(e) => LunaModelError::SampleUnexpectedVariable(e),

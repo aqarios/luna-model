@@ -67,6 +67,7 @@ impl SerSolution {
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
+                        None,
                     )?;
                     start_bin += self.num_samples as usize;
                 }
@@ -77,6 +78,7 @@ impl SerSolution {
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
+                        None,
                     )?;
                     start_spin += self.num_samples as usize;
                 }
@@ -87,6 +89,7 @@ impl SerSolution {
                             .iter()
                             .map(|&v| v as f64)
                             .collect(),
+                        None,
                     )?;
                     start_int += self.num_samples as usize;
                 }

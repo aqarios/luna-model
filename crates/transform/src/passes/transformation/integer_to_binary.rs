@@ -115,7 +115,7 @@ impl TransformationPass for IntegerToBinaryPass {
                         }
                     }
                     solution
-                        .add_col(Vtype::Integer, intvar.to_string(), intcol)
+                        .add_col(Vtype::Integer, intvar.to_string(), intcol, None)
                         .expect("adding this column in the IntegerToBinaryPass.backwards must be possible.");
                 }
                 solution.aggregate().unwrap();

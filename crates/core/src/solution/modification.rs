@@ -45,28 +45,28 @@ impl Solution {
         self.samples.insert(var, Column::empty_real());
     }
 
-    pub fn add_binary(&mut self, var: String, data: Vec<f64>) -> LunaModelResult<()> {
+    pub fn add_binary(&mut self, var: String, data: Vec<f64>, tol: Option<f64>) -> LunaModelResult<()> {
         let mut col = Column::empty_binary();
         data.iter()
-            .map(|e| col.try_push(*e))
+            .map(|e| col.try_push(*e, tol))
             .collect::<LunaModelResult<()>>()?;
         self.samples.insert(var, col);
         Ok(())
     }
 
-    pub fn add_spin(&mut self, var: String, data: Vec<f64>) -> LunaModelResult<()> {
+    pub fn add_spin(&mut self, var: String, data: Vec<f64>, tol: Option<f64>) -> LunaModelResult<()> {
         let mut col = Column::empty_spin();
         data.iter()
-            .map(|e| col.try_push(*e))
+            .map(|e| col.try_push(*e, tol))
             .collect::<LunaModelResult<()>>()?;
         self.samples.insert(var, col);
         Ok(())
     }
 
-    pub fn add_integer(&mut self, var: String, data: Vec<f64>) -> LunaModelResult<()> {
+    pub fn add_integer(&mut self, var: String, data: Vec<f64>, tol: Option<f64>) -> LunaModelResult<()> {
         let mut col = Column::empty_integer();
         data.iter()
-            .map(|e| col.try_push(*e))
+            .map(|e| col.try_push(*e, tol))
             .collect::<LunaModelResult<()>>()?;
         self.samples.insert(var, col);
         Ok(())
@@ -76,11 +76,11 @@ impl Solution {
         self.samples.insert(var, Column::real(data));
     }
 
-    pub fn add_col(&mut self, vtype: Vtype, var: String, data: Vec<f64>) -> LunaModelResult<()> {
+    pub fn add_col(&mut self, vtype: Vtype, var: String, data: Vec<f64>, tol: Option<f64>) -> LunaModelResult<()> {
         match vtype {
-            Vtype::Binary => self.add_binary(var, data),
-            Vtype::Spin => self.add_spin(var, data),
-            Vtype::Integer => self.add_integer(var, data),
+            Vtype::Binary => self.add_binary(var, data, tol),
+            Vtype::Spin => self.add_spin(var, data, tol),
+            Vtype::Integer => self.add_integer(var, data, tol),
             Vtype::Real => Ok(self.add_real(var, data)),
             Vtype::InvertedBinary => Ok(()),
         }

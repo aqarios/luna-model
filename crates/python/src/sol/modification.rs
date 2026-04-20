@@ -17,7 +17,7 @@ impl PySolution {
             ),
             VarKey::Var(v) => (v.v.name()?, v.v.vtype()?.into()),
         };
-        self.s.write_arc().add_col(vt, vn, data)?;
+        self.s.write_arc().add_col(vt, vn, data, None)?;
         Ok(())
     }
 
