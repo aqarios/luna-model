@@ -8,7 +8,6 @@ mod io;
 mod iteration;
 mod ops;
 mod ser;
-mod np;
 
 use lunamodel_core::prelude::{Expression, Model};
 use parking_lot::RwLock;
@@ -18,7 +17,7 @@ use std::sync::Arc;
 pub use content::PyExprContent;
 pub use iteration::{PyConstant, PyExpressionIterator, PyHigherOrder, PyLinear, PyQuadratic};
 
-#[pyclass]
+#[pyclass(subclass)]
 #[repr(C)]
 #[derive(Clone, Debug)]
 pub struct PyExpression {

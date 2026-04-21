@@ -173,4 +173,4 @@ class CqmTranslator:
         if not _DIMOD_AVAILABLE:
             msg = "dimod is required for the CqmTranslator. You can install it using the 'dimod' extra."
             raise RuntimeError(msg)
-        return dimod_lp.loads(PyLpTranslator.from_lm(model._m))
+        return dimod_lp.loads(PyLpTranslator.from_lm(model))

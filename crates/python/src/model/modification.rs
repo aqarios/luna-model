@@ -1,3 +1,5 @@
+use std::ops::Mul;
+
 use lunamodel_core::{Expression, ops::LmAddAssign, prelude::LazyBounds};
 use lunamodel_unwind::*;
 use numpy::{
@@ -8,9 +10,12 @@ use pyo3::{Bound, FromPyObject, IntoPyObjectExt, Py, PyAny, PyResult, Python, py
 
 use super::PyModel;
 use crate::{
-    PyConstraint, PyExpression, PyVariable,
+    PyExpression, PyVariable,
+    args::PyCArg,
     bounds::BoundValue,
+    constraint::utils::{ConstraintsIn, NameIn, add_many_constraint},
     types::{PySense, PyVtype},
+    utils::OpsOther,
 };
 
 const DEFAULT_DELIM: &str = ",";
@@ -122,19 +127,44 @@ impl PyModel {
     }
 
     #[pyo3(signature=(constraint, name=None))]
-    fn add_constraint(&mut self, constraint: PyConstraint, name: Option<String>) -> PyResult<()> {
-        Ok(self
+    fn add_constraint(&mut self, constraint: PyCArg, name: Option<String>) -> PyResult<()> {
+        _ = self
             .m
             .write_arc()
             .constraints
-            .add_constraint(constraint.c.read_arc().clone(), name)?)
+            .add_constraint(constraint.c.read_arc().clone(), name)?;
+        Ok(())
+    }
+
+    fn add_constraints(
+        &mut self,
+        py: Python,
+        constraints: ConstraintsIn,
+        name: Option<NameIn>,
+    ) -> PyResult<Vec<String>> {
+        Ok(add_many_constraint(
+            py,
+            &mut self.m.write_arc().constraints,
+            constraints,
+            name,
+        )?)
     }
 
     #[pyo3(name = "set_objective", signature=(expression, sense=None))]
-    fn set_objective_direct(&mut self, expression: PyExpression, sense: Option<PySense>) {
+    fn set_objective_direct(
+        &mut self,
+        expression: OpsOther,
+        sense: Option<PySense>,
+    ) -> PyResult<()> {
+        let new_obj = match expression {
+            OpsOther::Expr(e) => e.into(),
+            OpsOther::Var(v) => (&v.v).mul(1.0)?,
+            OpsOther::Num(n) => Expression::constant(self.m.read_arc().environment.clone(), n),
+        };
         self.m
             .write_arc()
-            .set_objective(expression.into(), sense.map(|s| s.into()))
+            .set_objective(new_obj, sense.map(|s| s.into()));
+        Ok(())
     }
 
     fn add_objective(&mut self, expression: PyExpression) -> PyResult<()> {

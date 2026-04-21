@@ -1,7 +1,9 @@
 use std::fmt::Display;
 
-use super::PyVariable;
-use crate::{PyEnvironment, PyModel, expression::PyExpression};
+use crate::{
+    PyEnvironment,
+    args::{PyEnvArg, PyExprArg, PyModelArg, PyVarArg},
+};
 use pyo3::{
     PyResult,
     exceptions::PyValueError,
@@ -13,13 +15,13 @@ use pyo3::{Py, PyAny, Python};
 #[derive(Debug, Clone)]
 pub enum VarKey {
     Str(String),
-    Var(PyVariable),
+    Var(PyVarArg),
 }
 
 #[derive(Debug, FromPyObject)]
 pub enum OpsOther {
-    Expr(PyExpression),
-    Var(PyVariable),
+    Expr(PyExprArg),
+    Var(PyVarArg),
     Num(f64),
     // Int(usize),
 }
@@ -91,8 +93,8 @@ pub fn as_usize(n: isize) -> PyResult<usize> {
 }
 
 pub fn retrieve_environment(
-    env: Option<PyEnvironment>,
-    model: &Option<PyModel>,
+    env: Option<PyEnvArg>,
+    model: &Option<PyModelArg>,
 ) -> PyResult<PyEnvironment> {
     if let Some(model) = model {
         Ok(model.m.read_arc().environment.clone().into())

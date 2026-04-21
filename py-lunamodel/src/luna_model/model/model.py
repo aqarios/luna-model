@@ -36,7 +36,7 @@ from luna_model.variable.var import Variable
 from luna_model.variable.vtype import Vtype
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
     from dimod import BinaryQuadraticModel, ConstrainedQuadraticModel
     from numpy.typing import NDArray
@@ -44,11 +44,13 @@ if TYPE_CHECKING:
     from luna_model.constraint.collection import ConstraintCollection
     from luna_model.constraint.constr import Constraint
     from luna_model.environment.env import Environment
+    from luna_model.expression.expr import Expression
     from luna_model.model.specs import ModelSpecs
     from luna_model.solution.res import Result, Sample
     from luna_model.solution.sol import Solution
     from luna_model.translator.model.qubo import Qubo
     from luna_model.variable.bounds import Unbounded
+    from luna_model.variable.var import Variable
 
 
 _msg = (
@@ -169,7 +171,7 @@ class Model:
         sense: Sense = Sense.MIN,
         env: Environment | None = None,
     ) -> None:
-        self._m = PyModel(name=name, sense=sense._val, env=env._env if env else None)
+        self._m = PyModel(name=name, sense=sense._val, env=env)
 
     @classmethod
     def _from_pym(cls, py_m: PyModel) -> Model:
@@ -250,11 +252,8 @@ class Model:
         return wrap_expr(self._m.objective)
 
     @objective.setter
-    def objective(self, value: Expression) -> None:
-        if not isinstance(value, Expression):
-            msg = f"cannot set value of type '{type(value)}' as model's objective"
-            raise TypeError(msg)
-        self._m.objective = value._expr
+    def objective(self, value: Expression | Variable | float) -> None:
+        self._m.objective = value
 
     @property
     def constraints(self) -> ConstraintCollection:
@@ -278,7 +277,7 @@ class Model:
     @constraints.setter
     def constraints(self, value: ConstraintCollection) -> None:
         """Set the model's constraints."""
-        self._m.constraints = value._cc
+        self._m.constraints = value
 
     @property
     def environment(self) -> Environment:
@@ -572,7 +571,7 @@ class Model:
         """
         return wrap_sp(self._m.get_specs())
 
-    def add_constraint(self, constraint: Constraint, name: str | None = None) -> None:
+    def add_constraint(self, constraint: Constraint, name: str | None = None) -> str:
         """Add a constraint to the model.
 
         Parameters
@@ -600,14 +599,99 @@ class Model:
         >>> constraint = x <= 5
         >>> model.add_constraint(constraint, name="x_upper_bound")
         """
-        self._m.add_constraint(constraint._c, name)
+        return self._m.add_constraint(constraint, name)
 
-    def set_objective(self, expression: Expression, sense: Sense | None = None) -> None:
+    @overload
+    def add_constraints(
+        self,
+        constraints: ConstraintCollection | Sequence[Constraint | tuple[str, Constraint] | tuple[Constraint, str]],
+        name: str | None = None,
+    ) -> list[str]: ...
+    @overload
+    def add_constraints(
+        self,
+        constraints: NDArray | NDLmArray | Sequence[Constraint],
+        name: str | Sequence[str] | None = None,
+    ) -> list[str]: ...
+    def add_constraints(
+        self,
+        constraints: ConstraintCollection
+        | NDArray
+        | NDLmArray
+        | Sequence[Constraint]
+        | Sequence[Constraint | tuple[str, Constraint] | tuple[Constraint, str]],
+        name: str | Sequence[str] | None = None,
+    ) -> list[str]:
+        """Add multiple constraints to the model at once.
+
+        Parameters
+        ----------
+        constraints : ConstraintCollection | NDArray | NDLmArray | Sequence[Constraint] | Sequence[Constraint
+                        | tuple[str, Constraint] | tuple[Constraint, str]]
+            Constraints to add.
+
+            Behavior depends on the input kind:
+
+            - ``ConstraintCollection``: imports the full collection.
+            - ``NDArray`` / ``NDLmArray`` / ``Sequence[Constraint]``: each element is added as one constraint.
+            - ``Sequence[Constraint | tuple[str, Constraint] | tuple[Constraint, str]]``:
+              each tuple provides an explicit per-constraint name.
+        name : str | Sequence[str] | None, optional
+            Naming mode for added constraints:
+
+            - ``None``: use explicit tuple names when present; otherwise use each
+              constraint's own non-auto-generated name, falling back to generated names.
+            - ``str``: use as a base prefix.
+              For plain sequences/arrays names are ``{name}_{i}``.
+              For tuple inputs names are ``{name}_{tuple_name}`` when a tuple name is
+              present, otherwise ``{name}_{i}``.
+            - ``Sequence[str]``: allowed only with ``NDArray``, ``NDLmArray``, or
+              ``Sequence[Constraint]`` and must have the same length as ``constraints``.
+
+        Returns
+        -------
+        list[str]
+            The names of the added constraints.
+
+        Raises
+        ------
+        DuplicateConstraintNameError
+            If a constraint with the same name already exists.
+        IllegalConstraintNameError
+            If the constraint name is invalid. Constraint names cannot be empty
+            strings and must start with an alphabetical character. Additionally,
+            constraint names cannot start with ``inf`` or ``nan`` due to
+            limitations of other modeling software.
+        LunaModelError
+            If ``name`` is a sequence and its length does not match the number of
+            constraints. Also raised for unsupported combinations when runtime type
+            checks are bypassed (for example, ``ConstraintCollection`` with
+            ``Sequence[str]`` names).
+
+        Examples
+        --------
+        >>> model = Model()
+        >>> x = model.add_variables("x", shape=5)
+        >>> constraints = x <= 5
+        >>> model.add_constraints(constraints, name="x_upper_bound")
+        ['x_upper_bound_0', 'x_upper_bound_1', 'x_upper_bound_2', 'x_upper_bound_3', 'x_upper_bound_4']
+        >>> print(model.constraints)
+        {
+          x_upper_bound_0: x0 <= 5,
+          x_upper_bound_1: x1 <= 5,
+          x_upper_bound_2: x2 <= 5,
+          x_upper_bound_3: x3 <= 5,
+          x_upper_bound_4: x4 <= 5,
+        }
+        """
+        return self._m.add_constraints(constraints, name)
+
+    def set_objective(self, expression: Expression | Variable | float, sense: Sense | None = None) -> None:
         """Set the model's objective function.
 
         Parameters
         ----------
-        expression : Expression
+        expression : Expression | Variable | float
             The expression to use as the objective function.
         sense : Sense, optional
             The optimization sense. If provided, also updates the model's sense.
@@ -620,7 +704,7 @@ class Model:
         >>> y = model.add_variable("y")
         >>> model.set_objective(x + 2 * y, sense=Sense.MAX)
         """
-        self._m.set_objective(expression._expr, sense._val if sense else None)
+        self._m.set_objective(expression, sense._val if sense else None)
 
     def evaluate(self, solution: Solution) -> Solution:
         """Evaluate a solution against the model.
@@ -664,7 +748,7 @@ class Model:
         >>> solution[0].feasible  # x + y = 3 <= 5, so True
         True
         """
-        return wrap_s(self._m.evaluate(solution._s))
+        return wrap_s(self._m.evaluate(solution))
 
     def evaluate_sample(self, sample: Sample) -> Result:
         """Evaluate a single sample against the model.
@@ -741,13 +825,7 @@ class Model:
         This operation modifies the model in place. The target variable remains
         in the model's environment but is no longer used.
         """
-        if isinstance(replacement, Expression):  # type: ignore[attribute]
-            self._m.substitute(target._v, replacement._expr)  # type: ignore[attribute]
-        elif isinstance(replacement, Variable):  # type: ignore[attribute]
-            self._m.substitute(target._v, replacement._v)  # type: ignore[attribute]
-        else:
-            msg = f"cannot use '{type(replacement)}' as a replacement in substitution"
-            raise TypeError(msg)
+        self._m.substitute(target, replacement)  # type: ignore[attribute]
 
     def satisfies(self, specs: ModelSpecs) -> bool:
         """Check if the model satisfies given specifications.
@@ -769,7 +847,7 @@ class Model:
         >>> model.satisfies(specs)
         True
         """
-        return self._m.satisfies(specs._sp)
+        return self._m.satisfies(specs)
 
     def encode(self) -> bytes:
         """Serialize the model into a compact binary format.
@@ -1004,7 +1082,7 @@ class Model:
 
     def equal_contents(self, other: Model) -> bool:
         """Check if two models have equal contents."""
-        return self._m.equal_contents(other._m)
+        return self._m.equal_contents(other)
 
     def __eq__(self, other: Model) -> bool:  # type: ignore[override]
         """Check if two models are exactly equal.
@@ -1029,7 +1107,7 @@ class Model:
         >>> model1 == model2
         False
         """
-        return self._m.__eq__(other._m)
+        return self._m.__eq__(other)
 
     def __hash__(self) -> int:
         """Compute hash value for the model.

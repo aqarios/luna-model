@@ -3,7 +3,8 @@ use pyo3::{PyResult, pymethods};
 
 use super::PyConstraintCollection;
 use crate::{
-    PyConstraint, constraint::coll::iter::PyConstraintCollectionIterator, types::PyComparator,
+    PyConstraint, args::PyColArg, constraint::coll::iter::PyConstraintCollectionIterator,
+    types::PyComparator,
 };
 
 #[unwindable]
@@ -21,7 +22,7 @@ impl PyConstraintCollection {
         self.c.ctypes().into_iter().map(|c| c.into()).collect()
     }
 
-    fn equal_contents(&self, other: &Self) -> bool {
+    fn equal_contents(&self, other: PyColArg) -> bool {
         self.c.equal_contents(&other.c)
     }
 
@@ -33,7 +34,7 @@ impl PyConstraintCollection {
         self.c.len()
     }
 
-    fn __eq__(&self, other: &Self) -> bool {
+    fn __eq__(&self, other: PyColArg) -> bool {
         self.c.eq(&other.c)
     }
 

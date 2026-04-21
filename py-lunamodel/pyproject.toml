@@ -24,7 +24,6 @@ keywords = [
   "optimization",
   "modeling"
 ]
-# todo: check these values.
 classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
@@ -97,6 +96,7 @@ dev = [
     "auditwheel>=6.6.0",
     "gurobipy>=13.0.1",
     "jupyter>=1.1.1",
+    "pytest-xdist>=3.8.0",
 ]
 docs = [
     "zensical>=0.0.23",

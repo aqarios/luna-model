@@ -6,12 +6,15 @@ use pyo3::{
 };
 
 use super::PySolution;
-use crate::sol::result::{PyResultIterator, PyResultView};
+use crate::{
+    args::PySolArg,
+    sol::result::{PyResultIterator, PyResultView},
+};
 
 #[unwindable]
 #[pymethods]
 impl PySolution {
-    fn __eq__(&self, other: &Self) -> bool {
+    fn __eq__(&self, other: PySolArg) -> bool {
         self.s.read_arc().eq(&other.s.read_arc())
     }
 

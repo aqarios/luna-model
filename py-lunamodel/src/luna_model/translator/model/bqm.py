@@ -177,7 +177,7 @@ class BqmTranslator:
         if not _DIMOD_AVAILABLE:
             msg = "dimod is required for the BqmTranslator. You can install it using the 'dimod' extra."
             raise RuntimeError(msg)
-        offset, linear, quad, rows, cols, vtype, variables = PyBqmTranslator.from_lm(model._m)
+        offset, linear, quad, rows, cols, vtype, variables = PyBqmTranslator.from_lm(model)
         vtype = Vtype._from_pyvtype(vtype).value.upper()
         return BinaryQuadraticModel.from_numpy_vectors(
             linear,

@@ -7,14 +7,15 @@ use pyo3::{FromPyObject, PyResult, pymethods};
 
 use super::PyModel;
 use crate::{
-    PyConstraintCollection, PyExpression, PyModelSpecs, PySolution, PyVariable,
+    PyConstraintCollection, PySolution,
+    args::{PyExprArg, PyModelArg, PyModelSpecsArg, PySolArg, PyVarArg},
     sol::{result::PyResultView, sample::PySampleView},
 };
 
 #[derive(FromPyObject)]
 enum Replacement {
-    Expr(PyExpression),
-    Var(PyVariable),
+    Expr(PyExprArg),
+    Var(PyVarArg),
 }
 
 impl Replacement {
@@ -29,14 +30,14 @@ impl Replacement {
 #[unwindable]
 #[pymethods]
 impl PyModel {
-    fn substitute(&mut self, target: &PyVariable, replacement: Replacement) -> PyResult<()> {
+    fn substitute(&mut self, target: PyVarArg, replacement: Replacement) -> PyResult<()> {
         Ok(self
             .m
             .write_arc()
             .substitute(&target.v, &replacement.as_expr()?)?)
     }
 
-    fn evaluate(&self, solution: PySolution) -> PyResult<PySolution> {
+    fn evaluate(&self, solution: PySolArg) -> PyResult<PySolution> {
         Ok(self
             .m
             .read_arc()
@@ -50,7 +51,7 @@ impl PyModel {
         Ok(PyResultView::new(sol.into(), 0))
     }
 
-    fn equal_contents(&self, other: &Self) -> bool {
+    fn equal_contents(&self, other: PyModelArg) -> bool {
         self.m.read_arc().equal_contents(&other.m.read_arc())
     }
 
@@ -60,7 +61,7 @@ impl PyModel {
         Ok(self.m.read_arc().violated_constraints(&sample)?.into())
     }
 
-    fn satisfies(&self, specs: &PyModelSpecs) -> bool {
+    fn satisfies(&self, specs: PyModelSpecsArg) -> bool {
         self.m.read_arc().satisfies(&specs.s)
     }
 

@@ -3,7 +3,7 @@ use lunamodel_unwind::*;
 use pyo3::pymethods;
 
 use super::{content::PyExprContent as PyE, iteration::PyExpressionIterator};
-use crate::{PyEnvironment, PyExpression, PyVariable};
+use crate::{PyEnvironment, PyExpression, PyVariable, args::PyVarArg};
 
 #[unwindable]
 #[pymethods]
@@ -31,21 +31,21 @@ impl PyExpression {
         }
     }
 
-    pub fn get_linear(&self, var: PyVariable) -> f64 {
+    pub fn get_linear(&self, var: PyVarArg) -> f64 {
         match &self.expr {
             PyE::Expr(e) => e.read_arc().linear(var.v.id()),
             PyE::Model(m) => m.read_arc().objective.linear(var.v.id()),
         }
     }
 
-    pub fn get_quadratic(&self, u: PyVariable, v: PyVariable) -> f64 {
+    pub fn get_quadratic(&self, u: PyVarArg, v: PyVarArg) -> f64 {
         match &self.expr {
             PyE::Expr(e) => e.read_arc().quadratic(u.v.id(), v.v.id()),
             PyE::Model(m) => m.read_arc().objective.quadratic(u.v.id(), v.v.id()),
         }
     }
 
-    pub fn get_higher_order(&self, vars: Vec<PyVariable>) -> f64 {
+    pub fn get_higher_order(&self, vars: Vec<PyVarArg>) -> f64 {
         let varsidx: Vec<VarIdx> = vars.iter().map(|v| v.v.id()).collect();
         match &self.expr {
             PyE::Expr(e) => e.read_arc().higher_order(varsidx.as_slice()),

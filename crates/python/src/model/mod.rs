@@ -16,6 +16,7 @@ use pyo3::pyclass;
 
 pub use metadata::PyModelMetadata;
 
+#[derive(Debug)]
 pub struct PyModelContent {
     pub m: Arc<RwLock<Model>>,
     pub _metadata: PyModelMetadata,
@@ -24,7 +25,7 @@ pub struct PyModelContent {
 // #[pyclass(subclass, name = "Model", module = "luna_model._core")]
 #[pyclass]
 #[repr(C)]
-#[derive(Deref, DerefMut)]
+#[derive(Deref, DerefMut, Debug)]
 pub struct PyModel(pub PyModelContent);
 
 impl Clone for PyModel {

@@ -4,7 +4,8 @@ use pyo3::prelude::*;
 
 use super::PyVariable;
 use crate::{
-    bounds::{BoundsContent, PyBounds},
+    args::{PyBoundsArg, PyEnvArg},
+    bounds::{BoundsContent},
     environment::PyEnvironment,
     types::PyVtype,
 };
@@ -17,8 +18,8 @@ impl PyVariable {
     fn py_new(
         name: String,
         vtype: PyVtype,
-        bounds: Option<PyBounds>,
-        env: Option<PyEnvironment>,
+        bounds: Option<PyBoundsArg>,
+        env: Option<PyEnvArg>,
     ) -> PyResult<Self> {
         if vtype == PyVtype::InvertedBinary {
             return Err(LunaModelError::UnsupportedOperation(

@@ -14,20 +14,30 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Self, TypeAlias, overload
 
-import numpy as np
+from numpy.typing import NDArray
 
 from luna_model._lm import PyConstraintCollection
 from luna_model._utils import wrap_c
 from luna_model.constraint.cmp import Comparator
 from luna_model.constraint.constr import Constraint
 from luna_model.constraint.iter import ConstraintCollectionIter
+from luna_model.matrix import NDLmArray
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
-
     from luna_model.environment.env import Environment
+
+
+SingleConstraint: TypeAlias = Constraint | tuple[Constraint, str]
+ManyConstraint: TypeAlias = (
+    Sequence[Constraint | tuple[Constraint, str] | tuple[str, Constraint]]
+    | NDLmArray
+    | NDArray
+    | tuple[Sequence[Constraint], str]
+    | tuple[NDLmArray, str]
+    | tuple[NDArray, str]
+)
 
 
 class ConstraintCollection:
@@ -93,7 +103,76 @@ class ConstraintCollection:
             that is not auto-generated, otherwise generates a name following the pattern
             ``c{i}`` where i is the constraint's index in the collection (starting from 0).
         """
-        self._cc.add_constraint(constraint._c, name)
+        self._cc.add_constraint(constraint, name)
+
+    @overload
+    def add_constraints(
+        self,
+        constraints: ConstraintCollection | Sequence[Constraint | tuple[str, Constraint] | tuple[Constraint, str]],
+        name: str | None = None,
+    ) -> list[str]: ...
+    @overload
+    def add_constraints(
+        self,
+        constraints: NDArray | NDLmArray | Sequence[Constraint],
+        name: str | Sequence[str] | None = None,
+    ) -> list[str]: ...
+    def add_constraints(
+        self,
+        constraints: ConstraintCollection
+        | NDArray
+        | NDLmArray
+        | Sequence[Constraint]
+        | Sequence[Constraint | tuple[str, Constraint] | tuple[Constraint, str]],
+        name: str | Sequence[str] | None = None,
+    ) -> list[str]:
+        """Add multiple constraints to the collection.
+
+        Parameters
+        ----------
+        constraints : ConstraintCollection | NDArray | NDLmArray | Sequence[Constraint]
+                        | Sequence[Constraint | tuple[str, Constraint] | tuple[Constraint, str]]
+            Constraints to add.
+
+            Behavior depends on the input kind:
+
+            - ``ConstraintCollection``: imports the full collection.
+            - ``NDArray`` / ``NDLmArray`` / ``Sequence[Constraint]``: each element is added as one constraint.
+            - ``Sequence[Constraint | tuple[str, Constraint] | tuple[Constraint, str]]``:
+              each tuple provides an explicit per-constraint name.
+        name : str | Sequence[str] | None, optional
+            Naming mode for added constraints:
+
+            - ``None``: use explicit tuple names when present; otherwise use each
+              constraint's own non-auto-generated name, falling back to generated names.
+            - ``str``: use as a base prefix.
+              For plain sequences/arrays names are ``{name}_{i}``.
+              For tuple inputs names are ``{name}_{tuple_name}`` when a tuple name is
+              present, otherwise ``{name}_{i}``.
+            - ``Sequence[str]``: allowed only with ``NDArray``, ``NDLmArray``, or
+              ``Sequence[Constraint]`` and must have the same length as ``constraints``.
+
+        Returns
+        -------
+        list[str]
+            The names of the added constraints.
+
+        Raises
+        ------
+        DuplicateConstraintNameError
+            If a constraint with the same name already exists.
+        IllegalConstraintNameError
+            If the constraint name is invalid. Constraint names cannot be empty
+            strings and must start with an alphabetical character. Additionally,
+            constraint names cannot start with ``inf`` or ``nan`` due to
+            limitations of other modeling software.
+        LunaModelError
+            If ``name`` is a sequence and its length does not match the number of
+            constraints. Also raised for unsupported combinations when runtime type
+            checks are bypassed (for example, ``ConstraintCollection`` with
+            ``Sequence[str]`` names).
+        """
+        return self._cc.add_constraints(constraints, name)
 
     def items(self) -> ConstraintCollectionIter:
         """Get an iterator over (name, constraint) pairs.
@@ -173,7 +252,7 @@ class ConstraintCollection:
         bool
             True if both collections contain the same constraints.
         """
-        return self._cc.equal_contents(other._cc)
+        return self._cc.equal_contents(other)
 
     def ctypes(self) -> list[Comparator]:
         """Get the comparator types of all constraints.
@@ -188,7 +267,7 @@ class ConstraintCollection:
     @classmethod
     def decode(cls, data: bytes, env: Environment) -> ConstraintCollection:
         """Decode into a ConstraintCollection based on the bytes data given an environment. Same as deserialize."""
-        return cls._from_pycc(PyConstraintCollection.decode(data, env._env))
+        return cls._from_pycc(PyConstraintCollection.decode(data, env))
 
     @classmethod
     def deserialize(cls, data: bytes, env: Environment) -> ConstraintCollection:
@@ -196,24 +275,13 @@ class ConstraintCollection:
         return cls.decode(data, env)
 
     def __iadd__(
-        self,
-        other: Constraint
-        | tuple[Constraint, str]
-        | ConstraintCollection
-        | tuple[ConstraintCollection, str]
-        | Sequence[Constraint | tuple[Constraint, str]]
-        | NDArray
-        | tuple[Sequence[Constraint], str]
-        | tuple[NDArray, str],
+        self, other: SingleConstraint | ManyConstraint | ConstraintCollection | tuple[ConstraintCollection, str]
     ) -> Self:
         """Add a constraint using += operator.
 
         Parameters
         ----------
-        other : Constraint or tuple[Constraint, str]
-                or ConstraintCollection or tuple[ConstraintCollection, str]
-                or Sequence[Constraint | tuple[Constraint, str]]
-                or tuple[Sequence[Constraint], str]
+        other : SingleConstraint | ManyConstraint | ConstraintCollection | tuple[ConstraintCollection, str]
             Either a Constraint, a (Constraint, name) tuple, a ConstraintCollection,
             a (ConstraintCollection, prefix) tuple, a sequence of either Constraint or
             (Constraint, str) or a (Sequence[Constraint], base_name) tuple.
@@ -237,30 +305,7 @@ class ConstraintCollection:
             Or if a Sequence is added containing a constraint with a name that is
             already in this collection.
         """
-        if isinstance(other, Constraint):
-            self._cc.__iadd__(other._c)
-        elif isinstance(other, ConstraintCollection):
-            self._cc.__iadd__(other._cc)
-        elif isinstance(other, tuple):
-            first, second = other
-            if isinstance(first, Constraint):
-                self._cc.__iadd__((first._c, second))
-            elif isinstance(first, ConstraintCollection):
-                self._cc.__iadd__((first._cc, second))
-            elif isinstance(first, np.ndarray):
-                self._cc.__iadd__((first, second))
-            elif isinstance(first, Sequence):
-                self._cc.__iadd__(([c._c if isinstance(c, Constraint) else c for c in first], second))
-            else:
-                msg = f"type of other '{type(other)}' not supported"
-                raise TypeError(msg)
-        elif isinstance(other, np.ndarray):
-            self._cc.__iadd__(other)
-        elif isinstance(other, Sequence):
-            self._cc.__iadd__([c._c if isinstance(c, Constraint) else (c[0]._c, c[1]) for c in other])
-        else:
-            msg = f"type of other '{type(other)}' not supported"
-            raise TypeError(msg)
+        self._cc.__iadd__(other)
         return self
 
     def __getitem__(self, key: str) -> Constraint:
@@ -288,7 +333,7 @@ class ConstraintCollection:
         value : Constraint
             The constraint to store.
         """
-        return self._cc.__setitem__(key, value._c)
+        return self._cc.__setitem__(key, value)
 
     def __len__(self) -> int:
         """Get the number of constraints in the collection.
@@ -302,7 +347,7 @@ class ConstraintCollection:
 
     def __eq__(self, other: ConstraintCollection) -> bool:  # type: ignore[override]
         """Compare for equality."""
-        return self._cc.__eq__(other._cc)
+        return self._cc.__eq__(other)
 
     def __iter__(self) -> ConstraintCollectionIter:
         """Iterate over (name, constraint) pairs.

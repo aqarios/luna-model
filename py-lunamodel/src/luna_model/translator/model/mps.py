@@ -198,4 +198,4 @@ class MpsTranslator:
         BOUNDS
         ENDATA
         """
-        return PyMpsTranslator.from_lm(model._m, filepath)
+        return PyMpsTranslator.from_lm(model, filepath)

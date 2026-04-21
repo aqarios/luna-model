@@ -155,7 +155,7 @@ class ModelSpecs:
         bool
             True if this model satisfies all requirements in other.
         """
-        return self._sp.satisfies(other._sp)
+        return self._sp.satisfies(other)
 
     def __str__(self) -> str:
         """Return human-readable string representation.
