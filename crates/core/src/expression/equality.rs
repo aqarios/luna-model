@@ -41,9 +41,9 @@ impl PartialEq for Expression {
 
 impl ContentEquality for Expression {
     fn equal_contents(&self, other: &Self) -> bool {
-        if !self.env.equal_contents(&other.env) {
-            return false;
-        }
+        // if !self.env.equal_contents(&other.env) {
+        //     return false;
+        // }
         for (vars, bias) in self.items() {
             match &vars[..] {
                 [] => {

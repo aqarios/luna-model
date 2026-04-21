@@ -1,3 +1,3 @@
 pub use crate::compress::{DEFAULT_COMPRESSION_LEVEL, Decompressable};
-pub use crate::encode::{Decodable, Encodable};
-pub use crate::versionize::Unversionizable;
+pub use crate::encode::{Decodable, Encodable, BytesEncodable, BytesDecodable, Creatable, Decoder};
+pub use crate::versionize::{Unversionizable, Version, Versioned};

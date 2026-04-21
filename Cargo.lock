@@ -202,12 +202,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dyn-clone"
-version = "1.0.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
-
-[[package]]
 name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -377,7 +371,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
@@ -387,6 +381,7 @@ dependencies = [
  "lunamodel-serializer",
  "lunamodel-transform",
  "lunamodel-translate",
+ "lunamodel-transpiler",
  "lunamodel-types",
  "lunamodel-unwind",
  "lunamodel-utils",
@@ -394,7 +389,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-core"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "bitvec",
  "derive_more",
@@ -417,16 +412,17 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-error"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "prost",
  "pyo3",
  "rand",
+ "strum",
 ]
 
 [[package]]
 name = "lunamodel-hashing"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "itertools",
  "lunamodel-core",
@@ -436,11 +432,13 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-io"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "indexmap",
  "lunamodel-core",
  "lunamodel-error",
+ "lunamodel-transform",
+ "lunamodel-transpiler",
  "lunamodel-types",
  "pyo3",
  "regex",
@@ -450,7 +448,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-python"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "derive_more",
  "indexmap",
@@ -462,6 +460,7 @@ dependencies = [
  "lunamodel-serializer",
  "lunamodel-transform",
  "lunamodel-translate",
+ "lunamodel-transpiler",
  "lunamodel-types",
  "lunamodel-unwind",
  "lunamodel-utils",
@@ -473,34 +472,35 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-serializer"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "bitvec",
  "indexmap",
  "lunamodel-core",
  "lunamodel-error",
+ "lunamodel-transpiler",
  "lunamodel-types",
  "parking_lot 0.12.5",
  "prost",
+ "strum",
+ "strum_macros",
  "zstd",
 ]
 
 [[package]]
 name = "lunamodel-transform"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "derive_more",
- "dyn-clone",
  "global_counter",
- "indexmap",
  "lunamodel-core",
  "lunamodel-error",
+ "lunamodel-serializer",
+ "lunamodel-transpiler",
  "lunamodel-types",
- "lunamodel-unwind",
  "num",
  "pad",
- "parking_lot 0.12.5",
- "pyo3",
+ "prost",
  "sqids",
  "strum",
  "strum_macros",
@@ -508,7 +508,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-translate"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "indexmap",
  "lunamodel-core",
@@ -521,8 +521,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "lunamodel-transpiler"
+version = "0.6.0"
+dependencies = [
+ "lunamodel-core",
+ "lunamodel-error",
+ "lunamodel-transpiler-macros",
+ "lunamodel-types",
+]
+
+[[package]]
+name = "lunamodel-transpiler-macros"
+version = "0.6.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "lunamodel-types"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "derive_more",
  "enumset",
@@ -533,7 +552,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwind"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "lunamodel-unwindable",
  "lunamodel-unwinder",
@@ -541,18 +560,16 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-unwindable"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
- "once_cell",
  "proc-macro2",
- "pyo3",
  "quote",
  "syn",
 ]
 
 [[package]]
 name = "lunamodel-unwinder"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "lunamodel-error",
  "pyo3",
@@ -560,7 +577,7 @@ dependencies = [
 
 [[package]]
 name = "lunamodel-utils"
-version = "0.5.0"
+version = "0.6.0"
 
 [[package]]
 name = "matrixmultiply"
@@ -830,7 +847,7 @@ dependencies = [
 
 [[package]]
 name = "pylm"
-version = "0.5.8"
+version = "0.5.9-dev.1863+b23b3c1a"
 dependencies = [
  "lunamodel-python",
  "pyo3",

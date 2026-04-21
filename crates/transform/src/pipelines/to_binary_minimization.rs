@@ -1,15 +1,17 @@
+use derive_more::Deref;
+use lunamodel_transpiler::Pipeline;
 use lunamodel_types::{EnumSetFromVec, Sense, Specs, Vtype};
 
-use crate::passes::{
-    BinarySpinPass, ChangeSensePass, IntegerToBinaryPass, analysis::CheckModelSpecsAnalysis,
-    special::Pipeline,
+use crate::{
+    analysis::CheckModelSpecsAnalysis,
+    transformation::{BinarySpinPass, ChangeSensePass, IntegerToBinaryPass},
 };
 
-#[derive(Debug, Clone)]
-pub struct ToBinaryMinimizationPipeline;
+#[derive(Deref)]
+pub struct ToBinaryMinimizationPipeline(pub Pipeline);
 
 impl ToBinaryMinimizationPipeline {
-    pub fn new() -> Pipeline {
+    pub fn new() -> Self {
         let requirements = Specs {
             vtypes: Some(vec![Vtype::Binary, Vtype::Spin, Vtype::Integer].to_enumset()),
             max_degree: None,
@@ -18,14 +20,14 @@ impl ToBinaryMinimizationPipeline {
             constraints: None,
             max_num_variables: None,
         };
-        Pipeline::new(
+        Self(Pipeline::new(
+            "to-binary-minimization".to_string(),
             vec![
                 CheckModelSpecsAnalysis::new(requirements).into(),
                 ChangeSensePass::new(Sense::Min).into(),
                 BinarySpinPass::new(Vtype::Binary, Some("b".to_string())).into(),
-                IntegerToBinaryPass::new().into(),
+                IntegerToBinaryPass::default().into(),
             ],
-            Some("to-binary-minimization".to_string()),
-        )
+        ))
     }
 }

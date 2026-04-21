@@ -1,0 +1,149 @@
+# Copyright 2026 Aqarios GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from abc import abstractmethod
+from typing import Generic, TypeVar
+
+from luna_model._lm import PyCompositePass, PyModel, PyPassContext, PySolution
+from luna_model.model.model import Model
+from luna_model.solution.sol import Solution
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.context import PassContext
+from luna_model.transformation.key import AnalysisKey
+
+Artifact = TypeVar("Artifact", bound=TransformationPassArtifact)
+Result = TypeVar("Result")
+
+
+class _CompositePassMeta(type(PyCompositePass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, PyCompositePass) or super().__instancecheck__(instance)
+
+
+class CompositePass(PyCompositePass, Generic[Artifact, Result], metaclass=_CompositePassMeta):
+    """
+    Abstract base class for composite passes that modify and analyze models.
+
+    Composite passes apply changes to models analyze them and can also convert
+    solutions backwards to match the input representation.
+
+    Notes
+    -----
+    This is an abstract class. Subclasses must implement the `name`, `forward` methods,
+    the `backward` function and the `PROVIDES` class variable.
+    Additionally, the `requires` and `invalidates` methods can be implemented.
+    """
+
+    PROVIDES: str
+
+    @abstractmethod
+    def name(self) -> str:
+        """
+        Get the unique identifier for this pass.
+
+        Returns
+        -------
+        str
+            The unique pass name.
+        """
+        ...
+
+    @abstractmethod
+    def forward(self, model: Model, ctx: PassContext) -> tuple[Model, Artifact, Result]:
+        """
+        Run/Execute this composite pass.
+
+        Parameters
+        ----------
+        model : Model
+            The model to transform.
+        ctx : PassContext
+            Context for this pass providing read-access to the analysis cache.
+
+        Returns
+        -------
+        tuple[Model, Artifact, Result]
+            The transformation result containing the model, the artifact used for
+            running the backward pass and the analysis result.
+        """
+        ...
+
+    @classmethod
+    @abstractmethod
+    def backward(cls, artifact: Artifact, solution: Solution) -> Solution:
+        """
+        Apply the back transformation to the given solution.
+
+        Parameters
+        ----------
+        artifact : Artifact
+            The artifact produced by the forward execution.
+        solution : Solution
+            The solution to transform back to a representation fitting the original
+            (input) model transformed by the forward method.
+
+        Returns
+        -------
+        Solution
+            A solution object representing a solution to the original problem passed
+            to this CompositePass' forward method.
+        """
+        ...
+
+    def requires(self) -> list[str]:
+        """
+        List of passes that must run before this pass.
+
+        Returns
+        -------
+        list[str]
+            Pass names that must execute first, or empty list if no dependencies.
+        """
+        return []
+
+    def invalidates(self) -> list[str]:
+        """
+        Get a list of passes that are invalidated by this pass.
+
+        Returns
+        -------
+        list of str
+            Names of passes whose results become invalid after this pass runs.
+        """
+        return []
+
+    @classmethod
+    def provides(cls) -> str:
+        """
+        Get the identifier for the analysis cache elment this pass generates.
+
+        Returns
+        -------
+        str
+            The identifier of the cache elment
+        """
+        return cls.PROVIDES
+
+    @classmethod
+    def key(cls) -> AnalysisKey[Result]:
+        """Get the analysis key used to access the analysis result from the PassContext."""
+        return AnalysisKey(cls.PROVIDES)
+
+    def _forward(self, model: PyModel, ctx: PyPassContext) -> tuple[PyModel, Artifact, Result]:
+        m, a, r = self.forward(Model._from_pym(model), PassContext._from_pyctx(ctx))
+        return m._m, a, r
+
+    @classmethod
+    def _backward(cls, artifact: Artifact, solution: PySolution) -> PySolution:
+        return cls.backward(artifact, Solution._from_pys(solution))._s

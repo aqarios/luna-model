@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Self
 
 from luna_model._lm import PyToUnconstrainedBinaryPipeline
-
-if TYPE_CHECKING:
-    from luna_model.transformation.pipeline import PipelineProto
+from luna_model.wrapper import wraps
 
 
-class ToUnconstrainedBinaryPipeline:
+class ToUnconstrainedBinaryPipeline(PyToUnconstrainedBinaryPipeline):
     """Convert a model to an unconstrained binary model.
 
     This pipeline transforms any model with constraints to an unconstrained binary model.
@@ -53,9 +51,23 @@ class ToUnconstrainedBinaryPipeline:
     >>> ir = pm.run(model)
     """
 
-    def __new__(cls, penalty_scaling: float = 10.0) -> PipelineProto:
-        """Todo."""
-        return PyToUnconstrainedBinaryPipeline.create(penalty_scaling)
+    def __new__(cls, penalty_scaling: float = 10.0) -> Self:
+        """Create the unconstrained-binary conversion pipeline.
 
-    def __init__(self, penalty_scaling: float = 10.0) -> None:
-        self._ps = penalty_scaling
+        Parameters
+        ----------
+        penalty_scaling : float, optional
+            Multiplier used when adding quadratic penalty terms for converted
+            constraints. Defaults to ``10.0``.
+
+        Returns
+        -------
+        Self
+            New pipeline instance.
+        """
+        return super().__new__(cls, penalty_scaling=penalty_scaling)
+
+    @wraps()
+    def __str__(self) -> str:
+        """Human readable string."""
+        raise NotImplementedError

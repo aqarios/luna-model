@@ -11,11 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Protocol, Self
+
 from luna_model._lm import PyGeToLeConstraintsPass
-from luna_model.transformation.transform import ConcreteTransformationPass
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
-class GeToLeConstraintsPass(ConcreteTransformationPass):
+class GeToLeConstraintsPassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the GeToLeConstraintsPass.
+
+    This protocol defines the interface for accessing information about GeToLeConstraintsPass transformations,
+    including the source and target variable types and the mapping between variable names.
+    """
+
+
+class GeToLeConstraintsPass(PyGeToLeConstraintsPass, BuiltinTransformation[GeToLeConstraintsPassArtifact]):
     """Convert the model's constraints by chaning all greater-equal (`>=`) constraints to less-equal (`<=`) constraints.
 
     Examples
@@ -29,10 +41,11 @@ class GeToLeConstraintsPass(ConcreteTransformationPass):
     >>> model.objective = x * y + x - 2 * y
     >>> model.constraints += x + y >= 0, "ge_constr"
     >>> pm = PassManager([GeToLeConstraintsPass()])
-    >>> ir = pm.run(model)
-    >>> ir.model.constraints["ge_constr"]
+    >>> output = pm.run(model)
+    >>> output.model.constraints["ge_constr"]
     -x - y <= 0
     """
 
-    def __init__(self) -> None:
-        super().__init__(base=PyGeToLeConstraintsPass())
+    def __new__(cls) -> Self:
+        """Create a new ge to le constraints pass."""
+        return super().__new__(cls)

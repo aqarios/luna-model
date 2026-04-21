@@ -27,7 +27,7 @@ pub use lunamodel_python as python;
 #[cfg(feature = "serializer")]
 pub use lunamodel_serializer as serializer;
 
-#[cfg(any(feature = "transform", feature = "py-transform"))]
+#[cfg(feature = "transform")]
 pub use lunamodel_transform as transform;
 
 #[cfg(feature = "translate")]

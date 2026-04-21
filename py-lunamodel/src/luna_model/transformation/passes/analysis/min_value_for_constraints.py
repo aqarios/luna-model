@@ -11,11 +11,34 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from luna_model._lm import PyMinValueForConstraintsAnalysis
-from luna_model.transformation.analysis import ConcreteAnalysisPass
+
+from typing import Protocol, Self, runtime_checkable
+
+from luna_model._lm import PyMinValueForConstraintAnalysis
+from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
 
 
-class MinValueForConstraintAnalysis(ConcreteAnalysisPass):
+@runtime_checkable
+class MinConstraintValues(Protocol):
+    """Protocol for MinValueForConstraints information stored in the analysis cache.
+
+    This protocol defines the interface for accessing min value for constraints values
+    computed during model analysis.
+    """
+
+    @property
+    def vals(self) -> dict[str, float]:
+        """Get the minimum values possible for the constraints.
+
+        Returns
+        -------
+        dict[str, float]
+            The minimum possible value for all constraints.
+        """
+        ...
+
+
+class MinValueForConstraintAnalysis(PyMinValueForConstraintAnalysis, BuiltinAnalysis[MinConstraintValues]):
     """Analysis pass that computes the min value possible for all constraints.
 
     This analysis pass computes the minimal value possible for all constraints
@@ -32,10 +55,11 @@ class MinValueForConstraintAnalysis(ConcreteAnalysisPass):
     >>> model.objective = x * y + x - 2 * y
     >>> model.constraints += -5 * x + y <= 2, "my-constraint"
     >>> pm = PassManager([MinValueForConstraintAnalysis()])
-    >>> ir = pm.run(model)
-    >>> ir.cache["min-value-for-constraint"].vals
+    >>> output = pm.run(model)
+    >>> output.context.require_analysis(MinValueForConstraintAnalysis.key()).vals
     {'my-constraint': -5.0}
     """
 
-    def __init__(self) -> None:
-        super().__init__(base=PyMinValueForConstraintsAnalysis())
+    def __new__(cls) -> Self:
+        """Create a new min value for constraint analysis pass."""
+        return super().__new__(cls)

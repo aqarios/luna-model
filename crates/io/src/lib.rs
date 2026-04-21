@@ -7,6 +7,7 @@ mod constr_coll;
 mod env;
 mod expr;
 mod model;
+mod transformation;
 pub mod sol;
 mod specs;
 mod timing;

@@ -25,3 +25,9 @@ impl From<rand::distr::uniform::Error> for LunaModelError {
         LunaModelError::RandomSampling(value.to_string().into())
     }
 }
+
+impl From<strum::ParseError> for LunaModelError {
+    fn from(value: strum::ParseError) -> Self {
+        LunaModelError::Decoding(value.to_string().into())
+    }
+}

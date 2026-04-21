@@ -11,84 +11,97 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import annotations
 
-import sys
 from abc import abstractmethod
 from typing import Generic, TypeVar
 
-if sys.version_info < (3, 12):
-    from typing_extensions import override
-else:
-    from typing import override
-
-from luna_model._lm import PyAnalysisCache, PyAnalysisPass, PyModel
+from luna_model._lm import PyAnalysisPass, PyModel, PyPassContext
 from luna_model.model.model import Model
+from luna_model.transformation.context import PassContext
+from luna_model.transformation.key import AnalysisKey
 
-from .base import BasePass
-from .cache import AnalysisCache
-
-T = TypeVar("T")
+Result = TypeVar("Result")
 
 
-class AnalysisPass(PyAnalysisPass, BasePass, Generic[T]):
-    """Base class for analysis passes that compute information about models.
+class _AnalysisPassMeta(type(PyAnalysisPass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, PyAnalysisPass) or super().__instancecheck__(instance)
 
-    Analysis passes inspect models and compute results without modifying them.
-    They can depend on other analysis passes and cache their results for
-    efficient access in subsequent passes.
+
+class AnalysisPass(PyAnalysisPass, Generic[Result], metaclass=_AnalysisPassMeta):
+    """
+    Abstract base class for analysis passes that analyse models.
+
+    Analysis passes retrieve information from models can used by transformation passes.
+
+    Notes
+    -----
+    This is an abstract class. Subclasses must implement the `name` and `run` methods and
+    the `PROVIDES` class variable.
+    Additionally, the `requires` method can be implemented to indicate which passes must
+    be executed before the analysis is run.
     """
 
-    _base: AnalysisPass
+    PROVIDES: str
 
-    def __init__(self, base: AnalysisPass | None = None) -> None:
-        self._base = base if base else PyAnalysisPass()
-
-    @property
-    @override
     @abstractmethod
     def name(self) -> str:
-        return self._base.name
+        """
+        Get the name for this pass.
 
-    @property
-    @override
-    def requires(self) -> list[str]:
-        return self._base.requires
+        Returns
+        -------
+        str
+            The unique pass name.
+        """
+        ...
 
     @abstractmethod
-    def run(self, model: Model, cache: AnalysisCache) -> T:
-        """Execute this analysis pass on a model.
+    def run(self, model: Model, ctx: PassContext) -> Result:
+        """
+        Run/Execute this analysis pass.
 
         Parameters
         ----------
         model : Model
-            The model to analyze.
-        cache : AnalysisCache
-            Cache containing results from previous analysis passes.
+            The model to analyse.
+        ctx : PassContext
+            Context for this pass providing read-access to the analysis cache.
 
         Returns
         -------
-        T
-            The result of the analysis.
+        Result
+            The analysis result.
         """
         ...
 
-    def _run(self, model: PyModel, cache: PyAnalysisCache) -> T:
-        return self.run(Model._from_pym(model), AnalysisCache._from_pyac(cache))
+    def requires(self) -> list[str]:
+        """
+        List of passes that must run before this pass.
 
+        Returns
+        -------
+        list[str]
+            Pass names that must execute first, or empty list if no dependencies.
+        """
+        return []
 
-class ConcreteAnalysisPass(AnalysisPass, Generic[T]):
-    """A concrete analysis pass that wraps an existing implementation.
+    @classmethod
+    def provides(cls) -> str:
+        """
+        Get the identifier for the analysis cache elment this pass generates.
 
-    This class provides a concrete implementation of AnalysisPass by delegating
-    to an underlying base pass.
-    """
+        Returns
+        -------
+        str
+            The identifier of the cache elment
+        """
+        return cls.PROVIDES
 
-    @property
-    @override
-    def name(self) -> str:
-        return self._base.name
+    @classmethod
+    def key(cls) -> AnalysisKey[Result]:
+        """Get the analysis key used to access the analysis result from the PassContext."""
+        return AnalysisKey(cls.PROVIDES)
 
-    @override
-    def run(self, model: Model, cache: AnalysisCache) -> T:
-        return self._base.run(model._m, cache._ac)
+    def _run(self, model: PyModel, ctx: PyPassContext) -> Result:
+        return self.run(Model._from_pym(model), PassContext._from_pyctx(ctx))

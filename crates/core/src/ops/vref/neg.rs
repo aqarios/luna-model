@@ -12,3 +12,11 @@ impl Neg for &VarRef {
         Expression::empty(self.env.clone()).maybe_edit(|e| e.sub_assign(self))
     }
 }
+
+impl Neg for VarRef {
+    type Output = LunaModelResult<Expression>;
+
+    fn neg(self) -> Self::Output {
+        -&self
+    }
+}

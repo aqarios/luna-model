@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Self
 
 from luna_model._lm import PyToBinaryMinimizationPipeline
-
-if TYPE_CHECKING:
-    from luna_model.transformation.pipeline import PipelineProto
+from luna_model.wrapper import wraps
 
 
-class ToBinaryMinimizationPipeline:
+class ToBinaryMinimizationPipeline(PyToBinaryMinimizationPipeline):
     """Convert a model to an binary model and minimize.
 
     This pipeline transforms any model with integers and spins to an binary model.
@@ -31,6 +29,17 @@ class ToBinaryMinimizationPipeline:
     >>> ir = pm.run(model)
     """
 
-    def __new__(cls) -> PipelineProto:
-        """Todo."""
-        return PyToBinaryMinimizationPipeline.create()
+    def __new__(cls) -> Self:
+        """Create the binary-minimization conversion pipeline.
+
+        Returns
+        -------
+        Self
+            New pipeline instance.
+        """
+        return super().__new__(cls)
+
+    @wraps()
+    def __str__(self) -> str:
+        """Human readable string."""
+        raise NotImplementedError

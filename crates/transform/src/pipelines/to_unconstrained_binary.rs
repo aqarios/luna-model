@@ -1,24 +1,22 @@
+use derive_more::Deref;
+use lunamodel_transpiler::Pipeline;
 use lunamodel_types::{EnumSetFromVec, Sense, Specs, Vtype};
 
 use crate::{
-    Pass,
-    passes::{
-        BinarySpinPass, ChangeSensePass, IntegerToBinaryPass,
-        analysis::{
-            CheckModelSpecsAnalysis, MaxBiasAnalysis, MinValueForConstraintAnalysis, SpecsAnalysis,
-        },
-        special::Pipeline,
-        transformation::{
-            EqualityConstraintsToQuadraticPenalty, GeToLeConstraintsPass, LeToEqConstraintsPass,
-        },
+    analysis::{
+        CheckModelSpecsAnalysis, MaxBiasAnalysis, MinValueForConstraintAnalysis, SpecsAnalysis,
+    },
+    transformation::{
+        BinarySpinPass, ChangeSensePass, EqualityConstraintsToQuadraticPenaltyPass,
+        GeToLeConstraintsPass, IntegerToBinaryPass, LeToEqConstraintsPass,
     },
 };
 
-#[derive(Debug, Clone)]
-pub struct ToUnconstrainedBinaryPipeline;
+#[derive(Deref)]
+pub struct ToUnconstrainedBinaryPipeline(pub Pipeline);
 
 impl ToUnconstrainedBinaryPipeline {
-    pub fn new(penalty_factor: f64) -> Pipeline {
+    pub fn new(penalty_factor: f64) -> Self {
         let requirements = Specs {
             vtypes: Some(vec![Vtype::Binary, Vtype::Spin, Vtype::Integer].to_enumset()),
             max_degree: None,
@@ -27,44 +25,74 @@ impl ToUnconstrainedBinaryPipeline {
             constraints: None,
             max_num_variables: None,
         };
-        // let pipeline =
-        Pipeline::new(
+        Self(Pipeline::new(
+            "constrained-to-unconstrained".to_string(),
             vec![
                 // Check that the requirements are fulfilled else return Error.
                 CheckModelSpecsAnalysis::new(requirements).into(),
                 BinarySpinPass::new(Vtype::Binary, Some("b".to_string())).into(),
                 // IntegerToBinaryPass::new().into(),
                 ChangeSensePass::new(Sense::Min).into(),
-                SpecsAnalysis::new().into(),
-                GeToLeConstraintsPass::new().into(),
-                MinValueForConstraintAnalysis::new().into(),
-                LeToEqConstraintsPass::new().into(),
-                IntegerToBinaryPass::new().into(),
-                MaxBiasAnalysis::new().into(),
-                EqualityConstraintsToQuadraticPenalty::new(penalty_factor).into(),
+                SpecsAnalysis::default().into(),
+                GeToLeConstraintsPass::default().into(),
+                MinValueForConstraintAnalysis::default().into(),
+                LeToEqConstraintsPass::default().into(),
+                IntegerToBinaryPass::default().into(),
+                MaxBiasAnalysis::default().into(),
+                EqualityConstraintsToQuadraticPenaltyPass::new(penalty_factor).into(),
             ],
-            Some("constrained-to-unconstrained".to_string()),
-        )
-        // pipeline.hide_inner = true;
-        // pipeline
+        ))
     }
 }
 
-// #[derive(Clone, Debug)]
-// struct UnconstrainedCondition;
+impl Into<Pipeline> for ToUnconstrainedBinaryPipeline {
+    fn into(self) -> Pipeline {
+        self.0
+    }
+}
 
-// impl Condition for UnconstrainedCondition {
-//     fn call(&self, cache: &crate::AnalysisCache) -> lunamodel_error::LunaModelResult<bool> {
-//         if let Some(AnalysisCacheElement::SpecsAnalysis(specs)) = cache.get("specs") {
-//             Ok(specs.constraints.unwrap() == Ctype::Unconstrained)
-//         } else {
-//             Err(LunaModelError::Internal("no cache entry for specs".into()))
-//         }
-//     }
-// }
-//
-impl Into<Pass> for BinarySpinPass {
-    fn into(self) -> Pass {
-        Pass::Transformation(Box::new(self))
+#[cfg(test)]
+mod tests {
+    use lunamodel_core::{
+        Model,
+        ops::LmAddAssign,
+        prelude::{Constraint, LazyBounds},
+    };
+    use lunamodel_error::LunaModelResult;
+    use lunamodel_transpiler::PassManager;
+    use lunamodel_types::{Bound, Comparator, Vtype};
+
+    use crate::pipelines::ToUnconstrainedBinaryPipeline;
+
+    #[test]
+    fn run_to_unconstrained_binary_pipeline() -> LunaModelResult<()> {
+        let mut model = Model::default();
+        let x = model.add_var("x", Vtype::Binary, None)?;
+        let y = model.add_var("y", Vtype::Spin, None)?;
+        let z = model.add_var(
+            "z",
+            Vtype::Integer,
+            Some(LazyBounds::new(
+                Some(Bound::Bounded(0.)),
+                Some(Bound::Bounded(12.)),
+            )),
+        )?;
+        model.objective.add_assign(((&x + &y)? + &z)?)?;
+        model.constraints.add_constraint(
+            Constraint::new(((&x + &y)? + &z)?, 3.0, Comparator::Le, None)?,
+            None,
+        )?;
+        model.constraints.add_constraint(
+            Constraint::new(((&x - &y)? - &z)?, 0.0, Comparator::Ge, None)?,
+            None,
+        )?;
+        model.constraints.add_constraint(
+            Constraint::new((&x + &y)?, 2.0, Comparator::Eq, None)?,
+            None,
+        )?;
+
+        let pm = PassManager::new().add_pipeline(ToUnconstrainedBinaryPipeline::new(10.0).into());
+        let _ = pm.run(model)?;
+        Ok(())
     }
 }

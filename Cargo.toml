@@ -6,13 +6,14 @@ members = [
   "pyo3-lunamodel",
   "crates/unwind/unwindable",
   "crates/unwind/unwinder",
+  "crates/transpiler/transpiler_macros"
 ]
 default-members = [
   "crates/*",
 ]
 
 [workspace.package]
-version = "0.5.0"
+version = "0.6.0"
 authors = [
   "Jonas Blenninger <jonas.blenninger@aqarios.com>",
   "David Bucher <david.bucher@aqarios.com>",
@@ -63,6 +64,7 @@ lunamodel-io = { path = "crates/io", default-features = false }
 lunamodel-hashing = { path = "crates/hashing", default-features = false }
 lunamodel-serializer = { path = "crates/serializer", default-features = false }
 lunamodel-transform = { path = "crates/transform", default-features = false }
+lunamodel-transpiler = { path = "crates/transpiler", default-features = false }
 lunamodel-translate = { path = "crates/translate", default-features = false }
 lunamodel-python = { path = "crates/python", default-features = false }
 lunamodel-utils = { path = "crates/utils", default-features = false }
@@ -70,3 +72,5 @@ lunamodel-unwind = { path = "crates/unwind", default-features = false }
 
 lunamodel-unwindable = { path = "crates/unwind/unwindable", default-features = false }
 lunamodel-unwinder = { path = "crates/unwind/unwinder", default-features = false }
+
+lunamodel-transpiler-macros = { path = "crates/transpiler/transpiler_macros", default-features = false }

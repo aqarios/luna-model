@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """LunaModel: Blazingly fast symbolic modeling for optimization.
 
 LunaModel is a high-performance symbolic modeling library for describing, translating

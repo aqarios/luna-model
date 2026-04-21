@@ -14,5 +14,3 @@ proc-macro = true
 syn = { workspace = true, features = ["full"] }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
-once_cell = { workspace = true }
-pyo3 = { workspace = true }

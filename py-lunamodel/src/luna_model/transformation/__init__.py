@@ -11,36 +11,61 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from . import passes, pipelines
-from .action_type import ActionType
+
+from . import passes
 from .analysis import AnalysisPass
-from .base import BasePass
-from .cache import AnalysisCache
-from .decorators import analyse, meta_analyse, transform
-from .ifelse import IfElsePass
-from .ir import IR
-from .log import LogElement
+from .artifact import NothingArtifact, TransformationPassArtifact
+from .composite import CompositePass
+from .context import PassContext
+from .control_flow import ControlFlowPass, ControlFlowPlan
+from .decorators import (
+    allowed_import_prefixes,
+    analyse,
+    analyze,
+    composite,
+    control_flow,
+    meta_analyse,
+    meta_analyze,
+    register_allowed_import_prefix,
+    transform,
+)
 from .meta_analysis import MetaAnalysisPass
+from .output import AnalysisCache, TransformationOutput
 from .pass_manager import PassManager
 from .pipeline import Pipeline
-from .transform import TransformationOutcome, TransformationPass
+from .record import AnalysisEntry, ControlFlowEntry, PassEntry, PipelineEntry, TransformationRecord, TransformEntry
+from .transformation import TransformationPass
+from .typing import Pass
 
 __all__ = [
-    "IR",
-    "ActionType",
     "AnalysisCache",
+    "AnalysisEntry",
     "AnalysisPass",
-    "BasePass",
-    "IfElsePass",
-    "LogElement",
+    "CompositePass",
+    "ControlFlowEntry",
+    "ControlFlowPass",
+    "ControlFlowPlan",
     "MetaAnalysisPass",
+    "NothingArtifact",
+    "Pass",
+    "PassContext",
+    "PassEntry",
     "PassManager",
     "Pipeline",
-    "TransformationOutcome",
+    "PipelineEntry",
+    "TransformEntry",
+    "TransformationOutput",
     "TransformationPass",
+    "TransformationPassArtifact",
+    "TransformationRecord",
+    "allowed_import_prefixes",
     "analyse",
+    "analyze",
+    "composite",
+    "control_flow",
     "meta_analyse",
+    "meta_analyze",
     "passes",
-    "pipelines",
+    "register_allowed_import_prefix",
     "transform",
 ]

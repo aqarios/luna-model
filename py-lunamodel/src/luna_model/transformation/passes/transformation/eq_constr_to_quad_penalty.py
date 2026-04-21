@@ -11,11 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Protocol, Self
+
 from luna_model._lm import PyEqualityConstraintsToQuadraticPenaltyPass
-from luna_model.transformation.transform import ConcreteTransformationPass
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
-class EqualityConstraintsToQuadraticPenaltyPass(ConcreteTransformationPass):
+class EqualityConstraintsToQuadraticPenaltyPassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the EqualityConstraintsToQuadraticPenaltyPass.
+
+    This protocol defines the interface for accessing information about EqualityConstraintsToQuadraticPenaltyPass
+    transformations, including the source and target variable types and the mapping between variable names.
+    """
+
+
+class EqualityConstraintsToQuadraticPenaltyPass(
+    PyEqualityConstraintsToQuadraticPenaltyPass,
+    BuiltinTransformation[EqualityConstraintsToQuadraticPenaltyPassArtifact],
+):
     """Move all equality constraints to the model's objective as a quadratic penalties.
 
     Converts the model by moving all equality constraints to the objective as quadratic penalties.
@@ -29,12 +44,10 @@ class EqualityConstraintsToQuadraticPenaltyPass(ConcreteTransformationPass):
     -----
     This pass requires the `MaxBiasAnalysis` pass to be executed before this pass.
 
-
     Parameters
     ----------
     penalty_scaling : float
         The factor used to scale the penalties with, default 10.0.
-
 
     Examples
     --------
@@ -53,10 +66,25 @@ class EqualityConstraintsToQuadraticPenaltyPass(ConcreteTransformationPass):
     ...         EqualityConstraintsToQuadraticPenaltyPass(),
     ...     ]
     ... )
-    >>> ir = pm.run(model)
-    >>> print(ir.model.objective)
+    >>> output = pm.run(model)
+    >>> print(output.model.objective)
     41 x y + 21 x + 18 y
     """
 
+    def __new__(cls, penalty_scaling: float = 10.0) -> Self:
+        """Create a new equality constraints to quadratic penalty pass.
+
+        Parameters
+        ----------
+        penalty_scaling : float
+            The factor used to scale the penalties with, default 10.0.
+        """
+        return super().__new__(cls, penalty_scaling)
+
     def __init__(self, penalty_scaling: float = 10.0) -> None:
-        super().__init__(base=PyEqualityConstraintsToQuadraticPenaltyPass(penalty_scaling))
+        _ = penalty_scaling
+
+    @property
+    def penalty_scaling(self) -> float:
+        """Get the penalty scaling factor."""
+        return super().penalty_scaling

@@ -11,11 +11,34 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Protocol, Self
+
 from luna_model._lm import PyLeToEqConstraintsPass
-from luna_model.transformation.transform import ConcreteTransformationPass
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
-class LeToEqConstraintsPass(ConcreteTransformationPass):
+class LeToEqConstraintsPassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the LeToEqConstraintsPassArtifact.
+
+    This protocol defines the interface for accessing information about LeToEqConstraintsPassArtifact transformations,
+    including the source and target variable types and the mapping between variable names.
+    """
+
+    @property
+    def slackvars(self) -> list[str]:
+        """Get the created slackvar names.
+
+        Returns
+        -------
+        list[str]
+            List of slackvar names created by this pass.
+        """
+        ...
+
+
+class LeToEqConstraintsPass(PyLeToEqConstraintsPass, BuiltinTransformation[LeToEqConstraintsPassArtifact]):
     """Convert the model's constraints by chaning all less-equal (`<=`) constraints to equality (`==`) constraints.
 
     Examples
@@ -30,12 +53,13 @@ class LeToEqConstraintsPass(ConcreteTransformationPass):
     >>> model.objective = x * y + x - 2 * y
     >>> model.constraints += x + y <= 3, "le_constr"
     >>> pm = PassManager([MinValueForConstraintAnalysis(), LeToEqConstraintsPass()])
-    >>> ir = pm.run(model)
-    >>> ir.model.constraints["le_constr"]
+    >>> output = pm.run(model)
+    >>> output.model.constraints["le_constr"]
     x + y - slack_le_constr == 0
-    >>> print(ir.model.get_variable("slack_le_constr"))
+    >>> print(output.model.get_variable("slack_le_constr"))
     slack_le_constr: Integer(lower=0, upper=3)
     """
 
-    def __init__(self) -> None:
-        super().__init__(base=PyLeToEqConstraintsPass())
+    def __new__(cls) -> Self:
+        """Create a new le to eq constraints pass."""
+        return super().__new__(cls)

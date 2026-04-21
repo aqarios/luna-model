@@ -11,14 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import sys
+
+if sys.version_info < (3, 13):
+    from typing_extensions import deprecated
+else:
+    from warnings import deprecated
+
 from collections.abc import Sequence
 
 from luna_model._lm import PyPassManager
 from luna_model.model.model import Model
 from luna_model.solution.sol import Solution
-
-from .base import BasePass
-from .ir import IR
+from luna_model.transformation.output import TransformationOutput
+from luna_model.transformation.pipeline import Pipeline
+from luna_model.transformation.typing import Pass
 
 
 class PassManager:
@@ -39,23 +47,20 @@ class PassManager:
 
     _pm: PyPassManager
 
-    def __init__(
-        self,
-        passes: Sequence[BasePass] | None = None,
-    ) -> None:
+    def __init__(self, passes: Sequence[Pass] | Pipeline | None = None) -> None:
         self._pm = PyPassManager(passes)
 
-    def add(self, pass_: BasePass) -> None:
+    def add(self, pass_: Pass) -> None:
         """Append a pass to the configured passes.
 
         Parameters
         ----------
-        pass_ : BasePass
+        pass_ : TransformationPass | AnalysisPass | ControlFlowPass
             The pass to add to this PassManager's configured passes.
         """
         self._pm.add(pass_)
 
-    def run(self, model: Model) -> IR:
+    def run(self, model: Model) -> TransformationOutput:
         """Apply all configured passes.
 
         Apply all configured passes to the given model and return the
@@ -68,12 +73,16 @@ class PassManager:
 
         Returns
         -------
-        IR
-            The intermediate representation of the model after transformation.
+        TransformationOutput
+            The transformation ouput after transformation.
         """
-        return IR._from_pyir(self._pm.run(model._m))
+        return TransformationOutput._from_pyto(self._pm.run(model._m))
 
-    def backwards(self, solution: Solution, ir: IR) -> Solution:
+    @deprecated(
+        "This method is deprecated and will be removed in the next non-patch release. "
+        "Use the `backward` method of the `CompilationRecord` produced by the PassManager execution instead."
+    )
+    def backwards(self, solution: Solution, output: TransformationOutput) -> Solution:
         """Apply the back transformation to the given solution.
 
         !!! warning "Disclaimer"
@@ -87,8 +96,8 @@ class PassManager:
         solution : Solution
             The solution to transform back to a representation fitting the original
             (input) model of this `PassManager`.
-        ir : IR
-            The intermediate representation (IR) resulted from the `run` call.
+        output : TransformationOutput
+            The transformation output returned from the `run` call.
 
         Returns
         -------
@@ -96,7 +105,7 @@ class PassManager:
             A solution object representing a solution to the original problem passed
             to this `PassManager`'s run method.
         """
-        return Solution._from_pys(self._pm.backwards(solution._s, ir._ir))
+        return output.record.backward(solution)
 
     def __str__(self) -> str:
         """Human readable string."""
