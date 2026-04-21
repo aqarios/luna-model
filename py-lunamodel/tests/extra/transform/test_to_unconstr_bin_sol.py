@@ -13,9 +13,9 @@ def test_very_simple_model_mixed():
     model.constraints += x - y - z >= 0, "c1"
     model.constraints += x + y == 2, "c2"
     
-    penalty_factor = 10
-    pm = PassManager([pipelines.ToUnconstrainedBinaryPipeline(penalty_factor=penalty_factor)])
-    ir = pm.run(model)
+    penalty_scaling = 10
+    pm = PassManager([pipelines.ToUnconstrainedBinaryPipeline(penalty_scaling=penalty_scaling)])
+    output = pm.run(model)
 
 
     unconstr_bin_sol = Solution.from_dicts(
@@ -59,8 +59,9 @@ def test_very_simple_model_mixed():
             "slack_c1_b0": 1,
             "slack_c1_b1": 1
         },
-        ], env=ir.model.environment)
-    sol = pm.backwards(unconstr_bin_sol, ir=ir)
+        ], env=output.model.environment)
+
+    sol = model.evaluate(output.record.backward(unconstr_bin_sol))
     assert sol.obj_values is not None
     assert [1.0, 13.0, 3.0] == sol.obj_values.tolist()
     assert [[0, 0, 1], [0, 12, 1], [1, 1, 1]] == sol.samples.tolist()
