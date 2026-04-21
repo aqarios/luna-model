@@ -9,6 +9,7 @@ use lunamodel_transform::{
     transformation::{
         BinarySpinPass, ChangeSensePass, EqualityConstraintsToQuadraticPenaltyPass,
         GeToLeConstraintsPass, IntegerToBinaryPass, LeToEqConstraintsPass,
+        ReduceInvertedBinaryPass,
     },
 };
 use lunamodel_transpiler::{Pipeline, PipelineStep};
@@ -35,6 +36,7 @@ use crate::transform::{
         transformation::{
             PyBinarySpinPass, PyChangeSensePass, PyEqualityConstraintsToQuadraticPenaltyPass,
             PyGeToLeConstraintsPass, PyIntegerToBinaryPass, PyLeToEqConstraintsPass,
+            PyReduceInvertedBinaryPass,
         },
     },
     utils::map_pyerr,
@@ -57,6 +59,7 @@ pub enum PyPass {
     GeToLe(Py<PyGeToLeConstraintsPass>),
     IntToBin(Py<PyIntegerToBinaryPass>),
     LeToEq(Py<PyLeToEqConstraintsPass>),
+    RedInvBin(Py<PyReduceInvertedBinaryPass>),
     // control-flow
     IfElse(Py<PyIfElsePass>),
     // known pipelines
@@ -101,6 +104,7 @@ impl PyPass {
             Self::GeToLe(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
             Self::IntToBin(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
             Self::LeToEq(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
+            Self::RedInvBin(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
             // control-flow
             Self::IfElse(p) => Ok(PipelineStep::ControlFlow(Arc::new(p.borrow(py).to_rs()))),
             // known pipelines
@@ -217,6 +221,12 @@ impl PyPass {
                 }
                 if let Some(t) = p.as_any().downcast_ref::<LeToEqConstraintsPass>() {
                     return Py::new(py, PyLeToEqConstraintsPass(t.clone()))
+                        .map_err(map_pyerr)?
+                        .into_py_any(py)
+                        .map_err(map_pyerr);
+                }
+                if let Some(t) = p.as_any().downcast_ref::<ReduceInvertedBinaryPass>() {
+                    return Py::new(py, PyReduceInvertedBinaryPass(t.clone()))
                         .map_err(map_pyerr)?
                         .into_py_any(py)
                         .map_err(map_pyerr);

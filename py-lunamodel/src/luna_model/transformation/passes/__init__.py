@@ -29,6 +29,7 @@ from .transformation import (
     GeToLeConstraintsPass,
     IntegerToBinaryPass,
     LeToEqConstraintsPass,
+    ReduceInvertedBinaryPass,
 )
 
 __all__ = [
@@ -44,6 +45,7 @@ __all__ = [
     "MaxBiasAnalysis",
     "MinConstraintValues",
     "MinValueForConstraintAnalysis",
+    "ReduceInvertedBinaryPass",
     "SpecsAnalysis",
     "analysis",
     "control_flow",

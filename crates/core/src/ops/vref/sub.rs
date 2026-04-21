@@ -39,9 +39,39 @@ impl Sub<Bias> for &VarRef {
     }
 }
 
+impl Sub<Bias> for VarRef {
+    type Output = LunaModelResult<Expression>;
+    fn sub(self, rhs: Bias) -> Self::Output {
+        (&self).sub(rhs)
+    }
+}
+
 impl Sub<usize> for &VarRef {
     type Output = LunaModelResult<Expression>;
     fn sub(self, rhs: usize) -> Self::Output {
         self.sub(rhs as Bias)
+    }
+}
+
+impl Sub<usize> for VarRef {
+    type Output = LunaModelResult<Expression>;
+    fn sub(self, rhs: usize) -> Self::Output {
+        self.sub(rhs as Bias)
+    }
+}
+
+impl Sub<VarRef> for usize {
+    type Output = LunaModelResult<Expression>;
+
+    fn sub(self, rhs: VarRef) -> Self::Output {
+        rhs.sub(self)
+    }
+}
+
+impl Sub<VarRef> for Bias {
+    type Output = LunaModelResult<Expression>;
+
+    fn sub(self, rhs: VarRef) -> Self::Output {
+        rhs.sub(self)
     }
 }

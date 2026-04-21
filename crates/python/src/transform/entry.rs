@@ -2,6 +2,7 @@ use lunamodel_error::LunaModelError;
 use lunamodel_transform::transformation::{
     BinarySpinPassArtifact, ChangeSensePassArtifact, EqualityConstraintsToQuadraticPenaltyArtifact,
     GeToLeConstraintsArtifact, IntegerToBinaryArtifact, LeToEqConstraintsArtifact,
+    ReduceInvertedBinaryPassArtifact,
 };
 use lunamodel_transpiler::{ErasedArtifact, PassEntry};
 use pyo3::{IntoPyObjectExt, Py, PyAny, PyResult, Python, pyclass, pymethods};
@@ -11,7 +12,7 @@ use crate::transform::{
     builtin::transformation::{
         PyBinarySpinPassArtifact, PyChangeSensePassArtifact,
         PyEqualityConstraintsToQuadraticPenaltyArtifact, PyGeToLeConstraintsArtifact,
-        PyIntegerToBinaryArtifact, PyLeToEqConstraintsArtifact,
+        PyIntegerToBinaryArtifact, PyLeToEqConstraintsArtifact, PyReduceInvertedBinaryPassArtifact,
     },
     record::PyTransformationRecord,
 };
@@ -48,6 +49,8 @@ impl PyErasedArtifact {
             PyIntegerToBinaryArtifact(b).into_py_any(py)
         } else if let Ok(b) = ea.restore::<LeToEqConstraintsArtifact>() {
             PyLeToEqConstraintsArtifact(b).into_py_any(py)
+        } else if let Ok(b) = ea.restore::<ReduceInvertedBinaryPassArtifact>() {
+            PyReduceInvertedBinaryPassArtifact(b).into_py_any(py)
         } else if let Ok(b) = ea.restore::<PyTransformationPassAdapterArtifact>() {
             b.into_py_any(py)
         } else {

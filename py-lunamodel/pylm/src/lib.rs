@@ -75,6 +75,7 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transform::builtin::transformation::PyEqualityConstraintsToQuadraticPenaltyPass>()?;
     m.add_class::<transform::builtin::transformation::PyGeToLeConstraintsPass>()?;
     m.add_class::<transform::builtin::transformation::PyLeToEqConstraintsPass>()?;
+    m.add_class::<transform::builtin::transformation::PyReduceInvertedBinaryPass>()?;
     // builtin control flow
     m.add_class::<transform::builtin::control_flow::PyIfElsePass>()?;
     // builtin composite

@@ -18,6 +18,7 @@ from .eq_constr_to_quad_penalty import EqualityConstraintsToQuadraticPenaltyPass
 from .ge_to_le_constraints import GeToLeConstraintsPass
 from .integer_to_binary import IntegerToBinaryPass
 from .le_to_eq_constraints import LeToEqConstraintsPass
+from .reduce_inverted_binary import ReduceInvertedBinaryPass
 
 __all__ = [
     "BinarySpinPass",
@@ -26,4 +27,5 @@ __all__ = [
     "GeToLeConstraintsPass",
     "IntegerToBinaryPass",
     "LeToEqConstraintsPass",
+    "ReduceInvertedBinaryPass",
 ]
