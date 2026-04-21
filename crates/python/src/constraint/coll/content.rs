@@ -8,9 +8,12 @@ use lunamodel_error::LunaModelResult;
 use lunamodel_serializer::prelude::Encodable;
 use lunamodel_types::Comparator;
 use parking_lot::RwLock;
-use pyo3::PyResult;
+use pyo3::{PyResult, Python};
 
-use crate::PyConstraint;
+use crate::{
+    PyConstraint,
+    constraint::utils::{ConstraintsIn, NameIn, add_many_constraint},
+};
 
 #[derive(Clone, Debug)]
 pub enum PyConstraintCollectionContent {
@@ -19,6 +22,13 @@ pub enum PyConstraintCollectionContent {
 }
 
 impl PyConstraintCollectionContent {
+    pub fn collection(self) -> ConstraintCollection {
+        match self {
+            Self::Model(m) => m.read_arc().constraints.clone(),
+            Self::Coll(c) => c.read_arc().clone(),
+        }
+    }
+
     pub fn get(&self, key: &str) -> PyResult<PyConstraint> {
         Ok(match self {
             Self::Coll(coll) => coll.read_arc().get(key)?.clone().into(),
@@ -87,14 +97,18 @@ impl PyConstraintCollectionContent {
         &mut self,
         constr: Constraint,
         name: Option<String>,
-    ) -> LunaModelResult<()> {
+    ) -> LunaModelResult<String> {
         match self {
             Self::Coll(c) => c.write_arc().add_constraint(constr, name),
             Self::Model(m) => m.write_arc().constraints.add_constraint(constr, name),
         }
     }
 
-    pub fn add_collection(&mut self, coll: Self, prefix: Option<String>) -> LunaModelResult<()> {
+    pub fn add_collection(
+        &mut self,
+        coll: Self,
+        prefix: Option<String>,
+    ) -> LunaModelResult<Vec<String>> {
         let collection = match coll {
             Self::Coll(c) => c.read_arc().clone(),
             Self::Model(m) => m.write_arc().constraints.clone(),
@@ -105,10 +119,22 @@ impl PyConstraintCollectionContent {
         }
     }
 
+    pub fn add_many_py(
+        &mut self,
+        py: Python,
+        ccin: ConstraintsIn,
+        nin: Option<NameIn>,
+    ) -> LunaModelResult<Vec<String>> {
+        match self {
+            Self::Model(m) => add_many_constraint(py, &mut m.write_arc().constraints, ccin, nin),
+            Self::Coll(c) => add_many_constraint(py, &mut c.write_arc(), ccin, nin),
+        }
+    }
+
     pub fn add_many(
         &mut self,
         others: impl Iterator<Item = (Constraint, Option<String>)>,
-    ) -> LunaModelResult<()> {
+    ) -> LunaModelResult<Vec<String>> {
         match self {
             Self::Coll(c) => c.write_arc().add_many_constraints(others),
             Self::Model(m) => m.write_arc().constraints.add_many_constraints(others),

@@ -9,7 +9,7 @@ use lunamodel_translate::model::LpTranslator;
 use lunamodel_unwind::*;
 use pyo3::{FromPyObject, PyResult, pyclass, pymethods};
 
-use crate::PyModel;
+use crate::{PyModel, args::PyModelArg};
 
 #[derive(FromPyObject)]
 enum PyLpTranslatorToLmInput {
@@ -45,7 +45,7 @@ impl PyLpTranslator {
 
     #[staticmethod]
     #[pyo3(signature=(model, filepath=None))]
-    fn from_lm(model: PyModel, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
+    fn from_lm(model: PyModelArg, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
         Ok(LpTranslator::back_translate(&model.m.read_arc(), filepath)?)
     }
 }

@@ -2,7 +2,10 @@ use lunamodel_types::{Ctype, EnumSetFromVec, Specs, Vtype};
 use lunamodel_unwind::*;
 use pyo3::pymethods;
 
-use crate::types::{PyCtype, PySense, PyVtype};
+use crate::{
+    args::PyModelSpecsArg,
+    types::{PyCtype, PySense, PyVtype},
+};
 
 use super::PyModelSpecs;
 
@@ -84,7 +87,7 @@ impl PyModelSpecs {
         self.s.max_num_variables
     }
 
-    fn satisfies(&self, other: &Self) -> bool {
+    fn satisfies(&self, other: PyModelSpecsArg) -> bool {
         self.s.satisfies(&other.s)
     }
 }

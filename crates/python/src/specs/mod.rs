@@ -6,7 +6,7 @@ use pyo3::pyclass;
 
 #[pyclass]
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PyModelSpecs {
     pub s: Specs,
 }

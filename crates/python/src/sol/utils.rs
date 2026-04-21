@@ -3,7 +3,7 @@ use std::hash::{Hash, Hasher};
 use lunamodel_error::LunaModelResult;
 use pyo3::{FromPyObject, PyAny, PyErr, exceptions::PyTypeError};
 
-use crate::PyVariable;
+use crate::args::PyVarArg;
 use crate::utils::VarKey;
 
 impl From<String> for VarKey {
@@ -18,7 +18,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for VarKey {
     fn extract(obj: pyo3::Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
         if let Ok(s) = obj.extract::<String>() {
             Ok(VarKey::Str(s))
-        } else if let Ok(v) = obj.extract::<PyVariable>() {
+        } else if let Ok(v) = obj.extract::<PyVarArg>() {
             Ok(VarKey::Var(v))
         } else {
             Err(PyTypeError::new_err("keys have to be 'str' or 'Variable'"))

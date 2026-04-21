@@ -124,7 +124,7 @@ class LpTranslator:
     def from_lm(model: Model) -> str: ...
     @staticmethod
     @overload
-    def from_lm(model: Model, filepath: Path) -> None: ...
+    def from_lm(model: Model, filepath: Path | None) -> None: ...
     @staticmethod
     def from_lm(model: Model, filepath: Path | None = None) -> str | None:
         r"""Convert LunaModel to LP file or string.
@@ -177,4 +177,4 @@ class LpTranslator:
         <BLANKLINE>
         End
         """
-        return PyLpTranslator.from_lm(model._m, filepath)
+        return PyLpTranslator.from_lm(model, filepath)

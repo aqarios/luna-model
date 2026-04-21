@@ -10,7 +10,7 @@ use lunamodel_core::prelude::Constraint;
 use parking_lot::RwLock;
 use pyo3::pyclass;
 
-#[pyclass]
+#[pyclass(subclass)]
 #[derive(Clone, Debug)]
 pub struct PyConstraint {
     pub c: Arc<RwLock<Constraint>>,

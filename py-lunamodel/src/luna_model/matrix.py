@@ -18,6 +18,9 @@ from typing import Any, Literal, Self
 
 import numpy as np
 
+from luna_model._lm import PyExpression
+from luna_model._utils import wrap_expr
+
 
 class NDLmArray(np.ndarray):
     """A n-dimensional array of variables."""
@@ -26,7 +29,7 @@ class NDLmArray(np.ndarray):
         """Create a new NDLmArray based on a ndarray."""
         return np.asarray(input_array).view(cls)
 
-    def __array_ufunc__(
+    def __array_ufunc__(  # noqa: PLR0911
         self,
         ufunc: np.ufunc,
         method: Literal["__call__", "reduce", "reduceat", "accumulate", "outer", "at"],
@@ -45,7 +48,12 @@ class NDLmArray(np.ndarray):
                 case np.less | np.greater:
                     return NotImplemented
         raw_inputs = tuple(x.view(np.ndarray) if isinstance(x, NDLmArray) else x for x in inputs)
-        return NDLmArray(super().__array_ufunc__(ufunc, method, *raw_inputs, **kwargs))
+        out = super().__array_ufunc__(ufunc, method, *raw_inputs, **kwargs)
+        if isinstance(out, np.ndarray):
+            return NDLmArray(out)
+        if isinstance(out, PyExpression):
+            return wrap_expr(out)
+        return NDLmArray(out)
 
     def __vectorized_le(self, other: float | np.ndarray | Self) -> Any:  # noqa: ANN401
         if isinstance(other, (type(self), np.ndarray)):

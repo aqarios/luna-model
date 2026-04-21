@@ -12,11 +12,12 @@ use pyo3::{PyResult, pymethods};
 use std::collections::{HashMap, HashSet};
 
 use super::PySolution;
+use crate::PyEnvironment;
+use crate::args::{PyEnvArg, PyModelArg, PySolArg};
 use crate::timer::PyTiming;
 use crate::types::{PySense, PyVtype};
 use crate::utils::VarKey;
 use crate::utils::retrieve_environment;
-use crate::{PyEnvironment, PyModel};
 
 enum BitOrder {
     LTR,
@@ -37,7 +38,7 @@ impl PySolution {
         variables_bounds: Option<IndexMap<String, Vec<bool>>>,
         timing: Option<PyTiming>,
         sense: Option<PySense>,
-        env: Option<PyEnvironment>,
+        env: Option<PyEnvArg>,
         vtypes: Option<Vec<PyVtype>>,
         tol: Option<f64>,
     ) -> PyResult<Self> {
@@ -191,8 +192,8 @@ impl PySolution {
     #[staticmethod]
     fn from_dict(
         data: IndexMap<VarKey, f64>,
-        env: Option<PyEnvironment>,
-        model: Option<PyModel>,
+        env: Option<PyEnvArg>,
+        model: Option<PyModelArg>,
         timing: Option<PyTiming>,
         counts: Option<usize>,
         sense: Option<PySense>,
@@ -200,6 +201,7 @@ impl PySolution {
         tol: Option<f64>,
     ) -> PyResult<Self> {
         let sense = sense.map(|s| s.into());
+
         check_env_or_model(&env, &model)?;
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
@@ -207,7 +209,7 @@ impl PySolution {
         fn inner(
             data: IndexMap<VarKey, f64>,
             environment: ArcEnv,
-            model: Option<PyModel>,
+            model: Option<PyModelArg>,
             timing: Option<PyTiming>,
             counts: Option<usize>,
             sense: Option<Sense>,
@@ -277,8 +279,8 @@ impl PySolution {
     #[staticmethod]
     fn from_dicts(
         data: Vec<IndexMap<VarKey, f64>>,
-        env: Option<PyEnvironment>,
-        model: Option<PyModel>,
+        env: Option<PyEnvArg>,
+        model: Option<PyModelArg>,
         timing: Option<PyTiming>,
         counts: Option<Vec<usize>>,
         sense: Option<PySense>,
@@ -286,6 +288,7 @@ impl PySolution {
         tol: Option<f64>,
     ) -> PyResult<Self> {
         let sense = sense.map(|s| s.into());
+
         check_env_or_model(&env, &model)?;
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
@@ -293,7 +296,7 @@ impl PySolution {
         fn inner(
             data: Vec<IndexMap<VarKey, f64>>,
             environment: ArcEnv,
-            model: Option<PyModel>,
+            model: Option<PyModelArg>,
             timing: Option<PyTiming>,
             counts: Option<Vec<usize>>,
             sense: Option<Sense>,
@@ -384,8 +387,8 @@ impl PySolution {
     fn from_arrays(
         data: PyReadonlyArray2<f64>,
         variables: Option<Vec<VarKey>>,
-        env: Option<PyEnvironment>,
-        model: Option<PyModel>,
+        env: Option<PyEnvArg>,
+        model: Option<PyModelArg>,
         timing: Option<PyTiming>,
         counts: Option<Vec<usize>>,
         sense: Option<PySense>,
@@ -393,6 +396,7 @@ impl PySolution {
         tol: Option<f64>,
     ) -> PyResult<Self> {
         let sense = sense.map(|s| s.into());
+
         check_env_or_model(&env, &model)?;
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
@@ -401,7 +405,7 @@ impl PySolution {
             data: PyReadonlyArray2<f64>,
             variables: Option<Vec<VarKey>>,
             environment: ArcEnv,
-            model: Option<PyModel>,
+            model: Option<PyModelArg>,
             timing: Option<PyTiming>,
             counts: Option<Vec<usize>>,
             sense: Option<Sense>,
@@ -482,8 +486,8 @@ impl PySolution {
     #[staticmethod]
     fn from_counts(
         data: IndexMap<String, usize>,
-        env: Option<PyEnvironment>,
-        model: Option<PyModel>,
+        env: Option<PyEnvArg>,
+        model: Option<PyModelArg>,
         timing: Option<PyTiming>,
         sense: Option<PySense>,
         bit_order: String,
@@ -491,6 +495,7 @@ impl PySolution {
         var_order: Option<Vec<String>>,
     ) -> PyResult<PySolution> {
         let sense = sense.map(|s| s.into());
+
         check_env_or_model(&env, &model)?;
         check_sense_or_model(&sense, &model)?;
         let environment = retrieve_environment(env, &model)?.env;
@@ -498,7 +503,7 @@ impl PySolution {
         fn inner(
             data: IndexMap<String, usize>,
             environment: ArcEnv,
-            model: Option<PyModel>,
+            model: Option<PyModelArg>,
             timing: Option<PyTiming>,
             sense: Option<Sense>,
             bit_order: String,
@@ -604,11 +609,12 @@ impl PySolution {
     fn from_random(
         n_samples: usize,
         seed: Option<u64>,
-        env: Option<PyEnvironment>,
-        model: Option<PyModel>,
+        env: Option<PyEnvArg>,
+        model: Option<PyModelArg>,
         sense: Option<PySense>,
     ) -> PyResult<PySolution> {
         let sense = sense.map(|s| s.into());
+
         check_env_or_model(&env, &model)?;
         check_sense_or_model(&sense, &model)?;
         let context = if let Some(m) = model {
@@ -627,7 +633,7 @@ impl PySolution {
     }
 
     #[staticmethod]
-    fn from_many(solutions: Vec<Self>, model: Option<PyModel>) -> PyResult<PySolution> {
+    fn from_many(solutions: Vec<PySolArg>, model: Option<PyModelArg>) -> PyResult<PySolution> {
         let sols = solutions
             .iter()
             .map(|s| s.s.read_arc().clone())
@@ -637,7 +643,7 @@ impl PySolution {
     }
 }
 
-fn check_env_or_model(env: &Option<PyEnvironment>, model: &Option<PyModel>) -> PyResult<()> {
+fn check_env_or_model(env: &Option<PyEnvArg>, model: &Option<PyModelArg>) -> PyResult<()> {
     if env.is_some() && model.is_some() {
         Err(PyValueError::new_err(
             "either `env` or `model` has to be `None`",
@@ -647,7 +653,7 @@ fn check_env_or_model(env: &Option<PyEnvironment>, model: &Option<PyModel>) -> P
     }
 }
 
-fn check_sense_or_model(sense: &Option<Sense>, model: &Option<PyModel>) -> PyResult<()> {
+fn check_sense_or_model(sense: &Option<Sense>, model: &Option<PyModelArg>) -> PyResult<()> {
     if sense.is_some() && model.is_some() {
         Err(PyValueError::new_err(
             "either `sense` or `model` has to be `None`",

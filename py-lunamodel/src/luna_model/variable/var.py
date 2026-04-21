@@ -21,9 +21,6 @@ from luna_model._utils import wrap_b, wrap_c, wrap_env, wrap_expr
 from luna_model.variable.vtype import Vtype
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from luna_model._lm import PyExpression
     from luna_model._typing import VBounds
     from luna_model.constraint.constr import Constraint
     from luna_model.environment.env import Environment
@@ -119,7 +116,7 @@ class Variable:
             name,
             vtype._val,
             bounds._b if bounds else None,
-            env._env if env else None,
+            env,
         )
 
     @classmethod
@@ -206,7 +203,7 @@ class Variable:
         This compares variable identity, not just name equality. Two variables
         with the same name in different environments are not equal.
         """
-        return self._v.is_equal(other._v)
+        return self._v.is_equal(other)
 
     def inv(self) -> Variable:
         """Get an inverted version of this variable.
@@ -246,7 +243,7 @@ class Variable:
         Expression
             A new expression representing the sum.
         """
-        return wrap_expr(self._op(other, self._v.__add__))
+        return wrap_expr(self._v.__add__(other))
 
     def __sub__(self, other: Expression | Variable | float) -> Expression:
         """Subtract another term from this variable.
@@ -261,7 +258,7 @@ class Variable:
         Expression
             A new expression representing the difference.
         """
-        return wrap_expr(self._op(other, self._v.__sub__))
+        return wrap_expr(self._v.__sub__(other))
 
     def __mul__(self, other: Expression | Variable | float) -> Expression:
         """Multiply this variable by another term.
@@ -276,7 +273,7 @@ class Variable:
         Expression
             A new expression representing the product.
         """
-        return wrap_expr(self._op(other, self._v.__mul__))
+        return wrap_expr(self._v.__mul__(other))
 
     def __radd__(self, other: Expression | Variable | float) -> Expression:
         """Add this variable to another term (right operand).
@@ -291,7 +288,7 @@ class Variable:
         Expression
             A new expression representing the sum.
         """
-        return wrap_expr(self._op(other, self._v.__radd__))
+        return wrap_expr(self._v.__radd__(other))
 
     def __rsub__(self, other: Expression | Variable | float) -> Expression:
         """Subtract this variable from another term (right operand).
@@ -306,7 +303,7 @@ class Variable:
         Expression
             A new expression representing the difference.
         """
-        return wrap_expr(self._op(other, self._v.__rsub__))
+        return wrap_expr(self._v.__rsub__(other))
 
     def __rmul__(self, other: Expression | Variable | float) -> Expression:
         """Multiply another term by this variable (right operand).
@@ -321,7 +318,7 @@ class Variable:
         Expression
             A new expression representing the product.
         """
-        return wrap_expr(self._op(other, self._v.__rmul__))
+        return wrap_expr(self._v.__rmul__(other))
 
     def __pow__(self, val: int) -> Expression:
         """Raise this variable to a power.
@@ -396,7 +393,7 @@ class Variable:
         """
         if isinstance(other, Variable):
             return self.is_equal(other)
-        return self._cmp(other, self._v.__eq__)
+        return wrap_c(self._v.__eq__(other))
 
     def __le__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
         """Create a less-than-or-equal-to constraint.
@@ -411,7 +408,7 @@ class Variable:
         Constraint
             A constraint representing ``self <= other``.
         """
-        return self._cmp(other, self._v.__le__)
+        return wrap_c(self._v.__le__(other))
 
     def __ge__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
         """Create a greater-than-or-equal-to constraint.
@@ -426,7 +423,7 @@ class Variable:
         Constraint
             A constraint representing ``self >= other``.
         """
-        return self._cmp(other, self._v.__ge__)
+        return wrap_c(self._v.__ge__(other))
 
     def __hash__(self) -> int:
         """Compute hash."""
@@ -439,33 +436,3 @@ class Variable:
     def __repr__(self) -> str:
         """Get debug string representation."""
         return self._v.__repr__()
-
-    def _op(
-        self,
-        other: Expression | Variable | float,
-        fn: Callable[[PyExpression | PyVariable | float], PyExpression],
-    ) -> PyExpression:
-        from luna_model.expression import Expression  # noqa: PLC0415
-
-        if isinstance(other, Expression):
-            res = fn(other._expr)
-        elif isinstance(other, Variable):
-            res = fn(other._v)
-        else:
-            res = fn(other)
-        return res
-
-    def _cmp(
-        self,
-        other: Expression | Variable | float,
-        fn: Callable[[PyExpression | PyVariable | float], PyExpression],
-    ) -> Constraint:
-        from luna_model.expression import Expression  # noqa: PLC0415
-
-        if isinstance(other, Expression):
-            pyc = fn(other._expr)
-        elif isinstance(other, Variable):
-            pyc = fn(other._v)
-        else:
-            pyc = fn(other)
-        return wrap_c(pyc)

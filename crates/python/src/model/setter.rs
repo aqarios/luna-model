@@ -1,8 +1,11 @@
+use std::ops::Mul;
+
+use lunamodel_core::Expression;
 use lunamodel_unwind::*;
-use pyo3::pymethods;
+use pyo3::{PyResult, pymethods};
 
 use super::PyModel;
-use crate::{PyConstraintCollection, PyExpression, PyModelMetadata, types::PySense};
+use crate::{PyModelMetadata, args::PyColArg, types::PySense, utils::OpsOther};
 
 #[unwindable]
 #[pymethods]
@@ -18,13 +21,19 @@ impl PyModel {
     }
 
     #[setter]
-    fn set_objective(&mut self, obj: PyExpression) {
-        self.m.write_arc().objective = obj.into();
+    fn set_objective(&mut self, obj: OpsOther) -> PyResult<()> {
+        let new_obj = match obj {
+            OpsOther::Expr(e) => e.into(),
+            OpsOther::Var(v) => (&v.v).mul(1.0)?,
+            OpsOther::Num(n) => Expression::constant(self.m.read_arc().environment.clone(), n),
+        };
+        self.m.write_arc().objective = new_obj;
+        Ok(())
     }
 
     #[setter]
-    fn set_constraints(&mut self, coll: &PyConstraintCollection) {
-        self.m.write_arc().constraints = coll.into();
+    fn set_constraints(&mut self, coll: PyColArg) {
+        self.m.write_arc().constraints = (&coll.0).into();
     }
 
     #[pyo3(name = "set_sense")]

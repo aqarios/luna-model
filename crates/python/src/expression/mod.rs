@@ -17,7 +17,7 @@ use std::sync::Arc;
 pub use content::PyExprContent;
 pub use iteration::{PyConstant, PyExpressionIterator, PyHigherOrder, PyLinear, PyQuadratic};
 
-#[pyclass]
+#[pyclass(subclass)]
 #[repr(C)]
 #[derive(Clone, Debug)]
 pub struct PyExpression {

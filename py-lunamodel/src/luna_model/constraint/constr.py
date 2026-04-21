@@ -13,11 +13,15 @@
 # limitations under the License.
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from luna_model._lm import PyConstraint
 from luna_model._utils import wrap_expr
 from luna_model.constraint.cmp import Comparator
-from luna_model.expression.expr import Expression
-from luna_model.variable.var import Variable
+
+if TYPE_CHECKING:
+    from luna_model.expression.expr import Expression
+    from luna_model.variable.var import Variable
 
 
 class Constraint:
@@ -87,12 +91,6 @@ class Constraint:
         comparator: Comparator,
         name: str | None = None,
     ) -> None:
-        lhs = lhs._v if isinstance(lhs, Variable) else lhs._expr  # type: ignore[attribute]
-        rhs = (
-            (rhs._v if isinstance(rhs, Variable) else rhs._expr)  # type: ignore[attribute]
-            if isinstance(rhs, Variable | Expression)  # type: ignore[attribute]
-            else rhs
-        )
         self._c = PyConstraint(lhs, rhs, comparator._val, name)
 
     @classmethod
@@ -171,7 +169,7 @@ class Constraint:
             True if constraints have the same ``rhs``, and ``comparator`` and
             the ``lhs`` has the same contents.
         """
-        return self._c.equal_contents(other._c)
+        return self._c.equal_contents(other)
 
     def __eq__(self, other: Constraint) -> bool:  # type: ignore[override]
         """Check if two constraints are exactly equal.
@@ -186,7 +184,7 @@ class Constraint:
         bool
             True if constraints are structurally identical.
         """
-        return self._c.__eq__(other._c)
+        return self._c.__eq__(other)
 
     def __str__(self) -> str:
         """Return human-readable string representation.

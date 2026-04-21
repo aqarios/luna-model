@@ -4,7 +4,7 @@ from luna_model.transformation import PassManager, passes
 def test_upper2():
     model = Model("model")
     x = model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=2)
-    model.objective = 1 * x
+    model.objective = x
 
     pm = PassManager([passes.IntegerToBinaryPass()])
     ir = pm.run(model)
@@ -18,7 +18,7 @@ def test_upper2():
 def test_upper3():
     model = Model("model")
     x = model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=3)
-    model.objective = 1 * x
+    model.objective = x
 
     pm = PassManager([passes.IntegerToBinaryPass()])
     ir = pm.run(model)
@@ -32,7 +32,7 @@ def test_upper3():
 def test_upper12():
     model = Model("model")
     x = model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=12)
-    model.objective = 1 * x
+    model.objective = x
 
     pm = PassManager([passes.IntegerToBinaryPass()])
     ir = pm.run(model)
@@ -46,7 +46,7 @@ def test_upper12():
 def test_upper20():
     model = Model("model")
     x = model.add_variable("x", vtype=Vtype.INTEGER, lower=0, upper=20)
-    model.objective = 1 * x
+    model.objective = x
 
     pm = PassManager([passes.IntegerToBinaryPass()])
     ir = pm.run(model)

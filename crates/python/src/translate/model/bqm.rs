@@ -6,7 +6,7 @@ use lunamodel_unwind::*;
 use numpy::PyReadonlyArray1;
 use pyo3::{PyResult, pyclass, pymethods};
 
-use crate::{PyModel, types::PyVtype};
+use crate::{PyModel, args::PyModelArg, types::PyVtype};
 
 #[pyclass]
 pub struct PyBqmTranslator;
@@ -53,7 +53,7 @@ impl PyBqmTranslator {
 
     #[staticmethod]
     fn from_lm(
-        model: PyModel,
+        model: PyModelArg,
     ) -> PyResult<(
         Bias,
         Vec<Bias>,

@@ -154,7 +154,7 @@ class Environment:
         bool
             True if environments have the same variables.
         """
-        return self._env.equal_contents(other._env)
+        return self._env.equal_contents(other)
 
     def encode(self) -> bytes:
         """Serialize the environment into a compact binary format.
@@ -239,7 +239,7 @@ class Environment:
 
     def __eq__(self, other: Environment) -> bool:  # type: ignore[override]
         """Check if two environments are exactly equal."""
-        return self._env.__eq__(other._env)
+        return self._env.__eq__(other)
 
     def __contains__(self, var: str) -> bool:
         """Check if a variable name exists in this environment.

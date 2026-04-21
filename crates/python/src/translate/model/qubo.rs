@@ -3,7 +3,7 @@ use lunamodel_unwind::*;
 use numpy::{PyArray2, PyArrayMethods, PyReadonlyArray2, PyUntypedArrayMethods, ToPyArray};
 use pyo3::{Bound, FromPyObject, PyResult, Python, pyclass, pymethods};
 
-use crate::{PyModel, types::PyVtype};
+use crate::{PyModel, args::PyModelArg, types::PyVtype};
 
 #[derive(FromPyObject)]
 enum QuboType<'py> {
@@ -61,7 +61,7 @@ impl PyQuboTranslator {
     }
 
     #[staticmethod]
-    fn from_lm(model: &PyModel) -> PyResult<PyQubo> {
+    fn from_lm(model: PyModelArg) -> PyResult<PyQubo> {
         let qubo = QuboTranslator::back_translate(&model.m.read_arc())?;
         Ok(PyQubo(qubo))
     }

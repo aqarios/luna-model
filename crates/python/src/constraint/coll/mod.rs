@@ -6,6 +6,8 @@ mod iter;
 mod modification;
 mod ser;
 
+pub mod utils;
+
 use std::sync::Arc;
 
 use lunamodel_core::{ConstraintCollection, Model};

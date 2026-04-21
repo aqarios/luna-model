@@ -8,15 +8,15 @@ use pyo3::{Bound, FromPyObject, PyResult, Python, pymethods};
 
 use super::{PyExprContent as PyEC, PyExpression};
 use crate::{
-    sol::{PySolution, sample::PySampleView},
+    args::{PyExprArg, PySolArg, PyVarArg},
+    sol::sample::PySampleView,
     utils::VarKey,
-    variable::PyVariable,
 };
 
 #[derive(FromPyObject)]
 enum Replacement {
-    Var(PyVariable),
-    Expr(PyExpression),
+    Var(PyVarArg),
+    Expr(PyExprArg),
 }
 
 struct DirectSample(pub IndexMap<String, f64>);
@@ -58,7 +58,7 @@ enum SampleIn {
 #[unwindable]
 #[pymethods]
 impl PyExpression {
-    fn separate(&self, variables: Vec<PyVariable>) -> PyResult<(PyExpression, PyExpression)> {
+    fn separate(&self, variables: Vec<PyVarArg>) -> PyResult<(PyExpression, PyExpression)> {
         let vars: Vec<VarRef> = variables.iter().map(|v| v.v.clone()).collect();
         let (left, right) = match &self.expr {
             PyEC::Expr(e) => e.read_arc().separate(vars.as_slice()),
@@ -67,11 +67,7 @@ impl PyExpression {
         Ok((left.into(), right.into()))
     }
 
-    fn evaluate<'py>(
-        &self,
-        py: Python<'py>,
-        sol: &PySolution,
-    ) -> PyResult<Bound<'py, PyArray1<f64>>> {
+    fn evaluate<'py>(&self, py: Python<'py>, sol: PySolArg) -> PyResult<Bound<'py, PyArray1<f64>>> {
         let values = match &self.expr {
             PyEC::Expr(e) => e.read_arc().evaluate_sampleset(sol.s.read_arc().samples()),
             PyEC::Model(m) => m
@@ -103,10 +99,10 @@ impl PyExpression {
         Ok(res)
     }
 
-    fn substitute(&self, target: &PyVariable, replacement: Replacement) -> PyResult<PyExpression> {
+    fn substitute(&self, target: PyVarArg, replacement: Replacement) -> PyResult<PyExpression> {
         let r = match replacement {
-            Replacement::Var(v) => &(v.v.into()),
-            Replacement::Expr(e) => &(e.expr.into()),
+            Replacement::Var(v) => &(v.0.v.into()),
+            Replacement::Expr(e) => &(e.0.expr.into()),
         };
         Ok(self.expr.substitute(&target.v, r)?.into())
     }

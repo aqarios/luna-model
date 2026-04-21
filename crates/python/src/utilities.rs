@@ -5,14 +5,17 @@ use pyo3::{
     types::{PyAnyMethods, PyTypeMethods},
 };
 
-use crate::{PyEnvironment, PyExpression, PyVariable, environment::ACTIVE_ENV, utils::OpsOther};
+use crate::{
+    PyEnvironment, PyExpression, PyVariable, args::PyExprArg, environment::ACTIVE_ENV,
+    utils::OpsOther,
+};
 
 #[pyfunction]
 #[pyo3(signature=(iterable, start=None))]
 pub fn quicksum(
     py: Python,
     iterable: &Bound<PyAny>,
-    start: Option<PyExpression>,
+    start: Option<PyExprArg>,
 ) -> PyResult<PyExpression> {
     let typestr = iterable.get_type().name()?.to_string().to_uppercase();
     let items: Vec<_> = if typestr.contains("ARRAY") {
@@ -23,7 +26,7 @@ pub fn quicksum(
     // let items: Vec<_> = iterable.try_iter()?.collect();
 
     let start: PyResult<PyExpression> = if let Some(s) = start {
-        Ok(s)
+        Ok(s.into())
     } else {
         let env: Option<PyEnvironment> = ACTIVE_ENV.with(|current| current.borrow().clone());
         match env {

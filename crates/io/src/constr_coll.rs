@@ -25,16 +25,23 @@ impl CustomFormat<FormatOpt> for ConstraintCollection {
             FormatOpt::Py => write!(
                 fmt,
                 "{}",
-                match self.is_empty() {
-                    true => "{}".to_string(),
-                    false => {
-                        format!(
-                            "{{{}}}",
-                            self.iter()
-                                .map(|(cname, c)| format!("{cname}: {}", c.format(FormatOpt::Py)))
-                                .collect::<Vec<String>>()
-                                .join(", ")
-                        )
+                if self.is_empty() {
+                    "{}".to_string()
+                } else {
+                    let items = self
+                        .iter()
+                        .map(|(cname, c)| format!("{cname}: {}", c.format(FormatOpt::Py)))
+                        .collect::<Vec<String>>();
+
+                    if items.len() == 1 {
+                        format!("{{{}}}", items[0])
+                    } else {
+                        let body = items
+                            .into_iter()
+                            .map(|item| format!("  {item},"))
+                            .collect::<Vec<_>>()
+                            .join("\n");
+                        format!("{{\n{}\n}}", body)
                     }
                 }
             ),

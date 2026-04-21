@@ -25,7 +25,6 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from luna_model._lm import PyConstraint, PyVariable
     from luna_model.constraint import Constraint
     from luna_model.solution.sample import Sample
     from luna_model.solution.sol import Solution
@@ -111,10 +110,7 @@ class Expression:
         env : Environment, optional
             The environment for this expression.
         """
-        if env is None:
-            self._expr = PyExpression()
-        else:
-            self._expr = PyExpression(env._env)
+        self._expr = PyExpression(env)
 
     @classmethod
     def _from_pyexpr(cls, py_expr: PyExpression) -> Expression:
@@ -145,7 +141,7 @@ class Expression:
         >>> with Environment():
         ...     const = Expression.const(5.0)
         """
-        return cls._from_pyexpr(PyExpression.const(value, env._env if env else None))
+        return cls._from_pyexpr(PyExpression.const(value, env))
 
     @property
     def environment(self) -> Environment:
@@ -186,7 +182,7 @@ class Expression:
         float
             The coefficient of the variable, or 0 if not present.
         """
-        return self._expr.get_linear(variable._v)
+        return self._expr.get_linear(variable)
 
     def get_quadratic(self, u: Variable, v: Variable) -> float:
         """Get the quadratic coefficient for a variable pair.
@@ -203,7 +199,7 @@ class Expression:
         float
             The coefficient of the u*v term, or 0 if not present.
         """
-        return self._expr.get_quadratic(u._v, v._v)
+        return self._expr.get_quadratic(u, v)
 
     def get_higher_order(self, *variables: Variable) -> float:
         """Get the higher-order coefficient for a variable tuple.
@@ -218,7 +214,7 @@ class Expression:
         float
             The coefficient of the higher-order term, or 0 if not present.
         """
-        return self._expr.get_higher_order([v._v for v in variables])
+        return self._expr.get_higher_order(variables)
 
     def items(self) -> ExprIter:
         """Get an iterator over all terms in the expression.
@@ -336,7 +332,7 @@ class Expression:
         bool
             True if expressions are structurally equal.
         """
-        return self._expr.is_equal(other._expr)
+        return self._expr.is_equal(other)
 
     def equal_contents(self, other: Expression) -> bool:
         """Check if two expressions have equal terms and coefficients.
@@ -351,7 +347,7 @@ class Expression:
         bool
             True if expressions have the same terms with same coefficients.
         """
-        return self._expr.equal_contents(other._expr)
+        return self._expr.equal_contents(other)
 
     def separate(self, variables: Sequence[Variable]) -> tuple[Expression, Expression]:
         """Separate expression into two parts based on variables.
@@ -369,7 +365,7 @@ class Expression:
         tuple[Expression, Expression]
             Two expressions: (terms_with_variables, terms_without_variables).
         """
-        lhs, rhs = self._expr.separate([v._v for v in variables])
+        lhs, rhs = self._expr.separate(variables)
         return (self._from_pyexpr(lhs), self._from_pyexpr(rhs))
 
     def substitute(self, target: Variable, replacement: Expression | Variable) -> Expression:
@@ -401,14 +397,7 @@ class Expression:
         >>> print(new_expr)
         3 y + 2 z + 2
         """
-        from luna_model.variable import Variable  # noqa: PLC0415
-
-        if isinstance(replacement, Variable):
-            return self._from_pyexpr(self._expr.substitute(target._v, replacement._v))
-        if isinstance(replacement, Expression):
-            return self._from_pyexpr(self._expr.substitute(target._v, replacement._expr))
-        msg = f"type '{type(replacement)}' not supported in substitution"
-        raise TypeError(msg)
+        return self._from_pyexpr(self._expr.substitute(target, replacement))
 
     def evaluate(self, solution: Solution) -> NDArray:
         """Evaluate the expression using variable values from a solution.
@@ -423,7 +412,7 @@ class Expression:
         NDArray
             The evaluated value(s) of the expression.
         """
-        return self._expr.evaluate(solution._s)
+        return self._expr.evaluate(solution)
 
     def evaluate_sample(self, sample: Sample | dict[Variable | str, int | float]) -> float:
         """Evaluate the expression using variable values from a sample.
@@ -438,8 +427,6 @@ class Expression:
         float
             The evaluated value of the expression.
         """
-        if isinstance(sample, dict):
-            sample = {v if isinstance(v, str) else v._v: value for v, value in sample.items()}
         return self._expr.evaluate_sample(sample)
 
     def encode(self) -> bytes:
@@ -480,7 +467,7 @@ class Expression:
         Expression
             The decoded expression.
         """
-        return cls._from_pyexpr(PyExpression.decode(data, env._env))
+        return cls._from_pyexpr(PyExpression.decode(data, env))
 
     @classmethod
     def deserialize(cls, data: bytes, env: Environment) -> Expression:
@@ -522,7 +509,7 @@ class Expression:
             If any expression is from a different environment as the
             first expression in the passed list of expressions.
         """
-        return [cls._from_pyexpr(cloned) for cloned in PyExpression.deep_clone_many([e._expr for e in exprs])]
+        return [cls._from_pyexpr(cloned) for cloned in PyExpression.deep_clone_many(exprs)]
 
     def __add__(self, other: Expression | Variable | float) -> Expression:
         """Add another term to this expression.
@@ -550,7 +537,7 @@ class Expression:
         >>> print(expr)
         x + y + 5
         """
-        return self._from_pyexpr(self._op(other, self._expr.__add__))
+        return self._from_pyexpr(self._expr.__add__(other))
 
     def __sub__(self, other: Expression | Variable | float) -> Expression:
         """Subtract another term from this expression.
@@ -578,7 +565,7 @@ class Expression:
         >>> print(expr)
         -x - y - 5
         """
-        return self._from_pyexpr(self._op(other, self._expr.__sub__))
+        return self._from_pyexpr(self._expr.__sub__(other))
 
     def __mul__(self, other: Expression | Variable | float) -> Expression:
         """Multiply this expression by another term.
@@ -605,7 +592,7 @@ class Expression:
         >>> print(expr)
         6 x y
         """
-        return self._from_pyexpr(self._op(other, self._expr.__mul__))
+        return self._from_pyexpr(self._expr.__mul__(other))
 
     def __radd__(self, other: Expression | Variable | float) -> Expression:
         """Add this expression to another term (right operand).
@@ -620,7 +607,7 @@ class Expression:
         Expression
             A new expression representing the sum.
         """
-        return self._from_pyexpr(self._op(other, self._expr.__radd__))
+        return self._from_pyexpr(self._expr.__radd__(other))
 
     def __rsub__(self, other: Expression | Variable | float) -> Expression:
         """Subtract this expression from another term (right operand).
@@ -635,7 +622,7 @@ class Expression:
         Expression
             A new expression representing the difference.
         """
-        return self._from_pyexpr(self._op(other, self._expr.__rsub__))
+        return self._from_pyexpr(self._expr.__rsub__(other))
 
     def __rmul__(self, other: Expression | Variable | float) -> Expression:
         """Multiply another term by this expression (right operand).
@@ -650,7 +637,7 @@ class Expression:
         Expression
             A new expression representing the product.
         """
-        return self._from_pyexpr(self._op(other, self._expr.__rmul__))
+        return self._from_pyexpr(self._expr.__rmul__(other))
 
     def __iadd__(self, other: Expression | Variable | float) -> Self:
         """Add another term to this expression in-place.
@@ -677,7 +664,7 @@ class Expression:
         >>> print(expr)
         x + y
         """
-        self._op(other, self._expr.__iadd__)
+        self._expr.__iadd__(other)
         return self
 
     def __isub__(self, other: Expression | Variable | float) -> Self:
@@ -705,7 +692,7 @@ class Expression:
         >>> print(expr)
         -x - y
         """
-        self._op(other, self._expr.__isub__)
+        self._expr.__isub__(other)
         return self
 
     def __imul__(self, other: Expression | Variable | float) -> Self:
@@ -733,7 +720,7 @@ class Expression:
         >>> print(expr)
         42 x y
         """
-        self._op(other, self._expr.__imul__)
+        self._expr.__imul__(other)
         return self
 
     def __pow__(self, value: int) -> Expression:
@@ -760,7 +747,7 @@ class Expression:
         >>> print(expr)
         y^3 + x^2
         """
-        return self._from_pyexpr(self._op(value, self._expr.__pow__))
+        return self._from_pyexpr(self._expr.__pow__(value))
 
     def __ipow__(self, other: int) -> Self:
         """Raise this expression to an integer power in-place.
@@ -786,7 +773,7 @@ class Expression:
         >>> print(expr)
         a^2 + 2 a b + b^2
         """
-        self._op(other, self._expr.__ipow__)
+        self._expr.__ipow__(other)
         return self
 
     def __neg__(self) -> Expression:
@@ -835,7 +822,7 @@ class Expression:
         >>> print(constraint)
         x + y == 10
         """
-        return self._cmp(other, self._expr.__eq__)
+        return wrap_c(self._expr.__eq__(other))
 
     def __le__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
         """Create a less-than-or-equal-to constraint.
@@ -860,7 +847,7 @@ class Expression:
         >>> print(constraint)
         x + y <= 100
         """
-        return self._cmp(other, self._expr.__le__)
+        return wrap_c(self._expr.__le__(other))
 
     def __ge__(self, other: Expression | Variable | float) -> Constraint:  # type: ignore[override]
         """Create a greater-than-or-equal-to constraint.
@@ -885,7 +872,7 @@ class Expression:
         >>> print(constraint)
         x + y >= 0
         """
-        return self._cmp(other, self._expr.__ge__)
+        return wrap_c(self._expr.__ge__(other))
 
     def __reduce__(self) -> tuple[Callable[[bytes, bytes], Expression], tuple[bytes, bytes]]:
         """Support for pickle serialization.
@@ -923,33 +910,6 @@ class Expression:
         3 x + 2 y + 5
         """
         return self._expr.__str__()
-
-    def _op(
-        self, other: Expression | Variable | float, fn: Callable[[PyExpression | PyVariable | float], PyExpression]
-    ) -> PyExpression:
-        from luna_model.variable import Variable  # noqa: PLC0415
-
-        if isinstance(other, Expression):
-            res = fn(other._expr)
-        elif isinstance(other, Variable):
-            res = fn(other._v)
-        else:
-            res = fn(other)
-        return res
-
-    @classmethod
-    def _cmp(
-        cls, other: Expression | Variable | float, fn: Callable[[PyExpression | PyVariable | float], PyConstraint]
-    ) -> Constraint:
-        from luna_model.variable import Variable  # noqa: PLC0415
-
-        if isinstance(other, Expression):
-            pyc = fn(other._expr)
-        elif isinstance(other, Variable):
-            pyc = fn(other._v)
-        else:
-            pyc = fn(other)
-        return wrap_c(pyc)
 
     @staticmethod
     def _unreduce(data: bytes, data_env: bytes) -> Expression:

@@ -7,11 +7,11 @@ use pyo3::{
 };
 
 use super::content::PyExprContent as PyEC;
-use crate::{PyEnvironment, PyExpression};
+use crate::{PyExpression, args::PyEnvArg};
 
 #[derive(FromPyObject)]
 enum DecodeEnvData {
-    Env(PyEnvironment),
+    Env(PyEnvArg),
     Bytes(Py<PyBytes>),
 }
 
@@ -87,7 +87,7 @@ impl PyExpression {
         env: DecodeEnvData,
     ) -> PyResult<Self> {
         let env: ArcEnv = match env {
-            DecodeEnvData::Env(pyenv) => pyenv.env,
+            DecodeEnvData::Env(pyenv) => pyenv.env.clone(),
             DecodeEnvData::Bytes(pybytes) => {
                 let env: Environment = pybytes
                     .as_bytes(py)

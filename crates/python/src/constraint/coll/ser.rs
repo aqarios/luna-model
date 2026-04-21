@@ -7,11 +7,11 @@ use pyo3::{
 };
 
 use super::PyConstraintCollection;
-use crate::PyEnvironment;
+use crate::args::PyEnvArg;
 
 #[derive(FromPyObject)]
 enum DecodeEnvData {
-    Env(PyEnvironment),
+    Env(PyEnvArg),
     Bytes(Py<PyBytes>),
 }
 
@@ -84,7 +84,7 @@ impl PyConstraintCollection {
         env: DecodeEnvData,
     ) -> PyResult<Self> {
         let env: ArcEnv = match env {
-            DecodeEnvData::Env(pyenv) => pyenv.env,
+            DecodeEnvData::Env(pyenv) => pyenv.env.clone(),
             DecodeEnvData::Bytes(pybytes) => {
                 let env: Environment = pybytes
                     .as_bytes(py)

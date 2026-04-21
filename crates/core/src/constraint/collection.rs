@@ -77,7 +77,7 @@ impl ConstraintCollection {
         &mut self,
         mut constr: Constraint,
         name: Option<String>,
-    ) -> LunaModelResult<()> {
+    ) -> LunaModelResult<String> {
         let fallback = match constr.auto_name {
             true => format!("c{}", self.len()),
             false => constr.name().to_string(),
@@ -87,34 +87,35 @@ impl ConstraintCollection {
             Err(LunaModelError::DuplicateConstraintName(name.into()))
         } else {
             constr.set_name(name.clone())?;
-            self.data.insert(name, constr);
-            Ok(())
+            self.data.insert(name.clone(), constr);
+            Ok(name)
         }
     }
 
     pub fn add_many_constraints(
         &mut self,
         other: impl Iterator<Item = (Constraint, Option<String>)>,
-    ) -> LunaModelResult<()> {
-        for (constr, name) in other {
-            self.add_constraint(constr, name)?
-        }
-        Ok(())
+    ) -> LunaModelResult<Vec<String>> {
+        other
+            .map(|(constr, name)| self.add_constraint(constr, name))
+            .collect::<LunaModelResult<_>>()
     }
 
     pub fn add_collection(
         &mut self,
         other: ConstraintCollection,
         prefix: Option<String>,
-    ) -> LunaModelResult<()> {
-        for (mut name, constr) in other.into_iter() {
-            match prefix.as_ref() {
-                Some(p) => name = format!("{}{}", p, name),
-                None => (),
-            }
-            self.add_constraint(constr, Some(name))?
-        }
-        Ok(())
+    ) -> LunaModelResult<Vec<String>> {
+        other
+            .into_iter()
+            .map(|(mut name, constr)| {
+                match prefix.as_ref() {
+                    Some(p) => name = format!("{}{}", p, name),
+                    None => (),
+                }
+                self.add_constraint(constr, Some(name))
+            })
+            .collect::<LunaModelResult<_>>()
     }
 
     pub fn set_constraint(&mut self, key: &str, constr: Constraint) -> LunaModelResult<()> {

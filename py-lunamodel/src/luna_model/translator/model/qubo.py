@@ -286,4 +286,4 @@ class QuboTranslator:
         If your model doesn't meet the QUBO requirements, use
         transformations to convert it:
         """
-        return Qubo._from_pyq(PyQuboTranslator.from_lm(model._m))
+        return Qubo._from_pyq(PyQuboTranslator.from_lm(model))

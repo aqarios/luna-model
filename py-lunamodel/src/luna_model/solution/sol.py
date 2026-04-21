@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal
@@ -30,7 +31,6 @@ if TYPE_CHECKING:
     from pyscipopt import Model as ScipModel
     from qiskit.primitives import PrimitiveResult
 
-    from luna_model._lm import PyVariable
     from luna_model._typing import FilterFn, SolutionFromTypes, _Sample
     from luna_model.environment.env import Environment
     from luna_model.model.model import Model
@@ -152,7 +152,7 @@ class Solution:
     ) -> None:
         """Initialize a solution with samples and metadata."""
         self._s = PySolution(
-            samples=_map_samples(samples),
+            samples=samples,
             counts=counts,
             raw_energies=raw_energies,
             obj_values=obj_values,
@@ -161,7 +161,7 @@ class Solution:
             variables_bounds=variables_bounds,
             timing=timing,
             sense=sense._val if sense else None,
-            env=env._env if env else None,
+            env=env,
             vtypes=[vtype._val for vtype in vtypes] if vtypes else None,
             tol=tol,
         )
@@ -403,13 +403,7 @@ class Solution:
         vtype : Vtype, optional
             Variable type. Default is BINARY.
         """
-        from luna_model.variable import Variable  # noqa: PLC0415
-
-        self._s.add_var(
-            var._v if isinstance(var, Variable) else var,
-            data,
-            vtype._val,
-        )
+        self._s.add_var(var, data, vtype._val)
 
     def add_vars(
         self,
@@ -429,13 +423,7 @@ class Solution:
         vtypes : Sequence[Vtype or None], optional
             Variable types for each variable. If None, types are inferred.
         """
-        from luna_model.variable import Variable  # noqa: PLC0415
-
-        self._s.add_vars(
-            [var._v if isinstance(var, Variable) else var for var in variables],
-            data,
-            [v._val if v else None for v in vtypes] if vtypes else None,
-        )
+        self._s.add_vars(variables, data, [v._val if v else None for v in vtypes] if vtypes else None)
 
     def remove_var(self, var: str | Variable) -> None:
         """Remove a variable from all samples in the solution.
@@ -445,9 +433,7 @@ class Solution:
         var : str or Variable
             The variable name or Variable object to remove.
         """
-        from luna_model.variable import Variable  # noqa: PLC0415
-
-        self._s.remove_var(var._v if isinstance(var, Variable) else var)  # type: ignore[attribute]
+        self._s.remove_var(var)
 
     def remove_vars(self, variables: Sequence[str | Variable]) -> None:
         """Remove multiple variables from all samples in the solution.
@@ -457,11 +443,7 @@ class Solution:
         variables : Sequence[str or Variable]
             List of variable names or Variable objects to remove.
         """
-        from luna_model.variable import Variable  # noqa: PLC0415
-
-        self._s.remove_vars(
-            [var._v if isinstance(var, Variable) else var for var in variables]  # type: ignore[attribute]
-        )
+        self._s.remove_vars(variables)
 
     def __len__(self) -> int:
         """Get the number of samples in the solution.
@@ -511,7 +493,7 @@ class Solution:
         bool
             True if solutions have identical samples, values, and metadata.
         """
-        return self._s.__eq__(other._s)
+        return self._s.__eq__(other)
 
     def __reduce__(self) -> tuple[Callable[[bytes], Solution], tuple[bytes]]:
         """Support for pickle serialization.
@@ -665,9 +647,9 @@ class Solution:
         """
         return cls._from_pys(
             PySolution.from_dict(
-                data=_map_sample(data),
-                env=env._env if env else None,
-                model=model._m if model else None,  # type: ignore[attribute]
+                data=data,
+                env=env,
+                model=model,
                 timing=timing,
                 counts=counts,
                 sense=sense._val if sense else None,
@@ -719,9 +701,9 @@ class Solution:
         """
         return cls._from_pys(
             PySolution.from_dicts(
-                data=_map_samples(data),
-                env=env._env if env else None,
-                model=model._m if model else None,  # type: ignore[attribute]
+                data=data,
+                env=env,
+                model=model,
                 timing=timing,
                 counts=counts,
                 sense=sense._val if sense else None,
@@ -777,9 +759,9 @@ class Solution:
         return cls._from_pys(
             PySolution.from_arrays(
                 data=data,
-                variables=[v if isinstance(v, str) else v._v for v in variables] if variables is not None else None,
-                env=env._env if env is not None else None,
-                model=model._m if model is not None else None,
+                variables=variables,
+                env=env,
+                model=model,
                 timing=timing,
                 counts=counts,
                 sense=sense._val if sense is not None else None,
@@ -829,8 +811,8 @@ class Solution:
         return cls._from_pys(
             PySolution.from_counts(
                 data=data,
-                env=env._env if env else None,
-                model=model._m if model else None,  # type: ignore[attribute]
+                env=env,
+                model=model,
                 timing=timing,
                 sense=sense._val if sense else None,
                 bit_order=bit_order,
@@ -875,8 +857,8 @@ class Solution:
             PySolution.from_random(
                 n_samples=n_samples,
                 seed=seed,
-                env=env._env if env else None,
-                model=model._m if model else None,
+                env=env,
+                model=model,
                 sense=sense._val if sense else None,
             )
         )
@@ -901,8 +883,8 @@ class Solution:
         """
         return cls._from_pys(
             PySolution.from_many(
-                solutions=[sol._s for sol in solutions],
-                model=model._m if model else None,
+                solutions=solutions,
+                model=model,
             )
         )
 
@@ -925,16 +907,6 @@ class Solution:
             Debug representation including type and memory address.
         """
         return self._s.__repr__()
-
-
-def _map_sample(sample: _Sample) -> dict[str | PyVariable, int | float]:
-    return {s if isinstance(s, str) else s._v: v for s, v in sample.items()}
-
-
-def _map_samples(
-    samples: Sequence[_Sample],
-) -> Sequence[dict[str | PyVariable, int | float]]:
-    return [_map_sample(s) for s in samples]
 
 
 def _find_translator(other: SolutionFromTypes) -> Callable:  # noqa: PLR0911, C901

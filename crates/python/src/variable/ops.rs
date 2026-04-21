@@ -6,6 +6,7 @@ use std::ops::{Add, Mul, Neg, Not, Sub};
 
 use super::PyVariable;
 use crate::{
+    args::PyVarArg,
     expression::PyExpression as PyE,
     utils::{OpsOther as OO, as_usize_from_pyany},
 };
@@ -15,11 +16,12 @@ use crate::{
 impl PyVariable {
     pub fn __add__(&self, rhs: OO) -> PyResult<PyE> {
         self.v.check_living()?;
-        match rhs {
-            OO::Expr(expr) => expr.__add__(OO::Var(self.clone())),
+        let res = match rhs {
+            OO::Expr(expr) => expr.__add__(OO::Var(PyVarArg(self.clone()))),
             OO::Var(var) => Ok(PyE::new((&self.v).add(&var.v)?)),
             OO::Num(bias) => Ok(PyE::new((&self.v).add(bias)?)),
-        }
+        };
+        res
     }
 
     pub fn __sub__(&self, rhs: OO) -> PyResult<PyE> {
@@ -33,7 +35,7 @@ impl PyVariable {
     pub fn __mul__(&self, rhs: OO) -> PyResult<PyE> {
         self.v.check_living()?;
         match rhs {
-            OO::Expr(expr) => expr.__mul__(OO::Var(self.clone())),
+            OO::Expr(expr) => expr.__mul__(OO::Var(PyVarArg(self.clone()))),
             OO::Var(var) => Ok(PyE::new((&self.v).mul(&var.v)?)),
             OO::Num(bias) => Ok(PyE::new((&self.v).mul(bias)?)),
         }
