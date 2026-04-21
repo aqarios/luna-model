@@ -23,7 +23,7 @@ impl EqualityConstraintsToQuadraticPenaltyPass {
     pub fn new(penalty_scaling: f64) -> Self {
         Self {
             penalty_scaling,
-            req: vec![MaxBiasAnalysis::NAME.to_string()],
+            req: vec![MaxBiasAnalysis::PROVIDES.to_string()],
         }
     }
 

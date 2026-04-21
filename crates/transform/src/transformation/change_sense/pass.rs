@@ -20,7 +20,7 @@ impl ChangeSensePass {
     pub fn new(sense: Sense) -> Self {
         Self {
             sense,
-            invalidates: vec![SpecsAnalysis::NAME.to_string()],
+            invalidates: vec![SpecsAnalysis::PROVIDES.to_string()],
         }
     }
     pub fn sense(&self) -> Sense {

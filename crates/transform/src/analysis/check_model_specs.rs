@@ -20,8 +20,11 @@ pub struct Nothing;
 impl AnalysisPass for CheckModelSpecsAnalysis {
     type Result = ();
 
-    const NAME: &'static str = "check-specs";
     const PROVIDES: &'static str = "lunamodel::check-specs";
+
+    fn name(&self) -> &str {
+        "check-specs"
+    }
 
     fn key<Nothing>() -> AnalysisKey<Nothing> {
         AnalysisKey::new(Self::PROVIDES.to_string())

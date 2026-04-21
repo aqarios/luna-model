@@ -18,7 +18,7 @@ pub struct LeToEqConstraintsPass {
 impl Default for LeToEqConstraintsPass {
     fn default() -> Self {
         Self {
-            req: vec![MinValueForConstraintAnalysis::NAME.to_string()],
+            req: vec![MinValueForConstraintAnalysis::PROVIDES.to_string()],
         }
     }
 }

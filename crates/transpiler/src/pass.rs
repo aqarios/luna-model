@@ -35,13 +35,10 @@ pub trait AnalysisPass: Send + Sync {
     /// The type of analysis result this pass produces
     type Result: Send + Sync + 'static;
 
-    const NAME: &'static str;
     const PROVIDES: &'static str;
 
     /// Unique identifier for this analysis
-    fn name(&self) -> &str {
-        Self::NAME
-    }
+    fn name(&self) -> &str;
 
     /// Stable key this analysis writes to in the `AnalysisManager`.
     fn provides(&self) -> &str {

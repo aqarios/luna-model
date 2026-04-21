@@ -16,8 +16,11 @@ pub struct MinValueForConstraintAnalysis;
 impl AnalysisPass for MinValueForConstraintAnalysis {
     type Result = MinConstraintValues;
 
-    const NAME: &'static str = "min-value-for-constraint";
     const PROVIDES: &'static str = "lunamodel::min-value-for-constraint";
+
+    fn name(&self) -> &str {
+        "min-value-for-constraint"
+    }
 
     fn key<MinConstraintValues>() -> AnalysisKey<MinConstraintValues> {
         AnalysisKey::new(Self::PROVIDES.to_string())
