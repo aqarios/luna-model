@@ -1,4 +1,4 @@
-use std::ops::Sub;
+use std::ops::{Add, Sub};
 
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
@@ -64,7 +64,7 @@ impl Sub<VarRef> for usize {
     type Output = LunaModelResult<Expression>;
 
     fn sub(self, rhs: VarRef) -> Self::Output {
-        rhs.sub(self)
+        (-rhs)?.add(self)
     }
 }
 
@@ -72,6 +72,6 @@ impl Sub<VarRef> for Bias {
     type Output = LunaModelResult<Expression>;
 
     fn sub(self, rhs: VarRef) -> Self::Output {
-        rhs.sub(self)
+        (-rhs)?.add(self)
     }
 }

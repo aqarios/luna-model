@@ -38,11 +38,11 @@ class ReduceInvertedBinaryPass(PyReduceInvertedBinaryPass, BuiltinTransformation
     >>> model = Model(sense=Sense.MAX)
     >>> x = model.add_variable("x", vtype=Vtype.BINARY)
     >>> y = model.add_variable("y", vtype=Vtype.BINARY)
-    >>> model.objective = x * ~y + x * y + x * 2
+    >>> model.objective = x * y + x - 2 * y * ~y
     >>> pm = PassManager([ReduceInvertedBinaryPass()])
     >>> output = pm.run(model)
     >>> print(output.model.objective)
-    2 x y + x
+    x y + x
     """
 
     def __new__(cls) -> Self:
