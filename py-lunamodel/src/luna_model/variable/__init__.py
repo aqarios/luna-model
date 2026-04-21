@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from luna_model.variable.bounds import Bounds, Unbounded
-from luna_model.variable.matrix import NDLmArray
 from luna_model.variable.var import Variable
 from luna_model.variable.vtype import Vtype
 
 __all__ = [
     "Bounds",
-    "NDLmArray",
     "Unbounded",
     "Variable",
     "Vtype",

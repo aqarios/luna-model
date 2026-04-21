@@ -71,9 +71,9 @@ cache-keys = [
     { file = "pylm/Cargo.toml" },
     { file = "pylm/Cargo.lock" },
     { file = "src/**/*.rs" },
-    { file = "pyproject.toml" },
-    { file = "src/luna_model/**/*.pyi" },
-    { file = "src/luna_model/**/*.py" },
+    # { file = "pyproject.toml" },
+    # { file = "src/luna_model/**/*.pyi" },
+    # { file = "src/luna_model/**/*.py" },
     { file = "../crates/**/*.rs" },
 ]
 

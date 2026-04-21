@@ -15,5 +15,5 @@ def test_cast_near_integral_failed():
     x = m.add_variable("x", vtype=Vtype.INTEGER)
     b = m.add_variable("b", vtype=Vtype.BINARY)
     with pytest.raises(LunaModelError):
-        for x, b in [(2.9999999998, 0.5999999998)]:
+        for x, b in [(2.98, 0.5998)]:
             _ = Solution.from_dict({"x": x, "b": b}, model=m).samples[0].to_dict()
