@@ -20,17 +20,15 @@ from .context import PassContext
 from .control_flow import ControlFlowPass, ControlFlowPlan
 from .decorators import (
     allowed_import_prefixes,
-    analyse,
     analyze,
     composite,
     control_flow,
-    meta_analyse,
     meta_analyze,
     register_allowed_import_prefix,
     transform,
 )
 from .meta_analysis import MetaAnalysisPass
-from .output import AnalysisCache, TransformationOutput
+from .output import TransformationOutput
 from .pass_manager import PassManager
 from .pipeline import Pipeline
 from .record import AnalysisEntry, ControlFlowEntry, PassEntry, PipelineEntry, TransformationRecord, TransformEntry
@@ -38,7 +36,6 @@ from .transformation import TransformationPass
 from .typing import Pass
 
 __all__ = [
-    "AnalysisCache",
     "AnalysisEntry",
     "AnalysisPass",
     "CompositePass",
@@ -59,11 +56,9 @@ __all__ = [
     "TransformationPassArtifact",
     "TransformationRecord",
     "allowed_import_prefixes",
-    "analyse",
     "analyze",
     "composite",
     "control_flow",
-    "meta_analyse",
     "meta_analyze",
     "passes",
     "register_allowed_import_prefix",

@@ -12,18 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-
-if sys.version_info < (3, 13):
-    from typing_extensions import deprecated
-else:
-    from warnings import deprecated
-
 from collections.abc import Sequence
 
 from luna_model._lm import PyPassManager
 from luna_model.model.model import Model
-from luna_model.solution.sol import Solution
 from luna_model.transformation.output import TransformationOutput
 from luna_model.transformation.pipeline import Pipeline
 from luna_model.transformation.typing import Pass
@@ -77,35 +69,6 @@ class PassManager:
             The transformation ouput after transformation.
         """
         return TransformationOutput._from_pyto(self._pm.run(model._m))
-
-    @deprecated(
-        "This method is deprecated and will be removed in the next non-patch release. "
-        "Use the `backward` method of the `CompilationRecord` produced by the PassManager execution instead."
-    )
-    def backwards(self, solution: Solution, output: TransformationOutput) -> Solution:
-        """Apply the back transformation to the given solution.
-
-        !!! warning "Disclaimer"
-            When multiple samples are condensed into a single record (e.g., by omitting
-            slack variables), only the first sample's `raw_energy` is retained. As a
-            result, the `raw_energy` value may no longer accurately represent the
-            condensed group.
-
-        Parameters
-        ----------
-        solution : Solution
-            The solution to transform back to a representation fitting the original
-            (input) model of this `PassManager`.
-        output : TransformationOutput
-            The transformation output returned from the `run` call.
-
-        Returns
-        -------
-        Solution
-            A solution object representing a solution to the original problem passed
-            to this `PassManager`'s run method.
-        """
-        return output.record.backward(solution)
 
     def __str__(self) -> str:
         """Human readable string."""
