@@ -17,7 +17,9 @@ impl PyArtifact {
 
     #[classmethod]
     fn deserialize(_cls: &Bound<'_, PyType>, py: Python, buf: Py<PyBytes>) -> PyResult<Self> {
-        Ok(Self(GeToLeConstraintsArtifact::deserialize(buf.as_bytes(py))?))
+        Ok(Self(GeToLeConstraintsArtifact::deserialize(
+            buf.as_bytes(py),
+        )?))
     }
 }
 

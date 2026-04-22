@@ -36,7 +36,9 @@ pub struct PyEqualityConstraintsToQuadraticPenaltyPass(
 impl PyEqualityConstraintsToQuadraticPenaltyPass {
     #[new]
     fn new(penalty_scaling: f64) -> Self {
-        Self(EqualityConstraintsToQuadraticPenaltyPass::new(penalty_scaling))
+        Self(EqualityConstraintsToQuadraticPenaltyPass::new(
+            penalty_scaling,
+        ))
     }
 
     #[getter]

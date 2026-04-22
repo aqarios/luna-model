@@ -4,7 +4,7 @@ use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 use lunamodel_python_macros::pycontrolflow;
 use lunamodel_transform::control_flow::{ConditionPredicate, IfElsePass};
-use lunamodel_transpiler::{PassContext};
+use lunamodel_transpiler::PassContext;
 use pyo3::{Py, PyAny, PyResult, Python, pymethods};
 
 use crate::{

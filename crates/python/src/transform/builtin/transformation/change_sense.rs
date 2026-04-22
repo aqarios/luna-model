@@ -24,7 +24,9 @@ impl PyChangeSensePassArtifact {
 
     #[classmethod]
     fn deserialize(_cls: &Bound<'_, PyType>, py: Python, buf: Py<PyBytes>) -> PyResult<Self> {
-        Ok(Self(ChangeSensePassArtifact::deserialize(buf.as_bytes(py))?))
+        Ok(Self(ChangeSensePassArtifact::deserialize(
+            buf.as_bytes(py),
+        )?))
     }
 }
 
