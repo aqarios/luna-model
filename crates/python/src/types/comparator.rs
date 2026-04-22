@@ -28,4 +28,3 @@ impl Into<Comparator> for PyComparator {
         }
     }
 }
-

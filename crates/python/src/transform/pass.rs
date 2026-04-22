@@ -42,256 +42,216 @@ use crate::transform::{
     utils::map_pyerr,
 };
 
-#[derive(FromPyObject)]
-pub enum PyPass {
-    // ////////////////////////
-    // ///      BUILTIN     ///
-    // ////////////////////////
-    // analysis
-    CheckSpecs(Py<PyCheckModelSpecsAnalysis>),
-    MaxBias(Py<PyMaxBiasAnalysis>),
-    MinValInConstr(Py<PyMinValueForConstraintAnalysis>),
-    Specs(Py<PySpecsAnalysis>),
-    // transformation
-    BinSpin(Py<PyBinarySpinPass>),
-    ChangeSense(Py<PyChangeSensePass>),
-    EqConstrToQuadPen(Py<PyEqualityConstraintsToQuadraticPenaltyPass>),
-    GeToLe(Py<PyGeToLeConstraintsPass>),
-    IntToBin(Py<PyIntegerToBinaryPass>),
-    LeToEq(Py<PyLeToEqConstraintsPass>),
-    RedInvBin(Py<PyReduceInvertedBinaryPass>),
-    // control-flow
-    IfElse(Py<PyIfElsePass>),
-    // known pipelines
-    ToBinaryMin(Py<PyToBinaryMinimizationPipeline>),
-    ToUnconsBin(Py<PyToUnconstrainedBinaryPipeline>),
-    // special containers
-    Pipeline(PyPipeline),
-    // ///////////////////////////
-    // /// CUSTOM FROM PYTHON  ///
-    // ///////////////////////////
-    // custom control-flow from python
-    CustomControlFlow(Py<PyControlFlowPass>),
-    // custom transformation from python
-    CustomTransformation(Py<PyTransformationPass>),
-    // custom analysis from python
-    CustomAnalysis(Py<PyAnalysisPass>),
-    // custom meta-analysis from python
-    CustomMetaAnalysis(Py<PyMetaAnalysisPass>),
-    // custom composite from python
-    CustomComposite(Py<PyCompositePass>),
-    // fallback for non-leaking error.
-    Default(Py<PyAny>),
-}
-
-impl PyPass {
-    pub fn to_step(&self, py: Python) -> PyResult<PipelineStep> {
-        match self {
+macro_rules! define_py_pass {
+    (
+        analysis: [$(($analysis_variant:ident, $analysis_py:path, $analysis_rs:path)),* $(,)?],
+        transformation: [$(($transformation_variant:ident, $transformation_py:path, $transformation_rs:path)),* $(,)?],
+        control_flow: [$(($control_flow_variant:ident, $control_flow_py:path, $control_flow_rs:path)),* $(,)?],
+    ) => {
+        #[derive(FromPyObject)]
+        pub enum PyPass {
             // ////////////////////////
             // ///      BUILTIN     ///
             // ////////////////////////
-            // analysis
-            Self::CheckSpecs(p) => Ok(PipelineStep::Analysis(Arc::new(p.borrow(py).to_rs()))),
-            Self::MaxBias(p) => Ok(PipelineStep::Analysis(Arc::new(p.borrow(py).to_rs()))),
-            Self::MinValInConstr(p) => Ok(PipelineStep::Analysis(Arc::new(p.borrow(py).to_rs()))),
-            Self::Specs(p) => Ok(PipelineStep::Analysis(Arc::new(p.borrow(py).to_rs()))),
-            // transformation
-            Self::BinSpin(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
-            Self::ChangeSense(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
-            Self::EqConstrToQuadPen(p) => {
-                Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs())))
-            }
-            Self::GeToLe(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
-            Self::IntToBin(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
-            Self::LeToEq(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
-            Self::RedInvBin(p) => Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs()))),
-            // control-flow
-            Self::IfElse(p) => Ok(PipelineStep::ControlFlow(Arc::new(p.borrow(py).to_rs()))),
+            $($analysis_variant(Py<$analysis_py>),)*
+            $($transformation_variant(Py<$transformation_py>),)*
+            $($control_flow_variant(Py<$control_flow_py>),)*
             // known pipelines
-            Self::ToBinaryMin(p) => {
-                let pipe = p.borrow(py).clone();
-                Ok(PipelineStep::Pipeline(Arc::new(pipe)))
-            }
-            Self::ToUnconsBin(p) => {
-                let pipe = p.borrow(py).0.clone();
-                Ok(PipelineStep::Pipeline(Arc::new(pipe)))
-            }
-            // special container
-            Self::Pipeline(p) => Ok(PipelineStep::Pipeline(Arc::new(p.0.clone()))),
+            ToBinaryMin(Py<PyToBinaryMinimizationPipeline>),
+            ToUnconsBin(Py<PyToUnconstrainedBinaryPipeline>),
+            // special containers
+            Pipeline(PyPipeline),
             // ///////////////////////////
             // /// CUSTOM FROM PYTHON  ///
             // ///////////////////////////
-            // custom control flow from python.
-            Self::CustomControlFlow(p) => Ok(PipelineStep::ControlFlow(Arc::new(
-                PyControlFlowPassAdapter::new(py, p.clone_ref(py))?,
-            ))),
-            // custom transformation from python.
-            Self::CustomTransformation(p) => Ok(PipelineStep::Transform(Arc::new(
-                PyTransformationPassAdapter::new(py, p.clone_ref(py))?,
-            ))),
+            // custom control-flow from python
+            CustomControlFlow(Py<PyControlFlowPass>),
+            // custom transformation from python
+            CustomTransformation(Py<PyTransformationPass>),
             // custom analysis from python
-            Self::CustomAnalysis(p) => Ok(PipelineStep::Analysis(Arc::new(
-                PyAnalysisPassAdapter::new(py, p.clone_ref(py))?,
-            ))),
+            CustomAnalysis(Py<PyAnalysisPass>),
             // custom meta-analysis from python
-            Self::CustomMetaAnalysis(p) => Ok(PipelineStep::MetaAnalysis(Arc::new(
-                PyMetaAnalysisPassAdapter::new(py, p.clone_ref(py))?,
-            ))),
+            CustomMetaAnalysis(Py<PyMetaAnalysisPass>),
             // custom composite from python
-            Self::CustomComposite(p) => Ok(PipelineStep::Composite(Arc::new(
-                PyCompositePassAdapter::new(py, p.clone_ref(py))?,
-            ))),
-            // default for non-leaking error
-            Self::Default(d) => Err(invalid_pass_error(d, py)),
+            CustomComposite(Py<PyCompositePass>),
+            // fallback for non-leaking error.
+            Default(Py<PyAny>),
         }
-        // self.inner.clone()
-    }
+        impl PyPass {
+            pub fn to_step(&self, py: Python) -> PyResult<PipelineStep> {
+                match self {
+                    $(
+                        Self::$analysis_variant(p) => {
+                            Ok(PipelineStep::Analysis(Arc::new(p.borrow(py).to_rs())))
+                        }
+                    )*
+                    $(
+                        Self::$transformation_variant(p) => {
+                            Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs())))
+                        }
+                    )*
+                    $(
+                        Self::$control_flow_variant(p) => {
+                            Ok(PipelineStep::ControlFlow(Arc::new(p.borrow(py).to_rs())))
+                        }
+                    )*
+                    // known pipelines
+                    Self::ToBinaryMin(p) => {
+                        let pipe = p.borrow(py).clone();
+                        Ok(PipelineStep::Pipeline(Arc::new(pipe)))
+                    }
+                    Self::ToUnconsBin(p) => {
+                        let pipe = p.borrow(py).0.clone();
+                        Ok(PipelineStep::Pipeline(Arc::new(pipe)))
+                    }
+                    // special container
+                    Self::Pipeline(p) => Ok(PipelineStep::Pipeline(Arc::new(p.0.clone()))),
+                    // custom control flow from python.
+                    Self::CustomControlFlow(p) => Ok(PipelineStep::ControlFlow(Arc::new(
+                        PyControlFlowPassAdapter::new(py, p.clone_ref(py))?,
+                    ))),
+                    // custom transformation from python.
+                    Self::CustomTransformation(p) => Ok(PipelineStep::Transform(Arc::new(
+                        PyTransformationPassAdapter::new(py, p.clone_ref(py))?,
+                    ))),
+                    // custom analysis from python
+                    Self::CustomAnalysis(p) => Ok(PipelineStep::Analysis(Arc::new(
+                        PyAnalysisPassAdapter::new(py, p.clone_ref(py))?,
+                    ))),
+                    // custom meta-analysis from python
+                    Self::CustomMetaAnalysis(p) => Ok(PipelineStep::MetaAnalysis(Arc::new(
+                        PyMetaAnalysisPassAdapter::new(py, p.clone_ref(py))?,
+                    ))),
+                    // custom composite from python
+                    Self::CustomComposite(p) => Ok(PipelineStep::Composite(Arc::new(
+                        PyCompositePassAdapter::new(py, p.clone_ref(py))?,
+                    ))),
+                    // default for non-leaking error
+                    Self::Default(d) => Err(invalid_pass_error(d, py)),
+                }
+            }
 
-    pub fn from_step(py: Python, step: &PipelineStep) -> LunaModelResult<Py<PyAny>> {
-        match step {
-            PipelineStep::Analysis(p) => {
-                if let Some(a) = p.as_any().downcast_ref::<CheckModelSpecsAnalysis>() {
-                    return Py::new(py, PyCheckModelSpecsAnalysis(a.clone()))
-                        .map_err(map_pyerr)?
+            pub fn from_step(py: Python, step: &PipelineStep) -> LunaModelResult<Py<PyAny>> {
+                match step {
+                    PipelineStep::Analysis(p) => {
+                        $(
+                            if let Some(a) = p.as_any().downcast_ref::<$analysis_rs>() {
+                                return Py::new(py, $analysis_py(a.clone()))
+                                    .map_err(map_pyerr)?
+                                    .into_py_any(py)
+                                    .map_err(map_pyerr);
+                            }
+                        )*
+                        if let Some(a) = p.as_any().downcast_ref::<PyAnalysisPassAdapter>() {
+                            return a.inner(py).into_py_any(py).map_err(map_pyerr);
+                        }
+                        Err(LunaModelError::Compilation(
+                            format!(
+                                "cannot convert analysis pass '{}' to a python pass.",
+                                p.name()
+                            )
+                            .into(),
+                        ))
+                    }
+                    PipelineStep::Transform(p) => {
+                        $(
+                            if let Some(t) = p.as_any().downcast_ref::<$transformation_rs>() {
+                                return Py::new(py, $transformation_py(t.clone()))
+                                    .map_err(map_pyerr)?
+                                    .into_py_any(py)
+                                    .map_err(map_pyerr);
+                            }
+                        )*
+                        if let Some(t) = p.as_any().downcast_ref::<PyTransformationPassAdapter>() {
+                            return t.inner(py).into_py_any(py).map_err(map_pyerr);
+                        }
+                        Err(LunaModelError::Compilation(
+                            format!(
+                                "cannot convert transformation pass '{}' to a python pass.",
+                                p.name()
+                            )
+                            .into(),
+                        ))
+                    }
+                    PipelineStep::ControlFlow(p) => {
+                        $(
+                            if let Some(c) = p.as_any().downcast_ref::<$control_flow_rs>() {
+                                return Py::new(py, $control_flow_py(c.clone()))
+                                    .map_err(map_pyerr)?
+                                    .into_py_any(py)
+                                    .map_err(map_pyerr);
+                            }
+                        )*
+                        if let Some(c) = p.as_any().downcast_ref::<PyControlFlowPassAdapter>() {
+                            return c.inner(py).into_py_any(py).map_err(map_pyerr);
+                        }
+                        Err(LunaModelError::Compilation(
+                            format!(
+                                "cannot convert control-flow pass '{}' to a python pass.",
+                                p.name()
+                            )
+                            .into(),
+                        ))
+                    }
+                    PipelineStep::Pipeline(p) => PyPipeline(Pipeline::clone(&p))
                         .into_py_any(py)
-                        .map_err(map_pyerr);
+                        .map_err(map_pyerr),
+                    PipelineStep::MetaAnalysis(p) => {
+                        if let Some(m) = p.as_any().downcast_ref::<PyMetaAnalysisPassAdapter>() {
+                            return m.inner(py).into_py_any(py).map_err(map_pyerr);
+                        }
+                        Err(LunaModelError::Compilation(
+                            format!(
+                                "cannot convert meta-analysis pass '{}' to a python pass.",
+                                p.name()
+                            )
+                            .into(),
+                        ))
+                    }
+                    PipelineStep::Composite(p) => {
+                        if let Some(c) = p.as_any().downcast_ref::<PyCompositePassAdapter>() {
+                            return c.inner(py).into_py_any(py).map_err(map_pyerr);
+                        }
+                        Err(LunaModelError::Compilation(
+                            format!(
+                                "cannot convert composite pass '{}' to a python pass.",
+                                p.name()
+                            )
+                            .into(),
+                        ))
+                    }
                 }
-                if let Some(a) = p.as_any().downcast_ref::<MaxBiasAnalysis>() {
-                    return Py::new(py, PyMaxBiasAnalysis(a.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(a) = p.as_any().downcast_ref::<MinValueForConstraintAnalysis>() {
-                    return Py::new(py, PyMinValueForConstraintAnalysis(a.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(a) = p.as_any().downcast_ref::<SpecsAnalysis>() {
-                    return Py::new(py, PySpecsAnalysis(a.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(a) = p.as_any().downcast_ref::<PyAnalysisPassAdapter>() {
-                    return a.inner(py).into_py_any(py).map_err(map_pyerr);
-                }
-                return Err(LunaModelError::Compilation(
-                    format!(
-                        "cannot convert analysis pass '{}' to a python pass.",
-                        p.name()
-                    )
-                    .into(),
-                ));
-            }
-            PipelineStep::Transform(p) => {
-                if let Some(t) = p.as_any().downcast_ref::<BinarySpinPass>() {
-                    return Py::new(py, PyBinarySpinPass(t.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(t) = p.as_any().downcast_ref::<ChangeSensePass>() {
-                    return Py::new(py, PyChangeSensePass(t.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(t) = p
-                    .as_any()
-                    .downcast_ref::<EqualityConstraintsToQuadraticPenaltyPass>()
-                {
-                    return Py::new(py, PyEqualityConstraintsToQuadraticPenaltyPass(t.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(t) = p.as_any().downcast_ref::<GeToLeConstraintsPass>() {
-                    return Py::new(py, PyGeToLeConstraintsPass(t.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(t) = p.as_any().downcast_ref::<IntegerToBinaryPass>() {
-                    return Py::new(py, PyIntegerToBinaryPass(t.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(t) = p.as_any().downcast_ref::<LeToEqConstraintsPass>() {
-                    return Py::new(py, PyLeToEqConstraintsPass(t.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(t) = p.as_any().downcast_ref::<ReduceInvertedBinaryPass>() {
-                    return Py::new(py, PyReduceInvertedBinaryPass(t.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(t) = p.as_any().downcast_ref::<PyTransformationPassAdapter>() {
-                    return t.inner(py).into_py_any(py).map_err(map_pyerr);
-                }
-                return Err(LunaModelError::Compilation(
-                    format!(
-                        "cannot convert transformation pass '{}' to a python pass.",
-                        p.name()
-                    )
-                    .into(),
-                ));
-            }
-            PipelineStep::ControlFlow(p) => {
-                if let Some(c) = p.as_any().downcast_ref::<IfElsePass>() {
-                    return Py::new(py, PyIfElsePass(c.clone()))
-                        .map_err(map_pyerr)?
-                        .into_py_any(py)
-                        .map_err(map_pyerr);
-                }
-                if let Some(c) = p.as_any().downcast_ref::<PyControlFlowPassAdapter>() {
-                    return c.inner(py).into_py_any(py).map_err(map_pyerr);
-                }
-                return Err(LunaModelError::Compilation(
-                    format!(
-                        "cannot convert control-flow pass '{}' to a python pass.",
-                        p.name()
-                    )
-                    .into(),
-                ));
-            }
-            PipelineStep::Pipeline(p) => {
-                return PyPipeline(Pipeline::clone(&p))
-                    .into_py_any(py)
-                    .map_err(map_pyerr);
-            }
-            PipelineStep::MetaAnalysis(p) => {
-                if let Some(m) = p.as_any().downcast_ref::<PyMetaAnalysisPassAdapter>() {
-                    return m.inner(py).into_py_any(py).map_err(map_pyerr);
-                }
-                return Err(LunaModelError::Compilation(
-                    format!(
-                        "cannot convert meta-analysis pass '{}' to a python pass.",
-                        p.name()
-                    )
-                    .into(),
-                ));
-            }
-            PipelineStep::Composite(p) => {
-                if let Some(c) = p.as_any().downcast_ref::<PyCompositePassAdapter>() {
-                    return c.inner(py).into_py_any(py).map_err(map_pyerr);
-                }
-                return Err(LunaModelError::Compilation(
-                    format!(
-                        "cannot convert composite pass '{}' to a python pass.",
-                        p.name()
-                    )
-                    .into(),
-                ));
             }
         }
-    }
+    };
 }
+
+define_py_pass!(
+    analysis: [
+        (CheckSpecs, PyCheckModelSpecsAnalysis, CheckModelSpecsAnalysis),
+        (MaxBias, PyMaxBiasAnalysis, MaxBiasAnalysis),
+        (
+            MinValInConstr,
+            PyMinValueForConstraintAnalysis,
+            MinValueForConstraintAnalysis
+        ),
+        (Specs, PySpecsAnalysis, SpecsAnalysis),
+    ],
+    transformation: [
+        (BinSpin, PyBinarySpinPass, BinarySpinPass),
+        (ChangeSense, PyChangeSensePass, ChangeSensePass),
+        (
+            EqConstrToQuadPen,
+            PyEqualityConstraintsToQuadraticPenaltyPass,
+            EqualityConstraintsToQuadraticPenaltyPass
+        ),
+        (GeToLe, PyGeToLeConstraintsPass, GeToLeConstraintsPass),
+        (IntToBin, PyIntegerToBinaryPass, IntegerToBinaryPass),
+        (LeToEq, PyLeToEqConstraintsPass, LeToEqConstraintsPass),
+        (RedInvBin, PyReduceInvertedBinaryPass, ReduceInvertedBinaryPass),
+    ],
+    control_flow: [(IfElse, PyIfElsePass, IfElsePass)],
+);
 
 fn invalid_pass_error(obj: &Py<PyAny>, py: Python<'_>) -> PyErr {
     let bound = obj.bind(py);

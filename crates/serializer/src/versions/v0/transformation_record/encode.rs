@@ -1,7 +1,9 @@
 use lunamodel_transpiler::TransformationRecord;
 use prost::Message;
 
-use crate::{encode::BytesEncodable, versions::v0::transformation_record::pass_entry::SerPassEntry};
+use crate::{
+    encode::BytesEncodable, versions::v0::transformation_record::pass_entry::SerPassEntry,
+};
 
 use super::SerTransformationRecord;
 

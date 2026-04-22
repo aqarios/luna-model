@@ -5,7 +5,7 @@ use pyo3::prelude::*;
 use super::PyVariable;
 use crate::{
     args::{PyBoundsArg, PyEnvArg},
-    bounds::{BoundsContent},
+    bounds::BoundsContent,
     environment::PyEnvironment,
     types::PyVtype,
 };

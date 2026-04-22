@@ -4,9 +4,9 @@ use std::{
 };
 
 use global_counter::primitive::exact::CounterU64;
-use std::collections::HashMap;
 use indexmap::IndexMap;
 use sqids::Sqids;
+use std::collections::HashMap;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{EnvIdx, VarIdx, Vtype};

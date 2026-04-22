@@ -39,7 +39,7 @@ impl<'py> IntoPyObject<'py> for PyComparator {
             .getattr("_lm")?
             .getattr("PyComparator")?
             .call_method1("_from_capsule", (pycmp.to_capsule(py)?,))?;
-        lm.getattr("Comparator")?.call_method1("_from_pycmp", (pyv,))
+        lm.getattr("Comparator")?
+            .call_method1("_from_pycmp", (pyv,))
     }
 }
-

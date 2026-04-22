@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use indexmap::IndexMap;
 use lunamodel_core::{
     Environment,
@@ -7,6 +6,7 @@ use lunamodel_core::{
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bound, VarIdx, Vtype};
 use prost::Message;
+use std::collections::HashMap;
 use std::collections::VecDeque;
 
 use super::SerEnvironment;

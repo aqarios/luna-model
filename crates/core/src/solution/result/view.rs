@@ -1,8 +1,8 @@
 use std::ops::Index;
 
 use derive_more::Deref;
-use std::collections::HashMap;
 use lunamodel_types::Bias;
+use std::collections::HashMap;
 
 use crate::solution::Solution;
 use crate::solution::sample::SampleView;

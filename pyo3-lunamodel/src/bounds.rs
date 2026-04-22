@@ -45,7 +45,6 @@ impl<'py> IntoPyObject<'py> for PyBounds {
             .getattr("_lm")?
             .getattr("PyBounds")?
             .call_method1("_from_capsule", (pye_capsule,))?;
-        lm.getattr("Bounds")?
-            .call_method1("_from_pyenv", (pye,))
+        lm.getattr("Bounds")?.call_method1("_from_pyenv", (pye,))
     }
 }

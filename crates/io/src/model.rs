@@ -40,12 +40,12 @@ impl CustomFormat<FormatOpt> for Model {
 mod pymodelio {
     use std::fmt::{Display, Formatter};
 
-    use std::collections::HashMap;
     use lunamodel_core::{
         ArcEnv, ConstraintCollection, Expression, Model,
         prelude::{Constraint, HigherOrder, Linear, Quadratic},
     };
     use lunamodel_types::{Bias, Bound, Vtype};
+    use std::collections::HashMap;
     use strum::IntoEnumIterator;
 
     const MAX_LINE_LENGTH: usize = 80;
