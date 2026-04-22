@@ -72,7 +72,8 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<transform::builtin::transformation::PyIntegerToBinaryPass>()?;
     m.add_class::<transform::builtin::transformation::PyBinarySpinPass>()?;
     m.add_class::<transform::builtin::transformation::PyChangeSensePass>()?;
-    m.add_class::<transform::builtin::transformation::PyEqualityConstraintsToQuadraticPenaltyPass>()?;
+    m.add_class::<transform::builtin::transformation::PyEqualityConstraintsToQuadraticPenaltyPass>(
+    )?;
     m.add_class::<transform::builtin::transformation::PyGeToLeConstraintsPass>()?;
     m.add_class::<transform::builtin::transformation::PyLeToEqConstraintsPass>()?;
     m.add_class::<transform::builtin::transformation::PyReduceInvertedBinaryPass>()?;

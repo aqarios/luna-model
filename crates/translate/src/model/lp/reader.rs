@@ -1,6 +1,6 @@
-use std::collections::{HashMap, HashSet};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Comparator, Sense};
+use std::collections::{HashMap, HashSet};
 
 use super::tokenizer::{Token, tokenize};
 
@@ -23,11 +23,7 @@ impl Section {
             Some(Section::Objective(Sense::Min))
         } else if lu == "MAXIMIZE" || lu == "MAXIMUM" || lu == "MAX" {
             Some(Section::Objective(Sense::Max))
-        } else if lu == "SUBJECT TO"
-            || lu == "SUCH THAT"
-            || lu == "ST"
-            || lu == "S.T."
-        {
+        } else if lu == "SUBJECT TO" || lu == "SUCH THAT" || lu == "ST" || lu == "S.T." {
             Some(Section::Constraints)
         } else if lu == "BOUNDS" || lu == "BOUND" {
             Some(Section::Bounds)

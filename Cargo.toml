@@ -45,7 +45,7 @@ pad = "0.1.6"
 sqids = "0.4.2"
 bitvec = "1.0.1"
 enumset = "1.1.10"
-pyo3 = { version = "0.27.2", features = ["extension-module", "generate-import-lib"] }
+pyo3 = { version = "0.27.2", features = ["generate-import-lib"] }
 numpy = "0.27.1"
 syn = "2.0"
 proc-macro2 = "1.0"

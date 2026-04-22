@@ -37,4 +37,3 @@ impl PyComparator {
         Self::from_capsule(capsule)
     }
 }
-

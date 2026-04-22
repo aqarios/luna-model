@@ -3,7 +3,9 @@ use prost::Message;
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::TransformationRecord;
 
-use crate::{encode::BytesDecodable, versions::v0::transformation_record::pass_entry::SerPassEntry};
+use crate::{
+    encode::BytesDecodable, versions::v0::transformation_record::pass_entry::SerPassEntry,
+};
 
 use super::SerTransformationRecord;
 

@@ -2,8 +2,8 @@ mod artifact;
 mod pass;
 mod ser_artifact;
 
-pub use pass::IntegerToBinaryPass;
 pub use artifact::IntegerToBinaryArtifact;
+pub use pass::IntegerToBinaryPass;
 
 #[cfg(test)]
 mod tests {

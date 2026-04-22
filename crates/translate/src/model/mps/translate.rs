@@ -117,7 +117,9 @@ ENDATA
 "#;
 
         let model = MpsTranslator::translate(mps_content.to_string()).unwrap();
-        let mps_output = MpsTranslator::back_translate(&model, None).unwrap().unwrap();
+        let mps_output = MpsTranslator::back_translate(&model, None)
+            .unwrap()
+            .unwrap();
 
         println!("Back-translated MPS:\n{}", mps_output);
 
@@ -176,7 +178,9 @@ ENDATA
 "#;
 
         let model1 = MpsTranslator::translate(mps_content.to_string()).unwrap();
-        let mps_back = MpsTranslator::back_translate(&model1, None).unwrap().unwrap();
+        let mps_back = MpsTranslator::back_translate(&model1, None)
+            .unwrap()
+            .unwrap();
 
         println!("Round-trip integer test:\n{}", mps_back);
 
@@ -204,7 +208,9 @@ ENDATA
 "#;
 
         let model1 = MpsTranslator::translate(mps_content.to_string()).unwrap();
-        let mps_back = MpsTranslator::back_translate(&model1, None).unwrap().unwrap();
+        let mps_back = MpsTranslator::back_translate(&model1, None)
+            .unwrap()
+            .unwrap();
         let model2 = MpsTranslator::translate(mps_back).unwrap();
 
         assert!(model1.equal_contents(&model2));
@@ -238,7 +244,9 @@ ENDATA
 "#;
 
         let model1 = MpsTranslator::translate(mps_content.to_string()).unwrap();
-        let mps_back = MpsTranslator::back_translate(&model1, None).unwrap().unwrap();
+        let mps_back = MpsTranslator::back_translate(&model1, None)
+            .unwrap()
+            .unwrap();
         let model2 = MpsTranslator::translate(mps_back).unwrap();
 
         assert!(model1.equal_contents(&model2));
@@ -264,7 +272,9 @@ ENDATA
 "#;
 
         let model1 = MpsTranslator::translate(mps_content.to_string()).unwrap();
-        let mps_back = MpsTranslator::back_translate(&model1, None).unwrap().unwrap();
+        let mps_back = MpsTranslator::back_translate(&model1, None)
+            .unwrap()
+            .unwrap();
         let model2 = MpsTranslator::translate(mps_back).unwrap();
 
         assert!(model1.equal_contents(&model2));

@@ -1,7 +1,7 @@
 use std::ops::{AddAssign, Index, IndexMut, Mul, MulAssign, Neg};
 
-use std::collections::HashMap;
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
+use std::collections::HashMap;
 
 use crate::traits::Editable;
 

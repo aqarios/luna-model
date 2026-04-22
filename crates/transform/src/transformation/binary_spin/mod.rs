@@ -2,8 +2,8 @@ mod artifact;
 mod pass;
 mod ser_artifact;
 
-pub use pass::BinarySpinPass;
 pub use artifact::BinarySpinPassArtifact;
+pub use pass::BinarySpinPass;
 
 #[cfg(test)]
 mod tests {

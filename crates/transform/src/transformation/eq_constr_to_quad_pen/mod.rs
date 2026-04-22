@@ -1,8 +1,8 @@
 mod artifact;
 mod pass;
 
-pub use pass::EqualityConstraintsToQuadraticPenaltyPass;
 pub use artifact::EqualityConstraintsToQuadraticPenaltyArtifact;
+pub use pass::EqualityConstraintsToQuadraticPenaltyPass;
 
 #[cfg(test)]
 mod tests {
@@ -13,7 +13,7 @@ mod tests {
     };
     use lunamodel_error::LunaModelResult;
     use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
-    use lunamodel_transpiler::{TransformationRecord, PassManager, register_backward};
+    use lunamodel_transpiler::{PassManager, TransformationRecord, register_backward};
     use lunamodel_types::{Comparator, Sense, Vtype};
 
     use crate::{
