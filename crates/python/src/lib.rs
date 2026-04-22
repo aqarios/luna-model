@@ -35,9 +35,7 @@ pub use lunamodel_core::ValueSource;
 pub use lunamodel_translate::TranslationTarget;
 pub use lunamodel_types::{Comparator, Ctype, Sense, Vtype};
 
-pub use types::{
-    PyComparator, PyCtype, PySense, PyTranslationTarget, PyValueSource, PyVtype,
-};
+pub use types::{PyComparator, PyCtype, PySense, PyTranslationTarget, PyValueSource, PyVtype};
 
 pub use lunamodel_error::py::*;
 pub use utilities::quicksum;

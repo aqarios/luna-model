@@ -1,10 +1,10 @@
 use std::{fs::File, io::Write, path::PathBuf};
 
-use std::collections::HashSet;
 use lunamodel_core::{ArcEnv, ConstraintCollection, Expression, Model, prelude::Bounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Bound, Comparator, VarId, Vtype};
 use regex::Regex;
+use std::collections::HashSet;
 
 use super::LpTranslator;
 
@@ -75,7 +75,7 @@ impl LpTranslator {
                         "LP files cannot contain variables of type SPIN".into(),
                     ));
                 }
-                Vtype::InvertedBinary => todo!(),
+                Vtype::InvertedBinary => unreachable!(),
                 Vtype::Binary => bins.push(v.name()?),
                 Vtype::Integer => gens.push(v.name()?),
             }

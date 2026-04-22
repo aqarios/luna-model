@@ -11,12 +11,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from __future__ import annotations
+
+from typing import Protocol, Self
+
 from luna_model._lm import PyChangeSensePass
 from luna_model.model.model import Sense
-from luna_model.transformation.transform import ConcreteTransformationPass
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
-class ChangeSensePass(ConcreteTransformationPass):
+class ChangeSensePassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the ChangeSensePass.
+
+    This protocol defines the interface for accessing information about
+    change sense transformations.
+    """
+
+    @property
+    def did_change(self) -> bool:
+        """Get if the sense was changed.
+
+        Returns
+        -------
+        bool
+            If the sense was changed.
+        """
+        ...
+
+
+class ChangeSensePass(PyChangeSensePass, BuiltinTransformation[ChangeSensePassArtifact]):
     """Change the optimization sense between minimization and maximization.
 
     Converts the optimization sense by negating the objective function.
@@ -25,7 +50,6 @@ class ChangeSensePass(ConcreteTransformationPass):
     ----------
     sense : Sense
         The target sense to convert the optimization sense to.
-
 
     Examples
     --------
@@ -37,14 +61,24 @@ class ChangeSensePass(ConcreteTransformationPass):
     >>> y = model.add_variable("y", vtype=Vtype.BINARY)
     >>> model.objective = x * y + x - 2 * y
     >>> pm = PassManager([ChangeSensePass(Sense.MIN)])
-    >>> ir = pm.run(model)
-    >>> min_model = ir.model
+    >>> output = pm.run(model)
+    >>> min_model = output.model
     """
 
+    def __new__(cls, sense: Sense) -> Self:
+        """Create a new change sense pass instance.
+
+        Parameters
+        ----------
+        sense : Sense
+            The target sense to convert the optimization sense to.
+        """
+        return super().__new__(cls, sense._val)
+
     def __init__(self, sense: Sense) -> None:
-        super().__init__(base=PyChangeSensePass(sense._val))
+        _ = sense
 
     @property
     def sense(self) -> Sense:
         """Get the target optimization sense."""
-        return Sense._from_pysense(self._csp.sense)
+        return Sense._from_pysense(super().sense)

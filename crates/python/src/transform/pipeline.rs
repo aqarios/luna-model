@@ -1,77 +1,70 @@
-use std::collections::HashSet;
+use lunamodel_io::{CustomFormat, FormatOpt};
+use lunamodel_transpiler::{Pipeline, PipelineStep};
+use pyo3::{Py, PyAny, PyResult, Python, pyclass, pymethods};
 
-use lunamodel_transform::{
-    BasePass,
-    passes::special::{AbstractPipeline, Pipeline},
-};
-use lunamodel_unwind::*;
-use pyo3::{PyErr, PyResult, pyclass, pymethods};
+use crate::transform::{pass::PyPass, utils::FromSteps};
 
-use crate::transform::pass::PyPass;
+#[pyclass(subclass)]
+#[derive(Clone)]
+pub struct PyPipeline(pub(crate) Pipeline);
 
-#[pyclass(subclass, unsendable)]
-#[derive(Debug, Clone)]
-pub struct PyPipeline {
-    pub(crate) p: Pipeline,
+impl PyPipeline {
+    pub fn steps(&self) -> &[PipelineStep] {
+        &self.0.steps
+    }
+
+    pub fn name(&self) -> String {
+        self.0.name.clone()
+    }
 }
 
-#[unwindable]
 #[pymethods]
 impl PyPipeline {
     #[new]
-    #[pyo3(signature = (passes, name=None))]
-    fn py_new(passes: Vec<PyPass>, name: Option<String>) -> PyResult<Self> {
-        let mapped = passes
-            .iter()
-            .map(|y| y.as_pass())
-            .collect::<PyResult<Vec<_>>>()?;
-        Ok(Self {
-            p: Pipeline::new(mapped, name),
-        })
+    fn new(py: Python, name: String, steps: Vec<PyPass>) -> PyResult<Self> {
+        Ok(Self(Pipeline::new(
+            name,
+            steps
+                .into_iter()
+                .map(|p| p.to_step(py))
+                .collect::<PyResult<_>>()?,
+        )))
     }
 
-    #[getter]
-    fn name(&self) -> String {
-        return self.p.name();
+    #[pyo3(name = "name")]
+    fn pyname(&self) -> String {
+        self.name()
     }
 
-    #[getter]
     fn requires(&self) -> Vec<String> {
-        return self.p.requires();
+        self.0.requires().collect()
     }
 
-    #[getter]
-    fn satisfies(&self) -> HashSet<String> {
-        return self.p.satisfies();
+    fn invalidates(&self) -> Vec<String> {
+        self.0.invalidates().collect()
+    }
+
+    fn provides(&self) -> Vec<String> {
+        self.0.provides().collect()
+    }
+
+    fn add(&mut self, py: Python, pass: PyPass) -> PyResult<()> {
+        Ok(self.0.steps.push(pass.to_step(py)?))
     }
 
     fn clear(&mut self) {
-        self.p.clear()
+        self.0.clear();
     }
 
-    fn add(&mut self, pass: PyPass) -> PyResult<()> {
-        self.p.add(pass.as_pass()?);
-        Ok(())
-    }
-
-    fn __len__(&self) -> usize {
-        self.p.len()
-    }
-
-    #[getter]
-    fn passes(&self) -> PyResult<Vec<PyPass>> {
-        self.p
-            .passes()
-            .iter()
-            .map(|p| PyPass::from_pass(p))
-            .collect::<Result<Vec<_>, PyErr>>()
+    fn passes(&self, py: Python) -> PyResult<Vec<Py<PyAny>>> {
+        Ok(self.steps().to_pypasses(py)?)
     }
 
     fn __str__(&self) -> String {
-        format!("{}", self.p)
+        format!("{}", self.0.format(FormatOpt::Py))
     }
 
     fn __repr__(&self) -> String {
-        format!("{:?}", self.p)
+        format!("{:?}", self.0.format(FormatOpt::Py))
     }
 }

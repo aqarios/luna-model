@@ -1,41 +1,30 @@
-mod cache;
-mod ifelse;
-mod ir;
-mod log;
+mod context;
+mod entry;
+mod envelope;
+mod manager;
+mod output;
 mod pass;
-mod pass_manager;
 mod pipeline;
+mod record;
+mod utils;
 
-mod adapters;
-mod interfaces;
+mod adapter;
+pub mod builtin;
 
-mod passes;
-mod pipelines;
-
-pub use cache::PyAnalysisCache;
-pub use ifelse::PyIfElsePass;
-pub use interfaces::PyStructuredTransformationOutcome;
-pub use ir::PyIR;
-pub use log::PyLogElement;
-pub use lunamodel_transform::ActionType;
-pub use pass_manager::PyPassManager;
+pub use adapter::{
+    PyAnalysisPass, PyAnalysisPassAdapter, PyCompositePass, PyCompositePassAdapter,
+    PyControlFlowPass, PyControlFlowPassAdapter, PyControlFlowPlan, PyMetaAnalysisPass,
+    PyMetaAnalysisPassAdapter, PyTransformationPass, PyTransformationPassAdapter,
+};
+pub use context::PyPassContext;
+pub use entry::PyPassEntry;
+pub use manager::PyPassManager;
+pub use output::PyTransformationOutput;
 pub use pipeline::PyPipeline;
+pub use record::PyTransformationRecord;
 
-pub use interfaces::PyAnalysisPass;
-pub use interfaces::PyMetaAnalysisPass;
-pub use interfaces::PyTransformationPass;
-
-pub use passes::PyCheckModelSpecsAnalysis;
-pub use passes::PyMaxBiasAnalysis;
-pub use passes::PyMinValueForConstraintsAnalysis;
-pub use passes::PySpecsAnalysis;
-
-pub use passes::PyBinarySpinPass;
-pub use passes::PyChangeSensePass;
-pub use passes::PyEqualityConstraintsToQuadraticPenaltyPass;
-pub use passes::PyGeToLeConstraintsPass;
-pub use passes::PyIntegerToBinaryPass;
-pub use passes::PyLeToEqConstraintsPass;
-
-pub use pipelines::PyToUnconstrainedBinaryPipeline;
-pub use pipelines::PyToBinaryMinimizationPipeline;
+pub fn register_backward() {
+    lunamodel_transform::register_backward();
+    lunamodel_transpiler::register_backward::<PyTransformationPassAdapter>();
+    lunamodel_transpiler::register_backward::<PyCompositePassAdapter>();
+}

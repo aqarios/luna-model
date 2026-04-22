@@ -3,7 +3,7 @@ use numpy::{PyArray1, PyArrayMethods};
 use pyo3::{Bound, PyResult, pymethods};
 
 use super::PySolution;
-use crate::timer::PyTiming;
+use crate::{PySense, timer::PyTiming};
 
 #[unwindable]
 #[pymethods]
@@ -32,5 +32,10 @@ impl PySolution {
     #[setter]
     fn set_runtime<'py>(&mut self, timing: PyTiming) {
         self.s.write_arc().timing = Some(*timing)
+    }
+
+    #[setter]
+    fn set_sense(&mut self, sense: PySense) {
+        self.s.write_arc().sense = sense.into();
     }
 }

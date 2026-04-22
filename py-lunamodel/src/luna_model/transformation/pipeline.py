@@ -1,61 +1,81 @@
-# Copyright 2026 Aqarios GmbH
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-from __future__ import annotations
-
-import sys
-from typing import Protocol, overload, runtime_checkable
-
-if sys.version_info < (3, 12):
-    from typing_extensions import override
-else:
-    from typing import override
+from collections.abc import Sequence
+from typing import Self, TypeAlias
 
 from luna_model._lm import PyPipeline
+from luna_model.transformation.analysis import AnalysisPass
+from luna_model.transformation.composite import CompositePass
+from luna_model.transformation.control_flow import ControlFlowPass
+from luna_model.transformation.meta_analysis import MetaAnalysisPass
+from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
+from luna_model.transformation.passes.composite.builtin import BuiltinComposite
+from luna_model.transformation.passes.control_flow.builtin import BuiltinControlFlow
+from luna_model.transformation.passes.meta_analysis.builtin import BuiltinMetaAnalysis
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
+from luna_model.transformation.transformation import TransformationPass
+from luna_model.wrapper import wraps
 
-from .base import BasePass
+Pass: TypeAlias = (
+    AnalysisPass
+    | CompositePass
+    | ControlFlowPass
+    | MetaAnalysisPass
+    | TransformationPass
+    | BuiltinAnalysis
+    | BuiltinComposite
+    | BuiltinControlFlow
+    | BuiltinMetaAnalysis
+    | BuiltinTransformation
+)
 
 
-@runtime_checkable
-class PipelineProto(Protocol):
+class _PipelineMeta(type(PyPipeline)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, PyPipeline) or super().__instancecheck__(instance)
+
+
+class Pipeline(PyPipeline, metaclass=_PipelineMeta):
     """
     A pipeline for executing multiple transformation passes in sequence.
 
     Pipelines organize and execute multiple passes, managing dependencies
     and ensuring they run in the correct order.
-
-    Parameters
-    ----------
-    passes : list[BasePass]
-        The transformation passes to include in the pipeline.
-    name : str, optional
-        A custom name for the pipeline. If not provided, a default name
-        will be generated.
     """
 
-    @property
-    def name(self) -> str:
-        """
-        Unique identifier for this pipeline.
+    def __new__(cls, steps: Sequence[Pass | Self], name: str) -> Self:
+        """Create a new pipeline from a sequence of passes.
+
+        Parameters
+        ----------
+        steps : Sequence[Pass | Self]
+            Ordered passes/pipelines to execute.
+        name : str
+            Human-readable pipeline name.
 
         Returns
         -------
-        str
-            The unique pipeline name.
+        Self
+            New pipeline instance.
         """
-        ...
+        return super().__new__(cls, name=name, steps=steps)
 
-    @property
+    @wraps()
+    def name(self) -> str:
+        """Get the name of this pipeline."""
+        raise NotImplementedError
+
+    @wraps()
+    def add(self, new_pass: Pass | Self) -> None:
+        """
+        Add a new pass to the pipeline.
+
+        Parameters
+        ----------
+        new_pass : Pass | Self
+            The pass to add to the pipeline.
+        """
+        raise NotImplementedError(f"add({new_pass})")
+
+    @wraps()
     def requires(self) -> list[str]:
         """
         List of passes that must run before this pipeline.
@@ -65,160 +85,57 @@ class PipelineProto(Protocol):
         list[str]
             Pass names that must execute first, or empty list if no dependencies.
         """
-        ...
+        raise NotImplementedError
 
-    @property
-    def satisfies(self) -> set[str]:
-        """
-        Get the set of pass requirements that this pipeline satisfies.
-
-        Returns
-        -------
-        set of str
-            Names of pass requirements satisfied by executing this pipeline.
-        """
-        ...
-
-    @property
-    def passes(self) -> list[BasePass]:
-        """
-        Get all passes that are part of the pipeline.
+    @wraps()
+    def invalidates(self) -> list[str]:
+        """Get analysis keys invalidated by this pipeline.
 
         Returns
         -------
-        list of BasePass
-            The transformation passes in this pipeline.
+        list[str]
+            Analysis/pass keys invalidated by at least one step.
         """
-        ...
+        raise NotImplementedError
 
-    def __str__(self) -> str:
-        """
-        Get a string representation of the pipeline.
+    @wraps()
+    def provides(self) -> list[str]:
+        """Get analysis keys provided by this pipeline.
 
         Returns
         -------
-        str
-            A human-readable string describing the pipeline.
+        list[str]
+            Analysis/pass keys produced by at least one step.
         """
-        ...
+        raise NotImplementedError
 
-    def __repr__(self) -> str:
-        """
-        Get a detailed string representation of the pipeline for debugging.
-
-        Returns
-        -------
-        str
-            A detailed string representation suitable for debugging.
-        """
-        ...
-
-
-class Pipeline(PyPipeline, PipelineProto, BasePass):
-    """
-    A pipeline for executing multiple transformation passes in sequence.
-
-    Pipelines organize and execute multiple passes, managing dependencies
-    and ensuring they run in the correct order.
-
-    Parameters
-    ----------
-    passes : list[BasePass]
-        The transformation passes to include in the pipeline.
-    name : str, optional
-        A custom name for the pipeline. If not provided, a default name
-        will be generated.
-    """
-
-    @overload
-    def __init__(self, passes: list[BasePass]) -> None: ...
-    @overload
-    def __init__(self, passes: list[BasePass], name: str) -> None: ...
-    def __init__(self, passes: list[BasePass], name: str | None = None) -> None:
-        super().__init__(passes, name)
-
-    @property
-    @override
-    def name(self) -> str:
-        return super().name
-
-    @property
-    @override
-    def requires(self) -> list[str]:
-        return super().requires
-
-    @property
-    def satisfies(self) -> set[str]:
-        """
-        Get the set of pass requirements that this pipeline satisfies.
-
-        Returns
-        -------
-        set of str
-            Names of pass requirements satisfied by executing this pipeline.
-        """
-        return super().satisfies
-
-    @property
-    def passes(self) -> list[BasePass]:
-        """
-        Get all passes that are part of the pipeline.
-
-        Returns
-        -------
-        list of BasePass
-            The transformation passes in this pipeline.
-        """
-        return super().passes
-
-    def add(self, new_pass: BasePass) -> None:
-        """
-        Add a new pass to the pipeline.
-
-        Parameters
-        ----------
-        new_pass : BasePass
-            The transformation pass to add to the pipeline.
-        """
-        super().add(new_pass)
-
+    @wraps()
     def clear(self) -> None:
         """
         Clear all passes from the pipeline.
 
         Removes all transformation passes, leaving an empty pipeline.
         """
-        super().clear()
+        raise NotImplementedError
 
-    def __len__(self) -> int:
+    @wraps()
+    def passes(self) -> list[Pass | Self]:
         """
-        Get the number of passes in the pipeline.
+        Get all passes that are part of the pipeline.
 
         Returns
         -------
-        int
-            The number of transformation passes in this pipeline.
+        list[Pass | Self]
+            The transformation passes in this pipeline.
         """
-        return super().__len__()
+        raise NotImplementedError
 
+    @wraps()
     def __str__(self) -> str:
-        """
-        Get a string representation of the pipeline.
+        """Human readable string."""
+        raise NotImplementedError
 
-        Returns
-        -------
-        str
-            A human-readable string describing the pipeline.
-        """
-        return super().__str__()
-
+    @wraps()
     def __repr__(self) -> str:
-        """
-        Get a detailed string representation of the pipeline for debugging.
-
-        Returns
-        -------
-        str
-            A detailed string representation suitable for debugging.
-        """
-        return super().__repr__()
+        """Debug representation string."""
+        raise NotImplementedError

@@ -11,11 +11,45 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Protocol, Self
+
 from luna_model._lm import PyIntegerToBinaryPass
-from luna_model.transformation.transform import ConcreteTransformationPass
+from luna_model.transformation.artifact import TransformationPassArtifact
+from luna_model.transformation.passes.transformation.builtin import BuiltinTransformation
 
 
-class IntegerToBinaryPass(ConcreteTransformationPass):
+class IntegerToBinaryPassArtifact(TransformationPassArtifact, Protocol):
+    """Artifact output of the IntegerToBinaryPassArtifact.
+
+    This protocol defines the interface for accessing information about IntegerToBinaryPassArtifact transformations,
+    including the source and target variable types and the mapping between variable names.
+    """
+
+    @property
+    def varmap(self) -> dict[str, dict[str, int]]:
+        """Get the variable name mapping from old to new names with extra info used for reconstruction.
+
+        Returns
+        -------
+        dict[str, dict[str, int]]
+            Dictionary mapping old variable names to new variable names with extra info.
+        """
+        ...
+
+    @property
+    def offsetmap(self) -> dict[str, int]:
+        """Get the offset mapping used in reconstruction.
+
+        Returns
+        -------
+        dict[str, int]
+            Dictionary mapping used in reconstruction.
+        """
+        ...
+
+
+class IntegerToBinaryPass(PyIntegerToBinaryPass, BuiltinTransformation[IntegerToBinaryPassArtifact]):
     """Convert integer variables to a binary representation.
 
     Transform the variables of type integer to be represented by binary typed
@@ -31,10 +65,11 @@ class IntegerToBinaryPass(ConcreteTransformationPass):
     >>> y = model.add_variable("y", vtype=Vtype.BINARY)
     >>> model.objective = x * y + x - 2 * y
     >>> pm = PassManager([IntegerToBinaryPass()])
-    >>> ir = pm.run(model)
-    >>> print(ir.model.objective)
+    >>> output = pm.run(model)
+    >>> print(output.model.objective)
     y x_b0 + 2 y x_b1 - 2 y + x_b0 + 2 x_b1
     """
 
-    def __init__(self) -> None:
-        super().__init__(base=PyIntegerToBinaryPass())
+    def __new__(cls) -> Self:
+        """Create a new integer to binary pass."""
+        return super().__new__(cls)

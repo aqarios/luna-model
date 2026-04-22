@@ -11,7 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from .analysis import CheckModelSpecsAnalysis, MaxBiasAnalysis, MinValueForConstraintAnalysis, SpecsAnalysis
+
+from . import analysis, control_flow, transformation
+from .analysis import (
+    CheckModelSpecsAnalysis,
+    MaxBias,
+    MaxBiasAnalysis,
+    MinConstraintValues,
+    MinValueForConstraintAnalysis,
+    SpecsAnalysis,
+)
+from .control_flow import IfElsePass
 from .transformation import (
     BinarySpinPass,
     ChangeSensePass,
@@ -19,6 +29,7 @@ from .transformation import (
     GeToLeConstraintsPass,
     IntegerToBinaryPass,
     LeToEqConstraintsPass,
+    ReduceInvertedBinaryPass,
 )
 
 __all__ = [
@@ -27,9 +38,16 @@ __all__ = [
     "CheckModelSpecsAnalysis",
     "EqualityConstraintsToQuadraticPenaltyPass",
     "GeToLeConstraintsPass",
+    "IfElsePass",
     "IntegerToBinaryPass",
     "LeToEqConstraintsPass",
+    "MaxBias",
     "MaxBiasAnalysis",
+    "MinConstraintValues",
     "MinValueForConstraintAnalysis",
+    "ReduceInvertedBinaryPass",
     "SpecsAnalysis",
+    "analysis",
+    "control_flow",
+    "transformation",
 ]

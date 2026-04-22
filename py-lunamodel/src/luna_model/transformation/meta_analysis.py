@@ -11,105 +11,84 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from __future__ import annotations
 
-import sys
 from abc import abstractmethod
-from typing import Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
-if sys.version_info < (3, 12):
-    from typing_extensions import override
-else:
-    from typing import override
+from luna_model._lm import PyMetaAnalysisPass
+from luna_model.transformation.key import AnalysisKey
 
-from luna_model._lm import PyAnalysisCache, PyMetaAnalysisPass
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
-from .base import BasePass
-from .cache import AnalysisCache
+    from luna_model.transformation.typing import Pass
 
-T = TypeVar("T")
+Result = TypeVar("Result")
 
 
-class MetaAnalysisPass(PyMetaAnalysisPass, BasePass, Generic[T]):
-    """Base class for meta-analysis passes that analyze other passes.
+class _MetaAnalysisPassMeta(type(PyMetaAnalysisPass)):
+    def __instancecheck__(self, instance: object, /) -> bool:
+        return isinstance(instance, PyMetaAnalysisPass) or super().__instancecheck__(instance)
 
-    Meta-analysis passes can examine the results and metadata of other passes
-    to produce higher-level insights or summaries.
+
+class MetaAnalysisPass(PyMetaAnalysisPass, Generic[Result], metaclass=_MetaAnalysisPassMeta):
+    """Abstract base class for meta-analysis passes.
+
+    Meta-analysis passes inspect upcoming pipeline steps and produce analysis
+    data for later passes.
 
     Notes
     -----
-    This is an abstract class. Subclasses must implement the `name` property
-    and `run` method.
+    Subclasses must define ``PROVIDES`` and implement ``name`` and ``run``.
     """
 
-    _base: MetaAnalysisPass
-
-    def __init__(self, base: MetaAnalysisPass | None = None) -> None:
-        self._base = base if base else PyMetaAnalysisPass()
-
-    @property
-    @override
-    @abstractmethod
-    def name(self) -> str:
-        return self._base.name
-
-    @property
-    @override
-    def requires(self) -> list[str]:
-        return self._base.requires
+    PROVIDES: str
 
     @abstractmethod
-    def run(self, passes: list[BasePass], cache: AnalysisCache) -> T:
-        """
-        Run/Execute this meta-analysis pass.
-
-        Parameters
-        ----------
-        passes : list[BasePass]
-            List of passes to analyze.
-        cache : AnalysisCache
-            Cache containing analysis results.
-
-        Returns
-        -------
-        T
-            The result of the meta-analysis.
-        """
-        ...
-
-    def _run(self, passes: list[BasePass], cache: PyAnalysisCache) -> T:
-        return self.run(passes, AnalysisCache._from_pyac(cache))
-
-
-class ConcreteMetaAnalysisPass(MetaAnalysisPass, Generic[T]):
-    """Concrete implementation of a meta-analysis pass."""
-
-    @property
     def name(self) -> str:
-        """
-        Get the name of this pass.
+        """Get the unique pass name.
 
         Returns
         -------
         str
-            The unique identifier name for this pass.
+            The unique pass name.
         """
-        return self._base.name
+        ...
 
-    def run(self, passes: list[BasePass], cache: AnalysisCache) -> T:
-        """
-        Run/Execute this meta-analysis pass.
+    @abstractmethod
+    def run(self, steps: Sequence[Pass]) -> Result:
+        """Execute this meta-analysis pass.
 
         Parameters
         ----------
-        passes : list[BasePass]
-            List of passes to analyze.
-        cache : AnalysisCache
-            Cache containing analysis results.
+        steps : list[Pass]
+            Remaining pipeline steps (including nested pipelines) represented
+            as typed step views.
 
         Returns
         -------
-        T
-            The result of the meta-analysis.
+        Result
+            Computed analysis result stored under ``PROVIDES``.
         """
-        return self._base.run(passes, cache._ac)
+        ...
+
+    @classmethod
+    def provides(cls) -> str:
+        """Get the analysis key written by this pass.
+
+        Returns
+        -------
+        str
+            Stable provides key.
+        """
+        return cls.PROVIDES
+
+    @classmethod
+    def key(cls) -> AnalysisKey[Result]:
+        """Get the typed key for retrieving this pass result."""
+        return AnalysisKey(cls.PROVIDES)
+
+    def _run(self, steps: Sequence[Pass]) -> Result:
+        return self.run(steps)

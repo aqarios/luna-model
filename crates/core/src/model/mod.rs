@@ -16,7 +16,7 @@ use crate::{ArcEnv, ConstraintCollection, Expression};
 
 /// A model describing some function to be optimized (objective) and restrictions
 /// on this objective (constraints).
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Model {
     /// The name of the model, by default is [DEFAULT_MODEL_NAME].
     pub name: String,
@@ -31,6 +31,19 @@ pub struct Model {
     /// The sense of the model, i.e., the direction to be optimized at.
     /// By default is set to [Sense::Min].
     pub sense: Sense,
+}
+
+impl Default for Model {
+    fn default() -> Self {
+        let env = ArcEnv::default();
+        Self {
+            name: "unnamed".to_string(),
+            objective: Expression::new(env.clone()),
+            environment: env,
+            constraints: ConstraintCollection::default(),
+            sense: Sense::default(),
+        }
+    }
 }
 
 impl Debug for Model {

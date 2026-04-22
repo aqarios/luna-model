@@ -75,6 +75,6 @@ impl PyVariable {
 
     pub fn __neg__(&self) -> PyResult<PyE> {
         self.v.check_living()?;
-        Ok(PyE::new(self.v.neg()?))
+        Ok(PyE::new((&self.v).neg()?))
     }
 }

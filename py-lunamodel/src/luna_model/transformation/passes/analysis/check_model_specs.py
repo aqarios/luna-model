@@ -11,12 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Self
+
 from luna_model._lm import PyCheckModelSpecsAnalysis
+from luna_model.model.model import Model
 from luna_model.model.specs import ModelSpecs
-from luna_model.transformation.analysis import ConcreteAnalysisPass
+from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
 
 
-class CheckModelSpecsAnalysis(ConcreteAnalysisPass):
+class CheckModelSpecsAnalysis(PyCheckModelSpecsAnalysis, BuiltinAnalysis[None]):
     """Analysis pass that checks the model's specs for correctness.
 
     This analysis pass checks if the input model satisfies the
@@ -34,9 +38,19 @@ class CheckModelSpecsAnalysis(ConcreteAnalysisPass):
     >>> model.objective = x * y + x - 2 * y
     >>> specs = ModelSpecs(max_degree=2)
     >>> pm = PassManager([CheckModelSpecsAnalysis(specs)])
-    >>> ir = pm.run(model)
+    >>> output = pm.run(model)
     >>> # no errors raised
     """
 
-    def __init__(self, specs: ModelSpecs) -> None:
-        super().__init__(base=PyCheckModelSpecsAnalysis(specs._sp))
+    def __new__(cls, specs: ModelSpecs) -> Self:
+        """Create a new check model specs analysis pass.
+
+        Parameters
+        ----------
+        specs : ModelSpecs
+            The model specs the model passed to this analysis pass has to fulfill.
+        """
+        return super().__new__(cls, specs=specs._sp)
+
+    def __init__(self, specs: Model) -> None:
+        _ = specs

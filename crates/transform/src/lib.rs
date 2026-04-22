@@ -1,20 +1,10 @@
-mod unicode;
-
-mod base;
-mod cache;
-mod execution;
-mod ir;
-mod log;
-mod pass_manager;
-
-pub mod passes;
+pub mod analysis;
+pub mod composite;
+pub mod control_flow;
 pub mod pipelines;
-pub use base::Pass;
-pub use base::{
-    ActionType, AnalysisPass, AnalysisPassResult, BasePass, TransformationOutcome,
-    TransformationPass, TransformationPassResult,
-};
-pub use cache::{AnalysisCache, AnalysisCacheElement};
-pub use ir::IR;
-pub use log::{ExecutionLog, LogElement};
-pub use pass_manager::PassManager;
+pub mod transformation;
+
+pub fn register_backward() {
+    transformation::register_backward();
+    composite::register_backward();
+}

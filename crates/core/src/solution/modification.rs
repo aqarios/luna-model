@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use indexmap::IndexMap;
 use itertools::Itertools;
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Bias, Vtype};
+use std::collections::HashMap;
 
 use crate::solution::{Column, col::Assignment};
 
@@ -107,7 +107,9 @@ impl Solution {
         let mut indices: Vec<usize> = Vec::new();
 
         for sample in self.samples() {
-            // TODO: round f64 (v) up to predefined decimal place followed by stringigy.
+            // TODO(team): round f64 (v) up to predefined decimal place followed by stringify.
+            // Added this again, since Rust does not have a builtin to round this way. Will have to
+            // do some more research.
             let samplekey = sample.iter().map(|v| v.to_string()).join(",");
             if let Some(&first) = dups.get(&samplekey) {
                 to_rm.insert(sample.idx, first);

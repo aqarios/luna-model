@@ -445,8 +445,7 @@ impl PySolution {
                     Vtype::Spin => sol.add_empty_spin(vname),
                     Vtype::Integer => sol.add_empty_integer(vname),
                     Vtype::Real => sol.add_empty_real(vname),
-                    // TODO: this should never happen. If it does it will return an error later.
-                    Vtype::InvertedBinary => (),
+                    Vtype::InvertedBinary => unreachable!(),
                 }
             });
 
