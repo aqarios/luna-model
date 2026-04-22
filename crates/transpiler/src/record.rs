@@ -64,7 +64,6 @@ impl TransformationRecord {
         if let Some(obj) = solution.obj_values.take() {
             solution.raw_energies = Some(obj);
         }
-
         // Reverse order: last transformation first
         for entry in self.entries.iter().rev() {
             solution = match entry {

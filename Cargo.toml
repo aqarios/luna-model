@@ -6,7 +6,8 @@ members = [
   "pyo3-lunamodel",
   "crates/unwind/unwindable",
   "crates/unwind/unwinder",
-  "crates/transpiler/transpiler_macros"
+  "crates/transpiler/transpiler_macros",
+  "crates/python/python_macros"
 ]
 default-members = [
   "crates/*",
@@ -80,3 +81,4 @@ lunamodel-unwindable = { path = "crates/unwind/unwindable", default-features = f
 lunamodel-unwinder = { path = "crates/unwind/unwinder", default-features = false }
 
 lunamodel-transpiler-macros = { path = "crates/transpiler/transpiler_macros", default-features = false }
+lunamodel-python-macros = { path = "crates/python/python_macros", default-features = false }
