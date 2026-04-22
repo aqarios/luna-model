@@ -29,6 +29,6 @@ def test_target_variable_exists_many(default_pass_manager: PassManager):
         model.objective += a + b
 
     ir = default_pass_manager.run(model)
-    res = ir.cache["binary-spin"]
+    res = ir.record.find("binary-spin", exact=False).artifact.restore() # type: ignore[reportAttributeAccessIssue]
     assert all(x.count("_") == 3 for x in res.map.values())
     assert len(ir.model.variables()) == 200
