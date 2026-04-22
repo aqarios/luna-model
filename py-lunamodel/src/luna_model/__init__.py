@@ -27,6 +27,8 @@ and transforming optimization problems. It provides the following high-level fea
 - Python-first development experience
 """
 
+__path__ = __import__("pkgutil").extend_path(__path__, __name__)
+
 from luna_model._lm import __version__
 from luna_model.constraint import (
     Comparator,
