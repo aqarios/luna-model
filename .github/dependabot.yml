@@ -5,18 +5,13 @@
 
 version: 2
 
-multi-ecosystem-groups:
-  aqmodels:
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
     schedule:
       interval: "weekly"
 
-updates:
-  # - package-ecosystem: "uv"
-  #   directory: "/"
-  #   patterns: ["*"]
-  #   multi-ecosystem-group: "aqmodels"
-
-  - package-ecosystem: "cargo"
-    directory: "/"
-    patterns: ["*"]
-    multi-ecosystem-group: "aqmodels"
+  - package-ecosystem: "uv"
+    directory: "/py-lunamodel"
+    schedule:
+      interval: "weekly"

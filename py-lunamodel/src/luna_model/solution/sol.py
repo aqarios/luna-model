@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal
 
+import numpy as np
 from numpy import ndarray
 
 from luna_model._lm import PySolution
@@ -758,7 +759,7 @@ class Solution:
         """
         return cls._from_pys(
             PySolution.from_arrays(
-                data=data,
+                data=data.astype(np.float64),
                 variables=variables,
                 env=env,
                 model=model,
