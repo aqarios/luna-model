@@ -150,7 +150,7 @@ class Solution:
         sense: Sense | None = None,
         env: Environment | None = None,
         vtypes: list[Vtype] | None = None,
-        tol: float | None = None
+        tol: float | None = None,
     ) -> None:
         """Initialize a solution with samples and metadata."""
         self._s = PySolution(
