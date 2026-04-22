@@ -5,7 +5,7 @@ import pytest
 
 from luna_model import Environment, Model, Solution, Variable, Vtype
 
-TOL = 1e-12
+TOL = 1e-6
 
 
 def vars(n, vtype) -> tuple[tuple[Variable, ...], Environment]:

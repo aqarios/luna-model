@@ -94,11 +94,12 @@ class Solution:
         Collection of variable assignment samples.
     variable_names : list[str]
         Names of variables in the solution.
-    tol : float, default=1e-12
+    tol : float, optional
         Tolerance used to treat values as near-integral when casting to binary, spin,
         or integer assignments. A value ``x`` is accepted as integral if
         ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
         machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
+        By default a tolerance of 1e-6 is used.
 
     Examples
     --------
@@ -149,7 +150,7 @@ class Solution:
         sense: Sense | None = None,
         env: Environment | None = None,
         vtypes: list[Vtype] | None = None,
-        tol: float = 1e-12,
+        tol: float | None = None
     ) -> None:
         """Initialize a solution with samples and metadata."""
         self._s = PySolution(
@@ -615,7 +616,7 @@ class Solution:
         counts: int | None = None,
         sense: Sense | None = None,
         energy: float | None = None,
-        tol: float = 1e-12,
+        tol: float | None = None,
     ) -> Solution:
         """Create solution from a single sample dictionary.
 
@@ -635,11 +636,12 @@ class Solution:
             Optimization sense. Inferred from model if provided.
         energy : float, optional
             Raw energy value for this sample.
-        tol : float, default=1e-12
+        tol : float, optional
             Tolerance used to treat values as near-integral when casting to binary, spin,
             or integer assignments. A value ``x`` is accepted as integral if
             ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
             machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
+            By default a tolerance of 1e-6 is used.
 
         Returns
         -------
@@ -669,7 +671,7 @@ class Solution:
         counts: list[int] | None = None,
         sense: Sense | None = None,
         energies: list[float] | None = None,
-        tol: float = 1e-12,
+        tol: float | None = None,
     ) -> Solution:
         """Create solution from multiple sample dictionaries.
 
@@ -689,11 +691,12 @@ class Solution:
             Optimization sense. Inferred from model if provided.
         energies : list[float], optional
             Raw energy values for each sample.
-        tol : float, default=1e-12
+        tol : float, optional
             Tolerance used to treat values as near-integral when casting to binary, spin,
             or integer assignments. A value ``x`` is accepted as integral if
             ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
             machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
+            By default a tolerance of 1e-6 is used.
 
         Returns
         -------
@@ -724,7 +727,7 @@ class Solution:
         counts: list[int] | None = None,
         sense: Sense | None = None,
         energies: list[float] | None = None,
-        tol: float = 1e-12,
+        tol: float | None = None,
     ) -> Solution:
         """Create solution from numpy arrays.
 
@@ -746,11 +749,12 @@ class Solution:
             Optimization sense. Inferred from model if provided.
         energies : list[float], optional
             Raw energy values for each sample.
-        tol : float, default=1e-12
+        tol : float, optional
             Tolerance used to treat values as near-integral when casting to binary, spin,
             or integer assignments. A value ``x`` is accepted as integral if
             ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
             machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
+            By default a tolerance of 1e-6 is used.
 
         Returns
         -------
