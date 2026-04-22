@@ -7,10 +7,14 @@ from luna_model.transformation.output import TransformationOutput
 from luna_model.transformation.passes.control_flow.ifelse import IfElsePass
 
 warnings.warn(
-    "`luna_model.transformation.legacy` is deprecated. "
-    "Import `IfElsePass` from `luna_model.transformation.passes`, "
-    "`IR` from `luna_model.transformation.output`, and "
-    "`TransformationOutcome` from `luna_model.transformation.legacy` only as a temporary compatibility shim.",
+    "`luna_model.transformation.legacy` is deprecated and will be removed in the next release. "
+    "`IfElsePass` must be imported from `luna_model.transformation.passes`. "
+    "`IR` is replaced by `TransformationOutput` from `luna_model.transformation.output`. "
+    "Behavior that previously relied on the analysis cache is now represented by "
+    "`TransformationRecord` plus `PassContext`. "
+    "`TransformationOutcome` is also deprecated and only kept so the import path resolves; "
+    "it does not preserve the old runtime behavior because transformation passes now return "
+    "`tuple[Model, Artifact]`.",
     FutureWarning,
     stacklevel=2,
 )

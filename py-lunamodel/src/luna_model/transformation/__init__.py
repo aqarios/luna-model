@@ -50,15 +50,21 @@ if TYPE_CHECKING:
 
 _LEGACY_EXPORTS = {
     "IfElsePass": (
-        "luna_model.transformation.passes",
+        "`luna_model.transformation.IfElsePass` is deprecated and will be removed in the next release. "
+        "Import `IfElsePass` from `luna_model.transformation.passes` instead.",
         lambda: passes.IfElsePass,
     ),
     "IR": (
-        "luna_model.transformation.output",
+        "`luna_model.transformation.IR` is deprecated and will be removed in the next release. "
+        "Use `TransformationOutput` from `luna_model.transformation.output` instead. "
+        "Behavior that previously relied on the analysis cache is now represented by "
+        "`TransformationRecord` plus `PassContext`.",
         lambda: TransformationOutput,
     ),
     "TransformationOutcome": (
-        "luna_model.transformation.legacy",
+        "`luna_model.transformation.TransformationOutcome` is deprecated and will be removed in the next release. "
+        "It is kept only so this import path resolves. It does not preserve the old runtime behavior: "
+        "transformation passes now return `tuple[Model, Artifact]`, not the old outcome object API.",
         lambda: (
             __import__(
                 "luna_model.transformation.legacy",
@@ -67,7 +73,8 @@ _LEGACY_EXPORTS = {
         ),
     ),
     "BasePass": (
-        "luna_model.transformation.typing",
+        "`luna_model.transformation.BasePass` is deprecated and will be removed in the next release. "
+        "Use `Pass` from `luna_model.transformation.typing` instead.",
         lambda: Pass,
     ),
 }
@@ -89,9 +96,9 @@ _REMOVED_EXPORTS = {
 def __getattr__(name: str) -> Any:  # noqa: ANN401
     legacy = _LEGACY_EXPORTS.get(name)
     if legacy is not None:
-        new_path, resolver = legacy
+        message, resolver = legacy
         warnings.warn(
-            f"`luna_model.transformation.{name}` is deprecated. Import it from `{new_path}` instead.",
+            message,
             FutureWarning,
             stacklevel=2,
         )
