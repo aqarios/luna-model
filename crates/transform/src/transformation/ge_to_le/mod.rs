@@ -1,8 +1,8 @@
 mod artifact;
 mod pass;
 
-pub use pass::GeToLeConstraintsPass;
 pub use artifact::GeToLeConstraintsArtifact;
+pub use pass::GeToLeConstraintsPass;
 
 #[cfg(test)]
 mod tests {

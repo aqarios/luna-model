@@ -1,10 +1,10 @@
-use std::collections::HashMap;
 use lunamodel_core::{Model, ops::LmAddAssign};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Sense, Vtype};
 use lunamodel_unwind::*;
 use numpy::PyReadonlyArray1;
 use pyo3::{PyResult, pyclass, pymethods};
+use std::collections::HashMap;
 
 use crate::{PyModel, args::PyModelArg, types::PyVtype};
 

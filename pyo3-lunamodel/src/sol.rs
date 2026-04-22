@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use lunamodel_core::Solution;
-use parking_lot::RwLock;
 use lunamodel_python::PySolution as PyS;
+use parking_lot::RwLock;
 use pyo3::{
     Bound, FromPyObject, IntoPyObject, PyAny, PyErr,
     types::{PyAnyMethods, PyCapsule},
@@ -44,7 +44,6 @@ impl<'py> IntoPyObject<'py> for PySolution {
             .getattr("_lm")?
             .getattr("PySolution")?
             .call_method1("_from_capsule", (pys_capsule,))?;
-        lm.getattr("Solution")?
-            .call_method1("_from_pys", (pys,))
+        lm.getattr("Solution")?.call_method1("_from_pys", (pys,))
     }
 }

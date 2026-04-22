@@ -4,20 +4,20 @@ mod convenience;
 mod creation;
 mod filter;
 mod io;
+mod merge;
 mod modification;
 mod random;
 pub mod result;
 pub mod sample;
 mod samples;
 mod src;
-mod merge;
 pub mod timing;
 
 pub use col::{Assignment, ColElement, Column};
-use std::collections::HashMap;
 use indexmap::IndexMap;
 use lunamodel_types::Sense;
 pub use src::ValueSource;
+use std::collections::HashMap;
 pub use timing::{Timer, Timing};
 
 use crate::traits::ContentEquality;

@@ -38,7 +38,9 @@ impl PyMinValueForConstraintAnalysis {
     }
 
     fn run(&self, model: PyModel, ctx: &PyPassContext) -> PyResult<PyMinConstraintValues> {
-        Ok(PyMinConstraintValues(self.0.run(&model.0.m.read_arc(), &ctx.into())?))
+        Ok(PyMinConstraintValues(
+            self.0.run(&model.0.m.read_arc(), &ctx.into())?,
+        ))
     }
 
     fn requires(&self) -> Vec<String> {

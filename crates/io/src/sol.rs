@@ -73,7 +73,11 @@ impl CustomFormat<FormatOpt> for Solution {
                                     "{{{}}}",
                                     self.constraints
                                         .iter()
-                                        .map(|(cname, vs)| format!("{}: {}", cname, pysolio::fmtbool(vs[i])))
+                                        .map(|(cname, vs)| format!(
+                                            "{}: {}",
+                                            cname,
+                                            pysolio::fmtbool(vs[i])
+                                        ))
                                         .collect::<Vec<String>>()
                                         .join(", ")
                                 )

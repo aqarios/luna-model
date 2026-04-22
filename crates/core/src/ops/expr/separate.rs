@@ -1,7 +1,7 @@
-use std::collections::HashSet;
 use itertools::Itertools;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::VarIdx;
+use std::collections::HashSet;
 
 use crate::expression::Expression;
 use crate::prelude::{HigherOrder, Quadratic};

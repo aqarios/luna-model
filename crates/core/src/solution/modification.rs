@@ -45,7 +45,12 @@ impl Solution {
         self.samples.insert(var, Column::empty_real());
     }
 
-    pub fn add_binary(&mut self, var: String, data: Vec<f64>, tol: Option<f64>) -> LunaModelResult<()> {
+    pub fn add_binary(
+        &mut self,
+        var: String,
+        data: Vec<f64>,
+        tol: Option<f64>,
+    ) -> LunaModelResult<()> {
         let mut col = Column::empty_binary();
         data.iter()
             .map(|e| col.try_push(*e, tol))
@@ -54,7 +59,12 @@ impl Solution {
         Ok(())
     }
 
-    pub fn add_spin(&mut self, var: String, data: Vec<f64>, tol: Option<f64>) -> LunaModelResult<()> {
+    pub fn add_spin(
+        &mut self,
+        var: String,
+        data: Vec<f64>,
+        tol: Option<f64>,
+    ) -> LunaModelResult<()> {
         let mut col = Column::empty_spin();
         data.iter()
             .map(|e| col.try_push(*e, tol))
@@ -63,7 +73,12 @@ impl Solution {
         Ok(())
     }
 
-    pub fn add_integer(&mut self, var: String, data: Vec<f64>, tol: Option<f64>) -> LunaModelResult<()> {
+    pub fn add_integer(
+        &mut self,
+        var: String,
+        data: Vec<f64>,
+        tol: Option<f64>,
+    ) -> LunaModelResult<()> {
         let mut col = Column::empty_integer();
         data.iter()
             .map(|e| col.try_push(*e, tol))
@@ -76,7 +91,13 @@ impl Solution {
         self.samples.insert(var, Column::real(data));
     }
 
-    pub fn add_col(&mut self, vtype: Vtype, var: String, data: Vec<f64>, tol: Option<f64>) -> LunaModelResult<()> {
+    pub fn add_col(
+        &mut self,
+        vtype: Vtype,
+        var: String,
+        data: Vec<f64>,
+        tol: Option<f64>,
+    ) -> LunaModelResult<()> {
         match vtype {
             Vtype::Binary => self.add_binary(var, data, tol),
             Vtype::Spin => self.add_spin(var, data, tol),

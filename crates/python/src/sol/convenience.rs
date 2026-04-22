@@ -27,7 +27,10 @@ impl PySolution {
     }
 
     pub fn expectation_value(&self, value_toggle: PyValueSource) -> PyResult<f64> {
-        Ok(self.s.read_arc().expectation_value(Some(value_toggle.into()))?)
+        Ok(self
+            .s
+            .read_arc()
+            .expectation_value(Some(value_toggle.into()))?)
     }
 
     pub fn feasibility_ratio(&self) -> PyResult<f64> {

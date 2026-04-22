@@ -12,7 +12,7 @@ mod traits;
 mod utils;
 mod variable;
 
-pub use constraint::{ConstraintCollection, Constraint};
+pub use constraint::{Constraint, ConstraintCollection};
 pub use environment::{ArcEnv, Environment};
 pub use expression::Expression;
 pub use model::Model;
