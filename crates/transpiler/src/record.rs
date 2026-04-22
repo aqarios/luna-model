@@ -59,6 +59,8 @@ impl TransformationRecord {
     /// This is a standalone function that doesn't need the original PassManager.
     /// All information is encoded in the artifacts.
     pub fn backward(&self, mut solution: Solution) -> LunaModelResult<Solution> {
+        // obj -> raw if no raw.
+        // else obj deleted
         // Reverse order: last transformation first
         for entry in self.entries.iter().rev() {
             solution = match entry {

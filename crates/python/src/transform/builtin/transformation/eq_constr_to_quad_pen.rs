@@ -1,13 +1,12 @@
+use lunamodel_python_macros::pytransformation;
 use lunamodel_transform::transformation::{
     EqualityConstraintsToQuadraticPenaltyArtifact, EqualityConstraintsToQuadraticPenaltyPass,
 };
-use lunamodel_transpiler::{Artifact, Reversible, TransformationPass};
+use lunamodel_transpiler::Artifact;
 use pyo3::{
     Bound, Py, PyAny, PyResult, Python, pyclass, pymethods,
     types::{PyBytes, PyType},
 };
-
-use crate::{PyModel, PySolution, transform::PyPassContext};
 
 #[pyclass]
 pub struct PyEqualityConstraintsToQuadraticPenaltyArtifact(
@@ -28,7 +27,7 @@ impl PyEqualityConstraintsToQuadraticPenaltyArtifact {
     }
 }
 
-#[pyclass(subclass)]
+#[pytransformation(PyEqualityConstraintsToQuadraticPenaltyArtifact)]
 pub struct PyEqualityConstraintsToQuadraticPenaltyPass(
     pub EqualityConstraintsToQuadraticPenaltyPass,
 );
@@ -37,61 +36,11 @@ pub struct PyEqualityConstraintsToQuadraticPenaltyPass(
 impl PyEqualityConstraintsToQuadraticPenaltyPass {
     #[new]
     fn new(penalty_scaling: f64) -> Self {
-        Self(EqualityConstraintsToQuadraticPenaltyPass::new(
-            penalty_scaling,
-        ))
+        Self(EqualityConstraintsToQuadraticPenaltyPass::new(penalty_scaling))
     }
 
     #[getter]
     fn penalty_scaling(&self) -> f64 {
         self.0.penalty_scaling()
-    }
-
-    fn name(&self) -> String {
-        self.0.name().to_string()
-    }
-
-    fn requires(&self) -> Vec<String> {
-        self.0.requires().to_vec()
-    }
-
-    fn invalidates(&self) -> Vec<String> {
-        self.0.invalidates().to_vec()
-    }
-
-    fn forward(
-        &self,
-        model: PyModel,
-        ctx: &PyPassContext,
-    ) -> PyResult<(PyModel, PyEqualityConstraintsToQuadraticPenaltyArtifact)> {
-        let mut model = model.m.read_arc().clone();
-        let artifact = self.0.forward(&mut model, &ctx.into())?;
-        Ok((
-            model.into(),
-            PyEqualityConstraintsToQuadraticPenaltyArtifact(artifact),
-        ))
-    }
-
-    #[classmethod]
-    fn backward(
-        _cls: &Bound<'_, PyType>,
-        artifact: &PyEqualityConstraintsToQuadraticPenaltyArtifact,
-        solution: PySolution,
-    ) -> PyResult<PySolution> {
-        Ok(EqualityConstraintsToQuadraticPenaltyPass::backward(
-            &artifact.0,
-            solution.s.read_arc().clone(),
-        )?
-        .into())
-    }
-
-    fn __str__(&self) -> String {
-        self.0.display()
-    }
-}
-
-impl PyEqualityConstraintsToQuadraticPenaltyPass {
-    pub fn to_rs(&self) -> EqualityConstraintsToQuadraticPenaltyPass {
-        self.0.clone()
     }
 }

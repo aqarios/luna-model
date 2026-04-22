@@ -44,18 +44,18 @@ use crate::transform::{
 
 macro_rules! define_py_pass {
     (
-        analysis: [$(($analysis_variant:ident, $analysis_py:path, $analysis_rs:path)),* $(,)?],
-        transformation: [$(($transformation_variant:ident, $transformation_py:path, $transformation_rs:path)),* $(,)?],
-        control_flow: [$(($control_flow_variant:ident, $control_flow_py:path, $control_flow_rs:path)),* $(,)?],
+        analysis: [$(($analysis_py:ident, $analysis_rs:path)),* $(,)?],
+        transformation: [$(($transformation_py:ident, $transformation_rs:path)),* $(,)?],
+        control_flow: [$(($control_flow_py:ident, $control_flow_rs:path)),* $(,)?],
     ) => {
         #[derive(FromPyObject)]
         pub enum PyPass {
             // ////////////////////////
             // ///      BUILTIN     ///
             // ////////////////////////
-            $($analysis_variant(Py<$analysis_py>),)*
-            $($transformation_variant(Py<$transformation_py>),)*
-            $($control_flow_variant(Py<$control_flow_py>),)*
+            $($analysis_py(Py<$analysis_py>),)*
+            $($transformation_py(Py<$transformation_py>),)*
+            $($control_flow_py(Py<$control_flow_py>),)*
             // known pipelines
             ToBinaryMin(Py<PyToBinaryMinimizationPipeline>),
             ToUnconsBin(Py<PyToUnconstrainedBinaryPipeline>),
@@ -81,23 +81,23 @@ macro_rules! define_py_pass {
             pub fn to_step(&self, py: Python) -> PyResult<PipelineStep> {
                 match self {
                     $(
-                        Self::$analysis_variant(p) => {
-                            Ok(PipelineStep::Analysis(Arc::new(p.borrow(py).to_rs())))
+                        Self::$analysis_py(p) => {
+                            Ok(PipelineStep::Analysis(Arc::new(p.borrow(py).0.clone())))
                         }
                     )*
                     $(
-                        Self::$transformation_variant(p) => {
-                            Ok(PipelineStep::Transform(Arc::new(p.borrow(py).to_rs())))
+                        Self::$transformation_py(p) => {
+                            Ok(PipelineStep::Transform(Arc::new(p.borrow(py).0.clone())))
                         }
                     )*
                     $(
-                        Self::$control_flow_variant(p) => {
-                            Ok(PipelineStep::ControlFlow(Arc::new(p.borrow(py).to_rs())))
+                        Self::$control_flow_py(p) => {
+                            Ok(PipelineStep::ControlFlow(Arc::new(p.borrow(py).0.clone())))
                         }
                     )*
                     // known pipelines
                     Self::ToBinaryMin(p) => {
-                        let pipe = p.borrow(py).clone();
+                        let pipe = p.borrow(py).0.clone();
                         Ok(PipelineStep::Pipeline(Arc::new(pipe)))
                     }
                     Self::ToUnconsBin(p) => {
@@ -228,29 +228,21 @@ macro_rules! define_py_pass {
 
 define_py_pass!(
     analysis: [
-        (CheckSpecs, PyCheckModelSpecsAnalysis, CheckModelSpecsAnalysis),
-        (MaxBias, PyMaxBiasAnalysis, MaxBiasAnalysis),
-        (
-            MinValInConstr,
-            PyMinValueForConstraintAnalysis,
-            MinValueForConstraintAnalysis
-        ),
-        (Specs, PySpecsAnalysis, SpecsAnalysis),
+        (PyCheckModelSpecsAnalysis, CheckModelSpecsAnalysis),
+        (PyMaxBiasAnalysis, MaxBiasAnalysis),
+        (PyMinValueForConstraintAnalysis, MinValueForConstraintAnalysis),
+        (PySpecsAnalysis, SpecsAnalysis),
     ],
     transformation: [
-        (BinSpin, PyBinarySpinPass, BinarySpinPass),
-        (ChangeSense, PyChangeSensePass, ChangeSensePass),
-        (
-            EqConstrToQuadPen,
-            PyEqualityConstraintsToQuadraticPenaltyPass,
-            EqualityConstraintsToQuadraticPenaltyPass
-        ),
-        (GeToLe, PyGeToLeConstraintsPass, GeToLeConstraintsPass),
-        (IntToBin, PyIntegerToBinaryPass, IntegerToBinaryPass),
-        (LeToEq, PyLeToEqConstraintsPass, LeToEqConstraintsPass),
-        (RedInvBin, PyReduceInvertedBinaryPass, ReduceInvertedBinaryPass),
+        (PyBinarySpinPass, BinarySpinPass),
+        (PyChangeSensePass, ChangeSensePass),
+        (PyEqualityConstraintsToQuadraticPenaltyPass, EqualityConstraintsToQuadraticPenaltyPass),
+        (PyGeToLeConstraintsPass, GeToLeConstraintsPass),
+        (PyIntegerToBinaryPass, IntegerToBinaryPass),
+        (PyLeToEqConstraintsPass, LeToEqConstraintsPass),
+        (PyReduceInvertedBinaryPass, ReduceInvertedBinaryPass),
     ],
-    control_flow: [(IfElse, PyIfElsePass, IfElsePass)],
+    control_flow: [(PyIfElsePass, IfElsePass)],
 );
 
 fn invalid_pass_error(obj: &Py<PyAny>, py: Python<'_>) -> PyErr {

@@ -457,6 +457,7 @@ dependencies = [
  "lunamodel-error",
  "lunamodel-hashing",
  "lunamodel-io",
+ "lunamodel-python-macros",
  "lunamodel-serializer",
  "lunamodel-transform",
  "lunamodel-translate",
@@ -468,6 +469,15 @@ dependencies = [
  "parking_lot 0.12.5",
  "pyo3",
  "strum_macros",
+]
+
+[[package]]
+name = "lunamodel-python-macros"
+version = "0.6.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

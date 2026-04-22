@@ -1,11 +1,10 @@
+use lunamodel_python_macros::pytransformation;
 use lunamodel_transform::transformation::{GeToLeConstraintsArtifact, GeToLeConstraintsPass};
-use lunamodel_transpiler::{Artifact, Reversible, TransformationPass};
+use lunamodel_transpiler::Artifact;
 use pyo3::{
     Bound, Py, PyAny, PyResult, Python, pyclass, pymethods,
     types::{PyBytes, PyType},
 };
-
-use crate::{PyModel, PySolution, transform::PyPassContext};
 
 #[pyclass]
 pub struct PyArtifact(pub GeToLeConstraintsArtifact);
@@ -18,13 +17,11 @@ impl PyArtifact {
 
     #[classmethod]
     fn deserialize(_cls: &Bound<'_, PyType>, py: Python, buf: Py<PyBytes>) -> PyResult<Self> {
-        Ok(Self(GeToLeConstraintsArtifact::deserialize(
-            buf.as_bytes(py),
-        )?))
+        Ok(Self(GeToLeConstraintsArtifact::deserialize(buf.as_bytes(py))?))
     }
 }
 
-#[pyclass(subclass)]
+#[pytransformation(PyArtifact)]
 #[derive(Default)]
 pub struct PyGeToLeConstraintsPass(pub GeToLeConstraintsPass);
 
@@ -33,42 +30,5 @@ impl PyGeToLeConstraintsPass {
     #[new]
     fn new() -> Self {
         Self::default()
-    }
-
-    fn name(&self) -> String {
-        self.0.name().to_string()
-    }
-
-    fn requires(&self) -> Vec<String> {
-        self.0.requires().to_vec()
-    }
-
-    fn invalidates(&self) -> Vec<String> {
-        self.0.invalidates().to_vec()
-    }
-
-    fn forward(&self, model: PyModel, ctx: &PyPassContext) -> PyResult<(PyModel, PyArtifact)> {
-        let mut model = model.m.read_arc().clone();
-        let artifact = self.0.forward(&mut model, &ctx.into())?;
-        Ok((model.into(), PyArtifact(artifact)))
-    }
-
-    #[classmethod]
-    fn backward(
-        _cls: &Bound<'_, PyType>,
-        artifact: &PyArtifact,
-        solution: PySolution,
-    ) -> PyResult<PySolution> {
-        Ok(GeToLeConstraintsPass::backward(&artifact.0, solution.s.read_arc().clone())?.into())
-    }
-
-    fn __str__(&self) -> String {
-        self.0.display()
-    }
-}
-
-impl PyGeToLeConstraintsPass {
-    pub fn to_rs(&self) -> GeToLeConstraintsPass {
-        self.0.clone()
     }
 }

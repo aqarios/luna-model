@@ -20,6 +20,7 @@ lunamodel-unwind = { workspace = true }
 
 lunamodel-transform = { workspace = true }
 lunamodel-transpiler = { workspace = true }
+lunamodel-python-macros = { workspace = true }
 
 pyo3 = { workspace = true, features = ["multiple-pymethods", "indexmap"] }
 numpy = { workspace = true }
