@@ -57,10 +57,6 @@ impl ConstraintCollection {
         self.data.iter()
     }
 
-    pub fn into_iter(self) -> impl Iterator<Item = (String, Constraint)> {
-        self.data.into_iter()
-    }
-
     pub fn iter_mut(&mut self) -> impl Iterator<Item = (&String, &mut Constraint)> {
         self.data.iter_mut()
     }
@@ -175,6 +171,15 @@ impl ContentEquality for ConstraintCollection {
 impl From<IndexMap<String, Constraint>> for ConstraintCollection {
     fn from(data: IndexMap<String, Constraint>) -> Self {
         Self { data }
+    }
+}
+
+impl IntoIterator for ConstraintCollection {
+    type Item = (String, Constraint);
+    type IntoIter = indexmap::map::IntoIter<String, Constraint>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.into_iter()
     }
 }
 
