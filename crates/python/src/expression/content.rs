@@ -46,7 +46,7 @@ impl PyExprContent {
         }
     }
 
-    pub fn write(&self) -> MappedRwLockWriteGuard<'_, Expression> {
+    pub fn write(&mut self) -> MappedRwLockWriteGuard<'_, Expression> {
         match self {
             PyExprContent::Expr(expr) => RwLockWriteGuard::map(expr.write(), |expr| expr),
             PyExprContent::Model(model) => {
