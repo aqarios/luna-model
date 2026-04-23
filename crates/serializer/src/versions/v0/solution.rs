@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{num::NonZeroUsize, str::FromStr};
 
 use crate::{
     encode::{BytesDecodable, BytesEncodable, Decodable},
@@ -116,7 +116,7 @@ impl SerSolution {
         let (mut nbins, mut nspins, mut nints, mut nreals) = (0, 0, 0, 0);
         let num_samples = self.num_samples as usize;
 
-        if num_samples != 0 {
+        if let Some(num_samples) = NonZeroUsize::new(num_samples) {
             let bin_step: usize = self.bins.len() / num_samples;
             let spin_step: usize = self.spins.len() / num_samples;
             let int_step: usize = self.ints.len() / num_samples;
