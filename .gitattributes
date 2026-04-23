@@ -6,3 +6,9 @@ pixi.lock merge=binary linguist-language=YAML linguist-generated=true
 *.MPS linguist-generated=true
 *.lp linguist-generated=true
 *.LP linguist-generated=true
+*.model linguist-generated=true
+*.MODEL linguist-generated=true
+*.mod linguist-generated=true
+*.MOD linguist-generated=true
+*.sol linguist-generated=true
+*.SOL linguist-generated=true
