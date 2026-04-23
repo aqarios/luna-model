@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use lunamodel_core::{
     ArcEnv, ConstraintCollection, Expression, Model,
     ops::{LmAddAssign, LmMulAssign, LmSubAssign},
@@ -6,6 +5,7 @@ use lunamodel_core::{
 };
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Bound, Vtype};
+use std::collections::HashMap;
 
 use super::reader::{MpsConstraint, MpsProblem};
 

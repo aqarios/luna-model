@@ -6,8 +6,8 @@ mod expression;
 mod model;
 mod sol;
 mod types;
-mod variable;
 mod utils;
+mod variable;
 
 pub mod prelude;
 

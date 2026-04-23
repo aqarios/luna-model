@@ -1,6 +1,5 @@
 use std::{ffi::CStr, sync::Arc};
 
-use std::collections::HashMap;
 use lunamodel_core::Model;
 use lunamodel_unwind::*;
 use parking_lot::RwLock;
@@ -8,6 +7,7 @@ use pyo3::{
     Bound, Py, PyAny, PyResult, Python, pymethods,
     types::{PyCapsule, PyCapsuleMethods},
 };
+use std::collections::HashMap;
 
 use crate::{PyModel, PyModelMetadata, ffi::CapsuleFFI, model::PyModelContent};
 

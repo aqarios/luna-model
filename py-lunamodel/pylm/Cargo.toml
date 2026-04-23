@@ -1,6 +1,6 @@
 [package]
 name = "pylm"
-version = "0.5.9-dev.1863+b23b3c1a"
+version = "0.5.9"
 authors.workspace = true
 edition.workspace = true
 description.workspace = true
@@ -8,5 +8,5 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true }
+pyo3 = { workspace = true, features = ["extension-module"] }
 lunamodel-python = { workspace = true }

@@ -2,8 +2,8 @@ mod artifact;
 mod pass;
 mod ser_artifact;
 
-pub use pass::ChangeSensePass;
 pub use artifact::ChangeSensePassArtifact;
+pub use pass::ChangeSensePass;
 
 #[cfg(test)]
 mod tests {
@@ -73,4 +73,3 @@ mod tests {
         Ok(())
     }
 }
-

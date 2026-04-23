@@ -3,7 +3,9 @@ use lunamodel_error::{LunaModelError, LunaModelResult};
 pub trait Envelope {
     fn encode(&self) -> Vec<u8>;
 
-    fn decode(bytes: &[u8]) -> LunaModelResult<Self> where Self: Sized;
+    fn decode(bytes: &[u8]) -> LunaModelResult<Self>
+    where
+        Self: Sized;
 }
 
 pub trait EnvelopeUtils {

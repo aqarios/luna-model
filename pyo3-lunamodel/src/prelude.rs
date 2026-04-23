@@ -4,8 +4,8 @@ pub use crate::constraint_collection::PyConstraintCollection;
 pub use crate::environment::PyEnvironment;
 pub use crate::expression::PyExpression;
 pub use crate::model::PyModel;
-pub use crate::variable::PyVariable;
 pub use crate::sol::PySolution;
+pub use crate::variable::PyVariable;
 
 pub use crate::types::PyComparator;
 pub use crate::types::PyCtype;

@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::VarIdx;
+use std::collections::HashMap;
 
 // pub(super) fn freeidx(freeidx: &mut Vec<VarIdx>, nvars: VarIdx) -> VarIdx {
 //     freeidx.pop().map_or_else(|| nvars, |i| i)

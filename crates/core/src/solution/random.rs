@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use indexmap::IndexMap;
 use itertools::Either;
 use lunamodel_error::{LunaModelError, LunaModelResult};
@@ -8,6 +7,7 @@ use rand::{
     distr::{Distribution, Uniform},
     rngs::StdRng,
 };
+use std::collections::HashMap;
 
 use crate::{ArcEnv, Model, Timer, bounds::Bounds, solution::Column};
 
