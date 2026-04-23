@@ -6,6 +6,7 @@ mod deepclone;
 mod fns;
 mod io;
 mod iteration;
+mod content_access;
 mod ops;
 mod ser;
 
@@ -67,7 +68,7 @@ impl PyExpression {
         self.expr.read()
     }
 
-    pub fn write(&self) -> MappedRwLockWriteGuard<'_, Expression> {
+    pub fn write(&mut self) -> MappedRwLockWriteGuard<'_, Expression> {
         self.expr.write()
     }
 
