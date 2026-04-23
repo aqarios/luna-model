@@ -4,9 +4,7 @@ use lunamodel_core::{
 };
 use lunamodel_error::LunaModelResult;
 use lunamodel_io::{CustomFormat, FormatOpt};
-use parking_lot::{
-    MappedRwLockReadGuard, MappedRwLockWriteGuard, RwLock, RwLockReadGuard, RwLockWriteGuard,
-};
+use parking_lot::RwLock;
 use std::{
     ops::{Add, Mul, Neg, Sub},
     sync::Arc,
