@@ -1,12 +1,12 @@
 mod access;
 mod cmp;
 mod content;
+mod content_access;
 mod creation;
 mod deepclone;
 mod fns;
 mod io;
 mod iteration;
-mod content_access;
 mod ops;
 mod ser;
 

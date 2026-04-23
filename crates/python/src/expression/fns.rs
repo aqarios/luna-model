@@ -6,7 +6,7 @@ use lunamodel_unwind::*;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::{Bound, FromPyObject, PyResult, Python, pymethods};
 
-use super::{PyExprContent as PyEC, PyExpression};
+use super::PyExpression;
 use crate::{
     args::{PyExprArg, PySolArg, PyVarArg},
     sol::sample::PySampleView,
@@ -60,21 +60,12 @@ enum SampleIn {
 impl PyExpression {
     fn separate(&self, variables: Vec<PyVarArg>) -> PyResult<(PyExpression, PyExpression)> {
         let vars: Vec<VarRef> = variables.iter().map(|v| v.v.clone()).collect();
-        let (left, right) = match &self.expr {
-            PyEC::Expr(e) => e.read_arc().separate(vars.as_slice()),
-            PyEC::Model(m) => m.read_arc().objective.separate(vars.as_slice()),
-        }?;
+        let (left, right) = self.read_with(|e| e.separate(vars.as_slice()))?;
         Ok((left.into(), right.into()))
     }
 
     fn evaluate<'py>(&self, py: Python<'py>, sol: PySolArg) -> PyResult<Bound<'py, PyArray1<f64>>> {
-        let values = match &self.expr {
-            PyEC::Expr(e) => e.read_arc().evaluate_sampleset(sol.s.read_arc().samples()),
-            PyEC::Model(m) => m
-                .read_arc()
-                .objective
-                .evaluate_sampleset(sol.s.read_arc().samples()),
-        }?;
+        let values = self.read_with(|e| e.evaluate_sampleset(sol.s.read_arc().samples()))?;
         Ok(values.to_pyarray(py))
     }
 
@@ -83,17 +74,11 @@ impl PyExpression {
             SampleIn::Sample(pyview) => {
                 let sol = &pyview.sol.s.read_arc();
                 let view = SampleView::new(&sol, pyview.idx);
-                match &self.expr {
-                    PyEC::Expr(e) => e.read_arc().evaluate_sample(&view)?,
-                    PyEC::Model(m) => m.read_arc().objective.evaluate_sample(&view)?,
-                }
+                self.read_with(|e| e.evaluate_sample(&view))?
             }
             SampleIn::Dict(sample) => {
                 let direct: DirectSample = sample.try_into()?;
-                match &self.expr {
-                    PyEC::Expr(e) => e.read_arc().evaluate_sample(&direct)?,
-                    PyEC::Model(m) => m.read_arc().objective.evaluate_sample(&direct)?,
-                }
+                self.read_with(|e| e.evaluate_sample(&direct))?
             }
         };
         Ok(res)
@@ -104,6 +89,6 @@ impl PyExpression {
             Replacement::Var(v) => &(v.0.v.into()),
             Replacement::Expr(e) => &(e.0.expr.into()),
         };
-        Ok(self.expr.substitute(&target.v, r)?.into())
+        Ok(self.read_with(|e| e.substitute(&target.v, r))?.into())
     }
 }

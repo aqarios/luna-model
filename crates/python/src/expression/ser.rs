@@ -6,7 +6,6 @@ use pyo3::{
     types::{PyBytes, PyType},
 };
 
-use super::content::PyExprContent as PyEC;
 use crate::{PyExpression, args::PyEnvArg};
 
 #[derive(FromPyObject)]
@@ -43,10 +42,7 @@ impl PyExpression {
         compress: Option<bool>,
         level: Option<i32>,
     ) -> PyResult<Py<PyAny>> {
-        let bytes = match &self.expr {
-            PyEC::Expr(expr) => expr.read_arc().encode(compress, level),
-            PyEC::Model(parent) => parent.read_arc().objective.encode(compress, level),
-        }?;
+        let bytes = self.read_with(|e| e.encode(compress, level))?;
         Ok(PyBytes::new(py, bytes.as_slice()).into())
     }
 

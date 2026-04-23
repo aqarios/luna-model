@@ -26,8 +26,8 @@ impl PyExprContent {
 
     pub fn read_with<R>(&self, f: impl FnOnce(&Expression) -> R) -> R {
         match self {
-            PyExprContent::Expr(expr) => f(&expr.write_arc()),
-            PyExprContent::Model(model) => f(&model.write_arc().objective),
+            PyExprContent::Expr(expr) => f(&expr.read_arc()),
+            PyExprContent::Model(model) => f(&model.read_arc().objective),
         }
     }
 

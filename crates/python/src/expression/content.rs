@@ -39,122 +39,50 @@ impl PyExprContent {
     where
         for<'e> &'e Expression: Add<T, Output = LunaModelResult<Expression>>,
     {
-        match self {
-            PyExprContent::Expr(expr) => {
-                let slf: &Expression = &expr.read_arc();
-                slf.add(other)
-            }
-            PyExprContent::Model(model) => {
-                let slf: &Expression = &model.read_arc().objective;
-                slf.add(other)
-            }
-        }
+        self.read_with(|e| e.add(other))
     }
 
     pub fn sub<T>(&self, other: T) -> LunaModelResult<Expression>
     where
         for<'e> &'e Expression: Sub<T, Output = LunaModelResult<Expression>>,
     {
-        match self {
-            PyExprContent::Expr(expr) => {
-                let slf: &Expression = &expr.read_arc();
-                slf.sub(other)
-            }
-            PyExprContent::Model(model) => {
-                let slf: &Expression = &model.read_arc().objective;
-                slf.sub(other)
-            }
-        }
+        self.read_with(|e| e.sub(other))
     }
 
     pub fn mul<T>(&self, other: T) -> LunaModelResult<Expression>
     where
         for<'e> &'e Expression: Mul<T, Output = LunaModelResult<Expression>>,
     {
-        match self {
-            PyExprContent::Expr(expr) => {
-                let slf: &Expression = &expr.read_arc();
-                slf.mul(other)
-            }
-            PyExprContent::Model(model) => {
-                let slf: &Expression = &model.read_arc().objective;
-                slf.mul(other)
-            }
-        }
+        self.read_with(|e| e.mul(other))
     }
 
     pub fn pow(&self, v: usize) -> LunaModelResult<Expression> {
-        match self {
-            PyExprContent::Expr(expr) => {
-                let slf: &Expression = &expr.read_arc();
-                slf.pow(v)
-            }
-            PyExprContent::Model(model) => {
-                let slf: &Expression = &model.read_arc().objective;
-                slf.pow(v)
-            }
-        }
+        self.read_with(|e| e.pow(v))
     }
 
-    pub fn add_assign<T>(&self, other: T) -> LunaModelResult<()>
+    pub fn add_assign<T>(&mut self, other: T) -> LunaModelResult<()>
     where
         Expression: LmAddAssign<T>,
     {
-        match self {
-            PyExprContent::Expr(expr) => {
-                let slf: &mut Expression = &mut expr.write_arc();
-                slf.add_assign(other)
-            }
-            PyExprContent::Model(model) => {
-                let slf: &mut Expression = &mut model.write_arc().objective;
-                slf.add_assign(other)
-            }
-        }
+        self.write_with(|e| e.add_assign(other))
     }
 
-    pub fn sub_assign<T>(&self, other: T) -> LunaModelResult<()>
+    pub fn sub_assign<T>(&mut self, other: T) -> LunaModelResult<()>
     where
         Expression: LmSubAssign<T>,
     {
-        match self {
-            PyExprContent::Expr(expr) => {
-                let slf: &mut Expression = &mut expr.write_arc();
-                slf.sub_assign(other)
-            }
-            PyExprContent::Model(model) => {
-                let slf: &mut Expression = &mut model.write_arc().objective;
-                slf.sub_assign(other)
-            }
-        }
+        self.write_with(|e| e.sub_assign(other))
     }
 
-    pub fn mul_assign<T>(&self, other: T) -> LunaModelResult<()>
+    pub fn mul_assign<T>(&mut self, other: T) -> LunaModelResult<()>
     where
         Expression: LmMulAssign<T>,
     {
-        match self {
-            PyExprContent::Expr(expr) => {
-                let slf: &mut Expression = &mut expr.write_arc();
-                slf.mul_assign(other)
-            }
-            PyExprContent::Model(model) => {
-                let slf: &mut Expression = &mut model.write_arc().objective;
-                slf.mul_assign(other)
-            }
-        }
+        self.write_with(|e| e.mul_assign(other))
     }
 
-    pub fn pow_assign(&self, v: usize) -> LunaModelResult<()> {
-        match self {
-            PyExprContent::Expr(expr) => {
-                let slf: &mut Expression = &mut expr.write_arc();
-                slf.pow_assign(v)
-            }
-            PyExprContent::Model(model) => {
-                let slf: &mut Expression = &mut model.write_arc().objective;
-                slf.pow_assign(v)
-            }
-        }
+    pub fn pow_assign(&mut self, v: usize) -> LunaModelResult<()> {
+        self.write_with(|e| e.pow_assign(v))
     }
 
     pub fn substitute(
@@ -162,58 +90,28 @@ impl PyExprContent {
         target: &VarRef,
         replacement: &Expression,
     ) -> LunaModelResult<Expression> {
-        match self {
-            Self::Expr(e) => e.read_arc().substitute(target, replacement),
-            Self::Model(m) => m.read_arc().objective.substitute(target, replacement),
-        }
+        self.read_with(|e| e.substitute(target, replacement))
     }
 }
 
 impl Add<&PyExprContent> for &Expression {
     type Output = LunaModelResult<Expression>;
     fn add(self, rhs: &PyExprContent) -> Self::Output {
-        match rhs {
-            PyExprContent::Expr(r) => {
-                let rs: &Expression = &r.read_arc();
-                self.add(rs)
-            }
-            PyExprContent::Model(r) => {
-                let rs: &Expression = &r.read_arc().objective;
-                self.add(rs)
-            }
-        }
+        rhs.read_with(|rhs| self.add(rhs))
     }
 }
 
 impl Mul<&PyExprContent> for &Expression {
     type Output = LunaModelResult<Expression>;
     fn mul(self, rhs: &PyExprContent) -> Self::Output {
-        match rhs {
-            PyExprContent::Expr(r) => {
-                let rs: &Expression = &r.read_arc();
-                self.mul(rs)
-            }
-            PyExprContent::Model(r) => {
-                let rs: &Expression = &r.read_arc().objective;
-                self.mul(rs)
-            }
-        }
+        rhs.read_with(|rhs| self.mul(rhs))
     }
 }
 
 impl Sub<&PyExprContent> for &Expression {
     type Output = LunaModelResult<Expression>;
     fn sub(self, rhs: &PyExprContent) -> Self::Output {
-        match rhs {
-            PyExprContent::Expr(r) => {
-                let rs: &Expression = &r.read_arc();
-                self.sub(rs)
-            }
-            PyExprContent::Model(r) => {
-                let rs: &Expression = &r.read_arc().objective;
-                self.sub(rs)
-            }
-        }
+        rhs.read_with(|rhs| self.sub(rhs))
     }
 }
 impl Sub<&PyExprContent> for Expression {
@@ -226,76 +124,33 @@ impl Sub<&PyExprContent> for Expression {
 impl Neg for &PyExprContent {
     type Output = Expression;
     fn neg(self) -> Self::Output {
-        match self {
-            PyExprContent::Expr(r) => {
-                let rs: &Expression = &r.read_arc();
-                rs.neg()
-            }
-            PyExprContent::Model(r) => {
-                let rs: &Expression = &r.read_arc().objective;
-                rs.neg()
-            }
-        }
+        self.read_with(|slf| slf.neg())
     }
 }
 
 impl LmAddAssign<&PyExprContent> for Expression {
     fn add_assign(&mut self, rhs: &PyExprContent) -> LunaModelResult<()> {
-        match rhs {
-            PyExprContent::Expr(r) => {
-                let rs: &Expression = &r.read_arc();
-                self.add_assign(rs)
-            }
-            PyExprContent::Model(r) => {
-                let rs: &Expression = &r.read_arc().objective;
-                self.add_assign(rs)
-            }
-        }
+        rhs.read_with(|rhs| self.add_assign(rhs))
     }
 }
 
 impl LmSubAssign<&PyExprContent> for Expression {
     fn sub_assign(&mut self, rhs: &PyExprContent) -> LunaModelResult<()> {
-        match rhs {
-            PyExprContent::Expr(r) => {
-                let rs: &Expression = &r.read_arc();
-                self.sub_assign(rs)
-            }
-            PyExprContent::Model(r) => {
-                let rs: &Expression = &r.read_arc().objective;
-                self.sub_assign(rs)
-            }
-        }
+        rhs.read_with(|rhs| self.sub_assign(rhs))
     }
 }
 
 impl LmMulAssign<&PyExprContent> for Expression {
     fn mul_assign(&mut self, rhs: &PyExprContent) -> LunaModelResult<()> {
-        match rhs {
-            PyExprContent::Expr(r) => {
-                let rs: &Expression = &r.read_arc();
-                self.mul_assign(rs)
-            }
-            PyExprContent::Model(r) => {
-                let rs: &Expression = &r.read_arc().objective;
-                self.mul_assign(rs)
-            }
-        }
+        rhs.read_with(|rhs| self.mul_assign(rhs))
     }
 }
 
 impl PartialEq for PyExprContent {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (PyExprContent::Expr(le), PyExprContent::Expr(re)) => le.read_arc().eq(&re.read_arc()),
-            (PyExprContent::Expr(e), PyExprContent::Model(m))
-            | (PyExprContent::Model(m), PyExprContent::Expr(e)) => {
-                m.read_arc().objective.eq(&e.read_arc())
-            }
-            (PyExprContent::Model(lm), PyExprContent::Model(rm)) => {
-                lm.read_arc().objective.eq(&rm.read_arc().objective)
-            }
-        }
+        let slf: &Expression = &self.read();
+        let otr: &Expression = &other.read();
+        slf.eq(otr)
     }
 }
 
@@ -303,46 +158,24 @@ impl Sub<&PyExprContent> for &VarRef {
     type Output = LunaModelResult<Expression>;
 
     fn sub(self, rhs: &PyExprContent) -> Self::Output {
-        match rhs {
-            PyExprContent::Expr(e) => {
-                let e: &Expression = &e.read_arc();
-                self.sub(e)
-            }
-            PyExprContent::Model(m) => self.sub(&m.read_arc().objective),
-        }
+        rhs.read_with(|e| self.sub(e))
     }
 }
 
 impl ContentEquality for PyExprContent {
     fn equal_contents(&self, other: &Self) -> bool {
-        match (self, other) {
-            (PyExprContent::Expr(le), PyExprContent::Expr(re)) => {
-                le.read_arc().equal_contents(&re.read_arc())
-            }
-            (PyExprContent::Expr(e), PyExprContent::Model(m))
-            | (PyExprContent::Model(m), PyExprContent::Expr(e)) => {
-                m.read_arc().objective.equal_contents(&e.read_arc())
-            }
-            (PyExprContent::Model(lm), PyExprContent::Model(rm)) => lm
-                .read_arc()
-                .objective
-                .equal_contents(&rm.read_arc().objective),
-        }
+        let slf: &Expression = &self.read();
+        let otr: &Expression = &other.read();
+        slf.equal_contents(otr)
     }
 }
 
 impl CustomFormat<FormatOpt> for PyExprContent {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
-        match self {
-            Self::Expr(e) => e.read_arc().fmt(fmt, format_type),
-            Self::Model(m) => m.read_arc().objective.fmt(fmt, format_type),
-        }
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
+        self.read_with(|e| e.fmt(f, format_type))
     }
 
-    fn dbg(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
-        match self {
-            Self::Expr(e) => e.read_arc().dbg(fmt, format_type),
-            Self::Model(m) => m.read_arc().objective.dbg(fmt, format_type),
-        }
+    fn dbg(&self, f: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
+        self.read_with(|e| e.dbg(f, format_type))
     }
 }

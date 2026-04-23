@@ -3,7 +3,7 @@ use lunamodel_types::Bias;
 use lunamodel_unwind::*;
 use pyo3::{IntoPyObjectExt, prelude::*};
 
-use super::{PyExpression, content::PyExprContent as PyEC};
+use super::PyExpression;
 use crate::variable::PyVariable;
 
 #[pyclass(subclass)]
@@ -93,19 +93,11 @@ pub struct PyExpressionIterator {
 
 impl PyExpressionIterator {
     pub fn new(expr: &PyExpression) -> Self {
-        let items = match &expr.expr {
-            PyEC::Expr(expr) => expr
-                .read_arc()
-                .items()
+        let items = expr.read_with(|e| {
+            e.items()
                 .map(|(vs, b)| (vs.into_iter().map(|v| PyVariable::new(v)).collect(), b))
-                .collect(),
-            PyEC::Model(m) => m
-                .read_arc()
-                .objective
-                .items()
-                .map(|(vs, b)| (vs.into_iter().map(|v| PyVariable::new(v)).collect(), b))
-                .collect(),
-        };
+                .collect()
+        });
         Self {
             items,
             current_idx: 0,
