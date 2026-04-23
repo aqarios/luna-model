@@ -22,7 +22,7 @@ impl PipelineOrPassVec {
         match self {
             Self::Pipeline(p) => Ok(p.steps().to_vec()),
             Self::PassVec(v) => v
-                .into_iter()
+                .iter()
                 .map(|p| p.to_step(py))
                 .collect::<PyResult<_>>(),
         }

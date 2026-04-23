@@ -14,12 +14,12 @@ pub enum MaybeNamedVariants {
     Not(PyCArg),
 }
 
-trait AsIter {
-    fn as_iter(self) -> impl Iterator<Item = (Constraint, Option<String>)>;
+trait ToIter {
+    fn to_iter(self) -> impl Iterator<Item = (Constraint, Option<String>)>;
 }
 
-impl AsIter for Vec<MaybeNamedVariants> {
-    fn as_iter(self) -> impl Iterator<Item = (Constraint, Option<String>)> {
+impl ToIter for Vec<MaybeNamedVariants> {
+    fn to_iter(self) -> impl Iterator<Item = (Constraint, Option<String>)> {
         use MaybeNamedVariants::*;
         self.into_iter().map(|e| match e {
             NamedA((name, pyc)) | NamedB((pyc, name)) => (pyc.c.read_arc().clone(), Some(name)),
@@ -90,9 +90,9 @@ pub fn add_many_constraint(
             )
         }
         // [(String, Constraint) | (Constraint, String) | Constraint]
-        (Ncv(tup), None) => cc.add_many_constraints(tup.as_iter()),
+        (Ncv(tup), None) => cc.add_many_constraints(tup.to_iter()),
         (Ncv(tup), Some(S(base))) => {
-            cc.add_many_constraints(tup.as_iter().enumerate().map(|(i, (e, n))| {
+            cc.add_many_constraints(tup.to_iter().enumerate().map(|(i, (e, n))| {
                 (
                     e,
                     Some(match n {

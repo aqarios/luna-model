@@ -35,6 +35,10 @@ impl From<Shape> for Vec<usize> {
     }
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "Python-facing API mirrors external call shape"
+)]
 #[unwindable]
 #[pymethods]
 impl PyModel {
@@ -53,11 +57,7 @@ impl PyModel {
         Ok(self
             .m
             .write_arc()
-            .add_var(
-                &name,
-                vtype.unwrap_or(PyVtype::Binary).into(),
-                bounds,
-            )?
+            .add_var(&name, vtype.unwrap_or(PyVtype::Binary).into(), bounds)?
             .into())
     }
 
@@ -117,12 +117,7 @@ impl PyModel {
         Ok(self
             .m
             .write_arc()
-            .add_var_with_fallback(
-                &name,
-                vtype.unwrap_or(PyVtype::Binary).into(),
-                bounds,
-                None,
-            )?
+            .add_var_with_fallback(&name, vtype.unwrap_or(PyVtype::Binary).into(), bounds, None)?
             .into())
     }
 

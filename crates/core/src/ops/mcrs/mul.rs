@@ -149,11 +149,11 @@ macro_rules! rmuls {
     (@mul_bb $L:ty, $R:ty) => {
         impl std::ops::Mul<&$L> for &$R
         where
-            for<'r> $L: crate::ops::LmMulAssign<&'r $R>,
+            for<'r> $L: $crate::ops::LmMulAssign<&'r $R>,
         {
-            type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
+            type Output = lunamodel_error::LunaModelResult<$crate::expression::Expression>;
             fn mul(self, rhs: &$L) -> Self::Output {
-                use crate::ops::LmMulAssign;
+                use $crate::ops::LmMulAssign;
                 let mut new = rhs.clone();
                 <$L as LmMulAssign<&$R>>::mul_assign(&mut new, self)?;
                 Ok(new)

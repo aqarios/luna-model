@@ -64,9 +64,9 @@ macro_rules! subs {
         where
             for<'r> $L: $crate::ops::LmSubAssign<&'r $R>,
         {
-            type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
+            type Output = lunamodel_error::LunaModelResult<$crate::expression::Expression>;
             fn sub(self, rhs: &$R) -> Self::Output {
-                use crate::ops::LmSubAssign;
+                use $crate::ops::LmSubAssign;
                 let mut new = self.clone();
                 <$L as LmSubAssign<&$R>>::sub_assign(&mut new, rhs)?;
                 Ok(new)
@@ -75,12 +75,12 @@ macro_rules! subs {
     };
     // LmSubAssign for owned R.
     (@sub_assign_o $L:ty, $R:ty) => {
-        impl crate::ops::LmSubAssign<$R> for $L
+        impl $crate::ops::LmSubAssign<$R> for $L
         where
             for<'r> $L: $crate::ops::LmSubAssign<&'r $R>,
         {
             fn sub_assign(&mut self, rhs: $R) -> lunamodel_error::LunaModelResult<()> {
-                use crate::ops::LmSubAssign;
+                use $crate::ops::LmSubAssign;
                 <$L as LmSubAssign<&$R>>::sub_assign(self, &rhs)
             }
         }

@@ -24,6 +24,10 @@ enum BitOrder {
     Rtl,
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "Python-facing API mirrors external call shape"
+)]
 #[unwindable]
 #[pymethods]
 impl PySolution {
@@ -164,10 +168,7 @@ impl PySolution {
             }
             for c in constraints {
                 for (cname, val) in c {
-                    sol.constraints
-                        .entry(cname)
-                        .or_default()
-                        .push(val);
+                    sol.constraints.entry(cname).or_default().push(val);
                 }
             }
         }
@@ -225,7 +226,10 @@ impl PySolution {
             sol.timing = timing.map(|t| t.into());
             sol.counts.push(counts.unwrap_or(1));
             if let Some(e) = energy
-                && let Some(ens) = sol.raw_energies.as_mut() { ens.push(e) }
+                && let Some(ens) = sol.raw_energies.as_mut()
+            {
+                ens.push(e)
+            }
 
             let sample_vars: HashSet<String> = data
                 .keys()
