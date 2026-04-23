@@ -4,7 +4,9 @@ use lunamodel_core::{
 };
 use lunamodel_error::LunaModelResult;
 use lunamodel_io::{CustomFormat, FormatOpt};
-use parking_lot::RwLock;
+use parking_lot::{
+    MappedRwLockReadGuard, MappedRwLockWriteGuard, RwLock, RwLockReadGuard, RwLockWriteGuard,
+};
 use std::{
     ops::{Add, Mul, Neg, Sub},
     sync::Arc,
@@ -35,6 +37,38 @@ impl Into<Expression> for PyExprContent {
 }
 
 impl PyExprContent {
+    pub fn read(&self) -> MappedRwLockReadGuard<'_, Expression> {
+        match self {
+            PyExprContent::Expr(expr) => RwLockReadGuard::map(expr.read(), |expr| expr),
+            PyExprContent::Model(model) => {
+                RwLockReadGuard::map(model.read(), |model| &model.objective)
+            }
+        }
+    }
+
+    pub fn write(&self) -> MappedRwLockWriteGuard<'_, Expression> {
+        match self {
+            PyExprContent::Expr(expr) => RwLockWriteGuard::map(expr.write(), |expr| expr),
+            PyExprContent::Model(model) => {
+                RwLockWriteGuard::map(model.write(), |model| &mut model.objective)
+            }
+        }
+    }
+
+    pub fn read_with<R>(&self, f: impl FnOnce(&Expression) -> R) -> R {
+        match self {
+            PyExprContent::Expr(expr) => f(&expr.write_arc()),
+            PyExprContent::Model(model) => f(&model.write_arc().objective),
+        }
+    }
+
+    pub fn write_with<R>(&mut self, f: impl FnOnce(&mut Expression) -> R) -> R {
+        match self {
+            PyExprContent::Expr(expr) => f(&mut expr.write_arc()),
+            PyExprContent::Model(model) => f(&mut model.write_arc().objective),
+        }
+    }
+
     pub fn add<T>(&self, other: T) -> LunaModelResult<Expression>
     where
         for<'e> &'e Expression: Add<T, Output = LunaModelResult<Expression>>,

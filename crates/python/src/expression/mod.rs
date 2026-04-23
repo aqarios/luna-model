@@ -10,7 +10,7 @@ mod ops;
 mod ser;
 
 use lunamodel_core::prelude::{Expression, Model};
-use parking_lot::RwLock;
+use parking_lot::{MappedRwLockReadGuard, MappedRwLockWriteGuard, RwLock};
 use pyo3::pyclass;
 use std::sync::Arc;
 
@@ -46,10 +46,36 @@ impl From<Arc<RwLock<Model>>> for PyExpression {
     }
 }
 
+impl From<&PyExpression> for PyExpression {
+    fn from(value: &PyExpression) -> Self {
+        Self {
+            expr: value.expr.clone(),
+        }
+    }
+}
+
 impl PyExpression {
     pub fn new(expr: Expression) -> Self {
         Self {
             expr: PyExprContent::Expr(Arc::new(RwLock::new(expr))),
         }
+    }
+}
+
+impl PyExpression {
+    pub fn read(&self) -> MappedRwLockReadGuard<'_, Expression> {
+        self.expr.read()
+    }
+
+    pub fn write(&self) -> MappedRwLockWriteGuard<'_, Expression> {
+        self.expr.write()
+    }
+
+    pub fn read_with<R>(&self, f: impl FnOnce(&Expression) -> R) -> R {
+        self.expr.read_with(f)
+    }
+
+    pub fn write_with<R>(&mut self, f: impl FnOnce(&mut Expression) -> R) -> R {
+        self.expr.write_with(f)
     }
 }
