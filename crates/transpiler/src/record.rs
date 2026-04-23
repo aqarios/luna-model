@@ -59,6 +59,11 @@ impl TransformationRecord {
     /// This is a standalone function that doesn't need the original PassManager.
     /// All information is encoded in the artifacts.
     pub fn backward(&self, mut solution: Solution) -> LunaModelResult<Solution> {
+        // Move the objective values to the raw-energies if present,
+        // such that the final solution output has no objective values set.
+        if let Some(obj) = solution.obj_values.take() {
+            solution.raw_energies = Some(obj);
+        }
         // Reverse order: last transformation first
         for entry in self.entries.iter().rev() {
             solution = match entry {

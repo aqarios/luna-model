@@ -39,6 +39,7 @@ mod tests {
         let back_recovered = recovered.backward(solution.clone())?;
 
         assert!(back_direct.equal_contents(&back_recovered));
+        assert!(back_direct.obj_values.is_none());
 
         Ok(())
     }
@@ -65,6 +66,7 @@ mod tests {
         let back_recovered = recovered.backward(solution.clone())?;
 
         assert!(back_direct.equal_contents(&back_recovered));
+        assert!(back_direct.obj_values.is_none());
 
         Ok(())
     }

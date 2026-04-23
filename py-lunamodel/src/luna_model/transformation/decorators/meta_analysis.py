@@ -14,13 +14,6 @@
 
 from __future__ import annotations
 
-import sys
-
-if sys.version_info < (3, 13):
-    from typing_extensions import deprecated
-else:
-    from warnings import deprecated
-
 from collections.abc import Callable, Sequence
 from typing import Generic, TypeAlias, TypeVar
 
@@ -103,11 +96,3 @@ def meta_analyze(
         )
 
     return _decorator
-
-
-@deprecated("use ``@meta_analyze``. This decorator will be removed in the next release.")
-def meta_analyse(
-    name: str | None = None, provides: str | None = None
-) -> Callable[[MetaAnalysisSignature[R]], _DynamicMetaAnalysisPass[R]]:
-    """Use ``@meta_analyze``. This decorator will be removed in the next release."""
-    return meta_analyze(name=name, provides=provides)

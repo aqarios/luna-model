@@ -11,7 +11,6 @@ repository.workspace = true
 lunamodel-core = { workspace = true }
 lunamodel-error = { workspace = true }
 lunamodel-types = { workspace = true }
-lunamodel-io = { workspace = true, features = ["py"] }
 lunamodel-utils = { workspace = true }
 
 strum_macros = { workspace = true }

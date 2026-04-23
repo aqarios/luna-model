@@ -461,6 +461,10 @@ impl PySolution {
 
             sol.aggregate()?;
 
+            if let Some(m) = model {
+                sol = m.m.read_arc().evaluate_solution(&sol)?;
+            }
+
             Ok(sol)
         }
 

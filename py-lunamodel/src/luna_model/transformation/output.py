@@ -14,20 +14,11 @@
 
 from __future__ import annotations
 
-import sys
+from typing import TYPE_CHECKING
 
-if sys.version_info < (3, 13):
-    from typing_extensions import deprecated
-else:
-    from warnings import deprecated
-
-from typing import TYPE_CHECKING, TypeVar
-
-from luna_model.errors import LunaModelError
 from luna_model.model.model import Model
 from luna_model.transformation.context import PassContext
-from luna_model.transformation.key import AnalysisKey
-from luna_model.transformation.record import TransformationRecord, TransformEntry
+from luna_model.transformation.record import TransformationRecord
 
 if TYPE_CHECKING:
     from luna_model._lm import PyTransformationOutput
@@ -82,67 +73,3 @@ class TransformationOutput:
             The final context after execution of the PassManager.
         """
         return PassContext._from_pyctx(self._to.context)
-
-    @property
-    @deprecated(
-        "The 'cache' property is deprecated and will be removed in the next release. "
-        "Use the 'context' property instead."
-    )
-    def cache(self) -> AnalysisCache:
-        """
-        Deprecated cache access now replaced by the ``record`` and the ``context`` properties.
-
-        Returns
-        -------
-        AnalysisCache
-            Deprecated AnalysisCache for temporary backwards compatibility.
-        """
-        return AnalysisCache(self.context, self.record)
-
-
-T = TypeVar("T")
-
-
-@deprecated("The 'AnalysisCache' class is deprecated and will be removed in the next release.")
-class AnalysisCache:
-    """Deprecated analysis cache replaced by PassContext and TransformationRecord."""
-
-    _ctx: PassContext
-    _record: TransformationRecord
-
-    def __init__(self, ctx: PassContext, record: TransformationRecord) -> None:
-        self._ctx = ctx
-        self._record = record
-
-    @deprecated(
-        "The '__getitem__' method is unstable and thus deprecated. "
-        "It will be removed in the next release. "
-        "Use the 'require_analysis' method of the `PassContext` instead. "
-    )
-    def __getitem__(self, key: str) -> T:  # type: ignore[reportInvalidTypeVarUse]
-        """Get the analysis entry for the specified key.
-
-        Parameters
-        ----------
-        key : str
-            The cache key to retrieve as a str.
-
-        Returns
-        -------
-        T
-            The cached value associated with the key.
-        """
-        try:
-            return self._ctx.require_analysis(AnalysisKey(key))
-        except LunaModelError as _:
-            pass
-
-        try:
-            entry = self._record.find(key, exact=False)
-            if isinstance(entry, TransformEntry):
-                return entry.artifact.restore()
-        except LunaModelError as _:
-            pass
-
-        msg = f"could not find cache entry for '{key}'"
-        raise RuntimeError(msg)

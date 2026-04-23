@@ -14,13 +14,6 @@
 
 from __future__ import annotations
 
-import sys
-
-if sys.version_info < (3, 13):
-    from typing_extensions import deprecated
-else:
-    from warnings import deprecated
-
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, overload
 
@@ -369,9 +362,6 @@ class Model:
         """
         return [Vtype._from_pyvtype(t) for t in self._m.vtypes()]
 
-    @deprecated(
-        "This method is deprecated in favor of the direct attribute setter. Will be removed in the next release."
-    )
     def set_sense(self, sense: Sense) -> None:
         """Set the model's sense.
 
@@ -509,20 +499,6 @@ class Model:
                 delimiter=delimiter,
             )
         )
-
-    @deprecated("This method is deprecated in favor of the add_variable(..., with_fallback=True) method.")
-    def add_variable_with_fallback(
-        self,
-        name: str,
-        vtype: Vtype = Vtype.BINARY,
-        lower: float | type[Unbounded] | None = None,
-        upper: float | type[Unbounded] | None = None,
-    ) -> Variable:
-        """Add a variable to the model with a fallback name in case it already exists.
-
-        Deprecated in favor of the :meth:add_variable(..., with_fallback=True) method.
-        """
-        return self.add_variable(name, vtype, lower, upper, with_fallback=True)
 
     def get_variable(self, name: str) -> Variable:
         """Get a variable from the model by its name.

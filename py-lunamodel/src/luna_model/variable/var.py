@@ -115,7 +115,7 @@ class Variable:
         self._v = PyVariable(
             name,
             vtype._val,
-            bounds._b if bounds else None,
+            bounds,
             env,
         )
 
