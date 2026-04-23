@@ -44,6 +44,7 @@ target/
 /py-lunamodel/docs/assets/data/
 /py-lunamodel/docs/assets/people.md
 /py-lunamodel/site/
+/site/
 
 # User specific source setups
 # You can put anything here that needs to be done to prepare your env.
