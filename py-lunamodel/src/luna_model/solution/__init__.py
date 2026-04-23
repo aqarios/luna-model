@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from luna_model.solution.res import Result, ResultIter, ResultView
 from luna_model.solution.sample import Sample, SampleIter, Samples, SamplesIter
 from luna_model.solution.sol import Solution
