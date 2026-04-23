@@ -56,13 +56,11 @@ impl<'py> CapsuleFFI<'py> for PyCCC {
 #[pymethods]
 impl PyConstraintCollection {
     pub fn _to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        self.c.to_capsule(py)
+        self.inner().to_capsule(py)
     }
 
     #[staticmethod]
     pub fn _from_capsule<'py>(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        Ok(PyConstraintCollection {
-            c: PyCCC::from_capsule(capsule)?,
-        })
+        Ok(PyCCC::from_capsule(capsule)?.into())
     }
 }

@@ -1,10 +1,11 @@
+use lunamodel_error::LunaModelResult;
 use lunamodel_unwind::*;
 use pyo3::{FromPyObject, PyResult, Python, pymethods};
 
 use super::PyConstraintCollection;
 use crate::{
     args::PyCArg,
-    constraint::utils::{ConstraintsIn, NameIn},
+    constraint::utils::{ConstraintsIn, NameIn, add_many_constraint},
 };
 
 #[derive(FromPyObject, Debug)]
@@ -39,14 +40,16 @@ impl PyConstraintCollection {
     fn __iadd__(&mut self, py: Python, other: Other) -> PyResult<()> {
         Ok(match other {
             Other::Constr(constr) => {
-                _ = self.c.add_constraint(constr.c.read_arc().clone(), None)?
+                _ = self
+                    .write()
+                    .add_constraint(constr.c.read_arc().clone(), None)?
             }
             Other::Tuple((constr, name)) => {
                 _ = self
-                    .c
+                    .write()
                     .add_constraint(constr.c.read_arc().clone(), Some(name))?
             }
-            Other::Multi(o) => _ = self.c.add_many_py(py, o, None),
+            Other::Multi(o) => _ = self.add_many_py(py, o, None),
         })
     }
 
@@ -59,7 +62,9 @@ impl PyConstraintCollection {
     /// name : str, optional
     ///     The name of the constraint to be added.
     fn add_constraint(&mut self, constr: PyCArg, name: Option<String>) -> PyResult<String> {
-        Ok(self.c.add_constraint(constr.c.read_arc().clone(), name)?)
+        Ok(self
+            .write()
+            .add_constraint(constr.c.read_arc().clone(), name)?)
     }
 
     fn add_constraints(
@@ -68,14 +73,27 @@ impl PyConstraintCollection {
         constraints: ConstraintsIn,
         name: Option<NameIn>,
     ) -> PyResult<Vec<String>> {
-        Ok(self.c.add_many_py(py, constraints, name)?)
+        Ok(self.add_many_py(py, constraints, name)?)
     }
 
     fn __setitem__(&mut self, key: String, constr: PyCArg) -> PyResult<()> {
-        Ok(self.c.set_constraint(&key, constr.c.read_arc().clone())?)
+        Ok(self
+            .write()
+            .set_constraint(&key, constr.c.read_arc().clone())?)
     }
 
     fn remove(&mut self, key: String) -> PyResult<()> {
-        Ok(self.c.remove_constraint(&key)?)
+        Ok(self.write().remove_constraint(&key)?)
+    }
+}
+
+impl PyConstraintCollection {
+    pub fn add_many_py(
+        &mut self,
+        py: Python,
+        ccin: ConstraintsIn,
+        nin: Option<NameIn>,
+    ) -> LunaModelResult<Vec<String>> {
+        add_many_constraint(py, &mut self.write(), ccin, nin)
     }
 }

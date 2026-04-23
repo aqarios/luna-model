@@ -1,3 +1,4 @@
+use lunamodel_core::prelude::ContentEquality;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 
@@ -15,15 +16,15 @@ impl PyConstraintCollection {
     }
 
     fn get(&self, key: String) -> PyResult<PyConstraint> {
-        Ok(self.c.get(&key)?.clone().into())
+        Ok(self.read().get(&key)?.clone().into())
     }
 
     fn ctypes(&self) -> Vec<PyComparator> {
-        self.c.ctypes().into_iter().map(|c| c.into()).collect()
+        self.read().ctypes().into_iter().map(|c| c.into()).collect()
     }
 
     fn equal_contents(&self, other: PyColArg) -> bool {
-        self.c.equal_contents(&other.c)
+        self.read().equal_contents(&other.read())
     }
 
     fn __getitem__(&self, key: String) -> PyResult<PyConstraint> {
@@ -31,11 +32,11 @@ impl PyConstraintCollection {
     }
 
     fn __len__(&self) -> usize {
-        self.c.len()
+        self.read().len()
     }
 
     fn __eq__(&self, other: PyColArg) -> bool {
-        self.c.eq(&other.c)
+        self.read().eq(&other.read())
     }
 
     fn __iter__(&self) -> PyConstraintCollectionIterator {

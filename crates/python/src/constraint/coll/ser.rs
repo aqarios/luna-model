@@ -1,5 +1,5 @@
 use lunamodel_core::{ArcEnv, Environment};
-use lunamodel_serializer::prelude::{Decodable, Decompressable, Unversionizable};
+use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use lunamodel_unwind::*;
 use pyo3::{
     Bound, FromPyObject, Py, PyAny, PyResult, Python, pymethods,
@@ -43,7 +43,7 @@ impl PyConstraintCollection {
         compress: Option<bool>,
         level: Option<i32>,
     ) -> PyResult<Py<PyAny>> {
-        let bytes = self.c.encode(compress, level)?;
+        let bytes = self.read().encode(compress, level)?;
         Ok(PyBytes::new(py, bytes.as_slice()).into())
     }
 

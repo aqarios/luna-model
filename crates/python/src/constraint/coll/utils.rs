@@ -61,8 +61,8 @@ pub fn add_many_constraint(
         (CA(arr), Some(S(name))) => add_nparr(py, cc, arr, Some(name)),
         (CA(arr), Some(SV(names))) => add_nparr_many_named(py, cc, arr, names),
         // ConstraintCollection
-        (CC(col), None) => cc.add_collection(col.c.collection(), None),
-        (CC(col), Some(S(name))) => cc.add_collection(col.c.collection(), Some(name)),
+        (CC(col), None) => cc.add_collection(col.read().clone(), None),
+        (CC(col), Some(S(name))) => cc.add_collection(col.read().clone(), Some(name)),
         // [Constraint]
         (CV(seq), None) => {
             cc.add_many_constraints(seq.into_iter().map(|e| (e.c.read_arc().clone(), None)))

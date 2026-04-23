@@ -12,7 +12,11 @@ pub struct PyConstraintCollectionIterator {
 impl PyConstraintCollectionIterator {
     pub fn new(coll: &PyConstraintCollection) -> Self {
         Self {
-            items: coll.c.pyitems(),
+            items: coll
+                .read()
+                .iter()
+                .map(|(name, constr)| (name.clone(), constr.into()))
+                .collect(),
             idx: 0,
         }
     }
