@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, overload
 
 from luna_model._lm import PyVariable
 from luna_model._utils import wrap_b, wrap_c, wrap_env, wrap_expr
+from luna_model.variable.bounds import Unbounded
 from luna_model.variable.vtype import Vtype
 
 if TYPE_CHECKING:
@@ -115,7 +116,7 @@ class Variable:
         self._v = PyVariable(
             name,
             vtype._val,
-            bounds._b if bounds else None,
+            bounds,
             env,
         )
 
