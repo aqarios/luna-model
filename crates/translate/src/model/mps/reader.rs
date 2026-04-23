@@ -176,10 +176,11 @@ pub fn read_mps(content: &str) -> LunaModelResult<MpsProblem> {
             if section == Section::Objsense {
                 let parts: Vec<&str> = line.split_whitespace().collect();
                 if parts.len() > 1
-                    && let Some(sense) = parse_sense(parts[1]) {
-                        problem.sense = sense;
-                        did_find_obj_sense = true;
-                    }
+                    && let Some(sense) = parse_sense(parts[1])
+                {
+                    problem.sense = sense;
+                    did_find_obj_sense = true;
+                }
             }
 
             // Handle QCMATRIX section - extract constraint name
@@ -265,10 +266,12 @@ pub fn read_mps(content: &str) -> LunaModelResult<MpsProblem> {
     }
 
     for colname in marked_cols {
-        problem.bounds.entry(colname).or_insert_with(|| Some(LazyBounds::new(
-                    Some(Bound::Bounded(0.0)),
-                    Some(Bound::Bounded(1.0)),
-                )));
+        problem.bounds.entry(colname).or_insert_with(|| {
+            Some(LazyBounds::new(
+                Some(Bound::Bounded(0.0)),
+                Some(Bound::Bounded(1.0)),
+            ))
+        });
     }
 
     // Build the problem from parsed data

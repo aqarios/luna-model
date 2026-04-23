@@ -21,9 +21,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyCArg {
         }
 
         if let Ok(inner) = obj.getattr("_c")
-            && let Ok(c) = inner.extract::<PyRef<'py, PyConstraint>>() {
-                return Ok(Self(c.clone()));
-            }
+            && let Ok(c) = inner.extract::<PyRef<'py, PyConstraint>>()
+        {
+            return Ok(Self(c.clone()));
+        }
 
         Err(PyTypeError::new_err("Expected (Py)Constraint"))
     }

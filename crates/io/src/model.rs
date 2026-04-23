@@ -213,11 +213,7 @@ mod pymodelio {
                     if !self.is_first {
                         self.writer.space();
                     }
-                    let s = format!(
-                        "{}{}",
-                        self.show_bias(bias),
-                        env.read_arc()[i].name()
-                    );
+                    let s = format!("{}{}", self.show_bias(bias), env.read_arc()[i].name());
                     self.writer.write(&s);
                     self.is_first = false;
                 }

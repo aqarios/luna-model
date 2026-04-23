@@ -21,9 +21,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyBoundsArg {
         }
 
         if let Ok(inner) = obj.getattr("_b")
-            && let Ok(c) = inner.extract::<PyRef<'py, PyBounds>>() {
-                return Ok(Self(c.clone()));
-            }
+            && let Ok(c) = inner.extract::<PyRef<'py, PyBounds>>()
+        {
+            return Ok(Self(c.clone()));
+        }
 
         Err(PyTypeError::new_err("Expected (Py)Bounds"))
     }

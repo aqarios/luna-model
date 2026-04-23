@@ -91,10 +91,7 @@ impl Solution {
                     let (lb, ub) = get_bounds::<f64>(&v.bounds()?)?;
                     let real_distr = Uniform::new_inclusive(lb, ub)?;
                     let data: Vec<f64> = real_distr.sample_iter(&mut rng).take(n_samples).collect();
-                    samples.insert(
-                        vname,
-                        Column::real(data.to_vec()),
-                    );
+                    samples.insert(vname, Column::real(data.to_vec()));
                 }
                 // Ingnore inverted binaries
                 Vtype::InvertedBinary => (),

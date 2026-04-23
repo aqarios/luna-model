@@ -21,9 +21,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyModelArg {
         }
 
         if let Ok(inner) = obj.getattr("_m")
-            && let Ok(c) = inner.extract::<PyRef<'py, PyModel>>() {
-                return Ok(Self(c.clone()));
-            }
+            && let Ok(c) = inner.extract::<PyRef<'py, PyModel>>()
+        {
+            return Ok(Self(c.clone()));
+        }
 
         Err(PyTypeError::new_err("Expected (Py)Model"))
     }

@@ -21,9 +21,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyModelSpecsArg {
         }
 
         if let Ok(inner) = obj.getattr("_sp")
-            && let Ok(c) = inner.extract::<PyRef<'py, PyModelSpecs>>() {
-                return Ok(Self(c.clone()));
-            }
+            && let Ok(c) = inner.extract::<PyRef<'py, PyModelSpecs>>()
+        {
+            return Ok(Self(c.clone()));
+        }
 
         Err(PyTypeError::new_err("Expected (Py)ModelSpecs"))
     }

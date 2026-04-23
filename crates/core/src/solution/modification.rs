@@ -17,10 +17,11 @@ impl Solution {
     ) -> LunaModelResult<()> {
         // First, let's check that the keys of the sample and the samples are equal.
         self.counts.push(counts);
-        energy.and_then(|e| self.raw_energies.as_mut().map(|r| {
-            let _: () = r.push(e);
-            
-        }));
+        energy.and_then(|e| {
+            self.raw_energies.as_mut().map(|r| {
+                let _: () = r.push(e);
+            })
+        });
         for (key, a) in sample {
             if let Some(col) = self.samples.get_mut(&key) {
                 col.push(a)?;
@@ -102,7 +103,7 @@ impl Solution {
             Vtype::Real => {
                 self.add_real(var, data);
                 Ok(())
-            },
+            }
             Vtype::InvertedBinary => Ok(()),
         }
     }

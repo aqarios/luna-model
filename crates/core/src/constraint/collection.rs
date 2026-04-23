@@ -48,9 +48,7 @@ impl ConstraintCollection {
     }
 
     pub fn vars(&self) -> impl Iterator<Item = VarRef> {
-        unique_by(self.data.iter().flat_map(|(_, c)| c.lhs.vars()), |v| {
-            v.id
-        })
+        unique_by(self.data.iter().flat_map(|(_, c)| c.lhs.vars()), |v| v.id)
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&String, &Constraint)> {
@@ -105,7 +103,9 @@ impl ConstraintCollection {
         other
             .into_iter()
             .map(|(mut name, constr)| {
-                if let Some(p) = prefix.as_ref() { name = format!("{}{}", p, name) }
+                if let Some(p) = prefix.as_ref() {
+                    name = format!("{}{}", p, name)
+                }
                 self.add_constraint(constr, Some(name))
             })
             .collect::<LunaModelResult<_>>()

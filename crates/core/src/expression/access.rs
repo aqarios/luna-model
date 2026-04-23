@@ -68,9 +68,7 @@ impl Expression {
     }
 
     pub fn raw_quadratic_items(&self) -> impl Iterator<Item = (u32, u32, Bias)> {
-        self.quadratic
-            .iter()
-            .flat_map(|q| q.iter_flat())
+        self.quadratic.iter().flat_map(|q| q.iter_flat())
     }
 
     pub fn higher_order_items(&self) -> impl Iterator<Item = (Vec<VarRef>, Bias)> {
@@ -87,9 +85,7 @@ impl Expression {
     }
 
     pub fn raw_higher_order_items(&self) -> impl Iterator<Item = (Vec<u32>, Bias)> {
-        self.higher_order
-            .iter()
-            .flat_map(|q| q.iter_contrib())
+        self.higher_order.iter().flat_map(|q| q.iter_contrib())
     }
 
     pub fn degree(&self) -> usize {

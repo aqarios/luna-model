@@ -21,9 +21,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyEnvArg {
         }
 
         if let Ok(inner) = obj.getattr("_env")
-            && let Ok(c) = inner.extract::<PyRef<'py, PyEnvironment>>() {
-                return Ok(Self(c.clone()));
-            }
+            && let Ok(c) = inner.extract::<PyRef<'py, PyEnvironment>>()
+        {
+            return Ok(Self(c.clone()));
+        }
 
         Err(PyTypeError::new_err("Expected (Py)Environment"))
     }

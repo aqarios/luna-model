@@ -27,7 +27,7 @@ impl Model {
     pub fn vars(&self) -> impl Iterator<Item = VarRef> {
         let objvars = self.objective.vars();
         let constrvars = self.constraints.vars();
-        
+
         unique_by(objvars.chain(constrvars), |e| e.id())
     }
 

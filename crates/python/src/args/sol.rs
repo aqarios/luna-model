@@ -21,9 +21,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PySolArg {
         }
 
         if let Ok(inner) = obj.getattr("_s")
-            && let Ok(c) = inner.extract::<PyRef<'py, PySolution>>() {
-                return Ok(Self(c.clone()));
-            }
+            && let Ok(c) = inner.extract::<PyRef<'py, PySolution>>()
+        {
+            return Ok(Self(c.clone()));
+        }
 
         Err(PyTypeError::new_err("Expected (Py)Solution"))
     }

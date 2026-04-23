@@ -21,9 +21,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyVarArg {
         }
 
         if let Ok(inner) = obj.getattr("_v")
-            && let Ok(c) = inner.extract::<PyRef<'py, PyVariable>>() {
-                return Ok(Self(c.clone()));
-            }
+            && let Ok(c) = inner.extract::<PyRef<'py, PyVariable>>()
+        {
+            return Ok(Self(c.clone()));
+        }
 
         Err(PyTypeError::new_err("Expected (Py)Variable"))
     }

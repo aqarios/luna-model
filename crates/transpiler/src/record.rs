@@ -94,7 +94,9 @@ impl TransformationRecord {
 
     pub fn find(&self, query: &str, exact: bool) -> LunaModelResult<&PassEntry> {
         if query.is_empty() {
-            return Err(LunaModelError::Computation("query must not be empty".into()));
+            return Err(LunaModelError::Computation(
+                "query must not be empty".into(),
+            ));
         }
 
         if exact {

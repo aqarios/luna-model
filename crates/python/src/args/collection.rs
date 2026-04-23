@@ -21,9 +21,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyColArg {
         }
 
         if let Ok(inner) = obj.getattr("_cc")
-            && let Ok(c) = inner.extract::<PyRef<'py, PyConstraintCollection>>() {
-                return Ok(Self(c.clone()));
-            }
+            && let Ok(c) = inner.extract::<PyRef<'py, PyConstraintCollection>>()
+        {
+            return Ok(Self(c.clone()));
+        }
 
         Err(PyTypeError::new_err("Expected (Py)ConstraintCollection"))
     }

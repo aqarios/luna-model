@@ -123,10 +123,12 @@ impl ControlFlowPass for IfElsePass {
         let final_then: Vec<_> = then.iter().map(|s| s.pad_to_width(target_width)).collect();
         let final_otherwise: Vec<_> = otherwise.iter().map(|s| s.to_string()).collect();
 
-        let title_then = CHECK_MARK.to_string()
+        let title_then = CHECK_MARK
+            .to_string()
             .pad_to_width_with_alignment(target_width - 1, pad::Alignment::Left);
-        let title_otherwise =
-            BALLOT_X.to_string().pad_to_width_with_alignment(target_width, pad::Alignment::Left);
+        let title_otherwise = BALLOT_X
+            .to_string()
+            .pad_to_width_with_alignment(target_width, pad::Alignment::Left);
 
         let ext_then = format!("{U_AND_R} {title_then}");
         let ext_a_else = format!(

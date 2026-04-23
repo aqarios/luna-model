@@ -36,9 +36,7 @@ impl PrvMul<Bias> for &Option<Quadratic> {
     type Output = Vec<VarMulRes>;
 
     fn m(self, rhs: Bias) -> Self::Output {
-        self.as_ref()
-            .map(|q| q.m(rhs))
-            .unwrap_or_default()
+        self.as_ref().map(|q| q.m(rhs)).unwrap_or_default()
     }
 }
 

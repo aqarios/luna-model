@@ -59,7 +59,11 @@ impl PyQuadratic {
     }
 
     fn __str__(&self) -> PyResult<String> {
-        Ok(format!("Quadratic({}, {})", self.0.0.v.name()?, self.0.1.v.name()?))
+        Ok(format!(
+            "Quadratic({}, {})",
+            self.0.0.v.name()?,
+            self.0.1.v.name()?
+        ))
     }
 }
 

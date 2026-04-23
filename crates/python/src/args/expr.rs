@@ -28,9 +28,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyExprArg {
         }
 
         if let Ok(inner) = obj.getattr("_expr")
-            && let Ok(c) = inner.extract::<PyRef<'py, PyExpression>>() {
-                return Ok(Self(c.clone()));
-            }
+            && let Ok(c) = inner.extract::<PyRef<'py, PyExpression>>()
+        {
+            return Ok(Self(c.clone()));
+        }
 
         Err(PyTypeError::new_err("Expected (Py)Expression"))
     }
