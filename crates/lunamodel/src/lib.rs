@@ -30,6 +30,9 @@ pub use lunamodel_serializer as serializer;
 #[cfg(feature = "transform")]
 pub use lunamodel_transform as transform;
 
+#[cfg(any(feature = "transform", feature = "transpiler"))]
+pub use lunamodel_transpiler as transpiler;
+
 #[cfg(feature = "translate")]
 pub use lunamodel_translate as translate;
 
