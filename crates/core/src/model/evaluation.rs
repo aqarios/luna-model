@@ -12,12 +12,14 @@ impl Model {
             &sol.variable_names(),
         )?;
 
-        let mut newsol = Solution::default();
-        newsol.samples = sol.samples.clone();
-        newsol.counts = sol.counts.clone();
-        newsol.raw_energies = sol.raw_energies.clone();
-        newsol.timing = sol.timing.clone();
-        newsol.sense = sol.sense.clone();
+        let mut newsol = Solution {
+            samples: sol.samples.clone(),
+            counts: sol.counts.clone(),
+            raw_energies: sol.raw_energies.clone(),
+            timing: sol.timing,
+            sense: sol.sense,
+            ..Default::default()
+        };
 
         let mut obj_vals = Vec::new();
         let mut constrs: HashMap<String, Vec<bool>> = self

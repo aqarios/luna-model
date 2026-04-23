@@ -22,8 +22,8 @@ impl SerSolution {
         self.sense = sol.sense.to_string();
         self.timing = sol.timing.map(|t| t.serialize());
         self.counts = sol.counts.iter().map(|&c| c as u64).collect();
-        self.obj_values = sol.obj_values.clone().unwrap_or_else(Vec::default);
-        self.raw_energies = sol.raw_energies.clone().unwrap_or_else(Vec::default);
+        self.obj_values = sol.obj_values.clone().unwrap_or_default();
+        self.raw_energies = sol.raw_energies.clone().unwrap_or_default();
 
         let mut binvec: BitVec<u8, Lsb0> = BitVec::new();
         let mut spinvec: BitVec<u8, Lsb0> = BitVec::new();
@@ -33,12 +33,12 @@ impl SerSolution {
                 Column::Binary(inner) => {
                     self.sample_types.push(vtype_to_u8(Vtype::Binary));
                     self.n_bins += 1;
-                    binvec.extend(inner.iter().map(|b| b == 1).into_iter());
+                    binvec.extend(inner.iter().map(|b| b == 1));
                 }
                 Column::Spin(inner) => {
                     self.sample_types.push(vtype_to_u8(Vtype::Spin));
                     self.n_spins += 1;
-                    spinvec.extend(inner.iter().map(|s| s == -1).into_iter());
+                    spinvec.extend(inner.iter().map(|s| s == -1));
                 }
                 Column::Integer(inner) => {
                     self.sample_types.push(vtype_to_u8(Vtype::Integer));

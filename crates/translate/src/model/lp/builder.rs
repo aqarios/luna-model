@@ -224,7 +224,7 @@ fn build_expr_inner(tokens: Vec<Token>, env: &ArcEnv) -> LunaModelResult<Express
             Token::LBracket => {
                 // collect tokens until Token::RBracket.
                 let mut bracket_tokens = Vec::new();
-                while let Some(inner) = tks.next() {
+                for inner in tks.by_ref() {
                     if *inner == Token::RBracket {
                         break;
                     }

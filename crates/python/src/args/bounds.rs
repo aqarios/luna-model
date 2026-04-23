@@ -6,9 +6,9 @@ use crate::PyBounds;
 #[derive(Deref, Debug)]
 pub struct PyBoundsArg(PyBounds);
 
-impl Into<PyBounds> for PyBoundsArg {
-    fn into(self) -> PyBounds {
-        self.0
+impl From<PyBoundsArg> for PyBounds {
+    fn from(val: PyBoundsArg) -> Self {
+        val.0
     }
 }
 
@@ -20,11 +20,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyBoundsArg {
             return Ok(Self(c.clone()));
         }
 
-        if let Ok(inner) = obj.getattr("_b") {
-            if let Ok(c) = inner.extract::<PyRef<'py, PyBounds>>() {
+        if let Ok(inner) = obj.getattr("_b")
+            && let Ok(c) = inner.extract::<PyRef<'py, PyBounds>>() {
                 return Ok(Self(c.clone()));
             }
-        }
 
         Err(PyTypeError::new_err("Expected (Py)Bounds"))
     }

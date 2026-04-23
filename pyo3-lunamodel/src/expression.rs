@@ -14,7 +14,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyExpression {
 
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
         obj.check_type("Expression")?;
-        let capsule: Bound<'py, PyCapsule> = if let Some(pye) = obj.getattr("_expr").ok() {
+        let capsule: Bound<'py, PyCapsule> = if let Ok(pye) = obj.getattr("_expr") {
             pye.call_method0("_to_capsule")
         } else {
             obj.call_method0("_to_capsule")

@@ -88,7 +88,7 @@ impl Constraint {
     /// the LHS [Expression] of a constraint. All substitution logic and operations are defined on
     /// the [Expression] [here](Expression::substitute).
     pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> LunaModelResult<()> {
-        self.lhs = (&self.lhs).substitute(target, replacement)?;
+        self.lhs = self.lhs.substitute(target, replacement)?;
         Ok(())
     }
 }
@@ -97,10 +97,9 @@ impl Constraint {
 /// A [Constraint] name is considered legal if it is:
 /// - not an empty string
 /// - the first char is alphabetical
-/// - starts with any of the failable word beginnings defined in
-/// (FAILABLE_CONSTRAINT_NAMES)[crate::core::constraints::constraint::FAILABLE_CONSTRAINT_NAMES].
-/// checked in [starts_with_failable].
-/// This function returns an error when an illegal [Constraint] name is given as an argument.
+/// - starts with any of the failable word beginnings defined in (FAILABLE_CONSTRAINT_NAMES)[crate::core::constraints::constraint::FAILABLE_CONSTRAINT_NAMES].
+///   checked in [starts_with_failable].
+///   This function returns an error when an illegal [Constraint] name is given as an argument.
 fn validate_name(name: Option<&String>) -> LunaModelResult<()> {
     if let Some(name) = &name {
         if name.is_empty() {

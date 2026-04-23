@@ -11,7 +11,7 @@ use model::HashModel;
 
 pub fn hash_model(model: &Model) -> u64 {
     let mut s = DefaultHasher::new();
-    let hashmodel = HashModel::build(&model);
+    let hashmodel = HashModel::build(model);
     hashmodel.hash(&mut s);
     s.finish()
 }

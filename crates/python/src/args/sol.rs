@@ -6,9 +6,9 @@ use crate::PySolution;
 #[derive(Deref, Debug)]
 pub struct PySolArg(PySolution);
 
-impl Into<PySolution> for PySolArg {
-    fn into(self) -> PySolution {
-        self.0
+impl From<PySolArg> for PySolution {
+    fn from(val: PySolArg) -> Self {
+        val.0
     }
 }
 
@@ -20,11 +20,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PySolArg {
             return Ok(Self(c.clone()));
         }
 
-        if let Ok(inner) = obj.getattr("_s") {
-            if let Ok(c) = inner.extract::<PyRef<'py, PySolution>>() {
+        if let Ok(inner) = obj.getattr("_s")
+            && let Ok(c) = inner.extract::<PyRef<'py, PySolution>>() {
                 return Ok(Self(c.clone()));
             }
-        }
 
         Err(PyTypeError::new_err("Expected (Py)Solution"))
     }

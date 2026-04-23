@@ -97,7 +97,7 @@ impl ControlFlowPass for IfElsePass {
     fn display(&self) -> String {
         let mut out = String::default();
 
-        if (self.then_steps.len() == 0) && (self.else_steps.len() == 0) {
+        if (self.then_steps.is_empty()) && (self.else_steps.is_empty()) {
             out.push_str(&format!("❔ {} (empty)", self.name));
             return out;
         }
@@ -123,10 +123,10 @@ impl ControlFlowPass for IfElsePass {
         let final_then: Vec<_> = then.iter().map(|s| s.pad_to_width(target_width)).collect();
         let final_otherwise: Vec<_> = otherwise.iter().map(|s| s.to_string()).collect();
 
-        let title_then = format!("{CHECK_MARK}")
+        let title_then = CHECK_MARK.to_string()
             .pad_to_width_with_alignment(target_width - 1, pad::Alignment::Left);
         let title_otherwise =
-            format!("{BALLOT_X}").pad_to_width_with_alignment(target_width, pad::Alignment::Left);
+            BALLOT_X.to_string().pad_to_width_with_alignment(target_width, pad::Alignment::Left);
 
         let ext_then = format!("{U_AND_R} {title_then}");
         let ext_a_else = format!(

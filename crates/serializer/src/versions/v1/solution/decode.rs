@@ -96,10 +96,7 @@ impl SerSolution {
                 Vtype::Real => {
                     sol.add_real(
                         name,
-                        self.reals[start_real..start_real + self.num_samples as usize]
-                            .iter()
-                            .map(|&v| v as f64)
-                            .collect(),
+                        self.reals[start_real..start_real + self.num_samples as usize].to_vec(),
                     );
                     start_real += self.num_samples as usize;
                 }
@@ -108,10 +105,7 @@ impl SerSolution {
         }
 
         let constraint_names = if self.constraint_names.is_empty() {
-            (0..self.n_constraints)
-                .into_iter()
-                .map(|i| format!("c{i}"))
-                .collect()
+            (0..self.n_constraints).map(|i| format!("c{i}")).collect()
         } else {
             self.constraint_names
         };
@@ -132,7 +126,7 @@ impl SerSolution {
             for (cname, value) in constraint_names.iter().zip(sample) {
                 sol.constraints
                     .entry(cname.clone())
-                    .or_insert(Vec::default())
+                    .or_default()
                     .push(value);
             }
         }
@@ -157,7 +151,7 @@ impl SerSolution {
             for (vname, value) in variable_bound_names.iter().zip(sample) {
                 sol.variable_bounds
                     .entry(vname.clone())
-                    .or_insert(Vec::default())
+                    .or_default()
                     .push(value);
             }
         }
@@ -166,12 +160,12 @@ impl SerSolution {
             None
         } else {
             let mut feasible: Vec<bool> = vec![true; self.num_samples as usize];
-            for (_, per_constraint) in &sol.constraints {
+            for per_constraint in sol.constraints.values() {
                 for (i, &item) in per_constraint.iter().enumerate() {
                     feasible[i] = feasible[i] && item;
                 }
             }
-            for (_, per_sample) in &sol.variable_bounds {
+            for per_sample in sol.variable_bounds.values() {
                 for (i, &item) in per_sample.iter().enumerate() {
                     feasible[i] = feasible[i] && item;
                 }

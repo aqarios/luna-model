@@ -46,11 +46,8 @@ fn inverted_varrefs(env: &Environment) -> LunaModelResult<Vec<(VarIdx, VarIdx)>>
 
     for vid in env.vars() {
         let var = env.get(vid)?;
-        match var.vtype() {
-            Vtype::InvertedBinary => {
-                vpairs.push((var.inverted.unwrap(), vid));
-            }
-            _ => (),
+        if let Vtype::InvertedBinary = var.vtype() {
+            vpairs.push((var.inverted.unwrap(), vid));
         }
     }
 

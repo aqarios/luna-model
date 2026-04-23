@@ -25,7 +25,7 @@ impl PyEnvironment {
         self.env
             .vars()
             .into_iter()
-            .map(|v| PyVariable::new(v))
+            .map(PyVariable::new)
             .collect()
     }
 

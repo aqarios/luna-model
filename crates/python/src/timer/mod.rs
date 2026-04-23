@@ -14,15 +14,15 @@ pub struct PyTiming(pub Timing);
 #[repr(C)]
 pub struct PyTimer(pub Timer);
 
-impl Into<Timing> for PyTiming {
-    fn into(self) -> Timing {
-        self.0
+impl From<PyTiming> for Timing {
+    fn from(val: PyTiming) -> Self {
+        val.0
     }
 }
 
-impl Into<Timer> for PyTimer {
-    fn into(self) -> Timer {
-        self.0
+impl From<PyTimer> for Timer {
+    fn from(val: PyTimer) -> Self {
+        val.0
     }
 }
 

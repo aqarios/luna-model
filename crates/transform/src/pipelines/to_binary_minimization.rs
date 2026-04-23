@@ -10,6 +10,12 @@ use crate::{
 #[derive(Deref)]
 pub struct ToBinaryMinimizationPipeline(pub Pipeline);
 
+impl Default for ToBinaryMinimizationPipeline {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ToBinaryMinimizationPipeline {
     pub fn new() -> Self {
         let requirements = Specs {
@@ -26,7 +32,7 @@ impl ToBinaryMinimizationPipeline {
                 CheckModelSpecsAnalysis::new(requirements).into(),
                 ChangeSensePass::new(Sense::Min).into(),
                 BinarySpinPass::new(Vtype::Binary, Some("b".to_string())).into(),
-                IntegerToBinaryPass::default().into(),
+                IntegerToBinaryPass.into(),
             ],
         ))
     }

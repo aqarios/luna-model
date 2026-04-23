@@ -73,6 +73,6 @@ pub struct SerSolution {
 /// Makes the SerSolution conform with the requirements for it to be an Encodable.
 impl Creatable<Solution> for SerSolution {
     fn new(value: &Solution) -> Self {
-        Self::default().fill(&value)
+        Self::default().fill(value)
     }
 }

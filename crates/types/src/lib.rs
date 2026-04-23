@@ -22,4 +22,4 @@ pub use varid::VarId;
 pub use varname::VarName;
 pub use vtype::Vtype;
 
-pub static DEFAULT_BIAS: LazyLock<Bias> = LazyLock::new(|| Bias::default());
+pub static DEFAULT_BIAS: LazyLock<Bias> = LazyLock::new(Bias::default);

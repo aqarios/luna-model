@@ -72,6 +72,6 @@ pub struct SerExpression {
 /// Makes the SerExpression conform with the requirements for it to be an Encodable.
 impl Creatable<Expression> for SerExpression {
     fn new(value: &Expression) -> Self {
-        Self::default().fill(&value)
+        Self::default().fill(value)
     }
 }

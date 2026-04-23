@@ -7,15 +7,19 @@ pub use super::options::{PrintLayout, PySolFormatOpts, ShowMetadata};
 impl CustomFormat<FormatOpt> for Solution {
     fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         match format_type {
-            FormatOpt::Rs => write!(fmt, "{}", self.to_string()),
+            FormatOpt::Rs => write!(
+                fmt,
+                "{}",
+                pysolio::solpystr(self, &PySolFormatOpts::default())
+            ),
             #[cfg(feature = "py")]
             FormatOpt::Py => write!(
                 fmt,
                 "{}",
-                pysolio::solpystr(&self, &PySolFormatOpts::default())
+                pysolio::solpystr(self, &PySolFormatOpts::default())
             ),
             #[cfg(feature = "py")]
-            FormatOpt::PySol(opts) => write!(fmt, "{}", pysolio::solpystr(&self, opts)),
+            FormatOpt::PySol(opts) => write!(fmt, "{}", pysolio::solpystr(self, opts)),
         }
     }
 
@@ -97,10 +101,10 @@ impl CustomFormat<FormatOpt> for Solution {
                                     "[{}]",
                                     self.variable_names()
                                         .iter()
-                                        .map(|vname| format!(
-                                            "{}",
-                                            pysolio::fmtbool(self.variable_bounds[vname][i])
-                                        ))
+                                        .map(|vname| pysolio::fmtbool(
+                                            self.variable_bounds[vname][i]
+                                        )
+                                        .to_string())
                                         .collect::<Vec<String>>()
                                         .join(", ")
                                 )
@@ -111,11 +115,10 @@ impl CustomFormat<FormatOpt> for Solution {
                 };
 
                 let runtime = match &self.timing {
-                    Some(t) => format!(
-                        "{}",
-                        t.total()
-                            .map_or_else(|e| e.to_string(), |d| d.as_secs_f64().to_string())
-                    ),
+                    Some(t) => t
+                        .total()
+                        .map_or_else(|e| e.to_string(), |d| d.as_secs_f64().to_string())
+                        .to_string(),
                     None => "None".to_string(),
                 };
 
@@ -258,7 +261,7 @@ mod pysolio {
                     col_widths.push(0);
                 }
                 col_widths[j + 1] = col_widths[j + 1].max(s_len);
-                metadata[1].push(String::from(s));
+                metadata[1].push(s);
             }
             width_reached = 0;
             for (j, obj) in maybe_sorted_by_idxs(&sol.obj_values, &idxs)
@@ -279,7 +282,7 @@ mod pysolio {
                     col_widths.push(0);
                 }
                 col_widths[j + 1] = col_widths[j + 1].max(s_len);
-                metadata[2].push(String::from(s));
+                metadata[2].push(s);
             }
             width_reached = 0;
             for (j, &count) in sorted_by_idxs(&sol.counts, &idxs).iter().enumerate() {
@@ -294,7 +297,7 @@ mod pysolio {
                     col_widths.push(0);
                 }
                 col_widths[j + 1] = col_widths[j + 1].max(s_len);
-                metadata[3].push(String::from(s));
+                metadata[3].push(s);
             }
         }
 
@@ -325,7 +328,7 @@ mod pysolio {
                 out.push('\n');
             }
 
-            out.push_str(&String::from("─".repeat(total_width)));
+            out.push_str(&"─".repeat(total_width));
             out.push('\n');
         }
 
@@ -624,14 +627,14 @@ mod pysolio {
             }
         }
     }
-    fn sorted_by_idxs<T>(values: &Vec<T>, idxs: &Vec<usize>) -> Vec<T>
+    fn sorted_by_idxs<T>(values: &[T], idxs: &[usize]) -> Vec<T>
     where
         T: Copy,
     {
         idxs.iter().map(|&i| values[i]).collect()
     }
 
-    fn maybe_sorted_by_idxs<T>(values: &Option<Vec<T>>, idxs: &Vec<usize>) -> Vec<Option<T>>
+    fn maybe_sorted_by_idxs<T>(values: &Option<Vec<T>>, idxs: &[usize]) -> Vec<Option<T>>
     where
         T: Copy,
     {
@@ -716,7 +719,7 @@ mod pysolio {
     }
 
     fn remove_trailing_zeros(mut s: String) -> String {
-        if s.contains(|c| c == '.') && !s.contains(|c| c == 'e') {
+        if s.contains('.') && !s.contains('e') {
             while s.ends_with('0') && !s.ends_with(".0") {
                 s.pop();
             }

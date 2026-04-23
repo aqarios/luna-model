@@ -13,9 +13,9 @@ impl PySolution {
         let (vn, vt) = match &var {
             VarKey::Str(name) => (
                 name.clone(),
-                vtype.unwrap_or_else(|| PyVtype::Binary).into(),
+                vtype.unwrap_or(PyVtype::Binary).into(),
             ),
-            VarKey::Var(v) => (v.v.name()?, v.v.vtype()?.into()),
+            VarKey::Var(v) => (v.v.name()?, v.v.vtype()?),
         };
         self.s.write_arc().add_col(vt, vn, data, None)?;
         Ok(())

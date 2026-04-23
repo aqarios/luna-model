@@ -10,7 +10,7 @@ use super::SerConstraintCollection;
 
 impl BytesDecodable<ConstraintCollection, ArcEnv> for SerConstraintCollection {
     fn decode_from_bytes(bytes: &[u8], payload: ArcEnv) -> LunaModelResult<ConstraintCollection> {
-        Ok(Self::decode(bytes)?.extract(payload)?)
+        Self::decode(bytes)?.extract(payload)
     }
 }
 

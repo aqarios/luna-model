@@ -7,15 +7,15 @@ use crate::PyExpression;
 #[derive(Deref, Debug)]
 pub struct PyExprArg(pub PyExpression);
 
-impl Into<PyExpression> for PyExprArg {
-    fn into(self) -> PyExpression {
-        self.0
+impl From<PyExprArg> for PyExpression {
+    fn from(val: PyExprArg) -> Self {
+        val.0
     }
 }
 
-impl Into<Expression> for PyExprArg {
-    fn into(self) -> Expression {
-        self.0.into()
+impl From<PyExprArg> for Expression {
+    fn from(val: PyExprArg) -> Self {
+        val.0.into()
     }
 }
 
@@ -27,11 +27,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyExprArg {
             return Ok(Self(c.clone()));
         }
 
-        if let Ok(inner) = obj.getattr("_expr") {
-            if let Ok(c) = inner.extract::<PyRef<'py, PyExpression>>() {
+        if let Ok(inner) = obj.getattr("_expr")
+            && let Ok(c) = inner.extract::<PyRef<'py, PyExpression>>() {
                 return Ok(Self(c.clone()));
             }
-        }
 
         Err(PyTypeError::new_err("Expected (Py)Expression"))
     }

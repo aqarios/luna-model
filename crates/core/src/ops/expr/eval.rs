@@ -27,7 +27,7 @@ impl Expression {
         make_lookup(&self.env.read_arc(), sample, &mut lu)?;
         self.evaluate_sample_quick(&lu)
     }
-    pub fn evaluate_sample_quick(&self, lu: &Vec<Bias>) -> LunaModelResult<Bias> {
+    pub fn evaluate_sample_quick(&self, lu: &[Bias]) -> LunaModelResult<Bias> {
         let mut val = self.offset;
         for (v, bias) in self.raw_linear_items() {
             val += lu[v as usize] * bias;

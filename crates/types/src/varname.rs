@@ -19,15 +19,15 @@ impl From<&str> for VarName {
     }
 }
 
-impl Into<String> for VarName {
-    fn into(self) -> String {
-        self.0
+impl From<VarName> for String {
+    fn from(val: VarName) -> Self {
+        val.0
     }
 }
 
-impl Into<String> for &VarName {
-    fn into(self) -> String {
-        self.0.clone()
+impl From<&VarName> for String {
+    fn from(val: &VarName) -> Self {
+        val.0.clone()
     }
 }
 

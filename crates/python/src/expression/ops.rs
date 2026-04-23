@@ -11,27 +11,27 @@ use crate::utils::{OpsOther as OO, as_usize};
 impl PyExpression {
     pub fn __add__(&self, rhs: OO) -> PyResult<Self> {
         let expr = match rhs {
-            OO::Expr(expr) => (&self.expr).add(&expr.expr),
-            OO::Var(var) => (&self.expr).add(&var.v),
-            OO::Num(bias) => (&self.expr).add(bias),
+            OO::Expr(expr) => self.expr.add(&expr.expr),
+            OO::Var(var) => self.expr.add(&var.v),
+            OO::Num(bias) => self.expr.add(bias),
         }?;
         Ok(Self::new(expr))
     }
 
     pub fn __sub__(&self, rhs: OO) -> PyResult<Self> {
         let expr = match rhs {
-            OO::Expr(expr) => (&self.expr).sub(&expr.expr),
-            OO::Var(var) => (&self.expr).sub(&var.v),
-            OO::Num(bias) => (&self.expr).sub(bias),
+            OO::Expr(expr) => self.expr.sub(&expr.expr),
+            OO::Var(var) => self.expr.sub(&var.v),
+            OO::Num(bias) => self.expr.sub(bias),
         }?;
         Ok(Self::new(expr))
     }
 
     pub fn __mul__(&self, rhs: OO) -> PyResult<Self> {
         let expr = match rhs {
-            OO::Expr(expr) => (&self.expr).mul(&expr.expr),
-            OO::Var(var) => (&self.expr).mul(&var.v),
-            OO::Num(bias) => (&self.expr).mul(bias),
+            OO::Expr(expr) => self.expr.mul(&expr.expr),
+            OO::Var(var) => self.expr.mul(&var.v),
+            OO::Num(bias) => self.expr.mul(bias),
         }?;
         Ok(Self::new(expr))
     }
@@ -50,27 +50,27 @@ impl PyExpression {
 
     pub fn __iadd__(&mut self, rhs: OO) -> PyResult<()> {
         match rhs {
-            OO::Expr(expr) => (&mut self.expr).add_assign(&expr.expr),
-            OO::Var(var) => (&mut self.expr).add_assign(&var.v),
-            OO::Num(bias) => (&mut self.expr).add_assign(bias),
+            OO::Expr(expr) => self.expr.add_assign(&expr.expr),
+            OO::Var(var) => self.expr.add_assign(&var.v),
+            OO::Num(bias) => self.expr.add_assign(bias),
         }?;
         Ok(())
     }
 
     pub fn __isub__(&mut self, rhs: OO) -> PyResult<()> {
         match rhs {
-            OO::Expr(expr) => (&mut self.expr).sub_assign(&expr.expr),
-            OO::Var(var) => (&mut self.expr).sub_assign(&var.v),
-            OO::Num(bias) => (&mut self.expr).sub_assign(bias),
+            OO::Expr(expr) => self.expr.sub_assign(&expr.expr),
+            OO::Var(var) => self.expr.sub_assign(&var.v),
+            OO::Num(bias) => self.expr.sub_assign(bias),
         }?;
         Ok(())
     }
 
     pub fn __imul__(&mut self, rhs: OO) -> PyResult<()> {
         match rhs {
-            OO::Expr(expr) => (&mut self.expr).mul_assign(&expr.expr),
-            OO::Var(var) => (&mut self.expr).mul_assign(&var.v),
-            OO::Num(bias) => (&mut self.expr).mul_assign(bias),
+            OO::Expr(expr) => self.expr.mul_assign(&expr.expr),
+            OO::Var(var) => self.expr.mul_assign(&var.v),
+            OO::Num(bias) => self.expr.mul_assign(bias),
         }?;
         Ok(())
     }

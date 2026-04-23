@@ -92,7 +92,7 @@ impl Solution {
             Ok(n_feasible as f64 / n_total as f64)
         } else {
             Err(LunaModelError::Computation(
-                format!("feasible is not set.").into(),
+                "feasible is not set.".to_string().into(),
             ))
         }
     }
@@ -111,7 +111,7 @@ impl Solution {
                 .map(|(key, _)| key.clone()))
         } else {
             Err(LunaModelError::Computation(
-                format!("constraints is not set.").into(),
+                "constraints is not set.".to_string().into(),
             ))
         }
     }

@@ -61,7 +61,7 @@ impl CustomFormat<FormatOpt> for VarRef {
             FormatOpt::Rs => write!(fmt, "{:?}", self),
             #[cfg(feature = "py")]
             FormatOpt::Py => {
-                if let Some(name) = self.name().ok() {
+                if let Ok(name) = self.name() {
                     write!(
                         fmt,
                         "Variable(name=\"{}\", vtype={}, id={}, env={})",

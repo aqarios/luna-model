@@ -49,7 +49,8 @@ impl PyPipeline {
     }
 
     fn add(&mut self, py: Python, pass: PyPass) -> PyResult<()> {
-        Ok(self.0.steps.push(pass.to_step(py)?))
+        self.0.steps.push(pass.to_step(py)?);
+        Ok(())
     }
 
     fn clear(&mut self) {

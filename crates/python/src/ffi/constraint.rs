@@ -36,6 +36,6 @@ impl PyConstraint {
 
     #[staticmethod]
     pub fn _from_capsule<'py>(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        Ok(Self::from_capsule(capsule)?)
+        Self::from_capsule(capsule)
     }
 }

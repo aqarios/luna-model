@@ -75,8 +75,12 @@ impl Environment {
         self.variables.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.variables.is_empty()
+    }
+
     pub fn vars(&self) -> impl Iterator<Item = VarIdx> {
-        self.variables.keys().map(|k| *k)
+        self.variables.keys().copied()
     }
 
     pub fn insert(

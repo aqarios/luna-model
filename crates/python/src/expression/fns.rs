@@ -73,7 +73,7 @@ impl PyExpression {
         let res = match sample {
             SampleIn::Sample(pyview) => {
                 let sol = &pyview.sol.s.read_arc();
-                let view = SampleView::new(&sol, pyview.idx);
+                let view = SampleView::new(sol, pyview.idx);
                 self.read_with(|e| e.evaluate_sample(&view))?
             }
             SampleIn::Dict(sample) => {

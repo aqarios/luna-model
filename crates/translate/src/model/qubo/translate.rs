@@ -28,7 +28,7 @@ impl QuboTranslator {
             };
             model
                 .environment
-                .insert(vname, vtype.unwrap_or_else(|| Vtype::Binary), None)?;
+                .insert(vname, vtype.unwrap_or(Vtype::Binary), None)?;
         }
         model.objective =
             Expression::from_dense_quadratic(dense, num_vars, offset, model.environment.clone())?;

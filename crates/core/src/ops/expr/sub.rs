@@ -52,7 +52,7 @@ mod tests {
 
         {
             let e = base.clone();
-            let res = e - &b;
+            let res = e - b;
             assert_eq!(base_res, res.unwrap());
         }
         {
@@ -62,7 +62,7 @@ mod tests {
         }
         {
             let e = base.clone();
-            let res = (&e) - (&b);
+            let res = (&e) - b;
             assert_eq!(base_res, res.unwrap());
         }
 
@@ -78,12 +78,12 @@ mod tests {
         }
         {
             let e = base.clone();
-            let res = (&b) - e;
+            let res = b - e;
             assert_eq!(base_res, res.unwrap());
         }
         {
             let e = base.clone();
-            let res = (&b) - (&e);
+            let res = b - (&e);
             assert_eq!(base_res, res.unwrap());
         }
     }
@@ -99,7 +99,7 @@ mod tests {
     #[test]
     fn sub_vref_to_expr() {
         let mut env = ArcEnv::default();
-        let v: VarRef = env.insert("b".into(), Vtype::Binary, None).unwrap();
+        let v: VarRef = env.insert("b", Vtype::Binary, None).unwrap();
         let base = Expression::empty(env.clone());
         let base_res = (base.clone() - v.clone()).unwrap();
 
@@ -123,7 +123,7 @@ mod tests {
     #[test]
     fn sub_assign_vref_to_expr() {
         let mut env = ArcEnv::default();
-        let v: VarRef = env.insert("b".into(), Vtype::Binary, None).unwrap();
+        let v: VarRef = env.insert("b", Vtype::Binary, None).unwrap();
         let mut e = Expression::empty(env);
         e.sub_assign(&v).unwrap();
         e.sub_assign(v).unwrap();

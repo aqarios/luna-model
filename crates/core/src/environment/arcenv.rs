@@ -32,14 +32,12 @@ impl ArcEnv {
         self.env.read_arc().deep_clone().into()
     }
 
-    pub fn default() -> Self {
-        Self {
-            env: Arc::new(RwLock::new(Environment::default())),
-        }
-    }
-
     pub fn len(&self) -> usize {
         self.env.read_arc().len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.env.read_arc().is_empty()
     }
 
     pub fn vars(&self) -> Vec<VarRef> {
@@ -111,7 +109,7 @@ impl ArcEnv {
 
     pub fn sort(&self, mut vars: Vec<String>) -> Vec<String> {
         let env = &self.env.read_arc();
-        vars.sort_by(|a, b| env.lookup(a).unwrap().cmp(&env.lookup(b).unwrap()));
+        vars.sort_by_key(|a| env.lookup(a).unwrap());
         vars
     }
 }

@@ -101,11 +101,11 @@ fn _format_pipeline_steps(steps: &[PipelineStep], indent: usize) -> String {
 
     let mut items = Vec::new();
     if steps.len() >= 2 {
-        for i in 0..=steps.len() - 2 {
-            items.push(format!("{}", steps[i].idisplay(indent)))
+        for item in steps.iter().take((steps.len() - 1) + 1) {
+            items.push(item.idisplay(indent).to_string());
         }
     }
-    items.push(format!("{}", steps[steps.len() - 1].idisplay(indent)));
+    items.push(steps[steps.len() - 1].idisplay(indent).to_string());
     items.join("\n")
 }
 
@@ -116,20 +116,20 @@ pub trait DisplaySteps {
 
 impl DisplaySteps for Vec<PipelineStep> {
     fn display(&self) -> String {
-        _format_pipeline_steps(&self, 0)
+        _format_pipeline_steps(self, 0)
     }
 
     fn idisplay(&self, indent: usize) -> String {
-        _format_pipeline_steps(&self, indent)
+        _format_pipeline_steps(self, indent)
     }
 }
 
 impl DisplaySteps for &[PipelineStep] {
     fn display(&self) -> String {
-        _format_pipeline_steps(&self, 0)
+        _format_pipeline_steps(self, 0)
     }
 
     fn idisplay(&self, indent: usize) -> String {
-        _format_pipeline_steps(&self, indent)
+        _format_pipeline_steps(self, indent)
     }
 }

@@ -34,7 +34,7 @@ mod tests {
         model.sense = Sense::Min;
 
         let pm = PassManager::default()
-            .add_analysis(MinValueForConstraintAnalysis::default())
+            .add_analysis(MinValueForConstraintAnalysis)
             .add_transform(LeToEqConstraintsPass::default());
         let output = pm.run(model)?;
 

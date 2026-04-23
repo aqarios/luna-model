@@ -1,6 +1,5 @@
 use lunamodel_core::prelude::*;
 use lunamodel_error::LunaModelResult;
-use lunamodel_types::VarIdx;
 use prost::Message;
 
 use super::SerExpression;
@@ -46,10 +45,7 @@ impl SerExpression {
         let mut start: usize = 0;
         for (&len, &value) in self.ho_lens.iter().zip(&self.ho_values) {
             let end = start + (len as usize);
-            let contribs = self.ho_indices[start..end]
-                .iter()
-                .map(|u| *u)
-                .collect::<Vec<VarIdx>>();
+            let contribs = self.ho_indices[start..end].to_vec();
             ho += (contribs.as_slice(), value);
             start = end;
         }

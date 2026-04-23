@@ -6,9 +6,9 @@ use crate::PyModel;
 #[derive(Deref, Debug)]
 pub struct PyModelArg(PyModel);
 
-impl Into<PyModel> for PyModelArg {
-    fn into(self) -> PyModel {
-        self.0
+impl From<PyModelArg> for PyModel {
+    fn from(val: PyModelArg) -> Self {
+        val.0
     }
 }
 
@@ -20,11 +20,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyModelArg {
             return Ok(Self(c.clone()));
         }
 
-        if let Ok(inner) = obj.getattr("_m") {
-            if let Ok(c) = inner.extract::<PyRef<'py, PyModel>>() {
+        if let Ok(inner) = obj.getattr("_m")
+            && let Ok(c) = inner.extract::<PyRef<'py, PyModel>>() {
                 return Ok(Self(c.clone()));
             }
-        }
 
         Err(PyTypeError::new_err("Expected (Py)Model"))
     }

@@ -33,9 +33,9 @@ impl From<Expression> for PyExpression {
     }
 }
 
-impl Into<Expression> for PyExpression {
-    fn into(self) -> Expression {
-        self.expr.into()
+impl From<PyExpression> for Expression {
+    fn from(val: PyExpression) -> Self {
+        val.expr.into()
     }
 }
 

@@ -134,7 +134,7 @@ mod tests {
 
         {
             let e = base.clone();
-            let res = e * &b;
+            let res = e * b;
             assert_eq!(base_res, res.unwrap());
         }
         {
@@ -144,7 +144,7 @@ mod tests {
         }
         {
             let e = base.clone();
-            let res = (&e) * (&b);
+            let res = (&e) * b;
             assert_eq!(base_res, res.unwrap());
         }
 
@@ -160,12 +160,12 @@ mod tests {
         }
         {
             let e = Expression::empty(env.clone());
-            let res = (&b) * e;
+            let res = b * e;
             assert_eq!(base_res, res.unwrap());
         }
         {
             let e = Expression::empty(env.clone());
-            let res = (&b) * (&e);
+            let res = b * (&e);
             assert_eq!(base_res, res.unwrap());
         }
     }
@@ -181,7 +181,7 @@ mod tests {
     #[test]
     fn mul_vref_to_expr() {
         let mut env = ArcEnv::default();
-        let v: VarRef = env.insert("b".into(), Vtype::Binary, None).unwrap();
+        let v: VarRef = env.insert("b", Vtype::Binary, None).unwrap();
         let base = (Expression::empty(env.clone()) + 2).unwrap();
         let base_res = (base.clone() * v.clone()).unwrap();
 
@@ -225,7 +225,7 @@ mod tests {
     #[test]
     fn mul_assign_vref_to_expr() {
         let mut env = ArcEnv::default();
-        let v: VarRef = env.insert("b".into(), Vtype::Binary, None).unwrap();
+        let v: VarRef = env.insert("b", Vtype::Binary, None).unwrap();
         let e = Expression::empty(env);
         dbg!(&v, &e);
         e.clone().mul_assign(&v).unwrap();
@@ -235,9 +235,9 @@ mod tests {
     #[test]
     fn mul_expr_to_expr() {
         let mut env = ArcEnv::default();
-        let u: VarRef = env.insert("u".into(), Vtype::Binary, None).unwrap();
-        let v: VarRef = env.insert("v".into(), Vtype::Binary, None).unwrap();
-        let z: VarRef = env.insert("z".into(), Vtype::Binary, None).unwrap();
+        let u: VarRef = env.insert("u", Vtype::Binary, None).unwrap();
+        let v: VarRef = env.insert("v", Vtype::Binary, None).unwrap();
+        let z: VarRef = env.insert("z", Vtype::Binary, None).unwrap();
 
         let o = 5.0;
         let lb = 2.0;
@@ -366,7 +366,7 @@ mod tests {
     #[test]
     fn mul_assign_expr_to_expr() {
         let mut env = ArcEnv::default();
-        let v: VarRef = env.insert("b".into(), Vtype::Binary, None).unwrap();
+        let v: VarRef = env.insert("b", Vtype::Binary, None).unwrap();
         let e = Expression::empty(env);
         dbg!(&v, &e);
         e.clone().mul_assign(&v).unwrap();

@@ -9,15 +9,15 @@ impl CustomFormat<FormatOpt> for Constraint {
                 fmt,
                 "{} {} {}",
                 self.lhs.format(FormatOpt::Rs),
-                self.comparator.to_string(),
-                self.rhs.to_string()
+                self.comparator,
+                self.rhs
             ),
             #[cfg(feature = "py")]
             FormatOpt::Py => write!(
                 fmt,
                 "{} {} {}",
                 self.lhs.format(FormatOpt::Py),
-                self.comparator.to_string(),
+                self.comparator,
                 match self.rhs {
                     0.0 => "0".to_string(),
                     r => r.to_string(),

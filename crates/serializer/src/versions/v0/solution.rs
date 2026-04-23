@@ -108,9 +108,10 @@ impl BytesDecodable<Solution> for SerSolution {
 
 impl SerSolution {
     pub fn extract(self) -> LunaModelResult<Solution> {
-        let mut sol = Solution::default();
-
-        sol.samples = IndexMap::default();
+        let mut sol = Solution {
+            samples: IndexMap::default(),
+            ..Default::default()
+        };
 
         let (mut nbins, mut nspins, mut nints, mut nreals) = (0, 0, 0, 0);
         let num_samples = self.num_samples as usize;
@@ -173,7 +174,7 @@ impl SerSolution {
                                 .iter()
                                 .skip(nreals)
                                 .step_by(real_step)
-                                .map(|&e| e as f64)
+                                .copied()
                                 .collect(),
                         );
                         nreals += 1;
@@ -200,7 +201,7 @@ impl SerSolution {
                 for (cname, value) in cnames.iter().zip(sample.vector.unwrap().values) {
                     sol.constraints
                         .entry(cname.to_string())
-                        .or_insert(Vec::default())
+                        .or_default()
                         .push(value);
                     // sol.constraints.get_mut(cname).unwrap().push(value);
                 }

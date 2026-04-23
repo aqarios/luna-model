@@ -55,9 +55,9 @@ impl Display for TransformationError {
     }
 }
 
-impl Into<ErrString> for TransformationError {
-    fn into(self) -> ErrString {
-        self.to_string().into()
+impl From<TransformationError> for ErrString {
+    fn from(val: TransformationError) -> Self {
+        val.to_string().into()
     }
 }
 

@@ -109,7 +109,7 @@ where
         let result = SerVersioned::decode(self.as_slice());
         match result {
             Ok(versioned) => {
-                Versioned::new(Version::from(versioned.version), versioned.data.into())
+                Versioned::new(Version::from(versioned.version), versioned.data)
             }
             Err(_) => {
                 // Unversioned data...

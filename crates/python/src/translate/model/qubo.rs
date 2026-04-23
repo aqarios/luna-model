@@ -16,10 +16,7 @@ impl<'py> QuboType<'py> {
         match &self {
             QuboType::F64(q) => (
                 q.as_slice()
-                    .expect("failed to convert to slice")
-                    .iter()
-                    .map(|&v| v)
-                    .collect::<Vec<f64>>(),
+                    .expect("failed to convert to slice").to_vec(),
                 q.shape()[0],
             ),
             QuboType::I64(q) => (
@@ -75,11 +72,11 @@ pub struct PyQubo(pub Qubo);
 impl PyQubo {
     #[getter]
     fn matrix<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyArray2<f64>>> {
-        Ok(self
+        self
             .0
             .matrix_flat
             .to_pyarray(py)
-            .reshape((self.0.num_variables, self.0.num_variables))?)
+            .reshape((self.0.num_variables, self.0.num_variables))
     }
 
     #[getter]

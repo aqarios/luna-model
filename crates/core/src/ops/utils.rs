@@ -53,13 +53,13 @@ impl From<(VarIdx, VarIdx, Bias)> for VarMulRes {
     }
 }
 
-impl Into<Expression> for VarMulRes {
-    fn into(self) -> Expression {
-        match self {
-            Self::Const(b) => b.into(),
-            Self::Lin((u, b)) => Linear::with(|l| l[u] = b).into(),
-            Self::Quad((u, v, b)) => Quadratic::with(|q| q[(u, v)] = b).into(),
-            Self::HiOr((vs, b)) => HigherOrder::with(|h| h[vs.as_slice()] = b).into(),
+impl From<VarMulRes> for Expression {
+    fn from(val: VarMulRes) -> Self {
+        match val {
+            VarMulRes::Const(b) => b.into(),
+            VarMulRes::Lin((u, b)) => Linear::with(|l| l[u] = b).into(),
+            VarMulRes::Quad((u, v, b)) => Quadratic::with(|q| q[(u, v)] = b).into(),
+            VarMulRes::HiOr((vs, b)) => HigherOrder::with(|h| h[vs.as_slice()] = b).into(),
         }
     }
 }
@@ -67,10 +67,10 @@ impl Into<Expression> for VarMulRes {
 impl From<(Vec<u32>, Bias)> for VarMulRes {
     fn from(value: (Vec<u32>, Bias)) -> Self {
         let (vars, b) = value;
-        match vars.as_slice() {
-            &[] => Self::Const(b),
-            &[u] => Self::Lin((u, b)),
-            &[u, v] => Self::Quad((u, v, b)),
+        match *vars.as_slice() {
+            [] => Self::Const(b),
+            [u] => Self::Lin((u, b)),
+            [u, v] => Self::Quad((u, v, b)),
             _ => Self::HiOr((vars, b)),
         }
     }

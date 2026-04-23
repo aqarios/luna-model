@@ -5,7 +5,7 @@ use lunamodel_types::{Comparator, Vtype};
 use lunamodel_utils::{unique, unique_by};
 use std::ops::Index;
 
-use super::constraint::Constraint;
+use super::constr::Constraint;
 
 /// The ConstraintCollection struct is an insertion ordered collection of one or more [Constraint]s.
 #[derive(Default, Debug, Clone)]
@@ -40,7 +40,7 @@ impl ConstraintCollection {
     }
 
     pub fn vtypes(&self) -> impl Iterator<Item = Vtype> {
-        unique(self.data.iter().map(|(_, c)| c.lhs.vtypes()).flatten())
+        unique(self.data.iter().flat_map(|(_, c)| c.lhs.vtypes()))
     }
 
     pub fn ctypes(&self) -> impl Iterator<Item = Comparator> {
@@ -48,7 +48,7 @@ impl ConstraintCollection {
     }
 
     pub fn vars(&self) -> impl Iterator<Item = VarRef> {
-        unique_by(self.data.iter().map(|(_, c)| c.lhs.vars()).flatten(), |v| {
+        unique_by(self.data.iter().flat_map(|(_, c)| c.lhs.vars()), |v| {
             v.id
         })
     }
@@ -82,7 +82,7 @@ impl ConstraintCollection {
             true => format!("c{}", self.len()),
             false => constr.name().to_string(),
         };
-        let name = name.unwrap_or_else(|| fallback);
+        let name = name.unwrap_or(fallback);
         if self.data.contains_key(&name) {
             Err(LunaModelError::DuplicateConstraintName(name.into()))
         } else {
@@ -109,10 +109,7 @@ impl ConstraintCollection {
         other
             .into_iter()
             .map(|(mut name, constr)| {
-                match prefix.as_ref() {
-                    Some(p) => name = format!("{}{}", p, name),
-                    None => (),
-                }
+                if let Some(p) = prefix.as_ref() { name = format!("{}{}", p, name) }
                 self.add_constraint(constr, Some(name))
             })
             .collect::<LunaModelResult<_>>()
@@ -164,7 +161,7 @@ impl ContentEquality for ConstraintCollection {
         for (name, constr) in &self.data {
             match other.data.get(name) {
                 Some(other_constr) => {
-                    if !constr.equal_contents(&other_constr) {
+                    if !constr.equal_contents(other_constr) {
                         return false;
                     }
                 }

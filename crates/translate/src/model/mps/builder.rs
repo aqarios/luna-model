@@ -95,8 +95,8 @@ fn check_int_bound(bound: Option<Bound>, var_name: &str) -> LunaModelResult<()> 
 
 fn check_binary_bounds(bounds: Option<LazyBounds>, var_name: &str) -> LunaModelResult<()> {
     if let Some(LazyBounds { lower, upper }) = bounds {
-        if let Some(Bound::Bounded(b)) = lower {
-            if (b - 0.0).abs() >= f64::EPSILON {
+        if let Some(Bound::Bounded(b)) = lower
+            && (b - 0.0).abs() >= f64::EPSILON {
                 return Err(LunaModelError::Translation(
                     format!(
                         "Invalid lower bound for binary variable '{}'. Is {}, expected 0",
@@ -105,9 +105,8 @@ fn check_binary_bounds(bounds: Option<LazyBounds>, var_name: &str) -> LunaModelR
                     .into(),
                 ));
             }
-        }
-        if let Some(Bound::Bounded(b)) = upper {
-            if (b - 1.0).abs() >= f64::EPSILON {
+        if let Some(Bound::Bounded(b)) = upper
+            && (b - 1.0).abs() >= f64::EPSILON {
                 return Err(LunaModelError::Translation(
                     format!(
                         "Invalid upper bound for binary variable '{}'. Is {}, expected 1",
@@ -116,7 +115,6 @@ fn check_binary_bounds(bounds: Option<LazyBounds>, var_name: &str) -> LunaModelR
                     .into(),
                 ));
             }
-        }
     }
     Ok(())
 }

@@ -103,7 +103,7 @@ impl PySamplesIterator {
                         "index '{index}' out of bounds for '{n_samples}' num samples"
                     )));
                 }
-                PySampleView::new(slf.sol.clone(), index.into()).into_py_any(py)
+                PySampleView::new(slf.sol.clone(), index).into_py_any(py)
             }
             PySamplesIndex::Assignment((row, col)) => {
                 if row >= n_samples || col >= sample_len {
@@ -111,8 +111,8 @@ impl PySamplesIterator {
                         "index '({row}, {col})' out of bounds for '({n_samples}, {sample_len})' (num samples, sample len)"
                     )));
                 }
-                let row: usize = row.into();
-                let col: usize = col.into();
+                let row: usize = row;
+                let col: usize = col;
                 slf.sol.s.read_arc()[(row, col)].into_py_any(py)
             }
         }
@@ -128,7 +128,7 @@ impl PySamplesIterator {
             "{{\n{}\n}}",
             sol.samples()
                 .zip(&sol.counts)
-                .map(|(sample, cnts)| format!("  {}: {}", sample.to_string(), cnts))
+                .map(|(sample, cnts)| format!("  {}: {}", sample, cnts))
                 .join(",\n")
         )
     }

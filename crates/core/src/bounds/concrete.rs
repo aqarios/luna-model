@@ -67,11 +67,11 @@ impl Bounds {
     }
 }
 
-impl Into<LazyBounds> for Bounds {
-    fn into(self) -> LazyBounds {
+impl From<Bounds> for LazyBounds {
+    fn from(val: Bounds) -> Self {
         LazyBounds {
-            lower: Some(self.lower),
-            upper: Some(self.upper),
+            lower: Some(val.lower),
+            upper: Some(val.upper),
         }
     }
 }

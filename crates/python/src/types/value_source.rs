@@ -17,9 +17,9 @@ impl From<ValueSource> for PyValueSource {
     }
 }
 
-impl Into<ValueSource> for PyValueSource {
-    fn into(self) -> ValueSource {
-        match self {
+impl From<PyValueSource> for ValueSource {
+    fn from(val: PyValueSource) -> Self {
+        match val {
             PyValueSource::Raw => ValueSource::Raw,
             PyValueSource::Obj => ValueSource::Obj,
         }

@@ -26,11 +26,11 @@ enum Shape {
     Single(usize),
 }
 
-impl Into<Vec<usize>> for Shape {
-    fn into(self) -> Vec<usize> {
-        match self {
-            Self::Tuple(v) => v,
-            Self::Single(s) => vec![s],
+impl From<Shape> for Vec<usize> {
+    fn from(val: Shape) -> Self {
+        match val {
+            Shape::Tuple(v) => v,
+            Shape::Single(s) => vec![s],
         }
     }
 }
@@ -55,7 +55,7 @@ impl PyModel {
             .write_arc()
             .add_var(
                 &name,
-                vtype.unwrap_or_else(|| PyVtype::Binary).into(),
+                vtype.unwrap_or(PyVtype::Binary).into(),
                 bounds,
             )?
             .into())
@@ -119,7 +119,7 @@ impl PyModel {
             .write_arc()
             .add_var_with_fallback(
                 &name,
-                vtype.unwrap_or_else(|| PyVtype::Binary).into(),
+                vtype.unwrap_or(PyVtype::Binary).into(),
                 bounds,
                 None,
             )?

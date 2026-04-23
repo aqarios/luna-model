@@ -19,9 +19,9 @@ impl From<Comparator> for PyComparator {
     }
 }
 
-impl Into<Comparator> for PyComparator {
-    fn into(self) -> Comparator {
-        match self {
+impl From<PyComparator> for Comparator {
+    fn from(val: PyComparator) -> Self {
+        match val {
             PyComparator::Eq => Comparator::Eq,
             PyComparator::Le => Comparator::Le,
             PyComparator::Ge => Comparator::Ge,

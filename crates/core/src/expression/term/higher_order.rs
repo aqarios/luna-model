@@ -29,8 +29,7 @@ impl HigherOrder {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.entries.is_empty()
-            || self.entries.iter().map(|(_, b)| b).sum::<Bias>() == Bias::default()
+        self.entries.is_empty() || self.entries.values().sum::<Bias>() == Bias::default()
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&String, Bias)> {
@@ -125,7 +124,7 @@ impl PartialEq for HigherOrder {
     }
 }
 
-fn contribs(str: &String) -> Vec<VarIdx> {
+fn contribs(str: &str) -> Vec<VarIdx> {
     str.split(SEP)
         .map(|s| s.parse::<VarIdx>().unwrap())
         .collect()

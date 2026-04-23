@@ -15,7 +15,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyConstraintCollection {
 
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
         obj.check_type("ConstraintCollection")?;
-        let capsule: Bound<'py, PyCapsule> = if let Some(pye) = obj.getattr("_cc").ok() {
+        let capsule: Bound<'py, PyCapsule> = if let Ok(pye) = obj.getattr("_cc") {
             pye.call_method0("_to_capsule")
         } else {
             obj.call_method0("_to_capsule")

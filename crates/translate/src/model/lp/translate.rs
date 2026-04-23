@@ -367,7 +367,7 @@ End
         assert!(model.objective.quadratic.is_some());
 
         // Check that we have linear terms
-        assert!(model.objective.linear.len() > 0);
+        assert!(!model.objective.linear.is_empty());
 
         // Check constant term
         assert_eq!(model.objective.offset, 4.0);
@@ -384,7 +384,7 @@ End
         // 0.5 * x0 * x1 + 2.0 * x1 * x2
         // Note: Due to internal representation, just check we have quadratic terms
         assert!(
-            quad.len() >= 1,
+            !quad.is_empty(),
             "Expected at least 1 quadratic term in objective, got {}",
             quad.len()
         );

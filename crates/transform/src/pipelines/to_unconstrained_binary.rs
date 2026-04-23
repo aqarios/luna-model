@@ -33,21 +33,21 @@ impl ToUnconstrainedBinaryPipeline {
                 BinarySpinPass::new(Vtype::Binary, Some("b".to_string())).into(),
                 // IntegerToBinaryPass::new().into(),
                 ChangeSensePass::new(Sense::Min).into(),
-                SpecsAnalysis::default().into(),
-                GeToLeConstraintsPass::default().into(),
-                MinValueForConstraintAnalysis::default().into(),
+                SpecsAnalysis.into(),
+                GeToLeConstraintsPass.into(),
+                MinValueForConstraintAnalysis.into(),
                 LeToEqConstraintsPass::default().into(),
-                IntegerToBinaryPass::default().into(),
-                MaxBiasAnalysis::default().into(),
+                IntegerToBinaryPass.into(),
+                MaxBiasAnalysis.into(),
                 EqualityConstraintsToQuadraticPenaltyPass::new(penalty_factor).into(),
             ],
         ))
     }
 }
 
-impl Into<Pipeline> for ToUnconstrainedBinaryPipeline {
-    fn into(self) -> Pipeline {
-        self.0
+impl From<ToUnconstrainedBinaryPipeline> for Pipeline {
+    fn from(val: ToUnconstrainedBinaryPipeline) -> Self {
+        val.0
     }
 }
 

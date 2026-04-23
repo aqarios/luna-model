@@ -28,6 +28,6 @@ pub struct SerConstraintCollection {
 
 impl Creatable<ConstraintCollection> for SerConstraintCollection {
     fn new(value: &ConstraintCollection) -> Self {
-        Self::default().fill(&value)
+        Self::default().fill(value)
     }
 }

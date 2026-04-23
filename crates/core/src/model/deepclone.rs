@@ -12,7 +12,7 @@ impl Model {
         let new_env = self.environment.deep_clone();
         Self {
             name: self.name.clone(),
-            sense: self.sense.clone(),
+            sense: self.sense,
             objective: self.objective.deep_clone(new_env.clone()),
             constraints: self.constraints.deep_clone(new_env.clone()),
             environment: new_env,

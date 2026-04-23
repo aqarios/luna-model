@@ -6,9 +6,9 @@ use crate::PyVariable;
 #[derive(Deref, Debug, Clone)]
 pub struct PyVarArg(pub PyVariable);
 
-impl Into<PyVariable> for PyVarArg {
-    fn into(self) -> PyVariable {
-        self.0
+impl From<PyVarArg> for PyVariable {
+    fn from(val: PyVarArg) -> Self {
+        val.0
     }
 }
 
@@ -20,11 +20,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyVarArg {
             return Ok(Self(c.clone()));
         }
 
-        if let Ok(inner) = obj.getattr("_v") {
-            if let Ok(c) = inner.extract::<PyRef<'py, PyVariable>>() {
+        if let Ok(inner) = obj.getattr("_v")
+            && let Ok(c) = inner.extract::<PyRef<'py, PyVariable>>() {
                 return Ok(Self(c.clone()));
             }
-        }
 
         Err(PyTypeError::new_err("Expected (Py)Variable"))
     }

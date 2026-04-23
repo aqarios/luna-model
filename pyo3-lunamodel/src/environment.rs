@@ -17,7 +17,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyEnvironment {
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
         obj.check_type("Environment")?;
         // check if it is the wrapper type or the PyEnvironment type from the crate.
-        let capsule: Bound<'py, PyCapsule> = if let Some(pye) = obj.getattr("_env").ok() {
+        let capsule: Bound<'py, PyCapsule> = if let Ok(pye) = obj.getattr("_env") {
             pye.call_method0("_to_capsule")
         } else {
             obj.call_method0("_to_capsule")

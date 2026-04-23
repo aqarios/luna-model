@@ -91,8 +91,7 @@ where
 
 pub fn unique<T: Eq + Hash + Copy, I: Iterator<Item = T>>(iterator: I) -> impl Iterator<Item = T> {
     UniqueIter::<T, I>::new(iterator)
-        .filter(|v| v.is_some())
-        .map(|v| v.unwrap())
+        .flatten()
 }
 
 pub fn unique_by<T, A: Eq + Hash + Copy, F: Fn(&T) -> A, I: Iterator<Item = T>>(
@@ -100,6 +99,5 @@ pub fn unique_by<T, A: Eq + Hash + Copy, F: Fn(&T) -> A, I: Iterator<Item = T>>(
     f: F,
 ) -> impl Iterator<Item = T> {
     UniqueIterMap::<T, A, I, F>::new(iterator, f)
-        .filter(|v| v.is_some())
-        .map(|v| v.unwrap())
+        .flatten()
 }

@@ -10,7 +10,7 @@ impl Model {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
             objective: Expression::empty(env.clone()),
             constraints: ConstraintCollection::default(),
-            sense: sense.unwrap_or_else(|| Sense::default()),
+            sense: sense.unwrap_or_default(),
             environment: env,
         }
     }

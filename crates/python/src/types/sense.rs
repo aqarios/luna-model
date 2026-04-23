@@ -17,9 +17,9 @@ impl From<Sense> for PySense {
     }
 }
 
-impl Into<Sense> for PySense {
-    fn into(self) -> Sense {
-        match self {
+impl From<PySense> for Sense {
+    fn from(val: PySense) -> Self {
+        match val {
             PySense::Min => Sense::Min,
             PySense::Max => Sense::Max,
         }

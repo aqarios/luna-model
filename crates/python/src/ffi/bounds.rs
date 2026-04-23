@@ -33,6 +33,6 @@ impl PyBounds {
 
     #[staticmethod]
     pub fn _from_capsule<'py>(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        Ok(PyBounds::from_capsule(capsule)?)
+        PyBounds::from_capsule(capsule)
     }
 }

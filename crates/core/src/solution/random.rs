@@ -93,7 +93,7 @@ impl Solution {
                     let data: Vec<f64> = real_distr.sample_iter(&mut rng).take(n_samples).collect();
                     samples.insert(
                         vname,
-                        Column::real(data.iter().map(|&v| v as f64).collect()),
+                        Column::real(data.to_vec()),
                     );
                 }
                 // Ingnore inverted binaries
@@ -114,7 +114,7 @@ impl Solution {
             feasible: None,
             timing,
             sense: match &context {
-                Either::Right(m) => m.sense.clone(),
+                Either::Right(m) => m.sense,
                 Either::Left(_) => sense.unwrap_or(Sense::Min),
             },
         };

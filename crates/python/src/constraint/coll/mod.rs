@@ -41,21 +41,21 @@ impl PyConstraintCollection {
     }
 }
 
-impl Into<PyConstraintCollection> for ConstraintCollection {
-    fn into(self) -> PyConstraintCollection {
-        PyConstraintCollection::new(self)
+impl From<ConstraintCollection> for PyConstraintCollection {
+    fn from(val: ConstraintCollection) -> Self {
+        PyConstraintCollection::new(val)
     }
 }
 
-impl Into<ConstraintCollection> for &PyConstraintCollection {
-    fn into(self) -> ConstraintCollection {
-        self.read_with(|c| c.clone().into())
+impl From<&PyConstraintCollection> for ConstraintCollection {
+    fn from(val: &PyConstraintCollection) -> Self {
+        val.read_with(|c| c.clone())
     }
 }
 
-impl Into<PyConstraintCollection> for PyConstraintCollectionContent {
-    fn into(self) -> PyConstraintCollection {
-        PyConstraintCollection { c: self }
+impl From<PyConstraintCollectionContent> for PyConstraintCollection {
+    fn from(val: PyConstraintCollectionContent) -> Self {
+        PyConstraintCollection { c: val }
     }
 }
 

@@ -7,9 +7,11 @@ use strum_macros::{Display, EnumString};
 /// This enum defines the type of optimization used for a model. The type influences
 /// the domain and behavior of the model during optimization.
 #[derive(Display, Copy, PartialEq, Hash, Clone, Debug, Eq, EnumString)]
+#[derive(Default)]
 pub enum Sense {
     /// Indicate the objective function to be minimized.
     #[strum(to_string = "Minimize", serialize = "Min")]
+    #[default]
     Min,
     /// Indicate the objective function to be maximized.
     #[strum(to_string = "Maximize", serialize = "Max")]
@@ -23,11 +25,6 @@ impl Sense {
     }
 }
 
-impl Default for Sense {
-    fn default() -> Self {
-        Self::Min
-    }
-}
 
 impl Not for Sense {
     type Output = Self;

@@ -30,15 +30,15 @@ where
     }
 
     fn name(&self) -> &str {
-        &self.name()
+        self.name()
     }
 
     fn requires(&self) -> &[String] {
-        &self.requires()
+        self.requires()
     }
 
     fn invalidates(&self) -> &[String] {
-        &self.invalidates()
+        self.invalidates()
     }
 
     fn forward_erased(

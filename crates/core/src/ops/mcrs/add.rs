@@ -19,11 +19,11 @@ macro_rules! adds {
     (@add_oo $L:ty, $R:ty) => {
         impl std::ops::Add<$R> for $L
         where
-            for<'r> $L: crate::ops::LmAddAssign<&'r $R>,
+            for<'r> $L: $crate::ops::LmAddAssign<&'r $R>,
         {
-            type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
+            type Output = lunamodel_error::LunaModelResult<$crate::expression::Expression>;
             fn add(mut self, rhs: $R) -> Self::Output {
-                use crate::ops::LmAddAssign;
+                use $crate::ops::LmAddAssign;
                 <$L as LmAddAssign<&$R>>::add_assign(&mut self, &rhs)?;
                 Ok(self)
             }
@@ -33,11 +33,11 @@ macro_rules! adds {
     (@add_ob $L:ty, $R:ty) => {
         impl std::ops::Add<&$R> for $L
         where
-            for<'r> $L: crate::ops::LmAddAssign<&'r $R>,
+            for<'r> $L: $crate::ops::LmAddAssign<&'r $R>,
         {
-            type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
+            type Output = lunamodel_error::LunaModelResult<$crate::expression::Expression>;
             fn add(mut self, rhs: &$R) -> Self::Output {
-                use crate::ops::LmAddAssign;
+                use $crate::ops::LmAddAssign;
                 <$L as LmAddAssign<&$R>>::add_assign(&mut self, rhs)?;
                 Ok(self)
             }
@@ -47,11 +47,11 @@ macro_rules! adds {
     (@add_bo $L:ty, $R:ty) => {
         impl std::ops::Add<$R> for &$L
         where
-            for<'r> $L: crate::ops::LmAddAssign<&'r $R>,
+            for<'r> $L: $crate::ops::LmAddAssign<&'r $R>,
         {
-            type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
+            type Output = lunamodel_error::LunaModelResult<$crate::expression::Expression>;
             fn add(self, rhs: $R) -> Self::Output {
-                use crate::ops::LmAddAssign;
+                use $crate::ops::LmAddAssign;
                 let mut new = self.clone();
                 <$L as LmAddAssign<&$R>>::add_assign(&mut new, &rhs)?;
                 Ok(new)
@@ -62,11 +62,11 @@ macro_rules! adds {
     (@add_bb $L:ty, $R:ty) => {
         impl std::ops::Add<&$R> for &$L
         where
-            for<'r> $L: crate::ops::LmAddAssign<&'r $R>,
+            for<'r> $L: $crate::ops::LmAddAssign<&'r $R>,
         {
-            type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
+            type Output = lunamodel_error::LunaModelResult<$crate::expression::Expression>;
             fn add(self, rhs: &$R) -> Self::Output {
-                use crate::ops::LmAddAssign;
+                use $crate::ops::LmAddAssign;
                 let mut new = self.clone();
                 <$L as LmAddAssign<&$R>>::add_assign(&mut new, rhs)?;
                 Ok(new)
@@ -75,12 +75,12 @@ macro_rules! adds {
     };
     // LmAddAssign for owned R.
     (@add_assign_o $L:ty, $R:ty) => {
-        impl crate::ops::LmAddAssign<$R> for $L
+        impl $crate::ops::LmAddAssign<$R> for $L
         where
-            for<'r> $L: crate::ops::LmAddAssign<&'r $R>,
+            for<'r> $L: $crate::ops::LmAddAssign<&'r $R>,
         {
             fn add_assign(&mut self, rhs: $R) -> lunamodel_error::LunaModelResult<()> {
-                use crate::ops::LmAddAssign;
+                use $crate::ops::LmAddAssign;
                 <$L as LmAddAssign<&$R>>::add_assign(self, &rhs)
             }
         }
@@ -106,11 +106,11 @@ macro_rules! radds {
     (@add_oo $L:ty, $R:ty) => {
         impl std::ops::Add<$L> for $R
         where
-            for<'r> $L: crate::ops::LmAddAssign<&'r $R>,
+            for<'r> $L: $crate::ops::LmAddAssign<&'r $R>,
         {
-            type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
+            type Output = lunamodel_error::LunaModelResult<$crate::expression::Expression>;
             fn add(self, mut rhs: $L) -> Self::Output {
-                use crate::ops::LmAddAssign;
+                use $crate::ops::LmAddAssign;
                 <$L as LmAddAssign<&$R>>::add_assign(&mut rhs, &self)?;
                 Ok(rhs)
             }
@@ -120,11 +120,11 @@ macro_rules! radds {
     (@add_ob $L:ty, $R:ty) => {
         impl std::ops::Add<&$L> for $R
         where
-            for<'r> $L: crate::ops::LmAddAssign<&'r $R>,
+            for<'r> $L: $crate::ops::LmAddAssign<&'r $R>,
         {
-            type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
+            type Output = lunamodel_error::LunaModelResult<$crate::expression::Expression>;
             fn add(self, rhs: &$L) -> Self::Output {
-                use crate::ops::LmAddAssign;
+                use $crate::ops::LmAddAssign;
                 let mut new = rhs.clone();
                 <$L as LmAddAssign<&$R>>::add_assign(&mut new, &self)?;
                 Ok(new)
@@ -135,11 +135,11 @@ macro_rules! radds {
     (@add_bo $L:ty, $R:ty) => {
         impl std::ops::Add<$L> for &$R
         where
-            for<'r> $L: crate::ops::LmAddAssign<&'r $R>,
+            for<'r> $L: $crate::ops::LmAddAssign<&'r $R>,
         {
-            type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
+            type Output = lunamodel_error::LunaModelResult<$crate::expression::Expression>;
             fn add(self, mut rhs: $L) -> Self::Output {
-                use crate::ops::LmAddAssign;
+                use $crate::ops::LmAddAssign;
                 <$L as LmAddAssign<&$R>>::add_assign(&mut rhs, &self)?;
                 Ok(rhs)
             }
@@ -149,11 +149,11 @@ macro_rules! radds {
     (@add_bb $L:ty, $R:ty) => {
         impl std::ops::Add<&$L> for &$R
         where
-            for<'r> $L: crate::ops::LmAddAssign<&'r $R>,
+            for<'r> $L: $crate::ops::LmAddAssign<&'r $R>,
         {
-            type Output = lunamodel_error::LunaModelResult<crate::expression::Expression>;
+            type Output = lunamodel_error::LunaModelResult<$crate::expression::Expression>;
             fn add(self, rhs: &$L) -> Self::Output {
-                use crate::ops::LmAddAssign;
+                use $crate::ops::LmAddAssign;
                 let mut new = rhs.clone();
                 <$L as LmAddAssign<&$R>>::add_assign(&mut new, self)?;
                 Ok(new)

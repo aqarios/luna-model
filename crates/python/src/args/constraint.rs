@@ -6,9 +6,9 @@ use crate::PyConstraint;
 #[derive(Deref, Debug)]
 pub struct PyCArg(PyConstraint);
 
-impl Into<PyConstraint> for PyCArg {
-    fn into(self) -> PyConstraint {
-        self.0
+impl From<PyCArg> for PyConstraint {
+    fn from(val: PyCArg) -> Self {
+        val.0
     }
 }
 
@@ -20,11 +20,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyCArg {
             return Ok(Self(c.clone()));
         }
 
-        if let Ok(inner) = obj.getattr("_c") {
-            if let Ok(c) = inner.extract::<PyRef<'py, PyConstraint>>() {
+        if let Ok(inner) = obj.getattr("_c")
+            && let Ok(c) = inner.extract::<PyRef<'py, PyConstraint>>() {
                 return Ok(Self(c.clone()));
             }
-        }
 
         Err(PyTypeError::new_err("Expected (Py)Constraint"))
     }

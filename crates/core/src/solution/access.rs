@@ -32,6 +32,13 @@ impl Solution {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        match self.samples.first() {
+            Some((_, col)) => col.is_empty(),
+            None => false,
+        }
+    }
+
     pub fn sample_len(&self) -> usize {
         self.samples.len()
     }
@@ -107,9 +114,7 @@ impl Solution {
                     Sense::Min => target_map.min_by(|&a, &b| a.total_cmp(b)),
                     Sense::Max => target_map.max_by(|&a, &b| a.total_cmp(b)),
                 };
-                if target.is_none() {
-                    return None;
-                }
+                target?;
                 let target = *target.unwrap();
                 let alltargets: Vec<usize> = ov
                     .iter()
@@ -122,7 +127,7 @@ impl Solution {
                     .collect();
                 let views = alltargets
                     .iter()
-                    .map(|idx| ResultView::new(&self, *idx))
+                    .map(|idx| ResultView::new(self, *idx))
                     .collect();
                 Some(views)
             }
@@ -151,7 +156,7 @@ impl Solution {
                 .iter()
                 .map(|(vname, cs)| (vname.clone(), vec![cs[row]]))
                 .collect(),
-            timing: self.timing.clone(),
+            timing: self.timing,
             sense: self.sense,
         }
     }

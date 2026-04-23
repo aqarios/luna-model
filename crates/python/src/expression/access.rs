@@ -36,11 +36,11 @@ impl PyExpression {
     }
 
     pub fn items(&self) -> PyExpressionIterator {
-        PyExpressionIterator::new(&self)
+        PyExpressionIterator::new(self)
     }
 
     pub fn variables(&self) -> Vec<PyVariable> {
-        self.read_with(|e| e.vars().map(|v| PyVariable::new(v)).collect())
+        self.read_with(|e| e.vars().map(PyVariable::new).collect())
     }
 
     pub fn degree(&self) -> usize {
@@ -66,7 +66,7 @@ impl PyExpression {
     pub fn higher_order_items(&self) -> Vec<(Vec<PyVariable>, f64)> {
         self.read_with(|e| {
             e.higher_order_items()
-                .map(|(vs, b)| (vs.into_iter().map(|v| PyVariable::new(v)).collect(), b))
+                .map(|(vs, b)| (vs.into_iter().map(PyVariable::new).collect(), b))
                 .collect()
         })
     }
