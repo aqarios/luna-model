@@ -1,2 +1,6 @@
 # SCM syntax highlighting & preventing 3-way merges
 pixi.lock merge=binary linguist-language=YAML linguist-generated=true
+
+# Test fixture/data files should not affect GitHub language statistics.
+*.mps linguist-generated=true
+*.MPS linguist-generated=true
