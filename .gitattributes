@@ -4,3 +4,5 @@ pixi.lock merge=binary linguist-language=YAML linguist-generated=true
 # Test fixture/data files should not affect GitHub language statistics.
 *.mps linguist-generated=true
 *.MPS linguist-generated=true
+*.lp linguist-generated=true
+*.LP linguist-generated=true
