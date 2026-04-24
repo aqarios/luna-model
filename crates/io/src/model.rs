@@ -23,7 +23,7 @@ impl CustomFormat<FormatOpt> for Model {
 
     fn dbg(&self, fmt: &mut Formatter<'_>, format_opt: &FormatOpt) -> std::fmt::Result {
         match format_opt {
-            FormatOpt::Rs => write!(fmt, "{}", self),
+            FormatOpt::Rs => write!(fmt, "{:?}", self),
             #[cfg(feature = "py")]
             FormatOpt::Py => write!(
                 fmt,

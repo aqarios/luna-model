@@ -8,6 +8,11 @@ use crate::prelude::{HigherOrder, Quadratic};
 use crate::variable::VarRef;
 
 impl Expression {
+    /// Splits an expression into terms that do and do not touch the given variables.
+    ///
+    /// The first returned expression contains every contribution involving at
+    /// least one variable from `vrefs`. The second contains the remaining
+    /// contributions.
     pub fn separate(&self, vrefs: &[VarRef]) -> LunaModelResult<(Expression, Expression)> {
         let mut left = Expression::empty(self.env.clone());
         let mut right = Expression::empty(self.env.clone());

@@ -14,7 +14,7 @@ impl CustomFormat<FormatOpt> for ConstraintCollection {
                         format!(
                             "{{{}}}",
                             self.iter()
-                                .map(|(cname, c)| format!("{cname}: {}", c.format(FormatOpt::Py)))
+                                .map(|(cname, c)| format!("{cname}: {}", c.format(FormatOpt::Rs)))
                                 .collect::<Vec<String>>()
                                 .join(", ")
                         )

@@ -1,6 +1,10 @@
 use crate::dtypes::VarIdx;
 use derive_more::{Deref, DerefMut};
 
+/// Newtype wrapper around a variable index.
+///
+/// This exists mainly for places that want a distinct semantic type without
+/// paying any runtime cost.
 #[derive(Debug, Clone, Copy, Deref, DerefMut, Hash, PartialEq, Eq)]
 pub struct VarId(pub VarIdx);
 

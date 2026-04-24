@@ -17,6 +17,7 @@ impl PrvMul<&VarRef> for &Linear {
     ///   for more information [E0658]
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies each linear term by a single variable reference.
     fn m(self, rhs: &VarRef) -> Self::Output {
         self.iter().map(|v| rhs.m(v)).collect()
     }
@@ -25,6 +26,7 @@ impl PrvMul<&VarRef> for &Linear {
 impl PrvMul<Bias> for &Linear {
     type Output = Vec<VarMulRes>;
 
+    /// Scales every linear contribution by a scalar bias.
     fn m(self, rhs: Bias) -> Self::Output {
         self.iter()
             .map(|(v, b)| VarMulRes::Lin((v, b * rhs)))
@@ -60,6 +62,7 @@ impl PrvMul<Bias> for &Linear {
 impl PrvMul<(&Linear, &ArcEnv)> for &Linear {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies two linear storages, producing quadratic or reduced results.
     fn m(self, rhs: (&Linear, &ArcEnv)) -> Self::Output {
         let (lin, env) = rhs;
         let mut res = Vec::with_capacity(self.len() + lin.len());
@@ -76,6 +79,7 @@ impl PrvMul<(&Linear, &ArcEnv)> for &Linear {
 impl PrvMul<(&Quadratic, &ArcEnv)> for &Linear {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies linear storage with quadratic storage.
     fn m(self, rhs: (&Quadratic, &ArcEnv)) -> Self::Output {
         let (quad, env) = rhs;
         let mut res = Vec::with_capacity(self.len() + quad.len());
@@ -92,6 +96,7 @@ impl PrvMul<(&Quadratic, &ArcEnv)> for &Linear {
 impl PrvMul<(&Option<Quadratic>, &ArcEnv)> for &Linear {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies linear storage with optional quadratic storage.
     fn m(self, rhs: (&Option<Quadratic>, &ArcEnv)) -> Self::Output {
         let (quad, env) = rhs;
         quad.as_ref()
@@ -103,6 +108,7 @@ impl PrvMul<(&Option<Quadratic>, &ArcEnv)> for &Linear {
 impl PrvMul<(&HigherOrder, &ArcEnv)> for &Linear {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies linear storage with higher-order storage.
     fn m(self, rhs: (&HigherOrder, &ArcEnv)) -> Self::Output {
         let (ho, env) = rhs;
         let mut res = Vec::with_capacity(self.len() + ho.len());
@@ -119,6 +125,7 @@ impl PrvMul<(&HigherOrder, &ArcEnv)> for &Linear {
 impl PrvMul<(&Option<HigherOrder>, &ArcEnv)> for &Linear {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies linear storage with optional higher-order storage.
     fn m(self, rhs: (&Option<HigherOrder>, &ArcEnv)) -> Self::Output {
         let (ho, env) = rhs;
         ho.as_ref()

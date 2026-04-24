@@ -3,6 +3,7 @@ use crate::traits::ContentEquality;
 use super::Expression;
 
 impl PartialEq for Expression {
+    /// Compares expressions including environment identity.
     fn eq(&self, other: &Self) -> bool {
         if self.env.id() != other.env.id() {
             // Non-equal envs directly implicate non-equal expressions.
@@ -40,6 +41,10 @@ impl PartialEq for Expression {
 }
 
 impl ContentEquality for Expression {
+    /// Compares expressions by algebraic meaning rather than environment identity.
+    ///
+    /// Variables are matched by name across environments so equivalent
+    /// expressions remain equal even after deep cloning into a fresh environment.
     fn equal_contents(&self, other: &Self) -> bool {
         // if !self.env.equal_contents(&other.env) {
         //     return false;

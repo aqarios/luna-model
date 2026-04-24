@@ -2,6 +2,7 @@ use super::Model;
 use crate::traits::ContentEquality;
 
 impl PartialEq for Model {
+    /// Compares models including environment identity.
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
             && self.environment.id() == other.environment.id()
@@ -11,6 +12,7 @@ impl PartialEq for Model {
 }
 
 impl ContentEquality for Model {
+    /// Compares models by semantic contents instead of shared environment identity.
     fn equal_contents(&self, other: &Self) -> bool {
         let name_eq = self.name == other.name;
         let env_eq = self.environment.equal_contents(&other.environment);

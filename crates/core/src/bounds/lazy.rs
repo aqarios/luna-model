@@ -5,29 +5,43 @@ use crate::bounds::Bounds;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct LazyBounds {
+    /// Optional lower bound override.
     pub lower: Option<Bound>,
+    /// Optional upper bound override.
     pub upper: Option<Bound>,
 }
 
+/// Converts partially specified bounds into concrete bounds for a variable type.
+///
+/// The concretization step is where type-specific validation happens. For
+/// example, binary and spin variables reject explicit bounds because their
+/// domains are fixed by definition.
 pub trait Concretize {
     fn concretize(self, vtype: &Vtype) -> LunaModelResult<Bounds>;
 }
 
 impl LazyBounds {
+    /// Creates a partially specified bounds object.
     pub fn new(lower: Option<Bound>, upper: Option<Bound>) -> Self {
         Self { lower, upper }
     }
 
+    /// Returns the optional lower-bound override.
     pub fn lower(&self) -> Option<Bound> {
         self.lower
     }
 
+    /// Returns the optional upper-bound override.
     pub fn upper(&self) -> Option<Bound> {
         self.upper
     }
 }
 
 impl Concretize for Option<LazyBounds> {
+    /// Resolves optional caller-supplied bounds against the variable type defaults.
+    ///
+    /// Missing endpoints fall back to the type-specific defaults. Integer
+    /// bounds are additionally checked for integral endpoints.
     fn concretize(self, vtype: &Vtype) -> LunaModelResult<Bounds> {
         match (&vtype, &self) {
             (Vtype::Binary | Vtype::Spin, Some(_)) => Err(LunaModelError::InvalidBounds(
@@ -49,6 +63,7 @@ impl Concretize for Option<LazyBounds> {
     }
 }
 
+/// Validates that bounded integer endpoints are integral.
 fn check_integer_bounds(bounds: Bounds) -> Result<(), LunaModelError> {
     let maybeok = match bounds {
         Bounds {

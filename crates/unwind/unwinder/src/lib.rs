@@ -1,3 +1,4 @@
+//! Runtime support for converting Rust panics into Python exceptions.
 use lunamodel_error::py::PyInternalPanicError;
 
 use pyo3::PyResult;
@@ -8,6 +9,10 @@ thread_local! {
     static LAST_PANIC_BT: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
+/// Executes `f`, converting any Rust panic into `PyInternalPanicError`.
+///
+/// The helper temporarily installs a panic hook so the default panic reporting
+/// still happens while also capturing a backtrace for potential future use.
 pub fn unwind<T, F>(f: F) -> PyResult<T>
 where
     F: FnOnce() -> PyResult<T>,

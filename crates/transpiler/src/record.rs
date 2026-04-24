@@ -50,6 +50,7 @@ pub enum PassEntry {
 }
 
 impl TransformationRecord {
+    /// Returns the top-level entries in forward execution order.
     pub fn entries(&self) -> impl Iterator<Item = &PassEntry> {
         self.entries.iter()
     }
@@ -92,6 +93,7 @@ impl TransformationRecord {
         Ok(solution)
     }
 
+    /// Finds the first entry matching `query`, either exactly or by case-insensitive substring.
     pub fn find(&self, query: &str, exact: bool) -> LunaModelResult<&PassEntry> {
         if query.is_empty() {
             return Err(LunaModelError::Computation(
@@ -119,6 +121,7 @@ impl TransformationRecord {
         }
     }
 
+    /// Searches recursively for an exact match on pass id, pass name, or pipeline name.
     fn find_exact(&self, query: &str) -> Option<&PassEntry> {
         for entry in &self.entries {
             if entry_matches_exact(entry, query) {
@@ -137,6 +140,7 @@ impl TransformationRecord {
         None
     }
 
+    /// Searches recursively for a case-insensitive partial match.
     fn find_partial(&self, needle_lower: &str) -> Option<&PassEntry> {
         for entry in &self.entries {
             if entry_matches_partial(entry, needle_lower) {
@@ -157,11 +161,13 @@ impl TransformationRecord {
 }
 
 impl From<Vec<PassEntry>> for TransformationRecord {
+    /// Wraps a sequence of entries as a transformation record.
     fn from(entries: Vec<PassEntry>) -> Self {
         Self { entries }
     }
 }
 
+/// Returns whether an entry matches `query` exactly.
 fn entry_matches_exact(entry: &PassEntry, query: &str) -> bool {
     match entry {
         PassEntry::Transform {
@@ -180,6 +186,7 @@ fn entry_matches_exact(entry: &PassEntry, query: &str) -> bool {
     }
 }
 
+/// Returns whether an entry matches `needle_lower` by case-insensitive substring.
 fn entry_matches_partial(entry: &PassEntry, needle_lower: &str) -> bool {
     match entry {
         PassEntry::Transform {

@@ -21,6 +21,7 @@ pub enum Vtype {
 }
 
 impl EnumSetFromVec<Vtype> for Vec<Vtype> {
+    /// Converts a list of variable types into an [`EnumSet`].
     fn to_enumset(&self) -> EnumSet<Vtype> {
         let mut es = EnumSet::default();
         for entry in self.iter() {

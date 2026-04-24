@@ -3,22 +3,27 @@ use lunamodel_error::LunaModelResult;
 
 use crate::{PassContext, Pipeline, PipelineStep};
 
+/// Concrete execution plan produced by a control-flow pass.
 #[derive(Clone)]
 pub struct ControlFlowPlan {
+    /// Pipeline selected by the control-flow decision.
     pub pipeline: Pipeline,
 }
 
 impl ControlFlowPlan {
+    /// Creates a plan from a pipeline name and step list.
     pub fn new(name: String, steps: Vec<PipelineStep>) -> Self {
         Self {
             pipeline: Pipeline { name, steps },
         }
     }
 
+    /// Returns the selected pipeline name.
     pub fn name(&self) -> &str {
         &self.pipeline.name
     }
 
+    /// Returns the selected pipeline steps.
     pub fn steps(&self) -> &[PipelineStep] {
         &self.pipeline.steps
     }
@@ -49,7 +54,7 @@ pub trait ControlFlowPass: Send + Sync {
         &[]
     }
 
-    /// Overridable to_string method for displaying the pass as human readble.
+    /// Human-readable display string used by pipeline visualization.
     fn display(&self) -> String {
         format!("🔀 {}", self.name())
     }

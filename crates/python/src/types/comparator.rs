@@ -1,6 +1,7 @@
 use lunamodel_types::Comparator;
 use pyo3::pyclass;
 
+/// Python-facing wrapper for [`Comparator`].
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 #[pyclass(eq, eq_int, name = "PyComparator")]
 pub enum PyComparator {
@@ -10,6 +11,7 @@ pub enum PyComparator {
 }
 
 impl From<Comparator> for PyComparator {
+    /// Converts the Rust comparator enum into its Python wrapper.
     fn from(value: Comparator) -> Self {
         match value {
             Comparator::Eq => PyComparator::Eq,
@@ -20,6 +22,7 @@ impl From<Comparator> for PyComparator {
 }
 
 impl From<PyComparator> for Comparator {
+    /// Converts the Python comparator wrapper back into the core enum.
     fn from(val: PyComparator) -> Self {
         match val {
             PyComparator::Eq => Comparator::Eq,

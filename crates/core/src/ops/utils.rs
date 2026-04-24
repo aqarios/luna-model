@@ -11,9 +11,15 @@ use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, EnvIdx, VarIdx, Vtype, Vtype::*};
 
 pub(crate) trait EnvIdexable {
+    /// Returns the identity of the environment the value belongs to.
     fn env_id(&self) -> EnvIdx;
 }
 
+/// Verifies that two operands belong to the same environment.
+///
+/// Many algebraic operations are only meaningful when both operands reference
+/// the same variable universe. This helper centralizes that check so the
+/// operator impls stay focused on the algebra itself.
 pub(crate) fn check_envs<A, B>(a: &A, b: &B) -> LunaModelResult<()>
 where
     A: EnvIdexable + Debug,
@@ -40,9 +46,13 @@ impl EnvIdexable for VarRef {
 
 #[derive(Debug)]
 pub enum VarMulRes {
+    /// Multiplication collapsed to a constant contribution.
     Const(Bias),
+    /// Multiplication collapsed to a single linear term.
     Lin((VarIdx, Bias)),
+    /// Multiplication produced a quadratic term.
     Quad((VarIdx, VarIdx, Bias)),
+    /// Multiplication produced a higher-order term with an arbitrary variable list.
     HiOr((Vec<VarIdx>, Bias)),
 }
 
@@ -54,6 +64,10 @@ impl From<(VarIdx, VarIdx, Bias)> for VarMulRes {
 }
 
 impl From<VarMulRes> for Expression {
+    /// Promotes a low-level multiplication fragment into a full expression.
+    ///
+    /// This is the bridge between the storage-oriented multiplication helpers
+    /// and the public expression API.
     fn from(val: VarMulRes) -> Self {
         match val {
             VarMulRes::Const(b) => b.into(),
@@ -65,6 +79,7 @@ impl From<VarMulRes> for Expression {
 }
 
 impl From<(Vec<u32>, Bias)> for VarMulRes {
+    /// Chooses the most specific fragment variant for a normalized variable list.
     fn from(value: (Vec<u32>, Bias)) -> Self {
         let (vars, b) = value;
         match *vars.as_slice() {
@@ -79,6 +94,7 @@ impl From<(Vec<u32>, Bias)> for VarMulRes {
 impl Mul<Bias> for VarMulRes {
     type Output = VarMulRes;
 
+    /// Scales the stored coefficient while keeping the fragment shape unchanged.
     fn mul(self, rhs: Bias) -> Self::Output {
         match self {
             Self::Const(b) => Self::Const(b * rhs),
@@ -183,10 +199,18 @@ impl Mul<Bias> for VarMulRes {
 //     }
 // }
 
-/// Reduce the given variables to the minimal set representing
-/// the same logical operation for multilication.
+/// Reduces a variable multiset to its canonical multiplicative representation.
 ///
-/// None if inverted binary occured.
+/// This performs the variable-domain-specific simplifications that LunaModel
+/// relies on during multiplication:
+///
+/// - repeated binary variables collapse to a single factor because `x * x = x`,
+/// - repeated spin variables cancel pairwise because `s * s = 1`, and
+/// - encountering both a binary variable and its explicit inverted companion
+///   collapses the whole product to zero, represented as `None`.
+///
+/// The returned variable list is not sorted for cosmetic reasons; it is shaped
+/// to preserve the information needed by later canonical storage layers.
 pub fn reduce_vars_mul<F, I>(vars: &[VarIdx], vtype: F, inv: I) -> Option<Vec<VarIdx>>
 where
     F: Fn(VarIdx) -> Vtype,

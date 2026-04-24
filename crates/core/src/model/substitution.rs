@@ -5,21 +5,10 @@ use crate::{expression::Expression, variable::VarRef};
 use super::Model;
 
 impl Model {
-    /// Substitute every occurrence of a variable in the model’s objective and constraint expressions with another expression.
+    /// Substitutes a variable throughout the objective and all constraints.
     ///
-    /// Given a `Model` instance `self`, this method replaces all occurrences of `target`
-    /// with `replacement` for the objective and each constraint.
-    /// If any substitution would cross differing environments (e.g. captures from two
-    /// different scopes), it returns a `DifferentEnvsError`.
-    ///
-    /// # Parameters
-    /// - `target`: the variable reference to replace
-    /// - `replacement`: the expression to insert in place of `target`
-    ///
-    /// # Returns
-    /// - `Ok(())`: Unit type after substitution.
-    /// - `Err(DifferentEnvsErr)`: if the environments of `self`, `target`, and `replacement` are
-    ///   not compatible
+    /// If the replacement no longer references the original variable, the now
+    /// unused variable is removed from the environment.
     pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> LunaModelResult<()> {
         self.objective = self.objective.substitute(target, replacement)?;
         self.constraints.substitute(target, replacement)?;

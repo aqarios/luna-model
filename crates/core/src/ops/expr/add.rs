@@ -8,6 +8,7 @@ use crate::prelude::{HigherOrder, Linear, Quadratic};
 use crate::{adds, radds};
 use crate::{expression::Expression, variable::VarRef};
 
+/// Adds a scalar bias to an expression by adjusting its constant offset.
 // Bias
 impl LmAddAssign<&Bias> for Expression {
     fn add_assign(&mut self, rhs: &Bias) -> LunaModelResult<()> {
@@ -16,6 +17,7 @@ impl LmAddAssign<&Bias> for Expression {
     }
 }
 
+/// Adds an unsigned integer to an expression by converting it to a bias.
 impl LmAddAssign<&usize> for Expression {
     fn add_assign(&mut self, rhs: &usize) -> LunaModelResult<()> {
         self.offset += *rhs as Bias;
@@ -23,6 +25,7 @@ impl LmAddAssign<&usize> for Expression {
     }
 }
 
+/// Adds a single variable to an expression as a linear contribution.
 impl LmAddAssign<&VarRef> for Expression {
     fn add_assign(&mut self, rhs: &VarRef) -> LunaModelResult<()> {
         check_envs(self, rhs)?;
@@ -32,6 +35,7 @@ impl LmAddAssign<&VarRef> for Expression {
     }
 }
 
+/// Adds another expression term-wise after verifying environment compatibility.
 impl LmAddAssign<&Expression> for Expression {
     fn add_assign(&mut self, rhs: &Expression) -> LunaModelResult<()> {
         check_envs(self, rhs)?;
@@ -55,18 +59,25 @@ adds!(Expression => Bias, usize, VarRef, Expression);
 radds!(Expression => Bias, usize, VarRef);
 
 impl PrvAddAssign<Bias> for Expression {
+    /// Internal fast path for adding a scalar bias.
     fn aa(&mut self, rhs: Bias) {
         self.offset += rhs;
     }
 }
 
 impl PrvAddAssign<Linear> for Expression {
+    /// Internal fast path for adding linear storage directly.
     fn aa(&mut self, rhs: Linear) {
         self.linear += rhs;
     }
 }
 
 impl PrvAddAssign<Vec<VarMulRes>> for Expression {
+    /// Internal accumulation path for multiplication results.
+    ///
+    /// Multiplication logic emits a stream of partially typed intermediate
+    /// results (`Const`, `Lin`, `Quad`, `HiOr`), which are merged here into the
+    /// final expression storage.
     fn aa(&mut self, rhs: Vec<VarMulRes>) {
         for item in rhs {
             match item {
@@ -102,6 +113,7 @@ impl PrvAddAssign<Vec<VarMulRes>> for Expression {
 }
 
 impl PrvAddAssign<Option<Vec<VarMulRes>>> for Expression {
+    /// Internal helper for optional multiplication result streams.
     fn aa(&mut self, rhs: Option<Vec<VarMulRes>>) {
         if let Some(vs) = rhs
             && !vs.is_empty()

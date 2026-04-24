@@ -8,11 +8,13 @@ use lunamodel_error::LunaModelResult;
 
 /// Defines the common interface to create a bytes encoded instance of self.
 pub trait BytesEncodable {
+    /// Produces the raw serialized bytes for this intermediate representation.
     fn encode_to_bytes(&self) -> Vec<u8>;
 }
 
 /// Defines the common interface to decode to S based on it's representation as bytes.
 pub trait BytesDecodable<S, P = ()> {
+    /// Reconstructs `S` from raw bytes and optional payload data.
     fn decode_from_bytes(bytes: &[u8], payload: P) -> LunaModelResult<S>;
 }
 
@@ -33,6 +35,7 @@ where
     Self: Sized,
     S: Creatable<Self>,
 {
+    /// Returns the serialization version used by this value.
     fn version(&self) -> Version;
 
     /// Serilize `self` to a bytes vector.
@@ -72,12 +75,14 @@ where
     type Payload;
     type Latest: Decoder<E, Self::Payload>;
 
+    /// Decodes `self` into `E` using the type's latest decoder implementation.
     fn decode(&self, payload: Self::Payload) -> LunaModelResult<E> {
         Self::Latest::decoder(self.as_slice(), payload)
     }
 }
 
 impl Slicable for Vec<u8> {
+    /// Borrows the underlying bytes slice.
     fn as_slice(&self) -> &[u8] {
         self.as_slice()
     }

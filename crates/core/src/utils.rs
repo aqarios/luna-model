@@ -6,6 +6,11 @@ use num::{NumCast, ToPrimitive};
 use crate::prelude::{Expression, VarRef};
 
 impl From<VarRef> for Expression {
+    /// Promotes a variable reference into the equivalent one-term expression.
+    ///
+    /// This goes through the regular multiplication path instead of manually
+    /// constructing linear storage so that all environment-sensitive checks stay
+    /// centralized in one place.
     fn from(var: VarRef) -> Self {
         Expression::constant(var.env.clone(), 1.0)
             .mul(&var)
@@ -15,6 +20,15 @@ impl From<VarRef> for Expression {
 
 const DEFAULT_TOL: f64 = 1e-6;
 
+/// Casts a numeric value to an integral target type when it is sufficiently close.
+///
+/// This is used when external formats or floating-point workflows conceptually
+/// carry integer-valued data but represent it as `f64`. Rather than requiring an
+/// exact binary floating-point match, the function accepts values within a small
+/// tolerance of the nearest integer.
+///
+/// Returns `Ok(None)` when the value is non-finite, not representable as `f64`,
+/// or too far from an integer.
 pub fn cast_near_integral<T: NumCast, N: ToPrimitive + Copy + Debug>(
     value: N,
     tol: Option<f64>,

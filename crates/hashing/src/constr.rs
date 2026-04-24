@@ -26,6 +26,7 @@ pub struct HashConstr {
 }
 
 impl HashConstr {
+    /// Encodes a constraint collection into the hashing representation.
     pub fn build(constr: &ConstraintCollection) -> Vec<u8> {
         let mut o = HashConstr {
             lhsides: Vec::new(),

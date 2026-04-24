@@ -4,15 +4,21 @@ use lunamodel_error::LunaModelResult;
 
 use crate::{AnalysisKey, AnalysisManager, MetaAnalysisPass, PipelineStep};
 
+/// Object-safe wrapper for [`crate::MetaAnalysisPass`].
 pub trait ErasedMetaAnalysisPass: Send + Sync {
+    /// Pass name.
     fn name(&self) -> &str;
+    /// Provided analysis key name.
     fn provides(&self) -> &str;
+    /// Runs the pass and stores the result in the provided analysis manager.
     fn run_erased(
         &self,
         steps: &[PipelineStep],
         analyses: &mut AnalysisManager,
     ) -> LunaModelResult<()>;
+    /// Human-readable display string.
     fn display(&self) -> String;
+    /// Downcasts to the concrete pass type when needed.
     fn as_any(&self) -> &dyn Any;
 }
 

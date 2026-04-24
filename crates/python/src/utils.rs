@@ -12,12 +12,14 @@ use pyo3::{
 
 use pyo3::{Py, PyAny, Python};
 
+/// Python-side key used when indexing variable collections.
 #[derive(Debug, Clone)]
 pub enum VarKey {
     Str(String),
     Var(PyVarArg),
 }
 
+/// Binary operator argument accepted by Python expression/variable APIs.
 #[derive(Debug, FromPyObject)]
 pub enum OpsOther {
     Expr(PyExprArg),
@@ -26,6 +28,7 @@ pub enum OpsOther {
     // Int(usize),
 }
 
+/// Python helper type accepting either a plain operand or `(operand, name)`.
 #[derive(FromPyObject)]
 pub enum OtherOrTuple {
     Other(OpsOther),
@@ -33,6 +36,7 @@ pub enum OtherOrTuple {
 }
 
 impl From<OtherOrTuple> for (OpsOther, Option<String>) {
+    /// Normalizes the Python helper enum into a single internal tuple shape.
     fn from(val: OtherOrTuple) -> Self {
         match val {
             OtherOrTuple::Other(o) => (o, None),
@@ -41,16 +45,19 @@ impl From<OtherOrTuple> for (OpsOther, Option<String>) {
     }
 }
 
+/// Python-extracted unsigned index type that rejects negative integers.
 #[derive(Clone, Copy, Debug)]
 pub struct PyUsize(pub usize);
 
 impl From<PyUsize> for usize {
+    /// Unwraps the checked usize wrapper.
     fn from(val: PyUsize) -> Self {
         val.0
     }
 }
 
 impl From<usize> for PyUsize {
+    /// Wraps a plain usize for Python-facing APIs.
     fn from(value: usize) -> Self {
         Self(value)
     }
@@ -59,6 +66,7 @@ impl From<usize> for PyUsize {
 impl<'a, 'py> FromPyObject<'a, 'py> for PyUsize {
     type Error = PyErr;
 
+    /// Extracts a non-negative Python integer.
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
         let n: isize = obj.extract()?;
         Ok(PyUsize(as_usize(n)?))
@@ -66,11 +74,13 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyUsize {
 }
 
 impl Display for PyUsize {
+    /// Displays the wrapped usize.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
+/// Extracts a non-negative Python integer from a generic `PyAny` handle.
 pub fn as_usize_from_pyany(py: Python, n: Py<PyAny>) -> PyResult<usize> {
     let n: isize = n.extract(py)?;
     if n < 0 {
@@ -82,6 +92,7 @@ pub fn as_usize_from_pyany(py: Python, n: Py<PyAny>) -> PyResult<usize> {
     }
 }
 
+/// Validates that a signed Python integer can be used as `usize`.
 pub fn as_usize(n: isize) -> PyResult<usize> {
     if n < 0 {
         Err(PyValueError::new_err(format!(
@@ -92,6 +103,10 @@ pub fn as_usize(n: isize) -> PyResult<usize> {
     }
 }
 
+/// Resolves the environment to use for a Python API call.
+///
+/// If a model is supplied, its environment takes precedence. Otherwise the
+/// explicit environment argument is required.
 pub fn retrieve_environment(
     env: Option<PyEnvArg>,
     model: &Option<PyModelArg>,

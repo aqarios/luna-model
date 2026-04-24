@@ -7,16 +7,19 @@ use crate::{ConstraintCollection, prelude::VarRef, solution::sample::SampleView}
 use super::Model;
 
 impl Model {
-    /// Access the **unique** [Vtype]s in the [Model]'s objective ([Expression](crate::expression::Expression))
-    /// and the constraints ([ConstraintCollection](crate::constraint::ConstraintCollection)).
+    /// Returns the distinct variable types used by the model.
+    ///
+    /// This is derived from both the objective and all constraints, so it
+    /// reflects the actual symbolic content of the model rather than every
+    /// variable merely present in the environment.
     pub fn vtypes(&self) -> impl Iterator<Item = Vtype> {
         unique(self.objective.vtypes().chain(self.constraints.vtypes()))
     }
 
-    /// Access the total number of variables in the [Model].
-    /// This value might be different to the number of variables registered in the
-    /// [Environment](crate::environment::ArcEnv) as only the variables conributing to the
-    /// objective or in the constraints is respected.
+    /// Returns the number of distinct variables that actually participate in the model.
+    ///
+    /// This can be smaller than the number of variables stored in the
+    /// environment because unused variables are ignored.
     pub fn num_variables(&self) -> usize {
         unique_by(self.objective.vars().chain(self.constraints.vars()), |e| {
             e.id
@@ -24,6 +27,7 @@ impl Model {
         .count()
     }
 
+    /// Iterates over the distinct variables referenced by the objective or constraints.
     pub fn vars(&self) -> impl Iterator<Item = VarRef> {
         let objvars = self.objective.vars();
         let constrvars = self.constraints.vars();
@@ -31,10 +35,14 @@ impl Model {
         unique_by(objvars.chain(constrvars), |e| e.id())
     }
 
+    /// Looks up a variable by name in the model environment.
     pub fn var(&self, name: &str) -> LunaModelResult<VarRef> {
         self.environment.lookup(name)
     }
 
+    /// Returns the subset of constraints violated by `sample`.
+    ///
+    /// The returned collection preserves the original constraint names.
     pub fn violated_constraints(
         &self,
         sample: &SampleView,

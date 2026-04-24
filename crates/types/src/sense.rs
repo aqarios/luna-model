@@ -26,6 +26,8 @@ impl Sense {
 
 impl Not for Sense {
     type Output = Self;
+
+    /// Flips minimization to maximization and vice versa.
     fn not(self) -> Self::Output {
         match self {
             Self::Min => Self::Max,

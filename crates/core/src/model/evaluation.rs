@@ -6,6 +6,13 @@ use super::Model;
 use crate::{Solution, ops::make_lookup};
 
 impl Model {
+    /// Evaluates a solution against the model.
+    ///
+    /// This populates derived solution fields such as `obj_values`,
+    /// `constraints`, `variable_bounds`, and `feasible` while preserving the
+    /// original column-oriented sample data and any raw solver energies.
+    ///
+    /// Solutions are aligned by variable name rather than environment index.
     pub fn evaluate_solution(&self, sol: &Solution) -> LunaModelResult<Solution> {
         check_alignment(
             &self.vars().map(|v| v.name().unwrap()).collect::<Vec<_>>(),
@@ -63,6 +70,10 @@ impl Model {
     }
 }
 
+/// Verifies that the solution contains every variable needed by the model.
+///
+/// Extra variables in the solution are currently tolerated; missing variables
+/// are not.
 fn check_alignment(expr_vars: &[String], sample_vars: &[String]) -> LunaModelResult<()> {
     // Removed checks to allow solutions with more variables than the model.
     // if expr_vars.len() != sample_vars.len() {

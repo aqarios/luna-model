@@ -29,12 +29,12 @@ impl Decoder<Environment, ()> for SerEnvV1 {}
 // }
 // impl Decoder<Environment, ()> for SerEnvV0 {}
 
-/// Default implementation to make a bytes vector deserializable to an [Environment].
+/// Makes a raw byte vector decodable into an [`Environment`].
 impl Decodable<Environment> for Vec<u8> {
     type Latest = SerEnvLatest;
     type Payload = ();
 }
-/// Makes a versionized representation of the [Environment] decodable.
+/// Makes a versioned byte representation decodable into an [`Environment`].
 impl Decodable<Environment> for Versioned<Vec<u8>> {
     type Latest = SerEnvLatest;
     type Payload = ();

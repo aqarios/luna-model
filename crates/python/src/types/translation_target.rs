@@ -2,6 +2,7 @@ use lunamodel_translate::TranslationTarget;
 use pyo3::pyclass;
 use strum_macros::Display;
 
+/// Python-facing wrapper for [`TranslationTarget`].
 #[pyclass(eq, eq_int)]
 #[derive(Debug, Display, Hash, PartialEq)]
 pub enum PyTranslationTarget {
@@ -13,6 +14,7 @@ pub enum PyTranslationTarget {
 }
 
 impl From<TranslationTarget> for PyTranslationTarget {
+    /// Converts the Rust translation-target enum into its Python wrapper.
     fn from(value: TranslationTarget) -> Self {
         match value {
             TranslationTarget::Qubo => Self::Qubo,
@@ -25,6 +27,7 @@ impl From<TranslationTarget> for PyTranslationTarget {
 }
 
 impl From<PyTranslationTarget> for TranslationTarget {
+    /// Converts the Python translation-target wrapper back into the core enum.
     fn from(val: PyTranslationTarget) -> Self {
         match val {
             PyTranslationTarget::Qubo => TranslationTarget::Qubo,

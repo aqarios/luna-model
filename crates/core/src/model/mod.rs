@@ -6,7 +6,6 @@ mod deepclone;
 mod equality;
 mod evaluation;
 mod modification;
-mod sense;
 mod specs;
 mod substitution;
 

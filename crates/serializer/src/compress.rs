@@ -36,15 +36,13 @@ pub trait Compressable
 where
     Self: Sized + Slicable + Vectorizable,
 {
-    /// Compress self to a bytes vector using the specified lavel if not None,
+    /// Compresses `self` to a byte vector using the specified level if present,
     /// otherwise the DEFAULT_COMPRESSION_LEVEL is used.
     fn compress(&self, level: Option<i32>) -> Result<Vec<u8>, io::Error> {
         zstd::encode_all(self.as_slice(), level.unwrap_or(DEFAULT_COMPRESSION_LEVEL))
     }
 
-    /// Maybe compress self to a bytes vector using the specified level.
-    /// In contrast to the `compress` method, this method also takes a bool as an input
-    /// paramater.
+    /// Optionally compresses `self` and wraps the result in the internal framing format.
     fn maybe_compress(
         self,
         do_compression: Option<bool>,
@@ -64,7 +62,10 @@ where
     D: From<Self>,
     Self: Finalize<Vec<u8>>,
 {
-    /// Decompress self to an instance of type D.
+    /// Decompresses framed bytes into an instance of type `D`.
+    ///
+    /// If the input does not decode as the compression envelope, it is treated
+    /// as already-uncompressed data for backward compatibility.
     fn decompress(self) -> Result<D, io::Error> {
         let result = SerCompressed::decode(self.as_slice());
         match result {
@@ -95,8 +96,8 @@ impl Finalize<Vec<u8>> for Versioned<Vec<u8>> {
     }
 }
 
-/// Enables the compression capabilities for a bytes vector.
+/// Enables compression for raw byte vectors.
 impl Compressable for Vec<u8> {}
 
-/// Enables the decompression capabilities for a versioned bytes vector.
+/// Enables decompression for versioned byte packets.
 impl Decompressable for Versioned<Vec<u8>> {}

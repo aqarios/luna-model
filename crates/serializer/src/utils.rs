@@ -3,15 +3,18 @@ use lunamodel_types::Vtype;
 /// Implementation of this trait on any type ensures that the respective type can be expressed
 /// as a slice of bytes.
 pub trait Slicable {
+    /// Borrows the value as raw bytes.
     fn as_slice(&self) -> &[u8];
 }
 
 /// Implementation of this trait on any type ensures that the respective type can be expressed
 /// as a bytes vector.
 pub trait Vectorizable {
+    /// Converts the value into raw bytes.
     fn to_vec(self) -> Vec<u8>;
 }
 
+/// Encodes a variable type into the serializer's compact numeric representation.
 pub fn vtype_to_u8(vtype: Vtype) -> u8 {
     match vtype {
         Vtype::Binary => 0,
@@ -24,6 +27,7 @@ pub fn vtype_to_u8(vtype: Vtype) -> u8 {
     }
 }
 
+/// Decodes the serializer's compact numeric representation into a variable type.
 pub fn u8_to_vtype(u: u8) -> Option<Vtype> {
     match u {
         0 => Some(Vtype::Binary),

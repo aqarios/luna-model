@@ -16,6 +16,7 @@ use crate::{
     step::PipelineStep,
 };
 
+/// Executes pipelines and manages analysis state across pass boundaries.
 #[derive(Default)]
 pub struct PassManager {
     passes: Vec<PipelineStep>,
@@ -23,14 +24,17 @@ pub struct PassManager {
 }
 
 impl PassManager {
+    /// Creates an empty pass manager.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Creates a pass manager from an explicit step list.
     pub fn from_steps(steps: Vec<PipelineStep>) -> Self {
         Self { passes: steps }
     }
 
+    /// Appends a transformation pass.
     pub fn add_transform<T>(mut self, pass: T) -> Self
     where
         T: ErasedTransformPass + 'static,
@@ -39,6 +43,7 @@ impl PassManager {
         self
     }
 
+    /// Appends an analysis pass.
     pub fn add_analysis<A>(mut self, pass: A) -> Self
     where
         A: ErasedAnalysisPass + 'static,
@@ -47,6 +52,7 @@ impl PassManager {
         self
     }
 
+    /// Appends a composite pass.
     pub fn add_composite<C>(mut self, pass: C) -> Self
     where
         C: ErasedCompositePass + 'static,
@@ -55,6 +61,7 @@ impl PassManager {
         self
     }
 
+    /// Appends a meta-analysis pass.
     pub fn add_meta_analysis<M>(mut self, pass: M) -> Self
     where
         M: ErasedMetaAnalysisPass + 'static,
@@ -63,20 +70,24 @@ impl PassManager {
         self
     }
 
+    /// Appends a nested pipeline as a single step.
     pub fn add_pipeline(mut self, pipeline: Pipeline) -> Self {
         self.passes.push(PipelineStep::Pipeline(Arc::new(pipeline)));
         self
     }
 
+    /// Appends a pre-built pipeline step.
     pub fn add_step(mut self, step: PipelineStep) -> Self {
         self.passes.push(step);
         self
     }
 
+    /// Returns the configured steps in execution order.
     pub fn steps(&self) -> &[PipelineStep] {
         &self.passes
     }
 
+    /// Validates and executes the configured steps against a model.
     pub fn run(&self, mut model: Model) -> LunaModelResult<TransformationOutput> {
         self.validate_requirements()?;
         let mut analysis = AnalysisManager::default();
@@ -88,6 +99,7 @@ impl PassManager {
         })
     }
 
+    /// Validates pass requirements against the configured execution order.
     fn validate_requirements(&self) -> LunaModelResult<()> {
         let mut satisfied: HashSet<String> = HashSet::new();
         self.validate_steps(&self.passes, &mut satisfied)
@@ -179,6 +191,7 @@ impl PassManager {
     }
 }
 
+/// Executes a step list and records the resulting reversible transformation history.
 fn execute_steps(
     model: &mut Model,
     passes: &[PipelineStep],

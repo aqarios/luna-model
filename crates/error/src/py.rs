@@ -1,3 +1,8 @@
+//! Python exception mapping for [`crate::LunaModelError`].
+//!
+//! This module is only compiled when the `py` feature is enabled. The exception
+//! hierarchy mirrors the Rust-side error taxonomy closely enough that Python
+//! callers can still handle specific categories without having to parse strings.
 // the entire module is feature bound to `py`.
 use pyo3::{
     PyErr, Python, create_exception,

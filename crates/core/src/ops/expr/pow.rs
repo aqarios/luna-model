@@ -6,6 +6,10 @@ use crate::{
 use lunamodel_error::LunaModelResult;
 
 impl LmPowAssign for Expression {
+    /// Raises the expression to a non-negative integer power.
+    ///
+    /// This currently uses repeated multiplication, which is simple but not
+    /// asymptotically optimal for large exponents.
     fn pow_assign(&mut self, exp: usize) -> LunaModelResult<()> {
         match exp {
             0 => *self = Expression::empty(self.env.clone()).edit(|e| e.offset = 1.0),
@@ -23,6 +27,8 @@ impl LmPowAssign for Expression {
 
 impl LmPow for &Expression {
     type Output = Expression;
+
+    /// Returns a powered clone of the expression.
     fn pow(self, sup: usize) -> LunaModelResult<Self::Output> {
         let mut slf = self.clone();
         slf.pow_assign(sup)?;
