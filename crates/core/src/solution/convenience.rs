@@ -7,6 +7,7 @@ use crate::ValueSource;
 use super::Solution;
 
 impl Solution {
+    /// Returns the selected scalar value series or an error if it is unavailable.
     fn get_value(&self, toggle: ValueSource) -> LunaModelResult<&Vec<Bias>> {
         match toggle {
             ValueSource::Raw => &self.raw_energies,
@@ -18,6 +19,10 @@ impl Solution {
         ))
     }
 
+    /// Computes the conditional value at risk (CVaR) of the selected value series.
+    ///
+    /// The implementation follows the discrete empirical definition used for a
+    /// finite set of sampled outcomes.
     pub fn cvar(&self, alpha: Bias, toggle: Option<ValueSource>) -> LunaModelResult<Bias> {
         // Implementation based on definition of CVaR in https://arxiv.org/pdf/1907.04769
         // alpha has to be in (0.0, 1.0]
@@ -39,6 +44,7 @@ impl Solution {
         Ok(factor * sum)
     }
 
+    /// Computes the count-weighted expectation value of the selected series.
     pub fn expectation_value(&self, toggle: Option<ValueSource>) -> LunaModelResult<Bias> {
         let mut weight_sum: f64 = 0.0;
         let mut weighted_sum: Bias = Bias::default();
@@ -52,6 +58,7 @@ impl Solution {
         Ok(weighted_sum / weight_sum)
     }
 
+    /// Computes a Boltzmann-style temperature-weighted expectation value.
     pub fn temperature_weighted(
         &self,
         beta: Bias,
@@ -77,6 +84,7 @@ impl Solution {
         Ok(weighted_sum / weight_sum)
     }
 
+    /// Returns the fraction of total sample mass marked as feasible.
     pub fn feasibility_ratio(&self) -> LunaModelResult<Bias> {
         let mut n_feasible = 0;
         let mut n_total = 0;
@@ -97,6 +105,7 @@ impl Solution {
         }
     }
 
+    /// Returns the name of the most frequently violated constraint, if available.
     pub fn highest_constraint_violations(&self) -> LunaModelResult<Option<String>> {
         if !self.constraints.is_empty() {
             let n_violations: HashMap<String, usize> = self

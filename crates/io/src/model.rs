@@ -7,7 +7,10 @@ use crate::{CustomFormat, FormatOpt};
 impl CustomFormat<FormatOpt> for Model {
     fn fmt(&self, fmt: &mut Formatter<'_>, format_opt: &FormatOpt) -> std::fmt::Result {
         match format_opt {
-            FormatOpt::Rs => write!(fmt, "{}", self),
+            FormatOpt::Rs => {
+                let s = pymodelio::ModelWriter::new().write_model(self).to_string();
+                fmt.write_str(&s)
+            }
             #[cfg(feature = "py")]
             FormatOpt::Py => {
                 let s = pymodelio::ModelWriter::new().write_model(self).to_string();
@@ -36,7 +39,7 @@ impl CustomFormat<FormatOpt> for Model {
     }
 }
 
-#[cfg(feature = "py")]
+// #[cfg(feature = "py")]
 mod pymodelio {
     use std::fmt::{Display, Formatter};
 

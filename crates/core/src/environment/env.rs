@@ -29,6 +29,7 @@ pub struct Environment {
 }
 
 impl Default for Environment {
+    /// Creates an empty environment with a fresh unique identifier.
     fn default() -> Self {
         Self {
             id: ENV_COUNTER.inc(),
@@ -40,6 +41,11 @@ impl Default for Environment {
 }
 
 impl Environment {
+    /// Creates a new environment from pre-populated variable storage.
+    ///
+    /// A fresh environment id is always assigned even when the rest of the
+    /// content is provided by the caller. That behavior is intentional: the id
+    /// models environment identity rather than serialized content.
     pub fn new(
         variables: IndexMap<VarIdx, Variable>,
         lookup: HashMap<String, VarIdx>,
@@ -53,6 +59,7 @@ impl Environment {
         }
     }
 
+    /// Clones the environment contents into a new environment identity.
     pub fn deep_clone(&self) -> Self {
         let id = ENV_COUNTER.inc();
         Self {
@@ -63,26 +70,36 @@ impl Environment {
         }
     }
 
+    /// Returns the unique environment id.
     pub fn id(&self) -> usize {
         self.id as usize
     }
 
+    /// Returns the next variable index that will be assigned on insertion.
     pub fn next_idx(&self) -> VarIdx {
         self.next_idx
     }
 
+    /// Returns the number of variables stored in the environment.
     pub fn len(&self) -> usize {
         self.variables.len()
     }
 
+    /// Returns `true` when the environment contains no variables.
     pub fn is_empty(&self) -> bool {
         self.variables.is_empty()
     }
 
+    /// Iterates over the stored variable indices in insertion order.
     pub fn vars(&self) -> impl Iterator<Item = VarIdx> {
         self.variables.keys().copied()
     }
 
+    /// Inserts a new variable and returns its assigned index.
+    ///
+    /// This validates the name, ensures the name is unused, concretizes lazy
+    /// bounds against the variable type, and then updates both the index map and
+    /// the name lookup table.
     pub fn insert(
         &mut self,
         name: &str,
@@ -99,6 +116,11 @@ impl Environment {
         Ok(idx)
     }
 
+    /// Inserts a variable, falling back to a derived unique name on collisions.
+    ///
+    /// The fallback path is primarily used by importers and translators that
+    /// must preserve progress even when an external format contains duplicate or
+    /// inconvenient names.
     pub fn insert_with_fallback(
         &mut self,
         name: &str,
@@ -123,6 +145,10 @@ impl Environment {
         }
     }
 
+    /// Creates the inverted companion variable for a binary variable.
+    ///
+    /// The environment links both variables through their `inverted` fields so
+    /// later transformations can move between them without searching by name.
     pub fn insert_inverted(&mut self, base: &VarRef) -> LunaModelResult<VarIdx> {
         let basevar = self.variables.get_mut(&base.id).unwrap();
         if basevar.vtype != Vtype::Binary {
@@ -144,12 +170,14 @@ impl Environment {
         Ok(idx)
     }
 
+    /// Removes a variable by reference from both storage maps.
     pub fn remove(&mut self, target: &VarRef) {
         let name = &self.variables[&target.id].name;
         self.lookup.remove(&name.0);
         self.variables.shift_remove(&target.id);
     }
 
+    /// Looks up a variable index by name.
     pub fn lookup(&self, name: &str) -> LunaModelResult<VarIdx> {
         self.lookup
             .get(name)
@@ -157,18 +185,21 @@ impl Environment {
             .copied()
     }
 
+    /// Returns an immutable variable by index.
     pub fn get(&self, index: VarIdx) -> LunaModelResult<&Variable> {
         self.variables
             .get(&index)
             .ok_or_else(|| LunaModelError::VariableNotExisting(index.to_string().into()))
     }
 
+    /// Returns a mutable variable by index.
     pub fn get_mut(&mut self, index: VarIdx) -> LunaModelResult<&mut Variable> {
         self.variables
             .get_mut(&index)
             .ok_or_else(|| LunaModelError::VariableNotExisting(index.to_string().into()))
     }
 
+    /// Returns the variable type for a variable identified by name.
     pub fn vtype_of(&self, name: &str) -> LunaModelResult<Vtype> {
         Ok(self
             .variables
@@ -185,12 +216,14 @@ impl Environment {
 impl Index<VarIdx> for Environment {
     type Output = Variable;
 
+    /// Indexes directly by variable index and panics on missing variables.
     fn index(&self, index: VarIdx) -> &Self::Output {
         self.get(index).unwrap()
     }
 }
 
 impl IndexMut<VarIdx> for Environment {
+    /// Mutably indexes by variable index and panics on missing variables.
     fn index_mut(&mut self, index: VarIdx) -> &mut Self::Output {
         self.get_mut(index).unwrap()
     }

@@ -1,3 +1,9 @@
+//! Commonly used core types and traits for crate users and internal modules.
+//!
+//! The prelude intentionally re-exports the modeling primitives that appear in
+//! most workflows so call sites can stay focused on the actual modeling logic
+//! instead of long import lists.
+
 pub use crate::bounds::{Bounds, LazyBounds};
 pub use crate::constraint::{Constraint, ConstraintCollection};
 pub use crate::environment::{ArcEnv, Environment};

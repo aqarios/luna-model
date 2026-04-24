@@ -9,6 +9,12 @@ use crate::solution::{Column, col::Assignment};
 use super::Solution;
 
 impl Solution {
+    /// Appends a sample row to the solution.
+    ///
+    /// The incoming row is keyed by variable name to match the solution's
+    /// index-independent representation. Existing columns are appended in place;
+    /// missing columns are created on demand using the assignment type of the
+    /// provided value.
     pub fn push(
         &mut self,
         sample: IndexMap<String, Assignment>,
@@ -33,22 +39,27 @@ impl Solution {
         Ok(())
     }
 
+    /// Adds an empty binary column for a variable name.
     pub fn add_empty_binary(&mut self, var: String) {
         self.samples.insert(var, Column::empty_binary());
     }
 
+    /// Adds an empty spin column for a variable name.
     pub fn add_empty_spin(&mut self, var: String) {
         self.samples.insert(var, Column::empty_spin());
     }
 
+    /// Adds an empty integer column for a variable name.
     pub fn add_empty_integer(&mut self, var: String) {
         self.samples.insert(var, Column::empty_integer());
     }
 
+    /// Adds an empty real column for a variable name.
     pub fn add_empty_real(&mut self, var: String) {
         self.samples.insert(var, Column::empty_real());
     }
 
+    /// Replaces or inserts a binary column from raw numeric data.
     pub fn add_binary(
         &mut self,
         var: String,
@@ -61,6 +72,7 @@ impl Solution {
         Ok(())
     }
 
+    /// Replaces or inserts a spin column from raw numeric data.
     pub fn add_spin(
         &mut self,
         var: String,
@@ -73,6 +85,7 @@ impl Solution {
         Ok(())
     }
 
+    /// Replaces or inserts an integer column from raw numeric data.
     pub fn add_integer(
         &mut self,
         var: String,
@@ -85,10 +98,12 @@ impl Solution {
         Ok(())
     }
 
+    /// Replaces or inserts a real-valued column.
     pub fn add_real(&mut self, var: String, data: Vec<f64>) {
         self.samples.insert(var, Column::real(data));
     }
 
+    /// Dispatches to the appropriate typed column insertion helper.
     pub fn add_col(
         &mut self,
         vtype: Vtype,
@@ -108,21 +123,29 @@ impl Solution {
         }
     }
 
+    /// Removes a single variable column by name.
     pub fn remove_col(&mut self, var: &str) -> Option<Column> {
         self.samples.shift_remove(var)
     }
 
+    /// Removes many variable columns by name and returns the removed columns.
     pub fn remove_cols(&mut self, vars: &[String]) -> Vec<Option<Column>> {
         vars.iter()
             .map(|var| self.samples.shift_remove(var))
             .collect()
     }
 
+    /// Lazily removes many variable columns by name.
     pub fn iter_remove_cols(&mut self, vars: &[String]) -> impl Iterator<Item = Option<Column>> {
         vars.iter().map(|var| self.samples.shift_remove(var))
     }
 
-    /// Combine duplicate samples to a single entry.
+    /// Combines duplicate sample rows into a single row and sums their counts.
+    ///
+    /// Duplicate detection is currently based on the stringified sample values in
+    /// column order. That keeps the implementation simple, but it also means the
+    /// exact behavior for floating-point heavy solutions depends on how those
+    /// values stringify.
     pub fn aggregate(&mut self) -> LunaModelResult<()> {
         let mut dups: HashMap<String, usize> = HashMap::new();
         let mut to_rm: IndexMap<usize, usize> = IndexMap::new();

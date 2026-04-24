@@ -1,3 +1,5 @@
+//! Optimization models built from expressions, constraints, and an environment.
+
 mod access;
 mod creation;
 mod deepclone;
@@ -8,17 +10,21 @@ mod sense;
 mod specs;
 mod substitution;
 
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Formatter};
 
 use lunamodel_types::Sense;
 
 use crate::{ArcEnv, ConstraintCollection, Expression};
 
-/// A model describing some function to be optimized (objective) and restrictions
-/// on this objective (constraints).
+/// A complete optimization model.
+///
+/// A `Model` ties together the shared environment, objective expression,
+/// constraints, and optimization sense. The environment is stored directly on
+/// the model so any variable references created from the model continue to point
+/// at the same underlying variable registry as the objective and constraints.
 #[derive(Clone)]
 pub struct Model {
-    /// The name of the model, by default is [DEFAULT_MODEL_NAME].
+    /// Human-readable model name. Defaults to `"unnamed"`.
     pub name: String,
     /// The environment of the model, constaining the information for each variable
     /// used in both the objective and it's constraints.
@@ -34,6 +40,7 @@ pub struct Model {
 }
 
 impl Default for Model {
+    /// Creates an empty unnamed minimization model with a fresh environment.
     fn default() -> Self {
         let env = ArcEnv::default();
         Self {
@@ -54,13 +61,5 @@ impl Debug for Model {
             .field("constraints", &self.constraints)
             .field("environment_id", &self.environment.id())
             .finish()
-    }
-}
-
-impl Display for Model {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        _ = f;
-        unimplemented!()
-        // f.write_str(ModelWriter::new(&self).to_string())
     }
 }

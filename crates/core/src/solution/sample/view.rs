@@ -10,24 +10,33 @@ use crate::{
     traits::TryIndex,
 };
 
+/// Selector type for addressing a value inside a [`SampleView`].
 #[derive(Debug)]
 pub enum SampleViewIdx {
+    /// Select by column position.
     Num(usize),
+    /// Select by a variable reference.
     Var(VarRef),
+    /// Select by variable name.
     Str(String),
 }
 
+/// Borrowed view over one solution row.
 #[derive(Debug)]
 pub struct SampleView<'s> {
+    /// Borrowed source solution.
     pub sol: &'s Solution,
+    /// Row index inside the source solution.
     pub idx: usize,
 }
 
 impl<'s> SampleView<'s> {
+    /// Creates a new sample view over `sol[idx]`.
     pub fn new(sol: &'s Solution, idx: usize) -> Self {
         Self { sol, idx }
     }
 
+    /// Materializes the row as typed assignments in column order.
     pub fn to_vec(&self) -> Vec<Assignment> {
         self.sol
             .variable_names()
@@ -36,10 +45,12 @@ impl<'s> SampleView<'s> {
             .collect()
     }
 
+    /// Returns the typed assignment for a variable name.
     pub fn get(&self, var: &str) -> Assignment {
         self.sol.assignment(self.idx, var)
     }
 
+    /// Fallible generalized row lookup by selector.
     pub fn try_get(&self, var: SampleViewIdx) -> LunaModelResult<Assignment> {
         match var {
             SampleViewIdx::Num(v) => self.sol.try_assignment_idx(self.idx, v),
@@ -48,6 +59,7 @@ impl<'s> SampleView<'s> {
         }
     }
 
+    /// Iterates over the raw numeric row values in column order.
     pub fn iter(&self) -> impl Iterator<Item = Bias> {
         self.sol
             .samples
@@ -57,6 +69,7 @@ impl<'s> SampleView<'s> {
 }
 
 impl<'s> From<(&'s Solution, usize)> for SampleView<'s> {
+    /// Creates a sample view from a `(solution, row)` pair.
     fn from(value: (&'s Solution, usize)) -> Self {
         let (sol, idx) = value;
         Self::new(sol, idx)
@@ -66,6 +79,7 @@ impl<'s> From<(&'s Solution, usize)> for SampleView<'s> {
 impl<'s> Index<&str> for SampleView<'s> {
     type Output = Bias;
 
+    /// Indexes the row by variable name.
     fn index(&self, var: &str) -> &Self::Output {
         &self.sol[(self.idx, var)]
     }
@@ -75,6 +89,7 @@ impl<'s> TryIndex<&str> for SampleView<'s> {
     type Err = LunaModelError;
     type Output = Bias;
 
+    /// Fallible variable lookup by name.
     fn try_index(&self, var: &str) -> Result<&Self::Output, Self::Err> {
         if self.sol.samples.contains_key(var) {
             Ok(&self.sol[(self.idx, var)])
@@ -85,6 +100,7 @@ impl<'s> TryIndex<&str> for SampleView<'s> {
 }
 
 impl<'a> Display for SampleView<'a> {
+    /// Formats the row as a flat assignment list in column order.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
