@@ -1,3 +1,5 @@
+//! Compression helpers layered on top of raw serialization.
+
 use std::io;
 
 use prost::Message;

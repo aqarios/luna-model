@@ -1,3 +1,5 @@
+//! Unified pipeline-step enum for erased pass execution.
+
 use std::sync::Arc;
 
 use crate::{

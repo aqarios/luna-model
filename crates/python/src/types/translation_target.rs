@@ -1,3 +1,5 @@
+//! Python wrapper for model translation targets.
+
 use lunamodel_translate::TranslationTarget;
 use pyo3::pyclass;
 use strum_macros::Display;

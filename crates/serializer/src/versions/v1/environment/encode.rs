@@ -1,3 +1,5 @@
+//! Version 1 encoding for environments.
+
 use lunamodel_core::prelude::Environment;
 use lunamodel_types::{Bound, Vtype};
 use prost::Message;

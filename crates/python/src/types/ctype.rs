@@ -1,3 +1,5 @@
+//! Python wrapper for constraint comparator/type enums.
+
 use lunamodel_types::Ctype;
 use pyo3::pyclass;
 

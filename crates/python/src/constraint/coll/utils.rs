@@ -1,3 +1,5 @@
+//! Helper utilities for Python constraint-collection wrappers.
+
 use lunamodel_core::{Constraint, ConstraintCollection};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use numpy::{PyArray1, PyArrayMethods};

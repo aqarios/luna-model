@@ -1,3 +1,5 @@
+//! Global registry used to dispatch backwards handlers.
+
 use std::{
     collections::HashMap,
     sync::{Mutex, OnceLock},

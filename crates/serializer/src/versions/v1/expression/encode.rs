@@ -1,3 +1,5 @@
+//! Version 1 encoding for expressions.
+
 use lunamodel_core::Expression;
 
 use crate::encode::BytesEncodable;
@@ -7,12 +9,14 @@ use prost::Message;
 
 /// Makes the SerExpression conform with the requirements for it to be an Encodable.
 impl BytesEncodable for SerExpression {
+    /// Encodes the protobuf structure into raw bytes.
     fn encode_to_bytes(&self) -> Vec<u8> {
         self.encode_to_vec()
     }
 }
 
 impl SerExpression {
+    /// Fills the protobuf structure from the runtime expression.
     pub fn fill(mut self, expr: &Expression) -> Self {
         self.is_new = true;
         self.num_variables = expr.num_vars() as u32;
@@ -36,6 +40,7 @@ impl SerExpression {
         self
     }
 
+    /// Serializes the linear term into sparse index/value vectors.
     fn fill_linear(lin: &mut Vec<u32>, linvals: &mut Vec<f64>, expr: &Expression) {
         for (u, b) in expr.linear.iter() {
             lin.push(u);
@@ -43,6 +48,7 @@ impl SerExpression {
         }
     }
 
+    /// Serializes the quadratic term into flattened neighborhood vectors.
     fn fill_quadratic(
         qs: &mut u32,
         qni: &mut Vec<u32>,
@@ -67,6 +73,7 @@ impl SerExpression {
         }
     }
 
+    /// Serializes the higher-order term into flattened contribution vectors.
     fn fill_higher_order(
         hs: &mut u32,
         hv: &mut Vec<f64>,

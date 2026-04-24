@@ -1,3 +1,5 @@
+//! Display and debug formatting for Python environments.
+
 use lunamodel_io::{CustomFormat, FormatOpt};
 use lunamodel_unwind::*;
 use pyo3::pymethods;

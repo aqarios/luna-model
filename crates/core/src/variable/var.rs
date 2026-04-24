@@ -1,3 +1,5 @@
+//! Core variable record stored inside environments.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{VarIdx, VarName, Vtype};
 

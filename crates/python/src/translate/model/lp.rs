@@ -1,3 +1,5 @@
+//! Python wrapper for the LP translator.
+
 use std::{
     fs::File,
     io::{BufReader, Read},
@@ -13,7 +15,9 @@ use crate::{PyModel, args::PyModelArg};
 
 #[derive(FromPyObject)]
 enum PyLpTranslatorToLmInput {
+    /// Treat the string either as raw LP content or as a filesystem path.
     Str(String),
+    /// Read LP content from the provided path.
     Buf(PathBuf),
 }
 
@@ -23,6 +27,11 @@ pub struct PyLpTranslator;
 #[unwindable]
 #[pymethods]
 impl PyLpTranslator {
+    /// Translate an LP string or LP file into a LunaModel model.
+    ///
+    /// String inputs are interpreted as paths first when they resolve to an
+    /// existing file. This keeps the Python API compact but means callers should
+    /// pass explicit file-like objects when a model string could also name a path.
     #[staticmethod]
     fn to_lm(file: PyLpTranslatorToLmInput) -> PyResult<PyModel> {
         let model = match file {
@@ -43,6 +52,7 @@ impl PyLpTranslator {
         Ok(model.into())
     }
 
+    /// Serialize a LunaModel model back to LP text or write it to a file.
     #[staticmethod]
     #[pyo3(signature=(model, filepath=None))]
     fn from_lm(model: PyModelArg, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
@@ -50,6 +60,7 @@ impl PyLpTranslator {
     }
 }
 
+/// Read a UTF-8 text model from disk into memory for translator consumption.
 fn read_buf(buf: PathBuf) -> LunaModelResult<String> {
     let file = File::open(buf)?;
     let mut reader = BufReader::new(file);

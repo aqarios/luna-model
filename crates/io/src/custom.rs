@@ -1,3 +1,5 @@
+//! Custom formatting traits shared across workspace crates.
+
 use std::fmt::{self, Debug, Display};
 // Based on Source - https://stackoverflow.com/a
 // Posted by Kevin Reid

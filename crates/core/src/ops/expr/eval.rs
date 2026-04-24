@@ -1,3 +1,5 @@
+//! Evaluation helpers for expressions against sample-like data.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 

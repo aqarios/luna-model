@@ -1,3 +1,5 @@
+//! QUBO-specific translator types and helpers.
+
 use lunamodel_types::{Bias, Sense, Vtype};
 
 mod back_translate;

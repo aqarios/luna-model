@@ -1,3 +1,5 @@
+//! Python wrapper for variable-type enums.
+
 use lunamodel_types::Vtype;
 use pyo3::pyclass;
 

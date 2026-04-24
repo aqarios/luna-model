@@ -1,3 +1,5 @@
+//! Low-level capsule and pointer FFI helpers for Python solution wrappers.
+
 use parking_lot::RwLock;
 use std::{ffi::CStr, sync::Arc};
 

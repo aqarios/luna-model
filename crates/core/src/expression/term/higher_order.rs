@@ -1,3 +1,5 @@
+//! Sparse storage for higher-order expression terms.
+
 use std::ops::{AddAssign, Index, IndexMut, Mul, MulAssign, Neg};
 
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};

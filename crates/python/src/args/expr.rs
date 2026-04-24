@@ -1,3 +1,5 @@
+//! Flexible Python argument extraction for expression-like inputs.
+
 use derive_more::Deref;
 use lunamodel_core::Expression;
 use pyo3::{FromPyObject, PyErr, PyRef, exceptions::PyTypeError, types::PyAnyMethods};

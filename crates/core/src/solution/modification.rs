@@ -1,3 +1,5 @@
+//! Mutation operations for column-oriented solutions.
+
 use indexmap::IndexMap;
 use itertools::Itertools;
 use lunamodel_error::LunaModelResult;

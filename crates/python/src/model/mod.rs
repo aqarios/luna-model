@@ -1,3 +1,4 @@
+//! Python wrapper for models and model metadata.
 mod access;
 mod construction;
 mod general;
@@ -16,9 +17,12 @@ use pyo3::pyclass;
 
 pub use metadata::PyModelMetadata;
 
+/// Shared content behind the Python model wrapper.
 #[derive(Debug)]
 pub struct PyModelContent {
+    /// Shared core model handle.
     pub m: Arc<RwLock<Model>>,
+    /// Python-side metadata not stored in the core model.
     pub _metadata: PyModelMetadata,
 }
 
@@ -29,6 +33,7 @@ pub struct PyModelContent {
 pub struct PyModel(pub PyModelContent);
 
 impl Clone for PyModel {
+    /// Clones the model by deep-cloning the underlying core model.
     fn clone(&self) -> Self {
         PyModel(PyModelContent {
             m: Arc::new(RwLock::new(self.m.read().clone())),
@@ -38,6 +43,7 @@ impl Clone for PyModel {
 }
 
 impl From<Model> for PyModel {
+    /// Wraps an owned core model for Python.
     fn from(value: Model) -> Self {
         Self(PyModelContent {
             m: Arc::new(RwLock::new(value)),

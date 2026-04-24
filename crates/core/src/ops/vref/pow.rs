@@ -1,3 +1,5 @@
+//! Exponentiation helpers for variable references.
+
 use crate::{
     Expression,
     ops::{LmAddAssign, LmMulAssign, LmPow},

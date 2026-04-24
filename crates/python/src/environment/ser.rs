@@ -1,3 +1,5 @@
+//! Serialization helpers for Python environments.
+
 use lunamodel_core::Environment;
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use lunamodel_unwind::*;

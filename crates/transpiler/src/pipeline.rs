@@ -1,3 +1,5 @@
+//! Pipeline data structures and step introspection helpers.
+
 use std::{collections::BTreeSet, sync::Arc};
 
 use crate::{DisplaySteps, PipelineStep};

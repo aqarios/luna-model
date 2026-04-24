@@ -1,3 +1,5 @@
+//! Base trait and wrapper plumbing for Python transformation artifacts.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 
 pub trait Envelope {

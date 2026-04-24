@@ -1,3 +1,5 @@
+//! Version-independent encoding glue for solutions.
+
 use crate::encode::{Decodable, Decoder, Encodable};
 
 use crate::versionize::{Version, Versioned};

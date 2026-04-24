@@ -1,3 +1,5 @@
+//! Reversible transformation-record data structures.
+
 use lunamodel_core::Solution;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 

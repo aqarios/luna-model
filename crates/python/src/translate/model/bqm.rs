@@ -1,3 +1,5 @@
+//! Python wrapper for Binary Quadratic Model interoperability helpers.
+
 use lunamodel_core::{Model, ops::LmAddAssign};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Sense, Vtype};
@@ -30,6 +32,9 @@ impl PyBqmTranslator {
         quads_cols: PyReadonlyArray1<u64>,
         name: Option<String>,
     ) -> PyResult<PyModel> {
+        // This entry point mirrors the sparse BQM representation used by
+        // external Python ecosystems, so the implementation reconstructs a core
+        // model term by term instead of routing through an intermediate format.
         let mut model = Model::new(name, Some(Sense::Min));
 
         let vars: Vec<_> = vars
@@ -71,6 +76,9 @@ impl PyBqmTranslator {
         PyVtype,
         Vec<String>,
     )> {
+        // The Python BQM representation assumes one shared discrete variable
+        // type, no constraints, and a quadratic objective. We validate those
+        // invariants explicitly before unpacking coefficients.
         let model: &Model = &model.m.read_arc();
         if model.objective.has_higher_order() {
             return Err(LunaModelError::ModelNotQuadratic)?;

@@ -1,3 +1,5 @@
+//! Formatting helpers for models.
+
 use std::fmt::Formatter;
 
 use lunamodel_core::Model;

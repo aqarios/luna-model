@@ -1,3 +1,5 @@
+//! Python wrapper for the MPS translator.
+
 use std::{
     fs::File,
     io::{BufReader, Read},
@@ -13,7 +15,9 @@ use crate::{PyModel, args::PyModelArg};
 
 #[derive(FromPyObject)]
 enum PyMpsTranslatorToLmInput {
+    /// Treat the string either as raw MPS content or as a filesystem path.
     Str(String),
+    /// Read MPS content from the provided path.
     Buf(PathBuf),
 }
 
@@ -23,6 +27,7 @@ pub struct PyMpsTranslator;
 #[unwindable]
 #[pymethods]
 impl PyMpsTranslator {
+    /// Translate an MPS string or file into a LunaModel model.
     #[staticmethod]
     fn to_lm(file: PyMpsTranslatorToLmInput) -> PyResult<PyModel> {
         let model = match file {
@@ -43,6 +48,7 @@ impl PyMpsTranslator {
         Ok(model.into())
     }
 
+    /// Serialize a LunaModel model back to MPS text or write it to a file.
     #[staticmethod]
     #[pyo3(signature=(model, filepath=None))]
     fn from_lm(model: PyModelArg, filepath: Option<PathBuf>) -> PyResult<Option<String>> {
@@ -53,6 +59,7 @@ impl PyMpsTranslator {
     }
 }
 
+/// Read an MPS file into memory before handing it to the Rust translator.
 fn read_buf(buf: PathBuf) -> LunaModelResult<String> {
     let file = File::open(buf)?;
     let mut reader = BufReader::new(file);

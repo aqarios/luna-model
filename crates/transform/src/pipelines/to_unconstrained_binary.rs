@@ -1,3 +1,5 @@
+//! Prebuilt pipeline for unconstrained binary normalization.
+
 use derive_more::Deref;
 use lunamodel_transpiler::Pipeline;
 use lunamodel_types::{EnumSetFromVec, Sense, Specs, Vtype};

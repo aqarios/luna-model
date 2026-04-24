@@ -1,3 +1,5 @@
+//! Back-translation from core models into dense QUBO data.
+
 use std::collections::HashMap;
 
 use lunamodel_core::Model;

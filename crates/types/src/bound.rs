@@ -1,3 +1,5 @@
+//! Numeric bound endpoint types.
+
 use std::fmt::Display;
 
 /// One side of a variable bound interval.

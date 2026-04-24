@@ -1,3 +1,5 @@
+//! Filtering helpers for selecting solution samples.
+
 use indexmap::IndexMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 

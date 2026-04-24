@@ -1,3 +1,5 @@
+//! Python wrapper for single-sample views into a solution.
+
 use indexmap::IndexMap;
 use itertools::Itertools;
 use lunamodel_core::solution::{

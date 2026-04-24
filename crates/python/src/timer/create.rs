@@ -1,3 +1,5 @@
+//! Constructors for Python timer utilities.
+
 use pyo3::pymethods;
 
 use lunamodel_core::Timer;

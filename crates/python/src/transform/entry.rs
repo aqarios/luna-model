@@ -1,3 +1,5 @@
+//! Python-visible pipeline record entries.
+
 use lunamodel_error::LunaModelError;
 use lunamodel_transform::transformation::{
     BinarySpinPassArtifact, ChangeSensePassArtifact, EqualityConstraintsToQuadraticPenaltyArtifact,
@@ -20,7 +22,9 @@ use crate::transform::{
 #[pyclass(get_all)]
 #[derive(Clone)]
 pub struct PyErasedArtifact {
+    /// Artifact type identifier used for downcasting during restoration.
     type_tag: String,
+    /// Serialized artifact payload.
     data: Vec<u8>,
 }
 
@@ -35,6 +39,10 @@ impl From<&ErasedArtifact> for PyErasedArtifact {
 
 #[pymethods]
 impl PyErasedArtifact {
+    /// Restore the erased artifact into the first supported concrete Python wrapper.
+    ///
+    /// This mirrors the currently registered built-in transformation artifacts as
+    /// well as Python-defined transformation adapters.
     fn restore(&self, py: Python) -> PyResult<Py<PyAny>> {
         let ea = ErasedArtifact::create(self.type_tag.clone(), self.data.clone());
         if let Ok(b) = ea.restore::<BinarySpinPassArtifact>() {
@@ -99,6 +107,7 @@ pub enum PyPassEntry {
 
 #[pymethods]
 impl PyPassEntry {
+    /// Return a compact human-readable description of the entry.
     fn __str__(&self) -> String {
         match self {
             Self::Transform { pass_name, .. } => format!("TransformEntry({pass_name})"),

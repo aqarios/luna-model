@@ -1,3 +1,5 @@
+//! Fallible operator traits used throughout the core algebra APIs.
+
 use lunamodel_error::LunaModelResult;
 
 /// Fallible exponentiation used throughout LunaModel's algebra layer.

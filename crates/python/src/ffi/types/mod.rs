@@ -1,3 +1,5 @@
+//! FFI bridge helpers for Python enum wrapper types.
+
 mod comparator;
 mod ctype;
 mod sense;

@@ -1,3 +1,5 @@
+//! Mutation operations for models.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::{Sense, Vtype};
 

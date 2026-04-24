@@ -1,3 +1,4 @@
+//! Python wrappers for constraints and constraint collections.
 mod coll;
 mod constr;
 

@@ -1,3 +1,5 @@
+//! Internal helpers shared by Python solution views and iterators.
+
 use std::hash::{Hash, Hasher};
 
 use lunamodel_error::LunaModelResult;

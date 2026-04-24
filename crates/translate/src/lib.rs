@@ -1,4 +1,5 @@
 //! Translators between LunaModel structures and external model formats.
+#![allow(clippy::duplicate_mod)]
 mod target;
 
 pub mod model;

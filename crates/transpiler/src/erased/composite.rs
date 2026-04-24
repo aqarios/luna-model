@@ -1,3 +1,5 @@
+//! Object-safe runtime adapter for composite passes.
+
 use std::any::Any;
 
 use lunamodel_core::Model;

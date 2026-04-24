@@ -1,3 +1,5 @@
+//! Addition implementations for variable references.
+
 use std::ops::Add;
 
 use lunamodel_error::LunaModelResult;

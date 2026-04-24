@@ -1,3 +1,5 @@
+//! Read-only and mutable pass execution contexts.
+
 use lunamodel_error::LunaModelResult;
 
 use crate::analysis::{AnalysisKey, AnalysisManager};

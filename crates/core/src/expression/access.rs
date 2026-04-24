@@ -1,3 +1,5 @@
+//! Read-only accessors and iterators for expressions.
+
 use itertools::Itertools;
 use lunamodel_types::{Bias, VarIdx, Vtype};
 use lunamodel_utils::unique;

@@ -1,3 +1,5 @@
+//! Negation implementations for expressions.
+
 use std::ops::Neg;
 
 use crate::expression::Expression;

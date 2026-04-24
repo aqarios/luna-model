@@ -1,3 +1,4 @@
+//! Adapters that let Python-defined passes participate in the Rust transpiler runtime.
 mod analysis;
 mod composite;
 mod control_flow;

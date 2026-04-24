@@ -1,3 +1,5 @@
+//! Accessors for Python models.
+
 use lunamodel_hashing::hash_model;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};

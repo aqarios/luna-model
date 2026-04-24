@@ -1,3 +1,5 @@
+//! Artifact traits and erased artifact storage.
+
 use lunamodel_error::LunaModelResult;
 
 use crate::error::TransformationError;

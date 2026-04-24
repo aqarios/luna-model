@@ -1,3 +1,4 @@
+//! Python environment wrapper and active-environment context handling.
 mod access;
 mod cmp;
 mod context;
@@ -14,6 +15,7 @@ thread_local! {
     pub(crate) static ACTIVE_ENV: RefCell<Option<PyEnvironment>> = const { RefCell::new(None) };
 }
 
+/// Returns the currently active Python environment or a Python error if none exists.
 pub(crate) fn get_active_env() -> PyResult<PyEnvironment> {
     ACTIVE_ENV.with(|current| {
         current
@@ -28,10 +30,12 @@ pub(crate) fn get_active_env() -> PyResult<PyEnvironment> {
 #[derive(Debug)]
 #[repr(C)]
 pub struct PyEnvironment {
+    /// Shared core environment handle.
     pub env: ArcEnv,
 }
 
 impl Clone for PyEnvironment {
+    /// Clones the shared environment handle.
     fn clone(&self) -> Self {
         PyEnvironment {
             env: self.env.clone(),
@@ -40,12 +44,14 @@ impl Clone for PyEnvironment {
 }
 
 impl From<Environment> for PyEnvironment {
+    /// Wraps an owned core environment for Python.
     fn from(env: Environment) -> Self {
         Self { env: env.into() }
     }
 }
 
 impl From<ArcEnv> for PyEnvironment {
+    /// Wraps a shared core environment for Python.
     fn from(env: ArcEnv) -> Self {
         Self { env }
     }
@@ -53,6 +59,7 @@ impl From<ArcEnv> for PyEnvironment {
 
 impl TryFrom<Option<PyEnvironment>> for PyEnvironment {
     type Error = PyErr;
+    /// Resolves an optional environment, falling back to the active context.
     fn try_from(value: Option<PyEnvironment>) -> Result<Self, Self::Error> {
         match value {
             Some(env) => Ok(env.clone()),
@@ -62,6 +69,7 @@ impl TryFrom<Option<PyEnvironment>> for PyEnvironment {
 }
 
 impl PyEnvironment {
+    /// Creates a Python wrapper from an owned core environment.
     pub(crate) fn new(e: Environment) -> Self {
         PyEnvironment { env: e.into() }
     }

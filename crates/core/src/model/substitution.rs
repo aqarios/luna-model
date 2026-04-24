@@ -1,3 +1,5 @@
+//! Variable-substitution helpers for models.
+
 use lunamodel_error::LunaModelResult;
 
 use crate::{expression::Expression, variable::VarRef};

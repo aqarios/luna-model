@@ -1,3 +1,5 @@
+//! Read-only accessors and views over solutions.
+
 use std::ops::Index;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};

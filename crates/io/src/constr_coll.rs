@@ -1,3 +1,5 @@
+//! Formatting helpers for constraint collections.
+
 use lunamodel_core::ConstraintCollection;
 
 use crate::{CustomFormat, FormatOpt};

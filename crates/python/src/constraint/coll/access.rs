@@ -1,3 +1,5 @@
+//! Accessors for Python constraint collections.
+
 use lunamodel_core::prelude::ContentEquality;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};

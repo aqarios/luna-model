@@ -1,3 +1,5 @@
+//! Analysis pass that infers structural model specs.
+
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, analysis};

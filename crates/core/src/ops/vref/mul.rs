@@ -1,3 +1,5 @@
+//! Multiplication implementations for variable references.
+
 use std::ops::Mul;
 
 use crate::{

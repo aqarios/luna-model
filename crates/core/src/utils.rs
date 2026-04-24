@@ -1,3 +1,5 @@
+//! Small utility helpers shared across the core crate.
+
 use std::{fmt::Debug, ops::Mul};
 
 use lunamodel_error::{LunaModelError, LunaModelResult};

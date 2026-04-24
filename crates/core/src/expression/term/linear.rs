@@ -1,3 +1,5 @@
+//! Sparse storage for linear expression terms.
+
 use lunamodel_types::{Bias, DEFAULT_BIAS, VarIdx};
 
 use crate::traits::Editable;

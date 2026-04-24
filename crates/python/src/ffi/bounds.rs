@@ -1,3 +1,5 @@
+//! Low-level capsule and pointer FFI helpers for Python bounds wrappers.
+
 use std::ffi::CStr;
 use std::sync::Arc;
 

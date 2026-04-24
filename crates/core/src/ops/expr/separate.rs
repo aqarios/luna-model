@@ -1,3 +1,5 @@
+//! Helpers that separate expressions by variable membership.
+
 use itertools::Itertools;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::VarIdx;

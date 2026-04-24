@@ -1,3 +1,5 @@
+//! Typed analysis keys and analysis storage.
+
 use std::{any::Any, collections::HashMap, fmt::Debug, marker::PhantomData, sync::Arc};
 
 use lunamodel_error::LunaModelResult;

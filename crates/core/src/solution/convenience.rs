@@ -1,3 +1,5 @@
+//! Convenience statistics and helper queries for solutions.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 use std::collections::HashMap;

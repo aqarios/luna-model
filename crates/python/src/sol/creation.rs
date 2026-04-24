@@ -1,3 +1,5 @@
+//! Constructors for Python solutions.
+
 use indexmap::IndexMap;
 use itertools::Either;
 use lunamodel_core::solution::{Assignment, Column};

@@ -1,3 +1,5 @@
+//! Python wrapper for solution value-source enums.
+
 use lunamodel_core::ValueSource;
 use pyo3::pyclass;
 

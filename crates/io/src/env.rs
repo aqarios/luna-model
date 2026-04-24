@@ -1,3 +1,5 @@
+//! Formatting helpers for environments.
+
 use lunamodel_core::Environment;
 
 use crate::{CustomFormat, FormatOpt};

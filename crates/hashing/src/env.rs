@@ -1,3 +1,5 @@
+//! Hash encoding for environments.
+
 use lunamodel_core::ArcEnv;
 use lunamodel_types::{Bound, Vtype};
 use prost::Message;

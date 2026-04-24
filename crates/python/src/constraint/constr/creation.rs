@@ -1,3 +1,5 @@
+//! Constructors for Python constraint wrappers.
+
 use lunamodel_core::{
     Expression,
     prelude::{Constraint, VarRef},

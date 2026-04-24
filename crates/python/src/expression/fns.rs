@@ -1,3 +1,5 @@
+//! Miscellaneous expression helper functions exposed to Python.
+
 use indexmap::IndexMap;
 use lunamodel_core::{TryIndex, prelude::VarRef, solution::sample::SampleView};
 use lunamodel_error::LunaModelError;

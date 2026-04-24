@@ -1,3 +1,5 @@
+//! Accessors for Python expressions.
+
 use lunamodel_types::VarIdx;
 use lunamodel_unwind::*;
 use pyo3::pymethods;

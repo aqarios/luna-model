@@ -1,3 +1,5 @@
+//! Formatting helpers for solutions and solution views.
+
 use lunamodel_core::Solution;
 
 use crate::{CustomFormat, FormatOpt};

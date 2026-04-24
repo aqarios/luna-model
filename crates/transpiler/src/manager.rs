@@ -1,3 +1,5 @@
+//! Pass-manager execution engine.
+
 use std::{collections::HashSet, sync::Arc};
 
 use lunamodel_core::Model;

@@ -1,3 +1,5 @@
+//! Mutation operations for Python constraint collections.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_unwind::*;
 use pyo3::{FromPyObject, PyResult, Python, pymethods};
@@ -21,22 +23,6 @@ enum Other {
 #[pymethods]
 impl PyConstraintCollection {
     /// In-place constraint addition using `+=`.
-    ///
-    /// Parameters
-    /// ----------
-    /// constraint : Constraint | tuple[Constraint, str] | ConstraintCollection |
-    /// tuple[ConstraintCollection, str] | Sequence[Constraint]
-    ///     The constraint to add.
-    ///
-    /// Returns
-    /// -------
-    /// ConstraintCollection
-    ///     The updated collection.
-    ///
-    /// Raises
-    /// ------
-    /// TypeError
-    ///     If the value is not a `Constraint` or valid symbolic comparison.
     fn __iadd__(&mut self, py: Python, other: Other) -> PyResult<()> {
         let _: () = match other {
             Other::Constr(constr) => {
@@ -55,13 +41,6 @@ impl PyConstraintCollection {
     }
 
     /// Add a constraint to the collection.
-    ///
-    /// Parameters
-    /// ----------
-    /// constraint : Constraint
-    ///     The constraint to be added.
-    /// name : str, optional
-    ///     The name of the constraint to be added.
     fn add_constraint(&mut self, constr: PyCArg, name: Option<String>) -> PyResult<String> {
         Ok(self
             .write()

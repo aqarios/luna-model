@@ -1,3 +1,5 @@
+//! Shared helpers for serializer implementations.
+
 use lunamodel_types::Vtype;
 
 /// Implementation of this trait on any type ensures that the respective type can be expressed

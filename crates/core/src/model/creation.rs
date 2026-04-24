@@ -1,3 +1,5 @@
+//! Constructors and setup helpers for models.
+
 use super::Model;
 use crate::{ArcEnv, ConstraintCollection, Expression, model::Sense};
 

@@ -1,3 +1,5 @@
+//! Shared helper types and functions used by operator implementations.
+
 use std::fmt::Debug;
 use std::ops::Mul;
 

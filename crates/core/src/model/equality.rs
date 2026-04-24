@@ -1,3 +1,5 @@
+//! Equality implementations for models.
+
 use super::Model;
 use crate::traits::ContentEquality;
 

@@ -1,3 +1,5 @@
+//! View type for one evaluated solution row.
+
 use std::ops::Index;
 
 use derive_more::Deref;

@@ -1,3 +1,5 @@
+//! Metadata about where solution values originated.
+
 use std::fmt::Display;
 
 /// Selects which scalar value series a convenience statistic should use.

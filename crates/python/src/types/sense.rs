@@ -1,3 +1,5 @@
+//! Python wrapper for objective-sense enums.
+
 use lunamodel_types::Sense;
 use pyo3::pyclass;
 

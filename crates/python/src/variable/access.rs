@@ -1,3 +1,5 @@
+//! Accessors for Python variables.
+
 use lunamodel_unwind::*;
 use pyo3::prelude::*;
 

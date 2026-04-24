@@ -1,3 +1,5 @@
+//! Version 0 timing encoding.
+
 use lunamodel_core::Timing;
 use lunamodel_error::LunaModelResult;
 use prost::Message;

@@ -1,3 +1,5 @@
+//! Variable-type enum definitions.
+
 use enumset::{EnumSet, EnumSetType};
 use strum_macros::{Display, EnumIter, EnumString};
 

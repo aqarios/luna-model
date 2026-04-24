@@ -1,3 +1,5 @@
+//! Python wrapper for `>=` to `<=` constraint normalization.
+
 use lunamodel_python_macros::pytransformation;
 use lunamodel_transform::transformation::{GeToLeConstraintsArtifact, GeToLeConstraintsPass};
 use lunamodel_transpiler::Artifact;

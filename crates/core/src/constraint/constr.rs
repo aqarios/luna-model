@@ -1,3 +1,5 @@
+//! Core constraint representation and validation helpers.
+
 use std::ops::Sub;
 
 use global_counter::primitive::exact::CounterU64;

@@ -1,3 +1,5 @@
+//! Environment-level validation helpers.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::VarIdx;
 use std::collections::HashMap;

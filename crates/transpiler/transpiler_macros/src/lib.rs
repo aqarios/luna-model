@@ -1,3 +1,5 @@
+//! Proc macros used by transpiler pass implementations.
+
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{ItemStruct, parse_macro_input};

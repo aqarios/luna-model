@@ -1,3 +1,5 @@
+//! Format-option enums used by custom display implementations.
+
 #[cfg(feature = "py")]
 use pyo3::{FromPyObject, PyErr, exceptions::PyValueError};
 

@@ -1,3 +1,5 @@
+//! Version 0 serializer for models.
+
 mod decode;
 mod encode;
 

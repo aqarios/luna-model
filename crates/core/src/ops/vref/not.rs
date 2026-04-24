@@ -1,3 +1,5 @@
+//! Logical inversion helpers for variable references.
+
 use std::ops::Not;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};

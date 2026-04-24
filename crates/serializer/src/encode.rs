@@ -1,3 +1,5 @@
+//! Core encoding and decoding traits used by the serializer crate.
+
 use super::{
     compress::Compressable,
     utils::Slicable,

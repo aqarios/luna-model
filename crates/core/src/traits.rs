@@ -1,3 +1,5 @@
+//! Shared helper traits used across core data structures.
+
 use std::error::Error;
 
 /// Semantic equality that can ignore identity details.

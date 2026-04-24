@@ -1,3 +1,5 @@
+//! Pass logic for equality-to-quadratic-penalty conversion.
+
 use lunamodel_core::{
     Model, Solution,
     ops::{LmAddAssign, LmPowAssign},

@@ -1,3 +1,5 @@
+//! Substitution helpers for expressions.
+
 use std::ops::Mul;
 
 use itertools::Itertools;

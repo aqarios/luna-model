@@ -1,3 +1,5 @@
+//! Shared, lock-backed environment wrapper.
+
 use derive_more::Deref;
 use parking_lot::RwLock;
 use std::sync::Arc;

@@ -1,3 +1,5 @@
+//! Pass logic for binary-to-spin conversion.
+
 use std::ops::{Add, Mul};
 
 use lunamodel_core::{Environment, Model, Solution, solution::Column};

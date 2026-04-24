@@ -1,3 +1,5 @@
+//! Lazily validated bounds representation.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bound, Vtype};
 

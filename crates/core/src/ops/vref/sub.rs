@@ -1,3 +1,5 @@
+//! Subtraction implementations for variable references.
+
 use std::ops::{Add, Sub};
 
 use lunamodel_error::LunaModelResult;

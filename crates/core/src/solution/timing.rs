@@ -1,3 +1,5 @@
+//! Timing metadata carried alongside solutions.
+
 use std::time::{Duration, SystemTime};
 
 use lunamodel_error::{LunaModelError, LunaModelResult};

@@ -1,3 +1,5 @@
+//! Traits for passes that support backwards execution on solutions.
+
 use lunamodel_core::Solution;
 use lunamodel_error::LunaModelResult;
 

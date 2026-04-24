@@ -1,3 +1,5 @@
+//! Strongly typed wrappers for internal variable identifiers.
+
 use crate::dtypes::VarIdx;
 use derive_more::{Deref, DerefMut};
 

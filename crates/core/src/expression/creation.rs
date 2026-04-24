@@ -1,3 +1,5 @@
+//! Constructors and conversion helpers for expressions.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
 

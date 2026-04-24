@@ -1,3 +1,5 @@
+//! Version 0 decoding for constraints.
+
 use indexmap::IndexMap;
 use lunamodel_core::{ArcEnv, ConstraintCollection, prelude::Constraint};
 use lunamodel_error::LunaModelResult;
@@ -9,12 +11,14 @@ use crate::encode::{BytesDecodable, Decodable};
 use super::SerConstraintCollection;
 
 impl BytesDecodable<ConstraintCollection, ArcEnv> for SerConstraintCollection {
+    /// Decodes version-0 bytes into a constraint collection tied to `payload`.
     fn decode_from_bytes(bytes: &[u8], payload: ArcEnv) -> LunaModelResult<ConstraintCollection> {
         Self::decode(bytes)?.extract(payload)
     }
 }
 
 impl SerConstraintCollection {
+    /// Extracts the runtime constraint collection from the protobuf structure.
     pub fn extract(&self, env: ArcEnv) -> LunaModelResult<ConstraintCollection> {
         let mut constraints = IndexMap::new();
 

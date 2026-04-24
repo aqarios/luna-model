@@ -1,3 +1,5 @@
+//! Python wrapper for model-spec inference analysis.
+
 use lunamodel_python_macros::pyanalysis;
 use lunamodel_transform::analysis::SpecsAnalysis;
 use pyo3::pymethods;

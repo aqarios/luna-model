@@ -1,3 +1,5 @@
+//! Hash encoding for models.
+
 use lunamodel_core::Model;
 use prost::Message;
 

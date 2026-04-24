@@ -1,3 +1,5 @@
+//! Subtraction implementations for expressions.
+
 use crate::ops::LmAddAssign;
 use crate::{expression::Expression, variable::VarRef};
 use crate::{rsubs, subs};

@@ -1,3 +1,5 @@
+//! Formatting helpers for timing values.
+
 use lunamodel_core::Timing;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 

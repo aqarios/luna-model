@@ -1,3 +1,5 @@
+//! Pass logic for rewriting `<=` constraints into equalities.
+
 use lunamodel_core::{Model, Solution, ops::LmSubAssign, prelude::LazyBounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{

@@ -1,3 +1,5 @@
+//! Constructors for Python bounds wrappers.
+
 use lunamodel_core::prelude::LazyBounds;
 use lunamodel_unwind::*;
 use pyo3::pymethods;

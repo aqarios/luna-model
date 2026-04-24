@@ -1,3 +1,5 @@
+//! Structural model-spec representations.
+
 use std::fmt::Display;
 
 use enumset::{EnumSet, EnumSetType};

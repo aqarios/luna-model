@@ -1,3 +1,5 @@
+//! Public translation-target enum definitions.
+
 use strum_macros::Display;
 
 /// Canonical model translation targets supported by LunaModel.

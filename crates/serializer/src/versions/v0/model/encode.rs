@@ -1,3 +1,5 @@
+//! Version 0 encoding for models.
+
 use lunamodel_core::Model;
 use prost::Message;
 

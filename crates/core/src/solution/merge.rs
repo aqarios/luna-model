@@ -1,3 +1,5 @@
+//! Merge helpers for combining solution tables.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 
 use super::Solution;

@@ -1,3 +1,5 @@
+//! Accessors for Python model specs.
+
 use lunamodel_types::{Ctype, EnumSetFromVec, Specs, Vtype};
 use lunamodel_unwind::*;
 use pyo3::pymethods;

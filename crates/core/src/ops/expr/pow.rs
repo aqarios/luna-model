@@ -1,3 +1,5 @@
+//! Exponentiation helpers for expressions.
+
 use crate::{
     Expression,
     ops::{LmMulAssign, LmPow, LmPowAssign},

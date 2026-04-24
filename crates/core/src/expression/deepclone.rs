@@ -1,3 +1,5 @@
+//! Deep-cloning helpers for expressions.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 
 use super::Expression;

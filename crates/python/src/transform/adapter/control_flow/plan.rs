@@ -1,3 +1,5 @@
+//! Python wrappers for control-flow execution plans.
+
 use lunamodel_transpiler::ControlFlowPlan;
 use pyo3::{PyResult, Python, pyclass, pymethods};
 

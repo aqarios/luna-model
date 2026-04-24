@@ -1,3 +1,5 @@
+//! Metadata helpers for Python model wrappers.
+
 use std::fmt::Display;
 use std::sync::Arc;
 

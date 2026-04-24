@@ -1,3 +1,5 @@
+//! MPS parser and intermediate representation.
+
 use lunamodel_core::prelude::LazyBounds;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Bound, Comparator, Sense};

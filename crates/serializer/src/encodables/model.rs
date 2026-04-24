@@ -1,3 +1,5 @@
+//! Version-independent encoding glue for models.
+
 use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerModel as SerModelV0;

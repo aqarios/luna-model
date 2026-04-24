@@ -1,3 +1,5 @@
+//! Deep-cloning helpers for models.
+
 use super::Model;
 
 impl Model {

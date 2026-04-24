@@ -1,3 +1,5 @@
+//! Multiplication helpers for linear sparse term storage.
+
 use lunamodel_types::Bias;
 
 use crate::{
@@ -13,8 +15,7 @@ impl PrvMul<&VarRef> for &Linear {
     ///
     ///   type Output = LunaModelResult<impl Iterator<Item = VarMulRes>>;
     ///   `impl Trait` in associated types is unstable
-    ///   see issue #63063 <https://github.com/rust-lang/rust/issues/63063>
-    ///   for more information [E0658]
+    ///   see issue #63063 <https://github.com/rust-lang/rust/issues/63063>.
     type Output = Vec<VarMulRes>;
 
     /// Multiplies each linear term by a single variable reference.
@@ -33,31 +34,6 @@ impl PrvMul<Bias> for &Linear {
             .collect()
     }
 }
-
-// trait L<A> {
-//     fn len(&self) -> usize;
-//     fn iter(&self) -> dyn Iterator<Item = A>;
-// }
-//
-// impl<T, A> PrvMul<(&T, &ArcEnv)> for &Linear
-// where
-//     for<'i> &'i T: L<A>,
-//     for<'v> &'v VarRef: PrvMul<A, Output = VarMulRes>,
-// {
-//     type Output = Vec<VarMulRes>;
-//
-//     fn m(self, rhs: (&T, &ArcEnv)) -> Self::Output {
-//         let (r, env) = rhs;
-//         let mut res = Vec::with_capacity(self.len() + r.len());
-//         for (u, ub) in self.iter() {
-//             let vref = &VarRef::new(u, env.clone());
-//             for o in &mut r.iter() {
-//                 res.push(vref.m(o) * ub);
-//             }
-//         }
-//         res
-//     }
-// }
 
 impl PrvMul<(&Linear, &ArcEnv)> for &Linear {
     type Output = Vec<VarMulRes>;

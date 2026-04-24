@@ -1,3 +1,5 @@
+//! `From` conversions into the shared LunaModel error type.
+
 use std::io;
 
 use crate::LunaModelError;

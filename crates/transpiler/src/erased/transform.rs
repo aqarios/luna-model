@@ -1,3 +1,5 @@
+//! Object-safe runtime adapter for transformation passes.
+
 use std::any::Any;
 
 use lunamodel_core::Model;

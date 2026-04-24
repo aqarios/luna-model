@@ -1,3 +1,5 @@
+//! Constructors and conversions for solutions.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Vtype;
 

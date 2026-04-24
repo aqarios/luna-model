@@ -1,3 +1,5 @@
+//! Serializable artifact helpers for binary-to-spin conversion.
+
 use std::str::FromStr;
 
 use lunamodel_error::LunaModelResult;

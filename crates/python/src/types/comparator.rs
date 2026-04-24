@@ -1,3 +1,5 @@
+//! Python wrapper for comparator enums.
+
 use lunamodel_types::Comparator;
 use pyo3::pyclass;
 

@@ -1,3 +1,5 @@
+//! Filtering helpers for Python solutions.
+
 use lunamodel_core::Solution;
 use lunamodel_error::LunaModelError;
 use lunamodel_unwind::*;

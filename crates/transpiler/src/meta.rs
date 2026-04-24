@@ -1,3 +1,5 @@
+//! Trait definitions for meta-analysis passes.
+
 use lunamodel_error::LunaModelResult;
 
 use crate::{AnalysisKey, PipelineStep};

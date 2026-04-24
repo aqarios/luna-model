@@ -1,3 +1,10 @@
+//! Shared storage for Python expressions.
+//!
+//! `PyExpression` sometimes owns a standalone [`Expression`] and sometimes
+//! provides a mutable view onto a model objective. `PyExprContent` abstracts
+//! over those two cases so the Python API can expose one expression wrapper
+//! without forcing model objectives to be eagerly copied out of the model.
+
 use lunamodel_core::{
     ops::{LmAddAssign, LmMulAssign, LmPow, LmPowAssign, LmSubAssign},
     prelude::{ContentEquality, Expression, Model, VarRef},
@@ -12,7 +19,9 @@ use std::{
 
 #[derive(Debug)]
 pub enum PyExprContent {
+    /// A standalone expression wrapper backed by its own lock.
     Expr(Arc<RwLock<Expression>>),
+    /// A borrowed view onto a model whose objective acts as the expression.
     Model(Arc<RwLock<Model>>),
 }
 
@@ -26,6 +35,11 @@ impl Clone for PyExprContent {
 }
 
 impl From<PyExprContent> for Expression {
+    /// Detach the Python content from its wrapper and clone out an owned
+    /// expression.
+    ///
+    /// Model-backed content clones the current objective, which intentionally
+    /// breaks the live link to the source model.
     fn from(val: PyExprContent) -> Self {
         match val {
             PyExprContent::Expr(e) => e.read_arc().clone(),
@@ -35,6 +49,8 @@ impl From<PyExprContent> for Expression {
 }
 
 impl PyExprContent {
+    /// Evaluate addition against the wrapped expression without exposing lock
+    /// guards to the caller.
     pub fn add<T>(&self, other: T) -> LunaModelResult<Expression>
     where
         for<'e> &'e Expression: Add<T, Output = LunaModelResult<Expression>>,
@@ -42,6 +58,7 @@ impl PyExprContent {
         self.read_with(|e| e.add(other))
     }
 
+    /// Evaluate subtraction against the wrapped expression.
     pub fn sub<T>(&self, other: T) -> LunaModelResult<Expression>
     where
         for<'e> &'e Expression: Sub<T, Output = LunaModelResult<Expression>>,
@@ -49,6 +66,7 @@ impl PyExprContent {
         self.read_with(|e| e.sub(other))
     }
 
+    /// Evaluate multiplication against the wrapped expression.
     pub fn mul<T>(&self, other: T) -> LunaModelResult<Expression>
     where
         for<'e> &'e Expression: Mul<T, Output = LunaModelResult<Expression>>,
@@ -56,10 +74,12 @@ impl PyExprContent {
         self.read_with(|e| e.mul(other))
     }
 
+    /// Raise the wrapped expression to an integer power.
     pub fn pow(&self, v: usize) -> LunaModelResult<Expression> {
         self.read_with(|e| e.pow(v))
     }
 
+    /// Mutate the wrapped expression in place by adding `other`.
     pub fn add_assign<T>(&mut self, other: T) -> LunaModelResult<()>
     where
         Expression: LmAddAssign<T>,
@@ -67,6 +87,7 @@ impl PyExprContent {
         self.write_with(|e| e.add_assign(other))
     }
 
+    /// Mutate the wrapped expression in place by subtracting `other`.
     pub fn sub_assign<T>(&mut self, other: T) -> LunaModelResult<()>
     where
         Expression: LmSubAssign<T>,
@@ -74,6 +95,7 @@ impl PyExprContent {
         self.write_with(|e| e.sub_assign(other))
     }
 
+    /// Mutate the wrapped expression in place by multiplying by `other`.
     pub fn mul_assign<T>(&mut self, other: T) -> LunaModelResult<()>
     where
         Expression: LmMulAssign<T>,
@@ -81,10 +103,15 @@ impl PyExprContent {
         self.write_with(|e| e.mul_assign(other))
     }
 
+    /// Mutate the wrapped expression in place by repeated multiplication.
     pub fn pow_assign(&mut self, v: usize) -> LunaModelResult<()> {
         self.write_with(|e| e.pow_assign(v))
     }
 
+    /// Substitute one variable reference with another expression.
+    ///
+    /// For model-backed content this rewrites the live objective in place when
+    /// used through the assignment-oriented APIs.
     pub fn substitute(
         &self,
         target: &VarRef,
@@ -171,10 +198,12 @@ impl ContentEquality for PyExprContent {
 }
 
 impl CustomFormat<FormatOpt> for PyExprContent {
+    /// Delegate formatting to the current expression view.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         self.read_with(|e| e.fmt(f, format_type))
     }
 
+    /// Delegate debug formatting to the current expression view.
     fn dbg(&self, f: &mut std::fmt::Formatter<'_>, format_type: &FormatOpt) -> std::fmt::Result {
         self.read_with(|e| e.dbg(f, format_type))
     }

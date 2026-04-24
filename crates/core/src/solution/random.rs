@@ -1,3 +1,5 @@
+//! Random solution generation helpers for testing and exploration.
+
 use indexmap::IndexMap;
 use itertools::Either;
 use lunamodel_error::{LunaModelError, LunaModelResult};

@@ -1,3 +1,5 @@
+//! Lightweight variable references bound to a shared environment.
+
 use std::{
     fmt::{Debug, Display},
     hash::{DefaultHasher, Hash, Hasher},

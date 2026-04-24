@@ -1,3 +1,5 @@
+//! Constructors for the Python `Expression` wrapper.
+
 use lunamodel_core::{Expression, ops::LmAddAssign};
 use lunamodel_unwind::*;
 use pyo3::prelude::*;
@@ -14,7 +16,7 @@ impl PyExpression {
     /// env : Environment
     ///     The environment to which this expression is bound.
     ///
-    /// aises
+    /// Raises
     /// ------
     /// NoActiveEnvironmentFoundError
     ///     If no environment is provided and none is active in the context.
@@ -25,6 +27,10 @@ impl PyExpression {
         Ok(PyExpression::new(Expression::empty(pyenv.env)))
     }
 
+    /// Create a constant expression in the requested environment.
+    ///
+    /// The implementation goes through `LmAddAssign` so constant creation shares
+    /// the same normalization rules as other expression-building paths.
     #[staticmethod]
     #[pyo3(name="const", signature=(val, env=None))]
     pub fn constant(val: f64, env: Option<PyEnvArg>) -> PyResult<Self> {

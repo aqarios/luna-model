@@ -1,3 +1,4 @@
+//! Python argument wrapper types used for flexible `pyo3` extraction.
 mod bounds;
 mod collection;
 mod constraint;

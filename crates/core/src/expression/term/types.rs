@@ -1,3 +1,5 @@
+//! Shared helper types used by sparse term storage implementations.
+
 use lunamodel_types::{Bias, VarIdx};
 
 use derive_more::{Deref, DerefMut};

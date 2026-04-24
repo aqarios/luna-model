@@ -1,3 +1,5 @@
+//! Equality implementations for expressions and expression storage components.
+
 use crate::traits::ContentEquality;
 
 use super::Expression;

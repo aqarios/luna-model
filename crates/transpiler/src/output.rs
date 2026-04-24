@@ -1,3 +1,5 @@
+//! Forward execution output structures.
+
 use lunamodel_core::Model;
 
 use crate::{AnalysisManager, TransformationRecord};

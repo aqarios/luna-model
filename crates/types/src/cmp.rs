@@ -1,3 +1,5 @@
+//! Comparator and constraint-type enums shared across the workspace.
+
 use strum_macros::Display;
 
 use crate::Bias;

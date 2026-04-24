@@ -1,3 +1,5 @@
+//! Hash encoding for expressions.
+
 use prost::Message;
 
 use lunamodel_core::Expression;

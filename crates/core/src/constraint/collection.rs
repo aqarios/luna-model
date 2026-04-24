@@ -1,3 +1,5 @@
+//! Ordered storage for named constraints.
+
 use crate::{Expression, environment::ArcEnv, traits::ContentEquality, variable::VarRef};
 use indexmap::IndexMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
@@ -14,10 +16,6 @@ use super::constr::Constraint;
 /// serialization, translation, and developer-facing debugging.
 #[derive(Default, Debug, Clone)]
 pub struct ConstraintCollection {
-    /// A map to help in indexing into this collection when [ConstraintKey].
-    /// Supports both [ConstraintKey::Str] and [ConstraintKey::Int] but [ConstraintKey::Int] is
-    /// not reliable as the order might change when constraints are removed or readded.
-    /// [ConstraintKey::Int] will be deprecated going forward.
     data: IndexMap<String, Constraint>,
 }
 

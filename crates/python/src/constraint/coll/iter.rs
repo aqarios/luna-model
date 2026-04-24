@@ -1,3 +1,5 @@
+//! Iteration support for Python constraint collections.
+
 use lunamodel_unwind::*;
 use pyo3::{PyRef, PyRefMut, PyResult, pyclass, pymethods};
 

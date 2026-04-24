@@ -1,3 +1,5 @@
+//! Serialization helpers for Python models.
+
 use lunamodel_core::Model;
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use lunamodel_unwind::*;

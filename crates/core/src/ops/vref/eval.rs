@@ -1,3 +1,5 @@
+//! Evaluation helpers for individual variable references.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
 

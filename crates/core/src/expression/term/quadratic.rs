@@ -1,3 +1,5 @@
+//! Sparse storage for quadratic expression terms.
+
 use crate::traits::Editable;
 
 use super::types::{Neighborhood, TwoVarTerm};

@@ -1,3 +1,5 @@
+//! Analysis pass that computes the maximum absolute bias magnitude.
+
 use num::abs;
 
 use lunamodel_core::Model;

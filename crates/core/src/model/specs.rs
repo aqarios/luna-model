@@ -1,3 +1,5 @@
+//! Structural spec checks for models.
+
 use enumset::EnumSet;
 use lunamodel_types::{Comparator, Ctype, Specs};
 

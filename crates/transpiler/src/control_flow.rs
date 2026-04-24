@@ -1,3 +1,5 @@
+//! Trait definitions for control-flow passes and execution plans.
+
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 

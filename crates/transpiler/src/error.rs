@@ -1,3 +1,5 @@
+//! Errors originating from pass orchestration and pipeline validation.
+
 use std::fmt::Display;
 
 use lunamodel_error::{ErrString, LunaModelError};

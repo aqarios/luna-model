@@ -1,3 +1,5 @@
+//! Multiplication helpers for higher-order sparse term storage.
+
 use lunamodel_types::Bias;
 
 use crate::{

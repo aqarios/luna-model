@@ -1,3 +1,5 @@
+//! Generated mixed-reference multiplication implementations.
+
 #[macro_export]
 macro_rules! muls {
     ($L:ty => $( $R:ty ) ,+ $(,)?) => {

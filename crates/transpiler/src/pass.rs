@@ -1,3 +1,5 @@
+//! Trait definitions for reversible transformation and analysis passes.
+
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 

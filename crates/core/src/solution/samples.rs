@@ -1,3 +1,5 @@
+//! Sample-level helper abstractions over solutions.
+
 // use std::ops::Index;
 //
 // use indexmap::IndexMap;

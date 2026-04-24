@@ -1,3 +1,5 @@
+//! Strongly typed wrappers for variable names.
+
 use std::fmt::Display;
 
 use derive_more::{Deref, DerefMut};

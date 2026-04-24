@@ -1,3 +1,5 @@
+//! Negation helpers for variable references.
+
 use std::ops::Neg;
 
 use lunamodel_error::LunaModelResult;

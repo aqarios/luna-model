@@ -1,3 +1,5 @@
+//! Python operator overloads for variable wrappers.
+
 use lunamodel_core::ops::LmPow;
 use lunamodel_error::py::PyLunaModelError;
 use lunamodel_unwind::*;

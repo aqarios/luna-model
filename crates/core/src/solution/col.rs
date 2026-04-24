@@ -1,3 +1,5 @@
+//! Column storage primitives used by solutions.
+
 use std::{
     fmt::{Debug, Display},
     marker::PhantomData,

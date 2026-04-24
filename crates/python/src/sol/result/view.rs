@@ -1,3 +1,5 @@
+//! Python wrapper for single-result views into a solution.
+
 use std::collections::HashMap;
 
 use lunamodel_core::solution::result::ResultView;

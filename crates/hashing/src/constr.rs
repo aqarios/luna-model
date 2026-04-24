@@ -1,3 +1,5 @@
+//! Hash encoding for constraints and constraint collections.
+
 use lunamodel_core::ConstraintCollection;
 use lunamodel_types::Comparator;
 use prost::Message;

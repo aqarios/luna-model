@@ -1,3 +1,5 @@
+//! Base wrapper traits for Python-defined transformation passes.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 
 use crate::transform::envelope::{Envelope, EnvelopeUtils};

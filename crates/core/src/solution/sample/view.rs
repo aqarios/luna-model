@@ -1,3 +1,5 @@
+//! View type for one raw sample row inside a solution.
+
 use std::{fmt::Display, ops::Index};
 
 use itertools::Itertools;

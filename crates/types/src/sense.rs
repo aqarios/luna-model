@@ -1,3 +1,5 @@
+//! Objective-sense enum definitions.
+
 use std::ops::Not;
 
 use strum_macros::{Display, EnumString};

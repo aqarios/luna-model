@@ -1,3 +1,5 @@
+//! Internal helper types shared across Python wrapper modules.
+
 use std::fmt::Display;
 
 use crate::{

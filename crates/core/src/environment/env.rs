@@ -1,3 +1,5 @@
+//! Concrete mutable environment implementation.
+
 use std::{
     fmt::Display,
     ops::{Index, IndexMut},

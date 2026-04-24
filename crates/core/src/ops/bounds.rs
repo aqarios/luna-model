@@ -1,3 +1,5 @@
+//! Evaluation and helper operations for bounds.
+
 use lunamodel_types::{Bias, Bound};
 
 use crate::bounds::Bounds;

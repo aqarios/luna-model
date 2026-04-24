@@ -1,3 +1,5 @@
+//! Column-oriented solution tables and related view types.
+
 mod access;
 mod col;
 mod convenience;

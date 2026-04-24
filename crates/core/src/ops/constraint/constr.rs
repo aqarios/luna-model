@@ -1,3 +1,5 @@
+//! Operator implementations involving individual constraints.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 

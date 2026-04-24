@@ -1,3 +1,5 @@
+//! Concrete, fully validated bounds representation.
+
 use lunamodel_types::{Bound, Vtype};
 
 use crate::bounds::LazyBounds;
@@ -64,7 +66,7 @@ impl Bounds {
     /// Returns the default domain for integer variables.
     ///
     /// Integer variables are lower-bounded at zero unless callers override the
-    /// bounds explicitly through [`LazyBounds`](crate::bounds::LazyBounds).
+    /// bounds explicitly through [`LazyBounds`].
     pub fn integer() -> Self {
         Self {
             lower: Bound::Bounded(0.0),

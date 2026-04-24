@@ -1,3 +1,5 @@
+//! Read-only accessors for models.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Vtype;
 use lunamodel_utils::{unique, unique_by};
