@@ -4,10 +4,6 @@ use std::fmt::Display;
 
 use lunamodel_error::{ErrString, LunaModelError};
 
-// TODO(team): validation error should be part of TransformationError not how it's currently done.
-/// Wrapper used when a pipeline fails static requirement validation.
-pub struct ValidationError(pub TransformationError);
-
 /// Errors originating from pass orchestration rather than domain modeling itself.
 pub enum TransformationError {
     /// A requested analysis result was missing.
@@ -66,12 +62,5 @@ impl From<TransformationError> for LunaModelError {
     /// Maps orchestration failures into the compilation error category.
     fn from(value: TransformationError) -> Self {
         Self::Compilation(value.into())
-    }
-}
-
-impl From<ValidationError> for LunaModelError {
-    /// Maps validation failures into the compilation error category.
-    fn from(value: ValidationError) -> Self {
-        Self::Compilation(format!("validation failed: {}", value.0).into())
     }
 }
