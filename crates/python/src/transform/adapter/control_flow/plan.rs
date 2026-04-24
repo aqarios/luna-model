@@ -21,7 +21,10 @@ impl PyControlFlowPlan {
         self.0.name().to_string()
     }
 
-    // TODO: steps getter?
+    // #[getter]
+    // fn steps(&self, py: Python) -> PyResult<Vec<Py<PyAny>>> {
+    //     Ok(self.0.steps().to_pypasses(py)?)
+    // }
 }
 
 impl From<ControlFlowPlan> for PyControlFlowPlan {
