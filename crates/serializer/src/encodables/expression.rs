@@ -13,6 +13,7 @@ use lunamodel_error::LunaModelResult;
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
 // TODO: delete until TODO(@HERE) and uncomment from TODO(@HERE) for V1 activation.
+// Issue(474): <https://github.com/aqarios/luna-model/issues/474>
 type SerExprLatest = SerExprV0;
 /// Makes an [Expression] encodable.
 impl Encodable<SerExprV0> for Expression {
@@ -22,6 +23,7 @@ impl Encodable<SerExprV0> for Expression {
 }
 impl Decoder<Expression, ArcEnv> for SerExprV1 {}
 // TODO: delete ABOVE code and activate below code for V1 activation.
+// Issue(474): <https://github.com/aqarios/luna-model/issues/474>
 // type SerExprLatest = SerExprV1;
 // /// Makes an [Expression] encodable.
 // impl Encodable<SerExprV1> for Expression {

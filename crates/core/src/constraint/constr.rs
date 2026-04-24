@@ -24,7 +24,7 @@ pub const FAILABLE_CONSTRAINT_NAMES: [&str; 2] = ["inf", "nan"];
 pub fn starts_with_failable(s: &str) -> bool {
     FAILABLE_CONSTRAINT_NAMES
         .iter()
-        .any(|prefix| s.to_lowercase().starts_with(&prefix.to_lowercase()))
+        .any(|prefix| s.to_lowercase().starts_with(prefix))
 }
 
 /// A single algebraic constraint.

@@ -122,6 +122,8 @@ pub enum LunaModelError {
     Compilation(ErrString),
     /// Random sampling failed.
     RandomSampling(ErrString),
+    /// Invalid tolerance specified.
+    InvalidTolerance(ErrString),
     #[cfg(feature = "py")]
     /// Wraps a domain error together with a Python-side cause.
     WithCause(Box<LunaModelError>, py::PyErrW),
@@ -179,6 +181,7 @@ impl Display for LunaModelError {
             }
             Compilation(msg) => write!(f, "compilation error: {}", msg),
             RandomSampling(msg) => write!(f, "random sampling failed due to: {}", msg),
+            InvalidTolerance(msg) => write!(f, "invalid tolerance: {}", msg),
             #[cfg(feature = "py")]
             WithCause(err, _) => write!(f, "{}", err),
         }

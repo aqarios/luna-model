@@ -85,6 +85,7 @@ pub struct Solution {
 }
 
 impl Solution {
+    /// Create a default solution for a given [`Sense`].
     pub fn with_sense(sense: Sense) -> Self {
         Self {
             sense,

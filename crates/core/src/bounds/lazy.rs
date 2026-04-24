@@ -96,7 +96,7 @@ fn check_integer_bounds(bounds: Bounds) -> Result<(), LunaModelError> {
             upper: Bound::Unbounded,
         } => {
             if lower.fract() != 0.0 {
-                Err("upper")
+                Err("lower")
             } else {
                 Ok(())
             }

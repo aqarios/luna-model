@@ -1,9 +1,6 @@
 //! Concrete mutable environment implementation.
 
-use std::{
-    fmt::Display,
-    ops::{Index, IndexMut},
-};
+use std::ops::{Index, IndexMut};
 
 use global_counter::primitive::exact::CounterU64;
 use indexmap::IndexMap;
@@ -228,12 +225,5 @@ impl IndexMut<VarIdx> for Environment {
     /// Mutably indexes by variable index and panics on missing variables.
     fn index_mut(&mut self, index: VarIdx) -> &mut Self::Output {
         self.get_mut(index).unwrap()
-    }
-}
-
-impl Display for Environment {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        _ = f;
-        unimplemented!()
     }
 }

@@ -147,6 +147,9 @@ impl ArcEnv {
 impl ContentEquality for ArcEnv {
     /// Compares environments by variable contents rather than shared pointer identity.
     fn equal_contents(&self, other: &Self) -> bool {
+        if self.len() != other.len() {
+            return false;
+        }
         for v in self.vars() {
             let vname = v.name().unwrap();
             match other.lookup(&vname) {

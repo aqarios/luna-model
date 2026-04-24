@@ -327,6 +327,13 @@ create_exception!(
     "Raised when an error occured during compilation."
 );
 
+create_exception!(
+    builtins.errors,
+    PyInvalidToleranceError,
+    PyLunaModelError,
+    "Raised when an invalid tolerance is specified."
+);
+
 impl From<Lme> for PyErr {
     fn from(lme: Lme) -> Self {
         let err = match lme {
@@ -362,6 +369,7 @@ impl From<Lme> for PyErr {
             Lme::MetaAnalysisPass(_, _) => PyMetaAnalysisPassError::new_err,
             Lme::Compilation(_) => PyCompilationError::new_err,
             Lme::RandomSampling(_) => PyRandomSamplingError::new_err,
+            Lme::InvalidTolerance(_) => PyInvalidToleranceError::new_err,
             Lme::WithCause(e, cause) => {
                 let pyerr: PyErr = (*e).into();
                 Python::attach(|py| pyerr.set_cause(py, Some(cause.err)));
