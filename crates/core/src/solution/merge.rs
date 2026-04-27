@@ -5,15 +5,13 @@ use crate::{Model, Timing};
 
 impl Solution {
     pub fn merge_many(solutions: &[Solution], model: &Option<Model>) -> LunaModelResult<Solution> {
-        if solutions.len() == 0 {
+        if solutions.is_empty() {
             return Ok(Solution::default());
         }
 
         let mut merged = solutions[0].clone();
 
-        for i in 1..solutions.len() {
-            // first solution was cloned.
-            let solution = &solutions[i];
+        for solution in solutions.iter().skip(1) {
             // Let's check if compatible.
             if merged.sense != solution.sense {
                 return Err(LunaModelError::UnsupportedOperation(

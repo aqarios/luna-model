@@ -28,10 +28,7 @@ impl PassManager {
     }
 
     pub fn from_steps(steps: Vec<PipelineStep>) -> Self {
-        Self {
-            passes: steps,
-            ..Self::default()
-        }
+        Self { passes: steps }
     }
 
     pub fn add_transform<T>(mut self, pass: T) -> Self
@@ -191,7 +188,7 @@ fn execute_steps(
     for (pos, step) in passes.iter().enumerate() {
         match step {
             PipelineStep::Transform(pass) => {
-                let ctx = PassContext::new(&analysis_manager);
+                let ctx = PassContext::new(analysis_manager);
                 let artifact = pass.forward_erased(model, &ctx)?;
                 entries.push(PassEntry::Transform {
                     pass_id: pass.id().to_string(),
@@ -215,7 +212,7 @@ fn execute_steps(
                 });
             }
             PipelineStep::ControlFlow(pass) => {
-                let ctx = PassContext::new(&analysis_manager);
+                let ctx = PassContext::new(analysis_manager);
                 let plan = pass.run_erased(model, &ctx)?;
                 let sub_record = execute_steps(model, &plan.pipeline.steps, analysis_manager)?;
                 entries.push(PassEntry::ControlFlow {

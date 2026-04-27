@@ -14,6 +14,10 @@ pub struct PyBqmTranslator;
 #[unwindable]
 #[pymethods]
 impl PyBqmTranslator {
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "Python-facing API mirrors external call shape"
+    )]
     #[staticmethod]
     fn to_lm(
         vars: Vec<String>,
@@ -51,6 +55,10 @@ impl PyBqmTranslator {
         Ok(model.into())
     }
 
+    #[allow(
+        clippy::type_complexity,
+        reason = "Python-facing API mirrors external result shape"
+    )]
     #[staticmethod]
     fn from_lm(
         model: PyModelArg,

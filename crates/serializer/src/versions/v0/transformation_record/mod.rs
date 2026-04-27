@@ -17,6 +17,6 @@ pub struct SerTransformationRecord {
 
 impl Creatable<TransformationRecord> for SerTransformationRecord {
     fn new(value: &TransformationRecord) -> Self {
-        Self::default().fill(&value)
+        Self::default().fill(value)
     }
 }

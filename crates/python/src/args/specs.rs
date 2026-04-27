@@ -6,9 +6,9 @@ use crate::PyModelSpecs;
 #[derive(Deref, Debug)]
 pub struct PyModelSpecsArg(PyModelSpecs);
 
-impl Into<PyModelSpecs> for PyModelSpecsArg {
-    fn into(self) -> PyModelSpecs {
-        self.0
+impl From<PyModelSpecsArg> for PyModelSpecs {
+    fn from(val: PyModelSpecsArg) -> Self {
+        val.0
     }
 }
 
@@ -20,10 +20,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyModelSpecsArg {
             return Ok(Self(c.clone()));
         }
 
-        if let Ok(inner) = obj.getattr("_sp") {
-            if let Ok(c) = inner.extract::<PyRef<'py, PyModelSpecs>>() {
-                return Ok(Self(c.clone()));
-            }
+        if let Ok(inner) = obj.getattr("_sp")
+            && let Ok(c) = inner.extract::<PyRef<'py, PyModelSpecs>>()
+        {
+            return Ok(Self(c.clone()));
         }
 
         Err(PyTypeError::new_err("Expected (Py)ModelSpecs"))

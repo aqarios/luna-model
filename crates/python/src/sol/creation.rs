@@ -20,10 +20,14 @@ use crate::utils::VarKey;
 use crate::utils::retrieve_environment;
 
 enum BitOrder {
-    LTR,
-    RTL,
+    Ltr,
+    Rtl,
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "Python-facing API mirrors external call shape"
+)]
 #[unwindable]
 #[pymethods]
 impl PySolution {
@@ -42,7 +46,7 @@ impl PySolution {
         vtypes: Option<Vec<PyVtype>>,
         tol: Option<f64>,
     ) -> PyResult<Self> {
-        let mut sol = Solution::with_sense(sense.map_or_else(|| Sense::default(), |s| s.into()));
+        let mut sol = Solution::with_sense(sense.map_or_else(Sense::default, |s| s.into()));
         sol.timing = timing.map(|t| t.into());
 
         if samples.is_empty() {
@@ -164,10 +168,7 @@ impl PySolution {
             }
             for c in constraints {
                 for (cname, val) in c {
-                    sol.constraints
-                        .entry(cname)
-                        .or_insert(Vec::default())
-                        .push(val);
+                    sol.constraints.entry(cname).or_default().push(val);
                 }
             }
         }
@@ -223,9 +224,11 @@ impl PySolution {
                     .unwrap_or_default()
             }));
             sol.timing = timing.map(|t| t.into());
-            sol.counts.push(counts.unwrap_or_else(|| 1));
-            if let Some(e) = energy {
-                sol.raw_energies.as_mut().map(|ens| ens.push(e));
+            sol.counts.push(counts.unwrap_or(1));
+            if let Some(e) = energy
+                && let Some(ens) = sol.raw_energies.as_mut()
+            {
+                ens.push(e)
             }
 
             let sample_vars: HashSet<String> = data
@@ -312,7 +315,7 @@ impl PySolution {
             sol.timing = timing.map(|t| t.into());
 
             if data.is_empty() {
-                return Ok(sol.into());
+                return Ok(sol);
             }
 
             sol.counts
@@ -548,8 +551,8 @@ impl PySolution {
             }
 
             let order = match bit_order.as_str() {
-                "LTR" => BitOrder::LTR,
-                "RTL" => BitOrder::RTL,
+                "LTR" => BitOrder::Ltr,
+                "RTL" => BitOrder::Rtl,
                 _ => {
                     return Err(LunaModelError::Translation(
                         "`bit_order` must be 'RTL' or 'LTR'.".into(),
@@ -564,8 +567,8 @@ impl PySolution {
                     ));
                 }
                 let it = match order {
-                    BitOrder::LTR => itertools::Either::Left(bitstr.chars()),
-                    BitOrder::RTL => itertools::Either::Right(bitstr.chars().rev()),
+                    BitOrder::Ltr => itertools::Either::Left(bitstr.chars()),
+                    BitOrder::Rtl => itertools::Either::Right(bitstr.chars().rev()),
                 };
                 for (c, varname) in it.into_iter().zip(&vars) {
                     match (c, sol.samples.get_mut(varname).unwrap()) {

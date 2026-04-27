@@ -72,7 +72,7 @@ impl TransformationPass for BinarySpinPass {
 
     fn forward(&self, model: &mut Model, _ctx: &PassContext) -> LunaModelResult<Self::Artifact> {
         let mut artifact = BinarySpinPassArtifact::try_new(self.vtype)?;
-        Self::fill_artifact(&self, model, &mut artifact)?;
+        Self::fill_artifact(self, model, &mut artifact)?;
         if artifact.map.is_empty() {
             return Ok(artifact);
         }

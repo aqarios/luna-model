@@ -70,7 +70,7 @@ impl HashEnv {
         let mut e = HashEnv::default();
 
         let mut sorted_vars = env.vars();
-        sorted_vars.sort_by(|a, b| a.id().cmp(&b.id()));
+        sorted_vars.sort_by_key(|a| a.id());
 
         for (i, var) in sorted_vars.iter().enumerate() {
             e.varcount += 1;

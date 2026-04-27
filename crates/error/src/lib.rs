@@ -133,7 +133,7 @@ impl Display for LunaModelError {
             Compilation(msg) => write!(f, "compilation error: {}", msg),
             RandomSampling(msg) => write!(f, "random sampling failed due to: {}", msg),
             #[cfg(feature = "py")]
-            WithCause(err, _) => write!(f, "{}", err.to_string()),
+            WithCause(err, _) => write!(f, "{}", err),
         }
     }
 }

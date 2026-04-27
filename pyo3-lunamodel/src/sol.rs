@@ -20,7 +20,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PySolution {
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
         obj.check_type("Solution")?;
         // check if it is the wrapper type or the PySolution type from the crate.
-        let capsule: Bound<'py, PyCapsule> = if let Some(pys) = obj.getattr("_s").ok() {
+        let capsule: Bound<'py, PyCapsule> = if let Ok(pys) = obj.getattr("_s") {
             pys.call_method0("_to_capsule")
         } else {
             obj.call_method0("_to_capsule")

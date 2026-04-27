@@ -26,15 +26,19 @@ enum Shape {
     Single(usize),
 }
 
-impl Into<Vec<usize>> for Shape {
-    fn into(self) -> Vec<usize> {
-        match self {
-            Self::Tuple(v) => v,
-            Self::Single(s) => vec![s],
+impl From<Shape> for Vec<usize> {
+    fn from(val: Shape) -> Self {
+        match val {
+            Shape::Tuple(v) => v,
+            Shape::Single(s) => vec![s],
         }
     }
 }
 
+#[allow(
+    clippy::too_many_arguments,
+    reason = "Python-facing API mirrors external call shape"
+)]
 #[unwindable]
 #[pymethods]
 impl PyModel {
@@ -53,11 +57,7 @@ impl PyModel {
         Ok(self
             .m
             .write_arc()
-            .add_var(
-                &name,
-                vtype.unwrap_or_else(|| PyVtype::Binary).into(),
-                bounds,
-            )?
+            .add_var(&name, vtype.unwrap_or(PyVtype::Binary).into(), bounds)?
             .into())
     }
 
@@ -117,12 +117,7 @@ impl PyModel {
         Ok(self
             .m
             .write_arc()
-            .add_var_with_fallback(
-                &name,
-                vtype.unwrap_or_else(|| PyVtype::Binary).into(),
-                bounds,
-                None,
-            )?
+            .add_var_with_fallback(&name, vtype.unwrap_or(PyVtype::Binary).into(), bounds, None)?
             .into())
     }
 

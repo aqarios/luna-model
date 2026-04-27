@@ -37,7 +37,7 @@ where
 
     /// Serilize `self` to a bytes vector.
     fn serialize(&self) -> Vec<u8> {
-        S::new(&self).encode_to_bytes()
+        S::new(self).encode_to_bytes()
     }
 
     /// Encode `self` to a bytes vector.

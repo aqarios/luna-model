@@ -26,9 +26,9 @@ impl From<AnalysisManager> for PyPassContext {
     }
 }
 
-impl<'c> Into<PassContext<'c>> for &'c PyPassContext {
-    fn into(self) -> PassContext<'c> {
-        PassContext::new(&self.manager)
+impl<'c> From<&'c PyPassContext> for PassContext<'c> {
+    fn from(val: &'c PyPassContext) -> Self {
+        PassContext::new(&val.manager)
     }
 }
 

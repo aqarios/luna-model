@@ -108,9 +108,7 @@ where
     fn unversionize(&self) -> Versioned<Vec<u8>> {
         let result = SerVersioned::decode(self.as_slice());
         match result {
-            Ok(versioned) => {
-                Versioned::new(Version::from(versioned.version), versioned.data.into())
-            }
+            Ok(versioned) => Versioned::new(Version::from(versioned.version), versioned.data),
             Err(_) => {
                 // Unversioned data...
                 Versioned::unknown(self.as_slice().to_vec())

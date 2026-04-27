@@ -70,14 +70,12 @@ impl TransformationPass for PyTransformationPassAdapter {
                 .getattr("__module__")
                 .map_err(map_pyerr)?
                 .extract()
-                .map_err(PyErr::from)
                 .map_err(map_pyerr)?;
 
             let qualname: String = cls
                 .getattr("__qualname__")
                 .map_err(map_pyerr)?
                 .extract()
-                .map_err(PyErr::from)
                 .map_err(map_pyerr)?;
             // FOR BACKWARD
 

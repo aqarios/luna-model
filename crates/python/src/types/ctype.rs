@@ -23,9 +23,9 @@ impl From<Ctype> for PyCtype {
     }
 }
 
-impl Into<Ctype> for PyCtype {
-    fn into(self) -> Ctype {
-        match self {
+impl From<PyCtype> for Ctype {
+    fn from(val: PyCtype) -> Self {
+        match val {
             PyCtype::Unconstrained => Ctype::Unconstrained,
             PyCtype::Equality => Ctype::Equality,
             PyCtype::Inequality => Ctype::Inequality,

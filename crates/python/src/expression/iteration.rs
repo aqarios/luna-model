@@ -34,7 +34,7 @@ impl PyLinear {
     }
 
     fn __str__(&self) -> PyResult<String> {
-        Ok(format!("Linear({})", self.0.v.name()?).into())
+        Ok(format!("Linear({})", self.0.v.name()?))
     }
 }
 
@@ -59,7 +59,11 @@ impl PyQuadratic {
     }
 
     fn __str__(&self) -> PyResult<String> {
-        Ok(format!("Quadratic({}, {})", self.0.0.v.name()?, self.0.1.v.name()?).into())
+        Ok(format!(
+            "Quadratic({}, {})",
+            self.0.0.v.name()?,
+            self.0.1.v.name()?
+        ))
     }
 }
 
@@ -95,7 +99,7 @@ impl PyExpressionIterator {
     pub fn new(expr: &PyExpression) -> Self {
         let items = expr.read_with(|e| {
             e.items()
-                .map(|(vs, b)| (vs.into_iter().map(|v| PyVariable::new(v)).collect(), b))
+                .map(|(vs, b)| (vs.into_iter().map(PyVariable::new).collect(), b))
                 .collect()
         });
         Self {

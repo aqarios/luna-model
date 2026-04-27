@@ -18,8 +18,8 @@ impl Model {
     ///
     /// # Returns
     /// - `Ok(())`: Unit type after substitution.
-    /// - `Err(DifferentEnvsErr)`: if the environments of `self`, `target`, and `replacement`
-    ///    are not compatible
+    /// - `Err(DifferentEnvsErr)`: if the environments of `self`, `target`, and `replacement` are
+    ///   not compatible
     pub fn substitute(&mut self, target: &VarRef, replacement: &Expression) -> LunaModelResult<()> {
         self.objective = self.objective.substitute(target, replacement)?;
         self.constraints.substitute(target, replacement)?;

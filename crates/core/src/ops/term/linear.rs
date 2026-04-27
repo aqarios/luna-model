@@ -96,7 +96,7 @@ impl PrvMul<(&Option<Quadratic>, &ArcEnv)> for &Linear {
         let (quad, env) = rhs;
         quad.as_ref()
             .map(|q| self.m((q, env)))
-            .unwrap_or_else(|| Vec::default())
+            .unwrap_or_else(Vec::default)
     }
 }
 
@@ -123,6 +123,6 @@ impl PrvMul<(&Option<HigherOrder>, &ArcEnv)> for &Linear {
         let (ho, env) = rhs;
         ho.as_ref()
             .map(|h| self.m((h, env)))
-            .unwrap_or_else(|| Vec::default())
+            .unwrap_or_else(Vec::default)
     }
 }

@@ -83,6 +83,6 @@ pub struct SerEnvironment {
 
 impl Creatable<Environment> for SerEnvironment {
     fn new(value: &Environment) -> Self {
-        Self::default().fill(&value)
+        Self::default().fill(value)
     }
 }

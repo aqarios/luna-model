@@ -16,12 +16,12 @@ use crate::{
 impl PyVariable {
     pub fn __add__(&self, rhs: OO) -> PyResult<PyE> {
         self.v.check_living()?;
-        let res = match rhs {
+
+        match rhs {
             OO::Expr(expr) => expr.__add__(OO::Var(PyVarArg(self.clone()))),
             OO::Var(var) => Ok(PyE::new((&self.v).add(&var.v)?)),
             OO::Num(bias) => Ok(PyE::new((&self.v).add(bias)?)),
-        };
-        res
+        }
     }
 
     pub fn __sub__(&self, rhs: OO) -> PyResult<PyE> {

@@ -23,14 +23,14 @@ impl From<Vtype> for PyVtype {
     }
 }
 
-impl Into<Vtype> for PyVtype {
-    fn into(self) -> Vtype {
-        match self {
-            Self::Binary => Vtype::Binary,
-            Self::InvertedBinary => Vtype::InvertedBinary,
-            Self::Spin => Vtype::Spin,
-            Self::Integer => Vtype::Integer,
-            Self::Real => Vtype::Real,
+impl From<PyVtype> for Vtype {
+    fn from(val: PyVtype) -> Self {
+        match val {
+            PyVtype::Binary => Vtype::Binary,
+            PyVtype::InvertedBinary => Vtype::InvertedBinary,
+            PyVtype::Spin => Vtype::Spin,
+            PyVtype::Integer => Vtype::Integer,
+            PyVtype::Real => Vtype::Real,
         }
     }
 }

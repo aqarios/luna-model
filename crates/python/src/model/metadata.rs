@@ -12,6 +12,12 @@ pub struct PyModelMetadata {
     pub data: Arc<RwLock<HashMap<String, Py<PyAny>>>>,
 }
 
+impl Default for PyModelMetadata {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PyModelMetadata {
     pub fn new() -> Self {
         Self {

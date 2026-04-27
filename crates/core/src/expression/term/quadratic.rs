@@ -11,7 +11,7 @@ use std::{
 };
 
 // Maybe neighborhood should be it's own type...
-static DEFAULT_NEIGHBORHOOD: LazyLock<Neighborhood> = LazyLock::new(|| Neighborhood::default());
+static DEFAULT_NEIGHBORHOOD: LazyLock<Neighborhood> = LazyLock::new(Neighborhood::default);
 
 #[derive(Default, Debug, Clone)]
 pub struct Quadratic {

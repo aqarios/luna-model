@@ -22,11 +22,11 @@ where
     P: ControlFlowPass + Send + Sync + 'static,
 {
     fn name(&self) -> &str {
-        &self.name()
+        self.name()
     }
 
     fn requires(&self) -> &[String] {
-        &self.requires()
+        self.requires()
     }
 
     fn provides(&self) -> &[String] {
@@ -34,7 +34,7 @@ where
     }
 
     fn invalidates(&self) -> &[String] {
-        &self.invalidates()
+        self.invalidates()
     }
 
     fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan> {

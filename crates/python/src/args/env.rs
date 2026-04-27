@@ -6,9 +6,9 @@ use crate::{PyEnvironment, environment::get_active_env};
 #[derive(Deref, Debug)]
 pub struct PyEnvArg(PyEnvironment);
 
-impl Into<PyEnvironment> for PyEnvArg {
-    fn into(self) -> PyEnvironment {
-        self.0
+impl From<PyEnvArg> for PyEnvironment {
+    fn from(val: PyEnvArg) -> Self {
+        val.0
     }
 }
 
@@ -20,10 +20,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyEnvArg {
             return Ok(Self(c.clone()));
         }
 
-        if let Ok(inner) = obj.getattr("_env") {
-            if let Ok(c) = inner.extract::<PyRef<'py, PyEnvironment>>() {
-                return Ok(Self(c.clone()));
-            }
+        if let Ok(inner) = obj.getattr("_env")
+            && let Ok(c) = inner.extract::<PyRef<'py, PyEnvironment>>()
+        {
+            return Ok(Self(c.clone()));
         }
 
         Err(PyTypeError::new_err("Expected (Py)Environment"))

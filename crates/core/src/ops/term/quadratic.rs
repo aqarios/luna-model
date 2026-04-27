@@ -36,9 +36,7 @@ impl PrvMul<Bias> for &Option<Quadratic> {
     type Output = Vec<VarMulRes>;
 
     fn m(self, rhs: Bias) -> Self::Output {
-        self.as_ref()
-            .map(|q| q.m(rhs))
-            .unwrap_or_else(|| Vec::default())
+        self.as_ref().map(|q| q.m(rhs)).unwrap_or_default()
     }
 }
 
@@ -77,9 +75,9 @@ impl PrvMul<(&Option<Quadratic>, &ArcEnv)> for &Option<Quadratic> {
             .map(|q| {
                 q2.as_ref()
                     .map(|q2| q.m((q2, env)))
-                    .unwrap_or_else(|| Vec::default())
+                    .unwrap_or_else(Vec::default)
             })
-            .unwrap_or_else(|| Vec::default())
+            .unwrap_or_default()
     }
 }
 
@@ -109,8 +107,8 @@ impl PrvMul<(&Option<HigherOrder>, &ArcEnv)> for &Option<Quadratic> {
             .map(|q| {
                 ho.as_ref()
                     .map(|h2| q.m((h2, env)))
-                    .unwrap_or_else(|| Vec::default())
+                    .unwrap_or_else(Vec::default)
             })
-            .unwrap_or_else(|| Vec::default())
+            .unwrap_or_default()
     }
 }

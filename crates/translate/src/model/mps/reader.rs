@@ -65,7 +65,7 @@ impl RowType {
         }
     }
 
-    pub fn to_comparator(&self) -> LunaModelResult<Comparator> {
+    pub fn to_comparator(self) -> LunaModelResult<Comparator> {
         match self {
             RowType::LessEqual => Ok(Comparator::Le),
             RowType::GreaterEqual => Ok(Comparator::Ge),
@@ -142,7 +142,7 @@ pub struct MpsProblem {
 pub fn read_mps(content: &str) -> LunaModelResult<MpsProblem> {
     let mut problem = MpsProblem::default();
     let mut section = Section::None;
-    let mut lines = content.lines();
+    let lines = content.lines();
 
     let mut rows_map: HashMap<String, MpsRow> = HashMap::new();
     let mut column_data: HashMap<String, HashMap<String, Bias>> = HashMap::new();
@@ -152,7 +152,7 @@ pub fn read_mps(content: &str) -> LunaModelResult<MpsProblem> {
     let mut current_qcmatrix_constraint: Option<String> = None; // Track which constraint for QCMATRIX
     let mut did_find_obj_sense: bool = false;
 
-    while let Some(line) = lines.next() {
+    for line in lines {
         let line = line.trim();
 
         // Skip comments and empty lines
@@ -175,11 +175,11 @@ pub fn read_mps(content: &str) -> LunaModelResult<MpsProblem> {
             // Handle OBJSENSE section inline
             if section == Section::Objsense {
                 let parts: Vec<&str> = line.split_whitespace().collect();
-                if parts.len() > 1 {
-                    if let Some(sense) = parse_sense(parts[1]) {
-                        problem.sense = sense;
-                        did_find_obj_sense = true;
-                    }
+                if parts.len() > 1
+                    && let Some(sense) = parse_sense(parts[1])
+                {
+                    problem.sense = sense;
+                    did_find_obj_sense = true;
                 }
             }
 
@@ -266,15 +266,12 @@ pub fn read_mps(content: &str) -> LunaModelResult<MpsProblem> {
     }
 
     for colname in marked_cols {
-        if !problem.bounds.contains_key(&colname) {
-            problem.bounds.insert(
-                colname,
-                Some(LazyBounds::new(
-                    Some(Bound::Bounded(0.0)),
-                    Some(Bound::Bounded(1.0)),
-                )),
-            );
-        }
+        problem.bounds.entry(colname).or_insert_with(|| {
+            Some(LazyBounds::new(
+                Some(Bound::Bounded(0.0)),
+                Some(Bound::Bounded(1.0)),
+            ))
+        });
     }
 
     // Build the problem from parsed data
@@ -361,7 +358,7 @@ fn parse_column_line(
 
     column_data
         .entry(var_name.clone())
-        .or_insert_with(HashMap::new)
+        .or_default()
         .insert(row_name1, coef1);
 
     // Parse optional second coefficient pair
@@ -373,7 +370,7 @@ fn parse_column_line(
 
         column_data
             .entry(var_name)
-            .or_insert_with(HashMap::new)
+            .or_default()
             .insert(row_name2, coef2);
     }
 

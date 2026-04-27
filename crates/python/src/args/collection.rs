@@ -6,9 +6,9 @@ use crate::PyConstraintCollection;
 #[derive(Deref, Debug)]
 pub struct PyColArg(pub PyConstraintCollection);
 
-impl Into<PyConstraintCollection> for PyColArg {
-    fn into(self) -> PyConstraintCollection {
-        self.0
+impl From<PyColArg> for PyConstraintCollection {
+    fn from(val: PyColArg) -> Self {
+        val.0
     }
 }
 
@@ -20,10 +20,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyColArg {
             return Ok(Self(c.clone()));
         }
 
-        if let Ok(inner) = obj.getattr("_cc") {
-            if let Ok(c) = inner.extract::<PyRef<'py, PyConstraintCollection>>() {
-                return Ok(Self(c.clone()));
-            }
+        if let Ok(inner) = obj.getattr("_cc")
+            && let Ok(c) = inner.extract::<PyRef<'py, PyConstraintCollection>>()
+        {
+            return Ok(Self(c.clone()));
         }
 
         Err(PyTypeError::new_err("Expected (Py)ConstraintCollection"))

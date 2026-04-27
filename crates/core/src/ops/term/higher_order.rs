@@ -36,9 +36,7 @@ impl PrvMul<Bias> for &Option<HigherOrder> {
     type Output = Vec<VarMulRes>;
 
     fn m(self, rhs: Bias) -> Self::Output {
-        self.as_ref()
-            .map(|h| h.m(rhs))
-            .unwrap_or_else(|| Vec::default())
+        self.as_ref().map(|h| h.m(rhs)).unwrap_or_default()
     }
 }
 
@@ -86,8 +84,8 @@ impl PrvMul<(&Option<HigherOrder>, &ArcEnv)> for &Option<HigherOrder> {
             .map(|s| {
                 ho.as_ref()
                     .map(|h| s.m((h, env)))
-                    .unwrap_or_else(|| Vec::default())
+                    .unwrap_or_else(Vec::default)
             })
-            .unwrap_or_else(|| Vec::default())
+            .unwrap_or_default()
     }
 }

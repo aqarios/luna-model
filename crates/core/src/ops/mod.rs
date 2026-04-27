@@ -2,7 +2,7 @@ mod mcrs;
 mod utils;
 
 mod bounds;
-mod constr;
+mod constraint;
 mod expr;
 mod term;
 mod traits;

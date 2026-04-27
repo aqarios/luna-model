@@ -326,7 +326,7 @@ ENDATA
         assert_eq!(model.constraints.len(), 1);
         // Check that objective has quadratic terms
         assert!(model.objective.quadratic.is_some());
-        assert!(model.objective.quadratic.as_ref().unwrap().len() > 0);
+        assert!(!model.objective.quadratic.as_ref().unwrap().is_empty());
     }
 
     #[test]
@@ -353,6 +353,6 @@ ENDATA
         // Check that constraint has quadratic terms
         let (_, constraint) = model.constraints.iter().next().unwrap();
         assert!(constraint.lhs.quadratic.is_some());
-        assert!(constraint.lhs.quadratic.as_ref().unwrap().len() > 0);
+        assert!(!constraint.lhs.quadratic.as_ref().unwrap().is_empty());
     }
 }

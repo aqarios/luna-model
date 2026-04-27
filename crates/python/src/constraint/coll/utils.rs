@@ -14,12 +14,12 @@ pub enum MaybeNamedVariants {
     Not(PyCArg),
 }
 
-trait AsIter {
-    fn as_iter(self) -> impl Iterator<Item = (Constraint, Option<String>)>;
+trait ToIter {
+    fn to_iter(self) -> impl Iterator<Item = (Constraint, Option<String>)>;
 }
 
-impl AsIter for Vec<MaybeNamedVariants> {
-    fn as_iter(self) -> impl Iterator<Item = (Constraint, Option<String>)> {
+impl ToIter for Vec<MaybeNamedVariants> {
+    fn to_iter(self) -> impl Iterator<Item = (Constraint, Option<String>)> {
         use MaybeNamedVariants::*;
         self.into_iter().map(|e| match e {
             NamedA((name, pyc)) | NamedB((pyc, name)) => (pyc.c.read_arc().clone(), Some(name)),
@@ -31,13 +31,13 @@ impl AsIter for Vec<MaybeNamedVariants> {
 #[derive(FromPyObject, Debug)]
 pub enum ConstraintsIn {
     // NDArray
-    CA(Py<PyArray1<Py<PyAny>>>),
+    Ca(Py<PyArray1<Py<PyAny>>>),
     // ConstraintCollection
-    CC(PyConstraintCollection),
+    Cc(PyConstraintCollection),
     // [Constraint]
-    CV(Vec<PyCArg>),
+    Cv(Vec<PyCArg>),
     // [(String, Constraint) | (Constraint, String) | Constraint]
-    NCV(Vec<MaybeNamedVariants>),
+    Ncv(Vec<MaybeNamedVariants>),
 }
 
 #[derive(FromPyObject, Debug)]
@@ -57,22 +57,22 @@ pub fn add_many_constraint(
 
     match (ccin, nin) {
         // NDArray
-        (CA(arr), None) => add_nparr(py, cc, arr, None),
-        (CA(arr), Some(S(name))) => add_nparr(py, cc, arr, Some(name)),
-        (CA(arr), Some(SV(names))) => add_nparr_many_named(py, cc, arr, names),
+        (Ca(arr), None) => add_nparr(py, cc, arr, None),
+        (Ca(arr), Some(S(name))) => add_nparr(py, cc, arr, Some(name)),
+        (Ca(arr), Some(SV(names))) => add_nparr_many_named(py, cc, arr, names),
         // ConstraintCollection
-        (CC(col), None) => cc.add_collection(col.read().clone(), None),
-        (CC(col), Some(S(name))) => cc.add_collection(col.read().clone(), Some(name)),
+        (Cc(col), None) => cc.add_collection(col.read().clone(), None),
+        (Cc(col), Some(S(name))) => cc.add_collection(col.read().clone(), Some(name)),
         // [Constraint]
-        (CV(seq), None) => {
+        (Cv(seq), None) => {
             cc.add_many_constraints(seq.into_iter().map(|e| (e.c.read_arc().clone(), None)))
         }
-        (CV(seq), Some(S(name))) => cc.add_many_constraints(
+        (Cv(seq), Some(S(name))) => cc.add_many_constraints(
             seq.into_iter()
                 .enumerate()
                 .map(|(i, e)| (e.c.read_arc().clone(), Some(format!("{name}_{i}")))),
         ),
-        (CV(seq), Some(SV(names))) => {
+        (Cv(seq), Some(SV(names))) => {
             if seq.len() != names.len() {
                 return Err(LunaModelError::Internal(
                     format!(
@@ -90,9 +90,9 @@ pub fn add_many_constraint(
             )
         }
         // [(String, Constraint) | (Constraint, String) | Constraint]
-        (NCV(tup), None) => cc.add_many_constraints(tup.as_iter()),
-        (NCV(tup), Some(S(base))) => {
-            cc.add_many_constraints(tup.as_iter().enumerate().map(|(i, (e, n))| {
+        (Ncv(tup), None) => cc.add_many_constraints(tup.to_iter()),
+        (Ncv(tup), Some(S(base))) => {
+            cc.add_many_constraints(tup.to_iter().enumerate().map(|(i, (e, n))| {
                 (
                     e,
                     Some(match n {
@@ -104,7 +104,7 @@ pub fn add_many_constraint(
         }
 
         // not ok
-        (CC(_), Some(SV(_))) | (NCV(_), Some(SV(_))) => {
+        (Cc(_), Some(SV(_))) | (Ncv(_), Some(SV(_))) => {
             Err(LunaModelError::Internal("names sequence is not allowed when constraints are provided as ConstraintCollection or as a sequence of (name, constraint)/(constraint, name) 
 items".into()))
         }
@@ -167,7 +167,7 @@ fn make_element(
         Ok(c) => Ok((c.c.read_arc().clone(), name)),
         Err(e) => {
             let mapped = LunaModelError::Dtype(e.to_string().into());
-            let pye: PyErr = e.into();
+            let pye: PyErr = e;
             Err(LunaModelError::WithCause(Box::new(mapped), pye.into()))
         }
     }

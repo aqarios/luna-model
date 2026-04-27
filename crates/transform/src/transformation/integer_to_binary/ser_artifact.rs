@@ -27,11 +27,11 @@ impl From<&HashMap<String, usize>> for SerVarMapEntry {
     }
 }
 
-impl Into<HashMap<String, usize>> for SerVarMapEntry {
-    fn into(self) -> HashMap<String, usize> {
-        self.keys
+impl From<SerVarMapEntry> for HashMap<String, usize> {
+    fn from(val: SerVarMapEntry) -> Self {
+        val.keys
             .into_iter()
-            .zip(self.vals.iter().map(|&v| v as usize))
+            .zip(val.vals.iter().map(|&v| v as usize))
             .collect()
     }
 }

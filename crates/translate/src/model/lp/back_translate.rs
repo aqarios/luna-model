@@ -38,8 +38,8 @@ impl LpTranslator {
         let mut out = String::new();
         out.push_str(&format!("\\ Model {}\n", model.name));
         out.push_str(&format!("\\ Problem name: {}\n", model.name));
-        out.push_str("\n");
-        out.push_str(&format!("{}\n", model.sense.to_string()));
+        out.push('\n');
+        out.push_str(&format!("{}\n", model.sense));
         out.push_str(&format!(
             "{}\n",
             Self::expr_string(
@@ -55,11 +55,11 @@ impl LpTranslator {
                 true
             )?
         ));
-        out.push_str(&format!("Subject To\n"));
+        out.push_str("Subject To\n");
         out.push_str(&format!("{}\n", Self::constr_string(&model.constraints)?));
-        out.push_str(&format!("Bounds\n"));
+        out.push_str("Bounds\n");
         out.push_str(&format!("{}\n", Self::bounds_string(&model.environment)?));
-        out.push_str(&format!("{}\n", Self::variables_string(&model)?));
+        out.push_str(&format!("{}\n", Self::variables_string(model)?));
         out.push_str("End");
         Ok(out)
     }
@@ -86,7 +86,7 @@ impl LpTranslator {
             let chunks = safe_chunks(&bins, MAX_LINE_LENGTH);
             binstr.push_str(&chunks.join("\n"));
             out.push_str(&binstr);
-            out.push_str("\n");
+            out.push('\n');
         }
         if !gens.is_empty() {
             let mut genstr = String::from("Generals\n ");
@@ -181,7 +181,7 @@ impl LpTranslator {
         }
 
         if let Some(cv) = constr_vars {
-            let mut additional_linears: HashSet<VarId> = cv.iter().map(|e| *e).collect();
+            let mut additional_linears: HashSet<VarId> = cv.iter().copied().collect();
             additional_linears.retain(|e| !exprvarids.contains(&e.0));
             for al in &additional_linears {
                 let var: String = env.read_arc().get(al.0)?.name().into();

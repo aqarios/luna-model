@@ -5,7 +5,7 @@ use std::panic::{self, AssertUnwindSafe, PanicHookInfo};
 use std::{backtrace::Backtrace, cell::RefCell};
 
 thread_local! {
-    static LAST_PANIC_BT: RefCell<Option<String>> = RefCell::new(None);
+    static LAST_PANIC_BT: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
 pub fn unwind<T, F>(f: F) -> PyResult<T>

@@ -10,7 +10,7 @@ impl CustomFormat<FormatOpt> for Model {
             FormatOpt::Rs => write!(fmt, "{}", self),
             #[cfg(feature = "py")]
             FormatOpt::Py => {
-                let s = pymodelio::ModelWriter::new().write_model(&self).to_string();
+                let s = pymodelio::ModelWriter::new().write_model(self).to_string();
                 fmt.write_str(&s)
             }
             #[cfg(feature = "py")]
@@ -141,12 +141,12 @@ mod pymodelio {
             self.write_expression(&model.objective);
             self.writer.decrease_indent();
             let constraints = &model.constraints;
-            if constraints.len() > 0 {
+            if !constraints.is_empty() {
                 self.writer
                     .with_new_line("Subject To")
                     .increase_indent()
                     .new_line();
-                self.write_constraints(&constraints);
+                self.write_constraints(constraints);
                 self.writer.decrease_indent();
             }
             self.write_bounds(&model.environment);
@@ -213,11 +213,7 @@ mod pymodelio {
                     if !self.is_first {
                         self.writer.space();
                     }
-                    let s = format!(
-                        "{}{}",
-                        self.show_bias(bias),
-                        env.read_arc()[i].name().to_string()
-                    );
+                    let s = format!("{}{}", self.show_bias(bias), env.read_arc()[i].name());
                     self.writer.write(&s);
                     self.is_first = false;
                 }
@@ -288,7 +284,7 @@ mod pymodelio {
                     v.vtype().unwrap() == Vtype::Integer || v.vtype().unwrap() == Vtype::Real
                 })
                 .collect();
-            if ints_and_reals.len() == 0 {
+            if ints_and_reals.is_empty() {
                 return self;
             }
 

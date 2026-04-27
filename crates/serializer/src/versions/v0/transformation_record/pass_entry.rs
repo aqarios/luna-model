@@ -92,7 +92,6 @@ impl From<&PassEntry> for SerPassEntry {
                 id: Some(pass_name.to_string()),
                 name: name.into(),
                 content: Some(SerTransformationRecord::new(record).encode_to_bytes()),
-                ..Default::default()
             },
         }
     }

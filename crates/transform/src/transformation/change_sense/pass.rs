@@ -58,7 +58,7 @@ impl Reversible for ChangeSensePass {
         if artifact.did_change {
             solution.obj_values = solution
                 .obj_values
-                .map(|x| x.into_iter().map(|y| y * (-1.0)).collect::<Vec<_>>());
+                .map(|x| x.into_iter().map(|y| -y).collect::<Vec<_>>());
             solution.sense = !solution.sense;
         }
         Ok(solution)

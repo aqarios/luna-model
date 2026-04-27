@@ -33,6 +33,6 @@ impl PyExpression {
     }
 
     fn equal_contents(&self, other: PyExprArg) -> bool {
-        (&self.expr).equal_contents(&other.expr)
+        self.expr.equal_contents(&other.expr)
     }
 }

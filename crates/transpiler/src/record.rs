@@ -94,7 +94,9 @@ impl TransformationRecord {
 
     pub fn find(&self, query: &str, exact: bool) -> LunaModelResult<&PassEntry> {
         if query.is_empty() {
-            return Err(LunaModelError::Computation("query must not be empty".into()).into());
+            return Err(LunaModelError::Computation(
+                "query must not be empty".into(),
+            ));
         }
 
         if exact {
@@ -106,7 +108,6 @@ impl TransformationRecord {
                     )
                     .into(),
                 )
-                .into()
             })
         } else {
             let needle = query.to_lowercase();
@@ -114,7 +115,6 @@ impl TransformationRecord {
                 LunaModelError::Computation(
                     format!("no partial entry match found for query '{query}'").into(),
                 )
-                .into()
             })
         }
     }

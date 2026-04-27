@@ -99,7 +99,7 @@ impl MpsTranslator {
                 let vname = vars[0].name()?;
                 var_coeffs
                     .entry(vname.clone())
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(("OBJ".to_string(), coef));
             } else if vars.len() == 2 {
                 // Quadratic term
@@ -130,7 +130,7 @@ impl MpsTranslator {
                     let vname = vars[0].name()?;
                     var_coeffs
                         .entry(vname.clone())
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push((cname.clone(), coef));
                 } else if vars.len() == 2 {
                     // Quadratic term
@@ -138,7 +138,7 @@ impl MpsTranslator {
                     let v2 = vars[1].name()?;
                     quadratic_constraint_terms
                         .entry(cname.clone())
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push((v1, v2, coef));
                 }
             }
@@ -276,15 +276,12 @@ impl MpsTranslator {
                                 }
                                 _ => {}
                             }
-                            match u {
-                                Bound::Bounded(val) => {
-                                    out.push_str(&format!(
-                                        " UP BND1      {}  {}\n",
-                                        vname,
-                                        format_number(val)
-                                    ));
-                                }
-                                _ => {}
+                            if let Bound::Bounded(val) = u {
+                                out.push_str(&format!(
+                                    " UP BND1      {}  {}\n",
+                                    vname,
+                                    format_number(val)
+                                ));
                             }
                         }
                         _ => {}
@@ -464,7 +461,7 @@ mod tests {
         let env = ArcEnv::default();
         let bounds = LazyBounds::new(Some(Bound::Bounded(0.0)), Some(Bound::Bounded(10.0)));
         env.write_arc()
-            .insert("i1", Vtype::Integer, Some(bounds.clone()))
+            .insert("i1", Vtype::Integer, Some(bounds))
             .unwrap();
         env.write_arc()
             .insert("i2", Vtype::Integer, Some(bounds))

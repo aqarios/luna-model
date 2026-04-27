@@ -17,8 +17,8 @@ impl From<Specs> for PyModelSpecs {
     }
 }
 
-impl Into<Specs> for PyModelSpecs {
-    fn into(self) -> Specs {
-        self.s
+impl From<PyModelSpecs> for Specs {
+    fn from(val: PyModelSpecs) -> Self {
+        val.s
     }
 }

@@ -18,8 +18,7 @@ impl Expression {
         }
         vrefs
             .iter()
-            .map(|v| v.check_living().map(|_| ()))
-            .collect::<LunaModelResult<()>>()?;
+            .try_for_each(|v| v.check_living().map(|_| ()))?;
 
         let set: HashSet<VarIdx> = HashSet::from_iter(vrefs.iter().map(|x| x.id));
 

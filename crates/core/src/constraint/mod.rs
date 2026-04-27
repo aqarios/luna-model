@@ -1,5 +1,5 @@
 mod collection;
-mod constraint;
+mod constr;
 
 pub use collection::ConstraintCollection;
-pub use constraint::Constraint;
+pub use constr::Constraint;

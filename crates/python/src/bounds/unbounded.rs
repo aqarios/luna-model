@@ -57,14 +57,14 @@ impl From<Option<Bound>> for BoundValue {
 impl<'a, 'py> FromPyObject<'a, 'py> for BoundValue {
     type Error = PyErr;
     fn extract(obj: pyo3::Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
-        if obj.is(&PyUnbounded::type_object(obj.py())) {
+        if obj.is(PyUnbounded::type_object(obj.py())) {
             Ok(BoundValue::Unbounded)
         } else if let Ok(maybe) = obj.extract::<Option<f64>>() {
             match maybe {
                 Some(val) => Ok(BoundValue::Value(val)),
                 None => Ok(BoundValue::None),
             }
-        } else if let Ok(_) = obj.extract::<PyUnbounded>() {
+        } else if obj.extract::<PyUnbounded>().is_ok() {
             Ok(BoundValue::Unbounded)
         } else {
             Err(PyLunaModelError::new_err(
@@ -88,12 +88,12 @@ impl<'py> IntoPyObject<'py> for BoundValue {
     }
 }
 
-impl Into<Option<Bound>> for BoundValue {
-    fn into(self) -> Option<Bound> {
-        match self {
-            Self::Unbounded => Some(Bound::Unbounded),
-            Self::Value(val) => Some(Bound::Bounded(val)),
-            Self::None => None,
+impl From<BoundValue> for Option<Bound> {
+    fn from(value: BoundValue) -> Self {
+        match value {
+            BoundValue::Unbounded => Some(Bound::Unbounded),
+            BoundValue::Value(val) => Some(Bound::Bounded(val)),
+            BoundValue::None => None,
         }
     }
 }

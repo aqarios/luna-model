@@ -58,7 +58,7 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
             model
                 .objective
                 .add_assign((self.penalty_scaling * max_bias * expr)?)?;
-            model.constraints.remove_constraint(&name)?;
+            model.constraints.remove_constraint(name)?;
         }
 
         Ok(Self::Artifact {})

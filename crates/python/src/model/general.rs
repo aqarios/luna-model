@@ -18,9 +18,9 @@ enum Replacement {
     Var(PyVarArg),
 }
 
-impl Replacement {
-    fn as_expr(self) -> LunaModelResult<Expression> {
-        match self {
+impl From<Replacement> for LunaModelResult<Expression> {
+    fn from(value: Replacement) -> Self {
+        match value {
             Replacement::Expr(expr) => Ok(expr.into()),
             Replacement::Var(var) => (&var.v).mul(1.0),
         }
@@ -31,10 +31,10 @@ impl Replacement {
 #[pymethods]
 impl PyModel {
     fn substitute(&mut self, target: PyVarArg, replacement: Replacement) -> PyResult<()> {
-        Ok(self
-            .m
-            .write_arc()
-            .substitute(&target.v, &replacement.as_expr()?)?)
+        Ok(self.m.write_arc().substitute(
+            &target.v,
+            &Into::<LunaModelResult<Expression>>::into(replacement)?,
+        )?)
     }
 
     fn evaluate(&self, solution: PySolArg) -> PyResult<PySolution> {

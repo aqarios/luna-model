@@ -3,7 +3,6 @@ mod col;
 mod convenience;
 mod creation;
 mod filter;
-mod io;
 mod merge;
 mod modification;
 mod random;
@@ -70,9 +69,10 @@ pub struct Solution {
 
 impl Solution {
     pub fn with_sense(sense: Sense) -> Self {
-        let mut out = Self::default();
-        out.sense = sense;
-        out
+        Self {
+            sense,
+            ..Default::default()
+        }
     }
 }
 

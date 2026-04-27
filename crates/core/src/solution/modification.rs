@@ -17,7 +17,11 @@ impl Solution {
     ) -> LunaModelResult<()> {
         // First, let's check that the keys of the sample and the samples are equal.
         self.counts.push(counts);
-        energy.and_then(|e| self.raw_energies.as_mut().and_then(|r| Some(r.push(e))));
+        energy.and_then(|e| {
+            self.raw_energies.as_mut().map(|r| {
+                let _: () = r.push(e);
+            })
+        });
         for (key, a) in sample {
             if let Some(col) = self.samples.get_mut(&key) {
                 col.push(a)?;
@@ -52,9 +56,7 @@ impl Solution {
         tol: Option<f64>,
     ) -> LunaModelResult<()> {
         let mut col = Column::empty_binary();
-        data.iter()
-            .map(|e| col.try_push(*e, tol))
-            .collect::<LunaModelResult<()>>()?;
+        data.iter().try_for_each(|e| col.try_push(*e, tol))?;
         self.samples.insert(var, col);
         Ok(())
     }
@@ -66,9 +68,7 @@ impl Solution {
         tol: Option<f64>,
     ) -> LunaModelResult<()> {
         let mut col = Column::empty_spin();
-        data.iter()
-            .map(|e| col.try_push(*e, tol))
-            .collect::<LunaModelResult<()>>()?;
+        data.iter().try_for_each(|e| col.try_push(*e, tol))?;
         self.samples.insert(var, col);
         Ok(())
     }
@@ -80,9 +80,7 @@ impl Solution {
         tol: Option<f64>,
     ) -> LunaModelResult<()> {
         let mut col = Column::empty_integer();
-        data.iter()
-            .map(|e| col.try_push(*e, tol))
-            .collect::<LunaModelResult<()>>()?;
+        data.iter().try_for_each(|e| col.try_push(*e, tol))?;
         self.samples.insert(var, col);
         Ok(())
     }
@@ -102,7 +100,10 @@ impl Solution {
             Vtype::Binary => self.add_binary(var, data, tol),
             Vtype::Spin => self.add_spin(var, data, tol),
             Vtype::Integer => self.add_integer(var, data, tol),
-            Vtype::Real => Ok(self.add_real(var, data)),
+            Vtype::Real => {
+                self.add_real(var, data);
+                Ok(())
+            }
             Vtype::InvertedBinary => Ok(()),
         }
     }

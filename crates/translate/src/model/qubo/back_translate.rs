@@ -25,7 +25,7 @@ impl QuboTranslator {
                 "model's variables must be a single vtype".into(),
             ));
         }
-        let vtype = vtypes.get(0).cloned();
+        let vtype = vtypes.first().cloned();
         if let Some(vt) = vtype
             && !(vt == Vtype::Binary || vt == Vtype::Spin)
         {
@@ -46,7 +46,7 @@ impl QuboTranslator {
             .vars()
             .iter()
             .enumerate()
-            .map(|(i, v)| (v.id(), i as usize))
+            .map(|(i, v)| (v.id(), i))
             .collect();
 
         let mut dense = Vec::new();
@@ -65,7 +65,7 @@ impl QuboTranslator {
         Ok(Qubo {
             sense: model.sense,
             name: model.name.clone(),
-            vtype: vtype.unwrap_or_else(|| Vtype::Binary),
+            vtype: vtype.unwrap_or(Vtype::Binary),
             matrix_flat: dense,
             num_variables: vars.len(),
             offset: model.objective.offset,

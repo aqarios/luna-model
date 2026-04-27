@@ -27,8 +27,8 @@ impl Model {
     pub fn vars(&self) -> impl Iterator<Item = VarRef> {
         let objvars = self.objective.vars();
         let constrvars = self.constraints.vars();
-        let vars = unique_by(objvars.chain(constrvars), |e| e.id());
-        vars
+
+        unique_by(objvars.chain(constrvars), |e| e.id())
     }
 
     pub fn var(&self, name: &str) -> LunaModelResult<VarRef> {

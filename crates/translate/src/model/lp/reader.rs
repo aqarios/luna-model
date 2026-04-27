@@ -75,7 +75,7 @@ pub struct LpProblem {
 }
 
 pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
-    let mut lines = content.lines().peekable();
+    let lines = content.lines().peekable();
     let mut prob = LpProblem::default();
 
     let mut section = Section::None;
@@ -84,10 +84,10 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
     let mut obj_found = false;
     let mut obj_section_found = false;
 
-    while let Some(line) = lines.next() {
+    for line in lines {
         let line = line.trim();
 
-        if is_comment(&line) {
+        if is_comment(line) {
             // check if it contains the problem name.
             if line.to_uppercase().contains("PROBLEM NAME") {
                 let name = line.split(':').collect::<Vec<_>>()[1].trim().to_string();
@@ -100,13 +100,13 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
             continue;
         }
 
-        let line = remove_inline_comments(&line);
+        let line = remove_inline_comments(line);
         if line.is_empty() {
             continue;
         }
 
         // If we have a new section header we process the accumulated line(s).
-        if let Some(next_section) = Section::try_header(&line) {
+        if let Some(next_section) = Section::try_header(line) {
             accumulated_line.push(' ');
             accumulated_line.push_str(&line_cache);
             line_cache = String::new();
@@ -170,7 +170,7 @@ pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
             }
             Section::Bounds => {
                 accumulated_line.push('\n');
-                accumulated_line.push_str(&line);
+                accumulated_line.push_str(line);
             }
             Section::General | Section::Binary => {
                 accumulated_line.push(' ');
@@ -323,7 +323,7 @@ fn parse_bounds(
             bounds.insert(var, (None, None));
         } else if bound.contains("<=") {
             let parts = bound
-                .split(|c| c == '<' || c == '=')
+                .split(['<', '='])
                 .filter(|p| !p.is_empty())
                 .collect::<Vec<_>>();
             match parts.len() {
@@ -352,7 +352,7 @@ fn parse_bounds(
             }
         } else if bound.contains(">=") {
             let parts = bound
-                .split(|c| c == '>' || c == '=')
+                .split(['>', '='])
                 .filter(|p| !p.is_empty())
                 .collect::<Vec<_>>();
             match parts.len() {

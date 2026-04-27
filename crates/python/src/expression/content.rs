@@ -25,11 +25,11 @@ impl Clone for PyExprContent {
     }
 }
 
-impl Into<Expression> for PyExprContent {
-    fn into(self) -> Expression {
-        match self {
-            Self::Expr(e) => e.read_arc().clone(),
-            Self::Model(m) => m.read_arc().objective.clone(),
+impl From<PyExprContent> for Expression {
+    fn from(val: PyExprContent) -> Self {
+        match val {
+            PyExprContent::Expr(e) => e.read_arc().clone(),
+            PyExprContent::Model(m) => m.read_arc().objective.clone(),
         }
     }
 }

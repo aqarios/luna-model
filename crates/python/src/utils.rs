@@ -32,9 +32,9 @@ pub enum OtherOrTuple {
     Tuple((OpsOther, String)),
 }
 
-impl Into<(OpsOther, Option<String>)> for OtherOrTuple {
-    fn into(self) -> (OpsOther, Option<String>) {
-        match self {
+impl From<OtherOrTuple> for (OpsOther, Option<String>) {
+    fn from(val: OtherOrTuple) -> Self {
+        match val {
             OtherOrTuple::Other(o) => (o, None),
             OtherOrTuple::Tuple((o, n)) => (o, Some(n)),
         }
@@ -44,9 +44,9 @@ impl Into<(OpsOther, Option<String>)> for OtherOrTuple {
 #[derive(Clone, Copy, Debug)]
 pub struct PyUsize(pub usize);
 
-impl Into<usize> for PyUsize {
-    fn into(self) -> usize {
-        self.0
+impl From<PyUsize> for usize {
+    fn from(val: PyUsize) -> Self {
+        val.0
     }
 }
 

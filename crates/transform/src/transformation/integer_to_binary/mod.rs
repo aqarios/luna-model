@@ -34,7 +34,7 @@ mod tests {
         )?;
         model.objective.add_assign((&x * 1.0)?)?;
 
-        let pm = PassManager::default().add_transform(IntegerToBinaryPass::default());
+        let pm = PassManager::default().add_transform(IntegerToBinaryPass);
         let output = pm.run(model)?;
 
         assert_eq!(2, output.model.num_variables());

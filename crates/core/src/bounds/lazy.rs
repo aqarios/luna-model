@@ -35,7 +35,7 @@ impl Concretize for Option<LazyBounds> {
             )),
             _ => Ok(()),
         }?;
-        let default_bounds = Bounds::default_for(&vtype);
+        let default_bounds = Bounds::default_for(vtype);
         let bounds = self.map_or(default_bounds, |b| match (b.lower, b.upper) {
             (Some(l), Some(u)) => Bounds::new(l, u),
             (Some(l), None) => Bounds::new(l, default_bounds.upper),

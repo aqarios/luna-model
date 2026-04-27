@@ -22,11 +22,7 @@ impl PyEnvironment {
     }
 
     fn variables(&self) -> Vec<PyVariable> {
-        self.env
-            .vars()
-            .into_iter()
-            .map(|v| PyVariable::new(v))
-            .collect()
+        self.env.vars().into_iter().map(PyVariable::new).collect()
     }
 
     fn __contains__(&self, varname: String) -> bool {

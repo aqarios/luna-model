@@ -38,7 +38,7 @@ impl PyConstraintCollection {
     /// TypeError
     ///     If the value is not a `Constraint` or valid symbolic comparison.
     fn __iadd__(&mut self, py: Python, other: Other) -> PyResult<()> {
-        Ok(match other {
+        let _: () = match other {
             Other::Constr(constr) => {
                 _ = self
                     .write()
@@ -50,7 +50,8 @@ impl PyConstraintCollection {
                     .add_constraint(constr.c.read_arc().clone(), Some(name))?
             }
             Other::Multi(o) => _ = self.add_many_py(py, o, None),
-        })
+        };
+        Ok(())
     }
 
     /// Add a constraint to the collection.

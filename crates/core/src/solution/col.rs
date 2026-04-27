@@ -32,14 +32,14 @@ pub enum Assignment {
     Real(RealAssignment),
 }
 
-impl Into<Assignment> for u8 {
-    fn into(self) -> Assignment {
-        Assignment::Binary(self)
+impl From<u8> for Assignment {
+    fn from(val: u8) -> Self {
+        Assignment::Binary(val)
     }
 }
-impl Into<Assignment> for i8 {
-    fn into(self) -> Assignment {
-        Assignment::Spin(self)
+impl From<i8> for Assignment {
+    fn from(val: i8) -> Self {
+        Assignment::Spin(val)
     }
 }
 
@@ -72,6 +72,15 @@ impl Column {
             Self::Spin(v) => v.0.len(),
             Self::Integer(v) => v.0.len(),
             Self::Real(v) => v.0.len(),
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        match self {
+            Self::Binary(v) => v.0.is_empty(),
+            Self::Spin(v) => v.0.is_empty(),
+            Self::Integer(v) => v.0.is_empty(),
+            Self::Real(v) => v.0.is_empty(),
         }
     }
 
@@ -118,26 +127,26 @@ impl Column {
     ) -> LunaModelResult<()> {
         match self {
             Self::Binary(col) => match cast_near_integral::<u8, _>(value, tol)? {
-                None => return Err(LunaModelError::SampleIncompatibleVtype),
+                None => Err(LunaModelError::SampleIncompatibleVtype),
                 Some(v) => match v == 0 || v == 1 {
                     true => col.push(Assignment::Binary(v)),
-                    false => return Err(LunaModelError::SampleIncompatibleVtype),
+                    false => Err(LunaModelError::SampleIncompatibleVtype),
                 },
             },
             Self::Spin(col) => match cast_near_integral::<i8, _>(value, tol)? {
-                None => return Err(LunaModelError::SampleIncompatibleVtype),
+                None => Err(LunaModelError::SampleIncompatibleVtype),
                 Some(v) => match v == -1 || v == 1 {
                     true => col.push(Assignment::Spin(v)),
-                    false => return Err(LunaModelError::SampleIncompatibleVtype),
+                    false => Err(LunaModelError::SampleIncompatibleVtype),
                 },
             },
             Self::Integer(col) => match cast_near_integral::<i64, _>(value, tol)? {
-                None => return Err(LunaModelError::SampleIncompatibleVtype),
+                None => Err(LunaModelError::SampleIncompatibleVtype),
                 Some(v) => col.push(Assignment::Integer(v)),
             },
 
             Self::Real(col) => match <f64 as NumCast>::from(value) {
-                None => return Err(LunaModelError::SampleIncompatibleVtype),
+                None => Err(LunaModelError::SampleIncompatibleVtype),
                 Some(v) => col.push(Assignment::Real(v)),
             },
         }
@@ -162,35 +171,35 @@ impl Column {
     }
 
     pub fn empty_binary() -> Self {
-        Self::Binary(ColElement(Vec::default(), PhantomData::default()))
+        Self::Binary(ColElement(Vec::default(), PhantomData))
     }
 
     pub fn empty_spin() -> Self {
-        Self::Spin(ColElement(Vec::default(), PhantomData::default()))
+        Self::Spin(ColElement(Vec::default(), PhantomData))
     }
 
     pub fn empty_integer() -> Self {
-        Self::Integer(ColElement(Vec::default(), PhantomData::default()))
+        Self::Integer(ColElement(Vec::default(), PhantomData))
     }
 
     pub fn empty_real() -> Self {
-        Self::Real(ColElement(Vec::default(), PhantomData::default()))
+        Self::Real(ColElement(Vec::default(), PhantomData))
     }
 
     pub fn binary(data: Vec<f64>) -> Self {
-        Self::Binary(ColElement(data, PhantomData::default()))
+        Self::Binary(ColElement(data, PhantomData))
     }
 
     pub fn spin(data: Vec<f64>) -> Self {
-        Self::Spin(ColElement(data, PhantomData::default()))
+        Self::Spin(ColElement(data, PhantomData))
     }
 
     pub fn integer(data: Vec<f64>) -> Self {
-        Self::Integer(ColElement(data, PhantomData::default()))
+        Self::Integer(ColElement(data, PhantomData))
     }
 
     pub fn real(data: Vec<f64>) -> Self {
-        Self::Real(ColElement(data, PhantomData::default()))
+        Self::Real(ColElement(data, PhantomData))
     }
 
     pub fn filter_by_mask(&self, mask: &[bool]) -> Self {
@@ -333,7 +342,7 @@ impl ColElement<f64> {
     }
 
     pub fn iter(&self) -> impl Iterator<Item = f64> {
-        self.0.iter().map(|&v| v)
+        self.0.iter().copied()
     }
 
     pub fn data(&self) -> Vec<f64> {

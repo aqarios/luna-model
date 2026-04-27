@@ -9,22 +9,20 @@ impl ConstraintCollection {
     where
         for<'s> S: TryIndex<&'s str, Output = Bias, Err = LunaModelError>,
     {
-        Ok(self
-            .iter()
+        self.iter()
             .map(|(name, constr)| match constr.evaluate_sample(sample) {
                 Ok(val) => Ok((name.clone(), val)),
                 Err(e) => Err(e),
             })
-            .collect::<LunaModelResult<HashMap<_, _>>>()?)
+            .collect::<LunaModelResult<HashMap<_, _>>>()
     }
 
-    pub fn evaluate_sample_quick(&self, lu: &Vec<Bias>) -> LunaModelResult<HashMap<String, bool>> {
-        Ok(self
-            .iter()
+    pub fn evaluate_sample_quick(&self, lu: &[Bias]) -> LunaModelResult<HashMap<String, bool>> {
+        self.iter()
             .map(|(name, constr)| match constr.evaluate_sample_quick(lu) {
                 Ok(val) => Ok((name.clone(), val)),
                 Err(e) => Err(e),
             })
-            .collect::<LunaModelResult<HashMap<_, _>>>()?)
+            .collect::<LunaModelResult<HashMap<_, _>>>()
     }
 }

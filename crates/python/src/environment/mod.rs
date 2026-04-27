@@ -11,16 +11,16 @@ use pyo3::{PyErr, PyResult, pyclass};
 use std::cell::RefCell;
 
 thread_local! {
-    pub(crate) static ACTIVE_ENV: RefCell<Option<PyEnvironment>> = RefCell::new(None);
+    pub(crate) static ACTIVE_ENV: RefCell<Option<PyEnvironment>> = const { RefCell::new(None) };
 }
 
 pub(crate) fn get_active_env() -> PyResult<PyEnvironment> {
-    Ok(ACTIVE_ENV.with(|current| {
+    ACTIVE_ENV.with(|current| {
         current
             .borrow()
             .clone()
             .ok_or_else(|| PyNoActiveEnvironmentFoundError::new_err("no active environment found."))
-    })?)
+    })
 }
 
 // #[pyclass(name = "Environment", module = "luna_model._core")]

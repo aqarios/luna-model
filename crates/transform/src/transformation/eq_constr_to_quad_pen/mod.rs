@@ -35,7 +35,7 @@ mod tests {
         model.sense = Sense::Min;
 
         let pm = PassManager::default()
-            .add_analysis(MaxBiasAnalysis::default())
+            .add_analysis(MaxBiasAnalysis)
             .add_transform(EqualityConstraintsToQuadraticPenaltyPass::new(10.0));
         let output = pm.run(model)?;
 

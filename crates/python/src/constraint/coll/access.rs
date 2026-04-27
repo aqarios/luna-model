@@ -12,7 +12,7 @@ use crate::{
 #[pymethods]
 impl PyConstraintCollection {
     fn items(&self) -> PyConstraintCollectionIterator {
-        PyConstraintCollectionIterator::new(&self)
+        PyConstraintCollectionIterator::new(self)
     }
 
     fn get(&self, key: String) -> PyResult<PyConstraint> {
@@ -20,7 +20,7 @@ impl PyConstraintCollection {
     }
 
     fn ctypes(&self) -> Vec<PyComparator> {
-        self.read().ctypes().into_iter().map(|c| c.into()).collect()
+        self.read().ctypes().map(|c| c.into()).collect()
     }
 
     fn equal_contents(&self, other: PyColArg) -> bool {
@@ -40,6 +40,6 @@ impl PyConstraintCollection {
     }
 
     fn __iter__(&self) -> PyConstraintCollectionIterator {
-        PyConstraintCollectionIterator::new(&self)
+        PyConstraintCollectionIterator::new(self)
     }
 }

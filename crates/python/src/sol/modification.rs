@@ -11,11 +11,8 @@ use crate::utils::VarKey;
 impl PySolution {
     fn add_var(&mut self, var: VarKey, data: Vec<f64>, vtype: Option<PyVtype>) -> PyResult<()> {
         let (vn, vt) = match &var {
-            VarKey::Str(name) => (
-                name.clone(),
-                vtype.unwrap_or_else(|| PyVtype::Binary).into(),
-            ),
-            VarKey::Var(v) => (v.v.name()?, v.v.vtype()?.into()),
+            VarKey::Str(name) => (name.clone(), vtype.unwrap_or(PyVtype::Binary).into()),
+            VarKey::Var(v) => (v.v.name()?, v.v.vtype()?),
         };
         self.s.write_arc().add_col(vt, vn, data, None)?;
         Ok(())

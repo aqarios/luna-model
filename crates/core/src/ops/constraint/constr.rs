@@ -12,7 +12,7 @@ impl Constraint {
         Ok(self.comparator.evaluate(lhs, self.rhs))
     }
 
-    pub fn evaluate_sample_quick(&self, lu: &Vec<Bias>) -> LunaModelResult<bool> {
+    pub fn evaluate_sample_quick(&self, lu: &[Bias]) -> LunaModelResult<bool> {
         let lhs = self.lhs.evaluate_sample_quick(lu)?;
         Ok(self.comparator.evaluate(lhs, self.rhs))
     }

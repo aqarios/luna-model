@@ -24,14 +24,14 @@ impl From<TranslationTarget> for PyTranslationTarget {
     }
 }
 
-impl Into<TranslationTarget> for PyTranslationTarget {
-    fn into(self) -> TranslationTarget {
-        match self {
-            Self::Qubo => TranslationTarget::Qubo,
-            Self::Lp => TranslationTarget::Lp,
-            Self::Mps => TranslationTarget::Mps,
-            Self::Bqm => TranslationTarget::Bqm,
-            Self::Cqm => TranslationTarget::Cqm,
+impl From<PyTranslationTarget> for TranslationTarget {
+    fn from(val: PyTranslationTarget) -> Self {
+        match val {
+            PyTranslationTarget::Qubo => TranslationTarget::Qubo,
+            PyTranslationTarget::Lp => TranslationTarget::Lp,
+            PyTranslationTarget::Mps => TranslationTarget::Mps,
+            PyTranslationTarget::Bqm => TranslationTarget::Bqm,
+            PyTranslationTarget::Cqm => TranslationTarget::Cqm,
         }
     }
 }

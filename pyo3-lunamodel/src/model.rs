@@ -15,7 +15,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyModel {
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
         obj.check_type("Model")?;
         let capsule: (Bound<'py, PyCapsule>, Bound<'py, PyCapsule>) =
-            if let Some(pye) = obj.getattr("_m").ok() {
+            if let Ok(pye) = obj.getattr("_m") {
                 pye.call_method0("_to_capsule")
             } else {
                 obj.call_method0("_to_capsule")

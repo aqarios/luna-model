@@ -32,7 +32,7 @@ mod tests {
         )?;
         model.sense = Sense::Min;
 
-        let pm = PassManager::default().add_transform(GeToLeConstraintsPass::default());
+        let pm = PassManager::default().add_transform(GeToLeConstraintsPass);
         let output = pm.run(model)?;
 
         let blob = output.record.encode(Some(true), Some(3))?;

@@ -19,7 +19,7 @@ pub fn cast_near_integral<T: NumCast, N: ToPrimitive + Copy + Debug>(
     value: N,
     tol: Option<f64>,
 ) -> LunaModelResult<Option<T>> {
-    let tol = tol.unwrap_or_else(|| DEFAULT_TOL);
+    let tol = tol.unwrap_or(DEFAULT_TOL);
     if tol <= 0.0 || tol > 1.0 {
         return Err(LunaModelError::Internal(
             "tol must be in [0.0, 1.0).".into(),
