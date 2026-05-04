@@ -8,7 +8,7 @@ use std::hash::Hash;
 use std::collections::HashSet;
 
 /// Iterator adaptor that yields only the first occurrence of each copied value.
-pub struct UniqueIter<T, I>
+struct UniqueIter<T, I>
 where
     T: Eq + Hash + Copy,
     I: Iterator<Item = T>,
@@ -52,7 +52,7 @@ where
 }
 
 /// Iterator adaptor that deduplicates values by a projected key.
-pub struct UniqueIterMap<T, A, I, F>
+struct UniqueIterMap<T, A, I, F>
 where
     A: Eq + Hash + Copy,
     I: Iterator<Item = T>,

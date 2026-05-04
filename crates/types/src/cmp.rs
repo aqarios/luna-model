@@ -29,7 +29,7 @@ impl Comparator {
     /// Equality accepts values whose absolute difference is within
     /// `tol + f64::EPSILON * max(abs(lhs), abs(rhs), 1.0)`. Inequalities allow
     /// the same tolerance in the violated direction. If `tol` is `None`,
-    /// [`DEFAULT_TOL`] is used.
+    /// the default tolerance of `1e-6` is used.
     pub fn evaluate(self, lhs: Bias, rhs: Bias, tol: Option<f64>) -> LunaModelResult<bool> {
         let tol = validate_tol(tol)?;
         Ok(match self {
@@ -102,5 +102,17 @@ mod tests {
         assert!(Comparator::Ge.evaluate(1.0 - 1e-7, 1.0, None)?);
         assert!(!Comparator::Ge.evaluate(1.0 - 1e-5, 1.0, None)?);
         Ok(())
+    }
+
+    #[test]
+    fn evaluate_rejects_invalid_tolerance() {
+        for tol in [
+            Some(-f64::EPSILON),
+            Some(1.0),
+            Some(f64::NAN),
+            Some(f64::INFINITY),
+        ] {
+            assert!(Comparator::Eq.evaluate(1.0, 1.0, tol).is_err());
+        }
     }
 }

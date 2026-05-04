@@ -221,6 +221,9 @@ impl Index<&str> for ConstraintCollection {
 impl PartialEq for ConstraintCollection {
     /// Compares constraints including their identity-sensitive equality behavior.
     fn eq(&self, other: &Self) -> bool {
+        if self.data.len() != other.data.len() {
+            return false;
+        }
         for (cname, constr) in self.data.iter() {
             if let Ok(otr_constr) = other.get(cname) {
                 if constr != otr_constr {

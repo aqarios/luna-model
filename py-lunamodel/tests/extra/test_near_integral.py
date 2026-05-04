@@ -39,3 +39,23 @@ def test_float_comparisons_allow_tolerance():
 
     lower_far = Solution.from_dict({"x": 1.0 - 1e-5}, model=m)[0]
     assert lower_far.constraints == {"eq": False, "le": True, "ge": False}
+
+
+@pytest.mark.parametrize("tol", [1.0, -1e-6, float("nan"), float("inf")])
+def test_float_comparisons_reject_invalid_tolerance(tol):
+    m = Model("probe")
+    x = m.add_variable("x", vtype=Vtype.REAL)
+    m.add_constraint(x <= 0.0)
+    solution = Solution.from_dict({"x": 0.5}, model=m)
+
+    with pytest.raises(LunaModelError):
+        _ = m.evaluate(solution, tol=tol)
+
+
+def test_from_counts_rejects_invalid_comparison_tolerance():
+    m = Model("probe")
+    x = m.add_variable("x", vtype=Vtype.BINARY)
+    m.add_constraint(x <= 0.0)
+
+    with pytest.raises(LunaModelError):
+        _ = Solution.from_counts({"1": 1}, model=m, tol=1.0)

@@ -8,4 +8,4 @@ mod iterator;
 
 pub mod defaults;
 pub use cast::{cast_near_integral, validate_tol};
-pub use iterator::{UniqueIter, UniqueIterMap, unique, unique_by};
+pub use iterator::{unique, unique_by};

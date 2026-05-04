@@ -53,3 +53,70 @@ pub fn cast_near_integral<T: NumCast, N: ToPrimitive + Copy + Debug>(
         Ok(None)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{cast_near_integral, validate_tol};
+
+    #[test]
+    fn validate_tol_accepts_default_and_valid_bounds() {
+        assert_eq!(validate_tol(None).unwrap(), 1e-6);
+        assert_eq!(validate_tol(Some(0.0)).unwrap(), 0.0);
+        assert_eq!(validate_tol(Some(0.999_999)).unwrap(), 0.999_999);
+    }
+
+    #[test]
+    fn validate_tol_rejects_invalid_values() {
+        for tol in [
+            Some(-f64::EPSILON),
+            Some(1.0),
+            Some(f64::NAN),
+            Some(f64::INFINITY),
+        ] {
+            assert!(validate_tol(tol).is_err());
+        }
+    }
+
+    #[test]
+    fn cast_near_integral_accepts_values_within_tolerance() {
+        assert_eq!(
+            cast_near_integral::<i64, _>(2.999_999_9, Some(1e-6)).unwrap(),
+            Some(3)
+        );
+        assert_eq!(
+            cast_near_integral::<i64, _>(-1.999_999_9, Some(1e-6)).unwrap(),
+            Some(-2)
+        );
+    }
+
+    #[test]
+    fn cast_near_integral_rejects_values_outside_tolerance() {
+        assert_eq!(
+            cast_near_integral::<i64, _>(2.99, Some(1e-6)).unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn cast_near_integral_handles_non_finite_values_without_casting() {
+        assert_eq!(cast_near_integral::<i64, _>(f64::NAN, None).unwrap(), None);
+        assert_eq!(
+            cast_near_integral::<i64, _>(f64::INFINITY, None).unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn cast_near_integral_returns_none_when_target_type_overflows() {
+        let too_large_for_u8 = f64::from(u8::MAX) + 1.0;
+        assert_eq!(
+            cast_near_integral::<u8, _>(too_large_for_u8, None).unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn cast_near_integral_rejects_invalid_tolerance() {
+        assert!(cast_near_integral::<i64, _>(1.0, Some(1.0)).is_err());
+    }
+}

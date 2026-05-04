@@ -16,6 +16,9 @@ pub static CONSTRAINT_COUNTER: CounterU64 = CounterU64::new(0);
 /// consistency and elevated developer experience. The failing readers do not provide a
 /// good error message so we catch theses cases early and show the users and appropriate
 /// error mesage.
+///
+/// Entries must remain lowercase because [`starts_with_failable`] lowercases only
+/// the candidate constraint name.
 pub const FAILABLE_CONSTRAINT_NAMES: [&str; 2] = ["inf", "nan"];
 
 /// Utility function to check the "legality" of a constraint name based on the disallowed
