@@ -37,17 +37,19 @@ impl PyModel {
         )?)
     }
 
-    fn evaluate(&self, solution: PySolArg) -> PyResult<PySolution> {
+    #[pyo3(signature = (solution, tol=None))]
+    fn evaluate(&self, solution: PySolArg, tol: Option<f64>) -> PyResult<PySolution> {
         Ok(self
             .m
             .read_arc()
-            .evaluate_solution(&solution.s.read_arc())?
+            .evaluate_solution_with_tol(&solution.s.read_arc(), tol)?
             .into())
     }
 
-    fn evaluate_sample(&self, sample: PySampleView) -> PyResult<PyResultView> {
+    #[pyo3(signature = (sample, tol=None))]
+    fn evaluate_sample(&self, sample: PySampleView, tol: Option<f64>) -> PyResult<PyResultView> {
         let mut sol = sample.sol.s.read_arc().extract(sample.idx);
-        sol = self.m.read_arc().evaluate_solution(&sol)?;
+        sol = self.m.read_arc().evaluate_solution_with_tol(&sol, tol)?;
         Ok(PyResultView::new(sol.into(), 0))
     }
 
@@ -55,10 +57,11 @@ impl PyModel {
         self.m.read_arc().equal_contents(&other.m.read_arc())
     }
 
-    fn violated_constraints(&self, sample: PySampleView) -> PyResult<PyConstraintCollection> {
+    #[pyo3(signature = (sample, tol=None))]
+    fn violated_constraints(&self, sample: PySampleView, tol: Option<f64>) -> PyResult<PyConstraintCollection> {
         let binding = sample.sol.s.read_arc();
         let sample = SampleView::new(&binding, sample.idx);
-        Ok(self.m.read_arc().violated_constraints(&sample)?.into())
+        Ok(self.m.read_arc().violated_constraints(&sample, tol)?.into())
     }
 
     fn satisfies(&self, specs: PyModelSpecsArg) -> bool {

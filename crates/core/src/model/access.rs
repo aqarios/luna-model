@@ -38,10 +38,11 @@ impl Model {
     pub fn violated_constraints(
         &self,
         sample: &SampleView,
+        tol: Option<f64>,
     ) -> LunaModelResult<ConstraintCollection> {
         let mut cs = ConstraintCollection::default();
         for (cname, c) in self.constraints.iter() {
-            let ok = c.evaluate_sample(sample)?;
+            let ok = c.evaluate_sample(sample, tol)?;
             if !ok {
                 cs.add_constraint(c.clone(), Some(cname.to_string()))?;
             }

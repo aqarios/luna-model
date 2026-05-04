@@ -7,6 +7,14 @@ use crate::{Solution, ops::make_lookup};
 
 impl Model {
     pub fn evaluate_solution(&self, sol: &Solution) -> LunaModelResult<Solution> {
+        self.evaluate_solution_with_tol(sol, None)
+    }
+
+    pub fn evaluate_solution_with_tol(
+        &self,
+        sol: &Solution,
+        tol: Option<f64>,
+    ) -> LunaModelResult<Solution> {
         check_alignment(
             &self.vars().map(|v| v.name().unwrap()).collect::<Vec<_>>(),
             &sol.variable_names(),
@@ -39,7 +47,7 @@ impl Model {
             make_lookup(&self.environment.read_arc(), &sample, &mut lu)?;
             obj_vals.push(self.objective.evaluate_sample_quick(&lu)?);
             let mut all_constr_ok = true;
-            for (cname, val) in self.constraints.evaluate_sample_quick(&lu)? {
+            for (cname, val) in self.constraints.evaluate_sample_quick(&lu, tol)? {
                 constrs.get_mut(&cname).unwrap().push(val);
                 all_constr_ok = all_constr_ok && val;
             }

@@ -554,6 +554,7 @@ version = "0.6.0"
 dependencies = [
  "derive_more",
  "enumset",
+ "lunamodel-utils",
  "pyo3",
  "strum",
  "strum_macros",

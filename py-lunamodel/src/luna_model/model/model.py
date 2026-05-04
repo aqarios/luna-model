@@ -683,7 +683,7 @@ class Model:
         """
         self._m.set_objective(expression, sense._val if sense else None)
 
-    def evaluate(self, solution: Solution) -> Solution:
+    def evaluate(self, solution: Solution, /, tol: float | None = None) -> Solution:
         """Evaluate a solution against the model.
 
         Computes objective values and checks constraint satisfaction for all
@@ -693,6 +693,12 @@ class Model:
         ----------
         solution : Solution
             The solution to evaluate.
+        tol : float, optional
+            Tolerance used during evaluation for floating-point comparisons in constraints
+            (``==``, ``<=``, and ``>=``). Two values are treated as equal, or as satisfying
+            an inequality within tolerance, if their comparison only differs by at most
+            ``tol + eps * max(abs(lhs), abs(rhs), 1.0)``, where ``eps`` is machine epsilon
+            for ``float``. Must satisfy ``0.0 <= tol < 1.0``. By default a tolerance of 1e-6 is used.
 
         Returns
         -------
@@ -725,9 +731,9 @@ class Model:
         >>> solution[0].feasible  # x + y = 3 <= 5, so True
         True
         """
-        return wrap_s(self._m.evaluate(solution))
+        return wrap_s(self._m.evaluate(solution, tol))
 
-    def evaluate_sample(self, sample: Sample) -> Result:
+    def evaluate_sample(self, sample: Sample, /, tol: float | None = None) -> Result:
         """Evaluate a single sample against the model.
 
         Computes the objective value and checks constraint satisfaction for
@@ -737,6 +743,12 @@ class Model:
         ----------
         sample : Sample
             A dictionary mapping variable names to their values.
+        tol : float, optional
+            Tolerance used during evaluation for floating-point comparisons in constraints
+            (``==``, ``<=``, and ``>=``). Two values are treated as equal, or as satisfying
+            an inequality within tolerance, if their comparison only differs by at most
+            ``tol + eps * max(abs(lhs), abs(rhs), 1.0)``, where ``eps`` is machine epsilon
+            for ``float``. Must satisfy ``0.0 <= tol < 1.0``. By default a tolerance of 1e-6 is used.
 
         Returns
         -------
@@ -750,22 +762,28 @@ class Model:
         SampleUnexpectedVariableError
             If the sample contains variables not in the model.
         """
-        return self._m.evaluate_sample(sample)
+        return self._m.evaluate_sample(sample, tol)
 
-    def violated_constraints(self, sample: Sample) -> ConstraintCollection:
+    def violated_constraints(self, sample: Sample, /, tol: float | None = None) -> ConstraintCollection:
         """Get all constraints violated by a sample.
 
         Parameters
         ----------
         sample : Sample
             A dictionary mapping variable names to their values.
+        tol : float, optional
+            Tolerance used during evaluation for floating-point comparisons in constraints
+            (``==``, ``<=``, and ``>=``). Two values are treated as equal, or as satisfying
+            an inequality within tolerance, if their comparison only differs by at most
+            ``tol + eps * max(abs(lhs), abs(rhs), 1.0)``, where ``eps`` is machine epsilon
+            for ``float``. Must satisfy ``0.0 <= tol < 1.0``. By default a tolerance of 1e-6 is used.
 
         Returns
         -------
         ConstraintCollection
             Collection containing only the constraints that are violated by the sample.
         """
-        return wrap_cc(self._m.violated_constraints(sample))
+        return wrap_cc(self._m.violated_constraints(sample, tol))
 
     def substitute(self, /, target: Variable, replacement: Expression | Variable) -> None:
         """Substitute a variable with an expression or another variable.

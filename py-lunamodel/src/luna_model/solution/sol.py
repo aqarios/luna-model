@@ -637,11 +637,17 @@ class Solution:
         energy : float, optional
             Raw energy value for this sample.
         tol : float, optional
-            Tolerance used to treat values as near-integral when casting to binary, spin,
-            or integer assignments. A value ``x`` is accepted as integral if
-            ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
-            machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
-            By default a tolerance of 1e-6 is used.
+            Tolerance used when creating the solution from dictionary values. It is always
+            used for near-integral casting of binary, spin, and integer assignments. If and
+            only if a model is also provided, the same value is used for floating-point
+            comparisons in evaluated constraints (``==``, ``<=``, and ``>=``).
+            For near-integral casting, a value ``x`` is accepted as integral if
+            ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``.
+            For constraint comparisons, two values are treated as equal, or as satisfying an
+            inequality within tolerance, if the comparison differs by at most
+            ``tol + eps * max(abs(lhs), abs(rhs), 1.0)``.
+            Here ``eps`` is machine epsilon for ``float``. Must satisfy
+            ``0.0 <= tol < 1.0``. By default a tolerance of 1e-6 is used.
 
         Returns
         -------
@@ -692,11 +698,17 @@ class Solution:
         energies : list[float], optional
             Raw energy values for each sample.
         tol : float, optional
-            Tolerance used to treat values as near-integral when casting to binary, spin,
-            or integer assignments. A value ``x`` is accepted as integral if
-            ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
-            machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
-            By default a tolerance of 1e-6 is used.
+            Tolerance used when creating the solution from dictionaries. It is always
+            used for near-integral casting of binary, spin, and integer assignments. If and
+            only if a model is also provided, the same value is used for floating-point
+            comparisons in evaluated constraints (``==``, ``<=``, and ``>=``).
+            For near-integral casting, a value ``x`` is accepted as integral if
+            ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``.
+            For constraint comparisons, two values are treated as equal, or as satisfying an
+            inequality within tolerance, if the comparison differs by at most
+            ``tol + eps * max(abs(lhs), abs(rhs), 1.0)``.
+            Here ``eps`` is machine epsilon for ``float``. Must satisfy
+            ``0.0 <= tol < 1.0``. By default a tolerance of 1e-6 is used.
 
         Returns
         -------
@@ -750,11 +762,17 @@ class Solution:
         energies : list[float], optional
             Raw energy values for each sample.
         tol : float, optional
-            Tolerance used to treat values as near-integral when casting to binary, spin,
-            or integer assignments. A value ``x`` is accepted as integral if
-            ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``, where ``eps`` is
-            machine epsilon for ``float``. Must satisfy ``0.0 <= tol < 1.0``.
-            By default a tolerance of 1e-6 is used.
+            Tolerance used when creating the solution from arrays. It is always
+            used for near-integral casting of binary, spin, and integer assignments. If and
+            only if a model is also provided, the same value is used for floating-point
+            comparisons in evaluated constraints (``==``, ``<=``, and ``>=``).
+            For near-integral casting, a value ``x`` is accepted as integral if
+            ``abs(x - round(x)) <= tol + eps * max(abs(x), 1.0)``.
+            For constraint comparisons, two values are treated as equal, or as satisfying an
+            inequality within tolerance, if the comparison differs by at most
+            ``tol + eps * max(abs(lhs), abs(rhs), 1.0)``.
+            Here ``eps`` is machine epsilon for ``float``. Must satisfy
+            ``0.0 <= tol < 1.0``. By default a tolerance of 1e-6 is used.
 
         Returns
         -------
@@ -786,6 +804,7 @@ class Solution:
         bit_order: Literal["LTR", "RTL"] = "RTL",
         energies: list[float] | None = None,
         var_order: list[str] | None = None,
+        tol: float | None = None,
     ) -> Solution:
         """Create solution from a counts dictionary.
 
@@ -807,6 +826,14 @@ class Solution:
             Raw energy values for each unique bitstring.
         var_order : list[str], optional
             Order of variable names corresponding to bit positions. Inferred from env or model if not provided.
+        tol: float, optional
+            Tolerance used when evaluating constraints, if and only if a model is provided,
+            for floating-point comparisons (``==``, ``<=``, and ``>=``).
+            For constraint comparisons, two values are treated as equal, or as satisfying an
+            inequality within tolerance, if the comparison differs by at most
+            ``tol + eps * max(abs(lhs), abs(rhs), 1.0)``.
+            Here ``eps`` is machine epsilon for ``float``. Must satisfy
+            ``0.0 <= tol < 1.0``. By default a tolerance of 1e-6 is used.
 
         Returns
         -------
@@ -823,17 +850,19 @@ class Solution:
                 bit_order=bit_order,
                 energies=energies,
                 var_order=var_order,
+                tol=tol,
             )
         )
 
     @classmethod
-    def from_random(
+    def from_random(  # noqa: PLR0913
         cls,
         n_samples: int,
         seed: int | None = None,
         env: Environment | None = None,
         model: Model | None = None,
         sense: Sense | None = None,
+        tol: float | None = None,
     ) -> Solution:
         """Create a `Solution` from random sampling.
 
@@ -852,6 +881,14 @@ class Solution:
             A model to evaluate the samples with.
         sense : Senes, optional
             The sense if no model is specified
+        tol: float, optional
+            Tolerance used when evaluating constraints, if and only if a model is provided,
+            for floating-point comparisons (``==``, ``<=``, and ``>=``).
+            For constraint comparisons, two values are treated as equal, or as satisfying an
+            inequality within tolerance, if the comparison differs by at most
+            ``tol + eps * max(abs(lhs), abs(rhs), 1.0)``.
+            Here ``eps`` is machine epsilon for ``float``. Must satisfy
+            ``0.0 <= tol < 1.0``. By default a tolerance of 1e-6 is used.
 
         Returns
         -------
@@ -865,11 +902,12 @@ class Solution:
                 env=env,
                 model=model,
                 sense=sense._val if sense else None,
+                tol=tol,
             )
         )
 
     @classmethod
-    def from_many(cls, solutions: Sequence[Solution], model: Model | None = None) -> Solution:
+    def from_many(cls, solutions: Sequence[Solution], model: Model | None = None, tol: float | None = None) -> Solution:
         """Create a `Solution` from a sequence of solutions.
 
         If a Model is passed, the merged solution will be (re-)evaluated.
@@ -880,18 +918,21 @@ class Solution:
             A sequence of solutions to be merged into a new solution.
         model : Model, optional
             A model to (re-)evaluate the new solution with.
+        tol: float, optional
+            Tolerance used when evaluating constraints, if and only if a model is provided,
+            for floating-point comparisons (``==``, ``<=``, and ``>=``).
+            For constraint comparisons, two values are treated as equal, or as satisfying an
+            inequality within tolerance, if the comparison differs by at most
+            ``tol + eps * max(abs(lhs), abs(rhs), 1.0)``.
+            Here ``eps`` is machine epsilon for ``float``. Must satisfy
+            ``0.0 <= tol < 1.0``. By default a tolerance of 1e-6 is used.
 
         Returns
         -------
         Solution
             The merged solution object.
         """
-        return cls._from_pys(
-            PySolution.from_many(
-                solutions=solutions,
-                model=model,
-            )
-        )
+        return cls._from_pys(PySolution.from_many(solutions=solutions, model=model, tol=tol))
 
     def __str__(self) -> str:
         """Get string representation of the solution.

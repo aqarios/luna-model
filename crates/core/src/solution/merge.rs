@@ -4,7 +4,7 @@ use super::Solution;
 use crate::{Model, Timing};
 
 impl Solution {
-    pub fn merge_many(solutions: &[Solution], model: &Option<Model>) -> LunaModelResult<Solution> {
+    pub fn merge_many(solutions: &[Solution], model: &Option<Model>, tol: Option<f64>) -> LunaModelResult<Solution> {
         if solutions.is_empty() {
             return Ok(Solution::default());
         }
@@ -108,7 +108,7 @@ impl Solution {
 
         merged.aggregate()?;
         if let Some(m) = model {
-            merged = m.evaluate_solution(&merged)?;
+            merged = m.evaluate_solution_with_tol(&merged, tol)?;
         }
         Ok(merged)
     }

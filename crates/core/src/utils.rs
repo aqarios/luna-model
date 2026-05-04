@@ -1,6 +1,7 @@
 use std::{fmt::Debug, ops::Mul};
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
+use lunamodel_utils::defaults::DEFAULT_TOL;
 use num::{NumCast, ToPrimitive};
 
 use crate::prelude::{Expression, VarRef};
@@ -12,8 +13,6 @@ impl From<VarRef> for Expression {
             .expect("the environment changed during cloning")
     }
 }
-
-const DEFAULT_TOL: f64 = 1e-6;
 
 pub fn cast_near_integral<T: NumCast, N: ToPrimitive + Copy + Debug>(
     value: N,

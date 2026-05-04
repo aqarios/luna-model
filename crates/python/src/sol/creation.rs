@@ -261,7 +261,7 @@ impl PySolution {
             sol.aggregate()?;
 
             if let Some(m) = model {
-                sol = m.m.read_arc().evaluate_solution(&sol)?;
+                sol = m.m.read_arc().evaluate_solution_with_tol(&sol, tol)?;
             }
 
             Ok(sol)
@@ -362,7 +362,7 @@ impl PySolution {
             sol.aggregate()?;
 
             if let Some(m) = model {
-                sol = m.m.read_arc().evaluate_solution(&sol)?;
+                sol = m.m.read_arc().evaluate_solution_with_tol(&sol, tol)?;
             }
 
             Ok(sol)
@@ -465,7 +465,7 @@ impl PySolution {
             sol.aggregate()?;
 
             if let Some(m) = model {
-                sol = m.m.read_arc().evaluate_solution(&sol)?;
+                sol = m.m.read_arc().evaluate_solution_with_tol(&sol, tol)?;
             }
 
             Ok(sol)
@@ -500,6 +500,7 @@ impl PySolution {
         bit_order: String,
         energies: Option<Vec<f64>>,
         var_order: Option<Vec<String>>,
+        tol: Option<f64>,
     ) -> PyResult<PySolution> {
         let sense = sense.map(|s| s.into());
 
@@ -516,6 +517,7 @@ impl PySolution {
             bit_order: String,
             energies: Option<Vec<f64>>,
             var_order: Option<Vec<String>>,
+            tol: Option<f64>,
         ) -> LunaModelResult<Solution> {
             let mut sol = Solution::with_sense(sense.unwrap_or_else(|| {
                 model
@@ -589,7 +591,7 @@ impl PySolution {
             sol.aggregate()?;
 
             if let Some(m) = model {
-                sol = m.m.read_arc().evaluate_solution(&sol)?;
+                sol = m.m.read_arc().evaluate_solution_with_tol(&sol, tol)?;
             }
             Ok(sol)
         }
@@ -603,6 +605,7 @@ impl PySolution {
             bit_order,
             energies,
             var_order,
+            tol,
         )
         .map_err(|e| match e {
             LunaModelError::VariableNotExisting(e) => LunaModelError::SampleUnexpectedVariable(e),
@@ -619,6 +622,7 @@ impl PySolution {
         env: Option<PyEnvArg>,
         model: Option<PyModelArg>,
         sense: Option<PySense>,
+        tol: Option<f64>,
     ) -> PyResult<PySolution> {
         let sense = sense.map(|s| s.into());
 
@@ -631,22 +635,29 @@ impl PySolution {
             Either::Left(environment)
         };
 
-        let sol = Solution::from_random(n_samples, seed, context, sense).map_err(|e| match e {
-            LunaModelError::VariableNotExisting(e) => LunaModelError::SampleUnexpectedVariable(e),
-            e => e,
-        })?;
+        let sol =
+            Solution::from_random(n_samples, seed, context, sense, tol).map_err(|e| match e {
+                LunaModelError::VariableNotExisting(e) => {
+                    LunaModelError::SampleUnexpectedVariable(e)
+                }
+                e => e,
+            })?;
 
         Ok(sol.into())
     }
 
     #[staticmethod]
-    fn from_many(solutions: Vec<PySolArg>, model: Option<PyModelArg>) -> PyResult<PySolution> {
+    fn from_many(
+        solutions: Vec<PySolArg>,
+        model: Option<PyModelArg>,
+        tol: Option<f64>,
+    ) -> PyResult<PySolution> {
         let sols = solutions
             .iter()
             .map(|s| s.s.read_arc().clone())
             .collect::<Vec<_>>();
         let model = model.map(|m| m.m.read_arc().clone());
-        Ok(Solution::merge_many(&sols, &model)?.into())
+        Ok(Solution::merge_many(&sols, &model, tol)?.into())
     }
 }
 

@@ -37,6 +37,7 @@ impl Solution {
         seed: Option<u64>,
         context: Either<ArcEnv, Model>,
         sense: Option<Sense>,
+        tol: Option<f64>
     ) -> LunaModelResult<Self> {
         let timer = Timer::start();
 
@@ -119,7 +120,7 @@ impl Solution {
         sol.aggregate()?;
 
         match context {
-            Either::Right(m) => Ok(m.evaluate_solution(&sol)?),
+            Either::Right(m) => Ok(m.evaluate_solution_with_tol(&sol, tol)?),
             Either::Left(_) => Ok(sol),
         }
     }
