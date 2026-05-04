@@ -16,7 +16,6 @@ impl QuboTranslator {
         if !model.constraints.is_empty() {
             return Err(LunaModelError::ModelNotUnconstrained);
         }
-        // TODO: do we really want to return an error here forever?
         if !model.sense.is_min() {
             return Err(LunaModelError::ModelSenseNotMinimize);
         }
