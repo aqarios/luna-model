@@ -1076,14 +1076,40 @@ class Model:
                 return MpsTranslator.from_lm(self, filepath)
 
     def equal_contents(self, other: Model) -> bool:
-        """Check if two models have equal contents."""
+        """Check whether two models have equal *contents*.
+
+        This compares the contents of both models — the environment contents,
+        objective, constraints, and optimization sense — without requiring
+        the two models to share the same underlying environment instance.
+        Two environments may carry equal contents (the same variables with
+        the same definitions) and still be distinct environment objects;
+        ``equal_contents`` treats those as equal. The model ``name`` is
+        user-facing metadata and is intentionally ignored, so two otherwise
+        identical models with different names are still content-equal.
+
+        Use ``==`` for strict equality: it additionally requires the same
+        environment instance (identity, not just contents) and the same name.
+
+        Parameters
+        ----------
+        other : Model
+            The model to compare with.
+
+        Returns
+        -------
+        bool
+            True if both models have equal contents, False otherwise.
+        """
         return self._m.equal_contents(other)
 
     def __eq__(self, other: Model) -> bool:  # type: ignore[override]
         """Check if two models are exactly equal.
 
-        Two models are equal if they have the same structure, variables,
-        constraints, and objective.
+        Strict equality requires both models to share the same underlying
+        environment instance (identity, not just equal contents) and to have
+        matching name, objective, constraints, and sense. For an
+        environment- and name-agnostic comparison, use
+        :meth:`equal_contents`.
 
         Parameters
         ----------
