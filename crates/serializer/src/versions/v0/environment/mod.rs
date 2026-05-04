@@ -1,3 +1,4 @@
+//! Version 0 serializer for environments.
 mod decode;
 mod encode;
 

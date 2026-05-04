@@ -1,3 +1,5 @@
+//! Subtraction implementations for expressions.
+
 use crate::ops::LmAddAssign;
 use crate::{expression::Expression, variable::VarRef};
 use crate::{rsubs, subs};
@@ -6,6 +8,7 @@ use lunamodel_types::Bias;
 
 use crate::ops::{LmSubAssign, utils::check_envs};
 
+/// Subtracts a scalar bias from an expression.
 // Bias
 impl LmSubAssign<&Bias> for Expression {
     fn sub_assign(&mut self, rhs: &Bias) -> LunaModelResult<()> {
@@ -13,12 +16,14 @@ impl LmSubAssign<&Bias> for Expression {
     }
 }
 
+/// Subtracts an unsigned integer after converting it to a bias.
 impl LmSubAssign<&usize> for Expression {
     fn sub_assign(&mut self, rhs: &usize) -> LunaModelResult<()> {
         self.sub_assign(*rhs as Bias)
     }
 }
 
+/// Subtracts a variable as a negative linear contribution.
 impl LmSubAssign<&VarRef> for Expression {
     fn sub_assign(&mut self, rhs: &VarRef) -> LunaModelResult<()> {
         check_envs(self, rhs)?;
@@ -28,6 +33,7 @@ impl LmSubAssign<&VarRef> for Expression {
     }
 }
 
+/// Subtracts another expression by delegating to negation plus addition.
 impl LmSubAssign<&Expression> for Expression {
     fn sub_assign(&mut self, rhs: &Expression) -> LunaModelResult<()> {
         self.add_assign(-rhs)

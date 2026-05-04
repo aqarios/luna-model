@@ -1,13 +1,13 @@
+//! Deep-cloning helpers for models.
+
 use super::Model;
 
 impl Model {
-    /// Deep clone a Model.
+    /// Deep-clones the model into a fresh environment identity.
     ///
-    /// This creates a new Model with a deep clone of the contained data.
-    /// The SharedEnvironment is not just an increase of the reference counted environment
-    /// but a new SharedEnvironment object with a deep cloned environment having a new
-    /// environment id that is guaranteed to be different from all other possibly
-    /// exisiting environments.
+    /// Unlike ordinary `Clone`, this does not share the underlying environment.
+    /// Instead, the environment, objective, and constraints are all re-rooted
+    /// into a newly allocated environment with a different environment id.
     pub fn deep_clone(&self) -> Self {
         let new_env = self.environment.deep_clone();
         Self {

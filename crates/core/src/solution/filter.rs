@@ -1,3 +1,5 @@
+//! Filtering helpers for selecting solution samples.
+
 use indexmap::IndexMap;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 
@@ -7,6 +9,7 @@ use super::Solution;
 use super::result::ResultView;
 
 impl Solution {
+    /// Filters sample rows using a predicate over [`ResultView`] values.
     pub fn filter<F>(&self, f: F) -> LunaModelResult<Solution>
     where
         F: Fn(&ResultView) -> LunaModelResult<bool>,
@@ -15,6 +18,7 @@ impl Solution {
         self.filter_by_mask(mask?.as_slice())
     }
 
+    /// Filters sample rows using a boolean mask aligned with the stored rows.
     pub fn filter_by_mask(&self, mask: &[bool]) -> LunaModelResult<Self> {
         if self.len() != mask.len() {
             return Err(LunaModelError::Computation(

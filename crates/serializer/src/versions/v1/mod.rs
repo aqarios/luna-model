@@ -1,3 +1,4 @@
+//! Version 1 serializer schemas.
 mod environment;
 mod expression;
 mod solution;

@@ -1,3 +1,4 @@
+//! Built-in reversible transformation passes.
 mod binary_spin;
 mod change_sense;
 mod eq_constr_to_quad_pen;
@@ -16,6 +17,7 @@ pub use integer_to_binary::{IntegerToBinaryArtifact, IntegerToBinaryPass};
 pub use le_to_eq::{LeToEqConstraintsArtifact, LeToEqConstraintsPass};
 pub use reduce_inverted_bin::{ReduceInvertedBinaryPass, ReduceInvertedBinaryPassArtifact};
 
+/// Registers all built-in backward handlers with the global transpiler registry.
 pub fn register_backward() {
     lunamodel_transpiler::register_backward::<BinarySpinPass>();
     lunamodel_transpiler::register_backward::<ChangeSensePass>();

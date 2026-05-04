@@ -1,3 +1,5 @@
+//! Internal helper traits for Python transformation wrappers.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::PipelineStep;
 use pyo3::{FromPyObject, Py, PyAny, PyErr, PyResult, Python};

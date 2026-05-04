@@ -1,3 +1,5 @@
+//! Display and debug formatting for Python variables.
+
 use lunamodel_io::{CustomFormat, FormatOpt};
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};

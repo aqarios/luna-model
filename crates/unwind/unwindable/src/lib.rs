@@ -1,7 +1,13 @@
+//! Proc-macro support for panic-safe Python-exposed impl blocks.
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{ImplItem, ItemImpl, ReturnType, Type, TypePath, parse_macro_input, parse_quote};
 
+/// Rewrites every method in an `impl` block so it executes through
+/// `lunamodel_unwind::unwind`.
+///
+/// Methods that already return `PyResult<T>` keep that return type. All other
+/// methods are rewritten to return `PyResult<OriginalReturnType>`.
 #[proc_macro_attribute]
 pub fn unwindable(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut imp = parse_macro_input!(item as ItemImpl);

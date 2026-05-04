@@ -1,3 +1,5 @@
+//! Logical inversion helpers for variable references.
+
 use std::ops::Not;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
@@ -8,6 +10,12 @@ use crate::{Environment, prelude::VarRef};
 impl Not for &VarRef {
     type Output = LunaModelResult<VarRef>;
 
+    /// Returns the logical inverse of a binary variable.
+    ///
+    /// For plain binary variables, LunaModel materializes an explicit inverted
+    /// companion inside the environment on first use and then reuses it for all
+    /// future negations. Inverted-binary variables map back to their original
+    /// base variable. Other variable types reject logical negation.
     fn not(self) -> Self::Output {
         self.check_living()?;
         let vtype = self.env.read_arc()[self.id].vtype;

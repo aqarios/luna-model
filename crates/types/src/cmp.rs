@@ -1,3 +1,6 @@
+//! Comparator and constraint-type enums shared across the workspace.
+use lunamodel_error::LunaModelResult;
+use lunamodel_utils::validate_tol;
 use strum_macros::Display;
 
 use crate::Bias;
@@ -5,7 +8,7 @@ use crate::Bias;
 /// Comparison operators used to define constraints.
 ///
 /// This enum represents the logical relation between the left-hand side (LHS)
-/// and the right-hand side (RHS) of a [Constraint].
+/// and the right-hand side (RHS) of a constraint.
 #[derive(Debug, Copy, Clone, PartialEq, Display, Eq, Hash)]
 pub enum Comparator {
     /// The Equality comparison (==) for a constraint where LHS == RHS.
@@ -20,11 +23,96 @@ pub enum Comparator {
 }
 
 impl Comparator {
-    pub fn evaluate(self, lhs: Bias, rhs: Bias) -> bool {
-        match self {
-            Self::Eq => lhs == rhs,
-            Self::Le => lhs <= rhs,
-            Self::Ge => lhs >= rhs,
+    /// Evaluates the comparator on `lhs` and `rhs`.
+    ///
+    /// Floating-point comparisons use `tol` to absorb small numerical drift.
+    /// Equality accepts values whose absolute difference is within
+    /// `tol + f64::EPSILON * max(abs(lhs), abs(rhs), 1.0)`. Inequalities allow
+    /// the same tolerance in the violated direction. If `tol` is `None`,
+    /// the default tolerance of `1e-6` is used.
+    pub fn evaluate(self, lhs: Bias, rhs: Bias, tol: Option<f64>) -> LunaModelResult<bool> {
+        let tol = validate_tol(tol)?;
+        Ok(match self {
+            Self::Eq => float_eq(lhs, rhs, tol),
+            Self::Le => float_le(lhs, rhs, tol),
+            Self::Ge => float_ge(lhs, rhs, tol),
+        })
+    }
+}
+
+fn comparison_tolerance(lhs: Bias, rhs: Bias, tol: f64) -> Bias {
+    tol + Bias::EPSILON * lhs.abs().max(rhs.abs()).max(1.0)
+}
+
+fn float_eq(lhs: Bias, rhs: Bias, tol: f64) -> bool {
+    if lhs == rhs {
+        return true;
+    }
+    if !lhs.is_finite() || !rhs.is_finite() {
+        return false;
+    }
+
+    (lhs - rhs).abs() <= comparison_tolerance(lhs, rhs, tol)
+}
+
+fn float_le(lhs: Bias, rhs: Bias, tol: f64) -> bool {
+    if lhs <= rhs {
+        return true;
+    }
+    if !lhs.is_finite() || !rhs.is_finite() {
+        return false;
+    }
+
+    lhs - rhs <= comparison_tolerance(lhs, rhs, tol)
+}
+
+fn float_ge(lhs: Bias, rhs: Bias, tol: f64) -> bool {
+    if lhs >= rhs {
+        return true;
+    }
+    if !lhs.is_finite() || !rhs.is_finite() {
+        return false;
+    }
+
+    rhs - lhs <= comparison_tolerance(lhs, rhs, tol)
+}
+
+#[cfg(test)]
+mod tests {
+    use lunamodel_error::LunaModelResult;
+
+    use super::Comparator;
+
+    #[test]
+    fn equality_allows_default_tolerance() -> LunaModelResult<()> {
+        assert!(Comparator::Eq.evaluate(1.0 + 1e-7, 1.0, None)?);
+        assert!(!Comparator::Eq.evaluate(1.0 + 1e-5, 1.0, None)?);
+        Ok(())
+    }
+
+    #[test]
+    fn less_equal_allows_default_tolerance() -> LunaModelResult<()> {
+        assert!(Comparator::Le.evaluate(1.0 + 1e-7, 1.0, None)?);
+        assert!(!Comparator::Le.evaluate(1.0 + 1e-5, 1.0, None)?);
+        Ok(())
+    }
+
+    #[test]
+    fn greater_equal_allows_default_tolerance() -> LunaModelResult<()> {
+        assert!(Comparator::Ge.evaluate(1.0 - 1e-7, 1.0, None)?);
+        assert!(!Comparator::Ge.evaluate(1.0 - 1e-5, 1.0, None)?);
+        Ok(())
+    }
+
+    #[test]
+    fn evaluate_rejects_invalid_tolerance() {
+        for tol in [
+            Some(-f64::EPSILON),
+            Some(1.0),
+            Some(f64::NAN),
+            Some(f64::INFINITY),
+        ] {
+            assert!(Comparator::Eq.evaluate(1.0, 1.0, tol).is_err());
         }
     }
 }

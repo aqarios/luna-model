@@ -1,3 +1,5 @@
+//! Version 0 encoding for environments.
+
 use lunamodel_core::prelude::Environment;
 use lunamodel_types::{Bound, Vtype};
 use prost::Message;
@@ -7,12 +9,14 @@ use crate::encode::BytesEncodable;
 use super::SerEnvironment;
 
 impl BytesEncodable for SerEnvironment {
+    /// Encodes the protobuf structure into raw bytes.
     fn encode_to_bytes(&self) -> Vec<u8> {
         self.encode_to_vec()
     }
 }
 
 impl SerEnvironment {
+    /// Fills the protobuf structure from the runtime environment.
     pub fn fill(mut self, env: &Environment) -> Self {
         // NOTE: We need to set this to the max index to account for the
         // possible gaps in indices. Let's do this in the end, so we don't

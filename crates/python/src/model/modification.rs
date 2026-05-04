@@ -1,3 +1,5 @@
+//! Mutation operations for Python models.
+
 use std::ops::Mul;
 
 use lunamodel_core::{Expression, ops::LmAddAssign, prelude::LazyBounds};

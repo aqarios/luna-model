@@ -1,3 +1,5 @@
+//! Constructors and conversions for solutions.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Vtype;
 
@@ -10,6 +12,12 @@ impl Solution {}
 impl TryFrom<ArcEnv> for Solution {
     type Error = LunaModelError;
 
+    /// Creates an empty solution schema from an environment.
+    ///
+    /// The resulting solution contains one empty column per non-inverted
+    /// variable, keyed by variable name. This is mainly a convenience for code
+    /// that wants to build up sample rows incrementally while preserving the
+    /// environment's variable order and declared variable types.
     fn try_from(env: ArcEnv) -> LunaModelResult<Self> {
         let mut slf = Self::default();
         for v in env.vars() {

@@ -1,3 +1,5 @@
+//! Helpers for attaching and reading serializer version headers.
+
 use prost::Message;
 
 use super::utils::{Slicable, Vectorizable};

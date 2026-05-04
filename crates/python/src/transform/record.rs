@@ -1,3 +1,5 @@
+//! Python wrapper for reversible transformation records.
+
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use lunamodel_transpiler::TransformationRecord;
 use lunamodel_unwind::*;

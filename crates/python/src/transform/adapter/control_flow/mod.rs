@@ -1,3 +1,5 @@
+//! Adapters for Python-defined control-flow passes.
+
 use pyo3::{Bound, PyAny, pyclass, pymethods};
 
 mod adapter;

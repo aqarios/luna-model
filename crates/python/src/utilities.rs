@@ -1,3 +1,4 @@
+//! Standalone Python utility functions exposed by the binding crate.
 use lunamodel_core::{ArcEnv, Expression};
 use lunamodel_error::py::PyStartCannotBeInferredError;
 use pyo3::{
@@ -17,6 +18,8 @@ pub fn quicksum(
     iterable: &Bound<PyAny>,
     start: Option<PyExprArg>,
 ) -> PyResult<PyExpression> {
+    // `quicksum` mirrors Python's dynamic calling style, so it has to infer an
+    // environment when no explicit start expression was provided.
     let typestr = iterable.get_type().name()?.to_string().to_uppercase();
     let items: Vec<_> = if typestr.contains("ARRAY") {
         iterable.call_method0("flatten")?.try_iter()?.collect()

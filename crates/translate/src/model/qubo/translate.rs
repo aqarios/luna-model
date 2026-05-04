@@ -1,3 +1,5 @@
+//! Translation from dense QUBO data into core models.
+
 use lunamodel_core::{Expression, Model};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Sense, Vtype};

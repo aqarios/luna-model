@@ -1,3 +1,5 @@
+//! Analysis pass that checks a model against requested specs.
+
 use lunamodel_core::Model;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, analysis};

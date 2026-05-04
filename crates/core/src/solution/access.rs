@@ -1,3 +1,5 @@
+//! Read-only accessors and views over solutions.
+
 use std::ops::Index;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
@@ -21,28 +23,41 @@ fn is_close(a: f64, b: f64, rtol: f64, atol: f64) -> bool {
 }
 
 impl Solution {
+    /// Returns the total number of sample occurrences represented by the solution.
+    ///
+    /// This is the sum of `counts`, not the number of unique sample rows. After
+    /// aggregation, a single stored row may still represent multiple identical
+    /// solver outputs.
     pub fn n_samples(&self) -> usize {
         self.counts.iter().sum()
     }
 
+    /// Returns the number of stored sample rows.
+    ///
+    /// This corresponds to the length of each column in [`Solution::samples`].
     pub fn len(&self) -> usize {
         match self.samples.first() {
             Some((_, col)) => col.len(),
-            None => 0,
+            _ => 0,
         }
     }
 
+    /// Returns `true` if the solution stores no sample rows.
     pub fn is_empty(&self) -> bool {
         match self.samples.first() {
             Some((_, col)) => col.is_empty(),
-            None => false,
+            _ => false,
         }
     }
 
+    /// Returns the number of variables represented by the solution.
     pub fn sample_len(&self) -> usize {
         self.samples.len()
     }
 
+    /// Returns the value for `var` in the given sample row.
+    ///
+    /// This is a convenience accessor over the column-oriented storage.
     pub fn value(&self, sample: usize, var: &str) -> Option<&Bias> {
         match sample >= self.len() {
             true => None,
@@ -50,10 +65,12 @@ impl Solution {
         }
     }
 
+    /// Returns the typed assignment for `var` in the given sample row.
     pub fn assignment(&self, sample: usize, var: &str) -> Assignment {
         self.samples[var].as_assignment(sample)
     }
 
+    /// Fallible version of [`Solution::assignment`].
     pub fn try_assignment(&self, sample: usize, var: &str) -> LunaModelResult<Assignment> {
         if sample >= self.len() {
             return Err(LunaModelError::IndexOutOfBounds(
@@ -66,6 +83,10 @@ impl Solution {
         Ok(self.samples[var].as_assignment(sample))
     }
 
+    /// Returns a typed assignment by sample row and column position.
+    ///
+    /// This is mostly useful in lower-level iteration code that is already
+    /// walking the column order rather than named lookup.
     pub fn try_assignment_idx(&self, sample: usize, var: usize) -> LunaModelResult<Assignment> {
         if sample >= self.len() {
             return Err(LunaModelError::IndexOutOfBounds(
@@ -80,6 +101,7 @@ impl Solution {
         Ok(self.samples[var].as_assignment(sample))
     }
 
+    /// Returns a result-oriented view for a sample row.
     pub fn result(&self, index: usize) -> Option<ResultView<'_>> {
         match index >= self.len() {
             true => None,
@@ -87,10 +109,12 @@ impl Solution {
         }
     }
 
+    /// Iterates over all sample rows as result-oriented views.
     pub fn results<'s>(&'s self) -> impl Iterator<Item = ResultView<'s>> {
         (0..self.len()).map(move |i| (self, i).into())
     }
 
+    /// Returns a sample-oriented view for a sample row.
     pub fn sample(&self, index: usize) -> Option<SampleView<'_>> {
         match index >= self.len() {
             true => None,
@@ -98,14 +122,21 @@ impl Solution {
         }
     }
 
+    /// Iterates over all sample rows as sample-oriented views.
     pub fn samples<'s>(&'s self) -> impl Iterator<Item = SampleView<'s>> {
         (0..self.len()).map(move |i| (self, i).into())
     }
 
+    /// Returns the stored variable names in column order.
     pub fn variable_names(&self) -> Vec<String> {
         self.samples.keys().cloned().collect()
     }
 
+    /// Returns all best feasible results within floating-point tolerance.
+    ///
+    /// The solution may contain multiple rows with effectively identical
+    /// objective values. Rather than returning a single arbitrary winner, this
+    /// method returns all rows that are close to the best feasible objective.
     pub fn best(&self) -> Option<Vec<ResultView<'_>>> {
         match (&self.feasible, &self.obj_values) {
             (Some(f), Some(ov)) => {
@@ -135,6 +166,7 @@ impl Solution {
         }
     }
 
+    /// Extracts a single sample row as a standalone one-row solution.
     pub fn extract(&self, row: usize) -> Solution {
         Solution {
             samples: self
@@ -165,6 +197,7 @@ impl Solution {
 impl Index<(usize, &str)> for Solution {
     type Output = Bias;
 
+    /// Indexes a solution by `(row, variable_name)`.
     fn index(&self, index: (usize, &str)) -> &Self::Output {
         let (row, var_name) = index;
         &self.samples[var_name][row]
@@ -174,6 +207,7 @@ impl Index<(usize, &str)> for Solution {
 impl Index<(usize, &String)> for Solution {
     type Output = Bias;
 
+    /// Indexes a solution by `(row, variable_name)`.
     fn index(&self, index: (usize, &String)) -> &Self::Output {
         let (row, var_name) = index;
         &self.samples[var_name][row]
@@ -183,6 +217,7 @@ impl Index<(usize, &String)> for Solution {
 impl Index<(usize, usize)> for Solution {
     type Output = Bias;
 
+    /// Indexes a solution by `(row, column_position)`.
     fn index(&self, index: (usize, usize)) -> &Self::Output {
         let (row, col) = index;
         &self.samples[col][row]

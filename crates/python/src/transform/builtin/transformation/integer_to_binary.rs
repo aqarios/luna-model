@@ -1,3 +1,5 @@
+//! Python wrapper for the integer-to-binary transformation pass.
+
 use std::collections::HashMap;
 
 use lunamodel_python_macros::pytransformation;

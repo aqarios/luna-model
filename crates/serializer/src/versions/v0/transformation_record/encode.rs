@@ -1,3 +1,5 @@
+//! Version 0 encoding for transformation records.
+
 use lunamodel_transpiler::TransformationRecord;
 use prost::Message;
 

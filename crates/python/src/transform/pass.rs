@@ -1,3 +1,5 @@
+//! Unified Python-facing pass enum used by pipelines and pass managers.
+
 use std::sync::Arc;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};

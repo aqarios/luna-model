@@ -1,3 +1,5 @@
+//! Core Python protocol helpers for `Solution`.
+
 use lunamodel_unwind::*;
 use pyo3::{
     Py, PyAny, PyRef, PyResult, Python,
@@ -14,10 +16,16 @@ use crate::{
 #[unwindable]
 #[pymethods]
 impl PySolution {
+    /// Compare two solutions for exact equality.
     fn __eq__(&self, other: PySolArg) -> bool {
         self.s.read_arc().eq(&other.s.read_arc())
     }
 
+    /// Index into the solution by result/sample position.
+    ///
+    /// The binding intentionally supports only integer indexing here so Python
+    /// callers get a clear distinction between result access and name-based
+    /// value lookup methods.
     fn __getitem__(&self, py: Python, item: Py<PyAny>) -> PyResult<PyResultView> {
         if let Ok(res_idx) = item.extract::<isize>(py) {
             if res_idx < 0 {
@@ -36,10 +44,12 @@ impl PySolution {
         }
     }
 
+    /// Iterate over result views in sample order.
     fn __iter__(slf: PyRef<'_, Self>) -> PyResultIterator {
         PyResultIterator::new(slf.clone())
     }
 
+    /// Return the number of stored samples.
     fn __len__(&self) -> usize {
         self.s.read_arc().len()
     }

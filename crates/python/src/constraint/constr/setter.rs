@@ -1,3 +1,5 @@
+//! In-place setters for the Python constraint wrapper.
+
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 

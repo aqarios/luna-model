@@ -1,3 +1,5 @@
+//! Raw FFI helpers used to share Rust-owned objects across Python extension boundaries.
+
 mod capsule_ffi;
 
 mod bounds;

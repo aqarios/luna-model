@@ -1,3 +1,5 @@
+//! Formatting helpers for constraint collections.
+
 use lunamodel_core::ConstraintCollection;
 
 use crate::{CustomFormat, FormatOpt};
@@ -14,7 +16,7 @@ impl CustomFormat<FormatOpt> for ConstraintCollection {
                         format!(
                             "{{{}}}",
                             self.iter()
-                                .map(|(cname, c)| format!("{cname}: {}", c.format(FormatOpt::Py)))
+                                .map(|(cname, c)| format!("{cname}: {}", c.format(FormatOpt::Rs)))
                                 .collect::<Vec<String>>()
                                 .join(", ")
                         )

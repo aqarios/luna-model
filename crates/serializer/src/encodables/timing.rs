@@ -1,3 +1,5 @@
+//! Version-independent encoding glue for timing values.
+
 use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerTiming as SerTimingV0;
@@ -18,12 +20,12 @@ impl Encodable<SerTimingV0> for Timing {
     }
 }
 
-/// Default implementation to make a bytes vector ([Vec<u8>]) deserializable to a [Timing].
+/// Makes a raw byte vector (`Vec<u8>`) decodable into a [`Timing`].
 impl Decodable<Timing> for Vec<u8> {
     type Latest = SerTimingLatest;
     type Payload = ();
 }
-/// Makes a [Version]ized representation of the [Timing] decodable.
+/// Makes a versioned byte representation decodable into a [`Timing`].
 impl Decodable<Timing> for Versioned<Vec<u8>> {
     type Latest = SerTimingLatest;
     type Payload = ();

@@ -1,3 +1,5 @@
+//! Serialization helpers for Python constraint collections.
+
 use lunamodel_core::{ArcEnv, Environment};
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use lunamodel_unwind::*;

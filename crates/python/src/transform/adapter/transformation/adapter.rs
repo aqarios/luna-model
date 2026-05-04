@@ -1,3 +1,5 @@
+//! Runtime adapter for Python-defined transformation passes.
+
 use std::sync::Arc;
 
 use lunamodel_core::{Model, Solution};

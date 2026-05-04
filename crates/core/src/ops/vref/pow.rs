@@ -1,3 +1,5 @@
+//! Exponentiation helpers for variable references.
+
 use crate::{
     Expression,
     ops::{LmAddAssign, LmMulAssign, LmPow},
@@ -7,6 +9,12 @@ use lunamodel_error::LunaModelResult;
 
 impl LmPow for &VarRef {
     type Output = Expression;
+
+    /// Raises a variable reference to a non-negative integer power.
+    ///
+    /// The current implementation uses repeated multiplication so that all the
+    /// existing variable-domain simplifications continue to apply through the
+    /// normal multiplication path.
     fn pow(self, sup: usize) -> LunaModelResult<Self::Output> {
         self.check_living()?;
         let mut base = Expression::empty(self.env.clone());

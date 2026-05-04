@@ -1,3 +1,9 @@
+//! Context-manager support for Python environments.
+//!
+//! The binding layer keeps a thread-local "active environment" so constructors
+//! for variables, expressions, and related wrappers can omit the environment
+//! argument inside a `with Environment(): ...` block.
+
 use pyo3::{Bound, PyAny, PyResult, pymethods};
 
 use lunamodel_error::py::PyMultipleActiveEnvironmentsError;
@@ -8,6 +14,11 @@ use super::{ACTIVE_ENV, PyEnvironment};
 #[unwindable]
 #[pymethods]
 impl PyEnvironment {
+    /// Enter this environment as the active thread-local construction context.
+    ///
+    /// Nested active environments are rejected because many Python constructors
+    /// implicitly resolve through this context, and ambiguous scoping would make
+    /// accidental cross-environment objects difficult to diagnose.
     fn __enter__(&self) -> PyResult<Self> {
         ACTIVE_ENV.with(|curr| {
             let mut mc = curr.borrow_mut();
@@ -22,6 +33,7 @@ impl PyEnvironment {
         Ok(self.clone())
     }
 
+    /// Clear the active thread-local construction context on block exit.
     fn __exit__(
         &self,
         _exc_type: &Bound<'_, PyAny>,

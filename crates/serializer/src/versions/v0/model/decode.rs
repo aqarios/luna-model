@@ -1,3 +1,5 @@
+//! Version 0 decoding for models.
+
 use std::str::FromStr;
 
 use lunamodel_core::{ArcEnv, Environment, prelude::Model};

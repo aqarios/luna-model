@@ -1,10 +1,24 @@
+//! Merge helpers for combining solution tables.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 
 use super::Solution;
 use crate::{Model, Timing};
 
 impl Solution {
-    pub fn merge_many(solutions: &[Solution], model: &Option<Model>) -> LunaModelResult<Solution> {
+    /// Merges multiple solutions that share the same variable schema and sense.
+    ///
+    /// The merge is performed by appending the column-oriented storage for each
+    /// participating solution and then aggregating duplicate rows. If `model` is
+    /// provided, the merged solution is re-evaluated afterwards so derived fields
+    /// such as objective values and feasibility reflect the final merged state.
+    /// `tol` is only used during that optional re-evaluation, where it controls
+    /// floating-point constraint comparisons.
+    pub fn merge_many(
+        solutions: &[Solution],
+        model: &Option<Model>,
+        tol: Option<f64>,
+    ) -> LunaModelResult<Solution> {
         if solutions.is_empty() {
             return Ok(Solution::default());
         }
@@ -79,7 +93,7 @@ impl Solution {
             }
 
             match solution.feasible.as_ref() {
-                None => merged.obj_values = None,
+                None => merged.feasible = None,
                 Some(e) => {
                     if let Some(me) = merged.feasible.as_mut() {
                         me.append(&mut e.clone());
@@ -108,7 +122,7 @@ impl Solution {
 
         merged.aggregate()?;
         if let Some(m) = model {
-            merged = m.evaluate_solution(&merged)?;
+            merged = m.evaluate_solution_with_tol(&merged, tol)?;
         }
         Ok(merged)
     }

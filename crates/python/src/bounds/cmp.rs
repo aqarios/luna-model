@@ -1,3 +1,5 @@
+//! Equality and semantic-comparison helpers for Python bounds.
+
 use lunamodel_types::Bound;
 use lunamodel_unwind::*;
 use pyo3::pymethods;

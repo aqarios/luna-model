@@ -1,3 +1,5 @@
+//! Serializable artifact helpers for objective-sense normalization.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_serializer::prelude::{
     BytesDecodable, BytesEncodable, Creatable, Decodable, Decoder, Encodable, Version, Versioned,

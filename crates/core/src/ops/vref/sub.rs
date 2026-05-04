@@ -1,3 +1,5 @@
+//! Subtraction implementations for variable references.
+
 use std::ops::{Add, Sub};
 
 use lunamodel_error::LunaModelResult;
@@ -12,6 +14,8 @@ use crate::{
 
 impl Sub<Self> for &VarRef {
     type Output = LunaModelResult<Expression>;
+
+    /// Builds the linear expression `self - rhs`.
     fn sub(self, rhs: Self) -> Self::Output {
         check_envs(self, rhs)?;
         self.check_living()?;
@@ -24,6 +28,8 @@ impl Sub<Self> for &VarRef {
 
 impl Sub<Self> for VarRef {
     type Output = LunaModelResult<Expression>;
+
+    /// Owned forwarding overload for [`Sub`] on borrowed variable references.
     fn sub(self, rhs: Self) -> Self::Output {
         (&self).sub(&rhs)
     }
@@ -31,6 +37,8 @@ impl Sub<Self> for VarRef {
 
 impl Sub<Bias> for &VarRef {
     type Output = LunaModelResult<Expression>;
+
+    /// Builds the affine expression `self - rhs`.
     fn sub(self, rhs: Bias) -> Self::Output {
         self.check_living()?;
         let mut out = Expression::empty(self.env.clone()).maybe_edit(|e| e.add_assign(self))?;
@@ -41,6 +49,8 @@ impl Sub<Bias> for &VarRef {
 
 impl Sub<Bias> for VarRef {
     type Output = LunaModelResult<Expression>;
+
+    /// Owned forwarding overload for subtracting a scalar.
     fn sub(self, rhs: Bias) -> Self::Output {
         (&self).sub(rhs)
     }
@@ -48,6 +58,8 @@ impl Sub<Bias> for VarRef {
 
 impl Sub<usize> for &VarRef {
     type Output = LunaModelResult<Expression>;
+
+    /// Convenience overload forwarding integer literals through `Bias`.
     fn sub(self, rhs: usize) -> Self::Output {
         self.sub(rhs as Bias)
     }
@@ -55,6 +67,8 @@ impl Sub<usize> for &VarRef {
 
 impl Sub<usize> for VarRef {
     type Output = LunaModelResult<Expression>;
+
+    /// Owned forwarding overload for subtracting integer literals.
     fn sub(self, rhs: usize) -> Self::Output {
         self.sub(rhs as Bias)
     }
@@ -63,6 +77,7 @@ impl Sub<usize> for VarRef {
 impl Sub<VarRef> for usize {
     type Output = LunaModelResult<Expression>;
 
+    /// Computes `scalar - var` by negating the variable and reusing addition.
     fn sub(self, rhs: VarRef) -> Self::Output {
         (-rhs)?.add(self)
     }
@@ -71,6 +86,7 @@ impl Sub<VarRef> for usize {
 impl Sub<VarRef> for Bias {
     type Output = LunaModelResult<Expression>;
 
+    /// Computes `scalar - var` by negating the variable and reusing addition.
     fn sub(self, rhs: VarRef) -> Self::Output {
         (-rhs)?.add(self)
     }

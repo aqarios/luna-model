@@ -1,3 +1,5 @@
+//! Equality and semantic-comparison helpers for Python constraints.
+
 use lunamodel_core::prelude::{Constraint, ContentEquality};
 use lunamodel_unwind::*;
 use pyo3::pymethods;

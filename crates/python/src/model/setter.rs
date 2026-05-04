@@ -1,3 +1,5 @@
+//! In-place setters for Python models.
+
 use std::ops::Mul;
 
 use lunamodel_core::Expression;

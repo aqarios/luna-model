@@ -1,3 +1,4 @@
+//! Python enum wrappers for common LunaModel core enums.
 mod comparator;
 mod ctype;
 mod sense;

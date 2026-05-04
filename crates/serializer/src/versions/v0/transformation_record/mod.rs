@@ -1,3 +1,5 @@
+//! Version 0 serializer for transformation records.
+
 mod artifact;
 mod pass_entry;
 

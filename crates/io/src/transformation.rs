@@ -1,3 +1,5 @@
+//! Formatting helpers for transformation-system types.
+
 use lunamodel_transpiler::{DisplaySteps, PassManager, Pipeline};
 use std::fmt;
 

@@ -1,3 +1,5 @@
+//! Artifact types for inverted-binary reduction.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::Artifact;
 

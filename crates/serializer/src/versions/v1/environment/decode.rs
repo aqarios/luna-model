@@ -1,3 +1,5 @@
+//! Version 1 decoding for environments.
+
 use indexmap::IndexMap;
 use lunamodel_core::{
     Environment,

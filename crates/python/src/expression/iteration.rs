@@ -1,3 +1,5 @@
+//! Iteration helpers for Python expressions.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
 use lunamodel_unwind::*;

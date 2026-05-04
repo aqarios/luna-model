@@ -1,3 +1,5 @@
+//! Serializable artifact helpers for `<=` to equality conversion.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_serializer::prelude::{
     BytesDecodable, BytesEncodable, Creatable, Decodable, Decoder, Encodable, Version, Versioned,
@@ -13,6 +15,7 @@ pub struct SerLeToEqConstraintsArtifact {
 }
 
 impl Creatable<LeToEqConstraintsArtifact> for SerLeToEqConstraintsArtifact {
+    /// Creates the protobuf representation from the runtime artifact.
     fn new(value: &LeToEqConstraintsArtifact) -> Self {
         Self {
             slackvars: value.slackvars.clone(),
@@ -21,12 +24,14 @@ impl Creatable<LeToEqConstraintsArtifact> for SerLeToEqConstraintsArtifact {
 }
 
 impl BytesEncodable for SerLeToEqConstraintsArtifact {
+    /// Encodes the protobuf structure into raw bytes.
     fn encode_to_bytes(&self) -> Vec<u8> {
         self.encode_to_vec()
     }
 }
 
 impl BytesDecodable<LeToEqConstraintsArtifact> for SerLeToEqConstraintsArtifact {
+    /// Decodes raw bytes into the runtime artifact.
     fn decode_from_bytes(bytes: &[u8], _: ()) -> LunaModelResult<LeToEqConstraintsArtifact> {
         Ok(LeToEqConstraintsArtifact {
             slackvars: Self::decode(bytes)?.slackvars,
@@ -35,6 +40,7 @@ impl BytesDecodable<LeToEqConstraintsArtifact> for SerLeToEqConstraintsArtifact 
 }
 
 impl Encodable<SerLeToEqConstraintsArtifact> for LeToEqConstraintsArtifact {
+    /// Returns the serializer version used by this artifact.
     fn version(&self) -> Version {
         Version::V0
     }

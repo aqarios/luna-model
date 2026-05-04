@@ -1,3 +1,5 @@
+//! Trait definitions for meta-analysis passes.
+
 use lunamodel_error::LunaModelResult;
 
 use crate::{AnalysisKey, PipelineStep};
@@ -20,12 +22,13 @@ pub trait MetaAnalysisPass: Send + Sync {
         Self::PROVIDES
     }
 
+    /// Returns the typed key associated with the analysis result this pass provides.
     fn key<T>() -> AnalysisKey<T>;
 
-    /// Compute the analysis result
+    /// Computes the analysis result from the remaining pipeline steps.
     fn run(&self, steps: &[PipelineStep]) -> LunaModelResult<Self::Result>;
 
-    /// Overridable to_string method for displaying the pass as human readble.
+    /// Human-readable display string used by pipeline visualization.
     fn display(&self) -> String {
         format!("🔭 {}", self.name())
     }

@@ -1,3 +1,5 @@
+//! Version 0 serialized pass-entry representations.
+
 use std::str::FromStr;
 
 use lunamodel_error::LunaModelResult;

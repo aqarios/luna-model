@@ -1,3 +1,5 @@
+//! Formatting helpers for solutions and solution views.
+
 use lunamodel_core::Solution;
 
 use crate::{CustomFormat, FormatOpt};
@@ -134,7 +136,6 @@ impl CustomFormat<FormatOpt> for Solution {
         }
     }
 }
-#[cfg(feature = "py")]
 mod pysolio {
     use std::{cmp::Ordering, time::Duration};
 
@@ -727,6 +728,7 @@ mod pysolio {
         s
     }
 
+    #[cfg(feature = "py")]
     pub fn fmtbool(b: bool) -> String {
         match b {
             true => "True".to_string(),

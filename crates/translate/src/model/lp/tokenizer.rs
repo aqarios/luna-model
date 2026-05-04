@@ -1,3 +1,5 @@
+//! Tokenizer for LP expressions and statements.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 
 #[derive(Debug, Clone, PartialEq)]

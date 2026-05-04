@@ -1,3 +1,5 @@
+//! Formatting helpers for structural model specs.
+
 use lunamodel_types::Specs;
 
 use super::{CustomFormat, FormatOpt};

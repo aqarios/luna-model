@@ -1,3 +1,5 @@
+//! Version-independent encoding glue for solutions.
+
 use crate::encode::{Decodable, Decoder, Encodable};
 
 use crate::versionize::{Version, Versioned};
@@ -22,12 +24,12 @@ impl Encodable<SerSolutionV1> for Solution {
     }
 }
 
-/// Default implementation to make a bytes vector deserializable to a [Solution].
+/// Makes a raw byte vector decodable into a [`Solution`].
 impl Decodable<Solution> for Vec<u8> {
     type Latest = SerSolutionLatest;
     type Payload = ();
 }
-/// Makes a versionized representation of the [Solution] decodable.
+/// Makes a versioned byte representation decodable into a [`Solution`].
 impl Decodable<Solution> for Versioned<Vec<u8>> {
     type Latest = SerSolutionLatest;
     type Payload = ();

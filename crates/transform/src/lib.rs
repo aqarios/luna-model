@@ -1,3 +1,9 @@
+//! Built-in model analyses, transformations, control-flow passes, and pipelines.
+//!
+//! This crate contains LunaModel's standard library of passes built on top of
+//! `lunamodel-transpiler`. The implementations here are domain-aware: they know
+//! about model structure, variable domains, constraint normalization, and the
+//! reversible artifacts needed for backward execution.
 pub mod analysis;
 pub mod composite;
 pub mod control_flow;

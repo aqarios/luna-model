@@ -1,3 +1,5 @@
+//! Multiplication helpers for quadratic sparse term storage.
+
 use lunamodel_types::Bias;
 
 use crate::{
@@ -9,6 +11,7 @@ use crate::{
 impl PrvMul<&VarRef> for &Quadratic {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies each quadratic contribution by a single variable reference.
     fn m(self, rhs: &VarRef) -> Self::Output {
         self.iter_flat().map(|v| rhs.m(v)).collect()
     }
@@ -17,6 +20,7 @@ impl PrvMul<&VarRef> for &Quadratic {
 impl PrvMul<&VarRef> for &Option<Quadratic> {
     type Output = Option<Vec<VarMulRes>>;
 
+    /// Multiplies optional quadratic storage by a variable reference.
     fn m(self, rhs: &VarRef) -> Self::Output {
         self.as_ref().map(|q| q.m(rhs))
     }
@@ -25,6 +29,7 @@ impl PrvMul<&VarRef> for &Option<Quadratic> {
 impl PrvMul<Bias> for &Quadratic {
     type Output = Vec<VarMulRes>;
 
+    /// Scales every quadratic contribution by a scalar bias.
     fn m(self, rhs: Bias) -> Self::Output {
         self.iter_flat()
             .map(|(u, v, b)| VarMulRes::Quad((u, v, b * rhs)))
@@ -35,6 +40,7 @@ impl PrvMul<Bias> for &Quadratic {
 impl PrvMul<Bias> for &Option<Quadratic> {
     type Output = Vec<VarMulRes>;
 
+    /// Scales optional quadratic storage by a scalar bias.
     fn m(self, rhs: Bias) -> Self::Output {
         self.as_ref().map(|q| q.m(rhs)).unwrap_or_default()
     }
@@ -43,6 +49,7 @@ impl PrvMul<Bias> for &Option<Quadratic> {
 impl PrvMul<(&Linear, &ArcEnv)> for &Option<Quadratic> {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies optional quadratic storage with linear storage.
     fn m(self, rhs: (&Linear, &ArcEnv)) -> Self::Output {
         let (lin, env) = rhs;
         lin.m((self, env))
@@ -52,6 +59,7 @@ impl PrvMul<(&Linear, &ArcEnv)> for &Option<Quadratic> {
 impl PrvMul<(&Quadratic, &ArcEnv)> for &Quadratic {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies two quadratic storages, yielding higher-degree fragments.
     fn m(self, rhs: (&Quadratic, &ArcEnv)) -> Self::Output {
         let (q, env) = rhs;
         let mut res = Vec::with_capacity(self.len() + q.len());
@@ -69,6 +77,7 @@ impl PrvMul<(&Quadratic, &ArcEnv)> for &Quadratic {
 impl PrvMul<(&Option<Quadratic>, &ArcEnv)> for &Option<Quadratic> {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies two optional quadratic storages.
     fn m(self, rhs: (&Option<Quadratic>, &ArcEnv)) -> Self::Output {
         let (q2, env) = rhs;
         self.as_ref()
@@ -84,6 +93,7 @@ impl PrvMul<(&Option<Quadratic>, &ArcEnv)> for &Option<Quadratic> {
 impl PrvMul<(&HigherOrder, &ArcEnv)> for &Quadratic {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies quadratic storage with higher-order storage.
     fn m(self, rhs: (&HigherOrder, &ArcEnv)) -> Self::Output {
         let (ho, env) = rhs;
         let mut res = Vec::with_capacity(self.len() + ho.len());
@@ -101,6 +111,7 @@ impl PrvMul<(&HigherOrder, &ArcEnv)> for &Quadratic {
 impl PrvMul<(&Option<HigherOrder>, &ArcEnv)> for &Option<Quadratic> {
     type Output = Vec<VarMulRes>;
 
+    /// Multiplies optional quadratic storage with optional higher-order storage.
     fn m(self, rhs: (&Option<HigherOrder>, &ArcEnv)) -> Self::Output {
         let (ho, env) = rhs;
         self.as_ref()

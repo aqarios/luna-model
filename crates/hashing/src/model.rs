@@ -1,3 +1,5 @@
+//! Hash encoding for models.
+
 use lunamodel_core::Model;
 use prost::Message;
 
@@ -25,6 +27,7 @@ pub struct HashModel {
 }
 
 impl HashModel {
+    /// Encodes a model into the hashing representation.
     pub fn build(model: &Model) -> Vec<u8> {
         let m = HashModel {
             objective: HashExpr::build(&model.objective),

@@ -1,3 +1,5 @@
+//! Shared capsule utilities used by the Python FFI bridge.
+
 use pyo3::{prelude::*, types::PyCapsule};
 
 pub trait CapsuleFFI<'py, R = Bound<'py, PyCapsule>>

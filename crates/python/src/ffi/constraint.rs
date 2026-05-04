@@ -1,3 +1,5 @@
+//! Low-level capsule and pointer FFI helpers for Python constraint wrappers.
+
 use std::{ffi::CStr, sync::Arc};
 
 use lunamodel_core::prelude::Constraint;

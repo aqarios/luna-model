@@ -1,3 +1,5 @@
+//! Read-only and mutable pass execution contexts.
+
 use lunamodel_error::LunaModelResult;
 
 use crate::analysis::{AnalysisKey, AnalysisManager};
@@ -10,12 +12,12 @@ pub struct PassContext<'a> {
 }
 
 impl<'a> PassContext<'a> {
+    /// Creates a new pass context backed by the given analysis manager.
     pub fn new(analysis_manager: &'a AnalysisManager) -> Self {
         Self { analysis_manager }
     }
 
-    /// Get an analysis result
-    // pub fn get_analysis<T: Send + Sync + 'static>(&self, key: &AnalysisKey<T>) -> Option<&T> {
+    /// Returns an available analysis result if it has already been computed.
     pub fn get_analysis<T: Send + Sync + 'static>(&self, key: &AnalysisKey<T>) -> Option<&T> {
         self.analysis_manager.get(key)
     }
@@ -28,6 +30,7 @@ impl<'a> PassContext<'a> {
         self.analysis_manager.require(key)
     }
 
+    /// Returns the underlying analysis manager.
     pub fn manager(&self) -> &AnalysisManager {
         self.analysis_manager
     }

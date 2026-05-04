@@ -1,3 +1,5 @@
+//! Artifact types for integer-to-binary encoding.
+
 use std::collections::HashMap;
 
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};

@@ -1,3 +1,5 @@
+//! Common wrapper trait for Python transformation artifacts.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 
 use crate::transform::adapter::transformation::envelope::BackwardEnvelope;

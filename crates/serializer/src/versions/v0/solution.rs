@@ -1,3 +1,5 @@
+//! Legacy version 0 solution helpers kept for compatibility.
+
 use std::{num::NonZeroUsize, str::FromStr};
 
 use crate::{

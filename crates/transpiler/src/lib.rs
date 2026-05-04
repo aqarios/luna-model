@@ -1,3 +1,10 @@
+//! Generic pass orchestration framework used by LunaModel transformations.
+//!
+//! The `transpiler` crate is the execution engine behind analyses,
+//! transformations, composite passes, control-flow passes, pipelines, and
+//! reversible transformation records. It is intentionally generic so the core
+//! transformation logic can live in domain-specific crates while still sharing a
+//! single execution model.
 mod analysis;
 mod artifact;
 mod composite;
@@ -31,8 +38,10 @@ pub use registry::{BackwardRegistry, apply as apply_backward, register_backward}
 pub use reversible::Reversible;
 pub use step::{DisplaySteps, PipelineStep};
 
+/// Attribute macros used by downstream pass implementations.
 pub use lunamodel_transpiler_macros::{analysis, control_flow, transformation};
 
+/// Convenience re-export module for downstream crates defining passes and pipelines.
 pub mod prelude {
     pub use crate::{
         AnalysisKey, AnalysisManager, AnalysisPass, Artifact, BackwardRegistry, CompositePass,

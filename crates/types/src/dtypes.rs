@@ -1,3 +1,5 @@
+//! Common numeric data-type aliases used by the workspace.
+
 /// Variable index type.
 pub type VarIdx = u32;
 /// Environment index type.

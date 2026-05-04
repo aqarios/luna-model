@@ -1,3 +1,5 @@
+//! Accessors for Python solutions.
+
 use lunamodel_unwind::*;
 use numpy::{PyArray1, ToPyArray};
 use pyo3::{Bound, Python, pymethods};

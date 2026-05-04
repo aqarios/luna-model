@@ -1,9 +1,12 @@
+//! LP parser and intermediate representation.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Comparator, Sense};
 use std::collections::{HashMap, HashSet};
 
 use super::tokenizer::{Token, tokenize};
 
+/// Current parser section while scanning an LP file.
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Section {
     None,
@@ -17,6 +20,7 @@ enum Section {
 }
 
 impl Section {
+    /// Detects whether `line` starts a new LP section.
     fn try_header(line: &str) -> Option<Section> {
         let lu = line.trim().to_uppercase();
         if lu == "MINIMIZE" || lu == "MINIMUM" || lu == "MIN" {
@@ -49,9 +53,11 @@ impl Section {
     }
 }
 
+/// Tokenized LP expression.
 #[derive(Debug, Default)]
 pub struct LpExpression(pub Vec<Token>);
 
+/// Parsed LP constraint before conversion to the core model types.
 #[derive(Debug)]
 pub struct LpConstraint {
     pub(super) name: Option<String>,
@@ -60,6 +66,7 @@ pub struct LpConstraint {
     pub(super) rhs: Bias,
 }
 
+/// Parsed LP problem representation used as an intermediate before model construction.
 #[derive(Debug, Default)]
 pub struct LpProblem {
     pub(super) name: Option<String>,
@@ -74,6 +81,7 @@ pub struct LpProblem {
     pub(super) vars: HashSet<String>,
 }
 
+/// Parses LP file content into the intermediate [`LpProblem`] representation.
 pub fn read_lp(content: &str) -> LunaModelResult<LpProblem> {
     let lines = content.lines().peekable();
     let mut prob = LpProblem::default();

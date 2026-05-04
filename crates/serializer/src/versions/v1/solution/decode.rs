@@ -1,3 +1,5 @@
+//! Version 1 decoding for solutions.
+
 use std::str::FromStr;
 
 use bitvec::{order::Lsb0, vec::BitVec};
@@ -15,12 +17,14 @@ use super::SerSolution;
 
 /// Makes the SerSolution conform with the requirements for it to be an Decodable.
 impl BytesDecodable<Solution> for SerSolution {
+    /// Decodes version-1 bytes into a solution.
     fn decode_from_bytes(bytes: &[u8], _payload: ()) -> LunaModelResult<Solution> {
         Self::decode(bytes)?.extract()
     }
 }
 
 impl SerSolution {
+    /// Extracts the runtime solution from the protobuf structure.
     fn extract(self) -> LunaModelResult<Solution> {
         let mut sol = Solution::with_sense(
             Sense::from_str(&self.sense)

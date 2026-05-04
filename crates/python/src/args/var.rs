@@ -1,3 +1,5 @@
+//! Flexible Python argument extraction for variable-like inputs.
+
 use derive_more::Deref;
 use pyo3::{FromPyObject, PyErr, PyRef, exceptions::PyTypeError, types::PyAnyMethods};
 

@@ -1,3 +1,11 @@
+//! Shared primitive and enum types used across the LunaModel workspace.
+//!
+//! This crate stays intentionally lightweight. It contains the data vocabulary
+//! that many higher-level crates need to agree on: variable ids and names,
+//! optimization sense, variable types, constraint comparators, bounds, and
+//! model capability specifications. Keeping those definitions here avoids
+//! dependency cycles between the modeling, translation, hashing, and Python
+//! layers.
 mod bound;
 mod cmp;
 mod dtypes;
@@ -22,4 +30,5 @@ pub use varid::VarId;
 pub use varname::VarName;
 pub use vtype::Vtype;
 
+/// Canonical zero bias used where a stable shared default is convenient.
 pub static DEFAULT_BIAS: LazyLock<Bias> = LazyLock::new(Bias::default);

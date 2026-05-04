@@ -1,3 +1,4 @@
+//! Object-safe pass adapters used by the runtime.
 mod analysis;
 mod composite;
 mod control_flow;

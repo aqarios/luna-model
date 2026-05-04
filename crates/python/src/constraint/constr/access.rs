@@ -1,3 +1,5 @@
+//! Accessors for Python constraint wrappers.
+
 use lunamodel_types::Bias;
 use lunamodel_unwind::*;
 use pyo3::pymethods;

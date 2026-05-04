@@ -1,3 +1,5 @@
+//! Version-independent encoding glue for expressions.
+
 use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerExpression as SerExprV0;
@@ -11,6 +13,7 @@ use lunamodel_error::LunaModelResult;
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
 // TODO: delete until TODO(@HERE) and uncomment from TODO(@HERE) for V1 activation.
+// Issue(474): <https://github.com/aqarios/luna-model/issues/474>
 type SerExprLatest = SerExprV0;
 /// Makes an [Expression] encodable.
 impl Encodable<SerExprV0> for Expression {
@@ -20,6 +23,7 @@ impl Encodable<SerExprV0> for Expression {
 }
 impl Decoder<Expression, ArcEnv> for SerExprV1 {}
 // TODO: delete ABOVE code and activate below code for V1 activation.
+// Issue(474): <https://github.com/aqarios/luna-model/issues/474>
 // type SerExprLatest = SerExprV1;
 // /// Makes an [Expression] encodable.
 // impl Encodable<SerExprV1> for Expression {
@@ -29,16 +33,18 @@ impl Decoder<Expression, ArcEnv> for SerExprV1 {}
 // }
 // impl Decoder<Expression, ArcEnv> for SerExprV0 {}
 
-/// Default implementation to make a bytes vector ([Vec<u8>]) deserializable to an [Expression].
-/// For the decoding of a [Vec<u8>] to an [Expression] a pointer to
-/// it's [Environment] is required (given by the Payload type)
+/// Makes a raw byte vector (`Vec<u8>`) decodable into an [`Expression`].
+///
+/// Decoding an expression requires the target [`ArcEnv`] because serialized
+/// terms refer to variable ids owned by an environment.
 impl Decodable<Expression> for Vec<u8> {
     type Latest = SerExprLatest;
     type Payload = ArcEnv;
 }
-/// Makes a [Version]ized representation of the [Expression] decodable.
-/// For the decoding of a bytes vector to an [Expression] a pointer to
-/// it's [Environment] is required (given by the Payload type)
+/// Makes a versioned byte representation decodable into an [`Expression`].
+///
+/// Decoding still requires the target [`ArcEnv`] because serialized terms refer
+/// to variable ids owned by an environment.
 impl Decodable<Expression> for Versioned<Vec<u8>> {
     type Latest = SerExprLatest;
     type Payload = ArcEnv;

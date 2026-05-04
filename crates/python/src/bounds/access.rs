@@ -1,3 +1,5 @@
+//! Accessors for Python bounds wrappers.
+
 use lunamodel_core::prelude::Bounds;
 use lunamodel_unwind::*;
 use pyo3::pymethods;

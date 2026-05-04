@@ -1,3 +1,5 @@
+//! Python-visible marker type used for unbounded endpoints.
+
 use lunamodel_error::py::PyLunaModelError;
 use lunamodel_types::Bound;
 use lunamodel_unwind::*;

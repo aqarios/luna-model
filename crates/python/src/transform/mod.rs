@@ -1,3 +1,4 @@
+//! Python wrappers for the transpiler/transform pipeline system.
 mod context;
 mod entry;
 mod envelope;
@@ -23,6 +24,7 @@ pub use output::PyTransformationOutput;
 pub use pipeline::PyPipeline;
 pub use record::PyTransformationRecord;
 
+/// Registers built-in and Python-adapter backward handlers.
 pub fn register_backward() {
     lunamodel_transform::register_backward();
     lunamodel_transpiler::register_backward::<PyTransformationPassAdapter>();

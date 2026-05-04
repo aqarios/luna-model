@@ -1,3 +1,5 @@
+//! Low-level capsule and pointer FFI helpers for Python environment wrappers.
+
 use std::ffi::CStr;
 
 use lunamodel_core::ArcEnv;

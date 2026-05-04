@@ -1,3 +1,5 @@
+//! Version 0 serialized artifact representations.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::ErasedArtifact;
 use prost::Message;

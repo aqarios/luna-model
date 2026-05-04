@@ -1,3 +1,5 @@
+//! Pass logic for integer-to-binary encoding.
+
 use std::collections::HashMap;
 
 use lunamodel_core::{Expression, Model, Solution, ops::LmAddAssign, prelude::Bounds};
@@ -84,6 +86,7 @@ impl Reversible for IntegerToBinaryPass {
     }
 }
 
+/// Converts bounded integer bounds into the encoded range plus offset.
 fn make_new_bounds(vname: &str, bounds: Bounds) -> LunaModelResult<(usize, usize)> {
     match bounds {
         Bounds {
@@ -114,8 +117,7 @@ fn make_new_bounds(vname: &str, bounds: Bounds) -> LunaModelResult<(usize, usize
     })
 }
 
-/// Bounded Coefficient Ecoding
-/// https://arxiv.org/pdf/1706.01945
+/// Bounded Coefficient Ecoding <https://arxiv.org/pdf/1706.01945>
 /// kappa: upper bound of integer variable to be encoded
 /// mu: upper bound on the coefficients of the encoding.
 /// output: coefficients, length of these is the number of binary variables

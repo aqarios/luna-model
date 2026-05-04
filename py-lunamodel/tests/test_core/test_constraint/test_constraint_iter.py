@@ -22,3 +22,18 @@ def test_collection_iter(constraint_collection: ConstraintCollection):
     for name, constraint in constraint_collection.items():
         assert name == constraint.name
         assert constraint == constraint
+
+
+def test_collection_equality_is_symmetric_for_different_lengths():
+    with Environment():
+        x = Variable("x")
+
+    small = ConstraintCollection()
+    small += x <= 1, "upper"
+
+    large = ConstraintCollection()
+    large += x <= 1, "upper"
+    large += x >= 0, "lower"
+
+    assert small != large
+    assert large != small

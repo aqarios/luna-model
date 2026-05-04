@@ -1,3 +1,5 @@
+//! Python wrapper for transformation results.
+
 use lunamodel_transpiler::TransformationOutput;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pyclass, pymethods};
@@ -10,6 +12,7 @@ use crate::{
 #[pyclass]
 #[repr(C)]
 pub struct PyTransformationOutput {
+    /// The underlying Rust transformation result.
     pub to: TransformationOutput,
 }
 
@@ -20,6 +23,7 @@ impl From<TransformationOutput> for PyTransformationOutput {
 }
 
 impl PyTransformationOutput {
+    /// Run the recorded reverse transformation sequence on a solution.
     pub fn backward(&self, solution: PySolution) -> PyResult<PySolution> {
         Ok(self
             .to
@@ -32,16 +36,19 @@ impl PyTransformationOutput {
 #[unwindable]
 #[pymethods]
 impl PyTransformationOutput {
+    /// Return the transformed model.
     #[getter]
     fn model(&self) -> PyModel {
         self.to.model.clone().into()
     }
 
+    /// Return the transformation record used for backwards mapping.
     #[getter]
     fn record(&self) -> PyTransformationRecord {
         self.to.record.clone().into()
     }
 
+    /// Return the analysis context accumulated while running the pipeline.
     #[getter]
     fn context(&self) -> PyPassContext {
         self.to.analysis.clone().into()

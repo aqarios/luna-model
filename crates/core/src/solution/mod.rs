@@ -1,3 +1,5 @@
+//! Column-oriented solution tables and related view types.
+
 mod access;
 mod col;
 mod convenience;
@@ -21,23 +23,33 @@ pub use timing::{Timer, Timing};
 
 use crate::traits::ContentEquality;
 
-/// The solutions object for Models. It doesn't have any knowledge about the corresponding AQM or
-/// about the environment the model was created in. Instead, for each sample, we expect the indices
-/// of the solution to be aligned with the variable indices of the model's environment.
+/// Column-oriented solution data for a model evaluation or solver result.
 ///
-///   x y z . .
-/// [ . . . . . ] count0
-/// [ c . . . . ] count1
-/// [ o . . . . ] count2
-/// [ l . . . . ]
-/// [ . . . . . ]
+/// A [`Solution`] intentionally does not own or reference a [`crate::Model`] or
+/// its [`crate::Environment`]. Instead, all variable-related data is keyed by
+/// variable name. This makes a solution independent of environment-local
+/// variable indices and therefore easier to merge, serialize, inspect, and move
+/// between workflows that no longer have direct access to the original model.
 ///
-/// counts.len() == samples[?].len()
+/// The `samples` field stores data in column orientation:
+///
+/// ```text
+/// variable name -> all values for that variable across samples
+///
+/// x -> [x0, x1, x2, ...]
+/// y -> [y0, y1, y2, ...]
+/// z -> [z0, z1, z2, ...]
+/// ```
+///
+/// All per-sample metadata vectors, such as `counts`, `raw_energies`,
+/// `obj_values`, and `feasible`, are expected to have the same length as each
+/// stored column.
 #[derive(Debug, Clone, Default)]
 pub struct Solution {
-    /// A collection of samples. The data is stored in column orientation. Each column contains all
-    /// values for the variable over all samples. The number of samples is equal to the number of
-    /// elements in the [Column]s.
+    /// Column-oriented sample data keyed by variable name.
+    ///
+    /// Each [`Column`] contains all values for one variable across all samples.
+    /// Every stored column is expected to have the same length.
     pub samples: IndexMap<String, Column>,
     // pub samples: Samples,
     /// How often each sample occurs in the solution. The counts length matches the number of
@@ -54,9 +66,14 @@ pub struct Solution {
     /// satisfied. In other words, `feasible[i]` iff. `all(constraints[i])`. May be empty for
     /// solutions that haven't yet been evaluated.
     pub feasible: Option<Vec<bool>>,
+    /// Per-constraint feasibility flags keyed by constraint name.
+    ///
+    /// Each vector is aligned with the stored samples and indicates whether the
+    /// corresponding sample satisfies that named constraint.
     pub constraints: HashMap<String, Vec<bool>>,
-    /// Boolean flag for each variable whether it's bounds are satisfied for each sample.
-    /// variable_bounds[name].len() == samples[name].len() == n_samples
+    /// Boolean flag for each variable whether its bounds are satisfied for each sample.
+    /// For every variable key, the corresponding vector length matches the number
+    /// of stored samples.
     pub variable_bounds: HashMap<String, Vec<bool>>,
     // metadata
     /// Runtime metrics of the solution.
@@ -68,6 +85,7 @@ pub struct Solution {
 }
 
 impl Solution {
+    /// Create a default solution for a given [`Sense`].
     pub fn with_sense(sense: Sense) -> Self {
         Self {
             sense,

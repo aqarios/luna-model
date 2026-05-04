@@ -1,3 +1,4 @@
+//! Version 0 serializer for expressions.
 mod decode;
 mod encode;
 

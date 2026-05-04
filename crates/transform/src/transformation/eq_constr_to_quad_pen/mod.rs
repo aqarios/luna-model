@@ -1,3 +1,4 @@
+//! Equality-constraint penalty conversion pass and artifact types.
 mod artifact;
 mod pass;
 

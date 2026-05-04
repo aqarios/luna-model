@@ -1,3 +1,5 @@
+//! Runtime adapter that bridges Python control-flow objects into Rust passes.
+
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{ControlFlowPass, ControlFlowPlan, PassContext};

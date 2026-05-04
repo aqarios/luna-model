@@ -1,3 +1,5 @@
+//! Typed analysis keys and analysis storage.
+
 use std::{any::Any, collections::HashMap, fmt::Debug, marker::PhantomData, sync::Arc};
 
 use lunamodel_error::LunaModelResult;
@@ -13,6 +15,7 @@ pub struct AnalysisKey<T: 'static> {
 }
 
 impl<T: 'static> AnalysisKey<T> {
+    /// Creates a new typed analysis key.
     pub const fn new(name: String) -> Self {
         Self {
             name,
@@ -21,7 +24,7 @@ impl<T: 'static> AnalysisKey<T> {
     }
 }
 
-/// Type-safe analysis storage
+/// Type-safe storage for analysis results keyed by [`AnalysisKey`].
 #[derive(Clone, Default, Debug)]
 pub struct AnalysisManager {
     results: HashMap<String, Arc<dyn Any + Send + Sync>>,
@@ -45,12 +48,12 @@ impl AnalysisManager {
         })
     }
 
-    /// Store an analysis result
+    /// Stores an analysis result under its typed key.
     pub fn insert<T: Send + Sync + 'static>(&mut self, key: &AnalysisKey<T>, value: T) {
         self.results.insert(key.name.clone(), Arc::new(value));
     }
 
-    /// Invalidate analysis entries by key.
+    /// Invalidates analysis entries by name.
     pub fn invalidate_many(&mut self, keys: &[String]) {
         for key in keys {
             self.results.remove(key);

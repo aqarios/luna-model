@@ -1,3 +1,5 @@
+//! Core constraint representation and validation helpers.
+
 use std::ops::Sub;
 
 use global_counter::primitive::exact::CounterU64;
@@ -14,6 +16,9 @@ pub static CONSTRAINT_COUNTER: CounterU64 = CounterU64::new(0);
 /// consistency and elevated developer experience. The failing readers do not provide a
 /// good error message so we catch theses cases early and show the users and appropriate
 /// error mesage.
+///
+/// Entries must remain lowercase because [`starts_with_failable`] lowercases only
+/// the candidate constraint name.
 pub const FAILABLE_CONSTRAINT_NAMES: [&str; 2] = ["inf", "nan"];
 
 /// Utility function to check the "legality" of a constraint name based on the disallowed
@@ -22,10 +27,15 @@ pub const FAILABLE_CONSTRAINT_NAMES: [&str; 2] = ["inf", "nan"];
 pub fn starts_with_failable(s: &str) -> bool {
     FAILABLE_CONSTRAINT_NAMES
         .iter()
-        .any(|prefix| s.to_lowercase().starts_with(&prefix.to_lowercase()))
+        .any(|prefix| s.to_lowercase().starts_with(prefix))
 }
 
-/// A constraint
+/// A single algebraic constraint.
+///
+/// Constraints are stored in normalized form: any constant offset already
+/// present on the left-hand side expression is moved onto the right-hand side
+/// during construction. That keeps later evaluation and translation logic from
+/// having to repeatedly special-case a left-hand side constant term.
 #[derive(Debug, Clone)]
 pub struct Constraint {
     /// The LHS expression of the constraint.
@@ -43,6 +53,11 @@ pub struct Constraint {
 }
 
 impl Constraint {
+    /// Creates a new constraint and normalizes its left-hand side.
+    ///
+    /// If `lhs` contains a constant offset, that constant is subtracted from the
+    /// expression and folded into `rhs`. The resulting constraint is therefore
+    /// easier to compare, serialize, and translate consistently.
     pub fn new(
         lhs: Expression,
         rhs: Bias,
@@ -62,6 +77,10 @@ impl Constraint {
         })
     }
 
+    /// Deep-clones the constraint into a different shared environment.
+    ///
+    /// This keeps the algebraic structure intact while re-rooting the contained
+    /// expression so it refers to variables from `env`.
     pub fn deep_clone(&self, env: ArcEnv) -> Self {
         Self {
             lhs: self.lhs.deep_clone(env),
@@ -72,10 +91,15 @@ impl Constraint {
         }
     }
 
+    /// Returns the current constraint name.
     pub fn name(&self) -> &str {
         &self.name
     }
 
+    /// Renames the constraint after validating the new name.
+    ///
+    /// Calling this marks the constraint as explicitly named, which matters when
+    /// collections later decide whether they may auto-generate fallback names.
     pub fn set_name(&mut self, name: String) -> LunaModelResult<()> {
         validate_name(Some(&name))?;
         self.name = name;
@@ -97,9 +121,12 @@ impl Constraint {
 /// A [Constraint] name is considered legal if it is:
 /// - not an empty string
 /// - the first char is alphabetical
-/// - starts with any of the failable word beginnings defined in (FAILABLE_CONSTRAINT_NAMES)[crate::core::constraints::constraint::FAILABLE_CONSTRAINT_NAMES].
-///   checked in [starts_with_failable].
-///   This function returns an error when an illegal [Constraint] name is given as an argument.
+/// - does not start with any of the prefixes listed in [`FAILABLE_CONSTRAINT_NAMES`]
+///
+/// The last rule exists because some downstream LP/MPS readers misclassify names
+/// that begin with special floating-point spellings such as `inf` or `nan`.
+/// LunaModel rejects such names early so translation failures become explicit and
+/// easier to diagnose.
 fn validate_name(name: Option<&String>) -> LunaModelResult<()> {
     if let Some(name) = &name {
         if name.is_empty() {
@@ -135,6 +162,7 @@ fn validate_name(name: Option<&String>) -> LunaModelResult<()> {
 }
 
 impl ContentEquality for Constraint {
+    /// Compares the semantic contents of two constraints while ignoring their names.
     fn equal_contents(&self, other: &Self) -> bool {
         self.lhs.equal_contents(&other.lhs)
             && self.rhs == other.rhs
@@ -143,6 +171,7 @@ impl ContentEquality for Constraint {
 }
 
 impl PartialEq for Constraint {
+    /// Compares two constraints including their explicit names.
     fn eq(&self, other: &Self) -> bool {
         self.lhs == other.lhs
             && self.rhs == other.rhs

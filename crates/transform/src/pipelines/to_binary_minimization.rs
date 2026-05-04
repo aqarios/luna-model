@@ -1,3 +1,5 @@
+//! Prebuilt pipeline for binary minimization normalization.
+
 use derive_more::Deref;
 use lunamodel_transpiler::Pipeline;
 use lunamodel_types::{EnumSetFromVec, Sense, Specs, Vtype};
@@ -7,16 +9,19 @@ use crate::{
     transformation::{BinarySpinPass, ChangeSensePass, IntegerToBinaryPass},
 };
 
+/// Pipeline that normalizes a model into a binary minimization problem.
 #[derive(Deref)]
 pub struct ToBinaryMinimizationPipeline(pub Pipeline);
 
 impl Default for ToBinaryMinimizationPipeline {
+    /// Returns the standard binary-minimization pipeline.
     fn default() -> Self {
         Self::new()
     }
 }
 
 impl ToBinaryMinimizationPipeline {
+    /// Builds the standard binary-minimization pipeline.
     pub fn new() -> Self {
         let requirements = Specs {
             vtypes: Some(vec![Vtype::Binary, Vtype::Spin, Vtype::Integer].to_enumset()),

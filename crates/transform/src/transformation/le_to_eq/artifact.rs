@@ -1,3 +1,5 @@
+//! Artifact types for `<=` to equality conversion.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use lunamodel_transpiler::Artifact;
@@ -8,6 +10,7 @@ pub struct LeToEqConstraintsArtifact {
 }
 
 impl LeToEqConstraintsArtifact {
+    /// Returns the names of all generated slack variables.
     pub fn slackvars(&self) -> &[String] {
         &self.slackvars
     }

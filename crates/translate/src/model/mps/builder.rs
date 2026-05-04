@@ -1,3 +1,5 @@
+//! Conversion from parsed MPS data into core model structures.
+
 use lunamodel_core::{
     ArcEnv, ConstraintCollection, Expression, Model,
     ops::{LmAddAssign, LmMulAssign, LmSubAssign},

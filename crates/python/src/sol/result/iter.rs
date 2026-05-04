@@ -1,3 +1,5 @@
+//! Iterators over Python result views.
+
 use lunamodel_core::Solution;
 use lunamodel_unwind::*;
 use pyo3::{PyRef, PyRefMut, pyclass, pymethods};

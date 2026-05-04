@@ -1,3 +1,4 @@
+//! Greater-equal to less-equal normalization pass and artifact types.
 mod artifact;
 mod pass;
 

@@ -1,3 +1,5 @@
+//! Python wrapper for inverted-binary reduction.
+
 use lunamodel_python_macros::pytransformation;
 use lunamodel_transform::transformation::{
     ReduceInvertedBinaryPass, ReduceInvertedBinaryPassArtifact,

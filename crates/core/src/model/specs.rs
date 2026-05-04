@@ -1,9 +1,15 @@
+//! Structural spec checks for models.
+
 use enumset::EnumSet;
 use lunamodel_types::{Comparator, Ctype, Specs};
 
 use super::Model;
 
 impl Model {
+    /// Derives a coarse structural summary of the model.
+    ///
+    /// The returned [`Specs`] value is used by transformation and compatibility
+    /// checks to reason about a model without re-inspecting every expression.
     pub fn specs(&self) -> Specs {
         let mut vtypes = EnumSet::new();
         for vtype in self.vtypes() {
@@ -30,6 +36,7 @@ impl Model {
         )
     }
 
+    /// Returns whether the model satisfies the requested specification constraints.
     pub fn satisfies(&self, specs: &Specs) -> bool {
         self.specs().satisfies(specs)
     }

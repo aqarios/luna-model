@@ -1,3 +1,5 @@
+//! Artifact types for equality-to-quadratic-penalty conversion.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::Artifact;
 

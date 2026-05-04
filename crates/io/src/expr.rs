@@ -1,3 +1,5 @@
+//! Formatting helpers for expressions.
+
 use indexmap::IndexMap;
 use lunamodel_core::Expression;
 use lunamodel_types::Bias;

@@ -1,3 +1,4 @@
+//! Built-in analyses over [`lunamodel_core::Model`] values.
 mod check_model_specs;
 mod max_bias;
 mod min_val_in_constr;
