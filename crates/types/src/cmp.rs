@@ -1,5 +1,6 @@
 //! Comparator and constraint-type enums shared across the workspace.
-use lunamodel_utils::defaults::DEFAULT_TOL;
+use lunamodel_error::LunaModelResult;
+use lunamodel_utils::validate_tol;
 use strum_macros::Display;
 
 use crate::Bias;
@@ -29,13 +30,13 @@ impl Comparator {
     /// `tol + f64::EPSILON * max(abs(lhs), abs(rhs), 1.0)`. Inequalities allow
     /// the same tolerance in the violated direction. If `tol` is `None`,
     /// [`DEFAULT_TOL`] is used.
-    pub fn evaluate(self, lhs: Bias, rhs: Bias, tol: Option<f64>) -> bool {
-        let tol = tol.unwrap_or(DEFAULT_TOL);
-        match self {
+    pub fn evaluate(self, lhs: Bias, rhs: Bias, tol: Option<f64>) -> LunaModelResult<bool> {
+        let tol = validate_tol(tol)?;
+        Ok(match self {
             Self::Eq => float_eq(lhs, rhs, tol),
             Self::Le => float_le(lhs, rhs, tol),
             Self::Ge => float_ge(lhs, rhs, tol),
-        }
+        })
     }
 }
 
@@ -78,23 +79,28 @@ fn float_ge(lhs: Bias, rhs: Bias, tol: f64) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use lunamodel_error::LunaModelResult;
+
     use super::Comparator;
 
     #[test]
-    fn equality_allows_default_tolerance() {
-        assert!(Comparator::Eq.evaluate(1.0 + 1e-7, 1.0, None));
-        assert!(!Comparator::Eq.evaluate(1.0 + 1e-5, 1.0, None));
+    fn equality_allows_default_tolerance() -> LunaModelResult<()> {
+        assert!(Comparator::Eq.evaluate(1.0 + 1e-7, 1.0, None)?);
+        assert!(!Comparator::Eq.evaluate(1.0 + 1e-5, 1.0, None)?);
+        Ok(())
     }
 
     #[test]
-    fn less_equal_allows_default_tolerance() {
-        assert!(Comparator::Le.evaluate(1.0 + 1e-7, 1.0, None));
-        assert!(!Comparator::Le.evaluate(1.0 + 1e-5, 1.0, None));
+    fn less_equal_allows_default_tolerance() -> LunaModelResult<()> {
+        assert!(Comparator::Le.evaluate(1.0 + 1e-7, 1.0, None)?);
+        assert!(!Comparator::Le.evaluate(1.0 + 1e-5, 1.0, None)?);
+        Ok(())
     }
 
     #[test]
-    fn greater_equal_allows_default_tolerance() {
-        assert!(Comparator::Ge.evaluate(1.0 - 1e-7, 1.0, None));
-        assert!(!Comparator::Ge.evaluate(1.0 - 1e-5, 1.0, None));
+    fn greater_equal_allows_default_tolerance() -> LunaModelResult<()> {
+        assert!(Comparator::Ge.evaluate(1.0 - 1e-7, 1.0, None)?);
+        assert!(!Comparator::Ge.evaluate(1.0 - 1e-5, 1.0, None)?);
+        Ok(())
     }
 }

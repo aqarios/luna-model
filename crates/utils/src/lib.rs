@@ -3,7 +3,9 @@
 //! The helpers in this crate stay intentionally minimal. They avoid pulling in a
 //! heavier iterator utility dependency for the few deduplication behaviors that
 //! LunaModel uses repeatedly when walking variables, types, and constraints.
-pub mod defaults;
+mod cast;
 mod iterator;
 
+pub mod defaults;
+pub use cast::{cast_near_integral, validate_tol};
 pub use iterator::{UniqueIter, UniqueIterMap, unique, unique_by};

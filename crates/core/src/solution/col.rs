@@ -7,11 +7,11 @@ use std::{
 };
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
+use lunamodel_types::{Bias, BinaryAssignment, IntegerAssignment, RealAssignment, SpinAssignment};
+use lunamodel_utils::cast_near_integral;
 use num::{NumCast, ToPrimitive};
 
-use lunamodel_types::{Bias, BinaryAssignment, IntegerAssignment, RealAssignment, SpinAssignment};
-
-use crate::{traits::FilterByMask, utils::cast_near_integral};
+use crate::traits::FilterByMask;
 
 /// Typed column storage backed by raw `f64` values.
 ///
