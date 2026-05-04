@@ -30,7 +30,7 @@ impl Comparator {
     /// the same tolerance in the violated direction. If `tol` is `None`,
     /// [`DEFAULT_TOL`] is used.
     pub fn evaluate(self, lhs: Bias, rhs: Bias, tol: Option<f64>) -> bool {
-        let tol = tol.unwrap_or_else(|| DEFAULT_TOL);
+        let tol = tol.unwrap_or(DEFAULT_TOL);
         match self {
             Self::Eq => float_eq(lhs, rhs, tol),
             Self::Le => float_le(lhs, rhs, tol),
