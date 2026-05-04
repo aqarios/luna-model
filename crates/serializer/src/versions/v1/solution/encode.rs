@@ -1,3 +1,5 @@
+//! Version 1 encoding for solutions.
+
 use bitvec::{order::Lsb0, vec::BitVec};
 use lunamodel_core::{Solution, solution::Column};
 use lunamodel_types::Vtype;
@@ -10,12 +12,14 @@ use super::SerSolution;
 
 /// Makes the SerSolution conform with the requirements for it to be an Encodable.
 impl BytesEncodable for SerSolution {
+    /// Encodes the protobuf structure into raw bytes.
     fn encode_to_bytes(&self) -> Vec<u8> {
         self.encode_to_vec()
     }
 }
 
 impl SerSolution {
+    /// Fills the protobuf structure from the runtime solution.
     pub fn fill(mut self, sol: &Solution) -> SerSolution {
         self.num_samples = sol.len() as u64;
         self.variable_names = sol.variable_names();

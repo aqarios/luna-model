@@ -1,3 +1,5 @@
+//! Shared backing storage for Python constraint collections.
+
 use std::sync::Arc;
 
 use lunamodel_core::{ConstraintCollection, Model};

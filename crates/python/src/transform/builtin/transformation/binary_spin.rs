@@ -1,3 +1,5 @@
+//! Python wrapper for the binary-to-spin transformation pass.
+
 use std::collections::HashMap;
 
 use lunamodel_python_macros::pytransformation;

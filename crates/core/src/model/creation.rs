@@ -1,3 +1,5 @@
+//! Constructors and setup helpers for models.
+
 use super::Model;
 use crate::{ArcEnv, ConstraintCollection, Expression, model::Sense};
 
@@ -5,6 +7,10 @@ use crate::{ArcEnv, ConstraintCollection, Expression, model::Sense};
 pub static DEFAULT_MODEL_NAME: &str = "unnamed";
 
 impl Model {
+    /// Creates a model backed by an existing environment.
+    ///
+    /// This constructor is useful when a caller already prepared an environment
+    /// and wants the model to share it rather than allocating a fresh one.
     pub fn with_env(name: Option<String>, sense: Option<Sense>, env: ArcEnv) -> Self {
         Self {
             name: name.unwrap_or(String::from(DEFAULT_MODEL_NAME)),
@@ -15,6 +21,7 @@ impl Model {
         }
     }
 
+    /// Creates a model with a fresh empty environment.
     pub fn new(name: Option<String>, sense: Option<Sense>) -> Self {
         Self::with_env(name, sense, ArcEnv::default())
     }

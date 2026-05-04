@@ -1,3 +1,4 @@
+//! Proc macros that generate Python wrapper boilerplate for transpiler passes.
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{Data, DeriveInput, Fields, Type, parse_macro_input, parse_quote};

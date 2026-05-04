@@ -1,3 +1,5 @@
+//! Python wrapper for equality-to-quadratic-penalty conversion.
+
 use lunamodel_python_macros::pytransformation;
 use lunamodel_transform::transformation::{
     EqualityConstraintsToQuadraticPenaltyArtifact, EqualityConstraintsToQuadraticPenaltyPass,

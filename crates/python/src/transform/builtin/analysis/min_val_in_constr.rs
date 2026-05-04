@@ -1,3 +1,5 @@
+//! Python wrapper for minimum-constraint-value analysis.
+
 use std::collections::HashMap;
 
 use lunamodel_python_macros::pyanalysis;

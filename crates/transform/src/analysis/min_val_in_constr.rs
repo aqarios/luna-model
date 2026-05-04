@@ -1,3 +1,5 @@
+//! Analysis pass that computes minimum achievable values per constraint.
+
 use std::collections::HashMap;
 
 use lunamodel_core::Model;

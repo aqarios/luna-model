@@ -1,3 +1,5 @@
+//! Python wrapper for the transpiler analysis context.
+
 use lunamodel_error::LunaModelError;
 use lunamodel_transform::analysis::{
     CheckModelSpecsAnalysis, MaxBias, MaxBiasAnalysis, MinConstraintValues,
@@ -17,6 +19,7 @@ use crate::{
 
 #[pyclass(subclass)]
 pub struct PyPassContext {
+    /// Analysis cache and dependency manager shared across a pipeline run.
     manager: AnalysisManager,
 }
 
@@ -34,6 +37,7 @@ impl<'c> From<&'c PyPassContext> for PassContext<'c> {
 
 #[pymethods]
 impl PyPassContext {
+    /// Create an empty analysis context.
     #[new]
     fn new() -> Self {
         Self {
@@ -41,6 +45,11 @@ impl PyPassContext {
         }
     }
 
+    /// Resolve an analysis result by key and convert it to a Python object.
+    ///
+    /// Built-in analyses have dedicated wrapper types so Python code sees a
+    /// stable API. For adapter-based analyses, the method falls back to the
+    /// erased result objects stored under their dynamic keys.
     fn require_analysis(&self, py: Python, key: String) -> PyResult<Py<PyAny>> {
         let res = match key.as_str() {
             x if x == CheckModelSpecsAnalysis::PROVIDES => {

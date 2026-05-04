@@ -1,3 +1,5 @@
+//! Hash encoding for constraints and constraint collections.
+
 use lunamodel_core::ConstraintCollection;
 use lunamodel_types::Comparator;
 use prost::Message;
@@ -26,6 +28,7 @@ pub struct HashConstr {
 }
 
 impl HashConstr {
+    /// Encodes a constraint collection into the hashing representation.
     pub fn build(constr: &ConstraintCollection) -> Vec<u8> {
         let mut o = HashConstr {
             lhsides: Vec::new(),

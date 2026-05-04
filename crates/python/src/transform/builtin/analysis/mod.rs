@@ -1,3 +1,5 @@
+//! Python wrappers for built-in analysis passes.
+
 mod check_model_specs;
 mod max_bias;
 mod min_val_in_constr;

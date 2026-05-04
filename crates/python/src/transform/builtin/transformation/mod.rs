@@ -1,3 +1,5 @@
+//! Python wrappers for built-in reversible transformation passes.
+
 mod binary_spin;
 mod change_sense;
 mod eq_constr_to_quad_pen;

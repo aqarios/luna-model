@@ -1,3 +1,5 @@
+//! Python wrapper for explicit model-spec checking analysis.
+
 use lunamodel_python_macros::pyanalysis;
 use lunamodel_transform::analysis::CheckModelSpecsAnalysis;
 use pyo3::pymethods;

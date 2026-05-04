@@ -1,3 +1,5 @@
+//! FFI conversions for translation-target enum wrappers.
+
 use lunamodel_error::LunaModelError;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, Python, pymethods};

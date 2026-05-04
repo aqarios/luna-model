@@ -1,3 +1,4 @@
+//! Objective-sense normalization pass and artifact types.
 mod artifact;
 mod pass;
 mod ser_artifact;

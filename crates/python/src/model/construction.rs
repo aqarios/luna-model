@@ -1,3 +1,5 @@
+//! Constructors for Python models.
+
 use lunamodel_core::{Environment, Model};
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};

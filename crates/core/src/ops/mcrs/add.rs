@@ -1,3 +1,5 @@
+//! Generated mixed-reference addition implementations.
+
 #[macro_export]
 macro_rules! adds {
     ($L:ty => $( $R:ty ) ,+ $(,)?) => {

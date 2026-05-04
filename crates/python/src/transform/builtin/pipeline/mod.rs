@@ -1,3 +1,5 @@
+//! Python wrappers for built-in transformation pipelines.
+
 mod to_binary_minimization;
 mod to_unconstrained_binary;
 

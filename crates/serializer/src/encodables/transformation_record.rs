@@ -1,3 +1,5 @@
+//! Version-independent encoding glue for transformation records.
+
 use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerTransformationRecord as SerTransRecV0;
@@ -18,11 +20,13 @@ impl Encodable<SerTransRecV0> for TransformationRecord {
     }
 }
 
+/// Makes a raw byte vector decodable into a [`TransformationRecord`].
 impl Decodable<TransformationRecord> for Vec<u8> {
     type Latest = SerCompRecLatest;
     type Payload = ();
 }
 
+/// Makes a versioned byte representation decodable into a [`TransformationRecord`].
 impl Decodable<TransformationRecord> for Versioned<Vec<u8>> {
     type Latest = SerCompRecLatest;
     type Payload = ();

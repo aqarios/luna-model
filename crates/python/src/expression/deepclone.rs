@@ -1,3 +1,5 @@
+//! Deep-cloning helpers for Python expressions.
+
 use lunamodel_core::Expression;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};

@@ -1,3 +1,5 @@
+//! Objective-sense enum definitions.
+
 use std::ops::Not;
 
 use strum_macros::{Display, EnumString};
@@ -26,6 +28,8 @@ impl Sense {
 
 impl Not for Sense {
     type Output = Self;
+
+    /// Flips minimization to maximization and vice versa.
     fn not(self) -> Self::Output {
         match self {
             Self::Min => Self::Max,

@@ -1,3 +1,5 @@
+//! Multiplication implementations for expressions.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 
@@ -13,6 +15,7 @@ use crate::{
     prelude::Linear,
 };
 
+/// Scales an expression by a scalar bias.
 impl LmMulAssign<&Bias> for Expression {
     fn mul_assign(&mut self, rhs: &Bias) -> LunaModelResult<()> {
         self.offset *= rhs;
@@ -27,12 +30,17 @@ impl LmMulAssign<&Bias> for Expression {
     }
 }
 
+/// Scales an expression by an unsigned integer converted to a bias.
 impl LmMulAssign<&usize> for Expression {
     fn mul_assign(&mut self, rhs: &usize) -> LunaModelResult<()> {
         self.mul_assign(*rhs as Bias)
     }
 }
 
+/// Multiplies an expression by a variable.
+///
+/// This can increase the degree of existing terms, so the result is rebuilt from
+/// scratch via the internal multiplication helpers.
 impl LmMulAssign<&VarRef> for Expression {
     fn mul_assign(&mut self, rhs: &VarRef) -> LunaModelResult<()> {
         check_envs(self, rhs)?;
@@ -47,6 +55,11 @@ impl LmMulAssign<&VarRef> for Expression {
     }
 }
 
+/// Multiplies two expressions term-wise.
+///
+/// The result is reconstructed from intermediate multiplication fragments that
+/// encode whether a contribution ends up constant, linear, quadratic, or
+/// higher-order.
 impl LmMulAssign<&Expression> for Expression {
     fn mul_assign(&mut self, rhs: &Expression) -> LunaModelResult<()> {
         check_envs(self, rhs)?;
@@ -67,6 +80,7 @@ rmuls!(Expression => Bias, usize, VarRef);
 impl PrvMul<Bias> for &Expression {
     type Output = Vec<VarMulRes>;
 
+    /// Internal multiplication against a scalar bias.
     fn m(self, rhs: Bias) -> Self::Output {
         let mut r = Vec::new();
         r.push(VarMulRes::Const(self.offset * rhs));
@@ -80,6 +94,7 @@ impl PrvMul<Bias> for &Expression {
 impl PrvMul<&Linear> for &Expression {
     type Output = Vec<VarMulRes>;
 
+    /// Internal multiplication against linear storage.
     fn m(self, rhs: &Linear) -> Self::Output {
         let mut r = Vec::new();
         r.append(&mut rhs.m(self.offset));
@@ -93,6 +108,7 @@ impl PrvMul<&Linear> for &Expression {
 impl PrvMul<&Option<Quadratic>> for &Expression {
     type Output = Vec<VarMulRes>;
 
+    /// Internal multiplication against optional quadratic storage.
     fn m(self, rhs: &Option<Quadratic>) -> Self::Output {
         let mut r = Vec::new();
         r.append(&mut rhs.m(self.offset));
@@ -106,6 +122,7 @@ impl PrvMul<&Option<Quadratic>> for &Expression {
 impl PrvMul<&Option<HigherOrder>> for &Expression {
     type Output = Vec<VarMulRes>;
 
+    /// Internal multiplication against optional higher-order storage.
     fn m(self, rhs: &Option<HigherOrder>) -> Self::Output {
         let mut r = Vec::new();
         r.append(&mut rhs.m(self.offset));

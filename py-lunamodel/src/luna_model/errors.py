@@ -62,6 +62,9 @@ from luna_model._lm import (
     PyInternalPanicError as InternalPanicError,
 )
 from luna_model._lm import (
+    PyInvalidToleranceError as InvalidToleranceError,
+)
+from luna_model._lm import (
     PyLunaModelError as LunaModelError,
 )
 from luna_model._lm import (
@@ -152,6 +155,7 @@ __all__ = [
     "IfElsePassError",
     "IllegalConstraintNameError",
     "InternalPanicError",
+    "InvalidToleranceError",
     "LunaModelError",
     "MetaAnalysisPassError",
     "ModelNotQuadraticError",

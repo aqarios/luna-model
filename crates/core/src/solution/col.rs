@@ -1,3 +1,5 @@
+//! Column storage primitives used by solutions.
+
 use std::{
     fmt::{Debug, Display},
     marker::PhantomData,
@@ -11,11 +13,18 @@ use lunamodel_types::{Bias, BinaryAssignment, IntegerAssignment, RealAssignment,
 
 use crate::{traits::FilterByMask, utils::cast_near_integral};
 
-// #[derive(Debug, Clone, PartialEq)]
-// pub struct ColElement<T>(pub Vec<T>);
+/// Typed column storage backed by raw `f64` values.
+///
+/// The phantom type captures the logical assignment type while the actual data is
+/// stored as `f64`. That shared representation keeps the surrounding solution
+/// code simple and lets typed views be reconstructed on demand.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ColElement<T>(pub Vec<f64>, PhantomData<T>);
 
+/// One variable column within a [`crate::Solution`].
+///
+/// Solutions are stored in column orientation, so a `Column` contains all values
+/// for one variable across all sample rows.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Column {
     Binary(ColElement<BinaryAssignment>),
@@ -24,6 +33,7 @@ pub enum Column {
     Real(ColElement<RealAssignment>),
 }
 
+/// Type-erased single assignment value extracted from a [`Column`].
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Assignment {
     Binary(BinaryAssignment),
@@ -46,6 +56,7 @@ impl From<i8> for Assignment {
 impl Index<usize> for Column {
     type Output = Bias;
 
+    /// Indexes the raw stored numeric value at a row position.
     fn index(&self, index: usize) -> &Self::Output {
         match self {
             Self::Binary(col) => &col.0[index],
@@ -57,6 +68,7 @@ impl Index<usize> for Column {
 }
 
 impl Column {
+    /// Creates a one-element column from a single typed assignment.
     pub fn with(assignment: Assignment) -> Self {
         match assignment {
             Assignment::Binary(v) => Self::binary(vec![v as Bias]),
@@ -66,6 +78,7 @@ impl Column {
         }
     }
 
+    /// Returns the number of stored rows in the column.
     pub fn len(&self) -> usize {
         match self {
             Self::Binary(v) => v.0.len(),
@@ -75,6 +88,7 @@ impl Column {
         }
     }
 
+    /// Returns `true` if the column contains no rows.
     pub fn is_empty(&self) -> bool {
         match self {
             Self::Binary(v) => v.0.is_empty(),
@@ -84,6 +98,7 @@ impl Column {
         }
     }
 
+    /// Returns the typed assignment at a row position.
     pub fn as_assignment(&self, index: usize) -> Assignment {
         match self {
             Self::Binary(col) => Assignment::Binary(col.as_t(index)),
@@ -93,6 +108,7 @@ impl Column {
         }
     }
 
+    /// Materializes all rows as typed assignments.
     pub fn as_assignments(&self) -> Vec<Assignment> {
         match self {
             Self::Binary(col) => (0..self.len())
@@ -111,6 +127,9 @@ impl Column {
         }
     }
 
+    /// Appends a typed assignment to the column.
+    ///
+    /// The assignment type must match the column variant.
     pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
         match self {
             Self::Binary(col) => col.push(value),
@@ -120,6 +139,10 @@ impl Column {
         }
     }
 
+    /// Attempts to append a numeric value, coercing it to the column's type.
+    ///
+    /// For discrete column types this uses `cast_near_integral` so callers can
+    /// accept numerically noisy solver output with an optional tolerance.
     pub fn try_push<N: ToPrimitive + Copy + Debug>(
         &mut self,
         value: N,
@@ -152,6 +175,7 @@ impl Column {
         }
     }
 
+    /// Removes the value at a row position.
     pub fn remove(&mut self, index: usize) {
         match self {
             Self::Binary(col) => col.remove(index),
@@ -161,6 +185,7 @@ impl Column {
         }
     }
 
+    /// Extracts a one-row column containing only `row`.
     pub fn extract(&self, row: usize) -> Self {
         match self {
             Self::Binary(col) => Self::binary(vec![col[row]]),
@@ -170,38 +195,47 @@ impl Column {
         }
     }
 
+    /// Creates an empty binary column.
     pub fn empty_binary() -> Self {
         Self::Binary(ColElement(Vec::default(), PhantomData))
     }
 
+    /// Creates an empty spin column.
     pub fn empty_spin() -> Self {
         Self::Spin(ColElement(Vec::default(), PhantomData))
     }
 
+    /// Creates an empty integer column.
     pub fn empty_integer() -> Self {
         Self::Integer(ColElement(Vec::default(), PhantomData))
     }
 
+    /// Creates an empty real column.
     pub fn empty_real() -> Self {
         Self::Real(ColElement(Vec::default(), PhantomData))
     }
 
+    /// Wraps raw numeric data as a binary column.
     pub fn binary(data: Vec<f64>) -> Self {
         Self::Binary(ColElement(data, PhantomData))
     }
 
+    /// Wraps raw numeric data as a spin column.
     pub fn spin(data: Vec<f64>) -> Self {
         Self::Spin(ColElement(data, PhantomData))
     }
 
+    /// Wraps raw numeric data as an integer column.
     pub fn integer(data: Vec<f64>) -> Self {
         Self::Integer(ColElement(data, PhantomData))
     }
 
+    /// Wraps raw numeric data as a real-valued column.
     pub fn real(data: Vec<f64>) -> Self {
         Self::Real(ColElement(data, PhantomData))
     }
 
+    /// Filters the column by a row mask.
     pub fn filter_by_mask(&self, mask: &[bool]) -> Self {
         match self {
             Self::Binary(col) => Self::Binary(col.filter_by_mask(mask)),
@@ -222,16 +256,19 @@ impl Column {
 }
 
 impl<T: NumCast> ColElement<T> {
+    /// Reinterprets the raw `f64` value at `index` as `T`.
     pub fn as_t(&self, index: usize) -> T {
         <T as NumCast>::from(self.0[index]).unwrap()
     }
 }
 
 impl<T> ColElement<T> {
+    /// Filters the element storage by a row mask.
     pub fn filter_by_mask(&self, mask: &[bool]) -> Self {
         Self(self.0.filter_by_mask(mask), self.1)
     }
 
+    /// Removes the value at `index`.
     pub fn remove(&mut self, index: usize) {
         _ = self.0.remove(index);
     }
@@ -240,12 +277,14 @@ impl<T> ColElement<T> {
 impl<T> Index<usize> for ColElement<T> {
     type Output = f64;
 
+    /// Indexes the raw stored numeric value.
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
     }
 }
 
 impl ColElement<u8> {
+    /// Appends a binary assignment and rejects mismatched types.
     pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
         let msg = match value {
             Assignment::Binary(v) => {
@@ -262,16 +301,19 @@ impl ColElement<u8> {
         }
     }
 
+    /// Iterates over the binary values as `u8`.
     pub fn iter(&self) -> impl Iterator<Item = u8> {
         self.0.iter().map(|&e| e as u8)
     }
 
+    /// Returns the binary values as an owned vector.
     pub fn data(&self) -> Vec<u8> {
         self.iter().collect()
     }
 }
 
 impl ColElement<i8> {
+    /// Appends a spin assignment and rejects mismatched types.
     pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
         let msg = match value {
             Assignment::Binary(_) => Some("binary"),
@@ -288,16 +330,19 @@ impl ColElement<i8> {
         }
     }
 
+    /// Iterates over the spin values as `i8`.
     pub fn iter(&self) -> impl Iterator<Item = i8> {
         self.0.iter().map(|&e| e as i8)
     }
 
+    /// Returns the spin values as an owned vector.
     pub fn data(&self) -> Vec<i8> {
         self.iter().collect()
     }
 }
 
 impl ColElement<i64> {
+    /// Appends an integer assignment and rejects mismatched types.
     pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
         let msg = match value {
             Assignment::Binary(_) => Some("binary"),
@@ -315,16 +360,19 @@ impl ColElement<i64> {
         }
     }
 
+    /// Iterates over the integer values as `i64`.
     pub fn iter(&self) -> impl Iterator<Item = i64> {
         self.0.iter().map(|&e| e as i64)
     }
 
+    /// Returns the integer values as an owned vector.
     pub fn data(&self) -> Vec<i64> {
         self.iter().collect()
     }
 }
 
 impl ColElement<f64> {
+    /// Appends a real assignment and rejects mismatched types.
     pub fn push(&mut self, value: Assignment) -> LunaModelResult<()> {
         let msg = match value {
             Assignment::Binary(_) => Some("binary"),
@@ -341,16 +389,19 @@ impl ColElement<f64> {
         }
     }
 
+    /// Iterates over the real values.
     pub fn iter(&self) -> impl Iterator<Item = f64> {
         self.0.iter().copied()
     }
 
+    /// Returns the real values as an owned vector.
     pub fn data(&self) -> Vec<f64> {
         self.iter().collect()
     }
 }
 
 impl Display for Assignment {
+    /// Formats the assignment as a plain numeric value.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Binary(b) => write!(f, "{b}"),

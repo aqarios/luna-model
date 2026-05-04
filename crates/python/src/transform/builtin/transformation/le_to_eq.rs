@@ -1,3 +1,5 @@
+//! Python wrapper for `<=` to equality conversion.
+
 use lunamodel_python_macros::pytransformation;
 use lunamodel_transform::transformation::{LeToEqConstraintsArtifact, LeToEqConstraintsPass};
 use lunamodel_transpiler::Artifact;

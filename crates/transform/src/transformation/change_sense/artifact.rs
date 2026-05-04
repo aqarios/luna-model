@@ -1,3 +1,5 @@
+//! Artifact types for objective-sense normalization.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_serializer::prelude::{Decodable, Decompressable, Encodable, Unversionizable};
 use lunamodel_transpiler::Artifact;

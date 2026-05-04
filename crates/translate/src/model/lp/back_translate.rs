@@ -1,3 +1,5 @@
+//! LP back-translator from core models to text.
+
 use std::{fs::File, io::Write, path::PathBuf};
 
 use lunamodel_core::{ArcEnv, ConstraintCollection, Expression, Model, prelude::Bounds};
@@ -8,11 +10,17 @@ use std::collections::HashSet;
 
 use super::LpTranslator;
 
+/// Maximum LP output line length used by the back-translator.
 static MAX_LINE_LENGTH: usize = 88;
+/// Indentation prefix used for LP body sections.
 static INDENT: &str = " ";
+/// Token separator used while chunking output.
 const SEP: &str = " ";
 
 impl LpTranslator {
+    /// Translates a model into LP text and optionally writes it to `filepath`.
+    ///
+    /// When `filepath` is `None`, the generated LP string is returned directly.
     pub fn back_translate(
         model: &Model,
         filepath: Option<PathBuf>,
@@ -26,6 +34,7 @@ impl LpTranslator {
         }
     }
 
+    /// Writes already-generated LP data to disk.
     pub fn write_file(data: String, filepath: &PathBuf) -> LunaModelResult<()> {
         let mut file = File::create(filepath)
             .map_err(|why| LunaModelError::Translation(why.to_string().into()))?;
@@ -34,6 +43,7 @@ impl LpTranslator {
         Ok(())
     }
 
+    /// Builds the full LP string representation of `model`.
     pub fn build_string(model: &Model) -> LunaModelResult<String> {
         let mut out = String::new();
         out.push_str(&format!("\\ Model {}\n", model.name));
@@ -64,6 +74,7 @@ impl LpTranslator {
         Ok(out)
     }
 
+    /// Renders the variable type sections (`Binaries`, `Generals`) for the LP file.
     fn variables_string(model: &Model) -> LunaModelResult<String> {
         let mut bins = Vec::new();
         let mut gens = Vec::new();
@@ -97,6 +108,7 @@ impl LpTranslator {
         Ok(out)
     }
 
+    /// Renders the `Bounds` section for all non-binary variables.
     fn bounds_string(env: &ArcEnv) -> LunaModelResult<String> {
         let mut res = Vec::new();
         for v in env.vars() {
@@ -129,6 +141,11 @@ impl LpTranslator {
         Ok(res.join("\n"))
     }
 
+    /// Renders an expression in LP syntax.
+    ///
+    /// `constr_vars` is used for objective rendering to keep variables that only
+    /// appear in constraints visible with zero coefficients when needed by some
+    /// downstream readers.
     fn expr_string(
         expr: &Expression,
         constr_vars: Option<&[VarId]>,
@@ -237,6 +254,7 @@ impl LpTranslator {
         Ok(out.to_string())
     }
 
+    /// Renders the `Subject To` section for the given constraint collection.
     fn constr_string(constr: &ConstraintCollection) -> LunaModelResult<String> {
         let mut out: Vec<String> = Vec::new();
         for (name, c) in constr.iter() {
@@ -257,6 +275,7 @@ impl LpTranslator {
     }
 }
 
+/// Splits tokens into line-safe chunks while preserving token order.
 fn safe_chunks(d: &[String], max_len: usize) -> Vec<String> {
     let mut chunks = Vec::new();
     let mut buffer: String = String::default();

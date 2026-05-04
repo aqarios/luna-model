@@ -1,3 +1,4 @@
+//! Version 0 serializer for constraint collections.
 mod decode;
 mod encode;
 

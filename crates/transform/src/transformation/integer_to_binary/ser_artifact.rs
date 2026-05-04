@@ -1,3 +1,5 @@
+//! Serializable artifact helpers for integer-to-binary encoding.
+
 use std::collections::HashMap;
 
 use lunamodel_error::LunaModelResult;
@@ -17,6 +19,7 @@ struct SerVarMapEntry {
 }
 
 impl From<&HashMap<String, usize>> for SerVarMapEntry {
+    /// Serializes a coefficient map entry into its protobuf form.
     fn from(value: &HashMap<String, usize>) -> Self {
         let mut out = Self::default();
         for (k, v) in value.iter() {
@@ -28,6 +31,7 @@ impl From<&HashMap<String, usize>> for SerVarMapEntry {
 }
 
 impl From<SerVarMapEntry> for HashMap<String, usize> {
+    /// Restores a coefficient map entry from its protobuf form.
     fn from(val: SerVarMapEntry) -> Self {
         val.keys
             .into_iter()
@@ -49,24 +53,28 @@ pub struct SerIntegerToBinaryArtifact {
 }
 
 impl Creatable<IntegerToBinaryArtifact> for SerIntegerToBinaryArtifact {
+    /// Creates the protobuf representation from the runtime artifact.
     fn new(value: &IntegerToBinaryArtifact) -> Self {
         Self::default().fill(value)
     }
 }
 
 impl BytesEncodable for SerIntegerToBinaryArtifact {
+    /// Encodes the protobuf structure into raw bytes.
     fn encode_to_bytes(&self) -> Vec<u8> {
         self.encode_to_vec()
     }
 }
 
 impl BytesDecodable<IntegerToBinaryArtifact> for SerIntegerToBinaryArtifact {
+    /// Decodes raw bytes into the runtime artifact.
     fn decode_from_bytes(bytes: &[u8], _payload: ()) -> LunaModelResult<IntegerToBinaryArtifact> {
         Self::decode(bytes)?.extract()
     }
 }
 
 impl SerIntegerToBinaryArtifact {
+    /// Fills the protobuf structure from the runtime artifact.
     fn fill(mut self, value: &IntegerToBinaryArtifact) -> Self {
         for (k, v) in value.varmap.iter() {
             self.varmap_keys.push(k.clone());
@@ -79,6 +87,7 @@ impl SerIntegerToBinaryArtifact {
         self
     }
 
+    /// Extracts the runtime artifact from the protobuf structure.
     fn extract(self) -> LunaModelResult<IntegerToBinaryArtifact> {
         Ok(IntegerToBinaryArtifact {
             varmap: self
@@ -96,6 +105,7 @@ impl SerIntegerToBinaryArtifact {
 }
 
 impl Encodable<SerIntegerToBinaryArtifact> for IntegerToBinaryArtifact {
+    /// Returns the serializer version used by this artifact.
     fn version(&self) -> Version {
         Version::V0
     }

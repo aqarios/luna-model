@@ -1,3 +1,4 @@
+//! Inverted-binary reduction pass and artifact types.
 mod artifact;
 mod pass;
 

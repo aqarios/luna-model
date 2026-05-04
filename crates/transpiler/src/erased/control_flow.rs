@@ -1,3 +1,5 @@
+//! Object-safe runtime adapter for control-flow passes.
+
 use std::any::Any;
 
 use lunamodel_core::Model;
@@ -7,16 +9,23 @@ use crate::{ControlFlowPass, ControlFlowPlan, PassContext};
 
 /// Object-safe erased control flow pass used by the pipeline runtime.
 pub trait ErasedControlFlowPass: Send + Sync {
+    /// Human-readable pass name.
     fn name(&self) -> &str;
+    /// Required pass/analysis names.
     fn requires(&self) -> &[String];
+    /// Provided names after execution.
     fn provides(&self) -> &[String];
+    /// Invalidated analysis names.
     fn invalidates(&self) -> &[String];
+    /// Runs the pass and returns the selected control-flow plan.
     fn run_erased(&self, model: &mut Model, ctx: &PassContext) -> LunaModelResult<ControlFlowPlan>;
+    /// Human-readable display string.
     fn display(&self) -> String;
+    /// Downcasts to the concrete pass type when needed.
     fn as_any(&self) -> &dyn Any;
 }
 
-/// Typed pass can be wrapped into ErasedTransformPass.
+/// Adapts a typed control-flow pass to the object-safe runtime interface.
 impl<P> ErasedControlFlowPass for P
 where
     P: ControlFlowPass + Send + Sync + 'static,

@@ -1,3 +1,5 @@
+//! Version-independent encoding glue for environments.
+
 use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerEnvironment as SerEnvV0;
@@ -10,7 +12,7 @@ use lunamodel_error::LunaModelResult;
 /// of an [Environment]. In case a new serialization format is defined update this value
 /// to ensure all uses of serialization throught the entire library use the most recent
 /// serialization implementation.
-// TODO: delete until TODO(@HERE) and uncomment from TODO(@HERE) for V1 activation.
+// TODO: delete until TODO(@HERE) and uncomment from TODO(@HERE) for V1 activation. Issue(474): <https://github.com/aqarios/luna-model/issues/474>
 type SerEnvLatest = SerEnvV0;
 /// Makes an [Environment] encodable.
 impl Encodable<SerEnvV0> for Environment {
@@ -19,7 +21,7 @@ impl Encodable<SerEnvV0> for Environment {
     }
 }
 impl Decoder<Environment, ()> for SerEnvV1 {}
-// TODO(@HERE): delete ABOVE code and activate below code for V1 activation.
+// TODO(@HERE): delete ABOVE code and activate below code for V1 activation. Issue(474): <https://github.com/aqarios/luna-model/issues/474>
 // type SerEnvLatest = SerEnvV1;
 // /// Makes an [Environment] encodable.
 // impl Encodable<SerEnvV1> for Environment {
@@ -29,12 +31,12 @@ impl Decoder<Environment, ()> for SerEnvV1 {}
 // }
 // impl Decoder<Environment, ()> for SerEnvV0 {}
 
-/// Default implementation to make a bytes vector deserializable to an [Environment].
+/// Makes a raw byte vector decodable into an [`Environment`].
 impl Decodable<Environment> for Vec<u8> {
     type Latest = SerEnvLatest;
     type Payload = ();
 }
-/// Makes a versionized representation of the [Environment] decodable.
+/// Makes a versioned byte representation decodable into an [`Environment`].
 impl Decodable<Environment> for Versioned<Vec<u8>> {
     type Latest = SerEnvLatest;
     type Payload = ();

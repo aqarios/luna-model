@@ -1,3 +1,5 @@
+//! Version-independent encoding glue for constraint collections.
+
 use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerConstraintCollection as SerConstrCollV0;
@@ -18,16 +20,18 @@ impl Encodable<SerConstrCollV0> for ConstraintCollection {
     }
 }
 
-/// Default implementation to make a bytes vector deserializable to a [ConstraintCollection].
-/// For the decoding of a bytes vector to an [ConstraintCollection] a reference counted pointer to
-/// it's environment is required (given by the Payload type)
+/// Makes a raw byte vector decodable into a [`ConstraintCollection`].
+///
+/// Decoding requires the target [`ArcEnv`] because the contained expressions
+/// refer to variable ids owned by an environment.
 impl Decodable<ConstraintCollection> for Vec<u8> {
     type Latest = SerConstrLatest;
     type Payload = ArcEnv;
 }
-/// Makes a versionized representation of the [ConstraintCollection] decodable.
-/// For the decoding of a bytes vector to a [ConstraintCollection] a reference counted pointer to
-/// it's environment is required (given by the Payload type)
+/// Makes a versioned byte representation decodable into a [`ConstraintCollection`].
+///
+/// Decoding requires the target [`ArcEnv`] because the contained expressions
+/// refer to variable ids owned by an environment.
 impl Decodable<ConstraintCollection> for Versioned<Vec<u8>> {
     type Latest = SerConstrLatest;
     type Payload = ArcEnv;

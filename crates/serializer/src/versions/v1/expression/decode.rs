@@ -1,3 +1,5 @@
+//! Version 1 decoding for expressions.
+
 use lunamodel_core::prelude::*;
 use lunamodel_error::LunaModelResult;
 use prost::Message;
@@ -7,12 +9,14 @@ use crate::encode::BytesDecodable;
 
 /// Makes the SerExpression conform with the requirements for it to be a Decodable.
 impl BytesDecodable<Expression, ArcEnv> for SerExpression {
+    /// Decodes version-1 bytes into an expression tied to `payload`.
     fn decode_from_bytes(bytes: &[u8], payload: ArcEnv) -> LunaModelResult<Expression> {
         Ok(Self::decode(bytes)?.extract(payload))
     }
 }
 
 impl SerExpression {
+    /// Restores the quadratic term from the flattened protobuf fields.
     fn decode_quadratic(&self) -> Option<Quadratic> {
         if self.quad_size == 0 {
             return None;
@@ -36,6 +40,7 @@ impl SerExpression {
         Some(quad)
     }
 
+    /// Restores the higher-order term from the flattened protobuf fields.
     fn decode_higher_order(&self) -> Option<HigherOrder> {
         if self.ho_size == 0 {
             return None;
@@ -53,6 +58,7 @@ impl SerExpression {
         Some(ho)
     }
 
+    /// Legacy linear-term decoding path based on the active mask.
     fn decode_linear_old(&self) -> Linear {
         let mut lin = Linear::default();
         for (idx, (&active, &bias)) in self.active.iter().zip(&self.linear_values).enumerate() {
@@ -64,6 +70,7 @@ impl SerExpression {
         lin
     }
 
+    /// Sparse linear-term decoding path using explicit indices.
     fn decode_linear_new(&self) -> Linear {
         let mut lin = Linear::default();
         for (&idx, &bias) in self.linear_indices.iter().zip(&self.linear_values) {
@@ -72,6 +79,7 @@ impl SerExpression {
         lin
     }
 
+    /// Dispatches between legacy and sparse linear decoding formats.
     fn decode_linear(&self) -> Linear {
         match self.is_new {
             true => self.decode_linear_new(),
@@ -79,8 +87,7 @@ impl SerExpression {
         }
     }
 
-    /// Extracts the data from self to and instance of Expression with Index VarId and
-    /// Bias f64.
+    /// Extracts the runtime expression from the protobuf structure.
     pub fn extract(self, env: ArcEnv) -> Expression {
         Expression::empty(env).edit(|e| {
             e.offset = self.offset;

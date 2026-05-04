@@ -1,3 +1,5 @@
+//! Object-safe runtime adapter for composite passes.
+
 use std::any::Any;
 
 use lunamodel_core::Model;
@@ -7,22 +9,30 @@ use crate::{AnalysisKey, AnalysisManager, CompositePass, ErasedArtifact, PassCon
 
 /// Object-safe erased composite pass used by the pipeline runtime.
 pub trait ErasedCompositePass: Send + Sync {
+    /// Stable pass id used for backward registry lookup.
     fn id(&self) -> &str;
+    /// Human-readable pass name.
     fn name(&self) -> &str;
+    /// Required pass/analysis names.
     fn requires(&self) -> &[String];
+    /// Provided analysis key name.
     fn provides(&self) -> &str;
+    /// Invalidated analysis names.
     fn invalidates(&self) -> &[String];
+    /// Runs the forward pass and erases the produced artifact.
     fn forward_erased(
         &self,
         model: &mut Model,
         ctx: &PassContext,
         analyses: &mut AnalysisManager,
     ) -> LunaModelResult<ErasedArtifact>;
+    /// Human-readable display string.
     fn display(&self) -> String;
+    /// Downcasts to the concrete pass type when needed.
     fn as_any(&self) -> &dyn Any;
 }
 
-/// Typed pass can be wrapped into ErasedCompositePass.
+/// Adapts a typed composite pass to the object-safe runtime interface.
 impl<P> ErasedCompositePass for P
 where
     P: CompositePass + Send + Sync + 'static,

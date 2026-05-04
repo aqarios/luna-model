@@ -1,3 +1,5 @@
+//! Prebuilt pipeline for unconstrained binary normalization.
+
 use derive_more::Deref;
 use lunamodel_transpiler::Pipeline;
 use lunamodel_types::{EnumSetFromVec, Sense, Specs, Vtype};
@@ -12,10 +14,15 @@ use crate::{
     },
 };
 
+/// Pipeline that rewrites supported constrained models into unconstrained binary form.
 #[derive(Deref)]
 pub struct ToUnconstrainedBinaryPipeline(pub Pipeline);
 
 impl ToUnconstrainedBinaryPipeline {
+    /// Builds the standard constrained-to-unconstrained binary pipeline.
+    ///
+    /// `penalty_factor` is forwarded to the equality-to-penalty pass that folds
+    /// the final constraint set into the objective.
     pub fn new(penalty_factor: f64) -> Self {
         let requirements = Specs {
             vtypes: Some(vec![Vtype::Binary, Vtype::Spin, Vtype::Integer].to_enumset()),
@@ -46,6 +53,7 @@ impl ToUnconstrainedBinaryPipeline {
 }
 
 impl From<ToUnconstrainedBinaryPipeline> for Pipeline {
+    /// Unwraps the newtype into the underlying generic pipeline.
     fn from(val: ToUnconstrainedBinaryPipeline) -> Self {
         val.0
     }

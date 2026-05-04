@@ -1,3 +1,5 @@
+//! Python wrapper for the built-in unconstrained-binary pipeline.
+
 use derive_more::Deref;
 use lunamodel_transform::pipelines::ToUnconstrainedBinaryPipeline;
 use pyo3::{pyclass, pymethods};

@@ -1,3 +1,5 @@
+//! Constructors for Python variables.
+
 use lunamodel_error::LunaModelError;
 use lunamodel_unwind::*;
 use pyo3::prelude::*;

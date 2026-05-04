@@ -1,3 +1,5 @@
+//! Version 0 decoding for environments.
+
 use indexmap::IndexMap;
 use lunamodel_core::{
     Environment,
@@ -14,12 +16,14 @@ use super::SerEnvironment;
 use crate::encode::BytesDecodable;
 
 impl BytesDecodable<Environment> for SerEnvironment {
+    /// Decodes version-0 bytes into an environment.
     fn decode_from_bytes(bytes: &[u8], _: ()) -> LunaModelResult<Environment> {
         Ok(Self::decode(bytes)?.extract())
     }
 }
 
 impl SerEnvironment {
+    /// Extracts the runtime environment from the protobuf structure.
     pub fn extract(&self) -> Environment {
         let mut variables = HashMap::with_capacity(self.variables_len as usize);
         let mut lookup = HashMap::with_capacity(self.variables_len as usize);
@@ -35,6 +39,7 @@ impl SerEnvironment {
         Environment::new(ivs, lookup, nxt_idx)
     }
 
+    /// Restores binary and inverted-binary variables.
     fn extract_bin(
         &self,
         variables: &mut HashMap<VarIdx, Variable>,
@@ -61,6 +66,7 @@ impl SerEnvironment {
         }
     }
 
+    /// Restores spin variables.
     fn extract_spin(
         &self,
         variables: &mut HashMap<VarIdx, Variable>,
@@ -74,6 +80,7 @@ impl SerEnvironment {
         }
     }
 
+    /// Restores integer variables and their bounds.
     fn extract_int(
         &self,
         variables: &mut HashMap<VarIdx, Variable>,
@@ -99,6 +106,7 @@ impl SerEnvironment {
         }
     }
 
+    /// Restores real variables and their bounds.
     fn extract_real(
         &self,
         variables: &mut HashMap<VarIdx, Variable>,

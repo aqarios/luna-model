@@ -1,3 +1,5 @@
+//! Equality and semantic-comparison helpers for Python environments.
+
 use lunamodel_core::prelude::ContentEquality;
 use lunamodel_unwind::*;
 use pyo3::pymethods;

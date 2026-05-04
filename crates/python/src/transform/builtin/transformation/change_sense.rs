@@ -1,3 +1,5 @@
+//! Python wrapper for the objective-sense normalization pass.
+
 use lunamodel_python_macros::pytransformation;
 use lunamodel_transform::transformation::{ChangeSensePass, ChangeSensePassArtifact};
 use lunamodel_transpiler::Artifact;

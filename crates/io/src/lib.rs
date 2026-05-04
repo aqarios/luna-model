@@ -1,3 +1,9 @@
+//! Formatting helpers for LunaModel domain objects.
+//!
+//! This crate centralizes developer-facing string and debug representations that
+//! are shared by the Rust API and, when enabled, the Python bindings. The goal
+//! is not serialization fidelity; it is readable, reasonably stable output for
+//! REPLs, logs, and test assertions.
 mod custom;
 mod options;
 

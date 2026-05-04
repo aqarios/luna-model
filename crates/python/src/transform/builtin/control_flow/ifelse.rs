@@ -1,3 +1,5 @@
+//! Python wrapper for the built-in `IfElse` control-flow pass.
+
 use std::sync::Arc;
 
 use lunamodel_core::Model;

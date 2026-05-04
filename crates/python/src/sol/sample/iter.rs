@@ -1,3 +1,5 @@
+//! Iterators over Python sample views.
+
 use itertools::Itertools;
 use lunamodel_core::Solution;
 use lunamodel_core::solution::Assignment;

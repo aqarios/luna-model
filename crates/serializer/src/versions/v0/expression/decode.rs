@@ -1,3 +1,5 @@
+//! Version 0 decoding for expressions.
+
 use lunamodel_core::prelude::*;
 use lunamodel_error::LunaModelResult;
 use prost::Message;
@@ -7,12 +9,14 @@ use crate::encode::BytesDecodable;
 
 /// Makes the SerExpression conform with the requirements for it to be a Decodable.
 impl BytesDecodable<Expression, ArcEnv> for SerExpression {
+    /// Decodes version-0 bytes into an expression tied to `payload`.
     fn decode_from_bytes(bytes: &[u8], payload: ArcEnv) -> LunaModelResult<Expression> {
         Ok(Self::decode(bytes)?.extract(payload))
     }
 }
 
 impl SerExpression {
+    /// Restores the quadratic term from the flattened protobuf fields.
     fn decode_quadratic(&self) -> Option<Quadratic> {
         if self.quad_size == 0 {
             return None;
@@ -36,6 +40,7 @@ impl SerExpression {
         Some(quad)
     }
 
+    /// Restores the higher-order term from the flattened protobuf fields.
     fn decode_higher_order(&self) -> Option<HigherOrder> {
         if self.ho_size == 0 {
             return None;
@@ -53,6 +58,7 @@ impl SerExpression {
         Some(ho)
     }
 
+    /// Legacy linear-term decoding path based on the active mask.
     fn decode_linear_old(&self) -> Linear {
         let mut lin = Linear::default();
         for (idx, (&active, &bias)) in self.active.iter().zip(&self.linear).enumerate() {
@@ -64,12 +70,12 @@ impl SerExpression {
         lin
     }
 
+    /// Dispatches to the currently supported linear decoding implementation.
     fn decode_linear(&self) -> Linear {
         self.decode_linear_old()
     }
 
-    /// Extracts the data from self to and instance of Expression with Index VarId and
-    /// Bias f64.
+    /// Extracts the runtime expression from the protobuf structure.
     pub fn extract(self, env: ArcEnv) -> Expression {
         Expression::empty(env).edit(|e| {
             e.offset = self.offset;

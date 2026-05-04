@@ -1,3 +1,5 @@
+//! Mutation operations for Python solutions.
+
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};
 

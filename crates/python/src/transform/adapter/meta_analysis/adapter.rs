@@ -1,3 +1,5 @@
+//! Runtime adapter for Python meta-analysis passes.
+
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{AnalysisKey, MetaAnalysisPass, PipelineStep};
 use pyo3::{Py, PyAny, Python, types::PyAnyMethods};

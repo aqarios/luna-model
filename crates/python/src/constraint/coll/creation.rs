@@ -1,3 +1,5 @@
+//! Constructors for Python constraint collections.
+
 use lunamodel_core::ConstraintCollection;
 use lunamodel_unwind::*;
 use pyo3::pymethods;

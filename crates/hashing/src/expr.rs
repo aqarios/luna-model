@@ -1,3 +1,5 @@
+//! Hash encoding for expressions.
+
 use prost::Message;
 
 use lunamodel_core::Expression;
@@ -60,6 +62,11 @@ pub struct HashExpr {
 }
 
 impl HashExpr {
+    /// Encodes an expression into the hashing representation.
+    ///
+    /// The representation is sparse where practical, but it still records enough
+    /// structural information to distinguish linear, quadratic, and higher-order
+    /// contributions deterministically.
     pub fn build(expr: &Expression) -> Vec<u8> {
         let maxidx = *expr.vars().map(|v| v.id()).max().get_or_insert(0) as usize;
         let num_vars = match expr.num_vars() {

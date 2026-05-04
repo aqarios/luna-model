@@ -1,3 +1,5 @@
+//! Random solution generation helpers for testing and exploration.
+
 use indexmap::IndexMap;
 use itertools::Either;
 use lunamodel_error::{LunaModelError, LunaModelResult};
@@ -13,6 +15,7 @@ use crate::{ArcEnv, Model, Timer, bounds::Bounds, solution::Column};
 
 use super::Solution;
 
+/// Converts generic bounds into a concrete typed interval for random sampling.
 fn get_bounds<T: num_traits::FromPrimitive + num_traits::Bounded>(
     bounds: &Bounds,
 ) -> LunaModelResult<(T, T)> {
@@ -32,6 +35,12 @@ fn get_bounds<T: num_traits::FromPrimitive + num_traits::Bounded>(
 }
 
 impl Solution {
+    /// Generates a random solution either from an environment or a full model.
+    ///
+    /// When a model is provided, the generated solution is evaluated before being
+    /// returned so objective and feasibility fields are populated. When only an
+    /// environment is provided, the caller may still choose the optimization
+    /// sense explicitly.
     pub fn from_random(
         n_samples: usize,
         seed: Option<u64>,

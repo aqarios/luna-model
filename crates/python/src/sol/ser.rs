@@ -1,3 +1,5 @@
+//! Serialization helpers for Python solutions.
+
 use lunamodel_core::Solution;
 use lunamodel_serializer::prelude::*;
 use lunamodel_unwind::*;

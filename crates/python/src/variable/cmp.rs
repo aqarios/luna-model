@@ -1,3 +1,5 @@
+//! Equality and semantic-comparison helpers for Python variables.
+
 use lunamodel_error::py::PyLunaModelError;
 use lunamodel_unwind::*;
 use pyo3::{PyResult, pymethods};

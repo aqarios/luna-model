@@ -1,3 +1,5 @@
+//! Hash encoding for environments.
+
 use lunamodel_core::ArcEnv;
 use lunamodel_types::{Bound, Vtype};
 use prost::Message;
@@ -66,6 +68,10 @@ pub struct HashEnv {
 }
 
 impl HashEnv {
+    /// Encodes an environment into the hashing representation.
+    ///
+    /// Variables are traversed in index order so the output is deterministic for
+    /// a fixed environment content.
     pub fn build(env: &ArcEnv) -> Vec<u8> {
         let mut e = HashEnv::default();
 

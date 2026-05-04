@@ -1,3 +1,5 @@
+//! Generated mixed-reference subtraction implementations.
+
 #[macro_export]
 macro_rules! subs {
     ($L:ty => $( $R:ty ) ,+ $(,)?) => {

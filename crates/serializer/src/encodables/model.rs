@@ -1,3 +1,5 @@
+//! Version-independent encoding glue for models.
+
 use crate::encode::{Decodable, Decoder, Encodable};
 use crate::versionize::{Version, Versioned};
 use crate::versions::v0::SerModel as SerModelV0;
@@ -18,12 +20,12 @@ impl Encodable<SerModelV0> for Model {
     }
 }
 
-/// Default implementation to make a bytes vector deserializable to a [Model].
+/// Makes a raw byte vector decodable into a [`Model`].
 impl Decodable<Model> for Vec<u8> {
     type Latest = SerModelLatest;
     type Payload = ();
 }
-/// Makes a versionized representation of the [Model] decodable.
+/// Makes a versioned byte representation decodable into a [`Model`].
 impl Decodable<Model> for Versioned<Vec<u8>> {
     type Latest = SerModelLatest;
     type Payload = ();

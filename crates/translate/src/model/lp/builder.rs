@@ -1,3 +1,5 @@
+//! Conversion from parsed LP intermediate data into core model structures.
+
 use lunamodel_core::{
     ArcEnv, ConstraintCollection, Expression, Model,
     ops::{LmAddAssign, LmMulAssign, LmPow},
@@ -10,6 +12,7 @@ use crate::model::lp::reader::{LpConstraint, LpExpression, LpProblem};
 
 use super::tokenizer::Token;
 
+/// Builds a LunaModel [`Model`] from the parsed LP problem representation.
 pub fn build_model(prob: LpProblem) -> LunaModelResult<Model> {
     let mut env = ArcEnv::default();
     build_vars(&mut env, &prob)?;
@@ -22,6 +25,7 @@ pub fn build_model(prob: LpProblem) -> LunaModelResult<Model> {
     Ok(model)
 }
 
+/// Creates all variables described by the parsed LP problem.
 fn build_vars(env: &mut ArcEnv, prob: &LpProblem) -> LunaModelResult<()> {
     // First, let's create all the variables.
     let mut sortedvars: Vec<_> = prob.vars.iter().collect();
@@ -53,6 +57,7 @@ fn build_vars(env: &mut ArcEnv, prob: &LpProblem) -> LunaModelResult<()> {
     Ok(())
 }
 
+/// Converts parsed real bounds into LunaModel lazy bounds.
 fn extract_real_bounds(bounds: Option<&(Option<f64>, Option<f64>)>) -> LazyBounds {
     match bounds {
         Some((lb, ub)) => {
@@ -70,6 +75,7 @@ fn extract_real_bounds(bounds: Option<&(Option<f64>, Option<f64>)>) -> LazyBound
     }
 }
 
+/// Validates integer bounds from the LP input and converts them into lazy bounds.
 fn check_integer_bounds(
     bounds: Option<&(Option<f64>, Option<f64>)>,
     varname: &str,
@@ -87,6 +93,7 @@ fn check_integer_bounds(
     }
 }
 
+/// Validates that a parsed bound endpoint is integral.
 fn check_int_bound(bound: &Option<f64>, varname: &str) -> LunaModelResult<Option<Bound>> {
     if let Some(l) = bound {
         // TODO(team): Maybe use the near integral fun.
@@ -101,6 +108,7 @@ fn check_int_bound(bound: &Option<f64>, varname: &str) -> LunaModelResult<Option
     }
 }
 
+/// Validates that explicit binary bounds, if present, still match `0 <= x <= 1`.
 fn check_binary_bounds(
     bounds: Option<&(Option<f64>, Option<f64>)>,
     varname: &str,
@@ -126,6 +134,7 @@ fn check_binary_bounds(
     Ok(())
 }
 
+/// Builds the full constraint collection from parsed LP constraints.
 fn build_constraints(
     env: &ArcEnv,
     constrs: Vec<LpConstraint>,
@@ -139,16 +148,19 @@ fn build_constraints(
     Ok(collection)
 }
 
+/// Builds a single LunaModel constraint from the parsed LP representation.
 fn build_constraint(constr: LpConstraint, env: &ArcEnv) -> LunaModelResult<Constraint> {
     let lhs = build_expr(env, constr.lhs)?;
     Constraint::new(lhs, constr.rhs, constr.comparator, constr.name)
 }
 
+/// Builds an expression from a parsed LP expression token stream.
 fn build_expr(env: &ArcEnv, obj: LpExpression) -> LunaModelResult<Expression> {
     let tokens = obj.0;
     build_expr_inner(tokens, env)
 }
 
+/// Recursive expression builder for LP token streams, including bracketed subexpressions.
 fn build_expr_inner(tokens: Vec<Token>, env: &ArcEnv) -> LunaModelResult<Expression> {
     let mut final_term = Expression::empty(env.clone());
     let mut curr_term = Expression::constant(env.clone(), 1.0);

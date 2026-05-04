@@ -1,3 +1,5 @@
+//! Built-in `IfElse` control-flow implementation.
+
 use std::{collections::BTreeSet, sync::Arc};
 
 use global_counter::primitive::exact::CounterU64;

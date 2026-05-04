@@ -1,3 +1,5 @@
+//! Artifact types for binary-to-spin conversion.
+
 use std::collections::HashMap;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};

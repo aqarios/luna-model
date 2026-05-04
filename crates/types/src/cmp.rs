@@ -1,3 +1,4 @@
+//! Comparator and constraint-type enums shared across the workspace.
 use lunamodel_utils::defaults::DEFAULT_TOL;
 use strum_macros::Display;
 
@@ -6,7 +7,7 @@ use crate::Bias;
 /// Comparison operators used to define constraints.
 ///
 /// This enum represents the logical relation between the left-hand side (LHS)
-/// and the right-hand side (RHS) of a [Constraint].
+/// and the right-hand side (RHS) of a constraint.
 #[derive(Debug, Copy, Clone, PartialEq, Display, Eq, Hash)]
 pub enum Comparator {
     /// The Equality comparison (==) for a constraint where LHS == RHS.
@@ -21,6 +22,7 @@ pub enum Comparator {
 }
 
 impl Comparator {
+    /// Evaluates the comparator on `lhs` and `rhs`.
     pub fn evaluate(self, lhs: Bias, rhs: Bias, tol: Option<f64>) -> bool {
         let tol = tol.unwrap_or_else(|| DEFAULT_TOL);
         match self {

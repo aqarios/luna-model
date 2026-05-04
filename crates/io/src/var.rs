@@ -1,3 +1,5 @@
+//! Formatting helpers for variables.
+
 use super::{CustomFormat, FormatOpt};
 use lunamodel_core::prelude::VarRef;
 

@@ -1,3 +1,5 @@
+//! In-place setters for Python solution rows and metadata.
+
 use lunamodel_unwind::*;
 use numpy::{PyArray1, PyArrayMethods};
 use pyo3::{Bound, PyResult, pymethods};

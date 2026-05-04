@@ -1,3 +1,4 @@
+//! Version 1 serializer for solutions.
 mod decode;
 mod encode;
 

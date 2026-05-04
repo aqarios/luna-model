@@ -1,3 +1,5 @@
+//! Constructors and conversion helpers for expressions.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_types::Bias;
 
@@ -7,6 +9,11 @@ use crate::ArcEnv;
 use crate::prelude::Quadratic;
 
 impl Expression {
+    /// Creates a completely empty expression for an environment.
+    ///
+    /// This is the low-level constructor used when callers want to spell out the
+    /// exact initial term storage instead of going through a convenience
+    /// conversion.
     pub fn empty(env: ArcEnv) -> Self {
         Self {
             env,
@@ -17,12 +24,19 @@ impl Expression {
         }
     }
 
+    /// Creates a constant expression with the given offset.
     pub fn constant(env: ArcEnv, val: Bias) -> Self {
         let mut slf = Self::empty(env);
         slf.offset += val;
         slf
     }
 
+    /// Builds an expression from a dense quadratic matrix.
+    ///
+    /// The matrix is interpreted as a full square `num_vars x num_vars` matrix in
+    /// row-major order. Diagonal entries are folded into linear terms, and
+    /// symmetric off-diagonal entries are summed into the upper-triangular
+    /// quadratic storage used by LunaModel.
     pub fn from_dense_quadratic(
         dense: &[f64],
         num_vars: usize,

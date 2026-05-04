@@ -1,3 +1,5 @@
+//! Substitution helpers for expressions.
+
 use std::ops::Mul;
 
 use itertools::Itertools;
@@ -9,6 +11,11 @@ use crate::{
 };
 
 impl Expression {
+    /// Replaces every occurrence of `target` with `replacement`.
+    ///
+    /// The substitution is performed term-by-term and preserves the current
+    /// environment. Any resulting higher-degree terms are rebuilt through the
+    /// normal expression arithmetic APIs.
     pub fn substitute(
         &self,
         target: &VarRef,

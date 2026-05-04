@@ -1,3 +1,5 @@
+//! Python wrapper for the built-in max-bias analysis.
+
 use lunamodel_python_macros::pyanalysis;
 use lunamodel_transform::analysis::{MaxBias, MaxBiasAnalysis};
 use pyo3::{pyclass, pymethods};

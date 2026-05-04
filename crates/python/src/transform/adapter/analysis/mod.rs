@@ -1,3 +1,5 @@
+//! Adapters for Python-defined analysis passes.
+
 use pyo3::{Bound, PyAny, pyclass, pymethods};
 
 mod adapter;

@@ -1,3 +1,5 @@
+//! High-level MPS translation entry points.
+
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 

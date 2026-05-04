@@ -1,3 +1,5 @@
+//! Version 0 decoding for transformation records.
+
 use prost::Message;
 
 use lunamodel_error::LunaModelResult;

@@ -1,3 +1,5 @@
+//! Formatting helpers for bounds.
+
 use super::{CustomFormat, FormatOpt};
 use lunamodel_core::prelude::{Bounds, LazyBounds};
 use lunamodel_types::Bound;

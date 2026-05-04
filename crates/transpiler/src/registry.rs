@@ -1,3 +1,5 @@
+//! Global registry used to dispatch backwards handlers.
+
 use std::{
     collections::HashMap,
     sync::{Mutex, OnceLock},
@@ -49,6 +51,7 @@ impl BackwardRegistry {
 /// Global singleton registry
 static BACKWARD_REGISTRY: OnceLock<Mutex<BackwardRegistry>> = OnceLock::new();
 
+/// Registers the backward function for pass type `P` in the global registry.
 pub fn register_backward<P: Reversible>() {
     BACKWARD_REGISTRY
         .get_or_init(|| Mutex::new(BackwardRegistry::default()))
@@ -57,6 +60,7 @@ pub fn register_backward<P: Reversible>() {
         .register::<P>(P::ID);
 }
 
+/// Applies a registered backward function from the global registry.
 pub fn apply(
     pass_name: &str,
     artifact: &ErasedArtifact,

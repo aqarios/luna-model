@@ -1,3 +1,5 @@
+//! Python wrapper for environment-bound variables.
+
 mod access;
 mod cmp;
 mod creation;

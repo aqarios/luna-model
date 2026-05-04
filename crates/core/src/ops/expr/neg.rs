@@ -1,3 +1,5 @@
+//! Negation implementations for expressions.
+
 use std::ops::Neg;
 
 use crate::expression::Expression;
@@ -5,6 +7,7 @@ use crate::expression::Expression;
 impl Neg for Expression {
     type Output = Expression;
 
+    /// Negates every stored contribution in the expression.
     fn neg(mut self) -> Self::Output {
         self.offset = -self.offset;
         self.linear = -self.linear;
@@ -20,6 +23,8 @@ impl Neg for Expression {
 
 impl Neg for &Expression {
     type Output = Expression;
+
+    /// Returns a negated clone of the expression.
     fn neg(self) -> Self::Output {
         -self.clone()
     }

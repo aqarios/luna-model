@@ -1,3 +1,5 @@
+//! Trait definitions for composite passes.
+
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 

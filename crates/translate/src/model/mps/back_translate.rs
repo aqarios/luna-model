@@ -1,3 +1,5 @@
+//! MPS back-translator from core models to text.
+
 use lunamodel_core::{Model, prelude::Bounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{Bias, Bound, Comparator, Sense, Vtype};

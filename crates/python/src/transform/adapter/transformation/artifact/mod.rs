@@ -1,3 +1,5 @@
+//! Artifact wrapper types for Python-defined transformation passes.
+
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::Artifact;
 use pyo3::{

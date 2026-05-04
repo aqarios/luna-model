@@ -233,5 +233,9 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
         PyRandomSamplingError::NAME,
         m.py().get_type::<PyRandomSamplingError>(),
     )?;
+    m.add(
+        PyInvalidToleranceError::NAME,
+        m.py().get_type::<PyInvalidToleranceError>(),
+    )?;
     Ok(())
 }
