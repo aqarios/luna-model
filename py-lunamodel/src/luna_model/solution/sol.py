@@ -826,7 +826,7 @@ class Solution:
             Raw energy values for each unique bitstring.
         var_order : list[str], optional
             Order of variable names corresponding to bit positions. Inferred from env or model if not provided.
-        tol: float, optional
+        tol : float, optional
             Tolerance used when evaluating constraints, if and only if a model is provided,
             for floating-point comparisons (``==``, ``<=``, and ``>=``).
             For constraint comparisons, two values are treated as equal, or as satisfying an
@@ -881,7 +881,7 @@ class Solution:
             A model to evaluate the samples with.
         sense : Senes, optional
             The sense if no model is specified
-        tol: float, optional
+        tol : float, optional
             Tolerance used when evaluating constraints, if and only if a model is provided,
             for floating-point comparisons (``==``, ``<=``, and ``>=``).
             For constraint comparisons, two values are treated as equal, or as satisfying an
@@ -918,7 +918,7 @@ class Solution:
             A sequence of solutions to be merged into a new solution.
         model : Model, optional
             A model to (re-)evaluate the new solution with.
-        tol: float, optional
+        tol : float, optional
             Tolerance used when evaluating constraints, if and only if a model is provided,
             for floating-point comparisons (``==``, ``<=``, and ``>=``).
             For constraint comparisons, two values are treated as equal, or as satisfying an

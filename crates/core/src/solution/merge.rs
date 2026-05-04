@@ -12,6 +12,8 @@ impl Solution {
     /// participating solution and then aggregating duplicate rows. If `model` is
     /// provided, the merged solution is re-evaluated afterwards so derived fields
     /// such as objective values and feasibility reflect the final merged state.
+    /// `tol` is only used during that optional re-evaluation, where it controls
+    /// floating-point constraint comparisons.
     pub fn merge_many(
         solutions: &[Solution],
         model: &Option<Model>,

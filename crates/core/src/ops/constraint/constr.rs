@@ -10,6 +10,8 @@ impl Constraint {
     ///
     /// The sample only needs to provide `TryIndex<&str>` access to variable
     /// values; it does not need to be a concrete LunaModel solution type.
+    /// `tol` is used for floating-point comparisons (`==`, `<=`, and `>=`);
+    /// when it is `None`, the default comparator tolerance is used.
     pub fn evaluate_sample<S>(&self, sample: &S, tol: Option<f64>) -> LunaModelResult<bool>
     where
         for<'s> S: TryIndex<&'s str, Output = Bias, Err = LunaModelError>,
@@ -21,7 +23,8 @@ impl Constraint {
     /// Evaluates the constraint against a dense lookup vector indexed by variable id.
     ///
     /// This is the faster path used when the caller has already aligned values
-    /// to environment order.
+    /// to environment order. `tol` has the same comparison semantics as
+    /// [`Self::evaluate_sample`].
     pub fn evaluate_sample_quick(&self, lu: &[Bias], tol: Option<f64>) -> LunaModelResult<bool> {
         let lhs = self.lhs.evaluate_sample_quick(lu)?;
         Ok(self.comparator.evaluate(lhs, self.rhs, tol))

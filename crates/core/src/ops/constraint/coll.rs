@@ -10,7 +10,8 @@ impl ConstraintCollection {
     /// Evaluates every constraint against a name-addressable sample.
     ///
     /// The returned map preserves constraint names but not insertion order
-    /// because it uses [`HashMap`].
+    /// because it uses [`HashMap`]. `tol` is forwarded to each constraint and
+    /// is used for floating-point comparisons (`==`, `<=`, and `>=`).
     pub fn evaluate_sample<S>(
         &self,
         sample: &S,
@@ -28,6 +29,8 @@ impl ConstraintCollection {
     }
 
     /// Evaluates every constraint against a dense variable-value lookup vector.
+    ///
+    /// `tol` has the same comparison semantics as [`Self::evaluate_sample`].
     pub fn evaluate_sample_quick(
         &self,
         lu: &[Bias],

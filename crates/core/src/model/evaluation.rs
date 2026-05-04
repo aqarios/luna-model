@@ -19,6 +19,15 @@ impl Model {
         self.evaluate_solution_with_tol(sol, None)
     }
 
+    /// Evaluates a solution against the model using an optional comparison tolerance.
+    ///
+    /// `tol` is used when checking constraint comparisons (`==`, `<=`, and
+    /// `>=`) so small floating-point drift does not make otherwise feasible
+    /// samples fail constraint evaluation. If `tol` is `None`, the default
+    /// tolerance is used by the underlying comparator.
+    ///
+    /// The returned solution has updated objective values, constraint results,
+    /// variable-bound results, and feasibility flags.
     pub fn evaluate_solution_with_tol(
         &self,
         sol: &Solution,

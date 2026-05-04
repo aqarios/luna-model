@@ -41,12 +41,15 @@ impl Solution {
     /// returned so objective and feasibility fields are populated. When only an
     /// environment is provided, the caller may still choose the optimization
     /// sense explicitly.
+    ///
+    /// `tol` is only used when `context` contains a model. In that case it is
+    /// forwarded to model evaluation for floating-point constraint comparisons.
     pub fn from_random(
         n_samples: usize,
         seed: Option<u64>,
         context: Either<ArcEnv, Model>,
         sense: Option<Sense>,
-        tol: Option<f64>
+        tol: Option<f64>,
     ) -> LunaModelResult<Self> {
         let timer = Timer::start();
 

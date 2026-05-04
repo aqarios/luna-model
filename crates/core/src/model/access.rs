@@ -45,6 +45,8 @@ impl Model {
     /// Returns the subset of constraints violated by `sample`.
     ///
     /// The returned collection preserves the original constraint names.
+    /// `tol` is used for floating-point constraint comparisons (`==`, `<=`,
+    /// and `>=`); when it is `None`, the default comparator tolerance is used.
     pub fn violated_constraints(
         &self,
         sample: &SampleView,

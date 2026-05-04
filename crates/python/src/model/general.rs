@@ -45,6 +45,9 @@ impl PyModel {
 
     #[pyo3(signature = (solution, tol=None))]
     /// Evaluate the model against a full solution and return the enriched result.
+    ///
+    /// `tol` is forwarded to constraint evaluation for floating-point
+    /// comparisons (`==`, `<=`, and `>=`).
     fn evaluate(&self, solution: PySolArg, tol: Option<f64>) -> PyResult<PySolution> {
         Ok(self
             .m
@@ -57,7 +60,9 @@ impl PyModel {
     /// Evaluate the model against a single sample view.
     ///
     /// The sample is first extracted into a one-row solution because the core
-    /// evaluation path works on full `Solution` objects.
+    /// evaluation path works on full `Solution` objects. `tol` is forwarded to
+    /// constraint evaluation for floating-point comparisons (`==`, `<=`, and
+    /// `>=`).
     fn evaluate_sample(&self, sample: PySampleView, tol: Option<f64>) -> PyResult<PyResultView> {
         let mut sol = sample.sol.s.read_arc().extract(sample.idx);
         sol = self.m.read_arc().evaluate_solution_with_tol(&sol, tol)?;
@@ -71,7 +76,14 @@ impl PyModel {
 
     #[pyo3(signature = (sample, tol=None))]
     /// Return the constraints violated by a specific sample.
-    fn violated_constraints(&self, sample: PySampleView, tol: Option<f64>) -> PyResult<PyConstraintCollection> {
+    ///
+    /// `tol` is forwarded to constraint evaluation for floating-point
+    /// comparisons (`==`, `<=`, and `>=`).
+    fn violated_constraints(
+        &self,
+        sample: PySampleView,
+        tol: Option<f64>,
+    ) -> PyResult<PyConstraintCollection> {
         let binding = sample.sol.s.read_arc();
         let sample = SampleView::new(&binding, sample.idx);
         Ok(self.m.read_arc().violated_constraints(&sample, tol)?.into())

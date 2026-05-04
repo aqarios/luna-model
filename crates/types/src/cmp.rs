@@ -23,6 +23,12 @@ pub enum Comparator {
 
 impl Comparator {
     /// Evaluates the comparator on `lhs` and `rhs`.
+    ///
+    /// Floating-point comparisons use `tol` to absorb small numerical drift.
+    /// Equality accepts values whose absolute difference is within
+    /// `tol + f64::EPSILON * max(abs(lhs), abs(rhs), 1.0)`. Inequalities allow
+    /// the same tolerance in the violated direction. If `tol` is `None`,
+    /// [`DEFAULT_TOL`] is used.
     pub fn evaluate(self, lhs: Bias, rhs: Bias, tol: Option<f64>) -> bool {
         let tol = tol.unwrap_or_else(|| DEFAULT_TOL);
         match self {
