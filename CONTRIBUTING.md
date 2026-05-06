@@ -49,6 +49,12 @@ uv sync
 
 The repository requires Rust and Cargo, `uv`, and Python 3.11 or newer.
 
+Install the Git hooks from the repository root:
+
+```bash
+uv run --directory py-lunamodel pre-commit install
+```
+
 ## Local Checks
 
 Run the checks that match the files you changed.
@@ -58,7 +64,7 @@ For Python package changes from `py-lunamodel`:
 ```bash
 uv run pytest
 uv run ruff check .
-uv run ruff format .
+uv run ruff format --check .
 uv run mypy src
 ```
 
@@ -66,8 +72,14 @@ For Rust workspace changes from the repository root:
 
 ```bash
 cargo test --workspace
-cargo fmt --all
-cargo clippy --workspace --all-targets
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+```
+
+To run the same formatting and lint checks used by Git hooks:
+
+```bash
+uv run --directory py-lunamodel pre-commit run --all-files
 ```
 
 For documentation changes from the repository root:
