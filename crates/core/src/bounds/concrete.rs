@@ -17,13 +17,12 @@ impl Bounds {
     ///
     /// Binary and inverted-binary variables share the same concrete domain.
     pub fn default_for(vtype: &Vtype) -> Self {
-        use Vtype::*;
         match vtype {
-            Binary => Self::binary(),
-            InvertedBinary => Self::binary(),
-            Spin => Self::spin(),
-            Integer => Self::integer(),
-            Real => Self::real(),
+            Vtype::Binary => Self::binary(),
+            Vtype::InvertedBinary => Self::binary(),
+            Vtype::Spin => Self::spin(),
+            Vtype::Integer => Self::integer(),
+            Vtype::Real => Self::real(),
         }
     }
 

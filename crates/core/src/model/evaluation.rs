@@ -73,7 +73,7 @@ impl Model {
             for name in sol.variable_names() {
                 let bs = vbounds.get_mut(&name).unwrap();
                 let v = self.environment.lookup(&name)?;
-                let vok = v.evaluate(sample[&name])?;
+                let vok = v.evaluate(sample[&name], tol)?;
                 bs.push(vok);
                 all_vars_ok = all_vars_ok && vok;
             }

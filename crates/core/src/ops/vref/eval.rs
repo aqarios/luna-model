@@ -10,9 +10,9 @@ impl VarRef {
     ///
     /// This does not inspect any expression context; it is purely a metadata
     /// check against the variable's bound interval.
-    pub fn evaluate(&self, value: Bias) -> LunaModelResult<bool> {
+    pub fn evaluate(&self, value: Bias, tol: Option<f64>) -> LunaModelResult<bool> {
         self.check_living()?;
         let bounds = self.bounds()?;
-        Ok(bounds.evaluate(value))
+        bounds.evaluate(value, tol)
     }
 }
