@@ -1,6 +1,6 @@
 # Contributing to LunaModel
 
-Thanks for contributing to LunaModel. This repository contains the Rust workspace, the Python package, tests, documentation, release automation, and GitHub Pages build for LunaModel.
+**Thanks for contributing to LunaModel**. This repository contains the Rust workspace, the Python package, tests, documentation, release automation, and GitHub Pages build for LunaModel.
 
 The most useful contributions are focused changes with clear motivation: bug fixes, documentation updates, tests, examples, translator improvements, Python API improvements, Rust API improvements, and small refactors that make an existing path easier to maintain.
 
