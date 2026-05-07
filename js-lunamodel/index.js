@@ -4,11 +4,12 @@ const { existsSync, readFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { execSync } = require("node:child_process");
 
-function isMuslFromFilesystem() {
+function isMuslFromFilesystem(options = {}) {
+  const read = options.readFileSync ?? readFileSync;
   try {
     // /usr/bin/ldd is a shell script on Alpine (musl) and an ELF binary on
     // glibc systems. Read as a Buffer so we don't mangle binary bytes.
-    return readFileSync("/usr/bin/ldd").includes("musl");
+    return read("/usr/bin/ldd").includes("musl");
   } catch {
     return null;
   }
@@ -33,26 +34,33 @@ function isMuslFromReport(processObject = process) {
   return null;
 }
 
-function isMuslFromChildProcess() {
+function isMuslFromChildProcess(options = {}) {
+  const exec = options.execSync ?? execSync;
   try {
-    return execSync("ldd --version", { encoding: "utf8" }).includes("musl");
+    return exec("ldd --version", { encoding: "utf8" }).includes("musl");
   } catch {
     return false;
   }
 }
 
 function isMusl(options = {}) {
-  const fromFilesystem = options.isMuslFromFilesystem?.() ?? isMuslFromFilesystem();
+  // `??` would fall through to the real probe whenever a mock returns the
+  // literal `null` (the "inconclusive" sentinel), which makes the report /
+  // childProcess branches unreachable from tests. Use mock-if-provided.
+  const fsProbe = options.isMuslFromFilesystem ?? isMuslFromFilesystem;
+  const fromFilesystem = fsProbe();
   if (fromFilesystem !== null) {
     return fromFilesystem;
   }
 
-  const fromReport = options.isMuslFromReport?.() ?? isMuslFromReport();
+  const reportProbe = options.isMuslFromReport ?? isMuslFromReport;
+  const fromReport = reportProbe();
   if (fromReport !== null) {
     return fromReport;
   }
 
-  return options.isMuslFromChildProcess?.() ?? isMuslFromChildProcess();
+  const childProbe = options.isMuslFromChildProcess ?? isMuslFromChildProcess;
+  return childProbe();
 }
 
 function platformArchABI(platform, arch, options = {}) {
@@ -106,7 +114,10 @@ Object.defineProperty(binding, "__test", {
     loadNativeBinding,
     nativeBindingCandidates,
     platformArchABI,
-    isMusl
+    isMusl,
+    isMuslFromFilesystem,
+    isMuslFromReport,
+    isMuslFromChildProcess
   }
 });
 
