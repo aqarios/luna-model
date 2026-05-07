@@ -44,9 +44,10 @@ lto = true            # cross-crate inlining; erodes crate boundaries
 codegen-units = 1     # better optimization, harder to reverse-engineer
 debug = false         # no DWARF/PDB
 incremental = false   # incremental artifacts embed local paths
-trim-paths = "all"    # remap source paths in object code AND diagnostics
-                      # (stable since Rust 1.81; scrubs /Users/...,
-                      # /home/runner/... from panic messages and symbols)
+# Path scrubbing (so panic backtraces don't leak /Users/... or
+# /home/runner/...) is handled via `--remap-path-prefix` in
+# `.cargo/config.toml`. The stable `trim-paths` profile option does the same
+# but is still nightly-only as of Cargo 1.95; switch to it once stabilized.
 
 [workspace.dependencies]
 global_counter = "0.2.2"
