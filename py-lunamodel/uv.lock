@@ -1351,7 +1351,7 @@ dev = [
     { name = "gurobipy", marker = "python_full_version < '3.14'", specifier = ">=13.0.0" },
     { name = "ipython", specifier = ">=9.8.0" },
     { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "mypy", specifier = ">=2.0.0" },
     { name = "numpy", specifier = ">=2.3.5" },
     { name = "pre-commit", specifier = ">=4.5.0" },
     { name = "pyscipopt", specifier = ">=6.0.0" },
