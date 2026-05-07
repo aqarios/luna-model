@@ -88,22 +88,22 @@ dev = [
     "scipy>=1.16.3",
     "rich>=14.2.0",
     "ruff>=0.14.14",
-    "mypy>=1.19.1",
+    "mypy>=2.0.0",
     "gurobipy>=13.0.0; python_version < '3.14'",
     "qiskit-aer>=0.17.1; python_version < '3.14'",
     "auditwheel>=6.6.0",
-    "gurobipy>=13.0.1",
+    "gurobipy>=13.0.2",
     "jupyter>=1.1.1",
     "pytest-xdist>=3.8.0",
 ]
 docs = [
-    "zensical>=0.0.23",
+    "zensical>=0.0.40",
     "mkdocs-jupyter>=0.24.1",
     "mkdocs-macros-plugin>=1.5.0",
-    "mkdocstrings[python]>=0.27.0",
+    "mkdocstrings[python]>=1.0.4",
 ]
 build = [
-  "maturin[zig]>=1.9.6"
+  "maturin[zig]>=1.13.1"
 ]
 
 [tool.mypy]
