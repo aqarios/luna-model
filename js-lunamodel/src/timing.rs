@@ -3,6 +3,10 @@ use lunamodel_core::Timing as CoreTiming;
 use napi::bindgen_prelude::{Error, Result, Status};
 use napi_derive::napi;
 
+/// Runtime timing metadata attached to a solution.
+///
+/// JavaScript exposes wall-clock timestamps as `Date` objects and durations as
+/// numeric seconds.
 #[napi(js_name = "Timing")]
 pub struct JsTiming {
     inner: CoreTiming,
@@ -10,16 +14,27 @@ pub struct JsTiming {
 
 #[napi]
 impl JsTiming {
+    /// Wall-clock start time.
+    ///
+    /// This matches Python's `start` property.
     #[napi(getter)]
     pub fn start(&self) -> DateTime<Utc> {
         self.inner.start().into()
     }
 
+    /// Wall-clock end time.
+    ///
+    /// This matches Python's `end` property.
     #[napi(getter)]
     pub fn end(&self) -> DateTime<Utc> {
         self.inner.end().into()
     }
 
+    /// Total runtime in seconds.
+    ///
+    /// This is computed as the difference between `end` and `start`. Throws if
+    /// the timing record is inconsistent and the total duration cannot be
+    /// computed. This matches Python's `total_seconds` property.
     #[napi(getter)]
     pub fn total_seconds(&self) -> Result<f64> {
         self.inner.total().map(|d| d.as_secs_f64()).map_err(|err| {
@@ -30,6 +45,10 @@ impl JsTiming {
         })
     }
 
+    /// QPU usage time reported by the backend.
+    ///
+    /// Returns `null` when no QPU timing was provided. This matches Python's
+    /// `qpu` property.
     #[napi(getter)]
     pub fn qpu(&self) -> Option<f64> {
         self.inner.qpu

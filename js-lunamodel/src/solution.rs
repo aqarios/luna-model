@@ -7,6 +7,11 @@ use napi_derive::napi;
 
 use crate::timing::JsTiming;
 
+/// Column-oriented solution data for model evaluation or solver results.
+///
+/// A solution is independent of the original model and stores all variable data
+/// by variable name. JavaScript solutions are created from LunaModel's binary
+/// serializer with `Solution.deserialize()`.
 #[napi(js_name = "Solution")]
 pub struct JsSolution {
     inner: CoreSolution,
@@ -14,12 +19,20 @@ pub struct JsSolution {
 
 #[napi]
 impl JsSolution {
+    /// Decode a LunaModel solution from serialized binary bytes.
+    ///
+    /// This is the JavaScript alias for Python's `Solution.decode()` /
+    /// `Solution.deserialize()` path. `data` must contain bytes produced by the
+    /// existing LunaModel `Solution` serializer.
     #[napi(factory, js_name = "deserialize")]
     pub fn deserialize(data: Uint8Array) -> Result<Self> {
         let inner = deserialize_solution(data.as_ref())?;
         Ok(Self { inner })
     }
 
+    /// Number of occurrences for each stored sample row.
+    ///
+    /// This matches the Python `counts` property.
     #[napi(getter)]
     pub fn counts(&self) -> Result<Vec<u32>> {
         self.inner
@@ -36,31 +49,53 @@ impl JsSolution {
             .collect()
     }
 
+    /// Objective values as computed by the solver.
+    ///
+    /// Returns `null` if the solver did not provide raw energies. This matches
+    /// the Python `raw_energies` property.
     #[napi(getter)]
     pub fn raw_energies(&self) -> Option<Vec<f64>> {
         self.inner.raw_energies.clone()
     }
 
+    /// Objective values as computed by the corresponding model.
+    ///
+    /// Returns `null` for solutions that have not yet been evaluated. This
+    /// matches the Python `obj_values` property.
     #[napi(getter)]
     pub fn obj_values(&self) -> Option<Vec<f64>> {
         self.inner.obj_values.clone()
     }
 
+    /// Feasibility flag for each stored sample row.
+    ///
+    /// A value is `true` when all constraints and variable bounds are satisfied
+    /// for that sample. Returns `null` for solutions without feasibility data.
     #[napi(getter)]
     pub fn feasible(&self) -> Option<Vec<bool>> {
         self.inner.feasible.clone()
     }
 
+    /// Per-constraint feasibility flags keyed by constraint name.
+    ///
+    /// Each vector is aligned with the stored sample rows.
     #[napi(getter)]
     pub fn constraints(&self) -> HashMap<String, Vec<bool>> {
         self.inner.constraints.clone()
     }
 
+    /// Per-variable bound feasibility flags keyed by variable name.
+    ///
+    /// Each vector is aligned with the stored sample rows.
     #[napi(getter)]
     pub fn variable_bounds(&self) -> HashMap<String, Vec<bool>> {
         self.inner.variable_bounds.clone()
     }
 
+    /// Runtime metrics carried by this solution.
+    ///
+    /// Returns `null` if no timing metadata is available. This corresponds to
+    /// Python's `runtime` property.
     #[napi(getter)]
     pub fn timing(&self) -> Option<JsTiming> {
         self.inner.timing.map(|t| t.into())
