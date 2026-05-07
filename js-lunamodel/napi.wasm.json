@@ -1,0 +1,6 @@
+{
+  "binaryName": "js_lunamodel",
+  "targets": [
+    "wasm32-wasip1-threads"
+  ]
+}

@@ -5,7 +5,10 @@
     "": {
       "name": "js-lunamodel",
       "devDependencies": {
+        "@emnapi/core": "1.10.0",
+        "@emnapi/runtime": "1.10.0",
         "@napi-rs/cli": "^3.0.0",
+        "@napi-rs/wasm-runtime": "^1.1.4",
       },
     },
   },

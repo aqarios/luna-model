@@ -517,7 +517,7 @@ dependencies = [
 
 [[package]]
 name = "js-lunamodel"
-version = "0.6.0"
+version = "0.6.1-dev.1912+98cfdf66"
 dependencies = [
  "chrono",
  "lunamodel-core",
