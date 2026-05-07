@@ -1,12 +1,13 @@
-use chrono::{DateTime, Utc};
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use lunamodel_core::Timing as CoreTiming;
 use napi::bindgen_prelude::{Error, Result, Status};
 use napi_derive::napi;
 
 /// Runtime timing metadata attached to a solution.
 ///
-/// JavaScript exposes wall-clock timestamps as `Date` objects and durations as
-/// numeric seconds.
+/// JavaScript exposes wall-clock timestamps as milliseconds since the Unix
+/// epoch (UTC). Wrap with `new Date(timing.start)` for a `Date` object.
 #[napi(js_name = "Timing")]
 pub struct JsTiming {
     inner: CoreTiming,
@@ -14,20 +15,22 @@ pub struct JsTiming {
 
 #[napi]
 impl JsTiming {
-    /// Wall-clock start time.
+    /// Wall-clock start time, in milliseconds since the Unix epoch (UTC).
     ///
-    /// This matches Python's `start` property.
+    /// This matches Python's `start` property; wrap with `new Date(...)` on
+    /// the JS side if you want a `Date` object.
     #[napi(getter)]
-    pub fn start(&self) -> DateTime<Utc> {
-        self.inner.start().into()
+    pub fn start(&self) -> Result<f64> {
+        millis_since_epoch(self.inner.start())
     }
 
-    /// Wall-clock end time.
+    /// Wall-clock end time, in milliseconds since the Unix epoch (UTC).
     ///
-    /// This matches Python's `end` property.
+    /// This matches Python's `end` property; wrap with `new Date(...)` on
+    /// the JS side if you want a `Date` object.
     #[napi(getter)]
-    pub fn end(&self) -> DateTime<Utc> {
-        self.inner.end().into()
+    pub fn end(&self) -> Result<f64> {
+        millis_since_epoch(self.inner.end())
     }
 
     /// Total runtime in seconds.
@@ -61,20 +64,33 @@ impl From<CoreTiming> for JsTiming {
     }
 }
 
+fn millis_since_epoch(t: SystemTime) -> Result<f64> {
+    t.duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs_f64() * 1000.0)
+        .map_err(|err| {
+            Error::new(
+                Status::GenericFailure,
+                format!("timestamp predates the Unix epoch: {err}"),
+            )
+        })
+}
+
 #[cfg(test)]
 mod tests {
-    use std::time::{Duration, UNIX_EPOCH};
+    use std::time::Duration;
 
     use super::*;
 
     #[test]
-    fn total_seconds_returns_duration_in_seconds() {
+    fn timestamps_return_millis_since_epoch() {
         let timing = JsTiming::from(CoreTiming::new(
             UNIX_EPOCH + Duration::from_secs(1),
             UNIX_EPOCH + Duration::from_secs(3),
             Some(0.25),
         ));
 
+        assert_eq!(timing.start().unwrap(), 1000.0);
+        assert_eq!(timing.end().unwrap(), 3000.0);
         assert_eq!(timing.total_seconds().unwrap(), 2.0);
         assert_eq!(timing.qpu(), Some(0.25));
     }
