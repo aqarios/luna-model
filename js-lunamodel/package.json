@@ -2,7 +2,7 @@
   "name": "js-lunamodel",
   "version": "0.6.0",
   "description": "JavaScript and TypeScript bindings for LunaModel",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
@@ -17,6 +17,7 @@
     "check": "cargo check -p js-lunamodel",
     "test": "bun run build:debug && bun test",
     "test:js": "bun test",
+    "test:coverage": "bun test --coverage",
     "test:rust": "cargo test -p js-lunamodel",
     "test:all": "bun run check && bun run test:rust && bun run test"
   },
@@ -29,9 +30,10 @@
       "x86_64-apple-darwin",
       "aarch64-apple-darwin",
       "x86_64-pc-windows-msvc",
+      "aarch64-pc-windows-msvc",
       "x86_64-unknown-linux-gnu",
-      "x86_64-unknown-linux-musl",
       "aarch64-unknown-linux-gnu",
+      "x86_64-unknown-linux-musl",
       "aarch64-unknown-linux-musl"
     ]
   }

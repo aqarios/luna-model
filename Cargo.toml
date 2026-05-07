@@ -63,6 +63,7 @@ parking_lot = "0.12.5"
 napi = "3.0.0"
 napi-derive = "3.0.0"
 napi-build = "2.2.3"
+chrono = "0.4.42"
 
 # TODO: BEFORE RELEASE ADD THE `version = "0.5.0" filed here again and fix the version on top.
 # So we can have individual versions for each crate if desired.

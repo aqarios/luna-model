@@ -3,24 +3,45 @@
 const { existsSync } = require("node:fs");
 const { join } = require("node:path");
 
-const platform = process.platform;
-const arch = process.arch;
-const abi = platform === "linux" ? `${platform}-${arch}-gnu` : `${platform}-${arch}`;
+function nativeBindingCandidates(baseDir, platform, arch, env) {
+  const abi = platform === "linux" ? `${platform}-${arch}-gnu` : `${platform}-${arch}`;
 
-const candidates = [
-  process.env.LUNAMODEL_NATIVE_BINDING,
-  join(__dirname, "js_lunamodel.node"),
-  join(__dirname, `js_lunamodel.${abi}.node`),
-  join(__dirname, `js_lunamodel.${platform}-${arch}.node`)
-].filter(Boolean);
-
-for (const candidate of candidates) {
-  if (existsSync(candidate)) {
-    module.exports = require(candidate);
-    return;
-  }
+  return [
+    env.LUNAMODEL_NATIVE_BINDING,
+    join(baseDir, "js_lunamodel.node"),
+    join(baseDir, `js_lunamodel.${abi}.node`),
+    join(baseDir, `js_lunamodel.${platform}-${arch}.node`)
+  ].filter(Boolean);
 }
 
-throw new Error(
-  `Unable to load js-lunamodel native binding. Tried: ${candidates.join(", ")}`
-);
+function loadNativeBinding(options = {}) {
+  const exists = options.existsSync ?? existsSync;
+  const load = options.require ?? require;
+  const candidates = nativeBindingCandidates(
+    options.dirname ?? __dirname,
+    options.platform ?? process.platform,
+    options.arch ?? process.arch,
+    options.env ?? process.env
+  );
+
+  for (const candidate of candidates) {
+    if (exists(candidate)) {
+      return load(candidate);
+    }
+  }
+
+  throw new Error(
+    `Unable to load js-lunamodel native binding. Tried: ${candidates.join(", ")}`
+  );
+}
+
+const binding = loadNativeBinding();
+
+Object.defineProperty(binding, "__test", {
+  value: {
+    loadNativeBinding,
+    nativeBindingCandidates
+  }
+});
+
+module.exports = binding;
