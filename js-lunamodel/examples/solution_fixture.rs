@@ -36,13 +36,14 @@ fn full_solution() -> Solution {
 }
 
 fn timing_solution() -> Solution {
-    let mut solution = Solution::default();
-    solution.timing = Some(Timing::new(
-        UNIX_EPOCH + Duration::from_secs(1),
-        UNIX_EPOCH + Duration::from_secs(3),
-        Some(0.25),
-    ));
-    solution
+    Solution {
+        timing: Some(Timing::new(
+            UNIX_EPOCH + Duration::from_secs(1),
+            UNIX_EPOCH + Duration::from_secs(3),
+            Some(0.25),
+        )),
+        ..Default::default()
+    }
 }
 
 fn print_solution_hex(solution: Solution) {
