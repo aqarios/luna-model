@@ -21,10 +21,10 @@
     "*.node"
   ],
   "scripts": {
-    "build": "napi build --release",
-    "build:debug": "napi build",
+    "build": "napi build --release --config-path napi.json",
+    "build:debug": "napi build --config-path napi.json",
     "build:wasm": "napi build --target wasm32-wasip1-threads --platform --config-path napi.wasm.json",
-    "artifacts": "napi artifacts",
+    "artifacts": "napi artifacts --config-path napi.json",
     "check": "cargo check -p js-lunamodel",
     "test": "bun run build:debug && bun test",
     "test:js": "bun test",
@@ -38,18 +38,5 @@
     "@emnapi/runtime": "1.10.0",
     "@napi-rs/cli": "^3.0.0",
     "@napi-rs/wasm-runtime": "^1.1.4"
-  },
-  "napi": {
-    "binaryName": "js_lunamodel",
-    "targets": [
-      "x86_64-apple-darwin",
-      "x86_64-unknown-linux-gnu",
-      "x86_64-unknown-linux-musl",
-      "x86_64-pc-windows-msvc",
-      "aarch64-apple-darwin",
-      "aarch64-unknown-linux-gnu",
-      "aarch64-unknown-linux-musl",
-      "aarch64-pc-windows-msvc"
-    ]
   }
 }
