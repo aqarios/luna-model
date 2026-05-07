@@ -521,6 +521,7 @@ version = "0.6.0"
 dependencies = [
  "chrono",
  "lunamodel-core",
+ "lunamodel-error",
  "lunamodel-serializer",
  "napi",
  "napi-build",

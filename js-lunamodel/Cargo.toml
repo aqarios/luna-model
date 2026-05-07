@@ -11,6 +11,7 @@ repository.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
+lunamodel-error = { workspace = true }
 lunamodel-core = { workspace = true }
 lunamodel-serializer = { workspace = true }
 napi = { workspace = true, features = ["chrono_date"] }
