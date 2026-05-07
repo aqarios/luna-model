@@ -82,22 +82,24 @@ export type JsSolution = Solution
 /**
  * Runtime timing metadata attached to a solution.
  *
- * JavaScript exposes wall-clock timestamps as `Date` objects and durations as
- * numeric seconds.
+ * JavaScript exposes wall-clock timestamps as milliseconds since the Unix
+ * epoch (UTC). Wrap with `new Date(timing.start)` for a `Date` object.
  */
 export declare class Timing {
   /**
-   * Wall-clock start time.
+   * Wall-clock start time, in milliseconds since the Unix epoch (UTC).
    *
-   * This matches Python's `start` property.
+   * This matches Python's `start` property; wrap with `new Date(...)` on
+   * the JS side if you want a `Date` object.
    */
-  get start(): Date
+  get start(): number
   /**
-   * Wall-clock end time.
+   * Wall-clock end time, in milliseconds since the Unix epoch (UTC).
    *
-   * This matches Python's `end` property.
+   * This matches Python's `end` property; wrap with `new Date(...)` on
+   * the JS side if you want a `Date` object.
    */
-  get end(): Date
+  get end(): number
   /**
    * Total runtime in seconds.
    *
