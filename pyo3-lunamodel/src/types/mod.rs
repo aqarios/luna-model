@@ -14,3 +14,4 @@ pub use ttarget::PyTranslationTarget;
 pub use unbounded::PyUnbounded;
 pub use value_source::PyValueSource;
 pub use vtype::PyVtype;
+pub use specs::PyModelSpecs;

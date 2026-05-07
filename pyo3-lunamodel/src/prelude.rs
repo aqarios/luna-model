@@ -9,6 +9,7 @@ pub use crate::variable::PyVariable;
 
 pub use crate::types::PyComparator;
 pub use crate::types::PyCtype;
+pub use crate::types::PyModelSpecs;
 pub use crate::types::PySense;
 pub use crate::types::PyTranslationTarget;
 pub use crate::types::PyUnbounded;
@@ -16,7 +17,6 @@ pub use crate::types::PyValueSource;
 pub use crate::types::PyVtype;
 
 // PyModelMetadata
-// PyModelSpecs
 // PyTimer
 // PyConstraintCollectionIterator
 // PyExpressionIterator
