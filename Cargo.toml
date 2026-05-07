@@ -31,6 +31,23 @@ incremental = true
 [profile.test]
 incremental = true
 
+# Hardened release profile shared by all distributables (js-lunamodel `.node`,
+# py-lunamodel / pyo3-lunamodel wheels). Goal: minimize what a shipped binary
+# leaks about the source tree.
+#
+# Note: `panic = "unwind"` (the default) is intentionally kept. napi-rs and
+# pyo3 catch panics at the FFI boundary and surface them as JS/Python
+# exceptions; `panic = "abort"` would crash the host process instead.
+[profile.release]
+strip = "symbols"     # drop debug info and most local symbols
+lto = true            # cross-crate inlining; erodes crate boundaries
+codegen-units = 1     # better optimization, harder to reverse-engineer
+debug = false         # no DWARF/PDB
+incremental = false   # incremental artifacts embed local paths
+trim-paths = "all"    # remap source paths in object code AND diagnostics
+                      # (stable since Rust 1.81; scrubs /Users/...,
+                      # /home/runner/... from panic messages and symbols)
+
 [workspace.dependencies]
 global_counter = "0.2.2"
 nohash = "0.2.0"
