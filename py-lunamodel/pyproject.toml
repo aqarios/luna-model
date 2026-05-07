@@ -100,7 +100,7 @@ docs = [
     "zensical>=0.0.23",
     "mkdocs-jupyter>=0.24.1",
     "mkdocs-macros-plugin>=1.5.0",
-    "mkdocstrings[python]>=0.27.0",
+    "mkdocstrings[python]>=1.0.4",
 ]
 build = [
   "maturin[zig]>=1.13.1"

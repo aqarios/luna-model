@@ -1330,7 +1330,7 @@ dev = [
 docs = [
     { name = "mkdocs-jupyter", specifier = ">=0.24.1" },
     { name = "mkdocs-macros-plugin", specifier = ">=1.5.0" },
-    { name = "mkdocstrings", extras = ["python"], specifier = ">=0.27.0" },
+    { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.4" },
     { name = "zensical", specifier = ">=0.0.23" },
 ]
 
