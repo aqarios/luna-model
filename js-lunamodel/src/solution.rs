@@ -175,7 +175,10 @@ mod tests {
 
     #[test]
     fn counts_reject_values_that_do_not_fit_js_integer_array_type() {
-        let inner = CoreSolution::default();
+        let inner = CoreSolution {
+            counts: vec![u32::MAX as usize + 1],
+            ..Default::default()
+        };
         let solution = JsSolution { inner };
 
         let err = solution.counts().unwrap_err();
