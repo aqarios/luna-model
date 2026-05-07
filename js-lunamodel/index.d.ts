@@ -62,6 +62,20 @@ export declare class Solution {
    * Python's `runtime` property.
    */
   get timing(): JsTiming | null
+  /**
+   * Fraction of total sample mass marked as feasible.
+   *
+   * Computes the count-weighted ratio of feasible samples to all samples.
+   * Throws if feasibility data is not available.
+   */
+  feasibilityRatio(): number
+  /**
+   * Return a new solution containing only feasible sample rows.
+   *
+   * Throws if feasibility data is not available. Filtering feasible samples
+   * is not possible on a non-evaluated solution.
+   */
+  filterFeasible(): Solution
 }
 export type JsSolution = Solution
 

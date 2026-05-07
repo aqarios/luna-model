@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 
 use lunamodel_core::Solution as CoreSolution;
+use lunamodel_error::LunaModelError;
 use lunamodel_serializer::prelude::*;
 use napi::bindgen_prelude::{Error, Result, Status, Uint8Array};
 use napi_derive::napi;
 
+use crate::error::map_luna_error;
 use crate::timing::JsTiming;
 
 /// Column-oriented solution data for model evaluation or solver results.
@@ -100,6 +102,35 @@ impl JsSolution {
     pub fn timing(&self) -> Option<JsTiming> {
         self.inner.timing.map(|t| t.into())
     }
+
+    /// Fraction of total sample mass marked as feasible.
+    ///
+    /// Computes the count-weighted ratio of feasible samples to all samples.
+    /// Throws if feasibility data is not available.
+    #[napi]
+    pub fn feasibility_ratio(&self) -> Result<f64> {
+        self.inner.feasibility_ratio().map_err(map_luna_error)
+    }
+
+    /// Return a new solution containing only feasible sample rows.
+    ///
+    /// Throws if feasibility data is not available. Filtering feasible samples
+    /// is not possible on a non-evaluated solution.
+    #[napi]
+    pub fn filter_feasible(&self) -> Result<Self> {
+        if let Some(feasibles) = &self.inner.feasible {
+            Ok(Self {
+                inner: self
+                    .inner
+                    .filter_by_mask(feasibles)
+                    .map_err(map_luna_error)?,
+            })
+        } else {
+            Err(map_luna_error(LunaModelError::Computation(
+                "filter_feasible is not possible on non-evaluated solution.".into(),
+            )))
+        }
+    }
 }
 
 impl JsSolution {
@@ -114,7 +145,7 @@ fn deserialize_solution(data: &[u8]) -> Result<CoreSolution> {
         .decompress()
         .map_err(deserialize_error)?
         .decode(())
-        .map_err(deserialize_error)
+        .map_err(map_luna_error)
 }
 
 fn deserialize_error<E: std::fmt::Display>(err: E) -> Error {
@@ -139,10 +170,7 @@ mod tests {
     fn rejects_invalid_solution_bytes() {
         let err = deserialize_solution(&[1, 2, 3]).unwrap_err();
 
-        assert!(
-            err.reason
-                .contains("failed to deserialize LunaModel Solution")
-        );
+        assert!(err.reason.contains("decoding failed"));
     }
 
     #[test]
@@ -156,6 +184,20 @@ mod tests {
         assert!(
             err.reason
                 .contains("is too large to return as a JavaScript number")
+        );
+    }
+
+    #[test]
+    fn feasibility_ratio_maps_core_error_to_napi_error() {
+        let solution = JsSolution {
+            inner: CoreSolution::default(),
+        };
+
+        let err = solution.feasibility_ratio().unwrap_err();
+
+        assert!(
+            err.reason
+                .contains("error during computation: feasible is not set")
         );
     }
 }

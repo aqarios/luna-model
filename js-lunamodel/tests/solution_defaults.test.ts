@@ -15,3 +15,17 @@ test("exposes null and empty defaults for absent optional Solution fields", () =
   expect(solution.variableBounds).toEqual({});
   expect(solution.timing).toBeNull();
 });
+
+test("throws when computing feasibility ratio without feasibility data", () => {
+  const solution = Solution.deserialize(bytesFromHex(NULL_SOLUTION_HEX));
+
+  expect(() => solution.feasibilityRatio()).toThrow(/feasible is not set/);
+});
+
+test("throws when filtering feasible rows on a non-evaluated solution", () => {
+  const solution = Solution.deserialize(bytesFromHex(NULL_SOLUTION_HEX));
+
+  expect(() => solution.filterFeasible()).toThrow(
+    /filter_feasible is not possible on non-evaluated solution/,
+  );
+});

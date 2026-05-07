@@ -18,6 +18,6 @@ test("deserializes a valid encoded Solution from Buffer", () => {
 
 test("throws a useful error for invalid Solution bytes", () => {
   expect(() => Solution.deserialize(new Uint8Array([1, 2, 3]))).toThrow(
-    /failed to deserialize LunaModel Solution/,
+    /decoding failed/,
   );
 });
