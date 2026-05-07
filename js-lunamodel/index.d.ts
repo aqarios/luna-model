@@ -2,5 +2,20 @@
 /* eslint-disable */
 export declare class Solution {
   static deserialize(data: Uint8Array): Solution
+  get counts(): Array<number>
+  get rawEnergies(): Array<number> | null
+  get objValues(): Array<number> | null
+  get feasible(): Array<boolean> | null
+  get constraints(): Record<string, Array<boolean>>
+  get variableBounds(): Record<string, Array<boolean>>
+  get timing(): JsTiming | null
 }
 export type JsSolution = Solution
+
+export declare class Timing {
+  get start(): Date
+  get end(): Date
+  get totalSeconds(): number
+  get qpu(): number | null
+}
+export type JsTiming = Timing

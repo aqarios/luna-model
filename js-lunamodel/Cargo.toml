@@ -13,8 +13,9 @@ crate-type = ["cdylib"]
 [dependencies]
 lunamodel-core = { workspace = true }
 lunamodel-serializer = { workspace = true }
-napi = { workspace = true }
+napi = { workspace = true, features = ["chrono_date"] }
 napi-derive = { workspace = true }
+chrono = { workspace = true }
 
 [build-dependencies]
 napi-build = { workspace = true }

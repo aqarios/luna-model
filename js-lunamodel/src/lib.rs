@@ -1,1 +1,2 @@
 mod solution;
+mod timing;
