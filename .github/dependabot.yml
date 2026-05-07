@@ -15,3 +15,5 @@ updates:
     directory: "/py-lunamodel"
     schedule:
       interval: "weekly"
+    exclude-paths:
+      - "THIRD_PARTY_LICENSES.txt"

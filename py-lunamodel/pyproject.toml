@@ -79,6 +79,7 @@ dev = [
     "docplex>=2.30.251",
     "ipython>=9.8.0",
     "numpy>=2.3.5",
+    "pre-commit>=4.5.0",
     "pyscipopt>=6.0.0",
     "pytest>=9.0.2",
     "qiskit>=2.1.2",
