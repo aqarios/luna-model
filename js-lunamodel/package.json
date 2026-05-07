@@ -1,6 +1,6 @@
 {
   "name": "@aqarios/luna-model",
-  "version": "0.6.0",
+  "version": "0.6.1-dev.1912+98cfdf66",
   "description": "JavaScript and TypeScript bindings for LunaModel",
   "license": "Apache-2.0",
   "private": true,
@@ -23,16 +23,21 @@
   "scripts": {
     "build": "napi build --release",
     "build:debug": "napi build",
+    "build:wasm": "napi build --target wasm32-wasip1-threads --platform --config-path napi.wasm.json",
     "artifacts": "napi artifacts",
     "check": "cargo check -p js-lunamodel",
     "test": "bun run build:debug && bun test",
     "test:js": "bun test",
     "test:coverage": "bun test --coverage",
     "test:rust": "cargo test -p js-lunamodel",
+    "test:wasm": "node tests/wasm_node_smoke.cjs",
     "test:all": "bun run check && bun run test:rust && bun run test"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^3.0.0"
+    "@emnapi/core": "1.10.0",
+    "@emnapi/runtime": "1.10.0",
+    "@napi-rs/cli": "^3.0.0",
+    "@napi-rs/wasm-runtime": "^1.1.4"
   },
   "napi": {
     "binaryName": "js_lunamodel",
