@@ -174,6 +174,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_pointer_width = "64")]
     fn counts_reject_values_that_do_not_fit_js_integer_array_type() {
         let inner = CoreSolution {
             counts: vec![u32::MAX as usize + 1],

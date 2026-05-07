@@ -6,7 +6,9 @@ const { execSync } = require("node:child_process");
 
 function isMuslFromFilesystem() {
   try {
-    return readFileSync("/usr/bin/ldd", "utf8").includes("musl");
+    // /usr/bin/ldd is a shell script on Alpine (musl) and an ELF binary on
+    // glibc systems. Read as a Buffer so we don't mangle binary bytes.
+    return readFileSync("/usr/bin/ldd").includes("musl");
   } catch {
     return null;
   }
