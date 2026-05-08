@@ -9,7 +9,10 @@
       "browser": "./js_lunamodel.wasi-browser.js",
       "import": "./js_lunamodel.wasi.cjs",
       "require": "./js_lunamodel.wasi.cjs"
-    }
+    },
+    "./js_lunamodel.wasm32-wasi.wasm": "./js_lunamodel.wasm32-wasi.wasm",
+    "./wasi-worker-browser.mjs": "./wasi-worker-browser.mjs",
+    "./wasi-worker.mjs": "./wasi-worker.mjs"
   },
   "files": [
     "index.d.ts",
