@@ -15,3 +15,10 @@ updates:
     directory: "/py-lunamodel"
     schedule:
       interval: "weekly"
+    exclude-paths:
+      - "THIRD_PARTY_LICENSES.txt"
+
+  - package-ecosystem: "bun"
+    directory: "/js-lunamodel"
+    schedule:
+      interval: "weekly"

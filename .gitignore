@@ -34,6 +34,20 @@ __pycache__/
 # Rust
 target/
 
+# JavaScript
+node_modules/
+*.node
+*.wasm
+/js-lunamodel/node_modules/
+/js-lunamodel/*.node
+/js-lunamodel/*.wasm
+/js-lunamodel/browser.js
+/js-lunamodel/js_lunamodel.wasi-browser.js
+/js-lunamodel/js_lunamodel.wasi.cjs
+/js-lunamodel/wasi-worker-browser.mjs
+/js-lunamodel/wasi-worker.mjs
+/js-lunamodel/package-lock.json
+
 # Data
 *.csv
 *.parquet

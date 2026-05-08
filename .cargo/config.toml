@@ -1,0 +1,34 @@
+# Scrub absolute source paths from compiled artifacts so panic backtraces
+# and embedded debug strings don't leak filesystem layout
+# (`/home/runner/...`, `~/.cargo/registry/...`).
+#
+# This is the stable equivalent of `[profile.release] trim-paths = "all"`,
+# which is still nightly-only as of Cargo 1.95.
+#
+# Scope: this file only covers GitHub-hosted runners — that is where
+# distributed artifacts (.node, wheels) are produced, and only those need
+# scrubbing. Local debug builds may still embed your $HOME, which is fine
+# because nothing leaves your machine.
+#
+# Building a release artifact LOCALLY for distribution? Set RUSTFLAGS first:
+#
+#   RUSTFLAGS="--remap-path-prefix=$PWD=/luna-model \
+#              --remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/cargo" \
+#       cargo build --release   # (or `napi build --release`, `maturin build --release`)
+#
+# Cargo's config.toml does not expand env vars in rustflags strings, so
+# user-home paths can't be written generically here.
+[build]
+rustflags = [
+    # GitHub-hosted runner workspace paths
+    "--remap-path-prefix=/home/runner/work/luna-model/luna-model=/luna-model",
+    "--remap-path-prefix=/Users/runner/work/luna-model/luna-model=/luna-model",
+    "--remap-path-prefix=D:/a/luna-model/luna-model=/luna-model",
+    # GitHub-hosted runner cargo home
+    "--remap-path-prefix=/home/runner/.cargo/registry=/cargo/registry",
+    "--remap-path-prefix=/Users/runner/.cargo/registry=/cargo/registry",
+    "--remap-path-prefix=C:/Users/runneradmin/.cargo/registry=/cargo/registry",
+    "--remap-path-prefix=/home/runner/.cargo/git=/cargo/git",
+    "--remap-path-prefix=/Users/runner/.cargo/git=/cargo/git",
+    "--remap-path-prefix=C:/Users/runneradmin/.cargo/git=/cargo/git",
+]

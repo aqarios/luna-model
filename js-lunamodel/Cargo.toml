@@ -1,0 +1,25 @@
+[package]
+name = "js-lunamodel"
+version = "0.6.1-dev.1912+98cfdf66"
+authors.workspace = true
+edition.workspace = true
+description = "JavaScript and TypeScript bindings for LunaModel"
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+lunamodel-error = { workspace = true }
+lunamodel-core = { workspace = true }
+lunamodel-serializer = { workspace = true }
+napi = { workspace = true }
+napi-derive = { workspace = true }
+
+[build-dependencies]
+napi-build = { workspace = true }
+
+[[example]]
+name = "solution_fixture"
+path = "examples/solution_fixture.rs"
