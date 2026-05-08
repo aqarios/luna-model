@@ -1,0 +1,22 @@
+{
+  "main": "js_lunamodel.wasi.cjs",
+  "module": "js_lunamodel.wasi-browser.js",
+  "browser": "js_lunamodel.wasi-browser.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "browser": "./js_lunamodel.wasi-browser.js",
+      "import": "./js_lunamodel.wasi.cjs",
+      "require": "./js_lunamodel.wasi.cjs"
+    }
+  },
+  "files": [
+    "index.d.ts",
+    "js_lunamodel.wasm32-wasi.wasm",
+    "js_lunamodel.wasi.cjs",
+    "js_lunamodel.wasi-browser.js",
+    "wasi-worker.mjs",
+    "wasi-worker-browser.mjs"
+  ]
+}
