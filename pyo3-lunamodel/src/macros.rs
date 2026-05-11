@@ -33,10 +33,10 @@ macro_rules! capsule_wrapper {
                 } else {
                     obj.call_method0("_to_capsule")
                 }?;
-                Ok($wrapper(
-                    <$inner as ::lunamodel_python::ffi::CapsuleFFI<'py, _>>
-                        ::from_capsule(capsule_obj.extract()?)?,
-                ))
+                Ok($wrapper(<$inner as ::lunamodel_python::ffi::CapsuleFFI<
+                    'py,
+                    _,
+                >>::from_capsule(capsule_obj.extract()?)?))
             }
         }
 
@@ -50,9 +50,9 @@ macro_rules! capsule_wrapper {
                 py: ::pyo3::Python<'py>,
             ) -> ::std::result::Result<Self::Output, Self::Error> {
                 use ::pyo3::types::PyAnyMethods;
-                let capsule =
-                    <$inner as ::lunamodel_python::ffi::CapsuleFFI<'py, _>>
-                        ::to_capsule(&self.0, py)?;
+                let capsule = <$inner as ::lunamodel_python::ffi::CapsuleFFI<'py, _>>::to_capsule(
+                    &self.0, py,
+                )?;
                 let lm = $crate::luna_model(py)?;
                 let pye = lm
                     .getattr("_lm")?
@@ -97,7 +97,9 @@ macro_rules! enum_wrapper {
                     'py,
                     ::std::string::String,
                 >>::from_capsule(capsule)?;
-                Ok($wrapper(<$inner as ::core::convert::From<$bridge>>::from(bridge)))
+                Ok($wrapper(<$inner as ::core::convert::From<$bridge>>::from(
+                    bridge,
+                )))
             }
         }
 
@@ -111,8 +113,7 @@ macro_rules! enum_wrapper {
                 py: ::pyo3::Python<'py>,
             ) -> ::std::result::Result<Self::Output, Self::Error> {
                 use ::pyo3::types::PyAnyMethods;
-                let bridge: $bridge =
-                    <$bridge as ::core::convert::From<$inner>>::from(self.0);
+                let bridge: $bridge = <$bridge as ::core::convert::From<$inner>>::from(self.0);
                 let capsule = <$bridge as ::lunamodel_python::ffi::CapsuleFFI<
                     'py,
                     ::std::string::String,
