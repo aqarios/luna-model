@@ -31,7 +31,7 @@ impl PyUnbounded {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BoundValue {
     Value(f64),
     None,
@@ -97,5 +97,11 @@ impl From<BoundValue> for Option<Bound> {
             BoundValue::Value(val) => Some(Bound::Bounded(val)),
             BoundValue::None => None,
         }
+    }
+}
+
+impl BoundValue {
+    pub fn is_some(self) -> bool {
+        self != BoundValue::None
     }
 }
