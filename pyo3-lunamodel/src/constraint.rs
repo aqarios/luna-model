@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use lunamodel_core::prelude::Constraint;
-use lunamodel_python::{PyConstraint as PyC, ffi::CapsuleFFI};
+use lunamodel_python::ffi::CapsuleFFI;
 use parking_lot::RwLock;
 use pyo3::{
     Bound, FromPyObject, IntoPyObject, PyAny, PyErr,
@@ -25,8 +25,8 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyConstraint {
             obj.call_method0("_to_capsule")
         }?
         .extract()?;
-        let pyc = PyC::from_capsule(capsule)?;
-        Ok(Self(pyc.c))
+        let pyc = Arc::<RwLock<Constraint>>::from_capsule(capsule)?;
+        Ok(Self(pyc))
     }
 }
 
@@ -36,7 +36,7 @@ impl<'py> IntoPyObject<'py> for PyConstraint {
     type Error = PyErr;
 
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
-        let capsule = PyC { c: self.0 }.to_capsule(py)?;
+        let capsule = self.0.to_capsule(py)?;
         let lm = luna_model(py)?;
         let pycc = lm
             .getattr("_lm")?

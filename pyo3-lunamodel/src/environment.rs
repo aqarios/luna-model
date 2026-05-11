@@ -1,5 +1,5 @@
 use lunamodel_core::prelude::ArcEnv;
-use lunamodel_python::PyEnvironment as PyE;
+use lunamodel_python::ffi::CapsuleFFI;
 use pyo3::{
     Bound, FromPyObject, IntoPyObject, PyAny, PyErr,
     types::{PyAnyMethods, PyCapsule},
@@ -23,8 +23,8 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyEnvironment {
             obj.call_method0("_to_capsule")
         }?
         .extract()?;
-        let pye = PyE::_from_capsule(&capsule)?;
-        Ok(PyEnvironment(pye.env))
+        let pye = ArcEnv::from_capsule(capsule)?;
+        Ok(PyEnvironment(pye))
     }
 }
 
@@ -34,7 +34,7 @@ impl<'py> IntoPyObject<'py> for PyEnvironment {
     type Error = PyErr;
 
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
-        let pye_capsule = PyE { env: self.0 }._to_capsule(py)?;
+        let pye_capsule = self.0.to_capsule(py)?;
         // We **must** call into the other library to ensure the exact same types are used.
         let lm = luna_model(py)?;
         let pye = lm

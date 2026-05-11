@@ -1,4 +1,4 @@
-use lunamodel_python::{PyBounds as PyB, PyBoundsContent, ffi::CapsuleFFI};
+use lunamodel_python::{PyBoundsContent, ffi::CapsuleFFI};
 use pyo3::{
     Bound, FromPyObject, IntoPyObject, PyAny, PyErr,
     types::{PyAnyMethods, PyCapsule},
@@ -33,7 +33,7 @@ impl<'py> IntoPyObject<'py> for PyBounds {
     type Error = PyErr;
 
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
-        let pye_capsule = PyB(self.0)._to_capsule(py)?;
+        let pye_capsule = self.0.to_capsule(py)?;
         // We **must** call into the other library to ensure the exact same types are used.
         let lm = luna_model(py)?;
         let pye = lm

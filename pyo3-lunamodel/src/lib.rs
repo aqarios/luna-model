@@ -1,3 +1,6 @@
+#[macro_use]
+mod macros;
+
 mod bounds;
 mod constraint;
 mod constraint_collection;

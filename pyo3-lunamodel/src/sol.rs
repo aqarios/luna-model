@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use lunamodel_core::Solution;
-use lunamodel_python::PySolution as PyS;
+use lunamodel_python::ffi::CapsuleFFI;
 use parking_lot::RwLock;
 use pyo3::{
     Bound, FromPyObject, IntoPyObject, PyAny, PyErr,
@@ -26,8 +26,8 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PySolution {
             obj.call_method0("_to_capsule")
         }?
         .extract()?;
-        let pys = PyS::_from_capsule(&capsule)?;
-        Ok(PySolution(pys.s))
+        let s = Arc::<RwLock<Solution>>::from_capsule(capsule)?;
+        Ok(PySolution(s))
     }
 }
 
@@ -37,7 +37,7 @@ impl<'py> IntoPyObject<'py> for PySolution {
     type Error = PyErr;
 
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
-        let pys_capsule = PyS { s: self.0 }._to_capsule(py)?;
+        let pys_capsule = self.0.to_capsule(py)?;
         // We **must** call into the other library to ensure the exact same types are used.
         let lm = luna_model(py)?;
         let pys = lm
