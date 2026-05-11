@@ -105,18 +105,22 @@ class Variable:
 
     _v: PyVariable
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         vtype: Vtype = Vtype.BINARY,
         bounds: Bounds | VBounds | None = None,
         env: Environment | None = None,
+        lower: float | None = None,
+        upper: float | None = None,
     ) -> None:
         self._v = PyVariable(
             name,
             vtype._val,
             bounds,
             env,
+            lower,
+            upper,
         )
 
     @classmethod
