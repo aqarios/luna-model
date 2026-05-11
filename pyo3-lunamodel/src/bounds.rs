@@ -9,7 +9,7 @@ use std::sync::Arc;
 use lunamodel_python::prelude::BoundsContent;
 use parking_lot::RwLock;
 
-use crate::{LUNA_MODEL, utils::TypeCheck};
+use crate::{luna_model, utils::TypeCheck};
 
 #[repr(transparent)]
 /// A wrapper around [`BoundsContent`] that can be converted to and from python with `pyo3`.
@@ -40,7 +40,7 @@ impl<'py> IntoPyObject<'py> for PyBounds {
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
         let pye_capsule = PyB(self.0)._to_capsule(py)?;
         // We **must** call into the other library to ensure the exact same types are used.
-        let lm = LUNA_MODEL.bind(py);
+        let lm = luna_model(py)?;
         let pye = lm
             .getattr("_lm")?
             .getattr("PyBounds")?

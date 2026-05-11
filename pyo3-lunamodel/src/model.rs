@@ -4,7 +4,7 @@ use pyo3::{
     types::{PyAnyMethods, PyCapsule},
 };
 
-use crate::{LUNA_MODEL, utils::TypeCheck};
+use crate::{luna_model, utils::TypeCheck};
 
 #[repr(transparent)]
 pub struct PyModel(pub PyModelContent);
@@ -34,7 +34,7 @@ impl<'py> IntoPyObject<'py> for PyModel {
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
         let capsule = self.0.to_capsule(py)?;
         // We **must** call into the other library to ensure the exact same types are used.
-        let lm = LUNA_MODEL.bind(py);
+        let lm = luna_model(py)?;
         let pye = lm
             .getattr("_lm")?
             .getattr("PyModel")?

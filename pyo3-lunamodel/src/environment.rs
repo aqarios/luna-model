@@ -5,7 +5,7 @@ use pyo3::{
     types::{PyAnyMethods, PyCapsule},
 };
 
-use crate::{LUNA_MODEL, utils::TypeCheck};
+use crate::{luna_model, utils::TypeCheck};
 
 #[repr(transparent)]
 /// A wrapper around a [`ArcEnv`] that can be converted to and from python with `pyo3`.
@@ -36,7 +36,7 @@ impl<'py> IntoPyObject<'py> for PyEnvironment {
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
         let pye_capsule = PyE { env: self.0 }._to_capsule(py)?;
         // We **must** call into the other library to ensure the exact same types are used.
-        let lm = LUNA_MODEL.bind(py);
+        let lm = luna_model(py)?;
         let pye = lm
             .getattr("_lm")?
             .getattr("PyEnvironment")?

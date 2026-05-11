@@ -8,7 +8,7 @@ use pyo3::{
     types::{PyAnyMethods, PyCapsule},
 };
 
-use crate::{LUNA_MODEL, utils::TypeCheck};
+use crate::{luna_model, utils::TypeCheck};
 
 #[repr(transparent)]
 /// A wrapper around a [`Arc<RwLock<Solution>>`] that can be converted to and from python with `pyo3`.
@@ -39,7 +39,7 @@ impl<'py> IntoPyObject<'py> for PySolution {
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
         let pys_capsule = PyS { s: self.0 }._to_capsule(py)?;
         // We **must** call into the other library to ensure the exact same types are used.
-        let lm = LUNA_MODEL.bind(py);
+        let lm = luna_model(py)?;
         let pys = lm
             .getattr("_lm")?
             .getattr("PySolution")?

@@ -1,7 +1,7 @@
 use lunamodel_python::{PyUnbounded as PyU, ffi::CapsuleFFI};
 use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, types::PyAnyMethods};
 
-use crate::{LUNA_MODEL, utils::TypeCheck};
+use crate::{luna_model, utils::TypeCheck};
 
 #[repr(transparent)]
 /// A matching type for [`PyU`] that can be converted to and from python with `pyo3`.
@@ -36,7 +36,7 @@ impl<'py> IntoPyObject<'py> for PyUnbounded {
 
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
         // We **must** call into the other library to ensure the exact same types are used.
-        let lm = LUNA_MODEL.bind(py);
+        let lm = luna_model(py)?;
         // NOTE: We return the type object itself since currently Unbounded is an alias of PyUnbounded.
         lm.getattr("_lm")?.getattr("PyUnbounded")
     }

@@ -3,7 +3,7 @@ use lunamodel_python::{PySense as PyS, ffi::CapsuleFFI};
 use lunamodel_types::Sense;
 use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, types::PyAnyMethods};
 
-use crate::{LUNA_MODEL, utils::TypeCheck};
+use crate::{luna_model, utils::TypeCheck};
 
 #[repr(transparent)]
 /// A wrapper around a [`Sense`] that can be converted to and from python with `pyo3`.
@@ -34,7 +34,7 @@ impl<'py> IntoPyObject<'py> for PySense {
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
         let pysense: PyS = self.0.into();
         // We **must** call into the other library to ensure the exact same types are used.
-        let lm = LUNA_MODEL.bind(py);
+        let lm = luna_model(py)?;
         let pyv = lm
             .getattr("_lm")?
             .getattr("PySense")?

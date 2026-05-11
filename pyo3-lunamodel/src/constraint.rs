@@ -8,7 +8,7 @@ use pyo3::{
     types::{PyAnyMethods, PyCapsule},
 };
 
-use crate::{LUNA_MODEL, utils::TypeCheck};
+use crate::{luna_model, utils::TypeCheck};
 
 #[repr(transparent)]
 /// A wrapper around a [`Constraint`] that can be converted to and from python with `pyo3`.
@@ -37,7 +37,7 @@ impl<'py> IntoPyObject<'py> for PyConstraint {
 
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
         let capsule = PyC { c: self.0 }.to_capsule(py)?;
-        let lm = LUNA_MODEL.bind(py);
+        let lm = luna_model(py)?;
         let pycc = lm
             .getattr("_lm")?
             .getattr("PyConstraint")?
