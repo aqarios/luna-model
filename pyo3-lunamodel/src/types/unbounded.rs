@@ -37,7 +37,11 @@ impl<'py> IntoPyObject<'py> for PyUnbounded {
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
         // We **must** call into the other library to ensure the exact same types are used.
         let lm = luna_model(py)?;
-        // NOTE: We return the type object itself since currently Unbounded is an alias of PyUnbounded.
+        // Intentional asymmetry vs. the other wrappers: `Unbounded` on the Python
+        // side is a re-export alias of `_lm.PyUnbounded`, not a wrapper class with
+        // a `_from_pyunbounded` constructor. There is no instance to mint — the
+        // value handed back to Python is the type object itself, used as a
+        // singleton sentinel. Do not add a `_from_pyXX` hop here.
         lm.getattr("_lm")?.getattr("PyUnbounded")
     }
 }

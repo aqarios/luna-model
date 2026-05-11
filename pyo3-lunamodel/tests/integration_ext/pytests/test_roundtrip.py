@@ -95,12 +95,12 @@ def test_roundtrip_model_specs(ext):
 @pytest.mark.parametrize(
     ("function_name", "value"),
     [
-        ("roundtrip_vtype", Vtype.BINARY),
-        ("roundtrip_sense", Sense.MIN),
-        ("roundtrip_ctype", Ctype.LESS_EQUAL),
-        ("roundtrip_comparator", Comparator.LE),
-        ("roundtrip_value_source", ValueSource.RAW),
-        ("roundtrip_translation_target", TranslationTarget.QUBO),
+        *[("roundtrip_vtype", v) for v in Vtype],
+        *[("roundtrip_sense", v) for v in Sense],
+        *[("roundtrip_ctype", v) for v in Ctype],
+        *[("roundtrip_comparator", v) for v in Comparator],
+        *[("roundtrip_value_source", v) for v in ValueSource],
+        *[("roundtrip_translation_target", v) for v in TranslationTarget],
     ],
 )
 def test_roundtrip_enums(ext, function_name: str, value):

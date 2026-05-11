@@ -6,7 +6,7 @@ use strum_macros::Display;
 
 /// Python-facing wrapper for [`ValueSource`].
 #[pyclass(eq, eq_int)]
-#[derive(Debug, Clone, Display, Hash, PartialEq)]
+#[derive(Debug, Clone, Copy, Display, Hash, PartialEq)]
 pub enum PyValueSource {
     Raw,
     Obj,

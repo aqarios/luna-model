@@ -6,7 +6,7 @@ use strum_macros::Display;
 
 /// Python-facing wrapper for [`TranslationTarget`].
 #[pyclass(eq, eq_int)]
-#[derive(Debug, Display, Hash, PartialEq)]
+#[derive(Debug, Clone, Copy, Display, Hash, PartialEq)]
 pub enum PyTranslationTarget {
     Qubo,
     Lp,
