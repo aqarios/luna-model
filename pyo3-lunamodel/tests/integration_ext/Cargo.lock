@@ -890,7 +890,6 @@ dependencies = [
  "lunamodel-python",
  "lunamodel-translate",
  "lunamodel-types",
- "once_cell",
  "parking_lot 0.12.5",
  "pyo3",
 ]
