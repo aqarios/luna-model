@@ -24,7 +24,7 @@ pub mod ffi;
 pub mod prelude;
 
 /// Python wrapper for variable bounds.
-pub use bounds::{PyBounds, PyUnbounded};
+pub use bounds::{PyBounds, PyUnbounded, PyBoundsContent};
 /// Python wrappers for constraints and constraint collections.
 pub use constraint::{PyConstraint, PyConstraintCollection, PyConstraintCollectionIterator};
 /// Python environment wrapper.

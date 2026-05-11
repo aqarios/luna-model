@@ -1,19 +1,14 @@
-use lunamodel_python::PyBounds as PyB;
+use lunamodel_python::{PyBounds as PyB, PyBoundsContent, ffi::CapsuleFFI};
 use pyo3::{
     Bound, FromPyObject, IntoPyObject, PyAny, PyErr,
     types::{PyAnyMethods, PyCapsule},
 };
 
-use std::sync::Arc;
-
-use lunamodel_python::prelude::BoundsContent;
-use parking_lot::RwLock;
-
 use crate::{luna_model, utils::TypeCheck};
 
 #[repr(transparent)]
 /// A wrapper around [`BoundsContent`] that can be converted to and from python with `pyo3`.
-pub struct PyBounds(pub Arc<RwLock<BoundsContent>>);
+pub struct PyBounds(pub PyBoundsContent);
 
 impl<'a, 'py> FromPyObject<'a, 'py> for PyBounds {
     type Error = PyErr;
@@ -27,8 +22,8 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyBounds {
             obj.call_method0("_to_capsule")
         }?
         .extract()?;
-        let pye = PyB::_from_capsule(capsule)?;
-        Ok(PyBounds(pye.0))
+        let pyc = PyBoundsContent::from_capsule(capsule)?;
+        Ok(PyBounds(pyc))
     }
 }
 
