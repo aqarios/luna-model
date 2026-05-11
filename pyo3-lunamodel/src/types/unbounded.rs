@@ -11,6 +11,10 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyUnbounded {
     type Error = PyErr;
 
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
+        if obj.check_type_literal("Unbounded").is_ok() {
+            return Ok(PyUnbounded {});
+        }
+
         obj.check_type("Unbounded")?;
         // check if it is the wrapper type or the PyEnvironment type from the crate.
         let capsule: String = if let Ok(pye) = obj.getattr("_val") {
@@ -31,13 +35,9 @@ impl<'py> IntoPyObject<'py> for PyUnbounded {
     type Error = PyErr;
 
     fn into_pyobject(self, py: pyo3::Python<'py>) -> Result<Self::Output, Self::Error> {
-        let pyunbounded: PyU = PyU {};
         // We **must** call into the other library to ensure the exact same types are used.
         let lm = LUNA_MODEL.bind(py);
-        lm.getattr("_lm")?
-            .getattr("PyUnbounded")?
-            .call_method1("_from_capsule", (pyunbounded.to_capsule(py)?,))
-        // NOTE: We don't need this, since currently Unbounded is an alias of PyUnbounded.
-        // lm.getattr("Sense")?.call_method1("_from_pysense", (pyv,))
+        // NOTE: We return the type object itself since currently Unbounded is an alias of PyUnbounded.
+        lm.getattr("_lm")?.getattr("PyUnbounded")
     }
 }

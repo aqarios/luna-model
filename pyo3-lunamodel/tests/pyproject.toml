@@ -1,0 +1,23 @@
+[project]
+name = "pyo3-lunamodel-tests"
+version = "0"
+description = "Test harness for pyo3-lunamodel (not published)."
+requires-python = ">=3.11"
+dependencies = [
+    "pytest",
+    "pyo3-lunamodel-integration-ext",
+]
+
+[dependency-groups]
+local = ["luna-model"]
+pypi = ["luna-model>=0.6.0"]
+
+[tool.uv]
+package = false
+conflicts = [[{ group = "local" }, { group = "pypi" }]]
+
+[tool.uv.sources]
+pyo3-lunamodel-integration-ext = { path = "integration_ext", editable = true }
+luna-model = [
+    { path = "../../py-lunamodel", editable = true, group = "local" },
+]

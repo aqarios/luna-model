@@ -58,7 +58,7 @@ class TranslationTarget(Enum):
             case TranslationTarget.LP:
                 return PyTranslationTarget.Lp
             case TranslationTarget.MPS:
-                return PyTranslationTarget.MPS
+                return PyTranslationTarget.Mps
             case TranslationTarget.BQM:
                 return PyTranslationTarget.Bqm
             case TranslationTarget.CQM:
@@ -67,15 +67,15 @@ class TranslationTarget(Enum):
     @classmethod
     def _from_pyttarget(cls, py_ttarget: PyTranslationTarget) -> TranslationTarget:
         match py_ttarget:
-            case PyTranslationTarget.QUBO:
+            case PyTranslationTarget.Qubo:
                 return TranslationTarget.QUBO
-            case PyTranslationTarget.LP:
+            case PyTranslationTarget.Lp:
                 return TranslationTarget.LP
-            case PyTranslationTarget.MPS:
+            case PyTranslationTarget.Mps:
                 return TranslationTarget.MPS
-            case PyTranslationTarget.BQM:
+            case PyTranslationTarget.Bqm:
                 return TranslationTarget.BQM
-            case PyTranslationTarget.CQM:
+            case PyTranslationTarget.Cqm:
                 return TranslationTarget.CQM
         msg = f"unknown sense: {py_ttarget}"
         raise RuntimeError(msg)

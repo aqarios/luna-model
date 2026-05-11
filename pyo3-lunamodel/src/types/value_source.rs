@@ -15,7 +15,7 @@ impl<'a, 'py> FromPyObject<'a, 'py> for PyValueSource {
 
     fn extract(obj: pyo3::Borrowed<'a, 'py, pyo3::PyAny>) -> Result<Self, Self::Error> {
         obj.check_type("ValueSource")?;
-        // check if it is the wrapper type or the PyEnvironment type from the crate.
+        // check if it is the wrapper type or the type from the crate.
         let capsule: String = if let Ok(pye) = obj.getattr("_val") {
             pye.call_method0("_to_capsule")
         } else {

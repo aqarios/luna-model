@@ -16,3 +16,4 @@ derive_more = { workspace = true }
 lunamodel-core = { workspace = true }
 lunamodel-types = { workspace = true }
 lunamodel-python = { workspace = true }
+lunamodel-translate = { workspace = true }
