@@ -7,22 +7,34 @@ use lunamodel_core::Solution;
 use lunamodel_unwind::*;
 use pyo3::{prelude::*, types::PyCapsule};
 
-use crate::PySolution;
+use crate::{PySolution, ffi::CapsuleFFI};
 
 const CAPUSULE_NAME_ENV: &CStr = c"builtins.capsule.PySolution";
+
+impl<'py> CapsuleFFI<'py> for Arc<RwLock<Solution>> {
+    fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
+        PyCapsule::new(py, self.clone(), Some(CAPUSULE_NAME_ENV.to_owned()))
+    }
+
+    fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
+        let ptr = capsule.pointer_checked(Some(CAPUSULE_NAME_ENV))?;
+        let arc: Arc<RwLock<Solution>> =
+            unsafe { ptr.cast::<Arc<RwLock<Solution>>>().as_ref().clone() };
+        Ok(arc)
+    }
+}
 
 #[unwindable]
 #[pymethods]
 impl PySolution {
     pub fn _to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new(py, self.s.clone(), Some(CAPUSULE_NAME_ENV.to_owned()))
+        self.s.to_capsule(py)
     }
 
     #[staticmethod]
-    pub fn _from_capsule<'py>(capsule: &Bound<'py, PyCapsule>) -> PyResult<Self> {
-        let ptr = capsule.pointer_checked(Some(CAPUSULE_NAME_ENV))?;
-        let arc: Arc<RwLock<Solution>> =
-            unsafe { ptr.cast::<Arc<RwLock<Solution>>>().as_ref().clone() };
-        Ok(PySolution { s: arc })
+    pub fn _from_capsule<'py>(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
+        Ok(PySolution {
+            s: Arc::<RwLock<Solution>>::from_capsule(capsule)?,
+        })
     }
 }

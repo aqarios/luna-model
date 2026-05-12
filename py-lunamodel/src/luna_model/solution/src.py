@@ -48,9 +48,9 @@ class ValueSource(Enum):
     @classmethod
     def _from_pysrc(cls, py_src: PyValueSource) -> ValueSource:
         match py_src:
-            case PyValueSource.RAW:
+            case PyValueSource.Raw:
                 return ValueSource.RAW
-            case PyValueSource.OBJ:
+            case PyValueSource.Obj:
                 return ValueSource.OBJ
-        msg = f"unknown sense: {py_src}"
+        msg = f"unknown value source: {py_src}"
         raise RuntimeError(msg)

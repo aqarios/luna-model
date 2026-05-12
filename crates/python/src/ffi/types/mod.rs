@@ -3,6 +3,7 @@
 mod comparator;
 mod ctype;
 mod sense;
+mod specs;
 mod ttarget;
 mod unbounded;
 mod value_source;

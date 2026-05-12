@@ -23,10 +23,12 @@ pub enum BoundsContent {
     Lazy(LazyBounds),
 }
 
+pub type PyBoundsContent = Arc<RwLock<BoundsContent>>;
+
 /// Python-visible bounds wrapper used across the binding layer.
 #[pyclass]
 #[derive(Clone, Debug)]
-pub struct PyBounds(pub Arc<RwLock<BoundsContent>>);
+pub struct PyBounds(pub PyBoundsContent);
 
 impl From<BoundsContent> for PyBounds {
     /// Wraps shared bounds content as `PyBounds`.

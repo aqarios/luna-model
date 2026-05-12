@@ -2,10 +2,11 @@
 
 use lunamodel_core::ValueSource;
 use pyo3::pyclass;
+use strum_macros::Display;
 
 /// Python-facing wrapper for [`ValueSource`].
-#[derive(Debug, Clone)]
-#[pyclass]
+#[pyclass(eq, eq_int)]
+#[derive(Debug, Clone, Copy, Display, Hash, PartialEq)]
 pub enum PyValueSource {
     Raw,
     Obj,

@@ -1,0 +1,12 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "pyo3-lunamodel-integration-ext"
+version = "0.0.0"
+requires-python = ">=3.11"
+
+[tool.maturin]
+module-name = "pyo3_lunamodel_integration_ext"
+manifest-path = "Cargo.toml"

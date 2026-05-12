@@ -10,19 +10,19 @@ use pyo3::{
     types::{PyCapsule, PyCapsuleMethods},
 };
 
-use crate::{PyBounds, bounds::BoundsContent, ffi::CapsuleFFI};
+use crate::{PyBounds, PyBoundsContent, bounds::BoundsContent, ffi::CapsuleFFI};
 
 const CAPUSULE_NAME_BOUNDS: &CStr = c"builtins.capsule.PyBounds";
 
-impl<'py> CapsuleFFI<'py> for PyBounds {
+impl<'py> CapsuleFFI<'py> for PyBoundsContent {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new(py, self.0.clone(), Some(CAPUSULE_NAME_BOUNDS.to_owned()))
+        PyCapsule::new(py, self.clone(), Some(CAPUSULE_NAME_BOUNDS.to_owned()))
     }
 
-    fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
+    fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<PyBoundsContent> {
         let ptr = capsule.pointer_checked(Some(CAPUSULE_NAME_BOUNDS))?;
         let content = unsafe { ptr.cast::<Arc<RwLock<BoundsContent>>>().as_ref().clone() };
-        Ok(PyBounds(content))
+        Ok(content)
     }
 }
 
@@ -30,11 +30,11 @@ impl<'py> CapsuleFFI<'py> for PyBounds {
 #[pymethods]
 impl PyBounds {
     pub fn _to_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        self.to_capsule(py)
+        self.0.to_capsule(py)
     }
 
     #[staticmethod]
     pub fn _from_capsule<'py>(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        PyBounds::from_capsule(capsule)
+        Ok(PyBounds(PyBoundsContent::from_capsule(capsule)?))
     }
 }

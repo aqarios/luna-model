@@ -3,7 +3,7 @@
 use std::fmt::Display;
 
 /// Selects which scalar value series a convenience statistic should use.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum ValueSource {
     /// Use the raw solver-provided energies.
     Raw,

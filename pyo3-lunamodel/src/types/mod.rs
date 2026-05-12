@@ -10,6 +10,7 @@ mod vtype;
 pub use comparator::PyComparator;
 pub use ctype::PyCtype;
 pub use sense::PySense;
+pub use specs::PyModelSpecs;
 pub use ttarget::PyTranslationTarget;
 pub use unbounded::PyUnbounded;
 pub use value_source::PyValueSource;
