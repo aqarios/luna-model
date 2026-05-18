@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin>=1.0,<2.0"]
+requires = ["maturin>=1.13.3,<2.0"]
 build-backend = "maturin"
 
 [project]
@@ -39,7 +39,7 @@ qiskit = [
     "qiskit>=2.1.2",
 ]
 scip = [
-    "pyscipopt>=6.0.0",
+    "pyscipopt>=6.2.0",
 ]
 
 [project.urls]
@@ -80,15 +80,15 @@ dev = [
     "ipython>=9.8.0",
     "numpy>=2.3.5",
     "pre-commit>=4.5.0",
-    "pyscipopt>=6.0.0",
+    "pyscipopt>=6.2.0",
     "pytest>=9.0.2",
     "qiskit>=2.1.2",
-    "qiskit-ibm-runtime>=0.41.1",
+    "qiskit-ibm-runtime>=0.47.0",
     "qiskit-optimization>=0.6.1",
     "scipy>=1.16.3",
     "rich>=14.2.0",
-    "ruff>=0.14.14",
-    "mypy>=2.0.0",
+    "ruff>=0.15.13",
+    "mypy>=2.1.0",
     "gurobipy>=13.0.0; python_version < '3.14'",
     "qiskit-aer>=0.17.1; python_version < '3.14'",
     "auditwheel>=6.6.0",
