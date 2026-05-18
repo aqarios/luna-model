@@ -4,7 +4,9 @@ use std::ops::{Add, Mul};
 
 use lunamodel_core::{Environment, Model, Solution, solution::Column};
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{PassContext, Reversible, TransformationPass, transformation};
+use lunamodel_transpiler::{
+    PassContext, PipelineStep, Reversible, TransformationPass, transformation,
+};
 use lunamodel_types::Vtype;
 use sqids::Sqids;
 

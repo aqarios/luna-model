@@ -2,7 +2,9 @@
 
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{PassContext, Reversible, TransformationPass, transformation};
+use lunamodel_transpiler::{
+    PassContext, PipelineStep, Reversible, TransformationPass, transformation,
+};
 use lunamodel_types::Comparator;
 
 use super::artifact::GeToLeConstraintsArtifact as GTLCArtifact;

@@ -12,7 +12,7 @@ fn expand(item: TokenStream, ctor: proc_macro2::TokenStream) -> TokenStream {
     quote! {
         #input
 
-        impl #impl_generics From<#ident #ty_generics> for ::lunamodel_transpiler::PipelineStep
+        impl #impl_generics From<#ident #ty_generics> for PipelineStep
         #where_clause
         {
             fn from(value: #ident #ty_generics) -> Self {
@@ -25,29 +25,20 @@ fn expand(item: TokenStream, ctor: proc_macro2::TokenStream) -> TokenStream {
 
 #[proc_macro_attribute]
 pub fn transformation(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    expand(
-        item,
-        quote!(::lunamodel_transpiler::PipelineStep::Transform),
-    )
+    expand(item, quote!(PipelineStep::Transform))
 }
 
 #[proc_macro_attribute]
 pub fn analysis(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    expand(item, quote!(::lunamodel_transpiler::PipelineStep::Analysis))
+    expand(item, quote!(PipelineStep::Analysis))
 }
 
 #[proc_macro_attribute]
 pub fn control_flow(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    expand(
-        item,
-        quote!(::lunamodel_transpiler::PipelineStep::ControlFlow),
-    )
+    expand(item, quote!(PipelineStep::ControlFlow))
 }
 
 #[proc_macro_attribute]
 pub fn composite(_attr: TokenStream, item: TokenStream) -> TokenStream {
-    expand(
-        item,
-        quote!(::lunamodel_transpiler::PipelineStep::Composite),
-    )
+    expand(item, quote!(PipelineStep::Composite))
 }

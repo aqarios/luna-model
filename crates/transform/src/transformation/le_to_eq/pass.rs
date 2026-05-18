@@ -3,7 +3,7 @@
 use lunamodel_core::{Model, Solution, ops::LmSubAssign, prelude::LazyBounds};
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_transpiler::{
-    AnalysisPass, PassContext, Reversible, TransformationPass, transformation,
+    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, transformation,
 };
 use lunamodel_types::{Bound, Comparator, Vtype};
 

@@ -4,7 +4,7 @@ use num::abs;
 
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, analysis};
+use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, PipelineStep, analysis};
 
 #[derive(Debug, Clone, Copy)]
 pub struct MaxBias {

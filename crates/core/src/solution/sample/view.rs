@@ -1,6 +1,6 @@
 //! View type for one raw sample row inside a solution.
 
-use std::{fmt::Display, ops::Index};
+use std::{collections::HashMap, fmt::Display, ops::Index};
 
 use itertools::Itertools;
 use lunamodel_error::{LunaModelError, LunaModelResult};
@@ -67,6 +67,20 @@ impl<'s> SampleView<'s> {
             .samples
             .iter()
             .map(|(_, samples)| samples[self.idx])
+    }
+
+    /// Iterates over the raw numeric row values in column order with var name.
+    pub fn iter_named(&self) -> impl Iterator<Item = (&String, Bias)> {
+        self.sol
+            .samples
+            .iter()
+            .map(|(name, samples)| (name, samples[self.idx]))
+    }
+
+    pub fn as_map(&self) -> HashMap<String, Bias> {
+        self.iter_named()
+            .map(|(name, val)| (name.clone(), val))
+            .collect()
     }
 }
 

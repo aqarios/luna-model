@@ -2,7 +2,9 @@
 
 use lunamodel_core::{Environment, Model, Solution, prelude::VarRef};
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{PassContext, Reversible, TransformationPass, transformation};
+use lunamodel_transpiler::{
+    PassContext, PipelineStep, Reversible, TransformationPass, transformation,
+};
 use lunamodel_types::{VarIdx, Vtype};
 
 use super::ReduceInvertedBinaryPassArtifact;

@@ -2,7 +2,7 @@
 
 use lunamodel_core::Model;
 use lunamodel_error::{LunaModelError, LunaModelResult};
-use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, analysis};
+use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, PipelineStep, analysis};
 use lunamodel_types::Specs;
 
 #[analysis]

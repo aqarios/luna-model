@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
-use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, analysis};
+use lunamodel_transpiler::{AnalysisKey, AnalysisPass, PassContext, PipelineStep, analysis};
 
 #[derive(Clone, Debug)]
 pub struct MinConstraintValues {

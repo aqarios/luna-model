@@ -72,6 +72,11 @@ impl<'s> ResultView<'s> {
     pub fn feasible(&self) -> Option<bool> {
         self.sample.sol.feasible.as_ref().map(|v| v[self.idx])
     }
+
+    /// Returns the contained SampleView.
+    pub fn sample(&self) -> &SampleView<'s> {
+        &self.sample
+    }
 }
 
 impl<'s> From<SampleView<'s>> for ResultView<'s> {

@@ -97,7 +97,7 @@ pub use lunamodel_serializer as serializer;
 /// Built-in model transformation passes and pipelines.
 pub use lunamodel_transform as transform;
 
-#[cfg(any(feature = "transform", feature = "transpiler"))]
+#[cfg(feature = "transpiler")]
 /// Infrastructure for composing and recording transformation-style workflows.
 pub use lunamodel_transpiler as transpiler;
 

@@ -3,7 +3,7 @@
 use lunamodel_core::{Model, Solution, ops::LmMulAssign};
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
-    AnalysisPass, PassContext, Reversible, TransformationPass, transformation,
+    AnalysisPass, PassContext, PipelineStep, Reversible, TransformationPass, transformation,
 };
 use lunamodel_types::Sense;
 
