@@ -13,7 +13,7 @@ authors = [
 license-files = ["LICENSE", "THIRD_PARTY_LICENSES.txt"]
 requires-python = ">=3.11,<3.15"
 dependencies = [
-    "numpy>=1.0.0",
+    "numpy>=2.4.6",
     "typing-extensions>=4.15.0; python_version < '3.13'",
 ]
 keywords = [
@@ -78,7 +78,7 @@ dev = [
     "dimod>=0.12.21",
     "docplex>=2.30.251",
     "ipython>=9.8.0",
-    "numpy>=2.3.5",
+    "numpy>=2.4.6",
     "pre-commit>=4.5.0",
     "pyscipopt>=6.2.0",
     "pytest>=9.0.2",
