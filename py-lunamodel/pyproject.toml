@@ -39,7 +39,7 @@ qiskit = [
     "qiskit>=2.1.2",
 ]
 scip = [
-    "pyscipopt>=6.2.0",
+    "pyscipopt>=6.2.1",
 ]
 
 [project.urls]
@@ -80,7 +80,7 @@ dev = [
     "ipython>=9.8.0",
     "numpy>=2.4.6",
     "pre-commit>=4.5.0",
-    "pyscipopt>=6.2.0",
+    "pyscipopt>=6.2.1",
     "pytest>=9.0.2",
     "qiskit>=2.1.2",
     "qiskit-ibm-runtime>=0.47.0",
