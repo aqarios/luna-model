@@ -92,6 +92,18 @@ impl Solution {
             ..Default::default()
         }
     }
+
+    pub fn with_capacity(cap: usize) -> Self {
+        Self {
+            samples: IndexMap::with_capacity(cap),
+            ..Default::default()
+        }
+    }
+
+    pub fn set_sense(mut self, sense: Sense) -> Self {
+        self.sense = sense;
+        self
+    }
 }
 
 impl ContentEquality for Solution {
