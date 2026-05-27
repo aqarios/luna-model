@@ -2,7 +2,7 @@
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use super::Model;
 use crate::{Solution, ops::make_lookup};
@@ -94,6 +94,7 @@ impl Model {
 /// Extra variables in the solution are currently tolerated; missing variables
 /// are not.
 fn check_alignment(expr_vars: &[String], sample_vars: &[String]) -> LunaModelResult<()> {
+    let sample_set: HashSet<&str> = sample_vars.iter().map(String::as_str).collect();
     // Removed checks to allow solutions with more variables than the model.
     // if expr_vars.len() != sample_vars.len() {
     //     return Err(LunaModelError::Evaluation(
@@ -101,7 +102,7 @@ fn check_alignment(expr_vars: &[String], sample_vars: &[String]) -> LunaModelRes
     //     ));
     // }
     for ev in expr_vars {
-        if !sample_vars.contains(ev) {
+        if !sample_set.contains(ev.as_str()) {
             return Err(LunaModelError::Evaluation(
                 format!("variable '{ev}' is not contained in sample").into(),
             ));
