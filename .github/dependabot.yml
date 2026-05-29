@@ -10,6 +10,13 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      cargo:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "uv"
     directory: "/py-lunamodel"
@@ -17,8 +24,22 @@ updates:
       interval: "weekly"
     exclude-paths:
       - "THIRD_PARTY_LICENSES.txt"
+    groups:
+      python:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: "bun"
     directory: "/js-lunamodel"
     schedule:
       interval: "weekly"
+    groups:
+      javascript:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
