@@ -89,12 +89,12 @@ impl Reversible for IntegerToBinaryPass {
 }
 
 /// Converts bounded integer bounds into the encoded range plus offset.
-fn make_new_bounds(vname: &str, bounds: Bounds) -> LunaModelResult<(usize, usize)> {
+fn make_new_bounds(vname: &str, bounds: Bounds) -> LunaModelResult<(usize, i64)> {
     match bounds {
         Bounds {
             lower: Bound::Bounded(lower),
             upper: Bound::Bounded(upper),
-        } => Ok(((upper - lower) as usize, lower as usize)),
+        } => Ok(((upper - lower) as usize, lower as i64)),
         Bounds {
             lower: Bound::Unbounded,
             upper: Bound::Bounded(_),

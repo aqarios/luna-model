@@ -48,8 +48,8 @@ pub struct SerIntegerToBinaryArtifact {
     varmap_vals: Vec<SerVarMapEntry>,
     #[prost(message, repeated, tag = "3")]
     offsetmap_keys: Vec<String>,
-    #[prost(uint64, repeated, tag = "4")]
-    offsetmap_vals: Vec<u64>,
+    #[prost(int64, repeated, tag = "4")]
+    offsetmap_vals: Vec<i64>,
 }
 
 impl Creatable<IntegerToBinaryArtifact> for SerIntegerToBinaryArtifact {
@@ -82,7 +82,7 @@ impl SerIntegerToBinaryArtifact {
         }
         for (k, v) in value.offsetmap.iter() {
             self.offsetmap_keys.push(k.clone());
-            self.offsetmap_vals.push(*v as u64);
+            self.offsetmap_vals.push(*v);
         }
         self
     }
@@ -98,7 +98,7 @@ impl SerIntegerToBinaryArtifact {
             offsetmap: self
                 .offsetmap_keys
                 .into_iter()
-                .zip(self.offsetmap_vals.into_iter().map(|v| v as usize))
+                .zip(self.offsetmap_vals)
                 .collect(),
         })
     }

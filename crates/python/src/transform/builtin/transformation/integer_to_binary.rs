@@ -21,7 +21,7 @@ impl PyArtifact {
     }
 
     #[getter]
-    fn offsetmap(&self) -> HashMap<String, usize> {
+    fn offsetmap(&self) -> HashMap<String, i64> {
         self.0.offsetmap().clone()
     }
 

@@ -8,14 +8,14 @@ use lunamodel_transpiler::Artifact;
 #[derive(Default)]
 pub struct IntegerToBinaryArtifact {
     pub(super) varmap: HashMap<String, HashMap<String, usize>>,
-    pub(super) offsetmap: HashMap<String, usize>,
+    pub(super) offsetmap: HashMap<String, i64>,
 }
 impl IntegerToBinaryArtifact {
     pub fn varmap(&self) -> &HashMap<String, HashMap<String, usize>> {
         &self.varmap
     }
 
-    pub fn offsetmap(&self) -> &HashMap<String, usize> {
+    pub fn offsetmap(&self) -> &HashMap<String, i64> {
         &self.offsetmap
     }
 }
