@@ -36,7 +36,11 @@ impl AnalysisPass for CheckModelSpecsAnalysis {
         if !model.specs().satisfies(&self.specs) {
             return Err(LunaModelError::AnalysisPass(
                 self.name().to_string(),
-                "model specs do not match the requirements.".into(),
+                format!(
+                    "model specs do not match the requirements:\n{}",
+                    model.specs().diff(&self.specs)?
+                )
+                .into(),
             ));
         }
         Ok(())

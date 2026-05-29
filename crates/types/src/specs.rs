@@ -1,8 +1,9 @@
 //! Structural model-spec representations.
 
-use std::fmt::Display;
+use std::fmt::{Display, Write};
 
 use enumset::{EnumSet, EnumSetType};
+use lunamodel_error::LunaModelResult;
 use strum_macros::{Display, EnumString};
 
 use crate::{Sense, Vtype, utils::EnumSetFromVec};
@@ -110,6 +111,72 @@ impl Specs {
             return false;
         }
         true
+    }
+
+    pub fn diff(&self, other: &Self) -> LunaModelResult<String> {
+        let mut diff = String::new();
+        if !check_spec_eq(self.sense, other.sense) {
+            writeln!(
+                diff,
+                "  sense is '{}', expected '{}'",
+                self.sense.map_or("None".to_string(), |s| s.to_string()),
+                other.sense.map_or("None".to_string(), |s| s.to_string()),
+            )?;
+        }
+        if !check_spec_enumset(self.vtypes, other.vtypes) {
+            writeln!(
+                diff,
+                "  vtypes is '{}', expected '{}'",
+                self.vtypes.map_or("None".to_string(), |s| s.to_string()),
+                other.vtypes.map_or("None".to_string(), |s| s.to_string()),
+            )?;
+        }
+        if !check_spec_enumset(self.constraints, other.constraints) {
+            writeln!(
+                diff,
+                "  constraint types is '{}', expected '{}'",
+                self.constraints
+                    .map_or("None".to_string(), |s| s.to_string()),
+                other
+                    .constraints
+                    .map_or("None".to_string(), |s| s.to_string()),
+            )?;
+        }
+        if !check_spec_le(self.max_degree, other.max_degree) {
+            writeln!(
+                diff,
+                "  max degree is '{}', expected '{}'",
+                self.max_degree
+                    .map_or("None".to_string(), |s| s.to_string()),
+                other
+                    .max_degree
+                    .map_or("None".to_string(), |s| s.to_string()),
+            )?;
+        }
+        if !check_spec_le(self.max_constraint_degree, other.max_constraint_degree) {
+            writeln!(
+                diff,
+                "  max constraint degree is '{}', expected '{}'",
+                self.max_constraint_degree
+                    .map_or("None".to_string(), |s| s.to_string()),
+                other
+                    .max_constraint_degree
+                    .map_or("None".to_string(), |s| s.to_string()),
+            )?;
+        }
+        if !check_spec_le(self.max_num_variables, other.max_num_variables) {
+            writeln!(
+                diff,
+                "  max num variables is '{}', expected '{}'",
+                self.max_num_variables
+                    .map_or("None".to_string(), |s| s.to_string()),
+                other
+                    .max_num_variables
+                    .map_or("None".to_string(), |s| s.to_string()),
+            )?;
+        }
+
+        Ok(diff)
     }
 }
 
