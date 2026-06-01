@@ -160,15 +160,15 @@ wheels = [
 
 [[package]]
 name = "auditwheel"
-version = "6.6.0"
+version = "6.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "pyelftools" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7b/ed/342df5a75589103d72402dcdd88d7b8cc2df338fbc39042ce1b3ac008960/auditwheel-6.6.0.tar.gz", hash = "sha256:277f3b315ad0b04df0a2be2d126c3fd39930bc265df0f9589d78c970ff06f52b", size = 4663481, upload-time = "2026-01-04T14:34:21.577Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/4d/2684ff85bbc51d2acfe9d6184aea70e4f6a50d8de2de6cb41a23e501e4ef/auditwheel-6.7.0.tar.gz", hash = "sha256:70aa4fe8e24d447e9fb47082f0aa0de2d6bde8aaa9bbfe517020328cea80e0f1", size = 4675015, upload-time = "2026-05-26T04:46:16.497Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b0/c2/bb8ba1cec816fa356e19da83c59bfd4ac34dba1ae41eb7622c18f4b1d48d/auditwheel-6.6.0-py3-none-any.whl", hash = "sha256:3e8479856ca582625b5457204cbb62d1614d3bc7e760ee307c04c34c912ebcad", size = 59184, upload-time = "2026-01-04T14:34:19.932Z" },
+    { url = "https://files.pythonhosted.org/packages/17/a0/2e7d17e36a3741a9aaf1a952ccff308d2078148d62327db180f94979d963/auditwheel-6.7.0-py3-none-any.whl", hash = "sha256:34e93e1b64ca54116fc110c3e975d3c884c4d47c87a590d42a89e4edf23e2af8", size = 62282, upload-time = "2026-05-26T04:46:14.463Z" },
 ]
 
 [[package]]
@@ -1344,7 +1344,7 @@ provides-extras = ["dimod", "qiskit", "scip"]
 [package.metadata.requires-dev]
 build = [{ name = "maturin", extras = ["zig"], specifier = ">=1.13.3" }]
 dev = [
-    { name = "auditwheel", specifier = ">=6.6.0" },
+    { name = "auditwheel", specifier = ">=6.7.0" },
     { name = "dimod", specifier = ">=0.12.21" },
     { name = "docplex", specifier = ">=2.30.251" },
     { name = "gurobipy", specifier = ">=13.0.2" },
