@@ -1,6 +1,6 @@
 {
   "name": "@aqarios/luna-model",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "JavaScript and TypeScript bindings for LunaModel",
   "license": "Apache-2.0",
   "private": true,
