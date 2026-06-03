@@ -459,7 +459,7 @@ dependencies = [
 
 [[package]]
 name = "js-lunamodel"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "lunamodel-core",
  "lunamodel-error",
@@ -1056,7 +1056,7 @@ dependencies = [
 
 [[package]]
 name = "pylm"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "lunamodel-python",
  "pyo3",
