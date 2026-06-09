@@ -1,65 +1,100 @@
 # Contributing to LunaModel
 
-**Thanks for contributing to LunaModel**. This repository contains the Rust workspace, the Python package, tests, documentation, release automation, and GitHub Pages build for LunaModel.
+Thanks for taking the time to help improve LunaModel. This document explains how the
+project is run in practice: how we use issues and discussions, how to propose and submit
+changes, and how to get a development environment going.
 
-The most useful contributions are focused changes with clear motivation: bug fixes, documentation updates, tests, examples, translator improvements, Python API improvements, Rust API improvements, and small refactors that make an existing path easier to maintain.
+Please read the first section before opening anything — it is the part that most often
+catches people off guard.
 
-## Communication
+## How issues and discussions work
 
-Use the channel that matches the work:
+LunaModel keeps a small, deliberately curated issue tracker. **Every open issue is work the
+maintainers have already accepted and that is ready to be picked up.** For that reason,
+issues are opened and edited by maintainers — not filed directly by the public.
 
-- [Bug report](https://github.com/aqarios/luna-model/issues/new?template=bug.yml): something is broken or behaves unexpectedly.
-- [Proposal](https://github.com/aqarios/luna-model/issues/new?template=proposal.yml): a concrete feature or API change.
-- [Use case](https://github.com/aqarios/luna-model/issues/new?template=usecase.yml): an optimization workflow is hard or impossible to express, but the implementation path is not clear yet.
-- [Discussions](https://github.com/aqarios/luna-model/discussions): questions, examples, design discussion, and usage help.
+That is not a way of brushing feedback aside; it is the opposite. The front door for
+everyone is **[GitHub Discussions](https://github.com/aqarios/luna-model/discussions)**, and
+nearly anything belongs there: suspected bugs, feature ideas, questions, modeling help, and
+half-formed thoughts you have not fully worked out yet.
 
-Small fixes can go straight to a pull request. Larger API, translator, transformation, or release workflow changes should start with an issue or discussion before implementation.
+The path looks like this:
 
-## Branches
+1. **Open a discussion** describing what you hit or what you would like to see.
+2. **A maintainer triages it** — confirming behavior, asking for missing detail, and talking
+   through the idea with you.
+3. **Accepted work becomes an issue.** When something is confirmed and actionable, a
+   maintainer turns the discussion into a tracked issue, and from there it is fair game for a
+   pull request.
 
-`main` is the only long-lived branch. Work happens on short-lived branches and is merged through pull requests.
+### Why it works this way
 
-Recommended branch names:
+A large share of reports that look like bugs turn out to be configuration mistakes,
+environment differences, or an API being used in a way it was not meant to be — not actual
+defects. Starting in discussions lets us untangle those quickly, keeps the tracker free of
+noise, and means that anything labeled an issue genuinely needs code written for it. The
+small amount of friction up front saves a lot of time for everyone afterward.
 
-| Prefix | Use for |
-| ------ | ------- |
-| `f/<id>-<description>` | Features and larger improvements |
-| `fix/<id>-<description>` | Bug fixes |
-| `docs/<id>-<description>` | Documentation-only work |
-| `ci/<id>-<description>` | CI and release workflow work |
-| `hot/<id>-<description>` | Urgent fixes that must be released quickly |
+### Telling bugs and features apart
 
-Use the issue, ticket, or discussion id when one exists. For small maintenance work without an issue, use a short descriptive branch name.
+It helps to know which one you have:
 
-## Development Setup
+- A **bug** is existing behavior that is broken or that contradicts what the documentation
+  promises. Bugs are usually quick to confirm, so they tend to become issues fast.
+- A **feature** is behavior that does not exist yet. Features almost always need a short
+  conversation about scope and fit first, so expect some back-and-forth in a discussion
+  before a feature turns into an issue or a pull request.
 
-Clone with submodules:
+## Pull requests
 
-```bash
-git clone --recurse-submodules https://github.com/aqarios/luna-model.git
-cd luna-model
+Small, self-evident fixes — a typo, an obvious one-line bug, a documentation clarification —
+are welcome as direct pull requests. For anything larger, please make sure there is an
+accepted issue or an agreed direction in a discussion before you invest real effort. Even
+genuinely good work is hard to merge when the direction was never agreed on, so check first;
+it protects your time as much as ours.
+
+When you open a pull request:
+
+- State the user-facing or maintainer-facing problem it solves.
+- Keep it focused — leave unrelated cleanup out of feature and bug-fix branches.
+- Add or update tests when behavior changes.
+- Update the docs when public APIs, installation, or release behavior change.
+- List the exact checks you ran (and call out anything you deliberately skipped).
+- Note any compatibility, migration, or release-note implications.
+
+Write commit messages in the imperative mood, prefixed with the area they touch:
+
+```text
+python: add read_with helpers for expression access
+translate: support fixed bounds when emitting LP
+docs: clarify environment context in constraint examples
 ```
 
-Install Python development dependencies:
+## Development setup
+
+The repository is a Rust workspace with the Python package in `py-lunamodel`. You will need
+Rust and Cargo, [uv](https://docs.astral.sh/uv/), and Python 3.11 or newer.
 
 ```bash
+git clone https://github.com/aqarios/luna-model.git
+cd luna-model
+
+# Python development environment
 cd py-lunamodel
 uv sync
 ```
 
-The repository requires Rust and Cargo, `uv`, and Python 3.11 or newer.
-
-Install the Git hooks from the repository root:
+Install the Git hooks so formatting and linting run before each commit:
 
 ```bash
 uv run --directory py-lunamodel pre-commit install
 ```
 
-## Local Checks
+## Local checks
 
-Run the checks that match the files you changed.
+Run the checks that match what you changed.
 
-For Python package changes from `py-lunamodel`:
+Python package changes (from `py-lunamodel`):
 
 ```bash
 uv run pytest
@@ -68,7 +103,7 @@ uv run ruff format --check .
 uv run mypy src
 ```
 
-For Rust workspace changes from the repository root:
+Rust workspace changes (from the repository root):
 
 ```bash
 cargo test --workspace
@@ -76,66 +111,35 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 ```
 
-To run the same formatting and lint checks used by Git hooks:
+To run the same hooks that fire on commit:
 
 ```bash
 uv run --directory py-lunamodel pre-commit run --all-files
 ```
 
-For documentation changes from the repository root:
+If a full run is too expensive for a small change, run the narrowest relevant test and say in
+the pull request what you did not run.
 
-```bash
-ci/tools/build-docs-site.sh
-```
+## Branches
 
-If a full check is too expensive for the change, run the narrowest relevant test and mention what you did not run in the pull request.
+`main` is the only long-lived branch. Everything else is a short-lived branch merged through a
+pull request. When an issue or discussion exists, include its id in the branch name.
 
-## Pull Requests
+| Prefix                  | Use for                                       |
+| ----------------------- | --------------------------------------------- |
+| `f/<id>-<description>`   | Features and larger improvements              |
+| `fix/<id>-<description>` | Bug fixes                                      |
+| `docs/<id>-<description>`| Documentation-only work                        |
+| `hot/<id>-<description>` | Urgent fixes that need to ship quickly         |
 
-Keep pull requests reviewable:
+## Releases
 
-- Describe the user-facing or maintainer-facing problem being solved.
-- Keep unrelated cleanup out of feature and bug-fix pull requests.
-- Add or update tests when behavior changes.
-- Update docs when public APIs, workflows, installation, or release behavior change.
-- Include the exact checks you ran.
-- Mention any compatibility, migration, or release-note concerns.
+Releases are handled by the maintainers. LunaModel follows semantic versioning — `vX.Y.Z` for
+stable releases, with `rcN`, `bN`, or `aN` suffixes for pre-releases. Please do not bump the
+version or create release tags in a pull request unless a maintainer has explicitly asked you
+to.
 
-Use clear commit messages. A good default is:
+## License
 
-```text
-area: explain the change in imperative mood
-```
-
-Examples:
-
-```text
-python: add read_with helpers for expression access
-docs: build combined Python and Rust documentation site
-tests: package MPS fixtures outside language statistics
-```
-
-## Release Process
-
-The project uses semantic versioning.
-
-Version format:
-
-- `vX.Y.Z` for stable releases.
-- `vX.Y.ZrcN`, `vX.Y.ZbN`, or `vX.Y.ZaN` for release candidates, beta releases, or alpha releases.
-
-Releases are prepared through the `Prepare Release` workflow:
-
-1. Run the `release-prep.yml` workflow manually and choose the release type.
-2. The workflow creates a `release/v<version>` pull request with the version bump.
-3. Review and merge the release pull request.
-4. The `tag-release.yml` workflow creates the Git tag.
-5. The tagged release workflow builds and publishes release artifacts.
-
-Do not create release tags manually unless the automation is unavailable and maintainers agree on the recovery path.
-
-## Generated And Fixture Files
-
-Large or generated fixtures should not dominate GitHub language statistics. Mark fixture formats as generated in `.gitattributes` when adding new solver data files.
-
-The MPS test fixtures are stored as a zip archive and extracted by the tests when needed. Do not commit the extracted `.mps` files.
+By contributing, you agree that your contributions are licensed under the Apache License 2.0,
+the same license that covers the project. See [LICENSE](./LICENSE).
