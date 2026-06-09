@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://pypi.org/project/luna-model/"><img src="https://img.shields.io/pypi/v/luna-model.svg?color=2563eb&label=PyPI" alt="PyPI version"></a>
-  <a href="https://pypi.org/project/luna-model/"><img src="https://img.shields.io/pypi/pyversions/luna-model.svg?color=2563eb" alt="Supported Python versions"></a>
+  <a href="https://pypi.org/project/luna-model/"><img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-2563eb" alt="Supported Python versions"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-2563eb.svg" alt="License: Apache 2.0"></a>
 </p>
 
