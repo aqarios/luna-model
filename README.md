@@ -154,12 +154,11 @@ The full documentation is published at [docs.aqarios.com](https://docs.aqarios.c
 
 ## Communication
 
-- Use [GitHub Issues](https://github.com/aqarios/luna-model/issues) for bug reports, concrete
-  feature proposals, and use cases that need project tracking.
-- Use [GitHub Discussions](https://github.com/aqarios/luna-model/discussions) for questions,
-  design discussion, examples, and usage help.
-- Open a pull request when a change is ready for review. For larger features, start with an
-  issue or discussion so the direction is clear before implementation begins.
+- Start in [GitHub Discussions](https://github.com/aqarios/luna-model/discussions) for bug
+  reports, feature ideas, questions, and usage help. Maintainers triage discussions and turn
+  confirmed, actionable items into issues — see [CONTRIBUTING.md](./CONTRIBUTING.md).
+- Open a pull request when a change is ready for review. For anything beyond a small, obvious
+  fix, make sure there is an accepted issue or an agreed direction in a discussion first.
 
 ## Contributing
 
