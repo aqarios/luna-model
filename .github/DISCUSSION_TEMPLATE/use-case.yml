@@ -1,0 +1,38 @@
+title: "[Use case]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A use case describes a real optimization or modeling workflow that is currently hard or impossible to express with LunaModel, without prescribing a solution. It tells us what you need so we can work out the how together.
+
+        > [!NOTE]
+        > Use this when you know the problem but not the fix. If you already have a concrete change in mind, open a **Feature Proposal** instead.
+
+        > [!TIP]
+        > Search the existing [discussions](https://github.com/aqarios/luna-model/discussions) for similar workflows first.
+  - type: textarea
+    id: workflow
+    attributes:
+      label: What are you trying to do?
+      description: Describe the modeling or optimization workflow. What is the goal, and where does LunaModel fit in?
+    validations:
+      required: true
+  - type: textarea
+    id: difficulty
+    attributes:
+      label: Why is it hard or impossible today?
+      description: Where do you get stuck with the current API? Include code or pseudo-code if it helps illustrate the gap.
+    validations:
+      required: true
+  - type: textarea
+    id: success
+    attributes:
+      label: What would success look like?
+      description: How would you know this is solved? What would change for you once it works?
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: User acknowledgements
+      options:
+        - label: I have [searched the existing discussions](https://github.com/aqarios/luna-model/discussions) and did not find a similar use case.
+          required: true

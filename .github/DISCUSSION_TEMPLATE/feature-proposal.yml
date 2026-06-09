@@ -1,0 +1,62 @@
+title: "[Proposal]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an improvement to LunaModel. A proposal pairs a problem worth solving with a concrete change that would solve it.
+
+        > [!NOTE]
+        > New features almost always need a short conversation about scope and fit before any code is written. This discussion is where that happens — if we agree on the direction, a maintainer turns it into a tracked issue.
+
+        > [!TIP]
+        > Search the existing [discussions](https://github.com/aqarios/luna-model/discussions) for similar ideas first. If you know the problem but not the fix, open a **Use Case** instead.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is missing, hard, or awkward today? Start with the broader context, then get specific. Concrete examples help a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What would you add or change, and how would it behave from a user's point of view? Focus on the behavior rather than the implementation.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of LunaModel does this affect?
+      options:
+        - Modeling API (variables, expressions, constraints, models)
+        - Translators (LP, MPS, QUBO, BQM, CQM, and others)
+        - Transformations
+        - Serialization
+        - Python bindings
+        - Rust crates
+        - JavaScript bindings
+        - Documentation
+        - Other or unsure
+    validations:
+      required: true
+  - type: textarea
+    id: usage
+    attributes:
+      label: Example usage
+      description: Sketch how it would look in practice — the API call, model definition, or workflow you imagine.
+      render: python
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and workarounds
+      description: Other ways you considered solving this, why they fall short, and any workaround you currently rely on.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: User acknowledgements
+      options:
+        - label: I have [searched the existing discussions](https://github.com/aqarios/luna-model/discussions) and did not find a similar proposal.
+          required: true
+        - label: This describes a single, focused change rather than several unrelated ideas.
+          required: true

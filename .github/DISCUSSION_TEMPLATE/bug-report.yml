@@ -1,0 +1,94 @@
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. A bug is when LunaModel behaves differently than it is documented or intended to.
+
+        > [!IMPORTANT]
+        > Many reports that look like bugs turn out to be usage or environment issues — that is why bugs start as a discussion. Once a maintainer confirms it, we convert it into a tracked issue.
+
+        > [!TIP]
+        > Before posting, search the existing [discussions](https://github.com/aqarios/luna-model/discussions) and [issues](https://github.com/aqarios/luna-model/issues) to avoid duplicates, and pick a title you would have searched for yourself.
+  - type: input
+    id: version
+    attributes:
+      label: LunaModel version
+      description: Output of `luna_model.__version__` (Python), a release tag, a commit hash, or a branch name.
+      placeholder: "0.6.3 · commit a1b2c3d · branch f/123"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install LunaModel?
+      options:
+        - PyPI wheel (pip or uv)
+        - Built from source
+        - JavaScript package (npm)
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - Other or multiple
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version and architecture
+      description: The macOS or Windows version, or the Linux distribution and release, plus the CPU architecture.
+      placeholder: "macOS 14.5 (arm64) · Ubuntu 24.04 (x86_64) · Windows 11 (x86_64)"
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      description: Output of `python --version`. Leave blank if you only use the Rust or JavaScript API.
+      placeholder: "3.12.4"
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: The smallest self-contained code sample that triggers the bug. Someone else should be able to paste and run it.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: What actually happened? Paste the full error message or traceback.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen instead, and why?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that might help — links, screenshots, related discussions, or what you have already tried.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: User acknowledgements
+      options:
+        - label: I have [searched the existing discussions and issues](https://github.com/aqarios/luna-model/discussions) and did not find a duplicate.
+          required: true
+        - label: I have reduced the problem to the smallest example that still reproduces it.
+          required: true
+        - label: I have included the version and environment details above.
+          required: true

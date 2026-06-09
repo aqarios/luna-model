@@ -1,8 +1,17 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 💬 Discussions
+  - name: 🐛 Report a bug
+    url: https://github.com/aqarios/luna-model/discussions/new?category=bug-report
+    about: Something in LunaModel is broken or behaves unexpectedly.
+  - name: 💡 Propose a feature
+    url: https://github.com/aqarios/luna-model/discussions/new?category=feature-proposal
+    about: Suggest a concrete change or addition to LunaModel.
+  - name: 🔮 Share a use case
+    url: https://github.com/aqarios/luna-model/discussions/new?category=use-case
+    about: Describe an optimization workflow that is hard or impossible today.
+  - name: 💬 Questions & help
     url: https://github.com/aqarios/luna-model/discussions
-    about: Start here. Bug reports, feature ideas, questions, and modeling help all belong in Discussions — maintainers turn confirmed, actionable items into issues.
+    about: Questions, usage help, and general discussion. Maintainers convert confirmed, actionable items into issues.
   - name: 📚 Documentation
     url: https://docs.aqarios.com
     about: Guides and API reference for LunaModel.
