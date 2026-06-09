@@ -21,9 +21,9 @@ authors = [
   "David Bucher <david.bucher@aqarios.com>",
 ]
 edition = "2024"
-description = "Aqarios LunaModel: Symbolic modeling for optimization"
-homepage = "https://www.aqarios.com"
-repository = "https://github.com/aqaiors/luna-model"
+description = "LunaModel: A Symbolic Modeling Library for Optimization."
+homepage = "https://docs.aqarios.com/luna-model/intro"
+repository = "https://github.com/aqarios/luna-model"
 
 [profile.dev]
 incremental = true
@@ -31,23 +31,12 @@ incremental = true
 [profile.test]
 incremental = true
 
-# Hardened release profile shared by all distributables (js-lunamodel `.node`,
-# py-lunamodel / pyo3-lunamodel wheels). Goal: minimize what a shipped binary
-# leaks about the source tree.
-#
-# Note: `panic = "unwind"` (the default) is intentionally kept. napi-rs and
-# pyo3 catch panics at the FFI boundary and surface them as JS/Python
-# exceptions; `panic = "abort"` would crash the host process instead.
 [profile.release]
-strip = "symbols"     # drop debug info and most local symbols
-lto = true            # cross-crate inlining; erodes crate boundaries
-codegen-units = 1     # better optimization, harder to reverse-engineer
-debug = false         # no DWARF/PDB
-incremental = false   # incremental artifacts embed local paths
-# Path scrubbing (so panic backtraces don't leak /Users/... or
-# /home/runner/...) is handled via `--remap-path-prefix` in
-# `.cargo/config.toml`. The stable `trim-paths` profile option does the same
-# but is still nightly-only as of Cargo 1.95; switch to it once stabilized.
+strip = "symbols"
+lto = true
+codegen-units = 1
+debug = false
+incremental = false
 
 [workspace.dependencies]
 global_counter = "0.2.2"
@@ -82,7 +71,6 @@ napi = "3.0.0"
 napi-derive = "3.0.0"
 napi-build = "2.2.3"
 
-# TODO: BEFORE RELEASE ADD THE `version = "0.5.0" filed here again and fix the version on top.
 # So we can have individual versions for each crate if desired.
 lunamodel = { path = "crates/lunamodel", default-features = false }
 lunamodel-types = { path = "crates/types", default-features = false }
