@@ -21,7 +21,7 @@
   ·
   <a href="#quick-example">Example</a>
   ·
-  <a href="https://docs.aqarios.com">Documentation</a>
+  <a href="https://docs.aqarios.com/luna-model/intro">Documentation</a>
   ·
   <a href="./CONTRIBUTING.md">Contributing</a>
 </p>
@@ -99,7 +99,7 @@ print(model)
 ```
 
 Variables are `BINARY` by default and can also be `SPIN`, `INTEGER`, or `REAL`. See the
-[documentation](https://docs.aqarios.com) for bounded variants, integer models, and more.
+[documentation](https://docs.aqarios.com/luna-model/intro) for bounded variants, integer models, and more.
 
 ## Components
 
@@ -150,7 +150,7 @@ cargo doc --workspace --no-deps
 
 ## Documentation
 
-The full documentation is published at [docs.aqarios.com](https://docs.aqarios.com).
+The full documentation is published at [docs.aqarios.com](https://docs.aqarios.com/luna-model/intro).
 
 ## Communication
 
