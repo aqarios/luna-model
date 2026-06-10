@@ -1,6 +1,8 @@
 [package]
 name = "pyo3-lunamodel"
-version = "0.5.0-alpha.4"
+version.workspace = true
+license.workspace = true
+publish = false
 authors.workspace = true
 edition.workspace = true
 description.workspace = true

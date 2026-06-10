@@ -1,0 +1,37 @@
+# Reusable: cargo test over the whole Cargo workspace.
+#
+# Vendored from aqarios/ci (public repos cannot call reusable workflows that
+# live in private repositories).
+name: Test Rust
+
+on:
+  workflow_call:
+
+env:
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  test:
+    name: cargo test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Read Rust toolchain channel
+        id: toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          test -n "$channel"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2.9.1
+
+      - name: cargo test
+        run: cargo test --workspace

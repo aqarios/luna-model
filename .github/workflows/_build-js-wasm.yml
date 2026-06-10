@@ -1,0 +1,122 @@
+# Reusable: build the js-lunamodel wasm32-wasip1-threads artifact and verify
+# that the produced WASI loader actually deserializes a known Solution.
+# Uploaded as artifact `js-wasm32-wasi`.
+name: Build JS WASM
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        type: string
+        default: 'js-lunamodel'
+      wasi-sdk-version:
+        required: false
+        type: string
+        default: '33'
+
+env:
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  build:
+    name: wasm32-wasip1-threads
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Read Rust toolchain channel
+        id: toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          test -n "$channel"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+          targets: wasm32-wasip1-threads
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2.9.1
+        with:
+          key: wasm32-wasip1-threads
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Cache Bun install
+        uses: actions/cache@v5.0.5
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles(format('{0}/bun.lock', inputs.working-directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install JS dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: bun install --frozen-lockfile
+
+      - name: Install WASI SDK
+        id: wasi-sdk
+        env:
+          WASI_VERSION: ${{ inputs.wasi-sdk-version }}
+        run: |
+          set -euo pipefail
+          version_full="${WASI_VERSION}.0"
+          archive="wasi-sdk-${version_full}-x86_64-linux.tar.gz"
+          url="https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_VERSION}/${archive}"
+          curl -L "$url" -o "$RUNNER_TEMP/$archive"
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP"
+          echo "path=$RUNNER_TEMP/wasi-sdk-${version_full}-x86_64-linux" >> "$GITHUB_OUTPUT"
+
+      - name: Build WASM
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          WASI_SDK_PATH: ${{ steps.wasi-sdk.outputs.path }}
+          # The threaded wasi-sysroot ships `setjmp` as a separate static lib
+          # rather than rolled into libc, so we point rustc at the threaded
+          # sysroot lib dir and link it explicitly.
+          # `RUSTFLAGS` env overrides `[build] rustflags` in .cargo/config.toml
+          # entirely, so the runner-path scrubbing flags are re-included here.
+          RUSTFLAGS: >-
+            -L native=${{ steps.wasi-sdk.outputs.path }}/share/wasi-sysroot/lib/wasm32-wasip1-threads
+            -l static=setjmp
+            --remap-path-prefix=/home/runner/work/luna-model/luna-model=/luna-model
+            --remap-path-prefix=/home/runner/.cargo/registry=/cargo/registry
+            --remap-path-prefix=/home/runner/.cargo/git=/cargo/git
+        run: |
+          bunx napi build \
+            --release \
+            --target wasm32-wasip1-threads \
+            --platform \
+            --config-path napi.wasm.json \
+            --output-dir ./artifacts
+
+      - name: Verify WASM loader
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          node - <<'NODE'
+          const assert = require('node:assert/strict')
+          const { Solution } = require('./artifacts/js_lunamodel.wasi.cjs')
+          const bytes = Buffer.from('08011258125608021201781a084d696e696d697a652a01003201023801620202036a10000000000000244000000000000034407210000000000000f83f00000000000004408a0101019001019a010103a00101aa01026330b2010178', 'hex')
+          const solution = Solution.deserialize(bytes)
+          assert.deepEqual(solution.counts, [2, 3])
+          assert.equal(solution.feasibilityRatio(), 0.4)
+          NODE
+
+      - name: Upload WASM artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: js-wasm32-wasi
+          path: |
+            ${{ inputs.working-directory }}/artifacts/*.wasm
+            ${{ inputs.working-directory }}/artifacts/*.cjs
+            ${{ inputs.working-directory }}/artifacts/*.js
+            ${{ inputs.working-directory }}/artifacts/*.mjs
+          if-no-files-found: error
+          retention-days: 7

@@ -3,10 +3,10 @@
   "version": "0.6.3",
   "description": "JavaScript and TypeScript bindings for LunaModel",
   "license": "Apache-2.0",
-  "private": true,
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
-    "access": "restricted"
+    "access": "public",
+    "provenance": true
   },
   "repository": {
     "type": "git",

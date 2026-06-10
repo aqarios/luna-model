@@ -1,0 +1,49 @@
+# Stage 2 of the release train: when a `release/vX.Y.Z` PR (labelled
+# `release`) is merged, create the `vX.Y.Z` tag on the merge commit.
+#
+# The tag is created with a GitHub App token — tags pushed with the default
+# GITHUB_TOKEN would not trigger the `tagged-release` workflow.
+name: Create Release Tag
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  create-tag:
+    name: Tag merged release PR
+    if: |
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'release') &&
+      startsWith(github.event.pull_request.head.ref, 'release/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v3.2.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Create tag on merge commit
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          version="${HEAD_REF#release/v}"
+          echo "Creating tag v${version} at ${MERGE_SHA}"
+          gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
+            -f "ref=refs/tags/v${version}" \
+            -f "sha=${MERGE_SHA}"
+
+      - name: Delete release branch
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${HEAD_REF}" \
+            || echo "::warning::could not delete branch ${HEAD_REF} (may already be gone)"

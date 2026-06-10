@@ -1,0 +1,166 @@
+# Reusable: build the js-lunamodel native `.node` artifacts for every
+# napi.json target, cross-compiled from ubuntu-latest.
+#
+# `napi build --cross-compile` dispatches to cargo-zigbuild (linux/macOS;
+# zig ships its own glibc/musl/Apple SDK shims) or cargo-xwin (Windows MSVC),
+# downloading those helpers itself on first use. Artifacts are uploaded as
+# `js-<target>`.
+name: Build JS
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        type: string
+        default: 'js-lunamodel'
+
+env:
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  # Same cache priming as in _build-wheels.yml; on a release both workflows
+  # run and the second one is a cache hit.
+  xwin-cache:
+    name: Prime Windows SDK cache
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Cache xwin SDK
+        id: xwin-cache
+        uses: actions/cache@v5.0.5
+        with:
+          path: ~/.cache/cargo-xwin/
+          key: xwin-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: xwin-
+
+      - name: Install LLVM & Clang
+        if: steps.xwin-cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y llvm clang
+
+      - name: Install cargo-xwin
+        if: steps.xwin-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-xwin --locked
+
+      - name: Read Rust toolchain channel
+        if: steps.xwin-cache.outputs.cache-hit != 'true'
+        id: toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          test -n "$channel"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Rust
+        if: steps.xwin-cache.outputs.cache-hit != 'true'
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+          targets: x86_64-pc-windows-msvc
+
+      - name: Download MSVC SDK
+        if: steps.xwin-cache.outputs.cache-hit != 'true'
+        run: |
+          for attempt in 1 2 3; do
+            if cargo xwin build -p lunamodel-types --target x86_64-pc-windows-msvc; then
+              exit 0
+            fi
+            echo "::warning::cargo xwin build failed (attempt $attempt), retrying..."
+            sleep 30
+          done
+          exit 1
+
+  build:
+    name: ${{ matrix.target }}
+    needs: xwin-cache
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-pc-windows-msvc
+          - aarch64-pc-windows-msvc
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Read Rust toolchain channel
+        id: toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          test -n "$channel"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2.9.1
+        with:
+          key: js-${{ matrix.target }}
+
+      - name: Setup Zig (linux/macOS cross-compile)
+        if: ${{ !contains(matrix.target, 'windows') }}
+        uses: mlugg/setup-zig@v2.2.1
+        with:
+          version: 0.13.0
+
+      - name: Install LLVM & Clang (Windows cross-compile)
+        if: contains(matrix.target, 'windows')
+        run: sudo apt-get update && sudo apt-get install -y llvm clang
+
+      - name: Load xwin SDK cache (Windows cross-compile)
+        if: contains(matrix.target, 'windows')
+        uses: actions/cache@v5.0.5
+        with:
+          path: ~/.cache/cargo-xwin/
+          key: xwin-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: xwin-
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Cache Bun install
+        uses: actions/cache@v5.0.5
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles(format('{0}/bun.lock', inputs.working-directory)) }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install JS dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: bun install --frozen-lockfile
+
+      - name: Build .node artifact
+        working-directory: ${{ inputs.working-directory }}
+        # `bunx napi` resolves the @napi-rs/cli version pinned in bun.lock.
+        run: |
+          bunx napi build \
+            --release \
+            --target ${{ matrix.target }} \
+            --cross-compile \
+            --strip \
+            --platform \
+            --config-path napi.json \
+            --output-dir ./artifacts
+
+      - name: Upload .node artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: js-native-${{ matrix.target }}
+          path: ${{ inputs.working-directory }}/artifacts/*.node
+          if-no-files-found: error
+          retention-days: 7

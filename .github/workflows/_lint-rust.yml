@@ -1,0 +1,42 @@
+# Reusable: rustfmt + clippy over the whole Cargo workspace.
+#
+# Vendored from aqarios/ci (public repos cannot call reusable workflows that
+# live in private repositories). All third-party actions are pinned to exact
+# version tags; Dependabot keeps the pins fresh.
+name: Lint Rust
+
+on:
+  workflow_call:
+
+env:
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  lint:
+    name: rustfmt + clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Read Rust toolchain channel
+        id: toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          test -n "$channel"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2.9.1
+
+      - name: cargo fmt
+        run: cargo fmt --all -- --check
+
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings

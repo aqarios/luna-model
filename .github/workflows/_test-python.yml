@@ -1,0 +1,66 @@
+# Reusable: pytest (unit + doctests) for py-lunamodel across all supported
+# Python versions. `uv sync --locked` builds the Rust extension via maturin.
+name: Test Python
+
+on:
+  workflow_call:
+    inputs:
+      python-versions:
+        required: false
+        type: string
+        default: '["3.11", "3.12", "3.13", "3.14"]'
+      working-directory:
+        required: false
+        type: string
+        default: 'py-lunamodel'
+
+env:
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  test:
+    name: pytest (Python ${{ matrix.py }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        py: ${{ fromJson(inputs.python-versions) }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Read Rust toolchain channel
+        id: toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' "$GITHUB_WORKSPACE/rust-toolchain.toml")
+          test -n "$channel"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Rust (builds the extension module)
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2.9.1
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: ${{ matrix.py }}
+          activate-environment: false
+          enable-cache: true
+          cache-dependency-glob: "${{ inputs.working-directory }}/uv.lock"
+          cache-suffix: test
+
+      - name: Sync environment
+        run: uv sync --locked
+
+      - name: Unit tests
+        run: uv run --no-sync pytest -x --tb=short
+
+      - name: Doctests
+        run: uv run --no-sync pytest --doctest-modules src -x --tb=short

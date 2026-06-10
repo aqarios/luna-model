@@ -1,0 +1,140 @@
+# Post-merge validation plus the rolling nightly build.
+#
+# Every push to main runs the full check suite; when it passes, all wheels are
+# rebuilt with a nightly version stamp (X.Y.Z+1-dev.<commits>+<sha>) and
+# attached to the rolling `nightly` GitHub release. Registry publishing only
+# ever happens from release tags (tagged-release.yml).
+name: Main CI
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check-versions:
+    name: Check version sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Verify all versions match the workspace version
+        run: sh ci/tools/check-versions.sh
+
+  lint-rust:
+    name: Lint Rust
+    uses: ./.github/workflows/_lint-rust.yml
+
+  test-rust:
+    name: Test Rust
+    uses: ./.github/workflows/_test-rust.yml
+
+  lint-python:
+    name: Lint Python
+    uses: ./.github/workflows/_lint-python.yml
+
+  test-python:
+    name: Test Python
+    uses: ./.github/workflows/_test-python.yml
+
+  test-js:
+    name: Test JS
+    uses: ./.github/workflows/_test-js.yml
+
+  nightly-version:
+    name: Compute nightly version
+    # Skip on release-PR merges: the tag flow builds and publishes the real
+    # version moments later anyway.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      !startsWith(github.event.head_commit.message, 'release: bump version')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+        with:
+          # Full history: the nightly version embeds the commit count.
+          fetch-depth: 0
+
+      - name: Compute nightly version
+        id: version
+        run: |
+          version=$(sh ci/tools/nightly-version.sh)
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Nightly version: $version"
+
+  build-wheels:
+    name: Build nightly wheels
+    needs:
+      - nightly-version
+      - check-versions
+      - lint-rust
+      - test-rust
+      - lint-python
+      - test-python
+      - test-js
+    uses: ./.github/workflows/_build-wheels.yml
+    with:
+      version-override: ${{ needs.nightly-version.outputs.version }}
+
+  nightly-release:
+    name: Update nightly release
+    needs: [nightly-version, build-wheels]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download wheels
+        uses: actions/download-artifact@v8.0.1
+        with:
+          path: dist
+          pattern: wheel-*
+          merge-multiple: true
+
+      - name: Update rolling nightly release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.nightly-version.outputs.version }}
+        run: |
+          set -e
+
+          # Point the `nightly` tag at the current commit.
+          if gh api "repos/${GITHUB_REPOSITORY}/git/refs/tags/nightly" --silent 2>/dev/null; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/nightly" \
+              -f "sha=${GITHUB_SHA}" -F "force=true"
+          else
+            gh api "repos/${GITHUB_REPOSITORY}/git/refs" \
+              -f "ref=refs/tags/nightly" -f "sha=${GITHUB_SHA}"
+          fi
+
+          # Create the rolling release once; afterwards only assets/notes change.
+          # Marked prerelease and never "latest" — that belongs to tagged releases.
+          if ! gh release view nightly >/dev/null 2>&1; then
+            gh release create nightly \
+              --title "Nightly Build" \
+              --prerelease \
+              --latest=false \
+              --notes "Automated nightly build from \`main\`."
+          fi
+
+          # Replace old wheels (their filenames change with every nightly version).
+          gh release view nightly --json assets --jq '.assets[].name' \
+            | while read -r asset; do
+                gh release delete-asset nightly "$asset" --yes || true
+              done
+
+          gh release upload nightly dist/*.whl
+          gh release edit nightly \
+            --notes "Automated nightly build from \`main\` (version \`${VERSION}\`, commit ${GITHUB_SHA})."

@@ -1,0 +1,245 @@
+# Stage 3 of the release train: a `vX.Y.Z` tag push builds every artifact and
+# publishes to PyPI, npm, and GitHub Releases.
+#
+# Registry authentication uses OIDC Trusted Publishing exclusively — there are
+# no registry tokens in this repository's secrets:
+#   - PyPI:  configure a trusted publisher for project `luna_model` with
+#            workflow file `tagged-release.yml` and environment `pypi`
+#   - npm:   configure trusted publishing for `@aqarios/luna-model` (and the
+#            generated platform packages) with workflow file
+#            `tagged-release.yml` and environment `npm`
+# Both `pypi` and `npm` must exist as environments in the repository settings;
+# add required reviewers there for an extra human gate if desired.
+name: Tagged Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify-version:
+    name: Verify tag matches workspace version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          case "$version" in
+            *-*) echo "prerelease=true" >> "$GITHUB_OUTPUT" ;;
+            *)   echo "prerelease=false" >> "$GITHUB_OUTPUT" ;;
+          esac
+          echo "Release version: $version"
+
+      - name: Verify all versions match the tag
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+        run: sh ci/tools/check-versions.sh
+
+  build-wheels:
+    name: Build wheels
+    needs: verify-version
+    uses: ./.github/workflows/_build-wheels.yml
+
+  build-js:
+    name: Build JS
+    needs: verify-version
+    uses: ./.github/workflows/_build-js.yml
+
+  build-js-wasm:
+    name: Build JS WASM
+    needs: verify-version
+    uses: ./.github/workflows/_build-js-wasm.yml
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [verify-version, build-wheels]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/luna_model/${{ needs.verify-version.outputs.version }}/
+    permissions:
+      # OIDC token for PyPI Trusted Publishing
+      id-token: write
+    steps:
+      - name: Download wheels
+        uses: actions/download-artifact@v8.0.1
+        with:
+          path: dist
+          pattern: wheel-*
+          merge-multiple: true
+
+      - name: Publish (trusted publishing + attestations)
+        uses: pypa/gh-action-pypi-publish@v1.14.0
+        with:
+          packages-dir: dist
+
+  publish-npm:
+    name: Publish to npm
+    needs: [verify-version, build-js, build-js-wasm]
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/@aqarios/luna-model/v/${{ needs.verify-version.outputs.version }}
+    permissions:
+      # OIDC token for npm Trusted Publishing (provenance included)
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: js-lunamodel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Setup Node
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: '24'
+
+      - name: Update npm (trusted publishing needs >= 11.5.1)
+        run: npm install -g npm@latest && npm --version
+
+      - name: Install JS dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Download native artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          path: js-lunamodel/artifacts-native
+          pattern: js-native-*
+          merge-multiple: true
+
+      - name: Download WASM artifact
+        uses: actions/download-artifact@v8.0.1
+        with:
+          path: js-lunamodel/artifacts-wasm
+          name: js-wasm32-wasi
+
+      - name: Create per-target npm package directories
+        run: |
+          bunx napi create-npm-dirs --config-path napi.json --npm-dir ./npm
+          bunx napi create-npm-dirs --config-path napi.wasm.json --npm-dir ./npm
+
+      - name: Assemble per-target npm packages
+        run: |
+          bunx napi artifacts --config-path napi.json \
+            --output-dir ./artifacts-native --npm-dir ./npm
+          bunx napi artifacts --config-path napi.wasm.json \
+            --output-dir ./artifacts-wasm --build-output-dir ./artifacts-wasm --npm-dir ./npm
+
+      - name: Finalize WASM package (types + platform-neutral metadata)
+        run: |
+          # shellcheck disable=SC2016 # ${...} below are JS template literals
+          for d in npm/*wasm*/; do
+            cp index.d.ts "$d/index.d.ts"
+            PKG_PATH="$d/package.json" node -e '
+              const fs = require("node:fs");
+              const path = process.env.PKG_PATH;
+              const pkg = JSON.parse(fs.readFileSync(path, "utf8"));
+
+              // A browser/WASI package must stay platform-neutral: cpu/os/libc
+              // are npm host-install filters, not runtime capability tags.
+              delete pkg.cpu;
+              delete pkg.os;
+              delete pkg.libc;
+
+              pkg.types = "index.d.ts";
+              pkg.files = Array.from(new Set([...(pkg.files || []), "index.d.ts"]));
+
+              // Optional repo-level overrides for the wasm package.
+              const overlayPath = "wasm-package.json";
+              if (fs.existsSync(overlayPath)) {
+                const overlay = JSON.parse(fs.readFileSync(overlayPath, "utf8"));
+                const files = pkg.files;
+                Object.assign(pkg, overlay);
+                pkg.files = Array.from(new Set([...files, ...(overlay.files || [])]));
+              }
+
+              fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + "\n");
+            '
+          done
+
+      - name: Verify WASM package metadata
+        run: |
+          # shellcheck disable=SC2016 # ${...} below are JS template literals
+          for d in npm/*wasm*/; do
+            PKG_PATH="$d/package.json" node -e '
+              const fs = require("node:fs");
+              const path = process.env.PKG_PATH;
+              const pkg = JSON.parse(fs.readFileSync(path, "utf8"));
+
+              for (const field of ["cpu", "os", "libc"]) {
+                if (field in pkg) throw new Error(`${path} still has host platform filter: ${field}`);
+              }
+              if (!pkg.main) throw new Error(`${path} is missing main`);
+              if (!pkg.browser) throw new Error(`${path} is missing browser entry`);
+              if (pkg.types !== "index.d.ts") throw new Error(`${path} has unexpected types entry`);
+              if (!pkg.exports?.["."]?.browser) throw new Error(`${path} is missing the browser export`);
+              if (!pkg.exports?.["."]?.import) throw new Error(`${path} is missing the import export`);
+              if (!pkg.exports?.["."]?.require) throw new Error(`${path} is missing the CommonJS export`);
+            '
+          done
+
+      - name: Publish packages
+        # Per-target packages first, the main package last, so the main
+        # package never points at optionalDependencies that don't exist yet.
+        # No token: npm exchanges the workflow's OIDC token with the registry
+        # (trusted publishing) and generates provenance automatically.
+        run: |
+          set -e
+          for d in npm/*/; do
+            echo "→ publishing $d"
+            (cd "$d" && npm publish --provenance --access public)
+          done
+          echo "→ publishing main package"
+          npm publish --provenance --access public
+
+  github-release:
+    name: Create GitHub Release
+    needs: [verify-version, publish-pypi, publish-npm]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          path: assets
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.verify-version.outputs.version }}
+          PRERELEASE: ${{ needs.verify-version.outputs.prerelease }}
+        run: |
+          flags="--verify-tag --generate-notes"
+          if [ "$PRERELEASE" = "true" ]; then
+            flags="$flags --prerelease"
+          fi
+          # shellcheck disable=SC2086
+          find assets -type f \( -name '*.whl' -o -name '*.node' -o -name '*.wasm' \) -print0 \
+            | xargs -0 gh release create "v${VERSION}" --title "v${VERSION}" $flags

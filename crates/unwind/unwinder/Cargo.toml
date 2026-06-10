@@ -1,6 +1,8 @@
 [package]
 name = "lunamodel-unwinder"
 version.workspace = true
+license.workspace = true
+publish = false
 authors.workspace = true
 edition.workspace = true
 description.workspace = true

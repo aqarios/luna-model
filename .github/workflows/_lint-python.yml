@@ -1,0 +1,52 @@
+# Reusable: ruff lint + format check for py-lunamodel.
+#
+# Ruff is pure Python tooling — one interpreter version is enough, and no Rust
+# toolchain is needed. The ruff version is pinned to whatever uv.lock records
+# so lint results are reproducible and Dependabot-controlled.
+name: Lint Python
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        type: string
+        default: 'py-lunamodel'
+
+jobs:
+  lint:
+    name: ruff
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: "3.13"
+          activate-environment: false
+          enable-cache: true
+          cache-dependency-glob: "${{ inputs.working-directory }}/uv.lock"
+          cache-suffix: lint
+
+      - name: Read locked ruff version
+        id: ruff
+        run: |
+          version=$(python3 -c "
+          import tomllib
+          with open('uv.lock', 'rb') as f:
+              lock = tomllib.load(f)
+          print(next(p['version'] for p in lock['package'] if p['name'] == 'ruff'))
+          ")
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Ruff linter
+        run: uv run --no-project --with "ruff==${{ steps.ruff.outputs.version }}" ruff check . --config ./ruff.toml
+
+      - name: Ruff formatter check
+        run: uv run --no-project --with "ruff==${{ steps.ruff.outputs.version }}" ruff format . --check --config ./ruff.toml

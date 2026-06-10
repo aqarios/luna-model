@@ -1,6 +1,8 @@
 [package]
 name = "js-lunamodel"
-version = "0.6.3"
+version.workspace = true
+license.workspace = true
+publish = false
 authors.workspace = true
 edition.workspace = true
 description = "JavaScript and TypeScript bindings for LunaModel"

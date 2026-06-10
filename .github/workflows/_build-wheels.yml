@@ -1,0 +1,162 @@
+# Reusable: build all py-lunamodel wheels.
+#
+# Every wheel is cross-compiled from ubuntu-latest (see ci/build-wheel.sh):
+# zig for linux/macOS targets, maturin's xwin support for Windows MSVC.
+# The artifacts are uploaded as `wheel-<target>-<python>`.
+# No sdist is published: the wheel matrix covers all supported platforms, and
+# an untested source build would be a liability. Revisit if source-build
+# consumers (conda-forge, distro packagers) ask for one.
+name: Build Wheels
+
+on:
+  workflow_call:
+    inputs:
+      python-versions:
+        required: false
+        type: string
+        default: '["3.11", "3.12", "3.13", "3.14"]'
+      version-override:
+        required: false
+        type: string
+        default: ''
+        description: >-
+          If set, stamp this version onto the workspace before building
+          (used for nightly builds; never committed).
+
+env:
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  # Download the MSVC SDK once so the Windows matrix entries restore it from
+  # cache instead of fetching it 2 targets x N python versions times.
+  xwin-cache:
+    name: Prime Windows SDK cache
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Cache xwin SDK
+        id: xwin-cache
+        uses: actions/cache@v5.0.5
+        with:
+          path: ~/.cache/cargo-xwin/
+          key: xwin-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: xwin-
+
+      - name: Install LLVM & Clang
+        if: steps.xwin-cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y llvm clang
+
+      - name: Install cargo-xwin
+        if: steps.xwin-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-xwin --locked
+
+      - name: Read Rust toolchain channel
+        if: steps.xwin-cache.outputs.cache-hit != 'true'
+        id: toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          test -n "$channel"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Rust
+        if: steps.xwin-cache.outputs.cache-hit != 'true'
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+          targets: x86_64-pc-windows-msvc
+
+      - name: Download MSVC SDK
+        if: steps.xwin-cache.outputs.cache-hit != 'true'
+        # Building one small workspace crate is enough to make cargo-xwin
+        # populate ~/.cache/cargo-xwin. Retried because the SDK download is
+        # the flakiest part of the release pipeline.
+        run: |
+          for attempt in 1 2 3; do
+            if cargo xwin build -p lunamodel-types --target x86_64-pc-windows-msvc; then
+              exit 0
+            fi
+            echo "::warning::cargo xwin build failed (attempt $attempt), retrying..."
+            sleep 30
+          done
+          exit 1
+
+  wheel:
+    name: ${{ matrix.target }} (Python ${{ matrix.py }})
+    needs: xwin-cache
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        py: ${{ fromJson(inputs.python-versions) }}
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-pc-windows-msvc
+          - aarch64-pc-windows-msvc
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: ${{ matrix.py }}
+          activate-environment: false
+          enable-cache: true
+          cache-dependency-glob: "py-lunamodel/uv.lock"
+          cache-suffix: build
+
+      - name: Read Rust toolchain channel
+        id: toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          test -n "$channel"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2.9.1
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install LLVM & Clang (Windows cross-compile)
+        if: contains(matrix.target, 'windows')
+        run: sudo apt-get update && sudo apt-get install -y llvm clang
+
+      - name: Load xwin SDK cache (Windows cross-compile)
+        if: contains(matrix.target, 'windows')
+        uses: actions/cache@v5.0.5
+        with:
+          path: ~/.cache/cargo-xwin/
+          key: xwin-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: xwin-
+
+      - name: Apply version override
+        if: inputs.version-override != ''
+        run: sh ci/tools/apply-version.sh "${{ inputs.version-override }}"
+
+      - name: Build wheel
+        env:
+          TARGET: ${{ matrix.target }}
+          PY: ${{ matrix.py }}
+        run: sh ci/build-wheel.sh
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: wheel-${{ matrix.target }}-${{ matrix.py }}
+          path: build/*.whl
+          if-no-files-found: error
+          retention-days: 7
+

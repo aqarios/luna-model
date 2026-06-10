@@ -1,0 +1,121 @@
+# Stage 1 of the release train: manually dispatched, bumps the workspace
+# version (the single source of truth — see ci/tools/set-release-version.sh)
+# and opens a `release/vX.Y.Z` pull request.
+#
+#   release-prep  ->  release PR (checks run, human reviews & merges)
+#   tag-release   ->  creates the vX.Y.Z tag from the merge commit
+#   tagged-release -> builds & publishes (PyPI, npm, GitHub Release)
+#
+# A GitHub App token (APP_ID / APP_PRIVATE_KEY) is used instead of
+# GITHUB_TOKEN because events created with GITHUB_TOKEN do not trigger other
+# workflows — the release PR would otherwise show no checks.
+name: Release Prep
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Version bump (cargo set-version --bump)'
+        type: choice
+        required: true
+        default: 'patch'
+        options:
+          - major
+          - minor
+          - patch
+          - rc
+          - beta
+          - alpha
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  open-release-pr:
+    name: Bump version & open release PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v3.2.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v6.0.3
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Read Rust toolchain channel
+        id: toolchain
+        run: |
+          channel=$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml)
+          test -n "$channel"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2.9.1
+        with:
+          key: release-prep
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2.2.0
+        with:
+          bun-version: latest
+
+      - name: Bump workspace version & sync derived versions
+        env:
+          RELEASE_TYPE: ${{ github.event.inputs.release_type }}
+        run: sh ci/tools/set-release-version.sh
+
+      - name: Verify version sync
+        run: sh ci/tools/check-versions.sh
+
+      - name: Read new version
+        id: version
+        run: |
+          version=$(sed -n 's/^version = "\([^"]*\)".*/\1/p' Cargo.toml | head -n 1)
+          test -n "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Release version: $version"
+
+      - name: Create release pull request
+        uses: peter-evans/create-pull-request@v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "release: bump version to v${{ steps.version.outputs.version }}"
+          branch: release/v${{ steps.version.outputs.version }}
+          delete-branch: true
+          title: "Release v${{ steps.version.outputs.version }}"
+          labels: |
+            release
+          assignees: ${{ github.triggering_actor }}
+          body: |
+            ## Release v${{ steps.version.outputs.version }}
+
+            **Initiated by:** @${{ github.triggering_actor }}
+            **Release type:** `${{ github.event.inputs.release_type }}`
+
+            One workspace version bump, synced everywhere
+            (root `Cargo.toml` → all crates, `js-lunamodel/package.json`,
+            `Cargo.lock`, `py-lunamodel/uv.lock`).
+
+            ### Merging this PR will:
+
+            1. create the git tag `v${{ steps.version.outputs.version }}` (`tag-release` workflow)
+            2. trigger `tagged-release`, which builds all wheels and JS artifacts and publishes to:
+               - **PyPI** (`luna_model`, trusted publishing)
+               - **npm** (`@aqarios/luna-model` + platform packages, trusted publishing + provenance)
+               - **GitHub Releases** (all artifacts attached)
+
+            All PR checks must pass before merging.
