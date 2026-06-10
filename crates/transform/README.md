@@ -1,12 +1,9 @@
-# lunamodel-transform-v2
+# lunamodel-transform
 
-Builtin transformations of the LunaModel project.
+Builtin transformations for LunaModel models.
 
-`lunamodel-transform-v2` is an **internal sub-crate** of the [LunaModel](https://github.com/aqarios/luna-model)
+`lunamodel-transform` is an **internal sub-crate** of the [LunaModel](https://github.com/aqarios/luna-model)
 library.
 
 **Important Note**: This crate is **not intended for external usage**. Please refer to the main
 [LunaModel crate](https://github.com/aqarios/luna-model) for intended usage.
-
-
-

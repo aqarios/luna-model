@@ -1,10 +1,9 @@
 # lunamodel-unwind
 
-Datatype definitions of the LunaModel project.
+Converts Rust panics into LunaModel error types across the FFI boundary.
 
 `lunamodel-unwind` is an **internal sub-crate** of the [LunaModel](https://github.com/aqarios/luna-model)
 library.
 
 **Important Note**: This crate is **not intended for external usage**. Please refer to the main
 [LunaModel crate](https://github.com/aqarios/luna-model) for intended usage.
-
