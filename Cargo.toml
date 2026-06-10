@@ -16,9 +16,12 @@ default-members = [
 
 [workspace.package]
 version = "0.6.3"
+# Cargo has no maintainers field; Aqarios GmbH as steward is expressed via
+# the crates.io crate owners (and homepage/repository) instead.
 authors = [
   "Jonas Blenninger <jonas.blenninger@aqarios.com>",
   "David Bucher <david.bucher@aqarios.com>",
+  "Maximilian Janetschek <maximilian.janetschek@aqarios.com>",
 ]
 edition = "2024"
 description = "LunaModel: A Symbolic Modeling Library for Optimization."

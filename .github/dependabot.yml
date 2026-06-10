@@ -1,6 +1,9 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
+# Dependabot configuration.
+#
+# One PR per ecosystem: each ecosystem has a catch-all version-updates group
+# (no update-types filter, so majors are included) plus a matching
+# security-updates group — without the latter, security fixes would still
+# arrive as individual PRs.
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
@@ -12,6 +15,11 @@ updates:
       interval: "weekly"
     groups:
       actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      actions-security:
+        applies-to: security-updates
         patterns:
           - "*"
 
@@ -21,11 +29,13 @@ updates:
       interval: "weekly"
     groups:
       cargo:
+        applies-to: version-updates
         patterns:
           - "*"
-        update-types:
-          - "minor"
-          - "patch"
+      cargo-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   - package-ecosystem: "uv"
     directory: "/py-lunamodel"
@@ -35,11 +45,13 @@ updates:
       - "THIRD_PARTY_LICENSES.txt"
     groups:
       python:
+        applies-to: version-updates
         patterns:
           - "*"
-        update-types:
-          - "minor"
-          - "patch"
+      python-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   - package-ecosystem: "bun"
     directory: "/js-lunamodel"
@@ -47,8 +59,10 @@ updates:
       interval: "weekly"
     groups:
       javascript:
+        applies-to: version-updates
         patterns:
           - "*"
-        update-types:
-          - "minor"
-          - "patch"
+      javascript-security:
+        applies-to: security-updates
+        patterns:
+          - "*"

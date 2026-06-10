@@ -34,4 +34,10 @@ jobs:
         uses: Swatinem/rust-cache@v2.9.1
 
       - name: cargo test
-        run: cargo test --workspace
+        # Deliberately NOT --workspace: that would pull in the pyo3-linked
+        # crates (pylm, pyo3-lunamodel), whose test binaries cannot link
+        # without an embedded Python. The workspace `default-members`
+        # (crates/*) scope the testable core. The bindings are covered
+        # elsewhere: pylm via pytest (_test-python.yml), js-lunamodel via
+        # `bun run test:all` (_test-js.yml).
+        run: cargo test

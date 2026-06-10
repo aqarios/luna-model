@@ -7,8 +7,13 @@ name = "luna_model"
 readme = "README.md"
 license = "Apache-2.0"
 dynamic = ["version", "description"]
-authors = [
+maintainers = [
     { name = "Aqarios GmbH", email = "pypi@aqarios.com" },
+]
+authors = [
+    { name = "Jonas Blenninger", email = "jonas.blenninger@aqarios.com" },
+    { name = "David Bucher", email = "david.bucher@aqarios.com" },
+    { name = "Maximilian Janetschek", email = "maximilian.janetschek@aqarios.com" },
 ]
 license-files = ["LICENSE", "THIRD_PARTY_LICENSES.txt"]
 requires-python = ">=3.11,<3.15"

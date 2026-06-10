@@ -3,6 +3,12 @@
   "version": "0.6.3",
   "description": "JavaScript and TypeScript bindings for LunaModel",
   "license": "Apache-2.0",
+  "author": "Aqarios GmbH <pypi@aqarios.com>",
+  "contributors": [
+    "Jonas Blenninger <jonas.blenninger@aqarios.com>",
+    "David Bucher <david.bucher@aqarios.com>",
+    "Maximilian Janetschek <maximilian.janetschek@aqarios.com>"
+  ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
     "access": "public",
