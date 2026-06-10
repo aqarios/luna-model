@@ -8,6 +8,7 @@ use napi::bindgen_prelude::{Error, Result, Status, Uint8Array};
 use napi_derive::napi;
 
 use crate::error::map_luna_error;
+use crate::resview::JsResultView;
 use crate::timing::JsTiming;
 
 /// Column-oriented solution data for model evaluation or solver results.
@@ -20,11 +21,11 @@ pub struct JsSolution {
     inner: CoreSolution,
 }
 
-/// Column-oriented solution data for model evaluation or solver results.
-///
-/// A solution is independent of the original model and stores all variable data
-/// by variable name. JavaScript solutions are created from LunaModel's binary
-/// serializer with `Solution.deserialize()`.
+// Optimization direction for the objective function.
+//
+// Specifies whether the goal is to minimize (Sense.Min) or maximize (Sense.Max) the objective.
+//   Sense.Min : Minimize the objective function.
+//   Sense.Max : Maximize the objective function.
 #[napi(js_name = "Sense")]
 pub enum JsSense {
     Max,
@@ -153,6 +154,19 @@ impl JsSolution {
                 "filter_feasible is not possible on non-evaluated solution.".into(),
             )))
         }
+    }
+
+    /// Get the best results according to the optimization sense.
+    ///
+    /// Returns `ResultView[]` or `null`.
+    /// List of best results (lowest for MIN, highest for MAX).
+    #[napi]
+    pub fn best(&self) -> Option<Vec<JsResultView>> {
+        self.inner.best().map(|vs| {
+            vs.iter()
+                .map(|v| JsResultView::new(self.inner.clone(), v.idx))
+                .collect()
+        })
     }
 }
 

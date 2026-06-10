@@ -30,3 +30,9 @@ test("throws when filtering feasible rows on a non-evaluated solution", () => {
     /filter_feasible is not possible on non-evaluated solution/,
   );
 });
+
+test("returns null best results for a non-evaluated solution", () => {
+  const solution = Solution.deserialize(bytesFromHex(NULL_SOLUTION_HEX));
+
+  expect(solution.best()).toBeNull();
+});

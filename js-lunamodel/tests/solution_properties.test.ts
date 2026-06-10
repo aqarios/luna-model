@@ -48,6 +48,20 @@ test("filters to feasible sample rows", () => {
   expect(filtered.feasibilityRatio()).toBe(1);
 });
 
+test("returns the best result views according to solution sense", () => {
+  const solution = Solution.deserialize(bytesFromHex(FULL_SOLUTION_HEX));
+  const best = solution.best();
+
+  expect(best).not.toBeNull();
+  expect(best).toHaveLength(1);
+  expect(best?.[0].counts).toBe(2);
+  expect(best?.[0].objValue).toBe(10);
+  expect(best?.[0].rawEnergy).toBe(1.5);
+  expect(best?.[0].feasible).toBe(true);
+  expect(best?.[0].constraints).toEqual({ c0: true });
+  expect(best?.[0].variableBounds).toEqual({ x: true });
+});
+
 test("exposes constraints as a read-only JavaScript property", () => {
   const solution = Solution.deserialize(bytesFromHex(FULL_SOLUTION_HEX));
 
