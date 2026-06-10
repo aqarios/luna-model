@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
-use lunamodel_core::Solution as CoreSolution;
-use lunamodel_error::LunaModelError;
-use lunamodel_serializer::prelude::*;
+use lunamodel::core::Solution as CoreSolution;
+use lunamodel::error::LunaModelError;
+use lunamodel::serializer::prelude::*;
+use lunamodel::types::Sense;
 use napi::bindgen_prelude::{Error, Result, Status, Uint8Array};
 use napi_derive::napi;
 
@@ -17,6 +18,17 @@ use crate::timing::JsTiming;
 #[napi(js_name = "Solution")]
 pub struct JsSolution {
     inner: CoreSolution,
+}
+
+/// Column-oriented solution data for model evaluation or solver results.
+///
+/// A solution is independent of the original model and stores all variable data
+/// by variable name. JavaScript solutions are created from LunaModel's binary
+/// serializer with `Solution.deserialize()`.
+#[napi(js_name = "Sense")]
+pub enum JsSense {
+    Max,
+    Min,
 }
 
 #[napi]
@@ -101,6 +113,17 @@ impl JsSolution {
     #[napi(getter)]
     pub fn timing(&self) -> Option<JsTiming> {
         self.inner.timing.map(|t| t.into())
+    }
+
+    /// Sense carried by this solution.
+    ///
+    /// This corresponds to Python's `sense` property.
+    #[napi(getter)]
+    pub fn sense(&self) -> JsSense {
+        match self.inner.sense {
+            Sense::Min => JsSense::Min,
+            Sense::Max => JsSense::Max,
+        }
     }
 
     /// Fraction of total sample mass marked as feasible.

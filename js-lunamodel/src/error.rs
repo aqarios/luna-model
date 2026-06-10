@@ -1,4 +1,4 @@
-use lunamodel_error::LunaModelError;
+use lunamodel::error::LunaModelError;
 use napi::bindgen_prelude::{Error, Status};
 
 pub(crate) fn map_luna_error(err: LunaModelError) -> Error {

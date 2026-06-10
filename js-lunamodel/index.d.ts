@@ -63,6 +63,12 @@ export declare class Solution {
    */
   get timing(): JsTiming | null
   /**
+   * Sense carried by this solution.
+   *
+   * This corresponds to Python's `sense` property.
+   */
+  get sense(): Sense
+  /**
    * Fraction of total sample mass marked as feasible.
    *
    * Computes the count-weighted ratio of feasible samples to all samples.
@@ -117,3 +123,15 @@ export declare class Timing {
   get qpu(): number | null
 }
 export type JsTiming = Timing
+
+/**
+ * Column-oriented solution data for model evaluation or solver results.
+ *
+ * A solution is independent of the original model and stores all variable data
+ * by variable name. JavaScript solutions are created from LunaModel's binary
+ * serializer with `Solution.deserialize()`.
+ */
+export declare const enum Sense {
+  Max = 0,
+  Min = 1
+}

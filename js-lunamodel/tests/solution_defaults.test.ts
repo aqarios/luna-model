@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 
 import { bytesFromHex, NULL_SOLUTION_HEX } from "./fixtures";
 
-const { Solution } = require("../index.js") as typeof import("../index");
+const { Solution, Sense } = require("../index.js") as typeof import("../index");
 
 test("exposes null and empty defaults for absent optional Solution fields", () => {
   const solution = Solution.deserialize(bytesFromHex(NULL_SOLUTION_HEX));
@@ -14,6 +14,7 @@ test("exposes null and empty defaults for absent optional Solution fields", () =
   expect(solution.constraints).toEqual({});
   expect(solution.variableBounds).toEqual({});
   expect(solution.timing).toBeNull();
+  expect(solution.sense).toEqual(Sense.Min);
 });
 
 test("throws when computing feasibility ratio without feasibility data", () => {

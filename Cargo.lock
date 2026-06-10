@@ -461,9 +461,7 @@ dependencies = [
 name = "js-lunamodel"
 version = "0.6.3"
 dependencies = [
- "lunamodel-core",
- "lunamodel-error",
- "lunamodel-serializer",
+ "lunamodel",
  "napi",
  "napi-build",
  "napi-derive",
