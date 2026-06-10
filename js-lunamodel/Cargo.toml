@@ -16,6 +16,7 @@ crate-type = ["cdylib"]
 lunamodel = { workspace = true, features = ["serializer"] }
 napi = { workspace = true }
 napi-derive = { workspace = true }
+parking_lot = { workspace = true }
 
 [build-dependencies]
 napi-build = { workspace = true }

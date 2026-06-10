@@ -109,7 +109,7 @@ export declare class Solution {
    * Returns `ResultView[]` or `null`.
    * List of best results (lowest for MIN, highest for MAX).
    */
-  best(): Array<JsResultView> | null
+  best(): Array<ResultView> | null
 }
 export type JsSolution = Solution
 

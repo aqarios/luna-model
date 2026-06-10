@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use lunamodel::core::Solution as CoreSolution;
 use lunamodel::error::LunaModelError;
@@ -6,6 +7,7 @@ use lunamodel::serializer::prelude::*;
 use lunamodel::types::Sense;
 use napi::bindgen_prelude::{Error, Result, Status, Uint8Array};
 use napi_derive::napi;
+use parking_lot::RwLock;
 
 use crate::error::map_luna_error;
 use crate::resview::JsResultView;
@@ -18,7 +20,7 @@ use crate::timing::JsTiming;
 /// serializer with `Solution.deserialize()`.
 #[napi(js_name = "Solution")]
 pub struct JsSolution {
-    inner: CoreSolution,
+    inner: Arc<RwLock<CoreSolution>>,
 }
 
 // Optimization direction for the objective function.
@@ -42,7 +44,9 @@ impl JsSolution {
     #[napi(factory, js_name = "deserialize")]
     pub fn deserialize(data: Uint8Array) -> Result<Self> {
         let inner = deserialize_solution(data.as_ref())?;
-        Ok(Self { inner })
+        Ok(Self {
+            inner: Arc::new(RwLock::new(inner)),
+        })
     }
 
     /// Number of occurrences for each stored sample row.
@@ -51,6 +55,7 @@ impl JsSolution {
     #[napi(getter)]
     pub fn counts(&self) -> Result<Vec<u32>> {
         self.inner
+            .read_arc()
             .counts
             .iter()
             .map(|count| {
@@ -70,7 +75,7 @@ impl JsSolution {
     /// the Python `raw_energies` property.
     #[napi(getter)]
     pub fn raw_energies(&self) -> Option<Vec<f64>> {
-        self.inner.raw_energies.clone()
+        self.inner.read_arc().raw_energies.clone()
     }
 
     /// Objective values as computed by the corresponding model.
@@ -79,7 +84,7 @@ impl JsSolution {
     /// matches the Python `obj_values` property.
     #[napi(getter)]
     pub fn obj_values(&self) -> Option<Vec<f64>> {
-        self.inner.obj_values.clone()
+        self.inner.read_arc().obj_values.clone()
     }
 
     /// Feasibility flag for each stored sample row.
@@ -88,7 +93,7 @@ impl JsSolution {
     /// for that sample. Returns `null` for solutions without feasibility data.
     #[napi(getter)]
     pub fn feasible(&self) -> Option<Vec<bool>> {
-        self.inner.feasible.clone()
+        self.inner.read_arc().feasible.clone()
     }
 
     /// Per-constraint feasibility flags keyed by constraint name.
@@ -96,7 +101,7 @@ impl JsSolution {
     /// Each vector is aligned with the stored sample rows.
     #[napi(getter)]
     pub fn constraints(&self) -> HashMap<String, Vec<bool>> {
-        self.inner.constraints.clone()
+        self.inner.read_arc().constraints.clone()
     }
 
     /// Per-variable bound feasibility flags keyed by variable name.
@@ -104,7 +109,7 @@ impl JsSolution {
     /// Each vector is aligned with the stored sample rows.
     #[napi(getter)]
     pub fn variable_bounds(&self) -> HashMap<String, Vec<bool>> {
-        self.inner.variable_bounds.clone()
+        self.inner.read_arc().variable_bounds.clone()
     }
 
     /// Runtime metrics carried by this solution.
@@ -113,7 +118,7 @@ impl JsSolution {
     /// Python's `runtime` property.
     #[napi(getter)]
     pub fn timing(&self) -> Option<JsTiming> {
-        self.inner.timing.map(|t| t.into())
+        self.inner.read_arc().timing.map(|t| t.into())
     }
 
     /// Sense carried by this solution.
@@ -121,10 +126,7 @@ impl JsSolution {
     /// This corresponds to Python's `sense` property.
     #[napi(getter)]
     pub fn sense(&self) -> JsSense {
-        match self.inner.sense {
-            Sense::Min => JsSense::Min,
-            Sense::Max => JsSense::Max,
-        }
+        self.inner.read_arc().sense.into()
     }
 
     /// Fraction of total sample mass marked as feasible.
@@ -133,7 +135,10 @@ impl JsSolution {
     /// Throws if feasibility data is not available.
     #[napi]
     pub fn feasibility_ratio(&self) -> Result<f64> {
-        self.inner.feasibility_ratio().map_err(map_luna_error)
+        self.inner
+            .read_arc()
+            .feasibility_ratio()
+            .map_err(map_luna_error)
     }
 
     /// Return a new solution containing only feasible sample rows.
@@ -142,12 +147,12 @@ impl JsSolution {
     /// is not possible on a non-evaluated solution.
     #[napi]
     pub fn filter_feasible(&self) -> Result<Self> {
-        if let Some(feasibles) = &self.inner.feasible {
+        let sol: &CoreSolution = &self.inner.read_arc();
+        if let Some(feasibles) = &sol.feasible {
             Ok(Self {
-                inner: self
-                    .inner
-                    .filter_by_mask(feasibles)
-                    .map_err(map_luna_error)?,
+                inner: Arc::new(RwLock::new(
+                    sol.filter_by_mask(feasibles).map_err(map_luna_error)?,
+                )),
             })
         } else {
             Err(map_luna_error(LunaModelError::Computation(
@@ -162,18 +167,11 @@ impl JsSolution {
     /// List of best results (lowest for MIN, highest for MAX).
     #[napi]
     pub fn best(&self) -> Option<Vec<JsResultView>> {
-        self.inner.best().map(|vs| {
+        self.inner.read_arc().best().map(|vs| {
             vs.iter()
-                .map(|v| JsResultView::new(self.inner.clone(), v.idx))
+                .map(|v| JsResultView::new(Arc::clone(&self.inner), v.idx))
                 .collect()
         })
-    }
-}
-
-impl JsSolution {
-    #[allow(dead_code)]
-    pub(crate) fn inner(&self) -> &CoreSolution {
-        &self.inner
     }
 }
 
@@ -187,6 +185,15 @@ fn deserialize_solution(data: &[u8]) -> Result<CoreSolution> {
 
 fn deserialize_error<E: std::fmt::Display>(err: E) -> Error {
     Error::from_reason(format!("failed to deserialize LunaModel Solution: {err}"))
+}
+
+impl From<Sense> for JsSense {
+    fn from(value: Sense) -> Self {
+        match value {
+            Sense::Min => Self::Min,
+            Sense::Max => Self::Max,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -217,7 +224,9 @@ mod tests {
             counts: vec![u32::MAX as usize + 1],
             ..Default::default()
         };
-        let solution = JsSolution { inner };
+        let solution = JsSolution {
+            inner: Arc::new(RwLock::new(inner)),
+        };
 
         let err = solution.counts().unwrap_err();
 
@@ -230,7 +239,7 @@ mod tests {
     #[test]
     fn feasibility_ratio_maps_core_error_to_napi_error() {
         let solution = JsSolution {
-            inner: CoreSolution::default(),
+            inner: Arc::new(RwLock::new(CoreSolution::default())),
         };
 
         let err = solution.feasibility_ratio().unwrap_err();
