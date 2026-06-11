@@ -41,7 +41,7 @@ classifiers = [
 
 [project.optional-dependencies]
 dimod = [
-    "dimod>=0.12.21",
+    "dimod>=0.12.22",
 ]
 qiskit = [
     "qiskit-optimization>=0.6.1",
@@ -84,9 +84,9 @@ cache-keys = [
 
 [dependency-groups]
 dev = [
-    "dimod>=0.12.21",
+    "dimod>=0.12.22",
     "docplex>=2.30.251",
-    "ipython>=9.14.0",
+    "ipython>=9.14.1",
     "numpy>=2.4.6",
     "pre-commit>=4.5.0",
     "pyscipopt>=6.2.1",
@@ -96,7 +96,7 @@ dev = [
     "qiskit-optimization>=0.6.1",
     "scipy>=1.16.3",
     "rich>=14.2.0",
-    "ruff>=0.15.15",
+    "ruff>=0.15.16",
     "mypy>=2.1.0",
     "gurobipy>=13.0.0; python_version < '3.14'",
     "qiskit-aer>=0.17.1; python_version < '3.14'",
@@ -106,7 +106,7 @@ dev = [
     "pytest-xdist>=3.8.0",
 ]
 docs = [
-    "zensical>=0.0.43",
+    "zensical>=0.0.45",
     "mkdocs-jupyter>=0.24.1",
     "mkdocs-macros-plugin>=1.5.0",
     "mkdocstrings[python]>=1.0.4",
