@@ -37,25 +37,23 @@ With LunaModel you can define symbolic Expressions and Constraints (_which in co
 A Model defining arbitrary optimization problems consists of a single Expression as the objective function (_the function to be optimized_) and, optionally, one or more Constraints.
 Expressions are created using mathematical operations on Variables. Variables represent an unknown in the Expression which is determined by an optimization. By default variables are Binary, can represent any of the following Variable types:
 
-- **Binary**: the variable can be either $0$ or $1$.
-- **Spin**: the variable can be either $-1$ or $+1$.
-- **Integer**: the variable can be any integer number $\in [-2^{64}-1, 2^{64}-1]$ (_for a 64-Bit system_).
-- **Real**: the variable can be any floating point number $\in [\approx -1.7976...E308, \approx +1.7976...E308]$ (_[-f64::MAX, f64::MAX]_).
+- **Binary**: the variable can be either 0 or 1.
+- **Spin**: the variable can be either −1 or +1.
+- **Integer**: the variable can be any integer number ∈ [−2<sup>64</sup>−1, 2<sup>64</sup>−1] (_for a 64-Bit system_).
+- **Real**: the variable can be any floating point number ∈ [≈ −1.7976...E308, ≈ +1.7976...E308] (_[-f64::MAX, f64::MAX]_).
 
 _In general not all variable types are supported by all optimizers you can find. It can be the case that a defined model cannot be natively translated into the expected format of an optimizer. To resolve this you can use **LunaModel.transformation**._
 
 Let's have a look a the **Knapsack Problem** for defining an optimization problem using only Binary variables.
-We have $n$ items $x_1, x_2, \dots, x_n$, each with a weight $w_i$ and a value $v_i$, and a maximum capacity of $W$.
+We have n items x<sub>1</sub>, x<sub>2</sub>, …, x<sub>n</sub>, each with a weight w<sub>i</sub> and a value v<sub>i</sub>, and a maximum capacity of W.
 The optimization problem is defined as:
 
-```math
-\begin{align*}
-&\text{maximize} \sum_{i=1}^{n} v_i x_i \\
-&\text{subject to} \sum_{i=1}^{n} w_i x_i \leq W \quad \text{and} \quad x_i \in \{ 0, 1 \}
-\end{align*}
-```
+<p align="center">
+  maximize&nbsp;&nbsp;∑<sub>i=1</sub><sup>n</sup> v<sub>i</sub> x<sub>i</sub><br>
+  subject to&nbsp;&nbsp;∑<sub>i=1</sub><sup>n</sup> w<sub>i</sub> x<sub>i</sub> ≤ W&nbsp;&nbsp;and&nbsp;&nbsp;x<sub>i</sub> ∈ {0, 1}
+</p>
 
-Using LunaModel and $n = 5$ and $W = 25$:
+Using LunaModel and n = 5 and W = 25:
 
 ```python
 from luna_model import Expression, Model, Sense, Vtype
@@ -82,14 +80,12 @@ model.constraints += quicksum(weights[i] * variables[i] for i in range(n)) <= W
 print(model) # to display the model.
 ```
 
-As an extension, the **Bounded Knapsack Problem (BKP)** with a maximum number of each item $c = 4$ can be defined like this:
+As an extension, the **Bounded Knapsack Problem (BKP)** with a maximum number of each item c = 4 can be defined like this:
 
-```math
-\begin{align*}
-&\text{maximize} \sum_{i=1}^{n} v_i x_i \\
-&\text{subject to} \sum_{i=1}^{n} w_i x_i \leq W \quad \text{and} \quad x_i \in \{ 0, 1, 2, \dots, c \}
-\end{align*}
-```
+<p align="center">
+  maximize&nbsp;&nbsp;∑<sub>i=1</sub><sup>n</sup> v<sub>i</sub> x<sub>i</sub><br>
+  subject to&nbsp;&nbsp;∑<sub>i=1</sub><sup>n</sup> w<sub>i</sub> x<sub>i</sub> ≤ W&nbsp;&nbsp;and&nbsp;&nbsp;x<sub>i</sub> ∈ {0, 1, 2, …, c}
+</p>
 
 Now we have two equivalent approaches to implement this using LunaModel:
 _Note that we have to use Integer variables now._
