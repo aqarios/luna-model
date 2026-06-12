@@ -59,7 +59,7 @@ impl Solution {
         };
         let mut rng = match seed {
             Some(seed) => StdRng::seed_from_u64(seed),
-            None => StdRng::from_os_rng(),
+            None => rand::make_rng(),
         };
 
         let mut samples: IndexMap<String, Column> = IndexMap::with_capacity(env.len());
