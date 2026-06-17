@@ -31,7 +31,7 @@ esac
 mkdir -p "$PROJECT_DIR/build"
 cd "$PROJECT_DIR/py-lunamodel"
 # shellcheck disable=SC2086 # EXTRA_ARGS is intentionally word-split
-uv run --no-sync \
+uv run \
   --group=build \
   --no-group=dev \
   maturin build \
