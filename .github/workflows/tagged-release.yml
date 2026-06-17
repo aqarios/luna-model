@@ -116,6 +116,7 @@ jobs:
         uses: actions/setup-node@v6.4.0
         with:
           node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Update npm (trusted publishing needs >= 11.5.1)
         run: npm install -g npm@latest && npm --version
@@ -206,6 +207,8 @@ jobs:
         # package never points at optionalDependencies that don't exist yet.
         # No token: npm exchanges the workflow's OIDC token with the registry
         # (trusted publishing) and generates provenance automatically.
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -e
           for d in npm/*/; do
