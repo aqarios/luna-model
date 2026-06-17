@@ -209,14 +209,17 @@ jobs:
         # (trusted publishing) and generates provenance automatically.
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PRERELEASE: ${{ needs.verify-version.outputs.prerelease }}
         run: |
           set -e
+          tag=latest
+          [ "$PRERELEASE" = "true" ] && tag=next
           for d in npm/*/; do
-            echo "→ publishing $d"
-            (cd "$d" && npm publish --provenance --access public)
+            echo "→ publishing $d ($tag)"
+            (cd "$d" && npm publish --provenance --access public --tag "$tag")
           done
-          echo "→ publishing main package"
-          npm publish --provenance --access public
+          echo "→ publishing main package ($tag)"
+          npm publish --provenance --access public --tag "$tag"
 
   github-release:
     name: Create GitHub Release
