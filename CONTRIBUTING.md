@@ -106,7 +106,7 @@ uv run mypy src
 Rust workspace changes (from the repository root):
 
 ```bash
-cargo test --workspace
+cargo test
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 ```

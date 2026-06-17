@@ -162,7 +162,7 @@ uv run ruff check .
 uv run ruff format .
 
 # Rust checks (from the repository root)
-cargo test --workspace
+cargo test
 cargo fmt --all
 
 # build the Python wheel (from py-lunamodel)
