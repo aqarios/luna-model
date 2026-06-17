@@ -71,29 +71,56 @@ from luna_model.utils import quicksum
 
 ## Quick Example
 
-The **Knapsack Problem**: given $n$ items, each with a weight $w_i$ and value $v_i$, and a
-capacity $W$, select items to maximize total value without exceeding the capacity.
+The **Multi-Dimensional Knapsack Problem**: given $n$ items, each with a weight $w_{ij}$ and value $v_i$, dimension $J$ and a
+capacity $W_j$, select items to maximize total value without exceeding the capacity.
 
 ```math
 \begin{align*}
 &\text{maximize} \sum_{i=1}^{n} v_i x_i \\
-&\text{subject to} \sum_{i=1}^{n} w_i x_i \leq W \quad \text{and} \quad x_i \in \{ 0, 1 \}
+&\text{s.t.} \sum_{i=1}^{n} w_{ij} x_i \leq W_j \quad \forall j \in J \quad \text{and} \quad x_i \in \{ 0, 1 \}
 \end{align*}
 ```
 
 ```python
 from luna_model import Model, Sense, Vtype
 from luna_model.utils import quicksum
+import numpy as np
 
-weights = [1.5, 10.0, 5.2, 3.5, 8.32]
-values = [10.0, 22.0, 3.2, 1.99, 6.25]
-capacity = 25
+weights = np.array(
+    [
+        [1.5, 1],
+        [10, 3],
+        [5.2, 9],
+        [3.5, 12],
+        [8.32, 4],
+    ]
+)
+values = np.array([10.0, 22.0, 3.2, 1.99, 6.25])
+capacity = np.array([25, 19])
 
 model = Model(sense=Sense.MAX, name="Knapsack")
-items = [model.add_variable(f"x_{i}", vtype=Vtype.BINARY) for i in range(len(weights))]
+items = [model.add_variable(f"x{i}", vtype=Vtype.BINARY) for i in range(len(weights))]
 
-model.objective = quicksum(values[i] * items[i] for i in range(len(items)))
-model.constraints += quicksum(weights[i] * items[i] for i in range(len(items))) <= capacity
+model.set_objective(quicksum(values[i] * items[i] for i in range(len(items))))
+model.add_constraint(
+    quicksum(weights[i, 0] * items[i] for i in range(len(items))) <= capacity[0],
+    name="capacity_1",
+)
+model.add_constraint(
+    quicksum(weights[i, 1] * items[i] for i in range(len(items))) <= capacity[1],
+    name="capacity_2",
+)
+
+print(model)
+```
+
+The same model can be expressed far more concisely by leaning on NumPy: using `add_variables` and vectorized operations (`weights.T @ items`) lets you define the objective and all constraints in a few lines, without the explicit Python loops and per-element indexing of the first example.
+
+```python
+model = Model(sense=Sense.MAX, name="Knapsack")
+items = model.add_variables(name="x", shape=values.shape, vtype=Vtype.BINARY)
+model.set_objective(quicksum(values * items))
+model.add_constraints(weights.T @ items <= capacity, name="capacity")
 
 print(model)
 ```
