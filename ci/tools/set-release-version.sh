@@ -25,6 +25,9 @@ cd "$REPO_ROOT"
 
 cargo install cargo-edit --locked --version 0.13.10
 
+# Strip any `+<sha>` build metadata left by a nightly stamp (apply-version.sh):
+sed -i.bak -E 's/^(version = "[^"+]+)\+[^"]+"/\1"/' Cargo.toml && rm -f Cargo.toml.bak
+
 # All members inherit the workspace version, so this edits exactly one line:
 # the [workspace.package] version in the root Cargo.toml.
 cargo set-version --workspace --bump "$RELEASE_TYPE"
