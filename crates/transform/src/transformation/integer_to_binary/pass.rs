@@ -63,7 +63,7 @@ impl TransformationPass for IntegerToBinaryPass {
 impl Reversible for IntegerToBinaryPass {
     type Artifact = IntegerToBinaryArtifact;
 
-    const ID: &'static str = "lunamodel::integer-to-binary";
+    const ID: &'static str = "luna_model::integer-to-binary";
 
     fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
         for (intvar, binaries) in artifact.varmap.iter() {

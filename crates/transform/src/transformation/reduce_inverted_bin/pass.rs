@@ -39,7 +39,7 @@ impl TransformationPass for ReduceInvertedBinaryPass {
 impl Reversible for ReduceInvertedBinaryPass {
     type Artifact = ReduceInvertedBinaryPassArtifact;
 
-    const ID: &'static str = "lunamodel::reduce-inverted-binary";
+    const ID: &'static str = "luna_model::reduce-inverted-binary";
 
     fn backward(_artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
         Ok(solution)

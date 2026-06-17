@@ -54,7 +54,7 @@ impl TransformationPass for ChangeSensePass {
 impl Reversible for ChangeSensePass {
     type Artifact = ChangeSensePassArtifact;
 
-    const ID: &'static str = "lunamodel::change-sense";
+    const ID: &'static str = "luna_model::change-sense";
 
     fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
         if artifact.did_change {

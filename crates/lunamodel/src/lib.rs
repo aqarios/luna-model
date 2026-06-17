@@ -52,7 +52,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! lunamodel = { path = "../luna-model/crates/lunamodel", default-features = false, features = ["translate", "transform"] }
+//! luna-model = { path = "../luna-model/crates/lunamodel", default-features = false, features = ["translate", "transform"] }
 //! ```
 //!
 //! In extension code, the most common imports then come from:

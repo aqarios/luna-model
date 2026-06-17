@@ -50,7 +50,7 @@ impl Artifact for BinarySpinPassArtifact {
     where
         Self: Sized,
     {
-        "lunamodel::binary-spin"
+        "luna_model::binary-spin"
     }
 
     fn serialize(&self) -> LunaModelResult<Vec<u8>> {

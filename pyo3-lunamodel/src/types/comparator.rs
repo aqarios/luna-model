@@ -1,6 +1,6 @@
 use derive_more::Deref;
-use lunamodel::python::PyComparator as PyCmp;
-use lunamodel::types::Comparator;
+use luna_model::python::PyComparator as PyCmp;
+use luna_model::types::Comparator;
 
 #[repr(transparent)]
 /// A wrapper around a [`Comparator`] that can be converted to and from python with `pyo3`.

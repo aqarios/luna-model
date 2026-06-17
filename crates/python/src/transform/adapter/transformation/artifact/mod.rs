@@ -26,7 +26,7 @@ impl Artifact for PyTransformationPassAdapterArtifact {
     where
         Self: Sized,
     {
-        "lunamodel::PyTransformationPassAdapterArtifact"
+        "luna_model::PyTransformationPassAdapterArtifact"
     }
 
     fn serialize(&self) -> LunaModelResult<Vec<u8>> {

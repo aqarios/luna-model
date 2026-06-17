@@ -12,7 +12,7 @@ pub struct SpecsAnalysis;
 impl AnalysisPass for SpecsAnalysis {
     type Result = Specs;
 
-    const PROVIDES: &'static str = "lunamodel::specs";
+    const PROVIDES: &'static str = "luna_model::specs";
 
     fn name(&self) -> &str {
         "specs"

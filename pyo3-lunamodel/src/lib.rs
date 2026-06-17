@@ -19,8 +19,8 @@ pub mod prelude;
 use pyo3::prelude::{Bound, Py, PyModule, PyResult, Python};
 use std::sync::LazyLock;
 
-pub use lunamodel::core;
-pub use lunamodel::python::PyExprContent;
+pub use luna_model::core;
+pub use luna_model::python::PyExprContent;
 
 static LUNA_MODEL: LazyLock<PyResult<Py<PyModule>>> =
     LazyLock::new(|| Python::attach(|py| Ok(PyModule::import(py, "luna_model")?.unbind())));

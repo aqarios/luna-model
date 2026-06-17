@@ -1,7 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
-use lunamodel::core::Solution as CoreSolution;
-use lunamodel::core::solution::result::ResultView;
+use luna_model::core::Solution as CoreSolution;
+use luna_model::core::solution::result::ResultView;
 use napi::bindgen_prelude::{Error, Result, Status};
 use napi_derive::napi;
 use parking_lot::RwLock;

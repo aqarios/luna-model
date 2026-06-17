@@ -110,7 +110,7 @@ impl TransformationPass for BinarySpinPass {
 impl Reversible for BinarySpinPass {
     type Artifact = BinarySpinPassArtifact;
 
-    const ID: &'static str = "lunamodel::binary-spin";
+    const ID: &'static str = "luna_model::binary-spin";
 
     fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
         if artifact.map.is_empty() {

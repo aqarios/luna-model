@@ -1,6 +1,6 @@
 use derive_more::Deref;
-use lunamodel::python::PyVtype as PyV;
-use lunamodel::types::Vtype;
+use luna_model::python::PyVtype as PyV;
+use luna_model::types::Vtype;
 
 #[repr(transparent)]
 /// A wrapper around a [`Vtype`] that can be converted to and from python with `pyo3`.

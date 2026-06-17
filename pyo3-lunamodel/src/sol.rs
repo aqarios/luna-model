@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use derive_more::{Deref, DerefMut};
-use lunamodel::core::Solution;
+use luna_model::core::Solution;
 use parking_lot::RwLock;
 
 #[derive(Deref, DerefMut)]

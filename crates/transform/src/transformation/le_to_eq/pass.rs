@@ -71,7 +71,7 @@ impl TransformationPass for LeToEqConstraintsPass {
 impl Reversible for LeToEqConstraintsPass {
     type Artifact = LeToEqConstraintsArtifact;
 
-    const ID: &'static str = "lunamodel::le-to-eq-constraints";
+    const ID: &'static str = "luna_model::le-to-eq-constraints";
 
     fn backward(artifact: &Self::Artifact, mut solution: Solution) -> LunaModelResult<Solution> {
         solution.remove_cols(&artifact.slackvars);

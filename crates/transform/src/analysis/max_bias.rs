@@ -18,7 +18,7 @@ pub struct MaxBiasAnalysis;
 impl AnalysisPass for MaxBiasAnalysis {
     type Result = MaxBias;
 
-    const PROVIDES: &'static str = "lunamodel::max-bias";
+    const PROVIDES: &'static str = "luna_model::max-bias";
 
     fn name(&self) -> &str {
         "max-bias"

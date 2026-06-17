@@ -1,6 +1,6 @@
 use derive_more::Deref;
-use lunamodel::python::PySense as PyS;
-use lunamodel::types::Sense;
+use luna_model::python::PySense as PyS;
+use luna_model::types::Sense;
 
 #[repr(transparent)]
 /// A wrapper around a [`Sense`] that can be converted to and from python with `pyo3`.

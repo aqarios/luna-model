@@ -19,7 +19,7 @@ impl Artifact for ChangeSensePassArtifact {
     where
         Self: Sized,
     {
-        "lunamodel::change-sense"
+        "luna_model::change-sense"
     }
 
     fn serialize(&self) -> LunaModelResult<Vec<u8>> {

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use lunamodel::transpiler::{AnalysisManager, PassContext};
+use luna_model::transpiler::{AnalysisManager, PassContext};
 
 #[repr(transparent)]
 pub struct PyPassContext(pub Arc<AnalysisManager>);

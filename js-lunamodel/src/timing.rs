@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use lunamodel::core::Timing as CoreTiming;
+use luna_model::core::Timing as CoreTiming;
 use napi::bindgen_prelude::{Error, Result, Status};
 use napi_derive::napi;
 

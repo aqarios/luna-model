@@ -72,8 +72,8 @@ impl PyCompositePassAdapter {
 impl CompositePass for PyCompositePassAdapter {
     type Result = PyAnalysisPassAdapterResult;
 
-    const NAME: &'static str = "lunamodel::PyCompositePassAdapter";
-    const PROVIDES: &'static str = "lunamodel::PyCompositeProvided";
+    const NAME: &'static str = "luna_model::PyCompositePassAdapter";
+    const PROVIDES: &'static str = "luna_model::PyCompositeProvided";
 
     fn name(&self) -> &str {
         &self.name
@@ -180,7 +180,7 @@ impl CompositePass for PyCompositePassAdapter {
 impl Reversible for PyCompositePassAdapter {
     type Artifact = PyTransformationPassAdapterArtifact;
 
-    const ID: &'static str = "lunamodel::PyCompositePassAdapter";
+    const ID: &'static str = "luna_model::PyCompositePassAdapter";
 
     fn backward(artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
         let PyTransformationPassAdapterArtifact { artifact, backward } = artifact;

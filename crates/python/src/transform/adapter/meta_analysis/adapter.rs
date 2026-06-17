@@ -42,8 +42,8 @@ impl PyMetaAnalysisPassAdapter {
 impl MetaAnalysisPass for PyMetaAnalysisPassAdapter {
     type Result = PyMetaAnalysisPassAdapterResult;
 
-    const NAME: &'static str = "lunamodel::PyMetaAnalysisPassAdapter";
-    const PROVIDES: &'static str = "lunamodel::PyMetaAnalysisProvided";
+    const NAME: &'static str = "luna_model::PyMetaAnalysisPassAdapter";
+    const PROVIDES: &'static str = "luna_model::PyMetaAnalysisProvided";
 
     fn name(&self) -> &str {
         &self.name

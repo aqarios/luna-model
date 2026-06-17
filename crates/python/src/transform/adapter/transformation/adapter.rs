@@ -140,7 +140,7 @@ impl TransformationPass for PyTransformationPassAdapter {
 impl Reversible for PyTransformationPassAdapter {
     type Artifact = PyTransformationPassAdapterArtifact;
 
-    const ID: &'static str = "lunamodel::PyTransformationPassAdapter";
+    const ID: &'static str = "luna_model::PyTransformationPassAdapter";
 
     fn backward(artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
         let PyTransformationPassAdapterArtifact { artifact, backward } = artifact;

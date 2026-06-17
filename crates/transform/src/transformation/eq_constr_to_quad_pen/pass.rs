@@ -74,7 +74,7 @@ impl TransformationPass for EqualityConstraintsToQuadraticPenaltyPass {
 impl Reversible for EqualityConstraintsToQuadraticPenaltyPass {
     type Artifact = ECTQPArtifact;
 
-    const ID: &'static str = "lunamodel::equality-constraints-to-quadratic-penalty";
+    const ID: &'static str = "luna_model::equality-constraints-to-quadratic-penalty";
 
     fn backward(_artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
         Ok(solution)

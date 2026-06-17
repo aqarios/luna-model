@@ -13,7 +13,7 @@ repository.workspace = true
 crate-type = ["cdylib"]
 
 [dependencies]
-lunamodel = { workspace = true, features = ["serializer"] }
+luna-model = { workspace = true, features = ["serializer"] }
 napi = { workspace = true }
 napi-derive = { workspace = true }
 parking_lot = { workspace = true }

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use lunamodel::{
+use luna_model::{
     core::Model,
     python::{PyModelMetadata, prelude::PyModelContent},
 };

@@ -10,7 +10,7 @@ impl Artifact for EqualityConstraintsToQuadraticPenaltyArtifact {
     where
         Self: Sized,
     {
-        "lunamodel::equality-constraints-to-quadratic-penalty"
+        "luna_model::equality-constraints-to-quadratic-penalty"
     }
 
     fn serialize(&self) -> LunaModelResult<Vec<u8>> {

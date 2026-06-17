@@ -29,9 +29,12 @@ assert n == 1, "workspace version line not found in Cargo.toml"
 
 # Internal path deps carry `version = "..."` requirements (for crates.io).
 # Cargo refuses to build when a path dep's actual version does not satisfy
-# the requirement, so nightly stamps must rewrite these too.
+# the requirement, so nightly stamps must rewrite these too. Strip any `+build`
+# metadata: cargo ignores (and warns about) metadata in a version requirement,
+# and a metadata-less requirement still matches the stamped package version.
+dep_version = version.split("+", 1)[0]
 text, n = re.subn(
-    r'(= \{ path = "[^"]+", version = ")[^"]*(")', rf'\g<1>{version}\g<2>', text, flags=re.M
+    r'(= \{ path = "[^"]+", version = ")[^"]*(")', rf'\g<1>{dep_version}\g<2>', text, flags=re.M
 )
 assert n > 0, "no internal path-dep version requirements found in Cargo.toml"
 cargo.write_text(text)

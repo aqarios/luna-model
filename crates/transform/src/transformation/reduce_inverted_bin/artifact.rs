@@ -10,7 +10,7 @@ impl Artifact for ReduceInvertedBinaryPassArtifact {
     where
         Self: Sized,
     {
-        "lunamodel::reduce-inverted-binary"
+        "luna_model::reduce-inverted-binary"
     }
 
     fn serialize(&self) -> LunaModelResult<Vec<u8>> {

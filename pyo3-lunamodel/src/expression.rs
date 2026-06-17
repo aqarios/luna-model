@@ -1,4 +1,4 @@
-use lunamodel::python::prelude::PyExprContent;
+use luna_model::python::prelude::PyExprContent;
 
 #[repr(transparent)]
 pub struct PyExpression(pub PyExprContent);

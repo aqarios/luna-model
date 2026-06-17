@@ -1,5 +1,5 @@
 [package]
-name = "lunamodel"
+name = "luna-model"
 version.workspace = true
 license.workspace = true
 publish = false

@@ -33,7 +33,7 @@ impl TransformationPass for GeToLeConstraintsPass {
 impl Reversible for GeToLeConstraintsPass {
     type Artifact = GTLCArtifact;
 
-    const ID: &'static str = "lunamodel::ge-to-le-constraints";
+    const ID: &'static str = "luna_model::ge-to-le-constraints";
 
     fn backward(_artifact: &Self::Artifact, solution: Solution) -> LunaModelResult<Solution> {
         Ok(solution)

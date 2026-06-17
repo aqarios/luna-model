@@ -25,7 +25,7 @@ impl Artifact for IntegerToBinaryArtifact {
     where
         Self: Sized,
     {
-        "lunamodel::integer-to-binary"
+        "luna_model::integer-to-binary"
     }
 
     fn serialize(&self) -> lunamodel_error::LunaModelResult<Vec<u8>> {

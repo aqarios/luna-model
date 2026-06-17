@@ -22,7 +22,7 @@ pub struct Nothing;
 impl AnalysisPass for CheckModelSpecsAnalysis {
     type Result = ();
 
-    const PROVIDES: &'static str = "lunamodel::check-specs";
+    const PROVIDES: &'static str = "luna_model::check-specs";
 
     fn name(&self) -> &str {
         "check-specs"

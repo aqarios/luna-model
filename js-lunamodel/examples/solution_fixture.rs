@@ -1,7 +1,7 @@
 use std::time::{Duration, UNIX_EPOCH};
 
-use lunamodel::core::{Solution, Timing};
-use lunamodel::serializer::prelude::*;
+use luna_model::core::{Solution, Timing};
+use luna_model::serializer::prelude::*;
 
 fn main() {
     let fixture = std::env::args()

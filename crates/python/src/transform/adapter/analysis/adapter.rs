@@ -52,7 +52,7 @@ impl PyAnalysisPassAdapter {
 impl AnalysisPass for PyAnalysisPassAdapter {
     type Result = PyAnalysisPassAdapterResult;
 
-    const PROVIDES: &'static str = "lunamodel::PyAnalysisProvided";
+    const PROVIDES: &'static str = "luna_model::PyAnalysisProvided";
 
     fn name(&self) -> &str {
         &self.name

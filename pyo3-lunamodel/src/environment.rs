@@ -1,4 +1,4 @@
-use lunamodel::core::prelude::ArcEnv;
+use luna_model::core::prelude::ArcEnv;
 
 #[repr(transparent)]
 /// A wrapper around a [`ArcEnv`] that can be converted to and from python with `pyo3`.

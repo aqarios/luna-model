@@ -10,7 +10,7 @@ impl Artifact for GeToLeConstraintsArtifact {
     where
         Self: Sized,
     {
-        "lunamodel::ge-to-le-constraints"
+        "luna_model::ge-to-le-constraints"
     }
 
     fn serialize(&self) -> LunaModelResult<Vec<u8>> {

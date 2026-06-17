@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use lunamodel::core::Solution as CoreSolution;
-use lunamodel::error::LunaModelError;
-use lunamodel::serializer::prelude::*;
-use lunamodel::types::Sense;
+use luna_model::core::Solution as CoreSolution;
+use luna_model::error::LunaModelError;
+use luna_model::serializer::prelude::*;
+use luna_model::types::Sense;
 use napi::bindgen_prelude::{Error, Result, Status, Uint8Array};
 use napi_derive::napi;
 use parking_lot::RwLock;

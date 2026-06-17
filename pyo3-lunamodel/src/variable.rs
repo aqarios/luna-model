@@ -1,4 +1,4 @@
-use lunamodel::core::prelude::VarRef;
+use luna_model::core::prelude::VarRef;
 
 #[repr(transparent)]
 /// A wrapper around a [`VarRef`] that can be converted to and from python with `pyo3`.
