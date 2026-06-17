@@ -106,6 +106,7 @@ jobs:
       - name: Update rolling nightly release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           VERSION: ${{ needs.nightly-version.outputs.version }}
         run: |
           set -e
