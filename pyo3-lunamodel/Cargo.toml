@@ -14,7 +14,4 @@ pyo3 = { workspace = true }
 parking_lot = { workspace = true }
 derive_more = { workspace = true }
 
-lunamodel-core = { workspace = true }
-lunamodel-types = { workspace = true }
-lunamodel-python = { workspace = true }
-lunamodel-translate = { workspace = true }
+lunamodel = { workspace = true, features = ["python", "translate", "transpiler"] }

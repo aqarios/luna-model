@@ -26,6 +26,12 @@ pub struct PySolution {
     pub s: Arc<RwLock<Solution>>,
 }
 
+impl PySolution {
+    pub fn inner(&self) -> Arc<RwLock<Solution>> {
+        Arc::clone(&self.s)
+    }
+}
+
 impl From<Solution> for PySolution {
     /// Wraps an owned core solution for Python.
     fn from(sol: Solution) -> Self {

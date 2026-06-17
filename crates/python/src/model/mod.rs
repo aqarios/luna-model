@@ -32,6 +32,12 @@ pub struct PyModelContent {
 #[derive(Deref, DerefMut, Debug)]
 pub struct PyModel(pub PyModelContent);
 
+impl PyModel {
+    pub fn inner(&self) -> Arc<RwLock<Model>> {
+        Arc::clone(&self.m)
+    }
+}
+
 impl Clone for PyModel {
     /// Clones the model by deep-cloning the underlying core model.
     fn clone(&self) -> Self {

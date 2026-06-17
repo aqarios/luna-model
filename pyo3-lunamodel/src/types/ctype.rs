@@ -1,6 +1,6 @@
 use derive_more::Deref;
-use lunamodel_python::PyCtype as PyC;
-use lunamodel_types::Ctype;
+use lunamodel::python::PyCtype as PyC;
+use lunamodel::types::Ctype;
 
 #[repr(transparent)]
 /// A wrapper around a [`Ctype`] that can be converted to and from python with `pyo3`.

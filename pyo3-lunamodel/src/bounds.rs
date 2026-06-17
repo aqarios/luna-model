@@ -1,4 +1,4 @@
-use lunamodel_python::PyBoundsContent;
+use lunamodel::python::PyBoundsContent;
 
 #[repr(transparent)]
 /// A wrapper around [`PyBoundsContent`] that can be converted to and from python with `pyo3`.

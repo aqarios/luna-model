@@ -47,27 +47,27 @@ pub fn pyanalysis(attr: TokenStream, item: TokenStream) -> TokenStream {
         impl #name {
             #[classmethod]
             fn provides(_cls: &::pyo3::Bound<'_, ::pyo3::types::PyType>) -> ::std::string::String {
-                <#inner as ::lunamodel_transpiler::AnalysisPass>::PROVIDES.to_string()
+                <#inner as AnalysisPass>::PROVIDES.to_string()
             }
 
             fn name(&self) -> ::std::string::String {
-                <#inner as ::lunamodel_transpiler::AnalysisPass>::name(&self.0).to_string()
+                <#inner as AnalysisPass>::name(&self.0).to_string()
             }
 
             fn requires(&self) -> ::std::vec::Vec<::std::string::String> {
-                <#inner as ::lunamodel_transpiler::AnalysisPass>::requires(&self.0).to_vec()
+                <#inner as AnalysisPass>::requires(&self.0).to_vec()
             }
 
             fn __str__(&self) -> ::std::string::String {
-                <#inner as ::lunamodel_transpiler::AnalysisPass>::display(&self.0)
+                <#inner as AnalysisPass>::display(&self.0)
             }
 
             fn run(
                 &self,
-                model: crate::PyModel,
-                ctx: &crate::transform::PyPassContext,
+                model: PyModel,
+                ctx: &PyPassContext,
             ) -> ::pyo3::PyResult<#result_type> {
-                Ok(<#inner as ::lunamodel_transpiler::AnalysisPass>::run(
+                Ok(<#inner as AnalysisPass>::run(
                     &self.0,
                     &model.m.read_arc(),
                     &ctx.into(),
@@ -104,14 +104,14 @@ pub fn pytransformation(attr: TokenStream, item: TokenStream) -> TokenStream {
         quote! {
             fn forward(
                 &self,
-                model: crate::PyModel,
-                ctx: &crate::transform::PyPassContext,
-            ) -> ::pyo3::PyResult<(crate::PyModel, #at)> {
-                let mut m = model.m.read_arc().clone();
-                let artifact = <#inner as ::lunamodel_transpiler::TransformationPass>::forward(
+                model: PyModel,
+                ctx: PyPassContext,
+            ) -> ::pyo3::PyResult<(PyModel, #at)> {
+                let mut m = model.inner().read_arc().clone();
+                let artifact = <#inner as TransformationPass>::forward(
                     &self.0,
                     &mut m,
-                    &ctx.into(),
+                    &(&ctx).into(),
                 )?;
                 Ok((m.into(), #at(artifact)))
             }
@@ -120,11 +120,11 @@ pub fn pytransformation(attr: TokenStream, item: TokenStream) -> TokenStream {
             fn backward(
                 _cls: &::pyo3::Bound<'_, ::pyo3::types::PyType>,
                 artifact: &#at,
-                solution: crate::PySolution,
-            ) -> ::pyo3::PyResult<crate::PySolution> {
-                Ok(<#inner as ::lunamodel_transpiler::Reversible>::backward(
+                solution: PySolution,
+            ) -> ::pyo3::PyResult<PySolution> {
+                Ok(<#inner as Reversible>::backward(
                     &artifact.0,
-                    solution.s.read_arc().clone(),
+                    solution.inner().read_arc().clone(),
                 )?
                 .into())
             }
@@ -138,19 +138,19 @@ pub fn pytransformation(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[::pyo3::pymethods]
         impl #name {
             fn name(&self) -> ::std::string::String {
-                <#inner as ::lunamodel_transpiler::TransformationPass>::name(&self.0).to_string()
+                <#inner as TransformationPass>::name(&self.0).to_string()
             }
 
             fn requires(&self) -> ::std::vec::Vec<::std::string::String> {
-                <#inner as ::lunamodel_transpiler::TransformationPass>::requires(&self.0).to_vec()
+                <#inner as TransformationPass>::requires(&self.0).to_vec()
             }
 
             fn invalidates(&self) -> ::std::vec::Vec<::std::string::String> {
-                <#inner as ::lunamodel_transpiler::TransformationPass>::invalidates(&self.0).to_vec()
+                <#inner as TransformationPass>::invalidates(&self.0).to_vec()
             }
 
             fn __str__(&self) -> ::std::string::String {
-                <#inner as ::lunamodel_transpiler::TransformationPass>::display(&self.0)
+                <#inner as TransformationPass>::display(&self.0)
             }
 
             #forward_backward
@@ -177,27 +177,27 @@ pub fn pycontrolflow(attr: TokenStream, item: TokenStream) -> TokenStream {
         #[::pyo3::pymethods]
         impl #name {
             fn name(&self) -> ::std::string::String {
-                <#inner as ::lunamodel_transpiler::ControlFlowPass>::name(&self.0).to_string()
+                <#inner as ControlFlowPass>::name(&self.0).to_string()
             }
 
             fn requires(&self) -> ::std::vec::Vec<::std::string::String> {
-                <#inner as ::lunamodel_transpiler::ControlFlowPass>::requires(&self.0).to_vec()
+                <#inner as ControlFlowPass>::requires(&self.0).to_vec()
             }
 
             fn provides(&self) -> ::std::vec::Vec<::std::string::String> {
-                <#inner as ::lunamodel_transpiler::ControlFlowPass>::provides(&self.0).to_vec()
+                <#inner as ControlFlowPass>::provides(&self.0).to_vec()
             }
 
             fn invalidates(&self) -> ::std::vec::Vec<::std::string::String> {
-                <#inner as ::lunamodel_transpiler::ControlFlowPass>::invalidates(&self.0).to_vec()
+                <#inner as ControlFlowPass>::invalidates(&self.0).to_vec()
             }
 
             fn run(
                 &self,
-                model: crate::PyModel,
-                ctx: &crate::transform::PyPassContext,
-            ) -> ::pyo3::PyResult<(crate::transform::PyControlFlowPlan)> {
-                Ok(<#inner as ::lunamodel_transpiler::ControlFlowPass>::run(
+                model: PyModel,
+                ctx: &PyPassContext,
+            ) -> ::pyo3::PyResult<(PyControlFlowPlan)> {
+                Ok(<#inner as ControlFlowPass>::run(
                     &self.0,
                     &model.m.read_arc(),
                     &ctx.into(),
@@ -205,7 +205,7 @@ pub fn pycontrolflow(attr: TokenStream, item: TokenStream) -> TokenStream {
             }
 
             fn __str__(&self) -> ::std::string::String {
-                <#inner as ::lunamodel_transpiler::ControlFlowPass>::display(&self.0)
+                <#inner as ControlFlowPass>::display(&self.0)
             }
         }
     }

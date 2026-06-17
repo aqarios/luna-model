@@ -1,6 +1,6 @@
 {
   "name": "@aqarios/luna-model",
-  "version": "0.6.3",
+  "version": "0.6.4-dev.1888+181708cf",
   "description": "JavaScript and TypeScript bindings for LunaModel",
   "license": "Apache-2.0",
   "author": "Aqarios GmbH <pypi@aqarios.com>",
@@ -42,7 +42,7 @@
   "devDependencies": {
     "@emnapi/core": "1.11.0",
     "@emnapi/runtime": "1.11.0",
-    "@napi-rs/cli": "^3.7.1",
+    "@napi-rs/cli": "^3.7.2",
     "@napi-rs/wasm-runtime": "^1.1.5"
   }
 }

@@ -8,15 +8,15 @@ use pyo3::{prelude::*, types::PyCapsule};
 
 use crate::{PyEnvironment, ffi::CapsuleFFI};
 
-const CAPUSULE_NAME_ENV: &CStr = c"builtins.capsule.PyEnvironment";
+const CAPSULE_NAME_ENV: &CStr = c"builtins.capsule.PyEnvironment";
 
 impl<'py> CapsuleFFI<'py> for ArcEnv {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new(py, self.clone(), Some(CAPUSULE_NAME_ENV.to_owned()))
+        PyCapsule::new(py, self.clone(), Some(CAPSULE_NAME_ENV.to_owned()))
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        let ptr = capsule.pointer_checked(Some(CAPUSULE_NAME_ENV))?;
+        let ptr = capsule.pointer_checked(Some(CAPSULE_NAME_ENV))?;
         let arc: ArcEnv = unsafe { ptr.cast::<ArcEnv>().as_ref().clone() };
         Ok(arc)
     }

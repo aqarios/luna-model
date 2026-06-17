@@ -4,13 +4,13 @@ use std::collections::HashMap;
 
 use lunamodel_python_macros::pytransformation;
 use lunamodel_transform::transformation::{BinarySpinPass, BinarySpinPassArtifact};
-use lunamodel_transpiler::Artifact;
+use lunamodel_transpiler::{Artifact, Reversible, TransformationPass};
 use pyo3::{
     Bound, Py, PyAny, PyResult, Python, pyclass, pymethods,
     types::{PyBytes, PyType},
 };
 
-use crate::PyVtype;
+use crate::{PyModel, PySolution, PyVtype, transform::PyPassContext};
 
 #[pyclass]
 pub struct PyBinarySpinPassArtifact(pub BinarySpinPassArtifact);

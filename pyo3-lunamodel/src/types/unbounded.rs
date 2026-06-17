@@ -1,4 +1,4 @@
-use lunamodel_python::{PyUnbounded as PyU, ffi::CapsuleFFI};
+use lunamodel::python::{PyUnbounded as PyU, ffi::CapsuleFFI};
 use pyo3::{Bound, FromPyObject, IntoPyObject, PyAny, PyErr, types::PyAnyMethods};
 
 use crate::{luna_model, utils::TypeCheck};

@@ -33,10 +33,11 @@ macro_rules! capsule_wrapper {
                 } else {
                     obj.call_method0("_to_capsule")
                 }?;
-                Ok($wrapper(<$inner as ::lunamodel_python::ffi::CapsuleFFI<
-                    'py,
-                    _,
-                >>::from_capsule(capsule_obj.extract()?)?))
+                Ok($wrapper(
+                    <$inner as ::lunamodel::python::ffi::CapsuleFFI<'py, _>>::from_capsule(
+                        capsule_obj.extract()?,
+                    )?,
+                ))
             }
         }
 
@@ -50,7 +51,7 @@ macro_rules! capsule_wrapper {
                 py: ::pyo3::Python<'py>,
             ) -> ::std::result::Result<Self::Output, Self::Error> {
                 use ::pyo3::types::PyAnyMethods;
-                let capsule = <$inner as ::lunamodel_python::ffi::CapsuleFFI<'py, _>>::to_capsule(
+                let capsule = <$inner as ::lunamodel::python::ffi::CapsuleFFI<'py, _>>::to_capsule(
                     &self.0, py,
                 )?;
                 let lm = $crate::luna_model(py)?;
@@ -93,7 +94,7 @@ macro_rules! enum_wrapper {
                     obj.call_method0("_to_capsule")
                 }?
                 .extract()?;
-                let bridge = <$bridge as ::lunamodel_python::ffi::CapsuleFFI<
+                let bridge = <$bridge as ::lunamodel::python::ffi::CapsuleFFI<
                     'py,
                     ::std::string::String,
                 >>::from_capsule(capsule)?;
@@ -114,7 +115,7 @@ macro_rules! enum_wrapper {
             ) -> ::std::result::Result<Self::Output, Self::Error> {
                 use ::pyo3::types::PyAnyMethods;
                 let bridge: $bridge = <$bridge as ::core::convert::From<$inner>>::from(self.0);
-                let capsule = <$bridge as ::lunamodel_python::ffi::CapsuleFFI<
+                let capsule = <$bridge as ::lunamodel::python::ffi::CapsuleFFI<
                     'py,
                     ::std::string::String,
                 >>::to_capsule(&bridge, py)?;

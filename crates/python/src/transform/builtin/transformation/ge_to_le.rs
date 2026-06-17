@@ -2,11 +2,13 @@
 
 use lunamodel_python_macros::pytransformation;
 use lunamodel_transform::transformation::{GeToLeConstraintsArtifact, GeToLeConstraintsPass};
-use lunamodel_transpiler::Artifact;
+use lunamodel_transpiler::{Artifact, Reversible, TransformationPass};
 use pyo3::{
     Bound, Py, PyAny, PyResult, Python, pyclass, pymethods,
     types::{PyBytes, PyType},
 };
+
+use crate::{PyModel, PySolution, transform::PyPassContext};
 
 #[pyclass]
 pub struct PyArtifact(pub GeToLeConstraintsArtifact);

@@ -7,7 +7,9 @@ mod constraint_collection;
 mod environment;
 mod expression;
 mod model;
+mod pass_ctx;
 mod sol;
+mod transpiler;
 mod types;
 mod utils;
 mod variable;
@@ -17,8 +19,8 @@ pub mod prelude;
 use pyo3::prelude::{Bound, Py, PyModule, PyResult, Python};
 use std::sync::LazyLock;
 
-pub use lunamodel_core as core;
-pub use lunamodel_python::PyExprContent;
+pub use lunamodel::core;
+pub use lunamodel::python::PyExprContent;
 
 static LUNA_MODEL: LazyLock<PyResult<Py<PyModule>>> =
     LazyLock::new(|| Python::attach(|py| Ok(PyModule::import(py, "luna_model")?.unbind())));

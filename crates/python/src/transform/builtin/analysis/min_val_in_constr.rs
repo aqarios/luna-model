@@ -4,7 +4,10 @@ use std::collections::HashMap;
 
 use lunamodel_python_macros::pyanalysis;
 use lunamodel_transform::analysis::{MinConstraintValues, MinValueForConstraintAnalysis};
+use lunamodel_transpiler::AnalysisPass;
 use pyo3::{pyclass, pymethods};
+
+use crate::{PyModel, transform::PyPassContext};
 
 #[pyclass]
 pub struct PyMinConstraintValues(pub MinConstraintValues);

@@ -1,5 +1,5 @@
 use derive_more::Deref;
-use lunamodel_python::{PyTranslationTarget as PyTT, TranslationTarget};
+use lunamodel::python::{PyTranslationTarget as PyTT, TranslationTarget};
 
 #[repr(transparent)]
 /// A wrapper around a [`TranslationTarget`] that can be converted to and from python with `pyo3`.

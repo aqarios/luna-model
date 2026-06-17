@@ -1,4 +1,4 @@
-use lunamodel_types::Specs;
+use lunamodel::types::Specs;
 
 #[repr(transparent)]
 pub struct PyModelSpecs(pub Specs);

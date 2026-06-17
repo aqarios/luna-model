@@ -6,13 +6,13 @@ use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 use lunamodel_python_macros::pycontrolflow;
 use lunamodel_transform::control_flow::{ConditionPredicate, IfElsePass};
-use lunamodel_transpiler::PassContext;
+use lunamodel_transpiler::{ControlFlowPass, PassContext};
 use pyo3::{Py, PyAny, PyResult, Python, pymethods};
 
 use crate::{
     PyModel,
     transform::{
-        PyPassContext,
+        PyControlFlowPlan, PyPassContext,
         utils::{PipelineOrPassVec, map_pyerr},
     },
 };

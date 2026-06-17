@@ -8,6 +8,7 @@ mod constraint_collection;
 mod environment;
 mod expression;
 mod model;
+mod pass_ctx;
 mod solution;
 mod variable;
 

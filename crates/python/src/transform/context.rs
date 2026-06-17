@@ -1,5 +1,7 @@
 //! Python wrapper for the transpiler analysis context.
 
+use std::sync::Arc;
+
 use lunamodel_error::LunaModelError;
 use lunamodel_transform::analysis::{
     CheckModelSpecsAnalysis, MaxBias, MaxBiasAnalysis, MinConstraintValues,
@@ -18,13 +20,22 @@ use crate::{
 };
 
 #[pyclass(subclass)]
+#[derive(Clone)]
 pub struct PyPassContext {
     /// Analysis cache and dependency manager shared across a pipeline run.
-    manager: AnalysisManager,
+    pub manager: Arc<AnalysisManager>,
 }
 
 impl From<AnalysisManager> for PyPassContext {
     fn from(manager: AnalysisManager) -> Self {
+        Self {
+            manager: Arc::new(manager),
+        }
+    }
+}
+
+impl From<Arc<AnalysisManager>> for PyPassContext {
+    fn from(manager: Arc<AnalysisManager>) -> Self {
         Self { manager }
     }
 }
@@ -35,14 +46,18 @@ impl<'c> From<&'c PyPassContext> for PassContext<'c> {
     }
 }
 
+impl PyPassContext {
+    pub fn inner(&self) -> Arc<AnalysisManager> {
+        Arc::clone(&self.manager)
+    }
+}
+
 #[pymethods]
 impl PyPassContext {
     /// Create an empty analysis context.
     #[new]
     fn new() -> Self {
-        Self {
-            manager: AnalysisManager::default(),
-        }
+        Self::from(AnalysisManager::default())
     }
 
     /// Resolve an analysis result by key and convert it to a Python object.

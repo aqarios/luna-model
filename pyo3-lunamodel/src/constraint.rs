@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use lunamodel_core::prelude::Constraint;
+use lunamodel::core::prelude::Constraint;
 use parking_lot::RwLock;
 
 #[repr(transparent)]

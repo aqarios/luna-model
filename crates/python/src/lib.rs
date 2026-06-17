@@ -57,5 +57,7 @@ pub use types::{PyComparator, PyCtype, PySense, PyTranslationTarget, PyValueSour
 
 /// Python exception types generated from the Rust error taxonomy.
 pub use lunamodel_error::py::*;
+/// Python pass annotations.
+pub use lunamodel_python_macros::{pyanalysis, pycontrolflow, pytransformation};
 /// Python-facing quicksum helper.
 pub use utilities::quicksum;
