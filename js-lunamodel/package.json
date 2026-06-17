@@ -40,8 +40,8 @@
     "test:all": "bun run check && bun run test:rust && bun run test"
   },
   "devDependencies": {
-    "@emnapi/core": "1.11.0",
-    "@emnapi/runtime": "1.11.0",
+    "@emnapi/core": "1.11.1",
+    "@emnapi/runtime": "1.11.1",
     "@napi-rs/cli": "^3.7.2",
     "@napi-rs/wasm-runtime": "^1.1.5"
   }
