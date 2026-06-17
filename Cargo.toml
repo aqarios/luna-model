@@ -57,7 +57,7 @@ zstd = "0.13.3"
 either = "1.15.0"
 regex = "1.12.3"
 time = { version = "0.3.47", features = ["formatting"] }
-itertools = "0.14.0"
+itertools = "0.15.0"
 indexmap = "2.14.0"
 dyn-clone = "1.0.20"
 pad = "0.1.6"
