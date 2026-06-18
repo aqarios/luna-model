@@ -26,7 +26,7 @@ pub(crate) fn get_active_env() -> PyResult<PyEnvironment> {
 }
 
 // #[pyclass(name = "Environment", module = "luna_model._core")]
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Debug)]
 #[repr(C)]
 pub struct PyEnvironment {

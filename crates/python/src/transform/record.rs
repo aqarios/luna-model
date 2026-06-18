@@ -7,7 +7,7 @@ use pyo3::{Bound, Py, PyAny, PyResult, Python, pyclass, pymethods, types::PyByte
 
 use crate::{PySolution, transform::entry::PyPassEntry};
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct PyTransformationRecord {
     pub tr: TransformationRecord,

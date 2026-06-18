@@ -19,7 +19,7 @@ impl<'py> CapsuleFFI<'py> for Arc<RwLock<Constraint>> {
         &self,
         py: pyo3::Python<'py>,
     ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::types::PyCapsule>> {
-        PyCapsule::new(py, self.clone(), Some(CAPUSULE_NAME_C.to_owned()))
+        PyCapsule::new_with_value(py, self.clone(), CAPUSULE_NAME_C)
     }
 
     fn from_capsule(capsule: pyo3::Bound<'py, pyo3::types::PyCapsule>) -> pyo3::PyResult<Self> {

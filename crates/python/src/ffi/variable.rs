@@ -16,7 +16,7 @@ const CAPUSULE_NAME_VAR: &CStr = c"builtins.capsule.PyVar";
 
 impl<'py> CapsuleFFI<'py, (u32, pyo3::Bound<'py, PyCapsule>)> for VarRef {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<(u32, pyo3::Bound<'py, PyCapsule>)> {
-        let capsule = PyCapsule::new(py, self.env.clone(), Some(CAPUSULE_NAME_VAR.to_owned()))?;
+        let capsule = PyCapsule::new_with_value(py, self.env.clone(), CAPUSULE_NAME_VAR)?;
         Ok((self.id(), capsule))
     }
 

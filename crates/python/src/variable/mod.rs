@@ -10,7 +10,7 @@ use lunamodel_core::prelude::VarRef;
 use pyo3::pyclass;
 
 // #[pyclass(subclass, name = "Model", module = "luna_model._core")]
-#[pyclass]
+#[pyclass(from_py_object)]
 #[repr(C)]
 #[derive(Clone, Debug)]
 pub struct PyVariable {

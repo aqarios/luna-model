@@ -5,7 +5,7 @@ use pyo3::{PyResult, Python, pyclass, pymethods};
 
 use crate::transform::utils::PipelineOrPassVec;
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub struct PyControlFlowPlan(pub ControlFlowPlan);
 
@@ -20,11 +20,6 @@ impl PyControlFlowPlan {
     fn name(&self) -> String {
         self.0.name().to_string()
     }
-
-    // #[getter]
-    // fn steps(&self, py: Python) -> PyResult<Vec<Py<PyAny>>> {
-    //     Ok(self.0.steps().to_pypasses(py)?)
-    // }
 }
 
 impl From<ControlFlowPlan> for PyControlFlowPlan {

@@ -8,7 +8,7 @@ use pyo3::{
     pyclass, pymethods, types::PyAnyMethods,
 };
 
-#[pyclass(subclass)]
+#[pyclass(subclass, from_py_object)]
 #[derive(Debug, Clone, Copy)]
 pub struct PyUnbounded;
 

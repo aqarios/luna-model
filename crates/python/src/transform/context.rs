@@ -19,7 +19,7 @@ use crate::{
     },
 };
 
-#[pyclass(subclass)]
+#[pyclass(subclass, from_py_object)]
 #[derive(Clone)]
 pub struct PyPassContext {
     /// Analysis cache and dependency manager shared across a pipeline run.

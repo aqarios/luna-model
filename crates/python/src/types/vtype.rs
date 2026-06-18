@@ -4,7 +4,7 @@ use lunamodel_types::Vtype;
 use pyo3::pyclass;
 
 /// Python-facing wrapper for [`Vtype`].
-#[pyclass(eq, eq_int, name = "PyVtype")]
+#[pyclass(from_py_object, eq, eq_int, name = "PyVtype")]
 #[derive(Eq, PartialEq, Clone, Copy)]
 pub enum PyVtype {
     Binary,

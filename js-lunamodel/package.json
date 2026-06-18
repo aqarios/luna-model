@@ -27,8 +27,8 @@
     "*.node"
   ],
   "scripts": {
-    "build": "napi build --release --config-path napi.json",
-    "build:debug": "napi build --config-path napi.json",
+    "build": "napi build --release --platform --config-path napi.json",
+    "build:debug": "napi build --platform --config-path napi.json",
     "build:wasm": "napi build --target wasm32-wasip1-threads --platform --config-path napi.wasm.json",
     "artifacts": "napi artifacts --config-path napi.json",
     "check": "cargo check -p js-lunamodel",

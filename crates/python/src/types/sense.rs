@@ -5,7 +5,7 @@ use pyo3::pyclass;
 
 /// Python-facing wrapper for [`Sense`].
 #[derive(Copy, PartialEq, Hash, Clone, Debug, Eq)]
-#[pyclass(eq, eq_int, name = "PySense")]
+#[pyclass(from_py_object, eq, eq_int, name = "PySense")]
 pub enum PySense {
     Min,
     Max,

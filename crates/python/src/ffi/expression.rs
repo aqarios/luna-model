@@ -21,13 +21,12 @@ impl<'py> CapsuleFFI<'py> for PyExprContent {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
         match &self {
             Self::Expr(arc_expr) => {
-                let capsule =
-                    PyCapsule::new(py, arc_expr.clone(), Some(CAPUSULE_NAME_EXPR.to_owned()))?;
+                let capsule = PyCapsule::new_with_value(py, arc_expr.clone(), CAPUSULE_NAME_EXPR)?;
                 Ok(capsule)
             }
             Self::Model(arc_model) => {
                 let capsule =
-                    PyCapsule::new(py, arc_model.clone(), Some(CAPUSULE_NAME_MODEL.to_owned()))?;
+                    PyCapsule::new_with_value(py, arc_model.clone(), CAPUSULE_NAME_MODEL)?;
                 Ok(capsule)
             }
         }

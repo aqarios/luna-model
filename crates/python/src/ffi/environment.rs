@@ -12,7 +12,7 @@ const CAPSULE_NAME_ENV: &CStr = c"builtins.capsule.PyEnvironment";
 
 impl<'py> CapsuleFFI<'py> for ArcEnv {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new(py, self.clone(), Some(CAPSULE_NAME_ENV.to_owned()))
+        PyCapsule::new_with_value(py, self.clone(), CAPSULE_NAME_ENV)
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {

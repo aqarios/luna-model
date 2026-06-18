@@ -6,7 +6,7 @@ use derive_more::Deref;
 use lunamodel_core::{Timer, Timing};
 use pyo3::pyclass;
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[repr(C)]
 #[derive(Clone, Deref)]
 pub struct PyTiming(pub Timing);

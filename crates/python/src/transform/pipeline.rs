@@ -6,7 +6,7 @@ use pyo3::{Py, PyAny, PyResult, Python, pyclass, pymethods};
 
 use crate::transform::{pass::PyPass, utils::FromSteps};
 
-#[pyclass(subclass)]
+#[pyclass(from_py_object, subclass)]
 #[derive(Clone)]
 pub struct PyPipeline(pub(crate) Pipeline);
 

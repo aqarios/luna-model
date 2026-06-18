@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 use parking_lot::RwLock;
 
-#[pyclass(subclass, name = "PyModelMetadata")]
+#[pyclass(from_py_object, subclass, name = "PyModelMetadata")]
 #[derive(Clone, Debug)]
 pub struct PyModelMetadata {
     pub data: Arc<RwLock<HashMap<String, Py<PyAny>>>>,

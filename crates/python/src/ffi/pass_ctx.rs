@@ -15,7 +15,7 @@ const CAPSULE_NAME_PCTX: &CStr = c"builtins.capsule.PyPassContext";
 
 impl<'py> CapsuleFFI<'py> for Arc<AnalysisManager> {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new(py, self.clone(), Some(CAPSULE_NAME_PCTX.to_owned()))
+        PyCapsule::new_with_value(py, self.clone(), CAPSULE_NAME_PCTX)
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {

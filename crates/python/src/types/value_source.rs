@@ -5,7 +5,7 @@ use pyo3::pyclass;
 use strum_macros::Display;
 
 /// Python-facing wrapper for [`ValueSource`].
-#[pyclass(eq, eq_int)]
+#[pyclass(from_py_object, eq, eq_int)]
 #[derive(Debug, Clone, Copy, Display, Hash, PartialEq)]
 pub enum PyValueSource {
     Raw,

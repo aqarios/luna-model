@@ -16,7 +16,7 @@ const CAPUSULE_NAME_SPECS: &CStr = c"builtins.capsule.PyModelSpecs";
 
 impl<'py> CapsuleFFI<'py> for Specs {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new(py, self.clone(), Some(CAPUSULE_NAME_SPECS.to_owned()))
+        PyCapsule::new_with_value(py, self.clone(), CAPUSULE_NAME_SPECS)
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {

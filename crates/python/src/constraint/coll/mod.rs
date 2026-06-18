@@ -20,7 +20,7 @@ pub use iter::PyConstraintCollectionIterator;
 
 /// Python-visible wrapper around either a standalone collection or a model-owned collection.
 #[derive(Clone, Debug)]
-#[pyclass]
+#[pyclass(from_py_object)]
 pub struct PyConstraintCollection {
     c: PyConstraintCollectionContent,
 }

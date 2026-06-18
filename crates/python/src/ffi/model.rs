@@ -23,11 +23,11 @@ impl<'py> CapsuleFFI<'py, (pyo3::Bound<'py, PyCapsule>, pyo3::Bound<'py, PyCapsu
         &self,
         py: pyo3::Python<'py>,
     ) -> pyo3::PyResult<(pyo3::Bound<'py, PyCapsule>, pyo3::Bound<'py, PyCapsule>)> {
-        let capsule = PyCapsule::new(py, self.m.clone(), Some(CAPUSULE_NAME_MODEL.to_owned()))?;
-        let capsule_metadata = PyCapsule::new(
+        let capsule = PyCapsule::new_with_value(py, self.m.clone(), CAPUSULE_NAME_MODEL)?;
+        let capsule_metadata = PyCapsule::new_with_value(
             py,
             self._metadata.data.clone(),
-            Some(CAPUSULE_NAME_MODEL_METADATA.to_owned()),
+            CAPUSULE_NAME_MODEL_METADATA,
         )?;
         Ok((capsule_metadata, capsule))
     }

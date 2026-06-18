@@ -18,7 +18,7 @@ use lunamodel_core::Solution;
 use parking_lot::RwLock;
 use pyo3::pyclass;
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[repr(C)]
 #[derive(Clone, Debug)]
 pub struct PySolution {

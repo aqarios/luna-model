@@ -13,7 +13,7 @@ const CAPUSULE_NAME_ENV: &CStr = c"builtins.capsule.PySolution";
 
 impl<'py> CapsuleFFI<'py> for Arc<RwLock<Solution>> {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new(py, self.clone(), Some(CAPUSULE_NAME_ENV.to_owned()))
+        PyCapsule::new_with_value(py, self.clone(), CAPUSULE_NAME_ENV)
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {

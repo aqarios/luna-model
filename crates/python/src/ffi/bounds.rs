@@ -16,7 +16,7 @@ const CAPUSULE_NAME_BOUNDS: &CStr = c"builtins.capsule.PyBounds";
 
 impl<'py> CapsuleFFI<'py> for PyBoundsContent {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new(py, self.clone(), Some(CAPUSULE_NAME_BOUNDS.to_owned()))
+        PyCapsule::new_with_value(py, self.clone(), CAPUSULE_NAME_BOUNDS)
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<PyBoundsContent> {

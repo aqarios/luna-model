@@ -5,7 +5,7 @@ use pyo3::pyclass;
 
 /// Python-facing wrapper for [`Ctype`].
 #[derive(Copy, PartialEq, Hash, Clone, Debug, Eq)]
-#[pyclass(eq, eq_int, name = "PyCtype")]
+#[pyclass(from_py_object, eq, eq_int, name = "PyCtype")]
 pub enum PyCtype {
     Unconstrained,
     Equality,

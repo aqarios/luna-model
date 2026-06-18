@@ -5,7 +5,7 @@ use pyo3::pyclass;
 
 /// Python-facing wrapper for [`Comparator`].
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-#[pyclass(eq, eq_int, name = "PyComparator")]
+#[pyclass(from_py_object, eq, eq_int, name = "PyComparator")]
 pub enum PyComparator {
     Eq,
     Le,

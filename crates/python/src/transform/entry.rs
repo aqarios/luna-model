@@ -19,7 +19,7 @@ use crate::transform::{
     record::PyTransformationRecord,
 };
 
-#[pyclass(get_all)]
+#[pyclass(from_py_object, get_all)]
 #[derive(Clone)]
 pub struct PyErasedArtifact {
     /// Artifact type identifier used for downcasting during restoration.
@@ -69,7 +69,7 @@ impl PyErasedArtifact {
     }
 }
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 pub enum PyPassEntry {
     /// A transformation pass entry

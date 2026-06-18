@@ -20,7 +20,7 @@ pub use content::PyExprContent;
 pub use iteration::{PyConstant, PyExpressionIterator, PyHigherOrder, PyLinear, PyQuadratic};
 
 /// Python-visible expression wrapper.
-#[pyclass(subclass)]
+#[pyclass(from_py_object, subclass)]
 #[repr(C)]
 #[derive(Clone, Debug)]
 pub struct PyExpression {

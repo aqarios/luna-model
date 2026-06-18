@@ -3,7 +3,7 @@ pub use lunamodel_python::*;
 use pyo3::{PyTypeInfo, prelude::*};
 
 #[pymodule]
-fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
+fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
 
     m.add_function(wrap_pyfunction!(quicksum, m)?)?;
@@ -89,152 +89,155 @@ fn _lm(m: &Bound<PyModule>) -> PyResult<()> {
 
     // Errors
     m.add(
-        PyLunaModelError::NAME,
+        PyLunaModelError::type_object(py).name()?,
         m.py().get_type::<PyLunaModelError>(),
     )?;
     m.add(
-        PyUnsupportedOperationError::NAME,
+        PyUnsupportedOperationError::type_object(py).name()?,
         m.py().get_type::<PyUnsupportedOperationError>(),
     )?;
     m.add(
-        PyCompressionError::NAME,
+        PyCompressionError::type_object(py).name()?,
         m.py().get_type::<PyCompressionError>(),
     )?;
     m.add(
-        PyInternalPanicError::NAME,
+        PyInternalPanicError::type_object(py).name()?,
         m.py().get_type::<PyInternalPanicError>(),
     )?;
     m.add(
-        PyComputationError::NAME,
+        PyComputationError::type_object(py).name()?,
         m.py().get_type::<PyComputationError>(),
     )?;
     m.add(
-        PyDuplicateConstraintNameError::NAME,
+        PyDuplicateConstraintNameError::type_object(py).name()?,
         m.py().get_type::<PyDuplicateConstraintNameError>(),
     )?;
     m.add(
-        PyVariableOutOfRangeError::NAME,
+        PyVariableOutOfRangeError::type_object(py).name()?,
         m.py().get_type::<PyVariableOutOfRangeError>(),
     )?;
     m.add(
-        PyVariableExistsError::NAME,
+        PyVariableExistsError::type_object(py).name()?,
         m.py().get_type::<PyVariableExistsError>(),
     )?;
     m.add(
-        PyVariableNotExistingError::NAME,
+        PyVariableNotExistingError::type_object(py).name()?,
         m.py().get_type::<PyVariableNotExistingError>(),
     )?;
     m.add(
-        PyVariableCreationError::NAME,
+        PyVariableCreationError::type_object(py).name()?,
         m.py().get_type::<PyVariableCreationError>(),
     )?;
     m.add(
-        PyVariablesFromDifferentEnvsError::NAME,
+        PyVariablesFromDifferentEnvsError::type_object(py).name()?,
         m.py().get_type::<PyVariablesFromDifferentEnvsError>(),
     )?;
     m.add(
-        PyDifferentEnvsError::NAME,
+        PyDifferentEnvsError::type_object(py).name()?,
         m.py().get_type::<PyDifferentEnvsError>(),
     )?;
     m.add(
-        PyNoActiveEnvironmentFoundError::NAME,
+        PyNoActiveEnvironmentFoundError::type_object(py).name()?,
         m.py().get_type::<PyNoActiveEnvironmentFoundError>(),
     )?;
     m.add(
-        PyMultipleActiveEnvironmentsError::NAME,
+        PyMultipleActiveEnvironmentsError::type_object(py).name()?,
         m.py().get_type::<PyMultipleActiveEnvironmentsError>(),
     )?;
-    m.add(PyDecodeError::NAME, m.py().get_type::<PyDecodeError>())?;
     m.add(
-        PyIllegalConstraintNameError::NAME,
+        PyDecodeError::type_object(py).name()?,
+        m.py().get_type::<PyDecodeError>(),
+    )?;
+    m.add(
+        PyIllegalConstraintNameError::type_object(py).name()?,
         m.py().get_type::<PyIllegalConstraintNameError>(),
     )?;
     m.add(
-        PyTranslationError::NAME,
+        PyTranslationError::type_object(py).name()?,
         m.py().get_type::<PyTranslationError>(),
     )?;
     m.add(
-        PyModelNotQuadraticError::NAME,
+        PyModelNotQuadraticError::type_object(py).name()?,
         m.py().get_type::<PyModelNotQuadraticError>(),
     )?;
     m.add(
-        PyModelNotUnconstrainedError::NAME,
+        PyModelNotUnconstrainedError::type_object(py).name()?,
         m.py().get_type::<PyModelNotUnconstrainedError>(),
     )?;
     m.add(
-        PyModelSenseNotMinimizeError::NAME,
+        PyModelSenseNotMinimizeError::type_object(py).name()?,
         m.py().get_type::<PyModelSenseNotMinimizeError>(),
     )?;
     m.add(
-        PyModelVtypeError::NAME,
+        PyModelVtypeError::type_object(py).name()?,
         m.py().get_type::<PyModelVtypeError>(),
     )?;
     m.add(
-        PyVariableNamesError::NAME,
+        PyVariableNamesError::type_object(py).name()?,
         m.py().get_type::<PyVariableNamesError>(),
     )?;
     m.add(
-        PyEvaluationError::NAME,
+        PyEvaluationError::type_object(py).name()?,
         m.py().get_type::<PyEvaluationError>(),
     )?;
     m.add(
-        PySolutionTranslationError::NAME,
+        PySolutionTranslationError::type_object(py).name()?,
         m.py().get_type::<PySolutionTranslationError>(),
     )?;
     m.add(
-        PySampleIncorrectLengthError::NAME,
+        PySampleIncorrectLengthError::type_object(py).name()?,
         m.py().get_type::<PySampleIncorrectLengthError>(),
     )?;
     m.add(
-        PySampleUnexpectedVariableError::NAME,
+        PySampleUnexpectedVariableError::type_object(py).name()?,
         m.py().get_type::<PySampleUnexpectedVariableError>(),
     )?;
     m.add(
-        PySampleIncompatibleVtypeError::NAME,
+        PySampleIncompatibleVtypeError::type_object(py).name()?,
         m.py().get_type::<PySampleIncompatibleVtypeError>(),
     )?;
     m.add(
-        PyStartCannotBeInferredError::NAME,
+        PyStartCannotBeInferredError::type_object(py).name()?,
         m.py().get_type::<PyStartCannotBeInferredError>(),
     )?;
     m.add(
-        PySampleColCreationError::NAME,
+        PySampleColCreationError::type_object(py).name()?,
         m.py().get_type::<PySampleColCreationError>(),
     )?;
     m.add(
-        PyNoConstraintForKeyError::NAME,
+        PyNoConstraintForKeyError::type_object(py).name()?,
         m.py().get_type::<PyNoConstraintForKeyError>(),
     )?;
     m.add(
-        PyTransformationError::NAME,
+        PyTransformationError::type_object(py).name()?,
         m.py().get_type::<PyTransformationError>(),
     )?;
     m.add(
-        PyTransformationPassError::NAME,
+        PyTransformationPassError::type_object(py).name()?,
         m.py().get_type::<PyTransformationPassError>(),
     )?;
     m.add(
-        PyAnalysisPassError::NAME,
+        PyAnalysisPassError::type_object(py).name()?,
         m.py().get_type::<PyAnalysisPassError>(),
     )?;
     m.add(
-        PyIfElsePassError::NAME,
+        PyIfElsePassError::type_object(py).name()?,
         m.py().get_type::<PyIfElsePassError>(),
     )?;
     m.add(
-        PyMetaAnalysisPassError::NAME,
+        PyMetaAnalysisPassError::type_object(py).name()?,
         m.py().get_type::<PyMetaAnalysisPassError>(),
     )?;
     m.add(
-        PyCompilationError::NAME,
+        PyCompilationError::type_object(py).name()?,
         m.py().get_type::<PyCompilationError>(),
     )?;
     m.add(
-        PyRandomSamplingError::NAME,
+        PyRandomSamplingError::type_object(py).name()?,
         m.py().get_type::<PyRandomSamplingError>(),
     )?;
     m.add(
-        PyInvalidToleranceError::NAME,
+        PyInvalidToleranceError::type_object(py).name()?,
         m.py().get_type::<PyInvalidToleranceError>(),
     )?;
     Ok(())

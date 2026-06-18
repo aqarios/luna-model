@@ -26,7 +26,7 @@ pub enum BoundsContent {
 pub type PyBoundsContent = Arc<RwLock<BoundsContent>>;
 
 /// Python-visible bounds wrapper used across the binding layer.
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone, Debug)]
 pub struct PyBounds(pub PyBoundsContent);
 

@@ -5,7 +5,7 @@ mod io;
 use lunamodel_types::Specs;
 use pyo3::pyclass;
 
-#[pyclass]
+#[pyclass(from_py_object)]
 #[repr(C)]
 #[derive(Clone, Debug)]
 pub struct PyModelSpecs {

@@ -11,7 +11,7 @@ use lunamodel_core::prelude::Constraint;
 use parking_lot::RwLock;
 use pyo3::pyclass;
 
-#[pyclass(subclass)]
+#[pyclass(subclass, from_py_object)]
 #[derive(Clone, Debug)]
 pub struct PyConstraint {
     /// Shared constraint storage.

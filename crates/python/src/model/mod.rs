@@ -26,8 +26,7 @@ pub struct PyModelContent {
     pub _metadata: PyModelMetadata,
 }
 
-// #[pyclass(subclass, name = "Model", module = "luna_model._core")]
-#[pyclass]
+#[pyclass(from_py_object)]
 #[repr(C)]
 #[derive(Deref, DerefMut, Debug)]
 pub struct PyModel(pub PyModelContent);

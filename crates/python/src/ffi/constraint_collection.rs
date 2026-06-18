@@ -26,11 +26,11 @@ impl<'py> CapsuleFFI<'py> for PyCCC {
     ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::types::PyCapsule>> {
         match &self {
             Self::Coll(arc_coll) => {
-                PyCapsule::new(py, arc_coll.clone(), Some(CAPUSULE_NAME_CC.to_owned()))
+                PyCapsule::new_with_value(py, arc_coll.clone(), CAPUSULE_NAME_CC)
             }
 
             Self::Model(arc_model) => {
-                PyCapsule::new(py, arc_model.clone(), Some(CAPUSULE_NAME_MODEL.to_owned()))
+                PyCapsule::new_with_value(py, arc_model.clone(), CAPUSULE_NAME_MODEL)
             }
         }
     }
