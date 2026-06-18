@@ -10,5 +10,8 @@ homepage.workspace = true
 repository.workspace = true
 
 [dependencies]
-pyo3 = { workspace = true, features = ["extension-module"] }
+pyo3 = { workspace = true }
 lunamodel-python = { workspace = true }
+
+[features]
+extension-module = ["pyo3/extension-module"]

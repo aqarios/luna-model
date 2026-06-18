@@ -11,5 +11,5 @@ name = "pyo3_lunamodel_integration_ext"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.27.2", features = ["extension-module"] }
+pyo3 = { version = "0.29.0", features = ["extension-module"] }
 pyo3-lunamodel = { path = "../.." }

@@ -6,7 +6,18 @@ build-backend = "maturin"
 name = "pyo3-lunamodel-integration-ext"
 version = "0.0.0"
 requires-python = ">=3.11"
+dependencies = [
+    "luna-model",
+]
 
 [tool.maturin]
 module-name = "pyo3_lunamodel_integration_ext"
 manifest-path = "Cargo.toml"
+
+[tool.uv.sources]
+luna-model = { path = "../../../py-lunamodel" }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.0",
+]

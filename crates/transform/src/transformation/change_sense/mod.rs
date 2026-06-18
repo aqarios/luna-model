@@ -49,6 +49,8 @@ mod tests {
 
     #[test]
     fn roundtrip_change_sense_pass_to_min() -> LunaModelResult<()> {
+        register_backward::<ChangeSensePass>();
+
         let mut model = Model::default();
         let x = model.add_var("i0", Vtype::Integer, None)?;
         let y = model.add_var("i1", Vtype::Integer, None)?;

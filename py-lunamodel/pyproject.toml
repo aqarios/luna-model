@@ -63,6 +63,7 @@ python-packages = ["luna_model"]
 python-source = "src"
 all-features = false
 no-default-features = true
+features = ["extension-module"]
 include = [
     "src/luna_model/**/*.pyi",
     "src/luna_model/**/*.py",
