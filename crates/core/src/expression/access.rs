@@ -51,6 +51,29 @@ impl Expression {
         .filter(|v| v.vtype().unwrap() != Vtype::InvertedBinary)
     }
 
+    /// Iterates over the distinct variables referenced by the expression.
+    ///
+    /// The iterator rebuilds [`VarRef`] values from the raw term storage.
+    /// In contrast to vars it does not filter out inverted binary helper variables.
+    pub fn complete_vars(&self) -> impl Iterator<Item = VarRef> {
+        unique(
+            self.linear
+                .iter()
+                .map(|(idx, _)| idx)
+                .chain(
+                    self.quadratic
+                        .iter()
+                        .flat_map(|q| q.iter_flat().flat_map(|(u, v, _)| once(u).chain(once(v)))),
+                )
+                .chain(
+                    self.higher_order
+                        .iter()
+                        .flat_map(|h| h.iter_contrib().flat_map(|(c, _)| c.into_iter())),
+                ),
+        )
+        .map(|id| VarRef::new(id, self.env.clone()))
+    }
+
     /// Iterates over all non-zero contributions as `(variables, bias)` pairs.
     ///
     /// Linear, quadratic, and higher-order terms are normalized into a single

@@ -1,5 +1,6 @@
 //! Model evaluation against solutions and samples.
 
+use itertools::Itertools;
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::Bias;
 use std::collections::{HashMap, HashSet};
@@ -62,7 +63,16 @@ impl Model {
 
         let mut lu: Vec<Bias> = vec![0.0; self.environment.read_arc().next_idx as usize];
         for sample in sol.samples() {
-            make_lookup(&self.environment.read_arc(), &sample, &mut lu)?;
+            make_lookup(
+                &self.environment.read_arc(),
+                self.objective
+                    .complete_vars()
+                    .chain(self.constraints.complete_vars())
+                    .map(|v| v.id())
+                    .unique(),
+                &sample,
+                &mut lu,
+            )?;
             obj_vals.push(self.objective.evaluate_sample_quick(&lu)?);
             let mut all_constr_ok = true;
             for (cname, val) in self.constraints.evaluate_sample_quick(&lu, tol)? {

@@ -15,7 +15,7 @@ use crate::{
 };
 
 #[pyclass(from_py_object)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PySampleView {
     pub sol: PySolution,
     pub idx: usize,

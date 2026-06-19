@@ -59,3 +59,15 @@ def test_eval_sample_view_2():
     expr = x + y - 3 * z
     val = expr.evaluate_sample(sol[0].sample)
     assert -2.0 == val
+
+def test_eval_sample_more_vars_in_env():
+    with Environment():
+        x = Variable("x")
+        y = Variable("y")
+        z = Variable("z")
+        _ = Variable("w")
+
+    expr = x + y - 3 * z
+    val = expr.evaluate_sample({x: 0, y: 1, z: 1})
+    assert -2.0 == val
+

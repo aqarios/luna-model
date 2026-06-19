@@ -57,6 +57,15 @@ impl ConstraintCollection {
         unique_by(self.data.iter().flat_map(|(_, c)| c.lhs.vars()), |v| v.id)
     }
 
+    /// Returns the distinct variables referenced by all left-hand side expressions including
+    /// inverted binary variables.
+    pub fn complete_vars(&self) -> impl Iterator<Item = VarRef> {
+        unique_by(
+            self.data.iter().flat_map(|(_, c)| c.lhs.complete_vars()),
+            |v| v.id,
+        )
+    }
+
     /// Iterates over `(name, constraint)` pairs in insertion order.
     pub fn iter(&self) -> impl Iterator<Item = (&String, &Constraint)> {
         self.data.iter()

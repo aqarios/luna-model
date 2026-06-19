@@ -246,14 +246,19 @@ where
     Some(reduced)
 }
 
-pub fn make_lookup<S>(env: &Environment, sample: &S, lu: &mut Vec<Bias>) -> LunaModelResult<()>
+pub fn make_lookup<S>(
+    env: &Environment,
+    vars: impl Iterator<Item = u32>,
+    sample: &S,
+    lu: &mut Vec<Bias>,
+) -> LunaModelResult<()>
 where
     for<'s> S: TryIndex<&'s str, Output = Bias, Err = LunaModelError>,
 {
     if lu.len() < env.next_idx as usize {
         lu.resize(env.next_idx as usize, 0.0);
     }
-    for i in env.vars() {
+    for i in vars {
         let v = &env.variables[&i];
         let val = match v.vtype {
             Vtype::InvertedBinary => {

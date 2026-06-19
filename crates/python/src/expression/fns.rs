@@ -21,6 +21,7 @@ enum Replacement {
     Expr(PyExprArg),
 }
 
+#[derive(Debug)]
 struct DirectSample(pub IndexMap<String, f64>);
 
 impl TryFrom<IndexMap<VarKey, f64>> for DirectSample {
@@ -51,7 +52,7 @@ impl TryIndex<&str> for DirectSample {
     }
 }
 
-#[derive(FromPyObject)]
+#[derive(FromPyObject, Debug)]
 enum SampleIn {
     Sample(PySampleView),
     Dict(IndexMap<VarKey, f64>),

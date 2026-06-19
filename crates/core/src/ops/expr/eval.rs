@@ -20,7 +20,12 @@ impl Expression {
 
         let mut lu = vec![0.0; self.env.len()];
         for sample in sampleset {
-            make_lookup(&self.env.read_arc(), &sample, &mut lu)?;
+            make_lookup(
+                &self.env.read_arc(),
+                self.complete_vars().map(|v| v.id()),
+                &sample,
+                &mut lu,
+            )?;
             res.push(self.evaluate_sample_quick(&lu)?);
         }
         Ok(res)
@@ -32,7 +37,12 @@ impl Expression {
         for<'s> S: TryIndex<&'s str, Output = Bias, Err = LunaModelError>,
     {
         let mut lu = vec![0.0; self.env.len()];
-        make_lookup(&self.env.read_arc(), sample, &mut lu)?;
+        make_lookup(
+            &self.env.read_arc(),
+            self.complete_vars().map(|v| v.id()),
+            sample,
+            &mut lu,
+        )?;
         self.evaluate_sample_quick(&lu)
     }
 
