@@ -22,7 +22,7 @@ from luna_model.environment.env import Environment
 from luna_model.expression.iter import ExprIter
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable, Mapping, Sequence
 
     from numpy.typing import NDArray
 
@@ -415,12 +415,14 @@ class Expression:
         """
         return self._expr.evaluate(solution)
 
-    def evaluate_sample(self, sample: Sample | dict[Variable | str, int | float]) -> float:
+    def evaluate_sample(
+        self, sample: Sample | Mapping[Variable | str, float] | Mapping[Variable, float] | Mapping[str, float]
+    ) -> float:
         """Evaluate the expression using variable values from a sample.
 
         Parameters
         ----------
-        sample : Sample | dict[Variable | str, int | float]
+        sample : Sample | Mapping[Variable | str, float] | Mapping[Variable, float] | Mapping[str, float]
             The solution containing variable assignments.
 
         Returns
