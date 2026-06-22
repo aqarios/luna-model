@@ -113,7 +113,7 @@ docs = [
     "mkdocstrings[python]>=1.0.4",
 ]
 build = [
-  "maturin[zig]>=1.13.3"
+  "maturin[zig]>=1.14.1"
 ]
 
 [tool.mypy]
