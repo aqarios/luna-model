@@ -1360,7 +1360,7 @@ requires-dist = [
 provides-extras = ["dimod", "qiskit", "scip"]
 
 [package.metadata.requires-dev]
-build = [{ name = "maturin", extras = ["zig"], specifier = ">=1.13.3" }]
+build = [{ name = "maturin", extras = ["zig"], specifier = ">=1.14.1" }]
 dev = [
     { name = "auditwheel", specifier = ">=6.7.0" },
     { name = "dimod", specifier = ">=0.12.22" },
