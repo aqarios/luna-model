@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@v7.0.0
 
       - name: Cache xwin SDK
         id: xwin-cache
@@ -89,7 +89,7 @@ jobs:
           - aarch64-pc-windows-msvc
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@v7.0.0
 
       - name: Read Rust toolchain channel
         id: toolchain
