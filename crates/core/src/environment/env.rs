@@ -2,10 +2,10 @@
 
 use std::ops::{Index, IndexMut};
 
-use global_counter::primitive::exact::CounterU64;
 use indexmap::IndexMap;
 use sqids::Sqids;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 use lunamodel_error::{LunaModelError, LunaModelResult};
 use lunamodel_types::{EnvIdx, VarIdx, Vtype};
@@ -16,8 +16,6 @@ use crate::{
     environment::util::ensure_unused,
     variable::{VarRef, Variable},
 };
-
-pub static ENV_COUNTER: CounterU64 = CounterU64::new(0);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Environment {
@@ -31,7 +29,7 @@ impl Default for Environment {
     /// Creates an empty environment with a fresh unique identifier.
     fn default() -> Self {
         Self {
-            id: ENV_COUNTER.inc(),
+            id: Uuid::new_v4().as_u128(),
             variables: IndexMap::new(),
             lookup: HashMap::new(),
             next_idx: 0,
@@ -51,7 +49,7 @@ impl Environment {
         next_idx: VarIdx,
     ) -> Self {
         Self {
-            id: ENV_COUNTER.inc(),
+            id: Uuid::new_v4().as_u128(),
             variables,
             lookup,
             next_idx,
@@ -60,7 +58,7 @@ impl Environment {
 
     /// Clones the environment contents into a new environment identity.
     pub fn deep_clone(&self) -> Self {
-        let id = ENV_COUNTER.inc();
+        let id = Uuid::new_v4().as_u128();
         Self {
             id,
             variables: self.variables.clone(),
@@ -70,8 +68,8 @@ impl Environment {
     }
 
     /// Returns the unique environment id.
-    pub fn id(&self) -> usize {
-        self.id as usize
+    pub fn id(&self) -> u128 {
+        self.id
     }
 
     /// Returns the next variable index that will be assigned on insertion.

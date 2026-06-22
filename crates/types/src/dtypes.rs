@@ -3,7 +3,7 @@
 /// Variable index type.
 pub type VarIdx = u32;
 /// Environment index type.
-pub type EnvIdx = u64; // has to be u64 since counter has to be u64 :(
+pub type EnvIdx = u128;
 /// Bias type.
 pub type Bias = f64;
 /// Type used for assignments for variables with [crate::Vtype::Binary].

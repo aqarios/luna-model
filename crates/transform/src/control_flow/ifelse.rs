@@ -2,16 +2,15 @@
 
 use std::{collections::BTreeSet, sync::Arc};
 
-use global_counter::primitive::exact::CounterU64;
 use lunamodel_core::Model;
 use lunamodel_error::LunaModelResult;
 use lunamodel_transpiler::{
     ControlFlowPass, ControlFlowPlan, DisplaySteps, PassContext, PipelineStep, PipelineStepMethods,
+    control_flow,
 };
 use pad::PadStr;
 
-/// Counter to ensure multiple if-else branches can be used in the same pass.
-pub static IF_ELSE_COUNTER: CounterU64 = CounterU64::new(0);
+use crate::utils::unique_name;
 
 pub trait ConditionPredicate: Send + Sync {
     fn eval(&self, model: &Model, ctx: &PassContext) -> LunaModelResult<bool>;
@@ -25,6 +24,7 @@ where
     }
 }
 
+#[control_flow]
 #[derive(Clone)]
 pub struct IfElsePass {
     name: String,
@@ -62,7 +62,7 @@ impl IfElsePass {
             predicate,
             then_steps,
             else_steps,
-            name: name.unwrap_or_else(|| format!("if-else-{}", IF_ELSE_COUNTER.inc())),
+            name: name.unwrap_or_else(|| unique_name("if-else")),
         }
     }
 }

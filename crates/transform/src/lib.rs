@@ -10,6 +10,8 @@ pub mod control_flow;
 pub mod pipelines;
 pub mod transformation;
 
+mod utils;
+
 pub fn register_backward() {
     transformation::register_backward();
     composite::register_backward();

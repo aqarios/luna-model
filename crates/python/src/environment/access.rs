@@ -14,7 +14,7 @@ impl PyEnvironment {
     /// The identifier is assigned by the Rust core and is primarily useful when
     /// debugging environment mismatches across wrappers.
     #[getter]
-    fn id(&self) -> usize {
+    fn id(&self) -> u128 {
         self.env.read_arc().id()
     }
 
