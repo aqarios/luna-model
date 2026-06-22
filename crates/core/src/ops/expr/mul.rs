@@ -244,7 +244,6 @@ mod tests {
         let mut env = ArcEnv::default();
         let v: VarRef = env.insert("b", Vtype::Binary, None).unwrap();
         let e = Expression::empty(env);
-        dbg!(&v, &e);
         e.clone().mul_assign(&v).unwrap();
         e.clone().mul_assign(v).unwrap();
     }
@@ -371,7 +370,6 @@ mod tests {
         // qud * hio & hio * qud
         let qud_hio = (qud.clone() * hio.clone()).unwrap();
         let hio_qud = (hio.clone() * qud.clone()).unwrap();
-        dbg!(&qud_hio_exp, &hio_qud);
         assert_eq!(qud_hio_exp, qud_hio);
         assert_eq!(qud_hio_exp, hio_qud);
 
@@ -385,7 +383,6 @@ mod tests {
         let mut env = ArcEnv::default();
         let v: VarRef = env.insert("b", Vtype::Binary, None).unwrap();
         let e = Expression::empty(env);
-        dbg!(&v, &e);
         e.clone().mul_assign(&v).unwrap();
         e.clone().mul_assign(v).unwrap();
     }
