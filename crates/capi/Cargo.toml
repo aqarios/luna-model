@@ -1,0 +1,20 @@
+[package]
+name = "lunamodel-capi"
+version.workspace = true
+license.workspace = true
+publish = false
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[lib]
+name = "lunamodel_capi"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+luna-model = { workspace = true, features = ["serializer"] }
+
+[build-dependencies]
+cbindgen = "0.29.4"
