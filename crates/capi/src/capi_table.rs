@@ -19,6 +19,7 @@ use crate::solution::LmSolution;
 /// Consumers obtaining this via the capsule must check [`Self::abi_version`]
 /// against the `CAPI_ABI_VERSION` they were compiled against before calling.
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct LunaModelCApi {
     /// ABI version of this table (`CAPI_ABI_VERSION` at build time).
     pub abi_version: u32,
