@@ -47,9 +47,15 @@ node_modules/
 /js-lunamodel/wasi-worker.mjs
 /js-lunamodel/package-lock.json
 
-# C
+# C/CPP|CXX
 /dist/
 /test/c/build/
+/cpp-lunamodel/samples/build/
+/cpp-lunamodel/test/build/
+
+!/test/c/CMakeLists.txt
+!/cpp-lunamodel/samples/CMakeLists.txt
+!/cpp-lunamodel/test/CMakeLists.txt
 
 # Data
 *.csv
@@ -74,7 +80,6 @@ NOTES.md
 # iykyk
 :w
 *dbg*
-*.txt
 build/
 py-lunamodel/.intentionally-empty-file.o
 

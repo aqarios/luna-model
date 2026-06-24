@@ -65,3 +65,17 @@ cformat:
 	bash tools/run_clang_format.sh
 fix_cformat:
 	bash tools/run_clang_format.sh apply
+
+CPP_DIR = cpp-lunamodel
+CPP_SAMPLES_BUILD = $(CPP_DIR)/samples/build
+CPP_TEST_BUILD = $(CPP_DIR)/test/build
+
+.PHONY: cpp-samples cpp-test
+cpp-samples: c
+	cmake -S $(CPP_DIR)/samples -B $(CPP_SAMPLES_BUILD) -DLUNA_MODEL_LIB_DIR=$(abspath $(C_DIR_OUT_LIB)) -DLUNA_MODEL_INCLUDE_PATH=$(abspath $(C_DIR_OUT_INCLUDE))
+	cmake --build $(CPP_SAMPLES_BUILD)
+
+cpp-test: c
+	cmake -S $(CPP_DIR)/test -B $(CPP_TEST_BUILD) -DLUNA_MODEL_LIB_DIR=$(abspath $(C_DIR_OUT_LIB)) -DLUNA_MODEL_INCLUDE_PATH=$(abspath $(C_DIR_OUT_INCLUDE))
+	cmake --build $(CPP_TEST_BUILD)
+	ctest --test-dir $(CPP_TEST_BUILD) -V
