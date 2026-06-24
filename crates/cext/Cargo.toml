@@ -1,5 +1,5 @@
 [package]
-name = "lunamodel-capi"
+name = "lunamodel-cext"
 version.workspace = true
 license.workspace = true
 publish = false
@@ -10,11 +10,12 @@ homepage.workspace = true
 repository.workspace = true
 
 [lib]
-name = "lunamodel_capi"
-crate-type = ["cdylib", "staticlib", "rlib"]
+name = "lunamodel_cext"
+crate-type = ["rlib"]
 
 [dependencies]
 luna-model = { workspace = true, features = ["serializer"] }
 
 [build-dependencies]
 cbindgen = "0.29.4"
+syn = { workspace = true, features = ["full"] }
