@@ -699,8 +699,13 @@ version = "0.6.4"
 dependencies = [
  "cbindgen",
  "luna-model",
+ "lunamodel-cext-vtable",
  "syn",
 ]
+
+[[package]]
+name = "lunamodel-cext-vtable"
+version = "0.6.4"
 
 [[package]]
 name = "lunamodel-core"

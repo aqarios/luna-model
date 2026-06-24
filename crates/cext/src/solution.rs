@@ -1,22 +1,10 @@
-//! `LmSolution` opaque handle and solution deserialization.
-//!
-//! `inner` is only written for now (read once getters are added); the allow keeps
-//! incremental builds clean and is removed during the cleanup step.
-#![allow(dead_code)]
+//! `LmSolution` handle operations and solution deserialization.
 
 use luna_model::core::Solution;
 use luna_model::serializer::prelude::*;
 
-use crate::error::{CapiError, LmStatus, guard};
-
-/// Opaque handle to a LunaModel solution.
-///
-/// Solutions are produced elsewhere (a solver or the Python API) and loaded here
-/// from serialized bytes with [`lm_solution_deserialize`]. Release with
-/// [`lm_solution_free`].
-pub struct LmSolution {
-    pub(crate) inner: Solution,
-}
+use crate::error::{CapiError, guard};
+use crate::{LmSolution, LmStatus};
 
 /// Deserializes a solution from `len` bytes at `data`, writing a new handle to `out`.
 ///
@@ -42,7 +30,7 @@ pub unsafe extern "C" fn lm_solution_deserialize(
             .map_err(|e| CapiError::new(LmStatus::Deserialization, e.to_string()))?
             .decode(())
             .map_err(|e| CapiError::new(LmStatus::Deserialization, e.to_string()))?;
-        *out = Box::into_raw(Box::new(LmSolution { inner: solution }));
+        *out = Box::into_raw(Box::new(solution)) as *mut LmSolution;
         Ok(())
     })
 }
@@ -54,6 +42,6 @@ pub unsafe extern "C" fn lm_solution_deserialize(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_solution_free(solution: *mut LmSolution) {
     if !solution.is_null() {
-        drop(unsafe { Box::from_raw(solution) });
+        drop(unsafe { Box::from_raw(solution as *mut Solution) });
     }
 }

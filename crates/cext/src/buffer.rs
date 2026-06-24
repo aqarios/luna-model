@@ -1,40 +1,25 @@
-//! An owned byte buffer handed across the C ABI.
+//! Owned byte-buffer helpers for the C ABI.
 #![allow(dead_code)]
 
-/// An owned, heap-allocated byte buffer the caller takes ownership of.
-///
-/// Buffers returned by LunaModel (e.g. from `lm_model_serialize`) must be released
-/// with [`lm_buffer_free`]. The fields mirror a `Vec<u8>` so it can be rebuilt for
-/// deallocation.
-#[repr(C)]
-pub struct LmBuffer {
-    /// Pointer to the first byte, or null for an empty buffer.
-    pub data: *mut u8,
-    /// Number of valid bytes.
-    pub len: usize,
-    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
-    pub cap: usize,
+use crate::LmBuffer;
+
+/// An empty buffer.
+pub(crate) fn empty_buffer() -> LmBuffer {
+    LmBuffer {
+        data: std::ptr::null_mut(),
+        len: 0,
+        cap: 0,
+    }
 }
 
-impl LmBuffer {
-    /// An empty buffer.
-    pub(crate) fn empty() -> Self {
-        Self {
-            data: std::ptr::null_mut(),
-            len: 0,
-            cap: 0,
-        }
+/// Converts an owned `Vec<u8>` into a buffer the caller now owns.
+pub(crate) fn buffer_from_vec(mut vec: Vec<u8>) -> LmBuffer {
+    if vec.is_empty() {
+        return empty_buffer();
     }
-
-    /// Converts an owned `Vec<u8>` into a buffer the caller now owns.
-    pub(crate) fn from_vec(mut vec: Vec<u8>) -> Self {
-        if vec.is_empty() {
-            return Self::empty();
-        }
-        let (data, len, cap) = (vec.as_mut_ptr(), vec.len(), vec.capacity());
-        std::mem::forget(vec);
-        Self { data, len, cap }
-    }
+    let (data, len, cap) = (vec.as_mut_ptr(), vec.len(), vec.capacity());
+    std::mem::forget(vec);
+    LmBuffer { data, len, cap }
 }
 
 /// Frees a buffer previously returned by LunaModel.

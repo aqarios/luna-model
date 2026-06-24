@@ -7,7 +7,8 @@ tab_width = 4
 after_includes = "\n#include \"luna_model/types.h\""
 
 [parse]
-parse_deps = false
+parse_deps = true
+include = ["lunamodel-cext-vtable"]
 
 [export]
 item_types = ["functions"]

@@ -51,23 +51,6 @@ typedef enum {
 } LmStatus;
 
 /**
- * Opaque handle to a LunaModel model.
- *
- * Created by [`lm_model_new`] or [`lm_model_deserialize`] and released with
- * [`lm_model_free`]. The contents are intentionally hidden from C.
- */
-typedef struct LmModel LmModel;
-
-/**
- * Opaque handle to a LunaModel solution.
- *
- * Solutions are produced elsewhere (a solver or the Python API) and loaded here
- * from serialized bytes with [`lm_solution_deserialize`]. Release with
- * [`lm_solution_free`].
- */
-typedef struct LmSolution LmSolution;
-
-/**
  * An owned, heap-allocated byte buffer the caller takes ownership of.
  *
  * Buffers returned by LunaModel (e.g. from `lm_model_serialize`) must be released
@@ -88,6 +71,29 @@ typedef struct {
      */
     uintptr_t cap;
 } LmBuffer;
+
+/**
+ * Opaque handle to a LunaModel model.
+ *
+ * Created by [`lm_model_new`] or [`lm_model_deserialize`] and released with
+ * [`lm_model_free`]. The contents are intentionally hidden from C.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmModel;
+
+/**
+ * Opaque handle to a LunaModel solution.
+ *
+ * Solutions are produced elsewhere (a solver or the Python API) and loaded here
+ * from serialized bytes with [`lm_solution_deserialize`]. Release with
+ * [`lm_solution_free`].
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmSolution;
 
 /**
  * Stable, versioned table of LunaModel C API entry points.

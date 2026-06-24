@@ -90,6 +90,7 @@ lunamodel-python = { path = "crates/python", version = "0.6.4", default-features
 lunamodel-utils = { path = "crates/utils", version = "0.6.4", default-features = false }
 lunamodel-unwind = { path = "crates/unwind", version = "0.6.4", default-features = false }
 lunamodel-cext = { path = "crates/cext", version = "0.6.4", default-features = false }
+lunamodel-cext-vtable = { path = "crates/cext-vtable", version = "0.6.4", default-features = false }
 
 lunamodel-unwindable = { path = "crates/unwind/unwindable", version = "0.6.4", default-features = false }
 lunamodel-unwinder = { path = "crates/unwind/unwinder", version = "0.6.4", default-features = false }

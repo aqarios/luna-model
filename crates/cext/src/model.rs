@@ -1,27 +1,18 @@
-//! `LmModel` opaque handle and the model serialization bridge.
+//! `LmModel` handle operations and the model serialization bridge.
 
 use luna_model::core::Model;
 use luna_model::serializer::prelude::*;
 
-use crate::buffer::LmBuffer;
-use crate::error::{CapiError, LmStatus, guard};
-
-/// Opaque handle to a LunaModel model.
-///
-/// Created by [`lm_model_new`] or [`lm_model_deserialize`] and released with
-/// [`lm_model_free`]. The contents are intentionally hidden from C.
-pub struct LmModel {
-    pub(crate) inner: Model,
-}
+use crate::buffer::buffer_from_vec;
+use crate::error::{CapiError, guard};
+use crate::{LmBuffer, LmModel, LmStatus};
 
 /// Creates a new, empty (unnamed, minimization) model.
 ///
 /// Returns a non-null handle that must be released with [`lm_model_free`].
 #[unsafe(no_mangle)]
 pub extern "C" fn lm_model_new() -> *mut LmModel {
-    Box::into_raw(Box::new(LmModel {
-        inner: Model::default(),
-    }))
+    Box::into_raw(Box::new(Model::default())) as *mut LmModel
 }
 
 /// Clones a model into a new, independent handle written to `out`.
@@ -31,11 +22,10 @@ pub extern "C" fn lm_model_new() -> *mut LmModel {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_clone(model: *const LmModel, out: *mut *mut LmModel) -> LmStatus {
     guard(|| {
-        let model = unsafe { model.as_ref() }.ok_or_else(|| CapiError::null_pointer("model"))?;
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
         let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = Box::into_raw(Box::new(LmModel {
-            inner: model.inner.clone(),
-        }));
+        *out = Box::into_raw(Box::new(model.clone())) as *mut LmModel;
         Ok(())
     })
 }
@@ -47,7 +37,7 @@ pub unsafe extern "C" fn lm_model_clone(model: *const LmModel, out: *mut *mut Lm
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_free(model: *mut LmModel) {
     if !model.is_null() {
-        drop(unsafe { Box::from_raw(model) });
+        drop(unsafe { Box::from_raw(model as *mut Model) });
     }
 }
 
@@ -60,13 +50,13 @@ pub unsafe extern "C" fn lm_model_free(model: *mut LmModel) {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_model_serialize(model: *const LmModel, out: *mut LmBuffer) -> LmStatus {
     guard(|| {
-        let model = unsafe { model.as_ref() }.ok_or_else(|| CapiError::null_pointer("model"))?;
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
         let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
         let bytes = model
-            .inner
             .encode(Some(true), None)
             .map_err(|e| CapiError::new(LmStatus::Serialization, e.to_string()))?;
-        *out = LmBuffer::from_vec(bytes);
+        *out = buffer_from_vec(bytes);
         Ok(())
     })
 }
@@ -95,7 +85,7 @@ pub unsafe extern "C" fn lm_model_deserialize(
             .map_err(|e| CapiError::new(LmStatus::Deserialization, e.to_string()))?
             .decode(())
             .map_err(|e| CapiError::new(LmStatus::Deserialization, e.to_string()))?;
-        *out = Box::into_raw(Box::new(LmModel { inner: model }));
+        *out = Box::into_raw(Box::new(model)) as *mut LmModel;
         Ok(())
     })
 }

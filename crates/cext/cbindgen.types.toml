@@ -6,7 +6,8 @@ style = "type"
 tab_width = 4
 
 [parse]
-parse_deps = false
+parse_deps = true
+include = ["lunamodel-cext-vtable"]
 
 [export]
 item_types = ["constants", "enums", "structs", "unions", "typedefs", "opaque"]
