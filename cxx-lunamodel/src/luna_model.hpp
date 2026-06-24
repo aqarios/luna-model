@@ -1,7 +1,7 @@
 /*
  * LunaModel C++ API — header-only RAII wrapper over the LunaModel C API.
  *
- * Standalone: link liblunamodel; add cpp-lunamodel/src and dist/c/include to your
+ * Standalone: link liblunamodel; add cxx-lunamodel/src and dist/c/include to your
  * include path.
  *     #include <luna_model.hpp>
  *     lm::Model model;

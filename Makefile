@@ -66,7 +66,7 @@ cformat:
 fix_cformat:
 	bash tools/run_clang_format.sh apply
 
-CPP_DIR = cpp-lunamodel
+CPP_DIR = cxx-lunamodel
 CPP_SAMPLES_BUILD = $(CPP_DIR)/samples/build
 CPP_TEST_BUILD = $(CPP_DIR)/test/build
 

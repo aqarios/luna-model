@@ -1,0 +1,8 @@
+PROJECT_NAME     = "cxx-lunamodel"
+PROJECT_NUMBER   = 0.6.4
+OUTPUT_DIRECTORY = docs
+INPUT            = src
+RECURSIVE        = YES
+FILE_PATTERNS    = *.hpp
+EXTRACT_ALL      = YES
+GENERATE_LATEX   = NO
