@@ -7,14 +7,20 @@ use std::path::Path;
 fn main() {
     let manifest = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR");
     let manifest = Path::new(&manifest); // py-lunamodel/pylm
-    let src = manifest.join("../../crates/cext/include"); // generated C headers
     let dst = manifest.join("../src/luna_model/include"); // bundled into the wheel
 
-    println!("cargo:rerun-if-changed={}", src.display());
+    let h = manifest.join("../../crates/cext/include"); // C headers (.h)
+    let hpp = manifest.join("../../cxx-lunamodel/src"); // C++ headers (.hpp)
 
-    if src.exists() {
-        let _ = std::fs::remove_dir_all(&dst);
-        copy_dir(&src, &dst);
+    println!("cargo:rerun-if-changed={}", h.display());
+    println!("cargo:rerun-if-changed={}", hpp.display());
+
+    let _ = std::fs::remove_dir_all(&dst);
+    if h.exists() {
+        copy_dir(&h, &dst);
+    }
+    if hpp.exists() {
+        copy_dir(&hpp, &dst);
     }
 }
 
