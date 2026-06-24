@@ -75,7 +75,6 @@ node_modules/
 # pixi environments
 .pixi/*
 !.pixi/config.toml
-*.txt
 
 NOTES.md
 # iykyk
