@@ -81,8 +81,11 @@ package = true
 cache-keys = [
     { file = "pylm/Cargo.toml" },
     { file = "pylm/Cargo.lock" },
+    { file = "pylm/build.rs" },
+    { file = "pylm/src/**/*.rs" },
     { file = "src/**/*.rs" },
     { file = "../crates/**/*.rs" },
+    { file = "../cpp-lunamodel/src/**/*.hpp" },
 ]
 
 [dependency-groups]
