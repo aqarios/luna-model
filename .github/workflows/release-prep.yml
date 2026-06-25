@@ -81,6 +81,9 @@ jobs:
       - name: Verify version sync
         run: sh ci/tools/check-versions.sh
 
+      - name: Regenerate third-party license notices
+        run: sh ci/tools/generate-third-party-licenses.sh
+
       - name: Read new version
         id: version
         run: |
@@ -109,6 +112,12 @@ jobs:
             One workspace version bump, synced everywhere
             (root `Cargo.toml` → all crates, `js-lunamodel/package.json`,
             `Cargo.lock`, `py-lunamodel/uv.lock`).
+
+            The bundled-dependency license notices
+            (`py-lunamodel/THIRD_PARTY_LICENSES.txt`,
+            `js-lunamodel/THIRD_PARTY_LICENSES.txt`) were regenerated from the
+            resolved trees with cargo-about — **review their diff** for any
+            added or relicensed dependency.
 
             ### Merging this PR will:
 

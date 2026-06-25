@@ -154,6 +154,7 @@ jobs:
           # shellcheck disable=SC2016 # ${...} below are JS template literals
           for d in npm/*wasm*/; do
             cp index.d.ts "$d/index.d.ts"
+            cp THIRD_PARTY_LICENSES.txt "$d/THIRD_PARTY_LICENSES.txt"
             PKG_PATH="$d/package.json" node -e '
               const fs = require("node:fs");
               const path = process.env.PKG_PATH;

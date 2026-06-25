@@ -16,6 +16,7 @@
   },
   "files": [
     "index.d.ts",
+    "THIRD_PARTY_LICENSES.txt",
     "js_lunamodel.wasm32-wasi.wasm",
     "js_lunamodel.wasi.cjs",
     "js_lunamodel.wasi-browser.js",
