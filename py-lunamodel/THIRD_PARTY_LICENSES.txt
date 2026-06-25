@@ -2256,6 +2256,7 @@ Applies to the following dependencies:
   * zstd-sys 2.0.16+zstd.1.5.7
   * zstd 0.13.3
 
+--------------------------------------------------------------------------------
 
 The MIT License (MIT)
 Copyright (c) 2016 Alexandre Bury
