@@ -12,31 +12,41 @@ use pyo3::{
     types::{PyCapsule, PyCapsuleMethods},
 };
 
-use crate::{PyExprContent, PyExpression, ffi::capsule_ffi::CapsuleFFI};
+use crate::{
+    PyExprContent, PyExpression,
+    ffi::{capsule_ffi::CapsuleFFI, capsule_name},
+};
 
-const CAPUSULE_NAME_EXPR: &CStr = c"builtins.capsule.PyExprContent.Expr";
-const CAPUSULE_NAME_MODEL: &CStr = c"builtins.capsule.PyExprContent.Model";
+const CAPSULE_NAME_EXPR: &CStr = c"builtins.capsule.PyExprContent.Expr";
+const CAPSULE_NAME_MODEL: &CStr = c"builtins.capsule.PyExprContent.Model";
 
 impl<'py> CapsuleFFI<'py> for PyExprContent {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
         match &self {
             Self::Expr(arc_expr) => {
-                let capsule = PyCapsule::new_with_value(py, arc_expr.clone(), CAPUSULE_NAME_EXPR)?;
+                let capsule = PyCapsule::new_with_value(
+                    py,
+                    arc_expr.clone(),
+                    capsule_name(CAPSULE_NAME_EXPR),
+                )?;
                 Ok(capsule)
             }
             Self::Model(arc_model) => {
-                let capsule =
-                    PyCapsule::new_with_value(py, arc_model.clone(), CAPUSULE_NAME_MODEL)?;
+                let capsule = PyCapsule::new_with_value(
+                    py,
+                    arc_model.clone(),
+                    capsule_name(CAPSULE_NAME_MODEL),
+                )?;
                 Ok(capsule)
             }
         }
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        if let Ok(ptr) = capsule.pointer_checked(Some(CAPUSULE_NAME_EXPR)) {
+        if let Ok(ptr) = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_EXPR))) {
             let arc_expr = unsafe { ptr.cast::<Arc<RwLock<Expression>>>().as_ref().clone() };
             Ok(Self::Expr(arc_expr))
-        } else if let Ok(ptr) = capsule.pointer_checked(Some(CAPUSULE_NAME_MODEL)) {
+        } else if let Ok(ptr) = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_MODEL))) {
             let arc_model = unsafe { ptr.cast::<Arc<RwLock<Model>>>().as_ref().clone() };
             Ok(Self::Model(arc_model))
         } else {

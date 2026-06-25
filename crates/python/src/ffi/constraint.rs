@@ -10,20 +10,23 @@ use pyo3::{
     types::{PyCapsule, PyCapsuleMethods},
 };
 
-use crate::{PyConstraint, ffi::CapsuleFFI};
+use crate::{
+    PyConstraint,
+    ffi::{CapsuleFFI, capsule_name},
+};
 
-const CAPUSULE_NAME_C: &CStr = c"builtins.capsule.PyConstraint";
+const CAPSULE_NAME_C: &CStr = c"builtins.capsule.PyConstraint";
 
 impl<'py> CapsuleFFI<'py> for Arc<RwLock<Constraint>> {
     fn to_capsule(
         &self,
         py: pyo3::Python<'py>,
     ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::types::PyCapsule>> {
-        PyCapsule::new_with_value(py, self.clone(), CAPUSULE_NAME_C)
+        PyCapsule::new_with_value(py, self.clone(), capsule_name(CAPSULE_NAME_C))
     }
 
     fn from_capsule(capsule: pyo3::Bound<'py, pyo3::types::PyCapsule>) -> pyo3::PyResult<Self> {
-        let ptr = capsule.pointer_checked(Some(CAPUSULE_NAME_C))?;
+        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_C)))?;
         let constr = unsafe { ptr.cast::<Arc<RwLock<Constraint>>>().as_ref().clone() };
         Ok(constr)
     }
