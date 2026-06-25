@@ -26,9 +26,17 @@ ABOUT_VERSION=0.9.0
 REPO_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$REPO_ROOT"
 
-installed=$(cargo about --version 2>/dev/null | awk '{print $2}' || true)
+CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"}
+ABOUT_BIN="$CARGO_HOME/bin/cargo-about"
+
+installed=$("$ABOUT_BIN" --version 2>/dev/null | awk '{print $2}' || true)
 if [ "$installed" != "$ABOUT_VERSION" ]; then
-  cargo install cargo-about --locked --version "$ABOUT_VERSION"
+  cargo install cargo-about --locked --version "$ABOUT_VERSION" --root "$CARGO_HOME"
+fi
+
+if [ ! -x "$ABOUT_BIN" ]; then
+  echo "cargo-about was installed, but $ABOUT_BIN is not executable" >&2
+  exit 1
 fi
 
 gen() {
@@ -36,7 +44,7 @@ gen() {
   output=$2
   shift 2
   echo "Generating $output from $manifest"
-  cargo about generate \
+  "$ABOUT_BIN" generate \
     --config ci/about/about.toml \
     ci/about/about.hbs \
     --manifest-path "$manifest" \
