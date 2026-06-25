@@ -54,6 +54,7 @@ scip = [
 [project.urls]
 Homepage = "https://aqarios.com"
 Documentation = "https://docs.aqarios.com/luna-model/intro"
+Repository = "https://github.com/aqarios/luna-model.git"
 
 [tool.maturin]
 strip = true
