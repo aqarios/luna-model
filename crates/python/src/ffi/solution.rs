@@ -7,17 +7,20 @@ use lunamodel_core::Solution;
 use lunamodel_unwind::*;
 use pyo3::{prelude::*, types::PyCapsule};
 
-use crate::{PySolution, ffi::CapsuleFFI};
+use crate::{
+    PySolution,
+    ffi::{CapsuleFFI, capsule_name},
+};
 
-const CAPUSULE_NAME_ENV: &CStr = c"builtins.capsule.PySolution";
+const CAPSULE_NAME_ENV: &CStr = c"builtins.capsule.PySolution";
 
 impl<'py> CapsuleFFI<'py> for Arc<RwLock<Solution>> {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new_with_value(py, self.clone(), CAPUSULE_NAME_ENV)
+        PyCapsule::new_with_value(py, self.clone(), capsule_name(CAPSULE_NAME_ENV))
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        let ptr = capsule.pointer_checked(Some(CAPUSULE_NAME_ENV))?;
+        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_ENV)))?;
         let arc: Arc<RwLock<Solution>> =
             unsafe { ptr.cast::<Arc<RwLock<Solution>>>().as_ref().clone() };
         Ok(arc)

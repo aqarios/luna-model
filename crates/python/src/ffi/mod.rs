@@ -1,5 +1,6 @@
 //! Raw FFI helpers used to share Rust-owned objects across Python extension boundaries.
 
+mod abi;
 mod capsule_ffi;
 
 mod bounds;
@@ -14,4 +15,6 @@ mod variable;
 
 mod types;
 
+pub use abi::CAPSULE_ABI;
+pub(crate) use abi::capsule_name;
 pub use capsule_ffi::CapsuleFFI;

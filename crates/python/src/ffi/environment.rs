@@ -6,17 +6,20 @@ use lunamodel_core::ArcEnv;
 use lunamodel_unwind::*;
 use pyo3::{prelude::*, types::PyCapsule};
 
-use crate::{PyEnvironment, ffi::CapsuleFFI};
+use crate::{
+    PyEnvironment,
+    ffi::{CapsuleFFI, capsule_name},
+};
 
 const CAPSULE_NAME_ENV: &CStr = c"builtins.capsule.PyEnvironment";
 
 impl<'py> CapsuleFFI<'py> for ArcEnv {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new_with_value(py, self.clone(), CAPSULE_NAME_ENV)
+        PyCapsule::new_with_value(py, self.clone(), capsule_name(CAPSULE_NAME_ENV))
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        let ptr = capsule.pointer_checked(Some(CAPSULE_NAME_ENV))?;
+        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_ENV)))?;
         let arc: ArcEnv = unsafe { ptr.cast::<ArcEnv>().as_ref().clone() };
         Ok(arc)
     }

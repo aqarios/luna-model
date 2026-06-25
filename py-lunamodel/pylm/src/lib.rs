@@ -5,6 +5,7 @@ use pyo3::{PyTypeInfo, prelude::*};
 #[pymodule]
 fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
+    m.add("__capsule_abi__", lunamodel_python::ffi::CAPSULE_ABI)?;
 
     m.add_function(wrap_pyfunction!(quicksum, m)?)?;
     // Enums from lunamodel-core

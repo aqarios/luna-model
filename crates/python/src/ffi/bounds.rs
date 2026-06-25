@@ -10,17 +10,21 @@ use pyo3::{
     types::{PyCapsule, PyCapsuleMethods},
 };
 
-use crate::{PyBounds, PyBoundsContent, bounds::BoundsContent, ffi::CapsuleFFI};
+use crate::{
+    PyBounds, PyBoundsContent,
+    bounds::BoundsContent,
+    ffi::{CapsuleFFI, capsule_name},
+};
 
-const CAPUSULE_NAME_BOUNDS: &CStr = c"builtins.capsule.PyBounds";
+const CAPSULE_NAME_BOUNDS: &CStr = c"builtins.capsule.PyBounds";
 
 impl<'py> CapsuleFFI<'py> for PyBoundsContent {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new_with_value(py, self.clone(), CAPUSULE_NAME_BOUNDS)
+        PyCapsule::new_with_value(py, self.clone(), capsule_name(CAPSULE_NAME_BOUNDS))
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<PyBoundsContent> {
-        let ptr = capsule.pointer_checked(Some(CAPUSULE_NAME_BOUNDS))?;
+        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_BOUNDS)))?;
         let content = unsafe { ptr.cast::<Arc<RwLock<BoundsContent>>>().as_ref().clone() };
         Ok(content)
     }

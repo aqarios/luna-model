@@ -9,18 +9,18 @@ use pyo3::{
     types::{PyCapsule, PyCapsuleMethods},
 };
 
-use crate::ffi::CapsuleFFI;
+use crate::ffi::{CapsuleFFI, capsule_name};
 use crate::specs::PyModelSpecs;
 
-const CAPUSULE_NAME_SPECS: &CStr = c"builtins.capsule.PyModelSpecs";
+const CAPSULE_NAME_SPECS: &CStr = c"builtins.capsule.PyModelSpecs";
 
 impl<'py> CapsuleFFI<'py> for Specs {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new_with_value(py, self.clone(), CAPUSULE_NAME_SPECS)
+        PyCapsule::new_with_value(py, self.clone(), capsule_name(CAPSULE_NAME_SPECS))
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        let ptr = capsule.pointer_checked(Some(CAPUSULE_NAME_SPECS))?;
+        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_SPECS)))?;
         let s = unsafe { ptr.cast::<Specs>().as_ref().clone() };
         Ok(s)
     }
