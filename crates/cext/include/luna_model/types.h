@@ -51,6 +51,23 @@ typedef enum {
 } LmStatus;
 
 /**
+ * Objective optimization sense used by the C API.
+ *
+ * This is the C-ABI-stable mirror of LunaModel's Rust `Sense` enum.
+ * Use this when creating or updating a model through `extern "C"` functions.
+ */
+typedef enum {
+    /**
+     * Minimize the model objective.
+     */
+    LmSense_Min = 0,
+    /**
+     * Maximize the model objective.
+     */
+    LmSense_Max = 1,
+} LmSense;
+
+/**
  * An owned, heap-allocated byte buffer the caller takes ownership of.
  *
  * Buffers returned by LunaModel (e.g. from `lm_model_serialize`) must be released
@@ -122,6 +139,10 @@ typedef struct {
      * See [`crate::model::lm_model_default`].
      */
     LmModel *(*model_default)(void);
+    /**
+     * See [`crate::model::lm_model_new`].
+     */
+    LmStatus (*model_new)(const char*, LmSense, LmModel**);
     /**
      * See [`crate::model::lm_model_clone`].
      */

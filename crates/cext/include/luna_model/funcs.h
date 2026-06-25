@@ -43,6 +43,29 @@ const char *lm_last_error_message(void);
 LmModel *lm_model_default(void);
 
 /**
+ * Creates a new model.
+ *
+ * `name == NULL` means use the default model name.
+ * `out` receives an owned model handle that must be freed with `lm_model_free`.
+ */
+LmStatus lm_model_new(const char *name, LmSense sense, LmModel **out);
+
+/**
+ * Returns a copy of the model name as an owned UTF-8 byte buffer.
+ *
+ * The returned buffer is written to `out` and must be released with
+ * `lm_buffer_free`.
+ *
+ * The buffer is not guaranteed to be NUL-terminated. C callers should use
+ * `buffer.data` together with `buffer.len`.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_model_name(const LmModel *model, LmBuffer *out);
+
+/**
  * Clones a model into a new, independent handle written to `out`.
  *
  * # Safety

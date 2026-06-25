@@ -6,7 +6,7 @@
 //! `luna_model._lm._C_API` capsule depend on that crate directly, so they never link
 //! a second copy of the core.
 
-pub use lunamodel_cext_vtable::{LmBuffer, LmModel, LmSolution, LmStatus, LunaModelCApi};
+pub use lunamodel_cext_vtable::{LmBuffer, LmModel, LmSense, LmSolution, LmStatus, LunaModelCApi};
 
 /// ABI version of the C API table.
 ///
@@ -26,3 +26,5 @@ pub mod error;
 pub mod model;
 pub mod solution;
 pub mod version;
+
+mod utils;

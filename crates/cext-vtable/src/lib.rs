@@ -41,6 +41,20 @@ pub enum LmStatus {
     Panic = 5,
 }
 
+/// Objective optimization sense used by the C API.
+///
+/// This is the C-ABI-stable mirror of LunaModel's Rust `Sense` enum.
+/// Use this when creating or updating a model through `extern "C"` functions.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LmSense {
+    /// Minimize the model objective.
+    Min = 0,
+
+    /// Maximize the model objective.
+    Max = 1,
+}
+
 /// An owned, heap-allocated byte buffer the caller takes ownership of.
 ///
 /// Buffers returned by LunaModel (e.g. from `lm_model_serialize`) must be released
@@ -96,6 +110,8 @@ pub struct LunaModelCApi {
     pub buffer_free: unsafe extern "C" fn(LmBuffer),
     /// See [`crate::model::lm_model_default`].
     pub model_default: extern "C" fn() -> *mut LmModel,
+    /// See [`crate::model::lm_model_new`].
+    pub model_new: unsafe extern "C" fn(*const c_char, LmSense, *mut *mut LmModel) -> LmStatus,
     /// See [`crate::model::lm_model_clone`].
     pub model_clone: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
     /// See [`crate::model::lm_model_free`].

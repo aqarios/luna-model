@@ -1,11 +1,14 @@
 //! `LmModel` handle operations and the model serialization bridge.
 
+use std::ffi::{CStr, c_char};
+
 use luna_model::core::Model;
 use luna_model::serializer::prelude::*;
 
 use crate::buffer::buffer_from_vec;
 use crate::error::{CapiError, guard};
-use crate::{LmBuffer, LmModel, LmStatus};
+use crate::utils::sense_from_c;
+use crate::{LmBuffer, LmModel, LmSense, LmStatus};
 
 /// Creates a new, empty (unnamed, minimization) model.
 ///
@@ -13,6 +16,67 @@ use crate::{LmBuffer, LmModel, LmStatus};
 #[unsafe(no_mangle)]
 pub extern "C" fn lm_model_default() -> *mut LmModel {
     Box::into_raw(Box::new(Model::default())) as *mut LmModel
+}
+
+/// Creates a new model.
+///
+/// `name == NULL` means use the default model name.
+/// `out` receives an owned model handle that must be freed with `lm_model_free`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_new(
+    name: *const c_char,
+    sense: LmSense,
+    out: *mut *mut LmModel,
+) -> LmStatus {
+    guard(|| {
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+
+        let name = if name.is_null() {
+            None
+        } else {
+            let cstr = unsafe { CStr::from_ptr(name) };
+            Some(
+                cstr.to_str()
+                    .map_err(|e| {
+                        CapiError::new(
+                            LmStatus::InvalidArgument,
+                            format!("`name` must be valid UTF-8: {e}"),
+                        )
+                    })?
+                    .to_owned(),
+            )
+        };
+
+        let model = Model::new(name, Some(sense_from_c(sense)));
+        *out = Box::into_raw(Box::new(model)) as *mut LmModel;
+
+        Ok(())
+    })
+}
+
+/// Returns a copy of the model name as an owned UTF-8 byte buffer.
+///
+/// The returned buffer is written to `out` and must be released with
+/// `lm_buffer_free`.
+///
+/// The buffer is not guaranteed to be NUL-terminated. C callers should use
+/// `buffer.data` together with `buffer.len`.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmBuffer` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_name(model: *const LmModel, out: *mut LmBuffer) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+
+        *out = buffer_from_vec(model.name.as_bytes().to_vec());
+
+        Ok(())
+    })
 }
 
 /// Clones a model into a new, independent handle written to `out`.

@@ -14,6 +14,7 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     last_error_message: crate::error::lm_last_error_message,
     buffer_free: crate::buffer::lm_buffer_free,
     model_default: crate::model::lm_model_default,
+    model_new: crate::model::lm_model_new,
     model_clone: crate::model::lm_model_clone,
     model_free: crate::model::lm_model_free,
     model_serialize: crate::model::lm_model_serialize,
