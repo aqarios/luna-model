@@ -3,12 +3,19 @@
 use lunamodel_io::{CustomFormat, FormatOpt};
 use lunamodel_transpiler::PassManager;
 use lunamodel_unwind::*;
-use pyo3::{PyResult, Python, pyclass, pymethods};
+use pyo3::{FromPyObject, PyResult, Python, pyclass, pymethods};
 
 use super::{output::PyTransformationOutput, pass::PyPass};
 use crate::{PyModel, PySolution};
 
+#[derive(FromPyObject)]
+pub enum PassIn {
+    PassVec(Vec<PyPass>),
+    Single(PyPass),
+}
+
 #[pyclass]
+#[derive(Default)]
 pub struct PyPassManager {
     /// The underlying Rust pass manager.
     pub pm: PassManager,
@@ -17,23 +24,27 @@ pub struct PyPassManager {
 #[unwindable]
 #[pymethods]
 impl PyPassManager {
-    /// Create a pass manager from an optional list of passes.
+    /// Create a pass manager from an optional list of passes or a pipeline.
     ///
     /// Python passes are converted eagerly into Rust pipeline steps so runtime
     /// errors around adapter creation surface at construction time.
     #[new]
-    fn new(py: Python, passes: Option<Vec<PyPass>>) -> PyResult<Self> {
-        Ok(PyPassManager {
-            pm: match passes {
-                Some(steps) => PassManager::from_steps(
-                    steps
-                        .into_iter()
-                        .map(|p| p.to_step(py))
-                        .collect::<PyResult<_>>()?,
-                ),
-                None => PassManager::default(),
-            },
-        })
+    fn new(py: Python, passes: Option<PassIn>) -> PyResult<Self> {
+        let Some(steps) = passes else {
+            return Ok(PyPassManager::default());
+        };
+
+        let pm = match steps {
+            PassIn::Single(pass) => PassManager::from_steps(vec![pass.to_step(py)?]),
+            PassIn::PassVec(steps) => PassManager::from_steps(
+                steps
+                    .into_iter()
+                    .map(|p| p.to_step(py))
+                    .collect::<PyResult<_>>()?,
+            ),
+        };
+
+        Ok(PyPassManager { pm })
     }
 
     /// Append a pass to the manager.

@@ -9,17 +9,20 @@ use pyo3::{
     types::{PyCapsule, PyCapsuleMethods},
 };
 
-use crate::{ffi::CapsuleFFI, transform::PyPassContext};
+use crate::{
+    ffi::{CapsuleFFI, capsule_name},
+    transform::PyPassContext,
+};
 
 const CAPSULE_NAME_PCTX: &CStr = c"builtins.capsule.PyPassContext";
 
 impl<'py> CapsuleFFI<'py> for Arc<AnalysisManager> {
     fn to_capsule(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        PyCapsule::new_with_value(py, self.clone(), CAPSULE_NAME_PCTX)
+        PyCapsule::new_with_value(py, self.clone(), capsule_name(CAPSULE_NAME_PCTX))
     }
 
     fn from_capsule(capsule: Bound<'py, PyCapsule>) -> PyResult<Self> {
-        let ptr = capsule.pointer_checked(Some(CAPSULE_NAME_PCTX))?;
+        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_PCTX)))?;
         let manager = unsafe { ptr.cast::<Arc<AnalysisManager>>().as_ref().clone() };
         Ok(manager)
     }

@@ -18,7 +18,7 @@ authors = [
 license-files = ["LICENSE", "THIRD_PARTY_LICENSES.txt"]
 requires-python = ">=3.11,<3.15"
 dependencies = [
-    "numpy>=2.4.6",
+    "numpy>=1.21.0",
     "typing-extensions>=4.15.0; python_version < '3.13'",
 ]
 keywords = [
@@ -54,6 +54,7 @@ scip = [
 [project.urls]
 Homepage = "https://aqarios.com"
 Documentation = "https://docs.aqarios.com/luna-model/intro"
+Repository = "https://github.com/aqarios/luna-model.git"
 
 [tool.maturin]
 strip = true

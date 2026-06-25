@@ -5,6 +5,7 @@ use pyo3::{PyTypeInfo, prelude::*, types::PyCapsule};
 #[pymodule]
 fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
+    m.add("__capsule_abi__", lunamodel_python::ffi::CAPSULE_ABI)?;
 
     let c_api_capsule = PyCapsule::new_with_value(
         py,
@@ -24,7 +25,7 @@ fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyComparator>()?;
     // Enums from lunamodel-translate
     m.add_class::<PyTranslationTarget>()?;
-    // extaa
+    // extra
     m.add_class::<PyUnbounded>()?;
     // Classes
     m.add_class::<PyExpression>()?;

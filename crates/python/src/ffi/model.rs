@@ -11,10 +11,14 @@ use pyo3::{
 };
 use std::collections::HashMap;
 
-use crate::{PyModel, PyModelMetadata, ffi::CapsuleFFI, model::PyModelContent};
+use crate::{
+    PyModel, PyModelMetadata,
+    ffi::{CapsuleFFI, capsule_name},
+    model::PyModelContent,
+};
 
-const CAPUSULE_NAME_MODEL: &CStr = c"builtins.capsule.PyModel";
-const CAPUSULE_NAME_MODEL_METADATA: &CStr = c"builtins.capsule.PyModelMetadata";
+const CAPSULE_NAME_MODEL: &CStr = c"builtins.capsule.PyModel";
+const CAPSULE_NAME_MODEL_METADATA: &CStr = c"builtins.capsule.PyModelMetadata";
 
 impl<'py> CapsuleFFI<'py, (pyo3::Bound<'py, PyCapsule>, pyo3::Bound<'py, PyCapsule>)>
     for PyModelContent
@@ -23,11 +27,12 @@ impl<'py> CapsuleFFI<'py, (pyo3::Bound<'py, PyCapsule>, pyo3::Bound<'py, PyCapsu
         &self,
         py: pyo3::Python<'py>,
     ) -> pyo3::PyResult<(pyo3::Bound<'py, PyCapsule>, pyo3::Bound<'py, PyCapsule>)> {
-        let capsule = PyCapsule::new_with_value(py, self.m.clone(), CAPUSULE_NAME_MODEL)?;
+        let capsule =
+            PyCapsule::new_with_value(py, self.m.clone(), capsule_name(CAPSULE_NAME_MODEL))?;
         let capsule_metadata = PyCapsule::new_with_value(
             py,
             self._metadata.data.clone(),
-            CAPUSULE_NAME_MODEL_METADATA,
+            capsule_name(CAPSULE_NAME_MODEL_METADATA),
         )?;
         Ok((capsule_metadata, capsule))
     }
@@ -36,8 +41,9 @@ impl<'py> CapsuleFFI<'py, (pyo3::Bound<'py, PyCapsule>, pyo3::Bound<'py, PyCapsu
         capsule: (pyo3::Bound<'py, PyCapsule>, pyo3::Bound<'py, PyCapsule>),
     ) -> pyo3::PyResult<Self> {
         let (capsule_metadata, capsule) = capsule;
-        let ptr = capsule.pointer_checked(Some(CAPUSULE_NAME_MODEL))?;
-        let ptr_metadata = capsule_metadata.pointer_checked(Some(CAPUSULE_NAME_MODEL_METADATA))?;
+        let ptr = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_MODEL)))?;
+        let ptr_metadata =
+            capsule_metadata.pointer_checked(Some(capsule_name(CAPSULE_NAME_MODEL_METADATA)))?;
         let model = unsafe { ptr.cast::<Arc<RwLock<Model>>>().as_ref().clone() };
         let metadata = unsafe {
             ptr_metadata

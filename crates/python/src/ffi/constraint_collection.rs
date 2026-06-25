@@ -13,11 +13,13 @@ use pyo3::{
 };
 
 use crate::{
-    PyConstraintCollection, ffi::CapsuleFFI, prelude::PyConstraintCollectionContent as PyCCC,
+    PyConstraintCollection,
+    ffi::{CapsuleFFI, capsule_name},
+    prelude::PyConstraintCollectionContent as PyCCC,
 };
 
-const CAPUSULE_NAME_CC: &CStr = c"builtins.capsule.PyConstraintCollectionContent.Cc";
-const CAPUSULE_NAME_MODEL: &CStr = c"builtins.capsule.PyConstraintCollectionContent.Model";
+const CAPSULE_NAME_CC: &CStr = c"builtins.capsule.PyConstraintCollectionContent.Cc";
+const CAPSULE_NAME_MODEL: &CStr = c"builtins.capsule.PyConstraintCollectionContent.Model";
 
 impl<'py> CapsuleFFI<'py> for PyCCC {
     fn to_capsule(
@@ -26,24 +28,24 @@ impl<'py> CapsuleFFI<'py> for PyCCC {
     ) -> pyo3::PyResult<pyo3::Bound<'py, pyo3::types::PyCapsule>> {
         match &self {
             Self::Coll(arc_coll) => {
-                PyCapsule::new_with_value(py, arc_coll.clone(), CAPUSULE_NAME_CC)
+                PyCapsule::new_with_value(py, arc_coll.clone(), capsule_name(CAPSULE_NAME_CC))
             }
 
             Self::Model(arc_model) => {
-                PyCapsule::new_with_value(py, arc_model.clone(), CAPUSULE_NAME_MODEL)
+                PyCapsule::new_with_value(py, arc_model.clone(), capsule_name(CAPSULE_NAME_MODEL))
             }
         }
     }
 
     fn from_capsule(capsule: pyo3::Bound<'py, pyo3::types::PyCapsule>) -> pyo3::PyResult<Self> {
-        if let Ok(ptr) = capsule.pointer_checked(Some(CAPUSULE_NAME_CC)) {
+        if let Ok(ptr) = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_CC))) {
             let arc_cc = unsafe {
                 ptr.cast::<Arc<RwLock<ConstraintCollection>>>()
                     .as_ref()
                     .clone()
             };
             Ok(Self::Coll(arc_cc))
-        } else if let Ok(ptr) = capsule.pointer_checked(Some(CAPUSULE_NAME_MODEL)) {
+        } else if let Ok(ptr) = capsule.pointer_checked(Some(capsule_name(CAPSULE_NAME_MODEL))) {
             let arc_model = unsafe { ptr.cast::<Arc<RwLock<Model>>>().as_ref().clone() };
             Ok(Self::Model(arc_model))
         } else {

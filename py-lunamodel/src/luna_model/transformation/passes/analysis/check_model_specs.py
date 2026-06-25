@@ -15,7 +15,6 @@
 from typing import Self
 
 from luna_model._lm import PyCheckModelSpecsAnalysis
-from luna_model.model.model import Model
 from luna_model.model.specs import ModelSpecs
 from luna_model.transformation.passes.analysis.builtin import BuiltinAnalysis
 
@@ -52,5 +51,5 @@ class CheckModelSpecsAnalysis(PyCheckModelSpecsAnalysis, BuiltinAnalysis[None]):
         """
         return super().__new__(cls, specs=specs._sp)
 
-    def __init__(self, specs: Model) -> None:
+    def __init__(self, specs: ModelSpecs) -> None:
         _ = specs

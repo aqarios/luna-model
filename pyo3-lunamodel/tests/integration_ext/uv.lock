@@ -31,7 +31,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "dimod", marker = "extra == 'dimod'", specifier = ">=0.12.22" },
-    { name = "numpy", specifier = ">=2.4.6" },
+    { name = "numpy", specifier = ">=1.21.0" },
     { name = "pyscipopt", marker = "extra == 'scip'", specifier = ">=6.2.1" },
     { name = "qiskit", marker = "extra == 'qiskit'", specifier = ">=2.1.2" },
     { name = "qiskit-optimization", marker = "extra == 'qiskit'", specifier = ">=0.6.1" },
@@ -40,7 +40,7 @@ requires-dist = [
 provides-extras = ["dimod", "qiskit", "scip"]
 
 [package.metadata.requires-dev]
-build = [{ name = "maturin", extras = ["zig"], specifier = ">=1.13.3" }]
+build = [{ name = "maturin", extras = ["zig"], specifier = ">=1.14.1" }]
 dev = [
     { name = "auditwheel", specifier = ">=6.7.0" },
     { name = "dimod", specifier = ">=0.12.22" },
