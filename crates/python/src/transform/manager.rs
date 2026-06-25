@@ -10,8 +10,8 @@ use crate::{PyModel, PySolution};
 
 #[derive(FromPyObject)]
 pub enum PassIn {
-    Single(PyPass),
     PassVec(Vec<PyPass>),
+    Single(PyPass),
 }
 
 #[pyclass]
