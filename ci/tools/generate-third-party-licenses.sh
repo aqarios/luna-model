@@ -31,7 +31,7 @@ ABOUT_BIN="$CARGO_HOME/bin/cargo-about"
 
 installed=$("$ABOUT_BIN" --version 2>/dev/null | awk '{print $2}' || true)
 if [ "$installed" != "$ABOUT_VERSION" ]; then
-  cargo install cargo-about --locked --version "$ABOUT_VERSION" --root "$CARGO_HOME"
+  cargo install cargo-about --locked --version "$ABOUT_VERSION" --features cli --root "$CARGO_HOME"
 fi
 
 if [ ! -x "$ABOUT_BIN" ]; then
