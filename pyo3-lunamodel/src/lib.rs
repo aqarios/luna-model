@@ -91,7 +91,13 @@ mod tests {
     #[test]
     fn mismatched_abi_reports_both_versions() {
         let msg = abi_mismatch(2, 1).expect("a mismatch must be reported");
-        assert!(msg.contains("v2"), "message should name the extension ABI: {msg}");
-        assert!(msg.contains("v1"), "message should name the host ABI: {msg}");
+        assert!(
+            msg.contains("v2"),
+            "message should name the extension ABI: {msg}"
+        );
+        assert!(
+            msg.contains("v1"),
+            "message should name the host ABI: {msg}"
+        );
     }
 }

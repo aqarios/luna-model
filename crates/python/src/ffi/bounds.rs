@@ -10,7 +10,11 @@ use pyo3::{
     types::{PyCapsule, PyCapsuleMethods},
 };
 
-use crate::{PyBounds, PyBoundsContent, bounds::BoundsContent, ffi::{CapsuleFFI, capsule_name}};
+use crate::{
+    PyBounds, PyBoundsContent,
+    bounds::BoundsContent,
+    ffi::{CapsuleFFI, capsule_name},
+};
 
 const CAPSULE_NAME_BOUNDS: &CStr = c"builtins.capsule.PyBounds";
 
