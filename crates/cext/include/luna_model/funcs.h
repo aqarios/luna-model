@@ -40,7 +40,7 @@ const char *lm_last_error_message(void);
  *
  * Returns a non-null handle that must be released with [`lm_model_free`].
  */
-LmModel *lm_model_new(void);
+LmModel *lm_model_default(void);
 
 /**
  * Clones a model into a new, independent handle written to `out`.

@@ -75,7 +75,7 @@ typedef struct {
 /**
  * Opaque handle to a LunaModel model.
  *
- * Created by [`lm_model_new`] or [`lm_model_deserialize`] and released with
+ * Created by [`lm_model_default`] or [`lm_model_deserialize`] and released with
  * [`lm_model_free`]. The contents are intentionally hidden from C.
  *
  */
@@ -119,9 +119,9 @@ typedef struct {
      */
     void (*buffer_free)(LmBuffer);
     /**
-     * See [`crate::model::lm_model_new`].
+     * See [`crate::model::lm_model_default`].
      */
-    LmModel *(*model_new)(void);
+    LmModel *(*model_default)(void);
     /**
      * See [`crate::model::lm_model_clone`].
      */

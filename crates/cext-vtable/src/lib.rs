@@ -58,7 +58,7 @@ pub struct LmBuffer {
 
 /// Opaque handle to a LunaModel model.
 ///
-/// Created by [`lm_model_new`] or [`lm_model_deserialize`] and released with
+/// Created by [`lm_model_default`] or [`lm_model_deserialize`] and released with
 /// [`lm_model_free`]. The contents are intentionally hidden from C.
 ///
 /// cbindgen:opaque
@@ -94,8 +94,8 @@ pub struct LunaModelCApi {
     pub last_error_message: extern "C" fn() -> *const c_char,
     /// See [`crate::buffer::lm_buffer_free`].
     pub buffer_free: unsafe extern "C" fn(LmBuffer),
-    /// See [`crate::model::lm_model_new`].
-    pub model_new: extern "C" fn() -> *mut LmModel,
+    /// See [`crate::model::lm_model_default`].
+    pub model_default: extern "C" fn() -> *mut LmModel,
     /// See [`crate::model::lm_model_clone`].
     pub model_clone: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
     /// See [`crate::model::lm_model_free`].

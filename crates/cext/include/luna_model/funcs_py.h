@@ -57,7 +57,7 @@ static inline int import_luna_model(void) {
 #define lm_version(...) (lunamodel__vtable->version(__VA_ARGS__))
 #define lm_last_error_message(...) (lunamodel__vtable->last_error_message(__VA_ARGS__))
 #define lm_buffer_free(...) (lunamodel__vtable->buffer_free(__VA_ARGS__))
-#define lm_model_new(...) (lunamodel__vtable->model_new(__VA_ARGS__))
+#define lm_model_default(...) (lunamodel__vtable->model_default(__VA_ARGS__))
 #define lm_model_clone(...) (lunamodel__vtable->model_clone(__VA_ARGS__))
 #define lm_model_free(...) (lunamodel__vtable->model_free(__VA_ARGS__))
 #define lm_model_serialize(...) (lunamodel__vtable->model_serialize(__VA_ARGS__))

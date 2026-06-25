@@ -6,7 +6,7 @@ use std::ptr;
 use lunamodel_cext::buffer::lm_buffer_free;
 use lunamodel_cext::error::lm_last_error_message;
 use lunamodel_cext::model::{
-    lm_model_deserialize, lm_model_free, lm_model_new, lm_model_serialize,
+    lm_model_deserialize, lm_model_free, lm_model_default, lm_model_serialize,
 };
 use lunamodel_cext::solution::{lm_solution_deserialize, lm_solution_free};
 use lunamodel_cext::version::{lm_abi_version, lm_version};
@@ -46,7 +46,7 @@ fn version_and_abi() {
 
 #[test]
 fn model_serialize_deserialize_roundtrip() {
-    let model = lm_model_new();
+    let model = lm_model_default();
     assert!(!model.is_null());
 
     let mut buf = empty_buffer();

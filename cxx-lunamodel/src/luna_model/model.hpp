@@ -15,7 +15,7 @@ namespace lm {
 /* Owning handle to a LunaModel model (frees on destruction). */
 class Model {
   public:
-    Model() : handle_(lm_model_new()) {
+    Model() : handle_(lm_model_default()) {
         if (handle_ == nullptr) {
             throw Error(LmStatus_Panic, "failed to allocate a LunaModel model");
         }

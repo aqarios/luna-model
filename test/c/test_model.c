@@ -17,7 +17,7 @@ int test_model(int argc, char *argv[]) {
     CHECK(lm_abi_version() == LUNA_MODEL_CAPI_ABI_VERSION);
 
     /* Round-trip a fresh model through serialize -> deserialize. */
-    LmModel *model = lm_model_new();
+    LmModel *model = lm_model_default();
     CHECK(model != NULL);
 
     LmBuffer buf = {NULL, 0, 0};

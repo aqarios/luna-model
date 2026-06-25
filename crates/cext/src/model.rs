@@ -11,7 +11,7 @@ use crate::{LmBuffer, LmModel, LmStatus};
 ///
 /// Returns a non-null handle that must be released with [`lm_model_free`].
 #[unsafe(no_mangle)]
-pub extern "C" fn lm_model_new() -> *mut LmModel {
+pub extern "C" fn lm_model_default() -> *mut LmModel {
     Box::into_raw(Box::new(Model::default())) as *mut LmModel
 }
 
