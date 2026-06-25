@@ -24,7 +24,8 @@
   "files": [
     "index.js",
     "index.d.ts",
-    "*.node"
+    "*.node",
+    "THIRD_PARTY_LICENSES.txt"
   ],
   "scripts": {
     "build": "napi build --release --platform --config-path napi.json",
