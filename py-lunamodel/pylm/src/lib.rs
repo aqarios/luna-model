@@ -17,7 +17,7 @@ fn _lm(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyComparator>()?;
     // Enums from lunamodel-translate
     m.add_class::<PyTranslationTarget>()?;
-    // extaa
+    // extra
     m.add_class::<PyUnbounded>()?;
     // Classes
     m.add_class::<PyExpression>()?;
