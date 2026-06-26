@@ -6,7 +6,10 @@
 //! `luna_model._lm._C_API` capsule depend on that crate directly, so they never link
 //! a second copy of the core.
 
-pub use lunamodel_cext_vtable::{LmBuffer, LmModel, LmSense, LmSolution, LmStatus, LunaModelCApi};
+pub use lunamodel_cext_vtable::{
+    LmBuffer, LmEnvironment, LmModel, LmSense, LmSolution, LmStatus, LmVref, LmVrefBuffer, LmVtype,
+    LmVtypeBuffer, LunaModelCApi,
+};
 
 /// ABI version of the C API table.
 ///
@@ -22,6 +25,7 @@ const _: () = assert!(CAPI_ABI_VERSION == lunamodel_cext_vtable::CAPI_ABI_VERSIO
 
 pub mod buffer;
 pub mod capi_table;
+pub mod environment;
 pub mod error;
 pub mod model;
 pub mod solution;

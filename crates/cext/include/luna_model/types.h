@@ -17,6 +17,35 @@
 #define LUNA_MODEL_CAPI_ABI_VERSION 1
 
 /**
+ * Vtype used by the C API.
+ *
+ * This is the C-ABI-stable mirror of LunaModel's Rust `Vtype` enum.
+ */
+typedef enum {
+    /**
+     * A binary variable that can take values 0 or 1.
+     */
+    LmVtype_Binary = 0,
+    /**
+     * An inverted binary variable (`!b == 1 - b`) that is not optimized itself and it's value
+     * depends on the value of the corresponding [Vtype::Binary] variable.
+     */
+    LmVtype_InvertedBinary = 1,
+    /**
+     * Spin variable that can take values -1 or +1.
+     */
+    LmVtype_Spin = 2,
+    /**
+     * Discrete integer-valued variable that take integer values within bounds.
+     */
+    LmVtype_Integer = 3,
+    /**
+     * Continuous real-valued variable that take any value within given bounds.
+     */
+    LmVtype_Real = 4,
+} LmVtype;
+
+/**
  * Status codes returned by every fallible `lm_*` entry point.
  *
  * `Ok` is guaranteed to be `0`. On any non-`Ok` status, a human-readable
@@ -90,9 +119,72 @@ typedef struct {
 } LmBuffer;
 
 /**
+ * Opaque handle to a LunaModel variable reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmVref;
+
+/**
+ * An owned, heap-allocated VarRef buffer the caller takes ownership of.
+ *
+ * Vtype buffers returned by LunaModel must be released
+ * with [`lm_vref_buffer_free`]. The fields mirror a `Vec<VarRef>` so it can
+ * be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first VarRef, or null for an empty buffer.
+     */
+    LmVref **data;
+    /**
+     * Number of valid bytes.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmVrefBuffer;
+
+/**
+ * An owned, heap-allocated Vtype buffer the caller takes ownership of.
+ *
+ * Vtype buffers returned by LunaModel must be released
+ * with [`lm_vtype_buffer_free`]. The fields mirror a `Vec<Vtype>` so it can
+ * be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first Vtype, or null for an empty buffer.
+     */
+    LmVtype *data;
+    /**
+     * Number of valid bytes.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmVtypeBuffer;
+
+/**
+ * Opaque handle to a LunaModel environment.
+ *
+ * Created by [`lm_env_default`] and released with
+ * [`lm_env_free`]. The contents are intentionally hidden from C.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmEnvironment;
+
+/**
  * Opaque handle to a LunaModel model.
  *
- * Created by [`lm_model_default`] or [`lm_model_deserialize`] and released with
+ * Created by [`lm_model_default`], [`lm_model_new`] or [`lm_model_deserialize`] and released with
  * [`lm_model_free`]. The contents are intentionally hidden from C.
  *
  */
@@ -136,13 +228,22 @@ typedef struct {
      */
     void (*buffer_free)(LmBuffer);
     /**
+     * See [`crate::buffer::lm_vtype_buffer_free`].
+     */
+    void (*vtype_buffer_free)(LmVtypeBuffer);
+    /**
+     * See [`crate::buffer::lm_vref_buffer_free`].
+     */
+    void (*vref_buffer_free)(LmVrefBuffer);
+    /**
      * See [`crate::model::lm_model_default`].
      */
     LmModel *(*model_default)(void);
     /**
      * See [`crate::model::lm_model_new`].
      */
-    LmStatus (*model_new)(const char*, LmSense, LmModel**);
+    LmStatus (*model_new)(const char*, const LmSense*, LmModel**);
+    LmStatus (*model_with_env)(const char*, const LmSense*, const LmEnvironment*, LmModel**);
     /**
      * See [`crate::model::lm_model_clone`].
      */
@@ -159,6 +260,26 @@ typedef struct {
      * See [`crate::model::lm_model_deserialize`].
      */
     LmStatus (*model_deserialize)(const uint8_t*, uintptr_t, LmModel**);
+    /**
+     * See [`crate::model::lm_model_name`].
+     */
+    LmStatus (*model_name)(const LmModel*, LmBuffer*);
+    /**
+     * See [`crate::model::lm_model_vtypes`].
+     */
+    LmStatus (*model_vtypes)(const LmModel*, LmVtypeBuffer*);
+    /**
+     * See [`crate::model::lm_model_num_variables`].
+     */
+    LmStatus (*model_num_variables)(const LmModel*, uintptr_t*);
+    /**
+     * See [`crate::model::lm_model_vars`].
+     */
+    LmStatus (*model_vars)(const LmModel*, LmVrefBuffer*);
+    /**
+     * See [`crate::model::lm_model_var`].
+     */
+    LmStatus (*model_var)(const LmModel*, const char*, LmVref**);
     /**
      * See [`crate::solution::lm_solution_deserialize`].
      */

@@ -25,6 +25,43 @@ extern "C" {
 void lm_buffer_free(LmBuffer buffer);
 
 /**
+ * Frees a vref buffer previously returned by LunaModel.
+ *
+ * This frees both the pointer array and each owned variable handle inside it.
+ *
+ * A null/empty buffer is a no-op. Each vref buffer must be freed at most once.
+ *
+ * # Safety
+ * `buffer` must have been produced by this library and not already freed.
+ */
+void lm_vref_buffer_free(LmVrefBuffer buffer);
+
+/**
+ * Frees a vtype buffer previously returned by LunaModel.
+ *
+ * A null/empty buffer is a no-op. Each vtype buffer must be freed at most once.
+ *
+ * # Safety
+ * `buffer` must have been produced by this library and not already freed.
+ */
+void lm_vtype_buffer_free(LmVtypeBuffer buffer);
+
+/**
+ * Frees an environment handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `model` must originate from this library and must not be used or freed again.
+ */
+void lm_environment_free(LmEnvironment *env);
+
+/**
+ * Creates a new, empty environment.
+ *
+ * Returns a non-null handle that must be released with [`lm_environment_free`].
+ */
+LmEnvironment *lm_environment_default(void);
+
+/**
  * Returns the last error message for the current thread, or null if there is none.
  *
  * The pointer is owned by LunaModel and stays valid only until the next C API
@@ -34,21 +71,6 @@ void lm_buffer_free(LmBuffer buffer);
  * The caller must not retain the returned pointer across further C API calls.
  */
 const char *lm_last_error_message(void);
-
-/**
- * Creates a new, empty (unnamed, minimization) model.
- *
- * Returns a non-null handle that must be released with [`lm_model_free`].
- */
-LmModel *lm_model_default(void);
-
-/**
- * Creates a new model.
- *
- * `name == NULL` means use the default model name.
- * `out` receives an owned model handle that must be freed with `lm_model_free`.
- */
-LmStatus lm_model_new(const char *name, LmSense sense, LmModel **out);
 
 /**
  * Returns a copy of the model name as an owned UTF-8 byte buffer.
@@ -66,12 +88,56 @@ LmStatus lm_model_new(const char *name, LmSense sense, LmModel **out);
 LmStatus lm_model_name(const LmModel *model, LmBuffer *out);
 
 /**
- * Clones a model into a new, independent handle written to `out`.
+ * Returns the distinct variable types used by the model.
+ *
+ * This is derived from both the objective and all constraints, matching
+ * `Model::vtypes()` in the Rust API. The returned array is owned by the caller
+ * and must be released with `lm_vtype_buffer_free`.
  *
  * # Safety
- * `model` must be a valid handle and `out` must point to writable storage.
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmVtypeBuffer` storage.
  */
-LmStatus lm_model_clone(const LmModel *model, LmModel **out);
+LmStatus lm_model_vtypes(const LmModel *model, LmVtypeBuffer *out);
+
+/**
+ * Returns the number of variables in the model.
+ *
+ * This is derived from both the objective and all constraints, matching
+ * `Model::num_variables()` in the Rust API.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_model_num_variables(const LmModel *model, uintptr_t *out);
+
+/**
+ * Returns the distinct variables used by the model.
+ *
+ * This is derived from both the objective and all constraints, matching
+ * `Model::vars()` in the Rust API. The returned array is owned by the caller
+ * and must be released with `lm_vref_buffer_free`.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmVrefBuffer` storage.
+ */
+LmStatus lm_model_vars(const LmModel *model, LmVrefBuffer *out);
+
+/**
+ * Looks up a variable by name in the model environment.
+ *
+ * `name` must be non-null and valid UTF-8.
+ * `out` receives an owned variable handle that must be freed with
+ * `lm_variable_free`.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `out` must point to writable `LmVref *` storage.
+ */
+LmStatus lm_model_var(const LmModel *model, const char *name, LmVref **out);
 
 /**
  * Frees a model handle. Passing null is a no-op.
@@ -80,6 +146,41 @@ LmStatus lm_model_clone(const LmModel *model, LmModel **out);
  * `model` must originate from this library and must not be used or freed again.
  */
 void lm_model_free(LmModel *model);
+
+/**
+ * Creates a new, empty (unnamed, minimization) model.
+ *
+ * Returns a non-null handle that must be released with [`lm_model_free`].
+ */
+LmModel *lm_model_default(void);
+
+/**
+ * Creates a new model.
+ *
+ * `name == NULL` means use the default model name.
+ * `sense == NULL` means use the default optimization sense.
+ * `out` receives an owned model handle that must be freed with `lm_model_free`.
+ */
+LmStatus lm_model_new(const char *name, const LmSense *sense, LmModel **out);
+
+/**
+ * Creates a new model for an environment
+ *
+ * `name == NULL` means use the default model name.
+ * `out` receives an owned model handle that must be freed with `lm_model_free`.
+ */
+LmStatus lm_model_with_env(const char *name,
+                           const LmSense *sense,
+                           const LmEnvironment *env,
+                           LmModel **out);
+
+/**
+ * Clones a model into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `model` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_model_clone(const LmModel *model, LmModel **out);
 
 /**
  * Serializes a model to bytes, writing an owned buffer to `out`.

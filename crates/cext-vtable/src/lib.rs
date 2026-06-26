@@ -55,6 +55,25 @@ pub enum LmSense {
     Max = 1,
 }
 
+/// Vtype used by the C API.
+///
+/// This is the C-ABI-stable mirror of LunaModel's Rust `Vtype` enum.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LmVtype {
+    /// A binary variable that can take values 0 or 1.
+    Binary = 0,
+    /// An inverted binary variable (`!b == 1 - b`) that is not optimized itself and it's value
+    /// depends on the value of the corresponding [Vtype::Binary] variable.
+    InvertedBinary = 1,
+    /// Spin variable that can take values -1 or +1.
+    Spin = 2,
+    /// Discrete integer-valued variable that take integer values within bounds.
+    Integer = 3,
+    /// Continuous real-valued variable that take any value within given bounds.
+    Real = 4,
+}
+
 /// An owned, heap-allocated byte buffer the caller takes ownership of.
 ///
 /// Buffers returned by LunaModel (e.g. from `lm_model_serialize`) must be released
@@ -70,9 +89,39 @@ pub struct LmBuffer {
     pub cap: usize,
 }
 
+/// An owned, heap-allocated Vtype buffer the caller takes ownership of.
+///
+/// Vtype buffers returned by LunaModel must be released
+/// with [`lm_vtype_buffer_free`]. The fields mirror a `Vec<Vtype>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmVtypeBuffer {
+    /// Pointer to the first Vtype, or null for an empty buffer.
+    pub data: *mut LmVtype,
+    /// Number of valid bytes.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
+/// An owned, heap-allocated VarRef buffer the caller takes ownership of.
+///
+/// Vtype buffers returned by LunaModel must be released
+/// with [`lm_vref_buffer_free`]. The fields mirror a `Vec<VarRef>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmVrefBuffer {
+    /// Pointer to the first VarRef, or null for an empty buffer.
+    pub data: *mut *mut LmVref,
+    /// Number of valid bytes.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
 /// Opaque handle to a LunaModel model.
 ///
-/// Created by [`lm_model_default`] or [`lm_model_deserialize`] and released with
+/// Created by [`lm_model_default`], [`lm_model_new`] or [`lm_model_deserialize`] and released with
 /// [`lm_model_free`]. The contents are intentionally hidden from C.
 ///
 /// cbindgen:opaque
@@ -93,6 +142,25 @@ pub struct LmSolution {
     _private: [u8; 0],
 }
 
+/// Opaque handle to a LunaModel environment.
+///
+/// Created by [`lm_env_default`] and released with
+/// [`lm_env_free`]. The contents are intentionally hidden from C.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmEnvironment {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a LunaModel variable reference.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmVref {
+    _private: [u8; 0],
+}
+
 /// Stable, versioned table of LunaModel C API entry points.
 ///
 /// Consumers obtaining this via the capsule must check [`Self::abi_version`]
@@ -108,10 +176,24 @@ pub struct LunaModelCApi {
     pub last_error_message: extern "C" fn() -> *const c_char,
     /// See [`crate::buffer::lm_buffer_free`].
     pub buffer_free: unsafe extern "C" fn(LmBuffer),
+    /// See [`crate::buffer::lm_vtype_buffer_free`].
+    pub vtype_buffer_free: unsafe extern "C" fn(LmVtypeBuffer),
+    /// See [`crate::buffer::lm_vref_buffer_free`].
+    pub vref_buffer_free: unsafe extern "C" fn(LmVrefBuffer),
+    // ///// //
+    // MODEL //
+    // ///// //
     /// See [`crate::model::lm_model_default`].
     pub model_default: extern "C" fn() -> *mut LmModel,
     /// See [`crate::model::lm_model_new`].
-    pub model_new: unsafe extern "C" fn(*const c_char, LmSense, *mut *mut LmModel) -> LmStatus,
+    pub model_new:
+        unsafe extern "C" fn(*const c_char, *const LmSense, *mut *mut LmModel) -> LmStatus,
+    pub model_with_env: unsafe extern "C" fn(
+        *const c_char,
+        *const LmSense,
+        *const LmEnvironment,
+        *mut *mut LmModel,
+    ) -> LmStatus,
     /// See [`crate::model::lm_model_clone`].
     pub model_clone: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
     /// See [`crate::model::lm_model_free`].
@@ -120,6 +202,20 @@ pub struct LunaModelCApi {
     pub model_serialize: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
     /// See [`crate::model::lm_model_deserialize`].
     pub model_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmModel) -> LmStatus,
+    /// See [`crate::model::lm_model_name`].
+    pub model_name: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
+    /// See [`crate::model::lm_model_vtypes`].
+    pub model_vtypes: unsafe extern "C" fn(*const LmModel, *mut LmVtypeBuffer) -> LmStatus,
+    /// See [`crate::model::lm_model_num_variables`].
+    pub model_num_variables: unsafe extern "C" fn(*const LmModel, *mut usize) -> LmStatus,
+    /// See [`crate::model::lm_model_vars`].
+    pub model_vars: unsafe extern "C" fn(*const LmModel, *mut LmVrefBuffer) -> LmStatus,
+    /// See [`crate::model::lm_model_var`].
+    pub model_var:
+        unsafe extern "C" fn(*const LmModel, *const c_char, *mut *mut LmVref) -> LmStatus,
+    // //////// //
+    // SOLUTION //
+    // //////// //
     /// See [`crate::solution::lm_solution_deserialize`].
     pub solution_deserialize:
         unsafe extern "C" fn(*const u8, usize, *mut *mut LmSolution) -> LmStatus,

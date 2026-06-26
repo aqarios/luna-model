@@ -1,0 +1,156 @@
+use std::ffi::{CStr, c_char};
+
+use luna_model::core::Model;
+
+use crate::buffer::{buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec};
+use crate::error::{CapiError, guard};
+use crate::utils::vtype_to_c;
+use crate::{LmBuffer, LmModel, LmStatus, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer};
+
+/// Returns a copy of the model name as an owned UTF-8 byte buffer.
+///
+/// The returned buffer is written to `out` and must be released with
+/// `lm_buffer_free`.
+///
+/// The buffer is not guaranteed to be NUL-terminated. C callers should use
+/// `buffer.data` together with `buffer.len`.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmBuffer` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_name(model: *const LmModel, out: *mut LmBuffer) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+
+        *out = buffer_from_vec(model.name.as_bytes().to_vec());
+
+        Ok(())
+    })
+}
+
+/// Returns the distinct variable types used by the model.
+///
+/// This is derived from both the objective and all constraints, matching
+/// `Model::vtypes()` in the Rust API. The returned array is owned by the caller
+/// and must be released with `lm_vtype_buffer_free`.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmVtypeBuffer` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_vtypes(
+    model: *const LmModel,
+    out: *mut LmVtypeBuffer,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+
+        let vtypes = model.vtypes().map(vtype_to_c).collect::<Vec<LmVtype>>();
+
+        *out = vtype_buffer_from_vec(vtypes);
+
+        Ok(())
+    })
+}
+
+/// Returns the number of variables in the model.
+///
+/// This is derived from both the objective and all constraints, matching
+/// `Model::num_variables()` in the Rust API.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `usize` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_num_variables(
+    model: *const LmModel,
+    out: *mut usize,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+
+        *out = model.num_variables();
+
+        Ok(())
+    })
+}
+
+/// Returns the distinct variables used by the model.
+///
+/// This is derived from both the objective and all constraints, matching
+/// `Model::vars()` in the Rust API. The returned array is owned by the caller
+/// and must be released with `lm_vref_buffer_free`.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmVrefBuffer` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_vars(model: *const LmModel, out: *mut LmVrefBuffer) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+
+        let vars = model
+            .vars()
+            .map(|v| Box::into_raw(Box::new(v)) as *mut LmVref)
+            .collect::<Vec<*mut LmVref>>();
+
+        *out = vref_buffer_from_vec(vars);
+
+        Ok(())
+    })
+}
+/// Looks up a variable by name in the model environment.
+///
+/// `name` must be non-null and valid UTF-8.
+/// `out` receives an owned variable handle that must be freed with
+/// `lm_variable_free`.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `name` must point to a valid NUL-terminated C string.
+/// `out` must point to writable `LmVref *` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_var(
+    model: *const LmModel,
+    name: *const c_char,
+    out: *mut *mut LmVref,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+
+        if name.is_null() {
+            return Err(CapiError::null_pointer("name"));
+        }
+
+        let name = unsafe { CStr::from_ptr(name) }.to_str().map_err(|e| {
+            CapiError::new(
+                LmStatus::InvalidArgument,
+                format!("`name` must be valid UTF-8: {e}"),
+            )
+        })?;
+
+        let var = model
+            .var(name)
+            .map_err(|e| CapiError::new(LmStatus::InvalidArgument, e.to_string()))?;
+
+        *out = Box::into_raw(Box::new(var)) as *mut LmVref;
+
+        Ok(())
+    })
+}
