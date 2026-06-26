@@ -112,6 +112,7 @@ pub unsafe extern "C" fn lm_model_vars(model: *const LmModel, out: *mut LmVrefBu
         Ok(())
     })
 }
+
 /// Looks up a variable by name in the model environment.
 ///
 /// `name` must be non-null and valid UTF-8.
