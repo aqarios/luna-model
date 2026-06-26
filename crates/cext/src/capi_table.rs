@@ -17,13 +17,13 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     vtype_buffer_free: crate::buffer::lm_vtype_buffer_free,
     vref_buffer_free: crate::buffer::lm_vref_buffer_free,
     // Model
+    model_free: crate::model::lm_model_free,
     // Model -- creation
     model_default: crate::model::lm_model_default,
     model_new: crate::model::lm_model_new,
     model_with_env: crate::model::lm_model_with_env,
     // Model -- general
     model_clone: crate::model::lm_model_clone,
-    model_free: crate::model::lm_model_free,
     // Model -- access
     model_name: crate::model::lm_model_name,
     model_vtypes: crate::model::lm_model_vtypes,
@@ -33,7 +33,11 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Model -- serializer
     model_serialize: crate::model::lm_model_serialize,
     model_deserialize: crate::model::lm_model_deserialize,
-    // Solution
-    solution_deserialize: crate::solution::lm_solution_deserialize,
-    solution_free: crate::solution::lm_solution_free,
+    // Env
+    env_free: crate::env::lm_env_free,
+    env_default: crate::env::lm_env_default,
+    // Sol
+    sol_free: crate::solution::lm_sol_free,
+    // Sol -- serializer
+    sol_deserialize: crate::solution::lm_sol_deserialize,
 };

@@ -133,12 +133,12 @@ pub struct LmModel {
 /// Opaque handle to a LunaModel solution.
 ///
 /// Solutions are produced elsewhere (a solver or the Python API) and loaded here
-/// from serialized bytes with [`lm_solution_deserialize`]. Release with
-/// [`lm_solution_free`].
+/// from serialized bytes with [`lm_sol_deserialize`]. Release with
+/// [`lm_sol_free`].
 ///
 /// cbindgen:opaque
 #[repr(C)]
-pub struct LmSolution {
+pub struct LmSol {
     _private: [u8; 0],
 }
 
@@ -149,7 +149,7 @@ pub struct LmSolution {
 ///
 /// cbindgen:opaque
 #[repr(C)]
-pub struct LmEnvironment {
+pub struct LmEnv {
     _private: [u8; 0],
 }
 
@@ -183,6 +183,8 @@ pub struct LunaModelCApi {
     // ///// //
     // MODEL //
     // ///// //
+    /// See [`crate::model::lm_model_free`].
+    pub model_free: unsafe extern "C" fn(*mut LmModel),
     /// See [`crate::model::lm_model_default`].
     pub model_default: extern "C" fn() -> *mut LmModel,
     /// See [`crate::model::lm_model_new`].
@@ -191,17 +193,11 @@ pub struct LunaModelCApi {
     pub model_with_env: unsafe extern "C" fn(
         *const c_char,
         *const LmSense,
-        *const LmEnvironment,
+        *const LmEnv,
         *mut *mut LmModel,
     ) -> LmStatus,
     /// See [`crate::model::lm_model_clone`].
     pub model_clone: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
-    /// See [`crate::model::lm_model_free`].
-    pub model_free: unsafe extern "C" fn(*mut LmModel),
-    /// See [`crate::model::lm_model_serialize`].
-    pub model_serialize: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
-    /// See [`crate::model::lm_model_deserialize`].
-    pub model_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmModel) -> LmStatus,
     /// See [`crate::model::lm_model_name`].
     pub model_name: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
     /// See [`crate::model::lm_model_vtypes`].
@@ -213,12 +209,22 @@ pub struct LunaModelCApi {
     /// See [`crate::model::lm_model_var`].
     pub model_var:
         unsafe extern "C" fn(*const LmModel, *const c_char, *mut *mut LmVref) -> LmStatus,
+    /// See [`crate::model::lm_model_serialize`].
+    pub model_serialize: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
+    /// See [`crate::model::lm_model_deserialize`].
+    pub model_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmModel) -> LmStatus,
+    // /// //
+    // ENV //
+    // /// //
+    /// See [`crate::env::lm_env_free`].
+    pub env_free: unsafe extern "C" fn(*mut LmEnv),
+    /// See [`crate::env::lm_env_default`].
+    pub env_default: unsafe extern "C" fn() -> *mut LmEnv,
     // //////// //
     // SOLUTION //
     // //////// //
-    /// See [`crate::solution::lm_solution_deserialize`].
-    pub solution_deserialize:
-        unsafe extern "C" fn(*const u8, usize, *mut *mut LmSolution) -> LmStatus,
-    /// See [`crate::solution::lm_solution_free`].
-    pub solution_free: unsafe extern "C" fn(*mut LmSolution),
+    /// See [`crate::solution::lm_sol_free`].
+    pub sol_free: unsafe extern "C" fn(*mut LmSol),
+    /// See [`crate::solution::lm_sol_deserialize`].
+    pub sol_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmSol) -> LmStatus,
 }

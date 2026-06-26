@@ -1,11 +1,11 @@
 use std::ffi::{CStr, c_char};
 
 use luna_model::core::Model;
-use lunamodel_cext_vtable::LmEnvironment;
+use lunamodel_cext_vtable::LmEnv;
 
 use crate::{
     LmModel, LmSense, LmStatus,
-    environment::utils::environment_from_c,
+    env::utils::environment_from_c,
     error::{CapiError, guard},
     utils::sense_from_c,
 };
@@ -80,7 +80,7 @@ pub unsafe extern "C" fn lm_model_new(
 pub unsafe extern "C" fn lm_model_with_env(
     name: *const c_char,
     sense: *const LmSense,
-    env: *const LmEnvironment,
+    env: *const LmEnv,
     out: *mut *mut LmModel,
 ) -> LmStatus {
     guard(|| {

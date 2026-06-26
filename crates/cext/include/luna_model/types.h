@@ -179,7 +179,7 @@ typedef struct {
  */
 typedef struct {
     uint8_t _private[0];
-} LmEnvironment;
+} LmEnv;
 
 /**
  * Opaque handle to a LunaModel model.
@@ -196,13 +196,13 @@ typedef struct {
  * Opaque handle to a LunaModel solution.
  *
  * Solutions are produced elsewhere (a solver or the Python API) and loaded here
- * from serialized bytes with [`lm_solution_deserialize`]. Release with
- * [`lm_solution_free`].
+ * from serialized bytes with [`lm_sol_deserialize`]. Release with
+ * [`lm_sol_free`].
  *
  */
 typedef struct {
     uint8_t _private[0];
-} LmSolution;
+} LmSol;
 
 /**
  * Stable, versioned table of LunaModel C API entry points.
@@ -236,6 +236,10 @@ typedef struct {
      */
     void (*vref_buffer_free)(LmVrefBuffer);
     /**
+     * See [`crate::model::lm_model_free`].
+     */
+    void (*model_free)(LmModel*);
+    /**
      * See [`crate::model::lm_model_default`].
      */
     LmModel *(*model_default)(void);
@@ -243,23 +247,11 @@ typedef struct {
      * See [`crate::model::lm_model_new`].
      */
     LmStatus (*model_new)(const char*, const LmSense*, LmModel**);
-    LmStatus (*model_with_env)(const char*, const LmSense*, const LmEnvironment*, LmModel**);
+    LmStatus (*model_with_env)(const char*, const LmSense*, const LmEnv*, LmModel**);
     /**
      * See [`crate::model::lm_model_clone`].
      */
     LmStatus (*model_clone)(const LmModel*, LmModel**);
-    /**
-     * See [`crate::model::lm_model_free`].
-     */
-    void (*model_free)(LmModel*);
-    /**
-     * See [`crate::model::lm_model_serialize`].
-     */
-    LmStatus (*model_serialize)(const LmModel*, LmBuffer*);
-    /**
-     * See [`crate::model::lm_model_deserialize`].
-     */
-    LmStatus (*model_deserialize)(const uint8_t*, uintptr_t, LmModel**);
     /**
      * See [`crate::model::lm_model_name`].
      */
@@ -281,13 +273,29 @@ typedef struct {
      */
     LmStatus (*model_var)(const LmModel*, const char*, LmVref**);
     /**
-     * See [`crate::solution::lm_solution_deserialize`].
+     * See [`crate::model::lm_model_serialize`].
      */
-    LmStatus (*solution_deserialize)(const uint8_t*, uintptr_t, LmSolution**);
+    LmStatus (*model_serialize)(const LmModel*, LmBuffer*);
     /**
-     * See [`crate::solution::lm_solution_free`].
+     * See [`crate::model::lm_model_deserialize`].
      */
-    void (*solution_free)(LmSolution*);
+    LmStatus (*model_deserialize)(const uint8_t*, uintptr_t, LmModel**);
+    /**
+     * See [`crate::env::lm_env_free`].
+     */
+    void (*env_free)(LmEnv*);
+    /**
+     * See [`crate::env::lm_env_default`].
+     */
+    LmEnv *(*env_default)(void);
+    /**
+     * See [`crate::solution::lm_sol_free`].
+     */
+    void (*sol_free)(LmSol*);
+    /**
+     * See [`crate::solution::lm_sol_deserialize`].
+     */
+    LmStatus (*sol_deserialize)(const uint8_t*, uintptr_t, LmSol**);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

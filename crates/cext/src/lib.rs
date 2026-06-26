@@ -7,7 +7,7 @@
 //! a second copy of the core.
 
 pub use lunamodel_cext_vtable::{
-    LmBuffer, LmEnvironment, LmModel, LmSense, LmSolution, LmStatus, LmVref, LmVrefBuffer, LmVtype,
+    LmBuffer, LmEnv, LmModel, LmSense, LmSol, LmStatus, LmVref, LmVrefBuffer, LmVtype,
     LmVtypeBuffer, LunaModelCApi,
 };
 
@@ -25,7 +25,7 @@ const _: () = assert!(CAPI_ABI_VERSION == lunamodel_cext_vtable::CAPI_ABI_VERSIO
 
 pub mod buffer;
 pub mod capi_table;
-pub mod environment;
+pub mod env;
 pub mod error;
 pub mod model;
 pub mod solution;

@@ -6,11 +6,11 @@ use std::ptr;
 use lunamodel_cext::buffer::lm_buffer_free;
 use lunamodel_cext::error::lm_last_error_message;
 use lunamodel_cext::model::{
-    lm_model_deserialize, lm_model_free, lm_model_default, lm_model_serialize,
+    lm_model_default, lm_model_deserialize, lm_model_free, lm_model_serialize,
 };
-use lunamodel_cext::solution::{lm_solution_deserialize, lm_solution_free};
+use lunamodel_cext::solution::{lm_sol_deserialize, lm_sol_free};
 use lunamodel_cext::version::{lm_abi_version, lm_version};
-use lunamodel_cext::{CAPI_ABI_VERSION, LmBuffer, LmModel, LmSolution, LmStatus};
+use lunamodel_cext::{CAPI_ABI_VERSION, LmBuffer, LmModel, LmSol, LmStatus};
 
 use luna_model::core::{Model, Solution};
 use luna_model::serializer::prelude::*;
@@ -110,9 +110,9 @@ fn garbage_bytes_fail_without_unwinding() {
 fn solution_roundtrips_from_core_bytes() {
     let bytes = Solution::default().encode(Some(true), None).unwrap();
 
-    let mut solution: *mut LmSolution = ptr::null_mut();
-    let status = unsafe { lm_solution_deserialize(bytes.as_ptr(), bytes.len(), &mut solution) };
+    let mut solution: *mut LmSol = ptr::null_mut();
+    let status = unsafe { lm_sol_deserialize(bytes.as_ptr(), bytes.len(), &mut solution) };
     assert_eq!(status, LmStatus::Ok);
     assert!(!solution.is_null());
-    unsafe { lm_solution_free(solution) };
+    unsafe { lm_sol_free(solution) };
 }

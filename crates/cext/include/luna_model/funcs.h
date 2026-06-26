@@ -52,14 +52,14 @@ void lm_vtype_buffer_free(LmVtypeBuffer buffer);
  * # Safety
  * `model` must originate from this library and must not be used or freed again.
  */
-void lm_environment_free(LmEnvironment *env);
+void lm_env_free(LmEnv *env);
 
 /**
  * Creates a new, empty environment.
  *
- * Returns a non-null handle that must be released with [`lm_environment_free`].
+ * Returns a non-null handle that must be released with [`lm_env_free`].
  */
-LmEnvironment *lm_environment_default(void);
+LmEnv *lm_env_default(void);
 
 /**
  * Returns the last error message for the current thread, or null if there is none.
@@ -169,10 +169,7 @@ LmStatus lm_model_new(const char *name, const LmSense *sense, LmModel **out);
  * `name == NULL` means use the default model name.
  * `out` receives an owned model handle that must be freed with `lm_model_free`.
  */
-LmStatus lm_model_with_env(const char *name,
-                           const LmSense *sense,
-                           const LmEnvironment *env,
-                           LmModel **out);
+LmStatus lm_model_with_env(const char *name, const LmSense *sense, const LmEnv *env, LmModel **out);
 
 /**
  * Clones a model into a new, independent handle written to `out`.
@@ -205,12 +202,12 @@ LmStatus lm_model_deserialize(const uint8_t *data, uintptr_t len, LmModel **out)
 /**
  * Deserializes a solution from `len` bytes at `data`, writing a new handle to `out`.
  *
- * The new handle must be released with [`lm_solution_free`].
+ * The new handle must be released with [`lm_sol_free`].
  *
  * # Safety
  * `data` must point to `len` readable bytes and `out` must point to writable storage.
  */
-LmStatus lm_solution_deserialize(const uint8_t *data, uintptr_t len, LmSolution **out);
+LmStatus lm_sol_deserialize(const uint8_t *data, uintptr_t len, LmSol **out);
 
 /**
  * Frees a solution handle. Passing null is a no-op.
@@ -218,7 +215,7 @@ LmStatus lm_solution_deserialize(const uint8_t *data, uintptr_t len, LmSolution 
  * # Safety
  * `solution` must originate from this library and must not be used or freed again.
  */
-void lm_solution_free(LmSolution *solution);
+void lm_sol_free(LmSol *solution);
 
 /**
  * Returns the LunaModel version string (the crate's `CARGO_PKG_VERSION`).

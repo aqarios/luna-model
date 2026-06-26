@@ -14,11 +14,11 @@ namespace lm {
 /* Owning handle to a LunaModel solution (frees on destruction). */
 class Solution {
   public:
-    explicit Solution(LmSolution *handle) noexcept : handle_(handle) {}
+    explicit Solution(LmSol *handle) noexcept : handle_(handle) {}
 
     ~Solution() {
         if (handle_ != nullptr) {
-            lm_solution_free(handle_);
+            lm_sol_free(handle_);
         }
     }
 
@@ -26,7 +26,7 @@ class Solution {
     Solution &operator=(Solution &&other) noexcept {
         if (this != &other) {
             if (handle_ != nullptr) {
-                lm_solution_free(handle_);
+                lm_sol_free(handle_);
             }
             handle_ = other.handle_;
             other.handle_ = nullptr;
@@ -37,18 +37,18 @@ class Solution {
     Solution &operator=(const Solution &) = delete;
 
     static Solution deserialize(const std::uint8_t *data, std::size_t len) {
-        LmSolution *out = nullptr;
-        detail::check(lm_solution_deserialize(data, len, &out));
+        LmSol *out = nullptr;
+        detail::check(lm_sol_deserialize(data, len, &out));
         return Solution(out);
     }
     static Solution deserialize(const std::vector<std::uint8_t> &bytes) {
         return deserialize(bytes.data(), bytes.size());
     }
 
-    LmSolution *get() const noexcept { return handle_; }
+    LmSol *get() const noexcept { return handle_; }
 
   private:
-    LmSolution *handle_;
+    LmSol *handle_;
 };
 
 } // namespace lm
