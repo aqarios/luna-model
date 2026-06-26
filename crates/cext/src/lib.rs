@@ -6,9 +6,11 @@
 //! `luna_model._lm._C_API` capsule depend on that crate directly, so they never link
 //! a second copy of the core.
 
+pub use lunamodel_cext_vtable::LunaModelCApi;
 pub use lunamodel_cext_vtable::{
-    LmBuffer, LmEnv, LmModel, LmSense, LmSol, LmStatus, LmVref, LmVrefBuffer, LmVtype,
-    LmVtypeBuffer, LunaModelCApi,
+    LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC, LmComparator, LmConstraint, LmCtype, LmEnv,
+    LmExpr, LmLazyBounds, LmModel, LmSense, LmSol, LmSpecs, LmStatus, LmTimer, LmTiming,
+    LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
 /// ABI version of the C API table.

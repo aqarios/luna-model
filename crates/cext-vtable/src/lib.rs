@@ -238,6 +238,7 @@ pub struct LmBounds {
     _private: [u8; 0],
 }
 
+
 /// Opaque handle to a LunaModel timing reference.
 ///
 /// cbindgen:opaque
@@ -298,7 +299,7 @@ pub struct LmExpr {
 ///
 /// cbindgen:opaque
 #[repr(C)]
-pub struct LmModelSpecs {
+pub struct LmSpecs {
     _private: [u8; 0],
 }
 
