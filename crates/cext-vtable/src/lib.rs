@@ -74,6 +74,75 @@ pub enum LmVtype {
     Real = 4,
 }
 
+/// Bound used by the C API.
+///
+/// One side of a variable bound interval.
+///
+/// This is the C-ABI-stable mirror of LunaModel's Rust `Bound` enum.
+/// `tag == LmBoundTag_Bounded` means `value` contains the finite inclusive
+/// bound value. `tag == LmBoundTag_Unbounded` means `value` is ignored.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct LmBound {
+    pub tag: LmBoundTag,
+    pub value: f64,
+}
+
+/// Discriminant for `LmBound`.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LmBoundTag {
+    /// A finite inclusive bound value.
+    Bounded = 0,
+
+    /// No bound on this side of the interval.
+    Unbounded = 1,
+}
+
+/// Comparator used by the C API.
+///
+/// This is the C-ABI-stable mirror of LunaModel's Rust `Comparator` enum.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LmComparator {
+    /// The Equality comparison (==) for a constraint where LHS == RHS.
+    Eq = 0,
+    /// The Less-than or equal comparison (<=) for a constraint where LHS <= RHS.
+    Le = 1,
+    /// The Greater-than or equal comparison (>=) for a constraint where LHS >= RHS.
+    Ge = 2,
+}
+
+/// Ctype used by the C API.
+///
+/// This is the C-ABI-stable mirror of LunaModel's Rust `Ctype` enum.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LmCtype {
+    /// Only equality constraints allowed.
+    Unconstrained = 0,
+    /// Only equality constraints allowed.
+    Equality = 1,
+    /// Only inequality constraints allowed.
+    Inequality = 2,
+    /// Only ge-inequality constraints allowed.
+    LessEqual = 3,
+    /// Only le-inequality constraints allowed.
+    GreaterEqual = 4,
+}
+
+/// ValueSource used by the C API.
+///
+/// This is the C-ABI-stable mirror of LunaModel's Rust `ValueSource` enum.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LmValueSource {
+    /// Use the raw solver-provided energies.
+    Raw = 0,
+    /// Use the model-evaluated objective values.
+    Obj = 1,
+}
+
 /// An owned, heap-allocated byte buffer the caller takes ownership of.
 ///
 /// Buffers returned by LunaModel (e.g. from `lm_model_serialize`) must be released
@@ -158,6 +227,78 @@ pub struct LmEnv {
 /// cbindgen:opaque
 #[repr(C)]
 pub struct LmVref {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a LunaModel bounds reference.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmBounds {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a LunaModel timing reference.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmTiming {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a LunaModel timer reference.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmTimer {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a LunaModel variable reference.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmVar {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a LunaModel lazy bounds reference.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmLazyBounds {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a LunaModel constraint reference.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmConstraint {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a LunaModel constraint-collection reference.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmCC {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a LunaModel expression reference.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmExpr {
+    _private: [u8; 0],
+}
+
+/// Opaque handle to a LunaModel model-specs reference.
+///
+/// cbindgen:opaque
+#[repr(C)]
+pub struct LmModelSpecs {
     _private: [u8; 0],
 }
 
