@@ -88,6 +88,33 @@ const char *lm_last_error_message(void);
 LmStatus lm_model_name(const LmModel *model, LmBuffer *out);
 
 /**
+ * Returns the optimization sense of the model.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmSense` storage.
+ */
+LmStatus lm_model_sense(const LmModel *model, LmSense *out);
+
+/**
+ * Returns the environment of the model.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmEnv` storage.
+ */
+LmStatus lm_model_env(const LmModel *model, LmEnv **out);
+
+/**
+ * Returns the specs of the model.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `out` must point to writable `LmSpecs` storage.
+ */
+LmStatus lm_model_specs(const LmModel *model, LmSpecs **out);
+
+/**
  * Returns the distinct variable types used by the model.
  *
  * This is derived from both the objective and all constraints, matching
@@ -180,6 +207,48 @@ LmStatus lm_model_with_env(const char *name, const LmSense *sense, const LmEnv *
 LmStatus lm_model_clone(const LmModel *model, LmModel **out);
 
 /**
+ * Deep-clones a model into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `model` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_model_deep_clone(const LmModel *model, LmModel **out);
+
+/**
+ * Returns whether the model satisfies the given specs.
+ *
+ * This matches `Model::satisfies()` in the Rust API.
+ *
+ * # Safety
+ * `model` must be a valid model handle created by this library.
+ * `specs` must be a valid specs handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_model_satisfies(const LmModel *model, const LmSpecs *specs, bool *out);
+
+/**
+ * Adds a new variable to the model.
+ *
+ * This matches `Model::add_var()` in the Rust API.
+ *
+ * `bounds == NULL` means use the default bounds for `vtype`.
+ * `out` receives an owned variable-reference handle that must be freed with
+ * `lm_vref_free`.
+ *
+ * # Safety
+ * `model` must be a valid mutable model handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `vtype` must point to a valid `LmVtype`.
+ * `bounds`, when non-null, must be a valid bounds handle created by this library.
+ * `out` must point to writable `LmVref *` storage.
+ */
+LmStatus lm_model_add_var(LmModel *model,
+                          const char *name,
+                          const LmVtype *vtype,
+                          const LmBounds *bounds,
+                          LmVref **out);
+
+/**
  * Serializes a model to bytes, writing an owned buffer to `out`.
  *
  * The buffer must be released with [`crate::buffer::lm_buffer_free`].
@@ -198,6 +267,28 @@ LmStatus lm_model_serialize(const LmModel *model, LmBuffer *out);
  * `data` must point to `len` readable bytes and `out` must point to writable storage.
  */
 LmStatus lm_model_deserialize(const uint8_t *data, uintptr_t len, LmModel **out);
+
+/**
+ * Sets the model name.
+ *
+ * `name` must be non-null and valid UTF-8.
+ *
+ * # Safety
+ * `model` must be a valid mutable model handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ */
+LmStatus lm_model_set_name(LmModel *model, const char *name);
+
+/**
+ * Sets the model sense.
+ *
+ * `sense` must be non-null and valid UTF-8.
+ *
+ * # Safety
+ * `model` must be a valid mutable model handle created by this library.
+ * `sense` must point to a valid LmSense.
+ */
+LmStatus lm_model_set_sense(LmModel *model, const LmSense *sense);
 
 /**
  * Deserializes a solution from `len` bytes at `data`, writing a new handle to `out`.

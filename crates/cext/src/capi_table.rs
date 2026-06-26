@@ -24,12 +24,21 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     model_with_env: crate::model::lm_model_with_env,
     // Model -- general
     model_clone: crate::model::lm_model_clone,
+    model_deep_clone: crate::model::lm_model_deep_clone,
+    model_satisfies: crate::model::lm_model_satisfies,
+    model_add_var: crate::model::lm_model_add_var,
     // Model -- access
     model_name: crate::model::lm_model_name,
+    model_sense: crate::model::lm_model_sense,
+    model_env: crate::model::lm_model_env,
+    model_specs: crate::model::lm_model_specs,
     model_vtypes: crate::model::lm_model_vtypes,
     model_num_variables: crate::model::lm_model_num_variables,
     model_vars: crate::model::lm_model_vars,
     model_var: crate::model::lm_model_var,
+    // Model -- setter
+    model_set_name: crate::model::lm_model_set_name,
+    model_set_sense: crate::model::lm_model_set_sense,
     // Model -- serializer
     model_serialize: crate::model::lm_model_serialize,
     model_deserialize: crate::model::lm_model_deserialize,

@@ -193,6 +193,22 @@ typedef struct {
 } LmModel;
 
 /**
+ * Opaque handle to a LunaModel model-specs reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmSpecs;
+
+/**
+ * Opaque handle to a LunaModel bounds reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmBounds;
+
+/**
  * Opaque handle to a LunaModel solution.
  *
  * Solutions are produced elsewhere (a solver or the Python API) and loaded here
@@ -253,9 +269,25 @@ typedef struct {
      */
     LmStatus (*model_clone)(const LmModel*, LmModel**);
     /**
+     * See [`crate::model::lm_model_deep_clone`].
+     */
+    LmStatus (*model_deep_clone)(const LmModel*, LmModel**);
+    /**
      * See [`crate::model::lm_model_name`].
      */
     LmStatus (*model_name)(const LmModel*, LmBuffer*);
+    /**
+     * See [`crate::model::lm_model_sense`].
+     */
+    LmStatus (*model_sense)(const LmModel*, LmSense*);
+    /**
+     * See [`crate::model::lm_model_env`].
+     */
+    LmStatus (*model_env)(const LmModel*, LmEnv**);
+    /**
+     * See [`crate::model::lm_model_specs`].
+     */
+    LmStatus (*model_specs)(const LmModel*, LmSpecs**);
     /**
      * See [`crate::model::lm_model_vtypes`].
      */
@@ -272,6 +304,22 @@ typedef struct {
      * See [`crate::model::lm_model_var`].
      */
     LmStatus (*model_var)(const LmModel*, const char*, LmVref**);
+    /**
+     * See [`crate::model::lm_model_set_name`].
+     */
+    LmStatus (*model_set_name)(LmModel*, const char*);
+    /**
+     * See [`crate::model::lm_model_set_sense`].
+     */
+    LmStatus (*model_set_sense)(LmModel*, const LmSense*);
+    /**
+     * See [`crate::model::lm_model_add_var`].
+     */
+    LmStatus (*model_add_var)(LmModel*, const char*, const LmVtype*, const LmBounds*, LmVref**);
+    /**
+     * See [`crate::model::lm_model_satisfies`].
+     */
+    LmStatus (*model_satisfies)(const LmModel*, const LmSpecs*, bool*);
     /**
      * See [`crate::model::lm_model_serialize`].
      */

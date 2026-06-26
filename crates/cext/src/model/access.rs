@@ -4,8 +4,11 @@ use luna_model::core::Model;
 
 use crate::buffer::{buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec};
 use crate::error::{CapiError, guard};
-use crate::utils::vtype_to_c;
-use crate::{LmBuffer, LmModel, LmStatus, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer};
+use crate::utils::{sense_to_c, vtype_to_c};
+use crate::{
+    LmBuffer, LmEnv, LmModel, LmSense, LmSpecs, LmStatus, LmVref, LmVrefBuffer, LmVtype,
+    LmVtypeBuffer,
+};
 
 /// Returns a copy of the model name as an owned UTF-8 byte buffer.
 ///
@@ -27,6 +30,63 @@ pub unsafe extern "C" fn lm_model_name(model: *const LmModel, out: *mut LmBuffer
         let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
 
         *out = buffer_from_vec(model.name.as_bytes().to_vec());
+
+        Ok(())
+    })
+}
+
+/// Returns the optimization sense of the model.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmSense` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_sense(model: *const LmModel, out: *mut LmSense) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+
+        *out = sense_to_c(model.sense);
+
+        Ok(())
+    })
+}
+
+/// Returns the environment of the model.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmEnv` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_env(model: *const LmModel, out: *mut *mut LmEnv) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+
+        *out = Box::into_raw(Box::new(model.environment.clone())) as *mut LmEnv;
+
+        Ok(())
+    })
+}
+
+/// Returns the specs of the model.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmSpecs` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_specs(model: *const LmModel, out: *mut *mut LmSpecs) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+
+        *out = Box::into_raw(Box::new(model.specs())) as *mut LmSpecs;
 
         Ok(())
     })

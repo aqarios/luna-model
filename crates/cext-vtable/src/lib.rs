@@ -238,7 +238,6 @@ pub struct LmBounds {
     _private: [u8; 0],
 }
 
-
 /// Opaque handle to a LunaModel timing reference.
 ///
 /// cbindgen:opaque
@@ -340,8 +339,16 @@ pub struct LunaModelCApi {
     ) -> LmStatus,
     /// See [`crate::model::lm_model_clone`].
     pub model_clone: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
+    /// See [`crate::model::lm_model_deep_clone`].
+    pub model_deep_clone: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
     /// See [`crate::model::lm_model_name`].
     pub model_name: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
+    /// See [`crate::model::lm_model_sense`].
+    pub model_sense: unsafe extern "C" fn(*const LmModel, *mut LmSense) -> LmStatus,
+    /// See [`crate::model::lm_model_env`].
+    pub model_env: unsafe extern "C" fn(*const LmModel, *mut *mut LmEnv) -> LmStatus,
+    /// See [`crate::model::lm_model_specs`].
+    pub model_specs: unsafe extern "C" fn(*const LmModel, *mut *mut LmSpecs) -> LmStatus,
     /// See [`crate::model::lm_model_vtypes`].
     pub model_vtypes: unsafe extern "C" fn(*const LmModel, *mut LmVtypeBuffer) -> LmStatus,
     /// See [`crate::model::lm_model_num_variables`].
@@ -351,6 +358,22 @@ pub struct LunaModelCApi {
     /// See [`crate::model::lm_model_var`].
     pub model_var:
         unsafe extern "C" fn(*const LmModel, *const c_char, *mut *mut LmVref) -> LmStatus,
+    /// See [`crate::model::lm_model_set_name`].
+    pub model_set_name: unsafe extern "C" fn(*mut LmModel, *const c_char) -> LmStatus,
+    /// See [`crate::model::lm_model_set_sense`].
+    pub model_set_sense: unsafe extern "C" fn(*mut LmModel, *const LmSense) -> LmStatus,
+    /// See [`crate::model::lm_model_add_var`].
+    pub model_add_var: unsafe extern "C" fn(
+        *mut LmModel,
+        *const c_char,
+        *const LmVtype,
+        *const LmBounds,
+        *mut *mut LmVref,
+    ) -> LmStatus,
+    /// See [`crate::model::lm_model_satisfies`].
+    pub model_satisfies:
+        unsafe extern "C" fn(*const LmModel, *const LmSpecs, *mut bool) -> LmStatus,
+
     /// See [`crate::model::lm_model_serialize`].
     pub model_serialize: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
     /// See [`crate::model::lm_model_deserialize`].
