@@ -10,7 +10,7 @@ pub use lunamodel_cext_vtable::LunaModelCApi;
 pub use lunamodel_cext_vtable::{
     LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC, LmComparator, LmConstraint, LmCtype, LmEnv,
     LmExpr, LmLazyBounds, LmModel, LmSense, LmSol, LmSpecs, LmStatus, LmTimer, LmTiming,
-    LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
+    LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer, LmLinearTerm, LmQuadraticTerm, LmHigherOrderTerm
 };
 
 /// ABI version of the C API table.
@@ -32,5 +32,6 @@ pub mod error;
 pub mod model;
 pub mod solution;
 pub mod version;
+pub mod expr;
 
 mod utils;

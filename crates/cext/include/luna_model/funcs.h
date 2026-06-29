@@ -324,6 +324,134 @@ const char *lm_version(void);
  */
 uint32_t lm_abi_version(void);
 
+/**
+ * Returns the environment of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmEnv` storage.
+ */
+LmStatus lm_expr_env(const LmExpr *expr, LmEnv **out);
+
+/**
+ * Returns the constant offset of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `double` storage.
+ */
+LmStatus lm_expr_offset(const LmExpr *expr, double *out);
+
+/**
+ * Returns the linear terms of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `LmLinearTerm` storage.
+ */
+LmStatus lm_expr_linear(const LmExpr *expr, LmLinearTerm **out);
+
+/**
+ * Returns the quadratic terms of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `LmQuadraticTerm` storage.
+ */
+LmStatus lm_expr_quadratic(const LmExpr *expr, LmQuadraticTerm **out);
+
+/**
+ * Returns the higher-order terms of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `LmHigherOrderTerm` storage.
+ */
+LmStatus lm_expr_higher_order(const LmExpr *expr, LmHigherOrderTerm **out);
+
+/**
+ * Returns the number of variables of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_expr_num_vars(const LmExpr *expr, uintptr_t *out);
+
+/**
+ * Returns the distinct variable types used by the expression.
+ *
+ * This matches `Expr::vtypes()` in the Rust API.
+ * The returned array is owned by the caller and must be released with `lm_vtype_buffer_free`.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmVtypeBuffer` storage.
+ */
+LmStatus lm_expr_vtypes(const LmExpr *expr, LmVtypeBuffer *out);
+
+/**
+ * Returns the distinct variables used by the expression.
+ *
+ * This matches `Expression::vars()` in the Rust API.
+ * The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmVrefBuffer` storage.
+ */
+LmStatus lm_expr_vars(const LmExpr *expr, LmVrefBuffer *out);
+
+/**
+ * Returns the distinct variables used by the expression including inverted binary variables
+ * explicitly.
+ *
+ * This matches `Expression::vars()` in the Rust API.
+ * The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmVrefBuffer` storage.
+ */
+LmStatus lm_expr_complete_vars(const LmExpr *expr, LmVrefBuffer *out);
+
+/**
+ * Frees an expression handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `expr` must originate from this library and must not be used or freed again.
+ */
+void lm_expr_free(LmExpr *expr);
+
+/**
+ * Creates a new empty expression.
+ *
+ * Returns a non-null handle that must be released with [`lm_expr_free`].
+ */
+LmExpr *lm_expr_default(void);
+
+/**
+ * Creates a new empty expression with an environment.
+ *
+ * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ */
+LmStatus lm_expr_new(const LmEnv *env, LmExpr **out);
+
+/**
+ * Creates a new constant expression with an environment.
+ *
+ * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ */
+LmStatus lm_expr_new_constant(const LmEnv *env, double val, LmExpr **out);
+
+/**
+ * Clones an expression into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `expr` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_expr_clone(const LmExpr *expr, LmExpr **out);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

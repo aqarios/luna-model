@@ -49,4 +49,22 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     sol_free: crate::solution::lm_sol_free,
     // Sol -- serializer
     sol_deserialize: crate::solution::lm_sol_deserialize,
+    // Expr
+    // Expr -- creation
+    expr_free: crate::expr::lm_expr_free,
+    expr_default: crate::expr::lm_expr_default,
+    expr_new: crate::expr::lm_expr_new,
+    expr_new_constant: crate::expr::lm_expr_new_constant,
+    // Expr -- general
+    expr_clone: crate::expr::lm_expr_clone,
+    // Expr -- access
+    expr_env: crate::expr::lm_expr_env,
+    expr_offset: crate::expr::lm_expr_offset,
+    expr_linear: crate::expr::lm_expr_linear,
+    expr_quadratic: crate::expr::lm_expr_quadratic,
+    expr_higher_order: crate::expr::lm_expr_higher_order,
+    expr_num_vars: crate::expr::lm_expr_num_vars,
+    expr_vtypes: crate::expr::lm_expr_vtypes,
+    expr_vars: crate::expr::lm_expr_vars,
+    expr_complete_vars: crate::expr::lm_expr_complete_vars,
 };

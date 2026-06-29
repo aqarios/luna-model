@@ -221,6 +221,38 @@ typedef struct {
 } LmSol;
 
 /**
+ * Opaque handle to a LunaModel expression reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmExpr;
+
+/**
+ * Opaque handle to a LunaModel linear terms reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmLinearTerm;
+
+/**
+ * Opaque handle to a LunaModel quadratic terms reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmQuadraticTerm;
+
+/**
+ * Opaque handle to a LunaModel higher-order terms reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmHigherOrderTerm;
+
+/**
  * Stable, versioned table of LunaModel C API entry points.
  *
  * Consumers obtaining this via the capsule must check [`Self::abi_version`]
@@ -344,6 +376,62 @@ typedef struct {
      * See [`crate::solution::lm_sol_deserialize`].
      */
     LmStatus (*sol_deserialize)(const uint8_t*, uintptr_t, LmSol**);
+    /**
+     * See [`crate::expr::lm_expr_free`].
+     */
+    void (*expr_free)(LmExpr*);
+    /**
+     * See [`crate::expr::lm_expr_default`].
+     */
+    LmExpr *(*expr_default)(void);
+    /**
+     * See [`crate::expr::lm_expr_new`].
+     */
+    LmStatus (*expr_new)(const LmEnv*, LmExpr**);
+    /**
+     * See [`crate::expr::lm_expr_new_constant`].
+     */
+    LmStatus (*expr_new_constant)(const LmEnv*, double, LmExpr**);
+    /**
+     * See [`crate::expr::lm_expr_clone`].
+     */
+    LmStatus (*expr_clone)(const LmExpr*, LmExpr**);
+    /**
+     * See [`crate::expr::lm_expr_env`].
+     */
+    LmStatus (*expr_env)(const LmExpr*, LmEnv**);
+    /**
+     * See [`crate::expr::lm_expr_offset`].
+     */
+    LmStatus (*expr_offset)(const LmExpr*, double*);
+    /**
+     * See [`crate::expr::lm_expr_linear`].
+     */
+    LmStatus (*expr_linear)(const LmExpr*, LmLinearTerm**);
+    /**
+     * See [`crate::expr::lm_expr_quadratic`].
+     */
+    LmStatus (*expr_quadratic)(const LmExpr*, LmQuadraticTerm**);
+    /**
+     * See [`crate::expr::lm_expr_higher_order`].
+     */
+    LmStatus (*expr_higher_order)(const LmExpr*, LmHigherOrderTerm**);
+    /**
+     * See [`crate::expr::lm_expr_num_vars`].
+     */
+    LmStatus (*expr_num_vars)(const LmExpr*, uintptr_t*);
+    /**
+     * See [`crate::expr::lm_expr_vtypes`].
+     */
+    LmStatus (*expr_vtypes)(const LmExpr*, LmVtypeBuffer*);
+    /**
+     * See [`crate::expr::lm_expr_vars`].
+     */
+    LmStatus (*expr_vars)(const LmExpr*, LmVrefBuffer*);
+    /**
+     * See [`crate::expr::lm_expr_complete_vars`].
+     */
+    LmStatus (*expr_complete_vars)(const LmExpr*, LmVrefBuffer*);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

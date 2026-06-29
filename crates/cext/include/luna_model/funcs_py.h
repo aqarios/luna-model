@@ -83,6 +83,20 @@ static inline int import_luna_model(void) {
 #define lm_env_default(...) (lunamodel__vtable->env_default(__VA_ARGS__))
 #define lm_sol_free(...) (lunamodel__vtable->sol_free(__VA_ARGS__))
 #define lm_sol_deserialize(...) (lunamodel__vtable->sol_deserialize(__VA_ARGS__))
+#define lm_expr_free(...) (lunamodel__vtable->expr_free(__VA_ARGS__))
+#define lm_expr_default(...) (lunamodel__vtable->expr_default(__VA_ARGS__))
+#define lm_expr_new(...) (lunamodel__vtable->expr_new(__VA_ARGS__))
+#define lm_expr_new_constant(...) (lunamodel__vtable->expr_new_constant(__VA_ARGS__))
+#define lm_expr_clone(...) (lunamodel__vtable->expr_clone(__VA_ARGS__))
+#define lm_expr_env(...) (lunamodel__vtable->expr_env(__VA_ARGS__))
+#define lm_expr_offset(...) (lunamodel__vtable->expr_offset(__VA_ARGS__))
+#define lm_expr_linear(...) (lunamodel__vtable->expr_linear(__VA_ARGS__))
+#define lm_expr_quadratic(...) (lunamodel__vtable->expr_quadratic(__VA_ARGS__))
+#define lm_expr_higher_order(...) (lunamodel__vtable->expr_higher_order(__VA_ARGS__))
+#define lm_expr_num_vars(...) (lunamodel__vtable->expr_num_vars(__VA_ARGS__))
+#define lm_expr_vtypes(...) (lunamodel__vtable->expr_vtypes(__VA_ARGS__))
+#define lm_expr_vars(...) (lunamodel__vtable->expr_vars(__VA_ARGS__))
+#define lm_expr_complete_vars(...) (lunamodel__vtable->expr_complete_vars(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */
