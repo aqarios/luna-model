@@ -481,12 +481,63 @@ LmStatus lm_expr_new(const LmEnv *env, LmExpr **out);
 LmStatus lm_expr_new_constant(const LmEnv *env, double val, LmExpr **out);
 
 /**
+ * Compares two expressions for equality.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `other` must be a valid expression handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_expr_eq(const LmExpr *expr, const LmExpr *other, bool *out);
+
+/**
+ * Compares two expressions for equal contents (ignoring different environments).
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `other` must be a valid expression handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_expr_equal_contents(const LmExpr *expr, const LmExpr *other, bool *out);
+
+/**
  * Clones an expression into a new, independent handle written to `out`.
  *
  * # Safety
  * `expr` must be a valid handle and `out` must point to writable storage.
  */
 LmStatus lm_expr_clone(const LmExpr *expr, LmExpr **out);
+
+/**
+ * Deep Clones an expression into a new, independent handle written to `out` for a new environment
+ * `env`
+ *
+ * # Safety
+ * `expr` and `env` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_expr_deep_clone(const LmExpr *expr, const LmEnv *env, LmExpr **out);
+
+/**
+ * Serializes an expression to bytes, writing an owned buffer to `out`.
+ *
+ * The buffer must be released with [`crate::buffer::lm_buffer_free`].
+ *
+ * # Safety
+ * `expr` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_expr_serialize(const LmExpr *expr, LmBuffer *out);
+
+/**
+ * Deserializes a expr from `len` bytes at `data`, writing a new handle to `out`.
+ *
+ * The new handle must be released with [`lm_expr_free`].
+ *
+ * # Safety
+ * `data` must point to `len` readable bytes
+ * `env` must point to a valid environment handle
+ * `out` must point to writable storage
+ */
+LmStatus lm_expr_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmExpr **out);
 
 #ifdef __cplusplus
 }  // extern "C"

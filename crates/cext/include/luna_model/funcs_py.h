@@ -88,6 +88,9 @@ static inline int import_luna_model(void) {
 #define lm_expr_new(...) (lunamodel__vtable->expr_new(__VA_ARGS__))
 #define lm_expr_new_constant(...) (lunamodel__vtable->expr_new_constant(__VA_ARGS__))
 #define lm_expr_clone(...) (lunamodel__vtable->expr_clone(__VA_ARGS__))
+#define lm_expr_deep_clone(...) (lunamodel__vtable->expr_deep_clone(__VA_ARGS__))
+#define lm_expr_serialize(...) (lunamodel__vtable->expr_serialize(__VA_ARGS__))
+#define lm_expr_deserialize(...) (lunamodel__vtable->expr_deserialize(__VA_ARGS__))
 #define lm_expr_env(...) (lunamodel__vtable->expr_env(__VA_ARGS__))
 #define lm_expr_offset(...) (lunamodel__vtable->expr_offset(__VA_ARGS__))
 #define lm_expr_linear(...) (lunamodel__vtable->expr_linear(__VA_ARGS__))
@@ -101,6 +104,8 @@ static inline int import_luna_model(void) {
 #define lm_expr_is_constant(...) (lunamodel__vtable->expr_is_constant(__VA_ARGS__))
 #define lm_expr_has_quadratic(...) (lunamodel__vtable->expr_has_quadratic(__VA_ARGS__))
 #define lm_expr_has_higher_order(...) (lunamodel__vtable->expr_has_higher_order(__VA_ARGS__))
+#define lm_expr_eq(...) (lunamodel__vtable->expr_eq(__VA_ARGS__))
+#define lm_expr_equal_contents(...) (lunamodel__vtable->expr_equal_contents(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

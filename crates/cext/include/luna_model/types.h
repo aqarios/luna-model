@@ -397,6 +397,18 @@ typedef struct {
      */
     LmStatus (*expr_clone)(const LmExpr*, LmExpr**);
     /**
+     * See [`crate::expr::lm_expr_clone`].
+     */
+    LmStatus (*expr_deep_clone)(const LmExpr*, const LmEnv*, LmExpr**);
+    /**
+     * See [`crate::expr::lm_expr_serialize`].
+     */
+    LmStatus (*expr_serialize)(const LmExpr*, LmBuffer*);
+    /**
+     * See [`crate::expr::lm_expr_deserialize`].
+     */
+    LmStatus (*expr_deserialize)(const uint8_t*, uintptr_t, const LmEnv*, LmExpr**);
+    /**
      * See [`crate::expr::lm_expr_env`].
      */
     LmStatus (*expr_env)(const LmExpr*, LmEnv**);
@@ -448,6 +460,14 @@ typedef struct {
      * See [`crate::expr::lm_expr_has_higher_order`].
      */
     LmStatus (*expr_has_higher_order)(const LmExpr*, bool*);
+    /**
+     * See [`crate::expr::lm_expr_eq`].
+     */
+    LmStatus (*expr_eq)(const LmExpr*, const LmExpr*, bool*);
+    /**
+     * See [`crate::expr::lm_expr_equal_contents`].
+     */
+    LmStatus (*expr_equal_contents)(const LmExpr*, const LmExpr*, bool*);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

@@ -428,6 +428,14 @@ pub struct LunaModelCApi {
     pub expr_new_constant: unsafe extern "C" fn(*const LmEnv, f64, *mut *mut LmExpr) -> LmStatus,
     /// See [`crate::expr::lm_expr_clone`].
     pub expr_clone: unsafe extern "C" fn(*const LmExpr, *mut *mut LmExpr) -> LmStatus,
+    /// See [`crate::expr::lm_expr_clone`].
+    pub expr_deep_clone:
+        unsafe extern "C" fn(*const LmExpr, *const LmEnv, *mut *mut LmExpr) -> LmStatus,
+    /// See [`crate::expr::lm_expr_serialize`].
+    pub expr_serialize: unsafe extern "C" fn(*const LmExpr, *mut LmBuffer) -> LmStatus,
+    /// See [`crate::expr::lm_expr_deserialize`].
+    pub expr_deserialize:
+        unsafe extern "C" fn(*const u8, usize, *const LmEnv, *mut *mut LmExpr) -> LmStatus,
     /// See [`crate::expr::lm_expr_env`].
     pub expr_env: unsafe extern "C" fn(*const LmExpr, *mut *mut LmEnv) -> LmStatus,
     /// See [`crate::expr::lm_expr_offset`].
@@ -455,4 +463,9 @@ pub struct LunaModelCApi {
     pub expr_has_quadratic: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
     /// See [`crate::expr::lm_expr_has_higher_order`].
     pub expr_has_higher_order: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
+    /// See [`crate::expr::lm_expr_eq`].
+    pub expr_eq: unsafe extern "C" fn(*const LmExpr, *const LmExpr, *mut bool) -> LmStatus,
+    /// See [`crate::expr::lm_expr_equal_contents`].
+    pub expr_equal_contents:
+        unsafe extern "C" fn(*const LmExpr, *const LmExpr, *mut bool) -> LmStatus,
 }

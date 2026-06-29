@@ -57,6 +57,13 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_new_constant: crate::expr::lm_expr_new_constant,
     // Expr -- general
     expr_clone: crate::expr::lm_expr_clone,
+    expr_deep_clone: crate::expr::lm_expr_deep_clone,
+    // Expr -- serializer
+    expr_serialize: crate::expr::lm_expr_serialize,
+    expr_deserialize: crate::expr::lm_expr_deserialize,
+    // Expr -- equality
+    expr_eq: crate::expr::lm_expr_eq,
+    expr_equal_contents: crate::expr::lm_expr_equal_contents,
     // Expr -- access
     expr_env: crate::expr::lm_expr_env,
     expr_offset: crate::expr::lm_expr_offset,
