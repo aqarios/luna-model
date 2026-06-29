@@ -1032,6 +1032,117 @@ const char *lm_version(void);
  */
 uint32_t lm_abi_version(void);
 
+/**
+ * Returns the id of the vref.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `u32` storage.
+ */
+LmStatus lm_vref_id(const LmVref *vref, uint32_t *out);
+
+/**
+ * Returns LmStatus::Errored the if the vref is not alive, else it returns OK.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_vref_check_living(const LmVref *vref, bool *out);
+
+/**
+ * Returns a copy of the vref's name as an owned UTF-8 byte buffer.
+ *
+ * The returned buffer is written to `out` and must be released with
+ * `lm_buffer_free`.
+ *
+ * The buffer is not guaranteed to be NUL-terminated. C callers should use
+ * `buffer.data` together with `buffer.len`.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_vref_name(const LmVref *vref, LmBuffer *out);
+
+/**
+ * Returns a copy of the vref's vtype.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmVtype` storage.
+ */
+LmStatus lm_vref_vtype(const LmVref *vref, LmVtype *out);
+
+/**
+ * Returns the vref's bounds.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmBounds` storage.
+ */
+LmStatus lm_vref_bounds(const LmVref *vref, LmBounds **out);
+
+/**
+ * Returns the vref's inverted companion if one exists.
+ *
+ * On success, `*out` is set to a newly allocated `LmVref` handle for the
+ * inverted companion, or to NULL if the variable has no inverted companion.
+ * A non-null handle is owned by the caller and must be freed like any other
+ * vref handle.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `*mut LmVref` storage.
+ */
+LmStatus lm_vref_inverted(const LmVref *vref, LmVref **out);
+
+/**
+ * Returns a stable hash derived from the variable name.
+ *
+ * The hash intentionally uses the resolved name rather than the raw index so
+ * it remains meaningful across equivalent environments.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `u64` storage.
+ */
+LmStatus lm_vref_hash(const LmVref *vref, uint64_t *out);
+
+/**
+ * Frees a vref handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `vref` must originate from this library and must not be used or freed again.
+ */
+void lm_vref_free(LmVref *vref);
+
+/**
+ * Creates a new vref for an id and an environment.
+ *
+ * `out` receives an owned vref handle that must be freed with `lm_vref_free`.
+ */
+LmStatus lm_vref_new(uint32_t id, const LmEnv *env, LmVref **out);
+
+/**
+ * Compares the variable index and the semantic contents of the environment.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `other` must be a valid vref handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
+
+/**
+ * Materializes the vref as an owned LmVar.
+ *
+ * # Safety
+ * `vref` must be a valid vref handle created by this library.
+ * `out` must point to writable `LmVar` storage.
+ */
+LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

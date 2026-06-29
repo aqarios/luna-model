@@ -154,6 +154,15 @@ static inline int import_luna_model(void) {
 #define lm_cc_substitute(...) (lunamodel__vtable->cc_substitute(__VA_ARGS__))
 #define lm_cc_serialize(...) (lunamodel__vtable->cc_serialize(__VA_ARGS__))
 #define lm_cc_deserialize(...) (lunamodel__vtable->cc_deserialize(__VA_ARGS__))
+#define lm_vref_free(...) (lunamodel__vtable->vref_free(__VA_ARGS__))
+#define lm_vref_new(...) (lunamodel__vtable->vref_new(__VA_ARGS__))
+#define lm_vref_id(...) (lunamodel__vtable->vref_id(__VA_ARGS__))
+#define lm_vref_check_living(...) (lunamodel__vtable->vref_check_living(__VA_ARGS__))
+#define lm_vref_name(...) (lunamodel__vtable->vref_name(__VA_ARGS__))
+#define lm_vref_vtype(...) (lunamodel__vtable->vref_vtype(__VA_ARGS__))
+#define lm_vref_bounds(...) (lunamodel__vtable->vref_bounds(__VA_ARGS__))
+#define lm_vref_inverted(...) (lunamodel__vtable->vref_inverted(__VA_ARGS__))
+#define lm_vref_hash(...) (lunamodel__vtable->vref_hash(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

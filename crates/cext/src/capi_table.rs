@@ -148,4 +148,18 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // CC -- serializer
     cc_serialize: crate::cc::lm_cc_serialize,
     cc_deserialize: crate::cc::lm_cc_deserialize,
+    // ////// //
+    // VarRef //
+    // ////// //
+    vref_free: crate::vref::lm_vref_free,
+    // Vref -- creation
+    vref_new: crate::vref::lm_vref_new,
+    // Vref -- access
+    vref_id: crate::vref::lm_vref_id,
+    vref_check_living: crate::vref::lm_vref_check_living,
+    vref_name: crate::vref::lm_vref_name,
+    vref_vtype: crate::vref::lm_vref_vtype,
+    vref_bounds: crate::vref::lm_vref_bounds,
+    vref_inverted: crate::vref::lm_vref_inverted,
+    vref_hash: crate::vref::lm_vref_hash,
 };

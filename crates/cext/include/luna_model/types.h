@@ -373,6 +373,14 @@ typedef struct {
 } LmSol;
 
 /**
+ * Opaque handle to a LunaModel variable reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmVar;
+
+/**
  * Stable, versioned table of LunaModel C API entry points.
  *
  * Consumers obtaining this via the capsule must check [`Self::abi_version`]
@@ -791,6 +799,42 @@ typedef struct {
      * See [`crate::cc::lm_cc_deserialize`].
      */
     LmStatus (*cc_deserialize)(const uint8_t*, uintptr_t, const LmEnv*, LmCC**);
+    /**
+     * See [`crate::env::lm_vref_free`].
+     */
+    void (*vref_free)(LmVref*);
+    /**
+     * See [`crate::env::lm_vref_new`].
+     */
+    LmStatus (*vref_new)(uint32_t, const LmEnv*, LmVref**);
+    /**
+     * See [`crate::env::lm_vref_id`].
+     */
+    LmStatus (*vref_id)(const LmVref*, uint32_t*);
+    /**
+     * See [`crate::env::lm_vref_check_living`].
+     */
+    LmStatus (*vref_check_living)(const LmVref*, bool*);
+    /**
+     * See [`crate::env::lm_vref_name`].
+     */
+    LmStatus (*vref_name)(const LmVref*, LmBuffer*);
+    /**
+     * See [`crate::env::lm_vref_vtype`].
+     */
+    LmStatus (*vref_vtype)(const LmVref*, LmVtype*);
+    /**
+     * See [`crate::env::lm_vref_bounds`].
+     */
+    LmStatus (*vref_bounds)(const LmVref*, LmBounds**);
+    /**
+     * See [`crate::env::lm_vref_inverted`].
+     */
+    LmStatus (*vref_inverted)(const LmVref*, LmVref**);
+    /**
+     * See [`crate::env::lm_vref_hash`].
+     */
+    LmStatus (*vref_hash)(const LmVref*, uint64_t*);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

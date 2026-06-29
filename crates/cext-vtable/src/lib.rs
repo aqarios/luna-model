@@ -630,4 +630,25 @@ pub struct LunaModelCApi {
     /// See [`crate::cc::lm_cc_deserialize`].
     pub cc_deserialize:
         unsafe extern "C" fn(*const u8, usize, *const LmEnv, *mut *mut LmCC) -> LmStatus,
+    // ////// //
+    // VarRef //
+    // ////// //
+    /// See [`crate::env::lm_vref_free`].
+    pub vref_free: unsafe extern "C" fn(*mut LmVref),
+    /// See [`crate::env::lm_vref_new`].
+    pub vref_new: unsafe extern "C" fn(u32, *const LmEnv, *mut *mut LmVref) -> LmStatus,
+    /// See [`crate::env::lm_vref_id`].
+    pub vref_id: unsafe extern "C" fn(*const LmVref, *mut u32) -> LmStatus,
+    /// See [`crate::env::lm_vref_check_living`].
+    pub vref_check_living: unsafe extern "C" fn(*const LmVref, *mut bool) -> LmStatus,
+    /// See [`crate::env::lm_vref_name`].
+    pub vref_name: unsafe extern "C" fn(*const LmVref, *mut LmBuffer) -> LmStatus,
+    /// See [`crate::env::lm_vref_vtype`].
+    pub vref_vtype: unsafe extern "C" fn(*const LmVref, *mut LmVtype) -> LmStatus,
+    /// See [`crate::env::lm_vref_bounds`].
+    pub vref_bounds: unsafe extern "C" fn(*const LmVref, *mut *mut LmBounds) -> LmStatus,
+    /// See [`crate::env::lm_vref_inverted`].
+    pub vref_inverted: unsafe extern "C" fn(*const LmVref, *mut *mut LmVref) -> LmStatus,
+    /// See [`crate::env::lm_vref_hash`].
+    pub vref_hash: unsafe extern "C" fn(*const LmVref, *mut u64) -> LmStatus,
 }
