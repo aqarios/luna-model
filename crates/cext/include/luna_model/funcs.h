@@ -416,6 +416,42 @@ LmStatus lm_expr_vars(const LmExpr *expr, LmVrefBuffer *out);
 LmStatus lm_expr_complete_vars(const LmExpr *expr, LmVrefBuffer *out);
 
 /**
+ * Returns the degree of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_expr_degree(const LmExpr *expr, uintptr_t *out);
+
+/**
+ * Returns if the expression is constant.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_expr_is_constant(const LmExpr *expr, bool *out);
+
+/**
+ * Returns if the expression has at least one quadratic term.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_expr_has_quadratic(const LmExpr *expr, bool *out);
+
+/**
+ * Returns if the expression has at least one higher-order term.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_expr_has_higher_order(const LmExpr *expr, bool *out);
+
+/**
  * Frees an expression handle. Passing null is a no-op.
  *
  * # Safety

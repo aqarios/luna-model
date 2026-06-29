@@ -97,6 +97,10 @@ static inline int import_luna_model(void) {
 #define lm_expr_vtypes(...) (lunamodel__vtable->expr_vtypes(__VA_ARGS__))
 #define lm_expr_vars(...) (lunamodel__vtable->expr_vars(__VA_ARGS__))
 #define lm_expr_complete_vars(...) (lunamodel__vtable->expr_complete_vars(__VA_ARGS__))
+#define lm_expr_degree(...) (lunamodel__vtable->expr_degree(__VA_ARGS__))
+#define lm_expr_is_constant(...) (lunamodel__vtable->expr_is_constant(__VA_ARGS__))
+#define lm_expr_has_quadratic(...) (lunamodel__vtable->expr_has_quadratic(__VA_ARGS__))
+#define lm_expr_has_higher_order(...) (lunamodel__vtable->expr_has_higher_order(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

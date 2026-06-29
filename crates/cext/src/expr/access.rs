@@ -187,3 +187,67 @@ pub unsafe extern "C" fn lm_expr_complete_vars(
         Ok(())
     })
 }
+
+/// Returns the degree of the expression.
+///
+/// # Safety
+/// `expr` must be a valid expr handle created by this library.
+/// `out` must point to writable `usize` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_degree(expr: *const LmExpr, out: *mut usize) -> LmStatus {
+    guard(|| {
+        let expr = unsafe { (expr as *const Expression).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("expr"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        *out = expr.degree();
+        Ok(())
+    })
+}
+
+/// Returns if the expression is constant.
+///
+/// # Safety
+/// `expr` must be a valid expr handle created by this library.
+/// `out` must point to writable `bool` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_is_constant(expr: *const LmExpr, out: *mut bool) -> LmStatus {
+    guard(|| {
+        let expr = unsafe { (expr as *const Expression).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("expr"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        *out = expr.is_constant();
+        Ok(())
+    })
+}
+
+/// Returns if the expression has at least one quadratic term.
+///
+/// # Safety
+/// `expr` must be a valid expr handle created by this library.
+/// `out` must point to writable `bool` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_has_quadratic(expr: *const LmExpr, out: *mut bool) -> LmStatus {
+    guard(|| {
+        let expr = unsafe { (expr as *const Expression).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("expr"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        *out = expr.has_quadratic();
+        Ok(())
+    })
+}
+
+/// Returns if the expression has at least one higher-order term.
+///
+/// # Safety
+/// `expr` must be a valid expr handle created by this library.
+/// `out` must point to writable `bool` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_expr_has_higher_order(expr: *const LmExpr, out: *mut bool) -> LmStatus {
+    guard(|| {
+        let expr = unsafe { (expr as *const Expression).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("expr"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        *out = expr.has_higher_order();
+        Ok(())
+    })
+}

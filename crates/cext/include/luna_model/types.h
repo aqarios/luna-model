@@ -432,6 +432,22 @@ typedef struct {
      * See [`crate::expr::lm_expr_complete_vars`].
      */
     LmStatus (*expr_complete_vars)(const LmExpr*, LmVrefBuffer*);
+    /**
+     * See [`crate::expr::lm_expr_degree`].
+     */
+    LmStatus (*expr_degree)(const LmExpr*, uintptr_t*);
+    /**
+     * See [`crate::expr::lm_expr_is_constant`].
+     */
+    LmStatus (*expr_is_constant)(const LmExpr*, bool*);
+    /**
+     * See [`crate::expr::lm_expr_has_quadratic`].
+     */
+    LmStatus (*expr_has_quadratic)(const LmExpr*, bool*);
+    /**
+     * See [`crate::expr::lm_expr_has_higher_order`].
+     */
+    LmStatus (*expr_has_higher_order)(const LmExpr*, bool*);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

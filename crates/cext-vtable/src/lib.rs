@@ -447,4 +447,12 @@ pub struct LunaModelCApi {
     pub expr_vars: unsafe extern "C" fn(*const LmExpr, *mut LmVrefBuffer) -> LmStatus,
     /// See [`crate::expr::lm_expr_complete_vars`].
     pub expr_complete_vars: unsafe extern "C" fn(*const LmExpr, *mut LmVrefBuffer) -> LmStatus,
+    /// See [`crate::expr::lm_expr_degree`].
+    pub expr_degree: unsafe extern "C" fn(*const LmExpr, *mut usize) -> LmStatus,
+    /// See [`crate::expr::lm_expr_is_constant`].
+    pub expr_is_constant: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
+    /// See [`crate::expr::lm_expr_has_quadratic`].
+    pub expr_has_quadratic: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
+    /// See [`crate::expr::lm_expr_has_higher_order`].
+    pub expr_has_higher_order: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
 }
