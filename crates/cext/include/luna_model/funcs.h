@@ -47,6 +47,30 @@ void lm_vref_buffer_free(LmVrefBuffer buffer);
 void lm_vtype_buffer_free(LmVtypeBuffer buffer);
 
 /**
+ * Returns the number of variables in the environment.
+ *
+ * # Safety
+ * `env` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_env_len(const LmEnv *env, uintptr_t *out);
+
+/**
+ * Returns `true` when the environment contains no variables.
+ *
+ * # Safety
+ * `env` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_env_is_empty(const LmEnv *env, bool *out);
+
+/**
+ * Returns all variables as environment-bound references.
+ *
+ * # Safety
+ * `env` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_env_vars(const LmEnv *env, LmVrefBuffer *out);
+
+/**
  * Frees an environment handle. Passing null is a no-op.
  *
  * # Safety
@@ -60,6 +84,22 @@ void lm_env_free(LmEnv *env);
  * Returns a non-null handle that must be released with [`lm_env_free`].
  */
 LmEnv *lm_env_default(void);
+
+/**
+ * Clones an environment into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `env` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_env_clone(const LmEnv *env, LmEnv **out);
+
+/**
+ * Deep clones an environment into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `env` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_env_deep_clone(const LmEnv *env, LmEnv **out);
 
 /**
  * Returns the last error message for the current thread, or null if there is none.

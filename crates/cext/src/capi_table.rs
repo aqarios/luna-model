@@ -53,6 +53,13 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Env
     env_free: crate::env::lm_env_free,
     env_default: crate::env::lm_env_default,
+    // Env -- general
+    env_clone: crate::env::lm_env_clone,
+    env_deep_clone: crate::env::lm_env_deep_clone,
+    // Env -- access
+    env_len: crate::env::lm_env_len,
+    env_is_empty: crate::env::lm_env_is_empty,
+    env_vars: crate::env::lm_env_vars,
     // Sol
     sol_free: crate::solution::lm_sol_free,
     // Sol -- serializer

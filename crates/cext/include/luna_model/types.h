@@ -412,6 +412,26 @@ typedef struct {
      */
     LmEnv *(*env_default)(void);
     /**
+     * See [`crate::env::lm_env_clone`].
+     */
+    LmStatus (*env_clone)(const LmEnv*, LmEnv**);
+    /**
+     * See [`crate::env::lm_env_deep_clone`].
+     */
+    LmStatus (*env_deep_clone)(const LmEnv*, LmEnv**);
+    /**
+     * See [`crate::env::lm_env_len`].
+     */
+    LmStatus (*env_len)(const LmEnv*, uintptr_t*);
+    /**
+     * See [`crate::env::lm_env_is_empty`].
+     */
+    LmStatus (*env_is_empty)(const LmEnv*, bool*);
+    /**
+     * See [`crate::env::lm_vars`].
+     */
+    LmStatus (*env_vars)(const LmEnv*, LmVrefBuffer*);
+    /**
      * See [`crate::solution::lm_sol_free`].
      */
     void (*sol_free)(LmSol*);

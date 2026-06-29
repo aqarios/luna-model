@@ -436,6 +436,16 @@ pub struct LunaModelCApi {
     pub env_free: unsafe extern "C" fn(*mut LmEnv),
     /// See [`crate::env::lm_env_default`].
     pub env_default: extern "C" fn() -> *mut LmEnv,
+    /// See [`crate::env::lm_env_clone`].
+    pub env_clone: unsafe extern "C" fn(*const LmEnv, *mut *mut LmEnv) -> LmStatus,
+    /// See [`crate::env::lm_env_deep_clone`].
+    pub env_deep_clone: unsafe extern "C" fn(*const LmEnv, *mut *mut LmEnv) -> LmStatus,
+    /// See [`crate::env::lm_env_len`].
+    pub env_len: unsafe extern "C" fn(*const LmEnv, *mut usize) -> LmStatus,
+    /// See [`crate::env::lm_env_is_empty`].
+    pub env_is_empty: unsafe extern "C" fn(*const LmEnv, *mut bool) -> LmStatus,
+    /// See [`crate::env::lm_vars`].
+    pub env_vars: unsafe extern "C" fn(*const LmEnv, *mut LmVrefBuffer) -> LmStatus,
     // //////// //
     // SOLUTION //
     // //////// //
