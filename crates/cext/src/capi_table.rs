@@ -27,6 +27,12 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     model_deep_clone: crate::model::lm_model_deep_clone,
     model_satisfies: crate::model::lm_model_satisfies,
     model_add_var: crate::model::lm_model_add_var,
+    model_add_var_with_fallback: crate::model::lm_model_add_var_with_fallback,
+    model_eq: crate::model::lm_model_eq,
+    model_equal_contents: crate::model::lm_model_equal_contents,
+    model_evaluate_solution: crate::model::lm_model_evaluate_solution,
+    model_evaluate_solution_with_tol: crate::model::lm_model_evaluate_solution_with_tol,
+    model_substitute: crate::model::lm_model_substitute,
     // Model -- access
     model_name: crate::model::lm_model_name,
     model_sense: crate::model::lm_model_sense,
@@ -36,9 +42,11 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     model_num_variables: crate::model::lm_model_num_variables,
     model_vars: crate::model::lm_model_vars,
     model_var: crate::model::lm_model_var,
+    model_objective: crate::model::lm_model_objective,
     // Model -- setter
     model_set_name: crate::model::lm_model_set_name,
     model_set_sense: crate::model::lm_model_set_sense,
+    model_set_objective: crate::model::lm_model_set_objective,
     // Model -- serializer
     model_serialize: crate::model::lm_model_serialize,
     model_deserialize: crate::model::lm_model_deserialize,

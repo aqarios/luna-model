@@ -1,10 +1,10 @@
 use std::ffi::{CStr, c_char};
 
-use luna_model::core::Model;
+use luna_model::core::{Expression, Model};
 
 use crate::error::{CapiError, guard};
 use crate::utils::sense_from_c;
-use crate::{LmModel, LmSense, LmStatus};
+use crate::{LmExpr, LmModel, LmSense, LmStatus};
 
 /// Sets the model name.
 ///
@@ -58,6 +58,26 @@ pub unsafe extern "C" fn lm_model_set_sense(
 
         model.sense = sense_from_c(unsafe { *sense });
 
+        Ok(())
+    })
+}
+
+/// Set the objective of the model.
+///
+/// # Safety
+/// `model` must be a valid mutable model handle created by this library.
+/// `expr` must point to a valid `LmExpr` handle
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_set_objective(
+    model: *mut LmModel,
+    expr: *const LmExpr,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *mut Model).as_mut() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let expr = unsafe { (expr as *const Expression).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("expr"))?;
+        model.objective = expr.clone();
         Ok(())
     })
 }

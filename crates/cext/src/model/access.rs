@@ -6,7 +6,7 @@ use crate::buffer::{buffer_from_vec, vref_buffer_from_vec, vtype_buffer_from_vec
 use crate::error::{CapiError, guard};
 use crate::utils::{sense_to_c, vtype_to_c};
 use crate::{
-    LmBuffer, LmEnv, LmModel, LmSense, LmSpecs, LmStatus, LmVref, LmVrefBuffer, LmVtype,
+    LmBuffer, LmEnv, LmExpr, LmModel, LmSense, LmSpecs, LmStatus, LmVref, LmVrefBuffer, LmVtype,
     LmVtypeBuffer,
 };
 
@@ -212,6 +212,25 @@ pub unsafe extern "C" fn lm_model_var(
 
         *out = Box::into_raw(Box::new(var)) as *mut LmVref;
 
+        Ok(())
+    })
+}
+
+/// Returns the objective of the model.
+///
+/// # Safety
+/// `model` must be a valid model handle created by this library.
+/// `out` must point to writable `LmExpr` storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_model_objective(
+    model: *const LmModel,
+    out: *mut *mut LmExpr,
+) -> LmStatus {
+    guard(|| {
+        let model = unsafe { (model as *const Model).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("model"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        *out = Box::into_raw(Box::new(model.objective.clone())) as *mut LmExpr;
         Ok(())
     })
 }

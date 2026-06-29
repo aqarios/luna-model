@@ -77,6 +77,10 @@ typedef enum {
      * A Rust panic was caught at the FFI boundary.
      */
     LmStatus_Panic = 5,
+    /**
+     * An error was encountered.
+     */
+    LmStatus_Errored = 6,
 } LmStatus;
 
 /**
@@ -201,6 +205,14 @@ typedef struct {
 } LmSpecs;
 
 /**
+ * Opaque handle to a LunaModel expression reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmExpr;
+
+/**
  * Opaque handle to a LunaModel bounds reference.
  *
  */
@@ -219,14 +231,6 @@ typedef struct {
 typedef struct {
     uint8_t _private[0];
 } LmSol;
-
-/**
- * Opaque handle to a LunaModel expression reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmExpr;
 
 /**
  * Opaque handle to a LunaModel linear terms reference.
@@ -337,6 +341,10 @@ typedef struct {
      */
     LmStatus (*model_var)(const LmModel*, const char*, LmVref**);
     /**
+     * See [`crate::model::lm_model_objective`].
+     */
+    LmStatus (*model_objective)(const LmModel*, LmExpr**);
+    /**
      * See [`crate::model::lm_model_set_name`].
      */
     LmStatus (*model_set_name)(LmModel*, const char*);
@@ -345,9 +353,21 @@ typedef struct {
      */
     LmStatus (*model_set_sense)(LmModel*, const LmSense*);
     /**
+     * See [`crate::model::lm_model_set_objective`].
+     */
+    LmStatus (*model_set_objective)(LmModel*, const LmExpr*);
+    /**
      * See [`crate::model::lm_model_add_var`].
      */
     LmStatus (*model_add_var)(LmModel*, const char*, const LmVtype*, const LmBounds*, LmVref**);
+    /**
+     * See [`crate::model::lm_model_add_var_with_fallback`].
+     */
+    LmStatus (*model_add_var_with_fallback)(LmModel*,
+                                            const char*,
+                                            const LmVtype*,
+                                            const LmBounds*,
+                                            LmVref**);
     /**
      * See [`crate::model::lm_model_satisfies`].
      */
@@ -360,6 +380,29 @@ typedef struct {
      * See [`crate::model::lm_model_deserialize`].
      */
     LmStatus (*model_deserialize)(const uint8_t*, uintptr_t, LmModel**);
+    /**
+     * See [`crate::model::lm_model_eq`].
+     */
+    LmStatus (*model_eq)(const LmModel*, const LmModel*, bool*);
+    /**
+     * See [`crate::model::lm_model_equal_contents`].
+     */
+    LmStatus (*model_equal_contents)(const LmModel*, const LmModel*, bool*);
+    /**
+     * See [`crate::model::lm_model_evaluate_solution`].
+     */
+    LmStatus (*model_evaluate_solution)(const LmModel*, const LmSol*, LmSol**);
+    /**
+     * See [`crate::model::lm_model_evaluate_solution_with_tol`].
+     */
+    LmStatus (*model_evaluate_solution_with_tol)(const LmModel*,
+                                                 const LmSol*,
+                                                 const double*,
+                                                 LmSol**);
+    /**
+     * See [`crate::model::lm_model_substitute`].
+     */
+    LmStatus (*model_substitute)(LmModel*, const LmVref*, const LmExpr*);
     /**
      * See [`crate::env::lm_env_free`].
      */

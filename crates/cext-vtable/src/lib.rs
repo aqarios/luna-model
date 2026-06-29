@@ -39,6 +39,8 @@ pub enum LmStatus {
     Deserialization = 4,
     /// A Rust panic was caught at the FFI boundary.
     Panic = 5,
+    /// An error was encountered.
+    Errored = 6,
 }
 
 /// Objective optimization sense used by the C API.
@@ -382,12 +384,24 @@ pub struct LunaModelCApi {
     /// See [`crate::model::lm_model_var`].
     pub model_var:
         unsafe extern "C" fn(*const LmModel, *const c_char, *mut *mut LmVref) -> LmStatus,
+    /// See [`crate::model::lm_model_objective`].
+    pub model_objective: unsafe extern "C" fn(*const LmModel, *mut *mut LmExpr) -> LmStatus,
     /// See [`crate::model::lm_model_set_name`].
     pub model_set_name: unsafe extern "C" fn(*mut LmModel, *const c_char) -> LmStatus,
     /// See [`crate::model::lm_model_set_sense`].
     pub model_set_sense: unsafe extern "C" fn(*mut LmModel, *const LmSense) -> LmStatus,
+    /// See [`crate::model::lm_model_set_objective`].
+    pub model_set_objective: unsafe extern "C" fn(*mut LmModel, *const LmExpr) -> LmStatus,
     /// See [`crate::model::lm_model_add_var`].
     pub model_add_var: unsafe extern "C" fn(
+        *mut LmModel,
+        *const c_char,
+        *const LmVtype,
+        *const LmBounds,
+        *mut *mut LmVref,
+    ) -> LmStatus,
+    /// See [`crate::model::lm_model_add_var_with_fallback`].
+    pub model_add_var_with_fallback: unsafe extern "C" fn(
         *mut LmModel,
         *const c_char,
         *const LmVtype,
@@ -401,6 +415,20 @@ pub struct LunaModelCApi {
     pub model_serialize: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
     /// See [`crate::model::lm_model_deserialize`].
     pub model_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmModel) -> LmStatus,
+    /// See [`crate::model::lm_model_eq`].
+    pub model_eq: unsafe extern "C" fn(*const LmModel, *const LmModel, *mut bool) -> LmStatus,
+    /// See [`crate::model::lm_model_equal_contents`].
+    pub model_equal_contents:
+        unsafe extern "C" fn(*const LmModel, *const LmModel, *mut bool) -> LmStatus,
+    /// See [`crate::model::lm_model_evaluate_solution`].
+    pub model_evaluate_solution:
+        unsafe extern "C" fn(*const LmModel, *const LmSol, *mut *mut LmSol) -> LmStatus,
+    /// See [`crate::model::lm_model_evaluate_solution_with_tol`].
+    pub model_evaluate_solution_with_tol:
+        unsafe extern "C" fn(*const LmModel, *const LmSol, *const f64, *mut *mut LmSol) -> LmStatus,
+    /// See [`crate::model::lm_model_substitute`].
+    pub model_substitute:
+        unsafe extern "C" fn(*mut LmModel, *const LmVref, *const LmExpr) -> LmStatus,
     // /// //
     // ENV //
     // /// //
