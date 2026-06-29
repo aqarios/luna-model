@@ -175,6 +175,36 @@ pub struct LmVtypeBuffer {
     pub cap: usize,
 }
 
+/// An owned, heap-allocated Ctype buffer the caller takes ownership of.
+///
+/// Ctype buffers returned by LunaModel must be released
+/// with [`lm_ctype_buffer_free`]. The fields mirror a `Vec<Ctype>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmCtypeBuffer {
+    /// Pointer to the first Ctype, or null for an empty buffer.
+    pub data: *mut LmCtype,
+    /// Number of valid bytes.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
+/// An owned, heap-allocated Comparator buffer the caller takes ownership of.
+///
+/// Comparator buffers returned by LunaModel must be released
+/// with [`lm_cmp_buffer_free`]. The fields mirror a `Vec<Comparator>` so it can
+/// be rebuilt for deallocation.
+#[repr(C)]
+pub struct LmCmpBuffer {
+    /// Pointer to the first LmComparator, or null for an empty buffer.
+    pub data: *mut LmComparator,
+    /// Number of valid bytes.
+    pub len: usize,
+    /// Allocated capacity (needed to reconstruct the `Vec` when freeing).
+    pub cap: usize,
+}
+
 /// An owned, heap-allocated VarRef buffer the caller takes ownership of.
 ///
 /// Vtype buffers returned by LunaModel must be released
@@ -345,6 +375,10 @@ pub struct LunaModelCApi {
     pub buffer_free: unsafe extern "C" fn(LmBuffer),
     /// See [`crate::buffer::lm_vtype_buffer_free`].
     pub vtype_buffer_free: unsafe extern "C" fn(LmVtypeBuffer),
+    /// See [`crate::buffer::lm_ctype_buffer_free`].
+    pub ctype_buffer_free: unsafe extern "C" fn(LmCtypeBuffer),
+    /// See [`crate::buffer::lm_cmp_buffer_free`].
+    pub cmp_buffer_free: unsafe extern "C" fn(LmCmpBuffer),
     /// See [`crate::buffer::lm_vref_buffer_free`].
     pub vref_buffer_free: unsafe extern "C" fn(LmVrefBuffer),
     // ///// //
@@ -429,9 +463,9 @@ pub struct LunaModelCApi {
     /// See [`crate::model::lm_model_substitute`].
     pub model_substitute:
         unsafe extern "C" fn(*mut LmModel, *const LmVref, *const LmExpr) -> LmStatus,
-    // /// //
-    // ENV //
-    // /// //
+    // /////////// //
+    // ENVIRONMENT //
+    // /////////// //
     /// See [`crate::env::lm_env_free`].
     pub env_free: unsafe extern "C" fn(*mut LmEnv),
     /// See [`crate::env::lm_env_default`].
@@ -543,4 +577,57 @@ pub struct LunaModelCApi {
     /// See [`crate::expr::lm_expr_equal_contents`].
     pub expr_equal_contents:
         unsafe extern "C" fn(*const LmExpr, *const LmExpr, *mut bool) -> LmStatus,
+    // //////////////////// //
+    // ConstraintCollection //
+    // //////////////////// //
+    /// See [`crate::env::lm_cc_free`].
+    pub cc_free: unsafe extern "C" fn(*mut LmCC),
+    /// See [`crate::env::lm_cc_default`].
+    pub cc_default: extern "C" fn() -> *mut LmCC,
+    /// See [`crate::env::lm_cc_new`].
+    pub cc_new: extern "C" fn() -> *mut LmCC,
+    /// See [`crate::env::lm_cc_clone`].
+    pub cc_clone: unsafe extern "C" fn(*const LmCC, *mut *mut LmCC) -> LmStatus,
+    /// See [`crate::env::lm_cc_deep_clone`].
+    pub cc_deep_clone: unsafe extern "C" fn(*const LmCC, *const LmEnv, *mut *mut LmCC) -> LmStatus,
+    /// See [`crate::env::lm_cc_eq`].
+    pub cc_eq: unsafe extern "C" fn(*const LmCC, *const LmCC, *mut bool) -> LmStatus,
+    /// See [`crate::env::lm_cc_equal_contents`].
+    pub cc_equal_contents: unsafe extern "C" fn(*const LmCC, *const LmCC, *mut bool) -> LmStatus,
+    /// See [`crate::env::lm_cc_vtypes`].
+    pub cc_vtypes: unsafe extern "C" fn(*const LmCC, *mut LmVtypeBuffer) -> LmStatus,
+    /// See [`crate::env::lm_cc_ctypes`].
+    pub cc_ctypes: unsafe extern "C" fn(*const LmCC, *mut LmCmpBuffer) -> LmStatus,
+    /// See [`crate::env::lm_cc_vars`].
+    pub cc_vars: unsafe extern "C" fn(*const LmCC, *mut LmVrefBuffer) -> LmStatus,
+    /// See [`crate::env::lm_cc_complete_vars`].
+    pub cc_complete_vars: unsafe extern "C" fn(*const LmCC, *mut LmVrefBuffer) -> LmStatus,
+    /// See [`crate::env::lm_cc_is_empty`].
+    pub cc_is_empty: unsafe extern "C" fn(*const LmCC, *mut bool) -> LmStatus,
+    /// See [`crate::env::lm_cc_len`].
+    pub cc_len: unsafe extern "C" fn(*const LmCC, *mut usize) -> LmStatus,
+    /// See [`crate::env::lm_cc_get`].
+    pub cc_get:
+        unsafe extern "C" fn(*const LmCC, *const c_char, *mut *mut LmConstraint) -> LmStatus,
+    /// See [`crate::env::lm_cc_add_constraint`].
+    pub cc_add_constraint: unsafe extern "C" fn(
+        *mut LmCC,
+        *const LmConstraint,
+        *const c_char,
+        *mut LmBuffer,
+    ) -> LmStatus,
+    /// See [`crate::env::lm_cc_add_collection`].
+    pub cc_add_collection: unsafe extern "C" fn(*mut LmCC, *const LmCC, *const c_char) -> LmStatus,
+    /// See [`crate::env::lm_cc_set_constraint`].
+    pub cc_set_constraint:
+        unsafe extern "C" fn(*mut LmCC, *const c_char, *const LmConstraint) -> LmStatus,
+    /// See [`crate::env::lm_cc_remove_constraint`].
+    pub cc_remove_constraint: unsafe extern "C" fn(*mut LmCC, *const c_char) -> LmStatus,
+    /// See [`crate::env::lm_cc_substitute`].
+    pub cc_substitute: unsafe extern "C" fn(*mut LmCC, *const LmVref, *const LmExpr) -> LmStatus,
+    /// See [`crate::cc::lm_cc_serialize`].
+    pub cc_serialize: unsafe extern "C" fn(*const LmCC, *mut LmBuffer) -> LmStatus,
+    /// See [`crate::cc::lm_cc_deserialize`].
+    pub cc_deserialize:
+        unsafe extern "C" fn(*const u8, usize, *const LmEnv, *mut *mut LmCC) -> LmStatus,
 }

@@ -8,9 +8,10 @@
 
 pub use lunamodel_cext_vtable::LunaModelCApi;
 pub use lunamodel_cext_vtable::{
-    LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC, LmComparator, LmConstraint, LmCtype, LmEnv,
-    LmExpr, LmLazyBounds, LmModel, LmSense, LmSol, LmSpecs, LmStatus, LmTimer, LmTiming,
-    LmValueSource, LmVar, LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer, LmLinearTerm, LmQuadraticTerm, LmHigherOrderTerm
+    LmBound, LmBoundTag, LmBounds, LmBuffer, LmCC, LmCmpBuffer, LmComparator, LmConstraint,
+    LmCtype, LmCtypeBuffer, LmEnv, LmExpr, LmHigherOrderTerm, LmLazyBounds, LmLinearTerm, LmModel,
+    LmQuadraticTerm, LmSense, LmSol, LmSpecs, LmStatus, LmTimer, LmTiming, LmValueSource, LmVar,
+    LmVref, LmVrefBuffer, LmVtype, LmVtypeBuffer,
 };
 
 /// ABI version of the C API table.
@@ -27,11 +28,12 @@ const _: () = assert!(CAPI_ABI_VERSION == lunamodel_cext_vtable::CAPI_ABI_VERSIO
 
 pub mod buffer;
 pub mod capi_table;
+pub mod cc;
 pub mod env;
 pub mod error;
+pub mod expr;
 pub mod model;
 pub mod solution;
 pub mod version;
-pub mod expr;
 
 mod utils;

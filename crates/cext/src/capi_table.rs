@@ -12,11 +12,17 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     abi_version: CAPI_ABI_VERSION,
     version: crate::version::lm_version,
     last_error_message: crate::error::lm_last_error_message,
-    // Buffer
+    // ////// //
+    // BUFFER //
+    // ////// //
     buffer_free: crate::buffer::lm_buffer_free,
     vtype_buffer_free: crate::buffer::lm_vtype_buffer_free,
     vref_buffer_free: crate::buffer::lm_vref_buffer_free,
-    // Model
+    cmp_buffer_free: crate::buffer::lm_cmp_buffer_free,
+    ctype_buffer_free: crate::buffer::lm_ctype_buffer_free,
+    // ///// //
+    // MODEL //
+    // ///// //
     model_free: crate::model::lm_model_free,
     // Model -- creation
     model_default: crate::model::lm_model_default,
@@ -50,7 +56,9 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Model -- serializer
     model_serialize: crate::model::lm_model_serialize,
     model_deserialize: crate::model::lm_model_deserialize,
-    // Env
+    // /////////// //
+    // ENVIRONMENT //
+    // /////////// //
     env_free: crate::env::lm_env_free,
     env_default: crate::env::lm_env_default,
     // Env -- general
@@ -74,11 +82,15 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Env -- serializer
     env_serialize: crate::env::lm_env_serialize,
     env_deserialize: crate::env::lm_env_deserialize,
-    // Sol
+    // //////// //
+    // SOLUTION //
+    // //////// //
     sol_free: crate::solution::lm_sol_free,
     // Sol -- serializer
     sol_deserialize: crate::solution::lm_sol_deserialize,
-    // Expr
+    // ////////// //
+    // EXPRESSION //
+    // ////////// //
     // Expr -- creation
     expr_free: crate::expr::lm_expr_free,
     expr_default: crate::expr::lm_expr_default,
@@ -107,4 +119,33 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_is_constant: crate::expr::lm_expr_is_constant,
     expr_has_quadratic: crate::expr::lm_expr_has_quadratic,
     expr_has_higher_order: crate::expr::lm_expr_has_higher_order,
+    // //////////////////// //
+    // ConstraintCollection //
+    // //////////////////// //
+    cc_free: crate::cc::lm_cc_free,
+    // CC -- creation
+    cc_default: crate::cc::lm_cc_default,
+    cc_new: crate::cc::lm_cc_new,
+    // CC -- general
+    cc_clone: crate::cc::lm_cc_clone,
+    cc_deep_clone: crate::cc::lm_cc_deep_clone,
+    cc_eq: crate::cc::lm_cc_eq,
+    cc_equal_contents: crate::cc::lm_cc_equal_contents,
+    // CC -- access
+    cc_vtypes: crate::cc::lm_cc_vtypes,
+    cc_ctypes: crate::cc::lm_cc_ctypes,
+    cc_vars: crate::cc::lm_cc_vars,
+    cc_complete_vars: crate::cc::lm_cc_complete_vars,
+    cc_is_empty: crate::cc::lm_cc_is_empty,
+    cc_len: crate::cc::lm_cc_len,
+    cc_get: crate::cc::lm_cc_get,
+    // CC -- modification
+    cc_add_constraint: crate::cc::lm_cc_add_constraint,
+    cc_add_collection: crate::cc::lm_cc_add_collection,
+    cc_set_constraint: crate::cc::lm_cc_set_constraint,
+    cc_remove_constraint: crate::cc::lm_cc_remove_constraint,
+    cc_substitute: crate::cc::lm_cc_substitute,
+    // CC -- serializer
+    cc_serialize: crate::cc::lm_cc_serialize,
+    cc_deserialize: crate::cc::lm_cc_deserialize,
 };

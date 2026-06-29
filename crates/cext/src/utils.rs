@@ -1,6 +1,6 @@
-use crate::LmSense;
-use luna_model::types::{Sense, Vtype};
-use lunamodel_cext_vtable::LmVtype;
+use luna_model::types::{Comparator, Ctype, Sense, Vtype};
+
+use crate::{LmComparator, LmCtype, LmSense, LmVtype};
 
 pub fn sense_from_c(sense: LmSense) -> Sense {
     match sense {
@@ -33,5 +33,23 @@ pub fn vtype_from_c(vtype: LmVtype) -> Vtype {
         LmVtype::Spin => Vtype::Spin,
         LmVtype::Integer => Vtype::Integer,
         LmVtype::Real => Vtype::Real,
+    }
+}
+
+pub fn ctype_to_c(ctype: Ctype) -> LmCtype {
+    match ctype {
+        Ctype::Unconstrained => LmCtype::Unconstrained,
+        Ctype::Equality => LmCtype::Equality,
+        Ctype::Inequality => LmCtype::Inequality,
+        Ctype::LessEqual => LmCtype::LessEqual,
+        Ctype::GreaterEqual => LmCtype::GreaterEqual,
+    }
+}
+
+pub fn cmp_to_c(cmp: Comparator) -> LmComparator {
+    match cmp {
+        Comparator::Eq => LmComparator::Eq,
+        Comparator::Le => LmComparator::Le,
+        Comparator::Ge => LmComparator::Ge,
     }
 }

@@ -17,6 +17,54 @@
 #define LUNA_MODEL_CAPI_ABI_VERSION 1
 
 /**
+ * Comparator used by the C API.
+ *
+ * This is the C-ABI-stable mirror of LunaModel's Rust `Comparator` enum.
+ */
+typedef enum {
+    /**
+     * The Equality comparison (==) for a constraint where LHS == RHS.
+     */
+    LmComparator_Eq = 0,
+    /**
+     * The Less-than or equal comparison (<=) for a constraint where LHS <= RHS.
+     */
+    LmComparator_Le = 1,
+    /**
+     * The Greater-than or equal comparison (>=) for a constraint where LHS >= RHS.
+     */
+    LmComparator_Ge = 2,
+} LmComparator;
+
+/**
+ * Ctype used by the C API.
+ *
+ * This is the C-ABI-stable mirror of LunaModel's Rust `Ctype` enum.
+ */
+typedef enum {
+    /**
+     * Only equality constraints allowed.
+     */
+    LmCtype_Unconstrained = 0,
+    /**
+     * Only equality constraints allowed.
+     */
+    LmCtype_Equality = 1,
+    /**
+     * Only inequality constraints allowed.
+     */
+    LmCtype_Inequality = 2,
+    /**
+     * Only ge-inequality constraints allowed.
+     */
+    LmCtype_LessEqual = 3,
+    /**
+     * Only le-inequality constraints allowed.
+     */
+    LmCtype_GreaterEqual = 4,
+} LmCtype;
+
+/**
  * Vtype used by the C API.
  *
  * This is the C-ABI-stable mirror of LunaModel's Rust `Vtype` enum.
@@ -123,6 +171,50 @@ typedef struct {
 } LmBuffer;
 
 /**
+ * An owned, heap-allocated Comparator buffer the caller takes ownership of.
+ *
+ * Comparator buffers returned by LunaModel must be released
+ * with [`lm_cmp_buffer_free`]. The fields mirror a `Vec<Comparator>` so it can
+ * be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first LmComparator, or null for an empty buffer.
+     */
+    LmComparator *data;
+    /**
+     * Number of valid bytes.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmCmpBuffer;
+
+/**
+ * An owned, heap-allocated Ctype buffer the caller takes ownership of.
+ *
+ * Ctype buffers returned by LunaModel must be released
+ * with [`lm_ctype_buffer_free`]. The fields mirror a `Vec<Ctype>` so it can
+ * be rebuilt for deallocation.
+ */
+typedef struct {
+    /**
+     * Pointer to the first Ctype, or null for an empty buffer.
+     */
+    LmCtype *data;
+    /**
+     * Number of valid bytes.
+     */
+    uintptr_t len;
+    /**
+     * Allocated capacity (needed to reconstruct the `Vec` when freeing).
+     */
+    uintptr_t cap;
+} LmCtypeBuffer;
+
+/**
  * Opaque handle to a LunaModel variable reference.
  *
  */
@@ -175,6 +267,22 @@ typedef struct {
 } LmVtypeBuffer;
 
 /**
+ * Opaque handle to a LunaModel constraint-collection reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmCC;
+
+/**
+ * Opaque handle to a LunaModel constraint reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmConstraint;
+
+/**
  * Opaque handle to a LunaModel environment.
  *
  * Created by [`lm_env_default`] and released with
@@ -186,33 +294,6 @@ typedef struct {
 } LmEnv;
 
 /**
- * Opaque handle to a LunaModel lazy bounds reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmLazyBounds;
-
-/**
- * Opaque handle to a LunaModel model.
- *
- * Created by [`lm_model_default`], [`lm_model_new`] or [`lm_model_deserialize`] and released with
- * [`lm_model_free`]. The contents are intentionally hidden from C.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmModel;
-
-/**
- * Opaque handle to a LunaModel model-specs reference.
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmSpecs;
-
-/**
  * Opaque handle to a LunaModel expression reference.
  *
  */
@@ -221,24 +302,12 @@ typedef struct {
 } LmExpr;
 
 /**
- * Opaque handle to a LunaModel bounds reference.
+ * Opaque handle to a LunaModel lazy bounds reference.
  *
  */
 typedef struct {
     uint8_t _private[0];
-} LmBounds;
-
-/**
- * Opaque handle to a LunaModel solution.
- *
- * Solutions are produced elsewhere (a solver or the Python API) and loaded here
- * from serialized bytes with [`lm_sol_deserialize`]. Release with
- * [`lm_sol_free`].
- *
- */
-typedef struct {
-    uint8_t _private[0];
-} LmSol;
+} LmLazyBounds;
 
 /**
  * Opaque handle to a LunaModel linear terms reference.
@@ -263,6 +332,45 @@ typedef struct {
 typedef struct {
     uint8_t _private[0];
 } LmHigherOrderTerm;
+
+/**
+ * Opaque handle to a LunaModel model.
+ *
+ * Created by [`lm_model_default`], [`lm_model_new`] or [`lm_model_deserialize`] and released with
+ * [`lm_model_free`]. The contents are intentionally hidden from C.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmModel;
+
+/**
+ * Opaque handle to a LunaModel model-specs reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmSpecs;
+
+/**
+ * Opaque handle to a LunaModel bounds reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmBounds;
+
+/**
+ * Opaque handle to a LunaModel solution.
+ *
+ * Solutions are produced elsewhere (a solver or the Python API) and loaded here
+ * from serialized bytes with [`lm_sol_deserialize`]. Release with
+ * [`lm_sol_free`].
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmSol;
 
 /**
  * Stable, versioned table of LunaModel C API entry points.
@@ -291,6 +399,14 @@ typedef struct {
      * See [`crate::buffer::lm_vtype_buffer_free`].
      */
     void (*vtype_buffer_free)(LmVtypeBuffer);
+    /**
+     * See [`crate::buffer::lm_ctype_buffer_free`].
+     */
+    void (*ctype_buffer_free)(LmCtypeBuffer);
+    /**
+     * See [`crate::buffer::lm_cmp_buffer_free`].
+     */
+    void (*cmp_buffer_free)(LmCmpBuffer);
     /**
      * See [`crate::buffer::lm_vref_buffer_free`].
      */
@@ -591,6 +707,90 @@ typedef struct {
      * See [`crate::expr::lm_expr_equal_contents`].
      */
     LmStatus (*expr_equal_contents)(const LmExpr*, const LmExpr*, bool*);
+    /**
+     * See [`crate::env::lm_cc_free`].
+     */
+    void (*cc_free)(LmCC*);
+    /**
+     * See [`crate::env::lm_cc_default`].
+     */
+    LmCC *(*cc_default)(void);
+    /**
+     * See [`crate::env::lm_cc_new`].
+     */
+    LmCC *(*cc_new)(void);
+    /**
+     * See [`crate::env::lm_cc_clone`].
+     */
+    LmStatus (*cc_clone)(const LmCC*, LmCC**);
+    /**
+     * See [`crate::env::lm_cc_deep_clone`].
+     */
+    LmStatus (*cc_deep_clone)(const LmCC*, const LmEnv*, LmCC**);
+    /**
+     * See [`crate::env::lm_cc_eq`].
+     */
+    LmStatus (*cc_eq)(const LmCC*, const LmCC*, bool*);
+    /**
+     * See [`crate::env::lm_cc_equal_contents`].
+     */
+    LmStatus (*cc_equal_contents)(const LmCC*, const LmCC*, bool*);
+    /**
+     * See [`crate::env::lm_cc_vtypes`].
+     */
+    LmStatus (*cc_vtypes)(const LmCC*, LmVtypeBuffer*);
+    /**
+     * See [`crate::env::lm_cc_ctypes`].
+     */
+    LmStatus (*cc_ctypes)(const LmCC*, LmCmpBuffer*);
+    /**
+     * See [`crate::env::lm_cc_vars`].
+     */
+    LmStatus (*cc_vars)(const LmCC*, LmVrefBuffer*);
+    /**
+     * See [`crate::env::lm_cc_complete_vars`].
+     */
+    LmStatus (*cc_complete_vars)(const LmCC*, LmVrefBuffer*);
+    /**
+     * See [`crate::env::lm_cc_is_empty`].
+     */
+    LmStatus (*cc_is_empty)(const LmCC*, bool*);
+    /**
+     * See [`crate::env::lm_cc_len`].
+     */
+    LmStatus (*cc_len)(const LmCC*, uintptr_t*);
+    /**
+     * See [`crate::env::lm_cc_get`].
+     */
+    LmStatus (*cc_get)(const LmCC*, const char*, LmConstraint**);
+    /**
+     * See [`crate::env::lm_cc_add_constraint`].
+     */
+    LmStatus (*cc_add_constraint)(LmCC*, const LmConstraint*, const char*, LmBuffer*);
+    /**
+     * See [`crate::env::lm_cc_add_collection`].
+     */
+    LmStatus (*cc_add_collection)(LmCC*, const LmCC*, const char*);
+    /**
+     * See [`crate::env::lm_cc_set_constraint`].
+     */
+    LmStatus (*cc_set_constraint)(LmCC*, const char*, const LmConstraint*);
+    /**
+     * See [`crate::env::lm_cc_remove_constraint`].
+     */
+    LmStatus (*cc_remove_constraint)(LmCC*, const char*);
+    /**
+     * See [`crate::env::lm_cc_substitute`].
+     */
+    LmStatus (*cc_substitute)(LmCC*, const LmVref*, const LmExpr*);
+    /**
+     * See [`crate::cc::lm_cc_serialize`].
+     */
+    LmStatus (*cc_serialize)(const LmCC*, LmBuffer*);
+    /**
+     * See [`crate::cc::lm_cc_deserialize`].
+     */
+    LmStatus (*cc_deserialize)(const uint8_t*, uintptr_t, const LmEnv*, LmCC**);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

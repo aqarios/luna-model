@@ -133,7 +133,7 @@ pub unsafe extern "C" fn lm_env_insert_inverted(
 ///
 /// # Safety
 /// `env` must be a valid mutable environment handle created by this library.
-/// `vref` must point to a valid `LmVref`.
+/// `vref` must point to a valid `lmvref`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_env_remove(env: *mut LmEnv, vref: *const LmVref) -> LmStatus {
     guard(|| {

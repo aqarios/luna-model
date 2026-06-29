@@ -25,6 +25,26 @@ extern "C" {
 void lm_buffer_free(LmBuffer buffer);
 
 /**
+ * Frees a cmp buffer previously returned by LunaModel.
+ *
+ * A null/empty buffer is a no-op. Each cmp buffer must be freed at most once.
+ *
+ * # Safety
+ * `buffer` must have been produced by this library and not already freed.
+ */
+void lm_cmp_buffer_free(LmCmpBuffer buffer);
+
+/**
+ * Frees a ctype buffer previously returned by LunaModel.
+ *
+ * A null/empty buffer is a no-op. Each ctype buffer must be freed at most once.
+ *
+ * # Safety
+ * `buffer` must have been produced by this library and not already freed.
+ */
+void lm_ctype_buffer_free(LmCtypeBuffer buffer);
+
+/**
  * Frees a vref buffer previously returned by LunaModel.
  *
  * This frees both the pointer array and each owned variable handle inside it.
@@ -45,6 +65,213 @@ void lm_vref_buffer_free(LmVrefBuffer buffer);
  * `buffer` must have been produced by this library and not already freed.
  */
 void lm_vtype_buffer_free(LmVtypeBuffer buffer);
+
+/**
+ * Returns the distinct variable types used by the constraint-collection.
+ *
+ * # Safety
+ * `cc` must be a valid constraint-collection handle created by this library.
+ * `out` must point to writable `LmVtypeBuffer` storage.
+ */
+LmStatus lm_cc_vtypes(const LmCC *cc, LmVtypeBuffer *out);
+
+/**
+ * Returns the distinct constraint types used by the constraint-collection.
+ *
+ * # Safety
+ * `cc` must be a valid constraint-collection handle created by this library.
+ * `out` must point to writable `LmCtypeBuffer` storage.
+ */
+LmStatus lm_cc_ctypes(const LmCC *cc, LmCmpBuffer *out);
+
+/**
+ * Returns the distinct variables used by the constraint-collection.
+ *
+ * This matches `ConstraintCollection::complete_vars()` in the Rust API.
+ * The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
+ *
+ * # Safety
+ * `cc` must be a valid constraint-collection handle created by this library.
+ * `out` must point to writable `LmVrefBuffer` storage.
+ */
+LmStatus lm_cc_complete_vars(const LmCC *cc, LmVrefBuffer *out);
+
+/**
+ * Returns the distinct variables used by the constraint-collection including inverted binary variables.
+ *
+ * This matches `ConstraintCollection::vars()` in the Rust API.
+ * The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
+ *
+ * # Safety
+ * `cc` must be a valid constraint-collection handle created by this library.
+ * `out` must point to writable `LmVrefBuffer` storage.
+ */
+LmStatus lm_cc_vars(const LmCC *cc,
+                    LmVrefBuffer *out);
+
+/**
+ * Returns `true` when the constraint-collection contains no constraints.
+ *
+ * # Safety
+ * `cc` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_cc_is_empty(const LmCC *cc, bool *out);
+
+/**
+ * Returns the number of constraints in the collection.
+ *
+ * # Safety
+ * `cc` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_cc_len(const LmCC *cc, uintptr_t *out);
+
+/**
+ * Retrieves a constraint by name.
+ *
+ * # Safety
+ * `cc` must be a valid handle and `out` must point to writable storage.
+ * `key` must point to a valid NUL-terminated C string.
+ * `out` must point to writable `LmConstraint` storage.
+ */
+LmStatus lm_cc_get(const LmCC *cc, const char *key, LmConstraint **out);
+
+/**
+ * Frees a constraint-collection handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `cc` must originate from this library and must not be used or freed again.
+ */
+void lm_cc_free(LmCC *cc);
+
+/**
+ * Creates a new empty constraint-collection.
+ *
+ * Returns a non-null handle that must be released with [`lm_cc_free`].
+ */
+LmCC *lm_cc_default(void);
+
+/**
+ * Creates a new empty constraint-collection.
+ *
+ * Returns a non-null handle that must be released with [`lm_cc_free`].
+ */
+LmCC *lm_cc_new(void);
+
+/**
+ * Clones a constraint-collection into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `cc` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_cc_clone(const LmCC *cc, LmCC **out);
+
+/**
+ * Deep clones a constraint-collection into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `cc` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_cc_deep_clone(const LmCC *cc, const LmEnv *env, LmCC **out);
+
+/**
+ * Compares semantic contents while ignoring environment identity.
+ *
+ * # Safety
+ * `cc` must be a valid constraint-collection handle.
+ * `other` must be a valid constraint-collection handle.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_cc_eq(const LmCC *cc, const LmCC *other, bool *out);
+
+/**
+ * Compares semantic contents while ignoring environment identity.
+ *
+ * # Safety
+ * `cc` must be a valid constraint-collection handle.
+ * `other` must be a valid constraint-collection handle.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_cc_equal_contents(const LmCC *cc, const LmCC *other, bool *out);
+
+/**
+ * Inserts a constraint, optionally overriding its current name.
+ *
+ * If `name == NULL`, the collection either keeps the constraint's
+ * existing explicit name or synthesizes a fallback name for auto-named
+ * constraints. The inserted constraint is renamed to the final collection
+ * key so the two stay in sync.
+ *
+ * # Safety
+ * `cc` must be a valid mutable constraint-collection handle created by this library.
+ * `constr` must be a valid constraint handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_cc_add_constraint(LmCC *cc,
+                              const LmConstraint *constr,
+                              const char *name,
+                              LmBuffer *out);
+
+/**
+ * Inserts a constraint-collection, optionally prefixing its current constraints' names.
+ *
+ * If `prefix == NULL`, the collection keeps the constraints' existing name.
+ *
+ * # Safety
+ * `cc` must be a valid mutable constraint-collection handle created by this library.
+ * `other` must be a valid constraint-collection handle created by this library.
+ */
+LmStatus lm_cc_add_collection(LmCC *cc, const LmCC *other, const char *prefix);
+
+/**
+ * Replaces an existing constraint while keeping its collection key stable.
+ *
+ * # Safety
+ * `cc` must be a valid mutable constraint-collection handle created by this library.
+ * `key` must point to a valid NUL-terminated C string.
+ * `constr` must be a valid constraint handle created by this library.
+ */
+LmStatus lm_cc_set_constraint(LmCC *cc, const char *key, const LmConstraint *constr);
+
+/**
+ * Removes a constraint by name.
+ *
+ * # Safety
+ * `cc` must be a valid mutable constraint-collection handle created by this library.
+ * `key` must point to a valid NUL-terminated C string.
+ */
+LmStatus lm_cc_remove_constraint(LmCC *cc, const char *key);
+
+/**
+ * Substitute the variable with a given expression.
+ *
+ * # Safety
+ * `cc` must be a valid mutable constraint-collection handle created by this library.
+ * `target` must be a valid vref handle created by this library.
+ * `replacement` must be a valid expression handle created by this library.
+ */
+LmStatus lm_cc_substitute(LmCC *cc, const LmVref *target, const LmExpr *replacement);
+
+/**
+ * Serializes a constraint-collection to bytes, writing an owned buffer to `out`.
+ *
+ * The buffer must be released with [`crate::buffer::lm_buffer_free`].
+ *
+ * # Safety
+ * `cc` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_cc_serialize(const LmCC *cc, LmBuffer *out);
+
+/**
+ * Deserializes a constraint-collection from `len` bytes at `data`, writing a new handle to `out`.
+ *
+ * The new handle must be released with [`lm_cc_free`].
+ *
+ * # Safety
+ * `data` must point to `len` readable bytes
+ * `env` must point to a valid environment handle
+ * `out` must point to writable storage
+ */
+LmStatus lm_cc_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmCC **out);
 
 /**
  * Returns the number of variables in the environment.
@@ -207,7 +434,7 @@ LmStatus lm_env_insert_inverted(LmEnv *env, const LmVref *vref, LmVref **out);
  *
  * # Safety
  * `env` must be a valid mutable environment handle created by this library.
- * `vref` must point to a valid `LmVref`.
+ * `vref` must point to a valid `lmvref`.
  */
 LmStatus lm_env_remove(LmEnv *env, const LmVref *vref);
 
@@ -242,6 +469,221 @@ LmStatus lm_env_deserialize(const uint8_t *data, uintptr_t len, LmEnv **out);
  * The caller must not retain the returned pointer across further C API calls.
  */
 const char *lm_last_error_message(void);
+
+/**
+ * Returns the environment of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmEnv` storage.
+ */
+LmStatus lm_expr_env(const LmExpr *expr, LmEnv **out);
+
+/**
+ * Returns the constant offset of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `double` storage.
+ */
+LmStatus lm_expr_offset(const LmExpr *expr, double *out);
+
+/**
+ * Returns the linear terms of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `LmLinearTerm` storage.
+ */
+LmStatus lm_expr_linear(const LmExpr *expr, LmLinearTerm **out);
+
+/**
+ * Returns the quadratic terms of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `LmQuadraticTerm` storage.
+ */
+LmStatus lm_expr_quadratic(const LmExpr *expr, LmQuadraticTerm **out);
+
+/**
+ * Returns the higher-order terms of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `LmHigherOrderTerm` storage.
+ */
+LmStatus lm_expr_higher_order(const LmExpr *expr, LmHigherOrderTerm **out);
+
+/**
+ * Returns the number of variables of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_expr_num_vars(const LmExpr *expr, uintptr_t *out);
+
+/**
+ * Returns the distinct variable types used by the expression.
+ *
+ * This matches `Expr::vtypes()` in the Rust API.
+ * The returned array is owned by the caller and must be released with `lm_vtype_buffer_free`.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmVtypeBuffer` storage.
+ */
+LmStatus lm_expr_vtypes(const LmExpr *expr, LmVtypeBuffer *out);
+
+/**
+ * Returns the distinct variables used by the expression.
+ *
+ * This matches `Expression::vars()` in the Rust API.
+ * The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmVrefBuffer` storage.
+ */
+LmStatus lm_expr_vars(const LmExpr *expr, LmVrefBuffer *out);
+
+/**
+ * Returns the distinct variables used by the expression including inverted binary variables
+ * explicitly.
+ *
+ * This matches `Expression::vars()` in the Rust API.
+ * The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `out` must point to writable `LmVrefBuffer` storage.
+ */
+LmStatus lm_expr_complete_vars(const LmExpr *expr, LmVrefBuffer *out);
+
+/**
+ * Returns the degree of the expression.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_expr_degree(const LmExpr *expr, uintptr_t *out);
+
+/**
+ * Returns if the expression is constant.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_expr_is_constant(const LmExpr *expr, bool *out);
+
+/**
+ * Returns if the expression has at least one quadratic term.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_expr_has_quadratic(const LmExpr *expr, bool *out);
+
+/**
+ * Returns if the expression has at least one higher-order term.
+ *
+ * # Safety
+ * `expr` must be a valid expr handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_expr_has_higher_order(const LmExpr *expr, bool *out);
+
+/**
+ * Frees an expression handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `expr` must originate from this library and must not be used or freed again.
+ */
+void lm_expr_free(LmExpr *expr);
+
+/**
+ * Creates a new empty expression.
+ *
+ * Returns a non-null handle that must be released with [`lm_expr_free`].
+ */
+LmExpr *lm_expr_default(void);
+
+/**
+ * Creates a new empty expression with an environment.
+ *
+ * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ */
+LmStatus lm_expr_new(const LmEnv *env, LmExpr **out);
+
+/**
+ * Creates a new constant expression with an environment.
+ *
+ * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ */
+LmStatus lm_expr_new_constant(const LmEnv *env, double val, LmExpr **out);
+
+/**
+ * Compares two expressions for equality.
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `other` must be a valid expression handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_expr_eq(const LmExpr *expr, const LmExpr *other, bool *out);
+
+/**
+ * Compares two expressions for equal contents (ignoring different environments).
+ *
+ * # Safety
+ * `expr` must be a valid expression handle created by this library.
+ * `other` must be a valid expression handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_expr_equal_contents(const LmExpr *expr, const LmExpr *other, bool *out);
+
+/**
+ * Clones an expression into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `expr` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_expr_clone(const LmExpr *expr, LmExpr **out);
+
+/**
+ * Deep Clones an expression into a new, independent handle written to `out` for a new environment
+ * `env`
+ *
+ * # Safety
+ * `expr` and `env` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_expr_deep_clone(const LmExpr *expr, const LmEnv *env, LmExpr **out);
+
+/**
+ * Serializes an expression to bytes, writing an owned buffer to `out`.
+ *
+ * The buffer must be released with [`crate::buffer::lm_buffer_free`].
+ *
+ * # Safety
+ * `expr` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_expr_serialize(const LmExpr *expr, LmBuffer *out);
+
+/**
+ * Deserializes a expr from `len` bytes at `data`, writing a new handle to `out`.
+ *
+ * The new handle must be released with [`lm_expr_free`].
+ *
+ * # Safety
+ * `data` must point to `len` readable bytes
+ * `env` must point to a valid environment handle
+ * `out` must point to writable storage
+ */
+LmStatus lm_expr_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmExpr **out);
 
 /**
  * Returns a copy of the model name as an owned UTF-8 byte buffer.
@@ -589,221 +1031,6 @@ const char *lm_version(void);
  * against the `CAPI_ABI_VERSION` they were compiled against before making calls.
  */
 uint32_t lm_abi_version(void);
-
-/**
- * Returns the environment of the expression.
- *
- * # Safety
- * `expr` must be a valid expression handle created by this library.
- * `out` must point to writable `LmEnv` storage.
- */
-LmStatus lm_expr_env(const LmExpr *expr, LmEnv **out);
-
-/**
- * Returns the constant offset of the expression.
- *
- * # Safety
- * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `double` storage.
- */
-LmStatus lm_expr_offset(const LmExpr *expr, double *out);
-
-/**
- * Returns the linear terms of the expression.
- *
- * # Safety
- * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `LmLinearTerm` storage.
- */
-LmStatus lm_expr_linear(const LmExpr *expr, LmLinearTerm **out);
-
-/**
- * Returns the quadratic terms of the expression.
- *
- * # Safety
- * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `LmQuadraticTerm` storage.
- */
-LmStatus lm_expr_quadratic(const LmExpr *expr, LmQuadraticTerm **out);
-
-/**
- * Returns the higher-order terms of the expression.
- *
- * # Safety
- * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `LmHigherOrderTerm` storage.
- */
-LmStatus lm_expr_higher_order(const LmExpr *expr, LmHigherOrderTerm **out);
-
-/**
- * Returns the number of variables of the expression.
- *
- * # Safety
- * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `usize` storage.
- */
-LmStatus lm_expr_num_vars(const LmExpr *expr, uintptr_t *out);
-
-/**
- * Returns the distinct variable types used by the expression.
- *
- * This matches `Expr::vtypes()` in the Rust API.
- * The returned array is owned by the caller and must be released with `lm_vtype_buffer_free`.
- *
- * # Safety
- * `expr` must be a valid expression handle created by this library.
- * `out` must point to writable `LmVtypeBuffer` storage.
- */
-LmStatus lm_expr_vtypes(const LmExpr *expr, LmVtypeBuffer *out);
-
-/**
- * Returns the distinct variables used by the expression.
- *
- * This matches `Expression::vars()` in the Rust API.
- * The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
- *
- * # Safety
- * `expr` must be a valid expression handle created by this library.
- * `out` must point to writable `LmVrefBuffer` storage.
- */
-LmStatus lm_expr_vars(const LmExpr *expr, LmVrefBuffer *out);
-
-/**
- * Returns the distinct variables used by the expression including inverted binary variables
- * explicitly.
- *
- * This matches `Expression::vars()` in the Rust API.
- * The returned array is owned by the caller and must be released with `lm_vref_buffer_free`.
- *
- * # Safety
- * `expr` must be a valid expression handle created by this library.
- * `out` must point to writable `LmVrefBuffer` storage.
- */
-LmStatus lm_expr_complete_vars(const LmExpr *expr, LmVrefBuffer *out);
-
-/**
- * Returns the degree of the expression.
- *
- * # Safety
- * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `usize` storage.
- */
-LmStatus lm_expr_degree(const LmExpr *expr, uintptr_t *out);
-
-/**
- * Returns if the expression is constant.
- *
- * # Safety
- * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `bool` storage.
- */
-LmStatus lm_expr_is_constant(const LmExpr *expr, bool *out);
-
-/**
- * Returns if the expression has at least one quadratic term.
- *
- * # Safety
- * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `bool` storage.
- */
-LmStatus lm_expr_has_quadratic(const LmExpr *expr, bool *out);
-
-/**
- * Returns if the expression has at least one higher-order term.
- *
- * # Safety
- * `expr` must be a valid expr handle created by this library.
- * `out` must point to writable `bool` storage.
- */
-LmStatus lm_expr_has_higher_order(const LmExpr *expr, bool *out);
-
-/**
- * Frees an expression handle. Passing null is a no-op.
- *
- * # Safety
- * `expr` must originate from this library and must not be used or freed again.
- */
-void lm_expr_free(LmExpr *expr);
-
-/**
- * Creates a new empty expression.
- *
- * Returns a non-null handle that must be released with [`lm_expr_free`].
- */
-LmExpr *lm_expr_default(void);
-
-/**
- * Creates a new empty expression with an environment.
- *
- * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
- */
-LmStatus lm_expr_new(const LmEnv *env, LmExpr **out);
-
-/**
- * Creates a new constant expression with an environment.
- *
- * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
- */
-LmStatus lm_expr_new_constant(const LmEnv *env, double val, LmExpr **out);
-
-/**
- * Compares two expressions for equality.
- *
- * # Safety
- * `expr` must be a valid expression handle created by this library.
- * `other` must be a valid expression handle created by this library.
- * `out` must point to writable `bool` storage.
- */
-LmStatus lm_expr_eq(const LmExpr *expr, const LmExpr *other, bool *out);
-
-/**
- * Compares two expressions for equal contents (ignoring different environments).
- *
- * # Safety
- * `expr` must be a valid expression handle created by this library.
- * `other` must be a valid expression handle created by this library.
- * `out` must point to writable `bool` storage.
- */
-LmStatus lm_expr_equal_contents(const LmExpr *expr, const LmExpr *other, bool *out);
-
-/**
- * Clones an expression into a new, independent handle written to `out`.
- *
- * # Safety
- * `expr` must be a valid handle and `out` must point to writable storage.
- */
-LmStatus lm_expr_clone(const LmExpr *expr, LmExpr **out);
-
-/**
- * Deep Clones an expression into a new, independent handle written to `out` for a new environment
- * `env`
- *
- * # Safety
- * `expr` and `env` must be a valid handle and `out` must point to writable storage.
- */
-LmStatus lm_expr_deep_clone(const LmExpr *expr, const LmEnv *env, LmExpr **out);
-
-/**
- * Serializes an expression to bytes, writing an owned buffer to `out`.
- *
- * The buffer must be released with [`crate::buffer::lm_buffer_free`].
- *
- * # Safety
- * `expr` must be a valid handle and `out` must point to writable `LmBuffer` storage.
- */
-LmStatus lm_expr_serialize(const LmExpr *expr, LmBuffer *out);
-
-/**
- * Deserializes a expr from `len` bytes at `data`, writing a new handle to `out`.
- *
- * The new handle must be released with [`lm_expr_free`].
- *
- * # Safety
- * `data` must point to `len` readable bytes
- * `env` must point to a valid environment handle
- * `out` must point to writable storage
- */
-LmStatus lm_expr_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmExpr **out);
 
 #ifdef __cplusplus
 }  // extern "C"
