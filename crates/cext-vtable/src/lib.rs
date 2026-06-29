@@ -438,14 +438,51 @@ pub struct LunaModelCApi {
     pub env_default: extern "C" fn() -> *mut LmEnv,
     /// See [`crate::env::lm_env_clone`].
     pub env_clone: unsafe extern "C" fn(*const LmEnv, *mut *mut LmEnv) -> LmStatus,
+    /// See [`crate::env::lm_env_equal_contents`].
+    pub env_equal_contents: unsafe extern "C" fn(*const LmEnv, *const LmEnv, *mut bool) -> LmStatus,
     /// See [`crate::env::lm_env_deep_clone`].
     pub env_deep_clone: unsafe extern "C" fn(*const LmEnv, *mut *mut LmEnv) -> LmStatus,
     /// See [`crate::env::lm_env_len`].
     pub env_len: unsafe extern "C" fn(*const LmEnv, *mut usize) -> LmStatus,
+    /// See [`crate::env::lm_env_id`].
+    pub env_id: unsafe extern "C" fn(*const LmEnv, *mut u128) -> LmStatus,
     /// See [`crate::env::lm_env_is_empty`].
     pub env_is_empty: unsafe extern "C" fn(*const LmEnv, *mut bool) -> LmStatus,
-    /// See [`crate::env::lm_vars`].
+    /// See [`crate::env::lm_env_vars`].
     pub env_vars: unsafe extern "C" fn(*const LmEnv, *mut LmVrefBuffer) -> LmStatus,
+    /// See [`crate::env::lm_env_insert`].
+    pub env_insert: unsafe extern "C" fn(
+        *mut LmEnv,
+        *const c_char,
+        *const LmVtype,
+        *const LmLazyBounds,
+        *mut *mut LmVref,
+    ) -> LmStatus,
+    /// See [`crate::env::lm_env_insert_with_fallback`].
+    pub env_insert_with_fallback: unsafe extern "C" fn(
+        *mut LmEnv,
+        *const c_char,
+        *const LmVtype,
+        *const LmLazyBounds,
+        *mut *mut LmVref,
+    ) -> LmStatus,
+    /// See [`crate::env::lm_env_insert_inverted`].
+    pub env_insert_inverted:
+        unsafe extern "C" fn(*mut LmEnv, *const LmVref, *mut *mut LmVref) -> LmStatus,
+    /// See [`crate::env::lm_env_remove`].
+    pub env_remove: unsafe extern "C" fn(*mut LmEnv, *const LmVref) -> LmStatus,
+    /// See [`crate::env::lm_env_lookup`].
+    pub env_lookup: unsafe extern "C" fn(*const LmEnv, *const c_char, *mut *mut LmVref) -> LmStatus,
+    /// See [`crate::env::lm_env_get`].
+    pub env_get: unsafe extern "C" fn(*const LmEnv, u32, *mut *mut LmVref) -> LmStatus,
+    /// See [`crate::env::lm_env_contains`].
+    pub env_contains: unsafe extern "C" fn(*const LmEnv, *const c_char, *mut bool) -> LmStatus,
+    /// See [`crate::env::lm_env_vtype_of`].
+    pub env_vtype_of: unsafe extern "C" fn(*const LmEnv, *const c_char, *mut LmVtype) -> LmStatus,
+    /// See [`crate::env::lm_env_serialize`].
+    pub env_serialize: unsafe extern "C" fn(*const LmEnv, *mut LmBuffer) -> LmStatus,
+    /// See [`crate::env::lm_env_deserialize`].
+    pub env_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmEnv) -> LmStatus,
     // //////// //
     // SOLUTION //
     // //////// //

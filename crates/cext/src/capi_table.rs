@@ -56,10 +56,24 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     // Env -- general
     env_clone: crate::env::lm_env_clone,
     env_deep_clone: crate::env::lm_env_deep_clone,
+    env_equal_contents: crate::env::lm_env_equal_contents,
     // Env -- access
     env_len: crate::env::lm_env_len,
     env_is_empty: crate::env::lm_env_is_empty,
     env_vars: crate::env::lm_env_vars,
+    env_id: crate::env::lm_env_id,
+    env_lookup: crate::env::lm_env_lookup,
+    env_get: crate::env::lm_env_get,
+    env_contains: crate::env::lm_env_contains,
+    env_vtype_of: crate::env::lm_env_vtype_of,
+    // Env -- modification
+    env_insert: crate::env::lm_env_insert,
+    env_insert_with_fallback: crate::env::lm_env_insert_with_fallback,
+    env_insert_inverted: crate::env::lm_env_insert_inverted,
+    env_remove: crate::env::lm_env_remove,
+    // Env -- serializer
+    env_serialize: crate::env::lm_env_serialize,
+    env_deserialize: crate::env::lm_env_deserialize,
     // Sol
     sol_free: crate::solution::lm_sol_free,
     // Sol -- serializer

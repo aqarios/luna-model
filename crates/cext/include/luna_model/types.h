@@ -186,6 +186,14 @@ typedef struct {
 } LmEnv;
 
 /**
+ * Opaque handle to a LunaModel lazy bounds reference.
+ *
+ */
+typedef struct {
+    uint8_t _private[0];
+} LmLazyBounds;
+
+/**
  * Opaque handle to a LunaModel model.
  *
  * Created by [`lm_model_default`], [`lm_model_new`] or [`lm_model_deserialize`] and released with
@@ -416,6 +424,10 @@ typedef struct {
      */
     LmStatus (*env_clone)(const LmEnv*, LmEnv**);
     /**
+     * See [`crate::env::lm_env_equal_contents`].
+     */
+    LmStatus (*env_equal_contents)(const LmEnv*, const LmEnv*, bool*);
+    /**
      * See [`crate::env::lm_env_deep_clone`].
      */
     LmStatus (*env_deep_clone)(const LmEnv*, LmEnv**);
@@ -424,13 +436,61 @@ typedef struct {
      */
     LmStatus (*env_len)(const LmEnv*, uintptr_t*);
     /**
+     * See [`crate::env::lm_env_id`].
+     */
+    LmStatus (*env_id)(const LmEnv*, u128*);
+    /**
      * See [`crate::env::lm_env_is_empty`].
      */
     LmStatus (*env_is_empty)(const LmEnv*, bool*);
     /**
-     * See [`crate::env::lm_vars`].
+     * See [`crate::env::lm_env_vars`].
      */
     LmStatus (*env_vars)(const LmEnv*, LmVrefBuffer*);
+    /**
+     * See [`crate::env::lm_env_insert`].
+     */
+    LmStatus (*env_insert)(LmEnv*, const char*, const LmVtype*, const LmLazyBounds*, LmVref**);
+    /**
+     * See [`crate::env::lm_env_insert_with_fallback`].
+     */
+    LmStatus (*env_insert_with_fallback)(LmEnv*,
+                                         const char*,
+                                         const LmVtype*,
+                                         const LmLazyBounds*,
+                                         LmVref**);
+    /**
+     * See [`crate::env::lm_env_insert_inverted`].
+     */
+    LmStatus (*env_insert_inverted)(LmEnv*, const LmVref*, LmVref**);
+    /**
+     * See [`crate::env::lm_env_remove`].
+     */
+    LmStatus (*env_remove)(LmEnv*, const LmVref*);
+    /**
+     * See [`crate::env::lm_env_lookup`].
+     */
+    LmStatus (*env_lookup)(const LmEnv*, const char*, LmVref**);
+    /**
+     * See [`crate::env::lm_env_get`].
+     */
+    LmStatus (*env_get)(const LmEnv*, uint32_t, LmVref**);
+    /**
+     * See [`crate::env::lm_env_contains`].
+     */
+    LmStatus (*env_contains)(const LmEnv*, const char*, bool*);
+    /**
+     * See [`crate::env::lm_env_vtype_of`].
+     */
+    LmStatus (*env_vtype_of)(const LmEnv*, const char*, LmVtype*);
+    /**
+     * See [`crate::env::lm_env_serialize`].
+     */
+    LmStatus (*env_serialize)(const LmEnv*, LmBuffer*);
+    /**
+     * See [`crate::env::lm_env_deserialize`].
+     */
+    LmStatus (*env_deserialize)(const uint8_t*, uintptr_t, LmEnv**);
     /**
      * See [`crate::solution::lm_sol_free`].
      */

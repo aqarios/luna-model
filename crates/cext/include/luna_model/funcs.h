@@ -71,6 +71,57 @@ LmStatus lm_env_is_empty(const LmEnv *env, bool *out);
 LmStatus lm_env_vars(const LmEnv *env, LmVrefBuffer *out);
 
 /**
+ * Returns the unique id of the environment.
+ *
+ * # Safety
+ * `env` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_env_id(const LmEnv *env, u128 *out);
+
+/**
+ * Looks up a variable by name and returns a bound variable reference.
+ *
+ * # Safety
+ * `env` must be a valid environment handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `out` must point to writable `LmVref` storage.
+ */
+LmStatus lm_env_lookup(const LmEnv *env, const char *name, LmVref **out);
+
+/**
+ * Returns a variable reference for a known index.
+ *
+ * This does not validate the index immediately. Any later metadata access
+ * through the returned `VarRef` will fail if the index does not exist.
+ *
+ * # Safety
+ * `env` must be a valid environment handle created by this library.
+ * `vid` must point to a valid vref id.
+ * `out` must point to writable `LmVref` storage.
+ */
+LmStatus lm_env_get(const LmEnv *env, uint32_t vid, LmVref **out);
+
+/**
+ * Returns whether a variable with the given name exists.
+ *
+ * # Safety
+ * `env` must be a valid environment handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_env_contains(const LmEnv *env, const char *name, bool *out);
+
+/**
+ * Returns the variable type for a named variable.
+ *
+ * # Safety
+ * `env` must be a valid environment handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `out` must point to writable `LmVtype` storage.
+ */
+LmStatus lm_env_vtype_of(const LmEnv *env, const char *name, LmVtype *out);
+
+/**
  * Frees an environment handle. Passing null is a no-op.
  *
  * # Safety
@@ -100,6 +151,86 @@ LmStatus lm_env_clone(const LmEnv *env, LmEnv **out);
  * `env` must be a valid handle and `out` must point to writable storage.
  */
 LmStatus lm_env_deep_clone(const LmEnv *env, LmEnv **out);
+
+/**
+ * Compares two environments for content equality.
+ *
+ * # Safety
+ * `env` must be a valid environment handle created by this library.
+ * `other` must be a valid environment handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_env_equal_contents(const LmEnv *env, const LmEnv *other, bool *out);
+
+/**
+ * Inserts a new variable and returns a reference tied to this environment.
+ *
+ * # Safety
+ * `env` must be a valid mutable environment handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `vtype` must point to a valid `LmVtype`.
+ * `bounds`, when non-null, must be a valid lazy-bounds handle created by this library.
+ */
+LmStatus lm_env_insert(LmEnv *env,
+                       const char *name,
+                       const LmVtype *vtype,
+                       const LmLazyBounds *bounds,
+                       LmVref **out);
+
+/**
+ * Inserts a new variable, deriving a fallback name when necessary and returns a reference tied to this environment.
+ *
+ * # Safety
+ * `env` must be a valid mutable environment handle created by this library.
+ * `name` must point to a valid NUL-terminated C string.
+ * `vtype` must point to a valid `LmVtype`.
+ * `bounds`, when non-null, must be a valid lazy-bounds handle created by this library.
+ */
+LmStatus lm_env_insert_with_fallback(LmEnv *env,
+                                     const char *name,
+                                     const LmVtype *vtype,
+                                     const LmLazyBounds *bounds,
+                                     LmVref **out);
+
+/**
+ * Inserts the inverted companion of a binary variable.
+ *
+ * # Safety
+ * `env` must be a valid mutable environment handle created by this library.
+ * `vref` must point to a valid `LmVref`.
+ * `out` must point to writable `LmVref` storage.
+ */
+LmStatus lm_env_insert_inverted(LmEnv *env, const LmVref *vref, LmVref **out);
+
+/**
+ * Removes the referenced variable from the environment.
+ *
+ * # Safety
+ * `env` must be a valid mutable environment handle created by this library.
+ * `vref` must point to a valid `LmVref`.
+ */
+LmStatus lm_env_remove(LmEnv *env, const LmVref *vref);
+
+/**
+ * Serializes an environment to bytes, writing an owned buffer to `out`.
+ *
+ * The buffer must be released with [`crate::buffer::lm_buffer_free`].
+ *
+ * # Safety
+ * `env` must be a valid handle and `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_env_serialize(const LmEnv *env, LmBuffer *out);
+
+/**
+ * Deserializes a env from `len` bytes at `data`, writing a new handle to `out`.
+ *
+ * The new handle must be released with [`lm_env_free`].
+ *
+ * # Safety
+ * `data` must point to `len` readable bytes
+ * `out` must point to writable storage
+ */
+LmStatus lm_env_deserialize(const uint8_t *data, uintptr_t len, LmEnv **out);
 
 /**
  * Returns the last error message for the current thread, or null if there is none.
