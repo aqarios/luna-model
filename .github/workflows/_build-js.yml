@@ -30,7 +30,7 @@ jobs:
 
       - name: Cache xwin SDK
         id: xwin-cache
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         with:
           path: ~/.cache/cargo-xwin/
           key: xwin-${{ hashFiles('**/Cargo.lock') }}
@@ -121,7 +121,7 @@ jobs:
 
       - name: Load xwin SDK cache (Windows cross-compile)
         if: contains(matrix.target, 'windows')
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         with:
           path: ~/.cache/cargo-xwin/
           key: xwin-${{ hashFiles('**/Cargo.lock') }}
@@ -133,7 +133,7 @@ jobs:
           bun-version: latest
 
       - name: Cache Bun install
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-${{ hashFiles(format('{0}/bun.lock', inputs.working-directory)) }}
