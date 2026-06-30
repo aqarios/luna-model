@@ -651,4 +651,8 @@ pub struct LunaModelCApi {
     pub vref_inverted: unsafe extern "C" fn(*const LmVref, *mut *mut LmVref) -> LmStatus,
     /// See [`crate::env::lm_vref_hash`].
     pub vref_hash: unsafe extern "C" fn(*const LmVref, *mut u64) -> LmStatus,
+    /// See [`crate::env::lm_vref_eq`].
+    pub vref_eq: unsafe extern "C" fn(*const LmVref, *const LmVref, *mut bool) -> LmStatus,
+    /// See [`crate::env::lm_vref_to_var`].
+    pub vref_to_var: unsafe extern "C" fn(*const LmVref, *mut *mut LmVar) -> LmStatus,
 }

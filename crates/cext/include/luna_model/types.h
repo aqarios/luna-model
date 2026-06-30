@@ -835,6 +835,14 @@ typedef struct {
      * See [`crate::env::lm_vref_hash`].
      */
     LmStatus (*vref_hash)(const LmVref*, uint64_t*);
+    /**
+     * See [`crate::env::lm_vref_eq`].
+     */
+    LmStatus (*vref_eq)(const LmVref*, const LmVref*, bool*);
+    /**
+     * See [`crate::env::lm_vref_to_var`].
+     */
+    LmStatus (*vref_to_var)(const LmVref*, LmVar**);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */
