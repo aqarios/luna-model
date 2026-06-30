@@ -1099,8 +1099,14 @@ void lm_specs_free(LmSpecs *specs);
 /**
  * Creates a fully specified capability summary.
  *
- * # Safety
+ * `vtypes` and `ctypes` are read but not consumed: the caller keeps ownership
+ * and must still release them with `lm_vtype_buffer_free` / `lm_ctype_buffer_free`.
  *
+ * # Safety
+ * `sense` must point to a readable `LmSense`.
+ * `vtypes` must point to a readable `LmVtypeBuffer` created by this library.
+ * `ctypes` must point to a readable `LmCtypeBuffer` created by this library.
+ * `out` must point to writable `*mut LmSpecs` storage.
  */
 LmStatus lm_specs_new(const LmSense *sense,
                       const LmVtypeBuffer *vtypes,
@@ -1109,6 +1115,15 @@ LmStatus lm_specs_new(const LmSense *sense,
                       uintptr_t max_constraint_degree,
                       uintptr_t max_num_variables,
                       LmSpecs **out);
+
+/**
+ * Returns whether `specs` satisfies all requirements expressed by `other`.
+ *
+ * # Safety
+ * `specs` must be a valid specs handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_specs_satisfies(const LmSpecs *specs, const LmSpecs *other, bool *out);
 
 /**
  * Frees a variable handle. Passing null is a no-op.

@@ -179,6 +179,8 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     specs_free: crate::specs::lm_specs_free,
     // Specs -- creation
     specs_new: crate::specs::lm_specs_new,
+    // Specs -- general
+    specs_satisfies: crate::specs::lm_specs_satisfies,
     // Specs -- access
     specs_sense: crate::specs::lm_specs_sense,
     specs_vtypes: crate::specs::lm_specs_vtypes,

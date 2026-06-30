@@ -46,6 +46,16 @@ pub fn ctype_to_c(ctype: Ctype) -> LmCtype {
     }
 }
 
+pub fn ctype_from_c(ctype: LmCtype) -> Ctype {
+    match ctype {
+        LmCtype::Unconstrained => Ctype::Unconstrained,
+        LmCtype::Equality => Ctype::Equality,
+        LmCtype::Inequality => Ctype::Inequality,
+        LmCtype::LessEqual => Ctype::LessEqual,
+        LmCtype::GreaterEqual => Ctype::GreaterEqual,
+    }
+}
+
 pub fn cmp_to_c(cmp: Comparator) -> LmComparator {
     match cmp {
         Comparator::Eq => LmComparator::Eq,

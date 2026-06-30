@@ -536,6 +536,7 @@ typedef struct {
     LmStatus (*specs_max_degree)(const LmSpecs*, uintptr_t*);
     LmStatus (*specs_max_constraint_degree)(const LmSpecs*, uintptr_t*);
     LmStatus (*specs_max_num_variables)(const LmSpecs*, uintptr_t*);
+    LmStatus (*specs_satisfies)(const LmSpecs*, const LmSpecs*, bool*);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */
