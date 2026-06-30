@@ -1143,6 +1143,47 @@ LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
  */
 LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
 
+/**
+ * Frees a variable handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `var` must originate from this library and must not be used or freed again.
+ */
+void lm_var_free(LmVar *var);
+
+/**
+ * Returns a copy of the variable's name as an owned UTF-8 byte buffer.
+ *
+ * The returned buffer is written to `out` and must be released with
+ * `lm_buffer_free`.
+ *
+ * The buffer is not guaranteed to be NUL-terminated. C callers should use
+ * `buffer.data` together with `buffer.len`.
+ *
+ * # Safety
+ * `var` must be a valid variable handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_var_name(const LmVar *var, LmBuffer *out);
+
+/**
+ * Returns a copy of the variable's vtype.
+ *
+ * # Safety
+ * `var` must be a valid variable handle created by this library.
+ * `out` must point to writable `LmVtype` storage.
+ */
+LmStatus lm_var_vtype(const LmVar *var, LmVtype *out);
+
+/**
+ * Returns the variable's bounds.
+ *
+ * # Safety
+ * `var` must be a valid variable handle created by this library.
+ * `out` must point to writable `LmBounds` storage.
+ */
+LmStatus lm_var_bounds(const LmVar *var, LmBounds **out);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

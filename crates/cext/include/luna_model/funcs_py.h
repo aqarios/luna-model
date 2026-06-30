@@ -165,6 +165,10 @@ static inline int import_luna_model(void) {
 #define lm_vref_hash(...) (lunamodel__vtable->vref_hash(__VA_ARGS__))
 #define lm_vref_eq(...) (lunamodel__vtable->vref_eq(__VA_ARGS__))
 #define lm_vref_to_var(...) (lunamodel__vtable->vref_to_var(__VA_ARGS__))
+#define lm_var_free(...) (lunamodel__vtable->var_free(__VA_ARGS__))
+#define lm_var_name(...) (lunamodel__vtable->var_name(__VA_ARGS__))
+#define lm_var_vtype(...) (lunamodel__vtable->var_vtype(__VA_ARGS__))
+#define lm_var_bounds(...) (lunamodel__vtable->var_bounds(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -843,6 +843,22 @@ typedef struct {
      * See [`crate::env::lm_vref_to_var`].
      */
     LmStatus (*vref_to_var)(const LmVref*, LmVar**);
+    /**
+     * See [`crate::env::lm_var_free`].
+     */
+    void (*var_free)(LmVar*);
+    /**
+     * See [`crate::env::lm_var_name`].
+     */
+    LmStatus (*var_name)(const LmVar*, LmBuffer*);
+    /**
+     * See [`crate::env::lm_var_vtype`].
+     */
+    LmStatus (*var_vtype)(const LmVar*, LmVtype*);
+    /**
+     * See [`crate::env::lm_var_bounds`].
+     */
+    LmStatus (*var_bounds)(const LmVar*, LmBounds**);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

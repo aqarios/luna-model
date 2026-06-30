@@ -655,4 +655,15 @@ pub struct LunaModelCApi {
     pub vref_eq: unsafe extern "C" fn(*const LmVref, *const LmVref, *mut bool) -> LmStatus,
     /// See [`crate::env::lm_vref_to_var`].
     pub vref_to_var: unsafe extern "C" fn(*const LmVref, *mut *mut LmVar) -> LmStatus,
+    // //////// //
+    // Variable //
+    // //////// //
+    /// See [`crate::env::lm_var_free`].
+    pub var_free: unsafe extern "C" fn(*mut LmVar),
+    /// See [`crate::env::lm_var_name`].
+    pub var_name: unsafe extern "C" fn(*const LmVar, *mut LmBuffer) -> LmStatus,
+    /// See [`crate::env::lm_var_vtype`].
+    pub var_vtype: unsafe extern "C" fn(*const LmVar, *mut LmVtype) -> LmStatus,
+    /// See [`crate::env::lm_var_bounds`].
+    pub var_bounds: unsafe extern "C" fn(*const LmVar, *mut *mut LmBounds) -> LmStatus,
 }
