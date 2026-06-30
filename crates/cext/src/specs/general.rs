@@ -26,3 +26,18 @@ pub unsafe extern "C" fn lm_specs_satisfies(
         Ok(())
     })
 }
+
+/// Clones a sepcs into a new, independent handle written to `out`.
+///
+/// # Safety
+/// `specs` must be a valid handle and `out` must point to writable storage.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn lm_specs_clone(specs: *const LmSpecs, out: *mut *mut LmSpecs) -> LmStatus {
+    guard(|| {
+        let specs = unsafe { (specs as *const Specs).as_ref() }
+            .ok_or_else(|| CapiError::null_pointer("specs"))?;
+        let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
+        *out = Box::into_raw(Box::new(specs.clone())) as *mut LmSpecs;
+        Ok(())
+    })
+}

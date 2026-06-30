@@ -179,6 +179,7 @@ static inline int import_luna_model(void) {
 #define lm_specs_max_constraint_degree(...) (lunamodel__vtable->specs_max_constraint_degree(__VA_ARGS__))
 #define lm_specs_max_num_variables(...) (lunamodel__vtable->specs_max_num_variables(__VA_ARGS__))
 #define lm_specs_satisfies(...) (lunamodel__vtable->specs_satisfies(__VA_ARGS__))
+#define lm_specs_clone(...) (lunamodel__vtable->specs_clone(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

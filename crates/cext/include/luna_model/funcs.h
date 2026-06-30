@@ -1126,6 +1126,14 @@ LmStatus lm_specs_new(const LmSense *sense,
 LmStatus lm_specs_satisfies(const LmSpecs *specs, const LmSpecs *other, bool *out);
 
 /**
+ * Clones a sepcs into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `specs` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_specs_clone(const LmSpecs *specs, LmSpecs **out);
+
+/**
  * Frees a variable handle. Passing null is a no-op.
  *
  * # Safety
