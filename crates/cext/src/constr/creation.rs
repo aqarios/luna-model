@@ -25,7 +25,14 @@ pub unsafe extern "C" fn lm_constr_free(constr: *mut LmConstraint) {
 /// expression and folded into `rhs`. The resulting constraint is therefore
 /// easier to compare, serialize, and translate consistently.
 ///
+/// `lhs` is cloned, not consumed: the caller keeps ownership of the handle.
+///
 /// # Safety
+/// `lhs`  must be a valid expression handle created by this library.
+/// `name` may be null (the constraint is then auto-named, e.g. `c0`);
+///        if non-null it must point to a NUL-terminated, valid UTF-8 C string.
+/// `out`  must point to writable `*mut LmConstraint` storage.
+///        On `LmStatus::Ok` it receives an owned handle the caller must release with `lm_constr_free`.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn lm_constr_new(
     lhs: *const LmExpr,
