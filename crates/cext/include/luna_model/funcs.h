@@ -1314,6 +1314,29 @@ LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
  */
 LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
 
+/**
+ * Frees a constraint handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `constr` must originate from this library and must not be used or freed again.
+ */
+void lm_constr_free(LmConstraint *constr);
+
+/**
+ * Creates a new constraint and normalizes its left-hand side.
+ *
+ * If `lhs` contains a constant offset, that constant is subtracted from the
+ * expression and folded into `rhs`. The resulting constraint is therefore
+ * easier to compare, serialize, and translate consistently.
+ *
+ * # Safety
+ */
+LmStatus lm_constr_new(const LmExpr *lhs,
+                       double rhs,
+                       LmComparator comparator,
+                       const char *name,
+                       LmConstraint **out);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

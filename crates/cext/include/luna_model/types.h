@@ -485,6 +485,8 @@ typedef struct {
     LmStatus (*expr_has_higher_order)(const LmExpr*, bool*);
     LmStatus (*expr_eq)(const LmExpr*, const LmExpr*, bool*);
     LmStatus (*expr_equal_contents)(const LmExpr*, const LmExpr*, bool*);
+    void (*constr_free)(LmConstraint*);
+    LmStatus (*constr_new)(const LmExpr*, double, LmComparator, const char*, LmConstraint**);
     void (*cc_free)(LmCC*);
     LmCC *(*cc_default)(void);
     LmCC *(*cc_new)(void);

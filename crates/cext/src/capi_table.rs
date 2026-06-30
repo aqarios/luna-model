@@ -119,6 +119,11 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     expr_is_constant: crate::expr::lm_expr_is_constant,
     expr_has_quadratic: crate::expr::lm_expr_has_quadratic,
     expr_has_higher_order: crate::expr::lm_expr_has_higher_order,
+    // ////////// //
+    // Constraint //
+    // ////////// //
+    constr_free: crate::constr::lm_constr_free,
+    constr_new: crate::constr::lm_constr_new,
     // //////////////////// //
     // ConstraintCollection //
     // //////////////////// //

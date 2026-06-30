@@ -133,6 +133,8 @@ static inline int import_luna_model(void) {
 #define lm_expr_has_higher_order(...) (lunamodel__vtable->expr_has_higher_order(__VA_ARGS__))
 #define lm_expr_eq(...) (lunamodel__vtable->expr_eq(__VA_ARGS__))
 #define lm_expr_equal_contents(...) (lunamodel__vtable->expr_equal_contents(__VA_ARGS__))
+#define lm_constr_free(...) (lunamodel__vtable->constr_free(__VA_ARGS__))
+#define lm_constr_new(...) (lunamodel__vtable->constr_new(__VA_ARGS__))
 #define lm_cc_free(...) (lunamodel__vtable->cc_free(__VA_ARGS__))
 #define lm_cc_default(...) (lunamodel__vtable->cc_default(__VA_ARGS__))
 #define lm_cc_new(...) (lunamodel__vtable->cc_new(__VA_ARGS__))

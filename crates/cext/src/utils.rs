@@ -63,3 +63,11 @@ pub fn cmp_to_c(cmp: Comparator) -> LmComparator {
         Comparator::Ge => LmComparator::Ge,
     }
 }
+
+pub fn cmp_from_c(cmp: LmComparator) -> Comparator {
+    match cmp {
+        LmComparator::Eq => Comparator::Eq,
+        LmComparator::Le => Comparator::Le,
+        LmComparator::Ge => Comparator::Ge,
+    }
+}
