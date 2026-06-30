@@ -169,6 +169,7 @@ static inline int import_luna_model(void) {
 #define lm_var_name(...) (lunamodel__vtable->var_name(__VA_ARGS__))
 #define lm_var_vtype(...) (lunamodel__vtable->var_vtype(__VA_ARGS__))
 #define lm_var_bounds(...) (lunamodel__vtable->var_bounds(__VA_ARGS__))
+#define lm_var_inverted(...) (lunamodel__vtable->var_inverted(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

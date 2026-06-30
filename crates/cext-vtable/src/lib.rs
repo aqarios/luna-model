@@ -666,4 +666,6 @@ pub struct LunaModelCApi {
     pub var_vtype: unsafe extern "C" fn(*const LmVar, *mut LmVtype) -> LmStatus,
     /// See [`crate::env::lm_var_bounds`].
     pub var_bounds: unsafe extern "C" fn(*const LmVar, *mut *mut LmBounds) -> LmStatus,
+    /// See [`crate::env::lm_var_inverted`].
+    pub var_inverted: unsafe extern "C" fn(*const LmVar, *mut u32, *mut bool) -> LmStatus,
 }

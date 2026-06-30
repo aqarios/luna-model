@@ -15,4 +15,4 @@ pub unsafe extern "C" fn lm_var_free(var: *mut LmVar) {
     }
 }
 
-pub use access::{lm_var_bounds, lm_var_name, lm_var_vtype};
+pub use access::{lm_var_bounds, lm_var_inverted, lm_var_name, lm_var_vtype};

@@ -859,6 +859,10 @@ typedef struct {
      * See [`crate::env::lm_var_bounds`].
      */
     LmStatus (*var_bounds)(const LmVar*, LmBounds**);
+    /**
+     * See [`crate::env::lm_var_inverted`].
+     */
+    LmStatus (*var_inverted)(const LmVar*, uint32_t*, bool*);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

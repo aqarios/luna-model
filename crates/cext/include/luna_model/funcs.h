@@ -1184,6 +1184,20 @@ LmStatus lm_var_vtype(const LmVar *var, LmVtype *out);
  */
 LmStatus lm_var_bounds(const LmVar *var, LmBounds **out);
 
+/**
+ * Returns the variable id of the inverted companion, if one exists.
+ *
+ * On success, when the variable has an inverted companion `*present` is set to
+ * `true` and `*out` to the companion's variable id. Otherwise `*present` is set
+ * to `false` and `*out` is left unchanged.
+ *
+ * # Safety
+ * `var` must be a valid variable handle created by this library.
+ * `out` must point to writable `u32` storage.
+ * `present` must point to writable `bool` storage.
+ */
+LmStatus lm_var_inverted(const LmVar *var, uint32_t *out, bool *present);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

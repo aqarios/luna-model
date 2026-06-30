@@ -172,4 +172,5 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     var_name: crate::var::lm_var_name,
     var_vtype: crate::var::lm_var_vtype,
     var_bounds: crate::var::lm_var_bounds,
+    var_inverted: crate::var::lm_var_inverted,
 };
