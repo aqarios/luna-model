@@ -170,6 +170,14 @@ static inline int import_luna_model(void) {
 #define lm_var_vtype(...) (lunamodel__vtable->var_vtype(__VA_ARGS__))
 #define lm_var_bounds(...) (lunamodel__vtable->var_bounds(__VA_ARGS__))
 #define lm_var_inverted(...) (lunamodel__vtable->var_inverted(__VA_ARGS__))
+#define lm_specs_free(...) (lunamodel__vtable->specs_free(__VA_ARGS__))
+#define lm_specs_new(...) (lunamodel__vtable->specs_new(__VA_ARGS__))
+#define lm_specs_sense(...) (lunamodel__vtable->specs_sense(__VA_ARGS__))
+#define lm_specs_vtypes(...) (lunamodel__vtable->specs_vtypes(__VA_ARGS__))
+#define lm_specs_ctypes(...) (lunamodel__vtable->specs_ctypes(__VA_ARGS__))
+#define lm_specs_max_degree(...) (lunamodel__vtable->specs_max_degree(__VA_ARGS__))
+#define lm_specs_max_constraint_degree(...) (lunamodel__vtable->specs_max_constraint_degree(__VA_ARGS__))
+#define lm_specs_max_num_variables(...) (lunamodel__vtable->specs_max_num_variables(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

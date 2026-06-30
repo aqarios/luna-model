@@ -129,6 +129,10 @@ typedef enum {
      * An error was encountered.
      */
     LmStatus_Errored = 6,
+    /**
+     * A requested optional value was not present.
+     */
+    LmStatus_Absent = 7,
 } LmStatus;
 
 /**
@@ -391,478 +395,147 @@ typedef struct {
      * ABI version of this table (`CAPI_ABI_VERSION` at build time).
      */
     uint32_t abi_version;
-    /**
-     * See [`crate::version::lm_version`].
-     */
     const char *(*version)(void);
-    /**
-     * See [`crate::error::lm_last_error_message`].
-     */
     const char *(*last_error_message)(void);
-    /**
-     * See [`crate::buffer::lm_buffer_free`].
-     */
     void (*buffer_free)(LmBuffer);
-    /**
-     * See [`crate::buffer::lm_vtype_buffer_free`].
-     */
     void (*vtype_buffer_free)(LmVtypeBuffer);
-    /**
-     * See [`crate::buffer::lm_ctype_buffer_free`].
-     */
     void (*ctype_buffer_free)(LmCtypeBuffer);
-    /**
-     * See [`crate::buffer::lm_cmp_buffer_free`].
-     */
     void (*cmp_buffer_free)(LmCmpBuffer);
-    /**
-     * See [`crate::buffer::lm_vref_buffer_free`].
-     */
     void (*vref_buffer_free)(LmVrefBuffer);
-    /**
-     * See [`crate::model::lm_model_free`].
-     */
     void (*model_free)(LmModel*);
-    /**
-     * See [`crate::model::lm_model_default`].
-     */
     LmModel *(*model_default)(void);
-    /**
-     * See [`crate::model::lm_model_new`].
-     */
     LmStatus (*model_new)(const char*, const LmSense*, LmModel**);
     LmStatus (*model_with_env)(const char*, const LmSense*, const LmEnv*, LmModel**);
-    /**
-     * See [`crate::model::lm_model_clone`].
-     */
     LmStatus (*model_clone)(const LmModel*, LmModel**);
-    /**
-     * See [`crate::model::lm_model_deep_clone`].
-     */
     LmStatus (*model_deep_clone)(const LmModel*, LmModel**);
-    /**
-     * See [`crate::model::lm_model_name`].
-     */
     LmStatus (*model_name)(const LmModel*, LmBuffer*);
-    /**
-     * See [`crate::model::lm_model_sense`].
-     */
     LmStatus (*model_sense)(const LmModel*, LmSense*);
-    /**
-     * See [`crate::model::lm_model_env`].
-     */
     LmStatus (*model_env)(const LmModel*, LmEnv**);
-    /**
-     * See [`crate::model::lm_model_specs`].
-     */
     LmStatus (*model_specs)(const LmModel*, LmSpecs**);
-    /**
-     * See [`crate::model::lm_model_vtypes`].
-     */
     LmStatus (*model_vtypes)(const LmModel*, LmVtypeBuffer*);
-    /**
-     * See [`crate::model::lm_model_num_variables`].
-     */
     LmStatus (*model_num_variables)(const LmModel*, uintptr_t*);
-    /**
-     * See [`crate::model::lm_model_vars`].
-     */
     LmStatus (*model_vars)(const LmModel*, LmVrefBuffer*);
-    /**
-     * See [`crate::model::lm_model_var`].
-     */
     LmStatus (*model_var)(const LmModel*, const char*, LmVref**);
-    /**
-     * See [`crate::model::lm_model_objective`].
-     */
     LmStatus (*model_objective)(const LmModel*, LmExpr**);
-    /**
-     * See [`crate::model::lm_model_set_name`].
-     */
     LmStatus (*model_set_name)(LmModel*, const char*);
-    /**
-     * See [`crate::model::lm_model_set_sense`].
-     */
     LmStatus (*model_set_sense)(LmModel*, const LmSense*);
-    /**
-     * See [`crate::model::lm_model_set_objective`].
-     */
     LmStatus (*model_set_objective)(LmModel*, const LmExpr*);
-    /**
-     * See [`crate::model::lm_model_add_var`].
-     */
     LmStatus (*model_add_var)(LmModel*, const char*, const LmVtype*, const LmBounds*, LmVref**);
-    /**
-     * See [`crate::model::lm_model_add_var_with_fallback`].
-     */
     LmStatus (*model_add_var_with_fallback)(LmModel*,
                                             const char*,
                                             const LmVtype*,
                                             const LmBounds*,
                                             LmVref**);
-    /**
-     * See [`crate::model::lm_model_satisfies`].
-     */
     LmStatus (*model_satisfies)(const LmModel*, const LmSpecs*, bool*);
-    /**
-     * See [`crate::model::lm_model_serialize`].
-     */
     LmStatus (*model_serialize)(const LmModel*, LmBuffer*);
-    /**
-     * See [`crate::model::lm_model_deserialize`].
-     */
     LmStatus (*model_deserialize)(const uint8_t*, uintptr_t, LmModel**);
-    /**
-     * See [`crate::model::lm_model_eq`].
-     */
     LmStatus (*model_eq)(const LmModel*, const LmModel*, bool*);
-    /**
-     * See [`crate::model::lm_model_equal_contents`].
-     */
     LmStatus (*model_equal_contents)(const LmModel*, const LmModel*, bool*);
-    /**
-     * See [`crate::model::lm_model_evaluate_solution`].
-     */
     LmStatus (*model_evaluate_solution)(const LmModel*, const LmSol*, LmSol**);
-    /**
-     * See [`crate::model::lm_model_evaluate_solution_with_tol`].
-     */
     LmStatus (*model_evaluate_solution_with_tol)(const LmModel*,
                                                  const LmSol*,
                                                  const double*,
                                                  LmSol**);
-    /**
-     * See [`crate::model::lm_model_substitute`].
-     */
     LmStatus (*model_substitute)(LmModel*, const LmVref*, const LmExpr*);
-    /**
-     * See [`crate::env::lm_env_free`].
-     */
     void (*env_free)(LmEnv*);
-    /**
-     * See [`crate::env::lm_env_default`].
-     */
     LmEnv *(*env_default)(void);
-    /**
-     * See [`crate::env::lm_env_clone`].
-     */
     LmStatus (*env_clone)(const LmEnv*, LmEnv**);
-    /**
-     * See [`crate::env::lm_env_equal_contents`].
-     */
     LmStatus (*env_equal_contents)(const LmEnv*, const LmEnv*, bool*);
-    /**
-     * See [`crate::env::lm_env_deep_clone`].
-     */
     LmStatus (*env_deep_clone)(const LmEnv*, LmEnv**);
-    /**
-     * See [`crate::env::lm_env_len`].
-     */
     LmStatus (*env_len)(const LmEnv*, uintptr_t*);
-    /**
-     * See [`crate::env::lm_env_id`].
-     */
     LmStatus (*env_id)(const LmEnv*, u128*);
-    /**
-     * See [`crate::env::lm_env_is_empty`].
-     */
     LmStatus (*env_is_empty)(const LmEnv*, bool*);
-    /**
-     * See [`crate::env::lm_env_vars`].
-     */
     LmStatus (*env_vars)(const LmEnv*, LmVrefBuffer*);
-    /**
-     * See [`crate::env::lm_env_insert`].
-     */
     LmStatus (*env_insert)(LmEnv*, const char*, const LmVtype*, const LmLazyBounds*, LmVref**);
-    /**
-     * See [`crate::env::lm_env_insert_with_fallback`].
-     */
     LmStatus (*env_insert_with_fallback)(LmEnv*,
                                          const char*,
                                          const LmVtype*,
                                          const LmLazyBounds*,
                                          LmVref**);
-    /**
-     * See [`crate::env::lm_env_insert_inverted`].
-     */
     LmStatus (*env_insert_inverted)(LmEnv*, const LmVref*, LmVref**);
-    /**
-     * See [`crate::env::lm_env_remove`].
-     */
     LmStatus (*env_remove)(LmEnv*, const LmVref*);
-    /**
-     * See [`crate::env::lm_env_lookup`].
-     */
     LmStatus (*env_lookup)(const LmEnv*, const char*, LmVref**);
-    /**
-     * See [`crate::env::lm_env_get`].
-     */
     LmStatus (*env_get)(const LmEnv*, uint32_t, LmVref**);
-    /**
-     * See [`crate::env::lm_env_contains`].
-     */
     LmStatus (*env_contains)(const LmEnv*, const char*, bool*);
-    /**
-     * See [`crate::env::lm_env_vtype_of`].
-     */
     LmStatus (*env_vtype_of)(const LmEnv*, const char*, LmVtype*);
-    /**
-     * See [`crate::env::lm_env_serialize`].
-     */
     LmStatus (*env_serialize)(const LmEnv*, LmBuffer*);
-    /**
-     * See [`crate::env::lm_env_deserialize`].
-     */
     LmStatus (*env_deserialize)(const uint8_t*, uintptr_t, LmEnv**);
-    /**
-     * See [`crate::solution::lm_sol_free`].
-     */
     void (*sol_free)(LmSol*);
-    /**
-     * See [`crate::solution::lm_sol_deserialize`].
-     */
     LmStatus (*sol_deserialize)(const uint8_t*, uintptr_t, LmSol**);
-    /**
-     * See [`crate::expr::lm_expr_free`].
-     */
     void (*expr_free)(LmExpr*);
-    /**
-     * See [`crate::expr::lm_expr_default`].
-     */
     LmExpr *(*expr_default)(void);
-    /**
-     * See [`crate::expr::lm_expr_new`].
-     */
     LmStatus (*expr_new)(const LmEnv*, LmExpr**);
-    /**
-     * See [`crate::expr::lm_expr_new_constant`].
-     */
     LmStatus (*expr_new_constant)(const LmEnv*, double, LmExpr**);
-    /**
-     * See [`crate::expr::lm_expr_clone`].
-     */
     LmStatus (*expr_clone)(const LmExpr*, LmExpr**);
-    /**
-     * See [`crate::expr::lm_expr_clone`].
-     */
     LmStatus (*expr_deep_clone)(const LmExpr*, const LmEnv*, LmExpr**);
-    /**
-     * See [`crate::expr::lm_expr_serialize`].
-     */
     LmStatus (*expr_serialize)(const LmExpr*, LmBuffer*);
-    /**
-     * See [`crate::expr::lm_expr_deserialize`].
-     */
     LmStatus (*expr_deserialize)(const uint8_t*, uintptr_t, const LmEnv*, LmExpr**);
-    /**
-     * See [`crate::expr::lm_expr_env`].
-     */
     LmStatus (*expr_env)(const LmExpr*, LmEnv**);
-    /**
-     * See [`crate::expr::lm_expr_offset`].
-     */
     LmStatus (*expr_offset)(const LmExpr*, double*);
-    /**
-     * See [`crate::expr::lm_expr_linear`].
-     */
     LmStatus (*expr_linear)(const LmExpr*, LmLinearTerm**);
-    /**
-     * See [`crate::expr::lm_expr_quadratic`].
-     */
     LmStatus (*expr_quadratic)(const LmExpr*, LmQuadraticTerm**);
-    /**
-     * See [`crate::expr::lm_expr_higher_order`].
-     */
     LmStatus (*expr_higher_order)(const LmExpr*, LmHigherOrderTerm**);
-    /**
-     * See [`crate::expr::lm_expr_num_vars`].
-     */
     LmStatus (*expr_num_vars)(const LmExpr*, uintptr_t*);
-    /**
-     * See [`crate::expr::lm_expr_vtypes`].
-     */
     LmStatus (*expr_vtypes)(const LmExpr*, LmVtypeBuffer*);
-    /**
-     * See [`crate::expr::lm_expr_vars`].
-     */
     LmStatus (*expr_vars)(const LmExpr*, LmVrefBuffer*);
-    /**
-     * See [`crate::expr::lm_expr_complete_vars`].
-     */
     LmStatus (*expr_complete_vars)(const LmExpr*, LmVrefBuffer*);
-    /**
-     * See [`crate::expr::lm_expr_degree`].
-     */
     LmStatus (*expr_degree)(const LmExpr*, uintptr_t*);
-    /**
-     * See [`crate::expr::lm_expr_is_constant`].
-     */
     LmStatus (*expr_is_constant)(const LmExpr*, bool*);
-    /**
-     * See [`crate::expr::lm_expr_has_quadratic`].
-     */
     LmStatus (*expr_has_quadratic)(const LmExpr*, bool*);
-    /**
-     * See [`crate::expr::lm_expr_has_higher_order`].
-     */
     LmStatus (*expr_has_higher_order)(const LmExpr*, bool*);
-    /**
-     * See [`crate::expr::lm_expr_eq`].
-     */
     LmStatus (*expr_eq)(const LmExpr*, const LmExpr*, bool*);
-    /**
-     * See [`crate::expr::lm_expr_equal_contents`].
-     */
     LmStatus (*expr_equal_contents)(const LmExpr*, const LmExpr*, bool*);
-    /**
-     * See [`crate::env::lm_cc_free`].
-     */
     void (*cc_free)(LmCC*);
-    /**
-     * See [`crate::env::lm_cc_default`].
-     */
     LmCC *(*cc_default)(void);
-    /**
-     * See [`crate::env::lm_cc_new`].
-     */
     LmCC *(*cc_new)(void);
-    /**
-     * See [`crate::env::lm_cc_clone`].
-     */
     LmStatus (*cc_clone)(const LmCC*, LmCC**);
-    /**
-     * See [`crate::env::lm_cc_deep_clone`].
-     */
     LmStatus (*cc_deep_clone)(const LmCC*, const LmEnv*, LmCC**);
-    /**
-     * See [`crate::env::lm_cc_eq`].
-     */
     LmStatus (*cc_eq)(const LmCC*, const LmCC*, bool*);
-    /**
-     * See [`crate::env::lm_cc_equal_contents`].
-     */
     LmStatus (*cc_equal_contents)(const LmCC*, const LmCC*, bool*);
-    /**
-     * See [`crate::env::lm_cc_vtypes`].
-     */
     LmStatus (*cc_vtypes)(const LmCC*, LmVtypeBuffer*);
-    /**
-     * See [`crate::env::lm_cc_ctypes`].
-     */
     LmStatus (*cc_ctypes)(const LmCC*, LmCmpBuffer*);
-    /**
-     * See [`crate::env::lm_cc_vars`].
-     */
     LmStatus (*cc_vars)(const LmCC*, LmVrefBuffer*);
-    /**
-     * See [`crate::env::lm_cc_complete_vars`].
-     */
     LmStatus (*cc_complete_vars)(const LmCC*, LmVrefBuffer*);
-    /**
-     * See [`crate::env::lm_cc_is_empty`].
-     */
     LmStatus (*cc_is_empty)(const LmCC*, bool*);
-    /**
-     * See [`crate::env::lm_cc_len`].
-     */
     LmStatus (*cc_len)(const LmCC*, uintptr_t*);
-    /**
-     * See [`crate::env::lm_cc_get`].
-     */
     LmStatus (*cc_get)(const LmCC*, const char*, LmConstraint**);
-    /**
-     * See [`crate::env::lm_cc_add_constraint`].
-     */
     LmStatus (*cc_add_constraint)(LmCC*, const LmConstraint*, const char*, LmBuffer*);
-    /**
-     * See [`crate::env::lm_cc_add_collection`].
-     */
     LmStatus (*cc_add_collection)(LmCC*, const LmCC*, const char*);
-    /**
-     * See [`crate::env::lm_cc_set_constraint`].
-     */
     LmStatus (*cc_set_constraint)(LmCC*, const char*, const LmConstraint*);
-    /**
-     * See [`crate::env::lm_cc_remove_constraint`].
-     */
     LmStatus (*cc_remove_constraint)(LmCC*, const char*);
-    /**
-     * See [`crate::env::lm_cc_substitute`].
-     */
     LmStatus (*cc_substitute)(LmCC*, const LmVref*, const LmExpr*);
-    /**
-     * See [`crate::cc::lm_cc_serialize`].
-     */
     LmStatus (*cc_serialize)(const LmCC*, LmBuffer*);
-    /**
-     * See [`crate::cc::lm_cc_deserialize`].
-     */
     LmStatus (*cc_deserialize)(const uint8_t*, uintptr_t, const LmEnv*, LmCC**);
-    /**
-     * See [`crate::env::lm_vref_free`].
-     */
     void (*vref_free)(LmVref*);
-    /**
-     * See [`crate::env::lm_vref_new`].
-     */
     LmStatus (*vref_new)(uint32_t, const LmEnv*, LmVref**);
-    /**
-     * See [`crate::env::lm_vref_id`].
-     */
     LmStatus (*vref_id)(const LmVref*, uint32_t*);
-    /**
-     * See [`crate::env::lm_vref_check_living`].
-     */
     LmStatus (*vref_check_living)(const LmVref*, bool*);
-    /**
-     * See [`crate::env::lm_vref_name`].
-     */
     LmStatus (*vref_name)(const LmVref*, LmBuffer*);
-    /**
-     * See [`crate::env::lm_vref_vtype`].
-     */
     LmStatus (*vref_vtype)(const LmVref*, LmVtype*);
-    /**
-     * See [`crate::env::lm_vref_bounds`].
-     */
     LmStatus (*vref_bounds)(const LmVref*, LmBounds**);
-    /**
-     * See [`crate::env::lm_vref_inverted`].
-     */
     LmStatus (*vref_inverted)(const LmVref*, LmVref**);
-    /**
-     * See [`crate::env::lm_vref_hash`].
-     */
     LmStatus (*vref_hash)(const LmVref*, uint64_t*);
-    /**
-     * See [`crate::env::lm_vref_eq`].
-     */
     LmStatus (*vref_eq)(const LmVref*, const LmVref*, bool*);
-    /**
-     * See [`crate::env::lm_vref_to_var`].
-     */
     LmStatus (*vref_to_var)(const LmVref*, LmVar**);
-    /**
-     * See [`crate::env::lm_var_free`].
-     */
     void (*var_free)(LmVar*);
-    /**
-     * See [`crate::env::lm_var_name`].
-     */
     LmStatus (*var_name)(const LmVar*, LmBuffer*);
-    /**
-     * See [`crate::env::lm_var_vtype`].
-     */
     LmStatus (*var_vtype)(const LmVar*, LmVtype*);
-    /**
-     * See [`crate::env::lm_var_bounds`].
-     */
     LmStatus (*var_bounds)(const LmVar*, LmBounds**);
-    /**
-     * See [`crate::env::lm_var_inverted`].
-     */
-    LmStatus (*var_inverted)(const LmVar*, uint32_t*, bool*);
+    LmStatus (*var_inverted)(const LmVar*, uint32_t*);
+    void (*specs_free)(LmSpecs*);
+    LmStatus (*specs_new)(const LmSense*,
+                          const LmVtypeBuffer*,
+                          const LmCtypeBuffer*,
+                          uintptr_t,
+                          uintptr_t,
+                          uintptr_t,
+                          LmSpecs**);
+    LmStatus (*specs_sense)(const LmSpecs*, LmSense*);
+    LmStatus (*specs_vtypes)(const LmSpecs*, LmVtypeBuffer*);
+    LmStatus (*specs_ctypes)(const LmSpecs*, LmCtypeBuffer*);
+    LmStatus (*specs_max_degree)(const LmSpecs*, uintptr_t*);
+    LmStatus (*specs_max_constraint_degree)(const LmSpecs*, uintptr_t*);
+    LmStatus (*specs_max_num_variables)(const LmSpecs*, uintptr_t*);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

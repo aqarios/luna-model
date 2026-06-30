@@ -173,4 +173,17 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     var_vtype: crate::var::lm_var_vtype,
     var_bounds: crate::var::lm_var_bounds,
     var_inverted: crate::var::lm_var_inverted,
+    // ///// //
+    // Specs //
+    // ///// //
+    specs_free: crate::specs::lm_specs_free,
+    // Specs -- creation
+    specs_new: crate::specs::lm_specs_new,
+    // Specs -- access
+    specs_sense: crate::specs::lm_specs_sense,
+    specs_vtypes: crate::specs::lm_specs_vtypes,
+    specs_ctypes: crate::specs::lm_specs_ctypes,
+    specs_max_degree: crate::specs::lm_specs_max_degree,
+    specs_max_constraint_degree: crate::specs::lm_specs_max_constraint_degree,
+    specs_max_num_variables: crate::specs::lm_specs_max_num_variables,
 };

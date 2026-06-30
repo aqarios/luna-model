@@ -41,6 +41,8 @@ pub enum LmStatus {
     Panic = 5,
     /// An error was encountered.
     Errored = 6,
+    /// A requested optional value was not present.
+    Absent = 7,
 }
 
 /// Objective optimization sense used by the C API.
@@ -367,28 +369,18 @@ pub struct LmSpecs {
 pub struct LunaModelCApi {
     /// ABI version of this table (`CAPI_ABI_VERSION` at build time).
     pub abi_version: u32,
-    /// See [`crate::version::lm_version`].
     pub version: extern "C" fn() -> *const c_char,
-    /// See [`crate::error::lm_last_error_message`].
     pub last_error_message: extern "C" fn() -> *const c_char,
-    /// See [`crate::buffer::lm_buffer_free`].
     pub buffer_free: unsafe extern "C" fn(LmBuffer),
-    /// See [`crate::buffer::lm_vtype_buffer_free`].
     pub vtype_buffer_free: unsafe extern "C" fn(LmVtypeBuffer),
-    /// See [`crate::buffer::lm_ctype_buffer_free`].
     pub ctype_buffer_free: unsafe extern "C" fn(LmCtypeBuffer),
-    /// See [`crate::buffer::lm_cmp_buffer_free`].
     pub cmp_buffer_free: unsafe extern "C" fn(LmCmpBuffer),
-    /// See [`crate::buffer::lm_vref_buffer_free`].
     pub vref_buffer_free: unsafe extern "C" fn(LmVrefBuffer),
     // ///// //
     // MODEL //
     // ///// //
-    /// See [`crate::model::lm_model_free`].
     pub model_free: unsafe extern "C" fn(*mut LmModel),
-    /// See [`crate::model::lm_model_default`].
     pub model_default: extern "C" fn() -> *mut LmModel,
-    /// See [`crate::model::lm_model_new`].
     pub model_new:
         unsafe extern "C" fn(*const c_char, *const LmSense, *mut *mut LmModel) -> LmStatus,
     pub model_with_env: unsafe extern "C" fn(
@@ -397,36 +389,21 @@ pub struct LunaModelCApi {
         *const LmEnv,
         *mut *mut LmModel,
     ) -> LmStatus,
-    /// See [`crate::model::lm_model_clone`].
     pub model_clone: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
-    /// See [`crate::model::lm_model_deep_clone`].
     pub model_deep_clone: unsafe extern "C" fn(*const LmModel, *mut *mut LmModel) -> LmStatus,
-    /// See [`crate::model::lm_model_name`].
     pub model_name: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
-    /// See [`crate::model::lm_model_sense`].
     pub model_sense: unsafe extern "C" fn(*const LmModel, *mut LmSense) -> LmStatus,
-    /// See [`crate::model::lm_model_env`].
     pub model_env: unsafe extern "C" fn(*const LmModel, *mut *mut LmEnv) -> LmStatus,
-    /// See [`crate::model::lm_model_specs`].
     pub model_specs: unsafe extern "C" fn(*const LmModel, *mut *mut LmSpecs) -> LmStatus,
-    /// See [`crate::model::lm_model_vtypes`].
     pub model_vtypes: unsafe extern "C" fn(*const LmModel, *mut LmVtypeBuffer) -> LmStatus,
-    /// See [`crate::model::lm_model_num_variables`].
     pub model_num_variables: unsafe extern "C" fn(*const LmModel, *mut usize) -> LmStatus,
-    /// See [`crate::model::lm_model_vars`].
     pub model_vars: unsafe extern "C" fn(*const LmModel, *mut LmVrefBuffer) -> LmStatus,
-    /// See [`crate::model::lm_model_var`].
     pub model_var:
         unsafe extern "C" fn(*const LmModel, *const c_char, *mut *mut LmVref) -> LmStatus,
-    /// See [`crate::model::lm_model_objective`].
     pub model_objective: unsafe extern "C" fn(*const LmModel, *mut *mut LmExpr) -> LmStatus,
-    /// See [`crate::model::lm_model_set_name`].
     pub model_set_name: unsafe extern "C" fn(*mut LmModel, *const c_char) -> LmStatus,
-    /// See [`crate::model::lm_model_set_sense`].
     pub model_set_sense: unsafe extern "C" fn(*mut LmModel, *const LmSense) -> LmStatus,
-    /// See [`crate::model::lm_model_set_objective`].
     pub model_set_objective: unsafe extern "C" fn(*mut LmModel, *const LmExpr) -> LmStatus,
-    /// See [`crate::model::lm_model_add_var`].
     pub model_add_var: unsafe extern "C" fn(
         *mut LmModel,
         *const c_char,
@@ -434,7 +411,6 @@ pub struct LunaModelCApi {
         *const LmBounds,
         *mut *mut LmVref,
     ) -> LmStatus,
-    /// See [`crate::model::lm_model_add_var_with_fallback`].
     pub model_add_var_with_fallback: unsafe extern "C" fn(
         *mut LmModel,
         *const c_char,
@@ -442,49 +418,31 @@ pub struct LunaModelCApi {
         *const LmBounds,
         *mut *mut LmVref,
     ) -> LmStatus,
-    /// See [`crate::model::lm_model_satisfies`].
     pub model_satisfies:
         unsafe extern "C" fn(*const LmModel, *const LmSpecs, *mut bool) -> LmStatus,
-    /// See [`crate::model::lm_model_serialize`].
     pub model_serialize: unsafe extern "C" fn(*const LmModel, *mut LmBuffer) -> LmStatus,
-    /// See [`crate::model::lm_model_deserialize`].
     pub model_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmModel) -> LmStatus,
-    /// See [`crate::model::lm_model_eq`].
     pub model_eq: unsafe extern "C" fn(*const LmModel, *const LmModel, *mut bool) -> LmStatus,
-    /// See [`crate::model::lm_model_equal_contents`].
     pub model_equal_contents:
         unsafe extern "C" fn(*const LmModel, *const LmModel, *mut bool) -> LmStatus,
-    /// See [`crate::model::lm_model_evaluate_solution`].
     pub model_evaluate_solution:
         unsafe extern "C" fn(*const LmModel, *const LmSol, *mut *mut LmSol) -> LmStatus,
-    /// See [`crate::model::lm_model_evaluate_solution_with_tol`].
     pub model_evaluate_solution_with_tol:
         unsafe extern "C" fn(*const LmModel, *const LmSol, *const f64, *mut *mut LmSol) -> LmStatus,
-    /// See [`crate::model::lm_model_substitute`].
     pub model_substitute:
         unsafe extern "C" fn(*mut LmModel, *const LmVref, *const LmExpr) -> LmStatus,
     // /////////// //
     // ENVIRONMENT //
     // /////////// //
-    /// See [`crate::env::lm_env_free`].
     pub env_free: unsafe extern "C" fn(*mut LmEnv),
-    /// See [`crate::env::lm_env_default`].
     pub env_default: extern "C" fn() -> *mut LmEnv,
-    /// See [`crate::env::lm_env_clone`].
     pub env_clone: unsafe extern "C" fn(*const LmEnv, *mut *mut LmEnv) -> LmStatus,
-    /// See [`crate::env::lm_env_equal_contents`].
     pub env_equal_contents: unsafe extern "C" fn(*const LmEnv, *const LmEnv, *mut bool) -> LmStatus,
-    /// See [`crate::env::lm_env_deep_clone`].
     pub env_deep_clone: unsafe extern "C" fn(*const LmEnv, *mut *mut LmEnv) -> LmStatus,
-    /// See [`crate::env::lm_env_len`].
     pub env_len: unsafe extern "C" fn(*const LmEnv, *mut usize) -> LmStatus,
-    /// See [`crate::env::lm_env_id`].
     pub env_id: unsafe extern "C" fn(*const LmEnv, *mut u128) -> LmStatus,
-    /// See [`crate::env::lm_env_is_empty`].
     pub env_is_empty: unsafe extern "C" fn(*const LmEnv, *mut bool) -> LmStatus,
-    /// See [`crate::env::lm_env_vars`].
     pub env_vars: unsafe extern "C" fn(*const LmEnv, *mut LmVrefBuffer) -> LmStatus,
-    /// See [`crate::env::lm_env_insert`].
     pub env_insert: unsafe extern "C" fn(
         *mut LmEnv,
         *const c_char,
@@ -492,7 +450,6 @@ pub struct LunaModelCApi {
         *const LmLazyBounds,
         *mut *mut LmVref,
     ) -> LmStatus,
-    /// See [`crate::env::lm_env_insert_with_fallback`].
     pub env_insert_with_fallback: unsafe extern "C" fn(
         *mut LmEnv,
         *const c_char,
@@ -500,172 +457,121 @@ pub struct LunaModelCApi {
         *const LmLazyBounds,
         *mut *mut LmVref,
     ) -> LmStatus,
-    /// See [`crate::env::lm_env_insert_inverted`].
     pub env_insert_inverted:
         unsafe extern "C" fn(*mut LmEnv, *const LmVref, *mut *mut LmVref) -> LmStatus,
-    /// See [`crate::env::lm_env_remove`].
     pub env_remove: unsafe extern "C" fn(*mut LmEnv, *const LmVref) -> LmStatus,
-    /// See [`crate::env::lm_env_lookup`].
     pub env_lookup: unsafe extern "C" fn(*const LmEnv, *const c_char, *mut *mut LmVref) -> LmStatus,
-    /// See [`crate::env::lm_env_get`].
     pub env_get: unsafe extern "C" fn(*const LmEnv, u32, *mut *mut LmVref) -> LmStatus,
-    /// See [`crate::env::lm_env_contains`].
     pub env_contains: unsafe extern "C" fn(*const LmEnv, *const c_char, *mut bool) -> LmStatus,
-    /// See [`crate::env::lm_env_vtype_of`].
     pub env_vtype_of: unsafe extern "C" fn(*const LmEnv, *const c_char, *mut LmVtype) -> LmStatus,
-    /// See [`crate::env::lm_env_serialize`].
     pub env_serialize: unsafe extern "C" fn(*const LmEnv, *mut LmBuffer) -> LmStatus,
-    /// See [`crate::env::lm_env_deserialize`].
     pub env_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmEnv) -> LmStatus,
     // //////// //
     // SOLUTION //
     // //////// //
-    /// See [`crate::solution::lm_sol_free`].
     pub sol_free: unsafe extern "C" fn(*mut LmSol),
-    /// See [`crate::solution::lm_sol_deserialize`].
     pub sol_deserialize: unsafe extern "C" fn(*const u8, usize, *mut *mut LmSol) -> LmStatus,
     // ////////// //
     // EXPRESSION //
     // ////////// //
-    /// See [`crate::expr::lm_expr_free`].
     pub expr_free: unsafe extern "C" fn(*mut LmExpr),
-    /// See [`crate::expr::lm_expr_default`].
     pub expr_default: extern "C" fn() -> *mut LmExpr,
-    /// See [`crate::expr::lm_expr_new`].
     pub expr_new: unsafe extern "C" fn(*const LmEnv, *mut *mut LmExpr) -> LmStatus,
-    /// See [`crate::expr::lm_expr_new_constant`].
     pub expr_new_constant: unsafe extern "C" fn(*const LmEnv, f64, *mut *mut LmExpr) -> LmStatus,
-    /// See [`crate::expr::lm_expr_clone`].
     pub expr_clone: unsafe extern "C" fn(*const LmExpr, *mut *mut LmExpr) -> LmStatus,
-    /// See [`crate::expr::lm_expr_clone`].
     pub expr_deep_clone:
         unsafe extern "C" fn(*const LmExpr, *const LmEnv, *mut *mut LmExpr) -> LmStatus,
-    /// See [`crate::expr::lm_expr_serialize`].
     pub expr_serialize: unsafe extern "C" fn(*const LmExpr, *mut LmBuffer) -> LmStatus,
-    /// See [`crate::expr::lm_expr_deserialize`].
     pub expr_deserialize:
         unsafe extern "C" fn(*const u8, usize, *const LmEnv, *mut *mut LmExpr) -> LmStatus,
-    /// See [`crate::expr::lm_expr_env`].
     pub expr_env: unsafe extern "C" fn(*const LmExpr, *mut *mut LmEnv) -> LmStatus,
-    /// See [`crate::expr::lm_expr_offset`].
     pub expr_offset: unsafe extern "C" fn(*const LmExpr, *mut f64) -> LmStatus,
-    /// See [`crate::expr::lm_expr_linear`].
     pub expr_linear: unsafe extern "C" fn(*const LmExpr, *mut *mut LmLinearTerm) -> LmStatus,
-    /// See [`crate::expr::lm_expr_quadratic`].
     pub expr_quadratic: unsafe extern "C" fn(*const LmExpr, *mut *mut LmQuadraticTerm) -> LmStatus,
-    /// See [`crate::expr::lm_expr_higher_order`].
     pub expr_higher_order:
         unsafe extern "C" fn(*const LmExpr, *mut *mut LmHigherOrderTerm) -> LmStatus,
-    /// See [`crate::expr::lm_expr_num_vars`].
     pub expr_num_vars: unsafe extern "C" fn(*const LmExpr, *mut usize) -> LmStatus,
-    /// See [`crate::expr::lm_expr_vtypes`].
     pub expr_vtypes: unsafe extern "C" fn(*const LmExpr, *mut LmVtypeBuffer) -> LmStatus,
-    /// See [`crate::expr::lm_expr_vars`].
     pub expr_vars: unsafe extern "C" fn(*const LmExpr, *mut LmVrefBuffer) -> LmStatus,
-    /// See [`crate::expr::lm_expr_complete_vars`].
     pub expr_complete_vars: unsafe extern "C" fn(*const LmExpr, *mut LmVrefBuffer) -> LmStatus,
-    /// See [`crate::expr::lm_expr_degree`].
     pub expr_degree: unsafe extern "C" fn(*const LmExpr, *mut usize) -> LmStatus,
-    /// See [`crate::expr::lm_expr_is_constant`].
     pub expr_is_constant: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
-    /// See [`crate::expr::lm_expr_has_quadratic`].
     pub expr_has_quadratic: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
-    /// See [`crate::expr::lm_expr_has_higher_order`].
     pub expr_has_higher_order: unsafe extern "C" fn(*const LmExpr, *mut bool) -> LmStatus,
-    /// See [`crate::expr::lm_expr_eq`].
     pub expr_eq: unsafe extern "C" fn(*const LmExpr, *const LmExpr, *mut bool) -> LmStatus,
-    /// See [`crate::expr::lm_expr_equal_contents`].
     pub expr_equal_contents:
         unsafe extern "C" fn(*const LmExpr, *const LmExpr, *mut bool) -> LmStatus,
     // //////////////////// //
     // ConstraintCollection //
     // //////////////////// //
-    /// See [`crate::env::lm_cc_free`].
     pub cc_free: unsafe extern "C" fn(*mut LmCC),
-    /// See [`crate::env::lm_cc_default`].
     pub cc_default: extern "C" fn() -> *mut LmCC,
-    /// See [`crate::env::lm_cc_new`].
     pub cc_new: extern "C" fn() -> *mut LmCC,
-    /// See [`crate::env::lm_cc_clone`].
     pub cc_clone: unsafe extern "C" fn(*const LmCC, *mut *mut LmCC) -> LmStatus,
-    /// See [`crate::env::lm_cc_deep_clone`].
     pub cc_deep_clone: unsafe extern "C" fn(*const LmCC, *const LmEnv, *mut *mut LmCC) -> LmStatus,
-    /// See [`crate::env::lm_cc_eq`].
     pub cc_eq: unsafe extern "C" fn(*const LmCC, *const LmCC, *mut bool) -> LmStatus,
-    /// See [`crate::env::lm_cc_equal_contents`].
     pub cc_equal_contents: unsafe extern "C" fn(*const LmCC, *const LmCC, *mut bool) -> LmStatus,
-    /// See [`crate::env::lm_cc_vtypes`].
     pub cc_vtypes: unsafe extern "C" fn(*const LmCC, *mut LmVtypeBuffer) -> LmStatus,
-    /// See [`crate::env::lm_cc_ctypes`].
     pub cc_ctypes: unsafe extern "C" fn(*const LmCC, *mut LmCmpBuffer) -> LmStatus,
-    /// See [`crate::env::lm_cc_vars`].
     pub cc_vars: unsafe extern "C" fn(*const LmCC, *mut LmVrefBuffer) -> LmStatus,
-    /// See [`crate::env::lm_cc_complete_vars`].
     pub cc_complete_vars: unsafe extern "C" fn(*const LmCC, *mut LmVrefBuffer) -> LmStatus,
-    /// See [`crate::env::lm_cc_is_empty`].
     pub cc_is_empty: unsafe extern "C" fn(*const LmCC, *mut bool) -> LmStatus,
-    /// See [`crate::env::lm_cc_len`].
     pub cc_len: unsafe extern "C" fn(*const LmCC, *mut usize) -> LmStatus,
-    /// See [`crate::env::lm_cc_get`].
     pub cc_get:
         unsafe extern "C" fn(*const LmCC, *const c_char, *mut *mut LmConstraint) -> LmStatus,
-    /// See [`crate::env::lm_cc_add_constraint`].
     pub cc_add_constraint: unsafe extern "C" fn(
         *mut LmCC,
         *const LmConstraint,
         *const c_char,
         *mut LmBuffer,
     ) -> LmStatus,
-    /// See [`crate::env::lm_cc_add_collection`].
     pub cc_add_collection: unsafe extern "C" fn(*mut LmCC, *const LmCC, *const c_char) -> LmStatus,
-    /// See [`crate::env::lm_cc_set_constraint`].
     pub cc_set_constraint:
         unsafe extern "C" fn(*mut LmCC, *const c_char, *const LmConstraint) -> LmStatus,
-    /// See [`crate::env::lm_cc_remove_constraint`].
     pub cc_remove_constraint: unsafe extern "C" fn(*mut LmCC, *const c_char) -> LmStatus,
-    /// See [`crate::env::lm_cc_substitute`].
     pub cc_substitute: unsafe extern "C" fn(*mut LmCC, *const LmVref, *const LmExpr) -> LmStatus,
-    /// See [`crate::cc::lm_cc_serialize`].
     pub cc_serialize: unsafe extern "C" fn(*const LmCC, *mut LmBuffer) -> LmStatus,
-    /// See [`crate::cc::lm_cc_deserialize`].
     pub cc_deserialize:
         unsafe extern "C" fn(*const u8, usize, *const LmEnv, *mut *mut LmCC) -> LmStatus,
     // ////// //
     // VarRef //
     // ////// //
-    /// See [`crate::env::lm_vref_free`].
     pub vref_free: unsafe extern "C" fn(*mut LmVref),
-    /// See [`crate::env::lm_vref_new`].
     pub vref_new: unsafe extern "C" fn(u32, *const LmEnv, *mut *mut LmVref) -> LmStatus,
-    /// See [`crate::env::lm_vref_id`].
     pub vref_id: unsafe extern "C" fn(*const LmVref, *mut u32) -> LmStatus,
-    /// See [`crate::env::lm_vref_check_living`].
     pub vref_check_living: unsafe extern "C" fn(*const LmVref, *mut bool) -> LmStatus,
-    /// See [`crate::env::lm_vref_name`].
     pub vref_name: unsafe extern "C" fn(*const LmVref, *mut LmBuffer) -> LmStatus,
-    /// See [`crate::env::lm_vref_vtype`].
     pub vref_vtype: unsafe extern "C" fn(*const LmVref, *mut LmVtype) -> LmStatus,
-    /// See [`crate::env::lm_vref_bounds`].
     pub vref_bounds: unsafe extern "C" fn(*const LmVref, *mut *mut LmBounds) -> LmStatus,
-    /// See [`crate::env::lm_vref_inverted`].
     pub vref_inverted: unsafe extern "C" fn(*const LmVref, *mut *mut LmVref) -> LmStatus,
-    /// See [`crate::env::lm_vref_hash`].
     pub vref_hash: unsafe extern "C" fn(*const LmVref, *mut u64) -> LmStatus,
-    /// See [`crate::env::lm_vref_eq`].
     pub vref_eq: unsafe extern "C" fn(*const LmVref, *const LmVref, *mut bool) -> LmStatus,
-    /// See [`crate::env::lm_vref_to_var`].
     pub vref_to_var: unsafe extern "C" fn(*const LmVref, *mut *mut LmVar) -> LmStatus,
     // //////// //
     // Variable //
     // //////// //
-    /// See [`crate::env::lm_var_free`].
     pub var_free: unsafe extern "C" fn(*mut LmVar),
-    /// See [`crate::env::lm_var_name`].
     pub var_name: unsafe extern "C" fn(*const LmVar, *mut LmBuffer) -> LmStatus,
-    /// See [`crate::env::lm_var_vtype`].
     pub var_vtype: unsafe extern "C" fn(*const LmVar, *mut LmVtype) -> LmStatus,
-    /// See [`crate::env::lm_var_bounds`].
     pub var_bounds: unsafe extern "C" fn(*const LmVar, *mut *mut LmBounds) -> LmStatus,
-    /// See [`crate::env::lm_var_inverted`].
-    pub var_inverted: unsafe extern "C" fn(*const LmVar, *mut u32, *mut bool) -> LmStatus,
+    pub var_inverted: unsafe extern "C" fn(*const LmVar, *mut u32) -> LmStatus,
+    // ///// //
+    // Specs //
+    // ///// //
+    pub specs_free: unsafe extern "C" fn(*mut LmSpecs),
+    pub specs_new: unsafe extern "C" fn(
+        *const LmSense,
+        *const LmVtypeBuffer,
+        *const LmCtypeBuffer,
+        usize,
+        usize,
+        usize,
+        *mut *mut LmSpecs,
+    ) -> LmStatus,
+    pub specs_sense: unsafe extern "C" fn(*const LmSpecs, *mut LmSense) -> LmStatus,
+    pub specs_vtypes: unsafe extern "C" fn(*const LmSpecs, *mut LmVtypeBuffer) -> LmStatus,
+    pub specs_ctypes: unsafe extern "C" fn(*const LmSpecs, *mut LmCtypeBuffer) -> LmStatus,
+    pub specs_max_degree: unsafe extern "C" fn(*const LmSpecs, *mut usize) -> LmStatus,
+    pub specs_max_constraint_degree: unsafe extern "C" fn(*const LmSpecs, *mut usize) -> LmStatus,
+    pub specs_max_num_variables: unsafe extern "C" fn(*const LmSpecs, *mut usize) -> LmStatus,
 }

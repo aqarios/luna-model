@@ -34,8 +34,9 @@ pub mod error;
 pub mod expr;
 pub mod model;
 pub mod solution;
+pub mod specs;
+pub mod var;
 pub mod version;
 pub mod vref;
-pub mod var;
 
 mod utils;

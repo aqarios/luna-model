@@ -1017,6 +1017,154 @@ LmStatus lm_sol_deserialize(const uint8_t *data, uintptr_t len, LmSol **out);
 void lm_sol_free(LmSol *solution);
 
 /**
+ * Returns the specs's sense, if one is set.
+ *
+ * On success (`LmStatus::Ok`), `*out` is set to the specs's sense. If the specs
+ * has no sense, returns `LmStatus::Absent` and leaves `*out` unchanged.
+ *
+ * # Safety
+ * `specs` must be a valid specs handle created by this library.
+ * `out` must point to writable `LmSense` storage.
+ */
+LmStatus lm_specs_sense(const LmSpecs *specs, LmSense *out);
+
+/**
+ * Returns the specs's vtypes, if set.
+ *
+ * On success (`LmStatus::Ok`), `*out` is set to the specs's vtypes. If the specs
+ * has no vtypes, returns `LmStatus::Absent` and leaves `*out` unchanged.
+ *
+ * # Safety
+ * `specs` must be a valid specs handle created by this library.
+ * `out` must point to writable `LmVtypeBuffer` storage.
+ */
+LmStatus lm_specs_vtypes(const LmSpecs *specs, LmVtypeBuffer *out);
+
+/**
+ * Returns the specs's ctypes, if set.
+ *
+ * On success (`LmStatus::Ok`), `*out` is set to the specs's ctypes. If the specs
+ * has no ctypes, returns `LmStatus::Absent` and leaves `*out` unchanged.
+ *
+ * # Safety
+ * `specs` must be a valid specs handle created by this library.
+ * `out` must point to writable `LmCtypeBuffer` storage.
+ */
+LmStatus lm_specs_ctypes(const LmSpecs *specs, LmCtypeBuffer *out);
+
+/**
+ * Returns the specs's max degree, if set.
+ *
+ * On success (`LmStatus::Ok`), `*out` is set to the specs's max degree. If the specs
+ * has no max degree, returns `LmStatus::Absent` and leaves `*out` unchanged.
+ *
+ * # Safety
+ * `specs` must be a valid specs handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_specs_max_degree(const LmSpecs *specs, uintptr_t *out);
+
+/**
+ * Returns the specs's max constraint degree, if set.
+ *
+ * On success (`LmStatus::Ok`), `*out` is set to the specs's max degree. If the specs
+ * has no max degree, returns `LmStatus::Absent` and leaves `*out` unchanged.
+ *
+ * # Safety
+ * `specs` must be a valid specs handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_specs_max_constraint_degree(const LmSpecs *specs, uintptr_t *out);
+
+/**
+ * Returns the specs's max num variables, if set.
+ *
+ * On success (`LmStatus::Ok`), `*out` is set to the specs's max num variables.
+ * If the specs has no max num variables, returns `LmStatus::Absent` and leaves `*out` unchanged.
+ *
+ * # Safety
+ * `specs` must be a valid specs handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_specs_max_num_variables(const LmSpecs *specs, uintptr_t *out);
+
+/**
+ * Frees a specs handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `specs` must originate from this library and must not be used or freed again.
+ */
+void lm_specs_free(LmSpecs *specs);
+
+/**
+ * Creates a fully specified capability summary.
+ *
+ * # Safety
+ *
+ */
+LmStatus lm_specs_new(const LmSense *sense,
+                      const LmVtypeBuffer *vtypes,
+                      const LmCtypeBuffer *ctypes,
+                      uintptr_t max_degree,
+                      uintptr_t max_constraint_degree,
+                      uintptr_t max_num_variables,
+                      LmSpecs **out);
+
+/**
+ * Frees a variable handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `var` must originate from this library and must not be used or freed again.
+ */
+void lm_var_free(LmVar *var);
+
+/**
+ * Returns a copy of the variable's name as an owned UTF-8 byte buffer.
+ *
+ * The returned buffer is written to `out` and must be released with
+ * `lm_buffer_free`.
+ *
+ * The buffer is not guaranteed to be NUL-terminated. C callers should use
+ * `buffer.data` together with `buffer.len`.
+ *
+ * # Safety
+ * `var` must be a valid variable handle created by this library.
+ * `out` must point to writable `LmBuffer` storage.
+ */
+LmStatus lm_var_name(const LmVar *var, LmBuffer *out);
+
+/**
+ * Returns a copy of the variable's vtype.
+ *
+ * # Safety
+ * `var` must be a valid variable handle created by this library.
+ * `out` must point to writable `LmVtype` storage.
+ */
+LmStatus lm_var_vtype(const LmVar *var, LmVtype *out);
+
+/**
+ * Returns the variable's bounds.
+ *
+ * # Safety
+ * `var` must be a valid variable handle created by this library.
+ * `out` must point to writable `LmBounds` storage.
+ */
+LmStatus lm_var_bounds(const LmVar *var, LmBounds **out);
+
+/**
+ * Returns the variable id of the inverted companion, if one exists.
+ *
+ * On success (`LmStatus::Ok`), `*out` is set to the companion's variable id.
+ * If the variable has no inverted companion, returns `LmStatus::Absent` and
+ * leaves `*out` unchanged.
+ *
+ * # Safety
+ * `var` must be a valid variable handle created by this library.
+ * `out` must point to writable `u32` storage.
+ */
+LmStatus lm_var_inverted(const LmVar *var, uint32_t *out);
+
+/**
  * Returns the LunaModel version string (the crate's `CARGO_PKG_VERSION`).
  *
  * The returned pointer is a static, NUL-terminated UTF-8 string owned by the
@@ -1142,61 +1290,6 @@ LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
  * `out` must point to writable `LmVar` storage.
  */
 LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
-
-/**
- * Frees a variable handle. Passing null is a no-op.
- *
- * # Safety
- * `var` must originate from this library and must not be used or freed again.
- */
-void lm_var_free(LmVar *var);
-
-/**
- * Returns a copy of the variable's name as an owned UTF-8 byte buffer.
- *
- * The returned buffer is written to `out` and must be released with
- * `lm_buffer_free`.
- *
- * The buffer is not guaranteed to be NUL-terminated. C callers should use
- * `buffer.data` together with `buffer.len`.
- *
- * # Safety
- * `var` must be a valid variable handle created by this library.
- * `out` must point to writable `LmBuffer` storage.
- */
-LmStatus lm_var_name(const LmVar *var, LmBuffer *out);
-
-/**
- * Returns a copy of the variable's vtype.
- *
- * # Safety
- * `var` must be a valid variable handle created by this library.
- * `out` must point to writable `LmVtype` storage.
- */
-LmStatus lm_var_vtype(const LmVar *var, LmVtype *out);
-
-/**
- * Returns the variable's bounds.
- *
- * # Safety
- * `var` must be a valid variable handle created by this library.
- * `out` must point to writable `LmBounds` storage.
- */
-LmStatus lm_var_bounds(const LmVar *var, LmBounds **out);
-
-/**
- * Returns the variable id of the inverted companion, if one exists.
- *
- * On success, when the variable has an inverted companion `*present` is set to
- * `true` and `*out` to the companion's variable id. Otherwise `*present` is set
- * to `false` and `*out` is left unchanged.
- *
- * # Safety
- * `var` must be a valid variable handle created by this library.
- * `out` must point to writable `u32` storage.
- * `present` must point to writable `bool` storage.
- */
-LmStatus lm_var_inverted(const LmVar *var, uint32_t *out, bool *present);
 
 #ifdef __cplusplus
 }  // extern "C"
