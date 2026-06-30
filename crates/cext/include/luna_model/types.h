@@ -306,6 +306,22 @@ typedef struct {
 } LmExpr;
 
 /**
+ * A 128-bit environment identity token, split into two 64-bit halves because C
+ * has no native 128-bit integer type. Use it only for identity comparison
+ * (compare both fields); do not do arithmetic on the halves.
+ */
+typedef struct {
+    /**
+     * High 64 bits.
+     */
+    uint64_t hi;
+    /**
+     * Low 64 bits.
+     */
+    uint64_t lo;
+} LmEnvId;
+
+/**
  * Opaque handle to a LunaModel lazy bounds reference.
  *
  */
@@ -443,7 +459,7 @@ typedef struct {
     LmStatus (*env_equal_contents)(const LmEnv*, const LmEnv*, bool*);
     LmStatus (*env_deep_clone)(const LmEnv*, LmEnv**);
     LmStatus (*env_len)(const LmEnv*, uintptr_t*);
-    LmStatus (*env_id)(const LmEnv*, u128*);
+    LmStatus (*env_id)(const LmEnv*, LmEnvId*);
     LmStatus (*env_is_empty)(const LmEnv*, bool*);
     LmStatus (*env_vars)(const LmEnv*, LmVrefBuffer*);
     LmStatus (*env_insert)(LmEnv*, const char*, const LmVtype*, const LmLazyBounds*, LmVref**);

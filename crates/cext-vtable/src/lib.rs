@@ -147,6 +147,18 @@ pub enum LmValueSource {
     Obj = 1,
 }
 
+/// A 128-bit environment identity token, split into two 64-bit halves because C
+/// has no native 128-bit integer type. Use it only for identity comparison
+/// (compare both fields); do not do arithmetic on the halves.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LmEnvId {
+    /// High 64 bits.
+    pub hi: u64,
+    /// Low 64 bits.
+    pub lo: u64,
+}
+
 /// An owned, heap-allocated byte buffer the caller takes ownership of.
 ///
 /// Buffers returned by LunaModel (e.g. from `lm_model_serialize`) must be released
@@ -440,7 +452,7 @@ pub struct LunaModelCApi {
     pub env_equal_contents: unsafe extern "C" fn(*const LmEnv, *const LmEnv, *mut bool) -> LmStatus,
     pub env_deep_clone: unsafe extern "C" fn(*const LmEnv, *mut *mut LmEnv) -> LmStatus,
     pub env_len: unsafe extern "C" fn(*const LmEnv, *mut usize) -> LmStatus,
-    pub env_id: unsafe extern "C" fn(*const LmEnv, *mut u128) -> LmStatus,
+    pub env_id: unsafe extern "C" fn(*const LmEnv, *mut LmEnvId) -> LmStatus,
     pub env_is_empty: unsafe extern "C" fn(*const LmEnv, *mut bool) -> LmStatus,
     pub env_vars: unsafe extern "C" fn(*const LmEnv, *mut LmVrefBuffer) -> LmStatus,
     pub env_insert: unsafe extern "C" fn(

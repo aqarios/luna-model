@@ -274,6 +274,36 @@ LmStatus lm_cc_serialize(const LmCC *cc, LmBuffer *out);
 LmStatus lm_cc_deserialize(const uint8_t *data, uintptr_t len, const LmEnv *env, LmCC **out);
 
 /**
+ * Frees a constraint handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `constr` must originate from this library and must not be used or freed again.
+ */
+void lm_constr_free(LmConstraint *constr);
+
+/**
+ * Creates a new constraint and normalizes its left-hand side.
+ *
+ * If `lhs` contains a constant offset, that constant is subtracted from the
+ * expression and folded into `rhs`. The resulting constraint is therefore
+ * easier to compare, serialize, and translate consistently.
+ *
+ * `lhs` is cloned, not consumed: the caller keeps ownership of the handle.
+ *
+ * # Safety
+ * `lhs`  must be a valid expression handle created by this library.
+ * `name` may be null (the constraint is then auto-named, e.g. `c0`);
+ *        if non-null it must point to a NUL-terminated, valid UTF-8 C string.
+ * `out`  must point to writable `*mut LmConstraint` storage.
+ *        On `LmStatus::Ok` it receives an owned handle the caller must release with `lm_constr_free`.
+ */
+LmStatus lm_constr_new(const LmExpr *lhs,
+                       double rhs,
+                       LmComparator comparator,
+                       const char *name,
+                       LmConstraint **out);
+
+/**
  * Returns the number of variables in the environment.
  *
  * # Safety
@@ -301,9 +331,9 @@ LmStatus lm_env_vars(const LmEnv *env, LmVrefBuffer *out);
  * Returns the unique id of the environment.
  *
  * # Safety
- * `env` must be a valid handle and `out` must point to writable storage.
+ * `env` must be a valid handle and `out` must point to writable `LmEnvId` storage.
  */
-LmStatus lm_env_id(const LmEnv *env, u128 *out);
+LmStatus lm_env_id(const LmEnv *env, LmEnvId *out);
 
 /**
  * Looks up a variable by name and returns a bound variable reference.
@@ -1313,36 +1343,6 @@ LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
  * `out` must point to writable `LmVar` storage.
  */
 LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
-
-/**
- * Frees a constraint handle. Passing null is a no-op.
- *
- * # Safety
- * `constr` must originate from this library and must not be used or freed again.
- */
-void lm_constr_free(LmConstraint *constr);
-
-/**
- * Creates a new constraint and normalizes its left-hand side.
- *
- * If `lhs` contains a constant offset, that constant is subtracted from the
- * expression and folded into `rhs`. The resulting constraint is therefore
- * easier to compare, serialize, and translate consistently.
- *
- * `lhs` is cloned, not consumed: the caller keeps ownership of the handle.
- *
- * # Safety
- * `lhs`  must be a valid expression handle created by this library.
- * `name` may be null (the constraint is then auto-named, e.g. `c0`);
- *        if non-null it must point to a NUL-terminated, valid UTF-8 C string.
- * `out`  must point to writable `*mut LmConstraint` storage.
- *        On `LmStatus::Ok` it receives an owned handle the caller must release with `lm_constr_free`.
- */
-LmStatus lm_constr_new(const LmExpr *lhs,
-                       double rhs,
-                       LmComparator comparator,
-                       const char *name,
-                       LmConstraint **out);
 
 #ifdef __cplusplus
 }  // extern "C"

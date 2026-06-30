@@ -3,7 +3,7 @@ use std::ffi::{CStr, c_char};
 use luna_model::core::ArcEnv;
 
 use crate::{
-    LmEnv, LmStatus, LmVref, LmVrefBuffer, LmVtype,
+    LmEnv, LmEnvId, LmStatus, LmVref, LmVrefBuffer, LmVtype,
     buffer::vref_buffer_from_vec,
     error::{CapiError, guard},
     utils::vtype_to_c,
@@ -62,14 +62,18 @@ pub unsafe extern "C" fn lm_env_vars(env: *const LmEnv, out: *mut LmVrefBuffer) 
 /// Returns the unique id of the environment.
 ///
 /// # Safety
-/// `env` must be a valid handle and `out` must point to writable storage.
+/// `env` must be a valid handle and `out` must point to writable `LmEnvId` storage.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn lm_env_id(env: *const LmEnv, out: *mut u128) -> LmStatus {
+pub unsafe extern "C" fn lm_env_id(env: *const LmEnv, out: *mut LmEnvId) -> LmStatus {
     guard(|| {
         let env = unsafe { (env as *const ArcEnv).as_ref() }
             .ok_or_else(|| CapiError::null_pointer("env"))?;
         let out = unsafe { out.as_mut() }.ok_or_else(|| CapiError::null_pointer("out"))?;
-        *out = env.id();
+        let id = env.id();
+        *out = LmEnvId {
+            hi: (id >> 64) as u64,
+            lo: id as u64,
+        };
         Ok(())
     })
 }

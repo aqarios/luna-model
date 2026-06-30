@@ -7,5 +7,3 @@ use crate::{
     error::{CapiError, guard},
     utils::cmp_from_c,
 };
-
-
