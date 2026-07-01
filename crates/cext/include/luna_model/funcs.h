@@ -758,6 +758,27 @@ LmStatus lm_expr_new(const LmEnv *env, LmExpr **out);
 LmStatus lm_expr_new_constant(const LmEnv *env, double val, LmExpr **out);
 
 /**
+ * Creates a new expression from a linear term.
+ *
+ * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ */
+LmStatus lm_expr_from_linear(const LmLinearTerm *lin, LmExpr **out);
+
+/**
+ * Creates a new expression from a quadratic term.
+ *
+ * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ */
+LmStatus lm_expr_from_quadratic(const LmQuadraticTerm *quad, LmExpr **out);
+
+/**
+ * Creates a new expression from a higher-order term.
+ *
+ * `out` receives an owned expression handle that must be freed with `lm_expr_free`.
+ */
+LmStatus lm_expr_from_higher_order(const LmHigherOrderTerm *ho, LmExpr **out);
+
+/**
  * Compares two expressions for equality.
  *
  * # Safety

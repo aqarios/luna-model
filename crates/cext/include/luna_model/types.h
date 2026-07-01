@@ -512,6 +512,9 @@ typedef struct {
     LmExpr *(*expr_default)(void);
     LmStatus (*expr_new)(const LmEnv*, LmExpr**);
     LmStatus (*expr_new_constant)(const LmEnv*, double, LmExpr**);
+    LmStatus (*expr_from_linear)(const LmLinearTerm*, LmExpr**);
+    LmStatus (*expr_from_quadratic)(const LmQuadraticTerm*, LmExpr**);
+    LmStatus (*expr_from_higher_order)(const LmHigherOrderTerm*, LmExpr**);
     LmStatus (*expr_clone)(const LmExpr*, LmExpr**);
     LmStatus (*expr_deep_clone)(const LmExpr*, const LmEnv*, LmExpr**);
     LmStatus (*expr_serialize)(const LmExpr*, LmBuffer*);
