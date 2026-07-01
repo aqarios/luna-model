@@ -153,6 +153,20 @@ typedef enum {
 } LmSense;
 
 /**
+ * Discriminant for `LmBound`.
+ */
+typedef enum {
+    /**
+     * A finite inclusive bound value.
+     */
+    LmBoundTag_Bounded = 0,
+    /**
+     * No bound on this side of the interval.
+     */
+    LmBoundTag_Unbounded = 1,
+} LmBoundTag;
+
+/**
  * An owned, heap-allocated byte buffer the caller takes ownership of.
  *
  * Buffers returned by LunaModel (e.g. from `lm_model_serialize`) must be released
@@ -401,6 +415,20 @@ typedef struct {
 } LmVar;
 
 /**
+ * Bound used by the C API.
+ *
+ * One side of a variable bound interval.
+ *
+ * This is the C-ABI-stable mirror of LunaModel's Rust `Bound` enum.
+ * `tag == LmBoundTag_Bounded` means `value` contains the finite inclusive
+ * bound value. `tag == LmBoundTag_Unbounded` means `value` is ignored.
+ */
+typedef struct {
+    LmBoundTag tag;
+    double value;
+} LmBound;
+
+/**
  * Stable, versioned table of LunaModel C API entry points.
  *
  * Consumers obtaining this via the capsule must check [`Self::abi_version`]
@@ -568,6 +596,16 @@ typedef struct {
     LmStatus (*specs_max_num_variables)(const LmSpecs*, uintptr_t*);
     LmStatus (*specs_satisfies)(const LmSpecs*, const LmSpecs*, bool*);
     LmStatus (*specs_clone)(const LmSpecs*, LmSpecs**);
+    void (*bounds_free)(LmBounds*);
+    LmStatus (*bounds_new)(LmBound, LmBound, LmBounds**);
+    LmStatus (*bounds_binary)(LmBounds**);
+    LmStatus (*bounds_spin)(LmBounds**);
+    LmStatus (*bounds_integer)(LmBounds**);
+    LmStatus (*bounds_real)(LmBounds**);
+    LmStatus (*bounds_default_for)(LmVtype, LmBounds**);
+    LmStatus (*bounds_clone)(const LmBounds*, LmBounds**);
+    LmStatus (*bounds_lower)(const LmBounds*, LmBound**);
+    LmStatus (*bounds_upper)(const LmBounds*, LmBound**);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

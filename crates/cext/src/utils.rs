@@ -1,6 +1,6 @@
-use luna_model::types::{Comparator, Ctype, Sense, Vtype};
+use luna_model::types::{Bound, Comparator, Ctype, Sense, Vtype};
 
-use crate::{LmComparator, LmCtype, LmSense, LmVtype};
+use crate::{LmBound, LmBoundTag, LmComparator, LmCtype, LmSense, LmVtype};
 
 pub fn sense_from_c(sense: LmSense) -> Sense {
     match sense {
@@ -69,5 +69,25 @@ pub fn cmp_from_c(cmp: LmComparator) -> Comparator {
         LmComparator::Eq => Comparator::Eq,
         LmComparator::Le => Comparator::Le,
         LmComparator::Ge => Comparator::Ge,
+    }
+}
+
+pub fn bound_from_c(bound: LmBound) -> Bound {
+    match bound.tag {
+        LmBoundTag::Unbounded => Bound::Unbounded,
+        LmBoundTag::Bounded => Bound::Bounded(bound.value),
+    }
+}
+
+pub fn bound_to_c(bound: Bound) -> LmBound {
+    match bound {
+        Bound::Unbounded => LmBound {
+            tag: LmBoundTag::Unbounded,
+            value: 0.0,
+        },
+        Bound::Bounded(val) => LmBound {
+            tag: LmBoundTag::Bounded,
+            value: val,
+        },
     }
 }

@@ -194,6 +194,16 @@ static inline int import_luna_model(void) {
 #define lm_specs_max_num_variables(...) (lunamodel__vtable->specs_max_num_variables(__VA_ARGS__))
 #define lm_specs_satisfies(...) (lunamodel__vtable->specs_satisfies(__VA_ARGS__))
 #define lm_specs_clone(...) (lunamodel__vtable->specs_clone(__VA_ARGS__))
+#define lm_bounds_free(...) (lunamodel__vtable->bounds_free(__VA_ARGS__))
+#define lm_bounds_new(...) (lunamodel__vtable->bounds_new(__VA_ARGS__))
+#define lm_bounds_binary(...) (lunamodel__vtable->bounds_binary(__VA_ARGS__))
+#define lm_bounds_spin(...) (lunamodel__vtable->bounds_spin(__VA_ARGS__))
+#define lm_bounds_integer(...) (lunamodel__vtable->bounds_integer(__VA_ARGS__))
+#define lm_bounds_real(...) (lunamodel__vtable->bounds_real(__VA_ARGS__))
+#define lm_bounds_default_for(...) (lunamodel__vtable->bounds_default_for(__VA_ARGS__))
+#define lm_bounds_clone(...) (lunamodel__vtable->bounds_clone(__VA_ARGS__))
+#define lm_bounds_lower(...) (lunamodel__vtable->bounds_lower(__VA_ARGS__))
+#define lm_bounds_upper(...) (lunamodel__vtable->bounds_upper(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */

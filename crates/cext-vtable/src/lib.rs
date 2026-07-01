@@ -616,4 +616,17 @@ pub struct LunaModelCApi {
     pub specs_satisfies:
         unsafe extern "C" fn(*const LmSpecs, *const LmSpecs, *mut bool) -> LmStatus,
     pub specs_clone: unsafe extern "C" fn(*const LmSpecs, *mut *mut LmSpecs) -> LmStatus,
+    // ////// //
+    // Bounds //
+    // ////// //
+    pub bounds_free: unsafe extern "C" fn(*mut LmBounds),
+    pub bounds_new: unsafe extern "C" fn(LmBound, LmBound, *mut *mut LmBounds) -> LmStatus,
+    pub bounds_binary: unsafe extern "C" fn(*mut *mut LmBounds) -> LmStatus,
+    pub bounds_spin: unsafe extern "C" fn(*mut *mut LmBounds) -> LmStatus,
+    pub bounds_integer: unsafe extern "C" fn(*mut *mut LmBounds) -> LmStatus,
+    pub bounds_real: unsafe extern "C" fn(*mut *mut LmBounds) -> LmStatus,
+    pub bounds_default_for: unsafe extern "C" fn(LmVtype, *mut *mut LmBounds) -> LmStatus,
+    pub bounds_clone: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBounds) -> LmStatus,
+    pub bounds_lower: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBound) -> LmStatus,
+    pub bounds_upper: unsafe extern "C" fn(*const LmBounds, *mut *mut LmBound) -> LmStatus,
 }

@@ -210,4 +210,20 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     specs_max_degree: crate::specs::lm_specs_max_degree,
     specs_max_constraint_degree: crate::specs::lm_specs_max_constraint_degree,
     specs_max_num_variables: crate::specs::lm_specs_max_num_variables,
+    // ////// //
+    // Bounds //
+    // ////// //
+    bounds_free: crate::bounds::lm_bounds_free,
+    // Bounds -- creation
+    bounds_new: crate::bounds::lm_bounds_new,
+    bounds_binary: crate::bounds::lm_bounds_binary,
+    bounds_spin: crate::bounds::lm_bounds_spin,
+    bounds_integer: crate::bounds::lm_bounds_integer,
+    bounds_real: crate::bounds::lm_bounds_real,
+    bounds_default_for: crate::bounds::lm_bounds_default_for,
+    // Bounds -- general
+    bounds_clone: crate::bounds::lm_bounds_clone,
+    // Bounds -- access
+    bounds_lower: crate::bounds::lm_bounds_lower,
+    bounds_upper: crate::bounds::lm_bounds_upper,
 };

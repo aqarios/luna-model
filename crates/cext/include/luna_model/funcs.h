@@ -1463,6 +1463,91 @@ LmStatus lm_vref_eq(const LmVref *vref, const LmVref *other, bool *out);
  */
 LmStatus lm_vref_to_var(const LmVref *vref, LmVar **out);
 
+/**
+ * Returns a copy of the bounds' lower bound.
+ *
+ * # Safety
+ * `bounds` must be a valid bounds handle created by this library.
+ * `out` must point to writable `LmBound` storage.
+ */
+LmStatus lm_bounds_lower(const LmBounds *bounds, LmBound **out);
+
+/**
+ * Returns a copy of the bounds' upper bound.
+ *
+ * # Safety
+ * `bounds` must be a valid bounds handle created by this library.
+ * `out` must point to writable `LmBound` storage.
+ */
+LmStatus lm_bounds_upper(const LmBounds *bounds, LmBound **out);
+
+/**
+ * Frees a bounds handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `bounds` must originate from this library and must not be used or freed again.
+ */
+void lm_bounds_free(LmBounds *bounds);
+
+/**
+ * Creates a new bounds.
+ *
+ * # Safety
+ * `lower`  must be a valid bound handle created by this library.
+ * `upper`  must be a valid bound handle created by this library.
+ * `out`  must point to writable `LmBounds` storage.
+ */
+LmStatus lm_bounds_new(LmBound lower, LmBound upper, LmBounds **out);
+
+/**
+ * Creates new binary bounds.
+ *
+ * # Safety
+ * `out`  must point to writable `LmBounds` storage.
+ */
+LmStatus lm_bounds_binary(LmBounds **out);
+
+/**
+ * Creates new spin bounds.
+ *
+ * # Safety
+ * `out`  must point to writable `LmBounds` storage.
+ */
+LmStatus lm_bounds_spin(LmBounds **out);
+
+/**
+ * Creates new integer bounds.
+ *
+ * # Safety
+ * `out`  must point to writable `LmBounds` storage.
+ */
+LmStatus lm_bounds_integer(LmBounds **out);
+
+/**
+ * Creates new real bounds.
+ *
+ * # Safety
+ * `out`  must point to writable `LmBounds` storage.
+ */
+LmStatus lm_bounds_real(LmBounds **out);
+
+/**
+ * Creates new bounds for the specified vtype.
+ *
+ * # Safety
+ * `vtype` the vtype to generate the bounds for.
+ * `out`   must point to writable `LmBounds` storage.
+ */
+LmStatus lm_bounds_default_for(LmVtype vtype, LmBounds **out);
+
+/**
+ * Clones a bounds into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `bounds` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_bounds_clone(const LmBounds *bounds, LmBounds **out);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus
