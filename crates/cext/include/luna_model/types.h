@@ -764,6 +764,20 @@ typedef struct {
     LmStatus (*linear_set_bias)(LmLinear*, uint32_t, double);
     LmStatus (*linear_eq)(const LmLinear*, const LmLinear*, bool*);
     LmStatus (*linear_neg)(const LmLinear*, LmLinear**);
+    void (*quadratic_free)(LmQuadratic*);
+    LmQuadratic *(*quadratic_default)(void);
+    LmStatus (*quadratic_clone)(const LmQuadratic*, LmQuadratic**);
+    LmStatus (*quadratic_len)(const LmQuadratic*, uintptr_t*);
+    LmStatus (*quadratic_is_zero)(const LmQuadratic*, bool*);
+    LmStatus (*quadratic_is_empty)(const LmQuadratic*, bool*);
+    LmStatus (*quadratic_items)(const LmQuadratic*, LmQuadraticItemBuffer*);
+    LmStatus (*quadratic_add_entry)(LmQuadratic*, uint32_t, uint32_t, double);
+    LmStatus (*quadratic_add_quadratic)(LmQuadratic*, const LmQuadratic*);
+    LmStatus (*quadratic_mul_bias)(LmQuadratic*, double);
+    LmStatus (*quadratic_index)(const LmQuadratic*, uint32_t, uint32_t, double*);
+    LmStatus (*quadratic_set_bias)(LmQuadratic*, uint32_t, uint32_t, double);
+    LmStatus (*quadratic_eq)(const LmQuadratic*, const LmQuadratic*, bool*);
+    LmStatus (*quadratic_neg)(const LmQuadratic*, LmQuadratic**);
 } LunaModelCApi;
 
 #endif  /* LUNA_MODEL_TYPES_H */

@@ -36,7 +36,7 @@ pub mod constr;
 pub mod env;
 pub mod error;
 pub mod expr;
-pub mod higher_order;
+// pub mod higher_order;
 pub mod linear;
 pub mod model;
 pub mod quadratic;

@@ -1440,6 +1440,130 @@ LmStatus lm_model_set_objective(LmModel *model, const LmExpr *expr);
 LmStatus lm_model_set_constraints(LmModel *model, const LmCC *cc);
 
 /**
+ * Returns the len of the quadratic term.
+ *
+ * # Safety
+ * `quadratic` must be a valid quadratic handle created by this library.
+ * `out` must point to writable `usize` storage.
+ */
+LmStatus lm_quadratic_len(const LmQuadratic *quadratic, uintptr_t *out);
+
+/**
+ * Returns if the quadratic term is zero.
+ *
+ * # Safety
+ * `quadratic` must be a valid quadratic handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_quadratic_is_zero(const LmQuadratic *quadratic, bool *out);
+
+/**
+ * Returns if the quadratic term is empty.
+ *
+ * # Safety
+ * `quadratic` must be a valid quadratic handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_quadratic_is_empty(const LmQuadratic *quadratic, bool *out);
+
+/**
+ * Returns the quadratic term items.
+ *
+ * The returned array is owned by the caller and must be released with [`lm_quadratic_item_buffer_free`].
+ *
+ * # Safety
+ * `quadratic` must be a valid quadratic handle created by this library.
+ * `out` must point to writable `LmQuadraticItemBuffer` storage.
+ */
+LmStatus lm_quadratic_items(const LmQuadratic *quadratic,
+                            LmQuadraticItemBuffer *out);
+
+/**
+ * Returns the bias in the quadratic term for the var idx.
+ *
+ * # Safety
+ * `quadratic` must be a valid quadratic handle created by this library.
+ * `out` must point to writable `f64` storage.
+ */
+LmStatus lm_quadratic_index(const LmQuadratic *quadratic, uint32_t u, uint32_t v, double *out);
+
+/**
+ * Frees a quadratic handle. Passing null is a no-op.
+ *
+ * # Safety
+ * `quadratic` must originate from this library and must not be used or freed again.
+ */
+void lm_quadratic_free(LmQuadratic *quadratic);
+
+/**
+ * Creates a new empty quadratic term.
+ *
+ * Returns a non-null handle that must be released with [`lm_quadratic_free`].
+ */
+LmQuadratic *lm_quadratic_default(void);
+
+/**
+ * Compares two quadratic terms for equality.
+ *
+ * # Safety
+ * `quadratic` must be a valid quadratic handle created by this library.
+ * `other` must be a valid quadratic handle created by this library.
+ * `out` must point to writable `bool` storage.
+ */
+LmStatus lm_quadratic_eq(const LmQuadratic *quadratic, const LmQuadratic *other, bool *out);
+
+/**
+ * Clones a quadratic term into a new, independent handle written to `out`.
+ *
+ * # Safety
+ * `quadratic` must be a valid handle and `out` must point to writable storage.
+ */
+LmStatus lm_quadratic_clone(const LmQuadratic *quadratic, LmQuadratic **out);
+
+/**
+ * Add a new entry with it's bias to the quadratic term.
+ *
+ * # Safety
+ * `quadratic` must be a valid mutable quadratic handle created by this library.
+ */
+LmStatus lm_quadratic_add_entry(LmQuadratic *quadratic, uint32_t u, uint32_t v, double bias);
+
+/**
+ * Add another quadratic term to this quadratic term.
+ *
+ * # Safety
+ * `quadratic` must be a valid mutable quadratic handle created by this library.
+ * `other` must be a valid quadratic handle created by this library.
+ */
+LmStatus lm_quadratic_add_quadratic(LmQuadratic *quadratic, const LmQuadratic *other);
+
+/**
+ * Mul this quadratic term with some value.
+ *
+ * # Safety
+ * `quadratic` must be a valid mutable quadratic handle created by this library.
+ * `bias` must be a valid f64.
+ */
+LmStatus lm_quadratic_mul_bias(LmQuadratic *quadratic, double bias);
+
+/**
+ * Negate this quadratic term and writing the result to a new quadratic handle.
+ *
+ * # Safety
+ * `quadratic` must be a valid mutable quadratic handle created by this library.
+ * `out` must point to writable `LmQuadratic` storage.
+ */
+LmStatus lm_quadratic_neg(const LmQuadratic *quadratic, LmQuadratic **out);
+
+/**
+ * Set bias for a specific index of the quadratic term.
+ *
+ * # Safety
+ * `quadratic` must be a valid mutable quadratic handle created by this library.
+ */
+LmStatus lm_quadratic_set_bias(LmQuadratic *quadratic, uint32_t u, uint32_t v, double bias);
+
+/**
  * Deserializes a solution from `len` bytes at `data`, writing a new handle to `out`.
  *
  * The new handle must be released with [`lm_sol_free`].

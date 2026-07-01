@@ -198,7 +198,16 @@ impl Neg for Quadratic {
 
     /// Negates every stored quadratic bias.
     fn neg(self) -> Self::Output {
-        Self {
+        (&self).neg()
+    }
+}
+
+impl Neg for &Quadratic {
+    type Output = Quadratic;
+
+    /// Negates every stored quadratic bias.
+    fn neg(self) -> Self::Output {
+        Quadratic {
             adj: self
                 .adj
                 .iter()

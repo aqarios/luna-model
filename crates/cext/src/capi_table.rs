@@ -252,9 +252,30 @@ pub static LUNA_MODEL_C_API: LunaModelCApi = LunaModelCApi {
     linear_items: crate::linear::lm_linear_items,
     linear_index: crate::linear::lm_linear_index,
     // Linear -- modificattion
-    linear_add_entry:crate::linear::lm_linear_add_entry,
+    linear_add_entry: crate::linear::lm_linear_add_entry,
     linear_add_linear: crate::linear::lm_linear_add_linear,
     linear_mul_bias: crate::linear::lm_linear_mul_bias,
     linear_set_bias: crate::linear::lm_linear_set_bias,
     linear_neg: crate::linear::lm_linear_neg,
+    // ///////// //
+    // Quadratic //
+    // ///////// //
+    quadratic_free: crate::quadratic::lm_quadratic_free,
+    // Quadratic -- creation
+    quadratic_default: crate::quadratic::lm_quadratic_default,
+    // Quadratic -- general
+    quadratic_clone: crate::quadratic::lm_quadratic_clone,
+    quadratic_eq: crate::quadratic::lm_quadratic_eq,
+    // Quadratic -- access
+    quadratic_len: crate::quadratic::lm_quadratic_len,
+    quadratic_is_zero: crate::quadratic::lm_quadratic_is_zero,
+    quadratic_is_empty: crate::quadratic::lm_quadratic_is_empty,
+    quadratic_items: crate::quadratic::lm_quadratic_items,
+    quadratic_index: crate::quadratic::lm_quadratic_index,
+    // Quadratic -- modificattion
+    quadratic_add_entry: crate::quadratic::lm_quadratic_add_entry,
+    quadratic_add_quadratic: crate::quadratic::lm_quadratic_add_quadratic,
+    quadratic_mul_bias: crate::quadratic::lm_quadratic_mul_bias,
+    quadratic_set_bias: crate::quadratic::lm_quadratic_set_bias,
+    quadratic_neg: crate::quadratic::lm_quadratic_neg,
 };

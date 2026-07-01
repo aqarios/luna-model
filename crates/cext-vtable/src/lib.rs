@@ -745,4 +745,25 @@ pub struct LunaModelCApi {
     pub linear_set_bias: unsafe extern "C" fn(*mut LmLinear, u32, f64) -> LmStatus,
     pub linear_eq: unsafe extern "C" fn(*const LmLinear, *const LmLinear, *mut bool) -> LmStatus,
     pub linear_neg: unsafe extern "C" fn(*const LmLinear, *mut *mut LmLinear) -> LmStatus,
+    // ///////// //
+    // Quadratic //
+    // ///////// //
+    pub quadratic_free: unsafe extern "C" fn(*mut LmQuadratic),
+    pub quadratic_default: extern "C" fn() -> *mut LmQuadratic,
+    pub quadratic_clone:
+        unsafe extern "C" fn(*const LmQuadratic, *mut *mut LmQuadratic) -> LmStatus,
+    pub quadratic_len: unsafe extern "C" fn(*const LmQuadratic, *mut usize) -> LmStatus,
+    pub quadratic_is_zero: unsafe extern "C" fn(*const LmQuadratic, *mut bool) -> LmStatus,
+    pub quadratic_is_empty: unsafe extern "C" fn(*const LmQuadratic, *mut bool) -> LmStatus,
+    pub quadratic_items:
+        unsafe extern "C" fn(*const LmQuadratic, *mut LmQuadraticItemBuffer) -> LmStatus,
+    pub quadratic_add_entry: unsafe extern "C" fn(*mut LmQuadratic, u32, u32, f64) -> LmStatus,
+    pub quadratic_add_quadratic:
+        unsafe extern "C" fn(*mut LmQuadratic, *const LmQuadratic) -> LmStatus,
+    pub quadratic_mul_bias: unsafe extern "C" fn(*mut LmQuadratic, f64) -> LmStatus,
+    pub quadratic_index: unsafe extern "C" fn(*const LmQuadratic, u32, u32, *mut f64) -> LmStatus,
+    pub quadratic_set_bias: unsafe extern "C" fn(*mut LmQuadratic, u32, u32, f64) -> LmStatus,
+    pub quadratic_eq:
+        unsafe extern "C" fn(*const LmQuadratic, *const LmQuadratic, *mut bool) -> LmStatus,
+    pub quadratic_neg: unsafe extern "C" fn(*const LmQuadratic, *mut *mut LmQuadratic) -> LmStatus,
 }

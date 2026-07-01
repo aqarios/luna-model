@@ -228,6 +228,20 @@ static inline int import_luna_model(void) {
 #define lm_linear_set_bias(...) (lunamodel__vtable->linear_set_bias(__VA_ARGS__))
 #define lm_linear_eq(...) (lunamodel__vtable->linear_eq(__VA_ARGS__))
 #define lm_linear_neg(...) (lunamodel__vtable->linear_neg(__VA_ARGS__))
+#define lm_quadratic_free(...) (lunamodel__vtable->quadratic_free(__VA_ARGS__))
+#define lm_quadratic_default(...) (lunamodel__vtable->quadratic_default(__VA_ARGS__))
+#define lm_quadratic_clone(...) (lunamodel__vtable->quadratic_clone(__VA_ARGS__))
+#define lm_quadratic_len(...) (lunamodel__vtable->quadratic_len(__VA_ARGS__))
+#define lm_quadratic_is_zero(...) (lunamodel__vtable->quadratic_is_zero(__VA_ARGS__))
+#define lm_quadratic_is_empty(...) (lunamodel__vtable->quadratic_is_empty(__VA_ARGS__))
+#define lm_quadratic_items(...) (lunamodel__vtable->quadratic_items(__VA_ARGS__))
+#define lm_quadratic_add_entry(...) (lunamodel__vtable->quadratic_add_entry(__VA_ARGS__))
+#define lm_quadratic_add_quadratic(...) (lunamodel__vtable->quadratic_add_quadratic(__VA_ARGS__))
+#define lm_quadratic_mul_bias(...) (lunamodel__vtable->quadratic_mul_bias(__VA_ARGS__))
+#define lm_quadratic_index(...) (lunamodel__vtable->quadratic_index(__VA_ARGS__))
+#define lm_quadratic_set_bias(...) (lunamodel__vtable->quadratic_set_bias(__VA_ARGS__))
+#define lm_quadratic_eq(...) (lunamodel__vtable->quadratic_eq(__VA_ARGS__))
+#define lm_quadratic_neg(...) (lunamodel__vtable->quadratic_neg(__VA_ARGS__))
 
 #ifdef __cplusplus
 } /* extern "C" */
